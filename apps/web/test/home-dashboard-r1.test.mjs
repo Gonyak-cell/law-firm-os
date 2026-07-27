@@ -1208,9 +1208,26 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
     }
-    assert.match(await page.locator('[data-dashboard-section="client-summary"]').innerText(), /신규 고객[\s\S]*잠재고객/);
+    const homeClientCard = page.locator('[data-dashboard-section="client-summary"]');
+    const homeClientTabs = homeClientCard.getByRole("tablist", { name: "Client 항목" });
+    assert.equal(await homeClientTabs.getByRole("tab", { name: "신규 고객", exact: true }).getAttribute("aria-selected"), "true");
+    assert.equal(await homeClientTabs.getByRole("tab", { name: "잠재고객", exact: true }).getAttribute("aria-selected"), "false");
+    assert.equal(await homeClientCard.locator('[role="tabpanel"][aria-label="신규 고객"] .dashboard-record-row').count(), 1);
+    assert.equal(await homeClientCard.getByRole("button", { name: "신규 고객 상세 보기" }).count(), 1);
+    await homeClientTabs.getByRole("tab", { name: "잠재고객", exact: true }).click();
+    assert.equal(await homeClientTabs.getByRole("tab", { name: "잠재고객", exact: true }).getAttribute("aria-selected"), "true");
+    assert.equal(await homeClientCard.locator('[role="tabpanel"][aria-label="잠재고객"] .dashboard-record-row').count(), 2);
+    assert.equal(await homeClientCard.getByRole("button", { name: "잠재고객 상세 보기" }).count(), 1);
     assert.match(await page.locator('[data-dashboard-section="people-summary"]').innerText(), /휴가 신청/);
-    assert.match(await page.locator('[data-dashboard-section="matter-summary"]').innerText(), /신규 매터[\s\S]*종결된 매터/);
+    assert.equal(await page.locator('[data-dashboard-section="people-summary"] [role="tablist"]').count(), 0, "People must not add a decorative one-item tab list");
+    const homeMatterCard = page.locator('[data-dashboard-section="matter-summary"]');
+    const homeMatterTabs = homeMatterCard.getByRole("tablist", { name: "Matter 항목" });
+    assert.equal(await homeMatterTabs.getByRole("tab", { name: "신규 매터", exact: true }).getAttribute("aria-selected"), "true");
+    assert.equal(await homeMatterCard.locator('[role="tabpanel"][aria-label="신규 매터"] .dashboard-record-row').count(), 1);
+    await homeMatterTabs.getByRole("tab", { name: "종결된 매터", exact: true }).click();
+    assert.equal(await homeMatterTabs.getByRole("tab", { name: "종결된 매터", exact: true }).getAttribute("aria-selected"), "true");
+    assert.equal(await homeMatterCard.locator('[role="tabpanel"][aria-label="종결된 매터"] .dashboard-record-row').count(), 1);
+    assert.equal(await homeMatterCard.getByRole("button", { name: "종결된 매터 상세 보기" }).count(), 1);
     assert.doesNotMatch(await dashboardGrid.innerText(), /서지원|김양태|@amic\.kr/);
     assert.deepEqual(await compactRecordLayoutFailures(page), [], "Home compact records must keep primary and secondary text on one line");
     assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Home panel metadata must remain on the title line");
@@ -1218,7 +1235,10 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
       const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
       const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
-      const domains = [...document.querySelectorAll(".home-dashboard-domain-card")].map((node) => node.getBoundingClientRect());
+      const client = document.querySelector(".home-dashboard-client-card").getBoundingClientRect();
+      const calendar = document.querySelector(".home-dashboard-calendar-card").getBoundingClientRect();
+      const matter = document.querySelector(".home-dashboard-matter-card").getBoundingClientRect();
+      const people = document.querySelector(".home-dashboard-people-card").getBoundingClientRect();
       const grid = getComputedStyle(document.querySelector(".home-dashboard-overview-grid"));
       return {
         columns: grid.gridTemplateColumns.split(" ").length,
@@ -1227,26 +1247,54 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
         chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
         payrollRight: payroll.left > revenue.left,
         revenueWider: revenue.width > payroll.width,
-        domainsSameRow: domains.every((rect) => Math.abs(rect.top - domains[0].top) < 2),
-        calendarRight: domains.at(-1).left > domains[0].left
+        calendarBelowPayroll: calendar.top > payroll.bottom,
+        calendarAlignedWithPayroll: Math.abs(calendar.left - payroll.left) < 2 && Math.abs(calendar.width - payroll.width) < 2,
+        clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.left - revenue.left) < 2 && Math.abs(client.width - revenue.width) < 2,
+        matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(matter.left - revenue.left) < 2 && Math.abs(people.left - payroll.left) < 2
       };
     });
-    assert.deepEqual(dashboardLayout, { columns: 12, kpisSameRow: true, kpisEqualWidth: true, chartsSameRow: true, payrollRight: true, revenueWider: true, domainsSameRow: true, calendarRight: true });
+    assert.deepEqual(dashboardLayout, {
+      columns: 12,
+      kpisSameRow: true,
+      kpisEqualWidth: true,
+      chartsSameRow: true,
+      payrollRight: true,
+      revenueWider: true,
+      calendarBelowPayroll: true,
+      calendarAlignedWithPayroll: true,
+      clientBesideCalendar: true,
+      matterBesidePeople: true
+    });
     await page.setViewportSize({ width: 1024, height: 768 });
     const tabletLayout = await page.evaluate(() => {
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
       const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
       const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
-      const domains = [...document.querySelectorAll(".home-dashboard-domain-card")].map((node) => node.getBoundingClientRect());
+      const client = document.querySelector(".home-dashboard-client-card").getBoundingClientRect();
+      const calendar = document.querySelector(".home-dashboard-calendar-card").getBoundingClientRect();
+      const matter = document.querySelector(".home-dashboard-matter-card").getBoundingClientRect();
+      const people = document.querySelector(".home-dashboard-people-card").getBoundingClientRect();
       return {
         kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
         chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
         payrollRight: payroll.left > revenue.left,
         revenueWider: revenue.width > payroll.width,
-        domainsTwoColumns: Math.abs(domains[0].top - domains[1].top) < 2 && domains[2].top > domains[0].bottom
+        calendarBelowPayroll: calendar.top > payroll.bottom,
+        calendarAlignedWithPayroll: Math.abs(calendar.left - payroll.left) < 2 && Math.abs(calendar.width - payroll.width) < 2,
+        clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.width - revenue.width) < 2,
+        matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(people.width - payroll.width) < 2
       };
     });
-    assert.deepEqual(tabletLayout, { kpisSameRow: true, chartsSameRow: true, payrollRight: true, revenueWider: true, domainsTwoColumns: true });
+    assert.deepEqual(tabletLayout, {
+      kpisSameRow: true,
+      chartsSameRow: true,
+      payrollRight: true,
+      revenueWider: true,
+      calendarBelowPayroll: true,
+      calendarAlignedWithPayroll: true,
+      clientBesideCalendar: true,
+      matterBesidePeople: true
+    });
     await page.setViewportSize({ width: 821, height: 768 });
     const compactCards = await page.locator(".home-dashboard-overview-grid > .home-dashboard-card").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
     assert.equal(compactCards.every((rect, index) => index === 0 || rect.top > compactCards[index - 1].top), true);
@@ -1492,7 +1540,7 @@ test("Home dashboard preserves a source error without hiding independent cards",
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.match(await page.locator('[data-dashboard-section="matter-summary"]').innerText(), /Matter 요약을 불러오지 못했습니다/);
+    assert.match(await page.locator('[data-dashboard-section="matter-summary"]').innerText(), /신규 매터 목록을 불러오지 못했습니다/);
     assert.equal(await page.locator('[data-dashboard-section="client-summary"] .dashboard-record-row').count() > 0, true);
     assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
   } finally {

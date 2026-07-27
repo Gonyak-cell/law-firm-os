@@ -57,6 +57,14 @@ const feedTabs = Object.freeze([
   { id: "notice", labelKey: "homeFeedNotice", label: "공지사항", emptyKey: "homeFeedNoticeEmpty", empty: "표시할 공지가 없습니다." },
   { id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터", emptyKey: "homeFeedNewsletterEmpty", empty: "새 뉴스레터가 없습니다." }
 ]);
+const clientDashboardTabs = Object.freeze([
+  { id: "new", label: "신규 고객" },
+  { id: "prospects", label: "잠재고객" }
+]);
+const matterDashboardTabs = Object.freeze([
+  { id: "new", label: "신규 매터" },
+  { id: "closed", label: "종결된 매터" }
+]);
 const messageTabs = Object.freeze([
   { id: "send", section: "messages-send", labelKey: "messageTabSend", label: "전송" },
   { id: "automation", section: "messages-automation", labelKey: "messageTabAutomation", label: "자동화" },
@@ -905,6 +913,8 @@ export function HomeSurface({
   const [homeOnboardingDismissed, setHomeOnboardingDismissed] = useState(readHomeOnboardingDismissed);
   const [sessionProfile, setSessionProfile] = useState({ profileUser: null, desktopStatus: null });
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => new Date());
+  const [clientDashboardTab, setClientDashboardTab] = useState("new");
+  const [matterDashboardTab, setMatterDashboardTab] = useState("new");
   const [feedTab, setFeedTab] = useState("notice");
   const [messageTab, setMessageTab] = useState(initialHomeContext.messageTab);
   const [requestTab, setRequestTab] = useState(initialHomeContext.requestTab);
@@ -1687,6 +1697,15 @@ export function HomeSurface({
     const revenueChartState = financeDashboard.state === "data" && !financeDashboard.has_series_data ? "empty" : financeDashboard.state;
     const payrollCurrentState = payrollState === "data" && !payrollSummary ? "empty" : payrollState;
     const payrollChartState = payrollCurrentState === "data" && Number(payrollSummary?.gross_krw ?? 0) <= 0 ? "empty" : payrollCurrentState;
+    const selectedClientItems = clientDashboardTab === "new" ? clientDashboard.new_clients : clientDashboard.prospects;
+    const selectedClientSourceState = clientDashboardTab === "new" ? clientDashboard.new_client_state : clientDashboard.prospect_state;
+    const selectedClientState = selectedClientSourceState === "data" && selectedClientItems.length === 0 ? "empty" : selectedClientSourceState;
+    const selectedClientNoun = clientDashboardTab === "new" ? "신규 고객" : "잠재고객";
+    const selectedClientViewAllRoute = clientDashboardTab === "new" ? "clients-list" : "client-opportunities";
+    const selectedMatterItems = matterDashboardTab === "new" ? matterDashboard.new_matters : matterDashboard.closed_matters;
+    const selectedMatterState = matterDashboard.state === "data" && selectedMatterItems.length === 0 ? "empty" : matterDashboard.state;
+    const selectedMatterNoun = matterDashboardTab === "new" ? "신규 매터" : "종결된 매터";
+    const selectedMatterStateNoun = `${selectedMatterNoun} 목록`;
     return (
       <div
         className="home-dashboard-overview-grid"
@@ -1745,34 +1764,42 @@ export function HomeSurface({
           </HomeDashboardState>
         </DashboardCard>
 
+        {renderCalendarCard("home-dashboard-domain-card home-dashboard-calendar-card")}
+
         <DashboardCard
           className="home-dashboard-domain-card home-dashboard-client-card"
           title="Client"
           section="client-summary"
-          onViewAll={() => openHomeRoute("clients-home", "clients", { source: "home_client_summary" })}
-          viewAllLabel="Client 상세 보기"
+          onViewAll={() => openHomeRoute(selectedClientViewAllRoute, "clients", { source: `home_client_${clientDashboardTab}` })}
+          viewAllLabel={`${selectedClientNoun} 상세 보기`}
         >
-          <div className="home-domain-metrics">
-            <HomeSummaryMetric label="신규 고객" value={clientDashboard.new_clients.length} state={clientDashboard.new_client_state} />
-            <HomeSummaryMetric label="잠재고객" value={clientDashboard.prospects.length} state={clientDashboard.prospect_state} />
+          <HomeTabList
+            label="Client 항목"
+            tabs={clientDashboardTabs}
+            activeTab={clientDashboardTab}
+            onSelect={setClientDashboardTab}
+            dataPrefix="home-client-dashboard"
+            variant="underline home-dashboard-domain-tabs"
+          />
+          <div className="home-dashboard-domain-panel" role="tabpanel" aria-label={selectedClientNoun}>
+            <HomeDashboardState state={selectedClientState} noun={selectedClientNoun}>
+              <DashboardRecordList>
+                {selectedClientItems.slice(0, 3).map((item, index) => {
+                  const isAccount = clientDashboardTab === "new";
+                  const route = isAccount ? "clients-list" : item.lead_id ? "client-leads" : "client-opportunities";
+                  return (
+                    <DashboardRecordRow
+                      key={`home-client:${item.account_id ?? item.lead_id ?? item.opportunity_id ?? index}`}
+                      title={dashboardSafeLabel(item.display_name ?? item.subject, `${selectedClientNoun} ${index + 1}`)}
+                      meta={selectedClientNoun}
+                      detail={item.updated_at || item.created_at ? formatDateTime(item.updated_at ?? item.created_at) : null}
+                      onOpen={() => openHomeRoute(route, "clients", { item_id: item.account_id ?? item.lead_id ?? item.opportunity_id, source: `home_client_${clientDashboardTab}` })}
+                    />
+                  );
+                })}
+              </DashboardRecordList>
+            </HomeDashboardState>
           </div>
-          <HomeDashboardState state={clientDashboard.state} noun="Client 요약">
-            <DashboardRecordList>
-              {clientDashboard.recent.map((item, index) => {
-                const isAccount = Boolean(item.account_id && !item.lead_id && !item.opportunity_id);
-                const route = isAccount ? "clients-list" : item.lead_id ? "client-leads" : "client-opportunities";
-                return (
-                  <DashboardRecordRow
-                    key={`home-client:${item.account_id ?? item.lead_id ?? item.opportunity_id ?? index}`}
-                    title={dashboardSafeLabel(item.display_name ?? item.subject, isAccount ? `신규 고객 ${index + 1}` : `잠재고객 ${index + 1}`)}
-                    meta={isAccount ? "신규 고객" : "잠재고객"}
-                    detail={item.updated_at || item.created_at ? formatDateTime(item.updated_at ?? item.created_at) : null}
-                    onOpen={() => openHomeRoute(route, "clients", { item_id: item.account_id ?? item.lead_id ?? item.opportunity_id, source: "home_client_recent" })}
-                  />
-                );
-              })}
-            </DashboardRecordList>
-          </HomeDashboardState>
         </DashboardCard>
 
         <DashboardCard
@@ -1804,30 +1831,34 @@ export function HomeSurface({
           className="home-dashboard-domain-card home-dashboard-matter-card"
           title="Matter"
           section="matter-summary"
-          onViewAll={() => openHomeRoute("matters-list", "matters", { source: "home_matter_summary" })}
-          viewAllLabel="Matter 상세 보기"
+          onViewAll={() => openHomeRoute("matters-list", "matters", { source: `home_matter_${matterDashboardTab}` })}
+          viewAllLabel={`${selectedMatterNoun} 상세 보기`}
         >
-          <div className="home-domain-metrics">
-            <HomeSummaryMetric label="신규 매터" value={matterDashboard.new_matters.length} state={matterDashboard.state} />
-            <HomeSummaryMetric label="종결된 매터" value={matterDashboard.closed_matters.length} state={matterDashboard.state} />
+          <HomeTabList
+            label="Matter 항목"
+            tabs={matterDashboardTabs}
+            activeTab={matterDashboardTab}
+            onSelect={setMatterDashboardTab}
+            dataPrefix="home-matter-dashboard"
+            variant="underline home-dashboard-domain-tabs"
+          />
+          <div className="home-dashboard-domain-panel" role="tabpanel" aria-label={selectedMatterNoun}>
+            <HomeDashboardState state={selectedMatterState} noun={selectedMatterStateNoun}>
+              <DashboardRecordList>
+                {selectedMatterItems.slice(0, 3).map((item, index) => (
+                  <DashboardRecordRow
+                    key={`home-matter:${item.matter_id ?? index}`}
+                    title={dashboardMatterTitle(item, index)}
+                    meta={selectedMatterNoun}
+                    detail={dashboardClientTitle(item)}
+                    status={dashboardRecordStatusLabel(item.status)}
+                    onOpen={() => openHomeRoute("matters-list", "matters", { item_id: item.matter_id, matterId: item.matter_id, source: `home_matter_${matterDashboardTab}` })}
+                  />
+                ))}
+              </DashboardRecordList>
+            </HomeDashboardState>
           </div>
-          <HomeDashboardState state={matterDashboard.state} noun="Matter 요약">
-            <DashboardRecordList>
-              {matterDashboard.recent.map((item, index) => (
-                <DashboardRecordRow
-                  key={`home-matter:${item.matter_id ?? index}`}
-                  title={dashboardMatterTitle(item, index)}
-                  meta={String(item.status).toLowerCase() === "closed" ? "종결된 매터" : "신규 매터"}
-                  detail={dashboardClientTitle(item)}
-                  status={dashboardRecordStatusLabel(item.status)}
-                  onOpen={() => openHomeRoute("matters-list", "matters", { item_id: item.matter_id, matterId: item.matter_id, source: "home_matter_recent" })}
-                />
-              ))}
-            </DashboardRecordList>
-          </HomeDashboardState>
         </DashboardCard>
-
-        {renderCalendarCard("home-dashboard-domain-card home-dashboard-calendar-card")}
       </div>
     );
   }

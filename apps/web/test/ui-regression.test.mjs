@@ -647,10 +647,13 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터"/);
   assert.doesNotMatch(homeSource, /id: "news"/);
   assert.match(stylesSource, /\.home-dashboard-overview-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/);
-  assert.match(stylesSource, /\.home-dashboard-kpi-card\s*\{[^}]*grid-column:\s*span 4/);
-  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*span 7/);
-  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*span 5/);
-  assert.match(stylesSource, /\.home-dashboard-domain-card\s*\{[^}]*grid-column:\s*span 3/);
+  assert.match(stylesSource, /\.home-dashboard-kpi-card\s*\{[^}]*grid-column:\s*span 4;[^}]*grid-row:\s*1/);
+  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*2/);
+  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*2/);
+  assert.match(stylesSource, /\.home-dashboard-client-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*3/);
+  assert.match(stylesSource, /\.home-dashboard-calendar-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*3/);
+  assert.match(stylesSource, /\.home-dashboard-matter-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*4/);
+  assert.match(stylesSource, /\.home-dashboard-people-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*4/);
   for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
   }
@@ -660,8 +663,10 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /activeHomeSection !== "home-dashboard" && \(/);
   assert.match(homeSource, /<HomeRevenueLineChart series=\{financeDashboard\.series\} \/>/);
   assert.match(homeSource, /<HomePayrollDonutChart summary=\{payrollSummary\} \/>/);
-  assert.match(stylesSource, /@media \(max-width:\s*1280px\)[\s\S]*\.home-dashboard-domain-card\s*\{[\s\S]*grid-column:\s*span 6/);
-  assert.match(stylesSource, /@media \(max-width:\s*821px\)[\s\S]*\.home-dashboard-kpi-card,[\s\S]*grid-column:\s*span 12/);
+  assert.match(homeSource, /dataPrefix="home-client-dashboard"[\s\S]*variant="underline home-dashboard-domain-tabs"/);
+  assert.match(homeSource, /dataPrefix="home-matter-dashboard"[\s\S]*variant="underline home-dashboard-domain-tabs"/);
+  assert.match(stylesSource, /\.home-section-tabs\.underline\.home-dashboard-domain-tabs\s*\{[^}]*border-bottom:\s*1px solid var\(--am-border-soft\)/);
+  assert.match(stylesSource, /@media \(max-width:\s*821px\)[\s\S]*\.home-dashboard-kpi-card,[\s\S]*grid-column:\s*1\s*\/\s*-1;[\s\S]*grid-row:\s*auto/);
   assert.match(dashboardListSource, /className="home-dashboard-card-body">\{children\}/);
   assert.match(homeSource, /function DashboardCard[\s\S]*className="home-dashboard-card-body">\{children\}/);
   assert.match(stylesSource, /\.home-dashboard-card\s*\{[^}]*gap:\s*0;[^}]*padding:\s*0;[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid var\(--am-border\);[^}]*border-radius:\s*var\(--am-radius-sm\);[^}]*background:\s*var\(--am-surface\);/);

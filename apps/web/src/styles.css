@@ -1808,6 +1808,7 @@ kbd {
 .home-dashboard-kpi-card {
   min-height: 138px;
   grid-column: span 4;
+  grid-row: 1;
 }
 
 .home-dashboard-kpi-card .home-dashboard-card-body {
@@ -1855,17 +1856,38 @@ kbd {
 
 .home-dashboard-revenue-chart-card {
   min-height: 316px;
-  grid-column: span 7;
+  grid-column: 1 / span 7;
+  grid-row: 2;
 }
 
 .home-dashboard-payroll-chart-card {
   min-height: 316px;
-  grid-column: span 5;
+  grid-column: 8 / span 5;
+  grid-row: 2;
 }
 
 .home-dashboard-domain-card {
   min-height: 300px;
-  grid-column: span 3;
+}
+
+.home-dashboard-client-card {
+  grid-column: 1 / span 7;
+  grid-row: 3;
+}
+
+.home-dashboard-calendar-card {
+  grid-column: 8 / span 5;
+  grid-row: 3;
+}
+
+.home-dashboard-matter-card {
+  grid-column: 1 / span 7;
+  grid-row: 4;
+}
+
+.home-dashboard-people-card {
+  grid-column: 8 / span 5;
+  grid-row: 4;
 }
 
 .home-dashboard-focused-route {
@@ -2106,6 +2128,26 @@ kbd {
   padding-block: 12px 8px;
 }
 
+.home-section-tabs.underline.home-dashboard-domain-tabs {
+  flex: 0 0 auto;
+  gap: 18px;
+  margin: -4px 0 10px;
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.home-section-tabs.underline.home-dashboard-domain-tabs button {
+  min-height: 32px;
+  padding-bottom: 7px;
+  font-size: 13px;
+}
+
+.home-dashboard-domain-panel {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .home-dashboard-domain-card .dashboard-record-list {
   overflow: hidden;
 }
@@ -2137,18 +2179,13 @@ kbd {
   display: none;
 }
 
-@media (max-width: 1280px) {
-  .home-dashboard-domain-card {
-    grid-column: span 6;
-  }
-}
-
 @media (max-width: 821px) {
   .home-dashboard-kpi-card,
   .home-dashboard-revenue-chart-card,
   .home-dashboard-payroll-chart-card,
   .home-dashboard-domain-card {
-    grid-column: span 12;
+    grid-column: 1 / -1;
+    grid-row: auto;
   }
 
   .home-dashboard-kpi-value > strong {
