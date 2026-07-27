@@ -8335,7 +8335,7 @@ html[data-theme="dark"] .public-preview {
 }
 
 .matter-login-stage {
-  --forest-login-motion-duration: 3200ms;
+  --forest-login-motion-duration: 2100ms;
   height: 100vh;
   min-height: 720px;
   position: relative;
@@ -15381,16 +15381,49 @@ html[data-skin="forest"] .matter-login-photo-panel img {
 
 html[data-skin="forest"] .matter-login-intro {
   position: fixed;
-  left: 50%;
-  top: 50%;
+  inset: 0;
   z-index: 2;
+  display: grid;
+  place-items: center;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
-html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] > .matter-login-copy,
-html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] > .matter-login-photo-panel {
+html[data-skin="forest"] .matter-login-intro-logo {
+  --forest-login-a-origin-shift: 95px;
+  position: relative;
+  width: 220px;
+  height: 36px;
+  transform: translateX(var(--forest-login-a-origin-shift));
+  transform-origin: 50% 50%;
+  will-change: opacity, transform;
+}
+
+html[data-skin="forest"] .matter-login-intro-logo .amic-law-logo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  will-change: clip-path, opacity, transform;
+}
+
+html[data-skin="forest"] .matter-login-intro-a {
+  opacity: 0;
+  clip-path: inset(100% 86.1% 0 0);
+  transform: translateY(8px) scale(0.9);
+}
+
+html[data-skin="forest"] .matter-login-intro-mic {
+  opacity: 0;
+  clip-path: inset(0 81.9% 0 18.1%);
+  transform: translateX(-14px);
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] > .matter-login-photo-panel,
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] .matter-login-heading,
+html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] .matter-login-form {
   opacity: 0;
 }
 
@@ -15398,15 +15431,32 @@ html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] .matter
   opacity: 1;
 }
 
-html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] > .matter-login-copy,
 html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] > .matter-login-photo-panel {
   opacity: 0;
   animation: forestLoginPageIn var(--forest-login-motion-duration) linear both;
 }
 
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-heading,
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-form {
+  opacity: 0;
+  animation: forestLoginContentIn var(--forest-login-motion-duration) linear both;
+}
+
 html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-intro {
   opacity: 1;
-  animation: forestLoginLogoHandoff var(--forest-login-motion-duration) linear both;
+  animation: forestLoginIntroLayer var(--forest-login-motion-duration) linear both;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-intro-logo {
+  animation: forestLoginLogoAssemblyDock var(--forest-login-motion-duration) linear both;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-intro-a {
+  animation: forestLoginAAssembly var(--forest-login-motion-duration) linear both;
+}
+
+html[data-skin="forest"] .matter-login-stage[data-login-intro="play"] .matter-login-intro-mic {
+  animation: forestLoginMicAssembly var(--forest-login-motion-duration) linear both;
 }
 
 html[data-skin="forest"] .matter-login-stage[data-login-intro="pending"] .matter-login-logo-target,
@@ -15424,50 +15474,106 @@ html[data-skin="forest"] .matter-login-stage[data-login-intro="complete"] .matte
 
 @keyframes forestLoginPageIn {
   0%,
-  82% {
+  58% {
     opacity: 0;
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   }
 
-  87%,
+  78%,
   100% {
     opacity: 1;
   }
 }
 
-@keyframes forestLoginLogoHandoff {
+@keyframes forestLoginContentIn {
   0%,
   82% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   }
 
-  87%,
-  99% {
+  94%,
+  100% {
     opacity: 1;
-    transform: translate(
-      calc(-50% + var(--forest-login-logo-dx, 0px)),
-      calc(-50% + var(--forest-login-logo-dy, 0px))
-    ) scale(var(--forest-login-logo-scale, 1));
+  }
+}
+
+@keyframes forestLoginIntroLayer {
+  0%,
+  80% {
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   }
 
+  85%,
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes forestLoginLogoAssemblyDock {
+  0%,
+  24% {
+    transform: translateX(var(--forest-login-a-origin-shift));
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+
+  44%,
+  52% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+
+  80%,
+  100% {
     transform: translate(
-      calc(-50% + var(--forest-login-logo-dx, 0px)),
-      calc(-50% + var(--forest-login-logo-dy, 0px))
+      var(--forest-login-logo-dx, 0px),
+      var(--forest-login-logo-dy, 0px)
     ) scale(var(--forest-login-logo-scale, 1));
+  }
+}
+
+@keyframes forestLoginAAssembly {
+  0% {
+    opacity: 0;
+    clip-path: inset(100% 86.1% 0 0);
+    transform: translateY(8px) scale(0.9);
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  18%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0 86.1% 0 0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes forestLoginMicAssembly {
+  0%,
+  24% {
+    opacity: 0;
+    clip-path: inset(0 81.9% 0 18.1%);
+    transform: translateX(-14px);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+
+  44%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 18.1%);
+    transform: translateX(0);
   }
 }
 
 @keyframes forestLoginLogoTargetIn {
   0%,
-  86.99% {
+  80% {
     opacity: 0;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   }
 
-  87%,
+  85%,
   100% {
     opacity: 1;
   }

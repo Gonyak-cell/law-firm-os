@@ -4,8 +4,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { chromium } from "playwright";
+import { createServer } from "vite";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
+const webRoot = resolve(testDir, "..");
 const styles = await readFile(resolve(testDir, "../src/styles.css"), "utf8");
 const amicLawLogo = await readFile(resolve(testDir, "../src/assets/amic-law.svg"), "utf8");
 
@@ -115,6 +117,122 @@ test("Forest login docks the AMIC accent logo at the form center", async () => {
     assert.ok(Math.abs(geometry.logo.center - geometry.field.center) <= 0.5, JSON.stringify(geometry));
   } finally {
     await browser.close();
+  }
+});
+
+test("Forest login preserves its one-shot intro until the page is focused", async () => {
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port: 0, strictPort: true }
+  });
+  const browser = await chromium.launch({ headless: true });
+  try {
+    await server.listen();
+    const baseUrl = server.resolvedUrls?.local?.[0];
+    assert.ok(baseUrl);
+
+    for (const reducedMotion of ["no-preference", "reduce"]) {
+      const context = await browser.newContext({ viewport: { width: 1280, height: 768 }, reducedMotion });
+      await context.addInitScript(() => {
+        window.__lawosTestFocused = false;
+        Object.defineProperty(document, "hasFocus", {
+          configurable: true,
+          value: () => window.__lawosTestFocused
+        });
+      });
+      const page = await context.newPage();
+      await page.goto(`${baseUrl}?view=auth&authStep=login`, { waitUntil: "networkidle" });
+      const login = page.locator("[data-login-screen='forest-split']");
+      await login.waitFor({ state: "attached" });
+      assert.equal(await page.locator(".matter-login-intro-logo .amic-law-logo").count(), 2);
+      await page.waitForTimeout(250);
+      assert.deepEqual(await page.evaluate(() => ({
+        state: document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro"),
+        claim: sessionStorage.getItem("matter.login.intro.played.v1")
+      })), { state: "pending", claim: null });
+
+      await page.evaluate(() => {
+        window.__lawosTestFocused = true;
+        window.dispatchEvent(new Event("focus"));
+      });
+      if (reducedMotion === "no-preference") {
+        await page.waitForFunction(
+          () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "play"
+        );
+        const motion = await page.evaluate(() => {
+          const elements = {
+            wrapper: document.querySelector(".matter-login-intro-logo"),
+            a: document.querySelector(".matter-login-intro-a"),
+            mic: document.querySelector(".matter-login-intro-mic"),
+            layer: document.querySelector(".matter-login-intro"),
+            photo: document.querySelector(".matter-login-photo-panel"),
+            heading: document.querySelector(".matter-login-heading"),
+            form: document.querySelector(".matter-login-form"),
+            target: document.querySelector(".matter-login-logo-target")
+          };
+          const animations = Object.values(elements).flatMap((element) => element?.getAnimations() ?? []);
+          animations.forEach((animation) => animation.pause());
+          const setTime = (time) => animations.forEach((animation) => {
+            animation.currentTime = time;
+          });
+          const sample = (time) => {
+            setTime(time);
+            const wrapper = elements.wrapper.getBoundingClientRect();
+            return {
+              center: [wrapper.left + wrapper.width / 2, wrapper.top + wrapper.height / 2],
+              a: Number(getComputedStyle(elements.a).opacity),
+              mic: Number(getComputedStyle(elements.mic).opacity),
+              layer: Number(getComputedStyle(elements.layer).opacity),
+              photo: Number(getComputedStyle(elements.photo).opacity),
+              heading: Number(getComputedStyle(elements.heading).opacity),
+              form: Number(getComputedStyle(elements.form).opacity),
+              target: Number(getComputedStyle(elements.target).opacity)
+            };
+          };
+          const result = {
+            duration: getComputedStyle(document.querySelector("[data-login-screen='forest-split']"))
+              .getPropertyValue("--forest-login-motion-duration").trim(),
+            aOnly: sample(450),
+            assembled: sample(1000),
+            dockStart: sample(1092),
+            dockEarly: sample(1140),
+            dockMiddle: sample(1386),
+            dockEnd: sample(1680),
+            handoffMiddle: sample(1732.5),
+            handoffEnd: sample(1785),
+            contentMiddle: sample(1848)
+          };
+          setTime(2100);
+          animations.forEach((animation) => animation.play());
+          return result;
+        });
+        const distance = (from, to) => Math.hypot(to[0] - from[0], to[1] - from[1]);
+        const dockDistance = distance(motion.dockStart.center, motion.dockEnd.center);
+        const earlyProgress = distance(motion.dockStart.center, motion.dockEarly.center) / dockDistance;
+        const middleProgress = distance(motion.dockStart.center, motion.dockMiddle.center) / dockDistance;
+        assert.equal(motion.duration, "2100ms");
+        assert.ok(motion.aOnly.a > 0.9 && motion.aOnly.mic < 0.1, JSON.stringify(motion.aOnly));
+        assert.ok(motion.assembled.a > 0.9 && motion.assembled.mic > 0.9, JSON.stringify(motion.assembled));
+        assert.ok(earlyProgress < 0.25, JSON.stringify({ earlyProgress, motion }));
+        assert.ok(middleProgress > 0.25 && middleProgress < 0.85, JSON.stringify({ middleProgress, motion }));
+        assert.ok(motion.dockMiddle.photo > 0.2 && motion.dockMiddle.photo < 0.95, JSON.stringify(motion.dockMiddle));
+        assert.ok(motion.dockMiddle.heading < 0.01 && motion.dockMiddle.form < 0.01, JSON.stringify(motion.dockMiddle));
+        assert.ok(motion.handoffMiddle.layer > 0 && motion.handoffMiddle.layer < 1, JSON.stringify(motion.handoffMiddle));
+        assert.ok(motion.handoffMiddle.target > 0 && motion.handoffMiddle.target < 1, JSON.stringify(motion.handoffMiddle));
+        assert.ok(motion.handoffEnd.layer < 0.01 && motion.handoffEnd.target > 0.99, JSON.stringify(motion.handoffEnd));
+        assert.ok(motion.contentMiddle.heading > 0.2 && motion.contentMiddle.heading < 0.95, JSON.stringify(motion.contentMiddle));
+        assert.ok(motion.contentMiddle.form > 0.2 && motion.contentMiddle.form < 0.95, JSON.stringify(motion.contentMiddle));
+      }
+      await page.waitForFunction(
+        () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "complete"
+      );
+      assert.equal(await page.evaluate(() => sessionStorage.getItem("matter.login.intro.played.v1")), "1");
+      await context.close();
+    }
+  } finally {
+    await browser.close();
+    await server.close();
   }
 });
 

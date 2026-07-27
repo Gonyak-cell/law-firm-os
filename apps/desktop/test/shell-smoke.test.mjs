@@ -37,6 +37,7 @@ class FakeBrowserWindow {
     this.options = options;
     this.loadedURL = null;
     this.readyEvent = null;
+    this.windowEvents = new Map();
     this.webContentsReadyEvent = null;
     this.shown = false;
     this.focused = false;
@@ -60,19 +61,45 @@ class FakeBrowserWindow {
   }
 
   once(eventName, handler) {
-    this.readyEvent = { eventName, handler };
+    this.windowEvents.set(eventName, handler);
+    if (eventName === "ready-to-show") this.readyEvent = { eventName, handler };
   }
 
   show() {
     this.shown = true;
+    const handler = this.windowEvents.get("show");
+    this.windowEvents.delete("show");
+    handler?.();
   }
 
   focus() {
     this.focused = true;
   }
 
+  isVisible() {
+    return this.shown;
+  }
+
   async loadURL(url) {
     this.loadedURL = url;
+  }
+}
+
+class FakeIpcMain {
+  handlers = new Map();
+
+  handle(channel, handler) {
+    this.handlers.set(channel, handler);
+  }
+
+  removeHandler(channel) {
+    this.handlers.delete(channel);
+  }
+
+  invoke(channel) {
+    return this.handlers.get(channel)?.({
+      senderFrame: { url: packagedRendererUrl() }
+    });
   }
 }
 
@@ -103,6 +130,35 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.match(preloadSource, /claimLogoIntro/);
   assert.match(preloadSource, /api: "session:api"/);
   assert.match(preloadSource, /api: \(payload\) => invokeAllowed\("api", payload\)/);
+});
+
+test("desktop logo intro claim remains pending until the hidden main window is shown", async () => {
+  const ipcMain = new FakeIpcMain();
+  let claimed = false;
+  const shell = await startDesktopShell({
+    BrowserWindowConstructor: FakeBrowserWindow,
+    ipcMain,
+    coordinator: {
+      claimLogoIntro() {
+        claimed = true;
+        return { play_logo_animation: true };
+      }
+    }
+  });
+
+  let settled = false;
+  const claim = ipcMain.invoke("session:logo-intro:claim").then((result) => {
+    settled = true;
+    return result;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(settled, false);
+  assert.equal(claimed, false);
+
+  shell.window.readyEvent.handler();
+  assert.equal((await claim).play_logo_animation, true);
+  assert.equal(claimed, true);
+  shell.sessionIpc.dispose();
 });
 
 test("desktop startup cannot select the retired offline login renderers", () => {
