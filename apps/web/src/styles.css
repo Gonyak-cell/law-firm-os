@@ -7979,6 +7979,11 @@ html[data-theme="dark"] .public-preview {
   justify-self: center;
 }
 
+.matter-login-logo-target {
+  display: grid;
+  justify-items: center;
+}
+
 .matter-login-form-column .matter-logo .amic-law-logo {
   width: 175px;
   height: 28px;

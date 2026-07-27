@@ -7,6 +7,7 @@ import { chromium } from "playwright";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const styles = await readFile(resolve(testDir, "../src/styles.css"), "utf8");
+const amicLawLogo = await readFile(resolve(testDir, "../src/assets/amic-law.svg"), "utf8");
 
 const shellMarkup = (modeException) => `
   <div class="matter-app">
@@ -64,6 +65,58 @@ const peopleLeaveSidebarMarkup = `
       <main class="page-canvas">Content</main>
     </div>
   </div>`;
+
+test("Forest login docks the AMIC accent logo at the form center", async () => {
+  assert.match(amicLawLogo, /fill="#26C260"/);
+  assert.doesNotMatch(amicLawLogo, /#0F3A32/i);
+
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 768 } });
+  try {
+    const logoDataUrl = `data:image/svg+xml,${encodeURIComponent(amicLawLogo)}`;
+    await page.setContent(`
+      <html data-skin="forest">
+        <body>
+          <section class="matter-login-stage" data-login-intro="complete">
+            <div class="matter-login-copy">
+              <div class="matter-login-form-column">
+                <div class="matter-login-logo-target">
+                  <div class="matter-logo">
+                    <img class="amic-law-logo" src="${logoDataUrl}" alt="AMIC Law">
+                  </div>
+                </div>
+                <div class="matter-login-heading"><h1>Log in to matter</h1></div>
+                <div class="matter-login-field">Email</div>
+              </div>
+            </div>
+            <aside class="matter-login-photo-panel"></aside>
+          </section>
+        </body>
+      </html>
+    `);
+    await page.addStyleTag({ content: styles });
+    await page.locator(".amic-law-logo").waitFor({ state: "visible" });
+
+    const geometry = await page.evaluate(() => {
+      const bounds = (selector) => {
+        const rect = document.querySelector(selector).getBoundingClientRect();
+        return {
+          left: rect.left,
+          width: rect.width,
+          center: rect.left + rect.width / 2
+        };
+      };
+      return {
+        logo: bounds(".amic-law-logo"),
+        field: bounds(".matter-login-field")
+      };
+    });
+
+    assert.ok(Math.abs(geometry.logo.center - geometry.field.center) <= 0.5, JSON.stringify(geometry));
+  } finally {
+    await browser.close();
+  }
+});
 
 for (const width of [1280, 1180, 1024, 820]) {
   for (const modeException of [false, true]) {
