@@ -30,7 +30,7 @@ const session = {
   email: "dashboard-package-qa@fixture.local",
   display_name: "대시보드 패키지 QA",
   role_ids: ["lawos_admin", "lawos_partner", "managing_partner"],
-  scopes: ["matter.read", "crm.read", "analytics.finance.read", "home.read", "hrx.read"],
+  scopes: ["matter.read", "crm.read", "analytics.finance.read", "home.read", "hrx.read", "hrx.payroll.preview"],
   expires_at: "2099-12-31T23:59:59.000Z"
 };
 
@@ -89,7 +89,7 @@ const server = createServer(async (request, response) => {
     const items = type === "task"
       ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00`, status: "todo" }]
       : type === "approval"
-        ? [{ id: "approval_dashboard_pending", type: "approval", title: "비용 승인 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
+        ? [{ id: "approval_dashboard_pending", type: "approval", subtype: "leave", title: "연차 휴가 신청", requester: "합성 구성원", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
         : [];
     return respondJson(response, 200, { ...listBody(items), counts: { approval: 1, task_late: 0, task_today: 1 } });
   }
@@ -103,8 +103,30 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/crm/opportunities") return respondJson(response, 200, listBody([{ opportunity_id: "opportunity_dashboard_new", display_name: "새롬 자문", stage: "qualified", owner_user_id: session.user_id, updated_at: nowIso }]));
   if (pathname === "/api/crm/contacts") return respondJson(response, 200, listBody([{ contact_id: "contact_dashboard_new", display_name: "오세진", status: "active", owner_user_id: session.user_id, updated_at: nowIso }]));
   if (pathname === "/api/crm/activities") return respondJson(response, 200, listBody([{ crm_activity_id: "activity_dashboard_meeting", subject: "정기 고객 미팅", party_display_name: "마루 주식회사", activity_type: "meeting", scheduled_at: nowIso, owner_user_id: session.user_id }]));
-  if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: todayKey.slice(0, 7), currency: "KRW", billed_amount: 12000000, collected_amount: 9000000 }]), source_statuses: [] });
+  if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: todayKey.slice(0, 7), currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, processed_cost: 4000000 }]), source_statuses: [] });
   if (pathname === "/api/analytics/finance/clients") return respondJson(response, 200, { ...listBody([{ client_group_id: "client_dashboard_revenue", client_group_label: "마루 주식회사", currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, ar_balance: 3000000 }]), source_statuses: [] });
+  if (pathname === "/api/hrx/payroll/dashboard-summary") {
+    return respondJson(response, 200, {
+      ...listBody([{ summary_ref: "aggregate_only" }]),
+      summary: {
+        month: todayKey.slice(0, 7),
+        currency: "KRW",
+        run_status: "closed",
+        gross_krw: 9000000,
+        employee_count: 6,
+        categories: [
+          { category: "partner", label: "파트너", gross_krw: 4000000, employee_count: 2 },
+          { category: "advisor", label: "고문", gross_krw: 2000000, employee_count: 1 },
+          { category: "staff", label: "직원", gross_krw: 3000000, employee_count: 3 },
+          { category: "unclassified", label: "미분류", gross_krw: 0, employee_count: 0 }
+        ],
+        individual_values_included: false,
+        individual_identifiers_included: false,
+        credential_material_included: false,
+        production_ready_claim: false
+      }
+    });
+  }
   if (pathname === "/api/hrx/employees") return respondJson(response, 200, { employees: [], fixture_only: true, production_ready_claim: false });
   return respondJson(response, 200, listBody());
 });
@@ -146,7 +168,7 @@ const app = await electron.launch({
 });
 
 const expected = {
-  home: ["pending-approvals", "recent-work", "today-todo", "calendar", "monthly-sales", "new-engagements", "feed"],
+  home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"],
   clients: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"],
   matters: ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"],
   people: []
@@ -202,40 +224,43 @@ try {
     if (view === "home") {
       try {
         await page.waitForFunction(
-          ({ selector }) => {
+          ({ selector, expectedSections }) => {
             const text = document.querySelector(selector)?.innerText ?? "";
-            const feedText = document.querySelector(".home-dashboard-feed")?.innerText ?? "";
-            return text.includes("오늘 계약서 검토") && text.includes("비용 승인 검토") && feedText.includes("대시보드 QA 공지");
+            const sections = [...document.querySelectorAll(`${selector} [data-dashboard-section]`)]
+              .map((node) => node.getAttribute("data-dashboard-section"))
+              .filter(Boolean)
+              .sort();
+            return JSON.stringify(sections) === JSON.stringify([...expectedSections].sort())
+              && document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length === 1
+              && document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length === 1
+              && ["₩ 12,000,000", "₩ 9,000,000", "₩ 4,000,000", "연차 휴가 신청", "QA-2026-002", "QA-2026-003", "고객 미팅"]
+                .every((value) => text.includes(value));
           },
-          { selector: rootSelector },
+          { selector: rootSelector, expectedSections: sections },
           { timeout: 30_000 },
         );
       } catch (error) {
-        const diagnostic = await page.evaluate(async ({ selector }) => {
+        const diagnostic = await page.evaluate(({ selector, expectedSections }) => {
           const text = document.querySelector(selector)?.innerText ?? "";
-          const feedWidget = document.querySelector(".home-dashboard-feed");
-          const bridgeResponse = await window.matterSession?.api?.({
-            path: "/api/home/feed?tab=notice&permission_ref=dashboard-package-qa&audit_hint_ref=dashboard-package-qa",
-            method: "GET",
-            headers: {},
-            body: null,
-          });
+          const renderedSections = [...document.querySelectorAll(`${selector} [data-dashboard-section]`)]
+            .map((node) => node.getAttribute("data-dashboard-section"))
+            .filter(Boolean);
           return {
-            task_visible: text.includes("오늘 계약서 검토"),
-            approval_visible: text.includes("비용 승인 검토"),
-            feed_visible: feedWidget?.innerText?.includes("대시보드 QA 공지") === true,
-            feed_widget_text: feedWidget?.innerText?.replace(/\s+/g, " ").slice(0, 600) ?? "",
-            feed_entry_count: feedWidget?.querySelector("[data-home-feed-entry-count]")?.getAttribute("data-home-feed-entry-count") ?? null,
-            feed_bridge_probe: {
-              http_status: bridgeResponse?.http_status ?? null,
-              outcome: bridgeResponse?.body?.outcome ?? null,
-              entry_count: Array.isArray(bridgeResponse?.body?.entries) ? bridgeResponse.body.entries.length : null,
-              first_title: bridgeResponse?.body?.entries?.[0]?.title ?? null,
-              reason: bridgeResponse?.body?.reason ?? bridgeResponse?.reason ?? null,
-            },
+            expected_sections: expectedSections,
+            rendered_sections: renderedSections,
+            missing_sections: expectedSections.filter((section) => !renderedSections.includes(section)),
+            revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length,
+            payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
+            revenue_fixture_visible: text.includes("₩ 12,000,000"),
+            payroll_fixture_visible: text.includes("₩ 9,000,000"),
+            processed_cost_fixture_visible: text.includes("₩ 4,000,000"),
+            leave_fixture_visible: text.includes("연차 휴가 신청"),
+            new_matter_fixture_visible: text.includes("QA-2026-002"),
+            closed_matter_fixture_visible: text.includes("QA-2026-003"),
+            calendar_fixture_visible: text.includes("고객 미팅"),
             body_preview: text.replace(/\s+/g, " ").slice(0, 1200),
           };
-        }, { selector: rootSelector });
+        }, { selector: rootSelector, expectedSections: sections });
         const failureEvidence = {
           ...diagnostic,
           request_counts: Object.fromEntries([...requestCounts.entries()].sort(([left], [right]) => left.localeCompare(right))),
@@ -251,7 +276,7 @@ try {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
       const forbiddenPatterns = [
         /\b(?:matter|user|tenant|account|lead|opportunity|contact|activity)_[a-z0-9_]+\b/gi,
-        /\b(?:Client|contacted|qualified|active|opening|closed|review_required|review|todo|in_progress|completed)\b/g
+        /\b(?:contacted|qualified|active|opening|closed|review_required|review|todo|in_progress|completed)\b/g
       ];
       return {
         sections: [...document.querySelectorAll(`${selector} [data-dashboard-section]`)].map((node) => node.getAttribute("data-dashboard-section")),
@@ -262,19 +287,36 @@ try {
         approval_widget_count: document.querySelectorAll('[data-widget-id="approval"]').length,
         people_dashboard_count: document.querySelectorAll('[data-people-dashboard="true"]').length,
         customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
-        home_todo_fixture_visible: surfaceText.includes("오늘 계약서 검토"),
-        home_feed_fixture_visible: document.querySelector(".home-dashboard-feed")?.innerText?.includes("대시보드 QA 공지") === true,
-        home_feed_entry_count: document.querySelector("[data-home-feed-entry-count]")?.getAttribute("data-home-feed-entry-count") ?? null,
-        home_feed_text: document.querySelector(".home-dashboard-feed")?.innerText?.replace(/\s+/g, " ").slice(0, 300) ?? "",
+        home_dashboard_grid_count: document.querySelectorAll(`${selector} [data-home-dashboard-grid="true"]`).length,
+        home_revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length,
+        home_payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
+        home_revenue_fixture_visible: surfaceText.includes("₩ 12,000,000"),
+        home_payroll_fixture_visible: surfaceText.includes("₩ 9,000,000"),
+        home_processed_cost_fixture_visible: surfaceText.includes("₩ 4,000,000"),
+        home_client_fixture_visible: surfaceText.includes("마루 주식회사") && surfaceText.includes("바른 그룹") && surfaceText.includes("새롬 자문"),
+        home_leave_fixture_visible: surfaceText.includes("연차 휴가 신청") && surfaceText.includes("합성 구성원"),
+        home_matter_fixture_visible: surfaceText.includes("QA-2026-002") && surfaceText.includes("QA-2026-003"),
+        home_calendar_fixture_visible: surfaceText.includes("고객 미팅"),
+        legacy_home_section_count: ["pending-approvals", "recent-work", "today-todo", "monthly-sales", "new-engagements", "feed"]
+          .filter((section) => document.querySelector(`${selector} [data-dashboard-section="${section}"]`)).length,
         forbidden_visible_values: [...new Set(forbiddenPatterns.flatMap((pattern) => surfaceText.match(pattern) ?? []))],
         body_preview: surfaceText.replace(/\s+/g, " ").slice(0, 800)
       };
     }, { selector: rootSelector });
     assert.deepEqual([...snapshot.sections].sort(), [...sections].sort(), `${view} dashboard sections`);
     if (view === "home") {
-      assert.equal(snapshot.home_todo_fixture_visible, true, "Home today To Do must render fixture data");
-      assert.equal(snapshot.home_feed_fixture_visible, true, `Home feed must render fixture data: ${JSON.stringify(snapshot)}`);
-      for (const section of ["pending-approvals", "recent-work", "new-engagements", "monthly-sales"]) {
+      assert.equal(snapshot.home_dashboard_grid_count, 1, "Home must render one overview grid");
+      assert.equal(snapshot.home_revenue_chart_count, 1, "Home must render the monthly revenue line chart");
+      assert.equal(snapshot.home_payroll_chart_count, 1, "Home must render the payroll category donut chart");
+      assert.equal(snapshot.home_revenue_fixture_visible, true, "Home must render the monthly revenue fixture");
+      assert.equal(snapshot.home_payroll_fixture_visible, true, "Home must render the aggregate payroll fixture");
+      assert.equal(snapshot.home_processed_cost_fixture_visible, true, "Home must render the processed-cost fixture");
+      assert.equal(snapshot.home_client_fixture_visible, true, "Home must render Client fixture data");
+      assert.equal(snapshot.home_leave_fixture_visible, true, "Home must render the leave-request fixture");
+      assert.equal(snapshot.home_matter_fixture_visible, true, "Home must render new and closed Matter fixture data");
+      assert.equal(snapshot.home_calendar_fixture_visible, true, "Home must render the calendar fixture");
+      assert.equal(snapshot.legacy_home_section_count, 0, "Removed default Home widgets must stay absent");
+      for (const section of ["client-summary", "people-summary", "matter-summary"]) {
         assert(snapshot.section_row_counts[section] >= 1, `Home ${section} must render its direct source: ${JSON.stringify(snapshot)}`);
       }
     } else if (view === "clients" || view === "matters") {

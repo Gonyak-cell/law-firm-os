@@ -1665,6 +1665,21 @@ function payrollRuntimeResult(result: HrxApiResult, field: "workspace" | "bundle
   return { kind: "data" as const, [field]: result.body[field] };
 }
 
+function payrollDashboardSummaryResult(result: HrxApiResult) {
+  if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind === "guarded") {
+    return {
+      kind: "guarded" as const,
+      uiState: result.body?.ui_state ?? "denied",
+      outcome: result.body?.outcome ?? "denied",
+      safeErrorCodes: result.body?.safe_error_codes ?? [],
+    };
+  }
+  if (result.kind !== "data") return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+  if (!result.body.summary) return { kind: "empty" as const, summary: null };
+  return { kind: "data" as const, summary: result.body.summary };
+}
+
 function payrollCatalogResult(result: HrxApiResult, field: "items" | "item" | "profiles" | "profile" | "assignment" | "approval_receipt") {
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
   if (result.kind !== "data" || !result.body[field]) return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
@@ -1705,6 +1720,10 @@ export async function approveHrxPayrollAttendance(form: HrxClientRecord) {
 
 export async function fetchHrxPayrollWorkspace() {
   return payrollRuntimeResult(await requestJson("/api/hrx/payroll/periods"), "workspace");
+}
+
+export async function fetchHrxPayrollDashboardSummary(month: string) {
+  return payrollDashboardSummaryResult(await requestJson(withQuery("/api/hrx/payroll/dashboard-summary", { month })));
 }
 
 export async function fetchHrxPayrollRun(runId: string) {

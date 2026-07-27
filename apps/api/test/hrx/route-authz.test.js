@@ -106,6 +106,8 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/approve" }).required_scope, "hrx.payroll.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/export" }).required_scope, "hrx.payroll.export");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/dashboard-summary" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/dashboard-summary" }).action, "hrx.payroll.preview");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001" }).required_scope, "hrx.payroll.preview");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs" }).required_scope, "hrx.payroll.preview");
@@ -404,6 +406,13 @@ test("HRX payroll export route requires payroll export scope before runtime", as
 });
 
 test("HRX payroll runtime routes enforce preview and approval scopes before runtime", async () => {
+  const dashboardSummary = await json("/api/hrx/payroll/dashboard-summary?month=2026-07", {
+    headers: staffHeaders,
+  });
+  assert.equal(dashboardSummary.status, 403);
+  assert.equal(dashboardSummary.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(dashboardSummary.body.required_scope, "hrx.payroll.preview");
+
   const read = await json("/api/hrx/payroll/periods?limit=5", {
     headers: staffHeaders,
   });

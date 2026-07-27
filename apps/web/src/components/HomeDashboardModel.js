@@ -1,0 +1,195 @@
+const SEOUL_PARTS = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const CLOSED_PROSPECT_STATUSES = new Set([
+  "archived",
+  "cancelled",
+  "canceled",
+  "closed",
+  "converted",
+  "disqualified",
+  "inactive",
+  "lost",
+  "rejected",
+  "won",
+]);
+const NEW_MATTER_STATUSES = new Set(["active", "opening"]);
+
+function dateParts(value) {
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Object.fromEntries(SEOUL_PARTS.formatToParts(parsed).map((part) => [part.type, part.value]));
+}
+
+export function seoulMonthKey(value = new Date()) {
+  const parts = dateParts(value);
+  return parts ? `${parts.year}-${parts.month}` : null;
+}
+
+function monthKeysEndingAt(value = new Date(), count = 12) {
+  const key = seoulMonthKey(value);
+  if (!key) return [];
+  const [year, month] = key.split("-").map(Number);
+  return Array.from({ length: count }, (_, index) => {
+    const cursor = new Date(Date.UTC(year, month - count + index, 1));
+    return `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
+  });
+}
+
+function resultItems(result) {
+  if (!result || !Array.isArray(result.items)) return [];
+  return result.items;
+}
+
+export function dashboardResultState(result) {
+  if (result === null || result === undefined || result.kind === "loading") return "loading";
+  if (result.kind === "step_up_required") return "review_required";
+  if (result.uiState === "denied" || result.kind === "guarded" && result.outcome === "denied") return "denied";
+  if (result.uiState === "review_required" || result.outcome === "review_required") return "review_required";
+  if (result.kind === "guarded") return "denied";
+  if (result.kind === "error") return "error";
+  if (result.kind === "empty") return "empty";
+  if (result.kind !== "data") return "error";
+  if (result.partial === true || result.sourceStatuses?.some((source) => source.status && source.status !== "passed")) return "partial";
+  return resultItems(result).length === 0 && !result.item && !result.summary ? "empty" : "data";
+}
+
+function combineStates(states) {
+  if (states.every((state) => state === "loading")) return "loading";
+  const readable = states.filter((state) => state === "data" || state === "empty" || state === "partial");
+  if (readable.length > 0) {
+    return states.every((state) => state === "data" || state === "empty") ? (states.some((state) => state === "data") ? "data" : "empty") : "partial";
+  }
+  if (states.includes("denied")) return "denied";
+  if (states.includes("review_required")) return "review_required";
+  return states.includes("error") ? "error" : "empty";
+}
+
+function recordDateValue(item) {
+  for (const field of ["closed_at", "opened_at", "created_at", "updated_at", "requested_at", "due_at"]) {
+    const parsed = Date.parse(item?.[field] ?? "");
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+function currentMonthRecord(item, fields, month) {
+  return fields.some((field) => Boolean(item?.[field]) && seoulMonthKey(item[field]) === month);
+}
+
+function percentageChange(current, previous) {
+  const prior = Number(previous);
+  if (!Number.isFinite(prior) || prior === 0) return null;
+  return ((Number(current) - prior) / Math.abs(prior)) * 100;
+}
+
+export function buildFinanceDashboardModel(result, { now = new Date(), currency = "KRW" } = {}) {
+  const state = dashboardResultState(result);
+  const month = seoulMonthKey(now);
+  const months = monthKeysEndingAt(now, 12);
+  const rows = resultItems(result).filter((row) => row.currency === currency && months.includes(row.month));
+  const byMonth = new Map();
+  for (const row of rows) {
+    const aggregate = byMonth.get(row.month) ?? { month: row.month, currency, billed_amount: 0, processed_cost: 0 };
+    aggregate.billed_amount += Number(row.billed_amount ?? 0);
+    aggregate.processed_cost += Number(row.processed_cost ?? 0);
+    byMonth.set(row.month, aggregate);
+  }
+  const current = byMonth.get(month) ?? null;
+  const previousMonth = months.at(-2) ?? null;
+  const previous = previousMonth ? byMonth.get(previousMonth) ?? null : null;
+  return Object.freeze({
+    state,
+    month,
+    currency,
+    current,
+    previous,
+    revenue_change_percent: current && previous ? percentageChange(current.billed_amount, previous.billed_amount) : null,
+    processed_cost_change_percent: current && previous ? percentageChange(current.processed_cost, previous.processed_cost) : null,
+    series: Object.freeze(months.map((monthKey) => Object.freeze({
+      month: monthKey,
+      amount: byMonth.get(monthKey)?.billed_amount ?? 0,
+      observed: byMonth.has(monthKey),
+    }))),
+    has_series_data: rows.length > 0,
+  });
+}
+
+function explicitIdentityKeys(item) {
+  return ["party_id", "account_id", "client_group_id", "canonical_client_id"]
+    .map((field) => item?.[field])
+    .filter((value) => typeof value === "string" && value.trim())
+    .map((value) => value.trim().toLowerCase());
+}
+
+function dedupeProspects(records) {
+  const claimedKeys = new Set();
+  return records.filter((record, index) => {
+    const keys = explicitIdentityKeys(record);
+    const fallback = record.lead_id ?? record.opportunity_id ?? `prospect-${index}`;
+    const comparable = keys.length > 0 ? keys : [`record:${fallback}`];
+    if (comparable.some((key) => claimedKeys.has(key))) return false;
+    comparable.forEach((key) => claimedKeys.add(key));
+    return true;
+  });
+}
+
+function activeProspect(record) {
+  const status = String(record?.status ?? record?.stage ?? "").trim().toLowerCase();
+  return !CLOSED_PROSPECT_STATUSES.has(status);
+}
+
+export function buildClientDashboardModel({ accounts, leads, opportunities } = {}, { now = new Date() } = {}) {
+  const month = seoulMonthKey(now);
+  const accountState = dashboardResultState(accounts);
+  const prospectState = combineStates([dashboardResultState(leads), dashboardResultState(opportunities)]);
+  const newClients = resultItems(accounts)
+    .filter((record) => !["prospect", "lead"].includes(String(record.account_type ?? "").toLowerCase()))
+    .filter((record) => currentMonthRecord(record, ["created_at"], month))
+    .sort((left, right) => recordDateValue(right) - recordDateValue(left));
+  const prospects = dedupeProspects([...resultItems(leads), ...resultItems(opportunities)])
+    .filter(activeProspect)
+    .sort((left, right) => recordDateValue(right) - recordDateValue(left));
+  return Object.freeze({
+    state: combineStates([accountState, prospectState]),
+    new_client_state: accountState,
+    prospect_state: prospectState,
+    new_clients: Object.freeze(newClients),
+    prospects: Object.freeze(prospects),
+    recent: Object.freeze([...newClients, ...prospects].sort((left, right) => recordDateValue(right) - recordDateValue(left)).slice(0, 3)),
+  });
+}
+
+export function buildMatterDashboardModel(result, { now = new Date() } = {}) {
+  const month = seoulMonthKey(now);
+  const matters = resultItems(result).filter((item) => item?.matter_id);
+  const newMatters = matters
+    .filter((item) => NEW_MATTER_STATUSES.has(String(item.status ?? "").toLowerCase()))
+    .filter((item) => currentMonthRecord(item, ["opened_at", "created_at"], month))
+    .sort((left, right) => recordDateValue(right) - recordDateValue(left));
+  const closedMatters = matters
+    .filter((item) => String(item.status ?? "").toLowerCase() === "closed")
+    .filter((item) => currentMonthRecord(item, ["closed_at"], month))
+    .sort((left, right) => recordDateValue(right) - recordDateValue(left));
+  return Object.freeze({
+    state: dashboardResultState(result),
+    new_matters: Object.freeze(newMatters),
+    closed_matters: Object.freeze(closedMatters),
+    recent: Object.freeze([...newMatters, ...closedMatters].sort((left, right) => recordDateValue(right) - recordDateValue(left)).slice(0, 3)),
+  });
+}
+
+export function buildLeaveDashboardModel(result) {
+  const items = resultItems(result)
+    .filter((item) => String(item?.subtype ?? "").toLowerCase() === "leave")
+    .sort((left, right) => recordDateValue(left) - recordDateValue(right));
+  return Object.freeze({
+    state: dashboardResultState(result),
+    items: Object.freeze(items),
+    recent: Object.freeze(items.slice(0, 3)),
+  });
+}

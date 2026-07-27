@@ -268,7 +268,7 @@ function wp5ApiBody(pathname, searchParams, state) {
       outcome: "passed",
       item: {
         scope_label: "Matter 기반 집계",
-        totals: [{ currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+        totals: [{ currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
         currency_conversion_applied: false,
         ar_balance_is_point_in_time: true
       },
@@ -278,8 +278,30 @@ function wp5ApiBody(pathname, searchParams, state) {
   if (pathname === "/api/analytics/finance/monthly") {
     return {
       request_id: "wp-fin-3-monthly", outcome: "passed",
-      items: [{ month: "2026-07", currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+      items: [{ month: wp5DateKey().slice(0, 7), currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-monthly-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
+    };
+  }
+  if (pathname === "/api/hrx/payroll/dashboard-summary") {
+    return {
+      outcome: "ok",
+      summary: {
+        month: searchParams.get("month"),
+        currency: "KRW",
+        run_status: "closed",
+        gross_krw: 6_250_000,
+        employee_count: 2,
+        categories: [
+          { category: "partner", label: "파트너", gross_krw: 3_000_000, employee_count: 1 },
+          { category: "advisor", label: "고문", gross_krw: 0, employee_count: 0 },
+          { category: "staff", label: "직원", gross_krw: 3_250_000, employee_count: 1 },
+          { category: "unclassified", label: "미분류", gross_krw: 0, employee_count: 0 }
+        ],
+        individual_values_included: false,
+        individual_identifiers_included: false,
+        credential_material_included: false,
+        production_ready_claim: false
+      }
     };
   }
   if (pathname === "/api/analytics/finance/clients") {
@@ -1010,7 +1032,7 @@ test("R1 WP-3 opens Home message threads and decreases unread counts at runtime"
   }
 });
 
-test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async () => {
+test("R1 WP-5 renders the new Home summary while preserving dedicated action queues and delayed undo", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -1028,15 +1050,13 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
-    assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
-    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
-    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["가장 오래된 승인", "오늘 승인", "중간 승인", "내일 승인", "가장 늦은 승인"]);
-    for (const section of ["recent-work", "today-todo", "monthly-sales", "new-engagements", "pending-approvals"]) {
-      assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
-    }
+    assert.equal(await page.locator(".home-dashboard-hero").count(), 0);
+    assert.equal(await page.locator('[data-dashboard-section="people-summary"]').count(), 1);
+    assert.deepEqual(await page.locator('[data-dashboard-section="people-summary"] .dashboard-record-copy strong').allTextContents(), ["가장 오래된 승인", "오늘 승인", "중간 승인"]);
 
-    const todoIds = await page.locator('[data-widget-id="todo"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
-    assert.deepEqual(todoIds, ["task_late_three", "task_late_one", "task_today", "task_upcoming_one", "task_upcoming_two"]);
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-todo`, { waitUntil: "networkidle" });
+    const todoIds = await page.locator('[data-home-section-screen="home-todo"] [data-home-action-id]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-home-action-id")));
+    assert.deepEqual(todoIds, ["task_late_three", "task_late_one", "task_today", "task_upcoming_one", "task_upcoming_two", "task_upcoming_three"]);
     assert.equal(await page.locator('[data-home-action-id="task_late_three"]').getAttribute("data-home-deadline-bucket"), "late");
     assert.equal(await page.locator('[data-home-action-id="task_today"]').getAttribute("data-home-deadline-bucket"), "today");
     assert.equal(await page.locator('[data-home-action-id="task_late_three"] [data-home-task-checkbox]').count(), 1);
@@ -1052,7 +1072,7 @@ test("R1 WP-5 renders widget rules and client-delayed undo at runtime", async ()
     await page.waitForTimeout(250);
     assert.equal(state.decisionCalls, 0);
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
+    assert.equal(await page.locator(".home-dashboard-hero").count(), 0);
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-calendar`, { waitUntil: "networkidle" });
     await page.waitForSelector('.home-dashboard-hero h1');
@@ -1160,50 +1180,73 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    for (const title of ["최근 작업", "오늘 할 일", "승인 대기", "월별 매출", "신규 수임", "캘린더"]) {
-      assert.equal(await page.getByText(title, { exact: true }).count() > 0, true, `Home must show ${title}`);
+    const dashboardCards = [
+      ["monthly-revenue", "이번달 매출"],
+      ["monthly-payroll", "이번달 급여 총액"],
+      ["monthly-processed-cost", "이번달 비용처리"],
+      ["monthly-revenue-chart", "월별 매출"],
+      ["payroll-categories", "급여 구분"],
+      ["client-summary", "Client"],
+      ["people-summary", "People"],
+      ["matter-summary", "Matter"],
+      ["calendar", "캘린더"]
+    ];
+    for (const [section, title] of dashboardCards) {
+      const card = page.locator(`[data-dashboard-section="${section}"]`);
+      assert.equal(await card.count(), 1, `Home must show one ${title} card`);
+      assert.equal(await card.locator(".home-dashboard-card-header").getByText(title, { exact: true }).count(), 1, `${title} card must keep its requested heading`);
     }
-    assert.equal(await page.locator('.home-dashboard-hero').count(), 1);
-    assert.equal(await page.locator('.home-dashboard-feed').isHidden(), true);
-    assert.equal(await page.locator('.home-dashboard-rail').isVisible(), true);
-    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
-    assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
-    assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);
+    const dashboardGrid = page.locator('[data-home-dashboard-grid="true"]');
+    for (const removedTitle of ["최근 작업", "오늘 할 일", "승인 대기", "신규 수임", "재무 현황", "운영 현황"]) {
+      assert.equal(await dashboardGrid.getByText(removedTitle, { exact: true }).count(), 0, `Home dashboard must remove ${removedTitle}`);
+    }
+    assert.equal(await page.locator('.home-dashboard-hero').count(), 0);
+    assert.equal(await page.locator('.home-dashboard-kpi-card').count(), 3);
+    assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
+    assert.equal(await page.locator('[data-home-payroll-donut-chart="true"]').count(), 1);
+    assert.equal(await page.locator('[data-dashboard-section="today-todo"], [data-dashboard-section="pending-approvals"], [data-dashboard-section="new-engagements"], [data-dashboard-section="monthly-sales"], [data-dashboard-section="recent-work"]').count(), 0);
+    for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"]) {
+      assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
+    }
+    assert.match(await page.locator('[data-dashboard-section="client-summary"]').innerText(), /신규 고객[\s\S]*잠재고객/);
+    assert.match(await page.locator('[data-dashboard-section="people-summary"]').innerText(), /휴가 신청/);
+    assert.match(await page.locator('[data-dashboard-section="matter-summary"]').innerText(), /신규 매터[\s\S]*종결된 매터/);
+    assert.doesNotMatch(await dashboardGrid.innerText(), /서지원|김양태|@amic\.kr/);
     assert.deepEqual(await compactRecordLayoutFailures(page), [], "Home compact records must keep primary and secondary text on one line");
     assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Home panel metadata must remain on the title line");
     const dashboardLayout = await page.evaluate(() => {
-      const todo = document.querySelector('.home-dashboard-todo').getBoundingClientRect();
-      const recent = document.querySelector('.home-dashboard-recent').getBoundingClientRect();
-      const intake = document.querySelector('.home-dashboard-intake').getBoundingClientRect();
-      const calendar = document.querySelector('.home-dashboard-calendar').getBoundingClientRect();
-      const grid = getComputedStyle(document.querySelector('.home-dashboard-grid'));
+      const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
+      const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
+      const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
+      const domains = [...document.querySelectorAll(".home-dashboard-domain-card")].map((node) => node.getBoundingClientRect());
+      const grid = getComputedStyle(document.querySelector(".home-dashboard-overview-grid"));
       return {
-        columns: grid.gridTemplateColumns.split(' ').length,
-        recentRight: recent.left > todo.right,
-        recentAligned: Math.abs(recent.top - todo.top) < 2 && Math.abs(recent.height - todo.height) < 2,
-        calendarRight: calendar.left > intake.right,
-        calendarBelow: calendar.top > recent.bottom
+        columns: grid.gridTemplateColumns.split(" ").length,
+        kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
+        kpisEqualWidth: kpis.every((rect) => Math.abs(rect.width - kpis[0].width) < 2),
+        chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
+        payrollRight: payroll.left > revenue.left,
+        domainsSameRow: domains.every((rect) => Math.abs(rect.top - domains[0].top) < 2),
+        calendarRight: domains.at(-1).left > domains[0].left
       };
     });
-    assert.deepEqual(dashboardLayout, { columns: 3, recentRight: true, recentAligned: true, calendarRight: true, calendarBelow: true });
-    const recentRowLayout = await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').first().evaluate((row) => {
-      const title = row.querySelector("strong").getBoundingClientRect();
-      const status = row.querySelector("em").getBoundingClientRect();
-      const arrow = row.querySelector("svg").getBoundingClientRect();
-      return {
-        metaHidden: getComputedStyle(row.querySelector("small")).display === "none",
-        detailHidden: getComputedStyle(row.querySelector(".dashboard-record-detail")).display === "none",
-        ordered: title.right <= status.left && status.right <= arrow.left,
-        overflow: row.scrollWidth > row.clientWidth
-      };
-    });
-    assert.deepEqual(recentRowLayout, { metaHidden: true, detailHidden: true, ordered: true, overflow: false });
+    assert.deepEqual(dashboardLayout, { columns: 12, kpisSameRow: true, kpisEqualWidth: true, chartsSameRow: true, payrollRight: true, domainsSameRow: true, calendarRight: true });
     await page.setViewportSize({ width: 1024, height: 768 });
-    assert.equal((await page.locator('.home-dashboard-grid').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length)), 2);
-    assert.equal(await page.locator('.home-dashboard-rail').isVisible(), true);
+    const tabletLayout = await page.evaluate(() => {
+      const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
+      const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
+      const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
+      const domains = [...document.querySelectorAll(".home-dashboard-domain-card")].map((node) => node.getBoundingClientRect());
+      return {
+        kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
+        chartsStacked: payroll.top > revenue.bottom,
+        domainsTwoColumns: Math.abs(domains[0].top - domains[1].top) < 2 && domains[2].top > domains[0].bottom
+      };
+    });
+    assert.deepEqual(tabletLayout, { kpisSameRow: true, chartsStacked: true, domainsTwoColumns: true });
     await page.setViewportSize({ width: 821, height: 768 });
-    assert.equal((await page.locator('.home-dashboard-grid').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length)), 1);
-    assert.equal(await page.locator('.home-dashboard-rail').isVisible(), true);
+    const compactCards = await page.locator(".home-dashboard-overview-grid > .home-dashboard-card").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
+    assert.equal(compactCards.every((rect, index) => index === 0 || rect.top > compactCards[index - 1].top), true);
     await page.setViewportSize({ width: 1366, height: 900 });
 
     const matterListCallsBeforeSearch = state.matterListCalls;
@@ -1415,9 +1458,10 @@ test("Home dashboard keeps independent cards available when monthly finance is d
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.equal(await page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').count() > 0, true);
-    assert.equal(await page.locator('[data-dashboard-section="new-engagements"] .dashboard-record-row').count() > 0, true);
-    assert.match(await page.locator('[data-dashboard-section="monthly-sales"]').innerText(), /월별 매출 접근 권한이 없습니다/);
+    assert.equal(await page.locator('[data-dashboard-section="client-summary"] .dashboard-record-row').count() > 0, true);
+    assert.equal(await page.locator('[data-dashboard-section="matter-summary"] .dashboard-record-row').count() > 0, true);
+    assert.match(await page.locator('[data-dashboard-section="monthly-revenue"]').innerText(), /이번달 매출 접근 권한이 없습니다/);
+    assert.match(await page.locator('[data-dashboard-section="monthly-revenue-chart"]').innerText(), /월별 매출 접근 권한이 없습니다/);
   } finally {
     await browser.close();
     await server.close();
@@ -1445,9 +1489,9 @@ test("Home dashboard preserves a source error without hiding independent cards",
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.match(await page.locator('[data-dashboard-section="recent-work"]').innerText(), /최근 작업을 불러오지 못했습니다/);
-    assert.equal(await page.locator('[data-dashboard-section="new-engagements"] .dashboard-record-row').count() > 0, true);
-    assert.equal(await page.locator('[data-dashboard-section="monthly-sales"] .dashboard-record-row').count() > 0, true);
+    assert.match(await page.locator('[data-dashboard-section="matter-summary"]').innerText(), /Matter 요약을 불러오지 못했습니다/);
+    assert.equal(await page.locator('[data-dashboard-section="client-summary"] .dashboard-record-row').count() > 0, true);
+    assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
   } finally {
     await browser.close();
     await server.close();
@@ -1484,8 +1528,9 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&locale=en#home-dashboard`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-notification-info-count="2"]');
-    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 1);
-    assert.doesNotMatch(await page.locator('[data-widget-id="todo"]').textContent(), /Late 2, Today 1/);
+    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 0);
+    assert.equal(await page.locator('[data-dashboard-section="people-summary"]').count(), 1);
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&locale=en#home-feed`, { waitUntil: "networkidle" });
     assert.equal(await page.locator("#home-feed-tab-notice").textContent(), "Internal notices");
     assert.ok((await page.locator('.sidebar button:has-text("Dashboard")').count()) > 0);
   } finally {
@@ -1494,7 +1539,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
   }
 });
 
-test("R1 WP-7 keeps approval counts aligned across the dashboard card, sidebar, topbar, and dedicated views", async () => {
+test("R1 WP-7 keeps approval counts aligned across navigation and dedicated views after removing the dashboard approval card", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -1514,25 +1559,17 @@ test("R1 WP-7 keeps approval counts aligned across the dashboard card, sidebar, 
 
     await page.waitForSelector('[data-home-sidebar-approval-count="5"]');
     const dashboardSurfaceText = await page.locator(".home-dashboard-surface").innerText();
-    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 1);
+    assert.equal(visibleLineCount(dashboardSurfaceText, "승인 대기"), 0);
     assert.doesNotMatch(dashboardSurfaceText, /승인 요청/);
-    assert.doesNotMatch(dashboardSurfaceText, /·/);
     const dashboardCounts = await page.evaluate(() => ({
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
       topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
     }));
     assert.deepEqual(dashboardCounts, { sidebar: "5", topbar: "5" });
     assert.equal(await page.locator("[data-home-widget-approval-count]").count(), 0);
-    assert.deepEqual(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-copy strong').allTextContents(), ["가장 오래된 승인", "오늘 승인", "중간 승인", "내일 승인", "가장 늦은 승인"]);
-    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"] .dashboard-record-detail').count(), 0);
+    assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 0);
 
-    await page.locator('[data-dashboard-section="pending-approvals"]').getByRole("button", { name: /가장 오래된 승인/ }).click();
-    await page.waitForSelector('[data-home-section-screen="home-requests"]');
-    assert.equal(new URL(page.url()).hash, "#home-requests");
-    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-
-    await page.locator('[data-home-widget-view-all="todo"]').click();
-    await page.waitForFunction(() => window.location.hash === "#home-todo");
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-todo`, { waitUntil: "networkidle" });
     assert.equal(await page.locator("[data-active-home-section]").getAttribute("data-active-home-section"), "home-todo");
     assert.equal(await page.locator(".home-dashboard-hero h1").textContent(), "할 일");
     assert.equal(await page.locator('[data-home-section-screen="home-todo"] [data-home-tab-prefix="work"]').count(), 0);

@@ -33,6 +33,80 @@ function runStatusLabel(status) {
   return ({ draft: "입력 대기", snapshot_ready: "계산 준비", previewed: "검토 중", approved: "승인", closed: "마감", cancelled: "취소" })[status] ?? status;
 }
 
+function payrollMonth(value) {
+  if (typeof value !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) {
+    const error = new TypeError("month must be YYYY-MM");
+    error.safe_error_code = "HRX_PAYROLL_DASHBOARD_MONTH_INVALID";
+    error.status = 400;
+    throw error;
+  }
+  return value;
+}
+
+function runRecency(run) {
+  const value = run.closed_at ?? run.approved_at ?? run.updated_at ?? run.created_at;
+  const parsed = Date.parse(value ?? "");
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function payrollCategory(title) {
+  const value = String(title ?? "").trim().toLowerCase();
+  if (!value) return "unclassified";
+  if (/partner|파트너|대표변호사|구성원변호사/.test(value)) return "partner";
+  if (/advisor|adviser|counsel|고문|자문위원|자문역/.test(value)) return "advisor";
+  return "staff";
+}
+
+function effectiveEmploymentProfile(store, context, employeeId, periodEnd) {
+  return store.query("select", {
+    table: "hrx_employment_profiles",
+    where: { tenant_id: context.tenant_id, employee_id: employeeId },
+  })
+    .filter((row) => row.effective_from <= periodEnd && (!row.effective_to || row.effective_to >= periodEnd))
+    .sort((left, right) => right.effective_from.localeCompare(left.effective_from) || Number(right.state_version ?? 0) - Number(left.state_version ?? 0))[0] ?? null;
+}
+
+function dashboardSummary(runtime, store, context, monthInput) {
+  const month = payrollMonth(monthInput);
+  const period = runtime.payrollRepository.listPeriods(context).find((row) => row.period_code === month);
+  if (!period) return null;
+  const run = runtime.payrollRepository.listRuns(context, { period_id: period.period_id })
+    .filter((row) => row.status === "approved" || row.status === "closed")
+    .sort((left, right) => {
+      const statusDelta = Number(right.status === "closed") - Number(left.status === "closed");
+      return statusDelta || runRecency(right) - runRecency(left) || right.run_id.localeCompare(left.run_id);
+    })[0];
+  if (!run) return null;
+
+  const categories = new Map([
+    ["partner", { category: "partner", label: "파트너", gross_krw: 0, employee_count: 0 }],
+    ["advisor", { category: "advisor", label: "고문", gross_krw: 0, employee_count: 0 }],
+    ["staff", { category: "staff", label: "직원", gross_krw: 0, employee_count: 0 }],
+    ["unclassified", { category: "unclassified", label: "미분류", gross_krw: 0, employee_count: 0 }],
+  ]);
+  const results = runtime.payrollRepository.getRunBundle(context, { run_id: run.run_id }).results;
+  for (const result of results) {
+    const profile = effectiveEmploymentProfile(store, context, result.employee_id, period.period_end);
+    const category = payrollCategory(profile?.title);
+    const aggregate = categories.get(category);
+    aggregate.gross_krw += Number(result.gross_krw ?? 0);
+    aggregate.employee_count += 1;
+  }
+  const grossKrw = [...categories.values()].reduce((sum, category) => sum + category.gross_krw, 0);
+  return Object.freeze({
+    month,
+    currency: "KRW",
+    run_status: run.status,
+    gross_krw: grossKrw,
+    employee_count: results.length,
+    categories: Object.freeze([...categories.values()].map((category) => Object.freeze({ ...category }))),
+    individual_values_included: false,
+    individual_identifiers_included: false,
+    credential_material_included: false,
+    production_ready_claim: false,
+  });
+}
+
 function selfEmployeeId(store, context) {
   const link = store.query("selectOne", { table: "hrx_employee_user_links", where: { tenant_id: context.tenant_id, user_id: context.actor_id } });
   if (!link?.employee_id) {
@@ -185,6 +259,25 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
             metadata: { payroll_calculation_runtime: false, disbursement_instruction_included: false },
           });
           return response(201, { outcome: "approved", approval_receipt: approvalReceipt });
+        }
+        if (request.method === "GET" && action === "dashboard-summary") {
+          const summary = dashboardSummary(runtime, store, context, request.query?.month);
+          audit?.append?.({
+            event_id: `hrx_payroll_dashboard_evt_${randomUUID()}`,
+            tenant_id: context.tenant_id,
+            actor_id: context.actor_id,
+            action: "hrx.payroll.dashboard_summary.read",
+            object_type: "PayrollAggregate",
+            object_id: request.query?.month ?? "invalid-month",
+            decision: "allow",
+            reason: "payroll_dashboard_aggregate_read",
+            metadata: {
+              result_count: summary ? 1 : 0,
+              individual_values_included: false,
+              individual_identifiers_included: false,
+            },
+          });
+          return response(200, { outcome: summary ? "ok" : "empty", summary });
         }
         if (request.method === "GET" && action === "list") return response(200, { outcome: "ok", workspace: workspace(runtime, store, context) });
         if (request.method === "GET" && action === "bundle") {

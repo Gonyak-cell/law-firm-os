@@ -365,12 +365,13 @@ test("WP-FIN-2 reconciles overview, monthly, and canonical client read models ac
       billed_amount: krw.billed_amount,
       collected_amount: krw.collected_amount,
       matter_cost: krw.matter_cost,
+      processed_cost: krw.processed_cost,
       recoverable_cost: krw.recoverable_cost,
       ar_balance: krw.ar_balance,
       unlinked_amount: krw.unlinked_amount,
       date_inferred_count: krw.date_inferred_count,
     },
-    { billed_amount: 900, collected_amount: 400, matter_cost: 250, recoverable_cost: 250, ar_balance: 500, unlinked_amount: 50, date_inferred_count: 1 },
+    { billed_amount: 900, collected_amount: 400, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, unlinked_amount: 50, date_inferred_count: 1 },
   );
   assert.equal(usd.billed_amount, 20);
   assert.equal(model.overview.currency_conversion_applied, false);
@@ -379,6 +380,7 @@ test("WP-FIN-2 reconciles overview, monthly, and canonical client read models ac
   assert.equal(julyKrw.billed_amount, krw.billed_amount);
   assert.equal(julyKrw.collected_amount, krw.collected_amount);
   assert.equal(julyKrw.matter_cost, krw.matter_cost);
+  assert.equal(julyKrw.processed_cost, krw.processed_cost);
 
   const clientKrw = model.clients.find((row) => row.client_group_id === "client-group-a" && row.currency === "KRW");
   const unlinkedKrw = model.clients.find((row) => row.client_group_id === null && row.currency === "KRW");
@@ -390,6 +392,28 @@ test("WP-FIN-2 reconciles overview, monthly, and canonical client read models ac
   assert.equal(unlinkedKrw.matter_cost, 50);
   assert.equal(model.raw_source_payload_included, false);
   assert.equal(model.production_ready_claim, false);
+});
+
+test("Home Finance processed cost includes only approved lifecycle states without changing matter cost", () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      { model_type: "Expense", expense_id: "expense-approved", tenant_id: TENANT, amount: 200, currency: "KRW", status: "approved", expense_date: "2026-07-10" },
+      { model_type: "Expense", expense_id: "expense-submitted", tenant_id: TENANT, amount: 100, currency: "KRW", status: "submitted", expense_date: "2026-07-11" },
+      { model_type: "Disbursement", disbursement_id: "disbursement-paid", tenant_id: TENANT, amount: 50, currency: "KRW", status: "paid", disbursed_at: "2026-07-12" },
+      { model_type: "Disbursement", disbursement_id: "disbursement-wip", tenant_id: TENANT, amount: 25, currency: "KRW", status: "draft", approved_for_wip: true, disbursed_at: "2026-07-13" },
+    ],
+  });
+  const model = buildFinanceReadModels({
+    financeRepository,
+    tenant_id: TENANT,
+    from: "2026-07-01",
+    to: "2026-07-31",
+  });
+  const krw = model.overview.totals.find((row) => row.currency === "KRW");
+  assert.equal(krw.matter_cost, 375);
+  assert.equal(krw.processed_cost, 275);
+  assert.equal(model.monthly[0].matter_cost, 375);
+  assert.equal(model.monthly[0].processed_cost, 275);
 });
 
 test("WP-FIN-2 falls back to Payment only when no PaymentMatch source rows exist", () => {
