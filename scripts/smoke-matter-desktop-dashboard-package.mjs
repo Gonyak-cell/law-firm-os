@@ -221,6 +221,7 @@ try {
           ? '[data-matter-dashboard="true"]'
           : '[data-hr-workforce-table="true"]';
     await page.waitForSelector(rootSelector, { timeout: 30_000 });
+    let homeTabFixtureEvidence = null;
     if (view === "home") {
       try {
         await page.waitForFunction(
@@ -233,12 +234,51 @@ try {
             return JSON.stringify(sections) === JSON.stringify([...expectedSections].sort())
               && document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length === 1
               && document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length === 1
-              && ["₩ 12,000,000", "₩ 9,000,000", "₩ 4,000,000", "연차 휴가 신청", "QA-2026-002", "QA-2026-003", "고객 미팅"]
+              && ["₩ 12,000,000", "₩ 9,000,000", "₩ 4,000,000", "마루 주식회사", "연차 휴가 신청", "QA-2026-002", "고객 미팅"]
                 .every((value) => text.includes(value));
           },
           { selector: rootSelector, expectedSections: sections },
           { timeout: 30_000 },
         );
+        const defaultTabEvidence = await page.evaluate(({ selector }) => {
+          const text = document.querySelector(selector)?.innerText ?? "";
+          return {
+            client_new_selected: document.querySelector(`${selector} [data-home-tab-prefix="home-client-dashboard"][data-home-tab-id="new"]`)?.getAttribute("aria-selected") === "true",
+            client_new_fixture_visible: text.includes("마루 주식회사"),
+            matter_new_selected: document.querySelector(`${selector} [data-home-tab-prefix="home-matter-dashboard"][data-home-tab-id="new"]`)?.getAttribute("aria-selected") === "true",
+            matter_new_fixture_visible: text.includes("QA-2026-002"),
+          };
+        }, { selector: rootSelector });
+        assert.equal(Object.values(defaultTabEvidence).every(Boolean), true, `Home default tabs must expose their fixtures: ${JSON.stringify(defaultTabEvidence)}`);
+
+        await page.click(`${rootSelector} [data-home-tab-prefix="home-client-dashboard"][data-home-tab-id="prospects"]`);
+        await page.waitForFunction(
+          ({ selector }) => {
+            const card = document.querySelector(`${selector} [data-dashboard-section="client-summary"]`);
+            const tab = card?.querySelector('[data-home-tab-prefix="home-client-dashboard"][data-home-tab-id="prospects"]');
+            const text = card?.innerText ?? "";
+            return tab?.getAttribute("aria-selected") === "true" && ["바른 그룹", "새롬 자문"].every((value) => text.includes(value));
+          },
+          { selector: rootSelector },
+          { timeout: 10_000 },
+        );
+        await page.click(`${rootSelector} [data-home-tab-prefix="home-matter-dashboard"][data-home-tab-id="closed"]`);
+        await page.waitForFunction(
+          ({ selector }) => {
+            const card = document.querySelector(`${selector} [data-dashboard-section="matter-summary"]`);
+            const tab = card?.querySelector('[data-home-tab-prefix="home-matter-dashboard"][data-home-tab-id="closed"]');
+            return tab?.getAttribute("aria-selected") === "true" && (card?.innerText ?? "").includes("QA-2026-003");
+          },
+          { selector: rootSelector },
+          { timeout: 10_000 },
+        );
+        homeTabFixtureEvidence = {
+          ...defaultTabEvidence,
+          client_prospects_selected: true,
+          client_prospect_fixtures_visible: true,
+          matter_closed_selected: true,
+          matter_closed_fixture_visible: true,
+        };
       } catch (error) {
         const diagnostic = await page.evaluate(({ selector, expectedSections }) => {
           const text = document.querySelector(selector)?.innerText ?? "";
@@ -258,6 +298,8 @@ try {
             new_matter_fixture_visible: text.includes("QA-2026-002"),
             closed_matter_fixture_visible: text.includes("QA-2026-003"),
             calendar_fixture_visible: text.includes("고객 미팅"),
+            active_client_tab: document.querySelector(`${selector} [data-home-tab-prefix="home-client-dashboard"][aria-selected="true"]`)?.getAttribute("data-home-tab-id") ?? null,
+            active_matter_tab: document.querySelector(`${selector} [data-home-tab-prefix="home-matter-dashboard"][aria-selected="true"]`)?.getAttribute("data-home-tab-id") ?? null,
             body_preview: text.replace(/\s+/g, " ").slice(0, 1200),
           };
         }, { selector: rootSelector, expectedSections: sections });
@@ -303,6 +345,17 @@ try {
         body_preview: surfaceText.replace(/\s+/g, " ").slice(0, 800)
       };
     }, { selector: rootSelector });
+    if (view === "home") {
+      snapshot.home_client_fixture_visible = Boolean(
+        homeTabFixtureEvidence?.client_new_fixture_visible
+        && homeTabFixtureEvidence?.client_prospect_fixtures_visible
+      );
+      snapshot.home_matter_fixture_visible = Boolean(
+        homeTabFixtureEvidence?.matter_new_fixture_visible
+        && homeTabFixtureEvidence?.matter_closed_fixture_visible
+      );
+      snapshot.home_tab_fixture_evidence = homeTabFixtureEvidence;
+    }
     assert.deepEqual([...snapshot.sections].sort(), [...sections].sort(), `${view} dashboard sections`);
     if (view === "home") {
       assert.equal(snapshot.home_dashboard_grid_count, 1, "Home must render one overview grid");
