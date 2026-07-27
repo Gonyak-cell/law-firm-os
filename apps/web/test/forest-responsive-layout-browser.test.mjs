@@ -145,6 +145,7 @@ test("Forest login preserves its one-shot intro until the page is focused", asyn
       await page.goto(`${baseUrl}?view=auth&authStep=login`, { waitUntil: "networkidle" });
       const login = page.locator("[data-login-screen='forest-split']");
       await login.waitFor({ state: "attached" });
+      assert.equal(await page.locator(".matter-login-intro-logo .amic-law-logo").count(), 2);
       await page.waitForTimeout(250);
       assert.deepEqual(await page.evaluate(() => ({
         state: document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro"),
@@ -159,6 +160,24 @@ test("Forest login preserves its one-shot intro until the page is focused", asyn
         await page.waitForFunction(
           () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "play"
         );
+        await page.waitForFunction(
+          () => Number(document.querySelector(".matter-login-intro-a")?.getAnimations()[0]?.currentTime ?? 0) >= 650
+        );
+        const aOnly = await page.evaluate(() => ({
+          a: Number(getComputedStyle(document.querySelector(".matter-login-intro-a")).opacity),
+          mic: Number(getComputedStyle(document.querySelector(".matter-login-intro-mic")).opacity)
+        }));
+        assert.ok(aOnly.a > 0.9, JSON.stringify(aOnly));
+        assert.ok(aOnly.mic < 0.1, JSON.stringify(aOnly));
+        await page.waitForFunction(
+          () => Number(document.querySelector(".matter-login-intro-mic")?.getAnimations()[0]?.currentTime ?? 0) >= 1700
+        );
+        const assembled = await page.evaluate(() => ({
+          a: Number(getComputedStyle(document.querySelector(".matter-login-intro-a")).opacity),
+          mic: Number(getComputedStyle(document.querySelector(".matter-login-intro-mic")).opacity)
+        }));
+        assert.ok(assembled.a > 0.9, JSON.stringify(assembled));
+        assert.ok(assembled.mic > 0.9, JSON.stringify(assembled));
       }
       await page.waitForFunction(
         () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "complete"

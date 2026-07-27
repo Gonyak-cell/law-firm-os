@@ -13,6 +13,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { PRODUCT_BRAND } from "../brand/brand";
+import amicLawLogo from "../assets/amic-law.svg";
 import brochureCover from "../assets/brochure-cover.jpg";
 import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
@@ -60,7 +61,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
 
       frame = window.requestAnimationFrame(() => {
         const stage = loginStageRef.current;
-        const source = loginIntroLogoRef.current?.querySelector(".amic-law-logo")?.getBoundingClientRect();
+        const source = loginIntroLogoRef.current?.getBoundingClientRect();
         const target = loginTargetLogoRef.current?.querySelector(".amic-law-logo")?.getBoundingClientRect();
         if (!stage || !source?.width || !target?.width) {
           setLoginIntroState("complete");
@@ -155,8 +156,11 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
         data-login-screen="forest-split"
         data-login-intro={loginIntroState}
       >
-        <div ref={loginIntroLogoRef} className="matter-login-intro" aria-hidden="true">
-          <MatterLogo />
+        <div className="matter-login-intro" aria-hidden="true">
+          <div ref={loginIntroLogoRef} className="matter-login-intro-logo">
+            <img className="amic-law-logo matter-login-intro-a" src={amicLawLogo} alt="" />
+            <img className="amic-law-logo matter-login-intro-mic" src={amicLawLogo} alt="" />
+          </div>
         </div>
         <div className="matter-login-copy">
           <div className="matter-login-form-column">

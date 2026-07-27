@@ -136,6 +136,34 @@ test("session IPC exposes account login and smoke without renderer token materia
   assert.equal(ipcMain.handlers.size, 0);
 });
 
+test("session IPC does not consume the logo intro before the desktop window is shown", async () => {
+  const ipcMain = new FakeIpcMain();
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  let releaseWindow;
+  const windowShown = new Promise((resolve) => {
+    releaseWindow = resolve;
+  });
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    waitForLogoIntroReady: () => windowShown
+  });
+
+  let settled = false;
+  const firstClaim = ipcMain.invoke(SESSION_CHANNELS.claimLogoIntro).then((result) => {
+    settled = true;
+    return result;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(settled, false);
+
+  releaseWindow();
+  assert.equal((await firstClaim).play_logo_animation, true);
+  assert.equal((await ipcMain.invoke(SESSION_CHANNELS.claimLogoIntro)).play_logo_animation, false);
+  registration.dispose();
+});
+
 test("session IPC preserves login lockout state without signing the renderer in", async () => {
   const ipcMain = new FakeIpcMain();
   const coordinator = new MainProcessAuthCoordinator({

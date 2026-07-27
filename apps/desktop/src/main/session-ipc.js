@@ -13,13 +13,21 @@ export const SESSION_CHANNELS = Object.freeze({
   logout: "session:logout"
 });
 
-export function registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender }) {
+export function registerSessionIpcHandlers({
+  ipcMain,
+  coordinator,
+  isTrustedSender,
+  waitForLogoIntroReady = () => undefined
+}) {
   if (!ipcMain?.handle) throw new Error("ipcMain.handle is required for session IPC registration");
   if (!coordinator) throw new Error("session coordinator is required for session IPC registration");
 
   const routes = [
     [SESSION_CHANNELS.status, () => coordinator.sessionStatus()],
-    [SESSION_CHANNELS.claimLogoIntro, () => coordinator.claimLogoIntro()],
+    [SESSION_CHANNELS.claimLogoIntro, async () => {
+      await waitForLogoIntroReady();
+      return coordinator.claimLogoIntro();
+    }],
     [SESSION_CHANNELS.runtime, () => coordinator.runtimeStatus()],
     [SESSION_CHANNELS.accounts, () => coordinator.accounts()],
     [SESSION_CHANNELS.requestPasswordReset, (payload) => coordinator.requestPasswordReset(payload)],

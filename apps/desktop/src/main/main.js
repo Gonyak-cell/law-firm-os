@@ -231,10 +231,14 @@ export async function startDesktopShell({
     event?.senderFrame?.url ?? event?.sender?.getURL?.(),
     originOptions
   );
-  const sessionIpc = ipcMain && coordinator
-    ? registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender })
-    : null;
   const window = await createMainWindow({ BrowserWindowConstructor, options: windowOptionsWithPreload(windowOptions) });
+  const waitForLogoIntroReady = () => {
+    if (window.isVisible?.()) return Promise.resolve();
+    return new Promise((resolve) => window.once("show", resolve));
+  };
+  const sessionIpc = ipcMain && coordinator
+    ? registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender, waitForLogoIntroReady })
+    : null;
   installNavigationGuards(window, originOptions);
   await window.loadURL(target);
   const initialDeepLink = sendPasswordResetDeepLink(window, initialDeepLinkUrl);

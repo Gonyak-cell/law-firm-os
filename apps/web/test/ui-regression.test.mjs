@@ -1062,6 +1062,8 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(authSource, /matter-login-photo-panel/);
   assert.match(authSource, /AMIC Forest/);
   assert.match(authSource, /claimLogoIntro/);
+  assert.match(authSource, /matter-login-intro-a/);
+  assert.match(authSource, /matter-login-intro-mic/);
   assert.match(authSource, /document\.visibilityState !== "visible"/);
   assert.match(
     authSource,
@@ -1084,7 +1086,9 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(stylesSource, /\.matter-login-stage/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.matter-login-stage[\s\S]*grid-template-columns:\s*minmax\(520px, 52fr\) minmax\(420px, 48fr\)/);
   assert.match(stylesSource, /@keyframes forestLoginPageIn/);
-  assert.match(stylesSource, /@keyframes forestLoginLogoHandoff/);
+  assert.match(stylesSource, /@keyframes forestLoginLogoAssemblyDock/);
+  assert.match(stylesSource, /@keyframes forestLoginAAssembly/);
+  assert.match(stylesSource, /@keyframes forestLoginMicAssembly/);
   assert.match(stylesSource, /@keyframes forestLoginLogoTargetIn/);
   assert.match(stylesSource, /@keyframes post-login-logo-dock/);
   assert.equal(assetFiles.includes("parnas-tower-login.jpg"), false);
