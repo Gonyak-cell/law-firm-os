@@ -617,19 +617,18 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /data-home-dashboard-shell="true"/);
   assert.match(homeSource, /data-home-dashboard-grid="true"/);
   assert.match(homeSource, /data-active-home-section=\{activeHomeSection\}/);
-  assert.match(homeSource, /section="pending-approvals"/);
+  assert.doesNotMatch(homeSource, /section="pending-approvals"/);
   assert.doesNotMatch(homeSource, /const approvalCategoryRows/);
-  assert.match(homeSource, /approvalRows\.map\(\(row\) =>[\s\S]*title=\{row\.title\}[\s\S]*meta=\{row\.meta\}/);
+  assert.match(homeSource, /const filteredApprovalRows = sortApprovalRows/);
   assert.doesNotMatch(homeSource, /const leaveApprovalCount|const expenseApprovalCount/);
   assert.match(homeSource, /home-requests-leave/);
   assert.match(homeSource, /home-requests-expenses/);
-  assert.match(homeSource, /widgetId="todo"/);
+  assert.doesNotMatch(homeSource, /widgetId="todo"/);
   assert.match(homeSource, /widgetId="calendar"/);
   assert.match(homeSource, /widgetId="feed"/);
   assert.doesNotMatch(homeSource, /widgetId="system"|home-dashboard-system/);
-  assert.match(homeSource, /homeWidgetTodoTitle/);
+  assert.doesNotMatch(homeSource, /homeWidgetTodoTitle/);
   assert.match(homeSource, /homeWidgetCalendarTitle/);
-  assert.match(homeSource, /homeWidgetFeedTitle/);
   assert.doesNotMatch(homeSource, /homeWidgetSystemTitle/);
   assert.doesNotMatch(homeSource, /home-dashboard-card-icon|<FileSignature|meta=\{`\$\{actionInbox\.counts\.approval\}/);
   assert.doesNotMatch(homeSource, /dataPrefix="approval-widget"/);
@@ -646,14 +645,22 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(homeSource, /id: "notice", labelKey: "homeFeedNotice", label: "공지사항"/);
   assert.match(homeSource, /id: "newsletter", labelKey: "homeFeedNewsletter", label: "뉴스레터"/);
   assert.doesNotMatch(homeSource, /id: "news"/);
-  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\] \.home-dashboard-grid\s*\{[^}]*grid-template-areas:\s*"todo approvals recent"\s*"intake monthly rail"/);
-  for (const section of ["recent-work", "today-todo", "pending-approvals", "monthly-sales", "new-engagements", "feed", "calendar"]) {
+  assert.match(stylesSource, /\.home-dashboard-overview-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(stylesSource, /\.home-dashboard-kpi-card\s*\{[^}]*grid-column:\s*span 4/);
+  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*span 8/);
+  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*span 4/);
+  assert.match(stylesSource, /\.home-dashboard-domain-card\s*\{[^}]*grid-column:\s*span 3/);
+  for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
   }
-  assert.match(stylesSource, /\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
-  assert.match(stylesSource, /\.home-dashboard-rail > \.home-dashboard-card:first-child\s*\{[\s\S]*flex:\s*1/);
-  assert.match(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\] \.home-dashboard-grid > \.home-dashboard-feed\s*\{[^}]*display:\s*none/);
-  assert.doesNotMatch(stylesSource, /home-dashboard-surface\[data-active-home-section="home-dashboard"\][^}]*\.home-dashboard-grid > \.home-dashboard-rail\s*\{[^}]*display:\s*none/);
+  for (const removedSection of ["recent-work", "today-todo", "pending-approvals", "monthly-sales", "new-engagements"]) {
+    assert.doesNotMatch(homeSource, new RegExp(`section="${removedSection}"`));
+  }
+  assert.match(homeSource, /activeHomeSection !== "home-dashboard" && \(/);
+  assert.match(homeSource, /<HomeRevenueLineChart series=\{financeDashboard\.series\} \/>/);
+  assert.match(homeSource, /<HomePayrollDonutChart summary=\{payrollSummary\} \/>/);
+  assert.match(stylesSource, /@media \(max-width:\s*1280px\)[\s\S]*\.home-dashboard-domain-card\s*\{[\s\S]*grid-column:\s*span 6/);
+  assert.match(stylesSource, /@media \(max-width:\s*821px\)[\s\S]*\.home-dashboard-kpi-card,[\s\S]*grid-column:\s*span 12/);
   assert.match(dashboardListSource, /className="home-dashboard-card-body">\{children\}/);
   assert.match(homeSource, /function DashboardCard[\s\S]*className="home-dashboard-card-body">\{children\}/);
   assert.match(stylesSource, /\.home-dashboard-card\s*\{[^}]*gap:\s*0;[^}]*padding:\s*0;[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid var\(--am-border\);[^}]*border-radius:\s*var\(--am-radius-sm\);[^}]*background:\s*var\(--am-surface\);/);
@@ -664,7 +671,6 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.home-dashboard-card-header \+ \.home-dashboard-card-body\s*\{[^}]*margin-top:\s*0;/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.home-dashboard-card\s*\{[^}]*border-color:\s*rgba\(38, 194, 96, 0\.18\);/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.home-dashboard-card:hover\s*\{[^}]*transform:\s*none;[^}]*box-shadow:\s*var\(--am-shadow-panel\);/);
-  assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.home-dashboard-rail\s*\{[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
   assert.match(homeSource, /data-home-ops-queue="true"/);
   assert.match(homeSource, /fetchUserProfile/);
   assert.match(homeSource, /fetchHomeActionInbox/);

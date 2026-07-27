@@ -4679,6 +4679,9 @@ export function handleHrxApiRequest({ pathname, method, query = {}, body = {}, c
     if (pathname === "/api/hrx/payroll/attendance-approvals" && method === "POST" && context.payrollRuntimeRoute) {
       return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "attendance-approve" }, query, body });
     }
+    if (pathname === "/api/hrx/payroll/dashboard-summary" && method === "GET" && context.payrollRuntimeRoute) {
+      return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "dashboard-summary" }, query, body });
+    }
     if (pathname === "/api/hrx/payroll/periods" && method === "GET" && context.payrollRuntimeRoute) {
       return context.payrollRuntimeRoute.handle({ method, context: actorContext, params: { action: "list" }, query, body });
     }

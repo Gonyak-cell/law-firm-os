@@ -6,6 +6,7 @@ const SEOUL_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
 });
 
 const EXCLUDED_STATUSES = new Set(["cancelled", "canceled", "void", "rejected", "deleted"]);
+const PROCESSED_COST_STATUSES = new Set(["approved", "posted", "paid", "reimbursed", "settled"]);
 const CLOSED_AR_STATUSES = new Set(["closed", "paid", "written_off", "written-off", "cancelled", "canceled"]);
 const UNLINKED_CLIENT_ID = "unlinked-client";
 
@@ -149,6 +150,7 @@ function emptyMetrics(currency) {
     billed_amount: 0,
     collected_amount: 0,
     matter_cost: 0,
+    processed_cost: 0,
     recoverable_cost: 0,
     ar_balance: 0,
     contribution_amount: 0,
@@ -162,6 +164,7 @@ function addEntry(target, entry) {
   target.billed_amount = money(target.billed_amount + entry.billed_amount);
   target.collected_amount = money(target.collected_amount + entry.collected_amount);
   target.matter_cost = money(target.matter_cost + entry.matter_cost);
+  target.processed_cost = money(target.processed_cost + entry.processed_cost);
   target.recoverable_cost = money(target.recoverable_cost + entry.recoverable_cost);
   target.ar_balance = money(target.ar_balance + entry.ar_balance);
   target.transaction_count += 1;
@@ -228,6 +231,7 @@ export function buildFinanceReadModels({
       billed_amount: money(values.billed_amount),
       collected_amount: money(values.collected_amount),
       matter_cost: money(values.matter_cost),
+      processed_cost: money(values.processed_cost),
       recoverable_cost: money(values.recoverable_cost),
       ar_balance: money(values.ar_balance),
     });
@@ -264,15 +268,19 @@ export function buildFinanceReadModels({
 
   for (const expense of expenses) {
     const amount = firstNumber(expense, ["amount", "expense_amount", "total_amount"]);
+    const processed = expense.approved_for_wip === true || PROCESSED_COST_STATUSES.has(String(expense.status ?? "").toLowerCase());
     push(expense, ["expense_date", "incurred_at"], {
       matter_cost: amount,
+      processed_cost: processed ? amount : 0,
       recoverable_cost: expense.approved_for_wip === true || expense.recoverable === true ? amount : 0,
     }, currencyOf(expense));
   }
   for (const disbursement of disbursements) {
     const amount = firstNumber(disbursement, ["amount", "disbursement_amount", "total_amount"]);
+    const processed = disbursement.approved_for_wip === true || PROCESSED_COST_STATUSES.has(String(disbursement.status ?? "").toLowerCase());
     push(disbursement, ["disbursed_at", "paid_at", "expense_date"], {
       matter_cost: amount,
+      processed_cost: processed ? amount : 0,
       recoverable_cost: disbursement.recoverable === true ? amount : 0,
     }, currencyOf(disbursement));
   }

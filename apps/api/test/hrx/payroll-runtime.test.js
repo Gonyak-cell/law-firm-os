@@ -71,6 +71,83 @@ test("PY-UI-001/002 runtime API lists, snapshots, previews, approves, and closes
   value.store.close();
 });
 
+test("Home payroll dashboard returns only approved aggregate categories without employee PII", async () => {
+  const value = setup();
+  const preparer = { tenant_id: TENANT, actor_id: "payroll-preparer", step_up_verified: true, step_up_purpose: "payroll_export_review" };
+  const approver = { tenant_id: TENANT, actor_id: "payroll-approver", step_up_verified: true, step_up_purpose: "payroll_export_review" };
+  const runId = value.runtime.payrollRepository.listRuns(preparer)[0].run_id;
+
+  const beforeApproval = await value.route.handle({
+    method: "GET",
+    context: preparer,
+    params: { action: "dashboard-summary" },
+    query: { month: "2026-07" },
+    body: {},
+  });
+  assert.deepEqual([beforeApproval.status, beforeApproval.body.outcome, beforeApproval.body.summary], [200, "empty", null]);
+
+  await call(value.route, preparer, "snapshot", { run_id: runId });
+  await call(value.route, preparer, "preview", { run_id: runId });
+  await call(value.route, approver, "approve", { run_id: runId });
+  const approved = await value.route.handle({
+    method: "GET",
+    context: preparer,
+    params: { action: "dashboard-summary" },
+    query: { month: "2026-07" },
+    body: {},
+  });
+  assert.equal(approved.status, 200);
+  assert.equal(approved.body.summary.gross_krw, 6_250_000);
+  assert.equal(approved.body.summary.employee_count, 2);
+  assert.deepEqual(
+    approved.body.summary.categories.map(({ category, gross_krw, employee_count }) => ({ category, gross_krw, employee_count })),
+    [
+      { category: "partner", gross_krw: 3_000_000, employee_count: 1 },
+      { category: "advisor", gross_krw: 0, employee_count: 0 },
+      { category: "staff", gross_krw: 3_250_000, employee_count: 1 },
+      { category: "unclassified", gross_krw: 0, employee_count: 0 },
+    ],
+  );
+  const serialized = JSON.stringify(approved.body);
+  assert.doesNotMatch(serialized, /employee_id|display_name|@|서지원|김양태/);
+  assert.equal(approved.body.summary.individual_values_included, false);
+  assert.equal(approved.body.summary.individual_identifiers_included, false);
+
+  await call(value.route, approver, "close", { run_id: runId });
+  const closed = await value.route.handle({
+    method: "GET",
+    context: preparer,
+    params: { action: "dashboard-summary" },
+    query: { month: "2026-07" },
+    body: {},
+  });
+  assert.equal(closed.body.summary.run_status, "closed");
+
+  const otherTenant = await value.route.handle({
+    method: "GET",
+    context: { tenant_id: "tenant-other", actor_id: "payroll-preparer" },
+    params: { action: "dashboard-summary" },
+    query: { month: "2026-07" },
+    body: {},
+  });
+  assert.deepEqual([otherTenant.body.outcome, otherTenant.body.summary], ["empty", null]);
+  value.store.close();
+});
+
+test("Home payroll dashboard rejects malformed month input", async () => {
+  const value = setup();
+  const result = await value.route.handle({
+    method: "GET",
+    context: { tenant_id: TENANT, actor_id: "payroll-preparer" },
+    params: { action: "dashboard-summary" },
+    query: { month: "2026-13" },
+    body: {},
+  });
+  assert.equal(result.status, 400);
+  assert.equal(result.body.safe_error_code, "HRX_PAYROLL_DASHBOARD_MONTH_INVALID");
+  value.store.close();
+});
+
 test("operational payroll providers fail closed without bank, filing, or delivery authority", async () => {
   const value = setup({ allowSyntheticProviders: false });
   const preparer = { tenant_id: TENANT, actor_id: "payroll-preparer", step_up_verified: false };

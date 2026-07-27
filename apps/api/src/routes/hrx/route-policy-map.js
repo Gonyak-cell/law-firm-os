@@ -1526,7 +1526,7 @@ const HRX_ROUTE_POLICIES = Object.freeze([
   {
     id: "hrx.payroll.runtime.read",
     method: "GET",
-    pattern: /^\/api\/hrx\/payroll\/(?:periods|runs\/[^/]+)$/,
+    pattern: /^\/api\/hrx\/payroll\/(?:dashboard-summary|periods|runs\/[^/]+)$/,
     action: "hrx.payroll.preview",
     sensitivity: "payroll",
     required_scope: "hrx.payroll.preview",
