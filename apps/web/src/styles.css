@@ -1855,12 +1855,12 @@ kbd {
 
 .home-dashboard-revenue-chart-card {
   min-height: 316px;
-  grid-column: span 8;
+  grid-column: span 7;
 }
 
 .home-dashboard-payroll-chart-card {
   min-height: 316px;
-  grid-column: span 4;
+  grid-column: span 5;
 }
 
 .home-dashboard-domain-card {
@@ -2138,17 +2138,8 @@ kbd {
 }
 
 @media (max-width: 1280px) {
-  .home-dashboard-revenue-chart-card,
-  .home-dashboard-payroll-chart-card {
-    grid-column: span 12;
-  }
-
   .home-dashboard-domain-card {
     grid-column: span 6;
-  }
-
-  .home-payroll-chart {
-    grid-template-columns: minmax(180px, 0.45fr) minmax(220px, 1fr);
   }
 }
 

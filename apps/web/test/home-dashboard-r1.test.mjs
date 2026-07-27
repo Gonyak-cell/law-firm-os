@@ -1226,11 +1226,12 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
         kpisEqualWidth: kpis.every((rect) => Math.abs(rect.width - kpis[0].width) < 2),
         chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
         payrollRight: payroll.left > revenue.left,
+        revenueWider: revenue.width > payroll.width,
         domainsSameRow: domains.every((rect) => Math.abs(rect.top - domains[0].top) < 2),
         calendarRight: domains.at(-1).left > domains[0].left
       };
     });
-    assert.deepEqual(dashboardLayout, { columns: 12, kpisSameRow: true, kpisEqualWidth: true, chartsSameRow: true, payrollRight: true, domainsSameRow: true, calendarRight: true });
+    assert.deepEqual(dashboardLayout, { columns: 12, kpisSameRow: true, kpisEqualWidth: true, chartsSameRow: true, payrollRight: true, revenueWider: true, domainsSameRow: true, calendarRight: true });
     await page.setViewportSize({ width: 1024, height: 768 });
     const tabletLayout = await page.evaluate(() => {
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
@@ -1239,11 +1240,13 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       const domains = [...document.querySelectorAll(".home-dashboard-domain-card")].map((node) => node.getBoundingClientRect());
       return {
         kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
-        chartsStacked: payroll.top > revenue.bottom,
+        chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
+        payrollRight: payroll.left > revenue.left,
+        revenueWider: revenue.width > payroll.width,
         domainsTwoColumns: Math.abs(domains[0].top - domains[1].top) < 2 && domains[2].top > domains[0].bottom
       };
     });
-    assert.deepEqual(tabletLayout, { kpisSameRow: true, chartsStacked: true, domainsTwoColumns: true });
+    assert.deepEqual(tabletLayout, { kpisSameRow: true, chartsSameRow: true, payrollRight: true, revenueWider: true, domainsTwoColumns: true });
     await page.setViewportSize({ width: 821, height: 768 });
     const compactCards = await page.locator(".home-dashboard-overview-grid > .home-dashboard-card").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
     assert.equal(compactCards.every((rect, index) => index === 0 || rect.top > compactCards[index - 1].top), true);

@@ -648,8 +648,8 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.doesNotMatch(homeSource, /id: "news"/);
   assert.match(stylesSource, /\.home-dashboard-overview-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(stylesSource, /\.home-dashboard-kpi-card\s*\{[^}]*grid-column:\s*span 4/);
-  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*span 8/);
-  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*span 4/);
+  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*span 7/);
+  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*span 5/);
   assert.match(stylesSource, /\.home-dashboard-domain-card\s*\{[^}]*grid-column:\s*span 3/);
   for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
