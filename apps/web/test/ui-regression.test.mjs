@@ -1086,6 +1086,7 @@ test("login surfaces keep credentials bounded and desktop supports password setu
   assert.match(stylesSource, /\.matter-login-stage/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.matter-login-stage[\s\S]*grid-template-columns:\s*minmax\(520px, 52fr\) minmax\(420px, 48fr\)/);
   assert.match(stylesSource, /@keyframes forestLoginPageIn/);
+  assert.match(stylesSource, /@keyframes forestLoginContentIn/);
   assert.match(stylesSource, /@keyframes forestLoginLogoAssemblyDock/);
   assert.match(stylesSource, /@keyframes forestLoginAAssembly/);
   assert.match(stylesSource, /@keyframes forestLoginMicAssembly/);

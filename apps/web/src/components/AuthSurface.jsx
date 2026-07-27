@@ -20,6 +20,8 @@ import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
 
+const LOGIN_INTRO_DURATION_MS = 2100;
+
 export function AuthSurface({ labels, locale, authStep, setAuthStep, authError = "", onLogin = () => {} }) {
   const [loginIntroState, setLoginIntroState] = useState("pending");
   const loginStageRef = useRef(null);
@@ -69,11 +71,12 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
         }
         const dx = target.left + target.width / 2 - window.innerWidth / 2;
         const dy = target.top + target.height / 2 - window.innerHeight / 2;
+        stage.style.setProperty("--forest-login-motion-duration", `${LOGIN_INTRO_DURATION_MS}ms`);
         stage.style.setProperty("--forest-login-logo-dx", `${dx.toFixed(3)}px`);
         stage.style.setProperty("--forest-login-logo-dy", `${dy.toFixed(3)}px`);
         stage.style.setProperty("--forest-login-logo-scale", (target.width / source.width).toFixed(4));
         setLoginIntroState("play");
-        timer = window.setTimeout(() => setLoginIntroState("complete"), 3300);
+        timer = window.setTimeout(() => setLoginIntroState("complete"), LOGIN_INTRO_DURATION_MS + 100);
       });
     }
 

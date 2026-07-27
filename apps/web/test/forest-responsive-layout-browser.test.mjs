@@ -160,24 +160,69 @@ test("Forest login preserves its one-shot intro until the page is focused", asyn
         await page.waitForFunction(
           () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "play"
         );
-        await page.waitForFunction(
-          () => Number(document.querySelector(".matter-login-intro-a")?.getAnimations()[0]?.currentTime ?? 0) >= 650
-        );
-        const aOnly = await page.evaluate(() => ({
-          a: Number(getComputedStyle(document.querySelector(".matter-login-intro-a")).opacity),
-          mic: Number(getComputedStyle(document.querySelector(".matter-login-intro-mic")).opacity)
-        }));
-        assert.ok(aOnly.a > 0.9, JSON.stringify(aOnly));
-        assert.ok(aOnly.mic < 0.1, JSON.stringify(aOnly));
-        await page.waitForFunction(
-          () => Number(document.querySelector(".matter-login-intro-mic")?.getAnimations()[0]?.currentTime ?? 0) >= 1700
-        );
-        const assembled = await page.evaluate(() => ({
-          a: Number(getComputedStyle(document.querySelector(".matter-login-intro-a")).opacity),
-          mic: Number(getComputedStyle(document.querySelector(".matter-login-intro-mic")).opacity)
-        }));
-        assert.ok(assembled.a > 0.9, JSON.stringify(assembled));
-        assert.ok(assembled.mic > 0.9, JSON.stringify(assembled));
+        const motion = await page.evaluate(() => {
+          const elements = {
+            wrapper: document.querySelector(".matter-login-intro-logo"),
+            a: document.querySelector(".matter-login-intro-a"),
+            mic: document.querySelector(".matter-login-intro-mic"),
+            layer: document.querySelector(".matter-login-intro"),
+            photo: document.querySelector(".matter-login-photo-panel"),
+            heading: document.querySelector(".matter-login-heading"),
+            form: document.querySelector(".matter-login-form"),
+            target: document.querySelector(".matter-login-logo-target")
+          };
+          const animations = Object.values(elements).flatMap((element) => element?.getAnimations() ?? []);
+          animations.forEach((animation) => animation.pause());
+          const setTime = (time) => animations.forEach((animation) => {
+            animation.currentTime = time;
+          });
+          const sample = (time) => {
+            setTime(time);
+            const wrapper = elements.wrapper.getBoundingClientRect();
+            return {
+              center: [wrapper.left + wrapper.width / 2, wrapper.top + wrapper.height / 2],
+              a: Number(getComputedStyle(elements.a).opacity),
+              mic: Number(getComputedStyle(elements.mic).opacity),
+              layer: Number(getComputedStyle(elements.layer).opacity),
+              photo: Number(getComputedStyle(elements.photo).opacity),
+              heading: Number(getComputedStyle(elements.heading).opacity),
+              form: Number(getComputedStyle(elements.form).opacity),
+              target: Number(getComputedStyle(elements.target).opacity)
+            };
+          };
+          const result = {
+            duration: getComputedStyle(document.querySelector("[data-login-screen='forest-split']"))
+              .getPropertyValue("--forest-login-motion-duration").trim(),
+            aOnly: sample(450),
+            assembled: sample(1000),
+            dockStart: sample(1092),
+            dockEarly: sample(1140),
+            dockMiddle: sample(1386),
+            dockEnd: sample(1680),
+            handoffMiddle: sample(1732.5),
+            handoffEnd: sample(1785),
+            contentMiddle: sample(1848)
+          };
+          setTime(2100);
+          animations.forEach((animation) => animation.play());
+          return result;
+        });
+        const distance = (from, to) => Math.hypot(to[0] - from[0], to[1] - from[1]);
+        const dockDistance = distance(motion.dockStart.center, motion.dockEnd.center);
+        const earlyProgress = distance(motion.dockStart.center, motion.dockEarly.center) / dockDistance;
+        const middleProgress = distance(motion.dockStart.center, motion.dockMiddle.center) / dockDistance;
+        assert.equal(motion.duration, "2100ms");
+        assert.ok(motion.aOnly.a > 0.9 && motion.aOnly.mic < 0.1, JSON.stringify(motion.aOnly));
+        assert.ok(motion.assembled.a > 0.9 && motion.assembled.mic > 0.9, JSON.stringify(motion.assembled));
+        assert.ok(earlyProgress < 0.25, JSON.stringify({ earlyProgress, motion }));
+        assert.ok(middleProgress > 0.25 && middleProgress < 0.85, JSON.stringify({ middleProgress, motion }));
+        assert.ok(motion.dockMiddle.photo > 0.2 && motion.dockMiddle.photo < 0.95, JSON.stringify(motion.dockMiddle));
+        assert.ok(motion.dockMiddle.heading < 0.01 && motion.dockMiddle.form < 0.01, JSON.stringify(motion.dockMiddle));
+        assert.ok(motion.handoffMiddle.layer > 0 && motion.handoffMiddle.layer < 1, JSON.stringify(motion.handoffMiddle));
+        assert.ok(motion.handoffMiddle.target > 0 && motion.handoffMiddle.target < 1, JSON.stringify(motion.handoffMiddle));
+        assert.ok(motion.handoffEnd.layer < 0.01 && motion.handoffEnd.target > 0.99, JSON.stringify(motion.handoffEnd));
+        assert.ok(motion.contentMiddle.heading > 0.2 && motion.contentMiddle.heading < 0.95, JSON.stringify(motion.contentMiddle));
+        assert.ok(motion.contentMiddle.form > 0.2 && motion.contentMiddle.form < 0.95, JSON.stringify(motion.contentMiddle));
       }
       await page.waitForFunction(
         () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "complete"
