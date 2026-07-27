@@ -3,7 +3,7 @@ import { dirname, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_ENV_FILE = ".env.matter-vault-r4.local";
-const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://43whkpla74oln46xkmjar4jgae0ebzba.lambda-url.ap-northeast-2.on.aws";
+const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://9mg4liadm6.execute-api.ap-northeast-2.amazonaws.com";
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
