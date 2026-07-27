@@ -19,8 +19,10 @@ import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
+import { confirmLawosPasswordReset, requestLawosPasswordReset } from "../data/apiClient.js";
 
 const LOGIN_INTRO_DURATION_MS = 2100;
+const PASSWORD_RESET_TOKEN_PATTERN = /^(?=.{16,256}$)[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$/;
 
 export function AuthSurface({ labels, locale, authStep, setAuthStep, authError = "", onLogin = () => {} }) {
   const [loginIntroState, setLoginIntroState] = useState("pending");
@@ -275,10 +277,203 @@ export function AuthForm({ labels, locale, step, authError = "", onLogin = () =>
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [rememberLogin, setRememberLogin] = useState(false);
-  const [recoveryRequested, setRecoveryRequested] = useState(false);
+  const [recoveryState, setRecoveryState] = useState("sign_in");
+  const [recoveryMessage, setRecoveryMessage] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const loginEmailInputRef = useRef(null);
+  const resetPasswordInputRef = useRef(null);
+  const resetTokenRef = useRef("");
+
+  useEffect(() => {
+    if (step !== "login" || typeof window.matterSession?.onPasswordResetDeepLink !== "function") return undefined;
+    const unsubscribe = window.matterSession.onPasswordResetDeepLink((intent) => {
+      const token = typeof intent?.token === "string" ? intent.token : "";
+      if (intent?.type !== "password_reset_confirm" || !PASSWORD_RESET_TOKEN_PATTERN.test(token)) return;
+      resetTokenRef.current = token;
+      setResetPassword("");
+      setResetPasswordConfirm("");
+      setRecoveryMessage("");
+      setRecoveryState("confirm");
+      window.requestAnimationFrame(() => resetPasswordInputRef.current?.focus());
+    });
+    return () => {
+      resetTokenRef.current = "";
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
+  }, [step]);
+
+  function returnToSignIn(message = "") {
+    resetTokenRef.current = "";
+    setLoginPassword("");
+    setResetPassword("");
+    setResetPasswordConfirm("");
+    setRecoveryMessage(message);
+    setRecoveryState("sign_in");
+    window.requestAnimationFrame(() => loginEmailInputRef.current?.focus());
+  }
+
+  async function requestRecovery() {
+    const email = loginEmail.trim().toLowerCase();
+    if (!email) {
+      setRecoveryMessage("업무 이메일을 먼저 입력하세요.");
+      loginEmailInputRef.current?.focus();
+      return;
+    }
+    if (submitting) return;
+    setSubmitting(true);
+    setLoginPassword("");
+    setRecoveryState("requesting");
+    setRecoveryMessage("");
+    try {
+      const result = await requestLawosPasswordReset({ email });
+      if (result.ok) {
+        setRecoveryState("sent");
+        setRecoveryMessage("등록 및 사용 가능한 계정이라면 비밀번호 재설정 메일을 보냈습니다.");
+        return;
+      }
+      setRecoveryState("sign_in");
+      setRecoveryMessage("재설정 메일 요청을 처리하지 못했습니다. 잠시 후 다시 시도하세요.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function confirmRecovery(event) {
+    event.preventDefault();
+    if (submitting) return;
+    if (!PASSWORD_RESET_TOKEN_PATTERN.test(resetTokenRef.current)) {
+      returnToSignIn("재설정 링크가 없거나 만료되었습니다. 새 메일을 요청하세요.");
+      return;
+    }
+    if (resetPassword.length < 12) {
+      setRecoveryMessage("새 비밀번호는 12자 이상이어야 합니다.");
+      resetPasswordInputRef.current?.focus();
+      return;
+    }
+    if (resetPassword !== resetPasswordConfirm) {
+      setRecoveryMessage("새 비밀번호가 서로 다릅니다.");
+      return;
+    }
+    setSubmitting(true);
+    setRecoveryMessage("");
+    try {
+      const result = await confirmLawosPasswordReset({
+        token: resetTokenRef.current,
+        password: resetPassword
+      });
+      if (result.ok) {
+        resetTokenRef.current = "";
+        setResetPassword("");
+        setResetPasswordConfirm("");
+        setRecoveryState("success");
+        setRecoveryMessage("비밀번호가 설정되었습니다. 새 비밀번호로 로그인하세요.");
+        return;
+      }
+      setRecoveryMessage(
+        result.status === 401
+          ? "링크가 만료되었거나 이미 사용되었습니다. 새 재설정 메일을 요청하세요."
+          : "비밀번호를 설정하지 못했습니다. 잠시 후 다시 시도하세요."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (step === "login") {
+    if (recoveryState === "confirm") {
+      return (
+        <form
+          className="form-stack matter-login-form matter-login-recovery"
+          data-login-form="password-reset"
+          onSubmit={confirmRecovery}
+        >
+          <div className="matter-login-recovery-copy">
+            <strong>새 비밀번호 설정</strong>
+            <span>새 비밀번호를 두 번 입력하세요.</span>
+          </div>
+          <label className="matter-login-field">
+            <span>새 비밀번호</span>
+            <input
+              ref={resetPasswordInputRef}
+              data-reset-new-password
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+              autoComplete="new-password"
+              placeholder="12자 이상"
+              type="password"
+              minLength={12}
+              required
+            />
+            <KeyRound size={22} strokeWidth={1.9} aria-hidden="true" />
+          </label>
+          <label className="matter-login-field">
+            <span>새 비밀번호 확인</span>
+            <input
+              data-reset-confirm-password
+              value={resetPasswordConfirm}
+              onChange={(event) => setResetPasswordConfirm(event.target.value)}
+              autoComplete="new-password"
+              placeholder="한 번 더 입력"
+              type="password"
+              minLength={12}
+              required
+            />
+            <KeyRound size={22} strokeWidth={1.9} aria-hidden="true" />
+          </label>
+          {recoveryMessage && (
+            <div className="login-local-state" data-login-recovery-state="true" aria-live="polite">
+              <span>{recoveryMessage}</span>
+            </div>
+          )}
+          <div className="matter-login-recovery-actions">
+            <button className="matter-login-submit" type="submit" disabled={submitting}>
+              {submitting ? "설정 중" : "비밀번호 설정"}
+            </button>
+            <button className="matter-login-secondary" type="button" onClick={() => returnToSignIn()}>
+              로그인으로 돌아가기
+            </button>
+          </div>
+        </form>
+      );
+    }
+
+    if (recoveryState === "sent" || recoveryState === "requesting" || recoveryState === "success") {
+      const succeeded = recoveryState === "success";
+      return (
+        <div className="matter-login-recovery" data-login-recovery-panel={recoveryState}>
+          <div className="matter-login-recovery-icon" aria-hidden="true">
+            {succeeded ? <CheckCircle2 size={28} /> : <Mail size={28} />}
+          </div>
+          <div className="matter-login-recovery-copy" aria-live="polite">
+            <strong>{succeeded ? "비밀번호 설정 완료" : "재설정 메일 확인"}</strong>
+            <span>
+              {recoveryState === "requesting"
+                ? "비밀번호 재설정 메일을 요청하고 있습니다."
+                : recoveryMessage}
+            </span>
+          </div>
+          <div className="matter-login-recovery-actions">
+            {!succeeded && (
+              <button
+                className="matter-login-submit"
+                type="button"
+                data-login-reset-resend
+                disabled={submitting}
+                onClick={() => void requestRecovery()}
+              >
+                {submitting ? "전송 중" : "메일 다시 보내기"}
+              </button>
+            )}
+            <button className="matter-login-secondary" type="button" onClick={() => returnToSignIn()}>
+              로그인으로 돌아가기
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <form
         className="form-stack matter-login-form"
@@ -297,6 +492,7 @@ export function AuthForm({ labels, locale, step, authError = "", onLogin = () =>
         <label className="matter-login-field">
           <span>Email</span>
           <input
+            ref={loginEmailInputRef}
             data-login-email
             value={loginEmail}
             onChange={(event) => setLoginEmail(event.target.value)}
@@ -335,16 +531,17 @@ export function AuthForm({ labels, locale, step, authError = "", onLogin = () =>
             className="matter-login-forgot"
             type="button"
             data-login-forgot-password
-            onClick={() => setRecoveryRequested(true)}
+            disabled={submitting}
+            onClick={() => void requestRecovery()}
           >
             Forgot<br />
             password?
           </button>
         </div>
-        {(rememberLogin || recoveryRequested || authError) && (
-          <div className="login-local-state" data-login-local-state="true">
+        {(rememberLogin || recoveryMessage || authError) && (
+          <div className="login-local-state" data-login-local-state="true" aria-live="polite">
             {rememberLogin && <span data-login-remember-state="true">이 기기에서 로그인 이메일을 기억합니다.</span>}
-            {recoveryRequested && <span data-login-recovery-state="true">비밀번호 재설정 안내를 보낼 계정을 확인합니다.</span>}
+            {recoveryMessage && <span data-login-recovery-state="true">{recoveryMessage}</span>}
             {authError && <span data-login-error="true">{authError}</span>}
           </div>
         )}

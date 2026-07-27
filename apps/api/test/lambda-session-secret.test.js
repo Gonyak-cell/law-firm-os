@@ -34,6 +34,7 @@ import {
   resolveLambdaHrxStepUpSecrets,
   resolveLambdaSessionSecret,
 } from "../src/lambda.js";
+import { passwordResetEmailHtml } from "../src/password-reset-email-template.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
@@ -123,6 +124,7 @@ test("Lambda password reset email delivery uses SESv2 simple content and never r
       LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM_NAME: "Matter OS",
       LAWOS_AUTH_PASSWORD_RESET_BASE_URL: "matter://password-reset/confirm",
       LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL: "https://matter.example.test/api/auth/password-reset/open",
+      LAWOS_AUTH_PASSWORD_RESET_EMAIL_LOGO_URL: "https://assets.example.test/amic-law-email-logo.png",
       AWS_REGION: "ap-northeast-2",
     },
     client: {
@@ -133,21 +135,27 @@ test("Lambda password reset email delivery uses SESv2 simple content and never r
         assert.equal(body.FromEmailAddressIdentityArn, undefined);
         assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
         assert.equal(body.Content.Raw, undefined);
-        assert.equal(body.Content.Simple.Subject.Data, "matter 비밀번호 설정");
+        assert.equal(body.Content.Simple.Subject.Data, "AMIC LAW · LawOS 비밀번호 설정");
         assert.equal(body.Content.Simple.Subject.Charset, "UTF-8");
         const textPart = body.Content.Simple.Body.Text.Data;
         const htmlPart = body.Content.Simple.Body.Html.Data;
         assert.equal(body.Content.Simple.Body.Text.Charset, "UTF-8");
         assert.equal(body.Content.Simple.Body.Html.Charset, "UTF-8");
-        assert.match(textPart, /matter OS 비밀번호 설정/);
+        assert.match(textPart, /AMIC LAW · LawOS 비밀번호 설정/);
         assert.match(textPart, /https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
+        assert.match(textPart, /링크 유효 시간:/);
+        assert.doesNotMatch(textPart, /코드|직접 입력/u);
         assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
-        assert.match(htmlPart, /Matter OS/);
-        assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
-        assert.match(htmlPart, /비밀번호 설정 열기/);
+        assert.match(htmlPart, /<img src="https:\/\/assets\.example\.test\/amic-law-email-logo\.png" width="175" height="28" alt="AMIC LAW"/);
+        assert.match(htmlPart, />LawOS<\/td>/);
+        assert.match(htmlPart, /border-bottom:3px solid #26C260/);
+        assert.match(htmlPart, /bgcolor="#0F3A32"/);
+        assert.match(htmlPart, /비밀번호 설정하기/);
         assert.match(htmlPart, /href="https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value"/);
-        assert.match(htmlPart, /브라우저 링크: https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value/);
+        assert.match(htmlPart, /브라우저 링크: <a href="https:\/\/matter\.example\.test\/api\/auth\/password-reset\/open#token=reset-token-value"/);
         assert.match(htmlPart, /matter:\/\/password-reset\/confirm\?token=reset-token-value/);
+        assert.match(htmlPart, /본 메일은 AMIC LAW의 LawOS 계정 보안 알림입니다/);
+        assert.doesNotMatch(htmlPart, /코드|직접 입력/u);
         return { MessageId: "ses-message-1" };
       },
     },
@@ -166,6 +174,20 @@ test("Lambda password reset email delivery uses SESv2 simple content and never r
   assert.equal(result.token_material_returned, false);
   assert.equal(result.reset_url_returned, false);
   assert.equal(JSON.stringify(result).includes("reset-token-value"), false);
+});
+
+test("password reset email accepts only HTTPS or CID logo sources and escapes visible metadata", () => {
+  const html = passwordResetEmailHtml({
+    resetUrl: "matter://password-reset/confirm?token=safe-test-token",
+    resetOpenUrl: "https://matter.example.test/password-reset#token=safe-test-token",
+    expiresAt: "<2026-07-27 20:30 KST>",
+    logoSrc: "javascript:alert(1)",
+  });
+
+  assert.doesNotMatch(html, /javascript:/u);
+  assert.doesNotMatch(html, /<img /u);
+  assert.match(html, />AMIC LAW<\/span>/u);
+  assert.match(html, /&lt;2026-07-27 20:30 KST&gt;/u);
 });
 
 test("Lambda password reset email delivery classifies authorization failures without logging provider details", async () => {

@@ -10,6 +10,8 @@ popbill/
 *.png
 !apps/desktop/build/icon.png
 !apps/web/public/amic-law-icon.png
+!apps/api/src/amic-law-email-logo.png
+!apps/web/public/amic-law-email-logo.png
 !docs/lazycodex/evidence/matter-web/artifacts/*.png
 !docs/lazycodex/evidence/matter-desktop/artifacts/*.png
 !apps/web/src/assets/members/*.png
