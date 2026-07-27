@@ -17,6 +17,14 @@ import {
   createScryptPasswordHash,
   verifyScryptPasswordHash,
 } from "./auth-credential-store.js";
+import {
+  PASSWORD_RESET_EMAIL_LOGO_CONTENT_ID,
+  PASSWORD_RESET_EMAIL_LOGO_FILE_NAME,
+  PASSWORD_RESET_EMAIL_LOGO_MIME_TYPE,
+  passwordResetEmailHtml,
+  passwordResetEmailSubject,
+  passwordResetEmailText,
+} from "./password-reset-email-template.js";
 
 const seed = MATTER_VAULT_USER_REGISTRATION_SEED;
 
@@ -72,13 +80,9 @@ const PASSWORD_MIN_LENGTH = 8;
 const MAX_PERSISTED_RESET_TOKENS = 20;
 const MAX_PERSISTED_OUTBOX_MESSAGES = 20;
 const PASSWORD_RESET_EMAIL_DELIVERY_SES_V2 = "sesv2";
-const PASSWORD_RESET_LOGO_CONTENT_ID = "amic-law-icon";
-const PASSWORD_RESET_LOGO_FILE_NAME = "icon.png";
-const PASSWORD_RESET_LOGO_MIME_TYPE = "image/png";
 const PASSWORD_RESET_TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,256}$/;
 const PASSWORD_RESET_LOGO_CANDIDATES = Object.freeze([
-  new URL(`./${PASSWORD_RESET_LOGO_FILE_NAME}`, import.meta.url),
-  new URL("../../desktop/build/icon.png", import.meta.url)
+  new URL(`./${PASSWORD_RESET_EMAIL_LOGO_FILE_NAME}`, import.meta.url)
 ]);
 
 const memoryAuthState = (globalThis.__matterDesktopAuthState ??= {
@@ -423,10 +427,6 @@ function passwordResetEmailConfig(env = process.env) {
   };
 }
 
-function passwordResetEmailSubject() {
-  return "matter 비밀번호 설정";
-}
-
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -457,70 +457,6 @@ function encodedMimeWord(value) {
   return `=?UTF-8?B?${base64Utf8(value)}?=`;
 }
 
-function passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt }) {
-  return [
-    "matter OS 비밀번호 설정",
-    "",
-    "요청하신 matter OS 비밀번호 설정 링크입니다.",
-    "아래 링크를 열어 새 비밀번호를 설정하세요.",
-    resetOpenUrl,
-    "",
-    "브라우저에서 앱이 바로 열리지 않는 경우 열린 화면의 Matter 열기 버튼을 다시 누르세요.",
-    "",
-    `이 링크는 ${expiresAt}까지 한 번만 사용할 수 있습니다.`,
-    "본인이 요청하지 않았다면 이 메일을 무시하세요."
-  ].join("\n");
-}
-
-function passwordResetEmailHtml({ resetUrl, resetOpenUrl, expiresAt, logoSrc = `cid:${PASSWORD_RESET_LOGO_CONTENT_ID}` }) {
-  const safeResetUrl = escapeHtml(resetUrl);
-  const safeResetOpenUrl = escapeHtml(resetOpenUrl);
-  const safeExpiresAt = escapeHtml(expiresAt);
-  const safeLogoSrc = escapeHtml(logoSrc);
-  return [
-    "<!doctype html>",
-    '<html lang="ko">',
-    '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>',
-    '<body style="margin:0;padding:0;background:#f5f4f0;color:#1f2933;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Malgun Gothic,sans-serif;">',
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f4f0;margin:0;padding:28px 0;">',
-    '<tr><td align="center" style="padding:0 16px;">',
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #ded8cc;border-radius:8px;overflow:hidden;">',
-    '<tr><td style="padding:22px 28px 18px;border-bottom:1px solid #ece7de;background:#ffffff;">',
-    '<table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">',
-    '<tr>',
-    `<td style="padding:0 12px 0 0;vertical-align:middle;"><img src="${safeLogoSrc}" width="42" height="42" alt="AMIC Law" style="display:block;width:42px;height:42px;border:0;outline:none;text-decoration:none;"></td>`,
-    '<td style="padding:0;vertical-align:middle;">',
-    '<div style="font-size:17px;line-height:23px;font-weight:700;letter-spacing:0;color:#17212b;">Matter Desktop App Services</div>',
-    '<div style="font-size:12px;line-height:18px;color:#6b7280;margin-top:3px;">AMIC 내부 계정 보안 알림</div>',
-    "</td>",
-    "</tr>",
-    "</table>",
-    "</td></tr>",
-    '<tr><td style="padding:28px;">',
-    '<h1 style="margin:0 0 12px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:0;color:#17212b;">비밀번호를 설정하세요</h1>',
-    '<p style="margin:0 0 22px;font-size:15px;line-height:24px;color:#374151;">요청하신 matter OS 비밀번호 설정 링크입니다. 아래 버튼을 열어 새 비밀번호를 설정하세요.</p>',
-    `<p style="margin:0 0 24px;"><a href="${safeResetOpenUrl}" style="display:inline-block;background:#17212b;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;font-size:15px;line-height:20px;font-weight:700;">비밀번호 설정 열기</a></p>`,
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5dfd4;border-radius:8px;background:#faf9f6;margin:0 0 20px;">',
-    '<tr><td style="padding:16px 18px;">',
-    '<div style="font-size:13px;line-height:20px;color:#4b5563;margin-bottom:8px;">앱이 바로 열리지 않는 경우</div>',
-    `<div style="font-size:12px;line-height:18px;color:#6b7280;word-break:break-all;">브라우저 링크: ${safeResetOpenUrl}</div>`,
-    `<div style="font-size:0;line-height:0;color:#ffffff;max-height:0;overflow:hidden;">${safeResetUrl}</div>`,
-    "</td></tr>",
-    "</table>",
-    `<p style="margin:0 0 10px;font-size:13px;line-height:21px;color:#4b5563;">이 링크는 <strong style="color:#17212b;">${safeExpiresAt}</strong>까지 한 번만 사용할 수 있습니다.</p>`,
-    '<p style="margin:0;font-size:13px;line-height:21px;color:#6b7280;">본인이 요청하지 않았다면 이 메일을 무시하세요. 기존 비밀번호나 세션은 이 메일만으로 변경되지 않습니다.</p>',
-    "</td></tr>",
-    '<tr><td style="padding:18px 28px;border-top:1px solid #ece7de;background:#fbfaf8;">',
-    '<p style="margin:0;font-size:12px;line-height:18px;color:#6b7280;">matter OS는 AMIC 내부 업무 계정에 한해 이 알림을 보냅니다.</p>',
-    "</td></tr>",
-    "</table>",
-    "</td></tr>",
-    "</table>",
-    "</body>",
-    "</html>"
-  ].join("");
-}
-
 function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }) {
   const rootBoundary = `matter-reset-root-${randomUUID()}`;
   const alternativeBoundary = `matter-reset-alt-${randomUUID()}`;
@@ -536,7 +472,12 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
     `Content-Type: multipart/related; boundary="${rootBoundary}"`
   ];
   const textBody = base64MimeLines(base64Utf8(passwordResetEmailText({ resetUrl, resetOpenUrl, expiresAt })));
-  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({ resetUrl, resetOpenUrl, expiresAt })));
+  const htmlBody = base64MimeLines(base64Utf8(passwordResetEmailHtml({
+    resetUrl,
+    resetOpenUrl,
+    expiresAt,
+    logoSrc: logoBase64 ? `cid:${PASSWORD_RESET_EMAIL_LOGO_CONTENT_ID}` : "",
+  })));
   const parts = [
     ...headers,
     "",
@@ -558,10 +499,10 @@ function passwordResetRawEmail({ config, to, resetUrl, resetOpenUrl, expiresAt }
   if (logoBase64) {
     parts.push(
       `--${rootBoundary}`,
-      `Content-Type: ${PASSWORD_RESET_LOGO_MIME_TYPE}; name="amic-law-icon.png"`,
+      `Content-Type: ${PASSWORD_RESET_EMAIL_LOGO_MIME_TYPE}; name="${PASSWORD_RESET_EMAIL_LOGO_FILE_NAME}"`,
       "Content-Transfer-Encoding: base64",
-      `Content-ID: <${PASSWORD_RESET_LOGO_CONTENT_ID}>`,
-      'Content-Disposition: inline; filename="amic-law-icon.png"',
+      `Content-ID: <${PASSWORD_RESET_EMAIL_LOGO_CONTENT_ID}>`,
+      `Content-Disposition: inline; filename="${PASSWORD_RESET_EMAIL_LOGO_FILE_NAME}"`,
       "",
       base64MimeLines(logoBase64)
     );

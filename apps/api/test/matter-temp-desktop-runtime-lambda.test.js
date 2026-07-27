@@ -156,21 +156,23 @@ test("configured SESv2 reset delivery sends registered reset mail without return
         assert.match(rawEmail, /^From: Matter Desktop App Services <matter@amic\.kr>/m);
         assert.match(rawEmail, /^Subject: =\?UTF-8\?B\?/m);
         assert.match(rawEmail, /Content-Type: multipart\/related/);
-        assert.match(rawEmail, /Content-Type: image\/png; name="amic-law-icon\.png"/);
-        assert.match(rawEmail, /Content-ID: <amic-law-icon>/);
-        assert.match(rawEmail, /Content-Disposition: inline; filename="amic-law-icon\.png"/);
+        assert.match(rawEmail, /Content-Type: image\/png; name="amic-law-email-logo\.png"/);
+        assert.match(rawEmail, /Content-ID: <amic-law-email-logo>/);
+        assert.match(rawEmail, /Content-Disposition: inline; filename="amic-law-email-logo\.png"/);
         const textPart = decodeBase64MimePart(rawEmail, "Content-Type: text/plain");
         const htmlPart = decodeBase64MimePart(rawEmail, "Content-Type: text/html");
         assert.match(textPart, /https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
-        assert.match(textPart, /matter OS 비밀번호 설정/);
+        assert.match(textPart, /AMIC LAW · LawOS 비밀번호 설정/);
         assert.doesNotMatch(textPart, /코드|설정 코드|직접 입력|matter:\/\/password-reset\/confirm/);
         assert.match(htmlPart, /<h1[^>]*>비밀번호를 설정하세요<\/h1>/);
-        assert.match(htmlPart, /<img src="cid:amic-law-icon"[^>]+alt="AMIC Law"/);
-        assert.match(htmlPart, /Matter Desktop App Services/);
-        assert.match(htmlPart, /비밀번호 설정 열기/);
+        assert.match(htmlPart, /<img src="cid:amic-law-email-logo" width="175" height="28" alt="AMIC LAW"/);
+        assert.match(htmlPart, />LawOS<\/td>/);
+        assert.match(htmlPart, /border-bottom:3px solid #26C260/);
+        assert.match(htmlPart, /bgcolor="#0F3A32"/);
+        assert.match(htmlPart, /비밀번호 설정하기/);
         assert.match(htmlPart, /https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
-        assert.match(htmlPart, /AMIC 내부 계정 보안 알림/);
-        assert.match(htmlPart, /브라우저 링크: https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
+        assert.match(htmlPart, /브라우저 링크: <a href="https:\/\/runtime\.example\.test\/api\/desktop\/password-reset\/open\?token=/);
+        assert.match(htmlPart, /본 메일은 AMIC LAW의 LawOS 계정 보안 알림입니다/);
         assert.doesNotMatch(htmlPart, /코드|설정 코드|직접 입력|앱 링크:/);
 
         const latestEmail = await handler(

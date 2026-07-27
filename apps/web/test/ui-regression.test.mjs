@@ -531,6 +531,7 @@ test("Forest startup branding excludes retired Matter and Petra assets", async (
   assert.equal(assetFiles.includes("parnas-tower-login.jpg"), false);
   assert.equal(publicFiles.includes("matter-mark.svg"), false);
   assert.equal(publicFiles.includes("amic-law-icon.png"), true);
+  assert.equal(publicFiles.includes("amic-law-email-logo.png"), true);
   assert.match(indexSource, /amic-law-icon\.png/);
   assert.equal(logoFiles.some((name) => /PETRA/i.test(name)), false);
   assert.match(shellSource, /<MatterSplash \/>/);
