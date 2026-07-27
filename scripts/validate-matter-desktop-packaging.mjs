@@ -47,6 +47,7 @@ assert.equal(sha256File(forestLoginPath), expectedForestHash, "Forest login imag
 assert.match(desktopRendererSource, /forest-login\.jpg\?v=5ff17761/, "desktop login must use a cache-busted approved Forest brochure image URL");
 assert.equal(existsSync(amicLawLogoPath), true, "desktop AMIC Law logo must exist");
 assert.equal(existsSync(webAmicLawLogoPath), true, "web AMIC Law logo must exist");
+assert.equal(readFileSync(webAmicLawLogoPath).equals(readFileSync(amicLawLogoPath)), true, "web and desktop login must reuse the same AMIC accent logo");
 assert.equal(existsSync(pngIconPath), true, "desktop runtime png icon must exist");
 assert.equal(existsSync(webIconPath), true, "web AMIC Law icon must exist");
 assert.equal(readFileSync(webIconPath).equals(readFileSync(pngIconPath)), true, "web and desktop must reuse the current AMIC green-A icon");
