@@ -62,6 +62,17 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.doesNotMatch(logoSource, /matter-mark\.svg|AMIC_n_PETRA/);
 });
 
+test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures separately", async () => {
+  const packageQaSource = await readWebFile("../../scripts/smoke-matter-desktop-dashboard-package.mjs");
+
+  assert.match(packageQaSource, /data-home-tab-prefix="home-client-dashboard"\]\[data-home-tab-id="prospects"/);
+  assert.match(packageQaSource, /\["바른 그룹", "새롬 자문"\]\.every/);
+  assert.match(packageQaSource, /data-home-tab-prefix="home-matter-dashboard"\]\[data-home-tab-id="closed"/);
+  assert.match(packageQaSource, /matter_closed_fixture_visible:\s*true/);
+  assert.match(packageQaSource, /snapshot\.home_client_fixture_visible = Boolean/);
+  assert.match(packageQaSource, /snapshot\.home_matter_fixture_visible = Boolean/);
+});
+
 test("compact record rows keep low-value metadata on the primary line across product surfaces", async () => {
   const stylesSource = await readWebFile("src/styles.css");
   const sources = await Promise.all([
