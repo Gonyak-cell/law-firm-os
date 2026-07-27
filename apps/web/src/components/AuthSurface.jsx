@@ -30,6 +30,7 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
     let cancelled = false;
     let frame = 0;
     let timer = 0;
+    let started = false;
 
     setLoginIntroState("pending");
     async function prepareLoginIntro() {
@@ -74,9 +75,20 @@ export function AuthSurface({ labels, locale, authStep, setAuthStep, authError =
         timer = window.setTimeout(() => setLoginIntroState("complete"), 3300);
       });
     }
-    prepareLoginIntro();
+
+    function startLoginIntroWhenFocused() {
+      if (cancelled || started || document.visibilityState !== "visible" || !document.hasFocus()) return;
+      started = true;
+      void prepareLoginIntro();
+    }
+
+    document.addEventListener("visibilitychange", startLoginIntroWhenFocused);
+    window.addEventListener("focus", startLoginIntroWhenFocused);
+    startLoginIntroWhenFocused();
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", startLoginIntroWhenFocused);
+      window.removeEventListener("focus", startLoginIntroWhenFocused);
       window.cancelAnimationFrame(frame);
       window.clearTimeout(timer);
     };

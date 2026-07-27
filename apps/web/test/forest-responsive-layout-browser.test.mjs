@@ -4,8 +4,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { chromium } from "playwright";
+import { createServer } from "vite";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
+const webRoot = resolve(testDir, "..");
 const styles = await readFile(resolve(testDir, "../src/styles.css"), "utf8");
 const amicLawLogo = await readFile(resolve(testDir, "../src/assets/amic-law.svg"), "utf8");
 
@@ -115,6 +117,58 @@ test("Forest login docks the AMIC accent logo at the form center", async () => {
     assert.ok(Math.abs(geometry.logo.center - geometry.field.center) <= 0.5, JSON.stringify(geometry));
   } finally {
     await browser.close();
+  }
+});
+
+test("Forest login preserves its one-shot intro until the page is focused", async () => {
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port: 0, strictPort: true }
+  });
+  const browser = await chromium.launch({ headless: true });
+  try {
+    await server.listen();
+    const baseUrl = server.resolvedUrls?.local?.[0];
+    assert.ok(baseUrl);
+
+    for (const reducedMotion of ["no-preference", "reduce"]) {
+      const context = await browser.newContext({ viewport: { width: 1280, height: 768 }, reducedMotion });
+      await context.addInitScript(() => {
+        window.__lawosTestFocused = false;
+        Object.defineProperty(document, "hasFocus", {
+          configurable: true,
+          value: () => window.__lawosTestFocused
+        });
+      });
+      const page = await context.newPage();
+      await page.goto(`${baseUrl}?view=auth&authStep=login`, { waitUntil: "networkidle" });
+      const login = page.locator("[data-login-screen='forest-split']");
+      await login.waitFor({ state: "attached" });
+      await page.waitForTimeout(250);
+      assert.deepEqual(await page.evaluate(() => ({
+        state: document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro"),
+        claim: sessionStorage.getItem("matter.login.intro.played.v1")
+      })), { state: "pending", claim: null });
+
+      await page.evaluate(() => {
+        window.__lawosTestFocused = true;
+        window.dispatchEvent(new Event("focus"));
+      });
+      if (reducedMotion === "no-preference") {
+        await page.waitForFunction(
+          () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "play"
+        );
+      }
+      await page.waitForFunction(
+        () => document.querySelector("[data-login-screen='forest-split']")?.getAttribute("data-login-intro") === "complete"
+      );
+      assert.equal(await page.evaluate(() => sessionStorage.getItem("matter.login.intro.played.v1")), "1");
+      await context.close();
+    }
+  } finally {
+    await browser.close();
+    await server.close();
   }
 });
 
