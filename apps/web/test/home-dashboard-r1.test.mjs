@@ -1519,6 +1519,40 @@ test("Home dashboard keeps independent cards available when monthly finance is d
   }
 });
 
+test("Home payroll step-up challenge never renders as a permission denial", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/hrx/payroll/dashboard-summary") {
+        return jsonResponse(route, {
+          request_id: "dashboard-payroll-step-up",
+          outcome: "blocked",
+          safe_error_code: "HRX_STEP_UP_REQUIRED",
+          reason: "hrx_step_up_context_absent",
+          step_up_required: true,
+          action: "hrx.payroll.preview"
+        }, 403);
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    for (const section of ["monthly-payroll", "payroll-categories"]) {
+      const text = await page.locator(`[data-dashboard-section="${section}"]`).innerText();
+      assert.match(text, /추가 인증이 필요합니다/);
+      assert.doesNotMatch(text, /권한 없음|접근 권한이 없습니다/);
+    }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
 test("Home dashboard preserves a source error without hiding independent cards", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
@@ -1768,7 +1802,7 @@ test("R1 WP-8 opens profile as a standalone shell and normalizes Home fallback s
   }
 });
 
-test("profile keeps the main-process signed-in identity when its profile API read fails", async () => {
+test("profile keeps session identity context but never masks an API read failure", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -1805,7 +1839,11 @@ test("profile keeps the main-process signed-in identity when its profile API rea
     await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-member") === "user_amic_jwsuh");
 
     assert.equal(await profile.getAttribute("data-profile-member"), "user_amic_jwsuh");
-    assert.equal(await profile.locator("h1").innerText(), "서지원");
+    assert.match(await profile.locator("[data-profile-api-notice]").innerText(), /프로필을 불러오지 못했습니다|다시 시도/);
+    assert.equal(await profile.locator("[data-profile-portrait-panel]").count(), 0);
+    assert.equal(await profile.locator("h1").count(), 0);
+    assert.equal(await profile.getByRole("button", { name: "Edit" }).count(), 0);
+    assert.doesNotMatch(await profile.innerText(), /권한/);
     assert.doesNotMatch(await profile.innerText(), /김양태/);
   } finally {
     await browser.close();
@@ -1813,7 +1851,7 @@ test("profile keeps the main-process signed-in identity when its profile API rea
   }
 });
 
-test("profile never lets a generic API fallback replace the signed-in display name", async () => {
+test("profile uses account English name and HRX role fields in the portrait panel", async () => {
   const port = await availablePort();
   const server = await createServer({
     root: webRoot,
@@ -1846,6 +1884,10 @@ test("profile never lets a generic API fallback replace the signed-in display na
             actor_ref: "user_amic_jwsuh",
             tenant_ref: "tenant_amic_matter_vault",
             display_name: "세션 사용자",
+            english_name: "Jiwon Suh",
+            title: "대표변호사",
+            department: "Legal",
+            photo_url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/69a3GQAAAABJRU5ErkJggg==",
             primary_role_label: "role_unassigned",
             role_count: 1
           },
@@ -1864,8 +1906,63 @@ test("profile never lets a generic API fallback replace the signed-in display na
     await profile.waitFor();
     await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-api-state") === "populated");
 
-    assert.equal(await profile.locator("h1").innerText(), "서지원");
+    assert.equal(await profile.locator("[data-profile-english-name]").innerText(), "Jiwon Suh");
+    assert.equal(await profile.locator("[data-profile-title]").innerText(), "대표변호사");
+    assert.equal(await profile.locator("[data-profile-department]").innerText(), "Legal");
+    assert.equal(await profile.locator("[data-profile-portrait-panel]").count(), 1);
     assert.doesNotMatch(await profile.innerText(), /세션 사용자|미등록/);
+
+    const desktopPortrait = await profile.locator("[data-profile-portrait-panel]").evaluate((panel) => {
+      const rect = (selector) => panel.querySelector(selector)?.getBoundingClientRect() ?? null;
+      const overlaps = (left, right) => Boolean(
+        left && right &&
+        left.left < right.right &&
+        left.right > right.left &&
+        left.top < right.bottom &&
+        left.bottom > right.top
+      );
+      const panelRect = panel.getBoundingClientRect();
+      const name = rect("[data-profile-english-name]");
+      const title = rect("[data-profile-title]");
+      const department = rect("[data-profile-department]");
+      const copy = rect(".matter-profile-portrait-copy");
+      const image = rect(".matter-profile-portrait-image");
+      const imageElement = panel.querySelector(".matter-profile-portrait-image");
+      const details = document.querySelector("[data-profile-details-panel]")?.getBoundingClientRect() ?? null;
+      const cover = document.querySelector(".matter-profile-cover")?.getBoundingClientRect() ?? null;
+      return {
+        width: panelRect.width,
+        aspectRatio: panelRect.width / panelRect.height,
+        background: getComputedStyle(panel).backgroundColor,
+        borderRadius: getComputedStyle(panel).borderRadius,
+        imageWidthRatio: image ? image.width / panelRect.width : null,
+        imageTop: imageElement ? getComputedStyle(imageElement).top : null,
+        copyTopRatio: copy ? (copy.top - panelRect.top) / panelRect.height : null,
+        nameTitleOverlap: overlaps(name, title),
+        titleDepartmentOverlap: overlaps(title, department),
+        portraitDetailsTopDelta: details ? Math.abs(panelRect.top - details.top) : null,
+        coverGap: cover ? panelRect.top - cover.bottom : null,
+        portraitEditCount: panel.querySelectorAll(".matter-profile-edit-button").length
+      };
+    });
+    assert.ok(desktopPortrait.width >= 278 && desktopPortrait.width <= 282);
+    assert.ok(Math.abs(desktopPortrait.aspectRatio - 3 / 4) < 0.01);
+    assert.equal(desktopPortrait.background, "rgb(205, 211, 212)");
+    assert.equal(desktopPortrait.borderRadius, "18px");
+    assert.ok(desktopPortrait.imageWidthRatio !== null && desktopPortrait.imageWidthRatio >= 2.08 && desktopPortrait.imageWidthRatio <= 2.10);
+    assert.equal(desktopPortrait.imageTop, "-68px");
+    assert.ok(desktopPortrait.copyTopRatio !== null && desktopPortrait.copyTopRatio >= 0.70 && desktopPortrait.copyTopRatio <= 0.72);
+    assert.equal(desktopPortrait.nameTitleOverlap, false);
+    assert.equal(desktopPortrait.titleDepartmentOverlap, false);
+    assert.ok(desktopPortrait.portraitDetailsTopDelta !== null && desktopPortrait.portraitDetailsTopDelta < 1);
+    assert.ok(desktopPortrait.coverGap !== null && desktopPortrait.coverGap >= 12);
+    assert.equal(desktopPortrait.portraitEditCount, 0);
+    assert.equal(await profile.locator("[data-profile-details-panel] .matter-profile-edit-button").count(), 1);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobilePortrait = await profile.locator("[data-profile-portrait-panel]").boundingBox();
+    assert.ok(mobilePortrait && mobilePortrait.width <= 280);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false);
   } finally {
     await browser.close();
     await server.close();

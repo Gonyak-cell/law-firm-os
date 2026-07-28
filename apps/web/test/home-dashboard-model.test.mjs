@@ -62,6 +62,8 @@ test("Home matter and leave models apply current-month and subtype contracts", (
 
 test("Home dashboard states never turn denied or review-required results into fake zero data", () => {
   assert.equal(dashboardResultState({ kind: "data", uiState: "denied", items: [] }), "denied");
+  assert.equal(dashboardResultState({ kind: "guarded", status: 503, outcome: "blocked", uiState: "error", items: [] }), "error");
+  assert.equal(dashboardResultState({ kind: "guarded", status: 403, outcome: "blocked", uiState: "denied", items: [] }), "denied");
   assert.equal(dashboardResultState({ kind: "step_up_required" }), "review_required");
   assert.equal(dashboardResultState({ kind: "error" }), "error");
 });

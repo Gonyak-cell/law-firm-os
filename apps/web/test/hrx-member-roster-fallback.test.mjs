@@ -45,6 +45,34 @@ test("HRX member roster fails closed when runtime read fails", async () => {
   }
 });
 
+test("guarded API UI states reserve permission denial for an explicit 403 contract", async () => {
+  await withWebModule("/src/data/apiClient.js", async ({ guardedApiUiState }) => {
+    const profileDenial = {
+      outcome: "denied",
+      ui_state: "denied",
+      safe_error_codes: ["PROFILE_PERMISSION_DENIED"]
+    };
+    assert.equal(guardedApiUiState({ status: 403 }, profileDenial), "denied");
+    assert.equal(guardedApiUiState({ status: 503 }, profileDenial), "error");
+    assert.equal(guardedApiUiState({ status: 403 }, { ...profileDenial, safe_error_codes: [] }), "error");
+    assert.equal(guardedApiUiState({ status: 401 }, {
+      outcome: "blocked",
+      ui_state: "denied",
+      safe_error_codes: ["AUTH_SESSION_REQUIRED"]
+    }), "error");
+    assert.equal(guardedApiUiState({ status: 200 }, {
+      outcome: "review_required",
+      ui_state: "review",
+      safe_error_codes: ["PROFILE_REVIEW_REQUIRED"]
+    }), "review");
+    assert.equal(guardedApiUiState({ status: 403 }, {
+      outcome: "blocked",
+      ui_state: "denied",
+      safe_error_codes: ["HOME_UNAUTHORIZED_OMISSION"]
+    }), "denied");
+  });
+});
+
 test("home greeting uses authenticated profile fields without a bundled roster", async () => {
   await withWebModule("/src/components/HomeSurface.jsx", async ({ sessionGreeting }) => {
     assert.equal(sessionGreeting({ display_name: "합성 사용자", title: "변호사" }, null), "Welcome, 합성 사용자 변호사님");

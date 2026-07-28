@@ -74,6 +74,7 @@ test("Profile API returns session-derived safe profile read model", async () => 
     assert.equal(profile.body.ui_state, "populated");
     assert.equal(profile.body.item.actor_ref, "user_amic_jwsuh");
     assert.equal(profile.body.item.display_name, "서지원");
+    assert.equal(profile.body.item.english_name, "Jiwon Suh");
     assert.equal(profile.body.item.primary_role_label, "대표변호사");
     assert.equal(profile.body.item.title, "대표변호사");
     assert.equal(profile.body.item.employee_id, "emp_amic_jwsuh");
@@ -94,6 +95,16 @@ test("Profile API returns session-derived safe profile read model", async () => 
     assert.equal(profile.body.item.secret_material_included, false);
     assert.equal(profile.body.item.direct_identifier_included, true);
     assert.equal(profile.body.production_ready_claim, false);
+
+    for (const [surface, path] of [
+      ["home", "/api/home/action-inbox?tenant_id=tenant_amic_matter_vault&permission_ref=ui_home_dashboard_live&audit_hint_ref=ui_home_dashboard_probe&type=approval"],
+      ["matters", "/api/matters?tenant_id=tenant_amic_matter_vault&permission_ref=ui_cmp_g4_matter_live&audit_hint_ref=ui_cmp_g4_matter_probe&limit=1"],
+      ["people leave", "/api/hrx/leave/me"],
+    ]) {
+      const protectedRead = await json(baseUrl, path, { headers });
+      assert.equal(protectedRead.status, 200, `${surface} must remain readable for jwsuh@amic.kr`);
+      assert.notEqual(protectedRead.body.ui_state, "denied", `${surface} must not emit a denied UI state`);
+    }
   });
 });
 

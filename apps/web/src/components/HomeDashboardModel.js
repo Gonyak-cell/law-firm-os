@@ -48,9 +48,9 @@ function resultItems(result) {
 export function dashboardResultState(result) {
   if (result === null || result === undefined || result.kind === "loading") return "loading";
   if (result.kind === "step_up_required") return "review_required";
-  if (result.uiState === "denied" || result.kind === "guarded" && result.outcome === "denied") return "denied";
+  if (result.uiState === "denied") return "denied";
   if (result.uiState === "review_required" || result.outcome === "review_required") return "review_required";
-  if (result.kind === "guarded") return "denied";
+  if (result.kind === "guarded") return "error";
   if (result.kind === "error") return "error";
   if (result.kind === "empty") return "empty";
   if (result.kind !== "data") return "error";

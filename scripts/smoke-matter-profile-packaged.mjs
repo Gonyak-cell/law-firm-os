@@ -87,7 +87,7 @@ async function main() {
       }),
       userProfile.evaluate((surface) => ({
         member_id: surface.getAttribute("data-profile-member"),
-        display_name: surface.querySelector("h1")?.textContent?.trim() ?? null
+        english_name: surface.querySelector("[data-profile-english-name]")?.textContent?.trim() ?? null
       }))
     ]);
     assert.deepEqual(sessionIdentity, {
@@ -97,11 +97,12 @@ async function main() {
     }, "isolated packaged profile QA must use the 서지원 signed-in session");
     assert.deepEqual(renderedProfileIdentity, {
       member_id: "emp_amic_jwsuh",
-      display_name: "서지원"
-    }, "packaged profile must render the signed-in 서지원 identity");
+      english_name: "Jiwon Suh"
+    }, "packaged profile must render the account-backed English identity");
     const profileText = await userProfile.innerText();
     for (const expectedText of [
-      "대표변호사 / AMIC Law",
+      "Jiwon Suh",
+      "대표변호사",
       "Legal",
       "대한민국",
       "jwsuh@amic.kr",
@@ -113,7 +114,7 @@ async function main() {
       assert.match(profileText, new RegExp(expectedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `packaged profile must render ${expectedText}`);
     }
     assert.doesNotMatch(profileText, /세션 사용자/, "packaged profile must not render the generic session fallback");
-    const profilePhoto = await userProfile.locator(".matter-profile-photo-large img").evaluate((image) => ({
+    const profilePhoto = await userProfile.locator(".matter-profile-portrait-image").evaluate((image) => ({
       complete: image.complete,
       natural_width: image.naturalWidth,
       natural_height: image.naturalHeight,
