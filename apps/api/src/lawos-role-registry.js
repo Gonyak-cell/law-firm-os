@@ -93,7 +93,7 @@ export const LAWOS_INTERNAL_ROLE_ASSIGNMENTS = Object.freeze([
   assignment({
     user_id: "user_amic_jwsuh",
     role_profile_id: "lawos_system_admin_partner",
-    role_ids: ["lawos_admin", "lawos_partner", "lawos_attorney", "security_admin"],
+    role_ids: ["system_super_admin", "lawos_admin", "lawos_partner", "lawos_attorney", "security_admin"],
     group_ids: ["group_system_admins", "group_firm_leadership", "group_lawos_admins"],
     scopes: ["tenant.admin", "user.admin", "security.admin", "cutover.execute", "matter.read", "matter.write", "vault.read", "vault.write", "vault.governance", "audit.read", "audit.export", ...LAWOS_FINANCE_SCOPES],
     hrx_scopes: HRX_ADMIN_SCOPES,
@@ -161,6 +161,7 @@ function tenantMembership(assignmentRef, tenantId) {
     role_ids: assignmentRef.role_ids,
     group_ids: assignmentRef.group_ids,
     scopes: assignmentRef.scopes,
+    hrx_scopes: assignmentRef.hrx_scopes,
   });
 }
 

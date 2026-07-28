@@ -6,6 +6,8 @@ import {
   IdCard,
   MapPin,
   Pencil,
+  RefreshCw,
+  Save,
   ShieldCheck
 } from "lucide-react";
 import { fetchUserProfile, readDesktopMatterSessionStatus } from "../data/apiClient.js";
@@ -17,13 +19,14 @@ function profileState(result) {
   if (result.kind === "error") return "error";
   if (result.uiState === "denied") return "denied";
   if (result.uiState === "review" || result.outcome === "review_required") return "review";
+  if (result.kind === "guarded") return "error";
   if (result.kind === "empty" || result.item === null) return "empty";
   return "populated";
 }
 
 function profileStatusCopy(state) {
   if (state === "loading") return { title: "프로필을 불러오는 중입니다.", className: "live-data-loading" };
-  if (state === "error") return { title: "프로필 API 응답을 확인하지 못했습니다.", className: "live-data-error" };
+  if (state === "error") return { title: "프로필을 불러오지 못했습니다.", className: "live-data-error" };
   if (state === "denied") return { title: "현재 권한으로는 프로필 정보를 볼 수 없습니다.", className: "live-data-denied" };
   if (state === "review") return { title: "담당자 검토 후 프로필 정보를 표시할 수 있습니다.", className: "live-data-review" };
   if (state === "empty") return { title: "표시할 프로필 항목이 없습니다.", className: "live-data-empty" };
@@ -143,6 +146,7 @@ function profileDraftFromMember(member) {
   const professionalProfile = objectValue(member?.professional_profile);
   return {
     display_name: memberField(member, "display_name", ""),
+    english_name: memberField(member, "english_name", memberField(member, "display_name", "")),
     title: memberField(member, "title", ""),
     department: memberField(member, "department", ""),
     affiliation: memberField(member, "affiliation", ""),
@@ -161,6 +165,7 @@ function profileDraftFromMember(member) {
 function profilePatchFromDraft(draft, member) {
   return {
     display_name: draft.display_name.trim() || memberField(member, "display_name", ""),
+    english_name: draft.english_name.trim() || memberField(member, "english_name", ""),
     title: draft.title.trim(),
     department: draft.department.trim(),
     affiliation: draft.affiliation.trim(),
@@ -224,6 +229,7 @@ function ProfileList({ title, items, icon: Icon, editing = false, editValue = ""
 
 export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, onNavigate = () => {}, onReturnToWork }) {
   const [profileResult, setProfileResult] = useState(null);
+  const [profileRequestVersion, setProfileRequestVersion] = useState(0);
   const [fallbackDesktopSession, setFallbackDesktopSession] = useState(null);
   const [profileOverride, setProfileOverride] = useState(null);
   const [profileDraft, setProfileDraft] = useState(profileDraftFromMember(null));
@@ -253,14 +259,23 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
     return () => {
       cancelled = true;
     };
-  }, [liveCtx]);
+  }, [liveCtx, profileRequestVersion]);
 
-  const baseMember = resolvedProfileMember(profile, desktopSession, fallbackDesktopSession);
-  const employeeId = memberField(baseMember, "employee_id", memberField(baseMember, "user_id", "unknown"));
+  const sessionMember = resolvedProfileMember(null, desktopSession, fallbackDesktopSession);
+  const baseMember = currentState === "populated"
+    ? resolvedProfileMember(profile, desktopSession, fallbackDesktopSession)
+    : null;
+  const identityMember = baseMember ?? sessionMember;
+  const employeeId = memberField(identityMember, "employee_id", memberField(identityMember, "user_id", "unknown"));
   const selectedMember = useMemo(() => mergeProfileOverride(baseMember, profileOverride), [baseMember, profileOverride]);
   const professionalProfile = objectValue(selectedMember?.professional_profile);
   const photo = memberPhotoFor(selectedMember);
-  const initial = memberField(selectedMember, "display_name", "구성원").slice(0, 1);
+  const portraitName = memberField(
+    selectedMember,
+    "english_name",
+    memberField(selectedMember, "display_name", "프로필")
+  );
+  const initial = portraitName.slice(0, 1);
   const practiceAreas = stringList(professionalProfile.practice_areas);
   const careerItems = stringList(professionalProfile.experience);
   const educationItems = stringList(professionalProfile.education);
@@ -276,11 +291,6 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
     memberField(selectedMember, "mobile_phone", ""),
     memberField(selectedMember, "country", "")
   ]);
-  const roleLine = uniqueStrings([
-    memberField(selectedMember, "title", ""),
-    memberField(selectedMember, "affiliation", "")
-  ]).join(" / ");
-
   useEffect(() => {
     const override = readProfileOverride(employeeId);
     setProfileOverride(override);
@@ -343,56 +353,57 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
         </button>
       </header>
 
-      {statusCopy.title && !selectedMember && (
+      {statusCopy.title && (
         <div className={`live-data-state ${statusCopy.className}`} role="status" data-profile-api-notice="true">
           <strong>{statusCopy.title}</strong>
+          {currentState === "error" && (
+            <button
+              type="button"
+              className="secondary-button matter-profile-retry-button"
+              onClick={() => setProfileRequestVersion((version) => version + 1)}
+            >
+              <RefreshCw size={15} />
+              <span>다시 시도</span>
+            </button>
+          )}
         </div>
       )}
 
-      <div className="matter-profile-layout">
+      {selectedMember && <div className="matter-profile-layout">
         <aside className="matter-profile-sidebar" aria-label="내 프로필 정보">
-          <div className="matter-profile-identity">
-            <div className="matter-profile-photo matter-profile-photo-large" aria-hidden="true">
-              {photo ? <img src={photo} alt="" /> : <span>{initial}</span>}
+          <div className="matter-profile-identity" data-profile-portrait-panel="true">
+            <div className="matter-profile-portrait-media" aria-hidden="true">
+              {photo
+                ? <img className="matter-profile-portrait-image" src={photo} alt="" />
+                : <span className="matter-profile-portrait-fallback">{initial}</span>}
             </div>
+            <div className="matter-profile-portrait-fade" aria-hidden="true" />
             {isEditingProfile ? (
-              <input
-                className="matter-profile-name-input"
-                value={profileDraft.display_name}
-                onChange={(event) => updateProfileDraft("display_name", event.target.value)}
-                aria-label="이름"
-              />
+              <div className="matter-profile-portrait-copy matter-profile-portrait-edit">
+                <input
+                  className="matter-profile-name-input"
+                  value={profileDraft.english_name}
+                  onChange={(event) => updateProfileDraft("english_name", event.target.value)}
+                  aria-label="영문 이름"
+                />
+                <input
+                  value={profileDraft.title}
+                  onChange={(event) => updateProfileDraft("title", event.target.value)}
+                  aria-label="직책"
+                />
+                <input
+                  value={profileDraft.department}
+                  onChange={(event) => updateProfileDraft("department", event.target.value)}
+                  aria-label="담당 부서"
+                />
+              </div>
             ) : (
-              <h1>{memberField(selectedMember, "display_name", "프로필")}</h1>
+              <div className="matter-profile-portrait-copy">
+                <h1 data-profile-english-name="true">{portraitName}</h1>
+                <p data-profile-title="true">{memberField(selectedMember, "title", "")}</p>
+                <p data-profile-department="true">{memberField(selectedMember, "department", "")}</p>
+              </div>
             )}
-            <div className="matter-profile-role-line">
-              {isEditingProfile ? (
-                <div className="matter-profile-role-edit">
-                  <input
-                    value={profileDraft.title}
-                    onChange={(event) => updateProfileDraft("title", event.target.value)}
-                    aria-label="직위"
-                  />
-                  <input
-                    value={profileDraft.affiliation}
-                    onChange={(event) => updateProfileDraft("affiliation", event.target.value)}
-                    aria-label="소속"
-                  />
-                </div>
-              ) : (
-                roleLine ? <p>{roleLine}</p> : null
-              )}
-              <button
-                className="secondary-button matter-profile-edit-button"
-                type="button"
-                onClick={handleProfileEditToggle}
-                disabled={isEditingProfile && !profileDraft.display_name.trim()}
-              >
-                <Pencil size={15} />
-                {isEditingProfile ? "Save" : "Edit"}
-              </button>
-            </div>
-            {saveState && <span className="matter-profile-save-state">{saveState}</span>}
           </div>
 
           {(isEditingProfile || profileRows.length > 0) && <article className="matter-profile-card panel">
@@ -437,42 +448,56 @@ export function UserProfileSurface({ liveCtx = "allow", desktopSession = null, o
         </aside>
 
         <div className="matter-profile-main-stack">
-          <ProfileList title="경력" items={careerItems} icon={ClipboardList} editing={isEditingProfile} editValue={profileDraft.experience} onEditChange={(value) => updateProfileDraft("experience", value)} />
-          <ProfileList title="학력" items={educationItems} icon={GraduationCap} editing={isEditingProfile} editValue={profileDraft.education} onEditChange={(value) => updateProfileDraft("education", value)} />
-          <ProfileList title="자격" items={qualificationItems} icon={ShieldCheck} editing={isEditingProfile} editValue={profileDraft.qualifications} onEditChange={(value) => updateProfileDraft("qualifications", value)} />
+          <section className="matter-profile-details-panel panel" aria-label="프로필 상세" data-profile-details-panel="true">
+            <div className="matter-profile-main-actions">
+              {saveState && <span className="matter-profile-save-state" role="status">{saveState}</span>}
+              <button
+                className="secondary-button matter-profile-edit-button"
+                type="button"
+                onClick={handleProfileEditToggle}
+                disabled={isEditingProfile && !profileDraft.english_name.trim()}
+              >
+                {isEditingProfile ? <Save size={15} /> : <Pencil size={15} />}
+                {isEditingProfile ? "Save" : "Edit"}
+              </button>
+            </div>
+            <ProfileList title="경력" items={careerItems} icon={ClipboardList} editing={isEditingProfile} editValue={profileDraft.experience} onEditChange={(value) => updateProfileDraft("experience", value)} />
+            <ProfileList title="학력" items={educationItems} icon={GraduationCap} editing={isEditingProfile} editValue={profileDraft.education} onEditChange={(value) => updateProfileDraft("education", value)} />
+            <ProfileList title="자격" items={qualificationItems} icon={ShieldCheck} editing={isEditingProfile} editValue={profileDraft.qualifications} onEditChange={(value) => updateProfileDraft("qualifications", value)} />
 
-          {(practiceAreas.length > 0 || isEditingProfile) && (
-            <article className="matter-profile-card panel">
-              <div className="matter-profile-card-title">
-                <ShieldCheck size={18} />
-                <h2>전문 분야</h2>
-              </div>
-              {isEditingProfile ? (
-                <textarea
-                  className="matter-profile-list-editor"
-                  value={profileDraft.practice_areas}
-                  onChange={(event) => updateProfileDraft("practice_areas", event.target.value)}
-                  rows={Math.max(3, textToList(profileDraft.practice_areas).length + 1)}
-                />
-              ) : (
-                <div className="matter-profile-practice-list">
-                  {practiceAreas.map((item) => <span key={item}>{item}</span>)}
+            {(practiceAreas.length > 0 || isEditingProfile) && (
+              <article className="matter-profile-card panel">
+                <div className="matter-profile-card-title">
+                  <ShieldCheck size={18} />
+                  <h2>전문 분야</h2>
                 </div>
-              )}
-            </article>
-          )}
+                {isEditingProfile ? (
+                  <textarea
+                    className="matter-profile-list-editor"
+                    value={profileDraft.practice_areas}
+                    onChange={(event) => updateProfileDraft("practice_areas", event.target.value)}
+                    rows={Math.max(3, textToList(profileDraft.practice_areas).length + 1)}
+                  />
+                ) : (
+                  <div className="matter-profile-practice-list">
+                    {practiceAreas.map((item) => <span key={item}>{item}</span>)}
+                  </div>
+                )}
+              </article>
+            )}
 
-          {workPlaces.length > 0 && <article className="matter-profile-card panel">
-            <div className="matter-profile-card-title">
-              <IdCard size={18} />
-              <h2>소속</h2>
-            </div>
-            <div className="matter-profile-contact-row">
-              {workPlaces.map((item) => <span key={item}>{item}</span>)}
-            </div>
-          </article>}
+            {workPlaces.length > 0 && <article className="matter-profile-card panel">
+              <div className="matter-profile-card-title">
+                <IdCard size={18} />
+                <h2>소속</h2>
+              </div>
+              <div className="matter-profile-contact-row">
+                {workPlaces.map((item) => <span key={item}>{item}</span>)}
+              </div>
+            </article>}
+          </section>
         </div>
-      </div>
+      </div>}
     </section>
   );
 }

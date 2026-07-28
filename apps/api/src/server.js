@@ -1110,6 +1110,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
         actor_ref: actorRef,
         tenant_ref: tenantId,
         display_name: displayName,
+        english_name: registeredAccount?.english_name ?? "",
         primary_role_label: primaryRoleLabel,
         employee_id: profileMember.employee_id ?? null,
         work_email: workEmail,
@@ -1312,7 +1313,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       "x-lawos-tenant-id": principal.tenant_id,
       "x-lawos-actor-id": principal.user_id,
       "x-lawos-actor-role": (principal.role_ids ?? []).join(","),
-      "x-lawos-hrx-scopes": (principal.scopes ?? []).join(","),
+      "x-lawos-hrx-scopes": (principal.hrx_scopes ?? principal.scopes ?? []).join(","),
       [HRX_SESSION_BOUND_HEADER]: "signed",
     };
   };

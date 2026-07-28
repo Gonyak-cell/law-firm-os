@@ -215,6 +215,8 @@ test("POST /api/auth/login issues a signed session token for the registered rost
     assert.equal(response.body.session.user_id, account.user_id);
     assert.equal(response.body.session.tenant_id, MATTER_VAULT_REGISTERED_TENANT_ID);
     assert.equal(response.body.session.session_principal_source, "api_signed_session");
+    assert.equal(response.body.session.highest_privilege, true);
+    assert.ok(response.body.session.role_ids.includes("system_super_admin"));
     assert.ok(response.body.session.role_ids.includes("lawos_admin"));
     assert.ok(response.body.session.hrx_scopes.includes("hrx.payroll.export"));
 
@@ -225,6 +227,53 @@ test("POST /api/auth/login issues a signed session token for the registered rost
     assert.equal(session.body.session.user_id, account.user_id);
     assert.equal(session.body.session.token_material_returned, false);
   });
+});
+
+test("PostgreSQL highest-privilege sessions retain the complete HRX administrator scope set", async () => {
+  const account = user();
+  const tenantMembership = account.tenant_memberships.find(({ tenant_id: tenantId }) => (
+    tenantId === MATTER_VAULT_REGISTERED_TENANT_ID
+  ));
+  const postgresAccount = {
+    ...account,
+    directory_source: "postgres-v2",
+    tenant_memberships: [{
+      ...tenantMembership,
+      status: "active",
+      hrx_scopes: []
+    }]
+  };
+  const sessionAuth = createApiSessionAuth({
+    seed: {
+      tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+      users: [postgresAccount]
+    }
+  });
+  const loginResult = await sessionAuth.handleAuthApiRequest({
+    pathname: "/api/auth/login",
+    method: "POST",
+    body: {
+      email: postgresAccount.email,
+      password: postgresAccount.local_dev.synthetic_token
+    },
+    requestId: "req-postgres-highest-privilege"
+  });
+  assert.equal(loginResult.status, 200);
+  assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.leave.self.read"));
+  assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.leave.approve"));
+  assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.leave.report.export"));
+  assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.payroll.approve"));
+
+  const resolved = await sessionAuth.resolvePermissionContextFromHeaders({
+    authorization: `Bearer ${loginResult.body.session_token}`
+  }, {
+    requestId: "req-postgres-highest-privilege-resolve",
+    requireSessionToken: true
+  });
+  assert.equal(resolved.ok, true);
+  assert.equal(resolved.principal.highest_privilege, true);
+  assert.ok(resolved.principal.hrx_scopes.includes("hrx.leave.approve"));
+  assert.ok(resolved.context.principal.hrx_scopes.includes("hrx.payroll.approve"));
 });
 
 test("Signed-session permission rules enforce verified scopes without a universal allow", async () => {
@@ -971,6 +1020,7 @@ test("Server role registry maps the 10-person roster outside the login seed", as
   assert.deepEqual(attorneyAssignment.role_ids, ["lawos_attorney"]);
   assert.ok(financeAdminAssignment.scopes.includes("finance.export"));
   assert.ok(financeAdminAssignment.scopes.includes("finance.approve"));
+  assert.ok(financeAdminAssignment.role_ids.includes("system_super_admin"));
   assert.ok(financeOperationsAssignment.scopes.includes("finance.export"));
   assert.equal(financeOperationsAssignment.scopes.includes("finance.approve"), false);
   assert.ok(financePartnerAssignment.scopes.includes("finance.approve"));

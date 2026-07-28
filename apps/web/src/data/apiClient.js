@@ -1047,7 +1047,7 @@ export async function fetchUserProfile({
       status: response.status,
       requestId: body.request_id,
       outcome: body.outcome,
-      uiState: body.ui_state ?? (body.outcome === "review_required" ? "review" : "denied"),
+      uiState: guardedApiUiState(response, body),
       item: null,
       safeErrorCodes: body.safe_error_codes,
       auditHintRef: body.audit_hint_ref,
@@ -1069,6 +1069,34 @@ export async function fetchUserProfile({
   };
 }
 
+const EXPLICIT_PERMISSION_DENIAL_CODES = new Set([
+  "HOME_UNAUTHORIZED_OMISSION",
+  "PROFILE_PERMISSION_DENIED"
+]);
+
+export function guardedApiUiState(response, body) {
+  const status = Number(response?.status ?? 0);
+  const uiState = typeof body?.ui_state === "string" ? body.ui_state : "";
+  const outcome = typeof body?.outcome === "string" ? body.outcome : "";
+  const safeErrorCodes = Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [];
+
+  if (
+    status >= 200 &&
+    status < 500 &&
+    (uiState === "review" || uiState === "review_required" || outcome === "review_required")
+  ) {
+    return uiState === "review" ? "review" : "review_required";
+  }
+  if (
+    status === 403 &&
+    uiState === "denied" &&
+    safeErrorCodes.some((code) => EXPLICIT_PERMISSION_DENIAL_CODES.has(code))
+  ) {
+    return "denied";
+  }
+  return "error";
+}
+
 function homeDashboardQuery({
   ctx = "allow",
   permissionRef = DEFAULT_HOME_PERMISSION_REF,
@@ -1087,13 +1115,13 @@ function homeDashboardQuery({
   return { context, params };
 }
 
-function guardedHomeResult(response, body, fallbackUiState = "denied") {
+function guardedHomeResult(response, body) {
   return {
     kind: "guarded",
     status: response?.status ?? 0,
     requestId: body?.request_id ?? null,
     outcome: body?.outcome ?? "blocked",
-    uiState: body?.ui_state ?? fallbackUiState,
+    uiState: guardedApiUiState(response, body),
     items: [],
     events: [],
     entries: [],
@@ -1137,7 +1165,7 @@ export async function fetchHomeActionInbox({
       .every((key) => key in body) &&
     Array.isArray(body.items);
   if (!hasActionInboxShape) return guardedHomeResult(response, body);
-  if (!response.ok || body.outcome !== "passed") return guardedHomeResult(response, body, body.outcome === "review_required" ? "review_required" : "denied");
+  if (!response.ok || body.outcome !== "passed") return guardedHomeResult(response, body);
   return {
     kind: "data",
     requestId: body.request_id,

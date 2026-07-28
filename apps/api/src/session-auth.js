@@ -19,6 +19,7 @@ import {
   LAWOS_ROLE_REGISTRY_SOURCE,
   resolveLawosUserRoleAssignment,
 } from "./lawos-role-registry.js";
+import { hrxScopesForRoleProfile } from "./hrx-role-scope-matrix.js";
 import {
   HRX_STEP_UP_TOKEN_CONTRACT_REF,
   createHrxStepUpAuthority,
@@ -375,7 +376,10 @@ function resolveSessionRoleAssignment(user, { tenantId = MATTER_VAULT_REGISTERED
   const roleIds = Object.freeze([...(membership.role_ids ?? [])]);
   const groupIds = Object.freeze([...(membership.group_ids ?? [])]);
   const scopes = Object.freeze([...(membership.scopes ?? [])]);
-  const hrxScopes = Object.freeze([...(membership.hrx_scopes ?? [])]);
+  const highestPrivilegeHrxScopes = user.highest_privilege === true && roleIds.includes("system_super_admin")
+    ? hrxScopesForRoleProfile("admin")
+    : [];
+  const hrxScopes = Object.freeze([...new Set([...(membership.hrx_scopes ?? []), ...highestPrivilegeHrxScopes])]);
   return Object.freeze({
     user_id: user.user_id,
     role_profile_id: membership.role_profile_id ?? user.role_profile_id ?? null,
@@ -473,6 +477,9 @@ function principalFromSignedSession({ user, payload = {}, trustedTenantId, reque
     role_ids: Object.freeze([...(membership.role_ids ?? roleAssignment.role_ids ?? [])]),
     group_ids: Object.freeze([...(membership.group_ids ?? roleAssignment.group_ids ?? [])]),
     scopes: Object.freeze([...(membership.scopes ?? roleAssignment.scopes ?? [])]),
+    hrx_scopes: Object.freeze([...(membership.hrx_scopes ?? roleAssignment.hrx_scopes ?? [])]),
+    highest_privilege: user.highest_privilege === true,
+    privilege_rank: user.privilege_rank ?? null,
     assurance_level: credential?.assurance_level ?? user.assurance_level ?? "password",
     entra_subject_id: credential?.federated_subject_id ?? null,
     session_id: payload.sid ?? `sess_${user.user_id}`,
@@ -482,6 +489,21 @@ function principalFromSignedSession({ user, payload = {}, trustedTenantId, reque
     must_change_password: credential?.must_change_password === true,
     directory_source: user.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     request_id: requestId,
+  });
+}
+
+function principalWithDirectoryRoleContext(principal, user, tenantId) {
+  const roleAssignment = resolveSessionRoleAssignment(user, { tenantId });
+  if (!principal?.ok || !roleAssignment) return principal;
+  const membership = roleAssignment.tenant_membership ?? {};
+  return Object.freeze({
+    ...principal,
+    role_ids: Object.freeze([...(membership.role_ids ?? roleAssignment.role_ids ?? [])]),
+    group_ids: Object.freeze([...(membership.group_ids ?? roleAssignment.group_ids ?? [])]),
+    scopes: Object.freeze([...(membership.scopes ?? roleAssignment.scopes ?? [])]),
+    hrx_scopes: Object.freeze([...(membership.hrx_scopes ?? roleAssignment.hrx_scopes ?? [])]),
+    highest_privilege: user.highest_privilege === true,
+    privilege_rank: user.privilege_rank ?? null,
   });
 }
 
@@ -1391,7 +1413,7 @@ export function createApiSessionAuth({
         return Object.freeze({ ok: false, status: active.status ?? 401, body: errorBody(requestId, active.safe_error_code ?? "AUTH_SESSION_REVOKED", active.reason ?? "auth_session_revoked") });
       }
     }
-    const principal = provider
+    const derivedPrincipal = provider
       ? deriveServerPrincipal({
           request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
           provider,
@@ -1399,7 +1421,14 @@ export function createApiSessionAuth({
           request_id: requestId,
         })
       : principalFromSignedSession({ user, payload, trustedTenantId: homeTenantId, requestId, credential });
-    if (!principal.ok) return Object.freeze({ ok: false, status: principal.status_code ?? 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", principal.reason) });
+    if (!derivedPrincipal.ok) {
+      return Object.freeze({
+        ok: false,
+        status: derivedPrincipal.status_code ?? 401,
+        body: errorBody(requestId, "AUTH_SESSION_INVALID", derivedPrincipal.reason),
+      });
+    }
+    const principal = principalWithDirectoryRoleContext(derivedPrincipal, user, homeTenantId);
     return Object.freeze({
       ok: true,
       principal,

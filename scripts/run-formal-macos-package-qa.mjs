@@ -255,7 +255,7 @@ try {
   assert.equal(await profile.getAttribute("data-profile-api-state"), "populated");
   assert.equal(await profile.getAttribute("data-profile-member"), "emp_amic_jwsuh");
   const profileText = await profile.innerText();
-  for (const expected of ["서지원", "대표변호사 / AMIC Law", "jwsuh@amic.kr", "대한민국 변호사", "M&A"]) assert.match(profileText, new RegExp(expected));
+  for (const expected of ["Jiwon Suh", "대표변호사", "Legal", "jwsuh@amic.kr", "대한민국 변호사", "M&A"]) assert.match(profileText, new RegExp(expected));
   assert.doesNotMatch(profileText, /세션 사용자/);
   screenshots.push(await screenshot(page, "02-formal-profile-seo-jiwon", "[data-user-profile-surface='my-profile']"));
 
