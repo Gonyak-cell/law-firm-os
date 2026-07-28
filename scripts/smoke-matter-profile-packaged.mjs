@@ -56,6 +56,7 @@ async function main() {
       ...packagedQaEnvironment,
       MATTER_DESKTOP_ENV_FILE: envFilePath,
       MATTER_DESKTOP_LOCAL_API_DISABLED: "0",
+      MATTER_DESKTOP_LOCAL_API_ENABLED: "1",
       MATTER_DESKTOP_RUNTIME_STORE_DIR: path.join(userDataPath, "runtime-stores"),
       MATTER_DESKTOP_USER_DATA_PATH: userDataPath
     },

@@ -83,9 +83,13 @@ export function isFormalReleasePackage({
   return typeof resourcesPath === "string" && Boolean(resourcesPath) && existsSyncImpl(join(resourcesPath, formalReleaseMarkerName));
 }
 
-export function shouldStartDesktopLocalApi(env = process.env, { formalRelease = false } = {}) {
+export function shouldStartDesktopLocalApi(
+  env = process.env,
+  { formalRelease = false, packaged = false } = {}
+) {
   if (env.MATTER_DESKTOP_LOCAL_API_DISABLED === "1") return false;
-  if (formalRelease && env.MATTER_DESKTOP_LOCAL_API_ENABLED !== "1") return false;
+  if (formalRelease) return false;
+  if (packaged) return env.MATTER_DESKTOP_LOCAL_API_ENABLED === "1";
   return true;
 }
 
@@ -256,8 +260,9 @@ export async function startElectronApp() {
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
   const formalRelease = isFormalReleasePackage();
-  const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease })
-    ? await startDesktopLocalApiServer({ userDataPath, packaged: app.isPackaged === true })
+  const packaged = app.isPackaged === true;
+  const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease, packaged })
+    ? await startDesktopLocalApiServer({ userDataPath, packaged })
     : null;
   if (localApi?.baseUrl) {
     process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
