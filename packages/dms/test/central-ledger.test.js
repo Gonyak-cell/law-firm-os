@@ -5,6 +5,14 @@ import { createPostgresDomainLedger } from "../../persistence/src/postgres/domai
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
 import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import {
+  compareDomainSnapshots,
+} from "../../persistence/src/domain-ledger.js";
+import {
+  createRecordRepositoryDomainSnapshot,
+  materializeRecordRepositoryFromDomainLedger,
+} from "../../persistence/src/record-domain-adapter.js";
+import {
+  DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
   createDmsDomainSnapshot,
   createDmsAuxiliaryRepository,
   createDmsRepository,
@@ -55,10 +63,41 @@ test("DMS central-ledger inventory fixes version, object, reference, PII and byt
   );
 });
 
-test("DMS auxiliary ledger accepts workspace metadata but rejects specialized document authority rows", () => {
-  const repository = createDmsAuxiliaryRepository({ seedRecords: [VAULT_DMS_RUNTIME_SEED[0]] });
+test("DMS auxiliary ledger preserves imported specialized shadows read-only while rejecting their mutations", async () => {
+  const sourceRepository = createDmsRepository({
+    seedRecords: [VAULT_DMS_RUNTIME_SEED[0], VAULT_DMS_RUNTIME_SEED[1]],
+  });
+  const source = createRecordRepositoryDomainSnapshot({
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    repositories: [{ source_id: "legacy-import", repository: sourceRepository }],
+    tenant_id: TENANT,
+  }).snapshot;
+  sourceRepository.close();
+  const repository = await materializeRecordRepositoryFromDomainLedger({
+    ledger: {
+      async list() {
+        return source.records;
+      },
+      async listIdempotency() {
+        return source.idempotency_entries;
+      },
+      async listAudit() {
+        return source.audit_events;
+      },
+    },
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createDmsAuxiliaryRepository,
+  });
   try {
     assert.equal(repository.list({ tenant_id: TENANT, model_type: "DmsWorkspace" }).length, 1);
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length, 1);
+    const readback = createRecordRepositoryDomainSnapshot({
+      descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+      repositories: [{ source_id: "request-readback", repository }],
+      tenant_id: TENANT,
+    }).snapshot;
+    assert.equal(compareDomainSnapshots(source, readback).equal, true);
     assert.throws(
       () => repository.create(VAULT_DMS_RUNTIME_SEED[1]),
       (error) => error?.safe_error_code === "DMS_SPECIALIZED_AUTHORITY_REQUIRED",
