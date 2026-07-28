@@ -1103,6 +1103,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   delete apiEnv.LAWOS_OWNER_INSTRUCTION_SHA256;
   delete apiEnv.LAWOS_SYNTHETIC_MANIFEST_SECRET_ID;
   resources.PasswordResetWorkerSchedule.Properties.Description = "Drains durable individual production password-reset jobs";
+  resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression = "rate(1 minute)";
   resources.PasswordResetWorkerSchedule.Properties.State = {
     "Fn::If": ["ProductionTrafficEnabled", "ENABLED", "DISABLED"],
   };
@@ -1370,6 +1371,7 @@ export function validateJsonPostgresProductionTemplate(template) {
     fail("production ENI bootstrap or explicit Deny contract is incomplete");
   }
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
+    || resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression !== "rate(1 minute)"
     || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
     || template.Parameters?.EnableProjectionWorker?.Default !== "false"
     || template.Parameters?.ProjectionWorkerEventJson?.MaxLength !== 640

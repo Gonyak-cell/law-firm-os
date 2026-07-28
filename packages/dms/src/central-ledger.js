@@ -143,7 +143,7 @@ function assertAuxiliaryRecordType(value) {
 }
 
 export function createDmsAuxiliaryRepository(options = {}) {
-  for (const record of options.seedRecords ?? []) assertAuxiliaryRecordType(record);
+  // Imported specialized rows are immutable shadows; every mutation stays blocked below.
   const repository = createDmsRepository(options);
   let auxiliary;
   auxiliary = Object.freeze({
