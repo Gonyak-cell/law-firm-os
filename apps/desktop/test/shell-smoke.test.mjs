@@ -274,16 +274,29 @@ test("desktop userData can be isolated for packaged QA runs", () => {
   assert.equal(desktopUserDataPath(app, {}), "/default/user-data");
 });
 
-test("desktop local API defaults off for formal packages and remains opt-in for isolated QA", () => {
+test("packaged desktop defaults to production auth and local API requires explicit non-formal opt-in", () => {
   assert.equal(isFormalReleasePackage({ resourcesPath: "/App/resources", existsSyncImpl: (path) => path.endsWith("matter-formal-release.json") }), true);
   assert.equal(isFormalReleasePackage({ resourcesPath: "/App/resources", existsSyncImpl: () => false }), false);
   assert.equal(shouldStartDesktopLocalApi({}), true);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "0" }), true);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }), false);
-  assert.equal(shouldStartDesktopLocalApi({}, { formalRelease: true }), false);
-  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1" }, { formalRelease: true }), true);
+  assert.equal(shouldStartDesktopLocalApi({}, { packaged: true }), false);
+  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "0" }, { packaged: true }), false);
+  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1" }, { packaged: true }), true);
   assert.equal(
-    shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1", MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }, { formalRelease: true }),
+    shouldStartDesktopLocalApi(
+      { MATTER_DESKTOP_LOCAL_API_ENABLED: "1", MATTER_DESKTOP_LOCAL_API_DISABLED: "1" },
+      { packaged: true }
+    ),
+    false
+  );
+  assert.equal(shouldStartDesktopLocalApi({}, { formalRelease: true }), false);
+  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1" }, { formalRelease: true, packaged: true }), false);
+  assert.equal(
+    shouldStartDesktopLocalApi(
+      { MATTER_DESKTOP_LOCAL_API_ENABLED: "1", MATTER_DESKTOP_LOCAL_API_DISABLED: "1" },
+      { formalRelease: true, packaged: true }
+    ),
     false
   );
 });
