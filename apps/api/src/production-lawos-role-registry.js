@@ -41,7 +41,12 @@ export function resolveLawosUserRoleAssignment(
   if (!membership) return null;
   const roleIds = frozenUnique(membership.role_ids);
   const groupIds = frozenUnique(membership.group_ids);
-  const scopes = frozenUnique(membership.scopes);
+  const highestPrivilege =
+    user.highest_privilege === true && roleIds.includes("system_super_admin");
+  const scopes = frozenUnique([
+    ...(membership.scopes ?? []),
+    ...(highestPrivilege ? LAWOS_FINANCE_SCOPES : []),
+  ]);
   const hrxScopes = frozenUnique(membership.hrx_scopes);
   return Object.freeze({
     user_id: user.user_id,
