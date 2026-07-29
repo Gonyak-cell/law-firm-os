@@ -20,6 +20,7 @@ import { readFileSync } from "node:fs";
 
 test("artifact source allowlist includes runtime inputs and excludes evidence and secrets", () => {
   assert.equal(privateStagingArtifactSourcePathAllowed("apps/api/src/lambda.js"), true);
+  assert.equal(privateStagingArtifactSourcePathAllowed("apps/api/src/hrx-member-photos/member.png"), false);
   assert.equal(privateStagingArtifactSourcePathAllowed("packages/persistence/src/postgres/pool.js"), true);
   assert.equal(privateStagingArtifactSourcePathAllowed("packages/runtime-auth/src/runtime-safety-approval-contract.js"), true);
   assert.equal(privateStagingArtifactSourcePathAllowed("apps/api/test/lambda-session-secret.test.js"), false);
@@ -233,9 +234,9 @@ test("artifact runtime-source redactions remove every known real identity marker
     text: readFileSync(targetPath, "utf8"),
     syntheticSources,
   }));
-  assert.equal(redacted.length, 4);
+  assert.equal(redacted.length, 3);
   assert.deepEqual(validatePrivateStagingSourceIdentityBoundary(redacted.map((entry) => ({ path: entry.target_path, text: entry.text }))), {
-    scanned_source_count: 4,
+    scanned_source_count: 3,
     real_identity_marker_count: 0,
   });
   assert.equal(validatePrivateStagingSourceIdentityBoundary([
