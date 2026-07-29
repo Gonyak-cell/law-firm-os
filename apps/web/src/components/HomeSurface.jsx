@@ -1801,10 +1801,10 @@ export function HomeSurface({
           onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "monthly_payroll_kpi" })}
         />
         <HomeKpiCard
-          title="이번달 비용처리"
+          title="이번달 비용"
           state={financeCurrentState}
           amount={financeDashboard.current?.processed_cost ?? null}
-          basis="KRW / 운영비 출금 분류"
+          basis="KRW / 총 출금 - 급여 지급액"
           changePercent={financeDashboard.processed_cost_change_percent}
           section="monthly-processed-cost"
           onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "processed_cost_kpi" })}

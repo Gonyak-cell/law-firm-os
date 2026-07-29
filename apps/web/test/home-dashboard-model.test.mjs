@@ -4,9 +4,11 @@ import {
   buildClientDashboardModel,
   buildBankCashflowDashboardModel,
   buildFinanceDashboardModel,
+  buildMonthlyRevenueAxis,
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
   dashboardResultState,
+  formatMonthlyRevenueAxisTick,
   readDashboardResultWithRetry,
   seoulMonthKey,
 } from "../src/components/HomeDashboardModel.js";
@@ -32,11 +34,25 @@ test("Home finance model shares the KRW billed source between KPI and 12-month b
   assert.equal(model.revenue_change_percent, 25);
 });
 
+test("Home monthly revenue axis uses readable 30 million KRW steps", () => {
+  const axis = buildMonthlyRevenueAxis([{ amount: 115_903_190 }]);
+  assert.equal(axis.maximum, 120_000_000);
+  assert.deepEqual(axis.ticks, [120_000_000, 90_000_000, 60_000_000, 30_000_000, 0]);
+  assert.deepEqual(axis.ticks.map(formatMonthlyRevenueAxisTick), ["12,000만", "9,000만", "6,000만", "3,000만", "0"]);
+
+  const emptyAxis = buildMonthlyRevenueAxis([]);
+  assert.equal(emptyAxis.maximum, 30_000_000);
+  assert.deepEqual(emptyAxis.ticks, [30_000_000, 0]);
+});
+
 test("Home bank model uses registered-client receipts, operating outflows, and aggregate payroll", () => {
   const current = {
     kind: "data",
     uiState: "ready",
     item: {
+      summary: {
+        total_outflow: 227_166_172,
+      },
       business_summary: {
         currency: "KRW",
         sales_amount: 21_385_200,
@@ -64,6 +80,10 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
   const model = buildBankCashflowDashboardModel(current, history, { now: NOW });
   assert.equal(model.current.billed_amount, 21_385_200);
   assert.equal(model.current.processed_cost, 136_100_193);
+  assert.equal(
+    model.current.processed_cost,
+    current.item.summary.total_outflow - current.item.business_summary.payroll_payment_amount,
+  );
   assert.equal(model.payroll_summary.gross_krw, 91_065_979);
   assert.equal(model.payroll_summary.categories.reduce((sum, row) => sum + row.gross_krw, 0), 91_065_979);
   assert.deepEqual(model.payroll_summary.categories.map(({ category, employee_count }) => [category, employee_count]), [
@@ -73,6 +93,24 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
   ]);
   assert.equal(model.series.at(-1).amount, 21_385_200);
   assert.equal(JSON.stringify(model).includes("employee_id"), false);
+});
+
+test("Home monthly expense subtracts payroll from bank outflow before using the compatibility fallback", () => {
+  const model = buildBankCashflowDashboardModel({
+    kind: "data",
+    uiState: "ready",
+    item: {
+      summary: { total_outflow: 50_000_000 },
+      business_summary: {
+        currency: "KRW",
+        sales_amount: 0,
+        operating_expense_amount: 35_000_000,
+        payroll_payment_amount: 20_000_000,
+        status: "passed",
+      },
+    },
+  }, { kind: "data", uiState: "ready", item: { monthly: [] } }, { now: NOW });
+  assert.equal(model.current.processed_cost, 30_000_000);
 });
 
 test("Home client model counts current-month clients and deduplicates active prospects by explicit identity", () => {

@@ -1,4 +1,8 @@
 import React, { useId } from "react";
+import {
+  buildMonthlyRevenueAxis,
+  formatMonthlyRevenueAxisTick,
+} from "./HomeDashboardModel.js";
 
 const moneyFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
 
@@ -19,12 +23,12 @@ export function HomeRevenueBarChart({ series = [] }) {
   const padding = { top: 18, right: 18, bottom: 36, left: 52 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
-  const max = Math.max(1, ...series.map((item) => Number(item.amount) || 0));
+  const axis = buildMonthlyRevenueAxis(series);
   const slotWidth = plotWidth / Math.max(series.length, 1);
   const barWidth = Math.min(34, Math.max(12, slotWidth * 0.58));
   const bars = series.map((item, index) => {
     const amount = Math.max(0, Number(item.amount) || 0);
-    const barHeight = amount > 0 ? Math.max(2, amount / max * plotHeight) : 0;
+    const barHeight = amount > 0 ? Math.max(2, amount / axis.maximum * plotHeight) : 0;
     return {
       ...item,
       amount,
@@ -40,13 +44,12 @@ export function HomeRevenueBarChart({ series = [] }) {
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
         <title id={titleId}>최근 12개월 월별 매출</title>
         <desc id={descriptionId}>Asia/Seoul 월 기준 등록 고객 연결 입금을 월별 막대로 비교합니다. 아래 표에서 정확한 금액을 확인할 수 있습니다.</desc>
-        {[0, 0.5, 1].map((ratio) => {
-          const y = padding.top + plotHeight * ratio;
-          const value = max * (1 - ratio);
+        {axis.ticks.map((value) => {
+          const y = padding.top + plotHeight * (1 - value / axis.maximum);
           return (
-            <g key={ratio} className="home-chart-gridline">
+            <g key={value} className="home-chart-gridline">
               <line x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
-              <text x={padding.left - 10} y={y + 4} textAnchor="end">{moneyFormatter.format(value)}</text>
+              <text x={padding.left - 10} y={y + 4} textAnchor="end">{formatMonthlyRevenueAxisTick(value)}</text>
             </g>
           );
         })}

@@ -18,6 +18,8 @@ const CLOSED_PROSPECT_STATUSES = new Set([
   "won",
 ]);
 const NEW_MATTER_STATUSES = new Set(["active", "opening"]);
+const MONTHLY_REVENUE_AXIS_STEP_KRW = 30_000_000;
+const KOREAN_INTEGER = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
 const waitForDashboardRetry = (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs));
 
 export async function readDashboardResultWithRetry(
@@ -107,6 +109,39 @@ function percentageChange(current, previous) {
   return ((Number(current) - prior) / Math.abs(prior)) * 100;
 }
 
+export function buildMonthlyRevenueAxis(series = []) {
+  const peak = Math.max(0, ...(Array.isArray(series) ? series : []).map((item) => {
+    const amount = Number(item?.amount);
+    return Number.isFinite(amount) ? Math.max(0, amount) : 0;
+  }));
+  const maximum = Math.max(
+    MONTHLY_REVENUE_AXIS_STEP_KRW,
+    Math.ceil(peak / MONTHLY_REVENUE_AXIS_STEP_KRW) * MONTHLY_REVENUE_AXIS_STEP_KRW,
+  );
+  return Object.freeze({
+    maximum,
+    ticks: Object.freeze(Array.from(
+      { length: maximum / MONTHLY_REVENUE_AXIS_STEP_KRW + 1 },
+      (_, index) => maximum - index * MONTHLY_REVENUE_AXIS_STEP_KRW,
+    )),
+  });
+}
+
+export function formatMonthlyRevenueAxisTick(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) return "0";
+  return `${KOREAN_INTEGER.format(amount / 10_000)}만`;
+}
+
+function expenseExcludingPayroll(row = {}) {
+  const totalOutflow = row.total_outflow == null ? Number.NaN : Number(row.total_outflow);
+  const payrollPayment = row.payroll_payment_amount == null ? Number.NaN : Number(row.payroll_payment_amount);
+  if (Number.isFinite(totalOutflow) && Number.isFinite(payrollPayment)) {
+    return Math.max(0, totalOutflow - payrollPayment);
+  }
+  return Math.max(0, Number(row.operating_expense_amount) || 0);
+}
+
 export function buildFinanceDashboardModel(result, { now = new Date(), currency = "KRW" } = {}) {
   const state = dashboardResultState(result);
   const month = seoulMonthKey(now);
@@ -149,11 +184,15 @@ export function buildBankCashflowDashboardModel(currentResult, historyResult, { 
     ? historyResult.item.monthly.filter((row) => row.currency === currency && months.includes(row.month))
     : [];
   const byMonth = new Map(historyRows.map((row) => [row.month, row]));
+  const currentExpense = expenseExcludingPayroll({
+    ...currentSummary,
+    total_outflow: currentResult?.item?.summary?.total_outflow,
+  });
   const current = currentSummary ? Object.freeze({
     month,
     currency,
     billed_amount: Number(currentSummary.sales_amount ?? 0),
-    processed_cost: Number(currentSummary.operating_expense_amount ?? 0),
+    processed_cost: currentExpense,
     payroll_payment_amount: Number(currentSummary.payroll_payment_amount ?? 0),
     non_operating_amount: Number(currentSummary.non_operating_amount ?? 0),
   }) : null;
@@ -175,7 +214,7 @@ export function buildBankCashflowDashboardModel(currentResult, historyResult, { 
       ? percentageChange(current.billed_amount, previous.sales_amount)
       : null,
     processed_cost_change_percent: current && previous
-      ? percentageChange(current.processed_cost, previous.operating_expense_amount)
+      ? percentageChange(current.processed_cost, expenseExcludingPayroll(previous))
       : null,
     series: Object.freeze(months.map((monthKey) => Object.freeze({
       month: monthKey,
