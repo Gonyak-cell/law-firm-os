@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
-import { createFinanceRuntimeContext } from "../src/finance-runtime-context.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -261,21 +261,16 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
       },
     ],
   });
-  const financeRuntime = createFinanceRuntimeContext({
-    repository: financeRepository,
-    clientRecords: [{
-      model_type: "ClientGroup",
+  const matterRepository = createMatterRepository({
+    seedRecords: [{
+      model_type: "MatterClient",
       tenant_id: TENANT,
-      client_group_id: "client-best-api",
-      display_name: "베스트이노베이션",
+      client_id: "client-best-api",
+      client_display_name: "베스트이노베이션",
+      client_short_name: "베스트이노",
       status: "active",
-    }],
-    employees: [{
-      employee_id: "emp_amic_jwsuh",
-      display_name: "서지원",
-      title: "대표변호사",
-      aliases: ["JWS"],
-      status: "active",
+      created_by: "user_cmp_g7_finance",
+      created_at: "2026-07-28T00:00:00.000Z",
     }],
   });
   await withServer(async (baseUrl) => {
@@ -309,7 +304,10 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
       account: SUPER_ADMIN_ACCOUNT,
     });
     assert.equal(options.status, 200);
-    assert.equal(options.body.item.employees[0].aliases[0], "JWS");
+    assert.equal(options.body.item.clients[0].client_group_id, "client-best-api");
+    assert.ok(options.body.item.employees
+      .find((employee) => employee.employee_id === "emp_amic_jwsuh")
+      .aliases.includes("JWS"));
 
     const denied = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
       account: NON_PARTNER_ACCOUNT,
@@ -328,7 +326,7 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
     assert.deepEqual(denied.body.items, []);
     assert.equal(deniedMutation.status, 403);
     assert.deepEqual(deniedMutation.body.items, []);
-  }, { financeRuntime, analyticsFinanceRepository: financeRepository });
+  }, { financeRepository, matterRepository, analyticsFinanceRepository: financeRepository });
 });
 
 test("G7 Finance sensitive reads write durable allow audits without leaking payload metadata", async () => {

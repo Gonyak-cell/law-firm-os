@@ -191,6 +191,7 @@ function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRu
   const financeRuntime = createFinanceRuntimeContext({
     repository: repositories.financeRepository,
     masterDataRepository: repositories.masterDataRepository,
+    matterRepository: repositories.matterRepository,
   });
   const analyticsRuntime = createAnalyticsRuntimeContext({
     repository: repositories.analyticsRepository,
