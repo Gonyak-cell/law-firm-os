@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,25 +18,16 @@ const repoRosterPath = resolve(
   __dirname,
   "../../../docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
 );
-const repoPhotoSourcePath = resolve(__dirname, "../../../apps/web/src/assets/members");
 
 export const HRX_MEMBER_ROSTER_SOURCE_REF = "hrx-member-roster-source-of-truth";
 export const HRX_MEMBER_ROSTER_SOURCE_PATH = configuredRosterPath ?? (
   existsSync(packagedRosterPath) ? packagedRosterPath : existsSync(repoRosterPath) ? repoRosterPath : null
 );
 export const HRX_MEMBER_CONTACT_SOURCE_PATH = contactSourcePath ?? (existsSync(packagedContactPath) ? packagedContactPath : null);
-export const HRX_MEMBER_PHOTO_SOURCE_PATH = photoSourcePath ?? (
-  existsSync(packagedPhotoSourcePath) ? packagedPhotoSourcePath : existsSync(repoPhotoSourcePath) ? repoPhotoSourcePath : null
-);
+export const HRX_MEMBER_PHOTO_SOURCE_PATH = photoSourcePath ?? (existsSync(packagedPhotoSourcePath) ? packagedPhotoSourcePath : null);
 export const HRX_PUBLIC_PROFESSIONAL_PROFILE_SOURCE_REF = "hrx-public-professional-profile-catalog";
 
-const MEMBER_PHOTO_FILE_BY_EMPLOYEE_ID = new Map([
-  ["emp_amic_ytkim", "kim-yang-tae.png"],
-  ["emp_amic_wsjo", "cho-woo-sang.png"],
-  ["emp_amic_bj_park", "park-byeong-jun.png"],
-  ["emp_amic_yhlim", "lim-young-hoon.png"],
-  ["emp_amic_jwsuh", "seo-ji-won.png"],
-]);
+const SAFE_MEMBER_PHOTO_REF = /^[A-Za-z0-9_-]{1,128}$/u;
 
 function deepFreeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -205,8 +197,9 @@ export function findHrxPublicProfessionalProfileByEmployeeId(
 }
 
 export function memberPhotoDataUrlForEmployeeId(employeeId, sourcePath = HRX_MEMBER_PHOTO_SOURCE_PATH) {
-  const fileName = MEMBER_PHOTO_FILE_BY_EMPLOYEE_ID.get(String(employeeId ?? "").trim());
-  if (!fileName || !sourcePath) return null;
+  const normalized = String(employeeId ?? "").trim();
+  if (!sourcePath || !SAFE_MEMBER_PHOTO_REF.test(normalized)) return null;
+  const fileName = `${createHash("sha256").update(normalized).digest("hex")}.png`;
   const filePath = join(sourcePath, fileName);
   if (!existsSync(filePath)) return null;
   return `data:image/png;base64,${readFileSync(filePath).toString("base64")}`;

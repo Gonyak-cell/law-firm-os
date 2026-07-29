@@ -1824,9 +1824,11 @@ test("Home dashboard preserves a source error without hiding independent cards",
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    let matterCalls = 0;
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/matters") {
+        matterCalls += 1;
         return jsonResponse(route, {
           request_id: "dashboard-matters-error",
           outcome: "blocked",
@@ -1838,7 +1840,9 @@ test("Home dashboard preserves a source error without hiding independent cards",
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.match(await page.locator('[data-dashboard-section="matter-summary"]').innerText(), /신규 매터 목록을 불러오지 못했습니다/);
+    const matterSection = page.locator('[data-dashboard-section="matter-summary"]');
+    await matterSection.getByText("신규 매터 목록을 불러오지 못했습니다.").waitFor();
+    assert.equal(matterCalls >= 3, true);
     assert.equal(await page.locator('[data-dashboard-section="client-summary"] .dashboard-record-row').count() > 0, true);
     assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
   } finally {

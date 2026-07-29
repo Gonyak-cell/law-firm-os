@@ -7,6 +7,7 @@ import {
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
   dashboardResultState,
+  readDashboardResultWithRetry,
   seoulMonthKey,
 } from "../src/components/HomeDashboardModel.js";
 
@@ -105,4 +106,31 @@ test("Home dashboard states never turn denied or review-required results into fa
   assert.equal(dashboardResultState({ kind: "guarded", status: 403, outcome: "blocked", uiState: "denied", items: [] }), "denied");
   assert.equal(dashboardResultState({ kind: "step_up_required" }), "review_required");
   assert.equal(dashboardResultState({ kind: "error" }), "error");
+});
+
+test("Home dashboard retries transient read failures without retrying guarded outcomes", async () => {
+  let attempts = 0;
+  const waits = [];
+  const recovered = await readDashboardResultWithRetry(
+    async () => {
+      attempts += 1;
+      return attempts < 3 ? { kind: "error" } : { kind: "data", item: { amount: 21_385_200 } };
+    },
+    {
+      source: "dashboard_finance_cashflow",
+      delayMs: 10,
+      wait: async (delayMs) => waits.push(delayMs),
+    },
+  );
+  assert.equal(attempts, 3);
+  assert.deepEqual(waits, [10, 20]);
+  assert.equal(recovered.item.amount, 21_385_200);
+
+  let guardedAttempts = 0;
+  const guarded = await readDashboardResultWithRetry(async () => {
+    guardedAttempts += 1;
+    return { kind: "guarded", uiState: "denied", status: 403 };
+  });
+  assert.equal(guardedAttempts, 1);
+  assert.equal(guarded.uiState, "denied");
 });

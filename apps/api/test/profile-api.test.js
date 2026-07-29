@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
-import { findHrxPublicProfessionalProfileByEmployeeId } from "../src/hrx-member-roster-registry.js";
+import {
+  findHrxPublicProfessionalProfileByEmployeeId,
+  memberPhotoDataUrlForEmployeeId,
+} from "../src/hrx-member-roster-registry.js";
 import { resolveHrxEmployeeProfileByUserId } from "../src/hrx-runtime-context.js";
 import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
@@ -106,6 +113,25 @@ test("Profile API returns session-derived safe profile read model", async () => 
       assert.notEqual(protectedRead.body.ui_state, "denied", `${surface} must not emit a denied UI state`);
     }
   });
+});
+
+test("Profile photo resolver uses an opaque asset key and rejects unsafe employee refs", async () => {
+  const photoDirectory = await mkdtemp(join(tmpdir(), "lawos-profile-photo-"));
+  try {
+    const employeeId = "employee-1";
+    const assetKey = createHash("sha256").update(employeeId).digest("hex");
+    const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
+    await writeFile(join(photoDirectory, `${assetKey}.png`), png);
+
+    assert.equal(
+      memberPhotoDataUrlForEmployeeId(employeeId, photoDirectory),
+      `data:image/png;base64,${png.toString("base64")}`,
+    );
+    assert.equal(memberPhotoDataUrlForEmployeeId("../../etc/passwd", photoDirectory), null);
+    assert.equal(memberPhotoDataUrlForEmployeeId("", photoDirectory), null);
+  } finally {
+    await rm(photoDirectory, { recursive: true, force: true });
+  }
 });
 
 test("Profile resolver joins the signed account to its durable HRX employee", () => {

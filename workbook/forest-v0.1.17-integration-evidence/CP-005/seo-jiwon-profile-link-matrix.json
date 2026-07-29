@@ -40,7 +40,7 @@
     "failed_checks": []
   },
   "photo_contract": {
-    "path": "apps/web/src/assets/members/seo-ji-won.png",
+    "path": "apps/api/src/hrx-member-photos/b6ad38508be75403e379885a95ef91c3f77da7d19ac4f8635ba328f6a6da0725.png",
     "sha256": "eba788dbe275a94873a87a08e35e74103f167c6e89e37d5faca9eb1173d7e09e",
     "checks": {
       "file_exists": true,

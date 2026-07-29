@@ -18,6 +18,26 @@ const CLOSED_PROSPECT_STATUSES = new Set([
   "won",
 ]);
 const NEW_MATTER_STATUSES = new Set(["active", "opening"]);
+const waitForDashboardRetry = (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs));
+
+export async function readDashboardResultWithRetry(
+  operation,
+  { source = "dashboard", attempts = 3, delayMs = 750, wait = waitForDashboardRetry } = {},
+) {
+  if (typeof operation !== "function") throw new TypeError("dashboard operation is required");
+  const attemptCount = Math.max(1, Number.parseInt(attempts, 10) || 1);
+  let result = null;
+  for (let attempt = 1; attempt <= attemptCount; attempt += 1) {
+    try {
+      result = await operation();
+    } catch {
+      result = null;
+    }
+    if (result && result.kind !== "error") return result;
+    if (attempt < attemptCount) await wait(delayMs * attempt);
+  }
+  return result ?? { kind: "error", source };
+}
 
 function dateParts(value) {
   const parsed = value instanceof Date ? value : new Date(value);

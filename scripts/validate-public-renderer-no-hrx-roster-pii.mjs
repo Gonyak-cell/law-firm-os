@@ -16,7 +16,7 @@ const rendererRoots = [
 ].filter(existsSync);
 const scannedExtensions = new Set([".css", ".html", ".js", ".json", ".map"]);
 const configuredPhotoSourcePath = String(process.env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH ?? "").trim();
-const photoSourcePath = path.resolve(ROOT, configuredPhotoSourcePath || "apps/web/src/assets/members");
+const photoSourcePath = path.resolve(ROOT, configuredPhotoSourcePath || "apps/api/src/hrx-member-photos");
 
 assert(existsSync(rosterPath), "HRX roster source is required for value-based public-renderer PII validation");
 assert(rendererRoots.length > 0, "At least one built renderer is required for PII validation");

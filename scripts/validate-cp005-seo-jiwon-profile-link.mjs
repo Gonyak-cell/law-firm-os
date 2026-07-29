@@ -25,7 +25,7 @@ const accountPath = "docs/reorganization/client-matter-os/matter-vault-r4/launch
 const rosterPath = "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json";
 const profileReceiptPath = "docs/lazycodex/evidence/matter-profile/2026-07-10/packaged-desktop-smoke.json";
 const profileScreenshotPath = "docs/lazycodex/evidence/matter-profile/2026-07-10/profile-api-packaged.png";
-const photoPath = "apps/web/src/assets/members/seo-ji-won.png";
+const photoPath = `apps/api/src/hrx-member-photos/${createHash("sha256").update("emp_amic_jwsuh").digest("hex")}.png`;
 const expectedPath = "workbook/forest-v0.1.17-integration-evidence/CP-005/seo-jiwon-profile-link-matrix.json";
 
 function text(filePath) {

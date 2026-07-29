@@ -3,7 +3,7 @@ import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/p
 import { join, resolve } from "node:path";
 
 const defaultRosterSource = "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json";
-const defaultPhotoSource = "apps/web/src/assets/members";
+const defaultPhotoSource = "apps/api/src/hrx-member-photos";
 const defaultRegistrationSeedSource = "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json";
 
 function sourcePaths({ repoRoot, env, rosterSourcePath, contactSourcePath, photoSourcePath, registrationSeedSourcePath }) {
