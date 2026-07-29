@@ -208,7 +208,7 @@ async function run() {
   try {
     await visit(page, routes, "/?view=people&ctx=allow#people-directory", "People Directory");
     checks.push(await expectAttribute(page, ".app-frame", "data-sidebar-state", "expanded", "Sidebar defaults expanded"));
-    checks.push(await expectVisible(page, '[data-product-axis-nav="top-header"]', "Top product axis nav visible"));
+    checks.push(await expectVisible(page, '[data-product-axis-nav="global-rail"]', "Global product rail visible"));
     checks.push(await expectVisible(page, '[data-lcx-ppl-05-ui="true"]', "Legal People runtime workspace visible"));
     checks.push(await expectVisible(page, "#people-directory", "People directory panel visible"));
     checks.push(await expectVisible(page, ".legal-people-type-tabs", "People type filters visible"));

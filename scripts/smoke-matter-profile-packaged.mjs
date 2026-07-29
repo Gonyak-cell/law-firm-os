@@ -70,7 +70,7 @@ async function main() {
     await page.emulateMedia({ reducedMotion: "reduce" });
     assert.match(page.url(), /matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "QA must load the packaged renderer, not a development URL");
     assert.match(await page.evaluate(() => window.matterSession?.desktopApiBaseUrl ?? ""), /^http:\/\/127\.0\.0\.1:\d+$/, "QA must use the isolated local API");
-    await page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 45_000 });
+    await page.waitForSelector("[data-product-axis-nav='global-rail']", { timeout: 45_000 });
     await page.locator("[data-profile-trigger='true']").click({ timeout: 15_000 });
     const userProfile = page.locator("[data-user-profile-surface='my-profile']");
     await userProfile.waitFor({ timeout: 15_000 });
@@ -125,7 +125,7 @@ async function main() {
     assert.equal(profilePhoto.is_supported_data_image, true, "packaged profile photo must use an allowed data-image MIME");
     await userProfile.screenshot({ path: path.join(evidenceDir, "profile-api-packaged.png") });
     await page.locator("[data-profile-return-to-work='true']").click({ timeout: 15_000 });
-    await page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 15_000 });
+    await page.waitForSelector("[data-product-axis-nav='global-rail']", { timeout: 15_000 });
     await page.locator("[data-product-axis='matters']").click({ timeout: 15_000 });
     await clickSidebarSection(page, "matters-list", "matter-home");
     await page.locator("[data-matter-select-row='true']").first().waitFor({ timeout: 30_000 });

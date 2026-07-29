@@ -221,7 +221,7 @@ test("desktop web renderer uses restrained SaaS motion tokens", async () => {
   assert.match(source, /--ui-pulse:\s*900ms/);
   assert.match(source, /--ease-standard:\s*cubic-bezier\(0\.2, 0, 0\.38, 0\.9\)/);
   assert.match(source, /button:active:not\(:disabled\)/);
-  assert.match(source, /\.top-axis-item,\s*\.sidebar-item\s*\{[\s\S]*var\(--ui-menu\)/);
+  assert.match(source, /\.global-rail-action,\s*\.sidebar-item\s*\{[\s\S]*var\(--ui-menu\)/);
   assert.doesNotMatch(source, /\.sidebar-subnav|\.sidebar-chevron/);
   assert.match(source, /\.surface,[\s\S]*\.builder-surface[\s\S]*animation: ui-content-in var\(--ui-content\) var\(--ease-out\) both/);
   assert.match(source, /\.live-data-loading[\s\S]*animation: ui-state-pulse var\(--ui-pulse\) var\(--ease-standard\) infinite alternate/);

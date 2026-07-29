@@ -164,7 +164,7 @@ async function launchPackagedApp() {
     await page.fill("[data-login-password]", account.local_dev.synthetic_token);
     await page.click('[data-login-form="email-password"] button[type="submit"]');
   }
-  await page.waitForSelector('[data-product-axis-nav="top-header"]', { timeout: 45_000 });
+  await page.waitForSelector('[data-product-axis-nav="global-rail"]', { timeout: 45_000 });
   assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "QA must hand off to the exact repo-local packaged product renderer");
   return { app, page };
 }

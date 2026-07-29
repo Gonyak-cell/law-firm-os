@@ -30,7 +30,7 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-.top-axis-item,
+.global-rail-action,
 .sidebar-item {
   transition:
     background-color var(--ui-menu) var(--ease-out),
@@ -38,7 +38,7 @@ input:focus-visible {
     box-shadow var(--ui-menu) var(--ease-out);
 }
 
-.top-axis-item.active::after {
+.global-rail-action.active::after {
   transition:
     opacity var(--ui-menu) var(--ease-out),
     transform var(--ui-menu) var(--ease-emphasized);
@@ -78,7 +78,7 @@ input:focus-visible {
   animation: ui-content-in var(--ui-content) var(--ease-out) both;
 }
 
-.topbar-help-panel {
+.global-rail-search-panel {
   animation: ui-content-in var(--ui-panel) var(--ease-out) both;
 }
 
@@ -145,7 +145,7 @@ input:focus-visible {
 
   .surface,
   .builder-surface,
-  .topbar-help-panel,
+  .global-rail-search-panel,
   .notification-drawer,
   .record-overlay-panel,
   .people-detail-panel,

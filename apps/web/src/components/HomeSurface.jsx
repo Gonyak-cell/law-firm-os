@@ -1882,14 +1882,12 @@ export function HomeSurface({
 
   return (
     <section className="surface stack lcx-web-command-center home-dashboard-surface" data-lcx-web-command-center="true" data-home-dashboard-shell="true" data-active-home-section={activeHomeSection}>
-      {activeHomeSection !== "home-dashboard" && (
-        <section className="home-dashboard-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.58) 0%, rgba(9, 43, 39, 0.28) 45%, rgba(9, 43, 39, 0.16) 100%), url(${heroHomeArchitecture})`, backgroundPosition: "center 52%" }}>
-          <div>
-            <h1>{heroTitle}</h1>
-            {heroSubtitle && <p>{heroSubtitle}</p>}
-          </div>
-        </section>
-      )}
+      <section className="home-dashboard-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(9, 43, 39, 0.58) 0%, rgba(9, 43, 39, 0.28) 45%, rgba(9, 43, 39, 0.16) 100%), url(${heroHomeArchitecture})`, backgroundPosition: "center 52%" }}>
+        <div>
+          <h1>{heroTitle}</h1>
+          {heroSubtitle && <p>{heroSubtitle}</p>}
+        </div>
+      </section>
       {showForestOnboarding && activeHomeSection !== "home-dashboard" && (
         <section className="forest-onboarding-card" data-forest-onboarding-card="true">
           <div>

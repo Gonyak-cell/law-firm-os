@@ -73,6 +73,26 @@ async function renderAppAtLegacyRoute(route) {
   }
 }
 
+test("Home greeting uses the session profile and keeps the generic fallback", async () => {
+  installRouteWindow({ view: "home", section: "home-dashboard" });
+  const server = await createServer({
+    root: webRoot,
+    appType: "custom",
+    logLevel: "silent",
+    server: { middlewareMode: true }
+  });
+  try {
+    const { sessionGreeting } = await server.ssrLoadModule("/src/components/HomeSurface.jsx");
+    assert.equal(sessionGreeting({ display_name: "서지원", title: "대표변호사" }, null), "Welcome, 서지원 변호사님");
+    assert.equal(sessionGreeting(null, null), "Welcome, 사용자님");
+  } finally {
+    await server.close();
+    delete globalThis.window;
+    delete globalThis.document;
+    delete globalThis.__LAWOS_SESSION_CONTEXT__;
+  }
+});
+
 function jsonResponse(route, body, status = 200) {
   return route.fulfill({
     status,
@@ -234,6 +254,22 @@ function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "no
 
 function wp5ApiBody(pathname, searchParams, state) {
   const list = (id, items) => ({ request_id: id, outcome: "passed", ui_state: "ready", items, page_info: { next_cursor: null, returned_count: items.length }, safe_error_codes: [], audit_hint_ref: `${id}-audit`, count_leak_prevented: true, production_ready_claim: false });
+  if (pathname === "/api/profile/me") {
+    return {
+      request_id: "dashboard-profile",
+      outcome: "passed",
+      ui_state: "ready",
+      item: {
+        user_id: "user_amic_jwsuh",
+        display_name: "서지원",
+        title: "대표변호사"
+      },
+      safe_error_codes: [],
+      audit_hint_ref: "dashboard-profile-audit",
+      count_leak_prevented: true,
+      production_ready_claim: false
+    };
+  }
   if (pathname === "/api/matters") {
     return list("dashboard-matters", [
       { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
@@ -639,31 +675,44 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     assert.equal(await clientPrimaryToggle.getAttribute("aria-expanded"), "false", "explicit collapse must survive leaving and returning to the same product view");
 
     await page.setViewportSize({ width: 900, height: 800 });
+    await page.locator("[data-context-sidebar-trigger]").click();
+    await page.waitForFunction(() => document.querySelector("[data-context-sidebar-trigger]")?.getAttribute("aria-expanded") === "true");
     if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "true") await clientPrimaryToggle.click();
     assert.equal(await page.locator('[data-sidebar-group="clients-home"] .sidebar-subnav').evaluate((node) => getComputedStyle(node).display), "grid", "tablet sidebar children must stay vertical");
 
     await page.setViewportSize({ width: 720, height: 800 });
     await page.reload({ waitUntil: "networkidle" });
     const mobileLayout = await page.evaluate(() => {
-      const topbar = document.querySelector(".topbar").getBoundingClientRect();
+      const rail = document.querySelector(".global-rail").getBoundingClientRect();
       const sidebar = document.querySelector(".sidebar").getBoundingClientRect();
       const canvas = document.querySelector(".page-canvas").getBoundingClientRect();
       return {
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
-        topbarLeft: topbar.left,
-        topbarRight: topbar.right,
-        sidebarHeight: sidebar.height,
-        canvasTop: canvas.top,
-        documentHeight: document.documentElement.scrollHeight,
+        railLeft: rail.left,
+        railWidth: rail.width,
+        railHeight: rail.height,
+        sidebarVisibility: getComputedStyle(document.querySelector(".sidebar")).visibility,
+        canvasLeft: canvas.left,
         horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
       };
     });
-    assert.ok(Math.abs(mobileLayout.topbarLeft) < 1, "Forest mobile topbar must start at the viewport edge");
-    assert.ok(mobileLayout.topbarRight <= mobileLayout.innerWidth + 1, "Forest mobile topbar must fit the viewport");
-    assert.ok(mobileLayout.sidebarHeight < mobileLayout.innerHeight, "Forest mobile sidebar must not consume a full viewport height");
-    assert.ok(mobileLayout.canvasTop < mobileLayout.documentHeight, "Forest mobile page canvas must remain reachable below the sidebar");
+    assert.ok(Math.abs(mobileLayout.railLeft) < 1, "Forest mobile rail must start at the viewport edge");
+    assert.ok(Math.abs(mobileLayout.railWidth - 56) < 1, "Forest mobile rail must remain 56px wide");
+    assert.ok(mobileLayout.railHeight >= mobileLayout.innerHeight, "Forest mobile rail must fill the viewport");
+    assert.equal(mobileLayout.sidebarVisibility, "hidden", "Forest mobile sidebar must start closed");
+    assert.ok(Math.abs(mobileLayout.canvasLeft - 56) < 1, "Forest mobile canvas must start after the rail");
     assert.equal(mobileLayout.horizontalOverflow, false, "Forest mobile layout must not overflow horizontally");
+    await page.locator("[data-context-sidebar-trigger]").click();
+    await page.waitForFunction(() => Math.abs(document.querySelector(".sidebar")?.getBoundingClientRect().left - 56) < 1);
+    assert.equal(await page.locator(".context-sidebar-scrim").isVisible(), true);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => document.querySelector("[data-context-sidebar-trigger]")?.getAttribute("aria-expanded") === "false");
+    assert.equal(
+      await page.locator("[data-context-sidebar-trigger]").evaluate((node) => document.activeElement === node),
+      true,
+      "closing the contextual drawer must return focus to its rail trigger"
+    );
   } finally {
     await browser.close();
     await server.close();
@@ -1011,16 +1060,16 @@ test("R1 WP-3 opens Home message threads and decreases unread counts at runtime"
     });
     await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
 
-    await page.waitForSelector('[data-home-topbar-message-count="2"]');
+    await page.waitForSelector('[data-home-rail-message-count="2"]');
     assert.equal(await page.locator("[data-home-sidebar-message-count]").count(), 0);
-    assert.equal(await page.locator("[data-home-topbar-message-count]").getAttribute("data-home-topbar-message-count"), "2");
+    assert.equal(await page.locator("[data-home-rail-message-count]").getAttribute("data-home-rail-message-count"), "2");
     assert.equal(await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').count(), 1);
 
     await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').click();
     await page.waitForSelector('[data-home-message-thread-panel="msg-r1-wp3-001"]');
-    await page.waitForFunction(() => document.querySelector("[data-home-topbar-message-count]")?.getAttribute("data-home-topbar-message-count") === "1");
+    await page.waitForFunction(() => document.querySelector("[data-home-rail-message-count]")?.getAttribute("data-home-rail-message-count") === "1");
 
-    assert.equal(await page.locator("[data-home-topbar-message-count]").getAttribute("data-home-topbar-message-count"), "1");
+    assert.equal(await page.locator("[data-home-rail-message-count]").getAttribute("data-home-rail-message-count"), "1");
     assert.equal(await page.locator('[data-home-message-thread="msg-r1-wp3-001"]').getAttribute("data-home-message-unread"), "false");
 
     await page.locator("[data-home-message-trigger]").click();
@@ -1050,7 +1099,9 @@ test("R1 WP-5 renders the new Home summary while preserving dedicated action que
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
-    assert.equal(await page.locator(".home-dashboard-hero").count(), 0);
+    assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
+    await page.waitForFunction(() => document.querySelector(".home-dashboard-hero h1")?.textContent === "Welcome, 서지원 변호사님");
+    assert.equal(await page.locator(".home-dashboard-hero p").count(), 1);
     assert.equal(await page.locator('[data-dashboard-section="people-summary"]').count(), 1);
     assert.deepEqual(await page.locator('[data-dashboard-section="people-summary"] .dashboard-record-copy strong').allTextContents(), ["가장 오래된 승인", "오늘 승인", "중간 승인"]);
 
@@ -1072,7 +1123,7 @@ test("R1 WP-5 renders the new Home summary while preserving dedicated action que
     await page.waitForTimeout(250);
     assert.equal(state.decisionCalls, 0);
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    assert.equal(await page.locator(".home-dashboard-hero").count(), 0);
+    assert.equal(await page.locator(".home-dashboard-hero").count(), 1);
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-calendar`, { waitUntil: "networkidle" });
     await page.waitForSelector('.home-dashboard-hero h1');
@@ -1200,7 +1251,9 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     for (const removedTitle of ["최근 작업", "오늘 할 일", "승인 대기", "신규 수임", "재무 현황", "운영 현황"]) {
       assert.equal(await dashboardGrid.getByText(removedTitle, { exact: true }).count(), 0, `Home dashboard must remove ${removedTitle}`);
     }
-    assert.equal(await page.locator('.home-dashboard-hero').count(), 0);
+    assert.equal(await page.locator('.home-dashboard-hero').count(), 1);
+    assert.equal(await page.locator('.home-dashboard-hero h1').textContent(), "Welcome, 서지원 변호사님");
+    assert.equal(await page.locator('.home-dashboard-hero p').count(), 1);
     assert.equal(await page.locator('.home-dashboard-kpi-card').count(), 3);
     assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
     assert.equal(await page.locator('[data-home-payroll-donut-chart="true"]').count(), 1);
@@ -1298,10 +1351,40 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await page.setViewportSize({ width: 821, height: 768 });
     const compactCards = await page.locator(".home-dashboard-overview-grid > .home-dashboard-card").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
     assert.equal(compactCards.every((rect, index) => index === 0 || rect.top > compactCards[index - 1].top), true);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobileCardHeaders = await page.locator(".home-dashboard-card-header").evaluateAll((headers) => headers.map((header) => {
+      const title = header.querySelector(":scope > div:first-child")?.getBoundingClientRect();
+      const actions = header.querySelector(".home-dashboard-card-actions")?.getBoundingClientRect();
+      return {
+        flexWrap: getComputedStyle(header).flexWrap,
+        aligned: !title || !actions || Math.abs((title.top + title.height / 2) - (actions.top + actions.height / 2)) < 2,
+        overflow: header.scrollWidth > header.clientWidth + 1
+      };
+    }));
+    assert.equal(mobileCardHeaders.every((header) => header.flexWrap === "nowrap" && header.aligned && !header.overflow), true);
     await page.setViewportSize({ width: 1366, height: 900 });
 
+    assert.equal(await page.locator("[data-global-rail]").count(), 1);
+    assert.equal(await page.locator(".topbar, [data-top-header]").count(), 0);
+    assert.equal(await page.locator('[data-product-axis="home"]').getAttribute("aria-current"), "page");
+    assert.equal(await page.locator("[data-global-refresh-trigger]").count(), 1);
+    const refreshedActionInbox = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/home/action-inbox");
+    await page.locator("[data-global-refresh-trigger]").click();
+    await refreshedActionInbox;
+
+    await page.locator("[data-global-create-trigger]").click();
+    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters" && window.location.hash === "#matter-opening");
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+
     const matterListCallsBeforeSearch = state.matterListCalls;
-    await page.locator('.global-search input').focus();
+    const searchTrigger = page.locator("[data-global-search-trigger]");
+    await searchTrigger.hover();
+    assert.equal(await searchTrigger.locator('[role="tooltip"]').evaluate((node) => getComputedStyle(node).visibility), "visible");
+    await page.mouse.move(500, 500);
+    await page.keyboard.press("/");
+    const searchInput = page.locator(".global-rail-search-panel .global-search input");
+    await searchInput.waitFor({ state: "visible" });
+    assert.equal(await searchInput.evaluate((node) => document.activeElement === node), true);
     await page.waitForSelector('[data-search-history-section="viewed"] .search-history-row');
     assert.equal(await page.getByText("최근 열람", { exact: true }).count(), 1);
     assert.equal(await page.getByText("최근 수정", { exact: true }).count(), 1);
@@ -1314,7 +1397,9 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await page.locator(':focus').evaluate((node) => node.classList.contains('search-history-row')), true);
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#global-search-popover').count(), 0);
-    await page.locator('.global-search input').focus();
+    assert.equal(await searchTrigger.evaluate((node) => document.activeElement === node), true);
+    await page.locator("[data-global-search-trigger]").click();
+    await page.locator(".global-rail-search-panel .global-search input").focus();
     await page.waitForSelector('[data-search-history-section="viewed"] .search-history-row');
     assert.equal(state.matterListCalls, matterListCallsBeforeSearch + 1, "refocusing search must reuse the loaded history");
     await page.locator('[data-search-history-section="viewed"] .search-history-row').click();
@@ -1323,7 +1408,8 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 1, "recent history must open the selected Matter");
     await page.locator('.record-overlay-scrim').click();
     assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 0);
-    await page.locator('.global-search input').focus();
+    await page.locator("[data-global-search-trigger]").click();
+    await page.locator(".global-rail-search-panel .global-search input").focus();
     await page.waitForSelector('[data-search-history-section="viewed"] .search-history-row');
     await page.locator('[data-search-history-section="viewed"] .search-history-row').click();
     await page.waitForSelector('[data-record-overlay="matter"]');
@@ -1440,7 +1526,8 @@ test("search history keeps a failed source distinct from a genuinely empty sourc
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    await page.locator('.global-search input').focus();
+    await page.locator("[data-global-search-trigger]").click();
+    await page.locator(".global-rail-search-panel .global-search input").focus();
     const viewedSection = page.locator('[data-search-history-section="viewed"]');
     await viewedSection.getByText("최근 기록을 불러오지 못했습니다.").waitFor();
     assert.equal(await viewedSection.getByText("표시할 기록이 없습니다.").count(), 0);
@@ -1648,9 +1735,9 @@ test("R1 WP-7 keeps approval counts aligned across navigation and dedicated view
     assert.doesNotMatch(dashboardSurfaceText, /승인 요청/);
     const dashboardCounts = await page.evaluate(() => ({
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
-      topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
+      rail: document.querySelector("[data-home-rail-approval-count]")?.getAttribute("data-home-rail-approval-count")
     }));
-    assert.deepEqual(dashboardCounts, { sidebar: "5", topbar: "5" });
+    assert.deepEqual(dashboardCounts, { sidebar: "5", rail: "5" });
     assert.equal(await page.locator("[data-home-widget-approval-count]").count(), 0);
     assert.equal(await page.locator('[data-dashboard-section="pending-approvals"]').count(), 0);
 
@@ -1666,9 +1753,9 @@ test("R1 WP-7 keeps approval counts aligned across navigation and dedicated view
     await page.waitForSelector('[data-home-sidebar-approval-count="5"]');
     const afterAxisCounts = await page.evaluate(() => ({
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
-      topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
+      rail: document.querySelector("[data-home-rail-approval-count]")?.getAttribute("data-home-rail-approval-count")
     }));
-    assert.deepEqual(afterAxisCounts, { sidebar: "5", topbar: "5" });
+    assert.deepEqual(afterAxisCounts, { sidebar: "5", rail: "5" });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-requests`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-home-section-screen="home-requests"]');
@@ -1685,9 +1772,9 @@ test("R1 WP-7 keeps approval counts aligned across navigation and dedicated view
       requestTabs: String(document.querySelectorAll('[data-home-section-screen="home-requests"] [data-home-tab-prefix="requests-direction"]').length),
       underlineTabs: String(document.querySelectorAll('[data-home-section-screen="home-requests"] .home-section-tabs.underline').length),
       sidebar: document.querySelector("[data-home-sidebar-approval-count]")?.getAttribute("data-home-sidebar-approval-count"),
-      topbar: document.querySelector("[data-home-topbar-approval-count]")?.getAttribute("data-home-topbar-approval-count")
+      rail: document.querySelector("[data-home-rail-approval-count]")?.getAttribute("data-home-rail-approval-count")
     }));
-    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "1", sidebar: "5", topbar: "5" });
+    assert.deepEqual(dedicatedCounts, { dedicated: "5", requestTabs: "2", underlineTabs: "1", sidebar: "5", rail: "5" });
 
     await page.goto(`http://127.0.0.1:${port}/?view=messages&ctx=allow#messages-matter-channel`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-home-section-screen="home-messages"]');
@@ -1787,7 +1874,29 @@ test("R1 WP-8 opens profile as a standalone shell and normalizes Home fallback s
     await page.waitForSelector('[data-user-profile-surface="my-profile"]');
     assert.equal(await page.locator(".app-frame").getAttribute("data-sidebar-state"), "none");
     assert.equal(await page.locator("[data-context-sidebar]").count(), 0);
+    assert.equal(await page.locator("[data-global-rail]").count(), 1);
     assert.ok(await page.locator("[data-profile-return-to-work]").isVisible());
+    const desktopProfileGeometry = await page.evaluate(() => {
+      const rail = document.querySelector("[data-global-rail]").getBoundingClientRect();
+      const canvas = document.querySelector(".page-canvas").getBoundingClientRect();
+      return {
+        railLeft: rail.left,
+        railWidth: rail.width,
+        canvasLeft: canvas.left,
+        horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
+      };
+    });
+    assert.deepEqual(desktopProfileGeometry, { railLeft: 0, railWidth: 56, canvasLeft: 56, horizontalOverflow: false });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobileProfileGeometry = await page.evaluate(() => ({
+      railWidth: document.querySelector("[data-global-rail]").getBoundingClientRect().width,
+      canvasLeft: document.querySelector(".page-canvas").getBoundingClientRect().left,
+      sidebarCount: document.querySelectorAll("[data-context-sidebar]").length,
+      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
+    }));
+    assert.deepEqual(mobileProfileGeometry, { railWidth: 56, canvasLeft: 56, sidebarCount: 0, horizontalOverflow: false });
+    await page.setViewportSize({ width: 1366, height: 900 });
 
     await page.locator("[data-profile-return-to-work]").click();
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters" && window.location.hash === "#matter-calendar");
