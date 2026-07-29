@@ -16,6 +16,7 @@ function clone(value) {
 }
 
 const materializedBaselines = new WeakMap();
+const materializedReadOnlyShadows = new WeakMap();
 const IDEMPOTENCY_AUTHORITY_FIELD = "__lawos_idempotency_authority_v1";
 const IDEMPOTENCY_RESPONSE_FIELD = "__lawos_idempotency_response_v1";
 
@@ -149,6 +150,7 @@ export function createRecordDomainDescriptor({
   unique_key = () => null,
   append_only = () => false,
   references = () => [],
+  read_only_shadow_record_types = [],
   pii_fields = [],
   primary_key_fields = [],
   unique_rules = [],
@@ -156,6 +158,13 @@ export function createRecordDomainDescriptor({
 } = {}) {
   const domainId = requireDomainId(domain_id);
   if (typeof resolve_record_id !== "function") throw new TypeError("resolve_record_id is required");
+  if (!Array.isArray(read_only_shadow_record_types)) {
+    throw new TypeError("read_only_shadow_record_types must be an array");
+  }
+  const readOnlyShadowRecordTypes = Object.freeze(
+    [...new Set(read_only_shadow_record_types.map((value) =>
+      requiredText(value, "read_only_shadow_record_type")))].sort(),
+  );
   for (const [value, name] of [
     [unique_key, "unique_key"],
     [append_only, "append_only"],
@@ -169,7 +178,9 @@ export function createRecordDomainDescriptor({
     unique_key,
     append_only,
     references,
+    read_only_shadow_record_types: readOnlyShadowRecordTypes,
     inventory: Object.freeze({
+      read_only_shadow_record_types: readOnlyShadowRecordTypes,
       pii_fields: Object.freeze([...new Set(pii_fields)].sort()),
       primary_key_fields: Object.freeze([...new Set(primary_key_fields)].sort()),
       unique_rules: Object.freeze([...new Set(unique_rules)].sort()),
@@ -193,11 +204,14 @@ export function createRecordRepositoryDomainSnapshot({
     return Object.freeze({
       source_id,
       records: (state.records ?? []).filter((record) => record.tenant_id === tenantId),
+      read_only_shadow_records: materializedReadOnlyShadows.get(repository) ?? Object.freeze([]),
       idempotency: (state.idempotency ?? []).filter((entry) => entry.tenant_id === tenantId),
       audit_events: (state.audit_events ?? []).filter((event) => event.tenant_id === tenantId),
     });
   });
   const rawRecords = new Map();
+  const readOnlyShadowRecords = new Map();
+  const allowedReadOnlyShadowTypes = new Set(descriptor.read_only_shadow_record_types ?? []);
   let duplicateRecordCount = 0;
   for (const source of sourceStates) {
     for (const record of source.records) {
@@ -218,8 +232,33 @@ export function createRecordRepositoryDomainSnapshot({
       }
       rawRecords.set(key, clone(record));
     }
+    for (const record of source.read_only_shadow_records) {
+      const recordType = requiredText(record.record_type, "read-only shadow record_type");
+      const recordId = requiredText(record.record_id, "read-only shadow record_id");
+      if (
+        record.tenant_id !== tenantId
+        || record.domain_id !== descriptor.domain_id
+        || !allowedReadOnlyShadowTypes.has(recordType)
+      ) {
+        throw new TypeError("read-only shadow record is outside the descriptor boundary");
+      }
+      const key = recordIdentity(descriptor.domain_id, recordType, recordId);
+      const prior = rawRecords.get(key) ?? readOnlyShadowRecords.get(key);
+      if (prior) {
+        if (hashDomainValue(prior) !== hashDomainValue(record)) {
+          throw Object.assign(new Error(`conflicting duplicate source record: ${recordType}`), {
+            code: "LAWOS_DOMAIN_SOURCE_CONFLICT",
+            safe_error_code: "DOMAIN_SOURCE_CONFLICT",
+            status: 409,
+          });
+        }
+        duplicateRecordCount += 1;
+        continue;
+      }
+      readOnlyShadowRecords.set(key, clone(record));
+    }
   }
-  const knownIdentities = new Set(rawRecords.keys());
+  const knownIdentities = new Set([...rawRecords.keys(), ...readOnlyShadowRecords.keys()]);
   let externalReferenceCount = 0;
   let optionalMissingReferenceCount = 0;
   const records = [...rawRecords.entries()].map(([identity, record]) => {
@@ -265,6 +304,7 @@ export function createRecordRepositoryDomainSnapshot({
       source_identity_hash: hashDomainValue(identity),
     };
   });
+  records.push(...[...readOnlyShadowRecords.values()].map(clone));
   const idempotencyMap = new Map();
   for (const source of sourceStates) {
     for (const entry of source.idempotency) {
@@ -329,6 +369,7 @@ export function createRecordRepositoryDomainSnapshot({
   const sourceHash = hashDomainValue(sourceStates.map((source) => ({
     source_id: source.source_id,
     records: source.records,
+    read_only_shadow_records: source.read_only_shadow_records,
     idempotency: source.idempotency,
     audit_events: source.audit_events,
   })));
@@ -345,9 +386,13 @@ export function createRecordRepositoryDomainSnapshot({
     inventory: Object.freeze({
       domain_id: descriptor.domain_id,
       source_ids: Object.freeze(sourceStates.map((source) => source.source_id)),
-      source_record_count: sourceStates.reduce((total, source) => total + source.records.length, 0),
+      source_record_count: sourceStates.reduce(
+        (total, source) => total + source.records.length + source.read_only_shadow_records.length,
+        0,
+      ),
       canonical_record_count: snapshot.records.length,
       duplicate_record_count: duplicateRecordCount,
+      read_only_shadow_record_count: readOnlyShadowRecords.size,
       conflicting_duplicate_count: 0,
       external_reference_count: externalReferenceCount,
       optional_missing_reference_count: optionalMissingReferenceCount,
@@ -371,10 +416,15 @@ export async function materializeRecordRepositoryFromDomainLedger({
   if (typeof create_repository !== "function") throw new TypeError("create_repository is required");
   const scope = { tenant_id, domain_id: descriptor.domain_id };
   const records = await ledger.list(scope);
+  const readOnlyShadowTypes = new Set(descriptor.read_only_shadow_record_types ?? []);
+  const readOnlyShadowRecords = records.filter((record) =>
+    readOnlyShadowTypes.has(record.record_type));
   const idempotency = await ledger.listIdempotency(scope);
   const auditEvents = await ledger.listAudit(scope);
   const repository = create_repository({
-    seedRecords: records.map((record) => clone(record.payload)),
+    seedRecords: records
+      .filter((record) => !readOnlyShadowTypes.has(record.record_type))
+      .map((record) => clone(record.payload)),
     preserveSeedRecords: true,
   });
   for (const entry of idempotency) {
@@ -410,6 +460,10 @@ export async function materializeRecordRepositoryFromDomainLedger({
     idempotency_entries: idempotency,
     audit_events: auditEvents,
   }));
+  materializedReadOnlyShadows.set(
+    repository,
+    Object.freeze(readOnlyShadowRecords.map((record) => Object.freeze(clone(record)))),
+  );
   return repository;
 }
 

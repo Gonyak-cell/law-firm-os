@@ -3,7 +3,12 @@ import test from "node:test";
 import { MASTER_DATA_RUNTIME_SEED } from "../../../apps/api/src/master-data-context.js";
 import { CRM_MASTER_DATA_SEED } from "../../../apps/api/src/crm-intake-runtime-context.js";
 import {
+  compareDomainSnapshots,
+  createDomainSnapshot,
+} from "../../persistence/src/domain-ledger.js";
+import {
   createRecordRepositoryDomainSnapshot,
+  materializeRecordRepositoryFromDomainLedger,
   runRecordRepositoryDomainCommand,
 } from "../../persistence/src/record-domain-adapter.js";
 import { createPostgresDomainLedger } from "../../persistence/src/postgres/domain-ledger.js";
@@ -67,6 +72,66 @@ test("Master Data central-ledger inventory fixes IDs, references, uniqueness, PI
   }
 });
 
+test("Master Data runtime preserves operational authority smoke records as read-only ledger shadows", async () => {
+  const source = createDomainSnapshot({
+    tenant_id: TENANT,
+    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+    records: [{
+      tenant_id: TENANT,
+      domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+      record_type: "OperationalAuthoritySmoke",
+      record_id: "cut011-operational-shadow-001",
+      state_version: 1,
+      unique_key: "lawos-cut011:operational-shadow-001",
+      append_only: false,
+      payload: {
+        model_type: "OperationalAuthoritySmoke",
+        authority: "postgres-v2",
+        source_sha: "a".repeat(40),
+      },
+      references: [],
+    }],
+    idempotency_entries: [],
+    audit_events: [],
+  });
+  const repository = await materializeRecordRepositoryFromDomainLedger({
+    ledger: {
+      async list() {
+        return source.records;
+      },
+      async listIdempotency() {
+        return source.idempotency_entries;
+      },
+      async listAudit() {
+        return source.audit_events;
+      },
+    },
+    descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createMasterDataRepository,
+  });
+  try {
+    assert.equal(repository.list({
+      tenant_id: TENANT,
+      model_type: "OperationalAuthoritySmoke",
+    }).length, 0);
+    assert.throws(
+      () => repository.create(source.records[0].payload),
+      /Unknown Master Data model type OperationalAuthoritySmoke/u,
+    );
+    const readback = createRecordRepositoryDomainSnapshot({
+      descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR,
+      repositories: [{ source_id: "runtime-readback", repository }],
+      tenant_id: TENANT,
+    });
+    assert.equal(readback.inventory.read_only_shadow_record_count, 1);
+    assert.equal(compareDomainSnapshots(source, readback.snapshot).equal, true);
+    assert.deepEqual(readback.snapshot.records[0].payload, source.records[0].payload);
+  } finally {
+    repository.close();
+  }
+});
+
 test("Master Data PostgreSQL import, replay, shadow and async command rehearsal preserve the repository contract", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
@@ -75,12 +140,34 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
     clock: () => new Date("2026-07-16T18:00:00.000Z"),
   });
   const repositories = sourceRepositories();
-  const source = createRecordRepositoryDomainSnapshot({
+  const repositorySource = createRecordRepositoryDomainSnapshot({
     descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR,
     repositories,
     tenant_id: TENANT,
   }).snapshot;
   for (const { repository } of repositories) repository.close();
+  const operationalShadow = {
+    tenant_id: TENANT,
+    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+    record_type: "OperationalAuthoritySmoke",
+    record_id: "cut011-operational-shadow-postgres-001",
+    state_version: 1,
+    unique_key: "lawos-cut011:operational-shadow-postgres-001",
+    append_only: false,
+    payload: {
+      model_type: "OperationalAuthoritySmoke",
+      authority: "postgres-v2",
+      source_sha: "b".repeat(40),
+    },
+    references: [],
+  };
+  const source = createDomainSnapshot({
+    tenant_id: TENANT,
+    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+    records: [...repositorySource.records, operationalShadow],
+    idempotency_entries: repositorySource.idempotency_entries,
+    audit_events: repositorySource.audit_events,
+  });
 
   const imported = await ledger.importSnapshot(source);
   assert.equal(imported.replayed, false);
@@ -89,6 +176,14 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
   assert.equal(secondImport.replayed, true);
   const shadow = await ledger.compareSnapshot(source);
   assert.equal(shadow.comparison.equal, true);
+  const operationalShadowBaseline = (await ledger.list({
+    tenant_id: TENANT,
+    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+  })).find((record) => record.record_id === operationalShadow.record_id);
+  assert.deepEqual(
+    operationalShadowBaseline.payload,
+    source.records.find((record) => record.record_id === operationalShadow.record_id).payload,
+  );
   const rehearsal = await ledger.recordRehearsal({
     tenant_id: TENANT,
     domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
@@ -145,6 +240,11 @@ test("Master Data PostgreSQL import, replay, shadow and async command rehearsal 
   });
   assert.equal(command.result.display_name, "Central ledger rehearsal entity");
   assert.equal(command.flush.comparison.equal, true);
+  const operationalShadowReadback = (await ledger.list({
+    tenant_id: TENANT,
+    domain_id: MASTER_DATA_DOMAIN_DESCRIPTOR.domain_id,
+  })).find((record) => record.record_id === operationalShadow.record_id);
+  assert.deepEqual(operationalShadowReadback, operationalShadowBaseline);
 
   assert.equal(rehearsal.status, "source_ready");
   assert.equal(rehearsal.production_migrated, false);
