@@ -235,7 +235,7 @@ const app = await electron.launch({
 });
 
 const expected = {
-  home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"],
+  home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "cashflow", "client-summary", "people-summary", "matter-summary", "calendar"],
   clients: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"],
   matters: ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"],
   people: []
