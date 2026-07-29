@@ -277,7 +277,13 @@ export function privateStagingArtifactSourcePathAllowed(path) {
   return /^packages\/[^/]+\/(?:package\.json|src\/)/u.test(normalized);
 }
 
-export function parsePrivateStagingGitTree(value) {
+export function parsePrivateStagingGitTree(
+  value,
+  { sourcePathAllowed = privateStagingArtifactSourcePathAllowed } = {},
+) {
+  if (typeof sourcePathAllowed !== "function") {
+    throw new TypeError("sourcePathAllowed must be a function");
+  }
   const records = (Buffer.isBuffer(value) ? value : Buffer.from(value ?? ""))
     .toString("utf8")
     .split("\0")
@@ -288,7 +294,7 @@ export function parsePrivateStagingGitTree(value) {
     const match = /^(\d{6}) ([a-z]+) ([a-f0-9]{40})\t([^\r\n\0]+)$/u.exec(record);
     if (!match) throw new Error("private staging Git tree contains an invalid entry");
     const [, mode, type, oid, path] = match;
-    if (!privateStagingArtifactSourcePathAllowed(path)) continue;
+    if (!sourcePathAllowed(path)) continue;
     if (!(["100644", "100755"].includes(mode) && type === "blob")) {
       throw new Error(`private staging artifact source must be a regular Git blob: ${path}`);
     }

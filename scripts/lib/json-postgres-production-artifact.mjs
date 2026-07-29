@@ -81,14 +81,16 @@ export function emptyJsonPostgresProductionSources() {
 
 export function productionArtifactSourcePathAllowed(path) {
   const normalized = String(path ?? "").replaceAll("\\", "/").replace(/^\.\//u, "");
+  if (JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES.includes(normalized)) return true;
   return privateStagingArtifactSourcePathAllowed(normalized)
     && !PRIVATE_STAGING_SOURCE.test(normalized);
 }
 
 export function parseJsonPostgresProductionGitTree(value) {
   return Object.freeze(
-    parsePrivateStagingGitTree(value)
-      .filter((entry) => productionArtifactSourcePathAllowed(entry.path)),
+    parsePrivateStagingGitTree(value, {
+      sourcePathAllowed: productionArtifactSourcePathAllowed,
+    }),
   );
 }
 

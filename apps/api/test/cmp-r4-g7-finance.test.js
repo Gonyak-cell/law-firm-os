@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
@@ -52,6 +53,36 @@ test("AMIC bank initials extend the canonical HRX member roster", () => {
       한제희: "advisor",
     },
   );
+});
+
+test("AMIC bank initials and payroll groups resolve from the HRX repository", () => {
+  const repository = createInMemoryHrxRepository({
+    employees: [{
+      tenant_id: TENANT,
+      employee_id: "emp_amic_jwsuh",
+      display_name: "서지원",
+      legal_name: "서지원",
+      work_email: "jwsuh@amic.kr",
+      status: "active",
+      source_ref: "test-postgres-directory",
+    }],
+    employment_profiles: [{
+      tenant_id: TENANT,
+      profile_id: "profile-amic-jwsuh",
+      employee_id: "emp_amic_jwsuh",
+      employment_type: "full_time",
+      status: "active",
+      title: "대표변호사",
+      effective_from: "2025-01-01",
+      source_ref: "test-postgres-directory",
+    }],
+  });
+  const [employee] = listAmicBankClassificationEmployees({ repository, tenantId: TENANT });
+  assert.equal(employee.employee_id, "emp_amic_jwsuh");
+  assert.equal(employee.display_name, "서지원");
+  assert.equal(employee.title, "대표변호사");
+  assert.deepEqual(employee.aliases, ["JWS"]);
+  assert.equal(employee.payroll_category, "partner");
 });
 
 function permissionContext(effect = "allow", roleIds = ["finance_user"]) {

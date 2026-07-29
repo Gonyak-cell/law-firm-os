@@ -22,11 +22,14 @@ test("production Git tree excludes private-staging source", () => {
     `100644 blob ${oid("b")}\tapps/api/src/private-staging-admin-lambda.js`,
     `100644 blob ${oid("c")}\tpackages/runtime-auth/src/private-staging-synthetic-email.js`,
     `100644 blob ${oid("d")}\tpackages/persistence/src/postgres/execution-contract.js`,
+    `100644 blob ${oid("e")}\t${JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[0]}`,
+    `100644 blob ${oid("f")}\tapps/api/src/hrx-member-photos/not-approved.png`,
     "",
   ].join("\0"));
   assert.deepEqual(
     parseJsonPostgresProductionGitTree(tree).map((entry) => entry.path),
     [
+      JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[0],
       "apps/api/src/lambda.js",
       "packages/persistence/src/postgres/execution-contract.js",
     ],
