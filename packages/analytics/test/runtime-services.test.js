@@ -342,6 +342,14 @@ test("cashflow read model derives balance and movements only from append-only ba
   assert.equal(model.monthly[0].net_movement, 700);
   assert.equal(model.business_summary.classified_count, 0);
   assert.equal(model.business_summary.unclassified_count, 2);
+  assert.deepEqual(model.non_payroll_outflow_categories, [{
+    category: "unclassified",
+    label: "미분류",
+    primary_type: "unclassified",
+    amount: 300,
+    transaction_count: 1,
+    individual_values_included: false,
+  }]);
   assert.equal(model.reconciliation.status, "passed");
   assert.equal(model.raw_source_payload_included, false);
 });
@@ -373,6 +381,19 @@ test("cashflow classification read model exposes bank-derived sales, cost, and a
         direction: "outflow",
         amount: 700,
         balance_after: 500,
+        currency: "KRW",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-business-tax",
+        tenant_id: TENANT,
+        account_ref: "account-business",
+        transaction_fingerprint: "1".repeat(64),
+        date: "2026-07-05",
+        occurred_at: "2026-07-05T09:00:00+09:00",
+        direction: "outflow",
+        amount: 200,
+        balance_after: 300,
         currency: "KRW",
       },
       {
@@ -408,6 +429,22 @@ test("cashflow classification read model exposes bank-derived sales, cost, and a
         payroll_category: "partner",
         status: "confirmed",
       },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id: "classification-business-tax",
+        tenant_id: TENANT,
+        bank_transaction_id: "bank-business-tax",
+        account_ref: "account-business",
+        transaction_date: "2026-07-05",
+        transaction_month: "2026-07",
+        transaction_direction: "outflow",
+        amount: 200,
+        currency: "KRW",
+        primary_type: "operating_expense",
+        category: "tax",
+        category_label: "세금",
+        status: "confirmed",
+      },
     ],
   });
   const model = buildCashflowReadModel({
@@ -419,6 +456,7 @@ test("cashflow classification read model exposes bank-derived sales, cost, and a
   assert.deepEqual(
     {
       sales_amount: model.business_summary.sales_amount,
+      operating_expense_amount: model.business_summary.operating_expense_amount,
       payroll_payment_amount: model.business_summary.payroll_payment_amount,
       classified_count: model.business_summary.classified_count,
       unclassified_count: model.business_summary.unclassified_count,
@@ -426,8 +464,9 @@ test("cashflow classification read model exposes bank-derived sales, cost, and a
     },
     {
       sales_amount: 1200,
+      operating_expense_amount: 200,
       payroll_payment_amount: 700,
-      classified_count: 2,
+      classified_count: 3,
       unclassified_count: 0,
       status: "passed",
     },
@@ -439,6 +478,14 @@ test("cashflow classification read model exposes bank-derived sales, cost, and a
     payment_count: 1,
     employee_count: 1,
     individual_payroll_values_included: false,
+  }]);
+  assert.deepEqual(model.non_payroll_outflow_categories, [{
+    category: "tax",
+    label: "세금",
+    primary_type: "operating_expense",
+    amount: 200,
+    transaction_count: 1,
+    individual_values_included: false,
   }]);
   assert.equal(JSON.stringify(model).includes("employee-private"), false);
 });

@@ -71,6 +71,9 @@ test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures s
   assert.match(packageQaSource, /matter_closed_fixture_visible:\s*true/);
   assert.match(packageQaSource, /snapshot\.home_client_fixture_visible = Boolean/);
   assert.match(packageQaSource, /snapshot\.home_matter_fixture_visible = Boolean/);
+  assert.match(packageQaSource, /non_payroll_outflow_categories/);
+  assert.match(packageQaSource, /"payroll-categories", "nonpayroll-categories", "cashflow"/);
+  assert.match(packageQaSource, /data-home-nonpayroll-donut-chart="true"/);
 });
 
 test("compact record rows keep low-value metadata on the primary line across product surfaces", async () => {
@@ -671,14 +674,15 @@ test("desktop post-login route skips repeated logo splash before the global rail
   assert.doesNotMatch(homeSource, /id: "news"/);
   assert.match(stylesSource, /\.home-dashboard-overview-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(stylesSource, /\.home-dashboard-kpi-card\s*\{[^}]*grid-column:\s*span 4;[^}]*grid-row:\s*1/);
-  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*2/);
-  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*2/);
+  assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 6;[^}]*grid-row:\s*2/);
+  assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*7\s*\/\s*span 3;[^}]*grid-row:\s*2/);
+  assert.match(stylesSource, /\.home-dashboard-nonpayroll-chart-card\s*\{[^}]*grid-column:\s*10\s*\/\s*span 3;[^}]*grid-row:\s*2/);
   assert.match(stylesSource, /\.home-dashboard-cashflow-band\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;[^}]*grid-row:\s*3;[^}]*height:\s*108px/);
   assert.match(stylesSource, /\.home-dashboard-client-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*4/);
   assert.match(stylesSource, /\.home-dashboard-calendar-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*4/);
   assert.match(stylesSource, /\.home-dashboard-matter-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*5/);
   assert.match(stylesSource, /\.home-dashboard-people-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*5/);
-  for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "feed", "calendar"]) {
+  for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "nonpayroll-categories", "client-summary", "people-summary", "matter-summary", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
   }
   for (const removedSection of ["recent-work", "today-todo", "pending-approvals", "monthly-sales", "new-engagements"]) {
@@ -688,6 +692,7 @@ test("desktop post-login route skips repeated logo splash before the global rail
   assert.match(homeSource, /<section className="home-dashboard-hero"/);
   assert.match(homeSource, /<HomeRevenueBarChart series=\{financeDashboard\.series\} \/>/);
   assert.match(homeSource, /<HomePayrollDonutChart summary=\{payrollSummary\} \/>/);
+  assert.match(homeSource, /<HomeNonPayrollOutflowDonutChart summary=\{nonPayrollOutflowSummary\} \/>/);
   assert.match(homeSource, /data-home-cashflow-band="true"/);
   assert.match(homeSource, /canAccessHomeFinanceSection/);
   assert.match(homeSource, /dataPrefix="home-client-dashboard"[\s\S]*variant="underline home-dashboard-domain-tabs"/);

@@ -406,6 +406,21 @@ export function buildCashflowReadModel({
     non_operating_amount: 0,
   };
   const payrollCategories = new Map();
+  const nonPayrollOutflowCategories = new Map();
+  const addNonPayrollOutflow = (transaction, classification = null) => {
+    if (transaction.direction !== "outflow" || classification?.primary_type === "payroll") return;
+    const category = classification?.category ?? "unclassified";
+    const categoryRow = nonPayrollOutflowCategories.get(category) ?? {
+      category,
+      label: classification?.category_label ?? (category === "unclassified" ? "미분류" : category),
+      primary_type: classification?.primary_type ?? "unclassified",
+      amount: 0,
+      transaction_count: 0,
+    };
+    categoryRow.amount = money(categoryRow.amount + numberValue(transaction.amount));
+    categoryRow.transaction_count += 1;
+    nonPayrollOutflowCategories.set(category, categoryRow);
+  };
   const monthly = new Map();
   for (const transaction of transactions) {
     const month = transaction.date.slice(0, 7);
@@ -430,6 +445,7 @@ export function buildCashflowReadModel({
     const classification = classificationsByTransaction.get(transaction.bank_transaction_id);
     if (!classification) {
       row.unclassified_transaction_count += 1;
+      addNonPayrollOutflow(transaction);
       monthly.set(month, row);
       continue;
     }
@@ -450,6 +466,7 @@ export function buildCashflowReadModel({
     if (!amountField) throw new TypeError(`Unsupported bank classification type: ${classification.primary_type}`);
     row[amountField] = money(row[amountField] + numberValue(classification.amount));
     businessTotals[amountField] = money(businessTotals[amountField] + numberValue(classification.amount));
+    addNonPayrollOutflow(transaction, classification);
     if (classification.primary_type === "payroll") {
       const category = classification.payroll_category ?? "unclassified";
       const payrollRow = payrollCategories.get(category) ?? {
@@ -508,11 +525,20 @@ export function buildCashflowReadModel({
     employee_count: row.employee_ids.size,
     individual_payroll_values_included: false,
   })));
+  const nonPayrollOutflowCategoryRows = Object.freeze(
+    [...nonPayrollOutflowCategories.values()]
+      .sort((left, right) => right.amount - left.amount || left.label.localeCompare(right.label, "ko"))
+      .map((row) => Object.freeze({
+        ...row,
+        individual_values_included: false,
+      })),
+  );
   const partial = sourceStatuses.some((source) => source.status !== "passed");
   return Object.freeze({
     summary,
     business_summary: businessSummary,
     payroll_categories: payrollCategoryRows,
+    non_payroll_outflow_categories: nonPayrollOutflowCategoryRows,
     monthly: Object.freeze([...monthly.values()].map((row) => Object.freeze({ ...row }))),
     reconciliation: Object.freeze({
       status: latestBatch?.status === "reconciled" && !partial ? "passed" : partial ? "partial" : "pending",

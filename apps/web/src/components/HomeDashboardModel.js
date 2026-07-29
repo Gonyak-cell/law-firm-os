@@ -133,13 +133,48 @@ export function formatMonthlyRevenueAxisTick(value) {
   return `${KOREAN_INTEGER.format(amount / 10_000)}만`;
 }
 
-function expenseExcludingPayroll(row = {}) {
+function nonPayrollOutflowAmount(row = {}) {
   const totalOutflow = row.total_outflow == null ? Number.NaN : Number(row.total_outflow);
   const payrollPayment = row.payroll_payment_amount == null ? Number.NaN : Number(row.payroll_payment_amount);
   if (Number.isFinite(totalOutflow) && Number.isFinite(payrollPayment)) {
     return Math.max(0, totalOutflow - payrollPayment);
   }
   return Math.max(0, Number(row.operating_expense_amount) || 0);
+}
+
+function nonPayrollOutflowCategories(rows, total) {
+  const normalized = (Array.isArray(rows) ? rows : [])
+    .map((row) => ({
+      category: String(row?.category ?? "unclassified"),
+      label: String(row?.label ?? (row?.category === "unclassified" ? "미분류" : row?.category ?? "미분류")),
+      amount: Math.max(0, Number(row?.amount) || 0),
+      transaction_count: Math.max(0, Number(row?.transaction_count) || 0),
+    }))
+    .filter((row) => row.amount > 0)
+    .sort((left, right) => right.amount - left.amount || left.label.localeCompare(right.label, "ko"));
+  const categorizedTotal = normalized.reduce((sum, row) => sum + row.amount, 0);
+  const missingAmount = Math.max(0, Number(total) - categorizedTotal);
+  if (missingAmount > 0) {
+    const unclassified = normalized.find((row) => row.category === "unclassified");
+    if (unclassified) unclassified.amount += missingAmount;
+    else normalized.push({ category: "unclassified", label: "미분류", amount: missingAmount, transaction_count: 0 });
+  }
+  const unclassified = normalized.find((row) => row.category === "unclassified") ?? null;
+  const classified = normalized.filter((row) => row.category !== "unclassified");
+  const needsOther = classified.length + (unclassified ? 1 : 0) > 6;
+  const visibleCount = 6 - (unclassified ? 1 : 0) - (needsOther ? 1 : 0);
+  const visible = classified.slice(0, visibleCount);
+  const remainder = classified.slice(visibleCount);
+  if (remainder.length > 0) {
+    visible.push({
+      category: "other",
+      label: "기타",
+      amount: remainder.reduce((sum, row) => sum + row.amount, 0),
+      transaction_count: remainder.reduce((sum, row) => sum + row.transaction_count, 0),
+    });
+  }
+  if (unclassified) visible.push(unclassified);
+  return Object.freeze(visible.map((row) => Object.freeze({ ...row })));
 }
 
 export function buildFinanceDashboardModel(result, { now = new Date(), currency = "KRW" } = {}) {
@@ -177,22 +212,25 @@ export function buildFinanceDashboardModel(result, { now = new Date(), currency 
 export function buildBankCashflowDashboardModel(currentResult, historyResult, { now = new Date(), currency = "KRW" } = {}) {
   const readState = dashboardResultState(currentResult);
   const month = seoulMonthKey(now);
-  const months = monthKeysEndingAt(now, 12);
+  const months = monthKeysEndingAt(now, 6);
   const currentSummary = currentResult?.item?.business_summary ?? null;
   const state = readState === "data" && currentSummary?.status !== "passed" ? "partial" : readState;
   const historyRows = Array.isArray(historyResult?.item?.monthly)
     ? historyResult.item.monthly.filter((row) => row.currency === currency && months.includes(row.month))
     : [];
   const byMonth = new Map(historyRows.map((row) => [row.month, row]));
-  const currentExpense = expenseExcludingPayroll({
+  const currentNonPayrollOutflow = nonPayrollOutflowAmount({
     ...currentSummary,
     total_outflow: currentResult?.item?.summary?.total_outflow,
   });
+  const nonPayrollCategorySource = currentResult?.item?.non_payroll_outflow_categories;
+  const nonPayrollCategories = nonPayrollOutflowCategories(nonPayrollCategorySource, currentNonPayrollOutflow);
   const current = currentSummary ? Object.freeze({
     month,
     currency,
     billed_amount: Number(currentSummary.sales_amount ?? 0),
-    processed_cost: currentExpense,
+    non_payroll_outflow: currentNonPayrollOutflow,
+    processed_cost: currentNonPayrollOutflow,
     payroll_payment_amount: Number(currentSummary.payroll_payment_amount ?? 0),
     non_operating_amount: Number(currentSummary.non_operating_amount ?? 0),
   }) : null;
@@ -204,18 +242,28 @@ export function buildBankCashflowDashboardModel(currentResult, historyResult, { 
     categories: Object.freeze([...(currentResult?.item?.payroll_categories ?? [])]),
     individual_payroll_values_included: false,
   }) : null;
+  const nonPayrollOutflowSummary = currentSummary ? Object.freeze({
+    total_krw: currentNonPayrollOutflow,
+    categories: nonPayrollCategories,
+    source_category_count: Array.isArray(nonPayrollCategorySource) ? nonPayrollCategorySource.length : 0,
+    source_complete: Array.isArray(nonPayrollCategorySource),
+    individual_values_included: false,
+  }) : null;
+  const nonPayrollOutflowChangePercent = current && previous
+    ? percentageChange(current.non_payroll_outflow, nonPayrollOutflowAmount(previous))
+    : null;
   return Object.freeze({
     state,
     month,
     currency,
     current,
     payroll_summary: payrollSummary,
+    non_payroll_outflow_summary: nonPayrollOutflowSummary,
     revenue_change_percent: current && previous
       ? percentageChange(current.billed_amount, previous.sales_amount)
       : null,
-    processed_cost_change_percent: current && previous
-      ? percentageChange(current.processed_cost, expenseExcludingPayroll(previous))
-      : null,
+    non_payroll_outflow_change_percent: nonPayrollOutflowChangePercent,
+    processed_cost_change_percent: nonPayrollOutflowChangePercent,
     series: Object.freeze(months.map((monthKey) => Object.freeze({
       month: monthKey,
       amount: Number(byMonth.get(monthKey)?.sales_amount ?? 0),

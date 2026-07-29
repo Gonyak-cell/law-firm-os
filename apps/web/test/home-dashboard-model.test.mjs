@@ -21,7 +21,7 @@ test("Home dashboard month boundaries use Asia/Seoul", () => {
   assert.equal(seoulMonthKey("2026-06-30T15:00:00.000Z"), "2026-07");
 });
 
-test("Home finance model shares the KRW billed source between KPI and 12-month bar series", () => {
+test("Home finance model shares the KRW billed source between KPI and monthly bar series", () => {
   const model = buildFinanceDashboardModel(data([
     { month: "2026-06", currency: "KRW", billed_amount: 800, processed_cost: 100 },
     { month: "2026-07", currency: "KRW", billed_amount: 1_000, processed_cost: 125 },
@@ -66,6 +66,17 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
         { category: "staff", label: "직원", gross_krw: 12_646_327, employee_count: 3 },
         { category: "advisor", label: "고문", gross_krw: 9_571_212, employee_count: 1 },
       ],
+      non_payroll_outflow_categories: [
+        { category: "tax", label: "세금", amount: 54_037_570, transaction_count: 4 },
+        { category: "card_settlement", label: "카드대금", amount: 44_424_303, transaction_count: 13 },
+        { category: "social_insurance", label: "4대보험", amount: 11_404_440, transaction_count: 4 },
+        { category: "professional_services", label: "용역·외주", amount: 11_295_000, transaction_count: 4 },
+        { category: "rent_office", label: "임차·사무실", amount: 10_887_030, transaction_count: 1 },
+        { category: "finance_lease", label: "금융·리스", amount: 2_674_430, transaction_count: 2 },
+        { category: "general_operating", label: "기타 운영비", amount: 685_620, transaction_count: 20 },
+        { category: "case_disbursement", label: "사건비용", amount: 645_410, transaction_count: 11 },
+        { category: "bank_postage_fee", label: "수수료·우편", amount: 46_390, transaction_count: 11 },
+      ],
     },
   };
   const history = {
@@ -79,6 +90,7 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
   };
   const model = buildBankCashflowDashboardModel(current, history, { now: NOW });
   assert.equal(model.current.billed_amount, 21_385_200);
+  assert.equal(model.current.non_payroll_outflow, 136_100_193);
   assert.equal(model.current.processed_cost, 136_100_193);
   assert.equal(
     model.current.processed_cost,
@@ -91,11 +103,25 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
     ["staff", 3],
     ["advisor", 1],
   ]);
+  assert.equal(model.series.length, 6);
   assert.equal(model.series.at(-1).amount, 21_385_200);
+  assert.deepEqual(model.non_payroll_outflow_summary.categories.map(({ label, amount }) => [label, amount]), [
+    ["세금", 54_037_570],
+    ["카드대금", 44_424_303],
+    ["4대보험", 11_404_440],
+    ["용역·외주", 11_295_000],
+    ["임차·사무실", 10_887_030],
+    ["기타", 4_051_850],
+  ]);
+  assert.equal(
+    model.non_payroll_outflow_summary.categories.reduce((sum, row) => sum + row.amount, 0),
+    model.current.non_payroll_outflow,
+  );
+  assert.equal(model.non_payroll_outflow_summary.source_complete, true);
   assert.equal(JSON.stringify(model).includes("employee_id"), false);
 });
 
-test("Home monthly expense subtracts payroll from bank outflow before using the compatibility fallback", () => {
+test("Home monthly non-payroll outflow subtracts payroll before using the compatibility fallback", () => {
   const model = buildBankCashflowDashboardModel({
     kind: "data",
     uiState: "ready",
@@ -110,7 +136,15 @@ test("Home monthly expense subtracts payroll from bank outflow before using the 
       },
     },
   }, { kind: "data", uiState: "ready", item: { monthly: [] } }, { now: NOW });
+  assert.equal(model.current.non_payroll_outflow, 30_000_000);
   assert.equal(model.current.processed_cost, 30_000_000);
+  assert.deepEqual(model.non_payroll_outflow_summary.categories, [{
+    category: "unclassified",
+    label: "미분류",
+    amount: 30_000_000,
+    transaction_count: 0,
+  }]);
+  assert.equal(model.non_payroll_outflow_summary.source_complete, false);
 });
 
 test("Home client model counts current-month clients and deduplicates active prospects by explicit identity", () => {

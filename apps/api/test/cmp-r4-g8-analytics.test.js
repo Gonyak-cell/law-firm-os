@@ -209,6 +209,7 @@ test("AMIC cashflow aggregate is available to jwsuh super-admin and omitted for 
       matter_required: false,
       individual_payroll_values_included: false,
     });
+    assert.deepEqual(allowed.body.item.non_payroll_outflow_categories, []);
     assert.equal(JSON.stringify(allowed.body.item).includes("api-employee-private"), false);
     assert.equal(allowed.body.counterparty_values_included, false);
     assert.equal(allowed.body.raw_source_payload_included, false);

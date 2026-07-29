@@ -140,6 +140,11 @@ const server = createServer(async (request, response) => {
           { category: "advisor", label: "고문", gross_krw: 2000000, payment_count: 1, employee_count: 1 },
           { category: "staff", label: "직원", gross_krw: 3000000, payment_count: 3, employee_count: 3 }
         ],
+        non_payroll_outflow_categories: [
+          { category: "tax", label: "세금", primary_type: "operating_expense", amount: 2000000, transaction_count: 2, individual_values_included: false },
+          { category: "card_settlement", label: "카드대금", primary_type: "operating_expense", amount: 1250000, transaction_count: 1, individual_values_included: false },
+          { category: "rent_office", label: "임차·사무실", primary_type: "operating_expense", amount: 750000, transaction_count: 1, individual_values_included: false }
+        ],
         monthly: [{
           month: todayKey.slice(0, 7),
           currency: "KRW",
@@ -235,7 +240,7 @@ const app = await electron.launch({
 });
 
 const expected = {
-  home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "cashflow", "client-summary", "people-summary", "matter-summary", "calendar"],
+  home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "nonpayroll-categories", "cashflow", "client-summary", "people-summary", "matter-summary", "calendar"],
   clients: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"],
   matters: ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"],
   people: []
@@ -301,6 +306,7 @@ try {
             return JSON.stringify(sections) === JSON.stringify([...expectedSections].sort())
               && document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length === 1
               && document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length === 1
+              && document.querySelectorAll(`${selector} [data-home-nonpayroll-donut-chart="true"]`).length === 1
               && ["₩ 12,000,000", "₩ 9,000,000", "₩ 4,000,000", "마루 주식회사", "연차 휴가 신청", "QA-2026-002", "고객 미팅"]
                 .every((value) => text.includes(value));
           },
@@ -358,6 +364,7 @@ try {
             missing_sections: expectedSections.filter((section) => !renderedSections.includes(section)),
             revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length,
             payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
+            nonpayroll_chart_count: document.querySelectorAll(`${selector} [data-home-nonpayroll-donut-chart="true"]`).length,
             revenue_fixture_visible: text.includes("₩ 12,000,000"),
             payroll_fixture_visible: text.includes("₩ 9,000,000"),
             processed_cost_fixture_visible: text.includes("₩ 4,000,000"),
@@ -399,6 +406,7 @@ try {
         home_dashboard_grid_count: document.querySelectorAll(`${selector} [data-home-dashboard-grid="true"]`).length,
         home_revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length,
         home_payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
+        home_nonpayroll_chart_count: document.querySelectorAll(`${selector} [data-home-nonpayroll-donut-chart="true"]`).length,
         home_revenue_fixture_visible: surfaceText.includes("₩ 12,000,000"),
         home_payroll_fixture_visible: surfaceText.includes("₩ 9,000,000"),
         home_processed_cost_fixture_visible: surfaceText.includes("₩ 4,000,000"),
@@ -428,6 +436,7 @@ try {
       assert.equal(snapshot.home_dashboard_grid_count, 1, "Home must render one overview grid");
       assert.equal(snapshot.home_revenue_chart_count, 1, "Home must render the monthly revenue bar chart");
       assert.equal(snapshot.home_payroll_chart_count, 1, "Home must render the payroll category donut chart");
+      assert.equal(snapshot.home_nonpayroll_chart_count, 1, "Home must render the non-payroll outflow category donut chart");
       assert.equal(snapshot.home_revenue_fixture_visible, true, "Home must render the monthly revenue fixture");
       assert.equal(snapshot.home_payroll_fixture_visible, true, "Home must render the aggregate payroll fixture");
       assert.equal(snapshot.home_processed_cost_fixture_visible, true, "Home must render the processed-cost fixture");
