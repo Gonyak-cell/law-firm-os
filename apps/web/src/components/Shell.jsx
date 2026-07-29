@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Mail,
   MessageCircle,
+  PanelLeftOpen,
   Plus,
   RefreshCw,
   Search,
@@ -240,24 +241,21 @@ export function LoadingSurface({ labels, locale, setLocale, className = "", mess
   );
 }
 
-function ProductAxisNav({ axis = "home", setView, labels = {} }) {
+const GlobalRailAction = React.forwardRef(function GlobalRailAction({ label, active = false, badge = 0, dot = false, className = "", children, ...props }, ref) {
   return (
-    <nav className="top-axis-nav" aria-label="Home Client Matter People Search Portal" data-product-axis-nav="top-header">
-      {navItems.map(({ id, label }) => (
-        <button
-          key={id}
-          type="button"
-          className={axis === id ? "top-axis-item active" : "top-axis-item"}
-          aria-current={axis === id ? "page" : undefined}
-          data-product-axis={id}
-          onClick={() => setView(id)}
-        >
-          <span>{shellLabel(labels, `${id}AxisLabel`, label)}</span>
-        </button>
-      ))}
-    </nav>
+    <button
+      ref={ref}
+      type="button"
+      className={["global-rail-action", active ? "active" : "", className].filter(Boolean).join(" ")}
+      {...props}
+    >
+      <span className="global-rail-icon" aria-hidden="true">{children}</span>
+      {dot && <span className="global-rail-dot" data-notification-dot="true" />}
+      {badge > 0 && <span className="global-rail-badge">{badge}</span>}
+      <span className="global-rail-tooltip" role="tooltip">{label}</span>
+    </button>
   );
-}
+});
 
 export function buildNotificationItems({ homeActionCounts = {}, labels = {} } = {}) {
   const lateCount = Number(homeActionCounts.task_late ?? 0) || 0;
@@ -326,7 +324,7 @@ function utilityApprovalItems(count, labels = {}) {
   ];
 }
 
-export function Topbar({
+export function GlobalRail({
   labels,
   query,
   setQuery,
@@ -336,15 +334,19 @@ export function Topbar({
   onRefresh = () => {},
   utilityDrawerType = "",
   onOpenUtilityDrawer,
-  notificationUnreadCount: topbarNotificationCount = 0,
+  notificationUnreadCount: railNotificationCount = 0,
   homeApprovalCount = 0,
   homeMessageCount = 0,
-  liveCtx = "allow"
+  liveCtx = "allow",
+  showContextToggle = true,
+  contextSidebarOpen = false,
+  onToggleContextSidebar = () => {},
+  onSearchOpen = () => {}
 }) {
   const notificationsOpen = utilityDrawerType === "notifications";
   const messagesOpen = utilityDrawerType === "messages";
   const approvalsOpen = utilityDrawerType === "approvals";
-  const notificationCount = Number(topbarNotificationCount) || 0;
+  const notificationCount = Number(railNotificationCount) || 0;
   const messageCount = Number(homeMessageCount) || 0;
   const approvalCount = Number(homeApprovalCount) || 0;
   const [searchOpen, setSearchOpen] = useState(false);
@@ -352,12 +354,15 @@ export function Topbar({
   const [searchHistory, setSearchHistory] = useState({ status: "idle", viewedStatus: "idle", modifiedStatus: "idle", viewed: [], modified: [] });
   const searchRootRef = useRef(null);
   const searchInputRef = useRef(null);
+  const searchTriggerRef = useRef(null);
+  const contextToggleRef = useRef(null);
   const searchHistoryRequestRef = useRef({ ctx: "", promise: null, loaded: false });
-  const topbarMountedRef = useRef(true);
+  const railMountedRef = useRef(true);
+  const previousContextSidebarOpenRef = useRef(contextSidebarOpen);
 
   useEffect(() => {
-    topbarMountedRef.current = true;
-    return () => { topbarMountedRef.current = false; };
+    railMountedRef.current = true;
+    return () => { railMountedRef.current = false; };
   }, []);
 
   useEffect(() => {
@@ -373,7 +378,7 @@ export function Topbar({
       fetchMatterRecentlyViewed({ ctx: liveCtx, limit: 5 }),
       fetchMatterRecords({ ctx: liveCtx, limit: 5, maxPages: 1 })
     ]).then(([viewed, matters]) => {
-      if (!topbarMountedRef.current || searchHistoryRequestRef.current.promise !== request) return;
+      if (!railMountedRef.current || searchHistoryRequestRef.current.promise !== request) return;
       const viewedStatus = searchHistoryResultStatus(viewed);
       const modifiedStatus = searchHistoryResultStatus(matters);
       setSearchHistory({
@@ -384,7 +389,7 @@ export function Topbar({
         modified: searchHistoryItems(matters, ["updated_at", "created_at"])
       });
     }).catch(() => {
-      if (!topbarMountedRef.current || searchHistoryRequestRef.current.promise !== request) return;
+      if (!railMountedRef.current || searchHistoryRequestRef.current.promise !== request) return;
       setSearchHistory({ status: "error", viewedStatus: "error", modifiedStatus: "error", viewed: [], modified: [] });
     }).finally(() => {
       if (searchHistoryRequestRef.current.promise === request) {
@@ -396,18 +401,28 @@ export function Topbar({
   }, [searchOpen, liveCtx]);
 
   useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (previousContextSidebarOpenRef.current && !contextSidebarOpen) contextToggleRef.current?.focus();
+    previousContextSidebarOpenRef.current = contextSidebarOpen;
+  }, [contextSidebarOpen]);
+
+  useEffect(() => {
     const onPointerDown = (event) => {
       if (searchOpen && !searchRootRef.current?.contains(event.target)) setSearchOpen(false);
     };
     const onKeyDown = (event) => {
       if (event.key === "Escape" && searchOpen) {
         setSearchOpen(false);
+        searchTriggerRef.current?.focus();
         return;
       }
       if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
         event.preventDefault();
+        onSearchOpen();
         setSearchOpen(true);
-        searchInputRef.current?.focus();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
@@ -416,102 +431,174 @@ export function Topbar({
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [searchOpen]);
+  }, [searchOpen, onSearchOpen]);
 
   return (
-    <header className="topbar">
-      <div className="topbar-brand" data-logo-dock-target="top-left" />
-      <ProductAxisNav axis={axis} setView={setView} labels={labels} />
-      <div className="global-search-wrap" ref={searchRootRef}>
-        <label className="global-search">
-          <Search size={16} />
-          <input
-            ref={searchInputRef}
-            value={searchDraft}
-            onFocus={() => setSearchOpen(true)}
-            onChange={(event) => { setSearchDraft(event.target.value); setSearchOpen(true); }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") setSearchOpen(false);
-              if (event.key === "Enter" && searchDraft.trim()) {
-                event.preventDefault();
-                const normalizedQuery = searchDraft.trim();
-                setQuery(normalizedQuery);
-                setView("vault", "vault-search-all", { query: normalizedQuery });
+    <aside className="global-rail" aria-label={shellLabel(labels, "globalNavigationAria", "글로벌 탐색")} data-global-rail="true">
+      <div className="global-rail-brand" role="img" aria-label="AMIC Law">
+        <span className="global-rail-brand-mark">
+          <img src={amicLawLogo} alt="" />
+        </span>
+      </div>
+      <nav className="global-rail-nav" aria-label="Home Client Matter People Search Portal" data-product-axis-nav="global-rail">
+        {navItems.map(({ id, label, icon: Icon }) => {
+          const itemLabel = shellLabel(labels, `${id}AxisLabel`, label);
+          return (
+            <GlobalRailAction
+              key={id}
+              label={itemLabel}
+              active={axis === id}
+              aria-label={itemLabel}
+              aria-current={axis === id ? "page" : undefined}
+              data-product-axis={id}
+              onClick={() => {
                 setSearchOpen(false);
-              }
-            }}
-            placeholder={labels.search}
-            aria-label={labels.search}
-            role="combobox"
-            aria-haspopup="dialog"
+                setView(id);
+              }}
+            >
+              <Icon size={19} />
+            </GlobalRailAction>
+          );
+        })}
+      </nav>
+      {showContextToggle && (
+        <div className="global-rail-context">
+          <GlobalRailAction
+            ref={contextToggleRef}
+            label={shellLabel(labels, "contextMenuAria", "업무 메뉴")}
+            active={contextSidebarOpen}
+            className="global-rail-context-toggle"
+            aria-label={shellLabel(labels, "contextMenuAria", "업무 메뉴")}
+            aria-controls="context-sidebar"
+            aria-expanded={contextSidebarOpen ? "true" : "false"}
+            data-context-sidebar-trigger="true"
+            onClick={onToggleContextSidebar}
+          >
+            <PanelLeftOpen size={19} />
+          </GlobalRailAction>
+        </div>
+      )}
+      <div className="global-rail-utilities">
+        <div className="global-rail-search-wrap" ref={searchRootRef}>
+          <GlobalRailAction
+            ref={searchTriggerRef}
+            label={shellLabel(labels, "globalSearchAria", "전체 검색")}
+            active={searchOpen}
+            aria-label={shellLabel(labels, "globalSearchAria", "전체 검색")}
             aria-expanded={searchOpen ? "true" : "false"}
             aria-controls="global-search-popover"
-          />
-          <kbd>/</kbd>
-        </label>
-        {searchOpen && (
-          <GlobalSearch
-            labels={labels}
-            query={searchDraft}
-            setQuery={setSearchDraft}
-            setView={setView}
-            history={searchHistory}
-            onClose={() => setSearchOpen(false)}
-          />
-        )}
-      </div>
-      <button className="primary-button" onClick={onCreate}>
-        <Plus size={15} />
-        {labels.create}
-      </button>
-      <div className="top-actions">
-        <button
-          className={notificationsOpen ? "icon-button notification-trigger active" : "icon-button notification-trigger"}
-          aria-label={`${shellLabel(labels, "topbarNotificationsAria", "알림")} ${notificationCount}${shellLabel(labels, "countSuffix", "건")}`}
+            data-global-search-trigger="true"
+            onClick={() => {
+              onSearchOpen();
+              setSearchOpen((open) => !open);
+            }}
+          >
+            <Search size={19} />
+          </GlobalRailAction>
+          {searchOpen && (
+            <div className="global-rail-search-panel">
+              <label className="global-search">
+                <Search size={16} />
+                <input
+                  ref={searchInputRef}
+                  value={searchDraft}
+                  onChange={(event) => setSearchDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      setSearchOpen(false);
+                      searchTriggerRef.current?.focus();
+                    }
+                    if (event.key === "Enter" && searchDraft.trim()) {
+                      event.preventDefault();
+                      const normalizedQuery = searchDraft.trim();
+                      setQuery(normalizedQuery);
+                      setView("vault", "vault-search-all", { query: normalizedQuery });
+                      setSearchOpen(false);
+                    }
+                  }}
+                  placeholder={labels.search}
+                  aria-label={labels.search}
+                  role="combobox"
+                  aria-haspopup="dialog"
+                  aria-expanded="true"
+                  aria-controls="global-search-popover"
+                />
+                <kbd>/</kbd>
+              </label>
+              <GlobalSearch
+                labels={labels}
+                query={searchDraft}
+                setQuery={setSearchDraft}
+                setView={setView}
+                history={searchHistory}
+                onClose={() => {
+                  setSearchOpen(false);
+                  searchTriggerRef.current?.focus();
+                }}
+              />
+            </div>
+          )}
+        </div>
+        <GlobalRailAction
+          label={labels.create}
+          aria-label={labels.create}
+          data-global-create-trigger="true"
+          onClick={() => {
+            setSearchOpen(false);
+            onCreate();
+          }}
+        >
+          <Plus size={19} />
+        </GlobalRailAction>
+        <GlobalRailAction
+          label={shellLabel(labels, "railNotificationsAria", "알림")}
+          active={notificationsOpen}
+          dot={notificationCount > 0}
+          aria-label={`${shellLabel(labels, "railNotificationsAria", "알림")} ${notificationCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={notificationsOpen ? "true" : "false"}
           aria-controls="notifications-utility-drawer"
           data-notification-trigger="true"
           data-notification-info-count={notificationCount}
           onClick={() => onOpenUtilityDrawer("notifications")}
         >
-          <Bell size={17} />
-          {notificationCount > 0 && <span className="notification-dot" data-notification-dot="true" />}
-        </button>
-        <button
-          className={messagesOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
-          aria-label={`${shellLabel(labels, "topbarMessagesAria", "메시지")} ${messageCount}${shellLabel(labels, "countSuffix", "건")}`}
+          <Bell size={19} />
+        </GlobalRailAction>
+        <GlobalRailAction
+          label={shellLabel(labels, "railMessagesAria", "메시지")}
+          active={messagesOpen}
+          badge={messageCount}
+          aria-label={`${shellLabel(labels, "railMessagesAria", "메시지")} ${messageCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={messagesOpen ? "true" : "false"}
           aria-controls="messages-utility-drawer"
           data-home-message-trigger="true"
-          data-home-topbar-message-count={messageCount}
+          data-home-rail-message-count={messageCount}
           onClick={() => onOpenUtilityDrawer("messages")}
         >
-          <MessageCircle size={17} />
-          {messageCount > 0 && <span className="notification-badge home-action-badge">{messageCount}</span>}
-        </button>
-        <button
-          className={approvalsOpen ? "icon-button home-action-trigger active" : "icon-button home-action-trigger"}
-          aria-label={`${shellLabel(labels, "topbarApprovalsAria", "승인 대기")} ${approvalCount}${shellLabel(labels, "countSuffix", "건")}`}
+          <MessageCircle size={19} />
+        </GlobalRailAction>
+        <GlobalRailAction
+          label={shellLabel(labels, "railApprovalsAria", "승인 대기")}
+          active={approvalsOpen}
+          badge={approvalCount}
+          aria-label={`${shellLabel(labels, "railApprovalsAria", "승인 대기")} ${approvalCount}${shellLabel(labels, "countSuffix", "건")}`}
           aria-expanded={approvalsOpen ? "true" : "false"}
           aria-controls="approvals-utility-drawer"
           data-home-approval-trigger="true"
-          data-home-topbar-approval-count={approvalCount}
+          data-home-rail-approval-count={approvalCount}
           onClick={() => onOpenUtilityDrawer("approvals")}
         >
-          <ShieldCheck size={17} />
-          {approvalCount > 0 && <span className="notification-badge home-action-badge">{approvalCount}</span>}
-        </button>
-        <button
-          type="button"
-          className="icon-button topbar-refresh-trigger"
+          <ShieldCheck size={19} />
+        </GlobalRailAction>
+        <GlobalRailAction
+          label={shellLabel(labels, "refreshAria", "새로고침")}
           aria-label={shellLabel(labels, "refreshAria", "새로고침")}
-          data-topbar-refresh-trigger="true"
+          data-global-refresh-trigger="true"
           onClick={onRefresh}
         >
-          <RefreshCw size={17} />
-        </button>
+          <RefreshCw size={19} />
+        </GlobalRailAction>
       </div>
-    </header>
+    </aside>
   );
 }
 
@@ -1019,6 +1106,7 @@ export function Sidebar({
 
   return (
     <aside
+      id="context-sidebar"
       className="sidebar"
       data-context-sidebar={axis}
       data-mode-exception-sidebar={modeExceptionActive ? "true" : undefined}

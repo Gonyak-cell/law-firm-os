@@ -27,7 +27,7 @@ async function visibleText(locator) {
 
 async function waitForProductShell(page) {
   await Promise.race([
-    page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 45_000 }),
+    page.waitForSelector("[data-product-axis-nav='global-rail']", { timeout: 45_000 }),
     page.waitForSelector("[data-login-email]", { timeout: 45_000 }).then(async () => {
       const diagnostics = {
         login_email: Boolean(await page.locator("[data-login-email]").count()),

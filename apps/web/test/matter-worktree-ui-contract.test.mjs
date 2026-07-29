@@ -130,8 +130,10 @@ test("Worktree node creation sends every required model field", () => {
   assert.match(worktreeSource, /task_id:\s*nodeType === "task" \? taskId\.trim\(\) : null/);
 });
 
-test("tablet and mobile product navigation keep every axis visible without a hidden horizontal continuation", () => {
-  assert.match(stylesSource, /@media \(max-width: 820px\)[\s\S]*\.top-axis-nav\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
-  assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.top-axis-item\s*\{[\s\S]*min-width:\s*0/);
-  assert.match(stylesSource, /@media \(max-width: 480px\)[\s\S]*\.sidebar-subnav\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+test("tablet and mobile keep the global rail visible and move contextual navigation into a vertical drawer", () => {
+  assert.match(stylesSource, /\.global-rail\s*\{[\s\S]*width:\s*var\(--am-rail-width\)/);
+  assert.match(stylesSource, /@media \(max-width: 1199px\)[\s\S]*\.global-rail-context-toggle\s*\{[\s\S]*display:\s*grid/);
+  assert.match(stylesSource, /@media \(max-width: 1199px\)[\s\S]*\.app-frame > \.sidebar,[\s\S]*position:\s*fixed;[\s\S]*left:\s*var\(--am-rail-width\)/);
+  assert.match(stylesSource, /@media \(max-width: 1199px\)[\s\S]*\.app-frame > \.sidebar \.sidebar-subnav\s*\{[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.doesNotMatch(shellSource, /top-axis-nav|top-axis-item/);
 });

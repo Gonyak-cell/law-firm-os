@@ -44,7 +44,7 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.match(stylesSource, /SUITE-Bold\.otf[\s\S]{0,80}font-weight: 700/);
   const productRules = stylesSource.replaceAll(/@font-face\s*\{[^}]+\}/gs, "");
   assert.equal([...productRules.matchAll(/font-weight:\s*600;/g)].length, 1);
-  assert.equal([...productRules.matchAll(/font-weight:\s*700;/g)].length, 2);
+  assert.equal([...productRules.matchAll(/font-weight:\s*700;/g)].length, 1);
   assert.match(productRules, /table tbody,[\s\S]{0,300}\.subscribe-table-row \*[\s\S]{0,40}font-weight: 400;/);
   assert.match(productRules, /\.data-table thead th,[\s\S]{0,500}\.subscribe-table-head \*[\s\S]{0,40}font-weight: 600;/);
   assert.match(stylesSource, /\.dashboard-record-row,[\s\S]{0,80}\.dashboard-record-row \*[\s\S]{0,40}font-weight: 400;/);
@@ -121,9 +121,9 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   const attendanceSource = await readWebFile("src/people/attendance/AttendanceWorkspace.tsx");
   const i18nSource = await readWebFile("src/i18n.js");
   const peopleNavigationSource = `${shellSource}\n${peopleCatalogSource}`;
-  const productAxisStart = shellSource.indexOf("function ProductAxisNav");
-  const productAxisEnd = shellSource.indexOf("export function buildNotificationItems", productAxisStart);
-  const productAxisSource = shellSource.slice(productAxisStart, productAxisEnd);
+  const globalRailStart = shellSource.indexOf("export function GlobalRail");
+  const globalRailEnd = shellSource.indexOf("export function UtilityDrawer", globalRailStart);
+  const globalRailSource = shellSource.slice(globalRailStart, globalRailEnd);
   const homeSidebarStart = shellSource.indexOf("function homeSidebarMeta");
   const clientsSidebarStart = shellSource.indexOf("const sidebarMeta", homeSidebarStart);
   const homeSidebarSource = shellSource.slice(homeSidebarStart, clientsSidebarStart);
@@ -169,17 +169,22 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   ]) {
     assert.equal(componentFiles.includes(removedSurface), false);
   }
-  assert.match(shellSource, /data-product-axis-nav="top-header"/);
-  assert.match(stylesSource, /\.top-axis-item\s*\{[\s\S]*font-size:\s*var\(--am-font-size-body\)[\s\S]*letter-spacing:\s*0\.02em/);
-  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*color:\s*#000000[\s\S]*font-size:\s*var\(--am-font-size-body\)[\s\S]*font-weight:\s*400/);
-  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-nav button\.active\s*\{[^}]*font-weight:\s*700/);
-  assert.match(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[\s\S]*letter-spacing:\s*0\.02em[\s\S]*text-transform:\s*none/);
-  assert.doesNotMatch(stylesSource, /html\[data-skin="forest"\] \.top-axis-item\s*\{[^}]*text-transform:\s*uppercase/);
+  assert.match(shellSource, /data-product-axis-nav="global-rail"/);
+  assert.match(shellSource, /data-global-rail="true"/);
+  assert.match(stylesSource, /\.global-rail\s*\{[\s\S]*width:\s*var\(--am-rail-width\)[\s\S]*height:\s*100dvh/);
+  assert.match(stylesSource, /\.global-rail-action\.active::after\s*\{[^}]*width:\s*3px;[^}]*background:\s*#26c260/);
+  assert.match(shellSource, /<span className="global-rail-icon" aria-hidden="true">\{children\}<\/span>/);
+  assert.match(stylesSource, /global-rail-brand-settle 660ms[\s\S]*global-rail-brand-sweep 720ms/);
+  assert.match(stylesSource, /global-rail-indicator-enter 540ms[\s\S]*global-rail-indicator-breathe 4\.8s/);
+  assert.match(stylesSource, /global-rail-icon-sweep 520ms/);
+  assert.match(stylesSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.global-rail-brand-mark,[\s\S]*\.global-rail-action\.active::after[\s\S]*animation:\s*none !important/);
+  assert.match(stylesSource, /\.global-rail-action:hover \.global-rail-tooltip,[\s\S]*\.global-rail-action:focus-visible \.global-rail-tooltip/);
+  assert.doesNotMatch(shellSource, /function ProductAxisNav|export function Topbar|className="topbar"/);
   assert.match(stylesSource, /\.sidebar-item\s*\{[\s\S]*min-height:\s*48px[\s\S]*font-size:\s*15px[\s\S]*font-weight:\s*400[\s\S]*letter-spacing:\s*0\.01em/);
   assert.match(stylesSource, /\.workspace-card\s*\{[\s\S]*align-items:\s*center[\s\S]*min-height:\s*46px[\s\S]*padding:\s*0 12px/);
   assert.match(stylesSource, /\.workspace-card strong\s*\{[\s\S]*margin-top:\s*0/);
   assert.match(shellSource, /navItems\.map/);
-  assert.doesNotMatch(productAxisSource, /<Icon\s+size=/);
+  assert.match(globalRailSource, /<Icon size=\{19\} \/>/);
   assert.match(appSource, /function navigateToView/);
   assert.match(appSource, /export function resolveAxis/);
   assert.match(appSource, /const routableViews = \["auth", "home", "loading", \.\.\.navItems\.map\(\(item\) => item\.id\), \.\.\.modeExceptionUtilityViewIds\]/);
@@ -188,7 +193,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   assert.match(appSource, /window\.history\.replaceState/);
   assert.doesNotMatch(appSource, /scrollIntoView/);
   assert.match(shellSource, /activeSection/);
-  assert.match(shellSource, /ProductAxisNav axis=\{axis\} setView=\{setView\} labels=\{labels\}/);
+  assert.match(appSource, /<GlobalRail[\s\S]*axis=\{axis\}[\s\S]*setView=\{navigateToView\}/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);
   assert.doesNotMatch(shellSource, /data-global-sidebar-nav="home-only"/);
   assert.doesNotMatch(shellSource, /aria-label="Home 빠른 메뉴"/);
@@ -315,7 +320,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
 });
 
-test("Search workspace keeps vault compatibility while adding dashboard, grouped navigation, and topbar handoff", async () => {
+test("Search workspace keeps vault compatibility while adding dashboard, grouped navigation, and global search handoff", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
@@ -556,7 +561,7 @@ test("Forest startup branding excludes retired Matter and Petra assets", async (
   assert.doesNotMatch(i18nSource, /Project Atlas/);
 });
 
-test("desktop post-login route skips repeated logo splash before five-axis contextual shell", async () => {
+test("desktop post-login route skips repeated logo splash before the global rail shell", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const navSource = await readWebFile("src/data/nav.js");
@@ -604,19 +609,19 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.match(stylesSource, /\.loading-stage\.post-login-splash strong/);
   assert.match(stylesSource, /\.loading-stage\.post-login-splash \.matter-splash[\s\S]*min-height:\s*auto/);
   assert.match(stylesSource, /@keyframes post-login-logo-dock/);
-  assert.match(shellSource, /data-logo-dock-target="top-left"/);
+  assert.match(shellSource, /data-global-rail="true"/);
   assert.match(stylesSource, /\.matter-splash-image/);
   assert.doesNotMatch(stylesSource, /@keyframes matter-mark-in|@keyframes matter-word-reveal/);
-  assert.match(appSource, /data-sidebar-state=\{profileStandalone \? "none" : "contextual"\}/);
+  assert.match(appSource, /data-sidebar-state=\{profileStandalone \? "none" : contextSidebarOpen \? "open" : "contextual"\}/);
   assert.match(appSource, /profile-standalone-shell/);
   assert.match(appSource, /utilityDrawerType/);
   assert.match(appSource, /<UtilityDrawer/);
-  assert.match(shellSource, /data-product-axis-nav="top-header"/);
+  assert.match(shellSource, /data-product-axis-nav="global-rail"/);
   assert.match(shellSource, /data-product-axis=\{id\}/);
   assert.match(shellSource, /aria-current=\{axis === id \? "page" : undefined\}/);
   assert.match(shellSource, /data-matter-logo-flow/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);
-  assert.match(shellSource, /topbar-brand/);
+  assert.match(shellSource, /className="global-rail-brand"/);
   assert.match(shellSource, /sidebar-workspace-actions/);
   assert.match(shellSource, /data-sidebar-utility={label}/);
   assert.match(navSource, /id: "home"/);
@@ -624,7 +629,7 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
     assert.match(navSource, new RegExp(`id: "${axis}"`));
   }
   assert.doesNotMatch(shellSource, /<MatterLogo \/>|AMIC_n_PETRA/);
-  assert.doesNotMatch(shellSource, /export function Rail|<nav className="rail-nav"|nav-toggle|sidebarExpanded/);
+  assert.doesNotMatch(shellSource, /<nav className="rail-nav"|nav-toggle|sidebarExpanded/);
   assert.doesNotMatch(appSource, /<Rail \/>|sidebarExpanded|initialSidebarExpanded/);
   assert.match(homeSource, /data-home-dashboard-shell="true"/);
   assert.match(homeSource, /data-home-dashboard-grid="true"/);
@@ -671,7 +676,8 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   for (const removedSection of ["recent-work", "today-todo", "pending-approvals", "monthly-sales", "new-engagements"]) {
     assert.doesNotMatch(homeSource, new RegExp(`section="${removedSection}"`));
   }
-  assert.match(homeSource, /activeHomeSection !== "home-dashboard" && \(/);
+  assert.doesNotMatch(homeSource, /activeHomeSection !== "home-dashboard" && \(\s*[\r\n]+\s*<section className="home-dashboard-hero"/);
+  assert.match(homeSource, /<section className="home-dashboard-hero"/);
   assert.match(homeSource, /<HomeRevenueLineChart series=\{financeDashboard\.series\} \/>/);
   assert.match(homeSource, /<HomePayrollDonutChart summary=\{payrollSummary\} \/>/);
   assert.match(homeSource, /dataPrefix="home-client-dashboard"[\s\S]*variant="underline home-dashboard-domain-tabs"/);
@@ -703,34 +709,33 @@ test("desktop post-login route skips repeated logo splash before five-axis conte
   assert.doesNotMatch(homeSource, /MetricCard|metric-grid|Product axes|Record views|Protected actions|Release status|visible records|record views|safeguards|capability-card|capability-counts|boundary-ledger/);
   assert.doesNotMatch(homeSource, /home-recent|WorkAreaRow|QueueRow|오늘의 운영 대기열|Matter 작업 큐|실패한 동기화/);
   assert.doesNotMatch(stylesSource, /metric-grid|clients-metric-grid|people-metric-grid|command-center-grid|pill-blue|pill-green|recipient-chip|report-chip/);
-  assert.match(stylesSource, /\.app-frame[\s\S]*grid-template-columns:\s*var\(--am-sidebar-width\) minmax\(0, 1fr\)/);
-  assert.match(stylesSource, /--am-topbar-height:\s*52px/);
-  assert.match(stylesSource, /\.topbar-brand/);
-  assert.match(stylesSource, /\.top-axis-item[\s\S]*min-width:\s*96px/);
-  assert.match(stylesSource, /@media \(max-width:\s*1180px\)[\s\S]*\.top-axis-item[\s\S]*min-width:\s*84px/);
-  assert.match(stylesSource, /\.topbar \.global-search[\s\S]*height:\s*38px/);
-  assert.match(shellSource, /onFocus=\{\(\) => setSearchOpen\(true\)\}[\s\S]*placeholder=\{labels\.search\}[\s\S]*aria-label=\{labels\.search\}[\s\S]*aria-expanded=\{searchOpen/);
+  assert.match(stylesSource, /\.app-frame,[\s\S]*grid-template-columns:\s*var\(--am-rail-width\) var\(--am-sidebar-width\) minmax\(0, 1fr\)/);
+  assert.match(stylesSource, /--am-rail-width:\s*56px/);
+  assert.match(stylesSource, /--am-sidebar-width:\s*214px/);
+  assert.match(stylesSource, /\.global-rail\s*\{[\s\S]*width:\s*var\(--am-rail-width\)/);
+  assert.match(stylesSource, /\.global-rail-search-panel\s*\{[^}]*position:\s*fixed/);
+  assert.match(shellSource, /data-global-search-trigger="true"[\s\S]*placeholder=\{labels\.search\}[\s\S]*aria-label=\{labels\.search\}/);
   assert.match(shellSource, /fetchMatterRecentlyViewed\(\{ ctx: liveCtx, limit: 5 \}\)/);
   assert.match(shellSource, /data-search-history-section=\{section\.id\}/);
   assert.match(shellSource, /최근 열람/);
   assert.match(shellSource, /최근 수정/);
   assert.match(shellSource, /searchViewMatters/);
-  assert.match(stylesSource, /\.global-search-wrap\s*\{[^}]*position:\s*relative/);
+  assert.match(stylesSource, /\.global-rail-search-wrap\s*\{[^}]*position:\s*relative/);
   assert.match(stylesSource, /\.search-popover\s*\{[^}]*position:\s*absolute;[^}]*top:\s*calc\(100% \+ 4px\)/);
-  assert.match(stylesSource, /@media \(max-width: 1320px\) \{[\s\S]*?html\[data-skin="forest"\] \.topbar \{[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(160px, 240px\) auto auto;[^}]*\}[\s\S]*?html\[data-skin="forest"\] \.topbar \.global-search \{[^}]*display: grid;/);
-  assert.doesNotMatch(stylesSource, /@media \(max-width: 1320px\) \{[\s\S]*?html\[data-skin="forest"\] \.topbar \.global-search \{[^}]*display: none;/);
-  assert.match(stylesSource, /@media \(min-width: 821px\) and \(max-width: 1180px\) \{[\s\S]*?html\[data-skin="forest"\] \.top-axis-nav \{[^}]*grid-column: 1 \/ -1;[^}]*grid-row: 2;/);
+  assert.match(stylesSource, /@media \(max-width: 1199px\) \{[\s\S]*\.global-rail-context-toggle\s*\{[^}]*display:\s*grid/);
+  assert.match(stylesSource, /@media \(max-width: 1199px\) \{[\s\S]*\.app-frame > \.sidebar,[\s\S]*position:\s*fixed;[\s\S]*left:\s*var\(--am-rail-width\)/);
+  assert.match(stylesSource, /\.context-sidebar-open > \.sidebar,[\s\S]*transform:\s*translateX\(0\)/);
   assert.match(stylesSource, /\.home-dashboard-surface\s*\{[^}]*container-type:\s*inline-size;/);
   assert.doesNotMatch(stylesSource, /@container \(max-width: 1100px\)/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.sidebar \{[^}]*grid-template-rows:\s*auto auto minmax\(0, 1fr\) auto;/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.sidebar\[data-mode-exception-sidebar="true"\] \{[^}]*grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/);
-  assert.match(stylesSource, /@media \(max-width: 820px\) \{[\s\S]*?html\[data-skin="forest"\] \.topbar \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;[^}]*\}[\s\S]*?html\[data-skin="forest"\] \.topbar \.global-search-wrap \{[^}]*grid-column: 1;[^}]*grid-row: 1;/);
+  assert.match(stylesSource, /\.profile-standalone-shell,[\s\S]*grid-template-columns:\s*var\(--am-rail-width\) minmax\(0, 1fr\)/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.forest-hero \{[\s\S]*min-height:\s*108px/);
   assert.match(stylesSource, /html\[data-skin="forest"\] \.forest-hero:not\(\.forest-hero-with-stats\):not\(\.forest-hero-with-actions\) \{[\s\S]*min-height:\s*88px/);
   assert.match(forestHeroSource, /actions = null/);
   assert.match(forestHeroSource, /forest-hero-with-actions/);
-  assert.match(shellSource, /data-topbar-refresh-trigger="true"/);
-  assert.match(shellSource, /<RefreshCw size=\{17\} \/>/);
+  assert.match(shellSource, /data-global-refresh-trigger="true"/);
+  assert.match(shellSource, /<RefreshCw size=\{19\} \/>/);
   assert.match(clientsSource, /<ForestHero title=\{labels\.clientsTitle\} image=\{heroClientArchitecture\} imageOpacity=\{0\.24\} \/>/);
   assert.doesNotMatch(clientsSource, /useSkin|skin !== "forest"/);
   assert.doesNotMatch(clientsSource, /refreshButton|forest-hero-refresh-button|actions=\{refreshButton\}/);
@@ -787,7 +792,7 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
   assert.match(appSource, /homeApprovalCount=\{homeApprovalCount\}/);
   assert.match(appSource, /onHomeActionCountsChange=\{setHomeActionCounts\}/);
 
-  assert.match(shellSource, /data-home-topbar-approval-count=\{approvalCount\}/);
+  assert.match(shellSource, /data-home-rail-approval-count=\{approvalCount\}/);
   assert.match(shellSource, /data-home-sidebar-approval-count=\{item\.homeCount\}/);
   assert.match(shellSource, /count: Number\(homeApprovalCount\) > 0 \? Number\(homeApprovalCount\) : null/);
   assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("approvals"\)\}/);
@@ -807,7 +812,7 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
   assert.match(homeSource, /restoreActionInbox\(undoNotice\.previousActionInbox\)/);
 });
 
-test("topbar utilities open right drawers with global dim and stacked alerts", async () => {
+test("global rail utilities open right drawers with global dim and stacked alerts", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const homeMessagesSource = await readWebFile("src/data/homeMessages.js");
@@ -890,16 +895,16 @@ test("Stage 5 utility drawers keep the sidebar context unchanged until explicit 
   assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("messages"\)\}/);
   assert.match(shellSource, /onClick=\{\(\) => onOpenUtilityDrawer\("approvals"\)\}/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);
-  assert.match(shellSource, /data-home-topbar-message-count=\{messageCount\}/);
+  assert.match(shellSource, /data-home-rail-message-count=\{messageCount\}/);
   assert.match(shellSource, /data-home-sidebar-message-count=\{item\.homeCount\}/);
-  assert.match(shellSource, /data-home-topbar-approval-count=\{approvalCount\}/);
+  assert.match(shellSource, /data-home-rail-approval-count=\{approvalCount\}/);
   assert.doesNotMatch(shellSource, /data-home-message-trigger[\s\S]{0,220}setView\("home", "home-messages"\)/);
   assert.doesNotMatch(shellSource, /data-home-approval-trigger[\s\S]{0,220}setView\("home", "home-requests"\)/);
   assert.match(shellSource, /data-utility-view-all="home-messages"[\s\S]*onClick=\{goToHomeSection\}/);
   assert.match(shellSource, /data-utility-view-all="home-requests"[\s\S]*onClick=\{goToHomeSection\}/);
 });
 
-test("Stage 6 mode exception routes keep topbar and provide a return-to-work anchor", async () => {
+test("Stage 6 mode exception routes keep the global rail and provide a return-to-work anchor", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
@@ -922,7 +927,7 @@ test("Stage 6 mode exception routes keep topbar and provide a return-to-work anc
   assert.match(appSource, /navigateToView\(modeReturnTarget\.view, modeReturnTarget\.section\)/);
   assert.match(appSource, /modeReturnTarget=\{modeReturnTarget\}/);
   assert.match(appSource, /onReturnToWork=\{returnToWork\}/);
-  assert.match(appSource, /<Topbar[\s\S]*axis=\{axis\}[\s\S]*\/>/);
+  assert.match(appSource, /<GlobalRail[\s\S]*axis=\{axis\}[\s\S]*\/>/);
   assert.match(appSource, /isGlobalUtilityView\(view\) && modeExceptionUtilityViewIds\.includes\(view\)/);
 
   assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
@@ -1001,20 +1006,21 @@ test("avatar profile opens a standalone personal profile surface without becomin
   const memberPhotosSource = await readWebFile("src/people/memberPhotos.js");
   const { memberPhotoFor } = await import(pathToFileURL(resolve(webRoot, "src/people/memberPhotos.js")).href);
   const stylesSource = await readWebFile("src/styles.css");
-  const topbarSource = shellSource.slice(
-    shellSource.indexOf("export function Topbar"),
+  const globalRailSource = shellSource.slice(
+    shellSource.indexOf("export function GlobalRail"),
     shellSource.indexOf("export function UtilityDrawer")
   );
 
   assert.match(globalUtilitySource, /modeExceptionUtilityViewIds = \["settings", "data-import", "profile"\]/);
   assert.match(appSource, /const profileStandalone = view === "profile"/);
-  assert.match(appSource, /data-sidebar-state=\{profileStandalone \? "none" : "contextual"\}/);
+  assert.match(appSource, /data-sidebar-state=\{profileStandalone \? "none" : contextSidebarOpen \? "open" : "contextual"\}/);
   assert.match(appSource, /!\profileStandalone && \(/);
   assert.match(appSource, /<UserProfileSurface liveCtx=\{liveCtx\} desktopSession=\{desktopSessionIdentity\} onNavigate=\{navigateToView\} onReturnToWork=\{returnToWork\} \/>/);
   assert.match(appSource, /<Sidebar[\s\S]*onProfile=\{\(\) => navigateToView\("profile"\)\}[\s\S]*\/>/);
   assert.match(shellSource, /data-profile-trigger="true"/);
   assert.match(shellSource, /className="forest-sidebar-user"[\s\S]*data-profile-trigger="true"/);
-  assert.doesNotMatch(topbarSource, /data-profile-trigger="true"|profile-trigger|>서</);
+  assert.doesNotMatch(globalRailSource, /data-profile-trigger="true"|profile-trigger|>서</);
+  assert.match(appSource, /showContextToggle=\{!profileStandalone\}/);
   assert.doesNotMatch(shellSource, /profileSidebarItems/);
   assert.match(shellSource, /data-mode-return-anchor="true"/);
   assert.match(shellSource, /data-context-sidebar=\{axis\}/);

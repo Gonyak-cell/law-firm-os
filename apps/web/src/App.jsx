@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { copy } from "./i18n.js";
 import { navItems } from "./data/nav.js";
 import { globalUtilityViewIds, isGlobalUtilityView, modeExceptionUtilityViewIds, resolveGlobalShortcut } from "./data/globalUtilities.js";
-import { LoadingSurface, Sidebar, Topbar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
+import { GlobalRail, LoadingSurface, Sidebar, UtilityDrawer, buildContextualNavigation, buildNotificationItems } from "./components/Shell.jsx";
 import { AuthSurface } from "./components/AuthSurface.jsx";
 import { GlobalUtilitySurface } from "./components/GlobalUtilitySurface.jsx";
 import { HomeSurface } from "./components/HomeSurface.jsx";
@@ -136,6 +136,7 @@ export function App() {
   const [handoffSplashVisible, setHandoffSplashVisible] = useState(initialHandoffSplash);
   const [authStep, setAuthStep] = useState(initialAuthStep);
   const [query, setQuery] = useState(initialQuery);
+  const [contextSidebarOpen, setContextSidebarOpen] = useState(false);
   const [utilityDrawerType, setUtilityDrawerType] = useState(resolvedInitialRoute.openNotifications ? "notifications" : "");
   const [notificationItemsRead, setNotificationItemsRead] = useState(resolvedInitialRoute.openNotifications === true);
   const [homeMessageItems, setHomeMessageItems] = useState([]);
@@ -274,6 +275,7 @@ export function App() {
   }
 
   function navigateToView(nextView, section = "", routeContext = {}) {
+    setContextSidebarOpen(false);
     const companyAllowed = readHomeCompanyAccess();
     setCanViewCompanyStatus(companyAllowed);
     const resolved = resolveRoute(nextView, section, companyAllowed);
@@ -331,6 +333,7 @@ export function App() {
   }
 
   function toggleUtilityDrawer(type) {
+    setContextSidebarOpen(false);
     const willOpen = utilityDrawerType !== type;
     if (willOpen && type === "notifications") setNotificationItemsRead(true);
     setUtilityDrawerType(willOpen ? type : "");
@@ -451,6 +454,15 @@ export function App() {
   }, [handoffSplashVisible]);
 
   useEffect(() => {
+    if (!contextSidebarOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setContextSidebarOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [contextSidebarOpen]);
+
+  useEffect(() => {
     if (!initialRouteWasRedirected && !initialCurrentVersionWasUnsupported) return;
     emitHomeMetric("home_deeplink_misclick", {
       requested_view: rawInitialView,
@@ -478,6 +490,7 @@ export function App() {
     const onPopState = () => {
       const nextRoute = routeFromLocation();
       const nextParams = new URLSearchParams(window.location.search);
+      setContextSidebarOpen(false);
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
       setCanViewCompanyStatus(nextRoute.companyAllowed);
@@ -525,13 +538,19 @@ export function App() {
 
   return (
     <div className="matter-app">
-        <Topbar
+      <div
+        className={[
+          "app-frame",
+          "contextual-shell",
+          profileStandalone ? "profile-standalone-shell" : "",
+          contextSidebarOpen ? "context-sidebar-open" : ""
+        ].filter(Boolean).join(" ")}
+        data-sidebar-state={profileStandalone ? "none" : contextSidebarOpen ? "open" : "contextual"}
+      >
+        <GlobalRail
           labels={labels}
-          locale={locale}
-          setLocale={setLocale}
           query={query}
           setQuery={setQuery}
-          view={view}
           axis={axis}
           setView={navigateToView}
           onCreate={() => navigateToView("matters", "matter-opening")}
@@ -542,11 +561,19 @@ export function App() {
           homeApprovalCount={homeApprovalCount}
           homeMessageCount={homeMessageCount}
           liveCtx={liveCtx}
+          showContextToggle={!profileStandalone}
+          contextSidebarOpen={contextSidebarOpen}
+          onToggleContextSidebar={() => setContextSidebarOpen((open) => !open)}
+          onSearchOpen={() => setContextSidebarOpen(false)}
         />
-        <div
-          className={profileStandalone ? "app-frame contextual-shell profile-standalone-shell" : "app-frame contextual-shell"}
-          data-sidebar-state={profileStandalone ? "none" : "contextual"}
-        >
+        {!profileStandalone && (
+          <button
+            type="button"
+            className="context-sidebar-scrim"
+            aria-label="업무 메뉴 닫기"
+            onClick={() => setContextSidebarOpen(false)}
+          />
+        )}
           {!profileStandalone && (
             <Sidebar
               labels={labels}
@@ -616,7 +643,7 @@ export function App() {
               />
             )}
           </main>
-        </div>
+      </div>
         {handoffSplashVisible && (
           <LoadingSurface
             labels={labels}

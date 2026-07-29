@@ -69,12 +69,12 @@ export const globalUtilityItems = [
     localLabel: "센터",
     icon: Bell,
     defaultSection: "notifications-center",
-    description: "상단 알림 드로어, 근태 알림, 회사 알림 설정을 전역 알림 센터로 묶습니다.",
+    description: "글로벌 레일 알림 드로어, 근태 알림, 회사 알림 설정을 전역 알림 센터로 묶습니다.",
     sections: [
       {
         id: "notifications-center",
         label: "알림 센터",
-        source: "Topbar",
+        source: "Global Rail",
         icon: Bell
       },
       {

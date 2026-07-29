@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createServer as createNetServer } from "node:net";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -11,19 +12,31 @@ const webRoot = resolve(testDir, "..");
 const styles = await readFile(resolve(testDir, "../src/styles.css"), "utf8");
 const amicLawLogo = await readFile(resolve(testDir, "../src/assets/amic-law.svg"), "utf8");
 
+async function availablePort() {
+  return new Promise((resolvePort, rejectPort) => {
+    const server = createNetServer();
+    server.once("error", rejectPort);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => error ? rejectPort(error) : resolvePort(port));
+    });
+  });
+}
+
 const shellMarkup = (modeException) => `
   <div class="matter-app">
-    <header class="topbar">
-      <nav class="top-axis-nav">
-        ${["Home", "Client", "Matter", "People", "Search", "Portal"]
-          .map((label) => `<button class="top-axis-item${label === "Matter" ? " active" : ""}">${label}</button>`)
-          .join("")}
-      </nav>
-      <label class="global-search"><input aria-label="search"></label>
-      <button class="primary-button">New</button>
-      <div class="top-actions"><button>Action</button></div>
-    </header>
-    <div class="app-frame">
+    <div class="app-frame context-sidebar-open">
+      <aside class="global-rail">
+        <div class="global-rail-brand"><span class="global-rail-brand-mark">A</span></div>
+        <nav class="global-rail-nav">
+          ${["Home", "Client", "Matter", "People", "Search", "Portal"]
+            .map((label) => `<button aria-label="${label}" class="global-rail-action${label === "Matter" ? " active" : ""}"><span class="global-rail-icon"></span><span class="global-rail-tooltip">${label}</span></button>`)
+            .join("")}
+        </nav>
+        <div class="global-rail-utilities"><button class="global-rail-action" aria-label="전체 검색"><span class="global-rail-icon"></span></button></div>
+      </aside>
+      <button class="context-sidebar-scrim" aria-label="업무 메뉴 닫기"></button>
       <aside class="sidebar"${modeException ? ' data-mode-exception-sidebar="true"' : ""}>
         <div class="sidebar-brand">AMIC</div>
         <button class="workspace-card">People</button>
@@ -37,16 +50,16 @@ const shellMarkup = (modeException) => `
 
 const peopleLeaveSidebarMarkup = `
   <div class="matter-app">
-    <header class="topbar">
-      <nav class="top-axis-nav">
-        ${["Home", "Client", "Matter", "People", "Search", "Portal"]
-          .map((label) => `<button class="top-axis-item${label === "People" ? " active" : ""}">${label}</button>`)
-          .join("")}
-      </nav>
-      <label class="global-search"><input aria-label="search"></label>
-      <div class="top-actions"><button>Action</button></div>
-    </header>
-    <div class="app-frame">
+    <div class="app-frame context-sidebar-open">
+      <aside class="global-rail">
+        <div class="global-rail-brand"><span class="global-rail-brand-mark">A</span></div>
+        <nav class="global-rail-nav">
+          ${["Home", "Client", "Matter", "People", "Search", "Portal"]
+            .map((label) => `<button aria-label="${label}" class="global-rail-action${label === "People" ? " active" : ""}"><span class="global-rail-icon"></span><span class="global-rail-tooltip">${label}</span></button>`)
+            .join("")}
+        </nav>
+      </aside>
+      <button class="context-sidebar-scrim" aria-label="업무 메뉴 닫기"></button>
       <aside class="sidebar">
         <div class="sidebar-brand">AMIC LAW</div>
         <nav class="sidebar-nav">
@@ -121,10 +134,11 @@ test("Forest login docks the AMIC accent logo at the form center", async () => {
 });
 
 test("Forest login preserves its one-shot intro until the page is focused", async () => {
+  const port = await availablePort();
   const server = await createServer({
     root: webRoot,
     logLevel: "silent",
-    server: { host: "127.0.0.1", port: 0, strictPort: true }
+    server: { host: "127.0.0.1", port, strictPort: true }
   });
   const browser = await chromium.launch({ headless: true });
   try {
@@ -237,10 +251,11 @@ test("Forest login preserves its one-shot intro until the page is focused", asyn
 });
 
 test("Forest login completes email password recovery without exposing the one-time token", async () => {
+  const port = await availablePort();
   const server = await createServer({
     root: webRoot,
     logLevel: "silent",
-    server: { host: "127.0.0.1", port: 0, strictPort: true }
+    server: { host: "127.0.0.1", port, strictPort: true }
   });
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 768 } });
@@ -328,33 +343,109 @@ test("Forest login completes email password recovery without exposing the one-ti
   }
 });
 
-for (const width of [1280, 1180, 1024, 820]) {
+test("global rail decorative motion preserves geometry and honors reduced motion", async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const geometry = () => page.evaluate(() => {
+    const rect = (selector) => {
+      const box = document.querySelector(selector).getBoundingClientRect();
+      return [box.left, box.top, box.width, box.height].map((value) => Math.round(value * 100) / 100);
+    };
+    return {
+      rail: rect(".global-rail"),
+      action: rect('.global-rail-action[aria-label="Matter"]'),
+      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
+    };
+  });
+
+  try {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setContent(`<html data-skin="forest"><body>${shellMarkup(false)}</body></html>`);
+    await page.addStyleTag({ content: styles });
+    await page.waitForTimeout(80);
+
+    const initialGeometry = await geometry();
+    const introAnimations = await page.locator(".global-rail").evaluate((rail) => (
+      rail.getAnimations({ subtree: true }).map((animation) => animation.animationName)
+    ));
+    for (const animationName of [
+      "global-rail-scan",
+      "global-rail-brand-settle",
+      "global-rail-brand-sweep",
+      "global-rail-indicator-enter",
+      "global-rail-indicator-breathe",
+      "global-rail-indicator-echo"
+    ]) {
+      assert.equal(introAnimations.includes(animationName), true, animationName);
+    }
+
+    await page.locator('.global-rail-action[aria-label="Client"]').hover();
+    await page.waitForTimeout(80);
+    const hoverAnimations = await page.locator('.global-rail-action[aria-label="Client"]').evaluate((action) => (
+      action.getAnimations({ subtree: true }).map((animation) => animation.animationName)
+    ));
+    assert.equal(hoverAnimations.includes("global-rail-icon-sweep"), true);
+    await page.waitForTimeout(1500);
+    assert.deepEqual(await geometry(), initialGeometry);
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.waitForTimeout(40);
+    const reduced = await page.locator(".global-rail").evaluate((rail) => {
+      const brand = rail.querySelector(".global-rail-brand-mark");
+      const active = rail.querySelector(".global-rail-action.active");
+      return {
+        animations: rail.getAnimations({ subtree: true }).length,
+        brandOpacity: getComputedStyle(brand).opacity,
+        brandTransform: getComputedStyle(brand).transform,
+        indicatorOpacity: getComputedStyle(active, "::after").opacity,
+        indicatorTransform: getComputedStyle(active, "::after").transform,
+        scanDisplay: getComputedStyle(rail, "::after").display
+      };
+    });
+    assert.deepEqual(reduced, {
+      animations: 0,
+      brandOpacity: "1",
+      brandTransform: "none",
+      indicatorOpacity: "1",
+      indicatorTransform: "none",
+      scanDisplay: "none"
+    });
+  } finally {
+    await browser.close();
+  }
+});
+
+for (const width of [1440, 1180, 820, 390]) {
   for (const modeException of [false, true]) {
-    test(`forest shell fits ${width}x700${modeException ? " mode exception" : ""}`, async () => {
+    test(`forest global rail shell fits ${width}x700${modeException ? " mode exception" : ""}`, async () => {
       const browser = await chromium.launch({ headless: true });
       const page = await browser.newPage({ viewport: { width, height: 700 } });
       try {
         await page.setContent(`<html data-skin="forest"><body>${shellMarkup(modeException)}</body></html>`);
         await page.addStyleTag({ content: styles });
+        await page.waitForTimeout(250);
 
         const geometry = await page.evaluate(() => {
           const rect = (selector) => {
             const box = document.querySelector(selector).getBoundingClientRect();
-            return { top: box.top, bottom: box.bottom, height: box.height };
+            return { top: box.top, right: box.right, bottom: box.bottom, left: box.left, width: box.width, height: box.height };
           };
           return {
+            viewportWidth: window.innerWidth,
             viewportHeight: window.innerHeight,
-            topbar: rect(".topbar"),
             frame: rect(".app-frame"),
+            rail: rect(".global-rail"),
             sidebar: rect(".sidebar"),
+            canvas: rect(".page-canvas"),
             profile: rect(".forest-sidebar-user"),
-            axes: [...document.querySelectorAll(".top-axis-item")].map((item) => {
+            horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+            axes: [...document.querySelectorAll(".global-rail-nav .global-rail-action")].map((item) => {
               const style = getComputedStyle(item);
               return {
-                label: item.textContent,
+                label: item.getAttribute("aria-label"),
                 color: style.color,
-                fontWeight: style.fontWeight,
-                textTransform: style.textTransform
+                width: item.getBoundingClientRect().width,
+                height: item.getBoundingClientRect().height
               };
             })
           };
@@ -362,17 +453,21 @@ for (const width of [1280, 1180, 1024, 820]) {
 
         assert.deepEqual(geometry.axes.map((item) => item.label), ["Home", "Client", "Matter", "People", "Search", "Portal"]);
         for (const item of geometry.axes) {
-          assert.equal(item.color, "rgb(0, 0, 0)");
-          assert.equal(item.fontWeight, item.label === "Matter" ? "700" : "400");
-          assert.equal(item.textTransform, "none");
+          assert.equal(item.color, item.label === "Matter" ? "rgb(255, 255, 255)" : "rgba(255, 255, 255, 0.72)");
+          assert.equal(item.width, 40);
+          assert.equal(item.height, 40);
         }
+        assert.ok(Math.abs(geometry.rail.left) < 0.5, JSON.stringify(geometry));
+        assert.equal(geometry.rail.width, 56);
+        assert.equal(geometry.rail.height, geometry.viewportHeight);
+        assert.equal(geometry.sidebar.left, 56);
+        assert.equal(geometry.sidebar.width, 214);
         assert.ok(geometry.sidebar.bottom <= geometry.viewportHeight + 0.5, JSON.stringify(geometry));
         assert.ok(geometry.profile.bottom <= geometry.viewportHeight + 0.5, JSON.stringify(geometry));
-        if (width >= 821 && width <= 1180) {
-          assert.ok(geometry.topbar.height >= 90, JSON.stringify(geometry));
-          assert.equal(geometry.frame.height, 648);
-          assert.equal(geometry.sidebar.height, 648);
-        }
+        assert.equal(geometry.frame.height, geometry.viewportHeight);
+        assert.equal(geometry.sidebar.height, geometry.viewportHeight);
+        assert.equal(geometry.canvas.left, width >= 1200 ? 270 : 56);
+        assert.equal(geometry.horizontalOverflow, false);
       } finally {
         await browser.close();
       }
@@ -381,7 +476,7 @@ for (const width of [1280, 1180, 1024, 820]) {
 }
 
 for (const width of [720, 480]) {
-  test(`People leave navigation wraps without clipping at ${width}px`, async () => {
+  test(`People leave drawer navigation stays vertical without clipping at ${width}px`, async () => {
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({ viewport: { width, height: 800 } });
     try {
@@ -409,7 +504,7 @@ for (const width of [720, 480]) {
 
       assert.ok(geometry.documentWidth <= geometry.viewportWidth, JSON.stringify(geometry));
       assert.ok(geometry.navScrollWidth <= geometry.navClientWidth + 0.5, JSON.stringify(geometry));
-      assert.equal(geometry.rows, 2, JSON.stringify(geometry));
+      assert.equal(geometry.rows, 4, JSON.stringify(geometry));
       for (const child of geometry.children) {
         assert.ok(child.left >= 0 && child.right <= geometry.viewportWidth + 0.5, JSON.stringify(geometry));
         assert.ok(child.width > 0, JSON.stringify(geometry));

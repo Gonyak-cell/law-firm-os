@@ -67,12 +67,12 @@ async function main() {
 
     await page.waitForSelector("[data-home-dashboard-shell='true']", { timeout: 30_000 });
     await page.waitForSelector("[data-home-dashboard-grid='true']", { timeout: 30_000 });
-    await page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 30_000 });
+    await page.waitForSelector("[data-product-axis-nav='global-rail']", { timeout: 30_000 });
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
     const snapshot = await page.evaluate(async () => {
       const text = document.body.textContent ?? "";
-      const nav = document.querySelector("[data-product-axis-nav='top-header']");
+      const nav = document.querySelector("[data-product-axis-nav='global-rail']");
       const navRect = nav?.getBoundingClientRect();
       const portal = Array.from(document.querySelectorAll("[data-product-axis]")).find((node) =>
         node.textContent?.trim().toLowerCase() === "portal"
@@ -97,12 +97,12 @@ async function main() {
         widget_ids: Array.from(document.querySelectorAll("[data-widget-id]")).map((node) =>
           node.getAttribute("data-widget-id")
         ),
-        topbar_refresh_trigger_count: document.querySelectorAll("[data-topbar-refresh-trigger='true']").length,
+        global_rail_refresh_trigger_count: document.querySelectorAll("[data-global-refresh-trigger='true']").length,
         visible_refresh_button_texts: Array.from(document.querySelectorAll("button")).map((node) =>
           node.textContent?.replace(/\s+/g, " ").trim() ?? ""
         ).filter((label) => /새로고침/.test(label)),
         legacy_hero_refresh_class_count: document.querySelectorAll(".forest-hero-refresh-button").length,
-        top_header_nav: {
+        global_rail_nav: {
           labels: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) =>
             node.textContent?.replace(/\s+/g, " ").trim() ?? ""
           ),
@@ -111,8 +111,8 @@ async function main() {
           ),
           active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? "",
           active_axis_count: document.querySelectorAll("[data-product-axis][aria-current='page']").length,
-          portal_fully_visible: Boolean(portalRect && navRect && portalRect.left >= navRect.left - 1 && portalRect.right <= navRect.right + 1),
-          nav_horizontal_overflow: nav ? nav.scrollWidth > nav.clientWidth : false
+          portal_fully_visible: Boolean(portalRect && navRect && portalRect.top >= navRect.top - 1 && portalRect.bottom <= navRect.bottom + 1),
+          nav_vertical_overflow: nav ? nav.scrollHeight > nav.clientHeight : false
         },
         sidebar: {
           state: document.querySelector(".app-frame")?.getAttribute("data-sidebar-state") ?? "",
@@ -143,15 +143,15 @@ async function main() {
     assert.equal(snapshot.home_dashboard_grid, true, "Home dashboard grid must render");
     assert.equal(snapshot.home_dashboard_rail, true, "Home dashboard rail must render");
     assert.deepEqual(snapshot.widget_ids.sort(), ["approval", "calendar", "feed", "todo"].sort(), "the four Home dashboard widgets must render without the removed system card");
-    assert.equal(snapshot.topbar_refresh_trigger_count, 1, "top header must expose exactly one refresh icon trigger");
+    assert.equal(snapshot.global_rail_refresh_trigger_count, 1, "global rail must expose exactly one refresh icon trigger");
     assert.deepEqual(snapshot.visible_refresh_button_texts, [], "page surfaces must not render visible refresh text buttons");
     assert.equal(snapshot.legacy_hero_refresh_class_count, 0, "legacy hero refresh buttons must not render");
-    assert.deepEqual(snapshot.top_header_nav.labels, ["Home", "Client", "Matter", "People", "Vault", "Portal"], "top header must show the six-axis Portal IA");
-    assert.deepEqual(snapshot.top_header_nav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "top header axis IDs must match the six-axis Portal IA");
-    assert.equal(snapshot.top_header_nav.active_axis_count, 1, "exactly one product axis must be active");
-    assert.equal(snapshot.top_header_nav.active_axis, "home", "Home must be the active product axis");
-    assert.equal(snapshot.top_header_nav.portal_fully_visible, true, "Portal axis must be fully visible");
-    assert.equal(snapshot.top_header_nav.nav_horizontal_overflow, false, "top axis nav must not horizontally overflow");
+    assert.deepEqual(snapshot.global_rail_nav.labels, ["Home", "Client", "Matter", "People", "Search", "Portal"], "global rail must show the six-axis Portal IA");
+    assert.deepEqual(snapshot.global_rail_nav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "global rail axis IDs must match the six-axis Portal IA");
+    assert.equal(snapshot.global_rail_nav.active_axis_count, 1, "exactly one product axis must be active");
+    assert.equal(snapshot.global_rail_nav.active_axis, "home", "Home must be the active product axis");
+    assert.equal(snapshot.global_rail_nav.portal_fully_visible, true, "Portal axis must be fully visible");
+    assert.equal(snapshot.global_rail_nav.nav_vertical_overflow, false, "global rail nav must not vertically overflow");
     assert.deepEqual(snapshot.sidebar.duplicated_product_axis_labels, [], "contextual sidebar must not duplicate product-axis labels");
     assert.equal(snapshot.matter_session_bridge_present, true, "packaged renderer must expose the desktop matterSession bridge");
     assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "UI must not claim public release, go-live, or owner approval");

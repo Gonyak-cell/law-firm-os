@@ -149,7 +149,7 @@ async function run() {
   try {
     await page.goto(`${WEB_ORIGIN}/?view=clients&ctx=allow#client-accounts`, { waitUntil: "networkidle" });
     checks.push(await expectAttribute(page, ".app-frame", "data-sidebar-state", "expanded", "Sidebar defaults expanded"));
-    checks.push(await expectVisible(page, '[data-product-axis-nav="top-header"]', "Top product axis nav visible"));
+    checks.push(await expectVisible(page, '[data-product-axis-nav="global-rail"]', "Global product rail visible"));
     checks.push(await expectVisible(page, '[data-salesforce-client-workspace="list-detail-right-panel"]', "Client list/detail/right-panel workspace visible"));
     checks.push(await expectVisible(page, '[data-client-record-workspace="right-panel"]', "Client right record panel visible"));
     checks.push(await expectVisible(page, '[data-crm-accounts-read="true"]', "Client account route-backed section visible"));

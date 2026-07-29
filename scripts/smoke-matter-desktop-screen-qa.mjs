@@ -79,7 +79,7 @@ async function collectVisibleDiagnostics(page) {
   return {
     url: page.url(),
     login_screen: await page.locator('[data-login-screen="forest-split"]').count().catch(() => 0),
-    product_shell: await page.locator("[data-product-axis-nav='top-header']").count().catch(() => 0),
+    product_shell: await page.locator("[data-product-axis-nav='global-rail']").count().catch(() => 0),
     runtime_label: (await page.textContent("[data-runtime-label]").catch(() => ""))?.trim() ?? "",
     account_count: (await page.textContent("[data-account-count]").catch(() => ""))?.trim() ?? "",
     login_result: (await page.textContent("[data-login-result]").catch(() => ""))?.trim() ?? "",
@@ -105,7 +105,7 @@ async function resetAndLogin(page, email, { account } = {}) {
   await page.fill("[data-login-password]", password);
   await page.click('[data-login-form="email-password"] button[type="submit"]');
   await Promise.race([
-    page.waitForSelector("[data-product-axis-nav='top-header']", { timeout: 30_000 }),
+    page.waitForSelector("[data-product-axis-nav='global-rail']", { timeout: 30_000 }),
     page.waitForFunction(() => new URLSearchParams(window.location.search).get("view") === "home", null, { timeout: 30_000 })
   ]);
   const renderedPrivilege = (await page.textContent("[data-session-privilege]").catch(() => ""))?.trim() ?? "";
@@ -164,29 +164,29 @@ async function waitForProductUi(page) {
   assert.equal(snapshot.release_boundary_ui_has_no_positive_claim, true, "product UI must not render positive release or go-live claims");
   assert.equal(snapshot.no_dummy_visible, true, "post-login product UI must not render dummy/sample/synthetic text");
   assert.equal(snapshot.horizontal_overflow, false, "product UI must not horizontally overflow");
-  const topHeaderNav = await page.evaluate(() => {
-    const nav = document.querySelector("[data-product-axis-nav='top-header']");
+  const globalRailNav = await page.evaluate(() => {
+    const nav = document.querySelector("[data-product-axis-nav='global-rail']");
     const navRect = nav?.getBoundingClientRect();
-    const topbarRect = document.querySelector(".topbar")?.getBoundingClientRect();
+    const railRect = document.querySelector(".global-rail")?.getBoundingClientRect();
     const portal = Array.from(document.querySelectorAll("[data-product-axis]")).find((node) => node.textContent?.trim().toLowerCase() === "portal");
     const portalRect = portal?.getBoundingClientRect();
     return {
       labels: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.textContent.replace(/\s+/g, " ").trim()),
       axis_ids: Array.from(document.querySelectorAll("[data-product-axis]")).map((node) => node.getAttribute("data-product-axis")),
-      in_topbar: Boolean(navRect && topbarRect && navRect.top >= topbarRect.top && navRect.bottom <= topbarRect.bottom + 1),
+      in_global_rail: Boolean(navRect && railRect && navRect.left >= railRect.left - 1 && navRect.right <= railRect.right + 1),
       active_axis: document.querySelector("[data-product-axis][aria-current='page']")?.getAttribute("data-product-axis") ?? "",
       active_axis_count: document.querySelectorAll("[data-product-axis][aria-current='page']").length,
-      portal_fully_visible: Boolean(portalRect && navRect && portalRect.left >= navRect.left - 1 && portalRect.right <= navRect.right + 1),
-      nav_horizontal_overflow: nav ? nav.scrollWidth > nav.clientWidth : false
+      portal_fully_visible: Boolean(portalRect && navRect && portalRect.top >= navRect.top - 1 && portalRect.bottom <= navRect.bottom + 1),
+      nav_vertical_overflow: nav ? nav.scrollHeight > nav.clientHeight : false
     };
   });
-  assert.deepEqual(topHeaderNav.labels, ["Home", "Client", "Matter", "People", "Vault", "Portal"], "top header must render the six primary menu labels");
-  assert.deepEqual(topHeaderNav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "top header product-axis menu must stay fixed to Home/Client/Matter/People/Vault/Portal");
-  assert.equal(topHeaderNav.active_axis_count, 1, "product-axis menu must have exactly one active axis");
-  assert.equal(topHeaderNav.active_axis, "home", "post-login Home dashboard must keep Home as the active axis");
-  assert.equal(topHeaderNav.portal_fully_visible, true, "Portal axis label must be fully visible in the top header");
-  assert.equal(topHeaderNav.nav_horizontal_overflow, false, "product-axis menu must not horizontally overflow");
-  assert.equal(topHeaderNav.in_topbar, true, "product-axis menu must live inside the top header");
+  assert.deepEqual(globalRailNav.labels, ["Home", "Client", "Matter", "People", "Search", "Portal"], "global rail must render the six primary menu labels");
+  assert.deepEqual(globalRailNav.axis_ids, ["home", "clients", "matters", "people", "vault", "portal"], "global rail product axes must stay fixed to Home/Client/Matter/People/Search/Portal");
+  assert.equal(globalRailNav.active_axis_count, 1, "product-axis menu must have exactly one active axis");
+  assert.equal(globalRailNav.active_axis, "home", "post-login Home dashboard must keep Home as the active axis");
+  assert.equal(globalRailNav.portal_fully_visible, true, "Portal axis must be fully visible in the global rail");
+  assert.equal(globalRailNav.nav_vertical_overflow, false, "global rail product axes must not vertically overflow");
+  assert.equal(globalRailNav.in_global_rail, true, "product-axis menu must live inside the global rail");
   const contextualSidebar = await page.evaluate(() => {
     const frame = document.querySelector(".app-frame");
     const sidebar = document.querySelector(".sidebar");
@@ -211,7 +211,7 @@ async function waitForProductUi(page) {
   assert.equal(contextualSidebar.workspace_visible, true, "contextual sidebar must show the active workspace summary");
   assert.deepEqual(contextualSidebar.sidebar_product_axis_labels, [], "contextual sidebar must not duplicate the top product-axis menu");
   assert.equal(contextualSidebar.horizontal_overflow, false, "contextual sidebar must not horizontally overflow");
-  return { ...snapshot, logo_flow: logoFlow, top_header_nav: topHeaderNav, sidebar: { contextual: contextualSidebar } };
+  return { ...snapshot, logo_flow: logoFlow, global_rail_nav: globalRailNav, sidebar: { contextual: contextualSidebar } };
 }
 
 async function captureDashboardSurfaces(page) {
@@ -256,7 +256,7 @@ async function launchMatterApp(qaTarget) {
     let page = null;
     for (let attempt = 0; attempt < 60 && !page; attempt += 1) {
       for (const candidate of app.windows()) {
-        const ready = await candidate.locator('[data-login-screen="forest-split"], [data-product-axis-nav="top-header"], [data-matter-desktop-app]').count().catch(() => 0);
+        const ready = await candidate.locator('[data-login-screen="forest-split"], [data-product-axis-nav="global-rail"], [data-matter-desktop-app]').count().catch(() => 0);
         if (ready > 0) {
           page = candidate;
           break;
