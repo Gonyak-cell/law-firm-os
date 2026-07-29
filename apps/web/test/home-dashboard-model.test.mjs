@@ -19,7 +19,7 @@ test("Home dashboard month boundaries use Asia/Seoul", () => {
   assert.equal(seoulMonthKey("2026-06-30T15:00:00.000Z"), "2026-07");
 });
 
-test("Home finance model shares the KRW billed source between KPI and 12-month line series", () => {
+test("Home finance model shares the KRW billed source between KPI and 12-month bar series", () => {
   const model = buildFinanceDashboardModel(data([
     { month: "2026-06", currency: "KRW", billed_amount: 800, processed_cost: 100 },
     { month: "2026-07", currency: "KRW", billed_amount: 1_000, processed_cost: 125 },
@@ -46,8 +46,8 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
         status: "passed",
       },
       payroll_categories: [
-        { category: "partner", label: "파트너", gross_krw: 51_890_090, employee_count: 4 },
-        { category: "staff", label: "직원", gross_krw: 29_604_677, employee_count: 5 },
+        { category: "partner", label: "파트너", gross_krw: 68_848_440, employee_count: 6 },
+        { category: "staff", label: "직원", gross_krw: 12_646_327, employee_count: 3 },
         { category: "advisor", label: "고문", gross_krw: 9_571_212, employee_count: 1 },
       ],
     },
@@ -66,6 +66,11 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
   assert.equal(model.current.processed_cost, 136_100_193);
   assert.equal(model.payroll_summary.gross_krw, 91_065_979);
   assert.equal(model.payroll_summary.categories.reduce((sum, row) => sum + row.gross_krw, 0), 91_065_979);
+  assert.deepEqual(model.payroll_summary.categories.map(({ category, employee_count }) => [category, employee_count]), [
+    ["partner", 6],
+    ["staff", 3],
+    ["advisor", 1],
+  ]);
   assert.equal(model.series.at(-1).amount, 21_385_200);
   assert.equal(JSON.stringify(model).includes("employee_id"), false);
 });

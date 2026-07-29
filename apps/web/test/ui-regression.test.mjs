@@ -686,7 +686,7 @@ test("desktop post-login route skips repeated logo splash before the global rail
   }
   assert.doesNotMatch(homeSource, /activeHomeSection !== "home-dashboard" && \(\s*[\r\n]+\s*<section className="home-dashboard-hero"/);
   assert.match(homeSource, /<section className="home-dashboard-hero"/);
-  assert.match(homeSource, /<HomeRevenueLineChart series=\{financeDashboard\.series\} \/>/);
+  assert.match(homeSource, /<HomeRevenueBarChart series=\{financeDashboard\.series\} \/>/);
   assert.match(homeSource, /<HomePayrollDonutChart summary=\{payrollSummary\} \/>/);
   assert.match(homeSource, /data-home-cashflow-band="true"/);
   assert.match(homeSource, /canAccessHomeFinanceSection/);

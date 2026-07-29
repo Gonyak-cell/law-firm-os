@@ -5,7 +5,7 @@ import { importBankTransactionBatch } from "../../../packages/billing/src/bank-t
 import {
   BANK_CLASSIFICATION_CATEGORIES,
   autoClassifyBankTransactions,
-  bankPayrollCategory,
+  bankEmployeePayrollCategory,
   reviewBankTransactionClassifications,
   summarizeBankTransactionClassifications,
 } from "../../../packages/billing/src/bank-classification-service.js";
@@ -636,7 +636,7 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
       return {
         ...decision,
         ...(decision.category === "salary_payment"
-          ? { payroll_category: employee ? bankPayrollCategory(employee.title) : "unclassified" }
+          ? { payroll_category: employee ? bankEmployeePayrollCategory(employee) : "unclassified" }
           : {}),
       };
     });

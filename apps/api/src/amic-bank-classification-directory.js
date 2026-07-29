@@ -13,10 +13,24 @@ const BANK_ALIASES_BY_EMPLOYEE_ID = new Map([
   ["emp_amic_yjlee", ["YJL"]],
 ]);
 
+const PAYROLL_CATEGORY_BY_EMPLOYEE_ID = new Map([
+  ["emp_amic_ytkim", "partner"],
+  ["emp_amic_wsjo", "partner"],
+  ["emp_amic_bj_park", "partner"],
+  ["emp_amic_smcho", "partner"],
+  ["emp_amic_yhlim", "partner"],
+  ["emp_amic_jwsuh", "partner"],
+  ["emp_amic_sypark", "staff"],
+  ["emp_amic_tryoon", "staff"],
+  ["emp_amic_yjlee", "staff"],
+  ["emp_amic_jhhan", "advisor"],
+]);
+
 export function listAmicBankClassificationEmployees() {
   return Object.freeze(listHrxMemberRosterRows().map((employee) => Object.freeze({
     ...employee,
     aliases: Object.freeze([...(BANK_ALIASES_BY_EMPLOYEE_ID.get(employee.employee_id) ?? [])]),
+    payroll_category: PAYROLL_CATEGORY_BY_EMPLOYEE_ID.get(employee.employee_id) ?? "staff",
   })));
 }
 

@@ -89,6 +89,14 @@ const employees = [
     aliases: ["JWS"],
     status: "active",
   },
+  {
+    employee_id: "emp-ytk",
+    display_name: "김양태",
+    title: "대표이사",
+    payroll_category: "partner",
+    aliases: ["YTK"],
+    status: "active",
+  },
 ];
 
 function importedRepository() {
@@ -143,6 +151,19 @@ test("bank classification preview links registered-client inflows and exact payr
   assert.equal(byId.get("bank_tx_e").category, "related_party_transfer");
   assert.equal(byId.get("bank_tx_f").category, "refund_reversal");
   assert.equal(byId.get("bank_tx_0").category, "zero_amount_source");
+});
+
+test("explicit AMIC payroll role overrides a non-legal organization title", () => {
+  const preview = previewBankTransactionClassifications({
+    transactions: [bankTransaction("bank_tx_ytk", {
+      tenant_id: TENANT,
+      amount: 10_604_540,
+      counterparty: "7월 급여 YTK",
+    })],
+    employees,
+  });
+  assert.equal(preview.classifications[0].employee_id, "emp-ytk");
+  assert.equal(preview.classifications[0].payroll_category, "partner");
 });
 
 test("automatic classification is audited, idempotent, and leaves raw bank transactions unchanged", () => {

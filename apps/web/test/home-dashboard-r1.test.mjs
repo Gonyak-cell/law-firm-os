@@ -351,8 +351,8 @@ function wp5ApiBody(pathname, searchParams, state) {
           individual_payroll_values_included: false
         },
         payroll_categories: [
-          { category: "partner", label: "파트너", gross_krw: 51_890_090, payment_count: 4, employee_count: 4 },
-          { category: "staff", label: "직원", gross_krw: 29_604_677, payment_count: 5, employee_count: 5 },
+          { category: "partner", label: "파트너", gross_krw: 68_848_440, payment_count: 6, employee_count: 6 },
+          { category: "staff", label: "직원", gross_krw: 12_646_327, payment_count: 3, employee_count: 3 },
           { category: "advisor", label: "고문", gross_krw: 9_571_212, payment_count: 1, employee_count: 1 }
         ],
         monthly: [{
@@ -1401,8 +1401,15 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await page.locator('.home-dashboard-hero h1').textContent(), "Welcome, 서지원 변호사님");
     assert.equal(await page.locator('.home-dashboard-hero p').count(), 1);
     assert.equal(await page.locator('.home-dashboard-kpi-card').count(), 3);
-    assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
-    assert.equal(await page.locator('[data-home-payroll-donut-chart="true"]').count(), 1);
+    const revenueChart = page.locator('[data-home-revenue-bar-chart="true"]');
+    assert.equal(await revenueChart.count(), 1);
+    assert.equal(await revenueChart.locator(".home-revenue-bar").count(), 12);
+    assert.equal(await revenueChart.locator("polyline").count(), 0);
+    const payrollChart = page.locator('[data-home-payroll-donut-chart="true"]');
+    assert.equal(await payrollChart.count(), 1);
+    assert.match(await payrollChart.innerText(), /파트너\s*6명\s*68,848,440원/);
+    assert.match(await payrollChart.innerText(), /직원\s*3명\s*12,646,327원/);
+    assert.match(await payrollChart.innerText(), /고문\s*1명\s*9,571,212원/);
     assert.equal(await page.locator('[data-dashboard-section="today-todo"], [data-dashboard-section="pending-approvals"], [data-dashboard-section="new-engagements"], [data-dashboard-section="monthly-sales"], [data-dashboard-section="recent-work"]').count(), 0);
     for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
@@ -1844,7 +1851,7 @@ test("Home dashboard preserves a source error without hiding independent cards",
     await matterSection.getByText("신규 매터 목록을 불러오지 못했습니다.").waitFor();
     assert.equal(matterCalls >= 3, true);
     assert.equal(await page.locator('[data-dashboard-section="client-summary"] .dashboard-record-row').count() > 0, true);
-    assert.equal(await page.locator('[data-home-revenue-line-chart="true"]').count(), 1);
+    assert.equal(await page.locator('[data-home-revenue-bar-chart="true"]').count(), 1);
   } finally {
     await browser.close();
     await server.close();

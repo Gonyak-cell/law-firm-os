@@ -1925,26 +1925,31 @@ kbd {
   font-size: var(--am-font-size-meta);
 }
 
-.home-revenue-line {
-  fill: none;
-  stroke: var(--am-success);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 3;
+.home-revenue-bar-group {
+  outline: none;
 }
 
-.home-revenue-point {
-  fill: var(--am-surface);
-  stroke: var(--am-border);
+.home-revenue-bar {
+  fill: var(--am-success);
+  opacity: 0.48;
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+
+.home-revenue-bar.observed {
+  opacity: 0.82;
+}
+
+.home-revenue-bar-group:hover .home-revenue-bar,
+.home-revenue-bar-group:focus .home-revenue-bar {
+  opacity: 1;
+  filter: brightness(0.94);
+}
+
+.home-revenue-bar-group:focus .home-revenue-bar {
+  stroke: var(--am-focus-ring);
   stroke-width: 2;
 }
 
-.home-revenue-point.observed {
-  fill: var(--am-success);
-  stroke: var(--am-surface);
-}
-
-.home-revenue-point:focus,
 .home-payroll-legend li:focus {
   outline: 2px solid var(--am-focus-ring);
   outline-offset: 2px;
@@ -2050,6 +2055,19 @@ kbd {
   min-width: 0;
   font-size: var(--am-font-size-meta);
   font-style: normal;
+  white-space: nowrap;
+}
+
+.home-payroll-legend-name {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.home-payroll-legend-count {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
   white-space: nowrap;
 }
 
@@ -2204,8 +2222,7 @@ kbd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-revenue-line,
-  .home-revenue-point,
+  .home-revenue-bar,
   .home-payroll-donut-segment {
     transition: none;
   }

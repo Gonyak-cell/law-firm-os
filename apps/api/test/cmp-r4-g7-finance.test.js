@@ -33,6 +33,25 @@ test("AMIC bank initials extend the canonical HRX member roster", () => {
   assert.equal(byAlias.get("JWS").user_id, "user_amic_jwsuh");
   assert.equal(byAlias.get("JWS").display_name, "서지원");
   assert.equal(byAlias.get("JWS").work_email, "jwsuh@amic.kr");
+  assert.deepEqual(
+    Object.fromEntries(["김양태", "조우상", "박병준", "조성민", "임영훈", "서지원", "박서영", "이예진", "윤태리", "한제희"]
+      .map((displayName) => {
+        const employee = employees.find((candidate) => candidate.display_name === displayName);
+        return [displayName, employee?.payroll_category];
+      })),
+    {
+      김양태: "partner",
+      조우상: "partner",
+      박병준: "partner",
+      조성민: "partner",
+      임영훈: "partner",
+      서지원: "partner",
+      박서영: "staff",
+      이예진: "staff",
+      윤태리: "staff",
+      한제희: "advisor",
+    },
+  );
 });
 
 function permissionContext(effect = "allow", roleIds = ["finance_user"]) {

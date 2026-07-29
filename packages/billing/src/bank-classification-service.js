@@ -32,6 +32,7 @@ const CLIENT_NAME_FIELDS = Object.freeze([
   "alias_value",
 ]);
 const RULE_MATCH_FIELDS = new Set(["counterparty", "memo"]);
+const PAYROLL_CATEGORIES = new Set(["partner", "advisor", "staff"]);
 const PAYROLL_TITLE_RULES = Object.freeze([
   Object.freeze({ category: "partner", pattern: /partner|파트너|대표변호사|구성원변호사/iu }),
   Object.freeze({ category: "advisor", pattern: /advisor|adviser|counsel|고문|자문위원|자문역/iu }),
@@ -149,6 +150,11 @@ function employeeMatch(transaction, employees = []) {
 export function bankPayrollCategory(title) {
   const normalized = String(title ?? "").trim();
   return PAYROLL_TITLE_RULES.find((rule) => rule.pattern.test(normalized))?.category ?? "staff";
+}
+
+export function bankEmployeePayrollCategory(employee = {}) {
+  const explicit = String(employee.payroll_category ?? "").trim();
+  return PAYROLL_CATEGORIES.has(explicit) ? explicit : bankPayrollCategory(employee.title);
 }
 
 function matchingRule(transaction, rules = []) {
@@ -269,7 +275,7 @@ function automaticProposal(transaction, { client_records = [], employees = [], r
     return classificationProposal(transaction, {
       category: "salary_payment",
       employee_id: employee.employee_id,
-      payroll_category: bankPayrollCategory(employee.title),
+      payroll_category: bankEmployeePayrollCategory(employee),
       rationale_code: "salary_month_and_employee_exact",
     });
   }

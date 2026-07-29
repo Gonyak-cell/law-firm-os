@@ -36,7 +36,7 @@ import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { FinanceSurface } from "./FinanceSurface.jsx";
-import { HomePayrollDonutChart, HomeRevenueLineChart } from "./HomeDashboardCharts.jsx";
+import { HomePayrollDonutChart, HomeRevenueBarChart } from "./HomeDashboardCharts.jsx";
 import {
   buildClientDashboardModel,
   buildBankCashflowDashboardModel,
@@ -1819,7 +1819,7 @@ export function HomeSurface({
           headerExtra={<span className="home-dashboard-card-meta">최근 12개월 / 등록 고객 입금</span>}
         >
           <HomeDashboardState state={revenueChartState} noun="월별 매출">
-            <HomeRevenueLineChart series={financeDashboard.series} />
+            <HomeRevenueBarChart series={financeDashboard.series} />
           </HomeDashboardState>
         </DashboardCard>
         <DashboardCard
