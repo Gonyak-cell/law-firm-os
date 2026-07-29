@@ -30,7 +30,7 @@ const session = {
   email: "dashboard-package-qa@fixture.local",
   display_name: "대시보드 패키지 QA",
   role_ids: ["lawos_admin", "lawos_partner", "managing_partner"],
-  scopes: ["matter.read", "crm.read", "analytics.finance.read", "home.read", "hrx.read", "hrx.payroll.preview"],
+  scopes: ["matter.read", "crm.read", "analytics.finance.read", "finance.bank.read", "home.read", "hrx.read", "hrx.payroll.preview"],
   expires_at: "2099-12-31T23:59:59.000Z"
 };
 
@@ -103,6 +103,73 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/crm/opportunities") return respondJson(response, 200, listBody([{ opportunity_id: "opportunity_dashboard_new", display_name: "새롬 자문", stage: "qualified", owner_user_id: session.user_id, updated_at: nowIso }]));
   if (pathname === "/api/crm/contacts") return respondJson(response, 200, listBody([{ contact_id: "contact_dashboard_new", display_name: "오세진", status: "active", owner_user_id: session.user_id, updated_at: nowIso }]));
   if (pathname === "/api/crm/activities") return respondJson(response, 200, listBody([{ crm_activity_id: "activity_dashboard_meeting", subject: "정기 고객 미팅", party_display_name: "마루 주식회사", activity_type: "meeting", scheduled_at: nowIso, owner_user_id: session.user_id }]));
+  if (pathname === "/api/analytics/finance/cashflow") {
+    return respondJson(response, 200, {
+      request_id: "dashboard-package-qa-cashflow",
+      outcome: "passed",
+      item: {
+        summary: {
+          currency: "KRW",
+          current_balance: 29000000,
+          total_inflow: 15000000,
+          total_outflow: 13000000,
+          net_movement: 2000000,
+          transaction_count: 10,
+          account_count: 1,
+          classification_review_count: 0,
+          zero_amount_source_count: 0,
+          basis_at: nowIso
+        },
+        business_summary: {
+          currency: "KRW",
+          sales_amount: 12000000,
+          operating_expense_amount: 4000000,
+          payroll_payment_amount: 9000000,
+          non_operating_amount: 0,
+          classified_count: 10,
+          unclassified_count: 0,
+          review_count: 0,
+          coverage_percent: 100,
+          status: "passed",
+          invoice_required: false,
+          matter_required: false,
+          individual_payroll_values_included: false
+        },
+        payroll_categories: [
+          { category: "partner", label: "파트너", gross_krw: 4000000, payment_count: 2, employee_count: 2 },
+          { category: "advisor", label: "고문", gross_krw: 2000000, payment_count: 1, employee_count: 1 },
+          { category: "staff", label: "직원", gross_krw: 3000000, payment_count: 3, employee_count: 3 }
+        ],
+        monthly: [{
+          month: todayKey.slice(0, 7),
+          currency: "KRW",
+          total_inflow: 15000000,
+          total_outflow: 13000000,
+          sales_amount: 12000000,
+          operating_expense_amount: 4000000,
+          payroll_payment_amount: 9000000,
+          non_operating_amount: 0,
+          classified_transaction_count: 10,
+          unclassified_transaction_count: 0,
+          net_movement: 2000000,
+          transaction_count: 10
+        }],
+        reconciliation: {
+          status: "passed",
+          latest_batch_id: "dashboard_package_qa",
+          latest_batch_transaction_count: 10,
+          raw_source_payload_included: false
+        }
+      },
+      source_statuses: [],
+      filters: { currency: "KRW", time_zone: "Asia/Seoul" },
+      safe_error_codes: [],
+      audit_hint_ref: "dashboard-package-qa-cashflow-audit",
+      count_leak_prevented: true,
+      raw_source_payload_included: false,
+      production_ready_claim: false
+    });
+  }
   if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: todayKey.slice(0, 7), currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, processed_cost: 4000000 }]), source_statuses: [] });
   if (pathname === "/api/analytics/finance/clients") return respondJson(response, 200, { ...listBody([{ client_group_id: "client_dashboard_revenue", client_group_label: "마루 주식회사", currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, ar_balance: 3000000 }]), source_statuses: [] });
   if (pathname === "/api/hrx/payroll/dashboard-summary") {
