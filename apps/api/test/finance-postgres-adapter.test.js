@@ -63,7 +63,7 @@ function bankImportRequest() {
         transaction_count: 1,
         overlap_count: 0,
         source_count: 2,
-        production_import_approved: false,
+        production_import_approved: true,
       },
       transactions: [{
         bank_transaction_id: "bank-transaction-postgres-001",
