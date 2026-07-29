@@ -17,6 +17,7 @@ function clone(value) {
 
 const materializedBaselines = new WeakMap();
 const materializedReadOnlyShadows = new WeakMap();
+const materializedCanonicalAuditEvents = new WeakMap();
 const IDEMPOTENCY_AUTHORITY_FIELD = "__lawos_idempotency_authority_v1";
 const IDEMPOTENCY_RESPONSE_FIELD = "__lawos_idempotency_response_v1";
 
@@ -205,6 +206,7 @@ export function createRecordRepositoryDomainSnapshot({
       source_id,
       records: (state.records ?? []).filter((record) => record.tenant_id === tenantId),
       read_only_shadow_records: materializedReadOnlyShadows.get(repository) ?? Object.freeze([]),
+      canonical_audit_events: materializedCanonicalAuditEvents.get(repository) ?? Object.freeze([]),
       idempotency: (state.idempotency ?? []).filter((entry) => entry.tenant_id === tenantId),
       audit_events: (state.audit_events ?? []).filter((event) => event.tenant_id === tenantId),
     });
@@ -337,9 +339,13 @@ export function createRecordRepositoryDomainSnapshot({
   }
   const auditMap = new Map();
   for (const source of sourceStates) {
+    const canonicalAuditById = new Map(
+      source.canonical_audit_events.map((event) => [event.event_id, event]),
+    );
     for (const event of source.audit_events) {
       const eventId = requiredText(event.event_id, "audit event_id");
-      const normalized = {
+      const canonical = canonicalAuditById.get(eventId);
+      const normalized = canonical ? clone(canonical) : {
         tenant_id: tenantId,
         domain_id: descriptor.domain_id,
         event_id: eventId,
@@ -370,6 +376,7 @@ export function createRecordRepositoryDomainSnapshot({
     source_id: source.source_id,
     records: source.records,
     read_only_shadow_records: source.read_only_shadow_records,
+    canonical_audit_events: source.canonical_audit_events,
     idempotency: source.idempotency,
     audit_events: source.audit_events,
   })));
@@ -463,6 +470,10 @@ export async function materializeRecordRepositoryFromDomainLedger({
   materializedReadOnlyShadows.set(
     repository,
     Object.freeze(readOnlyShadowRecords.map((record) => Object.freeze(clone(record)))),
+  );
+  materializedCanonicalAuditEvents.set(
+    repository,
+    Object.freeze(auditEvents.map((event) => Object.freeze(clone(event)))),
   );
   return repository;
 }
