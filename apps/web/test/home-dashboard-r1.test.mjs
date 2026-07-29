@@ -1373,7 +1373,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     const dashboardCards = [
       ["monthly-revenue", "이번달 매출"],
       ["monthly-payroll", "이번달 급여 지급액"],
-      ["monthly-processed-cost", "이번달 비용처리"],
+      ["monthly-processed-cost", "이번달 비용"],
       ["monthly-revenue-chart", "월별 매출"],
       ["payroll-categories", "급여 구분"],
       ["client-summary", "Client"],
@@ -1386,6 +1386,10 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       assert.equal(await card.count(), 1, `Home must show one ${title} card`);
       assert.equal(await card.locator(".home-dashboard-card-header").getByText(title, { exact: true }).count(), 1, `${title} card must keep its requested heading`);
     }
+    const monthlyExpenseCard = page.locator('[data-dashboard-section="monthly-processed-cost"]');
+    assert.match(await monthlyExpenseCard.innerText(), /₩ 136,100,193/);
+    assert.match(await monthlyExpenseCard.innerText(), /총 출금 - 급여 지급액/);
+    assert.doesNotMatch(await monthlyExpenseCard.innerText(), /비용처리/);
     const cashflowBand = page.locator('[data-home-cashflow-band="true"]');
     assert.equal(await cashflowBand.count(), 1, "Home must show the cashflow band");
     assert.match(await cashflowBand.innerText(), /현재 잔액\s*₩ 29,153,222/);
@@ -1405,6 +1409,10 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await revenueChart.count(), 1);
     assert.equal(await revenueChart.locator(".home-revenue-bar").count(), 12);
     assert.equal(await revenueChart.locator("polyline").count(), 0);
+    assert.deepEqual(
+      await revenueChart.locator(".home-chart-gridline text").allTextContents(),
+      ["3,000만", "0"],
+    );
     const payrollChart = page.locator('[data-home-payroll-donut-chart="true"]');
     assert.equal(await payrollChart.count(), 1);
     assert.match(await payrollChart.innerText(), /파트너\s*6명\s*68,848,440원/);
