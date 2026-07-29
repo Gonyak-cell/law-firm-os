@@ -148,6 +148,7 @@ export function createFinanceRuntimeContext({
   matterRepository = null,
   clientRecords = null,
   employees = listAmicBankClassificationEmployees(),
+  employeeRepository = null,
 } = {}) {
   return Object.freeze({
     repository,
@@ -155,6 +156,7 @@ export function createFinanceRuntimeContext({
     matterRepository,
     clientRecords: Array.isArray(clientRecords) ? Object.freeze([...clientRecords]) : null,
     employees: Object.freeze([...(employees ?? [])]),
+    employeeRepository,
     seed_ref: "cmp-g7-finance-synthetic",
   });
 }
@@ -358,7 +360,12 @@ function classificationDirectories(runtime, tenantId) {
     );
   return Object.freeze({
     clientRecords,
-    employees: runtime.employees ?? Object.freeze([]),
+    employees: runtime.employeeRepository
+      ? listAmicBankClassificationEmployees({
+          repository: runtime.employeeRepository,
+          tenantId,
+        })
+      : runtime.employees ?? Object.freeze([]),
   });
 }
 

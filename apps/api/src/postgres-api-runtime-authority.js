@@ -192,6 +192,7 @@ function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRu
     repository: repositories.financeRepository,
     masterDataRepository: repositories.masterDataRepository,
     matterRepository: repositories.matterRepository,
+    employeeRepository: hrxRuntime.repository,
   });
   const analyticsRuntime = createAnalyticsRuntimeContext({
     repository: repositories.analyticsRepository,
