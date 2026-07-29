@@ -78,6 +78,7 @@ function uniqueKey(record) {
 
 export const MASTER_DATA_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
   domain_id: "master-data",
+  read_only_shadow_record_types: ["OperationalAuthoritySmoke"],
   resolve_record_id(record) {
     const field = MASTER_DATA_PRIMARY_ID_FIELDS[record.model_type];
     return field ? record[field] : record.resource_id ?? record.id;
