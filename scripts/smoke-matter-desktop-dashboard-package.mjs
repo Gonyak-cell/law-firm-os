@@ -299,7 +299,7 @@ try {
               .filter(Boolean)
               .sort();
             return JSON.stringify(sections) === JSON.stringify([...expectedSections].sort())
-              && document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length === 1
+              && document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length === 1
               && document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length === 1
               && ["₩ 12,000,000", "₩ 9,000,000", "₩ 4,000,000", "마루 주식회사", "연차 휴가 신청", "QA-2026-002", "고객 미팅"]
                 .every((value) => text.includes(value));
@@ -356,7 +356,7 @@ try {
             expected_sections: expectedSections,
             rendered_sections: renderedSections,
             missing_sections: expectedSections.filter((section) => !renderedSections.includes(section)),
-            revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length,
+            revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length,
             payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
             revenue_fixture_visible: text.includes("₩ 12,000,000"),
             payroll_fixture_visible: text.includes("₩ 9,000,000"),
@@ -397,7 +397,7 @@ try {
         people_dashboard_count: document.querySelectorAll('[data-people-dashboard="true"]').length,
         customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
         home_dashboard_grid_count: document.querySelectorAll(`${selector} [data-home-dashboard-grid="true"]`).length,
-        home_revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-line-chart="true"]`).length,
+        home_revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length,
         home_payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
         home_revenue_fixture_visible: surfaceText.includes("₩ 12,000,000"),
         home_payroll_fixture_visible: surfaceText.includes("₩ 9,000,000"),
@@ -426,7 +426,7 @@ try {
     assert.deepEqual([...snapshot.sections].sort(), [...sections].sort(), `${view} dashboard sections`);
     if (view === "home") {
       assert.equal(snapshot.home_dashboard_grid_count, 1, "Home must render one overview grid");
-      assert.equal(snapshot.home_revenue_chart_count, 1, "Home must render the monthly revenue line chart");
+      assert.equal(snapshot.home_revenue_chart_count, 1, "Home must render the monthly revenue bar chart");
       assert.equal(snapshot.home_payroll_chart_count, 1, "Home must render the payroll category donut chart");
       assert.equal(snapshot.home_revenue_fixture_visible, true, "Home must render the monthly revenue fixture");
       assert.equal(snapshot.home_payroll_fixture_visible, true, "Home must render the aggregate payroll fixture");
