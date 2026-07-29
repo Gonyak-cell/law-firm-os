@@ -353,3 +353,186 @@ export function buildFinanceReadModels({
     production_ready_claim: false,
   });
 }
+
+export function buildCashflowReadModel({
+  financeRepository,
+  tenant_id,
+  from = null,
+  to = null,
+  currency = "KRW",
+  account_ref = null,
+} = {}) {
+  const tenantId = requiredString({ tenant_id }, "tenant_id");
+  validateDateFilter(from, "from");
+  validateDateFilter(to, "to");
+  const normalizedCurrency = requiredString({ currency: currency ?? "KRW" }, "currency").toUpperCase();
+  if (normalizedCurrency !== "KRW") throw new TypeError("cashflow currency must be KRW");
+  const sourceStatuses = [];
+  const allTransactions = listSource(financeRepository, tenantId, "BankTransaction", sourceStatuses)
+    .filter((row) => row.currency === normalizedCurrency)
+    .filter((row) => !account_ref || row.account_ref === account_ref);
+  const allClassifications = listSource(
+    financeRepository,
+    tenantId,
+    "BankTransactionClassification",
+    sourceStatuses,
+  );
+  const batches = listSource(financeRepository, tenantId, "BankImportBatch", sourceStatuses);
+  const transactions = allTransactions
+    .filter((row) => !from || row.date >= from)
+    .filter((row) => !to || row.date <= to)
+    .sort((left, right) => left.occurred_at.localeCompare(right.occurred_at));
+  const balanceCandidates = allTransactions
+    .filter((row) => !to || row.date <= to)
+    .sort((left, right) => left.occurred_at.localeCompare(right.occurred_at));
+  const latestByAccount = new Map();
+  for (const transaction of balanceCandidates) latestByAccount.set(transaction.account_ref, transaction);
+  const currentBalance = [...latestByAccount.values()].reduce((sum, row) => sum + numberValue(row.balance_after), 0);
+  const totalInflow = transactions.filter((row) => row.direction === "inflow").reduce((sum, row) => sum + numberValue(row.amount), 0);
+  const totalOutflow = transactions.filter((row) => row.direction === "outflow").reduce((sum, row) => sum + numberValue(row.amount), 0);
+  const transactionIds = new Set(transactions.map((row) => row.bank_transaction_id));
+  const classifications = allClassifications.filter((row) => transactionIds.has(row.bank_transaction_id));
+  const classificationsByTransaction = new Map();
+  for (const classification of classifications) {
+    if (classificationsByTransaction.has(classification.bank_transaction_id)) {
+      throw new TypeError(`Duplicate bank classification: ${classification.bank_transaction_id}`);
+    }
+    classificationsByTransaction.set(classification.bank_transaction_id, classification);
+  }
+  const businessTotals = {
+    sales_amount: 0,
+    operating_expense_amount: 0,
+    payroll_payment_amount: 0,
+    non_operating_amount: 0,
+  };
+  const payrollCategories = new Map();
+  const monthly = new Map();
+  for (const transaction of transactions) {
+    const month = transaction.date.slice(0, 7);
+    const row = monthly.get(month) ?? {
+      month,
+      currency: normalizedCurrency,
+      total_inflow: 0,
+      total_outflow: 0,
+      net_movement: 0,
+      transaction_count: 0,
+      sales_amount: 0,
+      operating_expense_amount: 0,
+      payroll_payment_amount: 0,
+      non_operating_amount: 0,
+      classified_transaction_count: 0,
+      unclassified_transaction_count: 0,
+    };
+    if (transaction.direction === "inflow") row.total_inflow = money(row.total_inflow + numberValue(transaction.amount));
+    if (transaction.direction === "outflow") row.total_outflow = money(row.total_outflow + numberValue(transaction.amount));
+    row.net_movement = money(row.total_inflow - row.total_outflow);
+    row.transaction_count += 1;
+    const classification = classificationsByTransaction.get(transaction.bank_transaction_id);
+    if (!classification) {
+      row.unclassified_transaction_count += 1;
+      monthly.set(month, row);
+      continue;
+    }
+    if (
+      numberValue(classification.amount) !== numberValue(transaction.amount)
+      || classification.transaction_direction !== transaction.direction
+      || classification.transaction_date !== transaction.date
+    ) {
+      throw new TypeError(`Bank classification does not reconcile: ${transaction.bank_transaction_id}`);
+    }
+    row.classified_transaction_count += 1;
+    const amountField = {
+      sales: "sales_amount",
+      operating_expense: "operating_expense_amount",
+      payroll: "payroll_payment_amount",
+      non_operating: "non_operating_amount",
+    }[classification.primary_type];
+    if (!amountField) throw new TypeError(`Unsupported bank classification type: ${classification.primary_type}`);
+    row[amountField] = money(row[amountField] + numberValue(classification.amount));
+    businessTotals[amountField] = money(businessTotals[amountField] + numberValue(classification.amount));
+    if (classification.primary_type === "payroll") {
+      const category = classification.payroll_category ?? "unclassified";
+      const payrollRow = payrollCategories.get(category) ?? {
+        category,
+        label: {
+          partner: "파트너",
+          advisor: "고문",
+          staff: "직원",
+          unclassified: "구성원 미확정",
+        }[category] ?? category,
+        gross_krw: 0,
+        payment_count: 0,
+        employee_ids: new Set(),
+      };
+      payrollRow.gross_krw = money(payrollRow.gross_krw + numberValue(classification.amount));
+      payrollRow.payment_count += 1;
+      if (classification.employee_id) payrollRow.employee_ids.add(classification.employee_id);
+      payrollCategories.set(category, payrollRow);
+    }
+    monthly.set(month, row);
+  }
+  const latest = [...latestByAccount.values()].sort((left, right) => right.occurred_at.localeCompare(left.occurred_at))[0] ?? null;
+  const latestBatch = [...batches].sort((left, right) => String(right.created_at ?? "").localeCompare(String(left.created_at ?? "")))[0] ?? null;
+  const summary = Object.freeze({
+    currency: normalizedCurrency,
+    current_balance: money(currentBalance),
+    total_inflow: money(totalInflow),
+    total_outflow: money(totalOutflow),
+    net_movement: money(totalInflow - totalOutflow),
+    transaction_count: transactions.length,
+    account_count: latestByAccount.size,
+    classification_review_count: classifications.length > 0
+      ? transactions.length - classifications.length + classifications.filter((row) => row.status !== "confirmed").length
+      : transactions.filter((row) => row.classification_state === "unreviewed").length,
+    zero_amount_source_count: transactions.filter((row) => row.zero_amount_source_record === true).length,
+    basis_at: latest?.occurred_at ?? null,
+  });
+  const unclassifiedCount = transactions.length - classifications.length;
+  const businessSummary = Object.freeze({
+    currency: normalizedCurrency,
+    ...businessTotals,
+    classified_count: classifications.length,
+    unclassified_count: unclassifiedCount,
+    review_count: unclassifiedCount + classifications.filter((row) => row.status !== "confirmed").length,
+    coverage_percent: transactions.length > 0 ? money(classifications.length / transactions.length * 100) : 0,
+    status: unclassifiedCount === 0 && classifications.every((row) => row.status === "confirmed") ? "passed" : "partial",
+    invoice_required: false,
+    matter_required: false,
+    individual_payroll_values_included: false,
+  });
+  const payrollCategoryRows = Object.freeze([...payrollCategories.values()].map((row) => Object.freeze({
+    category: row.category,
+    label: row.label,
+    gross_krw: row.gross_krw,
+    payment_count: row.payment_count,
+    employee_count: row.employee_ids.size,
+    individual_payroll_values_included: false,
+  })));
+  const partial = sourceStatuses.some((source) => source.status !== "passed");
+  return Object.freeze({
+    summary,
+    business_summary: businessSummary,
+    payroll_categories: payrollCategoryRows,
+    monthly: Object.freeze([...monthly.values()].map((row) => Object.freeze({ ...row }))),
+    reconciliation: Object.freeze({
+      status: latestBatch?.status === "reconciled" && !partial ? "passed" : partial ? "partial" : "pending",
+      latest_batch_id: latestBatch?.bank_import_batch_id ?? null,
+      latest_batch_transaction_count: latestBatch?.transaction_count ?? 0,
+      raw_source_payload_included: false,
+    }),
+    source_statuses: Object.freeze(sourceStatuses.map((source) => Object.freeze({ ...source }))),
+    filters: Object.freeze({
+      tenant_id: tenantId,
+      from,
+      to,
+      currency: normalizedCurrency,
+      account_ref,
+      time_zone: "Asia/Seoul",
+    }),
+    partial,
+    raw_source_payload_included: false,
+    counterparty_values_included: false,
+    credential_material_included: false,
+    production_ready_claim: false,
+  });
+}

@@ -566,6 +566,41 @@ test("desktop runtime permits only the explicit HRX payroll mutations", async ()
   assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405, 405]);
 });
 
+test("desktop runtime permits only the explicit bank import and classification mutations", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "passed" });
+    }
+  });
+  const allowed = [
+    "/api/finance/bank-imports",
+    "/api/finance/bank-classifications/auto",
+    "/api/finance/bank-classifications/review"
+  ];
+  for (const path of allowed) {
+    const result = await client.api({
+      path,
+      method: "POST",
+      headers: { "x-lawos-permission-context": "{\"principal\":{\"user_id\":\"user_amic_jwsuh\"}}" },
+      body: JSON.stringify({ fixture: true }),
+      sessionToken: "lawos_session_v1.secret"
+    });
+    assert.equal(result.http_status, 200, path);
+  }
+  const blocked = await Promise.all([
+    client.api({ path: "/api/finance/bank-imports/delete", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/finance/bank-transactions", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/finance/bank-classifications", method: "PATCH", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+
+  assert.equal(calls.length, allowed.length);
+  assert.equal(calls.every((call) => call.init.headers.authorization === "Bearer lawos_session_v1.secret"), true);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
+});
+
 test("runtime client permits only authenticated Matter profile and stakeholder writes", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({

@@ -6,6 +6,7 @@ import test from "node:test";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
+import { resolveLawosUserRoleAssignment } from "../src/lawos-role-registry.js";
 import { createAnalyticsRuntimeContext } from "../src/analytics-runtime-context.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -13,6 +14,10 @@ import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_cmp_g8_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g8_read&audit_hint_ref=audit_hint_cmp_g8_read`;
+const SUPER_ADMIN_ACCOUNT = findRegisteredAccountByUserId("user_amic_jwsuh");
+const STAFF_ACCOUNT = findRegisteredAccountByUserId("user_amic_sypark");
+assert.ok(SUPER_ADMIN_ACCOUNT);
+assert.ok(STAFF_ACCOUNT);
 
 function permissionContext(effect = "allow") {
   return JSON.stringify({
@@ -42,6 +47,11 @@ function financeReadModelRuntime() {
       { model_type: "PaymentMatch", payment_match_id: "api-fin-match", tenant_id: TENANT, payment_id: "api-fin-payment", invoice_id: "api-fin-invoice", matched_amount: 400, currency: "KRW", matched_at: "2026-07-04", status: "matched" },
       { model_type: "Expense", expense_id: "api-fin-expense", tenant_id: TENANT, matter_id: "api-fin-matter", amount: 200, currency: "KRW", expense_date: "2026-07-05", approved_for_wip: true, status: "approved" },
       { model_type: "Disbursement", disbursement_id: "api-fin-unlinked", tenant_id: TENANT, matter_id: "api-fin-unlinked-matter", amount: 50, currency: "KRW", disbursed_at: "2026-07-06", recoverable: true, status: "approved" },
+      { model_type: "BankImportBatch", bank_import_batch_id: "api-bank-batch", tenant_id: TENANT, source_manifest_hash: "a".repeat(64), account_ref: "api-bank-account", transaction_count: 2, status: "reconciled" },
+      { model_type: "BankTransaction", bank_transaction_id: "api-bank-in", bank_import_batch_id: "api-bank-batch", tenant_id: TENANT, account_ref: "api-bank-account", transaction_fingerprint: "b".repeat(64), date: "2026-07-27", occurred_at: "2026-07-27T13:38:19+09:00", direction: "inflow", amount: 30000000, balance_after: 63909212, currency: "KRW", classification_state: "unreviewed" },
+      { model_type: "BankTransaction", bank_transaction_id: "api-bank-out", bank_import_batch_id: "api-bank-batch", tenant_id: TENANT, account_ref: "api-bank-account", transaction_fingerprint: "c".repeat(64), date: "2026-07-28", occurred_at: "2026-07-28T14:50:03+09:00", direction: "outflow", amount: 280000, balance_after: 29153222, currency: "KRW", classification_state: "unreviewed" },
+      { model_type: "BankTransactionClassification", bank_transaction_classification_id: "api-bank-classification-in", tenant_id: TENANT, bank_transaction_id: "api-bank-in", account_ref: "api-bank-account", transaction_date: "2026-07-27", transaction_month: "2026-07", transaction_direction: "inflow", amount: 30000000, currency: "KRW", primary_type: "sales", category: "client_receipt", client_group_id: "api-fin-client", status: "confirmed" },
+      { model_type: "BankTransactionClassification", bank_transaction_classification_id: "api-bank-classification-out", tenant_id: TENANT, bank_transaction_id: "api-bank-out", account_ref: "api-bank-account", transaction_date: "2026-07-28", transaction_month: "2026-07", transaction_direction: "outflow", amount: 280000, currency: "KRW", primary_type: "payroll", category: "salary_payment", payroll_category: "staff", employee_id: "api-employee-private", status: "confirmed" },
     ],
   });
   return createAnalyticsRuntimeContext({
@@ -158,6 +168,56 @@ test("WP-FIN-2 finance read APIs reconcile overview, monthly, clients, and unlin
     assert.equal(overview.body.credential_material_included, false);
     assert.equal(overview.body.journal_lines_included, false);
     assert.equal(overview.body.production_ready_claim, false);
+  }, { analyticsRuntime: financeReadModelRuntime() });
+});
+
+test("AMIC cashflow aggregate is available to jwsuh super-admin and omitted for ordinary staff", async () => {
+  const assignment = resolveLawosUserRoleAssignment(SUPER_ADMIN_ACCOUNT, { tenantId: TENANT });
+  assert.equal(assignment.role_ids.includes("system_super_admin"), true);
+  assert.equal(assignment.scopes.includes("analytics.finance.read"), true);
+  assert.equal(assignment.scopes.includes("finance.bank.read"), true);
+  assert.equal(assignment.scopes.includes("finance.bank.import"), true);
+
+  await withServer(async (baseUrl) => {
+    const query = `${BASE_QUERY}&from=2026-07-01&to=2026-07-31`;
+    const allowed = await json(baseUrl, `/api/analytics/finance/cashflow?${query}`, { account: SUPER_ADMIN_ACCOUNT });
+    assert.equal(allowed.status, 200);
+    assert.deepEqual(allowed.body.item.summary, {
+      currency: "KRW",
+      current_balance: 29153222,
+      total_inflow: 30000000,
+      total_outflow: 280000,
+      net_movement: 29720000,
+      transaction_count: 2,
+      account_count: 1,
+      classification_review_count: 0,
+      zero_amount_source_count: 0,
+      basis_at: "2026-07-28T14:50:03+09:00",
+    });
+    assert.deepEqual(allowed.body.item.business_summary, {
+      currency: "KRW",
+      sales_amount: 30000000,
+      operating_expense_amount: 0,
+      payroll_payment_amount: 280000,
+      non_operating_amount: 0,
+      classified_count: 2,
+      unclassified_count: 0,
+      review_count: 0,
+      coverage_percent: 100,
+      status: "passed",
+      invoice_required: false,
+      matter_required: false,
+      individual_payroll_values_included: false,
+    });
+    assert.equal(JSON.stringify(allowed.body.item).includes("api-employee-private"), false);
+    assert.equal(allowed.body.counterparty_values_included, false);
+    assert.equal(allowed.body.raw_source_payload_included, false);
+
+    const denied = await json(baseUrl, `/api/analytics/finance/cashflow?${query}`, { account: STAFF_ACCOUNT });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(denied.body.item, undefined);
+    assert.equal(denied.body.count_leak_prevented, true);
   }, { analyticsRuntime: financeReadModelRuntime() });
 });
 

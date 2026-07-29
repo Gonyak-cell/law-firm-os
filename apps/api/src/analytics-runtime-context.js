@@ -12,7 +12,7 @@ import {
   createRealizationMetric,
 } from "../../../packages/analytics/src/metrics-service.js";
 import { createAnalyticsExport } from "../../../packages/analytics/src/export-control-service.js";
-import { buildFinanceReadModels } from "../../../packages/analytics/src/finance-read-model.js";
+import { buildCashflowReadModel, buildFinanceReadModels } from "../../../packages/analytics/src/finance-read-model.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
 export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
@@ -24,6 +24,7 @@ export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/analytics/finance/overview",
     "GET /api/analytics/finance/monthly",
     "GET /api/analytics/finance/clients",
+    "GET /api/analytics/finance/cashflow",
     "POST /api/analytics/refresh",
     "GET /api/analytics/matter-profitability",
     "POST /api/analytics/matter-profitability",
@@ -235,16 +236,51 @@ function listResponse({ query, context, requestId, runtime, action, resourceType
 }
 
 function financeReadModelResponse({ kind, query, context, requestId, runtime }) {
+  const cashflow = kind === "cashflow";
   const gated = routeGate({
     context,
     query,
     requestId,
-    action: "analytics:finance:read",
-    resourceType: "finance_read_model",
+    action: cashflow ? "finance:bank_transaction:read" : "analytics:finance:read",
+    resourceType: cashflow ? "bank_transaction" : "finance_read_model",
     repository: runtime.repository,
   });
   if (gated) return gated;
   try {
+    if (cashflow) {
+      const model = buildCashflowReadModel({
+        financeRepository: runtime.financeRepository,
+        tenant_id: query.tenant_id,
+        from: query.from ?? null,
+        to: query.to ?? null,
+        currency: query.currency ?? "KRW",
+        account_ref: query.account_ref ?? null,
+      });
+      return {
+        status: 200,
+        body: {
+          request_id: requestId,
+          outcome: model.partial ? "partial" : "passed",
+          item: {
+            summary: model.summary,
+            business_summary: model.business_summary,
+            payroll_categories: model.payroll_categories,
+            monthly: model.monthly,
+            reconciliation: model.reconciliation,
+          },
+          source_statuses: model.source_statuses,
+          filters: model.filters,
+          safe_error_codes: model.partial ? ["ANALYTICS_FINANCE_PARTIAL_SOURCE"] : [],
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: model.summary.transaction_count === 0 ? "empty" : model.partial ? "partial" : null,
+          count_leak_prevented: true,
+          raw_source_payload_included: false,
+          counterparty_values_included: false,
+          credential_material_included: false,
+          production_ready_claim: false,
+        },
+      };
+    }
     const model = buildFinanceReadModels({
       financeRepository: runtime.financeRepository,
       masterDataRepository: runtime.masterDataRepository,
@@ -530,6 +566,9 @@ export async function handleAnalyticsApiRequest({ pathname, method, query, body,
   }
   if (pathname === "/api/analytics/finance/clients" && method === "GET") {
     return financeReadModelResponse({ kind: "clients", query, context, requestId, runtime });
+  }
+  if (pathname === "/api/analytics/finance/cashflow" && method === "GET") {
+    return financeReadModelResponse({ kind: "cashflow", query, context, requestId, runtime });
   }
   if (pathname === "/api/analytics/dashboards" && method === "GET") {
     return listResponse({ query, context, requestId, runtime, action: "analytics:dashboard:read", resourceType: "analytics_dashboard", modelType: "AnalyticsDashboard" });

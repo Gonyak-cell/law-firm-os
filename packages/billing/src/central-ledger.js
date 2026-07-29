@@ -8,6 +8,8 @@ import { createFinanceRepository, FINANCE_PRIMARY_ID_FIELDS } from "./finance-re
 
 export const FINANCE_APPEND_ONLY_RECORD_TYPES = Object.freeze([
   "ARAgingSnapshot",
+  "BankImportBatch",
+  "BankTransaction",
   "BillingAdjustment",
   "InvoiceCorrection",
   "InvoiceLine",
@@ -31,6 +33,8 @@ const MONEY_FIELDS = Object.freeze({
   ARBalance: ["balance"],
   AccountingExport: ["debit_total", "credit_total"],
   BillingAdjustment: ["amount"],
+  BankTransaction: ["amount", "balance_after"],
+  BankTransactionClassification: ["amount"],
   Disbursement: ["amount"],
   Expense: ["amount"],
   FeeArrangement: ["fixed_fee_amount", "upfront_fee_amount", "success_fee_amount", "retainer_amount", "retainer_available_amount"],
@@ -101,6 +105,12 @@ function references(record) {
   if (record.model_type === "SettlementRun") {
     for (const paymentMatchId of record.payment_match_refs ?? []) add("payment_match", "PaymentMatch", paymentMatchId, { required: true });
   }
+  if (record.model_type === "BankTransaction") {
+    add("bank_import_batch", "BankImportBatch", record.bank_import_batch_id, { required: true });
+  }
+  if (record.model_type === "BankTransactionClassification") {
+    add("bank_transaction", "BankTransaction", record.bank_transaction_id, { required: true });
+  }
   return values;
 }
 
@@ -119,6 +129,12 @@ function uniqueKey(record) {
   }
   if (record.model_type === "TrustBalance" && record.matter_id && record.currency) {
     return `trust-balance:${hashDomainValue({ matter_id: record.matter_id, currency: record.currency })}`;
+  }
+  if (record.model_type === "BankImportBatch" && record.source_manifest_hash) {
+    return `bank-import-manifest:${hashDomainValue(record.source_manifest_hash)}`;
+  }
+  if (record.model_type === "BankTransaction" && record.transaction_fingerprint) {
+    return `bank-transaction:${hashDomainValue(record.transaction_fingerprint)}`;
   }
   return null;
 }
@@ -141,6 +157,9 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "vendor_ref",
     "lines",
     "csv_text",
+    "counterparty",
+    "memo",
+    "source_refs",
   ],
   primary_key_fields: Object.values(FINANCE_PRIMARY_ID_FIELDS),
   unique_rules: [
@@ -149,6 +168,8 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "Payment.bank_reference_hash",
     "ARBalance.invoice_id",
     "TrustBalance.matter_id+currency",
+    "BankImportBatch.source_manifest_hash",
+    "BankTransaction.transaction_fingerprint",
   ],
   reference_rules: [
     "WipItem.source_id->TimeEntry|Expense|Disbursement",
@@ -159,6 +180,8 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "PaymentMatch.invoice_id->Invoice",
     "ARBalance.invoice_id->Invoice",
     "TrustLedgerEntry.invoice_id->Invoice",
+    "BankTransaction.bank_import_batch_id->BankImportBatch",
+    "BankTransactionClassification.bank_transaction_id->BankTransaction",
     "*.matter_id->matter.Matter",
     "*.billing_client_party_id->master-data.Party",
   ],

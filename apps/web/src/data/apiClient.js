@@ -212,7 +212,9 @@ export async function readDesktopMatterSessionStatus(source = globalThis) {
   if (typeof bridge?.status !== "function") return null;
   try {
     const status = await bridge.status();
-    return status?.state === "signed_in" ? status : null;
+    if (status?.state !== "signed_in") return null;
+    writeLawosDesktopSession({ session: status, expires_at: status.expires_at }, source);
+    return status;
   } catch {
     return null;
   }
@@ -1001,7 +1003,9 @@ export async function fetchMasterDataRecords({
     requestId: body.request_id,
     uiState: body.ui_state,
     outcome: body.outcome,
+    item: body.item ?? null,
     items: body.items,
+    summary: body.summary ?? null,
     pageInfo: body.page_info,
     safeErrorCodes: body.safe_error_codes,
     omittedFields: body.omitted_fields,
@@ -3458,7 +3462,9 @@ export async function fetchVaultDocuments({
     requestId: body.request_id,
     uiState: body.ui_state,
     outcome: body.outcome,
+    item: body.item ?? null,
     items: body.items,
+    summary: body.summary ?? null,
     pageInfo: body.page_info ?? null,
     safeErrorCodes: body.safe_error_codes,
     auditHintRef: body.audit_hint_ref,
@@ -4698,7 +4704,8 @@ async function fetchFinanceCollection({
   path,
   ctx = "allow",
   permissionRef = DEFAULT_FINANCE_PERMISSION_REF,
-  auditHintRef = DEFAULT_FINANCE_AUDIT_HINT_REF
+  auditHintRef = DEFAULT_FINANCE_AUDIT_HINT_REF,
+  query = {}
 } = {}) {
   const context = FINANCE_PERMISSION_CONTEXTS[ctx] ?? FINANCE_PERMISSION_CONTEXTS.allow;
   const params = new URLSearchParams({
@@ -4706,6 +4713,9 @@ async function fetchFinanceCollection({
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
+  }
 
   let body;
   try {
@@ -4731,7 +4741,9 @@ async function fetchFinanceCollection({
     requestId: body.request_id,
     uiState: body.ui_state,
     outcome: body.outcome,
+    item: body.item ?? null,
     items: body.items,
+    summary: body.summary ?? null,
     pageInfo: body.page_info ?? null,
     safeErrorCodes: body.safe_error_codes,
     auditHintRef: body.audit_hint_ref,
@@ -5150,6 +5162,16 @@ async function fetchAnalyticsFinanceReadModel({
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
+    if (!response.ok) {
+      const uiState = guardedApiUiState(response, body);
+      return {
+        kind: ["denied", "review", "review_required"].includes(uiState) ? "guarded" : "error",
+        status: response.status,
+        outcome: body?.outcome ?? "blocked",
+        uiState: uiState === "review" ? "review_required" : uiState,
+        safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : []
+      };
+    }
   } catch {
     return { kind: "error" };
   }
@@ -5181,6 +5203,85 @@ export function fetchAnalyticsFinanceMonthly(options = {}) {
 
 export function fetchAnalyticsFinanceClients(options = {}) {
   return fetchAnalyticsFinanceReadModel({ ...options, kind: "clients" });
+}
+
+export function fetchAnalyticsFinanceCashflow(options = {}) {
+  return fetchAnalyticsFinanceReadModel({ ...options, kind: "cashflow" });
+}
+
+export function fetchFinanceBankTransactions(options = {}) {
+  const {
+    from = null,
+    to = null,
+    direction = null,
+    limit = 100,
+    accountRef = null,
+    ...rest
+  } = options;
+  return fetchFinanceCollection({
+    ...rest,
+    path: "/api/finance/bank-transactions",
+    query: {
+      from,
+      to,
+      direction,
+      limit,
+      account_ref: accountRef,
+    },
+  });
+}
+
+export function fetchFinanceBankClassifications(options = {}) {
+  const {
+    from = null,
+    to = null,
+    direction = null,
+    status = null,
+    category = null,
+    limit = 620,
+    ...rest
+  } = options;
+  return fetchFinanceCollection({
+    ...rest,
+    path: "/api/finance/bank-classifications",
+    query: { from, to, direction, status, category, limit },
+  });
+}
+
+export function fetchFinanceBankClassificationOptions(options = {}) {
+  return fetchFinanceCollection({
+    ...options,
+    path: "/api/finance/bank-classification-options",
+  });
+}
+
+export function autoClassifyFinanceBankTransactions({ ctx = "allow" } = {}) {
+  return postFinanceRuntime({
+    path: "/api/finance/bank-classifications/auto",
+    ctx,
+    roleIds: ["system_super_admin"],
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      idempotency_key: `ui:finance:bank-classification:auto:${Date.now()}`,
+    },
+  });
+}
+
+export function reviewFinanceBankClassifications({ decisions, ctx = "allow" } = {}) {
+  return postFinanceRuntime({
+    path: "/api/finance/bank-classifications/review",
+    ctx,
+    roleIds: ["system_super_admin"],
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      idempotency_key: `ui:finance:bank-classification:review:${Date.now()}`,
+      decisions,
+    },
+  });
 }
 
 function normalizeAnalyticsCollectionBody(body) {

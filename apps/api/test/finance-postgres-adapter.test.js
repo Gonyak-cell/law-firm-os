@@ -46,6 +46,53 @@ function request() {
   };
 }
 
+function bankImportRequest() {
+  return {
+    pathname: "/api/finance/bank-imports",
+    method: "POST",
+    query: {},
+    body: {
+      permission_ref: "perm-bank-import-postgres",
+      audit_hint_ref: "audit-bank-import-postgres",
+      idempotency_key: "bank-import-postgres-rehearsal",
+      bank_import_batch: {
+        bank_import_batch_id: "bank-import-postgres-001",
+        tenant_id: TENANT,
+        source_manifest_hash: "a".repeat(64),
+        account_ref: "account-postgres-rehearsal",
+        transaction_count: 1,
+        overlap_count: 0,
+        source_count: 2,
+        production_import_approved: false,
+      },
+      transactions: [{
+        bank_transaction_id: "bank-transaction-postgres-001",
+        account_ref: "account-postgres-rehearsal",
+        transaction_fingerprint: "b".repeat(64),
+        date: "2026-07-28",
+        occurred_at: "2026-07-28T14:50:03+09:00",
+        time_precision: "second",
+        direction: "outflow",
+        amount: 280000,
+        balance_after: 29153222,
+        currency: "KRW",
+        classification_scope: "unreviewed",
+      }],
+    },
+    context: {
+      principal: {
+        user_id: "user-rs-dom-finance-admin",
+        tenant_id: TENANT,
+        role_ids: ["system_super_admin"],
+        scopes: ["finance.bank.import", "finance.bank.read"],
+      },
+      rules: [{ id: "finance-bank-postgres-allow", effect: "allow", action: "*" }],
+      object_acl: [],
+    },
+    requestId: "request-bank-postgres",
+  };
+}
+
 test("Finance async API adapter commits to PostgreSQL and replays idempotently without a production claim", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
@@ -67,6 +114,32 @@ test("Finance async API adapter commits to PostgreSQL and replays idempotently w
   assert.equal(first.response.body.outcome, "created");
   assert.equal(first.persistence.shadow_equal, true);
   assert.equal(first.persistence.production_migrated, false);
+  assert.equal(replay.response.status, 200);
+  assert.equal(replay.response.body.outcome, "idempotent_replay");
+  assert.equal(replay.persistence.shadow_equal, true);
+});
+
+test("BankTransaction import commits append-only rows to PostgreSQL and replays idempotently", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({
+    pool: fixture.appPool,
+    clock: () => new Date("2026-07-28T06:00:00.000Z"),
+  });
+  const sourceRepository = createFinanceRepository({ seedRecords: FINANCE_RUNTIME_SEED });
+  const source = createFinanceDomainSnapshot({
+    repositories: [{ source_id: "finance-runtime-seed", repository: sourceRepository }],
+    tenant_id: TENANT,
+  });
+  sourceRepository.close();
+  await ledger.importSnapshot(source.snapshot);
+
+  const first = await handleFinancePostgresApiRequest({ ledger, ...bankImportRequest() });
+  const replay = await handleFinancePostgresApiRequest({ ledger, ...bankImportRequest() });
+  assert.equal(first.response.status, 201);
+  assert.equal(first.response.body.transaction_count, 1);
+  assert.equal(first.response.body.item.source_manifest_hash, undefined);
+  assert.equal(first.persistence.shadow_equal, true);
   assert.equal(replay.response.status, 200);
   assert.equal(replay.response.body.outcome, "idempotent_replay");
   assert.equal(replay.persistence.shadow_equal, true);

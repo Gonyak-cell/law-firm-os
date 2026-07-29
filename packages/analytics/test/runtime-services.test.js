@@ -7,6 +7,7 @@ import { createFinanceRepository } from "../../billing/src/finance-repository.js
 import {
   classifyAnalyticsFreshness,
   computeFinanceDashboardMetrics,
+  buildCashflowReadModel,
   buildFinanceReadModels,
   createAnalyticsExport,
   createAnalyticsRepository,
@@ -250,6 +251,196 @@ test("G8 dashboard refresh computes metrics from finance repository instead of c
 
   const refreshSource = readFileSync(new URL("../src/refresh-job-service.js", import.meta.url), "utf8");
   assert.equal(/metric_value:\s*(400000|87|32)\b/.test(refreshSource), false);
+});
+
+test("cashflow read model derives balance and movements only from append-only bank transactions", () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "BankImportBatch",
+        bank_import_batch_id: "batch-cashflow-1",
+        tenant_id: TENANT,
+        source_manifest_hash: "a".repeat(64),
+        account_ref: "account-cashflow",
+        transaction_count: 3,
+        status: "reconciled",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-cashflow-1",
+        bank_import_batch_id: "batch-cashflow-1",
+        tenant_id: TENANT,
+        account_ref: "account-cashflow",
+        transaction_fingerprint: "b".repeat(64),
+        date: "2026-07-01",
+        occurred_at: "2026-07-01T09:00:00+09:00",
+        direction: "inflow",
+        amount: 1000,
+        balance_after: 1000,
+        currency: "KRW",
+        classification_state: "unreviewed",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-cashflow-2",
+        bank_import_batch_id: "batch-cashflow-1",
+        tenant_id: TENANT,
+        account_ref: "account-cashflow",
+        transaction_fingerprint: "c".repeat(64),
+        date: "2026-07-02",
+        occurred_at: "2026-07-02T09:00:00+09:00",
+        direction: "outflow",
+        amount: 300,
+        balance_after: 700,
+        currency: "KRW",
+        classification_state: "source_classified",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-cashflow-3",
+        bank_import_batch_id: "batch-cashflow-1",
+        tenant_id: TENANT,
+        account_ref: "account-cashflow",
+        transaction_fingerprint: "d".repeat(64),
+        date: "2026-08-01",
+        occurred_at: "2026-08-01T09:00:00+09:00",
+        direction: "inflow",
+        amount: 200,
+        balance_after: 900,
+        currency: "KRW",
+        classification_state: "unreviewed",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-not-cashflow",
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        amount_due: 500000,
+        currency: "KRW",
+        status: "issued",
+      },
+    ],
+  });
+  const model = buildCashflowReadModel({
+    financeRepository,
+    tenant_id: TENANT,
+    from: "2026-07-01",
+    to: "2026-07-31",
+  });
+  assert.deepEqual(model.summary, {
+    currency: "KRW",
+    current_balance: 700,
+    total_inflow: 1000,
+    total_outflow: 300,
+    net_movement: 700,
+    transaction_count: 2,
+    account_count: 1,
+    classification_review_count: 1,
+    zero_amount_source_count: 0,
+    basis_at: "2026-07-02T09:00:00+09:00",
+  });
+  assert.equal(model.monthly[0].net_movement, 700);
+  assert.equal(model.business_summary.classified_count, 0);
+  assert.equal(model.business_summary.unclassified_count, 2);
+  assert.equal(model.reconciliation.status, "passed");
+  assert.equal(model.raw_source_payload_included, false);
+});
+
+test("cashflow classification read model exposes bank-derived sales, cost, and aggregate payroll without employee values", () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-business-sales",
+        tenant_id: TENANT,
+        account_ref: "account-business",
+        transaction_fingerprint: "e".repeat(64),
+        date: "2026-07-03",
+        occurred_at: "2026-07-03T09:00:00+09:00",
+        direction: "inflow",
+        amount: 1200,
+        balance_after: 1200,
+        currency: "KRW",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-business-payroll",
+        tenant_id: TENANT,
+        account_ref: "account-business",
+        transaction_fingerprint: "f".repeat(64),
+        date: "2026-07-04",
+        occurred_at: "2026-07-04T09:00:00+09:00",
+        direction: "outflow",
+        amount: 700,
+        balance_after: 500,
+        currency: "KRW",
+      },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id: "classification-business-sales",
+        tenant_id: TENANT,
+        bank_transaction_id: "bank-business-sales",
+        account_ref: "account-business",
+        transaction_date: "2026-07-03",
+        transaction_month: "2026-07",
+        transaction_direction: "inflow",
+        amount: 1200,
+        currency: "KRW",
+        primary_type: "sales",
+        category: "client_receipt",
+        client_group_id: "client-business",
+        status: "confirmed",
+      },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id: "classification-business-payroll",
+        tenant_id: TENANT,
+        bank_transaction_id: "bank-business-payroll",
+        account_ref: "account-business",
+        transaction_date: "2026-07-04",
+        transaction_month: "2026-07",
+        transaction_direction: "outflow",
+        amount: 700,
+        currency: "KRW",
+        primary_type: "payroll",
+        category: "salary_payment",
+        employee_id: "employee-private",
+        payroll_category: "partner",
+        status: "confirmed",
+      },
+    ],
+  });
+  const model = buildCashflowReadModel({
+    financeRepository,
+    tenant_id: TENANT,
+    from: "2026-07-01",
+    to: "2026-07-31",
+  });
+  assert.deepEqual(
+    {
+      sales_amount: model.business_summary.sales_amount,
+      payroll_payment_amount: model.business_summary.payroll_payment_amount,
+      classified_count: model.business_summary.classified_count,
+      unclassified_count: model.business_summary.unclassified_count,
+      status: model.business_summary.status,
+    },
+    {
+      sales_amount: 1200,
+      payroll_payment_amount: 700,
+      classified_count: 2,
+      unclassified_count: 0,
+      status: "passed",
+    },
+  );
+  assert.deepEqual(model.payroll_categories, [{
+    category: "partner",
+    label: "파트너",
+    gross_krw: 700,
+    payment_count: 1,
+    employee_count: 1,
+    individual_payroll_values_included: false,
+  }]);
+  assert.equal(JSON.stringify(model).includes("employee-private"), false);
 });
 
 test("analytics refresh binds a deterministic source watermark and rebuilds idempotently with freshness", () => {

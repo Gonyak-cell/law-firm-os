@@ -761,6 +761,7 @@ function homeSidebarMeta(labels = {}, financeAccessRecords = []) {
           { label: shellLabel(labels, "homeFinanceOverviewLabel", "전체 현황"), view: "home", section: "home-finance-overview", icon: LayoutDashboard },
           { label: shellLabel(labels, "homeFinanceMonthlyLabel", "월별 매출/비용"), view: "home", section: "home-finance-monthly", icon: CalendarDays },
           { label: shellLabel(labels, "homeFinanceClientsLabel", "고객별 매출/비용"), view: "home", section: "home-finance-clients", icon: ClipboardList },
+          { label: shellLabel(labels, "homeFinanceCashflowLabel", "자금현황"), view: "home", section: "home-finance-cashflow", icon: LayoutDashboard },
           { label: shellLabel(labels, "homeFinanceTimeLabel", "시간 기록"), view: "home", section: "home-finance-time", icon: ClipboardList },
           { label: shellLabel(labels, "homeFinanceExpensesLabel", "비용 처리"), view: "home", section: "home-finance-expenses", icon: FileText },
           { label: shellLabel(labels, "homeFinanceBillingLabel", "청구/수납"), view: "home", section: "home-finance-billing", icon: FileText },

@@ -30,7 +30,7 @@ export function HomeRevenueLineChart({ series = [] }) {
     <div className="home-revenue-chart" data-home-revenue-line-chart="true">
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
         <title id={titleId}>최근 12개월 월별 매출</title>
-        <desc id={descriptionId}>Asia/Seoul 월 기준 KRW 청구액 추이입니다. 아래 표에서 정확한 금액을 확인할 수 있습니다.</desc>
+        <desc id={descriptionId}>Asia/Seoul 월 기준 등록 고객 연결 입금 추이입니다. 아래 표에서 정확한 금액을 확인할 수 있습니다.</desc>
         {[0, 0.5, 1].map((ratio) => {
           const y = padding.top + plotHeight * ratio;
           const value = max * (1 - ratio);
@@ -51,7 +51,7 @@ export function HomeRevenueLineChart({ series = [] }) {
               r={point.observed ? 4 : 2}
               tabIndex="0"
               role="img"
-              aria-label={`${point.month} 청구 매출 ${money(point.amount)}`}
+              aria-label={`${point.month} 등록 고객 입금 매출 ${money(point.amount)}`}
             />
             {(index % 2 === 0 || index === points.length - 1) && (
               <text className="home-chart-axis-label" x={point.x} y={height - 12} textAnchor="middle">{monthLabel(point.month)}</text>
@@ -61,7 +61,7 @@ export function HomeRevenueLineChart({ series = [] }) {
       </svg>
       <table className="sr-only home-chart-data-table">
         <caption>최근 12개월 월별 매출 데이터</caption>
-        <thead><tr><th>월</th><th>청구 매출</th></tr></thead>
+        <thead><tr><th>월</th><th>등록 고객 입금 매출</th></tr></thead>
         <tbody>
           {series.map((item) => <tr key={item.month}><th>{item.month}</th><td>{money(item.amount)}</td></tr>)}
         </tbody>

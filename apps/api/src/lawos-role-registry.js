@@ -10,6 +10,9 @@ const HRX_ADMIN_SCOPES = hrxScopesForRoleProfile("admin");
 
 export const LAWOS_FINANCE_SCOPES = Object.freeze([
   "analytics.finance.read",
+  "finance.bank.read",
+  "finance.bank.import",
+  "finance.bank.classify",
   "finance.time.write",
   "finance.expense.write",
   "finance.billing.write",
@@ -20,11 +23,13 @@ export const LAWOS_FINANCE_SCOPES = Object.freeze([
 ]);
 
 const LAWOS_FINANCE_OPERATIONS_SCOPES = Object.freeze(
-  LAWOS_FINANCE_SCOPES.filter((scope) => scope !== "finance.approve"),
+  LAWOS_FINANCE_SCOPES.filter((scope) => !["finance.approve", "finance.bank.import", "finance.bank.classify"].includes(scope)),
 );
 
 const LAWOS_FINANCE_PARTNER_SCOPES = Object.freeze([
   "analytics.finance.read",
+  "finance.bank.read",
+  "finance.bank.classify",
   "finance.time.write",
   "finance.expense.write",
   "finance.billing.write",

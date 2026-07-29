@@ -135,6 +135,71 @@ test("desktop web login uses the main-process session bridge without storing ren
   });
 });
 
+test("desktop session restore rehydrates the safe tenant and permission envelope", async () => {
+  await withWebModule("/src/data/apiClient.js", async ({
+    LAWOS_API_SESSION_STORAGE_KEY,
+    readDesktopMatterSessionStatus,
+    readLawosSessionEnvelope
+  }) => {
+    const storage = new Map();
+    const source = {
+      sessionStorage: {
+        getItem: (key) => storage.get(key) ?? null,
+        setItem: (key, value) => storage.set(key, value),
+        removeItem: (key) => storage.delete(key)
+      },
+      matterSession: {
+        async status() {
+          return {
+            state: "signed_in",
+            session_id: "sess_user_amic_jwsuh",
+            user_id: "user_amic_jwsuh",
+            tenant_id: "tenant_amic_matter_vault",
+            role_ids: ["system_super_admin"],
+            scopes: ["finance.bank.read"],
+            hrx_scopes: ["hrx.payroll.preview"],
+            expires_at: "2099-07-29T12:00:00.000Z",
+            token_material_returned: false
+          };
+        }
+      }
+    };
+
+    const status = await readDesktopMatterSessionStatus(source);
+    const envelope = readLawosSessionEnvelope(source);
+
+    assert.equal(status.state, "signed_in");
+    assert.equal(envelope.tenant_refs.default, "tenant_amic_matter_vault");
+    assert.ok(envelope.role_ids.includes("system_super_admin"));
+    assert.ok(envelope.scopes.includes("finance.bank.read"));
+    assert.ok(envelope.scopes.includes("hrx.payroll.preview"));
+    assert.equal(storage.has(LAWOS_API_SESSION_STORAGE_KEY), false);
+  });
+});
+
+test("finance analytics preserves an HTTP 500 as an error instead of an empty dataset", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    outcome: "blocked",
+    error: "internal_error",
+    safe_error_codes: ["API_INTERNAL_ERROR"],
+    production_ready_claim: false
+  }), {
+    status: 500,
+    headers: { "content-type": "application/json" }
+  });
+  try {
+    await withWebModule("/src/data/apiClient.js", async ({ fetchAnalyticsFinanceMonthly }) => {
+      const result = await fetchAnalyticsFinanceMonthly();
+      assert.equal(result.kind, "error");
+      assert.equal(result.status, 500);
+      assert.deepEqual(result.safeErrorCodes, ["API_INTERNAL_ERROR"]);
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("desktop URL handoff keeps every product tenant reference canonical", async () => {
   await withWebModule("/src/data/apiClient.js", async ({ readLawosSessionEnvelope }) => {
     const envelope = readLawosSessionEnvelope({

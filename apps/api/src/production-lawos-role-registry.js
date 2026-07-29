@@ -4,6 +4,9 @@ export const LAWOS_ROLE_REGISTRY_SOURCE = "postgres-v2-account-membership";
 
 export const LAWOS_FINANCE_SCOPES = Object.freeze([
   "analytics.finance.read",
+  "finance.bank.read",
+  "finance.bank.import",
+  "finance.bank.classify",
   "finance.time.write",
   "finance.expense.write",
   "finance.billing.write",
