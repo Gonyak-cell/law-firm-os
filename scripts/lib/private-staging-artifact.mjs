@@ -24,7 +24,6 @@ const GIT_OID_PATTERN = /^[a-f0-9]{40}$/u;
 const REAL_IDENTITY_SOURCE_PATTERN = /@amic\.(?:kr|law)|\b(?:user|emp)_amic_[a-z0-9_]+\b/iu;
 
 export const PRIVATE_STAGING_SOURCE_REDACTION_TARGETS = Object.freeze([
-  "apps/api/src/hrx-member-roster-registry.js",
   "apps/api/src/lambda.js",
   "apps/api/src/outlook-addin-runtime-context.js",
   "packages/matter/src/worktree-template-model.js",
@@ -68,12 +67,7 @@ export function redactPrivateStagingRuntimeSource({ targetPath, text, syntheticS
   const members = syntheticSources?.roster?.members ?? [];
   if (!admin?.email || !admin?.user_id || members.length < 3) throw new TypeError("synthetic source identities are incomplete");
   let output = String(text ?? "");
-  if (path === "apps/api/src/hrx-member-roster-registry.js") {
-    output = output.replace(
-      /const MEMBER_PHOTO_FILE_BY_EMPLOYEE_ID = new Map\(\[[\s\S]*?\]\);/u,
-      "const MEMBER_PHOTO_FILE_BY_EMPLOYEE_ID = new Map();",
-    );
-  } else if (path === "apps/api/src/lambda.js") {
+  if (path === "apps/api/src/lambda.js") {
     const employeeReplacements = new Map();
     output = output
       .replace(/\b[A-Z0-9._%+-]+@amic\.kr\b/giu, admin.email)
@@ -276,6 +270,7 @@ export function buildPrivateStagingSyntheticSources(manifest) {
 export function privateStagingArtifactSourcePathAllowed(path) {
   const normalized = String(path ?? "").replaceAll("\\", "/").replace(/^\.\//u, "");
   if (!normalized || normalized.includes("..") || FORBIDDEN_ENTRY.test(normalized)) return false;
+  if (normalized.startsWith("apps/api/src/hrx-member-photos/")) return false;
   if (["package.json", "package-lock.json"].includes(normalized)) return true;
   if (normalized === "apps/desktop/build/icon.png") return true;
   if (/^apps\/api\/(?:package\.json|src\/)/u.test(normalized)) return true;

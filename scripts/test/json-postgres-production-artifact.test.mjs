@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+  JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
   emptyJsonPostgresProductionSources,
   parseJsonPostgresProductionGitTree,
   redactJsonPostgresProductionRuntimeSource,
@@ -43,8 +44,6 @@ test("production empty sources contain no accounts or roster rows", () => {
 
 test("production redaction removes all real identity markers", () => {
   const fixtures = [
-    ["apps/api/src/hrx-member-roster-registry.js",
-      'const MEMBER_PHOTO_FILE_BY_EMPLOYEE_ID = new Map([["emp_amic_owner_fixture", "a.png"]]);'],
     ["apps/api/src/lambda.js",
       'const x = "lawos-owner-fixture@amic.kr user_amic_owner_fixture emp_amic_owner_fixture assumed-role/lawos-private-staging-api-role/";'],
     ["apps/api/src/outlook-addin-runtime-context.js", 'const x = "someone@amic.law";'],
@@ -112,12 +111,19 @@ test("production artifact entry and deployment manifest contracts fail closed", 
     "packages/persistence/src/postgres/execution-contract.js",
     "packages/persistence/src/postgres/migration-runner.js",
     "packages/persistence/src/postgres/program-receipt.js",
+    ...JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
   ];
-  assert.equal(validateJsonPostgresProductionArtifactEntries(entries).entry_count, 12);
+  assert.equal(validateJsonPostgresProductionArtifactEntries(entries).entry_count, 17);
   assert.equal(validateJsonPostgresProductionArtifactEntries([
     ...entries,
     "node_modules/pg-types/test/index.js",
-  ]).entry_count, 13);
+  ]).entry_count, 18);
+  assert.throws(
+    () => validateJsonPostgresProductionArtifactEntries(
+      entries.filter((entry) => entry !== JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[2]),
+    ),
+    /missing apps\/api\/src\/hrx-member-photos/u,
+  );
   assert.throws(
     () => validateJsonPostgresProductionArtifactEntries([
       ...entries,

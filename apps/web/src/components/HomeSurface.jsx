@@ -43,6 +43,7 @@ import {
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
   dashboardResultState,
+  readDashboardResultWithRetry,
   seoulMonthKey
 } from "./HomeDashboardModel.js";
 import { DashboardListCard, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
@@ -328,13 +329,8 @@ async function homeReadProbe(promise, source) {
   }
 }
 
-async function dashboardReadProbe(promise, source) {
-  try {
-    const result = await promise;
-    return result ?? { kind: "error", source };
-  } catch {
-    return { kind: "error", source };
-  }
+async function dashboardReadProbe(operation, source) {
+  return readDashboardResultWithRetry(operation, { source });
 }
 
 async function readHomeMatterSessionStatus() {
@@ -1038,12 +1034,12 @@ export function HomeSurface({
         vaultDocuments,
         vaultDataRoom
       ] = await Promise.all([
-        dashboardReadProbe(fetchMatterRecords(args), "dashboard_matter_records"),
-        dashboardReadProbe(fetchCrmAccounts(args), "dashboard_crm_accounts"),
-        dashboardReadProbe(fetchCrmLeads(args), "dashboard_crm_leads"),
-        dashboardReadProbe(fetchCrmOpportunities(args), "dashboard_crm_opportunities"),
+        dashboardReadProbe(() => fetchMatterRecords(args), "dashboard_matter_records"),
+        dashboardReadProbe(() => fetchCrmAccounts(args), "dashboard_crm_accounts"),
+        dashboardReadProbe(() => fetchCrmLeads(args), "dashboard_crm_leads"),
+        dashboardReadProbe(() => fetchCrmOpportunities(args), "dashboard_crm_opportunities"),
         canViewDashboardCashflow
-          ? dashboardReadProbe(fetchAnalyticsFinanceCashflow({
+          ? dashboardReadProbe(() => fetchAnalyticsFinanceCashflow({
             ...args,
             from: `${month}-01`,
             to: cashflowDateFormatter.format(new Date()),
@@ -1051,7 +1047,7 @@ export function HomeSurface({
           }), "dashboard_finance_cashflow")
           : Promise.resolve({ kind: "data", uiState: "denied", outcome: "denied", item: null }),
         canViewDashboardCashflow
-          ? dashboardReadProbe(fetchAnalyticsFinanceCashflow({
+          ? dashboardReadProbe(() => fetchAnalyticsFinanceCashflow({
             ...args,
             to: cashflowDateFormatter.format(new Date()),
             currency: "KRW"
