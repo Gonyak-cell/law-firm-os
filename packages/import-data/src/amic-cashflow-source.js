@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { inflateRawSync } from "node:zlib";
+import { DOMParser, onWarningStopParsing } from "@xmldom/xmldom";
 
 const MAX_XLSX_ENTRIES = 128;
 const MAX_XLSX_ENTRY_BYTES = 16 * 1024 * 1024;
@@ -21,17 +22,26 @@ function integer(value, field) {
   return parsed;
 }
 
-function decodeXml(value) {
-  return String(value ?? "")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&apos;", "'")
-    .replaceAll("&amp;", "&");
+function parseXmlDocument(value, label) {
+  const source = String(value ?? "");
+  const lower = source.toLowerCase();
+  if (lower.includes("<!doctype") || lower.includes("<!entity")) {
+    throw new TypeError(`${label} XML declarations are not allowed`);
+  }
+  try {
+    const document = new DOMParser({
+      locator: false,
+      onError: onWarningStopParsing,
+    }).parseFromString(source, "application/xml");
+    if (!document.documentElement) throw new TypeError("document element is missing");
+    return document;
+  } catch {
+    throw new TypeError(`${label} XML is invalid`);
+  }
 }
 
-function xmlText(fragment) {
-  return decodeXml([...String(fragment ?? "").matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map((match) => match[1]).join(""));
+function xmlText(node) {
+  return Array.from(node?.getElementsByTagName("t") ?? [], (textNode) => textNode.textContent ?? "").join("");
 }
 
 function columnIndex(reference) {
@@ -101,17 +111,17 @@ function zipEntries(buffer) {
 
 function parseSheetXml(sheet, sharedStrings) {
   const formulaCells = [];
-  const rows = [...sheet.matchAll(/<row(?:\s[^>]*)?>([\s\S]*?)<\/row>/g)].map((rowMatch, rowIndex) => {
+  const document = parseXmlDocument(sheet, "XLSX worksheet");
+  const rows = Array.from(document.getElementsByTagName("row"), (rowNode, rowIndex) => {
     const row = [];
-    for (const cellMatch of rowMatch[1].matchAll(/<c\s([^>]*)>([\s\S]*?)<\/c>/g)) {
-      const attributes = cellMatch[1];
-      const reference = /\br="([A-Z]+\d+)"/.exec(attributes)?.[1] ?? "A1";
-      const type = /\bt="([^"]+)"/.exec(attributes)?.[1] ?? null;
-      const raw = /<v>([\s\S]*?)<\/v>/.exec(cellMatch[2])?.[1] ?? "";
-      const value = type === "inlineStr" ? xmlText(cellMatch[2]) : type === "s" ? sharedStrings[Number(raw)] ?? "" : decodeXml(raw);
+    for (const cellNode of Array.from(rowNode.getElementsByTagName("c"))) {
+      const reference = cellNode.getAttribute("r") || "A1";
+      const type = cellNode.getAttribute("t") || null;
+      const raw = cellNode.getElementsByTagName("v").item(0)?.textContent ?? "";
+      const value = type === "inlineStr" ? xmlText(cellNode) : type === "s" ? sharedStrings[Number(raw)] ?? "" : raw;
       if (/^[=+@]/u.test(String(value).trimStart())) throw new TypeError("XLSX formula-like values are not allowed");
       const cellColumnIndex = columnIndex(reference);
-      if (/<f(?:\s|>)/iu.test(cellMatch[2])) {
+      if (cellNode.getElementsByTagName("f").length > 0) {
         formulaCells.push(Object.freeze({ reference, row_index: rowIndex, column_index: cellColumnIndex }));
       }
       row[cellColumnIndex] = value;
@@ -129,16 +139,18 @@ function workbookSheetPaths(entries) {
   const workbook = entries.get("xl/workbook.xml");
   const relationships = entries.get("xl/_rels/workbook.xml.rels");
   if (!workbook || !relationships) throw new TypeError("XLSX workbook relationships are missing");
+  const relationshipDocument = parseXmlDocument(relationships, "XLSX workbook relationships");
   const targets = new Map(
-    [...relationships.matchAll(/<Relationship\s+([^>]+)\/?>/g)].map((match) => {
-      const id = /\bId="([^"]+)"/.exec(match[1])?.[1];
-      const target = /\bTarget="([^"]+)"/.exec(match[1])?.[1];
+    Array.from(relationshipDocument.getElementsByTagName("Relationship"), (relationship) => {
+      const id = relationship.getAttribute("Id");
+      const target = relationship.getAttribute("Target");
       return [id, target];
     }).filter(([id, target]) => id && target),
   );
-  return [...workbook.matchAll(/<sheet\s+([^>]+)\/?>/g)].map((match) => {
-    const name = decodeXml(/\bname="([^"]+)"/.exec(match[1])?.[1] ?? "");
-    const relationId = /\br:id="([^"]+)"/.exec(match[1])?.[1];
+  const workbookDocument = parseXmlDocument(workbook, "XLSX workbook");
+  return Array.from(workbookDocument.getElementsByTagName("sheet"), (sheet) => {
+    const name = sheet.getAttribute("name");
+    const relationId = sheet.getAttribute("r:id");
     const target = targets.get(relationId);
     const path = target?.startsWith("/") ? target.slice(1) : `xl/${target ?? ""}`.replaceAll("/../", "/");
     return [name, path];
@@ -150,7 +162,10 @@ export function parseXlsxSheetsBuffer(input) {
   if (buffer.subarray(0, 2).toString("ascii") !== "PK") throw new TypeError("XLSX content must be a ZIP workbook");
   const entries = zipEntries(buffer);
   const shared = entries.get("xl/sharedStrings.xml");
-  const sharedStrings = shared ? [...shared.matchAll(/<si(?:\s[^>]*)?>([\s\S]*?)<\/si>/g)].map((match) => xmlText(match[1])) : [];
+  const sharedDocument = shared ? parseXmlDocument(shared, "XLSX shared strings") : null;
+  const sharedStrings = sharedDocument
+    ? Array.from(sharedDocument.getElementsByTagName("si"), (sharedString) => xmlText(sharedString))
+    : [];
   return Object.freeze(Object.fromEntries(
     workbookSheetPaths(entries).map(([name, path]) => [name, Object.freeze(parseSheetXml(entries.get(path), sharedStrings))]),
   ));
@@ -293,7 +308,16 @@ export function parseNhBankStatementText(text, { account_ref = DEFAULT_ACCOUNT_R
       }));
     };
     for (const line of lines) {
-      const date = /^\s*(\d{4}\/\d{2}\/\d{2})(?:\s+.*)?$/.exec(line)?.[1];
+      const normalizedLine = line.trimStart();
+      const candidateDate = normalizedLine.slice(0, 10);
+      const date = candidateDate.length === 10
+        && candidateDate[4] === "/"
+        && candidateDate[7] === "/"
+        && [...candidateDate.slice(0, 4), ...candidateDate.slice(5, 7), ...candidateDate.slice(8, 10)]
+          .every((character) => character >= "0" && character <= "9")
+        && (!normalizedLine[10] || normalizedLine[10].trim() === "")
+        ? candidateDate
+        : null;
       if (date) {
         flush();
         block = { date, lines: [] };

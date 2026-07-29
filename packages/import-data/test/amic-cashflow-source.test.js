@@ -50,6 +50,18 @@ test("AMIC cashflow XLSX parsing rejects formula-like worksheet values", () => {
   assert.throws(() => parseXlsxSheetsBuffer(workbook), /formula-like values/);
 });
 
+test("AMIC cashflow XLSX parsing rejects document type declarations", () => {
+  const workbook = createXlsxBuffer({
+    sheetName: "입금내역",
+    headers: ["입금 내역"],
+    rows: [["값"]],
+  });
+  const worksheetStart = workbook.indexOf("<worksheet");
+  assert.notEqual(worksheetStart, -1);
+  Buffer.from("<!DOCTYPE").copy(workbook, worksheetStart);
+  assert.throws(() => parseXlsxSheetsBuffer(workbook), /XML declarations are not allowed/);
+});
+
 test("AMIC cashflow import allows summary formulas but rejects formulas in transaction rows", () => {
   const withFormulaCells = (rows, formulaCells) => {
     const copy = rows.map((row) => [...row]);
