@@ -188,7 +188,10 @@ function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRu
     hrxRuntime,
     clearanceRepository: repositories.intakeRepository,
   });
-  const financeRuntime = createFinanceRuntimeContext({ repository: repositories.financeRepository });
+  const financeRuntime = createFinanceRuntimeContext({
+    repository: repositories.financeRepository,
+    masterDataRepository: repositories.masterDataRepository,
+  });
   const analyticsRuntime = createAnalyticsRuntimeContext({
     repository: repositories.analyticsRepository,
     financeRepository: repositories.financeRepository,

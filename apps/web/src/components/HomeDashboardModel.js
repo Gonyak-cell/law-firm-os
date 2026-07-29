@@ -119,6 +119,54 @@ export function buildFinanceDashboardModel(result, { now = new Date(), currency 
   });
 }
 
+export function buildBankCashflowDashboardModel(currentResult, historyResult, { now = new Date(), currency = "KRW" } = {}) {
+  const readState = dashboardResultState(currentResult);
+  const month = seoulMonthKey(now);
+  const months = monthKeysEndingAt(now, 12);
+  const currentSummary = currentResult?.item?.business_summary ?? null;
+  const state = readState === "data" && currentSummary?.status !== "passed" ? "partial" : readState;
+  const historyRows = Array.isArray(historyResult?.item?.monthly)
+    ? historyResult.item.monthly.filter((row) => row.currency === currency && months.includes(row.month))
+    : [];
+  const byMonth = new Map(historyRows.map((row) => [row.month, row]));
+  const current = currentSummary ? Object.freeze({
+    month,
+    currency,
+    billed_amount: Number(currentSummary.sales_amount ?? 0),
+    processed_cost: Number(currentSummary.operating_expense_amount ?? 0),
+    payroll_payment_amount: Number(currentSummary.payroll_payment_amount ?? 0),
+    non_operating_amount: Number(currentSummary.non_operating_amount ?? 0),
+  }) : null;
+  const previousMonth = months.at(-2) ?? null;
+  const previous = previousMonth ? byMonth.get(previousMonth) ?? null : null;
+  const payrollSummary = currentSummary ? Object.freeze({
+    gross_krw: Number(currentSummary.payroll_payment_amount ?? 0),
+    run_status: "bank_paid",
+    categories: Object.freeze([...(currentResult?.item?.payroll_categories ?? [])]),
+    individual_payroll_values_included: false,
+  }) : null;
+  return Object.freeze({
+    state,
+    month,
+    currency,
+    current,
+    payroll_summary: payrollSummary,
+    revenue_change_percent: current && previous
+      ? percentageChange(current.billed_amount, previous.sales_amount)
+      : null,
+    processed_cost_change_percent: current && previous
+      ? percentageChange(current.processed_cost, previous.operating_expense_amount)
+      : null,
+    series: Object.freeze(months.map((monthKey) => Object.freeze({
+      month: monthKey,
+      amount: Number(byMonth.get(monthKey)?.sales_amount ?? 0),
+      observed: byMonth.has(monthKey),
+    }))),
+    has_series_data: historyRows.length > 0,
+    classification_status: currentSummary?.status ?? null,
+  });
+}
+
 function explicitIdentityKeys(item) {
   return ["party_id", "account_id", "client_group_id", "canonical_client_id"]
     .map((field) => item?.[field])

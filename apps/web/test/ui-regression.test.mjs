@@ -431,6 +431,7 @@ test("WP-FIN-1 registers the Home finance group and context-preserving legacy ro
     "home-finance-overview",
     "home-finance-monthly",
     "home-finance-clients",
+    "home-finance-cashflow",
     "home-finance-time",
     "home-finance-expenses",
     "home-finance-billing",
@@ -467,7 +468,7 @@ test("WP-FIN-3 mounts server-reconciled finance views with guarded states and re
   const stylesSource = await readWebFile("src/styles.css");
 
   assert.match(homeSource, /<FinanceSurface liveCtx=\{liveCtx\} activeSection=\{activeHomeSection\}/);
-  for (const name of ["fetchAnalyticsFinanceOverview", "fetchAnalyticsFinanceMonthly", "fetchAnalyticsFinanceClients"]) {
+  for (const name of ["fetchAnalyticsFinanceOverview", "fetchAnalyticsFinanceMonthly", "fetchAnalyticsFinanceClients", "fetchAnalyticsFinanceCashflow", "fetchFinanceBankClassifications", "fetchFinanceBankClassificationOptions"]) {
     assert.match(financeSource, new RegExp(name));
     assert.match(apiClientSource, new RegExp(`export function ${name}`));
   }
@@ -478,6 +479,12 @@ test("WP-FIN-3 mounts server-reconciled finance views with guarded states and re
   assert.match(financeSource, /data-home-finance-summary="true"/);
   assert.match(financeSource, /data-home-finance-monthly-table="true"/);
   assert.match(financeSource, /data-home-finance-client-table="true"/);
+  assert.match(financeSource, /data-home-cashflow-summary="true"/);
+  assert.match(financeSource, /data-home-cashflow-business-summary="true"/);
+  assert.match(financeSource, /data-home-cashflow-monthly-table="true"/);
+  assert.match(financeSource, /data-home-cashflow-transaction-table="true"/);
+  assert.match(financeSource, /현재 등록된 고객과 연결된 입금을 매출로 집계합니다/);
+  assert.match(financeSource, /data-bank-classification-toolbar="true"/);
   assert.match(financeSource, /writeFinanceFilters/);
   assert.match(apiClientSource, /tenant_id: FINANCE_TENANT_ID/);
   assert.match(stylesSource, /\.home-finance-table-wrap[\s\S]*overflow-x:\s*auto/);
@@ -666,10 +673,11 @@ test("desktop post-login route skips repeated logo splash before the global rail
   assert.match(stylesSource, /\.home-dashboard-kpi-card\s*\{[^}]*grid-column:\s*span 4;[^}]*grid-row:\s*1/);
   assert.match(stylesSource, /\.home-dashboard-revenue-chart-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*2/);
   assert.match(stylesSource, /\.home-dashboard-payroll-chart-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*2/);
-  assert.match(stylesSource, /\.home-dashboard-client-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*3/);
-  assert.match(stylesSource, /\.home-dashboard-calendar-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*3/);
-  assert.match(stylesSource, /\.home-dashboard-matter-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*4/);
-  assert.match(stylesSource, /\.home-dashboard-people-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*4/);
+  assert.match(stylesSource, /\.home-dashboard-cashflow-band\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;[^}]*grid-row:\s*3;[^}]*height:\s*108px/);
+  assert.match(stylesSource, /\.home-dashboard-client-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*4/);
+  assert.match(stylesSource, /\.home-dashboard-calendar-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*4/);
+  assert.match(stylesSource, /\.home-dashboard-matter-card\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*5/);
+  assert.match(stylesSource, /\.home-dashboard-people-card\s*\{[^}]*grid-column:\s*8\s*\/\s*span 5;[^}]*grid-row:\s*5/);
   for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "feed", "calendar"]) {
     assert.match(homeSource, new RegExp(`section="${section}"`));
   }
@@ -680,6 +688,8 @@ test("desktop post-login route skips repeated logo splash before the global rail
   assert.match(homeSource, /<section className="home-dashboard-hero"/);
   assert.match(homeSource, /<HomeRevenueLineChart series=\{financeDashboard\.series\} \/>/);
   assert.match(homeSource, /<HomePayrollDonutChart summary=\{payrollSummary\} \/>/);
+  assert.match(homeSource, /data-home-cashflow-band="true"/);
+  assert.match(homeSource, /canAccessHomeFinanceSection/);
   assert.match(homeSource, /dataPrefix="home-client-dashboard"[\s\S]*variant="underline home-dashboard-domain-tabs"/);
   assert.match(homeSource, /dataPrefix="home-matter-dashboard"[\s\S]*variant="underline home-dashboard-domain-tabs"/);
   assert.match(stylesSource, /\.home-section-tabs\.underline\.home-dashboard-domain-tabs\s*\{[^}]*border-bottom:\s*1px solid var\(--am-border-soft\)/);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildClientDashboardModel,
+  buildBankCashflowDashboardModel,
   buildFinanceDashboardModel,
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
@@ -28,6 +29,44 @@ test("Home finance model shares the KRW billed source between KPI and 12-month l
   assert.equal(model.series.length, 12);
   assert.equal(model.series.at(-1).amount, model.current.billed_amount);
   assert.equal(model.revenue_change_percent, 25);
+});
+
+test("Home bank model uses registered-client receipts, operating outflows, and aggregate payroll", () => {
+  const current = {
+    kind: "data",
+    uiState: "ready",
+    item: {
+      business_summary: {
+        currency: "KRW",
+        sales_amount: 21_385_200,
+        operating_expense_amount: 136_100_193,
+        payroll_payment_amount: 91_065_979,
+        non_operating_amount: 138_057_860,
+        status: "passed",
+      },
+      payroll_categories: [
+        { category: "partner", label: "파트너", gross_krw: 51_890_090, employee_count: 4 },
+        { category: "staff", label: "직원", gross_krw: 29_604_677, employee_count: 5 },
+        { category: "advisor", label: "고문", gross_krw: 9_571_212, employee_count: 1 },
+      ],
+    },
+  };
+  const history = {
+    kind: "data",
+    item: {
+      monthly: [
+        { month: "2026-06", currency: "KRW", sales_amount: 10_000_000, operating_expense_amount: 20_000_000 },
+        { month: "2026-07", currency: "KRW", sales_amount: 21_385_200, operating_expense_amount: 136_100_193 },
+      ],
+    },
+  };
+  const model = buildBankCashflowDashboardModel(current, history, { now: NOW });
+  assert.equal(model.current.billed_amount, 21_385_200);
+  assert.equal(model.current.processed_cost, 136_100_193);
+  assert.equal(model.payroll_summary.gross_krw, 91_065_979);
+  assert.equal(model.payroll_summary.categories.reduce((sum, row) => sum + row.gross_krw, 0), 91_065_979);
+  assert.equal(model.series.at(-1).amount, 21_385_200);
+  assert.equal(JSON.stringify(model).includes("employee_id"), false);
 });
 
 test("Home client model counts current-month clients and deduplicates active prospects by explicit identity", () => {

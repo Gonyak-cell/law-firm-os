@@ -27,6 +27,7 @@ const homeFinanceSectionIds = new Set([
   "home-finance-overview",
   "home-finance-monthly",
   "home-finance-clients",
+  "home-finance-cashflow",
   "home-finance-time",
   "home-finance-expenses",
   "home-finance-billing",

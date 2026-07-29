@@ -227,6 +227,14 @@ function isDesktopMatterWriteRoute(method, path) {
   );
 }
 
+function isDesktopFinanceWriteRoute(method, path) {
+  return method === "POST" && [
+    "/api/finance/bank-imports",
+    "/api/finance/bank-classifications/auto",
+    "/api/finance/bank-classifications/review",
+  ].includes(path);
+}
+
 function isDesktopHrxLeaveWriteRoute(method, path) {
   if (method === "PATCH") {
     return (
@@ -379,6 +387,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       };
     }
     const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
+      isDesktopFinanceWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxPayrollWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxStepUpRoute(safeMethod, normalizedPathname);

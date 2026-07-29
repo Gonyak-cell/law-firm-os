@@ -318,6 +318,127 @@ function wp5ApiBody(pathname, searchParams, state) {
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-monthly-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
     };
   }
+  if (pathname === "/api/analytics/finance/cashflow") {
+    return {
+      request_id: "wp-fin-cashflow",
+      outcome: "passed",
+      item: {
+        summary: {
+          currency: "KRW",
+          current_balance: 29_153_222,
+          total_inflow: 159_443_060,
+          total_outflow: 227_166_172,
+          net_movement: -67_723_112,
+          transaction_count: 103,
+          account_count: 1,
+          classification_review_count: 0,
+          zero_amount_source_count: 1,
+          basis_at: wp5IsoDay(0)
+        },
+        business_summary: {
+          currency: "KRW",
+          sales_amount: 21_385_200,
+          operating_expense_amount: 136_100_193,
+          payroll_payment_amount: 91_065_979,
+          non_operating_amount: 138_057_860,
+          classified_count: 103,
+          unclassified_count: 0,
+          review_count: 0,
+          coverage_percent: 100,
+          status: "passed",
+          invoice_required: false,
+          matter_required: false,
+          individual_payroll_values_included: false
+        },
+        payroll_categories: [
+          { category: "partner", label: "파트너", gross_krw: 51_890_090, payment_count: 4, employee_count: 4 },
+          { category: "staff", label: "직원", gross_krw: 29_604_677, payment_count: 5, employee_count: 5 },
+          { category: "advisor", label: "고문", gross_krw: 9_571_212, payment_count: 1, employee_count: 1 }
+        ],
+        monthly: [{
+          month: wp5DateKey().slice(0, 7),
+          currency: "KRW",
+          total_inflow: 159_443_060,
+          total_outflow: 227_166_172,
+          sales_amount: 21_385_200,
+          operating_expense_amount: 136_100_193,
+          payroll_payment_amount: 91_065_979,
+          non_operating_amount: 138_057_860,
+          classified_transaction_count: 103,
+          unclassified_transaction_count: 0,
+          net_movement: -67_723_112,
+          transaction_count: 103
+        }],
+        reconciliation: {
+          status: "passed",
+          latest_batch_id: "bank_import_amic_20260728",
+          latest_batch_transaction_count: 620,
+          raw_source_payload_included: false
+        }
+      },
+      source_statuses: [],
+      filters: { currency: "KRW", time_zone: "Asia/Seoul" },
+      safe_error_codes: [],
+      audit_hint_ref: "wp-fin-cashflow-audit",
+      count_leak_prevented: true,
+      raw_source_payload_included: false,
+      production_ready_claim: false
+    };
+  }
+  if (pathname === "/api/finance/bank-classifications") {
+    return {
+      ...list("wp-fin-bank-classifications", [
+        {
+          bank_transaction_id: "bank-tx-out",
+          date: wp5DateKey(),
+          occurred_at: wp5IsoDay(0),
+          direction: "outflow",
+          amount: 280_000,
+          currency: "KRW",
+          counterparty: "운영비",
+          memo: "당월 정산",
+          category: "general_operating",
+          category_label: "기타 운영비",
+          primary_type: "operating_expense",
+          classification_source: "automatic",
+          confidence: "medium",
+          status: "confirmed"
+        },
+        {
+          bank_transaction_id: "bank-tx-in",
+          date: wp5DateKey(-1),
+          occurred_at: wp5IsoDay(-1),
+          direction: "inflow",
+          amount: 30_000_000,
+          currency: "KRW",
+          counterparty: "입금자 확인 전",
+          memo: null,
+          category: "other_inflow",
+          category_label: "기타 입금",
+          primary_type: "non_operating",
+          classification_source: "automatic",
+          confidence: "low",
+          status: "confirmed"
+        }
+      ]),
+      summary: { confirmed_count: 2, review_count: 0, transaction_count: 2 }
+    };
+  }
+  if (pathname === "/api/finance/bank-classification-options") {
+    return {
+      ...list("wp-fin-bank-classification-options", []),
+      item: {
+        categories: [
+          { category: "client_receipt", label: "고객 매출", primary_type: "sales" },
+          { category: "other_inflow", label: "기타 입금", primary_type: "non_operating" },
+          { category: "salary_payment", label: "급여 지급", primary_type: "payroll" },
+          { category: "general_operating", label: "기타 운영비", primary_type: "operating_expense" }
+        ],
+        clients: [],
+        employees: []
+      }
+    };
+  }
   if (pathname === "/api/hrx/payroll/dashboard-summary") {
     return {
       outcome: "ok",
@@ -894,6 +1015,18 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     await page.waitForSelector('[data-home-finance-client-table="true"]');
     assert.equal(await page.locator('[data-home-finance-unlinked-client="true"]').count(), 1);
 
+    await financeSubnav.getByRole("button", { name: "자금현황", exact: true }).click();
+    await page.waitForSelector('[data-home-cashflow-summary="true"]');
+    const cashflow = page.locator('[data-home-finance-section="home-finance-cashflow"]');
+    assert.match(await cashflow.innerText(), /29,153,222원/);
+    assert.match(await cashflow.innerText(), /159,443,060원/);
+    assert.match(await cashflow.innerText(), /현재 등록된 고객과 연결된 입금을 매출로 집계합니다/);
+    assert.equal(await cashflow.locator('[data-home-cashflow-monthly-table="true"]').count(), 1);
+    assert.equal(await cashflow.locator('[data-home-cashflow-transaction-table="true"] tbody tr').count(), 2);
+    assert.match(await cashflow.locator('[data-home-cashflow-transaction-table="true"]').innerText(), /입금자 확인 전/);
+    await cashflow.getByLabel("거래 유형").selectOption("outflow");
+    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("direction") === "outflow");
+
     await page.setViewportSize({ width: 700, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   } finally {
@@ -1019,8 +1152,14 @@ test("WP-FIN-5 exposes only scoped finance navigation and hides accounting expor
     const subnav = group;
     assert.equal(await subnav.getByRole("button", { name: "비용 처리", exact: true }).count(), 1);
     assert.equal(await subnav.getByRole("button", { name: "전체 현황", exact: true }).count(), 0);
+    assert.equal(await subnav.getByRole("button", { name: "자금현황", exact: true }).count(), 0);
     assert.equal(await subnav.getByRole("button", { name: "청구/수납", exact: true }).count(), 0);
     assert.equal(await page.locator('[data-matter-accounting-export-action="true"]').count(), 0);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-home-dashboard-grid="true"]');
+    assert.equal(await page.locator('[data-home-cashflow-band="true"]').count(), 0);
+    assert.doesNotMatch(await page.locator('[data-home-dashboard-grid="true"]').innerText(), /자금현황.*권한|권한.*자금현황/);
   } finally {
     await browser.close();
     await server.close();
@@ -1233,7 +1372,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
     const dashboardCards = [
       ["monthly-revenue", "이번달 매출"],
-      ["monthly-payroll", "이번달 급여 총액"],
+      ["monthly-payroll", "이번달 급여 지급액"],
       ["monthly-processed-cost", "이번달 비용처리"],
       ["monthly-revenue-chart", "월별 매출"],
       ["payroll-categories", "급여 구분"],
@@ -1247,6 +1386,13 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       assert.equal(await card.count(), 1, `Home must show one ${title} card`);
       assert.equal(await card.locator(".home-dashboard-card-header").getByText(title, { exact: true }).count(), 1, `${title} card must keep its requested heading`);
     }
+    const cashflowBand = page.locator('[data-home-cashflow-band="true"]');
+    assert.equal(await cashflowBand.count(), 1, "Home must show the cashflow band");
+    assert.match(await cashflowBand.innerText(), /현재 잔액\s*₩ 29,153,222/);
+    assert.match(await cashflowBand.innerText(), /이번달 입금\s*₩ 159,443,060/);
+    assert.match(await cashflowBand.innerText(), /이번달 출금\s*₩ 227,166,172/);
+    assert.match(await cashflowBand.innerText(), /순이동\s*₩ -67,723,112/);
+    assert.doesNotMatch(await cashflowBand.innerText(), /운영비|입금자 확인 전|계좌번호|메모/);
     const dashboardGrid = page.locator('[data-home-dashboard-grid="true"]');
     for (const removedTitle of ["최근 작업", "오늘 할 일", "승인 대기", "신규 수임", "재무 현황", "운영 현황"]) {
       assert.equal(await dashboardGrid.getByText(removedTitle, { exact: true }).count(), 0, `Home dashboard must remove ${removedTitle}`);
@@ -1288,6 +1434,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
       const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
       const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
+      const cashflow = document.querySelector(".home-dashboard-cashflow-band").getBoundingClientRect();
       const client = document.querySelector(".home-dashboard-client-card").getBoundingClientRect();
       const calendar = document.querySelector(".home-dashboard-calendar-card").getBoundingClientRect();
       const matter = document.querySelector(".home-dashboard-matter-card").getBoundingClientRect();
@@ -1300,7 +1447,11 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
         chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
         payrollRight: payroll.left > revenue.left,
         revenueWider: revenue.width > payroll.width,
-        calendarBelowPayroll: calendar.top > payroll.bottom,
+        cashflowBelowCharts: cashflow.top > payroll.bottom && cashflow.top > revenue.bottom,
+        cashflowAboveDomains: cashflow.bottom < client.top && cashflow.bottom < calendar.top,
+        cashflowFullWidth: Math.abs(cashflow.left - revenue.left) < 2 && Math.abs(cashflow.right - payroll.right) < 2,
+        cashflowHeight: Math.round(cashflow.height),
+        calendarBelowPayroll: calendar.top > cashflow.bottom,
         calendarAlignedWithPayroll: Math.abs(calendar.left - payroll.left) < 2 && Math.abs(calendar.width - payroll.width) < 2,
         clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.left - revenue.left) < 2 && Math.abs(client.width - revenue.width) < 2,
         matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(matter.left - revenue.left) < 2 && Math.abs(people.left - payroll.left) < 2
@@ -1313,6 +1464,10 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       chartsSameRow: true,
       payrollRight: true,
       revenueWider: true,
+      cashflowBelowCharts: true,
+      cashflowAboveDomains: true,
+      cashflowFullWidth: true,
+      cashflowHeight: 108,
       calendarBelowPayroll: true,
       calendarAlignedWithPayroll: true,
       clientBesideCalendar: true,
@@ -1323,16 +1478,24 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
       const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
       const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
+      const cashflow = document.querySelector(".home-dashboard-cashflow-band").getBoundingClientRect();
       const client = document.querySelector(".home-dashboard-client-card").getBoundingClientRect();
       const calendar = document.querySelector(".home-dashboard-calendar-card").getBoundingClientRect();
       const matter = document.querySelector(".home-dashboard-matter-card").getBoundingClientRect();
       const people = document.querySelector(".home-dashboard-people-card").getBoundingClientRect();
+      const kpiValuesFit = [...document.querySelectorAll(".home-dashboard-kpi-value > strong")]
+        .every((value) => value.scrollWidth <= value.clientWidth);
       return {
         kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
+        kpiValuesFit,
         chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
         payrollRight: payroll.left > revenue.left,
         revenueWider: revenue.width > payroll.width,
-        calendarBelowPayroll: calendar.top > payroll.bottom,
+        cashflowBelowCharts: cashflow.top > payroll.bottom,
+        cashflowAboveDomains: cashflow.bottom < client.top,
+        cashflowFullWidth: Math.abs(cashflow.left - revenue.left) < 2 && Math.abs(cashflow.right - payroll.right) < 2,
+        cashflowHeight: Math.round(cashflow.height),
+        calendarBelowPayroll: calendar.top > cashflow.bottom,
         calendarAlignedWithPayroll: Math.abs(calendar.left - payroll.left) < 2 && Math.abs(calendar.width - payroll.width) < 2,
         clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.width - revenue.width) < 2,
         matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(people.width - payroll.width) < 2
@@ -1340,9 +1503,14 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     });
     assert.deepEqual(tabletLayout, {
       kpisSameRow: true,
+      kpiValuesFit: true,
       chartsSameRow: true,
       payrollRight: true,
       revenueWider: true,
+      cashflowBelowCharts: true,
+      cashflowAboveDomains: true,
+      cashflowFullWidth: true,
+      cashflowHeight: 108,
       calendarBelowPayroll: true,
       calendarAlignedWithPayroll: true,
       clientBesideCalendar: true,
@@ -1351,6 +1519,12 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await page.setViewportSize({ width: 821, height: 768 });
     const compactCards = await page.locator(".home-dashboard-overview-grid > .home-dashboard-card").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
     assert.equal(compactCards.every((rect, index) => index === 0 || rect.top > compactCards[index - 1].top), true);
+    const compactCashflow = await cashflowBand.evaluate((band) => {
+      const rect = band.getBoundingClientRect();
+      return { width: rect.width, parentWidth: band.parentElement.getBoundingClientRect().width, minHeight: rect.height >= 108 };
+    });
+    assert.equal(Math.abs(compactCashflow.width - compactCashflow.parentWidth) < 2, true);
+    assert.equal(compactCashflow.minHeight, true);
     await page.setViewportSize({ width: 390, height: 844 });
     const mobileCardHeaders = await page.locator(".home-dashboard-card-header").evaluateAll((headers) => headers.map((header) => {
       const title = header.querySelector(":scope > div:first-child")?.getBoundingClientRect();
@@ -1571,7 +1745,7 @@ test("Client prospect card preserves readable sources when one source is denied"
   }
 });
 
-test("Home dashboard keeps independent cards available when monthly finance is denied", async () => {
+test("Home dashboard keeps independent cards available when bank cashflow is denied", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
@@ -1580,14 +1754,14 @@ test("Home dashboard keeps independent cards available when monthly finance is d
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname === "/api/analytics/finance/monthly") {
+      if (url.pathname === "/api/analytics/finance/cashflow") {
         return jsonResponse(route, {
-          request_id: "dashboard-monthly-denied",
+          request_id: "dashboard-cashflow-denied",
           outcome: "denied",
           ui_state: "denied",
           items: [],
           safe_error_codes: ["ANALYTICS_FINANCE_READ_DENIED"],
-          audit_hint_ref: "dashboard-monthly-denied-audit",
+          audit_hint_ref: "dashboard-cashflow-denied-audit",
           count_leak_prevented: true,
           production_ready_claim: false
         });
@@ -1606,7 +1780,7 @@ test("Home dashboard keeps independent cards available when monthly finance is d
   }
 });
 
-test("Home payroll step-up challenge never renders as a permission denial", async () => {
+test("Home bank cashflow review challenge never renders as a permission denial", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
@@ -1615,14 +1789,17 @@ test("Home payroll step-up challenge never renders as a permission denial", asyn
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname === "/api/hrx/payroll/dashboard-summary") {
+      if (url.pathname === "/api/analytics/finance/cashflow") {
         return jsonResponse(route, {
-          request_id: "dashboard-payroll-step-up",
-          outcome: "blocked",
-          safe_error_code: "HRX_STEP_UP_REQUIRED",
-          reason: "hrx_step_up_context_absent",
-          step_up_required: true,
-          action: "hrx.payroll.preview"
+          request_id: "dashboard-cashflow-review",
+          outcome: "review_required",
+          ui_state: "review_required",
+          item: null,
+          items: [],
+          safe_error_codes: ["ANALYTICS_FINANCE_REVIEW_REQUIRED"],
+          audit_hint_ref: "dashboard-cashflow-review-audit",
+          count_leak_prevented: true,
+          production_ready_claim: false
         }, 403);
       }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));

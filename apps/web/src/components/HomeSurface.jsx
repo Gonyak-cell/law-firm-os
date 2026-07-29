@@ -10,7 +10,7 @@ import { backendCapabilities } from "../data/capabilityMap.js";
 import {
   fetchAiReviewQueue,
   fetchAnalyticsDashboards,
-  fetchAnalyticsFinanceMonthly,
+  fetchAnalyticsFinanceCashflow,
   fetchCrmAccounts,
   fetchCrmLeads,
   fetchCrmOpportunities,
@@ -32,13 +32,14 @@ import {
   readLawosSessionEnvelope,
   fetchVaultDocuments
 } from "../data/apiClient.js";
+import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
-import { fetchHrxPayrollDashboardSummary, fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
+import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { FinanceSurface } from "./FinanceSurface.jsx";
 import { HomePayrollDonutChart, HomeRevenueLineChart } from "./HomeDashboardCharts.jsx";
 import {
   buildClientDashboardModel,
-  buildFinanceDashboardModel,
+  buildBankCashflowDashboardModel,
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
   dashboardResultState,
@@ -50,6 +51,19 @@ const heroDateFormatter = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" }
 const monthFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long" });
 const selectedDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 const homeDateTimeFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const cashflowBasisFormatter = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  month: "long",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit"
+});
+const cashflowDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
 const homeMoneyFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
 const calendarWeekdays = Object.freeze(["일", "월", "화", "수", "목", "금", "토"]);
 const emptyHomeCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
@@ -105,6 +119,7 @@ const homeFinanceSectionIds = new Set([
   "home-finance-overview",
   "home-finance-monthly",
   "home-finance-clients",
+  "home-finance-cashflow",
   "home-finance-time",
   "home-finance-expenses",
   "home-finance-billing",
@@ -116,6 +131,7 @@ const homeSectionMeta = Object.freeze({
   "home-finance-overview": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceOverviewLabel", title: "전체 현황" },
   "home-finance-monthly": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceMonthlyLabel", title: "월별 매출/비용" },
   "home-finance-clients": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceClientsLabel", title: "고객별 매출/비용" },
+  "home-finance-cashflow": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceCashflowLabel", title: "자금현황" },
   "home-finance-time": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceTimeLabel", title: "시간 기록" },
   "home-finance-expenses": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceExpensesLabel", title: "비용 처리" },
   "home-finance-billing": { eyebrowKey: "homeFinanceLabel", eyebrow: "매출/비용", titleKey: "homeFinanceBillingLabel", title: "청구/수납" },
@@ -735,6 +751,44 @@ function HomeKpiCard({ title, state, amount, basis, changePercent, section, onOp
   );
 }
 
+function HomeCashflowBand({ result, onOpen }) {
+  const summary = result?.item?.summary;
+  const state = dashboardResultState(result);
+  if (!summary || !["data", "partial"].includes(state)) return null;
+  const basis = summary.basis_at ? cashflowBasisFormatter.format(new Date(summary.basis_at)) : "기준 시각 확인 중";
+  const reconciliation = result?.item?.reconciliation?.status === "passed" ? "대사 완료" : "대사 확인";
+  const metrics = [
+    { id: "balance", label: "현재 잔액", value: summary.current_balance },
+    { id: "inflow", label: "이번달 입금", value: summary.total_inflow },
+    { id: "outflow", label: "이번달 출금", value: summary.total_outflow },
+    { id: "net", label: "순이동", value: summary.net_movement },
+  ];
+  return (
+    <button
+      type="button"
+      className="home-dashboard-cashflow-band"
+      data-dashboard-section="cashflow"
+      data-home-cashflow-band="true"
+      aria-label="자금현황 상세 보기"
+      onClick={onOpen}
+    >
+      <span className="home-cashflow-band-title">
+        <strong>자금현황</strong>
+        <small>{basis} 기준 {reconciliation}</small>
+      </span>
+      <span className="home-cashflow-band-metrics">
+        {metrics.map((metric) => (
+          <span key={metric.id} className={`home-cashflow-band-metric ${metric.id === "net" && Number(metric.value) < 0 ? "negative" : ""}`}>
+            <small>{metric.label}</small>
+            <strong>{dashboardKrw(metric.value)}</strong>
+          </span>
+        ))}
+      </span>
+      <ArrowRight className="home-cashflow-band-arrow" size={20} aria-hidden="true" />
+    </button>
+  );
+}
+
 function HomeSummaryMetric({ label, value, state = "data" }) {
   const readable = state === "data" || state === "empty";
   return (
@@ -890,16 +944,21 @@ export function HomeSurface({
   refreshSignal = 0
 }) {
   const initialHomeContext = useMemo(() => activeHomeContext(activeSection, redirectedFrom), [activeSection, redirectedFrom?.view, redirectedFrom?.section]);
+  const apiSession = readLawosApiSession();
+  const canViewDashboardCashflow = canAccessHomeFinanceSection(
+    [apiSession, apiSession?.session, readLawosSessionEnvelope()],
+    "home-finance-cashflow"
+  );
   const [refreshToken, setRefreshToken] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
   const [results, setResults] = useState([]);
   const [dashboardResults, setDashboardResults] = useState({
     matters: null,
-    monthly: null,
     accounts: null,
     leads: null,
     opportunities: null,
-    payroll: null
+    cashflow: null,
+    cashflowHistory: null
   });
   const [actionInbox, setActionInbox] = useState({
     approval: { kind: "loading", items: [] },
@@ -955,18 +1014,18 @@ export function HomeSurface({
   useEffect(() => {
     let cancelled = false;
     setResults([]);
-    setDashboardResults({ matters: null, monthly: null, accounts: null, leads: null, opportunities: null, payroll: null });
+    setDashboardResults({ matters: null, accounts: null, leads: null, opportunities: null, cashflow: null, cashflowHistory: null });
     const args = { ctx: liveCtx };
     async function loadResults() {
       const month = seoulMonthKey(new Date());
+      const desktopResults = await fetchDesktopHomeBridgeResults();
       const [
-        desktopResults,
         matters,
-        monthly,
         accounts,
         leads,
         opportunities,
-        payroll,
+        cashflow,
+        cashflowHistory,
         clientGroups,
         portal,
         portalRfi,
@@ -979,13 +1038,25 @@ export function HomeSurface({
         vaultDocuments,
         vaultDataRoom
       ] = await Promise.all([
-        fetchDesktopHomeBridgeResults(),
         dashboardReadProbe(fetchMatterRecords(args), "dashboard_matter_records"),
-        dashboardReadProbe(fetchAnalyticsFinanceMonthly(args), "dashboard_finance_monthly"),
         dashboardReadProbe(fetchCrmAccounts(args), "dashboard_crm_accounts"),
         dashboardReadProbe(fetchCrmLeads(args), "dashboard_crm_leads"),
         dashboardReadProbe(fetchCrmOpportunities(args), "dashboard_crm_opportunities"),
-        dashboardReadProbe(fetchHrxPayrollDashboardSummary(month), "dashboard_payroll_summary"),
+        canViewDashboardCashflow
+          ? dashboardReadProbe(fetchAnalyticsFinanceCashflow({
+            ...args,
+            from: `${month}-01`,
+            to: cashflowDateFormatter.format(new Date()),
+            currency: "KRW"
+          }), "dashboard_finance_cashflow")
+          : Promise.resolve({ kind: "data", uiState: "denied", outcome: "denied", item: null }),
+        canViewDashboardCashflow
+          ? dashboardReadProbe(fetchAnalyticsFinanceCashflow({
+            ...args,
+            to: cashflowDateFormatter.format(new Date()),
+            currency: "KRW"
+          }), "dashboard_finance_cashflow_history")
+          : Promise.resolve({ kind: "data", uiState: "denied", outcome: "denied", item: null }),
         homeReadProbe(fetchMasterDataRecords({ ...args, modelType: "ClientGroup", limit: 10 }), "client_groups"),
         homeReadProbe(fetchPortalDashboard(args), "client_portal"),
         homeReadProbe(fetchPortalRfi(args), "client_rfi"),
@@ -998,11 +1069,11 @@ export function HomeSurface({
         homeReadProbe(fetchVaultDocuments(args), "vault_documents"),
         homeReadProbe(fetchDataRoomProjections(args), "vault_data_room")
       ]);
-      const dashboard = { matters, monthly, accounts, leads, opportunities, payroll };
+      const dashboard = { matters, accounts, leads, opportunities, cashflow, cashflowHistory };
       if (desktopResults) return { results: desktopResults, dashboard };
       const nextResults = [
         { id: "client", result: combinePillarResults([clientGroups, accounts, leads, opportunities, portal, portalRfi]) },
-        { id: "matter", result: combinePillarResults([matters, matterTime, matterInvoices, matterAr, monthly, matterAnalytics, matterAiReview]) },
+        { id: "matter", result: combinePillarResults([matters, matterTime, matterInvoices, matterAr, matterAnalytics, matterAiReview]) },
         { id: "people", result: peopleOverview },
         { id: "vault", result: combinePillarResults([vaultDocuments, vaultDataRoom]) }
       ];
@@ -1016,7 +1087,7 @@ export function HomeSurface({
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken]);
+  }, [canViewDashboardCashflow, liveCtx, refreshToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1113,7 +1184,10 @@ export function HomeSurface({
   const filteredApprovalItems = filterRequestItems(approvalItems, requestFilter);
   const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval", labels));
   const sentRequestRows = [];
-  const financeDashboard = useMemo(() => buildFinanceDashboardModel(dashboardResults.monthly), [dashboardResults.monthly]);
+  const financeDashboard = useMemo(
+    () => buildBankCashflowDashboardModel(dashboardResults.cashflow, dashboardResults.cashflowHistory),
+    [dashboardResults.cashflow, dashboardResults.cashflowHistory]
+  );
   const clientDashboard = useMemo(() => buildClientDashboardModel({
     accounts: dashboardResults.accounts,
     leads: dashboardResults.leads,
@@ -1121,8 +1195,8 @@ export function HomeSurface({
   }), [dashboardResults.accounts, dashboardResults.leads, dashboardResults.opportunities]);
   const matterDashboard = useMemo(() => buildMatterDashboardModel(dashboardResults.matters), [dashboardResults.matters]);
   const leaveDashboard = useMemo(() => buildLeaveDashboardModel(actionInbox.approval), [actionInbox.approval]);
-  const payrollSummary = dashboardResults.payroll?.summary ?? null;
-  const payrollState = dashboardResultState(dashboardResults.payroll);
+  const payrollSummary = financeDashboard.payroll_summary;
+  const payrollState = financeDashboard.state;
   const selectedRequestFilter = localizedRequestFilters.find((filter) => filter.id === requestFilter) ?? localizedRequestFilters[0];
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
   const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
@@ -1717,27 +1791,27 @@ export function HomeSurface({
           title="이번달 매출"
           state={financeCurrentState}
           amount={financeDashboard.current?.billed_amount ?? null}
-          basis="KRW / 청구 기준"
+          basis="KRW / 등록 고객 입금"
           changePercent={financeDashboard.revenue_change_percent}
           section="monthly-revenue"
           onOpen={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_revenue_kpi" })}
         />
         <HomeKpiCard
-          title="이번달 급여 총액"
+          title="이번달 급여 지급액"
           state={payrollCurrentState}
           amount={payrollSummary?.gross_krw ?? null}
-          basis={payrollSummary ? `KRW / ${payrollSummary.run_status === "closed" ? "마감" : "승인"} 급여` : "KRW / 승인 또는 마감 급여"}
+          basis="KRW / 은행 지급 기준"
           section="monthly-payroll"
-          onOpen={() => openHomeRoute("people-payroll", "people", { source: "monthly_payroll_kpi" })}
+          onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "monthly_payroll_kpi" })}
         />
         <HomeKpiCard
           title="이번달 비용처리"
           state={financeCurrentState}
           amount={financeDashboard.current?.processed_cost ?? null}
-          basis="KRW / 승인, 게시, 지급 완료"
+          basis="KRW / 운영비 출금 분류"
           changePercent={financeDashboard.processed_cost_change_percent}
           section="monthly-processed-cost"
-          onOpen={() => openHomeRoute("home-finance-expenses", "home", { source: "processed_cost_kpi" })}
+          onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "processed_cost_kpi" })}
         />
 
         <DashboardCard
@@ -1746,7 +1820,7 @@ export function HomeSurface({
           section="monthly-revenue-chart"
           onViewAll={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_revenue_chart" })}
           viewAllLabel="월별 매출 상세 보기"
-          headerExtra={<span className="home-dashboard-card-meta">최근 12개월 / KRW 청구</span>}
+          headerExtra={<span className="home-dashboard-card-meta">최근 12개월 / 등록 고객 입금</span>}
         >
           <HomeDashboardState state={revenueChartState} noun="월별 매출">
             <HomeRevenueLineChart series={financeDashboard.series} />
@@ -1756,13 +1830,18 @@ export function HomeSurface({
           className="home-dashboard-payroll-chart-card"
           title="급여 구분"
           section="payroll-categories"
-          onViewAll={() => openHomeRoute("people-payroll", "people", { source: "payroll_category_chart" })}
+          onViewAll={() => openHomeRoute("home-finance-cashflow", "home", { source: "payroll_category_chart" })}
           viewAllLabel="급여 상세 보기"
         >
           <HomeDashboardState state={payrollChartState} noun="급여 구분">
             <HomePayrollDonutChart summary={payrollSummary} />
           </HomeDashboardState>
         </DashboardCard>
+
+        <HomeCashflowBand
+          result={dashboardResults.cashflow}
+          onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "cashflow_band" })}
+        />
 
         {renderCalendarCard("home-dashboard-domain-card home-dashboard-calendar-card")}
 

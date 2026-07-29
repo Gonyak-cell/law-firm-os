@@ -229,7 +229,7 @@ test("POST /api/auth/login issues a signed session token for the registered rost
   });
 });
 
-test("PostgreSQL highest-privilege sessions retain the complete HRX administrator scope set", async () => {
+test("PostgreSQL highest-privilege sessions restore canonical administrator scopes", async () => {
   const account = user();
   const tenantMembership = account.tenant_memberships.find(({ tenant_id: tenantId }) => (
     tenantId === MATTER_VAULT_REGISTERED_TENANT_ID
@@ -240,6 +240,9 @@ test("PostgreSQL highest-privilege sessions retain the complete HRX administrato
     tenant_memberships: [{
       ...tenantMembership,
       status: "active",
+      role_ids: [],
+      group_ids: [],
+      scopes: [],
       hrx_scopes: []
     }]
   };
@@ -259,10 +262,14 @@ test("PostgreSQL highest-privilege sessions retain the complete HRX administrato
     requestId: "req-postgres-highest-privilege"
   });
   assert.equal(loginResult.status, 200);
+  assert.ok(loginResult.body.session.role_ids.includes("system_super_admin"));
+  assert.ok(loginResult.body.session.group_ids.includes("group_system_admins"));
   assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.leave.self.read"));
   assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.leave.approve"));
   assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.leave.report.export"));
   assert.ok(loginResult.body.session.hrx_scopes.includes("hrx.payroll.approve"));
+  assert.ok(loginResult.body.session.scopes.includes("finance.bank.read"));
+  assert.ok(loginResult.body.session.scopes.includes("finance.bank.import"));
 
   const resolved = await sessionAuth.resolvePermissionContextFromHeaders({
     authorization: `Bearer ${loginResult.body.session_token}`
@@ -272,8 +279,12 @@ test("PostgreSQL highest-privilege sessions retain the complete HRX administrato
   });
   assert.equal(resolved.ok, true);
   assert.equal(resolved.principal.highest_privilege, true);
+  assert.ok(resolved.principal.role_ids.includes("system_super_admin"));
+  assert.ok(resolved.context.principal.group_ids.includes("group_system_admins"));
   assert.ok(resolved.principal.hrx_scopes.includes("hrx.leave.approve"));
   assert.ok(resolved.context.principal.hrx_scopes.includes("hrx.payroll.approve"));
+  assert.ok(resolved.principal.scopes.includes("finance.bank.read"));
+  assert.ok(resolved.context.principal.scopes.includes("finance.bank.import"));
 });
 
 test("Signed-session permission rules enforce verified scopes without a universal allow", async () => {

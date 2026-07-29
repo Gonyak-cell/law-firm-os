@@ -421,6 +421,9 @@ export function createDefaultCrmIntakeRuntime({
 
 export function createDefaultFinanceRuntime({
   repository,
+  masterDataRepository = null,
+  clientRecords = null,
+  employees = undefined,
   storePath = process.env.LAWOS_FINANCE_STORE_PATH,
 } = {}) {
   const financeRepository =
@@ -429,7 +432,12 @@ export function createDefaultFinanceRuntime({
       filePath: storePath || createEphemeralFinanceStorePath(),
       seedRecords: FINANCE_RUNTIME_SEED,
     });
-  return createFinanceRuntimeContext({ repository: financeRepository });
+  return createFinanceRuntimeContext({
+    repository: financeRepository,
+    masterDataRepository,
+    clientRecords,
+    employees,
+  });
 }
 
 export function createDefaultAnalyticsRuntime({
@@ -2103,6 +2111,7 @@ export async function startApiServer({
     try {
       financeRuntimeContext = createDefaultFinanceRuntime({
         repository: financeRepository,
+        masterDataRepository: masterRuntime?.repository ?? null,
         storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
       });
     } catch (error) {

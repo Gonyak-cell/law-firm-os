@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.finance.bank-classification-summary.v1",
+  "mode": "preview_only",
+  "source_manifest_hash": "f6f2d3061d5ad166d2e6ca4e3cec121a1e3c83e97c0d7ea9d5597ca2223384dd",
+  "production_write_performed": false,
+  "source_payload_included": false,
+  "counterparty_values_included": false,
+  "individual_payroll_values_included": false,
+  "coverage": {
+    "transaction_count": 620,
+    "classification_count": 620,
+    "confirmed_count": 620,
+    "review_count": 0,
+    "unclassified_count": 0
+  },
+  "linkage": {
+    "registered_client_receipt_count": 39,
+    "payroll_transaction_count": 58,
+    "payroll_employee_linked_count": 52,
+    "payroll_employee_unresolved_count": 6,
+    "july_payroll_employee_linked_count": 10
+  },
+  "july_2026": {
+    "transaction_count": 103,
+    "sales_amount": 21385200,
+    "operating_expense_amount": 136100193,
+    "payroll_payment_amount": 91065979,
+    "non_operating_amount": 138057860,
+    "payroll_categories": [
+      {
+        "category": "partner",
+        "transaction_count": 4,
+        "amount": 51890090
+      },
+      {
+        "category": "staff",
+        "transaction_count": 5,
+        "amount": 29604677
+      },
+      {
+        "category": "advisor",
+        "transaction_count": 1,
+        "amount": 9571212
+      }
+    ]
+  },
+  "classification_invariants_passed": true
+}

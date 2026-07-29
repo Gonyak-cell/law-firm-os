@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
+import { createFinanceRuntimeContext } from "../src/finance-runtime-context.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -12,7 +14,26 @@ import { apiSessionHeaders } from "./helpers/session.js";
 const TENANT = "tenant_cmp_g7_synthetic";
 const BASE_QUERY = `tenant_id=${TENANT}&permission_ref=perm_ref_cmp_g7_read&audit_hint_ref=audit_hint_cmp_g7_read`;
 const NON_PARTNER_ACCOUNT = findRegisteredAccountByUserId("user_amic_sypark");
+const SUPER_ADMIN_ACCOUNT = findRegisteredAccountByUserId("user_amic_jwsuh");
 assert.ok(NON_PARTNER_ACCOUNT, "non-partner registered account fixture must exist");
+assert.ok(SUPER_ADMIN_ACCOUNT, "system super-admin registered account fixture must exist");
+
+test("AMIC bank initials extend the canonical HRX member roster", () => {
+  const employees = listAmicBankClassificationEmployees();
+  const byAlias = new Map(employees.flatMap((employee) => (
+    employee.aliases.map((alias) => [alias, employee])
+  )));
+  assert.equal(byAlias.size, 10);
+  assert.equal(employees.reduce((count, employee) => count + employee.aliases.length, 0), 10);
+  assert.deepEqual(
+    ["BJP", "YHL", "JWS", "SMC", "JHH", "YTK", "WSJ", "SYP", "TRY", "YJL"].filter((alias) => !byAlias.has(alias)),
+    [],
+  );
+  assert.equal(byAlias.get("JWS").employee_id, "emp_amic_jwsuh");
+  assert.equal(byAlias.get("JWS").user_id, "user_amic_jwsuh");
+  assert.equal(byAlias.get("JWS").display_name, "서지원");
+  assert.equal(byAlias.get("JWS").work_email, "jwsuh@amic.kr");
+});
 
 function permissionContext(effect = "allow", roleIds = ["finance_user"]) {
   return JSON.stringify({
@@ -118,6 +139,196 @@ test("WP-FIN-2 exposes sanitized Payment and PaymentMatch read routes", async ()
     assert.equal(matches.body.items[0].matched_amount, 300);
     assert.equal(matches.body.items[0].credential_material_included, false);
   }, { financeRepository });
+});
+
+test("AMIC super-admin imports and reads sanitized BankTransaction rows while staff remains fail-closed", async () => {
+  const financeRepository = createFinanceRepository();
+  await withServer(async (baseUrl) => {
+    const payload = {
+      permission_ref: "perm-bank-import-api",
+      audit_hint_ref: "audit-bank-import-api",
+      idempotency_key: "bank-import-api-001",
+      bank_import_batch: {
+        bank_import_batch_id: "bank-import-api-001",
+        tenant_id: TENANT,
+        source_manifest_hash: "a".repeat(64),
+        account_ref: "account-bank-api",
+        transaction_count: 1,
+        overlap_count: 0,
+        source_count: 2,
+        production_import_approved: true,
+      },
+      transactions: [{
+        bank_transaction_id: "bank-transaction-api-001",
+        account_ref: "account-bank-api",
+        transaction_fingerprint: "b".repeat(64),
+        date: "2026-07-28",
+        occurred_at: "2026-07-28T14:50:03+09:00",
+        time_precision: "second",
+        direction: "outflow",
+        amount: 280000,
+        balance_after: 29153222,
+        currency: "KRW",
+        counterparty: "Synthetic counterparty",
+        memo: "Synthetic memo",
+        classification_scope: "unreviewed",
+        source_refs: [{ source_type: "pdf", source_hash: "c".repeat(64), page: 1 }],
+      }],
+    };
+    const approvalRequired = await json(baseUrl, "/api/finance/bank-imports", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        ...payload,
+        idempotency_key: "bank-import-without-production-approval",
+        bank_import_batch: {
+          ...payload.bank_import_batch,
+          production_import_approved: false,
+        },
+      }),
+    });
+    assert.equal(approvalRequired.status, 403);
+    assert.deepEqual(approvalRequired.body.safe_error_codes, ["FINANCE_APPROVAL_REQUIRED"]);
+
+    const imported = await json(baseUrl, "/api/finance/bank-imports", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify(payload),
+    });
+    assert.equal(imported.status, 201);
+    assert.equal(imported.body.transaction_count, 1);
+    assert.equal(imported.body.item.source_manifest_hash, undefined);
+    assert.equal(imported.body.raw_source_payload_included, false);
+
+    const rows = await json(baseUrl, `/api/finance/bank-transactions?${BASE_QUERY}`, { account: SUPER_ADMIN_ACCOUNT });
+    assert.equal(rows.status, 200);
+    assert.equal(rows.body.items.length, 1);
+    assert.equal(rows.body.items[0].counterparty, "Synthetic counterparty");
+    assert.equal(rows.body.items[0].source_refs, undefined);
+    assert.equal(rows.body.items[0].transaction_fingerprint, undefined);
+    assert.equal(rows.body.count_leak_prevented, true);
+
+    const invalidDirection = await json(baseUrl, `/api/finance/bank-transactions?${BASE_QUERY}&direction=sideways`, { account: SUPER_ADMIN_ACCOUNT });
+    assert.equal(invalidDirection.status, 400);
+    assert.deepEqual(invalidDirection.body.safe_error_codes, ["FINANCE_API_VALIDATION_ERROR"]);
+
+    const deniedRead = await json(baseUrl, `/api/finance/bank-transactions?${BASE_QUERY}`, { account: NON_PARTNER_ACCOUNT });
+    const deniedImport = await json(baseUrl, "/api/finance/bank-imports", {
+      method: "POST",
+      account: NON_PARTNER_ACCOUNT,
+      body: JSON.stringify({ ...payload, idempotency_key: "staff-denied-bank-import" }),
+    });
+    assert.equal(deniedRead.status, 403);
+    assert.deepEqual(deniedRead.body.items, []);
+    assert.equal(deniedRead.body.count_leak_prevented, true);
+    assert.equal(deniedImport.status, 403);
+    assert.deepEqual(deniedImport.body.items, []);
+  }, { financeRepository });
+});
+
+test("AMIC super-admin classifies client initials and payroll initials while staff remains fail-closed", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-classification-client-api",
+        tenant_id: TENANT,
+        account_ref: "account-bank-api",
+        transaction_fingerprint: "d".repeat(64),
+        date: "2026-07-28",
+        occurred_at: "2026-07-28T09:00:00+09:00",
+        direction: "inflow",
+        amount: 2100000,
+        balance_after: 2100000,
+        currency: "KRW",
+        counterparty: "(주)베스트이노",
+        classification_scope: "unreviewed",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-classification-payroll-api",
+        tenant_id: TENANT,
+        account_ref: "account-bank-api",
+        transaction_fingerprint: "e".repeat(64),
+        date: "2026-07-28",
+        occurred_at: "2026-07-28T10:00:00+09:00",
+        direction: "outflow",
+        amount: 1000000,
+        balance_after: 1100000,
+        currency: "KRW",
+        counterparty: "7월 급여 JWS",
+        classification_scope: "unreviewed",
+      },
+    ],
+  });
+  const financeRuntime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    clientRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-best-api",
+      display_name: "베스트이노베이션",
+      status: "active",
+    }],
+    employees: [{
+      employee_id: "emp_amic_jwsuh",
+      display_name: "서지원",
+      title: "대표변호사",
+      aliases: ["JWS"],
+      status: "active",
+    }],
+  });
+  await withServer(async (baseUrl) => {
+    const classified = await json(baseUrl, "/api/finance/bank-classifications/auto", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "bank-classification-api-001",
+      }),
+    });
+    assert.equal(classified.status, 200);
+    assert.equal(classified.body.item.summary.confirmed_count, 2);
+
+    const rows = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
+      account: SUPER_ADMIN_ACCOUNT,
+    });
+    assert.equal(rows.status, 200);
+    assert.equal(rows.body.items.length, 2);
+    const byId = new Map(rows.body.items.map((row) => [row.bank_transaction_id, row]));
+    assert.equal(byId.get("bank-classification-client-api").client_group_id, "client-best-api");
+    assert.equal(byId.get("bank-classification-client-api").primary_type, "sales");
+    assert.equal(byId.get("bank-classification-payroll-api").employee_id, "emp_amic_jwsuh");
+    assert.equal(byId.get("bank-classification-payroll-api").payroll_category, "partner");
+    assert.equal(byId.get("bank-classification-payroll-api").source_refs, undefined);
+    assert.equal(byId.get("bank-classification-payroll-api").transaction_fingerprint, undefined);
+
+    const options = await json(baseUrl, `/api/finance/bank-classification-options?${BASE_QUERY}`, {
+      account: SUPER_ADMIN_ACCOUNT,
+    });
+    assert.equal(options.status, 200);
+    assert.equal(options.body.item.employees[0].aliases[0], "JWS");
+
+    const denied = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
+      account: NON_PARTNER_ACCOUNT,
+    });
+    const deniedMutation = await json(baseUrl, "/api/finance/bank-classifications/auto", {
+      method: "POST",
+      account: NON_PARTNER_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "staff-bank-classification-api",
+      }),
+    });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(deniedMutation.status, 403);
+    assert.deepEqual(deniedMutation.body.items, []);
+  }, { financeRuntime, analyticsFinanceRepository: financeRepository });
 });
 
 test("G7 Finance sensitive reads write durable allow audits without leaking payload metadata", async () => {

@@ -1,0 +1,29 @@
+{
+  "schema_version": "law-firm-os.finance.cashflow-source-manifest.v1",
+  "account_ref": "amic-nh-operating",
+  "sources": {
+    "workbook": {
+      "file_name": "AMIC_매출현황.xlsx",
+      "sha256": "44aea5a305bd40c460a30c3a6fade697188706cb823361a5c346caed416560ac",
+      "expected_transaction_count": 552
+    },
+    "statement": {
+      "file_name": "거래내역 이메일 전송 서비스.pdf",
+      "sha256": "074631cf8c34668ccf4b6199e668bca1a935b154cfd812829d9d406c3e5e75c3",
+      "expected_transaction_count": 116
+    }
+  },
+  "expected_reconciliation": {
+    "overlap_count": 48,
+    "statement_new_count": 68,
+    "union_transaction_count": 620,
+    "july_2026": {
+      "total_inflow": 159443060,
+      "total_outflow": 227166172,
+      "net_movement": -67723112,
+      "current_balance": 29153222
+    }
+  },
+  "source_payload_committed": false,
+  "production_import_approved": false
+}

@@ -25,6 +25,10 @@ export const FINANCE_PRIMARY_ID_FIELDS = Object.freeze({
   TrustBalance: "trust_balance_id",
   SettlementRun: "settlement_run_id",
   WorkingCredit: "working_credit_id",
+  BankImportBatch: "bank_import_batch_id",
+  BankTransaction: "bank_transaction_id",
+  BankTransactionClassification: "bank_transaction_classification_id",
+  BankClassificationRule: "bank_classification_rule_id",
 });
 
 function clone(value) {
@@ -192,6 +196,9 @@ export function createFinanceRepository({
           .filter((record) => !query.matter_id || record.matter_id === query.matter_id)
           .filter((record) => !query.invoice_id || record.invoice_id === query.invoice_id)
           .filter((record) => !query.payment_id || record.payment_id === query.payment_id)
+          .filter((record) => !query.bank_import_batch_id || record.bank_import_batch_id === query.bank_import_batch_id)
+          .filter((record) => !query.bank_transaction_id || record.bank_transaction_id === query.bank_transaction_id)
+          .filter((record) => !query.account_ref || record.account_ref === query.account_ref)
           .map((record) => Object.freeze(clone(record))),
       );
     },

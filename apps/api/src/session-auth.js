@@ -197,6 +197,9 @@ function permissionRulesFromScopes(scopes = []) {
   }
   const financePrefixes = new Map([
     ["analytics.finance.read", ["analytics:finance:", "finance:ar:"]],
+    ["finance.bank.read", ["finance:bank_transaction:", "finance:bank_classification:read"]],
+    ["finance.bank.import", ["finance:bank_import:"]],
+    ["finance.bank.classify", ["finance:bank_classification:"]],
     ["finance.time.write", ["finance:time:"]],
     ["finance.expense.write", ["finance:expense:", "finance:disbursement:"]],
     ["finance.billing.write", ["finance:fee_arrangement:", "finance:wip:", "finance:wip_snapshot:", "finance:prebill:", "finance:invoice:"]],
@@ -373,10 +376,16 @@ function resolveSessionRoleAssignment(user, { tenantId = MATTER_VAULT_REGISTERED
   }
   const membership = (user.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId && entry?.status === "active");
   if (!membership) return null;
-  const roleIds = Object.freeze([...(membership.role_ids ?? [])]);
-  const groupIds = Object.freeze([...(membership.group_ids ?? [])]);
-  const scopes = Object.freeze([...(membership.scopes ?? [])]);
-  const highestPrivilegeHrxScopes = user.highest_privilege === true && roleIds.includes("system_super_admin")
+  const registeredAssignment = resolveLawosUserRoleAssignment(user, { tenantId });
+  const highestPrivilege = user.highest_privilege === true && registeredAssignment?.role_ids.includes("system_super_admin");
+  // A stale PostgreSQL membership must not reduce the registered break-glass account.
+  const registeredRoleIds = highestPrivilege ? registeredAssignment.role_ids : [];
+  const registeredGroupIds = highestPrivilege ? registeredAssignment.group_ids : [];
+  const registeredScopes = highestPrivilege ? registeredAssignment.scopes : [];
+  const roleIds = Object.freeze([...new Set([...(membership.role_ids ?? []), ...registeredRoleIds])]);
+  const groupIds = Object.freeze([...new Set([...(membership.group_ids ?? []), ...registeredGroupIds])]);
+  const scopes = Object.freeze([...new Set([...(membership.scopes ?? []), ...registeredScopes])]);
+  const highestPrivilegeHrxScopes = highestPrivilege
     ? hrxScopesForRoleProfile("admin")
     : [];
   const hrxScopes = Object.freeze([...new Set([...(membership.hrx_scopes ?? []), ...highestPrivilegeHrxScopes])]);
