@@ -265,6 +265,7 @@ function financeReadModelResponse({ kind, query, context, requestId, runtime }) 
             summary: model.summary,
             business_summary: model.business_summary,
             payroll_categories: model.payroll_categories,
+            non_payroll_outflow_categories: model.non_payroll_outflow_categories,
             monthly: model.monthly,
             reconciliation: model.reconciliation,
           },

@@ -36,7 +36,11 @@ import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 import { emitHomeMetric, homeMetricNowMs } from "../data/homeTelemetry.js";
 import { fetchHrxPeopleOverview } from "../people/hrxApiClient.ts";
 import { FinanceSurface } from "./FinanceSurface.jsx";
-import { HomePayrollDonutChart, HomeRevenueBarChart } from "./HomeDashboardCharts.jsx";
+import {
+  HomeNonPayrollOutflowDonutChart,
+  HomePayrollDonutChart,
+  HomeRevenueBarChart,
+} from "./HomeDashboardCharts.jsx";
 import {
   buildClientDashboardModel,
   buildBankCashflowDashboardModel,
@@ -1192,6 +1196,7 @@ export function HomeSurface({
   const matterDashboard = useMemo(() => buildMatterDashboardModel(dashboardResults.matters), [dashboardResults.matters]);
   const leaveDashboard = useMemo(() => buildLeaveDashboardModel(actionInbox.approval), [actionInbox.approval]);
   const payrollSummary = financeDashboard.payroll_summary;
+  const nonPayrollOutflowSummary = financeDashboard.non_payroll_outflow_summary;
   const payrollState = financeDashboard.state;
   const selectedRequestFilter = localizedRequestFilters.find((filter) => filter.id === requestFilter) ?? localizedRequestFilters[0];
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
@@ -1767,6 +1772,11 @@ export function HomeSurface({
     const revenueChartState = financeDashboard.state === "data" && !financeDashboard.has_series_data ? "empty" : financeDashboard.state;
     const payrollCurrentState = payrollState === "data" && !payrollSummary ? "empty" : payrollState;
     const payrollChartState = payrollCurrentState === "data" && Number(payrollSummary?.gross_krw ?? 0) <= 0 ? "empty" : payrollCurrentState;
+    const nonPayrollOutflowChartState = financeCurrentState === "data" && Number(nonPayrollOutflowSummary?.total_krw ?? 0) <= 0
+      ? "empty"
+      : financeCurrentState === "data" && nonPayrollOutflowSummary?.source_complete === false
+        ? "partial"
+        : financeCurrentState;
     const selectedClientItems = clientDashboardTab === "new" ? clientDashboard.new_clients : clientDashboard.prospects;
     const selectedClientSourceState = clientDashboardTab === "new" ? clientDashboard.new_client_state : clientDashboard.prospect_state;
     const selectedClientState = selectedClientSourceState === "data" && selectedClientItems.length === 0 ? "empty" : selectedClientSourceState;
@@ -1801,13 +1811,13 @@ export function HomeSurface({
           onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "monthly_payroll_kpi" })}
         />
         <HomeKpiCard
-          title="이번달 비용"
+          title="이번달 비급여 출금"
           state={financeCurrentState}
-          amount={financeDashboard.current?.processed_cost ?? null}
-          basis="KRW / 총 출금 - 급여 지급액"
-          changePercent={financeDashboard.processed_cost_change_percent}
+          amount={financeDashboard.current?.non_payroll_outflow ?? null}
+          basis="KRW / 급여 제외 은행 출금"
+          changePercent={financeDashboard.non_payroll_outflow_change_percent}
           section="monthly-processed-cost"
-          onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "processed_cost_kpi" })}
+          onOpen={() => openHomeRoute("home-finance-cashflow", "home", { source: "non_payroll_outflow_kpi" })}
         />
 
         <DashboardCard
@@ -1816,7 +1826,7 @@ export function HomeSurface({
           section="monthly-revenue-chart"
           onViewAll={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_revenue_chart" })}
           viewAllLabel="월별 매출 상세 보기"
-          headerExtra={<span className="home-dashboard-card-meta">최근 12개월 / 등록 고객 입금</span>}
+          headerExtra={<span className="home-dashboard-card-meta">최근 6개월 / 등록 고객 입금</span>}
         >
           <HomeDashboardState state={revenueChartState} noun="월별 매출">
             <HomeRevenueBarChart series={financeDashboard.series} />
@@ -1831,6 +1841,17 @@ export function HomeSurface({
         >
           <HomeDashboardState state={payrollChartState} noun="급여 구분">
             <HomePayrollDonutChart summary={payrollSummary} />
+          </HomeDashboardState>
+        </DashboardCard>
+        <DashboardCard
+          className="home-dashboard-nonpayroll-chart-card"
+          title="비급여 출금 구분"
+          section="nonpayroll-categories"
+          onViewAll={() => openHomeRoute("home-finance-cashflow", "home", { source: "non_payroll_outflow_chart" })}
+          viewAllLabel="비급여 출금 상세 보기"
+        >
+          <HomeDashboardState state={nonPayrollOutflowChartState} noun="비급여 출금 구분">
+            <HomeNonPayrollOutflowDonutChart summary={nonPayrollOutflowSummary} />
           </HomeDashboardState>
         </DashboardCard>
 

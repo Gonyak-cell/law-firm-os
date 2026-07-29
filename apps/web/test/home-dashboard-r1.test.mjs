@@ -355,6 +355,17 @@ function wp5ApiBody(pathname, searchParams, state) {
           { category: "staff", label: "직원", gross_krw: 12_646_327, payment_count: 3, employee_count: 3 },
           { category: "advisor", label: "고문", gross_krw: 9_571_212, payment_count: 1, employee_count: 1 }
         ],
+        non_payroll_outflow_categories: [
+          { category: "tax", label: "세금", amount: 54_037_570, transaction_count: 4 },
+          { category: "card_settlement", label: "카드대금", amount: 44_424_303, transaction_count: 13 },
+          { category: "social_insurance", label: "4대보험", amount: 11_404_440, transaction_count: 4 },
+          { category: "professional_services", label: "용역·외주", amount: 11_295_000, transaction_count: 4 },
+          { category: "rent_office", label: "임차·사무실", amount: 10_887_030, transaction_count: 1 },
+          { category: "finance_lease", label: "금융·리스", amount: 2_674_430, transaction_count: 2 },
+          { category: "general_operating", label: "기타 운영비", amount: 685_620, transaction_count: 20 },
+          { category: "case_disbursement", label: "사건비용", amount: 645_410, transaction_count: 11 },
+          { category: "bank_postage_fee", label: "수수료·우편", amount: 46_390, transaction_count: 11 }
+        ],
         monthly: [{
           month: wp5DateKey().slice(0, 7),
           currency: "KRW",
@@ -1373,9 +1384,10 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     const dashboardCards = [
       ["monthly-revenue", "이번달 매출"],
       ["monthly-payroll", "이번달 급여 지급액"],
-      ["monthly-processed-cost", "이번달 비용"],
+      ["monthly-processed-cost", "이번달 비급여 출금"],
       ["monthly-revenue-chart", "월별 매출"],
       ["payroll-categories", "급여 구분"],
+      ["nonpayroll-categories", "비급여 출금 구분"],
       ["client-summary", "Client"],
       ["people-summary", "People"],
       ["matter-summary", "Matter"],
@@ -1386,10 +1398,10 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       assert.equal(await card.count(), 1, `Home must show one ${title} card`);
       assert.equal(await card.locator(".home-dashboard-card-header").getByText(title, { exact: true }).count(), 1, `${title} card must keep its requested heading`);
     }
-    const monthlyExpenseCard = page.locator('[data-dashboard-section="monthly-processed-cost"]');
-    assert.match(await monthlyExpenseCard.innerText(), /₩ 136,100,193/);
-    assert.match(await monthlyExpenseCard.innerText(), /총 출금 - 급여 지급액/);
-    assert.doesNotMatch(await monthlyExpenseCard.innerText(), /비용처리/);
+    const monthlyNonPayrollCard = page.locator('[data-dashboard-section="monthly-processed-cost"]');
+    assert.match(await monthlyNonPayrollCard.innerText(), /₩ 136,100,193/);
+    assert.match(await monthlyNonPayrollCard.innerText(), /급여 제외 은행 출금/);
+    assert.doesNotMatch(await monthlyNonPayrollCard.innerText(), /이번달 비용|비용처리/);
     const cashflowBand = page.locator('[data-home-cashflow-band="true"]');
     assert.equal(await cashflowBand.count(), 1, "Home must show the cashflow band");
     assert.match(await cashflowBand.innerText(), /현재 잔액\s*₩ 29,153,222/);
@@ -1406,8 +1418,11 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await page.locator('.home-dashboard-hero p').count(), 1);
     assert.equal(await page.locator('.home-dashboard-kpi-card').count(), 3);
     const revenueChart = page.locator('[data-home-revenue-bar-chart="true"]');
+    assert.match(await page.locator('[data-dashboard-section="monthly-revenue-chart"]').innerText(), /최근 6개월/);
     assert.equal(await revenueChart.count(), 1);
-    assert.equal(await revenueChart.locator(".home-revenue-bar").count(), 12);
+    assert.equal(await revenueChart.locator(".home-revenue-bar").count(), 6);
+    assert.equal(await revenueChart.locator(".home-chart-axis-label").count(), 6);
+    assert.match(await revenueChart.locator("title").first().textContent(), /최근 6개월/);
     assert.equal(await revenueChart.locator("polyline").count(), 0);
     assert.deepEqual(
       await revenueChart.locator(".home-chart-gridline text").allTextContents(),
@@ -1418,8 +1433,31 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.match(await payrollChart.innerText(), /파트너\s*6명\s*68,848,440원/);
     assert.match(await payrollChart.innerText(), /직원\s*3명\s*12,646,327원/);
     assert.match(await payrollChart.innerText(), /고문\s*1명\s*9,571,212원/);
+    const nonPayrollChart = page.locator('[data-home-nonpayroll-donut-chart="true"]');
+    assert.equal(await nonPayrollChart.count(), 1);
+    assert.match(await nonPayrollChart.innerText(), /세금\s*4건\s*54,037,570원/);
+    assert.match(await nonPayrollChart.innerText(), /카드대금\s*13건\s*44,424,303원/);
+    assert.match(await nonPayrollChart.innerText(), /기타\s*44건\s*4,051,850원/);
+    assert.equal(await nonPayrollChart.locator(".home-donut-segment").count(), 6);
+    assert.equal(await nonPayrollChart.locator(".home-donut-total").textContent(), "136,100,193");
+    const donutLegendLayout = await page.evaluate(() => {
+      const payrollSvg = document.querySelector('[data-home-payroll-donut-chart="true"] svg').getBoundingClientRect();
+      const payrollLegend = document.querySelector('[data-home-donut-legend="payroll"]').getBoundingClientRect();
+      const nonPayrollSvg = document.querySelector('[data-home-nonpayroll-donut-chart="true"] svg').getBoundingClientRect();
+      const nonPayrollLegend = document.querySelector('[data-home-donut-legend="nonpayroll"]').getBoundingClientRect();
+      return {
+        payrollBelow: payrollLegend.top >= payrollSvg.bottom - 2,
+        nonPayrollBelow: nonPayrollLegend.top >= nonPayrollSvg.bottom - 2,
+      };
+    });
+    assert.deepEqual(donutLegendLayout, { payrollBelow: true, nonPayrollBelow: true });
+    assert.equal(
+      await page.locator(".home-donut-legend li").evaluateAll((items) => items.every((item) => item.scrollWidth <= item.clientWidth + 1)),
+      true,
+      "Home donut legend rows must show their labels, values, and percentages without clipping",
+    );
     assert.equal(await page.locator('[data-dashboard-section="today-todo"], [data-dashboard-section="pending-approvals"], [data-dashboard-section="new-engagements"], [data-dashboard-section="monthly-sales"], [data-dashboard-section="recent-work"]').count(), 0);
-    for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"]) {
+    for (const section of ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "nonpayroll-categories", "client-summary", "people-summary", "matter-summary", "calendar"]) {
       assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
     }
     const homeClientCard = page.locator('[data-dashboard-section="client-summary"]');
@@ -1449,6 +1487,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
       const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
       const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
+      const nonPayroll = document.querySelector(".home-dashboard-nonpayroll-chart-card").getBoundingClientRect();
       const cashflow = document.querySelector(".home-dashboard-cashflow-band").getBoundingClientRect();
       const client = document.querySelector(".home-dashboard-client-card").getBoundingClientRect();
       const calendar = document.querySelector(".home-dashboard-calendar-card").getBoundingClientRect();
@@ -1459,17 +1498,18 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
         columns: grid.gridTemplateColumns.split(" ").length,
         kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
         kpisEqualWidth: kpis.every((rect) => Math.abs(rect.width - kpis[0].width) < 2),
-        chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
+        chartsSameRow: [payroll, nonPayroll].every((rect) => Math.abs(revenue.top - rect.top) < 2),
         payrollRight: payroll.left > revenue.left,
+        nonPayrollRight: nonPayroll.left > payroll.left,
         revenueWider: revenue.width > payroll.width,
-        cashflowBelowCharts: cashflow.top > payroll.bottom && cashflow.top > revenue.bottom,
+        donutsEqualWidth: Math.abs(payroll.width - nonPayroll.width) < 2,
+        cashflowBelowCharts: cashflow.top > payroll.bottom && cashflow.top > nonPayroll.bottom && cashflow.top > revenue.bottom,
         cashflowAboveDomains: cashflow.bottom < client.top && cashflow.bottom < calendar.top,
-        cashflowFullWidth: Math.abs(cashflow.left - revenue.left) < 2 && Math.abs(cashflow.right - payroll.right) < 2,
+        cashflowFullWidth: Math.abs(cashflow.left - revenue.left) < 2 && Math.abs(cashflow.right - nonPayroll.right) < 2,
         cashflowHeight: Math.round(cashflow.height),
-        calendarBelowPayroll: calendar.top > cashflow.bottom,
-        calendarAlignedWithPayroll: Math.abs(calendar.left - payroll.left) < 2 && Math.abs(calendar.width - payroll.width) < 2,
-        clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.left - revenue.left) < 2 && Math.abs(client.width - revenue.width) < 2,
-        matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(matter.left - revenue.left) < 2 && Math.abs(people.left - payroll.left) < 2
+        calendarRight: calendar.left > client.left,
+        clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.left - revenue.left) < 2,
+        matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(matter.left - revenue.left) < 2 && people.left > matter.left
       };
     });
     assert.deepEqual(dashboardLayout, {
@@ -1478,13 +1518,14 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       kpisEqualWidth: true,
       chartsSameRow: true,
       payrollRight: true,
+      nonPayrollRight: true,
       revenueWider: true,
+      donutsEqualWidth: true,
       cashflowBelowCharts: true,
       cashflowAboveDomains: true,
       cashflowFullWidth: true,
       cashflowHeight: 108,
-      calendarBelowPayroll: true,
-      calendarAlignedWithPayroll: true,
+      calendarRight: true,
       clientBesideCalendar: true,
       matterBesidePeople: true
     });
@@ -1493,6 +1534,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       const kpis = [...document.querySelectorAll(".home-dashboard-kpi-card")].map((node) => node.getBoundingClientRect());
       const revenue = document.querySelector(".home-dashboard-revenue-chart-card").getBoundingClientRect();
       const payroll = document.querySelector(".home-dashboard-payroll-chart-card").getBoundingClientRect();
+      const nonPayroll = document.querySelector(".home-dashboard-nonpayroll-chart-card").getBoundingClientRect();
       const cashflow = document.querySelector(".home-dashboard-cashflow-band").getBoundingClientRect();
       const client = document.querySelector(".home-dashboard-client-card").getBoundingClientRect();
       const calendar = document.querySelector(".home-dashboard-calendar-card").getBoundingClientRect();
@@ -1503,31 +1545,33 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       return {
         kpisSameRow: kpis.every((rect) => Math.abs(rect.top - kpis[0].top) < 2),
         kpiValuesFit,
-        chartsSameRow: Math.abs(revenue.top - payroll.top) < 2,
-        payrollRight: payroll.left > revenue.left,
+        revenueAboveDonuts: revenue.bottom < payroll.top && revenue.bottom < nonPayroll.top,
+        donutsSameRow: Math.abs(payroll.top - nonPayroll.top) < 2,
+        nonPayrollRight: nonPayroll.left > payroll.left,
         revenueWider: revenue.width > payroll.width,
-        cashflowBelowCharts: cashflow.top > payroll.bottom,
+        donutsEqualWidth: Math.abs(payroll.width - nonPayroll.width) < 2,
+        cashflowBelowCharts: cashflow.top > payroll.bottom && cashflow.top > nonPayroll.bottom,
         cashflowAboveDomains: cashflow.bottom < client.top,
-        cashflowFullWidth: Math.abs(cashflow.left - revenue.left) < 2 && Math.abs(cashflow.right - payroll.right) < 2,
+        cashflowFullWidth: Math.abs(cashflow.left - revenue.left) < 2 && Math.abs(cashflow.right - nonPayroll.right) < 2,
         cashflowHeight: Math.round(cashflow.height),
-        calendarBelowPayroll: calendar.top > cashflow.bottom,
-        calendarAlignedWithPayroll: Math.abs(calendar.left - payroll.left) < 2 && Math.abs(calendar.width - payroll.width) < 2,
-        clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.width - revenue.width) < 2,
-        matterBesidePeople: Math.abs(matter.top - people.top) < 2 && Math.abs(people.width - payroll.width) < 2
+        calendarRight: calendar.left > client.left,
+        clientBesideCalendar: Math.abs(client.top - calendar.top) < 2 && Math.abs(client.left - revenue.left) < 2,
+        matterBesidePeople: Math.abs(matter.top - people.top) < 2 && people.left > matter.left
       };
     });
     assert.deepEqual(tabletLayout, {
       kpisSameRow: true,
       kpiValuesFit: true,
-      chartsSameRow: true,
-      payrollRight: true,
+      revenueAboveDonuts: true,
+      donutsSameRow: true,
+      nonPayrollRight: true,
       revenueWider: true,
+      donutsEqualWidth: true,
       cashflowBelowCharts: true,
       cashflowAboveDomains: true,
       cashflowFullWidth: true,
       cashflowHeight: 108,
-      calendarBelowPayroll: true,
-      calendarAlignedWithPayroll: true,
+      calendarRight: true,
       clientBesideCalendar: true,
       matterBesidePeople: true
     });
@@ -1551,6 +1595,11 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
       };
     }));
     assert.equal(mobileCardHeaders.every((header) => header.flexWrap === "nowrap" && header.aligned && !header.overflow), true);
+    assert.equal(
+      await page.locator(".home-donut-legend li").evaluateAll((items) => items.every((item) => item.scrollWidth <= item.clientWidth + 1)),
+      true,
+      "Mobile Home donut legend rows must remain fully readable",
+    );
     await page.setViewportSize({ width: 1366, height: 900 });
 
     assert.equal(await page.locator("[data-global-rail]").count(), 1);
@@ -1821,7 +1870,7 @@ test("Home bank cashflow review challenge never renders as a permission denial",
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
-    for (const section of ["monthly-payroll", "payroll-categories"]) {
+    for (const section of ["monthly-payroll", "monthly-processed-cost", "payroll-categories", "nonpayroll-categories"]) {
       const text = await page.locator(`[data-dashboard-section="${section}"]`).innerText();
       assert.match(text, /추가 인증이 필요합니다/);
       assert.doesNotMatch(text, /권한 없음|접근 권한이 없습니다/);
