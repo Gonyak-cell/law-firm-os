@@ -422,6 +422,7 @@ export function createDefaultCrmIntakeRuntime({
 export function createDefaultFinanceRuntime({
   repository,
   masterDataRepository = null,
+  matterRepository = null,
   clientRecords = null,
   employees = undefined,
   storePath = process.env.LAWOS_FINANCE_STORE_PATH,
@@ -435,6 +436,7 @@ export function createDefaultFinanceRuntime({
   return createFinanceRuntimeContext({
     repository: financeRepository,
     masterDataRepository,
+    matterRepository,
     clientRecords,
     employees,
   });
@@ -1692,7 +1694,10 @@ export function createApiServer({
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
-  financeRuntime = createDefaultFinanceRuntime(),
+  financeRuntime = createDefaultFinanceRuntime({
+    masterDataRepository: masterDataRuntime?.repository,
+    matterRepository: matterRuntime?.repository,
+  }),
   financeRuntimeUnavailable = null,
   analyticsRuntime = createDefaultAnalyticsRuntime({ financeRepository: financeRuntime?.repository }),
   aiRuntime = createDefaultAiRuntime(),
@@ -2112,6 +2117,7 @@ export async function startApiServer({
       financeRuntimeContext = createDefaultFinanceRuntime({
         repository: financeRepository,
         masterDataRepository: masterRuntime?.repository ?? null,
+        matterRepository: resolvedMatterRepository,
         storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
       });
     } catch (error) {

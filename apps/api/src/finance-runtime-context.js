@@ -145,12 +145,14 @@ export const FINANCE_RUNTIME_SEED = Object.freeze([
 export function createFinanceRuntimeContext({
   repository = createFinanceRepository({ seedRecords: FINANCE_RUNTIME_SEED }),
   masterDataRepository = null,
+  matterRepository = null,
   clientRecords = null,
   employees = listAmicBankClassificationEmployees(),
 } = {}) {
   return Object.freeze({
     repository,
     masterDataRepository,
+    matterRepository,
     clientRecords: Array.isArray(clientRecords) ? Object.freeze([...clientRecords]) : null,
     employees: Object.freeze([...(employees ?? [])]),
     seed_ref: "cmp-g7-finance-synthetic",
@@ -349,7 +351,11 @@ function sanitizeBankImportBatch(record) {
 
 function classificationDirectories(runtime, tenantId) {
   const clientRecords = runtime.clientRecords
-    ?? listBankClassificationClientRecords(runtime.masterDataRepository, tenantId);
+    ?? listBankClassificationClientRecords(
+      runtime.masterDataRepository,
+      tenantId,
+      runtime.matterRepository,
+    );
   return Object.freeze({
     clientRecords,
     employees: runtime.employees ?? Object.freeze([]),

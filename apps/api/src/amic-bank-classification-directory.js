@@ -20,10 +20,39 @@ export function listAmicBankClassificationEmployees() {
   })));
 }
 
-export function listBankClassificationClientRecords(repository, tenantId) {
-  if (!repository || typeof repository.list !== "function" || !tenantId) return Object.freeze([]);
+function matterClientAsClientGroup(record) {
+  const displayName = record.client_display_name
+    ?? record.display_name
+    ?? record.client_name
+    ?? record.client_short_name
+    ?? record.client_id;
+  return Object.freeze({
+    model_type: "ClientGroup",
+    tenant_id: record.tenant_id,
+    client_group_id: record.client_group_id ?? record.client_id,
+    display_name: displayName,
+    canonical_display_name: displayName,
+    aliases: Object.freeze([
+      ...new Set([record.client_display_name, record.client_short_name, displayName].filter(Boolean)),
+    ]),
+    status: record.status ?? "active",
+  });
+}
+
+export function listBankClassificationClientRecords(repository, tenantId, matterRepository = null) {
+  if (!tenantId) return Object.freeze([]);
   const modelTypes = ["ClientGroup", "Entity", "Person", "Organization", "Party", "PartyAlias"];
-  return Object.freeze(modelTypes.flatMap((modelType) => (
-    repository.list({ tenant_id: tenantId, model_type: modelType })
-  )));
+  const masterDataRecords = repository && typeof repository.list === "function"
+    ? modelTypes.flatMap((modelType) => repository.list({ tenant_id: tenantId, model_type: modelType }))
+    : [];
+  const masterDataClientIds = new Set(masterDataRecords
+    .filter((record) => record.model_type === "ClientGroup")
+    .map((record) => record.client_group_id));
+  const matterClients = matterRepository && typeof matterRepository.list === "function"
+    ? matterRepository
+      .list({ tenant_id: tenantId, model_type: "MatterClient" })
+      .filter((record) => record.client_id && !masterDataClientIds.has(record.client_id))
+      .map(matterClientAsClientGroup)
+    : [];
+  return Object.freeze([...masterDataRecords, ...matterClients]);
 }
