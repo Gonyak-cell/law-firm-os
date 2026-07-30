@@ -165,17 +165,50 @@ test("same-name client options include a stable customer number for manual selec
 
 test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 확인하고 권한 있는 조회만 허용한다", async () => {
   const financeRepository = createFinanceRepository({
-    seedRecords: [{
-      model_type: "FeeArrangement",
-      fee_arrangement_id: "fee-arrangement-api-fixed",
-      tenant_id: TENANT,
-      client_group_id: "client-fee-api",
-      currency: "KRW",
-      type: "fixed",
-      arrangement_type: "fixed",
-      fixed_fee_amount: 5_000_000,
-      status: "active",
-    }],
+    seedRecords: [
+      {
+        model_type: "FeeArrangement",
+        fee_arrangement_id: "fee-arrangement-api-fixed",
+        tenant_id: TENANT,
+        client_group_id: "client-fee-api",
+        currency: "KRW",
+        type: "fixed",
+        arrangement_type: "fixed",
+        fixed_fee_amount: 5_000_000,
+        status: "active",
+      },
+      {
+        model_type: "BankImportBatch",
+        bank_import_batch_id: "bank-batch-fee-api",
+        tenant_id: TENANT,
+        source_manifest_hash: "1".repeat(64),
+        status: "reconciled",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-transaction-fee-api",
+        bank_import_batch_id: "bank-batch-fee-api",
+        tenant_id: TENANT,
+        transaction_fingerprint: "2".repeat(64),
+        occurred_at: "2026-07-30T09:00:00+09:00",
+        direction: "inflow",
+        amount: 6_000_000,
+        currency: "KRW",
+        status: "posted",
+      },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id: "classification-fee-api",
+        bank_transaction_id: "bank-transaction-fee-api",
+        tenant_id: TENANT,
+        client_group_id: "client-fee-api",
+        transaction_direction: "inflow",
+        amount: 6_000_000,
+        currency: "KRW",
+        category: "client_receipt",
+        status: "confirmed",
+      },
+    ],
   });
   const masterDataRepository = createMasterDataRepository({
     seedRecords: [{
@@ -380,6 +413,13 @@ test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 
         mismatch.body.item.fee_arrangement_comparison.warning_message,
         "청구 설정과 금액이 다릅니다",
       );
+      assert.deepEqual(mismatch.body.deposit_allocation, {
+        outcome: "allocated",
+        created_count: 1,
+        updated_count: 0,
+        allocated_amount: 4_000_000,
+        advance_or_overpayment_amount: 2_000_000,
+      });
       assert.deepEqual(mismatch.body.audit_event.metadata.before, {
         state_version: 1,
         status: "active",
@@ -409,6 +449,7 @@ test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 
       assert.equal(updateReplay.status, 200);
       assert.equal(updateReplay.body.idempotent_replay, true);
       assert.equal(updateReplay.body.item.state_version, 2);
+      assert.equal(updateReplay.body.deposit_allocation, null);
 
       const stale = await json(
         baseUrl,
@@ -449,6 +490,13 @@ test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 
       assert.equal(matched.body.item.state_version, 3);
       assert.equal(matched.body.item.fee_arrangement_comparison.status, "match");
       assert.equal(matched.body.item.fee_arrangement_comparison.warning_message, null);
+      assert.deepEqual(matched.body.deposit_allocation, {
+        outcome: "allocated",
+        created_count: 0,
+        updated_count: 1,
+        allocated_amount: 1_000_000,
+        advance_or_overpayment_amount: 1_000_000,
+      });
 
       const deniedUpdate = await json(
         baseUrl,
@@ -502,10 +550,127 @@ test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 
       financeRepository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length,
       2,
     );
+    const [allocation] = financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    });
+    assert.equal(allocation.allocated_amount, 5_000_000);
+    assert.equal(allocation.state_version, 2);
   } finally {
     financeRepository.close();
     masterDataRepository.close();
     crmRepository.close();
+  }
+});
+
+test("VC-CL-AR-004 고객 입금 확인은 기존 수임료 약정에 같은 저장 단위로 자동 배분한다", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "BankImportBatch",
+        bank_import_batch_id: "bank-batch-review-allocation-api",
+        tenant_id: TENANT,
+        source_manifest_hash: "3".repeat(64),
+        status: "reconciled",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-transaction-review-allocation-api",
+        bank_import_batch_id: "bank-batch-review-allocation-api",
+        tenant_id: TENANT,
+        account_ref: "account-review-allocation-api",
+        transaction_fingerprint: "4".repeat(64),
+        date: "2026-07-30",
+        occurred_at: "2026-07-30T09:30:00+09:00",
+        direction: "inflow",
+        amount: 3_000_000,
+        currency: "KRW",
+        status: "posted",
+      },
+      {
+        model_type: "FeeCommitment",
+        fee_commitment_id: "fee-commitment-review-allocation-api",
+        tenant_id: TENANT,
+        client_group_id: "client-review-allocation-api",
+        opportunity_id: "opportunity-review-allocation-api",
+        matter_id: null,
+        currency: "KRW",
+        agreed_amount: 2_500_000,
+        due_date: "2026-08-15",
+        accepted_at: "2026-07-29T10:00:00+09:00",
+        status: "active",
+        source_fee_arrangement_id: null,
+        state_version: 1,
+        created_by: SUPER_ADMIN_ACCOUNT.user_id,
+        updated_by: SUPER_ADMIN_ACCOUNT.user_id,
+        reason: "수임료 확정",
+      },
+    ],
+  });
+  const runtime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    clientRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-review-allocation-api",
+      display_name: "한빛 자동 배분 고객",
+      status: "active",
+    }],
+  });
+  const body = {
+    tenant_id: TENANT,
+    permission_ref: "perm-review-allocation-api",
+    audit_hint_ref: "audit-review-allocation-api",
+    idempotency_key: "review-allocation-api",
+    decisions: [{
+      bank_transaction_id: "bank-transaction-review-allocation-api",
+      category: "client_receipt",
+      client_group_id: "client-review-allocation-api",
+    }],
+  };
+  try {
+    const reviewed = await handleFinanceApiRequest({
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body,
+      query: {},
+      context: JSON.parse(permissionContext("allow", ["system_super_admin"])),
+      requestId: "request-review-allocation-api",
+      runtime,
+    });
+    assert.equal(reviewed.status, 200, JSON.stringify(reviewed.body));
+    assert.deepEqual(reviewed.body.deposit_allocation, {
+      outcome: "allocated",
+      created_count: 1,
+      updated_count: 0,
+      allocated_amount: 2_500_000,
+      advance_or_overpayment_amount: 500_000,
+    });
+    assert.equal(financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+    }).length, 1);
+    assert.equal(financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    })[0].allocated_amount, 2_500_000);
+    assert.equal(financeRepository.snapshot().idempotency.length, 2);
+
+    const replay = await handleFinanceApiRequest({
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body,
+      query: {},
+      context: JSON.parse(permissionContext("allow", ["system_super_admin"])),
+      requestId: "request-review-allocation-api-replay",
+      runtime,
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.idempotent_replay, true);
+    assert.equal(replay.body.deposit_allocation, null);
+    assert.equal(financeRepository.snapshot().idempotency.length, 2);
+  } finally {
+    financeRepository.close();
   }
 });
 

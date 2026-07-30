@@ -15,6 +15,9 @@ import {
   normalizeClientDepositAllocation,
 } from "../src/client-deposit-allocation-model.js";
 import {
+  autoAllocateConfirmedClientDeposits,
+} from "../src/client-deposit-allocation-service.js";
+import {
   FEE_COMMITMENT_COMMAND_ERROR_CODES,
   FEE_COMMITMENT_WARNING_CODES,
   compareFeeCommitmentToFeeArrangement,
@@ -108,6 +111,47 @@ function allocationSourceRecords(allocationOverrides = {}) {
     },
     commitment(),
     allocation(allocationOverrides),
+  ];
+}
+
+function confirmedClientDeposit({
+  bankTransactionId = "bank-auto-hanbit",
+  classificationId = "classification-auto-hanbit",
+  amount = 12_000_000,
+  occurredAt = "2026-07-30T09:00:00+09:00",
+} = {}) {
+  return [
+    {
+      model_type: "BankImportBatch",
+      bank_import_batch_id: `batch-${bankTransactionId}`,
+      tenant_id: TENANT,
+      source_manifest_hash: "b".repeat(64),
+      status: "reconciled",
+    },
+    {
+      model_type: "BankTransaction",
+      bank_transaction_id: bankTransactionId,
+      bank_import_batch_id: `batch-${bankTransactionId}`,
+      tenant_id: TENANT,
+      transaction_fingerprint: "c".repeat(64),
+      direction: "inflow",
+      amount,
+      currency: "KRW",
+      status: "posted",
+      occurred_at: occurredAt,
+    },
+    {
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: classificationId,
+      bank_transaction_id: bankTransactionId,
+      tenant_id: TENANT,
+      client_group_id: "client-hanbit",
+      transaction_direction: "inflow",
+      amount,
+      currency: "KRW",
+      category: "client_receipt",
+      status: "confirmed",
+    },
   ];
 }
 
@@ -395,6 +439,170 @@ test("ClientDepositAllocation 원장은 같은 테넌트·고객의 확정 입�
     );
   } finally {
     excessive.close();
+  }
+});
+
+test("VC-CL-AR-004 자동 배분은 납부기한·수임확정일·약정 ID 순서를 지킨다", () => {
+  const early = commitment({
+    fee_commitment_id: "fee-hanbit-early",
+    opportunity_id: "opportunity-hanbit-early",
+    agreed_amount: 11_000_000,
+    due_date: "2026-07-10",
+    accepted_at: "2026-06-01T09:00:00+09:00",
+  });
+  const acceptedFallback = commitment({
+    fee_commitment_id: "fee-hanbit-no-due",
+    opportunity_id: "opportunity-hanbit-no-due",
+    agreed_amount: 4_000_000,
+    due_date: null,
+    accepted_at: "2026-07-15T09:00:00+09:00",
+  });
+  const later = commitment({
+    fee_commitment_id: "fee-hanbit-later",
+    opportunity_id: "opportunity-hanbit-later",
+    agreed_amount: 8_000_000,
+    due_date: "2026-07-20",
+    accepted_at: "2026-06-02T09:00:00+09:00",
+  });
+  const repository = createFinanceRepository({
+    seedRecords: [
+      ...confirmedClientDeposit(),
+      later,
+      acceptedFallback,
+      early,
+    ],
+  });
+  try {
+    const bankBefore = repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransaction",
+      bank_transaction_id: "bank-auto-hanbit",
+    });
+    const result = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "auto-allocation-order",
+      clock: () => new Date("2026-07-30T02:00:00.000Z"),
+    });
+    assert.equal(result.outcome, "allocated");
+    assert.equal(result.created_count, 2);
+    assert.equal(result.updated_count, 0);
+    assert.equal(result.allocated_amount, 12_000_000);
+    assert.equal(result.unallocated_amount, 0);
+    assert.deepEqual(
+      result.allocations.map((record) => [
+        record.fee_commitment_id,
+        record.allocated_amount,
+      ]),
+      [
+        ["fee-hanbit-early", 11_000_000],
+        ["fee-hanbit-no-due", 1_000_000],
+      ],
+    );
+    assert.equal(
+      repository.list({
+        tenant_id: TENANT,
+        model_type: "ClientDepositAllocation",
+      }).some((record) => record.fee_commitment_id === "fee-hanbit-later"),
+      false,
+    );
+    const replay = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "auto-allocation-order",
+    });
+    assert.equal(replay.idempotent_replay, true);
+    assert.equal(replay.created_count, 2);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransaction",
+      bank_transaction_id: "bank-auto-hanbit",
+    }), bankBefore);
+    assert.equal(
+      repository.listAudit({ tenant_id: TENANT })
+        .filter((event) => event.action === "client.deposit.allocation.auto").length,
+      1,
+    );
+  } finally {
+    repository.close();
+  }
+});
+
+test("VC-CL-AR-003 자동 배분은 약정액까지만 연결하고 남은 입금을 선입금·초과 입금으로 유지한다", () => {
+  const fixed = commitment({
+    fee_commitment_id: "fee-hanbit-fixed",
+    opportunity_id: "opportunity-hanbit-fixed",
+    agreed_amount: 10_000_000,
+    due_date: "2026-07-15",
+  });
+  const unknown = commitment({
+    fee_commitment_id: "fee-hanbit-unknown",
+    opportunity_id: "opportunity-hanbit-unknown",
+    agreed_amount: null,
+    due_date: null,
+  });
+  const repository = createFinanceRepository({
+    seedRecords: [
+      ...confirmedClientDeposit(),
+      fixed,
+      unknown,
+    ],
+  });
+  try {
+    const first = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "auto-allocation-overpayment",
+      clock: () => new Date("2026-07-30T02:00:00.000Z"),
+    });
+    assert.equal(first.created_count, 1);
+    assert.equal(first.allocated_amount, 10_000_000);
+    assert.equal(first.unallocated_amount, 2_000_000);
+    assert.equal(first.advance_or_overpayment_amount, 2_000_000);
+    assert.equal(first.allocations[0].fee_commitment_id, "fee-hanbit-fixed");
+
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "FeeCommitment",
+      fee_commitment_id: "fee-hanbit-fixed",
+    }, normalizeFeeCommitment({
+      ...fixed,
+      agreed_amount: 11_000_000,
+      state_version: 2,
+      updated_by: ACTOR,
+      reason: "약정 금액 정정",
+    }));
+    const extended = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "auto-allocation-overpayment-extended",
+      clock: () => new Date("2026-07-30T03:00:00.000Z"),
+    });
+    assert.equal(extended.created_count, 0);
+    assert.equal(extended.updated_count, 1);
+    assert.equal(extended.allocated_amount, 1_000_000);
+    assert.equal(extended.unallocated_amount, 1_000_000);
+    assert.equal(extended.allocations[0].allocated_amount, 11_000_000);
+    assert.equal(extended.allocations[0].state_version, 2);
+
+    const unchanged = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "auto-allocation-overpayment-unchanged",
+    });
+    assert.equal(unchanged.outcome, "unchanged");
+    assert.equal(unchanged.created_count, 0);
+    assert.equal(unchanged.updated_count, 0);
+    assert.equal(unchanged.unallocated_amount, 1_000_000);
+    assert.equal(repository.snapshot().idempotency.length, 2);
+    assert.equal(repository.listAudit({ tenant_id: TENANT }).length, 2);
+  } finally {
+    repository.close();
   }
 });
 

@@ -22,6 +22,9 @@ import {
   presentFeeCommitment,
   updateFeeCommitment,
 } from "../../../packages/billing/src/fee-commitment-service.js";
+import {
+  autoAllocateConfirmedClientDeposits,
+} from "../../../packages/billing/src/client-deposit-allocation-service.js";
 import { importPayment } from "../../../packages/payments/src/payment-service.js";
 import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
 import { createArAgingSnapshot } from "../../../packages/payments/src/ar-service.js";
@@ -741,13 +744,19 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
   if (roleDenied) return roleDenied;
   try {
     const directories = classificationDirectories(runtime, query.tenant_id);
-    const result = autoClassifyBankTransactions({
+    const { result, depositAllocation } = mutateWithDepositAllocation({
       repository: runtime.repository,
-      tenant_id: query.tenant_id,
-      client_records: directories.clientRecords,
-      employees: directories.employees,
-      actor_id: context.principal.user_id,
-      idempotency_key: body.idempotency_key,
+      tenantId: query.tenant_id,
+      actorId: context.principal.user_id,
+      idempotencyKey: body.idempotency_key,
+      command: () => autoClassifyBankTransactions({
+        repository: runtime.repository,
+        tenant_id: query.tenant_id,
+        client_records: directories.clientRecords,
+        employees: directories.employees,
+        actor_id: context.principal.user_id,
+        idempotency_key: body.idempotency_key,
+      }),
     });
     return {
       status: 200,
@@ -764,12 +773,15 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         idempotent_replay: result.idempotent_replay,
+        deposit_allocation: summarizeDepositAllocation(depositAllocation),
         raw_source_payload_included: false,
         production_ready_claim: false,
       },
     };
-  } catch {
-    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
+  } catch (error) {
+    return errorResponse(error?.status ?? 400, requestId, [
+      error?.safe_error_code ?? FINANCE_API_ERROR_CODES.validation_error,
+    ], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
@@ -809,12 +821,18 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
           : {}),
       };
     });
-    const result = reviewBankTransactionClassifications({
+    const { result, depositAllocation } = mutateWithDepositAllocation({
       repository: runtime.repository,
-      tenant_id: query.tenant_id,
-      decisions,
-      actor_id: context.principal.user_id,
-      idempotency_key: body.idempotency_key,
+      tenantId: query.tenant_id,
+      actorId: context.principal.user_id,
+      idempotencyKey: body.idempotency_key,
+      command: () => reviewBankTransactionClassifications({
+        repository: runtime.repository,
+        tenant_id: query.tenant_id,
+        decisions,
+        actor_id: context.principal.user_id,
+        idempotency_key: body.idempotency_key,
+      }),
     });
     return {
       status: 200,
@@ -831,6 +849,7 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         idempotent_replay: result.idempotent_replay,
+        deposit_allocation: summarizeDepositAllocation(depositAllocation),
         raw_source_payload_included: false,
         production_ready_claim: false,
       },
@@ -1226,6 +1245,38 @@ function itemResponse({ requestId, auditHintRef, outcome, item, auditEvent, stat
   };
 }
 
+function summarizeDepositAllocation(result) {
+  if (!result) return null;
+  return Object.freeze({
+    outcome: result.outcome,
+    created_count: result.created_count,
+    updated_count: result.updated_count,
+    allocated_amount: result.allocated_amount,
+    advance_or_overpayment_amount: result.advance_or_overpayment_amount,
+  });
+}
+
+function mutateWithDepositAllocation({
+  repository,
+  tenantId,
+  actorId,
+  idempotencyKey,
+  command,
+}) {
+  return repository.transaction(() => {
+    const result = command();
+    const depositAllocation = result.idempotent_replay
+      ? null
+      : autoAllocateConfirmedClientDeposits({
+        repository,
+        tenant_id: tenantId,
+        actor_id: actorId,
+        idempotency_key: `${idempotencyKey}:client-deposit-allocation`,
+      });
+    return Object.freeze({ result, depositAllocation });
+  });
+}
+
 export function handleFinanceTimeEntryCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.time_entry?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, action: "finance:time:write", resourceType: "time_entry", repository: runtime.repository });
@@ -1385,14 +1436,20 @@ export function handleFinanceFeeCommitmentCreate({
   });
   if (gated) return gated;
   try {
-    const result = createFeeCommitment({
+    const { result, depositAllocation } = mutateWithDepositAllocation({
       repository: runtime.repository,
-      master_data_repository: runtime.masterDataRepository,
-      crm_repository: runtime.crmRepository,
-      matter_repository: runtime.matterRepository,
-      fee_commitment: body.fee_commitment,
-      actor_id: context.principal.user_id,
-      idempotency_key: body.idempotency_key,
+      tenantId: query.tenant_id,
+      actorId: context.principal.user_id,
+      idempotencyKey: body.idempotency_key,
+      command: () => createFeeCommitment({
+        repository: runtime.repository,
+        master_data_repository: runtime.masterDataRepository,
+        crm_repository: runtime.crmRepository,
+        matter_repository: runtime.matterRepository,
+        fee_commitment: body.fee_commitment,
+        actor_id: context.principal.user_id,
+        idempotency_key: body.idempotency_key,
+      }),
     });
     return itemResponse({
       requestId,
@@ -1404,7 +1461,10 @@ export function handleFinanceFeeCommitmentCreate({
       }),
       auditEvent: result.audit_event,
       status: result.idempotent_replay ? 200 : 201,
-      extra: { idempotent_replay: result.idempotent_replay },
+      extra: {
+        idempotent_replay: result.idempotent_replay,
+        deposit_allocation: summarizeDepositAllocation(depositAllocation),
+      },
     });
   } catch (error) {
     const safeErrorCode = error?.safe_error_code
@@ -1452,18 +1512,24 @@ export function handleFinanceFeeCommitmentUpdate({
   });
   if (gated) return gated;
   try {
-    const result = updateFeeCommitment({
+    const { result, depositAllocation } = mutateWithDepositAllocation({
       repository: runtime.repository,
-      master_data_repository: runtime.masterDataRepository,
-      crm_repository: runtime.crmRepository,
-      matter_repository: runtime.matterRepository,
-      tenant_id: query.tenant_id,
-      fee_commitment_id: feeCommitmentId,
-      expected_state_version: body.expected_state_version,
-      changes: body.changes,
-      reason: body.reason,
-      actor_id: context.principal.user_id,
-      idempotency_key: body.idempotency_key,
+      tenantId: query.tenant_id,
+      actorId: context.principal.user_id,
+      idempotencyKey: body.idempotency_key,
+      command: () => updateFeeCommitment({
+        repository: runtime.repository,
+        master_data_repository: runtime.masterDataRepository,
+        crm_repository: runtime.crmRepository,
+        matter_repository: runtime.matterRepository,
+        tenant_id: query.tenant_id,
+        fee_commitment_id: feeCommitmentId,
+        expected_state_version: body.expected_state_version,
+        changes: body.changes,
+        reason: body.reason,
+        actor_id: context.principal.user_id,
+        idempotency_key: body.idempotency_key,
+      }),
     });
     return itemResponse({
       requestId,
@@ -1478,6 +1544,7 @@ export function handleFinanceFeeCommitmentUpdate({
       extra: {
         idempotent_replay: result.idempotent_replay,
         fee_arrangement_comparison: result.fee_arrangement_comparison,
+        deposit_allocation: summarizeDepositAllocation(depositAllocation),
       },
     });
   } catch (error) {

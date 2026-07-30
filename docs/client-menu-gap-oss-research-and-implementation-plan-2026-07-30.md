@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 4/6 완료, 전체 16/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 5/6 완료, 전체 17/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -965,7 +965,8 @@ npm test
 | `CL-P2-W01-T02` | 완료 | `GET/POST /api/finance/fee-commitments`를 `finance.fee.write` 권한에 연결; 서버 세션 사용자를 작성자로 고정하고 ClientGroup의 당사자와 Opportunity 당사자, 선택 Matter·청구 설정의 고객/사건/통화를 교차 검증; 같은 Opportunity의 활성 약정 중복, 참조 런타임 누락, 다른 요청에 멱등성 키 재사용을 fail-closed로 거절; null·0원·KRW를 구분해 안정 정렬 조회 | `VC-CL-AR-001`~`003` 서비스 5/5, 실제 서명 세션 API 1/1, PostgreSQL 다중 도메인 생성/readback 1/1; Billing 전체 136/136, Finance API 전체 19/19, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 PASS |
 | `CL-P2-W01-T03` | 완료 | `PATCH /api/finance/fee-commitments/:id`에 기대 version과 변경 사유를 의무화하고 서버 세션 사용자를 수정자로 고정; 금액·납부기한·Matter·청구 설정만 수정할 수 있으며 취소는 다른 변경과 섞지 않는 최종 상태 전환으로 처리; stale version, 이미 취소된 약정, 불변 필드 변경, 효과 없는 변경, 다른 요청에 같은 요청키 재사용을 fail-closed로 거절; 조회·응답에서 정식 청구 설정 금액과 같음·다름·비교 불가를 계산해 `청구 설정과 금액이 다릅니다` 경고를 제공; 변경 전·후, 사유, 변경 필드, version을 감사 기록에 보존 | 서비스 수정·재실행·stale·취소 1/1, 실제 서명 세션 PATCH·조회·권한 1/1, PostgreSQL version 2 저장·감사 해시 readback 1/1; Billing 전체 137/137, Finance API 전체 19/19, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 34/34 |
 | `CL-P2-W02-T01` | 완료 | `ClientDepositAllocation`에 고객·확정 입금 분류·은행 거래·수임료 약정을 필수 연결하고, KRW 원 단위 배분액·되돌린 금액, 자동/수동 출처, 수동 잠금, 상태·version·작성/수정자·사유를 정규화; 수동 배분은 잠금을 의무화하고 전액 되돌림 상태를 금액에서 계산; 한 배분 또는 활성 배분 합계가 원입금·약정액을 넘거나 다른 테넌트·고객, 미확정/출금 분류, 금액 미입력 약정에 연결되면 Finance 원장에서 fail-closed; Finance 기본 ID·금액 필드·mutable 분류와 필수 원장 관계를 등록 | 모델·금액·상태 및 원장 관계·tenant·client·합계 한도 집중 검증 2/2, 실제 임시 PostgreSQL import/readback/shadow 1/1; Billing 전체 139/139, Finance PostgreSQL API adapter 2/2 |
-| `CL-P2-W02-T02` | 다음 | 납부기한→수임확정일→ID 순 자동 배분과 선입금·초과 입금 유지 | 시작 전 |
+| `CL-P2-W02-T02` | 완료 | 고객 입금 확인 또는 수임료 약정 생성·수정이 저장될 때 같은 Finance 저장 단위에서 자동 배분을 실행; 납부기한이 없으면 수임확정일을 사용하고 이후 수임확정일·약정 ID로 안정 정렬; 확정·게시된 KRW 고객 입금만 대상으로 거래 지문 중복을 한 번만 반영하고 약정액·입금액을 넘기지 않음; 기존 수동 잠금·전액 되돌림 배분은 되살리거나 덮어쓰지 않고, 약정액이 늘면 같은 자동 배분의 version을 올려 부족분만 추가; 남은 금액은 원본 은행 거래를 바꾸지 않은 채 `선입금·초과 입금`으로 반환; 고객 입금 확인과 약정 변경의 중복 요청은 배분을 다시 만들지 않으며 API는 배분액·남은 금액 요약만 노출 | `VC-CL-AR-003`, `004` 서비스 3/3, 고객 입금 확인·약정 수정 실제 API 2/2, PostgreSQL 생성 700만 원→수정 800만 원에 같은 배분 레코드 version 2 readback; Billing 전체 141/141, Finance API 전체 20/20, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 34/34; 새 UI·사용자 문구 slop 경고 없음, 기존 GitHub `/blob/` URL 4건의 약한 오탐만 확인, `git diff --check` 통과 |
+| `CL-P2-W02-T03` | 다음 | 수동 재배분·manual lock·환불 되돌림·미수금/금액 미입력 순위 | 시작 전 |
 
 P0 집중 검증:
 

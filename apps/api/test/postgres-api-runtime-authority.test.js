@@ -25,6 +25,8 @@ import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js"
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
+import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { createFinanceDomainSnapshot } from "../../../packages/billing/src/central-ledger.js";
 
 const TENANT_A = "tenant_postgres_api_authority_a";
 const TENANT_B = "tenant_postgres_api_authority_b";
@@ -416,6 +418,53 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
       }],
       tenant_id: TENANT_A,
     }).snapshot);
+    const financeRepository = createFinanceRepository({
+      seedRecords: [
+        {
+          model_type: "BankImportBatch",
+          bank_import_batch_id: "bank-batch-postgres-fee-commitment",
+          tenant_id: TENANT_A,
+          source_manifest_hash: "9".repeat(64),
+          status: "reconciled",
+        },
+        {
+          model_type: "BankTransaction",
+          bank_transaction_id: "bank-transaction-postgres-fee-commitment",
+          bank_import_batch_id: "bank-batch-postgres-fee-commitment",
+          tenant_id: TENANT_A,
+          transaction_fingerprint: "8".repeat(64),
+          occurred_at: "2026-07-30T09:00:00+09:00",
+          direction: "inflow",
+          amount: 9_000_000,
+          currency: "KRW",
+          status: "posted",
+        },
+        {
+          model_type: "BankTransactionClassification",
+          bank_transaction_classification_id:
+            "classification-postgres-fee-commitment",
+          bank_transaction_id: "bank-transaction-postgres-fee-commitment",
+          tenant_id: TENANT_A,
+          client_group_id: "client-postgres-fee-commitment",
+          transaction_direction: "inflow",
+          amount: 9_000_000,
+          currency: "KRW",
+          category: "client_receipt",
+          status: "confirmed",
+        },
+      ],
+    });
+    try {
+      await ledger.importSnapshot(createFinanceDomainSnapshot({
+        repositories: [{
+          source_id: "postgres-fee-commitment-bank-deposit",
+          repository: financeRepository,
+        }],
+        tenant_id: TENANT_A,
+      }).snapshot);
+    } finally {
+      financeRepository.close();
+    }
   } finally {
     masterDataRepository.close();
     crmRepository.close();
@@ -518,6 +567,13 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   });
   assert.equal(created.status, 201, JSON.stringify(created.body));
   assert.equal(created.body.item.agreed_amount, 7_000_000);
+  assert.deepEqual(created.body.deposit_allocation, {
+    outcome: "allocated",
+    created_count: 1,
+    updated_count: 0,
+    allocated_amount: 7_000_000,
+    advance_or_overpayment_amount: 2_000_000,
+  });
 
   const updated = await authority.run({
     tenant_id: TENANT_A,
@@ -554,6 +610,13 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   assert.equal(updated.status, 200, JSON.stringify(updated.body));
   assert.equal(updated.body.item.agreed_amount, 8_000_000);
   assert.equal(updated.body.item.state_version, 2);
+  assert.deepEqual(updated.body.deposit_allocation, {
+    outcome: "allocated",
+    created_count: 0,
+    updated_count: 1,
+    allocated_amount: 1_000_000,
+    advance_or_overpayment_amount: 1_000_000,
+  });
 
   const persisted = await ledger.read({
     tenant_id: TENANT_A,
@@ -565,10 +628,18 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   assert.equal(persisted.payload.opportunity_id, "opportunity-postgres-fee-commitment");
   assert.equal(persisted.payload.agreed_amount, 8_000_000);
   assert.equal(persisted.payload.state_version, 2);
+  const allocation = await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "finance",
+    record_type: "ClientDepositAllocation",
+  });
+  assert.equal(allocation.length, 1);
+  assert.equal(allocation[0].payload.allocated_amount, 8_000_000);
+  assert.equal(allocation[0].payload.state_version, 2);
   assert.equal((await ledger.listIdempotency({
     tenant_id: TENANT_A,
     domain_id: "finance",
-  })).length, 2);
+  })).length, 4);
   const financeAudit = await ledger.listAudit({
     tenant_id: TENANT_A,
     domain_id: "finance",
@@ -576,6 +647,12 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   assert.equal(
     financeAudit.some((event) => event.event_type === "fee_commitment.create"),
     true,
+  );
+  assert.equal(
+    financeAudit.filter(
+      (event) => event.event_type === "client.deposit.allocation.auto",
+    ).length,
+    2,
   );
   const updateAudit = financeAudit.find(
     (event) => event.event_type === "fee_commitment.update",
