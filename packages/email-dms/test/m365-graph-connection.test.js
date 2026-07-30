@@ -107,6 +107,15 @@ function fakeDependencies() {
       assert.equal(input.mailbox_scope, "me");
       assert.equal(input.prefer_immutable_id, true);
       assert.equal(
+        input.rest_message_id,
+        "rest-message-synthetic-001",
+      );
+      assert.equal(input.source_id_type, "restId");
+      assert.equal(
+        input.target_id_type,
+        "restImmutableEntryId",
+      );
+      assert.equal(
         input.credential.access_token,
         "synthetic-access-token-never-persist",
       );
@@ -115,6 +124,25 @@ function fakeDependencies() {
         immutable_message_id: "immutable-message-synthetic-001",
         internet_message_id: "<synthetic-001@example.invalid>",
         provider_request_id: "request-mail-synthetic-001",
+        message_metadata: {
+          conversation_id: "conversation-synthetic-001",
+          internet_message_id: "<synthetic-001@example.invalid>",
+          subject: "Synthetic inquiry",
+          sender: {
+            display_name: "Synthetic sender",
+            address: "SENDER@example.invalid",
+            raw_body: "must-not-cross-port",
+          },
+          recipients: [{
+            display_name: "Intake",
+            address: "INTAKE@example.invalid",
+            recipient_type: "to",
+            provider_payload: "must-not-cross-port",
+          }],
+          received_at: "2026-07-30T05:59:00.000Z",
+          has_attachments: false,
+          body_html: "must-not-cross-port",
+        },
       };
     },
     async createMeCalendarEvent(input) {
@@ -265,19 +293,30 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
     credential_vault: dependencies.credentialVault,
     provider: dependencies.provider,
     feature_enabled: true,
+    inquiry_feature_enabled: true,
     provider_runtime_enabled: true,
     clock: () => new Date(NOW),
   });
   const message = await mail.getOwnMessageMime({
     ...principal(),
-    message_id: "rest-message-synthetic-001",
+    rest_message_id: "rest-message-synthetic-001",
   });
   assert.equal(message.immutable_message_id, "immutable-message-synthetic-001");
   assert.equal(message.mime_bytes.byteLength > 0, true);
+  assert.equal(
+    JSON.stringify(message.message_metadata).includes(
+      "must-not-cross-port",
+    ),
+    false,
+  );
+  assert.equal(
+    message.message_metadata.sender.address,
+    "sender@example.invalid",
+  );
   await assert.rejects(
     mail.getOwnMessageMime({
       ...principal(),
-      message_id: "rest-message-synthetic-001",
+      rest_message_id: "rest-message-synthetic-001",
       mailbox_user_principal_name: "shared@example.invalid",
     }),
     (error) => (
@@ -288,7 +327,7 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   await assert.rejects(
     mail.getOwnMessageMime({
       ...principal({ entra_subject_id: "another-entra-subject" }),
-      message_id: "rest-message-synthetic-001",
+      rest_message_id: "rest-message-synthetic-001",
     }),
     (error) => (
       error.safe_error_code
@@ -408,6 +447,7 @@ test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 p
     credential_vault: dependencies.credentialVault,
     provider: dependencies.provider,
     feature_enabled: true,
+    inquiry_feature_enabled: true,
     provider_runtime_enabled: true,
     clock: () => new Date(NOW),
   });
@@ -433,6 +473,7 @@ test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 p
     credential_vault: dependencies.credentialVault,
     provider: dependencies.provider,
     feature_enabled: true,
+    inquiry_feature_enabled: true,
     provider_runtime_enabled: true,
     clock: () => new Date(NOW),
   });

@@ -4,6 +4,7 @@ export * from "./validators.js";
 export * from "./m365-connection-model.js";
 export * from "./m365-graph-connection-service.js";
 export * from "./m365-graph-ports.js";
+export * from "./microsoft-graph-mail-provider.js";
 export * from "./inquiry-evidence-model.js";
 export * from "./repository.js";
 export * from "./central-ledger.js";

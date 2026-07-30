@@ -3,6 +3,9 @@ import {
   resolveActiveM365Connection,
 } from "./m365-graph-connection-service.js";
 
+export const CLIENT_INQUIRY_OUTLOOK_FEATURE_FLAG =
+  "client_inquiry_outlook_v1";
+
 const MAILBOX_OVERRIDE_FIELDS = Object.freeze([
   "mailbox",
   "mailbox_id",
@@ -18,6 +21,61 @@ function requiredString(input, field) {
     throw new TypeError(`${field} is required`);
   }
   return value.trim();
+}
+
+function optionalString(value, maxLength = 2048) {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  return text ? text.slice(0, maxLength) : null;
+}
+
+function safeAddress(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  const address = optionalString(value.address, 320)?.toLowerCase();
+  if (!address || !address.includes("@")) return null;
+  return Object.freeze({
+    display_name: optionalString(value.display_name, 200),
+    address,
+  });
+}
+
+function safeMessageMetadata(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  const receivedAt = Date.parse(value.received_at);
+  return Object.freeze({
+    conversation_id: optionalString(value.conversation_id, 512),
+    internet_message_id:
+      optionalString(value.internet_message_id, 998),
+    subject: optionalString(value.subject, 998) ?? "",
+    sender: safeAddress(value.sender),
+    recipients: Object.freeze(
+      (Array.isArray(value.recipients) ? value.recipients : [])
+        .slice(0, 1000)
+        .map((recipient) => {
+          const address = safeAddress(recipient);
+          if (!address) return null;
+          const recipientType = ["to", "cc", "bcc"].includes(
+            recipient?.recipient_type,
+          )
+            ? recipient.recipient_type
+            : "to";
+          return Object.freeze({
+            ...address,
+            recipient_type: recipientType,
+          });
+        })
+        .filter(Boolean),
+    ),
+    received_at:
+      Number.isFinite(receivedAt)
+        ? new Date(receivedAt).toISOString()
+        : null,
+    has_attachments: value.has_attachments === true,
+  });
 }
 
 function commandError(code, message, status = 409) {
@@ -98,6 +156,7 @@ export function createM365MailPort({
   credential_vault,
   provider,
   feature_enabled = false,
+  inquiry_feature_enabled = false,
   provider_runtime_enabled = false,
   clock = () => new Date(),
 } = {}) {
@@ -107,7 +166,9 @@ export function createM365MailPort({
     automatic_mailbox_scan_enabled: false,
     async getOwnMessageMime(input = {}) {
       assertRuntime({
-        feature_enabled,
+        feature_enabled:
+          feature_enabled === true
+          && inquiry_feature_enabled === true,
         provider_runtime_enabled,
         provider,
         credential_vault,
@@ -127,11 +188,17 @@ export function createM365MailPort({
         clock,
         input,
       });
+      const restMessageId = requiredString({
+        rest_message_id:
+          input.rest_message_id ?? input.message_id,
+      }, "rest_message_id");
       const result = await provider.getMeMessageMime({
         credential,
-        message_id: requiredString(input, "message_id"),
+        rest_message_id: restMessageId,
         mailbox_scope: "me",
         prefer_immutable_id: true,
+        source_id_type: "restId",
+        target_id_type: "restImmutableEntryId",
       });
       if (
         !result
@@ -160,6 +227,10 @@ export function createM365MailPort({
           && result.provider_request_id.trim()
             ? result.provider_request_id.trim()
             : null,
+        message_metadata:
+          safeMessageMetadata(result.message_metadata),
+        source_id_type: "restId",
+        target_id_type: "restImmutableEntryId",
         mailbox_scope: "me",
         prefer_immutable_id: true,
         credential_material_included: false,

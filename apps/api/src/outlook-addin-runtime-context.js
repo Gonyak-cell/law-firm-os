@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
 import { OUTLOOK_EMAIL_OBJECT_FIELDS } from "../../../packages/email-dms/src/email-model.js";
 import { createM365GraphConnectionService } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
+import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-ports.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
@@ -19,6 +20,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/connection/authorize",
     "GET /api/outlook/connection/callback",
     "DELETE /api/outlook/connection",
+    "POST /api/outlook/inquiries/message/resolve",
     "GET /api/outlook/matters",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
@@ -226,6 +228,13 @@ function m365RouteGate({
 
 function m365Service(runtime) {
   return createM365GraphConnectionService({
+    repository: runtime?.emailDmsRuntime?.repository,
+    ...(runtime?.m365GraphConfig ?? {}),
+  });
+}
+
+function m365MailPort(runtime) {
+  return createM365MailPort({
     repository: runtime?.emailDmsRuntime?.repository,
     ...(runtime?.m365GraphConfig ?? {}),
   });
@@ -649,6 +658,89 @@ async function handleM365ConnectionDelete({
   }
 }
 
+async function handleOutlookInquiryMessageResolve({
+  body,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, body.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:inquiry:capture",
+      auditHintRef: body.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const restMessageId = requiredString(
+      body.rest_message_id,
+      "rest_message_id",
+    );
+    const result = await m365MailPort(runtime).getOwnMessageMime({
+      ...body,
+      ...principal,
+      rest_message_id: restMessageId,
+    });
+    const mimeSha256 = sha256Hex(result.mime_bytes);
+    const messageRef = sha256Hex(result.immutable_message_id);
+    const providerRequestRef = result.provider_request_id
+      ? sha256Hex(result.provider_request_id)
+      : null;
+    const occurredAt =
+      typeof runtime?.m365GraphConfig?.clock === "function"
+        ? new Date(runtime.m365GraphConfig.clock()).toISOString()
+        : new Date().toISOString();
+    runtime.emailDmsRuntime.repository.appendAudit({
+      tenant_id: principal.tenant_id,
+      event_id:
+        `outlook.inquiry.mime-resolved:${sha256Hex(requestId).slice(0, 32)}`,
+      event_type: "outlook.inquiry.mime_resolved",
+      actor_id: principal.user_id,
+      object_type: "MicrosoftGraphMessage",
+      object_id: `message:${messageRef}`,
+      payload: {
+        message_ref: messageRef,
+        provider_request_ref: providerRequestRef,
+        mime_sha256: mimeSha256,
+        mime_byte_size: result.mime_bytes.byteLength,
+        mailbox_scope: "me",
+        raw_content_included: false,
+        credential_material_included: false,
+      },
+      created_at: occurredAt,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: "message_resolved",
+      item: {
+        graph_immutable_message_id: result.immutable_message_id,
+        internet_message_id: result.internet_message_id,
+        mime_sha256: mimeSha256,
+        mime_byte_size: result.mime_bytes.byteLength,
+        provider_request_ref: providerRequestRef,
+        mailbox_scope: "me",
+        source_id_type: result.source_id_type,
+        target_id_type: result.target_id_type,
+        raw_mime_included: false,
+        message_body_included: false,
+        credential_material_included: false,
+        product_record_created: false,
+        production_ready_claim: false,
+      },
+      audit_hint_ref: body.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+}
+
 function handleMatterSearch({ query, context, requestId, runtime }) {
   const tenantId = requiredString(query.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const decision = evaluateOutlookPermission({
@@ -1011,6 +1103,17 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     if (pathname === "/api/outlook/connection" && method === "DELETE") {
       return await handleM365ConnectionDelete({
         query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/inquiries/message/resolve"
+      && method === "POST"
+    ) {
+      return await handleOutlookInquiryMessageResolve({
+        body,
         context,
         requestId,
         runtime,

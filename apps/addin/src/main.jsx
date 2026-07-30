@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AlertTriangle, Check, FileText, FolderDown, MailCheck, Search, ShieldCheck, TimerReset } from "lucide-react";
 import { PublicClientApplication } from "@azure/msal-browser";
+import {
+  resolveCurrentOutlookRestMessageId,
+} from "./outlook-item-id.js";
 import "./styles.css";
 
 const ADDIN_SESSION_STORAGE_KEY = "lawos_addin_session_token";
@@ -226,6 +229,10 @@ export async function onMessageSendHandler(event = {}) {
 
 function registerOutlookEventHandlers() {
   window.__LAWOS_INIT_MSAL_BRIDGE = initializeMsalBridge;
+  window.__LAWOS_RESOLVE_CURRENT_OUTLOOK_REST_MESSAGE_ID =
+    () => resolveCurrentOutlookRestMessageId({
+      Office: window.Office,
+    });
   window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS = {
     ...(window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS ?? {}),
     onMessageSendHandler,

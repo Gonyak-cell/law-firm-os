@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 2/12 완료, 전체 20/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 3/12 완료, 전체 21/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -969,7 +969,8 @@ npm test
 | `CL-P2-W02-T03` | 완료 | 확정 고객 입금별 연결 내역 조회와 기대 version 전체 대조 방식의 수동 재배분 API를 추가; 수동으로 정한 연결은 잠가 이후 자동 배분이 덮어쓰지 않고, 같은 입금 안에서 약정별 연결액을 0원까지 조정 가능; 연결된 환불은 자동 연결부터 먼저 되돌리고 필요할 때만 수동 연결에 반영하며, 취소·종료되거나 금액이 없는 약정의 연결액은 미수금 계산에서 해제; 환불액을 뺀 실제 입금액보다 많이 연결하거나 약정액을 넘기는 변경, 누락·오래된 version, 다른 고객·통화·상태는 원자적으로 거절; 접근 가능한 고객을 원천 조회 전에 제한한 뒤 수임료 약정·은행 입금·활성 연결을 대사해 고객별 미수금, 금액 미입력 건수, 선입금·초과 입금과 미수금 순위를 계산하고 순위·고객 요약·상세 합계를 항상 일치시킴 | `VC-CL-AR-001`~`005`, `VC-CL-REV-008` 집중 Billing 13/13과 중앙원장 2/2, Billing 전체 144/144, 실제 서명 세션 API 전체 21/21, PostgreSQL API authority 7/7, 32개 시나리오 fixture validator PASS와 권한·fixture 계약 40/40; 수동 재배분 재실행은 동일 결과, stale version은 409, 환불·약정 취소 후 미수금 재개 및 수동 잠금 보존 확인 |
 | `CL-P3-W00-T01` | 완료 | 사용자·테넌트별 delegated `M365Connection`과 RLS migration을 등록하고, 본인 `/me` 메일함만 허용하는 Mail·Calendar port를 기능 스위치 뒤에 배치; access/refresh token은 제품 레코드·감사·API 응답에 남기지 않고 AWS Secrets Manager용 불투명 참조만 보존; Entra subject·필수 scope·만료·승인 redirect URI·상태 version을 fail-closed로 검증; provider 해제를 먼저 수행하고 비밀 저장소 정리가 실패해도 연결은 해제 상태로 확정해 재사용을 막음; 실제 Entra 앱·관리자 동의·시험 메일함·MIME·일정·음수 경로·비밀 비노출 영수증 8종이 없으면 출시를 계속 차단 | M365 모델·fake provider·포트·해제 실패·실제 임시 PostgreSQL migration 6/6, email-dms 전체 88/88, DMS 전체 190/190, Outlook add-in·연결 API·AWS vault fake 5/5, PostgreSQL API authority 20/20, Client fixture·권한 계약 40/40; 기능·provider runtime 기본값 비활성, AWS·실제 Graph 호출·배포 없음 |
 | `CL-P3-W01-T01` | 완료 | 문의 이메일 증거와 원본·표시 사본 파일 객체를 `email-dms` 독립 저장 권위로 분리하고 결정적 ID, 메일함+Internet Message ID 우선 중복 키, Graph immutable ID 대체 키, 원본 MIME SHA·크기, 발신자·수신자·첨부 메타데이터, Lead 연결 상태, 보존·legal hold·검사 상태를 정규화; MIME·메일 본문·provider payload·token·raw storage 경로는 제품 레코드에 저장하지 않고 커밋된 `vault://` 참조만 허용; `002_inquiry_evidence.sql`에서 tenant RLS, 두 메시지 고유 인덱스, 증거↔두 파일 객체의 지연 FK, complete 상태의 Lead 필수 조건을 강제; 기존 DMS에 임시로 들어가 있던 `M365Connection`도 같은 Email DMS repository·중앙원장·PostgreSQL 요청 단위로 이동하고, AWS Secrets Manager 형식의 `credential_ref`만 JSON 이관에서 보존하며 임의 문자열은 비밀정보로 차단; M365 callback 재실행은 provider code를 다시 소비하지 않고 저장된 멱등 결과를 반환 | 신규 모델·repository·중앙원장·실제 임시 PostgreSQL migration·runtime authority 집중 검증과 credential 이관 검증 33/33, Email DMS·DMS·Outlook API·PostgreSQL 요청 권위·private staging·백업·원장 회귀 334/334, 32개 시나리오 fixture validator PASS와 권한·fixture 계약 40/40; raw MIME·본문·token 비노출, 다른 tenant 0건, AWS·실제 Graph 호출·배포 없음 |
-| `CL-P3-W01-T02` | 다음 | add-in item ID를 REST/Graph immutable ID로 변환하고 서버에서 원본 MIME을 조회하는 본인 메일함 전용 port 구현 | 시작 전 |
+| `CL-P3-W01-T02` | 완료 | Outlook 읽기 화면의 Office.js item ID를 REST v2.0 ID로만 변환하고 raw EWS ID 대체 사용을 금지; 서버는 delegated `/me/translateExchangeIds`의 `restId`→`restImmutableEntryId`, `Prefer: IdType="ImmutableId"`, `/me/messages/{id}` metadata와 `/$value` MIME 순서만 허용; 50MB 상한·30초 제한·MIME 형태 검증을 거쳐 credential은 요청 메모리 안에서만 사용하고, API에는 immutable ID·Internet Message ID·MIME SHA/크기·해시한 provider request ref만 반환; 서명된 principal과 `outlook:inquiry:capture` 권한을 기준으로 tenant·mailbox 위조를 Graph 호출 전에 차단하고 M365 연결 스위치와 문의 스위치를 각각 기본 비활성으로 유지 | Office.js·Graph provider·문의 API 집중 12/12, Email DMS·Outlook·실제 임시 PostgreSQL 요청 권위 결합 112/112, add-in production build PASS, Client fixture·권한 계약 40/40; sloplint 신규 코드·화면 경고 없음(계획 문서의 기존 GitHub `blob` 링크 약한 오탐 4건); 실제 Graph·AWS·배포 없음, 외부 시험 mailbox MIME SHA 영수증 없음으로 출시는 계속 차단 |
+| `CL-P3-W01-T03` | 다음 | 원본 MIME과 안전한 표시 사본을 독립 DMS 저장 객체로 커밋하고 격리·보존·legal hold·민감 조회를 검증 | 시작 전 |
 
 P0 집중 검증:
 
