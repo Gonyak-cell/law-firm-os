@@ -1587,7 +1587,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       return;
     }
     const context = requestPermissionContext();
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleFinanceApiRequest({
       pathname,
       method: req.method,

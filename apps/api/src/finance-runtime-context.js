@@ -19,6 +19,8 @@ import { createInvoiceFromPreBill } from "../../../packages/billing/src/invoice-
 import {
   createFeeCommitment,
   listFeeCommitments,
+  presentFeeCommitment,
+  updateFeeCommitment,
 } from "../../../packages/billing/src/fee-commitment-service.js";
 import { importPayment } from "../../../packages/payments/src/payment-service.js";
 import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
@@ -67,6 +69,7 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/finance/fee-arrangements",
     "GET /api/finance/fee-commitments",
     "POST /api/finance/fee-commitments",
+    "PATCH /api/finance/fee-commitments/:id",
     "POST /api/finance/wip",
     "POST /api/finance/wip-snapshots",
     "GET /api/finance/prebills",
@@ -1160,7 +1163,12 @@ function feeCommitmentListResponse({ query, context, requestId, runtime }) {
       client_group_id: query.client_group_id ?? null,
       opportunity_id: query.opportunity_id ?? null,
       status: query.status ?? null,
-    }).map(sanitizeFinanceItem);
+    })
+      .map((feeCommitment) => presentFeeCommitment({
+        repository: runtime.repository,
+        fee_commitment: feeCommitment,
+      }))
+      .map(sanitizeFinanceItem);
     const { allowed } = trimItemsByPermission({
       context,
       items,
@@ -1390,10 +1398,87 @@ export function handleFinanceFeeCommitmentCreate({
       requestId,
       auditHintRef: query.audit_hint_ref,
       outcome: result.idempotent_replay ? "idempotent_replay" : "created",
-      item: result.fee_commitment,
+      item: presentFeeCommitment({
+        repository: runtime.repository,
+        fee_commitment: result.fee_commitment,
+      }),
       auditEvent: result.audit_event,
       status: result.idempotent_replay ? 200 : 201,
       extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch (error) {
+    const safeErrorCode = error?.safe_error_code
+      ?? FINANCE_API_ERROR_CODES.validation_error;
+    appendFinanceRouteAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      decision: {
+        effect: "deny",
+        reason: safeErrorCode.toLowerCase(),
+        fail_closed: true,
+      },
+    });
+    return errorResponse(error?.status ?? 400, requestId, [safeErrorCode], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+}
+
+export function handleFinanceFeeCommitmentUpdate({
+  feeCommitmentId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+  };
+  const action = "finance:fee_commitment:update";
+  const resourceType = "fee_commitment";
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  try {
+    const result = updateFeeCommitment({
+      repository: runtime.repository,
+      master_data_repository: runtime.masterDataRepository,
+      crm_repository: runtime.crmRepository,
+      matter_repository: runtime.matterRepository,
+      tenant_id: query.tenant_id,
+      fee_commitment_id: feeCommitmentId,
+      expected_state_version: body.expected_state_version,
+      changes: body.changes,
+      reason: body.reason,
+      actor_id: context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+      item: presentFeeCommitment({
+        repository: runtime.repository,
+        fee_commitment: result.fee_commitment,
+      }),
+      auditEvent: result.audit_event,
+      status: 200,
+      extra: {
+        idempotent_replay: result.idempotent_replay,
+        fee_arrangement_comparison: result.fee_arrangement_comparison,
+      },
     });
   } catch (error) {
     const safeErrorCode = error?.safe_error_code
@@ -1881,6 +1966,7 @@ export function handleFinanceAudit({ query, context, requestId, runtime = DEFAUL
 }
 
 export async function handleFinanceApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const feeCommitmentMatch = /^\/api\/finance\/fee-commitments\/([^/]+)$/u.exec(pathname);
   if (pathname === "/api/finance/bank-transactions" && method === "GET") {
     return bankTransactionListResponse({ query, context, requestId, runtime });
   }
@@ -1924,6 +2010,15 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
   }
   if (pathname === "/api/finance/fee-commitments" && method === "POST") {
     return handleFinanceFeeCommitmentCreate({ body, context, requestId, runtime });
+  }
+  if (feeCommitmentMatch && method === "PATCH") {
+    return handleFinanceFeeCommitmentUpdate({
+      feeCommitmentId: feeCommitmentMatch[1],
+      body,
+      context,
+      requestId,
+      runtime,
+    });
   }
   if (pathname === "/api/finance/wip" && method === "POST") return handleFinanceWipGenerate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/wip-snapshots" && method === "POST") return handleFinanceWipSnapshotLock({ body, context, requestId, runtime });

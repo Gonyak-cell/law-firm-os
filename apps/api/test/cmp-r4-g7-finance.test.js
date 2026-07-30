@@ -164,7 +164,19 @@ test("same-name client options include a stable customer number for manual selec
 });
 
 test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 확인하고 권한 있는 조회만 허용한다", async () => {
-  const financeRepository = createFinanceRepository();
+  const financeRepository = createFinanceRepository({
+    seedRecords: [{
+      model_type: "FeeArrangement",
+      fee_arrangement_id: "fee-arrangement-api-fixed",
+      tenant_id: TENANT,
+      client_group_id: "client-fee-api",
+      currency: "KRW",
+      type: "fixed",
+      arrangement_type: "fixed",
+      fixed_fee_amount: 5_000_000,
+      status: "active",
+    }],
+  });
   const masterDataRepository = createMasterDataRepository({
     seedRecords: [{
       model_type: "ClientGroup",
@@ -339,6 +351,152 @@ test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 
       assert.equal(denied.status, 403);
       assert.deepEqual(denied.body.items, []);
       assert.equal(denied.body.count_leak_prevented, true);
+
+      const updatePayload = {
+        tenant_id: TENANT,
+        permission_ref: "perm-fee-commitment-api",
+        audit_hint_ref: "audit-fee-commitment-update-api",
+        idempotency_key: "fee-commitment-api-update-mismatch",
+        expected_state_version: 1,
+        changes: {
+          agreed_amount: 4_000_000,
+          source_fee_arrangement_id: "fee-arrangement-api-fixed",
+        },
+        reason: "담당자가 확인한 약정액 입력",
+      };
+      const mismatch = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify(updatePayload),
+        },
+      );
+      assert.equal(mismatch.status, 200, JSON.stringify(mismatch.body));
+      assert.equal(mismatch.body.item.state_version, 2);
+      assert.equal(mismatch.body.item.updated_by, SUPER_ADMIN_ACCOUNT.user_id);
+      assert.equal(
+        mismatch.body.item.fee_arrangement_comparison.warning_message,
+        "청구 설정과 금액이 다릅니다",
+      );
+      assert.deepEqual(mismatch.body.audit_event.metadata.before, {
+        state_version: 1,
+        status: "active",
+        agreed_amount: null,
+        due_date: null,
+        matter_id: null,
+        source_fee_arrangement_id: null,
+      });
+      assert.deepEqual(mismatch.body.audit_event.metadata.after, {
+        state_version: 2,
+        status: "active",
+        agreed_amount: 4_000_000,
+        due_date: null,
+        matter_id: null,
+        source_fee_arrangement_id: "fee-arrangement-api-fixed",
+      });
+
+      const updateReplay = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify(updatePayload),
+        },
+      );
+      assert.equal(updateReplay.status, 200);
+      assert.equal(updateReplay.body.idempotent_replay, true);
+      assert.equal(updateReplay.body.item.state_version, 2);
+
+      const stale = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-update-stale",
+            changes: { due_date: "2026-09-01" },
+            reason: "오래된 화면에서 수정",
+          }),
+        },
+      );
+      assert.equal(stale.status, 409);
+      assert.deepEqual(
+        stale.body.safe_error_codes,
+        ["FINANCE_FEE_COMMITMENT_VERSION_CONFLICT"],
+      );
+
+      const matched = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-update-match",
+            expected_state_version: 2,
+            changes: { agreed_amount: 5_000_000 },
+            reason: "청구 설정 금액과 일치 확인",
+          }),
+        },
+      );
+      assert.equal(matched.status, 200);
+      assert.equal(matched.body.item.state_version, 3);
+      assert.equal(matched.body.item.fee_arrangement_comparison.status, "match");
+      assert.equal(matched.body.item.fee_arrangement_comparison.warning_message, null);
+
+      const deniedUpdate = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: NON_PARTNER_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-update-denied",
+            expected_state_version: 3,
+            changes: { due_date: "2026-09-01" },
+            reason: "권한 없는 수정",
+          }),
+        },
+      );
+      assert.equal(deniedUpdate.status, 403);
+      assert.deepEqual(deniedUpdate.body.items, []);
+
+      const cancelled = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-cancel",
+            expected_state_version: 3,
+            changes: { status: "cancelled" },
+            reason: "수임료 약정 취소 확인",
+          }),
+        },
+      );
+      assert.equal(cancelled.status, 200);
+      assert.equal(cancelled.body.outcome, "cancelled");
+      assert.equal(cancelled.body.item.state_version, 4);
+      assert.equal(cancelled.body.item.status, "cancelled");
+
+      const cancelledQuery = `${BASE_QUERY}&opportunity_id=opportunity-fee-api&status=cancelled`;
+      const cancelledList = await json(
+        baseUrl,
+        `/api/finance/fee-commitments?${cancelledQuery}`,
+        { account: SUPER_ADMIN_ACCOUNT },
+      );
+      assert.equal(cancelledList.status, 200);
+      assert.equal(cancelledList.body.items.length, 1);
+      assert.equal(cancelledList.body.items[0].state_version, 4);
     }, { financeRuntime });
     assert.equal(
       financeRepository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length,

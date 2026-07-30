@@ -519,6 +519,42 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   assert.equal(created.status, 201, JSON.stringify(created.body));
   assert.equal(created.body.item.agreed_amount, 7_000_000);
 
+  const updated = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "PATCH",
+      pathname: "/api/finance/fee-commitments/fee-commitment-postgres-authority",
+      request_target_hash: "d".repeat(64),
+      request_body_hash: "c".repeat(64),
+      idempotency_key: "postgres-fee-commitment-update",
+      actor_id: "user_postgres_fee_commitment",
+    },
+    command(runtimes) {
+      return handleFinanceApiRequest({
+        pathname: "/api/finance/fee-commitments/fee-commitment-postgres-authority",
+        method: "PATCH",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-fee-commitment",
+          audit_hint_ref: "audit-postgres-fee-commitment-update",
+          idempotency_key: "postgres-fee-commitment-update",
+          expected_state_version: 1,
+          changes: {
+            agreed_amount: 8_000_000,
+          },
+          reason: "담당 변호사가 확정 금액을 정정함",
+        },
+        context,
+        requestId: "request-postgres-fee-commitment-update",
+        runtime: runtimes.financeRuntime,
+      });
+    },
+  });
+  assert.equal(updated.status, 200, JSON.stringify(updated.body));
+  assert.equal(updated.body.item.agreed_amount, 8_000_000);
+  assert.equal(updated.body.item.state_version, 2);
+
   const persisted = await ledger.read({
     tenant_id: TENANT_A,
     domain_id: "finance",
@@ -527,15 +563,26 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   });
   assert.equal(persisted.payload.client_group_id, "client-postgres-fee-commitment");
   assert.equal(persisted.payload.opportunity_id, "opportunity-postgres-fee-commitment");
-  assert.equal(persisted.payload.agreed_amount, 7_000_000);
+  assert.equal(persisted.payload.agreed_amount, 8_000_000);
+  assert.equal(persisted.payload.state_version, 2);
   assert.equal((await ledger.listIdempotency({
     tenant_id: TENANT_A,
     domain_id: "finance",
-  })).length, 1);
-  assert.equal((await ledger.listAudit({
+  })).length, 2);
+  const financeAudit = await ledger.listAudit({
     tenant_id: TENANT_A,
     domain_id: "finance",
-  })).some((event) => event.event_type === "fee_commitment.create"), true);
+  });
+  assert.equal(
+    financeAudit.some((event) => event.event_type === "fee_commitment.create"),
+    true,
+  );
+  const updateAudit = financeAudit.find(
+    (event) => event.event_type === "fee_commitment.update",
+  );
+  assert.ok(updateAudit);
+  assert.equal(updateAudit.payload.source_payload_included, false);
+  assert.match(updateAudit.payload.imported_event_hash, /^[a-f0-9]{64}$/u);
 });
 
 test("PostgreSQL API authority commits HRX with central idempotency, audit and outbox in the shared transaction", async (t) => {

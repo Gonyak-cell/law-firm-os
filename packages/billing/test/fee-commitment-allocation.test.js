@@ -10,8 +10,11 @@ import {
 } from "../src/fee-commitment-model.js";
 import {
   FEE_COMMITMENT_COMMAND_ERROR_CODES,
+  FEE_COMMITMENT_WARNING_CODES,
+  compareFeeCommitmentToFeeArrangement,
   createFeeCommitment,
   listFeeCommitments,
+  updateFeeCommitment,
 } from "../src/fee-commitment-service.js";
 import {
   FINANCE_PRIMARY_ID_FIELDS,
@@ -417,6 +420,243 @@ test("VC-CL-AR-003 다른 고객의 수임 검토 건과 중복 활성 약정은
       ),
     );
     assert.equal(repository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length, 1);
+  } finally {
+    repository.close();
+    refs.masterDataRepository.close();
+    refs.crmRepository.close();
+  }
+});
+
+test("수임료 약정 수정·취소는 version과 사유를 요구하고 청구 설정 금액 차이를 경고한다", () => {
+  const repository = createFinanceRepository({
+    seedRecords: [{
+      model_type: "FeeArrangement",
+      fee_arrangement_id: "fee-arrangement-hanbit-fixed",
+      tenant_id: TENANT,
+      client_group_id: "client-hanbit",
+      currency: "KRW",
+      type: "fixed",
+      arrangement_type: "fixed",
+      fixed_fee_amount: 15_000_000,
+      status: "active",
+    }],
+  });
+  const refs = referenceRepositories();
+  try {
+    const created = createFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      fee_commitment: commitment({
+        source_fee_arrangement_id: "fee-arrangement-hanbit-fixed",
+      }),
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-version-create",
+    });
+    const mismatch = compareFeeCommitmentToFeeArrangement({
+      repository,
+      fee_commitment: created.fee_commitment,
+    });
+    assert.deepEqual(mismatch, {
+      status: "mismatch",
+      fee_arrangement_id: "fee-arrangement-hanbit-fixed",
+      fee_commitment_amount: 12_000_000,
+      fee_arrangement_amount: 15_000_000,
+      warning_code: FEE_COMMITMENT_WARNING_CODES.fee_arrangement_amount_mismatch,
+      warning_message: "청구 설정과 금액이 다릅니다",
+    });
+
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 1,
+        changes: { agreed_amount: 13_000_000 },
+        reason: " ",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-missing-reason",
+      }),
+      /reason is required/,
+    );
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 1,
+        changes: { opportunity_id: "opportunity-replacement" },
+        reason: "불변 관계 변경 시도",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-immutable-field",
+      }),
+      /fields are immutable: opportunity_id/,
+    );
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 1,
+        changes: { agreed_amount: 12_000_000 },
+        reason: "같은 금액 재입력",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-no-op",
+      }),
+      /changes have no effect/,
+    );
+
+    const updated = updateFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      tenant_id: TENANT,
+      fee_commitment_id: created.fee_commitment.fee_commitment_id,
+      expected_state_version: 1,
+      changes: { agreed_amount: 15_000_000 },
+      reason: "정식 청구 설정 금액 확인",
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-version-update",
+    });
+    assert.equal(updated.outcome, "updated");
+    assert.equal(updated.fee_commitment.state_version, 2);
+    assert.equal(updated.fee_arrangement_comparison.status, "match");
+    assert.deepEqual(updated.audit_event.metadata.changed_fields, ["agreed_amount"]);
+    assert.deepEqual(updated.audit_event.metadata.before, {
+      state_version: 1,
+      status: "active",
+      agreed_amount: 12_000_000,
+      due_date: "2026-08-15",
+      matter_id: null,
+      source_fee_arrangement_id: "fee-arrangement-hanbit-fixed",
+    });
+    assert.deepEqual(updated.audit_event.metadata.after, {
+      state_version: 2,
+      status: "active",
+      agreed_amount: 15_000_000,
+      due_date: "2026-08-15",
+      matter_id: null,
+      source_fee_arrangement_id: "fee-arrangement-hanbit-fixed",
+    });
+    assert.equal(updated.audit_event.reason, "정식 청구 설정 금액 확인");
+
+    const replay = updateFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      tenant_id: TENANT,
+      fee_commitment_id: created.fee_commitment.fee_commitment_id,
+      expected_state_version: 1,
+      changes: { agreed_amount: 15_000_000 },
+      reason: "정식 청구 설정 금액 확인",
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-version-update",
+    });
+    assert.equal(replay.idempotent_replay, true);
+    assert.equal(replay.fee_commitment.state_version, 2);
+
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 1,
+        changes: { agreed_amount: 14_000_000 },
+        reason: "같은 요청키로 다른 수정",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-version-update",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.idempotency_conflict
+        && error.status === 409
+      ),
+    );
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 1,
+        changes: { due_date: "2026-09-01" },
+        reason: "오래된 화면에서 납부기한 수정",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-stale-update",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.version_conflict
+        && error.status === 409
+      ),
+    );
+    assert.equal(repository.get({
+      tenant_id: TENANT,
+      model_type: "FeeCommitment",
+      fee_commitment_id: created.fee_commitment.fee_commitment_id,
+    }).due_date, "2026-08-15");
+
+    const cancelled = updateFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      tenant_id: TENANT,
+      fee_commitment_id: created.fee_commitment.fee_commitment_id,
+      expected_state_version: 2,
+      changes: { status: "cancelled" },
+      reason: "수임료 약정 취소 확인",
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-version-cancel",
+    });
+    assert.equal(cancelled.outcome, "cancelled");
+    assert.equal(cancelled.fee_commitment.state_version, 3);
+    assert.equal(cancelled.fee_commitment.status, "cancelled");
+    assert.equal(cancelled.audit_event.action, "fee_commitment.cancel");
+
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 3,
+        changes: {
+          status: "cancelled",
+          agreed_amount: 0,
+        },
+        reason: "취소와 금액 변경을 함께 시도",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-mixed-cancel",
+      }),
+      /cancellation cannot be combined/,
+    );
+    assert.throws(
+      () => updateFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        tenant_id: TENANT,
+        fee_commitment_id: created.fee_commitment.fee_commitment_id,
+        expected_state_version: 3,
+        changes: { agreed_amount: 14_000_000 },
+        reason: "취소 후 수정 시도",
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-update-after-cancel",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.invalid_state
+        && error.status === 409
+      ),
+    );
+    assert.equal(repository.listAudit({ tenant_id: TENANT }).length, 3);
   } finally {
     repository.close();
     refs.masterDataRepository.close();
