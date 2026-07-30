@@ -25,6 +25,7 @@ import {
   LCX_AUTH_RESET_RECOVERY_ACTION,
   LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
   buildCtiS1GAuthenticatedProductionProbeReceipt,
+  buildHomeFinanceDashboardSmokeFromRuntime,
   buildHomeFinanceDashboardSmokeReceipt,
   buildCtiS5EnrichmentExecuteReceipt,
   buildCtiCutoverExecuteRetryReceipt,
@@ -668,6 +669,44 @@ test("Home finance production smoke reconciles dashboard numbers without returni
   assert.equal(receipt.raw_transaction_values_returned, false);
   assert.equal(receipt.individual_payroll_values_returned, false);
   assert.equal(JSON.stringify(receipt).includes("employee-partner"), false);
+});
+
+test("Home finance production smoke reads PostgreSQL finance data inside the request authority boundary", async () => {
+  const tenantId = "tenant_amic_matter_vault";
+  const calls = [];
+  const repository = {
+    list({ model_type }) {
+      if (model_type === "BankImportBatch") {
+        return [{
+          model_type,
+          tenant_id: tenantId,
+          bank_import_batch_id: "postgres-dashboard-smoke-batch",
+          transaction_count: 0,
+          status: "reconciled",
+        }];
+      }
+      return [];
+    },
+  };
+  const receipt = await buildHomeFinanceDashboardSmokeFromRuntime({
+    tenantId,
+    runtime: {
+      requestRuntimeAuthority: {
+        run(input) {
+          calls.push(input);
+          return input.command({
+            analyticsRuntime: { financeRepository: repository },
+          });
+        },
+      },
+    },
+  });
+
+  assert.equal(receipt.status, "PASS");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].tenant_id, tenantId);
+  assert.equal(calls[0].request_context.method, "GET");
+  assert.match(calls[0].request_context.pathname, /home-finance-dashboard-smoke/u);
 });
 
 test("Home finance production smoke fails closed for HTTP access, missing approval, and incomplete classification", async () => {

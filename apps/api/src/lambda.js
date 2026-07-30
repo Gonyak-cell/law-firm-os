@@ -1363,6 +1363,30 @@ export function buildHomeFinanceDashboardSmokeReceipt({
   });
 }
 
+export async function buildHomeFinanceDashboardSmokeFromRuntime({
+  runtime,
+  tenantId = MATTER_VAULT_REGISTERED_TENANT_ID,
+  requireCurrentActivity = false,
+} = {}) {
+  const buildReceipt = (analyticsRuntime) => buildHomeFinanceDashboardSmokeReceipt({
+    financeRepository: analyticsRuntime?.financeRepository,
+    tenantId,
+    requireCurrentActivity,
+  });
+  if (runtime?.requestRuntimeAuthority?.run) {
+    return runtime.requestRuntimeAuthority.run({
+      tenant_id: tenantId,
+      request_context: {
+        method: "GET",
+        pathname: "/__maintenance/home-finance-dashboard-smoke",
+        actor_id: "maintenance_home_finance_dashboard_smoke",
+      },
+      command: ({ analyticsRuntime }) => buildReceipt(analyticsRuntime),
+    });
+  }
+  return buildReceipt(runtime?.analyticsRuntime);
+}
+
 export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
   event = {},
   env = process.env,
@@ -3345,8 +3369,8 @@ async function handleHomeFinanceDashboardSmoke(event = {}) {
     });
   }
   const runtime = await apiRuntime();
-  return buildHomeFinanceDashboardSmokeReceipt({
-    financeRepository: runtime.analyticsRuntime?.financeRepository,
+  return buildHomeFinanceDashboardSmokeFromRuntime({
+    runtime,
     tenantId: process.env.LAWOS_DATABASE_TENANT_ID ?? MATTER_VAULT_REGISTERED_TENANT_ID,
     requireCurrentActivity: event.require_current_activity === true,
   });

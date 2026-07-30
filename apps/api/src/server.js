@@ -2020,6 +2020,7 @@ export async function startApiServer({
             host: HOST,
             sessionAuth: resolvedSessionAuth,
             persistence_authority: requestRuntimeAuthority.capabilities,
+            requestRuntimeAuthority,
           });
         });
       });
