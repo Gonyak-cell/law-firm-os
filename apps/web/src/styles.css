@@ -2160,7 +2160,7 @@ kbd {
   display: none;
 }
 
-@media (min-width: 822px) and (max-width: 1280px) {
+@media (min-width: 822px) and (max-width: 1199px) {
   .home-dashboard-kpi-value > strong {
     font-size: 28px;
   }

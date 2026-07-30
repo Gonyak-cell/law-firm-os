@@ -687,6 +687,7 @@ test("program evidence writer rejects sensitive keys and handler returns a non-o
     authorization: authorization(),
     env: env(),
     client: { async send(command) { safeWrites.push(command); } },
+    now: Date.parse("2026-07-23T00:00:00.000Z"),
   });
   assert.equal(safeWrites.length, 1);
   await assert.rejects(
@@ -697,6 +698,7 @@ test("program evidence writer rejects sensitive keys and handler returns a non-o
       authorization: authorization(),
       env: env(),
       client: { async send() {} },
+      now: Date.parse("2026-07-23T00:00:00.000Z"),
     }),
     (error) => error?.code === "LAWOS_PROGRAM_EVIDENCE",
   );
@@ -864,6 +866,7 @@ test("program evidence writer keeps non-worker conditional-write replays single-
           throw replay;
         },
       },
+      now: Date.parse("2026-07-23T00:00:00.000Z"),
     }),
     (error) => error === replay,
   );
@@ -886,6 +889,7 @@ test("program evidence writer does not reinterpret non-precondition S3 failures"
           throw denied;
         },
       },
+      now: Date.parse("2026-07-23T00:00:00.000Z"),
     }),
     (error) => error === denied,
   );

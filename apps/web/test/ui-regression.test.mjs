@@ -74,6 +74,8 @@ test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures s
   assert.match(packageQaSource, /non_payroll_outflow_categories/);
   assert.match(packageQaSource, /"payroll-categories", "nonpayroll-categories", "cashflow"/);
   assert.match(packageQaSource, /data-home-nonpayroll-donut-chart="true"/);
+  assert.match(packageQaSource, /home_finance_charts_same_row/);
+  assert.match(packageQaSource, /home_finance_charts_horizontal_order/);
 });
 
 test("compact record rows keep low-value metadata on the primary line across product surfaces", async () => {

@@ -1370,7 +1370,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0, matterListCalls: 0, matterListLimits: [] };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/matters") {
