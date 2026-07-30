@@ -14,6 +14,7 @@ import { createRateCard } from "../../time-expense/src/rate-card-service.js";
 import { generateWipFromApprovedItems, lockWipSnapshot } from "../src/wip-service.js";
 import { approvePreBillWithoutAdjustment, createPreBill } from "../src/prebill-service.js";
 import { createInvoiceFromPreBill } from "../src/invoice-service.js";
+import { normalizeClientDepositAllocation } from "../src/client-deposit-allocation-model.js";
 import { normalizeFeeCommitment } from "../src/fee-commitment-model.js";
 import { importPayment } from "../../payments/src/payment-service.js";
 import { matchPaymentToInvoice } from "../../payments/src/matching-service.js";
@@ -207,6 +208,61 @@ function buildFinanceSource() {
     updated_by: ACTOR,
     reason: "synthetic_fee_commitment_schema_rehearsal",
   }));
+  repository.create({
+    model_type: "BankImportBatch",
+    bank_import_batch_id: "bank-batch-rs-dom-finance",
+    tenant_id: TENANT,
+    source_manifest_hash: "b".repeat(64),
+    account_ref: "bank-account-rs-dom-finance",
+    transaction_count: 1,
+    status: "reconciled",
+  });
+  repository.create({
+    model_type: "BankTransaction",
+    bank_transaction_id: "bank-transaction-rs-dom-finance",
+    tenant_id: TENANT,
+    bank_import_batch_id: "bank-batch-rs-dom-finance",
+    transaction_fingerprint: "c".repeat(64),
+    account_ref: "bank-account-rs-dom-finance",
+    date: "2026-07-16",
+    occurred_at: "2026-07-16T09:00:00.000Z",
+    direction: "inflow",
+    amount: 12000000,
+    balance_after: 12000000,
+    currency: "KRW",
+    status: "posted",
+  });
+  repository.create({
+    model_type: "BankTransactionClassification",
+    bank_transaction_classification_id: "classification-rs-dom-finance",
+    tenant_id: TENANT,
+    bank_transaction_id: "bank-transaction-rs-dom-finance",
+    client_group_id: "client-rs-dom-finance",
+    transaction_direction: "inflow",
+    transaction_date: "2026-07-16",
+    amount: 12000000,
+    currency: "KRW",
+    category: "client_receipt",
+    status: "confirmed",
+  });
+  repository.create(normalizeClientDepositAllocation({
+    client_deposit_allocation_id: "allocation-rs-dom-finance",
+    tenant_id: TENANT,
+    client_group_id: "client-rs-dom-finance",
+    bank_transaction_id: "bank-transaction-rs-dom-finance",
+    bank_transaction_classification_id: "classification-rs-dom-finance",
+    fee_commitment_id: "fee-commitment-rs-dom-finance",
+    currency: "KRW",
+    allocated_amount: 12000000,
+    reversed_amount: 0,
+    allocation_source: "automatic",
+    manual_lock: false,
+    state_version: 1,
+    allocated_at: "2026-07-16T09:00:00.000Z",
+    created_by: ACTOR,
+    updated_by: ACTOR,
+    reason: "synthetic_deposit_allocation_schema_rehearsal",
+  }));
   return repository;
 }
 
@@ -234,6 +290,8 @@ test("Finance inventory classifies mutable documents and append-only ledgers and
     assert.equal(result.inventory.reconciliation.journal_entry_count, 1);
     assert.equal(result.inventory.reconciliation.trust_ledger_entry_count, 2);
     assert.equal(result.inventory.reconciliation.fee_commitment_count, 1);
+    assert.equal(result.inventory.reconciliation.client_deposit_allocation_count, 1);
+    assert.equal(result.inventory.reconciliation.client_deposit_active_total, 12000000);
     assert.match(result.inventory.reconciliation.invariant_hash, /^[a-f0-9]{64}$/u);
 
     const brokenWip = result.snapshot.records.map((record) => structuredClone(record.payload));
@@ -275,6 +333,22 @@ test("Finance PostgreSQL import, async API command, append-only guard, shadow, a
   assert.equal(persistedFeeCommitment.payload.client_group_id, "client-rs-dom-finance");
   assert.equal(persistedFeeCommitment.payload.agreed_amount, 12000000);
   assert.equal(persistedFeeCommitment.append_only, false);
+  const persistedAllocation = await ledger.read({
+    tenant_id: TENANT,
+    domain_id: FINANCE_DOMAIN_DESCRIPTOR.domain_id,
+    record_type: "ClientDepositAllocation",
+    record_id: "allocation-rs-dom-finance",
+  });
+  assert.equal(
+    persistedAllocation.payload.bank_transaction_id,
+    "bank-transaction-rs-dom-finance",
+  );
+  assert.equal(
+    persistedAllocation.payload.fee_commitment_id,
+    "fee-commitment-rs-dom-finance",
+  );
+  assert.equal(persistedAllocation.payload.allocated_amount, 12000000);
+  assert.equal(persistedAllocation.append_only, false);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
   const rehearsal = await ledger.recordRehearsal({

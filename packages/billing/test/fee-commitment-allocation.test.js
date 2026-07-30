@@ -3,11 +3,17 @@ import test from "node:test";
 import {
   FINANCE_DOMAIN_DESCRIPTOR,
   createFinanceDomainSnapshot,
+  reconcileFinanceRecords,
 } from "../src/central-ledger.js";
 import {
   FEE_COMMITMENT_STATUSES,
   normalizeFeeCommitment,
 } from "../src/fee-commitment-model.js";
+import {
+  CLIENT_DEPOSIT_ALLOCATION_SOURCES,
+  CLIENT_DEPOSIT_ALLOCATION_STATUSES,
+  normalizeClientDepositAllocation,
+} from "../src/client-deposit-allocation-model.js";
 import {
   FEE_COMMITMENT_COMMAND_ERROR_CODES,
   FEE_COMMITMENT_WARNING_CODES,
@@ -45,6 +51,64 @@ function commitment(overrides = {}) {
     reason: "수임 확정",
     ...overrides,
   });
+}
+
+function allocation(overrides = {}) {
+  return normalizeClientDepositAllocation({
+    client_deposit_allocation_id: "allocation-hanbit",
+    tenant_id: TENANT,
+    client_group_id: "client-hanbit",
+    bank_transaction_id: "bank-transaction-hanbit",
+    bank_transaction_classification_id: "classification-hanbit",
+    fee_commitment_id: "fee-commitment-hanbit",
+    currency: "KRW",
+    allocated_amount: 7_000_000,
+    reversed_amount: 0,
+    allocation_source: "automatic",
+    manual_lock: false,
+    state_version: 1,
+    allocated_at: "2026-07-30T11:00:00+09:00",
+    created_by: ACTOR,
+    updated_by: ACTOR,
+    reason: "납부기한 순 자동 배분",
+    ...overrides,
+  });
+}
+
+function allocationSourceRecords(allocationOverrides = {}) {
+  return [
+    {
+      model_type: "BankImportBatch",
+      bank_import_batch_id: "bank-batch-hanbit",
+      tenant_id: TENANT,
+      source_manifest_hash: "a".repeat(64),
+      status: "reconciled",
+    },
+    {
+      model_type: "BankTransaction",
+      bank_transaction_id: "bank-transaction-hanbit",
+      bank_import_batch_id: "bank-batch-hanbit",
+      tenant_id: TENANT,
+      direction: "inflow",
+      amount: 12_000_000,
+      currency: "KRW",
+      status: "posted",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: "classification-hanbit",
+      bank_transaction_id: "bank-transaction-hanbit",
+      tenant_id: TENANT,
+      client_group_id: "client-hanbit",
+      transaction_direction: "inflow",
+      amount: 12_000_000,
+      currency: "KRW",
+      category: "client_receipt",
+      status: "confirmed",
+    },
+    commitment(),
+    allocation(allocationOverrides),
+  ];
 }
 
 function referenceRepositories({
@@ -133,6 +197,205 @@ test("FeeCommitment 모델은 확정 금액·0원·금액 미입력을 서로 �
     () => commitment({ fee_commitment_id: "fee-version-string", state_version: "1" }),
     /positive integer/,
   );
+});
+
+test("ClientDepositAllocation 모델은 자동·수동·되돌림 상태와 원 단위 금액을 엄격히 구분한다", () => {
+  assert.deepEqual(CLIENT_DEPOSIT_ALLOCATION_SOURCES, ["automatic", "manual"]);
+  assert.deepEqual(CLIENT_DEPOSIT_ALLOCATION_STATUSES, ["active", "reversed"]);
+  assert.equal(allocation().status, "active");
+  assert.equal(allocation().allocated_amount, 7_000_000);
+  assert.equal(allocation({
+    client_deposit_allocation_id: "allocation-manual",
+    allocation_source: "manual",
+    manual_lock: true,
+  }).manual_lock, true);
+  assert.equal(allocation({
+    client_deposit_allocation_id: "allocation-reversed",
+    reversed_amount: 7_000_000,
+  }).status, "reversed");
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-zero",
+      allocated_amount: 0,
+    }),
+    /positive whole KRW/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-fraction",
+      allocated_amount: 1.5,
+    }),
+    /positive whole KRW/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-over-reversed",
+      reversed_amount: 7_000_001,
+    }),
+    /cannot exceed/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-usd",
+      currency: "USD",
+    }),
+    /must be KRW/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-manual-unlocked",
+      allocation_source: "manual",
+      manual_lock: false,
+    }),
+    /manual_lock must be true only/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-auto-locked",
+      manual_lock: true,
+    }),
+    /manual_lock must be true only/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-wrong-status",
+      status: "reversed",
+    }),
+    /status does not match/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-no-offset",
+      allocated_at: "2026-07-30T11:00:00",
+    }),
+    /explicit UTC offset/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-bad-version",
+      state_version: 0,
+    }),
+    /positive integer/,
+  );
+});
+
+test("ClientDepositAllocation 원장은 같은 테넌트·고객의 확정 입금과 수임료 약정만 금액 한도 안에서 연결한다", () => {
+  const repository = createFinanceRepository({
+    seedRecords: allocationSourceRecords(),
+  });
+  try {
+    assert.equal(
+      FINANCE_PRIMARY_ID_FIELDS.ClientDepositAllocation,
+      "client_deposit_allocation_id",
+    );
+    const record = repository.get({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+      client_deposit_allocation_id: "allocation-hanbit",
+    });
+    assert.equal(record.allocated_amount, 7_000_000);
+    assert.deepEqual(
+      FINANCE_DOMAIN_DESCRIPTOR.references(record).map((reference) => ({
+        name: reference.reference_name,
+        domain: reference.target_domain_id ?? "finance",
+        type: reference.target_record_type,
+        id: reference.target_record_id,
+        required: reference.required,
+      })),
+      [
+        {
+          name: "client_group",
+          domain: "master-data",
+          type: "ClientGroup",
+          id: "client-hanbit",
+          required: true,
+        },
+        {
+          name: "bank_transaction",
+          domain: "finance",
+          type: "BankTransaction",
+          id: "bank-transaction-hanbit",
+          required: true,
+        },
+        {
+          name: "bank_transaction_classification",
+          domain: "finance",
+          type: "BankTransactionClassification",
+          id: "classification-hanbit",
+          required: true,
+        },
+        {
+          name: "fee_commitment",
+          domain: "finance",
+          type: "FeeCommitment",
+          id: "fee-commitment-hanbit",
+          required: true,
+        },
+      ],
+    );
+    const result = createFinanceDomainSnapshot({
+      repositories: [{ source_id: "allocation-file", repository }],
+      tenant_id: TENANT,
+    });
+    const snapshotRecord = result.snapshot.records.find(
+      (row) => row.record_type === "ClientDepositAllocation",
+    );
+    assert.equal(snapshotRecord.append_only, false);
+    assert.deepEqual(
+      snapshotRecord.references.map((reference) => reference.reference_name),
+      [
+        "bank_transaction_classification",
+        "bank_transaction",
+        "fee_commitment",
+      ],
+    );
+    assert.equal(
+      result.inventory.mutable_record_types.includes("ClientDepositAllocation"),
+      true,
+    );
+    assert.equal(result.inventory.reconciliation.client_deposit_allocation_count, 1);
+    assert.equal(result.inventory.reconciliation.client_deposit_allocated_total, 7_000_000);
+    assert.equal(result.inventory.reconciliation.client_deposit_active_total, 7_000_000);
+  } finally {
+    repository.close();
+  }
+
+  for (const allocationOverrides of [
+    { tenant_id: "tenant-other" },
+    { client_group_id: "client-other" },
+  ]) {
+    assert.throws(
+      () => reconcileFinanceRecords(allocationSourceRecords(allocationOverrides)),
+      (error) => (
+        error.safe_error_code === "FINANCE_DEPOSIT_ALLOCATION_INVARIANT_FAILED"
+        && /references are incomplete|tenant, client, or source/u.test(error.message)
+      ),
+    );
+  }
+
+  const excessive = createFinanceRepository({
+    seedRecords: [
+      ...allocationSourceRecords(),
+      allocation({
+        client_deposit_allocation_id: "allocation-hanbit-second",
+        allocated_amount: 6_000_000,
+      }),
+    ],
+  });
+  try {
+    assert.throws(
+      () => createFinanceDomainSnapshot({
+        repositories: [{ source_id: "allocation-excessive", repository: excessive }],
+        tenant_id: TENANT,
+      }),
+      (error) => (
+        error.safe_error_code === "FINANCE_DEPOSIT_ALLOCATION_INVARIANT_FAILED"
+        && /exceed/.test(error.message)
+      ),
+    );
+  } finally {
+    excessive.close();
+  }
 });
 
 test("FeeCommitment ID·금액·고객·수임 검토·청구 설정 관계를 Finance 원장에 등록한다", () => {

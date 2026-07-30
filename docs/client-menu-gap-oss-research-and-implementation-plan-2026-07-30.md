@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 3/6 완료, 전체 15/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 4/6 완료, 전체 16/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -24,7 +24,7 @@
 9. M365 코드는 delegated 권한과 기능 스위치 뒤에서 준비하고, 관리자 동의·시험 mailbox 영수증이 없으면 출시를 차단한다.
 10. 모든 검증 시나리오를 고정 fixture, 테스트 파일 또는 실제 API·화면 영수증과 연결한다.
 
-이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW, P1의 7개 TUW와 P2의 수임료 약정 스키마·생성·조회·수정·취소 3개 TUW를 구현·집중 검증했다.
+이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW, P1의 7개 TUW와 P2의 수임료 약정 스키마·생성·조회·수정·취소 및 입금 배분 저장 계약 4개 TUW를 구현·집중 검증했다.
 
 ## 1. 제품 목표
 
@@ -964,7 +964,8 @@ npm test
 | `CL-P2-W01-T01` | 완료 | `FeeCommitment`의 필수 고객·수임 검토 건, 선택 Matter·청구 설정, KRW 정수 또는 null 금액, 납부기한, 수임확정 시각, 3개 상태, version·작성/수정자·사유를 fail-closed로 정규화; Finance 기본 ID·금액 필드·mutable 분류와 고객/Opportunity/청구 설정 원장 관계 등록 | 모델·파일 저장소·필수 관계 2/2, Finance 중앙원장·실제 임시 PostgreSQL import/readback/shadow 2/2, Billing 전체 133/133, Finance PostgreSQL API adapter 2/2; 0원과 `금액 미입력` 구분, 음수·소수·비KRW·잘못된 날짜/상태/version 거절 |
 | `CL-P2-W01-T02` | 완료 | `GET/POST /api/finance/fee-commitments`를 `finance.fee.write` 권한에 연결; 서버 세션 사용자를 작성자로 고정하고 ClientGroup의 당사자와 Opportunity 당사자, 선택 Matter·청구 설정의 고객/사건/통화를 교차 검증; 같은 Opportunity의 활성 약정 중복, 참조 런타임 누락, 다른 요청에 멱등성 키 재사용을 fail-closed로 거절; null·0원·KRW를 구분해 안정 정렬 조회 | `VC-CL-AR-001`~`003` 서비스 5/5, 실제 서명 세션 API 1/1, PostgreSQL 다중 도메인 생성/readback 1/1; Billing 전체 136/136, Finance API 전체 19/19, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 PASS |
 | `CL-P2-W01-T03` | 완료 | `PATCH /api/finance/fee-commitments/:id`에 기대 version과 변경 사유를 의무화하고 서버 세션 사용자를 수정자로 고정; 금액·납부기한·Matter·청구 설정만 수정할 수 있으며 취소는 다른 변경과 섞지 않는 최종 상태 전환으로 처리; stale version, 이미 취소된 약정, 불변 필드 변경, 효과 없는 변경, 다른 요청에 같은 요청키 재사용을 fail-closed로 거절; 조회·응답에서 정식 청구 설정 금액과 같음·다름·비교 불가를 계산해 `청구 설정과 금액이 다릅니다` 경고를 제공; 변경 전·후, 사유, 변경 필드, version을 감사 기록에 보존 | 서비스 수정·재실행·stale·취소 1/1, 실제 서명 세션 PATCH·조회·권한 1/1, PostgreSQL version 2 저장·감사 해시 readback 1/1; Billing 전체 137/137, Finance API 전체 19/19, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 34/34 |
-| `CL-P2-W02-T01` | 다음 | `ClientDepositAllocation` 모델·원장 관계·PostgreSQL 등록 | 시작 전 |
+| `CL-P2-W02-T01` | 완료 | `ClientDepositAllocation`에 고객·확정 입금 분류·은행 거래·수임료 약정을 필수 연결하고, KRW 원 단위 배분액·되돌린 금액, 자동/수동 출처, 수동 잠금, 상태·version·작성/수정자·사유를 정규화; 수동 배분은 잠금을 의무화하고 전액 되돌림 상태를 금액에서 계산; 한 배분 또는 활성 배분 합계가 원입금·약정액을 넘거나 다른 테넌트·고객, 미확정/출금 분류, 금액 미입력 약정에 연결되면 Finance 원장에서 fail-closed; Finance 기본 ID·금액 필드·mutable 분류와 필수 원장 관계를 등록 | 모델·금액·상태 및 원장 관계·tenant·client·합계 한도 집중 검증 2/2, 실제 임시 PostgreSQL import/readback/shadow 1/1; Billing 전체 139/139, Finance PostgreSQL API adapter 2/2 |
+| `CL-P2-W02-T02` | 다음 | 납부기한→수임확정일→ID 순 자동 배분과 선입금·초과 입금 유지 | 시작 전 |
 
 P0 집중 검증:
 

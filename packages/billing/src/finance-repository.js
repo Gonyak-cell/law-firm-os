@@ -30,6 +30,7 @@ export const FINANCE_PRIMARY_ID_FIELDS = Object.freeze({
   BankTransactionClassification: "bank_transaction_classification_id",
   BankClassificationRule: "bank_classification_rule_id",
   FeeCommitment: "fee_commitment_id",
+  ClientDepositAllocation: "client_deposit_allocation_id",
 });
 
 function clone(value) {
