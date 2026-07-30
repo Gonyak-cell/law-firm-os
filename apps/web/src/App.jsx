@@ -187,6 +187,8 @@ export function App() {
   const initialCurrentVersionWasUnsupported = initialView === "vault" && initialParams.get("current_version") === "all";
   const locationParams = new URLSearchParams(window.location.search);
   const requestedMatterId = locationParams.get("matter_id") ?? "";
+  const requestedClientId = locationParams.get("record_id") ?? "";
+  const requestedClientTab = locationParams.get("tab") ?? "";
   const requestedDocumentId = locationParams.get("document_id") ?? "";
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
@@ -654,7 +656,19 @@ export function App() {
                 refreshSignal={globalRefreshSignal}
               />
             )}
-            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} redirectedFrom={activeRedirectedFrom} />}
+            {view === "clients" && (
+              <ClientsSurface
+                labels={labels}
+                liveCtx={liveCtx}
+                activeSection={activeSection}
+                refreshSignal={globalRefreshSignal}
+                onNavigate={navigateToView}
+                redirectedFrom={activeRedirectedFrom}
+                requestedClientId={requestedClientId}
+                requestedClientTab={requestedClientTab}
+                requestedClientRevision={routeRevision}
+              />
+            )}
             {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} requestedMatterId={requestedMatterId} requestedMatterRevision={routeRevision} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
             {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
             {view === "vault" && (

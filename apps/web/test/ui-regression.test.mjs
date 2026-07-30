@@ -1311,10 +1311,14 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금"]) {
     assert.match(clientDashboardModelSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientDirectory", "fetchAnalyticsClientOperationsDetail", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.match(clientsSource, new RegExp(source));
   }
+  assert.match(apiClientSource, /export async function fetchAnalyticsClientDirectory/);
+  assert.match(apiClientSource, /export async function fetchAnalyticsClientOperationsDetail/);
   assert.match(apiClientSource, /export async function fetchAnalyticsClientOperationsDashboard/);
+  assert.match(apiClientSource, /\/api\/analytics\/clients\?/);
+  assert.match(apiClientSource, /\/api\/analytics\/clients\/\$\{encodeURIComponent\(normalizedClientId\)\}\/operations/);
   assert.match(apiClientSource, /\/api\/analytics\/clients\/dashboard/);
   assert.match(appSource, /params\.set\("record_id", routeContext\.recordId\)/);
   assert.match(appSource, /params\.set\("inquiry_id", routeContext\.inquiryId\)/);
@@ -1329,7 +1333,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(stylesSource, /\.record-overlay-layer\s*\{[\s\S]*display: flex;[\s\S]*justify-content: flex-end;[\s\S]*padding: 0;/);
   assert.match(stylesSource, /\.record-overlay-panel\s*\{[\s\S]*width: min\(560px, 100vw\);[\s\S]*height: 100%;[\s\S]*animation: record-overlay-panel-in 240ms/);
   assert.match(stylesSource, /@keyframes record-overlay-panel-in\s*\{[\s\S]*transform: translateX\(100%\);[\s\S]*transform: translateX\(0\);/);
-  assert.match(clientsSource, /fetchMasterDataRecords/);
+  assert.doesNotMatch(clientsSource, /fetchMasterDataRecords/);
   assert.match(apiClientSource, /cursor = null/);
   assert.match(apiClientSource, /params\.set\("cursor"/);
   assert.match(apiClientSource, /function desktopReadBridge/);
@@ -1337,10 +1341,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /response = await bridge/);
   assert.match(apiClientSource, /SAFE_ACTOR_REF_PATTERN/);
   assert.match(apiClientSource, /safeActorRef\(params\.get\("desktop_actor_ref"\)\)/);
-  assert.match(clientsSource, /fetchMatterClients/);
-  assert.match(apiClientSource, /\/api\/matters\/clients/);
-  assert.match(clientsSource, /item\.synthetic_only !== true/);
-  assert.match(clientsSource, /Property label="법인 형태"/);
+  assert.doesNotMatch(clientsSource, /modelType: "ClientGroup"/);
+  assert.doesNotMatch(clientsSource, /modelType: "MatterClient"/);
+  assert.doesNotMatch(clientsSource, /fetchMatterRecords/);
+  assert.doesNotMatch(clientsSource, /item\.synthetic_only !== true/);
+  assert.match(clientsSource, /Property label="고객 유형"/);
   assert.match(clientsSource, /clientLegalForm/);
   assert.match(clientsSource, /fetchCrmLeads/);
   assert.match(clientsSource, /fetchCrmOpportunities/);
@@ -1441,7 +1446,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /function guardedResultForContext/);
   assert.match(clientsSource, /setClientsResult\(guardedResult\)/);
   assert.match(clientsSource, /setLeadsResult\(guardedResult\)/);
-  assert.match(clientsSource, /!clientGuardedState && selectedClientId/);
+  assert.match(clientsSource, /!clientGuardedState[\s\S]{0,100}selectedClientId[\s\S]{0,120}route\.activeTab === "overview"/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);
   assert.match(clientsSource, /data-client-dashboard="true"/);
@@ -1460,14 +1465,17 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-client-billing-provider-blocked="true"/);
   assert.doesNotMatch(clientsSource, /data-client-planned-section|메뉴를 준비 중입니다/);
   assert.doesNotMatch(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
-  assert.match(clientsSource, /renderLiveState\(result, "Client"\)/);
-  assert.match(clientsSource, /fetchMatterRecords/);
-  assert.match(clientsSource, /modelType: "MatterClient"/);
-  assert.match(clientsSource, /function mergeClientMatterResults/);
-  assert.match(clientsSource, /fallbackClientSourceUsed/);
-  assert.match(clientsSource, /matter_code_links/);
-  assert.match(clientsSource, /linkedMatterSummary/);
-  assert.match(clientsSource, /baseResult\?\.uiState === "empty" \? "passed"/);
+  assert.match(clientsSource, /renderLiveState\(result, "고객"\)/);
+  assert.match(clientsSource, /fetchAnalyticsClientDirectory/);
+  assert.match(clientsSource, /fetchAnalyticsClientOperationsDetail/);
+  assert.doesNotMatch(clientsSource, /fetchMatterRecords/);
+  assert.doesNotMatch(clientsSource, /modelType: "ClientGroup"/);
+  assert.doesNotMatch(clientsSource, /function mergeClientMatterResults/);
+  assert.doesNotMatch(clientsSource, /matter_code_links|linkedMatterSummary/);
+  assert.match(clientsSource, /buildClientDirectoryModel/);
+  assert.match(clientsSource, /data-client-related-finance-guard/);
+  assert.match(clientsSource, /정확하지 않은 금액은 보여 주지 않습니다/);
+  assert.match(clientsSource, /relatedFinanceKind === "deposit_revenue"/);
   assert.match(clientsSource, /담당자에게 접근을 요청하세요/);
   assert.match(clientsSource, /담당자 확인 후 \{noun\} 정보를 볼 수 있습니다/);
   assert.doesNotMatch(clientsSource, /의뢰인/);

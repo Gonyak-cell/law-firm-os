@@ -604,6 +604,20 @@ function wp5ApiBody(pathname, searchParams, state) {
   if (pathname === "/api/crm/activities") {
     return list("dashboard-activities", [{ crm_activity_id: "meeting-dashboard-1", party_id: "party-dashboard-1", activity_type: "meeting", subject: "meeting-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", scheduled_at: wp5IsoDay(1) }]);
   }
+  if (pathname === "/api/analytics/clients") {
+    return {
+      ...list("dashboard-client-directory", [{
+        client_group_id: "client-dashboard-saebom",
+        display_name: "새봄테크",
+        status: "active",
+        legal_form: "주식회사",
+        member_count: 2,
+        primary_record_present: true
+      }]),
+      permission_prefilter_applied: true,
+      raw_source_payload_included: false
+    };
+  }
   if (pathname === "/api/analytics/clients/dashboard") {
     return wp5ClientOperationsDashboardBody();
   }
@@ -2430,7 +2444,7 @@ test("CL-P5-W01-T03 Client 대시보드는 1440·820·390px에서 그래프와 �
   }
 });
 
-test("Client 대시보드는 권한 없음, 확인 필요, 데이터 없음, 오류를 서로 다르게 표시한다", async () => {
+test("고객 대시보드는 권한 없음, 확인 필요, 데이터 없음, 오류를 서로 다르게 표시한다", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
@@ -2496,10 +2510,10 @@ test("Client 대시보드는 권한 없음, 확인 필요, 데이터 없음, 오
     });
 
     for (const scenario of [
-      { mode: "denied", ctx: "allow", state: "denied", text: "Client 대시보드를 볼 권한이 없습니다." },
-      { mode: "denied", ctx: "review", state: "review_required", text: "Client 대시보드를 보려면 추가 확인이 필요합니다." },
-      { mode: "empty", ctx: "allow", state: "empty", text: "Client 대시보드 데이터가 없습니다." },
-      { mode: "error", ctx: "allow", state: "error", text: "Client 대시보드를 불러오지 못했습니다." }
+      { mode: "denied", ctx: "allow", state: "denied", text: "고객 대시보드를 볼 권한이 없습니다." },
+      { mode: "denied", ctx: "review", state: "review_required", text: "고객 대시보드를 보려면 추가 확인이 필요합니다." },
+      { mode: "empty", ctx: "allow", state: "empty", text: "고객 대시보드 데이터가 없습니다." },
+      { mode: "error", ctx: "allow", state: "error", text: "고객 대시보드를 불러오지 못했습니다." }
     ]) {
       mode = scenario.mode;
       await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=${scenario.ctx}&case=${scenario.state}#clients-home`, { waitUntil: "networkidle" });

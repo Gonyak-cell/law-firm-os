@@ -2230,3 +2230,542 @@ test("CL-P4-W01-T05 고객 없음·운영 데이터 없음·고객 권한 없음
     false,
   );
 });
+
+function clientDirectoryPermissionContext({ matterRead = true } = {}) {
+  return {
+    principal: {
+      user_id: STAFF,
+      tenant_id: TENANT,
+      role_ids: ["lawos_staff"],
+    },
+    rules: [
+      {
+        id: "staff-client-directory-read",
+        effect: "allow",
+        action: "analytics:client:read",
+      },
+      {
+        id: "staff-inquiry-directory-read",
+        effect: "allow",
+        action: "crm:inquiry:read",
+      },
+      {
+        id: "staff-consultation-directory-read",
+        effect: "allow",
+        action: "crm:consultation:read",
+      },
+      ...(matterRead ? [{
+        id: "staff-matter-directory-read",
+        effect: "allow",
+        action: "matter:read",
+      }] : []),
+    ],
+    object_acl: [{
+      id: "staff-hidden-client-deny",
+      effect: "deny",
+      principal_id: STAFF,
+      action: "analytics:client:read",
+      resource_id: "client_hidden",
+    }],
+  };
+}
+
+function clientDirectoryMasterRecords() {
+  return [
+    {
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_allowed",
+      display_name: "같은 이름 고객",
+      member_party_ids: ["party_allowed"],
+      member_entity_ids: ["entity_allowed_org"],
+      primary_party_id: "party_allowed",
+      primary_entity_id: "entity_allowed_org",
+      legal_form: "주식회사",
+      status: "active",
+    },
+    {
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_hidden",
+      display_name: "같은 이름 고객",
+      member_party_ids: ["party_hidden"],
+      member_entity_ids: ["entity_hidden_org"],
+      primary_party_id: "party_hidden",
+      primary_entity_id: "entity_hidden_org",
+      status: "active",
+    },
+    {
+      model_type: "Relationship",
+      tenant_id: TENANT,
+      relationship_id: "relationship_allowed_contact",
+      from_entity_id: "entity_allowed_person",
+      to_entity_id: "entity_allowed_org",
+      relationship_type: "contact_for",
+    },
+    {
+      model_type: "Relationship",
+      tenant_id: TENANT,
+      relationship_id: "relationship_allowed_adverse",
+      from_entity_id: "entity_allowed_adverse",
+      to_entity_id: "entity_allowed_org",
+      relationship_type: "adverse",
+    },
+    {
+      model_type: "Person",
+      tenant_id: TENANT,
+      person_id: "person_allowed",
+      party_id: "party_allowed_contact",
+      entity_id: "entity_allowed_person",
+      display_name: "김담당",
+      status: "active",
+    },
+    {
+      model_type: "ContactPoint",
+      tenant_id: TENANT,
+      contact_point_id: "contact_point_allowed",
+      owner_entity_id: "entity_allowed_person",
+      contact_type: "email",
+      value: "private-contact@example.test",
+      is_primary: true,
+      status: "active",
+    },
+    {
+      model_type: "Person",
+      tenant_id: TENANT,
+      person_id: "person_allowed_adverse",
+      party_id: "party_allowed_adverse",
+      entity_id: "entity_allowed_adverse",
+      display_name: "상대방 노출 금지",
+      status: "active",
+    },
+    {
+      model_type: "Person",
+      tenant_id: TENANT,
+      person_id: "person_hidden_same_name",
+      party_id: "party_hidden_contact",
+      entity_id: "entity_hidden_person",
+      display_name: "김담당",
+      status: "active",
+    },
+    {
+      model_type: "ContactPoint",
+      tenant_id: TENANT,
+      contact_point_id: "contact_point_hidden",
+      owner_entity_id: "entity_hidden_person",
+      contact_type: "email",
+      value: "hidden-contact@example.test",
+      is_primary: true,
+      status: "active",
+    },
+  ];
+}
+
+function clientDirectoryCrmRecords() {
+  return [
+    {
+      model_type: "Lead",
+      tenant_id: TENANT,
+      lead_id: "lead_allowed",
+      party_id: "party_allowed",
+      client_group_id: "client_allowed",
+      display_name: "허용 문의",
+      inquiry_status: "new",
+      source: "outlook_addin",
+      received_at: "2026-07-30T01:00:00.000Z",
+      next_action: "문의 확인",
+      assigned_user_id: null,
+      opportunity_id: null,
+      status: "active",
+      owner_user_id: "principal_partner",
+      version: 1,
+    },
+    {
+      model_type: "Lead",
+      tenant_id: TENANT,
+      lead_id: "lead_hidden",
+      party_id: "party_hidden",
+      client_group_id: "client_hidden",
+      display_name: "숨은 문의",
+      inquiry_status: "new",
+      source: "outlook_addin",
+      received_at: "2026-07-30T02:00:00.000Z",
+      next_action: "문의 확인",
+      assigned_user_id: null,
+      opportunity_id: null,
+      status: "active",
+      owner_user_id: "principal_partner",
+      version: 1,
+    },
+  ];
+}
+
+function clientDirectoryMatterRecords() {
+  return [
+    {
+      model_type: "Matter",
+      tenant_id: TENANT,
+      matter_id: "matter_allowed",
+      matter_code: "M-001",
+      matter_name: "허용 사건",
+      client_group_id: "client_allowed",
+      status: "open",
+      opened_at: "2026-07-29T00:00:00.000Z",
+    },
+    {
+      model_type: "Matter",
+      tenant_id: TENANT,
+      matter_id: "matter_hidden",
+      matter_code: "M-002",
+      matter_name: "숨은 사건",
+      client_group_id: "client_hidden",
+      status: "open",
+      opened_at: "2026-07-30T00:00:00.000Z",
+    },
+  ];
+}
+
+test("CL-P5-W02-T01 고객 목록은 허용된 고객의 안전한 요약만 반환한다", () => {
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      clientDirectoryMasterRecords(),
+    ),
+  });
+  const result = readModel.readDirectory({
+    tenant_id: TENANT,
+    permission_context: clientDirectoryPermissionContext(),
+  });
+
+  assert.equal(result.access_scope.access_state, "allowed");
+  assert.equal(result.downstream_sources_read, false);
+  assert.deepEqual(result.items, [{
+    client_group_id: "client_allowed",
+    display_name: "같은 이름 고객",
+    status: "active",
+    legal_form: "주식회사",
+    member_count: 1,
+    primary_record_present: true,
+    production_ready_claim: false,
+  }]);
+  const serialized = JSON.stringify(result.items);
+  assert.equal(serialized.includes("client_hidden"), false);
+  assert.equal(serialized.includes("party_allowed"), false);
+  assert.equal(serialized.includes("entity_allowed_org"), false);
+});
+
+test("CL-P5-W02-T01 고객 상세는 명시 관계만 사용하고 연락처 원문과 권한 밖 자료를 숨긴다", () => {
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      clientDirectoryMasterRecords(),
+    ),
+    crmRepository: repository(clientDirectoryCrmRecords()),
+    matterRepository: repository(clientDirectoryMatterRecords()),
+    clock: () => new Date("2026-07-30T03:00:00.000Z"),
+  });
+  const result = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: clientDirectoryPermissionContext(),
+    client_group_id: "client_allowed",
+  });
+
+  assert.equal(result.downstream_sources_read, true);
+  assert.equal(result.item.outcome, "passed");
+  assert.deepEqual(
+    result.item.sections.contacts.data.items.map(
+      ({ contact_id }) => contact_id,
+    ),
+    ["person_allowed"],
+  );
+  assert.equal(
+    result.item.sections.contacts.data.items[0]
+      .contact_point_value_included,
+    false,
+  );
+  assert.equal(
+    result.item.sections.contacts.data.items[0]
+      .contact_value_masked,
+    true,
+  );
+  assert.deepEqual(
+    result.item.sections.matters.data.items.map(
+      ({ matter_id }) => matter_id,
+    ),
+    ["matter_allowed"],
+  );
+  assert.deepEqual(
+    result.item.sections.inquiries.data.items.map(
+      ({ lead_id }) => lead_id,
+    ),
+    ["lead_allowed"],
+  );
+  const serialized = JSON.stringify(result.item);
+  for (const hidden of [
+    "private-contact@example.test",
+    "hidden-contact@example.test",
+    "person_hidden_same_name",
+    "person_allowed_adverse",
+    "상대방 노출 금지",
+    "matter_hidden",
+    "lead_hidden",
+    "client_hidden",
+  ]) {
+    assert.equal(serialized.includes(hidden), false);
+  }
+  assert.equal(result.item.count_leak_prevented, true);
+  assert.equal(result.item.raw_contact_values_included, false);
+});
+
+test("CL-P5-W02-T01 개별 Matter·문의 권한 누락은 0건이 아닌 일부 조회로 표시한다", () => {
+  const context = clientDirectoryPermissionContext();
+  context.object_acl.push(
+    {
+      id: "staff-hidden-matter-deny",
+      effect: "deny",
+      principal_id: STAFF,
+      action: "matter:read",
+      resource_id: "matter_allowed_hidden",
+    },
+    {
+      id: "staff-hidden-inquiry-deny",
+      effect: "deny",
+      principal_id: STAFF,
+      action: "crm:inquiry:read",
+      resource_id: "lead_allowed_hidden",
+    },
+  );
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      clientDirectoryMasterRecords(),
+    ),
+    crmRepository: repository([
+      ...clientDirectoryCrmRecords(),
+      {
+        model_type: "Lead",
+        tenant_id: TENANT,
+        lead_id: "lead_allowed_hidden",
+        party_id: "party_allowed",
+        client_group_id: "client_allowed",
+        display_name: "권한 밖 문의",
+        inquiry_status: "new",
+        source: "manual",
+        received_at: "2026-07-30T02:30:00.000Z",
+        next_action: "노출 금지",
+        assigned_user_id: null,
+        opportunity_id: null,
+        status: "active",
+        owner_user_id: "principal_partner",
+        version: 1,
+      },
+    ]),
+    matterRepository: repository([
+      ...clientDirectoryMatterRecords(),
+      {
+        model_type: "Matter",
+        tenant_id: TENANT,
+        matter_id: "matter_allowed_hidden",
+        matter_code: "M-HIDDEN",
+        matter_name: "권한 밖 사건",
+        client_group_id: "client_allowed",
+        status: "open",
+        opened_at: "2026-07-30T02:00:00.000Z",
+      },
+    ]),
+    clock: () => new Date("2026-07-30T03:00:00.000Z"),
+  });
+  const result = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: context,
+    client_group_id: "client_allowed",
+  });
+  const matterSource = result.item.source_statuses.find(
+    ({ source_id }) => source_id === "matters",
+  );
+  const inquirySource = result.item.source_statuses.find(
+    ({ source_id }) => source_id === "crm_inquiries",
+  );
+
+  assert.equal(result.item.outcome, "partial");
+  assert.equal(result.item.ui_state, "partial");
+  assert.equal(result.item.sections.matters.status, "partial");
+  assert.equal(result.item.sections.inquiries.status, "partial");
+  assert.deepEqual(
+    result.item.sections.matters.data.items.map(
+      ({ matter_id }) => matter_id,
+    ),
+    ["matter_allowed"],
+  );
+  assert.deepEqual(
+    result.item.sections.inquiries.data.items.map(
+      ({ lead_id }) => lead_id,
+    ),
+    ["lead_allowed"],
+  );
+  assert.equal(matterSource.item_count, null);
+  assert.equal(inquirySource.item_count, null);
+  assert.equal(
+    matterSource.safe_error_code,
+    "CLIENT_OPERATIONS_MATTER_OBJECTS_OMITTED",
+  );
+  assert.equal(
+    inquirySource.safe_error_code,
+    "CLIENT_OPERATIONS_INQUIRY_OBJECTS_OMITTED",
+  );
+  const serialized = JSON.stringify(result.item);
+  for (const hidden of [
+    "matter_allowed_hidden",
+    "M-HIDDEN",
+    "권한 밖 사건",
+    "lead_allowed_hidden",
+    "권한 밖 문의",
+    "노출 금지",
+  ]) {
+    assert.equal(serialized.includes(hidden), false);
+  }
+});
+
+test("CL-P5-W02-T01 상담 세부 권한 누락도 문의 탭을 일부 조회로 표시한다", () => {
+  const context = clientDirectoryPermissionContext();
+  context.object_acl.push({
+    id: "staff-hidden-consultation-deny",
+    effect: "deny",
+    principal_id: STAFF,
+    action: "crm:consultation:read",
+    resource_id: "activity_allowed_hidden",
+  });
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      clientDirectoryMasterRecords(),
+    ),
+    crmRepository: repository([
+      ...clientDirectoryCrmRecords(),
+      {
+        model_type: "CRMActivity",
+        tenant_id: TENANT,
+        crm_activity_id: "activity_allowed_hidden",
+        lead_id: "lead_allowed",
+        activity_kind: "consultation",
+        scheduled_at: "2026-07-31T01:00:00.000Z",
+        status: "scheduled",
+      },
+    ]),
+    matterRepository: repository(clientDirectoryMatterRecords()),
+    clock: () => new Date("2026-07-30T03:00:00.000Z"),
+  });
+  const result = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: context,
+    client_group_id: "client_allowed",
+  });
+  const inquirySource = result.item.source_statuses.find(
+    ({ source_id }) => source_id === "crm_inquiries",
+  );
+
+  assert.equal(result.item.outcome, "partial");
+  assert.equal(result.item.sections.inquiries.status, "partial");
+  assert.deepEqual(
+    result.item.sections.inquiries.data.items.map(
+      ({ lead_id }) => lead_id,
+    ),
+    ["lead_allowed"],
+  );
+  assert.equal(inquirySource.item_count, null);
+  assert.equal(
+    inquirySource.safe_error_code,
+    "CLIENT_OPERATIONS_INQUIRY_OBJECTS_OMITTED",
+  );
+  assert.equal(
+    JSON.stringify(result.item).includes("activity_allowed_hidden"),
+    false,
+  );
+});
+
+test("CL-P5-W02-T01 Matter 권한 부재는 건수를 숨긴 부분 상태로 격리한다", () => {
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      clientDirectoryMasterRecords(),
+    ),
+    crmRepository: repository(clientDirectoryCrmRecords()),
+    matterRepository: {
+      list() {
+        throw new Error("Matter must not be read without permission");
+      },
+    },
+    clock: () => new Date("2026-07-30T03:00:00.000Z"),
+  });
+  const result = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: clientDirectoryPermissionContext({
+      matterRead: false,
+    }),
+    client_group_id: "client_allowed",
+  });
+  const matterSource = result.item.source_statuses.find(
+    ({ source_id }) => source_id === "matters",
+  );
+
+  assert.equal(result.item.outcome, "partial");
+  assert.equal(result.item.ui_state, "partial");
+  assert.equal(
+    result.item.sections.matters.status,
+    "permission_denied",
+  );
+  assert.equal(result.item.sections.matters.data, null);
+  assert.equal(matterSource.item_count, null);
+  assert.equal(
+    matterSource.safe_error_code,
+    "CLIENT_OPERATIONS_MATTER_READ_DENIED",
+  );
+  assert.equal(
+    result.item.sections.contacts.status,
+    "available",
+  );
+  assert.equal(
+    result.item.sections.inquiries.status,
+    "available",
+  );
+});
+
+test("CL-P5-W02-T01 권한 밖 고객과 없는 고객은 같은 결과로 원천 조회 전에 끝낸다", () => {
+  const events = [];
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      clientDirectoryMasterRecords(),
+      events,
+      "master-data",
+    ),
+    crmRepository: {
+      list() {
+        throw new Error("CRM must not be read");
+      },
+    },
+    matterRepository: {
+      list() {
+        throw new Error("Matter must not be read");
+      },
+    },
+    clock: () => new Date("2026-07-30T03:00:00.000Z"),
+  });
+  const context = clientDirectoryPermissionContext();
+  const denied = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: context,
+    client_group_id: "client_hidden",
+  });
+  const unknown = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: context,
+    client_group_id: "client_unknown",
+  });
+
+  assert.deepEqual(denied, unknown);
+  assert.equal(denied.item, null);
+  assert.equal(denied.downstream_sources_read, false);
+  assert.equal(
+    JSON.stringify(denied).includes("client_hidden"),
+    false,
+  );
+  assert.deepEqual(events, [
+    "master-data:ClientGroup",
+    "master-data:ClientGroup",
+  ]);
+});

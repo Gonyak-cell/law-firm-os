@@ -75,6 +75,7 @@ function leadRecord() {
 function analyticsRuntime({
   masterDataRepository = repository([clientRecord()]),
   crmRepository = repository([leadRecord()]),
+  matterRepository = repository([]),
   financeRepository = createFinanceRepository(),
 } = {}) {
   return {
@@ -82,6 +83,7 @@ function analyticsRuntime({
       repository: createAnalyticsRepository(),
       masterDataRepository,
       crmRepository,
+      matterRepository,
       financeRepository,
       clock: () => new Date(GENERATED_AT),
     }),
@@ -136,6 +138,44 @@ test("VC-CL-DASH-001 / CL-P4-W01-T05 실제 API가 Client 대시보드 묶음과
       assert.ok(analytics.endpoints.includes(
         "GET /api/analytics/clients/dashboard",
       ));
+      assert.ok(analytics.endpoints.includes(
+        "GET /api/analytics/clients",
+      ));
+      assert.ok(analytics.endpoints.includes(
+        "GET /api/analytics/clients/:client_group_id/operations",
+      ));
+
+      const directory = await get(
+        baseUrl,
+        `/api/analytics/clients?${query()}`,
+      );
+      assert.equal(directory.status, 200);
+      assert.deepEqual(
+        directory.body.items.map(
+          ({ client_group_id }) => client_group_id,
+        ),
+        ["client_api_dashboard"],
+      );
+      assert.equal(
+        directory.body.page_info.omitted_item_count,
+        null,
+      );
+
+      const detail = await get(
+        baseUrl,
+        `/api/analytics/clients/client_api_dashboard/operations?${query()}`,
+      );
+      assert.equal(detail.status, 200);
+      assert.equal(
+        detail.body.item.client.client_group_id,
+        "client_api_dashboard",
+      );
+      assert.deepEqual(
+        detail.body.item.sections.inquiries.data.items.map(
+          ({ lead_id }) => lead_id,
+        ),
+        ["lead_api_dashboard"],
+      );
 
       const response = await get(
         baseUrl,
@@ -369,6 +409,437 @@ test("CL-P4-W01-T05 고객 원천 장애는 안전한 503으로 격리한다", a
         false,
       );
     });
+  } finally {
+    fixture.financeRepository.close();
+  }
+});
+
+function clientDirectoryContext({ matterRead = true } = {}) {
+  return {
+    principal: {
+      user_id: "user_client_directory",
+      tenant_id: TENANT,
+      role_ids: ["lawos_staff"],
+    },
+    rules: [
+      {
+        id: "client-directory-route-read",
+        effect: "allow",
+        action: "analytics:client:read",
+      },
+      {
+        id: "client-directory-inquiry-read",
+        effect: "allow",
+        action: "crm:inquiry:read",
+      },
+      {
+        id: "client-directory-consultation-read",
+        effect: "allow",
+        action: "crm:consultation:read",
+      },
+      ...(matterRead ? [{
+        id: "client-directory-matter-read",
+        effect: "allow",
+        action: "matter:read",
+      }] : []),
+    ],
+    object_acl: [{
+      id: "client-directory-hidden-deny",
+      effect: "deny",
+      principal_id: "user_client_directory",
+      action: "analytics:client:read",
+      client_group_id: "client_api_hidden",
+    }],
+  };
+}
+
+function clientDirectoryMasterData() {
+  return [
+    {
+      ...clientRecord(),
+      member_entity_ids: ["entity_api_client"],
+      primary_entity_id: "entity_api_client",
+      legal_form: "주식회사",
+    },
+    {
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_api_hidden",
+      display_name: "API 고객",
+      member_party_ids: ["party_api_hidden"],
+      member_entity_ids: ["entity_api_hidden"],
+      primary_party_id: "party_api_hidden",
+      primary_entity_id: "entity_api_hidden",
+      status: "active",
+    },
+    {
+      model_type: "Relationship",
+      tenant_id: TENANT,
+      relationship_id: "relationship_api_contact",
+      from_entity_id: "entity_api_contact",
+      to_entity_id: "entity_api_client",
+      relationship_type: "contact_for",
+    },
+    {
+      model_type: "Relationship",
+      tenant_id: TENANT,
+      relationship_id: "relationship_api_adverse",
+      from_entity_id: "entity_api_adverse",
+      to_entity_id: "entity_api_client",
+      relationship_type: "adverse",
+    },
+    {
+      model_type: "Person",
+      tenant_id: TENANT,
+      person_id: "person_api_contact",
+      party_id: "party_api_contact",
+      entity_id: "entity_api_contact",
+      display_name: "API 담당자",
+      status: "active",
+    },
+    {
+      model_type: "ContactPoint",
+      tenant_id: TENANT,
+      contact_point_id: "contact_point_api",
+      owner_entity_id: "entity_api_contact",
+      contact_type: "email",
+      value: "private-api-contact@example.test",
+      is_primary: true,
+      status: "active",
+    },
+    {
+      model_type: "Person",
+      tenant_id: TENANT,
+      person_id: "person_api_adverse",
+      party_id: "party_api_adverse",
+      entity_id: "entity_api_adverse",
+      display_name: "API 상대방",
+      status: "active",
+    },
+    {
+      model_type: "Person",
+      tenant_id: TENANT,
+      person_id: "person_api_hidden_same_name",
+      party_id: "party_api_hidden_contact",
+      entity_id: "entity_api_hidden_contact",
+      display_name: "API 담당자",
+      status: "active",
+    },
+  ];
+}
+
+function clientDirectoryMatters() {
+  return [
+    {
+      model_type: "Matter",
+      tenant_id: TENANT,
+      matter_id: "matter_api_allowed",
+      matter_code: "API-001",
+      matter_name: "API 허용 사건",
+      client_group_id: "client_api_dashboard",
+      status: "open",
+      opened_at: "2026-07-30T00:00:00.000Z",
+    },
+    {
+      model_type: "Matter",
+      tenant_id: TENANT,
+      matter_id: "matter_api_hidden",
+      matter_code: "API-002",
+      matter_name: "API 숨은 사건",
+      client_group_id: "client_api_hidden",
+      status: "open",
+      opened_at: "2026-07-30T01:00:00.000Z",
+    },
+  ];
+}
+
+test("CL-P5-W02-T01 고객 목록·상세 API는 허용 고객만 반환하고 원천 값을 숨긴다", async () => {
+  const fixture = analyticsRuntime({
+    masterDataRepository: repository(clientDirectoryMasterData()),
+    matterRepository: repository(clientDirectoryMatters()),
+  });
+  const queryObject = Object.fromEntries(new URLSearchParams(query()));
+  const context = clientDirectoryContext();
+  try {
+    const directory = await handleAnalyticsApiRequest({
+      pathname: "/api/analytics/clients",
+      method: "GET",
+      query: queryObject,
+      context,
+      requestId: "request-client-directory",
+      runtime: fixture.runtime,
+    });
+    assert.equal(directory.status, 200);
+    assert.deepEqual(
+      directory.body.items.map(({ client_group_id }) => client_group_id),
+      ["client_api_dashboard"],
+    );
+    assert.equal(directory.body.page_info.returned_count, 1);
+    assert.equal(directory.body.page_info.omitted_item_count, null);
+    assert.equal(directory.body.permission_prefilter_applied, true);
+    assert.equal(directory.body.count_leak_prevented, true);
+    assert.equal(
+      JSON.stringify(directory.body).includes("client_api_hidden"),
+      false,
+    );
+
+    const detail = await handleAnalyticsApiRequest({
+      pathname:
+        "/api/analytics/clients/client_api_dashboard/operations",
+      method: "GET",
+      query: queryObject,
+      context,
+      requestId: "request-client-detail",
+      runtime: fixture.runtime,
+    });
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.item.client.client_group_id,
+      "client_api_dashboard");
+    assert.deepEqual(
+      detail.body.item.sections.contacts.data.items.map(
+        ({ contact_id }) => contact_id,
+      ),
+      ["person_api_contact"],
+    );
+    assert.deepEqual(
+      detail.body.item.sections.matters.data.items.map(
+        ({ matter_id }) => matter_id,
+      ),
+      ["matter_api_allowed"],
+    );
+    assert.deepEqual(
+      detail.body.item.sections.inquiries.data.items.map(
+        ({ lead_id }) => lead_id,
+      ),
+      ["lead_api_dashboard"],
+    );
+    const serialized = JSON.stringify(detail.body);
+    for (const hidden of [
+      "private-api-contact@example.test",
+      "person_api_hidden_same_name",
+      "person_api_adverse",
+      "API 상대방",
+      "matter_api_hidden",
+      "client_api_hidden",
+    ]) {
+      assert.equal(serialized.includes(hidden), false);
+    }
+    assert.equal(detail.body.item.raw_contact_values_included, false);
+    assert.equal(detail.body.raw_source_payload_included, false);
+  } finally {
+    fixture.financeRepository.close();
+  }
+});
+
+test("CL-P5-W02-T01 고객별 ACL 허용만 있는 사용자도 허용 고객 목록과 상세를 읽는다", async () => {
+  const context = clientDirectoryContext();
+  context.rules = context.rules.filter(
+    ({ action }) => action !== "analytics:client:read",
+  );
+  context.object_acl.push({
+    id: "client-directory-object-allow",
+    effect: "allow",
+    principal_id: "user_client_directory",
+    action: "analytics:client:read",
+    client_group_id: "client_api_dashboard",
+  });
+  const fixture = analyticsRuntime({
+    masterDataRepository: repository(clientDirectoryMasterData()),
+    matterRepository: repository(clientDirectoryMatters()),
+  });
+  const queryObject = Object.fromEntries(new URLSearchParams(query()));
+  try {
+    const directory = await handleAnalyticsApiRequest({
+      pathname: "/api/analytics/clients",
+      method: "GET",
+      query: queryObject,
+      context,
+      requestId: "request-client-directory-object-allow",
+      runtime: fixture.runtime,
+    });
+    const detail = await handleAnalyticsApiRequest({
+      pathname:
+        "/api/analytics/clients/client_api_dashboard/operations",
+      method: "GET",
+      query: queryObject,
+      context,
+      requestId: "request-client-detail-object-allow",
+      runtime: fixture.runtime,
+    });
+
+    assert.equal(directory.status, 200);
+    assert.deepEqual(
+      directory.body.items.map(({ client_group_id }) => client_group_id),
+      ["client_api_dashboard"],
+    );
+    assert.equal(detail.status, 200);
+    assert.equal(
+      detail.body.item.client.client_group_id,
+      "client_api_dashboard",
+    );
+    assert.equal(
+      JSON.stringify(directory.body).includes("client_api_hidden"),
+      false,
+    );
+  } finally {
+    fixture.financeRepository.close();
+  }
+});
+
+test("CL-P5-W02-T01 고객 상세 API는 Matter 권한 부재를 부분 상태로 격리한다", async () => {
+  const fixture = analyticsRuntime({
+    masterDataRepository: repository(clientDirectoryMasterData()),
+    matterRepository: {
+      list() {
+        throw new Error("Matter must not be read");
+      },
+    },
+  });
+  try {
+    const response = await handleAnalyticsApiRequest({
+      pathname:
+        "/api/analytics/clients/client_api_dashboard/operations",
+      method: "GET",
+      query: Object.fromEntries(new URLSearchParams(query())),
+      context: clientDirectoryContext({ matterRead: false }),
+      requestId: "request-client-detail-partial",
+      runtime: fixture.runtime,
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.body.outcome, "partial");
+    assert.equal(
+      response.body.item.sections.matters.status,
+      "permission_denied",
+    );
+    assert.equal(response.body.item.sections.matters.data, null);
+    assert.equal(
+      response.body.item.source_statuses.find(
+        ({ source_id }) => source_id === "matters",
+      ).item_count,
+      null,
+    );
+    assert.equal(
+      response.body.item.sections.contacts.status,
+      "available",
+    );
+  } finally {
+    fixture.financeRepository.close();
+  }
+});
+
+test("CL-P5-W02-T01 고객 상세 API는 개별 객체 누락 건수를 숨기고 허용 자료만 반환한다", async () => {
+  const context = clientDirectoryContext();
+  context.object_acl.push({
+    id: "client-directory-matter-object-deny",
+    effect: "deny",
+    principal_id: "user_client_directory",
+    action: "matter:read",
+    resource_id: "matter_api_object_hidden",
+  });
+  const fixture = analyticsRuntime({
+    masterDataRepository: repository(clientDirectoryMasterData()),
+    matterRepository: repository([
+      ...clientDirectoryMatters(),
+      {
+        model_type: "Matter",
+        tenant_id: TENANT,
+        matter_id: "matter_api_object_hidden",
+        matter_code: "API-HIDDEN",
+        matter_name: "API 권한 밖 사건",
+        client_group_id: "client_api_dashboard",
+        status: "open",
+        opened_at: "2026-07-30T02:00:00.000Z",
+      },
+    ]),
+  });
+  try {
+    const response = await handleAnalyticsApiRequest({
+      pathname:
+        "/api/analytics/clients/client_api_dashboard/operations",
+      method: "GET",
+      query: Object.fromEntries(new URLSearchParams(query())),
+      context,
+      requestId: "request-client-detail-object-partial",
+      runtime: fixture.runtime,
+    });
+    const matterSource = response.body.item.source_statuses.find(
+      ({ source_id }) => source_id === "matters",
+    );
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.outcome, "partial");
+    assert.equal(
+      response.body.item.sections.matters.status,
+      "partial",
+    );
+    assert.deepEqual(
+      response.body.item.sections.matters.data.items.map(
+        ({ matter_id }) => matter_id,
+      ),
+      ["matter_api_allowed"],
+    );
+    assert.equal(matterSource.item_count, null);
+    assert.equal(
+      matterSource.safe_error_code,
+      "CLIENT_OPERATIONS_MATTER_OBJECTS_OMITTED",
+    );
+    const serialized = JSON.stringify(response.body);
+    for (const hidden of [
+      "matter_api_object_hidden",
+      "API-HIDDEN",
+      "API 권한 밖 사건",
+    ]) {
+      assert.equal(serialized.includes(hidden), false);
+    }
+  } finally {
+    fixture.financeRepository.close();
+  }
+});
+
+test("CL-P5-W02-T01 고객 상세 API는 권한 밖 ID와 없는 ID를 구분하지 않는다", async () => {
+  let downstreamReadCount = 0;
+  const noDownstream = {
+    list() {
+      downstreamReadCount += 1;
+      throw new Error("Downstream must not be read");
+    },
+  };
+  const fixture = analyticsRuntime({
+    masterDataRepository: repository(clientDirectoryMasterData()),
+    crmRepository: noDownstream,
+    matterRepository: noDownstream,
+  });
+  const request = {
+    method: "GET",
+    query: Object.fromEntries(new URLSearchParams(query())),
+    context: clientDirectoryContext(),
+    requestId: "request-client-not-found",
+    runtime: fixture.runtime,
+  };
+  try {
+    const denied = await handleAnalyticsApiRequest({
+      ...request,
+      pathname:
+        "/api/analytics/clients/client_api_hidden/operations",
+    });
+    const unknown = await handleAnalyticsApiRequest({
+      ...request,
+      pathname:
+        "/api/analytics/clients/client_api_unknown/operations",
+    });
+
+    assert.equal(denied.status, 404);
+    assert.deepEqual(denied, unknown);
+    assert.equal(downstreamReadCount, 0);
+    assert.equal(
+      JSON.stringify(denied).includes("client_api_hidden"),
+      false,
+    );
+    assert.deepEqual(
+      denied.body.safe_error_codes,
+      ["ANALYTICS_NOT_FOUND"],
+    );
+    assert.equal(denied.body.count_leak_prevented, true);
   } finally {
     fixture.financeRepository.close();
   }

@@ -3971,7 +3971,6 @@ async function fetchCrmIntakeCollection({
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
-
   let body;
   try {
     const response = await apiFetch(`${path}?${params.toString()}`, {
@@ -5128,6 +5127,334 @@ export async function fetchAnalyticsDashboards({
     auditHintRef: body.audit_hint_ref,
     countLeakPrevented: body.count_leak_prevented === true,
     productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+function analyticsClientReadParams({
+  permissionRef,
+  auditHintRef
+}) {
+  return new URLSearchParams({
+    tenant_id: tenantIdForDomain("client", ANALYTICS_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+}
+
+function analyticsClientGuardedResult(response, body) {
+  const uiState = body?.ui_state;
+  const reviewRequired = (
+    uiState === "review"
+    || uiState === "review_required"
+    || body?.outcome === "review_required"
+  );
+  const permissionDenied = response.status === 403;
+  return {
+    kind: permissionDenied || reviewRequired ? "guarded" : "error",
+    status: response.status,
+    outcome: body?.outcome ?? "blocked",
+    uiState: permissionDenied
+      ? "denied"
+      : reviewRequired
+        ? "review_required"
+        : "error",
+    safeErrorCodes: Array.isArray(body?.safe_error_codes)
+      ? body.safe_error_codes
+      : [],
+    countLeakPrevented: body?.count_leak_prevented === true
+  };
+}
+
+function safeClientDirectoryItem(item) {
+  if (
+    typeof item?.client_group_id !== "string"
+    || item.client_group_id.trim() === ""
+    || typeof item?.display_name !== "string"
+    || item.display_name.trim() === ""
+  ) {
+    return null;
+  }
+  return {
+    client_group_id: item.client_group_id.trim(),
+    display_name: item.display_name.trim(),
+    status: typeof item.status === "string" ? item.status : null,
+    legal_form: typeof item.legal_form === "string"
+      ? item.legal_form
+      : null,
+    member_count: Number.isInteger(item.member_count)
+      && item.member_count >= 0
+      ? item.member_count
+      : null,
+    primary_record_present: item.primary_record_present === true
+  };
+}
+
+export async function fetchAnalyticsClientDirectory({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(
+    ctx,
+    ANALYTICS_PERMISSION_CONTEXTS,
+    "client"
+  );
+  const params = analyticsClientReadParams({
+    permissionRef,
+    auditHintRef
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(
+      `/api/analytics/clients?${params.toString()}`,
+      {
+        headers: {
+          [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+        }
+      }
+    );
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+  if (!response.ok) {
+    return analyticsClientGuardedResult(response, body);
+  }
+  const items = Array.isArray(body?.items)
+    ? body.items.map(safeClientDirectoryItem)
+    : [];
+  const hasShape = (
+    body !== null
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && Array.isArray(body.items)
+    && items.every(Boolean)
+    && Array.isArray(body.safe_error_codes)
+    && body.count_leak_prevented === true
+    && body.permission_prefilter_applied === true
+    && body.raw_source_payload_included === false
+  );
+  if (!hasShape) return { kind: "error", uiState: "error" };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? null,
+    items,
+    pageInfo: {
+      returnedCount: items.length,
+      omittedItemCount: null
+    },
+    sourceStatuses: Array.isArray(body.source_statuses)
+      ? body.source_statuses
+      : [],
+    safeErrorCodes: body.safe_error_codes,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true
+  };
+}
+
+const CLIENT_DETAIL_SECTION_STATUSES = new Set([
+  "available",
+  "no_data",
+  "partial",
+  "permission_denied",
+  "error"
+]);
+
+function safeClientDetailSection(section, itemMapper) {
+  if (
+    !section
+    || !CLIENT_DETAIL_SECTION_STATUSES.has(section.status)
+  ) {
+    return null;
+  }
+  if (["permission_denied", "error"].includes(section.status)) {
+    return section.data === null
+      ? { status: section.status, data: null }
+      : null;
+  }
+  if (!Array.isArray(section.data?.items)) return null;
+  const items = section.data.items.map(itemMapper);
+  if (items.some((item) => item === null)) return null;
+  return {
+    status: section.status,
+    data: { items }
+  };
+}
+
+function safeClientDetailContact(item) {
+  if (
+    typeof item?.contact_id !== "string"
+    || typeof item?.display_name !== "string"
+    || item.contact_point_value_included !== false
+  ) {
+    return null;
+  }
+  return {
+    contact_id: item.contact_id,
+    display_name: item.display_name,
+    primary_contact_type:
+      typeof item.primary_contact_type === "string"
+        ? item.primary_contact_type
+        : null,
+    contact_point_value_included: false,
+    contact_value_masked: item.contact_value_masked === true,
+    status: typeof item.status === "string" ? item.status : null
+  };
+}
+
+function safeClientDetailMatter(item) {
+  if (
+    typeof item?.matter_id !== "string"
+    || typeof item?.display_name !== "string"
+  ) {
+    return null;
+  }
+  return {
+    matter_id: item.matter_id,
+    matter_code: typeof item.matter_code === "string"
+      ? item.matter_code
+      : null,
+    display_name: item.display_name,
+    status: typeof item.status === "string" ? item.status : null,
+    opened_at: typeof item.opened_at === "string"
+      ? item.opened_at
+      : null
+  };
+}
+
+function safeClientDetailInquiry(item) {
+  if (
+    typeof item?.lead_id !== "string"
+    || typeof item?.display_name !== "string"
+  ) {
+    return null;
+  }
+  return {
+    lead_id: item.lead_id,
+    display_name: item.display_name,
+    visible_status: typeof item.visible_status === "string"
+      ? item.visible_status
+      : null,
+    visible_status_label:
+      typeof item.visible_status_label === "string"
+        ? item.visible_status_label
+        : "상태 확인 필요",
+    source: typeof item.source === "string" ? item.source : null,
+    received_at: typeof item.received_at === "string"
+      ? item.received_at
+      : null,
+    next_action: typeof item.next_action === "string"
+      ? item.next_action
+      : null,
+    assigned: item.assigned === true
+  };
+}
+
+export async function fetchAnalyticsClientOperationsDetail({
+  clientId,
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const normalizedClientId = typeof clientId === "string"
+    ? clientId.trim()
+    : "";
+  if (!normalizedClientId) {
+    return { kind: "error", uiState: "error" };
+  }
+  const context = permissionContextFor(
+    ctx,
+    ANALYTICS_PERMISSION_CONTEXTS,
+    "client"
+  );
+  const params = analyticsClientReadParams({
+    permissionRef,
+    auditHintRef
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(
+      `/api/analytics/clients/${encodeURIComponent(normalizedClientId)}/operations?${params.toString()}`,
+      {
+        headers: {
+          [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+        }
+      }
+    );
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+  if (response.status === 404) {
+    return {
+      kind: "empty",
+      status: 404,
+      uiState: "empty",
+      countLeakPrevented: body?.count_leak_prevented === true
+    };
+  }
+  if (!response.ok) {
+    return analyticsClientGuardedResult(response, body);
+  }
+  const item = body?.item;
+  const contacts = safeClientDetailSection(
+    item?.sections?.contacts,
+    safeClientDetailContact
+  );
+  const matters = safeClientDetailSection(
+    item?.sections?.matters,
+    safeClientDetailMatter
+  );
+  const inquiries = safeClientDetailSection(
+    item?.sections?.inquiries,
+    safeClientDetailInquiry
+  );
+  const hasShape = (
+    item !== null
+    && typeof item === "object"
+    && item.client?.client_group_id === normalizedClientId
+    && typeof item.client?.display_name === "string"
+    && contacts !== null
+    && matters !== null
+    && inquiries !== null
+    && Array.isArray(item.source_statuses)
+    && Array.isArray(item.safe_error_codes)
+    && item.count_leak_prevented === true
+    && item.raw_contact_values_included === false
+    && item.raw_source_payload_included === false
+    && body.count_leak_prevented === true
+    && body.raw_source_payload_included === false
+  );
+  if (!hasShape) return { kind: "error", uiState: "error" };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: item.outcome,
+    uiState: item.ui_state ?? null,
+    item: {
+      client: safeClientDirectoryItem(item.client),
+      sections: { contacts, matters, inquiries },
+      sourceStatuses: item.source_statuses.map((source) => ({
+        sourceId: source.source_id ?? null,
+        label: source.label ?? null,
+        status: source.status ?? "error",
+        itemCount: ["partial", "permission_denied", "error"].includes(
+          source.status
+        )
+          ? null
+          : Number.isInteger(source.item_count)
+            ? source.item_count
+            : null,
+        safeErrorCode: source.safe_error_code ?? null
+      }))
+    },
+    safeErrorCodes: item.safe_error_codes,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true
   };
 }
 

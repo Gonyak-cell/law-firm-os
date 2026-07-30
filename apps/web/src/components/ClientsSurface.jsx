@@ -14,6 +14,8 @@ import {
   approveIntakeConflictWaiver,
   approveIntakeEngagement,
   executeCrmMergeProposal,
+  fetchAnalyticsClientDirectory,
+  fetchAnalyticsClientOperationsDetail,
   fetchAnalyticsClientOperationsDashboard,
   fetchAnalyticsFinanceClients,
   fetchCrmActivities,
@@ -29,9 +31,6 @@ import {
   fetchFinanceInvoices,
   fetchIntakeAudit,
   fetchIntakeRequests,
-  fetchMasterDataRecords,
-  fetchMatterClients,
-  fetchMatterRecords,
   fetchRecordActionAudit,
   fetchRecordActionFields,
   handoffCrmOpportunityToIntake,
@@ -58,11 +57,12 @@ import {
   ClientDepositRevenueChart,
   ClientInquiryStatusBreakdown
 } from "./ClientOperationsDashboardCharts.jsx";
+import {
+  CLIENT_DETAIL_TAB_IDS,
+  buildClientDirectoryModel,
+  clientDirectoryRecordId
+} from "./ClientDirectoryModel.js";
 
-const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
-const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
-const CLIENTS_MATTER_LINK_PERMISSION_REF = "ui_cmp_g2_client_matter_code_links";
-const CLIENTS_MATTER_LINK_AUDIT_HINT_REF = "ui_cmp_g2_clients_matter_code_links_probe";
 const CLIENT_SECTIONS = new Set([
   "clients-home",
   "clients-list",
@@ -79,16 +79,23 @@ const CLIENT_SECTIONS = new Set([
 function clientDisplayName(item, index) {
   return businessLabel(
     item.display_name ?? item.client_display_name ?? item.canonical_display_name ?? item.client_name ?? item.name,
-    `Client ${index + 1}`
+    `고객 ${index + 1}`
   );
 }
 
 function clientRecordId(item) {
-  return item?.client_group_id ?? item?.client_id ?? item?.legal_client_party_id ?? item?.billing_client_party_id ?? null;
+  return clientDirectoryRecordId(item);
 }
 
 function clientMembers(item) {
-  return Array.isArray(item.member_entity_ids) ? item.member_entity_ids.length : "없음";
+  if (Number.isInteger(item?.member_count) && item.member_count >= 0) {
+    return item.member_count;
+  }
+  const members = uniqueLookupKeys([
+    ...(Array.isArray(item?.member_entity_ids) ? item.member_entity_ids : []),
+    ...(Array.isArray(item?.member_party_ids) ? item.member_party_ids : [])
+  ]);
+  return members.length || "없음";
 }
 
 function clientStatus(value) {
@@ -98,6 +105,8 @@ function clientStatus(value) {
 }
 
 function clientLegalForm(value) {
+  if (["organization", "corporation", "company"].includes(value)) return "법인";
+  if (["individual", "person"].includes(value)) return "개인";
   return businessLabel(value, "해당 없음");
 }
 
@@ -227,157 +236,6 @@ function uniqueLookupKeys(values) {
   return [...new Set(values.map(lookupKey).filter(Boolean))];
 }
 
-function clientLookupKeys(item) {
-  return uniqueLookupKeys([
-    item?.client_id,
-    item?.client_group_id,
-    item?.legal_client_party_id,
-    item?.billing_client_party_id,
-    item?.primary_party_id,
-    item?.primary_entity_id,
-    item?.client_display_name,
-    item?.canonical_display_name,
-    item?.display_name,
-    item?.client_name,
-    item?.name
-  ]);
-}
-
-function matterClientLookupKeys(item) {
-  return uniqueLookupKeys([
-    item?.client_id,
-    item?.legal_client_party_id,
-    item?.billing_client_party_id,
-    item?.client_display_name
-  ]);
-}
-
-function matterLinkLabel(item) {
-  return businessLabel(item?.matter_code ?? item?.matter_name ?? item?.title, "Matter");
-}
-
-function matterLinkFor(item) {
-  return {
-    matter_id: item?.matter_id ?? null,
-    matter_code: item?.matter_code ?? null,
-    label: matterLinkLabel(item),
-    status: item?.status ?? null
-  };
-}
-
-function mergeMatterLinks(...groups) {
-  const byLabel = new Map();
-  for (const group of groups) {
-    if (!Array.isArray(group)) continue;
-    for (const link of group) {
-      const key = lookupKey(link?.matter_code ?? link?.matter_id ?? link?.label);
-      if (key && !byLabel.has(key)) byLabel.set(key, link);
-    }
-  }
-  return [...byLabel.values()];
-}
-
-function buildMatterLinksByClient(matters) {
-  const linksByClient = new Map();
-  for (const matter of matters) {
-    const link = matterLinkFor(matter);
-    for (const key of matterClientLookupKeys(matter)) {
-      const existing = linksByClient.get(key) ?? [];
-      linksByClient.set(key, mergeMatterLinks(existing, [link]));
-    }
-  }
-  return linksByClient;
-}
-
-function derivedClientsFromMatters(matters) {
-  const byClient = new Map();
-  for (const matter of matters) {
-    const keys = matterClientLookupKeys(matter);
-    const key = keys[0];
-    if (!key || byClient.has(key)) continue;
-    byClient.set(key, {
-      model_type: "MatterLinkedClient",
-      client_id: matter.client_id ?? matter.legal_client_party_id ?? matter.billing_client_party_id ?? null,
-      client_display_name: matter.client_display_name ?? matter.client_name ?? null,
-      display_name: matter.client_display_name ?? matter.client_name ?? null,
-      status: "active",
-      matter_link_source: "matter_code_inventory"
-    });
-  }
-  return [...byClient.values()];
-}
-
-function withMatterLinks(item, linksByClient) {
-  const links = mergeMatterLinks(...clientLookupKeys(item).map((key) => linksByClient.get(key)));
-  if (links.length === 0) return item;
-  return {
-    ...item,
-    matter_code_links: links,
-    matter_count: links.length,
-    matter_core_enrichment: {
-      ...(item.matter_core_enrichment ?? {}),
-      matter_title: links[0].label,
-      matter_code: links[0].matter_code,
-      matter_count: links.length
-    }
-  };
-}
-
-function linkedMatterSummary(item) {
-  const links = Array.isArray(item?.matter_code_links) ? item.matter_code_links : [];
-  if (links.length > 0) {
-    const labels = links.slice(0, 2).map((link) => businessLabel(link.label ?? link.matter_code, "Matter"));
-    const suffix = links.length > 2 ? ` 외 ${links.length - 2}건` : "";
-    return `${labels.join(", ")}${suffix}`;
-  }
-  return businessLabel(item?.matter_core_enrichment?.matter_title, "미지정");
-}
-
-function mergeClientMatterResults(clientRecordsResult, matterClientsResult, mattersResult) {
-  const clientItems = resultItems(clientRecordsResult).filter((item) => item.synthetic_only !== true);
-  const matterItems = resultItems(mattersResult);
-  const matterClientItems = resultItems(matterClientsResult).filter((item) => item.synthetic_only !== true);
-  const linksByClient = buildMatterLinksByClient(matterItems);
-  const clientSourceItems = clientItems.length
-    ? clientItems
-    : [...matterClientItems, ...derivedClientsFromMatters(matterItems)];
-  const byClient = new Map();
-
-  for (const item of clientSourceItems) {
-    const keys = clientLookupKeys(item);
-    const key = keys.find((candidate) => byClient.has(candidate)) ?? keys[0];
-    if (!key) continue;
-    const existing = byClient.get(key);
-    const next = existing
-      ? { ...item, ...existing, ...Object.fromEntries(Object.entries(item).filter(([, value]) => value != null && value !== "")) }
-      : item;
-    const linked = withMatterLinks(next, linksByClient);
-    byClient.set(key, linked);
-    for (const alias of clientLookupKeys(linked)) byClient.set(alias, linked);
-  }
-
-  const items = [...new Set(byClient.values())];
-  const baseResult = clientRecordsResult?.kind === "data" ? clientRecordsResult : matterClientsResult?.kind === "data" ? matterClientsResult : mattersResult;
-  if (!items.length && clientRecordsResult?.kind !== "data" && matterClientsResult?.kind !== "data" && mattersResult?.kind !== "data") {
-    return clientRecordsResult ?? matterClientsResult ?? mattersResult ?? { kind: "error" };
-  }
-  return {
-    ...(baseResult?.kind === "data" ? baseResult : {}),
-    kind: "data",
-    outcome: baseResult?.outcome ?? "passed",
-    uiState: items.length ? (baseResult?.uiState === "empty" ? "passed" : baseResult?.uiState ?? "passed") : "empty",
-    items,
-    canonicalClientCount: clientItems.length,
-    fallbackClientSourceUsed: clientItems.length === 0,
-    safeErrorCodes: [
-      ...(clientRecordsResult?.safeErrorCodes ?? []),
-      ...(matterClientsResult?.safeErrorCodes ?? []),
-      ...(mattersResult?.safeErrorCodes ?? [])
-    ],
-    productionReadyClaim: false
-  };
-}
-
 function canonicalSyncLabel(value) {
   if (value === "synced" || value === "canonical_source") return "동기화됨";
   if (value === "facade_only") return "동기화 전";
@@ -393,9 +251,9 @@ function proposalStateLabel(value) {
 
 function recordFieldLabel(value) {
   const text = String(value ?? "").trim();
-  if (text === "Client name") return "Client 이름";
-  if (text === "Client display name") return "Client 표시 이름";
-  if (text === "Account status") return "Client 상태";
+  if (text === "Client name") return "고객 이름";
+  if (text === "Client display name") return "고객 표시 이름";
+  if (text === "Account status") return "고객 상태";
   if (text === "Contact status") return "담당자 상태";
   if (text === "Owner") return "담당자";
   if (text === "Status") return "상태";
@@ -413,28 +271,6 @@ function actionMessage(result, successText) {
 
 function resultItems(result) {
   return result?.kind === "data" && Array.isArray(result.items) ? result.items : [];
-}
-
-async function fetchAllMasterDataRecords(params) {
-  const collected = [];
-  let cursor = null;
-  let pageResult = null;
-  for (let page = 0; page < 20; page += 1) {
-    pageResult = await fetchMasterDataRecords({ ...params, cursor });
-    if (pageResult.kind !== "data") return pageResult;
-    collected.push(...resultItems(pageResult));
-    cursor = pageResult.pageInfo?.next_cursor ?? null;
-    if (!cursor) break;
-  }
-  return {
-    ...pageResult,
-    items: collected,
-    pageInfo: {
-      ...(pageResult?.pageInfo ?? {}),
-      returned_count: collected.length,
-      next_cursor: null
-    }
-  };
 }
 
 function guardedResultForContext(ctx) {
@@ -770,7 +606,7 @@ function ClientDashboardPanel({ result, onNavigate }) {
       >
         <ClientDashboardReadState
           state={model.state}
-          noun="Client 대시보드"
+          noun="고객 대시보드"
         />
       </div>
     );
@@ -948,6 +784,66 @@ function ClientSalesHistoryPanel({ result }) {
         clientDashboardMoneyLabel(item.ar_balance, item.currency)
       ])}
     />
+  );
+}
+
+function ClientRelatedFinanceGuard({
+  client,
+  kind,
+  loading,
+  onReturn
+}) {
+  if (loading) {
+    return (
+      <div
+        className="live-data-state client-related-finance-guard"
+        role="status"
+        data-client-related-finance-guard={kind}
+      >
+        <strong>고객 정보를 불러오는 중입니다</strong>
+      </div>
+    );
+  }
+  if (!client) {
+    return (
+      <div
+        className="live-data-state client-related-finance-guard"
+        role="status"
+        data-client-related-finance-guard={kind}
+      >
+        <strong>선택한 고객 정보를 열 수 없습니다.</strong>
+        <span>고객 목록에서 다시 선택해 주세요.</span>
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={onReturn}
+        >
+          고객 목록으로 이동
+        </button>
+      </div>
+    );
+  }
+  const basis = kind === "deposit_revenue"
+    ? "입금 매출 기준과 기존 청구 기준"
+    : "수임료·미수금 기준과 기존 송장 잔액 기준";
+  return (
+    <div
+      className="live-data-state client-related-finance-guard"
+      role="status"
+      data-client-related-finance-guard={kind}
+    >
+      <strong>{clientDisplayName(client, 0)} 금액 상세</strong>
+      <span>
+        선택한 고객의 {basis}이 달라 정확하지 않은 금액은 보여 주지 않습니다.
+      </span>
+      <button
+        className="secondary-button"
+        type="button"
+        onClick={onReturn}
+      >
+        고객 정보로 돌아가기
+      </button>
+    </div>
   );
 }
 
@@ -1222,47 +1118,217 @@ function ClientSettingsPanel({ result, patchResult, patchPending, onPatch }) {
   );
 }
 
-function ClientRecordPanel({ client, leadCount, opportunityCount, intakeCount, accountCount, contactCount, mergeProposalCount, executableMergeCount, onClose }) {
+const CLIENT_DETAIL_TAB_LABELS = Object.freeze({
+  overview: "개요",
+  contacts: "연락처",
+  matters: "Matter",
+  inquiries: "문의"
+});
+
+function clientDetailDateLabel(value) {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return "미정";
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  }).format(parsed);
+}
+
+function clientDetailContactType(value) {
+  if (value === "email") return "이메일";
+  if (value === "phone" || value === "mobile") return "전화";
+  return "연락처";
+}
+
+function clientDetailInquirySource(value) {
+  if (value === "outlook_addin" || value === "outlook") return "Outlook";
+  if (value === "manual") return "직접 등록";
+  return "등록 경로 확인 필요";
+}
+
+function clientDetailMatterStatus(value) {
+  if (value === "closed" || value === "archived") return "종료";
+  if (value === "opening") return "개설 중";
+  if (value === "review_required") return "확인 필요";
+  return "진행 중";
+}
+
+function ClientDetailSourceState({ state, noun, hasItems = false }) {
+  if (state === "available") return null;
+  if (state === "partial" && hasItems) {
+    return (
+      <div className="client-detail-source-note" role="status">
+        일부 정보만 불러왔습니다.
+      </div>
+    );
+  }
+  const content = {
+    loading: [`${noun} 정보를 불러오는 중입니다`, ""],
+    denied: ["접근 권한이 없습니다", `${noun} 정보는 표시하지 않습니다.`],
+    review_required: ["확인이 필요합니다", `${noun} 정보를 확인한 뒤 다시 시도해 주세요.`],
+    partial: ["일부 정보만 불러왔습니다", `${noun} 정보를 모두 확인하지 못했습니다.`],
+    error: [`${noun} 정보를 불러오지 못했습니다`, "새로고침하거나 연결 상태를 확인하세요."],
+    empty: [`등록된 ${noun} 정보가 없습니다`, ""]
+  }[state] ?? [`${noun} 정보를 확인할 수 없습니다`, ""];
   return (
-    <aside className="record-side-panel" data-client-record-workspace="right-panel">
+    <div className={`live-data-state client-detail-state client-detail-state-${state}`} role="status">
+      <strong>{content[0]}</strong>
+      {content[1]}
+    </div>
+  );
+}
+
+function ClientRecordPanel({
+  model,
+  onSelectTab,
+  onOpenRelatedSection,
+  onClose
+}) {
+  const client = model.selectedClient;
+  const activeTab = model.route.activeTab;
+  const contacts = model.contacts.items;
+  const matters = model.matters.items;
+  const inquiries = model.inquiries.items;
+  return (
+    <aside
+      className="record-side-panel client-detail-panel"
+      data-client-record-workspace="right-panel"
+      data-client-detail-tab={activeTab}
+    >
       <div className="record-side-header">
         <div>
-          <span className="eyebrow">정보</span>
-          <strong>{client ? clientDisplayName(client, 0) : "선택 없음"}</strong>
+          <span className="eyebrow">고객 정보</span>
+          <strong>{clientDisplayName(client, 0)}</strong>
         </div>
-        <button type="button" className="record-overlay-close" aria-label="Client 정보 닫기" onClick={onClose}>
+        <button type="button" className="record-overlay-close" aria-label="고객 정보 닫기" onClick={onClose}>
           <X size={17} />
         </button>
       </div>
-      <div className="property-grid tight">
-        <Property label="상태" value={client ? clientStatus(client.status) : "대기"} />
-        <Property label="법인 형태" value={client ? clientLegalForm(client.legal_form) : "해당 없음"} />
-        <Property label="대표 당사자" value={client?.primary_entity_id ?? client?.primary_party_id ?? "미지정"} />
-        <Property label="구성원" value={client ? String(clientMembers(client)) : "0"} />
-        <Property label="연결 Matter" value={linkedMatterSummary(client)} />
+      {model.route.relatedRoute && (
+        <div className="client-related-route-note" role="status" data-client-related-route={model.route.requestedTab}>
+          <span>선택한 고객을 기준으로 {model.route.relatedRoute.label}을 확인할 수 있습니다.</span>
+          <button className="secondary-button" type="button" onClick={onOpenRelatedSection}>
+            {model.route.relatedRoute.label} 열기
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+      <div className="client-detail-tabs" role="tablist" aria-label="고객 상세 항목">
+        {CLIENT_DETAIL_TAB_IDS.map((tabId) => (
+          <button
+            key={tabId}
+            id={`client-detail-tab-${tabId}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tabId}
+            aria-controls={`client-detail-panel-${tabId}`}
+            tabIndex={activeTab === tabId ? 0 : -1}
+            data-client-detail-tab-button={tabId}
+            onClick={() => onSelectTab(tabId)}
+          >
+            {CLIENT_DETAIL_TAB_LABELS[tabId]}
+          </button>
+        ))}
       </div>
-      <div className="record-meter-grid">
-        <div>
-          <span>잠재 계정</span>
-          <strong>{leadCount}</strong>
+      {activeTab === "overview" && (
+        <div
+          id="client-detail-panel-overview"
+          className="client-detail-tab-panel"
+          role="tabpanel"
+          aria-labelledby="client-detail-tab-overview"
+          data-client-detail-panel="overview"
+        >
+          <div className="property-grid tight">
+            <Property label="상태" value={clientStatus(client.status)} />
+            <Property label="고객 유형" value={clientLegalForm(client.legal_form)} />
+            <Property
+              label="대표 정보"
+              value={client?.primary_record_present === true ? "등록됨" : "미지정"}
+            />
+            <Property label="구성원" value={String(clientMembers(client))} />
+            <Property label="연결 Matter" value="Matter 탭에서 확인" />
+          </div>
         </div>
-        <div>
-          <span>Pipeline</span>
-          <strong>{opportunityCount}</strong>
+      )}
+      {activeTab === "contacts" && (
+        <div
+          id="client-detail-panel-contacts"
+          className="client-detail-tab-panel"
+          role="tabpanel"
+          aria-labelledby="client-detail-tab-contacts"
+          data-client-detail-panel="contacts"
+        >
+          <ClientDetailSourceState state={model.contacts.state} noun="연락처" hasItems={contacts.length > 0} />
+          {contacts.length > 0 && (
+            <div className="client-detail-record-list" data-client-detail-contact-list="true">
+              {contacts.map((contact, index) => (
+                <div className="client-detail-record" key={contact.contactId ?? `${contact.displayName}-${index}`}>
+                  <div>
+                    <strong>{contact.displayName}</strong>
+                    <span>{clientDetailContactType(contact.contactType)}</span>
+                  </div>
+                  <span>{contact.contactValueIncluded ? contact.contactValue : "보호됨"}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div>
-          <span>상담</span>
-          <strong>{intakeCount}</strong>
+      )}
+      {activeTab === "matters" && (
+        <div
+          id="client-detail-panel-matters"
+          className="client-detail-tab-panel"
+          role="tabpanel"
+          aria-labelledby="client-detail-tab-matters"
+          data-client-detail-panel="matters"
+        >
+          <ClientDetailSourceState state={model.matters.state} noun="Matter" hasItems={matters.length > 0} />
+          {matters.length > 0 && (
+            <div className="client-detail-record-list" data-client-detail-matter-list="true">
+              {matters.map((matter, index) => (
+                <div className="client-detail-record" key={matter.matterId ?? `${matter.displayName}-${index}`}>
+                  <div>
+                    <strong>{matter.displayName}</strong>
+                    <span>{businessLabel(matter.matterCode, "Matter 번호 미등록")}</span>
+                  </div>
+                  <span>{clientDetailMatterStatus(matter.status)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div>
-          <span>계정</span>
-          <strong>{accountCount}</strong>
+      )}
+      {activeTab === "inquiries" && (
+        <div
+          id="client-detail-panel-inquiries"
+          className="client-detail-tab-panel"
+          role="tabpanel"
+          aria-labelledby="client-detail-tab-inquiries"
+          data-client-detail-panel="inquiries"
+        >
+          <ClientDetailSourceState state={model.inquiries.state} noun="문의" hasItems={inquiries.length > 0} />
+          {inquiries.length > 0 && (
+            <div className="client-detail-record-list" data-client-detail-inquiry-list="true">
+              {inquiries.map((inquiry, index) => (
+                <div className="client-detail-record client-detail-inquiry" key={inquiry.inquiryId ?? `${inquiry.displayName}-${index}`}>
+                  <div>
+                    <strong>{inquiry.displayName}</strong>
+                    <span>
+                      {clientDetailInquirySource(inquiry.source)}
+                      {" · "}
+                      {clientDetailDateLabel(inquiry.receivedAt)}
+                    </span>
+                  </div>
+                  <span>{inquiry.visibleStatusLabel}</span>
+                  <small>{businessLabel(inquiry.nextAction, "다음 행동 미정")}</small>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div>
-          <span>담당자</span>
-          <strong>{contactCount}</strong>
-        </div>
-      </div>
+      )}
     </aside>
   );
 }
@@ -1296,7 +1362,7 @@ function RecordActionSummary({
         </div>
         <form className="record-action-edit-form" onSubmit={onFieldUpdate}>
           <label>
-            <span>Client 이름</span>
+            <span>고객 이름</span>
             <input value={editValue} onChange={(event) => onEditValueChange(event.target.value)} />
           </label>
           <button className="secondary-button" type="submit" disabled={pending || !editValue.trim()}>
@@ -1343,13 +1409,13 @@ function RecordActionSummary({
 
 function ClientSelectableList({ clients, selectedClientId, onSelectClient }) {
   return (
-    <div className="client-selectable-list" data-client-selected-record-list="true" role="listbox" aria-label="Client 레코드">
+    <div className="client-selectable-list" data-client-selected-record-list="true" role="listbox" aria-label="고객 목록">
       <div className="client-selectable-header">
-        <span>Client</span>
+        <span>고객</span>
         <span>진행 상태</span>
-        <span>대표 당사자</span>
+        <span>대표 정보</span>
         <span>구성원</span>
-        <span>연결된 Matter</span>
+        <span>관련 Matter</span>
       </div>
       {clients.map((item, index) => {
         const clientId = clientRecordId(item);
@@ -1371,9 +1437,9 @@ function ClientSelectableList({ clients, selectedClientId, onSelectClient }) {
             >
               <strong>{clientDisplayName(item, index)}</strong>
               <span>{clientStatus(item.status)}</span>
-              <span>{item.primary_entity_id || item.primary_party_id ? "대표 당사자" : "미지정"}</span>
+              <span>{item.primary_record_present === true ? "대표 정보 있음" : "미지정"}</span>
               <span>{String(clientMembers(item))}</span>
-              <span>{linkedMatterSummary(item)}</span>
+              <span>상세에서 확인</span>
             </button>
           </div>
         );
@@ -1383,7 +1449,7 @@ function ClientSelectableList({ clients, selectedClientId, onSelectClient }) {
 }
 
 function ClientsTable({ result, selectedClientId, onSelectClient }) {
-  const state = renderLiveState(result, "Client");
+  const state = renderLiveState(result, "고객");
   if (state) return state;
   const items = resultItems(result);
   const reviewCount = items.filter((item) => item.status === "review_required").length;
@@ -1392,7 +1458,7 @@ function ClientsTable({ result, selectedClientId, onSelectClient }) {
       {reviewCount > 0 && (
         <div className="client-review-strip">
           <ShieldCheck size={15} />
-          <span>검토가 필요한 Client가 있습니다.</span>
+          <span>검토가 필요한 고객이 있습니다.</span>
         </div>
       )}
       <ClientSelectableList clients={items} selectedClientId={selectedClientId} onSelectClient={onSelectClient} />
@@ -2075,8 +2141,22 @@ export function ClientIntakePipelineSurface({
   );
 }
 
-export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigate = () => {}, redirectedFrom = null }) {
+export function ClientsSurface({
+  labels,
+  liveCtx = "allow",
+  activeSection = "",
+  refreshSignal = 0,
+  onNavigate = () => {},
+  redirectedFrom = null,
+  requestedClientId = "",
+  requestedClientTab = "",
+  requestedClientRevision = 0
+}) {
   const [clientsResult, setClientsResult] = useState(null);
+  const [
+    clientOperationsDetailResult,
+    setClientOperationsDetailResult
+  ] = useState(null);
   const [accountsResult, setAccountsResult] = useState(null);
   const [contactsResult, setContactsResult] = useState(null);
   const [accountContactsResult, setAccountContactsResult] = useState(null);
@@ -2146,9 +2226,18 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [accountRecordActionPending, setAccountRecordActionPending] = useState(false);
   const [contactRecordActionPending, setContactRecordActionPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
-  const [selectedClientId, setSelectedClientId] = useState(null);
   const refreshSignalRef = useRef(refreshSignal);
   const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-home";
+  const normalizedRequestedClientId = String(
+    requestedClientId ?? ""
+  ).trim();
+  const relatedFinanceKind = normalizedRequestedClientId
+    ? currentSection === "client-sales-history"
+      ? "deposit_revenue"
+      : currentSection === "client-billing"
+        ? "receivables"
+        : null
+    : null;
   const disabledRouteDisposition = redirectedFrom?.view === "clients"
     && ["disabled", "not_found"].includes(redirectedFrom?.disposition)
     ? redirectedFrom.disposition
@@ -2196,28 +2285,10 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
         cancelled = true;
       };
     }
-    Promise.all([
-      fetchMatterClients({
-        ctx: liveCtx,
-        limit: 100,
-        permissionRef: CLIENTS_PERMISSION_REF,
-        auditHintRef: CLIENTS_AUDIT_HINT_REF
-      }),
-      fetchAllMasterDataRecords({
-        ctx: liveCtx,
-        modelType: "MatterClient",
-        limit: 100,
-        permissionRef: CLIENTS_MATTER_LINK_PERMISSION_REF,
-        auditHintRef: CLIENTS_MATTER_LINK_AUDIT_HINT_REF
-      }),
-      fetchMatterRecords({
-        ctx: liveCtx,
-        limit: 100,
-        permissionRef: CLIENTS_MATTER_LINK_PERMISSION_REF,
-        auditHintRef: CLIENTS_MATTER_LINK_AUDIT_HINT_REF
-      })
-    ]).then(([clientGroups, matterClients, matters]) => {
-      if (!cancelled) setClientsResult(mergeClientMatterResults(clientGroups, matterClients, matters));
+    fetchAnalyticsClientDirectory({
+      ctx: liveCtx
+    }).then((result) => {
+      if (!cancelled) setClientsResult(result);
     });
     return () => {
       cancelled = true;
@@ -2323,9 +2394,6 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
       setClientSettingsResult(clientSettings);
       setFinanceInvoicesResult(financeInvoices);
       setFinanceArAgingResult(financeArAging);
-      const firstAccountId = resultItems(accounts)[0]?.account_id;
-      const accountContacts = await fetchCrmAccountContacts({ accountId: firstAccountId, ctx: liveCtx });
-      if (!cancelled) setAccountContactsResult(accountContacts);
     });
     return () => {
       cancelled = true;
@@ -2333,7 +2401,13 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
   }, [liveCtx, refreshToken]);
 
   useEffect(() => {
-    if (currentSection !== "clients-home" && currentSection !== "client-sales-history") {
+    if (
+      (
+        currentSection !== "clients-home"
+        && currentSection !== "client-sales-history"
+      )
+      || relatedFinanceKind === "deposit_revenue"
+    ) {
       setFinanceClientsResult(null);
       return undefined;
     }
@@ -2348,15 +2422,66 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
       if (!cancelled) setFinanceClientsResult(result);
     });
     return () => { cancelled = true; };
-  }, [currentSection, liveCtx, refreshToken]);
+  }, [
+    currentSection,
+    liveCtx,
+    refreshToken,
+    relatedFinanceKind
+  ]);
 
   const clients = useMemo(() => resultItems(clientsResult), [clientsResult]);
-  const selectedClient = selectedClientId === null ? null : clients.find((item) => clientRecordId(item) === selectedClientId) ?? null;
-  const accountCount = resultItems(accountsResult).length;
-  const contactCount = resultItems(contactsResult).length;
-  const mergeProposals = resultItems(mergeProposalsResult);
-  const mergeProposalCount = mergeProposals.length;
-  const executableMergeCount = mergeProposals.filter((proposal) => proposal.executable).length;
+  const activeRequestedClientId = currentSection === "clients-list"
+    ? normalizedRequestedClientId
+    : "";
+  const authorizedRequestedClientId = clients.some((client) => (
+    clientRecordId(client) === activeRequestedClientId
+  ))
+    ? activeRequestedClientId
+    : "";
+
+  useEffect(() => {
+    let cancelled = false;
+    setClientOperationsDetailResult(null);
+    if (!authorizedRequestedClientId) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    fetchAnalyticsClientOperationsDetail({
+      clientId: authorizedRequestedClientId,
+      ctx: liveCtx
+    }).then((result) => {
+      if (!cancelled) setClientOperationsDetailResult(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authorizedRequestedClientId,
+    liveCtx,
+    refreshToken,
+    requestedClientRevision
+  ]);
+
+  const clientDirectoryModel = useMemo(() => buildClientDirectoryModel({
+    clientsResult,
+    operationsResult: clientOperationsDetailResult,
+    requestedRecordId: activeRequestedClientId,
+    requestedTab: requestedClientTab,
+  }), [
+    activeRequestedClientId,
+    clientOperationsDetailResult,
+    clientsResult,
+    requestedClientRevision,
+    requestedClientTab
+  ]);
+  const relatedFinanceClient = relatedFinanceKind
+    ? clients.find((client) => (
+      clientRecordId(client) === normalizedRequestedClientId
+    )) ?? null
+    : null;
+  const selectedClient = clientDirectoryModel.selectedClient;
+  const selectedClientId = clientRecordId(selectedClient);
   const opportunities = resultItems(opportunitiesResult);
   const intakes = resultItems(intakeResult);
   const selectedOpportunity = opportunities[0] ?? null;
@@ -2370,9 +2495,6 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
     (handoffResult?.kind === "data" && handoffResult.item?.intake_request_id ? handoffResult.item : null) ??
     selectedIntake;
   const selectedClientPartyId = selectedClient?.primary_party_id ?? selectedClient?.primary_entity_id ?? selectedAccount?.party_id ?? activeOpportunity?.party_id ?? "party_cmp_g6_client_001";
-  const leadCount = resultItems(leadsResult).length;
-  const opportunityCount = opportunities.length;
-  const intakeCount = intakes.length;
   const clientGuardedState =
     liveCtx === "denied" ||
     liveCtx === "review" ||
@@ -2381,23 +2503,72 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
     clientsResult?.outcome === "review_required";
 
   useEffect(() => {
-    if (selectedClientId !== null && !clients.some((item) => clientRecordId(item) === selectedClientId)) {
-      setSelectedClientId(null);
-    }
-  }, [clients, selectedClientId]);
-
-  useEffect(() => {
     setClientRecordEditValue(selectedClient?.display_name ?? "");
   }, [selectedClientId, selectedClient?.display_name]);
 
   useEffect(() => {
     if (!selectedClient) return undefined;
     const onKeyDown = (event) => {
-      if (event.key === "Escape") setSelectedClientId(null);
+      if (event.key === "Escape") {
+        onNavigate("clients", "clients-list", {
+          recordId: "",
+          tab: ""
+        });
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [selectedClient]);
+  }, [onNavigate, selectedClient]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setAccountContactsResult(null);
+    if (accountsResult === null) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    if (accountsResult.kind !== "data") {
+      setAccountContactsResult(accountsResult);
+      return () => {
+        cancelled = true;
+      };
+    }
+    const accountId = String(
+      selectedAccount?.account_id
+        ?? selectedAccount?.resource_id
+        ?? ""
+    ).trim();
+    if (!accountId) {
+      setAccountContactsResult({
+        kind: "data",
+        outcome: "passed",
+        uiState: "empty",
+        items: [],
+        safeErrorCodes: [],
+        countLeakPrevented: true,
+        productionReadyClaim: false
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    fetchCrmAccountContacts({
+      accountId,
+      ctx: liveCtx
+    }).then((result) => {
+      if (!cancelled) setAccountContactsResult(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    accountsResult,
+    liveCtx,
+    refreshToken,
+    selectedAccount?.account_id,
+    selectedAccount?.resource_id
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2921,22 +3092,61 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
+  function handleClientSelect(clientId) {
+    if (!clientId) return;
+    onNavigate("clients", "clients-list", {
+      recordId: clientId,
+      tab: "overview"
+    });
+  }
+
+  function handleClientDetailTabSelect(tab) {
+    if (!selectedClientId) return;
+    onNavigate("clients", "clients-list", {
+      recordId: selectedClientId,
+      tab
+    });
+  }
+
+  function handleClientDetailClose() {
+    onNavigate("clients", "clients-list", {
+      recordId: "",
+      tab: ""
+    });
+  }
+
+  function handleClientRelatedRouteOpen() {
+    const relatedRoute = clientDirectoryModel.route.relatedRoute;
+    if (!relatedRoute || !selectedClientId) return;
+    onNavigate("clients", relatedRoute.section, {
+      filter: "client",
+      recordId: selectedClientId
+    });
+  }
+
+  function handleClientRelatedFinanceReturn() {
+    onNavigate("clients", "clients-list", {
+      recordId: relatedFinanceClient
+        ? normalizedRequestedClientId
+        : "",
+      tab: relatedFinanceClient ? "overview" : ""
+    });
+  }
+
   const selectedClientOverlay = selectedClient ? (
     <div className="record-overlay-layer" data-record-overlay="client">
-      <button type="button" className="record-overlay-scrim" aria-label="Client 정보 닫기" onClick={() => setSelectedClientId(null)} />
-      <div className="record-overlay-panel" role="dialog" aria-modal="true" aria-label={`${clientDisplayName(selectedClient, 0)} 정보`}>
+      <button type="button" className="record-overlay-scrim" aria-label="고객 정보 닫기" onClick={handleClientDetailClose} />
+      <div className="record-overlay-panel" role="dialog" aria-modal="true" aria-label={`${clientDisplayName(selectedClient, 0)} 고객 정보`}>
         <ClientRecordPanel
-          client={selectedClient}
-          leadCount={leadCount}
-          opportunityCount={opportunityCount}
-          intakeCount={intakeCount}
-          accountCount={accountCount}
-          contactCount={contactCount}
-          mergeProposalCount={mergeProposalCount}
-          executableMergeCount={executableMergeCount}
-          onClose={() => setSelectedClientId(null)}
+          model={clientDirectoryModel}
+          onSelectTab={handleClientDetailTabSelect}
+          onOpenRelatedSection={handleClientRelatedRouteOpen}
+          onClose={handleClientDetailClose}
         />
-        {!clientGuardedState && selectedClientId && (
+        {!clientGuardedState
+          && selectedClientId
+          && clientDirectoryModel.route.activeTab === "overview"
+          && (
           <RecordActionSummary
             fieldsResult={clientRecordActionFieldsResult}
             auditResult={clientRecordActionAuditResult}
@@ -2949,7 +3159,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
             onFieldUpdate={handleClientRecordActionFieldUpdate}
             onOwnerBlocked={handleClientOwnerBlockedAction}
           />
-        )}
+          )}
       </div>
     </div>
   ) : null;
@@ -2990,7 +3200,15 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
         )}
         {currentSection === "clients-list" && (
           <Panel id="clients-list" className="record-list-panel" title="목록" meta="" hideHeader>
-            <ClientsTable result={clientsResult} selectedClientId={selectedClientId} onSelectClient={setSelectedClientId} />
+            {requestedClientId
+              && clientsResult !== null
+              && !clientDirectoryModel.selectedClient
+              && (
+                <div className="client-record-unavailable" role="status">
+                  선택한 고객 정보를 열 수 없습니다. 고객 목록에서 다시 선택해 주세요.
+                </div>
+              )}
+            <ClientsTable result={clientsResult} selectedClientId={selectedClientId} onSelectClient={handleClientSelect} />
           </Panel>
         )}
         {currentSection === "client-new" && (
@@ -3196,15 +3414,33 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
         )}
         {currentSection === "client-billing" && (
           <Panel id="client-billing" className="record-list-panel" title="수임료·미수금" hideHeader>
-            <ClientChargePanel
-              invoicesResult={financeInvoicesResult}
-              arAgingResult={financeArAgingResult}
-            />
+            {relatedFinanceKind === "receivables" ? (
+              <ClientRelatedFinanceGuard
+                client={relatedFinanceClient}
+                kind="receivables"
+                loading={clientsResult === null}
+                onReturn={handleClientRelatedFinanceReturn}
+              />
+            ) : (
+              <ClientChargePanel
+                invoicesResult={financeInvoicesResult}
+                arAgingResult={financeArAgingResult}
+              />
+            )}
           </Panel>
         )}
         {currentSection === "client-sales-history" && (
           <Panel id="client-sales-history" className="record-list-panel" title="입금 매출 내역" meta="" hideHeader>
-            <ClientSalesHistoryPanel result={financeClientsResult} />
+            {relatedFinanceKind === "deposit_revenue" ? (
+              <ClientRelatedFinanceGuard
+                client={relatedFinanceClient}
+                kind="deposit_revenue"
+                loading={clientsResult === null}
+                onReturn={handleClientRelatedFinanceReturn}
+              />
+            ) : (
+              <ClientSalesHistoryPanel result={financeClientsResult} />
+            )}
           </Panel>
         )}
         {currentSection === "client-data" && (

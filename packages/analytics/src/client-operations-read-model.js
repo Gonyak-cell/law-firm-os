@@ -10,16 +10,26 @@ import {
 } from "../../billing/src/fee-commitment-model.js";
 import {
   CRM_INQUIRY_VISIBLE_STATUSES,
+  compareCrmInquirySummaries,
   projectCrmInquiry,
+  summarizeCrmInquiry,
 } from "../../crm/src/inquiry-read-model.js";
 
 const ACTIVE_CLIENT_STATUSES = new Set(["active", "current", "open"]);
 const CLIENT_READ_ACTION = "analytics:client:read";
 const INQUIRY_READ_ACTION = "crm:inquiry:read";
 const CONSULTATION_READ_ACTION = "crm:consultation:read";
+const MATTER_READ_ACTION = "matter:read";
 const BANK_CLASSIFICATION_READ_ACTION =
   "finance:bank_classification:read";
 const CLIENT_OPERATIONS_TIMEZONE = "Asia/Seoul";
+const CLIENT_CONTACT_RELATIONSHIP_TYPES = new Set([
+  "billing_contact",
+  "contact_for",
+  "crm_runtime_contact",
+  "person_to_client_contact",
+  "primary_contact",
+]);
 const CLOSED_ACTIVITY_STATUSES = new Set(["archived", "cancelled"]);
 const ATTENTION_TYPE_PRIORITY = Object.freeze({
   overdue_consultation: 10,
@@ -114,10 +124,24 @@ function safeClientGroup(record) {
       record?.member_party_ids ?? [],
       "ClientGroup.member_party_ids",
     ),
+    member_entity_ids: stableText(
+      record?.member_entity_ids ?? [],
+      "ClientGroup.member_entity_ids",
+    ),
     primary_party_id:
       typeof record?.primary_party_id === "string"
       && record.primary_party_id.trim() !== ""
         ? record.primary_party_id.trim()
+        : null,
+    primary_entity_id:
+      typeof record?.primary_entity_id === "string"
+      && record.primary_entity_id.trim() !== ""
+        ? record.primary_entity_id.trim()
+        : null,
+    legal_form:
+      typeof record?.legal_form === "string"
+      && record.legal_form.trim() !== ""
+        ? record.legal_form.trim()
         : null,
   });
 }
@@ -422,19 +446,28 @@ function crmInquiryProjections({
     source: "crm.Lead",
     tenantId,
   });
-  const leads = listSource(
+  const sourceLeads = listSource(
     repository,
     tenantId,
     "Lead",
     "crm.Lead",
-  ).filter((lead) => (
-    readDecision(permissionContext, {
+  );
+  const permissionOmittedClientReferences = [];
+  const leads = sourceLeads.filter((lead) => {
+    const allowed = readDecision(permissionContext, {
       action: INQUIRY_READ_ACTION,
       resourceType: "crm_inquiry",
       resourceId: lead.lead_id,
       tenantId,
-    }).effect === "allow"
-  ));
+    }).effect === "allow";
+    if (!allowed) {
+      permissionOmittedClientReferences.push(Object.freeze({
+        client_group_id: lead.client_group_id ?? null,
+        party_id: lead.party_id ?? null,
+      }));
+    }
+    return allowed;
+  });
   const leadIds = new Set(leads.map(({ lead_id }) => lead_id));
   const explicitOpportunityIds = new Set(
     leads.map(({ opportunity_id }) => opportunity_id).filter(Boolean),
@@ -484,7 +517,7 @@ function crmInquiryProjections({
   const scopedOpportunityIds = new Set(
     scopedOpportunities.map(({ opportunity_id }) => opportunity_id),
   );
-  const consultations = listSource(
+  const scopedConsultationCandidates = listSource(
     repository,
     tenantId,
     "CRMActivity",
@@ -492,17 +525,33 @@ function crmInquiryProjections({
   ).filter((activity) => (
     scopedLeadIds.has(activity.lead_id)
     || scopedOpportunityIds.has(activity.opportunity_id)
-  )).filter((activity) => (
-    readDecision(permissionContext, {
-      action: CONSULTATION_READ_ACTION,
-      resourceType: "crm_activity",
-      resourceId:
-        activity.crm_activity_id
-        ?? activity.activity_id
-        ?? activity.resource_id,
-      tenantId,
-    }).effect === "allow"
   ));
+  const leadIdByOpportunityId = new Map(
+    scopedOpportunities.map((opportunity) => [
+      opportunity.opportunity_id,
+      opportunity.lead_id,
+    ]),
+  );
+  const permissionOmittedLeadIds = new Set();
+  const consultations = scopedConsultationCandidates.filter(
+    (activity) => {
+      const allowed = readDecision(permissionContext, {
+        action: CONSULTATION_READ_ACTION,
+        resourceType: "crm_activity",
+        resourceId:
+          activity.crm_activity_id
+          ?? activity.activity_id
+          ?? activity.resource_id,
+        tenantId,
+      }).effect === "allow";
+      if (!allowed) {
+        const leadId = activity.lead_id
+          ?? leadIdByOpportunityId.get(activity.opportunity_id);
+        if (leadId) permissionOmittedLeadIds.add(leadId);
+      }
+      return allowed;
+    },
+  );
 
   return Object.freeze({
     leads: Object.freeze(scopedLeads),
@@ -515,6 +564,12 @@ function crmInquiryProjections({
         activities: consultations,
       })
     ))),
+    permission_omitted_client_references: Object.freeze(
+      permissionOmittedClientReferences,
+    ),
+    permission_omitted_lead_ids: Object.freeze(
+      [...permissionOmittedLeadIds],
+    ),
   });
 }
 
@@ -2097,6 +2152,415 @@ export function buildClientOperationsDashboard({
   });
 }
 
+function selectedClientReferenceIds(client) {
+  return new Set([
+    client.client_group_id,
+    client.primary_party_id,
+    client.primary_entity_id,
+    ...client.member_party_ids,
+    ...client.member_entity_ids,
+  ].filter(Boolean));
+}
+
+function clientMemberCount(client) {
+  const parties = new Set([
+    client.primary_party_id,
+    ...client.member_party_ids,
+  ].filter(Boolean));
+  const entities = new Set([
+    client.primary_entity_id,
+    ...client.member_entity_ids,
+  ].filter(Boolean));
+  return Math.max(parties.size, entities.size);
+}
+
+function clientDetailContacts({
+  masterDataRepository,
+  tenantId,
+  client,
+}) {
+  const clientEntityIds = new Set([
+    client.primary_entity_id,
+    ...client.member_entity_ids,
+  ].filter(Boolean));
+  const relationships = listSource(
+    masterDataRepository,
+    tenantId,
+    "Relationship",
+    "master-data.Relationship",
+  ).filter((relationship) => (
+    CLIENT_CONTACT_RELATIONSHIP_TYPES.has(
+      relationship.relationship_type,
+    )
+  ));
+  const relatedEntityIds = new Set(clientEntityIds);
+  for (const relationship of relationships) {
+    const from = relationship.from_entity_id;
+    const to = relationship.to_entity_id;
+    if (clientEntityIds.has(from) && to) relatedEntityIds.add(to);
+    if (clientEntityIds.has(to) && from) relatedEntityIds.add(from);
+  }
+  const people = listSource(
+    masterDataRepository,
+    tenantId,
+    "Person",
+    "master-data.Person",
+  ).filter((person) => (
+    relatedEntityIds.has(person.entity_id)
+    || client.member_party_ids.includes(person.party_id)
+    || person.party_id === client.primary_party_id
+  ));
+  const contactPoints = listSource(
+    masterDataRepository,
+    tenantId,
+    "ContactPoint",
+    "master-data.ContactPoint",
+  );
+  const primaryContactByEntity = new Map();
+  for (const point of contactPoints) {
+    if (
+      !relatedEntityIds.has(point.owner_entity_id)
+      || point.is_primary !== true
+      || primaryContactByEntity.has(point.owner_entity_id)
+    ) {
+      continue;
+    }
+    primaryContactByEntity.set(point.owner_entity_id, point);
+  }
+  return Object.freeze(
+    people
+      .map((person) => {
+        const contactPoint =
+          primaryContactByEntity.get(person.entity_id) ?? null;
+        return Object.freeze({
+          contact_id: person.person_id,
+          display_name:
+            typeof person.display_name === "string"
+              && person.display_name.trim() !== ""
+              ? person.display_name.trim()
+              : "이름 미등록",
+          primary_contact_type:
+            typeof contactPoint?.contact_type === "string"
+              ? contactPoint.contact_type
+              : null,
+          contact_point_value_included: false,
+          contact_value_masked: Boolean(contactPoint?.value),
+          status: person.status ?? "active",
+          production_ready_claim: false,
+        });
+      })
+      .sort((left, right) => (
+        left.display_name.localeCompare(right.display_name, "ko")
+        || left.contact_id.localeCompare(right.contact_id, "en")
+      )),
+  );
+}
+
+function clientDetailMatters({
+  matterRepository,
+  tenantId,
+  permissionContext,
+  client,
+}) {
+  assertReadPermission(permissionContext, {
+    action: MATTER_READ_ACTION,
+    resourceType: "matter",
+    safeErrorCode: "CLIENT_OPERATIONS_MATTER_READ_DENIED",
+    source: "matter.Matter",
+    tenantId,
+  });
+  const references = selectedClientReferenceIds(client);
+  const candidates = listSource(
+    matterRepository,
+    tenantId,
+    "Matter",
+    "matter.Matter",
+  ).filter((matter) => (
+    [
+      matter.client_group_id,
+      matter.client_id,
+      matter.legal_client_party_id,
+      matter.billing_client_party_id,
+    ].filter(Boolean).some((value) => references.has(value))
+  ));
+  let permissionOmitted = false;
+  const items = candidates
+    .filter((matter) => {
+      const allowed = readDecision(permissionContext, {
+        action: MATTER_READ_ACTION,
+        resourceType: "matter",
+        resourceId: matter.matter_id,
+        tenantId,
+      }).effect === "allow";
+      if (!allowed) permissionOmitted = true;
+      return allowed;
+    })
+    .map((matter) => Object.freeze({
+      matter_id: matter.matter_id,
+      matter_code: matter.matter_code ?? matter.matter_number ?? null,
+      display_name:
+        matter.matter_name
+        ?? matter.title
+        ?? matter.matter_code
+        ?? "이름 미등록",
+      status: matter.status ?? null,
+      opened_at: matter.opened_at ?? matter.created_at ?? null,
+      production_ready_claim: false,
+    }))
+    .sort((left, right) => (
+      String(right.opened_at ?? "").localeCompare(
+        String(left.opened_at ?? ""),
+      )
+      || left.display_name.localeCompare(right.display_name, "ko")
+      || left.matter_id.localeCompare(right.matter_id, "en")
+    ));
+  return Object.freeze({
+    items: Object.freeze(items),
+    permission_omitted: permissionOmitted,
+  });
+}
+
+function clientDetailInquiries({
+  crmRepository,
+  tenantId,
+  permissionContext,
+  accessScope,
+  referenceAccess,
+  client,
+}) {
+  const crm = crmInquiryProjections({
+    repository: crmRepository,
+    tenantId,
+    permissionContext,
+    referenceAccess,
+  });
+  const matchesClient = ({ client_group_id, party_id }) => (
+    client_group_id
+      ? client_group_id === client.client_group_id
+      : accessScope.client_group_id_by_party_id[party_id]
+        === client.client_group_id
+  );
+  const selectedProjections = crm.projections.filter(matchesClient);
+  const selectedLeadIds = new Set(
+    selectedProjections.map(({ lead_id }) => lead_id),
+  );
+  const items = selectedProjections
+    .map((projection) => {
+      const summary = summarizeCrmInquiry(projection);
+      return Object.freeze({
+        lead_id: summary.lead_id,
+        display_name: summary.display_name,
+        visible_status: summary.visible_status,
+        visible_status_label: summary.visible_status_label,
+        source: summary.source,
+        received_at: summary.received_at,
+        next_action: summary.next_action,
+        assigned: Boolean(summary.assigned_user_id),
+        production_ready_claim: false,
+      });
+    })
+    .sort(compareCrmInquirySummaries);
+  return Object.freeze({
+    items: Object.freeze(items),
+    permission_omitted: (
+      crm.permission_omitted_client_references.some(matchesClient)
+      || crm.permission_omitted_lead_ids.some(
+        (leadId) => selectedLeadIds.has(leadId),
+      )
+    ),
+  });
+}
+
+function clientDirectoryItems(accessScope) {
+  return Object.freeze(
+    accessScope.permitted_client_records.map((client) => Object.freeze({
+      client_group_id: client.client_group_id,
+      display_name: client.display_name,
+      status: client.status,
+      legal_form: client.legal_form,
+      member_count: clientMemberCount(client),
+      primary_record_present: Boolean(
+        client.primary_party_id ?? client.primary_entity_id,
+      ),
+      production_ready_claim: false,
+    })),
+  );
+}
+
+function clientDetailSource({
+  sourceId,
+  label,
+  permissionSafeErrorCode,
+  read,
+}) {
+  try {
+    const result = read();
+    const items = Array.isArray(result) ? result : result.items;
+    const permissionOmitted = !Array.isArray(result)
+      && result.permission_omitted === true;
+    const status = permissionOmitted
+      ? items.length > 0
+        ? "partial"
+        : "permission_denied"
+      : items.length === 0
+        ? "no_data"
+        : "available";
+    const safeErrorCode = permissionOmitted
+      ? permissionSafeErrorCode
+      : null;
+    return Object.freeze({
+      section: Object.freeze({
+        status,
+        data: status === "permission_denied"
+          ? null
+          : Object.freeze({ items }),
+      }),
+      sourceStatus: Object.freeze({
+        source_id: sourceId,
+        label,
+        status,
+        item_count: permissionOmitted ? null : items.length,
+        safe_error_code: safeErrorCode,
+      }),
+      safeErrorCode,
+    });
+  } catch (error) {
+    const safeErrorCode =
+      typeof error?.safe_error_code === "string"
+        ? error.safe_error_code
+        : "CLIENT_OPERATIONS_SOURCE_UNAVAILABLE";
+    const status = safeErrorCode.endsWith("_READ_DENIED")
+      ? "permission_denied"
+      : "error";
+    return Object.freeze({
+      section: Object.freeze({
+        status,
+        data: null,
+      }),
+      sourceStatus: Object.freeze({
+        source_id: sourceId,
+        label,
+        status,
+        item_count: null,
+        safe_error_code: safeErrorCode,
+      }),
+      safeErrorCode,
+    });
+  }
+}
+
+export function buildClientOperationsDetail({
+  access_scope,
+  client_reference_access,
+  masterDataRepository,
+  crmRepository,
+  matterRepository,
+  tenant_id,
+  permission_context,
+  client_group_id,
+  generated_at,
+} = {}) {
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  const clientGroupId = requiredText(
+    client_group_id,
+    "client_group_id",
+  );
+  if (access_scope?.tenant_id !== tenantId) {
+    throw new TypeError(
+      "Client operations access scope does not match tenant_id",
+    );
+  }
+  if (typeof client_reference_access !== "function") {
+    throw new TypeError(
+      "Client operations require a precomputed client reference guard",
+    );
+  }
+  const client = access_scope.permitted_client_records.find(
+    (record) => record.client_group_id === clientGroupId,
+  );
+  if (!client) return null;
+  const contacts = clientDetailSource({
+    sourceId: "master_data_contacts",
+    label: "연락처",
+    read: () => clientDetailContacts({
+      masterDataRepository,
+      tenantId,
+      client,
+    }),
+  });
+  const matters = clientDetailSource({
+    sourceId: "matters",
+    label: "Matter",
+    permissionSafeErrorCode:
+      "CLIENT_OPERATIONS_MATTER_OBJECTS_OMITTED",
+    read: () => clientDetailMatters({
+      matterRepository,
+      tenantId,
+      permissionContext: permission_context,
+      client,
+    }),
+  });
+  const inquiries = clientDetailSource({
+    sourceId: "crm_inquiries",
+    label: "문의",
+    permissionSafeErrorCode:
+      "CLIENT_OPERATIONS_INQUIRY_OBJECTS_OMITTED",
+    read: () => clientDetailInquiries({
+      crmRepository,
+      tenantId,
+      permissionContext: permission_context,
+      accessScope: access_scope,
+      referenceAccess: client_reference_access,
+      client,
+    }),
+  });
+  const sources = [contacts, matters, inquiries];
+  const partial = sources.some(({ section }) => (
+    ["partial", "permission_denied", "error"].includes(
+      section.status,
+    )
+  ));
+  const hasData = sources.some(({ section }) => (
+    ["available", "partial"].includes(section.status)
+  ));
+  return Object.freeze({
+    generated_at: canonicalAsOf(generated_at).toISOString(),
+    timezone: CLIENT_OPERATIONS_TIMEZONE,
+    outcome: partial ? "partial" : hasData ? "passed" : "empty",
+    ui_state: partial ? "partial" : hasData ? null : "no_data",
+    client: Object.freeze({
+      client_group_id: client.client_group_id,
+      display_name: client.display_name,
+      status: client.status,
+      legal_form: client.legal_form,
+      member_count: clientMemberCount(client),
+      primary_record_present: Boolean(
+        client.primary_party_id ?? client.primary_entity_id,
+      ),
+      production_ready_claim: false,
+    }),
+    sections: Object.freeze({
+      contacts: contacts.section,
+      matters: matters.section,
+      inquiries: inquiries.section,
+    }),
+    source_statuses: Object.freeze(
+      sources.map(({ sourceStatus }) => sourceStatus),
+    ),
+    safe_error_codes: Object.freeze(
+      sources
+        .map(({ safeErrorCode }) => safeErrorCode)
+        .filter(Boolean),
+    ),
+    permission_prefilter_applied: true,
+    count_leak_prevented: true,
+    unauthorized_count_included: false,
+    raw_contact_values_included: false,
+    raw_source_payload_included: false,
+    production_ready_claim: false,
+  });
+}
+
 function resolveClientOperationsAccess({
   masterDataRepository,
   tenant_id,
@@ -2283,6 +2747,60 @@ export function createClientOperationsReadModel({
         masterDataRepository,
         tenant_id,
         permission_context,
+      });
+    },
+    readDirectory({ tenant_id, permission_context } = {}) {
+      const resolved = resolveClientOperationsAccess({
+        masterDataRepository,
+        tenant_id,
+        permission_context,
+      });
+      const accessScope = resolved.access_scope;
+      return Object.freeze({
+        access_scope: accessScope,
+        items: clientDirectoryItems(accessScope),
+        downstream_sources_read: false,
+      });
+    },
+    readClientDetail({
+      tenant_id,
+      permission_context,
+      client_group_id,
+    } = {}) {
+      const resolved = resolveClientOperationsAccess({
+        masterDataRepository,
+        tenant_id,
+        permission_context,
+      });
+      const accessScope = resolved.access_scope;
+      const clientGroupId = requiredText(
+        client_group_id,
+        "client_group_id",
+      );
+      if (
+        !accessScope.allowed_client_group_ids.includes(clientGroupId)
+      ) {
+        return Object.freeze({
+          access_scope: accessScope,
+          item: null,
+          downstream_sources_read: false,
+        });
+      }
+      return Object.freeze({
+        access_scope: accessScope,
+        item: buildClientOperationsDetail({
+          access_scope: accessScope,
+          client_reference_access:
+            resolved.client_reference_access,
+          masterDataRepository,
+          crmRepository,
+          matterRepository,
+          tenant_id,
+          permission_context,
+          client_group_id: clientGroupId,
+          generated_at: clock(),
+        }),
+        downstream_sources_read: true,
       });
     },
     read({
