@@ -13,6 +13,9 @@ import {
 } from "../../../packages/analytics/src/metrics-service.js";
 import { createAnalyticsExport } from "../../../packages/analytics/src/export-control-service.js";
 import { buildCashflowReadModel, buildFinanceReadModels } from "../../../packages/analytics/src/finance-read-model.js";
+import {
+  createClientOperationsReadModel,
+} from "../../../packages/analytics/src/client-operations-read-model.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
 export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
@@ -93,9 +96,23 @@ export function createAnalyticsRuntimeContext({
   repository = createAnalyticsRepository({ seedRecords: ANALYTICS_RUNTIME_SEED }),
   financeRepository = null,
   masterDataRepository = null,
+  crmRepository = null,
   matterRepository = null,
 } = {}) {
-  return Object.freeze({ repository, financeRepository, masterDataRepository, matterRepository, seed_ref: "cmp-g8-analytics-synthetic" });
+  return Object.freeze({
+    repository,
+    financeRepository,
+    masterDataRepository,
+    crmRepository,
+    matterRepository,
+    clientOperationsReadModel: createClientOperationsReadModel({
+      masterDataRepository,
+      financeRepository,
+      crmRepository,
+      matterRepository,
+    }),
+    seed_ref: "cmp-g8-analytics-synthetic",
+  });
 }
 
 const DEFAULT_RUNTIME = createAnalyticsRuntimeContext();

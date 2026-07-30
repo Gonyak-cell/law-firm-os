@@ -369,7 +369,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   assert.equal(storedLead.payload.version, 4);
 });
 
-test("PostgreSQL API authority persists accepted inquiry Intake handoff references without opening a Matter", async (t) => {
+test("PostgreSQL API authority persists accepted inquiry handoff and resolves the Client access scope", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
@@ -660,6 +660,51 @@ test("PostgreSQL API authority persists accepted inquiry Intake handoff referenc
     domain_id: "matter",
     record_type: "Matter",
   })).length, 0);
+
+  const clientAccessScope = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/analytics/clients/dashboard",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return runtimes.analyticsRuntime.clientOperationsReadModel.read({
+        tenant_id: TENANT_A,
+        permission_context: context,
+        project({
+          financeRepository,
+          crmRepository,
+          matterRepository,
+        }) {
+          return {
+            finance_repository_shared:
+              financeRepository
+                === runtimes.financeRuntime.repository,
+            crm_repository_shared:
+              crmRepository
+                === runtimes.crmIntakeRuntime.crmRepository,
+            matter_repository_shared:
+              matterRepository
+                === runtimes.matterRuntime.repository,
+          };
+        },
+      });
+    },
+  });
+  assert.deepEqual(
+    clientAccessScope.access_scope.allowed_client_group_ids,
+    [created.body.processing.client_group_id],
+  );
+  assert.equal(
+    clientAccessScope.access_scope.permission_prefilter_applied,
+    true,
+  );
+  assert.deepEqual(clientAccessScope.item, {
+    finance_repository_shared: true,
+    crm_repository_shared: true,
+    matter_repository_shared: true,
+  });
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {

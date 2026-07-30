@@ -223,6 +223,7 @@ function createRequestRuntimes({
     repository: repositories.analyticsRepository,
     financeRepository: repositories.financeRepository,
     masterDataRepository: repositories.masterDataRepository,
+    crmRepository: repositories.crmRepository,
     matterRepository: repositories.matterRepository,
   });
   const aiRuntime = createAiRuntimeContext({ repository: repositories.aiRepository });

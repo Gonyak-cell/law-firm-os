@@ -479,6 +479,7 @@ export function createDefaultAnalyticsRuntime({
   storePath = process.env.LAWOS_ANALYTICS_STORE_PATH,
   financeRepository = null,
   masterDataRepository = null,
+  crmRepository = null,
   matterRepository = null,
 } = {}) {
   const analyticsRepository =
@@ -487,7 +488,13 @@ export function createDefaultAnalyticsRuntime({
       filePath: storePath || createEphemeralAnalyticsStorePath(),
       seedRecords: ANALYTICS_RUNTIME_SEED,
     });
-  return createAnalyticsRuntimeContext({ repository: analyticsRepository, financeRepository, masterDataRepository, matterRepository });
+  return createAnalyticsRuntimeContext({
+    repository: analyticsRepository,
+    financeRepository,
+    masterDataRepository,
+    crmRepository,
+    matterRepository,
+  });
 }
 
 export function createDefaultAiRuntime({
@@ -1752,7 +1759,12 @@ export function createApiServer({
     matterRepository: matterRuntime?.repository,
   }),
   financeRuntimeUnavailable = null,
-  analyticsRuntime = createDefaultAnalyticsRuntime({ financeRepository: financeRuntime?.repository }),
+  analyticsRuntime = createDefaultAnalyticsRuntime({
+    financeRepository: financeRuntime?.repository,
+    masterDataRepository: masterDataRuntime?.repository,
+    crmRepository: crmIntakeRuntime?.crmRepository,
+    matterRepository: matterRuntime?.repository,
+  }),
   aiRuntime = createDefaultAiRuntime(),
   portalRuntime = createDefaultPortalRuntime(),
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
@@ -2239,6 +2251,7 @@ export async function startApiServer({
       storePath: analyticsStorePath ?? resolvedStorePaths.analyticsStorePath,
       financeRepository: analyticsFinanceRepository ?? financeRuntimeContext?.repository ?? null,
       masterDataRepository: masterRuntime?.repository ?? null,
+      crmRepository: crmIntakeRuntime?.crmRepository ?? null,
       matterRepository: matterRuntimeContext?.repository ?? null,
     });
   const aiRuntimeContext =
