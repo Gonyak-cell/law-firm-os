@@ -201,6 +201,7 @@ function createRequestRuntimes({
     crmRepository: repositories.crmRepository,
     intakeRepository: repositories.intakeRepository,
     masterDataRepository: repositories.masterDataRepository,
+    emailDmsRepository: repositories.emailDmsRepository,
     matterRepository: repositories.matterRepository,
     dmsRuntime,
   });

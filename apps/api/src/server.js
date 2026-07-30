@@ -412,6 +412,7 @@ export function createDefaultCrmIntakeRuntime({
   crmRepository,
   intakeRepository,
   crmMasterDataRepository,
+  emailDmsRepository,
   matterRepository,
   dmsRuntime,
   crmStorePath = process.env.LAWOS_CRM_STORE_PATH,
@@ -440,6 +441,7 @@ export function createDefaultCrmIntakeRuntime({
     crmRepository: crmRepo,
     intakeRepository: intakeRepo,
     masterDataRepository: masterDataRepo,
+    emailDmsRepository,
     matterRepository,
     dmsRuntime,
   });
@@ -1730,7 +1732,10 @@ export function createApiServer({
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
-  crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
+  crmIntakeRuntime = createDefaultCrmIntakeRuntime({
+    dmsRuntime,
+    emailDmsRepository: emailDmsRuntime?.repository,
+  }),
   financeRuntime = createDefaultFinanceRuntime({
     masterDataRepository: masterDataRuntime?.repository,
     crmRepository: crmIntakeRuntime?.crmRepository,
@@ -1762,7 +1767,21 @@ export function createApiServer({
   return http.createServer(async (req, res) => {
     try {
       const dispatchWithRuntimes = async (targetResponse, requestRuntimes = {}) => {
-        const resolvedCrmIntakeRuntime = requestRuntimes.crmIntakeRuntime ?? crmIntakeRuntime;
+        const resolvedEmailDmsRuntime =
+          requestRuntimes.emailDmsRuntime ?? emailDmsRuntime;
+        const baseCrmIntakeRuntime =
+          requestRuntimes.crmIntakeRuntime ?? crmIntakeRuntime;
+        const resolvedCrmIntakeRuntime =
+          baseCrmIntakeRuntime?.emailDmsRepository
+            === resolvedEmailDmsRuntime?.repository
+            ? baseCrmIntakeRuntime
+            : Object.freeze({
+                ...baseCrmIntakeRuntime,
+                emailDmsRepository:
+                  resolvedEmailDmsRuntime?.repository
+                  ?? baseCrmIntakeRuntime?.emailDmsRepository
+                  ?? null,
+              });
         const baseMatterRuntime = requestRuntimes.matterRuntime ?? matterRuntime;
         const matterRuntimeWithClearanceLedger =
           baseMatterRuntime?.clearanceRepository || !resolvedCrmIntakeRuntime?.intakeRepository
@@ -1774,8 +1793,7 @@ export function createApiServer({
           masterDataRuntime: requestRuntimes.masterDataRuntime ?? masterDataRuntime,
           matterRuntime: matterRuntimeWithClearanceLedger,
           dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
-          emailDmsRuntime:
-            requestRuntimes.emailDmsRuntime ?? emailDmsRuntime,
+          emailDmsRuntime: resolvedEmailDmsRuntime,
           crmIntakeRuntime: resolvedCrmIntakeRuntime,
           financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
           financeRuntimeUnavailable,
@@ -2165,6 +2183,7 @@ export async function startApiServer({
       crmMasterDataStorePath: crmMasterDataStorePath ?? resolvedStorePaths.crmMasterDataStorePath,
       matterRepository: resolvedMatterRepository,
       dmsRuntime: dmsRuntimeContext,
+      emailDmsRepository: emailDmsRuntimeContext.repository,
     });
   const matterRuntimeContext =
     matterRuntime ??

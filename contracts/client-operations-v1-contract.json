@@ -146,13 +146,21 @@
       "audit_event"
     ],
     "visible_status_projection": {
-      "새 문의": "inquiry_status=new",
-      "확인 중": "inquiry_status=reviewing and no incomplete consultation and no opportunity",
-      "상담 예정": "inquiry_status=reviewing and incomplete consultation exists",
-      "수임 검토 중": "opportunity exists and engagement_decision=pending",
+      "새 문의": "inquiry_status=new and no incomplete consultation and no opportunity",
+      "확인 중": "open inquiry and no incomplete consultation and no opportunity",
+      "상담 예정": "open inquiry and incomplete consultation exists",
+      "수임 검토 중": "opportunity exists and engagement_decision is pending or not recorded",
       "수임 확정": "engagement_decision=accepted",
-      "수임하지 않음": "engagement_decision=declined or opportunity_stage=closed_lost"
+      "수임하지 않음": "engagement_decision=declined or opportunity_stage=closed_lost or inquiry_status=closed"
     },
+    "visible_status_precedence": [
+      "수임 확정",
+      "수임하지 않음",
+      "수임 검토 중",
+      "상담 예정",
+      "새 문의",
+      "확인 중"
+    ],
     "accepted_decision_is_signed_engagement": false,
     "accepted_decision_creates_matter": false,
     "matter_opening_requires_existing_intake_conflict_clearance": true

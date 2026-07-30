@@ -4,6 +4,12 @@ import {
   CRM_LEAD_INQUIRY_ERROR_CODES,
   transitionLeadInquiryStatus,
 } from "../../../packages/crm/src/lead-inquiry-service.js";
+import {
+  compareCrmInquirySummaries,
+  normalizeCrmInquiryVisibleStatus,
+  projectCrmInquiry,
+  summarizeCrmInquiry,
+} from "../../../packages/crm/src/inquiry-read-model.js";
 import { createOpportunity } from "../../../packages/crm/src/opportunity-service.js";
 import { handoffOpportunityToIntake } from "../../../packages/crm/src/intake-handoff-service.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
@@ -36,6 +42,8 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "GET /api/crm/leads",
     "POST /api/crm/leads",
+    "GET /api/crm/inquiries",
+    "GET /api/crm/inquiries/:id",
     "POST /api/crm/inquiries/:id/transitions",
     "GET /api/crm/opportunities",
     "POST /api/crm/opportunities",
@@ -298,6 +306,7 @@ export function createCrmIntakeRuntimeContext({
   crmRepository = createCrmRuntimeRepository({ seedRecords: CRM_RUNTIME_SEED }),
   intakeRepository = createIntakeRuntimeRepository({ seedRecords: INTAKE_RUNTIME_SEED }),
   masterDataRepository = createMasterDataRepository({ seedRecords: CRM_MASTER_DATA_SEED }),
+  emailDmsRepository = null,
   matterRepository = null,
   dmsRuntime = null,
 } = {}) {
@@ -306,6 +315,7 @@ export function createCrmIntakeRuntimeContext({
     crmRepository,
     intakeRepository,
     masterDataRepository,
+    emailDmsRepository,
     matterRepository,
     dmsRuntime,
     seed_ref: "cmp-g6-crm-intake-synthetic",
@@ -378,15 +388,26 @@ function gateDecisionResponse(decision, requestId, auditHintRef) {
   });
 }
 
+function permissionContextForResource(context, resourceId = null) {
+  return {
+    ...context,
+    object_acl: (context?.object_acl ?? []).filter((entry) => (
+      entry.resource_id === undefined
+      || (resourceId !== null && entry.resource_id === resourceId)
+    )),
+  };
+}
+
 function routeGate({ context, query, requestId, policy }) {
   const invalid = validateCommon(query, requestId);
   if (invalid) return invalid;
+  const resourceId = query.resource_id ?? null;
   const decision = evaluateRouteDecision({
-    context,
+    context: permissionContextForResource(context, resourceId),
     resource: {
       tenant_id: query.tenant_id,
       resource_type: policy.resource_type,
-      resource_id: query.resource_id ?? null,
+      resource_id: resourceId,
     },
     action: policy.action,
   });
@@ -1079,6 +1100,482 @@ function normalizeProposalPatch(updates = {}) {
     patch.vault_document_ref = vaultDocumentRef;
   }
   return Object.keys(patch).length > 0 ? patch : null;
+}
+
+const CRM_INQUIRY_LIST_DEFAULT_LIMIT = 50;
+const CRM_INQUIRY_LIST_MAX_LIMIT = 100;
+
+function supplementalReadDecision({
+  context,
+  tenantId,
+  resourceType,
+  action,
+}) {
+  return evaluateRouteDecision({
+    context: permissionContextForResource(context),
+    resource: {
+      tenant_id: tenantId,
+      resource_type: resourceType,
+      resource_id: null,
+    },
+    action,
+  });
+}
+
+function normalizeInquiryListOptions(query, requestId) {
+  const rawLimit = query.limit;
+  const limit = rawLimit == null || rawLimit === ""
+    ? CRM_INQUIRY_LIST_DEFAULT_LIMIT
+    : Number(rawLimit);
+  if (
+    !Number.isSafeInteger(limit)
+    || limit < 1
+    || limit > CRM_INQUIRY_LIST_MAX_LIMIT
+  ) {
+    return {
+      error: errorResponse(
+        400,
+        requestId,
+        [CRM_INTAKE_API_ERROR_CODES.validation_error],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "blocked",
+        },
+      ),
+    };
+  }
+  const rawVisibleStatus = String(query.visible_status ?? "").trim();
+  const visibleStatus = rawVisibleStatus
+    ? normalizeCrmInquiryVisibleStatus(rawVisibleStatus)
+    : null;
+  if (rawVisibleStatus && !visibleStatus) {
+    return {
+      error: errorResponse(
+        400,
+        requestId,
+        [CRM_INTAKE_API_ERROR_CODES.validation_error],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "blocked",
+        },
+      ),
+    };
+  }
+  const source = String(query.source ?? "").trim();
+  if (source && !["manual", "outlook_addin"].includes(source)) {
+    return {
+      error: errorResponse(
+        400,
+        requestId,
+        [CRM_INTAKE_API_ERROR_CODES.validation_error],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "blocked",
+        },
+      ),
+    };
+  }
+  const q = String(query.q ?? "").normalize("NFKC").trim().toLocaleLowerCase("ko-KR");
+  if (q.length > 120) {
+    return {
+      error: errorResponse(
+        400,
+        requestId,
+        [CRM_INTAKE_API_ERROR_CODES.validation_error],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "blocked",
+        },
+      ),
+    };
+  }
+  return {
+    limit,
+    visibleStatus,
+    source: source || null,
+    assignedUserId: String(query.assigned_user_id ?? "").trim() || null,
+    q,
+  };
+}
+
+function inquiryOpportunityRecords(runtime, tenantId, leads) {
+  const leadIds = new Set(leads.map(({ lead_id }) => lead_id));
+  const explicitOpportunityIds = new Set(
+    leads.map(({ opportunity_id }) => opportunity_id).filter(Boolean),
+  );
+  return runtime.crmRepository
+    .list({ tenant_id: tenantId, model_type: "Opportunity" })
+    .filter((opportunity) => (
+      leadIds.has(opportunity.lead_id)
+      || explicitOpportunityIds.has(opportunity.opportunity_id)
+    ));
+}
+
+function inquiryConsultationRecords({
+  runtime,
+  tenantId,
+  leads,
+  opportunities,
+  context,
+}) {
+  const permission = supplementalReadDecision({
+    context,
+    tenantId,
+    resourceType: "crm_activity",
+    action: "crm:consultation:read",
+  });
+  if (permission.effect !== "allow") {
+    return Object.freeze({
+      access: "denied",
+      source_status: "permission_denied",
+      items: Object.freeze([]),
+    });
+  }
+  const leadIds = new Set(leads.map(({ lead_id }) => lead_id));
+  const opportunityIds = new Set(
+    opportunities.map(({ opportunity_id }) => opportunity_id),
+  );
+  const linked = runtime.crmRepository
+    .list({ tenant_id: tenantId, model_type: "CRMActivity" })
+    .filter((activity) => (
+      leadIds.has(activity.lead_id)
+      || opportunityIds.has(activity.opportunity_id)
+    ));
+  const { allowed, omittedCount } = trimItemsByPermission({
+    context: {
+      ...context,
+      object_acl: context?.object_acl ?? [],
+    },
+    items: linked,
+    action: "crm:consultation:read",
+    resourceType: "crm_activity",
+  });
+  return Object.freeze({
+    access: "allowed",
+    source_status: omittedCount > 0 ? "partial" : "complete",
+    items: Object.freeze(allowed),
+  });
+}
+
+function inquiryProjectionSet({ runtime, tenantId, leads, context }) {
+  const opportunities = inquiryOpportunityRecords(runtime, tenantId, leads);
+  const consultations = inquiryConsultationRecords({
+    runtime,
+    tenantId,
+    leads,
+    opportunities,
+    context,
+  });
+  return Object.freeze({
+    consultations,
+    projections: Object.freeze(leads.map((lead) => projectCrmInquiry({
+      lead,
+      opportunities,
+      activities: consultations.items,
+    }))),
+  });
+}
+
+function inquirySourceStatus(consultations) {
+  return Object.freeze({
+    crm_leads: "complete",
+    crm_opportunities: "complete",
+    crm_consultations: consultations.source_status,
+  });
+}
+
+function inquiryDataStatus(consultations) {
+  return consultations.source_status === "complete" ? "complete" : "partial";
+}
+
+function safeInquiryEvidenceSummary(evidence) {
+  const evidenceId = evidence.inquiry_email_evidence_id;
+  const contentPath =
+    `/api/outlook/inquiries/evidence/${encodeURIComponent(evidenceId)}/content`;
+  return Object.freeze({
+    inquiry_email_evidence_id: evidenceId,
+    received_at: evidence.received_at,
+    subject: evidence.subject ?? "",
+    sender_display_name: evidence.sender?.display_name ?? null,
+    capture_status: evidence.capture_status,
+    display_content_path:
+      evidence.display_file_object_id
+        ? `${contentPath}?kind=display`
+        : null,
+    original_content_path:
+      evidence.mime_file_object_id
+        ? `${contentPath}?kind=original`
+        : null,
+    raw_content_included: false,
+    mailbox_address_included: false,
+    provider_message_identifiers_included: false,
+    storage_object_identifiers_included: false,
+    production_ready_claim: false,
+  });
+}
+
+function inquiryEvidenceRead({ runtime, tenantId, leadId, context }) {
+  if (typeof runtime.emailDmsRepository?.list !== "function") {
+    return Object.freeze({
+      access: "unavailable",
+      source_status: "unavailable",
+      items: Object.freeze([]),
+      page_info: Object.freeze({
+        returned_count: null,
+        omitted_item_count: null,
+      }),
+      count_leak_prevented: true,
+    });
+  }
+  const permission = supplementalReadDecision({
+    context,
+    tenantId,
+    resourceType: "inquiry_email_evidence",
+    action: "email_dms:inquiry_evidence:read",
+  });
+  if (permission.effect !== "allow") {
+    return Object.freeze({
+      access: "denied",
+      source_status: "permission_denied",
+      items: Object.freeze([]),
+      page_info: Object.freeze({
+        returned_count: null,
+        omitted_item_count: null,
+      }),
+      count_leak_prevented: true,
+    });
+  }
+  let evidence;
+  try {
+    evidence = runtime.emailDmsRepository.list({
+      tenant_id: tenantId,
+      model_type: "InquiryEmailEvidence",
+      lead_id: leadId,
+    });
+  } catch {
+    return Object.freeze({
+      access: "unavailable",
+      source_status: "error",
+      items: Object.freeze([]),
+      page_info: Object.freeze({
+        returned_count: null,
+        omitted_item_count: null,
+      }),
+      count_leak_prevented: true,
+    });
+  }
+  const { allowed, omittedCount } = trimItemsByPermission({
+    context: {
+      ...context,
+      object_acl: context?.object_acl ?? [],
+    },
+    items: evidence,
+    action: "email_dms:inquiry_evidence:read",
+    resourceType: "inquiry_email_evidence",
+  });
+  const items = Object.freeze(
+    allowed
+      .map(safeInquiryEvidenceSummary)
+      .sort((left, right) => (
+        String(right.received_at ?? "").localeCompare(
+          String(left.received_at ?? ""),
+        )
+        || left.inquiry_email_evidence_id.localeCompare(
+          right.inquiry_email_evidence_id,
+        )
+      )),
+  );
+  return Object.freeze({
+    access: "allowed",
+    source_status: omittedCount > 0 ? "partial" : "complete",
+    items,
+    page_info: Object.freeze({
+      returned_count: items.length,
+      omitted_item_count: null,
+    }),
+    count_leak_prevented: true,
+  });
+}
+
+function inquiryMatchesListOptions(projection, options) {
+  if (
+    options.visibleStatus
+    && projection.visible_status !== options.visibleStatus.code
+  ) {
+    return false;
+  }
+  if (options.source && projection.source !== options.source) return false;
+  if (
+    options.assignedUserId
+    && projection.assigned_user_id !== options.assignedUserId
+  ) {
+    return false;
+  }
+  if (!options.q) return true;
+  return [
+    projection.display_name,
+    projection.next_action,
+  ].some((value) => (
+    String(value ?? "")
+      .normalize("NFKC")
+      .toLocaleLowerCase("ko-KR")
+      .includes(options.q)
+  ));
+}
+
+export function handleCrmInquiryList({
+  query,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  const options = normalizeInquiryListOptions(query, requestId);
+  if (options.error) return options.error;
+  const rawLeads = runtime.crmRepository.list({
+    tenant_id: query.tenant_id,
+    model_type: "Lead",
+  });
+  const { allowed: leads } = trimItemsByPermission({
+    context: {
+      ...context,
+      object_acl: context?.object_acl ?? [],
+    },
+    items: rawLeads,
+    action: policy.action,
+    resourceType: policy.resource_type,
+  });
+  const projectionSet = inquiryProjectionSet({
+    runtime,
+    tenantId: query.tenant_id,
+    leads,
+    context,
+  });
+  const filtered = projectionSet.projections
+    .filter((projection) => inquiryMatchesListOptions(projection, options))
+    .map(summarizeCrmInquiry)
+    .sort(compareCrmInquirySummaries);
+  const items = filtered.slice(0, options.limit);
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      data_status: inquiryDataStatus(projectionSet.consultations),
+      generated_at: new Date().toISOString(),
+      timezone: "Asia/Seoul",
+      items,
+      page_info: {
+        returned_count: items.length,
+        omitted_item_count: null,
+        limit: options.limit,
+        has_more: filtered.length > options.limit,
+      },
+      source_status: inquirySourceStatus(projectionSet.consultations),
+      permission_filter_applied: true,
+      count_leak_prevented: true,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: items.length === 0 ? "empty" : null,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleCrmInquiryDetail({
+  inquiryId,
+  query,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const scopedQuery = { ...query, resource_id: inquiryId };
+  const gated = routeGate({
+    context,
+    query: scopedQuery,
+    requestId,
+    policy,
+  });
+  if (gated) return gated;
+  const lead = runtime.crmRepository.get({
+    tenant_id: query.tenant_id,
+    model_type: "Lead",
+    lead_id: inquiryId,
+  });
+  if (!lead) {
+    return errorResponse(
+      404,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.inquiry_not_found],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "empty",
+      },
+    );
+  }
+  const { allowed: leads } = trimItemsByPermission({
+    context: {
+      ...context,
+      object_acl: context?.object_acl ?? [],
+    },
+    items: [lead],
+    action: policy.action,
+    resourceType: policy.resource_type,
+  });
+  if (leads.length === 0) {
+    return errorResponse(
+      403,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.unauthorized_omission],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "denied",
+      },
+    );
+  }
+  const projectionSet = inquiryProjectionSet({
+    runtime,
+    tenantId: query.tenant_id,
+    leads,
+    context,
+  });
+  const evidence = inquiryEvidenceRead({
+    runtime,
+    tenantId: query.tenant_id,
+    leadId: inquiryId,
+    context,
+  });
+  const sourceStatus = {
+    ...inquirySourceStatus(projectionSet.consultations),
+    email_evidence: evidence.source_status,
+  };
+  const item = Object.freeze({
+    ...projectionSet.projections[0],
+    consultations_access: projectionSet.consultations.access,
+    evidence,
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      data_status: Object.values(sourceStatus).every(
+        (status) => status === "complete",
+      ) ? "complete" : "partial",
+      generated_at: new Date().toISOString(),
+      timezone: "Asia/Seoul",
+      item,
+      source_status: Object.freeze(sourceStatus),
+      permission_filter_applied: true,
+      count_leak_prevented: true,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      production_ready_claim: false,
+    },
+  };
 }
 
 export function handleCrmLeadList({ query, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
@@ -2894,6 +3391,25 @@ export async function handleCrmIntakeApiRequest({
   if (!policy) return errorResponse(404, requestId, [CRM_INTAKE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
   if (pathname === "/api/crm/leads" && method === "GET") return handleCrmLeadList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/crm/leads" && method === "POST") return handleCrmLeadCreate({ body, context, requestId, runtime, policy });
+  if (pathname === "/api/crm/inquiries" && method === "GET") {
+    return handleCrmInquiryList({
+      query,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
+  if (policy.action === "crm:inquiry:read" && policy.params?.[0] && method === "GET") {
+    return handleCrmInquiryDetail({
+      inquiryId: decodeURIComponent(policy.params[0]),
+      query,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
   if (policy.action === "crm:inquiry:update" && policy.params?.[0] && method === "POST") {
     return handleCrmInquiryTransition({
       inquiryId: decodeURIComponent(policy.params[0]),

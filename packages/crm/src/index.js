@@ -8,6 +8,7 @@ export * from "./central-ledger.js";
 export * from "./audit.js";
 export * from "./lead-service.js";
 export * from "./lead-inquiry-service.js";
+export * from "./inquiry-read-model.js";
 export * from "./opportunity-service.js";
 export * from "./activity-service.js";
 export * from "./proposal-service.js";

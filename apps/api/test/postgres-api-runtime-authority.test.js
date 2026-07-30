@@ -115,6 +115,9 @@ test("PostgreSQL API authority completes the concurrent audited browser read set
         runtimes.emailDmsRuntime.repository.authority,
       storage_shared_with_dms:
         runtimes.emailDmsRuntime.storage === runtimes.dmsRuntime.storage,
+      crm_read_model_uses_email_dms_repository:
+        runtimes.crmIntakeRuntime.emailDmsRepository
+          === runtimes.emailDmsRuntime.repository,
       production_ready_claim:
         runtimes.emailDmsRuntime.production_ready_claim,
     }),
@@ -123,6 +126,7 @@ test("PostgreSQL API authority completes the concurrent audited browser read set
     authority: "postgres-v2",
     repository_authority: "email-dms",
     storage_shared_with_dms: true,
+    crm_read_model_uses_email_dms_repository: true,
     production_ready_claim: false,
   });
   const context = Object.freeze({
@@ -138,6 +142,7 @@ test("PostgreSQL API authority completes the concurrent audited browser read set
     { pathname: "/api/ai/review-queue", query: {}, handler: "ai" },
     { pathname: "/api/analytics/dashboards", query: {}, handler: "analytics" },
     { pathname: "/api/analytics/finance/monthly", query: {}, handler: "analytics" },
+    { pathname: "/api/crm/inquiries", query: {}, handler: "crm" },
     { pathname: "/api/crm/opportunities", query: {}, handler: "crm" },
     { pathname: "/api/data-room/projections", query: {}, handler: "portal" },
     { pathname: "/api/finance/ar-aging", query: {}, handler: "finance" },
