@@ -1675,7 +1675,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         m365GraphConfig,
       },
     });
-    sendJson(req, res, result.status, result.body);
+    sendJson(req, res, result.status, result.body, result.headers);
     return;
   }
 

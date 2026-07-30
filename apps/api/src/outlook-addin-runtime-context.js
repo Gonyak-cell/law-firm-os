@@ -3,6 +3,9 @@ import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-f
 import { OUTLOOK_EMAIL_OBJECT_FIELDS } from "../../../packages/email-dms/src/email-model.js";
 import { createM365GraphConnectionService } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-ports.js";
+import {
+  createInquiryEvidenceStorageService,
+} from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
@@ -21,6 +24,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/outlook/connection/callback",
     "DELETE /api/outlook/connection",
     "POST /api/outlook/inquiries/message/resolve",
+    "GET /api/outlook/inquiries/evidence/:evidence_id/content",
     "GET /api/outlook/matters",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
@@ -237,6 +241,20 @@ function m365MailPort(runtime) {
   return createM365MailPort({
     repository: runtime?.emailDmsRuntime?.repository,
     ...(runtime?.m365GraphConfig ?? {}),
+  });
+}
+
+function inquiryEvidenceStorageService(runtime) {
+  if (
+    typeof runtime?.emailDmsRuntime?.evidence_storage_service
+      ?.readEvidenceContent === "function"
+  ) {
+    return runtime.emailDmsRuntime.evidence_storage_service;
+  }
+  return createInquiryEvidenceStorageService({
+    repository: runtime?.emailDmsRuntime?.repository,
+    storage: runtime?.emailDmsRuntime?.storage,
+    ...(runtime?.emailDmsRuntime?.evidence_storage_config ?? {}),
   });
 }
 
@@ -741,6 +759,98 @@ async function handleOutlookInquiryMessageResolve({
   }
 }
 
+async function handleInquiryEvidenceContentRead({
+  evidenceId,
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const decision = evaluateOutlookPermission({
+      context,
+      tenant_id: principal.tenant_id,
+      resource_type: "inquiry_email_evidence",
+      resource_id: evidenceId,
+      action: "email_dms:inquiry_evidence:read",
+    });
+    if (decision.effect !== "allow") {
+      return permissionDeniedResponse({
+        requestId,
+        decision,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    const objectKind =
+      query.kind === "original"
+        ? "original_mime"
+        : query.kind === "display"
+          ? "sanitized_display"
+          : null;
+    if (!objectKind) {
+      return errorResponse(
+        400,
+        requestId,
+        ["INQUIRY_EVIDENCE_OBJECT_KIND_INVALID"],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "blocked",
+        },
+      );
+    }
+    const content = await inquiryEvidenceStorageService(runtime)
+      .readEvidenceContent({
+        tenant_id: principal.tenant_id,
+        inquiry_email_evidence_id: evidenceId,
+        object_kind: objectKind,
+        actor_id: principal.user_id,
+        request_id: requestId,
+      });
+    const original = objectKind === "original_mime";
+    return {
+      ...success(200, {
+        request_id: requestId,
+        outcome: "passed",
+        item: {
+          inquiry_email_evidence_id: evidenceId,
+          object_kind: objectKind,
+          encoding: original ? "base64" : "utf8",
+          content_base64:
+            original ? content.bytes.toString("base64") : null,
+          content_text:
+            original ? null : content.bytes.toString("utf8"),
+          content_sha256: content.sha256,
+          byte_size: content.byte_size,
+          mime_type: content.mime_type,
+          scan_status: content.scan_status,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+          executable_preview_enabled: false,
+          external_resources_loaded: false,
+          production_ready_claim: false,
+        },
+        audit_event: {
+          event_id: content.audit_event_id,
+          raw_content_included: false,
+        },
+        audit_hint_ref: query.audit_hint_ref,
+      }),
+      headers: {
+        "x-content-type-options": "nosniff",
+        "content-security-policy":
+          "default-src 'none'; sandbox",
+      },
+    };
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
 function handleMatterSearch({ query, context, requestId, runtime }) {
   const tenantId = requiredString(query.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const decision = evaluateOutlookPermission({
@@ -1114,6 +1224,21 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     ) {
       return await handleOutlookInquiryMessageResolve({
         body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    const inquiryEvidenceContentMatch = routeMatch(
+      pathname,
+      /^\/api\/outlook\/inquiries\/evidence\/([^/]+)\/content$/u,
+    );
+    if (inquiryEvidenceContentMatch && method === "GET") {
+      return await handleInquiryEvidenceContentRead({
+        evidenceId: decodeURIComponent(
+          inquiryEvidenceContentMatch[1],
+        ),
+        query,
         context,
         requestId,
         runtime,

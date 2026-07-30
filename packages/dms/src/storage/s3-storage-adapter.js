@@ -409,6 +409,11 @@ export function createS3StorageAdapter(config = {}) {
     capabilities,
     provider: "s3",
     bucket_ref: `s3://${bucket}/${prefix}`,
+    kms_key_ref: config.kms_key_id
+      ? requireString(config.kms_key_id, "kms_key_id")
+      : null,
+    server_side_encryption:
+      config.kms_key_id ? "aws:kms" : "AES256",
     credential_ref: credentialRef,
     secret_material_exposed: false,
     stageObject,
