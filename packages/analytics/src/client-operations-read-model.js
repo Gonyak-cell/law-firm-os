@@ -9,6 +9,7 @@ import {
   normalizeFeeCommitment,
 } from "../../billing/src/fee-commitment-model.js";
 import {
+  CRM_INQUIRY_VISIBLE_STATUSES,
   projectCrmInquiry,
 } from "../../crm/src/inquiry-read-model.js";
 
@@ -27,6 +28,11 @@ const ATTENTION_TYPE_PRIORITY = Object.freeze({
   engagement_review: 40,
   bank_match_review: 50,
   fee_amount_missing: 60,
+});
+const REVENUE_RANKING_PERIODS = Object.freeze({
+  month: "이번 달",
+  quarter: "이번 분기",
+  year: "올해 누적",
 });
 
 function requiredText(value, field) {
@@ -352,6 +358,53 @@ function monthPeriod(date, timeZone) {
     month: `${year}-${month}`,
     from: `${year}-${month}-01`,
     to: `${year}-${month}-${String(lastDay).padStart(2, "0")}`,
+  });
+}
+
+function calendarMonth(year, month, offset = 0) {
+  const date = new Date(
+    Date.UTC(Number(year), Number(month) - 1 + offset, 1),
+  );
+  return Object.freeze({
+    year: String(date.getUTCFullYear()),
+    month: String(date.getUTCMonth() + 1).padStart(2, "0"),
+  });
+}
+
+function revenueTrendPeriod(date, timeZone) {
+  const current = zonedDateParts(date, timeZone);
+  const first = calendarMonth(
+    current.year,
+    current.month,
+    -11,
+  );
+  return Object.freeze({
+    from: `${first.year}-${first.month}-01`,
+    to: zonedDate(date, timeZone),
+    month_count: 12,
+  });
+}
+
+function revenueRankingPeriod(date, timeZone, selection) {
+  const label = REVENUE_RANKING_PERIODS[selection];
+  if (!label) {
+    throw new TypeError(
+      "revenue_ranking_period must be month, quarter, or year",
+    );
+  }
+  const current = zonedDateParts(date, timeZone);
+  const currentMonth = Number(current.month);
+  const firstMonth = selection === "month"
+    ? currentMonth
+    : selection === "quarter"
+      ? Math.floor((currentMonth - 1) / 3) * 3 + 1
+      : 1;
+  return Object.freeze({
+    code: selection,
+    label,
+    from:
+      `${current.year}-${String(firstMonth).padStart(2, "0")}-01`,
+    to: zonedDate(date, timeZone),
   });
 }
 
@@ -1091,6 +1144,256 @@ export function buildClientOperationsAttentionItems({
   });
 }
 
+function inquiryStatusDestination(code) {
+  if (code === "consultation_scheduled") {
+    return Object.freeze({
+      section: "consultations",
+      filter: code,
+    });
+  }
+  if (
+    code === "engagement_review"
+    || code === "engaged"
+    || code === "not_engaged"
+  ) {
+    return Object.freeze({
+      section: "engagement_status",
+      filter: code,
+    });
+  }
+  return Object.freeze({
+    section: "new_inquiries",
+    filter: code,
+  });
+}
+
+export function buildClientOperationsTrendsAndRankings({
+  access_scope,
+  client_reference_access,
+  financeRepository,
+  crmRepository,
+  tenant_id,
+  permission_context,
+  as_of,
+  timezone = CLIENT_OPERATIONS_TIMEZONE,
+  revenue_ranking_period = "year",
+} = {}) {
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  if (access_scope?.tenant_id !== tenantId) {
+    throw new TypeError(
+      "Client operations access scope does not match tenant_id",
+    );
+  }
+  if (timezone !== CLIENT_OPERATIONS_TIMEZONE) {
+    throw new TypeError(
+      "Client operations timezone must be Asia/Seoul",
+    );
+  }
+  if (typeof client_reference_access !== "function") {
+    throw new TypeError(
+      "Client operations require a precomputed client reference guard",
+    );
+  }
+  const asOf = canonicalAsOf(as_of);
+  const trendPeriod = revenueTrendPeriod(asOf, timezone);
+  const rankingPeriod = revenueRankingPeriod(
+    asOf,
+    timezone,
+    revenue_ranking_period,
+  );
+  const crm = crmInquiryProjections({
+    repository: crmRepository,
+    tenantId,
+    permissionContext: permission_context,
+    referenceAccess: client_reference_access,
+  });
+  const permittedClients =
+    access_scope.permitted_client_records;
+  const trendRevenue = buildClientDepositRevenue({
+    repository: financeRepository,
+    tenant_id: tenantId,
+    permitted_client_records: permittedClients,
+    from: trendPeriod.from,
+    to: trendPeriod.to,
+  });
+  const rankedRevenue = buildClientDepositRevenue({
+    repository: financeRepository,
+    tenant_id: tenantId,
+    permitted_client_records: permittedClients,
+    from: rankingPeriod.from,
+    to: rankingPeriod.to,
+  });
+  const receivables = buildClientReceivables({
+    repository: financeRepository,
+    tenant_id: tenantId,
+    permitted_client_records: permittedClients,
+    clock: () => new Date(asOf.getTime()),
+  });
+  const statusCountsByCode = new Map(
+    CRM_INQUIRY_VISIBLE_STATUSES.map(({ code }) => [code, 0]),
+  );
+  for (const projection of crm.projections) {
+    if (!statusCountsByCode.has(projection.visible_status)) {
+      throw new TypeError(
+        `Unsupported CRM inquiry status: ${projection.visible_status}`,
+      );
+    }
+    statusCountsByCode.set(
+      projection.visible_status,
+      statusCountsByCode.get(projection.visible_status) + 1,
+    );
+  }
+  const inquiryStatusItems = Object.freeze(
+    CRM_INQUIRY_VISIBLE_STATUSES.map(({ code, label }) => (
+      Object.freeze({
+        code,
+        label,
+        count: statusCountsByCode.get(code),
+        destination: inquiryStatusDestination(code),
+      })
+    )),
+  );
+  const inquiryStatusCounts = Object.freeze(Object.fromEntries(
+    inquiryStatusItems.map(({ label, count }) => [label, count]),
+  ));
+  const inquiryTotal = inquiryStatusItems.reduce(
+    (total, { count }) => total + count,
+    0,
+  );
+  if (
+    !Number.isSafeInteger(inquiryTotal)
+    || inquiryTotal !== crm.projections.length
+  ) {
+    throw new TypeError(
+      "Client inquiry status totals do not reconcile",
+    );
+  }
+  const monthlyPoints = Object.freeze(
+    trendRevenue.monthly.map((point) => Object.freeze({
+      ...point,
+      destination: Object.freeze({
+        section: "deposit_revenue",
+        filter: "month",
+        month: point.month,
+      }),
+    })),
+  );
+  if (monthlyPoints.length !== trendPeriod.month_count) {
+    throw new TypeError(
+      "Client revenue trend must contain exactly 12 months",
+    );
+  }
+  const revenueRanking = Object.freeze(
+    rankedRevenue.ranking.map((row) => Object.freeze({
+      ...row,
+      destination: Object.freeze({
+        section: "client_details",
+        record_id: row.client_group_id,
+        tab: "deposit_revenue",
+        period: rankingPeriod.code,
+      }),
+    })),
+  );
+  const receivablesRanking = Object.freeze(
+    receivables.ranking.map((row) => Object.freeze({
+      ...row,
+      destination: Object.freeze({
+        section: "client_details",
+        record_id: row.client_group_id,
+        tab: "receivables",
+      }),
+    })),
+  );
+
+  return Object.freeze({
+    as_of: asOf.toISOString(),
+    timezone,
+    currency: "KRW",
+    monthly_deposit_revenue: Object.freeze({
+      period: trendPeriod,
+      total: trendRevenue.totals.net_deposit_revenue,
+      points: monthlyPoints,
+      reconciliation_status:
+        trendRevenue.reconciliation.status,
+    }),
+    inquiry_status: Object.freeze({
+      total: inquiryTotal,
+      counts: inquiryStatusCounts,
+      items: inquiryStatusItems,
+    }),
+    revenue_ranking: Object.freeze({
+      selected_period: rankingPeriod,
+      available_periods: Object.freeze(
+        Object.entries(REVENUE_RANKING_PERIODS).map(
+          ([code, label]) => Object.freeze({ code, label }),
+        ),
+      ),
+      total: rankedRevenue.totals.net_deposit_revenue,
+      items: revenueRanking,
+      client_group_ids: Object.freeze(
+        revenueRanking.map(({ client_group_id }) => (
+          client_group_id
+        )),
+      ),
+      reconciliation_status:
+        rankedRevenue.reconciliation.status,
+    }),
+    receivables_ranking: Object.freeze({
+      as_of: receivables.as_of,
+      total: receivables.total_receivables,
+      unknown_amount_count:
+        receivables.unknown_amount_count,
+      items: receivablesRanking,
+      client_group_ids: Object.freeze(
+        receivablesRanking.map(({ client_group_id }) => (
+          client_group_id
+        )),
+      ),
+      reconciliation_status:
+        receivables.reconciliation.status,
+    }),
+    source_statuses: Object.freeze([
+      Object.freeze({
+        source: "master-data.ClientGroup",
+        status: "passed",
+      }),
+      Object.freeze({ source: "crm.Lead", status: "passed" }),
+      Object.freeze({
+        source: "crm.Opportunity",
+        status: "passed",
+      }),
+      Object.freeze({
+        source: "crm.CRMActivity",
+        status: "passed",
+      }),
+      Object.freeze({
+        source: "finance.BankTransaction",
+        status: "passed",
+      }),
+      Object.freeze({
+        source: "finance.BankTransactionClassification",
+        status: "passed",
+      }),
+      Object.freeze({
+        source: "finance.FeeCommitment",
+        status: "passed",
+      }),
+      Object.freeze({
+        source: "finance.ClientDepositAllocation",
+        status: "passed",
+      }),
+    ]),
+    permission_prefilter_applied: true,
+    unauthorized_count_included: false,
+    unauthorized_amount_included: false,
+    raw_bank_source_included: false,
+    embedded_transaction_details: false,
+    invoice_required: false,
+    matter_required: false,
+    production_ready_claim: false,
+  });
+}
+
 function resolveClientOperationsAccess({
   masterDataRepository,
   tenant_id,
@@ -1312,6 +1615,32 @@ export function createClientOperationsReadModel({
           permission_context,
           as_of,
           timezone,
+        }),
+      });
+    },
+    readTrendsAndRankings({
+      tenant_id,
+      permission_context,
+      as_of,
+      timezone = CLIENT_OPERATIONS_TIMEZONE,
+      revenue_ranking_period = "year",
+    } = {}) {
+      return readWithAccess({
+        tenant_id,
+        permission_context,
+        project: ({
+          access_scope,
+          client_reference_access,
+        }) => buildClientOperationsTrendsAndRankings({
+          access_scope,
+          client_reference_access,
+          financeRepository,
+          crmRepository,
+          tenant_id,
+          permission_context,
+          as_of,
+          timezone,
+          revenue_ranking_period,
         }),
       });
     },

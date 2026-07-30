@@ -758,6 +758,54 @@ test("PostgreSQL API authority persists accepted inquiry handoff and reads the C
       "fee_amount_missing",
     ],
   );
+
+  const clientTrends = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/analytics/clients/dashboard",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return runtimes.analyticsRuntime.clientOperationsReadModel
+        .readTrendsAndRankings({
+          tenant_id: TENANT_A,
+          permission_context: context,
+          as_of: "2026-07-30T03:00:00.000Z",
+        });
+    },
+  });
+  assert.equal(
+    clientTrends.item.monthly_deposit_revenue.points.length,
+    12,
+  );
+  assert.equal(
+    clientTrends.item.monthly_deposit_revenue.total,
+    0,
+  );
+  assert.deepEqual(
+    clientTrends.item.inquiry_status.counts,
+    {
+      "새 문의": 0,
+      "확인 중": 0,
+      "상담 예정": 0,
+      "수임 검토 중": 0,
+      "수임 확정": 1,
+      "수임하지 않음": 0,
+    },
+  );
+  assert.deepEqual(
+    clientTrends.item.revenue_ranking.client_group_ids,
+    [],
+  );
+  assert.deepEqual(
+    clientTrends.item.receivables_ranking.client_group_ids,
+    [created.body.processing.client_group_id],
+  );
+  assert.equal(
+    clientTrends.item.receivables_ranking.total,
+    12_000_000,
+  );
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {

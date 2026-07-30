@@ -1500,3 +1500,407 @@ test("CL-P4-W01-T03 입금 분류 조회 권한이 없으면 Finance 원천을 �
   );
   assert.equal(financeReadCount, 0);
 });
+
+test("VC-CL-DASH-001 / CL-P4-W01-T04 기준 fixture의 12개월 추이·문의 현황·고객 순위를 계산한다", () => {
+  const input = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/input.json",
+    import.meta.url,
+  ), "utf8"));
+  const expectedDashboard = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/expected-dashboard.json",
+    import.meta.url,
+  ), "utf8"));
+  const expectedRevenue = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/expected-revenue.json",
+    import.meta.url,
+  ), "utf8"));
+  const expectedReceivables = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/expected-receivables.json",
+    import.meta.url,
+  ), "utf8"));
+  const financeRepository = fixtureFinanceRepository(input);
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      fixtureMasterDataRecords(input),
+    ),
+    crmRepository: repository(fixtureCrmRecords(input)),
+    financeRepository,
+  });
+
+  try {
+    const result = readModel.readTrendsAndRankings({
+      tenant_id: TENANT,
+      permission_context: fixturePermissionContext(),
+      as_of: input.as_of,
+      timezone: input.timezone,
+    });
+
+    assert.deepEqual(
+      result.item.monthly_deposit_revenue.points.map(({
+        month,
+        net_deposit_revenue,
+      }) => ({ month, net_deposit_revenue })),
+      expectedRevenue.monthly_series,
+    );
+    assert.deepEqual(
+      result.item.monthly_deposit_revenue.period,
+      {
+        from: "2025-08-01",
+        to: "2026-07-30",
+        month_count: 12,
+      },
+    );
+    assert.equal(
+      result.item.monthly_deposit_revenue.total,
+      36_000_000,
+    );
+    assert.deepEqual(
+      result.item.inquiry_status.counts,
+      expectedDashboard.inquiry_status_counts,
+    );
+    assert.equal(result.item.inquiry_status.total, 5);
+    assert.deepEqual(
+      result.item.revenue_ranking.client_group_ids,
+      expectedDashboard.revenue_ranking_client_ids,
+    );
+    assert.deepEqual(
+      result.item.revenue_ranking.items.map((row) => ({
+        client_group_id: row.client_group_id,
+        net_deposit_revenue: row.net_deposit_revenue,
+      })),
+      [
+        {
+          client_group_id: "client_saebom_tech",
+          net_deposit_revenue: 25_000_000,
+        },
+        {
+          client_group_id: "client_hanbit_construction",
+          net_deposit_revenue: 11_000_000,
+        },
+      ],
+    );
+    assert.deepEqual(
+      result.item.revenue_ranking.selected_period,
+      {
+        code: "year",
+        label: "올해 누적",
+        from: "2026-01-01",
+        to: "2026-07-30",
+      },
+    );
+    assert.deepEqual(
+      result.item.receivables_ranking.client_group_ids,
+      expectedDashboard.receivables_ranking_client_ids,
+    );
+    assert.equal(
+      result.item.receivables_ranking.total,
+      expectedReceivables.total_receivables,
+    );
+    assert.deepEqual(
+      result.item.receivables_ranking.items.map((row) => ({
+        rank: row.rank,
+        client_group_id: row.client_group_id,
+        receivable_amount: row.receivable_amount,
+        earliest_due_date: row.earliest_due_date,
+      })),
+      expectedReceivables.ranking.map((row) => ({
+        rank: row.rank,
+        client_group_id: row.client_group_id,
+        receivable_amount: row.receivable_amount,
+        earliest_due_date: row.earliest_due_date,
+      })),
+    );
+    assert.deepEqual(
+      result.item.revenue_ranking.available_periods,
+      [
+        { code: "month", label: "이번 달" },
+        { code: "quarter", label: "이번 분기" },
+        { code: "year", label: "올해 누적" },
+      ],
+    );
+    for (const point of result.item.monthly_deposit_revenue.points) {
+      assert.equal(point.destination.section, "deposit_revenue");
+      assert.equal(point.destination.month, point.month);
+    }
+    for (const status of result.item.inquiry_status.items) {
+      assert.equal(typeof status.destination.section, "string");
+      assert.equal(status.destination.filter, status.code);
+    }
+    for (const row of [
+      ...result.item.revenue_ranking.items,
+      ...result.item.receivables_ranking.items,
+    ]) {
+      assert.equal(row.destination.section, "client_details");
+      assert.equal(row.destination.record_id, row.client_group_id);
+    }
+    assert.equal(result.item.raw_bank_source_included, false);
+    assert.equal(result.item.embedded_transaction_details, false);
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("CL-P4-W01-T04 선택 기간과 동률 순위를 안정 정렬하고 기준일 이후·차단 고객을 제외한다", () => {
+  const displayNames = new Map([
+    ["client_a", "가 고객"],
+    ["client_b", "가 고객"],
+    ["client_c", "나 고객"],
+    ["client_denied", "비공개 고객"],
+  ]);
+  const masterDataRecords = [...displayNames].map(
+    ([client_group_id, display_name]) => ({
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id,
+      display_name,
+      member_party_ids: [`party_${client_group_id}`],
+      primary_party_id: `party_${client_group_id}`,
+      status: "active",
+    }),
+  );
+  const receiptRecords = ({
+    id,
+    client_group_id,
+    date,
+    amount,
+  }) => [
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: id,
+      transaction_fingerprint: `fingerprint-${id}`,
+      date,
+      occurred_at: `${date}T01:00:00.000Z`,
+      direction: "inflow",
+      amount,
+      currency: "KRW",
+      status: "posted",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        `classification_${id}`,
+      bank_transaction_id: id,
+      transaction_date: date,
+      transaction_direction: "inflow",
+      amount,
+      currency: "KRW",
+      category: "client_receipt",
+      client_group_id,
+      status: "confirmed",
+    },
+  ];
+  const feeCommitment = (client_group_id) => ({
+    model_type: "FeeCommitment",
+    tenant_id: TENANT,
+    fee_commitment_id: `fee_${client_group_id}`,
+    client_group_id,
+    opportunity_id: `opportunity_${client_group_id}`,
+    matter_id: null,
+    currency: "KRW",
+    agreed_amount: 1_000_000,
+    due_date: "2026-07-20",
+    accepted_at: "2026-06-01T00:00:00.000Z",
+    status: "active",
+    source_fee_arrangement_id: null,
+    state_version: 1,
+    created_by: "principal_partner",
+    updated_by: "principal_partner",
+    reason: "동률 정렬 검증",
+  });
+  const financeRecords = [
+    ...receiptRecords({
+      id: "bank_a_july",
+      client_group_id: "client_a",
+      date: "2026-07-10",
+      amount: 1_000_000,
+    }),
+    ...receiptRecords({
+      id: "bank_b_july",
+      client_group_id: "client_b",
+      date: "2026-07-10",
+      amount: 1_000_000,
+    }),
+    ...receiptRecords({
+      id: "bank_c_july",
+      client_group_id: "client_c",
+      date: "2026-07-10",
+      amount: 1_000_000,
+    }),
+    ...receiptRecords({
+      id: "bank_b_june",
+      client_group_id: "client_b",
+      date: "2026-06-10",
+      amount: 500_000,
+    }),
+    ...receiptRecords({
+      id: "bank_c_after_as_of",
+      client_group_id: "client_c",
+      date: "2026-07-31",
+      amount: 9_999_999,
+    }),
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: "bank_denied_malformed",
+      amount: "87654321",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        "classification_denied_malformed",
+      bank_transaction_id: "bank_denied_malformed",
+      category: "client_receipt",
+      client_group_id: "client_denied",
+      status: "confirmed",
+    },
+    ...["client_a", "client_b", "client_c"].map(
+      feeCommitment,
+    ),
+    {
+      model_type: "FeeCommitment",
+      tenant_id: TENANT,
+      fee_commitment_id: "fee_denied_malformed",
+      client_group_id: "client_denied",
+      agreed_amount: null,
+      status: "active",
+    },
+  ];
+  const context = fixturePermissionContext();
+  context.object_acl = [{
+    id: "deny-client",
+    effect: "deny",
+    principal_id: "principal_partner",
+    action: "analytics:client:read",
+    resource_id: "client_denied",
+  }];
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(masterDataRecords),
+    crmRepository: repository([]),
+    financeRepository: repository(financeRecords),
+  });
+  const month = readModel.readTrendsAndRankings({
+    tenant_id: TENANT,
+    permission_context: context,
+    as_of: "2026-07-30T03:00:00.000Z",
+    revenue_ranking_period: "month",
+  });
+  const monthAgain = readModel.readTrendsAndRankings({
+    tenant_id: TENANT,
+    permission_context: context,
+    as_of: "2026-07-30T03:00:00.000Z",
+    revenue_ranking_period: "month",
+  });
+  const year = readModel.readTrendsAndRankings({
+    tenant_id: TENANT,
+    permission_context: context,
+    as_of: "2026-07-30T03:00:00.000Z",
+    revenue_ranking_period: "year",
+  });
+  const quarter = readModel.readTrendsAndRankings({
+    tenant_id: TENANT,
+    permission_context: context,
+    as_of: "2026-07-30T03:00:00.000Z",
+    revenue_ranking_period: "quarter",
+  });
+
+  assert.deepEqual(monthAgain, month);
+  assert.deepEqual(
+    month.item.revenue_ranking.client_group_ids,
+    ["client_a", "client_b", "client_c"],
+  );
+  assert.deepEqual(
+    year.item.revenue_ranking.client_group_ids,
+    ["client_b", "client_a", "client_c"],
+  );
+  assert.deepEqual(
+    quarter.item.revenue_ranking.client_group_ids,
+    ["client_a", "client_b", "client_c"],
+  );
+  assert.deepEqual(
+    month.item.receivables_ranking.client_group_ids,
+    ["client_a", "client_b", "client_c"],
+  );
+  assert.deepEqual(month.item.inquiry_status.counts, {
+    "새 문의": 0,
+    "확인 중": 0,
+    "상담 예정": 0,
+    "수임 검토 중": 0,
+    "수임 확정": 0,
+    "수임하지 않음": 0,
+  });
+  assert.deepEqual(month.item.revenue_ranking.selected_period, {
+    code: "month",
+    label: "이번 달",
+    from: "2026-07-01",
+    to: "2026-07-30",
+  });
+  assert.deepEqual(quarter.item.revenue_ranking.selected_period, {
+    code: "quarter",
+    label: "이번 분기",
+    from: "2026-07-01",
+    to: "2026-07-30",
+  });
+  assert.equal(month.item.revenue_ranking.total, 3_000_000);
+  assert.equal(year.item.revenue_ranking.total, 3_500_000);
+  assert.equal(
+    month.item.monthly_deposit_revenue.points.at(-1)
+      .net_deposit_revenue,
+    3_000_000,
+  );
+  const serialized = JSON.stringify(month);
+  for (const forbidden of [
+    "client_denied",
+    "비공개 고객",
+    "bank_denied_malformed",
+    "classification_denied_malformed",
+    "fee_denied_malformed",
+    "87654321",
+    "bank_c_after_as_of",
+    "9999999",
+  ]) {
+    assert.equal(serialized.includes(forbidden), false);
+  }
+});
+
+test("CL-P4-W01-T04 잘못된 매출 순위 기간은 CRM·Finance 원천 조회 전에 거절한다", () => {
+  let crmReadCount = 0;
+  let financeReadCount = 0;
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository([{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_allowed",
+      display_name: "허용 고객",
+      member_party_ids: ["party_allowed"],
+      primary_party_id: "party_allowed",
+      status: "active",
+    }]),
+    crmRepository: {
+      list() {
+        crmReadCount += 1;
+        throw new Error("CRM must not be read");
+      },
+    },
+    financeRepository: {
+      list() {
+        financeReadCount += 1;
+        throw new Error("Finance must not be read");
+      },
+    },
+  });
+
+  assert.throws(
+    () => readModel.readTrendsAndRankings({
+      tenant_id: TENANT,
+      permission_context: fixturePermissionContext(),
+      as_of: "2026-07-30T03:00:00.000Z",
+      revenue_ranking_period: "rolling",
+    }),
+    /revenue_ranking_period must be month, quarter, or year/,
+  );
+  assert.equal(crmReadCount, 0);
+  assert.equal(financeReadCount, 0);
+});
