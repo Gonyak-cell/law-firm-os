@@ -1,3 +1,7 @@
 export * from "./registry.js";
 export * from "./service.js";
 export * from "./validators.js";
+export * from "./m365-connection-model.js";
+export * from "./m365-graph-connection-service.js";
+export * from "./m365-graph-ports.js";
+export * from "./migrations/index.js";

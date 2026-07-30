@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
 import { OUTLOOK_EMAIL_OBJECT_FIELDS } from "../../../packages/email-dms/src/email-model.js";
+import { createM365GraphConnectionService } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
@@ -14,6 +15,10 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.outlook-addin-runtime.v0.1",
   endpoints: Object.freeze([
     "GET /api/outlook/bootstrap",
+    "GET /api/outlook/connection",
+    "POST /api/outlook/connection/authorize",
+    "GET /api/outlook/connection/callback",
+    "DELETE /api/outlook/connection",
     "GET /api/outlook/matters",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
@@ -33,6 +38,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
 });
 
 export const OUTLOOK_ADDIN_ERROR_CODES = Object.freeze({
+  connection_validation_error: "M365_CONNECTION_VALIDATION_ERROR",
   tenant_required: "OUTLOOK_ADDIN_TENANT_REQUIRED",
   permission_required: "OUTLOOK_ADDIN_PERMISSION_REQUIRED",
   validation_error: "OUTLOOK_ADDIN_VALIDATION_ERROR",
@@ -169,6 +175,70 @@ function evaluateOutlookPermission({ context, tenant_id, matter_id = null, resou
       resource_id,
     },
     action,
+  });
+}
+
+function m365Principal(context, requestedTenantId) {
+  const principal = context?.principal ?? {};
+  const tenantId = requiredString(principal.tenant_id, "principal.tenant_id");
+  if (
+    requestedTenantId
+    && requiredString(requestedTenantId, "tenant_id") !== tenantId
+  ) {
+    throw Object.assign(
+      new Error("M365 connection tenant must match the signed session"),
+      {
+        safe_error_code: "M365_CONNECTION_TENANT_MISMATCH",
+        status: 403,
+      },
+    );
+  }
+  return Object.freeze({
+    tenant_id: tenantId,
+    user_id: requiredString(principal.user_id, "principal.user_id"),
+    entra_subject_id: principal.entra_subject_id,
+  });
+}
+
+function m365RouteGate({
+  context,
+  principal,
+  requestId,
+  action,
+  auditHintRef,
+}) {
+  const decision = evaluateOutlookPermission({
+    context,
+    tenant_id: principal.tenant_id,
+    resource_type: "m365_connection",
+    resource_id: principal.user_id,
+    action,
+  });
+  return decision.effect === "allow"
+    ? null
+    : permissionDeniedResponse({
+      requestId,
+      decision,
+      auditHintRef,
+    });
+}
+
+function m365Service(runtime) {
+  return createM365GraphConnectionService({
+    repository: runtime?.dmsRuntime?.repository,
+    ...(runtime?.m365GraphConfig ?? {}),
+  });
+}
+
+function m365ErrorResponse(error, requestId, auditHintRef) {
+  const safeCode = typeof error?.safe_error_code === "string"
+    && /^[A-Z0-9_]+$/u.test(error.safe_error_code)
+    ? error.safe_error_code
+    : OUTLOOK_ADDIN_ERROR_CODES.connection_validation_error;
+  return errorResponse(error?.status ?? 400, requestId, [safeCode], {
+    audit_hint_ref: auditHintRef,
+    ui_state: "blocked",
+    credential_material_included: false,
   });
 }
 
@@ -432,6 +502,150 @@ function handleBootstrap({ query, context, requestId }) {
       production_ready_claim: false,
     },
   });
+}
+
+function handleM365ConnectionStatus({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:read",
+      auditHintRef: query.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = m365Service(runtime).getConnectionStatus(principal);
+    return success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      item: result,
+      audit_hint_ref: query.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
+async function handleM365ConnectionAuthorize({
+  body,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, body.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:create",
+      auditHintRef: body.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = await m365Service(runtime).beginAuthorization({
+      ...principal,
+      redirect_uri: body.redirect_uri,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: "authorization_started",
+      item: result,
+      audit_hint_ref: body.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+}
+
+async function handleM365ConnectionCallback({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:create",
+      auditHintRef: query.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = await m365Service(runtime).completeAuthorization({
+      ...principal,
+      code: query.code,
+      state: query.state,
+      redirect_uri: query.redirect_uri,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      audit_hint_ref: query.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
+async function handleM365ConnectionDelete({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:delete",
+      auditHintRef: query.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = await m365Service(runtime).revokeConnection({
+      ...principal,
+      expected_state_version: Number(query.expected_state_version),
+      reason: query.reason,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      audit_hint_ref: query.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
 }
 
 function handleMatterSearch({ query, context, requestId, runtime }) {
@@ -762,6 +976,44 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
   try {
     if (pathname === "/api/outlook/bootstrap" && method === "GET") {
       return handleBootstrap({ query, context, requestId });
+    }
+    if (pathname === "/api/outlook/connection" && method === "GET") {
+      return handleM365ConnectionStatus({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/connection/authorize"
+      && method === "POST"
+    ) {
+      return await handleM365ConnectionAuthorize({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/connection/callback"
+      && method === "GET"
+    ) {
+      return await handleM365ConnectionCallback({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (pathname === "/api/outlook/connection" && method === "DELETE") {
+      return await handleM365ConnectionDelete({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
     }
     if (pathname === "/api/outlook/matters" && method === "GET") {
       return handleMatterSearch({ query, context, requestId, runtime });

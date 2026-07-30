@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, 전체 18/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 1/12 완료, 전체 19/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -967,7 +967,8 @@ npm test
 | `CL-P2-W02-T01` | 완료 | `ClientDepositAllocation`에 고객·확정 입금 분류·은행 거래·수임료 약정을 필수 연결하고, KRW 원 단위 배분액·되돌린 금액, 자동/수동 출처, 수동 잠금, 상태·version·작성/수정자·사유를 정규화; 수동 배분은 잠금을 의무화하고 전액 되돌림 상태를 금액에서 계산; 한 배분 또는 활성 배분 합계가 원입금·약정액을 넘거나 다른 테넌트·고객, 미확정/출금 분류, 금액 미입력 약정에 연결되면 Finance 원장에서 fail-closed; Finance 기본 ID·금액 필드·mutable 분류와 필수 원장 관계를 등록 | 모델·금액·상태 및 원장 관계·tenant·client·합계 한도 집중 검증 2/2, 실제 임시 PostgreSQL import/readback/shadow 1/1; Billing 전체 139/139, Finance PostgreSQL API adapter 2/2 |
 | `CL-P2-W02-T02` | 완료 | 고객 입금 확인 또는 수임료 약정 생성·수정이 저장될 때 같은 Finance 저장 단위에서 자동 배분을 실행; 납부기한이 없으면 수임확정일을 사용하고 이후 수임확정일·약정 ID로 안정 정렬; 확정·게시된 KRW 고객 입금만 대상으로 거래 지문 중복을 한 번만 반영하고 약정액·입금액을 넘기지 않음; 기존 수동 잠금·전액 되돌림 배분은 되살리거나 덮어쓰지 않고, 약정액이 늘면 같은 자동 배분의 version을 올려 부족분만 추가; 남은 금액은 원본 은행 거래를 바꾸지 않은 채 `선입금·초과 입금`으로 반환; 고객 입금 확인과 약정 변경의 중복 요청은 배분을 다시 만들지 않으며 API는 배분액·남은 금액 요약만 노출 | `VC-CL-AR-003`, `004` 서비스 3/3, 고객 입금 확인·약정 수정 실제 API 2/2, PostgreSQL 생성 700만 원→수정 800만 원에 같은 배분 레코드 version 2 readback; Billing 전체 141/141, Finance API 전체 20/20, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 34/34; 새 UI·사용자 문구 slop 경고 없음, 기존 GitHub 주소 4건의 약한 오탐만 확인, `git diff --check` 통과 |
 | `CL-P2-W02-T03` | 완료 | 확정 고객 입금별 연결 내역 조회와 기대 version 전체 대조 방식의 수동 재배분 API를 추가; 수동으로 정한 연결은 잠가 이후 자동 배분이 덮어쓰지 않고, 같은 입금 안에서 약정별 연결액을 0원까지 조정 가능; 연결된 환불은 자동 연결부터 먼저 되돌리고 필요할 때만 수동 연결에 반영하며, 취소·종료되거나 금액이 없는 약정의 연결액은 미수금 계산에서 해제; 환불액을 뺀 실제 입금액보다 많이 연결하거나 약정액을 넘기는 변경, 누락·오래된 version, 다른 고객·통화·상태는 원자적으로 거절; 접근 가능한 고객을 원천 조회 전에 제한한 뒤 수임료 약정·은행 입금·활성 연결을 대사해 고객별 미수금, 금액 미입력 건수, 선입금·초과 입금과 미수금 순위를 계산하고 순위·고객 요약·상세 합계를 항상 일치시킴 | `VC-CL-AR-001`~`005`, `VC-CL-REV-008` 집중 Billing 13/13과 중앙원장 2/2, Billing 전체 144/144, 실제 서명 세션 API 전체 21/21, PostgreSQL API authority 7/7, 32개 시나리오 fixture validator PASS와 권한·fixture 계약 40/40; 수동 재배분 재실행은 동일 결과, stale version은 409, 환불·약정 취소 후 미수금 재개 및 수동 잠금 보존 확인 |
-| `CL-P3-W00-T01` | 다음 | 본인 Outlook 메일함만 연결하는 M365 연결 모델·안전한 토큰 참조·기능 스위치·메일/일정 포트 | 시작 전 |
+| `CL-P3-W00-T01` | 완료 | 사용자·테넌트별 delegated `M365Connection`과 RLS migration을 등록하고, 본인 `/me` 메일함만 허용하는 Mail·Calendar port를 기능 스위치 뒤에 배치; access/refresh token은 제품 레코드·감사·API 응답에 남기지 않고 AWS Secrets Manager용 불투명 참조만 보존; Entra subject·필수 scope·만료·승인 redirect URI·상태 version을 fail-closed로 검증; provider 해제를 먼저 수행하고 비밀 저장소 정리가 실패해도 연결은 해제 상태로 확정해 재사용을 막음; 실제 Entra 앱·관리자 동의·시험 메일함·MIME·일정·음수 경로·비밀 비노출 영수증 8종이 없으면 출시를 계속 차단 | M365 모델·fake provider·포트·해제 실패·실제 임시 PostgreSQL migration 6/6, email-dms 전체 88/88, DMS 전체 190/190, Outlook add-in·연결 API·AWS vault fake 5/5, PostgreSQL API authority 20/20, Client fixture·권한 계약 40/40; 기능·provider runtime 기본값 비활성, AWS·실제 Graph 호출·배포 없음 |
+| `CL-P3-W01-T01` | 다음 | 문의 이메일 증거와 원본 파일 객체의 모델·중복 키·migration·중앙원장·runtime authority 등록 | 시작 전 |
 
 P0 집중 검증:
 

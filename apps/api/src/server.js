@@ -1165,7 +1165,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1643,7 +1643,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       body,
       context,
       requestId,
-      runtime: { matterRuntime, dmsRuntime },
+      runtime: { matterRuntime, dmsRuntime, m365GraphConfig },
     });
     sendJson(req, res, result.status, result.body);
     return;
@@ -1714,6 +1714,7 @@ export function createApiServer({
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
+  m365GraphConfig = null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
@@ -1750,6 +1751,7 @@ export function createApiServer({
           uiReadinessRuntime: requestRuntimes.uiReadinessRuntime ?? uiReadinessRuntime,
           homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
           enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
+          m365GraphConfig,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
           runtimeProfile,
@@ -1873,6 +1875,7 @@ export async function startApiServer({
   homeDashboardRuntime,
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
+  m365GraphConfig,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
   authCredentialStorePath,
@@ -2210,6 +2213,7 @@ export async function startApiServer({
     uiReadinessRuntime: uiReadinessRuntimeContext,
     homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
+    m365GraphConfig,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     runtimeProfile: resolvedRuntimeProfile,

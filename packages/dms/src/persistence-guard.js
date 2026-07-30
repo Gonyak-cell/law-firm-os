@@ -51,6 +51,22 @@ const DMS_RECORD_FIELDS = Object.freeze({
   DmsSearchIndex: fields("index_id", "document_id", "version_id", "title", "extracted_text_ref", "ocr_result_ref", "privilege_label_id", "indexed_fields", "body_text_indexed", "body_character_count", "ocr_text_indexed", "ocr_character_count", "ocr_runtime_executed", "ocr_provider", "indexed_at", "extractor", "ocr_extractor", "search_backend", "body_searchable_text", "ocr_searchable_text", "searchable_text", "raw_text_included", "storage_pointer_ref_included"),
   DmsRagEvidence: fields("ledger_id", "document_id", "sources", "citation_source_validation"),
   VaultSearchPreferences: fields("owner_user_id", "recent", "saved", "retention_days", "result_payloads_persisted"),
+  M365Connection: fields(
+    "m365_connection_id",
+    "user_id",
+    "entra_subject_id",
+    "mailbox_address_hash",
+    "credential_ref",
+    "granted_scopes",
+    "consented_at",
+    "expires_at",
+    "revoked_at",
+    "state_version",
+    "connection_authority",
+    "mailbox_scope",
+    "credential_material_included",
+    "production_ready_claim",
+  ),
 });
 
 function rejection(path) {
