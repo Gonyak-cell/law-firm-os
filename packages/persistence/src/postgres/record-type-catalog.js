@@ -1,5 +1,8 @@
 import { createHash } from "node:crypto";
 import { DOMAIN_IDS } from "../domain-ledger.js";
+import {
+  isSafeCredentialPersistenceField,
+} from "../credential-reference.js";
 
 export const JSON_POSTGRES_RECORD_TYPE_CATALOG_VERSION = "law-firm-os.json-postgres-record-type-catalog.v1";
 export const JSON_POSTGRES_RECORD_DESTINATIONS = Object.freeze([
@@ -31,7 +34,6 @@ const DOMAIN_ID_SET = new Set(DOMAIN_IDS);
 const DESTINATION_SET = new Set(JSON_POSTGRES_RECORD_DESTINATIONS);
 const ENTITY_KIND_SET = new Set(JSON_POSTGRES_ENTITY_KINDS);
 const FORBIDDEN_FIELD = /(^|_)(?:password|password_hash|passwd|passphrase|secret|token|credential|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
-const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
 const SAFE_NAME = /^[A-Za-z0-9_.:-]{1,128}$/u;
 
 function stableJson(value) {
@@ -71,7 +73,10 @@ function inspectShape(value, path = "$", depth = 0, fields = new Map()) {
   }
   if (type !== "object") return fields;
   for (const [key, item] of Object.entries(value)) {
-    if (FORBIDDEN_FIELD.test(key) && !SAFE_CREDENTIAL_METADATA.has(key)) {
+    if (
+      FORBIDDEN_FIELD.test(key)
+      && !isSafeCredentialPersistenceField(key, item)
+    ) {
       throw new TypeError(`${path}.${key} contains a forbidden secret or raw-byte field`);
     }
     inspectShape(item, `${path}.${key}`, depth + 1, fields);
@@ -107,7 +112,11 @@ function inferredEntityKind(domainId, recordType) {
   if (domainId === "master-data" && /party|entity/u.test(type)) return "party";
   if (domainId === "matter" && type === "matterclient") return "client";
   if (domainId === "matter" && type === "matter") return "matter";
-  if (domainId === "dms" || domainId === "dms-auxiliary") return "dms-object";
+  if (
+    domainId === "dms"
+    || domainId === "dms-auxiliary"
+    || domainId === "email-dms"
+  ) return "dms-object";
   if (domainId === "finance") return "finance";
   if (domainId === "client-portal") return "portal";
   return "other";

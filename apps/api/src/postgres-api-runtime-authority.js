@@ -15,6 +15,12 @@ import {
   DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
   createDmsAuxiliaryRepository,
 } from "../../../packages/dms/src/central-ledger.js";
+import {
+  EMAIL_DMS_DOMAIN_DESCRIPTOR,
+} from "../../../packages/email-dms/src/central-ledger.js";
+import {
+  createEmailDmsRepository,
+} from "../../../packages/email-dms/src/repository.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { CRM_DOMAIN_DESCRIPTOR } from "../../../packages/crm/src/central-ledger.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
@@ -56,6 +62,7 @@ const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
   Object.freeze({ key: "matterRepository", descriptor: MATTER_DOMAIN_DESCRIPTOR, create_repository: createMatterRepository }),
   Object.freeze({ key: "dmsRepository", descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR, create_repository: createDmsAuxiliaryRepository }),
+  Object.freeze({ key: "emailDmsRepository", descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR, create_repository: createEmailDmsRepository }),
   Object.freeze({ key: "crmRepository", descriptor: CRM_DOMAIN_DESCRIPTOR, create_repository: createCrmRuntimeRepository }),
   Object.freeze({ key: "intakeRepository", descriptor: INTAKE_DOMAIN_DESCRIPTOR, create_repository: createIntakeRuntimeRepository }),
   Object.freeze({ key: "financeRepository", descriptor: FINANCE_DOMAIN_DESCRIPTOR, create_repository: createFinanceRepository }),
@@ -183,6 +190,13 @@ function createRequestRuntimes({
     authority: "postgres-v2",
     upload_runtime: dmsUploadRuntime,
   });
+  const emailDmsRuntime = Object.freeze({
+    authority: "postgres-v2",
+    repository: repositories.emailDmsRepository,
+    storage: dmsStorage,
+    upload_runtime: dmsUploadRuntime,
+    production_ready_claim: false,
+  });
   const crmIntakeRuntime = createCrmIntakeRuntimeContext({
     crmRepository: repositories.crmRepository,
     intakeRepository: repositories.intakeRepository,
@@ -230,6 +244,7 @@ function createRequestRuntimes({
     masterDataRuntime,
     matterRuntime,
     dmsRuntime,
+    emailDmsRuntime,
     crmIntakeRuntime,
     financeRuntime,
     analyticsRuntime,

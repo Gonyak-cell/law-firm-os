@@ -13,6 +13,7 @@ export const DOMAIN_IDS = Object.freeze([
   "ai-governance",
   "dms",
   "dms-auxiliary",
+  "email-dms",
   "analytics",
   "ui-readiness",
   "enterprise-readiness",

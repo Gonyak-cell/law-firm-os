@@ -28,8 +28,9 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/followups",
     "POST /api/outlook/smart-alerts/evaluate",
   ]),
-  data_source: "matter_runtime_repository+dms_runtime_repository",
-  runtime_persistence: "file_backed_repositories",
+  data_source:
+    "matter_runtime_repository+dms_runtime_repository+email_dms_runtime_repository",
+  runtime_persistence: "file_or_postgres_domain_repositories",
   runtime_write_ready: true,
   m365_provider_runtime_enabled: false,
   entra_admin_consent_receipt_required: true,
@@ -225,7 +226,7 @@ function m365RouteGate({
 
 function m365Service(runtime) {
   return createM365GraphConnectionService({
-    repository: runtime?.dmsRuntime?.repository,
+    repository: runtime?.emailDmsRuntime?.repository,
     ...(runtime?.m365GraphConfig ?? {}),
   });
 }

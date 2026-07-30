@@ -104,7 +104,27 @@ test("PostgreSQL API authority completes the concurrent audited browser read set
     bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
   });
+  assert.equal(authority.domain_ids.includes("email-dms"), true);
   await importHrxAuthorityBaseline(ledger, TENANT_A);
+  const emailDmsBoundary = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: { method: "GET" },
+    command: (runtimes) => ({
+      authority: runtimes.emailDmsRuntime.authority,
+      repository_authority:
+        runtimes.emailDmsRuntime.repository.authority,
+      storage_shared_with_dms:
+        runtimes.emailDmsRuntime.storage === runtimes.dmsRuntime.storage,
+      production_ready_claim:
+        runtimes.emailDmsRuntime.production_ready_claim,
+    }),
+  });
+  assert.deepEqual(emailDmsBoundary, {
+    authority: "postgres-v2",
+    repository_authority: "email-dms",
+    storage_shared_with_dms: true,
+    production_ready_claim: false,
+  });
   const context = Object.freeze({
     principal: Object.freeze({ tenant_id: TENANT_A, user_id: "user_home_concurrency_test" }),
     rules: Object.freeze([{ id: "allow-home-read", effect: "allow", action: "*" }]),

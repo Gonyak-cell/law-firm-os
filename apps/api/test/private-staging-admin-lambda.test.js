@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
+import { DOMAIN_IDS } from "../../../packages/persistence/src/domain-ledger.js";
 import {
   PRIVATE_STAGING_BOOTSTRAP_ACTION,
   PRIVATE_STAGING_CUT005_ACTION,
@@ -303,8 +304,8 @@ test("private staging CUT-005 uses the ready application secret and returns safe
     verifyMigrations: async () => [{ id: "001" }],
     runCut005: async ({ tenantIds, runId }) => ({
       outcome: "PASS",
-      domain_count: 13,
-      immediate_replay_noop_count: 13,
+      domain_count: DOMAIN_IDS.length,
+      immediate_replay_noop_count: DOMAIN_IDS.length,
       tenant_negative_visible_count: 0,
       rejected_row_count: 0,
       json_fallback_count: 0,
@@ -321,7 +322,7 @@ test("private staging CUT-005 uses the ready application secret and returns safe
   assert.equal(result.approval_id, CUT005_APPROVAL_ID);
   assert.equal(result.tenant_count, 2);
   assert.equal(result.run_id, PRIVATE_STAGING_CUT005_CORPUS_RUN_ID);
-  assert.equal(result.immediate_replay_noop_count, 13);
+  assert.equal(result.immediate_replay_noop_count, DOMAIN_IDS.length);
   assert.equal(result.dual_write_count, 0);
   assert.equal(result.secret_material_returned, false);
   assert.equal(JSON.stringify(result).includes("application-test-password"), false);
@@ -364,7 +365,7 @@ test("private staging CUT-006 binds deployed configuration, cold start, artifact
       received = input;
       return {
         outcome: "PASS",
-        domain_count: 13,
+        domain_count: DOMAIN_IDS.length,
         json_fallback_count: 0,
         json_writer_count: 0,
         dual_write_count: 0,

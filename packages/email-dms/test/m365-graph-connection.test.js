@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createDmsRepository } from "../../dms/src/repository.js";
+import { createEmailDmsRepository } from "../src/repository.js";
 import {
   M365_GRAPH_REQUIRED_SCOPES,
   hashMailboxAddress,
@@ -170,10 +170,24 @@ test("M365Connection은 delegated 본인 메일함과 보안 저장소 참조만
     }),
     /must be me/,
   );
+  assert.throws(
+    () => normalizeM365Connection({
+      ...connection(),
+      credential_ref: "opaque-but-not-an-approved-secret-store",
+    }),
+    /AWS Secrets Manager reference/,
+  );
+  assert.throws(
+    () => normalizeM365Connection({
+      ...connection(),
+      credential_ref: "aws-secrets-manager:invalid secret id",
+    }),
+    /AWS Secrets Manager reference/,
+  );
 });
 
 test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사용하고 token을 저장하지 않는다", async () => {
-  const repository = createDmsRepository();
+  const repository = createEmailDmsRepository();
   const dependencies = fakeDependencies();
   const disabled = createM365GraphConnectionService({
     repository,
@@ -319,7 +333,7 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
 });
 
 test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 해제 상태로 남기고 안전한 오류를 반환한다", async () => {
-  const repository = createDmsRepository({
+  const repository = createEmailDmsRepository({
     seedRecords: [connection()],
   });
   const dependencies = fakeDependencies();
@@ -379,7 +393,7 @@ test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 �
 
 test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 provider 호출을 막는다", async () => {
   const dependencies = fakeDependencies();
-  const expiredRepository = createDmsRepository({
+  const expiredRepository = createEmailDmsRepository({
     seedRecords: [connection({
       consented_at: "2026-07-01T00:00:00.000Z",
       expires_at: "2026-07-30T05:59:59.000Z",
@@ -409,7 +423,7 @@ test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 p
   );
   assert.equal(dependencies.calls.includes("provider:mail:/me"), false);
 
-  const scopeRepository = createDmsRepository({
+  const scopeRepository = createEmailDmsRepository({
     seedRecords: [connection({
       granted_scopes: ["Calendars.ReadWrite", "offline_access"],
     })],
@@ -441,7 +455,7 @@ test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 p
 });
 
 test("CL-P3-W00-T01 잘못된 provider 응답은 credential 저장 전에 차단한다", async () => {
-  const repository = createDmsRepository();
+  const repository = createEmailDmsRepository();
   const dependencies = fakeDependencies();
   dependencies.provider.completeDelegatedAuthorization = async () => ({
     authorization_attempt_consumed: true,

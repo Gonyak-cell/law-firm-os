@@ -35,6 +35,7 @@ const KNOWN_STORE_NAMES = new Set([
   "master-data-store.json",
   "matter-store.json",
   "dms-store.json",
+  "email-dms-store.json",
   "crm-store.json",
   "intake-store.json",
   "crm-master-data-store.json",

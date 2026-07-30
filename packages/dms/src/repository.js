@@ -24,7 +24,6 @@ export const DMS_PRIMARY_ID_FIELDS = Object.freeze({
   DmsSearchIndex: "index_id",
   DmsRagEvidence: "ledger_id",
   VaultSearchPreferences: "resource_id",
-  M365Connection: "m365_connection_id",
 });
 
 function clone(value) {

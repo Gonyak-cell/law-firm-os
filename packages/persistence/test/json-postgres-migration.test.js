@@ -22,6 +22,7 @@ const ORDERED_DOMAINS = [
   "matter",
   "dms",
   "dms-auxiliary",
+  "email-dms",
   "finance",
   "client-portal",
   "ai-governance",
@@ -341,6 +342,48 @@ test("approved real accounts retain registered email and status but import no le
   assert.equal(rejected.directory.rejected_count, 1);
   assert.equal(rejected.rejected_reason_counts.FORBIDDEN_SECRET_OR_RAW_BYTES, 1);
   assert.equal(JSON.stringify(rejected).includes("legacy-hash-must-not-migrate"), false);
+});
+
+test("credential_ref migration accepts only an opaque AWS Secrets Manager reference", () => {
+  const source = syntheticCorpus();
+  source.domains.find(
+    (domain) => domain.domain_id === "matter",
+  ).records = source.domains.find(
+    (domain) => domain.domain_id === "matter",
+  ).records.filter(
+    (record) => record.record_type !== "RejectedSyntheticMatter",
+  );
+  const emailDms = source.domains.find(
+    (domain) => domain.domain_id === "email-dms",
+  );
+  emailDms.records[0].payload.credential_ref =
+    "aws-secrets-manager:lawos/test/m365/migration-safe-reference";
+  const accepted = prepareJsonPostgresMigrationCorpus(source);
+  assert.equal(
+    accepted.domains.find(
+      (domain) => domain.domain_id === "email-dms",
+    ).records[0].payload.credential_ref,
+    "aws-secrets-manager:lawos/test/m365/migration-safe-reference",
+  );
+
+  emailDms.records[0].payload.credential_ref =
+    "synthetic-token-disguised-as-reference";
+  const rejected = prepareJsonPostgresMigrationCorpus(source);
+  assert.equal(
+    rejected.domains.find(
+      (domain) => domain.domain_id === "email-dms",
+    ).records.length,
+    0,
+  );
+  assert.equal(
+    rejected.rejected.some(
+      (row) => (
+        row.domain_id === "email-dms"
+        && row.reason_code === "FORBIDDEN_SECRET_OR_RAW_BYTES"
+      ),
+    ),
+    true,
+  );
 });
 
 test("missing-reference rejection cascades and duplicate domain rows are rejected deterministically", async () => {

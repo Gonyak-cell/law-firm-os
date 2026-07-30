@@ -8,7 +8,7 @@ import http from "node:http";
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
@@ -18,6 +18,7 @@ import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../p
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
+import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
@@ -272,6 +273,13 @@ function createEphemeralDmsStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-dms-runtime-")), "dms-store.json");
 }
 
+function createEphemeralEmailDmsStorePath() {
+  return join(
+    mkdtempSync(join(tmpdir(), "lawos-email-dms-runtime-")),
+    "email-dms-store.json",
+  );
+}
+
 function createEphemeralCrmStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-crm-runtime-")), "crm-store.json");
 }
@@ -381,6 +389,23 @@ export function createDefaultDmsRuntime({
       rootPath: storageRootPath || `${resolvedStorePath}.objects`,
     });
   return createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
+}
+
+export function createDefaultEmailDmsRuntime({
+  repository,
+  storePath = process.env.LAWOS_EMAIL_DMS_STORE_PATH,
+  dmsRuntime = null,
+} = {}) {
+  const emailDmsRepository = repository ?? createEmailDmsRepository({
+    filePath: storePath || createEphemeralEmailDmsStorePath(),
+  });
+  return Object.freeze({
+    authority: "email-dms",
+    repository: emailDmsRepository,
+    storage: dmsRuntime?.storage ?? null,
+    upload_runtime: dmsRuntime?.upload_runtime ?? null,
+    production_ready_claim: false,
+  });
 }
 
 export function createDefaultCrmIntakeRuntime({
@@ -1165,7 +1190,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1643,7 +1668,12 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       body,
       context,
       requestId,
-      runtime: { matterRuntime, dmsRuntime, m365GraphConfig },
+      runtime: {
+        matterRuntime,
+        dmsRuntime,
+        emailDmsRuntime,
+        m365GraphConfig,
+      },
     });
     sendJson(req, res, result.status, result.body);
     return;
@@ -1698,6 +1728,7 @@ export function createApiServer({
   masterDataRuntime = createDefaultMasterDataRuntime(),
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
+  emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
   financeRuntime = createDefaultFinanceRuntime({
     masterDataRepository: masterDataRuntime?.repository,
@@ -1742,6 +1773,8 @@ export function createApiServer({
           masterDataRuntime: requestRuntimes.masterDataRuntime ?? masterDataRuntime,
           matterRuntime: matterRuntimeWithClearanceLedger,
           dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
+          emailDmsRuntime:
+            requestRuntimes.emailDmsRuntime ?? emailDmsRuntime,
           crmIntakeRuntime: resolvedCrmIntakeRuntime,
           financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
           financeRuntimeUnavailable,
@@ -1843,6 +1876,8 @@ export async function startApiServer({
   dmsRuntime,
   dmsRepository,
   dmsStorage,
+  emailDmsRuntime,
+  emailDmsRepository,
   dmsVerifyPermanentDeleteApproval,
   payrollArtifactSecret,
   payrollSecretsClient,
@@ -2003,6 +2038,7 @@ export async function startApiServer({
         masterDataRuntime: null,
         matterRuntime: null,
         dmsRuntime: null,
+        emailDmsRuntime: null,
         crmIntakeRuntime: null,
         financeRuntime: null,
         analyticsRuntime: null,
@@ -2011,6 +2047,7 @@ export async function startApiServer({
         uiReadinessRuntime: null,
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
+        m365GraphConfig,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
         requestRuntimeAuthority,
@@ -2096,6 +2133,18 @@ export async function startApiServer({
       repository: dmsRepository,
       storePath: dmsStorePath ?? resolvedStorePaths.dmsStorePath,
       storageRootPath: dmsObjectStorePath ?? resolvedStorePaths.dmsObjectStorePath,
+    });
+  const resolvedDmsMetadataStorePath =
+    dmsStorePath ?? resolvedStorePaths.dmsStorePath;
+  const resolvedEmailDmsStorePath = resolvedDmsMetadataStorePath
+    ? join(dirname(resolvedDmsMetadataStorePath), "email-dms-store.json")
+    : undefined;
+  const emailDmsRuntimeContext =
+    emailDmsRuntime
+    ?? createDefaultEmailDmsRuntime({
+      repository: emailDmsRepository,
+      storePath: resolvedEmailDmsStorePath,
+      dmsRuntime: dmsRuntimeContext,
     });
   const resolvedMatterRepository =
     matterRuntime?.repository ??
@@ -2204,6 +2253,7 @@ export async function startApiServer({
     masterDataRuntime: masterRuntime,
     matterRuntime: matterRuntimeContext,
     dmsRuntime: dmsRuntimeContext,
+    emailDmsRuntime: emailDmsRuntimeContext,
     crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
     financeRuntimeUnavailable,

@@ -76,9 +76,6 @@ function references(record) {
 }
 
 function uniqueKey(record) {
-  if (record.model_type === "M365Connection" && record.user_id) {
-    return `m365-user:${record.user_id}`;
-  }
   if (record.model_type === "DmsWorkspace" && record.status === "active" && record.matter_id) {
     return `active-workspace:${record.matter_id}`;
   }
@@ -104,14 +101,12 @@ export const DMS_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "extracted_text",
     "ocr_text",
     "registered_account_email",
-    "mailbox_address_hash",
   ],
   primary_key_fields: [...Object.values(DMS_PRIMARY_ID_FIELDS), "resource_id"],
   unique_rules: [
     "DmsWorkspace.active_per_matter",
     "DmsDocumentVersion.document_id+version_number",
     "DmsFileObject.storage_pointer_ref_hash",
-    "M365Connection.user_id",
   ],
   reference_rules: [
     "*.matter_id->matter.Matter",

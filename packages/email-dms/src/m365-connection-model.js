@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import {
+  isOpaqueCredentialReference,
+} from "../../persistence/src/credential-reference.js";
 
 export const M365_GRAPH_ALLOWED_SCOPES = Object.freeze([
   "Calendars.ReadWrite",
@@ -50,12 +53,10 @@ function positiveInteger(value, field) {
 
 function credentialReference(value) {
   const reference = requiredString({ credential_ref: value }, "credential_ref");
-  if (
-    reference.length > 512
-    || !/^[A-Za-z0-9._:/#@+=-]+$/u.test(reference)
-    || /^eyJ[A-Za-z0-9_-]*\./u.test(reference)
-  ) {
-    throw new TypeError("credential_ref must be an opaque secret-store reference");
+  if (!isOpaqueCredentialReference(reference)) {
+    throw new TypeError(
+      "credential_ref must be an opaque AWS Secrets Manager reference",
+    );
   }
   return reference;
 }

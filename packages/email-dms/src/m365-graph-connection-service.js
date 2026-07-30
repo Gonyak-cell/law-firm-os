@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   M365_GRAPH_REQUIRED_SCOPES,
   hashMailboxAddress,
@@ -42,6 +43,15 @@ function requiredString(input, field) {
   return value.trim();
 }
 
+function requiredInstant(input, field) {
+  const value = requiredString(input, field);
+  const milliseconds = Date.parse(value);
+  if (!Number.isFinite(milliseconds)) {
+    throw new TypeError(`${field} must be a valid instant`);
+  }
+  return new Date(milliseconds).toISOString();
+}
+
 function commandError(code, message, status = 409) {
   return Object.assign(new Error(message), {
     safe_error_code: code,
@@ -70,11 +80,26 @@ function timestamp(clock) {
 }
 
 function assertRepository(repository) {
-  for (const method of ["create", "update", "get", "list"]) {
+  for (const method of [
+    "create",
+    "update",
+    "get",
+    "list",
+    "recordIdempotency",
+    "getIdempotency",
+    "appendAudit",
+    "transaction",
+  ]) {
     if (typeof repository?.[method] !== "function") {
       throw new TypeError("M365 connection repository is required");
     }
   }
+}
+
+function operationKey(prefix, value) {
+  return `${prefix}:${createHash("sha256")
+    .update(requiredString({ value }, "value"))
+    .digest("hex")}`;
 }
 
 function assertEntraPrincipal(input = {}) {
@@ -324,13 +349,18 @@ function validateAuthorizationResult(result, principal) {
       403,
     ), { missing_scopes: Object.freeze(missingScopes) });
   }
+  const consentedAt = requiredInstant(result, "consented_at");
+  const expiresAt = requiredInstant(result, "expires_at");
+  if (Date.parse(expiresAt) <= Date.parse(consentedAt)) {
+    throw new TypeError("expires_at must be after consented_at");
+  }
   return Object.freeze({
     entra_subject_id: subjectId,
     mailbox_address_hash: hashMailboxAddress(result.mailbox_address),
     token_bundle: result.token_bundle,
     granted_scopes: Object.freeze(grantedScopes),
-    consented_at: requiredString(result, "consented_at"),
-    expires_at: requiredString(result, "expires_at"),
+    consented_at: consentedAt,
+    expires_at: expiresAt,
   });
 }
 
@@ -466,6 +496,32 @@ export function createM365GraphConnectionService({
         503,
       );
     }
+    const idempotencyKey = operationKey(
+      "m365-connect",
+      requiredString(input, "state"),
+    );
+    const replay = repository.getIdempotency({
+      tenant_id: principal.tenant_id,
+      idempotency_key: idempotencyKey,
+    });
+    if (replay) {
+      const replayedConnection = findConnection(repository, principal);
+      if (!replayedConnection) {
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.provider_invalid,
+          "Microsoft connection replay record is incomplete",
+        );
+      }
+      assertSubject(replayedConnection, principal);
+      return Object.freeze({
+        outcome: replay.response?.outcome ?? "connected",
+        connection: presentConnection(replayedConnection, { clock }),
+        release_readiness: readiness,
+        credential_material_included: false,
+        production_ready_claim: false,
+        replayed: true,
+      });
+    }
     const current = findConnection(repository, principal);
     if (current) assertSubject(current, principal);
     const providerResult = await provider.completeDelegatedAuthorization({
@@ -483,17 +539,16 @@ export function createM365GraphConnectionService({
       principal,
     );
     const nextStateVersion = (current?.state_version ?? 0) + 1;
-    const draft = normalizeM365Connection({
+    const draft = {
       m365_connection_id: m365ConnectionId(principal),
       ...principal,
       mailbox_address_hash: authorization.mailbox_address_hash,
-      credential_ref: "pending:m365-delegated-credential",
       granted_scopes: authorization.granted_scopes,
       consented_at: authorization.consented_at,
       expires_at: authorization.expires_at,
       revoked_at: null,
       state_version: nextStateVersion,
-    });
+    };
     const credentialRef = await credential_vault.storeDelegatedCredential({
       tenant_id: principal.tenant_id,
       user_id: principal.user_id,
@@ -521,6 +576,18 @@ export function createM365GraphConnectionService({
               previous_connection_present: Boolean(current),
               token_replaced_in_vault: Boolean(current),
             },
+          });
+          tx.recordIdempotency({
+            tenant_id: principal.tenant_id,
+            idempotency_key: idempotencyKey,
+            operation: "m365.connection.connect",
+            response: {
+              outcome: current ? "reconnected" : "connected",
+              m365_connection_id: saved.m365_connection_id,
+              state_version: saved.state_version,
+              credential_material_included: false,
+            },
+            created_at: occurredAt,
           });
           return saved;
         })
@@ -626,6 +693,19 @@ export function createM365GraphConnectionService({
             provider_revoked_first: true,
             credential_reference_deleted: credentialDeleteError === null,
           },
+        });
+        tx.recordIdempotency({
+          tenant_id: principal.tenant_id,
+          idempotency_key:
+            `m365-revoke:${saved.m365_connection_id}:${current.state_version}`,
+          operation: "m365.connection.revoke",
+          response: {
+            outcome: "disconnected",
+            m365_connection_id: saved.m365_connection_id,
+            state_version: saved.state_version,
+            credential_reference_deleted: credentialDeleteError === null,
+          },
+          created_at: occurredAt,
         });
         return saved;
       })

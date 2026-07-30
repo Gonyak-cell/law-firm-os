@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createDmsRepository } from "../../../packages/dms/src/repository.js";
+import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { M365_GRAPH_REQUIRED_SCOPES } from "../../../packages/email-dms/src/m365-connection-model.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 
@@ -35,8 +35,12 @@ function permissionContext({ allowed = true, subject = SUBJECT } = {}) {
 function graphConfig() {
   const credentials = new Map();
   const calls = [];
+  let completionCount = 0;
   return {
     calls,
+    get completion_count() {
+      return completionCount;
+    },
     config: {
       feature_enabled: true,
       provider_runtime_enabled: true,
@@ -69,6 +73,7 @@ function graphConfig() {
           };
         },
         async completeDelegatedAuthorization() {
+          completionCount += 1;
           return {
             authorization_attempt_consumed: true,
             entra_subject_id: SUBJECT,
@@ -111,10 +116,10 @@ async function request({
 }
 
 test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·provider 우선 해제를 안전하게 처리한다", async () => {
-  const repository = createDmsRepository();
+  const repository = createEmailDmsRepository();
   const graph = graphConfig();
   const runtime = {
-    dmsRuntime: { repository },
+    emailDmsRuntime: { repository },
     m365GraphConfig: graph.config,
   };
 
@@ -157,6 +162,21 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(callbackText.includes("api-test-refresh-token"), false);
   assert.equal(callbackText.includes("credential_ref"), false);
 
+  const callbackReplay = await request({
+    pathname: "/api/outlook/connection/callback",
+    method: "GET",
+    query: {
+      tenant_id: TENANT,
+      code: "api-test-code-must-not-be-reused",
+      state: "api-test-state",
+      redirect_uri: REDIRECT_URI,
+    },
+    runtime,
+  });
+  assert.equal(callbackReplay.status, 200);
+  assert.equal(callbackReplay.body.item.replayed, true);
+  assert.equal(graph.completion_count, 1);
+
   const connected = await request({
     pathname: "/api/outlook/connection",
     method: "GET",
@@ -189,7 +209,7 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
 
 test("CL-P3-W00-T01 Outlook 연결 API는 권한·tenant·Entra subject 누락을 fail-closed로 처리한다", async () => {
   const runtime = {
-    dmsRuntime: { repository: createDmsRepository() },
+    emailDmsRuntime: { repository: createEmailDmsRepository() },
     m365GraphConfig: graphConfig().config,
   };
   const denied = await request({

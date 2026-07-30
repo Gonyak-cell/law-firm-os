@@ -10,6 +10,9 @@ import {
   requireDomainId,
 } from "../domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../runtime-auth/src/postgres-identity-ledger.js";
+import {
+  isSafeCredentialPersistenceField,
+} from "../credential-reference.js";
 import { createPostgresDomainLedger } from "./domain-ledger.js";
 import { validateMigrationCorpusAgainstRecordTypeCatalog } from "./record-type-catalog.js";
 
@@ -33,6 +36,7 @@ const DOMAIN_ORDER = new Map([
   "matter",
   "dms",
   "dms-auxiliary",
+  "email-dms",
   "finance",
   "client-portal",
   "ai-governance",
@@ -41,7 +45,6 @@ const DOMAIN_ORDER = new Map([
   "enterprise-readiness",
 ].map((domainId, index) => [domainId, index]));
 const FORBIDDEN_SOURCE_KEY = /(^|_)(password|password_hash|secret|token|credential|authorization|api_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
-const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
 
 function elapsedMilliseconds(startedAt) {
   return Math.max(1, Math.ceil(performance.now() - startedAt));
@@ -76,7 +79,10 @@ function assertNoCredentialOrRawBytes(value, path = "source") {
   }
   if (!value || typeof value !== "object") return;
   for (const [key, item] of Object.entries(value)) {
-    if (FORBIDDEN_SOURCE_KEY.test(key) && !SAFE_CREDENTIAL_METADATA.has(key)) {
+    if (
+      FORBIDDEN_SOURCE_KEY.test(key)
+      && !isSafeCredentialPersistenceField(key, item)
+    ) {
       throw new TypeError(`${path} contains forbidden secret or raw-byte field`);
     }
     assertNoCredentialOrRawBytes(item, `${path}.${key}`);
