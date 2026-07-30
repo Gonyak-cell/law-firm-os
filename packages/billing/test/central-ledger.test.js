@@ -14,6 +14,7 @@ import { createRateCard } from "../../time-expense/src/rate-card-service.js";
 import { generateWipFromApprovedItems, lockWipSnapshot } from "../src/wip-service.js";
 import { approvePreBillWithoutAdjustment, createPreBill } from "../src/prebill-service.js";
 import { createInvoiceFromPreBill } from "../src/invoice-service.js";
+import { normalizeFeeCommitment } from "../src/fee-commitment-model.js";
 import { importPayment } from "../../payments/src/payment-service.js";
 import { matchPaymentToInvoice } from "../../payments/src/matching-service.js";
 import { computeArBalance } from "../../payments/src/ar-service.js";
@@ -189,6 +190,23 @@ function buildFinanceSource() {
     actor_id: ACTOR,
     idempotency_key: "journal-rs-dom-finance",
   });
+  repository.create(normalizeFeeCommitment({
+    fee_commitment_id: "fee-commitment-rs-dom-finance",
+    tenant_id: TENANT,
+    client_group_id: "client-rs-dom-finance",
+    opportunity_id: "opportunity-rs-dom-finance",
+    matter_id: MATTER,
+    currency: "KRW",
+    agreed_amount: 12000000,
+    due_date: "2026-08-15",
+    accepted_at: "2026-07-16T00:00:00.000Z",
+    status: "active",
+    source_fee_arrangement_id: null,
+    state_version: 1,
+    created_by: ACTOR,
+    updated_by: ACTOR,
+    reason: "synthetic_fee_commitment_schema_rehearsal",
+  }));
   return repository;
 }
 
@@ -215,6 +233,7 @@ test("Finance inventory classifies mutable documents and append-only ledgers and
     assert.equal(result.inventory.reconciliation.payment_match_count, 1);
     assert.equal(result.inventory.reconciliation.journal_entry_count, 1);
     assert.equal(result.inventory.reconciliation.trust_ledger_entry_count, 2);
+    assert.equal(result.inventory.reconciliation.fee_commitment_count, 1);
     assert.match(result.inventory.reconciliation.invariant_hash, /^[a-f0-9]{64}$/u);
 
     const brokenWip = result.snapshot.records.map((record) => structuredClone(record.payload));
@@ -247,6 +266,15 @@ test("Finance PostgreSQL import, async API command, append-only guard, shadow, a
   assert.equal(imported.receipt.rejected_count, 0);
   const secondImport = await ledger.importSnapshot(source.snapshot);
   assert.equal(secondImport.replayed, true);
+  const persistedFeeCommitment = await ledger.read({
+    tenant_id: TENANT,
+    domain_id: FINANCE_DOMAIN_DESCRIPTOR.domain_id,
+    record_type: "FeeCommitment",
+    record_id: "fee-commitment-rs-dom-finance",
+  });
+  assert.equal(persistedFeeCommitment.payload.client_group_id, "client-rs-dom-finance");
+  assert.equal(persistedFeeCommitment.payload.agreed_amount, 12000000);
+  assert.equal(persistedFeeCommitment.append_only, false);
   const shadow = await ledger.compareSnapshot(source.snapshot);
   assert.equal(shadow.comparison.equal, true);
   const rehearsal = await ledger.recordRehearsal({

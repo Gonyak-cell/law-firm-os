@@ -5,6 +5,7 @@ import {
   runRecordRepositoryDomainCommand,
 } from "../../persistence/src/record-domain-adapter.js";
 import { createFinanceRepository, FINANCE_PRIMARY_ID_FIELDS } from "./finance-repository.js";
+import { normalizeFeeCommitment } from "./fee-commitment-model.js";
 
 export const FINANCE_APPEND_ONLY_RECORD_TYPES = Object.freeze([
   "ARAgingSnapshot",
@@ -38,6 +39,7 @@ const MONEY_FIELDS = Object.freeze({
   Disbursement: ["amount"],
   Expense: ["amount"],
   FeeArrangement: ["fixed_fee_amount", "upfront_fee_amount", "success_fee_amount", "retainer_amount", "retainer_available_amount"],
+  FeeCommitment: ["agreed_amount"],
   Invoice: ["amount_due", "amount_paid", "standard_amount", "retainer_drawdown_total", "trust_drawdown_amount"],
   InvoiceCorrection: ["corrected_amount_due"],
   InvoiceLine: ["amount", "standard_amount", "retainer_drawdown_amount"],
@@ -69,7 +71,10 @@ function references(record) {
   };
   add("matter", "Matter", record.matter_id, { target_domain_id: "matter" });
   add("billing_client_party", "Party", record.billing_client_party_id, { target_domain_id: "master-data" });
-  add("client_group", "ClientGroup", record.client_group_id, { target_domain_id: "master-data" });
+  add("client_group", "ClientGroup", record.client_group_id, {
+    target_domain_id: "master-data",
+    required: record.model_type === "FeeCommitment",
+  });
   add("receipt_document", "Document", record.receipt_document_id, { target_domain_id: "dms" });
   add("employee", "Employee", record.employee_id, { target_domain_id: "hrx" });
 
@@ -112,6 +117,15 @@ function references(record) {
     add("bank_transaction", "BankTransaction", record.bank_transaction_id, { required: true });
     add("refund_origin_bank_transaction", "BankTransaction", record.refund_of_bank_transaction_id, {
       required: record.category === "refund_reversal",
+    });
+  }
+  if (record.model_type === "FeeCommitment") {
+    add("opportunity", "Opportunity", record.opportunity_id, {
+      target_domain_id: "crm",
+      required: true,
+    });
+    add("source_fee_arrangement", "FeeArrangement", record.source_fee_arrangement_id, {
+      required: true,
     });
   }
   return values;
@@ -162,6 +176,7 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "csv_text",
     "counterparty",
     "memo",
+    "reason",
     "source_refs",
   ],
   primary_key_fields: Object.values(FINANCE_PRIMARY_ID_FIELDS),
@@ -186,6 +201,9 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "BankTransaction.bank_import_batch_id->BankImportBatch",
     "BankTransactionClassification.bank_transaction_id->BankTransaction",
     "BankTransactionClassification.refund_of_bank_transaction_id->BankTransaction",
+    "FeeCommitment.client_group_id->master-data.ClientGroup",
+    "FeeCommitment.opportunity_id->crm.Opportunity",
+    "FeeCommitment.source_fee_arrangement_id->FeeArrangement",
     "*.matter_id->matter.Matter",
     "*.billing_client_party_id->master-data.Party",
   ],
@@ -227,6 +245,7 @@ export function reconcileFinanceRecords(records = []) {
   let currencyMismatchCount = 0;
   let timeMinutes = 0;
   for (const record of values) {
+    if (record.model_type === "FeeCommitment") normalizeFeeCommitment(record);
     if (record.currency && record.currency !== "KRW") currencyMismatchCount += 1;
     for (const field of MONEY_FIELDS[record.model_type] ?? []) {
       if (record[field] === undefined || record[field] === null) continue;
@@ -306,6 +325,7 @@ export function reconcileFinanceRecords(records = []) {
     payment_match_count: recordsOf(values, "PaymentMatch").length,
     journal_entry_count: recordsOf(values, "JournalEntry").length,
     trust_ledger_entry_count: trustEntries.length,
+    fee_commitment_count: recordsOf(values, "FeeCommitment").length,
     currency_mismatch_count: 0,
     invariant_passed: true,
   };
