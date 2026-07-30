@@ -25,6 +25,11 @@ test("G3-A Lead requires a Party reference and stays synthetic-only", () => {
     display_name: "AMIC G3 Lead",
     status: "active",
     owner_user_id,
+    inquiry_status: "new",
+    source: "manual",
+    received_at: "2026-07-30T00:00:00.000Z",
+    next_action: "문의 확인",
+    version: 1,
   });
 
   assert.equal(lead.party_id, party_id);
@@ -192,6 +197,11 @@ test("G3-A record factory exposes all CRM schema models", () => {
     display_name: "AMIC G3 Factory Lead",
     status: "active",
     owner_user_id,
+    inquiry_status: "new",
+    source: "manual",
+    received_at: "2026-07-30T00:00:00.000Z",
+    next_action: "문의 확인",
+    version: 1,
   });
 
   assert.equal(record.model_type, "Lead");

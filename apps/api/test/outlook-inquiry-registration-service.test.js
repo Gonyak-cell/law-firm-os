@@ -184,6 +184,17 @@ test("VC-CL-INQ-002,003 새 문의를 Party·Lead·원본 증거 각 한 번만 
   });
   assert.equal(evidence.lead_id, first.lead_id);
   assert.equal(evidence.capture_status, "complete");
+  const lead = value.crmRepository.get({
+    tenant_id: TENANT,
+    model_type: "Lead",
+    lead_id: first.lead_id,
+  });
+  assert.equal(lead.inquiry_status, "new");
+  assert.equal(lead.source, "outlook_addin");
+  assert.equal(lead.received_at, evidence.received_at);
+  assert.equal(lead.next_action, "문의 확인");
+  assert.equal(lead.version, 1);
+  assert.equal("lead_source" in lead, false);
 });
 
 for (const failedStep of [

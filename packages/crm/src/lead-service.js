@@ -19,6 +19,12 @@ export function createLead({ repository, lead, actor_id, idempotency_key } = {})
       model_type: "Lead",
       status: lead.status ?? "active",
       owner_user_id: lead.owner_user_id ?? actor_id,
+      inquiry_status: lead.inquiry_status ?? "new",
+      source: lead.source ?? lead.lead_source ?? "manual",
+      next_action: lead.inquiry_status === "closed"
+        ? lead.next_action ?? null
+        : lead.next_action ?? "문의 확인",
+      version: 1,
     });
     const auditEvent = appendCrmAuditEvent({
       repository: tx,
@@ -29,6 +35,12 @@ export function createLead({ repository, lead, actor_id, idempotency_key } = {})
         object_type: "Lead",
         object_id: record.lead_id,
         idempotency_key,
+        metadata: {
+          inquiry_status: record.inquiry_status,
+          source: record.source,
+          version: record.version,
+          raw_next_action_included: false,
+        },
       },
     });
     const response = Object.freeze({ outcome: "created", lead: record, audit_event: auditEvent, idempotent_replay: false });

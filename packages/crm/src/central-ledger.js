@@ -43,6 +43,7 @@ export const CRM_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "email",
     "phone",
     "notes",
+    "next_action",
     "proposal_summary",
   ],
   primary_key_fields: [

@@ -142,6 +142,11 @@ if (findings.length === 0) {
     display_name: "Validator Lead",
     status: "active",
     owner_user_id,
+    inquiry_status: "new",
+    source: "manual",
+    received_at: "2026-07-30T00:00:00.000Z",
+    next_action: "문의 확인",
+    version: 1,
   });
   const opportunity = createCrmCoreOpportunity({
     opportunity_id: "opportunity_g3_validator",
@@ -240,6 +245,11 @@ if (findings.length === 0) {
     display_name: "Factory Lead",
     status: "active",
     owner_user_id,
+    inquiry_status: "new",
+    source: "manual",
+    received_at: "2026-07-30T00:00:00.000Z",
+    next_action: "문의 확인",
+    version: 1,
   });
   if (factoryLead.model_type !== "Lead") addFinding("FACTORY_DISPATCH", "createCrmCoreRecord must dispatch Lead records.");
 

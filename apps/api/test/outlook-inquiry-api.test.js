@@ -566,6 +566,17 @@ test("VC-CL-INQ-002,003 실제 문의 등록 API는 두 권한을 확인하고 �
     }).length,
     1,
   );
+  const registeredLead =
+    fixture.value.crmIntakeRuntime.crmRepository.get({
+      tenant_id: TENANT,
+      model_type: "Lead",
+      lead_id: first.body.item.lead_id,
+    });
+  assert.equal(registeredLead.inquiry_status, "new");
+  assert.equal(registeredLead.source, "outlook_addin");
+  assert.equal(registeredLead.next_action, "문의 확인");
+  assert.equal(registeredLead.version, 1);
+  assert.equal("lead_source" in registeredLead, false);
   assert.equal(
     fixture.emailDmsRepository.list({
       tenant_id: TENANT,
@@ -592,7 +603,9 @@ test("CL-P3-W01-T05 기존 문의 선택 목록은 연결 가능한 Lead의 안�
       party_id: "party-visible",
       display_name: "가나다 주식회사 자문 문의",
       status: "active",
-      lead_source: "outlook",
+      inquiry_status: "new",
+      source: "outlook_addin",
+      received_at: "2026-07-30T08:04:00.000Z",
       created_at: "2026-07-30T08:04:00.000Z",
     },
     {
@@ -600,7 +613,9 @@ test("CL-P3-W01-T05 기존 문의 선택 목록은 연결 가능한 Lead의 안�
       party_id: "party-hidden",
       display_name: "보이지 않아야 하는 문의",
       status: "active",
-      lead_source: "manual",
+      inquiry_status: "reviewing",
+      source: "manual",
+      received_at: "2026-07-30T08:03:00.000Z",
       created_at: "2026-07-30T08:03:00.000Z",
     },
     {
@@ -608,7 +623,10 @@ test("CL-P3-W01-T05 기존 문의 선택 목록은 연결 가능한 Lead의 안�
       party_id: "party-retained",
       display_name: "이미 수임한 문의",
       status: "archived",
-      lead_source: "outlook",
+      inquiry_status: "closed",
+      source: "outlook_addin",
+      received_at: "2026-07-30T08:02:00.000Z",
+      next_action: null,
       created_at: "2026-07-30T08:02:00.000Z",
     },
   ]) {
@@ -638,8 +656,9 @@ test("CL-P3-W01-T05 기존 문의 선택 목록은 연결 가능한 Lead의 안�
     party_id: "party-visible",
     display_name: "가나다 주식회사 자문 문의",
     status: "active",
-    lead_source: "outlook",
-    created_at: "2026-07-30T08:04:00.000Z",
+    inquiry_status: "new",
+    source: "outlook_addin",
+    received_at: "2026-07-30T08:04:00.000Z",
     production_ready_claim: false,
   }]);
   assert.equal(result.body.omitted_count, 1);
@@ -647,12 +666,13 @@ test("CL-P3-W01-T05 기존 문의 선택 목록은 연결 가능한 Lead의 안�
   assert.deepEqual(
     Object.keys(result.body.items[0]).sort(),
     [
-      "created_at",
       "display_name",
+      "inquiry_status",
       "lead_id",
-      "lead_source",
       "party_id",
       "production_ready_claim",
+      "received_at",
+      "source",
       "status",
     ],
   );

@@ -27,14 +27,22 @@ function normalizeRecord(input = {}) {
   if (typeof input.model_type !== "string" || input.model_type.trim() === "") {
     throw new TypeError("model_type is required");
   }
-  const coreRecord = PRIMARY_ID_FIELDS[input.model_type] ? createCrmCoreRecord(input.model_type, input) : input;
-  const record = { ...input, ...coreRecord };
+  const now = new Date().toISOString();
+  const timestampedInput = {
+    ...input,
+    created_at: input.created_at ?? now,
+    updated_at: input.updated_at ?? now,
+  };
+  const coreRecord = PRIMARY_ID_FIELDS[input.model_type]
+    ? createCrmCoreRecord(input.model_type, timestampedInput)
+    : timestampedInput;
+  const record = { ...timestampedInput, ...coreRecord };
+  if (record.model_type === "Lead") delete record.lead_source;
   assertTenant(record.tenant_id);
   const resourceId = primaryIdOf(record);
   if (typeof resourceId !== "string" || resourceId.trim() === "") {
     throw new TypeError(`${record.model_type} resource id is required`);
   }
-  const now = new Date().toISOString();
   return Object.freeze({
     ...record,
     resource_id: resourceId,
@@ -196,6 +204,7 @@ export function createCrmRuntimeRepository({
         tenant_id: entry.tenant_id,
         idempotency_key: entry.idempotency_key,
         operation: entry.operation ?? "crm_operation",
+        request_fingerprint: entry.request_fingerprint ?? null,
         response: clone(entry.response ?? {}),
         created_at: entry.created_at ?? new Date().toISOString(),
       });

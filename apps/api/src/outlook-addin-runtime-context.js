@@ -317,8 +317,9 @@ function inquirySummary(record = {}) {
     party_id: record.party_id,
     display_name: record.display_name ?? "이름 없는 문의",
     status: record.status,
-    lead_source: record.lead_source ?? null,
-    created_at: record.created_at ?? null,
+    inquiry_status: record.inquiry_status,
+    source: record.source,
+    received_at: record.received_at,
     production_ready_claim: false,
   });
 }
@@ -346,8 +347,8 @@ function searchLinkableInquiries({
         ))
     ))
     .sort((left, right) => (
-      String(right.created_at ?? "")
-        .localeCompare(String(left.created_at ?? ""))
+      String(right.received_at ?? "")
+        .localeCompare(String(left.received_at ?? ""))
     ));
   const { allowed, omittedCount } = trimItemsByPermission({
     context,

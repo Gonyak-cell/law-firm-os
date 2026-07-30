@@ -15,6 +15,16 @@ export const CRM_CORE_PROPOSAL_STATUSES = Object.freeze(["draft", "sent", "accep
 
 export const CRM_CORE_CAMPAIGN_CONTACT_CONSENT_STATUSES = Object.freeze(["opted_in", "opted_out"]);
 
+export const CRM_INQUIRY_STATUSES = Object.freeze(["new", "reviewing", "closed"]);
+
+export const CRM_INQUIRY_SOURCES = Object.freeze(["outlook_addin", "manual"]);
+
+export const CRM_INQUIRY_STATUS_TRANSITIONS = Object.freeze({
+  new: Object.freeze(["reviewing", "closed"]),
+  reviewing: Object.freeze(["closed"]),
+  closed: Object.freeze(["reviewing"]),
+});
+
 export const CRM_CORE_DIRECT_MATTER_REFERENCE_FIELDS = Object.freeze([
   "matter_id",
   "matter_ref",
@@ -27,7 +37,18 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
   Lead: Object.freeze({
     model_type: "Lead",
     id_field: "lead_id",
-    required_fields: Object.freeze(["lead_id", "tenant_id", "party_id", "display_name", "status", "owner_user_id"]),
+    required_fields: Object.freeze([
+      "lead_id",
+      "tenant_id",
+      "party_id",
+      "display_name",
+      "status",
+      "owner_user_id",
+      "inquiry_status",
+      "source",
+      "received_at",
+      "version",
+    ]),
     party_reference_fields: Object.freeze(["party_id"]),
     tuw_id: "LFOS-G3-W03-T001",
     prohibits_direct_matter_reference: true,
@@ -136,6 +157,68 @@ function normalizeSearchValue(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
+function optionalString(value, field, maxLength = 240) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || value.trim() === "" || value.trim().length > maxLength) {
+    throw new TypeError(`${field} must be a non-empty string up to ${maxLength} characters`);
+  }
+  return value.trim();
+}
+
+function normalizeInstant(value, field) {
+  if (
+    typeof value !== "string"
+    || value.trim() === ""
+    || !/^\d{4}-\d{2}-\d{2}T.+(?:Z|[+-]\d{2}:\d{2})$/u.test(value.trim())
+    || !Number.isFinite(Date.parse(value.trim()))
+  ) {
+    throw new TypeError(`${field} must be a valid instant with an explicit UTC offset`);
+  }
+  return value.trim();
+}
+
+export function normalizeCrmInquirySource(value) {
+  const source = value === "outlook" ? "outlook_addin" : value;
+  if (!CRM_INQUIRY_SOURCES.includes(source)) {
+    throw new TypeError(`Lead source must be one of ${CRM_INQUIRY_SOURCES.join(", ")}`);
+  }
+  return source;
+}
+
+export function normalizeCrmLeadInquiryFields(input = {}) {
+  const inquiryStatus = input.inquiry_status ?? "new";
+  if (!CRM_INQUIRY_STATUSES.includes(inquiryStatus)) {
+    throw new TypeError(`Lead inquiry_status must be one of ${CRM_INQUIRY_STATUSES.join(", ")}`);
+  }
+  const source = normalizeCrmInquirySource(input.source ?? input.lead_source ?? "manual");
+  if (
+    input.source !== undefined
+    && input.lead_source !== undefined
+    && normalizeCrmInquirySource(input.source) !== normalizeCrmInquirySource(input.lead_source)
+  ) {
+    throw new TypeError("Lead source and legacy lead_source disagree");
+  }
+  const receivedAt = normalizeInstant(input.received_at ?? input.created_at, "Lead received_at");
+  const version = input.version ?? 1;
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new TypeError("Lead version must be a positive integer");
+  }
+  const suppliedNextAction = optionalString(input.next_action, "Lead next_action");
+  const nextAction = inquiryStatus === "closed"
+    ? null
+    : suppliedNextAction ?? "문의 확인";
+  if (inquiryStatus === "closed" && suppliedNextAction !== null) {
+    throw new TypeError("Closed Lead cannot have next_action");
+  }
+  return Object.freeze({
+    inquiry_status: inquiryStatus,
+    source,
+    received_at: receivedAt,
+    next_action: nextAction,
+    version,
+  });
+}
+
 function getCrmCoreModelDefinition(modelType) {
   const definition = CRM_CORE_MODEL_DEFINITIONS[modelType];
   if (!definition) throw new Error(`Unknown CRM Core model type ${modelType}`);
@@ -226,12 +309,13 @@ function baseCrmRecord(modelType, input) {
 }
 
 export function createCrmCoreLead(input) {
+  const inquiry = normalizeCrmLeadInquiryFields(input);
   return freezeRecord({
-    ...baseCrmRecord("Lead", input),
+    ...baseCrmRecord("Lead", { ...input, ...inquiry }),
     lead_id: input.lead_id,
     party_id: input.party_id,
     display_name: input.display_name,
-    lead_source: input.lead_source ?? null,
+    ...inquiry,
     lead_key: input.lead_key ?? `${input.tenant_id}:lead:${input.party_id}:${normalizeSearchValue(input.display_name)}`,
   });
 }
@@ -353,6 +437,17 @@ export function validateCrmCoreRecord(modelType, record) {
 
   if (record?.status !== undefined && !CRM_CORE_LIFECYCLE_STATUSES.includes(record.status)) {
     errors.push(`invalid_status:${record.status}`);
+  }
+
+  if (modelType === "Lead") {
+    if (record?.next_action === undefined) {
+      errors.push("missing_required_field:next_action");
+    }
+    try {
+      normalizeCrmLeadInquiryFields(record);
+    } catch {
+      errors.push("invalid_lead_inquiry_fields");
+    }
   }
 
   if (modelType === "Opportunity" && record?.stage !== undefined && !CRM_CORE_OPPORTUNITY_STAGES.includes(record.stage)) {

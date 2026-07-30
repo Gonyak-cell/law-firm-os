@@ -1,5 +1,9 @@
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createLead } from "../../../packages/crm/src/lead-service.js";
+import {
+  CRM_LEAD_INQUIRY_ERROR_CODES,
+  transitionLeadInquiryStatus,
+} from "../../../packages/crm/src/lead-inquiry-service.js";
 import { createOpportunity } from "../../../packages/crm/src/opportunity-service.js";
 import { handoffOpportunityToIntake } from "../../../packages/crm/src/intake-handoff-service.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
@@ -32,6 +36,7 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "GET /api/crm/leads",
     "POST /api/crm/leads",
+    "POST /api/crm/inquiries/:id/transitions",
     "GET /api/crm/opportunities",
     "POST /api/crm/opportunities",
     "GET /api/crm/activities",
@@ -81,6 +86,10 @@ export const CRM_INTAKE_API_ERROR_CODES = Object.freeze({
   review_required: "CRM_INTAKE_REVIEW_REQUIRED",
   approval_required: "CRM_INTAKE_APPROVAL_REQUIRED",
   not_found: "CRM_INTAKE_NOT_FOUND",
+  inquiry_idempotency_conflict: CRM_LEAD_INQUIRY_ERROR_CODES.idempotency_conflict,
+  inquiry_transition_invalid: CRM_LEAD_INQUIRY_ERROR_CODES.invalid_transition,
+  inquiry_not_found: CRM_LEAD_INQUIRY_ERROR_CODES.not_found,
+  inquiry_version_conflict: CRM_LEAD_INQUIRY_ERROR_CODES.version_conflict,
 });
 
 export const CRM_RUNTIME_SEED = Object.freeze([
@@ -92,6 +101,11 @@ export const CRM_RUNTIME_SEED = Object.freeze([
     display_name: "CMP G6 synthetic lead",
     status: "active",
     owner_user_id: "user_cmp_g6_owner",
+    inquiry_status: "new",
+    source: "manual",
+    received_at: "2026-07-30T00:00:00.000Z",
+    next_action: "문의 확인",
+    version: 1,
   }),
   Object.freeze({
     model_type: "Opportunity",
@@ -2517,6 +2531,56 @@ export function handleCrmLeadCreate({ body, context, requestId, runtime = DEFAUL
   }
 }
 
+export function handleCrmInquiryTransition({
+  inquiryId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+    resource_id: inquiryId,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  try {
+    const result = transitionLeadInquiryStatus({
+      repository: runtime.crmRepository,
+      tenant_id: query.tenant_id,
+      lead_id: inquiryId,
+      next_inquiry_status: body?.next_inquiry_status,
+      expected_version: body?.expected_version,
+      next_action: body?.next_action,
+      reason: body?.reason,
+      actor_id: context.principal.user_id,
+      idempotency_key: body?.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : result.outcome,
+      item: result.lead,
+      auditEvent: result.audit_event,
+      status: 200,
+      extra: { idempotent_replay: result.idempotent_replay },
+    });
+  } catch (error) {
+    return errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [error?.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: error?.status === 404 ? "empty" : "blocked",
+      },
+    );
+  }
+}
+
 export function handleCrmOpportunityCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const query = { tenant_id: body?.opportunity?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
@@ -2830,6 +2894,16 @@ export async function handleCrmIntakeApiRequest({
   if (!policy) return errorResponse(404, requestId, [CRM_INTAKE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
   if (pathname === "/api/crm/leads" && method === "GET") return handleCrmLeadList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/crm/leads" && method === "POST") return handleCrmLeadCreate({ body, context, requestId, runtime, policy });
+  if (policy.action === "crm:inquiry:update" && policy.params?.[0] && method === "POST") {
+    return handleCrmInquiryTransition({
+      inquiryId: decodeURIComponent(policy.params[0]),
+      body,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
   if (pathname === "/api/crm/activities" && method === "GET") return handleCrmActivityList({ query, context, requestId, runtime, policy });
   if (pathname === "/api/crm/activities" && method === "POST") return handleCrmActivityCreate({ body, context, requestId, runtime, policy });
   if (policy.action === "crm:activity:patch" && policy.params?.[0] && method === "PATCH") {
