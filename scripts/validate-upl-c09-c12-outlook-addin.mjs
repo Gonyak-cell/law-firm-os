@@ -81,7 +81,7 @@ for (const marker of [
   "/api/outlook/attachments/save",
   "/api/outlook/followups",
   "/api/outlook/smart-alerts/evaluate",
-  "provider-gated",
+  "연결 확인 필요",
   "lawos_addin_session_token",
   "authorization",
 ]) {

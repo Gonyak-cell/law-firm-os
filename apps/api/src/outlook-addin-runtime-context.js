@@ -26,6 +26,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/connection/authorize",
     "GET /api/outlook/connection/callback",
     "DELETE /api/outlook/connection",
+    "GET /api/outlook/inquiries",
     "POST /api/outlook/inquiries",
     "POST /api/outlook/inquiries/message/resolve",
     "GET /api/outlook/inquiries/evidence/:evidence_id/content",
@@ -307,6 +308,60 @@ function matterSummary(record = {}) {
     lookup_label: record.matter_code ?? record.title ?? record.matter_id,
     selected_ref: `matter:${record.matter_id}`,
     production_ready_claim: false,
+  });
+}
+
+function inquirySummary(record = {}) {
+  return Object.freeze({
+    lead_id: record.lead_id,
+    party_id: record.party_id,
+    display_name: record.display_name ?? "이름 없는 문의",
+    status: record.status,
+    lead_source: record.lead_source ?? null,
+    created_at: record.created_at ?? null,
+    production_ready_claim: false,
+  });
+}
+
+function searchLinkableInquiries({
+  repository,
+  tenant_id,
+  query = "",
+  context,
+} = {}) {
+  const needle = String(query ?? "").trim().toLowerCase();
+  const records = repository
+    .list({ tenant_id, model_type: "Lead" })
+    .filter((lead) => (
+      lead.party_id
+      && ["draft", "active", "review_required"]
+        .includes(lead.status)
+    ))
+    .filter((lead) => (
+      !needle
+      || [lead.lead_id, lead.display_name]
+        .filter(Boolean)
+        .some((value) => (
+          String(value).toLowerCase().includes(needle)
+        ))
+    ))
+    .sort((left, right) => (
+      String(right.created_at ?? "")
+        .localeCompare(String(left.created_at ?? ""))
+    ));
+  const { allowed, omittedCount } = trimItemsByPermission({
+    context,
+    items: records.map((record) => ({
+      ...record,
+      resource_id: record.lead_id,
+    })),
+    action: "crm:inquiry:read",
+    resourceType: "crm_inquiry",
+  });
+  return Object.freeze({
+    items: Object.freeze(allowed.map(inquirySummary)),
+    omitted_count: omittedCount,
+    count_leak_prevented: true,
   });
 }
 
@@ -841,6 +896,64 @@ async function handleOutlookInquiryRegistration({
   }
 }
 
+function handleOutlookInquiryList({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const decision = evaluateOutlookPermission({
+      context: {
+        ...context,
+        object_acl: (context?.object_acl ?? []).filter((entry) => (
+          entry.resource_id === undefined
+          || entry.resource_id === "inquiry_search"
+        )),
+      },
+      tenant_id: principal.tenant_id,
+      resource_type: "crm_inquiry",
+      resource_id: "inquiry_search",
+      action: "crm:inquiry:read",
+    });
+    if (decision.effect !== "allow") {
+      return permissionDeniedResponse({
+        requestId,
+        decision,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    const limit = Math.min(
+      50,
+      Math.max(1, Number(query.limit ?? DEFAULT_LIMIT) || DEFAULT_LIMIT),
+    );
+    const search = searchLinkableInquiries({
+      repository: runtime?.crmIntakeRuntime?.crmRepository,
+      tenant_id: principal.tenant_id,
+      query: query.q ?? query.query,
+      context,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      items: search.items.slice(0, limit),
+      omitted_count: search.omitted_count,
+      page_info: {
+        limit,
+        has_more: search.items.length > limit,
+      },
+      count_leak_prevented: true,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
 async function handleInquiryEvidenceContentRead({
   evidenceId,
   query,
@@ -1294,6 +1407,17 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/connection" && method === "DELETE") {
       return await handleM365ConnectionDelete({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/inquiries"
+      && method === "GET"
+    ) {
+      return handleOutlookInquiryList({
         query,
         context,
         requestId,

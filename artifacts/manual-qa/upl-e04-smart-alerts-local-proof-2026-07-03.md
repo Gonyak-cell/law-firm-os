@@ -1,6 +1,6 @@
 # UPL E04 Smart Alerts Local Proof
 
-Generated at: 2026-07-03T09:59:39.009Z
+Generated at: 2026-07-30T15:02:30.947Z
 
 - PASS: true
 - Screenshot: `artifacts/manual-qa/screenshots/upl-e04-smart-alerts-local-proof-2026-07-03.png`

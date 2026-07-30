@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 5/12 완료, 전체 23/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 6/12 완료, 전체 24/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -24,7 +24,7 @@
 9. M365 코드는 delegated 권한과 기능 스위치 뒤에서 준비하고, 관리자 동의·시험 mailbox 영수증이 없으면 출시를 차단한다.
 10. 모든 검증 시나리오를 고정 fixture, 테스트 파일 또는 실제 API·화면 영수증과 연결한다.
 
-이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW, P1의 7개 TUW, P2의 6개 TUW와 P3의 M365 연결·원본 메일 증거·문의 등록 처리 5개 TUW를 구현·집중 검증했다.
+이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW, P1의 7개 TUW, P2의 6개 TUW와 P3의 M365 연결·원본 메일 증거·문의 등록·Outlook 추가 기능 6개 TUW를 구현·집중 검증했다.
 
 ## 1. 제품 목표
 
@@ -312,7 +312,8 @@ PostgreSQL 진입점은 신규 `packages/email-dms/src/migrations/001_m365_conne
 | POST | `/api/outlook/connection/authorize` | PKCE delegated 연결 시작 |
 | GET | `/api/outlook/connection/callback` | state·PKCE 검증 뒤 보안 token ref 저장 |
 | DELETE | `/api/outlook/connection` | provider token 폐기와 연결 해제 |
-| POST | `/api/outlook/inquiries/from-email` | 현재 Outlook 메일로 새 문의 생성 또는 기존 문의 연결 |
+| GET | `/api/outlook/inquiries` | 현재 사용자가 연결할 수 있는 진행 중 문의의 안전한 요약 목록 |
+| POST | `/api/outlook/inquiries` | 현재 Outlook 메일로 새 문의 생성 또는 기존 문의 연결 |
 | GET | `/api/crm/inquiries` | 사용자 상태 기준 문의 목록 |
 | GET | `/api/crm/inquiries/:id` | 원본 증거·상담·결정이 연결된 문의 상세 |
 | POST | `/api/crm/inquiries/:id/transitions` | 허용된 문의 상태 변경 |
@@ -971,8 +972,9 @@ npm test
 | `CL-P3-W01-T01` | 완료 | 문의 이메일 증거와 원본·표시 사본 파일 객체를 `email-dms` 독립 저장 권위로 분리하고 결정적 ID, 메일함+Internet Message ID 우선 중복 키, Graph immutable ID 대체 키, 원본 MIME SHA·크기, 발신자·수신자·첨부 메타데이터, Lead 연결 상태, 보존·legal hold·검사 상태를 정규화; MIME·메일 본문·provider payload·token·raw storage 경로는 제품 레코드에 저장하지 않고 커밋된 `vault://` 참조만 허용; `002_inquiry_evidence.sql`에서 tenant RLS, 두 메시지 고유 인덱스, 증거↔두 파일 객체의 지연 FK, complete 상태의 Lead 필수 조건을 강제; 기존 DMS에 임시로 들어가 있던 `M365Connection`도 같은 Email DMS repository·중앙원장·PostgreSQL 요청 단위로 이동하고, AWS Secrets Manager 형식의 `credential_ref`만 JSON 이관에서 보존하며 임의 문자열은 비밀정보로 차단; M365 callback 재실행은 provider code를 다시 소비하지 않고 저장된 멱등 결과를 반환 | 신규 모델·repository·중앙원장·실제 임시 PostgreSQL migration·runtime authority 집중 검증과 credential 이관 검증 33/33, Email DMS·DMS·Outlook API·PostgreSQL 요청 권위·private staging·백업·원장 회귀 334/334, 32개 시나리오 fixture validator PASS와 권한·fixture 계약 40/40; raw MIME·본문·token 비노출, 다른 tenant 0건, AWS·실제 Graph 호출·배포 없음 |
 | `CL-P3-W01-T02` | 완료 | Outlook 읽기 화면의 Office.js item ID를 REST v2.0 ID로만 변환하고 raw EWS ID 대체 사용을 금지; 서버는 delegated `/me/translateExchangeIds`의 `restId`→`restImmutableEntryId`, `Prefer: IdType="ImmutableId"`, `/me/messages/{id}` metadata와 `/$value` MIME 순서만 허용; 50MB 상한·30초 제한·MIME 형태 검증을 거쳐 credential은 요청 메모리 안에서만 사용하고, API에는 immutable ID·Internet Message ID·MIME SHA/크기·해시한 provider request ref만 반환; 서명된 principal과 `outlook:inquiry:capture` 권한을 기준으로 tenant·mailbox 위조를 Graph 호출 전에 차단하고 M365 연결 스위치와 문의 스위치를 각각 기본 비활성으로 유지 | Office.js·Graph provider·문의 API 집중 12/12, Email DMS·Outlook·실제 임시 PostgreSQL 요청 권위 결합 112/112, add-in production build PASS, Client fixture·권한 계약 40/40; sloplint 신규 코드·화면 경고 없음(계획 문서의 기존 GitHub 소스 링크 약한 오탐 4건); 실제 Graph·AWS·배포 없음, 외부 시험 mailbox MIME SHA 영수증 없음으로 출시는 계속 차단 |
 | `CL-P3-W01-T03` | 완료 | 기존 DMS staged storage 계약으로 원본 MIME과 UTF-8 일반 텍스트 표시 사본을 서로 다른 결정적 object ID에 저장하고 stage·commit 후 각각 SHA-256과 크기를 독립 재확인; multipart·base64·quoted-printable·첨부 메타데이터를 상한 안에서 해석하되 HTML 능동 요소·태그·외부 자원을 보존하지 않고 표시 사본을 `text/plain`으로 고정; 원본과 표시 사본을 각각 malware scanner에 통과시키며 악성 원본은 원본만 `quarantined` 상태로 보존하고 표시 사본·열람을 차단; S3 저장은 설정 KMS 키 참조가 어댑터와 같아야 하고 provider retention·legal hold를 두 객체에 적용하며, 로컬 저장처럼 provider 보존을 강제하지 못하는 환경은 출시 차단 상태로 표시; 별도 민감 조회 API는 signed tenant·`crm.inquiry.evidence.read`에 대응하는 객체 권한을 저장소 접근 전에 검사하고 clean 객체만 해시 검증 후 display UTF-8 또는 original base64로 반환하며 `no-store`·`nosniff`·sandbox와 본문 없는 읽기 감사를 남김; 일반 삭제 API는 만들지 않음 | 저장·격리·XSS·해시·KMS 불일치·권한·tenant·민감 조회 및 실제 HTTP header 집중 13/13, Email DMS·DMS storage·Outlook API 전체 297/297, `git diff --check` PASS; 합성 scanner와 로컬/fake provider 거버넌스만 실행했으며 실제 malware scanner·S3/KMS/Object Lock·AWS·배포 영수증이 없어 출시는 계속 차단 |
-| `CL-P3-W01-T04` | 완료 | `/api/outlook/inquiries`에서 `outlook.inquiry.capture`와 문의 작성 권한을 모두 확인한 뒤 본인 `/me`의 검증된 메일함 주소와 Graph 원본 증거를 사용해 문의를 등록; 요청키·REST ID 해시·행동을 먼저 묶은 처리 기록에 `message_resolved → evidence_stored → party_resolved → lead_resolved → evidence_linked` 완료 단계를 저장하고, 발신자 이메일이 기존 Person·ContactPoint와 유일하게 정확 일치하면 해당 Party를 재사용하며 그 외에는 이메일 해시 기반 결정적 Party ID를 생성; 새 문의는 증거 기반 결정적 Lead ID를 만들고 기존 문의 연결은 새 Party·Lead 없이 증거만 연결; 완료 증거는 다른 Lead로 다시 연결하지 못하게 하고 access/refresh token과 MIME 본문은 제품 레코드·감사·API 응답에서 제외; 연결 시 검증된 평문 메일함은 기존 Secrets Manager credential에서 꺼내 M365Connection의 해시와 맞춘 뒤 증거 식별값에만 기록하고 감사·일반 API에는 반환하지 않음 | `VC-CL-INQ-002`~`006` 서비스·실제 API·메일함 해시 집중 검증 22/22, 메시지 확인·증거 저장·Party·Lead 각 단계 직후 합성 실패 재실행에서 Party 1건·Lead 1건·증거 1건·파일 2건 유지; Email DMS·CRM·Master Data·Outlook·PostgreSQL 요청 권위·Client 권한 결합 회귀 PASS, 32개 시나리오 fixture validator PASS, `git diff --check` PASS; sloplint는 신규 코드·문구 신호 없이 기존 GitHub `/blob/` 소스 주소 4건만 약하게 오탐; 실제 Graph·AWS·malware scanner·S3/KMS/Object Lock·배포 없음으로 출시는 계속 차단 |
-| `CL-P3-W01-T05` | 다음 | add-in에 새 문의 등록·기존 문의 연결·Matter 보관의 명시적 세 행동과 재클릭 결과 상태를 연결 | 시작 전 |
+| `CL-P3-W01-T04` | 완료 | `/api/outlook/inquiries`에서 `outlook.inquiry.capture`와 문의 작성 권한을 모두 확인한 뒤 본인 `/me`의 검증된 메일함 주소와 Graph 원본 증거를 사용해 문의를 등록; 요청키·REST ID 해시·행동을 먼저 묶은 처리 기록에 `message_resolved → evidence_stored → party_resolved → lead_resolved → evidence_linked` 완료 단계를 저장하고, 발신자 이메일이 기존 Person·ContactPoint와 유일하게 정확 일치하면 해당 Party를 재사용하며 그 외에는 이메일 해시 기반 결정적 Party ID를 생성; 새 문의는 증거 기반 결정적 Lead ID를 만들고 기존 문의 연결은 새 Party·Lead 없이 증거만 연결; 완료 증거는 다른 Lead로 다시 연결하지 못하게 하고 access/refresh token과 MIME 본문은 제품 레코드·감사·API 응답에서 제외; 연결 시 검증된 평문 메일함은 기존 Secrets Manager credential에서 꺼내 M365Connection의 해시와 맞춘 뒤 증거 식별값에만 기록하고 감사·일반 API에는 반환하지 않음 | `VC-CL-INQ-002`~`006` 서비스·실제 API·메일함 해시 집중 검증 22/22, 메시지 확인·증거 저장·Party·Lead 각 단계 직후 합성 실패 재실행에서 Party 1건·Lead 1건·증거 1건·파일 2건 유지; Email DMS·CRM·Master Data·Outlook·PostgreSQL 요청 권위·Client 권한 결합 회귀 PASS, 32개 시나리오 fixture validator PASS, `git diff --check` PASS; sloplint는 신규 코드·문구 신호 없이 기존 OSS 출처 URL 4건만 약하게 오탐; 실제 Graph·AWS·malware scanner·S3/KMS/Object Lock·배포 없음으로 출시는 계속 차단 |
+| `CL-P3-W01-T05` | 완료 | Outlook 추가 기능을 `현재 메일`과 `이 메일 처리` 순서로 재구성하고 `새 문의 등록`, `기존 문의에 연결`, `Matter에 보관`을 서로 독립된 명시적 버튼으로 제공; 화면을 열 때는 bootstrap·Matter·진행 중 문의의 읽기만 수행하고 현재 Outlook REST v2.0 ID 확인과 제품 쓰기는 버튼을 누른 뒤에만 시작; 메일·행동·선택 문의를 SHA-256으로 묶은 결정적 재처리 키를 사용해 같은 버튼을 다시 눌러도 같은 Lead·증거 결과를 표시; 기존 문의 선택 API는 서명 세션의 tenant와 `crm.inquiry.read`를 확인하고 draft·active·review_required Lead만 객체 권한별로 축소해 이름·상태·Party·출처·시각의 안전한 필드만 반환; `filing`, `provider-gated`, `timeline`, `warning`, `matter 연결`을 `보관`, `연결 확인 필요`, `최근 기록`, `발송 전 확인`, `메일 처리`로 교체하고 연결·권한·재처리 오류를 자연스러운 한국어로 안내; 기존 첨부 저장·후속 업무·발송 전 확인은 Matter 보관 후 추가 작업으로 유지 | 추가 기능 ID·재처리 키·결과 문구 unit 5/5, 문의 목록·등록·권한 API 10/10, Outlook·Email DMS·권한 결합 회귀 122/122, production build PASS; `node scripts/validate-client-outlook-inquiry-addin.mjs`의 실제 렌더링에서 미클릭 POST 0건, 세 행동 keyboard 3/3, 새 문의 재클릭 동일 `lead-new-t05`, raw EWS ID 요청 비노출, 번역투 금지어 0건과 390px 화면 확인; 기존 UPL Outlook 브라우저 증거 16/16 회귀 PASS; sloplint는 새 UI·문구 경고 없이 기존 OSS 출처 URL 약한 오탐 4건만 확인; 외부 Graph·AWS·배포·운영 쓰기 없음 |
+| `CL-P3-W02-T01` | 다음 | Lead에 문의 상태·접수 경로·접수 시각·다음 행동을 정규화하고 허용된 상태 전환 service·version·감사를 구현 | 시작 전 |
 
 P0 집중 검증:
 

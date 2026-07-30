@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.manual-qa.upl-e04-smart-alerts.local_receipt.v0.1",
-  "generated_at": "2026-07-03T09:59:39.009Z",
+  "generated_at": "2026-07-30T15:02:30.947Z",
   "tuw_id": "UPL-E-04",
   "scope": "Local signed-session taskpane and API proof for warning-only Smart Alerts. External Outlook web/new desktop runtime is not claimed.",
   "screenshot_path": "artifacts/manual-qa/screenshots/upl-e04-smart-alerts-local-proof-2026-07-03.png",
@@ -25,7 +25,7 @@
       "url_path": "/api/outlook/smart-alerts/evaluate",
       "has_authorization_header": true,
       "permission_context_header_sent": false,
-      "post_data_sha256": "d21b981974164b7368ab60779f76ec023fd535111826c567e5d5825d61663d40"
+      "post_data_sha256": "075d54df74d9eb55498b9c1d6cff3e69170c00856fe463d331944e24d4917e2b"
     }
   ],
   "direct_api_evaluations": {
@@ -87,16 +87,16 @@
         "AUTH_SESSION_REQUIRED"
       ],
       "request_hash": "c1fde2b8a2b905d27a7a62e1a7958ba69aed7a2590d709cbee6f8dbcb388c609",
-      "response_hash": "adf07967ade4b955b9a4c6a4b95b0d17c7c1c236f5e92cb6da91c068d6fef2d8"
+      "response_hash": "0bac4731df8d8a2f5764b8da1bb0fcd187af1fd4b18894e6c1503efa646076fd"
     }
   },
   "request_response_hashes": {
     "confidential_external_request": "edfc69975aac2cf1092fd68146edd3650cfe8229058b8543eb690a2036534ebe",
-    "confidential_external_response": "7f55a6060a279cfdef3be62311398a25f2ba71db2c94d71e9d4160a8f17ccb15",
+    "confidential_external_response": "01d3e259fee7ae83dc907502856f7de66046679967ac3145278435b59ae79add",
     "missing_attachment_request": "bda1d454bd418da9ac45a4f5d920087f85348387c31c26d5cd0580d10f01a20f",
-    "missing_attachment_response": "50e0bd77adf031aafe9115a33e5160e723e21686ba5187c508b5a99d5ab34d53",
+    "missing_attachment_response": "e14d219b40361d00673851859f79608b9681fc6873ca4b5faed88e221d63d7ef",
     "clean_message_request": "eb316fd71a60838971e3342864f3713d0ca768dce219275cdd2faca33b87cf23",
-    "clean_message_response": "108471566293a74a6f8dce2701f292e03672e96a988e0a60afe8e0ad1571c3b0"
+    "clean_message_response": "97b3ea4b683c8205f860d625572df033c7e0d4d5466e8c032fa210d37be90eb5"
   },
   "secret_material_included": false,
   "raw_body_included": false,

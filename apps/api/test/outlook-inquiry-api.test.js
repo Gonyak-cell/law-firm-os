@@ -107,6 +107,23 @@ function registrationPermissionContext({
   };
 }
 
+function inquiryReadPermissionContext({
+  allowed = true,
+  objectAcl = [],
+} = {}) {
+  return {
+    ...permissionContext({ allowed: false }),
+    rules: allowed
+      ? [{
+        id: "outlook-inquiry-read",
+        effect: "allow",
+        action_prefix: "crm:inquiry:",
+      }]
+      : [],
+    object_acl: objectAcl,
+  };
+}
+
 function repository() {
   return createEmailDmsRepository({
     seedRecords: [{
@@ -252,6 +269,25 @@ function registrationRequest({
     pathname: "/api/outlook/inquiries",
     method: "POST",
     body,
+    context,
+    requestId,
+    runtime: runtimeValue,
+  });
+}
+
+function inquiryListRequest({
+  query = {},
+  context = inquiryReadPermissionContext(),
+  runtime: runtimeValue,
+  requestId = "request-outlook-inquiry-list",
+}) {
+  return handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/inquiries",
+    method: "GET",
+    query: {
+      tenant_id: TENANT,
+      ...query,
+    },
     context,
     requestId,
     runtime: runtimeValue,
@@ -544,6 +580,90 @@ test("VC-CL-INQ-002,003 실제 문의 등록 API는 두 권한을 확인하고 �
   assert.equal(serialized.includes("Synthetic inquiry body"), false);
   assert.equal(serialized.includes("access-token-never-return"), false);
   assert.equal(serialized.includes("refresh-token-never-return"), false);
+});
+
+test("CL-P3-W01-T05 기존 문의 선택 목록은 연결 가능한 Lead의 안전한 필드만 권한별로 반환한다", async () => {
+  const fixture = registrationRuntime();
+  const crmRepository =
+    fixture.value.crmIntakeRuntime.crmRepository;
+  for (const lead of [
+    {
+      lead_id: "lead-visible",
+      party_id: "party-visible",
+      display_name: "가나다 주식회사 자문 문의",
+      status: "active",
+      lead_source: "outlook",
+      created_at: "2026-07-30T08:04:00.000Z",
+    },
+    {
+      lead_id: "lead-hidden",
+      party_id: "party-hidden",
+      display_name: "보이지 않아야 하는 문의",
+      status: "active",
+      lead_source: "manual",
+      created_at: "2026-07-30T08:03:00.000Z",
+    },
+    {
+      lead_id: "lead-retained",
+      party_id: "party-retained",
+      display_name: "이미 수임한 문의",
+      status: "archived",
+      lead_source: "outlook",
+      created_at: "2026-07-30T08:02:00.000Z",
+    },
+  ]) {
+    crmRepository.create({
+      model_type: "Lead",
+      tenant_id: TENANT,
+      owner_user_id: USER,
+      ...lead,
+    });
+  }
+  const result = await inquiryListRequest({
+    runtime: fixture.value,
+    query: { q: "문의", limit: 20 },
+    context: inquiryReadPermissionContext({
+      objectAcl: [{
+        id: "hide-one-inquiry",
+        principal_id: USER,
+        resource_id: "lead-hidden",
+        action: "crm:inquiry:read",
+        effect: "deny",
+      }],
+    }),
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body.items, [{
+    lead_id: "lead-visible",
+    party_id: "party-visible",
+    display_name: "가나다 주식회사 자문 문의",
+    status: "active",
+    lead_source: "outlook",
+    created_at: "2026-07-30T08:04:00.000Z",
+    production_ready_claim: false,
+  }]);
+  assert.equal(result.body.omitted_count, 1);
+  assert.equal(result.body.count_leak_prevented, true);
+  assert.deepEqual(
+    Object.keys(result.body.items[0]).sort(),
+    [
+      "created_at",
+      "display_name",
+      "lead_id",
+      "lead_source",
+      "party_id",
+      "production_ready_claim",
+      "status",
+    ],
+  );
+
+  const denied = await inquiryListRequest({
+    runtime: fixture.value,
+    context: inquiryReadPermissionContext({ allowed: false }),
+    requestId: "request-outlook-inquiry-list-denied",
+  });
+  assert.equal(denied.status, 403);
+  assert.deepEqual(denied.body.item, null);
 });
 
 test("VC-CL-INQ-005,006 문의 등록 API는 문의 작성 권한·mailbox 위조·Graph 비활성을 제품 생성 전에 차단한다", async () => {
