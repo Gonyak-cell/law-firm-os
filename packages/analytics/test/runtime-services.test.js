@@ -654,12 +654,14 @@ test("Home Finance processed cost includes only approved lifecycle states withou
   assert.equal(model.monthly[0].processed_cost, 275);
 });
 
-test("WP-FIN-2 falls back to Payment only when no PaymentMatch source rows exist", () => {
+test("WP-FIN-2 keeps an unallocated Payment out of collected revenue", () => {
   const financeRepository = createFinanceRepository({
     seedRecords: [
       { model_type: "Payment", payment_id: "pay-fallback", tenant_id: TENANT, matter_id: "matter-a", client_group_id: "client-group-a", amount: 125, currency: "USD", received_at: "2026-07-08", status: "received" },
     ],
   });
   const model = buildFinanceReadModels({ financeRepository, tenant_id: TENANT });
-  assert.equal(model.overview.totals.find((row) => row.currency === "USD").collected_amount, 125);
+  const usd = model.overview.totals.find((row) => row.currency === "USD");
+  assert.equal(usd.collected_amount, 0);
+  assert.equal(usd.unallocated_receipt_amount, 125);
 });

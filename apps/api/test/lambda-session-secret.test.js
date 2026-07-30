@@ -18,6 +18,9 @@ import {
   CTI_MATTER_STORE_READ_MODEL_PROOF_APPROVAL_REF,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF,
+  DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+  DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF,
+  DIRECT_RECEIPT_ALLOCATION_MIGRATION_CONFIRMATION,
   HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
   HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF,
   HRX_ROSTER_RECONCILE_ACTION,
@@ -25,6 +28,8 @@ import {
   LCX_AUTH_RESET_RECOVERY_ACTION,
   LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
   buildCtiS1GAuthenticatedProductionProbeReceipt,
+  buildDirectReceiptAllocationMigrationFromRuntime,
+  buildDirectReceiptAllocationMigrationReceipt,
   buildHomeFinanceDashboardSmokeFromRuntime,
   buildHomeFinanceDashboardSmokeReceipt,
   buildCtiS5EnrichmentExecuteReceipt,
@@ -42,6 +47,7 @@ import { passwordResetEmailHtml } from "../src/password-reset-email-template.js"
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
+import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 
 const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
   hrxStepUpSecret: "lambda-test-operational-step-up-secret-32-bytes",
@@ -756,6 +762,151 @@ test("Home finance production smoke fails closed for HTTP access, missing approv
   assert.equal(receipt.status, "BLOCKED_HOME_FINANCE_DASHBOARD_CONTRACT");
   assert.equal(receipt.reason, "dashboard_numeric_contract_failed");
   assert.equal(receipt.checks.classifications_reconciled, false);
+});
+
+test("direct receipt allocation migration is dry-run first, idempotent, and never auto-promotes revenue", () => {
+  const tenantId = "tenant_direct_receipt_migration_test";
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-direct-receipt-migration",
+        tenant_id: tenantId,
+        matter_id: "matter-direct-receipt-migration",
+        client_group_id: "client-direct-receipt-migration",
+        amount_due: 100,
+        amount_paid: 100,
+        currency: "KRW",
+        issued_at: "2026-07-30",
+        status: "paid",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-direct-receipt-migration",
+        tenant_id: tenantId,
+        matter_id: "matter-direct-receipt-migration",
+        client_group_id: "client-direct-receipt-migration",
+        amount: 100,
+        applied_amount: 100,
+        unapplied_amount: 0,
+        currency: "KRW",
+        received_at: "2026-07-30",
+        status: "matched",
+      },
+      {
+        model_type: "PaymentMatch",
+        payment_match_id: "match-direct-receipt-migration",
+        tenant_id: tenantId,
+        payment_id: "payment-direct-receipt-migration",
+        invoice_id: "invoice-direct-receipt-migration",
+        matter_id: "matter-direct-receipt-migration",
+        amount: 100,
+        currency: "KRW",
+        matched_at: "2026-07-30",
+        status: "matched",
+      },
+    ],
+  });
+  const dryRun = buildDirectReceiptAllocationMigrationReceipt({
+    financeRepository,
+    tenantId,
+  });
+  assert.equal(dryRun.status, "PASS_DRY_RUN");
+  assert.equal(dryRun.before.pending_backfill_count, 1);
+  assert.equal(dryRun.production_write_executed, false);
+  assert.equal(
+    financeRepository.list({ tenant_id: tenantId, model_type: "PaymentAllocation" }).length,
+    0,
+  );
+
+  const execute = buildDirectReceiptAllocationMigrationReceipt({
+    financeRepository,
+    tenantId,
+    execute: true,
+    idempotencyKey: "direct-receipt-migration-test",
+  });
+  assert.equal(execute.status, "PASS");
+  assert.equal(execute.created_count, 1);
+  assert.equal(execute.after.pending_backfill_count, 0);
+  assert.equal(execute.after.payment_allocation_count, 1);
+  assert.equal(execute.auto_promoted_revenue_count, 0);
+  assert.equal(execute.production_write_executed, true);
+
+  const replay = buildDirectReceiptAllocationMigrationReceipt({
+    financeRepository,
+    tenantId,
+    execute: true,
+    idempotencyKey: "direct-receipt-migration-test",
+  });
+  assert.equal(replay.idempotent_replay, true);
+  assert.equal(replay.production_write_executed, false);
+  assert.equal(replay.after.payment_allocation_count, 1);
+});
+
+test("direct receipt allocation migration uses the PostgreSQL request authority for read and write modes", async () => {
+  const tenantId = "tenant_direct_receipt_runtime_test";
+  const financeRepository = createFinanceRepository();
+  const calls = [];
+  const runtime = {
+    requestRuntimeAuthority: {
+      run: async (request) => {
+        calls.push(request);
+        return request.command({ financeRuntime: { repository: financeRepository } });
+      },
+    },
+  };
+  const dryRun = await buildDirectReceiptAllocationMigrationFromRuntime({
+    runtime,
+    tenantId,
+  });
+  assert.equal(dryRun.status, "PASS_DRY_RUN");
+  assert.equal(calls[0].tenant_id, tenantId);
+  assert.equal(calls[0].request_context.method, "GET");
+
+  const execute = await buildDirectReceiptAllocationMigrationFromRuntime({
+    runtime,
+    tenantId,
+    execute: true,
+    idempotencyKey: "direct-receipt-runtime-test",
+  });
+  assert.equal(execute.status, "PASS");
+  assert.equal(calls[1].request_context.method, "POST");
+  assert.equal(calls[1].request_context.idempotency_key, "direct-receipt-runtime-test");
+});
+
+test("direct receipt allocation migration blocks HTTP, missing approval, and incomplete execute confirmation", async () => {
+  const httpResponse = await handler({
+    rawPath: "/api/maintenance/direct-receipt-allocation-migration",
+    requestContext: { http: { method: "POST" } },
+    lawos_maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+    approval_signature_ref: DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF,
+  });
+  assert.equal(httpResponse.statusCode, 403);
+  assert.equal(
+    JSON.parse(httpResponse.body).reason,
+    "direct_receipt_allocation_migration_direct_invoke_only",
+  );
+
+  const approvalResponse = await handler({
+    lawos_maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+  });
+  assert.equal(approvalResponse.statusCode, 403);
+  assert.equal(
+    JSON.parse(approvalResponse.body).required_approval_signature_ref,
+    DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF,
+  );
+
+  const confirmationResponse = await handler({
+    lawos_maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+    approval_signature_ref: DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF,
+    execute: true,
+    idempotency_key: "direct-receipt-migration-confirmation-test",
+  });
+  assert.equal(confirmationResponse.statusCode, 403);
+  assert.equal(
+    JSON.parse(confirmationResponse.body).required_confirmation,
+    DIRECT_RECEIPT_ALLOCATION_MIGRATION_CONFIRMATION,
+  );
 });
 
 test("approved HRX roster reconciliation creates the current members and reporting lines with backup-safe evidence", async () => {

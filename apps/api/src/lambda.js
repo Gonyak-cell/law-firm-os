@@ -45,6 +45,10 @@ import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-re
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { buildCashflowReadModel } from "../../../packages/analytics/src/finance-read-model.js";
 import {
+  backfillPaymentMatchesAsAllocations,
+  buildPaymentAllocationMigrationPlan,
+} from "../../../packages/payments/src/payment-allocation-service.js";
+import {
   readDurableJsonFile,
   removeDurableJsonFile,
   writeDurableJsonFile,
@@ -99,6 +103,12 @@ export const LCX_AUTH_RESET_RECOVERY_APPROVAL_REF = "LCX-AUTH-RESET-RECOVERY-01"
 export const HOME_FINANCE_DASHBOARD_SMOKE_ACTION = "home_finance_dashboard_smoke";
 export const HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF =
   "USER-HOME-FINANCE-DASHBOARD-SMOKE-2026-07-30";
+export const DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION =
+  "direct_receipt_allocation_migration";
+export const DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF =
+  "USER-DIRECT-RECEIPT-ALLOCATION-MIGRATION-2026-07-30";
+export const DIRECT_RECEIPT_ALLOCATION_MIGRATION_CONFIRMATION =
+  "MIGRATE_PAYMENT_MATCHES_TO_ALLOCATIONS";
 
 const CTI_READONLY_EFS_SNAPSHOT_SCHEMA_VERSION = "law-firm-os.cti.readonly-efs-snapshot.v0.1";
 const CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_SCHEMA_VERSION =
@@ -1385,6 +1395,116 @@ export async function buildHomeFinanceDashboardSmokeFromRuntime({
     });
   }
   return buildReceipt(runtime?.analyticsRuntime);
+}
+
+function directReceiptAllocationMigrationSummary(financeRepository, tenantId) {
+  const plan = buildPaymentAllocationMigrationPlan({
+    repository: financeRepository,
+    tenant_id: tenantId,
+  });
+  const allocationCount = financeRepository
+    .list({ tenant_id: tenantId, model_type: "PaymentAllocation" })
+    .length;
+  return Object.freeze({
+    pending_backfill_count: plan.invoice_payment_backfill.length,
+    matched_payment_count: plan.matched_payments.length,
+    unallocated_payment_count: plan.unallocated_payments.length,
+    payment_allocation_count: allocationCount,
+    auto_promoted_revenue_count: plan.auto_promoted_revenue_count,
+  });
+}
+
+export function buildDirectReceiptAllocationMigrationReceipt({
+  financeRepository,
+  tenantId = MATTER_VAULT_REGISTERED_TENANT_ID,
+  execute = false,
+  actorId = "maintenance_direct_receipt_allocation_migration",
+  idempotencyKey = null,
+  now = () => new Date(),
+} = {}) {
+  if (!financeRepository || typeof financeRepository.list !== "function") {
+    throw new TypeError("financeRepository is required");
+  }
+  const before = directReceiptAllocationMigrationSummary(financeRepository, tenantId);
+  if (before.auto_promoted_revenue_count !== 0) {
+    throw new Error("direct receipt migration must never auto-promote revenue");
+  }
+  if (!execute) {
+    return Object.freeze({
+      ok: true,
+      status: "PASS_DRY_RUN",
+      maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+      observed_at: now().toISOString(),
+      tenant_id: tenantId,
+      before,
+      after: before,
+      created_count: 0,
+      idempotent_replay: false,
+      dry_run: true,
+      production_write_executed: false,
+      raw_payment_ids_returned: false,
+      raw_invoice_ids_returned: false,
+      client_values_returned: false,
+      auto_promoted_revenue_count: 0,
+      production_ready_claim: false,
+    });
+  }
+  const result = backfillPaymentMatchesAsAllocations({
+    repository: financeRepository,
+    tenant_id: tenantId,
+    actor_id: actorId,
+    idempotency_key: idempotencyKey,
+    dry_run: false,
+  });
+  const after = directReceiptAllocationMigrationSummary(financeRepository, tenantId);
+  if (after.pending_backfill_count !== 0 || result.auto_promoted_revenue_count !== 0) {
+    throw new Error("direct receipt allocation migration did not close safely");
+  }
+  return Object.freeze({
+    ok: true,
+    status: "PASS",
+    maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+    observed_at: now().toISOString(),
+    tenant_id: tenantId,
+    before,
+    after,
+    created_count: result.created_count,
+    idempotent_replay: result.idempotent_replay === true,
+    dry_run: false,
+    production_write_executed: result.idempotent_replay !== true,
+    raw_payment_ids_returned: false,
+    raw_invoice_ids_returned: false,
+    client_values_returned: false,
+    auto_promoted_revenue_count: 0,
+    production_ready_claim: false,
+  });
+}
+
+export async function buildDirectReceiptAllocationMigrationFromRuntime({
+  runtime,
+  tenantId = MATTER_VAULT_REGISTERED_TENANT_ID,
+  execute = false,
+  idempotencyKey = null,
+} = {}) {
+  const buildReceipt = (financeRuntime) => buildDirectReceiptAllocationMigrationReceipt({
+    financeRepository: financeRuntime?.repository,
+    tenantId,
+    execute,
+    idempotencyKey,
+  });
+  if (runtime?.requestRuntimeAuthority?.run) {
+    return runtime.requestRuntimeAuthority.run({
+      tenant_id: tenantId,
+      request_context: {
+        method: execute ? "POST" : "GET",
+        pathname: "/__maintenance/direct-receipt-allocation-migration",
+        actor_id: "maintenance_direct_receipt_allocation_migration",
+        idempotency_key: idempotencyKey,
+      },
+      command: ({ financeRuntime }) => buildReceipt(financeRuntime),
+    });
+  }
+  return buildReceipt(runtime?.financeRuntime);
 }
 
 export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
@@ -3376,6 +3496,52 @@ async function handleHomeFinanceDashboardSmoke(event = {}) {
   });
 }
 
+async function handleDirectReceiptAllocationMigration(event = {}) {
+  if (isHttpLambdaEvent(event)) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "direct_receipt_allocation_migration_direct_invoke_only",
+      maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+      public_http_endpoint: false,
+    });
+  }
+  if (event.approval_signature_ref !== DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "direct_receipt_allocation_migration_approval_ref_required",
+      maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+      required_approval_signature_ref: DIRECT_RECEIPT_ALLOCATION_MIGRATION_APPROVAL_REF,
+      public_http_endpoint: false,
+    });
+  }
+  const execute = event.execute === true;
+  if (execute && event.confirmation !== DIRECT_RECEIPT_ALLOCATION_MIGRATION_CONFIRMATION) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "direct_receipt_allocation_migration_confirmation_required",
+      maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+      required_confirmation: DIRECT_RECEIPT_ALLOCATION_MIGRATION_CONFIRMATION,
+      public_http_endpoint: false,
+    });
+  }
+  const idempotencyKey = execute ? String(event.idempotency_key ?? "").trim() : null;
+  if (execute && !idempotencyKey) {
+    return jsonLambdaResponse(400, {
+      ok: false,
+      reason: "direct_receipt_allocation_migration_idempotency_key_required",
+      maintenance_action: DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION,
+      public_http_endpoint: false,
+    });
+  }
+  const runtime = await apiRuntime();
+  return buildDirectReceiptAllocationMigrationFromRuntime({
+    runtime,
+    tenantId: process.env.LAWOS_DATABASE_TENANT_ID ?? MATTER_VAULT_REGISTERED_TENANT_ID,
+    execute,
+    idempotencyKey,
+  });
+}
+
 export async function buildHrxRosterReconcileReceipt({ env = process.env, now = () => new Date() } = {}) {
   if (!legacyFileAuthorityAllowed(env)) {
     return legacyJsonMutationBlockedReceipt({
@@ -4369,6 +4535,9 @@ export async function handler(event = {}) {
   }
   if (maintenanceAction(event) === HOME_FINANCE_DASHBOARD_SMOKE_ACTION) {
     return handleHomeFinanceDashboardSmoke(event);
+  }
+  if (maintenanceAction(event) === DIRECT_RECEIPT_ALLOCATION_MIGRATION_ACTION) {
+    return handleDirectReceiptAllocationMigration(event);
   }
   if (maintenanceAction(event) === LCX_AUTH_RESET_RECOVERY_ACTION) {
     return handleLcxAuthResetRecovery(event);

@@ -184,8 +184,22 @@ export function buildFinanceDashboardModel(result, { now = new Date(), currency 
   const rows = resultItems(result).filter((row) => row.currency === currency && months.includes(row.month));
   const byMonth = new Map();
   for (const row of rows) {
-    const aggregate = byMonth.get(row.month) ?? { month: row.month, currency, billed_amount: 0, processed_cost: 0 };
+    const aggregate = byMonth.get(row.month) ?? {
+      month: row.month,
+      currency,
+      billed_amount: 0,
+      revenue_amount: 0,
+      invoice_collected_amount: 0,
+      direct_fee_amount: 0,
+      unallocated_receipt_amount: 0,
+      processed_cost: 0,
+      recognition_basis: row.recognition_basis ?? result?.filters?.recognition_basis ?? "billed",
+    };
     aggregate.billed_amount += Number(row.billed_amount ?? 0);
+    aggregate.revenue_amount += Number(row.revenue_amount ?? row.billed_amount ?? 0);
+    aggregate.invoice_collected_amount += Number(row.invoice_collected_amount ?? 0);
+    aggregate.direct_fee_amount += Number(row.direct_fee_amount ?? 0);
+    aggregate.unallocated_receipt_amount += Number(row.unallocated_receipt_amount ?? 0);
     aggregate.processed_cost += Number(row.processed_cost ?? 0);
     byMonth.set(row.month, aggregate);
   }
@@ -198,11 +212,12 @@ export function buildFinanceDashboardModel(result, { now = new Date(), currency 
     currency,
     current,
     previous,
-    revenue_change_percent: current && previous ? percentageChange(current.billed_amount, previous.billed_amount) : null,
+    recognition_basis: result?.filters?.recognition_basis ?? current?.recognition_basis ?? "billed",
+    revenue_change_percent: current && previous ? percentageChange(current.revenue_amount, previous.revenue_amount) : null,
     processed_cost_change_percent: current && previous ? percentageChange(current.processed_cost, previous.processed_cost) : null,
     series: Object.freeze(months.map((monthKey) => Object.freeze({
       month: monthKey,
-      amount: byMonth.get(monthKey)?.billed_amount ?? 0,
+      amount: byMonth.get(monthKey)?.revenue_amount ?? 0,
       observed: byMonth.has(monthKey),
     }))),
     has_series_data: rows.length > 0,
@@ -271,6 +286,40 @@ export function buildBankCashflowDashboardModel(currentResult, historyResult, { 
     }))),
     has_series_data: historyRows.length > 0,
     classification_status: currentSummary?.status ?? null,
+  });
+}
+
+export function buildHomeFinanceDashboardModel(
+  revenueResult,
+  currentCashflowResult,
+  historyCashflowResult,
+  { now = new Date(), currency = "KRW" } = {},
+) {
+  const revenue = buildFinanceDashboardModel(revenueResult, { now, currency });
+  const cashflow = buildBankCashflowDashboardModel(currentCashflowResult, historyCashflowResult, { now, currency });
+  const state = combineStates([revenue.state, cashflow.state]);
+  const current = revenue.state === "data" || cashflow.current
+    ? Object.freeze({
+        ...(cashflow.current ?? { month: revenue.month, currency }),
+        billed_amount: Number(revenue.current?.billed_amount ?? 0),
+        revenue_amount: Number(revenue.current?.revenue_amount ?? 0),
+        invoice_collected_amount: Number(revenue.current?.invoice_collected_amount ?? 0),
+        direct_fee_amount: Number(revenue.current?.direct_fee_amount ?? 0),
+        unallocated_receipt_amount: Number(revenue.current?.unallocated_receipt_amount ?? 0),
+        recognition_basis: revenue.recognition_basis,
+      })
+    : null;
+  return Object.freeze({
+    ...cashflow,
+    state,
+    revenue_state: revenue.state,
+    cashflow_state: cashflow.state,
+    current,
+    previous: revenue.previous,
+    revenue_change_percent: revenue.revenue_change_percent,
+    series: Object.freeze(revenue.series.slice(-6)),
+    has_series_data: revenue.has_series_data,
+    recognition_basis: revenue.recognition_basis,
   });
 }
 

@@ -4,6 +4,7 @@ import {
   buildClientDashboardModel,
   buildBankCashflowDashboardModel,
   buildFinanceDashboardModel,
+  buildHomeFinanceDashboardModel,
   buildMonthlyRevenueAxis,
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
@@ -21,17 +22,22 @@ test("Home dashboard month boundaries use Asia/Seoul", () => {
   assert.equal(seoulMonthKey("2026-06-30T15:00:00.000Z"), "2026-07");
 });
 
-test("Home finance model shares the KRW billed source between KPI and monthly bar series", () => {
+test("Home finance model shares canonical recognized revenue between KPI and monthly bar series", () => {
   const model = buildFinanceDashboardModel(data([
-    { month: "2026-06", currency: "KRW", billed_amount: 800, processed_cost: 100 },
-    { month: "2026-07", currency: "KRW", billed_amount: 1_000, processed_cost: 125 },
-    { month: "2026-07", currency: "USD", billed_amount: 2_000, processed_cost: 500 },
+    { month: "2026-06", currency: "KRW", billed_amount: 800, revenue_amount: 600, invoice_collected_amount: 400, direct_fee_amount: 200, unallocated_receipt_amount: 50, processed_cost: 100, recognition_basis: "collected" },
+    { month: "2026-07", currency: "KRW", billed_amount: 1_000, revenue_amount: 900, invoice_collected_amount: 500, direct_fee_amount: 400, unallocated_receipt_amount: 100, processed_cost: 125, recognition_basis: "collected" },
+    { month: "2026-07", currency: "USD", billed_amount: 2_000, revenue_amount: 1_500, processed_cost: 500, recognition_basis: "collected" },
   ]), { now: NOW });
   assert.equal(model.current.billed_amount, 1_000);
+  assert.equal(model.current.revenue_amount, 900);
+  assert.equal(model.current.invoice_collected_amount, 500);
+  assert.equal(model.current.direct_fee_amount, 400);
+  assert.equal(model.current.unallocated_receipt_amount, 100);
   assert.equal(model.current.processed_cost, 125);
+  assert.equal(model.recognition_basis, "collected");
   assert.equal(model.series.length, 12);
-  assert.equal(model.series.at(-1).amount, model.current.billed_amount);
-  assert.equal(model.revenue_change_percent, 25);
+  assert.equal(model.series.at(-1).amount, model.current.revenue_amount);
+  assert.equal(model.revenue_change_percent, 50);
 });
 
 test("Home monthly revenue axis uses readable 30 million KRW steps", () => {
@@ -119,6 +125,55 @@ test("Home bank model uses registered-client receipts, operating outflows, and a
   );
   assert.equal(model.non_payroll_outflow_summary.source_complete, true);
   assert.equal(JSON.stringify(model).includes("employee_id"), false);
+});
+
+test("Home dashboard never treats an unallocated bank receipt candidate as recognized revenue", () => {
+  const revenue = {
+    kind: "data",
+    uiState: "ready",
+    filters: { recognition_basis: "collected" },
+    items: [{
+      month: "2026-07",
+      currency: "KRW",
+      billed_amount: 240,
+      revenue_amount: 160,
+      invoice_collected_amount: 100,
+      direct_fee_amount: 60,
+      unallocated_receipt_amount: 40,
+      recognition_basis: "collected",
+    }],
+  };
+  const currentCashflow = {
+    kind: "data",
+    uiState: "ready",
+    item: {
+      summary: { total_outflow: 70 },
+      business_summary: {
+        currency: "KRW",
+        sales_amount: 999,
+        payroll_payment_amount: 20,
+        operating_expense_amount: 50,
+        status: "passed",
+      },
+    },
+  };
+  const historyCashflow = {
+    kind: "data",
+    uiState: "ready",
+    item: { monthly: [{ month: "2026-07", currency: "KRW", sales_amount: 999 }] },
+  };
+
+  const model = buildHomeFinanceDashboardModel(revenue, currentCashflow, historyCashflow, { now: NOW });
+
+  assert.equal(model.current.revenue_amount, 160);
+  assert.equal(model.current.invoice_collected_amount, 100);
+  assert.equal(model.current.direct_fee_amount, 60);
+  assert.equal(model.current.unallocated_receipt_amount, 40);
+  assert.equal(model.series.length, 6);
+  assert.equal(model.series.at(-1).amount, 160);
+  assert.notEqual(model.current.revenue_amount, currentCashflow.item.business_summary.sales_amount);
+  assert.equal(model.current.non_payroll_outflow, 50);
+  assert.equal(model.payroll_summary.gross_krw, 20);
 });
 
 test("Home monthly non-payroll outflow subtracts payroll before using the compatibility fallback", () => {

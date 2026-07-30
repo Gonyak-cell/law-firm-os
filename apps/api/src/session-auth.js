@@ -203,7 +203,7 @@ function permissionRulesFromScopes(scopes = []) {
     ["finance.time.write", ["finance:time:"]],
     ["finance.expense.write", ["finance:expense:", "finance:disbursement:"]],
     ["finance.billing.write", ["finance:fee_arrangement:", "finance:wip:", "finance:wip_snapshot:", "finance:prebill:", "finance:invoice:"]],
-    ["finance.payment.write", ["finance:payment:", "finance:payment_match:", "finance:trust_ledger:"]],
+    ["finance.payment.write", ["finance:payment:", "finance:payment_allocation:", "finance:payment_match:", "finance:trust_ledger:"]],
     ["finance.export", ["finance:accounting_export:"]],
     ["finance.audit.read", ["finance:audit:"]],
   ]);

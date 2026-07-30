@@ -254,6 +254,7 @@ function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "no
 
 function wp5ApiBody(pathname, searchParams, state) {
   const list = (id, items) => ({ request_id: id, outcome: "passed", ui_state: "ready", items, page_info: { next_cursor: null, returned_count: items.length }, safe_error_codes: [], audit_hint_ref: `${id}-audit`, count_leak_prevented: true, production_ready_claim: false });
+  const recognitionBasis = searchParams.get("recognition_basis") === "collected" ? "collected" : "billed";
   if (pathname === "/api/profile/me") {
     return {
       request_id: "dashboard-profile",
@@ -304,7 +305,7 @@ function wp5ApiBody(pathname, searchParams, state) {
       outcome: "passed",
       item: {
         scope_label: "Matter 기반 집계",
-        totals: [{ currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+        totals: [{ currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 150 : 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
         currency_conversion_applied: false,
         ar_balance_is_point_in_time: true
       },
@@ -314,7 +315,7 @@ function wp5ApiBody(pathname, searchParams, state) {
   if (pathname === "/api/analytics/finance/monthly") {
     return {
       request_id: "wp-fin-3-monthly", outcome: "passed",
-      items: [{ month: wp5DateKey().slice(0, 7), currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+      items: [{ month: wp5DateKey().slice(0, 7), currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 150 : 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-monthly-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
     };
   }
@@ -476,8 +477,8 @@ function wp5ApiBody(pathname, searchParams, state) {
     return {
       request_id: "wp-fin-3-clients", outcome: "passed",
       items: [
-        { client_group_id: "api-fin-client", client_group_label: "api-fin-client", client_mapping_source: "master-data.ClientGroup", matter_count: 1, currency: "KRW", billed_amount: 900, collected_amount: 400, matter_cost: 200, recoverable_cost: 200, ar_balance: 500, contribution_amount: 700, unlinked_amount: 0, transaction_count: 6, date_inferred_count: 1 },
-        { client_group_id: null, client_group_label: "미연결 고객", client_mapping_source: "unlinked", matter_count: 1, currency: "KRW", billed_amount: 0, collected_amount: 0, matter_cost: 50, recoverable_cost: 50, ar_balance: 0, contribution_amount: -50, unlinked_amount: 50, transaction_count: 1, date_inferred_count: 0 }
+        { client_group_id: "api-fin-client", client_group_label: "api-fin-client", client_mapping_source: "master-data.ClientGroup", matter_count: 1, currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 200, recoverable_cost: 200, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 200 : 700, unlinked_amount: 0, transaction_count: 6, date_inferred_count: 1 },
+        { client_group_id: null, client_group_label: "미연결 고객", client_mapping_source: "unlinked", matter_count: 1, currency: "KRW", billed_amount: 0, collected_amount: 0, invoice_collected_amount: 0, direct_fee_amount: 0, collected_revenue_amount: 0, unallocated_receipt_amount: 0, advance_trust_amount: 0, other_non_revenue_amount: 0, revenue_amount: 0, recognition_basis: recognitionBasis, matter_cost: 50, recoverable_cost: 50, ar_balance: 0, contribution_amount: -50, unlinked_amount: 50, transaction_count: 1, date_inferred_count: 0 }
       ],
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-clients-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
     };
@@ -1006,7 +1007,8 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     await page.waitForSelector('[data-home-finance-summary="true"]');
     const overview = page.locator('[data-home-finance-surface="true"]');
     assert.match(await overview.innerText(), /900원/);
-    assert.match(await overview.innerText(), /400원/);
+    assert.match(await overview.innerText(), /청구 수납\s+250원/);
+    assert.match(await overview.innerText(), /직접 보수\s+150원/);
     assert.match(await overview.innerText(), /미연결 고객/);
     assert.doesNotMatch(await overview.innerText(), /client-group-visible|tenant_cmp|party-/);
 
@@ -1031,14 +1033,14 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     const cashflow = page.locator('[data-home-finance-section="home-finance-cashflow"]');
     assert.match(await cashflow.innerText(), /29,153,222원/);
     assert.match(await cashflow.innerText(), /159,443,060원/);
-    assert.match(await cashflow.innerText(), /현재 등록된 고객과 연결된 입금을 매출로 집계합니다/);
+    assert.match(await cashflow.innerText(), /입금 배정 전에는 매출로 확정하지 않습니다/);
     assert.equal(await cashflow.locator('[data-home-cashflow-monthly-table="true"]').count(), 1);
     assert.equal(await cashflow.locator('[data-home-cashflow-transaction-table="true"] tbody tr').count(), 2);
     assert.match(await cashflow.locator('[data-home-cashflow-transaction-table="true"]').innerText(), /입금자 확인 전/);
     await cashflow.getByLabel("거래 유형").selectOption("outflow");
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("direction") === "outflow");
 
-    await page.setViewportSize({ width: 700, height: 900 });
+    await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   } finally {
     await browser.close();
@@ -1104,6 +1106,7 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     await page.waitForFunction(() => !document.querySelector('[data-matter-invoice-issue-action="true"] button')?.disabled);
     await page.getByRole("button", { name: "발행", exact: true }).click();
     await page.waitForFunction(() => !document.querySelector('[data-matter-payment-import-action="true"]')?.disabled);
+    await page.locator('[data-matter-payment-form="true"]').getByLabel("입금 성격").selectOption("invoice_payment");
     await page.getByRole("button", { name: "입금 기록", exact: true }).click();
     await page.waitForFunction(() => {
       const buttons = [...document.querySelectorAll('[data-matter-payment-match-action="true"] button')];
@@ -1120,6 +1123,118 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     for (const expected of ["POST /api/finance/time-entries", "POST /api/finance/expenses", "POST /api/finance/disbursements", "POST /api/finance/wip", "POST /api/finance/wip-snapshots", "POST /api/finance/prebills", "POST /api/finance/prebills/approve", "POST /api/finance/invoices", "POST /api/finance/payments", "POST /api/finance/payment-matches", "GET /api/finance/accounting-export.csv"]) {
       assert.ok(calls.includes(expected), `missing ${expected}`);
     }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("WP-FIN-4A records and allocates a direct fee without an invoice", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const writes = [];
+  const listBody = (items = []) => ({
+    request_id: "wp-fin-4a-list",
+    outcome: "passed",
+    items,
+    page_info: { next_cursor: null, returned_count: items.length },
+    safe_error_codes: [],
+    audit_hint_ref: "wp-fin-4a-audit",
+    ui_state: items.length === 0 ? "empty" : "ready",
+    count_leak_prevented: true,
+    production_ready_claim: false,
+  });
+  const actionBody = (extra = {}) => ({
+    request_id: "wp-fin-4a-action",
+    outcome: "created",
+    safe_error_codes: [],
+    audit_hint_ref: "wp-fin-4a-action-audit",
+    production_ready_claim: false,
+    ...extra,
+  });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 1000 } });
+    await page.route("**/api/**", async (route) => {
+      const request = route.request();
+      const url = new URL(request.url());
+      if (url.pathname === "/api/matters") {
+        return jsonResponse(route, listBody([{
+          matter_id: "matter-direct-ui",
+          matter_code: "2026-DIRECT",
+          title: "직접 수납",
+          client_group_id: "client-direct-ui",
+          billing_client_party_id: "party-direct-ui",
+          status: "active",
+        }]));
+      }
+      if (["/api/finance/time-entries", "/api/finance/invoices", "/api/finance/ar-aging", "/api/finance/audit"].includes(url.pathname) && request.method() === "GET") {
+        return jsonResponse(route, listBody([]));
+      }
+      if (url.pathname === "/api/finance/payments" && request.method() === "POST") {
+        const payload = request.postDataJSON();
+        writes.push({ path: url.pathname, payload });
+        return jsonResponse(route, actionBody({
+          item: {
+            ...payload.payment,
+            payment_id: "payment-direct-ui",
+            allocated_amount: 0,
+            unallocated_amount: payload.payment.amount,
+            applied_amount: 0,
+            unapplied_amount: payload.payment.amount,
+          },
+        }), 201);
+      }
+      if (url.pathname === "/api/finance/payment-allocations" && request.method() === "POST") {
+        const payload = request.postDataJSON();
+        const allocation = { ...payload.allocation, payment_allocation_id: "allocation-direct-ui", status: "active" };
+        writes.push({ path: url.pathname, payload });
+        return jsonResponse(route, actionBody({
+          item: allocation,
+          payment_allocation: allocation,
+          payment: {
+            payment_id: "payment-direct-ui",
+            matter_id: "matter-direct-ui",
+            client_group_id: "client-direct-ui",
+            amount: payload.allocation.amount,
+            currency: payload.allocation.currency,
+            allocated_amount: payload.allocation.amount,
+            unallocated_amount: 0,
+            applied_amount: payload.allocation.amount,
+            unapplied_amount: 0,
+          },
+        }), 201);
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow&matter_id=matter-direct-ui#home-finance-billing`, { waitUntil: "networkidle" });
+    const form = page.locator('[data-matter-payment-form="true"]');
+    await form.waitFor();
+    assert.equal(await page.locator('[data-matter-payment-import-action="true"]').isEnabled(), true);
+    assert.equal(await form.getByLabel("입금 성격").inputValue(), "direct_fee");
+    assert.match(await page.locator('[data-matter-payment-revenue-effect="revenue"]').innerText(), /청구서 없이 받은 사건 보수.*수납 기준 매출/);
+
+    await form.getByLabel("금액").fill("125000");
+    await page.locator('[data-matter-payment-import-action="true"]').click();
+    await page.waitForFunction(() => !document.querySelector('[data-matter-payment-allocation-action="true"]')?.disabled);
+    await page.locator('[data-matter-payment-allocation-action="true"]').click();
+    await page.waitForSelector('text=입금이 배정되었습니다.');
+
+    const paymentWrite = writes.find((write) => write.path === "/api/finance/payments");
+    const allocationWrite = writes.find((write) => write.path === "/api/finance/payment-allocations");
+    assert.equal(paymentWrite.payload.payment.matter_id, "matter-direct-ui");
+    assert.equal(paymentWrite.payload.payment.client_group_id, "client-direct-ui");
+    assert.equal(paymentWrite.payload.payment.amount, 125000);
+    assert.equal(allocationWrite.payload.allocation.allocation_type, "direct_fee");
+    assert.equal(allocationWrite.payload.allocation.invoice_id, null);
+    assert.equal(allocationWrite.payload.allocation.matter_id, "matter-direct-ui");
+    assert.equal(allocationWrite.payload.allocation.client_group_id, "client-direct-ui");
+    assert.equal(allocationWrite.payload.allocation.amount, 125000);
+    assert.match(await page.locator('[data-matter-payment-match-action="true"]').innerText(), /청구서 없는 사건 보수/);
+    await page.setViewportSize({ width: 700, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   } finally {
     await browser.close();
     await server.close();
@@ -1862,8 +1977,11 @@ test("Home dashboard keeps independent cards available when bank cashflow is den
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
     assert.equal(await page.locator('[data-dashboard-section="client-summary"] .dashboard-record-row').count() > 0, true);
     assert.equal(await page.locator('[data-dashboard-section="matter-summary"] .dashboard-record-row').count() > 0, true);
-    assert.match(await page.locator('[data-dashboard-section="monthly-revenue"]').innerText(), /이번달 매출 접근 권한이 없습니다/);
-    assert.match(await page.locator('[data-dashboard-section="monthly-revenue-chart"]').innerText(), /월별 매출 접근 권한이 없습니다/);
+    assert.match(await page.locator('[data-dashboard-section="monthly-revenue"]').innerText(), /₩ 400/);
+    assert.equal(await page.locator('[data-dashboard-section="monthly-revenue-chart"] [data-home-revenue-bar-chart="true"]').count(), 1);
+    for (const section of ["monthly-payroll", "monthly-processed-cost"]) {
+      assert.match(await page.locator(`[data-dashboard-section="${section}"]`).innerText(), /접근 권한이 없습니다/);
+    }
   } finally {
     await browser.close();
     await server.close();

@@ -149,6 +149,13 @@ function emptyMetrics(currency) {
     currency,
     billed_amount: 0,
     collected_amount: 0,
+    invoice_collected_amount: 0,
+    direct_fee_amount: 0,
+    collected_revenue_amount: 0,
+    unallocated_receipt_amount: 0,
+    advance_trust_amount: 0,
+    other_non_revenue_amount: 0,
+    revenue_amount: 0,
     matter_cost: 0,
     processed_cost: 0,
     recoverable_cost: 0,
@@ -160,9 +167,15 @@ function emptyMetrics(currency) {
   };
 }
 
-function addEntry(target, entry) {
+function addEntry(target, entry, recognitionBasis) {
   target.billed_amount = money(target.billed_amount + entry.billed_amount);
   target.collected_amount = money(target.collected_amount + entry.collected_amount);
+  target.invoice_collected_amount = money(target.invoice_collected_amount + entry.invoice_collected_amount);
+  target.direct_fee_amount = money(target.direct_fee_amount + entry.direct_fee_amount);
+  target.collected_revenue_amount = money(target.collected_revenue_amount + entry.collected_revenue_amount);
+  target.unallocated_receipt_amount = money(target.unallocated_receipt_amount + entry.unallocated_receipt_amount);
+  target.advance_trust_amount = money(target.advance_trust_amount + entry.advance_trust_amount);
+  target.other_non_revenue_amount = money(target.other_non_revenue_amount + entry.other_non_revenue_amount);
   target.matter_cost = money(target.matter_cost + entry.matter_cost);
   target.processed_cost = money(target.processed_cost + entry.processed_cost);
   target.recoverable_cost = money(target.recoverable_cost + entry.recoverable_cost);
@@ -172,7 +185,9 @@ function addEntry(target, entry) {
   if (!entry.client_group_id) {
     target.unlinked_amount = money(target.unlinked_amount + Math.abs(entry.billed_amount) + Math.abs(entry.collected_amount) + Math.abs(entry.matter_cost) + Math.abs(entry.ar_balance));
   }
-  target.contribution_amount = money(target.billed_amount - target.matter_cost);
+  target.revenue_amount = recognitionBasis === "collected" ? target.collected_revenue_amount : target.billed_amount;
+  target.contribution_amount = money(target.revenue_amount - target.matter_cost);
+  target.recognition_basis = recognitionBasis;
 }
 
 function finalizedRows(map) {
@@ -204,6 +219,7 @@ export function buildFinanceReadModels({
   const sourceStatuses = [];
   const invoices = listSource(financeRepository, tenantId, "Invoice", sourceStatuses);
   const payments = listSource(financeRepository, tenantId, "Payment", sourceStatuses);
+  const paymentAllocations = listSource(financeRepository, tenantId, "PaymentAllocation", sourceStatuses);
   const paymentMatches = listSource(financeRepository, tenantId, "PaymentMatch", sourceStatuses);
   const expenses = listSource(financeRepository, tenantId, "Expense", sourceStatuses);
   const disbursements = listSource(financeRepository, tenantId, "Disbursement", sourceStatuses);
@@ -230,6 +246,12 @@ export function buildFinanceReadModels({
       currency: rowCurrency,
       billed_amount: money(values.billed_amount),
       collected_amount: money(values.collected_amount),
+      invoice_collected_amount: money(values.invoice_collected_amount),
+      direct_fee_amount: money(values.direct_fee_amount),
+      collected_revenue_amount: money(values.collected_revenue_amount),
+      unallocated_receipt_amount: money(values.unallocated_receipt_amount),
+      advance_trust_amount: money(values.advance_trust_amount),
+      other_non_revenue_amount: money(values.other_non_revenue_amount),
       matter_cost: money(values.matter_cost),
       processed_cost: money(values.processed_cost),
       recoverable_cost: money(values.recoverable_cost),
@@ -250,20 +272,61 @@ export function buildFinanceReadModels({
     }, currencyOf(invoice));
   }
 
-  if (paymentMatches.length > 0) {
-    for (const match of paymentMatches) {
-      const payment = indexBy(payments, "payment_id").get(optionalString(match.payment_id));
-      const invoice = invoicesById.get(optionalString(match.invoice_id));
-      push({ ...payment, ...invoice, ...match, matter_id: match.matter_id ?? invoice?.matter_id ?? payment?.matter_id }, ["matched_at", "allocated_at"], {
-        collected_amount: firstNumber(match, ["matched_amount", "allocated_amount", "amount"]),
-      }, currencyOf(payment, currencyOf(invoice)));
-    }
-  } else {
-    for (const payment of payments) {
-      push(payment, ["received_at", "payment_date", "paid_at"], {
-        collected_amount: firstNumber(payment, ["amount", "received_amount", "payment_amount"]),
-      }, currencyOf(payment));
-    }
+  const paymentsById = indexBy(payments, "payment_id");
+  const reversedAllocationIds = new Set(
+    paymentAllocations.map((row) => optionalString(row.reverses_payment_allocation_id)).filter(Boolean),
+  );
+  const activeAllocations = paymentAllocations.filter((row) => {
+    return row.status !== "reversed"
+      && !EXCLUDED_STATUSES.has(String(row.status ?? "").toLowerCase())
+      && !reversedAllocationIds.has(row.payment_allocation_id);
+  });
+  const representedMatches = new Set(paymentAllocations.map((row) => optionalString(row.source_payment_match_id)).filter(Boolean));
+  for (const allocation of activeAllocations) {
+    const payment = paymentsById.get(optionalString(allocation.payment_id));
+    const invoice = invoicesById.get(optionalString(allocation.invoice_id));
+    const amount = firstNumber(allocation, ["amount", "allocated_amount"]);
+    const values = {
+      collected_amount: ["invoice_payment", "direct_fee"].includes(allocation.allocation_type) ? amount : 0,
+      invoice_collected_amount: allocation.allocation_type === "invoice_payment" ? amount : 0,
+      direct_fee_amount: allocation.allocation_type === "direct_fee" ? amount : 0,
+      collected_revenue_amount: ["invoice_payment", "direct_fee"].includes(allocation.allocation_type) ? amount : 0,
+      advance_trust_amount: ["client_advance", "trust_deposit"].includes(allocation.allocation_type) ? amount : 0,
+      other_non_revenue_amount: allocation.allocation_type === "other_non_revenue" ? amount : 0,
+    };
+    push(
+      { ...payment, ...invoice, ...allocation, matter_id: allocation.matter_id ?? invoice?.matter_id ?? payment?.matter_id },
+      ["allocated_at", "received_at", "matched_at"],
+      values,
+      currencyOf(allocation, currencyOf(payment, currencyOf(invoice))),
+    );
+  }
+  const legacyMatches = paymentMatches
+    .filter((match) => !EXCLUDED_STATUSES.has(String(match.status ?? "").toLowerCase()))
+    .filter((match) => !representedMatches.has(match.payment_match_id));
+  for (const match of legacyMatches) {
+    const payment = paymentsById.get(optionalString(match.payment_id));
+    const invoice = invoicesById.get(optionalString(match.invoice_id));
+    const amount = firstNumber(match, ["matched_amount", "allocated_amount", "amount"]);
+    push({ ...payment, ...invoice, ...match, matter_id: match.matter_id ?? invoice?.matter_id ?? payment?.matter_id }, ["matched_at", "allocated_at", "received_at"], {
+      collected_amount: amount,
+      invoice_collected_amount: amount,
+      collected_revenue_amount: amount,
+    }, currencyOf(payment, currencyOf(invoice)));
+  }
+  const allocatedByPayment = new Map();
+  for (const allocation of activeAllocations) {
+    allocatedByPayment.set(allocation.payment_id, money((allocatedByPayment.get(allocation.payment_id) ?? 0) + firstNumber(allocation, ["amount", "allocated_amount"])));
+  }
+  for (const match of legacyMatches) {
+    allocatedByPayment.set(match.payment_id, money((allocatedByPayment.get(match.payment_id) ?? 0) + firstNumber(match, ["matched_amount", "allocated_amount", "amount"])));
+  }
+  for (const payment of payments) {
+    const unallocatedAmount = Math.max(0, money(firstNumber(payment, ["amount", "received_amount", "payment_amount"]) - (allocatedByPayment.get(payment.payment_id) ?? 0)));
+    if (unallocatedAmount === 0) continue;
+    push(payment, ["received_at", "payment_date", "paid_at"], {
+      unallocated_receipt_amount: unallocatedAmount,
+    }, currencyOf(payment));
   }
 
   for (const expense of expenses) {
@@ -305,12 +368,12 @@ export function buildFinanceReadModels({
   const clientMatterIds = new Map();
   for (const entry of entries) {
     const total = totals.get(entry.currency) ?? emptyMetrics(entry.currency);
-    addEntry(total, entry);
+    addEntry(total, entry, recognition_basis);
     totals.set(entry.currency, total);
 
     const monthKey = `${entry.month}:${entry.currency}`;
     const month = monthly.get(monthKey) ?? { month: entry.month, ...emptyMetrics(entry.currency) };
-    addEntry(month, entry);
+    addEntry(month, entry, recognition_basis);
     monthly.set(monthKey, month);
 
     const clientId = entry.client_group_id ?? UNLINKED_CLIENT_ID;
@@ -322,7 +385,7 @@ export function buildFinanceReadModels({
       matter_count: 0,
       ...emptyMetrics(entry.currency),
     };
-    addEntry(client, entry);
+    addEntry(client, entry, recognition_basis);
     const matters = clientMatterIds.get(clientKey) ?? new Set();
     if (entry.matter_id) matters.add(entry.matter_id);
     client.matter_count = matters.size;
