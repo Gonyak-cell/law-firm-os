@@ -11,6 +11,7 @@ export * from "./lead-inquiry-service.js";
 export * from "./inquiry-read-model.js";
 export * from "./opportunity-service.js";
 export * from "./activity-service.js";
+export * from "./engagement-decision-service.js";
 export * from "./proposal-service.js";
 export * from "./referral-service.js";
 export * from "./campaign-service.js";

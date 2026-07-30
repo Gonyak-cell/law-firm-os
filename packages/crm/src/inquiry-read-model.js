@@ -177,11 +177,25 @@ function consultationSummary(activity) {
 
 function opportunitySummary(opportunity) {
   if (!opportunity) return null;
+  const workflowStatusLabel = {
+    completed: "반영 완료",
+    in_progress: "수임 확정 처리 중",
+    repair_required: "반영 확인 필요",
+  }[opportunity.engagement_workflow_status] ?? null;
   return Object.freeze({
     opportunity_id: opportunity.opportunity_id,
     stage: opportunity.stage,
     engagement_decision: opportunity.engagement_decision ?? null,
+    engagement_decision_version:
+      opportunity.engagement_decision_version ?? 1,
     engagement_decided_at: opportunity.engagement_decided_at ?? null,
+    engagement_workflow_status:
+      opportunity.engagement_workflow_status ?? null,
+    engagement_workflow_status_label: workflowStatusLabel,
+    engagement_client_group_id:
+      opportunity.engagement_client_group_id ?? null,
+    engagement_fee_commitment_id:
+      opportunity.engagement_fee_commitment_id ?? null,
     owner_user_id: opportunity.owner_user_id ?? null,
     direct_matter_reference_included: false,
     production_ready_claim: false,
@@ -247,7 +261,10 @@ export function projectCrmInquiry({
     tenant_id: canonicalLead.tenant_id,
     lead_id: canonicalLead.lead_id,
     party_id: canonicalLead.party_id,
-    client_group_id: canonicalLead.client_group_id ?? null,
+    client_group_id:
+      opportunity?.engagement_client_group_id
+      ?? canonicalLead.client_group_id
+      ?? null,
     display_name: canonicalLead.display_name,
     visible_status: visibleStatus.code,
     visible_status_label: visibleStatus.label,
@@ -264,6 +281,8 @@ export function projectCrmInquiry({
     version: canonicalLead.version,
     opportunity_id: opportunity?.opportunity_id ?? null,
     engagement_decision: engagementDecision,
+    engagement_workflow_status:
+      opportunity?.engagement_workflow_status ?? null,
     next_consultation: nextConsultation,
     opportunity: opportunitySummary(opportunity),
     consultations: consultationItems,
@@ -293,6 +312,7 @@ export function summarizeCrmInquiry(projection) {
     version: projection.version,
     opportunity_id: projection.opportunity_id,
     engagement_decision: projection.engagement_decision,
+    engagement_workflow_status: projection.engagement_workflow_status,
     next_consultation: projection.next_consultation,
     needs_review: projection.needs_review,
     review_codes: projection.review_codes,

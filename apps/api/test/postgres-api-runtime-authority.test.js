@@ -369,6 +369,211 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   assert.equal(storedLead.payload.version, 4);
 });
 
+test("PostgreSQL API authority persists staged engagement decision receipts across CRM, Master Data and Finance", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-engagement-decision-test",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+  const leadId = "lead-postgres-engagement-t01";
+  const opportunityId = "opportunity-postgres-engagement-t01";
+  const partyId = "party-postgres-engagement-t01";
+  const masterDataRepository = createMasterDataRepository({
+    seedRecords: [{
+      model_type: "Party",
+      tenant_id: TENANT_A,
+      party_id: partyId,
+      party_type: "organization",
+      display_name: "PostgreSQL 수임 고객",
+      status: "active",
+      owner_user_id: "user-postgres-engagement-t01",
+    }],
+  });
+  const crmRepository = createCrmRuntimeRepository({
+    seedRecords: [
+      {
+        model_type: "Lead",
+        lead_id: leadId,
+        tenant_id: TENANT_A,
+        party_id: partyId,
+        opportunity_id: opportunityId,
+        display_name: "PostgreSQL 수임 문의",
+        status: "active",
+        owner_user_id: "user-postgres-engagement-t01",
+        inquiry_status: "reviewing",
+        source: "manual",
+        received_at: "2026-07-30T00:00:00.000Z",
+        next_action: "수임 여부 검토",
+        version: 2,
+      },
+      {
+        model_type: "Opportunity",
+        opportunity_id: opportunityId,
+        lead_id: leadId,
+        tenant_id: TENANT_A,
+        party_id: partyId,
+        display_name: "PostgreSQL 수임 기회",
+        stage: "qualified",
+        engagement_decision: "pending",
+        engagement_decision_version: 1,
+        status: "active",
+        owner_user_id: "user-postgres-engagement-t01",
+      },
+    ],
+  });
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR,
+      repositories: [{
+        source_id: "postgres-engagement-master-data",
+        repository: masterDataRepository,
+      }],
+      tenant_id: TENANT_A,
+    }).snapshot);
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: CRM_DOMAIN_DESCRIPTOR,
+      repositories: [{
+        source_id: "postgres-engagement-crm",
+        repository: crmRepository,
+      }],
+      tenant_id: TENANT_A,
+    }).snapshot);
+  } finally {
+    masterDataRepository.close();
+    crmRepository.close();
+  }
+  const context = Object.freeze({
+    principal: Object.freeze({
+      tenant_id: TENANT_A,
+      user_id: "user-postgres-engagement-t01",
+      role_ids: Object.freeze(["system_super_admin"]),
+      scopes: Object.freeze(["crm.engagement.decide"]),
+    }),
+    rules: Object.freeze([{
+      id: "allow-postgres-engagement",
+      effect: "allow",
+      action: "*",
+    }]),
+    object_acl: Object.freeze([]),
+  });
+  const created = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname:
+        `/api/crm/inquiries/${leadId}/engagement-decisions`,
+      idempotency_key: "postgres-engagement-decision-1",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return handleCrmIntakeApiRequest({
+        pathname:
+          `/api/crm/inquiries/${leadId}/engagement-decisions`,
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-engagement",
+          audit_hint_ref: "audit-postgres-engagement",
+          engagement_decision: "accepted",
+          expected_inquiry_version: 2,
+          expected_engagement_version: 1,
+          agreed_amount: 12_000_000,
+          due_date: "2026-08-31",
+          reason: "PostgreSQL 수임 결정",
+          idempotency_key: "postgres-engagement-decision-1",
+        },
+        context,
+        requestId: "request-postgres-engagement-decision",
+        runtime: {
+          ...runtimes.crmIntakeRuntime,
+          engagementMasterDataRepository:
+            runtimes.masterDataRuntime.repository,
+          financeRuntime: runtimes.financeRuntime,
+        },
+      });
+    },
+  });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.outcome, "completed");
+  assert.deepEqual(created.body.processing.completed_steps, [
+    "decision_recorded",
+    "client_group_resolved",
+    "fee_commitment_created",
+  ]);
+  assert.equal(created.body.item.engagement_decision, "accepted");
+  assert.equal(created.body.item.stage, "qualified");
+
+  const storedLead = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "Lead",
+    record_id: leadId,
+  });
+  const storedOpportunity = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "Opportunity",
+    record_id: opportunityId,
+  });
+  const storedProcess = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "EngagementDecisionProcess",
+    record_id: created.body.processing.engagement_workflow_id,
+  });
+  const storedClientGroup = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "master-data",
+    record_type: "ClientGroup",
+    record_id: created.body.processing.client_group_id,
+  });
+  const storedFeeCommitment = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "finance",
+    record_type: "FeeCommitment",
+    record_id: created.body.processing.fee_commitment_id,
+  });
+  assert.equal(
+    storedLead.payload.client_group_id,
+    storedClientGroup.payload.client_group_id,
+  );
+  assert.equal(storedLead.payload.version, 3);
+  assert.equal(storedOpportunity.payload.engagement_decision_version, 2);
+  assert.equal(storedOpportunity.payload.engagement_workflow_status, "completed");
+  assert.equal(storedProcess.payload.workflow_status, "completed");
+  assert.deepEqual(storedProcess.payload.completed_steps, [
+    "decision_recorded",
+    "client_group_resolved",
+    "fee_commitment_created",
+  ]);
+  assert.equal(storedClientGroup.payload.primary_party_id, partyId);
+  assert.equal(storedFeeCommitment.payload.agreed_amount, 12_000_000);
+  assert.equal(storedFeeCommitment.payload.opportunity_id, opportunityId);
+  assert.equal(
+    storedFeeCommitment.payload.client_group_id,
+    storedClientGroup.payload.client_group_id,
+  );
+  assert.equal((await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "matter",
+    record_type: "Matter",
+  })).length, 0);
+});
+
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {
   const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 24 });
   if (!fixture) return;

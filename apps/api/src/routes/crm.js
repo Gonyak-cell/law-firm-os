@@ -27,6 +27,18 @@ export const CRM_INTAKE_ROUTE_POLICIES = Object.freeze([
   }),
   Object.freeze({
     method: "POST",
+    pattern: /^\/api\/crm\/inquiries\/([^/]+)\/engagement-decisions$/,
+    action: "crm:engagement:decide",
+    resource_type: "crm_inquiry",
+  }),
+  Object.freeze({
+    method: "POST",
+    pattern: /^\/api\/crm\/inquiries\/([^/]+)\/engagement-repair$/,
+    action: "crm:engagement:repair",
+    resource_type: "crm_inquiry",
+  }),
+  Object.freeze({
+    method: "POST",
     pattern: /^\/api\/crm\/consultations\/([^/]+)\/outlook-event$/,
     action: "crm:consultation:calendar_create",
     resource_type: "crm_activity",

@@ -14,11 +14,30 @@ function references(record) {
   };
   if (record.model_type !== "Lead") add("lead", "Lead", record.lead_id);
   if (record.model_type !== "Opportunity") add("opportunity", "Opportunity", record.opportunity_id);
+  if (record.model_type !== "EngagementDecisionProcess") {
+    add(
+      "engagement_workflow",
+      "EngagementDecisionProcess",
+      record.engagement_workflow_id,
+    );
+  }
   add("proposal", "Proposal", record.proposal_id);
   add("referral", "Referral", record.referral_id);
   add("canonical_party", "Party", record.party_id ?? record.canonical_party_id, { target_domain_id: "master-data" });
   add("canonical_entity", "Entity", record.entity_id ?? record.canonical_entity_id, { target_domain_id: "master-data" });
   add("intake_request", "IntakeRequest", record.intake_request_id, { target_domain_id: "intake" });
+  add(
+    "client_group",
+    "ClientGroup",
+    record.client_group_id ?? record.engagement_client_group_id,
+    { target_domain_id: "master-data" },
+  );
+  add(
+    "fee_commitment",
+    "FeeCommitment",
+    record.fee_commitment_id ?? record.engagement_fee_commitment_id,
+    { target_domain_id: "finance" },
+  );
   return values;
 }
 
@@ -48,6 +67,8 @@ export const CRM_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "next_action",
     "outlook_event_id",
     "outlook_event_web_link",
+    "engagement_close_reason",
+    "close_reason",
     "proposal_summary",
   ],
   primary_key_fields: [
@@ -58,6 +79,7 @@ export const CRM_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "proposal_id",
     "referral_id",
     "campaign_id",
+    "engagement_workflow_id",
   ],
   unique_rules: [
     "Lead.normalized_email_hash",
@@ -69,5 +91,7 @@ export const CRM_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "*.proposal_id->Proposal",
     "*.party_id->master-data.Party",
     "*.intake_request_id->intake.IntakeRequest",
+    "*.client_group_id->master-data.ClientGroup",
+    "*.fee_commitment_id->finance.FeeCommitment",
   ],
 });

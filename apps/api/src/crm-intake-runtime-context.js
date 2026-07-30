@@ -22,6 +22,11 @@ import {
   summarizeCrmInquiry,
 } from "../../../packages/crm/src/inquiry-read-model.js";
 import { createOpportunity } from "../../../packages/crm/src/opportunity-service.js";
+import {
+  CRM_ENGAGEMENT_ERROR_CODES,
+  decideInquiryEngagement,
+  repairInquiryEngagement,
+} from "../../../packages/crm/src/engagement-decision-service.js";
 import { handoffOpportunityToIntake } from "../../../packages/crm/src/intake-handoff-service.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createIntakeRequest } from "../../../packages/intake/src/intake-request-service.js";
@@ -57,6 +62,8 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/crm/inquiries/:id",
     "POST /api/crm/inquiries/:id/transitions",
     "POST /api/crm/inquiries/:id/consultations",
+    "POST /api/crm/inquiries/:id/engagement-decisions",
+    "POST /api/crm/inquiries/:id/engagement-repair",
     "POST /api/crm/consultations/:id/outlook-event",
     "GET /api/crm/opportunities",
     "POST /api/crm/opportunities",
@@ -128,6 +135,24 @@ export const CRM_INTAKE_API_ERROR_CODES = Object.freeze({
     CRM_CONSULTATION_ERROR_CODES.outlook_event_conflict,
   consultation_outlook_event_state_invalid:
     CRM_CONSULTATION_ERROR_CODES.outlook_event_state_invalid,
+  engagement_idempotency_conflict:
+    CRM_ENGAGEMENT_ERROR_CODES.idempotency_conflict,
+  engagement_inquiry_not_found:
+    CRM_ENGAGEMENT_ERROR_CODES.inquiry_not_found,
+  engagement_inquiry_version_conflict:
+    CRM_ENGAGEMENT_ERROR_CODES.inquiry_version_conflict,
+  engagement_opportunity_not_found:
+    CRM_ENGAGEMENT_ERROR_CODES.opportunity_not_found,
+  engagement_repair_not_required:
+    CRM_ENGAGEMENT_ERROR_CODES.repair_not_required,
+  engagement_transition_invalid:
+    CRM_ENGAGEMENT_ERROR_CODES.invalid_transition,
+  engagement_version_conflict:
+    CRM_ENGAGEMENT_ERROR_CODES.version_conflict,
+  engagement_workflow_incomplete:
+    CRM_ENGAGEMENT_ERROR_CODES.workflow_incomplete,
+  engagement_workflow_not_found:
+    CRM_ENGAGEMENT_ERROR_CODES.workflow_not_found,
 });
 
 export const CRM_RUNTIME_SEED = Object.freeze([
@@ -1003,6 +1028,33 @@ const OUTLOOK_EVENT_COMMAND_FIELDS = Object.freeze([
   "expected_version",
   "reason",
   "idempotency_key",
+  "actor_id",
+]);
+
+const ENGAGEMENT_DECISION_COMMAND_FIELDS = Object.freeze([
+  "tenant_id",
+  "permission_ref",
+  "audit_hint_ref",
+  "engagement_decision",
+  "expected_inquiry_version",
+  "expected_engagement_version",
+  "agreed_amount",
+  "amount_unknown_confirmed",
+  "due_date",
+  "close_reason",
+  "reason",
+  "idempotency_key",
+  "actor_id",
+]);
+
+const ENGAGEMENT_REPAIR_COMMAND_FIELDS = Object.freeze([
+  "tenant_id",
+  "permission_ref",
+  "audit_hint_ref",
+  "expected_workflow_version",
+  "reason",
+  "idempotency_key",
+  "actor_id",
 ]);
 
 function includesDirectMatterReference(input = {}) {
@@ -1012,6 +1064,12 @@ function includesDirectMatterReference(input = {}) {
 function includesUnsupportedOutlookEventField(input = {}) {
   return Object.keys(input ?? {}).some(
     (field) => !OUTLOOK_EVENT_COMMAND_FIELDS.includes(field),
+  );
+}
+
+function includesUnsupportedCommandField(input, allowedFields) {
+  return Object.keys(input ?? {}).some(
+    (field) => !allowedFields.includes(field),
   );
 }
 
@@ -3220,6 +3278,193 @@ export function handleCrmInquiryTransition({
   }
 }
 
+function engagementRuntimeRepositories(runtime) {
+  return Object.freeze({
+    crm_repository: runtime.crmRepository,
+    master_data_repository:
+      runtime.engagementMasterDataRepository
+      ?? runtime.financeRuntime?.masterDataRepository
+      ?? runtime.masterDataRepository,
+    finance_repository:
+      runtime.financeRuntime?.repository
+      ?? runtime.financeRepository
+      ?? null,
+    matter_repository:
+      runtime.matterRepository
+      ?? runtime.financeRuntime?.matterRepository
+      ?? null,
+  });
+}
+
+function engagementResponse({
+  result,
+  requestId,
+  auditHintRef,
+  status,
+}) {
+  const safeOpportunity = { ...result.opportunity };
+  delete safeOpportunity.engagement_close_reason;
+  delete safeOpportunity.close_reason;
+  const repairRequired =
+    result.process_summary.workflow_status === "repair_required";
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: sanitizeItem(safeOpportunity),
+      inquiry: sanitizeItem(result.lead),
+      processing: result.process_summary,
+      audit_event: result.decision_audit_event ?? null,
+      safe_error_codes: repairRequired
+        ? [result.process_summary.safe_error_code]
+        : [],
+      audit_hint_ref: auditHintRef,
+      ui_state: repairRequired ? "repair_required" : null,
+      idempotent_replay: result.idempotent_replay,
+      automatic_matter_creation: false,
+      direct_matter_reference_included: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export function handleCrmEngagementDecision({
+  inquiryId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+    resource_id: inquiryId,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  if (
+    includesDirectMatterReference(body)
+    || includesUnsupportedCommandField(
+      body,
+      ENGAGEMENT_DECISION_COMMAND_FIELDS,
+    )
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  try {
+    const result = decideInquiryEngagement({
+      ...engagementRuntimeRepositories(runtime),
+      tenant_id: query.tenant_id,
+      lead_id: inquiryId,
+      engagement_decision: body?.engagement_decision,
+      expected_inquiry_version: body?.expected_inquiry_version,
+      expected_engagement_version: body?.expected_engagement_version,
+      agreed_amount: body?.agreed_amount,
+      amount_unknown_confirmed: body?.amount_unknown_confirmed,
+      due_date: body?.due_date,
+      close_reason: body?.close_reason,
+      reason: body?.reason,
+      permission_ref: query.permission_ref,
+      audit_hint_ref: query.audit_hint_ref,
+      actor_id: actorIdFrom(body, context),
+      idempotency_key: body?.idempotency_key,
+    });
+    const status = result.idempotent_replay
+      ? 200
+      : result.process_summary.workflow_status === "repair_required"
+        ? 202
+        : 201;
+    return engagementResponse({
+      result,
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      status,
+    });
+  } catch (error) {
+    return errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [error?.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: error?.status === 404 ? "empty" : "blocked",
+      },
+    );
+  }
+}
+
+export function handleCrmEngagementRepair({
+  inquiryId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+    resource_id: inquiryId,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  if (
+    includesDirectMatterReference(body)
+    || includesUnsupportedCommandField(
+      body,
+      ENGAGEMENT_REPAIR_COMMAND_FIELDS,
+    )
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  try {
+    const result = repairInquiryEngagement({
+      ...engagementRuntimeRepositories(runtime),
+      tenant_id: query.tenant_id,
+      lead_id: inquiryId,
+      expected_workflow_version: body?.expected_workflow_version,
+      reason: body?.reason,
+      permission_ref: query.permission_ref,
+      audit_hint_ref: query.audit_hint_ref,
+      actor_id: actorIdFrom(body, context),
+      idempotency_key: body?.idempotency_key,
+    });
+    const status = result.process_summary.workflow_status === "repair_required"
+      ? 202
+      : 200;
+    return engagementResponse({
+      result,
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      status,
+    });
+  } catch (error) {
+    return errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [error?.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: error?.status === 404 ? "empty" : "blocked",
+      },
+    );
+  }
+}
+
 export function handleCrmConsultationCreate({
   inquiryId,
   body,
@@ -3733,6 +3978,34 @@ export async function handleCrmIntakeApiRequest({
   }
   if (policy.action === "crm:inquiry:update" && policy.params?.[0] && method === "POST") {
     return handleCrmInquiryTransition({
+      inquiryId: decodeURIComponent(policy.params[0]),
+      body,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
+  if (
+    policy.action === "crm:engagement:decide"
+    && policy.params?.[0]
+    && method === "POST"
+  ) {
+    return handleCrmEngagementDecision({
+      inquiryId: decodeURIComponent(policy.params[0]),
+      body,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
+  if (
+    policy.action === "crm:engagement:repair"
+    && policy.params?.[0]
+    && method === "POST"
+  ) {
+    return handleCrmEngagementRepair({
       inquiryId: decodeURIComponent(policy.params[0]),
       body,
       context,

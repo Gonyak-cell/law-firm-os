@@ -1509,6 +1509,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         ...crmIntakeRuntime,
         emailDmsRuntime,
         m365GraphConfig,
+        engagementMasterDataRepository:
+          financeRuntime?.masterDataRepository
+          ?? masterDataRuntime?.repository
+          ?? crmIntakeRuntime?.masterDataRepository,
+        financeRuntime,
       },
     });
     sendJson(req, res, result.status, result.body);
@@ -1739,6 +1744,7 @@ export function createApiServer({
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({
     dmsRuntime,
     emailDmsRepository: emailDmsRuntime?.repository,
+    crmMasterDataRepository: masterDataRuntime?.repository,
   }),
   financeRuntime = createDefaultFinanceRuntime({
     masterDataRepository: masterDataRuntime?.repository,
@@ -2181,7 +2187,9 @@ export async function startApiServer({
     createDefaultCrmIntakeRuntime({
       crmRepository,
       intakeRepository,
-      crmMasterDataRepository,
+      crmMasterDataRepository:
+        crmMasterDataRepository
+        ?? masterRuntime?.repository,
       crmStorePath: crmStorePath ?? resolvedStorePaths.crmStorePath,
       intakeStorePath: intakeStorePath ?? resolvedStorePaths.intakeStorePath,
       crmMasterDataStorePath: crmMasterDataStorePath ?? resolvedStorePaths.crmMasterDataStorePath,

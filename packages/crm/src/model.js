@@ -19,6 +19,18 @@ export const CRM_INQUIRY_STATUSES = Object.freeze(["new", "reviewing", "closed"]
 
 export const CRM_INQUIRY_SOURCES = Object.freeze(["outlook_addin", "manual"]);
 
+export const CRM_ENGAGEMENT_DECISIONS = Object.freeze([
+  "pending",
+  "accepted",
+  "declined",
+]);
+
+export const CRM_ENGAGEMENT_WORKFLOW_STATUSES = Object.freeze([
+  "in_progress",
+  "repair_required",
+  "completed",
+]);
+
 export const CRM_INQUIRY_STATUS_TRANSITIONS = Object.freeze({
   new: Object.freeze(["reviewing", "closed"]),
   reviewing: Object.freeze(["closed"]),
@@ -68,6 +80,22 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
       "owner_user_id",
     ]),
     party_reference_fields: Object.freeze(["party_id"]),
+    optional_fields: Object.freeze([
+      "lead_id",
+      "engagement_decision",
+      "engagement_decision_version",
+      "engagement_decided_at",
+      "engagement_decided_by",
+      "engagement_close_reason",
+      "engagement_previous_stage",
+      "engagement_workflow_id",
+      "engagement_workflow_status",
+      "engagement_completed_steps",
+      "engagement_client_group_id",
+      "engagement_fee_commitment_id",
+    ]),
+    engagement_optimistic_concurrency_field:
+      "engagement_decision_version",
     tuw_id: "LFOS-G3-W03-T002",
     allowed_conversion_target: "IntakeRequest",
     prohibits_direct_matter_reference: true,
@@ -225,6 +253,110 @@ function normalizeIanaTimezone(value, field) {
 
 function canonicalInstant(value, field) {
   return new Date(normalizeInstant(value, field)).toISOString();
+}
+
+function positiveInteger(value, field) {
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new TypeError(`${field} must be a positive integer`);
+  }
+  return value;
+}
+
+export function normalizeCrmOpportunityEngagementFields(input = {}) {
+  const decision = input.engagement_decision === undefined
+    || input.engagement_decision === null
+    || input.engagement_decision === ""
+    ? null
+    : optionalString(
+      input.engagement_decision,
+      "Opportunity engagement_decision",
+      32,
+    );
+  if (decision !== null && !CRM_ENGAGEMENT_DECISIONS.includes(decision)) {
+    throw new TypeError(
+      `Opportunity engagement_decision must be one of ${CRM_ENGAGEMENT_DECISIONS.join(", ")}`,
+    );
+  }
+  const workflowStatus = input.engagement_workflow_status === undefined
+    || input.engagement_workflow_status === null
+    || input.engagement_workflow_status === ""
+    ? null
+    : optionalString(
+      input.engagement_workflow_status,
+      "Opportunity engagement_workflow_status",
+      32,
+    );
+  if (
+    workflowStatus !== null
+    && !CRM_ENGAGEMENT_WORKFLOW_STATUSES.includes(workflowStatus)
+  ) {
+    throw new TypeError(
+      `Opportunity engagement_workflow_status must be one of ${CRM_ENGAGEMENT_WORKFLOW_STATUSES.join(", ")}`,
+    );
+  }
+  const previousStage = optionalString(
+    input.engagement_previous_stage,
+    "Opportunity engagement_previous_stage",
+    32,
+  );
+  if (
+    previousStage !== null
+    && !CRM_CORE_OPPORTUNITY_STAGES.includes(previousStage)
+  ) {
+    throw new TypeError("Opportunity engagement_previous_stage is invalid");
+  }
+  const completedSteps = input.engagement_completed_steps ?? [];
+  if (
+    !Array.isArray(completedSteps)
+    || completedSteps.some(
+      (step) => typeof step !== "string" || step.trim() === "",
+    )
+  ) {
+    throw new TypeError(
+      "Opportunity engagement_completed_steps must be an array of strings",
+    );
+  }
+  return Object.freeze({
+    engagement_decision: decision,
+    engagement_decision_version: positiveInteger(
+      input.engagement_decision_version ?? 1,
+      "Opportunity engagement_decision_version",
+    ),
+    engagement_decided_at: input.engagement_decided_at
+      ? canonicalInstant(
+        input.engagement_decided_at,
+        "Opportunity engagement_decided_at",
+      )
+      : null,
+    engagement_decided_by: optionalString(
+      input.engagement_decided_by,
+      "Opportunity engagement_decided_by",
+      240,
+    ),
+    engagement_close_reason: optionalString(
+      input.engagement_close_reason,
+      "Opportunity engagement_close_reason",
+      500,
+    ),
+    engagement_previous_stage: previousStage,
+    engagement_workflow_id: optionalString(
+      input.engagement_workflow_id,
+      "Opportunity engagement_workflow_id",
+      240,
+    ),
+    engagement_workflow_status: workflowStatus,
+    engagement_completed_steps: freezeArray(completedSteps),
+    engagement_client_group_id: optionalString(
+      input.engagement_client_group_id,
+      "Opportunity engagement_client_group_id",
+      240,
+    ),
+    engagement_fee_commitment_id: optionalString(
+      input.engagement_fee_commitment_id,
+      "Opportunity engagement_fee_commitment_id",
+      240,
+    ),
+  });
 }
 
 const OUTLOOK_EVENT_FIELDS = Object.freeze([
@@ -593,12 +725,14 @@ export function createCrmCoreLead(input) {
 
 export function createCrmCoreOpportunity(input) {
   assertOpportunityStage(input.stage);
+  const engagement = normalizeCrmOpportunityEngagementFields(input);
   return freezeRecord({
     ...baseCrmRecord("Opportunity", input),
     opportunity_id: input.opportunity_id,
     party_id: input.party_id,
     display_name: input.display_name,
     stage: input.stage,
+    ...engagement,
     intake_request_id: input.intake_request_id ?? null,
     allowed_conversion_target: "IntakeRequest",
     matter_id: null,
@@ -727,6 +861,13 @@ export function validateCrmCoreRecord(modelType, record) {
 
   if (modelType === "Opportunity" && record?.stage !== undefined && !CRM_CORE_OPPORTUNITY_STAGES.includes(record.stage)) {
     errors.push(`invalid_opportunity_stage:${record.stage}`);
+  }
+  if (modelType === "Opportunity") {
+    try {
+      normalizeCrmOpportunityEngagementFields(record);
+    } catch {
+      errors.push("invalid_opportunity_engagement_fields");
+    }
   }
 
   if (modelType === "CRMActivity") {
