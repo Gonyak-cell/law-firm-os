@@ -25,6 +25,11 @@ import {
 import {
   autoAllocateConfirmedClientDeposits,
 } from "../../../packages/billing/src/client-deposit-allocation-service.js";
+import {
+  listClientDepositAllocations,
+  reallocateClientDeposit,
+  synchronizeClientDepositAllocationReversals,
+} from "../../../packages/billing/src/client-deposit-reallocation-service.js";
 import { importPayment } from "../../../packages/payments/src/payment-service.js";
 import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
 import { createArAgingSnapshot } from "../../../packages/payments/src/ar-service.js";
@@ -73,6 +78,8 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/finance/fee-commitments",
     "POST /api/finance/fee-commitments",
     "PATCH /api/finance/fee-commitments/:id",
+    "GET /api/finance/client-deposit-allocations",
+    "POST /api/finance/client-deposit-allocations/reallocate",
     "POST /api/finance/wip",
     "POST /api/finance/wip-snapshots",
     "GET /api/finance/prebills",
@@ -314,6 +321,7 @@ function requiredFinanceScope(action = "") {
   if (action.startsWith("finance:audit:")) return "finance.audit.read";
   if (action.startsWith("finance:ar:")) return "analytics.finance.read";
   if (action.startsWith("finance:fee_commitment:")) return "finance.fee.write";
+  if (action.startsWith("finance:deposit_allocation:")) return "finance.fee.write";
   if (["finance:fee_arrangement:", "finance:wip:", "finance:wip_snapshot:", "finance:prebill:", "finance:invoice:"].some((prefix) => action.startsWith(prefix))) return "finance.billing.write";
   return null;
 }
@@ -744,7 +752,11 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
   if (roleDenied) return roleDenied;
   try {
     const directories = classificationDirectories(runtime, query.tenant_id);
-    const { result, depositAllocation } = mutateWithDepositAllocation({
+    const {
+      result,
+      depositAllocation,
+      depositAllocationReversal,
+    } = mutateWithDepositAllocation({
       repository: runtime.repository,
       tenantId: query.tenant_id,
       actorId: context.principal.user_id,
@@ -774,6 +786,8 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
         audit_hint_ref: query.audit_hint_ref,
         idempotent_replay: result.idempotent_replay,
         deposit_allocation: summarizeDepositAllocation(depositAllocation),
+        deposit_allocation_reversal:
+          summarizeDepositAllocationReversal(depositAllocationReversal),
         raw_source_payload_included: false,
         production_ready_claim: false,
       },
@@ -821,7 +835,11 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
           : {}),
       };
     });
-    const { result, depositAllocation } = mutateWithDepositAllocation({
+    const {
+      result,
+      depositAllocation,
+      depositAllocationReversal,
+    } = mutateWithDepositAllocation({
       repository: runtime.repository,
       tenantId: query.tenant_id,
       actorId: context.principal.user_id,
@@ -850,6 +868,8 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
         audit_hint_ref: query.audit_hint_ref,
         idempotent_replay: result.idempotent_replay,
         deposit_allocation: summarizeDepositAllocation(depositAllocation),
+        deposit_allocation_reversal:
+          summarizeDepositAllocationReversal(depositAllocationReversal),
         raw_source_payload_included: false,
         production_ready_claim: false,
       },
@@ -1229,6 +1249,83 @@ function feeCommitmentListResponse({ query, context, requestId, runtime }) {
   }
 }
 
+function clientDepositAllocationListResponse({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  const action = "finance:deposit_allocation:read";
+  const resourceType = "client_deposit_allocation";
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  try {
+    const items = listClientDepositAllocations({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      client_group_id: query.client_group_id ?? null,
+      bank_transaction_id: query.bank_transaction_id ?? null,
+      fee_commitment_id: query.fee_commitment_id ?? null,
+      status: query.status ?? null,
+    }).map(presentClientDepositAllocation);
+    const { allowed } = trimItemsByPermission({
+      context,
+      items,
+      action,
+      resourceType,
+    });
+    appendFinanceSensitiveReadAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      returnedCount: allowed.length,
+      metadata: {
+        client_group_filter_applied: Boolean(query.client_group_id),
+        bank_transaction_filter_applied:
+          Boolean(query.bank_transaction_id),
+        fee_commitment_filter_applied: Boolean(query.fee_commitment_id),
+        raw_payload_included: false,
+      },
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        items: allowed,
+        page_info: {
+          returned_count: allowed.length,
+          omitted_item_count: null,
+        },
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: allowed.length === 0 ? "empty" : null,
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  } catch {
+    return errorResponse(
+      400,
+      requestId,
+      [FINANCE_API_ERROR_CODES.validation_error],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "blocked",
+      },
+    );
+  }
+}
+
 function itemResponse({ requestId, auditHintRef, outcome, item, auditEvent, status = 201, extra = {} }) {
   return {
     status,
@@ -1245,6 +1342,13 @@ function itemResponse({ requestId, auditHintRef, outcome, item, auditEvent, stat
   };
 }
 
+function presentClientDepositAllocation(record) {
+  return sanitizeFinanceItem({
+    ...record,
+    active_amount: record.allocated_amount - record.reversed_amount,
+  });
+}
+
 function summarizeDepositAllocation(result) {
   if (!result) return null;
   return Object.freeze({
@@ -1253,6 +1357,19 @@ function summarizeDepositAllocation(result) {
     updated_count: result.updated_count,
     allocated_amount: result.allocated_amount,
     advance_or_overpayment_amount: result.advance_or_overpayment_amount,
+  });
+}
+
+function summarizeDepositAllocationReversal(result) {
+  if (!result) return null;
+  return Object.freeze({
+    outcome: result.outcome,
+    updated_count: result.updated_count,
+    linked_refund_amount: result.linked_refund_amount,
+    refund_reversed_amount: result.refund_reversed_amount,
+    unapplied_refund_amount: result.unapplied_refund_amount,
+    inactive_commitment_released_amount:
+      result.inactive_commitment_released_amount,
   });
 }
 
@@ -1265,15 +1382,32 @@ function mutateWithDepositAllocation({
 }) {
   return repository.transaction(() => {
     const result = command();
-    const depositAllocation = result.idempotent_replay
-      ? null
-      : autoAllocateConfirmedClientDeposits({
+    if (result.idempotent_replay) {
+      return Object.freeze({
+        result,
+        depositAllocation: null,
+        depositAllocationReversal: null,
+      });
+    }
+    const depositAllocationReversal =
+      synchronizeClientDepositAllocationReversals({
         repository,
         tenant_id: tenantId,
         actor_id: actorId,
-        idempotency_key: `${idempotencyKey}:client-deposit-allocation`,
+        idempotency_key:
+          `${idempotencyKey}:client-deposit-allocation-reversal`,
       });
-    return Object.freeze({ result, depositAllocation });
+    const depositAllocation = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: tenantId,
+      actor_id: actorId,
+      idempotency_key: `${idempotencyKey}:client-deposit-allocation`,
+    });
+    return Object.freeze({
+      result,
+      depositAllocation,
+      depositAllocationReversal,
+    });
   });
 }
 
@@ -1436,7 +1570,11 @@ export function handleFinanceFeeCommitmentCreate({
   });
   if (gated) return gated;
   try {
-    const { result, depositAllocation } = mutateWithDepositAllocation({
+    const {
+      result,
+      depositAllocation,
+      depositAllocationReversal,
+    } = mutateWithDepositAllocation({
       repository: runtime.repository,
       tenantId: query.tenant_id,
       actorId: context.principal.user_id,
@@ -1464,6 +1602,8 @@ export function handleFinanceFeeCommitmentCreate({
       extra: {
         idempotent_replay: result.idempotent_replay,
         deposit_allocation: summarizeDepositAllocation(depositAllocation),
+        deposit_allocation_reversal:
+          summarizeDepositAllocationReversal(depositAllocationReversal),
       },
     });
   } catch (error) {
@@ -1512,7 +1652,11 @@ export function handleFinanceFeeCommitmentUpdate({
   });
   if (gated) return gated;
   try {
-    const { result, depositAllocation } = mutateWithDepositAllocation({
+    const {
+      result,
+      depositAllocation,
+      depositAllocationReversal,
+    } = mutateWithDepositAllocation({
       repository: runtime.repository,
       tenantId: query.tenant_id,
       actorId: context.principal.user_id,
@@ -1545,6 +1689,82 @@ export function handleFinanceFeeCommitmentUpdate({
         idempotent_replay: result.idempotent_replay,
         fee_arrangement_comparison: result.fee_arrangement_comparison,
         deposit_allocation: summarizeDepositAllocation(depositAllocation),
+        deposit_allocation_reversal:
+          summarizeDepositAllocationReversal(depositAllocationReversal),
+      },
+    });
+  } catch (error) {
+    const safeErrorCode = error?.safe_error_code
+      ?? FINANCE_API_ERROR_CODES.validation_error;
+    appendFinanceRouteAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      decision: {
+        effect: "deny",
+        reason: safeErrorCode.toLowerCase(),
+        fail_closed: true,
+      },
+    });
+    return errorResponse(error?.status ?? 400, requestId, [safeErrorCode], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
+}
+
+export function handleFinanceClientDepositReallocate({
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+  };
+  const action = "finance:deposit_allocation:reallocate";
+  const resourceType = "client_deposit_allocation";
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  try {
+    const result = reallocateClientDeposit({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      bank_transaction_id: body.bank_transaction_id,
+      expected_allocations: body.expected_allocations,
+      targets: body.targets,
+      reason: body.reason,
+      actor_id: context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay
+        ? "idempotent_replay"
+        : result.outcome,
+      item: {
+        bank_transaction_id: result.bank_transaction_id,
+        active_allocated_amount: result.active_allocated_amount,
+        unallocated_amount: result.unallocated_amount,
+      },
+      auditEvent: result.audit_event,
+      status: 200,
+      extra: {
+        items: result.allocations.map(presentClientDepositAllocation),
+        idempotent_replay: result.idempotent_replay,
+        raw_source_payload_included: false,
       },
     });
   } catch (error) {
@@ -2081,6 +2301,28 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
   if (feeCommitmentMatch && method === "PATCH") {
     return handleFinanceFeeCommitmentUpdate({
       feeCommitmentId: feeCommitmentMatch[1],
+      body,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (
+    pathname === "/api/finance/client-deposit-allocations"
+    && method === "GET"
+  ) {
+    return clientDepositAllocationListResponse({
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (
+    pathname === "/api/finance/client-deposit-allocations/reallocate"
+    && method === "POST"
+  ) {
+    return handleFinanceClientDepositReallocate({
       body,
       context,
       requestId,

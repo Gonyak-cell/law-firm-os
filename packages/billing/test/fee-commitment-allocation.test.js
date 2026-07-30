@@ -18,6 +18,12 @@ import {
   autoAllocateConfirmedClientDeposits,
 } from "../src/client-deposit-allocation-service.js";
 import {
+  CLIENT_DEPOSIT_REALLOCATION_ERROR_CODES,
+  reallocateClientDeposit,
+  synchronizeClientDepositAllocationReversals,
+} from "../src/client-deposit-reallocation-service.js";
+import { buildClientReceivables } from "../src/client-receivables-service.js";
+import {
   FEE_COMMITMENT_COMMAND_ERROR_CODES,
   FEE_COMMITMENT_WARNING_CODES,
   compareFeeCommitmentToFeeArrangement,
@@ -119,6 +125,8 @@ function confirmedClientDeposit({
   classificationId = "classification-auto-hanbit",
   amount = 12_000_000,
   occurredAt = "2026-07-30T09:00:00+09:00",
+  clientGroupId = "client-hanbit",
+  transactionFingerprint = `${bankTransactionId}-fingerprint`,
 } = {}) {
   return [
     {
@@ -133,7 +141,8 @@ function confirmedClientDeposit({
       bank_transaction_id: bankTransactionId,
       bank_import_batch_id: `batch-${bankTransactionId}`,
       tenant_id: TENANT,
-      transaction_fingerprint: "c".repeat(64),
+      transaction_fingerprint: transactionFingerprint,
+      date: occurredAt.slice(0, 10),
       direction: "inflow",
       amount,
       currency: "KRW",
@@ -145,11 +154,58 @@ function confirmedClientDeposit({
       bank_transaction_classification_id: classificationId,
       bank_transaction_id: bankTransactionId,
       tenant_id: TENANT,
-      client_group_id: "client-hanbit",
+      client_group_id: clientGroupId,
+      transaction_date: occurredAt.slice(0, 10),
       transaction_direction: "inflow",
       amount,
       currency: "KRW",
       category: "client_receipt",
+      status: "confirmed",
+    },
+  ];
+}
+
+function linkedClientRefund({
+  bankTransactionId = "bank-refund-hanbit",
+  classificationId = "classification-refund-hanbit",
+  originalBankTransactionId = "bank-auto-hanbit",
+  amount = 1_000_000,
+  occurredAt = "2026-07-31T09:00:00+09:00",
+  clientGroupId = "client-hanbit",
+} = {}) {
+  return [
+    {
+      model_type: "BankImportBatch",
+      bank_import_batch_id: `batch-${bankTransactionId}`,
+      tenant_id: TENANT,
+      source_manifest_hash: `${bankTransactionId}-manifest`,
+      status: "reconciled",
+    },
+    {
+      model_type: "BankTransaction",
+      bank_transaction_id: bankTransactionId,
+      bank_import_batch_id: `batch-${bankTransactionId}`,
+      tenant_id: TENANT,
+      transaction_fingerprint: `${bankTransactionId}-fingerprint`,
+      date: occurredAt.slice(0, 10),
+      occurred_at: occurredAt,
+      direction: "outflow",
+      amount,
+      currency: "KRW",
+      status: "posted",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: classificationId,
+      bank_transaction_id: bankTransactionId,
+      tenant_id: TENANT,
+      client_group_id: clientGroupId,
+      refund_of_bank_transaction_id: originalBankTransactionId,
+      transaction_date: occurredAt.slice(0, 10),
+      transaction_direction: "outflow",
+      amount,
+      currency: "KRW",
+      category: "refund_reversal",
       status: "confirmed",
     },
   ];
@@ -256,7 +312,18 @@ test("ClientDepositAllocation 모델은 자동·수동·되돌림 상태와 원 
   assert.equal(allocation({
     client_deposit_allocation_id: "allocation-reversed",
     reversed_amount: 7_000_000,
-  }).status, "reversed");
+  }).refund_reversed_amount, 7_000_000);
+  const mixedReversal = allocation({
+    client_deposit_allocation_id: "allocation-mixed-reversal",
+    allocation_source: "manual",
+    manual_lock: true,
+    reversed_amount: 3_000_000,
+    refund_reversed_amount: 1_000_000,
+    adjustment_reversed_amount: 2_000_000,
+  });
+  assert.equal(mixedReversal.status, "active");
+  assert.equal(mixedReversal.refund_reversed_amount, 1_000_000);
+  assert.equal(mixedReversal.adjustment_reversed_amount, 2_000_000);
   assert.throws(
     () => allocation({
       client_deposit_allocation_id: "allocation-zero",
@@ -277,6 +344,15 @@ test("ClientDepositAllocation 모델은 자동·수동·되돌림 상태와 원 
       reversed_amount: 7_000_001,
     }),
     /cannot exceed/,
+  );
+  assert.throws(
+    () => allocation({
+      client_deposit_allocation_id: "allocation-bad-reversal-breakdown",
+      reversed_amount: 3_000_000,
+      refund_reversed_amount: 1_000_000,
+      adjustment_reversed_amount: 1_000_000,
+    }),
+    /must equal reversed_amount/,
   );
   assert.throws(
     () => allocation({
@@ -601,6 +677,457 @@ test("VC-CL-AR-003 자동 배분은 약정액까지만 연결하고 남은 입�
     assert.equal(unchanged.unallocated_amount, 1_000_000);
     assert.equal(repository.snapshot().idempotency.length, 2);
     assert.equal(repository.listAudit({ tenant_id: TENANT }).length, 2);
+  } finally {
+    repository.close();
+  }
+});
+
+test("VC-CL-AR-005 수동 재배분은 version을 확인하고 자동 재계산이 덮어쓰지 못하게 잠근다", () => {
+  const first = commitment({
+    fee_commitment_id: "fee-hanbit-manual-first",
+    opportunity_id: "opportunity-hanbit-manual-first",
+    agreed_amount: 10_000_000,
+    due_date: "2026-07-10",
+  });
+  const second = commitment({
+    fee_commitment_id: "fee-hanbit-manual-second",
+    opportunity_id: "opportunity-hanbit-manual-second",
+    agreed_amount: 11_000_000,
+    due_date: "2026-07-20",
+  });
+  const repository = createFinanceRepository({
+    seedRecords: [
+      ...confirmedClientDeposit(),
+      first,
+      second,
+    ],
+  });
+  try {
+    autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "manual-reallocation-auto-seed",
+    });
+    const before = repository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    });
+    const expected = before.map((record) => ({
+      client_deposit_allocation_id:
+        record.client_deposit_allocation_id,
+      state_version: record.state_version,
+    }));
+    const reallocated = reallocateClientDeposit({
+      repository,
+      tenant_id: TENANT,
+      bank_transaction_id: "bank-auto-hanbit",
+      expected_allocations: expected,
+      targets: [
+        {
+          fee_commitment_id: "fee-hanbit-manual-first",
+          active_amount: 1_000_000,
+        },
+        {
+          fee_commitment_id: "fee-hanbit-manual-second",
+          active_amount: 11_000_000,
+        },
+      ],
+      reason: "담당자가 입금 연결을 확인해 조정함",
+      actor_id: ACTOR,
+      idempotency_key: "manual-reallocation",
+      clock: () => new Date("2026-07-30T04:00:00.000Z"),
+    });
+    assert.equal(reallocated.active_allocated_amount, 12_000_000);
+    assert.equal(reallocated.unallocated_amount, 0);
+    assert.deepEqual(
+      reallocated.allocations.map((record) => [
+        record.fee_commitment_id,
+        record.allocated_amount - record.reversed_amount,
+        record.adjustment_reversed_amount,
+        record.manual_lock,
+        record.state_version,
+      ]),
+      [
+        ["fee-hanbit-manual-first", 1_000_000, 9_000_000, true, 2],
+        ["fee-hanbit-manual-second", 11_000_000, 0, true, 2],
+      ],
+    );
+
+    const noChange = reallocateClientDeposit({
+      repository,
+      tenant_id: TENANT,
+      bank_transaction_id: "bank-auto-hanbit",
+      expected_allocations: reallocated.allocations.map((record) => ({
+        client_deposit_allocation_id:
+          record.client_deposit_allocation_id,
+        state_version: record.state_version,
+      })),
+      targets: [
+        {
+          fee_commitment_id: "fee-hanbit-manual-first",
+          active_amount: 1_000_000,
+        },
+        {
+          fee_commitment_id: "fee-hanbit-manual-second",
+          active_amount: 11_000_000,
+        },
+      ],
+      reason: "같은 연결값 재확인",
+      actor_id: ACTOR,
+      idempotency_key: "manual-reallocation-no-change",
+    });
+    assert.equal(noChange.outcome, "unchanged");
+    assert.equal(noChange.audit_event, null);
+    assert.deepEqual(
+      noChange.allocations.map((record) => record.state_version),
+      [2, 2],
+    );
+
+    const automaticRetry = autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "manual-reallocation-auto-retry",
+    });
+    assert.equal(automaticRetry.outcome, "unchanged");
+    assert.equal(automaticRetry.created_count, 0);
+    assert.equal(automaticRetry.updated_count, 0);
+    assert.deepEqual(
+      repository.list({
+        tenant_id: TENANT,
+        model_type: "ClientDepositAllocation",
+      }).map((record) => [
+        record.fee_commitment_id,
+        record.allocated_amount - record.reversed_amount,
+        record.manual_lock,
+      ]).sort(),
+      [
+        ["fee-hanbit-manual-first", 1_000_000, true],
+        ["fee-hanbit-manual-second", 11_000_000, true],
+      ],
+    );
+    assert.equal(repository.listAudit({ tenant_id: TENANT }).length, 2);
+    assert.throws(
+      () => reallocateClientDeposit({
+        repository,
+        tenant_id: TENANT,
+        bank_transaction_id: "bank-auto-hanbit",
+        expected_allocations: expected,
+        targets: [],
+        reason: "오래된 화면에서 다시 조정",
+        actor_id: ACTOR,
+        idempotency_key: "manual-reallocation-stale",
+      }),
+      (error) => (
+        error.safe_error_code
+          === CLIENT_DEPOSIT_REALLOCATION_ERROR_CODES.version_conflict
+        && error.status === 409
+      ),
+    );
+    const current = repository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    });
+    assert.throws(
+      () => reallocateClientDeposit({
+        repository,
+        tenant_id: TENANT,
+        bank_transaction_id: "bank-auto-hanbit",
+        expected_allocations: current.map((record) => ({
+          client_deposit_allocation_id:
+            record.client_deposit_allocation_id,
+          state_version: record.state_version,
+        })),
+        targets: [
+          {
+            fee_commitment_id: "fee-hanbit-manual-first",
+            active_amount: 2_000_000,
+          },
+          {
+            fee_commitment_id: "fee-hanbit-manual-second",
+            active_amount: 11_000_000,
+          },
+        ],
+        reason: "입금액보다 크게 조정",
+        actor_id: ACTOR,
+        idempotency_key: "manual-reallocation-excess",
+      }),
+      (error) => (
+        error.safe_error_code
+          === CLIENT_DEPOSIT_REALLOCATION_ERROR_CODES.invalid_target
+        && error.status === 409
+      ),
+    );
+  } finally {
+    repository.close();
+  }
+});
+
+test("VC-CL-REV-008 연결 환불은 기존 입금 연결을 되돌려 미수금을 다시 연다", () => {
+  const repository = createFinanceRepository({
+    seedRecords: [
+      ...confirmedClientDeposit({ amount: 3_000_000 }),
+      commitment({ agreed_amount: 3_000_000 }),
+    ],
+  });
+  try {
+    autoAllocateConfirmedClientDeposits({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "refund-reversal-auto-seed",
+    });
+    for (const record of linkedClientRefund()) repository.create(record);
+    const synchronized = synchronizeClientDepositAllocationReversals({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "refund-reversal-sync",
+    });
+    assert.equal(synchronized.outcome, "synchronized");
+    assert.equal(synchronized.linked_refund_amount, 1_000_000);
+    assert.equal(synchronized.refund_reversed_amount, 1_000_000);
+    assert.equal(synchronized.unapplied_refund_amount, 0);
+    const [updated] = repository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    });
+    assert.equal(updated.allocated_amount, 3_000_000);
+    assert.equal(updated.refund_reversed_amount, 1_000_000);
+    assert.equal(updated.adjustment_reversed_amount, 0);
+    assert.equal(updated.reversed_amount, 1_000_000);
+    assert.equal(updated.state_version, 2);
+
+    const receivables = buildClientReceivables({
+      repository,
+      tenant_id: TENANT,
+      permitted_client_records: [{
+        model_type: "ClientGroup",
+        tenant_id: TENANT,
+        client_group_id: "client-hanbit",
+        display_name: "한빛",
+        status: "active",
+      }],
+      clock: () => new Date("2026-07-31T03:00:00.000Z"),
+    });
+    assert.equal(receivables.total_receivables, 1_000_000);
+    assert.equal(receivables.total_overpayment, 0);
+    assert.equal(receivables.ranking[0].receivable_amount, 1_000_000);
+    assert.equal(
+      receivables.details.deposits[0].linked_refund_amount,
+      1_000_000,
+    );
+    const unchanged = synchronizeClientDepositAllocationReversals({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "refund-reversal-sync-unchanged",
+    });
+    assert.equal(unchanged.outcome, "unchanged");
+    assert.equal(unchanged.updated_count, 0);
+
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "FeeCommitment",
+      fee_commitment_id: "fee-commitment-hanbit",
+    }, normalizeFeeCommitment({
+      ...commitment({ agreed_amount: 3_000_000 }),
+      status: "cancelled",
+      state_version: 2,
+      reason: "수임료 약정 취소",
+    }));
+    const cancelled = synchronizeClientDepositAllocationReversals({
+      repository,
+      tenant_id: TENANT,
+      actor_id: ACTOR,
+      idempotency_key: "refund-reversal-sync-cancelled",
+    });
+    assert.equal(cancelled.inactive_commitment_released_amount, 2_000_000);
+    const [released] = repository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    });
+    assert.equal(released.refund_reversed_amount, 0);
+    assert.equal(released.adjustment_reversed_amount, 3_000_000);
+    assert.equal(released.status, "reversed");
+    const afterCancellation = buildClientReceivables({
+      repository,
+      tenant_id: TENANT,
+      permitted_client_records: [{
+        model_type: "ClientGroup",
+        tenant_id: TENANT,
+        client_group_id: "client-hanbit",
+        display_name: "한빛",
+        status: "active",
+      }],
+    });
+    assert.equal(afterCancellation.total_receivables, 0);
+    assert.equal(afterCancellation.total_overpayment, 2_000_000);
+  } finally {
+    repository.close();
+  }
+});
+
+test("VC-CL-AR-001/002/003 미수금 조회는 금액 미입력을 제외하고 순위·상세·초과 입금을 맞춘다", () => {
+  const clientA = "client-hanbit";
+  const clientB = "client-unknown";
+  const clientC = "client-overpayment";
+  const repository = createFinanceRepository({
+    seedRecords: [
+      ...confirmedClientDeposit({
+        bankTransactionId: "bank-receivables-a",
+        classificationId: "classification-receivables-a",
+        amount: 11_000_000,
+        clientGroupId: clientA,
+      }),
+      ...confirmedClientDeposit({
+        bankTransactionId: "bank-receivables-c",
+        classificationId: "classification-receivables-c",
+        amount: 12_000_000,
+        occurredAt: "2026-07-31T09:00:00+09:00",
+        clientGroupId: clientC,
+      }),
+      commitment({
+        fee_commitment_id: "fee-receivables-a",
+        client_group_id: clientA,
+        opportunity_id: "opportunity-receivables-a",
+        agreed_amount: 20_000_000,
+        due_date: "2026-07-10",
+      }),
+      commitment({
+        fee_commitment_id: "fee-receivables-b",
+        client_group_id: clientB,
+        opportunity_id: "opportunity-receivables-b",
+        agreed_amount: null,
+        due_date: null,
+      }),
+      commitment({
+        fee_commitment_id: "fee-receivables-c",
+        client_group_id: clientC,
+        opportunity_id: "opportunity-receivables-c",
+        agreed_amount: 10_000_000,
+        due_date: "2026-07-15",
+      }),
+      allocation({
+        client_deposit_allocation_id: "allocation-receivables-a",
+        client_group_id: clientA,
+        bank_transaction_id: "bank-receivables-a",
+        bank_transaction_classification_id:
+          "classification-receivables-a",
+        fee_commitment_id: "fee-receivables-a",
+        allocated_amount: 11_000_000,
+      }),
+      allocation({
+        client_deposit_allocation_id: "allocation-receivables-c",
+        client_group_id: clientC,
+        bank_transaction_id: "bank-receivables-c",
+        bank_transaction_classification_id:
+          "classification-receivables-c",
+        fee_commitment_id: "fee-receivables-c",
+        allocated_amount: 10_000_000,
+      }),
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-secret-broken",
+        tenant_id: TENANT,
+        transaction_fingerprint: "secret-broken",
+        occurred_at: "not-an-instant",
+        direction: "inflow",
+        amount: "secret",
+        currency: "USD",
+      },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id:
+          "classification-secret-broken",
+        bank_transaction_id: "bank-secret-broken",
+        tenant_id: TENANT,
+        client_group_id: "client-secret",
+        transaction_direction: "inflow",
+        amount: "secret",
+        currency: "USD",
+        category: "client_receipt",
+        status: "confirmed",
+      },
+    ],
+  });
+  try {
+    const result = buildClientReceivables({
+      repository,
+      tenant_id: TENANT,
+      permitted_client_records: [
+        {
+          model_type: "ClientGroup",
+          tenant_id: TENANT,
+          client_group_id: clientA,
+          display_name: "한빛건설",
+          status: "active",
+        },
+        {
+          model_type: "ClientGroup",
+          tenant_id: TENANT,
+          client_group_id: clientB,
+          display_name: "한빛개발",
+          status: "active",
+        },
+        {
+          model_type: "ClientGroup",
+          tenant_id: TENANT,
+          client_group_id: clientC,
+          display_name: "새봄테크",
+          status: "active",
+        },
+      ],
+      clock: () => new Date("2026-07-30T03:00:00.000Z"),
+    });
+    assert.equal(result.total_receivables, 9_000_000);
+    assert.equal(result.unknown_amount_count, 1);
+    assert.equal(result.total_overpayment, 2_000_000);
+    assert.deepEqual(result.ranking, [{
+      rank: 1,
+      client_group_id: clientA,
+      display_name: "한빛건설",
+      agreed_amount: 20_000_000,
+      active_allocated_amount: 11_000_000,
+      receivable_amount: 9_000_000,
+      earliest_due_date: "2026-07-10",
+    }]);
+    assert.deepEqual(result.client_summaries, [
+      {
+        client_group_id: clientA,
+        agreed_amount: 20_000_000,
+        active_allocated_amount: 11_000_000,
+        receivable_amount: 9_000_000,
+        unknown_amount_count: 0,
+        overpayment_amount: 0,
+      },
+      {
+        client_group_id: clientB,
+        agreed_amount: null,
+        active_allocated_amount: 0,
+        receivable_amount: null,
+        unknown_amount_count: 1,
+        overpayment_amount: 0,
+      },
+      {
+        client_group_id: clientC,
+        agreed_amount: 10_000_000,
+        active_allocated_amount: 10_000_000,
+        receivable_amount: 0,
+        unknown_amount_count: 0,
+        overpayment_amount: 2_000_000,
+      },
+    ]);
+    assert.deepEqual(result.reconciliation, {
+      status: "passed",
+      ranking_total: 9_000_000,
+      commitment_detail_total: 9_000_000,
+      client_summary_total: 9_000_000,
+      overpayment_detail_total: 2_000_000,
+    });
+    assert.equal(result.permission_prefilter_applied, true);
+    assert.equal(result.unauthorized_count_included, false);
   } finally {
     repository.close();
   }

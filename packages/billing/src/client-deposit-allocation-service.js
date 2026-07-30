@@ -1,6 +1,7 @@
 import { hashEventBody } from "../../audit/src/events.js";
 import { appendFinanceAuditEvent } from "./finance-audit.js";
 import { normalizeClientDepositAllocation } from "./client-deposit-allocation-model.js";
+import { buildConfirmedClientDepositSources } from "./client-deposit-source.js";
 import { normalizeFeeCommitment } from "./fee-commitment-model.js";
 
 export const CLIENT_DEPOSIT_ALLOCATION_ERROR_CODES = Object.freeze({
@@ -22,16 +23,6 @@ function commandError(code, message, status = 409) {
     safe_error_code: code,
     status,
   });
-}
-
-function positiveWholeKrw(value, field) {
-  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
-    throw commandError(
-      CLIENT_DEPOSIT_ALLOCATION_ERROR_CODES.invalid_source,
-      `${field} must be a positive whole KRW amount`,
-    );
-  }
-  return value;
 }
 
 function addWholeKrw(left, right, field) {
@@ -60,17 +51,6 @@ function instant(value, field) {
   return milliseconds;
 }
 
-function compareTransactions(left, right) {
-  return (
-    instant(left.transaction.occurred_at, "BankTransaction.occurred_at")
-      - instant(right.transaction.occurred_at, "BankTransaction.occurred_at")
-    || left.transaction.bank_transaction_id.localeCompare(
-      right.transaction.bank_transaction_id,
-      "en",
-    )
-  );
-}
-
 function allocationOrderTime(commitment) {
   if (commitment.due_date) {
     return Date.parse(`${commitment.due_date}T00:00:00.000Z`);
@@ -87,7 +67,11 @@ export function compareFeeCommitmentsForAutomaticAllocation(left, right) {
   );
 }
 
-function allocationId({ tenantId, bankTransactionId, feeCommitmentId }) {
+export function clientDepositAllocationId({
+  tenantId,
+  bankTransactionId,
+  feeCommitmentId,
+}) {
   return `client_deposit_allocation_${hashEventBody({
     tenant_id: tenantId,
     bank_transaction_id: bankTransactionId,
@@ -101,68 +85,6 @@ function commandFingerprint({ tenantId, actorId }) {
     tenant_id: tenantId,
     actor_id: actorId,
   });
-}
-
-function eligibleReceipts(repository, tenantId) {
-  const transactions = new Map(repository
-    .list({ tenant_id: tenantId, model_type: "BankTransaction" })
-    .map((transaction) => [transaction.bank_transaction_id, transaction]));
-  const seenTransactionIds = new Set();
-  const receipts = [];
-  for (const classification of repository.list({
-    tenant_id: tenantId,
-    model_type: "BankTransactionClassification",
-  })) {
-    if (
-      classification.category !== "client_receipt"
-      || classification.status !== "confirmed"
-    ) continue;
-    const transactionId = requiredString(classification, "bank_transaction_id");
-    if (seenTransactionIds.has(transactionId)) {
-      throw commandError(
-        CLIENT_DEPOSIT_ALLOCATION_ERROR_CODES.invalid_source,
-        `Multiple confirmed client classifications reference one BankTransaction: ${transactionId}`,
-      );
-    }
-    seenTransactionIds.add(transactionId);
-    const transaction = transactions.get(transactionId);
-    if (
-      !transaction
-      || transaction.tenant_id !== tenantId
-      || transaction.direction !== "inflow"
-      || transaction.status !== "posted"
-      || transaction.currency !== "KRW"
-      || classification.transaction_direction !== "inflow"
-      || classification.currency !== "KRW"
-      || positiveWholeKrw(transaction.amount, "BankTransaction.amount")
-        !== positiveWholeKrw(
-          classification.amount,
-          "BankTransactionClassification.amount",
-        )
-    ) {
-      throw commandError(
-        CLIENT_DEPOSIT_ALLOCATION_ERROR_CODES.invalid_source,
-        `Confirmed client receipt does not reconcile: ${transactionId}`,
-      );
-    }
-    receipts.push(Object.freeze({
-      classification,
-      transaction,
-      client_group_id: requiredString(classification, "client_group_id"),
-    }));
-  }
-  const seenFingerprints = new Set();
-  return receipts
-    .sort(compareTransactions)
-    .filter(({ transaction }) => {
-      const fingerprint = requiredString(
-        transaction,
-        "transaction_fingerprint",
-      );
-      if (seenFingerprints.has(fingerprint)) return false;
-      seenFingerprints.add(fingerprint);
-      return true;
-    });
 }
 
 function allocationState(repository, tenantId) {
@@ -266,7 +188,18 @@ export function autoAllocateConfirmedClientDeposits({
   if (activeCommitments(repository, tenantId).length === 0) {
     return emptyResult();
   }
-  const receipts = eligibleReceipts(repository, tenantId);
+  let receipts;
+  try {
+    ({ receipts } = buildConfirmedClientDepositSources({
+      repository,
+      tenant_id: tenantId,
+    }));
+  } catch (error) {
+    throw commandError(
+      CLIENT_DEPOSIT_ALLOCATION_ERROR_CODES.invalid_source,
+      error.message,
+    );
+  }
   if (receipts.length === 0) return emptyResult();
 
   return repository.transaction((tx) => {
@@ -290,10 +223,13 @@ export function autoAllocateConfirmedClientDeposits({
     const allocatedAt = clock().toISOString();
     for (const receipt of receipts) {
       const transactionId = receipt.transaction.bank_transaction_id;
-      const transactionAmount = positiveWholeKrw(
-        receipt.transaction.amount,
-        "BankTransaction.amount",
-      );
+      const transactionAmount = receipt.net_amount;
+      if (!Number.isSafeInteger(transactionAmount) || transactionAmount < 0) {
+        throw commandError(
+          CLIENT_DEPOSIT_ALLOCATION_ERROR_CODES.invalid_source,
+          `Linked-refund-adjusted deposit amount is invalid: ${transactionId}`,
+        );
+      }
       let remaining = transactionAmount
         - (state.byTransaction.get(transactionId) ?? 0);
       if (!Number.isSafeInteger(remaining) || remaining < 0) {
@@ -362,7 +298,7 @@ export function autoAllocateConfirmedClientDeposits({
           updatedCount += 1;
         } else {
           allocation = normalizeClientDepositAllocation({
-            client_deposit_allocation_id: allocationId({
+            client_deposit_allocation_id: clientDepositAllocationId({
               tenantId,
               bankTransactionId: transactionId,
               feeCommitmentId: commitment.fee_commitment_id,
@@ -376,6 +312,8 @@ export function autoAllocateConfirmedClientDeposits({
             currency: "KRW",
             allocated_amount: amount,
             reversed_amount: 0,
+            refund_reversed_amount: 0,
+            adjustment_reversed_amount: 0,
             allocation_source: "automatic",
             manual_lock: false,
             state_version: 1,
@@ -453,6 +391,7 @@ export function autoAllocateConfirmedClientDeposits({
           unallocated_amount: unallocatedAmount,
           allocation_order:
             "due_date_then_accepted_at_then_fee_commitment_id",
+          linked_refund_adjusted: true,
           manual_allocations_overwritten: false,
           raw_source_payload_included: false,
         },

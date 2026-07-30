@@ -37,7 +37,12 @@ const MONEY_FIELDS = Object.freeze({
   BillingAdjustment: ["amount"],
   BankTransaction: ["amount", "balance_after"],
   BankTransactionClassification: ["amount"],
-  ClientDepositAllocation: ["allocated_amount", "reversed_amount"],
+  ClientDepositAllocation: [
+    "allocated_amount",
+    "reversed_amount",
+    "refund_reversed_amount",
+    "adjustment_reversed_amount",
+  ],
   Disbursement: ["amount"],
   Expense: ["amount"],
   FeeArrangement: ["fixed_fee_amount", "upfront_fee_amount", "success_fee_amount", "retainer_amount", "retainer_available_amount"],
@@ -385,6 +390,8 @@ export function reconcileFinanceRecords(records = []) {
   const activeByCommitment = new Map();
   let allocationAmountTotal = 0;
   let reversedAmountTotal = 0;
+  let refundReversedAmountTotal = 0;
+  let adjustmentReversedAmountTotal = 0;
   for (const rawAllocation of allocations) {
     const allocation = normalizeClientDepositAllocation(rawAllocation);
     const transactionKey =
@@ -427,19 +434,20 @@ export function reconcileFinanceRecords(records = []) {
         `ClientDepositAllocation tenant, client, or source does not reconcile: ${allocation.client_deposit_allocation_id}`,
       );
     }
+    const activeAmount =
+      allocation.allocated_amount - allocation.reversed_amount;
     if (
       commitment.agreed_amount === null
       || positiveWholeKrw(
         commitment.agreed_amount,
         "FeeCommitment.agreed_amount",
-      ) < allocation.allocated_amount
+      ) < activeAmount
       || transactionAmount < allocation.allocated_amount
     ) {
       throw allocationInvariant(
         `ClientDepositAllocation amount exceeds its source or commitment: ${allocation.client_deposit_allocation_id}`,
       );
     }
-    const activeAmount = allocation.allocated_amount - allocation.reversed_amount;
     addAllocationTotal(
       activeByTransaction,
       transactionKey,
@@ -462,6 +470,16 @@ export function reconcileFinanceRecords(records = []) {
       allocation.reversed_amount,
       "reversed amount total",
     );
+    refundReversedAmountTotal = addWholeKrw(
+      refundReversedAmountTotal,
+      allocation.refund_reversed_amount,
+      "refund reversed amount total",
+    );
+    adjustmentReversedAmountTotal = addWholeKrw(
+      adjustmentReversedAmountTotal,
+      allocation.adjustment_reversed_amount,
+      "adjustment reversed amount total",
+    );
   }
   for (const [key, activeAmount] of activeByTransaction) {
     const transactionAmount = positiveWholeKrw(
@@ -480,6 +498,14 @@ export function reconcileFinanceRecords(records = []) {
     ) {
       throw allocationInvariant(`Active allocations exceed FeeCommitment.agreed_amount: ${key}`);
     }
+  }
+  if (
+    reversedAmountTotal
+      !== refundReversedAmountTotal + adjustmentReversedAmountTotal
+  ) {
+    throw allocationInvariant(
+      "ClientDepositAllocation reversal breakdown does not reconcile",
+    );
   }
 
   const summary = {
@@ -501,6 +527,9 @@ export function reconcileFinanceRecords(records = []) {
     client_deposit_allocation_count: allocations.length,
     client_deposit_allocated_total: allocationAmountTotal,
     client_deposit_reversed_total: reversedAmountTotal,
+    client_deposit_refund_reversed_total: refundReversedAmountTotal,
+    client_deposit_adjustment_reversed_total:
+      adjustmentReversedAmountTotal,
     client_deposit_active_total: allocationAmountTotal - reversedAmountTotal,
     currency_mismatch_count: 0,
     invariant_passed: true,

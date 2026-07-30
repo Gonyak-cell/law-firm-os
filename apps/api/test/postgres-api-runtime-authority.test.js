@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
@@ -34,6 +35,13 @@ const PAYROLL_ARTIFACT_SECRET = "postgres-api-authority-test-payroll-artifact-se
 const BANK_IMPORT_PREVIEW_TOKENS = createBankImportPreviewTokenAuthority({
   secret: "postgres-api-authority-bank-preview-secret-material",
 });
+const POSTGRES_FEE_DEPOSIT_CLASSIFICATION_ID =
+  `bank_classification_${createHash("sha256")
+    .update(
+      `${TENANT_A}|bank-transaction-postgres-fee-commitment`,
+    )
+    .digest("hex")
+    .slice(0, 24)}`;
 
 async function importHrxAuthorityBaseline(ledger, tenantId) {
   const store = createFileHrxStore();
@@ -442,7 +450,7 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
         {
           model_type: "BankTransactionClassification",
           bank_transaction_classification_id:
-            "classification-postgres-fee-commitment",
+            POSTGRES_FEE_DEPOSIT_CLASSIFICATION_ID,
           bank_transaction_id: "bank-transaction-postgres-fee-commitment",
           tenant_id: TENANT_A,
           client_group_id: "client-postgres-fee-commitment",
@@ -451,6 +459,24 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
           currency: "KRW",
           category: "client_receipt",
           status: "confirmed",
+        },
+        {
+          model_type: "BankTransaction",
+          bank_transaction_id: "bank-refund-postgres-fee-commitment",
+          bank_import_batch_id: "bank-batch-postgres-fee-commitment",
+          tenant_id: TENANT_A,
+          account_ref: "account-postgres-fee-commitment",
+          transaction_fingerprint: "7".repeat(64),
+          date: "2026-07-31",
+          occurred_at: "2026-07-31T09:00:00+09:00",
+          direction: "outflow",
+          amount: 1_000_000,
+          balance_after: 8_000_000,
+          currency: "KRW",
+          counterparty: "PostgreSQL 수임 고객 환불",
+          source_category: "고객 환불",
+          classification_scope: "unreviewed",
+          status: "posted",
         },
       ],
     });
@@ -485,7 +511,11 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
     principal: Object.freeze({
       tenant_id: TENANT_A,
       user_id: "user_postgres_fee_commitment",
-      scopes: Object.freeze(["finance.fee.write"]),
+      role_ids: Object.freeze(["system_super_admin"]),
+      scopes: Object.freeze([
+        "finance.fee.write",
+        "finance.bank.classify",
+      ]),
     }),
     rules: Object.freeze([{
       id: "allow-postgres-fee-commitment",
@@ -618,6 +648,109 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
     advance_or_overpayment_amount: 1_000_000,
   });
 
+  const [allocationBeforeManual] = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: { method: "GET" },
+    command: (runtimes) => runtimes.financeRuntime.repository.list({
+      tenant_id: TENANT_A,
+      model_type: "ClientDepositAllocation",
+    }),
+  });
+  const manuallyReallocated = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/api/finance/client-deposit-allocations/reallocate",
+      request_target_hash: "b".repeat(64),
+      request_body_hash: "a".repeat(64),
+      idempotency_key: "postgres-deposit-reallocate",
+      actor_id: "user_postgres_fee_commitment",
+    },
+    command(runtimes) {
+      return handleFinanceApiRequest({
+        pathname: "/api/finance/client-deposit-allocations/reallocate",
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-deposit-reallocate",
+          audit_hint_ref: "audit-postgres-deposit-reallocate",
+          idempotency_key: "postgres-deposit-reallocate",
+          bank_transaction_id:
+            "bank-transaction-postgres-fee-commitment",
+          expected_allocations: [{
+            client_deposit_allocation_id:
+              allocationBeforeManual.client_deposit_allocation_id,
+            state_version: allocationBeforeManual.state_version,
+          }],
+          targets: [{
+            fee_commitment_id:
+              "fee-commitment-postgres-authority",
+            active_amount: 7_000_000,
+          }],
+          reason: "PostgreSQL 수동 입금 연결 확인",
+        },
+        context,
+        requestId: "request-postgres-deposit-reallocate",
+        runtime: runtimes.financeRuntime,
+      });
+    },
+  });
+  assert.equal(
+    manuallyReallocated.status,
+    200,
+    JSON.stringify(manuallyReallocated.body),
+  );
+  assert.equal(
+    manuallyReallocated.body.item.active_allocated_amount,
+    7_000_000,
+  );
+  assert.equal(manuallyReallocated.body.items[0].manual_lock, true);
+
+  const linkedRefund = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/api/finance/bank-classifications/review",
+      request_target_hash: "9".repeat(64),
+      request_body_hash: "8".repeat(64),
+      idempotency_key: "postgres-deposit-refund-link",
+      actor_id: "user_postgres_fee_commitment",
+    },
+    command(runtimes) {
+      return handleFinanceApiRequest({
+        pathname: "/api/finance/bank-classifications/review",
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-deposit-refund",
+          audit_hint_ref: "audit-postgres-deposit-refund",
+          idempotency_key: "postgres-deposit-refund-link",
+          decisions: [{
+            bank_transaction_id:
+              "bank-refund-postgres-fee-commitment",
+            category: "refund_reversal",
+            refund_of_bank_transaction_id:
+              "bank-transaction-postgres-fee-commitment",
+          }],
+        },
+        context,
+        requestId: "request-postgres-deposit-refund",
+        runtime: runtimes.financeRuntime,
+      });
+    },
+  });
+  assert.equal(linkedRefund.status, 200, JSON.stringify(linkedRefund.body));
+  assert.deepEqual(linkedRefund.body.deposit_allocation_reversal, {
+    outcome: "synchronized",
+    updated_count: 1,
+    linked_refund_amount: 1_000_000,
+    refund_reversed_amount: 1_000_000,
+    unapplied_refund_amount: 0,
+    inactive_commitment_released_amount: 0,
+  });
+
   const persisted = await ledger.read({
     tenant_id: TENANT_A,
     domain_id: "finance",
@@ -635,11 +768,19 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
   });
   assert.equal(allocation.length, 1);
   assert.equal(allocation[0].payload.allocated_amount, 8_000_000);
-  assert.equal(allocation[0].payload.state_version, 2);
+  assert.equal(allocation[0].payload.reversed_amount, 2_000_000);
+  assert.equal(allocation[0].payload.refund_reversed_amount, 1_000_000);
+  assert.equal(
+    allocation[0].payload.adjustment_reversed_amount,
+    1_000_000,
+  );
+  assert.equal(allocation[0].payload.allocation_source, "manual");
+  assert.equal(allocation[0].payload.manual_lock, true);
+  assert.equal(allocation[0].payload.state_version, 4);
   assert.equal((await ledger.listIdempotency({
     tenant_id: TENANT_A,
     domain_id: "finance",
-  })).length, 4);
+  })).length, 7);
   const financeAudit = await ledger.listAudit({
     tenant_id: TENANT_A,
     domain_id: "finance",
@@ -653,6 +794,20 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
       (event) => event.event_type === "client.deposit.allocation.auto",
     ).length,
     2,
+  );
+  assert.equal(
+    financeAudit.some(
+      (event) => event.event_type === "client.deposit.allocation.reallocate",
+    ),
+    true,
+  );
+  assert.equal(
+    financeAudit.some(
+      (event) => (
+        event.event_type === "client.deposit.allocation.reversal.sync"
+      ),
+    ),
+    true,
   );
   const updateAudit = financeAudit.find(
     (event) => event.event_type === "fee_commitment.update",

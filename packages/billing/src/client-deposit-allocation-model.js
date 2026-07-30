@@ -55,6 +55,33 @@ export function normalizeClientDepositAllocation(input = {}) {
   if (reversedAmount > allocatedAmount) {
     throw new TypeError("reversed_amount cannot exceed allocated_amount");
   }
+  const refundReversedAmount = input.refund_reversed_amount === undefined
+    ? input.adjustment_reversed_amount === undefined
+      ? reversedAmount
+      : reversedAmount - wholeKrw(
+        input.adjustment_reversed_amount,
+        "adjustment_reversed_amount",
+      )
+    : wholeKrw(
+      input.refund_reversed_amount,
+      "refund_reversed_amount",
+    );
+  const adjustmentReversedAmount =
+    input.adjustment_reversed_amount === undefined
+      ? reversedAmount - refundReversedAmount
+      : wholeKrw(
+        input.adjustment_reversed_amount,
+        "adjustment_reversed_amount",
+      );
+  if (
+    refundReversedAmount < 0
+    || adjustmentReversedAmount < 0
+    || refundReversedAmount + adjustmentReversedAmount !== reversedAmount
+  ) {
+    throw new TypeError(
+      "refund_reversed_amount and adjustment_reversed_amount must equal reversed_amount",
+    );
+  }
   const allocationSource = requiredString(input, "allocation_source");
   if (!CLIENT_DEPOSIT_ALLOCATION_SOURCES.includes(allocationSource)) {
     throw new TypeError("ClientDepositAllocation.allocation_source is invalid");
@@ -98,6 +125,8 @@ export function normalizeClientDepositAllocation(input = {}) {
     currency: "KRW",
     allocated_amount: allocatedAmount,
     reversed_amount: reversedAmount,
+    refund_reversed_amount: refundReversedAmount,
+    adjustment_reversed_amount: adjustmentReversedAmount,
     allocation_source: allocationSource,
     manual_lock: input.manual_lock,
     status,
