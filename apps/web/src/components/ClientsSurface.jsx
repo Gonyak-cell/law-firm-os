@@ -54,6 +54,10 @@ import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { DashboardListCard, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 import { buildClientOperationsDashboardModel } from "./ClientOperationsDashboardModel.js";
+import {
+  ClientDepositRevenueChart,
+  ClientInquiryStatusBreakdown
+} from "./ClientOperationsDashboardCharts.jsx";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
@@ -531,6 +535,24 @@ function clientDashboardDateLabel(value) {
     : "일정 미정";
 }
 
+function clientDashboardDayLabel(value) {
+  const text = String(value ?? "");
+  const dateOnly = text.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
+  );
+  if (dateOnly) {
+    return `${Number(dateOnly[2])}월 ${Number(dateOnly[3])}일`;
+  }
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime())
+    ? "날짜 미정"
+    : parsed.toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      month: "long",
+      day: "numeric"
+    });
+}
+
 function clientDashboardMoneyLabel(value, currency = "KRW") {
   return `${clientDashboardMoneyFormatter.format(Number(value) || 0)} ${currency}`;
 }
@@ -650,6 +672,93 @@ function ClientDashboardKpiCard({ metric, onNavigate }) {
   );
 }
 
+function openClientDashboardRoute(onNavigate, route) {
+  if (!route) return;
+  onNavigate(
+    route.view,
+    route.section,
+    route.routeContext
+  );
+}
+
+function ClientDashboardRankingCard({
+  ranking,
+  kind,
+  onNavigate
+}) {
+  const revenue = kind === "revenue";
+  const title = revenue ? "고객 매출 순위" : "미수금 순위";
+  const noun = revenue ? "고객 매출 순위" : "미수금 순위";
+  const state = ranking.state === "data"
+    && ranking.items.length === 0
+    ? "empty"
+    : ranking.state;
+  return (
+    <div
+      className="client-dashboard-ranking"
+      data-client-ranking={kind}
+    >
+      <DashboardListCard
+        title={title}
+        section={`${kind}-ranking`}
+        headerMeta={revenue
+          ? ranking.period?.label ?? ""
+          : ranking.unknownAmountCount > 0
+            ? `금액 미입력 ${ranking.unknownAmountCount}건`
+            : ""}
+        onViewAll={() => onNavigate(
+          "clients",
+          revenue ? "client-sales-history" : "client-billing",
+          { filter: "ranking" }
+        )}
+        viewAllLabel="전체 보기"
+      >
+        <ClientDashboardReadState state={state} noun={noun}>
+          <div
+            className="client-dashboard-ranking-total"
+            data-client-ranking-total={ranking.total}
+          >
+            <span>{revenue ? "기간 합계" : "전체 미수금"}</span>
+            <strong>
+              {clientDashboardMoneyFormatter.format(ranking.total)}원
+            </strong>
+          </div>
+          <DashboardRecordList>
+            {ranking.items.map((item) => (
+              <DashboardRecordRow
+                key={item.clientId}
+                title={`${item.rank}위 ${clientDashboardRecordLabel(
+                  item.displayName,
+                  item.clientId,
+                  `고객 ${item.rank}`
+                )}`}
+                meta={revenue
+                  ? item.latestDepositAt
+                    ? `최근 입금 ${clientDashboardDayLabel(
+                      item.latestDepositAt
+                    )}`
+                    : "입금일 미확인"
+                  : item.earliestDueDate
+                    ? `납부기한 ${clientDashboardDayLabel(
+                      item.earliestDueDate
+                    )}`
+                    : "납부기한 없음"}
+                detail={`${clientDashboardMoneyFormatter.format(
+                  item.amount
+                )}원`}
+                onOpen={() => openClientDashboardRoute(
+                  onNavigate,
+                  item.route
+                )}
+              />
+            ))}
+          </DashboardRecordList>
+        </ClientDashboardReadState>
+      </DashboardListCard>
+    </div>
+  );
+}
+
 function ClientDashboardPanel({ result, onNavigate }) {
   const model = buildClientOperationsDashboardModel(result);
   if (!["data", "partial"].includes(model.state)) {
@@ -721,6 +830,89 @@ function ClientDashboardPanel({ result, onNavigate }) {
             </DashboardRecordList>
           </ClientDashboardReadState>
         </DashboardListCard>
+      </div>
+      <div
+        className="client-dashboard-insights"
+        data-client-dashboard-insights="true"
+      >
+        <div
+          className="client-dashboard-revenue"
+          data-client-dashboard-revenue="true"
+        >
+          <DashboardListCard
+            title="최근 12개월 입금 매출"
+            section="monthly-deposit-revenue"
+            headerMeta={Number.isSafeInteger(
+              model.monthlyRevenue.total
+            )
+              ? `합계 ${clientDashboardMoneyFormatter.format(
+                model.monthlyRevenue.total
+              )}원`
+              : ""}
+            onViewAll={() => onNavigate(
+              "clients",
+              "client-sales-history",
+              { filter: "last_12_months" }
+            )}
+            viewAllLabel="전체 보기"
+          >
+            <ClientDashboardReadState
+              state={model.monthlyRevenue.state}
+              noun="월별 입금 매출"
+            >
+              <ClientDepositRevenueChart
+                points={model.monthlyRevenue.points}
+                onNavigate={(route) => openClientDashboardRoute(
+                  onNavigate,
+                  route
+                )}
+              />
+            </ClientDashboardReadState>
+          </DashboardListCard>
+        </div>
+        <div
+          className="client-dashboard-inquiries"
+          data-client-inquiries="true"
+        >
+          <DashboardListCard
+            title="문의 진행 현황"
+            section="inquiry-status"
+            headerMeta={Number.isSafeInteger(
+              model.inquiryStatus.total
+            )
+              ? `전체 ${model.inquiryStatus.total}건`
+              : ""}
+          >
+            <ClientDashboardReadState
+              state={model.inquiryStatus.state}
+              noun="문의 진행 현황"
+            >
+              <ClientInquiryStatusBreakdown
+                items={model.inquiryStatus.items}
+                total={model.inquiryStatus.total}
+                onNavigate={(route) => openClientDashboardRoute(
+                  onNavigate,
+                  route
+                )}
+              />
+            </ClientDashboardReadState>
+          </DashboardListCard>
+        </div>
+      </div>
+      <div
+        className="client-dashboard-rankings"
+        data-client-dashboard-rankings="true"
+      >
+        <ClientDashboardRankingCard
+          ranking={model.revenueRanking}
+          kind="revenue"
+          onNavigate={onNavigate}
+        />
+        <ClientDashboardRankingCard
+          ranking={model.receivablesRanking}
+          kind="receivables"
+          onNavigate={onNavigate}
+        />
       </div>
     </div>
   );

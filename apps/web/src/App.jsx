@@ -246,6 +246,14 @@ export function App() {
     } else {
       params.delete("inquiry_id");
     }
+    for (const key of ["month", "tab", "period"]) {
+      if (Object.prototype.hasOwnProperty.call(routeContext, key)) {
+        if (routeContext[key]) params.set(key, routeContext[key]);
+        else params.delete(key);
+      } else {
+        params.delete(key);
+      }
+    }
     if (Object.prototype.hasOwnProperty.call(routeContext, "matterId")) {
       if (routeContext.matterId) params.set("matter_id", routeContext.matterId);
       else params.delete("matter_id");

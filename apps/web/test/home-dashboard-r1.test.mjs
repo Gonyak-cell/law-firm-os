@@ -228,6 +228,12 @@ function wp5DateKey(offset = 0) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function wp5MonthKey(offset = 0) {
+  const now = new Date();
+  const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
 function visibleLineCount(text, expected) {
   return String(text)
     .split(/\n+/)
@@ -413,20 +419,131 @@ function wp5ClientOperationsDashboardBody() {
         }
       },
       monthly_deposit_revenue: {
-        status: "no_data",
-        data: null
+        status: "available",
+        data: {
+          period: {
+            from: `${wp5MonthKey(-11)}-01`,
+            to: wp5DateKey(),
+            month_count: 12
+          },
+          total: 36_000_000,
+          points: Array.from({ length: 12 }, (_, index) => {
+            const month = wp5MonthKey(index - 11);
+            return {
+              month,
+              net_deposit_revenue: index === 10
+                ? 3_000_000
+                : index === 11
+                  ? 33_000_000
+                  : 0,
+              destination: {
+                section: "deposit_revenue",
+                filter: "month",
+                month
+              }
+            };
+          }),
+          reconciliation_status: "passed"
+        }
       },
       inquiry_status: {
-        status: "no_data",
-        data: null
+        status: "available",
+        data: {
+          total: 5,
+          counts: {
+            "새 문의": 1,
+            "확인 중": 0,
+            "상담 예정": 1,
+            "수임 검토 중": 1,
+            "수임 확정": 1,
+            "수임하지 않음": 1
+          },
+          items: [
+            ["new", "새 문의", 1, "new_inquiries"],
+            ["reviewing", "확인 중", 0, "new_inquiries"],
+            ["consultation_scheduled", "상담 예정", 1, "consultations"],
+            ["engagement_review", "수임 검토 중", 1, "engagement_status"],
+            ["engaged", "수임 확정", 1, "engagement_status"],
+            ["not_engaged", "수임하지 않음", 1, "engagement_status"]
+          ].map(([code, label, count, section]) => ({
+            code,
+            label,
+            count,
+            destination: { section, filter: code }
+          }))
+        }
       },
       revenue_ranking: {
-        status: "no_data",
-        data: null
+        status: "available",
+        data: {
+          selected_period: {
+            code: "year",
+            label: "올해 누적",
+            from: `${wp5DateKey().slice(0, 4)}-01-01`,
+            to: wp5DateKey()
+          },
+          available_periods: [
+            { code: "month", label: "이번 달" },
+            { code: "quarter", label: "이번 분기" },
+            { code: "year", label: "올해 누적" }
+          ],
+          total: 36_000_000,
+          items: [
+            {
+              rank: 1,
+              client_group_id: "client-dashboard-saebom",
+              display_name: "새봄테크",
+              net_deposit_revenue: 25_000_000,
+              latest_deposit_at: wp5IsoDay(-2),
+              destination: {
+                section: "client_details",
+                record_id: "client-dashboard-saebom",
+                tab: "deposit_revenue",
+                period: "year"
+              }
+            },
+            {
+              rank: 2,
+              client_group_id: "client-dashboard-hanbit",
+              display_name: "한빛건설",
+              net_deposit_revenue: 11_000_000,
+              latest_deposit_at: wp5IsoDay(-5),
+              destination: {
+                section: "client_details",
+                record_id: "client-dashboard-hanbit",
+                tab: "deposit_revenue",
+                period: "year"
+              }
+            }
+          ],
+          client_group_ids: [
+            "client-dashboard-saebom",
+            "client-dashboard-hanbit"
+          ],
+          reconciliation_status: "passed"
+        }
       },
       receivables_ranking: {
-        status: "no_data",
-        data: null
+        status: "available",
+        data: {
+          as_of: wp5IsoDay(0),
+          total: 9_000_000,
+          unknown_amount_count: 1,
+          items: [{
+            rank: 1,
+            client_group_id: "client-dashboard-hanbit",
+            display_name: "한빛건설",
+            receivable_amount: 9_000_000,
+            earliest_due_date: wp5DateKey(-20),
+            destination: {
+              section: "client_details",
+              record_id: "client-dashboard-hanbit",
+              tab: "receivables"
+            }
+          }],
+          client_group_ids: ["client-dashboard-hanbit"],
+          reconciliation_status: "passed"
+        }
       }
     },
     source_statuses: available,
@@ -1976,12 +2093,40 @@ test("dashboard bodies render the requested Home, Matter, and Client operating v
     }
     assert.equal(await page.locator('[data-client-attention="true"] .dashboard-record-row').count(), 5);
     assert.equal(await page.locator('[data-client-attention="true"]').getByText("오늘 확인할 일", { exact: true }).count(), 1);
+    assert.equal(await page.locator('[data-client-revenue-chart="true"] [data-client-revenue-month]').count(), 12);
+    assert.equal(
+      await page.locator(
+        `[data-client-revenue-month="${wp5MonthKey()}"]`
+      ).getAttribute("data-client-revenue-amount"),
+      "33000000"
+    );
+    assert.equal(await page.locator('[data-client-inquiry-status="true"] [data-client-inquiry-status-code]').count(), 6);
+    assert.equal(
+      await page.locator(
+        '[data-client-inquiry-status-code="reviewing"]'
+      ).getAttribute("aria-label"),
+      "확인 중 0건"
+    );
+    assert.equal(await page.locator('[data-client-ranking="revenue"] .dashboard-record-row').count(), 2);
+    assert.equal(await page.locator('[data-client-ranking="receivables"] .dashboard-record-row').count(), 1);
+    assert.equal(
+      await page.locator(
+        '[data-client-ranking="revenue"] [data-client-ranking-total]'
+      ).getAttribute("data-client-ranking-total"),
+      "36000000"
+    );
+    assert.equal(
+      await page.locator(
+        '[data-client-ranking="receivables"] [data-client-ranking-total]'
+      ).getAttribute("data-client-ranking-total"),
+      "9000000"
+    );
     const clientRow = page.locator('[data-client-attention="true"] .dashboard-record-row').first();
     assert.equal(await clientRow.evaluate((row) => row.scrollWidth > row.clientWidth), false);
     assert.deepEqual(await compactRecordLayoutFailures(page), [], "Client compact records must remain one-line");
     assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Client panel metadata must remain on the title line");
     const clientDashboardText = await page.locator('[data-client-dashboard="true"]').innerText();
-    assert.doesNotMatch(clientDashboardText, /@amic\.kr|lead-dashboard-1|user-dashboard|consultation-dashboard-today|opportunity-dashboard-review|bank-dashboard-review|fee-dashboard-missing/);
+    assert.doesNotMatch(clientDashboardText, /@amic\.kr|lead-dashboard-1|user-dashboard|consultation-dashboard-today|opportunity-dashboard-review|bank-dashboard-review|fee-dashboard-missing|client-dashboard-saebom|client-dashboard-hanbit/);
     assert.doesNotMatch(clientDashboardText, /\b(?:Client|qualified|active|available)\b/);
     assert.match(clientDashboardText, /새 문의 담당자 지정|입금 고객 연결|수임료 입력/);
 
@@ -2021,6 +2166,50 @@ test("dashboard bodies render the requested Home, Matter, and Client operating v
         && url.searchParams.get("filter") === "today"
         && url.searchParams.get("record_id") === "consultation-dashboard-today"
         && url.searchParams.get("inquiry_id") === "lead-dashboard-consultation";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      `[data-client-revenue-month="${wp5MonthKey()}"]`
+    ).click();
+    await page.waitForFunction((month) => {
+      const url = new URL(window.location.href);
+      return url.hash === "#client-sales-history"
+        && url.searchParams.get("filter") === "month"
+        && url.searchParams.get("month") === month;
+    }, wp5MonthKey());
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      '[data-client-inquiry-status-code="consultation_scheduled"]'
+    ).click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#client-consultation-proposals"
+        && url.searchParams.get("filter") === "consultation_scheduled";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      '[data-client-ranking="revenue"] .dashboard-record-row'
+    ).first().click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#clients-list"
+        && url.searchParams.get("record_id") === "client-dashboard-saebom"
+        && url.searchParams.get("tab") === "deposit_revenue"
+        && url.searchParams.get("period") === "year";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      '[data-client-ranking="receivables"] .dashboard-record-row'
+    ).first().click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#clients-list"
+        && url.searchParams.get("record_id") === "client-dashboard-hanbit"
+        && url.searchParams.get("tab") === "receivables";
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-dashboard`, { waitUntil: "networkidle" });
@@ -2107,6 +2296,8 @@ test("VC-CL-DASH-002 Client 대시보드는 CRM 장애를 0건으로 바꾸지 �
         body.sections.attention_items.data.type_statuses.unassigned_new_inquiry = "error";
         body.sections.attention_items.data.type_statuses.consultation_today = "error";
         body.sections.attention_items.data.type_statuses.engagement_review = "error";
+        body.sections.inquiry_status.status = "error";
+        body.sections.inquiry_status.data = null;
         body.source_statuses.find(({ source_id }) => source_id === "crm").status = "error";
         body.safe_error_codes = ["CLIENT_OPERATIONS_SOURCE_UNAVAILABLE"];
         return jsonResponse(route, body);
@@ -2124,6 +2315,115 @@ test("VC-CL-DASH-002 Client 대시보드는 CRM 장애를 0건으로 바꾸지 �
     assert.equal(await page.locator('[data-client-kpi="receivables_total"]').getByText("9,000,000원", { exact: true }).count(), 1);
     assert.equal(await page.locator('[data-client-attention="true"] [data-client-dashboard-read-state="partial"]').count(), 1);
     assert.equal(await page.locator('[data-client-attention="true"] .dashboard-record-row').count(), 2);
+    assert.equal(await page.locator('[data-client-inquiries] [data-client-dashboard-read-state="error"]').count(), 1);
+    assert.equal(await page.locator('[data-client-revenue-chart="true"] [data-client-revenue-month]').count(), 12);
+    assert.equal(await page.locator('[data-client-ranking="revenue"] .dashboard-record-row').count(), 2);
+    assert.equal(await page.locator('[data-client-ranking="receivables"] .dashboard-record-row').count(), 1);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("CL-P5-W01-T03 Client 대시보드는 1440·820·390px에서 그래프와 순위를 빠짐없이 재배치한다", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(
+        route,
+        wp5ApiBody(
+          url.pathname,
+          url.searchParams,
+          { decisionCalls: 0, newsCalls: 0 }
+        )
+      );
+    });
+
+    for (const scenario of [
+      {
+        width: 1440,
+        height: 1000,
+        kpiRows: 1,
+        insightRows: 1,
+        rankingRows: 1
+      },
+      {
+        width: 820,
+        height: 1000,
+        kpiRows: 2,
+        insightRows: 2,
+        rankingRows: 2
+      },
+      {
+        width: 390,
+        height: 844,
+        kpiRows: 5,
+        insightRows: 2,
+        rankingRows: 2
+      }
+    ]) {
+      await page.setViewportSize({
+        width: scenario.width,
+        height: scenario.height
+      });
+      await page.goto(
+        `http://127.0.0.1:${port}/?view=clients&ctx=allow&viewport=${scenario.width}#clients-home`,
+        { waitUntil: "networkidle" }
+      );
+      await page.waitForSelector('[data-client-dashboard-state="data"]');
+      if (scenario.width < 1200) {
+        await page.waitForFunction(() => {
+          const sidebar = document.querySelector(
+            ".app-frame > .sidebar"
+          );
+          return sidebar
+            && getComputedStyle(sidebar).visibility === "hidden";
+        });
+      }
+      const layout = await page.evaluate(() => {
+        const rowCount = (selector) => new Set(
+          Array.from(document.querySelectorAll(selector))
+            .map((node) => Math.round(
+              node.getBoundingClientRect().top
+            ))
+        ).size;
+        return {
+          pageOverflow:
+            document.documentElement.scrollWidth
+            > document.documentElement.clientWidth,
+          kpiRows: rowCount(
+            '[data-client-dashboard-kpis="true"] [data-client-kpi]'
+          ),
+          insightRows: rowCount(
+            '[data-client-dashboard-insights="true"] > div'
+          ),
+          rankingRows: rowCount(
+            '[data-client-dashboard-rankings="true"] > div'
+          ),
+          revenueBars: document.querySelectorAll(
+            "[data-client-revenue-month]"
+          ).length,
+          inquiryRows: document.querySelectorAll(
+            "[data-client-inquiry-status-code]"
+          ).length
+        };
+      });
+      assert.equal(layout.pageOverflow, false);
+      assert.equal(layout.kpiRows, scenario.kpiRows);
+      assert.equal(layout.insightRows, scenario.insightRows);
+      assert.equal(layout.rankingRows, scenario.rankingRows);
+      assert.equal(layout.revenueBars, 12);
+      assert.equal(layout.inquiryRows, 6);
+    }
   } finally {
     await browser.close();
     await server.close();

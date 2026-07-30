@@ -73,10 +73,136 @@ function sections() {
         },
       },
     },
-    monthly_deposit_revenue: { status: "no_data", data: null },
-    inquiry_status: { status: "no_data", data: null },
-    revenue_ranking: { status: "no_data", data: null },
-    receivables_ranking: { status: "no_data", data: null },
+    monthly_deposit_revenue: {
+      status: "available",
+      data: {
+        period: {
+          from: "2025-08-01",
+          to: "2026-07-30",
+          month_count: 12,
+        },
+        total: 36_000_000,
+        points: Array.from({ length: 12 }, (_, index) => {
+          const date = new Date(Date.UTC(2025, 7 + index, 1));
+          const month = [
+            date.getUTCFullYear(),
+            String(date.getUTCMonth() + 1).padStart(2, "0"),
+          ].join("-");
+          return {
+            month,
+            net_deposit_revenue: index === 10
+              ? 3_000_000
+              : index === 11
+                ? 33_000_000
+                : 0,
+            destination: {
+              section: "deposit_revenue",
+              filter: "month",
+              month,
+            },
+          };
+        }),
+      },
+    },
+    inquiry_status: {
+      status: "available",
+      data: {
+        total: 5,
+        items: [
+          ["new", "새 문의", 1, "new_inquiries"],
+          ["reviewing", "확인 중", 0, "new_inquiries"],
+          [
+            "consultation_scheduled",
+            "상담 예정",
+            1,
+            "consultations",
+          ],
+          [
+            "engagement_review",
+            "수임 검토 중",
+            1,
+            "engagement_status",
+          ],
+          [
+            "engaged",
+            "수임 확정",
+            1,
+            "engagement_status",
+          ],
+          [
+            "not_engaged",
+            "수임하지 않음",
+            1,
+            "engagement_status",
+          ],
+        ].map(([code, label, count, section]) => ({
+          code,
+          label,
+          count,
+          destination: { section, filter: code },
+        })),
+      },
+    },
+    revenue_ranking: {
+      status: "available",
+      data: {
+        selected_period: {
+          code: "year",
+          label: "올해 누적",
+          from: "2026-01-01",
+          to: "2026-07-30",
+        },
+        total: 36_000_000,
+        items: [
+          {
+            rank: 1,
+            client_group_id: "client_saebom_tech",
+            display_name: "새봄테크",
+            net_deposit_revenue: 25_000_000,
+            latest_deposit_at: "2026-07-20T01:00:00.000Z",
+            destination: {
+              section: "client_details",
+              record_id: "client_saebom_tech",
+              tab: "deposit_revenue",
+              period: "year",
+            },
+          },
+          {
+            rank: 2,
+            client_group_id: "client_hanbit_construction",
+            display_name: "한빛건설",
+            net_deposit_revenue: 11_000_000,
+            latest_deposit_at: "2026-07-15T01:00:00.000Z",
+            destination: {
+              section: "client_details",
+              record_id: "client_hanbit_construction",
+              tab: "deposit_revenue",
+              period: "year",
+            },
+          },
+        ],
+      },
+    },
+    receivables_ranking: {
+      status: "available",
+      data: {
+        as_of: "2026-07-30T03:00:00.000Z",
+        total: 9_000_000,
+        unknown_amount_count: 1,
+        items: [{
+          rank: 1,
+          client_group_id: "client_hanbit_construction",
+          display_name: "한빛건설",
+          receivable_amount: 9_000_000,
+          earliest_due_date: "2026-07-10",
+          destination: {
+            section: "client_details",
+            record_id: "client_hanbit_construction",
+            tab: "receivables",
+          },
+        }],
+      },
+    },
   };
 }
 
@@ -232,6 +358,150 @@ test("CL-P5-W01-T02 알 수 없는 상세 목적지는 클릭 경로로 만들�
       record_id: "secret-record",
     }),
     null,
+  );
+});
+
+test("VC-CL-DASH-001 / CL-P5-W01-T03 그래프·문의 현황·두 고객 순위와 합계를 고정한다", () => {
+  const model = buildClientOperationsDashboardModel(
+    dashboardResult(),
+  );
+
+  assert.equal(model.monthlyRevenue.state, "data");
+  assert.equal(model.monthlyRevenue.points.length, 12);
+  assert.equal(model.monthlyRevenue.total, 36_000_000);
+  assert.deepEqual(
+    model.monthlyRevenue.points.slice(-2).map((point) => ({
+      month: point.month,
+      amount: point.amount,
+    })),
+    [
+      { month: "2026-06", amount: 3_000_000 },
+      { month: "2026-07", amount: 33_000_000 },
+    ],
+  );
+  assert.deepEqual(
+    model.monthlyRevenue.points.at(-1).route,
+    {
+      view: "clients",
+      section: "client-sales-history",
+      routeContext: {
+        filter: "month",
+        month: "2026-07",
+      },
+    },
+  );
+  assert.equal(model.inquiryStatus.total, 5);
+  assert.deepEqual(
+    model.inquiryStatus.items.map(({ label, count }) => ({
+      label,
+      count,
+    })),
+    [
+      { label: "새 문의", count: 1 },
+      { label: "확인 중", count: 0 },
+      { label: "상담 예정", count: 1 },
+      { label: "수임 검토 중", count: 1 },
+      { label: "수임 확정", count: 1 },
+      { label: "수임하지 않음", count: 1 },
+    ],
+  );
+  assert.equal(model.revenueRanking.total, 36_000_000);
+  assert.equal(
+    model.revenueRanking.displayedTotal,
+    36_000_000,
+  );
+  assert.deepEqual(
+    model.revenueRanking.items.map((item) => [
+      item.rank,
+      item.displayName,
+      item.amount,
+    ]),
+    [
+      [1, "새봄테크", 25_000_000],
+      [2, "한빛건설", 11_000_000],
+    ],
+  );
+  assert.deepEqual(model.revenueRanking.items[0].route, {
+    view: "clients",
+    section: "clients-list",
+    routeContext: {
+      recordId: "client_saebom_tech",
+      tab: "deposit_revenue",
+      period: "year",
+    },
+  });
+  assert.equal(model.receivablesRanking.total, 9_000_000);
+  assert.equal(
+    model.receivablesRanking.unknownAmountCount,
+    1,
+  );
+  assert.equal(
+    model.receivablesRanking.items[0].amount,
+    9_000_000,
+  );
+});
+
+test("CL-P5-W01-T03 순위는 10개까지만 표시하고 원천 합계는 보존한다", () => {
+  const body = dashboardBody();
+  body.sections.revenue_ranking.data.items = Array.from(
+    { length: 11 },
+    (_, index) => ({
+      rank: index + 1,
+      client_group_id: `client_${index + 1}`,
+      display_name: `고객 ${index + 1}`,
+      net_deposit_revenue: 11 - index,
+      latest_deposit_at: "2026-07-30T00:00:00.000Z",
+      destination: {
+        section: "client_details",
+        record_id: `client_${index + 1}`,
+        tab: "deposit_revenue",
+        period: "year",
+      },
+    }),
+  );
+  body.sections.revenue_ranking.data.total = 66;
+
+  const model = buildClientOperationsDashboardModel(
+    dashboardResult(body),
+  );
+
+  assert.equal(model.revenueRanking.state, "data");
+  assert.equal(model.revenueRanking.items.length, 10);
+  assert.equal(model.revenueRanking.total, 66);
+  assert.equal(model.revenueRanking.displayedTotal, 65);
+});
+
+test("CL-P5-W01-T03 문의 합계 불일치와 잘못된 월별 값은 오류로 차단한다", () => {
+  const body = dashboardBody();
+  body.sections.inquiry_status.data.total = 6;
+  body.sections.monthly_deposit_revenue.data.points[0]
+    .net_deposit_revenue = 1.5;
+
+  const model = buildClientOperationsDashboardModel(
+    dashboardResult(body),
+  );
+
+  assert.equal(model.inquiryStatus.state, "error");
+  assert.deepEqual(model.inquiryStatus.items, []);
+  assert.equal(model.monthlyRevenue.state, "error");
+  assert.deepEqual(model.monthlyRevenue.points, []);
+});
+
+test("CL-P5-W01-T03 환불로 음수가 된 월별 입금 매출을 0으로 바꾸지 않는다", () => {
+  const body = dashboardBody();
+  body.sections.monthly_deposit_revenue.data.points[0]
+    .net_deposit_revenue = -1_000_000;
+  body.sections.monthly_deposit_revenue.data.points[1]
+    .net_deposit_revenue = 1_000_000;
+
+  const model = buildClientOperationsDashboardModel(
+    dashboardResult(body),
+  );
+
+  assert.equal(model.monthlyRevenue.state, "data");
+  assert.equal(
+    model.monthlyRevenue.points[0].amount,
+    -1_000_000,
   );
 });
 

@@ -3722,6 +3722,188 @@ kbd {
   min-height: 248px;
 }
 
+.client-dashboard-insights,
+.client-dashboard-rankings {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.client-dashboard-revenue {
+  min-width: 0;
+  grid-column: span 8;
+}
+
+.client-dashboard-inquiries {
+  min-width: 0;
+  grid-column: span 4;
+}
+
+.client-dashboard-ranking {
+  min-width: 0;
+  grid-column: span 6;
+}
+
+.client-dashboard-insights .home-dashboard-card,
+.client-dashboard-ranking .home-dashboard-card {
+  height: 100%;
+}
+
+.client-deposit-revenue-chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.client-deposit-revenue-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.client-chart-gridline line {
+  stroke: var(--am-border-soft);
+  stroke-width: 1;
+}
+
+.client-chart-gridline.zero line {
+  stroke: var(--am-border-strong, #aebbb6);
+}
+
+.client-chart-gridline text,
+.client-chart-axis-label {
+  fill: var(--am-text-muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+}
+
+.client-revenue-bar-group {
+  cursor: pointer;
+}
+
+.client-revenue-bar {
+  fill: var(--am-success);
+}
+
+.client-revenue-bar.negative {
+  fill: var(--am-danger);
+}
+
+.client-revenue-bar.zero {
+  fill: var(--am-border-strong, #aebbb6);
+}
+
+.client-revenue-bar-group:hover .client-revenue-bar,
+.client-revenue-bar-group:focus-visible .client-revenue-bar {
+  stroke: var(--am-text);
+  stroke-width: 2;
+}
+
+.client-revenue-bar-group:focus {
+  outline: none;
+}
+
+.client-inquiry-status-list {
+  min-width: 0;
+  display: grid;
+}
+
+.client-inquiry-status-row {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--am-border-soft);
+  border-radius: 0;
+  background: transparent;
+  color: var(--am-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-inquiry-status-row:last-child {
+  border-bottom: 0;
+}
+
+.client-inquiry-status-row:hover,
+.client-inquiry-status-row:focus-visible {
+  background: var(--am-surface-subtle);
+}
+
+.client-inquiry-status-row > span:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.client-inquiry-status-row strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-inquiry-status-row em {
+  color: var(--am-text-muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.client-inquiry-status-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--am-border-soft);
+}
+
+.client-inquiry-status-track i {
+  width: var(--client-inquiry-share);
+  height: 100%;
+  display: block;
+  background: var(--am-success);
+}
+
+.client-dashboard-ranking-total {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 2px 11px;
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.client-dashboard-ranking-total span {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.client-dashboard-ranking-total strong {
+  color: var(--am-text);
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 400;
+}
+
+.client-dashboard-ranking .dashboard-record-row {
+  grid-template-columns:
+    minmax(0, 1.4fr)
+    minmax(0, 0.9fr)
+    minmax(104px, 0.7fr)
+    18px;
+}
+
+.client-dashboard-ranking .dashboard-record-row > svg {
+  grid-column: 4;
+}
+
 .client-dashboard-read-boundary {
   min-height: 220px;
   display: grid;
@@ -4048,6 +4230,12 @@ button.dashboard-record-row:focus-visible {
     grid-column: span 6;
   }
 
+  .client-dashboard-revenue,
+  .client-dashboard-inquiries,
+  .client-dashboard-ranking {
+    grid-column: span 12;
+  }
+
   .dashboard-record-row {
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.8fr) 18px;
   }
@@ -4085,6 +4273,19 @@ button.dashboard-record-row:focus-visible {
   .client-dashboard-kpi-slot,
   .client-dashboard-kpi-slot[data-value-kind="money"] {
     grid-column: span 12;
+  }
+
+  .client-dashboard-ranking .dashboard-record-row {
+    grid-template-columns: minmax(0, 1fr) 18px;
+  }
+
+  .client-dashboard-ranking .dashboard-record-copy small,
+  .client-dashboard-ranking .dashboard-record-detail {
+    display: none;
+  }
+
+  .client-dashboard-ranking .dashboard-record-row > svg {
+    grid-column: 2;
   }
 
   .dashboard-record-row {

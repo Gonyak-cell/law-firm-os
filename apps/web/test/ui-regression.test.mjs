@@ -1225,6 +1225,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
   const clientDashboardModelSource = await readWebFile("src/components/ClientOperationsDashboardModel.js");
+  const clientDashboardChartsSource = await readWebFile("src/components/ClientOperationsDashboardCharts.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
   const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const importPanelSource = await readWebFile("src/components/ImportDataMappingPanel.jsx");
@@ -1299,6 +1300,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-client-dashboard="true"/);
   assert.match(clientsSource, /data-client-dashboard-kpis="true"/);
   assert.match(clientsSource, /data-client-attention="true"/);
+  assert.match(clientsSource, /data-client-dashboard-insights="true"/);
+  assert.match(clientsSource, /data-client-dashboard-rankings="true"/);
+  assert.match(clientsSource, /data-client-ranking=\{kind\}/);
+  assert.match(clientDashboardChartsSource, /data-client-revenue-chart="true"/);
+  assert.match(clientDashboardChartsSource, /data-client-inquiry-status="true"/);
+  assert.match(clientDashboardChartsSource, /<table className="sr-only">/);
   assert.doesNotMatch(clientsSource, /data-client-priority-queue="true"/);
   assert.doesNotMatch(clientsSource, /data-client-dashboard-table="true"/);
   for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금"]) {
@@ -1311,9 +1318,14 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/analytics\/clients\/dashboard/);
   assert.match(appSource, /params\.set\("record_id", routeContext\.recordId\)/);
   assert.match(appSource, /params\.set\("inquiry_id", routeContext\.inquiryId\)/);
+  assert.match(appSource, /for \(const key of \["month", "tab", "period"\]\)/);
   assert.match(clientsSource, /title="대시보드"[\s\S]*<ClientDashboardPanel/);
   assert.doesNotMatch(clientsSource, /ClientsOverviewPanel|data-client-overview-panel|title="요약"[\s\S]*clients-home/);
   assert.match(shellSource, /label: "대시보드", view: "clients", section: "clients-home"/);
+  assert.match(stylesSource, /\.client-dashboard-insights,[\s\S]*grid-template-columns: repeat\(12, minmax\(0, 1fr\)\)/);
+  assert.match(stylesSource, /\.client-dashboard-revenue\s*\{[\s\S]*grid-column: span 8;/);
+  assert.match(stylesSource, /\.client-dashboard-inquiries\s*\{[\s\S]*grid-column: span 4;/);
+  assert.match(stylesSource, /\.client-dashboard-ranking\s*\{[\s\S]*grid-column: span 6;/);
   assert.match(stylesSource, /\.record-overlay-layer\s*\{[\s\S]*display: flex;[\s\S]*justify-content: flex-end;[\s\S]*padding: 0;/);
   assert.match(stylesSource, /\.record-overlay-panel\s*\{[\s\S]*width: min\(560px, 100vw\);[\s\S]*height: 100%;[\s\S]*animation: record-overlay-panel-in 240ms/);
   assert.match(stylesSource, /@keyframes record-overlay-panel-in\s*\{[\s\S]*transform: translateX\(100%\);[\s\S]*transform: translateX\(0\);/);

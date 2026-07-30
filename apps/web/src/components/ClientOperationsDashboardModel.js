@@ -65,6 +65,31 @@ const ATTENTION_SECTION_ROUTES = Object.freeze({
   client_details: "clients-list",
 });
 
+const INQUIRY_STATUS_DEFINITIONS = Object.freeze([
+  Object.freeze({ code: "new", label: "새 문의" }),
+  Object.freeze({ code: "reviewing", label: "확인 중" }),
+  Object.freeze({
+    code: "consultation_scheduled",
+    label: "상담 예정",
+  }),
+  Object.freeze({
+    code: "engagement_review",
+    label: "수임 검토 중",
+  }),
+  Object.freeze({ code: "engaged", label: "수임 확정" }),
+  Object.freeze({
+    code: "not_engaged",
+    label: "수임하지 않음",
+  }),
+]);
+const REVENUE_PERIOD_LABELS = Object.freeze({
+  month: "이번 달",
+  quarter: "이번 분기",
+  year: "올해 누적",
+});
+const MONTH_PATTERN = /^\d{4}-(?:0[1-9]|1[0-2])$/;
+const CLIENT_RANKING_LIMIT = 10;
+
 function resultState(result) {
   if (result === null || result === undefined || result.kind === "loading") {
     return "loading";
@@ -131,6 +156,11 @@ function routeContext(destination) {
   ) {
     context.inquiryId = destination.inquiry_id;
   }
+  for (const key of ["month", "tab", "period"]) {
+    if (typeof destination?.[key] === "string" && destination[key]) {
+      context[key] = destination[key];
+    }
+  }
   return Object.freeze(context);
 }
 
@@ -184,6 +214,212 @@ function attentionModel(section, fallbackState) {
   });
 }
 
+function sectionDataState(section, fallbackState, valid) {
+  const state = sectionState(section?.status, fallbackState);
+  return ["data", "partial"].includes(state) && !valid
+    ? "error"
+    : state;
+}
+
+function monthlyRevenueModel(section, fallbackState) {
+  const data = section?.data;
+  const sourcePoints = Array.isArray(data?.points)
+    ? data.points
+    : [];
+  const points = sourcePoints.map((point) => ({
+    month: point?.month,
+    amount: point?.net_deposit_revenue,
+    route: resolveClientOperationsDestination(point?.destination),
+  }));
+  const monthKeys = points.map(({ month }) => month);
+  const pointTotal = points.reduce(
+    (sum, point) => sum + (
+      Number.isSafeInteger(point.amount) ? point.amount : 0
+    ),
+    0,
+  );
+  const valid = (
+    data !== null
+    && typeof data === "object"
+    && Number.isSafeInteger(data.total)
+    && data.period?.month_count === 12
+    && typeof data.period?.from === "string"
+    && typeof data.period?.to === "string"
+    && points.length === 12
+    && new Set(monthKeys).size === 12
+    && monthKeys.every((month, index) => (
+      index === 0 || month > monthKeys[index - 1]
+    ))
+    && points.every((point) => (
+      MONTH_PATTERN.test(point.month)
+      && Number.isSafeInteger(point.amount)
+      && point.route !== null
+    ))
+    && pointTotal === data.total
+  );
+  const state = sectionDataState(
+    section,
+    fallbackState,
+    valid,
+  );
+  return Object.freeze({
+    state,
+    total: valid ? data.total : null,
+    period: valid
+      ? Object.freeze({
+        from: data.period.from,
+        to: data.period.to,
+      })
+      : null,
+    points: Object.freeze(valid
+      ? points.map((point) => Object.freeze(point))
+      : []),
+  });
+}
+
+function inquiryStatusModel(section, fallbackState) {
+  const data = section?.data;
+  const sourceItems = Array.isArray(data?.items)
+    ? data.items
+    : [];
+  const items = sourceItems.map((item, index) => ({
+    code: item?.code,
+    label: INQUIRY_STATUS_DEFINITIONS[index]?.label,
+    count: item?.count,
+    route: resolveClientOperationsDestination(item?.destination),
+  }));
+  const sum = items.reduce(
+    (total, item) => total + (
+      Number.isSafeInteger(item.count) ? item.count : 0
+    ),
+    0,
+  );
+  const valid = (
+    data !== null
+    && typeof data === "object"
+    && Number.isSafeInteger(data.total)
+    && data.total >= 0
+    && items.length === INQUIRY_STATUS_DEFINITIONS.length
+    && items.every((item, index) => (
+      item.code === INQUIRY_STATUS_DEFINITIONS[index].code
+      && Number.isSafeInteger(item.count)
+      && item.count >= 0
+      && item.route !== null
+    ))
+    && sum === data.total
+  );
+  const state = sectionDataState(
+    section,
+    fallbackState,
+    valid,
+  );
+  return Object.freeze({
+    state,
+    total: valid ? data.total : null,
+    items: Object.freeze(valid
+      ? items.map((item) => Object.freeze(item))
+      : []),
+  });
+}
+
+function rankingRows(data, amountField) {
+  const sourceItems = Array.isArray(data?.items)
+    ? data.items
+    : [];
+  return sourceItems.map((item) => ({
+    rank: item?.rank,
+    clientId: item?.client_group_id,
+    displayName: item?.display_name,
+    amount: item?.[amountField],
+    latestDepositAt: item?.latest_deposit_at ?? null,
+    earliestDueDate: item?.earliest_due_date ?? null,
+    route: resolveClientOperationsDestination(item?.destination),
+  }));
+}
+
+function validRankingRows(rows) {
+  return rows.every((row, index) => (
+    row.rank === index + 1
+    && typeof row.clientId === "string"
+    && Boolean(row.clientId)
+    && typeof row.displayName === "string"
+    && Boolean(row.displayName)
+    && Number.isSafeInteger(row.amount)
+    && row.route !== null
+  ));
+}
+
+function rankingModel(
+  section,
+  fallbackState,
+  {
+    amountField,
+    revenue = false,
+  },
+) {
+  const data = section?.data;
+  const rows = rankingRows(data, amountField);
+  const total = rows.reduce(
+    (sum, row) => sum + (
+      Number.isSafeInteger(row.amount) ? row.amount : 0
+    ),
+    0,
+  );
+  const periodCode = data?.selected_period?.code;
+  const periodValid = !revenue || (
+    typeof REVENUE_PERIOD_LABELS[periodCode] === "string"
+    && typeof data?.selected_period?.from === "string"
+    && typeof data?.selected_period?.to === "string"
+  );
+  const unknownAmountCount = revenue
+    ? 0
+    : data?.unknown_amount_count;
+  const valid = (
+    data !== null
+    && typeof data === "object"
+    && Number.isSafeInteger(data.total)
+    && validRankingRows(rows)
+    && total === data.total
+    && periodValid
+    && (
+      revenue
+      || (
+        Number.isSafeInteger(unknownAmountCount)
+        && unknownAmountCount >= 0
+      )
+    )
+  );
+  const state = sectionDataState(
+    section,
+    fallbackState,
+    valid,
+  );
+  return Object.freeze({
+    state,
+    total: valid ? data.total : null,
+    displayedTotal: valid
+      ? rows.slice(0, CLIENT_RANKING_LIMIT).reduce(
+        (sum, row) => sum + row.amount,
+        0,
+      )
+      : null,
+    period: valid && revenue
+      ? Object.freeze({
+        code: periodCode,
+        label: REVENUE_PERIOD_LABELS[periodCode],
+        from: data.selected_period.from,
+        to: data.selected_period.to,
+      })
+      : null,
+    asOf: valid && !revenue ? data.as_of ?? null : null,
+    unknownAmountCount: valid ? unknownAmountCount : null,
+    items: Object.freeze(valid
+      ? rows.slice(0, CLIENT_RANKING_LIMIT)
+        .map((row) => Object.freeze(row))
+      : []),
+  });
+}
+
 export function buildClientOperationsDashboardModel(result) {
   const state = resultState(result);
   const sections = result?.kind === "data" && result.sections
@@ -219,6 +455,29 @@ export function buildClientOperationsDashboardModel(result) {
     timezone: result?.timezone ?? null,
     kpis: Object.freeze(kpis),
     attention: attentionModel(sections.attention_items, state),
+    monthlyRevenue: monthlyRevenueModel(
+      sections.monthly_deposit_revenue,
+      state,
+    ),
+    inquiryStatus: inquiryStatusModel(
+      sections.inquiry_status,
+      state,
+    ),
+    revenueRanking: rankingModel(
+      sections.revenue_ranking,
+      state,
+      {
+        amountField: "net_deposit_revenue",
+        revenue: true,
+      },
+    ),
+    receivablesRanking: rankingModel(
+      sections.receivables_ranking,
+      state,
+      {
+        amountField: "receivable_amount",
+      },
+    ),
     sourceStatuses: Object.freeze([
       ...(Array.isArray(result?.sourceStatuses)
         ? result.sourceStatuses
@@ -227,4 +486,7 @@ export function buildClientOperationsDashboardModel(result) {
   });
 }
 
-export { KPI_DEFINITIONS as CLIENT_OPERATIONS_KPI_DEFINITIONS };
+export {
+  INQUIRY_STATUS_DEFINITIONS as CLIENT_INQUIRY_STATUS_DEFINITIONS,
+  KPI_DEFINITIONS as CLIENT_OPERATIONS_KPI_DEFINITIONS,
+};
