@@ -29,6 +29,7 @@ export const LAWOS_CLIENT_SCOPES = Object.freeze([
   "crm.engagement.decide",
   "outlook.connection.manage",
   "outlook.inquiry.capture",
+  "master_data.client.write",
   "finance.fee.write",
   "analytics.client.read",
   "analytics.client.export",
@@ -50,12 +51,14 @@ const LAWOS_CLIENT_ATTORNEY_SCOPES = Object.freeze([
 
 const LAWOS_CLIENT_OPERATIONS_SCOPES = Object.freeze([
   ...LAWOS_CLIENT_BASE_SCOPES,
+  "master_data.client.write",
   "finance.fee.write",
   "analytics.client.export",
 ]);
 
 const LAWOS_CLIENT_PARTNER_SCOPES = Object.freeze([
   ...LAWOS_CLIENT_ATTORNEY_SCOPES,
+  "master_data.client.write",
   "finance.fee.write",
   "analytics.client.export",
 ]);

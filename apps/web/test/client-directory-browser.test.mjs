@@ -139,6 +139,22 @@ function apiBody(pathname, state) {
                   primary_contact_type: "email",
                   contact_point_value_included: false,
                   contact_value_masked: true,
+                  contact_points: [
+                    {
+                      contact_type: "email",
+                      contact_point_value_included: false,
+                      contact_value_masked: true,
+                      is_primary: true,
+                      status: "active"
+                    },
+                    {
+                      contact_type: "phone",
+                      contact_point_value_included: false,
+                      contact_value_masked: true,
+                      is_primary: true,
+                      status: "active"
+                    }
+                  ],
                   status: "active"
                 },
                 {
@@ -356,10 +372,13 @@ test("CL-P5-W02-T01 고객 목록과 상세 탭은 주소·권한·반응형 계
     assert.equal(await page.getByText("숨은 사건", { exact: true }).count(), 0);
     assert.equal(await page.getByText("숨은 담당자", { exact: true }).count(), 0);
     assert.equal(await page.getByText("hidden@example.test", { exact: true }).count(), 0);
-    assert.equal(await page.getByText("김담당", { exact: true }).count(), 1);
+    assert.equal(await page.getByText("김담당", { exact: true }).count(), 2);
     assert.equal(await page.getByText("contact@example.test", { exact: true }).count(), 0);
     assert.equal(await page.getByText("박담당", { exact: true }).count(), 1);
-    assert.equal(await page.getByText("보호됨", { exact: true }).count(), 2);
+    assert.equal(await page.getByText("보호됨", { exact: true }).count(), 3);
+    const contactPanel = page.locator('[data-client-detail-panel="contacts"]');
+    assert.equal(await contactPanel.getByText("이메일", { exact: true }).count(), 1);
+    assert.equal(await contactPanel.getByText("전화", { exact: true }).count(), 2);
     assert.equal((await page.locator("body").innerText()).includes("010-0000-0000"), false);
     assert.equal(requestedPaths.includes("/master-data/records"), false);
     assert.equal(new URL(page.url()).searchParams.get("record_id"), "client-allowed");

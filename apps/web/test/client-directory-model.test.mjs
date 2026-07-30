@@ -53,6 +53,22 @@ function operationsResult(overrides = {}) {
               primary_contact_type: "email",
               contact_point_value_included: false,
               contact_value_masked: true,
+              contact_points: [
+                {
+                  contact_type: "email",
+                  contact_point_value_included: false,
+                  contact_value_masked: true,
+                  is_primary: true,
+                  status: "active"
+                },
+                {
+                  contact_type: "phone",
+                  contact_point_value_included: false,
+                  contact_value_masked: true,
+                  is_primary: true,
+                  status: "active"
+                }
+              ],
               status: "active"
             }]
           }
@@ -106,6 +122,17 @@ test("고객 상세는 서버가 허용한 요약과 세 원천만 탭별로 표
   );
   assert.equal(model.contacts.items[0].contactValue, null);
   assert.equal(model.contacts.items[0].contactValueIncluded, false);
+  assert.deepEqual(
+    model.contacts.items[0].contactPoints.map(({ contactType, contactValueIncluded, contactValueMasked }) => ({
+      contactType,
+      contactValueIncluded,
+      contactValueMasked
+    })),
+    [
+      { contactType: "email", contactValueIncluded: false, contactValueMasked: true },
+      { contactType: "phone", contactValueIncluded: false, contactValueMasked: true }
+    ]
+  );
   assert.deepEqual(
     model.matters.items.map(({ matterId }) => matterId),
     ["matter-visible"]
@@ -262,6 +289,7 @@ test("고객 목록 어댑터는 허용된 필드만 남기고 누락 건수를 
 test("고객 상세 어댑터는 연락처 원문을 거절하고 안전한 상세만 전달한다", async () => {
   const originalFetch = globalThis.fetch;
   let unsafe = false;
+  let unsafeNested = false;
   try {
     globalThis.fetch = async (input) => {
       const requested = new URL(String(input), "http://lawos.test");
@@ -271,6 +299,17 @@ test("고객 상세 어댑터는 연락처 원문을 거절하고 안전한 상�
           ...detail.sections.contacts.data.items[0],
           contact_point_value_included: true,
           contact_point_value: "private@example.test"
+        };
+      }
+      if (unsafeNested) {
+        detail.sections.contacts.data.items[0] = {
+          ...detail.sections.contacts.data.items[0],
+          contact_points: [{
+            contact_type: "email",
+            contact_point_value_included: true,
+            contact_value_masked: false,
+            contact_point_value: "nested-private@example.test"
+          }]
         };
       }
       return new Response(JSON.stringify({
@@ -317,6 +356,13 @@ test("고객 상세 어댑터는 연락처 원문을 거절하고 안전한 상�
       clientId: "client-allowed"
     });
     assert.equal(rejected.kind, "error");
+
+    unsafe = false;
+    unsafeNested = true;
+    const nestedRejected = await fetchAnalyticsClientOperationsDetail({
+      clientId: "client-allowed"
+    });
+    assert.equal(nestedRejected.kind, "error");
   } finally {
     globalThis.fetch = originalFetch;
   }

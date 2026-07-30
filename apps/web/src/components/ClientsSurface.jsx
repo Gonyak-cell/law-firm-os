@@ -5,6 +5,7 @@ import { ArrowRight, Link2, Plus, ShieldCheck, X } from "lucide-react";
 import heroClientArchitecture from "../assets/heroes/hero-client-architecture.jpg";
 import {
   createCrmAccount,
+  createClientGroup,
   createCrmActivity,
   createCrmContact,
   createCrmMergeProposal,
@@ -43,6 +44,7 @@ import {
   patchCrmContact,
   patchCrmProposal,
   recordIntakeConflictDecision,
+  reviewClientGroup,
   updateRecordActionField
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
@@ -62,6 +64,17 @@ import {
   buildClientDirectoryModel,
   clientDirectoryRecordId
 } from "./ClientDirectoryModel.js";
+import {
+  CLIENT_REGISTRATION_INITIAL_FORM,
+  clientRegistrationFingerprint,
+  hasReviewCandidates,
+  normalizeClientRegistrationForm,
+  registrationResultUiState,
+  reviewAllowsCreate,
+  reviewMatchesForm,
+  safeReasonLabel,
+  validateClientRegistrationForm
+} from "./ClientRegistrationModel.js";
 
 const CLIENT_SECTIONS = new Set([
   "clients-home",
@@ -754,20 +767,338 @@ function ClientDashboardPanel({ result, onNavigate }) {
   );
 }
 
-function ClientNewCustomersPanel({ result }) {
-  const state = renderLiveState(result, "신규 고객");
-  if (state) return state;
-  const accounts = resultItems(result).slice().sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left));
+function ClientRegistrationOutcome({ result, phase }) {
+  if (!result || result.kind === "data" && result.outcome === "passed") return null;
+  const uiState = registrationResultUiState(result);
+  if (uiState === "denied") {
+    return (
+      <div className="live-data-state live-data-denied" role="status" data-client-registration-state="denied">
+        <strong>{phase === "create" ? "고객 등록 권한이 없습니다." : "중복 확인 권한이 없습니다."}</strong>
+        담당자에게 고객 등록 권한을 요청해 주세요.
+      </div>
+    );
+  }
+  if (uiState === "review_required") {
+    return (
+      <div className="live-data-state live-data-review" role="status" data-client-registration-state="review_required">
+        <strong>담당자 검토가 필요합니다.</strong>
+        중복 확인 결과를 바로 등록할 수 없습니다.
+      </div>
+    );
+  }
+  if (uiState === "error") {
+    return (
+      <div className="live-data-state live-data-error" role="status" data-client-registration-state="error">
+        <strong>{phase === "create" ? "고객을 등록하지 못했습니다." : "중복 여부를 확인하지 못했습니다."}</strong>
+        잠시 후 다시 시도해 주세요.
+      </div>
+    );
+  }
+  return null;
+}
+
+function ClientNewCustomersPanel({ ctx = "allow", onCreated = () => {} }) {
+  const [form, setForm] = useState(() => ({ ...CLIENT_REGISTRATION_INITIAL_FORM }));
+  const [review, setReview] = useState(null);
+  const [createIdempotencyKey, setCreateIdempotencyKey] = useState("");
+  const [createResult, setCreateResult] = useState(null);
+  const [reviewPending, setReviewPending] = useState(false);
+  const [createPending, setCreatePending] = useState(false);
+  const [distinctConfirmed, setDistinctConfirmed] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const normalizedForm = normalizeClientRegistrationForm(form);
+  const reviewCurrent = reviewMatchesForm(review, normalizedForm);
+  const candidates = reviewCurrent ? (review?.item?.candidates ?? []) : [];
+  const createAllowed = reviewAllowsCreate(review, normalizedForm, distinctConfirmed) === true;
+  const reviewUiState = registrationResultUiState(review);
+
+  function nextCreateIdempotencyKey() {
+    return `ui:client-group:create:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function updateField(field, value) {
+    const nextForm = normalizeClientRegistrationForm({ ...form, [field]: value });
+    setForm(nextForm);
+    setReview(null);
+    setCreateIdempotencyKey("");
+    setCreateResult(null);
+    setDistinctConfirmed(false);
+    setValidationErrors({});
+  }
+
+  function handleTypeChange(clientType) {
+    updateField("client_type", clientType);
+  }
+
+  async function handleReview(event) {
+    event.preventDefault();
+    const validation = validateClientRegistrationForm(normalizedForm);
+    setValidationErrors(validation.errors);
+    if (!validation.valid) return;
+    const fingerprint = clientRegistrationFingerprint(validation.form);
+    const idempotencyKey = `ui:client-group:review:${Date.now()}`;
+    setReviewPending(true);
+    setReview(null);
+    setCreateIdempotencyKey("");
+    setCreateResult(null);
+    setDistinctConfirmed(false);
+    const next = await reviewClientGroup({
+      client: validation.form,
+      idempotencyKey,
+      ctx
+    });
+    setReview({ ...next, fingerprint });
+    setCreateIdempotencyKey(next.kind === "data" && next.item?.review_digest ? nextCreateIdempotencyKey() : "");
+    setReviewPending(false);
+  }
+
+  async function handleCreate(event) {
+    event.preventDefault();
+    if (!createAllowed || createPending) return;
+    setCreatePending(true);
+    setCreateResult(null);
+    const idempotencyKey = createIdempotencyKey || nextCreateIdempotencyKey();
+    if (!createIdempotencyKey) setCreateIdempotencyKey(idempotencyKey);
+    const next = await createClientGroup({
+      client: normalizedForm,
+      reviewDigest: review.item.review_digest,
+      confirmDistinctClient: distinctConfirmed,
+      idempotencyKey,
+      ctx
+    });
+    setCreateResult(next);
+    setCreatePending(false);
+    if (next.kind === "data" && next.item?.client_group_id) {
+      window.setTimeout(() => onCreated(next.item), 260);
+    }
+  }
+
   return (
-    <DataTable
-      columns={["고객", "상태", "담당", "등록일"]}
-      rows={accounts.map((item, index) => [
-        clientDashboardRecordLabel(item.display_name, item.account_id, `고객 ${index + 1}`),
-        clientDashboardCategoryLabel(item.account_type ?? item.status, "고객"),
-        clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정"),
-        clientDashboardDateLabel(item.created_at ?? item.updated_at)
-      ])}
-    />
+    <div className="client-registration-surface" data-client-registration="true">
+      <div className="client-registration-intro">
+        <div>
+          <span className="client-registration-eyebrow">고객 기본정보</span>
+          <h2>신규 고객 등록</h2>
+          <p>고객 정보를 입력한 뒤 중복 여부를 확인하고 등록합니다.</p>
+        </div>
+        <span className="client-registration-step" aria-label="등록 단계">1 / 2</span>
+      </div>
+
+      <form className="client-registration-form" onSubmit={handleReview} noValidate>
+        <fieldset className="client-registration-type-group">
+          <legend>고객 유형</legend>
+          <div className="client-registration-type-toggle" role="group" aria-label="고객 유형 선택">
+            <button
+              type="button"
+              className={normalizedForm.client_type === "person" ? "secondary-button active" : "secondary-button"}
+              aria-pressed={normalizedForm.client_type === "person"}
+              onClick={() => handleTypeChange("person")}
+            >
+              개인
+            </button>
+            <button
+              type="button"
+              className={normalizedForm.client_type === "organization" ? "secondary-button active" : "secondary-button"}
+              aria-pressed={normalizedForm.client_type === "organization"}
+              onClick={() => handleTypeChange("organization")}
+            >
+              법인·단체
+            </button>
+          </div>
+        </fieldset>
+
+        <label className="client-registration-field" htmlFor="client-registration-display-name">
+          <span>고객명 <em>필수</em></span>
+          <input
+            id="client-registration-display-name"
+            name="display_name"
+            value={normalizedForm.display_name}
+            onChange={(event) => updateField("display_name", event.target.value)}
+            aria-invalid={Boolean(validationErrors.display_name)}
+            aria-describedby={validationErrors.display_name ? "client-registration-display-name-error" : undefined}
+            autoComplete="organization"
+            required
+          />
+          {validationErrors.display_name && (
+            <small id="client-registration-display-name-error" className="client-registration-field-error">
+              {validationErrors.display_name}
+            </small>
+          )}
+        </label>
+
+        {normalizedForm.client_type === "organization" ? (
+          <div className="client-registration-field-grid">
+            <label className="client-registration-field" htmlFor="client-registration-legal-form">
+              <span>법인·단체 형태 <em>필수</em></span>
+              <select
+                id="client-registration-legal-form"
+                name="legal_form"
+                value={normalizedForm.legal_form}
+                onChange={(event) => updateField("legal_form", event.target.value)}
+                aria-invalid={Boolean(validationErrors.legal_form)}
+                required
+              >
+                <option value="">선택해 주세요</option>
+                <option value="주식회사">주식회사</option>
+                <option value="유한회사">유한회사</option>
+                <option value="사단법인">사단법인</option>
+                <option value="재단법인">재단법인</option>
+                <option value="비영리단체">비영리단체</option>
+                <option value="기타">기타</option>
+              </select>
+              {validationErrors.legal_form && (
+                <small className="client-registration-field-error">{validationErrors.legal_form}</small>
+              )}
+            </label>
+            <label className="client-registration-field" htmlFor="client-registration-number">
+              <span>등록번호 <small>선택</small></span>
+              <input
+                id="client-registration-number"
+                name="registration_number"
+                value={normalizedForm.registration_number}
+                onChange={(event) => updateField("registration_number", event.target.value)}
+                inputMode="numeric"
+              />
+            </label>
+          </div>
+        ) : (
+          <div className="client-registration-field-grid">
+            <label className="client-registration-field" htmlFor="client-registration-email">
+              <span>이메일 <small>선택</small></span>
+              <input
+                id="client-registration-email"
+                name="email"
+                type="email"
+                value={normalizedForm.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                autoComplete="email"
+              />
+            </label>
+            <label className="client-registration-field" htmlFor="client-registration-phone">
+              <span>전화번호 <small>선택</small></span>
+              <input
+                id="client-registration-phone"
+                name="phone"
+                value={normalizedForm.phone}
+                onChange={(event) => updateField("phone", event.target.value)}
+                autoComplete="tel"
+              />
+            </label>
+          </div>
+        )}
+
+        <label className="client-registration-field" htmlFor="client-registration-depositor-alias">
+          <span>은행 입금자명 <small>선택</small></span>
+          <input
+            id="client-registration-depositor-alias"
+            name="depositor_alias"
+            value={normalizedForm.depositor_alias}
+            onChange={(event) => updateField("depositor_alias", event.target.value)}
+            aria-describedby="client-registration-depositor-hint"
+          />
+          <small id="client-registration-depositor-hint" className="client-registration-help">
+            통장·거래명세서에 표시되는 이름과 정확히 일치해야 합니다.
+          </small>
+        </label>
+
+        <div className="client-registration-actions">
+          <div>
+            {reviewPending && (
+              <span className="client-registration-progress" role="status" data-client-registration-state="review_pending">
+                중복 여부를 확인하는 중입니다.
+              </span>
+            )}
+            {!reviewPending && reviewUiState === "passed" && (
+              <span className="client-registration-progress" role="status" data-client-registration-state="reviewed">
+                중복 확인이 완료되었습니다.
+              </span>
+            )}
+          </div>
+          <button className="primary-button" type="submit" disabled={reviewPending || createPending}>
+            중복 확인
+          </button>
+        </div>
+      </form>
+
+      <ClientRegistrationOutcome result={review} phase="review" />
+
+      {reviewCurrent && review?.item && (
+        <div className="client-registration-review" data-client-registration-review="true">
+          <div className="client-registration-review-heading">
+            <div>
+              <strong>중복 확인 결과</strong>
+              <span>현재 입력 기준으로 확인한 결과입니다. 입력을 바꾸면 다시 확인해야 합니다.</span>
+            </div>
+            <span className="client-registration-step">2 / 2</span>
+          </div>
+
+          {hasReviewCandidates(review) && (
+            <div className="client-registration-candidates" data-client-registration-candidates="true">
+              <strong>비슷한 고객이 있습니다.</strong>
+              <ul>
+                {candidates.map((candidate) => (
+                  <li key={candidate.client_group_id}>
+                    <div>
+                      <strong>{candidate.display_name}</strong>
+                      <span>{candidate.client_type === "organization" ? "법인·단체" : "개인"}</span>
+                    </div>
+                    {candidate.reasons.length > 0 && (
+                      <ul>
+                        {candidate.reasons.map((reason) => <li key={reason}>{safeReasonLabel(reason)}</li>)}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {review.item.has_restricted_candidates && (
+            <div className="client-registration-restricted" role="status" data-client-registration-restricted="true">
+              <ShieldCheck size={15} />
+              <span>접근이 제한된 후보가 포함되어 있어 새 고객으로 등록할 수 없습니다. 담당자 검토가 필요합니다.</span>
+            </div>
+          )}
+
+          {!review.item.can_create && !review.item.has_restricted_candidates && (
+            <div className="client-registration-restricted" role="status" data-client-registration-blocked="true">
+              <ShieldCheck size={15} />
+              <span>현재 확인 결과로는 등록할 수 없습니다. 중복 후보를 먼저 검토해 주세요.</span>
+            </div>
+          )}
+
+          {hasReviewCandidates(review) && review.item.can_create && (
+            <label className="client-registration-confirmation">
+              <input
+                type="checkbox"
+                checked={distinctConfirmed}
+                onChange={(event) => setDistinctConfirmed(event.target.checked)}
+              />
+              <span>별도 고객이 맞습니다</span>
+            </label>
+          )}
+
+          <div className="client-registration-create-actions">
+            <div>
+              {createPending && <span className="client-registration-progress" role="status" data-client-registration-state="create_pending">고객을 등록하는 중입니다.</span>}
+              {!createPending && createResult?.kind === "data" && createResult.outcome === "passed" && (
+                <span className="client-registration-progress" role="status" data-client-registration-state="success">고객이 등록되었습니다.</span>
+              )}
+            </div>
+            <button
+              className="primary-button"
+              type="button"
+              disabled={!createAllowed || createPending}
+              onClick={handleCreate}
+              data-client-registration-create="true"
+            >
+              고객 등록
+            </button>
+          </div>
+          <ClientRegistrationOutcome result={createResult} phase="create" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1142,6 +1473,19 @@ function clientDetailContactType(value) {
   return "연락처";
 }
 
+function clientDetailContactPoints(contact) {
+  if (Array.isArray(contact?.contactPoints) && contact.contactPoints.length > 0) {
+    return contact.contactPoints;
+  }
+  return [{
+    contactType: contact?.contactType ?? null,
+    contactValue: contact?.contactValue ?? null,
+    contactValueIncluded: contact?.contactValueIncluded === true,
+    contactValueMasked: contact?.contactValueMasked === true,
+    status: contact?.status ?? null
+  }];
+}
+
 function clientDetailInquirySource(value) {
   if (value === "outlook_addin" || value === "outlook") return "Outlook";
   if (value === "manual") return "직접 등록";
@@ -1263,14 +1607,19 @@ function ClientRecordPanel({
           <ClientDetailSourceState state={model.contacts.state} noun="연락처" hasItems={contacts.length > 0} />
           {contacts.length > 0 && (
             <div className="client-detail-record-list" data-client-detail-contact-list="true">
-              {contacts.map((contact, index) => (
-                <div className="client-detail-record" key={contact.contactId ?? `${contact.displayName}-${index}`}>
-                  <div>
-                    <strong>{contact.displayName}</strong>
-                    <span>{clientDetailContactType(contact.contactType)}</span>
+              {contacts.flatMap((contact, contactIndex) => (
+                clientDetailContactPoints(contact).map((point, pointIndex) => (
+                  <div
+                    className="client-detail-record"
+                    key={`${contact.contactId ?? contact.displayName ?? contactIndex}:${point.contactType ?? "contact"}:${pointIndex}`}
+                  >
+                    <div>
+                      <strong>{contact.displayName}</strong>
+                      <span>{clientDetailContactType(point.contactType)}</span>
+                    </div>
+                    <span>{point.contactValueIncluded ? point.contactValue : "보호됨"}</span>
                   </div>
-                  <span>{contact.contactValueIncluded ? contact.contactValue : "보호됨"}</span>
-                </div>
+                ))
               ))}
             </div>
           )}
@@ -3100,6 +3449,25 @@ export function ClientsSurface({
     });
   }
 
+  function handleClientGroupCreated(item) {
+    const clientGroupId = String(item?.client_group_id ?? "").trim();
+    const displayName = String(item?.display_name ?? "").trim();
+    if (!clientGroupId || !displayName) return;
+    const clientItem = {
+      client_group_id: clientGroupId,
+      display_name: displayName,
+      client_type: item.client_type,
+      status: "active",
+      primary_record_present: true,
+      member_count: 1
+    };
+    setClientsResult((current) => upsertResultItem(current, clientItem, "client_group_id"));
+    onNavigate("clients", "clients-list", {
+      recordId: clientGroupId,
+      tab: "overview"
+    });
+  }
+
   function handleClientDetailTabSelect(tab) {
     if (!selectedClientId) return;
     onNavigate("clients", "clients-list", {
@@ -3213,7 +3581,7 @@ export function ClientsSurface({
         )}
         {currentSection === "client-new" && (
           <Panel id="client-new" className="record-list-panel" title="신규 고객" meta="" hideHeader>
-            <ClientNewCustomersPanel result={accountsResult} />
+            <ClientNewCustomersPanel ctx={liveCtx} onCreated={handleClientGroupCreated} />
           </Panel>
         )}
         {currentSection === "client-leads" && (

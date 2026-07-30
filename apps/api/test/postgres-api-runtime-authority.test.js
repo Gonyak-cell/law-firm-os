@@ -19,7 +19,11 @@ import { handleCrmIntakeApiRequest } from "../src/crm-intake-runtime-context.js"
 import { handleFinanceApiRequest } from "../src/finance-runtime-context.js";
 import { handleHomeDashboardApiRequest } from "../src/home-dashboard-runtime-context.js";
 import { handleHrxApiRequest } from "../src/hrx-runtime-context.js";
-import { handleRecordsSearch } from "../src/master-data-context.js";
+import {
+  handleClientGroupRegistrationCreate,
+  handleClientGroupRegistrationReview,
+  handleRecordsSearch,
+} from "../src/master-data-context.js";
 import { handlePortalApiRequest } from "../src/portal-runtime-context.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
@@ -98,6 +102,197 @@ test("PostgreSQL API authority retries bounded read baseline conflicts but never
     },
   }), /mutation conflict/u);
   assert.equal(mutationAttempts, 1);
+});
+
+test("PostgreSQL API authority commits canonical client registration, idempotency, audit, and outbox", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-client-registration-test",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+  const context = Object.freeze({
+    principal: Object.freeze({
+      tenant_id: TENANT_A,
+      user_id: "user_postgres_client_registration",
+      role_ids: Object.freeze(["client_operations"]),
+      scopes: Object.freeze([
+        "master_data.client.write",
+        "analytics.client.read",
+      ]),
+    }),
+    rules: Object.freeze([
+      {
+        id: "allow-postgres-client-registration",
+        effect: "allow",
+        action_prefix: "master_data:client:",
+      },
+      {
+        id: "allow-postgres-client-read",
+        effect: "allow",
+        action: "analytics:client:read",
+      },
+    ]),
+    object_acl: Object.freeze([]),
+  });
+  const client = Object.freeze({
+    client_type: "organization",
+    display_name: "PostgreSQL 신규 고객",
+    legal_form: "주식회사",
+    registration_number: "PG-CLIENT-2026-001",
+    depositor_alias: "PG 신규고객 입금",
+  });
+  const commonBody = Object.freeze({
+    tenant_id: TENANT_A,
+    permission_ref: "perm-postgres-client-registration",
+    audit_hint_ref: "audit-postgres-client-registration",
+    idempotency_key: "postgres-client-registration-create-001",
+    client,
+  });
+
+  const reviewed = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/master-data/client-groups/review",
+      actor_id: context.principal.user_id,
+    },
+    command(runtimes) {
+      return handleClientGroupRegistrationReview({
+        body: commonBody,
+        context,
+        requestId: "request-postgres-client-registration-review",
+        runtime: runtimes.masterDataRuntime,
+      });
+    },
+  });
+  assert.equal(reviewed.status, 200, JSON.stringify(reviewed.body));
+  assert.equal(reviewed.body.outcome, "passed");
+  assert.equal(reviewed.body.item.can_create, true);
+
+  const createBody = Object.freeze({
+    ...commonBody,
+    review_digest: reviewed.body.item.review_digest,
+    confirm_distinct_client: false,
+  });
+  const created = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/master-data/client-groups",
+      idempotency_key: commonBody.idempotency_key,
+      actor_id: context.principal.user_id,
+    },
+    command(runtimes) {
+      return handleClientGroupRegistrationCreate({
+        body: createBody,
+        context,
+        requestId: "request-postgres-client-registration-create",
+        runtime: runtimes.masterDataRuntime,
+      });
+    },
+  });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.replayed, false);
+  const clientGroupId = created.body.item.client_group_id;
+  const storedGroup = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "master-data",
+    record_type: "ClientGroup",
+    record_id: clientGroupId,
+  });
+  assert.equal(storedGroup.payload.display_name, client.display_name);
+  assert.equal(storedGroup.payload.legal_form, client.legal_form);
+  assert.equal(storedGroup.payload.permission_ref, commonBody.permission_ref);
+  const storedAliasRecords = await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "master-data",
+    record_type: "PartyAlias",
+  });
+  assert.equal(storedAliasRecords.length, 1);
+  assert.equal(
+    storedAliasRecords[0].payload.alias_type,
+    "bank_depositor_name",
+  );
+  const storedIdentifierRecords = await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "master-data",
+    record_type: "PartyIdentifier",
+  });
+  assert.equal(storedIdentifierRecords.length, 1);
+  assert.equal(
+    storedIdentifierRecords[0].payload.identifier_type,
+    "business_number",
+  );
+  assert.equal(
+    (await ledger.listIdempotency({
+      tenant_id: TENANT_A,
+      domain_id: "master-data",
+    })).length,
+    1,
+  );
+  assert.equal(
+    (await ledger.listAudit({
+      tenant_id: TENANT_A,
+      domain_id: "master-data",
+    })).length,
+    1,
+  );
+  assert.equal(
+    (await ledger.listOutbox({
+      tenant_id: TENANT_A,
+      domain_id: "master-data",
+    })).length,
+    1,
+  );
+
+  const replayed = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/master-data/client-groups",
+      idempotency_key: commonBody.idempotency_key,
+      actor_id: context.principal.user_id,
+    },
+    command(runtimes) {
+      return handleClientGroupRegistrationCreate({
+        body: createBody,
+        context,
+        requestId: "request-postgres-client-registration-replay",
+        runtime: runtimes.masterDataRuntime,
+      });
+    },
+  });
+  assert.equal(replayed.status, 200, JSON.stringify(replayed.body));
+  assert.equal(replayed.body.replayed, true);
+  assert.equal(replayed.body.item.client_group_id, clientGroupId);
+  assert.equal(
+    (await ledger.list({
+      tenant_id: TENANT_A,
+      domain_id: "master-data",
+      record_type: "ClientGroup",
+    })).length,
+    1,
+  );
+  assert.equal(
+    (await ledger.listAudit({
+      tenant_id: TENANT_A,
+      domain_id: "master-data",
+    })).length,
+    1,
+  );
 });
 
 test("PostgreSQL API authority persists consultation schedule and completion fields with CRM versions", async (t) => {

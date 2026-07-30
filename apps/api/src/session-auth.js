@@ -231,6 +231,7 @@ function permissionRulesFromScopes(scopes = []) {
     ],
     ["outlook.connection.manage", ["outlook:connection:"]],
     ["outlook.inquiry.capture", ["outlook:inquiry:capture"]],
+    ["master_data.client.write", ["master_data:client:"]],
     ["finance.fee.write", ["finance:fee_commitment:", "finance:deposit_allocation:"]],
     ["analytics.client.export", ["analytics:client:export"]],
   ]);

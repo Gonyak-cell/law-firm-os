@@ -19,6 +19,10 @@ import {
   createFinanceRepository,
 } from "../../billing/src/finance-repository.js";
 import {
+  createClientRegistrationService,
+  createMasterDataRepository,
+} from "../../master-data/src/index.js";
+import {
   createClientOperationsReadModel,
   resolveClientOperationsAccessScope,
 } from "../src/client-operations-read-model.js";
@@ -2331,6 +2335,16 @@ function clientDirectoryMasterRecords() {
       status: "active",
     },
     {
+      model_type: "ContactPoint",
+      tenant_id: TENANT,
+      contact_point_id: "contact_point_allowed_phone",
+      owner_entity_id: "entity_allowed_person",
+      contact_type: "phone",
+      value: "010-0000-0000",
+      is_primary: true,
+      status: "active",
+    },
+    {
       model_type: "Person",
       tenant_id: TENANT,
       person_id: "person_allowed_adverse",
@@ -2487,6 +2501,27 @@ test("CL-P5-W02-T01 고객 상세는 명시 관계만 사용하고 연락처 원
     true,
   );
   assert.deepEqual(
+    result.item.sections.contacts.data.items[0].contact_points.map(
+      ({ contact_type, contact_value_masked, contact_point_value_included }) => ({
+        contact_type,
+        contact_value_masked,
+        contact_point_value_included,
+      }),
+    ),
+    [
+      {
+        contact_type: "email",
+        contact_value_masked: true,
+        contact_point_value_included: false,
+      },
+      {
+        contact_type: "phone",
+        contact_value_masked: true,
+        contact_point_value_included: false,
+      },
+    ],
+  );
+  assert.deepEqual(
     result.item.sections.matters.data.items.map(
       ({ matter_id }) => matter_id,
     ),
@@ -2513,6 +2548,78 @@ test("CL-P5-W02-T01 고객 상세는 명시 관계만 사용하고 연락처 원
   }
   assert.equal(result.item.count_leak_prevented, true);
   assert.equal(result.item.raw_contact_values_included, false);
+});
+
+test("CL-P5-W02-T02 개인 고객 등록 연락처는 즉시 고객 상세의 보호된 연락처로 조회된다", () => {
+  const masterDataRepository = createMasterDataRepository();
+  const registrationService = createClientRegistrationService({
+    repository: masterDataRepository,
+    tenant_id: TENANT,
+    actor_id: STAFF,
+  });
+  const input = {
+    client_type: "person",
+    display_name: "등록 직후 연락처 고객",
+    email: "new-client@example.test",
+    phone: "010-1234-9876",
+  };
+  const review = registrationService.review(input);
+  const created = registrationService.create({
+    ...input,
+    review_digest: review.review_digest,
+    idempotency_key: "client-detail-contact-registration",
+  });
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository,
+    crmRepository: repository([]),
+    matterRepository: repository([]),
+  });
+  const result = readModel.readClientDetail({
+    tenant_id: TENANT,
+    permission_context: clientDirectoryPermissionContext(),
+    client_group_id: created.client_group_id,
+  });
+
+  assert.equal(result.item.sections.contacts.status, "available");
+  assert.deepEqual(
+    result.item.sections.contacts.data.items.map((contact) => ({
+      display_name: contact.display_name,
+      primary_contact_type: contact.primary_contact_type,
+      contact_value_masked: contact.contact_value_masked,
+      contact_point_value_included:
+        contact.contact_point_value_included,
+    })),
+    [{
+      display_name: input.display_name,
+      primary_contact_type: "email",
+      contact_value_masked: true,
+      contact_point_value_included: false,
+    }],
+  );
+  assert.deepEqual(
+    result.item.sections.contacts.data.items[0].contact_points.map(
+      ({ contact_type, contact_value_masked, contact_point_value_included }) => ({
+        contact_type,
+        contact_value_masked,
+        contact_point_value_included,
+      }),
+    ),
+    [
+      {
+        contact_type: "email",
+        contact_value_masked: true,
+        contact_point_value_included: false,
+      },
+      {
+        contact_type: "phone",
+        contact_value_masked: true,
+        contact_point_value_included: false,
+      },
+    ],
+  );
+  const serialized = JSON.stringify(result.item);
+  assert.equal(serialized.includes(input.email), false);
+  assert.equal(serialized.includes(input.phone), false);
 });
 
 test("CL-P5-W02-T01 개별 Matter·문의 권한 누락은 0건이 아닌 일부 조회로 표시한다", () => {

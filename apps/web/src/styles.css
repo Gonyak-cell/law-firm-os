@@ -9692,6 +9692,314 @@ html[data-theme="dark"] .public-preview {
   gap: 14px;
 }
 
+.client-registration-surface {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  padding: 2px;
+}
+
+.client-registration-intro,
+.client-registration-review-heading,
+.client-registration-actions,
+.client-registration-create-actions {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.client-registration-intro > div,
+.client-registration-review-heading > div,
+.client-registration-actions > div,
+.client-registration-create-actions > div {
+  min-width: 0;
+}
+
+.client-registration-eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-registration-intro h2 {
+  margin: 0;
+  color: var(--am-text);
+  font-size: 20px;
+}
+
+.client-registration-intro p,
+.client-registration-review-heading span {
+  margin: 5px 0 0;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.client-registration-step {
+  flex: 0 0 auto;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  white-space: nowrap;
+}
+
+.client-registration-form,
+.client-registration-review {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface);
+}
+
+.client-registration-type-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.client-registration-type-group legend,
+.client-registration-field > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-registration-type-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.client-registration-type-toggle button {
+  min-width: 96px;
+}
+
+.client-registration-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.client-registration-field {
+  display: grid;
+  min-width: 0;
+  gap: 0;
+}
+
+.client-registration-field > span em {
+  margin-left: 4px;
+  color: var(--am-blue);
+  font-size: var(--am-font-size-meta);
+  font-style: normal;
+}
+
+.client-registration-field > span small {
+  margin-left: 4px;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  font-weight: 400;
+}
+
+.client-registration-field input,
+.client-registration-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--am-control-height);
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+}
+
+.client-registration-field input:focus,
+.client-registration-field select:focus {
+  outline: 2px solid color-mix(in srgb, var(--am-blue) 26%, transparent);
+  outline-offset: 1px;
+}
+
+.client-registration-field input[aria-invalid="true"],
+.client-registration-field select[aria-invalid="true"] {
+  border-color: var(--am-danger);
+}
+
+.client-registration-help,
+.client-registration-field-error {
+  display: block;
+  margin-top: 5px;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  line-height: 1.45;
+}
+
+.client-registration-field-error {
+  color: var(--am-danger);
+}
+
+.client-registration-actions,
+.client-registration-create-actions {
+  align-items: center;
+  padding-top: 2px;
+}
+
+.client-registration-progress {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.client-registration-review {
+  gap: 12px;
+  background: var(--am-surface-subtle);
+}
+
+.client-registration-review-heading strong {
+  display: block;
+  color: var(--am-text);
+  font-size: 14px;
+}
+
+.client-registration-candidates {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.client-registration-candidates > strong {
+  color: var(--am-text);
+  font-size: 13px;
+}
+
+.client-registration-candidates ul {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-registration-candidates > ul > li {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.client-registration-candidates > ul > li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.client-registration-candidates li > div {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.client-registration-candidates li > div strong {
+  min-width: 0;
+  color: var(--am-text);
+  overflow-wrap: anywhere;
+}
+
+.client-registration-candidates li > div span,
+.client-registration-candidates li li {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.client-registration-candidates li li {
+  padding-left: 12px;
+  list-style: disc;
+  list-style-position: inside;
+}
+
+.client-registration-restricted {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 9px 10px;
+  border: 1px solid #e4cda4;
+  border-radius: var(--am-radius-sm);
+  background: #fdf9f0;
+  color: #7d5a23;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.client-registration-restricted svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.client-registration-confirmation {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: var(--am-text);
+  font-size: 13px;
+}
+
+.client-registration-confirmation input {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--am-blue);
+}
+
+@media (max-width: 520px) {
+  .client-registration-surface {
+    gap: 14px;
+  }
+
+  .client-registration-form,
+  .client-registration-review {
+    padding: 12px;
+  }
+
+  .client-registration-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .client-registration-actions,
+  .client-registration-create-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .client-registration-actions > div,
+  .client-registration-create-actions > div,
+  .client-registration-actions button,
+  .client-registration-create-actions button {
+    width: 100%;
+  }
+
+  .client-registration-actions button,
+  .client-registration-create-actions button {
+    box-sizing: border-box;
+  }
+}
+
 .clients-runtime-grid,
 .clients-live-stack {
   display: grid;

@@ -101,14 +101,18 @@ export function createCrmCanonicalWriteService({ repository } = {}) {
         party_id: party.party_id,
         entity_id: entity.entity_id,
         display_name: displayName,
+        legal_form: input.legal_form ?? null,
         registration_number: input.registration_number ?? null,
       });
       const clientGroup = createClientGroupService({ repository }).create({
         ...base,
         client_group_id: ids.client_group_id,
-        display_name: `${displayName} group`,
+        display_name: input.client_group_display_name ?? `${displayName} group`,
+        client_type: input.client_group_client_type ?? null,
+        legal_form: input.legal_form ?? null,
         member_entity_ids: [entity.entity_id],
         member_party_ids: [party.party_id],
+        primary_entity_id: entity.entity_id,
         primary_party_id: party.party_id,
       });
       return Object.freeze({
@@ -154,7 +158,9 @@ export function createCrmCanonicalWriteService({ repository } = {}) {
         party_id: party.party_id,
         entity_id: entity.entity_id,
         display_name: displayName,
+        legal_form: input.legal_form ?? null,
         email: input.email ?? null,
+        phone: input.phone ?? null,
       });
       const contactPointValue = String(input.contact_point_value ?? input.primary_contact_fingerprint ?? "").trim();
       const contactPoint = contactPointValue

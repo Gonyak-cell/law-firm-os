@@ -34,6 +34,8 @@ import {
   MASTER_DATA_RUNTIME_SEED,
   MASTER_DATA_BOUNDED_CONTEXT,
   createMasterDataRuntimeContext,
+  handleClientGroupRegistrationCreate,
+  handleClientGroupRegistrationReview,
   handleClientGroupResolution,
   handleRecordsSearch,
   handleRelationshipLookup,
@@ -1211,7 +1213,16 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
-  const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
+  const isClientGroupRegistrationReviewPath =
+    pathname === "/master-data/client-groups/review";
+  const isClientGroupRegistrationCreatePath =
+    pathname === "/master-data/client-groups";
+  const isClientGroupRegistrationPath =
+    isClientGroupRegistrationReviewPath
+    || isClientGroupRegistrationCreatePath;
+  const clientGroupMatch = isClientGroupRegistrationReviewPath
+    ? null
+    : pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
   const isAuthPath = pathname.startsWith("/api/auth");
   const isHrxPath = pathname.startsWith("/api/hrx");
   const isProfilePath = pathname.startsWith("/api/profile");
@@ -1237,6 +1248,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     isAuthPath ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
+    isClientGroupRegistrationPath ||
     clientGroupMatch !== null ||
     isHrxPath ||
     isProfilePath ||
@@ -1261,7 +1273,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     sendJson(req, res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (isClientGroupRegistrationPath && req.method !== "POST") {
+    sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
+    return;
+  }
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && !isClientGroupRegistrationPath && req.method !== "GET") {
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -1729,6 +1745,22 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     result = handleRecordsSearch({ query, context, requestId, runtime: masterDataRuntime });
   } else if (pathname === "/master-data/relationships") {
     result = handleRelationshipLookup({ query, context, requestId, runtime: masterDataRuntime });
+  } else if (isClientGroupRegistrationReviewPath) {
+    const body = await readRequestBody(req);
+    result = handleClientGroupRegistrationReview({
+      body,
+      context,
+      requestId,
+      runtime: masterDataRuntime,
+    });
+  } else if (isClientGroupRegistrationCreatePath) {
+    const body = await readRequestBody(req);
+    result = handleClientGroupRegistrationCreate({
+      body,
+      context,
+      requestId,
+      runtime: masterDataRuntime,
+    });
   } else {
     result = handleClientGroupResolution({
       clientGroupId: decodeURIComponent(clientGroupMatch[1]),

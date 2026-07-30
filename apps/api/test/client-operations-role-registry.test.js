@@ -70,12 +70,14 @@ test("CL-P0-W01-T04 maps the five Client capability profiles without expanding b
     ...base,
     "analytics.client.export",
     "finance.fee.write",
+    "master_data.client.write",
   ].sort());
   assert.deepEqual(clientScopes("bj.park@amic.kr"), [
     ...base,
     "analytics.client.export",
     "crm.engagement.decide",
     "finance.fee.write",
+    "master_data.client.write",
   ].sort());
   assert.deepEqual(clientScopes("ytkim@amic.kr"), [...LAWOS_CLIENT_SCOPES].sort());
 
@@ -101,6 +103,7 @@ test("CL-P0-W01-T04 staff signed session can capture and read inquiries but cann
   assert.equal(decision(context, "outlook:inquiry:capture"), "allow");
   assert.equal(decision(context, "analytics:client:read"), "allow");
   assert.equal(decision(context, "crm:engagement:decide"), "deny");
+  assert.equal(decision(context, "master_data:client:create"), "deny");
   assert.equal(decision(context, "finance:fee_commitment:update"), "deny");
   assert.equal(decision(context, "analytics:client:export"), "deny");
 });
@@ -108,12 +111,22 @@ test("CL-P0-W01-T04 staff signed session can capture and read inquiries but cann
 test("CL-P0-W01-T04 attorney and operations signed sessions have distinct decision and finance authority", async () => {
   const attorney = await signedContext("jh731@amic.kr");
   assert.equal(decision(attorney, "crm:engagement:decide"), "allow");
+  assert.equal(decision(attorney, "master_data:client:create"), "deny");
   assert.equal(decision(attorney, "finance:fee_commitment:update"), "deny");
   assert.equal(decision(attorney, "analytics:client:export"), "deny");
 
   const operations = await signedContext("wsjo@amic.kr");
   assert.equal(decision(operations, "crm:engagement:decide"), "deny");
+  assert.equal(decision(operations, "master_data:client:create"), "allow");
   assert.equal(decision(operations, "finance:fee_commitment:update"), "allow");
   assert.equal(decision(operations, "finance:deposit_allocation:reallocate"), "allow");
   assert.equal(decision(operations, "analytics:client:export"), "allow");
+
+  const partner = await signedContext("bj.park@amic.kr");
+  assert.equal(decision(partner, "master_data:client:review"), "allow");
+  assert.equal(decision(partner, "master_data:client:create"), "allow");
+
+  const administrator = await signedContext("ytkim@amic.kr");
+  assert.equal(decision(administrator, "master_data:client:review"), "allow");
+  assert.equal(decision(administrator, "master_data:client:create"), "allow");
 });

@@ -2216,22 +2216,30 @@ function clientDetailContacts({
     "ContactPoint",
     "master-data.ContactPoint",
   );
-  const primaryContactByEntity = new Map();
+  const contactPointsByEntity = new Map();
   for (const point of contactPoints) {
-    if (
-      !relatedEntityIds.has(point.owner_entity_id)
-      || point.is_primary !== true
-      || primaryContactByEntity.has(point.owner_entity_id)
-    ) {
-      continue;
-    }
-    primaryContactByEntity.set(point.owner_entity_id, point);
+    if (!relatedEntityIds.has(point.owner_entity_id)) continue;
+    const points = contactPointsByEntity.get(point.owner_entity_id) ?? [];
+    points.push(point);
+    contactPointsByEntity.set(point.owner_entity_id, points);
   }
   return Object.freeze(
     people
       .map((person) => {
-        const contactPoint =
-          primaryContactByEntity.get(person.entity_id) ?? null;
+        const personContactPoints = (
+          contactPointsByEntity.get(person.entity_id) ?? []
+        ).slice().sort((left, right) => (
+          Number(right.is_primary === true) - Number(left.is_primary === true)
+          || String(left.contact_type ?? "").localeCompare(
+            String(right.contact_type ?? ""),
+            "en",
+          )
+          || String(left.contact_point_id ?? "").localeCompare(
+            String(right.contact_point_id ?? ""),
+            "en",
+          )
+        ));
+        const contactPoint = personContactPoints[0] ?? null;
         return Object.freeze({
           contact_id: person.person_id,
           display_name:
@@ -2245,6 +2253,18 @@ function clientDetailContacts({
               : null,
           contact_point_value_included: false,
           contact_value_masked: Boolean(contactPoint?.value),
+          contact_points: Object.freeze(personContactPoints.map((point) => (
+            Object.freeze({
+              contact_type:
+                typeof point.contact_type === "string"
+                  ? point.contact_type
+                  : null,
+              contact_point_value_included: false,
+              contact_value_masked: Boolean(point.value),
+              is_primary: point.is_primary === true,
+              status: point.status ?? "active",
+            })
+          ))),
           status: person.status ?? "active",
           production_ready_claim: false,
         });

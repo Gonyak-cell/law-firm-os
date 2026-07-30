@@ -256,6 +256,196 @@ test("client receipts require one exact normalized name or a saved alias", () =>
   assert.equal(preview.summary.review_count, 3);
 });
 
+test("only active bank depositor PartyAlias values auto-link client receipts", () => {
+  const clientRecords = [
+    {
+      model_type: "ClientGroup",
+      client_group_id: "client-party-alias",
+      primary_party_id: "party-party-alias",
+      display_name: "Party Alias Client",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-bank",
+      party_id: "party-party-alias",
+      alias_value: "Active Depositor",
+      alias_type: "bank_depositor_name",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-legal",
+      party_id: "party-party-alias",
+      alias_value: "Legal Alias",
+      alias_type: "legal_name",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-localized",
+      party_id: "party-party-alias",
+      alias_value: "Localized Alias",
+      alias_type: "localized_name",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-former",
+      party_id: "party-party-alias",
+      alias_value: "Former Alias",
+      alias_type: "former_name",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-search",
+      party_id: "party-party-alias",
+      alias_value: "Search Alias",
+      alias_type: "search_name",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-archived-bank",
+      party_id: "party-party-alias",
+      alias_value: "Archived Depositor",
+      alias_type: "bank_depositor_name",
+      status: "archived",
+    },
+    ...["draft", "review_required", "blocked"].map((status) => ({
+      model_type: "PartyAlias",
+      party_alias_id: `party-alias-${status}-bank`,
+      party_id: "party-party-alias",
+      alias_value: `${status} Depositor`,
+      alias_type: "bank_depositor_name",
+      status,
+    })),
+  ];
+  const transactions = [
+    ["bank_party_alias_exact", "Active Depositor"],
+    ["bank_party_alias_legal", "Legal Alias"],
+    ["bank_party_alias_localized", "Localized Alias"],
+    ["bank_party_alias_former", "Former Alias"],
+    ["bank_party_alias_search", "Search Alias"],
+    ["bank_party_alias_archived", "Archived Depositor"],
+    ...["draft", "review_required", "blocked"].map((status) => [
+      `bank_party_alias_${status}`,
+      `${status} Depositor`,
+    ]),
+  ].map(([id, counterparty]) => bankTransaction(id, {
+    tenant_id: TENANT,
+    direction: "inflow",
+    counterparty,
+  }));
+
+  const preview = previewBankTransactionClassifications({
+    transactions,
+    client_records: clientRecords,
+  });
+  const byId = new Map(preview.classifications.map((row) => [row.bank_transaction_id, row]));
+  assert.deepEqual(
+    {
+      client_group_id: byId.get("bank_party_alias_exact").client_group_id,
+      category: byId.get("bank_party_alias_exact").category,
+      rationale_code: byId.get("bank_party_alias_exact").rationale_code,
+      status: byId.get("bank_party_alias_exact").status,
+    },
+    {
+      client_group_id: "client-party-alias",
+      category: "client_receipt",
+      rationale_code: "client_saved_alias",
+      status: "confirmed",
+    },
+  );
+  for (const transactionId of [
+    "bank_party_alias_legal",
+    "bank_party_alias_localized",
+    "bank_party_alias_former",
+    "bank_party_alias_search",
+    "bank_party_alias_archived",
+    "bank_party_alias_draft",
+    "bank_party_alias_review_required",
+    "bank_party_alias_blocked",
+  ]) {
+    assert.deepEqual(
+      {
+        client_group_id: byId.get(transactionId).client_group_id,
+        category: byId.get(transactionId).category,
+        rationale_code: byId.get(transactionId).rationale_code,
+        status: byId.get(transactionId).status,
+        confidence: byId.get(transactionId).confidence,
+      },
+      {
+        client_group_id: null,
+        category: "other_inflow",
+        rationale_code: "no_registered_client_match",
+        status: "review_required",
+        confidence: "needs_review",
+      },
+    );
+  }
+});
+
+test("duplicate normalized bank depositor PartyAlias values remain review-required", () => {
+  const clientRecords = [
+    {
+      model_type: "ClientGroup",
+      client_group_id: "client-party-alias-one",
+      primary_party_id: "party-party-alias-one",
+      display_name: "First Depositor Client",
+      status: "active",
+    },
+    {
+      model_type: "ClientGroup",
+      client_group_id: "client-party-alias-two",
+      primary_party_id: "party-party-alias-two",
+      display_name: "Second Depositor Client",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-duplicate-one",
+      party_id: "party-party-alias-one",
+      alias_value: "Shared Depositor",
+      alias_type: "bank_depositor_name",
+      status: "active",
+    },
+    {
+      model_type: "PartyAlias",
+      party_alias_id: "party-alias-duplicate-two",
+      party_id: "party-party-alias-two",
+      alias_value: "shared-depositor",
+      alias_type: "bank_depositor_name",
+      status: "active",
+    },
+  ];
+  const preview = previewBankTransactionClassifications({
+    transactions: [bankTransaction("bank_party_alias_duplicate", {
+      tenant_id: TENANT,
+      direction: "inflow",
+      counterparty: "SHARED DEPOSITOR",
+    })],
+    client_records: clientRecords,
+  });
+  assert.deepEqual(
+    {
+      client_group_id: preview.classifications[0].client_group_id,
+      category: preview.classifications[0].category,
+      rationale_code: preview.classifications[0].rationale_code,
+      status: preview.classifications[0].status,
+      confidence: preview.classifications[0].confidence,
+    },
+    {
+      client_group_id: null,
+      category: "other_inflow",
+      rationale_code: "client_name_ambiguous",
+      status: "review_required",
+      confidence: "needs_review",
+    },
+  );
+});
+
 test("an exact client rule saved by manual review remains an approved depositor alias", () => {
   const preview = previewBankTransactionClassifications({
     transactions: [bankTransaction("bank_saved_rule", {

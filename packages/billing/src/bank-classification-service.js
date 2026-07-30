@@ -39,6 +39,7 @@ const CLIENT_SAVED_ALIAS_FIELDS = Object.freeze([
   "approved_bank_aliases",
   "bank_deposit_aliases",
 ]);
+const PARTY_ALIAS_BANK_DEPOSITOR_TYPE = "bank_depositor_name";
 const RULE_MATCH_FIELDS = new Set(["counterparty", "memo"]);
 const REFUND_TEXT_PATTERN = /매출취소|환급|환불|취소/iu;
 const PAYROLL_CATEGORIES = new Set(["partner", "advisor", "staff"]);
@@ -115,7 +116,15 @@ function buildClientDirectory(records = []) {
     if (!clientId || !groups.has(clientId)) continue;
     const names = namesByClient.get(clientId);
     for (const name of namesOf(record, CLIENT_CANONICAL_NAME_FIELDS)) names.canonical_names.add(name);
-    for (const alias of namesOf(record, CLIENT_SAVED_ALIAS_FIELDS)) names.saved_aliases.add(alias);
+    const activeBankDepositorAlias = record.model_type === "PartyAlias"
+      && String(record.status ?? "").trim().toLowerCase() === "active"
+      && record.alias_type === PARTY_ALIAS_BANK_DEPOSITOR_TYPE;
+    const savedAliases = record.model_type === "PartyAlias"
+      ? activeBankDepositorAlias
+        ? namesOf(record, ["alias_value"])
+        : []
+      : namesOf(record, CLIENT_SAVED_ALIAS_FIELDS);
+    for (const alias of savedAliases) names.saved_aliases.add(alias);
   }
 
   return [...groups.values()].map((group) => freeze({

@@ -84,6 +84,17 @@ function contactItems(section) {
       contactValue: null,
       contactValueIncluded: false,
       contactValueMasked: item.contact_value_masked === true,
+      contactPoints: Object.freeze(
+        (Array.isArray(item.contact_points) ? item.contact_points : [])
+          .map((point) => Object.freeze({
+            contactType: text(point.contact_type) || null,
+            contactValue: null,
+            contactValueIncluded: false,
+            contactValueMasked: point.contact_value_masked === true,
+            isPrimary: point.is_primary === true,
+            status: text(point.status) || null
+          }))
+      ),
       status: text(item.status) || null
     }))
   );

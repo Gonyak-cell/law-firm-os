@@ -192,11 +192,13 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
         tenant_id: tenantId,
         idempotency_key: key,
         operation: entry.operation ?? "master_data_operation",
+        request_fingerprint: entry.request_fingerprint ?? null,
         response: clone(entry.response ?? {}),
         created_at: entry.created_at ?? new Date().toISOString(),
       });
       if (existing && (
         existing.operation !== value.operation
+        || (existing.request_fingerprint ?? null) !== value.request_fingerprint
         || JSON.stringify(existing.response) !== JSON.stringify(value.response)
       )) {
         const error = new Error("Master Data idempotency key already exists with different content");
@@ -206,6 +208,16 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
       if (!existing) state.idempotency.push(value);
       flush();
       return existing ? Object.freeze(clone(existing)) : value;
+    },
+
+    getIdempotency(ref = {}) {
+      ensureOpen();
+      const tenantId = String(ref.tenant_id ?? "").trim();
+      const key = String(ref.idempotency_key ?? "").trim();
+      if (!tenantId) throw new TypeError("tenant_id is required");
+      if (!key) throw new TypeError("idempotency_key is required");
+      const entry = state.idempotency.find((item) => item.tenant_id === tenantId && item.idempotency_key === key);
+      return entry ? Object.freeze(clone(entry)) : undefined;
     },
 
     appendAudit(event = {}) {

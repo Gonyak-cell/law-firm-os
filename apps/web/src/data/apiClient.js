@@ -15,6 +15,10 @@ const ADMIN_PERMISSION_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w06", "sy
 const DATA_CLOUD_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w07", "synthetic");
 const DEFAULT_PERMISSION_REF = "ui_cmp_r4_master_data_live";
 const DEFAULT_AUDIT_HINT_REF = "ui_cmp_r4_master_data_probe";
+const CLIENT_GROUP_REVIEW_PERMISSION_REF = "ui_cmp_g2_client_group_review";
+const CLIENT_GROUP_REVIEW_AUDIT_HINT_REF = "ui_cmp_g2_client_group_review_probe";
+const CLIENT_GROUP_CREATE_PERMISSION_REF = "ui_cmp_g2_client_group_create";
+const CLIENT_GROUP_CREATE_AUDIT_HINT_REF = "ui_cmp_g2_client_group_create_probe";
 const DEFAULT_MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const DEFAULT_MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
 const DEFAULT_VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
@@ -1011,6 +1015,231 @@ export async function fetchMasterDataRecords({
     omittedFields: body.omitted_fields,
     auditHintRef: body.audit_hint_ref
   };
+}
+
+const CLIENT_GROUP_CLIENT_TYPES = new Set(["person", "organization"]);
+
+function clientGroupText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function clientGroupClientPayload(client) {
+  if (!client || typeof client !== "object" || Array.isArray(client)) return null;
+  const clientType = clientGroupText(client.client_type);
+  const displayName = clientGroupText(client.display_name);
+  if (!CLIENT_GROUP_CLIENT_TYPES.has(clientType) || !displayName) return null;
+  const payload = {
+    client_type: clientType,
+    display_name: displayName
+  };
+  for (const key of [
+    "legal_form",
+    "registration_number",
+    "email",
+    "phone",
+    "depositor_alias"
+  ]) {
+    const value = clientGroupText(client[key]);
+    if (value) payload[key] = value;
+  }
+  return payload;
+}
+
+function clientGroupSafeErrorCodes(body) {
+  return Array.isArray(body?.safe_error_codes)
+    && body.safe_error_codes.every((code) => typeof code === "string")
+    ? body.safe_error_codes
+    : null;
+}
+
+function clientGroupGuardedUiState(response, body) {
+  const uiState = clientGroupText(body?.ui_state);
+  const outcome = clientGroupText(body?.outcome);
+  if (uiState === "review" || uiState === "review_required" || outcome === "review_required") {
+    return "review_required";
+  }
+  if (response?.status === 403 || uiState === "denied" || outcome === "denied") {
+    return "denied";
+  }
+  return "error";
+}
+
+function clientGroupGuardedResult(response, body, safeErrorCodes) {
+  return {
+    kind: "guarded",
+    status: Number(response?.status ?? 0) || 0,
+    outcome: clientGroupText(body?.outcome) || "blocked",
+    uiState: clientGroupGuardedUiState(response, body),
+    item: null,
+    safeErrorCodes,
+    auditHintRef: clientGroupText(body?.audit_hint_ref) || null
+  };
+}
+
+function validClientGroupReviewItem(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+  if (typeof item.review_digest !== "string" || !item.review_digest.trim()) return false;
+  if (!Array.isArray(item.candidates)) return false;
+  if (typeof item.has_restricted_candidates !== "boolean") return false;
+  if (typeof item.can_create !== "boolean") return false;
+  if (typeof item.requires_distinct_confirmation !== "boolean") return false;
+  return item.candidates.every((candidate) => (
+    candidate
+    && typeof candidate === "object"
+    && !Array.isArray(candidate)
+    && typeof candidate.client_group_id === "string"
+    && candidate.client_group_id.trim()
+    && typeof candidate.display_name === "string"
+    && candidate.display_name.trim()
+    && CLIENT_GROUP_CLIENT_TYPES.has(candidate.client_type)
+    && Array.isArray(candidate.reasons)
+    && candidate.reasons.every((reason) => typeof reason === "string" && reason.trim())
+  ));
+}
+
+function validClientGroupCreateItem(item) {
+  return Boolean(
+    item
+    && typeof item === "object"
+    && !Array.isArray(item)
+    && typeof item.client_group_id === "string"
+    && item.client_group_id.trim()
+    && typeof item.display_name === "string"
+    && item.display_name.trim()
+    && CLIENT_GROUP_CLIENT_TYPES.has(item.client_type)
+    && typeof item.depositor_alias_saved === "boolean"
+    && typeof item.registration_number_saved === "boolean"
+    && typeof item.contact_saved === "boolean"
+  );
+}
+
+async function postClientGroupMutation({
+  path,
+  client,
+  reviewDigest = null,
+  confirmDistinctClient = null,
+  idempotencyKey,
+  permissionRef,
+  auditHintRef,
+  ctx = "allow"
+} = {}) {
+  const normalizedClient = clientGroupClientPayload(client);
+  if (!normalizedClient) return { kind: "error", status: 0, safeErrorCodes: [] };
+  const context = permissionContextFor(ctx, PERMISSION_CONTEXTS, "client");
+  const payload = {
+    tenant_id: tenantIdForDomain("client", TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    idempotency_key: clientGroupText(idempotencyKey) || `ui:client-group:${Date.now()}`,
+    client: normalizedClient
+  };
+  if (reviewDigest !== null) payload.review_digest = clientGroupText(reviewDigest);
+  if (confirmDistinctClient !== null) payload.confirm_distinct_client = confirmDistinctClient === true;
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, safeErrorCodes: [] };
+  }
+
+  const safeErrorCodes = clientGroupSafeErrorCodes(body);
+  const outcome = clientGroupText(body?.outcome);
+  if (!body || typeof body !== "object" || Array.isArray(body) || !outcome || !safeErrorCodes) {
+    return { kind: "error", status: Number(response?.status ?? 0) || 0, safeErrorCodes: safeErrorCodes ?? [] };
+  }
+  if (!response.ok || !["passed", "review_required"].includes(outcome)) {
+    return clientGroupGuardedResult(response, body, safeErrorCodes);
+  }
+
+  // A permission-context review gate may intentionally withhold the review
+  // item. Preserve that review state without treating the gated response as
+  // a malformed success payload.
+  if (outcome === "review_required" && (!body.item || !validClientGroupReviewItem(body.item))) {
+    return clientGroupGuardedResult(response, body, safeErrorCodes);
+  }
+
+  if (path.endsWith("/review")) {
+    if (!validClientGroupReviewItem(body.item)) {
+      return { kind: "error", status: Number(response.status) || 0, safeErrorCodes };
+    }
+    return {
+      kind: "data",
+      status: Number(response.status) || 0,
+      outcome,
+      uiState: body.ui_state ?? null,
+      item: body.item,
+      safeErrorCodes,
+      auditHintRef: clientGroupText(body.audit_hint_ref) || null,
+      requestId: clientGroupText(body.request_id) || null
+    };
+  }
+
+  if (outcome !== "passed") {
+    return clientGroupGuardedResult(response, body, safeErrorCodes);
+  }
+  if (typeof body.replayed !== "boolean" || !validClientGroupCreateItem(body.item)) {
+    return { kind: "error", status: Number(response.status) || 0, safeErrorCodes };
+  }
+  return {
+    kind: "data",
+    status: Number(response.status) || 0,
+    outcome,
+    uiState: body.ui_state ?? null,
+    item: body.item,
+    replayed: body.replayed,
+    safeErrorCodes,
+    auditHintRef: clientGroupText(body.audit_hint_ref) || null,
+    requestId: clientGroupText(body.request_id) || null
+  };
+}
+
+export function reviewClientGroup({
+  client,
+  idempotencyKey,
+  ctx = "allow",
+  permissionRef = CLIENT_GROUP_REVIEW_PERMISSION_REF,
+  auditHintRef = CLIENT_GROUP_REVIEW_AUDIT_HINT_REF
+} = {}) {
+  return postClientGroupMutation({
+    path: "/master-data/client-groups/review",
+    client,
+    idempotencyKey,
+    permissionRef,
+    auditHintRef,
+    ctx
+  });
+}
+
+export function createClientGroup({
+  client,
+  reviewDigest,
+  confirmDistinctClient = false,
+  idempotencyKey,
+  ctx = "allow",
+  permissionRef = CLIENT_GROUP_CREATE_PERMISSION_REF,
+  auditHintRef = CLIENT_GROUP_CREATE_AUDIT_HINT_REF
+} = {}) {
+  if (!clientGroupText(reviewDigest)) return Promise.resolve({ kind: "error", status: 0, safeErrorCodes: [] });
+  return postClientGroupMutation({
+    path: "/master-data/client-groups",
+    client,
+    reviewDigest,
+    confirmDistinctClient,
+    idempotencyKey,
+    permissionRef,
+    auditHintRef,
+    ctx
+  });
 }
 
 export async function fetchUserProfile({
@@ -5284,6 +5513,25 @@ function safeClientDetailSection(section, itemMapper) {
   };
 }
 
+function safeClientDetailContactPoint(item) {
+  if (
+    !item
+    || typeof item !== "object"
+    || item.contact_point_value_included !== false
+  ) {
+    return null;
+  }
+  return {
+    contact_type: typeof item.contact_type === "string"
+      ? item.contact_type
+      : null,
+    contact_point_value_included: false,
+    contact_value_masked: item.contact_value_masked === true,
+    is_primary: item.is_primary === true,
+    status: typeof item.status === "string" ? item.status : null
+  };
+}
+
 function safeClientDetailContact(item) {
   if (
     typeof item?.contact_id !== "string"
@@ -5292,15 +5540,20 @@ function safeClientDetailContact(item) {
   ) {
     return null;
   }
+  const contactPoints = Array.isArray(item.contact_points)
+    ? item.contact_points.map(safeClientDetailContactPoint)
+    : [];
+  if (contactPoints.some((point) => point === null)) return null;
   return {
     contact_id: item.contact_id,
     display_name: item.display_name,
     primary_contact_type:
       typeof item.primary_contact_type === "string"
-        ? item.primary_contact_type
-        : null,
+      ? item.primary_contact_type
+      : null,
     contact_point_value_included: false,
     contact_value_masked: item.contact_value_masked === true,
+    contact_points: contactPoints,
     status: typeof item.status === "string" ? item.status : null
   };
 }

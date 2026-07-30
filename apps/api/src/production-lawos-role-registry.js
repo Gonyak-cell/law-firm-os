@@ -23,6 +23,7 @@ export const LAWOS_CLIENT_SCOPES = Object.freeze([
   "crm.engagement.decide",
   "outlook.connection.manage",
   "outlook.inquiry.capture",
+  "master_data.client.write",
   "finance.fee.write",
   "analytics.client.read",
   "analytics.client.export",
