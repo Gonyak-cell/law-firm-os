@@ -1,0 +1,36 @@
+{
+  "schema_version": "law-firm-os.client-operations-expected-dashboard.v1",
+  "as_of": "2026-07-30T03:00:00.000Z",
+  "timezone": "Asia/Seoul",
+  "principal_id": "principal_partner",
+  "source_status": "complete",
+  "kpis": {
+    "new_inquiries": 1,
+    "consultations_today": 1,
+    "engagement_reviews": 1,
+    "deposit_revenue_month": 33000000,
+    "receivables_total": 9000000
+  },
+  "inquiry_status_counts": {
+    "새 문의": 1,
+    "확인 중": 0,
+    "상담 예정": 1,
+    "수임 검토 중": 1,
+    "수임 확정": 1,
+    "수임하지 않음": 1
+  },
+  "attention_item_ids": [
+    "lead_new",
+    "consultation_today",
+    "opportunity_pending",
+    "bank_hanbit_ambiguous",
+    "fee_hanbit_development_unknown"
+  ],
+  "revenue_ranking_client_ids": [
+    "client_saebom_tech",
+    "client_hanbit_construction"
+  ],
+  "receivables_ranking_client_ids": [
+    "client_hanbit_construction"
+  ]
+}

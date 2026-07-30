@@ -1,0 +1,307 @@
+{
+  "schema_version": "law-firm-os.client-operations.v1",
+  "contract_id": "client-operations-v1",
+  "source_plan": "docs/client-menu-gap-oss-research-and-implementation-plan-2026-07-30.md",
+  "objective": "10인 로펌 Client 전체 메뉴 상세 실행계획",
+  "scope": {
+    "internal_user_count": 10,
+    "currency": "KRW",
+    "money_unit": "won_integer",
+    "amount_basis": "tax_inclusive_gross_operational_amount",
+    "timezone": "Asia/Seoul",
+    "invoice_required_for_revenue": false,
+    "matter_required_for_revenue": false,
+    "hidden_client_sections_restored": false,
+    "automatic_outlook_mailbox_scan": false,
+    "automatic_matter_creation": false
+  },
+  "bank_name_matching": {
+    "rule_version": "bank-name-normalization-v1",
+    "normalization_steps": [
+      "unicode_nfkc",
+      "latin_lowercase",
+      "remove_supported_legal_entity_markers",
+      "remove_non_alphanumeric_korean_characters"
+    ],
+    "supported_legal_entity_markers": [
+      "주식회사",
+      "유한회사",
+      "법무법인",
+      "회계법인",
+      "세무법인",
+      "법률사무소",
+      "(주)",
+      "㈜"
+    ],
+    "automatic_match_kinds": [
+      "unique_exact_client_name",
+      "unique_exact_approved_alias"
+    ],
+    "forbidden_automatic_match_kinds": [
+      "prefix",
+      "substring",
+      "fuzzy",
+      "ai_inference"
+    ],
+    "collision_result": "review_required",
+    "saved_alias_requires": [
+      "authorized_actor",
+      "tenant_bound_client",
+      "audit_event"
+    ],
+    "historical_confirmed_match_rewritten_on_rule_change": false
+  },
+  "deposit_revenue": {
+    "display_name": "입금 매출",
+    "definition": "matched_inflows_minus_linked_refunds",
+    "formula": "sum(matched inflow amount) - sum(linked refund amount)",
+    "time_semantics": "period_flow",
+    "include_unmatched_deposits": false,
+    "include_duplicate_fingerprints": false,
+    "refund_requires_original_deposit_or_client_link": true,
+    "one_bank_transaction_client_limit": 1,
+    "ranking": {
+      "default_period": "current_year",
+      "allowed_periods": [
+        "month",
+        "quarter",
+        "current_year"
+      ],
+      "sort": [
+        "net_deposit_revenue_desc",
+        "latest_deposit_at_desc",
+        "client_display_name_asc",
+        "client_group_id_asc"
+      ]
+    }
+  },
+  "receivables": {
+    "display_name": "미수금",
+    "formula": "max(0, agreed_amount - active_allocated_amount)",
+    "time_semantics": "as_of_balance",
+    "unknown_agreed_amount": null,
+    "unknown_amount_display": "금액 미입력",
+    "unknown_amount_in_total": false,
+    "unknown_amount_in_ranking": false,
+    "overpayment_floor": 0,
+    "overpayment_display": "선입금·초과 입금",
+    "automatic_allocation_order": [
+      "due_date_asc_nulls_to_accepted_at",
+      "accepted_at_asc",
+      "fee_commitment_id_asc"
+    ],
+    "manual_allocation_overrides_automatic": true,
+    "linked_refund_reopens_receivable": true,
+    "ranking_sort": [
+      "receivable_amount_desc",
+      "earliest_due_date_asc",
+      "client_display_name_asc",
+      "client_group_id_asc"
+    ]
+  },
+  "inquiry_workflow": {
+    "inquiry_statuses": [
+      "new",
+      "reviewing",
+      "closed"
+    ],
+    "inquiry_status_transitions": {
+      "new": [
+        "reviewing",
+        "closed"
+      ],
+      "reviewing": [
+        "closed"
+      ],
+      "closed": [
+        "reviewing"
+      ]
+    },
+    "reopen_from_closed_requires": [
+      "authorized_actor",
+      "reason",
+      "audit_event"
+    ],
+    "engagement_decisions": [
+      "pending",
+      "accepted",
+      "declined"
+    ],
+    "engagement_decision_transitions": {
+      "pending": [
+        "accepted",
+        "declined"
+      ],
+      "accepted": [
+        "pending"
+      ],
+      "declined": [
+        "pending"
+      ]
+    },
+    "engagement_reopen_requires": [
+      "authorized_actor",
+      "reason",
+      "state_version",
+      "audit_event"
+    ],
+    "visible_status_projection": {
+      "새 문의": "inquiry_status=new",
+      "확인 중": "inquiry_status=reviewing and no incomplete consultation and no opportunity",
+      "상담 예정": "inquiry_status=reviewing and incomplete consultation exists",
+      "수임 검토 중": "opportunity exists and engagement_decision=pending",
+      "수임 확정": "engagement_decision=accepted",
+      "수임하지 않음": "engagement_decision=declined or opportunity_stage=closed_lost"
+    },
+    "accepted_decision_is_signed_engagement": false,
+    "accepted_decision_creates_matter": false,
+    "matter_opening_requires_existing_intake_conflict_clearance": true
+  },
+  "outlook": {
+    "inquiry_capture_trigger": "explicit_addin_button_click",
+    "consultation_calendar_trigger": "explicit_app_button_click",
+    "mail_evidence": "server_fetched_immutable_mime_plus_sanitized_display_copy",
+    "dedupe_primary_key": [
+      "tenant_id",
+      "mailbox_address",
+      "internet_message_id"
+    ],
+    "dedupe_fallback": "graph_immutable_message_id",
+    "one_primary_inquiry_link_per_evidence": true,
+    "background_mail_scan": false,
+    "calendar_bidirectional_sync": false
+  },
+  "capabilities": {
+    "all_client_scopes": [
+      "crm.inquiry.read",
+      "crm.inquiry.write",
+      "crm.inquiry.evidence.read",
+      "crm.engagement.decide",
+      "outlook.connection.manage",
+      "outlook.inquiry.capture",
+      "finance.fee.write",
+      "analytics.client.read",
+      "analytics.client.export"
+    ],
+    "profiles": {
+      "staff": [
+        "crm.inquiry.read",
+        "crm.inquiry.write",
+        "crm.inquiry.evidence.read",
+        "outlook.connection.manage",
+        "outlook.inquiry.capture",
+        "analytics.client.read"
+      ],
+      "attorney": [
+        "crm.inquiry.read",
+        "crm.inquiry.write",
+        "crm.inquiry.evidence.read",
+        "crm.engagement.decide",
+        "outlook.connection.manage",
+        "outlook.inquiry.capture",
+        "analytics.client.read"
+      ],
+      "operations": [
+        "crm.inquiry.read",
+        "crm.inquiry.write",
+        "crm.inquiry.evidence.read",
+        "outlook.connection.manage",
+        "outlook.inquiry.capture",
+        "finance.fee.write",
+        "analytics.client.read",
+        "analytics.client.export"
+      ],
+      "partner": [
+        "crm.inquiry.read",
+        "crm.inquiry.write",
+        "crm.inquiry.evidence.read",
+        "crm.engagement.decide",
+        "outlook.connection.manage",
+        "outlook.inquiry.capture",
+        "finance.fee.write",
+        "analytics.client.read",
+        "analytics.client.export"
+      ],
+      "admin": [
+        "crm.inquiry.read",
+        "crm.inquiry.write",
+        "crm.inquiry.evidence.read",
+        "crm.engagement.decide",
+        "outlook.connection.manage",
+        "outlook.inquiry.capture",
+        "finance.fee.write",
+        "analytics.client.read",
+        "analytics.client.export"
+      ]
+    },
+    "existing_bank_scope_assignments_expanded_by_this_contract": false,
+    "object_access_trimmed_before_aggregation": true
+  },
+  "dashboard": {
+    "kpis": {
+      "new_inquiries": "current_count",
+      "consultations_today": "asia_seoul_today_incomplete_count",
+      "engagement_reviews": "current_pending_decision_count",
+      "deposit_revenue_month": "current_month_period_flow",
+      "receivables_total": "current_as_of_balance"
+    },
+    "charts": [
+      "monthly_deposit_revenue_last_12_months",
+      "current_inquiry_status_counts",
+      "client_revenue_ranking",
+      "client_receivables_ranking"
+    ],
+    "partial_source_failure_rendered_as_zero": false
+  },
+  "hidden_routes": {
+    "redirect_to_client_detail": [
+      "accounts",
+      "contacts",
+      "relationships"
+    ],
+    "redirect_to_consultation_engagement": [
+      "intake",
+      "conflict",
+      "contracts"
+    ],
+    "fail_closed_not_found": [
+      "data",
+      "import",
+      "settings"
+    ]
+  },
+  "verification_scenario_ids": [
+    "VC-CL-REV-001",
+    "VC-CL-REV-002",
+    "VC-CL-REV-003",
+    "VC-CL-REV-004",
+    "VC-CL-REV-005",
+    "VC-CL-REV-006",
+    "VC-CL-REV-007",
+    "VC-CL-REV-008",
+    "VC-CL-AR-001",
+    "VC-CL-AR-002",
+    "VC-CL-AR-003",
+    "VC-CL-AR-004",
+    "VC-CL-AR-005",
+    "VC-CL-INQ-001",
+    "VC-CL-INQ-002",
+    "VC-CL-INQ-003",
+    "VC-CL-INQ-004",
+    "VC-CL-INQ-005",
+    "VC-CL-INQ-006",
+    "VC-CL-CON-001",
+    "VC-CL-CON-002",
+    "VC-CL-ENG-001",
+    "VC-CL-ENG-002",
+    "VC-CL-ENG-003",
+    "VC-CL-ENG-004",
+    "VC-CL-MAT-001",
+    "VC-CL-DASH-001",
+    "VC-CL-DASH-002",
+    "VC-CL-PERM-001",
+    "VC-CL-ROUTE-001",
+    "VC-CL-MIG-001",
+    "VC-CL-PKG-001"
+  ]
+}

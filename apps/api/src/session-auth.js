@@ -210,6 +210,30 @@ function permissionRulesFromScopes(scopes = []) {
   for (const [scope, prefixes] of financePrefixes) {
     if (granted.has(scope)) rules.push(allowRule(scope.replaceAll(".", "-"), { action_prefixes: prefixes }));
   }
+  const clientReadPrefixes = new Map([
+    ["crm.inquiry.read", ["crm:inquiry:", "crm:consultation:", "crm:activity:"]],
+    ["crm.inquiry.evidence.read", ["email_dms:inquiry_evidence:"]],
+    ["analytics.client.read", ["analytics:client:"]],
+  ]);
+  for (const [scope, prefixes] of clientReadPrefixes) {
+    if (granted.has(scope)) {
+      rules.push(allowRule(scope.replaceAll(".", "-"), {
+        action_prefixes: prefixes,
+        action_access: "read",
+      }));
+    }
+  }
+  const clientWritePrefixes = new Map([
+    ["crm.inquiry.write", ["crm:inquiry:", "crm:consultation:", "crm:activity:"]],
+    ["crm.engagement.decide", ["crm:engagement:"]],
+    ["outlook.connection.manage", ["outlook:connection:"]],
+    ["outlook.inquiry.capture", ["outlook:inquiry:capture"]],
+    ["finance.fee.write", ["finance:fee_commitment:", "finance:deposit_allocation:"]],
+    ["analytics.client.export", ["analytics:client:export"]],
+  ]);
+  for (const [scope, prefixes] of clientWritePrefixes) {
+    if (granted.has(scope)) rules.push(allowRule(scope.replaceAll(".", "-"), { action_prefixes: prefixes }));
+  }
   if (granted.has("finance.approve")) {
     rules.push(allowRule("finance-approve", {
       actions: ["finance:time:approve", "finance:prebill:approve", "finance:prebill:reject"],

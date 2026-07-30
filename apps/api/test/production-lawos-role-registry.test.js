@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  LAWOS_CLIENT_SCOPES,
   LAWOS_FINANCE_SCOPES,
   LAWOS_INTERNAL_ROLE_ASSIGNMENTS,
   resolveLawosUserRoleAssignment,
@@ -58,6 +59,9 @@ test("production role registry restores finance scopes only for the verified hig
   });
   assert.ok(assignment.scopes.includes("matter.read"));
   for (const scope of LAWOS_FINANCE_SCOPES) {
+    assert.ok(assignment.scopes.includes(scope), `${scope} must be restored`);
+  }
+  for (const scope of LAWOS_CLIENT_SCOPES) {
     assert.ok(assignment.scopes.includes(scope), `${scope} must be restored`);
   }
 

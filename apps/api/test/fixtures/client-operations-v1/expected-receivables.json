@@ -1,0 +1,45 @@
+{
+  "schema_version": "law-firm-os.client-operations-expected-receivables.v1",
+  "as_of": "2026-07-30T03:00:00.000Z",
+  "currency": "KRW",
+  "total_receivables": 9000000,
+  "unknown_amount_count": 1,
+  "total_overpayment": 2000000,
+  "ranking": [
+    {
+      "rank": 1,
+      "client_group_id": "client_hanbit_construction",
+      "display_name": "한빛건설",
+      "agreed_amount": 20000000,
+      "active_allocated_amount": 11000000,
+      "receivable_amount": 9000000,
+      "earliest_due_date": "2026-07-10"
+    }
+  ],
+  "client_summaries": [
+    {
+      "client_group_id": "client_hanbit_construction",
+      "agreed_amount": 20000000,
+      "active_allocated_amount": 11000000,
+      "receivable_amount": 9000000,
+      "unknown_amount_count": 0,
+      "overpayment_amount": 0
+    },
+    {
+      "client_group_id": "client_hanbit_development",
+      "agreed_amount": null,
+      "active_allocated_amount": 0,
+      "receivable_amount": null,
+      "unknown_amount_count": 1,
+      "overpayment_amount": 0
+    },
+    {
+      "client_group_id": "client_saebom_tech",
+      "agreed_amount": 21000000,
+      "active_allocated_amount": 21000000,
+      "receivable_amount": 0,
+      "unknown_amount_count": 0,
+      "overpayment_amount": 2000000
+    }
+  ]
+}

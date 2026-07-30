@@ -1,0 +1,81 @@
+{
+  "schema_version": "law-firm-os.client-operations-expected-revenue.v1",
+  "period": {
+    "from": "2026-07-01T00:00:00.000+09:00",
+    "to": "2026-07-31T23:59:59.999+09:00"
+  },
+  "currency": "KRW",
+  "total_net_deposit_revenue": 33000000,
+  "unmatched_inflow_amount": 5000000,
+  "duplicate_ignored_amount": 11000000,
+  "ranking": [
+    {
+      "rank": 1,
+      "client_group_id": "client_saebom_tech",
+      "display_name": "새봄테크",
+      "matched_inflow_amount": 23000000,
+      "linked_refund_amount": 1000000,
+      "net_deposit_revenue": 22000000,
+      "latest_deposit_at": "2026-07-20T01:00:00.000Z"
+    },
+    {
+      "rank": 2,
+      "client_group_id": "client_hanbit_construction",
+      "display_name": "한빛건설",
+      "matched_inflow_amount": 11000000,
+      "linked_refund_amount": 0,
+      "net_deposit_revenue": 11000000,
+      "latest_deposit_at": "2026-07-15T01:00:00.000Z"
+    }
+  ],
+  "monthly_series": [
+    {
+      "month": "2025-08",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2025-09",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2025-10",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2025-11",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2025-12",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2026-01",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2026-02",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2026-03",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2026-04",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2026-05",
+      "net_deposit_revenue": 0
+    },
+    {
+      "month": "2026-06",
+      "net_deposit_revenue": 3000000
+    },
+    {
+      "month": "2026-07",
+      "net_deposit_revenue": 33000000
+    }
+  ]
+}

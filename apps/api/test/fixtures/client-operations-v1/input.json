@@ -1,0 +1,284 @@
+{
+  "schema_version": "law-firm-os.client-operations-fixture.v1",
+  "fixture_id": "client-operations-v1-baseline",
+  "synthetic_only": true,
+  "timezone": "Asia/Seoul",
+  "currency": "KRW",
+  "as_of": "2026-07-30T03:00:00.000Z",
+  "revenue_period": {
+    "from": "2026-07-01T00:00:00.000+09:00",
+    "to": "2026-07-31T23:59:59.999+09:00"
+  },
+  "clients": [
+    {
+      "client_group_id": "client_hanbit_construction",
+      "display_name": "한빛건설",
+      "names": [
+        "한빛건설",
+        "한빛"
+      ],
+      "approved_aliases": []
+    },
+    {
+      "client_group_id": "client_hanbit_development",
+      "display_name": "한빛개발",
+      "names": [
+        "한빛개발",
+        "한빛"
+      ],
+      "approved_aliases": []
+    },
+    {
+      "client_group_id": "client_saebom_tech",
+      "display_name": "새봄테크",
+      "names": [
+        "새봄테크"
+      ],
+      "approved_aliases": [
+        "새봄"
+      ]
+    }
+  ],
+  "bank_transactions": [
+    {
+      "bank_transaction_id": "bank_hanbit_july",
+      "fingerprint": "fp-hanbit-20260715-11000000",
+      "occurred_at": "2026-07-15T01:00:00.000Z",
+      "direction": "inflow",
+      "amount": 11000000,
+      "counterparty": "주식회사 한빛건설",
+      "allocation_eligible": true,
+      "expected_client_group_id": "client_hanbit_construction",
+      "expected_match_kind": "client_exact"
+    },
+    {
+      "bank_transaction_id": "bank_hanbit_july_duplicate",
+      "fingerprint": "fp-hanbit-20260715-11000000",
+      "occurred_at": "2026-07-15T01:00:00.000Z",
+      "direction": "inflow",
+      "amount": 11000000,
+      "counterparty": "주식회사 한빛건설",
+      "allocation_eligible": true,
+      "duplicate_of": "bank_hanbit_july",
+      "expected_outcome": "duplicate_ignored"
+    },
+    {
+      "bank_transaction_id": "bank_hanbit_ambiguous",
+      "fingerprint": "fp-hanbit-20260716-5000000",
+      "occurred_at": "2026-07-16T01:00:00.000Z",
+      "direction": "inflow",
+      "amount": 5000000,
+      "counterparty": "한빛",
+      "allocation_eligible": true,
+      "expected_client_group_id": null,
+      "expected_outcome": "review_required"
+    },
+    {
+      "bank_transaction_id": "bank_saebom_alias",
+      "fingerprint": "fp-saebom-20260718-11000000",
+      "occurred_at": "2026-07-18T01:00:00.000Z",
+      "direction": "inflow",
+      "amount": 11000000,
+      "counterparty": "새봄",
+      "allocation_eligible": true,
+      "expected_client_group_id": "client_saebom_tech",
+      "expected_match_kind": "client_saved_alias"
+    },
+    {
+      "bank_transaction_id": "bank_saebom_exact",
+      "fingerprint": "fp-saebom-20260720-12000000",
+      "occurred_at": "2026-07-20T01:00:00.000Z",
+      "direction": "inflow",
+      "amount": 12000000,
+      "counterparty": "새봄테크",
+      "allocation_eligible": true,
+      "expected_client_group_id": "client_saebom_tech",
+      "expected_match_kind": "client_exact"
+    },
+    {
+      "bank_transaction_id": "bank_saebom_prior",
+      "fingerprint": "fp-saebom-20260625-3000000",
+      "occurred_at": "2026-06-25T01:00:00.000Z",
+      "direction": "inflow",
+      "amount": 3000000,
+      "counterparty": "새봄테크",
+      "allocation_eligible": false,
+      "expected_client_group_id": "client_saebom_tech",
+      "expected_match_kind": "client_exact",
+      "allocation_note": "기준 시점 이전에 정산을 마친 과거 입금"
+    },
+    {
+      "bank_transaction_id": "bank_saebom_refund",
+      "fingerprint": "fp-saebom-20260725-refund-1000000",
+      "occurred_at": "2026-07-25T01:00:00.000Z",
+      "direction": "outflow",
+      "amount": 1000000,
+      "counterparty": "새봄테크",
+      "allocation_eligible": false,
+      "refund_of_bank_transaction_id": "bank_saebom_prior",
+      "expected_client_group_id": "client_saebom_tech",
+      "expected_outcome": "linked_refund"
+    }
+  ],
+  "fee_commitments": [
+    {
+      "fee_commitment_id": "fee_hanbit_early",
+      "client_group_id": "client_hanbit_construction",
+      "agreed_amount": 12000000,
+      "due_date": "2026-07-10",
+      "accepted_at": "2026-06-01T00:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "fee_commitment_id": "fee_hanbit_later",
+      "client_group_id": "client_hanbit_construction",
+      "agreed_amount": 8000000,
+      "due_date": "2026-07-20",
+      "accepted_at": "2026-06-02T00:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "fee_commitment_id": "fee_hanbit_development_unknown",
+      "client_group_id": "client_hanbit_development",
+      "agreed_amount": null,
+      "due_date": null,
+      "accepted_at": "2026-07-10T00:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "fee_commitment_id": "fee_saebom_fixed",
+      "client_group_id": "client_saebom_tech",
+      "agreed_amount": 10000000,
+      "due_date": "2026-07-15",
+      "accepted_at": "2026-06-05T00:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "fee_commitment_id": "fee_saebom_manual",
+      "client_group_id": "client_saebom_tech",
+      "agreed_amount": 11000000,
+      "due_date": "2026-07-18",
+      "accepted_at": "2026-06-06T00:00:00.000Z",
+      "status": "active"
+    }
+  ],
+  "deposit_allocations": [
+    {
+      "client_deposit_allocation_id": "allocation_hanbit_early",
+      "bank_transaction_id": "bank_hanbit_july",
+      "fee_commitment_id": "fee_hanbit_early",
+      "allocated_amount": 11000000,
+      "allocation_source": "automatic",
+      "manual_lock": false,
+      "reversed_amount": 0
+    },
+    {
+      "client_deposit_allocation_id": "allocation_saebom_fixed",
+      "bank_transaction_id": "bank_saebom_exact",
+      "fee_commitment_id": "fee_saebom_fixed",
+      "allocated_amount": 10000000,
+      "allocation_source": "automatic",
+      "manual_lock": false,
+      "reversed_amount": 0
+    },
+    {
+      "client_deposit_allocation_id": "allocation_saebom_manual",
+      "bank_transaction_id": "bank_saebom_alias",
+      "fee_commitment_id": "fee_saebom_manual",
+      "allocated_amount": 11000000,
+      "allocation_source": "manual",
+      "manual_lock": true,
+      "reversed_amount": 0
+    }
+  ],
+  "inquiries": [
+    {
+      "lead_id": "lead_new",
+      "client_group_id": "client_saebom_tech",
+      "inquiry_status": "new",
+      "assigned_user_id": null,
+      "source": "outlook_addin",
+      "received_at": "2026-07-30T00:30:00.000Z",
+      "opportunity_id": null,
+      "engagement_decision": null
+    },
+    {
+      "lead_id": "lead_consultation",
+      "client_group_id": "client_hanbit_construction",
+      "inquiry_status": "reviewing",
+      "assigned_user_id": "user_attorney",
+      "source": "manual",
+      "received_at": "2026-07-28T00:30:00.000Z",
+      "opportunity_id": null,
+      "engagement_decision": null
+    },
+    {
+      "lead_id": "lead_pending",
+      "client_group_id": "client_hanbit_development",
+      "inquiry_status": "reviewing",
+      "assigned_user_id": "user_partner",
+      "source": "outlook_addin",
+      "received_at": "2026-07-20T00:30:00.000Z",
+      "opportunity_id": "opportunity_pending",
+      "engagement_decision": "pending"
+    },
+    {
+      "lead_id": "lead_accepted",
+      "client_group_id": "client_hanbit_construction",
+      "inquiry_status": "reviewing",
+      "assigned_user_id": "user_partner",
+      "source": "manual",
+      "received_at": "2026-07-10T00:30:00.000Z",
+      "opportunity_id": "opportunity_accepted",
+      "engagement_decision": "accepted"
+    },
+    {
+      "lead_id": "lead_declined",
+      "client_group_id": "client_saebom_tech",
+      "inquiry_status": "closed",
+      "assigned_user_id": "user_partner",
+      "source": "manual",
+      "received_at": "2026-07-01T00:30:00.000Z",
+      "opportunity_id": "opportunity_declined",
+      "engagement_decision": "declined"
+    }
+  ],
+  "consultations": [
+    {
+      "activity_id": "consultation_today",
+      "lead_id": "lead_consultation",
+      "scheduled_start": "2026-07-30T01:00:00.000Z",
+      "scheduled_end": "2026-07-30T02:00:00.000Z",
+      "timezone": "Asia/Seoul",
+      "completed_at": null
+    }
+  ],
+  "outlook_email_evidence": [
+    {
+      "inquiry_email_evidence_id": "evidence_new_inquiry",
+      "lead_id": "lead_new",
+      "mailbox_address": "new-inquiry-fixture@example.test",
+      "internet_message_id": "<client-operations-v1-new@example.test>",
+      "graph_immutable_message_id": "fixture-immutable-message-id-new",
+      "mime_sha256": "310302443597f6887dbff69c3a3e7fbdd70cab3db9e6b93538f743c90e045ac2",
+      "original_mime_immutable": true,
+      "sanitized_display_copy_separate": true
+    }
+  ],
+  "permission_fixtures": [
+    {
+      "principal_id": "principal_partner",
+      "allowed_client_group_ids": [
+        "client_hanbit_construction",
+        "client_hanbit_development",
+        "client_saebom_tech"
+      ]
+    },
+    {
+      "principal_id": "principal_staff",
+      "allowed_client_group_ids": [
+        "client_saebom_tech"
+      ]
+    }
+  ]
+}
