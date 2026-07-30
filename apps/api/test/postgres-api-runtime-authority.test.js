@@ -729,6 +729,35 @@ test("PostgreSQL API authority persists accepted inquiry handoff and reads the C
     deposit_revenue_month: 0,
     receivables_total: 12_000_000,
   });
+
+  const clientAttention = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/analytics/clients/dashboard",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return runtimes.analyticsRuntime.clientOperationsReadModel
+        .readAttentionItems({
+          tenant_id: TENANT_A,
+          permission_context: context,
+          as_of: "2026-07-30T03:00:00.000Z",
+        });
+    },
+  });
+  assert.deepEqual(clientAttention.item.attention_item_ids, []);
+  assert.deepEqual(
+    clientAttention.item.evaluated_attention_types,
+    [
+      "overdue_consultation",
+      "unassigned_new_inquiry",
+      "consultation_today",
+      "engagement_review",
+      "bank_match_review",
+      "fee_amount_missing",
+    ],
+  );
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {

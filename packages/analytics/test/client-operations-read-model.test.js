@@ -64,6 +64,11 @@ function fixturePermissionContext() {
         effect: "allow",
         action: "crm:consultation:read",
       },
+      {
+        id: "partner-bank-classification-read",
+        effect: "allow",
+        action: "finance:bank_classification:read",
+      },
     ],
     object_acl: [],
   };
@@ -988,5 +993,510 @@ test("CL-P4-W01-T02 CRM 조회 권한이 없으면 0으로 가장하지 않고 �
     ),
   );
   assert.equal(crmReadCount, 0);
+  assert.equal(financeReadCount, 0);
+});
+
+test("VC-CL-DASH-001 / CL-P4-W01-T03 기준 fixture의 오늘 확인할 일을 빠짐없이 정렬한다", () => {
+  const input = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/input.json",
+    import.meta.url,
+  ), "utf8"));
+  const expected = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/expected-dashboard.json",
+    import.meta.url,
+  ), "utf8"));
+  const financeRepository = fixtureFinanceRepository(input);
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      fixtureMasterDataRecords(input),
+    ),
+    crmRepository: repository(fixtureCrmRecords(input)),
+    financeRepository,
+  });
+
+  try {
+    const result = readModel.readAttentionItems({
+      tenant_id: TENANT,
+      permission_context: fixturePermissionContext(),
+      as_of: input.as_of,
+      timezone: input.timezone,
+    });
+
+    assert.deepEqual(
+      result.item.attention_item_ids,
+      expected.attention_item_ids,
+    );
+    assert.deepEqual(
+      result.item.items.map(({ attention_type }) => (
+        attention_type
+      )),
+      [
+        "unassigned_new_inquiry",
+        "consultation_today",
+        "engagement_review",
+        "bank_match_review",
+        "fee_amount_missing",
+      ],
+    );
+    assert.deepEqual(
+      result.item.items.map(({ order }) => order),
+      [1, 2, 3, 4, 5],
+    );
+    assert.deepEqual(
+      result.item.evaluated_attention_types,
+      [
+        "overdue_consultation",
+        "unassigned_new_inquiry",
+        "consultation_today",
+        "engagement_review",
+        "bank_match_review",
+        "fee_amount_missing",
+      ],
+    );
+    assert.equal(result.item.raw_bank_counterparty_included, false);
+    assert.equal(
+      JSON.stringify(result).includes("\"counterparty\""),
+      false,
+    );
+    for (const item of result.item.items) {
+      assert.equal(typeof item.destination.section, "string");
+      assert.equal(typeof item.destination.record_id, "string");
+      assert.equal("href" in item.destination, false);
+    }
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("CL-P4-W01-T03 6종 확인 업무를 시각과 ID로 안정 정렬하고 차단 고객·객체를 노출하지 않는다", () => {
+  const lead = ({
+    id,
+    party_id = "party_allowed",
+    status = "reviewing",
+    assigned_user_id = "principal_partner",
+    received_at = "2026-07-20T00:00:00.000Z",
+    opportunity_id = null,
+  }) => ({
+    model_type: "Lead",
+    tenant_id: TENANT,
+    lead_id: id,
+    party_id,
+    display_name: `문의 ${id}`,
+    inquiry_status: status,
+    source: "manual",
+    received_at,
+    next_action: "문의 확인",
+    assigned_user_id,
+    opportunity_id,
+    status: "active",
+    owner_user_id: "principal_partner",
+    version: 1,
+  });
+  const consultation = ({
+    id,
+    start,
+    completed_at = null,
+    lead_id = "lead_consultations",
+    party_id = "party_allowed",
+  }) => ({
+    model_type: "CRMActivity",
+    tenant_id: TENANT,
+    crm_activity_id: id,
+    lead_id,
+    party_id,
+    activity_type: "meeting",
+    activity_kind: "consultation",
+    subject: "법률 상담",
+    confidential: false,
+    scheduled_start: start,
+    scheduled_end: new Date(
+      Date.parse(start) + 60 * 60 * 1_000,
+    ).toISOString(),
+    timezone: "Asia/Seoul",
+    completed_at,
+    status: "active",
+    owner_user_id: "principal_partner",
+    version: 1,
+  });
+  const clientRecords = [
+    {
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_allowed",
+      display_name: "허용 고객",
+      member_party_ids: ["party_allowed"],
+      primary_party_id: "party_allowed",
+      status: "active",
+    },
+    {
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_denied",
+      display_name: "비공개 고객",
+      member_party_ids: ["party_denied"],
+      primary_party_id: "party_denied",
+      status: "active",
+    },
+  ];
+  const crmRecords = [
+    lead({
+      id: "lead_new_old",
+      status: "new",
+      assigned_user_id: null,
+      received_at: "2026-07-28T00:00:00.000Z",
+    }),
+    lead({
+      id: "lead_new_recent",
+      status: "new",
+      assigned_user_id: null,
+      received_at: "2026-07-29T00:00:00.000Z",
+    }),
+    lead({
+      id: "lead_new_assigned",
+      status: "new",
+      received_at: "2026-07-27T00:00:00.000Z",
+    }),
+    lead({ id: "lead_consultations" }),
+    lead({
+      id: "lead_review",
+      opportunity_id: "op_review",
+    }),
+    lead({
+      id: "lead_denied",
+      party_id: "party_denied",
+      status: "new",
+      assigned_user_id: null,
+      received_at: "2026-07-01T00:00:00.000Z",
+    }),
+    {
+      model_type: "Opportunity",
+      tenant_id: TENANT,
+      opportunity_id: "op_review",
+      lead_id: "lead_review",
+      party_id: "party_allowed",
+      display_name: "수임 검토",
+      stage: "qualified",
+      engagement_decision: "pending",
+      engagement_client_group_id: "client_allowed",
+      created_at: "2026-07-25T00:00:00.000Z",
+      status: "active",
+      owner_user_id: "principal_partner",
+    },
+    consultation({
+      id: "consultation_past_old",
+      start: "2026-07-28T01:00:00.000Z",
+    }),
+    consultation({
+      id: "consultation_past_recent",
+      start: "2026-07-29T01:00:00.000Z",
+    }),
+    consultation({
+      id: "consultation_today_old",
+      start: "2026-07-30T00:10:00.000Z",
+    }),
+    consultation({
+      id: "consultation_today_recent",
+      start: "2026-07-30T02:00:00.000Z",
+    }),
+    consultation({
+      id: "consultation_future",
+      start: "2026-07-31T01:00:00.000Z",
+    }),
+    consultation({
+      id: "consultation_completed",
+      start: "2026-07-29T00:30:00.000Z",
+      completed_at: "2026-07-29T02:00:00.000Z",
+    }),
+    consultation({
+      id: "consultation_denied",
+      start: "2026-07-01T00:00:00.000Z",
+      lead_id: "lead_denied",
+      party_id: "party_denied",
+    }),
+  ];
+  const financeRecords = [
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: "bank_review_early",
+      date: "2026-07-10",
+      occurred_at: "2026-07-10T01:00:00.000Z",
+      direction: "inflow",
+      amount: 2_000_000,
+      currency: "KRW",
+      counterparty: "원문 거래상대방 A",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        "classification_review_early",
+      bank_transaction_id: "bank_review_early",
+      transaction_date: "2026-07-10",
+      transaction_direction: "inflow",
+      amount: 2_000_000,
+      currency: "KRW",
+      client_group_id: null,
+      status: "review_required",
+    },
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: "bank_review_late",
+      date: "2026-07-11",
+      occurred_at: "2026-07-11T01:00:00.000Z",
+      direction: "inflow",
+      amount: 3_000_000,
+      currency: "KRW",
+      counterparty: "원문 거래상대방 B",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        "classification_review_late",
+      bank_transaction_id: "bank_review_late",
+      transaction_date: "2026-07-11",
+      transaction_direction: "inflow",
+      amount: 3_000_000,
+      currency: "KRW",
+      client_group_id: "client_allowed",
+      status: "review_required",
+    },
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: "bank_confirmed",
+      date: "2026-07-12",
+      occurred_at: "2026-07-12T01:00:00.000Z",
+      direction: "inflow",
+      amount: 4_000_000,
+      currency: "KRW",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        "classification_confirmed",
+      bank_transaction_id: "bank_confirmed",
+      transaction_date: "2026-07-12",
+      transaction_direction: "inflow",
+      amount: 4_000_000,
+      currency: "KRW",
+      client_group_id: "client_allowed",
+      status: "confirmed",
+    },
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: "bank_denied_client",
+      amount: "98765432",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        "classification_denied_client",
+      bank_transaction_id: "bank_denied_client",
+      transaction_direction: "inflow",
+      amount: 98_765_432,
+      currency: "KRW",
+      client_group_id: "client_denied",
+      status: "review_required",
+    },
+    {
+      model_type: "BankTransaction",
+      tenant_id: TENANT,
+      bank_transaction_id: "bank_acl_denied",
+      amount: "87654321",
+    },
+    {
+      model_type: "BankTransactionClassification",
+      tenant_id: TENANT,
+      bank_transaction_classification_id:
+        "classification_acl_denied",
+      bank_transaction_id: "bank_acl_denied",
+      transaction_direction: "inflow",
+      amount: 87_654_321,
+      currency: "KRW",
+      client_group_id: null,
+      status: "review_required",
+    },
+    {
+      model_type: "FeeCommitment",
+      tenant_id: TENANT,
+      fee_commitment_id: "fee_missing_early",
+      client_group_id: "client_allowed",
+      opportunity_id: "op_fee_early",
+      matter_id: null,
+      currency: "KRW",
+      agreed_amount: null,
+      due_date: "2026-07-05",
+      accepted_at: "2026-07-01T00:00:00.000Z",
+      status: "active",
+      source_fee_arrangement_id: null,
+      state_version: 1,
+      created_by: "principal_partner",
+      updated_by: "principal_partner",
+      reason: "금액 협의 중",
+    },
+    {
+      model_type: "FeeCommitment",
+      tenant_id: TENANT,
+      fee_commitment_id: "fee_missing_late",
+      client_group_id: "client_allowed",
+      opportunity_id: "op_fee_late",
+      matter_id: null,
+      currency: "KRW",
+      agreed_amount: null,
+      due_date: null,
+      accepted_at: "2026-07-10T00:00:00.000Z",
+      status: "active",
+      source_fee_arrangement_id: null,
+      state_version: 1,
+      created_by: "principal_partner",
+      updated_by: "principal_partner",
+      reason: "금액 협의 중",
+    },
+    {
+      model_type: "FeeCommitment",
+      tenant_id: TENANT,
+      fee_commitment_id: "fee_known",
+      client_group_id: "client_allowed",
+      agreed_amount: 1_000_000,
+      status: "active",
+    },
+    {
+      model_type: "FeeCommitment",
+      tenant_id: TENANT,
+      fee_commitment_id: "fee_denied_malformed",
+      client_group_id: "client_denied",
+      agreed_amount: null,
+      status: "active",
+    },
+  ];
+  const context = fixturePermissionContext();
+  context.object_acl = [
+    {
+      id: "deny-client",
+      effect: "deny",
+      principal_id: "principal_partner",
+      action: "analytics:client:read",
+      resource_id: "client_denied",
+    },
+    {
+      id: "deny-bank-review",
+      effect: "deny",
+      principal_id: "principal_partner",
+      action: "finance:bank_classification:read",
+      resource_id: "classification_acl_denied",
+    },
+  ];
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(clientRecords),
+    crmRepository: repository(crmRecords),
+    financeRepository: repository(financeRecords),
+  });
+
+  const first = readModel.readAttentionItems({
+    tenant_id: TENANT,
+    permission_context: context,
+    as_of: "2026-07-30T03:00:00.000Z",
+  });
+  const second = readModel.readAttentionItems({
+    tenant_id: TENANT,
+    permission_context: context,
+    as_of: "2026-07-30T03:00:00.000Z",
+  });
+  assert.deepEqual(second, first);
+  assert.deepEqual(first.item.attention_item_ids, [
+    "consultation_past_old",
+    "consultation_past_recent",
+    "lead_new_old",
+    "lead_new_recent",
+    "consultation_today_old",
+    "consultation_today_recent",
+    "op_review",
+    "bank_review_early",
+    "bank_review_late",
+    "fee_missing_early",
+    "fee_missing_late",
+  ]);
+  assert.deepEqual(
+    [...new Set(first.item.items.map(
+      ({ attention_type }) => attention_type,
+    ))],
+    [
+      "overdue_consultation",
+      "unassigned_new_inquiry",
+      "consultation_today",
+      "engagement_review",
+      "bank_match_review",
+      "fee_amount_missing",
+    ],
+  );
+  assert.equal(
+    new Set(first.item.attention_item_ids).size,
+    first.item.attention_item_ids.length,
+  );
+  const serialized = JSON.stringify(first);
+  for (const forbidden of [
+    "client_denied",
+    "party_denied",
+    "lead_denied",
+    "consultation_denied",
+    "classification_denied_client",
+    "classification_acl_denied",
+    "bank_denied_client",
+    "bank_acl_denied",
+    "fee_denied_malformed",
+    "비공개 고객",
+    "98765432",
+    "87654321",
+    "원문 거래상대방 A",
+    "원문 거래상대방 B",
+  ]) {
+    assert.equal(serialized.includes(forbidden), false);
+  }
+});
+
+test("CL-P4-W01-T03 입금 분류 조회 권한이 없으면 Finance 원천을 읽기 전에 차단한다", () => {
+  let financeReadCount = 0;
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository([{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client_allowed",
+      display_name: "허용 고객",
+      member_party_ids: ["party_allowed"],
+      primary_party_id: "party_allowed",
+      status: "active",
+    }]),
+    crmRepository: repository([]),
+    financeRepository: {
+      list() {
+        financeReadCount += 1;
+        throw new Error("Finance must not be read");
+      },
+    },
+  });
+  const context = fixturePermissionContext();
+  context.rules = context.rules.filter(
+    ({ action }) => (
+      action !== "finance:bank_classification:read"
+    ),
+  );
+
+  assert.throws(
+    () => readModel.readAttentionItems({
+      tenant_id: TENANT,
+      permission_context: context,
+      as_of: "2026-07-30T03:00:00.000Z",
+    }),
+    (error) => (
+      error.safe_error_code
+        === "CLIENT_OPERATIONS_BANK_REVIEW_READ_DENIED"
+    ),
+  );
   assert.equal(financeReadCount, 0);
 });

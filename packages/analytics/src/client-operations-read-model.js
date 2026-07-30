@@ -6,6 +6,9 @@ import {
   buildClientReceivables,
 } from "../../billing/src/client-receivables-service.js";
 import {
+  normalizeFeeCommitment,
+} from "../../billing/src/fee-commitment-model.js";
+import {
   projectCrmInquiry,
 } from "../../crm/src/inquiry-read-model.js";
 
@@ -13,8 +16,18 @@ const ACTIVE_CLIENT_STATUSES = new Set(["active", "current", "open"]);
 const CLIENT_READ_ACTION = "analytics:client:read";
 const INQUIRY_READ_ACTION = "crm:inquiry:read";
 const CONSULTATION_READ_ACTION = "crm:consultation:read";
+const BANK_CLASSIFICATION_READ_ACTION =
+  "finance:bank_classification:read";
 const CLIENT_OPERATIONS_TIMEZONE = "Asia/Seoul";
 const CLOSED_ACTIVITY_STATUSES = new Set(["archived", "cancelled"]);
+const ATTENTION_TYPE_PRIORITY = Object.freeze({
+  overdue_consultation: 10,
+  unassigned_new_inquiry: 20,
+  consultation_today: 30,
+  engagement_review: 40,
+  bank_match_review: 50,
+  fee_amount_missing: 60,
+});
 
 function requiredText(value, field) {
   const text = String(value ?? "").trim();
@@ -439,6 +452,8 @@ function crmInquiryProjections({
   ));
 
   return Object.freeze({
+    leads: Object.freeze(scopedLeads),
+    opportunities: Object.freeze(scopedOpportunities),
     consultations: Object.freeze(consultations),
     projections: Object.freeze(scopedLeads.map((lead) => (
       projectCrmInquiry({
@@ -581,6 +596,497 @@ export function buildClientOperationsKpis({
     unauthorized_amount_included: false,
     invoice_required: false,
     matter_required: false,
+    production_ready_claim: false,
+  });
+}
+
+function canonicalInstant(value, field) {
+  const text = requiredText(value, field);
+  const milliseconds = Date.parse(text);
+  if (!Number.isFinite(milliseconds)) {
+    throw new TypeError(`${field} must be a valid instant`);
+  }
+  return new Date(milliseconds).toISOString();
+}
+
+function positiveWholeKrw(value, field) {
+  if (
+    typeof value !== "number"
+    || !Number.isSafeInteger(value)
+    || value <= 0
+  ) {
+    throw new TypeError(
+      `${field} must be a positive whole KRW amount`,
+    );
+  }
+  return value;
+}
+
+function createAttentionItem({
+  attention_item_id,
+  attention_type,
+  label,
+  title,
+  due_at = null,
+  occurred_at = null,
+  client_group_id = null,
+  assigned_user_id = null,
+  amount = null,
+  currency = null,
+  destination,
+}) {
+  const priority = ATTENTION_TYPE_PRIORITY[attention_type];
+  if (!priority) {
+    throw new TypeError(
+      `Unsupported Client attention type: ${attention_type}`,
+    );
+  }
+  return Object.freeze({
+    attention_item_id: requiredText(
+      attention_item_id,
+      "attention_item_id",
+    ),
+    attention_type,
+    label: requiredText(label, "attention label"),
+    title: requiredText(title, "attention title"),
+    priority,
+    due_at,
+    occurred_at,
+    client_group_id,
+    assigned_user_id,
+    amount,
+    currency,
+    destination: Object.freeze({ ...destination }),
+    production_ready_claim: false,
+  });
+}
+
+function compareAttentionItems(left, right) {
+  return (
+    left.priority - right.priority
+    || String(
+      left.due_at ?? left.occurred_at ?? "\uffff",
+    ).localeCompare(
+      String(right.due_at ?? right.occurred_at ?? "\uffff"),
+    )
+    || left.attention_item_id.localeCompare(
+      right.attention_item_id,
+      "en",
+    )
+  );
+}
+
+function crmAttentionItems({
+  crm,
+  asOf,
+  timeZone,
+}) {
+  const today = zonedDate(asOf, timeZone);
+  const leadsById = new Map(
+    crm.leads.map((lead) => [lead.lead_id, lead]),
+  );
+  const opportunitiesById = new Map(
+    crm.opportunities.map((opportunity) => [
+      opportunity.opportunity_id,
+      opportunity,
+    ]),
+  );
+  const projectionsByLeadId = new Map(
+    crm.projections.map((projection) => [
+      projection.lead_id,
+      projection,
+    ]),
+  );
+  const projectionsByOpportunityId = new Map(
+    crm.projections
+      .filter(({ opportunity_id }) => Boolean(opportunity_id))
+      .map((projection) => [
+        projection.opportunity_id,
+        projection,
+      ]),
+  );
+  const items = [];
+
+  for (const projection of crm.projections) {
+    const lead = leadsById.get(projection.lead_id);
+    if (
+      projection.visible_status !== "new"
+      || (
+        typeof lead?.assigned_user_id === "string"
+        && lead.assigned_user_id.trim() !== ""
+      )
+    ) {
+      continue;
+    }
+    items.push(createAttentionItem({
+      attention_item_id: projection.lead_id,
+      attention_type: "unassigned_new_inquiry",
+      label: "새 문의 담당자 지정",
+      title: projection.display_name,
+      occurred_at: canonicalInstant(
+        projection.received_at,
+        "Lead.received_at",
+      ),
+      client_group_id: projection.client_group_id,
+      assigned_user_id: null,
+      destination: {
+        section: "new_inquiries",
+        record_id: projection.lead_id,
+        filter: "new",
+      },
+    }));
+  }
+
+  for (const consultation of crm.consultations) {
+    if (!isIncompleteConsultation(consultation)) continue;
+    const projection =
+      projectionsByLeadId.get(consultation.lead_id)
+      ?? projectionsByOpportunityId.get(
+        consultation.opportunity_id,
+      );
+    if (!projection) continue;
+    const scheduledStart = canonicalInstant(
+      consultation.scheduled_start
+        ?? consultation.scheduled_at,
+      "CRMActivity.scheduled_start",
+    );
+    const consultationDate = zonedDate(
+      new Date(scheduledStart),
+      timeZone,
+    );
+    const attentionType = consultationDate < today
+      ? "overdue_consultation"
+      : consultationDate === today
+        ? "consultation_today"
+        : null;
+    if (!attentionType) continue;
+    const activityId = requiredText(
+      consultation.crm_activity_id
+        ?? consultation.activity_id
+        ?? consultation.resource_id,
+      "CRMActivity ID",
+    );
+    items.push(createAttentionItem({
+      attention_item_id: activityId,
+      attention_type: attentionType,
+      label: attentionType === "overdue_consultation"
+        ? "지난 상담 확인"
+        : "오늘 상담",
+      title: projection.display_name,
+      due_at: scheduledStart,
+      client_group_id: projection.client_group_id,
+      assigned_user_id: projection.assigned_user_id,
+      destination: {
+        section: "consultations",
+        record_id: activityId,
+        inquiry_id: projection.lead_id,
+        filter: attentionType === "overdue_consultation"
+          ? "overdue"
+          : "today",
+      },
+    }));
+  }
+
+  for (const projection of crm.projections) {
+    if (
+      projection.visible_status !== "engagement_review"
+      || !projection.opportunity_id
+    ) {
+      continue;
+    }
+    const opportunity = opportunitiesById.get(
+      projection.opportunity_id,
+    );
+    const openedAt = canonicalInstant(
+      opportunity?.engagement_decided_at
+        ?? opportunity?.created_at
+        ?? opportunity?.updated_at
+        ?? projection.received_at,
+      "Opportunity review timestamp",
+    );
+    items.push(createAttentionItem({
+      attention_item_id: projection.opportunity_id,
+      attention_type: "engagement_review",
+      label: "수임 여부 결정",
+      title: projection.display_name,
+      occurred_at: openedAt,
+      client_group_id: projection.client_group_id,
+      assigned_user_id: projection.assigned_user_id,
+      destination: {
+        section: "engagement_status",
+        record_id: projection.opportunity_id,
+        inquiry_id: projection.lead_id,
+        filter: "reviewing",
+      },
+    }));
+  }
+
+  return items;
+}
+
+function bankReviewAttentionItems({
+  repository,
+  tenantId,
+  permissionContext,
+  accessScope,
+}) {
+  assertReadPermission(permissionContext, {
+    action: BANK_CLASSIFICATION_READ_ACTION,
+    resourceType: "bank_transaction_classification",
+    safeErrorCode:
+      "CLIENT_OPERATIONS_BANK_REVIEW_READ_DENIED",
+    source: "finance.BankTransactionClassification",
+    tenantId,
+  });
+  const allowedClientIds = new Set(
+    accessScope.allowed_client_group_ids,
+  );
+  const classifications = listSource(
+    repository,
+    tenantId,
+    "BankTransactionClassification",
+    "finance.BankTransactionClassification",
+  ).filter((classification) => (
+    classification.status === "review_required"
+    && classification.transaction_direction === "inflow"
+    && (
+      !classification.client_group_id
+      || allowedClientIds.has(classification.client_group_id)
+    )
+  )).filter((classification) => (
+    readDecision(permissionContext, {
+      action: BANK_CLASSIFICATION_READ_ACTION,
+      resourceType: "bank_transaction_classification",
+      resourceId:
+        classification.bank_transaction_classification_id,
+      tenantId,
+    }).effect === "allow"
+  ));
+  if (classifications.length === 0) return [];
+  const transactions = listSource(
+    repository,
+    tenantId,
+    "BankTransaction",
+    "finance.BankTransaction",
+  );
+  const transactionsById = new Map(
+    transactions.map((transaction) => [
+      transaction.bank_transaction_id,
+      transaction,
+    ]),
+  );
+  if (transactionsById.size !== transactions.length) {
+    throw new TypeError("Duplicate BankTransaction ID");
+  }
+  const seenTransactionIds = new Set();
+  const clientNames = new Map(
+    accessScope.permitted_client_records.map((client) => [
+      client.client_group_id,
+      client.display_name,
+    ]),
+  );
+  return classifications.map((classification) => {
+    const transactionId = requiredText(
+      classification.bank_transaction_id,
+      "BankTransactionClassification.bank_transaction_id",
+    );
+    if (seenTransactionIds.has(transactionId)) {
+      throw new TypeError(
+        `Duplicate bank review task: ${transactionId}`,
+      );
+    }
+    seenTransactionIds.add(transactionId);
+    const transaction = transactionsById.get(transactionId);
+    const amount = positiveWholeKrw(
+      transaction?.amount,
+      "BankTransaction.amount",
+    );
+    if (
+      transaction.direction !== "inflow"
+      || transaction.currency !== "KRW"
+      || classification.currency !== "KRW"
+      || positiveWholeKrw(
+        classification.amount,
+        "BankTransactionClassification.amount",
+      ) !== amount
+      || classification.transaction_date !== transaction.date
+    ) {
+      throw new TypeError(
+        `Bank review task does not reconcile: ${transactionId}`,
+      );
+    }
+    const occurredAt = canonicalInstant(
+      transaction.occurred_at,
+      "BankTransaction.occurred_at",
+    );
+    const clientName = clientNames.get(
+      classification.client_group_id,
+    );
+    return createAttentionItem({
+      attention_item_id: transactionId,
+      attention_type: "bank_match_review",
+      label: "입금 고객 연결",
+      title: clientName
+        ? `${clientName} 입금 확인`
+        : "입금 고객 미확인",
+      due_at: occurredAt,
+      client_group_id:
+        classification.client_group_id ?? null,
+      amount,
+      currency: "KRW",
+      destination: {
+        section: "deposit_revenue",
+        record_id: transactionId,
+        filter: "review_required",
+      },
+    });
+  });
+}
+
+function feeAmountAttentionItems({
+  repository,
+  tenantId,
+  accessScope,
+}) {
+  const allowedClientIds = new Set(
+    accessScope.allowed_client_group_ids,
+  );
+  const clientNames = new Map(
+    accessScope.permitted_client_records.map((client) => [
+      client.client_group_id,
+      client.display_name,
+    ]),
+  );
+  return listSource(
+    repository,
+    tenantId,
+    "FeeCommitment",
+    "finance.FeeCommitment",
+  )
+    .filter((commitment) => (
+      allowedClientIds.has(commitment.client_group_id)
+      && commitment.status === "active"
+      && commitment.agreed_amount === null
+    ))
+    .map(normalizeFeeCommitment)
+    .map((commitment) => createAttentionItem({
+      attention_item_id: commitment.fee_commitment_id,
+      attention_type: "fee_amount_missing",
+      label: "수임료 입력",
+      title:
+        clientNames.get(commitment.client_group_id)
+        ?? "고객 수임료",
+      due_at: commitment.due_date,
+      occurred_at: canonicalInstant(
+        commitment.accepted_at,
+        "FeeCommitment.accepted_at",
+      ),
+      client_group_id: commitment.client_group_id,
+      amount: null,
+      currency: "KRW",
+      destination: {
+        section: "receivables",
+        record_id: commitment.fee_commitment_id,
+        filter: "amount_missing",
+      },
+    }));
+}
+
+export function buildClientOperationsAttentionItems({
+  access_scope,
+  client_reference_access,
+  financeRepository,
+  crmRepository,
+  tenant_id,
+  permission_context,
+  as_of,
+  timezone = CLIENT_OPERATIONS_TIMEZONE,
+} = {}) {
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  if (access_scope?.tenant_id !== tenantId) {
+    throw new TypeError(
+      "Client operations access scope does not match tenant_id",
+    );
+  }
+  if (timezone !== CLIENT_OPERATIONS_TIMEZONE) {
+    throw new TypeError(
+      "Client operations timezone must be Asia/Seoul",
+    );
+  }
+  if (typeof client_reference_access !== "function") {
+    throw new TypeError(
+      "Client operations require a precomputed client reference guard",
+    );
+  }
+  const asOf = canonicalAsOf(as_of);
+  const crm = crmInquiryProjections({
+    repository: crmRepository,
+    tenantId,
+    permissionContext: permission_context,
+    referenceAccess: client_reference_access,
+  });
+  const items = [
+    ...crmAttentionItems({
+      crm,
+      asOf,
+      timeZone: timezone,
+    }),
+    ...bankReviewAttentionItems({
+      repository: financeRepository,
+      tenantId,
+      permissionContext: permission_context,
+      accessScope: access_scope,
+    }),
+    ...feeAmountAttentionItems({
+      repository: financeRepository,
+      tenantId,
+      accessScope: access_scope,
+    }),
+  ];
+  const itemIds = new Set(
+    items.map(({ attention_item_id }) => attention_item_id),
+  );
+  if (itemIds.size !== items.length) {
+    throw new TypeError("Duplicate Client attention item ID");
+  }
+  const sortedItems = Object.freeze(
+    items
+      .sort(compareAttentionItems)
+      .map((item, index) => Object.freeze({
+        order: index + 1,
+        ...item,
+      })),
+  );
+  return Object.freeze({
+    as_of: asOf.toISOString(),
+    timezone,
+    today: zonedDate(asOf, timezone),
+    items: sortedItems,
+    attention_item_ids: Object.freeze(
+      sortedItems.map(({ attention_item_id }) => (
+        attention_item_id
+      )),
+    ),
+    evaluated_attention_types: Object.freeze(
+      Object.keys(ATTENTION_TYPE_PRIORITY),
+    ),
+    source_statuses: Object.freeze([
+      Object.freeze({ source: "master-data.ClientGroup", status: "passed" }),
+      Object.freeze({ source: "crm.Lead", status: "passed" }),
+      Object.freeze({ source: "crm.Opportunity", status: "passed" }),
+      Object.freeze({ source: "crm.CRMActivity", status: "passed" }),
+      Object.freeze({
+        source: "finance.BankTransactionClassification",
+        status: "passed",
+      }),
+      Object.freeze({ source: "finance.FeeCommitment", status: "passed" }),
+    ]),
+    stable_sort:
+      "업무 우선순위 → 기한·발생 시각 → 항목 ID",
+    permission_prefilter_applied: true,
+    unauthorized_count_included: false,
+    unauthorized_amount_included: false,
+    raw_bank_counterparty_included: false,
     production_ready_claim: false,
   });
 }
@@ -774,6 +1280,30 @@ export function createClientOperationsReadModel({
           access_scope,
           client_reference_access,
         }) => buildClientOperationsKpis({
+          access_scope,
+          client_reference_access,
+          financeRepository,
+          crmRepository,
+          tenant_id,
+          permission_context,
+          as_of,
+          timezone,
+        }),
+      });
+    },
+    readAttentionItems({
+      tenant_id,
+      permission_context,
+      as_of,
+      timezone = CLIENT_OPERATIONS_TIMEZONE,
+    } = {}) {
+      return readWithAccess({
+        tenant_id,
+        permission_context,
+        project: ({
+          access_scope,
+          client_reference_access,
+        }) => buildClientOperationsAttentionItems({
           access_scope,
           client_reference_access,
           financeRepository,
