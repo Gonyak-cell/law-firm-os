@@ -1440,6 +1440,32 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.match(await nonPayrollChart.innerText(), /기타\s*44건\s*4,051,850원/);
     assert.equal(await nonPayrollChart.locator(".home-donut-segment").count(), 6);
     assert.equal(await nonPayrollChart.locator(".home-donut-total").textContent(), "136,100,193");
+    assert.deepEqual(
+      await nonPayrollChart.locator(".home-donut-segment").evaluateAll((segments) =>
+        segments.map((segment) => getComputedStyle(segment).stroke)),
+      [
+        "rgb(18, 63, 103)",
+        "rgb(31, 95, 139)",
+        "rgb(47, 119, 168)",
+        "rgb(87, 150, 189)",
+        "rgb(128, 178, 207)",
+        "rgb(175, 207, 223)",
+      ],
+    );
+    const payrollDonutClosure = await payrollChart.locator(".home-donut-segment").evaluateAll((segments) => {
+      const last = segments.at(-1);
+      const [renderLength] = String(last?.getAttribute("stroke-dasharray") ?? "").split(/\s+/).map(Number);
+      const percent = Number(last?.getAttribute("data-home-donut-percent") ?? 0);
+      const offset = Math.abs(Number(last?.getAttribute("stroke-dashoffset") ?? 0));
+      return {
+        lineCaps: segments.map((segment) => segment.getAttribute("stroke-linecap")),
+        closesAt: percent + offset,
+        visualClosure: renderLength + offset,
+      };
+    });
+    assert.deepEqual(payrollDonutClosure.lineCaps, ["butt", "butt", "butt"]);
+    assert.ok(Math.abs(payrollDonutClosure.closesAt - 100) < 0.000001);
+    assert.ok(payrollDonutClosure.visualClosure > 100 && payrollDonutClosure.visualClosure < 100.2);
     const donutLegendLayout = await page.evaluate(() => {
       const payrollSvg = document.querySelector('[data-home-payroll-donut-chart="true"] svg').getBoundingClientRect();
       const payrollLegend = document.querySelector('[data-home-donut-legend="payroll"]').getBoundingClientRect();
@@ -2226,6 +2252,18 @@ test("profile uses account English name and HRX role fields in the portrait pane
           tenant_id: "tenant_amic_matter_vault"
         })
       };
+      try {
+        window.localStorage.setItem("lawos.profile.override.emp_amic_jwsuh", JSON.stringify({
+          profile_override_version: 1,
+          english_name: "Jiwon Suh",
+          professional_profile: {
+            experience: [],
+            education: [],
+            qualifications: [],
+            practice_areas: []
+          }
+        }));
+      } catch {}
     });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
@@ -2239,8 +2277,16 @@ test("profile uses account English name and HRX role fields in the portrait pane
             tenant_ref: "tenant_amic_matter_vault",
             display_name: "세션 사용자",
             english_name: "Jiwon Suh",
+            employee_id: "emp_amic_jwsuh",
             title: "대표변호사",
             department: "Legal",
+            professional_profile: {
+              profile_kind: "attorney",
+              experience: ["법무법인 아믹 대표변호사 (2025~현재)"],
+              education: ["서울대학교 교육학과 학사"],
+              qualifications: ["대한민국 변호사"],
+              practice_areas: ["M&A"]
+            },
             photo_url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/69a3GQAAAABJRU5ErkJggg==",
             primary_role_label: "role_unassigned",
             role_count: 1
@@ -2264,7 +2310,21 @@ test("profile uses account English name and HRX role fields in the portrait pane
     assert.equal(await profile.locator("[data-profile-title]").innerText(), "대표변호사");
     assert.equal(await profile.locator("[data-profile-department]").innerText(), "Legal");
     assert.equal(await profile.locator("[data-profile-portrait-panel]").count(), 1);
+    assert.match(await profile.innerText(), /법무법인 아믹 대표변호사/);
+    assert.match(await profile.innerText(), /서울대학교 교육학과 학사/);
+    assert.match(await profile.innerText(), /대한민국 변호사/);
+    assert.match(await profile.innerText(), /M&A/);
     assert.doesNotMatch(await profile.innerText(), /세션 사용자|미등록/);
+
+    await profile.getByRole("button", { name: "Edit" }).click();
+    await profile.getByRole("button", { name: "Save" }).click();
+    assert.match(await profile.innerText(), /법무법인 아믹 대표변호사/);
+    assert.equal(
+      await page.evaluate(() => JSON.parse(
+        window.localStorage.getItem("lawos.profile.override.emp_amic_jwsuh"),
+      ).profile_override_version),
+      2,
+    );
 
     const desktopPortrait = await profile.locator("[data-profile-portrait-panel]").evaluate((panel) => {
       const rect = (selector) => panel.querySelector(selector)?.getBoundingClientRect() ?? null;

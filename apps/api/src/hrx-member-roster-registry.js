@@ -28,6 +28,7 @@ export const HRX_MEMBER_PHOTO_SOURCE_PATH = photoSourcePath ?? (existsSync(packa
 export const HRX_PUBLIC_PROFESSIONAL_PROFILE_SOURCE_REF = "hrx-public-professional-profile-catalog";
 
 const SAFE_MEMBER_PHOTO_REF = /^[A-Za-z0-9_-]{1,128}$/u;
+const OPAQUE_EMPLOYEE_REF = /^[a-f0-9]{64}$/u;
 
 function deepFreeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -97,7 +98,7 @@ function readPublicProfessionalProfileCatalog(path = packagedProfessionalProfile
   if (!source || typeof source !== "object" || !Array.isArray(source.profiles)) {
     throw new TypeError("Packaged HRX public professional profile catalog must contain a profiles array");
   }
-  const allowedRowKeys = new Set(["employee_id", "professional_profile"]);
+  const allowedRowKeys = new Set(["employee_id", "employee_ref", "professional_profile"]);
   const allowedProfileKeys = new Set([
     "schema_version",
     "profile_kind",
@@ -107,23 +108,27 @@ function readPublicProfessionalProfileCatalog(path = packagedProfessionalProfile
     "education",
     "qualifications",
   ]);
-  const seenEmployeeIds = new Set();
+  const seenEmployeeRefs = new Set();
   for (const [index, row] of source.profiles.entries()) {
     if (Object.keys(row ?? {}).some((key) => !allowedRowKeys.has(key))) {
       throw new TypeError(`Packaged HRX public professional profile row ${index} contains a non-public field`);
     }
     const employeeId = stringField(row, "employee_id");
+    const employeeRef = stringField(row, "employee_ref");
     const professionalProfile = objectField(row, "professional_profile");
-    if (!employeeId || !professionalProfile) {
+    if ((!employeeId && !OPAQUE_EMPLOYEE_REF.test(employeeRef))
+      || (employeeId && employeeRef)
+      || !professionalProfile) {
       throw new TypeError(`Packaged HRX public professional profile row ${index} is incomplete`);
     }
     if (Object.keys(professionalProfile).some((key) => !allowedProfileKeys.has(key))) {
       throw new TypeError(`Packaged HRX public professional profile row ${index} contains a non-public profile field`);
     }
-    if (seenEmployeeIds.has(employeeId)) {
-      throw new TypeError(`Packaged HRX public professional profile row ${index} duplicates employee_id`);
+    const joinRef = employeeId || employeeRef;
+    if (seenEmployeeRefs.has(joinRef)) {
+      throw new TypeError(`Packaged HRX public professional profile row ${index} duplicates employee reference`);
     }
-    seenEmployeeIds.add(employeeId);
+    seenEmployeeRefs.add(joinRef);
   }
   return source;
 }
@@ -187,7 +192,11 @@ export function findHrxPublicProfessionalProfileByEmployeeId(
   seed = HRX_PUBLIC_PROFESSIONAL_PROFILE_CATALOG,
 ) {
   const normalized = String(employeeId ?? "").trim();
-  const row = (seed.profiles ?? []).find((profile) => stringField(profile, "employee_id") === normalized);
+  if (!normalized) return null;
+  const opaqueRef = createHash("sha256").update(normalized).digest("hex");
+  const row = (seed.profiles ?? []).find((profile) =>
+    stringField(profile, "employee_id") === normalized
+    || stringField(profile, "employee_ref") === opaqueRef);
   if (!row) return null;
   return Object.freeze({
     employee_id: normalized,

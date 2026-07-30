@@ -18,11 +18,14 @@ import {
   CTI_MATTER_STORE_READ_MODEL_PROOF_APPROVAL_REF,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_ACTION,
   CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_APPROVAL_REF,
+  HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+  HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF,
   HRX_ROSTER_RECONCILE_ACTION,
   HRX_ROSTER_RECONCILE_APPROVAL_REF,
   LCX_AUTH_RESET_RECOVERY_ACTION,
   LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
   buildCtiS1GAuthenticatedProductionProbeReceipt,
+  buildHomeFinanceDashboardSmokeReceipt,
   buildCtiS5EnrichmentExecuteReceipt,
   buildCtiCutoverExecuteRetryReceipt,
   buildHrxRosterReconcileReceipt,
@@ -581,6 +584,139 @@ test("I18 S1-G authenticated production probe surface is direct-invoke only", as
   const body = JSON.parse(response.body);
   assert.equal(body.reason, "cti_s1g_probe_surface_direct_invoke_only");
   assert.equal(body.public_http_endpoint, false);
+});
+
+test("Home finance production smoke reconciles dashboard numbers without returning row-level data", () => {
+  const tenantId = "tenant_amic_matter_vault";
+  const records = [
+    {
+      model_type: "BankImportBatch",
+      bank_import_batch_id: "dashboard-smoke-batch",
+      tenant_id: tenantId,
+      transaction_count: 6,
+      status: "reconciled",
+      created_at: "2026-07-30T00:00:00.000Z",
+    },
+    ...[
+      ["sales-current", "2026-07-05", "inflow", 21_000_000, 80_000_000],
+      ["payroll-partner", "2026-07-25", "outflow", 6_000_000, 74_000_000],
+      ["payroll-staff", "2026-07-25", "outflow", 3_000_000, 71_000_000],
+      ["payroll-advisor", "2026-07-25", "outflow", 1_000_000, 70_000_000],
+      ["rent-current", "2026-07-26", "outflow", 2_000_000, 68_000_000],
+      ["sales-previous", "2026-06-12", "inflow", 10_000_000, 47_000_000],
+    ].map(([id, date, direction, amount, balance], index) => ({
+      model_type: "BankTransaction",
+      bank_transaction_id: `dashboard-smoke-${id}`,
+      bank_import_batch_id: "dashboard-smoke-batch",
+      tenant_id: tenantId,
+      account_ref: "dashboard-smoke-account",
+      transaction_fingerprint: String(index + 1).repeat(64),
+      date,
+      occurred_at: `${date}T12:00:00+09:00`,
+      direction,
+      amount,
+      balance_after: balance,
+      currency: "KRW",
+      classification_state: "confirmed",
+    })),
+    ...[
+      ["sales-current", "2026-07-05", "inflow", 21_000_000, "sales", "client_receipt", null, null],
+      ["payroll-partner", "2026-07-25", "outflow", 6_000_000, "payroll", "salary_payment", "partner", "employee-partner"],
+      ["payroll-staff", "2026-07-25", "outflow", 3_000_000, "payroll", "salary_payment", "staff", "employee-staff"],
+      ["payroll-advisor", "2026-07-25", "outflow", 1_000_000, "payroll", "salary_payment", "advisor", "employee-advisor"],
+      ["rent-current", "2026-07-26", "outflow", 2_000_000, "operating_expense", "rent_office", null, null],
+      ["sales-previous", "2026-06-12", "inflow", 10_000_000, "sales", "client_receipt", null, null],
+    ].map(([id, date, direction, amount, primaryType, category, payrollCategory, employeeId]) => ({
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: `dashboard-smoke-classification-${id}`,
+      tenant_id: tenantId,
+      bank_transaction_id: `dashboard-smoke-${id}`,
+      account_ref: "dashboard-smoke-account",
+      transaction_date: date,
+      transaction_month: date.slice(0, 7),
+      transaction_direction: direction,
+      amount,
+      currency: "KRW",
+      primary_type: primaryType,
+      category,
+      category_label: category === "rent_office" ? "임차·사무실" : category,
+      payroll_category: payrollCategory,
+      employee_id: employeeId,
+      status: "confirmed",
+    })),
+  ];
+  const repository = {
+    list({ tenant_id, model_type }) {
+      return records.filter((record) =>
+        record.tenant_id === tenant_id && record.model_type === model_type);
+    },
+  };
+  const receipt = buildHomeFinanceDashboardSmokeReceipt({
+    financeRepository: repository,
+    tenantId,
+    now: () => new Date("2026-07-30T03:00:00.000Z"),
+    requireCurrentActivity: true,
+  });
+
+  assert.equal(receipt.status, "PASS");
+  assert.equal(receipt.metrics.current_sales_krw, 21_000_000);
+  assert.equal(receipt.metrics.current_payroll_krw, 10_000_000);
+  assert.equal(receipt.metrics.current_non_payroll_outflow_krw, 2_000_000);
+  assert.deepEqual(receipt.metrics.six_month_sales_krw, [0, 0, 0, 0, 10_000_000, 21_000_000]);
+  assert.equal(Object.values(receipt.checks).every(Boolean), true);
+  assert.equal(receipt.production_write_executed, false);
+  assert.equal(receipt.raw_transaction_values_returned, false);
+  assert.equal(receipt.individual_payroll_values_returned, false);
+  assert.equal(JSON.stringify(receipt).includes("employee-partner"), false);
+});
+
+test("Home finance production smoke fails closed for HTTP access, missing approval, and incomplete classification", async () => {
+  const httpResponse = await handler({
+    rawPath: "/api/maintenance/home-finance-dashboard-smoke",
+    requestContext: { http: { method: "POST" } },
+    lawos_maintenance_action: HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+    approval_signature_ref: HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF,
+  });
+  assert.equal(httpResponse.statusCode, 403);
+  assert.equal(
+    JSON.parse(httpResponse.body).reason,
+    "home_finance_dashboard_smoke_direct_invoke_only",
+  );
+
+  const approvalResponse = await handler({
+    lawos_maintenance_action: HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+  });
+  assert.equal(approvalResponse.statusCode, 403);
+  assert.equal(
+    JSON.parse(approvalResponse.body).required_approval_signature_ref,
+    HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF,
+  );
+
+  const records = [{
+    model_type: "BankTransaction",
+    bank_transaction_id: "dashboard-smoke-unclassified",
+    tenant_id: "tenant_amic_matter_vault",
+    account_ref: "dashboard-smoke-account",
+    date: "2026-07-30",
+    occurred_at: "2026-07-30T12:00:00+09:00",
+    direction: "inflow",
+    amount: 1_000,
+    balance_after: 1_000,
+    currency: "KRW",
+    classification_state: "unreviewed",
+  }];
+  const receipt = buildHomeFinanceDashboardSmokeReceipt({
+    financeRepository: {
+      list({ tenant_id, model_type }) {
+        return records.filter((record) =>
+          record.tenant_id === tenant_id && record.model_type === model_type);
+      },
+    },
+    now: () => new Date("2026-07-30T03:00:00.000Z"),
+  });
+  assert.equal(receipt.status, "BLOCKED_HOME_FINANCE_DASHBOARD_CONTRACT");
+  assert.equal(receipt.reason, "dashboard_numeric_contract_failed");
+  assert.equal(receipt.checks.classifications_reconciled, false);
 });
 
 test("approved HRX roster reconciliation creates the current members and reporting lines with backup-safe evidence", async () => {
