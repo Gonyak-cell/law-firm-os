@@ -5,12 +5,13 @@ import {
   previewBankTransactionClassifications,
   reviewBankTransactionClassifications,
 } from "../src/bank-classification-service.js";
+import { FINANCE_DOMAIN_DESCRIPTOR } from "../src/central-ledger.js";
 import { createFinanceRepository } from "../src/finance-repository.js";
 
 const TENANT = "tenant-client-deposit-revenue";
 const ACTOR = "user-client-deposit-reviewer";
 
-function bankTransaction(id, counterparty, amount = 1_000_000) {
+function bankTransaction(id, counterparty, amount = 1_000_000, overrides = {}) {
   return {
     model_type: "BankTransaction",
     bank_transaction_id: id,
@@ -30,6 +31,7 @@ function bankTransaction(id, counterparty, amount = 1_000_000) {
     source_category: "미분류",
     classification_scope: "unreviewed",
     source_refs: [],
+    ...overrides,
   };
 }
 
@@ -233,6 +235,162 @@ test("VC-CL-REV-007 수동 재연결과 해제는 원본을 바꾸지 않고 감
     repository.listAudit({ tenant_id: TENANT })
       .filter((event) => event.action === "bank.transaction.classification.review").length,
     2,
+  );
+  repository.close();
+});
+
+test("VC-CL-REV-008 고객 환불은 원입금과 고객을 잇고 누적 원입금액을 넘지 않는다", () => {
+  const original = bankTransaction("bank_refund_origin", "새봄테크", 3_000_000, {
+    date: "2026-06-25",
+    occurred_at: "2026-06-25T09:00:00+09:00",
+  });
+  const firstRefund = bankTransaction("bank_refund_first", "새봄테크 고객 환불", 1_000_000, {
+    date: "2026-07-25",
+    occurred_at: "2026-07-25T09:00:00+09:00",
+    direction: "outflow",
+    source_category: "고객 환불",
+  });
+  const secondRefund = bankTransaction("bank_refund_second", "새봄테크 고객 환불", 1_500_000, {
+    date: "2026-07-26",
+    occurred_at: "2026-07-26T09:00:00+09:00",
+    direction: "outflow",
+    source_category: "고객 환불",
+  });
+  const excessiveRefund = bankTransaction("bank_refund_excess", "새봄테크 고객 환불", 600_000, {
+    date: "2026-07-27",
+    occurred_at: "2026-07-27T09:00:00+09:00",
+    direction: "outflow",
+    source_category: "고객 환불",
+  });
+  const repository = createFinanceRepository({
+    seedRecords: [original, firstRefund, secondRefund, excessiveRefund],
+  });
+  const rawBefore = repository.list({ tenant_id: TENANT, model_type: "BankTransaction" });
+  autoClassifyBankTransactions({
+    repository,
+    tenant_id: TENANT,
+    client_records: [client("client-saebom", "새봄테크")],
+    actor_id: ACTOR,
+    idempotency_key: "classify-refund-fixture",
+  });
+  assert.equal(classification(repository, original.bank_transaction_id).category, "client_receipt");
+  assert.deepEqual(
+    {
+      category: classification(repository, firstRefund.bank_transaction_id).category,
+      status: classification(repository, firstRefund.bank_transaction_id).status,
+      rationale: classification(repository, firstRefund.bank_transaction_id).rationale_code,
+      refund_of: classification(repository, firstRefund.bank_transaction_id).refund_of_bank_transaction_id,
+    },
+    {
+      category: "refund_reversal",
+      status: "review_required",
+      rationale: "refund_link_required",
+      refund_of: null,
+    },
+  );
+
+  const linked = reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [{
+      bank_transaction_id: firstRefund.bank_transaction_id,
+      category: "refund_reversal",
+      refund_of_bank_transaction_id: original.bank_transaction_id,
+      client_group_id: "client-attacker-supplied",
+      remember_match: true,
+    }],
+    actor_id: ACTOR,
+    idempotency_key: "link-first-refund",
+  });
+  assert.equal(linked.rule_count, 0);
+  const firstLinkedRefund = classification(repository, firstRefund.bank_transaction_id);
+  assert.deepEqual(
+    {
+      client_group_id: firstLinkedRefund.client_group_id,
+      refund_of: firstLinkedRefund.refund_of_bank_transaction_id,
+      category: firstLinkedRefund.category,
+      status: firstLinkedRefund.status,
+      rationale: firstLinkedRefund.rationale_code,
+      manual_lock: firstLinkedRefund.manual_lock,
+    },
+    {
+      client_group_id: "client-saebom",
+      refund_of: original.bank_transaction_id,
+      category: "refund_reversal",
+      status: "confirmed",
+      rationale: "manual_refund_linked",
+      manual_lock: true,
+    },
+  );
+  const refundOriginReference = FINANCE_DOMAIN_DESCRIPTOR.references(firstLinkedRefund)
+    .find((reference) => reference.reference_name === "refund_origin_bank_transaction");
+  assert.deepEqual(
+    {
+      target_record_type: refundOriginReference.target_record_type,
+      target_record_id: refundOriginReference.target_record_id,
+      required: refundOriginReference.required,
+    },
+    {
+      target_record_type: "BankTransaction",
+      target_record_id: original.bank_transaction_id,
+      required: true,
+    },
+  );
+
+  assert.throws(() => reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [
+      {
+        bank_transaction_id: secondRefund.bank_transaction_id,
+        category: "refund_reversal",
+        refund_of_bank_transaction_id: original.bank_transaction_id,
+      },
+      {
+        bank_transaction_id: excessiveRefund.bank_transaction_id,
+        category: "refund_reversal",
+        refund_of_bank_transaction_id: original.bank_transaction_id,
+      },
+    ],
+    actor_id: ACTOR,
+    idempotency_key: "reject-cumulative-over-refund",
+  }), (error) => error?.safe_error_code === "FINANCE_REFUND_AMOUNT_EXCEEDED");
+  assert.equal(classification(repository, secondRefund.bank_transaction_id).status, "review_required");
+  assert.equal(classification(repository, excessiveRefund.bank_transaction_id).status, "review_required");
+
+  reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [{
+      bank_transaction_id: secondRefund.bank_transaction_id,
+      category: "refund_reversal",
+      refund_of_bank_transaction_id: original.bank_transaction_id,
+    }],
+    actor_id: ACTOR,
+    idempotency_key: "link-second-refund",
+  });
+  assert.throws(() => reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [{
+      bank_transaction_id: excessiveRefund.bank_transaction_id,
+      category: "refund_reversal",
+      refund_of_bank_transaction_id: original.bank_transaction_id,
+    }],
+    actor_id: ACTOR,
+    idempotency_key: "reject-single-over-refund",
+  }), (error) => error?.safe_error_code === "FINANCE_REFUND_AMOUNT_EXCEEDED");
+  assert.deepEqual(repository.list({ tenant_id: TENANT, model_type: "BankTransaction" }), rawBefore);
+  assert.equal(
+    repository.listAudit({ tenant_id: TENANT })
+      .filter((event) => event.action === "bank.transaction.classification.review").length,
+    2,
+  );
+  assert.equal(
+    repository.listAudit({ tenant_id: TENANT })
+      .filter((event) => event.action === "bank.transaction.classification.review")
+      .every((event) => event.metadata.linked_refund_count === 1),
+    true,
   );
   repository.close();
 });

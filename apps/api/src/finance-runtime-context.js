@@ -823,8 +823,10 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
         production_ready_claim: false,
       },
     };
-  } catch {
-    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
+  } catch (error) {
+    return errorResponse(error?.status ?? 400, requestId, [
+      error?.safe_error_code ?? FINANCE_API_ERROR_CODES.validation_error,
+    ], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });

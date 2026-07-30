@@ -110,6 +110,9 @@ function references(record) {
   }
   if (record.model_type === "BankTransactionClassification") {
     add("bank_transaction", "BankTransaction", record.bank_transaction_id, { required: true });
+    add("refund_origin_bank_transaction", "BankTransaction", record.refund_of_bank_transaction_id, {
+      required: record.category === "refund_reversal",
+    });
   }
   return values;
 }
@@ -182,6 +185,7 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "TrustLedgerEntry.invoice_id->Invoice",
     "BankTransaction.bank_import_batch_id->BankImportBatch",
     "BankTransactionClassification.bank_transaction_id->BankTransaction",
+    "BankTransactionClassification.refund_of_bank_transaction_id->BankTransaction",
     "*.matter_id->matter.Matter",
     "*.billing_client_party_id->master-data.Party",
   ],

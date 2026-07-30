@@ -161,6 +161,106 @@ test("same-name client options include a stable customer number for manual selec
   );
 });
 
+test("client refund review derives the original client and rejects an excessive refund", async () => {
+  const bankTransaction = (id, direction, amount, counterparty) => ({
+    model_type: "BankTransaction",
+    bank_transaction_id: id,
+    tenant_id: TENANT,
+    account_ref: "account-refund-api",
+    transaction_fingerprint: id.padEnd(64, "0").slice(0, 64),
+    date: "2026-07-30",
+    occurred_at: "2026-07-30T09:00:00+09:00",
+    direction,
+    amount,
+    balance_after: amount,
+    currency: "KRW",
+    counterparty,
+    source_category: direction === "outflow" ? "고객 환불" : "입금",
+    classification_scope: "unreviewed",
+  });
+  const original = bankTransaction("bank-refund-api-origin", "inflow", 3_000_000, "새봄테크");
+  const refund = bankTransaction("bank-refund-api-first", "outflow", 1_000_000, "새봄테크 환불");
+  const excessive = bankTransaction("bank-refund-api-excess", "outflow", 2_100_000, "새봄테크 환불");
+  const financeRepository = createFinanceRepository({ seedRecords: [original, refund, excessive] });
+  const runtime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    clientRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-saebom-refund-api",
+      display_name: "새봄테크",
+      status: "active",
+    }],
+  });
+  const context = JSON.parse(permissionContext("allow", ["system_super_admin"]));
+  const automatic = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classifications/auto",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-refund-api",
+      audit_hint_ref: "audit-refund-api",
+      idempotency_key: "classify-refund-api",
+    },
+    query: {},
+    context,
+    requestId: "request-classify-refund-api",
+    runtime,
+  });
+  assert.equal(automatic.status, 200);
+
+  const linked = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classifications/review",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-refund-api",
+      audit_hint_ref: "audit-refund-api",
+      idempotency_key: "link-refund-api",
+      decisions: [{
+        bank_transaction_id: refund.bank_transaction_id,
+        category: "refund_reversal",
+        refund_of_bank_transaction_id: original.bank_transaction_id,
+      }],
+    },
+    query: {},
+    context,
+    requestId: "request-link-refund-api",
+    runtime,
+  });
+  assert.equal(linked.status, 200);
+  const linkedRecord = financeRepository.list({
+    tenant_id: TENANT,
+    model_type: "BankTransactionClassification",
+    bank_transaction_id: refund.bank_transaction_id,
+  })[0];
+  assert.equal(linkedRecord.client_group_id, "client-saebom-refund-api");
+  assert.equal(linkedRecord.refund_of_bank_transaction_id, original.bank_transaction_id);
+
+  const rejected = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classifications/review",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-refund-api",
+      audit_hint_ref: "audit-refund-api",
+      idempotency_key: "reject-refund-api",
+      decisions: [{
+        bank_transaction_id: excessive.bank_transaction_id,
+        category: "refund_reversal",
+        refund_of_bank_transaction_id: original.bank_transaction_id,
+      }],
+    },
+    query: {},
+    context,
+    requestId: "request-reject-refund-api",
+    runtime,
+  });
+  assert.equal(rejected.status, 409);
+  assert.deepEqual(rejected.body.safe_error_codes, ["FINANCE_REFUND_AMOUNT_EXCEEDED"]);
+  financeRepository.close();
+});
+
 test("G7 Finance API health descriptor exposes runtime write-ready without production claim", async () => {
   await withServer(async (baseUrl) => {
     const { status, body } = await json(baseUrl, "/api/health");

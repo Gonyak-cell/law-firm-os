@@ -40,6 +40,7 @@ const CLIENT_SAVED_ALIAS_FIELDS = Object.freeze([
   "bank_deposit_aliases",
 ]);
 const RULE_MATCH_FIELDS = new Set(["counterparty", "memo"]);
+const REFUND_TEXT_PATTERN = /매출취소|환급|환불|취소/iu;
 const PAYROLL_CATEGORIES = new Set(["partner", "advisor", "staff"]);
 const PAYROLL_TITLE_RULES = Object.freeze([
   Object.freeze({ category: "partner", pattern: /partner|파트너|대표변호사|구성원변호사/iu }),
@@ -185,6 +186,7 @@ export function bankEmployeePayrollCategory(employee = {}) {
 function matchingRule(transaction, rules = []) {
   const matches = rules
     .filter((rule) => rule.model_type === "BankClassificationRule" && rule.status !== "inactive")
+    .filter((rule) => rule.category !== "refund_reversal")
     .filter((rule) => RULE_MATCH_FIELDS.has(rule.match_field))
     .filter((rule) => normalizeBankMatchValue(transaction[rule.match_field]) === rule.normalized_match_value)
     .sort((left, right) => Number(right.priority ?? 0) - Number(left.priority ?? 0));
@@ -218,7 +220,9 @@ function classificationProposal(transaction, values) {
     primary_type: contract.primary_type,
     category,
     category_label: contract.label,
-    client_group_id: contract.primary_type === "sales" ? values.client_group_id : null,
+    client_group_id: contract.primary_type === "sales" || category === "refund_reversal"
+      ? values.client_group_id ?? null
+      : null,
     employee_id: contract.primary_type === "payroll" ? values.employee_id ?? null : null,
     matter_id: values.matter_id ?? null,
     payroll_category: contract.primary_type === "payroll" ? values.payroll_category ?? "unclassified" : null,
@@ -227,6 +231,9 @@ function classificationProposal(transaction, values) {
     classification_source: values.classification_source ?? "automatic",
     rationale_code: values.rationale_code ?? "deterministic_fallback",
     manual_lock: values.manual_lock === true,
+    refund_of_bank_transaction_id: category === "refund_reversal"
+      ? values.refund_of_bank_transaction_id ?? null
+      : null,
     rule_id: values.rule_id ?? null,
     reviewed_by: values.reviewed_by ?? null,
     reviewed_at: values.reviewed_at ?? null,
@@ -286,7 +293,7 @@ function automaticProposal(transaction, { client_records = [], employees = [], r
         rationale_code: "interest_income_source",
       });
     }
-    if (/매출취소|환급|환불|취소/iu.test(`${transaction.counterparty ?? ""} ${transaction.memo ?? ""}`)) {
+    if (REFUND_TEXT_PATTERN.test(`${transaction.counterparty ?? ""} ${transaction.memo ?? ""}`)) {
       return classificationProposal(transaction, {
         category: "refund_reversal",
         rationale_code: "refund_or_reversal_text",
@@ -297,6 +304,15 @@ function automaticProposal(transaction, { client_records = [], employees = [], r
       status: "review_required",
       confidence: matchedClient.confidence,
       rationale_code: matchedClient.match_kind,
+    });
+  }
+
+  if (REFUND_TEXT_PATTERN.test(`${transaction.source_category ?? ""} ${transaction.counterparty ?? ""} ${transaction.memo ?? ""}`)) {
+    return classificationProposal(transaction, {
+      category: "refund_reversal",
+      status: "review_required",
+      confidence: "needs_review",
+      rationale_code: "refund_link_required",
     });
   }
 
@@ -478,6 +494,10 @@ function persistClassifications({
           updated_count: updatedCount,
           protected_manual_count: protectedManualCount,
           rule_count: rules.length,
+          linked_refund_count: classifications.filter((classification) => (
+            classification.category === "refund_reversal"
+            && classification.refund_of_bank_transaction_id
+          )).length,
           confirmed_count: summary.confirmed_count,
           review_count: summary.review_count,
           raw_source_payload_included: false,
@@ -534,6 +554,7 @@ export function autoClassifyBankTransactions({
 
 function reviewedRule(transaction, classification, decision, actorId) {
   if (decision.remember_match !== true) return null;
+  if (classification.category === "refund_reversal") return null;
   const matchField = RULE_MATCH_FIELDS.has(decision.match_field) ? decision.match_field : "counterparty";
   const normalizedMatchValue = normalizeBankMatchValue(transaction[matchField]);
   if (!normalizedMatchValue) throw new TypeError("A remembered classification rule requires a non-empty match value");
@@ -559,6 +580,109 @@ function reviewedRule(transaction, classification, decision, actorId) {
   });
 }
 
+function refundError(message, safeErrorCode) {
+  return Object.assign(new TypeError(message), {
+    safe_error_code: safeErrorCode,
+    status: 409,
+  });
+}
+
+function refundLinkValues({
+  repository,
+  tenantId,
+  transaction,
+  decision,
+  replacedTransactionIds,
+  pendingRefundAmounts,
+}) {
+  if (transaction.direction !== "outflow") {
+    throw refundError("A client refund must be an outflow", "FINANCE_REFUND_OUTFLOW_REQUIRED");
+  }
+  const originalTransactionId = requiredString(decision, "refund_of_bank_transaction_id");
+  if (originalTransactionId === transaction.bank_transaction_id) {
+    throw refundError("A refund cannot reference itself", "FINANCE_REFUND_ORIGINAL_INVALID");
+  }
+  if (replacedTransactionIds.has(originalTransactionId)) {
+    throw refundError(
+      "The original inflow cannot be reclassified in the same refund request",
+      "FINANCE_REFUND_ORIGINAL_INVALID",
+    );
+  }
+  const originalTransaction = repository.get({
+    tenant_id: tenantId,
+    model_type: "BankTransaction",
+    id: originalTransactionId,
+  });
+  if (!originalTransaction || originalTransaction.direction !== "inflow") {
+    throw refundError("The original client inflow was not found", "FINANCE_REFUND_ORIGINAL_INVALID");
+  }
+  const originalClassification = repository.get({
+    tenant_id: tenantId,
+    model_type: "BankTransactionClassification",
+    id: classificationId(originalTransaction),
+  });
+  if (
+    originalClassification?.category !== "client_receipt"
+    || originalClassification.status !== "confirmed"
+    || !originalClassification.client_group_id
+  ) {
+    throw refundError(
+      "The original inflow is not confirmed client revenue",
+      "FINANCE_REFUND_ORIGINAL_NOT_REVENUE",
+    );
+  }
+  if (transaction.currency !== originalTransaction.currency) {
+    throw refundError(
+      "Refund currency must match the original inflow",
+      "FINANCE_REFUND_CURRENCY_MISMATCH",
+    );
+  }
+  const refundAmount = Number(transaction.amount);
+  const originalAmount = Number(originalTransaction.amount);
+  if (
+    !Number.isSafeInteger(refundAmount)
+    || refundAmount <= 0
+    || !Number.isSafeInteger(originalAmount)
+    || originalAmount <= 0
+  ) {
+    throw refundError(
+      "Refund and original amounts must be positive whole KRW values",
+      "FINANCE_REFUND_AMOUNT_INVALID",
+    );
+  }
+  const persistedRefunds = repository
+    .list({ tenant_id: tenantId, model_type: "BankTransactionClassification" })
+    .filter((classification) => (
+      classification.category === "refund_reversal"
+      && classification.status === "confirmed"
+      && classification.refund_of_bank_transaction_id === originalTransactionId
+      && !replacedTransactionIds.has(classification.bank_transaction_id)
+    ));
+  if (persistedRefunds.some((classification) => (
+    !Number.isSafeInteger(Number(classification.amount)) || Number(classification.amount) <= 0
+  ))) {
+    throw refundError("A stored refund amount is invalid", "FINANCE_REFUND_STATE_INVALID");
+  }
+  const persistedRefundAmount = persistedRefunds
+    .reduce((total, classification) => total + Number(classification.amount), 0);
+  const pendingRefundAmount = pendingRefundAmounts.get(originalTransactionId) ?? 0;
+  const totalRefundAmount = persistedRefundAmount + pendingRefundAmount + refundAmount;
+  if (!Number.isSafeInteger(totalRefundAmount)) {
+    throw refundError("Refund total exceeds the supported KRW range", "FINANCE_REFUND_AMOUNT_INVALID");
+  }
+  if (totalRefundAmount > originalAmount) {
+    throw refundError(
+      "Refund total exceeds the original client inflow",
+      "FINANCE_REFUND_AMOUNT_EXCEEDED",
+    );
+  }
+  pendingRefundAmounts.set(originalTransactionId, pendingRefundAmount + refundAmount);
+  return freeze({
+    client_group_id: originalClassification.client_group_id,
+    refund_of_bank_transaction_id: originalTransactionId,
+  });
+}
+
 export function reviewBankTransactionClassifications({
   repository,
   tenant_id,
@@ -574,12 +698,16 @@ export function reviewBankTransactionClassifications({
   const now = new Date().toISOString();
   const rules = [];
   const transactionIds = new Set();
-  const classifications = decisions.map((decision) => {
+  for (const decision of decisions) {
     const bankTransactionId = requiredString(decision, "bank_transaction_id");
     if (transactionIds.has(bankTransactionId)) {
       throw new TypeError(`Duplicate classification decision: ${bankTransactionId}`);
     }
     transactionIds.add(bankTransactionId);
+  }
+  const pendingRefundAmounts = new Map();
+  const classifications = decisions.map((decision) => {
+    const bankTransactionId = requiredString(decision, "bank_transaction_id");
     const transaction = repository.get({
       tenant_id: tenantId,
       model_type: "BankTransaction",
@@ -591,17 +719,30 @@ export function reviewBankTransactionClassifications({
       model_type: "BankTransactionClassification",
       id: classificationId(transaction),
     });
+    const refundLink = decision.category === "refund_reversal"
+      ? refundLinkValues({
+          repository,
+          tenantId,
+          transaction,
+          decision,
+          replacedTransactionIds: transactionIds,
+          pendingRefundAmounts,
+        })
+      : null;
     const clientLinkChanged = existing?.client_group_id !== decision.client_group_id;
-    const rationaleCode = decision.category === "client_receipt"
-      ? clientLinkChanged && existing?.client_group_id
-        ? "manual_client_relinked"
-        : "manual_client_linked"
-      : existing?.client_group_id
-        ? "manual_client_unlinked"
-        : "manual_review_confirmed";
+    const rationaleCode = decision.category === "refund_reversal"
+      ? "manual_refund_linked"
+      : decision.category === "client_receipt"
+        ? clientLinkChanged && existing?.client_group_id
+          ? "manual_client_relinked"
+          : "manual_client_linked"
+        : existing?.client_group_id
+          ? "manual_client_unlinked"
+          : "manual_review_confirmed";
     const classification = classificationProposal(transaction, {
       category: decision.category,
-      client_group_id: decision.client_group_id,
+      client_group_id: refundLink?.client_group_id ?? decision.client_group_id,
+      refund_of_bank_transaction_id: refundLink?.refund_of_bank_transaction_id,
       employee_id: decision.employee_id,
       matter_id: decision.matter_id,
       payroll_category: decision.payroll_category,
