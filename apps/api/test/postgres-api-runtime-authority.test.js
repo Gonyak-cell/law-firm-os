@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
+import { CRM_DOMAIN_DESCRIPTOR } from "../../../packages/crm/src/central-ledger.js";
+import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
+import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../../packages/master-data/src/central-ledger.js";
 import {
   createPostgresApiRuntimeAuthority,
   runPostgresReadWithBaselineRetry,
@@ -338,6 +343,199 @@ test("PostgreSQL API authority commits product state, idempotency, audit and out
   assert.equal((await ledger.listIdempotency({ tenant_id: TENANT_A, domain_id: "matter" })).length, 1);
   assert.equal((await ledger.listAudit({ tenant_id: TENANT_A, domain_id: "matter" })).length, 1);
   assert.equal((await ledger.listOutbox({ tenant_id: TENANT_A, domain_id: "matter" })).length, 1);
+});
+
+test("PostgreSQL API authority resolves ClientGroup and Opportunity before committing a FeeCommitment", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-fee-commitment-test",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+  const masterDataRepository = createMasterDataRepository({
+    seedRecords: [
+      {
+        model_type: "Party",
+        tenant_id: TENANT_A,
+        party_id: "party-postgres-fee-commitment",
+        party_type: "organization",
+        display_name: "PostgreSQL 수임 고객",
+        status: "active",
+        owner_user_id: "user_postgres_fee_commitment",
+      },
+      {
+        model_type: "ClientGroup",
+        tenant_id: TENANT_A,
+        client_group_id: "client-postgres-fee-commitment",
+        display_name: "PostgreSQL 수임 고객",
+        member_party_ids: ["party-postgres-fee-commitment"],
+        primary_party_id: "party-postgres-fee-commitment",
+        status: "active",
+        owner_user_id: "user_postgres_fee_commitment",
+      },
+    ],
+  });
+  const crmRepository = createCrmRuntimeRepository({
+    seedRecords: [{
+      model_type: "Opportunity",
+      tenant_id: TENANT_A,
+      opportunity_id: "opportunity-postgres-fee-commitment",
+      party_id: "party-postgres-fee-commitment",
+      display_name: "PostgreSQL 수임 확정",
+      stage: "closed_won",
+      status: "active",
+      owner_user_id: "user_postgres_fee_commitment",
+    }],
+  });
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR,
+      repositories: [{
+        source_id: "postgres-fee-commitment-master-data",
+        repository: masterDataRepository,
+      }],
+      tenant_id: TENANT_A,
+    }).snapshot);
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: CRM_DOMAIN_DESCRIPTOR,
+      repositories: [{
+        source_id: "postgres-fee-commitment-crm",
+        repository: crmRepository,
+      }],
+      tenant_id: TENANT_A,
+    }).snapshot);
+  } finally {
+    masterDataRepository.close();
+    crmRepository.close();
+  }
+  assert.equal((await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "master-data",
+    record_type: "ClientGroup",
+    record_id: "client-postgres-fee-commitment",
+  }))?.payload?.primary_party_id, "party-postgres-fee-commitment");
+  assert.equal((await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "Opportunity",
+    record_id: "opportunity-postgres-fee-commitment",
+  }))?.payload?.party_id, "party-postgres-fee-commitment");
+  const context = Object.freeze({
+    principal: Object.freeze({
+      tenant_id: TENANT_A,
+      user_id: "user_postgres_fee_commitment",
+      scopes: Object.freeze(["finance.fee.write"]),
+    }),
+    rules: Object.freeze([{
+      id: "allow-postgres-fee-commitment",
+      effect: "allow",
+      action: "*",
+    }]),
+    object_acl: Object.freeze([]),
+  });
+  const references = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: { method: "GET" },
+    command: (runtimes) => ({
+      client_groups: runtimes.masterDataRuntime.repository.list({
+        tenant_id: TENANT_A,
+        model_type: "ClientGroup",
+      }),
+      client_group: runtimes.masterDataRuntime.repository.get({
+        tenant_id: TENANT_A,
+        model_type: "ClientGroup",
+        client_group_id: "client-postgres-fee-commitment",
+      }),
+      opportunity: runtimes.crmIntakeRuntime.crmRepository.get({
+        tenant_id: TENANT_A,
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-postgres-fee-commitment",
+      }),
+      opportunities: runtimes.crmIntakeRuntime.crmRepository.list({
+        tenant_id: TENANT_A,
+        model_type: "Opportunity",
+      }),
+    }),
+  });
+  assert.ok(references.client_group, JSON.stringify(references));
+  assert.ok(references.opportunity, JSON.stringify(references));
+  assert.deepEqual(references.client_group.member_party_ids, [
+    "party-postgres-fee-commitment",
+  ]);
+  assert.equal(references.opportunity.party_id, "party-postgres-fee-commitment");
+
+  const created = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/api/finance/fee-commitments",
+      request_target_hash: "f".repeat(64),
+      request_body_hash: "e".repeat(64),
+      idempotency_key: "postgres-fee-commitment-create",
+      actor_id: "user_postgres_fee_commitment",
+    },
+    command(runtimes) {
+      return handleFinanceApiRequest({
+        pathname: "/api/finance/fee-commitments",
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-fee-commitment",
+          audit_hint_ref: "audit-postgres-fee-commitment",
+          idempotency_key: "postgres-fee-commitment-create",
+          fee_commitment: {
+            fee_commitment_id: "fee-commitment-postgres-authority",
+            tenant_id: TENANT_A,
+            client_group_id: "client-postgres-fee-commitment",
+            opportunity_id: "opportunity-postgres-fee-commitment",
+            matter_id: null,
+            currency: "KRW",
+            agreed_amount: 7_000_000,
+            due_date: "2026-08-31",
+            accepted_at: "2026-07-30T18:00:00+09:00",
+            source_fee_arrangement_id: null,
+            reason: "PostgreSQL 다중 도메인 수임 확정",
+          },
+        },
+        context,
+        requestId: "request-postgres-fee-commitment",
+        runtime: runtimes.financeRuntime,
+      });
+    },
+  });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.item.agreed_amount, 7_000_000);
+
+  const persisted = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "finance",
+    record_type: "FeeCommitment",
+    record_id: "fee-commitment-postgres-authority",
+  });
+  assert.equal(persisted.payload.client_group_id, "client-postgres-fee-commitment");
+  assert.equal(persisted.payload.opportunity_id, "opportunity-postgres-fee-commitment");
+  assert.equal(persisted.payload.agreed_amount, 7_000_000);
+  assert.equal((await ledger.listIdempotency({
+    tenant_id: TENANT_A,
+    domain_id: "finance",
+  })).length, 1);
+  assert.equal((await ledger.listAudit({
+    tenant_id: TENANT_A,
+    domain_id: "finance",
+  })).some((event) => event.event_type === "fee_commitment.create"), true);
 });
 
 test("PostgreSQL API authority commits HRX with central idempotency, audit and outbox in the shared transaction", async (t) => {

@@ -5,7 +5,9 @@ import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-service.js";
+import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
+import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
 import {
@@ -159,6 +161,194 @@ test("same-name client options include a stable customer number for manual selec
       ["client-hanbit-002", "한빛 · 고객번호 client-hanbit-002"],
     ],
   );
+});
+
+test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 확인하고 권한 있는 조회만 허용한다", async () => {
+  const financeRepository = createFinanceRepository();
+  const masterDataRepository = createMasterDataRepository({
+    seedRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-fee-api",
+      display_name: "한빛 로펌 고객",
+      member_party_ids: ["party-fee-api"],
+      primary_party_id: "party-fee-api",
+      status: "active",
+      owner_user_id: "user-fee-api",
+    }],
+  });
+  const crmRepository = createCrmRuntimeRepository({
+    seedRecords: [
+      {
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-fee-api",
+        tenant_id: TENANT,
+        party_id: "party-fee-api",
+        display_name: "한빛 수임 확정",
+        stage: "closed_won",
+        status: "active",
+        owner_user_id: "user-fee-api",
+      },
+      {
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-fee-api-other",
+        tenant_id: TENANT,
+        party_id: "party-other",
+        display_name: "다른 고객 수임 확정",
+        stage: "closed_won",
+        status: "active",
+        owner_user_id: "user-fee-api",
+      },
+      {
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-fee-api-zero",
+        tenant_id: TENANT,
+        party_id: "party-fee-api",
+        display_name: "한빛 0원 수임 확정",
+        stage: "closed_won",
+        status: "active",
+        owner_user_id: "user-fee-api",
+      },
+    ],
+  });
+  const financeRuntime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    masterDataRepository,
+    crmRepository,
+  });
+  const payload = {
+    tenant_id: TENANT,
+    permission_ref: "perm-fee-commitment-api",
+    audit_hint_ref: "audit-fee-commitment-api",
+    idempotency_key: "fee-commitment-api-create",
+    fee_commitment: {
+      fee_commitment_id: "fee-commitment-api",
+      tenant_id: TENANT,
+      client_group_id: "client-fee-api",
+      opportunity_id: "opportunity-fee-api",
+      matter_id: null,
+      currency: "KRW",
+      agreed_amount: null,
+      due_date: null,
+      accepted_at: "2026-07-30T17:00:00+09:00",
+      source_fee_arrangement_id: null,
+      reason: "수임 확정, 금액은 추후 입력",
+      created_by: "spoofed-client-actor",
+      updated_by: "spoofed-client-actor",
+    },
+  };
+  try {
+    await withServer(async (baseUrl) => {
+      const created = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify(payload),
+      });
+      assert.equal(created.status, 201, JSON.stringify(created.body));
+      assert.equal(created.body.item.agreed_amount, null);
+      assert.equal(created.body.item.created_by, SUPER_ADMIN_ACCOUNT.user_id);
+      assert.equal(created.body.idempotent_replay, false);
+
+      const replay = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify(payload),
+      });
+      assert.equal(replay.status, 200);
+      assert.equal(replay.body.idempotent_replay, true);
+
+      const conflict = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          fee_commitment: { ...payload.fee_commitment, agreed_amount: 0 },
+        }),
+      });
+      assert.equal(conflict.status, 409);
+      assert.deepEqual(conflict.body.safe_error_codes, ["FINANCE_IDEMPOTENCY_CONFLICT"]);
+
+      const invalidReference = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          idempotency_key: "fee-commitment-api-invalid-reference",
+          fee_commitment: {
+            ...payload.fee_commitment,
+            fee_commitment_id: "fee-commitment-api-invalid-reference",
+            opportunity_id: "opportunity-fee-api-other",
+          },
+        }),
+      });
+      assert.equal(invalidReference.status, 409);
+      assert.deepEqual(
+        invalidReference.body.safe_error_codes,
+        ["FINANCE_FEE_COMMITMENT_REFERENCE_INVALID"],
+      );
+
+      const zeroAmount = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          idempotency_key: "fee-commitment-api-zero",
+          fee_commitment: {
+            ...payload.fee_commitment,
+            fee_commitment_id: "fee-commitment-api-zero",
+            opportunity_id: "opportunity-fee-api-zero",
+            agreed_amount: 0,
+            reason: "0원 약정 확인",
+          },
+        }),
+      });
+      assert.equal(zeroAmount.status, 201);
+      assert.equal(zeroAmount.body.item.agreed_amount, 0);
+
+      const invalidCurrency = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          idempotency_key: "fee-commitment-api-usd",
+          fee_commitment: {
+            ...payload.fee_commitment,
+            fee_commitment_id: "fee-commitment-api-usd",
+            currency: "USD",
+          },
+        }),
+      });
+      assert.equal(invalidCurrency.status, 400);
+      assert.deepEqual(
+        invalidCurrency.body.safe_error_codes,
+        ["FINANCE_API_VALIDATION_ERROR"],
+      );
+
+      const query = `${BASE_QUERY}&client_group_id=client-fee-api&opportunity_id=opportunity-fee-api&status=active`;
+      const listed = await json(baseUrl, `/api/finance/fee-commitments?${query}`, {
+        account: SUPER_ADMIN_ACCOUNT,
+      });
+      assert.equal(listed.status, 200);
+      assert.equal(listed.body.items.length, 1);
+      assert.equal(listed.body.items[0].fee_commitment_id, "fee-commitment-api");
+      assert.equal(listed.body.items[0].agreed_amount, null);
+
+      const denied = await json(baseUrl, `/api/finance/fee-commitments?${query}`, {
+        account: NON_PARTNER_ACCOUNT,
+      });
+      assert.equal(denied.status, 403);
+      assert.deepEqual(denied.body.items, []);
+      assert.equal(denied.body.count_leak_prevented, true);
+    }, { financeRuntime });
+    assert.equal(
+      financeRepository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length,
+      2,
+    );
+  } finally {
+    financeRepository.close();
+    masterDataRepository.close();
+    crmRepository.close();
+  }
 });
 
 test("client refund review derives the original client and rejects an excessive refund", async () => {

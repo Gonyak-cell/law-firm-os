@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 1/6 완료, 전체 13/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 2/6 완료, 전체 14/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -24,7 +24,7 @@
 9. M365 코드는 delegated 권한과 기능 스위치 뒤에서 준비하고, 관리자 동의·시험 mailbox 영수증이 없으면 출시를 차단한다.
 10. 모든 검증 시나리오를 고정 fixture, 테스트 파일 또는 실제 API·화면 영수증과 연결한다.
 
-이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW, P1의 7개 TUW와 P2의 수임료 약정 스키마 1개 TUW를 구현·집중 검증했다.
+이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW, P1의 7개 TUW와 P2의 수임료 약정 스키마·생성 조회 API 2개 TUW를 구현·집중 검증했다.
 
 ## 1. 제품 목표
 
@@ -962,7 +962,8 @@ npm test
 | `CL-P1-W02-T01` | 완료 | 출금 환불은 자동 확정하지 않고 원입금 선택을 요구; 확정 고객 입금과 같은 통화일 때 원입금·고객을 서버가 연결하고 수동 잠금·감사를 남김; 같은 요청 안의 여러 환불까지 합산해 누적 환불이 원입금액을 넘으면 원자적으로 거절; 환불 관계를 Finance 중앙원장 참조에 등록 | `VC-CL-REV-008` 포함 고객입금·분류·원장 집중 검증 14/14, Finance API·PostgreSQL 20/20, Analytics 23/23, 32개 Client 시나리오 계약 34/34; 실제 API 성공과 `FINANCE_REFUND_AMOUNT_EXCEEDED` 409, 원본 거래 불변·환불 규칙 자동 저장 금지 |
 | `CL-P1-W02-T02` | 완료 | 확정 고객 입금과 원입금에 연결된 환불만 기간별로 계산하는 `buildClientDepositRevenue`를 등록; 청구서·Matter 없이 KRW 원 단위로 집계하고 중복 지문을 1회만 반영; 허용 고객 목록을 원천 조회 전에 적용하고 매출→최근 입금일→고객명→고객 ID 순으로 안정 정렬; 합계·순위·월별·상세를 상호 대사 | `VC-CL-REV-001`~`008`과 입력·권한 runtime 11/11, 기준 fixture 3,300만 원·12개월 월별 값 deep-equal, 고객입금·분류·중앙원장 집중 20/20, Billing 전체 131/131, 32개 Client 시나리오 계약 34/34; 비허용 고객의 손상 분류도 합계·오류·건수에 영향 없음 |
 | `CL-P2-W01-T01` | 완료 | `FeeCommitment`의 필수 고객·수임 검토 건, 선택 Matter·청구 설정, KRW 정수 또는 null 금액, 납부기한, 수임확정 시각, 3개 상태, version·작성/수정자·사유를 fail-closed로 정규화; Finance 기본 ID·금액 필드·mutable 분류와 고객/Opportunity/청구 설정 원장 관계 등록 | 모델·파일 저장소·필수 관계 2/2, Finance 중앙원장·실제 임시 PostgreSQL import/readback/shadow 2/2, Billing 전체 133/133, Finance PostgreSQL API adapter 2/2; 0원과 `금액 미입력` 구분, 음수·소수·비KRW·잘못된 날짜/상태/version 거절 |
-| `CL-P2-W01-T02` | 다음 | 수임료 약정 생성·조회 API와 고객·Opportunity 교차 검증 | 시작 전 |
+| `CL-P2-W01-T02` | 완료 | `GET/POST /api/finance/fee-commitments`를 `finance.fee.write` 권한에 연결; 서버 세션 사용자를 작성자로 고정하고 ClientGroup의 당사자와 Opportunity 당사자, 선택 Matter·청구 설정의 고객/사건/통화를 교차 검증; 같은 Opportunity의 활성 약정 중복, 참조 런타임 누락, 다른 요청에 멱등성 키 재사용을 fail-closed로 거절; null·0원·KRW를 구분해 안정 정렬 조회 | `VC-CL-AR-001`~`003` 서비스 5/5, 실제 서명 세션 API 1/1, PostgreSQL 다중 도메인 생성/readback 1/1; Billing 전체 136/136, Finance API 전체 19/19, PostgreSQL API authority 전체 7/7, 32개 Client 시나리오 계약 PASS |
+| `CL-P2-W01-T03` | 다음 | version·사유 기반 수정·취소와 정식 청구 설정 불일치 경고 | 시작 전 |
 
 P0 집중 검증:
 

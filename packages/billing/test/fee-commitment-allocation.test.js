@@ -9,9 +9,16 @@ import {
   normalizeFeeCommitment,
 } from "../src/fee-commitment-model.js";
 import {
+  FEE_COMMITMENT_COMMAND_ERROR_CODES,
+  createFeeCommitment,
+  listFeeCommitments,
+} from "../src/fee-commitment-service.js";
+import {
   FINANCE_PRIMARY_ID_FIELDS,
   createFinanceRepository,
 } from "../src/finance-repository.js";
+import { createCrmRuntimeRepository } from "../../crm/src/runtime-repository.js";
+import { createMasterDataRepository } from "../../master-data/src/repository.js";
 
 const TENANT = "tenant-fee-commitment";
 const ACTOR = "user-fee-commitment";
@@ -35,6 +42,40 @@ function commitment(overrides = {}) {
     reason: "수임 확정",
     ...overrides,
   });
+}
+
+function referenceRepositories({
+  opportunities = [
+    {
+      opportunity_id: "opportunity-hanbit",
+      party_id: "party-hanbit",
+      display_name: "한빛 수임 검토",
+      stage: "closed_won",
+    },
+  ],
+} = {}) {
+  const masterDataRepository = createMasterDataRepository({
+    seedRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-hanbit",
+      display_name: "한빛",
+      member_party_ids: ["party-hanbit"],
+      primary_party_id: "party-hanbit",
+      status: "active",
+      owner_user_id: ACTOR,
+    }],
+  });
+  const crmRepository = createCrmRuntimeRepository({
+    seedRecords: opportunities.map((opportunity) => ({
+      model_type: "Opportunity",
+      tenant_id: TENANT,
+      status: "active",
+      owner_user_id: ACTOR,
+      ...opportunity,
+    })),
+  });
+  return { masterDataRepository, crmRepository };
 }
 
 test("FeeCommitment 모델은 확정 금액·0원·금액 미입력을 서로 구분한다", () => {
@@ -181,5 +222,204 @@ test("FeeCommitment ID·금액·고객·수임 검토·청구 설정 관계를 F
     );
   } finally {
     missingSource.close();
+  }
+});
+
+test("VC-CL-AR-001 수임료 약정 생성은 고객·수임 검토 건을 확인하고 같은 요청만 재실행한다", () => {
+  const repository = createFinanceRepository();
+  const refs = referenceRepositories();
+  try {
+    const input = commitment();
+    const created = createFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      fee_commitment: input,
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-create-hanbit",
+    });
+    assert.equal(created.outcome, "created");
+    assert.equal(created.fee_commitment.agreed_amount, 12_000_000);
+    assert.equal(created.fee_commitment.state_version, 1);
+    assert.equal(created.fee_commitment.created_by, ACTOR);
+    assert.equal(created.audit_event.action, "fee_commitment.create");
+    assert.equal(created.audit_event.metadata.agreed_amount_state, "entered");
+    assert.equal(created.audit_event.metadata.raw_payload_included, false);
+
+    const replay = createFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      fee_commitment: input,
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-create-hanbit",
+    });
+    assert.equal(replay.idempotent_replay, true);
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length, 1);
+    assert.equal(repository.listAudit({ tenant_id: TENANT }).length, 1);
+
+    assert.throws(
+      () => createFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        fee_commitment: { ...input, agreed_amount: 11_000_000 },
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-create-hanbit",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.idempotency_conflict
+        && error.status === 409
+      ),
+    );
+  } finally {
+    repository.close();
+    refs.masterDataRepository.close();
+    refs.crmRepository.close();
+  }
+});
+
+test("VC-CL-AR-002 금액 미입력과 0원 약정은 조회에서 그대로 구분된다", () => {
+  const repository = createFinanceRepository();
+  const refs = referenceRepositories({
+    opportunities: [
+      {
+        opportunity_id: "opportunity-hanbit",
+        party_id: "party-hanbit",
+        display_name: "한빛 금액 미입력",
+        stage: "closed_won",
+      },
+      {
+        opportunity_id: "opportunity-hanbit-zero",
+        party_id: "party-hanbit",
+        display_name: "한빛 0원 약정",
+        stage: "closed_won",
+      },
+    ],
+  });
+  try {
+    const unknown = createFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      fee_commitment: commitment({
+        fee_commitment_id: "fee-commitment-unknown",
+        agreed_amount: null,
+        due_date: null,
+      }),
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-create-unknown",
+    });
+    const zero = createFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      fee_commitment: commitment({
+        fee_commitment_id: "fee-commitment-zero",
+        opportunity_id: "opportunity-hanbit-zero",
+        agreed_amount: 0,
+        accepted_at: "2026-07-31T10:00:00+09:00",
+      }),
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-create-zero",
+    });
+    assert.equal(unknown.audit_event.metadata.agreed_amount_state, "not_entered");
+    assert.equal(zero.audit_event.metadata.agreed_amount_state, "zero");
+    assert.deepEqual(
+      listFeeCommitments({ repository, tenant_id: TENANT })
+        .map((record) => [record.fee_commitment_id, record.agreed_amount]),
+      [
+        ["fee-commitment-zero", 0],
+        ["fee-commitment-unknown", null],
+      ],
+    );
+  } finally {
+    repository.close();
+    refs.masterDataRepository.close();
+    refs.crmRepository.close();
+  }
+});
+
+test("VC-CL-AR-003 다른 고객의 수임 검토 건과 중복 활성 약정은 저장하지 않는다", () => {
+  const repository = createFinanceRepository();
+  const refs = referenceRepositories({
+    opportunities: [
+      {
+        opportunity_id: "opportunity-hanbit",
+        party_id: "party-hanbit",
+        display_name: "한빛 수임 검토",
+        stage: "closed_won",
+      },
+      {
+        opportunity_id: "opportunity-other-client",
+        party_id: "party-other",
+        display_name: "다른 고객 수임 검토",
+        stage: "closed_won",
+      },
+    ],
+  });
+  try {
+    assert.throws(
+      () => createFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: null,
+        fee_commitment: commitment({
+          fee_commitment_id: "fee-commitment-missing-crm-runtime",
+        }),
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-missing-crm-runtime",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.reference_unavailable
+        && error.status === 503
+      ),
+    );
+    assert.throws(
+      () => createFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        fee_commitment: commitment({
+          fee_commitment_id: "fee-commitment-wrong-client",
+          opportunity_id: "opportunity-other-client",
+        }),
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-wrong-client",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.reference_invalid
+        && error.status === 409
+      ),
+    );
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length, 0);
+
+    createFeeCommitment({
+      repository,
+      master_data_repository: refs.masterDataRepository,
+      crm_repository: refs.crmRepository,
+      fee_commitment: commitment(),
+      actor_id: ACTOR,
+      idempotency_key: "fee-commitment-first-active",
+    });
+    assert.throws(
+      () => createFeeCommitment({
+        repository,
+        master_data_repository: refs.masterDataRepository,
+        crm_repository: refs.crmRepository,
+        fee_commitment: commitment({ fee_commitment_id: "fee-commitment-duplicate-active" }),
+        actor_id: ACTOR,
+        idempotency_key: "fee-commitment-second-active",
+      }),
+      (error) => (
+        error.safe_error_code === FEE_COMMITMENT_COMMAND_ERROR_CODES.active_exists
+        && error.status === 409
+      ),
+    );
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length, 1);
+  } finally {
+    repository.close();
+    refs.masterDataRepository.close();
+    refs.crmRepository.close();
   }
 });

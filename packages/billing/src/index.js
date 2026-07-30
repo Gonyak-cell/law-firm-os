@@ -9,6 +9,7 @@ export * from "./bank-transaction-service.js";
 export * from "./bank-classification-service.js";
 export * from "./client-deposit-revenue-service.js";
 export * from "./fee-commitment-model.js";
+export * from "./fee-commitment-service.js";
 export * from "./wip-service.js";
 export * from "./prebill-service.js";
 export * from "./invoice-service.js";

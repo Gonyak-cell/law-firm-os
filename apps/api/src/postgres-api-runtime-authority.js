@@ -199,6 +199,7 @@ function createRequestRuntimes({
   const financeRuntime = createFinanceRuntimeContext({
     repository: repositories.financeRepository,
     masterDataRepository: repositories.masterDataRepository,
+    crmRepository: repositories.crmRepository,
     matterRepository: repositories.matterRepository,
     employeeRepository: hrxRuntime.repository,
     bankImportPreviewTokens,

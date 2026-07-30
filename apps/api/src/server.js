@@ -423,6 +423,7 @@ export function createDefaultCrmIntakeRuntime({
 export function createDefaultFinanceRuntime({
   repository,
   masterDataRepository = null,
+  crmRepository = null,
   matterRepository = null,
   clientRecords = null,
   employees = undefined,
@@ -438,6 +439,7 @@ export function createDefaultFinanceRuntime({
   return createFinanceRuntimeContext({
     repository: financeRepository,
     masterDataRepository,
+    crmRepository,
     matterRepository,
     clientRecords,
     employees,
@@ -1699,6 +1701,7 @@ export function createApiServer({
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
   financeRuntime = createDefaultFinanceRuntime({
     masterDataRepository: masterDataRuntime?.repository,
+    crmRepository: crmIntakeRuntime?.crmRepository,
     matterRepository: matterRuntime?.repository,
   }),
   financeRuntimeUnavailable = null,
@@ -2130,6 +2133,7 @@ export async function startApiServer({
       financeRuntimeContext = createDefaultFinanceRuntime({
         repository: financeRepository,
         masterDataRepository: masterRuntime?.repository ?? null,
+        crmRepository: crmIntakeRuntime?.crmRepository ?? null,
         matterRepository: resolvedMatterRepository,
         bankImportPreviewTokens: resolvedBankImportPreviewTokens,
         storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
