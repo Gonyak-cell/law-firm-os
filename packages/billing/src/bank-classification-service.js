@@ -23,13 +23,21 @@ export const BANK_CLASSIFICATION_CATEGORIES = Object.freeze({
 });
 
 const INACTIVE_STATUSES = new Set(["archived", "deleted", "inactive", "merged", "closed"]);
-const CLIENT_NAME_FIELDS = Object.freeze([
+const CLIENT_CANONICAL_NAME_FIELDS = Object.freeze([
   "display_name",
   "canonical_display_name",
   "legal_name",
   "name",
   "organization_name",
+]);
+const CLIENT_SAVED_ALIAS_FIELDS = Object.freeze([
   "alias_value",
+  "aliases",
+  "alternate_names",
+  "name_variants",
+  "approved_aliases",
+  "approved_bank_aliases",
+  "bank_deposit_aliases",
 ]);
 const RULE_MATCH_FIELDS = new Set(["counterparty", "memo"]);
 const PAYROLL_CATEGORIES = new Set(["partner", "advisor", "staff"]);
@@ -64,14 +72,11 @@ export function normalizeBankMatchValue(value) {
     .replace(/[^0-9a-z가-힣]/gu, "");
 }
 
-function namesOf(record = {}) {
-  const values = CLIENT_NAME_FIELDS.flatMap((field) => {
+function namesOf(record = {}, fields = []) {
+  const values = fields.flatMap((field) => {
     const value = record[field];
     return Array.isArray(value) ? value : [value];
   });
-  for (const field of ["aliases", "alternate_names", "name_variants"]) {
-    if (Array.isArray(record[field])) values.push(...record[field]);
-  }
   return [...new Set(values.map(normalizeBankMatchValue).filter(Boolean))];
 }
 
@@ -96,7 +101,10 @@ function buildClientDirectory(records = []) {
     }
   }
 
-  const aliasesByClient = new Map([...groups].map(([clientId, group]) => [clientId, new Set(namesOf(group))]));
+  const namesByClient = new Map([...groups].map(([clientId, group]) => [clientId, {
+    canonical_names: new Set(namesOf(group, CLIENT_CANONICAL_NAME_FIELDS)),
+    saved_aliases: new Set(namesOf(group, CLIENT_SAVED_ALIAS_FIELDS)),
+  }]));
   for (const record of records.filter(active)) {
     const clientId = record.model_type === "ClientGroup"
       ? record.client_group_id
@@ -104,28 +112,45 @@ function buildClientDirectory(records = []) {
         ?? clientIdByEntity.get(record.entity_id)
         ?? clientIdByParty.get(record.party_id);
     if (!clientId || !groups.has(clientId)) continue;
-    const aliases = aliasesByClient.get(clientId);
-    for (const alias of namesOf(record)) aliases.add(alias);
+    const names = namesByClient.get(clientId);
+    for (const name of namesOf(record, CLIENT_CANONICAL_NAME_FIELDS)) names.canonical_names.add(name);
+    for (const alias of namesOf(record, CLIENT_SAVED_ALIAS_FIELDS)) names.saved_aliases.add(alias);
   }
 
   return [...groups.values()].map((group) => freeze({
     client_group_id: group.client_group_id,
     display_name: group.display_name ?? group.canonical_display_name ?? group.client_group_id,
-    aliases: freeze([...aliasesByClient.get(group.client_group_id)]),
+    canonical_names: freeze([...namesByClient.get(group.client_group_id).canonical_names]),
+    saved_aliases: freeze([...namesByClient.get(group.client_group_id).saved_aliases]),
   }));
 }
 
 function clientMatch(counterparty, clientRecords) {
   const value = normalizeBankMatchValue(counterparty);
-  if (!value) return null;
+  if (!value) return freeze({ client: null, match_kind: "no_registered_client_match", confidence: "needs_review" });
   const directory = buildClientDirectory(clientRecords);
-  const exact = directory.filter((client) => client.aliases.includes(value));
-  if (exact.length === 1) return freeze({ client: exact[0], match_kind: "client_exact", confidence: "high" });
-  const prefix = directory.filter((client) => client.aliases.some((alias) => (
-    Math.min(alias.length, value.length) >= 4 && (alias.startsWith(value) || value.startsWith(alias))
-  )));
-  if (prefix.length === 1) return freeze({ client: prefix[0], match_kind: "client_unique_prefix", confidence: "high" });
-  return null;
+  const exact = directory.filter((client) => (
+    client.canonical_names.includes(value) || client.saved_aliases.includes(value)
+  ));
+  if (exact.length === 1) {
+    return freeze({
+      client: exact[0],
+      match_kind: exact[0].canonical_names.includes(value) ? "client_exact" : "client_saved_alias",
+      confidence: "high",
+    });
+  }
+  if (exact.length > 1) {
+    return freeze({ client: null, match_kind: "client_name_ambiguous", confidence: "needs_review" });
+  }
+  const partial = directory.filter((client) => (
+    [...client.canonical_names, ...client.saved_aliases].some((name) => (
+      Math.min(name.length, value.length) >= 4 && (name.startsWith(value) || value.startsWith(name))
+    ))
+  ));
+  if (partial.length > 0) {
+    return freeze({ client: null, match_kind: "client_partial_name", confidence: "needs_review" });
+  }
+  return freeze({ client: null, match_kind: "no_registered_client_match", confidence: "needs_review" });
 }
 
 function employeeMatch(transaction, employees = []) {
@@ -218,7 +243,9 @@ function automaticProposal(transaction, { client_records = [], employees = [], r
       ...rule,
       rule_id: rule.bank_classification_rule_id,
       classification_source: "saved_rule",
-      rationale_code: "saved_exact_counterparty_rule",
+      rationale_code: rule.category === "client_receipt"
+        ? "client_saved_alias"
+        : "saved_exact_counterparty_rule",
       confidence: "high",
     });
   }
@@ -232,7 +259,7 @@ function automaticProposal(transaction, { client_records = [], employees = [], r
 
   if (transaction.direction === "inflow") {
     const matchedClient = clientMatch(transaction.counterparty, client_records);
-    if (matchedClient) {
+    if (matchedClient.client) {
       return classificationProposal(transaction, {
         category: "client_receipt",
         client_group_id: matchedClient.client.client_group_id,
@@ -266,7 +293,9 @@ function automaticProposal(transaction, { client_records = [], employees = [], r
     }
     return classificationProposal(transaction, {
       category: "other_inflow",
-      rationale_code: "no_registered_client_match",
+      status: "review_required",
+      confidence: matchedClient.confidence,
+      rationale_code: matchedClient.match_kind,
     });
   }
 

@@ -38,7 +38,7 @@ function fixtureTransactions() {
     bankTransaction("bank_tx_a", {
       direction: "inflow",
       amount: 11000000,
-      counterparty: "(주)베스트이노",
+      counterparty: "(주)베스트이노베이션",
     }),
     bankTransaction("bank_tx_b", {
       amount: 10652530,
@@ -77,6 +77,7 @@ const clients = [
     model_type: "ClientGroup",
     client_group_id: "client-best",
     display_name: "베스트이노베이션",
+    approved_aliases: ["베스트홀딩스"],
     status: "active",
   },
 ];
@@ -151,6 +152,143 @@ test("bank classification preview links registered-client inflows and exact payr
   assert.equal(byId.get("bank_tx_e").category, "related_party_transfer");
   assert.equal(byId.get("bank_tx_f").category, "refund_reversal");
   assert.equal(byId.get("bank_tx_0").category, "zero_amount_source");
+});
+
+test("client receipts require one exact normalized name or a saved alias", () => {
+  const matchingClients = [
+    ...clients,
+    {
+      model_type: "ClientGroup",
+      client_group_id: "client-hanbit-one",
+      display_name: "한빛",
+      status: "active",
+    },
+    {
+      model_type: "ClientGroup",
+      client_group_id: "client-hanbit-two",
+      display_name: "한빛",
+      status: "active",
+    },
+  ];
+  const preview = previewBankTransactionClassifications({
+    transactions: [
+      bankTransaction("bank_exact", {
+        tenant_id: TENANT,
+        direction: "inflow",
+        counterparty: "주식회사 베스트이노베이션",
+      }),
+      bankTransaction("bank_alias", {
+        tenant_id: TENANT,
+        direction: "inflow",
+        counterparty: "베스트홀딩스",
+      }),
+      bankTransaction("bank_partial", {
+        tenant_id: TENANT,
+        direction: "inflow",
+        counterparty: "베스트이노",
+      }),
+      bankTransaction("bank_ambiguous", {
+        tenant_id: TENANT,
+        direction: "inflow",
+        counterparty: "한빛",
+      }),
+      bankTransaction("bank_unknown", {
+        tenant_id: TENANT,
+        direction: "inflow",
+        counterparty: "처음보는입금자",
+      }),
+    ],
+    client_records: matchingClients,
+  });
+  const byId = new Map(preview.classifications.map((row) => [row.bank_transaction_id, row]));
+
+  assert.deepEqual(
+    {
+      client_group_id: byId.get("bank_exact").client_group_id,
+      category: byId.get("bank_exact").category,
+      rationale_code: byId.get("bank_exact").rationale_code,
+      status: byId.get("bank_exact").status,
+    },
+    {
+      client_group_id: "client-best",
+      category: "client_receipt",
+      rationale_code: "client_exact",
+      status: "confirmed",
+    },
+  );
+  assert.deepEqual(
+    {
+      client_group_id: byId.get("bank_alias").client_group_id,
+      category: byId.get("bank_alias").category,
+      rationale_code: byId.get("bank_alias").rationale_code,
+      status: byId.get("bank_alias").status,
+    },
+    {
+      client_group_id: "client-best",
+      category: "client_receipt",
+      rationale_code: "client_saved_alias",
+      status: "confirmed",
+    },
+  );
+  for (const [transactionId, rationaleCode] of [
+    ["bank_partial", "client_partial_name"],
+    ["bank_ambiguous", "client_name_ambiguous"],
+    ["bank_unknown", "no_registered_client_match"],
+  ]) {
+    assert.deepEqual(
+      {
+        client_group_id: byId.get(transactionId).client_group_id,
+        category: byId.get(transactionId).category,
+        rationale_code: byId.get(transactionId).rationale_code,
+        status: byId.get(transactionId).status,
+        confidence: byId.get(transactionId).confidence,
+      },
+      {
+        client_group_id: null,
+        category: "other_inflow",
+        rationale_code: rationaleCode,
+        status: "review_required",
+        confidence: "needs_review",
+      },
+    );
+  }
+  assert.equal(preview.summary.confirmed_count, 2);
+  assert.equal(preview.summary.review_count, 3);
+});
+
+test("an exact client rule saved by manual review remains an approved depositor alias", () => {
+  const preview = previewBankTransactionClassifications({
+    transactions: [bankTransaction("bank_saved_rule", {
+      tenant_id: TENANT,
+      direction: "inflow",
+      counterparty: "베스트별도입금자",
+    })],
+    client_records: clients,
+    rules: [{
+      model_type: "BankClassificationRule",
+      bank_classification_rule_id: "bank_rule_saved_alias",
+      match_field: "counterparty",
+      normalized_match_value: "베스트별도입금자",
+      category: "client_receipt",
+      client_group_id: "client-best",
+      status: "active",
+      priority: 100,
+    }],
+  });
+  assert.deepEqual(
+    {
+      client_group_id: preview.classifications[0].client_group_id,
+      category: preview.classifications[0].category,
+      classification_source: preview.classifications[0].classification_source,
+      rationale_code: preview.classifications[0].rationale_code,
+    },
+    {
+      client_group_id: "client-best",
+      category: "client_receipt",
+      classification_source: "saved_rule",
+      rationale_code: "client_saved_alias",
+    },
+  );
 });
 
 test("explicit AMIC payroll role overrides a non-legal organization title", () => {

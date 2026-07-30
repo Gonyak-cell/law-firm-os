@@ -277,7 +277,7 @@ test("AMIC super-admin imports and reads sanitized BankTransaction rows while st
   }, { financeRepository });
 });
 
-test("AMIC super-admin classifies client initials and payroll initials while staff remains fail-closed", async () => {
+test("AMIC super-admin classifies a saved client short name and payroll initials while staff remains fail-closed", async () => {
   const financeRepository = createFinanceRepository({
     seedRecords: [
       {
