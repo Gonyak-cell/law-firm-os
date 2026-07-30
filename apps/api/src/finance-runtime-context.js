@@ -31,6 +31,10 @@ import {
   listAmicBankClassificationEmployees,
   listBankClassificationClientRecords,
 } from "./amic-bank-classification-directory.js";
+import {
+  MAX_AMIC_WORKBOOK_SOURCE_BYTES,
+  previewAmicWorkbookBuffer,
+} from "../../../packages/import-data/src/index.js";
 
 export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "finance",
@@ -41,6 +45,7 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/finance/bank-transactions",
     "GET /api/finance/bank-classifications",
     "GET /api/finance/bank-classification-options",
+    "POST /api/finance/bank-imports/preview",
     "POST /api/finance/bank-imports",
     "POST /api/finance/bank-classifications/auto",
     "POST /api/finance/bank-classifications/review",
@@ -89,6 +94,9 @@ export const FINANCE_API_ERROR_CODES = Object.freeze({
   review_required: "FINANCE_REVIEW_REQUIRED",
   approval_required: "FINANCE_APPROVAL_REQUIRED",
   not_found: "FINANCE_NOT_FOUND",
+  source_file_required: "FINANCE_SOURCE_FILE_REQUIRED",
+  source_file_invalid: "FINANCE_SOURCE_FILE_INVALID",
+  source_file_too_large: "FINANCE_SOURCE_FILE_TOO_LARGE",
 });
 
 export const FINANCE_RUNTIME_SEED = Object.freeze([
@@ -349,6 +357,68 @@ function sanitizeBankImportBatch(record) {
     credential_material_included: false,
     production_ready_claim: false,
   });
+}
+
+function bankImportPreviewError({ status = 400, requestId, code, auditHintRef }) {
+  const response = errorResponse(status, requestId, [code], {
+    audit_hint_ref: auditHintRef,
+    ui_state: "blocked",
+  });
+  return {
+    ...response,
+    body: {
+      ...response.body,
+      preview: {
+        counts: { total: 0, new: 0, duplicate: 0, error: 1 },
+        product_records_mutated: false,
+        raw_source_payload_included: false,
+      },
+    },
+  };
+}
+
+function bankImportPreviewFile(body = {}) {
+  const file = body.files?.file ?? body.file;
+  if (!file || typeof file !== "object") {
+    const error = new TypeError("XLSX source file is required");
+    error.safe_error_code = FINANCE_API_ERROR_CODES.source_file_required;
+    throw error;
+  }
+  const fileName = String(file.filename ?? file.file_name ?? "").trim().split(/[\\/]/u).at(-1);
+  const mimeType = String(file.mime_type ?? file.content_type ?? "").trim().toLowerCase();
+  if (!fileName.toLowerCase().endsWith(".xlsx")
+      || ![
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/octet-stream",
+      ].includes(mimeType)) {
+    const error = new TypeError("XLSX filename and MIME type are required");
+    error.safe_error_code = FINANCE_API_ERROR_CODES.source_file_invalid;
+    throw error;
+  }
+  const encoded = String(file.content_base64 ?? "").trim();
+  if (!encoded || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/u.test(encoded)) {
+    const error = new TypeError("XLSX source encoding is invalid");
+    error.safe_error_code = FINANCE_API_ERROR_CODES.source_file_invalid;
+    throw error;
+  }
+  const buffer = Buffer.from(encoded, "base64");
+  if (buffer.toString("base64") !== encoded) {
+    const error = new TypeError("XLSX source encoding is invalid");
+    error.safe_error_code = FINANCE_API_ERROR_CODES.source_file_invalid;
+    throw error;
+  }
+  if (buffer.length > MAX_AMIC_WORKBOOK_SOURCE_BYTES) {
+    const error = new RangeError("XLSX source exceeds the preview byte budget");
+    error.safe_error_code = FINANCE_API_ERROR_CODES.source_file_too_large;
+    throw error;
+  }
+  const declaredByteSize = Number(file.byte_size);
+  if (Number.isFinite(declaredByteSize) && declaredByteSize !== buffer.length) {
+    const error = new TypeError("XLSX declared byte size does not match content");
+    error.safe_error_code = FINANCE_API_ERROR_CODES.source_file_invalid;
+    throw error;
+  }
+  return buffer;
 }
 
 function classificationDirectories(runtime, tenantId) {
@@ -733,6 +803,91 @@ export function handleFinanceBankImport({ body, context, requestId, runtime = DE
     return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
+    });
+  }
+}
+
+export function handleFinanceBankImportPreview({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+  };
+  const action = "finance:bank_import:preview";
+  const resourceType = "bank_import_preview";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  if (gated) return gated;
+
+  try {
+    const sourceBuffer = bankImportPreviewFile(body);
+    const existingTransactions = runtime.repository.list({
+      tenant_id: query.tenant_id,
+      model_type: "BankTransaction",
+      account_ref: body.account_ref || undefined,
+    });
+    const preview = previewAmicWorkbookBuffer(sourceBuffer, {
+      account_ref: body.account_ref || undefined,
+      existing_transactions: existingTransactions,
+    });
+    appendFinanceSensitiveReadAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      returnedCount: preview.items.length,
+      metadata: {
+        preview_id: preview.preview_id,
+        source_file_sha256: preview.source_file_sha256,
+        source_file_name_included: false,
+        raw_source_payload_included: false,
+        product_records_mutated: false,
+      },
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "preview_ready",
+        preview: {
+          preview_id: preview.preview_id,
+          preview_manifest_sha256: preview.preview_manifest_sha256,
+          source_file_sha256: preview.source_file_sha256,
+          account_ref: preview.account_ref,
+          counts: preview.counts,
+          items: preview.items,
+          confirmation_token_included: false,
+          product_records_mutated: false,
+          raw_source_payload_included: false,
+        },
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      },
+    };
+  } catch (error) {
+    const safeErrorCode = error?.safe_error_code
+      ?? (error instanceof RangeError
+        ? FINANCE_API_ERROR_CODES.source_file_too_large
+        : FINANCE_API_ERROR_CODES.source_file_invalid);
+    appendFinanceRouteAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      decision: {
+        effect: "deny",
+        reason: safeErrorCode.toLowerCase(),
+        fail_closed: true,
+      },
+    });
+    return bankImportPreviewError({
+      status: safeErrorCode === FINANCE_API_ERROR_CODES.source_file_too_large ? 413 : 400,
+      requestId,
+      code: safeErrorCode,
+      auditHintRef: query.audit_hint_ref,
     });
   }
 }
@@ -1383,6 +1538,9 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
   }
   if (pathname === "/api/finance/bank-classification-options" && method === "GET") {
     return bankClassificationOptionsResponse({ query, context, requestId, runtime });
+  }
+  if (pathname === "/api/finance/bank-imports/preview" && method === "POST") {
+    return handleFinanceBankImportPreview({ body, context, requestId, runtime });
   }
   if (pathname === "/api/finance/bank-imports" && method === "POST") {
     return handleFinanceBankImport({ body, context, requestId, runtime });

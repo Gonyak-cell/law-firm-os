@@ -8,6 +8,7 @@ const MAX_XLSX_TOTAL_BYTES = 64 * 1024 * 1024;
 const MAX_XLSX_COMPRESSION_RATIO = 120;
 const SEOUL_OFFSET = "+09:00";
 const DEFAULT_ACCOUNT_REF = "amic-nh-operating";
+export const MAX_AMIC_WORKBOOK_SOURCE_BYTES = 16 * 1024 * 1024;
 
 function requiredString(value, field) {
   const normalized = String(value ?? "").trim();
@@ -277,6 +278,90 @@ export function parseAmicWorkbookSheets(sheets, { account_ref = DEFAULT_ACCOUNT_
 
 export function parseAmicWorkbookBuffer(buffer, options = {}) {
   return parseAmicWorkbookSheets(parseXlsxSheetsBuffer(buffer), options);
+}
+
+export function previewAmicWorkbookBuffer(
+  input,
+  {
+    account_ref = DEFAULT_ACCOUNT_REF,
+    existing_transactions = [],
+  } = {},
+) {
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input ?? []);
+  if (buffer.length === 0) throw new TypeError("XLSX source file is required");
+  if (buffer.length > MAX_AMIC_WORKBOOK_SOURCE_BYTES) {
+    throw new RangeError("XLSX source file exceeds the preview byte budget");
+  }
+  const sourceFileSha256 = sha256(buffer);
+  const transactions = parseAmicWorkbookBuffer(buffer, {
+    account_ref,
+    source_hash: sourceFileSha256,
+  });
+  if (transactions.length === 0 || transactions.length > 5_000) {
+    throw new TypeError("XLSX preview must contain 1 to 5000 transactions");
+  }
+
+  const existingByFingerprint = new Map(
+    existing_transactions
+      .filter((transaction) => transaction?.transaction_fingerprint)
+      .map((transaction) => [transaction.transaction_fingerprint, transaction]),
+  );
+  const firstPreviewTransactionByFingerprint = new Map();
+  const items = transactions.map((transaction, index) => {
+    const existing = existingByFingerprint.get(transaction.transaction_fingerprint);
+    const earlierPreview = firstPreviewTransactionByFingerprint.get(transaction.transaction_fingerprint);
+    const duplicateOf = existing?.bank_transaction_id ?? earlierPreview?.bank_transaction_id ?? null;
+    if (!earlierPreview) {
+      firstPreviewTransactionByFingerprint.set(transaction.transaction_fingerprint, transaction);
+    }
+    return Object.freeze({
+      row_number: index + 1,
+      status: duplicateOf ? "duplicate" : "new",
+      bank_transaction_id: transaction.bank_transaction_id,
+      duplicate_of_bank_transaction_id: duplicateOf,
+      account_ref: transaction.account_ref,
+      date: transaction.date,
+      occurred_at: transaction.occurred_at,
+      direction: transaction.direction,
+      amount: transaction.amount,
+      balance_after: transaction.balance_after,
+      currency: transaction.currency,
+      method: transaction.method,
+      counterparty: transaction.counterparty,
+      source_category: transaction.source_category,
+      classification_scope: transaction.classification_scope,
+      source_metadata_included: false,
+      transaction_fingerprint_included: false,
+      raw_source_payload_included: false,
+    });
+  });
+  const newCount = items.filter((item) => item.status === "new").length;
+  const duplicateCount = items.length - newCount;
+  const previewManifestSha256 = sha256(Buffer.from(JSON.stringify({
+    source_file_sha256: sourceFileSha256,
+    account_ref,
+    transactions: transactions.map((transaction) => ({
+      bank_transaction_id: transaction.bank_transaction_id,
+      transaction_fingerprint: transaction.transaction_fingerprint,
+    })),
+    duplicate_of_bank_transaction_ids: items.map((item) => item.duplicate_of_bank_transaction_id),
+  })));
+  return Object.freeze({
+    preview_id: `bank_import_preview_${previewManifestSha256.slice(0, 24)}`,
+    preview_manifest_sha256: previewManifestSha256,
+    source_file_sha256: sourceFileSha256,
+    account_ref,
+    counts: Object.freeze({
+      total: items.length,
+      new: newCount,
+      duplicate: duplicateCount,
+      error: 0,
+    }),
+    items: Object.freeze(items),
+    transactions,
+    product_records_mutated: false,
+    raw_source_payload_included: false,
+  });
 }
 
 export function parseNhBankStatementText(text, { account_ref = DEFAULT_ACCOUNT_REF, source_hash = null } = {}) {

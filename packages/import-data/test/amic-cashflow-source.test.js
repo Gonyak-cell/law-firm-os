@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  MAX_AMIC_WORKBOOK_SOURCE_BYTES,
   mergeCashflowTransactions,
   parseAmicWorkbookSheets,
   parseNhBankStatementText,
   parseXlsxSheetsBuffer,
+  previewAmicWorkbookBuffer,
   summarizeCashflowTransactions,
 } from "../src/index.js";
 import { createXlsxBuffer } from "../../hrx/src/leave/xlsx-export.js";
@@ -40,6 +42,16 @@ const statementText = `
                           출금 300                  10,700 자동이체                     공급자 B
                 10:00:00
 `;
+
+function cashflowWorkbookBuffer(sourceSheets = sheets) {
+  return createXlsxBuffer({
+    worksheets: Object.entries(sourceSheets).map(([name, rows]) => ({
+      sheetName: name,
+      headers: rows[0],
+      rows: rows.slice(1),
+    })),
+  });
+}
 
 test("AMIC cashflow XLSX parsing rejects formula-like worksheet values", () => {
   const workbook = createXlsxBuffer({
@@ -134,4 +146,42 @@ test("cashflow summaries keep total cash movement separate from classification",
     latest_occurred_at: "2026-07-06T09:30:00+09:00",
     currency: "KRW",
   });
+});
+
+test("CL-P1-W01-T01 XLSX preview returns deterministic hashes and new or duplicate row counts without writing records", () => {
+  const workbook = cashflowWorkbookBuffer();
+  const first = previewAmicWorkbookBuffer(workbook, {
+    account_ref: "account-client-preview",
+  });
+  assert.match(first.source_file_sha256, /^[a-f0-9]{64}$/u);
+  assert.match(first.preview_manifest_sha256, /^[a-f0-9]{64}$/u);
+  assert.match(first.preview_id, /^bank_import_preview_[a-f0-9]{24}$/u);
+  assert.deepEqual(first.counts, { total: 4, new: 4, duplicate: 0, error: 0 });
+  assert.equal(first.items.every((item) => item.raw_source_payload_included === false), true);
+  assert.equal(first.items.every((item) => item.transaction_fingerprint_included === false), true);
+  assert.equal(first.product_records_mutated, false);
+
+  const replay = previewAmicWorkbookBuffer(workbook, {
+    account_ref: "account-client-preview",
+    existing_transactions: [{
+      ...first.transactions[0],
+      bank_transaction_id: "persisted-bank-transaction",
+    }],
+  });
+  assert.equal(replay.source_file_sha256, first.source_file_sha256);
+  assert.notEqual(replay.preview_id, first.preview_id);
+  assert.deepEqual(replay.counts, { total: 4, new: 3, duplicate: 1, error: 0 });
+  assert.equal(replay.items[0].status, "duplicate");
+  assert.equal(replay.items[0].duplicate_of_bank_transaction_id, "persisted-bank-transaction");
+});
+
+test("CL-P1-W01-T01 XLSX preview rejects empty and oversized sources before parsing", () => {
+  assert.throws(
+    () => previewAmicWorkbookBuffer(Buffer.alloc(0)),
+    /source file is required/,
+  );
+  assert.throws(
+    () => previewAmicWorkbookBuffer(Buffer.alloc(MAX_AMIC_WORKBOOK_SOURCE_BYTES + 1)),
+    /byte budget/,
+  );
 });

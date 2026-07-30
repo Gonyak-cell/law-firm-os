@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5 완료, 전체 5/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5 완료, 전체 6/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -839,6 +839,7 @@ flowchart LR
 ```bash
 node scripts/validate-client-operations-fixture.mjs
 node --test packages/import-data/test/amic-cashflow-source.test.js
+node --test apps/api/test/client-bank-import-preview-api.test.js
 node --test packages/billing/test/bank-transaction-service.test.js packages/billing/test/bank-classification-service.test.js
 node --test packages/billing/test/client-deposit-revenue.test.js packages/billing/test/fee-commitment-allocation.test.js
 node --test packages/email-dms/test/inquiry-evidence.test.js
@@ -947,7 +948,8 @@ npm test
 | `CL-P0-W01-T03` | 완료 | 미수금·금액 미입력·선입금·초과 입금·배분 순서 계약과 기대값 고정 | 미수금 900만 원, 선입금·초과 입금 200만 원 deep-equal |
 | `CL-P0-W01-T04` | 완료 | 문의·수임·계약·Matter 분리와 9개 Client 기능 권한, 5개 사용자 유형 매핑 등록 | 서명 세션 허용·차단 및 production 최고권한 복원 테스트 |
 | `CL-P0-W01-T05` | 완료 | 고객 3곳, 32개 VC, JSON·CSV 기대값과 fail-closed validator 등록 | `node scripts/validate-client-operations-fixture.mjs` PASS |
-| `CL-P1-W01-T01` | 다음 | 은행 파일 서버 미리보기 API | 시작 전 |
+| `CL-P1-W01-T01` | 완료 | 기존 안전 XLSX 파서를 `/api/finance/bank-imports/preview`에 연결; 해시·계좌·신규·중복·오류 건수와 검토 행 반환, 제품 레코드 미생성 | 정상·중복·직원 403·손상 파일·위장 MIME, Finance/HRX XLSX 회귀 32/32 |
+| `CL-P1-W01-T02` | 다음 | 제한된 PDF 텍스트 추출과 미리보기 지원 | 시작 전 |
 
 P0 집중 검증:
 
