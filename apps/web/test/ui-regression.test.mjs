@@ -248,7 +248,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     assert.match(globalUtilitySource, new RegExp(`label: "${label}"`));
   }
   assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
-  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역", "Pipeline", "상담/수임 제안", "접촉 이력", "청구", "리포트"]) {
+  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "새 문의", "입금 매출 내역", "수임 현황", "상담·수임 관리", "접촉 이력", "수임료·미수금", "리포트"]) {
     assert.match(shellSource, new RegExp(label));
   }
   const viteServer = await createServer({ configFile: false, root: webRoot, server: { middlewareMode: true, hmr: false }, appType: "custom", logLevel: "error" });
@@ -258,7 +258,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     const clientOperations = navigation.clients.items.find((item) => item.label === "운영").children;
     const matterCommunication = navigation.matters.items.find((item) => item.label === "소통").children;
     const matterReports = navigation.matters.items.find((item) => item.label === "리포트").children;
-    assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["청구", "client-billing"], ["리포트", "client-reports"]]);
+    assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["수임료·미수금", "client-billing"], ["리포트", "client-reports"]]);
     assert.deepEqual(matterCommunication.map((item) => [item.label, item.section]), [["회의 기록", "matter-meetings"], ["의뢰인 요청", "matter-client-requests"]]);
     assert.deepEqual(matterReports.map((item) => [item.label, item.section]), [["사건 리포트", "matter-analytics"], ["연동", "matter-integrations"]]);
   } finally {
@@ -273,7 +273,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   }
   assert.match(shellSource, /label: "업무 관리"[\s\S]*label: "사건 운영"/);
   assert.doesNotMatch(shellSource, /업무 진행|외부 일정|검토 의견/);
-  assert.doesNotMatch(`${shellSource}\n${globalUtilitySource}\n${homeSource}\n${clientsSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
+  assert.doesNotMatch(shellSource, /label: "Pipeline"|label: "상담\/수임 제안"|label: "잠재 고객"|label: "매출 내역"|label: "청구"/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(shellSource, /children\.length === 1 && children\[0\]\.section === "people-attendance-records"/);

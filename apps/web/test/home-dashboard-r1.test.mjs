@@ -800,10 +800,10 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     assert.equal(await page.getByRole("button", { name: "회의실 예약", exact: true }).getAttribute("aria-current"), "location");
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
-    assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역"]);
+    assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "새 문의", "입금 매출 내역"]);
     const clientPreEngagementToggle = page.locator('[data-sidebar-group="client-opportunities"] .sidebar-group-toggle');
     await clientPreEngagementToggle.click();
-    assert.deepEqual(await page.locator('[data-sidebar-group="client-opportunities"] .sidebar-child').allTextContents(), ["Pipeline", "상담/수임 제안", "접촉 이력"]);
+    assert.deepEqual(await page.locator('[data-sidebar-group="client-opportunities"] .sidebar-child').allTextContents(), ["수임 현황", "상담·수임 관리", "접촉 이력"]);
     if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "true") await clientPrimaryToggle.click();
     await clientPrimaryToggle.click();
     await page.locator('[data-product-axis="home"]').click();
@@ -849,6 +849,25 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
       true,
       "closing the contextual drawer must return focus to its rail trigger"
     );
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#client-accounts`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#clients-list");
+    assert.equal(await page.locator("#clients-list").count(), 1);
+    assert.equal(await page.locator("[data-client-route-disabled]").count(), 0);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#client-data`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#clients-home");
+    const disabledClientRoute = page.locator('[data-client-route-disabled="disabled"]');
+    assert.equal(await disabledClientRoute.count(), 1);
+    assert.match(await disabledClientRoute.innerText(), /이 메뉴는 사용하지 않습니다/);
+    assert.equal(await page.locator("#clients-home-panel").count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#client-unknown`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#clients-home");
+    const unknownClientRoute = page.locator('[data-client-route-disabled="not_found"]');
+    assert.equal(await unknownClientRoute.count(), 1);
+    assert.match(await unknownClientRoute.innerText(), /요청한 메뉴를 찾을 수 없습니다/);
   } finally {
     await browser.close();
     await server.close();

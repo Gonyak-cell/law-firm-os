@@ -62,21 +62,12 @@ const CLIENT_SECTIONS = new Set([
   "clients-list",
   "client-new",
   "client-leads",
+  "client-sales-history",
   "client-opportunities",
   "client-consultation-proposals",
-  "client-intake",
-  "client-accounts",
-  "client-contacts",
   "client-activities",
-  "client-contracts",
-  "client-relationships",
-  "client-conflict",
   "client-billing",
-  "client-sales-history",
-  "client-data",
-  "client-reports",
-  "client-import",
-  "client-settings"
+  "client-reports"
 ]);
 
 function clientDisplayName(item, index) {
@@ -1788,7 +1779,7 @@ export function ClientIntakePipelineSurface({
   );
 }
 
-export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigate = () => {} }) {
+export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", refreshSignal = 0, onNavigate = () => {}, redirectedFrom = null }) {
   const [clientsResult, setClientsResult] = useState(null);
   const [accountsResult, setAccountsResult] = useState(null);
   const [contactsResult, setContactsResult] = useState(null);
@@ -1858,6 +1849,10 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [selectedClientId, setSelectedClientId] = useState(null);
   const refreshSignalRef = useRef(refreshSignal);
   const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-home";
+  const disabledRouteDisposition = redirectedFrom?.view === "clients"
+    && ["disabled", "not_found"].includes(redirectedFrom?.disposition)
+    ? redirectedFrom.disposition
+    : null;
 
   useEffect(() => {
     if (refreshSignalRef.current === refreshSignal) return;
@@ -2641,6 +2636,20 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
       data-cmp-g2-live-clients="true"
     >
       <ForestHero title={labels.clientsTitle} image={heroClientArchitecture} imageOpacity={0.24} />
+      {disabledRouteDisposition && (
+        <div
+          className="home-company-access-notice client-route-notice"
+          role="status"
+          data-client-route-disabled={disabledRouteDisposition}
+        >
+          <strong>
+            {disabledRouteDisposition === "not_found"
+              ? "요청한 메뉴를 찾을 수 없습니다."
+              : "이 메뉴는 사용하지 않습니다."}
+          </strong>
+          <span>왼쪽 Client 메뉴에서 필요한 업무를 선택해 주세요.</span>
+        </div>
+      )}
       <div
         className="clients-runtime-grid record-workspace record-workspace-list-only"
         data-salesforce-client-workspace="list-detail-overlay"
@@ -2671,12 +2680,12 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-leads" && (
-          <Panel id="client-leads" className="record-list-panel" title="잠재 고객">
+          <Panel id="client-leads" className="record-list-panel" title="새 문의">
             <LeadsTable result={leadsResult} />
           </Panel>
         )}
         {currentSection === "client-opportunities" && (
-          <Panel id="client-opportunities" className="record-list-panel" title="Pipeline" hideHeader>
+          <Panel id="client-opportunities" className="record-list-panel" title="수임 현황" hideHeader>
             <OpportunitiesTable
               result={opportunitiesResult}
               pending={handoffPending}
@@ -2867,7 +2876,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-billing" && (
-          <Panel id="client-billing" className="record-list-panel" title="청구" hideHeader>
+          <Panel id="client-billing" className="record-list-panel" title="수임료·미수금" hideHeader>
             <ClientChargePanel
               invoicesResult={financeInvoicesResult}
               arAgingResult={financeArAgingResult}
@@ -2875,7 +2884,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
           </Panel>
         )}
         {currentSection === "client-sales-history" && (
-          <Panel id="client-sales-history" className="record-list-panel" title="매출 내역" meta="" hideHeader>
+          <Panel id="client-sales-history" className="record-list-panel" title="입금 매출 내역" meta="" hideHeader>
             <ClientSalesHistoryPanel result={financeClientsResult} />
           </Panel>
         )}

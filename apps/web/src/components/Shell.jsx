@@ -883,16 +883,16 @@ export function buildContextualNavigation({
             { label: "대시보드", view: "clients", section: "clients-home", icon: LayoutDashboard, active: true },
             { label: "고객 목록", view: "clients", section: "clients-list", icon: ClipboardList },
             { label: "신규 고객", view: "clients", section: "client-new", icon: UserPlus },
-            { label: "잠재 고객", view: "clients", section: "client-leads", icon: ClipboardList },
-            { label: "매출 내역", view: "clients", section: "client-sales-history", icon: FileText }
+            { label: "새 문의", view: "clients", section: "client-leads", icon: ClipboardList },
+            { label: "입금 매출 내역", view: "clients", section: "client-sales-history", icon: FileText }
           ]
         },
         {
           label: "수임 전 업무",
           icon: FileText,
           children: [
-            { label: "Pipeline", view: "clients", section: "client-opportunities", icon: ClipboardList },
-            { label: "상담/수임 제안", view: "clients", section: "client-consultation-proposals", icon: FileText },
+            { label: "수임 현황", view: "clients", section: "client-opportunities", icon: ClipboardList },
+            { label: "상담·수임 관리", view: "clients", section: "client-consultation-proposals", icon: FileText },
             { label: "접촉 이력", view: "clients", section: "client-activities", icon: ClipboardList },
           ]
         },
@@ -900,7 +900,7 @@ export function buildContextualNavigation({
           label: "운영",
           icon: Settings,
           children: [
-            { label: "청구", view: "clients", section: "client-billing", icon: FileText },
+            { label: "수임료·미수금", view: "clients", section: "client-billing", icon: FileText },
             { label: "리포트", view: "clients", section: "client-reports", icon: FileText }
           ]
         }

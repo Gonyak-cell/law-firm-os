@@ -488,9 +488,11 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const onPopState = () => {
+    const onLocationChange = () => {
       const nextRoute = routeFromLocation();
       const nextParams = new URLSearchParams(window.location.search);
+      const requestedView = nextParams.get("view") ?? "home";
+      const requestedSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
       setContextSidebarOpen(false);
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
@@ -505,6 +507,16 @@ export function App() {
       }
       setUtilityDrawerType(nextRoute.openNotifications ? "notifications" : "");
       if (nextRoute.openNotifications) setNotificationItemsRead(true);
+      if (
+        requestedView === "clients" &&
+        (nextRoute.view !== requestedView || nextRoute.section !== requestedSection)
+      ) {
+        window.history.replaceState(
+          { view: nextRoute.view, section: nextRoute.section },
+          "",
+          routeUrl(nextRoute.view, nextRoute.section, nextRoute)
+        );
+      }
       if (nextRoute.view === "vault" && nextParams.get("current_version") === "all") {
         nextParams.set("current_version", "current");
         window.history.replaceState(
@@ -514,8 +526,12 @@ export function App() {
         );
       }
     };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+    window.addEventListener("popstate", onLocationChange);
+    window.addEventListener("hashchange", onLocationChange);
+    return () => {
+      window.removeEventListener("popstate", onLocationChange);
+      window.removeEventListener("hashchange", onLocationChange);
+    };
   }, []);
 
   if (!desktopSessionChecked || view === "loading") {
@@ -618,7 +634,7 @@ export function App() {
                 refreshSignal={globalRefreshSignal}
               />
             )}
-            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} />}
+            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} redirectedFrom={activeRedirectedFrom} />}
             {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} requestedMatterId={requestedMatterId} requestedMatterRevision={routeRevision} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
             {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
             {view === "vault" && (
