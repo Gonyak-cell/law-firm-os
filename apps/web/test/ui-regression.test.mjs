@@ -488,7 +488,10 @@ test("WP-FIN-3 mounts server-reconciled finance views with guarded states and re
   assert.match(financeSource, /data-home-cashflow-business-summary="true"/);
   assert.match(financeSource, /data-home-cashflow-monthly-table="true"/);
   assert.match(financeSource, /data-home-cashflow-transaction-table="true"/);
-  assert.match(financeSource, /현재 등록된 고객과 연결된 입금을 매출로 집계합니다/);
+  assert.match(financeSource, /입금 배정 전에는 매출로 확정하지 않습니다/);
+  for (const metric of ["인식 매출", "청구 수납", "직접 보수", "선수·예치", "미분류 입금"]) {
+    assert.match(financeSource, new RegExp(metric));
+  }
   assert.match(financeSource, /data-bank-classification-toolbar="true"/);
   assert.match(financeSource, /writeFinanceFilters/);
   assert.match(apiClientSource, /tenant_id: FINANCE_TENANT_ID/);
@@ -525,11 +528,16 @@ test("WP-FIN-4 reuses the Matter charge panel for Home finance operations", asyn
 
   assert.match(homeSource, /if \(homeFinanceSectionIds\.has\(activeHomeSection\)\)/);
   assert.match(financeSource, /<HomeFinanceOperations liveCtx=\{liveCtx\} activeSection=\{activeSection\}/);
-  assert.match(operationsSource, /import \{ ChargePanel \} from "\.\/MattersSurface\.jsx"/);
+  assert.match(operationsSource, /import \{ ChargePanel, createFinancePaymentFormDraft \} from "\.\/MattersSurface\.jsx"/);
+  assert.match(operationsSource, /allocateFinancePayment/);
   assert.match(operationsSource, /<ChargePanel/);
   assert.doesNotMatch(operationsSource, /function ChargePanel|function ChargeActionPanel/);
   assert.match(mattersSource, /export function ChargePanel/);
   assert.match(mattersSource, /data-finance-operation-mode=\{operationMode\}/);
+  assert.match(mattersSource, /data-matter-payment-form="true"/);
+  assert.match(mattersSource, /data-matter-payment-allocation-type="true"/);
+  assert.match(mattersSource, /data-matter-payment-allocation-action="true"/);
+  assert.match(mattersSource, /청구서 없는 사건 보수/);
   assert.match(mattersSource, /expenseDate: todayWorkDate\(\)/);
   assert.match(mattersSource, /disbursedAt: todayWorkDate\(\)/);
   assert.match(apiClientSource, /expense_date: expenseDate/);

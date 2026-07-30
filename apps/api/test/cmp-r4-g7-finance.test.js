@@ -191,6 +191,93 @@ test("WP-FIN-2 exposes sanitized Payment and PaymentMatch read routes", async ()
   }, { financeRepository });
 });
 
+test("direct receipt API records and allocates cash without an Invoice under the existing payment scope", async () => {
+  const financeRepository = createFinanceRepository();
+  await withServer(async (baseUrl) => {
+    const received = await json(baseUrl, "/api/finance/payments", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-direct-receipt-write",
+        audit_hint_ref: "audit-direct-receipt-write",
+        idempotency_key: "api-direct-receipt-payment",
+        payment: {
+          payment_id: "payment-direct-receipt-api",
+          tenant_id: TENANT,
+          matter_id: "matter-direct-receipt-api",
+          client_group_id: "client-direct-receipt-api",
+          bank_reference: "bank-direct-receipt-api",
+          amount: 250000,
+          currency: "KRW",
+          received_at: "2026-07-30",
+        },
+      }),
+    });
+    assert.equal(received.status, 201);
+    assert.equal(received.body.item.allocation_status, "unallocated");
+    assert.equal(received.body.item.unallocated_amount, 250000);
+
+    const allocated = await json(baseUrl, "/api/finance/payment-allocations", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-direct-receipt-write",
+        audit_hint_ref: "audit-direct-receipt-write",
+        idempotency_key: "api-direct-receipt-allocation",
+        allocation: {
+          payment_allocation_id: "allocation-direct-receipt-api",
+          tenant_id: TENANT,
+          payment_id: "payment-direct-receipt-api",
+          allocation_type: "direct_fee",
+          matter_id: "matter-direct-receipt-api",
+          client_group_id: "client-direct-receipt-api",
+          amount: 250000,
+          currency: "KRW",
+          allocated_at: "2026-07-30",
+        },
+      }),
+    });
+    assert.equal(allocated.status, 201);
+    assert.equal(allocated.body.item.allocation_type, "direct_fee");
+    assert.equal(allocated.body.item.invoice_id, null);
+    assert.equal(allocated.body.payment.allocation_status, "allocated");
+    assert.equal(allocated.body.payment.unallocated_amount, 0);
+
+    const rows = await json(baseUrl, `/api/finance/payment-allocations?${BASE_QUERY}`);
+    assert.equal(rows.status, 200);
+    assert.equal(rows.body.items.length, 1);
+    assert.equal(rows.body.items[0].credential_material_included, false);
+
+    const invalid = await json(baseUrl, "/api/finance/payment-allocations", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-direct-receipt-write",
+        audit_hint_ref: "audit-direct-receipt-write",
+        idempotency_key: "api-direct-receipt-invalid",
+        allocation: {
+          payment_allocation_id: "allocation-direct-receipt-invalid",
+          tenant_id: TENANT,
+          payment_id: "payment-direct-receipt-api",
+          allocation_type: "direct_fee",
+          invoice_id: "invoice-not-allowed",
+          matter_id: "matter-direct-receipt-api",
+          client_group_id: "client-direct-receipt-api",
+          amount: 1,
+          currency: "KRW",
+        },
+      }),
+    });
+    assert.equal(invalid.status, 400);
+    assert.deepEqual(invalid.body.safe_error_codes, ["FINANCE_API_VALIDATION_ERROR"]);
+
+    const denied = await json(baseUrl, `/api/finance/payment-allocations?${BASE_QUERY}`, { account: NON_PARTNER_ACCOUNT });
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.items, []);
+    assert.equal(denied.body.count_leak_prevented, true);
+  }, { financeRepository });
+});
+
 test("AMIC super-admin imports and reads sanitized BankTransaction rows while staff remains fail-closed", async () => {
   const financeRepository = createFinanceRepository();
   await withServer(async (baseUrl) => {
@@ -349,6 +436,47 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
     assert.equal(byId.get("bank-classification-payroll-api").payroll_category, "partner");
     assert.equal(byId.get("bank-classification-payroll-api").source_refs, undefined);
     assert.equal(byId.get("bank-classification-payroll-api").transaction_fingerprint, undefined);
+
+    const reviewed = await json(baseUrl, "/api/finance/bank-classifications/review", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "bank-classification-review-api-001",
+        decisions: [{
+          bank_transaction_id: "bank-classification-client-api",
+          category: "client_receipt",
+          client_group_id: "client-best-api",
+        }],
+      }),
+    });
+    assert.equal(reviewed.status, 200);
+    assert.equal(reviewed.body.item.payment_count, 1);
+    assert.equal(reviewed.body.item.payments[0].bank_transaction_id, "bank-classification-client-api");
+    assert.equal(reviewed.body.item.payments[0].allocation_status, "unallocated");
+    assert.equal(reviewed.body.item.payments[0].revenue_effect, "none_until_allocated");
+    const reviewedReplay = await json(baseUrl, "/api/finance/bank-classifications/review", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "bank-classification-review-api-001",
+        decisions: [{
+          bank_transaction_id: "bank-classification-client-api",
+          category: "client_receipt",
+          client_group_id: "client-best-api",
+        }],
+      }),
+    });
+    assert.equal(reviewedReplay.status, 200);
+    const paymentRows = await json(baseUrl, `/api/finance/payments?${BASE_QUERY}`, {
+      account: SUPER_ADMIN_ACCOUNT,
+    });
+    assert.equal(paymentRows.body.items.filter((row) => row.bank_transaction_id === "bank-classification-client-api").length, 1);
 
     const options = await json(baseUrl, `/api/finance/bank-classification-options?${BASE_QUERY}`, {
       account: SUPER_ADMIN_ACCOUNT,

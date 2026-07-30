@@ -15,6 +15,7 @@ export const FINANCE_PRIMARY_ID_FIELDS = Object.freeze({
   TaxInvoice: "tax_invoice_id",
   InvoiceCorrection: "invoice_correction_id",
   Payment: "payment_id",
+  PaymentAllocation: "payment_allocation_id",
   PaymentMatch: "payment_match_id",
   ARBalance: "ar_balance_id",
   ARAgingSnapshot: "ar_aging_snapshot_id",

@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  allocateFinancePayment,
   approveFinancePreBill,
   createFinanceDisbursement,
   createFinanceExpense,
@@ -20,7 +21,7 @@ import {
   readLawosApiSession,
   readLawosSessionEnvelope
 } from "../data/apiClient.js";
-import { ChargePanel } from "./MattersSurface.jsx";
+import { ChargePanel, createFinancePaymentFormDraft } from "./MattersSurface.jsx";
 import { canAccessFinanceScope } from "../data/financeAccess.js";
 
 function today() {
@@ -88,6 +89,7 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refres
   const [paymentResult, setPaymentResult] = useState(null);
   const [paymentMatchResult, setPaymentMatchResult] = useState(null);
   const [accountingExportResult, setAccountingExportResult] = useState(null);
+  const [paymentForm, setPaymentForm] = useState(createFinancePaymentFormDraft);
   const [timeEntryForm, setTimeEntryForm] = useState({ workDate: today(), durationMinutes: "30", narrative: "Matter 작업", roleId: "partner", billable: true });
   const [expenseForm, setExpenseForm] = useState({ expenseDate: today(), amount: "25000", receiptDocumentId: "", currency: "KRW" });
   const [disbursementForm, setDisbursementForm] = useState({ disbursedAt: today(), amount: "15000", vendorRef: "", currency: "KRW" });
@@ -144,6 +146,7 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refres
     setPaymentResult(null);
     setPaymentMatchResult(null);
     setAccountingExportResult(null);
+    setPaymentForm(createFinancePaymentFormDraft());
   }, [matterId]);
 
   useEffect(() => {
@@ -241,26 +244,72 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refres
     if (result.kind === "data") upsertInvoice(result.item);
   }
 
-  async function importPayment() {
-    const invoice = invoiceIssueResult?.item ?? items(invoiceResult).find((row) => row.matter_id === matterId);
-    const amount = invoice ? Math.max(0, Number(invoice.amount_due ?? 0) - Number(invoice.amount_paid ?? 0)) : 0;
-    if (!invoice || amount <= 0) return;
+  async function importPayment(event) {
+    event?.preventDefault?.();
+    const amount = Number(paymentForm.amount);
+    if (!selectedMatter || !Number.isFinite(amount) || amount <= 0 || !paymentForm.receivedAt) return;
     setBusy("payment", true);
-    setPaymentResult(await importFinancePayment({ matterId, amount, currency: invoice.currency ?? "KRW", ctx: liveCtx }));
+    setPaymentResult(await importFinancePayment({
+      matterId,
+      clientGroupId: selectedMatter.client_group_id ?? selectedMatter.billing_client_party_id ?? selectedMatter.client_id,
+      amount,
+      currency: paymentForm.currency || "KRW",
+      receivedAt: paymentForm.receivedAt,
+      paymentKey: paymentForm.paymentKey,
+      ctx: liveCtx
+    }));
     setBusy("payment", false);
   }
 
   async function matchPayment() {
     const invoice = invoiceIssueResult?.item ?? items(invoiceResult).find((row) => row.matter_id === matterId);
     const payment = paymentResult?.item;
-    const amount = Math.min(Math.max(0, Number(invoice?.amount_due ?? 0) - Number(invoice?.amount_paid ?? 0)), Number(payment?.unapplied_amount ?? payment?.amount ?? 0));
-    if (!invoice?.invoice_id || !payment?.payment_id || amount <= 0) return;
+    const invoiceOutstanding = Math.max(0, Number(invoice?.amount_due ?? 0) - Number(invoice?.amount_paid ?? 0));
+    const paymentAvailable = Number(payment?.unapplied_amount ?? payment?.amount ?? 0);
+    const requestedAmount = Number(paymentForm.amount);
+    const allocationType = paymentForm.allocationType;
+    const amount = Math.min(
+      Number.isFinite(requestedAmount) ? requestedAmount : 0,
+      paymentAvailable,
+      allocationType === "invoice_payment" ? invoiceOutstanding : Number.POSITIVE_INFINITY
+    );
+    if (!payment?.payment_id || allocationType === "unallocated" || amount <= 0) return;
+    if (allocationType === "invoice_payment" && !invoice?.invoice_id) return;
     setBusy("match", true);
-    const result = await matchFinancePayment({ paymentId: payment.payment_id, invoiceId: invoice.invoice_id, amount, ctx: liveCtx });
+    const result = allocationType === "invoice_payment"
+      ? await matchFinancePayment({
+          paymentId: payment.payment_id,
+          invoiceId: invoice.invoice_id,
+          amount,
+          matchKey: paymentForm.allocationKey,
+          ctx: liveCtx
+        })
+      : await allocateFinancePayment({
+          paymentId: payment.payment_id,
+          allocationType,
+          matterId,
+          clientGroupId: payment.client_group_id ?? selectedMatter?.client_group_id ?? selectedMatter?.billing_client_party_id ?? selectedMatter?.client_id,
+          amount,
+          currency: payment.currency ?? paymentForm.currency ?? "KRW",
+          allocatedAt: paymentForm.receivedAt,
+          allocationKey: paymentForm.allocationKey,
+          ctx: liveCtx
+        });
     setPaymentMatchResult(result);
     setBusy("match", false);
     if (result.kind === "data" && result.invoice) upsertInvoice(result.invoice);
-    if (result.kind === "data" && result.payment) setPaymentResult((current) => ({ ...(current ?? {}), item: result.payment }));
+    if (result.kind === "data" && result.payment) {
+      setPaymentResult((current) => ({ ...(current ?? {}), item: result.payment }));
+      if (result.item) {
+        const nextDraft = createFinancePaymentFormDraft();
+        const remaining = Number(result.payment.unapplied_amount ?? result.payment.unallocated_amount ?? 0);
+        setPaymentForm((current) => ({
+          ...current,
+          allocationKey: nextDraft.allocationKey,
+          ...(remaining <= 0 ? { paymentKey: nextDraft.paymentKey } : {})
+        }));
+      }
+    }
   }
 
   async function createAccountingExport(event) {
@@ -294,12 +343,13 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refres
           timeResult={timeResult} invoiceResult={invoiceResult} agingResult={agingResult} financeAuditResult={financeAuditResult}
           matter={selectedMatter} matterId={matterId}
           timeEntryResult={timeEntryResult} expenseResult={expenseResult} disbursementResult={disbursementResult} wipResult={wipResult} prebillResult={prebillResult} invoiceIssueResult={invoiceIssueResult} paymentResult={paymentResult} paymentMatchResult={paymentMatchResult} accountingExportResult={accountingExportResult}
-          timeEntryForm={timeEntryForm} expenseForm={expenseForm} disbursementForm={disbursementForm} accountingExportForm={accountingExportForm}
+          timeEntryForm={timeEntryForm} expenseForm={expenseForm} disbursementForm={disbursementForm} paymentForm={paymentForm} accountingExportForm={accountingExportForm}
           timeTimerRunning={Boolean(timeTimerStartedAt)} timeTimerSeconds={timeTimerSeconds}
           timeEntryPending={pending.time === true} expensePending={pending.expense === true} disbursementPending={pending.disbursement === true} wipPending={pending.wip === true} prebillPending={pending.prebill === true} invoiceIssuePending={pending.invoice === true} paymentPending={pending.payment === true} paymentMatchPending={pending.match === true} accountingExportPending={pending.export === true}
           onTimeEntryFormChange={(field, value) => setTimeEntryForm((current) => ({ ...current, [field]: value }))}
           onExpenseFormChange={(field, value) => setExpenseForm((current) => ({ ...current, [field]: value }))}
           onDisbursementFormChange={(field, value) => setDisbursementForm((current) => ({ ...current, [field]: value }))}
+          onPaymentFormChange={(field, value) => setPaymentForm((current) => ({ ...current, [field]: value }))}
           onAccountingExportFormChange={(field, value) => setAccountingExportForm((current) => ({ ...current, [field]: value }))}
           onToggleTimeTimer={toggleTimer} onCreateTimeEntry={createTime} onCreateExpense={createExpense} onCreateDisbursement={createDisbursement}
           onGenerateWip={generateWip} onCreatePreBill={createPrebill} onIssueInvoice={issueInvoice} onImportPayment={importPayment} onMatchPayment={matchPayment} onCreateAccountingExport={createAccountingExport}

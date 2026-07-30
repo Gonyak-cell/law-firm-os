@@ -58,7 +58,7 @@ export function HomeRevenueBarChart({ series = [] }) {
     <div className="home-revenue-chart" data-home-revenue-bar-chart="true">
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
         <title id={titleId}>최근 6개월 월별 매출</title>
-        <desc id={descriptionId}>Asia/Seoul 월 기준 최근 6개월 등록 고객 연결 입금을 월별 막대로 비교합니다. 아래 표에서 정확한 금액을 확인할 수 있습니다.</desc>
+        <desc id={descriptionId}>Asia/Seoul 월 기준 최근 6개월 수납 기준 매출을 월별 막대로 비교합니다. 아래 표에서 정확한 금액을 확인할 수 있습니다.</desc>
         {axis.ticks.map((value) => {
           const y = padding.top + plotHeight * (1 - value / axis.maximum);
           return (
@@ -74,7 +74,7 @@ export function HomeRevenueBarChart({ series = [] }) {
             className="home-revenue-bar-group"
             tabIndex="0"
             role="img"
-            aria-label={`${bar.month} 등록 고객 입금 매출 ${money(bar.amount)}`}
+            aria-label={`${bar.month} 수납 기준 매출 ${money(bar.amount)}`}
           >
             <title>{`${bar.month} ${money(bar.amount)}`}</title>
             <rect
@@ -93,7 +93,7 @@ export function HomeRevenueBarChart({ series = [] }) {
       </svg>
       <table className="sr-only home-chart-data-table">
         <caption>최근 6개월 월별 매출 데이터</caption>
-        <thead><tr><th>월</th><th>등록 고객 입금 매출</th></tr></thead>
+        <thead><tr><th>월</th><th>수납 기준 매출</th></tr></thead>
         <tbody>
           {series.map((item) => <tr key={item.month}><th>{item.month}</th><td>{money(item.amount)}</td></tr>)}
         </tbody>
