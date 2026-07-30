@@ -1505,7 +1505,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       body,
       context,
       requestId,
-      runtime: crmIntakeRuntime,
+      runtime: {
+        ...crmIntakeRuntime,
+        emailDmsRuntime,
+        m365GraphConfig,
+      },
     });
     sendJson(req, res, result.status, result.body);
     return;

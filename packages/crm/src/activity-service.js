@@ -12,6 +12,9 @@ export const CRM_CONSULTATION_ERROR_CODES = Object.freeze({
   inquiry_not_found: "CRM_INQUIRY_NOT_FOUND",
   inquiry_state_invalid: "CRM_CONSULTATION_INQUIRY_STATE_INVALID",
   inquiry_version_conflict: "CRM_INQUIRY_VERSION_CONFLICT",
+  outlook_event_conflict: "CRM_CONSULTATION_OUTLOOK_EVENT_CONFLICT",
+  outlook_event_state_invalid:
+    "CRM_CONSULTATION_OUTLOOK_EVENT_STATE_INVALID",
   update_invalid: "CRM_CONSULTATION_UPDATE_INVALID",
   version_conflict: "CRM_CONSULTATION_VERSION_CONFLICT",
 });
@@ -106,6 +109,386 @@ function deterministicConsultationId({
     lead_id: leadId,
     idempotency_key: idempotencyKey,
   }).slice(0, 32)}`;
+}
+
+function deterministicUuidFromHex(hex) {
+  const variant = (
+    (Number.parseInt(hex[16], 16) & 0x3) | 0x8
+  ).toString(16);
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    `5${hex.slice(13, 16)}`,
+    `${variant}${hex.slice(17, 20)}`,
+    hex.slice(20, 32),
+  ].join("-");
+}
+
+export function crmConsultationOutlookTransactionId({
+  tenant_id,
+  activity_id,
+} = {}) {
+  const tenantId = requiredString({ tenant_id }, "tenant_id");
+  const activityId = requiredString({ activity_id }, "activity_id");
+  return deterministicUuidFromHex(hashEventBody({
+    namespace: "law_firm_os.crm_consultation.outlook_event.v1",
+    tenant_id: tenantId,
+    activity_id: activityId,
+  }));
+}
+
+export function crmConsultationScheduleFingerprint(activity = {}) {
+  return hashEventBody({
+    activity_id: requiredString(
+      { activity_id: activity.crm_activity_id },
+      "activity_id",
+    ),
+    scheduled_start: requiredString(activity, "scheduled_start"),
+    scheduled_end: requiredString(activity, "scheduled_end"),
+    timezone: requiredString(activity, "timezone"),
+  });
+}
+
+function outlookEventCommandFingerprint(input) {
+  return hashEventBody({
+    operation: "crm_consultation_outlook_event_link_v1",
+    tenant_id: input.tenant_id,
+    activity_id: input.activity_id,
+    expected_version: input.expected_version,
+    transaction_id: input.transaction_id,
+    reason: input.reason,
+    actor_id: input.actor_id,
+  });
+}
+
+function requireOutlookEventCommand({
+  repository,
+  tenant_id,
+  activity_id,
+  expected_version,
+  reason,
+  actor_id,
+  idempotency_key,
+}) {
+  if (
+    typeof repository?.transaction !== "function"
+    || typeof repository?.getIdempotency !== "function"
+  ) {
+    throw new TypeError("CRM repository is required");
+  }
+  const tenantId = requiredString({ tenant_id }, "tenant_id");
+  const activityId = requiredString({ activity_id }, "activity_id");
+  const expectedVersion = positiveInteger(
+    expected_version,
+    "expected_version",
+  );
+  const changeReason = requiredString({ reason }, "reason");
+  const actorId = requiredString({ actor_id }, "actor_id");
+  const idempotencyKey = requiredString(
+    { idempotency_key },
+    "idempotency_key",
+  );
+  const transactionId = crmConsultationOutlookTransactionId({
+    tenant_id: tenantId,
+    activity_id: activityId,
+  });
+  const fingerprint = outlookEventCommandFingerprint({
+    tenant_id: tenantId,
+    activity_id: activityId,
+    expected_version: expectedVersion,
+    transaction_id: transactionId,
+    reason: changeReason,
+    actor_id: actorId,
+  });
+  return Object.freeze({
+    tenantId,
+    activityId,
+    expectedVersion,
+    changeReason,
+    actorId,
+    idempotencyKey,
+    transactionId,
+    fingerprint,
+  });
+}
+
+function consultationForOutlookEvent({
+  repository,
+  tenantId,
+  activityId,
+}) {
+  const activity = repository.get({
+    tenant_id: tenantId,
+    model_type: "CRMActivity",
+    crm_activity_id: activityId,
+  });
+  if (!activity || activity.activity_kind !== "consultation") {
+    throw commandError(
+      CRM_CONSULTATION_ERROR_CODES.activity_not_found,
+      "CRM consultation was not found",
+      404,
+    );
+  }
+  return activity;
+}
+
+function assertStoredOutlookEventIdentity(activity, transactionId) {
+  if (
+    activity.outlook_event_id
+    && activity.outlook_event_transaction_id !== transactionId
+  ) {
+    throw commandError(
+      CRM_CONSULTATION_ERROR_CODES.outlook_event_conflict,
+      "Stored Outlook event identity does not match the consultation",
+    );
+  }
+}
+
+export function prepareCrmConsultationOutlookEvent(input = {}) {
+  const command = requireOutlookEventCommand(input);
+  const replay = input.repository.getIdempotency({
+    tenant_id: command.tenantId,
+    idempotency_key: command.idempotencyKey,
+  });
+  if (replay) {
+    assertReplayMatches(
+      replay,
+      "crm_consultation_outlook_event_link",
+      command.fingerprint,
+    );
+    return Object.freeze({
+      outcome: "already_linked",
+      activity: replay.response.activity,
+      transaction_id: command.transactionId,
+      idempotent_replay: true,
+      provider_call_required: false,
+    });
+  }
+  const activity = consultationForOutlookEvent({
+    repository: input.repository,
+    tenantId: command.tenantId,
+    activityId: command.activityId,
+  });
+  assertStoredOutlookEventIdentity(activity, command.transactionId);
+  if (activity.outlook_event_id) {
+    return Object.freeze({
+      outcome: "already_linked",
+      activity,
+      transaction_id: command.transactionId,
+      idempotent_replay: true,
+      provider_call_required: false,
+    });
+  }
+  if (
+    activity.completed_at
+    || ["archived", "cancelled"].includes(activity.status)
+  ) {
+    throw commandError(
+      CRM_CONSULTATION_ERROR_CODES.outlook_event_state_invalid,
+      "Only an active upcoming consultation can be added to Outlook",
+    );
+  }
+  if (activity.version !== command.expectedVersion) {
+    throw commandError(
+      CRM_CONSULTATION_ERROR_CODES.version_conflict,
+      "CRM consultation version is stale",
+    );
+  }
+  return Object.freeze({
+    outcome: "ready",
+    activity,
+    transaction_id: command.transactionId,
+    schedule_sha256: crmConsultationScheduleFingerprint(activity),
+    event: Object.freeze({
+      subject: "법률 상담",
+      start_at: activity.scheduled_start,
+      end_at: activity.scheduled_end,
+      time_zone: "UTC",
+      sensitivity: "private",
+      show_as: "busy",
+    }),
+    idempotent_replay: false,
+    provider_call_required: true,
+  });
+}
+
+export function linkCrmConsultationOutlookEvent({
+  repository,
+  tenant_id,
+  activity_id,
+  expected_version,
+  expected_schedule_sha256,
+  event_id,
+  web_link,
+  transaction_id,
+  provider_request_id = null,
+  reason,
+  actor_id,
+  idempotency_key,
+  clock = () => new Date(),
+} = {}) {
+  const command = requireOutlookEventCommand({
+    repository,
+    tenant_id,
+    activity_id,
+    expected_version,
+    reason,
+    actor_id,
+    idempotency_key,
+  });
+  if (transaction_id !== command.transactionId) {
+    throw commandError(
+      CRM_CONSULTATION_ERROR_CODES.outlook_event_conflict,
+      "Outlook transaction ID does not match the consultation",
+    );
+  }
+  const eventId = requiredString({ event_id }, "event_id", 2_048);
+  const webLink = requiredString({ web_link }, "web_link", 2_048);
+  const expectedScheduleSha256 = requiredString(
+    { expected_schedule_sha256 },
+    "expected_schedule_sha256",
+    64,
+  );
+  if (!/^[0-9a-f]{64}$/u.test(expectedScheduleSha256)) {
+    throw new TypeError("expected_schedule_sha256 must be SHA-256");
+  }
+  const replay = repository.getIdempotency({
+    tenant_id: command.tenantId,
+    idempotency_key: command.idempotencyKey,
+  });
+  if (replay) {
+    assertReplayMatches(
+      replay,
+      "crm_consultation_outlook_event_link",
+      command.fingerprint,
+    );
+    return Object.freeze({ ...replay.response, idempotent_replay: true });
+  }
+
+  return repository.transaction((tx) => {
+    const current = consultationForOutlookEvent({
+      repository: tx,
+      tenantId: command.tenantId,
+      activityId: command.activityId,
+    });
+    assertStoredOutlookEventIdentity(current, command.transactionId);
+    if (
+      current.outlook_event_id
+      && (
+        current.outlook_event_id !== eventId
+        || current.outlook_event_web_link !== webLink
+      )
+    ) {
+      throw commandError(
+        CRM_CONSULTATION_ERROR_CODES.outlook_event_conflict,
+        "Consultation is already linked to another Outlook event",
+      );
+    }
+    if (current.outlook_event_id) {
+      const response = Object.freeze({
+        outcome: "already_linked",
+        activity: current,
+        audit_event: null,
+        outlook_calendar_state:
+          current.outlook_event_schedule_sha256
+            === crmConsultationScheduleFingerprint(current)
+            ? "linked"
+            : "update_required",
+        idempotent_replay: true,
+      });
+      tx.recordIdempotency({
+        tenant_id: command.tenantId,
+        idempotency_key: command.idempotencyKey,
+        operation: "crm_consultation_outlook_event_link",
+        request_fingerprint: command.fingerprint,
+        response,
+        created_at: current.outlook_event_created_at,
+      });
+      return response;
+    }
+    const linkedAt = occurredAt(clock);
+    const currentScheduleSha256 =
+      crmConsultationScheduleFingerprint(current);
+    const activity = tx.update(
+      {
+        tenant_id: command.tenantId,
+        model_type: "CRMActivity",
+        crm_activity_id: command.activityId,
+      },
+      {
+        outlook_event_id: eventId,
+        outlook_event_web_link: webLink,
+        outlook_event_transaction_id: command.transactionId,
+        outlook_event_created_at: linkedAt,
+        outlook_event_created_by: command.actorId,
+        outlook_event_provider_request_ref:
+          typeof provider_request_id === "string"
+          && provider_request_id.trim()
+            ? hashEventBody({
+                provider_request_id: provider_request_id.trim(),
+              })
+            : null,
+        outlook_event_schedule_sha256: expectedScheduleSha256,
+        outlook_event_mailbox_scope: "me",
+        version: current.version + 1,
+        updated_by: command.actorId,
+        updated_at: linkedAt,
+        updates_database_rows: true,
+      },
+    );
+    const outlookCalendarState =
+      currentScheduleSha256 === expectedScheduleSha256
+        ? "linked"
+        : "update_required";
+    const auditEvent = appendCrmAuditEvent({
+      repository: tx,
+      event: {
+        tenant_id: command.tenantId,
+        actor_id: command.actorId,
+        action: "crm.consultation.outlook_event_linked",
+        object_type: "CRMActivity",
+        object_id: command.activityId,
+        idempotency_key: command.idempotencyKey,
+        reason: "outlook_consultation_event_linked",
+        occurred_at: linkedAt,
+        metadata: {
+          change_reason_sha256: hashEventBody({
+            reason: command.changeReason,
+          }),
+          event_id_sha256: hashEventBody({ event_id: eventId }),
+          web_link_origin: new URL(webLink).origin,
+          transaction_id_sha256: hashEventBody({
+            transaction_id: command.transactionId,
+          }),
+          provider_request_ref:
+            activity.outlook_event_provider_request_ref,
+          event_schedule_sha256: expectedScheduleSha256,
+          current_schedule_sha256: currentScheduleSha256,
+          outlook_calendar_state: outlookCalendarState,
+          mailbox_scope: "me",
+          automatic_calendar_sync_enabled: false,
+          raw_event_identifier_included: false,
+          raw_consultation_content_included: false,
+        },
+      },
+    });
+    const response = Object.freeze({
+      outcome: "linked",
+      activity,
+      audit_event: auditEvent,
+      outlook_calendar_state: outlookCalendarState,
+      idempotent_replay: false,
+    });
+    tx.recordIdempotency({
+      tenant_id: command.tenantId,
+      idempotency_key: command.idempotencyKey,
+      operation: "crm_consultation_outlook_event_link",
+      request_fingerprint: command.fingerprint,
+      response,
+      created_at: linkedAt,
+    });
+    return response;
+  });
 }
 
 function scheduleFingerprint(input) {

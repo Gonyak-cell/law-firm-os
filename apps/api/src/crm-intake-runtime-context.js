@@ -6,9 +6,15 @@ import {
 } from "../../../packages/crm/src/lead-inquiry-service.js";
 import {
   CRM_CONSULTATION_ERROR_CODES,
+  crmConsultationScheduleFingerprint,
+  linkCrmConsultationOutlookEvent,
+  prepareCrmConsultationOutlookEvent,
   scheduleCrmConsultation,
   updateCrmConsultation,
 } from "../../../packages/crm/src/activity-service.js";
+import {
+  createM365CalendarPort,
+} from "../../../packages/email-dms/src/m365-graph-ports.js";
 import {
   compareCrmInquirySummaries,
   normalizeCrmInquiryVisibleStatus,
@@ -51,6 +57,7 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/crm/inquiries/:id",
     "POST /api/crm/inquiries/:id/transitions",
     "POST /api/crm/inquiries/:id/consultations",
+    "POST /api/crm/consultations/:id/outlook-event",
     "GET /api/crm/opportunities",
     "POST /api/crm/opportunities",
     "GET /api/crm/activities",
@@ -83,7 +90,8 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/intake/clearance-tokens",
     "GET /api/intake/audit",
   ]),
-  data_source: "crm_intake_runtime_repositories",
+  data_source:
+    "crm_intake_runtime_repositories+email_dms_m365_connection",
   runtime_persistence: "file_backed_repository",
   runtime_write_ready: true,
   r5_r6_owner_decision_ready: true,
@@ -116,6 +124,10 @@ export const CRM_INTAKE_API_ERROR_CODES = Object.freeze({
     CRM_CONSULTATION_ERROR_CODES.update_invalid,
   consultation_version_conflict:
     CRM_CONSULTATION_ERROR_CODES.version_conflict,
+  consultation_outlook_event_conflict:
+    CRM_CONSULTATION_ERROR_CODES.outlook_event_conflict,
+  consultation_outlook_event_state_invalid:
+    CRM_CONSULTATION_ERROR_CODES.outlook_event_state_invalid,
 });
 
 export const CRM_RUNTIME_SEED = Object.freeze([
@@ -984,8 +996,32 @@ const DIRECT_MATTER_REFERENCE_FIELDS = Object.freeze([
   "matter_open_command",
 ]);
 
+const OUTLOOK_EVENT_COMMAND_FIELDS = Object.freeze([
+  "tenant_id",
+  "permission_ref",
+  "audit_hint_ref",
+  "expected_version",
+  "reason",
+  "idempotency_key",
+]);
+
 function includesDirectMatterReference(input = {}) {
   return DIRECT_MATTER_REFERENCE_FIELDS.some((field) => input?.[field] !== undefined && input?.[field] !== null && input?.[field] !== "");
+}
+
+function includesUnsupportedOutlookEventField(input = {}) {
+  return Object.keys(input ?? {}).some(
+    (field) => !OUTLOOK_EVENT_COMMAND_FIELDS.includes(field),
+  );
+}
+
+function m365CalendarPort(runtime) {
+  return createM365CalendarPort({
+    repository:
+      runtime?.emailDmsRuntime?.repository
+      ?? runtime?.emailDmsRepository,
+    ...(runtime?.m365GraphConfig ?? {}),
+  });
 }
 
 function actorIdFrom(body, context) {
@@ -1003,6 +1039,24 @@ function partyDisplayName(runtime, tenantId, partyId) {
 function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
   const confidential = activity.confidential === true;
   const consultation = activity.activity_kind === "consultation";
+  const outlookCalendar = consultation
+    ? Object.freeze({
+        state: activity.outlook_event_id
+          ? (
+              activity.outlook_event_schedule_sha256
+                === crmConsultationScheduleFingerprint(activity)
+                ? "linked"
+                : "update_required"
+            )
+          : "not_created",
+        web_link: activity.outlook_event_web_link ?? null,
+        created_at: activity.outlook_event_created_at ?? null,
+        mailbox_scope: activity.outlook_event_mailbox_scope ?? "me",
+        automatic_sync_enabled: false,
+        provider_event_identifier_included: false,
+        transaction_identifier_included: false,
+      })
+    : null;
   return Object.freeze({
     resource_id: activity.crm_activity_id,
     tenant_id: activity.tenant_id,
@@ -1025,6 +1079,7 @@ function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
     completed_at: activity.completed_at ?? null,
     outcome: confidential ? null : activity.outcome ?? null,
     next_action: confidential ? null : activity.next_action ?? null,
+    outlook_calendar: outlookCalendar,
     version: activity.version ?? 1,
     status: activity.status,
     owner_user_id: activity.owner_user_id,
@@ -3232,6 +3287,118 @@ export function handleCrmConsultationCreate({
   }
 }
 
+export async function handleCrmConsultationOutlookEventCreate({
+  consultationId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+    resource_id: consultationId,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  if (
+    includesDirectMatterReference(body)
+    || includesUnsupportedOutlookEventField(body)
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "blocked",
+        credential_material_included: false,
+      },
+    );
+  }
+  try {
+    const actorId = actorIdFrom(body, context);
+    const prepared = prepareCrmConsultationOutlookEvent({
+      repository: runtime.crmRepository,
+      tenant_id: query.tenant_id,
+      activity_id: consultationId,
+      expected_version: body?.expected_version,
+      reason: body?.reason,
+      actor_id: actorId,
+      idempotency_key: body?.idempotency_key,
+    });
+    if (!prepared.provider_call_required) {
+      return itemResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+        outcome: "idempotent_replay",
+        item: serializeActivity(prepared.activity, runtime),
+        auditEvent: null,
+        status: 200,
+        extra: {
+          idempotent_replay: true,
+          provider_call_executed: false,
+          credential_material_included: false,
+        },
+      });
+    }
+    const providerResult = await m365CalendarPort(runtime).createOwnEvent({
+      tenant_id: query.tenant_id,
+      user_id: actorId,
+      entra_subject_id: context?.principal?.entra_subject_id,
+      transaction_id: prepared.transaction_id,
+      event: prepared.event,
+    });
+    const result = linkCrmConsultationOutlookEvent({
+      repository: runtime.crmRepository,
+      tenant_id: query.tenant_id,
+      activity_id: consultationId,
+      expected_version: body?.expected_version,
+      expected_schedule_sha256: prepared.schedule_sha256,
+      event_id: providerResult.event_id,
+      web_link: providerResult.web_link,
+      transaction_id: providerResult.transaction_id,
+      provider_request_id: providerResult.provider_request_id,
+      reason: body?.reason,
+      actor_id: actorId,
+      idempotency_key: body?.idempotency_key,
+      clock: runtime?.m365GraphConfig?.clock,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay
+        ? "idempotent_replay"
+        : "outlook_event_created",
+      item: serializeActivity(result.activity, runtime),
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        idempotent_replay: result.idempotent_replay,
+        provider_call_executed: true,
+        outlook_calendar_state: result.outlook_calendar_state,
+        credential_material_included: false,
+      },
+    });
+  } catch (error) {
+    return errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [
+        error?.safe_error_code
+        ?? CRM_INTAKE_API_ERROR_CODES.validation_error,
+      ],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: error?.status === 404 ? "empty" : "blocked",
+        credential_material_included: false,
+      },
+    );
+  }
+}
+
 export function handleCrmOpportunityCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const query = { tenant_id: body?.opportunity?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
@@ -3577,6 +3744,20 @@ export async function handleCrmIntakeApiRequest({
   if (policy.action === "crm:consultation:create" && policy.params?.[0] && method === "POST") {
     return handleCrmConsultationCreate({
       inquiryId: decodeURIComponent(policy.params[0]),
+      body,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
+  if (
+    policy.action === "crm:consultation:calendar_create"
+    && policy.params?.[0]
+    && method === "POST"
+  ) {
+    return await handleCrmConsultationOutlookEventCreate({
+      consultationId: decodeURIComponent(policy.params[0]),
       body,
       context,
       requestId,

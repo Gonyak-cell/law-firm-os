@@ -16,9 +16,13 @@ const MAILBOX_OVERRIDE_FIELDS = Object.freeze([
   "user_principal_name",
 ]);
 
-function requiredString(input, field) {
+function requiredString(input, field, maxLength = 2048) {
   const value = input?.[field];
-  if (typeof value !== "string" || value.trim() === "") {
+  if (
+    typeof value !== "string"
+    || value.trim() === ""
+    || value.trim().length > maxLength
+  ) {
     throw new TypeError(`${field} is required`);
   }
   return value.trim();
@@ -76,6 +80,93 @@ function safeMessageMetadata(value) {
         ? new Date(receivedAt).toISOString()
         : null,
     has_attachments: value.has_attachments === true,
+  });
+}
+
+function safeOutlookWebLink(value) {
+  const text =
+    typeof value === "string"
+    && value.trim()
+    && value.trim().length <= 2_048
+      ? value.trim()
+      : null;
+  if (!text) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Microsoft Graph calendar web link is invalid",
+      502,
+    );
+  }
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Microsoft Graph calendar web link is invalid",
+      502,
+    );
+  }
+  const hostname = url.hostname.toLowerCase();
+  const allowedHost = [
+    "outlook.office.com",
+    "outlook.office365.com",
+  ].some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  if (
+    url.protocol !== "https:"
+    || url.username
+    || url.password
+    || !allowedHost
+  ) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Microsoft Graph calendar web link is invalid",
+      502,
+    );
+  }
+  return url.toString();
+}
+
+function safeCalendarEvent(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError("event is required");
+  }
+  const allowedFields = new Set([
+    "subject",
+    "start_at",
+    "end_at",
+    "time_zone",
+    "sensitivity",
+    "show_as",
+  ]);
+  if (Object.keys(value).some((field) => !allowedFields.has(field))) {
+    throw new TypeError("event contains unsupported fields");
+  }
+  const startAt = requiredString(value, "start_at");
+  const endAt = requiredString(value, "end_at");
+  if (
+    !Number.isFinite(Date.parse(startAt))
+    || !Number.isFinite(Date.parse(endAt))
+    || Date.parse(endAt) <= Date.parse(startAt)
+  ) {
+    throw new TypeError("event start_at and end_at are invalid");
+  }
+  if (
+    value.time_zone !== "UTC"
+    || value.sensitivity !== "private"
+    || value.show_as !== "busy"
+  ) {
+    throw new TypeError(
+      "event must use UTC, private sensitivity, and busy availability",
+    );
+  }
+  return Object.freeze({
+    subject: requiredString(value, "subject", 160),
+    start_at: new Date(startAt).toISOString(),
+    end_at: new Date(endAt).toISOString(),
+    time_zone: "UTC",
+    sensitivity: "private",
+    show_as: "busy",
   });
 }
 
@@ -298,19 +389,34 @@ export function createM365CalendarPort({
         clock,
         input,
       });
-      const transactionId = requiredString(input, "transaction_id");
+      const transactionId = requiredString(
+        input,
+        "transaction_id",
+        128,
+      );
+      const event = safeCalendarEvent(input.event);
       const result = await provider.createMeCalendarEvent({
         credential,
-        event: input.event,
+        event,
         transaction_id: transactionId,
         mailbox_scope: "me",
       });
+      const eventId =
+        typeof result?.event_id === "string"
+        && result.event_id.trim()
+        && result.event_id.trim().length <= 2_048
+          ? result.event_id.trim()
+          : null;
+      if (!eventId) {
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.provider_invalid,
+          "Microsoft Graph calendar event ID is invalid",
+          502,
+        );
+      }
       return Object.freeze({
-        event_id: requiredString(result, "event_id"),
-        web_link:
-          typeof result.web_link === "string" && result.web_link.trim()
-            ? result.web_link.trim()
-            : null,
+        event_id: eventId,
+        web_link: safeOutlookWebLink(result?.web_link),
         transaction_id: transactionId,
         provider_request_id:
           typeof result.provider_request_id === "string"

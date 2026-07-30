@@ -58,6 +58,12 @@ test("CRM and Intake inventories fix shared references, clearance append-only re
       ),
       [true, true, true],
     );
+    assert.deepEqual(
+      ["outlook_event_id", "outlook_event_web_link"].map(
+        (field) => crmResult.inventory.pii_field_names.includes(field),
+      ),
+      [true, true],
+    );
   } finally {
     crm.close();
     intake.close();

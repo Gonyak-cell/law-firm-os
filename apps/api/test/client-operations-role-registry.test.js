@@ -92,6 +92,10 @@ test("CL-P0-W01-T04 staff signed session can capture and read inquiries but cann
   assert.equal(decision(context, "crm:inquiry:list"), "allow");
   assert.equal(decision(context, "crm:inquiry:update"), "allow");
   assert.equal(decision(context, "crm:consultation:create"), "allow");
+  assert.equal(
+    decision(context, "crm:consultation:calendar_create"),
+    "allow",
+  );
   assert.equal(decision(context, "email_dms:inquiry_evidence:read"), "allow");
   assert.equal(decision(context, "outlook:connection:create"), "allow");
   assert.equal(decision(context, "outlook:inquiry:capture"), "allow");

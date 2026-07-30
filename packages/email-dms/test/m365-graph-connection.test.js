@@ -148,6 +148,14 @@ function fakeDependencies() {
     async createMeCalendarEvent(input) {
       calls.push("provider:calendar:/me");
       assert.equal(input.mailbox_scope, "me");
+      assert.deepEqual(input.event, {
+        subject: "법률 상담",
+        start_at: "2026-08-01T01:00:00.000Z",
+        end_at: "2026-08-01T02:00:00.000Z",
+        time_zone: "UTC",
+        sensitivity: "private",
+        show_as: "busy",
+      });
       return {
         event_id: "event-synthetic-001",
         web_link: "https://outlook.office.com/calendar/item/synthetic",
@@ -404,13 +412,57 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   });
   const event = await calendar.createOwnEvent({
     ...principal(),
-    transaction_id: "consultation-synthetic-001",
-    event: { subject: "Synthetic consultation" },
+    transaction_id: "00000000-0000-5000-8000-000000000001",
+    event: {
+      subject: "법률 상담",
+      start_at: "2026-08-01T01:00:00.000Z",
+      end_at: "2026-08-01T02:00:00.000Z",
+      time_zone: "UTC",
+      sensitivity: "private",
+      show_as: "busy",
+    },
   });
   assert.equal(event.event_id, "event-synthetic-001");
-  assert.equal(event.transaction_id, "consultation-synthetic-001");
+  assert.equal(
+    event.transaction_id,
+    "00000000-0000-5000-8000-000000000001",
+  );
   assert.equal(dependencies.calls.includes("provider:mail:/me"), true);
   assert.equal(dependencies.calls.includes("provider:calendar:/me"), true);
+
+  const invalidCalendar = createM365CalendarPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: {
+      async createMeCalendarEvent() {
+        return {
+          event_id: "event-invalid-web-link",
+          web_link: "https://example.invalid/open-redirect",
+        };
+      },
+    },
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  });
+  await assert.rejects(
+    invalidCalendar.createOwnEvent({
+      ...principal(),
+      transaction_id: "00000000-0000-5000-8000-000000000002",
+      event: {
+        subject: "법률 상담",
+        start_at: "2026-08-01T01:00:00.000Z",
+        end_at: "2026-08-01T02:00:00.000Z",
+        time_zone: "UTC",
+        sensitivity: "private",
+        show_as: "busy",
+      },
+    }),
+    (error) => (
+      error.safe_error_code
+      === M365_GRAPH_ERROR_CODES.provider_invalid
+    ),
+  );
 
   const disconnected = await service.revokeConnection({
     ...principal(),

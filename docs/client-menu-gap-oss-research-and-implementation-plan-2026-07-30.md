@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 9/12 완료, 전체 27/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6 완료, P3 Outlook 문의·상담·수임 10/12 완료, 전체 28/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -24,7 +24,7 @@
 9. M365 코드는 delegated 권한과 기능 스위치 뒤에서 준비하고, 관리자 동의·시험 mailbox 영수증이 없으면 출시를 차단한다.
 10. 모든 검증 시나리오를 고정 fixture, 테스트 파일 또는 실제 API·화면 영수증과 연결한다.
 
-이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-31 현재 P0의 5개 TUW, P1의 7개 TUW, P2의 6개 TUW와 P3의 M365 연결·원본 메일 증거·문의 등록·Outlook 추가 기능·문의 조회·상담 명령 9개 TUW를 구현·집중 검증했다.
+이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-31 현재 P0의 5개 TUW, P1의 7개 TUW, P2의 6개 TUW와 P3의 M365 연결·원본 메일 증거·문의 등록·Outlook 추가 기능·문의 조회·상담 명령·Outlook 일정 만들기 10개 TUW를 구현·집중 검증했다.
 
 ## 1. 제품 목표
 
@@ -979,7 +979,8 @@ npm test
 | `CL-P3-W02-T01` | 완료 | Lead에 기존 수명주기 상태와 분리된 `new`·`reviewing`·`closed` 문의 상태, `outlook_addin`·`manual` 접수 경로, 명시적 UTC 접수 시각, 다음 행동과 양의 version을 canonical 필드로 정규화하고 legacy `lead_source=outlook`은 저장·응답에서 제거; Outlook 버튼 등록은 증거의 실제 수신 시각과 `문의 확인`을 가진 version 1 Lead를 생성; `새 문의→확인 중/종료`, `확인 중→종료`, `종료→확인 중`만 허용하고 열린 문의는 다음 행동, 종료 문의는 다음 행동 비움을 강제; 전환 API는 signed tenant·문의 쓰기 권한·기대 version·사유·멱등 command fingerprint를 확인한 뒤 version을 올리고 source·received_at을 불변으로 유지하며 변경 전후와 다음 행동 해시만 감사하고, 금지 전환·stale version·같은 키의 다른 command·다른 tenant는 제품 상태 변경 전에 409/403으로 차단; 기존 중앙원장 Lead는 첫 전환에서 접수 시각·경로·version을 canonical 값으로 안전하게 승격 | 문의 모델·전환·재실행·기존 레코드 승격·영속성 service 6/6, 실제 서명 세션 HTTP 전환·재생·금지·stale·키 충돌·교차 tenant 1/1, Outlook 등록·목록·민감 조회 회귀 18/18, CRM 전체 89/89, CRM/Intake·PostgreSQL API authority 결합 9/9, G3-A validator와 32개 Client 시나리오 fixture PASS, sloplint·`git diff --check` PASS; 감사에 다음 행동 원문 없음, 실제 Graph·AWS·배포·운영 데이터 변경 없음 |
 | `CL-P3-W02-T02` | 완료 | Lead·명시적으로 연결된 Opportunity·상담 Activity를 한 문의 단위로 조합하는 공통 조회 모델을 등록하고 `수임 확정 → 수임하지 않음 → 수임 검토 중 → 상담 예정 → 새 문의 → 확인 중` 순으로 사용자 상태 하나를 결정; `GET /api/crm/inquiries`는 상태·접수 경로·담당·검색 필터, 최대 100건 제한, 접수 시각·Lead ID 안정 정렬과 상세 경로를 제공하고 `GET /api/crm/inquiries/:id`는 같은 projection으로 수임 검토 건·상담·원본 메일 증거의 안전한 메타데이터와 권한을 다시 적용하는 열람 경로를 연결; 같은 고객의 다른 문의를 Party만으로 섞지 않고 비밀 상담의 제목·결과·다음 행동을 가림; 문의 객체 권한을 원천 조합 전에 적용하고 상담·메일 증거 권한이 없으면 저장소를 읽지 않으며 반환 건수도 숨김; 일부 상담 객체 차단이나 Email DMS 장애는 0건으로 가장하지 않고 `partial`·원천 상태로 표시; 메일함·발신 주소·Graph/Internet Message ID·해시·저장 객체 ID·원문·Matter 직접 참조는 일반 상세 응답에서 제외; 파일·PostgreSQL 요청 런타임 모두 같은 Email DMS 저장소를 조회 모델에 주입 | 공통 projection·fixture·비밀 상담·안정 정렬 4/4, 실제 서명 세션 목록/상세·여섯 상태·필터·안전 증거와 권한 선차단 2/2, CRM·Outlook 결합 회귀 117/117, 실제 임시 PostgreSQL 요청 권위·32개 시나리오 fixture 계약 결합 43/43, Client 역할·production 역할·G3-A·집중 조회 12/12와 fixture validator PASS; 목록·상세 상태 일치, 특정 문의 ACL이 목록 전체를 막지 않음, 권한 없는 증거 저장소 호출 0건, PostgreSQL 동시 읽기 충돌 0건; sloplint 신규 코드·문구 신호 없이 기존 OSS 출처 URL 4건만 약하게 오탐, `git diff --check` PASS; Graph·AWS·배포·운영 데이터 변경 없음 |
 | `CL-P3-W02-T03` | 완료 | CRMActivity에 문의 연결, 상담 종류, 시작·종료 시각, IANA 시간대, 완료 시각, 결과, 다음 행동과 양의 version을 정식 등록하고 앱을 상담 일정의 기준으로 고정; 입력 시각은 명시된 UTC 오프셋을 요구해 UTC로 저장하되 `Asia/Seoul` 자정 경계에서도 로컬 날짜를 보존; `POST /api/crm/inquiries/:id/consultations`는 `확인 중`이고 수임 검토가 시작되지 않은 문의에만 미완료 상담 1건을 허용하며 Party·Lead·Opportunity 연결은 서버 레코드에서 결정하고 Activity version 1과 Lead의 `상담 준비`·다음 version을 한 저장 단위로 반영; 기존 `PATCH /api/crm/activities/:id`는 상담의 일정 변경과 완료를 전용 명령으로 분기하고 기대 version·사유·명시적 요청키를 강제하며 완료 시 결과·다음 행동을 필수화하고 완료된 일정은 불변으로 유지; 완료 뒤 Lead가 여전히 `확인 중/상담 준비`이면 다음 행동과 version을 올리고 공통 문의 projection을 다시 계산해 `상담 예정`을 제거; 같은 요청은 그대로 재생하고 같은 키의 다른 요청, stale version, 중복 상담, 금지 상태, 효과 없는 변경과 Matter 직접 지정은 상태 변경 전에 차단; 비밀 상담은 일반 Activity·문의 응답에서 제목·결과·다음 행동을 가리고 변경 사유는 원문 대신 해시만 감사하며 CRM 중앙원장 PII 필드에 제목·결과·다음 행동을 등록; 파일 저장소 재개방과 PostgreSQL 요청 권위 모두 같은 명령·version을 보존 | `VC-CL-CON-001` 서비스·Asia/Seoul 자정 경계·예약·변경·완료·재실행·충돌·비밀 상담 7/7과 실제 서명 세션 API 1/1; CRM·Client API 결합 회귀 117/117, Outlook·Email DMS·추가 기능 회귀 124/124, 실제 임시 PostgreSQL API authority 8/8, G3-A·중앙원장·일반 Activity 회귀 19/19, 32개 Client 시나리오 fixture와 RP09 계약 validator PASS; sloplint 신규 코드·문구 신호 없이 기존 OSS 출처 URL 4건만 약하게 오탐, `git diff --check` PASS; Graph·AWS·배포·운영 데이터 변경 없음 |
-| `CL-P3-W02-T04` | 다음 | 사용자가 앱에서 명시적으로 누를 때만 Graph 일정을 만들고 결정적 transaction ID·event ID·webLink를 보존 | 시작 전 |
+| `CL-P3-W02-T04` | 완료 | `POST /api/crm/consultations/:id/outlook-event`를 별도 명령으로 등록해 서명된 tenant·상담 권한·기대 version·사유·요청키를 Graph 호출 전에 확인하고, 상담이 진행 중이며 Outlook 일정이 아직 없을 때만 사용자가 누른 요청을 실행; tenant와 상담 ID로 항상 같은 UUID형 `transactionId`를 만들고 앱의 UTC 시작·종료 시각만 `/me/events`에 보내며 제목은 고객명·상담 내용이 없는 `법률 상담`, 공개 범위는 `private`, 일정 상태는 `busy`로 고정하고 본문·참석자·공유 메일함 필드는 받거나 보내지 않음; Graph가 돌려준 event ID·허용된 Outlook HTTPS webLink·transaction ID·생성자·시각·일정 해시를 Activity version과 함께 보존하고 provider request ID는 해시만 저장; 일반 상담 응답에는 webLink와 연결 상태만 보여 주고 event ID·transaction ID는 별도 필드로 내보내지 않으며 감사에도 원문 식별값·상담 내용을 남기지 않음; 같은 버튼을 다시 누르면 저장된 결과를 반환해 provider를 다시 부르지 않고, Graph 성공 뒤 로컬 저장이 실패한 경우에도 같은 transaction ID로 재실행해 외부 event 한 건에 로컬 기록을 복구; 이후 앱에서 시각이 달라지면 자동으로 Outlook을 고치지 않고 `update_required`로 구분; 기능 스위치·provider runtime·연결·`Calendars.ReadWrite`가 준비되지 않으면 제품 상태를 바꾸지 않고 차단 | `VC-CL-CON-002` 서비스·포트·실제 Graph 요청 형식·API 재클릭·권한·stale version·입력 위조·기능 꺼짐·저장 실패 복구 집중 21/21, CRM·Email DMS·Outlook·Client API 결합 회귀 223/223, 실제 임시 PostgreSQL API authority 8/8, 32개 Client 시나리오 fixture와 권한 계약 40/40, RP09 계약 validator PASS; Graph `/me/events` 실제 호출·관리자 동의·시험 일정 생성 후 삭제 영수증은 없으므로 출시는 계속 차단하며 AWS·배포·운영 데이터 변경 없음 |
+| `CL-P3-W03-T01` | 다음 | 수임 결정과 단계별 고객·수임료 반영 및 복구 명령 | 시작 전 |
 
 P0 집중 검증:
 

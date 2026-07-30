@@ -212,3 +212,130 @@ test("CL-P3-W01-T02 Graph provider는 /users mailbox, 잘못된 변환 응답, �
     ),
   );
 });
+
+test("CL-P3-W02-T04 Graph provider는 명시적 /me/events 요청에 transactionId와 비공개 UTC 일정만 보낸다", async () => {
+  const calls = [];
+  const provider = createMicrosoftGraphMailProvider({
+    graph_base_url: "https://graph.example.invalid/v1.0",
+    fetch_impl: async (url, options) => {
+      const parsed = new URL(url);
+      const headers = new Headers(options.headers);
+      calls.push({
+        pathname: parsed.pathname,
+        method: options.method,
+        body: JSON.parse(options.body),
+      });
+      assert.equal(
+        headers.get("authorization"),
+        `Bearer ${ACCESS_TOKEN}`,
+      );
+      assert.equal(headers.get("content-type"), "application/json");
+      return new Response(JSON.stringify({
+        id: "graph-event-client-consultation-t04",
+        webLink:
+          "https://outlook.office365.com/calendar/item/client-consultation-t04",
+      }), {
+        status: 201,
+        headers: {
+          "content-type": "application/json",
+          "request-id": "graph-request-client-consultation-t04",
+        },
+      });
+    },
+  });
+  const result = await provider.createMeCalendarEvent({
+    credential: { access_token: ACCESS_TOKEN },
+    mailbox_scope: "me",
+    transaction_id: "00000000-0000-5000-8000-000000000004",
+    event: {
+      subject: "법률 상담",
+      start_at: "2026-08-01T01:00:00.000Z",
+      end_at: "2026-08-01T02:00:00.000Z",
+      time_zone: "UTC",
+      sensitivity: "private",
+      show_as: "busy",
+    },
+  });
+
+  assert.deepEqual(calls, [{
+    pathname: "/v1.0/me/events",
+    method: "POST",
+    body: {
+      subject: "법률 상담",
+      start: {
+        dateTime: "2026-08-01T01:00:00.000",
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: "2026-08-01T02:00:00.000",
+        timeZone: "UTC",
+      },
+      transactionId: "00000000-0000-5000-8000-000000000004",
+      sensitivity: "private",
+      showAs: "busy",
+    },
+  }]);
+  assert.equal(
+    result.event_id,
+    "graph-event-client-consultation-t04",
+  );
+  assert.equal(
+    result.web_link,
+    "https://outlook.office365.com/calendar/item/client-consultation-t04",
+  );
+  assert.equal(
+    result.provider_request_id,
+    "graph-request-client-consultation-t04",
+  );
+  assert.equal(
+    JSON.stringify(calls).includes(ACCESS_TOKEN),
+    false,
+  );
+});
+
+test("CL-P3-W02-T04 Graph provider는 공유 mailbox와 상담 원문 필드를 일정 생성 전에 거부한다", async () => {
+  let providerCalls = 0;
+  const provider = createMicrosoftGraphMailProvider({
+    fetch_impl: async () => {
+      providerCalls += 1;
+      return new Response("{}", { status: 201 });
+    },
+  });
+  const base = {
+    credential: { access_token: ACCESS_TOKEN },
+    mailbox_scope: "me",
+    transaction_id: "00000000-0000-5000-8000-000000000004",
+    event: {
+      subject: "법률 상담",
+      start_at: "2026-08-01T01:00:00.000Z",
+      end_at: "2026-08-01T02:00:00.000Z",
+      time_zone: "UTC",
+      sensitivity: "private",
+      show_as: "busy",
+    },
+  };
+  await assert.rejects(
+    provider.createMeCalendarEvent({
+      ...base,
+      mailbox_scope: "shared",
+    }),
+    (error) => (
+      error.safe_error_code
+      === MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request
+    ),
+  );
+  await assert.rejects(
+    provider.createMeCalendarEvent({
+      ...base,
+      event: {
+        ...base.event,
+        body: "상담 원문",
+      },
+    }),
+    (error) => (
+      error.safe_error_code
+      === MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request
+    ),
+  );
+  assert.equal(providerCalls, 0);
+});

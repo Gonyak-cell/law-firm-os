@@ -96,6 +96,14 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
       "completed_at",
       "outcome",
       "next_action",
+      "outlook_event_id",
+      "outlook_event_web_link",
+      "outlook_event_transaction_id",
+      "outlook_event_created_at",
+      "outlook_event_created_by",
+      "outlook_event_provider_request_ref",
+      "outlook_event_schedule_sha256",
+      "outlook_event_mailbox_scope",
     ]),
     consultation_required_schedule_fields: Object.freeze([
       "lead_id",
@@ -219,6 +227,130 @@ function canonicalInstant(value, field) {
   return new Date(normalizeInstant(value, field)).toISOString();
 }
 
+const OUTLOOK_EVENT_FIELDS = Object.freeze([
+  "outlook_event_id",
+  "outlook_event_web_link",
+  "outlook_event_transaction_id",
+  "outlook_event_created_at",
+  "outlook_event_created_by",
+  "outlook_event_provider_request_ref",
+  "outlook_event_schedule_sha256",
+  "outlook_event_mailbox_scope",
+]);
+
+function normalizeOutlookEventWebLink(value) {
+  const text = optionalString(
+    value,
+    "CRMActivity outlook_event_web_link",
+    2_048,
+  );
+  if (!text) return null;
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    throw new TypeError(
+      "CRMActivity outlook_event_web_link must be a valid URL",
+    );
+  }
+  const hostname = url.hostname.toLowerCase();
+  const allowedHost = [
+    "outlook.office.com",
+    "outlook.office365.com",
+  ].some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  if (
+    url.protocol !== "https:"
+    || url.username
+    || url.password
+    || !allowedHost
+  ) {
+    throw new TypeError(
+      "CRMActivity outlook_event_web_link must be an Outlook HTTPS URL",
+    );
+  }
+  return url.toString();
+}
+
+function normalizeCrmOutlookEventFields(input = {}) {
+  const supplied = OUTLOOK_EVENT_FIELDS.some((field) => (
+    input[field] !== undefined
+    && input[field] !== null
+    && input[field] !== ""
+  ));
+  if (!supplied) {
+    return Object.freeze(Object.fromEntries(
+      OUTLOOK_EVENT_FIELDS.map((field) => [field, null]),
+    ));
+  }
+  const eventId = optionalString(
+    input.outlook_event_id,
+    "CRMActivity outlook_event_id",
+    2_048,
+  );
+  const transactionId = optionalString(
+    input.outlook_event_transaction_id,
+    "CRMActivity outlook_event_transaction_id",
+    128,
+  );
+  const createdBy = optionalString(
+    input.outlook_event_created_by,
+    "CRMActivity outlook_event_created_by",
+    240,
+  );
+  if (!eventId || !transactionId || !createdBy) {
+    throw new TypeError(
+      "CRMActivity Outlook event link requires event ID, transaction ID, and creator",
+    );
+  }
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u
+      .test(transactionId)
+  ) {
+    throw new TypeError(
+      "CRMActivity outlook_event_transaction_id must be a deterministic UUID",
+    );
+  }
+  const providerRequestRef = optionalString(
+    input.outlook_event_provider_request_ref,
+    "CRMActivity outlook_event_provider_request_ref",
+    64,
+  );
+  const scheduleSha256 = optionalString(
+    input.outlook_event_schedule_sha256,
+    "CRMActivity outlook_event_schedule_sha256",
+    64,
+  );
+  if (
+    (providerRequestRef && !/^[0-9a-f]{64}$/u.test(providerRequestRef))
+    || !scheduleSha256
+    || !/^[0-9a-f]{64}$/u.test(scheduleSha256)
+  ) {
+    throw new TypeError(
+      "CRMActivity Outlook event references must be SHA-256 values",
+    );
+  }
+  if (input.outlook_event_mailbox_scope !== "me") {
+    throw new TypeError(
+      "CRMActivity outlook_event_mailbox_scope must be me",
+    );
+  }
+  return Object.freeze({
+    outlook_event_id: eventId,
+    outlook_event_web_link: normalizeOutlookEventWebLink(
+      input.outlook_event_web_link,
+    ),
+    outlook_event_transaction_id: transactionId,
+    outlook_event_created_at: canonicalInstant(
+      input.outlook_event_created_at,
+      "CRMActivity outlook_event_created_at",
+    ),
+    outlook_event_created_by: createdBy,
+    outlook_event_provider_request_ref: providerRequestRef,
+    outlook_event_schedule_sha256: scheduleSha256,
+    outlook_event_mailbox_scope: "me",
+  });
+}
+
 export function normalizeCrmInquirySource(value) {
   const source = value === "outlook" ? "outlook_addin" : value;
   if (!CRM_INQUIRY_SOURCES.includes(source)) {
@@ -268,6 +400,11 @@ export function normalizeCrmActivityFields(input = {}) {
   }
   const activityKind = input.activity_kind ?? null;
   if (activityKind === null) {
+    if (OUTLOOK_EVENT_FIELDS.some((field) => input[field] != null)) {
+      throw new TypeError(
+        "Only consultation CRMActivity can link an Outlook event",
+      );
+    }
     return Object.freeze({
       activity_kind: null,
       lead_id: input.lead_id ?? null,
@@ -278,6 +415,7 @@ export function normalizeCrmActivityFields(input = {}) {
       outcome: input.outcome ?? null,
       next_action: input.next_action ?? null,
       version,
+      ...normalizeCrmOutlookEventFields(),
     });
   }
   if (!CRM_ACTIVITY_KINDS.includes(activityKind)) {
@@ -348,6 +486,7 @@ export function normalizeCrmActivityFields(input = {}) {
       240,
     ),
     version,
+    ...normalizeCrmOutlookEventFields(input),
   });
 }
 

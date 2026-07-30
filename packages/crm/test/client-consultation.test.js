@@ -6,9 +6,12 @@ import test from "node:test";
 
 import {
   CRM_CONSULTATION_ERROR_CODES,
+  crmConsultationOutlookTransactionId,
   createCrmRuntimeRepository,
   createLead,
+  linkCrmConsultationOutlookEvent,
   normalizeCrmActivityFields,
+  prepareCrmConsultationOutlookEvent,
   scheduleCrmConsultation,
   transitionLeadInquiryStatus,
   updateCrmConsultation,
@@ -196,6 +199,92 @@ test("VC-CL-CON-001 / CL-P3-W02-T03 확인 중 문의에 상담을 예약하고 
   assert.equal(audit.action, "crm.consultation.scheduled");
   assert.equal(audit.metadata.consultation.raw_consultation_content_included, false);
   assert.equal(JSON.stringify(audit).includes("초기 상담"), false);
+});
+
+test("VC-CL-CON-002 / CL-P3-W02-T04 Outlook 일정 준비와 연결은 상담 ID에서 같은 transaction ID를 만들고 안전한 영수증만 감사한다", () => {
+  const repository = createCrmRuntimeRepository();
+  prepareReviewingInquiry(repository);
+  const scheduled = schedule(repository);
+  const activityId = scheduled.activity.crm_activity_id;
+  const command = {
+    repository,
+    tenant_id: TENANT,
+    activity_id: activityId,
+    expected_version: 1,
+    reason: "Outlook 일정 만들기 버튼을 누름",
+    actor_id: ACTOR,
+    idempotency_key: "outlook-event-link-1",
+  };
+
+  const prepared = prepareCrmConsultationOutlookEvent(command);
+  assert.equal(prepared.provider_call_required, true);
+  assert.match(
+    prepared.transaction_id,
+    /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  );
+  assert.equal(
+    prepared.transaction_id,
+    crmConsultationOutlookTransactionId({
+      tenant_id: TENANT,
+      activity_id: activityId,
+    }),
+  );
+  assert.deepEqual(prepared.event, {
+    subject: "법률 상담",
+    start_at: "2026-08-01T01:00:00.000Z",
+    end_at: "2026-08-01T02:00:00.000Z",
+    time_zone: "UTC",
+    sensitivity: "private",
+    show_as: "busy",
+  });
+
+  const linked = linkCrmConsultationOutlookEvent({
+    ...command,
+    expected_schedule_sha256: prepared.schedule_sha256,
+    event_id: "event-client-consultation-t04",
+    web_link:
+      "https://outlook.office.com/calendar/item/client-consultation-t04",
+    transaction_id: prepared.transaction_id,
+    provider_request_id: "provider-request-client-consultation-t04",
+    clock: () => new Date("2026-07-30T09:15:00.000Z"),
+  });
+  assert.equal(linked.outcome, "linked");
+  assert.equal(linked.outlook_calendar_state, "linked");
+  assert.equal(linked.activity.version, 2);
+  assert.equal(
+    linked.activity.outlook_event_id,
+    "event-client-consultation-t04",
+  );
+  assert.equal(
+    linked.activity.outlook_event_transaction_id,
+    prepared.transaction_id,
+  );
+  assert.equal(linked.activity.outlook_event_mailbox_scope, "me");
+  assert.match(
+    linked.activity.outlook_event_provider_request_ref,
+    /^[0-9a-f]{64}$/,
+  );
+
+  const audit = repository.listAudit({
+    tenant_id: TENANT,
+    object_id: activityId,
+  }).at(-1);
+  const auditText = JSON.stringify(audit);
+  assert.equal(
+    audit.action,
+    "crm.consultation.outlook_event_linked",
+  );
+  assert.equal(auditText.includes("event-client-consultation-t04"), false);
+  assert.equal(auditText.includes("provider-request-client"), false);
+  assert.equal(auditText.includes("초기 상담"), false);
+
+  const replay = prepareCrmConsultationOutlookEvent(command);
+  assert.equal(replay.provider_call_required, false);
+  assert.equal(replay.idempotent_replay, true);
+  assert.equal(
+    replay.activity.outlook_event_id,
+    linked.activity.outlook_event_id,
+  );
 });
 
 test("VC-CL-CON-001 / CL-P3-W02-T03 같은 예약은 재생하고 같은 키의 다른 요청은 상태 변경 없이 막는다", () => {

@@ -118,6 +118,11 @@ test("VC-CL-CON-001 / CL-P3-W02-T03 실제 API는 앱 기준 상담 예약·완�
         "POST /api/crm/inquiries/:id/consultations",
       ),
     );
+    assert.ok(
+      crm.endpoints.includes(
+        "POST /api/crm/consultations/:id/outlook-event",
+      ),
+    );
 
     const scheduled = await request(
       `/api/crm/inquiries/${LEAD_ID}/consultations`,

@@ -13,6 +13,7 @@
     "matter_required_for_revenue": false,
     "hidden_client_sections_restored": false,
     "automatic_outlook_mailbox_scan": false,
+    "automatic_outlook_calendar_sync": false,
     "automatic_matter_creation": false
   },
   "bank_name_matching": {
@@ -177,7 +178,8 @@
       ],
       "commands": {
         "schedule": "POST /api/crm/inquiries/:id/consultations",
-        "reschedule_or_complete": "PATCH /api/crm/activities/:id"
+        "reschedule_or_complete": "PATCH /api/crm/activities/:id",
+        "create_outlook_event": "POST /api/crm/consultations/:id/outlook-event"
       },
       "schedule_requires_reviewing_inquiry": true,
       "schedule_forbidden_after_engagement_review_starts": true,
@@ -189,7 +191,14 @@
       "confidential_change_reason_stored_as_digest": true,
       "audit_stores_raw_consultation_content": false,
       "completion_recalculates_visible_status": true,
-      "creates_outlook_event_automatically": false
+      "creates_outlook_event_automatically": false,
+      "outlook_event_link_fields": [
+        "outlook_event_id",
+        "outlook_event_web_link",
+        "outlook_event_transaction_id",
+        "outlook_event_created_at",
+        "outlook_event_schedule_sha256"
+      ]
     },
     "accepted_decision_is_signed_engagement": false,
     "accepted_decision_creates_matter": false,
@@ -207,7 +216,18 @@
     "dedupe_fallback": "graph_immutable_message_id",
     "one_primary_inquiry_link_per_evidence": true,
     "background_mail_scan": false,
-    "calendar_bidirectional_sync": false
+    "calendar_bidirectional_sync": false,
+    "calendar_mailbox_scope": "me",
+    "calendar_permission": "Calendars.ReadWrite",
+    "calendar_create_path": "/me/events",
+    "calendar_event_subject": "법률 상담",
+    "calendar_event_sensitivity": "private",
+    "calendar_transaction_id_source": "tenant_id_plus_consultation_id",
+    "calendar_replay_returns_stored_event": true,
+    "calendar_provider_result_fields_stored": [
+      "event_id",
+      "web_link"
+    ]
   },
   "capabilities": {
     "all_client_scopes": [

@@ -28,6 +28,14 @@ import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.j
 import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { createFinanceDomainSnapshot } from "../../../packages/billing/src/central-ledger.js";
+import {
+  M365_GRAPH_REQUIRED_SCOPES,
+  hashMailboxAddress,
+  m365ConnectionId,
+} from "../../../packages/email-dms/src/m365-connection-model.js";
+import {
+  createEmailDmsRepository,
+} from "../../../packages/email-dms/src/repository.js";
 
 const TENANT_A = "tenant_postgres_api_authority_a";
 const TENANT_B = "tenant_postgres_api_authority_b";
@@ -144,6 +152,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
     principal: Object.freeze({
       tenant_id: TENANT_A,
       user_id: "user-postgres-consultation-t03",
+      entra_subject_id: "entra-postgres-consultation-t03",
       role_ids: Object.freeze(["system_super_admin"]),
       scopes: Object.freeze(["crm.inquiry.write"]),
     }),
@@ -203,6 +212,108 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   assert.equal(storedSchedule.payload.timezone, "Asia/Seoul");
   assert.equal(storedSchedule.payload.version, 1);
 
+  const emailDmsRepository = createEmailDmsRepository({
+    seedRecords: [{
+      model_type: "M365Connection",
+      m365_connection_id: m365ConnectionId({
+        tenant_id: TENANT_A,
+        user_id: "user-postgres-consultation-t03",
+      }),
+      tenant_id: TENANT_A,
+      user_id: "user-postgres-consultation-t03",
+      entra_subject_id: "entra-postgres-consultation-t03",
+      mailbox_address_hash: hashMailboxAddress(
+        "postgres-consultation@example.invalid",
+      ),
+      credential_ref:
+        "aws-secrets-manager:synthetic/postgres-consultation",
+      granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+      consented_at: "2026-07-30T08:00:00.000Z",
+      expires_at: "2026-08-30T08:00:00.000Z",
+      revoked_at: null,
+      state_version: 1,
+    }],
+  });
+  let calendarProviderCalls = 0;
+  const linked = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname:
+        `/api/crm/consultations/${activityId}/outlook-event`,
+      idempotency_key: "postgres-consultation-outlook-event",
+      actor_id: "user-postgres-consultation-t03",
+    },
+    command(runtimes) {
+      return handleCrmIntakeApiRequest({
+        pathname:
+          `/api/crm/consultations/${activityId}/outlook-event`,
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-consultation",
+          audit_hint_ref: "audit-postgres-consultation",
+          expected_version: 1,
+          reason: "Outlook 일정 만들기",
+          idempotency_key: "postgres-consultation-outlook-event",
+        },
+        context,
+        requestId: "request-postgres-consultation-outlook-event",
+        runtime: {
+          ...runtimes.crmIntakeRuntime,
+          emailDmsRuntime: { repository: emailDmsRepository },
+          m365GraphConfig: {
+            feature_enabled: true,
+            provider_runtime_enabled: true,
+            clock: () => new Date("2026-07-30T09:00:00.000Z"),
+            credential_vault: {
+              async resolveDelegatedCredential() {
+                return {
+                  access_token:
+                    "postgres-calendar-access-token-never-return",
+                };
+              },
+            },
+            provider: {
+              async createMeCalendarEvent() {
+                calendarProviderCalls += 1;
+                return {
+                  event_id: "postgres-calendar-event-t04",
+                  web_link:
+                    "https://outlook.office.com/calendar/item/postgres-t04",
+                  provider_request_id:
+                    "postgres-calendar-provider-request-t04",
+                };
+              },
+            },
+          },
+        },
+      });
+    },
+  });
+  assert.equal(linked.status, 201);
+  assert.equal(calendarProviderCalls, 1);
+  const storedOutlookEvent = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "CRMActivity",
+    record_id: activityId,
+  });
+  assert.equal(
+    storedOutlookEvent.payload.outlook_event_id,
+    "postgres-calendar-event-t04",
+  );
+  assert.equal(
+    storedOutlookEvent.payload.outlook_event_web_link,
+    "https://outlook.office.com/calendar/item/postgres-t04",
+  );
+  assert.match(
+    storedOutlookEvent.payload.outlook_event_transaction_id,
+    /^[0-9a-f-]{36}$/,
+  );
+  assert.equal(storedOutlookEvent.payload.version, 2);
+
   const completed = await authority.run({
     tenant_id: TENANT_A,
     request_context: {
@@ -220,7 +331,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
           tenant_id: TENANT_A,
           permission_ref: "perm-postgres-consultation",
           audit_hint_ref: "audit-postgres-consultation",
-          expected_version: 1,
+          expected_version: 2,
           field_updates: {
             completed_at: "2026-08-01T11:05:00+09:00",
             outcome: "상담 완료",
@@ -247,7 +358,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
     "2026-08-01T02:05:00.000Z",
   );
   assert.equal(storedCompletion.payload.outcome, "상담 완료");
-  assert.equal(storedCompletion.payload.version, 2);
+  assert.equal(storedCompletion.payload.version, 3);
   const storedLead = await ledger.read({
     tenant_id: TENANT_A,
     domain_id: "crm",

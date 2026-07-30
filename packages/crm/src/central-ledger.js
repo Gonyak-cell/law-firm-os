@@ -46,6 +46,8 @@ export const CRM_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "subject",
     "outcome",
     "next_action",
+    "outlook_event_id",
+    "outlook_event_web_link",
     "proposal_summary",
   ],
   primary_key_fields: [

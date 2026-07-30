@@ -220,6 +220,19 @@ function looksLikeMimeMessage(bytes) {
     && /\r?\n\r?\n/u.test(head);
 }
 
+function graphUtcDateTime(value, field) {
+  const text = requiredString(value, field);
+  const parsed = Date.parse(text);
+  if (!Number.isFinite(parsed)) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request,
+      `${field} must be a valid instant`,
+      400,
+    );
+  }
+  return new Date(parsed).toISOString().replace(/Z$/u, "");
+}
+
 export function createMicrosoftGraphMailProvider({
   fetch_impl = globalThis.fetch,
   graph_base_url = DEFAULT_GRAPH_BASE_URL,
@@ -251,7 +264,7 @@ export function createMicrosoftGraphMailProvider({
       if (error?.safe_error_code) throw error;
       throw providerError(
         MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_error,
-        "Microsoft Graph mail request failed",
+        "Microsoft Graph request failed",
       );
     }
   }
@@ -260,6 +273,105 @@ export function createMicrosoftGraphMailProvider({
     provider: "microsoft-graph",
     mailbox_scope: "me",
     automatic_mailbox_scan_enabled: false,
+    automatic_calendar_sync_enabled: false,
+    async createMeCalendarEvent(input = {}) {
+      const event = input.event;
+      if (
+        input.mailbox_scope !== "me"
+        || !event
+        || typeof event !== "object"
+        || Array.isArray(event)
+        || event.time_zone !== "UTC"
+        || event.sensitivity !== "private"
+        || event.show_as !== "busy"
+      ) {
+        throw providerError(
+          MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request,
+          "Microsoft Graph calendar request must use delegated /me and the private UTC event contract",
+          400,
+        );
+      }
+      const allowedEventFields = new Set([
+        "subject",
+        "start_at",
+        "end_at",
+        "time_zone",
+        "sensitivity",
+        "show_as",
+      ]);
+      if (
+        Object.keys(event).some(
+          (field) => !allowedEventFields.has(field),
+        )
+      ) {
+        throw providerError(
+          MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request,
+          "Microsoft Graph calendar event contains unsupported fields",
+          400,
+        );
+      }
+      const accessToken = requiredString(
+        input.credential?.access_token,
+        "credential.access_token",
+        16 * 1024,
+      );
+      const transactionId = requiredString(
+        input.transaction_id,
+        "transaction_id",
+        128,
+      );
+      const start = graphUtcDateTime(event.start_at, "event.start_at");
+      const end = graphUtcDateTime(event.end_at, "event.end_at");
+      if (Date.parse(`${end}Z`) <= Date.parse(`${start}Z`)) {
+        throw providerError(
+          MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request,
+          "Microsoft Graph calendar event must end after it starts",
+          400,
+        );
+      }
+      const response = await graphFetch("/me/events", {
+        method: "POST",
+        headers: graphRequestHeaders(accessToken, {
+          "content-type": "application/json",
+        }),
+        body: JSON.stringify({
+          subject: requiredString(event.subject, "event.subject", 160),
+          start: {
+            dateTime: start,
+            timeZone: "UTC",
+          },
+          end: {
+            dateTime: end,
+            timeZone: "UTC",
+          },
+          transactionId,
+          sensitivity: "private",
+          showAs: "busy",
+        }),
+      });
+      if (response.status !== 201) {
+        if (!response.ok) {
+          throw safeProviderFailure(response, "calendar event create");
+        }
+        throw providerError(
+          MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES
+            .provider_response_invalid,
+          "Microsoft Graph calendar create response is invalid",
+        );
+      }
+      const created = await readJson(
+        response,
+        "calendar event create",
+      );
+      return Object.freeze({
+        event_id: requiredString(created.id, "event.id"),
+        web_link: requiredString(created.webLink, "event.webLink"),
+        provider_request_id: providerRequestId(response),
+        mailbox_scope: "me",
+        credential_material_included: false,
+        production_ready_claim: false,
+      });
+    },
     async getMeMessageMime(input = {}) {
       if (
         input.mailbox_scope !== "me"
