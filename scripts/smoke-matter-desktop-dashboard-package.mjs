@@ -388,8 +388,12 @@ try {
     } else {
       await page.waitForTimeout(2_000);
     }
+    await page.locator(".page-canvas").evaluate((node) => { node.scrollTop = 0; });
     const snapshot = await page.evaluate(({ selector }) => {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
+      const revenueChartCard = document.querySelector(`${selector} .home-dashboard-revenue-chart-card`)?.getBoundingClientRect();
+      const payrollChartCard = document.querySelector(`${selector} .home-dashboard-payroll-chart-card`)?.getBoundingClientRect();
+      const nonPayrollChartCard = document.querySelector(`${selector} .home-dashboard-nonpayroll-chart-card`)?.getBoundingClientRect();
       const forbiddenPatterns = [
         /\b(?:matter|user|tenant|account|lead|opportunity|contact|activity)_[a-z0-9_]+\b/gi,
         /\b(?:contacted|qualified|active|opening|closed|review_required|review|todo|in_progress|completed)\b/g
@@ -407,6 +411,20 @@ try {
         home_revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length,
         home_payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
         home_nonpayroll_chart_count: document.querySelectorAll(`${selector} [data-home-nonpayroll-donut-chart="true"]`).length,
+        home_finance_charts_same_row: Boolean(
+          revenueChartCard
+          && payrollChartCard
+          && nonPayrollChartCard
+          && Math.abs(revenueChartCard.top - payrollChartCard.top) < 2
+          && Math.abs(revenueChartCard.top - nonPayrollChartCard.top) < 2
+        ),
+        home_finance_charts_horizontal_order: Boolean(
+          revenueChartCard
+          && payrollChartCard
+          && nonPayrollChartCard
+          && revenueChartCard.left < payrollChartCard.left
+          && payrollChartCard.left < nonPayrollChartCard.left
+        ),
         home_revenue_fixture_visible: surfaceText.includes("₩ 12,000,000"),
         home_payroll_fixture_visible: surfaceText.includes("₩ 9,000,000"),
         home_processed_cost_fixture_visible: surfaceText.includes("₩ 4,000,000"),
@@ -437,6 +455,8 @@ try {
       assert.equal(snapshot.home_revenue_chart_count, 1, "Home must render the monthly revenue bar chart");
       assert.equal(snapshot.home_payroll_chart_count, 1, "Home must render the payroll category donut chart");
       assert.equal(snapshot.home_nonpayroll_chart_count, 1, "Home must render the non-payroll outflow category donut chart");
+      assert.equal(snapshot.home_finance_charts_same_row, true, "Home finance charts must remain on one row at the packaged 1280px desktop viewport");
+      assert.equal(snapshot.home_finance_charts_horizontal_order, true, "Home finance charts must stay ordered revenue, payroll, and non-payroll from left to right");
       assert.equal(snapshot.home_revenue_fixture_visible, true, "Home must render the monthly revenue fixture");
       assert.equal(snapshot.home_payroll_fixture_visible, true, "Home must render the aggregate payroll fixture");
       assert.equal(snapshot.home_processed_cost_fixture_visible, true, "Home must render the processed-cost fixture");
