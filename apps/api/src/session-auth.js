@@ -225,7 +225,10 @@ function permissionRulesFromScopes(scopes = []) {
   }
   const clientWritePrefixes = new Map([
     ["crm.inquiry.write", ["crm:inquiry:", "crm:consultation:", "crm:activity:"]],
-    ["crm.engagement.decide", ["crm:engagement:"]],
+    [
+      "crm.engagement.decide",
+      ["crm:engagement:", "crm:opportunity:intake_handoff"],
+    ],
     ["outlook.connection.manage", ["outlook:connection:"]],
     ["outlook.inquiry.capture", ["outlook:inquiry:capture"]],
     ["finance.fee.write", ["finance:fee_commitment:", "finance:deposit_allocation:"]],

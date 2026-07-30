@@ -144,7 +144,7 @@ function failingOnce(repository) {
   };
 }
 
-test("CL-P3-W03-T01 실제 API는 변호사 수임 결정을 단계별로 반영하고 일반 직원을 선차단한다", async () => {
+test("CL-P3-W03-T01/T02 실제 API는 변호사 수임 결정과 Intake 인계를 단계별로 반영하고 일반 직원을 선차단한다", async () => {
   const runtime = runtimeSet();
   await withServer(runtime, async (baseUrl) => {
     const attorneyHeaders = await apiSessionHeaders(
@@ -228,6 +228,61 @@ test("CL-P3-W03-T01 실제 API는 변호사 수임 결정을 단계별로 반영
       false,
     );
 
+    const handoffBody = {
+      tenant_id: TENANT,
+      permission_ref: "client-engagement-handoff-api",
+      audit_hint_ref: "client-engagement-handoff-api-audit",
+      idempotency_key: "client-engagement-handoff-api-1",
+      intake_request_id: "intake_client_engagement_api_t02",
+      requested_scope_summary: "상사 자문",
+    };
+    const staffHandoff = await request(
+      baseUrl,
+      staffHeaders,
+      `/api/crm/opportunities/${OPPORTUNITY_ID}/handoff`,
+      { method: "POST", body: handoffBody },
+    );
+    assert.equal(staffHandoff.status, 403);
+    const handoff = await request(
+      baseUrl,
+      attorneyHeaders,
+      `/api/crm/opportunities/${OPPORTUNITY_ID}/handoff`,
+      { method: "POST", body: handoffBody },
+    );
+    assert.equal(handoff.status, 201, JSON.stringify(handoff.body));
+    assert.equal(
+      handoff.body.item.intake_request_id,
+      "intake_client_engagement_api_t02",
+    );
+    assert.equal(handoff.body.item.source_inquiry_id, LEAD_ID);
+    assert.equal(handoff.body.item.engagement_decision, "accepted");
+    assert.equal(handoff.body.item.conflict_check_required, true);
+    assert.equal(
+      handoff.body.item.matter_opening_state,
+      "waiting_for_intake_clearance",
+    );
+    assert.equal(handoff.body.handoff.evidence_reference_count, 0);
+    assert.equal(handoff.body.handoff.activity_reference_count, 0);
+    assert.equal(handoff.body.automatic_matter_creation, false);
+    assert.equal(handoff.body.direct_matter_reference_included, false);
+    const handoffReplay = await request(
+      baseUrl,
+      attorneyHeaders,
+      `/api/crm/opportunities/${OPPORTUNITY_ID}/handoff`,
+      { method: "POST", body: handoffBody },
+    );
+    assert.equal(handoffReplay.status, 200);
+    assert.equal(handoffReplay.body.outcome, "idempotent_replay");
+    assert.equal(
+      runtime.crmIntakeRuntime.intakeRepository.list({
+        tenant_id: TENANT,
+        model_type: "IntakeRequest",
+      }).filter(
+        ({ opportunity_id }) => opportunity_id === OPPORTUNITY_ID,
+      ).length,
+      1,
+    );
+
     const replay = await request(
       baseUrl,
       attorneyHeaders,
@@ -280,6 +335,18 @@ test("CL-P3-W03-T01 실제 API는 변호사 수임 결정을 단계별로 반영
       "반영 완료",
     );
     assert.equal(
+      detail.body.item.opportunity.intake_status_label,
+      "계약·이해상충 확인 중",
+    );
+    assert.equal(
+      detail.body.item.opportunity.intake_request_id,
+      "intake_client_engagement_api_t02",
+    );
+    assert.equal(
+      detail.body.item.opportunity.matter_opening_state,
+      "waiting_for_intake_clearance",
+    );
+    assert.equal(
       detail.body.item.client_group_id,
       created.body.processing.client_group_id,
     );
@@ -293,6 +360,57 @@ test("CL-P3-W03-T01 실제 API는 Matter 지정과 알 수 없는 명령 필드�
       baseUrl,
       registeredAccount("jh731@amic.kr"),
     );
+    const prematureHandoff = await request(
+      baseUrl,
+      headers,
+      `/api/crm/opportunities/${OPPORTUNITY_ID}/handoff`,
+      {
+        method: "POST",
+        body: {
+          tenant_id: TENANT,
+          permission_ref: "client-engagement-handoff-premature",
+          audit_hint_ref: "client-engagement-handoff-premature-audit",
+          idempotency_key: "client-engagement-handoff-premature",
+          intake_request_id: "intake_client_engagement_premature",
+        },
+      },
+    );
+    assert.equal(prematureHandoff.status, 409);
+    assert.deepEqual(
+      prematureHandoff.body.safe_error_codes,
+      ["CRM_INTAKE_HANDOFF_ENGAGEMENT_REQUIRED"],
+    );
+    const directMatterHandoff = await request(
+      baseUrl,
+      headers,
+      `/api/crm/opportunities/${OPPORTUNITY_ID}/handoff`,
+      {
+        method: "POST",
+        body: {
+          tenant_id: TENANT,
+          permission_ref: "client-engagement-handoff-direct-matter",
+          audit_hint_ref: "client-engagement-handoff-direct-matter-audit",
+          idempotency_key: "client-engagement-handoff-direct-matter",
+          intake_request_id: "intake_client_engagement_direct_matter",
+          matter_id: "matter_forbidden",
+        },
+      },
+    );
+    assert.equal(directMatterHandoff.status, 409);
+    assert.deepEqual(
+      directMatterHandoff.body.safe_error_codes,
+      ["CRM_INTAKE_HANDOFF_DIRECT_MATTER_BLOCKED"],
+    );
+    assert.equal(
+      runtime.crmIntakeRuntime.intakeRepository.list({
+        tenant_id: TENANT,
+        model_type: "IntakeRequest",
+      }).filter(
+        ({ opportunity_id }) => opportunity_id === OPPORTUNITY_ID,
+      ).length,
+      0,
+    );
+
     for (const body of [
       decisionBody({
         matter_id: "matter_shortcut_forbidden",

@@ -27,7 +27,10 @@ import {
   decideInquiryEngagement,
   repairInquiryEngagement,
 } from "../../../packages/crm/src/engagement-decision-service.js";
-import { handoffOpportunityToIntake } from "../../../packages/crm/src/intake-handoff-service.js";
+import {
+  CRM_INTAKE_HANDOFF_ERROR_CODES,
+  handoffOpportunityToIntake,
+} from "../../../packages/crm/src/intake-handoff-service.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createIntakeRequest } from "../../../packages/intake/src/intake-request-service.js";
 import { createConflictCheck } from "../../../packages/intake/src/conflict-check-service.js";
@@ -153,6 +156,22 @@ export const CRM_INTAKE_API_ERROR_CODES = Object.freeze({
     CRM_ENGAGEMENT_ERROR_CODES.workflow_incomplete,
   engagement_workflow_not_found:
     CRM_ENGAGEMENT_ERROR_CODES.workflow_not_found,
+  intake_handoff_direct_matter_blocked:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.direct_matter_blocked,
+  intake_handoff_engagement_required:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.engagement_required,
+  intake_handoff_evidence_required:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.evidence_required,
+  intake_handoff_evidence_unavailable:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.evidence_unavailable,
+  intake_handoff_conflict:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.intake_conflict,
+  intake_handoff_inquiry_invalid:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.inquiry_invalid,
+  intake_handoff_not_found:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.not_found,
+  intake_handoff_workflow_incomplete:
+    CRM_INTAKE_HANDOFF_ERROR_CODES.workflow_incomplete,
 });
 
 export const CRM_RUNTIME_SEED = Object.freeze([
@@ -1054,6 +1073,16 @@ const ENGAGEMENT_REPAIR_COMMAND_FIELDS = Object.freeze([
   "expected_workflow_version",
   "reason",
   "idempotency_key",
+  "actor_id",
+]);
+
+const OPPORTUNITY_HANDOFF_COMMAND_FIELDS = Object.freeze([
+  "tenant_id",
+  "permission_ref",
+  "audit_hint_ref",
+  "idempotency_key",
+  "intake_request_id",
+  "requested_scope_summary",
   "actor_id",
 ]);
 
@@ -3673,9 +3702,35 @@ export function handleOpportunityHandoff({ body, context, requestId, runtime = D
   const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
+  if (includesDirectMatterReference(body)) {
+    return errorResponse(
+      409,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.intake_handoff_direct_matter_blocked],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  if (
+    includesUnsupportedCommandField(
+      body,
+      OPPORTUNITY_HANDOFF_COMMAND_FIELDS,
+    )
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
   try {
     const result = handoffOpportunityToIntake({
       crmRepository: runtime.crmRepository,
+      intakeRepository: runtime.intakeRepository,
+      evidenceRepository:
+        runtime.emailDmsRepository
+        ?? runtime.emailDmsRuntime?.repository
+        ?? null,
       intakeService: runtime.intakeService,
       tenant_id: body.tenant_id,
       opportunity_id: opportunityId,
@@ -3689,12 +3744,29 @@ export function handleOpportunityHandoff({ body, context, requestId, runtime = D
       auditHintRef: query.audit_hint_ref,
       outcome: result.idempotent_replay ? "idempotent_replay" : "created",
       item: result.intake_request,
-      auditEvent: result.audit_events[1],
+      auditEvent: result.audit_events.find(Boolean) ?? null,
       status: result.idempotent_replay ? 200 : 201,
-      extra: { opportunity: sanitizeItem(result.opportunity), idempotent_replay: result.idempotent_replay },
+      extra: {
+        opportunity: sanitizeItem(result.opportunity),
+        handoff: result.handoff,
+        idempotent_replay: result.idempotent_replay,
+        automatic_matter_creation: false,
+        direct_matter_reference_included: false,
+      },
     });
-  } catch {
-    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  } catch (error) {
+    return errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [
+        error?.safe_error_code
+        ?? CRM_INTAKE_API_ERROR_CODES.validation_error,
+      ],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: error?.status === 404 ? "empty" : "blocked",
+      },
+    );
   }
 }
 

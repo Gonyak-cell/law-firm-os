@@ -2,6 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  CRM_INTAKE_HANDOFF_ERROR_CODES,
+  createCrmRuntimeRepository,
+  handoffOpportunityToIntake,
+} from "../../crm/src/index.js";
+import {
+  openMatterTransaction,
+} from "../../matter/src/opening-service.js";
+import { createMatterRepository } from "../../matter/src/repository.js";
+import {
   createIntakeClearanceTokenDescriptor,
   createIntakeConflictDecisionWorkflowDescriptor,
   createIntakeConflictSearchDescriptor,
@@ -10,6 +19,8 @@ import {
   createIntakeEngagementDescriptor,
   createIntakeFeeTermsDescriptor,
   createIntakeG3DWorkflowCloseoutDescriptor,
+  createIntakeRequest,
+  createIntakeRuntimeRepository,
   createIntakeRiskApprovalQueueDescriptor,
   createIntakeWaiverDescriptor,
   INTAKE_G3D_FEE_TERM_TYPES,
@@ -51,6 +62,240 @@ function conflictHit() {
     owner_user_id,
   });
 }
+
+test("VC-CL-MAT-001 / CL-P3-W03-T02 수임 확정 문의는 증거·활동 참조만 Intake로 넘기고 clearance 전 Matter 개설을 막는다", () => {
+  const inquiryId = "lead_client_mat_t02";
+  const opportunityId = "opportunity_client_mat_t02";
+  const intakeRequestId = "intake_client_mat_t02";
+  const activityId = "activity_client_mat_t02";
+  const evidenceId = "evidence_client_mat_t02";
+  const crm = createCrmRuntimeRepository({
+    seedRecords: [
+      {
+        model_type: "Lead",
+        lead_id: inquiryId,
+        tenant_id,
+        party_id: party_ids[0],
+        opportunity_id: opportunityId,
+        display_name: "한빛건설 법률 문의",
+        status: "active",
+        inquiry_status: "reviewing",
+        source: "outlook_addin",
+        received_at: "2026-07-30T00:00:00.000Z",
+        next_action: "수임 절차 확인",
+        version: 3,
+        owner_user_id,
+      },
+      {
+        model_type: "Opportunity",
+        opportunity_id: opportunityId,
+        lead_id: inquiryId,
+        tenant_id,
+        party_id: party_ids[0],
+        display_name: "한빛건설 자문 기회",
+        stage: "qualified",
+        engagement_decision: "accepted",
+        engagement_decision_version: 2,
+        engagement_workflow_id: "engagement_workflow_client_mat_t02",
+        engagement_workflow_status: "completed",
+        engagement_client_group_id: "client_group_client_mat_t02",
+        engagement_fee_commitment_id: "fee_commitment_client_mat_t02",
+        status: "active",
+        owner_user_id,
+      },
+      {
+        model_type: "CRMActivity",
+        crm_activity_id: activityId,
+        tenant_id,
+        lead_id: inquiryId,
+        opportunity_id: opportunityId,
+        party_id: party_ids[0],
+        activity_type: "meeting",
+        subject: "외부에 복사하면 안 되는 상담 제목",
+        confidential: true,
+        status: "active",
+        owner_user_id,
+      },
+    ],
+  });
+  const intake = createIntakeRuntimeRepository();
+  const evidenceRepository = {
+    list(query) {
+      assert.equal(query.tenant_id, tenant_id);
+      assert.equal(query.lead_id, inquiryId);
+      return [{
+        model_type: "InquiryEmailEvidence",
+        inquiry_email_evidence_id: evidenceId,
+        tenant_id,
+        lead_id: inquiryId,
+        capture_status: "complete",
+        subject: "외부에 복사하면 안 되는 메일 제목",
+        raw_mime: "복사 금지 원문",
+      }];
+    },
+  };
+  const intakeService = {
+    createIntakeRequest: ({ request, actor_id, idempotency_key }) =>
+      createIntakeRequest({
+        repository: intake,
+        request,
+        actor_id,
+        idempotency_key,
+      }),
+  };
+
+  const handoff = handoffOpportunityToIntake({
+    crmRepository: crm,
+    intakeRepository: intake,
+    evidenceRepository,
+    intakeService,
+    tenant_id,
+    opportunity_id: opportunityId,
+    actor_id,
+    idempotency_key: "client-mat-handoff-t02",
+    intake_request_id: intakeRequestId,
+    requested_scope_summary: "상사 자문",
+    clock: () => new Date("2026-07-31T01:00:00.000Z"),
+  });
+
+  assert.equal(handoff.outcome, "created");
+  assert.equal(handoff.opportunity.stage, "intake_requested");
+  assert.equal(handoff.intake_request.conflict_check_required, true);
+  assert.equal(handoff.intake_request.signed_engagement_required, true);
+  assert.equal(
+    handoff.intake_request.matter_opening_state,
+    "waiting_for_intake_clearance",
+  );
+  assert.deepEqual(
+    handoff.intake_request.source_inquiry_evidence_ids,
+    [evidenceId],
+  );
+  assert.deepEqual(
+    handoff.intake_request.source_crm_activity_ids,
+    [activityId],
+  );
+  assert.equal(handoff.handoff.evidence_bytes_copied, false);
+  assert.equal(handoff.handoff.activity_content_copied, false);
+  assert.equal(
+    JSON.stringify(handoff.intake_request).includes("복사 금지"),
+    false,
+  );
+  assert.equal(
+    intake.list({
+      tenant_id,
+      model_type: "ConflictCheck",
+    }).length,
+    0,
+  );
+
+  const matter = createMatterRepository();
+  assert.throws(
+    () => openMatterTransaction({
+      repository: matter,
+      clearance_repository: intake,
+      matter: {
+        matter_id: "matter_client_mat_t02",
+        tenant_id,
+        opportunity_id: opportunityId,
+      },
+      clearance_token: {},
+      actor_id,
+      idempotency_key: "client-mat-open-before-clearance-t02",
+    }),
+    /clearance_token_id is required/,
+  );
+  assert.equal(
+    matter.list({ tenant_id, model_type: "Matter" }).length,
+    0,
+  );
+  assert.equal(
+    crm.get({
+      tenant_id,
+      model_type: "Opportunity",
+      opportunity_id: opportunityId,
+    }).engagement_decision,
+    "accepted",
+  );
+  assert.equal(
+    crm.get({
+      tenant_id,
+      model_type: "Lead",
+      lead_id: inquiryId,
+    }).inquiry_status,
+    "reviewing",
+  );
+
+  const replay = handoffOpportunityToIntake({
+    crmRepository: crm,
+    intakeRepository: intake,
+    evidenceRepository: {
+      list() {
+        throw new Error("replay must use the stored Intake snapshot");
+      },
+    },
+    intakeService,
+    tenant_id,
+    opportunity_id: opportunityId,
+    actor_id,
+    idempotency_key: "client-mat-handoff-t02",
+    intake_request_id: intakeRequestId,
+  });
+  assert.equal(replay.outcome, "idempotent_replay");
+  assert.equal(replay.idempotent_replay, true);
+  assert.equal(
+    intake.list({
+      tenant_id,
+      model_type: "IntakeRequest",
+    }).length,
+    1,
+  );
+
+  assert.throws(
+    () => handoffOpportunityToIntake({
+      crmRepository: crm,
+      intakeRepository: intake,
+      evidenceRepository,
+      intakeService,
+      tenant_id,
+      opportunity_id: opportunityId,
+      actor_id,
+      idempotency_key: "client-mat-direct-matter-t02",
+      intake_request_id: intakeRequestId,
+      matter_id: "matter_forbidden_t02",
+    }),
+    (error) => (
+      error.status === 409
+      && error.safe_error_code
+        === CRM_INTAKE_HANDOFF_ERROR_CODES.direct_matter_blocked
+    ),
+  );
+
+  intake.update({
+    tenant_id,
+    model_type: "IntakeRequest",
+    id: intakeRequestId,
+  }, {
+    source_fee_commitment_id: "fee_commitment_other",
+  });
+  assert.throws(
+    () => handoffOpportunityToIntake({
+      crmRepository: crm,
+      intakeRepository: intake,
+      evidenceRepository,
+      intakeService,
+      tenant_id,
+      opportunity_id: opportunityId,
+      actor_id,
+      idempotency_key: "client-mat-tampered-intake-t02",
+      intake_request_id: intakeRequestId,
+    }),
+    (error) => (
+      error.status === 409
+      && error.safe_error_code
+        === CRM_INTAKE_HANDOFF_ERROR_CODES.intake_conflict
+    ),
+  );
+});
 
 test("G3-D conflict search covers aliases, relationships, and former matters without writes", () => {
   const check = conflictCheck();

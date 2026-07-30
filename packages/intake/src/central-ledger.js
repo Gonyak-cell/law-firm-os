@@ -24,6 +24,34 @@ function references(record) {
   add("waiver", "Waiver", record.waiver_id);
   add("engagement", "Engagement", record.engagement_id);
   add("opportunity", "Opportunity", record.opportunity_id, { target_domain_id: "crm" });
+  add("source_inquiry", "Lead", record.source_inquiry_id, {
+    target_domain_id: "crm",
+  });
+  add(
+    "source_engagement_workflow",
+    "EngagementDecisionProcess",
+    record.source_engagement_workflow_id,
+    { target_domain_id: "crm" },
+  );
+  add("source_client_group", "ClientGroup", record.source_client_group_id, {
+    target_domain_id: "master-data",
+  });
+  add(
+    "source_fee_commitment",
+    "FeeCommitment",
+    record.source_fee_commitment_id,
+    { target_domain_id: "finance" },
+  );
+  for (const evidenceId of record.source_inquiry_evidence_ids ?? []) {
+    add("source_inquiry_evidence", "InquiryEmailEvidence", evidenceId, {
+      target_domain_id: "email-dms",
+    });
+  }
+  for (const activityId of record.source_crm_activity_ids ?? []) {
+    add("source_crm_activity", "CRMActivity", activityId, {
+      target_domain_id: "crm",
+    });
+  }
   add("canonical_party", "Party", record.party_id ?? record.canonical_party_id, { target_domain_id: "master-data" });
   add("matter", "Matter", record.matter_id, { target_domain_id: "matter" });
   return values;
@@ -75,6 +103,12 @@ export const INTAKE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "*.intake_request_id->IntakeRequest",
     "*.conflict_check_id->ConflictCheck",
     "*.opportunity_id->crm.Opportunity",
+    "*.source_inquiry_id->crm.Lead",
+    "*.source_engagement_workflow_id->crm.EngagementDecisionProcess",
+    "*.source_client_group_id->master-data.ClientGroup",
+    "*.source_fee_commitment_id->finance.FeeCommitment",
+    "*.source_inquiry_evidence_ids->email-dms.InquiryEmailEvidence",
+    "*.source_crm_activity_ids->crm.CRMActivity",
     "*.party_id->master-data.Party",
     "*.matter_id->matter.Matter",
   ],

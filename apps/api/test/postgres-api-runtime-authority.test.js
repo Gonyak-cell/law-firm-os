@@ -369,7 +369,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   assert.equal(storedLead.payload.version, 4);
 });
 
-test("PostgreSQL API authority persists staged engagement decision receipts across CRM, Master Data and Finance", async (t) => {
+test("PostgreSQL API authority persists accepted inquiry Intake handoff references without opening a Matter", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
@@ -566,6 +566,94 @@ test("PostgreSQL API authority persists staged engagement decision receipts acro
   assert.equal(
     storedFeeCommitment.payload.client_group_id,
     storedClientGroup.payload.client_group_id,
+  );
+  assert.equal((await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "matter",
+    record_type: "Matter",
+  })).length, 0);
+
+  const intakeRequestId = "intake-postgres-engagement-t02";
+  const handedOff = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname:
+        `/api/crm/opportunities/${opportunityId}/handoff`,
+      idempotency_key: "postgres-engagement-handoff-1",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return handleCrmIntakeApiRequest({
+        pathname:
+          `/api/crm/opportunities/${opportunityId}/handoff`,
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-engagement",
+          audit_hint_ref: "audit-postgres-engagement-handoff",
+          intake_request_id: intakeRequestId,
+          requested_scope_summary: "PostgreSQL 수임 Intake 인계",
+          idempotency_key: "postgres-engagement-handoff-1",
+        },
+        context,
+        requestId: "request-postgres-engagement-handoff",
+        runtime: runtimes.crmIntakeRuntime,
+      });
+    },
+  });
+  assert.equal(handedOff.status, 201, JSON.stringify(handedOff.body));
+  assert.equal(handedOff.body.item.intake_request_id, intakeRequestId);
+  assert.equal(handedOff.body.item.source_inquiry_id, leadId);
+  assert.equal(
+    handedOff.body.item.source_engagement_workflow_id,
+    created.body.processing.engagement_workflow_id,
+  );
+  assert.equal(
+    handedOff.body.item.source_client_group_id,
+    created.body.processing.client_group_id,
+  );
+  assert.equal(
+    handedOff.body.item.source_fee_commitment_id,
+    created.body.processing.fee_commitment_id,
+  );
+  assert.deepEqual(handedOff.body.item.source_inquiry_evidence_ids, []);
+  assert.deepEqual(handedOff.body.item.source_crm_activity_ids, []);
+  assert.equal(
+    handedOff.body.item.matter_opening_state,
+    "waiting_for_intake_clearance",
+  );
+  assert.equal(handedOff.body.item.matter_id, undefined);
+  assert.equal(handedOff.body.automatic_matter_creation, false);
+
+  const storedIntake = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "intake",
+    record_type: "IntakeRequest",
+    record_id: intakeRequestId,
+  });
+  const handedOffOpportunity = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "Opportunity",
+    record_id: opportunityId,
+  });
+  assert.equal(storedIntake.payload.source_inquiry_id, leadId);
+  assert.equal(
+    storedIntake.payload.source_reference_snapshot_sha256,
+    handedOff.body.item.source_reference_snapshot_sha256,
+  );
+  assert.equal(storedIntake.payload.source_evidence_bytes_copied, false);
+  assert.equal(storedIntake.payload.source_activity_content_copied, false);
+  assert.equal(handedOffOpportunity.payload.stage, "intake_requested");
+  assert.equal(
+    handedOffOpportunity.payload.intake_request_id,
+    intakeRequestId,
+  );
+  assert.equal(
+    handedOffOpportunity.payload.intake_handoff_snapshot_sha256,
+    storedIntake.payload.source_reference_snapshot_sha256,
   );
   assert.equal((await ledger.list({
     tenant_id: TENANT_A,

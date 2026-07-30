@@ -175,6 +175,34 @@ function consultationSummary(activity) {
   });
 }
 
+function intakeStatus(opportunity) {
+  if (!opportunity || opportunity.engagement_decision !== "accepted") {
+    return Object.freeze({ code: null, label: null });
+  }
+  if (opportunity.stage === "closed_won") {
+    return Object.freeze({
+      code: "engagement_process_completed",
+      label: "수임 절차 완료",
+    });
+  }
+  if (opportunity.stage === "intake_opened") {
+    return Object.freeze({
+      code: "matter_opening_ready",
+      label: "Matter 개설 준비",
+    });
+  }
+  if (opportunity.intake_request_id || opportunity.stage === "intake_requested") {
+    return Object.freeze({
+      code: "intake_reviewing",
+      label: "계약·이해상충 확인 중",
+    });
+  }
+  return Object.freeze({
+    code: "intake_not_started",
+    label: "계약·이해상충 확인 시작 전",
+  });
+}
+
 function opportunitySummary(opportunity) {
   if (!opportunity) return null;
   const workflowStatusLabel = {
@@ -182,6 +210,7 @@ function opportunitySummary(opportunity) {
     in_progress: "수임 확정 처리 중",
     repair_required: "반영 확인 필요",
   }[opportunity.engagement_workflow_status] ?? null;
+  const intake = intakeStatus(opportunity);
   return Object.freeze({
     opportunity_id: opportunity.opportunity_id,
     stage: opportunity.stage,
@@ -196,6 +225,17 @@ function opportunitySummary(opportunity) {
       opportunity.engagement_client_group_id ?? null,
     engagement_fee_commitment_id:
       opportunity.engagement_fee_commitment_id ?? null,
+    intake_request_id: opportunity.intake_request_id ?? null,
+    intake_status: intake.code,
+    intake_status_label: intake.label,
+    matter_opening_state:
+      opportunity.intake_request_id
+        ? "waiting_for_intake_clearance"
+        : null,
+    intake_handoff_evidence_count:
+      opportunity.intake_handoff_evidence_count ?? 0,
+    intake_handoff_activity_count:
+      opportunity.intake_handoff_activity_count ?? 0,
     owner_user_id: opportunity.owner_user_id ?? null,
     direct_matter_reference_included: false,
     production_ready_claim: false,

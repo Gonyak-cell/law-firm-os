@@ -93,6 +93,10 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
       "engagement_completed_steps",
       "engagement_client_group_id",
       "engagement_fee_commitment_id",
+      "intake_handoff_snapshot_sha256",
+      "intake_handoff_evidence_count",
+      "intake_handoff_activity_count",
+      "intake_handoff_recorded_at",
     ]),
     engagement_optimistic_concurrency_field:
       "engagement_decision_version",
@@ -258,6 +262,13 @@ function canonicalInstant(value, field) {
 function positiveInteger(value, field) {
   if (!Number.isSafeInteger(value) || value < 1) {
     throw new TypeError(`${field} must be a positive integer`);
+  }
+  return value;
+}
+
+function nonNegativeInteger(value, field) {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new TypeError(`${field} must be a non-negative integer`);
   }
   return value;
 }
@@ -734,6 +745,27 @@ export function createCrmCoreOpportunity(input) {
     stage: input.stage,
     ...engagement,
     intake_request_id: input.intake_request_id ?? null,
+    intake_handoff_snapshot_sha256: optionalString(
+      input.intake_handoff_snapshot_sha256,
+      "Opportunity intake_handoff_snapshot_sha256",
+      128,
+    ),
+    intake_handoff_evidence_count:
+      nonNegativeInteger(
+        input.intake_handoff_evidence_count ?? 0,
+        "Opportunity intake_handoff_evidence_count",
+      ),
+    intake_handoff_activity_count:
+      nonNegativeInteger(
+        input.intake_handoff_activity_count ?? 0,
+        "Opportunity intake_handoff_activity_count",
+      ),
+    intake_handoff_recorded_at: input.intake_handoff_recorded_at
+      ? canonicalInstant(
+        input.intake_handoff_recorded_at,
+        "Opportunity intake_handoff_recorded_at",
+      )
+      : null,
     allowed_conversion_target: "IntakeRequest",
     matter_id: null,
     opportunity_key:
