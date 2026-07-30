@@ -483,14 +483,14 @@ function bankImportApproved(body = {}) {
 }
 
 function classificationDirectories(runtime, tenantId) {
-  const clientRecords = runtime.clientRecords
+  const clientRecords = (runtime.clientRecords
     ?? listBankClassificationClientRecords(
       runtime.masterDataRepository,
       tenantId,
       runtime.matterRepository,
-    );
+    )).filter((record) => !record.tenant_id || record.tenant_id === tenantId);
   return Object.freeze({
-    clientRecords,
+    clientRecords: Object.freeze(clientRecords),
     employees: runtime.employeeRepository
       ? listAmicBankClassificationEmployees({
           repository: runtime.employeeRepository,
@@ -498,6 +498,12 @@ function classificationDirectories(runtime, tenantId) {
         })
       : runtime.employees ?? Object.freeze([]),
   });
+}
+
+const INACTIVE_CLIENT_STATUSES = new Set(["inactive", "archived", "deleted", "merged", "closed"]);
+
+function activeClientRecord(record) {
+  return !INACTIVE_CLIENT_STATUSES.has(String(record.status ?? "active").trim().toLowerCase());
 }
 
 function sanitizeBankClassification(record, transaction, directories) {
@@ -657,13 +663,26 @@ function bankClassificationOptionsResponse({ query, context, requestId, runtime 
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   const directories = classificationDirectories(runtime, query.tenant_id);
-  const clients = directories.clientRecords
-    .filter((record) => record.model_type === "ClientGroup" && record.status !== "inactive")
+  const clientCandidates = directories.clientRecords
+    .filter((record) => record.model_type === "ClientGroup" && activeClientRecord(record))
     .map((record) => Object.freeze({
       client_group_id: record.client_group_id,
       label: record.display_name ?? record.canonical_display_name ?? record.client_group_id,
     }))
-    .sort((left, right) => left.label.localeCompare(right.label, "ko"));
+    .sort((left, right) => (
+      left.label.localeCompare(right.label, "ko")
+      || left.client_group_id.localeCompare(right.client_group_id)
+    ));
+  const labelCounts = new Map();
+  for (const client of clientCandidates) {
+    labelCounts.set(client.label, (labelCounts.get(client.label) ?? 0) + 1);
+  }
+  const clients = clientCandidates.map((client) => Object.freeze({
+    ...client,
+    selection_label: labelCounts.get(client.label) > 1
+      ? `${client.label} · 고객번호 ${client.client_group_id}`
+      : client.label,
+  }));
   const employees = directories.employees
     .filter((record) => record.status !== "inactive")
     .map((record) => Object.freeze({
@@ -760,7 +779,7 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
   try {
     const directories = classificationDirectories(runtime, query.tenant_id);
     const clientIds = new Set(directories.clientRecords
-      .filter((record) => record.model_type === "ClientGroup")
+      .filter((record) => record.model_type === "ClientGroup" && activeClientRecord(record))
       .map((record) => record.client_group_id));
     const employeeIds = new Set(directories.employees.map((record) => record.employee_id));
     const decisions = (body.decisions ?? []).map((decision) => {

@@ -16496,6 +16496,29 @@ table tbody *,
   font-size: var(--am-font-size-meta);
 }
 
+.home-bank-client-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-bank-unlink-button {
+  min-height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--am-text-muted);
+  font: inherit;
+  font-size: var(--am-font-size-meta);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.home-bank-unlink-button:hover,
+.home-bank-unlink-button:focus-visible {
+  color: var(--am-text);
+}
+
 .home-bank-classification-state {
   display: inline-flex;
   min-width: 66px;
@@ -16511,6 +16534,11 @@ table tbody *,
 .home-bank-classification-state.reviewed {
   background: var(--am-info-soft, #eaf3ff);
   color: var(--am-info, #2563a7);
+}
+
+.home-bank-classification-state.review-required {
+  background: var(--am-warning-soft, #fff8e8);
+  color: var(--am-warning, #a45b00);
 }
 
 .home-cashflow-direction {

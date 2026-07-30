@@ -218,14 +218,15 @@ function classificationProposal(transaction, values) {
     primary_type: contract.primary_type,
     category,
     category_label: contract.label,
-    client_group_id: values.client_group_id ?? null,
-    employee_id: values.employee_id ?? null,
+    client_group_id: contract.primary_type === "sales" ? values.client_group_id : null,
+    employee_id: contract.primary_type === "payroll" ? values.employee_id ?? null : null,
     matter_id: values.matter_id ?? null,
     payroll_category: contract.primary_type === "payroll" ? values.payroll_category ?? "unclassified" : null,
     status: values.status ?? "confirmed",
     confidence: values.confidence ?? "high",
     classification_source: values.classification_source ?? "automatic",
     rationale_code: values.rationale_code ?? "deterministic_fallback",
+    manual_lock: values.manual_lock === true,
     rule_id: values.rule_id ?? null,
     reviewed_by: values.reviewed_by ?? null,
     reviewed_at: values.reviewed_at ?? null,
@@ -427,7 +428,10 @@ function persistClassifications({
         model_type: "BankTransactionClassification",
         id: classification.bank_transaction_classification_id,
       });
-      if (existing?.classification_source === "manual_review" && classification.classification_source !== "manual_review") {
+      if (
+        (existing?.manual_lock === true || existing?.classification_source === "manual_review")
+        && classification.classification_source !== "manual_review"
+      ) {
         protectedManualCount += 1;
         continue;
       }
@@ -569,14 +573,32 @@ export function reviewBankTransactionClassifications({
   }
   const now = new Date().toISOString();
   const rules = [];
+  const transactionIds = new Set();
   const classifications = decisions.map((decision) => {
     const bankTransactionId = requiredString(decision, "bank_transaction_id");
+    if (transactionIds.has(bankTransactionId)) {
+      throw new TypeError(`Duplicate classification decision: ${bankTransactionId}`);
+    }
+    transactionIds.add(bankTransactionId);
     const transaction = repository.get({
       tenant_id: tenantId,
       model_type: "BankTransaction",
       id: bankTransactionId,
     });
     if (!transaction) throw new TypeError(`BankTransaction not found: ${bankTransactionId}`);
+    const existing = repository.get({
+      tenant_id: tenantId,
+      model_type: "BankTransactionClassification",
+      id: classificationId(transaction),
+    });
+    const clientLinkChanged = existing?.client_group_id !== decision.client_group_id;
+    const rationaleCode = decision.category === "client_receipt"
+      ? clientLinkChanged && existing?.client_group_id
+        ? "manual_client_relinked"
+        : "manual_client_linked"
+      : existing?.client_group_id
+        ? "manual_client_unlinked"
+        : "manual_review_confirmed";
     const classification = classificationProposal(transaction, {
       category: decision.category,
       client_group_id: decision.client_group_id,
@@ -586,7 +608,8 @@ export function reviewBankTransactionClassifications({
       status: "confirmed",
       confidence: "reviewed",
       classification_source: "manual_review",
-      rationale_code: "manual_review_confirmed",
+      rationale_code: rationaleCode,
+      manual_lock: true,
       reviewed_by: actorId,
       reviewed_at: now,
     });

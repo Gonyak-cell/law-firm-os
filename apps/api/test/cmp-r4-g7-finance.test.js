@@ -8,6 +8,10 @@ import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-s
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
+import {
+  createFinanceRuntimeContext,
+  handleFinanceApiRequest,
+} from "../src/finance-runtime-context.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -124,6 +128,38 @@ async function json(baseUrl, path, options = {}) {
   const body = await response.json();
   return { status: response.status, body };
 }
+
+test("same-name client options include a stable customer number for manual selection", async () => {
+  const response = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classification-options",
+    method: "GET",
+    query: {
+      tenant_id: TENANT,
+      permission_ref: "perm-same-name-client-options",
+      audit_hint_ref: "audit-same-name-client-options",
+    },
+    context: JSON.parse(permissionContext("allow", ["system_super_admin"])),
+    requestId: "request-same-name-client-options",
+    runtime: createFinanceRuntimeContext({
+      clientRecords: [
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-hanbit-001", display_name: "한빛", status: "active" },
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-hanbit-002", display_name: "한빛", status: "active" },
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-saebom", display_name: "새봄", status: "active" },
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-closed", display_name: "종료 고객", status: "closed" },
+        { model_type: "ClientGroup", tenant_id: "tenant-other", client_group_id: "client-other-tenant", display_name: "다른 사무실", status: "active" },
+      ],
+    }),
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    response.body.item.clients.map((item) => [item.client_group_id, item.selection_label]),
+    [
+      ["client-saebom", "새봄"],
+      ["client-hanbit-001", "한빛 · 고객번호 client-hanbit-001"],
+      ["client-hanbit-002", "한빛 · 고객번호 client-hanbit-002"],
+    ],
+  );
+});
 
 test("G7 Finance API health descriptor exposes runtime write-ready without production claim", async () => {
   await withServer(async (baseUrl) => {
@@ -360,6 +396,46 @@ test("AMIC super-admin classifies a saved client short name and payroll initials
       .find((employee) => employee.employee_id === "emp_amic_jwsuh")
       .aliases.includes("JWS"));
 
+    const reviewed = await json(baseUrl, "/api/finance/bank-classifications/review", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "bank-classification-review-api-001",
+        decisions: [{
+          bank_transaction_id: "bank-classification-client-api",
+          category: "client_receipt",
+          client_group_id: "client-best-api",
+          remember_match: true,
+          match_field: "counterparty",
+        }],
+      }),
+    });
+    assert.equal(reviewed.status, 200);
+    assert.equal(reviewed.body.item.rule_count, 1);
+    const rerun = await json(baseUrl, "/api/finance/bank-classifications/auto", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "bank-classification-api-002",
+      }),
+    });
+    assert.equal(rerun.status, 200);
+    assert.equal(rerun.body.item.protected_manual_count, 1);
+    const reviewedRows = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
+      account: SUPER_ADMIN_ACCOUNT,
+    });
+    const reviewedClient = reviewedRows.body.items
+      .find((row) => row.bank_transaction_id === "bank-classification-client-api");
+    assert.equal(reviewedClient.classification_source, "manual_review");
+    assert.equal(reviewedClient.manual_lock, true);
+    assert.equal(reviewedClient.rationale_code, "manual_client_linked");
+
     const denied = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
       account: NON_PARTNER_ACCOUNT,
     });
@@ -373,10 +449,26 @@ test("AMIC super-admin classifies a saved client short name and payroll initials
         idempotency_key: "staff-bank-classification-api",
       }),
     });
+    const deniedReview = await json(baseUrl, "/api/finance/bank-classifications/review", {
+      method: "POST",
+      account: NON_PARTNER_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "staff-bank-classification-review-api",
+        decisions: [{
+          bank_transaction_id: "bank-classification-client-api",
+          category: "other_inflow",
+        }],
+      }),
+    });
     assert.equal(denied.status, 403);
     assert.deepEqual(denied.body.items, []);
     assert.equal(deniedMutation.status, 403);
     assert.deepEqual(deniedMutation.body.items, []);
+    assert.equal(deniedReview.status, 403);
+    assert.deepEqual(deniedReview.body.items, []);
   }, { financeRepository, matterRepository, analyticsFinanceRepository: financeRepository });
 });
 

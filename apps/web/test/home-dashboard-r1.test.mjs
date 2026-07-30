@@ -428,11 +428,12 @@ function wp5ApiBody(pathname, searchParams, state) {
           category_label: "기타 입금",
           primary_type: "non_operating",
           classification_source: "automatic",
-          confidence: "low",
-          status: "confirmed"
+          confidence: "needs_review",
+          rationale_code: "no_registered_client_match",
+          status: "review_required"
         }
       ]),
-      summary: { confirmed_count: 2, review_count: 0, transaction_count: 2 }
+      summary: { confirmed_count: 1, review_count: 1, transaction_count: 2 }
     };
   }
   if (pathname === "/api/finance/bank-classification-options") {
@@ -445,7 +446,10 @@ function wp5ApiBody(pathname, searchParams, state) {
           { category: "salary_payment", label: "급여 지급", primary_type: "payroll" },
           { category: "general_operating", label: "기타 운영비", primary_type: "operating_expense" }
         ],
-        clients: [],
+        clients: [
+          { client_group_id: "client-hanbit-001", label: "한빛", selection_label: "한빛 · 고객번호 client-hanbit-001" },
+          { client_group_id: "client-hanbit-002", label: "한빛", selection_label: "한빛 · 고객번호 client-hanbit-002" }
+        ],
         employees: []
       }
     };
@@ -652,7 +656,7 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
   });
   await server.listen();
   const browser = await chromium.launch({ headless: true });
-  const state = { decisionCalls: 0, newsCalls: 0 };
+  const state = { decisionCalls: 0, newsCalls: 0, bankReviewPayload: null };
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
@@ -1000,6 +1004,19 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
+      if (url.pathname === "/api/finance/bank-classifications/review") {
+        state.bankReviewPayload = route.request().postDataJSON();
+        return jsonResponse(route, {
+          request_id: "wp-fin-bank-classification-review",
+          outcome: "classified",
+          item: { created_count: 0, updated_count: 1, rule_count: 1 },
+          safe_error_codes: [],
+          audit_hint_ref: "wp-fin-bank-classification-review-audit",
+          idempotent_replay: false,
+          raw_source_payload_included: false,
+          production_ready_claim: false
+        });
+      }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-finance-overview`, { waitUntil: "networkidle" });
@@ -1035,6 +1052,31 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     assert.equal(await cashflow.locator('[data-home-cashflow-monthly-table="true"]').count(), 1);
     assert.equal(await cashflow.locator('[data-home-cashflow-transaction-table="true"] tbody tr').count(), 2);
     assert.match(await cashflow.locator('[data-home-cashflow-transaction-table="true"]').innerText(), /입금자 확인 전/);
+    assert.match(await cashflow.innerText(), /1건 확정 · 1건 확인 필요/);
+    const pendingRow = cashflow.locator('[data-bank-classification-row="bank-tx-in"]');
+    assert.match(await pendingRow.innerText(), /연결 확인 필요/);
+    assert.equal(await cashflow.getByLabel("이 입금자명 기억").count(), 1);
+    await pendingRow.getByLabel("입금자 확인 전 분류").selectOption("client_receipt");
+    assert.deepEqual(await pendingRow.getByLabel("고객 연결").locator("option").allTextContents(), [
+      "고객 선택",
+      "한빛 · 고객번호 client-hanbit-001",
+      "한빛 · 고객번호 client-hanbit-002"
+    ]);
+    await pendingRow.getByLabel("고객 연결").selectOption("client-hanbit-002");
+    await pendingRow.getByRole("button", { name: "입금자 확인 전 연결 해제" }).click();
+    assert.equal(await pendingRow.getByLabel("입금자 확인 전 분류").inputValue(), "other_inflow");
+    await pendingRow.getByLabel("입금자 확인 전 분류").selectOption("client_receipt");
+    await pendingRow.getByLabel("고객 연결").selectOption("client-hanbit-002");
+    await cashflow.getByLabel("이 입금자명 기억").check();
+    await cashflow.getByRole("button", { name: "선택 적용 (1)" }).click();
+    await page.waitForFunction(() => window.document.body.innerText.includes("1건의 분류와 연결을 저장했습니다."));
+    assert.deepEqual(state.bankReviewPayload.decisions, [{
+      bank_transaction_id: "bank-tx-in",
+      category: "client_receipt",
+      client_group_id: "client-hanbit-002",
+      remember_match: true,
+      match_field: "counterparty"
+    }]);
     await cashflow.getByLabel("거래 유형").selectOption("outflow");
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("direction") === "outflow");
 

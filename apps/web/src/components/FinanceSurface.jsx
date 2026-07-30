@@ -354,6 +354,18 @@ function linkedValue(row) {
   return "";
 }
 
+function bankClassificationState(row) {
+  if (row.status === "review_required") return { className: "review-required", label: "연결 확인 필요" };
+  if (row.rationale_code === "manual_client_unlinked") return { className: "reviewed", label: "연결 해제" };
+  if (["manual_client_linked", "manual_client_relinked"].includes(row.rationale_code)) {
+    return { className: "reviewed", label: "직접 연결" };
+  }
+  if (row.classification_source === "manual_review") return { className: "reviewed", label: "검토 완료" };
+  if (row.employee_label || row.client_group_label) return { className: "", label: "자동 연결" };
+  if (row.confidence === "medium") return { className: "", label: "자동 분류" };
+  return { className: "", label: "확정" };
+}
+
 function categoriesForDirection(categories, direction) {
   return categories.filter((row) => (
     direction === "inflow"
@@ -387,6 +399,7 @@ function CashflowTransactionTable({
             const category = draft.category ?? row.category;
             const targetValue = draft.linked_id ?? linkedValue(row);
             const categoryOptions = categoriesForDirection(options.categories, row.direction);
+            const state = bankClassificationState(row);
             return (
             <tr key={row.bank_transaction_id} data-bank-classification-row={row.bank_transaction_id}>
               <td className="home-bank-classification-check">
@@ -408,10 +421,22 @@ function CashflowTransactionTable({
               </td>
               <td>
                 {category === "client_receipt" && (
-                  <select className="home-bank-classification-select" value={targetValue} onChange={(event) => onDraft(row.bank_transaction_id, { linked_id: event.target.value })} aria-label="고객 연결">
-                    <option value="">고객 선택</option>
-                    {options.clients.map((item) => <option key={item.client_group_id} value={item.client_group_id}>{item.label}</option>)}
-                  </select>
+                  <div className="home-bank-client-link">
+                    <select className="home-bank-classification-select" value={targetValue} onChange={(event) => onDraft(row.bank_transaction_id, { linked_id: event.target.value })} aria-label="고객 연결">
+                      <option value="">고객 선택</option>
+                      {options.clients.map((item) => <option key={item.client_group_id} value={item.client_group_id}>{item.selection_label ?? item.label}</option>)}
+                    </select>
+                    {targetValue && (
+                      <button
+                        type="button"
+                        className="home-bank-unlink-button"
+                        onClick={() => onDraft(row.bank_transaction_id, { category: "other_inflow", linked_id: "" })}
+                        aria-label={`${row.client_group_label ?? row.counterparty ?? "고객"} 연결 해제`}
+                      >
+                        연결 해제
+                      </button>
+                    )}
+                  </div>
                 )}
                 {category === "salary_payment" && (
                   <select className="home-bank-classification-select" value={targetValue} onChange={(event) => onDraft(row.bank_transaction_id, { linked_id: event.target.value })} aria-label="구성원 연결">
@@ -422,8 +447,8 @@ function CashflowTransactionTable({
                 {!["client_receipt", "salary_payment"].includes(category) && <span className="home-bank-classification-none">대상 없음</span>}
               </td>
               <td>
-                <span className={`home-bank-classification-state ${row.classification_source === "manual_review" ? "reviewed" : ""}`}>
-                  {row.classification_source === "manual_review" ? "검토 완료" : row.employee_label || row.client_group_label || row.confidence === "medium" ? "자동 연결" : "확정"}
+                <span className={`home-bank-classification-state ${state.className}`}>
+                  {state.label}
                 </span>
               </td>
             </tr>
@@ -544,7 +569,7 @@ function CashflowSurface({ liveCtx = "allow", refreshSignal = 0 }) {
       setMutationState({ busy: false, message: "선택한 분류를 저장하지 못했습니다." });
       return;
     }
-    setMutationState({ busy: false, message: `${decisions.length}건의 연결을 저장했습니다.` });
+    setMutationState({ busy: false, message: `${decisions.length}건의 분류와 연결을 저장했습니다.` });
     setClassificationRefresh((value) => value + 1);
   }
 
@@ -565,7 +590,15 @@ function CashflowSurface({ liveCtx = "allow", refreshSignal = 0 }) {
           <CashflowMonthlyTable rows={monthly} />
         </section>
         <section className="home-finance-section-block">
-          <header><h2>거래 연결</h2><span>{classifications?.summary?.confirmed_count ?? 0}건 확정</span></header>
+          <header>
+            <h2>거래 연결</h2>
+            <span>
+              {classifications?.summary?.confirmed_count ?? 0}건 확정
+              {(classifications?.summary?.review_count ?? 0) > 0
+                ? ` · ${classifications.summary.review_count}건 확인 필요`
+                : ""}
+            </span>
+          </header>
           <div className="home-bank-classification-toolbar" data-bank-classification-toolbar="true">
             <div>
               <button type="button" className="secondary-button" onClick={runAutomaticClassification} disabled={mutationState.busy}>
@@ -573,7 +606,7 @@ function CashflowSurface({ liveCtx = "allow", refreshSignal = 0 }) {
               </button>
               <label>
                 <input type="checkbox" checked={rememberMatch} onChange={(event) => setRememberMatch(event.target.checked)} />
-                같은 거래처에 계속 적용
+                이 입금자명 기억
               </label>
             </div>
             <div>
