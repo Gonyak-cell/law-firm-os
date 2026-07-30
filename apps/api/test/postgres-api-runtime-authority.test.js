@@ -369,7 +369,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   assert.equal(storedLead.payload.version, 4);
 });
 
-test("PostgreSQL API authority persists accepted inquiry handoff and resolves the Client access scope", async (t) => {
+test("PostgreSQL API authority persists accepted inquiry handoff and reads the Client access scope plus KPIs", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
@@ -704,6 +704,30 @@ test("PostgreSQL API authority persists accepted inquiry handoff and resolves th
     finance_repository_shared: true,
     crm_repository_shared: true,
     matter_repository_shared: true,
+  });
+
+  const clientKpis = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/analytics/clients/dashboard",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return runtimes.analyticsRuntime.clientOperationsReadModel
+        .readKpis({
+          tenant_id: TENANT_A,
+          permission_context: context,
+          as_of: "2026-07-30T03:00:00.000Z",
+        });
+    },
+  });
+  assert.deepEqual(clientKpis.item.kpis, {
+    new_inquiries: 0,
+    consultations_today: 0,
+    engagement_reviews: 0,
+    deposit_revenue_month: 0,
+    receivables_total: 12_000_000,
   });
 });
 

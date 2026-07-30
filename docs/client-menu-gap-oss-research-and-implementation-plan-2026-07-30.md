@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6, P3 Outlook 문의·상담·수임 12/12, P4 Client 운영 조회 1/5 완료, 전체 31/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5, P1 은행 입금 매출 7/7, P2 수임료·미수금 6/6, P3 Outlook 문의·상담·수임 12/12, P4 Client 운영 조회 2/5 완료, 전체 32/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -24,7 +24,7 @@
 9. M365 코드는 delegated 권한과 기능 스위치 뒤에서 준비하고, 관리자 동의·시험 mailbox 영수증이 없으면 출시를 차단한다.
 10. 모든 검증 시나리오를 고정 fixture, 테스트 파일 또는 실제 API·화면 영수증과 연결한다.
 
-이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-31 현재 P0의 5개 TUW, P1의 7개 TUW, P2의 6개 TUW, P3의 M365 연결·원본 메일 증거·문의 등록·Outlook 추가 기능·문의 조회·상담·수임 결정·Intake 인계 12개 TUW와 P4의 고객 권한 선필터 1개 TUW를 구현·집중 검증했다.
+이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-31 현재 P0의 5개 TUW, P1의 7개 TUW, P2의 6개 TUW, P3의 M365 연결·원본 메일 증거·문의 등록·Outlook 추가 기능·문의 조회·상담·수임 결정·Intake 인계 12개 TUW와 P4의 고객 권한 선필터·5개 KPI 2개 TUW를 구현·집중 검증했다.
 
 ## 1. 제품 목표
 
@@ -983,7 +983,8 @@ npm test
 | `CL-P3-W03-T01` | 완료 | `POST /api/crm/inquiries/:id/engagement-decisions`에서 변호사·파트너·관리자의 명시적 결정을 받고 `수임 확정`·`수임하지 않음`·`검토 중`을 계약서 서명 상태와 분리해 Opportunity version과 함께 기록; 수임 확정은 먼저 CRM 결정과 단계 처리 기록을 원자적으로 남긴 뒤 문의의 Party를 유일한 기존 ClientGroup에 연결하거나 결정적 ID의 새 그룹으로 등록하고, 원화 정수 금액 또는 사용자가 확인한 `금액 미입력`의 FeeCommitment를 생성; Matter ID·자동 Matter 생성·`closed_won` 전환은 받거나 수행하지 않으며 Opportunity는 현재 단계에 유지; 각 단계는 파생 요청키의 해시와 완료 영수증을 보존해 재실행에서 끝난 단계를 건너뛰고, 고객·금액 반영 중 실패하면 원문 오류 없이 `반영 확인 필요`로 표시하며 권한을 다시 확인하는 `/engagement-repair`가 실패한 단계만 이어서 처리; 결정 저장 또는 재처리 시작 직후 프로세스가 중단되어도 같은 요청 영수증으로 `처리 중`인 남은 단계만 재개하고, 반영 확인이 필요한 동안에는 다른 결정을 넣지 못하게 차단; 수임하지 않음은 종료 사유를 의무화하고 `closed_lost`로 닫으며, 수임 확정을 검토 중으로 되돌리면 기존 FeeCommitment를 취소하고 활성 배분을 해제하고, 수임하지 않음을 되돌리면 문의와 검토 단계를 다시 엶; 공통 문의 조회에는 결정 version, 반영 상태, 고객그룹·수임료 참조와 자연스러운 상태 문구만 제공하고 단계 요청키·원문 오류·종료 사유는 일반 응답에서 제외; 파일 저장소와 PostgreSQL 요청 권위가 CRM·Master Data·Finance의 같은 결과를 보존하도록 서버의 기본 Master Data 저장소를 공용 권위로 통일 | `VC-CL-ENG-001`~`004`의 금액 입력·금액 미입력·부분 실패 후 재처리·거절 사유·재검토·결정/재처리 중단 복구 집중 service/API 9/9, CRM 전체 107/107, Billing 전체 144/144, 실제 서명 세션·상담·문의·Outlook·Master Data·production 권한·PostgreSQL 요청 권위 결합 46/46, 실제 임시 PostgreSQL의 세 도메인 레코드와 단계 영수증 9/9, 32개 Client 시나리오 fixture와 권한 계약 40/40, RP09·G3-A validator와 `git diff --check` PASS; Matter 생성 0건, 일반 직원 선차단, 다른 tenant·stale version·같은 키의 다른 명령·Matter 직접 지정은 상태 변경 전에 거절; sloplint는 신규 코드·문구 신호 없이 기존 OSS 출처 URL 4건만 약하게 오탐; AWS·Graph·배포·운영 데이터 변경 없음 |
 | `CL-P3-W03-T02` | 완료 | 기존 Opportunity→Intake 명령을 수임 확정 문의의 유일한 정식 인계 경로로 강화해 Lead·Opportunity 당사자 일치, 열린 문의, 완료된 수임 결정 처리 기록, ClientGroup·FeeCommitment 참조를 모두 확인한 뒤에만 IntakeRequest를 생성; Outlook 문의는 완료된 원본 메일 증거가 반드시 있어야 하고 수집된 증거·CRM 활동은 안정 정렬한 ID와 참조 묶음 SHA-256만 넘기며 메일·상담 원문은 복사하지 않음; Intake에는 계약·이해상충 확인과 서명된 계약이 필요하다는 사실, `Matter 개설 대기` 상태를 고정하고 Opportunity에는 Intake ID·참조 묶음 해시·증거/활동 건수만 기록; 같은 Opportunity의 다른 Intake, 저장된 인계 참조 변경, 처리 전 문의, 닫힌 문의, 증거 누락, Matter 직접 지정은 409로 차단하고 Outlook 증거 저장소 장애는 503으로 구분; Intake 생성 뒤 CRM 전환이 중단돼도 같은 Intake를 재사용해 복구하고 완료 뒤 재클릭은 저장된 참조 묶음을 사용해 원천 증거를 다시 읽지 않음; 일반 직원은 인계 명령을 실행할 수 없고 변호사·파트너·관리자의 수임 결정 권한만 허용; 공통 문의 상세에는 `계약·이해상충 확인 중`과 Matter 개설 대기 상태를 자연스러운 문구로 제공하며 기존 Conflict·waiver·clearance·Matter 개설 검증은 변경하지 않음 | `VC-CL-MAT-001` 집중 service/API와 재처리·변조·직접 Matter 차단 PASS, CRM·Intake 전체 195/195, 기존 CRM/Intake 재시작과 권한을 포함한 선택 API 31/31, 실제 임시 PostgreSQL 요청 권위의 CRM·Master Data·Finance·Intake 참조 readback 및 Matter 0건 9/9, 32개 Client 시나리오 fixture·RP09·G3-A·G3-D·G3 계획 validator PASS, `git diff --check`와 sloplint PASS; 원문 복사·Matter 생성·Graph·AWS·배포·운영 데이터 변경 없음 |
 | `CL-P4-W01-T01` | 완료 | `ClientOperationsReadModel`이 활성 ClientGroup 후보에 `analytics:client:read` 규칙과 고객별 객체 ACL을 먼저 적용하고, 허용된 고객의 안전 필드·Party 연결·안정 정렬 ID만 Finance·CRM·Matter projection에 전달하도록 등록; 접근 가능한 고객이 없으면 후속 원천과 projection을 전혀 실행하지 않으며, 비허용 고객의 이름·Party·손상 데이터·건수·금액은 반환하거나 검사하지 않음; 중복 ClientGroup ID와 허용 고객 사이에 겹친 Party는 모호한 집계를 만들지 않고 fail-closed; 파일·기본 API·PostgreSQL 요청 런타임에 같은 Master Data·Finance·CRM·Matter 저장소를 주입 | `VC-CL-PERM-001` 집중 3/3, Analytics 전체 106/106, 기존 매출·미수금 집중 24/24, Client·production 역할 6/6, 실제 임시 PostgreSQL 요청 권위 1/1, 32개 Client 시나리오 fixture와 RP15 Analytics 계약 validator PASS; 허용 고객 500만 원만 집계하고 비허용 고객 2,000만 원·ID·후속 원천 건수 비노출, 무권한일 때 Finance·CRM·Matter 호출 0건, `git diff --check`·sloplint PASS; 공개 대시보드 API·AWS·배포·운영 데이터 변경 없음 |
-| `CL-P4-W01-T02` | 다음 | 현재·오늘·이번 달 기준 5개 KPI를 같은 권한 범위에서 계산 | 시작 전 |
+| `CL-P4-W01-T02` | 완료 | `ClientOperationsReadModel.readKpis`가 선계산한 고객 범위를 그대로 사용해 `새 문의`, `오늘 상담`, `수임 검토 중`, `이번 달 입금 매출`, `총 미수금`을 한 번에 계산; 문의·상담은 각각 `crm:inquiry:read`·`crm:consultation:read`의 전역 권한과 객체 ACL을 원천 집계 전에 다시 적용하고, Lead의 Party 또는 수임 검토 건의 ClientGroup이 차단 고객과 이어지면 건수에서 제외; 문의 상태는 기존 공통 projection의 수임 결정→종료→수임 검토→상담→Lead 우선순위를 재사용하고, 오늘은 `Asia/Seoul` 달력 날짜, 입금 매출은 해당 달의 은행 입금·연결 환불, 미수금은 현재 활성 수임료 약정·입금 배분을 기준으로 고정; 전월 입금의 이번 달 환불처럼 월 입금 매출이 음수인 경우도 그대로 표시하고 청구서·Matter는 요구하지 않음; CRM 읽기 권한이 없으면 0건으로 가장하지 않고 CRM·Finance 조회 전에 안전 오류로 차단 | `VC-CL-DASH-001` 기준 fixture KPI deep-equal과 시간·권한·음수 매출 집중 4/4, Analytics 전체 110/110, 기존 매출·미수금 24/24, 문의 공통 projection·실제 API 6/6, 기존 Analytics API 13/13, 실제 임시 PostgreSQL 요청 권위의 수임 확정 후 KPI 1/1, 32개 Client 시나리오 fixture와 RP15 Analytics 계약 validator PASS; 기준값 새 문의 1건·오늘 상담 1건·수임 검토 1건·이번 달 입금 매출 3,300만 원·총 미수금 900만 원 일치, 차단 고객·문의·상담 식별자 비노출, `git diff --check`·sloplint PASS; 공개 대시보드 API·AWS·배포·운영 데이터 변경 없음 |
+| `CL-P4-W01-T03` | 다음 | 오늘 확인할 일의 6개 업무 유형과 안정 정렬을 같은 권한 범위에서 계산 | 시작 전 |
 
 P0 집중 검증:
 
