@@ -14,6 +14,7 @@ import {
   approveIntakeConflictWaiver,
   approveIntakeEngagement,
   executeCrmMergeProposal,
+  fetchAnalyticsClientOperationsDashboard,
   fetchAnalyticsFinanceClients,
   fetchCrmActivities,
   fetchCrmAccountContacts,
@@ -51,7 +52,8 @@ import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
 import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
-import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
+import { DashboardListCard, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
+import { buildClientOperationsDashboardModel } from "./ClientOperationsDashboardModel.js";
 
 const CLIENTS_PERMISSION_REF = "ui_cmp_g2_party_clients_live";
 const CLIENTS_AUDIT_HINT_REF = "ui_cmp_g2_clients_live_probe";
@@ -562,62 +564,164 @@ function clientDashboardRecordLabel(value, recordId, fallback) {
   return id && text === id ? fallback : clientDashboardDisplayLabel(text, fallback);
 }
 
-function combinedClientDashboardState(results) {
-  if (results.every((result) => result === null)) return null;
-  const readableResults = results.filter((result) => result?.kind === "data" && result?.uiState !== "denied" && result?.uiState !== "review_required" && result?.outcome !== "review_required");
-  if (readableResults.length > 0) return { kind: "data", items: readableResults.flatMap(resultItems) };
-  return results.find((result) => result?.uiState === "denied")
-    ?? results.find((result) => result?.uiState === "review_required" || result?.outcome === "review_required")
-    ?? results.find((result) => result?.kind === "error")
-    ?? { kind: "data", items: results.flatMap(resultItems) };
+function clientDashboardMetricLabel(metric) {
+  if (!Number.isSafeInteger(metric.value)) return "—";
+  const value = clientDashboardMoneyFormatter.format(metric.value);
+  return metric.valueKind === "money" ? `${value}원` : `${value}건`;
 }
 
-function ClientDashboardPanel({ results, onNavigate }) {
-  const newClients = resultItems(results.accounts).slice().sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left)).slice(0, 5);
-  const prospectResult = combinedClientDashboardState([results.leads, results.opportunities, results.contacts]);
-  const prospects = resultItems(prospectResult).slice().sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left)).slice(0, 5);
-  const financeClients = resultItems(results.financeClients);
-  const revenueRows = financeClients.slice().sort((left, right) => Number(right.billed_amount ?? 0) - Number(left.billed_amount ?? 0)).slice(0, 5);
-  const meetings = resultItems(results.activities).filter((item) => item.activity_type === "meeting").sort((left, right) => clientDashboardDateValue(right) - clientDashboardDateValue(left)).slice(0, 5);
-  const arRows = financeClients.filter((item) => Number(item.ar_balance ?? 0) > 0).sort((left, right) => Number(right.ar_balance ?? 0) - Number(left.ar_balance ?? 0)).slice(0, 5);
+function clientDashboardObjectLabel(noun) {
+  const lastCharacter = String(noun).at(-1) ?? "";
+  const code = lastCharacter.charCodeAt(0) - 0xac00;
+  const particle = code >= 0 && code <= 11171 && code % 28 !== 0
+    ? "을"
+    : "를";
+  return `${noun}${particle}`;
+}
+
+function clientDashboardStateCopy(state, noun) {
+  const objectLabel = clientDashboardObjectLabel(noun);
+  if (state === "loading") return `${objectLabel} 불러오는 중입니다.`;
+  if (state === "denied") return `${objectLabel} 볼 권한이 없습니다.`;
+  if (state === "review_required") return `${objectLabel} 보려면 추가 확인이 필요합니다.`;
+  if (state === "partial") return `${noun} 일부를 불러오지 못했습니다.`;
+  if (state === "error") return `${objectLabel} 불러오지 못했습니다.`;
+  return noun === "오늘 확인할 일"
+    ? "오늘 확인할 일이 없습니다."
+    : `${noun} 데이터가 없습니다.`;
+}
+
+function ClientDashboardReadState({ state, noun, children }) {
+  if (state === "data") return children;
+  if (state === "partial") {
+    return (
+      <>
+        <div
+          className="client-dashboard-inline-state partial"
+          role="status"
+          data-client-dashboard-read-state="partial"
+        >
+          {clientDashboardStateCopy(state, noun)}
+        </div>
+        {children}
+      </>
+    );
+  }
+  return (
+    <div
+      className={`client-dashboard-read-state ${state}`}
+      role="status"
+      data-client-dashboard-read-state={state}
+    >
+      {clientDashboardStateCopy(state, noun)}
+    </div>
+  );
+}
+
+function ClientDashboardKpiCard({ metric, onNavigate }) {
+  return (
+    <div
+      className="client-dashboard-kpi-slot"
+      data-client-kpi={metric.id}
+      data-value-kind={metric.valueKind}
+    >
+      <DashboardListCard
+        className="client-dashboard-kpi-card"
+        title={metric.label}
+        section={`kpi-${metric.id}`}
+        onViewAll={() => onNavigate(
+          metric.route.view,
+          metric.route.section,
+          metric.route.routeContext
+        )}
+        viewAllLabel="상세 보기"
+      >
+        <ClientDashboardReadState
+          state={metric.state}
+          noun={metric.label}
+        >
+          <div className="client-dashboard-kpi-value">
+            <strong>{clientDashboardMetricLabel(metric)}</strong>
+            <small>{metric.basis}</small>
+          </div>
+        </ClientDashboardReadState>
+      </DashboardListCard>
+    </div>
+  );
+}
+
+function ClientDashboardPanel({ result, onNavigate }) {
+  const model = buildClientOperationsDashboardModel(result);
+  if (!["data", "partial"].includes(model.state)) {
+    return (
+      <div
+        className="client-dashboard-read-boundary"
+        data-client-dashboard="true"
+        data-client-dashboard-state={model.state}
+      >
+        <ClientDashboardReadState
+          state={model.state}
+          noun="Client 대시보드"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="operational-dashboard-grid client-dashboard-layout" data-client-dashboard="true">
-      <DashboardListCard className="client-dashboard-new-clients" title="신규 고객" section="new-clients" onViewAll={() => onNavigate("clients", "clients-list")}>
-        <DashboardReadState result={results.accounts} noun="신규 고객">
-          <DashboardRecordList>
-            {newClients.map((item, index) => <DashboardRecordRow key={`client:${item.account_id ?? index}`} title={clientDashboardRecordLabel(item.display_name, item.account_id, `고객 ${index + 1}`)} meta={clientDashboardCategoryLabel(item.account_type ?? item.status, "고객")} detail={clientDashboardDateLabel(item.created_at ?? item.updated_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", "clients-list")} />)}
-          </DashboardRecordList>
-        </DashboardReadState>
-      </DashboardListCard>
-      <DashboardListCard className="client-dashboard-prospects" title="잠재 고객/접촉" section="prospects-contacts" onViewAll={() => onNavigate("clients", "client-opportunities")}>
-        <DashboardReadState result={prospectResult} noun="잠재 고객과 접촉">
-          <DashboardRecordList>
-            {prospects.map((item, index) => <DashboardRecordRow key={`prospect:${item.lead_id ?? item.opportunity_id ?? item.contact_id ?? index}`} title={clientDashboardRecordLabel(item.display_name ?? item.subject, item.lead_id ?? item.opportunity_id ?? item.contact_id, `접촉 ${index + 1}`)} meta={clientDashboardCategoryLabel(item.stage ?? item.status, "접촉")} detail={clientDashboardDateLabel(item.updated_at ?? item.created_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", item.contact_id ? "client-contacts" : item.lead_id ? "client-leads" : "client-opportunities")} />)}
-          </DashboardRecordList>
-        </DashboardReadState>
-      </DashboardListCard>
-      <DashboardListCard className="client-dashboard-revenue" title="매출 순위" section="revenue-ranking" onViewAll={() => onNavigate("home", "home-finance-clients")}>
-        <DashboardReadState result={results.financeClients} noun="고객별 매출">
-          <DashboardRecordList>
-            {revenueRows.map((item, index) => <DashboardRecordRow key={`revenue:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={`${index + 1}. ${clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인")}`} meta={`청구 ${clientDashboardMoneyLabel(item.billed_amount, item.currency)}`} detail={`수납 ${clientDashboardMoneyLabel(item.collected_amount, item.currency)}`} onOpen={() => onNavigate("home", "home-finance-clients")} />)}
-          </DashboardRecordList>
-        </DashboardReadState>
-      </DashboardListCard>
-      <DashboardListCard className="client-dashboard-meetings" title="고객 미팅" section="client-meetings" onViewAll={() => onNavigate("clients", "client-activities")}>
-        <DashboardReadState result={results.activities} noun="고객 미팅">
-          <DashboardRecordList>
-            {meetings.map((item, index) => <DashboardRecordRow key={`meeting:${item.crm_activity_id ?? index}`} title={clientDashboardRecordLabel(item.subject, item.crm_activity_id, `고객 미팅 ${index + 1}`)} meta={clientDashboardRecordLabel(item.party_display_name ?? item.display_name, item.party_id, "고객 미지정")} detail={clientDashboardDateLabel(item.scheduled_at ?? item.occurred_at ?? item.created_at ?? item.updated_at)} status={clientDashboardRecordLabel(item.owner_display_name, item.owner_user_id, "담당 미지정")} onOpen={() => onNavigate("clients", "client-activities")} />)}
-          </DashboardRecordList>
-        </DashboardReadState>
-      </DashboardListCard>
-      <DashboardListCard className="client-dashboard-ar" title="미수금" section="accounts-receivable" onViewAll={() => onNavigate("home", "home-finance-ar")}>
-        <DashboardReadState result={results.financeClients} noun="고객별 미수금">
-          <DashboardRecordList>
-            {arRows.map((item, index) => <DashboardRecordRow key={`ar:${item.client_group_id ?? index}:${item.currency ?? "KRW"}`} title={clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인")} meta={`미수 ${clientDashboardMoneyLabel(item.ar_balance, item.currency)}`} detail={item.month ?? "현재 잔액"} status={Number(item.ar_balance ?? 0) > 0 ? "회수 확인" : "정상"} onOpen={() => onNavigate("home", "home-finance-ar")} />)}
-          </DashboardRecordList>
-        </DashboardReadState>
-      </DashboardListCard>
+    <div
+      className="client-dashboard-layout"
+      data-client-dashboard="true"
+      data-client-dashboard-state={model.state}
+    >
+      <div
+        className="client-dashboard-kpi-grid"
+        data-client-dashboard-kpis="true"
+      >
+        {model.kpis.map((metric) => (
+          <ClientDashboardKpiCard
+            key={metric.id}
+            metric={metric}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
+      <div
+        className="client-dashboard-attention"
+        data-client-attention="true"
+      >
+        <DashboardListCard
+          title="오늘 확인할 일"
+          section="attention-items"
+        >
+          <ClientDashboardReadState
+            state={model.attention.state}
+            noun="오늘 확인할 일"
+          >
+            <DashboardRecordList>
+              {model.attention.items.map((item) => (
+                <DashboardRecordRow
+                  key={item.id}
+                  title={item.title}
+                  meta={item.label}
+                  detail={clientDashboardDateLabel(item.dueAt)}
+                  status={item.amount !== null
+                    ? `${clientDashboardMoneyFormatter.format(item.amount)}원`
+                    : item.assigned
+                      ? "담당 지정"
+                      : null}
+                  onOpen={item.route
+                    ? () => onNavigate(
+                      item.route.view,
+                      item.route.section,
+                      item.route.routeContext
+                    )
+                    : null}
+                />
+              ))}
+            </DashboardRecordList>
+          </ClientDashboardReadState>
+        </DashboardListCard>
+      </div>
     </div>
   );
 }
@@ -1791,6 +1895,10 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [financeInvoicesResult, setFinanceInvoicesResult] = useState(null);
   const [financeArAgingResult, setFinanceArAgingResult] = useState(null);
   const [financeClientsResult, setFinanceClientsResult] = useState(null);
+  const [
+    clientOperationsDashboardResult,
+    setClientOperationsDashboardResult
+  ] = useState(null);
   const [leadsResult, setLeadsResult] = useState(null);
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
@@ -1859,6 +1967,32 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
     refreshSignalRef.current = refreshSignal;
     setRefreshToken((value) => value + 1);
   }, [refreshSignal]);
+
+  useEffect(() => {
+    if (currentSection !== "clients-home") {
+      setClientOperationsDashboardResult(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const guardedResult = guardedResultForContext(liveCtx);
+    if (guardedResult) {
+      setClientOperationsDashboardResult(guardedResult);
+      return () => {
+        cancelled = true;
+      };
+    }
+    setClientOperationsDashboardResult(null);
+    fetchAnalyticsClientOperationsDashboard({
+      ctx: liveCtx
+    }).then((result) => {
+      if (!cancelled) {
+        setClientOperationsDashboardResult(result);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSection, liveCtx, refreshToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2657,14 +2791,7 @@ export function ClientsSurface({ labels, liveCtx = "allow", activeSection = "", 
         {currentSection === "clients-home" && (
           <Panel id="clients-home-panel" className="record-list-panel" title="대시보드" hideHeader>
             <ClientDashboardPanel
-              results={{
-                accounts: accountsResult,
-                leads: leadsResult,
-                opportunities: opportunitiesResult,
-                contacts: contactsResult,
-                activities: activitiesResult,
-                financeClients: financeClientsResult
-              }}
+              result={clientOperationsDashboardResult}
               onNavigate={onNavigate}
             />
           </Panel>

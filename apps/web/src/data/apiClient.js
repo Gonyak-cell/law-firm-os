@@ -5131,6 +5131,135 @@ export async function fetchAnalyticsDashboards({
   };
 }
 
+export async function fetchAnalyticsClientOperationsDashboard({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF,
+  asOf = null,
+  timezone = "Asia/Seoul",
+  revenueRankingPeriod = "year"
+} = {}) {
+  const context = permissionContextFor(
+    ctx,
+    ANALYTICS_PERMISSION_CONTEXTS,
+    "client"
+  );
+  const params = new URLSearchParams({
+    tenant_id: tenantIdForDomain("client", ANALYTICS_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    timezone,
+    revenue_ranking_period: revenueRankingPeriod
+  });
+  if (asOf) params.set("as_of", asOf);
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch(
+      `/api/analytics/clients/dashboard?${params.toString()}`,
+      {
+        headers: {
+          [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+        }
+      }
+    );
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+
+  const safeErrorCodes = Array.isArray(body?.safe_error_codes)
+    ? body.safe_error_codes
+    : [];
+  const sourceStatuses = Array.isArray(body?.source_statuses)
+    ? body.source_statuses
+    : [];
+  if (!response.ok) {
+    const permissionDenied = response.status === 403 && (
+      body?.ui_state === "permission_denied"
+      || body?.ui_state === "denied"
+      || body?.outcome === "permission_denied"
+      || body?.outcome === "denied"
+    );
+    const reviewRequired = (
+      body?.ui_state === "review"
+      || body?.ui_state === "review_required"
+      || body?.outcome === "review_required"
+    );
+    return {
+      kind: permissionDenied || reviewRequired
+        ? "guarded"
+        : "error",
+      status: response.status,
+      requestId: body?.request_id ?? null,
+      outcome: body?.outcome ?? "blocked",
+      uiState: permissionDenied
+        ? "denied"
+        : reviewRequired
+          ? "review_required"
+          : "error",
+      sourceStatuses,
+      safeErrorCodes,
+      countLeakPrevented:
+        body?.count_leak_prevented === true,
+      productionReadyClaim:
+        body?.production_ready_claim === true
+    };
+  }
+
+  const sectionIds = [
+    "kpis",
+    "attention_items",
+    "monthly_deposit_revenue",
+    "inquiry_status",
+    "revenue_ranking",
+    "receivables_ranking"
+  ];
+  const hasShape = (
+    body !== null
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && body.sections !== null
+    && typeof body.sections === "object"
+    && !Array.isArray(body.sections)
+    && sectionIds.every((sectionId) => (
+      body.sections[sectionId] !== null
+      && typeof body.sections[sectionId] === "object"
+    ))
+    && Array.isArray(body.source_statuses)
+    && Array.isArray(body.safe_error_codes)
+  );
+  if (!hasShape) return { kind: "error", uiState: "error" };
+
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? null,
+    generatedAt: body.generated_at ?? null,
+    asOf: body.as_of ?? null,
+    timezone: body.timezone ?? null,
+    sections: body.sections,
+    sourceStatuses,
+    safeErrorCodes,
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented:
+      body.count_leak_prevented === true,
+    permissionPrefilterApplied:
+      body.permission_prefilter_applied === true,
+    rawBankSourceIncluded:
+      body.raw_bank_source_included === true,
+    rawSourcePayloadIncluded:
+      body.raw_source_payload_included === true,
+    credentialMaterialIncluded:
+      body.credential_material_included === true,
+    productionReadyClaim:
+      body.production_ready_claim === true
+  };
+}
+
 async function fetchAnalyticsFinanceReadModel({
   kind,
   ctx = "allow",

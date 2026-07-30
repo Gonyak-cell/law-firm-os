@@ -234,6 +234,18 @@ export function App() {
     } else {
       params.delete("query");
     }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "recordId")) {
+      if (routeContext.recordId) params.set("record_id", routeContext.recordId);
+      else params.delete("record_id");
+    } else {
+      params.delete("record_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "inquiryId")) {
+      if (routeContext.inquiryId) params.set("inquiry_id", routeContext.inquiryId);
+      else params.delete("inquiry_id");
+    } else {
+      params.delete("inquiry_id");
+    }
     if (Object.prototype.hasOwnProperty.call(routeContext, "matterId")) {
       if (routeContext.matterId) params.set("matter_id", routeContext.matterId);
       else params.delete("matter_id");

@@ -1219,10 +1219,12 @@ test("command center groups all backend coverage into four product axes", async 
 });
 
 test("Client Matter People Vault surfaces stay API-backed and fail closed", async () => {
+  const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
+  const clientDashboardModelSource = await readWebFile("src/components/ClientOperationsDashboardModel.js");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
   const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const importPanelSource = await readWebFile("src/components/ImportDataMappingPanel.jsx");
@@ -1295,15 +1297,20 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /record-overlay-close/);
   assert.match(clientsSource, /function ClientDashboardPanel/);
   assert.match(clientsSource, /data-client-dashboard="true"/);
-  assert.doesNotMatch(clientsSource, /data-client-dashboard-kpis="true"/);
+  assert.match(clientsSource, /data-client-dashboard-kpis="true"/);
+  assert.match(clientsSource, /data-client-attention="true"/);
   assert.doesNotMatch(clientsSource, /data-client-priority-queue="true"/);
   assert.doesNotMatch(clientsSource, /data-client-dashboard-table="true"/);
-  for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
-    assert.match(clientsSource, new RegExp(title));
+  for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금"]) {
+    assert.match(clientDashboardModelSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.match(clientsSource, new RegExp(source));
   }
+  assert.match(apiClientSource, /export async function fetchAnalyticsClientOperationsDashboard/);
+  assert.match(apiClientSource, /\/api\/analytics\/clients\/dashboard/);
+  assert.match(appSource, /params\.set\("record_id", routeContext\.recordId\)/);
+  assert.match(appSource, /params\.set\("inquiry_id", routeContext\.inquiryId\)/);
   assert.match(clientsSource, /title="대시보드"[\s\S]*<ClientDashboardPanel/);
   assert.doesNotMatch(clientsSource, /ClientsOverviewPanel|data-client-overview-panel|title="요약"[\s\S]*clients-home/);
   assert.match(shellSource, /label: "대시보드", view: "clients", section: "clients-home"/);
@@ -1902,10 +1909,10 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleSource, /data-hrx-api-backed="true"/);
   assert.doesNotMatch(peopleSource, /data-people-dashboard="true"/);
   assert.doesNotMatch(peopleSource, /currentSection === "people-dashboard"/);
-  for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+  for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금", "오늘 확인할 일"]) {
     assert.doesNotMatch(peopleSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.doesNotMatch(peopleSource, new RegExp(source));
   }
   assert.match(peopleSource, /: "people-members"/);
