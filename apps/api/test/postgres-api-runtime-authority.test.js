@@ -806,6 +806,73 @@ test("PostgreSQL API authority persists accepted inquiry handoff and reads the C
     clientTrends.item.receivables_ranking.total,
     12_000_000,
   );
+
+  const clientDashboard = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/analytics/clients/dashboard",
+      actor_id: "user-postgres-engagement-t01",
+    },
+    command(runtimes) {
+      return runtimes.analyticsRuntime.clientOperationsReadModel
+        .readDashboard({
+          tenant_id: TENANT_A,
+          permission_context: context,
+          as_of: "2026-07-30T03:00:00.000Z",
+        });
+    },
+  });
+  assert.equal(clientDashboard.item.outcome, "complete");
+  assert.equal(clientDashboard.item.access_state, "allowed");
+  assert.deepEqual(
+    clientDashboard.item.sections.kpis.data.values,
+    {
+      new_inquiries: 0,
+      consultations_today: 0,
+      engagement_reviews: 0,
+      deposit_revenue_month: 0,
+      receivables_total: 12_000_000,
+    },
+  );
+  assert.equal(
+    clientDashboard.item.sections.monthly_deposit_revenue
+      .data.points.length,
+    12,
+  );
+  assert.equal(
+    clientDashboard.item.sections.inquiry_status
+      .data.counts["수임 확정"],
+    1,
+  );
+  assert.deepEqual(
+    clientDashboard.item.sections.receivables_ranking
+      .data.client_group_ids,
+    [created.body.processing.client_group_id],
+  );
+  assert.deepEqual(
+    Object.fromEntries(
+      clientDashboard.item.source_statuses.map(
+        ({ source_id, status }) => [source_id, status],
+      ),
+    ),
+    {
+      master_data: "available",
+      crm: "available",
+      deposit_revenue: "no_data",
+      receivables: "available",
+      bank_review: "no_data",
+      fee_amount_tasks: "no_data",
+    },
+  );
+  assert.equal(
+    clientDashboard.item.raw_source_payload_included,
+    false,
+  );
+  assert.equal(
+    clientDashboard.item.credential_material_included,
+    false,
+  );
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {

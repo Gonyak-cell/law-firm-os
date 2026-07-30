@@ -1904,3 +1904,329 @@ test("CL-P4-W01-T04 잘못된 매출 순위 기간은 CRM·Finance 원천 조회
   assert.equal(crmReadCount, 0);
   assert.equal(financeReadCount, 0);
 });
+
+test("VC-CL-DASH-001 / CL-P4-W01-T05 기준 fixture를 원천 상태와 함께 하나의 대시보드로 묶는다", () => {
+  const input = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/input.json",
+    import.meta.url,
+  ), "utf8"));
+  const expected = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/expected-dashboard.json",
+    import.meta.url,
+  ), "utf8"));
+  const financeRepository = fixtureFinanceRepository(input);
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      fixtureMasterDataRecords(input),
+    ),
+    crmRepository: repository(fixtureCrmRecords(input)),
+    financeRepository,
+    clock: () => new Date("2026-07-30T03:00:05.000Z"),
+  });
+
+  try {
+    const result = readModel.readDashboard({
+      tenant_id: TENANT,
+      permission_context: fixturePermissionContext(),
+      as_of: input.as_of,
+      timezone: input.timezone,
+    });
+
+    assert.equal(result.item.outcome, "complete");
+    assert.equal(result.item.ui_state, null);
+    assert.equal(
+      result.item.generated_at,
+      "2026-07-30T03:00:05.000Z",
+    );
+    assert.deepEqual(
+      result.item.sections.kpis.data.values,
+      expected.kpis,
+    );
+    assert.deepEqual(
+      result.item.sections.attention_items.data
+        .attention_item_ids,
+      expected.attention_item_ids,
+    );
+    assert.deepEqual(
+      result.item.sections.inquiry_status.data.counts,
+      expected.inquiry_status_counts,
+    );
+    assert.deepEqual(
+      result.item.sections.revenue_ranking.data
+        .client_group_ids,
+      expected.revenue_ranking_client_ids,
+    );
+    assert.deepEqual(
+      result.item.sections.receivables_ranking.data
+        .client_group_ids,
+      expected.receivables_ranking_client_ids,
+    );
+    assert.equal(
+      result.item.sections.monthly_deposit_revenue
+        .data.points.length,
+      12,
+    );
+    assert.deepEqual(result.item.safe_error_codes, []);
+    assert.equal(result.item.source_statuses.length, 6);
+    for (const source of result.item.source_statuses) {
+      assert.equal(source.status, "available");
+      assert.equal(
+        source.checked_at,
+        result.item.generated_at,
+      );
+      assert.equal(source.safe_error_code, null);
+    }
+    assert.equal(
+      result.item.source_statuses.find(
+        ({ source_id }) => source_id === "crm",
+      ).latest_record_at,
+      "2026-07-30T00:30:00.000Z",
+    );
+    assert.equal(result.item.raw_bank_source_included, false);
+    assert.equal(result.item.embedded_transaction_details, false);
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("CL-P4-W01-T05 입금 확인 권한이 없으면 해당 업무만 권한 없음으로 두고 나머지는 유지한다", () => {
+  const input = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/input.json",
+    import.meta.url,
+  ), "utf8"));
+  const expected = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/expected-dashboard.json",
+    import.meta.url,
+  ), "utf8"));
+  const financeRepository = fixtureFinanceRepository(input);
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      fixtureMasterDataRecords(input),
+    ),
+    crmRepository: repository(fixtureCrmRecords(input)),
+    financeRepository,
+    clock: () => new Date("2026-07-30T03:01:00.000Z"),
+  });
+  const context = fixturePermissionContext();
+  context.rules = context.rules.filter(
+    ({ action }) => (
+      action !== "finance:bank_classification:read"
+    ),
+  );
+
+  try {
+    const result = readModel.readDashboard({
+      tenant_id: TENANT,
+      permission_context: context,
+      as_of: input.as_of,
+    });
+    const bankSource = result.item.source_statuses.find(
+      ({ source_id }) => source_id === "bank_review",
+    );
+
+    assert.equal(result.item.outcome, "partial");
+    assert.equal(result.item.ui_state, "partial");
+    assert.equal(bankSource.status, "permission_denied");
+    assert.equal(bankSource.item_count, null);
+    assert.equal(
+      bankSource.safe_error_code,
+      "CLIENT_OPERATIONS_BANK_REVIEW_READ_DENIED",
+    );
+    assert.deepEqual(
+      result.item.sections.kpis.data.values,
+      expected.kpis,
+    );
+    assert.deepEqual(
+      result.item.sections.attention_items.data
+        .attention_item_ids,
+      expected.attention_item_ids.filter(
+        (id) => id !== "bank_hanbit_ambiguous",
+      ),
+    );
+    assert.equal(
+      result.item.sections.attention_items.data
+        .type_statuses.bank_match_review,
+      "permission_denied",
+    );
+    assert.equal(
+      result.item.sections.revenue_ranking.status,
+      "available",
+    );
+    const serialized = JSON.stringify(result);
+    assert.equal(
+      serialized.includes("bank_hanbit_ambiguous"),
+      false,
+    );
+    assert.equal(serialized.includes("\"counterparty\""), false);
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("VC-CL-DASH-002 / CL-P4-W01-T05 CRM 장애를 0건으로 바꾸지 않고 Finance 결과를 부분 제공한다", () => {
+  const input = JSON.parse(readFileSync(new URL(
+    "../../../apps/api/test/fixtures/client-operations-v1/input.json",
+    import.meta.url,
+  ), "utf8"));
+  const financeRepository = fixtureFinanceRepository(input);
+  const readModel = createClientOperationsReadModel({
+    masterDataRepository: repository(
+      fixtureMasterDataRecords(input),
+    ),
+    crmRepository: {
+      list() {
+        throw new Error("private CRM source failure");
+      },
+    },
+    financeRepository,
+    clock: () => new Date("2026-07-30T03:02:00.000Z"),
+  });
+
+  try {
+    const result = readModel.readDashboard({
+      tenant_id: TENANT,
+      permission_context: fixturePermissionContext(),
+      as_of: input.as_of,
+    });
+    const crmSource = result.item.source_statuses.find(
+      ({ source_id }) => source_id === "crm",
+    );
+
+    assert.equal(result.item.outcome, "partial");
+    assert.equal(crmSource.status, "error");
+    assert.equal(crmSource.item_count, null);
+    assert.equal(
+      crmSource.safe_error_code,
+      "CLIENT_OPERATIONS_SOURCE_UNAVAILABLE",
+    );
+    assert.deepEqual(
+      result.item.sections.kpis.data.values,
+      {
+        new_inquiries: null,
+        consultations_today: null,
+        engagement_reviews: null,
+        deposit_revenue_month: 33_000_000,
+        receivables_total: 9_000_000,
+      },
+    );
+    assert.equal(result.item.sections.kpis.status, "partial");
+    assert.equal(
+      result.item.sections.kpis.data.metric_statuses
+        .new_inquiries,
+      "error",
+    );
+    assert.equal(
+      result.item.sections.inquiry_status.status,
+      "error",
+    );
+    assert.equal(
+      result.item.sections.inquiry_status.data,
+      null,
+    );
+    assert.deepEqual(
+      result.item.sections.attention_items.data
+        .attention_item_ids,
+      [
+        "bank_hanbit_ambiguous",
+        "fee_hanbit_development_unknown",
+      ],
+    );
+    assert.equal(
+      result.item.sections.monthly_deposit_revenue.status,
+      "available",
+    );
+    assert.equal(
+      result.item.sections.receivables_ranking.data.total,
+      9_000_000,
+    );
+    assert.equal(
+      JSON.stringify(result).includes(
+        "private CRM source failure",
+      ),
+      false,
+    );
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("CL-P4-W01-T05 고객 없음·운영 데이터 없음·고객 권한 없음을 서로 다르게 반환한다", () => {
+  const noDownstream = {
+    list() {
+      throw new Error("downstream must not be read");
+    },
+  };
+  const noClients = createClientOperationsReadModel({
+    masterDataRepository: repository([]),
+    crmRepository: noDownstream,
+    financeRepository: noDownstream,
+    clock: () => new Date("2026-07-30T03:03:00.000Z"),
+  }).readDashboard({
+    tenant_id: TENANT,
+    permission_context: fixturePermissionContext(),
+    as_of: "2026-07-30T03:00:00.000Z",
+  });
+  assert.equal(noClients.item.outcome, "empty");
+  assert.equal(noClients.item.ui_state, "no_data");
+  assert.equal(noClients.item.access_state, "no_data");
+  assert.equal(noClients.downstream_sources_read, false);
+  assert.equal(noClients.item.sections.kpis.data, null);
+
+  const clientRecord = {
+    model_type: "ClientGroup",
+    tenant_id: TENANT,
+    client_group_id: "client_allowed",
+    display_name: "허용 고객",
+    member_party_ids: ["party_allowed"],
+    primary_party_id: "party_allowed",
+    status: "active",
+  };
+  const noOperations = createClientOperationsReadModel({
+    masterDataRepository: repository([clientRecord]),
+    crmRepository: repository([]),
+    financeRepository: repository([]),
+    clock: () => new Date("2026-07-30T03:04:00.000Z"),
+  }).readDashboard({
+    tenant_id: TENANT,
+    permission_context: fixturePermissionContext(),
+    as_of: "2026-07-30T03:00:00.000Z",
+  });
+  assert.equal(noOperations.item.outcome, "empty");
+  assert.equal(noOperations.item.ui_state, "no_data");
+  assert.equal(noOperations.item.access_state, "allowed");
+  assert.equal(noOperations.downstream_sources_read, true);
+  assert.deepEqual(noOperations.item.sections.kpis.data.values, {
+    new_inquiries: 0,
+    consultations_today: 0,
+    engagement_reviews: 0,
+    deposit_revenue_month: 0,
+    receivables_total: 0,
+  });
+
+  const noAccessContext = fixturePermissionContext();
+  noAccessContext.rules = noAccessContext.rules.filter(
+    ({ action }) => action !== "analytics:client:read",
+  );
+  const noAccess = createClientOperationsReadModel({
+    masterDataRepository: repository([clientRecord]),
+    crmRepository: noDownstream,
+    financeRepository: noDownstream,
+    clock: () => new Date("2026-07-30T03:05:00.000Z"),
+  }).readDashboard({
+    tenant_id: TENANT,
+    permission_context: noAccessContext,
+    as_of: "2026-07-30T03:00:00.000Z",
+  });
+  assert.equal(noAccess.item.outcome, "permission_denied");
+  assert.equal(noAccess.item.ui_state, "permission_denied");
+  assert.equal(noAccess.item.access_state, "no_access");
+  assert.equal(noAccess.downstream_sources_read, false);
+  assert.equal(
+    noAccess.item.source_statuses[0].item_count,
+    null,
+  );
+  assert.equal(
+    JSON.stringify(noAccess).includes("client_allowed"),
+    false,
+  );
+});

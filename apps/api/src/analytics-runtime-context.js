@@ -24,6 +24,7 @@ export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.analytics-runtime-contract.v0.1",
   endpoints: Object.freeze([
     "GET /api/analytics/dashboards",
+    "GET /api/analytics/clients/dashboard",
     "GET /api/analytics/finance/overview",
     "GET /api/analytics/finance/monthly",
     "GET /api/analytics/finance/clients",
@@ -98,6 +99,7 @@ export function createAnalyticsRuntimeContext({
   masterDataRepository = null,
   crmRepository = null,
   matterRepository = null,
+  clock = () => new Date(),
 } = {}) {
   return Object.freeze({
     repository,
@@ -110,6 +112,7 @@ export function createAnalyticsRuntimeContext({
       financeRepository,
       crmRepository,
       matterRepository,
+      clock,
     }),
     seed_ref: "cmp-g8-analytics-synthetic",
   });
@@ -336,6 +339,116 @@ function financeReadModelResponse({ kind, query, context, requestId, runtime }) 
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
+  }
+}
+
+export function handleClientOperationsDashboard({
+  query,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+} = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "analytics:client:read",
+    resourceType: "client_operations_dashboard",
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  const generatedAt = new Date().toISOString();
+  if (
+    typeof runtime?.clientOperationsReadModel?.readDashboard
+      !== "function"
+  ) {
+    return {
+      status: 503,
+      body: {
+        request_id: requestId,
+        generated_at: generatedAt,
+        outcome: "blocked",
+        ui_state: "error",
+        source_statuses: [{
+          source_id: "client_operations_runtime",
+          label: "Client 운영 조회",
+          status: "error",
+          checked_at: generatedAt,
+          latest_record_at: null,
+          item_count: null,
+          safe_error_code:
+            "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
+        }],
+        safe_error_codes: [
+          "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
+        ],
+        audit_hint_ref: query.audit_hint_ref,
+        count_leak_prevented: true,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        production_ready_claim: false,
+      },
+    };
+  }
+  try {
+    const result =
+      runtime.clientOperationsReadModel.readDashboard({
+        tenant_id: query.tenant_id,
+        permission_context: context,
+        as_of: query.as_of ?? undefined,
+        timezone: query.timezone ?? "Asia/Seoul",
+        revenue_ranking_period:
+          query.revenue_ranking_period ?? "year",
+      });
+    return {
+      status: result.access_scope.access_state === "no_access"
+        ? 403
+        : 200,
+      body: {
+        request_id: requestId,
+        ...result.item,
+        audit_hint_ref: query.audit_hint_ref,
+      },
+    };
+  } catch (error) {
+    const suppliedCode =
+      typeof error?.safe_error_code === "string"
+        ? error.safe_error_code
+        : null;
+    const sourceUnavailable = suppliedCode === (
+      "CLIENT_OPERATIONS_CLIENT_SCOPE_UNAVAILABLE"
+    ) || suppliedCode === (
+      "CLIENT_OPERATIONS_CLIENT_SCOPE_INVALID"
+    );
+    const safeCode = suppliedCode ?? (
+      ANALYTICS_API_ERROR_CODES.validation_error
+    );
+    return {
+      status: sourceUnavailable ? 503 : 400,
+      body: {
+        request_id: requestId,
+        generated_at: generatedAt,
+        outcome: "blocked",
+        ui_state: sourceUnavailable ? "error" : "blocked",
+        source_statuses: sourceUnavailable
+          ? [{
+            source_id: "master_data",
+            label: "고객 정보",
+            status: "error",
+            checked_at: generatedAt,
+            latest_record_at: null,
+            item_count: null,
+            safe_error_code: safeCode,
+          }]
+          : [],
+        safe_error_codes: [safeCode],
+        audit_hint_ref: query.audit_hint_ref,
+        count_leak_prevented: true,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        production_ready_claim: false,
+      },
+    };
   }
 }
 
@@ -576,6 +689,17 @@ export function handleAnalyticsAudit({ query, context, requestId, runtime = DEFA
 }
 
 export async function handleAnalyticsApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  if (
+    pathname === "/api/analytics/clients/dashboard"
+    && method === "GET"
+  ) {
+    return handleClientOperationsDashboard({
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
   if (pathname === "/api/analytics/finance/overview" && method === "GET") {
     return financeReadModelResponse({ kind: "overview", query, context, requestId, runtime });
   }

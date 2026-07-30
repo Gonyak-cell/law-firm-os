@@ -1394,14 +1394,724 @@ export function buildClientOperationsTrendsAndRankings({
   });
 }
 
+function latestInstant(values = []) {
+  let latest = null;
+  for (const value of values) {
+    if (typeof value !== "string" || value.trim() === "") continue;
+    const milliseconds = Date.parse(value);
+    if (
+      Number.isFinite(milliseconds)
+      && (latest === null || milliseconds > latest)
+    ) {
+      latest = milliseconds;
+    }
+  }
+  return latest === null ? null : new Date(latest).toISOString();
+}
+
+function dashboardSource({
+  source_id,
+  label,
+  generated_at,
+  read,
+  is_empty,
+  latest_record_at,
+  item_count,
+}) {
+  try {
+    const data = read();
+    const empty = is_empty(data);
+    const count = item_count(data);
+    if (!Number.isSafeInteger(count) || count < 0) {
+      throw new TypeError(
+        `Dashboard source item count is invalid: ${source_id}`,
+      );
+    }
+    return Object.freeze({
+      data,
+      status: Object.freeze({
+        source_id,
+        label,
+        status: empty ? "no_data" : "available",
+        checked_at: generated_at,
+        latest_record_at: latest_record_at(data),
+        item_count: count,
+        safe_error_code: null,
+      }),
+    });
+  } catch (error) {
+    const suppliedCode = typeof error?.safe_error_code === "string"
+      ? error.safe_error_code
+      : null;
+    const permissionDenied = Boolean(
+      suppliedCode?.endsWith("_READ_DENIED"),
+    );
+    return Object.freeze({
+      data: null,
+      status: Object.freeze({
+        source_id,
+        label,
+        status: permissionDenied
+          ? "permission_denied"
+          : "error",
+        checked_at: generated_at,
+        latest_record_at: null,
+        item_count: null,
+        safe_error_code: suppliedCode ?? (
+          "CLIENT_OPERATIONS_DASHBOARD_SOURCE_UNAVAILABLE"
+        ),
+      }),
+    });
+  }
+}
+
+function dashboardInquiryStatus(crm) {
+  const countsByCode = new Map(
+    CRM_INQUIRY_VISIBLE_STATUSES.map(({ code }) => [code, 0]),
+  );
+  for (const projection of crm.projections) {
+    if (!countsByCode.has(projection.visible_status)) {
+      throw new TypeError(
+        `Unsupported CRM inquiry status: ${projection.visible_status}`,
+      );
+    }
+    countsByCode.set(
+      projection.visible_status,
+      countsByCode.get(projection.visible_status) + 1,
+    );
+  }
+  const items = Object.freeze(
+    CRM_INQUIRY_VISIBLE_STATUSES.map(({ code, label }) => (
+      Object.freeze({
+        code,
+        label,
+        count: countsByCode.get(code),
+        destination: inquiryStatusDestination(code),
+      })
+    )),
+  );
+  const total = items.reduce(
+    (sum, { count }) => sum + count,
+    0,
+  );
+  if (
+    !Number.isSafeInteger(total)
+    || total !== crm.projections.length
+  ) {
+    throw new TypeError(
+      "Client inquiry status totals do not reconcile",
+    );
+  }
+  return Object.freeze({
+    total,
+    counts: Object.freeze(Object.fromEntries(
+      items.map(({ label, count }) => [label, count]),
+    )),
+    items,
+  });
+}
+
+function dashboardMonthlyRevenue(trendRevenue, period) {
+  const points = Object.freeze(
+    trendRevenue.monthly.map((point) => Object.freeze({
+      ...point,
+      destination: Object.freeze({
+        section: "deposit_revenue",
+        filter: "month",
+        month: point.month,
+      }),
+    })),
+  );
+  if (points.length !== period.month_count) {
+    throw new TypeError(
+      "Client revenue trend must contain exactly 12 months",
+    );
+  }
+  return Object.freeze({
+    period,
+    total: trendRevenue.totals.net_deposit_revenue,
+    points,
+    reconciliation_status:
+      trendRevenue.reconciliation.status,
+  });
+}
+
+function dashboardRevenueRanking(rankedRevenue, period) {
+  const items = Object.freeze(
+    rankedRevenue.ranking.map((row) => Object.freeze({
+      ...row,
+      destination: Object.freeze({
+        section: "client_details",
+        record_id: row.client_group_id,
+        tab: "deposit_revenue",
+        period: period.code,
+      }),
+    })),
+  );
+  return Object.freeze({
+    selected_period: period,
+    available_periods: Object.freeze(
+      Object.entries(REVENUE_RANKING_PERIODS).map(
+        ([code, label]) => Object.freeze({ code, label }),
+      ),
+    ),
+    total: rankedRevenue.totals.net_deposit_revenue,
+    items,
+    client_group_ids: Object.freeze(
+      items.map(({ client_group_id }) => client_group_id),
+    ),
+    reconciliation_status:
+      rankedRevenue.reconciliation.status,
+  });
+}
+
+function dashboardReceivablesRanking(receivables) {
+  const items = Object.freeze(
+    receivables.ranking.map((row) => Object.freeze({
+      ...row,
+      destination: Object.freeze({
+        section: "client_details",
+        record_id: row.client_group_id,
+        tab: "receivables",
+      }),
+    })),
+  );
+  return Object.freeze({
+    as_of: receivables.as_of,
+    total: receivables.total_receivables,
+    unknown_amount_count:
+      receivables.unknown_amount_count,
+    items,
+    client_group_ids: Object.freeze(
+      items.map(({ client_group_id }) => client_group_id),
+    ),
+    reconciliation_status:
+      receivables.reconciliation.status,
+  });
+}
+
+function dashboardSection(status, data) {
+  return Object.freeze({ status, data });
+}
+
+function combinedSectionStatus(sources, { empty = false } = {}) {
+  if (
+    sources.some(({ status }) => (
+      status.status === "error"
+      || status.status === "permission_denied"
+    ))
+  ) {
+    return "partial";
+  }
+  return empty ? "no_data" : "available";
+}
+
+function dashboardAttention({
+  crmSource,
+  bankSource,
+  feeSource,
+}) {
+  const items = [
+    ...(crmSource.data
+      ? crmSource.data.attention_items
+      : []),
+    ...(bankSource.data ?? []),
+    ...(feeSource.data ?? []),
+  ];
+  const itemIds = new Set(
+    items.map(({ attention_item_id }) => attention_item_id),
+  );
+  if (itemIds.size !== items.length) {
+    throw new TypeError("Duplicate Client attention item ID");
+  }
+  const sortedItems = Object.freeze(
+    items
+      .sort(compareAttentionItems)
+      .map((item, index) => Object.freeze({
+        order: index + 1,
+        ...item,
+      })),
+  );
+  const typeStatuses = Object.freeze({
+    overdue_consultation: crmSource.status.status,
+    unassigned_new_inquiry: crmSource.status.status,
+    consultation_today: crmSource.status.status,
+    engagement_review: crmSource.status.status,
+    bank_match_review: bankSource.status.status,
+    fee_amount_missing: feeSource.status.status,
+  });
+  const sources = [crmSource, bankSource, feeSource];
+  return dashboardSection(
+    combinedSectionStatus(sources, {
+      empty: sortedItems.length === 0,
+    }),
+    Object.freeze({
+      items: sortedItems,
+      attention_item_ids: Object.freeze(
+        sortedItems.map(({ attention_item_id }) => (
+          attention_item_id
+        )),
+      ),
+      type_statuses: typeStatuses,
+      stable_sort:
+        "업무 우선순위 → 기한·발생 시각 → 항목 ID",
+    }),
+  );
+}
+
+function dashboardCrmKpis(crm, asOf, timeZone) {
+  const today = zonedDate(asOf, timeZone);
+  return Object.freeze({
+    new_inquiries: crm.projections.filter(
+      ({ visible_status }) => visible_status === "new",
+    ).length,
+    consultations_today: crm.consultations.filter(
+      (consultation) => (
+        isIncompleteConsultation(consultation)
+        && zonedDate(
+          new Date(canonicalInstant(
+            consultation.scheduled_start
+              ?? consultation.scheduled_at,
+            "CRMActivity.scheduled_start",
+          )),
+          timeZone,
+        ) === today
+      ),
+    ).length,
+    engagement_reviews: crm.projections.filter(
+      ({ visible_status }) => (
+        visible_status === "engagement_review"
+      ),
+    ).length,
+  });
+}
+
+function dashboardKpis({
+  crmSource,
+  revenueSource,
+  receivablesSource,
+  asOf,
+  timeZone,
+}) {
+  const today = zonedDate(asOf, timeZone);
+  const currentMonth = today.slice(0, 7);
+  const crm = crmSource.data?.kpis ?? null;
+  const revenue = revenueSource.data?.trend ?? null;
+  const receivables = receivablesSource.data;
+  const values = Object.freeze({
+    new_inquiries: crm?.new_inquiries ?? null,
+    consultations_today:
+      crm?.consultations_today ?? null,
+    engagement_reviews:
+      crm?.engagement_reviews ?? null,
+    deposit_revenue_month: revenue
+      ? revenue.monthly.find(
+        ({ month }) => month === currentMonth,
+      )?.net_deposit_revenue ?? 0
+      : null,
+    receivables_total: receivables
+      ? receivables.total_receivables
+      : null,
+  });
+  const metricStatuses = Object.freeze({
+    new_inquiries: crmSource.status.status,
+    consultations_today: crmSource.status.status,
+    engagement_reviews: crmSource.status.status,
+    deposit_revenue_month:
+      revenueSource.status.status,
+    receivables_total:
+      receivablesSource.status.status,
+  });
+  const sources = [
+    crmSource,
+    revenueSource,
+    receivablesSource,
+  ];
+  return dashboardSection(
+    combinedSectionStatus(sources, {
+      empty: sources.every(
+        ({ status }) => status.status === "no_data",
+      ),
+    }),
+    Object.freeze({
+      values,
+      metric_statuses: metricStatuses,
+      currency: "KRW",
+      periods: Object.freeze({
+        current: asOf.toISOString(),
+        today,
+        deposit_revenue_month: currentMonth,
+      }),
+    }),
+  );
+}
+
+function dashboardUnavailableItem({
+  accessScope,
+  generatedAt,
+  asOf,
+  timeZone,
+}) {
+  const permissionDenied =
+    accessScope.access_state === "no_access";
+  const status = permissionDenied
+    ? "permission_denied"
+    : "no_data";
+  const section = dashboardSection(status, null);
+  return Object.freeze({
+    generated_at: generatedAt,
+    as_of: asOf.toISOString(),
+    timezone: timeZone,
+    outcome: permissionDenied
+      ? "permission_denied"
+      : "empty",
+    ui_state: permissionDenied
+      ? "permission_denied"
+      : "no_data",
+    access_state: accessScope.access_state,
+    sections: Object.freeze({
+      kpis: section,
+      attention_items: section,
+      monthly_deposit_revenue: section,
+      inquiry_status: section,
+      revenue_ranking: section,
+      receivables_ranking: section,
+    }),
+    source_statuses: Object.freeze([
+      Object.freeze({
+        source_id: "master_data",
+        label: "고객 정보",
+        status,
+        checked_at: generatedAt,
+        latest_record_at: null,
+        item_count: null,
+        safe_error_code: permissionDenied
+          ? "CLIENT_OPERATIONS_CLIENT_READ_DENIED"
+          : null,
+      }),
+    ]),
+    safe_error_codes: permissionDenied
+      ? Object.freeze([
+        "CLIENT_OPERATIONS_CLIENT_READ_DENIED",
+      ])
+      : Object.freeze([]),
+    downstream_sources_read: false,
+    count_leak_prevented: true,
+    permission_prefilter_applied: true,
+    unauthorized_count_included: false,
+    unauthorized_amount_included: false,
+    raw_bank_source_included: false,
+    raw_source_payload_included: false,
+    credential_material_included: false,
+    production_ready_claim: false,
+  });
+}
+
+export function buildClientOperationsDashboard({
+  access_scope,
+  client_reference_access,
+  financeRepository,
+  crmRepository,
+  tenant_id,
+  permission_context,
+  as_of,
+  generated_at,
+  timezone = CLIENT_OPERATIONS_TIMEZONE,
+  revenue_ranking_period = "year",
+} = {}) {
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  if (access_scope?.tenant_id !== tenantId) {
+    throw new TypeError(
+      "Client operations access scope does not match tenant_id",
+    );
+  }
+  if (timezone !== CLIENT_OPERATIONS_TIMEZONE) {
+    throw new TypeError(
+      "Client operations timezone must be Asia/Seoul",
+    );
+  }
+  if (typeof client_reference_access !== "function") {
+    throw new TypeError(
+      "Client operations require a precomputed client reference guard",
+    );
+  }
+  const asOf = canonicalAsOf(as_of);
+  const generatedAt = canonicalAsOf(generated_at).toISOString();
+  const trendPeriod = revenueTrendPeriod(asOf, timezone);
+  const rankingPeriod = revenueRankingPeriod(
+    asOf,
+    timezone,
+    revenue_ranking_period,
+  );
+  const permittedClients =
+    access_scope.permitted_client_records;
+  const crmSource = dashboardSource({
+    source_id: "crm",
+    label: "문의·상담·수임",
+    generated_at: generatedAt,
+    read: () => {
+      const crm = crmInquiryProjections({
+        repository: crmRepository,
+        tenantId,
+        permissionContext: permission_context,
+        referenceAccess: client_reference_access,
+      });
+      return Object.freeze({
+        crm,
+        kpis: dashboardCrmKpis(crm, asOf, timezone),
+        inquiry_status: dashboardInquiryStatus(crm),
+        attention_items: Object.freeze(crmAttentionItems({
+          crm,
+          asOf,
+          timeZone: timezone,
+        })),
+      });
+    },
+    is_empty: ({ crm }) => crm.projections.length === 0,
+    latest_record_at: ({ crm }) => latestInstant([
+      ...crm.leads.flatMap((lead) => [
+        lead.updated_at,
+        lead.created_at,
+        lead.received_at,
+      ]),
+      ...crm.opportunities.flatMap((opportunity) => [
+        opportunity.updated_at,
+        opportunity.created_at,
+        opportunity.engagement_decided_at,
+      ]),
+      ...crm.consultations.flatMap((consultation) => [
+        consultation.updated_at,
+        consultation.created_at,
+        consultation.completed_at,
+      ]),
+    ]),
+    item_count: ({ crm }) => crm.projections.length,
+  });
+  const revenueSource = dashboardSource({
+    source_id: "deposit_revenue",
+    label: "입금 매출",
+    generated_at: generatedAt,
+    read: () => Object.freeze({
+      trend: buildClientDepositRevenue({
+        repository: financeRepository,
+        tenant_id: tenantId,
+        permitted_client_records: permittedClients,
+        from: trendPeriod.from,
+        to: trendPeriod.to,
+      }),
+      ranking: buildClientDepositRevenue({
+        repository: financeRepository,
+        tenant_id: tenantId,
+        permitted_client_records: permittedClients,
+        from: rankingPeriod.from,
+        to: rankingPeriod.to,
+      }),
+    }),
+    is_empty: ({ trend }) => trend.details.length === 0,
+    latest_record_at: ({ trend }) => latestInstant(
+      trend.details.map(({ occurred_at }) => occurred_at),
+    ),
+    item_count: ({ trend }) => trend.details.length,
+  });
+  const receivablesSource = dashboardSource({
+    source_id: "receivables",
+    label: "수임료·미수금",
+    generated_at: generatedAt,
+    read: () => buildClientReceivables({
+      repository: financeRepository,
+      tenant_id: tenantId,
+      permitted_client_records: permittedClients,
+      clock: () => new Date(asOf.getTime()),
+    }),
+    is_empty: (receivables) => (
+      receivables.details.fee_commitments.length === 0
+      && receivables.details.deposits.length === 0
+    ),
+    latest_record_at: (receivables) => latestInstant([
+      ...receivables.details.fee_commitments.map(
+        ({ accepted_at }) => accepted_at,
+      ),
+      ...receivables.details.deposits.map(
+        ({ occurred_at }) => occurred_at,
+      ),
+      ...receivables.details.allocations.flatMap(
+        (allocation) => [
+          allocation.updated_at,
+          allocation.allocated_at,
+          allocation.created_at,
+        ],
+      ),
+    ]),
+    item_count: (receivables) => (
+      receivables.details.fee_commitments.length
+      + receivables.details.deposits.length
+    ),
+  });
+  const bankSource = dashboardSource({
+    source_id: "bank_review",
+    label: "연결 확인 필요 입금",
+    generated_at: generatedAt,
+    read: () => bankReviewAttentionItems({
+      repository: financeRepository,
+      tenantId,
+      permissionContext: permission_context,
+      accessScope: access_scope,
+    }),
+    is_empty: (items) => items.length === 0,
+    latest_record_at: (items) => latestInstant(
+      items.flatMap(({ occurred_at, due_at }) => [
+        occurred_at,
+        due_at,
+      ]),
+    ),
+    item_count: (items) => items.length,
+  });
+  const feeSource = dashboardSource({
+    source_id: "fee_amount_tasks",
+    label: "금액 미입력 수임료",
+    generated_at: generatedAt,
+    read: () => feeAmountAttentionItems({
+      repository: financeRepository,
+      tenantId,
+      accessScope: access_scope,
+    }),
+    is_empty: (items) => items.length === 0,
+    latest_record_at: (items) => latestInstant(
+      items.map(({ occurred_at }) => occurred_at),
+    ),
+    item_count: (items) => items.length,
+  });
+  const sources = [
+    crmSource,
+    revenueSource,
+    receivablesSource,
+    bankSource,
+    feeSource,
+  ];
+  const sourceStatuses = Object.freeze([
+    Object.freeze({
+      source_id: "master_data",
+      label: "고객 정보",
+      status: "available",
+      checked_at: generatedAt,
+      latest_record_at: null,
+      item_count:
+        access_scope.allowed_client_group_ids.length,
+      safe_error_code: null,
+    }),
+    ...sources.map(({ status }) => status),
+  ]);
+  const hasUnavailableSource = sources.some(({ status }) => (
+    status.status === "error"
+    || status.status === "permission_denied"
+  ));
+  const allSourcesEmpty = sources.every(
+    ({ status }) => status.status === "no_data",
+  );
+  const safeErrorCodes = Object.freeze([
+    ...new Set(
+      sourceStatuses
+        .map(({ safe_error_code }) => safe_error_code)
+        .filter(Boolean),
+    ),
+  ]);
+  const monthlyRevenue = revenueSource.data
+    ? dashboardMonthlyRevenue(
+      revenueSource.data.trend,
+      trendPeriod,
+    )
+    : null;
+  const inquiryStatus =
+    crmSource.data?.inquiry_status ?? null;
+  const revenueRanking = revenueSource.data
+    ? dashboardRevenueRanking(
+      revenueSource.data.ranking,
+      rankingPeriod,
+    )
+    : null;
+  const receivablesRanking = receivablesSource.data
+    ? dashboardReceivablesRanking(
+      receivablesSource.data,
+    )
+    : null;
+
+  return Object.freeze({
+    generated_at: generatedAt,
+    as_of: asOf.toISOString(),
+    timezone,
+    outcome: hasUnavailableSource
+      ? "partial"
+      : allSourcesEmpty
+        ? "empty"
+        : "complete",
+    ui_state: hasUnavailableSource
+      ? "partial"
+      : allSourcesEmpty
+        ? "no_data"
+        : null,
+    access_state: "allowed",
+    sections: Object.freeze({
+      kpis: dashboardKpis({
+        crmSource,
+        revenueSource,
+        receivablesSource,
+        asOf,
+        timeZone: timezone,
+      }),
+      attention_items: dashboardAttention({
+        crmSource,
+        bankSource,
+        feeSource,
+      }),
+      monthly_deposit_revenue: dashboardSection(
+        revenueSource.status.status,
+        monthlyRevenue,
+      ),
+      inquiry_status: dashboardSection(
+        crmSource.status.status,
+        inquiryStatus,
+      ),
+      revenue_ranking: dashboardSection(
+        revenueSource.status.status,
+        revenueRanking,
+      ),
+      receivables_ranking: dashboardSection(
+        receivablesSource.status.status,
+        receivablesRanking,
+      ),
+    }),
+    source_statuses: sourceStatuses,
+    safe_error_codes: safeErrorCodes,
+    downstream_sources_read: true,
+    count_leak_prevented: true,
+    permission_prefilter_applied: true,
+    unauthorized_count_included: false,
+    unauthorized_amount_included: false,
+    raw_bank_source_included: false,
+    raw_source_payload_included: false,
+    credential_material_included: false,
+    embedded_transaction_details: false,
+    invoice_required: false,
+    matter_required: false,
+    production_ready_claim: false,
+  });
+}
+
 function resolveClientOperationsAccess({
   masterDataRepository,
   tenant_id,
   permission_context,
 } = {}) {
   if (typeof masterDataRepository?.list !== "function") {
-    throw new TypeError(
-      "Client operations require a Master Data repository",
+    throw Object.assign(
+      new TypeError(
+        "Client operations require a Master Data repository",
+      ),
+      {
+        safe_error_code:
+          "CLIENT_OPERATIONS_CLIENT_SCOPE_UNAVAILABLE",
+        source: "master-data.ClientGroup",
+      },
     );
   }
   const tenantId = requiredText(tenant_id, "tenant_id");
@@ -1423,7 +2133,16 @@ function resolveClientOperationsAccess({
     );
   }
   if (!Array.isArray(candidates)) {
-    throw new TypeError("ClientGroup repository list must return an array");
+    throw Object.assign(
+      new TypeError(
+        "ClientGroup repository list must return an array",
+      ),
+      {
+        safe_error_code:
+          "CLIENT_OPERATIONS_CLIENT_SCOPE_INVALID",
+        source: "master-data.ClientGroup",
+      },
+    );
   }
 
   const activeGroups = candidates
@@ -1515,7 +2234,14 @@ export function createClientOperationsReadModel({
   financeRepository = null,
   crmRepository = null,
   matterRepository = null,
+  clock = () => new Date(),
 } = {}) {
+  if (typeof clock !== "function") {
+    throw new TypeError(
+      "Client operations read model clock must be a function",
+    );
+  }
+
   function readWithAccess({
     tenant_id,
     permission_context,
@@ -1642,6 +2368,61 @@ export function createClientOperationsReadModel({
           timezone,
           revenue_ranking_period,
         }),
+      });
+    },
+    readDashboard({
+      tenant_id,
+      permission_context,
+      as_of,
+      timezone = CLIENT_OPERATIONS_TIMEZONE,
+      revenue_ranking_period = "year",
+    } = {}) {
+      const asOf = canonicalAsOf(as_of);
+      if (timezone !== CLIENT_OPERATIONS_TIMEZONE) {
+        throw new TypeError(
+          "Client operations timezone must be Asia/Seoul",
+        );
+      }
+      revenueRankingPeriod(
+        asOf,
+        timezone,
+        revenue_ranking_period,
+      );
+      const generatedAt = canonicalAsOf(clock()).toISOString();
+      const resolved = resolveClientOperationsAccess({
+        masterDataRepository,
+        tenant_id,
+        permission_context,
+      });
+      const accessScope = resolved.access_scope;
+      if (accessScope.allowed_client_group_ids.length === 0) {
+        return Object.freeze({
+          access_scope: accessScope,
+          item: dashboardUnavailableItem({
+            accessScope,
+            generatedAt,
+            asOf,
+            timeZone: timezone,
+          }),
+          downstream_sources_read: false,
+        });
+      }
+      return Object.freeze({
+        access_scope: accessScope,
+        item: buildClientOperationsDashboard({
+          access_scope: accessScope,
+          client_reference_access:
+            resolved.client_reference_access,
+          financeRepository,
+          crmRepository,
+          tenant_id,
+          permission_context,
+          as_of: asOf,
+          generated_at: generatedAt,
+          timezone,
+          revenue_ranking_period,
+        }),
+        downstream_sources_read: true,
       });
     },
     production_ready_claim: false,
