@@ -19,10 +19,14 @@ import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgr
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
+import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
 
 const TENANT_A = "tenant_postgres_api_authority_a";
 const TENANT_B = "tenant_postgres_api_authority_b";
 const PAYROLL_ARTIFACT_SECRET = "postgres-api-authority-test-payroll-artifact-secret";
+const BANK_IMPORT_PREVIEW_TOKENS = createBankImportPreviewTokenAuthority({
+  secret: "postgres-api-authority-bank-preview-secret-material",
+});
 
 async function importHrxAuthorityBaseline(ledger, tenantId) {
   const store = createFileHrxStore();
@@ -82,6 +86,7 @@ test("PostgreSQL API authority completes the concurrent audited browser read set
     ledger,
     dmsStorage,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
   });
   await importHrxAuthorityBaseline(ledger, TENANT_A);
@@ -273,6 +278,7 @@ test("PostgreSQL API authority commits product state, idempotency, audit and out
     ledger,
     dmsStorage,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
   });
   assert.equal(authority.capabilities.json_fallback, false);
@@ -343,6 +349,7 @@ test("PostgreSQL API authority commits HRX with central idempotency, audit and o
     ledger,
     dmsStorage,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
   });
   await importHrxAuthorityBaseline(ledger, TENANT_A);
@@ -385,6 +392,7 @@ test("PostgreSQL API authority overlays relational HRX reads only while preservi
     ledger,
     dmsStorage,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({
       pool: fixture.appPool,
       storage: dmsStorage,
@@ -462,6 +470,7 @@ test("PostgreSQL API authority rolls product changes back when the HRX baseline 
     ledger,
     dmsStorage,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
   });
   await importHrxAuthorityBaseline(ledger, TENANT_A);

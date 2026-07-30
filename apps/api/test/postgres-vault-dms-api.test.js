@@ -12,11 +12,15 @@ import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-a
 import { handleVaultDmsApiRequest } from "../src/vault-dms-runtime-context.js";
 import { handleMatterDocumentFacade } from "../src/matter-runtime-context.js";
 import { createMatterVaultLink } from "../../../packages/matter/src/matter-vault-link.js";
+import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
 
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const OTHER_TENANT = "tenant_postgres_vault_other";
 const ACTOR = "user_amic_jwsuh";
 const PAYROLL_ARTIFACT_SECRET = "postgres-vault-test-payroll-artifact-secret";
+const BANK_IMPORT_PREVIEW_TOKENS = createBankImportPreviewTokenAuthority({
+  secret: "postgres-vault-bank-preview-secret-material",
+});
 
 function allowContext(tenantId = TENANT) {
   return Object.freeze({
@@ -82,6 +86,7 @@ test("PostgreSQL Vault API finalizes provider bytes before publishing tenant met
     dmsStorage: storage,
     dmsUploadRuntime: uploadRuntime,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
   });
   await importHrxAuthorityBaseline(ledger, TENANT);
   await importHrxAuthorityBaseline(ledger, OTHER_TENANT);

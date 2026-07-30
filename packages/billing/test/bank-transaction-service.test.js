@@ -104,3 +104,18 @@ test("BankTransaction import rejects duplicate fingerprints and automatic Matter
   assert.equal(repository.list({ tenant_id: TENANT, model_type: "BankTransaction" }).length, 0);
   repository.close();
 });
+
+test("BankTransaction import binds an idempotency key to one source manifest", () => {
+  const repository = createFinanceRepository();
+  const first = input();
+  importBankTransactionBatch({ repository, ...first });
+  const changed = input();
+  changed.bank_import_batch.source_manifest_hash = "d".repeat(64);
+  assert.throws(
+    () => importBankTransactionBatch({ repository, ...changed }),
+    /already bound to another bank import request/,
+  );
+  assert.equal(repository.list({ tenant_id: TENANT, model_type: "BankImportBatch" }).length, 1);
+  assert.equal(repository.list({ tenant_id: TENANT, model_type: "BankTransaction" }).length, 2);
+  repository.close();
+});

@@ -152,7 +152,15 @@ function createHrxDomainParticipant(requestContext, projectionReader) {
   });
 }
 
-function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRuntime, payrollArtifactSecret, payrollProviders } = {}) {
+function createRequestRuntimes({
+  repositories,
+  hrxStore,
+  dmsStorage,
+  dmsUploadRuntime,
+  payrollArtifactSecret,
+  payrollProviders,
+  bankImportPreviewTokens,
+} = {}) {
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
     payrollArtifactStorage: dmsStorage,
@@ -193,6 +201,7 @@ function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRu
     masterDataRepository: repositories.masterDataRepository,
     matterRepository: repositories.matterRepository,
     employeeRepository: hrxRuntime.repository,
+    bankImportPreviewTokens,
   });
   const analyticsRuntime = createAnalyticsRuntimeContext({
     repository: repositories.analyticsRepository,
@@ -238,6 +247,7 @@ export function createPostgresApiRuntimeAuthority({
   payrollArtifactSecret,
   payrollProviders = Object.freeze({}),
   hrxRelationalProjectionReader = null,
+  bankImportPreviewTokens,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
@@ -250,6 +260,10 @@ export function createPostgresApiRuntimeAuthority({
   }
   if (!(typeof payrollArtifactSecret === "string" || Buffer.isBuffer(payrollArtifactSecret)) || Buffer.byteLength(payrollArtifactSecret) < 32) {
     throw new TypeError("PostgreSQL API authority requires injected payroll artifact secret material");
+  }
+  if (typeof bankImportPreviewTokens?.issue !== "function"
+      || typeof bankImportPreviewTokens?.verify !== "function") {
+    throw new TypeError("PostgreSQL API authority requires bank import preview token authority");
   }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
@@ -284,6 +298,7 @@ export function createPostgresApiRuntimeAuthority({
             dmsUploadRuntime,
             payrollArtifactSecret,
             payrollProviders,
+            bankImportPreviewTokens,
           })),
         });
         return productCommand.result;

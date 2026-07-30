@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5 완료, 전체 7/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5 완료, 전체 8/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -24,7 +24,7 @@
 9. M365 코드는 delegated 권한과 기능 스위치 뒤에서 준비하고, 관리자 동의·시험 mailbox 영수증이 없으면 출시를 차단한다.
 10. 모든 검증 시나리오를 고정 fixture, 테스트 파일 또는 실제 API·화면 영수증과 연결한다.
 
-이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW 구현과 집중 검증을 완료했다.
+이 계획은 이전 33개 초안을 대체한다. v2 ID를 최초 실행 원장으로 사용하며, 2026-07-30에 P0의 5개 TUW와 P1의 첫 3개 TUW 구현·집중 검증을 완료했다.
 
 ## 1. 제품 목표
 
@@ -840,6 +840,7 @@ flowchart LR
 node scripts/validate-client-operations-fixture.mjs
 node --test packages/import-data/test/amic-cashflow-source.test.js
 node --test apps/api/test/client-bank-import-preview-api.test.js
+node --test apps/api/test/bank-import-preview-token.test.js apps/api/test/bank-import-confirmation.test.js
 node --test scripts/test/client-pdf-runtime-contract.test.mjs apps/desktop/test/runtime-package.test.mjs
 node --test packages/billing/test/bank-transaction-service.test.js packages/billing/test/bank-classification-service.test.js
 node --test packages/billing/test/client-deposit-revenue.test.js packages/billing/test/fee-commitment-allocation.test.js
@@ -911,6 +912,7 @@ npm test
 - 현재 Outlook email file API는 `matter_id`가 필수이며 M365 연동 런타임은 꺼져 있다.
 - 현재 Opportunity→Matter 직접 우회는 차단돼 있다.
 - 기존 PDF 사전 검증은 로컬 `pdftotext` 실행 파일에 의존했으므로 데스크톱 패키지와 API 런타임에서 같은 결과를 보장하지 못했다. `unpdf@1.8.0`을 고정해 프로세스 안에서 읽고, 파일 8MB·100쪽·추출 문자 100만 자 상한과 PDF 파일 머리글 검사를 적용한다.
+- 등록 확정은 10분 유효 HMAC 확인 토큰에 테넌트·사용자·계좌·파일 형식·파일 해시·미리보기 해시를 묶는다. 확정 때 원본 파일을 서버가 다시 읽으며, 사용자가 보낸 거래행과 일괄등록 객체는 거절한다. 같은 요청키는 같은 미리보기 해시에만 재사용할 수 있고, 만료 뒤에는 이미 성공한 요청의 결과 조회만 허용한다.
 
 ### OSS 패턴
 
@@ -954,7 +956,8 @@ npm test
 | `CL-P0-W01-T05` | 완료 | 고객 3곳, 32개 VC, JSON·CSV 기대값과 fail-closed validator 등록 | `node scripts/validate-client-operations-fixture.mjs` PASS |
 | `CL-P1-W01-T01` | 완료 | 기존 안전 XLSX 파서를 `/api/finance/bank-imports/preview`에 연결; 해시·계좌·신규·중복·오류 건수와 검토 행 반환, 제품 레코드 미생성 | 정상·중복·직원 403·손상 파일·위장 MIME, Finance/HRX XLSX 회귀 32/32 |
 | `CL-P1-W01-T02` | 완료 | `unpdf@1.8.0`을 API·내부 데스크톱 의존성으로 고정하고 XLSX와 같은 미리보기 계약에 PDF를 연결; 8MB·100쪽·100만 자·확장자/MIME 형식·PDF 파일 머리글 제한, 제품 레코드 미생성 | 정상·손상·위장 MIME·과대 파일·쪽수·문자 수·패키지 계약과 기존 Finance/Import/PostgreSQL 회귀 40/40, 운영 의존성 보안 취약점 0건 |
-| `CL-P1-W01-T03` | 다음 | 서버가 검증한 미리보기 확인 토큰·해시를 기존 `/api/finance/bank-imports` 확정 경로에 연결 | 시작 전 |
+| `CL-P1-W01-T03` | 완료 | 서버 서명 확인 토큰을 `/api/finance/bank-imports`에 연결; 원본 재해석, 사용자 제공 거래행 거절, 신규 행만 원자 등록, 미리보기 해시별 요청키 고정, 만료 전후 안전 재실행 | 변조·만료·사용자/파일 변경·거래행 위조·중복만 남은 파일·요청키 충돌 집중 검증 13/13, Finance·PostgreSQL 등록 회귀 24/24, 운영 시작·공용 PostgreSQL 권한 회귀 49/49 |
+| `CL-P1-W01-T04` | 다음 | `client_unique_prefix` 자동 연결을 제거하고 유일한 정확 일치와 저장 별칭만 허용 | 시작 전 |
 
 P0 집중 검증:
 

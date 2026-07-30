@@ -41,9 +41,9 @@ const sheets = {
   ],
 };
 
-function workbookBuffer() {
+function workbookBuffer(sourceSheets = sheets) {
   return createXlsxBuffer({
-    worksheets: Object.entries(sheets).map(([name, rows]) => ({
+    worksheets: Object.entries(sourceSheets).map(([name, rows]) => ({
       sheetName: name,
       headers: rows[0],
       rows: rows.slice(1),
@@ -73,9 +73,35 @@ function previewForm(file, { mimeType = XLSX_MIME, fileName = "입출금내역.x
   return body;
 }
 
+function confirmForm(
+  file,
+  token,
+  {
+    mimeType = XLSX_MIME,
+    fileName = "입출금내역.xlsx",
+    idempotencyKey = "client-bank-confirm-001",
+  } = {},
+) {
+  const body = previewForm(file, { mimeType, fileName });
+  body.set("production_import_approved", "true");
+  body.set("idempotency_key", idempotencyKey);
+  if (token) body.set("preview_confirmation_token", token);
+  return body;
+}
+
 async function postPreview(baseUrl, account, form) {
   const headers = await apiSessionHeaders(baseUrl, account);
   const response = await fetch(`${baseUrl}/api/finance/bank-imports/preview`, {
+    method: "POST",
+    headers,
+    body: form,
+  });
+  return { status: response.status, body: await response.json() };
+}
+
+async function postConfirm(baseUrl, account, form) {
+  const headers = await apiSessionHeaders(baseUrl, account);
+  const response = await fetch(`${baseUrl}/api/finance/bank-imports`, {
     method: "POST",
     headers,
     body: form,
@@ -122,7 +148,9 @@ test("CL-P1-W01-T01 authorized XLSX preview reports file hash, account, new and 
     assert.equal(response.body.preview.items[0].status, "duplicate");
     assert.equal(response.body.preview.items[0].transaction_fingerprint, undefined);
     assert.equal(response.body.preview.items[0].source_refs, undefined);
-    assert.equal(response.body.preview.confirmation_token_included, false);
+    assert.equal(response.body.preview.confirmation_token_included, true);
+    assert.match(response.body.preview.preview_confirmation_token, /^lawos_bank_import_preview_v1\./u);
+    assert.match(response.body.preview.confirmation_expires_at, /^\d{4}-\d{2}-\d{2}T/u);
     assert.equal(response.body.preview.product_records_mutated, false);
   });
 
@@ -250,4 +278,140 @@ test("CL-P1-W01-T02 PDF preview rejects damaged content and misleading MIME type
     tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
     model_type: "BankTransaction",
   }).length, 0);
+});
+
+test("CL-P1-W01-T03 a signed preview confirmation imports only server-parsed rows and replays idempotently", async () => {
+  const repository = createFinanceRepository();
+  const workbook = workbookBuffer();
+  await withServer(repository, async (baseUrl) => {
+    const account = highestPrivilegeRegisteredAccount();
+    const preview = await postPreview(baseUrl, account, previewForm(workbook));
+    assert.equal(preview.status, 200, JSON.stringify(preview.body));
+    const token = preview.body.preview.preview_confirmation_token;
+
+    const forgedConfirmation = confirmForm(workbook, token, {
+      idempotencyKey: "client-forged-confirmation",
+    });
+    forgedConfirmation.set("transactions", JSON.stringify([{
+      bank_transaction_id: "client-forged-row",
+      amount: 999_999_999,
+    }]));
+    const forged = await postConfirm(baseUrl, account, forgedConfirmation);
+    assert.equal(forged.status, 400);
+    assert.deepEqual(
+      forged.body.safe_error_codes,
+      ["FINANCE_CLIENT_TRANSACTION_ROWS_REJECTED"],
+    );
+
+    const imported = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(workbook, token),
+    );
+    assert.equal(imported.status, 201, JSON.stringify(imported.body));
+    assert.equal(imported.body.outcome, "created");
+    assert.equal(imported.body.transaction_count, 4);
+    assert.equal(imported.body.confirmed_preview_id, preview.body.preview.preview_id);
+    assert.equal(imported.body.item.source_manifest_hash, undefined);
+    assert.equal(imported.body.confirmation_token_included, false);
+
+    const replay = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(workbook, token),
+    );
+    assert.equal(replay.status, 200, JSON.stringify(replay.body));
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.transaction_count, 4);
+  });
+
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankImportBatch",
+  }).length, 1);
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankTransaction",
+  }).length, 4);
+});
+
+test("CL-P1-W01-T03 confirmation rejects missing, altered, stale-file, and reused-key evidence", async () => {
+  const repository = createFinanceRepository();
+  const workbook = workbookBuffer();
+  const changedWorkbook = workbookBuffer({
+    ...sheets,
+    입금내역: sheets.입금내역.map((row, index) => (
+      index === 2 ? [...row.slice(0, 4), "1001", ...row.slice(5)] : row
+    )),
+  });
+  await withServer(repository, async (baseUrl) => {
+    const account = highestPrivilegeRegisteredAccount();
+    const preview = await postPreview(baseUrl, account, previewForm(workbook));
+    const token = preview.body.preview.preview_confirmation_token;
+
+    const missing = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(workbook, null, { idempotencyKey: "missing-token" }),
+    );
+    assert.equal(missing.status, 400);
+    assert.deepEqual(missing.body.safe_error_codes, ["FINANCE_PREVIEW_CONFIRMATION_REQUIRED"]);
+
+    const suffix = token.endsWith("a") ? "b" : "a";
+    const altered = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(workbook, `${token.slice(0, -1)}${suffix}`, {
+        idempotencyKey: "altered-token",
+      }),
+    );
+    assert.equal(altered.status, 409);
+    assert.deepEqual(altered.body.safe_error_codes, ["FINANCE_PREVIEW_CONFIRMATION_INVALID"]);
+
+    const changed = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(changedWorkbook, token, { idempotencyKey: "changed-source" }),
+    );
+    assert.equal(changed.status, 409);
+    assert.deepEqual(changed.body.safe_error_codes, ["FINANCE_PREVIEW_CONFIRMATION_CHANGED"]);
+
+    const imported = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(workbook, token, { idempotencyKey: "bound-key" }),
+    );
+    assert.equal(imported.status, 201, JSON.stringify(imported.body));
+
+    const changedPreview = await postPreview(baseUrl, account, previewForm(changedWorkbook));
+    const conflict = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(changedWorkbook, changedPreview.body.preview.preview_confirmation_token, {
+        idempotencyKey: "bound-key",
+      }),
+    );
+    assert.equal(conflict.status, 409);
+    assert.deepEqual(conflict.body.safe_error_codes, ["FINANCE_IDEMPOTENCY_CONFLICT"]);
+
+    const duplicatePreview = await postPreview(baseUrl, account, previewForm(workbook));
+    const noNewRows = await postConfirm(
+      baseUrl,
+      account,
+      confirmForm(workbook, duplicatePreview.body.preview.preview_confirmation_token, {
+        idempotencyKey: "all-duplicates",
+      }),
+    );
+    assert.equal(noNewRows.status, 409);
+    assert.deepEqual(noNewRows.body.safe_error_codes, ["FINANCE_PREVIEW_NO_NEW_TRANSACTIONS"]);
+  });
+
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankImportBatch",
+  }).length, 1);
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankTransaction",
+  }).length, 4);
 });

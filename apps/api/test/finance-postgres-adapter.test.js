@@ -6,6 +6,7 @@ import {
 } from "../src/finance-runtime-context.js";
 import { createFinanceDomainSnapshot } from "../../../packages/billing/src/central-ledger.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-service.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 
@@ -46,7 +47,47 @@ function request() {
   };
 }
 
-function bankImportRequest() {
+function bankSourceFile() {
+  const statement = renderSimpleTextPdf([
+    "2026/07/28",
+    "outflow 280,000 29,153,222  bank transfer  Synthetic counterparty",
+    "14:50:03",
+  ]);
+  return {
+    filename: "bank-statement.pdf",
+    mime_type: "application/pdf",
+    byte_size: statement.byteLength,
+    content_base64: statement.toString("base64"),
+  };
+}
+
+function bankPreviewRequest() {
+  return {
+    pathname: "/api/finance/bank-imports/preview",
+    method: "POST",
+    query: {},
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-bank-preview-postgres",
+      audit_hint_ref: "audit-bank-preview-postgres",
+      account_ref: "account-postgres-rehearsal",
+      file: bankSourceFile(),
+    },
+    context: {
+      principal: {
+        user_id: "user-rs-dom-finance-admin",
+        tenant_id: TENANT,
+        role_ids: ["system_super_admin"],
+        scopes: ["finance.bank.import", "finance.bank.read"],
+      },
+      rules: [{ id: "finance-bank-postgres-allow", effect: "allow", action: "*" }],
+      object_acl: [],
+    },
+    requestId: "request-bank-preview-postgres",
+  };
+}
+
+function bankImportRequest(previewConfirmationToken) {
   return {
     pathname: "/api/finance/bank-imports",
     method: "POST",
@@ -55,29 +96,11 @@ function bankImportRequest() {
       permission_ref: "perm-bank-import-postgres",
       audit_hint_ref: "audit-bank-import-postgres",
       idempotency_key: "bank-import-postgres-rehearsal",
-      bank_import_batch: {
-        bank_import_batch_id: "bank-import-postgres-001",
-        tenant_id: TENANT,
-        source_manifest_hash: "a".repeat(64),
-        account_ref: "account-postgres-rehearsal",
-        transaction_count: 1,
-        overlap_count: 0,
-        source_count: 2,
-        production_import_approved: true,
-      },
-      transactions: [{
-        bank_transaction_id: "bank-transaction-postgres-001",
-        account_ref: "account-postgres-rehearsal",
-        transaction_fingerprint: "b".repeat(64),
-        date: "2026-07-28",
-        occurred_at: "2026-07-28T14:50:03+09:00",
-        time_precision: "second",
-        direction: "outflow",
-        amount: 280000,
-        balance_after: 29153222,
-        currency: "KRW",
-        classification_scope: "unreviewed",
-      }],
+      tenant_id: TENANT,
+      account_ref: "account-postgres-rehearsal",
+      production_import_approved: true,
+      preview_confirmation_token: previewConfirmationToken,
+      file: bankSourceFile(),
     },
     context: {
       principal: {
@@ -134,8 +157,17 @@ test("BankTransaction import commits append-only rows to PostgreSQL and replays 
   sourceRepository.close();
   await ledger.importSnapshot(source.snapshot);
 
-  const first = await handleFinancePostgresApiRequest({ ledger, ...bankImportRequest() });
-  const replay = await handleFinancePostgresApiRequest({ ledger, ...bankImportRequest() });
+  const preview = await handleFinancePostgresApiRequest({ ledger, ...bankPreviewRequest() });
+  assert.equal(preview.response.status, 200);
+  const previewConfirmationToken = preview.response.body.preview.preview_confirmation_token;
+  const first = await handleFinancePostgresApiRequest({
+    ledger,
+    ...bankImportRequest(previewConfirmationToken),
+  });
+  const replay = await handleFinancePostgresApiRequest({
+    ledger,
+    ...bankImportRequest(previewConfirmationToken),
+  });
   assert.equal(first.response.status, 201);
   assert.equal(first.response.body.transaction_count, 1);
   assert.equal(first.response.body.item.source_manifest_hash, undefined);

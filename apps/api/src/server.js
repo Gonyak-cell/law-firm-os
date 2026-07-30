@@ -79,6 +79,7 @@ import {
   createFinanceRuntimeContext,
   handleFinanceApiRequest,
 } from "./finance-runtime-context.js";
+import { createBankImportPreviewTokenAuthority } from "./bank-import-preview-token.js";
 import {
   ANALYTICS_BOUNDED_CONTEXT,
   ANALYTICS_RUNTIME_SEED,
@@ -425,6 +426,7 @@ export function createDefaultFinanceRuntime({
   matterRepository = null,
   clientRecords = null,
   employees = undefined,
+  bankImportPreviewTokens,
   storePath = process.env.LAWOS_FINANCE_STORE_PATH,
 } = {}) {
   const financeRepository =
@@ -439,6 +441,7 @@ export function createDefaultFinanceRuntime({
     matterRepository,
     clientRecords,
     employees,
+    bankImportPreviewTokens,
   });
 }
 
@@ -1907,6 +1910,9 @@ export async function startApiServer({
     profile: resolvedRuntimeProfile,
     explicitSecret: sessionSecret,
   });
+  const resolvedBankImportPreviewTokens = createBankImportPreviewTokenAuthority({
+    secret: resolvedSessionSecret,
+  });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
@@ -1984,6 +1990,7 @@ export async function startApiServer({
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
         hrxRelationalProjectionReader,
+        bankImportPreviewTokens: resolvedBankImportPreviewTokens,
       });
       const server = createApiServer({
         hrxRuntime: null,
@@ -2112,13 +2119,19 @@ export async function startApiServer({
       clearanceRepository: crmIntakeRuntime.intakeRepository,
     });
   let financeRuntimeUnavailable = null;
-  let financeRuntimeContext = financeRuntime;
+  let financeRuntimeContext = financeRuntime
+    ? Object.freeze({
+        ...financeRuntime,
+        bankImportPreviewTokens: resolvedBankImportPreviewTokens,
+      })
+    : null;
   if (!financeRuntimeContext) {
     try {
       financeRuntimeContext = createDefaultFinanceRuntime({
         repository: financeRepository,
         masterDataRepository: masterRuntime?.repository ?? null,
         matterRepository: resolvedMatterRepository,
+        bankImportPreviewTokens: resolvedBankImportPreviewTokens,
         storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
       });
     } catch (error) {

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-service.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
@@ -194,36 +195,38 @@ test("WP-FIN-2 exposes sanitized Payment and PaymentMatch read routes", async ()
 test("AMIC super-admin imports and reads sanitized BankTransaction rows while staff remains fail-closed", async () => {
   const financeRepository = createFinanceRepository();
   await withServer(async (baseUrl) => {
+    const statement = renderSimpleTextPdf([
+      "2026/07/28",
+      "outflow 280,000 29,153,222  bank transfer  Synthetic counterparty",
+      "14:50:03",
+    ]);
+    const file = {
+      filename: "bank-statement.pdf",
+      mime_type: "application/pdf",
+      byte_size: statement.byteLength,
+      content_base64: statement.toString("base64"),
+    };
+    const preview = await json(baseUrl, "/api/finance/bank-imports/preview", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-preview-api",
+        audit_hint_ref: "audit-bank-preview-api",
+        account_ref: "account-bank-api",
+        file,
+      }),
+    });
+    assert.equal(preview.status, 200, JSON.stringify(preview.body));
     const payload = {
+      tenant_id: TENANT,
       permission_ref: "perm-bank-import-api",
       audit_hint_ref: "audit-bank-import-api",
       idempotency_key: "bank-import-api-001",
-      bank_import_batch: {
-        bank_import_batch_id: "bank-import-api-001",
-        tenant_id: TENANT,
-        source_manifest_hash: "a".repeat(64),
-        account_ref: "account-bank-api",
-        transaction_count: 1,
-        overlap_count: 0,
-        source_count: 2,
-        production_import_approved: true,
-      },
-      transactions: [{
-        bank_transaction_id: "bank-transaction-api-001",
-        account_ref: "account-bank-api",
-        transaction_fingerprint: "b".repeat(64),
-        date: "2026-07-28",
-        occurred_at: "2026-07-28T14:50:03+09:00",
-        time_precision: "second",
-        direction: "outflow",
-        amount: 280000,
-        balance_after: 29153222,
-        currency: "KRW",
-        counterparty: "Synthetic counterparty",
-        memo: "Synthetic memo",
-        classification_scope: "unreviewed",
-        source_refs: [{ source_type: "pdf", source_hash: "c".repeat(64), page: 1 }],
-      }],
+      account_ref: "account-bank-api",
+      production_import_approved: true,
+      preview_confirmation_token: preview.body.preview.preview_confirmation_token,
+      file,
     };
     const approvalRequired = await json(baseUrl, "/api/finance/bank-imports", {
       method: "POST",
@@ -231,10 +234,7 @@ test("AMIC super-admin imports and reads sanitized BankTransaction rows while st
       body: JSON.stringify({
         ...payload,
         idempotency_key: "bank-import-without-production-approval",
-        bank_import_batch: {
-          ...payload.bank_import_batch,
-          production_import_approved: false,
-        },
+        production_import_approved: false,
       }),
     });
     assert.equal(approvalRequired.status, 403);
@@ -253,7 +253,8 @@ test("AMIC super-admin imports and reads sanitized BankTransaction rows while st
     const rows = await json(baseUrl, `/api/finance/bank-transactions?${BASE_QUERY}`, { account: SUPER_ADMIN_ACCOUNT });
     assert.equal(rows.status, 200);
     assert.equal(rows.body.items.length, 1);
-    assert.equal(rows.body.items[0].counterparty, "Synthetic counterparty");
+    assert.equal(rows.body.items[0].direction, "outflow");
+    assert.equal(rows.body.items[0].amount, 280000);
     assert.equal(rows.body.items[0].source_refs, undefined);
     assert.equal(rows.body.items[0].transaction_fingerprint, undefined);
     assert.equal(rows.body.count_leak_prevented, true);

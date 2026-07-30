@@ -36,7 +36,9 @@ import {
   MAX_NH_BANK_STATEMENT_PDF_BYTES,
   previewAmicWorkbookBuffer,
   previewNhBankStatementPdfBuffer,
+  sha256,
 } from "../../../packages/import-data/src/index.js";
+import { createBankImportPreviewTokenAuthority } from "./bank-import-preview-token.js";
 
 export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "finance",
@@ -100,6 +102,13 @@ export const FINANCE_API_ERROR_CODES = Object.freeze({
   source_file_invalid: "FINANCE_SOURCE_FILE_INVALID",
   source_file_too_large: "FINANCE_SOURCE_FILE_TOO_LARGE",
   source_file_limit_exceeded: "FINANCE_SOURCE_FILE_LIMIT_EXCEEDED",
+  preview_confirmation_required: "FINANCE_PREVIEW_CONFIRMATION_REQUIRED",
+  preview_confirmation_invalid: "FINANCE_PREVIEW_CONFIRMATION_INVALID",
+  preview_confirmation_expired: "FINANCE_PREVIEW_CONFIRMATION_EXPIRED",
+  preview_confirmation_changed: "FINANCE_PREVIEW_CONFIRMATION_CHANGED",
+  preview_no_new_transactions: "FINANCE_PREVIEW_NO_NEW_TRANSACTIONS",
+  client_transaction_rows_rejected: "FINANCE_CLIENT_TRANSACTION_ROWS_REJECTED",
+  idempotency_conflict: "FINANCE_IDEMPOTENCY_CONFLICT",
 });
 
 export const FINANCE_RUNTIME_SEED = Object.freeze([
@@ -160,7 +169,12 @@ export function createFinanceRuntimeContext({
   clientRecords = null,
   employees = listAmicBankClassificationEmployees(),
   employeeRepository = null,
+  bankImportPreviewTokens = createBankImportPreviewTokenAuthority(),
 } = {}) {
+  if (typeof bankImportPreviewTokens?.issue !== "function"
+      || typeof bankImportPreviewTokens?.verify !== "function") {
+    throw new TypeError("bank import preview token authority is required");
+  }
   return Object.freeze({
     repository,
     masterDataRepository,
@@ -168,6 +182,7 @@ export function createFinanceRuntimeContext({
     clientRecords: Array.isArray(clientRecords) ? Object.freeze([...clientRecords]) : null,
     employees: Object.freeze([...(employees ?? [])]),
     employeeRepository,
+    bankImportPreviewTokens,
     seed_ref: "cmp-g7-finance-synthetic",
   });
 }
@@ -430,6 +445,41 @@ function bankImportPreviewFile(body = {}) {
     throw error;
   }
   return Object.freeze({ buffer, source_type: sourceType });
+}
+
+async function createBankImportPreview({ body = {}, runtime, source = bankImportPreviewFile(body) } = {}) {
+  const existingTransactions = runtime.repository.list({
+    tenant_id: body.tenant_id,
+    model_type: "BankTransaction",
+    account_ref: body.account_ref || undefined,
+  });
+  const preview = source.source_type === "pdf"
+    ? await previewNhBankStatementPdfBuffer(source.buffer, {
+        account_ref: body.account_ref || undefined,
+        existing_transactions: existingTransactions,
+      })
+    : previewAmicWorkbookBuffer(source.buffer, {
+        account_ref: body.account_ref || undefined,
+        existing_transactions: existingTransactions,
+      });
+  return Object.freeze({ source, preview });
+}
+
+function bankImportActorId(context = {}) {
+  return String(context?.principal?.user_id ?? context?.principal?.actor_id ?? "").trim();
+}
+
+function bankImportConfirmationError(code, status = 409) {
+  const error = new Error(code.toLowerCase());
+  error.safe_error_code = code;
+  error.status = status;
+  return error;
+}
+
+function bankImportApproved(body = {}) {
+  const value = body.production_import_approved
+    ?? body.bank_import_batch?.production_import_approved;
+  return value === true || String(value).toLowerCase() === "true";
 }
 
 function classificationDirectories(runtime, tenantId) {
@@ -762,7 +812,27 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
   }
 }
 
-export function handleFinanceBankImport({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+function bankImportSuccessResponse({ result, requestId, auditHintRef, previewId }) {
+  return {
+    status: result.idempotent_replay ? 200 : 201,
+    body: {
+      request_id: requestId,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: sanitizeBankImportBatch(result.bank_import_batch),
+      transaction_count: result.transaction_count,
+      confirmed_preview_id: previewId,
+      audit_event: result.audit_event,
+      safe_error_codes: [],
+      audit_hint_ref: auditHintRef,
+      idempotent_replay: result.idempotent_replay,
+      confirmation_token_included: false,
+      raw_source_payload_included: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+export async function handleFinanceBankImport({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = {
     tenant_id: body?.bank_import_batch?.tenant_id ?? body?.tenant_id,
     permission_ref: body?.permission_ref,
@@ -781,37 +851,141 @@ export function handleFinanceBankImport({ body, context, requestId, runtime = DE
     resourceType,
   });
   if (roleDenied) return roleDenied;
-  if (body?.bank_import_batch?.production_import_approved !== true) {
+  if (!bankImportApproved(body)) {
     return errorResponse(403, requestId, [FINANCE_API_ERROR_CODES.approval_required], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "review_required",
     });
   }
   try {
+    if (body?.transactions !== undefined || body?.bank_import_batch !== undefined) {
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.client_transaction_rows_rejected,
+        400,
+      );
+    }
+    const confirmationToken = String(body?.preview_confirmation_token ?? "").trim();
+    if (!confirmationToken) {
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.preview_confirmation_required,
+        400,
+      );
+    }
+    const actorId = bankImportActorId(context);
+    const accountRef = String(body?.account_ref ?? "").trim();
+    const idempotencyKey = String(body?.idempotency_key ?? "").trim();
+    if (!actorId || !accountRef || !idempotencyKey) {
+      throw bankImportConfirmationError(FINANCE_API_ERROR_CODES.validation_error, 400);
+    }
+    const source = bankImportPreviewFile(body);
+    const sourceFileSha256 = sha256(source.buffer);
+    const verified = runtime.bankImportPreviewTokens.verify(confirmationToken, {
+      tenant_id: query.tenant_id,
+      actor_id: actorId,
+      account_ref: accountRef,
+      source_type: source.source_type,
+      source_file_sha256: sourceFileSha256,
+    });
+    if (!verified.ok && verified.reason !== "bank_import_preview_token_expired") {
+      if (verified.reason === "bank_import_preview_token_mismatch") {
+        throw bankImportConfirmationError(
+          FINANCE_API_ERROR_CODES.preview_confirmation_changed,
+          409,
+        );
+      }
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.preview_confirmation_invalid,
+        409,
+      );
+    }
+    if (!verified.payload) {
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.preview_confirmation_invalid,
+        409,
+      );
+    }
+    const replay = runtime.repository.getIdempotency({
+      tenant_id: query.tenant_id,
+      idempotency_key: idempotencyKey,
+    });
+    if (replay) {
+      const replayFingerprint = replay.request_fingerprint
+        ?? replay.response?.bank_import_batch?.source_manifest_hash;
+      if (replay.operation !== "bank_transaction_batch_import"
+          || replayFingerprint !== verified.payload.preview_manifest_sha256) {
+        throw bankImportConfirmationError(FINANCE_API_ERROR_CODES.idempotency_conflict, 409);
+      }
+      return bankImportSuccessResponse({
+        result: { ...replay.response, idempotent_replay: true },
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+        previewId: verified.payload.preview_id,
+      });
+    }
+    if (!verified.ok) {
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.preview_confirmation_expired,
+        410,
+      );
+    }
+    const { preview } = await createBankImportPreview({ body, runtime, source });
+    if (verified.payload.preview_manifest_sha256 !== preview.preview_manifest_sha256
+        || verified.payload.preview_id !== preview.preview_id) {
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.preview_confirmation_changed,
+        409,
+      );
+    }
+    const newTransactions = preview.transactions.filter(
+      (_, index) => preview.items[index]?.status === "new",
+    );
+    if (newTransactions.length === 0) {
+      throw bankImportConfirmationError(
+        FINANCE_API_ERROR_CODES.preview_no_new_transactions,
+        409,
+      );
+    }
     const result = importBankTransactionBatch({
       repository: runtime.repository,
-      bank_import_batch: body.bank_import_batch,
-      transactions: body.transactions,
-      actor_id: context.principal.user_id,
-      idempotency_key: body.idempotency_key,
-    });
-    return {
-      status: result.idempotent_replay ? 200 : 201,
-      body: {
-        request_id: requestId,
-        outcome: result.idempotent_replay ? "idempotent_replay" : "created",
-        item: sanitizeBankImportBatch(result.bank_import_batch),
-        transaction_count: result.transaction_count,
-        audit_event: result.audit_event,
-        safe_error_codes: [],
-        audit_hint_ref: query.audit_hint_ref,
-        idempotent_replay: result.idempotent_replay,
-        raw_source_payload_included: false,
-        production_ready_claim: false,
+      bank_import_batch: {
+        bank_import_batch_id: `bank_import_${preview.preview_manifest_sha256.slice(0, 24)}`,
+        tenant_id: query.tenant_id,
+        source_manifest_hash: preview.preview_manifest_sha256,
+        source_file_sha256: preview.source_file_sha256,
+        source_type: preview.source_type,
+        preview_id: preview.preview_id,
+        account_ref: preview.account_ref,
+        transaction_count: newTransactions.length,
+        overlap_count: preview.counts.duplicate,
+        source_count: 1,
+        production_import_approved: true,
       },
-    };
-  } catch {
-    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
+      transactions: newTransactions,
+      actor_id: actorId,
+      idempotency_key: idempotencyKey,
+      request_fingerprint: preview.preview_manifest_sha256,
+    });
+    return bankImportSuccessResponse({
+      result,
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      previewId: preview.preview_id,
+    });
+  } catch (error) {
+    const safeErrorCode = error?.safe_error_code ?? FINANCE_API_ERROR_CODES.validation_error;
+    appendFinanceRouteAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      decision: {
+        effect: "deny",
+        reason: safeErrorCode.toLowerCase(),
+        fail_closed: true,
+      },
+    });
+    return errorResponse(error?.status ?? 400, requestId, [safeErrorCode], {
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
@@ -830,21 +1004,16 @@ export async function handleFinanceBankImportPreview({ body, context, requestId,
   if (gated) return gated;
 
   try {
-    const source = bankImportPreviewFile(body);
-    const existingTransactions = runtime.repository.list({
+    const { preview } = await createBankImportPreview({ body, runtime });
+    const confirmation = runtime.bankImportPreviewTokens.issue({
+      preview_id: preview.preview_id,
+      preview_manifest_sha256: preview.preview_manifest_sha256,
+      source_file_sha256: preview.source_file_sha256,
+      source_type: preview.source_type,
+      account_ref: preview.account_ref,
       tenant_id: query.tenant_id,
-      model_type: "BankTransaction",
-      account_ref: body.account_ref || undefined,
+      actor_id: bankImportActorId(context),
     });
-    const preview = source.source_type === "pdf"
-      ? await previewNhBankStatementPdfBuffer(source.buffer, {
-          account_ref: body.account_ref || undefined,
-          existing_transactions: existingTransactions,
-        })
-      : previewAmicWorkbookBuffer(source.buffer, {
-          account_ref: body.account_ref || undefined,
-          existing_transactions: existingTransactions,
-        });
     appendFinanceSensitiveReadAudit({
       repository: runtime.repository,
       context,
@@ -859,6 +1028,7 @@ export async function handleFinanceBankImportPreview({ body, context, requestId,
         source_file_name_included: false,
         raw_source_payload_included: false,
         product_records_mutated: false,
+        confirmation_token_included: true,
       },
     });
     return {
@@ -878,7 +1048,9 @@ export async function handleFinanceBankImportPreview({ body, context, requestId,
             extracted_page_count: preview.extracted_page_count,
             extracted_character_count: preview.extracted_character_count,
           } : {}),
-          confirmation_token_included: false,
+          preview_confirmation_token: confirmation.token,
+          confirmation_expires_at: confirmation.expires_at,
+          confirmation_token_included: true,
           product_records_mutated: false,
           raw_source_payload_included: false,
         },
