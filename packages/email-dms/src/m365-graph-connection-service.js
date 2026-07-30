@@ -354,9 +354,14 @@ function validateAuthorizationResult(result, principal) {
   if (Date.parse(expiresAt) <= Date.parse(consentedAt)) {
     throw new TypeError("expires_at must be after consented_at");
   }
+  const mailboxAddress = requiredString(result, "mailbox_address")
+    .normalize("NFKC")
+    .toLowerCase();
+  const mailboxAddressHash = hashMailboxAddress(mailboxAddress);
   return Object.freeze({
     entra_subject_id: subjectId,
-    mailbox_address_hash: hashMailboxAddress(result.mailbox_address),
+    mailbox_address: mailboxAddress,
+    mailbox_address_hash: mailboxAddressHash,
     token_bundle: result.token_bundle,
     granted_scopes: Object.freeze(grantedScopes),
     consented_at: consentedAt,
@@ -553,7 +558,10 @@ export function createM365GraphConnectionService({
       tenant_id: principal.tenant_id,
       user_id: principal.user_id,
       entra_subject_id: principal.entra_subject_id,
-      token_bundle: authorization.token_bundle,
+      token_bundle: {
+        ...authorization.token_bundle,
+        mailbox_address: authorization.mailbox_address,
+      },
       credential_ref: current?.credential_ref ?? null,
     });
     const occurredAt = timestamp(clock);

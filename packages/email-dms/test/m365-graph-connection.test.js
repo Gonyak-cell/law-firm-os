@@ -287,6 +287,12 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   assert.equal(serialized.includes("synthetic-access-token"), false);
   assert.equal(serialized.includes("synthetic-refresh-token"), false);
   assert.equal(persisted[0].credential_material_included, false);
+  assert.equal(Object.hasOwn(persisted[0], "mailbox_address"), false);
+  assert.equal(
+    dependencies.credentials.get(persisted[0].credential_ref)
+      .mailbox_address,
+    "synthetic.m365.user@example.invalid",
+  );
 
   const mail = createM365MailPort({
     repository,
@@ -302,6 +308,10 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
     rest_message_id: "rest-message-synthetic-001",
   });
   assert.equal(message.immutable_message_id, "immutable-message-synthetic-001");
+  assert.equal(
+    message.mailbox_address,
+    "synthetic.m365.user@example.invalid",
+  );
   assert.equal(message.mime_bytes.byteLength > 0, true);
   assert.equal(
     JSON.stringify(message.message_metadata).includes(
@@ -313,6 +323,55 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
     message.message_metadata.sender.address,
     "sender@example.invalid",
   );
+  const credentialRef = persisted[0].credential_ref;
+  const validCredential =
+    structuredClone(dependencies.credentials.get(credentialRef));
+  dependencies.credentials.set(credentialRef, {
+    ...validCredential,
+    mailbox_address: "another-user@example.invalid",
+  });
+  const mailCallCount = dependencies.calls.filter(
+    (call) => call === "provider:mail:/me",
+  ).length;
+  await assert.rejects(
+    mail.getOwnMessageMime({
+      ...principal(),
+      rest_message_id: "rest-message-synthetic-001",
+    }),
+    (error) => (
+      error.safe_error_code
+        === M365_GRAPH_ERROR_CODES.provider_invalid
+    ),
+  );
+  assert.equal(
+    dependencies.calls.filter(
+      (call) => call === "provider:mail:/me",
+    ).length,
+    mailCallCount,
+  );
+  const credentialWithoutMailbox = structuredClone(validCredential);
+  delete credentialWithoutMailbox.mailbox_address;
+  dependencies.credentials.set(
+    credentialRef,
+    credentialWithoutMailbox,
+  );
+  await assert.rejects(
+    mail.getOwnMessageMime({
+      ...principal(),
+      rest_message_id: "rest-message-synthetic-001",
+    }),
+    (error) => (
+      error.safe_error_code
+        === M365_GRAPH_ERROR_CODES.provider_invalid
+    ),
+  );
+  assert.equal(
+    dependencies.calls.filter(
+      (call) => call === "provider:mail:/me",
+    ).length,
+    mailCallCount,
+  );
+  dependencies.credentials.set(credentialRef, validCredential);
   await assert.rejects(
     mail.getOwnMessageMime({
       ...principal(),

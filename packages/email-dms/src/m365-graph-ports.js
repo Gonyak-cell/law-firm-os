@@ -2,6 +2,7 @@ import {
   M365_GRAPH_ERROR_CODES,
   resolveActiveM365Connection,
 } from "./m365-graph-connection-service.js";
+import { hashMailboxAddress } from "./m365-connection-model.js";
 
 export const CLIENT_INQUIRY_OUTLOOK_FEATURE_FLAG =
   "client_inquiry_outlook_v1";
@@ -181,13 +182,35 @@ export function createM365MailPort({
           503,
         );
       }
-      const { credential } = await activeCredential({
+      const { connection, credential } = await activeCredential({
         repository,
         credential_vault,
         required_scope: "Mail.Read",
         clock,
         input,
       });
+      let mailboxAddress;
+      try {
+        mailboxAddress = requiredString({
+          mailbox_address: credential.mailbox_address,
+        }, "mailbox_address").normalize("NFKC").toLowerCase();
+      } catch {
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.provider_invalid,
+          "Microsoft 365 credential is missing its verified mailbox identity",
+          502,
+        );
+      }
+      if (
+        hashMailboxAddress(mailboxAddress)
+        !== connection.mailbox_address_hash
+      ) {
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.provider_invalid,
+          "Microsoft 365 mailbox identity does not reconcile",
+          502,
+        );
+      }
       const restMessageId = requiredString({
         rest_message_id:
           input.rest_message_id ?? input.message_id,
@@ -232,6 +255,7 @@ export function createM365MailPort({
         source_id_type: "restId",
         target_id_type: "restImmutableEntryId",
         mailbox_scope: "me",
+        mailbox_address: mailboxAddress,
         prefer_immutable_id: true,
         credential_material_included: false,
         production_ready_claim: false,

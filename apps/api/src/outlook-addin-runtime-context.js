@@ -6,6 +6,9 @@ import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-p
 import {
   createInquiryEvidenceStorageService,
 } from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
+import {
+  createOutlookInquiryRegistrationService,
+} from "./outlook-inquiry-registration-service.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
@@ -23,6 +26,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/connection/authorize",
     "GET /api/outlook/connection/callback",
     "DELETE /api/outlook/connection",
+    "POST /api/outlook/inquiries",
     "POST /api/outlook/inquiries/message/resolve",
     "GET /api/outlook/inquiries/evidence/:evidence_id/content",
     "GET /api/outlook/matters",
@@ -255,6 +259,24 @@ function inquiryEvidenceStorageService(runtime) {
     repository: runtime?.emailDmsRuntime?.repository,
     storage: runtime?.emailDmsRuntime?.storage,
     ...(runtime?.emailDmsRuntime?.evidence_storage_config ?? {}),
+  });
+}
+
+function inquiryRegistrationService(runtime) {
+  if (
+    typeof runtime?.emailDmsRuntime?.inquiry_registration_service
+      ?.register === "function"
+  ) {
+    return runtime.emailDmsRuntime.inquiry_registration_service;
+  }
+  return createOutlookInquiryRegistrationService({
+    emailDmsRepository: runtime?.emailDmsRuntime?.repository,
+    masterDataRepository:
+      runtime?.crmIntakeRuntime?.masterDataRepository,
+    crmRepository: runtime?.crmIntakeRuntime?.crmRepository,
+    mailPort: m365MailPort(runtime),
+    evidenceStorageService: inquiryEvidenceStorageService(runtime),
+    clock: runtime?.m365GraphConfig?.clock,
   });
 }
 
@@ -759,6 +781,66 @@ async function handleOutlookInquiryMessageResolve({
   }
 }
 
+async function handleOutlookInquiryRegistration({
+  body,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, body.tenant_id);
+    const captureGate = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:inquiry:capture",
+      auditHintRef: body.audit_hint_ref,
+    });
+    if (captureGate) return captureGate;
+    const writeDecision = evaluateOutlookPermission({
+      context,
+      tenant_id: principal.tenant_id,
+      resource_type: "crm_inquiry",
+      resource_id: body.existing_lead_id ?? "new",
+      action: "crm:inquiry:create",
+    });
+    if (writeDecision.effect !== "allow") {
+      return permissionDeniedResponse({
+        requestId,
+        decision: writeDecision,
+        auditHintRef: body.audit_hint_ref,
+      });
+    }
+    const result = await inquiryRegistrationService(runtime).register({
+      ...body,
+      tenant_id: principal.tenant_id,
+      actor_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+      rest_message_id: requiredString(
+        body.rest_message_id,
+        "rest_message_id",
+      ),
+      idempotency_key: requiredString(
+        body.idempotency_key,
+        "idempotency_key",
+      ),
+    });
+    return success(result.idempotent_replay ? 200 : 201, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      audit_hint_ref: body.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+}
+
 async function handleInquiryEvidenceContentRead({
   evidenceId,
   query,
@@ -1213,6 +1295,17 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     if (pathname === "/api/outlook/connection" && method === "DELETE") {
       return await handleM365ConnectionDelete({
         query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/inquiries"
+      && method === "POST"
+    ) {
+      return await handleOutlookInquiryRegistration({
+        body,
         context,
         requestId,
         runtime,

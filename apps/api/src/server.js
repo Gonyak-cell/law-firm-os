@@ -1672,6 +1672,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         matterRuntime,
         dmsRuntime,
         emailDmsRuntime,
+        crmIntakeRuntime,
         m365GraphConfig,
       },
     });

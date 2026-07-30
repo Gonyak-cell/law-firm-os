@@ -19,6 +19,12 @@ import {
   createLocalStorageAdapter,
 } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import {
+  createCrmRuntimeRepository,
+} from "../../../packages/crm/src/runtime-repository.js";
+import {
+  createMasterDataRepository,
+} from "../../../packages/master-data/src/repository.js";
+import {
   createApiServer,
 } from "../src/server.js";
 import {
@@ -76,6 +82,31 @@ function evidencePermissionContext({ allowed = true } = {}) {
   };
 }
 
+function registrationPermissionContext({
+  captureAllowed = true,
+  writeAllowed = true,
+} = {}) {
+  return {
+    ...permissionContext({ allowed: false }),
+    rules: [
+      ...(captureAllowed
+        ? [{
+          id: "outlook-inquiry-registration-capture",
+          effect: "allow",
+          action_prefix: "outlook:inquiry:",
+        }]
+        : []),
+      ...(writeAllowed
+        ? [{
+          id: "outlook-inquiry-registration-write",
+          effect: "allow",
+          action_prefix: "crm:inquiry:",
+        }]
+        : []),
+    ],
+  };
+}
+
 function repository() {
   return createEmailDmsRepository({
     seedRecords: [{
@@ -126,6 +157,7 @@ function runtime({
                 "outlook-inquiry-api-access-token-never-return",
               refresh_token:
                 "outlook-inquiry-api-refresh-token-never-return",
+              mailbox_address: "intake-user@example.invalid",
             };
           },
         },
@@ -146,6 +178,24 @@ function runtime({
                 "<outlook-inquiry-api@example.invalid>",
               provider_request_id:
                 "provider-request-outlook-inquiry-api",
+              message_metadata: {
+                conversation_id:
+                  "conversation-outlook-inquiry-api",
+                internet_message_id:
+                  "<outlook-inquiry-api@example.invalid>",
+                subject: "Synthetic inquiry API",
+                sender: {
+                  display_name: "Synthetic sender",
+                  address: "sender@example.invalid",
+                },
+                recipients: [{
+                  display_name: "Intake",
+                  address: "intake-user@example.invalid",
+                  recipient_type: "to",
+                }],
+                received_at: "2026-07-30T08:00:00.000Z",
+                has_attachments: false,
+              },
             };
           },
         },
@@ -190,6 +240,53 @@ function evidenceRequest({
     requestId,
     runtime: runtimeValue,
   });
+}
+
+function registrationRequest({
+  body,
+  context = registrationPermissionContext(),
+  runtime: runtimeValue,
+  requestId = "request-outlook-inquiry-registration",
+}) {
+  return handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/inquiries",
+    method: "POST",
+    body,
+    context,
+    requestId,
+    runtime: runtimeValue,
+  });
+}
+
+function registrationRuntime(options = {}) {
+  const base = runtime(options);
+  const storage = createLocalStorageAdapter({
+    adapter_id: "outlook-inquiry-registration-api",
+  });
+  const evidenceStorageService =
+    createInquiryEvidenceStorageService({
+      repository: base.emailDmsRepository,
+      storage,
+      scanner: {
+        async scan() {
+          return { status: "clean" };
+        },
+      },
+      retention_policy_id: "retention_inquiry_email",
+      retention_policy_ref: "retention:inquiry-email",
+      kms_key_ref: "alias/lawos-synthetic-email-dms",
+      clock: () => new Date("2026-07-30T08:05:00.000Z"),
+    });
+  base.value.emailDmsRuntime = {
+    repository: base.emailDmsRepository,
+    storage,
+    evidence_storage_service: evidenceStorageService,
+  };
+  base.value.crmIntakeRuntime = {
+    crmRepository: createCrmRuntimeRepository(),
+    masterDataRepository: createMasterDataRepository(),
+  };
+  return base;
 }
 
 async function storedEvidenceRuntime({
@@ -382,6 +479,144 @@ test("VC-CL-INQ-006 Graph 연동이 꺼져 있으면 문의나 증거를 만들�
     0,
   );
   assert.equal(JSON.stringify(result.body).includes("mime_bytes"), false);
+});
+
+test("VC-CL-INQ-002,003 실제 문의 등록 API는 두 권한을 확인하고 재클릭에 같은 Party·Lead·증거 ID를 반환한다", async () => {
+  const fixture = registrationRuntime();
+  const body = {
+    tenant_id: TENANT,
+    action: "new",
+    rest_message_id: REST_MESSAGE_ID,
+    idempotency_key: "register-outlook-inquiry-api",
+  };
+  const first = await registrationRequest({
+    body,
+    runtime: fixture.value,
+  });
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  assert.equal(first.body.outcome, "registered");
+  assert.equal(first.body.item.capture_status, "complete");
+  assert.deepEqual(first.body.item.created, {
+    evidence: true,
+    party: true,
+    lead: true,
+  });
+
+  const replay = await registrationRequest({
+    body,
+    runtime: fixture.value,
+    requestId: "request-outlook-inquiry-registration-replay",
+  });
+  assert.equal(replay.status, 200);
+  assert.equal(replay.body.item.idempotent_replay, true);
+  assert.equal(replay.body.item.party_id, first.body.item.party_id);
+  assert.equal(replay.body.item.lead_id, first.body.item.lead_id);
+  assert.equal(
+    replay.body.item.inquiry_email_evidence_id,
+    first.body.item.inquiry_email_evidence_id,
+  );
+  assert.equal(fixture.provider_calls, 1);
+  assert.equal(
+    fixture.value.crmIntakeRuntime.masterDataRepository.list({
+      tenant_id: TENANT,
+      model_type: "Party",
+    }).length,
+    1,
+  );
+  assert.equal(
+    fixture.value.crmIntakeRuntime.crmRepository.list({
+      tenant_id: TENANT,
+      model_type: "Lead",
+    }).length,
+    1,
+  );
+  assert.equal(
+    fixture.emailDmsRepository.list({
+      tenant_id: TENANT,
+      model_type: "InquiryEmailEvidence",
+    }).length,
+    1,
+  );
+  const serialized = JSON.stringify({
+    response: first.body,
+    email_dms: fixture.emailDmsRepository.snapshot(),
+  });
+  assert.equal(serialized.includes("Synthetic inquiry body"), false);
+  assert.equal(serialized.includes("access-token-never-return"), false);
+  assert.equal(serialized.includes("refresh-token-never-return"), false);
+});
+
+test("VC-CL-INQ-005,006 문의 등록 API는 문의 작성 권한·mailbox 위조·Graph 비활성을 제품 생성 전에 차단한다", async () => {
+  const body = {
+    tenant_id: TENANT,
+    action: "new",
+    rest_message_id: REST_MESSAGE_ID,
+    idempotency_key: "register-outlook-inquiry-api-blocked",
+  };
+  const deniedFixture = registrationRuntime();
+  const denied = await registrationRequest({
+    body,
+    context: registrationPermissionContext({
+      captureAllowed: true,
+      writeAllowed: false,
+    }),
+    runtime: deniedFixture.value,
+    requestId: "request-outlook-inquiry-registration-denied",
+  });
+  assert.equal(denied.status, 403);
+  assert.equal(deniedFixture.provider_calls, 0);
+
+  const forgedFixture = registrationRuntime();
+  const forged = await registrationRequest({
+    body: {
+      ...body,
+      mailbox_address: "shared@example.invalid",
+    },
+    runtime: forgedFixture.value,
+    requestId: "request-outlook-inquiry-registration-forged",
+  });
+  assert.equal(forged.status, 403);
+  assert.equal(
+    forged.body.safe_error_codes[0],
+    M365_GRAPH_ERROR_CODES.mailbox_override,
+  );
+  assert.equal(forgedFixture.provider_calls, 0);
+
+  const disabledFixture = registrationRuntime({
+    enabled: true,
+    inquiryEnabled: false,
+  });
+  const disabled = await registrationRequest({
+    body,
+    runtime: disabledFixture.value,
+    requestId: "request-outlook-inquiry-registration-disabled",
+  });
+  assert.equal(disabled.status, 503);
+  assert.equal(
+    disabled.body.safe_error_codes[0],
+    M365_GRAPH_ERROR_CODES.feature_disabled,
+  );
+  assert.equal(disabledFixture.provider_calls, 0);
+  for (const fixture of [
+    deniedFixture,
+    forgedFixture,
+    disabledFixture,
+  ]) {
+    assert.equal(
+      fixture.value.crmIntakeRuntime.crmRepository.list({
+        tenant_id: TENANT,
+        model_type: "Lead",
+      }).length,
+      0,
+    );
+    assert.equal(
+      fixture.emailDmsRepository.list({
+        tenant_id: TENANT,
+        model_type: "InquiryEmailEvidence",
+      }).length,
+      0,
+    );
+  }
 });
 
 test("CL-P3-W01-T03 권한 있는 사용자는 안전한 표시 사본과 원본 MIME을 별도 민감 조회로 열고 본문 없는 감사를 남긴다", async () => {
