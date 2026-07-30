@@ -40,6 +40,8 @@ export const JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES = Object.fr
   "apps/api/src/hrx-member-photos/c1fd85d4f8d574a98a743afea034d702d3b4242a9c57ecf2c0ecad9e5cd31ad8.png",
   "apps/api/src/hrx-member-photos/e72b1c79fcf11f443a3d347924ffc6e8a339b004c824395d756f273f2422e9e7.png",
 ]);
+export const JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY =
+  "apps/api/src/hrx-public-professional-profile-catalog.json";
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
@@ -202,6 +204,7 @@ export function validateJsonPostgresProductionArtifactEntries(entries) {
     "apps/api/src/immutable-program-input.js",
     "apps/api/src/matter-vault-user-registration-seed.json",
     "apps/api/src/hrx-member-roster-source-of-truth.json",
+    JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
     "certs/global-bundle.pem",
     "deployment-manifest.json",
     "package.json",

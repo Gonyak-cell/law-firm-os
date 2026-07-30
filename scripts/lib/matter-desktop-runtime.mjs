@@ -1,8 +1,12 @@
 import { existsSync } from "node:fs";
 import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import {
+  HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH,
+  publicProfessionalProfileCatalog,
+} from "./hrx-public-professional-profile.mjs";
 
-const defaultRosterSource = "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json";
+const defaultRosterSource = HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH;
 const defaultPhotoSource = "apps/api/src/hrx-member-photos";
 const defaultRegistrationSeedSource = "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json";
 
@@ -13,29 +17,6 @@ function sourcePaths({ repoRoot, env, rosterSourcePath, contactSourcePath, photo
     contact: configuredContact ? resolve(repoRoot, configuredContact) : null,
     photos: resolve(repoRoot, photoSourcePath ?? env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH ?? defaultPhotoSource),
     registrationSeed: resolve(repoRoot, registrationSeedSourcePath ?? defaultRegistrationSeedSource)
-  };
-}
-
-function publicProfessionalProfileCatalog(privateRoster) {
-  const profiles = (privateRoster.members ?? [])
-    .filter((member) => member?.employee_id && member?.professional_profile)
-    .map((member) => ({
-      employee_id: member.employee_id,
-      professional_profile: Object.fromEntries([
-        "schema_version",
-        "profile_kind",
-        "public_role_labels",
-        "practice_areas",
-        "experience",
-        "education",
-        "qualifications"
-      ].flatMap((key) => member.professional_profile[key] === undefined ? [] : [[key, member.professional_profile[key]]]))
-    }));
-  if (profiles.length === 0) throw new Error("HRX public professional profile catalog cannot be empty");
-  return {
-    schema_version: "law-firm-os.hrx-public-professional-profile-catalog.v0.1",
-    source_ref: "hrx-public-professional-profile-catalog",
-    profiles
   };
 }
 

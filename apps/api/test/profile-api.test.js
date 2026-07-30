@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -134,6 +134,16 @@ test("Profile photo resolver uses an opaque asset key and rejects unsafe employe
   }
 });
 
+test("Packaged Jiwon portrait keeps enough source pixels for the desktop crop", async () => {
+  const png = await readFile(new URL(
+    "../src/hrx-member-photos/b6ad38508be75403e379885a95ef91c3f77da7d19ac4f8635ba328f6a6da0725.png",
+    import.meta.url,
+  ));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG");
+  assert.ok(png.readUInt32BE(16) >= 1200);
+  assert.ok(png.readUInt32BE(20) >= 1700);
+});
+
 test("Profile resolver joins the signed account to its durable HRX employee", () => {
   const tenantId = "tenant_amic_matter_vault";
   const repository = createInMemoryHrxRepository({
@@ -196,6 +206,22 @@ test("Packaged public professional profile catalog exposes only the employee joi
   assert.equal(profile.professional_profile.profile_kind, "attorney");
   assert.equal("work_email" in profile, false);
   assert.equal("mobile_phone" in profile, false);
+});
+
+test("Packaged public professional profile catalog resolves an opaque employee join", () => {
+  const employeeId = "emp_runtime_jwsuh";
+  const profile = findHrxPublicProfessionalProfileByEmployeeId(employeeId, {
+    profiles: [{
+      employee_ref: createHash("sha256").update(employeeId).digest("hex"),
+      professional_profile: {
+        profile_kind: "attorney",
+        experience: ["법무법인 아믹 대표변호사"],
+      },
+    }],
+  });
+  assert.equal(profile.employee_id, employeeId);
+  assert.deepEqual(profile.professional_profile.experience, ["법무법인 아믹 대표변호사"]);
+  assert.equal(findHrxPublicProfessionalProfileByEmployeeId("", { profiles: [] }), null);
 });
 
 test("Profile API rejects unsigned review and denied permission contexts", async () => {

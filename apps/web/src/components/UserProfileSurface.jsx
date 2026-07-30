@@ -106,7 +106,7 @@ function writeProfileOverride(employeeId, patch) {
   try {
     window.localStorage.setItem(profileOverrideKey(employeeId), JSON.stringify({
       ...patch,
-      profile_override_version: 1,
+      profile_override_version: 2,
       updated_at: new Date().toISOString()
     }));
     return true;
@@ -118,15 +118,26 @@ function writeProfileOverride(employeeId, patch) {
 function mergeProfileOverride(member, override) {
   if (!member || !override) return member;
   const nextOverride = { ...override };
-  if (nextOverride.profile_override_version !== 1 && !stringValue(member.start_date) && nextOverride.start_date === "2025-12-30") {
+  if (!nextOverride.profile_override_version && !stringValue(member.start_date) && nextOverride.start_date === "2025-12-30") {
     nextOverride.start_date = "";
+  }
+  const baseProfessionalProfile = objectValue(member.professional_profile);
+  const professionalProfileOverride = { ...objectValue(nextOverride.professional_profile) };
+  if (nextOverride.profile_override_version === 1) {
+    for (const key of ["experience", "education", "qualifications", "practice_areas"]) {
+      if (stringList(baseProfessionalProfile[key]).length > 0
+        && Array.isArray(professionalProfileOverride[key])
+        && stringList(professionalProfileOverride[key]).length === 0) {
+        delete professionalProfileOverride[key];
+      }
+    }
   }
   return {
     ...member,
     ...nextOverride,
     professional_profile: {
-      ...objectValue(member.professional_profile),
-      ...objectValue(nextOverride.professional_profile)
+      ...baseProfessionalProfile,
+      ...professionalProfileOverride
     }
   };
 }

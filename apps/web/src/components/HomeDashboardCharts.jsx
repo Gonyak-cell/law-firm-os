@@ -12,13 +12,13 @@ const PAYROLL_DONUT_COLORS = Object.freeze({
   unclassified: "#9aa3a0",
 });
 const NON_PAYROLL_DONUT_COLORS = Object.freeze({
-  tax: "#315f73",
-  card_settlement: "#0f4f42",
-  social_insurance: "#6e8b4a",
-  professional_services: "#9a6b34",
-  rent_office: "#6e638a",
-  other: "#9aa3a0",
-  unclassified: "#b24c3d",
+  tax: "#123f67",
+  card_settlement: "#1f5f8b",
+  social_insurance: "#2f77a8",
+  professional_services: "#5796bd",
+  rent_office: "#80b2cf",
+  other: "#afcfdf",
+  unclassified: "#60758a",
 });
 
 function money(value) {
@@ -114,10 +114,17 @@ function HomeDonutChart({
 }) {
   const titleId = useId();
   const descriptionId = useId();
+  const categoryTotal = categories.reduce((sum, category) => sum + (Number(category.amount) || 0), 0);
+  const donutTotal = categoryTotal > 0 ? categoryTotal : total;
   let offset = 0;
-  const segments = categories.map((category) => {
-    const percent = total > 0 ? Number(category.amount || 0) / total * 100 : 0;
-    const segment = { ...category, percent, offset };
+  const segments = categories.map((category, index) => {
+    const rawPercent = donutTotal > 0 ? Number(category.amount || 0) / donutTotal * 100 : 0;
+    const percent = index === categories.length - 1
+      ? Math.max(0, 100 - offset)
+      : Math.min(rawPercent, Math.max(0, 100 - offset));
+    const closesDonut = categories.length > 1 && index === categories.length - 1;
+    const renderPercent = Math.min(100, percent + (closesDonut ? 0.15 : 0));
+    const segment = { ...category, percent, renderPercent, offset };
     offset += percent;
     return segment;
   });
@@ -140,8 +147,11 @@ function HomeDonutChart({
             cy="110"
             r="72"
             pathLength="100"
-            strokeDasharray={`${segment.percent} ${100 - segment.percent}`}
+            strokeDasharray={`${segment.renderPercent} ${100 - segment.renderPercent}`}
             strokeDashoffset={-segment.offset}
+            data-home-donut-percent={segment.percent}
+            strokeLinecap="butt"
+            shapeRendering="geometricPrecision"
             style={{ stroke: segment.color }}
           >
             <title>{`${segment.label} ${money(segment.amount)}, ${segment.percent.toFixed(1)}%`}</title>

@@ -24,6 +24,7 @@ import {
 } from "./lib/private-staging-artifact.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+  JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
   JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS,
   JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES,
   emptyJsonPostgresProductionSources,
@@ -34,6 +35,10 @@ import {
   validateJsonPostgresProductionSourceBoundary,
   validateJsonPostgresProductionSourceOverrides,
 } from "./lib/json-postgres-production-artifact.mjs";
+import {
+  HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH,
+  publicProfessionalProfileCatalog,
+} from "./lib/hrx-public-professional-profile.mjs";
 
 const RDS_CA_URL = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem";
 
@@ -170,6 +175,20 @@ try {
     writeFileSync(absoluteTarget, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o644 });
   }
 
+  const publicProfessionalProfiles = publicProfessionalProfileCatalog(
+    JSON.parse(
+      gitBytes("show", `${sourceSha}:${HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH}`)
+        .toString("utf8"),
+    ),
+    { opaqueEmployeeRefs: true },
+  );
+  const publicProfessionalProfileText = `${JSON.stringify(publicProfessionalProfiles, null, 2)}\n`;
+  writeFileSync(
+    join(stagingRoot, JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY),
+    publicProfessionalProfileText,
+    { mode: 0o644 },
+  );
+
   const sourceOverrides = JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES.map((override) => {
     const bytes = readFileSync(join(stagingRoot, override.source_path));
     const targetPath = join(stagingRoot, override.target_path);
@@ -201,13 +220,19 @@ try {
   });
 
   const sourceBoundary = validateJsonPostgresProductionSourceBoundary(
-    tracked
-      .map((entry) => entry.path)
-      .filter((path) => !/\.(?:png|jpg|jpeg|webp)$/iu.test(path))
-      .map((path) => ({
-        path,
-        text: readFileSync(join(stagingRoot, path), "utf8"),
-      })),
+    [
+      ...tracked
+        .map((entry) => entry.path)
+        .filter((path) => !/\.(?:png|jpg|jpeg|webp)$/iu.test(path))
+        .map((path) => ({
+          path,
+          text: readFileSync(join(stagingRoot, path), "utf8"),
+        })),
+      {
+        path: JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
+        text: publicProfessionalProfileText,
+      },
+    ],
   );
 
   const caBytes = providedCaPath
@@ -268,6 +293,7 @@ try {
       overrideValidation.packaged_static_role_assignment_count,
     packaged_account_seed_count: 0,
     packaged_roster_count: 0,
+    packaged_public_professional_profile_count: publicProfessionalProfiles.profiles.length,
     data_scope: "approved-immutable-inputs-only",
     operational_authority: "postgres-v2",
     json_fallback: false,

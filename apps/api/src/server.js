@@ -2201,7 +2201,13 @@ export async function startApiServer({
   return new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(port, HOST, () => {
-      resolve({ server, port: server.address().port, host: HOST, sessionAuth: resolvedSessionAuth });
+      resolve({
+        server,
+        port: server.address().port,
+        host: HOST,
+        sessionAuth: resolvedSessionAuth,
+        analyticsRuntime: analyticsRuntimeContext,
+      });
     });
   });
 }

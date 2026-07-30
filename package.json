@@ -46,6 +46,7 @@
     "json-postgres:release:probe": "node scripts/collect-json-postgres-release-probe.mjs",
     "json-postgres:release:formal": "node scripts/run-json-postgres-formal-release.mjs",
     "json-postgres:production:smoke": "node scripts/collect-json-postgres-production-smoke.mjs",
+    "home-finance:production:smoke": "node scripts/run-home-finance-production-smoke.mjs",
     "json-postgres:go-live:evidence": "node scripts/collect-json-postgres-go-live-evidence.mjs",
     "json-postgres:w15:probe": "node scripts/collect-json-postgres-relational-projection-probe.mjs",
     "json-postgres:w15:receipt:prepare": "node scripts/prepare-json-postgres-w15-component-receipt.mjs",

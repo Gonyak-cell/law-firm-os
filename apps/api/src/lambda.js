@@ -43,6 +43,7 @@ import { createCanonicalRecord } from "../../../packages/runtime-model/src/valid
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
+import { buildCashflowReadModel } from "../../../packages/analytics/src/finance-read-model.js";
 import {
   readDurableJsonFile,
   removeDurableJsonFile,
@@ -95,6 +96,9 @@ export const CTI_CLIENT_DISPLAY_NAME_REPAIR_APPROVAL_REF =
 export const LCX_AUTH_RESET_RECOVERY_ACTION = "lcx_auth_reset_recovery_01";
 export const LAWOS_PASSWORD_RESET_WORKER_ACTION = "lawos_password_reset_worker";
 export const LCX_AUTH_RESET_RECOVERY_APPROVAL_REF = "LCX-AUTH-RESET-RECOVERY-01";
+export const HOME_FINANCE_DASHBOARD_SMOKE_ACTION = "home_finance_dashboard_smoke";
+export const HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF =
+  "USER-HOME-FINANCE-DASHBOARD-SMOKE-2026-07-30";
 
 const CTI_READONLY_EFS_SNAPSHOT_SCHEMA_VERSION = "law-firm-os.cti.readonly-efs-snapshot.v0.1";
 const CTI_S1G_AUTHENTICATED_PRODUCTION_PROBE_SCHEMA_VERSION =
@@ -1209,6 +1213,154 @@ function responseEvidence({ status, body }, extra = {}) {
     plaintext_body_returned: false,
     ...extra,
   };
+}
+
+const SEOUL_DATE_PARTS = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function seoulDateKey(value = new Date()) {
+  const parts = Object.fromEntries(
+    SEOUL_DATE_PARTS.formatToParts(value)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function monthKeysEndingAt(monthKey, count = 6) {
+  const [year, month] = String(monthKey).split("-").map(Number);
+  return Array.from({ length: count }, (_, index) => {
+    const cursor = new Date(Date.UTC(year, month - count + index, 1));
+    return `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
+  });
+}
+
+function finiteMoney(value) {
+  return Number.isFinite(Number(value)) && Number(value) >= 0;
+}
+
+function moneyTotal(rows, field) {
+  return (Array.isArray(rows) ? rows : []).reduce((sum, row) => sum + Number(row?.[field] ?? 0), 0);
+}
+
+export function buildHomeFinanceDashboardSmokeReceipt({
+  financeRepository,
+  tenantId = MATTER_VAULT_REGISTERED_TENANT_ID,
+  now = () => new Date(),
+  requireCurrentActivity = false,
+} = {}) {
+  const observedAt = now();
+  const date = seoulDateKey(observedAt);
+  const month = date.slice(0, 7);
+  const monthKeys = monthKeysEndingAt(month);
+  const blocked = (reason, extra = {}) => Object.freeze({
+    ok: false,
+    status: "BLOCKED_HOME_FINANCE_DASHBOARD_CONTRACT",
+    maintenance_action: HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+    observed_at: observedAt.toISOString(),
+    month,
+    reason,
+    ...extra,
+    production_write_executed: false,
+    raw_transaction_values_returned: false,
+    counterparty_values_returned: false,
+    individual_payroll_values_returned: false,
+    production_ready_claim: false,
+  });
+  if (!financeRepository || typeof financeRepository.list !== "function") {
+    return blocked("finance_repository_unavailable");
+  }
+
+  let current;
+  let history;
+  try {
+    current = buildCashflowReadModel({
+      financeRepository,
+      tenant_id: tenantId,
+      from: `${month}-01`,
+      to: date,
+      currency: "KRW",
+    });
+    history = buildCashflowReadModel({
+      financeRepository,
+      tenant_id: tenantId,
+      from: `${monthKeys[0]}-01`,
+      to: date,
+      currency: "KRW",
+    });
+  } catch (error) {
+    return blocked("cashflow_read_model_failed", {
+      error_name: error?.name ?? "Error",
+    });
+  }
+
+  const currentSummary = current.business_summary ?? {};
+  const payrollAmount = Number(currentSummary.payroll_payment_amount);
+  const nonPayrollAmount = Number(current.summary?.total_outflow) - payrollAmount;
+  const payrollCategoryTotal = moneyTotal(current.payroll_categories, "gross_krw");
+  const nonPayrollCategoryTotal = moneyTotal(current.non_payroll_outflow_categories, "amount");
+  const historyByMonth = new Map(
+    (Array.isArray(history.monthly) ? history.monthly : [])
+      .filter((row) => row?.currency === "KRW" && monthKeys.includes(row.month))
+      .map((row) => [row.month, row]),
+  );
+  const sixMonthSales = monthKeys.map((monthKey) =>
+    Number(historyByMonth.get(monthKey)?.sales_amount ?? 0));
+  const checks = Object.freeze({
+    source_complete: current.partial !== true
+      && history.partial !== true
+      && current.source_statuses.every((source) => source.status === "passed")
+      && history.source_statuses.every((source) => source.status === "passed"),
+    classifications_reconciled: currentSummary.status === "passed",
+    current_values_numeric: [
+      currentSummary.sales_amount,
+      payrollAmount,
+      nonPayrollAmount,
+    ].every(finiteMoney),
+    current_activity_present: !requireCurrentActivity || (
+      Number(current.summary?.transaction_count) > 0
+      && Number(currentSummary.sales_amount) > 0
+      && payrollAmount > 0
+      && nonPayrollAmount > 0
+    ),
+    payroll_categories_reconcile: finiteMoney(payrollCategoryTotal)
+      && Math.abs(payrollCategoryTotal - payrollAmount) < 0.5,
+    non_payroll_categories_reconcile: finiteMoney(nonPayrollCategoryTotal)
+      && Math.abs(nonPayrollCategoryTotal - nonPayrollAmount) < 0.5,
+    six_month_sales_numeric: sixMonthSales.length === 6 && sixMonthSales.every(finiteMoney),
+  });
+  if (Object.values(checks).some((value) => value !== true)) {
+    return blocked("dashboard_numeric_contract_failed", { checks });
+  }
+
+  return Object.freeze({
+    ok: true,
+    status: "PASS",
+    maintenance_action: HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+    observed_at: observedAt.toISOString(),
+    month,
+    currency: "KRW",
+    metrics: Object.freeze({
+      current_sales_krw: Number(currentSummary.sales_amount),
+      current_payroll_krw: payrollAmount,
+      current_non_payroll_outflow_krw: nonPayrollAmount,
+      six_month_sales_krw: Object.freeze(sixMonthSales),
+      observed_month_count: historyByMonth.size,
+      payroll_category_count: current.payroll_categories.length,
+      non_payroll_category_count: current.non_payroll_outflow_categories.length,
+    }),
+    checks,
+    direct_invoke_only: true,
+    production_write_executed: false,
+    raw_transaction_values_returned: false,
+    counterparty_values_returned: false,
+    individual_payroll_values_returned: false,
+    production_ready_claim: false,
+  });
 }
 
 export async function buildCtiS1GAuthenticatedProductionProbeReceipt({
@@ -3174,6 +3326,32 @@ async function handleCtiS1GAuthenticatedProductionProbe(event = {}) {
   }
 }
 
+async function handleHomeFinanceDashboardSmoke(event = {}) {
+  if (isHttpLambdaEvent(event)) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "home_finance_dashboard_smoke_direct_invoke_only",
+      maintenance_action: HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+      public_http_endpoint: false,
+    });
+  }
+  if (event.approval_signature_ref !== HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF) {
+    return jsonLambdaResponse(403, {
+      ok: false,
+      reason: "home_finance_dashboard_smoke_approval_ref_required",
+      maintenance_action: HOME_FINANCE_DASHBOARD_SMOKE_ACTION,
+      required_approval_signature_ref: HOME_FINANCE_DASHBOARD_SMOKE_APPROVAL_REF,
+      public_http_endpoint: false,
+    });
+  }
+  const runtime = await apiRuntime();
+  return buildHomeFinanceDashboardSmokeReceipt({
+    financeRepository: runtime.analyticsRuntime?.financeRepository,
+    tenantId: process.env.LAWOS_DATABASE_TENANT_ID ?? MATTER_VAULT_REGISTERED_TENANT_ID,
+    requireCurrentActivity: event.require_current_activity === true,
+  });
+}
+
 export async function buildHrxRosterReconcileReceipt({ env = process.env, now = () => new Date() } = {}) {
   if (!legacyFileAuthorityAllowed(env)) {
     return legacyJsonMutationBlockedReceipt({
@@ -4164,6 +4342,9 @@ export async function handler(event = {}) {
   }
   if (maintenanceAction(event) === HRX_ROSTER_RECONCILE_ACTION) {
     return handleHrxRosterReconcile(event);
+  }
+  if (maintenanceAction(event) === HOME_FINANCE_DASHBOARD_SMOKE_ACTION) {
+    return handleHomeFinanceDashboardSmoke(event);
   }
   if (maintenanceAction(event) === LCX_AUTH_RESET_RECOVERY_ACTION) {
     return handleLcxAuthResetRecovery(event);
