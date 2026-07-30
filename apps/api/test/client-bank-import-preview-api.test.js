@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-service.js";
 import { parseAmicWorkbookBuffer } from "../../../packages/import-data/src/index.js";
 import { createXlsxBuffer } from "../../../packages/hrx/src/leave/xlsx-export.js";
 import {
@@ -163,6 +164,84 @@ test("CL-P1-W01-T01 XLSX preview fails closed for staff, malformed workbooks, an
       baseUrl,
       highestPrivilegeRegisteredAccount(),
       previewForm(workbookBuffer(), { mimeType: "text/plain" }),
+    );
+    assert.equal(misleading.status, 400);
+    assert.deepEqual(misleading.body.safe_error_codes, ["FINANCE_SOURCE_FILE_INVALID"]);
+  });
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankTransaction",
+  }).length, 0);
+});
+
+test("CL-P1-W01-T02 authorized PDF preview extracts one bank row without importing it", async () => {
+  const repository = createFinanceRepository();
+  const statement = renderSimpleTextPdf([
+    "2026/07/06",
+    "inflow 1,500 13,700  realtime transfer  Client C",
+    "09:30:00",
+  ]);
+
+  await withServer(repository, async (baseUrl) => {
+    const response = await postPreview(
+      baseUrl,
+      highestPrivilegeRegisteredAccount(),
+      previewForm(statement, {
+        mimeType: "application/pdf",
+        fileName: "거래내역.pdf",
+      }),
+    );
+    assert.equal(response.status, 200, JSON.stringify(response.body));
+    assert.equal(response.body.outcome, "preview_ready");
+    assert.equal(response.body.preview.source_type, "pdf");
+    assert.equal(response.body.preview.extracted_page_count, 1);
+    assert.equal(response.body.preview.extracted_character_count > 0, true);
+    assert.deepEqual(response.body.preview.counts, {
+      total: 1,
+      new: 1,
+      duplicate: 0,
+      error: 0,
+    });
+    assert.equal(response.body.preview.items[0].direction, "inflow");
+    assert.equal(response.body.preview.items[0].amount, 1500);
+    assert.equal(response.body.preview.items[0].balance_after, 13700);
+    assert.equal(response.body.preview.items[0].source_type, "pdf");
+    assert.equal(response.body.preview.items[0].transaction_fingerprint, undefined);
+    assert.equal(response.body.preview.items[0].source_refs, undefined);
+    assert.equal(response.body.preview.product_records_mutated, false);
+  });
+
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankTransaction",
+  }).length, 0);
+  assert.equal(repository.list({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    model_type: "BankImportBatch",
+  }).length, 0);
+});
+
+test("CL-P1-W01-T02 PDF preview rejects damaged content and misleading MIME types", async () => {
+  const repository = createFinanceRepository();
+  await withServer(repository, async (baseUrl) => {
+    const damaged = await postPreview(
+      baseUrl,
+      highestPrivilegeRegisteredAccount(),
+      previewForm(Buffer.from("%PDF-1.4\nbroken\n%%EOF"), {
+        mimeType: "application/pdf",
+        fileName: "거래내역.pdf",
+      }),
+    );
+    assert.equal(damaged.status, 400);
+    assert.deepEqual(damaged.body.safe_error_codes, ["FINANCE_SOURCE_FILE_INVALID"]);
+
+    const misleading = await postPreview(
+      baseUrl,
+      highestPrivilegeRegisteredAccount(),
+      previewForm(renderSimpleTextPdf(["not a statement"]), {
+        mimeType: XLSX_MIME,
+        fileName: "거래내역.pdf",
+      }),
     );
     assert.equal(misleading.status, 400);
     assert.deepEqual(misleading.body.safe_error_codes, ["FINANCE_SOURCE_FILE_INVALID"]);

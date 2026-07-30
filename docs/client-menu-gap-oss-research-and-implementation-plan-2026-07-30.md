@@ -7,7 +7,7 @@
 - 작업 브랜치: `codex/client-operations-v2-implementation-20260730`
 - 계획 단위: 단계 → 작업 묶음(WP) → 검증 가능한 작업 단위(TUW)
 - 실행 Goal: 문서 제목과 같은 `10인 로펌 Client 전체 메뉴 상세 실행계획`
-- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5 완료, 전체 6/53 완료
+- 문서 상태: 구현 진행 중 — P0 기준 계약 5/5 완료, 전체 7/53 완료
 
 ## 0. v2에서 바로잡은 점
 
@@ -840,6 +840,7 @@ flowchart LR
 node scripts/validate-client-operations-fixture.mjs
 node --test packages/import-data/test/amic-cashflow-source.test.js
 node --test apps/api/test/client-bank-import-preview-api.test.js
+node --test scripts/test/client-pdf-runtime-contract.test.mjs apps/desktop/test/runtime-package.test.mjs
 node --test packages/billing/test/bank-transaction-service.test.js packages/billing/test/bank-classification-service.test.js
 node --test packages/billing/test/client-deposit-revenue.test.js packages/billing/test/fee-commitment-allocation.test.js
 node --test packages/email-dms/test/inquiry-evidence.test.js
@@ -909,9 +910,12 @@ npm test
 - 현재 `client_unique_prefix` 고객명도 자동으로 높은 신뢰도로 처리하므로 정확 일치로 좁혀야 한다.
 - 현재 Outlook email file API는 `matter_id`가 필수이며 M365 연동 런타임은 꺼져 있다.
 - 현재 Opportunity→Matter 직접 우회는 차단돼 있다.
+- 기존 PDF 사전 검증은 로컬 `pdftotext` 실행 파일에 의존했으므로 데스크톱 패키지와 API 런타임에서 같은 결과를 보장하지 못했다. `unpdf@1.8.0`을 고정해 프로세스 안에서 읽고, 파일 8MB·100쪽·추출 문자 100만 자 상한과 PDF 파일 머리글 검사를 적용한다.
 
 ### OSS 패턴
 
+- [unpdf v1.8.0의 서버 런타임용 PDF.js 추출 래퍼](https://github.com/unjs/unpdf/tree/v1.8.0)
+- [Mozilla PDF.js](https://github.com/mozilla/pdf.js)
 - [Frappe CRM Lead→Deal 전환](https://github.com/frappe/crm/blob/f8c07ff250474bd98a353a5157e6dac3511935eb/frontend/src/components/Modals/ConvertToDealModal.vue#L23-L86)
 - [Twenty 연결된 활동 작성](https://github.com/twentyhq/twenty/blob/33fb57d128f47cde325f619f25a99e9e52b06f14/packages/twenty-front/src/modules/activities/hooks/useOpenCreateActivityDrawer.ts#L58-L139)
 - [EspoCRM 고객 상세 관계 패널](https://github.com/espocrm/espocrm/blob/f27d302fc74ccf4a38c227a3e0f19387e6e4109d/application/Espo/Modules/Crm/Resources/layouts/Account/bottomPanelsDetail.json#L1-L33)
@@ -949,7 +953,8 @@ npm test
 | `CL-P0-W01-T04` | 완료 | 문의·수임·계약·Matter 분리와 9개 Client 기능 권한, 5개 사용자 유형 매핑 등록 | 서명 세션 허용·차단 및 production 최고권한 복원 테스트 |
 | `CL-P0-W01-T05` | 완료 | 고객 3곳, 32개 VC, JSON·CSV 기대값과 fail-closed validator 등록 | `node scripts/validate-client-operations-fixture.mjs` PASS |
 | `CL-P1-W01-T01` | 완료 | 기존 안전 XLSX 파서를 `/api/finance/bank-imports/preview`에 연결; 해시·계좌·신규·중복·오류 건수와 검토 행 반환, 제품 레코드 미생성 | 정상·중복·직원 403·손상 파일·위장 MIME, Finance/HRX XLSX 회귀 32/32 |
-| `CL-P1-W01-T02` | 다음 | 제한된 PDF 텍스트 추출과 미리보기 지원 | 시작 전 |
+| `CL-P1-W01-T02` | 완료 | `unpdf@1.8.0`을 API·내부 데스크톱 의존성으로 고정하고 XLSX와 같은 미리보기 계약에 PDF를 연결; 8MB·100쪽·100만 자·확장자/MIME 형식·PDF 파일 머리글 제한, 제품 레코드 미생성 | 정상·손상·위장 MIME·과대 파일·쪽수·문자 수·패키지 계약과 기존 Finance/Import/PostgreSQL 회귀 40/40, 운영 의존성 보안 취약점 0건 |
+| `CL-P1-W01-T03` | 다음 | 서버가 검증한 미리보기 확인 토큰·해시를 기존 `/api/finance/bank-imports` 확정 경로에 연결 | 시작 전 |
 
 P0 집중 검증:
 

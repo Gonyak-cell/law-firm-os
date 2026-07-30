@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   MAX_AMIC_WORKBOOK_SOURCE_BYTES,
+  MAX_NH_BANK_STATEMENT_PDF_BYTES,
+  MAX_NH_BANK_STATEMENT_PDF_PAGES,
+  MAX_NH_BANK_STATEMENT_TEXT_CHARACTERS,
   mergeCashflowTransactions,
   parseAmicWorkbookSheets,
   parseNhBankStatementText,
   parseXlsxSheetsBuffer,
   previewAmicWorkbookBuffer,
+  previewNhBankStatementPdfBuffer,
   summarizeCashflowTransactions,
 } from "../src/index.js";
+import { renderSimpleTextPdf } from "../../billing/src/invoice-pdf-service.js";
 import { createXlsxBuffer } from "../../hrx/src/leave/xlsx-export.js";
 
 const sheets = {
@@ -51,6 +56,38 @@ function cashflowWorkbookBuffer(sourceSheets = sheets) {
       rows: rows.slice(1),
     })),
   });
+}
+
+function textPdfPages(pageTexts, { fontSize = 11 } = {}) {
+  const fontId = 3 + pageTexts.length * 2;
+  const pageIds = pageTexts.map((_, index) => 3 + index * 2);
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageTexts.length} >>`,
+  ];
+  pageTexts.forEach((text, index) => {
+    const contentId = 4 + index * 2;
+    const content = `BT\n/F1 ${fontSize} Tf\n1 0 0 1 72 760 Tm (${text}) Tj\nET\n`;
+    objects.push(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentId} 0 R >>`,
+      `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}endstream`,
+    );
+  });
+  objects.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xrefOffset = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return Buffer.from(pdf, "ascii");
 }
 
 test("AMIC cashflow XLSX parsing rejects formula-like worksheet values", () => {
@@ -156,6 +193,7 @@ test("CL-P1-W01-T01 XLSX preview returns deterministic hashes and new or duplica
   assert.match(first.source_file_sha256, /^[a-f0-9]{64}$/u);
   assert.match(first.preview_manifest_sha256, /^[a-f0-9]{64}$/u);
   assert.match(first.preview_id, /^bank_import_preview_[a-f0-9]{24}$/u);
+  assert.equal(first.source_type, "xlsx");
   assert.deepEqual(first.counts, { total: 4, new: 4, duplicate: 0, error: 0 });
   assert.equal(first.items.every((item) => item.raw_source_payload_included === false), true);
   assert.equal(first.items.every((item) => item.transaction_fingerprint_included === false), true);
@@ -183,5 +221,67 @@ test("CL-P1-W01-T01 XLSX preview rejects empty and oversized sources before pars
   assert.throws(
     () => previewAmicWorkbookBuffer(Buffer.alloc(MAX_AMIC_WORKBOOK_SOURCE_BYTES + 1)),
     /byte budget/,
+  );
+});
+
+test("CL-P1-W01-T02 PDF preview extracts text in-process and returns a bounded transaction preview", async () => {
+  const statement = renderSimpleTextPdf([
+    "2026/07/06",
+    "inflow 1,500 13,700  realtime transfer  Client C",
+    "09:30:00",
+  ]);
+  const preview = await previewNhBankStatementPdfBuffer(statement, {
+    account_ref: "account-client-preview",
+  });
+
+  assert.equal(preview.source_type, "pdf");
+  assert.equal(preview.extracted_page_count, 1);
+  assert.equal(preview.extracted_character_count > 0, true);
+  assert.deepEqual(preview.counts, { total: 1, new: 1, duplicate: 0, error: 0 });
+  assert.equal(preview.items[0].direction, "inflow");
+  assert.equal(preview.items[0].amount, 1500);
+  assert.equal(preview.items[0].balance_after, 13700);
+  assert.equal(preview.items[0].source_type, "pdf");
+  assert.equal(preview.items[0].raw_source_payload_included, false);
+  assert.equal(preview.product_records_mutated, false);
+});
+
+test("CL-P1-W01-T02 PDF preview rejects empty, oversized, non-PDF, and damaged sources", async () => {
+  await assert.rejects(
+    previewNhBankStatementPdfBuffer(Buffer.alloc(0)),
+    /source file is required/,
+  );
+  await assert.rejects(
+    previewNhBankStatementPdfBuffer(Buffer.alloc(MAX_NH_BANK_STATEMENT_PDF_BYTES + 1)),
+    /byte budget/,
+  );
+  await assert.rejects(
+    previewNhBankStatementPdfBuffer(Buffer.from("not-a-pdf")),
+    /signature is invalid/,
+  );
+  await assert.rejects(
+    previewNhBankStatementPdfBuffer(Buffer.from("%PDF-1.4\nbroken\n%%EOF")),
+  );
+});
+
+test("CL-P1-W01-T02 PDF preview enforces page and extracted-text limits", async () => {
+  await assert.rejects(
+    previewNhBankStatementPdfBuffer(
+      textPdfPages(Array.from(
+        { length: MAX_NH_BANK_STATEMENT_PDF_PAGES + 1 },
+        (_, index) => `page ${index + 1}`,
+      )),
+    ),
+    /page count exceeds/,
+  );
+  await assert.rejects(
+    previewNhBankStatementPdfBuffer(
+      textPdfPages(Array.from(
+        { length: MAX_NH_BANK_STATEMENT_PDF_PAGES },
+        () => "A".repeat(Math.floor(MAX_NH_BANK_STATEMENT_TEXT_CHARACTERS
+          / MAX_NH_BANK_STATEMENT_PDF_PAGES) + 1),
+      ), { fontSize: 0.01 }),
+    ),
+    /extracted text exceeds/,
   );
 });
