@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  CRM_CORE_MODEL_DEFINITIONS,
   createCrmCoreCRMActivity,
   createCrmCoreCampaign,
   createCrmCoreLead,
@@ -88,6 +89,22 @@ test("G3-A CRMActivity preserves confidential permission-trim evidence", () => {
   const validation = validateCrmCoreRecord("CRMActivity", activity);
   assert.equal(activity.confidential, true);
   assert.equal(activity.permission_trim_required, true);
+  assert.equal(activity.version, 1);
+  assert.deepEqual(
+    CRM_CORE_MODEL_DEFINITIONS.CRMActivity
+      .consultation_required_schedule_fields,
+    ["lead_id", "scheduled_start", "scheduled_end", "timezone"],
+  );
+  assert.deepEqual(
+    CRM_CORE_MODEL_DEFINITIONS.CRMActivity
+      .consultation_required_completion_fields,
+    ["completed_at", "outcome", "next_action"],
+  );
+  assert.equal(
+    CRM_CORE_MODEL_DEFINITIONS.CRMActivity
+      .consultation_schedule_authority,
+    "law_firm_os_app",
+  );
   assert.deepEqual(validation.review_required_claims, ["confidential_crm_activity_permission_trim_required"]);
 });
 

@@ -92,6 +92,172 @@ test("PostgreSQL API authority retries bounded read baseline conflicts but never
   assert.equal(mutationAttempts, 1);
 });
 
+test("PostgreSQL API authority persists consultation schedule and completion fields with CRM versions", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-consultation-test",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+  const leadId = "lead-postgres-consultation-t03";
+  const crmRepository = createCrmRuntimeRepository({
+    seedRecords: [{
+      model_type: "Lead",
+      lead_id: leadId,
+      tenant_id: TENANT_A,
+      party_id: "party-postgres-consultation-t03",
+      display_name: "PostgreSQL 상담 문의",
+      status: "active",
+      owner_user_id: "user-postgres-consultation-t03",
+      inquiry_status: "reviewing",
+      source: "manual",
+      received_at: "2026-07-30T08:55:00.000Z",
+      next_action: "상담 일정 확인",
+      version: 2,
+    }],
+  });
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: CRM_DOMAIN_DESCRIPTOR,
+      repositories: [{
+        source_id: "postgres-consultation-crm",
+        repository: crmRepository,
+      }],
+      tenant_id: TENANT_A,
+    }).snapshot);
+  } finally {
+    crmRepository.close();
+  }
+  const context = Object.freeze({
+    principal: Object.freeze({
+      tenant_id: TENANT_A,
+      user_id: "user-postgres-consultation-t03",
+      role_ids: Object.freeze(["system_super_admin"]),
+      scopes: Object.freeze(["crm.inquiry.write"]),
+    }),
+    rules: Object.freeze([{
+      id: "allow-postgres-consultation",
+      effect: "allow",
+      action: "*",
+    }]),
+    object_acl: Object.freeze([]),
+  });
+  const scheduled = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: `/api/crm/inquiries/${leadId}/consultations`,
+      idempotency_key: "postgres-consultation-schedule",
+      actor_id: "user-postgres-consultation-t03",
+    },
+    command(runtimes) {
+      return handleCrmIntakeApiRequest({
+        pathname: `/api/crm/inquiries/${leadId}/consultations`,
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-consultation",
+          audit_hint_ref: "audit-postgres-consultation",
+          expected_inquiry_version: 2,
+          consultation: {
+            subject: "PostgreSQL 상담",
+            scheduled_start: "2026-08-01T10:00:00+09:00",
+            scheduled_end: "2026-08-01T11:00:00+09:00",
+            timezone: "Asia/Seoul",
+            next_action: "상담 준비",
+          },
+          reason: "상담 일정 확정",
+          idempotency_key: "postgres-consultation-schedule",
+        },
+        context,
+        requestId: "request-postgres-consultation-schedule",
+        runtime: runtimes.crmIntakeRuntime,
+      });
+    },
+  });
+  assert.equal(scheduled.status, 201);
+  const activityId = scheduled.body.item.crm_activity_id;
+  const storedSchedule = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "CRMActivity",
+    record_id: activityId,
+  });
+  assert.equal(
+    storedSchedule.payload.scheduled_start,
+    "2026-08-01T01:00:00.000Z",
+  );
+  assert.equal(storedSchedule.payload.timezone, "Asia/Seoul");
+  assert.equal(storedSchedule.payload.version, 1);
+
+  const completed = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "PATCH",
+      pathname: `/api/crm/activities/${activityId}`,
+      idempotency_key: "postgres-consultation-complete",
+      actor_id: "user-postgres-consultation-t03",
+    },
+    command(runtimes) {
+      return handleCrmIntakeApiRequest({
+        pathname: `/api/crm/activities/${activityId}`,
+        method: "PATCH",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-consultation",
+          audit_hint_ref: "audit-postgres-consultation",
+          expected_version: 1,
+          field_updates: {
+            completed_at: "2026-08-01T11:05:00+09:00",
+            outcome: "상담 완료",
+            next_action: "수임 여부 검토",
+          },
+          reason: "상담 완료",
+          idempotency_key: "postgres-consultation-complete",
+        },
+        context,
+        requestId: "request-postgres-consultation-complete",
+        runtime: runtimes.crmIntakeRuntime,
+      });
+    },
+  });
+  assert.equal(completed.status, 200);
+  const storedCompletion = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "CRMActivity",
+    record_id: activityId,
+  });
+  assert.equal(
+    storedCompletion.payload.completed_at,
+    "2026-08-01T02:05:00.000Z",
+  );
+  assert.equal(storedCompletion.payload.outcome, "상담 완료");
+  assert.equal(storedCompletion.payload.version, 2);
+  const storedLead = await ledger.read({
+    tenant_id: TENANT_A,
+    domain_id: "crm",
+    record_type: "Lead",
+    record_id: leadId,
+  });
+  assert.equal(storedLead.payload.next_action, "수임 여부 검토");
+  assert.equal(storedLead.payload.version, 4);
+});
+
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {
   const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 24 });
   if (!fixture) return;

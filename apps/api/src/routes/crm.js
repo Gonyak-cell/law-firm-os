@@ -19,6 +19,12 @@ export const CRM_INTAKE_ROUTE_POLICIES = Object.freeze([
     action: "crm:inquiry:update",
     resource_type: "crm_inquiry",
   }),
+  Object.freeze({
+    method: "POST",
+    pattern: /^\/api\/crm\/inquiries\/([^/]+)\/consultations$/,
+    action: "crm:consultation:create",
+    resource_type: "crm_inquiry",
+  }),
   Object.freeze({ method: "GET", pattern: /^\/api\/crm\/opportunities$/, action: "crm:opportunity:read", resource_type: "crm_opportunity" }),
   Object.freeze({ method: "POST", pattern: /^\/api\/crm\/opportunities$/, action: "crm:opportunity:write", resource_type: "crm_opportunity" }),
   Object.freeze({ method: "GET", pattern: /^\/api\/crm\/activities$/, action: "crm:activity:read", resource_type: "crm_activity" }),

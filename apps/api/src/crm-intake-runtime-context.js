@@ -5,6 +5,11 @@ import {
   transitionLeadInquiryStatus,
 } from "../../../packages/crm/src/lead-inquiry-service.js";
 import {
+  CRM_CONSULTATION_ERROR_CODES,
+  scheduleCrmConsultation,
+  updateCrmConsultation,
+} from "../../../packages/crm/src/activity-service.js";
+import {
   compareCrmInquirySummaries,
   normalizeCrmInquiryVisibleStatus,
   projectCrmInquiry,
@@ -45,6 +50,7 @@ export const CRM_INTAKE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/crm/inquiries",
     "GET /api/crm/inquiries/:id",
     "POST /api/crm/inquiries/:id/transitions",
+    "POST /api/crm/inquiries/:id/consultations",
     "GET /api/crm/opportunities",
     "POST /api/crm/opportunities",
     "GET /api/crm/activities",
@@ -98,6 +104,18 @@ export const CRM_INTAKE_API_ERROR_CODES = Object.freeze({
   inquiry_transition_invalid: CRM_LEAD_INQUIRY_ERROR_CODES.invalid_transition,
   inquiry_not_found: CRM_LEAD_INQUIRY_ERROR_CODES.not_found,
   inquiry_version_conflict: CRM_LEAD_INQUIRY_ERROR_CODES.version_conflict,
+  consultation_active_exists:
+    CRM_CONSULTATION_ERROR_CODES.active_consultation_exists,
+  consultation_not_found:
+    CRM_CONSULTATION_ERROR_CODES.activity_not_found,
+  consultation_idempotency_conflict:
+    CRM_CONSULTATION_ERROR_CODES.idempotency_conflict,
+  consultation_inquiry_state_invalid:
+    CRM_CONSULTATION_ERROR_CODES.inquiry_state_invalid,
+  consultation_update_invalid:
+    CRM_CONSULTATION_ERROR_CODES.update_invalid,
+  consultation_version_conflict:
+    CRM_CONSULTATION_ERROR_CODES.version_conflict,
 });
 
 export const CRM_RUNTIME_SEED = Object.freeze([
@@ -984,17 +1002,30 @@ function partyDisplayName(runtime, tenantId, partyId) {
 
 function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
   const confidential = activity.confidential === true;
+  const consultation = activity.activity_kind === "consultation";
   return Object.freeze({
     resource_id: activity.crm_activity_id,
     tenant_id: activity.tenant_id,
     crm_activity_id: activity.crm_activity_id,
     party_id: activity.party_id,
     party_display_name: partyDisplayName(runtime, activity.tenant_id, activity.party_id),
+    lead_id: activity.lead_id ?? null,
     opportunity_id: activity.opportunity_id ?? null,
     activity_type: activity.activity_type,
-    subject: confidential ? "보호된 이력" : activity.subject,
+    activity_kind: activity.activity_kind ?? null,
+    subject: confidential
+      ? consultation ? "보호된 상담" : "보호된 이력"
+      : activity.subject,
     confidential,
     confidential_subject_included: !confidential,
+    confidential_details_included: !confidential,
+    scheduled_start: activity.scheduled_start ?? null,
+    scheduled_end: activity.scheduled_end ?? null,
+    timezone: activity.timezone ?? null,
+    completed_at: activity.completed_at ?? null,
+    outcome: confidential ? null : activity.outcome ?? null,
+    next_action: confidential ? null : activity.next_action ?? null,
+    version: activity.version ?? 1,
     status: activity.status,
     owner_user_id: activity.owner_user_id,
     occurred_at: activity.occurred_at ?? activity.created_at ?? null,
@@ -2650,16 +2681,72 @@ export function handleCrmActivityPatch({ activityId, body, context, requestId, r
   const query = { tenant_id: body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref, resource_id: activityId };
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
-  const patch = normalizeActivityPatch(body?.field_updates ?? {});
-  if (!patch) {
-    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
-  }
   const actorId = actorIdFrom(body, context);
   if (!actorId) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
   const existing = runtime.crmRepository.get({ tenant_id: query.tenant_id, model_type: "CRMActivity", resource_id: activityId });
   if (!existing) return errorResponse(404, requestId, [CRM_INTAKE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  if (existing.activity_kind === "consultation") {
+    if (includesDirectMatterReference(body?.field_updates)) {
+      return errorResponse(
+        400,
+        requestId,
+        [CRM_INTAKE_API_ERROR_CODES.validation_error],
+        { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+      );
+    }
+    try {
+      const result = updateCrmConsultation({
+        repository: runtime.crmRepository,
+        tenant_id: query.tenant_id,
+        activity_id: activityId,
+        expected_version: body?.expected_version,
+        field_updates: body?.field_updates,
+        reason: body?.reason,
+        actor_id: actorId,
+        idempotency_key: body?.idempotency_key,
+        permission_ref: query.permission_ref,
+      });
+      return itemResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+        outcome: result.idempotent_replay
+          ? "idempotent_replay"
+          : result.outcome,
+        item: serializeActivity(result.activity, runtime),
+        auditEvent: result.audit_event,
+        status: 200,
+        extra: {
+          idempotent_replay: result.idempotent_replay,
+          inquiry: result.lead
+            ? {
+                lead_id: result.lead.lead_id,
+                next_action: result.lead.next_action,
+                version: result.lead.version,
+              }
+            : null,
+        },
+      });
+    } catch (error) {
+      return errorResponse(
+        Number.isInteger(error?.status) ? error.status : 400,
+        requestId,
+        [
+          error?.safe_error_code
+          ?? CRM_INTAKE_API_ERROR_CODES.validation_error,
+        ],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: error?.status === 404 ? "empty" : "blocked",
+        },
+      );
+    }
+  }
+  const patch = normalizeActivityPatch(body?.field_updates ?? {});
+  if (!patch) {
+    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
   const idempotencyKey = body?.idempotency_key ?? `crm-activity-patch:${query.tenant_id}:${activityId}`;
   const replay = runtime.crmRepository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
   if (replay?.response) {
@@ -3078,6 +3165,73 @@ export function handleCrmInquiryTransition({
   }
 }
 
+export function handleCrmConsultationCreate({
+  inquiryId,
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+  policy,
+} = {}) {
+  const query = {
+    tenant_id: body?.tenant_id,
+    permission_ref: body?.permission_ref,
+    audit_hint_ref: body?.audit_hint_ref,
+    resource_id: inquiryId,
+  };
+  const gated = routeGate({ context, query, requestId, policy });
+  if (gated) return gated;
+  if (includesDirectMatterReference(body?.consultation)) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  try {
+    const result = scheduleCrmConsultation({
+      repository: runtime.crmRepository,
+      tenant_id: query.tenant_id,
+      lead_id: inquiryId,
+      consultation: body?.consultation,
+      expected_inquiry_version: body?.expected_inquiry_version,
+      reason: body?.reason,
+      actor_id: context.principal.user_id,
+      idempotency_key: body?.idempotency_key,
+      permission_ref: query.permission_ref,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay
+        ? "idempotent_replay"
+        : result.outcome,
+      item: serializeActivity(result.activity, runtime),
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        idempotent_replay: result.idempotent_replay,
+        inquiry: {
+          lead_id: result.lead.lead_id,
+          next_action: result.lead.next_action,
+          version: result.lead.version,
+        },
+      },
+    });
+  } catch (error) {
+    return errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [error?.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: error?.status === 404 ? "empty" : "blocked",
+      },
+    );
+  }
+}
+
 export function handleCrmOpportunityCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const query = { tenant_id: body?.opportunity?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
@@ -3412,6 +3566,16 @@ export async function handleCrmIntakeApiRequest({
   }
   if (policy.action === "crm:inquiry:update" && policy.params?.[0] && method === "POST") {
     return handleCrmInquiryTransition({
+      inquiryId: decodeURIComponent(policy.params[0]),
+      body,
+      context,
+      requestId,
+      runtime,
+      policy,
+    });
+  }
+  if (policy.action === "crm:consultation:create" && policy.params?.[0] && method === "POST") {
+    return handleCrmConsultationCreate({
       inquiryId: decodeURIComponent(policy.params[0]),
       body,
       context,

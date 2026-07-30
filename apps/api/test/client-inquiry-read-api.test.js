@@ -115,7 +115,6 @@ function inquiryRecords() {
     activity_type: "meeting",
     activity_kind: "consultation",
     subject: "노출되면 안 되는 비밀 상담",
-    outcome: "노출되면 안 되는 상담 결과",
     next_action: "노출되면 안 되는 다음 행동",
     confidential: true,
     status: "active",

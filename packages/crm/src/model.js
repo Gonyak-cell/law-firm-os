@@ -25,6 +25,8 @@ export const CRM_INQUIRY_STATUS_TRANSITIONS = Object.freeze({
   closed: Object.freeze(["reviewing"]),
 });
 
+export const CRM_ACTIVITY_KINDS = Object.freeze(["consultation"]);
+
 export const CRM_CORE_DIRECT_MATTER_REFERENCE_FIELDS = Object.freeze([
   "matter_id",
   "matter_ref",
@@ -82,7 +84,32 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
       "confidential",
       "status",
       "owner_user_id",
+      "version",
     ]),
+    optional_fields: Object.freeze([
+      "activity_kind",
+      "lead_id",
+      "opportunity_id",
+      "scheduled_start",
+      "scheduled_end",
+      "timezone",
+      "completed_at",
+      "outcome",
+      "next_action",
+    ]),
+    consultation_required_schedule_fields: Object.freeze([
+      "lead_id",
+      "scheduled_start",
+      "scheduled_end",
+      "timezone",
+    ]),
+    consultation_required_completion_fields: Object.freeze([
+      "completed_at",
+      "outcome",
+      "next_action",
+    ]),
+    optimistic_concurrency_field: "version",
+    consultation_schedule_authority: "law_firm_os_app",
     party_reference_fields: Object.freeze(["party_id"]),
     tuw_id: "LFOS-G3-W03-T003",
     confidential_activity_permission_trim_required: true,
@@ -177,6 +204,21 @@ function normalizeInstant(value, field) {
   return value.trim();
 }
 
+function normalizeIanaTimezone(value, field) {
+  const timezone = optionalString(value, field, 120);
+  if (!timezone) throw new TypeError(`${field} is required`);
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: timezone }).format(new Date(0));
+  } catch {
+    throw new TypeError(`${field} must be a valid IANA timezone`);
+  }
+  return timezone;
+}
+
+function canonicalInstant(value, field) {
+  return new Date(normalizeInstant(value, field)).toISOString();
+}
+
 export function normalizeCrmInquirySource(value) {
   const source = value === "outlook" ? "outlook_addin" : value;
   if (!CRM_INQUIRY_SOURCES.includes(source)) {
@@ -215,6 +257,96 @@ export function normalizeCrmLeadInquiryFields(input = {}) {
     source,
     received_at: receivedAt,
     next_action: nextAction,
+    version,
+  });
+}
+
+export function normalizeCrmActivityFields(input = {}) {
+  const version = input.version ?? 1;
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new TypeError("CRMActivity version must be a positive integer");
+  }
+  const activityKind = input.activity_kind ?? null;
+  if (activityKind === null) {
+    return Object.freeze({
+      activity_kind: null,
+      lead_id: input.lead_id ?? null,
+      scheduled_start: input.scheduled_start ?? input.scheduled_at ?? null,
+      scheduled_end: input.scheduled_end ?? null,
+      timezone: input.timezone ?? null,
+      completed_at: input.completed_at ?? null,
+      outcome: input.outcome ?? null,
+      next_action: input.next_action ?? null,
+      version,
+    });
+  }
+  if (!CRM_ACTIVITY_KINDS.includes(activityKind)) {
+    throw new TypeError(
+      `CRMActivity activity_kind must be one of ${CRM_ACTIVITY_KINDS.join(", ")}`,
+    );
+  }
+  if (activityKind !== "consultation") {
+    throw new TypeError("Unsupported CRMActivity activity_kind");
+  }
+  if (input.activity_type !== "meeting") {
+    throw new TypeError("Consultation CRMActivity must use activity_type=meeting");
+  }
+  const leadId = optionalString(input.lead_id, "CRMActivity lead_id");
+  if (!leadId) throw new TypeError("Consultation CRMActivity requires lead_id");
+  const scheduledStart = canonicalInstant(
+    input.scheduled_start,
+    "CRMActivity scheduled_start",
+  );
+  const scheduledEnd = canonicalInstant(
+    input.scheduled_end,
+    "CRMActivity scheduled_end",
+  );
+  if (Date.parse(scheduledEnd) <= Date.parse(scheduledStart)) {
+    throw new TypeError(
+      "CRMActivity scheduled_end must be after scheduled_start",
+    );
+  }
+  const timezone = normalizeIanaTimezone(
+    input.timezone,
+    "CRMActivity timezone",
+  );
+  const completedAt = input.completed_at == null || input.completed_at === ""
+    ? null
+    : canonicalInstant(input.completed_at, "CRMActivity completed_at");
+  if (
+    completedAt
+    && Date.parse(completedAt) < Date.parse(scheduledStart)
+  ) {
+    throw new TypeError(
+      "CRMActivity completed_at cannot be before scheduled_start",
+    );
+  }
+  const outcome = optionalString(
+    input.outcome,
+    "CRMActivity outcome",
+    2_000,
+  );
+  if (completedAt && !outcome) {
+    throw new TypeError("Completed consultation requires outcome");
+  }
+  if (!completedAt && outcome) {
+    throw new TypeError(
+      "Consultation outcome requires completed_at",
+    );
+  }
+  return Object.freeze({
+    activity_kind: "consultation",
+    lead_id: leadId,
+    scheduled_start: scheduledStart,
+    scheduled_end: scheduledEnd,
+    timezone,
+    completed_at: completedAt,
+    outcome,
+    next_action: optionalString(
+      input.next_action,
+      "CRMActivity next_action",
+      240,
+    ),
     version,
   });
 }
@@ -338,18 +470,22 @@ export function createCrmCoreOpportunity(input) {
 
 export function createCrmCoreCRMActivity(input) {
   assertActivityType(input.activity_type);
+  const activity = normalizeCrmActivityFields(input);
+  const subject = optionalString(input.subject, "CRMActivity subject", 160);
+  if (!subject) throw new TypeError("CRMActivity subject is required");
   const confidential = input.confidential === true;
   return freezeRecord({
-    ...baseCrmRecord("CRMActivity", input),
+    ...baseCrmRecord("CRMActivity", { ...input, ...activity }),
     crm_activity_id: input.crm_activity_id,
     party_id: input.party_id,
     opportunity_id: input.opportunity_id ?? null,
     activity_type: input.activity_type,
-    subject: input.subject,
+    subject,
     confidential,
     permission_trim_required: confidential,
+    ...activity,
     activity_key:
-      input.activity_key ?? `${input.tenant_id}:crm-activity:${input.party_id}:${input.activity_type}:${normalizeSearchValue(input.subject)}`,
+      input.activity_key ?? `${input.tenant_id}:crm-activity:${input.party_id}:${input.activity_type}:${normalizeSearchValue(subject)}`,
   });
 }
 
@@ -457,6 +593,11 @@ export function validateCrmCoreRecord(modelType, record) {
   if (modelType === "CRMActivity") {
     if (record?.activity_type !== undefined && !CRM_CORE_ACTIVITY_TYPES.includes(record.activity_type)) {
       errors.push(`invalid_activity_type:${record.activity_type}`);
+    }
+    try {
+      normalizeCrmActivityFields(record);
+    } catch {
+      errors.push("invalid_crm_activity_fields");
     }
     if (record?.confidential === true) {
       review_required_claims.push("confidential_crm_activity_permission_trim_required");
