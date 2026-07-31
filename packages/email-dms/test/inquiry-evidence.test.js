@@ -16,6 +16,9 @@ import {
   createEmailDmsDomainSnapshot,
 } from "../src/central-ledger.js";
 import { createEmailDmsRepository } from "../src/repository.js";
+import { createCrmRuntimeRepository } from "../../crm/src/runtime-repository.js";
+import { createMasterDataRepository } from "../../master-data/src/repository.js";
+import { handleOutlookAddinApiRequest } from "../../../apps/api/src/outlook-addin-runtime-context.js";
 import {
   createLocalStorageAdapter,
 } from "../../dms/src/storage/local-storage-adapter.js";
@@ -660,5 +663,114 @@ test("CL-P3-W01-T03 같은 메시지 ID의 다른 MIME와 검사기 없는 저�
     repository.close();
     unavailableRepository.close();
     mismatchedKmsRepository.close();
+  }
+});
+
+test("VC-CL-INQ-001 Outlook 문의 버튼을 누르지 않으면 읽기 초기화 후에도 어떤 문의·증거·처리 영수증도 만들지 않는다", async () => {
+  const emailDmsRepository = createEmailDmsRepository();
+  const masterDataRepository = createMasterDataRepository();
+  const crmRepository = createCrmRuntimeRepository();
+  const runtime = {
+    emailDmsRuntime: { repository: emailDmsRepository },
+    crmIntakeRuntime: {
+      crmRepository,
+      masterDataRepository,
+    },
+  };
+  const context = {
+    principal: {
+      tenant_id: TENANT,
+      user_id: "user_inquiry_no_capture",
+      entra_subject_id: "subject_inquiry_no_capture",
+      role_ids: ["lawos_staff"],
+    },
+    rules: [
+      {
+        id: "outlook-bootstrap-read",
+        effect: "allow",
+        action_prefix: "outlook:addin:",
+      },
+      {
+        id: "crm-inquiry-read",
+        effect: "allow",
+        action_prefix: "crm:inquiry:",
+      },
+    ],
+    object_acl: [],
+  };
+  const snapshot = () => ({
+    email_dms: emailDmsRepository.snapshot(),
+    master_data: masterDataRepository.snapshot(),
+    crm: crmRepository.snapshot(),
+  });
+  const before = snapshot();
+  assert.deepEqual(before.email_dms.records, []);
+  assert.deepEqual(before.email_dms.idempotency, []);
+  assert.deepEqual(before.email_dms.audit_events, []);
+  assert.deepEqual(before.master_data.records, []);
+  assert.deepEqual(before.master_data.idempotency, []);
+  assert.deepEqual(before.master_data.audit_events, []);
+  assert.deepEqual(before.crm.records, []);
+  assert.deepEqual(before.crm.idempotency, []);
+  assert.deepEqual(before.crm.audit_events, []);
+
+  try {
+    const bootstrap = await handleOutlookAddinApiRequest({
+      pathname: "/api/outlook/bootstrap",
+      method: "GET",
+      query: { tenant_id: TENANT },
+      context,
+      requestId: "request-inquiry-no-capture-bootstrap",
+      runtime,
+    });
+    assert.equal(bootstrap.status, 200);
+    assert.equal(bootstrap.body.outcome, "passed");
+
+    const inquiries = await handleOutlookAddinApiRequest({
+      pathname: "/api/outlook/inquiries",
+      method: "GET",
+      query: { tenant_id: TENANT },
+      context,
+      requestId: "request-inquiry-no-capture-list",
+      runtime,
+    });
+    assert.equal(inquiries.status, 200);
+    assert.deepEqual(inquiries.body.items, []);
+    assert.equal(inquiries.body.omitted_count, 0);
+
+    const after = snapshot();
+    assert.deepEqual(after, before);
+    assert.equal(
+      emailDmsRepository.list({
+        tenant_id: TENANT,
+        model_type: "InquiryEmailEvidence",
+      }).length,
+      0,
+    );
+    assert.equal(
+      emailDmsRepository.list({
+        tenant_id: TENANT,
+        model_type: "InquiryEvidenceFileObject",
+      }).length,
+      0,
+    );
+    assert.equal(
+      masterDataRepository.list({
+        tenant_id: TENANT,
+        model_type: "Party",
+      }).length,
+      0,
+    );
+    assert.equal(
+      crmRepository.list({
+        tenant_id: TENANT,
+        model_type: "Lead",
+      }).length,
+      0,
+    );
+  } finally {
+    emailDmsRepository.close();
+    masterDataRepository.close();
+    crmRepository.close();
   }
 });
