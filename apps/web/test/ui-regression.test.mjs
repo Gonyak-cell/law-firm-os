@@ -82,6 +82,21 @@ test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures s
   }).formatToParts(boundaryInstant).map(({ type, value }) => [type, value]));
   assert.deepEqual({ localDateKey: boundaryLocalUtcDateKey, seoulDateKey: `${boundaryParts.year}-${boundaryParts.month}-${boundaryParts.day}` }, { localDateKey: "2026-07-31", seoulDateKey: "2026-08-01" });
 
+  assert.match(packageQaSource, /const clientOperationsDashboard = \{/);
+  assert.match(packageQaSource, /pathname === "\/api\/analytics\/clients\/dashboard"/);
+  for (const section of ["kpi-new_inquiries", "kpi-consultations_today", "kpi-engagement_reviews", "kpi-deposit_revenue_month", "kpi-receivables_total", "attention-items", "monthly-deposit-revenue", "inquiry-status", "revenue-ranking", "receivables-ranking"]) {
+    assert.match(packageQaSource, new RegExp(`"${section}"`));
+  }
+  for (const selector of ["client_kpi_count", "client_attention_item_count", "client_revenue_month_count", "client_inquiry_status_count", "client_revenue_ranking_row_count", "client_receivables_ranking_row_count", "client_natural_copy_visible", "legacy_client_section_count"]) {
+    assert.match(packageQaSource, new RegExp(selector));
+  }
+  assert.match(packageQaSource, /data-client-dashboard-state\"\) === \"data\"/);
+  assert.match(packageQaSource, /33,000,000원/);
+  assert.match(packageQaSource, /9,000,000원/);
+  assert.match(packageQaSource, /새봄테크/);
+  assert.match(packageQaSource, /한빛건설/);
+  assert.match(packageQaSource, /Retired five-section Client dashboard must stay absent/);
+
   assert.match(packageQaSource, /data-home-tab-prefix="home-client-dashboard"\]\[data-home-tab-id="prospects"/);
   assert.match(packageQaSource, /\["바른 그룹", "새롬 자문"\]\.every/);
   assert.match(packageQaSource, /data-home-tab-prefix="home-matter-dashboard"\]\[data-home-tab-id="closed"/);
