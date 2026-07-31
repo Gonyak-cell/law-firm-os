@@ -15,6 +15,7 @@ export * from "./client-deposit-allocation-service.js";
 export * from "./client-deposit-reallocation-service.js";
 export * from "./client-deposit-source.js";
 export * from "./client-receivables-service.js";
+export * from "./client-legacy-reconciliation.js";
 export * from "./wip-service.js";
 export * from "./prebill-service.js";
 export * from "./invoice-service.js";
