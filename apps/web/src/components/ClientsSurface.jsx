@@ -24,7 +24,9 @@ import {
   fetchCrmAccounts,
   fetchCrmClientSettings,
   fetchCrmContacts,
-  fetchCrmLeads,
+  fetchCrmInquiries,
+  fetchCrmInquiryDetail,
+  fetchCrmInquiryEvidenceContent,
   fetchCrmMergeProposals,
   fetchCrmOpportunities,
   fetchCrmProposals,
@@ -64,6 +66,12 @@ import {
   buildClientDirectoryModel,
   clientDirectoryRecordId
 } from "./ClientDirectoryModel.js";
+import {
+  buildClientInquiryModel,
+  clientInquirySourceLabel,
+  clientInquiryStatusLabel,
+  inquiryEvidenceUiState
+} from "./ClientInquiryModel.js";
 import {
   CLIENT_REGISTRATION_INITIAL_FORM,
   clientRegistrationFingerprint,
@@ -2145,19 +2153,250 @@ function MergeReviewPanel({
   );
 }
 
-function LeadsTable({ result }) {
-  const state = renderLiveState(result, "잠재 Client");
+function clientInquiryDateLabel(value) {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return "받은 시간 미정";
+  return parsed.toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function clientInquiryReadState(result) {
+  if (result === null || result === undefined) {
+    return <div className="live-data-state live-data-loading" role="status">새 문의 목록을 불러오는 중입니다.</div>;
+  }
+  if (result.kind === "error") {
+    return <div className="live-data-state live-data-error" role="status"><strong>새 문의 목록을 불러오지 못했습니다.</strong>잠시 후 다시 시도해 주세요.</div>;
+  }
+  if (result.uiState === "denied" || result.outcome === "denied") {
+    return <div className="live-data-state live-data-denied" role="status"><strong>문의 접근 권한이 없습니다.</strong>권한이 없는 문의의 이름·건수는 표시하지 않습니다.</div>;
+  }
+  if (result.uiState === "review" || result.uiState === "review_required" || result.outcome === "review_required") {
+    return <div className="live-data-state live-data-review" role="status"><strong>문의 조회 확인이 필요합니다.</strong>담당자 확인 후 문의를 볼 수 있습니다.</div>;
+  }
+  if (result.uiState === "blocked" || result.outcome === "blocked") {
+    return <div className="live-data-state live-data-error" role="status"><strong>문의 조회가 차단되었습니다.</strong>내부 식별자와 건수는 표시하지 않습니다.</div>;
+  }
+  if (result.uiState === "empty" || resultItems(result).length === 0) {
+    return <div className="live-data-state live-data-empty" role="status"><strong>등록된 새 문의가 없습니다.</strong></div>;
+  }
+  return null;
+}
+
+function ClientInquiryList({ result, items: normalizedItems = null, selectedInquiryId, onSelectInquiry }) {
+  const state = clientInquiryReadState(result);
   if (state) return state;
+  const items = normalizedItems ?? resultItems(result);
   return (
-    <DataTable
-      columns={["잠재 Client", "상태", "당사자", "담당"]}
-      rows={resultItems(result).map((item, index) => [
-        businessLabel(item.display_name, `잠재 Client ${index + 1}`),
-        pipelineStatus(item.status),
-        linkedLabel(item.party_id),
-        item.owner_user_id ? "배정됨" : "미지정"
-      ])}
-    />
+    <div className="client-inquiries-live-stack" data-client-inquiry-list="true">
+      {result.uiState === "partial" || result.outcome === "partial" ? (
+        <div className="client-inquiry-boundary-note" role="status">일부 문의 원천을 확인하지 못했습니다. 확인 가능한 문의만 표시합니다.</div>
+      ) : null}
+      <div className="client-inquiry-list" role="list" aria-label="새 문의 목록">
+        {items.map((inquiry) => {
+          const selected = inquiry.inquiryId === selectedInquiryId;
+          return (
+            <div
+              key={inquiry.inquiryId}
+              className={selected ? "client-inquiry-row selected" : "client-inquiry-row"}
+              data-client-inquiry-row="true"
+              data-selected={selected ? "true" : "false"}
+              role="listitem"
+            >
+              <button
+                type="button"
+                className="client-inquiry-row-button"
+                data-client-inquiry-row-button="true"
+                aria-pressed={selected}
+                onClick={() => onSelectInquiry(inquiry.inquiryId)}
+              >
+                <span className="client-inquiry-row-heading">
+                  <strong>{inquiry.displayName}</strong>
+                  <span className="client-inquiry-status-label">{clientInquiryStatusLabel(inquiry.visibleStatus)}</span>
+                </span>
+                <span className="client-inquiry-row-meta">
+                  <span>{clientInquirySourceLabel(inquiry.source)}</span>
+                  <time dateTime={inquiry.receivedAt ?? undefined}>{clientInquiryDateLabel(inquiry.receivedAt)}</time>
+                </span>
+                <span className="client-inquiry-row-meta">
+                  <span>{inquiry.assigned ? "담당 지정" : "미지정"}</span>
+                  <span>{inquiry.nextAction || "다음 행동 미정"}</span>
+                </span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ClientInquiryEvidenceState({ state, children }) {
+  if (state === "data") return children;
+  const copy = {
+    loading: "메일 내용을 불러오는 중입니다.",
+    denied: "메일 내용을 볼 권한이 없습니다.",
+    review_required: "메일 내용 열기에 추가 확인이 필요합니다.",
+    blocked: "메일 내용 열기가 차단되었습니다.",
+    quarantined: "검사에서 격리된 메일은 열 수 없습니다.",
+    unavailable: "메일 내용을 사용할 수 없습니다.",
+    error: "메일 내용을 불러오지 못했습니다.",
+    partial: "메일 증거 일부만 확인할 수 있습니다.",
+    empty: "표시할 메일 내용이 없습니다."
+  }[state] ?? "메일 내용을 확인할 수 없습니다.";
+  return <div className={`client-inquiry-evidence-state ${state}`} role="status">{copy}</div>;
+}
+
+function base64Bytes(value) {
+  try {
+    const binary = atob(value);
+    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  } catch {
+    return null;
+  }
+}
+
+function safeInquiryDownloadName(inquiry, evidence) {
+  const slug = String(inquiry?.displayName ?? "문의")
+    .replace(/[^0-9A-Za-z가-힣 -]/gu, "")
+    .trim()
+    .replace(/\s+/gu, "-")
+    .slice(0, 48) || "문의";
+  const stamp = evidence?.receivedAt ? new Date(evidence.receivedAt).toISOString().slice(0, 10) : "원본";
+  return `${slug}-${stamp}.eml`;
+}
+
+function ClientInquiryDetailPanel({ inquiry, detailState, ctx }) {
+  const [contentKind, setContentKind] = useState("");
+  const [contentEvidenceId, setContentEvidenceId] = useState("");
+  const [contentResult, setContentResult] = useState(null);
+  const contentRequestRef = useRef(0);
+  const evidenceItems = Array.isArray(inquiry?.evidence?.items) ? inquiry.evidence.items : [];
+
+  useEffect(() => {
+    contentRequestRef.current += 1;
+    setContentKind("");
+    setContentEvidenceId("");
+    setContentResult(null);
+    return () => {
+      contentRequestRef.current += 1;
+    };
+  }, [inquiry?.inquiryId]);
+
+  async function readEvidence(targetEvidence, kind) {
+    if (!targetEvidence?.evidenceId || !["display", "original"].includes(kind)) return;
+    const requestId = contentRequestRef.current + 1;
+    contentRequestRef.current = requestId;
+    setContentKind(kind);
+    setContentEvidenceId(targetEvidence.evidenceId);
+    setContentResult(null);
+    const next = await fetchCrmInquiryEvidenceContent({ evidenceId: targetEvidence.evidenceId, kind, ctx });
+    if (contentRequestRef.current !== requestId) return;
+    setContentResult(next);
+    if (kind === "original" && next?.kind === "data" && next.item?.contentBase64) {
+      const bytes = base64Bytes(next.item.contentBase64);
+      if (!bytes) return;
+      const blob = new Blob([bytes], { type: "message/rfc822" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = safeInquiryDownloadName(inquiry, targetEvidence);
+      link.rel = "noopener";
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+  }
+
+  const detailBoundary = detailState !== "data" && detailState !== "partial";
+  if (detailBoundary) {
+    return (
+      <div className="client-inquiry-detail-panel" data-client-inquiry-detail="true">
+        <div className="client-inquiry-detail-state" role="status">
+          {detailState === "loading" ? "문의 상세를 불러오는 중입니다." : detailState === "denied" ? "문의 상세를 볼 권한이 없습니다." : detailState === "review_required" ? "문의 상세 조회에 추가 확인이 필요합니다." : detailState === "empty" ? "선택한 문의를 찾을 수 없습니다." : "문의 상세를 확인할 수 없습니다."}
+        </div>
+      </div>
+    );
+  }
+  const consultations = Array.isArray(inquiry.consultations) ? inquiry.consultations : [];
+  return (
+    <div className="client-inquiry-detail-panel" data-client-inquiry-detail="true" data-client-inquiry-detail-state={detailState}>
+      {detailState === "partial" ? <div className="client-inquiry-boundary-note" role="status">상담 또는 메일 증거 일부를 확인하지 못했습니다.</div> : null}
+      <div className="client-inquiry-detail-summary">
+        <div className="client-inquiry-detail-title">
+          <span className="eyebrow">문의 상세</span>
+          <strong>{inquiry.displayName}</strong>
+        </div>
+        <div className="client-inquiry-detail-facts">
+          <span><b>등록 경로</b>{clientInquirySourceLabel(inquiry.source)}</span>
+          <span><b>받은 시간</b>{clientInquiryDateLabel(inquiry.receivedAt)}</span>
+          <span><b>상태</b>{clientInquiryStatusLabel(inquiry.visibleStatus)}</span>
+          <span><b>담당</b>{inquiry.assigned ? "담당 지정" : "미지정"}</span>
+          <span><b>다음 행동</b>{inquiry.nextAction || "다음 행동 미정"}</span>
+        </div>
+      </div>
+      <section className="client-inquiry-detail-section" aria-labelledby="client-inquiry-consultations-heading">
+        <div className="client-inquiry-detail-section-heading">
+          <h3 id="client-inquiry-consultations-heading">상담 기록</h3>
+          <span>{inquiry.consultationsAccess === "denied" ? "접근 권한 없음" : consultations.length ? `${consultations.length}건` : "기록 없음"}</span>
+        </div>
+        {inquiry.consultationsAccess === "denied" ? (
+          <div className="client-inquiry-evidence-state denied" role="status">상담 기록을 볼 권한이 없습니다.</div>
+        ) : consultations.length === 0 ? (
+          <div className="client-inquiry-evidence-state empty" role="status">등록된 상담 기록이 없습니다.</div>
+        ) : (
+          <div className="client-inquiry-consultation-list">
+            {consultations.map((consultation, index) => (
+              <div className="client-inquiry-consultation" key={`${consultation.scheduledStart ?? "consultation"}-${index}`}>
+                <strong>{consultation.subject || "상담"}</strong>
+                <span>{clientInquiryDateLabel(consultation.scheduledStart)}{consultation.timezone ? ` · ${consultation.timezone}` : ""}</span>
+                <small>{consultation.confidential ? "상세 내용 보호됨" : consultation.outcome || consultation.nextAction || "결과 미기록"}</small>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="client-inquiry-detail-section" aria-labelledby="client-inquiry-evidence-heading">
+        <div className="client-inquiry-detail-section-heading">
+          <h3 id="client-inquiry-evidence-heading">원본 메일</h3>
+          <span>{inquiry.evidence?.partial ? "일부 확인" : evidenceItems.length ? "안전한 메타데이터" : "기록 없음"}</span>
+        </div>
+        {inquiry.evidence?.access === "denied" ? (
+          <div className="client-inquiry-evidence-state denied" role="status">메일 증거를 볼 권한이 없습니다.</div>
+        ) : inquiry.evidence?.access === "unavailable" || inquiry.evidence?.access === "error" ? (
+          <div className="client-inquiry-evidence-state unavailable" role="status">메일 증거를 사용할 수 없습니다.</div>
+        ) : evidenceItems.length ? (
+          <div className="client-inquiry-consultation-list">
+            {evidenceItems.map((evidence) => {
+              const selected = evidence.evidenceId === contentEvidenceId;
+              return (
+                <article className="client-inquiry-consultation" key={evidence.evidenceId}>
+                  <dl className="client-inquiry-evidence-meta">
+                    <div><dt>제목</dt><dd>{evidence.subject || "제목 없음"}</dd></div>
+                    <div><dt>보낸 사람</dt><dd>{evidence.senderDisplayName || "표시하지 않음"}</dd></div>
+                    <div><dt>받은 시간</dt><dd>{clientInquiryDateLabel(evidence.receivedAt)}</dd></div>
+                    <div><dt>보관 상태</dt><dd>{evidence.captureStatus}</dd></div>
+                  </dl>
+                  <div className="client-inquiry-evidence-actions">
+                    <button type="button" className="secondary-button" disabled={!evidence.hasDisplayContent || selected && contentKind === "display"} onClick={() => readEvidence(evidence, "display")}>메일 내용 보기</button>
+                    <button type="button" className="secondary-button" disabled={!evidence.hasOriginalContent || selected && contentKind === "original"} onClick={() => readEvidence(evidence, "original")}>원본 .eml 다운로드</button>
+                  </div>
+                  {selected && contentKind ? <ClientInquiryEvidenceState state={contentResult ? inquiryEvidenceUiState(contentResult) : "loading"}>
+                    {contentResult?.item?.contentText ? <pre className="client-inquiry-display-content" aria-label="안전한 메일 내용">{contentResult.item.contentText}</pre> : null}
+                  </ClientInquiryEvidenceState> : null}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="client-inquiry-evidence-state empty" role="status">등록된 메일 증거가 없습니다.</div>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -2499,6 +2738,7 @@ export function ClientsSurface({
   redirectedFrom = null,
   requestedClientId = "",
   requestedClientTab = "",
+  requestedInquiryId = "",
   requestedClientRevision = 0
 }) {
   const [clientsResult, setClientsResult] = useState(null);
@@ -2520,7 +2760,8 @@ export function ClientsSurface({
     clientOperationsDashboardResult,
     setClientOperationsDashboardResult
   ] = useState(null);
-  const [leadsResult, setLeadsResult] = useState(null);
+  const [inquiriesResult, setInquiriesResult] = useState(null);
+  const [inquiryDetailResult, setInquiryDetailResult] = useState(null);
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
   const [intakeAuditResult, setIntakeAuditResult] = useState(null);
@@ -2576,6 +2817,7 @@ export function ClientsSurface({
   const [contactRecordActionPending, setContactRecordActionPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
+  const inquiryTriggerRef = useRef(null);
   const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-home";
   const normalizedRequestedClientId = String(
     requestedClientId ?? ""
@@ -2657,7 +2899,8 @@ export function ClientsSurface({
 
   useEffect(() => {
     let cancelled = false;
-    setLeadsResult(null);
+    setInquiriesResult(null);
+    setInquiryDetailResult(null);
     setOpportunitiesResult(null);
     setIntakeResult(null);
     setIntakeAuditResult(null);
@@ -2686,7 +2929,7 @@ export function ClientsSurface({
     setContactRecordActionResult(null);
     const guardedResult = guardedResultForContext(liveCtx);
     if (guardedResult) {
-      setLeadsResult(guardedResult);
+      setInquiriesResult(guardedResult);
       setOpportunitiesResult(guardedResult);
       setIntakeResult(guardedResult);
       setIntakeAuditResult(guardedResult);
@@ -2704,7 +2947,7 @@ export function ClientsSurface({
       };
     }
     Promise.all([
-      fetchCrmLeads({ ctx: liveCtx }),
+      fetchCrmInquiries({ ctx: liveCtx }),
       fetchCrmOpportunities({ ctx: liveCtx }),
       fetchIntakeRequests({ ctx: liveCtx }),
       fetchIntakeAudit({ ctx: liveCtx }),
@@ -2717,7 +2960,7 @@ export function ClientsSurface({
       fetchFinanceInvoices({ ctx: liveCtx }),
       fetchFinanceArAging({ ctx: liveCtx })
     ]).then(async ([
-      leads,
+      inquiries,
       opportunities,
       intake,
       audit,
@@ -2731,7 +2974,7 @@ export function ClientsSurface({
       financeArAging
     ]) => {
       if (cancelled) return;
-      setLeadsResult(leads);
+      setInquiriesResult(inquiries);
       setOpportunitiesResult(opportunities);
       setIntakeResult(intake);
       setIntakeAuditResult(audit);
@@ -2787,6 +3030,16 @@ export function ClientsSurface({
   ))
     ? activeRequestedClientId
     : "";
+  const normalizedRequestedInquiryId = String(requestedInquiryId ?? "").trim();
+  const activeRequestedInquiryId = currentSection === "client-leads"
+    ? normalizedRequestedInquiryId
+    : "";
+  const authorizedRequestedInquiryId = resultItems(inquiriesResult).some((inquiry) => (
+    inquiry?.lead_id === activeRequestedInquiryId
+    || inquiry?.inquiryId === activeRequestedInquiryId
+  ))
+    ? activeRequestedInquiryId
+    : "";
 
   useEffect(() => {
     let cancelled = false;
@@ -2812,6 +3065,30 @@ export function ClientsSurface({
     requestedClientRevision
   ]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setInquiryDetailResult(null);
+    if (!authorizedRequestedInquiryId) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    fetchCrmInquiryDetail({
+      inquiryId: authorizedRequestedInquiryId,
+      ctx: liveCtx
+    }).then((result) => {
+      if (!cancelled) setInquiryDetailResult(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authorizedRequestedInquiryId,
+    liveCtx,
+    refreshToken,
+    requestedClientRevision
+  ]);
+
   const clientDirectoryModel = useMemo(() => buildClientDirectoryModel({
     clientsResult,
     operationsResult: clientOperationsDetailResult,
@@ -2823,6 +3100,16 @@ export function ClientsSurface({
     clientsResult,
     requestedClientRevision,
     requestedClientTab
+  ]);
+  const clientInquiryModel = useMemo(() => buildClientInquiryModel({
+    inquiriesResult,
+    detailResult: inquiryDetailResult,
+    requestedInquiryId: activeRequestedInquiryId
+  }), [
+    activeRequestedInquiryId,
+    inquiriesResult,
+    inquiryDetailResult,
+    requestedClientRevision
   ]);
   const relatedFinanceClient = relatedFinanceKind
     ? clients.find((client) => (
@@ -3449,6 +3736,53 @@ export function ClientsSurface({
     });
   }
 
+  function handleInquirySelect(inquiryId) {
+    if (!inquiryId) return;
+    const activeElement = document.activeElement;
+    inquiryTriggerRef.current = activeElement && typeof activeElement.focus === "function"
+      ? activeElement
+      : null;
+    onNavigate("clients", "client-leads", { inquiryId });
+  }
+
+  function handleInquiryDetailClose() {
+    onNavigate("clients", "client-leads", { inquiryId: "" });
+    const trigger = inquiryTriggerRef.current;
+    inquiryTriggerRef.current = null;
+    window.requestAnimationFrame(() => {
+      if (trigger && document.contains(trigger)) trigger.focus();
+    });
+  }
+
+  function handleInquiryDialogKeyDown(event) {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(event.currentTarget.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true");
+    if (focusable.length === 0) {
+      event.preventDefault();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  useEffect(() => {
+    if (!activeRequestedInquiryId) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") handleInquiryDetailClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [activeRequestedInquiryId]);
+
   function handleClientGroupCreated(item) {
     const clientGroupId = String(item?.client_group_id ?? "").trim();
     const displayName = String(item?.display_name ?? "").trim();
@@ -3531,6 +3865,24 @@ export function ClientsSurface({
       </div>
     </div>
   ) : null;
+  const selectedInquiryOverlay = clientInquiryModel.selectedInquiry ? (
+    <div className="record-overlay-layer" data-record-overlay="inquiry">
+      <button type="button" className="record-overlay-scrim" aria-label="문의 상세 닫기" onClick={handleInquiryDetailClose} />
+      <div className="record-overlay-panel" role="dialog" aria-modal="true" aria-label={`${clientInquiryModel.selectedInquiry.displayName} 문의 상세`} onKeyDown={handleInquiryDialogKeyDown}>
+        <div className="client-inquiry-detail-overlay-header">
+          <strong>새 문의</strong>
+          <button type="button" className="record-overlay-close" aria-label="문의 상세 닫기" autoFocus onClick={handleInquiryDetailClose}>
+            <X size={17} />
+          </button>
+        </div>
+        <ClientInquiryDetailPanel
+          inquiry={clientInquiryModel.selectedInquiry}
+          detailState={clientInquiryModel.detailState}
+          ctx={liveCtx}
+        />
+      </div>
+    </div>
+  ) : null;
   const overlayRoot = typeof document === "undefined" ? null : document.body;
 
   return (
@@ -3586,7 +3938,17 @@ export function ClientsSurface({
         )}
         {currentSection === "client-leads" && (
           <Panel id="client-leads" className="record-list-panel" title="새 문의">
-            <LeadsTable result={leadsResult} />
+            {activeRequestedInquiryId && !clientInquiryModel.requestedInquiryAvailable && inquiriesResult !== null && (
+              <div className="client-inquiry-target-unavailable" role="status">
+                선택한 문의를 열 수 없습니다. 권한이 없거나 이미 닫힌 문의일 수 있습니다.
+              </div>
+            )}
+            <ClientInquiryList
+              result={inquiriesResult}
+              items={clientInquiryModel.inquiries}
+              selectedInquiryId={activeRequestedInquiryId}
+              onSelectInquiry={handleInquirySelect}
+            />
           </Panel>
         )}
         {currentSection === "client-opportunities" && (
@@ -3832,6 +4194,7 @@ export function ClientsSurface({
         )}
       </div>
       {selectedClientOverlay && overlayRoot ? createPortal(selectedClientOverlay, overlayRoot) : selectedClientOverlay}
+      {selectedInquiryOverlay && overlayRoot ? createPortal(selectedInquiryOverlay, overlayRoot) : selectedInquiryOverlay}
     </section>
   );
 }

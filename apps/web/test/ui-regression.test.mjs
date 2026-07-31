@@ -1311,7 +1311,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금"]) {
     assert.match(clientDashboardModelSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientDirectory", "fetchAnalyticsClientOperationsDetail", "fetchAnalyticsClientOperationsDashboard"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmInquiries", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientDirectory", "fetchAnalyticsClientOperationsDetail", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.match(clientsSource, new RegExp(source));
   }
   assert.match(apiClientSource, /export async function fetchAnalyticsClientDirectory/);
@@ -1347,7 +1347,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.doesNotMatch(clientsSource, /item\.synthetic_only !== true/);
   assert.match(clientsSource, /Property label="고객 유형"/);
   assert.match(clientsSource, /clientLegalForm/);
-  assert.match(clientsSource, /fetchCrmLeads/);
+  assert.match(clientsSource, /fetchCrmInquiries/);
   assert.match(clientsSource, /fetchCrmOpportunities/);
   assert.match(clientsSource, /fetchIntakeRequests/);
   assert.match(clientsSource, /fetchIntakeAudit/);
@@ -1445,7 +1445,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /clientGuardedState/);
   assert.match(clientsSource, /function guardedResultForContext/);
   assert.match(clientsSource, /setClientsResult\(guardedResult\)/);
-  assert.match(clientsSource, /setLeadsResult\(guardedResult\)/);
+  assert.match(clientsSource, /setInquiriesResult\(guardedResult\)/);
   assert.match(clientsSource, /!clientGuardedState[\s\S]{0,100}selectedClientId[\s\S]{0,120}route\.activeTab === "overview"/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);

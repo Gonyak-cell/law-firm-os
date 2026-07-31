@@ -189,6 +189,7 @@ export function App() {
   const requestedMatterId = locationParams.get("matter_id") ?? "";
   const requestedClientId = locationParams.get("record_id") ?? "";
   const requestedClientTab = locationParams.get("tab") ?? "";
+  const requestedInquiryId = locationParams.get("inquiry_id") ?? "";
   const requestedDocumentId = locationParams.get("document_id") ?? "";
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
@@ -217,6 +218,7 @@ export function App() {
       liveCtx: nextLiveCtx,
       companyAllowed,
       query: params.get("query") ?? "",
+      inquiryId: params.get("inquiry_id") ?? "",
       documentId: params.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: params.get("date_from") ?? "",
@@ -666,6 +668,7 @@ export function App() {
                 redirectedFrom={activeRedirectedFrom}
                 requestedClientId={requestedClientId}
                 requestedClientTab={requestedClientTab}
+                requestedInquiryId={requestedInquiryId}
                 requestedClientRevision={routeRevision}
               />
             )}

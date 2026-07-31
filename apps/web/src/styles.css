@@ -10799,6 +10799,294 @@ html[data-theme="dark"] .public-preview {
   grid-column: 1 / -1;
 }
 
+.client-inquiries-live-stack,
+.client-inquiry-list,
+.client-inquiry-detail-panel,
+.client-inquiry-detail-section,
+.client-inquiry-consultation-list {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.client-inquiry-boundary-note,
+.client-inquiry-target-unavailable,
+.client-inquiry-evidence-state,
+.client-inquiry-detail-state {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  overflow-wrap: anywhere;
+}
+
+.client-inquiry-target-unavailable {
+  margin-bottom: 10px;
+}
+
+.client-inquiry-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.client-inquiry-row {
+  min-width: 0;
+  border-bottom: 1px solid var(--am-border-soft);
+  background: var(--am-surface);
+}
+
+.client-inquiry-row:last-child {
+  border-bottom: 0;
+}
+
+.client-inquiry-row.selected,
+.client-inquiry-row:hover {
+  background: #f1f7ff;
+}
+
+.client-inquiry-row.selected {
+  box-shadow: inset 3px 0 0 var(--am-blue);
+}
+
+.client-inquiry-row-button {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.3fr) minmax(150px, 0.9fr) minmax(170px, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--am-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-inquiry-row-button:focus-visible {
+  outline: 2px solid var(--am-blue);
+  outline-offset: -2px;
+}
+
+.client-inquiry-row-heading,
+.client-inquiry-row-meta {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.client-inquiry-row-heading strong,
+.client-inquiry-row-heading span,
+.client-inquiry-row-meta span,
+.client-inquiry-row-meta time {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-inquiry-row-meta {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-inquiry-status-label {
+  color: var(--am-blue);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-inquiry-detail-overlay-header,
+.client-inquiry-detail-section-heading,
+.client-inquiry-detail-title,
+.client-inquiry-evidence-actions {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.client-inquiry-detail-overlay-header,
+.client-inquiry-detail-section-heading {
+  justify-content: space-between;
+}
+
+.client-inquiry-detail-overlay-header strong {
+  color: var(--am-text);
+  font-size: 14px;
+}
+
+.client-inquiry-detail-title {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.client-inquiry-detail-title strong {
+  min-width: 0;
+  color: var(--am-text);
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.client-inquiry-detail-facts,
+.client-inquiry-evidence-meta {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.client-inquiry-detail-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 12px;
+}
+
+.client-inquiry-detail-facts span,
+.client-inquiry-evidence-meta div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.client-inquiry-detail-facts span {
+  color: var(--am-text);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-inquiry-detail-facts b,
+.client-inquiry-evidence-meta dt {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  font-weight: 400;
+}
+
+.client-inquiry-detail-section {
+  padding-top: 12px;
+  border-top: 1px solid var(--am-border-soft);
+}
+
+.client-inquiry-detail-section-heading h3 {
+  margin: 0;
+  color: var(--am-text);
+  font-size: 14px;
+}
+
+.client-inquiry-detail-section-heading > span {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-inquiry-consultation {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+}
+
+.client-inquiry-consultation strong,
+.client-inquiry-consultation span,
+.client-inquiry-consultation small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.client-inquiry-consultation span,
+.client-inquiry-consultation small {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-inquiry-evidence-meta {
+  margin: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.client-inquiry-evidence-meta dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--am-text);
+  font-size: var(--am-font-size-meta);
+  overflow-wrap: anywhere;
+}
+
+.client-inquiry-evidence-actions {
+  flex-wrap: wrap;
+}
+
+.client-inquiry-display-content {
+  max-height: min(52vh, 420px);
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: #f7faf9;
+  color: var(--am-text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.client-inquiry-evidence-state.denied,
+.client-inquiry-evidence-state.review_required,
+.client-inquiry-evidence-state.blocked,
+.client-inquiry-evidence-state.quarantined {
+  color: #7f3b36;
+  border-color: #e5bdb8;
+  background: #fff7f6;
+}
+
+@media (max-width: 820px) {
+  .client-inquiry-row-button {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .client-inquiry-row-heading {
+    grid-column: 1 / -1;
+  }
+
+  .client-inquiry-detail-facts,
+  .client-inquiry-evidence-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 390px) {
+  .client-inquiry-row-button {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .client-inquiry-row-heading {
+    grid-column: auto;
+  }
+
+  .client-inquiry-detail-overlay-header,
+  .client-inquiry-detail-section-heading {
+    align-items: flex-start;
+  }
+
+  .client-inquiry-evidence-actions .secondary-button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
 .client-detail-state {
   margin: 0;
 }

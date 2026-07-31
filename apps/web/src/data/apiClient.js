@@ -25,6 +25,10 @@ const DEFAULT_VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const DEFAULT_VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
 const DEFAULT_CRM_INTAKE_PERMISSION_REF = "ui_cmp_g6_crm_intake_live";
 const DEFAULT_CRM_INTAKE_AUDIT_HINT_REF = "ui_cmp_g6_crm_intake_probe";
+const CRM_INQUIRY_PERMISSION_REF = "ui_cmp_g6_crm_inquiry_read";
+const CRM_INQUIRY_AUDIT_HINT_REF = "ui_cmp_g6_crm_inquiry_read_probe";
+const CRM_INQUIRY_EVIDENCE_PERMISSION_REF = "ui_cmp_g6_crm_inquiry_evidence_read";
+const CRM_INQUIRY_EVIDENCE_AUDIT_HINT_REF = "ui_cmp_g6_crm_inquiry_evidence_read_probe";
 const DEFAULT_FINANCE_PERMISSION_REF = "ui_cmp_g7_finance_live";
 const DEFAULT_FINANCE_AUDIT_HINT_REF = "ui_cmp_g7_finance_probe";
 const DEFAULT_ANALYTICS_PERMISSION_REF = "ui_cmp_g8_analytics_live";
@@ -4338,6 +4342,468 @@ async function patchCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
     auditHintRef: body.audit_hint_ref ?? null,
     idempotentReplay: body.idempotent_replay === true,
     productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+const CRM_INQUIRY_STATUS_LABELS = Object.freeze({
+  new: "새 문의",
+  reviewing: "확인 중",
+  consultation_scheduled: "상담 예정",
+  engagement_review: "수임 검토 중",
+  engaged: "수임 확정",
+  not_engaged: "수임하지 않음"
+});
+const CRM_INQUIRY_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u;
+const CRM_INQUIRY_SHA256_PATTERN = /^[a-f0-9]{64}$/iu;
+
+function safeCrmInquiryId(value) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return CRM_INQUIRY_ID_PATTERN.test(normalized) ? normalized : null;
+}
+
+function safeCrmInquiryDate(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string" || !value.trim()) return null;
+  return Number.isNaN(Date.parse(value)) ? null : value.trim();
+}
+
+function safeCrmInquirySource(value) {
+  return value === "outlook_addin" || value === "manual" ? value : null;
+}
+
+function safeCrmInquirySummary(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const leadId = safeCrmInquiryId(item.lead_id);
+  const displayName = typeof item.display_name === "string" ? item.display_name.trim() : "";
+  const visibleStatus = typeof item.visible_status === "string" ? item.visible_status.trim() : "";
+  const visibleStatusLabel = typeof item.visible_status_label === "string" ? item.visible_status_label.trim() : "";
+  const source = safeCrmInquirySource(item.source);
+  if (
+    !leadId
+    || !displayName
+    || !Object.prototype.hasOwnProperty.call(CRM_INQUIRY_STATUS_LABELS, visibleStatus)
+    || visibleStatusLabel !== CRM_INQUIRY_STATUS_LABELS[visibleStatus]
+    || !source
+    || (item.received_at !== null && item.received_at !== undefined && safeCrmInquiryDate(item.received_at) === null)
+    || (item.next_action !== null && item.next_action !== undefined && typeof item.next_action !== "string")
+    || !Object.prototype.hasOwnProperty.call(item, "assigned_user_id")
+    || (item.assigned_user_id !== null && typeof item.assigned_user_id !== "string")
+    || Object.prototype.hasOwnProperty.call(item, "assigned")
+  ) return null;
+  const assigned = typeof item.assigned_user_id === "string" && item.assigned_user_id.trim().length > 0;
+  return {
+    lead_id: leadId,
+    display_name: displayName,
+    visible_status: visibleStatus,
+    visible_status_label: visibleStatusLabel,
+    source,
+    received_at: safeCrmInquiryDate(item.received_at),
+    assigned,
+    next_action: item.next_action === null || item.next_action === undefined
+      ? null
+      : item.next_action.trim()
+  };
+}
+
+function safeCrmInquiryConsultation(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  if (typeof item.confidential !== "boolean") return null;
+  const confidential = item.confidential;
+  if (typeof item.confidential_details_included !== "boolean") return null;
+  if (confidential) {
+    if (
+      item.subject !== "보호된 상담"
+      || item.outcome !== null
+      || item.next_action !== null
+      || item.confidential_details_included !== false
+    ) return null;
+  } else if (item.confidential_details_included !== true) {
+    return null;
+  }
+  const validOptionalDate = (value) => value === null || value === undefined || safeCrmInquiryDate(value) !== null;
+  const safeDate = (value) => value === null || value === undefined ? null : safeCrmInquiryDate(value);
+  const validOptionalString = (value) => value === null || value === undefined || typeof value === "string";
+  if (
+    !validOptionalDate(item.scheduled_start)
+    || !validOptionalDate(item.scheduled_at)
+    || !validOptionalDate(item.scheduled_end)
+    || !validOptionalDate(item.completed_at)
+    || !validOptionalString(item.subject)
+    || !validOptionalString(item.outcome)
+    || !validOptionalString(item.next_action)
+  ) return null;
+  return {
+    scheduled_start: safeDate(item.scheduled_start ?? item.scheduled_at),
+    scheduled_end: safeDate(item.scheduled_end),
+    timezone: typeof item.timezone === "string" ? item.timezone.trim() || null : null,
+    completed_at: safeDate(item.completed_at),
+    subject: confidential ? "보호된 상담" : typeof item.subject === "string" ? item.subject.trim() || null : null,
+    outcome: confidential ? null : typeof item.outcome === "string" ? item.outcome.trim() || null : null,
+    next_action: confidential ? null : typeof item.next_action === "string" ? item.next_action.trim() || null : null,
+    confidential,
+    confidential_details_included: item.confidential_details_included,
+    status: typeof item.status === "string" ? item.status.trim() || null : null
+  };
+}
+
+function safeCrmInquiryEvidence(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const evidenceId = safeCrmInquiryId(item.inquiry_email_evidence_id);
+  const captureStatus = typeof item.capture_status === "string" ? item.capture_status.trim() : "";
+  if (
+    !evidenceId
+    || !captureStatus
+    || item.raw_content_included !== false
+    || item.mailbox_address_included !== false
+    || item.provider_message_identifiers_included !== false
+    || item.storage_object_identifiers_included !== false
+    || (item.received_at !== null && item.received_at !== undefined && safeCrmInquiryDate(item.received_at) === null)
+    || (item.subject !== null && item.subject !== undefined && typeof item.subject !== "string")
+    || (item.sender_display_name !== null && item.sender_display_name !== undefined && typeof item.sender_display_name !== "string")
+  ) return null;
+  const prefix = `/api/outlook/inquiries/evidence/${encodeURIComponent(evidenceId)}/content`;
+  const displayPath = item.display_content_path === null || item.display_content_path === undefined
+    ? null
+    : item.display_content_path;
+  const originalPath = item.original_content_path === null || item.original_content_path === undefined
+    ? null
+    : item.original_content_path;
+  if (
+    (displayPath !== null && displayPath !== `${prefix}?kind=display`)
+    || (originalPath !== null && originalPath !== `${prefix}?kind=original`)
+  ) return null;
+  return {
+    inquiry_email_evidence_id: evidenceId,
+    received_at: safeCrmInquiryDate(item.received_at),
+    subject: typeof item.subject === "string" ? item.subject.trim() : "",
+    sender_display_name: item.sender_display_name === null || item.sender_display_name === undefined
+      ? null
+      : typeof item.sender_display_name === "string" ? item.sender_display_name.trim() || null : null,
+    capture_status: captureStatus,
+    display_content_path: displayPath,
+    original_content_path: originalPath,
+    raw_content_included: false,
+    mailbox_address_included: false,
+    provider_message_identifiers_included: false,
+    storage_object_identifiers_included: false,
+    production_ready_claim: false
+  };
+}
+
+function inquirySourceStatusesValid(value, expectedKeys) {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    && Object.keys(value).sort().join("|") === expectedKeys.slice().sort().join("|")
+    && Object.values(value).every((status) => ["complete", "partial", "permission_denied", "unavailable", "error"].includes(status));
+}
+
+function inquiryPermissionResult(response, body) {
+  const outcome = typeof body?.outcome === "string" ? body.outcome : "blocked";
+  const uiState = body?.ui_state === "review" || body?.ui_state === "review_required" || outcome === "review_required"
+    ? "review_required"
+    : response?.status === 403 || body?.ui_state === "denied" || outcome === "denied"
+      ? "denied"
+      : body?.ui_state === "blocked" || outcome === "blocked"
+        ? "blocked"
+        : "error";
+  return {
+    kind: "guarded",
+    status: Number(response?.status ?? 0) || 0,
+    outcome,
+    uiState: uiState === "blocked" && outcome === "review_required" ? "review_required" : uiState,
+    items: [],
+    item: null,
+    safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes.filter((code) => typeof code === "string") : [],
+    countLeakPrevented: body?.count_leak_prevented === true
+  };
+}
+
+function inquiryReadParams(permissionRef, auditHintRef) {
+  return new URLSearchParams({
+    tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+}
+
+export async function fetchCrmInquiries({ ctx = "allow" } = {}) {
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(CRM_INQUIRY_PERMISSION_REF, CRM_INQUIRY_AUDIT_HINT_REF);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/inquiries?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error", items: [] };
+  }
+  if (response.status >= 500) return { kind: "error", status: response.status, uiState: "error", items: [] };
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review_required") {
+    return inquiryPermissionResult(response, body);
+  }
+  const items = Array.isArray(body?.items) ? body.items.map(safeCrmInquirySummary) : null;
+  const hasPageInfo = body?.page_info && typeof body.page_info === "object";
+  const valid = (
+    body
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && body.outcome === "passed"
+    && Array.isArray(body.items)
+    && items
+    && items.every(Boolean)
+    && new Set(items.map((item) => item.lead_id)).size === items.length
+    && (body.count_leak_prevented === true)
+    && Array.isArray(body.safe_error_codes)
+    && body.permission_filter_applied === true
+    && ["complete", "partial"].includes(body.data_status)
+    && inquirySourceStatusesValid(body.source_status, ["crm_consultations", "crm_leads", "crm_opportunities"])
+    && hasPageInfo
+    && body.page_info.returned_count === items.length
+    && body.page_info.omitted_item_count === null
+  );
+  if (!valid) return { kind: "error", uiState: "error", items: [] };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? (body.data_status === "partial" ? "partial" : items.length === 0 ? "empty" : null),
+    items,
+    pageInfo: { returnedCount: items.length, omittedItemCount: null },
+    sourceStatus: body.source_status,
+    safeErrorCodes: body.safe_error_codes,
+    countLeakPrevented: true,
+    permissionFilterApplied: body.permission_filter_applied === true
+  };
+}
+
+export async function fetchCrmInquiryDetail({ inquiryId, ctx = "allow" } = {}) {
+  const normalizedId = safeCrmInquiryId(inquiryId);
+  if (!normalizedId) return { kind: "empty", status: 404, uiState: "empty", item: null, countLeakPrevented: true };
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(CRM_INQUIRY_PERMISSION_REF, CRM_INQUIRY_AUDIT_HINT_REF);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/inquiries/${encodeURIComponent(normalizedId)}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error", item: null };
+  }
+  if (response.status === 404 || body?.ui_state === "empty") {
+    return { kind: "empty", status: response.status, outcome: "empty", uiState: "empty", item: null, countLeakPrevented: body?.count_leak_prevented === true };
+  }
+  if (response.status >= 500) return { kind: "error", status: response.status, uiState: "error", item: null };
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review_required") {
+    return inquiryPermissionResult(response, body);
+  }
+  const item = body?.item;
+  const summary = safeCrmInquirySummary(item);
+  const consultations = Array.isArray(item?.consultations) ? item.consultations.map(safeCrmInquiryConsultation) : null;
+  const consultationsAccess = item?.consultations_access;
+  const evidence = item?.evidence;
+  const evidenceItems = Array.isArray(evidence?.items) ? evidence.items.map(safeCrmInquiryEvidence) : null;
+  const evidenceValid = (
+    evidence
+    && typeof evidence === "object"
+    && ["allowed", "denied", "unavailable"].includes(evidence.access)
+    && ["complete", "partial", "permission_denied", "unavailable", "error"].includes(evidence.source_status)
+    && evidence.count_leak_prevented === true
+    && evidence.page_info
+    && typeof evidence.page_info === "object"
+    && evidence.page_info.omitted_item_count === null
+    && evidenceItems
+    && evidenceItems.every(Boolean)
+    && (evidence.access === "allowed" || evidenceItems.length === 0)
+    && new Set(evidenceItems.map((entry) => entry.inquiry_email_evidence_id)).size === evidenceItems.length
+    && (
+      evidence.access === "allowed"
+        ? evidence.source_status === "complete" || evidence.source_status === "partial"
+        : evidence.access === "denied"
+          ? evidence.source_status === "permission_denied"
+          : ["unavailable", "error"].includes(evidence.source_status)
+    )
+    && (
+      evidence.access === "allowed"
+        ? evidence.page_info.returned_count === evidenceItems.length
+        : evidence.page_info.returned_count === null
+    )
+  );
+  const valid = (
+    body
+    && typeof body === "object"
+    && body.outcome === "passed"
+    && summary
+    && summary.lead_id === normalizedId
+    && consultations
+    && consultations.every(Boolean)
+    && ["allowed", "denied", "unavailable"].includes(consultationsAccess)
+    && (consultationsAccess === "allowed" || consultations.length === 0)
+    && evidenceValid
+    && ["complete", "partial"].includes(body.data_status)
+    && inquirySourceStatusesValid(body.source_status, ["crm_consultations", "crm_leads", "crm_opportunities", "email_evidence"])
+    && body.permission_filter_applied === true
+    && body.count_leak_prevented === true
+    && Array.isArray(body.safe_error_codes)
+  );
+  if (!valid) return { kind: "error", uiState: "error", item: null };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.data_status === "partial" ? "partial" : null,
+    item: {
+      ...summary,
+      consultations,
+      consultations_access: consultationsAccess,
+      evidence: {
+        access: evidence.access,
+        source_status: evidence.source_status,
+        items: evidenceItems,
+        page_info: evidence.page_info,
+        count_leak_prevented: true
+      }
+    },
+    sourceStatus: body.source_status,
+    safeErrorCodes: body.safe_error_codes,
+    countLeakPrevented: true
+  };
+}
+
+function base64ByteLength(value) {
+  const normalized = typeof value === "string" ? value.replace(/\s+/gu, "") : "";
+  if (!normalized || normalized.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/u.test(normalized)) return null;
+  const padding = normalized.endsWith("==") ? 2 : normalized.endsWith("=") ? 1 : 0;
+  return (normalized.length * 3) / 4 - padding;
+}
+
+function bytesFromBase64(value) {
+  const normalized = typeof value === "string" ? value.replace(/\s+/gu, "") : "";
+  if (typeof atob === "function") {
+    try {
+      const binary = atob(normalized);
+      return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    } catch {
+      return null;
+    }
+  }
+  if (globalThis.Buffer?.from) {
+    try {
+      return Uint8Array.from(globalThis.Buffer.from(normalized, "base64"));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function contentDigestMatches(bytes, expectedSha256) {
+  if (!(bytes instanceof Uint8Array) || !globalThis.crypto?.subtle) return false;
+  try {
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    const actual = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    return actual === expectedSha256.toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+async function safeInquiryContentItem(item, kind, expectedEvidenceId) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const evidenceId = safeCrmInquiryId(item.inquiry_email_evidence_id);
+  const expectedObjectKind = kind === "display" ? "sanitized_display" : "original_mime";
+  const expectedEncoding = kind === "display" ? "utf8" : "base64";
+  const expectedMime = kind === "display" ? /^text\/plain(?:;|$)/iu : /^message\/rfc822$/iu;
+  if (
+    !evidenceId
+    || evidenceId !== expectedEvidenceId
+    || item.object_kind !== expectedObjectKind
+    || item.encoding !== expectedEncoding
+    || typeof item.mime_type !== "string"
+    || !expectedMime.test(item.mime_type)
+    || item.scan_status !== "clean"
+    || item.raw_path_exposed !== false
+    || item.storage_pointer_ref_included !== false
+    || item.executable_preview_enabled !== false
+    || item.external_resources_loaded !== false
+    || typeof item.content_sha256 !== "string"
+    || !CRM_INQUIRY_SHA256_PATTERN.test(item.content_sha256)
+    || !Number.isSafeInteger(item.byte_size)
+    || item.byte_size < 0
+  ) return null;
+  if (kind === "display") {
+    if (typeof item.content_text !== "string" || item.content_base64 !== null) return null;
+    const bytes = new TextEncoder().encode(item.content_text);
+    const byteLength = bytes.byteLength;
+    if (byteLength !== item.byte_size) return null;
+    if (!(await contentDigestMatches(bytes, item.content_sha256))) return null;
+    return {
+      objectKind: expectedObjectKind,
+      encoding: expectedEncoding,
+      contentText: item.content_text,
+      contentBase64: null,
+      contentSha256: item.content_sha256.toLowerCase(),
+      byteSize: item.byte_size,
+      mimeType: item.mime_type,
+      scanStatus: item.scan_status
+    };
+  }
+  if (typeof item.content_base64 !== "string" || item.content_text !== null || base64ByteLength(item.content_base64) !== item.byte_size) return null;
+  const bytes = bytesFromBase64(item.content_base64);
+  if (!bytes || !(await contentDigestMatches(bytes, item.content_sha256))) return null;
+  return {
+    objectKind: expectedObjectKind,
+    encoding: expectedEncoding,
+    contentText: null,
+    contentBase64: item.content_base64.replace(/\s+/gu, ""),
+    contentSha256: item.content_sha256.toLowerCase(),
+    byteSize: item.byte_size,
+    mimeType: item.mime_type,
+    scanStatus: item.scan_status
+  };
+}
+
+export async function fetchCrmInquiryEvidenceContent({ evidenceId, kind, ctx = "allow" } = {}) {
+  const normalizedId = safeCrmInquiryId(evidenceId);
+  if (!normalizedId || !["display", "original"].includes(kind)) {
+    return { kind: "error", uiState: "blocked", item: null };
+  }
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(CRM_INQUIRY_EVIDENCE_PERMISSION_REF, CRM_INQUIRY_EVIDENCE_AUDIT_HINT_REF);
+  params.set("kind", kind);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/outlook/inquiries/evidence/${encodeURIComponent(normalizedId)}/content?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "unavailable", item: null };
+  }
+  if (response.status === 423 || body?.safe_error_codes?.includes?.("INQUIRY_EVIDENCE_QUARANTINED")) {
+    return { kind: "data", outcome: "blocked", uiState: "quarantined", item: null, safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [] };
+  }
+  if (response.status >= 500) return { kind: "error", status: response.status, uiState: "error", item: null };
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review" || body?.ui_state === "review_required") {
+    return inquiryPermissionResult(response, body);
+  }
+  if (body?.ui_state === "blocked" || body?.outcome === "blocked") {
+    return { kind: "data", outcome: "blocked", uiState: "blocked", item: null, safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [] };
+  }
+  const item = await safeInquiryContentItem(body?.item, kind, normalizedId);
+  if (!response.ok || body?.outcome !== "passed" || !item || !Array.isArray(body?.safe_error_codes)) {
+    return { kind: "error", uiState: "error", item: null };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: null,
+    item,
+    safeErrorCodes: body.safe_error_codes
   };
 }
 

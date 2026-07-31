@@ -150,6 +150,25 @@ test("CL-P3-W02-T02 상태 우선순위는 수임 결정→종료→수임 검�
     }).visible_status_label,
     "확인 중",
   );
+
+  const unassigned = projectCrmInquiry({
+    lead: leadRecord({
+      lead_id: "lead_unassigned",
+      client_group_id: "client_unassigned",
+      inquiry_status: "new",
+      assigned_user_id: null,
+      source: "manual",
+      received_at: "2026-07-29T00:20:00.000Z",
+      opportunity_id: null,
+      engagement_decision: null,
+    }, {
+      owner_user_id: "user_record_owner",
+      assigned_user_id: null,
+    }),
+    opportunities: [],
+    activities: [],
+  });
+  assert.equal(unassigned.assigned_user_id, null);
 });
 
 test("CL-P3-W02-T02 같은 고객의 다른 문의 Activity를 섞지 않고 비밀 상담 내용을 가린다", () => {

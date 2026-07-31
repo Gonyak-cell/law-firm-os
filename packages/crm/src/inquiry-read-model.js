@@ -312,10 +312,7 @@ export function projectCrmInquiry({
     source: canonicalLead.source,
     received_at: canonicalLead.received_at,
     next_action: canonicalLead.next_action,
-    assigned_user_id:
-      canonicalLead.assigned_user_id
-      ?? canonicalLead.owner_user_id
-      ?? null,
+    assigned_user_id: canonicalLead.assigned_user_id ?? null,
     owner_user_id: canonicalLead.owner_user_id ?? null,
     record_status: canonicalLead.status,
     version: canonicalLead.version,
