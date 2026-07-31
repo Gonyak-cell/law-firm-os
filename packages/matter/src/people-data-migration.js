@@ -2,10 +2,12 @@ import { createHash } from "node:crypto";
 import { backfillPeopleCalendarEvents } from "./people-calendar-migration.js";
 import { backfillPeopleMatterMembers } from "./people-member-migration.js";
 import { backfillPeopleMatterTasks } from "./people-task-migration.js";
+import { normalizeRepositoryRecord } from "./repository-record.js";
 
 export const PEOPLE_DATA_MIGRATION_SCHEMA_VERSION = "matter.people-data-migration.v1";
 export const PEOPLE_DATA_MIGRATION_RECEIPT_MODEL = "MatterPeopleMigrationReceipt";
 export const PEOPLE_DATA_MIGRATION_QUARANTINE_MODEL = "MatterPeopleMigrationQuarantine";
+export const PEOPLE_DATA_MIGRATION_SOURCE_MANIFEST_VERSION = "matter.people-data-migration.source-manifest.v1";
 
 const SOURCE_COLLECTIONS = Object.freeze([
   "members",
@@ -15,6 +17,12 @@ const SOURCE_COLLECTIONS = Object.freeze([
   "audit_events",
   "calendar_source_metadata",
   "users",
+]);
+
+const SOURCE_INVENTORY_COLLECTIONS = Object.freeze([
+  Object.freeze({ field: "members", model_type: "MatterMember", id_field: "member_id" }),
+  Object.freeze({ field: "calendar_events", model_type: "MatterCalendarEvent", id_field: "event_id" }),
+  Object.freeze({ field: "tasks", model_type: "MatterTask", id_field: "task_id" }),
 ]);
 
 function migrationError(message, code) {
@@ -70,6 +78,52 @@ function normalizeSourceSnapshot(sourceSnapshot = {}) {
   return Object.freeze(Object.fromEntries(
     SOURCE_COLLECTIONS.map((field) => [field, Object.freeze(normalizeRows(sourceSnapshot[field], field))]),
   ));
+}
+
+function sourceInventoryCollection(rows, { field, model_type: modelType, id_field: idField }) {
+  const normalizedRows = rows.map((row) => {
+    if (row.model_type != null && row.model_type !== modelType) {
+      throw migrationError(
+        `source_snapshot.${field} contains model_type ${row.model_type}; expected ${modelType}`,
+        "MATTER_PEOPLE_MIGRATION_SOURCE_INVENTORY_MISMATCH",
+      );
+    }
+    return normalizeRepositoryRecord({ ...row, model_type: modelType });
+  }).sort((left, right) => {
+    const leftId = String(left[idField]);
+    const rightId = String(right[idField]);
+    return leftId < rightId ? -1 : (leftId > rightId ? 1 : 0);
+  });
+  const ids = Object.freeze(normalizedRows.map((row) => normalizeText(row[idField], `${field}.${idField}`)));
+  return Object.freeze({
+    model_type: modelType,
+    id_field: idField,
+    count: normalizedRows.length,
+    ids,
+    rows_hash: sha256(normalizedRows),
+  });
+}
+
+function sourceManifest(tenantId, rowsByCollection) {
+  const collections = Object.freeze(Object.fromEntries(
+    SOURCE_INVENTORY_COLLECTIONS.map((definition) => [
+      definition.field,
+      sourceInventoryCollection(rowsByCollection[definition.field] ?? [], definition),
+    ]),
+  ));
+  const manifest = {
+    schema_version: PEOPLE_DATA_MIGRATION_SOURCE_MANIFEST_VERSION,
+    tenant_id: tenantId,
+    collections,
+  };
+  return Object.freeze({
+    ...manifest,
+    manifest_hash: sha256(manifest),
+  });
+}
+
+function assertSourceManifest(expected, actual, code, message) {
+  if (stableJson(expected) !== stableJson(actual)) throw migrationError(message, code);
 }
 
 function assertTenantRows(tenantId, snapshot) {
@@ -189,6 +243,7 @@ function publicPlan(plan) {
     tenant_id: plan.tenant_id,
     source_snapshot_id: plan.source_snapshot_id,
     source_snapshot_hash: plan.source_snapshot_hash,
+    source_manifest: plan.source_manifest,
     output_snapshot_hash: plan.output_snapshot_hash,
     counts: plan.counts,
     quarantine: plan.quarantine,
@@ -208,6 +263,7 @@ function assertRepository(repository) {
     "upsert",
     "create",
     "get",
+    "list",
     "recordIdempotency",
     "getIdempotency",
     "appendAudit",
@@ -224,6 +280,19 @@ function assertRepository(repository) {
   }
 }
 
+export function createPeopleDataMigrationSourceManifest({ repository, tenant_id } = {}) {
+  const tenantId = normalizeText(tenant_id, "tenant_id");
+  if (!repository || typeof repository.list !== "function") {
+    throw new TypeError("a Matter repository with list support is required");
+  }
+  return sourceManifest(tenantId, Object.fromEntries(
+    SOURCE_INVENTORY_COLLECTIONS.map(({ field, model_type: modelType }) => [
+      field,
+      repository.list({ tenant_id: tenantId, model_type: modelType }),
+    ]),
+  ));
+}
+
 export function planPeopleDataMigration({
   tenant_id,
   source_snapshot_id = null,
@@ -237,6 +306,7 @@ export function planPeopleDataMigration({
   const snapshot = normalizeSourceSnapshot(source_snapshot);
   assertTenantRows(tenantId, snapshot);
   assertMigrationBoundary(snapshot);
+  const sourceInventoryManifest = sourceManifest(tenantId, snapshot);
 
   const sourceSnapshotHash = sha256({
     schema_version: PEOPLE_DATA_MIGRATION_SCHEMA_VERSION,
@@ -335,6 +405,7 @@ export function planPeopleDataMigration({
     tenant_id: tenantId,
     source_snapshot_id: snapshotId,
     source_snapshot_hash: sourceSnapshotHash,
+    source_manifest: sourceInventoryManifest,
     output_snapshot_hash: outputSnapshotHash,
     counts,
     quarantine,
@@ -349,6 +420,7 @@ export function executePeopleDataMigration({
   source_snapshot_id = null,
   source_snapshot = {},
   expected_source_snapshot_hash = null,
+  source_manifest = null,
   mode = "dry_run",
   idempotency_key = null,
   actor_id = null,
@@ -357,12 +429,29 @@ export function executePeopleDataMigration({
   if (!["dry_run", "apply"].includes(mode)) {
     throw new TypeError("mode must be dry_run or apply");
   }
+  if (
+    mode === "apply"
+    && (typeof expected_source_snapshot_hash !== "string" || expected_source_snapshot_hash.trim() === "")
+  ) {
+    throw migrationError(
+      "People data migration apply requires a separately approved expected source snapshot hash",
+      "MATTER_PEOPLE_MIGRATION_SOURCE_ATTESTATION_REQUIRED",
+    );
+  }
   const plan = planPeopleDataMigration({
     tenant_id,
     source_snapshot_id,
     source_snapshot,
     expected_source_snapshot_hash,
   });
+  if (source_manifest != null) {
+    assertSourceManifest(
+      plan.source_manifest,
+      source_manifest,
+      "MATTER_PEOPLE_MIGRATION_SOURCE_MANIFEST_MISMATCH",
+      "People data migration source manifest does not match the source snapshot",
+    );
+  }
   if (mode === "dry_run") return publicPlan(plan);
 
   assertRepository(repository);
@@ -376,6 +465,7 @@ export function executePeopleDataMigration({
     schema_version: PEOPLE_DATA_MIGRATION_SCHEMA_VERSION,
     tenant_id: plan.tenant_id,
     source_snapshot_hash: plan.source_snapshot_hash,
+    source_manifest_hash: plan.source_manifest.manifest_hash,
   });
 
   const existingIdempotency = repository.getIdempotency({
@@ -410,6 +500,17 @@ export function executePeopleDataMigration({
     );
   }
 
+  const authoritativeSourceManifest = createPeopleDataMigrationSourceManifest({
+    repository,
+    tenant_id: plan.tenant_id,
+  });
+  assertSourceManifest(
+    authoritativeSourceManifest,
+    plan.source_manifest,
+    "MATTER_PEOPLE_MIGRATION_SOURCE_INVENTORY_MISMATCH",
+    "People data migration source snapshot does not match the authoritative repository inventory",
+  );
+
   const migratedAt = appliedAt(now);
   const auditEventId = `${receiptId}:audit`;
   const quarantineRecords = plan.quarantine.map((row) => {
@@ -436,6 +537,8 @@ export function executePeopleDataMigration({
     schema_version: PEOPLE_DATA_MIGRATION_SCHEMA_VERSION,
     source_snapshot_id: plan.source_snapshot_id,
     source_snapshot_hash: plan.source_snapshot_hash,
+    source_manifest: plan.source_manifest,
+    source_manifest_hash: plan.source_manifest.manifest_hash,
     output_snapshot_hash: plan.output_snapshot_hash,
     idempotency_key: idempotencyKey,
     actor_id: actorId,
@@ -454,6 +557,7 @@ export function executePeopleDataMigration({
     tenant_id: plan.tenant_id,
     source_snapshot_id: plan.source_snapshot_id,
     source_snapshot_hash: plan.source_snapshot_hash,
+    source_manifest_hash: plan.source_manifest.manifest_hash,
     output_snapshot_hash: plan.output_snapshot_hash,
     counts: plan.counts,
     receipt,
@@ -486,6 +590,7 @@ export function executePeopleDataMigration({
       idempotency_key: idempotencyKey,
       source_snapshot_id: plan.source_snapshot_id,
       source_snapshot_hash: plan.source_snapshot_hash,
+      source_manifest_hash: plan.source_manifest.manifest_hash,
       output_snapshot_hash: plan.output_snapshot_hash,
       counts: plan.counts,
       occurred_at: migratedAt,

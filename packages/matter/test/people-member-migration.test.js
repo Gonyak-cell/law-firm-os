@@ -4,6 +4,7 @@ import {
   backfillPeopleMatterMembers,
   peopleMemberUnresolvedCsv,
 } from "../src/people-member-migration.js";
+import { selectCurrentPeopleAttorneyAssignments } from "../src/people-member-cutover.js";
 import { createMatterMember } from "../src/model.js";
 
 const TENANT = "tenant-people";
@@ -63,6 +64,106 @@ test("uncertain identity stays unresolved without an invented effective date", (
   assert.equal(result.unresolved.length, 1);
   assert.equal(result.validity_review_required[0].reason, "valid_from_unverified");
   assert.match(peopleMemberUnresolvedCsv(result.unresolved), /담당자 지정 필요/);
+});
+
+test("explicit legacy employee mismatch is quarantined and excluded from cutover", () => {
+  const result = backfillPeopleMatterMembers({
+    tenant_id: TENANT,
+    members: [legacy({ employee_id: "emp-b" })],
+    employee_user_links: [{
+      tenant_id: TENANT,
+      link_id: "link-user-a",
+      purpose: "login_mapping",
+      status: "active",
+      user_id: "user-1",
+      employee_id: "emp-a",
+    }],
+    audit_events: [{
+      tenant_id: TENANT,
+      action: "matter.team.member.add",
+      object_id: "member-1",
+      occurred_at: "2026-07-01T09:00:00.000Z",
+    }],
+  });
+
+  assert.equal(result.rows[0].identity_resolution_state, "unresolved");
+  assert.equal(result.rows[0].employee_id, null);
+  assert.equal(result.rows[0].valid_from, null);
+  assert.equal(result.unresolved[0].reason, "employee_user_mismatch");
+  assert.equal(result.report.resolved_count, 0);
+  assert.equal(selectCurrentPeopleAttorneyAssignments({
+    tenant_id: TENANT,
+    as_of: "2026-07-30T09:00:00.000Z",
+    members: result.rows,
+  }).length, 0);
+});
+
+test("explicit legacy employee resolves only from one active same-tenant link", async (t) => {
+  const activeLink = {
+    tenant_id: TENANT,
+    link_id: "link-active",
+    purpose: "login_mapping",
+    status: "active",
+    user_id: "user-1",
+    employee_id: "emp-b",
+  };
+  const scenarios = [
+    {
+      name: "matching active authority",
+      links: [activeLink],
+      expectedState: "resolved",
+      expectedEmployeeId: "emp-b",
+      expectedReason: null,
+      expectedSelected: 1,
+    },
+    {
+      name: "revoked link",
+      links: [{ ...activeLink, revoked_at: "2026-07-15T00:00:00.000Z" }],
+      expectedState: "unresolved",
+      expectedEmployeeId: null,
+      expectedReason: "unresolved_missing",
+      expectedSelected: 0,
+    },
+    {
+      name: "ambiguous active links",
+      links: [activeLink, { ...activeLink, link_id: "link-other", employee_id: "emp-c" }],
+      expectedState: "unresolved",
+      expectedEmployeeId: null,
+      expectedReason: "unresolved_ambiguous",
+      expectedSelected: 0,
+    },
+    {
+      name: "cross-tenant link",
+      links: [{ ...activeLink, tenant_id: "tenant-other" }],
+      expectedState: "unresolved",
+      expectedEmployeeId: null,
+      expectedReason: "unresolved_missing",
+      expectedSelected: 0,
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    await t.test(scenario.name, () => {
+      const result = backfillPeopleMatterMembers({
+        tenant_id: TENANT,
+        members: [legacy({
+          employee_id: "emp-b",
+          valid_from: "2026-07-01T09:00:00.000Z",
+        })],
+        employee_user_links: scenario.links,
+      });
+
+      assert.equal(result.rows[0].identity_resolution_state, scenario.expectedState);
+      assert.equal(result.rows[0].employee_id, scenario.expectedEmployeeId);
+      assert.equal(result.unresolved[0]?.reason ?? null, scenario.expectedReason);
+      assert.equal(result.report.resolved_count, scenario.expectedSelected);
+      assert.equal(selectCurrentPeopleAttorneyAssignments({
+        tenant_id: TENANT,
+        as_of: "2026-07-30T09:00:00.000Z",
+        members: result.rows,
+      }).length, scenario.expectedSelected);
+    });
+  }
 });
 
 test("member migration rejects cross-tenant rows and reversed validity", () => {

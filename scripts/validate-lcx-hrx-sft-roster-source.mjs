@@ -131,7 +131,7 @@ for (const marker of [
   "member?.organization_group",
   "member?.mobile_phone",
   "member?.professional_profile",
-  "source_ref: member?.source_ref"
+  "source_ref: member.source_ref"
 ]) {
   assert.ok(runtime.includes(marker), `runtime roster mapping missing ${marker}`);
 }

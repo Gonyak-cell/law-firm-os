@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { writeDurableJsonFile } from "../../persistence/src/durable-file.js";
 import {
+  createPeopleDataMigrationSourceManifest,
   executePeopleDataMigration,
   PEOPLE_DATA_MIGRATION_QUARANTINE_MODEL,
   PEOPLE_DATA_MIGRATION_RECEIPT_MODEL,
@@ -167,12 +168,18 @@ test("apply atomically persists every model, quarantine, receipt, idempotency, a
     source_snapshot: snapshot,
     mode: "dry_run",
   });
+  const sourceManifest = createPeopleDataMigrationSourceManifest({
+    repository,
+    tenant_id: TENANT,
+  });
+  assert.deepEqual(dryRun.source_manifest, sourceManifest);
   const applied = executePeopleDataMigration({
     repository,
     tenant_id: TENANT,
     source_snapshot_id: "snapshot-apply",
     source_snapshot: snapshot,
     expected_source_snapshot_hash: dryRun.source_snapshot_hash,
+    source_manifest: sourceManifest,
     mode: "apply",
     idempotency_key: "people-migration-apply-1",
     actor_id: "user-operator",
@@ -219,6 +226,7 @@ test("apply atomically persists every model, quarantine, receipt, idempotency, a
     model_type: PEOPLE_DATA_MIGRATION_QUARANTINE_MODEL,
   });
   assert.equal(receipt.source_snapshot_hash, dryRun.source_snapshot_hash);
+  assert.equal(receipt.source_manifest_hash, sourceManifest.manifest_hash);
   assert.equal(receipt.output_snapshot_hash, dryRun.output_snapshot_hash);
   assert.equal(quarantine.length, dryRun.counts.quarantine_rows);
   assert.equal(quarantine.some(({ reason }) => reason === "valid_from_unverified"), true);
@@ -236,6 +244,8 @@ test("apply atomically persists every model, quarantine, receipt, idempotency, a
     tenant_id: TENANT,
     source_snapshot_id: "snapshot-apply",
     source_snapshot: snapshot,
+    expected_source_snapshot_hash: dryRun.source_snapshot_hash,
+    source_manifest: sourceManifest,
     mode: "apply",
     idempotency_key: "people-migration-apply-1",
     actor_id: "user-operator",
@@ -268,26 +278,197 @@ test("source hashes and idempotency keys are bound to one tenant snapshot", () =
     repository,
     tenant_id: TENANT,
     source_snapshot: snapshot,
+    expected_source_snapshot_hash: dryRun.source_snapshot_hash,
     mode: "apply",
     idempotency_key: "bound-key",
     actor_id: "user-operator",
     now: NOW,
   });
+  const changedSnapshot = {
+    ...snapshot,
+    tasks: snapshot.tasks.map((row) => (
+      row.task_id === "task-review" ? { ...row, title: "변경된 원본" } : row
+    )),
+  };
+  const changedHash = executePeopleDataMigration({
+    tenant_id: TENANT,
+    source_snapshot: changedSnapshot,
+    mode: "dry_run",
+  }).source_snapshot_hash;
   assert.throws(() => executePeopleDataMigration({
     repository,
     tenant_id: TENANT,
-    source_snapshot: {
-      ...snapshot,
-      tasks: snapshot.tasks.map((row) => (
-        row.task_id === "task-review" ? { ...row, title: "변경된 원본" } : row
-      )),
-    },
+    source_snapshot: changedSnapshot,
+    expected_source_snapshot_hash: changedHash,
     mode: "apply",
     idempotency_key: "bound-key",
     actor_id: "user-operator",
     now: NOW,
   }), ({ code }) => code === "MATTER_PEOPLE_MIGRATION_IDEMPOTENCY_CONFLICT");
   assert.equal(dryRun.source_snapshot_hash.startsWith("sha256:"), true);
+});
+
+test("apply rejects omitted, extra, or mutated legacy rows before any write", () => {
+  const filePath = tempPath("matter-people-migration-inventory");
+  const repository = createMatterRepository({ filePath });
+  const snapshot = sourceSnapshot();
+  seedLegacyRows(repository, snapshot);
+  const before = repository.snapshot();
+  const adversarialSnapshots = [
+    { ...snapshot, members: snapshot.members.slice(1) },
+    { ...snapshot, tasks: [...snapshot.tasks, task("task-not-in-repository", "user-resolved")] },
+    {
+      ...snapshot,
+      calendar_events: snapshot.calendar_events.map((row) => (
+        row.event_id === "event-hearing" ? { ...row, title: "변조된 원본" } : row
+      )),
+    },
+  ];
+
+  for (const [index, source_snapshot] of adversarialSnapshots.entries()) {
+    const dryRun = executePeopleDataMigration({
+      tenant_id: TENANT,
+      source_snapshot,
+      mode: "dry_run",
+    });
+    assert.throws(() => executePeopleDataMigration({
+      repository,
+      tenant_id: TENANT,
+      source_snapshot,
+      expected_source_snapshot_hash: dryRun.source_snapshot_hash,
+      source_manifest: dryRun.source_manifest,
+      mode: "apply",
+      idempotency_key: `inventory-attack-${index}`,
+      actor_id: "user-operator",
+      now: NOW,
+    }), ({ code }) => code === "MATTER_PEOPLE_MIGRATION_SOURCE_INVENTORY_MISMATCH");
+    assert.deepEqual(repository.snapshot(), before);
+  }
+});
+
+test("apply requires a separate full-snapshot attestation and rejects invented support authority", () => {
+  const filePath = tempPath("matter-people-migration-attestation");
+  const snapshotPath = `${filePath}.snapshot.json`;
+  const repository = createMatterRepository({ filePath });
+  const snapshot = sourceSnapshot();
+  seedLegacyRows(repository, snapshot);
+  const before = repository.snapshot();
+  const dryRun = executePeopleDataMigration({
+    tenant_id: TENANT,
+    source_snapshot: snapshot,
+    mode: "dry_run",
+  });
+
+  assert.throws(() => executePeopleDataMigration({
+    repository,
+    tenant_id: TENANT,
+    source_snapshot: snapshot,
+    mode: "apply",
+    actor_id: "user-operator",
+  }), ({ code }) => code === "MATTER_PEOPLE_MIGRATION_SOURCE_ATTESTATION_REQUIRED");
+
+  const inventedSupportSnapshots = [
+    {
+      ...snapshot,
+      employee_user_links: snapshot.employee_user_links.map((row) => ({
+        ...row,
+        employee_id: "employee-invented",
+      })),
+    },
+    { ...snapshot, users: [{ tenant_id: TENANT, user_id: "user-invented" }] },
+    {
+      ...snapshot,
+      audit_events: snapshot.audit_events.map((row) => ({
+        ...row,
+        occurred_at: "2026-01-01T00:00:00.000Z",
+      })),
+    },
+    {
+      ...snapshot,
+      calendar_source_metadata: snapshot.calendar_source_metadata.map((row) => ({
+        ...row,
+        event_kind: "deadline",
+      })),
+    },
+  ];
+  for (const [index, source_snapshot] of inventedSupportSnapshots.entries()) {
+    assert.throws(() => executePeopleDataMigration({
+      repository,
+      tenant_id: TENANT,
+      source_snapshot,
+      expected_source_snapshot_hash: dryRun.source_snapshot_hash,
+      mode: "apply",
+      idempotency_key: `support-authority-attack-${index}`,
+      actor_id: "user-operator",
+      now: NOW,
+    }), ({ code }) => code === "MATTER_PEOPLE_MIGRATION_SOURCE_HASH_MISMATCH");
+    assert.deepEqual(repository.snapshot(), before);
+  }
+
+  repository.close();
+  writeFileSync(snapshotPath, JSON.stringify({
+    tenant_id: TENANT,
+    source_snapshot: snapshot,
+    source_snapshot_hash: dryRun.source_snapshot_hash,
+  }));
+  assert.throws(() => runPeopleDataMigrationCommand([
+    "--snapshot", snapshotPath,
+    "--store", filePath,
+    "--mode", "apply",
+    "--actor", "user-operator",
+  ], {
+    write() {},
+  }), ({ code, message }) => (
+    code === "MATTER_PEOPLE_MIGRATION_COMMAND_INVALID"
+    && message.includes("--expected-hash is required")
+  ));
+  const reopened = createMatterRepository({ filePath });
+  assert.deepEqual(reopened.snapshot(), before);
+  reopened.close();
+});
+
+test("apply rejects a mismatched source manifest before any write", () => {
+  const filePath = tempPath("matter-people-migration-manifest");
+  const snapshotPath = `${filePath}.snapshot.json`;
+  const repository = createMatterRepository({ filePath });
+  const snapshot = sourceSnapshot();
+  seedLegacyRows(repository, snapshot);
+  const before = repository.snapshot();
+  const manifest = createPeopleDataMigrationSourceManifest({ repository, tenant_id: TENANT });
+  const mismatchedManifest = {
+    ...manifest,
+    collections: {
+      ...manifest.collections,
+      members: {
+        ...manifest.collections.members,
+        count: manifest.collections.members.count - 1,
+      },
+    },
+  };
+  repository.close();
+  writeFileSync(snapshotPath, JSON.stringify({
+    tenant_id: TENANT,
+    source_snapshot: snapshot,
+    source_manifest: mismatchedManifest,
+  }));
+
+  assert.throws(() => runPeopleDataMigrationCommand([
+    "--snapshot", snapshotPath,
+    "--store", filePath,
+    "--mode", "apply",
+    "--expected-hash", executePeopleDataMigration({
+      tenant_id: TENANT,
+      source_snapshot: snapshot,
+      mode: "dry_run",
+    }).source_snapshot_hash,
+    "--idempotency-key", "mismatched-manifest",
+    "--actor", "user-operator",
+  ], {
+    write() {},
+  }), ({ code }) => code === "MATTER_PEOPLE_MIGRATION_SOURCE_MANIFEST_MISMATCH");
+  const reopened = createMatterRepository({ filePath });
+  assert.deepEqual(reopened.snapshot(), before);
+  reopened.close();
 });
 
 test("migration boundary rejects cross-tenant rows and reversed member/task intervals", () => {
@@ -341,10 +522,16 @@ test("a failed durable commit rolls back rows, receipt, quarantine, audit, and i
       return writeDurableJsonFile(input);
     },
   });
+  const expectedSourceSnapshotHash = executePeopleDataMigration({
+    tenant_id: TENANT,
+    source_snapshot: snapshot,
+    mode: "dry_run",
+  }).source_snapshot_hash;
   assert.throws(() => executePeopleDataMigration({
     repository,
     tenant_id: TENANT,
     source_snapshot: snapshot,
+    expected_source_snapshot_hash: expectedSourceSnapshotHash,
     mode: "apply",
     idempotency_key: "rollback-key",
     actor_id: "user-operator",
@@ -374,6 +561,7 @@ test("a failed durable commit rolls back rows, receipt, quarantine, audit, and i
     repository,
     tenant_id: TENANT,
     source_snapshot: snapshot,
+    expected_source_snapshot_hash: expectedSourceSnapshotHash,
     mode: "apply",
     idempotency_key: "rollback-key",
     actor_id: "user-operator",

@@ -65,12 +65,20 @@ export function backfillPeopleMatterMembers({
     const explicitEmployeeId = typeof member.employee_id === "string" && member.employee_id.trim()
       ? member.employee_id.trim()
       : null;
-    const identity = explicitEmployeeId ? null : resolveUniqueEmployeeUserLink({
+    const identity = resolveUniqueEmployeeUserLink({
       tenant_id,
       user_id: member.user_id,
       links: employee_user_links,
     });
-    const resolvedEmployeeId = explicitEmployeeId ?? (identity?.state === "resolved" ? identity.employee_id : null);
+    const resolvedEmployeeId = (
+      identity.state === "resolved"
+      && (explicitEmployeeId === null || identity.employee_id === explicitEmployeeId)
+    ) ? identity.employee_id : null;
+    const resolutionReason = (
+      explicitEmployeeId
+      && identity.state === "resolved"
+      && identity.employee_id !== explicitEmployeeId
+    ) ? "employee_user_mismatch" : identity.state;
     const resolutionState = resolvedEmployeeId ? "resolved" : "unresolved";
     const row = Object.freeze({
       ...member,
@@ -87,7 +95,7 @@ export function backfillPeopleMatterMembers({
         member_id: member.member_id,
         matter_id: member.matter_id,
         user_id: member.user_id,
-        reason: identity?.state ?? "unresolved_missing",
+        reason: resolutionReason,
         action_label: "담당자 지정 필요",
       }));
     }

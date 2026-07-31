@@ -48,10 +48,11 @@ export function runPeopleDataMigrationCommand(
   const tenantId = options.tenant ?? document.tenant_id;
   const sourceSnapshot = document.source_snapshot ?? document;
   const sourceSnapshotId = options.source_snapshot_id ?? document.source_snapshot_id ?? null;
+  const sourceManifest = document.source_manifest ?? null;
   const expectedSourceSnapshotHash = options.expected_hash
-    ?? document.expected_source_snapshot_hash
-    ?? document.source_snapshot_hash
-    ?? null;
+    ?? (mode === "dry_run"
+      ? document.expected_source_snapshot_hash ?? document.source_snapshot_hash ?? null
+      : null);
 
   if (mode === "dry_run") {
     const result = executePeopleDataMigration({
@@ -59,6 +60,7 @@ export function runPeopleDataMigrationCommand(
       source_snapshot_id: sourceSnapshotId,
       source_snapshot: sourceSnapshot,
       expected_source_snapshot_hash: expectedSourceSnapshotHash,
+      source_manifest: sourceManifest,
       mode,
     });
     write(JSON.stringify(result, null, 2));
@@ -66,6 +68,9 @@ export function runPeopleDataMigrationCommand(
   }
   if (mode !== "apply") throw commandError("--mode must be dry_run or apply");
   if (!options.store) throw commandError("--store is required for apply");
+  if (!options.expected_hash) {
+    throw commandError("--expected-hash is required for apply and must be supplied separately from the snapshot document");
+  }
 
   const repository = createMatterRepository({ filePath: resolve(options.store) });
   try {
@@ -75,6 +80,7 @@ export function runPeopleDataMigrationCommand(
       source_snapshot_id: sourceSnapshotId,
       source_snapshot: sourceSnapshot,
       expected_source_snapshot_hash: expectedSourceSnapshotHash,
+      source_manifest: sourceManifest,
       mode,
       idempotency_key: options.idempotency_key ?? null,
       actor_id: options.actor,
