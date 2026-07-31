@@ -190,6 +190,8 @@ export function App() {
   const requestedClientId = locationParams.get("record_id") ?? "";
   const requestedClientTab = locationParams.get("tab") ?? "";
   const requestedInquiryId = locationParams.get("inquiry_id") ?? "";
+  const requestedOpportunityId = locationParams.get("opportunity_id") ?? "";
+  const requestedOpportunityQuery = locationParams.get("opportunity_query") ?? "";
   const requestedDocumentId = locationParams.get("document_id") ?? "";
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
@@ -219,6 +221,8 @@ export function App() {
       companyAllowed,
       query: params.get("query") ?? "",
       inquiryId: params.get("inquiry_id") ?? "",
+      opportunityId: params.get("opportunity_id") ?? "",
+      opportunityQuery: params.get("opportunity_query") ?? "",
       documentId: params.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: params.get("date_from") ?? "",
@@ -249,6 +253,18 @@ export function App() {
       else params.delete("inquiry_id");
     } else {
       params.delete("inquiry_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "opportunityId")) {
+      if (routeContext.opportunityId) params.set("opportunity_id", routeContext.opportunityId);
+      else params.delete("opportunity_id");
+    } else {
+      params.delete("opportunity_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "opportunityQuery")) {
+      if (routeContext.opportunityQuery) params.set("opportunity_query", routeContext.opportunityQuery);
+      else params.delete("opportunity_query");
+    } else {
+      params.delete("opportunity_query");
     }
     for (const key of ["month", "tab", "period"]) {
       if (Object.prototype.hasOwnProperty.call(routeContext, key)) {
@@ -504,6 +520,8 @@ export function App() {
     window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, {
       ...resolvedInitialRoute,
       query: initialQuery,
+      opportunityId: initialParams.get("opportunity_id") ?? "",
+      opportunityQuery: initialParams.get("opportunity_query") ?? "",
       documentId: initialParams.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: initialParams.get("date_from") ?? "",
@@ -669,6 +687,8 @@ export function App() {
                 requestedClientId={requestedClientId}
                 requestedClientTab={requestedClientTab}
                 requestedInquiryId={requestedInquiryId}
+                requestedOpportunityId={requestedOpportunityId}
+                requestedOpportunityQuery={requestedOpportunityQuery}
                 requestedClientRevision={routeRevision}
               />
             )}

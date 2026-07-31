@@ -1369,8 +1369,9 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /openMatterFromIntakeClearance/);
   assert.match(apiClientSource, /openMatterFromIntakeClearance/);
   assert.match(apiClientSource, /ui_cmp_g6_intake_matter_open/);
-  assert.match(clientsSource, /data-crm-handoff-action="true"/);
-  assert.match(clientsSource, /data-crm-handoff-refresh-result="true"/);
+  assert.match(clientsSource, /data-client-opportunity-surface="true"/);
+  assert.match(clientsSource, /data-client-opportunity-row="true"/);
+  assert.match(clientsSource, /data-client-opportunity-handoff="true"/);
   assert.match(clientsSource, /upsertResultItem/);
   assert.match(clientsSource, /data-crm-accounts-read="true"/);
   assert.match(clientsSource, /data-crm-contacts-read="true"/);

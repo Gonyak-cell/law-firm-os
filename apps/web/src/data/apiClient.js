@@ -4242,10 +4242,15 @@ function uiRuntimeId(prefix) {
 }
 
 function uiStableId(prefix, value) {
-  const safeValue = String(value ?? "record")
-    .replace(/[^a-z0-9]+/gi, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 48);
+  // Keep the complete canonical value. Replacing punctuation or truncating a
+  // prefix makes distinct CRM IDs share a retry key (for example `opp:a`,
+  // `opp.a`, and `opp/a`). RFC 3986 percent encoding is synchronous, reversible,
+  // and safe to carry in a JSON idempotency/intake identifier without Web Crypto.
+  const canonicalValue = String(value ?? "record");
+  const encodedValue = encodeURIComponent(canonicalValue);
+  const safeValue = encodedValue.replace(/[!'()*]/g, (character) => (
+    `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+  ));
   return `${prefix}_${safeValue || "record"}`;
 }
 
@@ -5225,9 +5230,13 @@ export function createCrmOpportunity({
 export function handoffCrmOpportunityToIntake({
   opportunityId,
   requestedScopeSummary = "Client 상담 요청",
+  intakeRequestId,
+  idempotencyKey,
   ctx = "allow"
 } = {}) {
-  const requestId = uiRuntimeId("intake_ui");
+  const stableOpportunityKey = uiStableId("opportunity", opportunityId);
+  const stableIntakeRequestId = intakeRequestId ?? uiStableId("intake_ui", opportunityId);
+  const stableIdempotencyKey = idempotencyKey ?? `handoff:${stableOpportunityKey}`;
   return postCrmIntakeRuntime({
     path: `/api/crm/opportunities/${encodeURIComponent(opportunityId)}/handoff`,
     ctx,
@@ -5236,8 +5245,8 @@ export function handoffCrmOpportunityToIntake({
       permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
-      idempotency_key: `handoff:${requestId}`,
-      intake_request_id: requestId,
+      idempotency_key: stableIdempotencyKey,
+      intake_request_id: stableIntakeRequestId,
       requested_scope_summary: requestedScopeSummary
     }
   });

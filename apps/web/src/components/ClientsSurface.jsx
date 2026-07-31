@@ -73,6 +73,11 @@ import {
   inquiryEvidenceUiState
 } from "./ClientInquiryModel.js";
 import {
+  buildClientOpportunityModel,
+  clientOpportunityStatusCode,
+  clientOpportunityStatusLabel
+} from "./ClientOpportunityModel.js";
+import {
   CLIENT_REGISTRATION_INITIAL_FORM,
   clientRegistrationFingerprint,
   hasReviewCandidates,
@@ -2406,31 +2411,6 @@ function ActionNotice({ pending, result, pendingText, successText }) {
   return message ? <small>{message}</small> : null;
 }
 
-function OpportunityActionPanel({ opportunity, pending, result, onHandoff }) {
-  const refreshedOpportunity = result?.kind === "data" && result.opportunity?.opportunity_id === opportunity?.opportunity_id
-    ? result.opportunity
-    : opportunity;
-  const linked = Boolean(refreshedOpportunity?.intake_request_id);
-  return (
-    <div className="record-action-strip" data-crm-handoff-action="true">
-      <div>
-          <strong>{refreshedOpportunity ? businessLabel(refreshedOpportunity.display_name, "Pipeline 1") : "Pipeline"}</strong>
-        <span>{linked ? "상담 연결됨" : "상담 전환 대기"}</span>
-        <ActionNotice
-          pending={pending}
-          result={result}
-          pendingText="상담으로 전환 중입니다."
-          successText="상담으로 전환되었습니다."
-        />
-      </div>
-      <button className="secondary-button" type="button" disabled={!opportunity || linked || pending} onClick={onHandoff}>
-        <ArrowRight size={15} />
-        상담 전환
-      </button>
-    </div>
-  );
-}
-
 function IntakeActionPanel({
   intakeRequest,
   auditCount,
@@ -2597,29 +2577,206 @@ function IntakeActionPanel({
   );
 }
 
-function OpportunitiesTable({ result, pending, handoffResult, onHandoff }) {
-  const state = renderLiveState(result, "Pipeline");
-  if (state) return state;
-  const opportunities = resultItems(result);
+function opportunityResultStateCopy(state) {
+  if (state === "loading") return "수임 현황을 불러오는 중입니다.";
+  if (state === "denied") return "수임 현황을 볼 권한이 없습니다.";
+  if (state === "review_required") return "수임 현황을 보려면 추가 확인이 필요합니다.";
+  if (state === "partial") return "일부 수임 현황을 불러오지 못했습니다. 확인 가능한 항목만 표시합니다.";
+  if (state === "error") return "수임 현황을 불러오지 못했습니다. 잠시 후 다시 시도하세요.";
+  return "표시할 수임 현황이 없습니다.";
+}
+
+function ClientOpportunityTabs({ model, onTabChange }) {
   return (
-    <div className="clients-live-stack">
-      <OpportunityActionPanel opportunity={opportunities[0]} pending={pending} result={handoffResult} onHandoff={onHandoff} />
-      {handoffResult?.kind === "data" && handoffResult.opportunity && (
-        <div className="record-boundary-note" data-crm-handoff-refresh-result="true">
-          <ShieldCheck size={15} />
-          <span>
-            Pipeline 상태가 {pipelineStatus(handoffResult.opportunity.stage)} 단계로 갱신되고 상담 레코드와 연결되었습니다.
-          </span>
+    <div className="client-opportunity-tabs" role="tablist" aria-label="수임 현황 상태">
+      {model.statusTabs.map((tab) => (
+        <button
+          key={tab.code}
+          type="button"
+          role="tab"
+          aria-selected={model.activeStatusTab === tab.code}
+          className={model.activeStatusTab === tab.code ? "active" : ""}
+          onClick={() => onTabChange(tab.code)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ClientOpportunityDetail({ opportunity, rawOpportunity, pending, result, onClose, onHandoff }) {
+  const detailRef = useRef(null);
+  const linked = opportunity?.intakeRequestLinked === true;
+  const resultForOpportunity = result?.kind === "data"
+    && result.opportunity?.opportunity_id === opportunity?.opportunityId
+    ? result
+    : null;
+  const actionResultState = resultForOpportunity?.statusOutcome
+    ?? resultForOpportunity?.outcome
+    ?? resultForOpportunity?.uiState
+    ?? result?.statusOutcome
+    ?? result?.outcome
+    ?? result?.uiState
+    ?? (result?.kind === "error" ? "error" : null);
+  const actionSucceeded = ["passed", "created", "idempotent_replay"].includes(actionResultState);
+  const guardedResultApplies = result?.kind === "data"
+    && ["denied", "review_required", "blocked", "error"].includes(actionResultState);
+  const actionResultMessage = resultForOpportunity || guardedResultApplies || result?.kind === "error"
+    ? actionResultState === "denied" || resultForOpportunity?.uiState === "denied"
+      ? "상담 연결 권한이 없습니다. 담당자에게 권한을 요청하세요."
+      : actionResultState === "review_required" || resultForOpportunity?.uiState === "review_required"
+        ? "상담 연결 전에 담당자 확인이 필요합니다."
+        : actionResultState === "blocked"
+          ? "상담 연결이 차단되었습니다. 이해상충 또는 수임 검토 결과를 확인하세요."
+        : actionResultState === "error" || resultForOpportunity?.uiState === "error"
+          ? "상담 연결 결과를 확인하지 못했습니다. 잠시 후 다시 시도하세요."
+          : actionSucceeded
+            ? "상담 연결이 완료되었습니다. 목록을 최신 상태로 갱신했습니다."
+            : null
+    : result?.kind === "error"
+      ? "상담 연결 결과를 확인하지 못했습니다. 잠시 후 다시 시도하세요."
+      : null;
+  const actionResultTone = actionSucceeded ? "success" : actionResultMessage ? "error" : "";
+  useEffect(() => {
+    if (!actionSucceeded || typeof window === "undefined") return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const closeButton = detailRef.current?.querySelector('button[aria-label="수임 현황 상세 닫기"]');
+      if (closeButton && document.activeElement !== closeButton) closeButton.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [actionSucceeded, opportunity?.opportunityId]);
+  if (!opportunity) return null;
+  return (
+    <section
+      ref={detailRef}
+      className="client-opportunity-detail"
+      data-client-opportunity-detail="true"
+      aria-labelledby="client-opportunity-detail-heading"
+    >
+      <div className="client-opportunity-detail-header">
+        <div>
+          <span className="client-opportunity-detail-kicker">선택한 수임 건</span>
+          <h2 id="client-opportunity-detail-heading">{opportunity.displayName}</h2>
+        </div>
+        <button type="button" className="record-overlay-close" aria-label="수임 현황 상세 닫기" autoFocus onClick={onClose}>
+          <X size={17} />
+        </button>
+      </div>
+      <div className="client-opportunity-detail-facts">
+        <span><b>현재 상태</b>{clientOpportunityStatusLabel(opportunity)}</span>
+        <span><b>요청 범위</b>{opportunity.requestedScopeSummary || "범위 미지정"}</span>
+        <span><b>상담 연결</b>{linked ? "연결됨" : "연결 전"}</span>
+        <span><b>수임 결정</b>{opportunity.engagementDecision === "accepted" ? "수임 확정" : opportunity.engagementDecision === "declined" ? "수임하지 않음" : "검토 중"}</span>
+      </div>
+      <div className="client-opportunity-detail-actions">
+        <div>
+          <strong>{linked ? "상담 기록과 연결됨" : "상담 연결이 필요합니다"}</strong>
+          <span>{linked ? "상담 일정과 후속 검토는 상담 메뉴에서 이어서 진행합니다." : "선택한 건만 상담으로 연결할 수 있습니다."}</span>
+        </div>
+        <button
+          type="button"
+          className="secondary-button"
+          data-client-opportunity-handoff="true"
+          disabled={!rawOpportunity?.opportunity_id || linked || pending}
+          onClick={onHandoff}
+        >
+          <ArrowRight size={15} />
+          {linked ? "상담 연결됨" : pending ? "상담 연결 중" : "상담으로 연결"}
+        </button>
+      </div>
+      {pending ? <div className="client-opportunity-action-state" role="status">상담으로 연결 중입니다.</div> : null}
+      {actionResultMessage ? (
+        <div className={`client-opportunity-action-state ${actionResultTone}`} role="status">{actionResultMessage}</div>
+      ) : null}
+    </section>
+  );
+}
+
+function OpportunitiesTable({
+  result,
+  model,
+  selectedRawOpportunity,
+  pending,
+  handoffResult,
+  onTabChange,
+  onSearchChange,
+  onSelectOpportunity,
+  onCloseOpportunity,
+  onHandoff
+}) {
+  const state = model.state;
+  if (["loading", "denied", "review_required", "error"].includes(state)) {
+    const tone = state === "denied" ? "live-data-denied" : state === "review_required" ? "live-data-review" : state === "error" ? "live-data-error" : "live-data-loading";
+    return (
+      <div className={`client-opportunity-state live-data-state ${tone}`} role="status" data-client-opportunity-state={state}>
+        <strong>{opportunityResultStateCopy(state)}</strong>
+      </div>
+    );
+  }
+  const isEmpty = state === "empty" || model.opportunities.length === 0;
+  const hasSearchOrTabNoMatch = model.opportunities.length === 0 && resultItems(result).length > 0;
+  return (
+    <div className="client-opportunity-surface" data-client-opportunity-surface="true">
+      <div className="client-opportunity-toolbar">
+        <div>
+          <strong>문의부터 수임 결정까지 한눈에 확인합니다.</strong>
+          <span>고객명이나 요청 범위로 찾고, 선택한 건만 상담으로 연결하세요.</span>
+        </div>
+        <label className="client-opportunity-search">
+          <span>고객·요청 범위 검색</span>
+          <input
+            type="search"
+            value={model.searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="고객명 또는 요청 범위"
+            aria-label="고객·요청 범위 검색"
+          />
+        </label>
+      </div>
+      <ClientOpportunityTabs model={model} onTabChange={onTabChange} />
+      {state === "partial" ? (
+        <div className="client-opportunity-boundary-note" role="status">{opportunityResultStateCopy(state)}</div>
+      ) : null}
+      {isEmpty ? (
+        <div className="client-opportunity-state live-data-state live-data-empty" role="status" data-client-opportunity-state="empty">
+          <strong>{hasSearchOrTabNoMatch ? "조건에 맞는 수임 건이 없습니다." : opportunityResultStateCopy("empty")}</strong>
+        </div>
+      ) : (
+        <div className="client-opportunity-list" role="list" aria-label="수임 현황 목록">
+          {model.opportunities.map((opportunity) => {
+            const selected = opportunity.opportunityId === model.selectedOpportunityId;
+            return (
+              <div className={selected ? "client-opportunity-row selected" : "client-opportunity-row"} role="listitem" key={opportunity.opportunityId}>
+                <button
+                  type="button"
+                  className="client-opportunity-row-button"
+                  data-client-opportunity-row="true"
+                  aria-pressed={selected}
+                  aria-label={`${opportunity.displayName} 선택`}
+                  onClick={() => onSelectOpportunity(opportunity.opportunityId)}
+                >
+                  <span className="client-opportunity-row-heading">
+                    <strong>{opportunity.displayName}</strong>
+                    <span>{opportunity.requestedScopeSummary || "요청 범위 미지정"}</span>
+                  </span>
+                  <span className="client-opportunity-row-meta">
+                    <b>{clientOpportunityStatusLabel(opportunity)}</b>
+                    <span>{opportunity.intakeRequestLinked ? "상담 연결됨" : "상담 연결 전"}</span>
+                  </span>
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
-      <DataTable
-        columns={["Pipeline", "단계", "상태", "상담"]}
-        rows={opportunities.map((item, index) => [
-          businessLabel(item.display_name, `Pipeline ${index + 1}`),
-          pipelineStatus(item.stage),
-          pipelineStatus(item.status),
-          linkedLabel(item.intake_request_id)
-        ])}
+      <ClientOpportunityDetail
+        opportunity={model.selectedOpportunity}
+        rawOpportunity={selectedRawOpportunity}
+        pending={pending}
+        result={handoffResult}
+        onClose={onCloseOpportunity}
+        onHandoff={onHandoff}
       />
     </div>
   );
@@ -2739,6 +2896,8 @@ export function ClientsSurface({
   requestedClientId = "",
   requestedClientTab = "",
   requestedInquiryId = "",
+  requestedOpportunityId = "",
+  requestedOpportunityQuery = "",
   requestedClientRevision = 0
 }) {
   const [clientsResult, setClientsResult] = useState(null);
@@ -2818,6 +2977,9 @@ export function ClientsSurface({
   const [refreshToken, setRefreshToken] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
   const inquiryTriggerRef = useRef(null);
+  const opportunityTriggerRef = useRef(null);
+  const opportunitySelectionRef = useRef("");
+  const handoffRequestRef = useRef(0);
   const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-home";
   const normalizedRequestedClientId = String(
     requestedClientId ?? ""
@@ -3111,6 +3273,22 @@ export function ClientsSurface({
     inquiryDetailResult,
     requestedClientRevision
   ]);
+  const normalizedRequestedOpportunityId = String(requestedOpportunityId ?? "").trim();
+  const activeRequestedOpportunityId = currentSection === "client-opportunities"
+    ? normalizedRequestedOpportunityId
+    : "";
+  const clientOpportunityModel = useMemo(() => buildClientOpportunityModel({
+    opportunitiesResult,
+    requestedOpportunityId: activeRequestedOpportunityId,
+    statusTab: requestedClientTab,
+    searchQuery: requestedOpportunityQuery
+  }), [
+    activeRequestedOpportunityId,
+    opportunitiesResult,
+    requestedClientRevision,
+    requestedClientTab,
+    requestedOpportunityQuery
+  ]);
   const relatedFinanceClient = relatedFinanceKind
     ? clients.find((client) => (
       clientRecordId(client) === normalizedRequestedClientId
@@ -3120,7 +3298,9 @@ export function ClientsSurface({
   const selectedClientId = clientRecordId(selectedClient);
   const opportunities = resultItems(opportunitiesResult);
   const intakes = resultItems(intakeResult);
-  const selectedOpportunity = opportunities[0] ?? null;
+  const selectedOpportunity = clientOpportunityModel.selectedOpportunityId
+    ? opportunities.find((item) => item?.opportunity_id === clientOpportunityModel.selectedOpportunityId) ?? null
+    : null;
   const selectedIntake = intakes[0] ?? null;
   const selectedAccount = resultItems(accountsResult)[0] ?? null;
   const activeOpportunity =
@@ -3271,22 +3451,6 @@ export function ClientsSurface({
     setIntakeCreatePending(false);
     if (next.kind === "data") {
       setOpportunitiesResult((current) => upsertResultItem(current, next.opportunity ?? createdOpportunity.item, "opportunity_id"));
-      setIntakeResult((current) => upsertResultItem(current, next.item, "intake_request_id"));
-    }
-  }
-
-  async function handleOpportunityHandoff() {
-    if (!selectedOpportunity?.opportunity_id) return;
-    setHandoffPending(true);
-    const next = await handoffCrmOpportunityToIntake({
-      opportunityId: selectedOpportunity.opportunity_id,
-      requestedScopeSummary: businessLabel(selectedOpportunity.display_name, "Client 상담 요청"),
-      ctx: liveCtx
-    });
-    setHandoffResult(next);
-    setHandoffPending(false);
-    if (next.kind === "data") {
-      setOpportunitiesResult((current) => upsertResultItem(current, next.opportunity, "opportunity_id"));
       setIntakeResult((current) => upsertResultItem(current, next.item, "intake_request_id"));
     }
   }
@@ -3783,6 +3947,114 @@ export function ClientsSurface({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [activeRequestedInquiryId]);
 
+  useEffect(() => {
+    opportunitySelectionRef.current = clientOpportunityModel.selectedOpportunityId ?? "";
+  }, [clientOpportunityModel.selectedOpportunityId]);
+
+  function invalidateOpportunityAction() {
+    handoffRequestRef.current += 1;
+    setHandoffPending(false);
+    setHandoffResult(null);
+  }
+
+  useEffect(() => {
+    invalidateOpportunityAction();
+  }, [currentSection, liveCtx, refreshToken]);
+
+  function handleOpportunitySelect(opportunityId) {
+    const normalizedId = String(opportunityId ?? "").trim();
+    if (!normalizedId) return;
+    invalidateOpportunityAction();
+    const activeElement = document.activeElement;
+    opportunityTriggerRef.current = activeElement && typeof activeElement.focus === "function"
+      ? activeElement
+      : null;
+    onNavigate("clients", "client-opportunities", {
+      opportunityId: normalizedId,
+      tab: clientOpportunityModel.activeStatusTab,
+      opportunityQuery: clientOpportunityModel.searchQuery
+    });
+  }
+
+  function handleOpportunityClose() {
+    invalidateOpportunityAction();
+    onNavigate("clients", "client-opportunities", {
+      opportunityId: "",
+      tab: clientOpportunityModel.activeStatusTab,
+      opportunityQuery: clientOpportunityModel.searchQuery
+    });
+    const trigger = opportunityTriggerRef.current;
+    opportunityTriggerRef.current = null;
+    window.requestAnimationFrame(() => {
+      if (trigger && document.contains(trigger)) trigger.focus();
+    });
+  }
+
+  function handleOpportunityTabChange(tab) {
+    invalidateOpportunityAction();
+    onNavigate("clients", "client-opportunities", {
+      opportunityId: "",
+      tab,
+      opportunityQuery: clientOpportunityModel.searchQuery
+    });
+  }
+
+  function handleOpportunitySearchChange(query) {
+    invalidateOpportunityAction();
+    onNavigate("clients", "client-opportunities", {
+      opportunityId: "",
+      tab: clientOpportunityModel.activeStatusTab,
+      opportunityQuery: query
+    });
+  }
+
+  async function handleOpportunityHandoff() {
+    const selectedId = clientOpportunityModel.selectedOpportunityId;
+    const opportunity = selectedId
+      ? opportunities.find((item) => item?.opportunity_id === selectedId) ?? null
+      : null;
+    const selectedModel = clientOpportunityModel.selectedOpportunity;
+    if (!opportunity?.opportunity_id) return;
+    const requestId = handoffRequestRef.current + 1;
+    handoffRequestRef.current = requestId;
+    setHandoffPending(true);
+    setHandoffResult(null);
+    const next = await handoffCrmOpportunityToIntake({
+      opportunityId: opportunity.opportunity_id,
+      requestedScopeSummary: selectedModel?.requestedScopeSummary ?? selectedModel?.displayName ?? "Client 상담 요청",
+      ctx: liveCtx
+    });
+    if (requestId !== handoffRequestRef.current || opportunitySelectionRef.current !== selectedId) return;
+    setHandoffResult(next);
+    setHandoffPending(false);
+    const handoffOutcome = next?.statusOutcome ?? next?.outcome ?? next?.uiState;
+    const canonicalHandoffSucceeded = next?.kind === "data"
+      && ["passed", "created", "idempotent_replay"].includes(handoffOutcome)
+      && Boolean(next.opportunity?.opportunity_id)
+      && Boolean(next.item?.intake_request_id);
+    if (canonicalHandoffSucceeded) {
+      setOpportunitiesResult((current) => upsertResultItem(current, next.opportunity, "opportunity_id"));
+      if (next.item) setIntakeResult((current) => upsertResultItem(current, next.item, "intake_request_id"));
+      const nextStatusTab = clientOpportunityStatusCode(next.opportunity);
+      if (nextStatusTab && nextStatusTab !== clientOpportunityModel.activeStatusTab) {
+        onNavigate("clients", "client-opportunities", {
+          opportunityId: selectedId,
+          tab: nextStatusTab,
+          opportunityQuery: clientOpportunityModel.searchQuery
+        });
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!activeRequestedOpportunityId) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") handleOpportunityClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [activeRequestedOpportunityId, clientOpportunityModel.activeStatusTab, clientOpportunityModel.searchQuery]);
+
   function handleClientGroupCreated(item) {
     const clientGroupId = String(item?.client_group_id ?? "").trim();
     const displayName = String(item?.display_name ?? "").trim();
@@ -3955,8 +4227,14 @@ export function ClientsSurface({
           <Panel id="client-opportunities" className="record-list-panel" title="수임 현황" hideHeader>
             <OpportunitiesTable
               result={opportunitiesResult}
+              model={clientOpportunityModel}
+              selectedRawOpportunity={selectedOpportunity}
               pending={handoffPending}
               handoffResult={handoffResult}
+              onTabChange={handleOpportunityTabChange}
+              onSearchChange={handleOpportunitySearchChange}
+              onSelectOpportunity={handleOpportunitySelect}
+              onCloseOpportunity={handleOpportunityClose}
               onHandoff={handleOpportunityHandoff}
             />
           </Panel>
