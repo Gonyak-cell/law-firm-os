@@ -18,6 +18,9 @@ test("Recruiting pipeline reads pipeline data and updates stages through API", a
   assert.match(home, /RecruitingPipeline/);
   assert.match(component, /fetchRecruitingPipeline/);
   assert.match(component, /createHrxRecruitingPipeline/);
+  assert.match(component, /fetchHrxEmployees/);
+  assert.match(component, /pipeline_creation_state/);
+  assert.match(component, /job_title: ""/);
   assert.match(component, /updateHrxApplicationStage/);
   assert.match(component, /updateHrxOfferStage/);
   assert.match(component, /convertHrxApplicationToEmployee/);
@@ -26,11 +29,8 @@ test("Recruiting pipeline reads pipeline data and updates stages through API", a
   assert.match(component, /합격자/);
   assert.match(api, /offers: result\.body\.offers \?\? \[\]/);
   assert.match(api, /\/api\/hrx\/recruiting\/pipeline/);
-  assert.match(api, /\/api\/hrx\/recruiting\/job-openings/);
-  assert.match(api, /\/api\/hrx\/recruiting\/candidates/);
-  assert.match(api, /\/api\/hrx\/recruiting\/interviews/);
-  assert.match(api, /\/api\/hrx\/recruiting\/offers/);
   assert.match(api, /\/api\/hrx\/recruiting\/applications\/\$\{encodeURIComponent\(applicationId\)\}\/stage/);
   assert.match(api, /convert-to-employee/);
+  assert.doesNotMatch(api, /Vault:|CompPackage:|hiring_manager_employee_id: "emp-001"/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

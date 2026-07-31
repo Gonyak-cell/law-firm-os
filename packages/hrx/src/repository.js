@@ -173,6 +173,36 @@ export function createInMemoryHrxRepository(seed = {}) {
       requireRef(ref, "link_id");
       return employeeUserLinks.delete(key(ref.tenant_id, ref.link_id));
     },
+
+    transaction(callback) {
+      if (typeof callback !== "function") throw new TypeError("repository transaction callback is required");
+      const snapshot = {
+        employees: new Map([...employees].map(([entryKey, value]) => [entryKey, clone(value)])),
+        profiles: new Map([...profiles].map(([entryKey, value]) => [entryKey, clone(value)])),
+        employeeUserLinks: new Map([...employeeUserLinks].map(([entryKey, value]) => [entryKey, clone(value)])),
+      };
+      const restore = () => {
+        employees.clear();
+        profiles.clear();
+        employeeUserLinks.clear();
+        for (const [entryKey, value] of snapshot.employees) employees.set(entryKey, clone(value));
+        for (const [entryKey, value] of snapshot.profiles) profiles.set(entryKey, clone(value));
+        for (const [entryKey, value] of snapshot.employeeUserLinks) employeeUserLinks.set(entryKey, clone(value));
+      };
+      try {
+        const result = callback(repository);
+        if (result && typeof result.then === "function") {
+          return Promise.resolve(result).catch((error) => {
+            restore();
+            throw error;
+          });
+        }
+        return result;
+      } catch (error) {
+        restore();
+        throw error;
+      }
+    },
   };
 
   for (const employee of seed.employees ?? []) repository.createEmployee(employee);

@@ -5,6 +5,7 @@ const hrxCases = new Map([
   ["people-home", "apps/web/e2e/hrx/people-home.spec.ts"],
   ["employee-list", "apps/web/e2e/hrx/employee-list.spec.ts"],
   ["employee-profile", "apps/web/e2e/hrx/employee-profile.spec.ts"],
+  ["people-member-detail", "apps/web/e2e/hrx/people-member-detail.spec.ts"],
   ["hr-documents", "apps/web/e2e/hrx/hr-documents.spec.ts"],
   ["leave-request", "apps/web/e2e/hrx/leave-request.spec.ts"],
   ["manager-approval", "apps/web/e2e/hrx/manager-approval.spec.ts"],

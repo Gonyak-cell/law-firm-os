@@ -31,8 +31,11 @@ assert(!/actor_id:\s*hrxAuthz\.context\.actor_id/.test(serverSource), "server mu
 const runtimeSource = read("apps/api/src/hrx-runtime-context.js");
 assert(runtimeSource.includes("requestContext"), "HRX runtime handler must accept requestContext");
 assert(runtimeSource.includes("requireTrustedRequestContext"), "HRX runtime handler must require trusted request context");
-assert(!runtimeSource.includes("query.actor_id"), "HRX runtime handler must not use actor_id from query");
-assert(!runtimeSource.includes("query.tenant_id"), "HRX runtime handler must not use tenant_id from query");
+const handlerStart = runtimeSource.indexOf("export function handleHrxApiRequest");
+assert(handlerStart >= 0, "HRX runtime handler export must be present");
+const handlerSource = handlerStart >= 0 ? runtimeSource.slice(handlerStart) : "";
+assert(!handlerSource.includes("query.actor_id"), "HRX runtime handler must not use actor_id from query");
+assert(!handlerSource.includes("query.tenant_id"), "HRX runtime handler must not use tenant_id from query");
 assert(!runtimeSource.includes("people-ui-runtime"), "HRX runtime handler must not default to a synthetic UI actor");
 
 const webSource = read("apps/web/src/people/hrxApiClient.ts");

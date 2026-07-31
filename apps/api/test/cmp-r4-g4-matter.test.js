@@ -28,13 +28,55 @@ function permissionContext(effect = "allow") {
 
 const sessionHeaderCache = new Map();
 
+function createSyntheticMatterIdentityRuntime() {
+  const runtime = createDefaultHrxRuntime();
+  for (const employee of [{
+    tenant_id: TENANT,
+    employee_id: "emp-001",
+    display_name: "Synthetic Responsible Attorney",
+    status: "active",
+  }, {
+    tenant_id: TENANT,
+    employee_id: "emp-002",
+    display_name: "Synthetic Associate",
+    status: "active",
+  }, {
+    tenant_id: TENANT,
+    employee_id: "emp-offboarded",
+    display_name: "Offboarded Employee",
+    status: "terminated",
+  }]) {
+    runtime.repository.createEmployee(employee);
+  }
+  for (const link of [{
+    tenant_id: TENANT,
+    link_id: "link-synthetic-owner",
+    employee_id: "emp-001",
+    user_id: "user_rp05_owner",
+    purpose: "login_mapping",
+  }, {
+    tenant_id: TENANT,
+    link_id: "link-synthetic-associate",
+    employee_id: "emp-002",
+    user_id: "user_rp05_associate",
+    purpose: "login_mapping",
+  }]) {
+    runtime.repository.createEmployeeUserLink(link);
+  }
+  return runtime;
+}
+
 async function signedHeaders(baseUrl) {
   if (!sessionHeaderCache.has(baseUrl)) sessionHeaderCache.set(baseUrl, await apiSessionHeaders(baseUrl));
   return sessionHeaderCache.get(baseUrl);
 }
 
 async function withServer(callback, options = {}) {
-  const started = await startApiServer({ port: 0, ...options });
+  const started = await startApiServer({
+    port: 0,
+    ...options,
+    hrxRuntime: options.hrxRuntime ?? createSyntheticMatterIdentityRuntime(),
+  });
   try {
     return await callback(`http://${started.host}:${started.port}`);
   } finally {
@@ -372,7 +414,7 @@ test("G4 Matter opening write persists, audits, and replays idempotently across 
   }, { matterStorePath: storePath });
 });
 
-test("G4 Matter team write requires employee-backed staffing and records audit", async () => {
+test("G4 Matter team write requires employee-backed staffing, rejects overlap, and records audit", async () => {
   await withServer(async (baseUrl) => {
     const created = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/team-members", {
       method: "POST",
@@ -382,20 +424,24 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
         audit_hint_ref: "audit_hint_rp05_team",
         actor_id: "user_rp05_owner",
         member: {
-          member_id: "member_api_associate",
+          member_id: "member_api_responsible",
           tenant_id: TENANT,
           employee_id: "emp-002",
           user_id: "user_rp05_associate",
-          role: "associate",
+          role: "responsible_attorney",
           status: "active",
+          valid_from: "2026-07-01T09:00:00.000Z",
         },
       }),
     });
     assert.equal(created.status, 201);
     assert.equal(created.body.item.employee_id, "emp-002");
-    assert.equal(created.body.owner_assignment, null);
+    assert.equal(created.body.owner_assignment.owner_employee_id, "emp-002");
+    assert.equal(created.body.owner_assignment.owner_user_id, "user_rp05_associate");
+    assert.equal(created.body.matter.owner_employee_id, "emp-002");
+    assert.equal(created.body.audit_event.action, "matter.owner.assignment");
 
-    const ownerAssigned = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/team-members", {
+    const overlapping = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/team-members", {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,
@@ -403,20 +449,18 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
         audit_hint_ref: "audit_hint_rp05_team",
         actor_id: "user_rp05_owner",
         member: {
-          member_id: "member_api_responsible",
+          member_id: "member_api_responsible_overlap",
           tenant_id: TENANT,
-          employee_id: "emp-001",
-          user_id: "user_rp05_owner",
+          employee_id: "emp-002",
+          user_id: "user_rp05_associate",
           role: "responsible_attorney",
           status: "active",
+          valid_from: "2026-07-15T09:00:00.000Z",
         },
       }),
     });
-    assert.equal(ownerAssigned.status, 201);
-    assert.equal(ownerAssigned.body.owner_assignment.owner_employee_id, "emp-001");
-    assert.equal(ownerAssigned.body.owner_assignment.owner_user_id, "user_rp05_owner");
-    assert.equal(ownerAssigned.body.matter.owner_employee_id, "emp-001");
-    assert.equal(ownerAssigned.body.audit_event.action, "matter.owner.assignment");
+    assert.equal(overlapping.status, 400);
+    assert.deepEqual(overlapping.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
 
     const blocked = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/team-members", {
       method: "POST",
@@ -444,8 +488,16 @@ test("G4 Matter team write requires employee-backed staffing and records audit",
 
     const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
     assert.equal(detail.status, 200);
-    assert.equal(detail.body.item.owner_employee_id, "emp-001");
-    assert.equal(detail.body.item.owner_user_id, "user_rp05_owner");
+    assert.equal(detail.body.item.owner_employee_id, "emp-002");
+    assert.equal(detail.body.item.owner_user_id, "user_rp05_associate");
+    assert.equal(
+      detail.body.team.find((member) => member.user_id === "user_rp05_associate")?.display_name,
+      "Synthetic Associate",
+    );
+    assert.equal(
+      detail.body.team.find((member) => member.user_id === "user_rp05_associate")?.assignment_eligible,
+      true,
+    );
   });
 });
 
@@ -608,6 +660,7 @@ test("G4 Matter generic owner change is employee backed, audited, idempotent, an
     assert.equal(changed.body.outcome, "updated");
     assert.equal(changed.body.item.owner_employee_id, "emp-001");
     assert.equal(changed.body.owner_assignment.owner_employee_id, "emp-001");
+    assert.equal(changed.body.owner_assignment.owner_user_id, "user_rp05_owner");
     assert.equal(changed.body.audit_event.action, "matter.owner.change");
     assert.equal(changed.body.state_idempotent, true);
     assert.equal(changed.body.production_ready_claim, false);
@@ -629,6 +682,26 @@ test("G4 Matter generic owner change is employee backed, audited, idempotent, an
     });
     assert.equal(blocked.status, 400);
     assert.deepEqual(blocked.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
+
+    const nonMember = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/owner-change", {
+      method: "POST",
+      body: JSON.stringify(ownerChangePayload({
+        idempotency_key: "matter-api-owner-change-non-member-001",
+        owner: { employee_id: "emp-002" },
+      })),
+    });
+    assert.equal(nonMember.status, 400);
+    assert.deepEqual(nonMember.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
+
+    const mismatchedIdentity = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/owner-change", {
+      method: "POST",
+      body: JSON.stringify(ownerChangePayload({
+        idempotency_key: "matter-api-owner-change-mismatch-001",
+        owner: { employee_id: "emp-001", user_id: "user_rp05_associate" },
+      })),
+    });
+    assert.equal(mismatchedIdentity.status, 400);
+    assert.deepEqual(mismatchedIdentity.body.safe_error_codes, ["MATTER_API_VALIDATION_ERROR"]);
 
     const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
     assert.equal(audit.status, 200);

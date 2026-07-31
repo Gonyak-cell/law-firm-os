@@ -1,4 +1,5 @@
 import { createMatterMember } from "./model.js";
+import { createMatterPeopleAssignmentAuthority } from "./people-assignment-authority.js";
 import { evaluateMatterRolePermission } from "./role-policy.js";
 
 export const MATTER_ONBOARDING_GATE_ERROR_CODE = "MATTER_ONBOARDING_GATE_REQUIRED";
@@ -131,4 +132,65 @@ export function addMatterTeamMember({ repository, employeeDirectory, onboardingG
     reason: "matter_team_member_added",
   });
   return persisted;
+}
+
+export function addPeopleVisibleMatterTeamMember(options = {}) {
+  const member = options.member ?? {};
+  requiredString(member, "employee_id");
+  requiredString(member, "valid_from");
+  const validFrom = Date.parse(member.valid_from);
+  const validTo = member.valid_to ? Date.parse(member.valid_to) : Number.POSITIVE_INFINITY;
+  if (!Number.isFinite(validFrom)) throw new TypeError("valid_from must be ISO date");
+  if (member.valid_to && !Number.isFinite(validTo)) throw new TypeError("valid_to must be ISO date");
+  if (validTo < validFrom) throw new TypeError("valid_to must be on or after valid_from");
+  const asOf = Date.parse(options.as_of ?? new Date().toISOString());
+  if (!Number.isFinite(asOf)) throw new TypeError("as_of must be ISO date");
+  if (validTo < asOf) {
+    throw new Error("Responsible attorney membership has already ended");
+  }
+  const assignmentAuthority = options.peopleAssignmentAuthority ?? createMatterPeopleAssignmentAuthority({
+    repository: options.repository,
+    employeeDirectory: options.employeeDirectory,
+    employeeUserLinkDirectory: options.employeeUserLinkDirectory,
+    userDirectory: options.userDirectory,
+  });
+  const identity = assignmentAuthority.resolveEmployeeUserPair({
+    tenant_id: member.tenant_id,
+    employee_id: member.employee_id,
+    requested_user_id: member.user_id,
+  });
+  if (identity.state !== "resolved") {
+    throw new Error(`MatterTeam member identity is not authoritative: ${identity.reason}`);
+  }
+  const hasOverlappingMembership = options.repository?.list?.({
+    tenant_id: member.tenant_id,
+    matter_id: member.matter_id,
+    model_type: "MatterMember",
+  }).some((existing) => {
+    if (
+      existing.status !== "active"
+      || existing.identity_resolution_state === "unresolved"
+      || existing.employee_id !== identity.employee_id
+      || existing.user_id !== identity.user_id
+    ) {
+      return false;
+    }
+    const existingFrom = Date.parse(existing.valid_from);
+    const existingTo = existing.valid_to ? Date.parse(existing.valid_to) : Number.POSITIVE_INFINITY;
+    return Number.isFinite(existingFrom)
+      && (existing.valid_to == null || Number.isFinite(existingTo))
+      && existingFrom <= validTo
+      && validFrom <= existingTo;
+  }) ?? false;
+  if (hasOverlappingMembership) {
+    throw new Error("Responsible attorney membership overlaps an existing authoritative member");
+  }
+  return addMatterTeamMember({
+    ...options,
+    member: {
+      ...member,
+      user_id: identity.user_id,
+      identity_resolution_state: "resolved",
+    },
+  });
 }

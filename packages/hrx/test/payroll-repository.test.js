@@ -175,7 +175,23 @@ test("PY-DATA-004/005 stores tokenized statement, delivery, payment, and filing 
   let delivery = repository.createDeliveryReceipt(HR, { delivery_receipt_id: "delivery-001", statement_id: statement.statement_id, channel: "self_service" });
   assert.equal(delivery.state, "queued");
   assert.throws(() => repository.transitionDeliveryReceipt(HR, { delivery_receipt_id: delivery.delivery_receipt_id, state: "delivered", expected_version: 1 }), /provider_receipt_ref/);
-  delivery = repository.transitionDeliveryReceipt(HR, { delivery_receipt_id: delivery.delivery_receipt_id, state: "delivered", expected_version: 1, provider_receipt_ref: "provider:sandbox/delivery-001", receipt_hash: HASH_B });
+  delivery = repository.transitionDeliveryReceipt(HR, { delivery_receipt_id: delivery.delivery_receipt_id, state: "delivered", expected_version: 1, provider_id: "sandbox-payroll-delivery", provider_receipt_ref: "provider:sandbox/delivery-001", receipt_hash: HASH_B });
+  const duplicateProviderReceipt = repository.createDeliveryReceipt(HR, {
+    delivery_receipt_id: "delivery-duplicate-provider-ref",
+    statement_id: statement.statement_id,
+    channel: "email",
+  });
+  assert.throws(
+    () => repository.transitionDeliveryReceipt(HR, {
+      delivery_receipt_id: duplicateProviderReceipt.delivery_receipt_id,
+      state: "delivered",
+      expected_version: 1,
+      provider_id: "sandbox-payroll-delivery",
+      provider_receipt_ref: delivery.provider_receipt_ref,
+      receipt_hash: HASH_B,
+    }),
+    /unique constraint failed: tenant_id, provider_receipt_ref/,
+  );
   statement = repository.transitionStatement(HR, { statement_id: statement.statement_id, state: "delivered", expected_version: 1 });
   assert.equal(statement.state, "delivered");
 
@@ -223,5 +239,42 @@ test("PY-DATA-006 rolls back the business row when audit append fails", () => {
   assert.throws(() => repository.createPeriod(HR, { period_id: "period-atomic-2", period_code: "atomic-2", period_start: "2026-02-01", period_end: "2026-02-28", cutoff_at: NOW, pay_date: "2026-03-05" }), /already exists/);
   assert.equal(repository.getPeriod(HR, { period_id: "period-atomic-2" }), undefined);
   assert.equal(repository.listPeriods(HR).length, 1);
+  store.close();
+});
+
+test("PEO-FIX createRun never accepts adjustment input or persists an empty adjustment", () => {
+  const store = createFileHrxStore();
+  seedEmployee(store);
+  const repository = payroll(store);
+  const period = repository.createPeriod(HR, {
+    period_id: "period-adjustment-guard",
+    period_code: "2026-09",
+    period_start: "2026-09-01",
+    period_end: "2026-09-30",
+    cutoff_at: NOW,
+    pay_date: "2026-10-05",
+  });
+
+  assert.throws(
+    () => repository.createRun(HR, {
+      run_id: "run-adjustment-fallback",
+      period_id: period.period_id,
+      run_type: "adjustment",
+      previous_run_id: "run-closed-source",
+      correction_key: "CORR-REPOSITORY-FALLBACK",
+    }),
+    (error) => error.safe_error_code === "HRX_PAYROLL_ADJUSTMENT_EMPTY" && error.status === 409,
+  );
+  assert.equal(repository.listRuns(HR, { period_id: period.period_id }).length, 0);
+  assert.throws(
+    () => repository.createAdjustmentRun(HR, {
+      period_id: period.period_id,
+      previous_run_id: "run-closed-source",
+      correction_key: "CORR-REPOSITORY-EMPTY",
+      adjustments: [],
+    }),
+    (error) => error.safe_error_code === "HRX_PAYROLL_ADJUSTMENT_EMPTY" && error.status === 409,
+  );
+  assert.equal(repository.listRuns(HR, { period_id: period.period_id }).length, 0);
   store.close();
 });

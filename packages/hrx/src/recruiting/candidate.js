@@ -1,5 +1,22 @@
 const CRM_PARTY_FIELDS = Object.freeze(["party_id", "crm_party_id", "client_party_id", "contact_id"]);
-const BODY_FIELDS = Object.freeze(["resume_body", "cover_letter_body", "interview_feedback"]);
+const BODY_FIELDS = Object.freeze([
+  "resume_body",
+  "resume_text",
+  "cover_letter",
+  "cover_letter_body",
+  "document_body",
+  "documents",
+  "attachments",
+  "interview_feedback",
+  "interview_notes",
+  "notes",
+]);
+const CANDIDATE_ACCESS_ROLES = Object.freeze([
+  "people_ops",
+  "hr_admin",
+  "hr_reviewer",
+  "recruiter",
+]);
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -11,6 +28,27 @@ function assertNoBlockedFields(input, fields, reason) {
   for (const field of fields) {
     if (Object.hasOwn(input, field)) throw new TypeError(`${reason}: ${field}`);
   }
+}
+
+function optionalIsoTimestamp(input, field) {
+  const value = input?.[field];
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
+    throw new TypeError(`${field} must be an ISO timestamp`);
+  }
+  return value;
+}
+
+function accessRoles(input) {
+  const roles = input?.access_role_ids ?? ["people_ops", "hr_admin", "recruiter"];
+  if (!Array.isArray(roles) || roles.length === 0) {
+    throw new TypeError("access_role_ids must be a non-empty array");
+  }
+  const normalized = [...new Set(roles.map((role) => String(role).trim()).filter(Boolean))];
+  if (normalized.some((role) => !CANDIDATE_ACCESS_ROLES.includes(role))) {
+    throw new TypeError(`access_role_ids must contain only: ${CANDIDATE_ACCESS_ROLES.join(", ")}`);
+  }
+  return Object.freeze(normalized);
 }
 
 export function assertCandidateNotCrmParty(input = {}) {
@@ -30,6 +68,9 @@ export function createCandidateProfile(input = {}) {
     resume_ref: input.resume_ref ?? null,
     retention_policy_id: requiredString(input, "retention_policy_id"),
     retention_basis: input.retention_basis ?? "candidate_recruiting_record",
+    retention_expires_at: optionalIsoTimestamp(input, "retention_expires_at"),
+    deletion_requested_at: optionalIsoTimestamp(input, "deletion_requested_at"),
+    access_role_ids: accessRoles(input),
     data_subject_type: "candidate",
     crm_party_linked: false,
   });

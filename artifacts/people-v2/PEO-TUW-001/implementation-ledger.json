@@ -1,0 +1,1678 @@
+{
+  "schema_version": "lawos.people-implementation-ledger.v2",
+  "source_sha": "140f1ad10af310fe54637a9058c786b115917beb",
+  "captured_at": "2026-07-31T06:54:06.490Z",
+  "scope": "People sidebar routes visible to a user with all current People permissions",
+  "classification": {
+    "existing": "A dedicated screen, client call, API route, domain owner, and regression test already exist.",
+    "extend": "The existing end-to-end route remains authoritative but needs the behavior defined by the People v2 plan.",
+    "new": "Only the catalog state surface exists; a dedicated screen and end-to-end behavior are still required.",
+    "provider-gated": "The local workflow exists but completion requires external provider evidence."
+  },
+  "inventory_semantics": {
+    "route_variant": "Static PeopleHome props plus a complete classified allow/exclude list define the route-reachable client surface.",
+    "renderer_import_graph_superset": "All transitive HRX client imports owned by the mounted renderer; individual controls may narrow reachability."
+  },
+  "provenance": {
+    "branch": "codex/people-implementation-v2-20260730",
+    "base_sha": "140f1ad10af310fe54637a9058c786b115917beb",
+    "head_sha": "140f1ad10af310fe54637a9058c786b115917beb",
+    "head_semantics": "captured_pre_generation_head",
+    "raw_argv": [
+      "node",
+      "scripts/generate-people-implementation-ledger.mjs",
+      "--write"
+    ],
+    "raw_argv_sha256": "c69a4cd01d911be63e1db9d23cc50214b6f685aa02f73fa188a161f59927307b",
+    "replay_command": "node scripts/generate-people-implementation-ledger.mjs --write",
+    "replay_command_sha256": "4e29d997e65e1e03c793d674d0e2740cb63a8145a8442b8b5d7c3c82ba5f002c",
+    "inventory_sha256": "e4c7551e9429b7cb583f3c4dfac2280d2768257b0b950a88779da35c01bbb974",
+    "manual_claims_sha256": "259b7f14133191a09d6372ec6aef0cceaed306c9caf3e801b95c7588e0fb7e41",
+    "runtime_source_fingerprint_sha256": "72ee65adf031f2d0cc425678dbb75e87700ed0fd2cd4b3c5f685ab163ca83e9f",
+    "source_fingerprint_sha256": "abc957bc3007b56e3cef9d4fbb1dd4ba77c0a6813925be30df8fd8ee5cd4f959",
+    "source_files": [
+      "apps/api/src/routes/hrx/route-policy-map.js",
+      "apps/api/test/hrx-runtime-api.test.js",
+      "apps/api/test/hrx/employees.test.js",
+      "apps/api/test/hrx/leave-accrual-api.test.js",
+      "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js",
+      "apps/api/test/hrx/leave-policy-api.test.js",
+      "apps/api/test/hrx/leave-promotion-api.test.js",
+      "apps/api/test/hrx/leave-reporting-api.test.js",
+      "apps/api/test/hrx/leave-role-scopes.test.js",
+      "apps/api/test/hrx/leave.test.js",
+      "apps/api/test/hrx/lifecycle.test.js",
+      "apps/api/test/hrx/payroll-runtime.test.js",
+      "apps/api/test/hrx/recruiting.test.js",
+      "apps/web/src/people/PeopleHome.tsx",
+      "apps/web/src/people/attendance/AttendanceWorkspace.tsx",
+      "apps/web/src/people/employees/EmployeeEditorDrawer.tsx",
+      "apps/web/src/people/employees/EmployeeList.tsx",
+      "apps/web/src/people/employees/EmployeeProfile.tsx",
+      "apps/web/src/people/employees/MemberDetailPanel.tsx",
+      "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+      "apps/web/src/people/hrxApiClient.ts",
+      "apps/web/src/people/leave/LeaveAccrualAutoPage.tsx",
+      "apps/web/src/people/leave/LeaveApprovalQueue.tsx",
+      "apps/web/src/people/leave/LeavePromotionPage.tsx",
+      "apps/web/src/people/leave/LeaveRequestPage.tsx",
+      "apps/web/src/people/leave/LeaveTerminationPage.tsx",
+      "apps/web/src/people/leave/LeaveTypeSettingsPage.tsx",
+      "apps/web/src/people/leave/LeaveUsagePage.tsx",
+      "apps/web/src/people/leave/providerDeliveryState.ts",
+      "apps/web/src/people/lifecycle/LifecycleBoard.tsx",
+      "apps/web/src/people/memberPhotos.js",
+      "apps/web/src/people/payroll/PayRulesWorkspace.tsx",
+      "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx",
+      "apps/web/src/people/payroll/PayrollCatalogWorkspace.tsx",
+      "apps/web/src/people/payroll/PayrollStatementWorkspace.tsx",
+      "apps/web/src/people/peopleFeatureCatalog.js",
+      "apps/web/src/people/peopleFeatureFlags.ts",
+      "apps/web/src/people/peoplePresentation.ts",
+      "apps/web/src/people/recruiting/RecruitingPipeline.tsx",
+      "apps/web/src/people/security/HrxStepUpChallenge.tsx",
+      "apps/web/test/hrx-member-roster-fallback.test.mjs",
+      "apps/web/test/leave-accrual-ui.test.mjs",
+      "apps/web/test/leave-promotion-ui.test.mjs",
+      "apps/web/test/leave-reporting-ui.test.mjs",
+      "apps/web/test/leave-self-service-ui.test.mjs",
+      "apps/web/test/leave-settings-ui.test.mjs",
+      "apps/web/test/payroll-workspace-ui.test.mjs",
+      "apps/web/test/people-close-workspace.test.mjs",
+      "apps/web/test/people-implementation-inventory.test.mjs",
+      "apps/web/test/people-pay-rules-workspace.test.mjs",
+      "packages/hrx/src/attendance.js",
+      "packages/hrx/src/leave/accrual-service.js",
+      "packages/hrx/src/leave/approval-delegation.js",
+      "packages/hrx/src/leave/balance.js",
+      "packages/hrx/src/leave/entitlement-command-service.js",
+      "packages/hrx/src/leave/policy-service.js",
+      "packages/hrx/src/leave/promotion-service.js",
+      "packages/hrx/src/leave/reporting-service.js",
+      "packages/hrx/src/leave/request-service.js",
+      "packages/hrx/src/leave/termination-service.js",
+      "packages/hrx/src/offboarding.js",
+      "packages/hrx/src/onboarding.js",
+      "packages/hrx/src/org.js",
+      "packages/hrx/src/payroll-boundary.js",
+      "packages/hrx/src/payroll/allowance-rule-service.js",
+      "packages/hrx/src/payroll/close-precheck.js",
+      "packages/hrx/src/payroll/document-service.js",
+      "packages/hrx/src/payroll/minimum-wage.js",
+      "packages/hrx/src/payroll/run-service.js",
+      "packages/hrx/src/recruiting/application.js",
+      "packages/hrx/src/recruiting/state-machine.js",
+      "packages/hrx/src/reporting-line.js",
+      "packages/hrx/src/repository.js",
+      "packages/hrx/src/service.js",
+      "packages/hrx/test/attendance.test.js",
+      "packages/hrx/test/employee-lifecycle.test.js",
+      "packages/hrx/test/leave-termination-service.test.js",
+      "packages/hrx/test/org.test.js",
+      "packages/hrx/test/payroll-allowance-rules.test.js",
+      "packages/hrx/test/payroll-close-precheck.test.js",
+      "packages/hrx/test/payroll-document-service.test.js",
+      "packages/hrx/test/payroll-minimum-wage.test.js",
+      "packages/hrx/test/recruiting-state-machine.test.js",
+      "scripts/generate-people-implementation-ledger.mjs",
+      "scripts/lib/people-implementation-inventory.mjs",
+      "scripts/lib/people-inventory-client-api.mjs",
+      "scripts/lib/people-inventory-web-surface.mjs"
+    ]
+  },
+  "sidebar_routes": {
+    "enabled": [
+      "people-members",
+      "people-org-chart",
+      "people-recruiting",
+      "people-lifecycle",
+      "people-attendance-records",
+      "people-leave",
+      "people-leave-types",
+      "people-leave-accrual-auto",
+      "people-leave-usage",
+      "people-leave-termination",
+      "people-leave-requests",
+      "people-annual-leave-notices",
+      "people-close",
+      "people-payroll",
+      "people-pay-statement",
+      "people-pay-rules"
+    ],
+    "disabled": [
+      "people-role",
+      "people-work-profile",
+      "people-work-schedule",
+      "people-work-schedule-external",
+      "people-work-type",
+      "people-current-work-status",
+      "people-work-schedule-lock",
+      "people-unscheduled-attendance",
+      "people-attendance-upload",
+      "people-break-records",
+      "people-attendance-missing-alerts",
+      "people-attendance-lock",
+      "people-attendance-verification",
+      "people-leave-accrual-manual",
+      "people-approvals",
+      "people-policy",
+      "people-custom-requests",
+      "people-work-schedule-requests",
+      "people-attendance-requests",
+      "people-certificates",
+      "people-expense-requests",
+      "people-force-approval",
+      "people-analytics",
+      "people-risk",
+      "people-ai",
+      "people-report-snapshots",
+      "people-report-items",
+      "people-report-attention",
+      "people-pay-work-profile",
+      "people-message-send",
+      "people-message-automation",
+      "people-message-templates",
+      "people-notices",
+      "people-econtract-send",
+      "people-econtract-templates",
+      "people-econtract-status",
+      "people-employment-contracts",
+      "people-company-general",
+      "people-company-notifications",
+      "people-admin",
+      "people-company-organization",
+      "people-company-members",
+      "people-company-work-schedule",
+      "people-company-attendance",
+      "people-company-breaks",
+      "people-company-requests",
+      "people-documents",
+      "people-audit",
+      "people-company-messages",
+      "people-company-econtract",
+      "people-company-reports",
+      "people-company-payroll",
+      "people-company-security",
+      "people-company-advanced",
+      "people-company-support",
+      "people-company-billing",
+      "people-company-integrations"
+    ]
+  },
+  "disabled_routes": [
+    {
+      "route": "people-role",
+      "label": "직무/역할",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-work-profile",
+      "label": "근로정보",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-work-schedule",
+      "label": "근무표",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-work-schedule-external",
+      "label": "외부일정",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-work-type",
+      "label": "근무유형",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-current-work-status",
+      "label": "현재 근무 상황 조회",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-work-schedule-lock",
+      "label": "근무일정 확정",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-unscheduled-attendance",
+      "label": "무일정 근무 출퇴근",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-attendance-upload",
+      "label": "출퇴근기록 엑셀 업로드",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-break-records",
+      "label": "휴게시간 기록",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-attendance-missing-alerts",
+      "label": "출퇴근 누락 알림",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-attendance-lock",
+      "label": "출퇴근기록 확정",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-attendance-verification",
+      "label": "출퇴근 인증 방식",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-leave-accrual-manual",
+      "label": "휴가 수동 발생",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-approvals",
+      "label": "요청 관리",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-policy",
+      "label": "승인 규칙",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-custom-requests",
+      "label": "커스텀 요청",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-work-schedule-requests",
+      "label": "근무일정 요청",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-attendance-requests",
+      "label": "근무기록 요청",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-certificates",
+      "label": "증명서 발급 요청",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-expense-requests",
+      "label": "비용 처리 요청",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-force-approval",
+      "label": "강제 승인/거절",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-analytics",
+      "label": "실시간 리포트",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-risk",
+      "label": "HR 리스크",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-ai",
+      "label": "인사 문의",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-report-snapshots",
+      "label": "리포트 스냅샷",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-report-items",
+      "label": "리포트 항목",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-report-attention",
+      "label": "주의 필요 항목",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-pay-work-profile",
+      "label": "근로정보 기준",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-message-send",
+      "label": "메시지 전송",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-message-automation",
+      "label": "메시지 자동화",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-message-templates",
+      "label": "메시지 템플릿",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-notices",
+      "label": "공지사항",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-econtract-send",
+      "label": "전자계약 전송",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-econtract-templates",
+      "label": "전자계약 템플릿",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-econtract-status",
+      "label": "서명 진행 상태",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-employment-contracts",
+      "label": "근로계약서",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-general",
+      "label": "일반",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-notifications",
+      "label": "알림",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-admin",
+      "label": "권한",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-organization",
+      "label": "조직",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-members",
+      "label": "구성원",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-work-schedule",
+      "label": "근무일정",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-attendance",
+      "label": "출퇴근기록",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-breaks",
+      "label": "휴게시간",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-requests",
+      "label": "요청",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-documents",
+      "label": "회사방침",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-audit",
+      "label": "인사기록",
+      "catalog_state": "active",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-messages",
+      "label": "메시지",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-econtract",
+      "label": "전자계약",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-reports",
+      "label": "리포트",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-payroll",
+      "label": "급여",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-security",
+      "label": "보안",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-advanced",
+      "label": "고급 옵션",
+      "catalog_state": "audit_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-support",
+      "label": "지원",
+      "catalog_state": "setup_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-billing",
+      "label": "결제",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    },
+    {
+      "route": "people-company-integrations",
+      "label": "연동",
+      "catalog_state": "integration_required",
+      "route_enabled": false
+    }
+  ],
+  "routes": [
+    {
+      "route": "people-members",
+      "label": "구성원",
+      "catalog_state": "active",
+      "implementation_state": "extend",
+      "component_sources": [
+        "apps/web/src/people/employees/MemberDetailPanel.tsx",
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx"
+      ],
+      "client_functions": [
+        "createHrxEmployee",
+        "createHrxEmployeeUserLink",
+        "createHrxEmploymentProfile",
+        "disconnectPeopleOutlookConnection",
+        "fetchHrxCompensationRecords",
+        "fetchHrxEmployeeProfile",
+        "fetchHrxEmployeeUserLinks",
+        "fetchHrxEmployees",
+        "fetchHrxEmploymentProfiles",
+        "fetchHrxLifecycleBoard",
+        "fetchHrxOrgChart",
+        "fetchPeopleDailyBrief",
+        "fetchPeopleOutlookConnection",
+        "requestHrxStepUpSession",
+        "revokeHrxEmployeeUserLink",
+        "updateHrxEmployee",
+        "updateHrxReportingLine",
+        "updatePeopleOutlookConnection"
+      ],
+      "api_routes": [
+        "DELETE /api/hrx/people/members/:employeeId/outlook-connection",
+        "GET /api/hrx/compensation",
+        "GET /api/hrx/employee-user-links",
+        "GET /api/hrx/employees",
+        "GET /api/hrx/employees/:employeeId",
+        "GET /api/hrx/employees/:employeeId/employment-profiles",
+        "GET /api/hrx/lifecycle/offboarding",
+        "GET /api/hrx/lifecycle/onboarding",
+        "GET /api/hrx/org-chart",
+        "GET /api/hrx/people/members/:employeeId/daily-brief",
+        "GET /api/hrx/people/members/:employeeId/outlook-connection",
+        "PATCH /api/hrx/employees/:employeeId",
+        "PATCH /api/hrx/org-chart/employees/:employeeId",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/employee-user-links",
+        "POST /api/hrx/employee-user-links/:linkId/revoke",
+        "POST /api/hrx/employees",
+        "POST /api/hrx/employees/:employeeId/employment-profiles",
+        "POST /api/hrx/people/members/:employeeId/outlook-connection"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/service.js",
+        "packages/hrx/src/repository.js"
+      ],
+      "test_sources": [
+        "apps/web/test/hrx-member-roster-fallback.test.mjs",
+        "apps/api/test/hrx/employees.test.js"
+      ],
+      "gap": "Add the permission-filtered daily brief, assigned Matters, and the shared member detail route without replacing the roster.",
+      "catalog_implementation_state": "extend",
+      "renderer_components": [
+        "MemberDetailPanel",
+        "PeopleWorkforceDirectory"
+      ],
+      "api_route_policy_ids": {
+        "DELETE /api/hrx/people/members/:employeeId/outlook-connection": "hrx.people.outlook_connection.revoke",
+        "GET /api/hrx/compensation": "hrx.compensation.read",
+        "GET /api/hrx/employee-user-links": "hrx.employee_user_links.list",
+        "GET /api/hrx/employees": "hrx.employees.list",
+        "GET /api/hrx/employees/:employeeId": "hrx.employees.read",
+        "GET /api/hrx/employees/:employeeId/employment-profiles": "hrx.employment_profiles.list",
+        "GET /api/hrx/lifecycle/offboarding": "hrx.lifecycle.offboarding.list",
+        "GET /api/hrx/lifecycle/onboarding": "hrx.lifecycle.onboarding.list",
+        "GET /api/hrx/org-chart": "hrx.org_chart.read",
+        "GET /api/hrx/people/members/:employeeId/daily-brief": "hrx.people.member_daily_brief.read",
+        "GET /api/hrx/people/members/:employeeId/outlook-connection": "hrx.people.outlook_connection.read",
+        "PATCH /api/hrx/employees/:employeeId": "hrx.employees.update",
+        "PATCH /api/hrx/org-chart/employees/:employeeId": "hrx.org_chart.update",
+        "POST /api/hrx/employee-user-links": "hrx.employee_user_links.create",
+        "POST /api/hrx/employee-user-links/:linkId/revoke": "hrx.employee_user_links.revoke",
+        "POST /api/hrx/employees": "hrx.employees.create",
+        "POST /api/hrx/employees/:employeeId/employment-profiles": "hrx.employment_profiles.create",
+        "POST /api/hrx/people/members/:employeeId/outlook-connection": "hrx.people.outlook_connection.write"
+      },
+      "renderer_variants": {
+        "MemberDetailPanel": {},
+        "PeopleWorkforceDirectory": {
+          "initialTab": "active"
+        }
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-org-chart",
+      "label": "조직",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx"
+      ],
+      "client_functions": [
+        "createHrxEmployee",
+        "fetchHrxEmployees",
+        "fetchHrxLifecycleBoard",
+        "fetchHrxOrgChart",
+        "updateHrxEmployee",
+        "updateHrxReportingLine"
+      ],
+      "api_routes": [
+        "GET /api/hrx/employees",
+        "GET /api/hrx/employees/:employeeId",
+        "GET /api/hrx/lifecycle/offboarding",
+        "GET /api/hrx/lifecycle/onboarding",
+        "GET /api/hrx/org-chart",
+        "PATCH /api/hrx/employees/:employeeId",
+        "PATCH /api/hrx/org-chart/employees/:employeeId",
+        "POST /api/hrx/employees"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/org.js",
+        "packages/hrx/src/reporting-line.js"
+      ],
+      "test_sources": [
+        "packages/hrx/test/org.test.js",
+        "apps/api/test/hrx/employees.test.js"
+      ],
+      "gap": "Keep the existing organization editor and add only identity-link and small-firm operational hardening.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "PeopleWorkforceDirectory"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/employees": "hrx.employees.list",
+        "GET /api/hrx/employees/:employeeId": "hrx.employees.read",
+        "GET /api/hrx/lifecycle/offboarding": "hrx.lifecycle.offboarding.list",
+        "GET /api/hrx/lifecycle/onboarding": "hrx.lifecycle.onboarding.list",
+        "GET /api/hrx/org-chart": "hrx.org_chart.read",
+        "PATCH /api/hrx/employees/:employeeId": "hrx.employees.update",
+        "PATCH /api/hrx/org-chart/employees/:employeeId": "hrx.org_chart.update",
+        "POST /api/hrx/employees": "hrx.employees.create"
+      },
+      "renderer_variants": {
+        "PeopleWorkforceDirectory": {
+          "initialTab": "active",
+          "initialView": "org"
+        }
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-recruiting",
+      "label": "구성원 등록",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/recruiting/RecruitingPipeline.tsx"
+      ],
+      "client_functions": [
+        "convertHrxApplicationToEmployee",
+        "createHrxEmployee",
+        "createHrxEmploymentProfile",
+        "createHrxRecruitingPipeline",
+        "fetchHrxEmployees",
+        "fetchRecruitingPipeline",
+        "updateHrxApplicationStage",
+        "updateHrxEmployee",
+        "updateHrxOfferStage"
+      ],
+      "api_routes": [
+        "GET /api/hrx/employees",
+        "GET /api/hrx/employees/:employeeId",
+        "GET /api/hrx/employees/:employeeId/employment-profiles",
+        "GET /api/hrx/recruiting/pipeline",
+        "PATCH /api/hrx/employees/:employeeId",
+        "POST /api/hrx/employees",
+        "POST /api/hrx/employees/:employeeId/employment-profiles",
+        "POST /api/hrx/recruiting/applications/:applicationId/convert-to-employee",
+        "POST /api/hrx/recruiting/applications/:applicationId/stage",
+        "POST /api/hrx/recruiting/offers/:offerId/stage",
+        "POST /api/hrx/recruiting/pipeline"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/recruiting/application.js",
+        "packages/hrx/src/recruiting/state-machine.js"
+      ],
+      "test_sources": [
+        "apps/api/test/hrx/recruiting.test.js",
+        "packages/hrx/test/recruiting-state-machine.test.js"
+      ],
+      "gap": "Verify conversion, consent, and duplicate identity handling; do not add enterprise headcount analytics.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "RecruitingPipeline"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/employees": "hrx.employees.list",
+        "GET /api/hrx/employees/:employeeId": "hrx.employees.read",
+        "GET /api/hrx/employees/:employeeId/employment-profiles": "hrx.employment_profiles.list",
+        "GET /api/hrx/recruiting/pipeline": "hrx.recruiting.pipeline",
+        "PATCH /api/hrx/employees/:employeeId": "hrx.employees.update",
+        "POST /api/hrx/employees": "hrx.employees.create",
+        "POST /api/hrx/employees/:employeeId/employment-profiles": "hrx.employment_profiles.create",
+        "POST /api/hrx/recruiting/applications/:applicationId/convert-to-employee": "hrx.recruiting.application.convert_to_employee",
+        "POST /api/hrx/recruiting/applications/:applicationId/stage": "hrx.recruiting.application.stage",
+        "POST /api/hrx/recruiting/offers/:offerId/stage": "hrx.recruiting.offer.stage",
+        "POST /api/hrx/recruiting/pipeline": "hrx.recruiting.pipeline.create"
+      },
+      "renderer_variants": {
+        "RecruitingPipeline": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-lifecycle",
+      "label": "입퇴사 관리",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/employees/PeopleWorkforceDirectory.tsx",
+        "apps/web/src/people/lifecycle/LifecycleBoard.tsx"
+      ],
+      "client_functions": [
+        "closeHrxOffboardingCase",
+        "createHrxEmployee",
+        "fetchHrxEmployees",
+        "fetchHrxLifecycleBoard",
+        "fetchHrxOrgChart",
+        "updateHrxEmployee",
+        "updateHrxOffboardingTask",
+        "updateHrxOnboardingTask",
+        "updateHrxReportingLine"
+      ],
+      "api_routes": [
+        "GET /api/hrx/employees",
+        "GET /api/hrx/employees/:employeeId",
+        "GET /api/hrx/lifecycle/offboarding",
+        "GET /api/hrx/lifecycle/onboarding",
+        "GET /api/hrx/org-chart",
+        "PATCH /api/hrx/employees/:employeeId",
+        "PATCH /api/hrx/org-chart/employees/:employeeId",
+        "POST /api/hrx/employees",
+        "POST /api/hrx/lifecycle/offboarding/:offboardingId/close",
+        "POST /api/hrx/lifecycle/offboarding/:offboardingId/tasks/:taskId",
+        "POST /api/hrx/lifecycle/onboarding/:onboardingId/tasks/:taskId"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/onboarding.js",
+        "packages/hrx/src/offboarding.js"
+      ],
+      "test_sources": [
+        "apps/api/test/hrx/lifecycle.test.js",
+        "packages/hrx/test/employee-lifecycle.test.js"
+      ],
+      "gap": "Reuse the existing checklist workflow and verify task ownership, completion, and access boundaries.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LifecycleBoard",
+        "PeopleWorkforceDirectory"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/employees": "hrx.employees.list",
+        "GET /api/hrx/employees/:employeeId": "hrx.employees.read",
+        "GET /api/hrx/lifecycle/offboarding": "hrx.lifecycle.offboarding.list",
+        "GET /api/hrx/lifecycle/onboarding": "hrx.lifecycle.onboarding.list",
+        "GET /api/hrx/org-chart": "hrx.org_chart.read",
+        "PATCH /api/hrx/employees/:employeeId": "hrx.employees.update",
+        "PATCH /api/hrx/org-chart/employees/:employeeId": "hrx.org_chart.update",
+        "POST /api/hrx/employees": "hrx.employees.create",
+        "POST /api/hrx/lifecycle/offboarding/:offboardingId/close": "hrx.lifecycle.offboarding.close",
+        "POST /api/hrx/lifecycle/offboarding/:offboardingId/tasks/:taskId": "hrx.lifecycle.offboarding.task.update",
+        "POST /api/hrx/lifecycle/onboarding/:onboardingId/tasks/:taskId": "hrx.lifecycle.onboarding.task.update"
+      },
+      "renderer_variants": {
+        "LifecycleBoard": {},
+        "PeopleWorkforceDirectory": {
+          "initialTab": "onboarding"
+        }
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-attendance-records",
+      "label": "출근/퇴근 기록",
+      "catalog_state": "active",
+      "implementation_state": "extend",
+      "component_sources": [
+        "apps/web/src/people/attendance/AttendanceWorkspace.tsx",
+        "apps/web/src/people/employees/EmployeeList.tsx"
+      ],
+      "client_functions": [
+        "approveHrxPayrollAttendance",
+        "createHrxAttendanceRecord",
+        "createHrxOvertimeRequest",
+        "decideHrxAttendanceCorrection",
+        "decideHrxOvertimeRequest",
+        "fetchHrxAttendance",
+        "fetchHrxAttendanceCorrectionRequests",
+        "fetchHrxEmployees",
+        "fetchHrxOvertime",
+        "fetchHrxOvertimeRisk",
+        "requestHrxAttendanceCorrection"
+      ],
+      "api_routes": [
+        "GET /api/hrx/attendance",
+        "GET /api/hrx/attendance/correction-requests",
+        "GET /api/hrx/employees",
+        "GET /api/hrx/overtime",
+        "GET /api/hrx/overtime/risks",
+        "POST /api/hrx/attendance",
+        "POST /api/hrx/attendance/:attendanceId/correction-requests",
+        "POST /api/hrx/attendance/correction-requests/:correctionRequestId/:decision",
+        "POST /api/hrx/overtime",
+        "POST /api/hrx/overtime/:overtimeId/:decision",
+        "POST /api/hrx/payroll/attendance-approvals"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/attendance.js"
+      ],
+      "test_sources": [
+        "packages/hrx/test/attendance.test.js",
+        "apps/api/test/hrx-runtime-api.test.js"
+      ],
+      "gap": "Reuse append-only attendance corrections and connect reviewed records to capacity without rebuilding raw device events.",
+      "catalog_implementation_state": "extend",
+      "renderer_components": [
+        "AttendanceWorkspace",
+        "EmployeeList"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/attendance": "hrx.attendance.list",
+        "GET /api/hrx/attendance/correction-requests": "hrx.attendance.correction.list",
+        "GET /api/hrx/employees": "hrx.employees.list",
+        "GET /api/hrx/overtime": "hrx.overtime.list",
+        "GET /api/hrx/overtime/risks": "hrx.overtime.risks",
+        "POST /api/hrx/attendance": "hrx.attendance.create",
+        "POST /api/hrx/attendance/:attendanceId/correction-requests": "hrx.attendance.correction.request",
+        "POST /api/hrx/attendance/correction-requests/:correctionRequestId/:decision": "hrx.attendance.correction.decide",
+        "POST /api/hrx/overtime": "hrx.overtime.submit",
+        "POST /api/hrx/overtime/:overtimeId/:decision": "hrx.overtime.decide",
+        "POST /api/hrx/payroll/attendance-approvals": "hrx.payroll.attendance.approve"
+      },
+      "renderer_variants": {
+        "AttendanceWorkspace": {},
+        "EmployeeList": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-leave",
+      "label": "휴가관리",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeaveRequestPage.tsx"
+      ],
+      "client_functions": [
+        "amendHrxLeaveSelfRequest",
+        "cancelHrxLeaveSelfRequest",
+        "fetchHrxActiveLeaveOptions",
+        "fetchHrxLeaveEvidenceDocuments",
+        "fetchHrxLeaveSelfState",
+        "fetchHrxLeaveTeamState",
+        "previewHrxLeaveRequest",
+        "provideHrxLeaveAdditionalInformation",
+        "respondHrxLeaveReschedule",
+        "submitHrxLeaveSelfRequest"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/me",
+        "GET /api/hrx/leave/me/evidence-documents",
+        "GET /api/hrx/leave/team",
+        "GET /api/hrx/leave/types/active",
+        "PATCH /api/hrx/leave/me/requests/:requestId",
+        "POST /api/hrx/leave/me/preview",
+        "POST /api/hrx/leave/me/requests",
+        "POST /api/hrx/leave/me/requests/:requestId/additional-information",
+        "POST /api/hrx/leave/me/requests/:requestId/cancel",
+        "POST /api/hrx/leave/me/requests/:requestId/reschedule-response"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/request-service.js",
+        "packages/hrx/src/leave/balance.js"
+      ],
+      "test_sources": [
+        "apps/web/test/leave-self-service-ui.test.mjs",
+        "apps/api/test/hrx/leave.test.js"
+      ],
+      "gap": "Verify the current self-service and team visibility states and feed approved leave into availability.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeaveRequestPage"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/me": "hrx.leave.self.snapshot",
+        "GET /api/hrx/leave/me/evidence-documents": "hrx.leave.self.evidence_documents",
+        "GET /api/hrx/leave/team": "hrx.leave.team.snapshot",
+        "GET /api/hrx/leave/types/active": "hrx.leave.types.active",
+        "PATCH /api/hrx/leave/me/requests/:requestId": "hrx.leave.self.amend",
+        "POST /api/hrx/leave/me/preview": "hrx.leave.self.preview",
+        "POST /api/hrx/leave/me/requests": "hrx.leave.self.submit",
+        "POST /api/hrx/leave/me/requests/:requestId/additional-information": "hrx.leave.self.command",
+        "POST /api/hrx/leave/me/requests/:requestId/cancel": "hrx.leave.self.command",
+        "POST /api/hrx/leave/me/requests/:requestId/reschedule-response": "hrx.leave.self.command"
+      },
+      "renderer_variants": {
+        "LeaveRequestPage": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-leave-types",
+      "label": "휴가 그룹/유형",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeaveTypeSettingsPage.tsx"
+      ],
+      "client_functions": [
+        "createHrxLeaveGroup",
+        "createHrxLeavePolicy",
+        "createHrxLeaveType",
+        "createNextHrxLeavePolicyVersion",
+        "fetchHrxLeaveConfiguration",
+        "publishHrxLeavePolicy",
+        "updateHrxLeaveGroup",
+        "updateHrxLeavePolicy",
+        "updateHrxLeaveType"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/configuration",
+        "PATCH /api/hrx/leave/groups/:groupId",
+        "PATCH /api/hrx/leave/policies/:policyVersionId",
+        "PATCH /api/hrx/leave/types/:leaveTypeId",
+        "POST /api/hrx/leave/groups",
+        "POST /api/hrx/leave/policies",
+        "POST /api/hrx/leave/policies/:policyVersionId/publish",
+        "POST /api/hrx/leave/policies/:policyVersionId/versions",
+        "POST /api/hrx/leave/types"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/policy-service.js"
+      ],
+      "test_sources": [
+        "apps/web/test/leave-settings-ui.test.mjs",
+        "apps/api/test/hrx/leave-policy-api.test.js"
+      ],
+      "gap": "Keep versioned policy editing and verify permission, effective-date, and reload behavior.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeaveTypeSettingsPage"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/configuration": "hrx.leave.configuration.read",
+        "PATCH /api/hrx/leave/groups/:groupId": "hrx.leave.groups.update",
+        "PATCH /api/hrx/leave/policies/:policyVersionId": "hrx.leave.policies.update_draft",
+        "PATCH /api/hrx/leave/types/:leaveTypeId": "hrx.leave.types.update",
+        "POST /api/hrx/leave/groups": "hrx.leave.groups.create",
+        "POST /api/hrx/leave/policies": "hrx.leave.policies.create",
+        "POST /api/hrx/leave/policies/:policyVersionId/publish": "hrx.leave.policies.publish",
+        "POST /api/hrx/leave/policies/:policyVersionId/versions": "hrx.leave.policies.create_version",
+        "POST /api/hrx/leave/types": "hrx.leave.types.create"
+      },
+      "renderer_variants": {
+        "LeaveTypeSettingsPage": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-leave-accrual-auto",
+      "label": "휴가 자동 발생",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeaveAccrualAutoPage.tsx"
+      ],
+      "client_functions": [
+        "createHrxLeaveAccrualRule",
+        "deactivateHrxLeaveAccrualRule",
+        "executeHrxLeaveAccrual",
+        "executeHrxLeaveAccrualBatch",
+        "exportHrxLeaveAccrualBatch",
+        "fetchHrxLeaveAccrualRules",
+        "fetchHrxLeaveAccrualRuns",
+        "fetchHrxLeaveConfiguration",
+        "previewHrxLeaveAccrual",
+        "previewHrxLeaveAccrualBatch",
+        "requestHrxStepUpSession",
+        "retryHrxLeaveAccrualBatch",
+        "updateHrxLeaveAccrualRule"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/accrual/batches/:batchId/export",
+        "GET /api/hrx/leave/accrual/rules",
+        "GET /api/hrx/leave/accrual/runs",
+        "GET /api/hrx/leave/configuration",
+        "PATCH /api/hrx/leave/accrual/rules/:ruleId",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/leave/accrual/batches/:batchId/retry",
+        "POST /api/hrx/leave/accrual/batches/:previewBatchId/execute",
+        "POST /api/hrx/leave/accrual/batches/preview",
+        "POST /api/hrx/leave/accrual/execute",
+        "POST /api/hrx/leave/accrual/preview",
+        "POST /api/hrx/leave/accrual/rules",
+        "POST /api/hrx/leave/accrual/rules/:ruleId/deactivate"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/accrual-service.js"
+      ],
+      "test_sources": [
+        "apps/web/test/leave-accrual-ui.test.mjs",
+        "apps/api/test/hrx/leave-accrual-api.test.js"
+      ],
+      "gap": "Preserve preview, approval, idempotency, and step-up boundaries while validating operational evidence.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeaveAccrualAutoPage"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/accrual/batches/:batchId/export": "hrx.leave.accrual.batches.export",
+        "GET /api/hrx/leave/accrual/rules": "hrx.leave.accrual.rules.list",
+        "GET /api/hrx/leave/accrual/runs": "hrx.leave.accrual.runs.list",
+        "GET /api/hrx/leave/configuration": "hrx.leave.configuration.read",
+        "PATCH /api/hrx/leave/accrual/rules/:ruleId": "hrx.leave.accrual.rules.update",
+        "POST /api/hrx/leave/accrual/batches/:batchId/retry": "hrx.leave.accrual.batches.retry",
+        "POST /api/hrx/leave/accrual/batches/:previewBatchId/execute": "hrx.leave.accrual.batches.execute",
+        "POST /api/hrx/leave/accrual/batches/preview": "hrx.leave.accrual.batches.preview",
+        "POST /api/hrx/leave/accrual/execute": "hrx.leave.accrual.execute",
+        "POST /api/hrx/leave/accrual/preview": "hrx.leave.accrual.preview",
+        "POST /api/hrx/leave/accrual/rules": "hrx.leave.accrual.rules.create",
+        "POST /api/hrx/leave/accrual/rules/:ruleId/deactivate": "hrx.leave.accrual.rules.deactivate"
+      },
+      "renderer_variants": {
+        "LeaveAccrualAutoPage": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-leave-usage",
+      "label": "휴가 사용 내역",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeaveUsagePage.tsx"
+      ],
+      "client_functions": [
+        "approveHrxLeaveManualAdjustment",
+        "approveHrxLeaveOccurrenceUpload",
+        "cancelHrxScheduledLeaveEntitlement",
+        "executeHrxLeaveManualAdjustment",
+        "executeHrxLeaveOccurrenceUpload",
+        "exportHrxLeaveOccurrences",
+        "fetchHrxLeaveConfiguration",
+        "fetchHrxLeaveIntegrations",
+        "fetchHrxLeaveManualAdjustmentSupport",
+        "fetchHrxLeaveOccurrenceProjections",
+        "fetchHrxLeaveOccurrenceTemplate",
+        "previewHrxLeaveManualAdjustment",
+        "previewHrxLeaveOccurrenceUpload",
+        "processHrxLeaveIntegrations",
+        "requestHrxStepUpSession",
+        "retryHrxLeaveIntegrationDeadLetter",
+        "retryHrxLeaveOccurrenceUpload",
+        "updateHrxScheduledLeaveEntitlement"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/accrual/manual/approvers",
+        "GET /api/hrx/leave/accrual/manual/evidence-documents",
+        "GET /api/hrx/leave/accrual/manual/template",
+        "GET /api/hrx/leave/configuration",
+        "GET /api/hrx/leave/integrations",
+        "GET /api/hrx/leave/occurrences/export",
+        "GET /api/hrx/leave/occurrences/projections",
+        "PATCH /api/hrx/leave/entitlements/:entitlementId",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/leave/accrual/manual/approve",
+        "POST /api/hrx/leave/accrual/manual/execute",
+        "POST /api/hrx/leave/accrual/manual/preview",
+        "POST /api/hrx/leave/accrual/manual/uploads/:batchId/approve",
+        "POST /api/hrx/leave/accrual/manual/uploads/:batchId/execute",
+        "POST /api/hrx/leave/accrual/manual/uploads/:batchId/retry",
+        "POST /api/hrx/leave/accrual/manual/uploads/preview",
+        "POST /api/hrx/leave/entitlements/:entitlementId/cancel",
+        "POST /api/hrx/leave/integrations/dead-letters/:deadLetterId/retry",
+        "POST /api/hrx/leave/integrations/process"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/reporting-service.js",
+        "packages/hrx/src/leave/entitlement-command-service.js"
+      ],
+      "test_sources": [
+        "apps/web/test/leave-reporting-ui.test.mjs",
+        "apps/api/test/hrx/leave-reporting-api.test.js"
+      ],
+      "gap": "Verify list, month, and type views plus permission-filtered export and correction persistence.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeaveUsagePage"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/accrual/manual/approvers": "hrx.leave.manual.support",
+        "GET /api/hrx/leave/accrual/manual/evidence-documents": "hrx.leave.manual.support",
+        "GET /api/hrx/leave/accrual/manual/template": "hrx.leave.manual.support",
+        "GET /api/hrx/leave/configuration": "hrx.leave.configuration.read",
+        "GET /api/hrx/leave/integrations": "hrx.leave.integrations.read",
+        "GET /api/hrx/leave/occurrences/export": "hrx.leave.occurrences.export",
+        "GET /api/hrx/leave/occurrences/projections": "hrx.leave.occurrences.projections",
+        "PATCH /api/hrx/leave/entitlements/:entitlementId": "hrx.leave.entitlements.patch",
+        "POST /api/hrx/leave/accrual/manual/approve": "hrx.leave.manual.execute",
+        "POST /api/hrx/leave/accrual/manual/execute": "hrx.leave.manual.execute",
+        "POST /api/hrx/leave/accrual/manual/preview": "hrx.leave.manual.preview",
+        "POST /api/hrx/leave/accrual/manual/uploads/:batchId/approve": "hrx.leave.occurrence.upload.execute",
+        "POST /api/hrx/leave/accrual/manual/uploads/:batchId/execute": "hrx.leave.occurrence.upload.execute",
+        "POST /api/hrx/leave/accrual/manual/uploads/:batchId/retry": "hrx.leave.occurrence.upload.retry",
+        "POST /api/hrx/leave/accrual/manual/uploads/preview": "hrx.leave.occurrence.upload.preview",
+        "POST /api/hrx/leave/entitlements/:entitlementId/cancel": "hrx.leave.entitlements.cancel",
+        "POST /api/hrx/leave/integrations/dead-letters/:deadLetterId/retry": "hrx.leave.integrations.dead_letter_retry",
+        "POST /api/hrx/leave/integrations/process": "hrx.leave.integrations.process"
+      },
+      "renderer_variants": {
+        "LeaveUsagePage": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-leave-termination",
+      "label": "퇴사 휴가 정산",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeaveTerminationPage.tsx"
+      ],
+      "client_functions": [
+        "approveHrxLeaveTermination",
+        "executeHrxLeaveTermination",
+        "fetchHrxLeaveTerminationWorkspace",
+        "previewHrxLeaveTermination",
+        "requestHrxStepUpSession"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/termination-reconciliations",
+        "GET /api/hrx/leave/termination-reconciliations/approvers",
+        "GET /api/hrx/leave/termination-reconciliations/candidates",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/leave/termination-reconciliations/approve",
+        "POST /api/hrx/leave/termination-reconciliations/execute",
+        "POST /api/hrx/leave/termination-reconciliations/preview"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/termination-service.js"
+      ],
+      "test_sources": [
+        "packages/hrx/test/leave-termination-service.test.js",
+        "apps/api/test/hrx/leave-entitlement-lifecycle-api.test.js"
+      ],
+      "gap": "Verify two-person approval, payroll handoff, and closed-case reload without adding headcount KPIs.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeaveTerminationPage"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/termination-reconciliations": "hrx.leave.termination.list",
+        "GET /api/hrx/leave/termination-reconciliations/approvers": "hrx.leave.termination.support",
+        "GET /api/hrx/leave/termination-reconciliations/candidates": "hrx.leave.termination.support",
+        "POST /api/hrx/leave/termination-reconciliations/approve": "hrx.leave.termination.execute",
+        "POST /api/hrx/leave/termination-reconciliations/execute": "hrx.leave.termination.execute",
+        "POST /api/hrx/leave/termination-reconciliations/preview": "hrx.leave.termination.preview"
+      },
+      "renderer_variants": {
+        "LeaveTerminationPage": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-leave-requests",
+      "label": "휴가 요청",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeaveApprovalQueue.tsx"
+      ],
+      "client_functions": [
+        "closeHrxLeaveDelegation",
+        "createHrxLeaveDelegation",
+        "fetchHrxLeaveApprovalQueue",
+        "fetchHrxLeaveDelegationCandidates",
+        "fetchHrxLeaveDelegations",
+        "resolveHrxLeaveApproval"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/delegations",
+        "GET /api/hrx/leave/delegations/candidates",
+        "GET /api/hrx/leave/requests",
+        "POST /api/hrx/leave/delegations",
+        "POST /api/hrx/leave/delegations/:delegationId/:command",
+        "POST /api/hrx/leave/requests/:requestId/:command"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/request-service.js",
+        "packages/hrx/src/leave/approval-delegation.js"
+      ],
+      "test_sources": [
+        "apps/web/test/leave-self-service-ui.test.mjs",
+        "apps/api/test/hrx/leave-role-scopes.test.js"
+      ],
+      "gap": "Verify queue ordering, delegation, approval, rejection, reschedule, and request-for-information paths.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeaveApprovalQueue"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/delegations": "hrx.leave.delegations.list",
+        "GET /api/hrx/leave/delegations/candidates": "hrx.leave.delegations.candidates",
+        "GET /api/hrx/leave/requests": "hrx.leave.manager.queue",
+        "POST /api/hrx/leave/delegations": "hrx.leave.delegations.create",
+        "POST /api/hrx/leave/delegations/:delegationId/:command": "hrx.leave.delegations.command",
+        "POST /api/hrx/leave/requests/:requestId/:command": "hrx.leave.manager.command"
+      },
+      "renderer_variants": {
+        "LeaveApprovalQueue": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-annual-leave-notices",
+      "label": "연차 사용 촉진",
+      "catalog_state": "active",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/leave/LeavePromotionPage.tsx"
+      ],
+      "client_functions": [
+        "createHrxLeavePromotionCampaign",
+        "fetchHrxLeavePromotionWorkspace",
+        "issueHrxLeavePromotionBatch",
+        "issueHrxLeavePromotionNotice",
+        "previewHrxLeavePromotion",
+        "recordHrxLeavePromotionEvidence",
+        "recordHrxLeavePromotionResponse",
+        "revokeHrxLeavePromotionEvidence"
+      ],
+      "api_routes": [
+        "GET /api/hrx/leave/promotion-campaigns",
+        "POST /api/hrx/leave/promotion-campaigns",
+        "POST /api/hrx/leave/promotion-campaigns/:campaignId/issue-batch",
+        "POST /api/hrx/leave/promotion-campaigns/preview",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/:stage-notice",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/evidence",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/evidence/:receiptId/revoke",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/response"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/leave/promotion-service.js"
+      ],
+      "test_sources": [
+        "apps/web/test/leave-promotion-ui.test.mjs",
+        "apps/api/test/hrx/leave-promotion-api.test.js"
+      ],
+      "gap": "Verify eligible recipients, notice evidence, response state, and permission-safe reload.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "LeavePromotionPage"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/leave/promotion-campaigns": "hrx.leave.promotion.list",
+        "POST /api/hrx/leave/promotion-campaigns": "hrx.leave.promotion.create",
+        "POST /api/hrx/leave/promotion-campaigns/:campaignId/issue-batch": "hrx.leave.promotion.batch_issue",
+        "POST /api/hrx/leave/promotion-campaigns/preview": "hrx.leave.promotion.preview",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/:stage-notice": "hrx.leave.promotion.recipient_command",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/evidence": "hrx.leave.promotion.recipient_command",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/evidence/:receiptId/revoke": "hrx.leave.promotion.evidence_revoke",
+        "POST /api/hrx/leave/promotion-recipients/:recipientId/response": "hrx.leave.promotion.recipient_command"
+      },
+      "renderer_variants": {
+        "LeavePromotionPage": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-close",
+      "label": "마감 관리",
+      "catalog_state": "audit_required",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx"
+      ],
+      "client_functions": [
+        "approveHrxPayrollRun",
+        "captureHrxPayrollRun",
+        "closeHrxPayrollRun",
+        "createHrxPayrollAdjustmentRun",
+        "createHrxPayrollPeriod",
+        "createHrxPayrollRun",
+        "fetchHrxPayrollClosePrecheck",
+        "fetchHrxPayrollRun",
+        "fetchHrxPayrollWorkspace",
+        "previewHrxPayrollRun",
+        "requestHrxStepUpSession"
+      ],
+      "api_routes": [
+        "GET /api/hrx/payroll/periods",
+        "GET /api/hrx/payroll/runs/:runId",
+        "GET /api/hrx/payroll/runs/:runId/precheck",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/payroll/periods",
+        "POST /api/hrx/payroll/runs",
+        "POST /api/hrx/payroll/runs/:runId/approve",
+        "POST /api/hrx/payroll/runs/:runId/close",
+        "POST /api/hrx/payroll/runs/:runId/preview",
+        "POST /api/hrx/payroll/runs/:runId/snapshot"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/payroll/close-precheck.js",
+        "packages/hrx/src/payroll/run-service.js"
+      ],
+      "test_sources": [
+        "apps/web/test/people-close-workspace.test.mjs",
+        "packages/hrx/test/payroll-close-precheck.test.js"
+      ],
+      "gap": "Dedicated payroll close precheck workspace is implemented and remains hidden behind the reviewed feature flag when disabled.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "PayrollBoundaryPanel"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/payroll/periods": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/runs/:runId": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/runs/:runId/precheck": "hrx.payroll.runtime.read",
+        "POST /api/hrx/payroll/periods": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs/:runId/approve": "hrx.payroll.runtime.approve",
+        "POST /api/hrx/payroll/runs/:runId/close": "hrx.payroll.runtime.approve",
+        "POST /api/hrx/payroll/runs/:runId/preview": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs/:runId/snapshot": "hrx.payroll.runtime.prepare"
+      },
+      "renderer_variants": {
+        "PayrollBoundaryPanel": {
+          "mode": "close"
+        }
+      },
+      "client_scope": "route_variant",
+      "excluded_client_functions": [
+        "approveHrxPayrollPayment",
+        "calculateHrxPayrollYearEnd",
+        "collectHrxPayrollYearEnd",
+        "correctHrxPayrollFiling",
+        "createHrxPayrollFiling",
+        "exportHrxPayrollPayment",
+        "prepareHrxPayrollPayment",
+        "reconcileHrxPayrollPayment",
+        "resolveHrxPayrollIssue",
+        "retryFailedHrxPayrollPayment",
+        "reviewHrxPayrollYearEnd",
+        "safeHrxStepUpPurpose",
+        "submitHrxPayrollFiling",
+        "validateHrxPayrollFiling"
+      ]
+    },
+    {
+      "route": "people-payroll",
+      "label": "급여정산",
+      "catalog_state": "active",
+      "implementation_state": "extend",
+      "component_sources": [
+        "apps/web/src/people/payroll/PayrollBoundaryPanel.tsx"
+      ],
+      "client_functions": [
+        "approveHrxPayrollPayment",
+        "approveHrxPayrollRun",
+        "calculateHrxPayrollYearEnd",
+        "captureHrxPayrollRun",
+        "closeHrxPayrollRun",
+        "collectHrxPayrollYearEnd",
+        "correctHrxPayrollFiling",
+        "createHrxPayrollAdjustmentRun",
+        "createHrxPayrollFiling",
+        "createHrxPayrollPeriod",
+        "createHrxPayrollRun",
+        "exportHrxPayrollPayment",
+        "fetchHrxPayrollClosePrecheck",
+        "fetchHrxPayrollRun",
+        "fetchHrxPayrollWorkspace",
+        "prepareHrxPayrollPayment",
+        "previewHrxPayrollRun",
+        "reconcileHrxPayrollPayment",
+        "requestHrxStepUpSession",
+        "resolveHrxPayrollIssue",
+        "retryFailedHrxPayrollPayment",
+        "reviewHrxPayrollYearEnd",
+        "safeHrxStepUpPurpose",
+        "submitHrxPayrollFiling",
+        "validateHrxPayrollFiling"
+      ],
+      "api_routes": [
+        "GET /api/hrx/payroll/periods",
+        "GET /api/hrx/payroll/runs/:runId",
+        "GET /api/hrx/payroll/runs/:runId/precheck",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/payroll/filings/:filingJobId/correct",
+        "POST /api/hrx/payroll/filings/:filingJobId/submit",
+        "POST /api/hrx/payroll/filings/:filingJobId/validate",
+        "POST /api/hrx/payroll/issues/:issueId/resolve",
+        "POST /api/hrx/payroll/payment-batches/:batchId/approve",
+        "POST /api/hrx/payroll/payment-batches/:batchId/export",
+        "POST /api/hrx/payroll/payment-batches/:batchId/reconcile",
+        "POST /api/hrx/payroll/payment-batches/:batchId/retry-failed",
+        "POST /api/hrx/payroll/periods",
+        "POST /api/hrx/payroll/runs",
+        "POST /api/hrx/payroll/runs/:runId/approve",
+        "POST /api/hrx/payroll/runs/:runId/close",
+        "POST /api/hrx/payroll/runs/:runId/filings",
+        "POST /api/hrx/payroll/runs/:runId/payments/prepare",
+        "POST /api/hrx/payroll/runs/:runId/preview",
+        "POST /api/hrx/payroll/runs/:runId/snapshot",
+        "POST /api/hrx/payroll/runs/:runId/year-end/calculate",
+        "POST /api/hrx/payroll/runs/:runId/year-end/collect",
+        "POST /api/hrx/payroll/runs/:runId/year-end/review"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/payroll/run-service.js",
+        "packages/hrx/src/payroll-boundary.js"
+      ],
+      "test_sources": [
+        "apps/web/test/payroll-workspace-ui.test.mjs",
+        "apps/api/test/hrx/payroll-runtime.test.js"
+      ],
+      "gap": "Audit and harden the existing workflow, preserve immutable close, and use adjustment runs for corrections.",
+      "catalog_implementation_state": "extend",
+      "renderer_components": [
+        "PayrollBoundaryPanel"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/payroll/periods": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/runs/:runId": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/runs/:runId/precheck": "hrx.payroll.runtime.read",
+        "POST /api/hrx/payroll/filings/:filingJobId/correct": "hrx.payroll.filing.prepare",
+        "POST /api/hrx/payroll/filings/:filingJobId/submit": "hrx.payroll.filing.submit",
+        "POST /api/hrx/payroll/filings/:filingJobId/validate": "hrx.payroll.filing.prepare",
+        "POST /api/hrx/payroll/issues/:issueId/resolve": "hrx.payroll.runtime.review",
+        "POST /api/hrx/payroll/payment-batches/:batchId/approve": "hrx.payroll.payment.approve",
+        "POST /api/hrx/payroll/payment-batches/:batchId/export": "hrx.payroll.payment.prepare",
+        "POST /api/hrx/payroll/payment-batches/:batchId/reconcile": "hrx.payroll.payment.prepare",
+        "POST /api/hrx/payroll/payment-batches/:batchId/retry-failed": "hrx.payroll.payment.prepare",
+        "POST /api/hrx/payroll/periods": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs/:runId/approve": "hrx.payroll.runtime.approve",
+        "POST /api/hrx/payroll/runs/:runId/close": "hrx.payroll.runtime.approve",
+        "POST /api/hrx/payroll/runs/:runId/filings": "hrx.payroll.filing.prepare",
+        "POST /api/hrx/payroll/runs/:runId/payments/prepare": "hrx.payroll.payment.prepare",
+        "POST /api/hrx/payroll/runs/:runId/preview": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs/:runId/snapshot": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/runs/:runId/year-end/calculate": "hrx.payroll.year_end.prepare",
+        "POST /api/hrx/payroll/runs/:runId/year-end/collect": "hrx.payroll.year_end.prepare",
+        "POST /api/hrx/payroll/runs/:runId/year-end/review": "hrx.payroll.year_end.review"
+      },
+      "renderer_variants": {
+        "PayrollBoundaryPanel": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-pay-statement",
+      "label": "급여명세서",
+      "catalog_state": "active",
+      "implementation_state": "extend",
+      "component_sources": [
+        "apps/web/src/people/payroll/PayrollStatementWorkspace.tsx"
+      ],
+      "client_functions": [
+        "deliverHrxPayrollStatements",
+        "exportHrxPayrollRegister",
+        "fetchHrxPayrollRun",
+        "fetchHrxPayrollStatements",
+        "fetchHrxPayrollStatementsSelf",
+        "fetchHrxPayrollWorkspace",
+        "generateHrxPayrollStatements",
+        "readHrxPayrollStatement",
+        "requestHrxStepUpSession",
+        "revokeHrxPayrollStatement",
+        "safeHrxStepUpPurpose"
+      ],
+      "api_routes": [
+        "GET /api/hrx/payroll/periods",
+        "GET /api/hrx/payroll/runs/:runId",
+        "GET /api/hrx/payroll/runs/:runId/export",
+        "GET /api/hrx/payroll/runs/:runId/statements",
+        "GET /api/hrx/payroll/statements/:statementId/download",
+        "GET /api/hrx/payroll/statements/self",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/payroll/runs/:runId/statements/deliver",
+        "POST /api/hrx/payroll/runs/:runId/statements/generate",
+        "POST /api/hrx/payroll/statements/:statementId/revoke"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/payroll/document-service.js"
+      ],
+      "test_sources": [
+        "apps/web/test/payroll-workspace-ui.test.mjs",
+        "packages/hrx/test/payroll-document-service.test.js"
+      ],
+      "gap": "Separate generated, provider-accepted, delivered, viewed, failed, retried, and revoked states.",
+      "catalog_implementation_state": "extend",
+      "renderer_components": [
+        "PayrollStatementWorkspace"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/payroll/periods": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/runs/:runId": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/runs/:runId/export": "hrx.payroll.statement.export",
+        "GET /api/hrx/payroll/runs/:runId/statements": "hrx.payroll.statement.manage.read",
+        "GET /api/hrx/payroll/statements/:statementId/download": "hrx.payroll.statement.self.read",
+        "GET /api/hrx/payroll/statements/self": "hrx.payroll.statement.self.read",
+        "POST /api/hrx/payroll/runs/:runId/statements/deliver": "hrx.payroll.statement.manage.write",
+        "POST /api/hrx/payroll/runs/:runId/statements/generate": "hrx.payroll.statement.manage.write",
+        "POST /api/hrx/payroll/statements/:statementId/revoke": "hrx.payroll.statement.manage.write"
+      },
+      "renderer_variants": {
+        "PayrollStatementWorkspace": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    },
+    {
+      "route": "people-pay-rules",
+      "label": "수당/최저임금",
+      "catalog_state": "audit_required",
+      "implementation_state": "existing",
+      "component_sources": [
+        "apps/web/src/people/payroll/PayRulesWorkspace.tsx"
+      ],
+      "client_functions": [
+        "assignHrxPayrollItem",
+        "createHrxMinimumWageStandard",
+        "createHrxPayrollAllowanceRule",
+        "createHrxPayrollItem",
+        "createHrxPayrollProfile",
+        "fetchHrxCompensationRecords",
+        "fetchHrxEmployees",
+        "fetchHrxMinimumWageStandards",
+        "fetchHrxPayrollAllowanceRules",
+        "fetchHrxPayrollItems",
+        "fetchHrxPayrollProfile",
+        "legallyApproveHrxMinimumWageStandard",
+        "previewHrxMinimumWageImpact",
+        "publishHrxMinimumWageStandard",
+        "publishHrxPayrollAllowanceRule",
+        "requestHrxStepUpSession",
+        "retireHrxPayrollItemAssignment",
+        "reviewHrxMinimumWageStandard",
+        "reviewHrxPayrollAllowanceRule",
+        "updateHrxPayrollItem",
+        "updateHrxPayrollProfile"
+      ],
+      "api_routes": [
+        "GET /api/hrx/compensation",
+        "GET /api/hrx/employees",
+        "GET /api/hrx/payroll/items",
+        "GET /api/hrx/payroll/minimum-wage",
+        "GET /api/hrx/payroll/profiles/:employeeId",
+        "GET /api/hrx/payroll/rules",
+        "PATCH /api/hrx/payroll/items/:itemId",
+        "PATCH /api/hrx/payroll/profiles/:profileId",
+        "POST /api/auth/step-up",
+        "POST /api/hrx/payroll/items",
+        "POST /api/hrx/payroll/minimum-wage",
+        "POST /api/hrx/payroll/minimum-wage/:ruleVersionId/legal-approve",
+        "POST /api/hrx/payroll/minimum-wage/:ruleVersionId/publish",
+        "POST /api/hrx/payroll/minimum-wage/:ruleVersionId/review",
+        "POST /api/hrx/payroll/minimum-wage/preview",
+        "POST /api/hrx/payroll/profiles",
+        "POST /api/hrx/payroll/profiles/:profileId/assignments",
+        "POST /api/hrx/payroll/profiles/:profileId/assignments/:assignmentId/retire",
+        "POST /api/hrx/payroll/rules",
+        "POST /api/hrx/payroll/rules/:ruleVersionId/publish",
+        "POST /api/hrx/payroll/rules/:ruleVersionId/review"
+      ],
+      "domain_sources": [
+        "packages/hrx/src/payroll/allowance-rule-service.js",
+        "packages/hrx/src/payroll/minimum-wage.js"
+      ],
+      "test_sources": [
+        "apps/web/test/people-pay-rules-workspace.test.mjs",
+        "packages/hrx/test/payroll-allowance-rules.test.js",
+        "packages/hrx/test/payroll-minimum-wage.test.js"
+      ],
+      "gap": "Dedicated allowance and minimum-wage workspace is implemented and remains hidden behind the reviewed feature flag when disabled.",
+      "catalog_implementation_state": "existing",
+      "renderer_components": [
+        "PayRulesWorkspace"
+      ],
+      "api_route_policy_ids": {
+        "GET /api/hrx/compensation": "hrx.compensation.read",
+        "GET /api/hrx/employees": "hrx.employees.list",
+        "GET /api/hrx/payroll/items": "hrx.payroll.items.read",
+        "GET /api/hrx/payroll/minimum-wage": "hrx.payroll.runtime.read",
+        "GET /api/hrx/payroll/profiles/:employeeId": "hrx.payroll.profiles.read",
+        "GET /api/hrx/payroll/rules": "hrx.payroll.runtime.read",
+        "PATCH /api/hrx/payroll/items/:itemId": "hrx.payroll.items.update",
+        "PATCH /api/hrx/payroll/profiles/:profileId": "hrx.payroll.profiles.update",
+        "POST /api/hrx/payroll/items": "hrx.payroll.items.create",
+        "POST /api/hrx/payroll/minimum-wage": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/minimum-wage/:ruleVersionId/legal-approve": "hrx.payroll.minimum_wage.legal_review",
+        "POST /api/hrx/payroll/minimum-wage/:ruleVersionId/publish": "hrx.payroll.runtime.approve",
+        "POST /api/hrx/payroll/minimum-wage/:ruleVersionId/review": "hrx.payroll.runtime.review",
+        "POST /api/hrx/payroll/minimum-wage/preview": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/profiles": "hrx.payroll.profiles.create",
+        "POST /api/hrx/payroll/profiles/:profileId/assignments": "hrx.payroll.assignment.create",
+        "POST /api/hrx/payroll/profiles/:profileId/assignments/:assignmentId/retire": "hrx.payroll.assignment.retire",
+        "POST /api/hrx/payroll/rules": "hrx.payroll.runtime.prepare",
+        "POST /api/hrx/payroll/rules/:ruleVersionId/publish": "hrx.payroll.runtime.approve",
+        "POST /api/hrx/payroll/rules/:ruleVersionId/review": "hrx.payroll.runtime.review"
+      },
+      "renderer_variants": {
+        "PayRulesWorkspace": {}
+      },
+      "client_scope": "renderer_import_graph_superset",
+      "excluded_client_functions": []
+    }
+  ]
+}

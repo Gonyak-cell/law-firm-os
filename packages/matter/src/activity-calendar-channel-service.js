@@ -107,7 +107,8 @@ function safeActivity(record) {
     title: record.title,
     status: record.status,
     due_at: record.due_at ?? record.starts_at ?? null,
-    assigned_to_label: record.assigned_to ? "지정됨" : "미지정",
+    assigned_to_user_id: record.model_type === "MatterTask" ? record.assigned_to_user_id ?? null : null,
+    assigned_to_label: record.assigned_to_user_id || record.assigned_to ? "지정됨" : "미지정",
     safe_excerpt: record.safe_excerpt ?? null,
     raw_body_included: false,
     provider_event_id_included: false,
@@ -124,6 +125,8 @@ function safeCalendarEvent(record) {
     status: record.status,
     starts_at: record.starts_at,
     ends_at: record.ends_at ?? null,
+    event_kind: record.event_kind ?? "unknown",
+    provider: record.provider ?? null,
     legal_consequence: record.legal_consequence ?? "internal",
     criticality: record.criticality ?? "standard",
     reminder_rule: record.reminder_rule ?? "none",
@@ -164,8 +167,29 @@ function safeChannelMessage(record) {
   });
 }
 
-export function createMatterActivityCalendarChannelService({ repository } = {}) {
+export function createMatterActivityCalendarChannelService({
+  repository,
+  peopleAssignmentAuthority = null,
+  clock = () => new Date().toISOString(),
+} = {}) {
   if (!repository) throw new TypeError("repository is required");
+
+  function resolvedTaskAssignee({ tenantId, matterId, userId, asOf }) {
+    if (userId == null || userId === "") return null;
+    if (!peopleAssignmentAuthority?.resolveTaskAssignee) {
+      throw new Error("Matter task assignment authority is required");
+    }
+    const identity = peopleAssignmentAuthority.resolveTaskAssignee({
+      tenant_id: tenantId,
+      matter_id: matterId,
+      user_id: userId,
+      as_of: asOf,
+    });
+    if (identity.state !== "resolved") {
+      throw new Error(`Matter task assignee is not authoritative: ${identity.reason}`);
+    }
+    return identity.user_id;
+  }
 
   function listActivities({ tenant_id, matter_id } = {}) {
     const tenantId = requiredString(tenant_id, "tenant_id");
@@ -195,12 +219,20 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
     const actorId = requiredString(actor_id, "actor_id");
     const type = activity?.activity_type ?? "task";
     if (!ACTIVITY_TYPES.includes(type)) throw new TypeError("activity_type is invalid");
-    const now = occurred_at ?? new Date().toISOString();
+    const authorityAsOf = clock();
+    const now = occurred_at ?? authorityAsOf;
     const title = safeText(activity?.title, "title");
     const dueAt = activity?.due_at ? parseIso(activity.due_at, "due_at") : null;
     let record;
     if (type === "task") {
+      if (activity?.assigned_to != null) throw new TypeError("new task writer requires assigned_to_user_id");
       const taskId = safeId(activity?.activity_id, `activity_task_${Date.now().toString(36)}`);
+      const assignedToUserId = resolvedTaskAssignee({
+        tenantId,
+        matterId,
+        userId: activity?.assigned_to_user_id,
+        asOf: authorityAsOf,
+      });
       record = repository.upsert(createMatterTask({
         task_id: taskId,
         tenant_id: tenantId,
@@ -208,7 +240,11 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
         title,
         status: activity?.status && ACTIVITY_STATUSES.includes(activity.status) ? activity.status : "todo",
         created_by: actorId,
-        assigned_to: activity?.assigned_to ?? null,
+        assigned_to_user_id: assignedToUserId,
+        starts_at: activity?.starts_at ?? null,
+        ends_at: activity?.ends_at ?? null,
+        estimated_minutes: activity?.estimated_minutes ?? null,
+        assignment_resolution_state: assignedToUserId ? "resolved" : null,
         due_at: dueAt,
         source_ref: "sf_b_w03_activity",
       }));
@@ -264,30 +300,64 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
     const matterId = requiredString(matter_id, "matter_id");
     const activityId = requiredString(activity_id, "activity_id");
     const actorId = requiredString(actor_id, "actor_id");
-    const now = occurred_at ?? new Date().toISOString();
+    const authorityAsOf = clock();
+    const now = occurred_at ?? authorityAsOf;
     let current = repository.get({ tenant_id: tenantId, model_type: "MatterTask", task_id: activityId });
     let record;
     if (current) {
+      if (patch?.assigned_to != null) throw new TypeError("new task writer requires assigned_to_user_id");
       const toStatus = patch?.status && ACTIVITY_STATUSES.includes(patch.status) ? patch.status : null;
-      if (toStatus && toStatus !== current.status) {
-        record = transitionMatterTask({
-          repository,
-          task: current,
-          to_status: toStatus,
-          actor_id: actorId,
-          reason: "activity_status_updated",
-          audit: { append: (event) => repository.appendAudit({ ...event, event_id: `matter.task.transition:${tenantId}:${matterId}:${activityId}:${now}` }) },
+      const hasFieldPatch = ["title", "due_at", "assigned_to_user_id", "starts_at", "ends_at", "estimated_minutes"]
+        .some((field) => patch?.[field] !== undefined);
+      let validatedFieldPatch = null;
+      if (hasFieldPatch) {
+        const assignedToUserId = patch?.assigned_to_user_id !== undefined
+          ? resolvedTaskAssignee({
+              tenantId,
+              matterId,
+              userId: patch.assigned_to_user_id,
+              asOf: authorityAsOf,
+            })
+          : current.assigned_to_user_id;
+        validatedFieldPatch = {
+          title: patch?.title ? safeText(patch.title, "title") : current.title,
+          due_at: patch?.due_at ? parseIso(patch.due_at, "due_at") : current.due_at,
+          assigned_to_user_id: assignedToUserId,
+          starts_at: patch?.starts_at !== undefined ? patch.starts_at : current.starts_at,
+          ends_at: patch?.ends_at !== undefined ? patch.ends_at : current.ends_at,
+          estimated_minutes: patch?.estimated_minutes !== undefined ? patch.estimated_minutes : current.estimated_minutes,
+          assignment_resolution_state: patch?.assigned_to_user_id !== undefined
+            ? (assignedToUserId ? "resolved" : null)
+            : current.assignment_resolution_state,
+        };
+        createMatterTask({
+          ...current,
+          ...validatedFieldPatch,
+          status: toStatus ?? current.status,
         });
-      } else {
-        record = repository.update(
-          { tenant_id: tenantId, model_type: "MatterTask", task_id: activityId },
-          {
-            title: patch?.title ? safeText(patch.title, "title") : current.title,
-            due_at: patch?.due_at ? parseIso(patch.due_at, "due_at") : current.due_at,
-            assigned_to: patch?.assigned_to ?? current.assigned_to,
-          },
-        );
       }
+      const mutateTask = () => {
+        let next = current;
+        if (toStatus && toStatus !== current.status) {
+          next = transitionMatterTask({
+            repository,
+            task: current,
+            to_status: toStatus,
+            actor_id: actorId,
+            reason: "activity_status_updated",
+            audit: { append: (event) => repository.appendAudit({ ...event, event_id: `matter.task.transition:${tenantId}:${matterId}:${activityId}:${now}` }) },
+          });
+        }
+        return validatedFieldPatch
+          ? repository.update(
+              { tenant_id: tenantId, model_type: "MatterTask", task_id: activityId },
+              validatedFieldPatch,
+            )
+          : next;
+      };
+      record = typeof repository.transaction === "function"
+        ? repository.transaction(mutateTask)
+        : mutateTask();
     } else {
       current = repository.get({ tenant_id: tenantId, model_type: "MatterActivity", resource_id: activityId });
       if (!current) throw new Error("activity not found");
@@ -346,6 +416,7 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
     const actorId = requiredString(actor_id, "actor_id");
     const now = occurred_at ?? new Date().toISOString();
     const eventId = safeId(event?.event_id, `calendar_${Date.now().toString(36)}`);
+    const eventKind = requiredString(event?.event_kind, "event_kind");
     const startsAt = parseIso(event?.starts_at, "starts_at");
     const endsAt = event?.ends_at ? parseIso(event.ends_at, "ends_at") : null;
     if (endsAt && new Date(endsAt).getTime() < new Date(startsAt).getTime()) throw new TypeError("ends_at must be after starts_at");
@@ -358,7 +429,11 @@ export function createMatterActivityCalendarChannelService({ repository } = {}) 
         status: event?.status && CALENDAR_STATUSES.includes(event.status) ? event.status : "scheduled",
         starts_at: startsAt,
         ends_at: endsAt,
-        source_ref: "sf_b_w03_calendar",
+        event_kind: eventKind,
+        provider: event?.provider ?? null,
+        provider_event_id: event?.provider_event_id ?? null,
+        provider_series_id: event?.provider_series_id ?? null,
+        source_ref: event?.source_ref ?? "sf_b_w03_calendar",
       }),
       legal_consequence: event?.legal_consequence ?? "internal",
       criticality: event?.criticality ?? "standard",

@@ -3,6 +3,7 @@ import test from "node:test";
 import { createFileHrxStore } from "../src/store/file-store.js";
 import {
   createLeaveAccrualService,
+  createStoreLeaveAccrualSourceProvider,
   createLeaveOccurrenceUploadTemplate,
   LEAVE_OCCURRENCE_UPLOAD_TEMPLATE_VERSION,
   parseLeaveManualAdjustmentCsv,
@@ -36,8 +37,8 @@ function sourceRows() {
   ];
 }
 
-function createFixture() {
-  const employees = sourceRows().map((row) => row.employee_id);
+function createFixture({ source = sourceRows() } = {}) {
+  const employees = source.map((row) => row.employee_id);
   const store = seedStore(employees);
   let sourceVersion = "source-v1";
   let sequence = 0;
@@ -45,7 +46,7 @@ function createFixture() {
     store,
     clock: () => "2026-07-13T01:00:00.000Z",
     idFactory: (prefix) => `${prefix}-${++sequence}`,
-    sourceProvider: { snapshot: () => ({ source_version: sourceVersion, rows: sourceRows() }) },
+    sourceProvider: { snapshot: () => ({ source_version: sourceVersion, rows: source }) },
     approverAuthorizer: ({ actor_id, required_scope }) => actor_id === "hr-approver" && required_scope === "hrx.leave.ledger.adjust",
   });
   const context = { tenant_id: TENANT, actor_id: "hr-operator", step_up_verified: true };
@@ -85,6 +86,70 @@ test("automatic accrual previews statutory boundaries and executes once", () => 
   assert.equal(rerun.result.counts.new_entries, 0);
   assert.equal(rerun.result.counts.duplicates, 5);
   assert.equal(store.query("select", { table: "hrx_leave_balance_entries", where: { tenant_id: TENANT, entry_type: "earned" } }).length, 5);
+});
+
+test("automatic accrual presentation fields fail closed when an employee name is missing", () => {
+  const source = sourceRows().map((row) => row.employee_id === "under-one-year"
+    ? { ...row, display_name: undefined }
+    : row);
+  const { service, context, rule } = createFixture({ source });
+  const preview = service.preview(context, {
+    accrual_rule_id: rule.accrual_rule_id,
+    period_key: "2026-missing-display-name",
+    occurred_on: OCCURRED_ON,
+  });
+  const row = preview.result.rows.find((item) => item.employee_id === "under-one-year");
+  assert.equal(row.display_name, "구성원 이름 확인 필요");
+  assert.notEqual(row.display_name, row.employee_id);
+  assert.equal(row.display_name.includes(row.employee_id), false);
+  for (const item of preview.result.rows) {
+    assert.notEqual(item.display_name, item.employee_id);
+    assert.equal(item.display_name.includes(item.employee_id), false);
+  }
+});
+
+test("automatic accrual source and preview reject opaque or contact identifiers as names", () => {
+  const unsafeNames = [
+    "AAD-OBJECT-42",
+    "lawyer@example.com",
+    "550e8400-e29b-01d4-0716-446655440000",
+    "0123456789abcdef0123456789abcdef",
+  ];
+  const source = sourceRows().map((row, index) => index < unsafeNames.length
+    ? { ...row, display_name: unsafeNames[index] }
+    : row);
+  source[unsafeNames.length] = {
+    ...source[unsafeNames.length],
+    employee_id: "leave-employee-001",
+    display_name: "prefixLEAVE-EMPLOYEE-001post",
+  };
+  const { service, context, rule } = createFixture({ source });
+  const preview = service.preview(context, {
+    accrual_rule_id: rule.accrual_rule_id,
+    period_key: "2026-opaque-display-names",
+    occurred_on: OCCURRED_ON,
+  });
+  for (const employee of source.slice(0, unsafeNames.length + 1)) {
+    const row = preview.result.rows.find((item) => item.employee_id === employee.employee_id);
+    assert.equal(row.display_name, "구성원 이름 확인 필요");
+  }
+
+  const store = createFileHrxStore();
+  store.query("insert", {
+    table: "hrx_employees",
+    row: {
+      tenant_id: TENANT,
+      employee_id: "emp-store-source",
+      display_name: "source.person@example.com",
+      status: "active",
+    },
+  });
+  const snapshot = createStoreLeaveAccrualSourceProvider({ store }).snapshot({
+    tenant_id: TENANT,
+    occurred_on: OCCURRED_ON,
+  });
+  assert.equal(snapshot.rows[0].display_name, "구성원 이름 확인 필요");
+  assert.equal(JSON.stringify(snapshot.rows[0]).includes("source.person@example.com"), false);
 });
 
 test("accrual rule versions preserve logical lineage and run as-of date", () => {

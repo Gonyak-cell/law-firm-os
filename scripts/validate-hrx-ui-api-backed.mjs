@@ -165,14 +165,13 @@ assert(candidate.includes("권한 필요") && !/resume_body|interview_feedback/.
 const recruiting = read("apps/web/src/people/recruiting/RecruitingPipeline.tsx");
 assert(recruiting.includes("updateHrxApplicationStage"), "Recruiting UI must update application stages through API");
 assert(recruiting.includes("createHrxRecruitingPipeline"), "Recruiting UI must create recruiting pipelines through API");
+assert(recruiting.includes("fetchHrxEmployees") && recruiting.includes("pipeline_creation_state"), "Recruiting UI must gate creation on the authorized roster and provider capability");
 assert(recruiting.includes("updateHrxOfferStage"), "Recruiting UI must update accepted candidate state through API");
 assert(recruiting.includes("convertHrxApplicationToEmployee"), "Recruiting UI must convert hired applications through API");
 assert(recruiting.includes("면접") && recruiting.includes("구성원 등록") && recruiting.includes("합격자"), "Recruiting UI must render Shiftee employee-registration copy");
 assert(!recruiting.includes("오퍼"), "Recruiting UI must not expose offer as Korean loanword copy");
-assert(apiClient.includes("/api/hrx/recruiting/job-openings"), "Recruiting API client must create job openings through API");
-assert(apiClient.includes("/api/hrx/recruiting/candidates"), "Recruiting API client must create candidates through API");
-assert(apiClient.includes("/api/hrx/recruiting/interviews"), "Recruiting API client must create interviews through API");
-assert(apiClient.includes("/api/hrx/recruiting/offers"), "Recruiting API client must create accepted-candidate records through API");
+assert(apiClient.includes('requestJson("/api/hrx/recruiting/pipeline", {'), "Recruiting API client must use the provider-gated server orchestration route");
+assert(!/Vault:|CompPackage:|hiring_manager_employee_id:\s*"emp-001"/.test(apiClient), "Recruiting API client must not synthesize source or employee authority");
 assert(apiClient.includes("convert-to-employee"), "Recruiting API client must call convert-to-employee API");
 
 const peopleHome = read("apps/web/src/people/PeopleHome.tsx");
@@ -212,7 +211,7 @@ assert(peopleHome.includes("구성원 현황을 불러오지 못했습니다") &
 const shell = read("apps/web/src/components/Shell.jsx");
 const peopleCatalog = read("apps/web/src/people/peopleFeatureCatalog.js");
 const peopleNavigationSource = peopleCatalog;
-assert(shell.includes("peopleNavigationGroups") && shell.includes("peopleSidebarGroups"), "Shell must render People menu from the shared catalog");
+assert(shell.includes("getPeopleNavigationGroups") && shell.includes("peopleSidebarGroups"), "Shell must render People menu from the shared catalog");
 assert(peopleNavigationSource.includes("구성원") && peopleNavigationSource.includes("휴가관리") && peopleNavigationSource.includes("요청 관리"), "People menu must use Shiftee employee and request labels");
 assert(peopleNavigationSource.includes("회사방침") && peopleNavigationSource.includes("증명서 발급 요청") && !peopleNavigationSource.includes('label: "문서"'), "People menu must use Shiftee document/request labels");
 assert(peopleNavigationSource.includes("승인 규칙") && !peopleNavigationSource.includes('label: "정책"'), "People menu must use Shiftee approval-rule label");
@@ -250,7 +249,16 @@ assert(
   ["gross_krw", "deduction_krw", "net_krw", "line_items", "source_refs", "payment_batches", "approved_by"].every((field) => payroll.includes(field)),
   "Payroll UI must preserve calculation sources and payment approval evidence"
 );
-assert(payroll.includes('title="급여정산"') && payroll.includes("정산") && payroll.includes("지급") && payroll.includes("신고"), "Payroll UI must use concise Korean payroll workflow copy");
+assert(
+  (
+    payroll.includes('title="급여정산"')
+    || payroll.includes('title={mode === "close" ? "마감 관리" : "급여정산"}')
+  )
+  && payroll.includes("정산")
+  && payroll.includes("지급")
+  && payroll.includes("신고"),
+  "Payroll UI must use concise Korean payroll workflow copy",
+);
 assert(payroll.includes('data-payroll-runtime="true"') && payroll.includes("actionForStatus") && payroll.includes("paymentAction"), "Payroll UI must expose the live settlement and payment state machines");
 assert(payroll.includes("HRX_PAYROLL_SELF_APPROVAL") && payroll.includes("작성자는 승인할 수 없습니다.") && payroll.includes("HRX_PAYROLL_PAYMENT_APPROVER_SEPARATION") && payroll.includes("급여 승인자와 다른 지급 승인자가 필요합니다."), "Payroll UI must translate payroll separation-of-duties failures for users");
 assert(!/calculation_runtime=false|disbursement_instruction_included=false|문서 ref|external-preview-only/.test(payroll), "Payroll UI must not expose raw internal payroll boundary strings");

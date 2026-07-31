@@ -5,6 +5,7 @@ import {
   createAttendanceRecord,
   createInMemoryAttendanceStore,
   importAttendanceRecords,
+  resolveEffectiveAttendanceRecords,
 } from "../src/attendance.js";
 
 test("attendance record requires source traceability", () => {
@@ -67,6 +68,7 @@ test("attendance manual correction keeps source traceability and original refere
   assert.equal(correction.correction_reason, "manager adjustment");
 
   const store = createInMemoryAttendanceStore([current]);
+  const originalSnapshot = store.get({ tenant_id: "tenant-a", attendance_id: "att-original" });
   const stored = store.correct(
     { tenant_id: "tenant-a", attendance_id: "att-original" },
     {
@@ -78,4 +80,78 @@ test("attendance manual correction keeps source traceability and original refere
   );
   assert.equal(stored.correction_of_attendance_id, "att-original");
   assert.equal(store.list({ tenant_id: "tenant-a", employee_id: "emp-001" }).length, 2);
+  assert.deepEqual(
+    store.get({ tenant_id: "tenant-a", attendance_id: "att-original" }),
+    originalSnapshot,
+  );
+  assert.deepEqual(
+    resolveEffectiveAttendanceRecords(store.list({ tenant_id: "tenant-a" }))
+      .map((record) => record.attendance_id),
+    ["att-correction-store"],
+  );
+  assert.throws(
+    () =>
+      store.correct(
+        { tenant_id: "tenant-a", attendance_id: "att-original" },
+        {
+          attendance_id: "att-correction-duplicate",
+          source_ref: "TimeClock:manual:duplicate",
+          correction_reason: "duplicate branch",
+        },
+      ),
+    /already corrected/,
+  );
+  assert.throws(
+    () =>
+      store.correct(
+        { tenant_id: "tenant-b", attendance_id: "att-original" },
+        {
+          attendance_id: "att-cross-tenant",
+          source_ref: "TimeClock:manual:cross-tenant",
+          correction_reason: "cross tenant",
+        },
+      ),
+    /not found/,
+  );
+});
+
+test("attendance timestamps use explicit timezone and the Asia/Seoul work date", () => {
+  const record = createAttendanceRecord({
+    tenant_id: "tenant-a",
+    attendance_id: "att-kst",
+    employee_id: "emp-001",
+    work_date: "2026-07-14",
+    status: "present",
+    source_ref: "TimeClock:kst",
+    clock_in_at: "2026-07-13T15:05:00Z",
+    clock_out_at: "2026-07-14T09:10:00Z",
+  });
+  assert.equal(record.clock_in_at, "2026-07-13T15:05:00Z");
+  assert.throws(
+    () => createAttendanceRecord({
+      ...record,
+      attendance_id: "att-no-zone",
+      clock_in_at: "2026-07-14T09:00:00",
+      clock_out_at: "2026-07-14T18:00:00",
+    }),
+    /explicit timezone/,
+  );
+  assert.throws(
+    () => createAttendanceRecord({
+      ...record,
+      attendance_id: "att-wrong-kst-date",
+      clock_in_at: "2026-07-12T15:05:00Z",
+      clock_out_at: "2026-07-13T09:10:00Z",
+    }),
+    /Asia\/Seoul/,
+  );
+  assert.throws(
+    () => createAttendanceRecord({
+      ...record,
+      attendance_id: "att-invalid-order",
+      clock_in_at: "2026-07-14T18:00:00+09:00",
+      clock_out_at: "2026-07-14T09:00:00+09:00",
+    }),
+    /must be after/,
+  );
 });

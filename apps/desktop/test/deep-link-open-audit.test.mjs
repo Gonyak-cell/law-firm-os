@@ -57,7 +57,7 @@ test("opening a denied document route records denied audit and does not open", a
 test("opening auth callback records audit without workspace permission precheck", async () => {
   const harness = openHarness();
   const result = await openMatterDeepLink({
-    url: "matter://auth/callback?code=abc&state=def&issuer=idp",
+    url: "matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ",
     permissionClient: harness.permissionClient,
     auditLogger: harness.auditLogger
   });
@@ -65,6 +65,12 @@ test("opening auth callback records audit without workspace permission precheck"
   assert.deepEqual(harness.order, ["audit"]);
   assert.equal(result.state, "open");
   assert.equal(result.intent.type, "auth_callback");
+  assert.deepEqual(harness.auditEvents[0], {
+    eventName: "deep_link.auth_callback.opened",
+    routeType: "auth_callback"
+  });
+  assert.equal(JSON.stringify(harness.auditEvents).includes("0.ABC_def-123"), false);
+  assert.equal(JSON.stringify(harness.auditEvents).includes("outlook-state:01HQ"), false);
   assert.equal(harness.auditEvents[0].eventName, "deep_link.auth_callback.opened");
 });
 

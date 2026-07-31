@@ -27,6 +27,7 @@ import { createOffer, maskOfferCompensation } from "../packages/hrx/src/recruiti
 import { assertRecruitingStageTransition, createRecruitingPipelineSnapshot } from "../packages/hrx/src/recruiting/state-machine.js";
 import { runHrxRetentionJob } from "../packages/hrx/src/retention-job.js";
 import { createHrxLegalHold } from "../packages/hrx/src/legal-hold.js";
+import { createInMemoryHrxRepository } from "../packages/hrx/src/repository.js";
 import {
   applyLeaveCarryover,
   calculateKoreanAnnualPaidLeaveEntitlement,
@@ -431,22 +432,102 @@ const legalRisk = markHrxLegalRiskPrivileged(
 assert(legalRisk.privilege_flag === true && legalRisk.audit_ref === "Audit:legal-risk-validator", "legal risk privileged workflow must require audit reference");
 
 const workflowRouteAudit = createHrxAuditEventStore();
-const recruitingRoute = createHrxRecruitingRoute({ audit: workflowRouteAudit });
-const lifecycleRoute = createHrxLifecycleRoute({ audit: workflowRouteAudit });
+const recruitingRepository = createInMemoryHrxRepository({
+  employees: [
+    {
+      tenant_id: "tenant-a",
+      employee_id: "emp-route-interviewer-validator",
+      display_name: "Validator Interviewer",
+      status: "active",
+    },
+    {
+      tenant_id: "tenant-a",
+      employee_id: "emp-route-hiring-manager-validator",
+      display_name: "Validator Hiring Manager",
+      status: "active",
+    },
+  ],
+});
+const recruitingRoute = createHrxRecruitingRoute({
+  audit: workflowRouteAudit,
+  repository: recruitingRepository,
+  seed: {
+    candidates: [{
+      tenant_id: "tenant-a",
+      candidate_id: "candidate-route-authority-validator",
+      legal_name: "Authoritative Route Candidate",
+      email: "candidate-authority@example.test",
+      source_ref: "ATS:candidate-route-authority-validator",
+      resume_ref: "DocumentRef:resume-candidate-route-authority-validator",
+      retention_policy_id: "candidate-retention-2y",
+    }],
+    job_openings: [{
+      tenant_id: "tenant-a",
+      job_opening_id: "job-route-authority-validator",
+      title: "People Operations Partner",
+      department_ref: "org-people-operations",
+      hiring_manager_employee_id: "emp-route-hiring-manager-validator",
+      position_count: 1,
+      state: "open",
+      approval_ref: "Approval:job-route-authority-validator",
+    }],
+    applications: [{
+      tenant_id: "tenant-a",
+      application_id: "application-route-authority-validator",
+      candidate_id: "candidate-route-authority-validator",
+      job_opening_id: "job-route-authority-validator",
+      stage: "hired",
+      stage_reason: "approved_hire",
+    }],
+    offers: [{
+      tenant_id: "tenant-a",
+      offer_id: "offer-route-authority-validator",
+      application_id: "application-route-authority-validator",
+      candidate_id: "candidate-route-authority-validator",
+      compensation_ref: "CompensationRef:offer-route-authority-validator",
+      document_ref: "DocumentRef:offer-route-authority-validator",
+      state: "accepted",
+      approval_ref: "Approval:offer-route-authority-validator",
+    }],
+  },
+});
+const lifecycleRoute = createHrxLifecycleRoute({
+  audit: workflowRouteAudit,
+  seed: {
+    offboarding: [{
+      tenant_id: "tenant-a",
+      offboarding_id: "offboarding-route-ready-validator",
+      employee_id: "emp-route-validator",
+      separation_date: "2026-12-31",
+      access_revocations: [{
+        system_ref: "IdP:core",
+        revoked: true,
+        confirmation_ref: "LX-11:AccessRevocation:validator:idp-core",
+      }],
+      document_returns: [{ document_ref: "Doc:laptop", returned: true }],
+      legal_hold_checks: [{ hold_ref: "LegalHold:none", clear: true }],
+      matter_reassignments: [],
+      handover_items: [],
+      leave_reconciliation_status: "approved_and_synced",
+      leave_reconciliation_evidence_ref:
+        "PayrollProviderReceipt:offboarding-route-ready-validator",
+    }],
+  },
+});
 const routeContext = { tenant_id: "tenant-a", actor_id: "validator-user" };
 
 const candidateRouteResult = await recruitingRoute.handle({
   method: "POST",
   context: routeContext,
+  params: { resource: "candidates" },
   body: {
-    resource: "candidates",
-    candidate_id: "candidate-route-validator",
+    candidate_id: "candidate-route-create-validator",
     legal_name: "Route Candidate Validator",
     source_ref: "ATS:route-validator",
     retention_policy_id: "candidate-retention-2y",
     consent: {
       consent_id: "consent-route-validator",
-      candidate_id: "candidate-route-validator",
+      candidate_id: "candidate-route-create-validator",
       purpose: "recruiting_processing",
       granted_at: "2026-07-01T00:00:00.000Z",
       evidence_ref: "ConsentEvidence:route-validator",
@@ -458,10 +539,10 @@ assert(candidateRouteResult.status === 201, "recruiting route must create candid
 const applicationRouteResult = await recruitingRoute.handle({
   method: "POST",
   context: routeContext,
+  params: { resource: "applications" },
   body: {
-    resource: "applications",
     application_id: "application-route-validator",
-    candidate_id: "candidate-route-validator",
+    candidate_id: "candidate-route-create-validator",
     job_opening_id: "job-route-validator",
   },
 });
@@ -478,14 +559,14 @@ assert(applicationStageRouteResult.status === 200, "recruiting route must update
 const interviewRouteResult = await recruitingRoute.handle({
   method: "POST",
   context: routeContext,
+  params: { resource: "interviews" },
   body: {
-    resource: "interviews",
     interview_id: "interview-route-validator",
     application_id: "application-route-validator",
-    candidate_id: "candidate-route-validator",
+    candidate_id: "candidate-route-create-validator",
     scheduled_for: "2026-07-04T10:00:00.000Z",
     schedule_source_ref: "Calendar:interview-route-validator",
-    interviewer_employee_ids: ["emp-reviewer"],
+    interviewer_employee_ids: ["emp-route-interviewer-validator"],
   },
 });
 assert(interviewRouteResult.status === 201, "recruiting route must create interview");
@@ -495,7 +576,7 @@ const interviewFeedbackRouteResult = await recruitingRoute.handle({
   params: { resource: "interview_feedback", interview_id: "interview-route-validator" },
   body: {
     feedback_source_ref: "InterviewFeedback:route-validator",
-    reviewer_employee_id: "emp-reviewer",
+    reviewer_employee_id: "emp-route-interviewer-validator",
   },
 });
 assert(interviewFeedbackRouteResult.status === 200, "recruiting route must record interview feedback source");
@@ -503,33 +584,12 @@ assert(interviewFeedbackRouteResult.status === 200, "recruiting route must recor
 const conversionRouteResult = await recruitingRoute.handle({
   method: "POST",
   context: routeContext,
-  body: {
+  params: {
     resource: "convert_to_employee",
-    candidate: {
-      candidate_id: "candidate-route-validator",
-      legal_name: "Route Candidate Validator",
-      source_ref: "ATS:route-validator",
-      retention_policy_id: "candidate-retention-2y",
-    },
-    application: {
-      application_id: "application-route-conversion",
-      candidate_id: "candidate-route-validator",
-      job_opening_id: "job-route-validator",
-      stage: "hired",
-    },
-    offer: {
-      offer_id: "offer-route-validator",
-      application_id: "application-route-conversion",
-      candidate_id: "candidate-route-validator",
-      compensation_ref: "CompPackage:route-validator",
-      document_ref: "Doc:offer-route-validator",
-      state: "accepted",
-      approval_ref: "Approval:offer-route-validator",
-    },
-    approval_ref: "Approval:conversion-route-validator",
-    employee_id: "emp-route-validator",
-    profile_id: "profile-route-validator",
-    title: "People Ops Partner",
+    application_id: "application-route-authority-validator",
+  },
+  body: {
+    idempotency_key: "candidate-conversion:application-route-authority-validator",
     effective_from: "2026-08-01",
   },
 });
@@ -597,8 +657,11 @@ assert(offboardingBlockedCloseRouteResult.status === 400, "lifecycle route must 
 const offboardingCloseRouteResult = await lifecycleRoute.handle({
   method: "POST",
   context: routeContext,
-  params: { resource: "offboarding_close", offboarding_id: "offboarding-route-validator" },
-  body: { leave_reconciliation_status: "approved_and_synced" },
+  params: {
+    resource: "offboarding_close",
+    offboarding_id: "offboarding-route-ready-validator",
+  },
+  body: {},
 });
 assert(offboardingCloseRouteResult.status === 200, "lifecycle route must close only ready offboarding case");
 
@@ -614,7 +677,7 @@ for (const action of [
   "hrx.application.stage.update",
   "hrx.interview.create",
   "hrx.interview.feedback.record",
-  "hrx.candidate.convert_to_employee",
+  "hrx.candidate.convert_to_employee.completed",
   "hrx.onboarding.create",
   "hrx.onboarding.task.update",
   "hrx.offboarding.create",

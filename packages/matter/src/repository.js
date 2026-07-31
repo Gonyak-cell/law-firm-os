@@ -47,6 +47,16 @@ function findUniquenessConflict({ records, record, key }) {
         && existing.client_short_name === record.client_short_name,
     )?.[1];
   }
+  if (record.model_type === "MatterCalendarEvent" && record.provider && record.provider_event_id) {
+    return [...records.entries()].find(
+      ([existingKey, existing]) =>
+        existingKey !== key
+        && existing.tenant_id === record.tenant_id
+        && existing.model_type === "MatterCalendarEvent"
+        && existing.provider === record.provider
+        && existing.provider_event_id === record.provider_event_id,
+    )?.[1];
+  }
   return null;
 }
 
@@ -60,12 +70,18 @@ function uniquenessKey(record) {
   if (record.model_type === "MatterClient" && record.client_short_name) {
     return JSON.stringify(["MatterClient", record.tenant_id, record.client_short_name]);
   }
+  if (record.model_type === "MatterCalendarEvent" && record.provider && record.provider_event_id) {
+    return JSON.stringify(["MatterCalendarEvent", record.tenant_id, record.provider, record.provider_event_id]);
+  }
   return null;
 }
 
 function uniquenessConflictError(record) {
   if (record.model_type === "MatterWorktree") {
     return new Error(`active MatterWorktree already exists for Matter ${record.matter_id}`);
+  }
+  if (record.model_type === "MatterCalendarEvent") {
+    return new Error(`MatterCalendarEvent provider_event_id already exists: ${record.provider_event_id}`);
   }
   const field = record.model_type === "Matter" ? "matter_code" : "client_short_name";
   return new Error(`${record.model_type} ${field} already exists: ${record[field]}`);
@@ -159,6 +175,9 @@ export function createMatterRepository({ filePath, seedRecords = [], preserveSee
     if (conflict) {
       if (normalized.model_type === "MatterWorktree") {
         throw new Error(`active MatterWorktree already exists for Matter ${normalized.matter_id}`);
+      }
+      if (normalized.model_type === "MatterCalendarEvent") {
+        throw new Error(`MatterCalendarEvent provider_event_id already exists: ${normalized.provider_event_id}`);
       }
       const field = normalized.model_type === "Matter" ? "matter_code" : "client_short_name";
       throw new Error(`${normalized.model_type} ${field} already exists: ${normalized[field]}`);

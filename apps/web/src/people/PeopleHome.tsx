@@ -6,7 +6,7 @@ import heroPeopleArchitecture from "../assets/heroes/hero-people-architecture.jp
 import { ForestHero } from "../components/ForestHero.jsx";
 import { fetchHrxPeopleOverview } from "./hrxApiClient.ts";
 import { EmployeeList } from "./employees/EmployeeList.tsx";
-import { EmployeeProfile } from "./employees/EmployeeProfile.tsx";
+import { MemberDetailPanel, type MemberDetailTab } from "./employees/MemberDetailPanel.tsx";
 import { PeopleWorkforceDirectory } from "./employees/PeopleWorkforceDirectory.tsx";
 import { HRDocumentWorkspace } from "./documents/HRDocumentWorkspace.tsx";
 import { LeaveRequestPage } from "./leave/LeaveRequestPage.tsx";
@@ -19,7 +19,6 @@ import { LeaveTerminationPage } from "./leave/LeaveTerminationPage.tsx";
 import { LeavePromotionPage } from "./leave/LeavePromotionPage.tsx";
 import { ManagerApprovalQueue } from "./approvals/ManagerApprovalQueue.tsx";
 import { RecruitingPipeline } from "./recruiting/RecruitingPipeline.tsx";
-import { CandidatePortal } from "../candidate/CandidatePortal.tsx";
 import { HRXPolicyConsole } from "../admin/hrx/HRXPolicyConsole.tsx";
 import { HRXAuditViewer } from "../admin/hrx/HRXAuditViewer.tsx";
 import { LifecycleBoard } from "./lifecycle/LifecycleBoard.tsx";
@@ -27,11 +26,14 @@ import { HRAnalytics } from "./analytics/HRAnalytics.tsx";
 import { HRAIAssistant } from "./ai/HRAIAssistant.tsx";
 import { PayrollBoundaryPanel } from "./payroll/PayrollBoundaryPanel.tsx";
 import { PayrollStatementWorkspace } from "./payroll/PayrollStatementWorkspace.tsx";
+import { PayRulesWorkspace } from "./payroll/PayRulesWorkspace.tsx";
 import { PermissionAdminPanel } from "./admin/PermissionAdminPanel.jsx";
 import { LegalPeopleWorkspace } from "./legal/LegalPeopleWorkspace.tsx";
 import { HrxRiskDashboard } from "./security/HrxRiskDashboard.tsx";
 import { AttendanceWorkspace } from "./attendance/AttendanceWorkspace.tsx";
+import { PeopleOverview } from "./overview/PeopleOverview.tsx";
 import { PEOPLE_SECTION_IDS, getPeopleFeatureBySection } from "./peopleFeatureCatalog.js";
+import { peopleDefaultSection, peopleOverviewMode, resolvePeopleWebFeatureFlags } from "./peopleFeatureFlags.ts";
 
 const LEGACY_LEGAL_PEOPLE_SECTIONS = [
   "people-directory",
@@ -66,12 +68,14 @@ const HANDLED_PEOPLE_SECTIONS = new Set([
   "people-risk",
   "people-attendance-records",
   "people-ai",
+  "people-close",
   "people-payroll",
   "people-pay-statement",
+  "people-pay-rules",
   "people-admin"
 ]);
 
-const WORKFORCE_SECTIONS = new Set(["people-members", "people-org-chart", "people-lifecycle"]);
+const WORKFORCE_SECTIONS = new Set(["people-overview", "people-members", "people-org-chart", "people-lifecycle"]);
 
 const EXTERNAL_SCHEDULE_TYPES = [
   { place: "법원", work: "판결선고 청취, 변론기일, 문서 제출", fields: "법원명, 사건번호, 기일, 담당 구성원" },
@@ -99,6 +103,39 @@ type PeopleOverviewState = {
   metrics?: Record<string, unknown>;
   [key: string]: unknown;
 };
+
+const MEMBER_DETAIL_TABS = new Set<MemberDetailTab>(["today", "matters", "profile"]);
+
+function detailFromLocation(memberBriefEnabled: boolean) {
+  if (typeof window === "undefined") return { employeeId: null, tab: "profile" as MemberDetailTab };
+  const params = new URLSearchParams(window.location.search);
+  const employeeId = params.get("employee");
+  const requestedTab = params.get("tab") as MemberDetailTab | null;
+  return {
+    employeeId: employeeId && /^[A-Za-z0-9._:-]{1,160}$/.test(employeeId) ? employeeId : null,
+    tab: memberBriefEnabled && requestedTab && MEMBER_DETAIL_TABS.has(requestedTab)
+      ? requestedTab
+      : memberBriefEnabled
+        ? "today"
+        : "profile",
+  };
+}
+
+function writeDetailLocation(employeeId: string | null, tab: MemberDetailTab, method: "pushState" | "replaceState") {
+  const params = new URLSearchParams(window.location.search);
+  if (employeeId) {
+    params.set("employee", employeeId);
+    params.set("tab", tab);
+  } else {
+    params.delete("employee");
+    params.delete("tab");
+  }
+  window.history[method](
+    employeeId ? { ...window.history.state, peopleMemberDetail: true } : { ...window.history.state, peopleMemberDetail: false },
+    "",
+    `${window.location.pathname}?${params.toString()}${window.location.hash}`,
+  );
+}
 
 function PeopleFeatureStatePanel({ feature }: { feature: PeopleFeature }) {
   const stateMeta = feature.stateMeta;
@@ -167,16 +204,48 @@ function peopleGuardState(liveCtx: string) {
   return null;
 }
 
-export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSignal = 0, canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canExportLeaveReport = false, canSettleLeaveTermination = false, canManageLeavePromotion = false }: { activeSection?: string; liveCtx?: string; refreshSignal?: number; canManageLeavePolicy?: boolean; canApproveLeave?: boolean; canExecuteLeaveAccrual?: boolean; canAdjustLeaveLedger?: boolean; canExportLeaveReport?: boolean; canSettleLeaveTermination?: boolean; canManageLeavePromotion?: boolean }) {
+export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSignal = 0, featureFlags = {}, onNavigate, canManageLeavePolicy = false, canApproveLeave = false, canApproveOvertime = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canExportLeaveReport = false, canSettleLeaveTermination = false, canManageLeavePromotion = false }: { activeSection?: string; liveCtx?: string; refreshSignal?: number; featureFlags?: Record<string, unknown>; onNavigate?: (view: string, section?: string, routeContext?: Record<string, unknown>) => void; canManageLeavePolicy?: boolean; canApproveLeave?: boolean; canApproveOvertime?: boolean; canExecuteLeaveAccrual?: boolean; canAdjustLeaveLedger?: boolean; canExportLeaveReport?: boolean; canSettleLeaveTermination?: boolean; canManageLeavePromotion?: boolean }) {
+  const resolvedFeatureFlags = resolvePeopleWebFeatureFlags(featureFlags);
+  const initialDetail = detailFromLocation(resolvedFeatureFlags.people_member_brief);
   const [overview, setOverview] = useState<PeopleOverviewState | null>(null);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(initialDetail.employeeId);
+  const [selectedDetailTab, setSelectedDetailTab] = useState<MemberDetailTab>(initialDetail.tab);
   const [refreshKey, setRefreshKey] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
   const detailPanelRef = useRef<HTMLElement | null>(null);
   const detailCloseRef = useRef<HTMLButtonElement | null>(null);
-  const currentSection = PEOPLE_SECTIONS.has(activeSection) ? activeSection : "people-members";
+  const requestedSection = PEOPLE_SECTIONS.has(activeSection)
+    ? activeSection
+    : peopleDefaultSection(resolvedFeatureFlags);
+  const currentSection = requestedSection === "people-overview" && !resolvedFeatureFlags.people_overview
+    ? "people-members"
+    : requestedSection;
   const currentFeature = getPeopleFeatureBySection(currentSection);
   const guardedState = peopleGuardState(liveCtx);
+  const overviewMode = peopleOverviewMode(resolvedFeatureFlags);
+  const openEmployeeDetail = (employeeId: string | null) => {
+    if (!employeeId) {
+      setSelectedEmployeeId(null);
+      return;
+    }
+    const tab = resolvedFeatureFlags.people_member_brief ? "today" : "profile";
+    setSelectedEmployeeId(employeeId);
+    setSelectedDetailTab(tab);
+    writeDetailLocation(employeeId, tab, selectedEmployeeId ? "replaceState" : "pushState");
+  };
+  const changeDetailTab = (tab: MemberDetailTab) => {
+    if (!selectedEmployeeId || !resolvedFeatureFlags.people_member_brief) return;
+    setSelectedDetailTab(tab);
+    writeDetailLocation(selectedEmployeeId, tab, "replaceState");
+  };
+  const closeEmployeeDetail = () => {
+    setSelectedEmployeeId(null);
+    if (window.history.state?.peopleMemberDetail === true) {
+      window.history.back();
+      return;
+    }
+    writeDetailLocation(null, "profile", "replaceState");
+  };
 
   useEffect(() => {
     if (refreshSignalRef.current === refreshSignal) return;
@@ -194,7 +263,10 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
         cancelled = true;
       };
     }
-    if (!WORKFORCE_SECTIONS.has(currentSection)) {
+    if (
+      !WORKFORCE_SECTIONS.has(currentSection)
+      || (currentSection === "people-overview" && overviewMode === "operations_dashboard")
+    ) {
       return () => {
         cancelled = true;
       };
@@ -205,7 +277,23 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
     return () => {
       cancelled = true;
     };
-  }, [currentSection, liveCtx, refreshKey]);
+  }, [currentSection, liveCtx, overviewMode, refreshKey]);
+
+  useEffect(() => {
+    const syncFromLocation = () => {
+      const next = detailFromLocation(resolvedFeatureFlags.people_member_brief);
+      setSelectedEmployeeId(next.employeeId);
+      setSelectedDetailTab(next.tab);
+    };
+    window.addEventListener("popstate", syncFromLocation);
+    return () => window.removeEventListener("popstate", syncFromLocation);
+  }, [resolvedFeatureFlags.people_member_brief]);
+
+  useEffect(() => {
+    if (!["people-overview", "people-members"].includes(currentSection)) {
+      setSelectedEmployeeId(null);
+    }
+  }, [currentSection]);
 
   useEffect(() => {
     if (!selectedEmployeeId) return undefined;
@@ -213,7 +301,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
     const focusFrame = window.requestAnimationFrame(() => detailCloseRef.current?.focus());
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setSelectedEmployeeId(null);
+        closeEmployeeDetail();
         return;
       }
       if (event.key !== "Tab") return;
@@ -268,26 +356,43 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
 
         {!guardedState && currentSection === "people-conflicts" && <LegalPeopleWorkspace mode="conflicts" refreshKey={refreshKey} liveCtx={liveCtx} />}
 
-        {!guardedState && currentSection === "people-members" && (
+        {!guardedState && currentSection === "people-overview" && overviewMode === "operations_dashboard" && (
+          <PeopleOverview refreshKey={refreshKey} onSelectEmployee={openEmployeeDetail} onNavigate={onNavigate} />
+        )}
+
+        {!guardedState && (currentSection === "people-members" || (currentSection === "people-overview" && overviewMode === "member_roster")) && (
           <>
-            <div className="people-directory-grid" data-people-detail-open={selectedEmployeeId ? "true" : "false"}>
-              <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} selectedEmployeeId={selectedEmployeeId} onSelectEmployee={setSelectedEmployeeId} />
+            <div
+              className="people-directory-grid"
+              data-people-detail-open={selectedEmployeeId ? "true" : "false"}
+              data-people-overview-fallback={currentSection === "people-overview" && overviewMode === "member_roster" ? "true" : undefined}
+            >
+              <PeopleWorkforceDirectory initialTab="active" refreshKey={refreshKey} selectedEmployeeId={selectedEmployeeId} onSelectEmployee={openEmployeeDetail} />
             </div>
-            {selectedEmployeeId && (
-              createPortal(
-                <div className="people-detail-overlay" data-people-detail-overlay="open">
-                  <button type="button" className="people-detail-backdrop" aria-label="구성원 상세 닫기" onClick={() => setSelectedEmployeeId(null)} />
-                  <aside ref={detailPanelRef} className="people-detail-panel" data-people-detail-panel="open" role="dialog" aria-modal="true" aria-label="구성원 상세">
-                    <button ref={detailCloseRef} type="button" className="icon-button people-detail-close" aria-label="상세 패널 닫기" onClick={() => setSelectedEmployeeId(null)}>
-                      <X size={18} />
-                    </button>
-                    <EmployeeProfile employeeId={selectedEmployeeId} refreshKey={refreshKey} />
-                  </aside>
-                </div>,
-                document.body
-              )
-            )}
           </>
+        )}
+
+        {!guardedState && ["people-overview", "people-members"].includes(currentSection) && selectedEmployeeId && (
+          createPortal(
+            <div className="people-detail-overlay" data-people-detail-overlay="open">
+              <button type="button" className="people-detail-backdrop" aria-label="구성원 상세 닫기" onClick={closeEmployeeDetail} />
+              <aside ref={detailPanelRef} className="people-detail-panel" data-people-detail-panel="open" role="dialog" aria-modal="true" aria-label="구성원 상세">
+                <button ref={detailCloseRef} type="button" className="icon-button people-detail-close" aria-label="상세 패널 닫기" onClick={closeEmployeeDetail}>
+                  <X size={18} />
+                </button>
+                <MemberDetailPanel
+                  employeeId={selectedEmployeeId}
+                  tab={selectedDetailTab}
+                  refreshKey={refreshKey}
+                  memberBriefEnabled={resolvedFeatureFlags.people_member_brief}
+                  outlookCalendarEnabled={resolvedFeatureFlags.outlook_calendar}
+                  onTabChange={changeDetailTab}
+                  onNavigate={onNavigate}
+                />
+              </aside>
+            </div>,
+            document.body
+          )
         )}
 
         {!guardedState && currentSection === "people-org-chart" && (
@@ -406,7 +511,6 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
         {!guardedState && currentSection === "people-recruiting" && (
           <div className="people-runtime-grid">
             <RecruitingPipeline key={`recruiting-${refreshKey}`} />
-            <CandidatePortal candidateId={null} />
           </div>
         )}
 
@@ -447,6 +551,7 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
             <AttendanceWorkspace
               employeeId={selectedEmployeeId}
               refreshKey={refreshKey}
+              canApproveOvertime={canApproveOvertime}
             />
           </div>
         )}
@@ -457,16 +562,38 @@ export function PeopleHome({ activeSection = "", liveCtx = "allow", refreshSigna
           </div>
         )}
 
+        {!guardedState && currentSection === "people-close" && resolvedFeatureFlags.payroll_close_precheck && (
+          <div className="people-runtime-grid">
+            <PayrollBoundaryPanel mode="close" onNavigate={onNavigate} adjustmentEnabled={resolvedFeatureFlags.payroll_adjustment_workspace} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-close" && !resolvedFeatureFlags.payroll_close_precheck && currentFeature && (
+          <PeopleFeatureStatePanel feature={currentFeature} />
+        )}
+
         {!guardedState && currentSection === "people-payroll" && (
           <div className="people-runtime-grid">
-            <PayrollBoundaryPanel key={refreshKey} />
+            <PayrollBoundaryPanel adjustmentEnabled={resolvedFeatureFlags.payroll_adjustment_workspace} />
           </div>
         )}
 
         {!guardedState && currentSection === "people-pay-statement" && (
           <div className="people-runtime-grid">
-            <PayrollStatementWorkspace key={refreshKey} />
+            <PayrollStatementWorkspace
+              providerDeliveryEnabled={resolvedFeatureFlags.payroll_statement_delivery}
+            />
           </div>
+        )}
+
+        {!guardedState && currentSection === "people-pay-rules" && resolvedFeatureFlags.pay_rules_workspace && (
+          <div className="people-runtime-grid">
+            <PayRulesWorkspace publishEnabled={resolvedFeatureFlags.payroll_rule_publish} />
+          </div>
+        )}
+
+        {!guardedState && currentSection === "people-pay-rules" && !resolvedFeatureFlags.pay_rules_workspace && currentFeature && (
+          <PeopleFeatureStatePanel feature={currentFeature} />
         )}
 
         {!guardedState && currentSection === "people-admin" && (

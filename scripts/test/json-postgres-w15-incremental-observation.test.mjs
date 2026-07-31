@@ -16,17 +16,23 @@ const TRANSFORM_TARGETS = Object.freeze({
     "restricted_access",
   ],
   hrx_leave_balance_entries: ["metadata_json"],
+  hrx_lifecycle_templates: ["tasks_json"],
   hrx_offboarding_cases: [
     "access_revocations_json",
     "document_returns_json",
     "legal_hold_checks_json",
     "matter_reassignments_json",
     "handover_items_json",
+    "template_ref_json",
+    "template_snapshot_json",
+    "tasks_json",
   ],
   hrx_onboarding_plans: [
     "tasks_json",
     "document_refs_json",
     "access_requests_json",
+    "template_ref_json",
+    "template_snapshot_json",
   ],
   hrx_offers: ["compensation_restricted"],
 });

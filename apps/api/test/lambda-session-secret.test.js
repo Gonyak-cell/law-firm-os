@@ -37,6 +37,7 @@ import {
   buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
   classifySesDeliveryFailure,
+  createLambdaHttpHandler,
   createRetryablePromiseCache,
   createLambdaPasswordResetEmailDelivery,
   handler,
@@ -71,6 +72,69 @@ test("Lambda runtime startup cache retries after a rejected initialization", asy
   assert.equal(attempts, 2);
   assert.equal(cache.take(), recovered);
   assert.equal(cache.take(), undefined);
+});
+
+test("Lambda HTTP bootstrap passes provider verification and leave integration authority to the API server", async () => {
+  const verifier = Object.freeze({
+    async verify() {
+      return { ok: true };
+    },
+  });
+  const leaveIntegrationProviders = Object.freeze({
+    payroll: Object.freeze({
+      operational_authority: true,
+      provider_id: "payroll-authority",
+    }),
+  });
+  const leaveIntegrationProviderEnabled = Object.freeze({ payroll: true });
+  let startupOptions;
+  let forwardedRequest;
+  const lambdaHandler = createLambdaHttpHandler({
+    payrollStatementProviderVerifier: verifier,
+    leaveIntegrationProviders,
+    leaveIntegrationProviderEnabled,
+    startApiServerFn: async (options) => {
+      startupOptions = options;
+      return { port: 32123 };
+    },
+    createMatterRepositoryFn: async () => null,
+    resolveHrxStepUpSecretsFn: async () => ({}),
+    loadHrxRelationalProjectionFn: async () => null,
+    resolveSessionSecretFn: async () => "lambda-provider-test-session-secret-32-bytes",
+    createPasswordResetEmailDeliveryFn: () => undefined,
+    fetchFn: async (url, options) => {
+      forwardedRequest = { url, options };
+      return new Response(JSON.stringify({ outcome: "blocked" }), {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+
+  const result = await lambdaHandler({
+    rawPath: "/api/hrx/payroll/provider-callbacks/statement-delivery",
+    requestContext: { http: { method: "POST" } },
+    headers: {
+      "content-type": "application/json",
+      "x-lawos-provider-tenant-id": "tenant-provider-bootstrap",
+      "x-provider-signature": "signed-test-payload",
+    },
+    body: JSON.stringify({ tenant_id: "tenant-provider-bootstrap" }),
+  });
+
+  assert.equal(startupOptions.payrollStatementProviderVerifier, verifier);
+  assert.equal(
+    startupOptions.leaveIntegrationProviders,
+    leaveIntegrationProviders,
+  );
+  assert.equal(
+    startupOptions.leaveIntegrationProviderEnabled,
+    leaveIntegrationProviderEnabled,
+  );
+  assert.equal(forwardedRequest.url, "http://127.0.0.1:32123/api/hrx/payroll/provider-callbacks/statement-delivery");
+  assert.equal(forwardedRequest.options.method, "POST");
+  assert.equal(forwardedRequest.options.headers["x-provider-signature"], "signed-test-payload");
+  assert.equal(result.statusCode, 503);
 });
 
 async function createDurableStorePaths(root) {

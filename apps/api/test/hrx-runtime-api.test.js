@@ -5,10 +5,16 @@ import { join } from "node:path";
 import test from "node:test";
 import { startApiServer } from "../src/server.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
+import { createOffboardingSourceVersion } from "../../../packages/hrx/src/offboarding-evidence.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
-import { reconcileHrxMemberRosterStore } from "../src/hrx-runtime-context.js";
+import {
+  createHrxRuntimeContext,
+  handleHrxApiRequest,
+  reconcileHrxMemberRosterStore,
+  seedHrxDurableRuntimeStore,
+} from "../src/hrx-runtime-context.js";
 import {
   HRX_MEMBER_CONTACT_SOURCE_OF_TRUTH,
   HRX_MEMBER_CONTACT_SOURCE_PATH,
@@ -22,6 +28,7 @@ let server;
 let baseUrl;
 let sessionHeaders;
 let testStore;
+let testRuntime;
 
 const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": "tenant_amic_matter_vault",
@@ -36,8 +43,14 @@ const HRX_AUTH_HEADERS = Object.freeze({
     "hrx.employee.write",
     "hrx.document.read",
     "hrx.document.write",
+    "hrx.attendance.self.read",
+    "hrx.attendance.self.write",
     "hrx.attendance.read",
     "hrx.attendance.write",
+    "hrx.overtime.self.read",
+    "hrx.overtime.self.write",
+    "hrx.overtime.team.read",
+    "hrx.overtime.approve",
     "hrx.overtime.read",
     "hrx.overtime.write",
     "hrx.risk.read",
@@ -95,7 +108,16 @@ async function hrxSelfServiceHeaders(actor_id, targetBaseUrl = baseUrl, purpose 
       actor_id,
       purpose,
     }),
-    "x-lawos-hrx-scopes": ["hrx.employee.read", "hrx.document.read", "hrx.attendance.read", "hrx.leave.read", "hrx.compensation.read"].join(","),
+    "x-lawos-hrx-scopes": [
+      "hrx.employee.read",
+      "hrx.document.read",
+      "hrx.attendance.self.read",
+      "hrx.attendance.self.write",
+      "hrx.overtime.self.read",
+      "hrx.overtime.self.write",
+      "hrx.leave.read",
+      "hrx.compensation.read",
+    ].join(","),
   };
 }
 
@@ -107,9 +129,85 @@ async function json(path, options = {}) {
   return { status: response.status, body: await response.json() };
 }
 
+function syntheticOffboardingAccessSource() {
+  return Object.freeze({
+    read({ tenant_id, offboarding_id, employee_id, system_ref }) {
+      const revoked = offboarding_id === "off-001";
+      const evidenceRef = revoked
+        ? "LX-11:AccessRevocation:off-001:idp-core"
+        : `AccessAuthority:${offboarding_id}:${system_ref}`;
+      return Object.freeze({
+        tenant_id,
+        offboarding_id,
+        employee_id,
+        system_ref,
+        revoked,
+        evidence_ref: evidenceRef,
+        access_source_version: createOffboardingSourceVersion({
+          system_ref,
+          revoked,
+          confirmation_ref: revoked ? evidenceRef : null,
+        }),
+      });
+    },
+  });
+}
+
+function testRecruitingSourceAuthority() {
+  let sequence = 0;
+  return Object.freeze({
+    status() {
+      return Object.freeze({ ready: true });
+    },
+    verify() {
+      return true;
+    },
+    preparePipeline({ input }) {
+      sequence += 1;
+      return Object.freeze({
+        job_opening: {
+          approval_ref: `FixtureAuthority:job-approval:${sequence}`,
+          opened_at: "2026-07-31T00:00:00.000Z",
+        },
+        candidate: {
+          source_ref: `FixtureAuthority:candidate:${sequence}`,
+          resume_ref: `FixtureAuthority:resume:${sequence}`,
+          retention_policy_id: "candidate-retention-2y",
+          retention_expires_at: `${input.retention_expires_at}T00:00:00.000Z`,
+          consent: {
+            consent_id: `fixture-consent-${sequence}`,
+            granted_at: "2026-07-31T00:00:00.000Z",
+            expires_at: `${input.consent_expires_at}T23:59:59.000Z`,
+            evidence_ref: `FixtureAuthority:consent:${sequence}`,
+          },
+        },
+        application: {
+          submitted_at: "2026-07-31T00:00:00.000Z",
+        },
+        interview: {
+          scheduled_for: new Date(`${input.interview_date}T${input.interview_time}:00+09:00`).toISOString(),
+          schedule_source_ref: `FixtureAuthority:schedule:${sequence}`,
+        },
+        offer: {
+          compensation_ref: `FixtureAuthority:compensation:${sequence}`,
+          document_ref: `FixtureAuthority:offer-document:${sequence}`,
+          approval_ref: `FixtureAuthority:offer-approval:${sequence}`,
+        },
+      });
+    },
+  });
+}
+
 test.before(async () => {
   testStore = createFileHrxStore({ filePath: join(mkdtempSync(join(tmpdir(), "hrx-runtime-api-")), "store.json") });
-  const started = await startApiServer({ port: 0, hrxStore: testStore });
+  runHrxMigrations(testStore);
+  seedHrxDurableRuntimeStore(testStore);
+  testRuntime = createHrxRuntimeContext({
+    store: testStore,
+    offboardingAccessSource: syntheticOffboardingAccessSource(),
+    recruitingSourceAuthority: testRecruitingSourceAuthority(),
+  });
+  const started = await startApiServer({ port: 0, hrxRuntime: testRuntime });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
   sessionHeaders = await sessionHeadersForActor(baseUrl);
@@ -418,8 +516,8 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
   assert.equal(self.body.outcome, "ok");
   assert.match(self.body.masked_compensation_ref, /^compensation_ref_hash:[a-f0-9]{24}$/);
   assert.equal(self.body.masked_compensation_ref.includes("local-kms://"), false);
-  assert.equal(self.body.compensation_records[0].employment_contract_id, "contract-doc-003");
-  assert.equal(self.body.compensation_records[0].contract_document_ref, "DMS:employment-contract-003");
+  assert.equal(Object.hasOwn(self.body.compensation_records[0], "employment_contract_id"), false);
+  assert.equal(Object.hasOwn(self.body.compensation_records[0], "contract_document_ref"), false);
   assert.equal(self.body.compensation_records[0].raw_amount_included, false);
   assert.equal(Object.hasOwn(self.body.compensation_records[0], "encrypted_amount_ref"), false);
   assert.equal(JSON.stringify(self.body).includes("salary"), false);
@@ -443,7 +541,7 @@ test("GET /api/hrx/compensation requires step-up and returns masked ref-only rec
   assert.equal(elevated.status, 200);
   assert.deepEqual(
     elevated.body.compensation_records.map((record) => record.compensation_id),
-    ["comp-001", "payroll-synthetic-comp-emp_amic_ytkim"],
+    ["comp-001"],
   );
   assert.ok(elevated.body.compensation_records.every((record) => record.raw_amount_included === false));
   assert.ok(elevated.body.compensation_records.every((record) => !Object.hasOwn(record, "encrypted_amount_ref")));
@@ -461,7 +559,7 @@ test("POST PATCH /api/hrx/employees registers employees and enforces the 6-state
       work_email: "lifecycle.employee@example.test",
     }),
   });
-  assert.equal(created.status, 201);
+  if (created.status !== 201) throw new Error(JSON.stringify(created.body));
   assert.equal(created.body.employee.status, "onboarding");
 
   const probation = await json("/api/hrx/employees/emp_api_lifecycle_001", {
@@ -483,7 +581,7 @@ test("POST PATCH /api/hrx/employees registers employees and enforces the 6-state
     body: JSON.stringify({ status: "paused" }),
   });
   assert.equal(invalidStatus.status, 400);
-  assert.equal(invalidStatus.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
+  assert.equal(invalidStatus.body.safe_error_code, "HRX_EMPLOYEE_INPUT_INVALID");
   assert.match(invalidStatus.body.reason, /Employee status must be one of/);
 
   const invalidTransition = await json("/api/hrx/employees/emp_api_lifecycle_001", {
@@ -491,7 +589,7 @@ test("POST PATCH /api/hrx/employees registers employees and enforces the 6-state
     body: JSON.stringify({ status: "onboarding" }),
   });
   assert.equal(invalidTransition.status, 400);
-  assert.equal(invalidTransition.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
+  assert.equal(invalidTransition.body.safe_error_code, "HRX_EMPLOYEE_INPUT_INVALID");
   assert.match(invalidTransition.body.reason, /cannot transition from active to onboarding/);
 
   const detail = await json("/api/hrx/employees/emp_api_lifecycle_001");
@@ -584,14 +682,100 @@ test("HRX self-service reads are bound to EmployeeUserLink ownership", async () 
   assert.deepEqual(otherDocuments.body.documents, []);
 
   const ownAttendance = await json(`/api/hrx/attendance?employee_id=${ownEmployeeId}&month=2026-07`, { headers: selfHeaders });
-  assert.equal(ownAttendance.status, 403);
-  assert.equal(ownAttendance.body.safe_error_code, "HRX_AUTHZ_DENIED");
-  assert.equal(ownAttendance.body.required_scope, "hrx.attendance.read");
+  assert.equal(ownAttendance.status, 200);
+  assert.ok(ownAttendance.body.attendance.every((record) => record.employee_id === ownEmployeeId));
+  assert.equal(ownAttendance.body.self_employee_id, ownEmployeeId);
 
   const otherAttendance = await json(`/api/hrx/attendance?employee_id=${otherEmployeeId}&month=2026-07`, { headers: selfHeaders });
   assert.equal(otherAttendance.status, 403);
-  assert.equal(otherAttendance.body.safe_error_code, "HRX_AUTHZ_DENIED");
-  assert.equal(otherAttendance.body.required_scope, "hrx.attendance.read");
+  assert.equal(otherAttendance.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.deepEqual(otherAttendance.body.attendance, []);
+
+  const ownAttendanceCreate = await json("/api/hrx/attendance", {
+    method: "POST",
+    headers: selfHeaders,
+    body: JSON.stringify({
+      attendance_id: "att-self-service-own-001",
+      employee_id: ownEmployeeId,
+      work_date: "2026-07-31",
+      status: "present",
+      recorded_hours: 8,
+      clock_in_at: "2026-07-31T09:00:00+09:00",
+      clock_out_at: "2026-07-31T18:00:00+09:00",
+      source_ref: "TimeClock:self-service:own-001",
+    }),
+  });
+  assert.equal(ownAttendanceCreate.status, 201);
+  assert.equal(ownAttendanceCreate.body.attendance.employee_id, ownEmployeeId);
+
+  const otherAttendanceCreate = await json("/api/hrx/attendance", {
+    method: "POST",
+    headers: selfHeaders,
+    body: JSON.stringify({
+      attendance_id: "att-self-service-other-denied",
+      employee_id: otherEmployeeId,
+      work_date: "2026-07-31",
+      status: "present",
+      source_ref: "TimeClock:self-service:other-denied",
+    }),
+  });
+  assert.equal(otherAttendanceCreate.status, 403);
+  assert.equal(otherAttendanceCreate.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(otherAttendanceCreate.body.attendance, null);
+
+  const ownOvertimeCreate = await json("/api/hrx/overtime", {
+    method: "POST",
+    headers: selfHeaders,
+    body: JSON.stringify({
+      overtime_id: "overtime-self-service-own-001",
+      employee_id: ownEmployeeId,
+      work_date: "2026-07-31",
+      requested_minutes: 60,
+      reason: "긴급 서면 제출",
+    }),
+  });
+  assert.equal(ownOvertimeCreate.status, 201);
+  assert.equal(ownOvertimeCreate.body.overtime.employee_id, ownEmployeeId);
+
+  const ownOvertime = await json(`/api/hrx/overtime?employee_id=${ownEmployeeId}&month=2026-07`, {
+    headers: selfHeaders,
+  });
+  assert.equal(ownOvertime.status, 200);
+  assert.ok(ownOvertime.body.overtime.every((request) => request.employee_id === ownEmployeeId));
+
+  const otherOvertime = await json(`/api/hrx/overtime?employee_id=${otherEmployeeId}&month=2026-07`, {
+    headers: selfHeaders,
+  });
+  assert.equal(otherOvertime.status, 403);
+  assert.equal(otherOvertime.body.safe_error_code, "HRX_OVERTIME_SCOPE_DENIED");
+  assert.deepEqual(otherOvertime.body.overtime, []);
+
+  const otherOvertimeCreate = await json("/api/hrx/overtime", {
+    method: "POST",
+    headers: selfHeaders,
+    body: JSON.stringify({
+      overtime_id: "overtime-self-service-other-denied",
+      employee_id: otherEmployeeId,
+      work_date: "2026-07-31",
+      requested_minutes: 60,
+      reason: "다른 구성원 대신 신청",
+    }),
+  });
+  assert.equal(otherOvertimeCreate.status, 403);
+  assert.equal(otherOvertimeCreate.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(otherOvertimeCreate.body.overtime, null);
+
+  const selfOvertimeApproval = await json(
+    "/api/hrx/overtime/overtime-self-service-own-001/approve",
+    {
+      method: "POST",
+      headers: selfHeaders,
+      body: JSON.stringify({ decision_reason: "본인 승인 시도" }),
+    },
+  );
+  assert.equal(selfOvertimeApproval.status, 403);
+  assert.equal(selfOvertimeApproval.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(selfOvertimeApproval.body.required_scope, "hrx.overtime.approve");
 
   const ownLeave = await json(`/api/hrx/leave?employee_id=${ownEmployeeId}&policy_id=pto-us`, { headers: selfHeaders });
   assert.equal(ownLeave.status, 200);
@@ -607,14 +791,20 @@ test("HRX self-service reads are bound to EmployeeUserLink ownership", async () 
 test("GET POST revoke /api/hrx/employee-user-links manages audited login mappings", async () => {
   const before = await json("/api/hrx/employee-user-links?employee_id=emp_amic_ytkim");
   assert.equal(before.status, 200);
+  assert.equal(before.body.can_manage, true);
   assert.ok(before.body.links.some((link) => link.link_id === "link_amic_ytkim" && link.user_id === "user_amic_ytkim"));
+  const selectableAccount = before.body.candidates.find(
+    (candidate) => candidate.user_id === "user_amic_matter_desktop_qa",
+  );
+  assert.equal(selectableAccount.account_label, "Matter Desktop QA · matter.desktop.qa@amic.kr");
+  assert.doesNotMatch(selectableAccount.account_label, /user_amic_/);
 
   const created = await json("/api/hrx/employee-user-links", {
     method: "POST",
     body: JSON.stringify({
       link_id: "link-api-001",
       employee_id: "emp_amic_wsjo",
-      user_id: "iam-user-api-001",
+      user_id: "user_amic_matter_desktop_qa",
     }),
   });
   assert.equal(created.status, 201);
@@ -632,7 +822,7 @@ test("GET POST revoke /api/hrx/employee-user-links manages audited login mapping
   assert.ok(audit.body.events.some((event) => event.action === "hrx.employee_user_link.revoke"));
 });
 
-test("GET POST correct /api/hrx/attendance records time and monthly effective summary", async () => {
+test("GET and admin correction routes preserve attendance time and monthly effective summary", async () => {
   const employee = await json("/api/hrx/employees", {
     method: "POST",
     body: JSON.stringify({
@@ -643,21 +833,18 @@ test("GET POST correct /api/hrx/attendance records time and monthly effective su
   });
   assert.equal(employee.status, 201);
 
-  const created = await json("/api/hrx/attendance", {
-    method: "POST",
-    body: JSON.stringify({
-      attendance_id: "att-api-001",
-      employee_id: "emp_api_attendance_001",
-      work_date: "2026-07-02",
-      status: "present",
-      recorded_hours: 8,
-      clock_in_at: "2026-07-02T00:00:00.000Z",
-      clock_out_at: "2026-07-02T09:00:00.000Z",
-      source_ref: "TimeClock:api:att-api-001",
-    }),
+  const created = testRuntime.attendance.write({
+    tenant_id: "tenant_amic_matter_vault",
+    attendance_id: "att-api-001",
+    employee_id: "emp_api_attendance_001",
+    work_date: "2026-07-02",
+    status: "present",
+    recorded_hours: 8,
+    clock_in_at: "2026-07-02T00:00:00.000Z",
+    clock_out_at: "2026-07-02T09:00:00.000Z",
+    source_ref: "TimeClock:api:att-api-001",
   });
-  assert.equal(created.status, 201);
-  assert.equal(created.body.attendance.source_ref, "TimeClock:api:att-api-001");
+  assert.equal(created.source_ref, "TimeClock:api:att-api-001");
 
   const corrected = await json("/api/hrx/attendance/att-api-001/correct", {
     method: "POST",
@@ -682,7 +869,6 @@ test("GET POST correct /api/hrx/attendance records time and monthly effective su
   assert.equal(listed.body.monthly_summary.by_status.remote, 1);
 
   const audit = await json("/api/hrx/audit");
-  assert.ok(audit.body.events.some((event) => event.action === "hrx.attendance.write" && event.object_id === "att-api-001"));
   assert.ok(audit.body.events.some((event) => event.action === "hrx.attendance.correct" && event.object_id === "att-api-001-correction"));
   assert.ok(audit.body.events.some((event) => event.action === "hrx.attendance.read" && event.object_id === "emp_api_attendance_001"));
 });
@@ -691,7 +877,9 @@ test("attendance records survive HRX API server restart", async () => {
   const storeFile = join(mkdtempSync(join(tmpdir(), "hrx-api-attendance-")), "store.json");
   const store = createFileHrxStore({ filePath: storeFile });
   runHrxMigrations(store);
-  const first = await startApiServer({ port: 0, hrxStore: store });
+  seedHrxDurableRuntimeStore(store);
+  const firstRuntime = createHrxRuntimeContext({ store, seedRuntimeFixtures: false });
+  const first = await startApiServer({ port: 0, hrxRuntime: firstRuntime });
   const firstBaseUrl = `http://${first.host}:${first.port}`;
   try {
     const firstHeaders = await hrxAdminHeaders(firstBaseUrl);
@@ -706,21 +894,16 @@ test("attendance records survive HRX API server restart", async () => {
     });
     assert.equal(employee.status, 201);
 
-    const created = await fetch(`${firstBaseUrl}/api/hrx/attendance`, {
-      method: "POST",
-      headers: firstHeaders,
-      body: JSON.stringify({
-        attendance_id: "att-api-restart-001",
-        employee_id: "emp_api_attendance_restart_001",
-        work_date: "2026-07-03",
-        status: "present",
-        recorded_hours: 8,
-        source_ref: "TimeClock:api:att-api-restart-001",
-      }),
+    const created = firstRuntime.attendance.write({
+      tenant_id: "tenant_amic_matter_vault",
+      attendance_id: "att-api-restart-001",
+      employee_id: "emp_api_attendance_restart_001",
+      work_date: "2026-07-03",
+      status: "present",
+      recorded_hours: 8,
+      source_ref: "TimeClock:api:att-api-restart-001",
     });
-    const createdBody = await created.json();
-    assert.equal(created.status, 201);
-    assert.equal(createdBody.attendance.attendance_id, "att-api-restart-001");
+    assert.equal(created.attendance_id, "att-api-restart-001");
   } finally {
     await new Promise((resolve) => first.server.close(resolve));
     store.close();
@@ -765,32 +948,28 @@ test("GET POST approve /api/hrx/overtime detects unapproved excess and weekly 52
     ["2026-07-10", 8],
   ];
   for (const [work_date, recorded_hours] of attendanceRows) {
-    const created = await json("/api/hrx/attendance", {
-      method: "POST",
-      body: JSON.stringify({
-        attendance_id: `att-overtime-${work_date}`,
-        employee_id: "emp_api_overtime_001",
-        work_date,
-        status: "present",
-        recorded_hours,
-        source_ref: `TimeClock:api:overtime:${work_date}`,
-      }),
+    const created = testRuntime.attendance.write({
+      tenant_id: "tenant_amic_matter_vault",
+      attendance_id: `att-overtime-${work_date}`,
+      employee_id: "emp_api_overtime_001",
+      work_date,
+      status: "present",
+      recorded_hours,
+      source_ref: `TimeClock:api:overtime:${work_date}`,
     });
-    assert.equal(created.status, 201);
+    assert.equal(created.employee_id, "emp_api_overtime_001");
   }
 
-  const submitted = await json("/api/hrx/overtime", {
-    method: "POST",
-    body: JSON.stringify({
-      overtime_id: "ot-api-001",
-      employee_id: "emp_api_overtime_001",
-      work_date: "2026-07-06",
-      hours: 4,
-      reason: "urgent filing support",
-    }),
+  const submitted = testRuntime.overtime.create({
+    tenant_id: "tenant_amic_matter_vault",
+    overtime_id: "ot-api-001",
+    employee_id: "emp_api_overtime_001",
+    work_date: "2026-07-06",
+    hours: 4,
+    calculated_minutes: 240,
+    reason: "urgent filing support",
   });
-  assert.equal(submitted.status, 201);
-  assert.equal(submitted.body.overtime.state, "submitted");
+  assert.equal(submitted.state, "submitted");
 
   const approved = await json("/api/hrx/overtime/ot-api-001/approve", {
     method: "POST",
@@ -814,7 +993,6 @@ test("GET POST approve /api/hrx/overtime detects unapproved excess and weekly 52
   );
 
   const audit = await json("/api/hrx/audit");
-  assert.ok(audit.body.events.some((event) => event.action === "hrx.overtime.submit" && event.object_id === "ot-api-001"));
   assert.ok(audit.body.events.some((event) => event.action === "hrx.overtime.approve" && event.object_id === "ot-api-001"));
   assert.ok(audit.body.events.some((event) => event.action === "hrx.overtime.risk.read" && event.object_id === "emp_api_overtime_001"));
 });
@@ -1062,18 +1240,25 @@ test("GET and POST /api/hrx/approvals resolves manager queue and records audit",
   assert.ok(audit.body.events.some((event) => event.action === "hrx.leave.reject" && event.object_id === "leave-004"));
 });
 
-test("GET /api/hrx/candidate/portal returns candidate-scoped application and metadata only", async () => {
+test("GET /api/hrx/candidate/portal hides content outside the candidate access-role allowlist", async () => {
   const { status, body } = await json("/api/hrx/candidate/portal?candidate_id=cand-001");
   assert.equal(status, 200);
   assert.equal(body.candidate.candidate_id, "cand-001");
-  assert.equal(body.applications[0].candidate_id, "cand-001");
-  assert.equal(body.documents[0].body_included, false);
+  assert.equal(body.candidate.privacy_state, "access_denied");
+  assert.equal(body.candidate.legal_name, null);
+  assert.equal(body.candidate.resume_ref, null);
+  assert.deepEqual(body.applications, []);
+  assert.deepEqual(body.documents, []);
   assert.equal(Object.hasOwn(body.candidate, "crm_party_id"), false);
 });
 
 test("GET and POST recruiting pipeline updates application stage through API", async () => {
   const before = await json("/api/hrx/recruiting/pipeline");
   assert.equal(before.status, 200);
+  assert.deepEqual(before.body.capabilities.pipeline_creation, {
+    state: "ready",
+    can_start_pipeline: true,
+  });
   const app = before.body.applications.find((item) => item.application_id === "app-001");
   assert.equal(app.stage, "interview");
   assert.equal(before.body.interviews[0].state, "scheduled");
@@ -1087,6 +1272,121 @@ test("GET and POST recruiting pipeline updates application stage through API", a
   assert.equal(updated.body.application.stage, "offer");
 });
 
+test("POST recruiting pipeline uses provider-owned source authority and rejects browser refs", async () => {
+  const request = {
+    idempotency_key: "recruiting-pipeline:authority-candidate",
+    job_title: "Privacy Counsel",
+    department_ref: "org_legal",
+    position_count: 1,
+    hiring_manager_employee_id: "emp_amic_jwsuh",
+    candidate_name: "Authority Candidate",
+    candidate_email: "authority.candidate@example.test",
+    interviewer_employee_id: "emp_amic_jwsuh",
+    interview_date: "2026-08-10",
+    interview_time: "10:30",
+    consent_expires_at: "2027-08-10",
+    retention_expires_at: "2028-08-10",
+  };
+  const untrustedSource = await json("/api/hrx/recruiting/pipeline", {
+    method: "POST",
+    body: JSON.stringify({
+      ...request,
+      resume_ref: "browser-owned-resume-ref",
+    }),
+  });
+  assert.equal(untrustedSource.status, 400);
+  assert.equal(untrustedSource.body.safe_error_code, "HRX_RECRUITING_SOURCE_FIELDS_FORBIDDEN");
+
+  const untrustedManager = await json("/api/hrx/recruiting/pipeline", {
+    method: "POST",
+    body: JSON.stringify({
+      ...request,
+      hiring_manager_employee_id: "emp-attacker",
+    }),
+  });
+  assert.equal(untrustedManager.status, 409);
+  assert.equal(untrustedManager.body.safe_error_code, "HRX_RECRUITING_EMPLOYEE_AUTHORITY_INVALID");
+
+  const created = await json("/api/hrx/recruiting/pipeline", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+  assert.equal(created.status, 201);
+  assert.match(created.body.ids.job_opening_id, /^job_[a-f0-9]{32}$/);
+  assert.match(created.body.ids.candidate_id, /^cand_[a-f0-9]{32}$/);
+  assert.match(created.body.ids.application_id, /^app_[a-f0-9]{32}$/);
+
+  const pipeline = await json("/api/hrx/recruiting/pipeline");
+  const job = pipeline.body.job_openings.find(
+    (item) => item.job_opening_id === created.body.ids.job_opening_id,
+  );
+  const candidate = pipeline.body.candidates.find(
+    (item) => item.candidate_id === created.body.ids.candidate_id,
+  );
+  const interview = pipeline.body.interviews.find(
+    (item) => item.interview_id === created.body.ids.interview_id,
+  );
+  const offer = pipeline.body.offers.find(
+    (item) => item.offer_id === created.body.ids.offer_id,
+  );
+  assert.equal(job.hiring_manager_employee_id, "emp_amic_jwsuh");
+  assert.equal(job.department_ref, "org_legal");
+  assert.equal(candidate.candidate_id, created.body.ids.candidate_id);
+  assert.equal(interview.interviewer_employee_ids[0], "emp_amic_jwsuh");
+  assert.equal(interview.schedule_source_ref.startsWith("FixtureAuthority:"), true);
+  assert.equal(offer.compensation_ref.startsWith("FixtureAuthority:"), true);
+  assert.equal(offer.document_ref.startsWith("FixtureAuthority:"), true);
+});
+
+test("recruiting pipeline reports integration required and performs no write without a provider", () => {
+  const context = createHrxRuntimeContext({
+    repository: testRuntime.repository,
+    seedRuntimeFixtures: false,
+  });
+  const requestContext = Object.freeze({
+    tenant_id: "tenant_amic_matter_vault",
+    actor_id: "user_amic_jwsuh",
+    actor_role: "hr_admin",
+    hrx_scopes: ["hrx.candidate.read", "hrx.candidate.write"],
+    session_bound: true,
+  });
+  const pipeline = handleHrxApiRequest({
+    pathname: "/api/hrx/recruiting/pipeline",
+    method: "GET",
+    context,
+    requestContext,
+  });
+  assert.equal(pipeline.status, 200);
+  assert.deepEqual(pipeline.body.capabilities.pipeline_creation, {
+    state: "integration_required",
+    can_start_pipeline: false,
+  });
+  const beforeCount = context.jobOpenings.length;
+  const blocked = handleHrxApiRequest({
+    pathname: "/api/hrx/recruiting/pipeline",
+    method: "POST",
+    context,
+    requestContext,
+    body: {
+      idempotency_key: "recruiting-pipeline:blocked-candidate",
+      job_title: "Blocked Counsel",
+      department_ref: "org_legal",
+      position_count: 1,
+      hiring_manager_employee_id: "emp_amic_jwsuh",
+      candidate_name: "Blocked Candidate",
+      candidate_email: "blocked@example.test",
+      interviewer_employee_id: "emp_amic_jwsuh",
+      interview_date: "2026-08-10",
+      interview_time: "10:30",
+      consent_expires_at: "2027-08-10",
+      retention_expires_at: "2028-08-10",
+    },
+  });
+  assert.equal(blocked.status, 409);
+  assert.equal(blocked.body.safe_error_code, "HRX_RECRUITING_SOURCE_AUTHORITY_REQUIRED");
+  assert.equal(context.jobOpenings.length, beforeCount);
+});
+
 test("POST recruiting CRUD creates a new pipeline and converts it to employee source of truth", async () => {
   const suffix = "d12_api_001";
   const jobOpeningId = `job_${suffix}`;
@@ -1094,8 +1394,6 @@ test("POST recruiting CRUD creates a new pipeline and converts it to employee so
   const applicationId = `app_${suffix}`;
   const interviewId = `int_${suffix}`;
   const offerId = `offer_${suffix}`;
-  const employeeId = `emp_${suffix}`;
-  const profileId = `profile_${suffix}`;
 
   const jobOpening = await json("/api/hrx/recruiting/job-openings", {
     method: "POST",
@@ -1186,30 +1484,57 @@ test("POST recruiting CRUD creates a new pipeline and converts it to employee so
 
   const accepted = await json(`/api/hrx/recruiting/offers/${offerId}/stage`, {
     method: "POST",
-    body: JSON.stringify({ state: "accepted", approval_ref: "Approval:d12-offer" }),
+    body: JSON.stringify({ state: "accepted", approval_ref: "Approval:attacker" }),
   });
   assert.equal(accepted.status, 200);
   assert.equal(accepted.body.offer.state, "accepted");
+  assert.equal(accepted.body.offer.approval_ref, "Approval:d12-offer");
 
-  const converted = await json(`/api/hrx/recruiting/applications/${applicationId}/convert-to-employee`, {
+  const rejectedAuthority = await json(`/api/hrx/recruiting/applications/${applicationId}/convert-to-employee`, {
     method: "POST",
     body: JSON.stringify({
-      approval_ref: "Approval:d12-convert",
-      employee_id: employeeId,
-      profile_id: profileId,
-      title: "Recruiting Counsel",
-      org_unit_id: "org_legal",
-      manager_employee_id: "emp_amic_jwsuh",
+      idempotency_key: `candidate-conversion:${applicationId}`,
       effective_from: "2026-08-01",
+      manager_employee_id: "emp-attacker",
     }),
   });
-  assert.equal(converted.status, 201);
-  assert.equal(converted.body.conversion.employee.employee_id, employeeId);
-  assert.equal(converted.body.conversion.employment_profile.profile_id, profileId);
+  assert.equal(rejectedAuthority.status, 400);
+  assert.equal(
+    rejectedAuthority.body.safe_error_code,
+    "HRX_CANDIDATE_CONVERSION_AUTHORITY_FIELDS_FORBIDDEN",
+  );
+
+  const conversionBody = {
+    idempotency_key: `candidate-conversion:${applicationId}`,
+    effective_from: "2026-08-01",
+  };
+  const converted = await json(`/api/hrx/recruiting/applications/${applicationId}/convert-to-employee`, {
+    method: "POST",
+    body: JSON.stringify(conversionBody),
+  });
+  assert.equal(converted.status, 201, JSON.stringify(converted.body));
+  const employeeId = converted.body.conversion.employee.employee_id;
+  const profileId = converted.body.conversion.employment_profile.profile_id;
+  assert.match(employeeId, /^emp_candidate_[a-f0-9]{24}$/);
+  assert.match(profileId, /^profile_candidate_[a-f0-9]{24}$/);
+  assert.equal(converted.body.conversion.employment_profile.manager_employee_id, "emp_amic_jwsuh");
+  assert.equal(converted.body.conversion.employment_profile.title, "D12 Recruiting Counsel");
+  assert.equal(converted.body.conversion.employment_profile.org_unit_id, "PracticeGroup:litigation");
   assert.equal(converted.body.conversion.employee.source_ref, `Candidate:${candidateId}`);
   assert.equal(converted.body.conversion.employment_profile.source_ref, `Offer:${offerId}`);
+  assert.equal(converted.body.receipt.idempotency_key, `candidate-conversion:${applicationId}`);
+  assert.equal(converted.body.receipt.approval_ref, "Approval:d12-offer");
+  assert.equal(converted.body.receipt.state, "completed");
 
-  const detail = await json(`/api/hrx/employees/${employeeId}`);
+  const replay = await json(`/api/hrx/recruiting/applications/${applicationId}/convert-to-employee`, {
+    method: "POST",
+    body: JSON.stringify(conversionBody),
+  });
+  assert.equal(replay.status, 200);
+  assert.equal(replay.body.replayed, true);
+  assert.deepEqual(replay.body.receipt, converted.body.receipt);
+
+  const detail = await json(`/api/hrx/employees/${employeeId}?as_of=2026-08-01`);
   assert.equal(detail.status, 200);
   assert.equal(detail.body.employee.employee_id, employeeId);
   assert.equal(detail.body.employment_profile.profile_id, profileId);
@@ -1221,7 +1546,9 @@ test("POST recruiting CRUD creates a new pipeline and converts it to employee so
 
   const audit = await json("/api/hrx/audit");
   assert.ok(audit.body.events.some((event) => event.action === "hrx.candidate.create" && event.object_id === candidateId));
-  assert.ok(audit.body.events.some((event) => event.action === "hrx.candidate.convert_to_employee" && event.object_id === employeeId));
+  assert.ok(audit.body.events.some(
+    (event) => event.action === "hrx.candidate.convert_to_employee.completed" && event.object_id === applicationId,
+  ));
 });
 
 test("GET and POST lifecycle routes update onboarding and offboarding through API", async () => {
@@ -1229,6 +1556,11 @@ test("GET and POST lifecycle routes update onboarding and offboarding through AP
   assert.equal(onboarding.status, 200);
   assert.equal(onboarding.body.onboarding[0].onboarding_id, "onb-001");
   assert.equal(onboarding.body.onboarding[0].tasks[0].status, "pending");
+  const onboardingEmployee = await json(`/api/hrx/employees/${onboarding.body.onboarding[0].employee_id}`);
+  assert.equal(
+    onboarding.body.onboarding[0].employee_display_name,
+    onboardingEmployee.body.employee.display_name,
+  );
 
   const updatedTask = await json("/api/hrx/lifecycle/onboarding/onb-001/tasks/policy-ack", {
     method: "POST",
@@ -1242,6 +1574,11 @@ test("GET and POST lifecycle routes update onboarding and offboarding through AP
   assert.equal(offboarding.body.offboarding[0].offboarding_id, "off-001");
   assert.equal(offboarding.body.offboarding[0].access_revocations[0].confirmation_ref, "LX-11:AccessRevocation:off-001:idp-core");
   assert.equal(offboarding.body.offboarding[0].matter_reassignments[0].reassigned, true);
+  const offboardingEmployee = await json(`/api/hrx/employees/${offboarding.body.offboarding[0].employee_id}`);
+  assert.equal(
+    offboarding.body.offboarding[0].employee_display_name,
+    offboardingEmployee.body.employee.display_name,
+  );
 
   const tenantRebind = await json("/api/hrx/lifecycle/offboarding/off-001/close", {
     method: "POST",
@@ -1263,6 +1600,7 @@ test("GET and POST lifecycle routes update onboarding and offboarding through AP
     method: "POST",
     body: JSON.stringify({
       leave_reconciliation_status: "approved_and_synced",
+      leave_reconciliation_evidence_ref: "PayrollProviderReceipt:forged",
       access_revocations: [],
       document_returns: [],
       legal_hold_checks: [],

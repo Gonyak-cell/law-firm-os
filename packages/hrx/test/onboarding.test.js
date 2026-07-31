@@ -6,6 +6,7 @@ import {
   evaluateOnboardingMatterAssignmentGate,
   updateOnboardingTask,
 } from "../src/onboarding.js";
+import { HRX_LIFECYCLE_TASK_DEPENDENCY_INCOMPLETE } from "../src/lifecycle-template.js";
 
 const plan = Object.freeze({
   tenant_id: "tenant-a",
@@ -88,4 +89,79 @@ test("onboarding gate requires a plan unless a waiver is supplied on the plan", 
   assert.equal(allowed.effect, "allow");
   assert.equal(allowed.reason, "onboarding_gate_waived");
   assert.equal(allowed.waiver_ref, "Waiver:D13-owner-approval");
+});
+
+test("template versions are snapshotted and task dependencies survive later template changes", () => {
+  const templateV1 = {
+    template_id: "lawyer-onboarding",
+    version: "1",
+    lifecycle_kind: "onboarding",
+    role_key: "lawyer",
+    effective_from: "2026-01-01",
+    tasks: [
+      {
+        task_id: "documents",
+        title: "입사 서류 확인",
+        owner_role: "people_ops",
+        due_offset_days: -2,
+      },
+      {
+        task_id: "account",
+        title: "업무 계정 설정",
+        owner_role: "it_ops",
+        due_offset_days: 0,
+        depends_on_task_ids: ["documents"],
+      },
+      ...HRX_ONBOARDING_MATTER_ASSIGNMENT_TASK_IDS.map((task_id) => ({
+        task_id,
+        title: task_id === "default-security-training" ? "보안 교육" : "비밀유지 서약",
+        owner_role: "people_ops",
+        due_offset_days: 1,
+      })),
+    ],
+  };
+  const instanceV1 = createOnboardingPlan({
+    ...plan,
+    template: templateV1,
+    tasks: undefined,
+  });
+  const instanceV2 = createOnboardingPlan({
+    ...plan,
+    onboarding_id: "onb-002",
+    template: {
+      ...templateV1,
+      version: "2",
+      effective_from: "2026-07-01",
+      tasks: templateV1.tasks.map((task) =>
+        task.task_id === "documents"
+          ? { ...task, title: "입사 서류와 자격 확인" }
+          : task),
+    },
+    tasks: undefined,
+  });
+
+  assert.equal(instanceV1.template_ref.version, "1");
+  assert.equal(instanceV1.tasks.find((task) => task.task_id === "documents").title, "입사 서류 확인");
+  assert.equal(instanceV1.tasks.find((task) => task.task_id === "documents").due_on, "2026-06-29");
+  assert.equal(instanceV2.template_ref.version, "2");
+  assert.equal(instanceV2.tasks.find((task) => task.task_id === "documents").title, "입사 서류와 자격 확인");
+  assert.throws(
+    () => updateOnboardingTask(instanceV1, "account", { status: "completed" }),
+    (error) => error.safe_error_code === HRX_LIFECYCLE_TASK_DEPENDENCY_INCOMPLETE,
+  );
+
+  const documentsDone = updateOnboardingTask(
+    instanceV1,
+    "documents",
+    { status: "completed" },
+    { clock: () => "2026-07-30T01:00:00.000Z" },
+  );
+  const failed = updateOnboardingTask(documentsDone, "account", {
+    status: "failed",
+    failure_reason: "계정 제공자 응답 지연",
+  });
+  const retried = updateOnboardingTask(failed, "account", { retry: true });
+  assert.equal(retried.tasks.find((task) => task.task_id === "account").status, "pending");
+  assert.equal(retried.tasks.find((task) => task.task_id === "account").attempt_count, 2);
+  assert.equal(retried.template_ref.version, "1");
 });

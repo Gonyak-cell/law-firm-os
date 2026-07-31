@@ -26,12 +26,11 @@ test("parser accepts matter document task and auth callback route intents", () =
     tenantIdHash: undefined
   });
 
-  assert.deepEqual(parseMatterDeepLink("matter://auth/callback?code=abc&state=def&issuer=idp"), {
+  assert.deepEqual(parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ"), {
     type: "auth_callback",
     routeOnly: true,
-    code: "abc",
-    state: "def",
-    issuer: "idp"
+    code: "0.ABC_def-123",
+    state: "outlook-state:01HQ"
   });
 
   const reset = parseMatterDeepLink("matter://password-reset/confirm?token=abcdefghijklmnopqrstuvwxyzABCDE_123456");
@@ -54,7 +53,14 @@ test("parser validates scheme route type identifier shape and unknown parameters
   assert.throws(() => parseMatterDeepLink("matter://calendar/view"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
   assert.throws(() => parseMatterDeepLink("matter://matter/%2Fsecret"), (error) => error instanceof DeepLinkError && error.code === "INVALID_IDENTIFIER");
   assert.throws(() => parseMatterDeepLink("matter://document/doc_123?extra=true"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
-  assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=abc&state=def&issuer=idp&next=https://example.com"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ&issuer=idp"), (error) => error instanceof DeepLinkError && error.code === "UNKNOWN_QUERY_PARAMETER");
+  assert.throws(() => parseMatterDeepLink("matter://auth/not-callback?code=0.ABC_def-123&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_PATH");
+  assert.throws(() => parseMatterDeepLink("matter://outlook/callback?code=0.ABC_def-123&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
+  assert.throws(() => parseMatterDeepLink("https://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_SCHEME");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "MISSING_AUTH_CALLBACK_QUERY");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ&state=replay"), (error) => error instanceof DeepLinkError && error.code === "DUPLICATE_QUERY_PARAMETER");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=contains%20space"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_STATE");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ#fragment"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_PATH");
   assert.throws(() => parseMatterDeepLink("matter://password-reset/request?token=abc"), (error) => error instanceof DeepLinkError && error.code === "INVALID_PASSWORD_RESET_PATH");
   assert.throws(() => parseMatterDeepLink("matter://password-reset/confirm"), (error) => error instanceof DeepLinkError && error.code === "MISSING_PASSWORD_RESET_TOKEN");
   assert.throws(() => parseMatterDeepLink("matter://password-reset/confirm?token=short"), (error) => error instanceof DeepLinkError && error.code === "INVALID_PASSWORD_RESET_TOKEN");

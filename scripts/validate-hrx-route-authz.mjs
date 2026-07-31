@@ -60,6 +60,8 @@ for (const route of [
   ["GET", "/api/hrx/approvals"],
   ["POST", "/api/hrx/approvals/approval-leave-002/approve"],
   ["GET", "/api/hrx/candidate/portal"],
+  ["GET", "/api/hrx/recruiting/pipeline"],
+  ["POST", "/api/hrx/recruiting/pipeline"],
   ["POST", "/api/hrx/recruiting/job-openings"],
   ["POST", "/api/hrx/recruiting/candidates"],
   ["POST", "/api/hrx/recruiting/applications"],

@@ -5,6 +5,7 @@ import { createSqlLeaveBalanceLedger } from "../src/leave/balance.js";
 import { runHrxMigrations } from "../src/migrations/index.js";
 import { createPayrollInputSnapshotService, createServerCompensationResolver } from "../src/payroll/input-snapshot-service.js";
 import { createPayrollRepository } from "../src/payroll/repository.js";
+import { createSqlPayrollProfileService } from "../src/payroll-profile-service.js";
 import { createSqlPayrollTimeInputService } from "../src/payroll-time-input-snapshot.js";
 import { createSqlHrxRepository } from "../src/repository-sql.js";
 import { createFileHrxStore } from "../src/store/file-store.js";
@@ -36,7 +37,7 @@ function policy(tenantId) {
   };
 }
 
-function runtime(tenantId, period = {}) {
+function runtime(tenantId, period = {}, options = {}) {
   const store = createFileHrxStore();
   runHrxMigrations(store);
   let repositorySequence = 0;
@@ -59,6 +60,7 @@ function runtime(tenantId, period = {}) {
     payrollRepository: repository,
     compensationResolver,
     policyManifest: policy(tenantId),
+    payrollHandoffEnabled: options.payrollHandoffEnabled === true,
     clock: () => NOW,
     idFactory: (prefix) => `${prefix}-${++serviceSequence}`,
   });
@@ -157,13 +159,19 @@ function insertOvertime(store, tenantId, input) {
       employee_id: input.employee_id,
       work_date: input.work_date,
       hours: input.hours,
+      calculated_minutes: input.calculated_minutes ?? null,
+      requested_minutes: input.requested_minutes ?? null,
+      approved_minutes: input.approved_minutes ?? null,
       reason: input.reason ?? "private synthetic reason",
       state: input.state ?? "approved",
       submitted_at: "2026-07-10T01:00:00.000Z",
       approver_id: input.state === "submitted" ? null : "manager-synthetic",
       decided_at: input.state === "submitted" ? null : "2026-07-10T02:00:00.000Z",
+      decision_reason: input.state === "submitted" ? null : "synthetic review",
       export_ref: input.state === "exported" ? `artifact:overtime/${input.overtime_id}` : null,
       source_ref: `OvertimeRequest:${input.overtime_id}`,
+      calculation_basis_ref: input.calculation_basis_ref ?? null,
+      warning_codes_json: input.warning_codes_json ?? "[]",
       payroll_segment_kind: input.payroll_segment_kind ?? "overtime",
       created_at: "2026-07-10T01:00:00.000Z",
       updated_at: "2026-07-10T02:00:00.000Z",
@@ -239,6 +247,70 @@ test("PY-IN-004/005 captures only approved overtime segments and reconciles paid
   value.store.close();
 });
 
+test("PEO-TUW-050 hands only approved minutes to payroll and freezes the captured source", () => {
+  const value = runtime("tenant-approved-overtime-minutes", {}, { payrollHandoffEnabled: true });
+  seedPerson(value, { employee_id: "emp-approved-minutes" });
+  insertOvertime(value.store, value.context.tenant_id, {
+    overtime_id: "ot-approved-minutes",
+    employee_id: "emp-approved-minutes",
+    work_date: "2026-07-11",
+    hours: 2,
+    calculated_minutes: 90,
+    requested_minutes: 120,
+    approved_minutes: 60,
+  });
+  insertOvertime(value.store, value.context.tenant_id, {
+    overtime_id: "ot-submitted-zero",
+    employee_id: "emp-approved-minutes",
+    work_date: "2026-07-12",
+    hours: 2,
+    calculated_minutes: 120,
+    requested_minutes: 120,
+    approved_minutes: 0,
+    state: "submitted",
+  });
+  insertOvertime(value.store, value.context.tenant_id, {
+    overtime_id: "ot-rejected-zero",
+    employee_id: "emp-approved-minutes",
+    work_date: "2026-07-13",
+    hours: 2,
+    calculated_minutes: 120,
+    requested_minutes: 120,
+    approved_minutes: 0,
+    state: "rejected",
+  });
+
+  const captured = value.service.capture(value.context, { run_id: value.run.run_id });
+  const input = JSON.parse(captured.snapshots[0].input_json);
+  assert.deepEqual(input.overtime, {
+    holiday_minutes: 0,
+    night_minutes: 0,
+    overtime_minutes: 60,
+    source_count: 1,
+  });
+  const frozenHash = captured.snapshot_hash;
+
+  value.store.query("updateOne", {
+    table: "hrx_overtime_requests",
+    where: {
+      tenant_id: value.context.tenant_id,
+      overtime_id: "ot-approved-minutes",
+    },
+    patch: {
+      approved_minutes: 90,
+      warning_codes_json: JSON.stringify(["OVERTIME_APPROVAL_EXCEEDS_CALCULATED"]),
+      updated_at: "2026-07-16T01:00:00.000Z",
+    },
+  });
+  const readback = value.service.capture(value.context, {
+    run_id: value.run.run_id,
+    expected_version: captured.run.state_version,
+  });
+  assert.equal(readback.snapshot_hash, frozenHash);
+  assert.equal(JSON.parse(readback.snapshots[0].input_json).overtime.overtime_minutes, 60);
+  value.store.close();
+});
+
 test("PY-IN-006 preserves leap-month and mid-period lifecycle boundaries", () => {
   const value = runtime("tenant-input-lifecycle", { period_id: "period-2024-02", period_code: "2024-02", period_start: "2024-02-01", period_end: "2024-02-29", cutoff_at: "2024-02-29T23:59:59+09:00", pay_date: "2024-03-05", run_id: "run-2024-02" });
   seedPerson(value, { employee_id: "emp-full", effective_from: "2024-02-01", effective_to: "2024-02-29" });
@@ -274,6 +346,92 @@ test("PY-IN-007 records a missing profile without silently excluding valid emplo
   value.store.close();
 });
 
+test("PEO-TUW-064 binds a profile created through the service to a calculable snapshot", () => {
+  const value = runtime("tenant-profile-binding");
+  seedPerson(value, { employee_id: "emp-bound", payroll_profile: false });
+  const profileService = createSqlPayrollProfileService({
+    store: value.store,
+    clock: () => NOW,
+    encryptionOptions: { keyMaterial: KEY },
+  });
+  const created = profileService.createProfile(value.context, {
+    payroll_profile_id: "payroll-emp-bound",
+    employee_id: "emp-bound",
+    employment_type: "monthly",
+    pay_group_code: "KR-MONTHLY",
+    compensation_ref: "compensation:comp-emp-bound",
+    deduction_input: {
+      dependent_count: 0,
+      income_tax_exempt: false,
+      withholding_category: null,
+      pension: { enrolled: false },
+      health: { enrolled: false },
+      employment_insurance: { enrolled: false },
+    },
+    effective_from: value.period.period_start,
+  });
+  assert.equal(created.employee_id, "emp-bound");
+  const captured = value.service.capture(value.context, { run_id: value.run.run_id });
+  assert.equal(captured.ready, true, JSON.stringify(captured.issues));
+  assert.deepEqual(captured.snapshots.map((row) => row.employee_id), ["emp-bound"]);
+  assert.equal(JSON.stringify(captured).includes("lawos-comp-v1."), false);
+  value.store.close();
+});
+
+test("snapshot compensation resolver requires full period coverage, including open-ended requests", () => {
+  const value = runtime("tenant-compensation-coverage");
+  seedPerson(value, { employee_id: "emp-resolver", compensation: false });
+  const compensationStore = createSqlCompensationRecordStore({ store: value.store });
+  const addCompensation = (compensation_id, effective_from, effective_to) => compensationStore.create({
+    tenant_id: value.context.tenant_id,
+    compensation_id,
+    employee_id: "emp-resolver",
+    encrypted_amount_ref: encryptCompensationAmount({
+      tenant_id: value.context.tenant_id,
+      employee_id: "emp-resolver",
+      compensation_id,
+      amount_minor: 5_000_000,
+      currency_ref: "KRW",
+    }, { keyMaterial: KEY }),
+    currency_ref: "KRW",
+    effective_from,
+    effective_to,
+    source_ref: `synthetic-compensation-${compensation_id}`,
+    employment_contract_id: `contract-${compensation_id}`,
+    contract_document_ref: `vault:contract/${compensation_id}`,
+  });
+  addCompensation("resolver-full", "2026-01-01", null);
+  addCompensation("resolver-late", "2026-07-15", null);
+  addCompensation("resolver-early", "2026-01-01", "2026-07-14");
+  addCompensation("resolver-bounded", "2026-01-01", "2026-07-31");
+  const resolver = createServerCompensationResolver({ store: value.store, keyMaterial: KEY });
+  const resolve = (compensation_id, period_start = "2026-07-01", period_end = "2026-07-31") => resolver.resolve(value.context, {
+    employee_id: "emp-resolver",
+    compensation_ref: `compensation:${compensation_id}`,
+    period_start,
+    period_end,
+  });
+  assert.equal(resolve("resolver-full").currency, "KRW");
+  assert.equal(resolve("resolver-bounded").currency, "KRW");
+  for (const compensation_id of ["resolver-late", "resolver-early"]) {
+    assert.throws(
+      () => resolve(compensation_id),
+      (error) => error.reason_code === "COMPENSATION_PERIOD_MISMATCH",
+    );
+  }
+  const resolveOpen = (compensation_id) => resolver.resolve(value.context, {
+    employee_id: "emp-resolver",
+    compensation_ref: `compensation:${compensation_id}`,
+    period_start: "2026-07-01",
+  });
+  assert.throws(
+    () => resolveOpen("resolver-bounded"),
+    (error) => error.reason_code === "COMPENSATION_PERIOD_MISMATCH",
+  );
+  assert.equal(resolveOpen("resolver-full").currency, "KRW");
+  value.store.close();
+});
+
 test("PY-IN-005 blocks a partial-period legacy leave request when segment evidence is missing", () => {
   const value = runtime("tenant-input-partial-leave");
   seedPerson(value, { employee_id: "emp-partial" });
@@ -282,5 +440,48 @@ test("PY-IN-005 blocks a partial-period legacy leave request when segment eviden
   assert.equal(captured.ready, false);
   assert.equal(captured.snapshots.length, 0);
   assert.equal(captured.issues[0].issue_code, "PAYROLL_LEAVE_SEGMENTS_MISSING");
+  value.store.close();
+});
+
+test("PEO-TUW-063 captures only employees named by an immutable correction run", () => {
+  const value = runtime("tenant-input-adjustment");
+  seedPerson(value, { employee_id: "emp-corrected" });
+  seedPerson(value, { employee_id: "emp-unchanged" });
+  const original = value.service.capture(value.context, { run_id: value.run.run_id });
+  let run = value.repository.transitionRun(value.context, {
+    run_id: value.run.run_id,
+    status: "previewed",
+    result_hash: "f".repeat(64),
+    expected_version: original.run.state_version,
+  });
+  run = value.repository.transitionRun(
+    { ...value.context, actor_id: "payroll-approver" },
+    {
+      run_id: run.run_id,
+      status: "approved",
+      expected_version: run.state_version,
+      step_up_receipt_ref: "artifact:step-up/adjustment-source",
+      step_up_receipt_hash: "e".repeat(64),
+    },
+  );
+  run = value.repository.transitionRun(
+    { ...value.context, actor_id: "payroll-approver" },
+    { run_id: run.run_id, status: "closed", expected_version: run.state_version },
+  );
+  const correction = value.repository.createAdjustmentRun(value.context, {
+    period_id: value.period.period_id,
+    previous_run_id: run.run_id,
+    correction_key: "correction-input-001",
+    adjustments: [{
+      employee_id: "emp-corrected",
+      reason_code: "CORRECTION",
+      amount_krw: 50_000,
+      taxable: true,
+    }],
+  });
+  const captured = value.service.capture(value.context, { run_id: correction.run.run_id });
+  assert.equal(captured.ready, true);
+  assert.deepEqual(captured.snapshots.map((row) => row.employee_id), ["emp-corrected"]);
+  assert.equal(captured.snapshots[0].source_hash, original.snapshots.find((row) => row.employee_id === "emp-corrected").source_hash);
   value.store.close();
 });

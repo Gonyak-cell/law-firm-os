@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-firm-os.hrx.minimum-wage.v1",
+  "standard_id": "kr-minimum-wage-2026",
+  "version_code": "KR-2026",
+  "jurisdiction": "KR",
+  "effective_from": "2026-01-01",
+  "effective_to": "2026-12-31",
+  "hourly_minimum_krw": 10320,
+  "monthly_conversion_minutes": 12540,
+  "monthly_minimum_krw": 2156880,
+  "rounding_mode": "nearest",
+  "included_item_codes": [
+    "BASE"
+  ],
+  "excluded_item_codes": [
+    "HOLIDAY",
+    "NIGHT",
+    "OVERTIME"
+  ],
+  "source_document_ref": "document:moel/minimum-wage-notice-2025-47",
+  "source_document_hash": "b87d3570ff339e04747d7835228e20c2faeffa7c9fbcdfe79d719e6ed096a30d",
+  "legal_review_state": "pending",
+  "legal_review_ref": null,
+  "fixture_only": true
+}

@@ -1,4 +1,5 @@
 export const HRX_ATTENDANCE_STATUSES = Object.freeze(["present", "absent", "remote", "leave", "holiday"]);
+export const HRX_ATTENDANCE_TIMEZONE = "Asia/Seoul";
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -13,6 +14,48 @@ function optionalHours(input, field) {
     throw new TypeError(`${field} must be a finite number greater than or equal to 0`);
   }
   return value;
+}
+
+function optionalString(input, field) {
+  const value = input?.[field];
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} must be a non-empty string`);
+  return value.trim();
+}
+
+function isoDate(input, field) {
+  const value = requiredString(input, field);
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+    Number.isNaN(Date.parse(`${value}T00:00:00Z`)) ||
+    new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) !== value
+  ) {
+    throw new TypeError(`${field} must be an ISO date`);
+  }
+  return value;
+}
+
+function optionalTimestamp(input, field) {
+  const value = optionalString(input, field);
+  if (value === null) return null;
+  if (
+    !/(?:Z|[+-]\d{2}:\d{2})$/i.test(value) ||
+    !Number.isFinite(Date.parse(value))
+  ) {
+    throw new TypeError(`${field} must be an ISO timestamp with an explicit timezone`);
+  }
+  return value;
+}
+
+function dateKeyInTimezone(timestamp, timeZone = HRX_ATTENDANCE_TIMEZONE) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(timestamp));
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
 }
 
 function clone(value) {
@@ -41,20 +84,43 @@ export function createAttendanceRecord(input = {}) {
   const sourceKind = input.source_kind ?? "manual";
   if (!["manual", "import"].includes(sourceKind)) throw new TypeError("source_kind must be manual or import");
   if (sourceKind === "import" && !input.import_batch_id) throw new TypeError("import_batch_id is required for imported attendance");
+  const workDate = isoDate(input, "work_date");
+  const clockInAt = optionalTimestamp(input, "clock_in_at");
+  const clockOutAt = optionalTimestamp(input, "clock_out_at");
+  if (Boolean(clockInAt) !== Boolean(clockOutAt)) {
+    throw new TypeError("clock_in_at and clock_out_at must be recorded together");
+  }
+  if (clockInAt && clockOutAt) {
+    if (Date.parse(clockOutAt) <= Date.parse(clockInAt)) {
+      throw new TypeError("clock_out_at must be after clock_in_at");
+    }
+    if (dateKeyInTimezone(clockInAt) !== workDate) {
+      throw new TypeError(`clock_in_at must fall on work_date in ${HRX_ATTENDANCE_TIMEZONE}`);
+    }
+  }
+  const correctionOfAttendanceId = optionalString(input, "correction_of_attendance_id");
+  const correctionReason = optionalString(input, "correction_reason");
+  if (correctionOfAttendanceId && !correctionReason) {
+    throw new TypeError("correction_reason is required for attendance corrections");
+  }
+  const attendanceId = requiredString(input, "attendance_id");
+  if (correctionOfAttendanceId === attendanceId) {
+    throw new TypeError("attendance correction cannot reference itself");
+  }
   return Object.freeze({
     tenant_id: requiredString(input, "tenant_id"),
-    attendance_id: requiredString(input, "attendance_id"),
+    attendance_id: attendanceId,
     employee_id: requiredString(input, "employee_id"),
-    work_date: requiredString(input, "work_date"),
+    work_date: workDate,
     status,
     source_ref: requiredString(input, "source_ref"),
     source_kind: sourceKind,
     import_batch_id: input.import_batch_id ?? null,
     recorded_hours: optionalHours(input, "recorded_hours"),
-    clock_in_at: input.clock_in_at ?? null,
-    clock_out_at: input.clock_out_at ?? null,
-    correction_of_attendance_id: input.correction_of_attendance_id ?? null,
-    correction_reason: input.correction_reason ?? null,
+    clock_in_at: clockInAt,
+    clock_out_at: clockOutAt,
+    correction_of_attendance_id: correctionOfAttendanceId,
+    correction_reason: correctionReason,
   });
 }
 
@@ -93,19 +159,43 @@ export function importAttendanceRecords({ tenant_id, import_batch_id, source_ref
   );
 }
 
+export function resolveEffectiveAttendanceRecords(records = []) {
+  const normalized = records.map(createAttendanceRecord);
+  const correctedIds = new Set(
+    normalized
+      .map((record) => record.correction_of_attendance_id)
+      .filter(Boolean),
+  );
+  return Object.freeze(
+    normalized
+      .filter((record) => !correctedIds.has(record.attendance_id))
+      .sort(sortAttendanceRecords),
+  );
+}
+
 export function createInMemoryAttendanceStore(seed = []) {
   const records = new Map();
   const key = (tenantId, attendanceId) => `${tenantId}:${attendanceId}`;
 
   function write(input) {
     const record = createAttendanceRecord(input);
-    records.set(key(record.tenant_id, record.attendance_id), clone(record));
+    const recordKey = key(record.tenant_id, record.attendance_id);
+    if (records.has(recordKey)) throw new Error(`Attendance record already exists: ${record.attendance_id}`);
+    if (
+      record.correction_of_attendance_id &&
+      [...records.values()].some((candidate) =>
+        candidate.tenant_id === record.tenant_id &&
+        candidate.correction_of_attendance_id === record.correction_of_attendance_id)
+    ) {
+      throw new Error(`Attendance record already corrected: ${record.correction_of_attendance_id}`);
+    }
+    records.set(recordKey, clone(record));
     return Object.freeze(clone(record));
   }
 
   for (const record of seed) write(record);
 
-  return Object.freeze({
+  const api = Object.freeze({
     write,
     get(ref = {}) {
       const value = records.get(key(ref.tenant_id, ref.attendance_id));
@@ -129,18 +219,33 @@ export function createInMemoryAttendanceStore(seed = []) {
           .map((record) => Object.freeze(clone(record))),
       );
     },
+    transaction(callback) {
+      if (typeof callback !== "function") throw new TypeError("attendance transaction callback is required");
+      const snapshot = new Map(
+        [...records].map(([recordKey, record]) => [recordKey, clone(record)]),
+      );
+      try {
+        return callback(api);
+      } catch (error) {
+        records.clear();
+        for (const [recordKey, record] of snapshot) records.set(recordKey, clone(record));
+        throw error;
+      }
+    },
   });
+  return api;
 }
 
-export function createSqlAttendanceStore({ store } = {}) {
+export function createSqlAttendanceStore({ store, clock = () => new Date().toISOString() } = {}) {
   if (!store || typeof store.query !== "function") throw new TypeError("SQL attendance store requires store.query");
 
   function write(input) {
     const record = createAttendanceRecord(input);
+    const timestamp = clock();
     return Object.freeze(
       store.query("insert", {
         table: "hrx_attendance_records",
-        row: { ...record, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        row: { ...record, created_at: timestamp, updated_at: timestamp },
       }),
     );
   }
@@ -164,6 +269,14 @@ export function createSqlAttendanceStore({ store } = {}) {
     correct(ref = {}, input = {}) {
       const current = get(ref);
       if (!current) throw new Error(`Attendance record not found: ${ref.attendance_id}`);
+      const existingCorrection = store.query("selectOne", {
+        table: "hrx_attendance_records",
+        where: {
+          tenant_id: current.tenant_id,
+          correction_of_attendance_id: current.attendance_id,
+        },
+      });
+      if (existingCorrection) throw new Error(`Attendance record already corrected: ${current.attendance_id}`);
       return write(createAttendanceCorrection(current, input));
     },
     list(query = {}) {

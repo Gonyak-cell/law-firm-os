@@ -10,32 +10,37 @@ async function readWebFile(path: string) {
   return readFile(resolve(root, path), "utf8");
 }
 
-test("People payroll boundary uses API preview/export routes without payment execution", async () => {
+test("People payroll boundary reuses the persisted run state machine for settlement and close", async () => {
   const component = await readWebFile("src/people/payroll/PayrollBoundaryPanel.tsx");
   const api = await readWebFile("src/people/hrxApiClient.ts");
   const home = await readWebFile("src/people/PeopleHome.tsx");
   const shell = await readWebFile("src/components/Shell.jsx");
+  const catalog = await readWebFile("src/people/peopleFeatureCatalog.js");
 
   assert.match(shell, /급여정산/);
+  assert.match(catalog, /label: "마감 관리"[\s\S]*section: "people-close"/);
   assert.match(home, /PayrollBoundaryPanel/);
   assert.match(home, /people-payroll/);
-  assert.match(component, /createHrxPayrollPreview/);
-  assert.match(component, /approveHrxPayrollPreview/);
-  assert.match(component, /exportHrxPayrollArtifact/);
-  assert.match(component, /calculation_runtime/);
-  assert.match(component, /disbursement_instruction_included/);
+  assert.match(home, /currentSection === "people-close"[\s\S]*payroll_close_precheck[\s\S]*mode="close"/);
+  assert.match(component, /fetchHrxPayrollWorkspace/);
+  assert.match(component, /fetchHrxPayrollClosePrecheck/);
+  assert.match(component, /captureHrxPayrollRun/);
+  assert.match(component, /previewHrxPayrollRun/);
+  assert.match(component, /approveHrxPayrollRun/);
+  assert.match(component, /closeHrxPayrollRun/);
+  assert.match(component, /createHrxPayrollPeriod/);
+  assert.match(component, /createHrxPayrollRun/);
   assert.match(component, /급여정산/);
-  assert.match(component, /meta="내보내기 전용"/);
-  assert.match(component, /정산 미리보기, 검토 승인, 내보내기만 제공합니다/);
-  assert.match(component, /계산과 지급 실행은 아직 제공하지 않습니다/);
-  assert.match(component, /정산 처리/);
-  assert.match(component, /지급 지시는 아직 구현되지 않았습니다/);
-  assert.match(api, /\/api\/hrx\/payroll\/preview/);
-  assert.match(api, /\/api\/hrx\/payroll\/approve/);
-  assert.match(api, /\/api\/hrx\/payroll\/export/);
-  assert.match(api, /hrx\.payroll\.preview/);
-  assert.match(api, /hrx\.payroll\.export/);
+  assert.match(component, /마감 관리/);
+  assert.match(component, /마감 전 확인/);
+  assert.match(component, /처리 화면 열기/);
+  assert.match(component, /마감 이력/);
+  assert.match(component, /작성자와 다른 승인자만 승인할 수 있습니다/);
+  assert.match(api, /\/api\/hrx\/payroll\/periods/);
+  assert.match(api, /\/api\/hrx\/payroll\/runs\/.*\/precheck/);
+  assert.match(api, /\/api\/hrx\/payroll\/runs\/.*\/approve/);
+  assert.match(api, /\/api\/hrx\/payroll\/runs\/.*\/close/);
   assert.doesNotMatch(component, /net_pay|gross_pay|tax_withholding|["']disbursement_instruction["']|disbursement_instruction\s*:/);
-  assert.doesNotMatch(component, /calculation_runtime=false|disbursement_instruction_included=false|문서 ref|external-preview-only/);
+  assert.doesNotMatch(component, /마감 취소|원본 수정/);
   assert.doesNotMatch(component, /mockData|profileRows|matters/);
 });

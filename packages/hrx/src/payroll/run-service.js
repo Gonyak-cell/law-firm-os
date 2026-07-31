@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { calculatePayrollEarnings } from "./calculation-engine.js";
+import { listPublishedPayrollRulesCoveringPeriod } from "./close-precheck.js";
 import { calculatePayrollDeductions } from "./deduction-engine.js";
 import { createPayrollDataHash } from "./repository.js";
 
@@ -34,9 +35,7 @@ function guardedError(message, code, status = 400) {
 }
 
 function selectPublishedRule(repository, context, period, ruleKind) {
-  const rules = repository.listRuleVersions(context, { rule_kind: ruleKind })
-    .filter((row) => row.approval_state === "published")
-    .filter((row) => row.effective_from <= period.period_end && (!row.effective_to || row.effective_to >= period.period_end));
+  const rules = listPublishedPayrollRulesCoveringPeriod(repository, context, period, ruleKind);
   if (rules.length !== 1) throw guardedError(`Exactly one published ${ruleKind} rule must cover the payroll period`, "HRX_PAYROLL_RULE_COVERAGE_INVALID", 409);
   return rules[0];
 }
@@ -149,6 +148,7 @@ function verifyStepUp(context, runId, receipt, now) {
 export function createPayrollRunService({
   payrollRepository,
   inputSnapshotService,
+  closePrecheckService = null,
   clock = () => new Date().toISOString(),
   idFactory = (prefix) => `${prefix}_${randomUUID()}`,
   earningsCalculator = calculatePayrollEarnings,
@@ -199,6 +199,7 @@ export function createPayrollRunService({
     const runId = requiredString(input, "run_id");
     const run = payrollRepository.getRun(context, { run_id: runId });
     if (!run || run.status !== "previewed") throw guardedError("Only previewed payroll can be approved", "HRX_PAYROLL_STATE_INVALID", 409);
+    closePrecheckService?.assertReady(context, { run_id: runId, as_of: input.as_of ?? clock() });
     const blockers = payrollRepository.listIssues(context, { run_id: runId, state: "open" }).filter((row) => row.severity === "blocker");
     if (blockers.length) throw guardedError("Open payroll blockers must be resolved", "HRX_PAYROLL_BLOCKERS_OPEN", 409);
     const receipt = verifyStepUp(context, runId, input.step_up_receipt, clock());
@@ -209,6 +210,7 @@ export function createPayrollRunService({
     const runId = requiredString(input, "run_id");
     const run = payrollRepository.getRun(context, { run_id: runId });
     if (!run || run.status !== "approved") throw guardedError("Only approved payroll can be closed", "HRX_PAYROLL_STATE_INVALID", 409);
+    closePrecheckService?.assertReady(context, { run_id: runId, as_of: input.as_of ?? clock() });
     const closed = payrollRepository.transitionRun(context, { run_id: runId, status: "closed", expected_version: input.expected_version ?? run.state_version });
     const period = payrollRepository.getPeriod(context, { period_id: run.period_id });
     if (period.status === "open") payrollRepository.transitionPeriod(context, { period_id: period.period_id, status: "closed", expected_version: period.state_version });

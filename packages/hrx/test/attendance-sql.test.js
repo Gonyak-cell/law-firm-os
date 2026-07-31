@@ -40,6 +40,27 @@ test("SQL attendance store persists manual records and correction chain", () => 
     },
   );
   assert.equal(correction.correction_of_attendance_id, "att-sql-001");
+  assert.throws(
+    () =>
+      attendance.correct(
+        { tenant_id: "tenant-a", attendance_id: "att-sql-001" },
+        {
+          attendance_id: "att-sql-001-duplicate",
+          source_ref: "TimeClock:sql:duplicate",
+          correction_reason: "duplicate branch",
+        },
+      ),
+    /already corrected/,
+  );
+  assert.throws(
+    () =>
+      store.query("updateOne", {
+        table: "hrx_attendance_records",
+        where: { tenant_id: "tenant-a", attendance_id: "att-sql-001" },
+        patch: { recorded_hours: 1 },
+      }),
+    /append-only/,
+  );
   store.close();
 
   const reopenedStore = createFileHrxStore({ filePath: storeFile });

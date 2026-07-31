@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { Panel } from "../../components/primitives.jsx";
 import { fetchHrxEmployees } from "../hrxApiClient.ts";
 import { memberPhotoFor } from "../memberPhotos.js";
+import { safeEmployeeLabel } from "../peoplePresentation.ts";
 
 type HrxEmployee = {
   employee_id?: string;
+  user_id?: string;
   display_name?: string;
   status?: string;
   work_email?: string;
@@ -46,18 +48,20 @@ export function EmployeeList({ selectedEmployeeId, onSelectEmployee, refreshKey 
   } else {
     body = (
       <div className="people-row-list">
-        {result.employees.map((employee) => {
-          const photo = memberPhotoFor(employee.display_name);
+        {result.employees.map((employee, index) => {
+          const employeeLabel = safeEmployeeLabel(employee);
+          const photo = memberPhotoFor(employee);
           return (
             <button
-              key={employee.employee_id ?? employee.display_name}
+              key={employee.employee_id ?? employee.user_id ?? `employee-${index}`}
               className={selectedEmployeeId === employee.employee_id ? "people-row active" : "people-row"}
               data-compact-record="true"
+              aria-label={employeeLabel}
               onClick={() => employee.employee_id && onSelectEmployee(employee.employee_id)}
             >
-              <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : employee.display_name?.slice(0, 1) ?? "E"}</span>
+              <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : employeeLabel.slice(0, 1) || "E"}</span>
               <span>
-                <strong>{employee.display_name}</strong>
+                <strong>{employeeLabel}</strong>
                 <small>{accountLabel(employee)}</small>
               </span>
               <em>{employee.status === "active" ? "재직" : employee.status === "on_leave" ? "휴가" : "확인 필요"}</em>

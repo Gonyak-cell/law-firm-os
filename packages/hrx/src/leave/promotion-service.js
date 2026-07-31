@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
 import { calculateLeavePromotionBalances } from "./promotion-balance.js";
+import { publicEmployeeDisplayName, publicPeopleLabel, UNRESOLVED_EMPLOYEE_DISPLAY_NAME } from "../people-presentation.js";
 
 export const LEAVE_PROMOTION_SCHEDULE_PROFILES = Object.freeze([
   Object.freeze({ id: "kr_lsa61_standard_v2025_10_23", label: "1년 이상 일반 연차", first_months_before: 6, first_window_days: 10, response_days: 10, second_months_before: 2, legal_basis_code: "KR_LSA_ARTICLE_61", legal_basis_version: "effective_2025-10-23" }),
@@ -140,9 +141,38 @@ function scheduleProfile(id) {
   return profile;
 }
 
+function campaignBusinessIdentity(input) {
+  const profile = scheduleProfile(requiredString(input, "schedule_profile_id"));
+  const basis = Object.freeze({
+    schema_version: "law-firm-os.hrx.leave-promotion-campaign-business.v1",
+    policy_version_id: requiredString(input, "policy_version_id"),
+    entitlement_period_end: isoDate(input.entitlement_period_end, "entitlement_period_end"),
+    schedule_profile_id: profile.id,
+  });
+  return Object.freeze({
+    ...basis,
+    business_fingerprint: hash(basis),
+  });
+}
+
+function storedCampaignFingerprint(campaign) {
+  if (typeof campaign?.business_fingerprint === "string" && campaign.business_fingerprint.trim()) {
+    return campaign.business_fingerprint.trim();
+  }
+  try {
+    return campaignBusinessIdentity(campaign).business_fingerprint;
+  } catch {
+    return null;
+  }
+}
+
 function recipientView(row, evidenceReceipts = []) {
   return Object.freeze({
     ...row,
+    employee_display_name: publicPeopleLabel(row?.employee_display_name, {
+      references: [row?.employee_id],
+      fallback: UNRESOLVED_EMPLOYEE_DISPLAY_NAME,
+    }),
     response: Object.freeze(parseJson(row.response_json, {})),
     response_json: undefined,
     late_reasons: Object.freeze(parseJson(row.late_reasons_json, [])),
@@ -151,17 +181,32 @@ function recipientView(row, evidenceReceipts = []) {
   });
 }
 
-function campaignView(row, recipients, evidenceReceipts = []) {
+function exclusionView(row) {
+  return Object.freeze({
+    ...row,
+    employee_display_name: publicPeopleLabel(row?.employee_display_name, {
+      references: [row?.employee_id],
+      fallback: UNRESOLVED_EMPLOYEE_DISPLAY_NAME,
+    }),
+  });
+}
+
+function campaignView(row, recipients, evidenceReceipts = [], authorizedEmployeeIds) {
   const receiptsByRecipient = new Map();
   for (const receipt of evidenceReceipts) {
     if (!receiptsByRecipient.has(receipt.recipient_id)) receiptsByRecipient.set(receipt.recipient_id, []);
     receiptsByRecipient.get(receipt.recipient_id).push(receipt);
   }
+  const exclusions = parseJson(row.exclusions_json, []);
+  const scopedExclusions = (Array.isArray(exclusions) ? exclusions : [])
+    .filter((exclusion) => authorizedEmployeeIds.has(exclusion?.employee_id));
   return Object.freeze({
     ...row,
+    target_count: recipients.length,
+    excluded_count: scopedExclusions.length,
     legal_schedule: Object.freeze(parseJson(row.legal_schedule_json, {})),
     legal_schedule_json: undefined,
-    exclusions: Object.freeze(parseJson(row.exclusions_json, [])),
+    exclusions: Object.freeze(scopedExclusions.map((exclusion) => exclusionView(exclusion))),
     exclusions_json: undefined,
     recipients: Object.freeze(recipients.map((recipient) => recipientView(recipient, receiptsByRecipient.get(recipient.recipient_id) ?? []))),
   });
@@ -260,15 +305,18 @@ export function createLeavePromotionService({ store, documents, employeeDirector
     const balances = new Map(balance.rows.map((row) => [row.employee_id, row]));
     const targets = balance.rows
       .filter((row) => row.available_minutes >= rules.threshold_minutes)
-      .map((row) => Object.freeze({ ...row, employee_display_name: employees.get(row.employee_id)?.display_name ?? "구성원" }));
+      .map((row) => Object.freeze({
+        ...row,
+        employee_display_name: publicEmployeeDisplayName(employees.get(row.employee_id)),
+      }));
     const exclusions = [...directoryEmployees].flatMap(([employeeId, employee]) => {
       if (!employees.has(employeeId)) {
-        return [Object.freeze({ employee_id: employeeId, employee_display_name: employee.display_name ?? "구성원", reason: "employee_inactive", available_minutes: 0 })];
+        return [Object.freeze({ employee_id: employeeId, employee_display_name: publicEmployeeDisplayName(employee), reason: "employee_inactive", available_minutes: 0 })];
       }
       const row = balances.get(employeeId);
-      if (!row) return [Object.freeze({ employee_id: employeeId, employee_display_name: employee.display_name ?? "구성원", reason: "no_eligible_balance", available_minutes: 0 })];
+      if (!row) return [Object.freeze({ employee_id: employeeId, employee_display_name: publicEmployeeDisplayName(employee), reason: "no_eligible_balance", available_minutes: 0 })];
       if (row.available_minutes < rules.threshold_minutes) {
-        return [Object.freeze({ employee_id: employeeId, employee_display_name: employee.display_name ?? "구성원", reason: "below_threshold", available_minutes: row.available_minutes })];
+        return [Object.freeze({ employee_id: employeeId, employee_display_name: publicEmployeeDisplayName(employee), reason: "below_threshold", available_minutes: row.available_minutes })];
       }
       return [];
     }).sort((left, right) => left.employee_id.localeCompare(right.employee_id));
@@ -318,7 +366,10 @@ export function createLeavePromotionService({ store, documents, employeeDirector
     return Object.freeze(store.query("select", { table: "hrx_leave_promotion_campaigns", where: { tenant_id: tenantId } })
       .filter((campaign) => byCampaign.has(campaign.campaign_id))
       .sort((left, right) => right.created_at.localeCompare(left.created_at))
-      .map((campaign) => campaignView(campaign, byCampaign.get(campaign.campaign_id).sort((left, right) => String(left.employee_display_name).localeCompare(String(right.employee_display_name), "ko")), evidenceReceipts)));
+      .map((campaign) => campaignView(campaign, byCampaign.get(campaign.campaign_id).sort((left, right) => (
+        publicPeopleLabel(left.employee_display_name, { references: [left.employee_id], fallback: UNRESOLVED_EMPLOYEE_DISPLAY_NAME })
+          .localeCompare(publicPeopleLabel(right.employee_display_name, { references: [right.employee_id], fallback: UNRESOLVED_EMPLOYEE_DISPLAY_NAME }), "ko")
+      )), evidenceReceipts, allowed)));
   }
 
   function get(context, campaignId) {
@@ -330,56 +381,191 @@ export function createLeavePromotionService({ store, documents, employeeDirector
   function create(context, input = {}) {
     const tenantId = requiredString(context, "tenant_id");
     const idempotencyKey = requiredString(input, "idempotency_key");
-    const existing = store.query("selectOne", { table: "hrx_leave_promotion_campaigns", where: { tenant_id: tenantId, idempotency_key: idempotencyKey } });
-    if (existing) return get(context, existing.campaign_id);
+    const business = campaignBusinessIdentity(input);
+    const receiptIdempotencyKey = `leave-promotion-campaign:${idempotencyKey}`;
+    const idempotencyConflict = () => guardedError(
+      "Leave promotion idempotency key was reused for a different campaign",
+      "HRX_LEAVE_PROMOTION_IDEMPOTENCY_REUSED",
+    );
+    const findReceipt = (target = store) => target.query("selectOne", {
+      table: "hrx_leave_command_receipts",
+      where: { tenant_id: tenantId, idempotency_key: receiptIdempotencyKey },
+    });
+    const findByIdempotencyKey = () => store.query("selectOne", {
+      table: "hrx_leave_promotion_campaigns",
+      where: { tenant_id: tenantId, idempotency_key: idempotencyKey },
+    });
+    const findByBusiness = () => {
+      const matches = store.query("select", {
+        table: "hrx_leave_promotion_campaigns",
+        where: {
+          tenant_id: tenantId,
+          policy_version_id: business.policy_version_id,
+          entitlement_period_end: business.entitlement_period_end,
+          schedule_profile_id: business.schedule_profile_id,
+        },
+      });
+      if (matches.length > 1) {
+        throw guardedError(
+          "Duplicate leave promotion campaigns require reconciliation",
+          "HRX_LEAVE_PROMOTION_DUPLICATE_BUSINESS",
+        );
+      }
+      return matches[0] ?? null;
+    };
+    const validateReceipt = (receipt) => {
+      if (!receipt) return null;
+      const result = parseJson(receipt.result_json, {});
+      if (
+        receipt.command_type !== "leave_promotion_campaign_create"
+        || receipt.input_hash !== business.business_fingerprint
+        || typeof result.campaign_id !== "string"
+        || result.business_fingerprint !== business.business_fingerprint
+      ) {
+        throw idempotencyConflict();
+      }
+      const campaign = store.query("selectOne", {
+        table: "hrx_leave_promotion_campaigns",
+        where: {
+          tenant_id: tenantId,
+          campaign_id: result.campaign_id,
+        },
+      });
+      if (!campaign || storedCampaignFingerprint(campaign) !== business.business_fingerprint) {
+        throw guardedError(
+          "Leave promotion idempotency receipt is invalid",
+          "HRX_LEAVE_PROMOTION_IDEMPOTENCY_RECEIPT_INVALID",
+        );
+      }
+      return get(context, campaign.campaign_id);
+    };
+    const bindReceipt = (target, campaignId, createdAt) => {
+      const existing = findReceipt(target);
+      if (existing) {
+        const result = parseJson(existing.result_json, {});
+        if (
+          existing.command_type !== "leave_promotion_campaign_create"
+          || existing.input_hash !== business.business_fingerprint
+          || result.campaign_id !== campaignId
+          || result.business_fingerprint !== business.business_fingerprint
+        ) {
+          throw idempotencyConflict();
+        }
+        return existing;
+      }
+      return target.query("insert", {
+        table: "hrx_leave_command_receipts",
+        row: {
+          tenant_id: tenantId,
+          command_receipt_id: `leave_promotion_campaign_receipt_${hash({
+            tenant_id: tenantId,
+            idempotency_key: receiptIdempotencyKey,
+          }).slice(0, 32)}`,
+          idempotency_key: receiptIdempotencyKey,
+          command_type: "leave_promotion_campaign_create",
+          request_id: null,
+          input_hash: business.business_fingerprint,
+          result_json: JSON.stringify({
+            campaign_id: campaignId,
+            business_fingerprint: business.business_fingerprint,
+          }),
+          created_at: createdAt,
+        },
+      });
+    };
+    const bindAndReplay = (campaign) => {
+      try {
+        store.transaction((tx) => {
+          bindReceipt(tx, campaign.campaign_id, clock());
+        });
+      } catch (error) {
+        const concurrentReplay = validateReceipt(findReceipt());
+        if (concurrentReplay) return concurrentReplay;
+        throw error;
+      }
+      return get(context, campaign.campaign_id);
+    };
+    const existingBusiness = findByBusiness();
+    const receiptReplay = validateReceipt(findReceipt());
+    if (receiptReplay) return receiptReplay;
+    const keyedCampaign = findByIdempotencyKey();
+    if (keyedCampaign) {
+      if (storedCampaignFingerprint(keyedCampaign) !== business.business_fingerprint) {
+        throw idempotencyConflict();
+      }
+      return bindAndReplay(keyedCampaign);
+    }
+    if (existingBusiness) return bindAndReplay(existingBusiness);
     const result = preview(context, input);
     const campaignId = idFactory("leave_promotion_campaign");
     const now = clock();
-    store.transaction((tx) => {
-      tx.query("insert", { table: "hrx_leave_promotion_campaigns", row: {
-        tenant_id: tenantId, campaign_id: campaignId, policy_version_id: result.policy_version_id, reference_date: result.reference_date,
-        entitlement_period_end: result.entitlement_period_end, schedule_profile_id: result.schedule_profile_id, state: "active",
-        legal_schedule_json: JSON.stringify(result.legal_schedule), legal_basis_code: result.legal_basis_code,
-        legal_basis_version: result.legal_basis_version, legal_basis_effective_from: "2025-10-23", legal_review_state: "required",
-        timezone: "Asia/Seoul", threshold_minutes: result.threshold_minutes, standard_day_minutes: result.standard_day_minutes,
-        source_version: result.source_version, calculation_snapshot_hash: result.calculation_snapshot_hash, target_count: result.target_count,
-        excluded_count: result.excluded_count, exclusions_json: JSON.stringify(result.exclusions),
-        idempotency_key: idempotencyKey, created_at: now, updated_at: now,
-      } });
-      for (const target of result.targets) {
-        const recipientId = idFactory("leave_promotion_recipient");
-        tx.query("insert", { table: "hrx_leave_promotion_recipients", row: {
-          tenant_id: tenantId, recipient_id: recipientId, campaign_id: campaignId,
-          employee_id: target.employee_id, employee_display_name: target.employee_display_name, stage: "first_notice", state: "first_notice_pending",
-          deadline_at: result.legal_schedule.first_notice_deadline_at, first_notice_deadline_at: result.legal_schedule.first_notice_deadline_at,
-          second_notice_deadline_at: result.legal_schedule.second_notice_deadline_at, document_id: null, delivery_evidence_hash: null,
-          response_json: "{}", unused_minutes: target.available_minutes, standard_day_minutes: target.standard_day_minutes,
-          unused_days: target.unused_days, source_version: target.source_version, first_delivery_state: "not_created",
-          second_delivery_state: "not_created", compliance_state: "open", late_reasons_json: "[]", created_at: now, updated_at: now,
+    try {
+      store.transaction((tx) => {
+        tx.query("insert", { table: "hrx_leave_promotion_campaigns", row: {
+          tenant_id: tenantId, campaign_id: campaignId, policy_version_id: result.policy_version_id, reference_date: result.reference_date,
+          entitlement_period_end: result.entitlement_period_end, schedule_profile_id: result.schedule_profile_id,
+          business_fingerprint: business.business_fingerprint, state: "active",
+          legal_schedule_json: JSON.stringify(result.legal_schedule), legal_basis_code: result.legal_basis_code,
+          legal_basis_version: result.legal_basis_version, legal_basis_effective_from: "2025-10-23", legal_review_state: "required",
+          timezone: "Asia/Seoul", threshold_minutes: result.threshold_minutes, standard_day_minutes: result.standard_day_minutes,
+          source_version: result.source_version, calculation_snapshot_hash: result.calculation_snapshot_hash, target_count: result.target_count,
+          excluded_count: result.excluded_count, exclusions_json: JSON.stringify(result.exclusions),
+          idempotency_key: idempotencyKey, created_at: now, updated_at: now,
         } });
-        ensurePromotionOutbox(tx, {
-          tenantId,
-          recipientId,
-          eventType: "leave.promotion.first_notice_deadline",
-          payload: { recipient_id: recipientId, campaign_id: campaignId, stage: "first" },
-          idempotencyKey: `promotion:${campaignId}:${recipientId}:first-deadline`,
-          availableAt: result.legal_schedule.first_notice_deadline_at,
-          now,
-          idFactory,
-        });
-        ensurePromotionOutbox(tx, {
-          tenantId,
-          recipientId,
-          eventType: "leave.promotion.second_notice_deadline",
-          payload: { recipient_id: recipientId, campaign_id: campaignId, stage: "second" },
-          idempotencyKey: `promotion:${campaignId}:${recipientId}:second-deadline`,
-          availableAt: result.legal_schedule.second_notice_deadline_at,
-          now,
-          idFactory,
-        });
+        bindReceipt(tx, campaignId, now);
+        for (const target of result.targets) {
+          const recipientId = idFactory("leave_promotion_recipient");
+          tx.query("insert", { table: "hrx_leave_promotion_recipients", row: {
+            tenant_id: tenantId, recipient_id: recipientId, campaign_id: campaignId,
+            employee_id: target.employee_id, employee_display_name: target.employee_display_name, stage: "first_notice", state: "first_notice_pending",
+            deadline_at: result.legal_schedule.first_notice_deadline_at, first_notice_deadline_at: result.legal_schedule.first_notice_deadline_at,
+            second_notice_deadline_at: result.legal_schedule.second_notice_deadline_at, document_id: null, delivery_evidence_hash: null,
+            response_json: "{}", unused_minutes: target.available_minutes, standard_day_minutes: target.standard_day_minutes,
+            unused_days: target.unused_days, source_version: target.source_version, first_delivery_state: "not_created",
+            second_delivery_state: "not_created", compliance_state: "open", late_reasons_json: "[]", created_at: now, updated_at: now,
+          } });
+          ensurePromotionOutbox(tx, {
+            tenantId,
+            recipientId,
+            eventType: "leave.promotion.first_notice_deadline",
+            payload: { recipient_id: recipientId, campaign_id: campaignId, stage: "first" },
+            idempotencyKey: `promotion:${campaignId}:${recipientId}:first-deadline`,
+            availableAt: result.legal_schedule.first_notice_deadline_at,
+            now,
+            idFactory,
+          });
+          ensurePromotionOutbox(tx, {
+            tenantId,
+            recipientId,
+            eventType: "leave.promotion.second_notice_deadline",
+            payload: { recipient_id: recipientId, campaign_id: campaignId, stage: "second" },
+            idempotencyKey: `promotion:${campaignId}:${recipientId}:second-deadline`,
+            availableAt: result.legal_schedule.second_notice_deadline_at,
+            now,
+            idFactory,
+          });
+        }
+      });
+    } catch (error) {
+      const concurrentReceiptReplay = validateReceipt(findReceipt());
+      if (concurrentReceiptReplay) return concurrentReceiptReplay;
+      const concurrentKeyedCampaign = findByIdempotencyKey();
+      if (concurrentKeyedCampaign) {
+        if (storedCampaignFingerprint(concurrentKeyedCampaign) !== business.business_fingerprint) {
+          throw idempotencyConflict();
+        }
+        return bindAndReplay(concurrentKeyedCampaign);
       }
+      const concurrentBusinessReplay = findByBusiness();
+      if (concurrentBusinessReplay) return bindAndReplay(concurrentBusinessReplay);
+      throw error;
+    }
+    appendAudit(context, "hrx.leave.promotion.create", "LeavePromotionCampaign", campaignId, "leave_promotion_campaign_created", {
+      target_count: result.target_count,
+      source_version: result.source_version,
+      business_fingerprint: business.business_fingerprint,
+      legal_review_state: "required",
     });
-    appendAudit(context, "hrx.leave.promotion.create", "LeavePromotionCampaign", campaignId, "leave_promotion_campaign_created", { target_count: result.target_count, source_version: result.source_version, legal_review_state: "required" });
     return get(context, campaignId);
   }
 

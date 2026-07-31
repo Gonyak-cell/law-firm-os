@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
 import { calculateKoreanAnnualPaidLeaveEntitlement } from "../rules/leave-policy.js";
+import { publicEmployeeDisplayName } from "../people-presentation.js";
 import { planEarliestExpiryAllocations } from "./allocation.js";
 import { createSqlLeaveBalanceLedger } from "./balance.js";
 import { createXlsxBuffer, parseXlsxBuffer } from "./xlsx-export.js";
@@ -160,7 +161,7 @@ export function createStoreLeaveAccrualSourceProvider({ store } = {}) {
         if (!attendanceSource.source_complete) errors.push("attendance_source_missing");
         return Object.freeze({
           employee_id: employee.employee_id,
-          display_name: employee.display_name,
+          display_name: publicEmployeeDisplayName(employee),
           employee_status: employee.status,
           profile_status: profile?.status ?? null,
           employment_type: profile?.employment_type ?? null,
@@ -238,7 +239,7 @@ function scheduleMatches(config, employee, periodKey, occurredOn) {
 }
 
 function previewEmployee({ employee, config, policy, periodKey, occurredOn }) {
-  const base = { employee_id: employee.employee_id, display_name: employee.display_name ?? employee.employee_id };
+  const base = { employee_id: employee.employee_id, display_name: publicEmployeeDisplayName(employee) };
   if (employee.employee_status === "terminated" || employee.employee_status === "inactive") {
     return Object.freeze({ ...base, status: "skipped", reason_code: "employee_inactive", amount_minutes: 0 });
   }

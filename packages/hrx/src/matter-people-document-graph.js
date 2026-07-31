@@ -1,4 +1,7 @@
+import { publicPeopleLabel, UNRESOLVED_EMPLOYEE_DISPLAY_NAME } from "./people-presentation.js";
+
 const NODE_TYPES = Object.freeze(["matter", "person", "document"]);
+const UNRESOLVED_DOCUMENT_DISPLAY_LABEL = "문서 제목 확인 필요";
 const RELATIONSHIP_TYPES = Object.freeze([
   "matter_person",
   "matter_document",
@@ -154,6 +157,20 @@ function byNode(left, right) {
 
 function byRelationship(left, right) {
   return left.relationship_id.localeCompare(right.relationship_id);
+}
+
+function runtimeEmployeeDisplayLabel(employee, employeeId) {
+  return publicPeopleLabel(employee?.display_name ?? employee?.name, {
+    references: [employee?.employee_id, employee?.user_id, employeeId],
+    fallback: UNRESOLVED_EMPLOYEE_DISPLAY_NAME,
+  });
+}
+
+function runtimeDocumentDisplayLabel(document) {
+  return publicPeopleLabel(document?.title, {
+    references: [document?.document_id],
+    fallback: UNRESOLVED_DOCUMENT_DISPLAY_LABEL,
+  });
 }
 
 export function createMatterPeopleDocumentNode(input = {}) {
@@ -395,7 +412,7 @@ export function createMatterPeopleDocumentGraphSeedFromRuntime({
     putNode({
       node_type: "person",
       node_id: assignment.employee_id,
-      display_label: employee?.display_name ?? employee?.name ?? assignment.employee_id,
+      display_label: runtimeEmployeeDisplayLabel(employee, assignment.employee_id),
       permission_scope: "firm_internal_reference",
       metadata: {
         source_kind: "hrx_employee_repository",
@@ -423,7 +440,7 @@ export function createMatterPeopleDocumentGraphSeedFromRuntime({
       putNode({
         node_type: "person",
         node_id: document.employee_id,
-        display_label: employee?.display_name ?? employee?.name ?? document.employee_id,
+        display_label: runtimeEmployeeDisplayLabel(employee, document.employee_id),
         permission_scope: "firm_internal_reference",
         metadata: {
           source_kind: "hrx_employee_repository",
@@ -434,7 +451,7 @@ export function createMatterPeopleDocumentGraphSeedFromRuntime({
     putNode({
       node_type: "document",
       node_id: document.document_id,
-      display_label: document.title ?? document.document_id,
+      display_label: runtimeDocumentDisplayLabel(document),
       permission_scope: "hrx_document_metadata",
       metadata: {
         source_kind: "hrx_document_repository",

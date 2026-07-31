@@ -2,11 +2,12 @@ import { randomUUID } from "node:crypto";
 import { createApplication, transitionApplicationStage } from "../../../../../packages/hrx/src/recruiting/application.js";
 import { createCandidateProfile } from "../../../../../packages/hrx/src/recruiting/candidate.js";
 import { assertCandidateConsentAllowsProcessing, createCandidateConsent } from "../../../../../packages/hrx/src/recruiting/consent.js";
-import { convertCandidateToEmployee } from "../../../../../packages/hrx/src/recruiting/convert-to-employee.js";
+import { executeCandidateConversion } from "../../../../../packages/hrx/src/recruiting/conversion-service.js";
 import { createInterview } from "../../../../../packages/hrx/src/recruiting/interview.js";
 import { completeInterviewWithFeedbackSource } from "../../../../../packages/hrx/src/recruiting/interview-feedback.js";
 import { createJobOpening, transitionJobOpening } from "../../../../../packages/hrx/src/recruiting/job-opening.js";
 import { createOffer, transitionOffer } from "../../../../../packages/hrx/src/recruiting/offer.js";
+import { createInMemoryHrxRepository } from "../../../../../packages/hrx/src/repository.js";
 
 function response(status, body) {
   return Object.freeze({ status, body: Object.freeze(body) });
@@ -26,7 +27,36 @@ async function appendAudit(audit, context = {}, event = {}) {
   });
 }
 
-export function createHrxRecruitingRoute({ audit, seed = {} } = {}) {
+function requireActiveEmployee(repository, tenantId, employeeId, field) {
+  const employee = typeof employeeId === "string" && employeeId.trim()
+    ? repository.getEmployee({ tenant_id: tenantId, employee_id: employeeId.trim() })
+    : null;
+  if (!employee || employee.status !== "active") {
+    const error = new Error(`${field} must reference an active employee in the signed tenant`);
+    error.status = 409;
+    error.safe_error_code = "HRX_RECRUITING_EMPLOYEE_AUTHORITY_INVALID";
+    throw error;
+  }
+  return employee;
+}
+
+function requireScopedRecord(collection, tenantId, field, value, safeErrorCode) {
+  const record = collection.find((item) => item.tenant_id === tenantId && item[field] === value);
+  if (!record) {
+    const error = new Error(`${field} not found: ${value}`);
+    error.status = 404;
+    error.safe_error_code = safeErrorCode;
+    throw error;
+  }
+  return record;
+}
+
+export function createHrxRecruitingRoute({
+  audit,
+  seed = {},
+  repository = createInMemoryHrxRepository(),
+  clock,
+} = {}) {
   const candidates = [...(seed.candidates ?? [])].map(createCandidateProfile);
   const consents = [...(seed.consents ?? [])].map(createCandidateConsent);
   const jobOpenings = [...(seed.job_openings ?? [])].map(createJobOpening);
@@ -49,13 +79,16 @@ export function createHrxRecruitingRoute({ audit, seed = {} } = {}) {
           });
         }
         if (request.method === "POST" && resource === "candidates") {
+          if (!request.body?.consent) {
+            throw new TypeError("candidate consent is required before processing");
+          }
           const consent = createCandidateConsent({ ...request.body.consent, tenant_id: request.context.tenant_id });
-          consents.push(consent);
-          assertCandidateConsentAllowsProcessing(consents, {
+          assertCandidateConsentAllowsProcessing([...consents, consent], {
             tenant_id: request.context.tenant_id,
             candidate_id: request.body.candidate_id,
           });
           const candidate = createCandidateProfile({ ...request.body, tenant_id: request.context.tenant_id });
+          consents.push(consent);
           candidates.push(candidate);
           await appendAudit(audit, request.context, {
             action: "hrx.candidate.create",
@@ -67,6 +100,12 @@ export function createHrxRecruitingRoute({ audit, seed = {} } = {}) {
           return response(201, { outcome: "created", candidate });
         }
         if (request.method === "POST" && resource === "job_openings") {
+          requireActiveEmployee(
+            repository,
+            request.context.tenant_id,
+            request.body.hiring_manager_employee_id,
+            "hiring_manager_employee_id",
+          );
           const opening = createJobOpening({ ...request.body, tenant_id: request.context.tenant_id });
           jobOpenings.push(opening);
           await appendAudit(audit, request.context, {
@@ -116,6 +155,14 @@ export function createHrxRecruitingRoute({ audit, seed = {} } = {}) {
         }
         if (request.method === "POST" && resource === "interviews") {
           const interview = createInterview({ ...request.body, tenant_id: request.context.tenant_id });
+          for (const interviewerEmployeeId of interview.interviewer_employee_ids) {
+            requireActiveEmployee(
+              repository,
+              request.context.tenant_id,
+              interviewerEmployeeId,
+              "interviewer_employee_ids",
+            );
+          }
           interviews.push(interview);
           await appendAudit(audit, request.context, {
             action: "hrx.interview.create",
@@ -152,7 +199,10 @@ export function createHrxRecruitingRoute({ audit, seed = {} } = {}) {
         if (request.method === "POST" && resource === "offer_stage") {
           const index = offers.findIndex((item) => item.offer_id === request.params?.offer_id);
           if (index === -1) return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFER_NOT_FOUND" });
-          offers[index] = transitionOffer(offers[index], request.body);
+          offers[index] = transitionOffer(offers[index], {
+            ...request.body,
+            approval_ref: offers[index].approval_ref,
+          });
           await appendAudit(audit, request.context, {
             action: "hrx.offer.stage.update",
             object_type: "Offer",
@@ -163,24 +213,71 @@ export function createHrxRecruitingRoute({ audit, seed = {} } = {}) {
           return response(200, { outcome: "updated", offer: offers[index] });
         }
         if (request.method === "POST" && resource === "convert_to_employee") {
-          const conversion = convertCandidateToEmployee({
-            ...request.body,
-            candidate: { ...request.body.candidate, tenant_id: request.context.tenant_id },
-            application: { ...request.body.application, tenant_id: request.context.tenant_id },
-            offer: { ...request.body.offer, tenant_id: request.context.tenant_id },
+          const tenantId = request.context.tenant_id;
+          const application = requireScopedRecord(
+            applications,
+            tenantId,
+            "application_id",
+            request.params?.application_id,
+            "HRX_APPLICATION_NOT_FOUND",
+          );
+          const candidate = requireScopedRecord(
+            candidates,
+            tenantId,
+            "candidate_id",
+            application.candidate_id,
+            "HRX_CANDIDATE_NOT_FOUND",
+          );
+          const offer = offers.find((item) => (
+            item.tenant_id === tenantId
+            && item.application_id === application.application_id
+            && item.candidate_id === candidate.candidate_id
+          ));
+          if (!offer) {
+            return response(404, { outcome: "not_found", safe_error_code: "HRX_OFFER_NOT_FOUND" });
+          }
+          const jobOpening = requireScopedRecord(
+            jobOpenings,
+            tenantId,
+            "job_opening_id",
+            application.job_opening_id,
+            "HRX_JOB_OPENING_NOT_FOUND",
+          );
+          const result = executeCandidateConversion({
+            repository,
+            audit,
+            actor: request.context,
+            input: request.body,
+            authority: {
+              candidate,
+              application,
+              offer,
+              job_opening: jobOpening,
+            },
+            ...(clock ? { clock } : {}),
           });
-          await appendAudit(audit, request.context, {
-            action: "hrx.candidate.convert_to_employee",
-            object_type: "Employee",
-            object_id: conversion.employee.employee_id,
-            reason: "candidate_converted_to_employee",
-            metadata: { candidate_id: conversion.candidate_id, approval_ref: conversion.approval_ref },
+          return response(result.replayed ? 200 : 201, {
+            outcome: result.replayed ? "replayed" : "converted",
+            replayed: result.replayed,
+            receipt: result.receipt,
+            conversion: {
+              employee: result.receipt.results.employee.value,
+              employment_profile: result.receipt.results.employment_profile.value,
+              employee_user_link: result.receipt.results.employee_user_link.value,
+              crm_party_linked: result.receipt.crm_party_linked,
+            },
           });
-          return response(201, { outcome: "converted", conversion });
         }
         return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
       } catch (error) {
-        return response(400, { outcome: "blocked", safe_error_code: "HRX_RECRUITING_ROUTE_ERROR", reason: error.message });
+        return response(
+          Number.isInteger(error.status) ? error.status : 400,
+          {
+            outcome: "blocked",
+            safe_error_code: error.safe_error_code ?? "HRX_RECRUITING_ROUTE_ERROR",
+            reason: error.message,
+          },
+        );
       }
     },
   });

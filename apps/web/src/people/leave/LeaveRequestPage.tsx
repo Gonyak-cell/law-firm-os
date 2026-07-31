@@ -13,6 +13,7 @@ import {
   respondHrxLeaveReschedule,
   submitHrxLeaveSelfRequest
 } from "../hrxApiClient.ts";
+import { safeEmployeeLabel, safePeopleLabel } from "../peoplePresentation.ts";
 
 type Row = Record<string, unknown>;
 type LeaveForm = {
@@ -44,6 +45,21 @@ const emptyForm: LeaveForm = {
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
   return typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
+}
+
+function employeeLabel(row: Row | null | undefined, field = "display_name") {
+  return safeEmployeeLabel({
+    employee_id: row?.employee_id,
+    user_id: row?.user_id,
+    display_name: row?.[field],
+  });
+}
+
+function approverLabel(row: Row | null | undefined) {
+  return safePeopleLabel(text(row, "display_name"), {
+    identifiers: [row?.actor_id, row?.employee_id, row?.user_id],
+    fallback: "지정 승인자",
+  });
 }
 
 function rows(row: Row | null | undefined, field: string) {
@@ -317,10 +333,10 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
                 <div><strong>{team.pending_approval_count}건</strong><span>내 승인 대기</span></div>
               </div>
               <div className="leave-team-list">
-                {team.absences.map((absence, index) => <div key={`${text(absence, "employee_id")}:${text(absence, "start_date")}:${index}`}><strong>{text(absence, "employee_display_name")}</strong><span>{period(absence)}</span></div>)}
+                {team.absences.map((absence, index) => <div key={`${text(absence, "employee_id")}:${text(absence, "start_date")}:${index}`}><strong>{employeeLabel(absence, "employee_display_name")}</strong><span>{period(absence)}</span></div>)}
                 {team.employees.map((employee) => {
                   const balance = rows(employee, "balances")[0];
-                  return <div key={`balance:${text(employee, "employee_id")}`}><strong>{text(employee, "display_name")}</strong><span>사용 가능 {formatMinutes(number(balance, "available_minutes"))}</span></div>;
+                  return <div key={`balance:${text(employee, "employee_id")}`}><strong>{employeeLabel(employee)}</strong><span>사용 가능 {formatMinutes(number(balance, "available_minutes"))}</span></div>;
                 })}
               </div>
             </section>
@@ -348,7 +364,7 @@ export function LeaveRequestPage({ canViewTeam = false }: { canViewTeam?: boolea
           {preview && (
             <div className="leave-preview-line" data-leave-preview="ready">
               <div><strong>{formatMinutes(number(preview.economics as Row, "deduction_minutes"))} 차감</strong><span>유급 {formatMinutes(number(preview.economics as Row, "paid_minutes"))} · 무급 {formatMinutes(number(preview.economics as Row, "unpaid_minutes"))} · 신청 후 {formatMinutes(number(preview, "available_after_minutes"))}</span></div>
-              <div><strong>{text((preview.approval_plan as Row)?.approver as Row, "display_name") || "지정 승인자"}</strong><span>{number(preview.approval_plan as Row, "step_count")}단계 승인 · 제출 즉시 예약</span></div>
+              <div><strong>{approverLabel((preview.approval_plan as Row)?.approver as Row)}</strong><span>{number(preview.approval_plan as Row, "step_count")}단계 승인 · 제출 즉시 예약</span></div>
               <div><strong>{rows(preview.schedule as Row, "included_dates").length || rows(preview.schedule as Row, "segments").length}일 반영</strong><span>{rows(preview.schedule as Row, "non_working_dates").length ? `비근무일 ${rows(preview.schedule as Row, "non_working_dates").map((day) => text(day, "date")).join(", ")} 제외` : "선택 기간에 제외된 비근무일 없음"}</span></div>
               <div><strong>{rows(preview, "allocations").length}개 발생분 사용</strong><span>{rows(preview, "allocations").map((allocation) => `${text(allocation, "expires_on") || "만료 없음"} ${formatMinutes(number(allocation, "amount_minutes"))}`).join(" · ")}</span></div>
               <div className="leave-preview-periods"><strong>반영 시간</strong><span>{rows(preview.schedule as Row, "segments").map((segment) => `${text(segment, "date")} ${rows(segment, "leave_periods").map((period) => `${text(period, "start")}~${text(period, "end")}`).join(", ")}`).join(" · ")}</span></div>

@@ -1,8 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
 import { assertHrxProviderReceiptSucceeded } from "../provider-receipt-contract.js";
+import { publicEmployeeDisplayName } from "../people-presentation.js";
 import { planEarliestExpiryAllocations } from "./allocation.js";
 import { createSqlLeaveBalanceLedger } from "./balance.js";
+
+const LEAVE_GROUP_NAME_FALLBACK = "휴가 그룹 이름 확인 필요";
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -168,7 +171,7 @@ export function createLeaveTerminationService({
       const payoutAllowed = rules.termination_unused_payout === true;
       return Object.freeze({
         group_id: groupId,
-        group_display_name: group?.display_name ?? groupId,
+        group_display_name: group?.display_name ?? LEAVE_GROUP_NAME_FALLBACK,
         policy_version_id: policy?.policy_version_id ?? null,
         policy_code: policy?.policy_code ?? null,
         ...totals,
@@ -187,7 +190,7 @@ export function createLeaveTerminationService({
       .map((group) => ({ group_id: group.group_id, error_code: "HRX_LEAVE_TERMINATION_POLICY_REQUIRED" })));
     return Object.freeze({
       employee_id: snapshot.employee.employee_id,
-      employee_display_name: snapshot.employee.display_name,
+      employee_display_name: publicEmployeeDisplayName(snapshot.employee),
       offboarding_id: snapshot.offboarding.offboarding_id,
       termination_date: terminationDate,
       groups: Object.freeze(groups),
@@ -226,7 +229,7 @@ export function createLeaveTerminationService({
       .filter((row) => authorized.has(row.employee_id))
       .map((row) => {
         const employee = store.query("selectOne", { table: "hrx_employees", where: { tenant_id: tenantId, employee_id: row.employee_id } });
-        return Object.freeze({ offboarding_id: row.offboarding_id, employee_id: row.employee_id, employee_display_name: employee?.display_name ?? "구성원", termination_date: row.separation_date, leave_reconciliation_status: row.leave_reconciliation_status ?? "pending" });
+        return Object.freeze({ offboarding_id: row.offboarding_id, employee_id: row.employee_id, employee_display_name: publicEmployeeDisplayName(employee), termination_date: row.separation_date, leave_reconciliation_status: row.leave_reconciliation_status ?? "pending" });
       })
       .sort((left, right) => left.termination_date.localeCompare(right.termination_date)));
   }
@@ -529,11 +532,49 @@ export function createLeaveTerminationService({
       }
       const reconciliation = tx.query("selectOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, preview_reconciliation_id: outbox.aggregate_id } });
       if (!reconciliation) throw guardedError("Executed termination reconciliation not found", "HRX_LEAVE_TERMINATION_EXECUTION_NOT_FOUND", 404);
-      if (reconciliation.state === "approved_and_synced") return view(reconciliation);
       const result = { ...parseJson(reconciliation.result_json, {}), sync_state: "delivered", provider_receipt_ref: providerReceiptRef, provider_receipt_id: providerReceipt.receipt_id, provider_id: providerReceipt.provider_id, provider_payload_hash: providerReceipt.payload_hash };
+      const offboardingId = requiredString(result, "offboarding_id");
+      const offboarding = tx.query("selectOne", {
+        table: "hrx_offboarding_cases",
+        where: { tenant_id: tenantId, offboarding_id: offboardingId },
+      });
+      if (!offboarding) {
+        throw guardedError(
+          "Termination offboarding case not found",
+          "HRX_LEAVE_TERMINATION_OFFBOARDING_NOT_FOUND",
+          404,
+        );
+      }
+      if (
+        offboarding.leave_reconciliation_evidence_ref &&
+        offboarding.leave_reconciliation_evidence_ref !== providerReceiptRef
+      ) {
+        throw guardedError(
+          "Termination payroll evidence conflicts with the offboarding case",
+          "HRX_LEAVE_TERMINATION_EVIDENCE_CONFLICT",
+        );
+      }
+      if (reconciliation.state === "approved_and_synced") {
+        if (
+          offboarding.leave_reconciliation_status !== "approved_and_synced" ||
+          offboarding.leave_reconciliation_evidence_ref !== providerReceiptRef
+        ) {
+          throw guardedError(
+            "Termination completion is missing its bound payroll evidence",
+            "HRX_LEAVE_TERMINATION_EVIDENCE_MISSING",
+          );
+        }
+        return view(reconciliation);
+      }
       const updated = tx.query("updateOne", { table: "hrx_leave_termination_reconciliations", where: { tenant_id: tenantId, reconciliation_id: reconciliation.reconciliation_id }, patch: { state: "approved_and_synced", result_json: JSON.stringify(result), completed_at: now } });
-      const offboardingId = result.offboarding_id;
-      tx.query("updateOne", { table: "hrx_offboarding_cases", where: { tenant_id: tenantId, offboarding_id: offboardingId }, patch: { leave_reconciliation_status: "approved_and_synced" } });
+      tx.query("updateOne", {
+        table: "hrx_offboarding_cases",
+        where: { tenant_id: tenantId, offboarding_id: offboardingId },
+        patch: {
+          leave_reconciliation_status: "approved_and_synced",
+          leave_reconciliation_evidence_ref: providerReceiptRef,
+        },
+      });
       createSqlHrxAuditEventStore({ store: tx }).append({ event_id: idFactory("leave_audit_termination_synced"), tenant_id: tenantId, actor_id: actorId, action: "hrx.leave.termination.payroll_synced", object_type: "LeaveTerminationReconciliation", object_id: updated.reconciliation_id, decision: "allow", reason: "termination_payroll_handoff_receipt_recorded", occurred_at: now, metadata: { outbox_event_id: outboxEventId, provider_receipt_ref: providerReceiptRef, provider_receipt_id: providerReceipt.receipt_id, provider_id: providerReceipt.provider_id, provider_payload_hash: providerReceipt.payload_hash } });
       return view(updated);
     });

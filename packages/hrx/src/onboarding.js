@@ -1,4 +1,13 @@
-export const HRX_ONBOARDING_TASK_STATUSES = Object.freeze(["pending", "completed", "blocked"]);
+import {
+  HRX_LIFECYCLE_TASK_STATUSES,
+  createLifecycleTemplate,
+  instantiateLifecycleTemplate,
+  lifecycleTemplateRef,
+  normalizeLifecycleTaskInstance,
+  updateLifecycleTaskInstances,
+} from "./lifecycle-template.js";
+
+export const HRX_ONBOARDING_TASK_STATUSES = HRX_LIFECYCLE_TASK_STATUSES;
 export const HRX_ACCESS_REQUEST_STATES = Object.freeze(["requested", "approved", "provisioned", "denied"]);
 export const HRX_ONBOARDING_MATTER_ASSIGNMENT_TASKS = Object.freeze([
   Object.freeze({
@@ -31,16 +40,7 @@ function assertNoDocumentBody(input = {}) {
 }
 
 function normalizeTask(task = {}) {
-  const status = task.status ?? "pending";
-  if (!HRX_ONBOARDING_TASK_STATUSES.includes(status)) {
-    throw new TypeError(`task status must be one of ${HRX_ONBOARDING_TASK_STATUSES.join(", ")}`);
-  }
-  return Object.freeze({
-    task_id: requiredString(task, "task_id"),
-    title: requiredString(task, "title"),
-    owner_role: requiredString(task, "owner_role"),
-    status,
-  });
+  return normalizeLifecycleTaskInstance(task);
 }
 
 function normalizeAccessRequest(request = {}) {
@@ -84,28 +84,39 @@ function withDefaultMatterAssignmentTasks(tasks = [], requiredTaskIds = HRX_ONBO
 
 export function createOnboardingPlan(input = {}) {
   assertNoDocumentBody(input);
+  const templateInstance = input.template
+    ? instantiateLifecycleTemplate(input.template, { anchor_date: input.start_date })
+    : null;
+  if (templateInstance && templateInstance.template_ref.lifecycle_kind !== "onboarding") {
+    throw new TypeError("onboarding plan requires an onboarding lifecycle template");
+  }
+  const templateSnapshot = templateInstance?.template_snapshot
+    ?? (input.template_snapshot ? createLifecycleTemplate(input.template_snapshot) : null);
+  if (templateSnapshot && templateSnapshot.lifecycle_kind !== "onboarding") {
+    throw new TypeError("onboarding template_snapshot lifecycle_kind must be onboarding");
+  }
   const matterAssignmentGate = normalizeMatterAssignmentGate(input);
   return Object.freeze({
     tenant_id: requiredString(input, "tenant_id"),
     onboarding_id: requiredString(input, "onboarding_id"),
     employee_id: requiredString(input, "employee_id"),
     start_date: requiredString(input, "start_date"),
-    tasks: withDefaultMatterAssignmentTasks((input.tasks ?? []).map(normalizeTask), matterAssignmentGate.required_task_ids),
+    template_ref: templateInstance?.template_ref
+      ?? (templateSnapshot ? lifecycleTemplateRef(templateSnapshot) : input.template_ref ?? null),
+    template_snapshot: templateSnapshot,
+    tasks: withDefaultMatterAssignmentTasks(
+      (templateInstance?.tasks ?? input.tasks ?? []).map(normalizeTask),
+      matterAssignmentGate.required_task_ids,
+    ),
     document_refs: Object.freeze((input.document_refs ?? []).map((document_ref) => requiredString({ document_ref }, "document_ref"))),
     access_requests: Object.freeze((input.access_requests ?? []).map(normalizeAccessRequest)),
     matter_assignment_gate: matterAssignmentGate,
   });
 }
 
-export function updateOnboardingTask(plan = {}, taskId, patch = {}) {
+export function updateOnboardingTask(plan = {}, taskId, patch = {}, options = {}) {
   const current = createOnboardingPlan(plan);
-  let matched = false;
-  const tasks = current.tasks.map((task) => {
-    if (task.task_id !== taskId) return task;
-    matched = true;
-    return normalizeTask({ ...task, ...patch });
-  });
-  if (!matched) throw new Error(`Onboarding task not found: ${taskId}`);
+  const tasks = updateLifecycleTaskInstances(current.tasks, taskId, patch, options);
   return createOnboardingPlan({ ...current, tasks });
 }
 
