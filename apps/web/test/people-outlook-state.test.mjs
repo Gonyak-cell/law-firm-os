@@ -462,16 +462,26 @@ test("expired Outlook callback state is rejected by the server without browser O
       outlookMode: "not_connected",
     });
     const actions = outlookPostActions(page);
+    await page.route("**/api/hrx/people/members/*/outlook-connection", (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      const requestBody = route.request().postDataJSON();
+      if (requestBody.action !== "complete") return route.fallback();
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ safe_error_code: "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED" }),
+      });
+    });
     const callbackUrl = new URL(page.url());
     callbackUrl.searchParams.set("code", "expired-authorization-code");
-    callbackUrl.searchParams.set("state", "expired-oauth-state");
+    callbackUrl.searchParams.set("state", "oauth-state-1");
     await page.goto(callbackUrl.toString(), { waitUntil: "networkidle" });
     await page.getByText("연결 요청을 확인하지 못했습니다. 다시 연결해 주세요.", { exact: true }).waitFor();
     assert.equal(actions.filter((item) => item.action === "complete").length, 1);
     assert.deepEqual(actions.at(-1), {
       action: "complete",
       authorization_code: "expired-authorization-code",
-      state_ref: "expired-oauth-state",
+      state_ref: "oauth-state-1",
     });
     assert.equal(
       await page.evaluate(() => sessionStorage.getItem("lawos.people.outlook-oauth.pending.v1")),
