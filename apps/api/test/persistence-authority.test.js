@@ -20,6 +20,13 @@ import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { lawosDurableStoreEnv } from "../src/local-durable-store-paths.js";
+import {
+  CLIENT_OPERATIONS_SCHEMA_MANIFEST,
+  runClientOperationsPostgresMigrations,
+} from "../src/client-operations-schema.js";
+import {
+  runHrxPostgresMigrations,
+} from "../../../packages/hrx/src/postgres-migrations.js";
 
 const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material";
 
@@ -27,62 +34,84 @@ test("operational PostgreSQL authority uses one pooled connection per Lambda exe
   assert.equal(LAWOS_POSTGRES_API_POOL_MAX, 1);
 });
 
-test("operational migration verification accepts only an exact foundation or exact HRX-extended catalog", async () => {
-  const foundation = Object.freeze([{ id: "foundation" }]);
-  const extended = Object.freeze([
-    ...foundation,
-    Object.freeze({ id: "hrx-extension" }),
-  ]);
-  assert.equal(await verifyOperationalPostgresMigrationState({}, {
-    verifyFoundation: async () => foundation,
-    verifyHrx: async () => {
-      throw new Error("HRX verifier must not run for an exact foundation catalog");
-    },
-  }), foundation);
-
-  let hrxVerificationCount = 0;
-  assert.equal(await verifyOperationalPostgresMigrationState({}, {
-    verifyFoundation: async () => {
-      throw Object.assign(new Error("catalog contains the approved HRX extension"), {
-        code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
-      });
-    },
-    verifyHrx: async () => {
-      hrxVerificationCount += 1;
-      return extended;
-    },
-  }), extended);
-  assert.equal(hrxVerificationCount, 1);
-
-  for (const code of [
-    "LAWOS_POSTGRES_MIGRATION_CHECKSUM_MISMATCH",
-    "LAWOS_POSTGRES_ACCESS_DENIED",
-  ]) {
-    await assert.rejects(
-      verifyOperationalPostgresMigrationState({}, {
-        verifyFoundation: async () => {
-          throw Object.assign(new Error("must remain fail closed"), { code });
-        },
-        verifyHrx: async () => extended,
-      }),
-      (error) => error?.code === code,
-    );
-  }
+test("operational migration verification requires the exact additive Client catalog", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
   await assert.rejects(
-    verifyOperationalPostgresMigrationState({}, {
-      verifyFoundation: async () => {
-        throw Object.assign(new Error("catalog diverged"), {
-          code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
-        });
-      },
-      verifyHrx: async () => {
-        throw Object.assign(new Error("unknown or partial HRX catalog"), {
-          code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
-        });
-      },
-    }),
-    (error) => error?.code === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+    verifyOperationalPostgresMigrationState(fixture.adminPool),
+    (error) =>
+      error?.code
+        === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
   );
+  await runHrxPostgresMigrations(fixture.adminPool);
+  const mixedHistory = await fixture.adminPool.query(
+    `SELECT migration_id, checksum
+       FROM lawos_meta.schema_migrations
+      ORDER BY migration_id`,
+  );
+  assert.equal(
+    mixedHistory.rows.at(-1).migration_id,
+    "204_hrx_projection_consumer_routing",
+  );
+  await assert.rejects(
+    verifyOperationalPostgresMigrationState(fixture.adminPool),
+    (error) =>
+      error?.code
+        === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+  );
+  await runClientOperationsPostgresMigrations(
+    fixture.adminPool,
+  );
+  const verified = await verifyOperationalPostgresMigrationState(
+    fixture.adminPool,
+  );
+  assert.equal(
+    verified.length,
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count,
+  );
+  const connection = await fixture.adminPool.connect();
+  try {
+    const finalEntry =
+      CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-1);
+    async function rejectDrift({ sql, values, code }) {
+      await connection.query("BEGIN");
+      try {
+        await connection.query(sql, values);
+        await assert.rejects(
+          verifyOperationalPostgresMigrationState(connection),
+          (error) => error?.code === code,
+        );
+      } finally {
+        await connection.query("ROLLBACK");
+      }
+    }
+    await rejectDrift({
+      sql: `DELETE FROM lawos_meta.schema_migrations
+             WHERE migration_id = $1`,
+      values: [finalEntry.id],
+      code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+    });
+    await rejectDrift({
+      sql: `UPDATE lawos_meta.schema_migrations
+               SET checksum = $1
+             WHERE migration_id = $2`,
+      values: ["0".repeat(64), finalEntry.id],
+      code: "LAWOS_POSTGRES_MIGRATION_CHECKSUM_MISMATCH",
+    });
+    await rejectDrift({
+      sql: `INSERT INTO lawos_meta.schema_migrations
+              (migration_id, checksum, applied_by)
+            VALUES ($1, $2, $3)`,
+      values: [
+        "999_unknown_client_history",
+        "f".repeat(64),
+        "client-operations-test",
+      ],
+      code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+    });
+  } finally {
+    connection.release();
+  }
 });
 
 function storePathsUnder(root) {
@@ -394,6 +423,8 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   t.after(() => rmSync(parent, { recursive: true, force: true }));
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
+  await runHrxPostgresMigrations(fixture.adminPool);
+  await runClientOperationsPostgresMigrations(fixture.adminPool);
   let closed = false;
   const pool = {
     query: fixture.appPool.query.bind(fixture.appPool),
@@ -434,6 +465,10 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   const health = await fetch(`http://${started.host}:${started.port}/api/health`).then((response) => response.json());
   assert.equal(health.runtime_safety_policy.offline_capability, "rejected");
   assert.equal(health.runtime_safety_policy.authority_loss_mode, "fail_closed");
+  assert.equal(
+    health.auth_authority.object_acl_authority_source_ref,
+    "postgres-v2:lawos_domain.authz/ObjectAcl",
+  );
   assert.equal(health.auth_authority.staff_auth_authority, "internal-password");
   assert.equal(health.auth_authority.federated_staff_auth, false);
   assert.equal(health.auth_authority.account_directory, "postgres-v2");

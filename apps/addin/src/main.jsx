@@ -1,7 +1,26 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { AlertTriangle, Check, FileText, FolderDown, MailCheck, Search, ShieldCheck, TimerReset } from "lucide-react";
+import {
+  AlertTriangle,
+  Archive,
+  Check,
+  FileText,
+  FolderDown,
+  Link2,
+  MailCheck,
+  ShieldCheck,
+  TimerReset,
+  UserPlus,
+} from "lucide-react";
 import { PublicClientApplication } from "@azure/msal-browser";
+import {
+  buildInquiryRegistrationRequest,
+  inquiryResultCopy,
+  outlookActionErrorMessage,
+} from "./inquiry-actions.js";
+import {
+  resolveCurrentOutlookRestMessageId,
+} from "./outlook-item-id.js";
 import "./styles.css";
 
 const ADDIN_SESSION_STORAGE_KEY = "lawos_addin_session_token";
@@ -90,8 +109,23 @@ async function requestJson(path, { method = "GET", body } = {}) {
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
-  const payload = await response.json();
-  if (!response.ok) throw new Error(payload.safe_error_codes?.[0] ?? payload.message ?? "request_failed");
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    const error = new Error("API_RESPONSE_INVALID");
+    error.safe_error_code = "API_RESPONSE_INVALID";
+    throw error;
+  }
+  if (!response.ok) {
+    const code = payload.safe_error_codes?.[0]
+      ?? payload.message
+      ?? "request_failed";
+    const error = new Error(code);
+    error.safe_error_code = code;
+    error.status = response.status;
+    throw error;
+  }
   return payload;
 }
 
@@ -184,7 +218,7 @@ async function addWarningNotification(alertBody) {
       "lawos-smart-alert-warning",
       {
         type: messageType,
-        message: `${warnings.length} warning`,
+        message: `확인할 내용이 ${warnings.length}건 있습니다.`,
         icon: "icon16",
         persistent: false,
       },
@@ -226,6 +260,10 @@ export async function onMessageSendHandler(event = {}) {
 
 function registerOutlookEventHandlers() {
   window.__LAWOS_INIT_MSAL_BRIDGE = initializeMsalBridge;
+  window.__LAWOS_RESOLVE_CURRENT_OUTLOOK_REST_MESSAGE_ID =
+    () => resolveCurrentOutlookRestMessageId({
+      Office: window.Office,
+    });
   window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS = {
     ...(window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS ?? {}),
     onMessageSendHandler,
@@ -250,16 +288,30 @@ function StatusLine({ icon: Icon, label, value, tone = "neutral" }) {
 
 function outcomeLabel(value, fallback) {
   return {
-    created: "완료",
-    attachments_saved: "저장됨",
-    idempotent_replay: "확인됨",
+    created: "보관 완료",
+    attachments_saved: "첨부 저장 완료",
+    idempotent_replay: "이미 처리됨",
   }[value] ?? fallback;
+}
+
+function busyLabel(value) {
+  return {
+    new_inquiry: "새 문의를 등록하고 있습니다.",
+    link_inquiry: "기존 문의에 연결하고 있습니다.",
+    file: "Matter에 메일을 보관하고 있습니다.",
+    attachments: "첨부 파일을 저장하고 있습니다.",
+    followup: "후속 업무를 만들고 있습니다.",
+    alerts: "발송 전 확인 사항을 점검하고 있습니다.",
+  }[value] ?? "처리하고 있습니다.";
 }
 
 function App() {
   const [bootstrap, setBootstrap] = useState(null);
   const [matters, setMatters] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
   const [selectedMatterId, setSelectedMatterId] = useState(PROOF_MATTER_ID);
+  const [selectedLeadId, setSelectedLeadId] = useState("");
+  const [inquiryResult, setInquiryResult] = useState(null);
   const [emailResult, setEmailResult] = useState(null);
   const [attachmentResult, setAttachmentResult] = useState(null);
   const [followupResult, setFollowupResult] = useState(null);
@@ -272,27 +324,55 @@ function App() {
 
   async function loadBase() {
     setError("");
-    const [boot, matterBody] = await Promise.all([
+    const [boot, matterBody, inquiryBody] = await Promise.all([
       requestJson(`/api/outlook/bootstrap?tenant_id=${encodeURIComponent(TENANT_ID)}`),
       requestJson(`/api/outlook/matters?tenant_id=${encodeURIComponent(TENANT_ID)}&q=${encodeURIComponent(PROOF_MATTER_ID)}`),
+      requestJson(`/api/outlook/inquiries?tenant_id=${encodeURIComponent(TENANT_ID)}&limit=50`),
     ]);
+    const nextMatters = matterBody.items ?? [];
+    const nextMatterId = nextMatters.find(
+      (matter) => matter.matter_id === PROOF_MATTER_ID,
+    )?.matter_id ?? nextMatters[0]?.matter_id ?? "";
+    const nextInquiries = inquiryBody.items ?? [];
     setBootstrap(boot.item);
-    setMatters(matterBody.items ?? []);
-    if (matterBody.items?.[0]?.matter_id) setSelectedMatterId(matterBody.items[0].matter_id);
+    setMatters(nextMatters);
+    setSelectedMatterId(nextMatterId);
+    setInquiries(nextInquiries);
+    setSelectedLeadId(nextInquiries[0]?.lead_id ?? "");
+    await refreshMatter(nextMatterId);
   }
 
-  async function refreshMatter() {
-    if (!selectedMatterId) return;
+  async function loadInquiries() {
+    const body = await requestJson(
+      `/api/outlook/inquiries?tenant_id=${encodeURIComponent(TENANT_ID)}&limit=50`,
+    );
+    const nextInquiries = body.items ?? [];
+    setInquiries(nextInquiries);
+    setSelectedLeadId((current) => (
+      nextInquiries.some((inquiry) => inquiry.lead_id === current)
+        ? current
+        : nextInquiries[0]?.lead_id ?? ""
+    ));
+  }
+
+  async function refreshMatter(matterId = selectedMatterId) {
+    if (!matterId) {
+      setTimeline([]);
+      setDocuments([]);
+      return;
+    }
     const [timelineBody, documentBody] = await Promise.all([
-      requestJson(`/api/outlook/matters/${encodeURIComponent(selectedMatterId)}/timeline?tenant_id=${encodeURIComponent(TENANT_ID)}`),
-      requestJson(`/api/outlook/matters/${encodeURIComponent(selectedMatterId)}/documents?tenant_id=${encodeURIComponent(TENANT_ID)}`),
+      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/timeline?tenant_id=${encodeURIComponent(TENANT_ID)}`),
+      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/documents?tenant_id=${encodeURIComponent(TENANT_ID)}`),
     ]);
     setTimeline(timelineBody.item?.visible_entries ?? []);
     setDocuments(documentBody.items ?? []);
   }
 
   useEffect(() => {
-    loadBase().then(refreshMatter).catch((nextError) => setError(nextError.message));
+    loadBase().catch((nextError) => {
+      setError(outlookActionErrorMessage(nextError));
+    });
   }, []);
 
   async function runAction(name, fn) {
@@ -300,12 +380,35 @@ function App() {
     setError("");
     try {
       await fn();
-      await refreshMatter();
     } catch (nextError) {
-      setError(nextError.message);
+      setError(outlookActionErrorMessage(nextError));
     } finally {
       setBusy("");
     }
+  }
+
+  async function registerInquiry(action) {
+    const identity = resolveCurrentOutlookRestMessageId({
+      Office: window.Office,
+    });
+    const request = await buildInquiryRegistrationRequest({
+      tenant_id: TENANT_ID,
+      action,
+      rest_message_id: identity.rest_message_id,
+      ...(action === "link_existing"
+        ? { existing_lead_id: selectedLeadId }
+        : {}),
+    });
+    const body = await requestJson("/api/outlook/inquiries", {
+      method: "POST",
+      body: request,
+    });
+    setInquiryResult({
+      action,
+      outcome: body.outcome,
+      item: body.item,
+    });
+    await loadInquiries();
   }
 
   async function fileEmail() {
@@ -314,6 +417,7 @@ function App() {
       body: { tenant_id: TENANT_ID, matter_id: selectedMatterId, email: item },
     });
     setEmailResult(body);
+    await refreshMatter(selectedMatterId);
   }
 
   async function saveAttachments() {
@@ -329,10 +433,13 @@ function App() {
       },
     });
     setAttachmentResult(body);
+    await refreshMatter(selectedMatterId);
   }
 
   async function createFollowup() {
     const threadId = emailResult?.email_thread?.email_thread_id ?? `thread:${item.conversation_id}`;
+    const dueAt = new Date(Date.now() + (24 * 60 * 60 * 1000))
+      .toISOString();
     const body = await requestJson("/api/outlook/followups", {
       method: "POST",
       body: {
@@ -340,11 +447,12 @@ function App() {
         matter_id: selectedMatterId,
         kind: "task",
         title: "메일 검토 후 후속 조치",
-        due_at: "2026-07-10T09:00:00.000Z",
+        due_at: dueAt,
         source_email_thread_id: threadId,
       },
     });
     setFollowupResult(body);
+    await refreshMatter(selectedMatterId);
   }
 
   async function evaluateAlerts() {
@@ -362,36 +470,24 @@ function App() {
   }
 
   const selectedMatter = matters.find((matter) => matter.matter_id === selectedMatterId) ?? matters[0];
+  const inquiryCopy = inquiryResult
+    ? inquiryResultCopy(inquiryResult)
+    : null;
 
   return (
     <main className="addin-shell" data-outlook-addin-taskpane="true">
       <header className="pane-header">
         <div>
-          <p className="eyebrow">Outlook filing</p>
-          <h1>matter 연결</h1>
+          <p className="eyebrow">Outlook</p>
+          <h1>메일 처리</h1>
         </div>
-        <span className="mode-badge">경고 전용</span>
+        <span className="mode-badge">확인 후 저장</span>
       </header>
 
       <section className="status-stack" aria-label="연결 상태">
-        <StatusLine icon={ShieldCheck} label="인증" value={bootstrap?.auth_shell?.signed_session_supported ? "세션 확인" : "대기"} tone="good" />
-        <StatusLine icon={MailCheck} label="M365" value={bootstrap?.external_receipt_boundary?.entra_admin_consent_receipt_present ? "외부 영수증 있음" : "provider-gated"} />
-        <StatusLine icon={AlertTriangle} label="발송 정책" value="차단 없음" tone="warn" />
-      </section>
-
-      <section className="pane-section">
-        <div className="section-title">
-          <Search size={15} />
-          <h2>matter 선택</h2>
-        </div>
-        <select value={selectedMatterId} onChange={(event) => setSelectedMatterId(event.target.value)} data-testid="matter-select">
-          {matters.map((matter) => (
-            <option key={matter.matter_id} value={matter.matter_id}>
-              {matter.lookup_label}
-            </option>
-          ))}
-        </select>
-        <p className="safe-copy">{selectedMatter?.client_display_name ?? "고객명 없음"} · {selectedMatter?.status ?? "상태 없음"}</p>
+        <StatusLine icon={ShieldCheck} label="로그인" value={bootstrap?.auth_shell?.signed_session_supported ? "연결됨" : "확인 중"} tone="good" />
+        <StatusLine icon={MailCheck} label="Outlook" value={bootstrap?.external_receipt_boundary?.entra_admin_consent_receipt_present ? "연결됨" : "연결 확인 필요"} />
+        <StatusLine icon={AlertTriangle} label="발송 전 확인" value="안내만 표시" tone="warn" />
       </section>
 
       <section className="pane-section">
@@ -401,52 +497,180 @@ function App() {
         </div>
         <strong className="subject">{item.subject}</strong>
         <p className="safe-copy">{item.body_preview}</p>
-        <div className="button-row">
-          <button type="button" onClick={() => runAction("file", fileEmail)} disabled={!selectedMatterId || busy !== ""} data-testid="file-email-button">
-            <MailCheck size={15} />
-            메일 filing
-          </button>
-          <button type="button" onClick={() => runAction("attachments", saveAttachments)} disabled={!emailResult || busy !== ""} data-testid="save-attachments-button">
-            <FolderDown size={15} />
-            첨부 저장
-          </button>
+      </section>
+
+      <section className="pane-section action-section" aria-labelledby="mail-actions-title">
+        <div className="section-title">
+          <MailCheck size={15} />
+          <h2 id="mail-actions-title">이 메일 처리</h2>
+        </div>
+
+        <div className="action-list">
+          <div className="action-item">
+            <div className="action-copy">
+              <strong>새 문의로 등록</strong>
+              <span>현재 메일을 근거로 문의 기록을 만듭니다.</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => runAction(
+                "new_inquiry",
+                () => registerInquiry("new"),
+              )}
+              disabled={busy !== ""}
+              data-testid="new-inquiry-button"
+            >
+              <UserPlus size={15} />
+              새 문의 등록
+            </button>
+          </div>
+
+          <div className="action-item">
+            <div className="action-copy">
+              <strong>기존 문의에 연결</strong>
+              <span>이미 접수한 문의에 이 메일을 추가합니다.</span>
+            </div>
+            <label htmlFor="existing-inquiry-select">연결할 문의</label>
+            <select
+              id="existing-inquiry-select"
+              value={selectedLeadId}
+              onChange={(event) => setSelectedLeadId(event.target.value)}
+              disabled={inquiries.length === 0 || busy !== ""}
+              data-testid="existing-inquiry-select"
+            >
+              {inquiries.length === 0
+                ? <option value="">연결할 문의가 없습니다</option>
+                : inquiries.map((inquiry) => (
+                  <option key={inquiry.lead_id} value={inquiry.lead_id}>
+                    {inquiry.display_name}
+                  </option>
+                ))}
+            </select>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => runAction(
+                "link_inquiry",
+                () => registerInquiry("link_existing"),
+              )}
+              disabled={!selectedLeadId || busy !== ""}
+              data-testid="link-inquiry-button"
+            >
+              <Link2 size={15} />
+              기존 문의에 연결
+            </button>
+          </div>
+
+          <div className="action-item">
+            <div className="action-copy">
+              <strong>Matter에 보관</strong>
+              <span>선택한 Matter의 메일 기록에 보관합니다.</span>
+            </div>
+            <label htmlFor="matter-select">보관할 Matter</label>
+            <select
+              id="matter-select"
+              value={selectedMatterId}
+              onChange={(event) => setSelectedMatterId(event.target.value)}
+              disabled={matters.length === 0 || busy !== ""}
+              data-testid="matter-select"
+            >
+              {matters.length === 0
+                ? <option value="">선택할 Matter가 없습니다</option>
+                : matters.map((matter) => (
+                  <option key={matter.matter_id} value={matter.matter_id}>
+                    {matter.lookup_label}
+                  </option>
+                ))}
+            </select>
+            <p className="field-note">
+              {selectedMatter?.client_display_name ?? "고객 정보 없음"}
+            </p>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => runAction("file", fileEmail)}
+              disabled={!selectedMatterId || busy !== ""}
+              data-testid="file-email-button"
+            >
+              <Archive size={15} />
+              Matter에 보관
+            </button>
+          </div>
         </div>
       </section>
+
+      {inquiryCopy ? (
+        <section
+          className="action-result success"
+          role="status"
+          aria-live="polite"
+          data-testid="inquiry-status"
+          data-action={inquiryResult.action}
+          data-lead-id={inquiryResult.item?.lead_id ?? ""}
+          data-replay={inquiryResult.item?.idempotent_replay === true ? "true" : "false"}
+        >
+          <Check size={17} />
+          <div>
+            <strong>{inquiryCopy.title}</strong>
+            <span>{inquiryCopy.detail}</span>
+          </div>
+        </section>
+      ) : null}
+
+      {emailResult ? (
+        <section className="action-result success" role="status" aria-live="polite">
+          <Check size={17} />
+          <div>
+            <strong>
+              {emailResult.outcome === "idempotent_replay"
+                ? "이미 Matter에 보관된 메일입니다."
+                : "Matter에 보관했습니다."}
+            </strong>
+            <span>{selectedMatter?.lookup_label ?? selectedMatterId}</span>
+          </div>
+        </section>
+      ) : null}
 
       <section className="pane-section">
         <div className="section-title">
           <TimerReset size={15} />
-          <h2>후속 조치</h2>
+          <h2>추가 작업</h2>
         </div>
         <div className="button-row">
-          <button type="button" onClick={() => runAction("followup", createFollowup)} disabled={!emailResult || busy !== ""} data-testid="create-task-button">
-            <Check size={15} />
-            업무 생성
+          <button className="secondary-button" type="button" onClick={() => runAction("attachments", saveAttachments)} disabled={!emailResult || busy !== ""} data-testid="save-attachments-button">
+            <FolderDown size={15} />
+            첨부 파일 저장
           </button>
-          <button type="button" onClick={() => runAction("alerts", evaluateAlerts)} disabled={busy !== ""} data-testid="smart-alert-button">
+          <button className="secondary-button" type="button" onClick={() => runAction("followup", createFollowup)} disabled={!emailResult || busy !== ""} data-testid="create-task-button">
+            <Check size={15} />
+            후속 업무 만들기
+          </button>
+          <button className="secondary-button full-width" type="button" onClick={() => runAction("alerts", evaluateAlerts)} disabled={busy !== ""} data-testid="smart-alert-button">
             <AlertTriangle size={15} />
-            경고 점검
+            발송 전 확인
           </button>
         </div>
       </section>
 
-      <section className="result-strip" data-testid="proof-status">
-        <span data-testid="email-status" data-outcome={emailResult?.outcome ?? ""}>{outcomeLabel(emailResult?.outcome, "메일 대기")}</span>
-        <span data-testid="attachment-status" data-outcome={attachmentResult?.outcome ?? ""}>{outcomeLabel(attachmentResult?.outcome, "첨부 대기")}</span>
-        <span data-testid="followup-status" data-outcome={followupResult?.outcome ?? ""}>{outcomeLabel(followupResult?.outcome, "업무 대기")}</span>
-        <span data-testid="alert-status">{alertResult?.item?.warning_count ?? 0} warning</span>
+      <section className="operation-summary" data-testid="proof-status" aria-label="추가 작업 결과">
+        <span data-testid="email-status" data-outcome={emailResult?.outcome ?? ""}>{outcomeLabel(emailResult?.outcome, "Matter 보관 전")}</span>
+        <span data-testid="attachment-status" data-outcome={attachmentResult?.outcome ?? ""}>{outcomeLabel(attachmentResult?.outcome, "첨부 저장 전")}</span>
+        <span data-testid="followup-status" data-outcome={followupResult?.outcome ?? ""}>{outcomeLabel(followupResult?.outcome, "후속 업무 전")}</span>
+        <span data-testid="alert-status" data-warning-count={alertResult?.item?.warning_count ?? 0}>확인할 내용 {alertResult?.item?.warning_count ?? 0}건</span>
       </section>
 
       <section className="pane-section two-col">
         <div>
           <div className="section-title">
             <MailCheck size={15} />
-            <h2>timeline</h2>
+            <h2>최근 기록</h2>
           </div>
           <ul className="compact-list" data-testid="timeline-list">
-            {timeline.slice(0, 4).map((entry) => (
-              <li key={entry.event_id}>{entry.title}</li>
-            ))}
+            {timeline.length === 0
+              ? <li className="empty-item">기록이 없습니다.</li>
+              : timeline.slice(0, 4).map((entry) => (
+                <li key={entry.event_id}>{entry.title}</li>
+              ))}
           </ul>
         </div>
         <div>
@@ -455,15 +679,17 @@ function App() {
             <h2>문서</h2>
           </div>
           <ul className="compact-list" data-testid="document-list">
-            {documents.slice(0, 4).map((document) => (
-              <li key={document.document_id}>{document.title}</li>
-            ))}
+            {documents.length === 0
+              ? <li className="empty-item">문서가 없습니다.</li>
+              : documents.slice(0, 4).map((document) => (
+                <li key={document.document_id}>{document.title}</li>
+              ))}
           </ul>
         </div>
       </section>
 
-      {busy ? <p className="notice" data-testid="busy-state">처리 중: {busy}</p> : null}
-      {error ? <p className="error" data-testid="error-state">{error}</p> : null}
+      {busy ? <p className="notice" role="status" aria-live="polite" data-testid="busy-state">{busyLabel(busy)}</p> : null}
+      {error ? <p className="error" role="alert" data-testid="error-state">{error}</p> : null}
     </main>
   );
 }

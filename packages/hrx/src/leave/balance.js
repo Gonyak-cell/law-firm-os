@@ -163,7 +163,7 @@ export function createInMemoryLeaveBalanceLedger(seed = []) {
   });
 }
 
-export function createSqlLeaveBalanceLedger({ store } = {}) {
+export function createSqlLeaveBalanceLedger({ store, clock = () => new Date().toISOString() } = {}) {
   if (!store || typeof store.query !== "function") throw new TypeError("SQL leave balance ledger requires store.query");
 
   function list(query = {}) {
@@ -191,7 +191,7 @@ export function createSqlLeaveBalanceLedger({ store } = {}) {
       const row = {
         ...entry,
         metadata_json: JSON.stringify(entry.metadata ?? {}),
-        created_at: new Date().toISOString(),
+        created_at: clock(),
       };
       return Object.freeze(store.query("insert", { table: "hrx_leave_balance_entries", row }));
     },

@@ -8,6 +8,10 @@ const MAX_XLSX_TOTAL_BYTES = 64 * 1024 * 1024;
 const MAX_XLSX_COMPRESSION_RATIO = 120;
 const SEOUL_OFFSET = "+09:00";
 const DEFAULT_ACCOUNT_REF = "amic-nh-operating";
+export const MAX_AMIC_WORKBOOK_SOURCE_BYTES = 16 * 1024 * 1024;
+export const MAX_NH_BANK_STATEMENT_PDF_BYTES = 8 * 1024 * 1024;
+export const MAX_NH_BANK_STATEMENT_PDF_PAGES = 100;
+export const MAX_NH_BANK_STATEMENT_TEXT_CHARACTERS = 1_000_000;
 
 function requiredString(value, field) {
   const normalized = String(value ?? "").trim();
@@ -279,6 +283,108 @@ export function parseAmicWorkbookBuffer(buffer, options = {}) {
   return parseAmicWorkbookSheets(parseXlsxSheetsBuffer(buffer), options);
 }
 
+function previewCashflowTransactions({
+  transactions,
+  sourceFileSha256,
+  sourceType,
+  accountRef,
+  existingTransactions,
+}) {
+  if (transactions.length === 0 || transactions.length > 5_000) {
+    throw new TypeError(`${sourceType.toUpperCase()} preview must contain 1 to 5000 transactions`);
+  }
+  const existingByFingerprint = new Map(
+    existingTransactions
+      .filter((transaction) => transaction?.transaction_fingerprint)
+      .map((transaction) => [transaction.transaction_fingerprint, transaction]),
+  );
+  const firstPreviewTransactionByFingerprint = new Map();
+  const items = transactions.map((transaction, index) => {
+    const existing = existingByFingerprint.get(transaction.transaction_fingerprint);
+    const earlierPreview = firstPreviewTransactionByFingerprint.get(transaction.transaction_fingerprint);
+    const duplicateOf = existing?.bank_transaction_id ?? earlierPreview?.bank_transaction_id ?? null;
+    if (!earlierPreview) {
+      firstPreviewTransactionByFingerprint.set(transaction.transaction_fingerprint, transaction);
+    }
+    return Object.freeze({
+      row_number: index + 1,
+      status: duplicateOf ? "duplicate" : "new",
+      source_type: sourceType,
+      bank_transaction_id: transaction.bank_transaction_id,
+      duplicate_of_bank_transaction_id: duplicateOf,
+      account_ref: transaction.account_ref,
+      date: transaction.date,
+      occurred_at: transaction.occurred_at,
+      direction: transaction.direction,
+      amount: transaction.amount,
+      balance_after: transaction.balance_after,
+      currency: transaction.currency,
+      method: transaction.method,
+      counterparty: transaction.counterparty,
+      source_category: transaction.source_category,
+      classification_scope: transaction.classification_scope,
+      source_metadata_included: false,
+      transaction_fingerprint_included: false,
+      raw_source_payload_included: false,
+    });
+  });
+  const newCount = items.filter((item) => item.status === "new").length;
+  const duplicateCount = items.length - newCount;
+  const previewManifestSha256 = sha256(Buffer.from(JSON.stringify({
+    source_file_sha256: sourceFileSha256,
+    source_type: sourceType,
+    account_ref: accountRef,
+    transactions: transactions.map((transaction) => ({
+      bank_transaction_id: transaction.bank_transaction_id,
+      transaction_fingerprint: transaction.transaction_fingerprint,
+    })),
+    duplicate_of_bank_transaction_ids: items.map((item) => item.duplicate_of_bank_transaction_id),
+  })));
+  return Object.freeze({
+    preview_id: `bank_import_preview_${previewManifestSha256.slice(0, 24)}`,
+    preview_manifest_sha256: previewManifestSha256,
+    source_file_sha256: sourceFileSha256,
+    source_type: sourceType,
+    account_ref: accountRef,
+    counts: Object.freeze({
+      total: items.length,
+      new: newCount,
+      duplicate: duplicateCount,
+      error: 0,
+    }),
+    items: Object.freeze(items),
+    transactions,
+    product_records_mutated: false,
+    raw_source_payload_included: false,
+  });
+}
+
+export function previewAmicWorkbookBuffer(
+  input,
+  {
+    account_ref = DEFAULT_ACCOUNT_REF,
+    existing_transactions = [],
+  } = {},
+) {
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input ?? []);
+  if (buffer.length === 0) throw new TypeError("XLSX source file is required");
+  if (buffer.length > MAX_AMIC_WORKBOOK_SOURCE_BYTES) {
+    throw new RangeError("XLSX source file exceeds the preview byte budget");
+  }
+  const sourceFileSha256 = sha256(buffer);
+  const transactions = parseAmicWorkbookBuffer(buffer, {
+    account_ref,
+    source_hash: sourceFileSha256,
+  });
+  return previewCashflowTransactions({
+    transactions,
+    sourceFileSha256,
+    sourceType: "xlsx",
+    accountRef: account_ref,
+    existingTransactions: existing_transactions,
+  });
+}
+
 export function parseNhBankStatementText(text, { account_ref = DEFAULT_ACCOUNT_REF, source_hash = null } = {}) {
   const transactions = [];
   const pages = String(text ?? "").split("\f");
@@ -287,8 +393,8 @@ export function parseNhBankStatementText(text, { account_ref = DEFAULT_ACCOUNT_R
     let block = null;
     const flush = () => {
       if (!block) return;
-      const detailLine = block.lines.find((line) => /^\s*(입금|출금)\s+[\d,]+\s+[\d,]+/.test(line));
-      const detail = detailLine?.match(/^\s*(입금|출금)\s+([\d,]+)\s+([\d,]+)\s*(.*)$/);
+      const detailLine = block.lines.find((line) => /^\s*(입금|출금|inflow|outflow)\s+[\d,]+\s+[\d,]+/iu.test(line));
+      const detail = detailLine?.match(/^\s*(입금|출금|inflow|outflow)\s+([\d,]+)\s+([\d,]+)\s*(.*)$/iu);
       const time = block.lines.map((line) => /\b(\d{2}:\d{2}:\d{2})\b/.exec(line)?.[1]).find(Boolean);
       if (!detail || !time) return;
       const columns = detail[4].trim().split(/\s{2,}/).map((part) => part.trim()).filter(Boolean);
@@ -297,7 +403,7 @@ export function parseNhBankStatementText(text, { account_ref = DEFAULT_ACCOUNT_R
         date: block.date,
         occurred_at: `${block.date.replaceAll("/", "-")}T${time}${SEOUL_OFFSET}`,
         time_precision: "second",
-        direction: detail[1],
+        direction: detail[1].toLowerCase(),
         amount: detail[2],
         balance_after: detail[3],
         method: columns[0],
@@ -328,6 +434,89 @@ export function parseNhBankStatementText(text, { account_ref = DEFAULT_ACCOUNT_R
     flush();
   });
   return Object.freeze(transactions);
+}
+
+async function extractPdfText(buffer) {
+  if (buffer.subarray(0, 5).toString("ascii") !== "%PDF-") {
+    throw new TypeError("PDF source signature is invalid");
+  }
+  const { getDocumentProxy } = await import("unpdf");
+  const document = await getDocumentProxy(Uint8Array.from(buffer), {
+    isEvalSupported: false,
+    stopAtErrors: true,
+  });
+  try {
+    if (!Number.isSafeInteger(document.numPages)
+        || document.numPages < 1
+        || document.numPages > MAX_NH_BANK_STATEMENT_PDF_PAGES) {
+      throw new RangeError("PDF page count exceeds the preview limit");
+    }
+    const pages = [];
+    let characterCount = 0;
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      try {
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .filter((item) => typeof item?.str === "string")
+          .map((item) => `${item.str}${item.hasEOL ? "\n" : " "}`)
+          .join("")
+          .trim();
+        characterCount += pageText.length;
+        if (characterCount > MAX_NH_BANK_STATEMENT_TEXT_CHARACTERS) {
+          throw new RangeError("PDF extracted text exceeds the preview limit");
+        }
+        pages.push(pageText);
+      } finally {
+        page.cleanup();
+      }
+    }
+    const text = pages.join("\f");
+    if (!text.trim()) throw new TypeError("PDF contains no printable transaction text");
+    return Object.freeze({
+      text,
+      page_count: document.numPages,
+      character_count: characterCount,
+    });
+  } finally {
+    try {
+      await document.cleanup();
+    } finally {
+      await document.loadingTask?.destroy();
+    }
+  }
+}
+
+export async function previewNhBankStatementPdfBuffer(
+  input,
+  {
+    account_ref = DEFAULT_ACCOUNT_REF,
+    existing_transactions = [],
+  } = {},
+) {
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input ?? []);
+  if (buffer.length === 0) throw new TypeError("PDF source file is required");
+  if (buffer.length > MAX_NH_BANK_STATEMENT_PDF_BYTES) {
+    throw new RangeError("PDF source file exceeds the preview byte budget");
+  }
+  const sourceFileSha256 = sha256(buffer);
+  const extracted = await extractPdfText(buffer);
+  const transactions = parseNhBankStatementText(extracted.text, {
+    account_ref,
+    source_hash: sourceFileSha256,
+  });
+  const preview = previewCashflowTransactions({
+    transactions,
+    sourceFileSha256,
+    sourceType: "pdf",
+    accountRef: account_ref,
+    existingTransactions: existing_transactions,
+  });
+  return Object.freeze({
+    ...preview,
+    extracted_page_count: extracted.page_count,
+    extracted_character_count: extracted.character_count,
+  });
 }
 
 export function mergeCashflowTransactions(workbookTransactions = [], statementTransactions = []) {

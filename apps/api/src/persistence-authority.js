@@ -3,9 +3,8 @@ import {
   createPostgresPool,
 } from "../../../packages/persistence/src/postgres/pool.js";
 import {
-  verifyHrxPostgresMigrationState,
-} from "../../../packages/hrx/src/postgres-migrations.js";
-import { verifyPostgresMigrationState } from "../../../packages/persistence/src/postgres/migration-runner.js";
+  verifyClientOperationsPostgresMigrations,
+} from "./client-operations-schema.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
 import { runtimePreflightError } from "./runtime-profile.js";
 
@@ -31,18 +30,8 @@ export const LAWOS_OFFLINE_REJECTED_POLICY = Object.freeze({
   cached_read_authority: false,
 });
 
-export async function verifyOperationalPostgresMigrationState(pool, {
-  verifyFoundation = verifyPostgresMigrationState,
-  verifyHrx = verifyHrxPostgresMigrationState,
-} = {}) {
-  try {
-    return await verifyFoundation(pool);
-  } catch (error) {
-    if (error?.code !== "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED") {
-      throw error;
-    }
-    return verifyHrx(pool);
-  }
+export function verifyOperationalPostgresMigrationState(pool) {
+  return verifyClientOperationsPostgresMigrations(pool);
 }
 
 export function resolvePersistenceAuthority({ value, env = process.env } = {}) {
@@ -182,7 +171,6 @@ export async function preparePersistenceAuthority({
   value,
   env = process.env,
   connectPostgres = defaultConnectPostgres,
-  verifyPostgresMigrations = verifyOperationalPostgresMigrationState,
   secretsClient,
   resolvePostgresSecret,
 } = {}) {
@@ -217,7 +205,7 @@ export async function preparePersistenceAuthority({
     attachPostgresTenantContextSecret(connection, tenantContextSecret);
     await connection.query("SELECT 1 AS authority_ready");
     const migrations = typeof connection.connect === "function"
-      ? await verifyPostgresMigrations(connection)
+      ? await verifyOperationalPostgresMigrationState(connection)
       : [];
     if (typeof connection.connect === "function") {
       const tenantAuthority = await connection.query(

@@ -32,6 +32,18 @@ export const INTAKE_CORE_MODEL_DEFINITIONS = Object.freeze({
       "owner_user_id",
     ]),
     party_reference_fields: Object.freeze(["requesting_party_id", "party_ids"]),
+    optional_fields: Object.freeze([
+      "engagement_decision",
+      "source_inquiry_id",
+      "source_engagement_workflow_id",
+      "source_client_group_id",
+      "source_fee_commitment_id",
+      "source_inquiry_evidence_ids",
+      "source_crm_activity_ids",
+      "source_reference_snapshot_sha256",
+      "source_handoff_recorded_at",
+      "matter_opening_state",
+    ]),
     tuw_id: "LFOS-G3-W04-T001",
     prohibits_matter_creation: true,
   }),
@@ -152,6 +164,52 @@ function assertPartyIds(modelType, partyIds) {
   }
 }
 
+function stableReferenceIds(values, field) {
+  if (
+    values !== undefined
+    && (
+      !Array.isArray(values)
+      || values.some(
+        (value) => typeof value !== "string" || value.trim() === "",
+      )
+    )
+  ) {
+    throw new TypeError(`${field} must be an array of non-empty strings`);
+  }
+  return freezeArray(
+    [...new Set((values ?? []).map((value) => value.trim()))]
+      .sort((left, right) => left.localeCompare(right)),
+  );
+}
+
+function assertInquiryHandoffReferences(input) {
+  if (!input.source_inquiry_id) return;
+  if (input.engagement_decision !== "accepted") {
+    throw new Error(
+      "Inquiry Intake handoff requires an accepted engagement decision",
+    );
+  }
+  for (const field of [
+    "source_engagement_workflow_id",
+    "source_client_group_id",
+    "source_fee_commitment_id",
+    "source_reference_snapshot_sha256",
+    "source_handoff_recorded_at",
+  ]) {
+    if (typeof input[field] !== "string" || input[field].trim() === "") {
+      throw new Error(`Inquiry Intake handoff requires ${field}`);
+    }
+  }
+  if (
+    input.source_evidence_bytes_copied === true
+    || input.source_activity_content_copied === true
+  ) {
+    throw new Error(
+      "Inquiry Intake handoff must link source records without copying content",
+    );
+  }
+}
+
 function baseIntakeRecord(modelType, input) {
   assertRequiredFields(modelType, input);
   assertNoMatterCreation(modelType, input);
@@ -183,6 +241,7 @@ function baseIntakeRecord(modelType, input) {
 export function createIntakeCoreIntakeRequest(input) {
   assertLifecycleStatus("IntakeRequest", input.status);
   assertPartyIds("IntakeRequest", input.party_ids);
+  assertInquiryHandoffReferences(input);
   return freezeRecord({
     ...baseIntakeRecord("IntakeRequest", input),
     intake_request_id: input.intake_request_id,
@@ -191,6 +250,30 @@ export function createIntakeCoreIntakeRequest(input) {
     party_ids: freezeArray(input.party_ids),
     requested_scope_summary: input.requested_scope_summary ?? null,
     conflict_check_required: input.conflict_check_required ?? true,
+    signed_engagement_required:
+      input.signed_engagement_required ?? true,
+    engagement_decision: input.engagement_decision ?? null,
+    source_inquiry_id: input.source_inquiry_id ?? null,
+    source_engagement_workflow_id:
+      input.source_engagement_workflow_id ?? null,
+    source_client_group_id: input.source_client_group_id ?? null,
+    source_fee_commitment_id: input.source_fee_commitment_id ?? null,
+    source_inquiry_evidence_ids: stableReferenceIds(
+      input.source_inquiry_evidence_ids,
+      "source_inquiry_evidence_ids",
+    ),
+    source_crm_activity_ids: stableReferenceIds(
+      input.source_crm_activity_ids,
+      "source_crm_activity_ids",
+    ),
+    source_reference_snapshot_sha256:
+      input.source_reference_snapshot_sha256 ?? null,
+    source_handoff_recorded_at:
+      input.source_handoff_recorded_at ?? null,
+    source_evidence_bytes_copied: false,
+    source_activity_content_copied: false,
+    matter_opening_state:
+      input.matter_opening_state ?? "waiting_for_intake_clearance",
     matter_id: null,
   });
 }

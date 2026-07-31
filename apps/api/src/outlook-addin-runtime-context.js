@@ -1,6 +1,15 @@
 import { createHash } from "node:crypto";
 import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
 import { OUTLOOK_EMAIL_OBJECT_FIELDS } from "../../../packages/email-dms/src/email-model.js";
+import { createM365GraphConnectionService } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
+import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-ports.js";
+import {
+  createInquiryEvidenceStorageService,
+  INQUIRY_EVIDENCE_STORAGE_ERROR_CODES,
+} from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
+import {
+  createOutlookInquiryRegistrationService,
+} from "./outlook-inquiry-registration-service.js";
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
@@ -14,6 +23,14 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.outlook-addin-runtime.v0.1",
   endpoints: Object.freeze([
     "GET /api/outlook/bootstrap",
+    "GET /api/outlook/connection",
+    "POST /api/outlook/connection/authorize",
+    "GET /api/outlook/connection/callback",
+    "DELETE /api/outlook/connection",
+    "GET /api/outlook/inquiries",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/inquiries/message/resolve",
+    "GET /api/outlook/inquiries/evidence/:evidence_id/content",
     "GET /api/outlook/matters",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
@@ -23,8 +40,9 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/followups",
     "POST /api/outlook/smart-alerts/evaluate",
   ]),
-  data_source: "matter_runtime_repository+dms_runtime_repository",
-  runtime_persistence: "file_backed_repositories",
+  data_source:
+    "matter_runtime_repository+dms_runtime_repository+email_dms_runtime_repository",
+  runtime_persistence: "file_or_postgres_domain_repositories",
   runtime_write_ready: true,
   m365_provider_runtime_enabled: false,
   entra_admin_consent_receipt_required: true,
@@ -33,6 +51,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
 });
 
 export const OUTLOOK_ADDIN_ERROR_CODES = Object.freeze({
+  connection_validation_error: "M365_CONNECTION_VALIDATION_ERROR",
   tenant_required: "OUTLOOK_ADDIN_TENANT_REQUIRED",
   permission_required: "OUTLOOK_ADDIN_PERMISSION_REQUIRED",
   validation_error: "OUTLOOK_ADDIN_VALIDATION_ERROR",
@@ -172,6 +191,131 @@ function evaluateOutlookPermission({ context, tenant_id, matter_id = null, resou
   });
 }
 
+function permissionContextForResource(context, resourceId) {
+  return {
+    ...context,
+    object_acl: (context?.object_acl ?? []).filter((entry) => (
+      entry.resource_id === undefined
+      || (resourceId !== null && entry.resource_id === resourceId)
+    )),
+  };
+}
+
+function inquiryEvidenceNotFoundResponse({ requestId, auditHintRef }) {
+  return errorResponse(
+    404,
+    requestId,
+    [INQUIRY_EVIDENCE_STORAGE_ERROR_CODES.not_found],
+    {
+      audit_hint_ref: auditHintRef,
+      ui_state: "empty",
+    },
+  );
+}
+
+function m365Principal(context, requestedTenantId) {
+  const principal = context?.principal ?? {};
+  const tenantId = requiredString(principal.tenant_id, "principal.tenant_id");
+  if (
+    requestedTenantId
+    && requiredString(requestedTenantId, "tenant_id") !== tenantId
+  ) {
+    throw Object.assign(
+      new Error("M365 connection tenant must match the signed session"),
+      {
+        safe_error_code: "M365_CONNECTION_TENANT_MISMATCH",
+        status: 403,
+      },
+    );
+  }
+  return Object.freeze({
+    tenant_id: tenantId,
+    user_id: requiredString(principal.user_id, "principal.user_id"),
+    entra_subject_id: principal.entra_subject_id,
+  });
+}
+
+function m365RouteGate({
+  context,
+  principal,
+  requestId,
+  action,
+  auditHintRef,
+}) {
+  const decision = evaluateOutlookPermission({
+    context,
+    tenant_id: principal.tenant_id,
+    resource_type: "m365_connection",
+    resource_id: principal.user_id,
+    action,
+  });
+  return decision.effect === "allow"
+    ? null
+    : permissionDeniedResponse({
+      requestId,
+      decision,
+      auditHintRef,
+    });
+}
+
+function m365Service(runtime) {
+  return createM365GraphConnectionService({
+    repository: runtime?.emailDmsRuntime?.repository,
+    ...(runtime?.m365GraphConfig ?? {}),
+  });
+}
+
+function m365MailPort(runtime) {
+  return createM365MailPort({
+    repository: runtime?.emailDmsRuntime?.repository,
+    ...(runtime?.m365GraphConfig ?? {}),
+  });
+}
+
+function inquiryEvidenceStorageService(runtime) {
+  if (
+    typeof runtime?.emailDmsRuntime?.evidence_storage_service
+      ?.readEvidenceContent === "function"
+  ) {
+    return runtime.emailDmsRuntime.evidence_storage_service;
+  }
+  return createInquiryEvidenceStorageService({
+    repository: runtime?.emailDmsRuntime?.repository,
+    storage: runtime?.emailDmsRuntime?.storage,
+    ...(runtime?.emailDmsRuntime?.evidence_storage_config ?? {}),
+  });
+}
+
+function inquiryRegistrationService(runtime) {
+  if (
+    typeof runtime?.emailDmsRuntime?.inquiry_registration_service
+      ?.register === "function"
+  ) {
+    return runtime.emailDmsRuntime.inquiry_registration_service;
+  }
+  return createOutlookInquiryRegistrationService({
+    emailDmsRepository: runtime?.emailDmsRuntime?.repository,
+    masterDataRepository:
+      runtime?.crmIntakeRuntime?.masterDataRepository,
+    crmRepository: runtime?.crmIntakeRuntime?.crmRepository,
+    mailPort: m365MailPort(runtime),
+    evidenceStorageService: inquiryEvidenceStorageService(runtime),
+    clock: runtime?.m365GraphConfig?.clock,
+  });
+}
+
+function m365ErrorResponse(error, requestId, auditHintRef) {
+  const safeCode = typeof error?.safe_error_code === "string"
+    && /^[A-Z0-9_]+$/u.test(error.safe_error_code)
+    ? error.safe_error_code
+    : OUTLOOK_ADDIN_ERROR_CODES.connection_validation_error;
+  return errorResponse(error?.status ?? 400, requestId, [safeCode], {
+    audit_hint_ref: auditHintRef,
+    ui_state: "blocked",
+    credential_material_included: false,
+  });
+}
+
 function actorFrom(context, fallback = "outlook_addin_user") {
   return context?.principal?.user_id ?? fallback;
 }
@@ -187,6 +331,61 @@ function matterSummary(record = {}) {
     lookup_label: record.matter_code ?? record.title ?? record.matter_id,
     selected_ref: `matter:${record.matter_id}`,
     production_ready_claim: false,
+  });
+}
+
+function inquirySummary(record = {}) {
+  return Object.freeze({
+    lead_id: record.lead_id,
+    party_id: record.party_id,
+    display_name: record.display_name ?? "이름 없는 문의",
+    status: record.status,
+    inquiry_status: record.inquiry_status,
+    source: record.source,
+    received_at: record.received_at,
+    production_ready_claim: false,
+  });
+}
+
+function searchLinkableInquiries({
+  repository,
+  tenant_id,
+  query = "",
+  context,
+} = {}) {
+  const needle = String(query ?? "").trim().toLowerCase();
+  const records = repository
+    .list({ tenant_id, model_type: "Lead" })
+    .filter((lead) => (
+      lead.party_id
+      && ["draft", "active", "review_required"]
+        .includes(lead.status)
+    ))
+    .filter((lead) => (
+      !needle
+      || [lead.lead_id, lead.display_name]
+        .filter(Boolean)
+        .some((value) => (
+          String(value).toLowerCase().includes(needle)
+        ))
+    ))
+    .sort((left, right) => (
+      String(right.received_at ?? "")
+        .localeCompare(String(left.received_at ?? ""))
+    ));
+  const { allowed, omittedCount } = trimItemsByPermission({
+    context,
+    items: records.map((record) => ({
+      ...record,
+      resource_id: record.lead_id,
+    })),
+    action: "crm:inquiry:read",
+    resourceType: "crm_inquiry",
+  });
+  return Object.freeze({
+    items: Object.freeze(allowed.map(inquirySummary)),
+    omitted_count: omittedCount,
+    count_leak_prevented: true,
   });
 }
 
@@ -432,6 +631,510 @@ function handleBootstrap({ query, context, requestId }) {
       production_ready_claim: false,
     },
   });
+}
+
+function handleM365ConnectionStatus({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:read",
+      auditHintRef: query.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = m365Service(runtime).getConnectionStatus(principal);
+    return success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      item: result,
+      audit_hint_ref: query.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
+async function handleM365ConnectionAuthorize({
+  body,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, body.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:create",
+      auditHintRef: body.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = await m365Service(runtime).beginAuthorization({
+      ...principal,
+      redirect_uri: body.redirect_uri,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: "authorization_started",
+      item: result,
+      audit_hint_ref: body.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+}
+
+async function handleM365ConnectionCallback({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:create",
+      auditHintRef: query.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = await m365Service(runtime).completeAuthorization({
+      ...principal,
+      code: query.code,
+      state: query.state,
+      redirect_uri: query.redirect_uri,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      audit_hint_ref: query.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
+async function handleM365ConnectionDelete({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:delete",
+      auditHintRef: query.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const result = await m365Service(runtime).revokeConnection({
+      ...principal,
+      expected_state_version: Number(query.expected_state_version),
+      reason: query.reason,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      audit_hint_ref: query.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
+async function handleOutlookInquiryMessageResolve({
+  body,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, body.tenant_id);
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:inquiry:capture",
+      auditHintRef: body.audit_hint_ref,
+    });
+    if (gated) return gated;
+    const restMessageId = requiredString(
+      body.rest_message_id,
+      "rest_message_id",
+    );
+    const result = await m365MailPort(runtime).getOwnMessageMime({
+      ...body,
+      ...principal,
+      rest_message_id: restMessageId,
+    });
+    const mimeSha256 = sha256Hex(result.mime_bytes);
+    const messageRef = sha256Hex(result.immutable_message_id);
+    const providerRequestRef = result.provider_request_id
+      ? sha256Hex(result.provider_request_id)
+      : null;
+    const occurredAt =
+      typeof runtime?.m365GraphConfig?.clock === "function"
+        ? new Date(runtime.m365GraphConfig.clock()).toISOString()
+        : new Date().toISOString();
+    runtime.emailDmsRuntime.repository.appendAudit({
+      tenant_id: principal.tenant_id,
+      event_id:
+        `outlook.inquiry.mime-resolved:${sha256Hex(requestId).slice(0, 32)}`,
+      event_type: "outlook.inquiry.mime_resolved",
+      actor_id: principal.user_id,
+      object_type: "MicrosoftGraphMessage",
+      object_id: `message:${messageRef}`,
+      payload: {
+        message_ref: messageRef,
+        provider_request_ref: providerRequestRef,
+        mime_sha256: mimeSha256,
+        mime_byte_size: result.mime_bytes.byteLength,
+        mailbox_scope: "me",
+        raw_content_included: false,
+        credential_material_included: false,
+      },
+      created_at: occurredAt,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: "message_resolved",
+      item: {
+        graph_immutable_message_id: result.immutable_message_id,
+        internet_message_id: result.internet_message_id,
+        mime_sha256: mimeSha256,
+        mime_byte_size: result.mime_bytes.byteLength,
+        provider_request_ref: providerRequestRef,
+        mailbox_scope: "me",
+        source_id_type: result.source_id_type,
+        target_id_type: result.target_id_type,
+        raw_mime_included: false,
+        message_body_included: false,
+        credential_material_included: false,
+        product_record_created: false,
+        production_ready_claim: false,
+      },
+      audit_hint_ref: body.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+}
+
+async function handleOutlookInquiryRegistration({
+  body,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, body.tenant_id);
+    const captureGate = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:inquiry:capture",
+      auditHintRef: body.audit_hint_ref,
+    });
+    if (captureGate) return captureGate;
+    const writeDecision = evaluateOutlookPermission({
+      context,
+      tenant_id: principal.tenant_id,
+      resource_type: "crm_inquiry",
+      resource_id: body.existing_lead_id ?? "new",
+      action: "crm:inquiry:create",
+    });
+    if (writeDecision.effect !== "allow") {
+      return permissionDeniedResponse({
+        requestId,
+        decision: writeDecision,
+        auditHintRef: body.audit_hint_ref,
+      });
+    }
+    const result = await inquiryRegistrationService(runtime).register({
+      ...body,
+      tenant_id: principal.tenant_id,
+      actor_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+      rest_message_id: requiredString(
+        body.rest_message_id,
+        "rest_message_id",
+      ),
+      idempotency_key: requiredString(
+        body.idempotency_key,
+        "idempotency_key",
+      ),
+    });
+    return success(result.idempotent_replay ? 200 : 201, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      audit_hint_ref: body.audit_hint_ref,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+}
+
+function handleOutlookInquiryList({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const decision = evaluateOutlookPermission({
+      context: {
+        ...context,
+        object_acl: (context?.object_acl ?? []).filter((entry) => (
+          entry.resource_id === undefined
+          || entry.resource_id === "inquiry_search"
+        )),
+      },
+      tenant_id: principal.tenant_id,
+      resource_type: "crm_inquiry",
+      resource_id: "inquiry_search",
+      action: "crm:inquiry:read",
+    });
+    if (decision.effect !== "allow") {
+      return permissionDeniedResponse({
+        requestId,
+        decision,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    const limit = Math.min(
+      50,
+      Math.max(1, Number(query.limit ?? DEFAULT_LIMIT) || DEFAULT_LIMIT),
+    );
+    const search = searchLinkableInquiries({
+      repository: runtime?.crmIntakeRuntime?.crmRepository,
+      tenant_id: principal.tenant_id,
+      query: query.q ?? query.query,
+      context,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      items: search.items.slice(0, limit),
+      omitted_count: search.omitted_count,
+      page_info: {
+        limit,
+        has_more: search.items.length > limit,
+      },
+      count_leak_prevented: true,
+    });
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+}
+
+async function handleInquiryEvidenceContentRead({
+  evidenceId,
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    const principal = m365Principal(context, query.tenant_id);
+    const decision = evaluateOutlookPermission({
+      context,
+      tenant_id: principal.tenant_id,
+      resource_type: "inquiry_email_evidence",
+      resource_id: evidenceId,
+      action: "email_dms:inquiry_evidence:read",
+    });
+    if (decision.effect !== "allow") {
+      return permissionDeniedResponse({
+        requestId,
+        decision,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    const evidenceRepository = runtime?.emailDmsRuntime?.repository;
+    if (typeof evidenceRepository?.get !== "function") {
+      return inquiryEvidenceNotFoundResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    let evidence;
+    try {
+      evidence = evidenceRepository.get({
+        tenant_id: principal.tenant_id,
+        model_type: "InquiryEmailEvidence",
+        inquiry_email_evidence_id: evidenceId,
+      });
+    } catch {
+      return inquiryEvidenceNotFoundResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    if (!evidence) {
+      return inquiryEvidenceNotFoundResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    if (evidence.lead_id) {
+      const crmRepository = runtime?.crmIntakeRuntime?.crmRepository;
+      if (typeof crmRepository?.get !== "function") {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      let inquiry;
+      try {
+        inquiry = crmRepository.get({
+          tenant_id: principal.tenant_id,
+          model_type: "Lead",
+          lead_id: evidence.lead_id,
+        });
+      } catch {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      if (!inquiry) {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      const inquiryDecision = evaluateOutlookPermission({
+        context: permissionContextForResource(context, evidence.lead_id),
+        tenant_id: principal.tenant_id,
+        resource_type: "crm_inquiry",
+        resource_id: evidence.lead_id,
+        action: "crm:inquiry:read",
+      });
+      if (inquiryDecision.effect !== "allow") {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+    }
+    const objectKind =
+      query.kind === "original"
+        ? "original_mime"
+        : query.kind === "display"
+          ? "sanitized_display"
+          : null;
+    if (!objectKind) {
+      return errorResponse(
+        400,
+        requestId,
+        ["INQUIRY_EVIDENCE_OBJECT_KIND_INVALID"],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "blocked",
+        },
+      );
+    }
+    const content = await inquiryEvidenceStorageService(runtime)
+      .readEvidenceContent({
+        tenant_id: principal.tenant_id,
+        inquiry_email_evidence_id: evidenceId,
+        object_kind: objectKind,
+        actor_id: principal.user_id,
+        request_id: requestId,
+      });
+    const original = objectKind === "original_mime";
+    return {
+      ...success(200, {
+        request_id: requestId,
+        outcome: "passed",
+        item: {
+          inquiry_email_evidence_id: evidenceId,
+          object_kind: objectKind,
+          encoding: original ? "base64" : "utf8",
+          content_base64:
+            original ? content.bytes.toString("base64") : null,
+          content_text:
+            original ? null : content.bytes.toString("utf8"),
+          content_sha256: content.sha256,
+          byte_size: content.byte_size,
+          mime_type: content.mime_type,
+          scan_status: content.scan_status,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+          executable_preview_enabled: false,
+          external_resources_loaded: false,
+          production_ready_claim: false,
+        },
+        audit_event: {
+          event_id: content.audit_event_id,
+          raw_content_included: false,
+        },
+        audit_hint_ref: query.audit_hint_ref,
+      }),
+      headers: {
+        "x-content-type-options": "nosniff",
+        "content-security-policy":
+          "default-src 'none'; sandbox",
+      },
+    };
+  } catch (error) {
+    return m365ErrorResponse(
+      error,
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
 }
 
 function handleMatterSearch({ query, context, requestId, runtime }) {
@@ -767,6 +1470,92 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
   try {
     if (pathname === "/api/outlook/bootstrap" && method === "GET") {
       return handleBootstrap({ query, context, requestId });
+    }
+    if (pathname === "/api/outlook/connection" && method === "GET") {
+      return handleM365ConnectionStatus({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/connection/authorize"
+      && method === "POST"
+    ) {
+      return await handleM365ConnectionAuthorize({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/connection/callback"
+      && method === "GET"
+    ) {
+      return await handleM365ConnectionCallback({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (pathname === "/api/outlook/connection" && method === "DELETE") {
+      return await handleM365ConnectionDelete({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/inquiries"
+      && method === "GET"
+    ) {
+      return handleOutlookInquiryList({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/inquiries"
+      && method === "POST"
+    ) {
+      return await handleOutlookInquiryRegistration({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (
+      pathname === "/api/outlook/inquiries/message/resolve"
+      && method === "POST"
+    ) {
+      return await handleOutlookInquiryMessageResolve({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    const inquiryEvidenceContentMatch = routeMatch(
+      pathname,
+      /^\/api\/outlook\/inquiries\/evidence\/([^/]+)\/content$/u,
+    );
+    if (inquiryEvidenceContentMatch && method === "GET") {
+      return await handleInquiryEvidenceContentRead({
+        evidenceId: decodeURIComponent(
+          inquiryEvidenceContentMatch[1],
+        ),
+        query,
+        context,
+        requestId,
+        runtime,
+      });
     }
     if (pathname === "/api/outlook/matters" && method === "GET") {
       return handleMatterSearch({ query, context, requestId, runtime });

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { DOMAIN_IDS } from "../../../packages/persistence/src/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import {
   runPrivateStagingCut006,
@@ -29,9 +30,9 @@ test("CUT-006 proves identity and every operational domain write is PostgreSQL-o
   };
   const first = await runPrivateStagingCut006(input);
   assert.equal(first.outcome, "PASS");
-  assert.equal(first.domain_count, 13);
-  assert.equal(first.postgres_write_target_count, 14);
-  assert.equal(first.postgres_readback_equal_count, 14);
+  assert.equal(first.domain_count, DOMAIN_IDS.length);
+  assert.equal(first.postgres_write_target_count, DOMAIN_IDS.length + 1);
+  assert.equal(first.postgres_readback_equal_count, DOMAIN_IDS.length + 1);
   assert.equal(first.identity_result.initial_write_applied, true);
   assert.equal(first.identity_result.immediate_replay_noop, true);
   assert.equal(first.identity_result.audit_count, 1);

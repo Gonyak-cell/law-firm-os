@@ -1,7 +1,7 @@
 :root {
   color: #17212b;
-  background: #f7f8fa;
-  font-family: Inter, "SF Pro Text", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  background: #f5f6f8;
+  font-family: "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, sans-serif;
   font-size: 14px;
   letter-spacing: 0;
 }
@@ -13,7 +13,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #f7f8fa;
+  background: #f5f6f8;
 }
 
 button,
@@ -35,7 +35,7 @@ select {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 8px;
+  padding: 2px 0 10px;
   border-bottom: 1px solid #d9dee7;
 }
 
@@ -54,7 +54,7 @@ p {
 h1 {
   font-size: 22px;
   line-height: 28px;
-  font-weight: 760;
+  font-weight: 750;
 }
 
 h2 {
@@ -66,27 +66,25 @@ h2 {
 .mode-badge {
   display: inline-flex;
   align-items: center;
-  height: 24px;
-  padding: 0 8px;
-  border: 1px solid #d7ba61;
-  border-radius: 6px;
-  color: #745300;
-  background: #fff8df;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid #b8c5d3;
+  border-radius: 4px;
+  color: #34465a;
+  background: #ffffff;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .status-stack,
-.pane-section,
-.result-strip {
+.pane-section {
   background: #ffffff;
   border: 1px solid #d9dee7;
-  border-radius: 8px;
+  border-radius: 7px;
 }
 
 .status-stack {
   display: grid;
-  gap: 0;
   overflow: hidden;
 }
 
@@ -120,32 +118,15 @@ h2 {
 }
 
 .pane-section {
-  padding: 10px;
+  padding: 11px;
 }
 
 .section-title {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-bottom: 8px;
+  margin-bottom: 9px;
   color: #2c3b4f;
-}
-
-select {
-  width: 100%;
-  height: 34px;
-  border: 1px solid #cdd5e0;
-  border-radius: 6px;
-  background: #fff;
-  color: #17212b;
-  padding: 0 8px;
-}
-
-.safe-copy {
-  margin-top: 7px;
-  color: #657386;
-  line-height: 19px;
-  overflow-wrap: anywhere;
 }
 
 .subject {
@@ -154,58 +135,185 @@ select {
   overflow-wrap: anywhere;
 }
 
+.safe-copy,
+.field-note {
+  color: #657386;
+  line-height: 19px;
+  overflow-wrap: anywhere;
+}
+
+.safe-copy {
+  margin-top: 7px;
+}
+
+.field-note {
+  margin-top: -2px;
+  font-size: 12px;
+}
+
+.action-section {
+  padding-bottom: 0;
+}
+
+.action-list {
+  display: grid;
+}
+
+.action-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid #e5e9ef;
+}
+
+.action-item:first-child {
+  padding-top: 3px;
+  border-top: 0;
+}
+
+.action-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.action-copy strong {
+  line-height: 20px;
+}
+
+.action-copy span {
+  color: #657386;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+label {
+  color: #45566a;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid #bbc6d3;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #17212b;
+  padding: 0 9px;
+}
+
 .button-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 10px;
 }
 
 button {
-  min-height: 34px;
+  width: 100%;
+  min-height: 36px;
   border: 1px solid #253245;
-  border-radius: 6px;
+  border-radius: 5px;
   background: #17212b;
   color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 9px;
+  padding: 7px 10px;
   cursor: pointer;
 }
 
-button:disabled {
+button.secondary-button {
+  border-color: #aebaca;
+  background: #ffffff;
+  color: #243448;
+}
+
+button.full-width {
+  grid-column: 1 / -1;
+}
+
+button:hover:not(:disabled) {
+  background: #253b55;
+}
+
+button.secondary-button:hover:not(:disabled) {
+  border-color: #687b92;
+  background: #f2f5f8;
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid #8fc2ee;
+  outline-offset: 2px;
+}
+
+button:disabled,
+button.secondary-button:disabled,
+select:disabled {
   border-color: #cdd5e0;
   background: #e9edf3;
   color: #7b8797;
   cursor: not-allowed;
 }
 
-.result-strip {
+.action-result {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  overflow: hidden;
+  grid-template-columns: 20px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 10px 11px;
+  border: 1px solid #b9d6c5;
+  border-radius: 6px;
+  background: #f0f8f3;
+  color: #185c3b;
 }
 
-.result-strip span {
-  padding: 8px 6px;
-  border-right: 1px solid #edf0f4;
-  color: #3d4a5c;
+.action-result div {
+  display: grid;
+  gap: 2px;
+}
+
+.action-result strong {
+  line-height: 19px;
+}
+
+.action-result span {
+  color: #46705b;
   font-size: 12px;
-  text-align: center;
+  line-height: 18px;
   overflow-wrap: anywhere;
 }
 
-.result-strip span:last-child {
+.operation-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid #d9dee7;
+  border-bottom: 1px solid #d9dee7;
+  background: #ffffff;
+}
+
+.operation-summary span {
+  padding: 8px 9px;
+  border-right: 1px solid #edf0f4;
+  border-bottom: 1px solid #edf0f4;
+  color: #526175;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.operation-summary span:nth-child(2n) {
   border-right: 0;
+}
+
+.operation-summary span:nth-last-child(-n + 2) {
+  border-bottom: 0;
 }
 
 .two-col {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .compact-list {
@@ -220,41 +328,53 @@ button:disabled {
   min-height: 28px;
   display: flex;
   align-items: center;
-  padding: 6px 7px;
-  border: 1px solid #edf0f4;
-  border-radius: 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid #edf0f4;
   color: #3d4a5c;
-  background: #fbfcfd;
   font-size: 12px;
   overflow-wrap: anywhere;
 }
 
+.compact-list li:last-child {
+  border-bottom: 0;
+}
+
+.compact-list li.empty-item {
+  color: #7b8797;
+}
+
 .notice,
 .error {
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 9px 10px;
+  border-radius: 5px;
   line-height: 19px;
 }
 
 .notice {
+  border: 1px solid #b9d1eb;
   background: #eef5ff;
   color: #244e87;
 }
 
 .error {
+  border: 1px solid #efc2c2;
   background: #fff1f1;
-  color: #9b1c1c;
+  color: #8a1f1f;
 }
 
 @media (max-width: 360px) {
   .button-row,
   .two-col,
-  .result-strip {
+  .operation-summary {
     grid-template-columns: 1fr;
   }
 
-  .result-strip span {
+  .operation-summary span {
     border-right: 0;
+    border-bottom: 1px solid #edf0f4;
+  }
+
+  .operation-summary span:nth-last-child(2) {
     border-bottom: 1px solid #edf0f4;
   }
 }

@@ -16,6 +16,19 @@ export const LAWOS_FINANCE_SCOPES = Object.freeze([
   "finance.audit.read",
 ]);
 
+export const LAWOS_CLIENT_SCOPES = Object.freeze([
+  "crm.inquiry.read",
+  "crm.inquiry.write",
+  "crm.inquiry.evidence.read",
+  "crm.engagement.decide",
+  "outlook.connection.manage",
+  "outlook.inquiry.capture",
+  "master_data.client.write",
+  "finance.fee.write",
+  "analytics.client.read",
+  "analytics.client.export",
+]);
+
 function frozenUnique(values = []) {
   return Object.freeze([...new Set(values.filter(Boolean))]);
 }
@@ -45,7 +58,7 @@ export function resolveLawosUserRoleAssignment(
     user.highest_privilege === true && roleIds.includes("system_super_admin");
   const scopes = frozenUnique([
     ...(membership.scopes ?? []),
-    ...(highestPrivilege ? LAWOS_FINANCE_SCOPES : []),
+    ...(highestPrivilege ? [...LAWOS_FINANCE_SCOPES, ...LAWOS_CLIENT_SCOPES] : []),
   ]);
   const hrxScopes = frozenUnique(membership.hrx_scopes);
   return Object.freeze({

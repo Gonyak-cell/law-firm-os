@@ -226,7 +226,7 @@ try {
   await page.click("[data-testid='create-task-button']");
   await page.waitForFunction(() => document.querySelector("[data-testid='followup-status']")?.getAttribute("data-outcome") === "created");
   await page.click("[data-testid='smart-alert-button']");
-  await page.waitForFunction(() => document.querySelector("[data-testid='alert-status']")?.textContent?.includes("warning"));
+  await page.waitForFunction(() => document.querySelector("[data-testid='alert-status']")?.getAttribute("data-warning-count") === "1");
   handlerProbe = await page.evaluate(async () => {
     const handler = window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS?.onMessageSendHandler;
     const associated = window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS ?? [];
@@ -303,7 +303,7 @@ try {
   const snapshot = outlookAddinProofSnapshot({ runtime: { matterRuntime, dmsRuntime }, tenant_id: TENANT, matter_id: MATTER });
   checks = [
     passed("c09-taskpane-browser-load", await page.locator("[data-outlook-addin-taskpane='true']").count() === 1),
-    passed("c09-auth-shell-provider-gated-visible", (await page.textContent("body")).includes("provider-gated")),
+    passed("c09-auth-shell-provider-gated-visible", (await page.textContent("body")).includes("연결 확인 필요")),
     passed("c09-msal-bridge-initialized", msalBridgeProbe?.configured === true && msalBridgeProbe?.initialized === true),
     passed("c09-msal-bridge-noninteractive", msalBridgeProbe?.provider_runtime_executed === false && msalBridgeProbe?.token_material_returned === false),
     passed("c09-signed-session-authorization-observed", smartAlertRequests.some((request) => request.has_authorization_header === true)),
@@ -314,7 +314,7 @@ try {
     passed("c11-attachment-document-visible", snapshot.documents.some((document) => document.source_email_thread_id === snapshot.email_threads[0]?.email_thread_id)),
     passed("c11-folder-structure-00-99", snapshot.folder_structure[0] === "00_Email" && snapshot.folder_structure.at(-1) === "99_Archive"),
     passed("c12-manual-task-visible", snapshot.timeline.some((entry) => entry.type === "matter.activity.task")),
-    passed("c12-smart-alert-warning-not-block", (await page.textContent("[data-testid='alert-status']")).includes("1 warning")),
+    passed("c12-smart-alert-warning-not-block", await page.getAttribute("[data-testid='alert-status']", "data-warning-count") === "1"),
     passed("c12-on-message-send-handler-associated", handlerProbe?.associated_actions?.includes("onMessageSendHandler") === true),
     passed("c12-on-message-send-handler-completes-allow-event", handlerProbe?.completed_payload?.allowEvent === true),
     passed("c12-on-message-send-handler-warning-only", handlerProbe?.probe?.last_send_handler_result?.send_blocked === false && handlerProbe?.probe?.last_send_handler_result?.provider_runtime_executed === false),
@@ -359,7 +359,7 @@ try {
     production_ready_claim: false,
   };
   const e04Checks = [
-    passed("e04-taskpane-warning-visible", (await page.textContent("[data-testid='alert-status']")).includes("1 warning")),
+    passed("e04-taskpane-warning-visible", await page.getAttribute("[data-testid='alert-status']", "data-warning-count") === "1"),
     passed("e04-signed-session-authorization-observed", smartAlertRequests.some((request) => request.has_authorization_header === true)),
     passed("e04-legacy-permission-context-not-sent", smartAlertRequests.every((request) => request.permission_context_header_sent === false)),
     passed("e04-confidential-external-warning-only", confidentialExternal.status === 200 && confidentialExternal.payload.item?.warnings?.[0]?.warning_id === "external-recipient-confidential-attachment" && confidentialExternal.payload.item?.send_blocked === false),

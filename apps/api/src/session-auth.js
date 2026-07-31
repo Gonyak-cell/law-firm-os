@@ -210,6 +210,34 @@ function permissionRulesFromScopes(scopes = []) {
   for (const [scope, prefixes] of financePrefixes) {
     if (granted.has(scope)) rules.push(allowRule(scope.replaceAll(".", "-"), { action_prefixes: prefixes }));
   }
+  const clientReadPrefixes = new Map([
+    ["crm.inquiry.read", ["crm:inquiry:", "crm:consultation:", "crm:activity:"]],
+    ["crm.inquiry.evidence.read", ["email_dms:inquiry_evidence:"]],
+    ["analytics.client.read", ["analytics:client:"]],
+  ]);
+  for (const [scope, prefixes] of clientReadPrefixes) {
+    if (granted.has(scope)) {
+      rules.push(allowRule(scope.replaceAll(".", "-"), {
+        action_prefixes: prefixes,
+        action_access: "read",
+      }));
+    }
+  }
+  const clientWritePrefixes = new Map([
+    ["crm.inquiry.write", ["crm:inquiry:", "crm:consultation:", "crm:activity:"]],
+    [
+      "crm.engagement.decide",
+      ["crm:engagement:", "crm:opportunity:intake_handoff"],
+    ],
+    ["outlook.connection.manage", ["outlook:connection:"]],
+    ["outlook.inquiry.capture", ["outlook:inquiry:capture"]],
+    ["master_data.client.write", ["master_data:client:"]],
+    ["finance.fee.write", ["finance:fee_commitment:", "finance:deposit_allocation:"]],
+    ["analytics.client.export", ["analytics:client:export"]],
+  ]);
+  for (const [scope, prefixes] of clientWritePrefixes) {
+    if (granted.has(scope)) rules.push(allowRule(scope.replaceAll(".", "-"), { action_prefixes: prefixes }));
+  }
   if (granted.has("finance.approve")) {
     rules.push(allowRule("finance-approve", {
       actions: ["finance:time:approve", "finance:prebill:approve", "finance:prebill:reject"],
@@ -306,7 +334,153 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
   });
 }
 
-function permissionContextFromPrincipal(principal, { allowSyntheticTenantAliases = false } = {}) {
+const UNAVAILABLE_OBJECT_ACL_AUTHORITY = Object.freeze({
+  status: "unavailable",
+  source_ref: null,
+});
+
+function normalizedObjectAclEntry(entry, principal) {
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+    throw new TypeError("object ACL entry must be an object");
+  }
+  const strictCanonicalText = (value, field) => {
+    if (
+      typeof value !== "string"
+      || value === ""
+      || value.trim() !== value
+    ) {
+      throw new TypeError(`object ACL entry ${field} is invalid`);
+    }
+    return value;
+  };
+  const tenantId = strictCanonicalText(
+    entry.tenant_id ?? principal.tenant_id,
+    "tenant_id",
+  );
+  if (tenantId !== principal.tenant_id) {
+    throw new TypeError("object ACL entry tenant does not match session");
+  }
+  const principalId = entry.principal_id;
+  strictCanonicalText(principalId, "principal");
+  if (!["allow", "deny"].includes(entry.effect)) {
+    throw new TypeError("object ACL entry effect is invalid");
+  }
+  const scalarActionFields = [
+    "action",
+    "action_prefix",
+    "action_suffix",
+  ];
+  const arrayActionFields = [
+    "actions",
+    "action_prefixes",
+    "action_suffixes",
+  ];
+  for (const field of scalarActionFields) {
+    if (entry[field] != null) strictCanonicalText(entry[field], field);
+  }
+  for (const field of arrayActionFields) {
+    if (
+      entry[field] != null
+      && (
+        !Array.isArray(entry[field])
+        || entry[field].length === 0
+      )
+    ) {
+      throw new TypeError(`object ACL entry ${field} is invalid`);
+    }
+    if (Array.isArray(entry[field])) {
+      for (const value of entry[field]) {
+        strictCanonicalText(value, `${field}[]`);
+      }
+    }
+  }
+  const hasScalarAction = scalarActionFields.some((field) => (
+    typeof entry[field] === "string"
+    && entry[field] !== ""
+  ));
+  const hasArrayAction = arrayActionFields.some((field) => (
+    Array.isArray(entry[field])
+    && entry[field].length > 0
+  ));
+  if (!hasScalarAction && !hasArrayAction) {
+    throw new TypeError("object ACL entry action is invalid");
+  }
+  if (
+    entry.action_access != null
+    && entry.action_access !== "read"
+  ) {
+    throw new TypeError("object ACL entry action access is invalid");
+  }
+  for (const field of ["resource_id", "client_group_id"]) {
+    if (entry[field] != null) strictCanonicalText(entry[field], field);
+  }
+  if (entry.resource_type != null) strictCanonicalText(entry.resource_type, "resource_type");
+  if (principalId !== principal.user_id) return null;
+  const cloned = JSON.parse(JSON.stringify(entry));
+  return Object.freeze({
+    ...cloned,
+    tenant_id: tenantId,
+    principal_id: principal.user_id,
+  });
+}
+
+async function resolveObjectAclAuthority(
+  resolver,
+  principal,
+  requestId,
+) {
+  if (typeof resolver !== "function") {
+    return Object.freeze({
+      authority: UNAVAILABLE_OBJECT_ACL_AUTHORITY,
+      object_acl: Object.freeze([]),
+    });
+  }
+  try {
+    const resolved = await resolver(Object.freeze({
+      tenant_id: principal.tenant_id,
+      user_id: principal.user_id,
+      principal,
+      request_id: requestId,
+    }));
+    if (
+      resolved?.authoritative !== true
+      || !Array.isArray(resolved.object_acl)
+      || typeof resolved.source_ref !== "string"
+      || resolved.source_ref.trim() === ""
+    ) {
+      throw new TypeError("object ACL resolver result is not authoritative");
+    }
+    const objectAcl = resolved.object_acl
+      .map((entry) => normalizedObjectAclEntry(entry, principal))
+      .filter(Boolean)
+      .sort((left, right) => (
+        JSON.stringify(left).localeCompare(
+          JSON.stringify(right),
+          "en",
+        )
+      ));
+    return Object.freeze({
+      authority: Object.freeze({
+        status: "authoritative",
+        source_ref: resolved.source_ref.trim(),
+      }),
+      object_acl: Object.freeze(objectAcl),
+    });
+  } catch {
+    return Object.freeze({
+      authority: UNAVAILABLE_OBJECT_ACL_AUTHORITY,
+      object_acl: Object.freeze([]),
+    });
+  }
+}
+
+function permissionContextFromPrincipal(
+  principal,
+  {
+    allowSyntheticTenantAliases = false,
+    objectAclAuthority,
+  } = {},
+) {
   const tenantIds = allowSyntheticTenantAliases && principal.tenant_id === MATTER_VAULT_REGISTERED_TENANT_ID
     ? LAWOS_RUNTIME_TENANT_IDS
     : Object.freeze([principal.tenant_id]);
@@ -318,7 +492,12 @@ function permissionContextFromPrincipal(principal, { allowSyntheticTenantAliases
       session_source_ref: principal.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     }),
     rules: permissionRulesFromScopes(principal.scopes),
-    object_acl: Object.freeze([]),
+    object_acl:
+      objectAclAuthority?.object_acl
+      ?? Object.freeze([]),
+    object_acl_authority:
+      objectAclAuthority?.authority
+      ?? UNAVAILABLE_OBJECT_ACL_AUTHORITY,
   });
 }
 
@@ -538,6 +717,7 @@ export function createApiSessionAuth({
   stepUpProvider = null,
   staffOidcProvider = null,
   identityRepository = null,
+  objectAclResolver = null,
 } = {}) {
   const runtimeProfile = resolveRuntimeProfile({ LAWOS_RUNTIME_PROFILE: profile });
   const sessionSecret = resolveSessionSecret({ profile: runtimeProfile, explicitSecret: secret });
@@ -1465,11 +1645,19 @@ export function createApiSessionAuth({
       });
     }
     const principal = principalWithDirectoryRoleContext(derivedPrincipal, user, homeTenantId);
+    const objectAclAuthority = await resolveObjectAclAuthority(
+      objectAclResolver,
+      principal,
+      requestId,
+    );
     return Object.freeze({
       ok: true,
       principal,
       token_payload: Object.freeze({ jti: payload.jti, user_id: payload.user_id, tenant_id: payload.tenant_id, exp: payload.exp }),
-      context: permissionContextFromPrincipal(principal, { allowSyntheticTenantAliases: syntheticLoginEnabled }),
+      context: permissionContextFromPrincipal(principal, {
+        allowSyntheticTenantAliases: syntheticLoginEnabled,
+        objectAclAuthority,
+      }),
       session: publicSession({
         user,
         principal,
@@ -2060,6 +2248,15 @@ export function createApiSessionAuth({
       local_password_login: !federatedStaffAuthEnabled,
       local_synthetic_login: syntheticLoginEnabled,
       account_directory: centralIdentityRepository ? "postgres-v2" : "static-fixture",
+      object_acl_authority:
+        typeof objectAclResolver === "function"
+          ? "server_resolver"
+          : "unavailable",
+      object_acl_authority_source_ref:
+        objectAclResolver?.source_ref ?? null,
+      object_acl_authority_required_for_fixed_client_reports:
+        true,
+      caller_permission_context_object_acl_trusted: false,
       default_totp: !federatedStaffAuthEnabled,
       phishing_resistant_mfa_required: federatedStaffAuthEnabled,
     }),

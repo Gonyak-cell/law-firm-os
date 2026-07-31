@@ -7,6 +7,10 @@ import { validateJsonPostgresRecordTypeCatalog } from "./record-type-catalog.js"
 import {
   validateJsonPostgresRecordAuthorityBinding,
 } from "./source-adjudication.js";
+import {
+  OPAQUE_CREDENTIAL_REFERENCE_FIELD,
+  SAFE_CREDENTIAL_METADATA_FIELDS,
+} from "../credential-reference.js";
 
 export const JSON_POSTGRES_AUTHORITY_MANIFEST_VERSION = "law-firm-os.json-postgres-source-authority-manifest.v2";
 export const JSON_POSTGRES_FIELD_CROSSWALK_VERSION = "law-firm-os.json-postgres-field-crosswalk.v1";
@@ -21,7 +25,10 @@ const SAFE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
 const REASON_CODE = /^[A-Z][A-Z0-9_]{2,63}$/u;
 const SECRET_FIELD =
   /(^|_)(?:passwords?|password_hash|passwd|passphrases?|secrets?|tokens?|credentials?|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
-const SAFE_CREDENTIAL_METADATA = new Set(["credential_provider", "credential_status", "credential_rev"]);
+const SAFE_CREDENTIAL_METADATA = new Set([
+  ...SAFE_CREDENTIAL_METADATA_FIELDS,
+  OPAQUE_CREDENTIAL_REFERENCE_FIELD,
+]);
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;

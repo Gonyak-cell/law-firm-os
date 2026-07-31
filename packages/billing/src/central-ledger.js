@@ -5,6 +5,8 @@ import {
   runRecordRepositoryDomainCommand,
 } from "../../persistence/src/record-domain-adapter.js";
 import { createFinanceRepository, FINANCE_PRIMARY_ID_FIELDS } from "./finance-repository.js";
+import { normalizeClientDepositAllocation } from "./client-deposit-allocation-model.js";
+import { normalizeFeeCommitment } from "./fee-commitment-model.js";
 
 export const FINANCE_APPEND_ONLY_RECORD_TYPES = Object.freeze([
   "ARAgingSnapshot",
@@ -36,9 +38,16 @@ const MONEY_FIELDS = Object.freeze({
   BillingAdjustment: ["amount"],
   BankTransaction: ["amount", "balance_after"],
   BankTransactionClassification: ["amount"],
+  ClientDepositAllocation: [
+    "allocated_amount",
+    "reversed_amount",
+    "refund_reversed_amount",
+    "adjustment_reversed_amount",
+  ],
   Disbursement: ["amount"],
   Expense: ["amount"],
   FeeArrangement: ["fixed_fee_amount", "upfront_fee_amount", "success_fee_amount", "retainer_amount", "retainer_available_amount"],
+  FeeCommitment: ["agreed_amount"],
   Invoice: ["amount_due", "amount_paid", "standard_amount", "retainer_drawdown_total", "trust_drawdown_amount"],
   InvoiceCorrection: ["corrected_amount_due"],
   InvoiceLine: ["amount", "standard_amount", "retainer_drawdown_amount"],
@@ -71,7 +80,10 @@ function references(record) {
   };
   add("matter", "Matter", record.matter_id, { target_domain_id: "matter" });
   add("billing_client_party", "Party", record.billing_client_party_id, { target_domain_id: "master-data" });
-  add("client_group", "ClientGroup", record.client_group_id, { target_domain_id: "master-data" });
+  add("client_group", "ClientGroup", record.client_group_id, {
+    target_domain_id: "master-data",
+    required: ["ClientDepositAllocation", "FeeCommitment"].includes(record.model_type),
+  });
   add("receipt_document", "Document", record.receipt_document_id, { target_domain_id: "dms" });
   add("employee", "Employee", record.employee_id, { target_domain_id: "hrx" });
 
@@ -121,6 +133,32 @@ function references(record) {
   }
   if (record.model_type === "BankTransactionClassification") {
     add("bank_transaction", "BankTransaction", record.bank_transaction_id, { required: true });
+    add("refund_origin_bank_transaction", "BankTransaction", record.refund_of_bank_transaction_id, {
+      required: record.category === "refund_reversal",
+    });
+  }
+  if (record.model_type === "FeeCommitment") {
+    add("opportunity", "Opportunity", record.opportunity_id, {
+      target_domain_id: "crm",
+      required: true,
+    });
+    add("source_fee_arrangement", "FeeArrangement", record.source_fee_arrangement_id, {
+      required: true,
+    });
+  }
+  if (record.model_type === "ClientDepositAllocation") {
+    add("bank_transaction", "BankTransaction", record.bank_transaction_id, {
+      required: true,
+    });
+    add(
+      "bank_transaction_classification",
+      "BankTransactionClassification",
+      record.bank_transaction_classification_id,
+      { required: true },
+    );
+    add("fee_commitment", "FeeCommitment", record.fee_commitment_id, {
+      required: true,
+    });
   }
   return values;
 }
@@ -173,6 +211,7 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "csv_text",
     "counterparty",
     "memo",
+    "reason",
     "source_refs",
   ],
   primary_key_fields: Object.values(FINANCE_PRIMARY_ID_FIELDS),
@@ -201,6 +240,14 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "TrustLedgerEntry.invoice_id->Invoice",
     "BankTransaction.bank_import_batch_id->BankImportBatch",
     "BankTransactionClassification.bank_transaction_id->BankTransaction",
+    "BankTransactionClassification.refund_of_bank_transaction_id->BankTransaction",
+    "FeeCommitment.client_group_id->master-data.ClientGroup",
+    "FeeCommitment.opportunity_id->crm.Opportunity",
+    "FeeCommitment.source_fee_arrangement_id->FeeArrangement",
+    "ClientDepositAllocation.client_group_id->master-data.ClientGroup",
+    "ClientDepositAllocation.bank_transaction_id->BankTransaction",
+    "ClientDepositAllocation.bank_transaction_classification_id->BankTransactionClassification",
+    "ClientDepositAllocation.fee_commitment_id->FeeCommitment",
     "*.matter_id->matter.Matter",
     "*.billing_client_party_id->master-data.Party",
   ],
@@ -226,6 +273,13 @@ function indexBy(records, recordType, field) {
   return new Map(recordsOf(records, recordType).map((record) => [record[field], record]));
 }
 
+function tenantIndex(records, recordType, field) {
+  return new Map(recordsOf(records, recordType).map((record) => [
+    `${record.tenant_id}:${record[field]}`,
+    record,
+  ]));
+}
+
 function assertEqualMoney(actual, expected, label) {
   if (Math.abs(money(actual, label) - money(expected, label)) > 0.001) {
     throw Object.assign(new Error(`${label} does not reconcile`), {
@@ -235,6 +289,34 @@ function assertEqualMoney(actual, expected, label) {
   }
 }
 
+function allocationInvariant(message) {
+  return Object.assign(new Error(message), {
+    safe_error_code: "FINANCE_DEPOSIT_ALLOCATION_INVARIANT_FAILED",
+    status: 409,
+  });
+}
+
+function positiveWholeKrw(value, label) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
+    throw allocationInvariant(`${label} must be a positive whole KRW amount`);
+  }
+  return value;
+}
+
+function addWholeKrw(left, right, label) {
+  const total = left + right;
+  if (!Number.isSafeInteger(total)) {
+    throw allocationInvariant(`${label} exceeds the supported KRW range`);
+  }
+  return total;
+}
+
+function addAllocationTotal(totals, key, amount, label) {
+  const total = addWholeKrw(totals.get(key) ?? 0, amount, label);
+  totals.set(key, total);
+  return total;
+}
+
 export function reconcileFinanceRecords(records = []) {
   const values = records.map((record) => structuredClone(record));
   let moneyFieldCount = 0;
@@ -242,6 +324,7 @@ export function reconcileFinanceRecords(records = []) {
   let currencyMismatchCount = 0;
   let timeMinutes = 0;
   for (const record of values) {
+    if (record.model_type === "FeeCommitment") normalizeFeeCommitment(record);
     if (record.currency && record.currency !== "KRW") currencyMismatchCount += 1;
     for (const field of MONEY_FIELDS[record.model_type] ?? []) {
       if (record[field] === undefined || record[field] === null) continue;
@@ -306,6 +389,143 @@ export function reconcileFinanceRecords(records = []) {
     assertEqualMoney(balance.available_balance, deposits - drawdowns - refunds, "TrustBalance.available_balance");
   }
 
+  const allocations = recordsOf(values, "ClientDepositAllocation");
+  const bankTransactions = tenantIndex(
+    values,
+    "BankTransaction",
+    "bank_transaction_id",
+  );
+  const bankClassifications = tenantIndex(
+    values,
+    "BankTransactionClassification",
+    "bank_transaction_classification_id",
+  );
+  const feeCommitments = tenantIndex(
+    values,
+    "FeeCommitment",
+    "fee_commitment_id",
+  );
+  const activeByTransaction = new Map();
+  const activeByCommitment = new Map();
+  let allocationAmountTotal = 0;
+  let reversedAmountTotal = 0;
+  let refundReversedAmountTotal = 0;
+  let adjustmentReversedAmountTotal = 0;
+  for (const rawAllocation of allocations) {
+    const allocation = normalizeClientDepositAllocation(rawAllocation);
+    const transactionKey =
+      `${allocation.tenant_id}:${allocation.bank_transaction_id}`;
+    const classificationKey =
+      `${allocation.tenant_id}:${allocation.bank_transaction_classification_id}`;
+    const commitmentKey =
+      `${allocation.tenant_id}:${allocation.fee_commitment_id}`;
+    const transaction = bankTransactions.get(transactionKey);
+    const classification = bankClassifications.get(classificationKey);
+    const commitment = feeCommitments.get(commitmentKey);
+    if (!transaction || !classification || !commitment) {
+      throw allocationInvariant(
+        `ClientDepositAllocation references are incomplete: ${allocation.client_deposit_allocation_id}`,
+      );
+    }
+    const transactionAmount = positiveWholeKrw(
+      transaction.amount,
+      "BankTransaction.amount",
+    );
+    const classificationAmount = positiveWholeKrw(
+      classification.amount,
+      "BankTransactionClassification.amount",
+    );
+    if (
+      transaction.direction !== "inflow"
+      || transaction.status !== "posted"
+      || transaction.currency !== "KRW"
+      || classification.bank_transaction_id !== allocation.bank_transaction_id
+      || classification.transaction_direction !== "inflow"
+      || classification.currency !== "KRW"
+      || classification.category !== "client_receipt"
+      || classification.status !== "confirmed"
+      || classificationAmount !== transactionAmount
+      || classification.client_group_id !== allocation.client_group_id
+      || commitment.client_group_id !== allocation.client_group_id
+      || commitment.currency !== "KRW"
+    ) {
+      throw allocationInvariant(
+        `ClientDepositAllocation tenant, client, or source does not reconcile: ${allocation.client_deposit_allocation_id}`,
+      );
+    }
+    const activeAmount =
+      allocation.allocated_amount - allocation.reversed_amount;
+    if (
+      commitment.agreed_amount === null
+      || positiveWholeKrw(
+        commitment.agreed_amount,
+        "FeeCommitment.agreed_amount",
+      ) < activeAmount
+      || transactionAmount < allocation.allocated_amount
+    ) {
+      throw allocationInvariant(
+        `ClientDepositAllocation amount exceeds its source or commitment: ${allocation.client_deposit_allocation_id}`,
+      );
+    }
+    addAllocationTotal(
+      activeByTransaction,
+      transactionKey,
+      activeAmount,
+      "active allocation total by BankTransaction",
+    );
+    addAllocationTotal(
+      activeByCommitment,
+      commitmentKey,
+      activeAmount,
+      "active allocation total by FeeCommitment",
+    );
+    allocationAmountTotal = addWholeKrw(
+      allocationAmountTotal,
+      allocation.allocated_amount,
+      "allocated amount total",
+    );
+    reversedAmountTotal = addWholeKrw(
+      reversedAmountTotal,
+      allocation.reversed_amount,
+      "reversed amount total",
+    );
+    refundReversedAmountTotal = addWholeKrw(
+      refundReversedAmountTotal,
+      allocation.refund_reversed_amount,
+      "refund reversed amount total",
+    );
+    adjustmentReversedAmountTotal = addWholeKrw(
+      adjustmentReversedAmountTotal,
+      allocation.adjustment_reversed_amount,
+      "adjustment reversed amount total",
+    );
+  }
+  for (const [key, activeAmount] of activeByTransaction) {
+    const transactionAmount = positiveWholeKrw(
+      bankTransactions.get(key)?.amount,
+      "BankTransaction.amount",
+    );
+    if (activeAmount > transactionAmount) {
+      throw allocationInvariant(`Active allocations exceed BankTransaction.amount: ${key}`);
+    }
+  }
+  for (const [key, activeAmount] of activeByCommitment) {
+    const agreedAmount = feeCommitments.get(key)?.agreed_amount;
+    if (
+      agreedAmount === null
+      || activeAmount > positiveWholeKrw(agreedAmount, "FeeCommitment.agreed_amount")
+    ) {
+      throw allocationInvariant(`Active allocations exceed FeeCommitment.agreed_amount: ${key}`);
+    }
+  }
+  if (
+    reversedAmountTotal
+      !== refundReversedAmountTotal + adjustmentReversedAmountTotal
+  ) {
+    throw allocationInvariant(
+      "ClientDepositAllocation reversal breakdown does not reconcile",
+    );
+  }
   const payments = indexBy(values, "Payment", "payment_id");
   const paymentMatches = indexBy(values, "PaymentMatch", "payment_match_id");
   const paymentAllocations = recordsOf(values, "PaymentAllocation");
@@ -377,6 +597,14 @@ export function reconcileFinanceRecords(records = []) {
     payment_match_count: recordsOf(values, "PaymentMatch").length,
     journal_entry_count: recordsOf(values, "JournalEntry").length,
     trust_ledger_entry_count: trustEntries.length,
+    fee_commitment_count: recordsOf(values, "FeeCommitment").length,
+    client_deposit_allocation_count: allocations.length,
+    client_deposit_allocated_total: allocationAmountTotal,
+    client_deposit_reversed_total: reversedAmountTotal,
+    client_deposit_refund_reversed_total: refundReversedAmountTotal,
+    client_deposit_adjustment_reversed_total:
+      adjustmentReversedAmountTotal,
+    client_deposit_active_total: allocationAmountTotal - reversedAmountTotal,
     currency_mismatch_count: 0,
     invariant_passed: true,
   };

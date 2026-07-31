@@ -15,6 +15,12 @@ import {
   DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
   createDmsAuxiliaryRepository,
 } from "../../../packages/dms/src/central-ledger.js";
+import {
+  EMAIL_DMS_DOMAIN_DESCRIPTOR,
+} from "../../../packages/email-dms/src/central-ledger.js";
+import {
+  createEmailDmsRepository,
+} from "../../../packages/email-dms/src/repository.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { CRM_DOMAIN_DESCRIPTOR } from "../../../packages/crm/src/central-ledger.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
@@ -51,12 +57,19 @@ import {
 } from "./home-dashboard-runtime-context.js";
 import { createEnterpriseReadinessRuntimeContext } from "./enterprise-readiness-context.js";
 import { LAWOS_OFFLINE_REJECTED_POLICY } from "./persistence-authority.js";
+import {
+  selectClientOperationsReadPath,
+} from "./client-operations-migration.js";
+import {
+  createClientOperationsPostgresReadProvider,
+} from "./client-operations-read-providers.js";
 import { createPostgresPayrollReconciliationCheckpoint } from "./hrx-payroll-reconciliation-checkpoint.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
   Object.freeze({ key: "matterRepository", descriptor: MATTER_DOMAIN_DESCRIPTOR, create_repository: createMatterRepository }),
   Object.freeze({ key: "dmsRepository", descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR, create_repository: createDmsAuxiliaryRepository }),
+  Object.freeze({ key: "emailDmsRepository", descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR, create_repository: createEmailDmsRepository }),
   Object.freeze({ key: "crmRepository", descriptor: CRM_DOMAIN_DESCRIPTOR, create_repository: createCrmRuntimeRepository }),
   Object.freeze({ key: "intakeRepository", descriptor: INTAKE_DOMAIN_DESCRIPTOR, create_repository: createIntakeRuntimeRepository }),
   Object.freeze({ key: "financeRepository", descriptor: FINANCE_DOMAIN_DESCRIPTOR, create_repository: createFinanceRepository }),
@@ -204,6 +217,10 @@ function createRequestRuntimes({
   dmsUploadRuntime,
   payrollArtifactSecret,
   payrollProviders,
+  bankImportPreviewTokens,
+  clientFixedReportTokenAuthority,
+  clientOperationsReadPathSelector,
+  clientOperationsV2ReadProvider,
   bankReconciliationCheckpoint,
   leaveIntegrationProviders,
   leaveIntegrationProviderEnabled,
@@ -271,10 +288,18 @@ function createRequestRuntimes({
     authority: "postgres-v2",
     upload_runtime: dmsUploadRuntime,
   });
+  const emailDmsRuntime = Object.freeze({
+    authority: "postgres-v2",
+    repository: repositories.emailDmsRepository,
+    storage: dmsStorage,
+    upload_runtime: dmsUploadRuntime,
+    production_ready_claim: false,
+  });
   const crmIntakeRuntime = createCrmIntakeRuntimeContext({
     crmRepository: repositories.crmRepository,
     intakeRepository: repositories.intakeRepository,
     masterDataRepository: repositories.masterDataRepository,
+    emailDmsRepository: repositories.emailDmsRepository,
     matterRepository: repositories.matterRepository,
     dmsRuntime,
   });
@@ -288,14 +313,22 @@ function createRequestRuntimes({
   const financeRuntime = createFinanceRuntimeContext({
     repository: repositories.financeRepository,
     masterDataRepository: repositories.masterDataRepository,
+    crmRepository: repositories.crmRepository,
     matterRepository: repositories.matterRepository,
     employeeRepository: hrxRuntime.repository,
+    bankImportPreviewTokens,
   });
-  const analyticsRuntime = createAnalyticsRuntimeContext({
-    repository: repositories.analyticsRepository,
-    financeRepository: repositories.financeRepository,
-    masterDataRepository: repositories.masterDataRepository,
-    matterRepository: repositories.matterRepository,
+  const analyticsRuntime = Object.freeze({
+    ...createAnalyticsRuntimeContext({
+      repository: repositories.analyticsRepository,
+      financeRepository: repositories.financeRepository,
+      masterDataRepository: repositories.masterDataRepository,
+      crmRepository: repositories.crmRepository,
+      matterRepository: repositories.matterRepository,
+      clientOperationsReadPathSelector,
+      clientOperationsV2ReadProvider,
+    }),
+    clientFixedReportTokenAuthority,
   });
   const aiRuntime = createAiRuntimeContext({ repository: repositories.aiRepository });
   const portalRuntime = createPortalRuntimeContext({ repository: repositories.portalRepository });
@@ -317,6 +350,7 @@ function createRequestRuntimes({
     masterDataRuntime,
     matterRuntime,
     dmsRuntime,
+    emailDmsRuntime,
     crmIntakeRuntime,
     financeRuntime,
     analyticsRuntime,
@@ -353,6 +387,10 @@ export function createPostgresApiRuntimeAuthority({
   outlookOauthPort,
   offboardingAccessSource,
   hrxRelationalProjectionReader = null,
+  bankImportPreviewTokens,
+  clientFixedReportTokenAuthority = null,
+  clientOperationsV2Enabled = false,
+  clientOperationsSchemaPool = null,
   identityRepository = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
@@ -367,6 +405,37 @@ export function createPostgresApiRuntimeAuthority({
   if (!(typeof payrollArtifactSecret === "string" || Buffer.isBuffer(payrollArtifactSecret)) || Buffer.byteLength(payrollArtifactSecret) < 32) {
     throw new TypeError("PostgreSQL API authority requires injected payroll artifact secret material");
   }
+  if (typeof bankImportPreviewTokens?.issue !== "function"
+      || typeof bankImportPreviewTokens?.verify !== "function") {
+    throw new TypeError("PostgreSQL API authority requires bank import preview token authority");
+  }
+  if (
+    clientFixedReportTokenAuthority != null
+    && (
+      typeof clientFixedReportTokenAuthority.issue !== "function"
+      || typeof clientFixedReportTokenAuthority.verify !== "function"
+    )
+  ) {
+    throw new TypeError(
+      "Client fixed report token authority is invalid",
+    );
+  }
+  if (typeof clientOperationsV2Enabled !== "boolean") {
+    throw new TypeError(
+      "Client operations v2 feature switch must be boolean",
+    );
+  }
+  if (
+    clientOperationsV2Enabled
+    && (
+      typeof clientOperationsSchemaPool?.query !== "function"
+      || typeof clientOperationsSchemaPool?.connect !== "function"
+    )
+  ) {
+    throw new TypeError(
+      "Client operations v2 requires the verified PostgreSQL schema pool",
+    );
+  }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
       || hrxRelationalProjectionReader.fallback_authority
@@ -375,6 +444,8 @@ export function createPostgresApiRuntimeAuthority({
         !== "function")) {
     throw new TypeError("HRX relational projection reader contract is invalid");
   }
+  const clientOperationsV2ReadProvider =
+    createClientOperationsPostgresReadProvider({ ledger });
   const bankReconciliationCheckpoint =
     createPostgresPayrollReconciliationCheckpoint({ ledger });
 
@@ -412,6 +483,16 @@ export function createPostgresApiRuntimeAuthority({
             dmsUploadRuntime,
             payrollArtifactSecret,
             payrollProviders,
+            bankImportPreviewTokens,
+            clientFixedReportTokenAuthority,
+            clientOperationsV2ReadProvider,
+            clientOperationsReadPathSelector: ({ tenant_id }) =>
+              selectClientOperationsReadPath({
+                enabled: clientOperationsV2Enabled,
+                ledger,
+                pool: clientOperationsSchemaPool,
+                tenant_id,
+              }),
             bankReconciliationCheckpoint,
             leaveIntegrationProviders,
             leaveIntegrationProviderEnabled,
@@ -452,6 +533,8 @@ export function createPostgresApiRuntimeAuthority({
       hrx_relational_projection_authority: "read-model-only",
       hrx_relational_projection_fallback:
         "postgres-v2-generic-ledger",
+      client_operations_v2_enabled:
+        clientOperationsV2Enabled,
       json_fallback: false,
       dual_write: false,
       offline_mutation: false,

@@ -487,6 +487,59 @@ export const legacyGlobalRoutes = globalUtilityCatalog.flatMap((utility) =>
 const legacyGlobalRouteMap = new Map(legacyGlobalRoutes.map((route) => [`${route.view}:${route.section}`, route]));
 
 const route = (view, section, extra = {}) => ({ view, section, ...extra });
+const clientMenuSections = new Set([
+  "clients-home",
+  "clients-list",
+  "client-new",
+  "client-leads",
+  "client-sales-history",
+  "client-opportunities",
+  "client-consultation-proposals",
+  "client-activities",
+  "client-billing",
+  "client-reports"
+]);
+const clientMergedSections = new Map([
+  ["client-accounts", "clients-list"],
+  ["client-contacts", "clients-list"],
+  ["client-relationships", "clients-list"],
+  ["client-intake", "client-consultation-proposals"],
+  ["client-conflict", "client-consultation-proposals"],
+  ["client-contracts", "client-consultation-proposals"]
+]);
+const clientDisabledSections = new Set([
+  "client-data",
+  "client-import",
+  "client-settings"
+]);
+
+function resolveClientRoute(section = "") {
+  const requestedSection = String(section ?? "").trim();
+  if (!requestedSection) return route("clients", "clients-home");
+  if (clientMenuSections.has(requestedSection)) {
+    return route("clients", requestedSection);
+  }
+  const mergedSection = clientMergedSections.get(requestedSection);
+  if (mergedSection) {
+    return route("clients", mergedSection, {
+      redirectedFrom: {
+        view: "clients",
+        section: requestedSection,
+        disposition: "merged"
+      }
+    });
+  }
+  return route("clients", "clients-home", {
+    redirectedFrom: {
+      view: "clients",
+      section: requestedSection,
+      disposition: clientDisabledSections.has(requestedSection)
+        ? "disabled"
+        : "not_found"
+    },
+    clientRouteDisabled: true
+  });
+}
 
 const directRouteMap = new Map([
   ["home:", route("home", "home-dashboard")],
@@ -540,6 +593,7 @@ export function isLegacyGlobalRoute(view, section) {
 }
 
 export function resolveGlobalShortcut(view, section = "") {
+  if (view === "clients") return resolveClientRoute(section);
   if (view === "matters" && !section) return { view, section: "matter-board" };
   const direct = resolveFinalUtilityRoute(view, section);
   if (direct) return direct;

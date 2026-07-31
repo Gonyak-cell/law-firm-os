@@ -99,6 +99,7 @@ export function importBankTransactionBatch({
   transactions,
   actor_id,
   idempotency_key,
+  request_fingerprint,
 } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
@@ -106,11 +107,22 @@ export function importBankTransactionBatch({
     throw new TypeError("transactions must contain 1 to 5000 rows");
   }
   const batch = normalizeBatch(bank_import_batch ?? {}, transactions);
+  const requestFingerprint = request_fingerprint === undefined
+    ? batch.source_manifest_hash
+    : sha256(request_fingerprint, "request_fingerprint");
   const normalizedTransactions = transactions.map((transaction) => normalizeTransaction(transaction, batch));
   const fingerprints = new Set(normalizedTransactions.map((transaction) => transaction.transaction_fingerprint));
   if (fingerprints.size !== normalizedTransactions.length) throw new TypeError("BankTransaction fingerprints must be unique within a batch");
   const replay = repository.getIdempotency({ tenant_id: batch.tenant_id, idempotency_key });
-  if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
+  if (replay) {
+    const replayFingerprint = replay.request_fingerprint
+      ?? replay.response?.bank_import_batch?.source_manifest_hash;
+    if (replay.operation !== "bank_transaction_batch_import"
+        || replayFingerprint !== requestFingerprint) {
+      throw new TypeError("idempotency_key is already bound to another bank import request");
+    }
+    return Object.freeze({ ...replay.response, idempotent_replay: true });
+  }
 
   return repository.transaction((tx) => {
     const batchRecord = tx.create(batch);
@@ -146,6 +158,7 @@ export function importBankTransactionBatch({
       tenant_id: batchRecord.tenant_id,
       idempotency_key,
       operation: "bank_transaction_batch_import",
+      request_fingerprint: requestFingerprint,
       response,
     });
     return response;

@@ -7,6 +7,7 @@ import {
 import { createPostgresDomainLedger } from "./domain-ledger.js";
 
 const ORDERED_DOMAINS = Object.freeze([
+  "authz",
   "hrx",
   "master-data",
   "crm",
@@ -14,6 +15,7 @@ const ORDERED_DOMAINS = Object.freeze([
   "matter",
   "dms",
   "dms-auxiliary",
+  "email-dms",
   "finance",
   "client-portal",
   "ai-governance",
@@ -92,6 +94,13 @@ function legacySchemaPayload(domainId, runRef) {
     "dms-auxiliary": {
       document_id: documentId,
       matter_id: matterId,
+      source_link_count: 1,
+    },
+    "email-dms": {
+      inquiry_email_evidence_id: `synthetic-inquiry-evidence-${suffix}`,
+      mailbox_address_hash: hashDomainValue(
+        `synthetic-mailbox-${suffix}@example.invalid`,
+      ),
       source_link_count: 1,
     },
     finance: {

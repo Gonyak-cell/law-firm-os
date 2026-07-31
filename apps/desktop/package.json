@@ -19,5 +19,8 @@
   "devDependencies": {
     "@electron/packager": "^20.0.1",
     "electron": "^42.7.0"
+  },
+  "dependencies": {
+    "unpdf": "1.8.0"
   }
 }

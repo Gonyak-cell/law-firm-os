@@ -151,7 +151,7 @@ test("SQL approval receipt is tenant-scoped, idempotent, append-only, and source
     display_name: "Synthetic employee",
     status: "active",
   });
-  createSqlAttendanceStore({ store }).write(attendance({
+  createSqlAttendanceStore({ store, clock: () => AS_OF }).write(attendance({
     clock_in_at: "2026-07-14T09:00:00+09:00",
     clock_out_at: "2026-07-14T18:00:00+09:00",
   }));

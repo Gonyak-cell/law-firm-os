@@ -7,6 +7,7 @@ import { FINANCE_DOMAIN_DESCRIPTOR } from "../../../packages/billing/src/central
 import { PORTAL_DOMAIN_DESCRIPTOR } from "../../../packages/client-portal/src/central-ledger.js";
 import { CRM_DOMAIN_DESCRIPTOR } from "../../../packages/crm/src/central-ledger.js";
 import { DMS_AUXILIARY_DOMAIN_DESCRIPTOR } from "../../../packages/dms/src/central-ledger.js";
+import { EMAIL_DMS_DOMAIN_DESCRIPTOR } from "../../../packages/email-dms/src/central-ledger.js";
 import { ENTERPRISE_READINESS_DOMAIN_DESCRIPTOR } from "../../../packages/enterprise/src/central-ledger.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
 import {
@@ -38,6 +39,9 @@ import {
   createRecordRepositoryDomainSnapshot,
 } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { UI_READINESS_DOMAIN_DESCRIPTOR } from "../../../packages/platform/src/ui-readiness-central-ledger.js";
+import {
+  isSafeCredentialPersistenceField,
+} from "../../../packages/persistence/src/credential-reference.js";
 
 export const JSON_POSTGRES_SOURCE_TRANSFORM_PLAN_VERSION =
   "law-firm-os.json-postgres-source-transform-plan.v2";
@@ -63,11 +67,6 @@ const TRANSFORM_KINDS = new Set([
 ]);
 const SECRET_FIELD =
   /(^|_)(?:passwords?|password_hash|passwd|passphrases?|secrets?|tokens?|credentials?|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
-const SAFE_CREDENTIAL_METADATA = new Set([
-  "credential_provider",
-  "credential_status",
-  "credential_rev",
-]);
 const REGISTRATION_PROFILE_FIELDS = Object.freeze([
   "display_name",
   "english_name",
@@ -97,6 +96,7 @@ const DESCRIPTORS = new Map([
   ["master-data", MASTER_DATA_DOMAIN_DESCRIPTOR],
   ["matter", MATTER_DOMAIN_DESCRIPTOR],
   ["dms-auxiliary", DMS_AUXILIARY_DOMAIN_DESCRIPTOR],
+  ["email-dms", EMAIL_DMS_DOMAIN_DESCRIPTOR],
   ["crm", CRM_DOMAIN_DESCRIPTOR],
   ["intake", INTAKE_DOMAIN_DESCRIPTOR],
   ["finance", FINANCE_DOMAIN_DESCRIPTOR],
@@ -378,7 +378,7 @@ function sanitize(value, state, depth = 0) {
   for (const [key, item] of Object.entries(value)) {
     const normalizedKey = normalizedFieldName(key);
     if ((SECRET_FIELD.test(normalizedKey)
-        && !SAFE_CREDENTIAL_METADATA.has(normalizedKey))
+        && !isSafeCredentialPersistenceField(normalizedKey, item))
       || isSerializedBytes(item)) {
       state.excludedSecretFieldCount += 1;
       state.excludedSecretFieldNames.add(

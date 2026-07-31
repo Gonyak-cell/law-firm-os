@@ -165,12 +165,24 @@ test("record-type catalog accepts only bounded credential metadata", () => {
   safe.accounts[0].credential_provider = "lawos-internal-password-provider-v1";
   safe.accounts[0].credential_status = "reset_required";
   safe.accounts[0].credential_rev = 2;
+  safe.domains[1].records[0].payload.credential_ref =
+    "aws-secrets-manager:lawos/test/m365/opaque-reference";
   assert.doesNotThrow(() => createJsonPostgresRecordTypeCatalog({ corpus: safe }));
 
   const unsafe = corpus();
   unsafe.accounts[0].credential_blob = "never-return";
   assert.throws(
     () => createJsonPostgresRecordTypeCatalog({ corpus: unsafe }),
+    /forbidden secret/u,
+  );
+
+  const forgedReference = corpus();
+  forgedReference.domains[1].records[0].payload.credential_ref =
+    "access-token-disguised-as-a-reference";
+  assert.throws(
+    () => createJsonPostgresRecordTypeCatalog({
+      corpus: forgedReference,
+    }),
     /forbidden secret/u,
   );
 });

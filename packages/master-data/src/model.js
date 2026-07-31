@@ -180,6 +180,7 @@ export function createMasterDataClientGroup(input) {
     rp04_entity_id: input.rp04_entity_id ?? input.primary_entity_id ?? null,
     rp05_client_ref: input.rp05_client_ref ?? input.client_group_id,
     single_tenant_migration_state: input.single_tenant_migration_state ?? null,
+    client_type: input.client_type ?? null,
     source_lanes: Object.freeze([...(input.source_lanes ?? [])]),
     member_entity_ids: Object.freeze([...(input.member_entity_ids ?? [])]),
     member_party_ids: Object.freeze([...(input.member_party_ids ?? [])]),

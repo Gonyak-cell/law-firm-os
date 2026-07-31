@@ -1,0 +1,3 @@
+# Generated evidence runs are ignored so release source worktrees stay clean.
+runs/*
+!runs/.gitkeep

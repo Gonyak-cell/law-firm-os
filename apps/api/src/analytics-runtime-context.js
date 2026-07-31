@@ -14,6 +14,12 @@ import {
 import { createAnalyticsExport } from "../../../packages/analytics/src/export-control-service.js";
 import { buildCashflowReadModel, buildFinanceReadModels } from "../../../packages/analytics/src/finance-read-model.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import {
+  selectClientOperationsReadPath,
+} from "./client-operations-migration.js";
+import {
+  createClientOperationsLegacyReadProvider,
+} from "./client-operations-read-providers.js";
 
 export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "analytics",
@@ -21,6 +27,9 @@ export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.analytics-runtime-contract.v0.1",
   endpoints: Object.freeze([
     "GET /api/analytics/dashboards",
+    "GET /api/analytics/clients",
+    "GET /api/analytics/clients/dashboard",
+    "GET /api/analytics/clients/:client_group_id/operations",
     "GET /api/analytics/finance/overview",
     "GET /api/analytics/finance/monthly",
     "GET /api/analytics/finance/clients",
@@ -93,9 +102,36 @@ export function createAnalyticsRuntimeContext({
   repository = createAnalyticsRepository({ seedRecords: ANALYTICS_RUNTIME_SEED }),
   financeRepository = null,
   masterDataRepository = null,
+  crmRepository = null,
   matterRepository = null,
+  clock = () => new Date(),
+  clientOperationsReadPathSelector = null,
+  clientOperationsLegacyReadProvider = null,
+  clientOperationsV2ReadProvider = null,
 } = {}) {
-  return Object.freeze({ repository, financeRepository, masterDataRepository, matterRepository, seed_ref: "cmp-g8-analytics-synthetic" });
+  const legacyReadProvider =
+    clientOperationsLegacyReadProvider
+    ?? createClientOperationsLegacyReadProvider({
+      masterDataRepository,
+      financeRepository,
+      crmRepository,
+      matterRepository,
+      clock,
+    });
+  return Object.freeze({
+    repository,
+    financeRepository,
+    masterDataRepository,
+    crmRepository,
+    matterRepository,
+    clientOperationsReadModel: legacyReadProvider,
+    clientOperationsLegacyReadProvider: legacyReadProvider,
+    clientOperationsV2ReadProvider,
+    clientOperationsReadPathSelector:
+      clientOperationsReadPathSelector
+      ?? (() => selectClientOperationsReadPath()),
+    seed_ref: "cmp-g8-analytics-synthetic",
+  });
 }
 
 const DEFAULT_RUNTIME = createAnalyticsRuntimeContext();
@@ -124,10 +160,17 @@ function validateCommon(query, requestId) {
 }
 
 function appendAnalyticsRouteAudit({ repository, context, query, action, resourceType, decision } = {}) {
-  if (!repository || typeof repository.appendAudit !== "function" || !query?.tenant_id || decision?.effect === "allow") return null;
+  const authoritativeTenantId = context?.principal?.tenant_id;
+  if (
+    !repository
+    || typeof repository.appendAudit !== "function"
+    || typeof authoritativeTenantId !== "string"
+    || !authoritativeTenantId.trim()
+    || decision?.effect === "allow"
+  ) return null;
   return repository.appendAudit({
     event_id: `analytics_route_${randomUUID()}`,
-    tenant_id: query.tenant_id,
+    tenant_id: authoritativeTenantId,
     actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
     action,
     object_type: resourceType,
@@ -183,6 +226,25 @@ function routeGate({ context, query, requestId, action, resourceType, repository
     audit_hint_ref: query.audit_hint_ref,
     ui_state: "denied",
   });
+}
+
+function collectionRouteContext(context) {
+  if (!context || typeof context !== "object") return context;
+  return {
+    ...context,
+    object_acl: Array.isArray(context.object_acl)
+      ? context.object_acl.filter((entry) => {
+        const objectScoped = (
+          entry?.resource_id !== undefined
+          && entry.resource_id !== null
+        ) || (
+          entry?.client_group_id !== undefined
+          && entry.client_group_id !== null
+        );
+        return !objectScoped || entry?.effect === "allow";
+      })
+      : [],
+  };
 }
 
 function sanitizeAnalyticsItem(record) {
@@ -319,6 +381,330 @@ function financeReadModelResponse({ kind, query, context, requestId, runtime }) 
       audit_hint_ref: query.audit_hint_ref,
       ui_state: "blocked",
     });
+  }
+}
+
+export async function handleClientOperationsDashboard({
+  query,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+} = {}) {
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "analytics:client:read",
+    resourceType: "client_operations_dashboard",
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  const generatedAt = new Date().toISOString();
+  const readPath = await (
+    typeof runtime?.clientOperationsReadPathSelector === "function"
+      ? runtime.clientOperationsReadPathSelector({
+          tenant_id: context.principal.tenant_id,
+        })
+      : selectClientOperationsReadPath()
+  );
+  const selectedReadProvider = readPath.active
+    ? runtime?.clientOperationsV2ReadProvider
+    : runtime?.clientOperationsLegacyReadProvider;
+  const publicReadPath = Object.freeze({
+    feature_flag: readPath.feature_flag,
+    active: readPath.active,
+    read_path: readPath.read_path,
+    reason: readPath.reason,
+    postgres_records_preserved:
+      readPath.postgres_records_preserved,
+    destructive_rollback: readPath.destructive_rollback,
+    verification_source: readPath.verification_source,
+    caller_verification_accepted:
+      readPath.caller_verification_accepted,
+    provider_authority:
+      selectedReadProvider?.authority ?? null,
+  });
+  if (
+    typeof selectedReadProvider?.readDashboard
+      !== "function"
+  ) {
+    return {
+      status: 503,
+      body: {
+        request_id: requestId,
+        generated_at: generatedAt,
+        outcome: "blocked",
+        ui_state: "error",
+        source_statuses: [{
+          source_id: "client_operations_runtime",
+          label: "Client 운영 조회",
+          status: "error",
+          checked_at: generatedAt,
+          latest_record_at: null,
+          item_count: null,
+          safe_error_code: readPath.active
+            ? "CLIENT_OPERATIONS_V2_RUNTIME_UNAVAILABLE"
+            : "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
+        }],
+        safe_error_codes: [
+          readPath.active
+            ? "CLIENT_OPERATIONS_V2_RUNTIME_UNAVAILABLE"
+            : "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
+        ],
+        audit_hint_ref: query.audit_hint_ref,
+        client_operations_read_path: publicReadPath,
+        count_leak_prevented: true,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        production_ready_claim: false,
+      },
+    };
+  }
+  try {
+    const result =
+      await selectedReadProvider.readDashboard({
+        tenant_id: context.principal.tenant_id,
+        permission_context: context,
+        as_of: query.as_of ?? undefined,
+        timezone: query.timezone ?? "Asia/Seoul",
+        revenue_ranking_period:
+          query.revenue_ranking_period ?? "year",
+      });
+    return {
+      status: result.access_scope.access_state === "no_access"
+        ? 403
+        : 200,
+      body: {
+        request_id: requestId,
+        ...result.item,
+        audit_hint_ref: query.audit_hint_ref,
+        client_operations_read_path: publicReadPath,
+      },
+    };
+  } catch (error) {
+    const suppliedCode =
+      typeof error?.safe_error_code === "string"
+        ? error.safe_error_code
+        : null;
+    const sourceUnavailable = suppliedCode === (
+      "CLIENT_OPERATIONS_CLIENT_SCOPE_UNAVAILABLE"
+    ) || suppliedCode === (
+      "CLIENT_OPERATIONS_CLIENT_SCOPE_INVALID"
+    );
+    const safeCode = suppliedCode ?? (
+      ANALYTICS_API_ERROR_CODES.validation_error
+    );
+    return {
+      status: sourceUnavailable ? 503 : 400,
+      body: {
+        request_id: requestId,
+        generated_at: generatedAt,
+        outcome: "blocked",
+        ui_state: sourceUnavailable ? "error" : "blocked",
+        source_statuses: sourceUnavailable
+          ? [{
+            source_id: "master_data",
+            label: "고객 정보",
+            status: "error",
+            checked_at: generatedAt,
+            latest_record_at: null,
+            item_count: null,
+            safe_error_code: safeCode,
+          }]
+          : [],
+        safe_error_codes: [safeCode],
+        audit_hint_ref: query.audit_hint_ref,
+        client_operations_read_path: publicReadPath,
+        count_leak_prevented: true,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        production_ready_claim: false,
+      },
+    };
+  }
+}
+
+export function handleClientOperationsDirectory({
+  query,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+} = {}) {
+  const gated = routeGate({
+    context: collectionRouteContext(context),
+    query,
+    requestId,
+    action: "analytics:client:read",
+    resourceType: "client_operations_directory",
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  if (
+    typeof runtime?.clientOperationsReadModel?.readDirectory
+      !== "function"
+  ) {
+    return errorResponse(
+      503,
+      requestId,
+      ["CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE"],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "error",
+      },
+    );
+  }
+  try {
+    const result = runtime.clientOperationsReadModel.readDirectory({
+      tenant_id: query.tenant_id,
+      permission_context: context,
+    });
+    if (result.access_scope.access_state === "no_access") {
+      return errorResponse(
+        403,
+        requestId,
+        [ANALYTICS_API_ERROR_CODES.permission_required],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "permission_denied",
+        },
+      );
+    }
+    const empty = result.items.length === 0;
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        generated_at: new Date().toISOString(),
+        timezone: "Asia/Seoul",
+        outcome: empty ? "empty" : "passed",
+        ui_state: empty ? "no_data" : null,
+        items: result.items,
+        page_info: {
+          returned_count: result.items.length,
+          omitted_item_count: null,
+        },
+        source_statuses: [{
+          source_id: "client_directory",
+          label: "고객 정보",
+          status: empty ? "no_data" : "available",
+          item_count: result.items.length,
+          safe_error_code: null,
+        }],
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        permission_prefilter_applied: true,
+        count_leak_prevented: true,
+        unauthorized_count_included: false,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        production_ready_claim: false,
+      },
+    };
+  } catch (error) {
+    const safeCode =
+      typeof error?.safe_error_code === "string"
+        ? error.safe_error_code
+        : ANALYTICS_API_ERROR_CODES.validation_error;
+    const sourceUnavailable = safeCode.startsWith(
+      "CLIENT_OPERATIONS_CLIENT_SCOPE_",
+    );
+    return errorResponse(
+      sourceUnavailable ? 503 : 400,
+      requestId,
+      [safeCode],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: sourceUnavailable ? "error" : "blocked",
+      },
+    );
+  }
+}
+
+export function handleClientOperationsDetail({
+  clientGroupId,
+  query,
+  context,
+  requestId,
+  runtime = DEFAULT_RUNTIME,
+} = {}) {
+  const gated = routeGate({
+    context: collectionRouteContext(context),
+    query,
+    requestId,
+    action: "analytics:client:read",
+    resourceType: "client_operations_detail",
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  if (
+    typeof runtime?.clientOperationsReadModel?.readClientDetail
+      !== "function"
+  ) {
+    return errorResponse(
+      503,
+      requestId,
+      ["CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE"],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: "error",
+      },
+    );
+  }
+  try {
+    const result = runtime.clientOperationsReadModel.readClientDetail({
+      tenant_id: query.tenant_id,
+      permission_context: context,
+      client_group_id: clientGroupId,
+    });
+    if (
+      result.access_scope.access_state === "no_access"
+      || result.item === null
+    ) {
+      return errorResponse(
+        404,
+        requestId,
+        [ANALYTICS_API_ERROR_CODES.not_found],
+        {
+          audit_hint_ref: query.audit_hint_ref,
+          ui_state: "empty",
+        },
+      );
+    }
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        item: result.item,
+        outcome: result.item.outcome,
+        ui_state: result.item.ui_state,
+        source_statuses: result.item.source_statuses,
+        safe_error_codes: result.item.safe_error_codes,
+        audit_hint_ref: query.audit_hint_ref,
+        permission_prefilter_applied: true,
+        count_leak_prevented: true,
+        unauthorized_count_included: false,
+        raw_source_payload_included: false,
+        credential_material_included: false,
+        production_ready_claim: false,
+      },
+    };
+  } catch (error) {
+    const safeCode =
+      typeof error?.safe_error_code === "string"
+        ? error.safe_error_code
+        : ANALYTICS_API_ERROR_CODES.validation_error;
+    const sourceUnavailable = safeCode.startsWith(
+      "CLIENT_OPERATIONS_CLIENT_SCOPE_",
+    );
+    return errorResponse(
+      sourceUnavailable ? 503 : 400,
+      requestId,
+      [safeCode],
+      {
+        audit_hint_ref: query.audit_hint_ref,
+        ui_state: sourceUnavailable ? "error" : "blocked",
+      },
+    );
   }
 }
 
@@ -514,7 +900,7 @@ export function handleClientProfitabilityCreate({ body, context, requestId, runt
 
 export function handleAnalyticsExportCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.analytics_export?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "analytics:export:write", resourceType: "analytics_export" });
+  const gated = routeGate({ context, query, requestId, action: "analytics:export:write", resourceType: "analytics_export", repository: runtime.repository });
   if (gated) return gated;
   try {
     const result = createAnalyticsExport({
@@ -559,6 +945,51 @@ export function handleAnalyticsAudit({ query, context, requestId, runtime = DEFA
 }
 
 export async function handleAnalyticsApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const clientDetailMatch = typeof pathname === "string"
+    ? pathname.match(/^\/api\/analytics\/clients\/([^/]+)\/operations$/)
+    : null;
+  if (clientDetailMatch && method === "GET") {
+    let clientGroupId;
+    try {
+      clientGroupId = decodeURIComponent(clientDetailMatch[1]).trim();
+    } catch {
+      clientGroupId = "";
+    }
+    if (!clientGroupId || clientGroupId.includes("/")) {
+      return errorResponse(
+        404,
+        requestId,
+        [ANALYTICS_API_ERROR_CODES.not_found],
+        { audit_hint_ref: query?.audit_hint_ref, ui_state: "empty" },
+      );
+    }
+    return handleClientOperationsDetail({
+      clientGroupId,
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (pathname === "/api/analytics/clients" && method === "GET") {
+    return handleClientOperationsDirectory({
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (
+    pathname === "/api/analytics/clients/dashboard"
+    && method === "GET"
+  ) {
+    return handleClientOperationsDashboard({
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
   if (pathname === "/api/analytics/finance/overview" && method === "GET") {
     return financeReadModelResponse({ kind: "overview", query, context, requestId, runtime });
   }

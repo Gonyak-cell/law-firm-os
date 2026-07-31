@@ -30,7 +30,8 @@ const DESKTOP_STORE_PATH_MANIFEST = Object.freeze([
   ["enterpriseReadinessStorePath", "LAWOS_ENTERPRISE_READINESS_STORE_PATH", "enterprise-readiness-store.json"],
   ["securityAuditStorePath", "LAWOS_AUDIT_STORE_PATH", "security-audit-events.ndjson"],
   ["authCredentialStorePath", "LAWOS_AUTH_CREDENTIAL_STORE_PATH", "auth/credential-store.json"],
-  ["authPasswordResetStorePath", "LAWOS_AUTH_PASSWORD_RESET_STORE_PATH", "auth/password-reset-store.json"]
+  ["authPasswordResetStorePath", "LAWOS_AUTH_PASSWORD_RESET_STORE_PATH", "auth/password-reset-store.json"],
+  ["objectAclStorePath", "LAWOS_OBJECT_ACL_STORE_PATH", "auth/object-acl-store.json"]
 ]);
 
 function ancestorApiServerEntries(start = moduleDir) {

@@ -142,6 +142,13 @@ function adapter(overrides = {}) {
 test("S3 adapter stages, independently digests, finalizes, and isolates tenants", async () => {
   const storage = adapter();
   assertStagedStorageAdapter(storage);
+  const kmsStorage = adapter({
+    kms_key_id: "alias/lawos-test-dms",
+  });
+  assert.equal(kmsStorage.kms_key_ref, "alias/lawos-test-dms");
+  assert.equal(kmsStorage.server_side_encryption, "aws:kms");
+  assert.equal(storage.kms_key_ref, null);
+  assert.equal(storage.server_side_encryption, "AES256");
   const shared = { session_id: "session-shared", object_id: "object-shared", content_type: "text/plain" };
   const bytesA = Buffer.from("tenant A bytes");
   const bytesB = Buffer.from("tenant B bytes");

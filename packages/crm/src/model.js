@@ -15,6 +15,30 @@ export const CRM_CORE_PROPOSAL_STATUSES = Object.freeze(["draft", "sent", "accep
 
 export const CRM_CORE_CAMPAIGN_CONTACT_CONSENT_STATUSES = Object.freeze(["opted_in", "opted_out"]);
 
+export const CRM_INQUIRY_STATUSES = Object.freeze(["new", "reviewing", "closed"]);
+
+export const CRM_INQUIRY_SOURCES = Object.freeze(["outlook_addin", "manual"]);
+
+export const CRM_ENGAGEMENT_DECISIONS = Object.freeze([
+  "pending",
+  "accepted",
+  "declined",
+]);
+
+export const CRM_ENGAGEMENT_WORKFLOW_STATUSES = Object.freeze([
+  "in_progress",
+  "repair_required",
+  "completed",
+]);
+
+export const CRM_INQUIRY_STATUS_TRANSITIONS = Object.freeze({
+  new: Object.freeze(["reviewing", "closed"]),
+  reviewing: Object.freeze(["closed"]),
+  closed: Object.freeze(["reviewing"]),
+});
+
+export const CRM_ACTIVITY_KINDS = Object.freeze(["consultation"]);
+
 export const CRM_CORE_DIRECT_MATTER_REFERENCE_FIELDS = Object.freeze([
   "matter_id",
   "matter_ref",
@@ -27,7 +51,18 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
   Lead: Object.freeze({
     model_type: "Lead",
     id_field: "lead_id",
-    required_fields: Object.freeze(["lead_id", "tenant_id", "party_id", "display_name", "status", "owner_user_id"]),
+    required_fields: Object.freeze([
+      "lead_id",
+      "tenant_id",
+      "party_id",
+      "display_name",
+      "status",
+      "owner_user_id",
+      "inquiry_status",
+      "source",
+      "received_at",
+      "version",
+    ]),
     party_reference_fields: Object.freeze(["party_id"]),
     tuw_id: "LFOS-G3-W03-T001",
     prohibits_direct_matter_reference: true,
@@ -45,6 +80,26 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
       "owner_user_id",
     ]),
     party_reference_fields: Object.freeze(["party_id"]),
+    optional_fields: Object.freeze([
+      "lead_id",
+      "engagement_decision",
+      "engagement_decision_version",
+      "engagement_decided_at",
+      "engagement_decided_by",
+      "engagement_close_reason",
+      "engagement_previous_stage",
+      "engagement_workflow_id",
+      "engagement_workflow_status",
+      "engagement_completed_steps",
+      "engagement_client_group_id",
+      "engagement_fee_commitment_id",
+      "intake_handoff_snapshot_sha256",
+      "intake_handoff_evidence_count",
+      "intake_handoff_activity_count",
+      "intake_handoff_recorded_at",
+    ]),
+    engagement_optimistic_concurrency_field:
+      "engagement_decision_version",
     tuw_id: "LFOS-G3-W03-T002",
     allowed_conversion_target: "IntakeRequest",
     prohibits_direct_matter_reference: true,
@@ -61,7 +116,40 @@ export const CRM_CORE_MODEL_DEFINITIONS = Object.freeze({
       "confidential",
       "status",
       "owner_user_id",
+      "version",
     ]),
+    optional_fields: Object.freeze([
+      "activity_kind",
+      "lead_id",
+      "opportunity_id",
+      "scheduled_start",
+      "scheduled_end",
+      "timezone",
+      "completed_at",
+      "outcome",
+      "next_action",
+      "outlook_event_id",
+      "outlook_event_web_link",
+      "outlook_event_transaction_id",
+      "outlook_event_created_at",
+      "outlook_event_created_by",
+      "outlook_event_provider_request_ref",
+      "outlook_event_schedule_sha256",
+      "outlook_event_mailbox_scope",
+    ]),
+    consultation_required_schedule_fields: Object.freeze([
+      "lead_id",
+      "scheduled_start",
+      "scheduled_end",
+      "timezone",
+    ]),
+    consultation_required_completion_fields: Object.freeze([
+      "completed_at",
+      "outcome",
+      "next_action",
+    ]),
+    optimistic_concurrency_field: "version",
+    consultation_schedule_authority: "law_firm_os_app",
     party_reference_fields: Object.freeze(["party_id"]),
     tuw_id: "LFOS-G3-W03-T003",
     confidential_activity_permission_trim_required: true,
@@ -134,6 +222,415 @@ function freezeObject(value) {
 
 function normalizeSearchValue(value) {
   return String(value ?? "").trim().toLowerCase();
+}
+
+function optionalString(value, field, maxLength = 240) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || value.trim() === "" || value.trim().length > maxLength) {
+    throw new TypeError(`${field} must be a non-empty string up to ${maxLength} characters`);
+  }
+  return value.trim();
+}
+
+function normalizeInstant(value, field) {
+  if (
+    typeof value !== "string"
+    || value.trim() === ""
+    || !/^\d{4}-\d{2}-\d{2}T.+(?:Z|[+-]\d{2}:\d{2})$/u.test(value.trim())
+    || !Number.isFinite(Date.parse(value.trim()))
+  ) {
+    throw new TypeError(`${field} must be a valid instant with an explicit UTC offset`);
+  }
+  return value.trim();
+}
+
+function normalizeIanaTimezone(value, field) {
+  const timezone = optionalString(value, field, 120);
+  if (!timezone) throw new TypeError(`${field} is required`);
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: timezone }).format(new Date(0));
+  } catch {
+    throw new TypeError(`${field} must be a valid IANA timezone`);
+  }
+  return timezone;
+}
+
+function canonicalInstant(value, field) {
+  return new Date(normalizeInstant(value, field)).toISOString();
+}
+
+function positiveInteger(value, field) {
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new TypeError(`${field} must be a positive integer`);
+  }
+  return value;
+}
+
+function nonNegativeInteger(value, field) {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new TypeError(`${field} must be a non-negative integer`);
+  }
+  return value;
+}
+
+export function normalizeCrmOpportunityEngagementFields(input = {}) {
+  const decision = input.engagement_decision === undefined
+    || input.engagement_decision === null
+    || input.engagement_decision === ""
+    ? null
+    : optionalString(
+      input.engagement_decision,
+      "Opportunity engagement_decision",
+      32,
+    );
+  if (decision !== null && !CRM_ENGAGEMENT_DECISIONS.includes(decision)) {
+    throw new TypeError(
+      `Opportunity engagement_decision must be one of ${CRM_ENGAGEMENT_DECISIONS.join(", ")}`,
+    );
+  }
+  const workflowStatus = input.engagement_workflow_status === undefined
+    || input.engagement_workflow_status === null
+    || input.engagement_workflow_status === ""
+    ? null
+    : optionalString(
+      input.engagement_workflow_status,
+      "Opportunity engagement_workflow_status",
+      32,
+    );
+  if (
+    workflowStatus !== null
+    && !CRM_ENGAGEMENT_WORKFLOW_STATUSES.includes(workflowStatus)
+  ) {
+    throw new TypeError(
+      `Opportunity engagement_workflow_status must be one of ${CRM_ENGAGEMENT_WORKFLOW_STATUSES.join(", ")}`,
+    );
+  }
+  const previousStage = optionalString(
+    input.engagement_previous_stage,
+    "Opportunity engagement_previous_stage",
+    32,
+  );
+  if (
+    previousStage !== null
+    && !CRM_CORE_OPPORTUNITY_STAGES.includes(previousStage)
+  ) {
+    throw new TypeError("Opportunity engagement_previous_stage is invalid");
+  }
+  const completedSteps = input.engagement_completed_steps ?? [];
+  if (
+    !Array.isArray(completedSteps)
+    || completedSteps.some(
+      (step) => typeof step !== "string" || step.trim() === "",
+    )
+  ) {
+    throw new TypeError(
+      "Opportunity engagement_completed_steps must be an array of strings",
+    );
+  }
+  return Object.freeze({
+    engagement_decision: decision,
+    engagement_decision_version: positiveInteger(
+      input.engagement_decision_version ?? 1,
+      "Opportunity engagement_decision_version",
+    ),
+    engagement_decided_at: input.engagement_decided_at
+      ? canonicalInstant(
+        input.engagement_decided_at,
+        "Opportunity engagement_decided_at",
+      )
+      : null,
+    engagement_decided_by: optionalString(
+      input.engagement_decided_by,
+      "Opportunity engagement_decided_by",
+      240,
+    ),
+    engagement_close_reason: optionalString(
+      input.engagement_close_reason,
+      "Opportunity engagement_close_reason",
+      500,
+    ),
+    engagement_previous_stage: previousStage,
+    engagement_workflow_id: optionalString(
+      input.engagement_workflow_id,
+      "Opportunity engagement_workflow_id",
+      240,
+    ),
+    engagement_workflow_status: workflowStatus,
+    engagement_completed_steps: freezeArray(completedSteps),
+    engagement_client_group_id: optionalString(
+      input.engagement_client_group_id,
+      "Opportunity engagement_client_group_id",
+      240,
+    ),
+    engagement_fee_commitment_id: optionalString(
+      input.engagement_fee_commitment_id,
+      "Opportunity engagement_fee_commitment_id",
+      240,
+    ),
+  });
+}
+
+const OUTLOOK_EVENT_FIELDS = Object.freeze([
+  "outlook_event_id",
+  "outlook_event_web_link",
+  "outlook_event_transaction_id",
+  "outlook_event_created_at",
+  "outlook_event_created_by",
+  "outlook_event_provider_request_ref",
+  "outlook_event_schedule_sha256",
+  "outlook_event_mailbox_scope",
+]);
+
+function normalizeOutlookEventWebLink(value) {
+  const text = optionalString(
+    value,
+    "CRMActivity outlook_event_web_link",
+    2_048,
+  );
+  if (!text) return null;
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    throw new TypeError(
+      "CRMActivity outlook_event_web_link must be a valid URL",
+    );
+  }
+  const hostname = url.hostname.toLowerCase();
+  const allowedHost = [
+    "outlook.office.com",
+    "outlook.office365.com",
+  ].some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  if (
+    url.protocol !== "https:"
+    || url.username
+    || url.password
+    || !allowedHost
+  ) {
+    throw new TypeError(
+      "CRMActivity outlook_event_web_link must be an Outlook HTTPS URL",
+    );
+  }
+  return url.toString();
+}
+
+function normalizeCrmOutlookEventFields(input = {}) {
+  const supplied = OUTLOOK_EVENT_FIELDS.some((field) => (
+    input[field] !== undefined
+    && input[field] !== null
+    && input[field] !== ""
+  ));
+  if (!supplied) {
+    return Object.freeze(Object.fromEntries(
+      OUTLOOK_EVENT_FIELDS.map((field) => [field, null]),
+    ));
+  }
+  const eventId = optionalString(
+    input.outlook_event_id,
+    "CRMActivity outlook_event_id",
+    2_048,
+  );
+  const transactionId = optionalString(
+    input.outlook_event_transaction_id,
+    "CRMActivity outlook_event_transaction_id",
+    128,
+  );
+  const createdBy = optionalString(
+    input.outlook_event_created_by,
+    "CRMActivity outlook_event_created_by",
+    240,
+  );
+  if (!eventId || !transactionId || !createdBy) {
+    throw new TypeError(
+      "CRMActivity Outlook event link requires event ID, transaction ID, and creator",
+    );
+  }
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u
+      .test(transactionId)
+  ) {
+    throw new TypeError(
+      "CRMActivity outlook_event_transaction_id must be a deterministic UUID",
+    );
+  }
+  const providerRequestRef = optionalString(
+    input.outlook_event_provider_request_ref,
+    "CRMActivity outlook_event_provider_request_ref",
+    64,
+  );
+  const scheduleSha256 = optionalString(
+    input.outlook_event_schedule_sha256,
+    "CRMActivity outlook_event_schedule_sha256",
+    64,
+  );
+  if (
+    (providerRequestRef && !/^[0-9a-f]{64}$/u.test(providerRequestRef))
+    || !scheduleSha256
+    || !/^[0-9a-f]{64}$/u.test(scheduleSha256)
+  ) {
+    throw new TypeError(
+      "CRMActivity Outlook event references must be SHA-256 values",
+    );
+  }
+  if (input.outlook_event_mailbox_scope !== "me") {
+    throw new TypeError(
+      "CRMActivity outlook_event_mailbox_scope must be me",
+    );
+  }
+  return Object.freeze({
+    outlook_event_id: eventId,
+    outlook_event_web_link: normalizeOutlookEventWebLink(
+      input.outlook_event_web_link,
+    ),
+    outlook_event_transaction_id: transactionId,
+    outlook_event_created_at: canonicalInstant(
+      input.outlook_event_created_at,
+      "CRMActivity outlook_event_created_at",
+    ),
+    outlook_event_created_by: createdBy,
+    outlook_event_provider_request_ref: providerRequestRef,
+    outlook_event_schedule_sha256: scheduleSha256,
+    outlook_event_mailbox_scope: "me",
+  });
+}
+
+export function normalizeCrmInquirySource(value) {
+  const source = value === "outlook" ? "outlook_addin" : value;
+  if (!CRM_INQUIRY_SOURCES.includes(source)) {
+    throw new TypeError(`Lead source must be one of ${CRM_INQUIRY_SOURCES.join(", ")}`);
+  }
+  return source;
+}
+
+export function normalizeCrmLeadInquiryFields(input = {}) {
+  const inquiryStatus = input.inquiry_status ?? "new";
+  if (!CRM_INQUIRY_STATUSES.includes(inquiryStatus)) {
+    throw new TypeError(`Lead inquiry_status must be one of ${CRM_INQUIRY_STATUSES.join(", ")}`);
+  }
+  const source = normalizeCrmInquirySource(input.source ?? input.lead_source ?? "manual");
+  if (
+    input.source !== undefined
+    && input.lead_source !== undefined
+    && normalizeCrmInquirySource(input.source) !== normalizeCrmInquirySource(input.lead_source)
+  ) {
+    throw new TypeError("Lead source and legacy lead_source disagree");
+  }
+  const receivedAt = normalizeInstant(input.received_at ?? input.created_at, "Lead received_at");
+  const version = input.version ?? 1;
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new TypeError("Lead version must be a positive integer");
+  }
+  const suppliedNextAction = optionalString(input.next_action, "Lead next_action");
+  const nextAction = inquiryStatus === "closed"
+    ? null
+    : suppliedNextAction ?? "문의 확인";
+  if (inquiryStatus === "closed" && suppliedNextAction !== null) {
+    throw new TypeError("Closed Lead cannot have next_action");
+  }
+  return Object.freeze({
+    inquiry_status: inquiryStatus,
+    source,
+    received_at: receivedAt,
+    next_action: nextAction,
+    version,
+  });
+}
+
+export function normalizeCrmActivityFields(input = {}) {
+  const version = input.version ?? 1;
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new TypeError("CRMActivity version must be a positive integer");
+  }
+  const activityKind = input.activity_kind ?? null;
+  if (activityKind === null) {
+    if (OUTLOOK_EVENT_FIELDS.some((field) => input[field] != null)) {
+      throw new TypeError(
+        "Only consultation CRMActivity can link an Outlook event",
+      );
+    }
+    return Object.freeze({
+      activity_kind: null,
+      lead_id: input.lead_id ?? null,
+      scheduled_start: input.scheduled_start ?? input.scheduled_at ?? null,
+      scheduled_end: input.scheduled_end ?? null,
+      timezone: input.timezone ?? null,
+      completed_at: input.completed_at ?? null,
+      outcome: input.outcome ?? null,
+      next_action: input.next_action ?? null,
+      version,
+      ...normalizeCrmOutlookEventFields(),
+    });
+  }
+  if (!CRM_ACTIVITY_KINDS.includes(activityKind)) {
+    throw new TypeError(
+      `CRMActivity activity_kind must be one of ${CRM_ACTIVITY_KINDS.join(", ")}`,
+    );
+  }
+  if (activityKind !== "consultation") {
+    throw new TypeError("Unsupported CRMActivity activity_kind");
+  }
+  if (input.activity_type !== "meeting") {
+    throw new TypeError("Consultation CRMActivity must use activity_type=meeting");
+  }
+  const leadId = optionalString(input.lead_id, "CRMActivity lead_id");
+  if (!leadId) throw new TypeError("Consultation CRMActivity requires lead_id");
+  const scheduledStart = canonicalInstant(
+    input.scheduled_start,
+    "CRMActivity scheduled_start",
+  );
+  const scheduledEnd = canonicalInstant(
+    input.scheduled_end,
+    "CRMActivity scheduled_end",
+  );
+  if (Date.parse(scheduledEnd) <= Date.parse(scheduledStart)) {
+    throw new TypeError(
+      "CRMActivity scheduled_end must be after scheduled_start",
+    );
+  }
+  const timezone = normalizeIanaTimezone(
+    input.timezone,
+    "CRMActivity timezone",
+  );
+  const completedAt = input.completed_at == null || input.completed_at === ""
+    ? null
+    : canonicalInstant(input.completed_at, "CRMActivity completed_at");
+  if (
+    completedAt
+    && Date.parse(completedAt) < Date.parse(scheduledStart)
+  ) {
+    throw new TypeError(
+      "CRMActivity completed_at cannot be before scheduled_start",
+    );
+  }
+  const outcome = optionalString(
+    input.outcome,
+    "CRMActivity outcome",
+    2_000,
+  );
+  if (completedAt && !outcome) {
+    throw new TypeError("Completed consultation requires outcome");
+  }
+  if (!completedAt && outcome) {
+    throw new TypeError(
+      "Consultation outcome requires completed_at",
+    );
+  }
+  return Object.freeze({
+    activity_kind: "consultation",
+    lead_id: leadId,
+    scheduled_start: scheduledStart,
+    scheduled_end: scheduledEnd,
+    timezone,
+    completed_at: completedAt,
+    outcome,
+    next_action: optionalString(
+      input.next_action,
+      "CRMActivity next_action",
+      240,
+    ),
+    version,
+    ...normalizeCrmOutlookEventFields(input),
+  });
 }
 
 function getCrmCoreModelDefinition(modelType) {
@@ -226,25 +723,49 @@ function baseCrmRecord(modelType, input) {
 }
 
 export function createCrmCoreLead(input) {
+  const inquiry = normalizeCrmLeadInquiryFields(input);
   return freezeRecord({
-    ...baseCrmRecord("Lead", input),
+    ...baseCrmRecord("Lead", { ...input, ...inquiry }),
     lead_id: input.lead_id,
     party_id: input.party_id,
     display_name: input.display_name,
-    lead_source: input.lead_source ?? null,
+    ...inquiry,
     lead_key: input.lead_key ?? `${input.tenant_id}:lead:${input.party_id}:${normalizeSearchValue(input.display_name)}`,
   });
 }
 
 export function createCrmCoreOpportunity(input) {
   assertOpportunityStage(input.stage);
+  const engagement = normalizeCrmOpportunityEngagementFields(input);
   return freezeRecord({
     ...baseCrmRecord("Opportunity", input),
     opportunity_id: input.opportunity_id,
     party_id: input.party_id,
     display_name: input.display_name,
     stage: input.stage,
+    ...engagement,
     intake_request_id: input.intake_request_id ?? null,
+    intake_handoff_snapshot_sha256: optionalString(
+      input.intake_handoff_snapshot_sha256,
+      "Opportunity intake_handoff_snapshot_sha256",
+      128,
+    ),
+    intake_handoff_evidence_count:
+      nonNegativeInteger(
+        input.intake_handoff_evidence_count ?? 0,
+        "Opportunity intake_handoff_evidence_count",
+      ),
+    intake_handoff_activity_count:
+      nonNegativeInteger(
+        input.intake_handoff_activity_count ?? 0,
+        "Opportunity intake_handoff_activity_count",
+      ),
+    intake_handoff_recorded_at: input.intake_handoff_recorded_at
+      ? canonicalInstant(
+        input.intake_handoff_recorded_at,
+        "Opportunity intake_handoff_recorded_at",
+      )
+      : null,
     allowed_conversion_target: "IntakeRequest",
     matter_id: null,
     opportunity_key:
@@ -254,18 +775,22 @@ export function createCrmCoreOpportunity(input) {
 
 export function createCrmCoreCRMActivity(input) {
   assertActivityType(input.activity_type);
+  const activity = normalizeCrmActivityFields(input);
+  const subject = optionalString(input.subject, "CRMActivity subject", 160);
+  if (!subject) throw new TypeError("CRMActivity subject is required");
   const confidential = input.confidential === true;
   return freezeRecord({
-    ...baseCrmRecord("CRMActivity", input),
+    ...baseCrmRecord("CRMActivity", { ...input, ...activity }),
     crm_activity_id: input.crm_activity_id,
     party_id: input.party_id,
     opportunity_id: input.opportunity_id ?? null,
     activity_type: input.activity_type,
-    subject: input.subject,
+    subject,
     confidential,
     permission_trim_required: confidential,
+    ...activity,
     activity_key:
-      input.activity_key ?? `${input.tenant_id}:crm-activity:${input.party_id}:${input.activity_type}:${normalizeSearchValue(input.subject)}`,
+      input.activity_key ?? `${input.tenant_id}:crm-activity:${input.party_id}:${input.activity_type}:${normalizeSearchValue(subject)}`,
   });
 }
 
@@ -355,13 +880,36 @@ export function validateCrmCoreRecord(modelType, record) {
     errors.push(`invalid_status:${record.status}`);
   }
 
+  if (modelType === "Lead") {
+    if (record?.next_action === undefined) {
+      errors.push("missing_required_field:next_action");
+    }
+    try {
+      normalizeCrmLeadInquiryFields(record);
+    } catch {
+      errors.push("invalid_lead_inquiry_fields");
+    }
+  }
+
   if (modelType === "Opportunity" && record?.stage !== undefined && !CRM_CORE_OPPORTUNITY_STAGES.includes(record.stage)) {
     errors.push(`invalid_opportunity_stage:${record.stage}`);
+  }
+  if (modelType === "Opportunity") {
+    try {
+      normalizeCrmOpportunityEngagementFields(record);
+    } catch {
+      errors.push("invalid_opportunity_engagement_fields");
+    }
   }
 
   if (modelType === "CRMActivity") {
     if (record?.activity_type !== undefined && !CRM_CORE_ACTIVITY_TYPES.includes(record.activity_type)) {
       errors.push(`invalid_activity_type:${record.activity_type}`);
+    }
+    try {
+      normalizeCrmActivityFields(record);
+    } catch {
+      errors.push("invalid_crm_activity_fields");
     }
     if (record?.confidential === true) {
       review_required_claims.push("confidential_crm_activity_permission_trim_required");

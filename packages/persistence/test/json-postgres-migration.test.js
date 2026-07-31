@@ -15,6 +15,7 @@ import { createMigratedPostgresFixture } from "./helpers/disposable-postgres.js"
 const TENANT = "tenant_lawos_staging_migration_a";
 const OTHER_TENANT = "tenant_lawos_staging_migration_b";
 const ORDERED_DOMAINS = [
+  "authz",
   "hrx",
   "master-data",
   "crm",
@@ -22,6 +23,7 @@ const ORDERED_DOMAINS = [
   "matter",
   "dms",
   "dms-auxiliary",
+  "email-dms",
   "finance",
   "client-portal",
   "ai-governance",
@@ -343,6 +345,48 @@ test("approved real accounts retain registered email and status but import no le
   assert.equal(JSON.stringify(rejected).includes("legacy-hash-must-not-migrate"), false);
 });
 
+test("credential_ref migration accepts only an opaque AWS Secrets Manager reference", () => {
+  const source = syntheticCorpus();
+  source.domains.find(
+    (domain) => domain.domain_id === "matter",
+  ).records = source.domains.find(
+    (domain) => domain.domain_id === "matter",
+  ).records.filter(
+    (record) => record.record_type !== "RejectedSyntheticMatter",
+  );
+  const emailDms = source.domains.find(
+    (domain) => domain.domain_id === "email-dms",
+  );
+  emailDms.records[0].payload.credential_ref =
+    "aws-secrets-manager:lawos/test/m365/migration-safe-reference";
+  const accepted = prepareJsonPostgresMigrationCorpus(source);
+  assert.equal(
+    accepted.domains.find(
+      (domain) => domain.domain_id === "email-dms",
+    ).records[0].payload.credential_ref,
+    "aws-secrets-manager:lawos/test/m365/migration-safe-reference",
+  );
+
+  emailDms.records[0].payload.credential_ref =
+    "synthetic-token-disguised-as-reference";
+  const rejected = prepareJsonPostgresMigrationCorpus(source);
+  assert.equal(
+    rejected.domains.find(
+      (domain) => domain.domain_id === "email-dms",
+    ).records.length,
+    0,
+  );
+  assert.equal(
+    rejected.rejected.some(
+      (row) => (
+        row.domain_id === "email-dms"
+        && row.reason_code === "FORBIDDEN_SECRET_OR_RAW_BYTES"
+      ),
+    ),
+    true,
+  );
+});
+
 test("missing-reference rejection cascades and duplicate domain rows are rejected deterministically", async () => {
   const cascading = syntheticCorpus();
   cascading.domains[0].records[0].payload = { api_key: "forbidden-foundation" };
@@ -391,7 +435,7 @@ test("full synthetic import preserves versions, replays as no-op, and is hidden 
   assert.equal(first.safe_counts.tenant_negative_visible_count, 0);
   assert.equal(first.domains.every((domain) => domain.readback_equal === true), true);
   assert.equal(first.domains.every((domain) => domain.replayed_noop_count === domain.accepted_count), true);
-  assert.deepEqual(first.domains.find((domain) => domain.domain_id === "matter").state_version_distribution, { "5": 1 });
+  assert.deepEqual(first.domains.find((domain) => domain.domain_id === "matter").state_version_distribution, { "6": 1 });
 
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
   const matter = await ledger.read({
@@ -400,7 +444,7 @@ test("full synthetic import preserves versions, replays as no-op, and is hidden 
     record_type: "SyntheticmatterRecord",
     record_id: "synthetic-matter-001",
   });
-  assert.equal(matter.state_version, 5);
+  assert.equal(matter.state_version, 6);
   assert.equal(matter.payload.matter_code, "SYN-2026-001");
 
   const hrx = await ledger.read({

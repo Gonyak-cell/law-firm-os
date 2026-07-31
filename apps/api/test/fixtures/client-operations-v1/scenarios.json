@@ -1,0 +1,389 @@
+{
+  "schema_version": "law-firm-os.client-operations-scenarios.v1",
+  "scenario_count": 32,
+  "contract_test_file": "scripts/test/client-operations-fixture.test.mjs",
+  "scenarios": [
+    {
+      "id": "VC-CL-REV-001",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "bank_hanbit_july"
+      ],
+      "expected": {
+        "client_group_id": "client_hanbit_construction",
+        "revenue_amount": 11000000
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-002",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "bank_saebom_alias"
+      ],
+      "expected": {
+        "client_group_id": "client_saebom_tech",
+        "match_kind": "client_saved_alias"
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-003",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "bank_hanbit_ambiguous"
+      ],
+      "expected": {
+        "revenue_amount": 0,
+        "outcome": "review_required"
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-004",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "client_hanbit_construction",
+        "client_hanbit_development",
+        "bank_hanbit_ambiguous"
+      ],
+      "expected": {
+        "automatic_match_count": 0
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-005",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "bank_hanbit_july",
+        "bank_hanbit_july_duplicate"
+      ],
+      "expected": {
+        "recognized_transaction_count": 1,
+        "revenue_amount": 11000000
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-006",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "fp-hanbit-20260715-11000000"
+      ],
+      "expected": {
+        "fingerprint_count": 1
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-007",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "bank_hanbit_july"
+      ],
+      "expected": {
+        "raw_transaction_mutated": false,
+        "classification_audit_required": true
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-REV-008",
+      "area": "deposit_revenue",
+      "fixture_refs": [
+        "bank_saebom_prior",
+        "bank_saebom_refund"
+      ],
+      "expected": {
+        "june_revenue": 3000000,
+        "july_revenue_adjustment": -1000000
+      },
+      "planned_test_file": "packages/billing/test/client-deposit-revenue.test.js"
+    },
+    {
+      "id": "VC-CL-AR-001",
+      "area": "receivables",
+      "fixture_refs": [
+        "fee_hanbit_early",
+        "fee_hanbit_later",
+        "allocation_hanbit_early"
+      ],
+      "expected": {
+        "receivable_amount": 9000000
+      },
+      "planned_test_file": "packages/billing/test/fee-commitment-allocation.test.js"
+    },
+    {
+      "id": "VC-CL-AR-002",
+      "area": "receivables",
+      "fixture_refs": [
+        "fee_hanbit_development_unknown"
+      ],
+      "expected": {
+        "receivable_amount": null,
+        "included_in_total": false,
+        "display": "금액 미입력"
+      },
+      "planned_test_file": "packages/billing/test/fee-commitment-allocation.test.js"
+    },
+    {
+      "id": "VC-CL-AR-003",
+      "area": "receivables",
+      "fixture_refs": [
+        "fee_saebom_fixed",
+        "bank_saebom_exact"
+      ],
+      "expected": {
+        "receivable_amount": 0,
+        "overpayment_amount": 2000000
+      },
+      "planned_test_file": "packages/billing/test/fee-commitment-allocation.test.js"
+    },
+    {
+      "id": "VC-CL-AR-004",
+      "area": "receivables",
+      "fixture_refs": [
+        "fee_hanbit_early",
+        "fee_hanbit_later",
+        "bank_hanbit_july"
+      ],
+      "expected": {
+        "first_fee_commitment_id": "fee_hanbit_early",
+        "first_allocation_amount": 11000000
+      },
+      "planned_test_file": "packages/billing/test/fee-commitment-allocation.test.js"
+    },
+    {
+      "id": "VC-CL-AR-005",
+      "area": "receivables",
+      "fixture_refs": [
+        "allocation_saebom_manual"
+      ],
+      "expected": {
+        "manual_lock": true,
+        "automatic_recalculation_overwrites": false
+      },
+      "planned_test_file": "packages/billing/test/fee-commitment-allocation.test.js"
+    },
+    {
+      "id": "VC-CL-INQ-001",
+      "area": "outlook_inquiry",
+      "fixture_refs": [],
+      "expected": {
+        "button_clicked": false,
+        "created_record_count": 0
+      },
+      "planned_test_file": "apps/api/test/outlook-inquiry-api.test.js"
+    },
+    {
+      "id": "VC-CL-INQ-002",
+      "area": "outlook_inquiry",
+      "fixture_refs": [
+        "lead_new",
+        "evidence_new_inquiry"
+      ],
+      "expected": {
+        "party_count": 1,
+        "lead_count": 1,
+        "evidence_count": 1
+      },
+      "planned_test_file": "apps/api/test/outlook-inquiry-api.test.js"
+    },
+    {
+      "id": "VC-CL-INQ-003",
+      "area": "outlook_inquiry",
+      "fixture_refs": [
+        "lead_new",
+        "evidence_new_inquiry"
+      ],
+      "expected": {
+        "replay_returns_same_ids": true
+      },
+      "planned_test_file": "packages/email-dms/test/inquiry-evidence.test.js"
+    },
+    {
+      "id": "VC-CL-INQ-004",
+      "area": "outlook_inquiry",
+      "fixture_refs": [
+        "lead_pending"
+      ],
+      "expected": {
+        "new_lead_count": 0,
+        "evidence_link_count": 1
+      },
+      "planned_test_file": "apps/api/test/outlook-inquiry-api.test.js"
+    },
+    {
+      "id": "VC-CL-INQ-005",
+      "area": "outlook_inquiry",
+      "fixture_refs": [],
+      "expected": {
+        "http_status": 403,
+        "mailbox_information_leaked": false
+      },
+      "planned_test_file": "apps/api/test/outlook-inquiry-api.test.js"
+    },
+    {
+      "id": "VC-CL-INQ-006",
+      "area": "outlook_inquiry",
+      "fixture_refs": [],
+      "expected": {
+        "outcome": "blocked",
+        "success_without_original_evidence": false
+      },
+      "planned_test_file": "apps/api/test/outlook-inquiry-api.test.js"
+    },
+    {
+      "id": "VC-CL-CON-001",
+      "area": "consultation",
+      "fixture_refs": [
+        "consultation_today"
+      ],
+      "expected": {
+        "asia_seoul_today_count": 1
+      },
+      "planned_test_file": "packages/crm/test/client-consultation.test.js"
+    },
+    {
+      "id": "VC-CL-CON-002",
+      "area": "consultation",
+      "fixture_refs": [
+        "consultation_today"
+      ],
+      "expected": {
+        "graph_event_count_after_replay": 1
+      },
+      "planned_test_file": "apps/api/test/outlook-consultation-api.test.js"
+    },
+    {
+      "id": "VC-CL-ENG-001",
+      "area": "engagement_decision",
+      "fixture_refs": [
+        "lead_accepted",
+        "fee_hanbit_early"
+      ],
+      "expected": {
+        "decision": "accepted",
+        "client_group_exists": true,
+        "fee_commitment_exists": true
+      },
+      "planned_test_file": "packages/crm/test/engagement-decision-workflow.test.js"
+    },
+    {
+      "id": "VC-CL-ENG-002",
+      "area": "engagement_decision",
+      "fixture_refs": [
+        "fee_hanbit_development_unknown"
+      ],
+      "expected": {
+        "agreed_amount": null,
+        "display": "금액 미입력"
+      },
+      "planned_test_file": "packages/crm/test/engagement-decision-workflow.test.js"
+    },
+    {
+      "id": "VC-CL-ENG-003",
+      "area": "engagement_decision",
+      "fixture_refs": [
+        "lead_accepted"
+      ],
+      "expected": {
+        "completed_steps_duplicated": false,
+        "repair_required_on_partial_failure": true
+      },
+      "planned_test_file": "packages/crm/test/engagement-decision-workflow.test.js"
+    },
+    {
+      "id": "VC-CL-ENG-004",
+      "area": "engagement_decision",
+      "fixture_refs": [
+        "lead_declined"
+      ],
+      "expected": {
+        "decision": "declined",
+        "close_reason_required": true
+      },
+      "planned_test_file": "packages/crm/test/engagement-decision-workflow.test.js"
+    },
+    {
+      "id": "VC-CL-MAT-001",
+      "area": "matter_gate",
+      "fixture_refs": [
+        "lead_accepted"
+      ],
+      "expected": {
+        "matter_created": false,
+        "inquiry_preserved": true,
+        "decision_preserved": true
+      },
+      "planned_test_file": "packages/intake/test/client-matter-g3-workflow.test.js"
+    },
+    {
+      "id": "VC-CL-DASH-001",
+      "area": "dashboard",
+      "fixture_refs": [
+        "client-operations-v1-baseline"
+      ],
+      "expected": {
+        "expected_file": "expected-dashboard.json"
+      },
+      "planned_test_file": "packages/analytics/test/client-operations-read-model.test.js"
+    },
+    {
+      "id": "VC-CL-DASH-002",
+      "area": "dashboard",
+      "fixture_refs": [],
+      "expected": {
+        "source_status": "partial",
+        "failed_source_rendered_as_zero": false
+      },
+      "planned_test_file": "apps/api/test/client-operations-api.test.js"
+    },
+    {
+      "id": "VC-CL-PERM-001",
+      "area": "permission",
+      "fixture_refs": [
+        "principal_staff",
+        "client_hanbit_construction"
+      ],
+      "expected": {
+        "unauthorized_client_count_leaked": false,
+        "unauthorized_amount_leaked": false
+      },
+      "planned_test_file": "apps/api/test/client-operations-security.test.js"
+    },
+    {
+      "id": "VC-CL-ROUTE-001",
+      "area": "route",
+      "fixture_refs": [],
+      "expected": {
+        "hidden_route_rendered_directly": false
+      },
+      "planned_test_file": "apps/web/test/ui-regression.test.mjs"
+    },
+    {
+      "id": "VC-CL-MIG-001",
+      "area": "migration",
+      "fixture_refs": [
+        "client-operations-v1-baseline"
+      ],
+      "expected": {
+        "second_run_count_delta": 0,
+        "second_run_digest_equal": true
+      },
+      "planned_test_file": "apps/api/test/client-operations-migration.test.js"
+    },
+    {
+      "id": "VC-CL-PKG-001",
+      "area": "package",
+      "fixture_refs": [
+        "client-operations-v1-baseline"
+      ],
+      "expected": {
+        "source_api_package_screen_sha_bound": true
+      },
+      "planned_test_file": "scripts/verify-client-operations-package.mjs"
+    }
+  ]
+}

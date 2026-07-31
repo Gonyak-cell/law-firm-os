@@ -51,6 +51,16 @@ test("GET /api/health returns the service descriptor without permission context"
   assert.deepEqual(body.permission_gate.decision_order.at(-1), "fail_closed_no_match");
   assert.equal(body.bounded_contexts[0].bounded_context, "master-data");
   assert.equal(body.bounded_contexts[0].contract_schema_version, "law-firm-os.master-data-contract.v0.21");
+  assert.deepEqual(body.bounded_contexts[0].client_registration_endpoints, {
+    review: {
+      method: "POST",
+      path: "/master-data/client-groups/review",
+    },
+    create: {
+      method: "POST",
+      path: "/master-data/client-groups",
+    },
+  });
 });
 
 test("desktop custom-origin API calls receive CORS headers and preflight success", async () => {

@@ -1,13 +1,16 @@
-// Master Data bounded context (read surface).
+// Master Data bounded context.
 //
 // Serves the three GET operations of contracts/master-data-contract.json v0.21
-// through a repository-backed runtime context with the contract's response fields,
-// error-code taxonomy, and UI-state catalog.
+// plus the ClientGroup registration review/write extension through the same
+// repository, permission, audit, and UI-state boundaries.
+import { createHash } from "node:crypto";
+
 import {
   MASTER_DATA_API_REFERENCE_SURFACE,
   MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS,
   MASTER_DATA_PROGRAM_CONTRACT,
   MASTER_DATA_UI_SURFACE_STATES,
+  createClientRegistrationService,
   createMasterDataRepository,
   createMasterDataSyntheticFixture,
 } from "../../../packages/master-data/src/index.js";
@@ -18,6 +21,18 @@ export const ERROR_CODES = MASTER_DATA_API_REFERENCE_SURFACE.error_code_taxonomy
 
 const SAFE_REVIEW_REQUIRED_CODE = "MASTER_DATA_REVIEW_REQUIRED";
 const SAFE_APPROVAL_REQUIRED_CODE = "MASTER_DATA_APPROVAL_REQUIRED";
+const CLIENT_REGISTRATION_ERROR_CODES = Object.freeze({
+  restricted_duplicate: "MASTER_DATA_CLIENT_REGISTRATION_RESTRICTED_DUPLICATE",
+  runtime_unavailable: "MASTER_DATA_CLIENT_REGISTRATION_RUNTIME_UNAVAILABLE",
+});
+const CLIENT_REGISTRATION_CONFLICT_CODES = new Set([
+  "MASTER_DATA_CLIENT_REGISTRATION_REVIEW_DIGEST_MISMATCH",
+  "MASTER_DATA_CLIENT_REGISTRATION_DISTINCT_CONFIRMATION_REQUIRED",
+  "MASTER_DATA_CLIENT_REGISTRATION_UNLINKED_DUPLICATE",
+  "MASTER_DATA_CLIENT_REGISTRATION_IDENTIFIER_CONFLICT",
+  "MASTER_DATA_CLIENT_REGISTRATION_IDEMPOTENCY_CONFLICT",
+  "LAWOS_IDEMPOTENCY_CONFLICT",
+]);
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
@@ -72,11 +87,332 @@ export const MASTER_DATA_BOUNDED_CONTEXT = Object.freeze({
   api_surface_id: MASTER_DATA_API_REFERENCE_SURFACE.api_surface_id,
   ui_surface_id: MASTER_DATA_UI_SURFACE_STATES.surface_id,
   endpoints: MASTER_DATA_API_REFERENCE_SURFACE.endpoints,
+  client_registration_endpoints: Object.freeze({
+    review: Object.freeze({
+      method: "POST",
+      path: "/master-data/client-groups/review",
+    }),
+    create: Object.freeze({
+      method: "POST",
+      path: "/master-data/client-groups",
+    }),
+  }),
   data_source: "master_data_runtime_repository",
   runtime_persistence: "file_backed_repository",
   uses_real_client_data: true,
   fail_closed: true,
 });
+
+function text(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function registrationErrorResponse(
+  status,
+  requestId,
+  code,
+  auditHintRef = null,
+  { outcome = "blocked", uiState = null } = {},
+) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome,
+      item: null,
+      safe_error_codes: [code],
+      audit_hint_ref: auditHintRef,
+      ui_state: uiState,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function validateClientRegistrationBody(body, requestId) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return registrationErrorResponse(400, requestId, ERROR_CODES.validation_error);
+  }
+  if (!text(body.tenant_id)) {
+    return registrationErrorResponse(400, requestId, ERROR_CODES.tenant_required);
+  }
+  if (!text(body.permission_ref)) {
+    return registrationErrorResponse(400, requestId, ERROR_CODES.permission_required);
+  }
+  if (!text(body.audit_hint_ref)) {
+    return registrationErrorResponse(400, requestId, ERROR_CODES.audit_hint_required);
+  }
+  if (!body.client || typeof body.client !== "object" || Array.isArray(body.client)) {
+    return registrationErrorResponse(
+      400,
+      requestId,
+      ERROR_CODES.validation_error,
+      text(body.audit_hint_ref) || null,
+    );
+  }
+  return null;
+}
+
+function registrationRouteGate({ body, context, requestId, action }) {
+  const invalid = validateClientRegistrationBody(body, requestId);
+  if (invalid) return invalid;
+  const decision = evaluateRouteDecision({
+    context,
+    resource: {
+      tenant_id: text(body.tenant_id),
+      resource_type: "master_data_client_group",
+    },
+    action,
+  });
+  return gateDecisionResponse(
+    decision,
+    requestId,
+    text(body.audit_hint_ref),
+  );
+}
+
+function registrationInput({ body, context }) {
+  const client = body.client;
+  return {
+    tenant_id: context.principal.tenant_id,
+    actor_id: context.principal.user_id,
+    permission_ref: text(body.permission_ref),
+    audit_hint_ref: text(body.audit_hint_ref),
+    client_type: text(client.client_type),
+    display_name: text(client.display_name),
+    legal_form: text(client.legal_form) || null,
+    registration_number: text(client.registration_number) || null,
+    email: text(client.email) || null,
+    phone: text(client.phone) || null,
+    depositor_alias: text(client.depositor_alias) || null,
+  };
+}
+
+function safeCandidate(candidate) {
+  return Object.freeze({
+    client_group_id: text(candidate.client_group_id),
+    display_name: text(candidate.display_name),
+    client_type: text(candidate.client_type),
+    reasons: Object.freeze(
+      (candidate.reason_codes ?? candidate.reasons ?? [])
+        .filter((reason) => typeof reason === "string" && reason.trim())
+        .map((reason) => reason.trim()),
+    ),
+  });
+}
+
+function permissionContextFingerprint({ context, tenantId }) {
+  const principal = context?.principal ?? {};
+  return createHash("sha256")
+    .update(JSON.stringify({
+      tenant_id: tenantId,
+      principal: {
+        user_id: principal.user_id ?? null,
+        tenant_id: principal.tenant_id ?? null,
+        role_profile_id: principal.role_profile_id ?? null,
+        role_ids: principal.role_ids ?? [],
+        group_ids: principal.group_ids ?? [],
+        scopes: principal.scopes ?? [],
+        hrx_scopes: principal.hrx_scopes ?? [],
+        highest_privilege: principal.highest_privilege === true,
+      },
+      rules: context?.rules ?? [],
+      object_acl: context?.object_acl ?? [],
+    }))
+    .digest("hex");
+}
+
+function buildRegistrationPermissionProof({
+  context,
+  tenantId,
+  visibleCandidates,
+  omittedCount,
+}) {
+  const routeDecision = evaluateRouteDecision({
+    context,
+    resource: {
+      tenant_id: tenantId,
+      resource_type: "master_data_client_group",
+    },
+    action: "master_data:client:review",
+  });
+  return Object.freeze({
+    principal_id: text(context?.principal?.user_id),
+    principal_tenant_id: text(context?.principal?.tenant_id),
+    role_ids: Object.freeze(
+      (context?.principal?.role_ids ?? [])
+        .filter((roleId) => typeof roleId === "string" && roleId.trim() !== "")
+        .map((roleId) => roleId.trim())
+        .sort(),
+    ),
+    permission_action: "analytics:client:read",
+    permission_decision: omittedCount > 0 ? "allow_partial" : "allow",
+    route_action: "master_data:client:review",
+    route_effect: text(routeDecision.effect),
+    route_reason: text(routeDecision.reason),
+    route_rule_id: text(routeDecision.matched_rule_id),
+    hidden_candidate_presence: omittedCount > 0,
+    visible_candidate_snapshot: Object.freeze(
+      visibleCandidates.map((candidate) => safeCandidate(candidate)),
+    ),
+    permission_context_fingerprint: permissionContextFingerprint({ context, tenantId }),
+  });
+}
+
+function permissionTrimmedRegistrationReview({ review, context, tenantId, withProof = false }) {
+  const candidates = (
+    review.client_group_candidates
+    ?? review.visible_candidates
+    ?? review.candidates
+    ?? []
+  ).map((candidate) => ({
+    ...safeCandidate(candidate),
+    tenant_id: tenantId,
+    resource_id: candidate.client_group_id,
+  }));
+  const { allowed, omittedCount } = trimItemsByPermission({
+    context,
+    items: candidates,
+    action: "analytics:client:read",
+    resourceType: "ClientGroup",
+  });
+  const visibleCandidates = allowed.map(({ tenant_id, resource_id, ...candidate }) =>
+    Object.freeze(candidate));
+  const hasRestrictedCandidates =
+    omittedCount > 0
+    || review.has_unmatched_duplicate_candidates === true;
+  const hasIdentifierConflict = review.has_exact_identifier_conflict === true;
+  const item = Object.freeze({
+    review_digest: text(review.review_digest),
+    candidates: Object.freeze(visibleCandidates),
+    has_restricted_candidates: hasRestrictedCandidates,
+    can_create: !hasRestrictedCandidates && !hasIdentifierConflict,
+    requires_distinct_confirmation: visibleCandidates.length > 0,
+  });
+  if (!withProof) return item;
+  return Object.freeze({
+    item,
+    permission_proof: buildRegistrationPermissionProof({
+      context,
+      tenantId,
+      visibleCandidates,
+      omittedCount,
+    }),
+  });
+}
+
+function registrationReviewResponse({
+  requestId,
+  auditHintRef,
+  item,
+  restrictedCode = null,
+  status = 200,
+}) {
+  const reviewRequired = item.can_create !== true;
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome: reviewRequired ? "review_required" : "passed",
+      item,
+      safe_error_codes: restrictedCode ? [restrictedCode] : [],
+      audit_hint_ref: auditHintRef,
+      ui_state: reviewRequired ? "review_required" : null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function clientRegistrationError(error, requestId, auditHintRef) {
+  const code = text(error?.code) || text(error?.safe_error_code);
+  if (
+    code === "MASTER_DATA_CLIENT_REGISTRATION_INVALID_INPUT"
+    || error?.status === 400
+  ) {
+    return registrationErrorResponse(
+      400,
+      requestId,
+      code || ERROR_CODES.validation_error,
+      auditHintRef,
+    );
+  }
+  if (CLIENT_REGISTRATION_CONFLICT_CODES.has(code)) {
+    const safeCode = code === "LAWOS_IDEMPOTENCY_CONFLICT"
+      ? "MASTER_DATA_CLIENT_REGISTRATION_IDEMPOTENCY_CONFLICT"
+      : code;
+    return registrationErrorResponse(
+      409,
+      requestId,
+      safeCode,
+      auditHintRef,
+      { outcome: "review_required", uiState: "review_required" },
+    );
+  }
+  if (error instanceof TypeError) {
+    return registrationErrorResponse(
+      400,
+      requestId,
+      ERROR_CODES.validation_error,
+      auditHintRef,
+    );
+  }
+  return registrationErrorResponse(
+    503,
+    requestId,
+    CLIENT_REGISTRATION_ERROR_CODES.runtime_unavailable,
+    auditHintRef,
+  );
+}
+
+function clientRegistrationCreateSuccess({ result, body, requestId, auditHintRef }) {
+  const clientGroupId = text(
+    result.client_group_id
+    ?? result.client_group?.client_group_id
+    ?? result.item?.client_group_id,
+  );
+  if (!clientGroupId) throw new Error("Client registration result is incomplete");
+  const replayed = result.idempotent_replay === true || result.replayed === true;
+  const client = body.client;
+  return {
+    status: replayed ? 200 : 201,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: {
+        client_group_id: clientGroupId,
+        display_name: text(result.display_name) || text(client.display_name),
+        client_type: text(result.client_type) || text(client.client_type),
+        depositor_alias_saved:
+          result.depositor_alias_saved === true
+          || Boolean(text(client.depositor_alias)),
+        registration_number_saved:
+          result.registration_number_saved === true
+          || (
+            text(client.client_type) === "organization"
+            && Boolean(text(client.registration_number))
+          ),
+        contact_saved:
+          result.contact_saved === true
+          || (
+            text(client.client_type) === "person"
+            && Boolean(text(client.email) || text(client.phone))
+          ),
+      },
+      replayed,
+      audit_event_ref: text(
+        result.audit_event_id
+        ?? result.audit_event_ref
+        ?? result.audit_event?.event_id,
+      ) || null,
+      safe_error_codes: [],
+      audit_hint_ref: auditHintRef,
+      ui_state: null,
+      count_leak_prevented: true,
+      production_ready_claim: false,
+    },
+  };
+}
 
 function primaryIdOf(record) {
   switch (record.model_type) {
@@ -393,4 +729,155 @@ export function handleClientGroupResolution({ clientGroupId, query, context, req
       ui_state: reviewRequired ? "review_required" : null,
     },
   };
+}
+
+export function handleClientGroupRegistrationReview({
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_MASTER_DATA_RUNTIME,
+} = {}) {
+  const gated = registrationRouteGate({
+    body,
+    context,
+    requestId,
+    action: "master_data:client:review",
+  });
+  if (gated) return gated;
+
+  try {
+    const input = registrationInput({ body, context });
+    const service = createClientRegistrationService({
+      repository: runtime.repository,
+      tenant_id: input.tenant_id,
+      actor_id: input.actor_id,
+    });
+
+    const rawReview = service.review(input);
+    const trimmedReview = permissionTrimmedRegistrationReview({
+      review: rawReview,
+      context,
+      tenantId: input.tenant_id,
+      withProof: true,
+    });
+    const review = service.review(input, {
+      permission_proof: trimmedReview.permission_proof,
+    });
+    const item = permissionTrimmedRegistrationReview({
+      review,
+      context,
+      tenantId: input.tenant_id,
+    });
+    const restrictedCode = item.has_restricted_candidates
+      ? CLIENT_REGISTRATION_ERROR_CODES.restricted_duplicate
+      : null;
+    return registrationReviewResponse({
+      requestId,
+      auditHintRef: input.audit_hint_ref,
+      item,
+      restrictedCode,
+    });
+  } catch (error) {
+    return clientRegistrationError(
+      error,
+      requestId,
+      text(body?.audit_hint_ref) || null,
+    );
+  }
+}
+
+export function handleClientGroupRegistrationCreate({
+  body,
+  context,
+  requestId,
+  runtime = DEFAULT_MASTER_DATA_RUNTIME,
+} = {}) {
+  const gated = registrationRouteGate({
+    body,
+    context,
+    requestId,
+    action: "master_data:client:create",
+  });
+  if (gated) return gated;
+  const auditHintRef = text(body.audit_hint_ref);
+  if (!text(body.idempotency_key) || !text(body.review_digest)) {
+    return registrationErrorResponse(
+      400,
+      requestId,
+      ERROR_CODES.validation_error,
+      auditHintRef,
+    );
+  }
+
+  try {
+    const input = {
+      ...registrationInput({ body, context }),
+      idempotency_key: text(body.idempotency_key),
+      review_digest: text(body.review_digest),
+      confirm_distinct_client: body.confirm_distinct_client === true,
+    };
+    const service = createClientRegistrationService({
+      repository: runtime.repository,
+      tenant_id: input.tenant_id,
+      actor_id: input.actor_id,
+    });
+
+    // A successful command is replay-safe even if the current duplicate or
+    // object-ACL snapshot has changed. Keep the signed create route gate above,
+    // then let the service perform its authoritative fingerprint/actor check
+    // before consulting the current review state for a new idempotency key.
+    const existingIdempotency = typeof runtime.repository.getIdempotency === "function"
+      ? runtime.repository.getIdempotency({
+          tenant_id: input.tenant_id,
+          idempotency_key: input.idempotency_key,
+        })
+      : undefined;
+    if (existingIdempotency) {
+      const result = service.create(input);
+      return clientRegistrationCreateSuccess({
+        result,
+        body,
+        requestId,
+        auditHintRef,
+      });
+    }
+
+    const rawReview = service.review(input);
+    const trimmedReview = permissionTrimmedRegistrationReview({
+      review: rawReview,
+      context,
+      tenantId: input.tenant_id,
+      withProof: true,
+    });
+    const review = service.review(input, {
+      permission_proof: trimmedReview.permission_proof,
+    });
+    const reviewItem = permissionTrimmedRegistrationReview({
+      review,
+      context,
+      tenantId: input.tenant_id,
+    });
+    if (reviewItem.has_restricted_candidates) {
+      return registrationReviewResponse({
+        requestId,
+        auditHintRef,
+        item: reviewItem,
+        restrictedCode: CLIENT_REGISTRATION_ERROR_CODES.restricted_duplicate,
+        status: 409,
+      });
+    }
+
+    const result = service.create({
+      ...input,
+      permission_proof: trimmedReview.permission_proof,
+    });
+    return clientRegistrationCreateSuccess({
+      result,
+      body,
+      requestId,
+      auditHintRef,
+    });
+  } catch (error) {
+    return clientRegistrationError(error, requestId, auditHintRef);
+  }
 }

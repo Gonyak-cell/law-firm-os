@@ -228,6 +228,12 @@ function wp5DateKey(offset = 0) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function wp5MonthKey(offset = 0) {
+  const seoulNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const date = new Date(Date.UTC(seoulNow.getUTCFullYear(), seoulNow.getUTCMonth() + offset, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 function visibleLineCount(text, expected) {
   return String(text)
     .split(/\n+/)
@@ -248,6 +254,306 @@ function wp5ActionItem({ id, type, title, dueOffset, dueHour = 9, riskTier = "no
     risk_tier: riskTier,
     allowed_actions: allowedActions,
     raw_payload_included: false,
+    production_ready_claim: false
+  };
+}
+
+function wp5ClientOperationsDashboardBody() {
+  const available = [
+    "master_data",
+    "crm",
+    "deposit_revenue",
+    "receivables",
+    "bank_review",
+    "fee_commitments"
+  ].map((sourceId) => ({
+    source_id: sourceId,
+    label: sourceId,
+    status: "available",
+    checked_at: wp5IsoDay(0),
+    latest_record_at: wp5IsoDay(-1),
+    item_count: 1,
+    safe_error_code: null
+  }));
+  return {
+    request_id: "client-operations-dashboard",
+    generated_at: wp5IsoDay(0),
+    as_of: wp5IsoDay(0),
+    timezone: "Asia/Seoul",
+    outcome: "complete",
+    ui_state: null,
+    access_state: "allowed",
+    sections: {
+      kpis: {
+        status: "available",
+        data: {
+          values: {
+            new_inquiries: 1,
+            consultations_today: 1,
+            engagement_reviews: 1,
+            deposit_revenue_month: 33_000_000,
+            receivables_total: 9_000_000
+          },
+          metric_statuses: {
+            new_inquiries: "available",
+            consultations_today: "available",
+            engagement_reviews: "available",
+            deposit_revenue_month: "available",
+            receivables_total: "available"
+          },
+          currency: "KRW",
+          periods: {
+            current: wp5IsoDay(0),
+            today: wp5DateKey(),
+            deposit_revenue_month: wp5DateKey().slice(0, 7)
+          }
+        }
+      },
+      attention_items: {
+        status: "available",
+        data: {
+          items: [
+            {
+              attention_item_id: "lead-dashboard-1",
+              attention_type: "unassigned_new_inquiry",
+              label: "새 문의 담당자 지정",
+              title: "새봄테크 문의",
+              priority: 2,
+              due_at: null,
+              occurred_at: wp5IsoDay(-1),
+              assigned_user_id: null,
+              amount: null,
+              currency: null,
+              destination: {
+                section: "new_inquiries",
+                record_id: "lead-dashboard-1",
+                filter: "new"
+              }
+            },
+            {
+              attention_item_id: "consultation-dashboard-today",
+              attention_type: "consultation_today",
+              label: "오늘 상담",
+              title: "한빛건설",
+              priority: 3,
+              due_at: wp5IsoDay(0, 14),
+              occurred_at: null,
+              assigned_user_id: "user-dashboard",
+              amount: null,
+              currency: null,
+              destination: {
+                section: "consultations",
+                record_id: "consultation-dashboard-today",
+                inquiry_id: "lead-dashboard-consultation",
+                filter: "today"
+              }
+            },
+            {
+              attention_item_id: "opportunity-dashboard-review",
+              attention_type: "engagement_review",
+              label: "수임 여부 결정",
+              title: "가온물산",
+              priority: 4,
+              due_at: null,
+              occurred_at: wp5IsoDay(-2),
+              assigned_user_id: "user-dashboard",
+              amount: null,
+              currency: null,
+              destination: {
+                section: "engagement_status",
+                record_id: "opportunity-dashboard-review",
+                inquiry_id: "lead-dashboard-review",
+                filter: "reviewing"
+              }
+            },
+            {
+              attention_item_id: "bank-dashboard-review",
+              attention_type: "bank_match_review",
+              label: "입금 고객 연결",
+              title: "입금 고객 미확인",
+              priority: 5,
+              due_at: wp5IsoDay(-1),
+              occurred_at: null,
+              assigned_user_id: null,
+              amount: 11_000_000,
+              currency: "KRW",
+              destination: {
+                section: "deposit_revenue",
+                record_id: "bank-dashboard-review",
+                filter: "review_required"
+              }
+            },
+            {
+              attention_item_id: "fee-dashboard-missing",
+              attention_type: "fee_amount_missing",
+              label: "수임료 입력",
+              title: "한빛건설",
+              priority: 6,
+              due_at: wp5DateKey(7),
+              occurred_at: wp5IsoDay(-3),
+              assigned_user_id: null,
+              amount: null,
+              currency: "KRW",
+              destination: {
+                section: "receivables",
+                record_id: "fee-dashboard-missing",
+                filter: "amount_missing"
+              }
+            }
+          ],
+          attention_item_ids: [
+            "lead-dashboard-1",
+            "consultation-dashboard-today",
+            "opportunity-dashboard-review",
+            "bank-dashboard-review",
+            "fee-dashboard-missing"
+          ],
+          type_statuses: {
+            overdue_consultation: "available",
+            unassigned_new_inquiry: "available",
+            consultation_today: "available",
+            engagement_review: "available",
+            bank_match_review: "available",
+            fee_amount_missing: "available"
+          }
+        }
+      },
+      monthly_deposit_revenue: {
+        status: "available",
+        data: {
+          period: {
+            from: `${wp5MonthKey(-11)}-01`,
+            to: wp5DateKey(),
+            month_count: 12
+          },
+          total: 36_000_000,
+          points: Array.from({ length: 12 }, (_, index) => {
+            const month = wp5MonthKey(index - 11);
+            return {
+              month,
+              net_deposit_revenue: index === 10
+                ? 3_000_000
+                : index === 11
+                  ? 33_000_000
+                  : 0,
+              destination: {
+                section: "deposit_revenue",
+                filter: "month",
+                month
+              }
+            };
+          }),
+          reconciliation_status: "passed"
+        }
+      },
+      inquiry_status: {
+        status: "available",
+        data: {
+          total: 5,
+          counts: {
+            "새 문의": 1,
+            "확인 중": 0,
+            "상담 예정": 1,
+            "수임 검토 중": 1,
+            "수임 확정": 1,
+            "수임하지 않음": 1
+          },
+          items: [
+            ["new", "새 문의", 1, "new_inquiries"],
+            ["reviewing", "확인 중", 0, "new_inquiries"],
+            ["consultation_scheduled", "상담 예정", 1, "consultations"],
+            ["engagement_review", "수임 검토 중", 1, "engagement_status"],
+            ["engaged", "수임 확정", 1, "engagement_status"],
+            ["not_engaged", "수임하지 않음", 1, "engagement_status"]
+          ].map(([code, label, count, section]) => ({
+            code,
+            label,
+            count,
+            destination: { section, filter: code }
+          }))
+        }
+      },
+      revenue_ranking: {
+        status: "available",
+        data: {
+          selected_period: {
+            code: "year",
+            label: "올해 누적",
+            from: `${wp5DateKey().slice(0, 4)}-01-01`,
+            to: wp5DateKey()
+          },
+          available_periods: [
+            { code: "month", label: "이번 달" },
+            { code: "quarter", label: "이번 분기" },
+            { code: "year", label: "올해 누적" }
+          ],
+          total: 36_000_000,
+          items: [
+            {
+              rank: 1,
+              client_group_id: "client-dashboard-saebom",
+              display_name: "새봄테크",
+              net_deposit_revenue: 25_000_000,
+              latest_deposit_at: wp5IsoDay(-2),
+              destination: {
+                section: "client_details",
+                record_id: "client-dashboard-saebom",
+                tab: "deposit_revenue",
+                period: "year"
+              }
+            },
+            {
+              rank: 2,
+              client_group_id: "client-dashboard-hanbit",
+              display_name: "한빛건설",
+              net_deposit_revenue: 11_000_000,
+              latest_deposit_at: wp5IsoDay(-5),
+              destination: {
+                section: "client_details",
+                record_id: "client-dashboard-hanbit",
+                tab: "deposit_revenue",
+                period: "year"
+              }
+            }
+          ],
+          client_group_ids: [
+            "client-dashboard-saebom",
+            "client-dashboard-hanbit"
+          ],
+          reconciliation_status: "passed"
+        }
+      },
+      receivables_ranking: {
+        status: "available",
+        data: {
+          as_of: wp5IsoDay(0),
+          total: 9_000_000,
+          unknown_amount_count: 1,
+          items: [{
+            rank: 1,
+            client_group_id: "client-dashboard-hanbit",
+            display_name: "한빛건설",
+            receivable_amount: 9_000_000,
+            earliest_due_date: wp5DateKey(-20),
+            destination: {
+              section: "client_details",
+              record_id: "client-dashboard-hanbit",
+              tab: "receivables"
+            }
+          }],
+          client_group_ids: ["client-dashboard-hanbit"],
+          reconciliation_status: "passed"
+        }
+      }
+    },
+    source_statuses: available,
+    safe_error_codes: [],
+    audit_hint_ref: "client-operations-dashboard-audit",
+    count_leak_prevented: true,
+    permission_prefilter_applied: true,
+    raw_bank_source_included: false,
+    raw_source_payload_included: false,
+    credential_material_included: false,
     production_ready_claim: false
   };
 }
@@ -273,9 +579,9 @@ function wp5ApiBody(pathname, searchParams, state) {
   }
   if (pathname === "/api/matters") {
     return list("dashboard-matters", [
-      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
+      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: new Date().toISOString() },
       { matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", matter_type_english: "LIT", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) },
-      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: wp5IsoDay(-2) }
+      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: new Date().toISOString() }
     ]);
   }
   if (pathname === "/api/matters/recently-viewed") {
@@ -285,7 +591,7 @@ function wp5ApiBody(pathname, searchParams, state) {
     return list("dashboard-intakes", [{ intake_request_id: "intake-dashboard-1", display_name: "고객 A", requested_scope_summary: "신규 자문 수임", status: "review_required", requested_at: wp5IsoDay(-1) }]);
   }
   if (pathname === "/api/crm/accounts") {
-    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: new Date().toISOString() }]);
   }
   if (pathname === "/api/crm/leads") {
     return list("dashboard-leads", [{ lead_id: "lead-dashboard-1", display_name: "담당자 unsafe-dashboard@amic.kr", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
@@ -298,6 +604,23 @@ function wp5ApiBody(pathname, searchParams, state) {
   }
   if (pathname === "/api/crm/activities") {
     return list("dashboard-activities", [{ crm_activity_id: "meeting-dashboard-1", party_id: "party-dashboard-1", activity_type: "meeting", subject: "meeting-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", scheduled_at: wp5IsoDay(1) }]);
+  }
+  if (pathname === "/api/analytics/clients") {
+    return {
+      ...list("dashboard-client-directory", [{
+        client_group_id: "client-dashboard-saebom",
+        display_name: "새봄테크",
+        status: "active",
+        legal_form: "주식회사",
+        member_count: 2,
+        primary_record_present: true
+      }]),
+      permission_prefilter_applied: true,
+      raw_source_payload_included: false
+    };
+  }
+  if (pathname === "/api/analytics/clients/dashboard") {
+    return wp5ClientOperationsDashboardBody();
   }
   if (pathname === "/api/analytics/finance/overview") {
     return {
@@ -315,7 +638,7 @@ function wp5ApiBody(pathname, searchParams, state) {
   if (pathname === "/api/analytics/finance/monthly") {
     return {
       request_id: "wp-fin-3-monthly", outcome: "passed",
-      items: [{ month: wp5DateKey().slice(0, 7), currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 150 : 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+      items: [{ month: wp5MonthKey(), currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 150 : 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-monthly-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
     };
   }
@@ -368,7 +691,7 @@ function wp5ApiBody(pathname, searchParams, state) {
           { category: "bank_postage_fee", label: "수수료·우편", amount: 46_390, transaction_count: 11 }
         ],
         monthly: [{
-          month: wp5DateKey().slice(0, 7),
+          month: wp5MonthKey(),
           currency: "KRW",
           total_inflow: 159_443_060,
           total_outflow: 227_166_172,
@@ -414,7 +737,8 @@ function wp5ApiBody(pathname, searchParams, state) {
           primary_type: "operating_expense",
           classification_source: "automatic",
           confidence: "medium",
-          status: "confirmed"
+          status: "confirmed",
+          state_version: 1
         },
         {
           bank_transaction_id: "bank-tx-in",
@@ -429,11 +753,13 @@ function wp5ApiBody(pathname, searchParams, state) {
           category_label: "기타 입금",
           primary_type: "non_operating",
           classification_source: "automatic",
-          confidence: "low",
-          status: "confirmed"
+          confidence: "needs_review",
+          rationale_code: "no_registered_client_match",
+          status: "review_required",
+          state_version: 1
         }
       ]),
-      summary: { confirmed_count: 2, review_count: 0, transaction_count: 2 }
+      summary: { confirmed_count: 1, review_count: 1, transaction_count: 2 }
     };
   }
   if (pathname === "/api/finance/bank-classification-options") {
@@ -446,7 +772,10 @@ function wp5ApiBody(pathname, searchParams, state) {
           { category: "salary_payment", label: "급여 지급", primary_type: "payroll" },
           { category: "general_operating", label: "기타 운영비", primary_type: "operating_expense" }
         ],
-        clients: [],
+        clients: [
+          { client_group_id: "client-hanbit-001", label: "한빛", selection_label: "한빛 · 고객번호 client-hanbit-001" },
+          { client_group_id: "client-hanbit-002", label: "한빛", selection_label: "한빛 · 고객번호 client-hanbit-002" }
+        ],
         employees: []
       }
     };
@@ -653,7 +982,7 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
   });
   await server.listen();
   const browser = await chromium.launch({ headless: true });
-  const state = { decisionCalls: 0, newsCalls: 0 };
+  const state = { decisionCalls: 0, newsCalls: 0, bankReviewPayload: null };
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
@@ -797,10 +1126,10 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
     assert.equal(await page.getByRole("button", { name: "회의실 예약", exact: true }).getAttribute("aria-current"), "location");
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     const clientPrimaryToggle = page.locator('[data-sidebar-group="clients-home"] .sidebar-group-toggle');
-    assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역"]);
+    assert.deepEqual(await page.locator('[data-sidebar-group="clients-home"] .sidebar-child').allTextContents(), ["대시보드", "고객 목록", "신규 고객", "새 문의", "입금 매출 내역"]);
     const clientPreEngagementToggle = page.locator('[data-sidebar-group="client-opportunities"] .sidebar-group-toggle');
     await clientPreEngagementToggle.click();
-    assert.deepEqual(await page.locator('[data-sidebar-group="client-opportunities"] .sidebar-child').allTextContents(), ["Pipeline", "상담/수임 제안", "접촉 이력"]);
+    assert.deepEqual(await page.locator('[data-sidebar-group="client-opportunities"] .sidebar-child').allTextContents(), ["수임 현황", "상담·수임 관리", "접촉 이력"]);
     if (await clientPrimaryToggle.getAttribute("aria-expanded") !== "true") await clientPrimaryToggle.click();
     await clientPrimaryToggle.click();
     await page.locator('[data-product-axis="home"]').click();
@@ -846,6 +1175,25 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
       true,
       "closing the contextual drawer must return focus to its rail trigger"
     );
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#client-accounts`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#clients-list");
+    assert.equal(await page.locator("#clients-list").count(), 1);
+    assert.equal(await page.locator("[data-client-route-disabled]").count(), 0);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#client-data`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#clients-home");
+    const disabledClientRoute = page.locator('[data-client-route-disabled="disabled"]');
+    assert.equal(await disabledClientRoute.count(), 1);
+    assert.match(await disabledClientRoute.innerText(), /이 메뉴는 사용하지 않습니다/);
+    assert.equal(await page.locator("#clients-home-panel").count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#client-unknown`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.location.hash === "#clients-home");
+    const unknownClientRoute = page.locator('[data-client-route-disabled="not_found"]');
+    assert.equal(await unknownClientRoute.count(), 1);
+    assert.match(await unknownClientRoute.innerText(), /요청한 메뉴를 찾을 수 없습니다/);
   } finally {
     await browser.close();
     await server.close();
@@ -1001,6 +1349,19 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
+      if (url.pathname === "/api/finance/bank-classifications/review") {
+        state.bankReviewPayload = route.request().postDataJSON();
+        return jsonResponse(route, {
+          request_id: "wp-fin-bank-classification-review",
+          outcome: "classified",
+          item: { created_count: 0, updated_count: 1, rule_count: 1 },
+          safe_error_codes: [],
+          audit_hint_ref: "wp-fin-bank-classification-review-audit",
+          idempotent_replay: false,
+          raw_source_payload_included: false,
+          production_ready_claim: false
+        });
+      }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-finance-overview`, { waitUntil: "networkidle" });
@@ -1037,6 +1398,32 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
     assert.equal(await cashflow.locator('[data-home-cashflow-monthly-table="true"]').count(), 1);
     assert.equal(await cashflow.locator('[data-home-cashflow-transaction-table="true"] tbody tr').count(), 2);
     assert.match(await cashflow.locator('[data-home-cashflow-transaction-table="true"]').innerText(), /입금자 확인 전/);
+    assert.match(await cashflow.innerText(), /1건 확정 · 1건 확인 필요/);
+    const pendingRow = cashflow.locator('[data-bank-classification-row="bank-tx-in"]');
+    assert.match(await pendingRow.innerText(), /연결 확인 필요/);
+    assert.equal(await cashflow.getByLabel("이 입금자명 기억").count(), 1);
+    await pendingRow.getByLabel("입금자 확인 전 분류").selectOption("client_receipt");
+    assert.deepEqual(await pendingRow.getByLabel("고객 연결").locator("option").allTextContents(), [
+      "고객 선택",
+      "한빛 · 고객번호 client-hanbit-001",
+      "한빛 · 고객번호 client-hanbit-002"
+    ]);
+    await pendingRow.getByLabel("고객 연결").selectOption("client-hanbit-002");
+    await pendingRow.getByRole("button", { name: "입금자 확인 전 연결 해제" }).click();
+    assert.equal(await pendingRow.getByLabel("입금자 확인 전 분류").inputValue(), "other_inflow");
+    await pendingRow.getByLabel("입금자 확인 전 분류").selectOption("client_receipt");
+    await pendingRow.getByLabel("고객 연결").selectOption("client-hanbit-002");
+    await cashflow.getByLabel("이 입금자명 기억").check();
+    await cashflow.getByRole("button", { name: "선택 적용 (1)" }).click();
+    await page.waitForFunction(() => window.document.body.innerText.includes("1건의 분류와 연결을 저장했습니다."));
+    assert.deepEqual(state.bankReviewPayload.decisions, [{
+      bank_transaction_id: "bank-tx-in",
+      category: "client_receipt",
+      client_group_id: "client-hanbit-002",
+      expected_state_version: 1,
+      remember_match: true,
+      match_field: "counterparty"
+    }]);
     await cashflow.getByLabel("거래 유형").selectOption("outflow");
     await page.waitForFunction(() => new URL(window.location.href).searchParams.get("direction") === "outflow");
 
@@ -1478,7 +1865,7 @@ test("Matter work management groups board tabs and integrates external schedules
   }
 });
 
-test("dashboard bodies render the requested Home, Matter, and Client work areas without KPI counts", async () => {
+test("dashboard bodies render the requested Home, Matter, and Client operating views", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
@@ -1823,41 +2210,139 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-client-dashboard="true"]');
     const clientDashboard = page.locator('[data-client-dashboard="true"]');
-    for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
-      assert.equal(await clientDashboard.getByText(title, { exact: true }).count(), 1, `Client must show ${title}`);
+    assert.equal(await clientDashboard.getAttribute("data-client-dashboard-state"), "data");
+    assert.equal(await page.locator('[data-client-dashboard-kpis="true"] [data-client-kpi]').count(), 5);
+    for (const [id, title, value] of [
+      ["new_inquiries", "새 문의", "1건"],
+      ["consultations_today", "오늘 상담", "1건"],
+      ["engagement_reviews", "수임 검토 중", "1건"],
+      ["deposit_revenue_month", "이번 달 입금 매출", "33,000,000원"],
+      ["receivables_total", "총 미수금", "9,000,000원"]
+    ]) {
+      const metric = page.locator(`[data-client-kpi="${id}"]`);
+      assert.equal(await metric.getByText(title, { exact: true }).count(), 1);
+      assert.equal(await metric.getByText(value, { exact: true }).count(), 1);
     }
-    for (const section of ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"]) {
-      assert.equal(await page.locator(`[data-dashboard-section="${section}"]`).count(), 1);
-    }
-    assert.equal(await page.locator('[data-dashboard-section="new-clients"] .dashboard-record-row').count(), 1);
-    assert.equal(await page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').count(), 1);
-    const clientRow = page.locator('[data-dashboard-section="client-meetings"] .dashboard-record-row').first();
+    assert.equal(await page.locator('[data-client-attention="true"] .dashboard-record-row').count(), 5);
+    assert.equal(await page.locator('[data-client-attention="true"]').getByText("오늘 확인할 일", { exact: true }).count(), 1);
+    assert.equal(await page.locator('[data-client-revenue-chart="true"] [data-client-revenue-month]').count(), 12);
+    assert.equal(
+      await page.locator(
+        `[data-client-revenue-month="${wp5MonthKey()}"]`
+      ).getAttribute("data-client-revenue-amount"),
+      "33000000"
+    );
+    assert.equal(await page.locator('[data-client-inquiry-status="true"] [data-client-inquiry-status-code]').count(), 6);
+    assert.equal(
+      await page.locator(
+        '[data-client-inquiry-status-code="reviewing"]'
+      ).getAttribute("aria-label"),
+      "확인 중 0건"
+    );
+    assert.equal(await page.locator('[data-client-ranking="revenue"] .dashboard-record-row').count(), 2);
+    assert.equal(await page.locator('[data-client-ranking="receivables"] .dashboard-record-row').count(), 1);
+    assert.equal(
+      await page.locator(
+        '[data-client-ranking="revenue"] [data-client-ranking-total]'
+      ).getAttribute("data-client-ranking-total"),
+      "36000000"
+    );
+    assert.equal(
+      await page.locator(
+        '[data-client-ranking="receivables"] [data-client-ranking-total]'
+      ).getAttribute("data-client-ranking-total"),
+      "9000000"
+    );
+    const clientRow = page.locator('[data-client-attention="true"] .dashboard-record-row').first();
     assert.equal(await clientRow.evaluate((row) => row.scrollWidth > row.clientWidth), false);
-    assert.equal(await clientRow.locator("em").evaluate((node) => getComputedStyle(node).whiteSpace), "nowrap");
     assert.deepEqual(await compactRecordLayoutFailures(page), [], "Client compact records must remain one-line");
     assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Client panel metadata must remain on the title line");
     const clientDashboardText = await page.locator('[data-client-dashboard="true"]').innerText();
-    assert.doesNotMatch(clientDashboardText, /@amic\.kr|party-dashboard-1|account-dashboard-1|api-fin-client|meeting-dashboard-1|550e8400-e29b-41d4-a716-446655440000/);
-    assert.doesNotMatch(clientDashboardText, /\b(?:Client|qualified|active)\b/);
-    assert.match(clientDashboardText, /고객|검토 완료|진행 중/);
+    assert.doesNotMatch(clientDashboardText, /@amic\.kr|lead-dashboard-1|user-dashboard|consultation-dashboard-today|opportunity-dashboard-review|bank-dashboard-review|fee-dashboard-missing|client-dashboard-saebom|client-dashboard-hanbit/);
+    assert.doesNotMatch(clientDashboardText, /\b(?:Client|qualified|active|available)\b/);
+    assert.match(clientDashboardText, /새 문의 담당자 지정|입금 고객 연결|수임료 입력/);
 
-    for (const [section, label, expectedView, expectedSection] of [
-      ["new-clients", "신규 고객 전체 보기", "clients", "clients-list"],
-      ["prospects-contacts", "잠재 고객/접촉 전체 보기", "clients", "client-opportunities"],
-      ["revenue-ranking", "매출 순위 전체 보기", "home", "home-finance-clients"],
-      ["client-meetings", "고객 미팅 전체 보기", "clients", "client-activities"],
-      ["accounts-receivable", "미수금 전체 보기", "home", "home-finance-ar"]
+    for (const [id, label, expectedSection, expectedFilter] of [
+      ["new_inquiries", "새 문의 상세 보기", "client-leads", "new"],
+      ["consultations_today", "오늘 상담 상세 보기", "client-consultation-proposals", "today"],
+      ["engagement_reviews", "수임 검토 중 상세 보기", "client-opportunities", "reviewing"],
+      ["deposit_revenue_month", "이번 달 입금 매출 상세 보기", "client-sales-history", "current_month"],
+      ["receivables_total", "총 미수금 상세 보기", "client-billing", "outstanding"]
     ]) {
       await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
       await page.keyboard.press("Escape");
-      await page.locator(`[data-dashboard-section="${section}"]`).getByRole("button", { name: label }).click();
-      await page.waitForFunction(({ view, section: hash }) => new URL(window.location.href).searchParams.get("view") === view && window.location.hash === `#${hash}`, { view: expectedView, section: expectedSection });
+      await page.locator(`[data-client-kpi="${id}"]`).getByRole("button", { name: label }).click();
+      await page.waitForFunction(({ section, filter }) => {
+        const url = new URL(window.location.href);
+        return url.searchParams.get("view") === "clients"
+          && url.searchParams.get("filter") === filter
+          && url.hash === `#${section}`;
+      }, { section: expectedSection, filter: expectedFilter });
     }
 
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     await page.keyboard.press("Escape");
-    await page.locator('[data-dashboard-section="prospects-contacts"] .dashboard-record-row').last().click();
-    await page.waitForFunction(() => window.location.hash === "#client-leads");
+    await page.locator('[data-client-attention="true"] .dashboard-record-row').first().click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#client-leads"
+        && url.searchParams.get("filter") === "new"
+        && url.searchParams.get("record_id") === "lead-dashboard-1";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator('[data-client-attention="true"] .dashboard-record-row').nth(1).click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#client-consultation-proposals"
+        && url.searchParams.get("filter") === "today"
+        && url.searchParams.get("record_id") === "consultation-dashboard-today"
+        && url.searchParams.get("inquiry_id") === "lead-dashboard-consultation";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      `[data-client-revenue-month="${wp5MonthKey()}"]`
+    ).click();
+    await page.waitForFunction((month) => {
+      const url = new URL(window.location.href);
+      return url.hash === "#client-sales-history"
+        && url.searchParams.get("filter") === "month"
+        && url.searchParams.get("month") === month;
+    }, wp5MonthKey());
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      '[data-client-inquiry-status-code="consultation_scheduled"]'
+    ).click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#client-consultation-proposals"
+        && url.searchParams.get("filter") === "consultation_scheduled";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      '[data-client-ranking="revenue"] .dashboard-record-row'
+    ).first().click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#clients-list"
+        && url.searchParams.get("record_id") === "client-dashboard-saebom"
+        && url.searchParams.get("tab") === "deposit_revenue"
+        && url.searchParams.get("period") === "year";
+    });
+
+    await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
+    await page.locator(
+      '[data-client-ranking="receivables"] .dashboard-record-row'
+    ).first().click();
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.hash === "#clients-list"
+        && url.searchParams.get("record_id") === "client-dashboard-hanbit"
+        && url.searchParams.get("tab") === "receivables";
+    });
 
     await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-dashboard`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-hr-workforce-table="true"]');
@@ -1897,7 +2382,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(await workforceTools.getByLabel("구성원 검색").count(), 1);
     assert.deepEqual(await compactRecordLayoutFailures(page), [], "People compact records must remain one-line");
     assert.deepEqual(await panelHeaderLayoutFailures(page), [], "People panel metadata must remain on the title line");
-    for (const title of ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+    for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금", "오늘 확인할 일"]) {
       assert.equal(await page.getByText(title, { exact: true }).count(), 0, `People must not show ${title}`);
     }
   } finally {
@@ -1932,7 +2417,7 @@ test("search history keeps a failed source distinct from a genuinely empty sourc
   }
 });
 
-test("Client prospect card preserves readable sources when one source is denied", async () => {
+test("VC-CL-DASH-002 Client 대시보드는 CRM 장애를 0건으로 바꾸지 않고 Finance 지표를 유지한다", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
@@ -1941,24 +2426,235 @@ test("Client prospect card preserves readable sources when one source is denied"
     const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname === "/api/crm/contacts") {
-        return jsonResponse(route, {
-          request_id: "dashboard-contacts-denied",
-          outcome: "denied",
-          ui_state: "denied",
-          items: [],
-          safe_error_codes: ["permission_denied"],
-          count_leak_prevented: true,
-          production_ready_claim: false
-        }, 403);
+      if (url.pathname === "/api/analytics/clients/dashboard") {
+        const body = wp5ClientOperationsDashboardBody();
+        body.outcome = "partial";
+        body.ui_state = "partial";
+        body.sections.kpis.status = "partial";
+        body.sections.kpis.data.values.new_inquiries = null;
+        body.sections.kpis.data.values.consultations_today = null;
+        body.sections.kpis.data.values.engagement_reviews = null;
+        body.sections.kpis.data.metric_statuses.new_inquiries = "error";
+        body.sections.kpis.data.metric_statuses.consultations_today = "error";
+        body.sections.kpis.data.metric_statuses.engagement_reviews = "error";
+        body.sections.attention_items.status = "partial";
+        body.sections.attention_items.data.items = body.sections.attention_items.data.items.slice(-2);
+        body.sections.attention_items.data.type_statuses.overdue_consultation = "error";
+        body.sections.attention_items.data.type_statuses.unassigned_new_inquiry = "error";
+        body.sections.attention_items.data.type_statuses.consultation_today = "error";
+        body.sections.attention_items.data.type_statuses.engagement_review = "error";
+        body.sections.inquiry_status.status = "error";
+        body.sections.inquiry_status.data = null;
+        body.source_statuses.find(({ source_id }) => source_id === "crm").status = "error";
+        body.safe_error_codes = ["CLIENT_OPERATIONS_SOURCE_UNAVAILABLE"];
+        return jsonResponse(route, body);
       }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
     });
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
-    await page.waitForSelector('[data-client-dashboard="true"]');
-    const prospectsCard = page.locator('[data-dashboard-section="prospects-contacts"]');
-    assert.equal(await prospectsCard.locator(".dashboard-record-row").count(), 2);
-    assert.equal(await prospectsCard.getByText("잠재 고객과 접촉 접근 권한이 없습니다", { exact: true }).count(), 0);
+    await page.waitForSelector('[data-client-dashboard-state="partial"]');
+    for (const metricId of ["new_inquiries", "consultations_today", "engagement_reviews"]) {
+      const metric = page.locator(`[data-client-kpi="${metricId}"]`);
+      assert.equal(await metric.locator('[data-client-dashboard-read-state="error"]').count(), 1);
+      assert.equal((await metric.innerText()).includes("0건"), false);
+    }
+    assert.equal(await page.locator('[data-client-kpi="deposit_revenue_month"]').getByText("33,000,000원", { exact: true }).count(), 1);
+    assert.equal(await page.locator('[data-client-kpi="receivables_total"]').getByText("9,000,000원", { exact: true }).count(), 1);
+    assert.equal(await page.locator('[data-client-attention="true"] [data-client-dashboard-read-state="partial"]').count(), 1);
+    assert.equal(await page.locator('[data-client-attention="true"] .dashboard-record-row').count(), 2);
+    assert.equal(await page.locator('[data-client-inquiries] [data-client-dashboard-read-state="error"]').count(), 1);
+    assert.equal(await page.locator('[data-client-revenue-chart="true"] [data-client-revenue-month]').count(), 12);
+    assert.equal(await page.locator('[data-client-ranking="revenue"] .dashboard-record-row').count(), 2);
+    assert.equal(await page.locator('[data-client-ranking="receivables"] .dashboard-record-row').count(), 1);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("CL-P5-W01-T03 Client 대시보드는 1440·820·390px에서 그래프와 순위를 빠짐없이 재배치한다", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      return jsonResponse(
+        route,
+        wp5ApiBody(
+          url.pathname,
+          url.searchParams,
+          { decisionCalls: 0, newsCalls: 0 }
+        )
+      );
+    });
+
+    for (const scenario of [
+      {
+        width: 1440,
+        height: 1000,
+        kpiRows: 1,
+        insightRows: 1,
+        rankingRows: 1
+      },
+      {
+        width: 820,
+        height: 1000,
+        kpiRows: 2,
+        insightRows: 2,
+        rankingRows: 2
+      },
+      {
+        width: 390,
+        height: 844,
+        kpiRows: 5,
+        insightRows: 2,
+        rankingRows: 2
+      }
+    ]) {
+      await page.setViewportSize({
+        width: scenario.width,
+        height: scenario.height
+      });
+      await page.goto(
+        `http://127.0.0.1:${port}/?view=clients&ctx=allow&viewport=${scenario.width}#clients-home`,
+        { waitUntil: "networkidle" }
+      );
+      await page.waitForSelector('[data-client-dashboard-state="data"]');
+      if (scenario.width < 1200) {
+        await page.waitForFunction(() => {
+          const sidebar = document.querySelector(
+            ".app-frame > .sidebar"
+          );
+          return sidebar
+            && getComputedStyle(sidebar).visibility === "hidden";
+        });
+      }
+      const layout = await page.evaluate(() => {
+        const rowCount = (selector) => new Set(
+          Array.from(document.querySelectorAll(selector))
+            .map((node) => Math.round(
+              node.getBoundingClientRect().top
+            ))
+        ).size;
+        return {
+          pageOverflow:
+            document.documentElement.scrollWidth
+            > document.documentElement.clientWidth,
+          kpiRows: rowCount(
+            '[data-client-dashboard-kpis="true"] [data-client-kpi]'
+          ),
+          insightRows: rowCount(
+            '[data-client-dashboard-insights="true"] > div'
+          ),
+          rankingRows: rowCount(
+            '[data-client-dashboard-rankings="true"] > div'
+          ),
+          revenueBars: document.querySelectorAll(
+            "[data-client-revenue-month]"
+          ).length,
+          inquiryRows: document.querySelectorAll(
+            "[data-client-inquiry-status-code]"
+          ).length
+        };
+      });
+      assert.equal(layout.pageOverflow, false);
+      assert.equal(layout.kpiRows, scenario.kpiRows);
+      assert.equal(layout.insightRows, scenario.insightRows);
+      assert.equal(layout.rankingRows, scenario.rankingRows);
+      assert.equal(layout.revenueBars, 12);
+      assert.equal(layout.inquiryRows, 6);
+    }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("고객 대시보드는 권한 없음, 확인 필요, 데이터 없음, 오류를 서로 다르게 표시한다", async () => {
+  const port = await availablePort();
+  const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  let mode = "denied";
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/analytics/clients/dashboard") {
+        if (mode === "denied") {
+          return jsonResponse(route, {
+            request_id: "client-dashboard-denied",
+            outcome: "permission_denied",
+            ui_state: "permission_denied",
+            source_statuses: [{
+              source_id: "master_data",
+              label: "고객 정보",
+              status: "permission_denied",
+              checked_at: wp5IsoDay(0),
+              latest_record_at: null,
+              item_count: null,
+              safe_error_code: "CLIENT_OPERATIONS_CLIENT_READ_DENIED"
+            }],
+            safe_error_codes: ["CLIENT_OPERATIONS_CLIENT_READ_DENIED"],
+            count_leak_prevented: true,
+            production_ready_claim: false
+          }, 403);
+        }
+        if (mode === "empty") {
+          const body = wp5ClientOperationsDashboardBody();
+          body.outcome = "empty";
+          body.ui_state = "no_data";
+          for (const section of Object.values(body.sections)) {
+            section.status = "no_data";
+            section.data = null;
+          }
+          for (const source of body.source_statuses) {
+            source.status = "no_data";
+            source.item_count = 0;
+          }
+          return jsonResponse(route, body);
+        }
+        return jsonResponse(route, {
+          request_id: "client-dashboard-error",
+          outcome: "blocked",
+          ui_state: "error",
+          source_statuses: [{
+            source_id: "master_data",
+            label: "고객 정보",
+            status: "error",
+            checked_at: wp5IsoDay(0),
+            latest_record_at: null,
+            item_count: null,
+            safe_error_code: "CLIENT_OPERATIONS_CLIENT_SCOPE_UNAVAILABLE"
+          }],
+          safe_error_codes: ["CLIENT_OPERATIONS_CLIENT_SCOPE_UNAVAILABLE"],
+          count_leak_prevented: true,
+          production_ready_claim: false
+        }, 503);
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, { decisionCalls: 0, newsCalls: 0 }));
+    });
+
+    for (const scenario of [
+      { mode: "denied", ctx: "allow", state: "denied", text: "고객 대시보드를 볼 권한이 없습니다." },
+      { mode: "denied", ctx: "review", state: "review_required", text: "고객 대시보드를 보려면 추가 확인이 필요합니다." },
+      { mode: "empty", ctx: "allow", state: "empty", text: "고객 대시보드 데이터가 없습니다." },
+      { mode: "error", ctx: "allow", state: "error", text: "고객 대시보드를 불러오지 못했습니다." }
+    ]) {
+      mode = scenario.mode;
+      await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=${scenario.ctx}&case=${scenario.state}#clients-home`, { waitUntil: "networkidle" });
+      const boundary = page.locator(`[data-client-dashboard-state="${scenario.state}"]`);
+      await boundary.waitFor();
+      assert.equal(await boundary.getByText(scenario.text, { exact: true }).count(), 1);
+      assert.equal(await boundary.locator("[data-client-kpi]").count(), 0);
+    }
   } finally {
     await browser.close();
     await server.close();

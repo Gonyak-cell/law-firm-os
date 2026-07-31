@@ -855,7 +855,29 @@ test("G6 opportunity create blocks direct Matter and handoff persists Intake acr
     });
     assert.equal(blocked.status, 400);
 
-    const handoff = await json(baseUrl, "/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff", {
+    const opportunityId = "opp_cmp_g6_api_handoff_source_001";
+    const created = await json(baseUrl, "/api/crm/opportunities", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm_ref_cmp_g6_write",
+        audit_hint_ref: "audit_hint_cmp_g6_write",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "api-opp-handoff-source",
+        opportunity: {
+          opportunity_id: opportunityId,
+          tenant_id: TENANT,
+          party_id: "party_cmp_g6_client_001",
+          display_name: "API handoff source",
+          stage: "qualified",
+          status: "active",
+          owner_user_id: "user_cmp_g6_owner",
+        },
+      }),
+    });
+    assert.equal(created.status, 201);
+
+    const handoff = await json(baseUrl, `/api/crm/opportunities/${opportunityId}/handoff`, {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,
@@ -873,7 +895,7 @@ test("G6 opportunity create blocks direct Matter and handoff persists Intake acr
     assert.equal(handoff.body.opportunity.intake_request_id, "intake_cmp_g6_api_handoff_001");
     assert.equal(handoff.body.opportunity.direct_matter_reference_included, false);
 
-    const replay = await json(baseUrl, "/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff", {
+    const replay = await json(baseUrl, `/api/crm/opportunities/${opportunityId}/handoff`, {
       method: "POST",
       body: JSON.stringify({
         tenant_id: TENANT,

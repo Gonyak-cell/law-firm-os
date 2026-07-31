@@ -4,9 +4,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-service.js";
+import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
+import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
+import {
+  createFinanceRuntimeContext,
+  handleFinanceApiRequest,
+} from "../src/finance-runtime-context.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -123,6 +130,935 @@ async function json(baseUrl, path, options = {}) {
   const body = await response.json();
   return { status: response.status, body };
 }
+
+test("same-name client options include a stable customer number for manual selection", async () => {
+  const response = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classification-options",
+    method: "GET",
+    query: {
+      tenant_id: TENANT,
+      permission_ref: "perm-same-name-client-options",
+      audit_hint_ref: "audit-same-name-client-options",
+    },
+    context: JSON.parse(permissionContext("allow", ["system_super_admin"])),
+    requestId: "request-same-name-client-options",
+    runtime: createFinanceRuntimeContext({
+      clientRecords: [
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-hanbit-001", display_name: "한빛", status: "active" },
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-hanbit-002", display_name: "한빛", status: "active" },
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-saebom", display_name: "새봄", status: "active" },
+        { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-closed", display_name: "종료 고객", status: "closed" },
+        { model_type: "ClientGroup", tenant_id: "tenant-other", client_group_id: "client-other-tenant", display_name: "다른 사무실", status: "active" },
+      ],
+    }),
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    response.body.item.clients.map((item) => [item.client_group_id, item.selection_label]),
+    [
+      ["client-saebom", "새봄"],
+      ["client-hanbit-001", "한빛 · 고객번호 client-hanbit-001"],
+      ["client-hanbit-002", "한빛 · 고객번호 client-hanbit-002"],
+    ],
+  );
+});
+
+test("VC-CL-AR-001/002/003 수임료 약정 API는 참조·금액·멱등성을 확인하고 권한 있는 조회만 허용한다", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "FeeArrangement",
+        fee_arrangement_id: "fee-arrangement-api-fixed",
+        tenant_id: TENANT,
+        client_group_id: "client-fee-api",
+        currency: "KRW",
+        type: "fixed",
+        arrangement_type: "fixed",
+        fixed_fee_amount: 5_000_000,
+        status: "active",
+      },
+      {
+        model_type: "BankImportBatch",
+        bank_import_batch_id: "bank-batch-fee-api",
+        tenant_id: TENANT,
+        source_manifest_hash: "1".repeat(64),
+        status: "reconciled",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-transaction-fee-api",
+        bank_import_batch_id: "bank-batch-fee-api",
+        tenant_id: TENANT,
+        transaction_fingerprint: "2".repeat(64),
+        occurred_at: "2026-07-30T09:00:00+09:00",
+        direction: "inflow",
+        amount: 6_000_000,
+        currency: "KRW",
+        status: "posted",
+      },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id: "classification-fee-api",
+        bank_transaction_id: "bank-transaction-fee-api",
+        tenant_id: TENANT,
+        client_group_id: "client-fee-api",
+        transaction_direction: "inflow",
+        amount: 6_000_000,
+        currency: "KRW",
+        category: "client_receipt",
+        status: "confirmed",
+      },
+    ],
+  });
+  const masterDataRepository = createMasterDataRepository({
+    seedRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-fee-api",
+      display_name: "한빛 로펌 고객",
+      member_party_ids: ["party-fee-api"],
+      primary_party_id: "party-fee-api",
+      status: "active",
+      owner_user_id: "user-fee-api",
+    }],
+  });
+  const crmRepository = createCrmRuntimeRepository({
+    seedRecords: [
+      {
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-fee-api",
+        tenant_id: TENANT,
+        party_id: "party-fee-api",
+        display_name: "한빛 수임 확정",
+        stage: "closed_won",
+        status: "active",
+        owner_user_id: "user-fee-api",
+      },
+      {
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-fee-api-other",
+        tenant_id: TENANT,
+        party_id: "party-other",
+        display_name: "다른 고객 수임 확정",
+        stage: "closed_won",
+        status: "active",
+        owner_user_id: "user-fee-api",
+      },
+      {
+        model_type: "Opportunity",
+        opportunity_id: "opportunity-fee-api-zero",
+        tenant_id: TENANT,
+        party_id: "party-fee-api",
+        display_name: "한빛 0원 수임 확정",
+        stage: "closed_won",
+        status: "active",
+        owner_user_id: "user-fee-api",
+      },
+    ],
+  });
+  const financeRuntime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    masterDataRepository,
+    crmRepository,
+  });
+  const payload = {
+    tenant_id: TENANT,
+    permission_ref: "perm-fee-commitment-api",
+    audit_hint_ref: "audit-fee-commitment-api",
+    idempotency_key: "fee-commitment-api-create",
+    fee_commitment: {
+      fee_commitment_id: "fee-commitment-api",
+      tenant_id: TENANT,
+      client_group_id: "client-fee-api",
+      opportunity_id: "opportunity-fee-api",
+      matter_id: null,
+      currency: "KRW",
+      agreed_amount: null,
+      due_date: null,
+      accepted_at: "2026-07-30T17:00:00+09:00",
+      source_fee_arrangement_id: null,
+      reason: "수임 확정, 금액은 추후 입력",
+      created_by: "spoofed-client-actor",
+      updated_by: "spoofed-client-actor",
+    },
+  };
+  try {
+    await withServer(async (baseUrl) => {
+      const created = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify(payload),
+      });
+      assert.equal(created.status, 201, JSON.stringify(created.body));
+      assert.equal(created.body.item.agreed_amount, null);
+      assert.equal(created.body.item.created_by, SUPER_ADMIN_ACCOUNT.user_id);
+      assert.equal(created.body.idempotent_replay, false);
+
+      const replay = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify(payload),
+      });
+      assert.equal(replay.status, 200);
+      assert.equal(replay.body.idempotent_replay, true);
+
+      const conflict = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          fee_commitment: { ...payload.fee_commitment, agreed_amount: 0 },
+        }),
+      });
+      assert.equal(conflict.status, 409);
+      assert.deepEqual(conflict.body.safe_error_codes, ["FINANCE_IDEMPOTENCY_CONFLICT"]);
+
+      const invalidReference = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          idempotency_key: "fee-commitment-api-invalid-reference",
+          fee_commitment: {
+            ...payload.fee_commitment,
+            fee_commitment_id: "fee-commitment-api-invalid-reference",
+            opportunity_id: "opportunity-fee-api-other",
+          },
+        }),
+      });
+      assert.equal(invalidReference.status, 409);
+      assert.deepEqual(
+        invalidReference.body.safe_error_codes,
+        ["FINANCE_FEE_COMMITMENT_REFERENCE_INVALID"],
+      );
+
+      const zeroAmount = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          idempotency_key: "fee-commitment-api-zero",
+          fee_commitment: {
+            ...payload.fee_commitment,
+            fee_commitment_id: "fee-commitment-api-zero",
+            opportunity_id: "opportunity-fee-api-zero",
+            agreed_amount: 0,
+            reason: "0원 약정 확인",
+          },
+        }),
+      });
+      assert.equal(zeroAmount.status, 201);
+      assert.equal(zeroAmount.body.item.agreed_amount, 0);
+
+      const invalidCurrency = await json(baseUrl, "/api/finance/fee-commitments", {
+        method: "POST",
+        account: SUPER_ADMIN_ACCOUNT,
+        body: JSON.stringify({
+          ...payload,
+          idempotency_key: "fee-commitment-api-usd",
+          fee_commitment: {
+            ...payload.fee_commitment,
+            fee_commitment_id: "fee-commitment-api-usd",
+            currency: "USD",
+          },
+        }),
+      });
+      assert.equal(invalidCurrency.status, 400);
+      assert.deepEqual(
+        invalidCurrency.body.safe_error_codes,
+        ["FINANCE_API_VALIDATION_ERROR"],
+      );
+
+      const query = `${BASE_QUERY}&client_group_id=client-fee-api&opportunity_id=opportunity-fee-api&status=active`;
+      const listed = await json(baseUrl, `/api/finance/fee-commitments?${query}`, {
+        account: SUPER_ADMIN_ACCOUNT,
+      });
+      assert.equal(listed.status, 200);
+      assert.equal(listed.body.items.length, 1);
+      assert.equal(listed.body.items[0].fee_commitment_id, "fee-commitment-api");
+      assert.equal(listed.body.items[0].agreed_amount, null);
+
+      const denied = await json(baseUrl, `/api/finance/fee-commitments?${query}`, {
+        account: NON_PARTNER_ACCOUNT,
+      });
+      assert.equal(denied.status, 403);
+      assert.deepEqual(denied.body.items, []);
+      assert.equal(denied.body.count_leak_prevented, true);
+
+      const updatePayload = {
+        tenant_id: TENANT,
+        permission_ref: "perm-fee-commitment-api",
+        audit_hint_ref: "audit-fee-commitment-update-api",
+        idempotency_key: "fee-commitment-api-update-mismatch",
+        expected_state_version: 1,
+        changes: {
+          agreed_amount: 4_000_000,
+          source_fee_arrangement_id: "fee-arrangement-api-fixed",
+        },
+        reason: "담당자가 확인한 약정액 입력",
+      };
+      const mismatch = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify(updatePayload),
+        },
+      );
+      assert.equal(mismatch.status, 200, JSON.stringify(mismatch.body));
+      assert.equal(mismatch.body.item.state_version, 2);
+      assert.equal(mismatch.body.item.updated_by, SUPER_ADMIN_ACCOUNT.user_id);
+      assert.equal(
+        mismatch.body.item.fee_arrangement_comparison.warning_message,
+        "청구 설정과 금액이 다릅니다",
+      );
+      assert.deepEqual(mismatch.body.deposit_allocation, {
+        outcome: "allocated",
+        created_count: 1,
+        updated_count: 0,
+        allocated_amount: 4_000_000,
+        advance_or_overpayment_amount: 2_000_000,
+      });
+      assert.deepEqual(mismatch.body.audit_event.metadata.before, {
+        state_version: 1,
+        status: "active",
+        agreed_amount: null,
+        due_date: null,
+        matter_id: null,
+        source_fee_arrangement_id: null,
+      });
+      assert.deepEqual(mismatch.body.audit_event.metadata.after, {
+        state_version: 2,
+        status: "active",
+        agreed_amount: 4_000_000,
+        due_date: null,
+        matter_id: null,
+        source_fee_arrangement_id: "fee-arrangement-api-fixed",
+      });
+
+      const updateReplay = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify(updatePayload),
+        },
+      );
+      assert.equal(updateReplay.status, 200);
+      assert.equal(updateReplay.body.idempotent_replay, true);
+      assert.equal(updateReplay.body.item.state_version, 2);
+      assert.equal(updateReplay.body.deposit_allocation, null);
+
+      const stale = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-update-stale",
+            changes: { due_date: "2026-09-01" },
+            reason: "오래된 화면에서 수정",
+          }),
+        },
+      );
+      assert.equal(stale.status, 409);
+      assert.deepEqual(
+        stale.body.safe_error_codes,
+        ["FINANCE_FEE_COMMITMENT_VERSION_CONFLICT"],
+      );
+
+      const matched = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-update-match",
+            expected_state_version: 2,
+            changes: { agreed_amount: 5_000_000 },
+            reason: "청구 설정 금액과 일치 확인",
+          }),
+        },
+      );
+      assert.equal(matched.status, 200);
+      assert.equal(matched.body.item.state_version, 3);
+      assert.equal(matched.body.item.fee_arrangement_comparison.status, "match");
+      assert.equal(matched.body.item.fee_arrangement_comparison.warning_message, null);
+      assert.deepEqual(matched.body.deposit_allocation, {
+        outcome: "allocated",
+        created_count: 0,
+        updated_count: 1,
+        allocated_amount: 1_000_000,
+        advance_or_overpayment_amount: 1_000_000,
+      });
+
+      const deniedUpdate = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: NON_PARTNER_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-update-denied",
+            expected_state_version: 3,
+            changes: { due_date: "2026-09-01" },
+            reason: "권한 없는 수정",
+          }),
+        },
+      );
+      assert.equal(deniedUpdate.status, 403);
+      assert.deepEqual(deniedUpdate.body.items, []);
+
+      const cancelled = await json(
+        baseUrl,
+        "/api/finance/fee-commitments/fee-commitment-api",
+        {
+          method: "PATCH",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...updatePayload,
+            idempotency_key: "fee-commitment-api-cancel",
+            expected_state_version: 3,
+            changes: { status: "cancelled" },
+            reason: "수임료 약정 취소 확인",
+          }),
+        },
+      );
+      assert.equal(cancelled.status, 200);
+      assert.equal(cancelled.body.outcome, "cancelled");
+      assert.equal(cancelled.body.item.state_version, 4);
+      assert.equal(cancelled.body.item.status, "cancelled");
+      assert.deepEqual(cancelled.body.deposit_allocation_reversal, {
+        outcome: "synchronized",
+        updated_count: 1,
+        linked_refund_amount: 0,
+        refund_reversed_amount: 0,
+        unapplied_refund_amount: 0,
+        inactive_commitment_released_amount: 5_000_000,
+      });
+
+      const cancelledQuery = `${BASE_QUERY}&opportunity_id=opportunity-fee-api&status=cancelled`;
+      const cancelledList = await json(
+        baseUrl,
+        `/api/finance/fee-commitments?${cancelledQuery}`,
+        { account: SUPER_ADMIN_ACCOUNT },
+      );
+      assert.equal(cancelledList.status, 200);
+      assert.equal(cancelledList.body.items.length, 1);
+      assert.equal(cancelledList.body.items[0].state_version, 4);
+    }, { financeRuntime });
+    assert.equal(
+      financeRepository.list({ tenant_id: TENANT, model_type: "FeeCommitment" }).length,
+      2,
+    );
+    const [allocation] = financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    });
+    assert.equal(allocation.allocated_amount, 5_000_000);
+    assert.equal(allocation.reversed_amount, 5_000_000);
+    assert.equal(allocation.adjustment_reversed_amount, 5_000_000);
+    assert.equal(allocation.status, "reversed");
+    assert.equal(allocation.state_version, 3);
+  } finally {
+    financeRepository.close();
+    masterDataRepository.close();
+    crmRepository.close();
+  }
+});
+
+test("VC-CL-AR-004 고객 입금 확인은 기존 수임료 약정에 같은 저장 단위로 자동 배분한다", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "BankImportBatch",
+        bank_import_batch_id: "bank-batch-review-allocation-api",
+        tenant_id: TENANT,
+        source_manifest_hash: "3".repeat(64),
+        status: "reconciled",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-transaction-review-allocation-api",
+        bank_import_batch_id: "bank-batch-review-allocation-api",
+        tenant_id: TENANT,
+        account_ref: "account-review-allocation-api",
+        transaction_fingerprint: "4".repeat(64),
+        date: "2026-07-30",
+        occurred_at: "2026-07-30T09:30:00+09:00",
+        direction: "inflow",
+        amount: 3_000_000,
+        currency: "KRW",
+        status: "posted",
+      },
+      {
+        model_type: "FeeCommitment",
+        fee_commitment_id: "fee-commitment-review-allocation-api",
+        tenant_id: TENANT,
+        client_group_id: "client-review-allocation-api",
+        opportunity_id: "opportunity-review-allocation-api",
+        matter_id: null,
+        currency: "KRW",
+        agreed_amount: 2_500_000,
+        due_date: "2026-08-15",
+        accepted_at: "2026-07-29T10:00:00+09:00",
+        status: "active",
+        source_fee_arrangement_id: null,
+        state_version: 1,
+        created_by: SUPER_ADMIN_ACCOUNT.user_id,
+        updated_by: SUPER_ADMIN_ACCOUNT.user_id,
+        reason: "수임료 확정",
+      },
+    ],
+  });
+  const runtime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    clientRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-review-allocation-api",
+      display_name: "한빛 자동 배분 고객",
+      status: "active",
+    }],
+  });
+  const body = {
+    tenant_id: TENANT,
+    permission_ref: "perm-review-allocation-api",
+    audit_hint_ref: "audit-review-allocation-api",
+    idempotency_key: "review-allocation-api",
+    decisions: [{
+      bank_transaction_id: "bank-transaction-review-allocation-api",
+      category: "client_receipt",
+      client_group_id: "client-review-allocation-api",
+      expected_state_version: 0,
+    }],
+  };
+  try {
+    const reviewed = await handleFinanceApiRequest({
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body,
+      query: {},
+      context: JSON.parse(permissionContext("allow", ["system_super_admin"])),
+      requestId: "request-review-allocation-api",
+      runtime,
+    });
+    assert.equal(reviewed.status, 200, JSON.stringify(reviewed.body));
+    assert.deepEqual(reviewed.body.deposit_allocation, {
+      outcome: "allocated",
+      created_count: 1,
+      updated_count: 0,
+      allocated_amount: 2_500_000,
+      advance_or_overpayment_amount: 500_000,
+    });
+    assert.equal(financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+    }).length, 1);
+    assert.equal(financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+    })[0].allocated_amount, 2_500_000);
+    assert.equal(financeRepository.snapshot().idempotency.length, 3);
+    const derivedPayments = financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "Payment",
+    });
+    assert.equal(derivedPayments.length, 1);
+    assert.equal(derivedPayments[0].allocation_status, "unallocated");
+    assert.equal(derivedPayments[0].unallocated_amount, 3_000_000);
+
+    const replay = await handleFinanceApiRequest({
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body,
+      query: {},
+      context: JSON.parse(permissionContext("allow", ["system_super_admin"])),
+      requestId: "request-review-allocation-api-replay",
+      runtime,
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.idempotent_replay, true);
+    assert.equal(replay.body.deposit_allocation, null);
+    assert.equal(financeRepository.snapshot().idempotency.length, 3);
+    assert.equal(financeRepository.list({
+      tenant_id: TENANT,
+      model_type: "Payment",
+    }).length, 1);
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("VC-CL-AR-005 입금 연결 API는 수동 재배분·version·권한을 확인한다", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "BankImportBatch",
+        bank_import_batch_id: "bank-batch-reallocate-api",
+        tenant_id: TENANT,
+        source_manifest_hash: "5".repeat(64),
+        status: "reconciled",
+      },
+      {
+        model_type: "BankTransaction",
+        bank_transaction_id: "bank-transaction-reallocate-api",
+        bank_import_batch_id: "bank-batch-reallocate-api",
+        tenant_id: TENANT,
+        account_ref: "account-reallocate-api",
+        transaction_fingerprint: "6".repeat(64),
+        date: "2026-07-30",
+        occurred_at: "2026-07-30T10:00:00+09:00",
+        direction: "inflow",
+        amount: 5_000_000,
+        currency: "KRW",
+        status: "posted",
+      },
+      {
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id:
+          "classification-reallocate-api",
+        bank_transaction_id: "bank-transaction-reallocate-api",
+        tenant_id: TENANT,
+        client_group_id: "client-reallocate-api",
+        transaction_date: "2026-07-30",
+        transaction_direction: "inflow",
+        amount: 5_000_000,
+        currency: "KRW",
+        category: "client_receipt",
+        status: "confirmed",
+      },
+      {
+        model_type: "FeeCommitment",
+        fee_commitment_id: "fee-reallocate-api-first",
+        tenant_id: TENANT,
+        client_group_id: "client-reallocate-api",
+        opportunity_id: "opportunity-reallocate-api-first",
+        matter_id: null,
+        currency: "KRW",
+        agreed_amount: 3_000_000,
+        due_date: "2026-08-10",
+        accepted_at: "2026-07-29T09:00:00+09:00",
+        status: "active",
+        source_fee_arrangement_id: null,
+        state_version: 1,
+        created_by: SUPER_ADMIN_ACCOUNT.user_id,
+        updated_by: SUPER_ADMIN_ACCOUNT.user_id,
+        reason: "첫 번째 수임료",
+      },
+      {
+        model_type: "FeeCommitment",
+        fee_commitment_id: "fee-reallocate-api-second",
+        tenant_id: TENANT,
+        client_group_id: "client-reallocate-api",
+        opportunity_id: "opportunity-reallocate-api-second",
+        matter_id: null,
+        currency: "KRW",
+        agreed_amount: 4_000_000,
+        due_date: "2026-08-20",
+        accepted_at: "2026-07-29T10:00:00+09:00",
+        status: "active",
+        source_fee_arrangement_id: null,
+        state_version: 1,
+        created_by: SUPER_ADMIN_ACCOUNT.user_id,
+        updated_by: SUPER_ADMIN_ACCOUNT.user_id,
+        reason: "두 번째 수임료",
+      },
+      {
+        model_type: "ClientDepositAllocation",
+        client_deposit_allocation_id: "allocation-reallocate-api-first",
+        tenant_id: TENANT,
+        client_group_id: "client-reallocate-api",
+        bank_transaction_id: "bank-transaction-reallocate-api",
+        bank_transaction_classification_id:
+          "classification-reallocate-api",
+        fee_commitment_id: "fee-reallocate-api-first",
+        currency: "KRW",
+        allocated_amount: 3_000_000,
+        reversed_amount: 0,
+        allocation_source: "automatic",
+        manual_lock: false,
+        state_version: 1,
+        allocated_at: "2026-07-30T10:05:00+09:00",
+        created_by: SUPER_ADMIN_ACCOUNT.user_id,
+        updated_by: SUPER_ADMIN_ACCOUNT.user_id,
+        reason: "자동 배분",
+      },
+    ],
+  });
+  const financeRuntime = createFinanceRuntimeContext({
+    repository: financeRepository,
+  });
+  const query =
+    `tenant_id=${TENANT}`
+    + "&permission_ref=perm-reallocate-api"
+    + "&audit_hint_ref=audit-reallocate-api"
+    + "&bank_transaction_id=bank-transaction-reallocate-api";
+  const body = {
+    tenant_id: TENANT,
+    permission_ref: "perm-reallocate-api",
+    audit_hint_ref: "audit-reallocate-api",
+    idempotency_key: "reallocate-api",
+    bank_transaction_id: "bank-transaction-reallocate-api",
+    expected_allocations: [{
+      client_deposit_allocation_id: "allocation-reallocate-api-first",
+      state_version: 1,
+    }],
+    targets: [
+      {
+        fee_commitment_id: "fee-reallocate-api-first",
+        active_amount: 1_000_000,
+      },
+      {
+        fee_commitment_id: "fee-reallocate-api-second",
+        active_amount: 4_000_000,
+      },
+    ],
+    reason: "담당자가 입금 연결을 확인해 조정함",
+  };
+  try {
+    await withServer(async (baseUrl) => {
+      const listed = await json(
+        baseUrl,
+        `/api/finance/client-deposit-allocations?${query}`,
+        { account: SUPER_ADMIN_ACCOUNT },
+      );
+      assert.equal(listed.status, 200, JSON.stringify(listed.body));
+      assert.equal(listed.body.items.length, 1);
+      assert.equal(listed.body.items[0].active_amount, 3_000_000);
+
+      const reallocated = await json(
+        baseUrl,
+        "/api/finance/client-deposit-allocations/reallocate",
+        {
+          method: "POST",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify(body),
+        },
+      );
+      assert.equal(reallocated.status, 200, JSON.stringify(reallocated.body));
+      assert.equal(reallocated.body.item.active_allocated_amount, 5_000_000);
+      assert.equal(reallocated.body.item.unallocated_amount, 0);
+      assert.deepEqual(
+        reallocated.body.items.map((item) => [
+          item.fee_commitment_id,
+          item.active_amount,
+          item.allocation_source,
+          item.manual_lock,
+          item.updated_by,
+        ]),
+        [
+          [
+            "fee-reallocate-api-first",
+            1_000_000,
+            "manual",
+            true,
+            SUPER_ADMIN_ACCOUNT.user_id,
+          ],
+          [
+            "fee-reallocate-api-second",
+            4_000_000,
+            "manual",
+            true,
+            SUPER_ADMIN_ACCOUNT.user_id,
+          ],
+        ],
+      );
+
+      const replay = await json(
+        baseUrl,
+        "/api/finance/client-deposit-allocations/reallocate",
+        {
+          method: "POST",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify(body),
+        },
+      );
+      assert.equal(replay.status, 200);
+      assert.equal(replay.body.idempotent_replay, true);
+      assert.equal(replay.body.items.length, 2);
+
+      const stale = await json(
+        baseUrl,
+        "/api/finance/client-deposit-allocations/reallocate",
+        {
+          method: "POST",
+          account: SUPER_ADMIN_ACCOUNT,
+          body: JSON.stringify({
+            ...body,
+            idempotency_key: "reallocate-api-stale",
+            targets: [],
+            reason: "오래된 화면에서 다시 조정",
+          }),
+        },
+      );
+      assert.equal(stale.status, 409);
+      assert.deepEqual(stale.body.safe_error_codes, [
+        "FINANCE_DEPOSIT_ALLOCATION_VERSION_CONFLICT",
+      ]);
+
+      const denied = await json(
+        baseUrl,
+        `/api/finance/client-deposit-allocations?${query}`,
+        { account: NON_PARTNER_ACCOUNT },
+      );
+      assert.equal(denied.status, 403);
+      assert.deepEqual(denied.body.items, []);
+      assert.equal(denied.body.count_leak_prevented, true);
+    }, { financeRuntime });
+  } finally {
+    financeRepository.close();
+  }
+});
+
+test("client refund review derives the original client and rejects an excessive refund", async () => {
+  const bankTransaction = (id, direction, amount, counterparty) => ({
+    model_type: "BankTransaction",
+    bank_transaction_id: id,
+    tenant_id: TENANT,
+    account_ref: "account-refund-api",
+    transaction_fingerprint: id.padEnd(64, "0").slice(0, 64),
+    date: "2026-07-30",
+    occurred_at: "2026-07-30T09:00:00+09:00",
+    direction,
+    amount,
+    balance_after: amount,
+    currency: "KRW",
+    counterparty,
+    source_category: direction === "outflow" ? "고객 환불" : "입금",
+    classification_scope: "unreviewed",
+    status: "posted",
+  });
+  const original = bankTransaction("bank-refund-api-origin", "inflow", 3_000_000, "새봄테크");
+  const refund = bankTransaction("bank-refund-api-first", "outflow", 1_000_000, "새봄테크 환불");
+  const excessive = bankTransaction("bank-refund-api-excess", "outflow", 2_100_000, "새봄테크 환불");
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      original,
+      refund,
+      excessive,
+      {
+        model_type: "FeeCommitment",
+        fee_commitment_id: "fee-commitment-refund-api",
+        tenant_id: TENANT,
+        client_group_id: "client-saebom-refund-api",
+        opportunity_id: "opportunity-refund-api",
+        matter_id: null,
+        currency: "KRW",
+        agreed_amount: 3_000_000,
+        due_date: "2026-08-15",
+        accepted_at: "2026-07-29T10:00:00+09:00",
+        status: "active",
+        source_fee_arrangement_id: null,
+        state_version: 1,
+        created_by: "user_cmp_g7_finance",
+        updated_by: "user_cmp_g7_finance",
+        reason: "환불 API 검증용 수임료",
+      },
+    ],
+  });
+  const runtime = createFinanceRuntimeContext({
+    repository: financeRepository,
+    clientRecords: [{
+      model_type: "ClientGroup",
+      tenant_id: TENANT,
+      client_group_id: "client-saebom-refund-api",
+      display_name: "새봄테크",
+      status: "active",
+    }],
+  });
+  const context = JSON.parse(permissionContext("allow", ["system_super_admin"]));
+  const automatic = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classifications/auto",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-refund-api",
+      audit_hint_ref: "audit-refund-api",
+      idempotency_key: "classify-refund-api",
+    },
+    query: {},
+    context,
+    requestId: "request-classify-refund-api",
+    runtime,
+  });
+  assert.equal(automatic.status, 200);
+  assert.equal(automatic.body.deposit_allocation.allocated_amount, 3_000_000);
+
+  const linked = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classifications/review",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-refund-api",
+      audit_hint_ref: "audit-refund-api",
+      idempotency_key: "link-refund-api",
+      decisions: [{
+        bank_transaction_id: refund.bank_transaction_id,
+        category: "refund_reversal",
+        refund_of_bank_transaction_id: original.bank_transaction_id,
+        expected_state_version: 1,
+      }],
+    },
+    query: {},
+    context,
+    requestId: "request-link-refund-api",
+    runtime,
+  });
+  assert.equal(linked.status, 200);
+  assert.deepEqual(linked.body.deposit_allocation_reversal, {
+    outcome: "synchronized",
+    updated_count: 1,
+    linked_refund_amount: 1_000_000,
+    refund_reversed_amount: 1_000_000,
+    unapplied_refund_amount: 0,
+    inactive_commitment_released_amount: 0,
+  });
+  const linkedRecord = financeRepository.list({
+    tenant_id: TENANT,
+    model_type: "BankTransactionClassification",
+    bank_transaction_id: refund.bank_transaction_id,
+  })[0];
+  assert.equal(linkedRecord.client_group_id, "client-saebom-refund-api");
+  assert.equal(linkedRecord.refund_of_bank_transaction_id, original.bank_transaction_id);
+  const [allocation] = financeRepository.list({
+    tenant_id: TENANT,
+    model_type: "ClientDepositAllocation",
+  });
+  assert.equal(allocation.allocated_amount - allocation.reversed_amount, 2_000_000);
+  assert.equal(allocation.refund_reversed_amount, 1_000_000);
+
+  const rejected = await handleFinanceApiRequest({
+    pathname: "/api/finance/bank-classifications/review",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      permission_ref: "perm-refund-api",
+      audit_hint_ref: "audit-refund-api",
+      idempotency_key: "reject-refund-api",
+      decisions: [{
+        bank_transaction_id: excessive.bank_transaction_id,
+        category: "refund_reversal",
+        refund_of_bank_transaction_id: original.bank_transaction_id,
+        expected_state_version: 1,
+      }],
+    },
+    query: {},
+    context,
+    requestId: "request-reject-refund-api",
+    runtime,
+  });
+  assert.equal(rejected.status, 409);
+  assert.deepEqual(rejected.body.safe_error_codes, ["FINANCE_REFUND_AMOUNT_EXCEEDED"]);
+  financeRepository.close();
+});
 
 test("G7 Finance API health descriptor exposes runtime write-ready without production claim", async () => {
   await withServer(async (baseUrl) => {
@@ -281,36 +1217,38 @@ test("direct receipt API records and allocates cash without an Invoice under the
 test("AMIC super-admin imports and reads sanitized BankTransaction rows while staff remains fail-closed", async () => {
   const financeRepository = createFinanceRepository();
   await withServer(async (baseUrl) => {
+    const statement = renderSimpleTextPdf([
+      "2026/07/28",
+      "outflow 280,000 29,153,222  bank transfer  Synthetic counterparty",
+      "14:50:03",
+    ]);
+    const file = {
+      filename: "bank-statement.pdf",
+      mime_type: "application/pdf",
+      byte_size: statement.byteLength,
+      content_base64: statement.toString("base64"),
+    };
+    const preview = await json(baseUrl, "/api/finance/bank-imports/preview", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-preview-api",
+        audit_hint_ref: "audit-bank-preview-api",
+        account_ref: "account-bank-api",
+        file,
+      }),
+    });
+    assert.equal(preview.status, 200, JSON.stringify(preview.body));
     const payload = {
+      tenant_id: TENANT,
       permission_ref: "perm-bank-import-api",
       audit_hint_ref: "audit-bank-import-api",
       idempotency_key: "bank-import-api-001",
-      bank_import_batch: {
-        bank_import_batch_id: "bank-import-api-001",
-        tenant_id: TENANT,
-        source_manifest_hash: "a".repeat(64),
-        account_ref: "account-bank-api",
-        transaction_count: 1,
-        overlap_count: 0,
-        source_count: 2,
-        production_import_approved: true,
-      },
-      transactions: [{
-        bank_transaction_id: "bank-transaction-api-001",
-        account_ref: "account-bank-api",
-        transaction_fingerprint: "b".repeat(64),
-        date: "2026-07-28",
-        occurred_at: "2026-07-28T14:50:03+09:00",
-        time_precision: "second",
-        direction: "outflow",
-        amount: 280000,
-        balance_after: 29153222,
-        currency: "KRW",
-        counterparty: "Synthetic counterparty",
-        memo: "Synthetic memo",
-        classification_scope: "unreviewed",
-        source_refs: [{ source_type: "pdf", source_hash: "c".repeat(64), page: 1 }],
-      }],
+      account_ref: "account-bank-api",
+      production_import_approved: true,
+      preview_confirmation_token: preview.body.preview.preview_confirmation_token,
+      file,
     };
     const approvalRequired = await json(baseUrl, "/api/finance/bank-imports", {
       method: "POST",
@@ -318,10 +1256,7 @@ test("AMIC super-admin imports and reads sanitized BankTransaction rows while st
       body: JSON.stringify({
         ...payload,
         idempotency_key: "bank-import-without-production-approval",
-        bank_import_batch: {
-          ...payload.bank_import_batch,
-          production_import_approved: false,
-        },
+        production_import_approved: false,
       }),
     });
     assert.equal(approvalRequired.status, 403);
@@ -340,7 +1275,8 @@ test("AMIC super-admin imports and reads sanitized BankTransaction rows while st
     const rows = await json(baseUrl, `/api/finance/bank-transactions?${BASE_QUERY}`, { account: SUPER_ADMIN_ACCOUNT });
     assert.equal(rows.status, 200);
     assert.equal(rows.body.items.length, 1);
-    assert.equal(rows.body.items[0].counterparty, "Synthetic counterparty");
+    assert.equal(rows.body.items[0].direction, "outflow");
+    assert.equal(rows.body.items[0].amount, 280000);
     assert.equal(rows.body.items[0].source_refs, undefined);
     assert.equal(rows.body.items[0].transaction_fingerprint, undefined);
     assert.equal(rows.body.count_leak_prevented, true);
@@ -363,7 +1299,7 @@ test("AMIC super-admin imports and reads sanitized BankTransaction rows while st
   }, { financeRepository });
 });
 
-test("AMIC super-admin classifies client initials and payroll initials while staff remains fail-closed", async () => {
+test("AMIC super-admin classifies a saved client short name and payroll initials while staff remains fail-closed", async () => {
   const financeRepository = createFinanceRepository({
     seedRecords: [
       {
@@ -449,6 +1385,9 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
           bank_transaction_id: "bank-classification-client-api",
           category: "client_receipt",
           client_group_id: "client-best-api",
+          expected_state_version: 1,
+          remember_match: true,
+          match_field: "counterparty",
         }],
       }),
     });
@@ -457,6 +1396,7 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
     assert.equal(reviewed.body.item.payments[0].bank_transaction_id, "bank-classification-client-api");
     assert.equal(reviewed.body.item.payments[0].allocation_status, "unallocated");
     assert.equal(reviewed.body.item.payments[0].revenue_effect, "none_until_allocated");
+    assert.equal(reviewed.body.item.rule_count, 1);
     const reviewedReplay = await json(baseUrl, "/api/finance/bank-classifications/review", {
       method: "POST",
       account: SUPER_ADMIN_ACCOUNT,
@@ -469,6 +1409,9 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
           bank_transaction_id: "bank-classification-client-api",
           category: "client_receipt",
           client_group_id: "client-best-api",
+          expected_state_version: 1,
+          remember_match: true,
+          match_field: "counterparty",
         }],
       }),
     });
@@ -487,6 +1430,27 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
       .find((employee) => employee.employee_id === "emp_amic_jwsuh")
       .aliases.includes("JWS"));
 
+    const rerun = await json(baseUrl, "/api/finance/bank-classifications/auto", {
+      method: "POST",
+      account: SUPER_ADMIN_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "bank-classification-api-002",
+      }),
+    });
+    assert.equal(rerun.status, 200);
+    assert.equal(rerun.body.item.protected_manual_count, 1);
+    const reviewedRows = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
+      account: SUPER_ADMIN_ACCOUNT,
+    });
+    const reviewedClient = reviewedRows.body.items
+      .find((row) => row.bank_transaction_id === "bank-classification-client-api");
+    assert.equal(reviewedClient.classification_source, "manual_review");
+    assert.equal(reviewedClient.manual_lock, true);
+    assert.equal(reviewedClient.rationale_code, "manual_client_linked");
+
     const denied = await json(baseUrl, `/api/finance/bank-classifications?${BASE_QUERY}`, {
       account: NON_PARTNER_ACCOUNT,
     });
@@ -500,10 +1464,26 @@ test("AMIC super-admin classifies client initials and payroll initials while sta
         idempotency_key: "staff-bank-classification-api",
       }),
     });
+    const deniedReview = await json(baseUrl, "/api/finance/bank-classifications/review", {
+      method: "POST",
+      account: NON_PARTNER_ACCOUNT,
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        permission_ref: "perm-bank-classification-api",
+        audit_hint_ref: "audit-bank-classification-api",
+        idempotency_key: "staff-bank-classification-review-api",
+        decisions: [{
+          bank_transaction_id: "bank-classification-client-api",
+          category: "other_inflow",
+        }],
+      }),
+    });
     assert.equal(denied.status, 403);
     assert.deepEqual(denied.body.items, []);
     assert.equal(deniedMutation.status, 403);
     assert.deepEqual(deniedMutation.body.items, []);
+    assert.equal(deniedReview.status, 403);
+    assert.deepEqual(deniedReview.body.items, []);
   }, { financeRepository, matterRepository, analyticsFinanceRepository: financeRepository });
 });
 

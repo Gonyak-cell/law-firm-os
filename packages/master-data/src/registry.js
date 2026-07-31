@@ -426,7 +426,13 @@ export const MASTER_DATA_ENTITY_KINDS = Object.freeze(["entity", "person", "orga
 
 export const MASTER_DATA_PARTY_TYPES = Object.freeze(["person", "organization"]);
 
-export const MASTER_DATA_PARTY_ALIAS_TYPES = Object.freeze(["legal_name", "localized_name", "former_name", "search_name"]);
+export const MASTER_DATA_PARTY_ALIAS_TYPES = Object.freeze([
+  "legal_name",
+  "localized_name",
+  "former_name",
+  "search_name",
+  "bank_depositor_name",
+]);
 
 export const MASTER_DATA_PARTY_IDENTIFIER_TYPES = Object.freeze(["business_number", "lei", "registration_id"]);
 
@@ -582,6 +588,7 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
       "rp04_entity_id",
       "rp05_client_ref",
       "single_tenant_migration_state",
+      "client_type",
     ]),
     lifecycle_statuses: MASTER_DATA_LIFECYCLE_STATUSES,
     pre_matter_allowed: true,

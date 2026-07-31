@@ -75,7 +75,29 @@ test("CRM handoff blocks a Matter shortcut and persists one Intake request acros
     });
     assert.equal(blocked.status, 400);
 
-    const handoff = await json(baseUrl, "/api/crm/opportunities/opp_cmp_g6_synthetic_001/handoff", {
+    const opportunityId = "opp_crm_intake_restart_handoff";
+    const created = await json(baseUrl, "/api/crm/opportunities", {
+      method: "POST",
+      body: {
+        tenant_id: TENANT,
+        permission_ref: "crm-intake-api-write",
+        audit_hint_ref: "crm-intake-api-audit",
+        actor_id: "user_cmp_g6_owner",
+        idempotency_key: "crm-intake-restart-opportunity",
+        opportunity: {
+          opportunity_id: opportunityId,
+          tenant_id: TENANT,
+          party_id: "party_cmp_g6_client_001",
+          display_name: "Restart handoff opportunity",
+          stage: "qualified",
+          status: "active",
+          owner_user_id: "user_cmp_g6_owner",
+        },
+      },
+    });
+    assert.equal(created.status, 201);
+
+    const handoff = await json(baseUrl, `/api/crm/opportunities/${opportunityId}/handoff`, {
       method: "POST",
       body: {
         tenant_id: TENANT,

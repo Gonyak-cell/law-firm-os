@@ -65,6 +65,38 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
 test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures separately", async () => {
   const packageQaSource = await readWebFile("../../scripts/smoke-matter-desktop-dashboard-package.mjs");
 
+  assert.match(packageQaSource, /const localDateKey = `\$\{today\.getFullYear\(\)\}-\$\{String\(today\.getMonth\(\) \+ 1\)\.padStart\(2, "0"\)\}-\$\{String\(today\.getDate\(\)\)\.padStart\(2, "0"\)}`;/);
+  assert.match(packageQaSource, /const seoulDateParts = Object\.fromEntries\(new Intl\.DateTimeFormat\("en-CA", \{[\s\S]{0,160}timeZone: "Asia\/Seoul"[\s\S]{0,160}\}\)\.formatToParts\(today\)/);
+  assert.match(packageQaSource, /const seoulMonthKey = seoulDateKey\.slice\(0, 7\);/);
+  assert.match(packageQaSource, /const localAgendaStartIso = new Date\(`\$\{localDateKey\}T12:00:00`\)\.toISOString\(\);/);
+  assert.match(packageQaSource, /due_at: `\$\{localDateKey\}T12:00:00`/);
+  assert.match(packageQaSource, /starts_at: localAgendaStartIso/);
+  assert.equal((packageQaSource.match(/month: seoulMonthKey/g) ?? []).length, 3);
+  const boundaryInstant = new Date("2026-07-31T17:00:00.000Z");
+  const boundaryLocalUtcDateKey = boundaryInstant.toISOString().slice(0, 10);
+  const boundaryParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(boundaryInstant).map(({ type, value }) => [type, value]));
+  assert.deepEqual({ localDateKey: boundaryLocalUtcDateKey, seoulDateKey: `${boundaryParts.year}-${boundaryParts.month}-${boundaryParts.day}` }, { localDateKey: "2026-07-31", seoulDateKey: "2026-08-01" });
+
+  assert.match(packageQaSource, /const clientOperationsDashboard = \{/);
+  assert.match(packageQaSource, /pathname === "\/api\/analytics\/clients\/dashboard"/);
+  for (const section of ["kpi-new_inquiries", "kpi-consultations_today", "kpi-engagement_reviews", "kpi-deposit_revenue_month", "kpi-receivables_total", "attention-items", "monthly-deposit-revenue", "inquiry-status", "revenue-ranking", "receivables-ranking"]) {
+    assert.match(packageQaSource, new RegExp(`"${section}"`));
+  }
+  for (const selector of ["client_kpi_values", "client_attention_items", "client_revenue_points", "client_inquiry_statuses", "client_revenue_ranking", "client_receivables_ranking", "client_natural_copy_visible", "legacy_client_section_count"]) {
+    assert.match(packageQaSource, new RegExp(selector));
+  }
+  assert.match(packageQaSource, /data-client-dashboard-state\"\) === \"data\"/);
+  assert.match(packageQaSource, /33,000,000원/);
+  assert.match(packageQaSource, /9,000,000원/);
+  assert.match(packageQaSource, /새봄테크/);
+  assert.match(packageQaSource, /한빛건설/);
+  assert.match(packageQaSource, /Retired five-section Client dashboard must stay absent/);
+
   assert.match(packageQaSource, /data-home-tab-prefix="home-client-dashboard"\]\[data-home-tab-id="prospects"/);
   assert.match(packageQaSource, /\["바른 그룹", "새롬 자문"\]\.every/);
   assert.match(packageQaSource, /data-home-tab-prefix="home-matter-dashboard"\]\[data-home-tab-id="closed"/);
@@ -248,7 +280,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     assert.match(globalUtilitySource, new RegExp(`label: "${label}"`));
   }
   assert.doesNotMatch(globalUtilitySource, /label: "Messages"|label: "Notifications"|label: "Requests"|label: "Reports"|label: "Settings"|label: "E-Sign"/);
-  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "잠재 고객", "매출 내역", "Pipeline", "상담/수임 제안", "접촉 이력", "청구", "리포트"]) {
+  for (const label of ["고객 관리", "대시보드", "고객 목록", "신규 고객", "새 문의", "입금 매출 내역", "수임 현황", "상담·수임 관리", "접촉 이력", "수임료·미수금", "리포트"]) {
     assert.match(shellSource, new RegExp(label));
   }
   const viteServer = await createServer({ configFile: false, root: webRoot, server: { middlewareMode: true, hmr: false }, appType: "custom", logLevel: "error" });
@@ -258,7 +290,7 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     const clientOperations = navigation.clients.items.find((item) => item.label === "운영").children;
     const matterCommunication = navigation.matters.items.find((item) => item.label === "소통").children;
     const matterReports = navigation.matters.items.find((item) => item.label === "리포트").children;
-    assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["청구", "client-billing"], ["리포트", "client-reports"]]);
+    assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["수임료·미수금", "client-billing"], ["리포트", "client-reports"]]);
     assert.deepEqual(matterCommunication.map((item) => [item.label, item.section]), [["회의 기록", "matter-meetings"], ["의뢰인 요청", "matter-client-requests"]]);
     assert.deepEqual(matterReports.map((item) => [item.label, item.section]), [["사건 리포트", "matter-analytics"], ["연동", "matter-integrations"]]);
   } finally {
@@ -273,7 +305,23 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   }
   assert.match(shellSource, /label: "업무 관리"[\s\S]*label: "사건 운영"/);
   assert.doesNotMatch(shellSource, /업무 진행|외부 일정|검토 의견/);
-  assert.doesNotMatch(`${shellSource}\n${globalUtilitySource}\n${homeSource}\n${clientsSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
+  assert.doesNotMatch(shellSource, /label: "Pipeline"|label: "상담\/수임 제안"|label: "잠재 고객"|label: "매출 내역"|label: "청구"/);
+  const approvedClientMiddleDotCopy = [
+    "상담·수임 관리",
+    "수임료·미수금",
+    "법인·단체",
+    "통장·거래명세서",
+    "고객·상담 검색",
+    "문의·고객 맥락",
+    "이름·건수",
+    "고객·요청 범위 검색",
+    " · "
+  ];
+  const normalizedClientSources = approvedClientMiddleDotCopy.reduce(
+    (source, copy) => source.replaceAll(copy, copy.replaceAll("·", "")),
+    `${shellSource}\n${clientsSource}`
+  );
+  assert.doesNotMatch(`${normalizedClientSources}\n${globalUtilitySource}\n${homeSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
   assert.match(shellSource, /getPeopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(shellSource, /children\.length === 1 && children\[0\]\.section === "people-attendance-records"/);
@@ -1222,10 +1270,13 @@ test("command center groups all backend coverage into four product axes", async 
 });
 
 test("Client Matter People Vault surfaces stay API-backed and fail closed", async () => {
+  const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
   const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
+  const clientDashboardModelSource = await readWebFile("src/components/ClientOperationsDashboardModel.js");
+  const clientDashboardChartsSource = await readWebFile("src/components/ClientOperationsDashboardCharts.jsx");
   const mattersSource = await readWebFile("src/components/MattersSurface.jsx");
   const matterVaultSource = await readWebFile("src/components/MatterVaultPanel.jsx");
   const importPanelSource = await readWebFile("src/components/ImportDataMappingPanel.jsx");
@@ -1298,22 +1349,42 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /record-overlay-close/);
   assert.match(clientsSource, /function ClientDashboardPanel/);
   assert.match(clientsSource, /data-client-dashboard="true"/);
-  assert.doesNotMatch(clientsSource, /data-client-dashboard-kpis="true"/);
+  assert.match(clientsSource, /data-client-dashboard-kpis="true"/);
+  assert.match(clientsSource, /data-client-attention="true"/);
+  assert.match(clientsSource, /data-client-dashboard-insights="true"/);
+  assert.match(clientsSource, /data-client-dashboard-rankings="true"/);
+  assert.match(clientsSource, /data-client-ranking=\{kind\}/);
+  assert.match(clientDashboardChartsSource, /data-client-revenue-chart="true"/);
+  assert.match(clientDashboardChartsSource, /data-client-inquiry-status="true"/);
+  assert.match(clientDashboardChartsSource, /<table className="sr-only">/);
   assert.doesNotMatch(clientsSource, /data-client-priority-queue="true"/);
   assert.doesNotMatch(clientsSource, /data-client-dashboard-table="true"/);
-  for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
-    assert.match(clientsSource, new RegExp(title));
+  for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금"]) {
+    assert.match(clientDashboardModelSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmInquiries", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmClientActivities", "ClientDepositOperationsPanel", "fetchAnalyticsClientDirectory", "fetchAnalyticsClientOperationsDetail", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.match(clientsSource, new RegExp(source));
   }
+  assert.match(apiClientSource, /export async function fetchAnalyticsClientDirectory/);
+  assert.match(apiClientSource, /export async function fetchAnalyticsClientOperationsDetail/);
+  assert.match(apiClientSource, /export async function fetchAnalyticsClientOperationsDashboard/);
+  assert.match(apiClientSource, /\/api\/analytics\/clients\?/);
+  assert.match(apiClientSource, /\/api\/analytics\/clients\/\$\{encodeURIComponent\(normalizedClientId\)\}\/operations/);
+  assert.match(apiClientSource, /\/api\/analytics\/clients\/dashboard/);
+  assert.match(appSource, /params\.set\("record_id", routeContext\.recordId\)/);
+  assert.match(appSource, /params\.set\("inquiry_id", routeContext\.inquiryId\)/);
+  assert.match(appSource, /for \(const key of \["month", "tab", "period"\]\)/);
   assert.match(clientsSource, /title="대시보드"[\s\S]*<ClientDashboardPanel/);
   assert.doesNotMatch(clientsSource, /ClientsOverviewPanel|data-client-overview-panel|title="요약"[\s\S]*clients-home/);
   assert.match(shellSource, /label: "대시보드", view: "clients", section: "clients-home"/);
+  assert.match(stylesSource, /\.client-dashboard-insights,[\s\S]*grid-template-columns: repeat\(12, minmax\(0, 1fr\)\)/);
+  assert.match(stylesSource, /\.client-dashboard-revenue\s*\{[\s\S]*grid-column: span 8;/);
+  assert.match(stylesSource, /\.client-dashboard-inquiries\s*\{[\s\S]*grid-column: span 4;/);
+  assert.match(stylesSource, /\.client-dashboard-ranking\s*\{[\s\S]*grid-column: span 6;/);
   assert.match(stylesSource, /\.record-overlay-layer\s*\{[\s\S]*display: flex;[\s\S]*justify-content: flex-end;[\s\S]*padding: 0;/);
   assert.match(stylesSource, /\.record-overlay-panel\s*\{[\s\S]*width: min\(560px, 100vw\);[\s\S]*height: 100%;[\s\S]*animation: record-overlay-panel-in 240ms/);
   assert.match(stylesSource, /@keyframes record-overlay-panel-in\s*\{[\s\S]*transform: translateX\(100%\);[\s\S]*transform: translateX\(0\);/);
-  assert.match(clientsSource, /fetchMasterDataRecords/);
+  assert.doesNotMatch(clientsSource, /fetchMasterDataRecords/);
   assert.match(apiClientSource, /cursor = null/);
   assert.match(apiClientSource, /params\.set\("cursor"/);
   assert.match(apiClientSource, /function desktopReadBridge/);
@@ -1321,12 +1392,13 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /response = await bridge/);
   assert.match(apiClientSource, /SAFE_ACTOR_REF_PATTERN/);
   assert.match(apiClientSource, /safeActorRef\(params\.get\("desktop_actor_ref"\)\)/);
-  assert.match(clientsSource, /fetchMatterClients/);
-  assert.match(apiClientSource, /\/api\/matters\/clients/);
-  assert.match(clientsSource, /item\.synthetic_only !== true/);
-  assert.match(clientsSource, /Property label="법인 형태"/);
+  assert.doesNotMatch(clientsSource, /modelType: "ClientGroup"/);
+  assert.doesNotMatch(clientsSource, /modelType: "MatterClient"/);
+  assert.doesNotMatch(clientsSource, /fetchMatterRecords/);
+  assert.doesNotMatch(clientsSource, /item\.synthetic_only !== true/);
+  assert.match(clientsSource, /Property label="고객 유형"/);
   assert.match(clientsSource, /clientLegalForm/);
-  assert.match(clientsSource, /fetchCrmLeads/);
+  assert.match(clientsSource, /fetchCrmInquiries/);
   assert.match(clientsSource, /fetchCrmOpportunities/);
   assert.match(clientsSource, /fetchIntakeRequests/);
   assert.match(clientsSource, /fetchIntakeAudit/);
@@ -1334,11 +1406,11 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchCrmContacts/);
   assert.match(clientsSource, /fetchCrmAccountContacts/);
   assert.match(clientsSource, /fetchCrmMergeProposals/);
-  assert.match(clientsSource, /fetchCrmActivities/);
+  assert.match(clientsSource, /fetchCrmClientActivities/);
   assert.match(clientsSource, /fetchCrmProposals/);
   assert.match(clientsSource, /fetchCrmClientSettings/);
-  assert.match(clientsSource, /fetchFinanceInvoices/);
-  assert.match(clientsSource, /fetchFinanceArAging/);
+  assert.doesNotMatch(clientsSource, /fetchFinanceInvoices|fetchFinanceArAging/);
+  assert.match(apiClientSource, /fetchClientReceivables/);
   assert.match(clientsSource, /handoffCrmOpportunityToIntake/);
   assert.match(clientsSource, /createIntakeConflictCheck/);
   assert.match(clientsSource, /recordIntakeConflictDecision/);
@@ -1348,8 +1420,9 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /openMatterFromIntakeClearance/);
   assert.match(apiClientSource, /openMatterFromIntakeClearance/);
   assert.match(apiClientSource, /ui_cmp_g6_intake_matter_open/);
-  assert.match(clientsSource, /data-crm-handoff-action="true"/);
-  assert.match(clientsSource, /data-crm-handoff-refresh-result="true"/);
+  assert.match(clientsSource, /data-client-opportunity-surface="true"/);
+  assert.match(clientsSource, /data-client-opportunity-row="true"/);
+  assert.match(clientsSource, /data-client-opportunity-handoff="true"/);
   assert.match(clientsSource, /upsertResultItem/);
   assert.match(clientsSource, /data-crm-accounts-read="true"/);
   assert.match(clientsSource, /data-crm-contacts-read="true"/);
@@ -1407,12 +1480,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-sf-b-w02-contact-record-action="true"/);
   assert.match(clientsSource, /data-sf-b-w02-contact-record-action-result="true"/);
   assert.match(clientsSource, /createCrmAccount/);
-  assert.match(clientsSource, /createCrmActivity/);
+  assert.match(clientsSource, /createCrmContactActivityMemo/);
   assert.match(clientsSource, /createCrmContact/);
   assert.match(clientsSource, /createCrmProposal/);
   assert.match(clientsSource, /createCrmMergeProposal/);
   assert.match(clientsSource, /executeCrmMergeProposal/);
-  assert.match(clientsSource, /patchCrmActivity/);
+  assert.match(clientsSource, /updateCrmConsultation/);
   assert.match(clientsSource, /patchCrmAccount/);
   assert.match(clientsSource, /patchCrmClientSetting/);
   assert.match(clientsSource, /patchCrmContact/);
@@ -1424,8 +1497,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /clientGuardedState/);
   assert.match(clientsSource, /function guardedResultForContext/);
   assert.match(clientsSource, /setClientsResult\(guardedResult\)/);
-  assert.match(clientsSource, /setLeadsResult\(guardedResult\)/);
-  assert.match(clientsSource, /!clientGuardedState && selectedClientId/);
+  assert.match(clientsSource, /setInquiriesResult\(guardedResult\)/);
+  assert.match(clientsSource, /!clientGuardedState[\s\S]{0,100}selectedClientId[\s\S]{0,120}route\.activeTab === "overview"/);
   assert.match(clientsSource, /ImportDataMappingPanel/);
   assert.match(clientsSource, /client-import/);
   assert.match(clientsSource, /data-client-dashboard="true"/);
@@ -1438,20 +1511,23 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-intake-engagement-approval-flow="true"/);
   assert.match(clientsSource, /data-intake-matter-opening-flow="true"/);
   assert.match(clientsSource, /Matter 개설/);
-  assert.match(clientsSource, /data-client-billing-connected="true"/);
+  assert.match(clientsSource, /ClientReceivablesContainer/);
   assert.match(clientsSource, /data-client-settings-connected="true"/);
   assert.match(clientsSource, /data-client-contract-esign-provider-blocked="true"/);
-  assert.match(clientsSource, /data-client-billing-provider-blocked="true"/);
+  assert.match(clientsSource, /initialClientId=\{normalizedRequestedClientId\}/);
   assert.doesNotMatch(clientsSource, /data-client-planned-section|메뉴를 준비 중입니다/);
   assert.doesNotMatch(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
-  assert.match(clientsSource, /renderLiveState\(result, "Client"\)/);
-  assert.match(clientsSource, /fetchMatterRecords/);
-  assert.match(clientsSource, /modelType: "MatterClient"/);
-  assert.match(clientsSource, /function mergeClientMatterResults/);
-  assert.match(clientsSource, /fallbackClientSourceUsed/);
-  assert.match(clientsSource, /matter_code_links/);
-  assert.match(clientsSource, /linkedMatterSummary/);
-  assert.match(clientsSource, /baseResult\?\.uiState === "empty" \? "passed"/);
+  assert.match(clientsSource, /renderLiveState\(result, "고객"\)/);
+  assert.match(clientsSource, /fetchAnalyticsClientDirectory/);
+  assert.match(clientsSource, /fetchAnalyticsClientOperationsDetail/);
+  assert.doesNotMatch(clientsSource, /fetchMatterRecords/);
+  assert.doesNotMatch(clientsSource, /modelType: "ClientGroup"/);
+  assert.doesNotMatch(clientsSource, /function mergeClientMatterResults/);
+  assert.doesNotMatch(clientsSource, /matter_code_links|linkedMatterSummary/);
+  assert.match(clientsSource, /buildClientDirectoryModel/);
+  assert.match(clientsSource, /data-client-related-finance-guard/);
+  assert.match(clientsSource, /정확하지 않은 금액은 보여 주지 않습니다/);
+  assert.match(clientsSource, /relatedFinanceKind === "deposit_revenue"/);
   assert.match(clientsSource, /담당자에게 접근을 요청하세요/);
   assert.match(clientsSource, /담당자 확인 후 \{noun\} 정보를 볼 수 있습니다/);
   assert.doesNotMatch(clientsSource, /의뢰인/);
@@ -1905,10 +1981,10 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleSource, /data-hrx-api-backed="true"/);
   assert.doesNotMatch(peopleSource, /data-people-dashboard="true"/);
   assert.doesNotMatch(peopleSource, /currentSection === "people-dashboard"/);
-  for (const title of ["신규 고객", "잠재 고객\/접촉", "매출 순위", "고객 미팅", "미수금"]) {
+  for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금", "오늘 확인할 일"]) {
     assert.doesNotMatch(peopleSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmClientActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.doesNotMatch(peopleSource, new RegExp(source));
   }
   assert.match(peopleSource, /peopleDefaultSection\(resolvedFeatureFlags\)/);

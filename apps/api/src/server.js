@@ -8,7 +8,7 @@ import http from "node:http";
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
@@ -19,12 +19,16 @@ import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../p
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
+import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
+import {
+  createClientFixedReportSnapshotTokenAuthority,
+} from "../../../packages/reports/src/index.js";
 import { createAiGovernanceRepository } from "../../../packages/ai-governance/src/runtime-repository.js";
 import { createClientPortalRepository } from "../../../packages/client-portal/src/runtime-repository.js";
 import { createUiReadinessRepository } from "../../../packages/platform/src/ui-readiness-repository.js";
@@ -34,6 +38,8 @@ import {
   MASTER_DATA_RUNTIME_SEED,
   MASTER_DATA_BOUNDED_CONTEXT,
   createMasterDataRuntimeContext,
+  handleClientGroupRegistrationCreate,
+  handleClientGroupRegistrationReview,
   handleClientGroupResolution,
   handleRecordsSearch,
   handleRelationshipLookup,
@@ -91,6 +97,7 @@ import {
   createFinanceRuntimeContext,
   handleFinanceApiRequest,
 } from "./finance-runtime-context.js";
+import { createBankImportPreviewTokenAuthority } from "./bank-import-preview-token.js";
 import {
   ANALYTICS_BOUNDED_CONTEXT,
   ANALYTICS_RUNTIME_SEED,
@@ -185,6 +192,13 @@ import {
   createHrxRelationalProjectionReader,
 } from "../../../packages/hrx/src/relational-projection-reader.js";
 import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-authority.js";
+import {
+  createFileSessionObjectAclResolver,
+  createPostgresSessionObjectAclResolver,
+} from "./session-object-acl-authority.js";
+import {
+  resolveClientOperationsV2Enabled,
+} from "./client-operations-config.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
@@ -220,6 +234,7 @@ function startupStorePathOptions(options = {}) {
     securityAuditStorePath: options.securityAuditStorePath,
     authCredentialStorePath: options.authCredentialStorePath,
     authPasswordResetStorePath: options.authPasswordResetStorePath,
+    objectAclStorePath: options.objectAclStorePath,
   };
 }
 
@@ -292,6 +307,13 @@ function createEphemeralDmsStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-dms-runtime-")), "dms-store.json");
 }
 
+function createEphemeralEmailDmsStorePath() {
+  return join(
+    mkdtempSync(join(tmpdir(), "lawos-email-dms-runtime-")),
+    "email-dms-store.json",
+  );
+}
+
 function createEphemeralCrmStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-crm-runtime-")), "crm-store.json");
 }
@@ -326,6 +348,13 @@ function createEphemeralUiReadinessStorePath() {
 
 function createEphemeralEnterpriseReadinessStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-enterprise-readiness-runtime-")), "enterprise-readiness-store.json");
+}
+
+function createEphemeralObjectAclStorePath() {
+  return join(
+    mkdtempSync(join(tmpdir(), "lawos-object-acl-runtime-")),
+    "object-acl-store.json",
+  );
 }
 
 export function createDefaultHrxRuntime({
@@ -462,10 +491,28 @@ export function createDefaultDmsRuntime({
   return createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
 }
 
+export function createDefaultEmailDmsRuntime({
+  repository,
+  storePath = process.env.LAWOS_EMAIL_DMS_STORE_PATH,
+  dmsRuntime = null,
+} = {}) {
+  const emailDmsRepository = repository ?? createEmailDmsRepository({
+    filePath: storePath || createEphemeralEmailDmsStorePath(),
+  });
+  return Object.freeze({
+    authority: "email-dms",
+    repository: emailDmsRepository,
+    storage: dmsRuntime?.storage ?? null,
+    upload_runtime: dmsRuntime?.upload_runtime ?? null,
+    production_ready_claim: false,
+  });
+}
+
 export function createDefaultCrmIntakeRuntime({
   crmRepository,
   intakeRepository,
   crmMasterDataRepository,
+  emailDmsRepository,
   matterRepository,
   dmsRuntime,
   crmStorePath = process.env.LAWOS_CRM_STORE_PATH,
@@ -494,6 +541,7 @@ export function createDefaultCrmIntakeRuntime({
     crmRepository: crmRepo,
     intakeRepository: intakeRepo,
     masterDataRepository: masterDataRepo,
+    emailDmsRepository,
     matterRepository,
     dmsRuntime,
   });
@@ -502,9 +550,11 @@ export function createDefaultCrmIntakeRuntime({
 export function createDefaultFinanceRuntime({
   repository,
   masterDataRepository = null,
+  crmRepository = null,
   matterRepository = null,
   clientRecords = null,
   employees = undefined,
+  bankImportPreviewTokens,
   storePath = process.env.LAWOS_FINANCE_STORE_PATH,
 } = {}) {
   const financeRepository =
@@ -516,9 +566,11 @@ export function createDefaultFinanceRuntime({
   return createFinanceRuntimeContext({
     repository: financeRepository,
     masterDataRepository,
+    crmRepository,
     matterRepository,
     clientRecords,
     employees,
+    bankImportPreviewTokens,
   });
 }
 
@@ -527,6 +579,7 @@ export function createDefaultAnalyticsRuntime({
   storePath = process.env.LAWOS_ANALYTICS_STORE_PATH,
   financeRepository = null,
   masterDataRepository = null,
+  crmRepository = null,
   matterRepository = null,
 } = {}) {
   const analyticsRepository =
@@ -535,7 +588,13 @@ export function createDefaultAnalyticsRuntime({
       filePath: storePath || createEphemeralAnalyticsStorePath(),
       seedRecords: ANALYTICS_RUNTIME_SEED,
     });
-  return createAnalyticsRuntimeContext({ repository: analyticsRepository, financeRepository, masterDataRepository, matterRepository });
+  return createAnalyticsRuntimeContext({
+    repository: analyticsRepository,
+    financeRepository,
+    masterDataRepository,
+    crmRepository,
+    matterRepository,
+  });
 }
 
 export function createDefaultAiRuntime({
@@ -1251,7 +1310,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1263,7 +1322,16 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
-  const clientGroupMatch = pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
+  const isClientGroupRegistrationReviewPath =
+    pathname === "/master-data/client-groups/review";
+  const isClientGroupRegistrationCreatePath =
+    pathname === "/master-data/client-groups";
+  const isClientGroupRegistrationPath =
+    isClientGroupRegistrationReviewPath
+    || isClientGroupRegistrationCreatePath;
+  const clientGroupMatch = isClientGroupRegistrationReviewPath
+    ? null
+    : pathname.match(/^\/master-data\/client-groups\/([^/]+)$/);
   const isAuthPath = pathname.startsWith("/api/auth");
   const isHrxPath = pathname.startsWith("/api/hrx");
   const isProfilePath = pathname.startsWith("/api/profile");
@@ -1289,6 +1357,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     isAuthPath ||
     pathname === "/master-data/records" ||
     pathname === "/master-data/relationships" ||
+    isClientGroupRegistrationPath ||
     clientGroupMatch !== null ||
     isHrxPath ||
     isProfilePath ||
@@ -1313,7 +1382,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     sendJson(req, res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (isClientGroupRegistrationPath && req.method !== "POST") {
+    sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
+    return;
+  }
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && !isClientGroupRegistrationPath && req.method !== "GET") {
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -1596,7 +1669,16 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       body,
       context,
       requestId,
-      runtime: crmIntakeRuntime,
+      runtime: {
+        ...crmIntakeRuntime,
+        emailDmsRuntime,
+        m365GraphConfig,
+        engagementMasterDataRepository:
+          financeRuntime?.masterDataRepository
+          ?? masterDataRuntime?.repository
+          ?? crmIntakeRuntime?.masterDataRepository,
+        financeRuntime,
+      },
     });
     sendJson(req, res, result.status, result.body);
     return;
@@ -1705,7 +1787,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       return;
     }
     const context = requestPermissionContext();
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleFinanceApiRequest({
       pathname,
       method: req.method,
@@ -1761,9 +1843,15 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       body,
       context,
       requestId,
-      runtime: { matterRuntime, dmsRuntime },
+      runtime: {
+        matterRuntime,
+        dmsRuntime,
+        emailDmsRuntime,
+        crmIntakeRuntime,
+        m365GraphConfig,
+      },
     });
-    sendJson(req, res, result.status, result.body);
+    sendJson(req, res, result.status, result.body, result.headers);
     return;
   }
 
@@ -1798,6 +1886,22 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     result = handleRecordsSearch({ query, context, requestId, runtime: masterDataRuntime });
   } else if (pathname === "/master-data/relationships") {
     result = handleRelationshipLookup({ query, context, requestId, runtime: masterDataRuntime });
+  } else if (isClientGroupRegistrationReviewPath) {
+    const body = await readRequestBody(req);
+    result = handleClientGroupRegistrationReview({
+      body,
+      context,
+      requestId,
+      runtime: masterDataRuntime,
+    });
+  } else if (isClientGroupRegistrationCreatePath) {
+    const body = await readRequestBody(req);
+    result = handleClientGroupRegistrationCreate({
+      body,
+      context,
+      requestId,
+      runtime: masterDataRuntime,
+    });
   } else {
     result = handleClientGroupResolution({
       clientGroupId: decodeURIComponent(clientGroupMatch[1]),
@@ -1816,13 +1920,24 @@ export function createApiServer({
   masterDataRuntime = createDefaultMasterDataRuntime(),
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
-  crmIntakeRuntime = createDefaultCrmIntakeRuntime({ dmsRuntime }),
+  emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
+  crmIntakeRuntime = createDefaultCrmIntakeRuntime({
+    dmsRuntime,
+    emailDmsRepository: emailDmsRuntime?.repository,
+    crmMasterDataRepository: masterDataRuntime?.repository,
+  }),
   financeRuntime = createDefaultFinanceRuntime({
     masterDataRepository: masterDataRuntime?.repository,
+    crmRepository: crmIntakeRuntime?.crmRepository,
     matterRepository: matterRuntime?.repository,
   }),
   financeRuntimeUnavailable = null,
-  analyticsRuntime = createDefaultAnalyticsRuntime({ financeRepository: financeRuntime?.repository }),
+  analyticsRuntime = createDefaultAnalyticsRuntime({
+    financeRepository: financeRuntime?.repository,
+    masterDataRepository: masterDataRuntime?.repository,
+    crmRepository: crmIntakeRuntime?.crmRepository,
+    matterRepository: matterRuntime?.repository,
+  }),
   aiRuntime = createDefaultAiRuntime(),
   portalRuntime = createDefaultPortalRuntime(),
   uiReadinessRuntime = createDefaultUiReadinessRuntime(),
@@ -1831,10 +1946,12 @@ export function createApiServer({
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
+  m365GraphConfig = null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
   sessionAuth,
+  sessionObjectAclResolver = null,
   requestRuntimeAuthority = null,
   payrollStatementProviderVerifier = null,
   payrollStatementProviderAudit = null,
@@ -1845,6 +1962,7 @@ export function createApiServer({
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     stepUpAuthority: resolvedStepUpAuthority,
     profile: runtimeProfile,
+    objectAclResolver: sessionObjectAclResolver,
   });
   const resolvedPayrollStatementProviderAudit = payrollStatementProviderAudit
     ?? (typeof resolvedSessionAuth.appendProviderCallbackAudit === "function"
@@ -1853,7 +1971,21 @@ export function createApiServer({
   return http.createServer(async (req, res) => {
     try {
       const dispatchWithRuntimes = async (targetResponse, requestRuntimes = {}) => {
-        const resolvedCrmIntakeRuntime = requestRuntimes.crmIntakeRuntime ?? crmIntakeRuntime;
+        const resolvedEmailDmsRuntime =
+          requestRuntimes.emailDmsRuntime ?? emailDmsRuntime;
+        const baseCrmIntakeRuntime =
+          requestRuntimes.crmIntakeRuntime ?? crmIntakeRuntime;
+        const resolvedCrmIntakeRuntime =
+          baseCrmIntakeRuntime?.emailDmsRepository
+            === resolvedEmailDmsRuntime?.repository
+            ? baseCrmIntakeRuntime
+            : Object.freeze({
+                ...baseCrmIntakeRuntime,
+                emailDmsRepository:
+                  resolvedEmailDmsRuntime?.repository
+                  ?? baseCrmIntakeRuntime?.emailDmsRepository
+                  ?? null,
+              });
         const baseMatterRuntime = requestRuntimes.matterRuntime ?? matterRuntime;
         const matterRuntimeWithClearanceLedger =
           baseMatterRuntime?.clearanceRepository || !resolvedCrmIntakeRuntime?.intakeRepository
@@ -1865,6 +1997,7 @@ export function createApiServer({
           masterDataRuntime: requestRuntimes.masterDataRuntime ?? masterDataRuntime,
           matterRuntime: matterRuntimeWithClearanceLedger,
           dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
+          emailDmsRuntime: resolvedEmailDmsRuntime,
           crmIntakeRuntime: resolvedCrmIntakeRuntime,
           financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
           financeRuntimeUnavailable,
@@ -1874,6 +2007,7 @@ export function createApiServer({
           uiReadinessRuntime: requestRuntimes.uiReadinessRuntime ?? uiReadinessRuntime,
           homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
           enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
+          m365GraphConfig,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
           payrollStatementProviderVerifier,
@@ -1990,7 +2124,6 @@ export async function startApiServer({
   persistenceAuthority,
   persistenceAuthorityEnv = process.env,
   persistenceConnectPostgres,
-  persistenceVerifyPostgresMigrations,
   persistenceSecretsClient,
   persistenceResolvePostgresSecret,
   sessionSecret,
@@ -2008,6 +2141,8 @@ export async function startApiServer({
   dmsRuntime,
   dmsRepository,
   dmsStorage,
+  emailDmsRuntime,
+  emailDmsRepository,
   dmsVerifyPermanentDeleteApproval,
   payrollArtifactSecret,
   payrollProviders,
@@ -2050,6 +2185,7 @@ export async function startApiServer({
   analyticsRepository,
   analyticsStorePath,
   analyticsFinanceRepository,
+  clientOperationsV2Enabled,
   aiRuntime,
   aiRepository,
   aiStorePath,
@@ -2062,12 +2198,15 @@ export async function startApiServer({
   homeDashboardRuntime,
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
+  m365GraphConfig,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
   authCredentialStorePath,
   authPasswordResetStorePath,
+  objectAclStorePath,
   passwordResetEmailDelivery,
   sessionAuth,
+  sessionObjectAclResolver,
   staffAuthAuthority,
   staffOidcProvider,
   entraSecretsClient,
@@ -2092,11 +2231,15 @@ export async function startApiServer({
   const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
     staffAuthAuthority ?? resolvedPersistenceAuthorityEnv.LAWOS_STAFF_AUTHORITY,
   );
+  const resolvedClientOperationsV2Enabled =
+    resolveClientOperationsV2Enabled({
+      value: clientOperationsV2Enabled,
+      env: resolvedPersistenceAuthorityEnv,
+    });
   const persistenceAuthorityState = await preparePersistenceAuthority({
     value: persistenceAuthority,
     env: resolvedPersistenceAuthorityEnv,
     connectPostgres: persistenceConnectPostgres,
-    verifyPostgresMigrations: persistenceVerifyPostgresMigrations,
     secretsClient: persistenceSecretsClient,
     resolvePostgresSecret: persistenceResolvePostgresSecret,
   });
@@ -2104,6 +2247,13 @@ export async function startApiServer({
     profile: resolvedRuntimeProfile,
     explicitSecret: sessionSecret,
   });
+  const resolvedBankImportPreviewTokens = createBankImportPreviewTokenAuthority({
+    secret: resolvedSessionSecret,
+  });
+  const resolvedClientFixedReportTokens =
+    createClientFixedReportSnapshotTokenAuthority({
+      secret: resolvedSessionSecret,
+    });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
@@ -2143,6 +2293,15 @@ export async function startApiServer({
         throw runtimePreflightError("postgres-v2 authority connector must expose transaction-capable pool");
       }
       const identityRepository = createPostgresIdentityLedger({ pool: postgresPool });
+      const domainLedger = createPostgresDomainLedger({
+        pool: postgresPool,
+      });
+      const resolvedSessionObjectAclResolver =
+        sessionObjectAclResolver === undefined
+          ? createPostgresSessionObjectAclResolver({
+              ledger: domainLedger,
+            })
+          : sessionObjectAclResolver;
       const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
         profile: resolvedRuntimeProfile,
         secret: resolvedSessionSecret,
@@ -2151,6 +2310,7 @@ export async function startApiServer({
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,
         identityRepository,
+        objectAclResolver: resolvedSessionObjectAclResolver,
       });
       const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
       const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
@@ -2176,7 +2336,7 @@ export async function startApiServer({
                 hrxRelationalProjectionValidationResultSha256,
             });
       const requestRuntimeAuthority = createPostgresApiRuntimeAuthority({
-        ledger: createPostgresDomainLedger({ pool: postgresPool }),
+        ledger: domainLedger,
         dmsStorage: resolvedDmsStorage,
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
@@ -2200,6 +2360,12 @@ export async function startApiServer({
         outlookOauthPort,
         offboardingAccessSource,
         hrxRelationalProjectionReader,
+        bankImportPreviewTokens: resolvedBankImportPreviewTokens,
+        clientFixedReportTokenAuthority:
+          resolvedClientFixedReportTokens,
+        clientOperationsV2Enabled:
+          resolvedClientOperationsV2Enabled,
+        clientOperationsSchemaPool: postgresPool,
         identityRepository,
       });
       const server = createApiServer({
@@ -2207,6 +2373,7 @@ export async function startApiServer({
         masterDataRuntime: null,
         matterRuntime: null,
         dmsRuntime: null,
+        emailDmsRuntime: null,
         crmIntakeRuntime: null,
         financeRuntime: null,
         analyticsRuntime: null,
@@ -2215,6 +2382,7 @@ export async function startApiServer({
         uiReadinessRuntime: null,
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
+        m365GraphConfig,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
         requestRuntimeAuthority,
@@ -2269,6 +2437,7 @@ export async function startApiServer({
       securityAuditStorePath,
       authCredentialStorePath,
       authPasswordResetStorePath,
+      objectAclStorePath,
     }),
   });
   const resolvedStorePaths = storePreflight.storePaths;
@@ -2327,6 +2496,18 @@ export async function startApiServer({
       storePath: dmsStorePath ?? resolvedStorePaths.dmsStorePath,
       storageRootPath: dmsObjectStorePath ?? resolvedStorePaths.dmsObjectStorePath,
     });
+  const resolvedDmsMetadataStorePath =
+    dmsStorePath ?? resolvedStorePaths.dmsStorePath;
+  const resolvedEmailDmsStorePath = resolvedDmsMetadataStorePath
+    ? join(dirname(resolvedDmsMetadataStorePath), "email-dms-store.json")
+    : undefined;
+  const emailDmsRuntimeContext =
+    emailDmsRuntime
+    ?? createDefaultEmailDmsRuntime({
+      repository: emailDmsRepository,
+      storePath: resolvedEmailDmsStorePath,
+      dmsRuntime: dmsRuntimeContext,
+    });
   const resolvedMatterRepository =
     matterRuntime?.repository ??
     matterRepository ??
@@ -2339,12 +2520,15 @@ export async function startApiServer({
     createDefaultCrmIntakeRuntime({
       crmRepository,
       intakeRepository,
-      crmMasterDataRepository,
+      crmMasterDataRepository:
+        crmMasterDataRepository
+        ?? masterRuntime?.repository,
       crmStorePath: crmStorePath ?? resolvedStorePaths.crmStorePath,
       intakeStorePath: intakeStorePath ?? resolvedStorePaths.intakeStorePath,
       crmMasterDataStorePath: crmMasterDataStorePath ?? resolvedStorePaths.crmMasterDataStorePath,
       matterRepository: resolvedMatterRepository,
       dmsRuntime: dmsRuntimeContext,
+      emailDmsRepository: emailDmsRuntimeContext.repository,
     });
   const matterRuntimeContext =
     matterRuntime ??
@@ -2355,13 +2539,20 @@ export async function startApiServer({
       clearanceRepository: crmIntakeRuntime.intakeRepository,
     });
   let financeRuntimeUnavailable = null;
-  let financeRuntimeContext = financeRuntime;
+  let financeRuntimeContext = financeRuntime
+    ? Object.freeze({
+        ...financeRuntime,
+        bankImportPreviewTokens: resolvedBankImportPreviewTokens,
+      })
+    : null;
   if (!financeRuntimeContext) {
     try {
       financeRuntimeContext = createDefaultFinanceRuntime({
         repository: financeRepository,
         masterDataRepository: masterRuntime?.repository ?? null,
+        crmRepository: crmIntakeRuntime?.crmRepository ?? null,
         matterRepository: resolvedMatterRepository,
+        bankImportPreviewTokens: resolvedBankImportPreviewTokens,
         storePath: financeStorePath ?? resolvedStorePaths.financeStorePath,
       });
     } catch (error) {
@@ -2374,15 +2565,23 @@ export async function startApiServer({
       financeRuntimeContext = null;
     }
   }
-  const analyticsRuntimeContext =
+  const baseAnalyticsRuntimeContext =
     analyticsRuntime ??
     createDefaultAnalyticsRuntime({
       repository: analyticsRepository,
       storePath: analyticsStorePath ?? resolvedStorePaths.analyticsStorePath,
       financeRepository: analyticsFinanceRepository ?? financeRuntimeContext?.repository ?? null,
       masterDataRepository: masterRuntime?.repository ?? null,
+      crmRepository: crmIntakeRuntime?.crmRepository ?? null,
       matterRepository: matterRuntimeContext?.repository ?? null,
     });
+  const analyticsRuntimeContext = Object.freeze({
+    ...baseAnalyticsRuntimeContext,
+    clientFixedReportTokenAuthority:
+      baseAnalyticsRuntimeContext
+        ?.clientFixedReportTokenAuthority
+      ?? resolvedClientFixedReportTokens,
+  });
   const aiRuntimeContext =
     aiRuntime ??
     createDefaultAiRuntime({ repository: aiRepository, storePath: aiStorePath ?? resolvedStorePaths.aiStorePath });
@@ -2413,6 +2612,15 @@ export async function startApiServer({
       repository: enterpriseReadinessRepository,
       storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
     });
+  const resolvedSessionObjectAclResolver =
+    sessionObjectAclResolver === undefined
+      ? createFileSessionObjectAclResolver({
+          storePath:
+            objectAclStorePath
+            ?? resolvedStorePaths.objectAclStorePath
+            ?? createEphemeralObjectAclStorePath(),
+        })
+      : sessionObjectAclResolver;
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,
@@ -2421,12 +2629,14 @@ export async function startApiServer({
     passwordResetTokenStorePath: authPasswordResetStorePath ?? resolvedStorePaths.authPasswordResetStorePath,
     passwordResetEmailDelivery,
     stepUpAuthority: resolvedStepUpAuthority,
+    objectAclResolver: resolvedSessionObjectAclResolver,
   });
   const server = createApiServer({
     hrxRuntime: runtime,
     masterDataRuntime: masterRuntime,
     matterRuntime: matterRuntimeContext,
     dmsRuntime: dmsRuntimeContext,
+    emailDmsRuntime: emailDmsRuntimeContext,
     crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
     financeRuntimeUnavailable,
@@ -2436,6 +2646,7 @@ export async function startApiServer({
     uiReadinessRuntime: uiReadinessRuntimeContext,
     homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
+    m365GraphConfig,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     runtimeProfile: resolvedRuntimeProfile,

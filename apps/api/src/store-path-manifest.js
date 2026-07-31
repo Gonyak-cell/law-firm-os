@@ -116,6 +116,13 @@ export const STORE_PATH_MANIFEST = Object.freeze([
     bounded_context: "api-auth-password-reset",
     required: true,
   }),
+  Object.freeze({
+    key: "objectAclStorePath",
+    env: "LAWOS_OBJECT_ACL_STORE_PATH",
+    fileName: "auth/object-acl-store.json",
+    bounded_context: "api-auth-object-acl",
+    required: true,
+  }),
 ]);
 
 export const DERIVED_STORE_PATH_MANIFEST = Object.freeze([

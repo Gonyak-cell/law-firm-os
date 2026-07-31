@@ -52,6 +52,18 @@ test("CRM and Intake inventories fix shared references, clearance append-only re
     assert.equal(INTAKE_DOMAIN_DESCRIPTOR.append_only({ model_type: "ConflictDecision" }), true);
     assert.equal(INTAKE_DOMAIN_DESCRIPTOR.append_only({ model_type: "ClearanceToken" }), true);
     assert.equal(intakeResult.inventory.pii_field_names.includes("party_snapshot"), true);
+    assert.deepEqual(
+      ["subject", "outcome", "next_action"].map(
+        (field) => crmResult.inventory.pii_field_names.includes(field),
+      ),
+      [true, true, true],
+    );
+    assert.deepEqual(
+      ["outlook_event_id", "outlook_event_web_link"].map(
+        (field) => crmResult.inventory.pii_field_names.includes(field),
+      ),
+      [true, true],
+    );
   } finally {
     crm.close();
     intake.close();

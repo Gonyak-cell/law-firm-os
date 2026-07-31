@@ -47,7 +47,7 @@ function mode(filePath) {
   return statSync(filePath).mode & 0o777;
 }
 
-test("snapshot covers all 16 stores and DMS objects, then restores only into an isolated directory", async (t) => {
+test("snapshot covers all 17 stores and DMS objects, then restores only into an isolated directory", async (t) => {
   const root = fixtureRoot(t);
   const storeDir = join(root, "stores");
   const backupRoot = join(root, "backups");
@@ -59,11 +59,11 @@ test("snapshot covers all 16 stores and DMS objects, then restores only into an 
     backupRoot,
     now: "2026-07-16T10:40:00.000Z",
   });
-  assert.equal(backup.store_inventory.length, 16);
-  assert.equal(backup.store_inventory_present_count, 16);
+  assert.equal(backup.store_inventory.length, 17);
+  assert.equal(backup.store_inventory_present_count, 17);
   assert.equal(backup.store_inventory.every((entry) => entry.present && entry.sha256?.length === 64), true);
   assert.equal(backup.dms_object_inventory.file_count, 2);
-  assert.equal(backup.backup_file_count, 18);
+  assert.equal(backup.backup_file_count, 19);
   assert.equal(backup.snapshot_sha256.length, 64);
   const persistedManifest = readFileSync(backup.manifest_path, "utf8");
   assert.equal(persistedManifest.includes(root), false);
@@ -77,7 +77,7 @@ test("snapshot covers all 16 stores and DMS objects, then restores only into an 
     currentStoreDir: storeDir,
   });
   assert.equal(restore.outcome, "passed");
-  assert.equal(restore.restored_file_count, 18);
+  assert.equal(restore.restored_file_count, 19);
   assert.equal(restore.parse_error_count, 0);
   assert.equal(restore.record_count_mismatch_count, 0);
   assert.equal(restore.current_authority_overwritten, false);
@@ -128,7 +128,7 @@ test("restore accepts an earlier v0.1 manifest without additive inventory fields
     currentStoreDir: storeDir,
   });
   assert.equal(restore.outcome, "passed");
-  assert.equal(restore.restored_file_count, 18);
+  assert.equal(restore.restored_file_count, 19);
 });
 
 test("backup, queue processor and restore commands default to local no-AWS dry runs", async (t) => {

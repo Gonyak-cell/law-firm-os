@@ -20,7 +20,16 @@ assert.equal(existsSync(executablePath), true, `packaged executable is required:
 mkdirSync(artifactDir, { recursive: true });
 
 const today = new Date();
-const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+const localDateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+const seoulDateParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).formatToParts(today).map(({ type, value }) => [type, value]));
+const seoulDateKey = `${seoulDateParts.year}-${seoulDateParts.month}-${seoulDateParts.day}`;
+const seoulMonthKey = seoulDateKey.slice(0, 7);
+const localAgendaStartIso = new Date(`${localDateKey}T12:00:00`).toISOString();
 const nowIso = today.toISOString();
 const session = {
   state: "signed_in",
@@ -39,6 +48,197 @@ const matters = [
   { matter_id: "matter_dashboard_opening", matter_code: "QA-2026-002", title: "신규 수임 검토", client_name: "나래 파트너스", status: "opening", owner_user_id: session.user_id, created_at: nowIso, opened_at: nowIso },
   { matter_id: "matter_dashboard_closed", matter_code: "QA-2026-003", title: "종결 자문", client_name: "다온 유한회사", status: "closed", owner_user_id: "user_other", updated_at: nowIso, closed_at: nowIso }
 ];
+
+const [seoulYear, seoulMonth] = seoulMonthKey.split("-").map(Number);
+const clientRevenueMonths = Array.from({ length: 12 }, (_, index) => {
+  const date = new Date(Date.UTC(seoulYear, seoulMonth - 12 + index, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+});
+const clientRevenuePoints = clientRevenueMonths.map((month, index) => ({
+  month,
+  net_deposit_revenue: index === 10 ? 3_000_000 : index === 11 ? 33_000_000 : 0,
+  destination: { section: "deposit_revenue", filter: "month", month }
+}));
+const clientOperationsDashboard = {
+  request_id: "dashboard-package-qa-client-operations",
+  generated_at: nowIso,
+  as_of: nowIso,
+  timezone: "Asia/Seoul",
+  outcome: "complete",
+  ui_state: null,
+  sections: {
+    kpis: {
+      status: "available",
+      data: {
+        values: {
+          new_inquiries: 1,
+          consultations_today: 1,
+          engagement_reviews: 1,
+          deposit_revenue_month: 33_000_000,
+          receivables_total: 9_000_000
+        },
+        metric_statuses: {
+          new_inquiries: "available",
+          consultations_today: "available",
+          engagement_reviews: "available",
+          deposit_revenue_month: "available",
+          receivables_total: "available"
+        },
+        currency: "KRW"
+      }
+    },
+    attention_items: {
+      status: "available",
+      data: {
+        items: [
+          {
+            attention_item_id: "attention_dashboard_inquiry",
+            attention_type: "unassigned_new_inquiry",
+            label: "새 문의 담당자 지정",
+            title: "새봄테크",
+            occurred_at: nowIso,
+            amount: null,
+            currency: null,
+            assigned_user_id: null,
+            destination: { section: "new_inquiries", record_id: "lead_dashboard_new", filter: "new" }
+          },
+          {
+            attention_item_id: "attention_dashboard_consultation",
+            attention_type: "consultation_today",
+            label: "오늘 상담",
+            title: "한빛건설",
+            due_at: `${localDateKey}T05:00:00.000Z`,
+            amount: null,
+            currency: null,
+            assigned_user_id: session.user_id,
+            destination: { section: "consultations", record_id: "consultation_dashboard_today", inquiry_id: "lead_dashboard_new", filter: "today" }
+          },
+          {
+            attention_item_id: "attention_dashboard_engagement",
+            attention_type: "engagement_status",
+            label: "수임 검토",
+            title: "다온 유한회사",
+            occurred_at: nowIso,
+            amount: null,
+            currency: null,
+            assigned_user_id: session.user_id,
+            destination: { section: "engagement_status", record_id: "opportunity_dashboard_new", filter: "reviewing" }
+          },
+          {
+            attention_item_id: "attention_dashboard_deposit",
+            attention_type: "deposit_revenue",
+            label: "입금 고객 연결",
+            title: "마루 주식회사",
+            occurred_at: nowIso,
+            amount: 33_000_000,
+            currency: "KRW",
+            assigned_user_id: session.user_id,
+            destination: { section: "deposit_revenue", record_id: "client_dashboard_revenue", filter: "current_month" }
+          },
+          {
+            attention_item_id: "attention_dashboard_receivable",
+            attention_type: "receivables",
+            label: "수임료 입력",
+            title: "한빛건설",
+            occurred_at: nowIso,
+            amount: 9_000_000,
+            currency: "KRW",
+            assigned_user_id: session.user_id,
+            destination: { section: "receivables", record_id: "client_dashboard_receivable", filter: "outstanding" }
+          }
+        ],
+        type_statuses: {
+          unassigned_new_inquiry: "available",
+          consultation_today: "available",
+          engagement_status: "available",
+          deposit_revenue: "available",
+          receivables: "available"
+        }
+      }
+    },
+    monthly_deposit_revenue: {
+      status: "available",
+      data: {
+        period: {
+          from: `${clientRevenueMonths[0]}-01`,
+          to: seoulDateKey,
+          month_count: 12
+        },
+        total: 36_000_000,
+        points: clientRevenuePoints
+      }
+    },
+    inquiry_status: {
+      status: "available",
+      data: {
+        total: 5,
+        items: [
+          ["new", 1, "new_inquiries"],
+          ["reviewing", 0, "new_inquiries"],
+          ["consultation_scheduled", 1, "consultations"],
+          ["engagement_review", 1, "engagement_status"],
+          ["engaged", 1, "engagement_status"],
+          ["not_engaged", 1, "engagement_status"]
+        ].map(([code, count, section]) => ({
+          code,
+          label: code,
+          count,
+          destination: { section, filter: code }
+        }))
+      }
+    },
+    revenue_ranking: {
+      status: "available",
+      data: {
+        selected_period: { code: "year", label: "올해 누적", from: `${seoulYear}-01-01`, to: seoulDateKey },
+        total: 36_000_000,
+        items: [
+          {
+            rank: 1,
+            client_group_id: "client_dashboard_saebom",
+            display_name: "새봄테크",
+            net_deposit_revenue: 25_000_000,
+            latest_deposit_at: nowIso,
+            destination: { section: "client_details", record_id: "client_dashboard_saebom", tab: "deposit_revenue", period: "year" }
+          },
+          {
+            rank: 2,
+            client_group_id: "client_dashboard_hanbit",
+            display_name: "한빛건설",
+            net_deposit_revenue: 11_000_000,
+            latest_deposit_at: nowIso,
+            destination: { section: "client_details", record_id: "client_dashboard_hanbit", tab: "deposit_revenue", period: "year" }
+          }
+        ]
+      }
+    },
+    receivables_ranking: {
+      status: "available",
+      data: {
+        as_of: nowIso,
+        total: 9_000_000,
+        unknown_amount_count: 1,
+        items: [{
+          rank: 1,
+          client_group_id: "client_dashboard_hanbit",
+          display_name: "한빛건설",
+          receivable_amount: 9_000_000,
+          earliest_due_date: localDateKey,
+          destination: { section: "client_details", record_id: "client_dashboard_hanbit", tab: "receivables" }
+        }]
+      }
+    }
+  },
+  source_statuses: [],
+  safe_error_codes: [],
+  audit_hint_ref: "dashboard-package-qa-client-operations-audit",
+  count_leak_prevented: true,
+  permission_prefilter_applied: true,
+  raw_bank_source_included: false,
+  raw_source_payload_included: false,
+  credential_material_included: false,
+  production_ready_claim: false
+};
 
 function listBody(items = []) {
   return {
@@ -87,13 +287,13 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/home/action-inbox") {
     const type = url.searchParams.get("type");
     const items = type === "task"
-      ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00`, status: "todo" }]
+      ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${localDateKey}T12:00:00`, status: "todo" }]
       : type === "approval"
-        ? [{ id: "approval_dashboard_pending", type: "approval", subtype: "leave", title: "연차 휴가 신청", requester: "합성 구성원", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
+        ? [{ id: "approval_dashboard_pending", type: "approval", subtype: "leave", title: "연차 휴가 신청", requester: "합성 구성원", matter_ref: matters[0].matter_id, due_at: `${localDateKey}T18:00:00`, status: "pending" }]
         : [];
     return respondJson(response, 200, { ...listBody(items), counts: { approval: 1, task_late: 0, task_today: 1 } });
   }
-  if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: `${todayKey}T03:00:00.000Z`, type: "event" }] });
+  if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: localAgendaStartIso, type: "event" }] });
   if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", tab: "notice", source: "AMIC 공지", title: "대시보드 QA 공지", body_preview: "패키지 화면 검증용 합성 공지", published_at: nowIso }], source_statuses: [] });
   if (pathname === "/api/matters/recently-viewed") return respondJson(response, 200, listBody([{ ...matters[0], viewed_at: nowIso }]));
   if (pathname === "/api/matters") return respondJson(response, 200, listBody(matters));
@@ -103,6 +303,7 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/crm/opportunities") return respondJson(response, 200, listBody([{ opportunity_id: "opportunity_dashboard_new", display_name: "새롬 자문", stage: "qualified", owner_user_id: session.user_id, updated_at: nowIso }]));
   if (pathname === "/api/crm/contacts") return respondJson(response, 200, listBody([{ contact_id: "contact_dashboard_new", display_name: "오세진", status: "active", owner_user_id: session.user_id, updated_at: nowIso }]));
   if (pathname === "/api/crm/activities") return respondJson(response, 200, listBody([{ crm_activity_id: "activity_dashboard_meeting", subject: "정기 고객 미팅", party_display_name: "마루 주식회사", activity_type: "meeting", scheduled_at: nowIso, owner_user_id: session.user_id }]));
+  if (pathname === "/api/analytics/clients/dashboard") return respondJson(response, 200, clientOperationsDashboard);
   if (pathname === "/api/analytics/finance/cashflow") {
     return respondJson(response, 200, {
       request_id: "dashboard-package-qa-cashflow",
@@ -146,7 +347,7 @@ const server = createServer(async (request, response) => {
           { category: "rent_office", label: "임차·사무실", primary_type: "operating_expense", amount: 750000, transaction_count: 1, individual_values_included: false }
         ],
         monthly: [{
-          month: todayKey.slice(0, 7),
+          month: seoulMonthKey,
           currency: "KRW",
           total_inflow: 15000000,
           total_outflow: 13000000,
@@ -175,13 +376,13 @@ const server = createServer(async (request, response) => {
       production_ready_claim: false
     });
   }
-  if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: todayKey.slice(0, 7), currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, processed_cost: 4000000 }]), source_statuses: [] });
+  if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: seoulMonthKey, currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, processed_cost: 4000000 }]), source_statuses: [] });
   if (pathname === "/api/analytics/finance/clients") return respondJson(response, 200, { ...listBody([{ client_group_id: "client_dashboard_revenue", client_group_label: "마루 주식회사", currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, ar_balance: 3000000 }]), source_statuses: [] });
   if (pathname === "/api/hrx/payroll/dashboard-summary") {
     return respondJson(response, 200, {
       ...listBody([{ summary_ref: "aggregate_only" }]),
       summary: {
-        month: todayKey.slice(0, 7),
+        month: seoulMonthKey,
         currency: "KRW",
         run_status: "closed",
         gross_krw: 9000000,
@@ -241,7 +442,7 @@ const app = await electron.launch({
 
 const expected = {
   home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "nonpayroll-categories", "cashflow", "client-summary", "people-summary", "matter-summary", "calendar"],
-  clients: ["new-clients", "prospects-contacts", "revenue-ranking", "client-meetings", "accounts-receivable"],
+  clients: ["kpi-new_inquiries", "kpi-consultations_today", "kpi-engagement_reviews", "kpi-deposit_revenue_month", "kpi-receivables_total", "attention-items", "monthly-deposit-revenue", "inquiry-status", "revenue-ranking", "receivables-ranking"],
   matters: ["recent-work", "today-todo", "my-matters", "new-engagements", "closed-matters"],
   people: []
 };
@@ -385,12 +586,32 @@ try {
         writeFileSync(path.join(artifactDir, `home-data-timeout-${platform}.json`), `${JSON.stringify(failureEvidence, null, 2)}\n`);
         throw new Error(`Home fixture data did not become ready: ${JSON.stringify(failureEvidence)}`, { cause: error });
       }
+    } else if (view === "clients") {
+      await page.waitForFunction(
+        ({ selector }) => {
+          const root = document.querySelector(selector);
+          const metricText = (id) => root?.querySelector(`[data-client-kpi="${id}"]`)?.innerText ?? "";
+          const text = root?.innerText ?? "";
+          return root?.getAttribute("data-client-dashboard-state") === "data"
+            && root.querySelectorAll('[data-client-dashboard-kpis="true"] [data-client-kpi]').length === 5
+            && metricText("deposit_revenue_month").includes("33,000,000원")
+            && metricText("receivables_total").includes("9,000,000원")
+            && text.includes("새봄테크")
+            && text.includes("한빛건설")
+            && root.querySelectorAll('[data-client-revenue-chart="true"] [data-client-revenue-month]').length === 12
+            && root.querySelectorAll('[data-client-inquiry-status="true"] [data-client-inquiry-status-code]').length === 6;
+        },
+        { selector: rootSelector },
+        { timeout: 30_000 },
+      );
+      await page.waitForTimeout(500);
     } else {
       await page.waitForTimeout(2_000);
     }
     await page.locator(".page-canvas").evaluate((node) => { node.scrollTop = 0; });
     const snapshot = await page.evaluate(({ selector }) => {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
+      const clientRoot = document.querySelector(selector);
       const revenueChartCard = document.querySelector(`${selector} .home-dashboard-revenue-chart-card`)?.getBoundingClientRect();
       const payrollChartCard = document.querySelector(`${selector} .home-dashboard-payroll-chart-card`)?.getBoundingClientRect();
       const nonPayrollChartCard = document.querySelector(`${selector} .home-dashboard-nonpayroll-chart-card`)?.getBoundingClientRect();
@@ -406,7 +627,38 @@ try {
         matter_kpi_count: document.querySelectorAll('[data-matter-dashboard-kpis], [data-matter-priority-queue]').length,
         approval_widget_count: document.querySelectorAll('[data-widget-id="approval"]').length,
         people_dashboard_count: document.querySelectorAll('[data-people-dashboard="true"]').length,
-        customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
+        legacy_customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
+        client_kpi_ids: [...document.querySelectorAll(`${selector} [data-client-dashboard-kpis="true"] [data-client-kpi]`)].map((node) => node.getAttribute("data-client-kpi")).filter(Boolean),
+        client_kpi_values: Object.fromEntries([...clientRoot?.querySelectorAll('[data-client-dashboard-kpis="true"] [data-client-kpi]') ?? []].map((node) => [
+          node.getAttribute("data-client-kpi"),
+          node.querySelector(".client-dashboard-kpi-value strong")?.textContent?.trim() ?? ""
+        ])),
+        client_attention_items: [...clientRoot?.querySelectorAll('[data-client-attention="true"] .dashboard-record-row') ?? []].map((node) => node.innerText.replace(/\s+/g, " ").trim()),
+        client_revenue_points: [...clientRoot?.querySelectorAll('[data-client-revenue-chart="true"] [data-client-revenue-month]') ?? []].map((node) => ({
+          month: node.getAttribute("data-client-revenue-month"),
+          amount: Number(node.getAttribute("data-client-revenue-amount"))
+        })),
+        client_inquiry_statuses: [...clientRoot?.querySelectorAll('[data-client-inquiry-status="true"] [data-client-inquiry-status-code]') ?? []].map((node) => ({
+          code: node.getAttribute("data-client-inquiry-status-code"),
+          label: node.getAttribute("aria-label")
+        })),
+        client_revenue_ranking: {
+          total: clientRoot?.querySelector('[data-client-ranking="revenue"] [data-client-ranking-total]')?.getAttribute("data-client-ranking-total") ?? null,
+          rows: [...clientRoot?.querySelectorAll('[data-client-ranking="revenue"] .dashboard-record-row') ?? []].map((node) => node.innerText.replace(/\s+/g, " ").trim())
+        },
+        client_receivables_ranking: {
+          total: clientRoot?.querySelector('[data-client-ranking="receivables"] [data-client-ranking-total]')?.getAttribute("data-client-ranking-total") ?? null,
+          rows: [...clientRoot?.querySelectorAll('[data-client-ranking="receivables"] .dashboard-record-row') ?? []].map((node) => node.innerText.replace(/\s+/g, " ").trim())
+        },
+        client_kpi_count: document.querySelectorAll(`${selector} [data-client-dashboard-kpis="true"] [data-client-kpi]`).length,
+        client_attention_item_count: document.querySelectorAll(`${selector} [data-client-attention="true"] .dashboard-record-row`).length,
+        client_revenue_chart_count: document.querySelectorAll(`${selector} [data-client-revenue-chart="true"]`).length,
+        client_revenue_month_count: document.querySelectorAll(`${selector} [data-client-revenue-month]`).length,
+        client_inquiry_status_count: document.querySelectorAll(`${selector} [data-client-inquiry-status-code]`).length,
+        client_revenue_ranking_row_count: document.querySelectorAll(`${selector} [data-client-ranking="revenue"] .dashboard-record-row`).length,
+        client_receivables_ranking_row_count: document.querySelectorAll(`${selector} [data-client-ranking="receivables"] .dashboard-record-row`).length,
+        client_natural_copy_visible: ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금", "오늘 확인할 일", "최근 12개월 입금 매출", "문의 진행 현황", "고객 매출 순위", "미수금 순위", "새 문의 담당자 지정", "입금 고객 연결", "수임료 입력"].every((value) => surfaceText.includes(value)),
+        legacy_client_section_count: ["new-clients", "prospects-contacts", "client-meetings", "accounts-receivable"].filter((section) => document.querySelector(`${selector} [data-dashboard-section="${section}"]`)).length,
         home_dashboard_grid_count: document.querySelectorAll(`${selector} [data-home-dashboard-grid="true"]`).length,
         home_revenue_chart_count: document.querySelectorAll(`${selector} [data-home-revenue-bar-chart="true"]`).length,
         home_payroll_chart_count: document.querySelectorAll(`${selector} [data-home-payroll-donut-chart="true"]`).length,
@@ -471,14 +723,50 @@ try {
     } else if (view === "clients" || view === "matters") {
       assert(snapshot.record_rows >= 5, `${view} dashboard must render actual list rows: ${JSON.stringify(snapshot)}`);
       if (view === "clients") {
-        for (const clientSection of sections) {
-          assert(snapshot.section_row_counts[clientSection] >= 1, `Client ${clientSection} must render its direct source: ${JSON.stringify(snapshot)}`);
+        assert.equal(snapshot.client_kpi_count, 5, "Client must render the five operations KPIs");
+        assert.deepEqual([...snapshot.client_kpi_ids].sort(), ["deposit_revenue_month", "engagement_reviews", "new_inquiries", "receivables_total", "consultations_today"].sort(), "Client KPI IDs must remain canonical");
+        assert.deepEqual(snapshot.client_kpi_values, {
+          new_inquiries: "1건",
+          consultations_today: "1건",
+          engagement_reviews: "1건",
+          deposit_revenue_month: "33,000,000원",
+          receivables_total: "9,000,000원"
+        }, "Client KPI values must match the fixture");
+        assert.equal(snapshot.client_attention_item_count, 5, "Client must render the action queue");
+        for (const expectedAttention of [
+          ["새봄테크", "새 문의 담당자 지정"],
+          ["한빛건설", "오늘 상담"],
+          ["다온 유한회사", "수임 검토"],
+          ["마루 주식회사", "입금 고객 연결", "33,000,000원"],
+          ["한빛건설", "수임료 입력", "9,000,000원"]
+        ]) {
+          assert(snapshot.client_attention_items.some((row) => expectedAttention.every((value) => row.includes(value))), `Client action queue must include ${expectedAttention.join(" / ")}`);
         }
-        assert.equal(snapshot.customer_dashboard_title_count, 5, "Client must show all five customer dashboard titles");
+        assert.equal(snapshot.client_revenue_chart_count, 1, "Client must render the monthly deposit-revenue chart");
+        assert.equal(snapshot.client_revenue_month_count, 12, "Client must render twelve monthly deposit-revenue points");
+        assert.deepEqual(snapshot.client_revenue_points, clientRevenuePoints.map(({ month, net_deposit_revenue: amount }) => ({ month, amount })), "Client revenue chart months and amounts must match the fixture");
+        assert.equal(snapshot.client_inquiry_status_count, 6, "Client must render all inquiry status buckets");
+        assert.deepEqual(snapshot.client_inquiry_statuses, [
+          { code: "new", label: "새 문의 1건" },
+          { code: "reviewing", label: "확인 중 0건" },
+          { code: "consultation_scheduled", label: "상담 예정 1건" },
+          { code: "engagement_review", label: "수임 검토 중 1건" },
+          { code: "engaged", label: "수임 확정 1건" },
+          { code: "not_engaged", label: "수임하지 않음 1건" }
+        ], "Client inquiry status codes and values must match the fixture");
+        assert.equal(snapshot.client_revenue_ranking_row_count, 2, "Client must render top-revenue ranking rows");
+        assert.equal(snapshot.client_revenue_ranking.total, "36000000", "Client revenue ranking total must match the fixture");
+        assert(snapshot.client_revenue_ranking.rows[0]?.includes("1위 새봄테크") && snapshot.client_revenue_ranking.rows[0]?.includes("25,000,000원"), "Client revenue rank 1 must match the fixture");
+        assert(snapshot.client_revenue_ranking.rows[1]?.includes("2위 한빛건설") && snapshot.client_revenue_ranking.rows[1]?.includes("11,000,000원"), "Client revenue rank 2 must match the fixture");
+        assert.equal(snapshot.client_receivables_ranking_row_count, 1, "Client must render receivables ranking rows");
+        assert.equal(snapshot.client_receivables_ranking.total, "9000000", "Client receivables ranking total must match the fixture");
+        assert(snapshot.client_receivables_ranking.rows[0]?.includes("1위 한빛건설") && snapshot.client_receivables_ranking.rows[0]?.includes("9,000,000원"), "Client receivables rank 1 must match the fixture");
+        assert.equal(snapshot.client_natural_copy_visible, true, "Client must render natural Korean operations copy");
+        assert.equal(snapshot.legacy_client_section_count, 0, "Retired five-section Client dashboard must stay absent");
       }
     } else {
       assert.equal(snapshot.people_dashboard_count, 0, "People must not render the customer dashboard");
-      assert.equal(snapshot.customer_dashboard_title_count, 0, "People must not show customer dashboard titles");
+      assert.equal(snapshot.legacy_customer_dashboard_title_count, 0, "People must not show customer dashboard titles");
     }
     assert.deepEqual(snapshot.forbidden_visible_values, [], `${view} dashboard must not expose backend identifiers or raw enums`);
     assert.equal(snapshot.horizontal_overflow, false, `${view} dashboard must not horizontally overflow`);

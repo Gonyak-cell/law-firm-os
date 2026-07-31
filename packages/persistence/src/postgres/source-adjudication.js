@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import {
+  isSafeCredentialPersistenceField,
+} from "../credential-reference.js";
 
 export const JSON_POSTGRES_SOURCE_ADJUDICATION_CONTRACT_VERSION =
   "law-firm-os.json-postgres-source-adjudication-contract.v1";
@@ -13,11 +16,6 @@ const SOURCE_REF = /^[a-f0-9]{32}$/u;
 const SAFE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
 const SECRET_FIELD =
   /(^|_)(?:passwords?|password_hash|passwd|passphrases?|secrets?|tokens?|credentials?|authorization|api_key|private_key|recovery_key|document_bytes|raw_bytes|raw_payload)(_|$)/iu;
-const SAFE_CREDENTIAL_METADATA = new Set([
-  "credential_provider",
-  "credential_status",
-  "credential_rev",
-]);
 const CHRONOLOGY_FIELDS = Object.freeze([
   "updated_at",
   "occurred_at",
@@ -133,7 +131,7 @@ function sanitize(value, state, depth = 0) {
   for (const [key, item] of Object.entries(value)) {
     const normalizedKey = normalizedFieldName(key);
     if ((SECRET_FIELD.test(normalizedKey)
-        && !SAFE_CREDENTIAL_METADATA.has(normalizedKey))
+        && !isSafeCredentialPersistenceField(normalizedKey, item))
       || isSerializedBytes(item)) {
       state.excluded_secret_field_count += 1;
       continue;

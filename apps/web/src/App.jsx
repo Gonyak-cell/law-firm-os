@@ -191,6 +191,13 @@ export function App() {
   const initialCurrentVersionWasUnsupported = initialView === "vault" && initialParams.get("current_version") === "all";
   const locationParams = new URLSearchParams(window.location.search);
   const requestedMatterId = locationParams.get("matter_id") ?? "";
+  const requestedClientId = locationParams.get("record_id") ?? "";
+  const requestedClientTab = locationParams.get("tab") ?? "";
+  const requestedInquiryId = locationParams.get("inquiry_id") ?? "";
+  const requestedOpportunityId = locationParams.get("opportunity_id") ?? "";
+  const requestedOpportunityQuery = locationParams.get("opportunity_query") ?? "";
+  const requestedConsultationId = locationParams.get("consultation_id") ?? "";
+  const requestedConsultationQuery = locationParams.get("consultation_query") ?? "";
   const requestedDocumentId = locationParams.get("document_id") ?? "";
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
@@ -225,6 +232,11 @@ export function App() {
       liveCtx: nextLiveCtx,
       companyAllowed,
       query: params.get("query") ?? "",
+      inquiryId: params.get("inquiry_id") ?? "",
+      opportunityId: params.get("opportunity_id") ?? "",
+      opportunityQuery: params.get("opportunity_query") ?? "",
+      consultationId: params.get("consultation_id") ?? "",
+      consultationQuery: params.get("consultation_query") ?? "",
       documentId: params.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: params.get("date_from") ?? "",
@@ -243,6 +255,50 @@ export function App() {
       else params.delete("query");
     } else {
       params.delete("query");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "recordId")) {
+      if (routeContext.recordId) params.set("record_id", routeContext.recordId);
+      else params.delete("record_id");
+    } else {
+      params.delete("record_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "inquiryId")) {
+      if (routeContext.inquiryId) params.set("inquiry_id", routeContext.inquiryId);
+      else params.delete("inquiry_id");
+    } else {
+      params.delete("inquiry_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "opportunityId")) {
+      if (routeContext.opportunityId) params.set("opportunity_id", routeContext.opportunityId);
+      else params.delete("opportunity_id");
+    } else {
+      params.delete("opportunity_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "opportunityQuery")) {
+      if (routeContext.opportunityQuery) params.set("opportunity_query", routeContext.opportunityQuery);
+      else params.delete("opportunity_query");
+    } else {
+      params.delete("opportunity_query");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "consultationId")) {
+      if (routeContext.consultationId) params.set("consultation_id", routeContext.consultationId);
+      else params.delete("consultation_id");
+    } else {
+      params.delete("consultation_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "consultationQuery")) {
+      if (routeContext.consultationQuery) params.set("consultation_query", routeContext.consultationQuery);
+      else params.delete("consultation_query");
+    } else {
+      params.delete("consultation_query");
+    }
+    for (const key of ["month", "tab", "period"]) {
+      if (Object.prototype.hasOwnProperty.call(routeContext, key)) {
+        if (routeContext[key]) params.set(key, routeContext[key]);
+        else params.delete(key);
+      } else {
+        params.delete(key);
+      }
     }
     if (Object.prototype.hasOwnProperty.call(routeContext, "matterId")) {
       if (routeContext.matterId) params.set("matter_id", routeContext.matterId);
@@ -271,14 +327,18 @@ export function App() {
     } else {
       params.delete("employee_id");
     }
-    const peoplePeriod = typeof routeContext.period === "string" ? routeContext.period : "";
-    if (nextView === "people" && /^\d{4}-(0[1-9]|1[0-2])$/.test(peoplePeriod)) {
-      params.set("period", peoplePeriod);
+    const requestedPeriod = typeof routeContext.period === "string" ? routeContext.period : "";
+    const peoplePeriod = nextView === "people" && /^\d{4}-(0[1-9]|1[0-2])$/.test(requestedPeriod);
+    const clientPeriod = nextView === "clients" && /^(?:month|quarter|year)$/.test(requestedPeriod);
+    if (peoplePeriod || clientPeriod) {
+      params.set("period", requestedPeriod);
     } else {
       params.delete("period");
     }
     if (nextView !== "people" || !["people-overview", "people-members"].includes(section)) {
       params.delete("employee");
+    }
+    if (nextView === "people" && !["people-overview", "people-members"].includes(section)) {
       params.delete("tab");
     }
     const hash = section ? `#${encodeURIComponent(section)}` : "";
@@ -506,6 +566,10 @@ export function App() {
     window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, {
       ...resolvedInitialRoute,
       query: initialQuery,
+      opportunityId: initialParams.get("opportunity_id") ?? "",
+      opportunityQuery: initialParams.get("opportunity_query") ?? "",
+      consultationId: initialParams.get("consultation_id") ?? "",
+      consultationQuery: initialParams.get("consultation_query") ?? "",
       documentId: initialParams.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: initialParams.get("date_from") ?? "",
@@ -514,9 +578,11 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const onPopState = () => {
+    const onLocationChange = () => {
       const nextRoute = routeFromLocation();
       const nextParams = new URLSearchParams(window.location.search);
+      const requestedView = nextParams.get("view") ?? "home";
+      const requestedSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
       setContextSidebarOpen(false);
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
@@ -531,6 +597,16 @@ export function App() {
       }
       setUtilityDrawerType(nextRoute.openNotifications ? "notifications" : "");
       if (nextRoute.openNotifications) setNotificationItemsRead(true);
+      if (
+        requestedView === "clients" &&
+        (nextRoute.view !== requestedView || nextRoute.section !== requestedSection)
+      ) {
+        window.history.replaceState(
+          { view: nextRoute.view, section: nextRoute.section },
+          "",
+          routeUrl(nextRoute.view, nextRoute.section, nextRoute)
+        );
+      }
       if (nextRoute.view === "vault" && nextParams.get("current_version") === "all") {
         nextParams.set("current_version", "current");
         window.history.replaceState(
@@ -540,8 +616,12 @@ export function App() {
         );
       }
     };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+    window.addEventListener("popstate", onLocationChange);
+    window.addEventListener("hashchange", onLocationChange);
+    return () => {
+      window.removeEventListener("popstate", onLocationChange);
+      window.removeEventListener("hashchange", onLocationChange);
+    };
   }, []);
 
   if (!desktopSessionChecked || view === "loading") {
@@ -644,7 +724,24 @@ export function App() {
                 refreshSignal={globalRefreshSignal}
               />
             )}
-            {view === "clients" && <ClientsSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} refreshSignal={globalRefreshSignal} onNavigate={navigateToView} />}
+            {view === "clients" && (
+              <ClientsSurface
+                labels={labels}
+                liveCtx={liveCtx}
+                activeSection={activeSection}
+                refreshSignal={globalRefreshSignal}
+                onNavigate={navigateToView}
+                redirectedFrom={activeRedirectedFrom}
+                requestedClientId={requestedClientId}
+                requestedClientTab={requestedClientTab}
+                requestedInquiryId={requestedInquiryId}
+                requestedOpportunityId={requestedOpportunityId}
+                requestedOpportunityQuery={requestedOpportunityQuery}
+                requestedConsultationId={requestedConsultationId}
+                requestedConsultationQuery={requestedConsultationQuery}
+                requestedClientRevision={routeRevision}
+              />
+            )}
             {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} requestedMatterId={requestedMatterId} requestedMatterRevision={routeRevision} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
             {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} featureFlags={peopleFeatureFlags} onNavigate={navigateToView} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canApproveOvertime={overtimeApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
             {view === "vault" && (

@@ -25,10 +25,14 @@ const JSON_STORE_ADAPTERS = Object.freeze({
   authPasswordResetStorePath: "apps/api/src/auth-password-reset-store.js",
 });
 
+const TRUST_STORE_ADAPTERS = Object.freeze({
+  objectAclStorePath: "packages/authz/src/object-acl-store.js",
+});
+
 const ALLOWED_DIRECT_WRITERS = Object.freeze({
   "apps/api/src/lambda.js": "administrative_artifacts_only_after_authority_pattern_check",
   "apps/api/src/local-durable-store-paths.js": "local_secret_material_0600",
-  "packages/authz/src/trust-runtime-store.js": "opt_in_library_not_wired_by_current_runtime",
+  "packages/authz/src/trust-runtime-store.js": "file_current_object_acl_authority",
   "packages/persistence/src/connection.js": "synthetic_persistence_connection",
   "packages/persistence/src/durable-file.js": "common_durable_writer_primitive",
   "packages/persistence/src/s3-backup-queue.js": "backup_queue_artifact_primitive",
@@ -79,6 +83,20 @@ function validateManifestAdapters() {
     const source = read(sourcePath);
     assert.match(source, /createDurableJsonStateController/u, `${key} has not adopted generation-controlled persistence`);
     assert.doesNotMatch(source, /writeJsonFileDurably/u, `${key} still uses the legacy writer`);
+    covered.push(key);
+  }
+  for (const [key, sourcePath] of Object.entries(
+    TRUST_STORE_ADAPTERS,
+  )) {
+    assert.ok(
+      STORE_PATH_MANIFEST.some((entry) => entry.key === key),
+      `unknown manifest key ${key}`,
+    );
+    assert.match(
+      read(sourcePath),
+      /createTrustRuntimeStore/u,
+      `${key} is not backed by the canonical trust store`,
+    );
     covered.push(key);
   }
   covered.push(securityAudit.key);

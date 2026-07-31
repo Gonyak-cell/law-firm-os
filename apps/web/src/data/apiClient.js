@@ -1,3 +1,13 @@
+import {
+  buildClientDepositReallocationCommand,
+  buildClientReceivablesModel,
+  buildFeeCommitmentCommand
+} from "../components/ClientReceivablesModel.js";
+import {
+  buildClientFixedReportsModel,
+  selectClientFixedReport
+} from "../components/ClientFixedReportsModel.js";
+
 const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 const runtimeTenant = (...parts) => parts.join("_");
@@ -15,14 +25,28 @@ const ADMIN_PERMISSION_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w06", "sy
 const DATA_CLOUD_TENANT_ID = runtimeTenant("tenant", "sf", "b", "w07", "synthetic");
 const DEFAULT_PERMISSION_REF = "ui_cmp_r4_master_data_live";
 const DEFAULT_AUDIT_HINT_REF = "ui_cmp_r4_master_data_probe";
+const CLIENT_GROUP_REVIEW_PERMISSION_REF = "ui_cmp_g2_client_group_review";
+const CLIENT_GROUP_REVIEW_AUDIT_HINT_REF = "ui_cmp_g2_client_group_review_probe";
+const CLIENT_GROUP_CREATE_PERMISSION_REF = "ui_cmp_g2_client_group_create";
+const CLIENT_GROUP_CREATE_AUDIT_HINT_REF = "ui_cmp_g2_client_group_create_probe";
 const DEFAULT_MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const DEFAULT_MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
 const DEFAULT_VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const DEFAULT_VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
 const DEFAULT_CRM_INTAKE_PERMISSION_REF = "ui_cmp_g6_crm_intake_live";
 const DEFAULT_CRM_INTAKE_AUDIT_HINT_REF = "ui_cmp_g6_crm_intake_probe";
+const CRM_INQUIRY_PERMISSION_REF = "ui_cmp_g6_crm_inquiry_read";
+const CRM_INQUIRY_AUDIT_HINT_REF = "ui_cmp_g6_crm_inquiry_read_probe";
+const CRM_INQUIRY_EVIDENCE_PERMISSION_REF = "ui_cmp_g6_crm_inquiry_evidence_read";
+const CRM_INQUIRY_EVIDENCE_AUDIT_HINT_REF = "ui_cmp_g6_crm_inquiry_evidence_read_probe";
 const DEFAULT_FINANCE_PERMISSION_REF = "ui_cmp_g7_finance_live";
 const DEFAULT_FINANCE_AUDIT_HINT_REF = "ui_cmp_g7_finance_probe";
+const CLIENT_DEPOSIT_PERMISSION_REF = "ui_client_deposit_operations";
+const CLIENT_DEPOSIT_AUDIT_HINT_REF = "ui_client_deposit_operations_probe";
+const CLIENT_RECEIVABLES_PERMISSION_REF = "ui_client_receivables";
+const CLIENT_RECEIVABLES_AUDIT_HINT_REF = "ui_client_receivables_probe";
+const CLIENT_FIXED_REPORT_PERMISSION_REF = "ui_client_fixed_reports";
+const CLIENT_FIXED_REPORT_AUDIT_HINT_REF = "ui_client_fixed_reports_probe";
 const DEFAULT_ANALYTICS_PERMISSION_REF = "ui_cmp_g8_analytics_live";
 const DEFAULT_ANALYTICS_AUDIT_HINT_REF = "ui_cmp_g8_analytics_probe";
 const DEFAULT_AI_PERMISSION_REF = "ui_cmp_g9_ai_live";
@@ -942,6 +966,37 @@ const REPORT_PERMISSION_CONTEXTS = {
   }
 };
 
+function clientFixedReportPermissionContexts(operation) {
+  const actions = operation === "export"
+    ? ["analytics:client:read", "analytics:client:export"]
+    : ["analytics:client:read"];
+  return {
+    allow: {
+      principal: REPORT_PRINCIPAL,
+      rules: actions.map((action, index) => ({
+        id: `rule_client_fixed_report_allow_${index + 1}`,
+        effect: "allow",
+        action
+      })),
+      object_acl: []
+    },
+    denied: {
+      principal: REPORT_PRINCIPAL,
+      rules: [],
+      object_acl: []
+    },
+    review: {
+      principal: REPORT_PRINCIPAL,
+      rules: actions.map((action, index) => ({
+        id: `rule_client_fixed_report_review_${index + 1}`,
+        effect: "review_required",
+        action
+      })),
+      object_acl: []
+    }
+  };
+}
+
 // Gated master-data responses (200/403/...) share this 8-key shape. Other
 // statuses (404 unknown route, 405, 500) use a smaller shape and must parse
 // to an explicit error — never assume the full shape unconditionally.
@@ -1011,6 +1066,231 @@ export async function fetchMasterDataRecords({
     omittedFields: body.omitted_fields,
     auditHintRef: body.audit_hint_ref
   };
+}
+
+const CLIENT_GROUP_CLIENT_TYPES = new Set(["person", "organization"]);
+
+function clientGroupText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function clientGroupClientPayload(client) {
+  if (!client || typeof client !== "object" || Array.isArray(client)) return null;
+  const clientType = clientGroupText(client.client_type);
+  const displayName = clientGroupText(client.display_name);
+  if (!CLIENT_GROUP_CLIENT_TYPES.has(clientType) || !displayName) return null;
+  const payload = {
+    client_type: clientType,
+    display_name: displayName
+  };
+  for (const key of [
+    "legal_form",
+    "registration_number",
+    "email",
+    "phone",
+    "depositor_alias"
+  ]) {
+    const value = clientGroupText(client[key]);
+    if (value) payload[key] = value;
+  }
+  return payload;
+}
+
+function clientGroupSafeErrorCodes(body) {
+  return Array.isArray(body?.safe_error_codes)
+    && body.safe_error_codes.every((code) => typeof code === "string")
+    ? body.safe_error_codes
+    : null;
+}
+
+function clientGroupGuardedUiState(response, body) {
+  const uiState = clientGroupText(body?.ui_state);
+  const outcome = clientGroupText(body?.outcome);
+  if (uiState === "review" || uiState === "review_required" || outcome === "review_required") {
+    return "review_required";
+  }
+  if (response?.status === 403 || uiState === "denied" || outcome === "denied") {
+    return "denied";
+  }
+  return "error";
+}
+
+function clientGroupGuardedResult(response, body, safeErrorCodes) {
+  return {
+    kind: "guarded",
+    status: Number(response?.status ?? 0) || 0,
+    outcome: clientGroupText(body?.outcome) || "blocked",
+    uiState: clientGroupGuardedUiState(response, body),
+    item: null,
+    safeErrorCodes,
+    auditHintRef: clientGroupText(body?.audit_hint_ref) || null
+  };
+}
+
+function validClientGroupReviewItem(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+  if (typeof item.review_digest !== "string" || !item.review_digest.trim()) return false;
+  if (!Array.isArray(item.candidates)) return false;
+  if (typeof item.has_restricted_candidates !== "boolean") return false;
+  if (typeof item.can_create !== "boolean") return false;
+  if (typeof item.requires_distinct_confirmation !== "boolean") return false;
+  return item.candidates.every((candidate) => (
+    candidate
+    && typeof candidate === "object"
+    && !Array.isArray(candidate)
+    && typeof candidate.client_group_id === "string"
+    && candidate.client_group_id.trim()
+    && typeof candidate.display_name === "string"
+    && candidate.display_name.trim()
+    && CLIENT_GROUP_CLIENT_TYPES.has(candidate.client_type)
+    && Array.isArray(candidate.reasons)
+    && candidate.reasons.every((reason) => typeof reason === "string" && reason.trim())
+  ));
+}
+
+function validClientGroupCreateItem(item) {
+  return Boolean(
+    item
+    && typeof item === "object"
+    && !Array.isArray(item)
+    && typeof item.client_group_id === "string"
+    && item.client_group_id.trim()
+    && typeof item.display_name === "string"
+    && item.display_name.trim()
+    && CLIENT_GROUP_CLIENT_TYPES.has(item.client_type)
+    && typeof item.depositor_alias_saved === "boolean"
+    && typeof item.registration_number_saved === "boolean"
+    && typeof item.contact_saved === "boolean"
+  );
+}
+
+async function postClientGroupMutation({
+  path,
+  client,
+  reviewDigest = null,
+  confirmDistinctClient = null,
+  idempotencyKey,
+  permissionRef,
+  auditHintRef,
+  ctx = "allow"
+} = {}) {
+  const normalizedClient = clientGroupClientPayload(client);
+  if (!normalizedClient) return { kind: "error", status: 0, safeErrorCodes: [] };
+  const context = permissionContextFor(ctx, PERMISSION_CONTEXTS, "client");
+  const payload = {
+    tenant_id: tenantIdForDomain("client", TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    idempotency_key: clientGroupText(idempotencyKey) || `ui:client-group:${Date.now()}`,
+    client: normalizedClient
+  };
+  if (reviewDigest !== null) payload.review_digest = clientGroupText(reviewDigest);
+  if (confirmDistinctClient !== null) payload.confirm_distinct_client = confirmDistinctClient === true;
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, safeErrorCodes: [] };
+  }
+
+  const safeErrorCodes = clientGroupSafeErrorCodes(body);
+  const outcome = clientGroupText(body?.outcome);
+  if (!body || typeof body !== "object" || Array.isArray(body) || !outcome || !safeErrorCodes) {
+    return { kind: "error", status: Number(response?.status ?? 0) || 0, safeErrorCodes: safeErrorCodes ?? [] };
+  }
+  if (!response.ok || !["passed", "review_required"].includes(outcome)) {
+    return clientGroupGuardedResult(response, body, safeErrorCodes);
+  }
+
+  // A permission-context review gate may intentionally withhold the review
+  // item. Preserve that review state without treating the gated response as
+  // a malformed success payload.
+  if (outcome === "review_required" && (!body.item || !validClientGroupReviewItem(body.item))) {
+    return clientGroupGuardedResult(response, body, safeErrorCodes);
+  }
+
+  if (path.endsWith("/review")) {
+    if (!validClientGroupReviewItem(body.item)) {
+      return { kind: "error", status: Number(response.status) || 0, safeErrorCodes };
+    }
+    return {
+      kind: "data",
+      status: Number(response.status) || 0,
+      outcome,
+      uiState: body.ui_state ?? null,
+      item: body.item,
+      safeErrorCodes,
+      auditHintRef: clientGroupText(body.audit_hint_ref) || null,
+      requestId: clientGroupText(body.request_id) || null
+    };
+  }
+
+  if (outcome !== "passed") {
+    return clientGroupGuardedResult(response, body, safeErrorCodes);
+  }
+  if (typeof body.replayed !== "boolean" || !validClientGroupCreateItem(body.item)) {
+    return { kind: "error", status: Number(response.status) || 0, safeErrorCodes };
+  }
+  return {
+    kind: "data",
+    status: Number(response.status) || 0,
+    outcome,
+    uiState: body.ui_state ?? null,
+    item: body.item,
+    replayed: body.replayed,
+    safeErrorCodes,
+    auditHintRef: clientGroupText(body.audit_hint_ref) || null,
+    requestId: clientGroupText(body.request_id) || null
+  };
+}
+
+export function reviewClientGroup({
+  client,
+  idempotencyKey,
+  ctx = "allow",
+  permissionRef = CLIENT_GROUP_REVIEW_PERMISSION_REF,
+  auditHintRef = CLIENT_GROUP_REVIEW_AUDIT_HINT_REF
+} = {}) {
+  return postClientGroupMutation({
+    path: "/master-data/client-groups/review",
+    client,
+    idempotencyKey,
+    permissionRef,
+    auditHintRef,
+    ctx
+  });
+}
+
+export function createClientGroup({
+  client,
+  reviewDigest,
+  confirmDistinctClient = false,
+  idempotencyKey,
+  ctx = "allow",
+  permissionRef = CLIENT_GROUP_CREATE_PERMISSION_REF,
+  auditHintRef = CLIENT_GROUP_CREATE_AUDIT_HINT_REF
+} = {}) {
+  if (!clientGroupText(reviewDigest)) return Promise.resolve({ kind: "error", status: 0, safeErrorCodes: [] });
+  return postClientGroupMutation({
+    path: "/master-data/client-groups",
+    client,
+    reviewDigest,
+    confirmDistinctClient,
+    idempotencyKey,
+    permissionRef,
+    auditHintRef,
+    ctx
+  });
 }
 
 export async function fetchUserProfile({
@@ -3976,7 +4256,6 @@ async function fetchCrmIntakeCollection({
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
-
   let body;
   try {
     const response = await apiFetch(`${path}?${params.toString()}`, {
@@ -4015,10 +4294,15 @@ function uiRuntimeId(prefix) {
 }
 
 function uiStableId(prefix, value) {
-  const safeValue = String(value ?? "record")
-    .replace(/[^a-z0-9]+/gi, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 48);
+  // Keep the complete canonical value. Replacing punctuation or truncating a
+  // prefix makes distinct CRM IDs share a retry key (for example `opp:a`,
+  // `opp.a`, and `opp/a`). RFC 3986 percent encoding is synchronous, reversible,
+  // and safe to carry in a JSON idempotency/intake identifier without Web Crypto.
+  const canonicalValue = String(value ?? "record");
+  const encodedValue = encodeURIComponent(canonicalValue);
+  const safeValue = encodedValue.replace(/[!'()*]/g, (character) => (
+    `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+  ));
   return `${prefix}_${safeValue || "record"}`;
 }
 
@@ -4117,6 +4401,1597 @@ async function patchCrmIntakeRuntime({ path, payload, ctx = "allow" } = {}) {
     productionReadyClaim: body.production_ready_claim === true
   };
 }
+
+const CRM_INQUIRY_STATUS_LABELS = Object.freeze({
+  new: "새 문의",
+  reviewing: "확인 중",
+  consultation_scheduled: "상담 예정",
+  engagement_review: "수임 검토 중",
+  engaged: "수임 확정",
+  not_engaged: "수임하지 않음"
+});
+const CRM_INQUIRY_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u;
+const CRM_INQUIRY_SHA256_PATTERN = /^[a-f0-9]{64}$/iu;
+const CRM_INQUIRY_DECISIONS = new Set(["pending", "accepted", "declined"]);
+const CRM_INQUIRY_WORKFLOW_STATUSES = new Set(["completed", "in_progress", "repair_required"]);
+
+function safeCrmInquiryId(value) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return CRM_INQUIRY_ID_PATTERN.test(normalized) ? normalized : null;
+}
+
+function safeCrmInquiryDate(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string" || !value.trim()) return null;
+  return Number.isNaN(Date.parse(value)) ? null : value.trim();
+}
+
+function safeCrmInquirySource(value) {
+  return value === "outlook_addin" || value === "manual" ? value : null;
+}
+
+function safeCrmInquiryVersion(value) {
+  return Number.isSafeInteger(value) && value >= 1 ? value : null;
+}
+
+function safeCrmInquiryDecision(value) {
+  if (value === null || value === undefined) return null;
+  return CRM_INQUIRY_DECISIONS.has(value) ? value : null;
+}
+
+function safeCrmInquiryWorkflowStatus(value) {
+  if (value === null || value === undefined) return null;
+  return CRM_INQUIRY_WORKFLOW_STATUSES.has(value) ? value : null;
+}
+
+function safeCrmInquiryOpportunity(item, expectedOpportunityId) {
+  if (item === null || item === undefined) return null;
+  if (typeof item !== "object" || Array.isArray(item)) return null;
+  const opportunityId = safeCrmInquiryId(item.opportunity_id);
+  const stage = typeof item.stage === "string" ? item.stage.trim() : "";
+  const decision = safeCrmInquiryDecision(item.engagement_decision);
+  const decisionVersion = safeCrmInquiryVersion(item.engagement_decision_version);
+  const workflowId = item.engagement_workflow_id === null || item.engagement_workflow_id === undefined
+    ? null
+    : safeCrmInquiryId(item.engagement_workflow_id);
+  const workflowStatus = safeCrmInquiryWorkflowStatus(item.engagement_workflow_status);
+  const hasWorkflowId = Object.prototype.hasOwnProperty.call(item, "engagement_workflow_id");
+  const hasWorkflowStatus = Object.prototype.hasOwnProperty.call(item, "engagement_workflow_status");
+  if (
+    !opportunityId
+    || expectedOpportunityId === null
+    || opportunityId !== expectedOpportunityId
+    || !stage
+    || !Object.prototype.hasOwnProperty.call(item, "engagement_decision")
+    || (item.engagement_decision !== null && item.engagement_decision !== undefined && decision === null)
+    || !decisionVersion
+    || (hasWorkflowId && item.engagement_workflow_id !== null && item.engagement_workflow_id !== undefined && !workflowId)
+    || (hasWorkflowStatus && item.engagement_workflow_status !== null && item.engagement_workflow_status !== undefined && !workflowStatus)
+    || item.direct_matter_reference_included !== false
+    || item.production_ready_claim !== false
+  ) return null;
+  return {
+    opportunity_id: opportunityId,
+    stage,
+    engagement_decision: decision,
+    engagement_decision_version: decisionVersion,
+    engagement_workflow_id: workflowId,
+    engagement_workflow_status: workflowStatus,
+    direct_matter_reference_included: false,
+    production_ready_claim: false
+  };
+}
+
+function safeCrmInquirySummary(item, { expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const leadId = safeCrmInquiryId(item.lead_id);
+  const version = safeCrmInquiryVersion(item.version);
+  const displayName = typeof item.display_name === "string" ? item.display_name.trim() : "";
+  const visibleStatus = typeof item.visible_status === "string" ? item.visible_status.trim() : "";
+  const visibleStatusLabel = typeof item.visible_status_label === "string" ? item.visible_status_label.trim() : "";
+  const source = safeCrmInquirySource(item.source);
+  const opportunityId = item.opportunity_id === null || item.opportunity_id === undefined
+    ? null
+    : safeCrmInquiryId(item.opportunity_id);
+  const engagementDecision = safeCrmInquiryDecision(item.engagement_decision);
+  const engagementWorkflowStatus = safeCrmInquiryWorkflowStatus(item.engagement_workflow_status);
+  if (
+    !leadId
+    || !version
+    || (expectedTenantId !== null && item.tenant_id !== expectedTenantId)
+    || !displayName
+    || !Object.prototype.hasOwnProperty.call(CRM_INQUIRY_STATUS_LABELS, visibleStatus)
+    || visibleStatusLabel !== CRM_INQUIRY_STATUS_LABELS[visibleStatus]
+    || !source
+    || (item.received_at !== null && item.received_at !== undefined && safeCrmInquiryDate(item.received_at) === null)
+    || (item.next_action !== null && item.next_action !== undefined && typeof item.next_action !== "string")
+    || !Object.prototype.hasOwnProperty.call(item, "assigned_user_id")
+    || (item.assigned_user_id !== null && typeof item.assigned_user_id !== "string")
+    || (item.opportunity_id !== null && item.opportunity_id !== undefined && !opportunityId)
+    || (item.engagement_decision !== null && item.engagement_decision !== undefined && engagementDecision === null)
+    || (item.engagement_workflow_status !== null && item.engagement_workflow_status !== undefined && engagementWorkflowStatus === null)
+    || (opportunityId === null && (engagementDecision !== null || engagementWorkflowStatus !== null))
+    || Object.prototype.hasOwnProperty.call(item, "assigned")
+  ) return null;
+  const assigned = typeof item.assigned_user_id === "string" && item.assigned_user_id.trim().length > 0;
+  return {
+    lead_id: leadId,
+    version,
+    display_name: displayName,
+    visible_status: visibleStatus,
+    visible_status_label: visibleStatusLabel,
+    source,
+    received_at: safeCrmInquiryDate(item.received_at),
+    assigned,
+    opportunity_id: opportunityId,
+    engagement_decision: engagementDecision,
+    engagement_workflow_status: engagementWorkflowStatus,
+    next_action: item.next_action === null || item.next_action === undefined
+      ? null
+      : item.next_action.trim()
+  };
+}
+
+function safeCrmInquiryConsultation(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  if (typeof item.confidential !== "boolean") return null;
+  const confidential = item.confidential;
+  if (typeof item.confidential_details_included !== "boolean") return null;
+  if (confidential) {
+    if (
+      item.subject !== "보호된 상담"
+      || item.outcome !== null
+      || item.next_action !== null
+      || item.confidential_details_included !== false
+    ) return null;
+  } else if (item.confidential_details_included !== true) {
+    return null;
+  }
+  const validOptionalDate = (value) => value === null || value === undefined || safeCrmInquiryDate(value) !== null;
+  const safeDate = (value) => value === null || value === undefined ? null : safeCrmInquiryDate(value);
+  const validOptionalString = (value) => value === null || value === undefined || typeof value === "string";
+  if (
+    !validOptionalDate(item.scheduled_start)
+    || !validOptionalDate(item.scheduled_at)
+    || !validOptionalDate(item.scheduled_end)
+    || !validOptionalDate(item.completed_at)
+    || !validOptionalString(item.subject)
+    || !validOptionalString(item.outcome)
+    || !validOptionalString(item.next_action)
+  ) return null;
+  return {
+    scheduled_start: safeDate(item.scheduled_start ?? item.scheduled_at),
+    scheduled_end: safeDate(item.scheduled_end),
+    timezone: typeof item.timezone === "string" ? item.timezone.trim() || null : null,
+    completed_at: safeDate(item.completed_at),
+    subject: confidential ? "보호된 상담" : typeof item.subject === "string" ? item.subject.trim() || null : null,
+    outcome: confidential ? null : typeof item.outcome === "string" ? item.outcome.trim() || null : null,
+    next_action: confidential ? null : typeof item.next_action === "string" ? item.next_action.trim() || null : null,
+    confidential,
+    confidential_details_included: item.confidential_details_included,
+    status: typeof item.status === "string" ? item.status.trim() || null : null
+  };
+}
+
+function safeCrmInquiryEvidence(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const evidenceId = safeCrmInquiryId(item.inquiry_email_evidence_id);
+  const captureStatus = typeof item.capture_status === "string" ? item.capture_status.trim() : "";
+  if (
+    !evidenceId
+    || !captureStatus
+    || item.raw_content_included !== false
+    || item.mailbox_address_included !== false
+    || item.provider_message_identifiers_included !== false
+    || item.storage_object_identifiers_included !== false
+    || (item.received_at !== null && item.received_at !== undefined && safeCrmInquiryDate(item.received_at) === null)
+    || (item.subject !== null && item.subject !== undefined && typeof item.subject !== "string")
+    || (item.sender_display_name !== null && item.sender_display_name !== undefined && typeof item.sender_display_name !== "string")
+  ) return null;
+  const prefix = `/api/outlook/inquiries/evidence/${encodeURIComponent(evidenceId)}/content`;
+  const displayPath = item.display_content_path === null || item.display_content_path === undefined
+    ? null
+    : item.display_content_path;
+  const originalPath = item.original_content_path === null || item.original_content_path === undefined
+    ? null
+    : item.original_content_path;
+  if (
+    (displayPath !== null && displayPath !== `${prefix}?kind=display`)
+    || (originalPath !== null && originalPath !== `${prefix}?kind=original`)
+  ) return null;
+  return {
+    inquiry_email_evidence_id: evidenceId,
+    received_at: safeCrmInquiryDate(item.received_at),
+    subject: typeof item.subject === "string" ? item.subject.trim() : "",
+    sender_display_name: item.sender_display_name === null || item.sender_display_name === undefined
+      ? null
+      : typeof item.sender_display_name === "string" ? item.sender_display_name.trim() || null : null,
+    capture_status: captureStatus,
+    display_content_path: displayPath,
+    original_content_path: originalPath,
+    raw_content_included: false,
+    mailbox_address_included: false,
+    provider_message_identifiers_included: false,
+    storage_object_identifiers_included: false,
+    production_ready_claim: false
+  };
+}
+
+function inquirySourceStatusesValid(value, expectedKeys) {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    && Object.keys(value).sort().join("|") === expectedKeys.slice().sort().join("|")
+    && Object.values(value).every((status) => ["complete", "partial", "permission_denied", "unavailable", "error"].includes(status));
+}
+
+function inquiryPermissionResult(response, body) {
+  const outcome = typeof body?.outcome === "string" ? body.outcome : "blocked";
+  const uiState = body?.ui_state === "review" || body?.ui_state === "review_required" || outcome === "review_required"
+    ? "review_required"
+    : response?.status === 403 || body?.ui_state === "denied" || outcome === "denied"
+      ? "denied"
+      : body?.ui_state === "blocked" || outcome === "blocked"
+        ? "blocked"
+        : "error";
+  return {
+    kind: "guarded",
+    status: Number(response?.status ?? 0) || 0,
+    outcome,
+    uiState: uiState === "blocked" && outcome === "review_required" ? "review_required" : uiState,
+    items: [],
+    item: null,
+    safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes.filter((code) => typeof code === "string") : [],
+    countLeakPrevented: body?.count_leak_prevented === true
+  };
+}
+
+function inquiryReadParams(permissionRef, auditHintRef) {
+  return new URLSearchParams({
+    tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+}
+
+export async function fetchCrmInquiries({ ctx = "allow" } = {}) {
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(CRM_INQUIRY_PERMISSION_REF, CRM_INQUIRY_AUDIT_HINT_REF);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/inquiries?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error", items: [] };
+  }
+  if (response.status >= 500) return { kind: "error", status: response.status, uiState: "error", items: [] };
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review_required") {
+    return inquiryPermissionResult(response, body);
+  }
+  const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+  const items = Array.isArray(body?.items)
+    ? body.items.map((item) => safeCrmInquirySummary(item, { expectedTenantId }))
+    : null;
+  const hasPageInfo = body?.page_info && typeof body.page_info === "object";
+  const valid = (
+    body
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && body.outcome === "passed"
+    && Array.isArray(body.items)
+    && items
+    && items.every(Boolean)
+    && new Set(items.map((item) => item.lead_id)).size === items.length
+    && (body.count_leak_prevented === true)
+    && Array.isArray(body.safe_error_codes)
+    && body.permission_filter_applied === true
+    && ["complete", "partial"].includes(body.data_status)
+    && inquirySourceStatusesValid(body.source_status, ["crm_consultations", "crm_leads", "crm_opportunities"])
+    && hasPageInfo
+    && body.page_info.returned_count === items.length
+    && body.page_info.omitted_item_count === null
+  );
+  if (!valid) return { kind: "error", uiState: "error", items: [] };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? (body.data_status === "partial" ? "partial" : items.length === 0 ? "empty" : null),
+    items,
+    pageInfo: { returnedCount: items.length, omittedItemCount: null },
+    sourceStatus: body.source_status,
+    safeErrorCodes: body.safe_error_codes,
+    countLeakPrevented: true,
+    permissionFilterApplied: body.permission_filter_applied === true
+  };
+}
+
+export async function fetchCrmInquiryDetail({ inquiryId, ctx = "allow" } = {}) {
+  const normalizedId = safeCrmInquiryId(inquiryId);
+  if (!normalizedId) return { kind: "empty", status: 404, uiState: "empty", item: null, countLeakPrevented: true };
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(CRM_INQUIRY_PERMISSION_REF, CRM_INQUIRY_AUDIT_HINT_REF);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/inquiries/${encodeURIComponent(normalizedId)}?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error", item: null };
+  }
+  if (response.status === 404 || body?.ui_state === "empty") {
+    return { kind: "empty", status: response.status, outcome: "empty", uiState: "empty", item: null, countLeakPrevented: body?.count_leak_prevented === true };
+  }
+  if (response.status >= 500) return { kind: "error", status: response.status, uiState: "error", item: null };
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review_required") {
+    return inquiryPermissionResult(response, body);
+  }
+  const item = body?.item;
+  const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+  const summary = safeCrmInquirySummary(item, { expectedTenantId });
+  const hasOpportunity = Boolean(item && Object.prototype.hasOwnProperty.call(item, "opportunity"));
+  const opportunity = hasOpportunity
+    ? safeCrmInquiryOpportunity(item.opportunity, summary?.opportunity_id ?? null)
+    : null;
+  const consultations = Array.isArray(item?.consultations) ? item.consultations.map(safeCrmInquiryConsultation) : null;
+  const consultationsAccess = item?.consultations_access;
+  const evidence = item?.evidence;
+  const evidenceItems = Array.isArray(evidence?.items) ? evidence.items.map(safeCrmInquiryEvidence) : null;
+  const evidenceValid = (
+    evidence
+    && typeof evidence === "object"
+    && ["allowed", "denied", "unavailable"].includes(evidence.access)
+    && ["complete", "partial", "permission_denied", "unavailable", "error"].includes(evidence.source_status)
+    && evidence.count_leak_prevented === true
+    && evidence.page_info
+    && typeof evidence.page_info === "object"
+    && evidence.page_info.omitted_item_count === null
+    && evidenceItems
+    && evidenceItems.every(Boolean)
+    && (evidence.access === "allowed" || evidenceItems.length === 0)
+    && new Set(evidenceItems.map((entry) => entry.inquiry_email_evidence_id)).size === evidenceItems.length
+    && (
+      evidence.access === "allowed"
+        ? evidence.source_status === "complete" || evidence.source_status === "partial"
+        : evidence.access === "denied"
+          ? evidence.source_status === "permission_denied"
+          : ["unavailable", "error"].includes(evidence.source_status)
+    )
+    && (
+      evidence.access === "allowed"
+        ? evidence.page_info.returned_count === evidenceItems.length
+        : evidence.page_info.returned_count === null
+    )
+  );
+  const valid = (
+    body
+    && typeof body === "object"
+    && body.outcome === "passed"
+    && summary
+    && summary.lead_id === normalizedId
+    && hasOpportunity
+    && (summary.opportunity_id === null ? opportunity === null : opportunity !== null)
+    && consultations
+    && consultations.every(Boolean)
+    && ["allowed", "denied", "unavailable"].includes(consultationsAccess)
+    && (consultationsAccess === "allowed" || consultations.length === 0)
+    && evidenceValid
+    && ["complete", "partial"].includes(body.data_status)
+    && inquirySourceStatusesValid(body.source_status, ["crm_consultations", "crm_leads", "crm_opportunities", "email_evidence"])
+    && body.permission_filter_applied === true
+    && body.count_leak_prevented === true
+    && Array.isArray(body.safe_error_codes)
+  );
+  if (!valid) return { kind: "error", uiState: "error", item: null };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.data_status === "partial" ? "partial" : null,
+    item: {
+      ...summary,
+      opportunity,
+      consultations,
+      consultations_access: consultationsAccess,
+      evidence: {
+        access: evidence.access,
+        source_status: evidence.source_status,
+        items: evidenceItems,
+        page_info: evidence.page_info,
+        count_leak_prevented: true
+      }
+    },
+    sourceStatus: body.source_status,
+    safeErrorCodes: body.safe_error_codes,
+    countLeakPrevented: true
+  };
+}
+
+function base64ByteLength(value) {
+  const normalized = typeof value === "string" ? value.replace(/\s+/gu, "") : "";
+  if (!normalized || normalized.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/u.test(normalized)) return null;
+  const padding = normalized.endsWith("==") ? 2 : normalized.endsWith("=") ? 1 : 0;
+  return (normalized.length * 3) / 4 - padding;
+}
+
+function bytesFromBase64(value) {
+  const normalized = typeof value === "string" ? value.replace(/\s+/gu, "") : "";
+  if (typeof atob === "function") {
+    try {
+      const binary = atob(normalized);
+      return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    } catch {
+      return null;
+    }
+  }
+  if (globalThis.Buffer?.from) {
+    try {
+      return Uint8Array.from(globalThis.Buffer.from(normalized, "base64"));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function contentDigestMatches(bytes, expectedSha256) {
+  if (!(bytes instanceof Uint8Array) || !globalThis.crypto?.subtle) return false;
+  try {
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    const actual = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    return actual === expectedSha256.toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+async function safeInquiryContentItem(item, kind, expectedEvidenceId) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const evidenceId = safeCrmInquiryId(item.inquiry_email_evidence_id);
+  const expectedObjectKind = kind === "display" ? "sanitized_display" : "original_mime";
+  const expectedEncoding = kind === "display" ? "utf8" : "base64";
+  const expectedMime = kind === "display" ? /^text\/plain(?:;|$)/iu : /^message\/rfc822$/iu;
+  if (
+    !evidenceId
+    || evidenceId !== expectedEvidenceId
+    || item.object_kind !== expectedObjectKind
+    || item.encoding !== expectedEncoding
+    || typeof item.mime_type !== "string"
+    || !expectedMime.test(item.mime_type)
+    || item.scan_status !== "clean"
+    || item.raw_path_exposed !== false
+    || item.storage_pointer_ref_included !== false
+    || item.executable_preview_enabled !== false
+    || item.external_resources_loaded !== false
+    || typeof item.content_sha256 !== "string"
+    || !CRM_INQUIRY_SHA256_PATTERN.test(item.content_sha256)
+    || !Number.isSafeInteger(item.byte_size)
+    || item.byte_size < 0
+  ) return null;
+  if (kind === "display") {
+    if (typeof item.content_text !== "string" || item.content_base64 !== null) return null;
+    const bytes = new TextEncoder().encode(item.content_text);
+    const byteLength = bytes.byteLength;
+    if (byteLength !== item.byte_size) return null;
+    if (!(await contentDigestMatches(bytes, item.content_sha256))) return null;
+    return {
+      objectKind: expectedObjectKind,
+      encoding: expectedEncoding,
+      contentText: item.content_text,
+      contentBase64: null,
+      contentSha256: item.content_sha256.toLowerCase(),
+      byteSize: item.byte_size,
+      mimeType: item.mime_type,
+      scanStatus: item.scan_status
+    };
+  }
+  if (typeof item.content_base64 !== "string" || item.content_text !== null || base64ByteLength(item.content_base64) !== item.byte_size) return null;
+  const bytes = bytesFromBase64(item.content_base64);
+  if (!bytes || !(await contentDigestMatches(bytes, item.content_sha256))) return null;
+  return {
+    objectKind: expectedObjectKind,
+    encoding: expectedEncoding,
+    contentText: null,
+    contentBase64: item.content_base64.replace(/\s+/gu, ""),
+    contentSha256: item.content_sha256.toLowerCase(),
+    byteSize: item.byte_size,
+    mimeType: item.mime_type,
+    scanStatus: item.scan_status
+  };
+}
+
+export async function fetchCrmInquiryEvidenceContent({ evidenceId, kind, ctx = "allow" } = {}) {
+  const normalizedId = safeCrmInquiryId(evidenceId);
+  if (!normalizedId || !["display", "original"].includes(kind)) {
+    return { kind: "error", uiState: "blocked", item: null };
+  }
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(CRM_INQUIRY_EVIDENCE_PERMISSION_REF, CRM_INQUIRY_EVIDENCE_AUDIT_HINT_REF);
+  params.set("kind", kind);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/outlook/inquiries/evidence/${encodeURIComponent(normalizedId)}/content?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "unavailable", item: null };
+  }
+  if (response.status === 423 || body?.safe_error_codes?.includes?.("INQUIRY_EVIDENCE_QUARANTINED")) {
+    return { kind: "data", outcome: "blocked", uiState: "quarantined", item: null, safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [] };
+  }
+  if (response.status >= 500) return { kind: "error", status: response.status, uiState: "error", item: null };
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review" || body?.ui_state === "review_required") {
+    return inquiryPermissionResult(response, body);
+  }
+  if (body?.ui_state === "blocked" || body?.outcome === "blocked") {
+    return { kind: "data", outcome: "blocked", uiState: "blocked", item: null, safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [] };
+  }
+  const item = await safeInquiryContentItem(body?.item, kind, normalizedId);
+  if (!response.ok || body?.outcome !== "passed" || !item || !Array.isArray(body?.safe_error_codes)) {
+    return { kind: "error", uiState: "error", item: null };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: null,
+    item,
+    safeErrorCodes: body.safe_error_codes
+  };
+}
+
+// Client 상담·접촉 이력 명령은 기존 generic CRM write helper와 분리한다.
+// 이 경계에서는 요청키·사유·기대 version을 호출자가 반드시 주고, 응답은
+// 허용된 canonical 필드만 남긴다. Matter 생성/선택 필드는 이 계층에서 받지 않는다.
+const CRM_CLIENT_CONSULTATION_PERMISSION_REF = "ui_cmp_g6_crm_consultation_write";
+const CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF = "ui_cmp_g6_crm_consultation_write_probe";
+const CRM_CLIENT_CONSULTATION_CALENDAR_PERMISSION_REF = "ui_cmp_g6_crm_consultation_calendar";
+const CRM_CLIENT_CONSULTATION_CALENDAR_AUDIT_HINT_REF = "ui_cmp_g6_crm_consultation_calendar_probe";
+const CRM_CLIENT_ENGAGEMENT_PERMISSION_REF = "ui_cmp_g6_crm_engagement_write";
+const CRM_CLIENT_ENGAGEMENT_AUDIT_HINT_REF = "ui_cmp_g6_crm_engagement_write_probe";
+const CRM_CLIENT_ACTIVITY_PERMISSION_REF = "ui_cmp_g6_crm_activity_write";
+const CRM_CLIENT_ACTIVITY_AUDIT_HINT_REF = "ui_cmp_g6_crm_activity_write_probe";
+const CRM_CLIENT_ACTIVITY_READ_PERMISSION_REF = "ui_cmp_g6_crm_activity_read";
+const CRM_CLIENT_ACTIVITY_READ_AUDIT_HINT_REF = "ui_cmp_g6_crm_activity_read_probe";
+const CRM_COMMAND_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u;
+const CRM_COMMAND_SAFE_CODE_PATTERN = /^[A-Z0-9_:-]{1,160}$/u;
+const CRM_CLIENT_ACTIVITY_TYPES = new Set(["call", "email", "meeting", "note", "task"]);
+const CRM_OUTLOOK_WEB_HOSTS = new Set([
+  "outlook.office.com",
+  "outlook.office365.com"
+]);
+const CRM_CONSULTATION_UPDATE_FIELDS = new Set([
+  "scheduled_start",
+  "scheduled_end",
+  "timezone",
+  "completed_at",
+  "outcome",
+  "next_action",
+  "subject",
+  "confidential"
+]);
+const CRM_MATTER_REFERENCE_FIELDS = new Set([
+  "matter_id",
+  "matter_ref",
+  "matter_number",
+  "matter_create_command",
+  "matter_open_command"
+]);
+const CRM_WRITE_SUCCESS_OUTCOMES = new Set([
+  "created",
+  "scheduled",
+  "updated",
+  "completed",
+  "outlook_event_created",
+  "linked",
+  "already_linked",
+  "idempotent_replay",
+  "repair_required"
+]);
+const CRM_WORKFLOW_STEPS = new Set([
+  "decision_recorded",
+  "client_group_resolved",
+  "fee_commitment_created",
+  "fee_commitment_cancelled"
+]);
+
+function requiredCrmCommandText(value, field, maxLength = 500) {
+  if (typeof value !== "string") throw new TypeError(`${field} is required`);
+  const normalized = value.trim();
+  if (!normalized || normalized.length > maxLength) throw new TypeError(`${field} is required`);
+  return normalized;
+}
+
+function requiredCrmCommandId(value, field) {
+  const normalized = requiredCrmCommandText(value, field, 200);
+  if (!CRM_COMMAND_ID_PATTERN.test(normalized)) throw new TypeError(`${field} is invalid`);
+  return normalized;
+}
+
+function requiredCrmCommandVersion(value, field) {
+  if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`${field} is required`);
+  return value;
+}
+
+function optionalCrmCommandText(value, field, maxLength = 500) {
+  if (value === undefined || value === null || value === "") return null;
+  return requiredCrmCommandText(value, field, maxLength);
+}
+
+function assertNoCrmMatterReference(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return;
+  if (Object.keys(value).some((key) => CRM_MATTER_REFERENCE_FIELDS.has(key))) {
+    throw new TypeError("Matter references are not accepted by Client 상담 명령");
+  }
+}
+
+function commandInputError(code = "CRM_CLIENT_COMMAND_INVALID") {
+  return {
+    kind: "error",
+    status: 400,
+    outcome: "blocked",
+    uiState: "blocked",
+    item: null,
+    safeErrorCodes: [code]
+  };
+}
+
+function commandSafeId(value) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return CRM_COMMAND_ID_PATTERN.test(normalized) ? normalized : null;
+}
+
+function commandSafeDate(value, { required = false } = {}) {
+  if (value === undefined || value === null || value === "") return required ? null : null;
+  if (typeof value !== "string" || !value.trim() || Number.isNaN(Date.parse(value))) return null;
+  return value.trim();
+}
+
+function commandSafeVersion(value) {
+  return Number.isSafeInteger(value) && value >= 1 ? value : null;
+}
+
+function commandSafeString(value, maxLength = 500) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized && normalized.length <= maxLength ? normalized : null;
+}
+
+function commandSafeOutcomeCodes(value) {
+  return Array.isArray(value)
+    && value.every((code) => typeof code === "string" && CRM_COMMAND_SAFE_CODE_PATTERN.test(code))
+    ? value
+    : null;
+}
+
+function commandSafeOutlookCalendar(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const state = ["not_created", "linked", "update_required"].includes(value.state)
+    ? value.state
+    : null;
+  if (!state || value.automatic_sync_enabled !== false || value.provider_event_identifier_included !== false || value.transaction_identifier_included !== false) return null;
+  const webLink = value.web_link === null || value.web_link === undefined
+    ? null
+    : commandSafeString(value.web_link, 2_048);
+  const createdAt = commandSafeDate(value.created_at);
+  const mailboxScope = value.mailbox_scope === "me" ? "me" : null;
+  if (webLink !== null) {
+    try {
+      const parsed = new URL(webLink);
+      const hostname = parsed.hostname.toLowerCase();
+      const allowedHost = [...CRM_OUTLOOK_WEB_HOSTS].some((host) => hostname === host || hostname.endsWith(`.${host}`));
+      if (parsed.protocol !== "https:" || parsed.username || parsed.password || !allowedHost) return null;
+    } catch {
+      return null;
+    }
+  }
+  // A linked event is actionable only when the server returned a complete,
+  // mailbox-scoped Outlook receipt.  A not-created consultation intentionally
+  // has no link or creation timestamp yet, but still carries the safe mailbox
+  // scope and the three disabled/omitted provider flags above.
+  if (state === "not_created") {
+    if (webLink !== null || createdAt !== null || mailboxScope !== "me") return null;
+  } else if (webLink === null || createdAt === null || mailboxScope !== "me") {
+    return null;
+  }
+  return {
+    state,
+    webLink,
+    createdAt,
+    mailboxScope,
+    automaticSyncEnabled: false
+  };
+}
+
+function commandSafeActivity(item, { expectedId = null, expectedLeadId = null, expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const resourceId = item.resource_id === null || item.resource_id === undefined ? null : commandSafeId(item.resource_id);
+  const activityId = item.crm_activity_id === null || item.crm_activity_id === undefined ? null : commandSafeId(item.crm_activity_id);
+  const consultationId = activityId ?? resourceId;
+  const activityKind = item.activity_kind === null || item.activity_kind === undefined
+    ? null
+    : item.activity_kind === "consultation" ? "consultation" : "__invalid__";
+  const activityType = commandSafeString(item.activity_type, 80);
+  const confidential = item.confidential === true;
+  const version = commandSafeVersion(item.version);
+  const subject = commandSafeString(item.subject, 160);
+  const confidentialSubjectIncluded = item.confidential_subject_included;
+  const confidentialDetailsIncluded = item.confidential_details_included;
+  if (
+    !consultationId
+    || (item.resource_id !== null && item.resource_id !== undefined && !resourceId)
+    || (item.crm_activity_id !== null && item.crm_activity_id !== undefined && !activityId)
+    || (resourceId !== null && activityId !== null && resourceId !== activityId)
+    || (expectedId !== null && consultationId !== expectedId)
+    || (expectedTenantId !== null && item.tenant_id !== expectedTenantId)
+    || activityKind === "__invalid__"
+    || !activityType
+    || !CRM_CLIENT_ACTIVITY_TYPES.has(activityType)
+    || (activityKind === "consultation" && activityType !== "meeting")
+    || !version
+    || typeof item.confidential !== "boolean"
+    || typeof confidentialSubjectIncluded !== "boolean"
+    || typeof confidentialDetailsIncluded !== "boolean"
+    || confidentialSubjectIncluded !== !confidential
+    || subject === null
+  ) return null;
+  if (item.direct_matter_reference_included !== false || item.production_ready_claim !== false) return null;
+  if (confidential) {
+    if (!["보호된 상담", "보호된 이력"].includes(subject) || confidentialDetailsIncluded !== false) return null;
+  } else if (confidentialDetailsIncluded !== true) {
+    return null;
+  }
+  const leadId = item.lead_id === null || item.lead_id === undefined ? null : commandSafeId(item.lead_id);
+  const opportunityId = item.opportunity_id === null || item.opportunity_id === undefined ? null : commandSafeId(item.opportunity_id);
+  if (item.lead_id !== null && item.lead_id !== undefined && !leadId) return null;
+  if (item.opportunity_id !== null && item.opportunity_id !== undefined && !opportunityId) return null;
+  if (expectedLeadId !== null && leadId !== expectedLeadId) return null;
+  const partyDisplayName = item.party_display_name === null || item.party_display_name === undefined
+    ? null
+    : commandSafeString(item.party_display_name, 240);
+  if (item.party_display_name !== null && item.party_display_name !== undefined && partyDisplayName === null) return null;
+  const outcome = confidential ? null : optionalCrmCommandText(item.outcome, "outcome", 2_000);
+  const nextAction = confidential ? null : optionalCrmCommandText(item.next_action, "next_action", 500);
+  if (!confidential && ((item.outcome !== null && item.outcome !== undefined && outcome === null) || (item.next_action !== null && item.next_action !== undefined && nextAction === null))) return null;
+  const scheduledStart = commandSafeDate(item.scheduled_start);
+  const scheduledEnd = commandSafeDate(item.scheduled_end);
+  const completedAt = commandSafeDate(item.completed_at);
+  if ((item.scheduled_start !== null && item.scheduled_start !== undefined && scheduledStart === null) || (item.scheduled_end !== null && item.scheduled_end !== undefined && scheduledEnd === null) || (item.completed_at !== null && item.completed_at !== undefined && completedAt === null)) return null;
+  const status = commandSafeString(item.status, 64);
+  if (!status) return null;
+  const outlookCalendar = activityKind === "consultation" ? commandSafeOutlookCalendar(item.outlook_calendar) : null;
+  if (activityKind === "consultation" && !outlookCalendar) return null;
+  return {
+    consultationId,
+    activityId: consultationId,
+    leadId,
+    opportunityId,
+    activityKind,
+    activityType,
+    partyDisplayName,
+    subject,
+    confidential,
+    confidentialSubjectIncluded,
+    confidentialDetailsIncluded,
+    scheduledStart,
+    scheduledEnd,
+    timezone: commandSafeString(item.timezone, 80),
+    completedAt,
+    outcome,
+    nextAction,
+    outlookCalendar,
+    version,
+    status,
+    occurredAt: commandSafeDate(item.occurred_at),
+    createdAt: commandSafeDate(item.created_at),
+    updatedAt: commandSafeDate(item.updated_at)
+  };
+}
+
+function commandSafeInquiry(item, { expectedLeadId = null, expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const leadId = commandSafeId(item.lead_id);
+  const version = commandSafeVersion(item.version);
+  if (!leadId || !version || (expectedLeadId !== null && leadId !== expectedLeadId) || (expectedTenantId !== null && item.tenant_id !== expectedTenantId)) return null;
+  const nextAction = item.next_action === null || item.next_action === undefined
+    ? null
+    : commandSafeString(item.next_action, 500);
+  if (item.next_action !== null && item.next_action !== undefined && nextAction === null) return null;
+  return { leadId, version, nextAction };
+}
+
+function commandSafeEngagement(item, { expectedOpportunityId = null, expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const resourceId = item.resource_id === null || item.resource_id === undefined ? null : commandSafeId(item.resource_id);
+  const opportunityRef = item.opportunity_id === null || item.opportunity_id === undefined ? null : commandSafeId(item.opportunity_id);
+  const opportunityId = opportunityRef ?? resourceId;
+  const workflowId = commandSafeId(item.engagement_workflow_id);
+  const stage = commandSafeString(item.stage, 64);
+  const decision = ["pending", "accepted", "declined"].includes(item.engagement_decision)
+    ? item.engagement_decision
+    : null;
+  const decisionVersion = commandSafeVersion(item.engagement_decision_version);
+  const workflowStatus = ["completed", "in_progress", "repair_required"].includes(item.engagement_workflow_status)
+    ? item.engagement_workflow_status
+    : null;
+  if (
+    !opportunityId
+    || (item.resource_id !== null && item.resource_id !== undefined && !resourceId)
+    || (item.opportunity_id !== null && item.opportunity_id !== undefined && !opportunityRef)
+    || (resourceId !== null && opportunityRef !== null && resourceId !== opportunityRef)
+    || !workflowId
+    || !stage
+    || !decision
+    || !decisionVersion
+    || !workflowStatus
+  ) return null;
+  if (expectedOpportunityId !== null && opportunityId !== expectedOpportunityId) return null;
+  if (expectedTenantId !== null && item.tenant_id !== expectedTenantId) return null;
+  if (item.direct_matter_reference_included !== false || item.production_ready_claim !== false) return null;
+  return {
+    opportunityId,
+    engagementWorkflowId: workflowId,
+    stage,
+    engagementDecision: decision,
+    engagementDecisionVersion: decisionVersion,
+    engagementWorkflowStatus: workflowStatus
+  };
+}
+
+function commandSafeProcessing(value, { expectedInquiryId = null, expectedOpportunityId = null, expectedTenantId = null } = {}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const workflowId = commandSafeId(value.engagement_workflow_id);
+  const leadId = commandSafeId(value.lead_id);
+  const opportunityId = commandSafeId(value.opportunity_id);
+  const decision = ["pending", "accepted", "declined"].includes(value.decision)
+    ? value.decision
+    : null;
+  const workflowStatus = ["completed", "in_progress", "repair_required"].includes(value.workflow_status)
+    ? value.workflow_status
+    : null;
+  const workflowVersion = commandSafeVersion(value.workflow_version);
+  const completedSteps = Array.isArray(value.completed_steps)
+    ? value.completed_steps.filter((step) => CRM_WORKFLOW_STEPS.has(step))
+    : null;
+  const failedStep = value.failed_step === null || value.failed_step === undefined
+    ? null
+    : CRM_WORKFLOW_STEPS.has(value.failed_step) ? value.failed_step : "__invalid__";
+  const safeErrorCode = value.safe_error_code === null || value.safe_error_code === undefined
+    ? null
+    : typeof value.safe_error_code === "string" && CRM_COMMAND_SAFE_CODE_PATTERN.test(value.safe_error_code)
+      ? value.safe_error_code
+      : "__invalid__";
+  const engagementDecisionVersion = value.engagement_decision_version === null || value.engagement_decision_version === undefined
+    ? null
+    : commandSafeVersion(value.engagement_decision_version);
+  if (
+    !workflowId
+    || !leadId
+    || !opportunityId
+    || !decision
+    || !workflowStatus
+    || !workflowVersion
+    || !completedSteps
+    || completedSteps.length !== (value.completed_steps ?? []).length
+    || new Set(completedSteps).size !== completedSteps.length
+    || failedStep === "__invalid__"
+    || safeErrorCode === "__invalid__"
+    || (value.engagement_decision_version !== null && value.engagement_decision_version !== undefined && !engagementDecisionVersion)
+    || (workflowStatus === "repair_required" && (!failedStep || !safeErrorCode))
+    || (workflowStatus !== "repair_required" && (failedStep !== null || safeErrorCode !== null))
+    || (expectedInquiryId !== null && leadId !== expectedInquiryId)
+    || (expectedOpportunityId !== null && opportunityId !== expectedOpportunityId)
+    || (expectedTenantId !== null && value.tenant_id !== undefined && value.tenant_id !== expectedTenantId)
+  ) return null;
+  return {
+    workflowId,
+    leadId,
+    opportunityId,
+    decision,
+    engagementDecisionVersion,
+    workflowStatus,
+    workflowVersion,
+    completedSteps,
+    failedStep,
+    safeErrorCode,
+    automaticMatterCreation: value.automatic_matter_creation === false ? false : null
+  };
+}
+
+function engagementProcessingConsistent(item, inquiry, processing) {
+  if (!item || !inquiry || !processing) return false;
+  if (
+    item.engagementWorkflowId !== processing.workflowId
+    || item.engagementWorkflowStatus !== processing.workflowStatus
+    || item.engagementDecision !== processing.decision
+    || item.opportunityId !== processing.opportunityId
+    || processing.leadId !== inquiry.leadId
+  ) return false;
+  return processing.engagementDecisionVersion === null
+    || item.engagementDecisionVersion === processing.engagementDecisionVersion;
+}
+
+function engagementProcessingReceiptConsistent(processing, safeErrorCodes) {
+  if (!processing || !Array.isArray(safeErrorCodes)) return false;
+  if (processing.workflowStatus === "repair_required") {
+    return processing.failedStep !== null
+      && processing.safeErrorCode !== null
+      && safeErrorCodes.length === 1
+      && safeErrorCodes[0] === processing.safeErrorCode;
+  }
+  return processing.failedStep === null
+    && processing.safeErrorCode === null
+    && safeErrorCodes.length === 0;
+}
+
+function commandSafeAuditEvent(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const action = commandSafeString(value.action, 160);
+  if (!action) return null;
+  const decision = value.decision === undefined || value.decision === null
+    ? null
+    : commandSafeString(value.decision, 80);
+  return { action, decision };
+}
+
+function classifyCrmCommandResponse(response, body) {
+  const status = Number(response?.status ?? 0) || 0;
+  const outcome = typeof body?.outcome === "string" ? body.outcome : null;
+  const uiState = typeof body?.ui_state === "string" ? body.ui_state : null;
+  const safeErrorCodes = commandSafeOutcomeCodes(body?.safe_error_codes);
+  if (!body || typeof body !== "object" || Array.isArray(body) || !outcome || !safeErrorCodes) {
+    return { kind: "error", status, outcome: "error", uiState: "error", item: null, safeErrorCodes: [] };
+  }
+  if (status === 403 || outcome === "denied" || uiState === "denied") {
+    return { kind: "denied", status, outcome, uiState: "denied", item: null, safeErrorCodes };
+  }
+  if (outcome === "review_required" || outcome === "approval_required" || uiState === "review" || uiState === "review_required" || uiState === "approval_required") {
+    return { kind: "review_required", status, outcome, uiState: "review_required", item: null, safeErrorCodes };
+  }
+  const conflict = status === 409 || uiState === "conflict" || safeErrorCodes.some((code) => /CONFLICT|VERSION|STALE|ACTIVE_EXISTS|TRANSITION_INVALID|UPDATE_INVALID/iu.test(code));
+  if (conflict) {
+    return { kind: "conflict", status, outcome, uiState: "conflict", item: null, safeErrorCodes };
+  }
+  if (status >= 500 || !response?.ok || !CRM_WRITE_SUCCESS_OUTCOMES.has(outcome)) {
+    return { kind: "error", status, outcome: outcome ?? "error", uiState: "error", item: null, safeErrorCodes };
+  }
+  return { kind: "data", status, outcome, uiState: uiState ?? null, safeErrorCodes, body };
+}
+
+async function crmClientWriteRequest({ path, payload, ctx, permissionRef, auditHintRef, parse } = {}) {
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  let response;
+  let body;
+  try {
+    response = await apiFetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, outcome: "error", uiState: "error", item: null, safeErrorCodes: [] };
+  }
+  const classified = classifyCrmCommandResponse(response, body);
+  if (classified.kind !== "data") return classified;
+  try {
+    return parse(classified, body, { permissionRef, auditHintRef });
+  } catch {
+    return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+  }
+}
+
+async function crmClientActivityPatchRequest({ activityId, payload, ctx, permissionRef, auditHintRef } = {}) {
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/activities/${encodeURIComponent(activityId)}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, outcome: "error", uiState: "error", item: null, safeErrorCodes: [] };
+  }
+  const classified = classifyCrmCommandResponse(response, body);
+  if (classified.kind !== "data") return classified;
+  let item;
+  let inquiry;
+  try {
+    const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+    item = commandSafeActivity(body.item, { expectedId: activityId, expectedTenantId });
+    inquiry = body.inquiry === null || body.inquiry === undefined ? null : commandSafeInquiry(body.inquiry, { expectedTenantId });
+  } catch {
+    return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+  }
+  if (!item || (body.inquiry !== null && body.inquiry !== undefined && (!inquiry || (item.leadId !== null && inquiry.leadId !== item.leadId)))) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: classified.outcome,
+    uiState: classified.uiState,
+    item,
+    inquiry,
+    auditEvent: commandSafeAuditEvent(body.audit_event),
+    idempotentReplay: body.idempotent_replay === true,
+    safeErrorCodes: classified.safeErrorCodes,
+    automaticMatterCreation: false,
+    directMatterReferenceIncluded: false
+  };
+}
+
+function buildCrmCommandResult(error) {
+  return error instanceof TypeError || error instanceof Error
+    ? commandInputError()
+    : commandInputError();
+}
+
+export async function createCrmConsultation({
+  inquiryId,
+  expectedInquiryVersion,
+  consultation = {},
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const expectedVersion = requiredCrmCommandVersion(expectedInquiryVersion, "expectedInquiryVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    assertNoCrmMatterReference(consultation);
+    if (!consultation || typeof consultation !== "object" || Array.isArray(consultation)) throw new TypeError("consultation is required");
+    const allowed = ["subject", "scheduled_start", "scheduled_end", "timezone", "assigned_user_id", "confidential", "next_action"];
+    if (Object.keys(consultation).some((field) => !allowed.includes(field))) throw new TypeError("consultation contains unsupported fields");
+    if (consultation.confidential !== undefined && typeof consultation.confidential !== "boolean") throw new TypeError("confidential is invalid");
+    for (const field of ["scheduled_start", "scheduled_end", "timezone"]) {
+      if (typeof consultation[field] !== "string" || !consultation[field].trim()) throw new TypeError(`${field} is required`);
+    }
+    const tenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+    const payload = {
+      tenant_id: tenantId,
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_inquiry_version: expectedVersion,
+      reason: changeReason,
+      idempotency_key: key,
+      consultation: {
+        scheduled_start: consultation.scheduled_start,
+        scheduled_end: consultation.scheduled_end,
+        timezone: consultation.timezone,
+        ...(consultation.subject === undefined ? {} : { subject: consultation.subject }),
+        ...(consultation.assigned_user_id === undefined ? {} : { assigned_user_id: consultation.assigned_user_id }),
+        ...(consultation.confidential === undefined ? {} : { confidential: consultation.confidential }),
+        ...(consultation.next_action === undefined ? {} : { next_action: consultation.next_action })
+      }
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/inquiries/${encodeURIComponent(normalizedInquiryId)}/consultations`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const item = commandSafeActivity(body.item, { expectedLeadId: normalizedInquiryId, expectedTenantId });
+        const inquiry = body.inquiry === null || body.inquiry === undefined ? null : commandSafeInquiry(body.inquiry, { expectedLeadId: normalizedInquiryId, expectedTenantId });
+        if (!item || item.activityKind !== "consultation" || !inquiry) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          inquiry,
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const scheduleCrmConsultation = createCrmConsultation;
+
+export async function updateCrmConsultation({
+  consultationId,
+  expectedVersion,
+  fieldUpdates,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedId = requiredCrmCommandId(consultationId, "consultationId");
+    const version = requiredCrmCommandVersion(expectedVersion, "expectedVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    if (!fieldUpdates || typeof fieldUpdates !== "object" || Array.isArray(fieldUpdates) || Object.keys(fieldUpdates).length === 0) throw new TypeError("fieldUpdates is required");
+    assertNoCrmMatterReference(fieldUpdates);
+    if (Object.keys(fieldUpdates).some((field) => !CRM_CONSULTATION_UPDATE_FIELDS.has(field))) throw new TypeError("fieldUpdates contains unsupported fields");
+    if (Object.hasOwn(fieldUpdates, "confidential") && typeof fieldUpdates.confidential !== "boolean") throw new TypeError("confidential is invalid");
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_version: version,
+      field_updates: { ...fieldUpdates },
+      reason: changeReason,
+      idempotency_key: key
+    };
+    return await crmClientActivityPatchRequest({ activityId: normalizedId, payload, ctx, permissionRef: safePermissionRef, auditHintRef: safeAuditHintRef });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export async function completeCrmConsultation({
+  consultationId,
+  expectedVersion,
+  completedAt,
+  outcome,
+  nextAction,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedCompletedAt = requiredCrmCommandText(completedAt, "completedAt", 80);
+    if (commandSafeDate(normalizedCompletedAt) === null) throw new TypeError("completedAt is invalid");
+    const normalizedOutcome = requiredCrmCommandText(outcome, "outcome", 2_000);
+    const normalizedNextAction = requiredCrmCommandText(nextAction, "nextAction", 500);
+    return await updateCrmConsultation({
+      consultationId,
+      expectedVersion,
+      fieldUpdates: { completed_at: normalizedCompletedAt, outcome: normalizedOutcome, next_action: normalizedNextAction },
+      idempotencyKey,
+      reason,
+      permissionRef,
+      auditHintRef,
+      ctx
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const completeClientConsultation = completeCrmConsultation;
+
+export async function linkCrmConsultationOutlookEvent({
+  consultationId,
+  expectedVersion,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_CALENDAR_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_CALENDAR_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedId = requiredCrmCommandId(consultationId, "consultationId");
+    const version = requiredCrmCommandVersion(expectedVersion, "expectedVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_version: version,
+      reason: changeReason,
+      idempotency_key: key
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/consultations/${encodeURIComponent(normalizedId)}/outlook-event`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const item = commandSafeActivity(body.item, { expectedId: normalizedId, expectedTenantId });
+        if (
+          !item
+          || item.activityKind !== "consultation"
+          || typeof body.provider_call_executed !== "boolean"
+          || body.credential_material_included !== false
+          || body.production_ready_claim !== false
+        ) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          outlookCalendarState: item.outlookCalendar.state,
+          providerCallExecuted: body.provider_call_executed === true,
+          credentialMaterialIncluded: body.credential_material_included === true,
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const createCrmConsultationOutlookEvent = linkCrmConsultationOutlookEvent;
+
+export async function decideCrmEngagement({
+  inquiryId,
+  engagementDecision,
+  expectedInquiryVersion,
+  expectedEngagementVersion,
+  agreedAmount,
+  amountUnknownConfirmed,
+  dueDate,
+  closeReason,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_ENGAGEMENT_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ENGAGEMENT_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const decision = requiredCrmCommandText(engagementDecision, "engagementDecision", 32);
+    if (!["pending", "accepted", "declined"].includes(decision)) throw new TypeError("engagementDecision is invalid");
+    const inquiryVersion = requiredCrmCommandVersion(expectedInquiryVersion, "expectedInquiryVersion");
+    const engagementVersion = requiredCrmCommandVersion(expectedEngagementVersion, "expectedEngagementVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    assertNoCrmMatterReference({ closeReason });
+    if (decision === "declined" && !requiredCrmCommandText(closeReason, "closeReason")) throw new TypeError("closeReason is required");
+    if (decision === "accepted") {
+      const hasAmount = agreedAmount !== undefined && agreedAmount !== null;
+      if (hasAmount && (!Number.isSafeInteger(agreedAmount) || agreedAmount < 0)) throw new TypeError("agreedAmount is invalid");
+      if (!hasAmount && amountUnknownConfirmed !== true) throw new TypeError("amountUnknownConfirmed is required");
+      if (hasAmount && amountUnknownConfirmed === true) throw new TypeError("amountUnknownConfirmed is invalid");
+    }
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      engagement_decision: decision,
+      expected_inquiry_version: inquiryVersion,
+      expected_engagement_version: engagementVersion,
+      reason: changeReason,
+      idempotency_key: key,
+      ...(agreedAmount === undefined ? {} : { agreed_amount: agreedAmount }),
+      ...(amountUnknownConfirmed === undefined ? {} : { amount_unknown_confirmed: amountUnknownConfirmed }),
+      ...(dueDate === undefined ? {} : { due_date: dueDate }),
+      ...(closeReason === undefined ? {} : { close_reason: closeReason })
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/inquiries/${encodeURIComponent(normalizedInquiryId)}/engagement-decisions`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const processing = commandSafeProcessing(body.processing, {
+          expectedInquiryId: normalizedInquiryId,
+          expectedTenantId
+        });
+        const item = commandSafeEngagement(body.item, {
+          expectedOpportunityId: processing?.opportunityId ?? null,
+          expectedTenantId
+        });
+        const inquiry = commandSafeInquiry(body.inquiry, {
+          expectedLeadId: normalizedInquiryId,
+          expectedTenantId
+        });
+        if (!item || !inquiry || !processing || !engagementProcessingConsistent(item, inquiry, processing) || !engagementProcessingReceiptConsistent(processing, classified.safeErrorCodes) || body.automatic_matter_creation !== false || body.direct_matter_reference_included !== false || processing.automaticMatterCreation !== false) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          inquiry,
+          processing,
+          repairCommand: processing.workflowStatus === "completed"
+            ? null
+            : { inquiryId: normalizedInquiryId, expectedWorkflowVersion: processing.workflowVersion },
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export async function repairCrmEngagement({
+  inquiryId,
+  expectedWorkflowVersion,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_ENGAGEMENT_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ENGAGEMENT_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const workflowVersion = requiredCrmCommandVersion(expectedWorkflowVersion, "expectedWorkflowVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_workflow_version: workflowVersion,
+      reason: changeReason,
+      idempotency_key: key
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/inquiries/${encodeURIComponent(normalizedInquiryId)}/engagement-repair`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const processing = commandSafeProcessing(body.processing, {
+          expectedInquiryId: normalizedInquiryId,
+          expectedTenantId
+        });
+        const item = commandSafeEngagement(body.item, {
+          expectedOpportunityId: processing?.opportunityId ?? null,
+          expectedTenantId
+        });
+        const inquiry = commandSafeInquiry(body.inquiry, {
+          expectedLeadId: normalizedInquiryId,
+          expectedTenantId
+        });
+        if (!item || !inquiry || !processing || !engagementProcessingConsistent(item, inquiry, processing) || !engagementProcessingReceiptConsistent(processing, classified.safeErrorCodes) || body.automatic_matter_creation !== false || body.direct_matter_reference_included !== false || processing.automaticMatterCreation !== false) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          inquiry,
+          processing,
+          repairCommand: processing.workflowStatus === "completed"
+            ? null
+            : { inquiryId: normalizedInquiryId, expectedWorkflowVersion: processing.workflowVersion },
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export async function createCrmContactActivityMemo({
+  inquiryId,
+  activityId,
+  partyId,
+  opportunityId,
+  subject,
+  confidential = false,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_ACTIVITY_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ACTIVITY_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const safeInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const memoSubject = requiredCrmCommandText(subject, "subject", 2_000);
+    if (typeof confidential !== "boolean") throw new TypeError("confidential is invalid");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    const safeActivityId = activityId === undefined || activityId === null ? null : requiredCrmCommandId(activityId, "activityId");
+    if (partyId !== undefined || opportunityId !== undefined) throw new TypeError("partyId/opportunityId are not accepted; inquiryId is authoritative");
+    assertNoCrmMatterReference({ activityId, inquiryId, partyId, opportunityId });
+    const activity = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      ...(safeActivityId ? { crm_activity_id: safeActivityId } : {}),
+      lead_id: safeInquiryId,
+      activity_type: "note",
+      subject: memoSubject,
+      confidential,
+      status: "active"
+    };
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      reason: changeReason,
+      idempotency_key: key,
+      activity
+    };
+    return await crmClientWriteRequest({
+      path: "/api/crm/activities",
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const item = commandSafeActivity(body.item, {
+          expectedId: safeActivityId,
+          expectedLeadId: safeInquiryId,
+          expectedTenantId
+        });
+        if (!item || item.activityKind !== null || item.activityType !== "note" || body.item?.direct_matter_reference_included !== false) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const createClientActivityMemo = createCrmContactActivityMemo;
+
+// GET /api/crm/activities is the signed-session read boundary for the Client
+// 상담 화면.  The server serializer intentionally includes tenant/party/owner
+// identifiers for authorization and audit purposes; this adapter validates the
+// complete response and returns only the display-safe activity projection.
+export async function fetchCrmClientActivities({
+  ctx = "allow",
+  permissionRef = CRM_CLIENT_ACTIVITY_READ_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ACTIVITY_READ_AUDIT_HINT_REF
+} = {}) {
+  let safePermissionRef;
+  let safeAuditHintRef;
+  try {
+    safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+  } catch {
+    return { kind: "error", status: 400, outcome: "blocked", uiState: "blocked", items: [], contactActivities: [] };
+  }
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(safePermissionRef, safeAuditHintRef);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/activities?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  if (response.status >= 500) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review" || body?.ui_state === "review_required") {
+    const guarded = inquiryPermissionResult(response, body);
+    const guardedKind = guarded.uiState === "denied"
+      ? "denied"
+      : guarded.uiState === "review_required"
+        ? "review_required"
+        : "guarded";
+    return { ...guarded, kind: guardedKind, contactActivities: [] };
+  }
+  let safeItems;
+  let safeErrorCodes;
+  try {
+    const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+    safeItems = Array.isArray(body?.items)
+      ? body.items.map((item) => item?.tenant_id === expectedTenantId ? commandSafeActivity(item) : null)
+      : null;
+    safeErrorCodes = Array.isArray(body?.safe_error_codes)
+      && body.safe_error_codes.every((code) => typeof code === "string" && CRM_COMMAND_SAFE_CODE_PATTERN.test(code))
+      ? body.safe_error_codes
+      : null;
+  } catch {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  const pageInfo = body?.page_info;
+  const valid = (
+    body
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && body.outcome === "passed"
+    && body.audit_hint_ref === safeAuditHintRef
+    && body.production_ready_claim === false
+    && body.count_leak_prevented === true
+    && Array.isArray(body.items)
+    && safeItems
+    && safeItems.every(Boolean)
+    && safeErrorCodes
+    && pageInfo
+    && typeof pageInfo === "object"
+    && !Array.isArray(pageInfo)
+    && pageInfo.returned_count === safeItems.length
+    && pageInfo.omitted_item_count === null
+  );
+  if (!valid) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  const ids = safeItems.map((item) => item.activityId);
+  if (new Set(ids).size !== ids.length) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  const consultations = safeItems.filter((item) => item.activityKind === "consultation");
+  const contactActivities = safeItems.filter((item) => item.activityKind === null);
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? (safeItems.length === 0 ? "empty" : null),
+    // Keep the complete safe activity list for contact-history consumers while
+    // exposing typed collections so consultation screens never treat a memo as
+    // a scheduled consultation.
+    items: safeItems,
+    consultations,
+    contactActivities,
+    pageInfo: { returnedCount: safeItems.length, omittedItemCount: null },
+    safeErrorCodes,
+    auditHintRef: safeAuditHintRef,
+    countLeakPrevented: true,
+    productionReadyClaim: false
+  };
+}
+
+export const fetchCrmConsultationActivities = fetchCrmClientActivities;
+export const fetchClientActivities = fetchCrmClientActivities;
 
 export function fetchCrmOpportunities(options = {}) {
   return fetchCrmIntakeCollection({ ...options, path: "/api/crm/opportunities" });
@@ -4536,9 +6411,13 @@ export function createCrmOpportunity({
 export function handoffCrmOpportunityToIntake({
   opportunityId,
   requestedScopeSummary = "Client 상담 요청",
+  intakeRequestId,
+  idempotencyKey,
   ctx = "allow"
 } = {}) {
-  const requestId = uiRuntimeId("intake_ui");
+  const stableOpportunityKey = uiStableId("opportunity", opportunityId);
+  const stableIntakeRequestId = intakeRequestId ?? uiStableId("intake_ui", opportunityId);
+  const stableIdempotencyKey = idempotencyKey ?? `handoff:${stableOpportunityKey}`;
   return postCrmIntakeRuntime({
     path: `/api/crm/opportunities/${encodeURIComponent(opportunityId)}/handoff`,
     ctx,
@@ -4547,8 +6426,8 @@ export function handoffCrmOpportunityToIntake({
       permission_ref: DEFAULT_CRM_INTAKE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_CRM_INTAKE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("crm", CRM_INTAKE_PRINCIPAL.user_id),
-      idempotency_key: `handoff:${requestId}`,
-      intake_request_id: requestId,
+      idempotency_key: stableIdempotencyKey,
+      intake_request_id: stableIntakeRequestId,
       requested_scope_summary: requestedScopeSummary
     }
   });
@@ -5200,6 +7079,487 @@ export async function fetchAnalyticsDashboards({
   };
 }
 
+function analyticsClientReadParams({
+  permissionRef,
+  auditHintRef
+}) {
+  return new URLSearchParams({
+    tenant_id: tenantIdForDomain("client", ANALYTICS_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+}
+
+function analyticsClientGuardedResult(response, body) {
+  const uiState = body?.ui_state;
+  const reviewRequired = (
+    uiState === "review"
+    || uiState === "review_required"
+    || body?.outcome === "review_required"
+  );
+  const permissionDenied = response.status === 403;
+  return {
+    kind: permissionDenied || reviewRequired ? "guarded" : "error",
+    status: response.status,
+    outcome: body?.outcome ?? "blocked",
+    uiState: permissionDenied
+      ? "denied"
+      : reviewRequired
+        ? "review_required"
+        : "error",
+    safeErrorCodes: Array.isArray(body?.safe_error_codes)
+      ? body.safe_error_codes
+      : [],
+    countLeakPrevented: body?.count_leak_prevented === true
+  };
+}
+
+function safeClientDirectoryItem(item) {
+  if (
+    typeof item?.client_group_id !== "string"
+    || item.client_group_id.trim() === ""
+    || typeof item?.display_name !== "string"
+    || item.display_name.trim() === ""
+  ) {
+    return null;
+  }
+  return {
+    client_group_id: item.client_group_id.trim(),
+    display_name: item.display_name.trim(),
+    status: typeof item.status === "string" ? item.status : null,
+    legal_form: typeof item.legal_form === "string"
+      ? item.legal_form
+      : null,
+    member_count: Number.isInteger(item.member_count)
+      && item.member_count >= 0
+      ? item.member_count
+      : null,
+    primary_record_present: item.primary_record_present === true
+  };
+}
+
+export async function fetchAnalyticsClientDirectory({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(
+    ctx,
+    ANALYTICS_PERMISSION_CONTEXTS,
+    "client"
+  );
+  const params = analyticsClientReadParams({
+    permissionRef,
+    auditHintRef
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(
+      `/api/analytics/clients?${params.toString()}`,
+      {
+        headers: {
+          [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+        }
+      }
+    );
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+  if (!response.ok) {
+    return analyticsClientGuardedResult(response, body);
+  }
+  const items = Array.isArray(body?.items)
+    ? body.items.map(safeClientDirectoryItem)
+    : [];
+  const hasShape = (
+    body !== null
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && Array.isArray(body.items)
+    && items.every(Boolean)
+    && Array.isArray(body.safe_error_codes)
+    && body.count_leak_prevented === true
+    && body.permission_prefilter_applied === true
+    && body.raw_source_payload_included === false
+  );
+  if (!hasShape) return { kind: "error", uiState: "error" };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? null,
+    items,
+    pageInfo: {
+      returnedCount: items.length,
+      omittedItemCount: null
+    },
+    sourceStatuses: Array.isArray(body.source_statuses)
+      ? body.source_statuses
+      : [],
+    safeErrorCodes: body.safe_error_codes,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true
+  };
+}
+
+const CLIENT_DETAIL_SECTION_STATUSES = new Set([
+  "available",
+  "no_data",
+  "partial",
+  "permission_denied",
+  "error"
+]);
+
+function safeClientDetailSection(section, itemMapper) {
+  if (
+    !section
+    || !CLIENT_DETAIL_SECTION_STATUSES.has(section.status)
+  ) {
+    return null;
+  }
+  if (["permission_denied", "error"].includes(section.status)) {
+    return section.data === null
+      ? { status: section.status, data: null }
+      : null;
+  }
+  if (!Array.isArray(section.data?.items)) return null;
+  const items = section.data.items.map(itemMapper);
+  if (items.some((item) => item === null)) return null;
+  return {
+    status: section.status,
+    data: { items }
+  };
+}
+
+function safeClientDetailContactPoint(item) {
+  if (
+    !item
+    || typeof item !== "object"
+    || item.contact_point_value_included !== false
+  ) {
+    return null;
+  }
+  return {
+    contact_type: typeof item.contact_type === "string"
+      ? item.contact_type
+      : null,
+    contact_point_value_included: false,
+    contact_value_masked: item.contact_value_masked === true,
+    is_primary: item.is_primary === true,
+    status: typeof item.status === "string" ? item.status : null
+  };
+}
+
+function safeClientDetailContact(item) {
+  if (
+    typeof item?.contact_id !== "string"
+    || typeof item?.display_name !== "string"
+    || item.contact_point_value_included !== false
+  ) {
+    return null;
+  }
+  const contactPoints = Array.isArray(item.contact_points)
+    ? item.contact_points.map(safeClientDetailContactPoint)
+    : [];
+  if (contactPoints.some((point) => point === null)) return null;
+  return {
+    contact_id: item.contact_id,
+    display_name: item.display_name,
+    primary_contact_type:
+      typeof item.primary_contact_type === "string"
+      ? item.primary_contact_type
+      : null,
+    contact_point_value_included: false,
+    contact_value_masked: item.contact_value_masked === true,
+    contact_points: contactPoints,
+    status: typeof item.status === "string" ? item.status : null
+  };
+}
+
+function safeClientDetailMatter(item) {
+  if (
+    typeof item?.matter_id !== "string"
+    || typeof item?.display_name !== "string"
+  ) {
+    return null;
+  }
+  return {
+    matter_id: item.matter_id,
+    matter_code: typeof item.matter_code === "string"
+      ? item.matter_code
+      : null,
+    display_name: item.display_name,
+    status: typeof item.status === "string" ? item.status : null,
+    opened_at: typeof item.opened_at === "string"
+      ? item.opened_at
+      : null
+  };
+}
+
+function safeClientDetailInquiry(item) {
+  if (
+    typeof item?.lead_id !== "string"
+    || typeof item?.display_name !== "string"
+  ) {
+    return null;
+  }
+  return {
+    lead_id: item.lead_id,
+    display_name: item.display_name,
+    visible_status: typeof item.visible_status === "string"
+      ? item.visible_status
+      : null,
+    visible_status_label:
+      typeof item.visible_status_label === "string"
+        ? item.visible_status_label
+        : "상태 확인 필요",
+    source: typeof item.source === "string" ? item.source : null,
+    received_at: typeof item.received_at === "string"
+      ? item.received_at
+      : null,
+    next_action: typeof item.next_action === "string"
+      ? item.next_action
+      : null,
+    assigned: item.assigned === true
+  };
+}
+
+export async function fetchAnalyticsClientOperationsDetail({
+  clientId,
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF
+} = {}) {
+  const normalizedClientId = typeof clientId === "string"
+    ? clientId.trim()
+    : "";
+  if (!normalizedClientId) {
+    return { kind: "error", uiState: "error" };
+  }
+  const context = permissionContextFor(
+    ctx,
+    ANALYTICS_PERMISSION_CONTEXTS,
+    "client"
+  );
+  const params = analyticsClientReadParams({
+    permissionRef,
+    auditHintRef
+  });
+  let response;
+  let body;
+  try {
+    response = await apiFetch(
+      `/api/analytics/clients/${encodeURIComponent(normalizedClientId)}/operations?${params.toString()}`,
+      {
+        headers: {
+          [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+        }
+      }
+    );
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+  if (response.status === 404) {
+    return {
+      kind: "empty",
+      status: 404,
+      uiState: "empty",
+      countLeakPrevented: body?.count_leak_prevented === true
+    };
+  }
+  if (!response.ok) {
+    return analyticsClientGuardedResult(response, body);
+  }
+  const item = body?.item;
+  const contacts = safeClientDetailSection(
+    item?.sections?.contacts,
+    safeClientDetailContact
+  );
+  const matters = safeClientDetailSection(
+    item?.sections?.matters,
+    safeClientDetailMatter
+  );
+  const inquiries = safeClientDetailSection(
+    item?.sections?.inquiries,
+    safeClientDetailInquiry
+  );
+  const hasShape = (
+    item !== null
+    && typeof item === "object"
+    && item.client?.client_group_id === normalizedClientId
+    && typeof item.client?.display_name === "string"
+    && contacts !== null
+    && matters !== null
+    && inquiries !== null
+    && Array.isArray(item.source_statuses)
+    && Array.isArray(item.safe_error_codes)
+    && item.count_leak_prevented === true
+    && item.raw_contact_values_included === false
+    && item.raw_source_payload_included === false
+    && body.count_leak_prevented === true
+    && body.raw_source_payload_included === false
+  );
+  if (!hasShape) return { kind: "error", uiState: "error" };
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: item.outcome,
+    uiState: item.ui_state ?? null,
+    item: {
+      client: safeClientDirectoryItem(item.client),
+      sections: { contacts, matters, inquiries },
+      sourceStatuses: item.source_statuses.map((source) => ({
+        sourceId: source.source_id ?? null,
+        label: source.label ?? null,
+        status: source.status ?? "error",
+        itemCount: ["partial", "permission_denied", "error"].includes(
+          source.status
+        )
+          ? null
+          : Number.isInteger(source.item_count)
+            ? source.item_count
+            : null,
+        safeErrorCode: source.safe_error_code ?? null
+      }))
+    },
+    safeErrorCodes: item.safe_error_codes,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true
+  };
+}
+
+export async function fetchAnalyticsClientOperationsDashboard({
+  ctx = "allow",
+  permissionRef = DEFAULT_ANALYTICS_PERMISSION_REF,
+  auditHintRef = DEFAULT_ANALYTICS_AUDIT_HINT_REF,
+  asOf = null,
+  timezone = "Asia/Seoul",
+  revenueRankingPeriod = "year"
+} = {}) {
+  const context = permissionContextFor(
+    ctx,
+    ANALYTICS_PERMISSION_CONTEXTS,
+    "client"
+  );
+  const params = new URLSearchParams({
+    tenant_id: tenantIdForDomain("client", ANALYTICS_TENANT_ID),
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef,
+    timezone,
+    revenue_ranking_period: revenueRankingPeriod
+  });
+  if (asOf) params.set("as_of", asOf);
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch(
+      `/api/analytics/clients/dashboard?${params.toString()}`,
+      {
+        headers: {
+          [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+        }
+      }
+    );
+    body = await response.json();
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+
+  const safeErrorCodes = Array.isArray(body?.safe_error_codes)
+    ? body.safe_error_codes
+    : [];
+  const sourceStatuses = Array.isArray(body?.source_statuses)
+    ? body.source_statuses
+    : [];
+  if (!response.ok) {
+    const permissionDenied = response.status === 403 && (
+      body?.ui_state === "permission_denied"
+      || body?.ui_state === "denied"
+      || body?.outcome === "permission_denied"
+      || body?.outcome === "denied"
+    );
+    const reviewRequired = (
+      body?.ui_state === "review"
+      || body?.ui_state === "review_required"
+      || body?.outcome === "review_required"
+    );
+    return {
+      kind: permissionDenied || reviewRequired
+        ? "guarded"
+        : "error",
+      status: response.status,
+      requestId: body?.request_id ?? null,
+      outcome: body?.outcome ?? "blocked",
+      uiState: permissionDenied
+        ? "denied"
+        : reviewRequired
+          ? "review_required"
+          : "error",
+      sourceStatuses,
+      safeErrorCodes,
+      countLeakPrevented:
+        body?.count_leak_prevented === true,
+      productionReadyClaim:
+        body?.production_ready_claim === true
+    };
+  }
+
+  const sectionIds = [
+    "kpis",
+    "attention_items",
+    "monthly_deposit_revenue",
+    "inquiry_status",
+    "revenue_ranking",
+    "receivables_ranking"
+  ];
+  const hasShape = (
+    body !== null
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && body.sections !== null
+    && typeof body.sections === "object"
+    && !Array.isArray(body.sections)
+    && sectionIds.every((sectionId) => (
+      body.sections[sectionId] !== null
+      && typeof body.sections[sectionId] === "object"
+    ))
+    && Array.isArray(body.source_statuses)
+    && Array.isArray(body.safe_error_codes)
+  );
+  if (!hasShape) return { kind: "error", uiState: "error" };
+
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? null,
+    generatedAt: body.generated_at ?? null,
+    asOf: body.as_of ?? null,
+    timezone: body.timezone ?? null,
+    sections: body.sections,
+    sourceStatuses,
+    safeErrorCodes,
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented:
+      body.count_leak_prevented === true,
+    permissionPrefilterApplied:
+      body.permission_prefilter_applied === true,
+    rawBankSourceIncluded:
+      body.raw_bank_source_included === true,
+    rawSourcePayloadIncluded:
+      body.raw_source_payload_included === true,
+    credentialMaterialIncluded:
+      body.credential_material_included === true,
+    productionReadyClaim:
+      body.production_ready_claim === true
+  };
+}
+
 async function fetchAnalyticsFinanceReadModel({
   kind,
   ctx = "allow",
@@ -5321,6 +7681,1441 @@ export function fetchFinanceBankClassificationOptions(options = {}) {
   return fetchFinanceCollection({
     ...options,
     path: "/api/finance/bank-classification-options",
+  });
+}
+
+const CLIENT_DEPOSIT_SOURCE_TYPES = new Set(["xlsx", "pdf"]);
+const CLIENT_DEPOSIT_DIRECTIONS = new Set(["inflow", "outflow"]);
+const CLIENT_DEPOSIT_STATUSES = new Set(["confirmed", "review_required", "unreviewed"]);
+const CLIENT_DEPOSIT_IMPORT_STATUSES = new Set(["new", "duplicate", "error"]);
+const CLIENT_DEPOSIT_HASH = /^[a-f0-9]{64}$/u;
+const CLIENT_DEPOSIT_PREVIEW_ID = /^bank_import_preview_[a-f0-9]{24}$/u;
+const CLIENT_DEPOSIT_IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/u;
+const CLIENT_DEPOSIT_CANONICAL_BASE64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
+const CLIENT_DEPOSIT_MAX_FILE_BYTES = Object.freeze({
+  xlsx: 16 * 1024 * 1024,
+  pdf: 8 * 1024 * 1024
+});
+const CLIENT_DEPOSIT_COMMAND_PATHS = Object.freeze({
+  auto_classify: "/api/finance/bank-classifications/auto",
+  manual_client_link: "/api/finance/bank-classifications/review",
+  refund_link: "/api/finance/bank-classifications/review"
+});
+
+function clientDepositText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function clientDepositFileSourceType(filename, mimeType) {
+  const normalizedName = clientDepositText(filename).split(/[\\/]/u).at(-1);
+  const normalizedMime = clientDepositText(mimeType).toLowerCase();
+  if (
+    normalizedName?.toLowerCase().endsWith(".xlsx")
+    && [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/octet-stream"
+    ].includes(normalizedMime)
+  ) return { filename: normalizedName, mimeType: normalizedMime, sourceType: "xlsx" };
+  if (
+    normalizedName?.toLowerCase().endsWith(".pdf")
+    && normalizedMime === "application/pdf"
+  ) return { filename: normalizedName, mimeType: normalizedMime, sourceType: "pdf" };
+  return null;
+}
+
+function clientDepositCanonicalBase64ByteLength(value) {
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || value.length % 4 !== 0
+    || !CLIENT_DEPOSIT_CANONICAL_BASE64.test(value)
+  ) return null;
+  try {
+    if (typeof globalThis.atob === "function" && typeof globalThis.btoa === "function") {
+      const decoded = globalThis.atob(value);
+      return globalThis.btoa(decoded) === value ? decoded.length : null;
+    }
+    if (globalThis.Buffer?.from) {
+      const decoded = globalThis.Buffer.from(value, "base64");
+      return decoded.toString("base64") === value ? decoded.byteLength : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function normalizeClientDepositEncodedFile(file) {
+  if (!file || typeof file !== "object" || Array.isArray(file)) return null;
+  const metadata = clientDepositFileSourceType(file.filename, file.mime_type);
+  const byteSize = file.byte_size;
+  const contentBase64 = file.content_base64;
+  if (
+    !metadata
+    || !Number.isSafeInteger(byteSize)
+    || byteSize < 1
+    || byteSize > CLIENT_DEPOSIT_MAX_FILE_BYTES[metadata.sourceType]
+    || typeof contentBase64 !== "string"
+    || contentBase64.length !== 4 * Math.ceil(byteSize / 3)
+    || clientDepositCanonicalBase64ByteLength(contentBase64) !== byteSize
+  ) return null;
+  return {
+    filename: metadata.filename,
+    mime_type: metadata.mimeType,
+    byte_size: byteSize,
+    content_base64: contentBase64
+  };
+}
+
+function clientDepositSafeCodes(body) {
+  return Array.isArray(body?.safe_error_codes)
+    ? body.safe_error_codes.filter((value) => typeof value === "string").slice(0, 24)
+    : [];
+}
+
+function clientDepositUnavailable(code = "SIGNED_SESSION_REQUIRED") {
+  return {
+    kind: "blocked",
+    status: 0,
+    outcome: "blocked",
+    uiState: "blocked",
+    items: [],
+    safeErrorCodes: [code],
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+export function getClientDepositRouteContext({
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF,
+  source = globalThis
+} = {}) {
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope) return null;
+  const defaultTenant = clientDepositText(envelope.tenant_refs.default);
+  const clientTenant = clientDepositText(envelope.tenant_refs.client);
+  if (defaultTenant && clientTenant && defaultTenant !== clientTenant) return null;
+  const tenantId = defaultTenant || clientTenant;
+  if (!tenantId || !clientDepositText(permissionRef) || !clientDepositText(auditHintRef)) return null;
+  const context = permissionContextFor(ctx, FINANCE_PERMISSION_CONTEXTS, "client");
+  if (clientDepositText(context?.principal?.tenant_id) !== tenantId) return null;
+  return {
+    tenant_id: tenantId,
+    permission_ref: clientDepositText(permissionRef),
+    audit_hint_ref: clientDepositText(auditHintRef),
+    permissionContext: context
+  };
+}
+
+function clientDepositGuardedResult(response, body) {
+  const status = Number(response?.status ?? 0);
+  const uiState = clientDepositText(body?.ui_state);
+  const outcome = clientDepositText(body?.outcome) || "blocked";
+  const kind = status === 409
+    ? "conflict"
+    : status === 403 && (!uiState || uiState === "denied")
+      ? "guarded"
+      : ["review", "review_required"].includes(uiState) || outcome === "review_required"
+        ? "guarded"
+        : status === 404 && uiState === "empty"
+          ? "empty"
+          : "error";
+  return {
+    kind,
+    status,
+    requestId: body?.request_id ?? null,
+    outcome: status === 409 ? "conflict" : outcome,
+    uiState: status === 409
+      ? "conflict"
+      : status === 403 && !uiState
+        ? "denied"
+        : uiState || (kind === "empty" ? "empty" : "error"),
+    item: null,
+    items: [],
+    safeErrorCodes: clientDepositSafeCodes(body),
+    countLeakPrevented: body?.count_leak_prevented === true,
+    permissionPrefilterApplied: body?.permission_prefilter_applied === true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+async function clientDepositJsonRequest(path, {
+  method = "GET",
+  payload = null,
+  routeContext
+} = {}) {
+  if (!routeContext) return { unavailable: clientDepositUnavailable() };
+  const init = {
+    method,
+    headers: {
+      [PERMISSION_CONTEXT_HEADER]: JSON.stringify(routeContext.permissionContext)
+    }
+  };
+  if (payload !== null) {
+    init.headers["content-type"] = "application/json";
+    init.body = JSON.stringify(payload);
+  }
+  let response;
+  try {
+    response = await apiFetch(path, init);
+  } catch {
+    return { unavailable: { ...clientDepositUnavailable("NETWORK_ERROR"), kind: "error", uiState: "error" } };
+  }
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    if (!response.ok) {
+      return {
+        response,
+        body: {
+          outcome: "blocked",
+          ui_state: response.status === 409
+            ? "conflict"
+            : response.status === 403
+              ? "denied"
+              : "error",
+          safe_error_codes: ["INVALID_ERROR_RESPONSE"]
+        }
+      };
+    }
+    return {
+      unavailable: {
+        ...clientDepositUnavailable("INVALID_RESPONSE"),
+        kind: "error",
+        status: response.status,
+        uiState: "error"
+      }
+    };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return {
+      unavailable: {
+        ...clientDepositUnavailable("INVALID_RESPONSE"),
+        kind: "error",
+        status: response.status,
+        uiState: "error"
+      }
+    };
+  }
+  return { response, body };
+}
+
+const CLIENT_RECEIVABLES_BOUNDARY = Object.freeze({
+  count_leak_prevented: true,
+  permission_prefilter_applied: true,
+  unauthorized_count_included: false,
+  raw_bank_source_included: false,
+  raw_source_payload_included: false,
+  source_metadata_included: false,
+  raw_account_included: false,
+  raw_counterparty_included: false,
+  raw_memo_included: false,
+  transaction_fingerprint_included: false,
+  bank_reference_included: false,
+  credential_material_included: false,
+  invoice_required: false,
+  matter_required: false,
+  production_ready_claim: false
+});
+const CLIENT_RECEIVABLES_ROW_FIELDS = Object.freeze({
+  fee_commitments: Object.freeze([
+    "fee_commitment_id", "client_group_id", "agreed_amount",
+    "active_allocated_amount", "receivable_amount", "due_date", "accepted_at",
+    "status", "state_version"
+  ]),
+  deposits: Object.freeze([
+    "bank_transaction_id", "client_group_id", "gross_amount",
+    "linked_refund_amount", "net_amount", "active_allocated_amount",
+    "overpayment_amount", "occurred_at"
+  ]),
+  allocations: Object.freeze([
+    "client_deposit_allocation_id", "client_group_id", "bank_transaction_id",
+    "fee_commitment_id", "allocated_amount", "reversed_amount", "active_amount",
+    "allocation_source", "manual_lock", "state_version"
+  ]),
+  clients: Object.freeze(["client_group_id", "display_name"]),
+  ranking: Object.freeze([
+    "rank", "client_group_id", "display_name", "agreed_amount",
+    "active_allocated_amount", "receivable_amount", "earliest_due_date"
+  ]),
+  client_summaries: Object.freeze([
+    "client_group_id", "agreed_amount", "active_allocated_amount",
+    "receivable_amount", "unknown_amount_count", "overpayment_amount"
+  ])
+});
+
+function clientReceivablesUnavailable(code = "SIGNED_SESSION_REQUIRED", {
+  kind = "blocked",
+  status = 0,
+  uiState = "blocked"
+} = {}) {
+  return {
+    ...clientDepositUnavailable(code),
+    kind,
+    status,
+    uiState,
+    invoiceRequired: false,
+    matterRequired: false
+  };
+}
+
+function clientReceivablesSafeCodes(body) {
+  const codes = body?.safe_error_codes;
+  return Array.isArray(codes)
+    && codes.length <= 24
+    && codes.every((code) => typeof code === "string" && code.trim() && code.length <= 160)
+    ? [...codes]
+    : null;
+}
+
+function clientReceivablesBoundaryIsSafe(body) {
+  return Object.entries(CLIENT_RECEIVABLES_BOUNDARY)
+    .every(([key, value]) => body?.[key] === value);
+}
+
+function projectClientReceivablesRows(rows, fields, limit) {
+  if (
+    !Array.isArray(rows)
+    || rows.length > limit
+    || rows.some((row) => !row || typeof row !== "object" || Array.isArray(row))
+  ) return null;
+  return rows.map((row) => Object.fromEntries(
+    fields.filter((field) => Object.hasOwn(row, field)).map((field) => [field, row[field]])
+  ));
+}
+
+function projectClientReceivablesReconciliation(value, {
+  totalReceivables,
+  totalOverpayment
+}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const projected = {
+    status: value.status,
+    ranking_total: value.ranking_total,
+    commitment_detail_total: value.commitment_detail_total,
+    client_summary_total: value.client_summary_total,
+    overpayment_detail_total: value.overpayment_detail_total
+  };
+  const totals = [
+    projected.ranking_total,
+    projected.commitment_detail_total,
+    projected.client_summary_total,
+    projected.overpayment_detail_total
+  ];
+  return (
+    projected.status === "passed"
+    && totals.every((amount) => Number.isSafeInteger(amount) && amount >= 0)
+    && projected.ranking_total === totalReceivables
+    && projected.commitment_detail_total === totalReceivables
+    && projected.client_summary_total === totalReceivables
+    && projected.overpayment_detail_total === totalOverpayment
+  ) ? projected : null;
+}
+
+function clientReceivablesGuardedResult(response, body) {
+  const status = Number(response?.status ?? 0);
+  const safeErrorCodes = clientReceivablesSafeCodes(body);
+  const nonJsonConflict = status === 409 && safeErrorCodes?.includes("INVALID_ERROR_RESPONSE");
+  const safeMutationError = status >= 400
+    && body?.count_leak_prevented === true
+    && body?.production_ready_claim === false;
+  if (
+    !safeErrorCodes
+    || (!nonJsonConflict && !safeMutationError && !clientReceivablesBoundaryIsSafe(body))
+  ) {
+    return clientReceivablesUnavailable("INVALID_RESPONSE", { kind: "error", status, uiState: "error" });
+  }
+  const review = ["review", "review_required"].includes(body.ui_state)
+    || body.outcome === "review_required";
+  const denied = status === 403 || ["denied", "permission_denied"].includes(body.ui_state);
+  const partial = body.ui_state === "partial" || body.outcome === "partial";
+  const conflict = status === 409;
+  return {
+    ...clientReceivablesUnavailable(safeErrorCodes[0] ?? "REQUEST_BLOCKED", {
+      kind: conflict ? "conflict" : partial ? "partial" : denied || review ? "guarded" : "error",
+      status,
+      uiState: conflict ? "conflict" : partial ? "partial" : denied ? "denied" : review ? "review_required" : "error"
+    }),
+    requestId: typeof body.request_id === "string" ? body.request_id : null,
+    outcome: conflict ? "conflict" : body.outcome ?? "blocked",
+    safeErrorCodes,
+    ...(partial ? {
+      clients: [],
+      ranking: [],
+      client_summaries: [],
+      details: { fee_commitments: [], deposits: [], allocations: [] }
+    } : {})
+  };
+}
+
+function projectClientReceivablesSuccess(body, routeContext, status) {
+  const details = Object.fromEntries(["fee_commitments", "deposits", "allocations"].map((key) => [
+    key,
+    projectClientReceivablesRows(
+      body.details?.[key],
+      CLIENT_RECEIVABLES_ROW_FIELDS[key],
+      5_000
+    )
+  ]));
+  const clients = projectClientReceivablesRows(
+    body.clients,
+    CLIENT_RECEIVABLES_ROW_FIELDS.clients,
+    500
+  );
+  const ranking = projectClientReceivablesRows(
+    body.ranking,
+    CLIENT_RECEIVABLES_ROW_FIELDS.ranking,
+    500
+  );
+  const clientSummaries = projectClientReceivablesRows(
+    body.client_summaries,
+    CLIENT_RECEIVABLES_ROW_FIELDS.client_summaries,
+    500
+  );
+  const safeErrorCodes = clientReceivablesSafeCodes(body);
+  const reconciliation = projectClientReceivablesReconciliation(
+    body.reconciliation,
+    {
+      totalReceivables: body.total_receivables,
+      totalOverpayment: body.total_overpayment
+    }
+  );
+  const clientIds = new Set(clients?.map((row) => row.client_group_id));
+  const clientRows = [
+    ...(ranking ?? []),
+    ...(clientSummaries ?? []),
+    ...(details.fee_commitments ?? []),
+    ...(details.deposits ?? []),
+    ...(details.allocations ?? [])
+  ];
+  const empty = body.ui_state === "empty";
+  const valid = (
+    status === 200
+    && body.outcome === "passed"
+    && [null, "empty"].includes(body.ui_state)
+    && body.audit_hint_ref === routeContext.audit_hint_ref
+    && body.basis === "fee_commitment_and_bank_deposit"
+    && body.currency === "KRW"
+    && body.unallocated_amount_basis === "same_as_total_overpayment"
+    && body.unallocated_amount === body.total_overpayment
+    && safeErrorCodes?.length === 0
+    && clientReceivablesBoundaryIsSafe(body)
+    && clients && ranking && clientSummaries
+    && reconciliation
+    && Object.values(details).every(Boolean)
+    && Object.values(details).reduce((count, rows) => count + rows.length, 0) <= 10_000
+    && clients.every((row) => (
+      typeof row.client_group_id === "string" && row.client_group_id.trim()
+      && typeof row.display_name === "string" && row.display_name.trim()
+    ))
+    && new Set(clients.map((row) => row.client_group_id)).size === clients.length
+    && clientRows.every((row) => clientIds.has(row.client_group_id))
+    && details.fee_commitments.every((row) => (
+      row.status === "active"
+      && Number.isSafeInteger(row.state_version) && row.state_version > 0
+    ))
+    && details.allocations.every((row) => (
+      Number.isSafeInteger(row.state_version) && row.state_version > 0
+    ))
+    && (!empty || (
+      Object.values(details).every((rows) => rows.length === 0)
+      && body.total_receivables === 0
+      && body.unknown_amount_count === 0
+      && body.total_overpayment === 0
+    ))
+  );
+  if (!valid) return null;
+  const projected = {
+    kind: "data",
+    status,
+    requestId: typeof body.request_id === "string" ? body.request_id : null,
+    outcome: "passed",
+    uiState: body.ui_state,
+    basis: body.basis,
+    currency: body.currency,
+    as_of: body.as_of,
+    total_receivables: body.total_receivables,
+    unknown_amount_count: body.unknown_amount_count,
+    total_overpayment: body.total_overpayment,
+    unallocated_amount: body.unallocated_amount,
+    clients,
+    ranking: empty ? [] : ranking,
+    client_summaries: empty ? [] : clientSummaries,
+    details,
+    reconciliation,
+    safeErrorCodes,
+    auditHintRef: body.audit_hint_ref,
+    ...CLIENT_RECEIVABLES_BOUNDARY
+  };
+  const model = buildClientReceivablesModel({
+    receivablesResult: projected,
+    clientsResult: projected
+  });
+  return model.state === (empty ? "empty" : "data") ? projected : null;
+}
+
+export function getClientReceivablesRouteContext(options = {}) {
+  const {
+    ctx = "allow",
+    permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+    auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF,
+    source = globalThis
+  } = options;
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope) return null;
+  const defaultTenant = clientDepositText(envelope.tenant_refs.default);
+  const clientTenant = clientDepositText(envelope.tenant_refs.client);
+  if (defaultTenant && clientTenant && defaultTenant !== clientTenant) return null;
+  const tenantId = defaultTenant || clientTenant;
+  if (!tenantId || !clientDepositText(permissionRef) || !clientDepositText(auditHintRef)) return null;
+  const context = permissionContextFor(ctx, FINANCE_PERMISSION_CONTEXTS, "client");
+  if (clientDepositText(context?.principal?.tenant_id) !== tenantId) return null;
+  return {
+    tenant_id: tenantId,
+    permission_ref: clientDepositText(permissionRef),
+    audit_hint_ref: clientDepositText(auditHintRef),
+    permissionContext: context
+  };
+}
+
+export async function fetchClientReceivables({
+  ctx = "allow",
+  permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+  auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientReceivablesRouteContext({ ctx, permissionRef, auditHintRef });
+  const params = routeContext && new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref
+  });
+  const result = await clientDepositJsonRequest(
+    params ? `/api/finance/client-receivables?${params}` : "",
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  if (!result.response.ok || result.body.outcome !== "passed") {
+    return clientReceivablesGuardedResult(result.response, result.body);
+  }
+  return projectClientReceivablesSuccess(result.body, routeContext, result.response.status)
+    ?? clientReceivablesUnavailable("INVALID_RESPONSE", {
+      kind: "error",
+      status: result.response.status,
+      uiState: "error"
+    });
+}
+
+function clientReceivablesMutationResult(response, body, routeContext, {
+  outcome,
+  targetField,
+  targetId,
+  expectedStateVersion = null
+}) {
+  const replay = body?.idempotent_replay === true;
+  const acceptedOutcomes = Array.isArray(outcome) ? outcome : [outcome];
+  const valid = (
+    response.status === 200
+    && clientReceivablesSafeCodes(body)?.length === 0
+    && body.audit_hint_ref === routeContext.audit_hint_ref
+    && body.production_ready_claim === false
+    && typeof body.idempotent_replay === "boolean"
+    && (replay
+      ? body.outcome === "idempotent_replay"
+      : acceptedOutcomes.includes(body.outcome))
+    && body.item?.[targetField] === targetId
+    && (expectedStateVersion === null
+      || body.item.state_version === expectedStateVersion + 1)
+  );
+  const item = targetField === "fee_commitment_id"
+    ? {
+      fee_commitment_id: targetId,
+      state_version: body.item?.state_version,
+      status: body.item?.status
+    }
+    : {
+      bank_transaction_id: targetId,
+      active_allocated_amount: body.item?.active_allocated_amount,
+      unallocated_amount: body.item?.unallocated_amount
+    };
+  return valid ? {
+    kind: "data",
+    status: 200,
+    outcome: body.outcome,
+    item,
+    items: [],
+    idempotentReplay: replay,
+    safeErrorCodes: [],
+    productionReadyClaim: false
+  } : null;
+}
+
+export async function patchClientFeeCommitment({
+  ctx = "allow",
+  operation = "edit",
+  feeCommitmentId,
+  expectedStateVersion,
+  changes = null,
+  reason,
+  idempotencyKey,
+  permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+  auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientReceivablesRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientReceivablesUnavailable();
+  let command;
+  try {
+    command = buildFeeCommitmentCommand({
+      operation,
+      tenantId: routeContext.tenant_id,
+      feeCommitmentId,
+      expectedStateVersion,
+      ...(operation === "cancel" ? {} : { changes }),
+      reason,
+      idempotencyKey
+    });
+  } catch {
+    return clientReceivablesUnavailable("INVALID_COMMAND", { kind: "error", uiState: "error" });
+  }
+  const result = await clientDepositJsonRequest(
+    `/api/finance/fee-commitments/${encodeURIComponent(command.fee_commitment_id)}`,
+    {
+      method: "PATCH",
+      routeContext,
+      payload: {
+        tenant_id: command.tenant_id,
+        permission_ref: routeContext.permission_ref,
+        audit_hint_ref: routeContext.audit_hint_ref,
+        expected_state_version: command.expected_state_version,
+        changes: command.changes,
+        reason: command.reason,
+        idempotency_key: command.idempotency_key
+      }
+    }
+  );
+  if (result.unavailable) return result.unavailable;
+  if (!result.response.ok) return clientReceivablesGuardedResult(result.response, result.body);
+  const projected = clientReceivablesMutationResult(result.response, result.body, routeContext, {
+    outcome: operation === "cancel" ? "cancelled" : "updated",
+    targetField: "fee_commitment_id",
+    targetId: command.fee_commitment_id,
+    expectedStateVersion: command.expected_state_version
+  });
+  if (projected && operation === "cancel" && projected.item.status !== "cancelled") {
+    return clientReceivablesUnavailable("INVALID_RESPONSE", {
+      kind: "error", status: result.response.status, uiState: "error"
+    });
+  }
+  return projected ?? clientReceivablesUnavailable("INVALID_RESPONSE", {
+    kind: "error", status: result.response.status, uiState: "error"
+  });
+}
+
+export async function reallocateClientReceivableDeposit({
+  ctx = "allow",
+  bankTransactionId,
+  clientGroupId,
+  depositNetAmount,
+  expectedAllocations,
+  targets,
+  reason,
+  idempotencyKey,
+  permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+  auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientReceivablesRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientReceivablesUnavailable();
+  const selectedClientId = clientDepositText(clientGroupId);
+  if (
+    !selectedClientId
+    || !Number.isSafeInteger(depositNetAmount)
+    || depositNetAmount < 0
+  ) {
+    return clientReceivablesUnavailable("INVALID_COMMAND", { kind: "error", uiState: "error" });
+  }
+  let command;
+  try {
+    command = buildClientDepositReallocationCommand({
+      tenantId: routeContext.tenant_id,
+      bankTransactionId,
+      expectedAllocations,
+      targets,
+      reason,
+      idempotencyKey
+    });
+  } catch {
+    return clientReceivablesUnavailable("INVALID_COMMAND", { kind: "error", uiState: "error" });
+  }
+  const result = await clientDepositJsonRequest(
+    "/api/finance/client-deposit-allocations/reallocate",
+    {
+      method: "POST",
+      routeContext,
+      payload: {
+        ...command,
+        permission_ref: routeContext.permission_ref,
+        audit_hint_ref: routeContext.audit_hint_ref
+      }
+    }
+  );
+  if (result.unavailable) return result.unavailable;
+  if (!result.response.ok) return clientReceivablesGuardedResult(result.response, result.body);
+  const projected = clientReceivablesMutationResult(result.response, result.body, routeContext, {
+    outcome: ["reallocated", "unchanged"],
+    targetField: "bank_transaction_id",
+    targetId: command.bank_transaction_id
+  });
+  const expected = new Map(command.expected_allocations.map((row) => [
+    row.client_deposit_allocation_id,
+    row.state_version
+  ]));
+  const targetsByFee = new Map(command.targets.map((row) => [
+    row.fee_commitment_id,
+    row.active_amount
+  ]));
+  const items = projectClientReceivablesRows(
+    result.body.items,
+    CLIENT_RECEIVABLES_ROW_FIELDS.allocations,
+    200
+  );
+  const responseVersions = new Map(items?.map((row) => [
+    row.client_deposit_allocation_id,
+    row.state_version
+  ]));
+  const responseFees = new Set(items?.map((row) => row.fee_commitment_id));
+  const returnedTotal = items?.reduce((sum, row) => (
+    Number.isSafeInteger(row.active_amount) && Number.isSafeInteger(sum + row.active_amount)
+      ? sum + row.active_amount
+      : Number.NaN
+  ), 0);
+  const targetTotal = command.targets.reduce((sum, row) => sum + row.active_amount, 0);
+  const valid = projected
+    && result.body.raw_source_payload_included === false
+    && items
+    && items.length === targetsByFee.size
+    && responseVersions.size === items.length
+    && responseFees.size === targetsByFee.size
+    && Number.isSafeInteger(projected.item.active_allocated_amount)
+    && projected.item.active_allocated_amount >= 0
+    && Number.isSafeInteger(projected.item.unallocated_amount)
+    && projected.item.unallocated_amount >= 0
+    && Number.isSafeInteger(targetTotal)
+    && returnedTotal === targetTotal
+    && projected.item.active_allocated_amount === targetTotal
+    && projected.item.unallocated_amount === depositNetAmount - targetTotal
+    && items.every((row) => (
+      row.client_group_id === selectedClientId
+      && row.bank_transaction_id === command.bank_transaction_id
+      && targetsByFee.get(row.fee_commitment_id) === row.active_amount
+      && Number.isSafeInteger(row.allocated_amount) && row.allocated_amount >= 0
+      && Number.isSafeInteger(row.reversed_amount) && row.reversed_amount >= 0
+      && row.allocated_amount - row.reversed_amount === row.active_amount
+      && row.allocation_source === "manual"
+      && row.manual_lock === true
+      && Number.isSafeInteger(row.state_version) && row.state_version > 0
+    ))
+    && [...expected].every(([id, version]) => (
+      Number.isSafeInteger(responseVersions.get(id))
+      && responseVersions.get(id) >= version
+      && responseVersions.get(id) <= version + 1
+    ))
+    && items.every((row) => (
+      expected.has(row.client_deposit_allocation_id)
+      || row.state_version === 1
+    ));
+  return valid ? {
+    ...projected,
+    items,
+    rawSourcePayloadIncluded: false
+  } : clientReceivablesUnavailable("INVALID_RESPONSE", {
+    kind: "error", status: result.response.status, uiState: "error"
+  });
+}
+
+function projectClientDepositItem(item, tenantId) {
+  const id = clientDepositText(item?.bank_transaction_id);
+  const classificationId = clientDepositText(item?.bank_transaction_classification_id);
+  const direction = clientDepositText(item?.transaction_direction);
+  const status = clientDepositText(item?.status);
+  if (
+    item?.model_type !== "ClientDeposit"
+    || clientDepositText(item.tenant_id) !== tenantId
+    || !id
+    || !classificationId
+    || !CLIENT_DEPOSIT_DIRECTIONS.has(direction)
+    || !Number.isSafeInteger(item.amount)
+    || item.amount < 0
+    || item.currency !== "KRW"
+    || !CLIENT_DEPOSIT_STATUSES.has(status)
+    || !Number.isSafeInteger(item.state_version)
+    || item.state_version < 1
+    || item.source_metadata_included !== false
+    || item.raw_source_payload_included !== false
+    || item.raw_account_included !== false
+    || item.raw_counterparty_included !== false
+    || item.raw_memo_included !== false
+    || item.transaction_fingerprint_included !== false
+    || item.credential_material_included !== false
+    || item.production_ready_claim !== false
+  ) {
+    return null;
+  }
+  const availableCommands = Array.isArray(item.available_commands)
+    ? item.available_commands.filter((command) => Object.hasOwn(CLIENT_DEPOSIT_COMMAND_PATHS, command))
+    : [];
+  return {
+    model_type: "ClientDeposit",
+    resource_id: id,
+    tenant_id: tenantId,
+    bank_transaction_id: id,
+    bank_transaction_classification_id: classificationId,
+    transaction_date: clientDepositText(item.transaction_date) || null,
+    occurred_at: clientDepositText(item.occurred_at) || null,
+    transaction_direction: direction,
+    amount: item.amount,
+    currency: "KRW",
+    category: clientDepositText(item.category),
+    category_label: clientDepositText(item.category_label) || null,
+    primary_type: clientDepositText(item.primary_type) || null,
+    client_group_id: clientDepositText(item.client_group_id) || null,
+    client_group_label: clientDepositText(item.client_group_label) || null,
+    status,
+    confidence: clientDepositText(item.confidence),
+    classification_source: clientDepositText(item.classification_source),
+    rationale_code: clientDepositText(item.rationale_code),
+    manual_lock: item.manual_lock === true,
+    refund_of_bank_transaction_id:
+      clientDepositText(item.refund_of_bank_transaction_id) || null,
+    state_version: item.state_version,
+    source_type: CLIENT_DEPOSIT_SOURCE_TYPES.has(clientDepositText(item.source_type))
+      ? clientDepositText(item.source_type)
+      : null,
+    source_file_sha256: CLIENT_DEPOSIT_HASH.test(clientDepositText(item.source_file_sha256))
+      ? clientDepositText(item.source_file_sha256)
+      : null,
+    source_row_number: Number.isSafeInteger(item.source_row_number) && item.source_row_number > 0
+      ? item.source_row_number
+      : null,
+    source_page_number: Number.isSafeInteger(item.source_page_number) && item.source_page_number > 0
+      ? item.source_page_number
+      : null,
+    bank_reference_hash: CLIENT_DEPOSIT_HASH.test(clientDepositText(item.bank_reference_hash))
+      ? clientDepositText(item.bank_reference_hash)
+      : null,
+    available_commands: availableCommands,
+    source_metadata_included: false,
+    raw_source_payload_included: false,
+    raw_account_included: false,
+    raw_counterparty_included: false,
+    raw_memo_included: false,
+    transaction_fingerprint_included: false,
+    credential_material_included: false,
+    production_ready_claim: false
+  };
+}
+
+function projectClientDepositCommands(commands) {
+  if (!Array.isArray(commands)) return null;
+  const projected = commands.map((entry) => {
+    const command = clientDepositText(entry?.command);
+    const path = clientDepositText(entry?.path);
+    if (
+      entry?.method !== "POST"
+      || !Object.hasOwn(CLIENT_DEPOSIT_COMMAND_PATHS, command)
+      || CLIENT_DEPOSIT_COMMAND_PATHS[command] !== path
+      || !Array.isArray(entry.required_body_fields)
+      || !Array.isArray(entry.response_binding_fields)
+    ) return null;
+    return { command, method: "POST", path };
+  });
+  return projected.every(Boolean) && projected.length === 3 ? projected : null;
+}
+
+export async function fetchClientDeposits({
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF,
+  from = null,
+  to = null,
+  direction = null,
+  status = null,
+  clientGroupId = null,
+  limit = 100,
+  cursor = null
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientDepositUnavailable();
+  const params = new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref,
+    limit: String(limit)
+  });
+  for (const [key, value] of Object.entries({
+    from,
+    to,
+    direction,
+    status,
+    client_group_id: clientGroupId,
+    cursor
+  })) {
+    if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
+  }
+  const result = await clientDepositJsonRequest(
+    `/api/finance/client-deposits?${params.toString()}`,
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const page = body.page_info;
+  const commands = projectClientDepositCommands(body.supported_commands);
+  const items = Array.isArray(body.items)
+    ? body.items.map((item) => projectClientDepositItem(item, routeContext.tenant_id))
+    : null;
+  const valid = (
+    ["passed", "partial"].includes(body.outcome)
+    && Array.isArray(items)
+    && items.every(Boolean)
+    && new Set(items.map((item) => item.bank_transaction_id)).size === items.length
+    && commands
+    && page
+    && page.returned_count === items.length
+    && page.omitted_item_count === null
+    && typeof page.has_more === "boolean"
+    && (
+      (page.has_more && clientDepositText(page.next_cursor))
+      || (!page.has_more && page.next_cursor === null)
+    )
+    && body.permission_prefilter_applied === true
+    && body.count_leak_prevented === true
+    && body.unauthorized_count_included === false
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+    && Array.isArray(body.safe_error_codes)
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "error",
+      status: response.status,
+      uiState: "error"
+    };
+  }
+  const state = body.outcome === "partial"
+    ? "partial"
+    : items.length === 0
+      ? "empty"
+      : "data";
+  return {
+    kind: state,
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: state === "data" ? null : state,
+    items,
+    supportedCommands: commands,
+    pageInfo: {
+      returnedCount: page.returned_count,
+      omittedItemCount: null,
+      hasMore: page.has_more,
+      nextCursor: page.next_cursor
+    },
+    safeErrorCodes: clientDepositSafeCodes(body),
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    unauthorizedCountIncluded: false,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+export async function fetchClientDepositDetail({
+  transactionId,
+  expectedClassificationId = null,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  const id = clientDepositText(transactionId);
+  if (!routeContext || !id) return clientDepositUnavailable();
+  const params = new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref
+  });
+  const result = await clientDepositJsonRequest(
+    `/api/finance/client-deposits/${encodeURIComponent(id)}?${params.toString()}`,
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const item = projectClientDepositItem(body.item, routeContext.tenant_id);
+  const commands = projectClientDepositCommands(body.supported_commands);
+  const valid = (
+    body.outcome === "passed"
+    && item?.bank_transaction_id === id
+    && (!expectedClassificationId
+      || item.bank_transaction_classification_id === expectedClassificationId)
+    && commands
+    && body.permission_prefilter_applied === true
+    && body.count_leak_prevented === true
+    && body.unauthorized_count_included === false
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "error",
+      status: response.status,
+      uiState: "error"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    item,
+    supportedCommands: commands,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+export async function encodeClientDepositBankFile(file) {
+  const metadata = clientDepositFileSourceType(
+    file?.name ?? file?.filename,
+    file?.type ?? file?.mime_type
+  );
+  if (!metadata || typeof file?.arrayBuffer !== "function") return null;
+  const buffer = await file.arrayBuffer();
+  if (!(buffer instanceof ArrayBuffer) || buffer.byteLength < 1
+      || buffer.byteLength > CLIENT_DEPOSIT_MAX_FILE_BYTES[metadata.sourceType]
+      || (file?.size !== undefined
+        && (!Number.isSafeInteger(file.size) || file.size !== buffer.byteLength))) return null;
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  const base64 = typeof btoa === "function"
+    ? btoa(binary)
+    : globalThis.Buffer?.from(bytes)?.toString("base64");
+  if (!base64) return null;
+  return normalizeClientDepositEncodedFile({
+    filename: metadata.filename,
+    mime_type: metadata.mimeType,
+    byte_size: buffer.byteLength,
+    content_base64: base64
+  });
+}
+
+function projectClientDepositPreviewItem(item) {
+  const id = clientDepositText(item?.bank_transaction_id);
+  const status = clientDepositText(item?.status);
+  if (
+    !id
+    || !CLIENT_DEPOSIT_IMPORT_STATUSES.has(status)
+    || item.source_metadata_included !== false
+    || item.transaction_fingerprint_included !== false
+    || item.raw_source_payload_included !== false
+  ) return null;
+  return {
+    bank_transaction_id: id,
+    row_number: Number.isSafeInteger(item.row_number) && item.row_number > 0
+      ? item.row_number
+      : null,
+    status,
+    direction: CLIENT_DEPOSIT_DIRECTIONS.has(clientDepositText(item.direction))
+      ? clientDepositText(item.direction)
+      : null,
+    amount: Number.isSafeInteger(item.amount) && item.amount >= 0 ? item.amount : null,
+    currency: item.currency === "KRW" ? "KRW" : null,
+    date: clientDepositText(item.date) || null,
+    occurred_at: clientDepositText(item.occurred_at) || null,
+    balance_after: Number.isSafeInteger(item.balance_after) && item.balance_after >= 0
+      ? item.balance_after
+      : null,
+    source_type: CLIENT_DEPOSIT_SOURCE_TYPES.has(clientDepositText(item.source_type))
+      ? clientDepositText(item.source_type)
+      : null,
+    safe_error_code: clientDepositText(item.safe_error_code) || null,
+    source_metadata_included: false,
+    transaction_fingerprint_included: false,
+    raw_source_payload_included: false
+  };
+}
+
+export async function previewClientDepositBankImport({
+  file,
+  accountRef,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientDepositUnavailable();
+  const preparedFile = typeof file?.content_base64 === "string"
+    ? normalizeClientDepositEncodedFile(file)
+    : await encodeClientDepositBankFile(file);
+  if (!preparedFile || !clientDepositText(accountRef)) {
+    return { ...clientDepositUnavailable("SOURCE_FILE_INVALID"), kind: "error", uiState: "error" };
+  }
+  const payload = {
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref,
+    account_ref: clientDepositText(accountRef),
+    file: preparedFile
+  };
+  const result = await clientDepositJsonRequest(
+    "/api/finance/bank-imports/preview",
+    { method: "POST", payload, routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const preview = body.preview;
+  const counts = preview?.counts;
+  const items = Array.isArray(preview?.items)
+    ? preview.items.map(projectClientDepositPreviewItem)
+    : null;
+  const valid = (
+    body.outcome === "preview_ready"
+    && CLIENT_DEPOSIT_PREVIEW_ID.test(clientDepositText(preview?.preview_id))
+    && CLIENT_DEPOSIT_HASH.test(clientDepositText(preview?.preview_manifest_sha256))
+    && CLIENT_DEPOSIT_HASH.test(clientDepositText(preview?.source_file_sha256))
+    && CLIENT_DEPOSIT_SOURCE_TYPES.has(clientDepositText(preview?.source_type))
+    && clientDepositText(preview?.account_ref) === clientDepositText(accountRef)
+    && counts
+    && ["total", "new", "duplicate", "error"].every((key) => (
+      Number.isSafeInteger(counts[key]) && counts[key] >= 0
+    ))
+    && counts.total === counts.new + counts.duplicate + counts.error
+    && Array.isArray(items)
+    && items.every(Boolean)
+    && items.length === counts.total
+    && new Set(items.map((item) => item.bank_transaction_id)).size === items.length
+    && items.filter((item) => item.status === "new").length === counts.new
+    && items.filter((item) => item.status === "duplicate").length === counts.duplicate
+    && items.filter((item) => item.status === "error").length === counts.error
+    && clientDepositText(preview.preview_confirmation_token)
+    && Number.isFinite(Date.parse(preview.confirmation_expires_at))
+    && preview.confirmation_token_included === true
+    && preview.product_records_mutated === false
+    && preview.raw_source_payload_included === false
+    && body.count_leak_prevented === true
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "error",
+      status: response.status,
+      uiState: "error"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    adapter_capability: "finance-bank-import-preview-v1",
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    preview: {
+      preview_id: preview.preview_id,
+      preview_manifest_sha256: preview.preview_manifest_sha256,
+      source_file_sha256: preview.source_file_sha256,
+      source_type: preview.source_type,
+      account_ref: preview.account_ref,
+      counts: {
+        total: counts.total,
+        new: counts.new,
+        duplicate: counts.duplicate,
+        error: counts.error
+      },
+      items,
+      extracted_page_count: Number.isSafeInteger(preview.extracted_page_count)
+        ? preview.extracted_page_count
+        : null,
+      extracted_character_count: Number.isSafeInteger(preview.extracted_character_count)
+        ? preview.extracted_character_count
+        : null,
+      preview_confirmation_token: preview.preview_confirmation_token,
+      confirmation_expires_at: preview.confirmation_expires_at,
+      confirmation_token_included: true,
+      product_records_mutated: false,
+      raw_source_payload_included: false
+    },
+    preparedFile,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+function validClientDepositCommandContext(command, routeContext) {
+  return (
+    command
+    && typeof command === "object"
+    && !Array.isArray(command)
+    && command.tenant_id === routeContext?.tenant_id
+    && clientDepositText(command.permission_ref) === routeContext.permission_ref
+    && clientDepositText(command.audit_hint_ref) === routeContext.audit_hint_ref
+    && CLIENT_DEPOSIT_IDEMPOTENCY_KEY.test(clientDepositText(command.idempotency_key))
+    && command.transactions === undefined
+    && command.matter_id === undefined
+    && command.invoice_id === undefined
+  );
+}
+
+export async function confirmClientDepositBankImport({
+  command,
+  expectedPreview,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  const expectedId = clientDepositText(expectedPreview?.previewId ?? expectedPreview?.preview_id);
+  const expectedNew = expectedPreview?.counts?.new;
+  const preparedFile = normalizeClientDepositEncodedFile(command?.file);
+  if (
+    !routeContext
+    || !validClientDepositCommandContext(command, routeContext)
+    || !expectedId
+    || !Number.isSafeInteger(expectedNew)
+    || command.production_import_approved !== true
+    || !clientDepositText(command.preview_confirmation_token)
+    || !preparedFile
+  ) {
+    return { ...clientDepositUnavailable("INVALID_COMMAND"), kind: "error", uiState: "error" };
+  }
+  const payload = { ...command, file: preparedFile };
+  const result = await clientDepositJsonRequest(
+    "/api/finance/bank-imports",
+    { method: "POST", payload, routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const item = body.item;
+  const replay = body.outcome === "idempotent_replay";
+  const valid = (
+    ["created", "idempotent_replay"].includes(body.outcome)
+    && body.idempotent_replay === replay
+    && body.confirmed_preview_id === expectedId
+    && body.transaction_count === expectedNew
+    && item
+    && item.model_type === "BankImportBatch"
+    && item.tenant_id === routeContext.tenant_id
+    && item.preview_id === expectedId
+    && item.transaction_count === expectedNew
+    && item.source_hashes_included === false
+    && item.raw_source_payload_included === false
+    && item.credential_material_included === false
+    && item.production_ready_claim === false
+    && body.confirmation_token_included === false
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "conflict",
+      status: response.status,
+      uiState: "conflict",
+      outcome: "conflict"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    item: {
+      bank_import_batch_id: item.bank_import_batch_id,
+      tenant_id: routeContext.tenant_id,
+      preview_id: expectedId,
+      source_file_sha256: item.source_file_sha256 ?? null,
+      source_type: item.source_type,
+      account_ref: item.account_ref,
+      transaction_count: expectedNew,
+      raw_source_payload_included: false,
+      production_ready_claim: false
+    },
+    transactionCount: expectedNew,
+    confirmedPreviewId: expectedId,
+    sourceFileSha256: item.source_file_sha256 ?? null,
+    idempotentReplay: replay,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+function projectClientDepositReceipt(receipt) {
+  if (
+    !receipt
+    || typeof receipt !== "object"
+    || Array.isArray(receipt)
+    || !clientDepositText(receipt.bank_transaction_id)
+    || !clientDepositText(receipt.bank_transaction_classification_id)
+    || !Number.isSafeInteger(receipt.state_version)
+    || receipt.state_version < 1
+    || !clientDepositText(receipt.category)
+    || !clientDepositText(receipt.status)
+    || !CLIENT_DEPOSIT_IDEMPOTENCY_KEY.test(clientDepositText(receipt.idempotency_key))
+    || !CLIENT_DEPOSIT_HASH.test(clientDepositText(receipt.request_fingerprint))
+    || !Object.hasOwn(receipt, "client_group_id")
+    || !Object.hasOwn(receipt, "refund_of_bank_transaction_id")
+    || receipt.raw_source_payload_included !== false
+    || receipt.production_ready_claim !== false
+  ) return null;
+  return {
+    bank_transaction_id: receipt.bank_transaction_id,
+    bank_transaction_classification_id: receipt.bank_transaction_classification_id,
+    state_version: receipt.state_version,
+    category: receipt.category,
+    status: receipt.status,
+    client_group_id: clientDepositText(receipt.client_group_id) || null,
+    refund_of_bank_transaction_id:
+      clientDepositText(receipt.refund_of_bank_transaction_id) || null,
+    idempotency_key: receipt.idempotency_key,
+    request_fingerprint: receipt.request_fingerprint,
+    raw_source_payload_included: false,
+    production_ready_claim: false
+  };
+}
+
+async function postClientDepositClassification({
+  path,
+  command,
+  binding,
+  ctx,
+  permissionRef,
+  auditHintRef
+}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext || !validClientDepositCommandContext(command, routeContext) || !binding) {
+    return { ...clientDepositUnavailable("INVALID_COMMAND"), kind: "error", uiState: "error" };
+  }
+  const result = await clientDepositJsonRequest(
+    path,
+    { method: "POST", payload: command, routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const receipts = Array.isArray(body.command_receipts)
+    ? body.command_receipts.map(projectClientDepositReceipt)
+    : [];
+  const itemReceipt = projectClientDepositReceipt(body.item?.command_receipt);
+  const receipt = receipts[0];
+  const expectedClient = Object.hasOwn(binding, "expected_client_group_id")
+    ? clientDepositText(binding.expected_client_group_id) || null
+    : receipt?.client_group_id;
+  const expectedRefund = Object.hasOwn(binding, "expected_refund_of_bank_transaction_id")
+    ? clientDepositText(binding.expected_refund_of_bank_transaction_id) || null
+    : receipt?.refund_of_bank_transaction_id;
+  const replay = body.outcome === "idempotent_replay";
+  const valid = (
+    ["classified", "idempotent_replay"].includes(body.outcome)
+    && body.idempotent_replay === replay
+    && receipts.length === 1
+    && receipt
+    && itemReceipt
+    && JSON.stringify(receipt) === JSON.stringify(itemReceipt)
+    && receipt.bank_transaction_id === binding.selected_transaction_id
+    && receipt.bank_transaction_classification_id === binding.selected_classification_id
+    && receipt.state_version >= binding.expected_state_version
+    && receipt.idempotency_key === command.idempotency_key
+    && body.idempotency_key === command.idempotency_key
+    && receipt.request_fingerprint === body.request_fingerprint
+    && (!Object.hasOwn(binding, "expected_category")
+      || receipt.category === binding.expected_category)
+    && (!Object.hasOwn(binding, "expected_status")
+      || receipt.status === binding.expected_status)
+    && receipt.client_group_id === expectedClient
+    && receipt.refund_of_bank_transaction_id === expectedRefund
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("RECEIPT_BINDING_FAILED"),
+      kind: "blocked",
+      status: response.status,
+      uiState: "blocked"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    tenant_id: routeContext.tenant_id,
+    item: { command_receipt: receipt },
+    command_receipts: [receipt],
+    idempotency_key: body.idempotency_key,
+    request_fingerprint: body.request_fingerprint,
+    idempotent_replay: replay,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    raw_source_payload_included: false,
+    production_ready_claim: false
+  };
+}
+
+export function autoClassifyClientDeposit({
+  command,
+  binding,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  return postClientDepositClassification({
+    path: "/api/finance/bank-classifications/auto",
+    command,
+    binding,
+    ctx,
+    permissionRef,
+    auditHintRef
+  });
+}
+
+export function reviewClientDepositClassification({
+  command,
+  binding,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  return postClientDepositClassification({
+    path: "/api/finance/bank-classifications/review",
+    command,
+    binding,
+    ctx,
+    permissionRef,
+    auditHintRef
   });
 }
 
@@ -5590,6 +9385,650 @@ export function createAnalyticsExport({ dashboardId, ctx = "allow" } = {}) {
         permission_ref: DEFAULT_ANALYTICS_PERMISSION_REF
       }
     }
+  });
+}
+
+const CLIENT_FIXED_REPORT_IDS = new Set([
+  "monthly_deposit_revenue",
+  "inquiry_status",
+  "revenue_ranking",
+  "receivables_ranking"
+]);
+const CLIENT_FIXED_REPORT_COLUMNS = Object.freeze({
+  monthly_deposit_revenue: Object.freeze([
+    Object.freeze({ key: "month", label: "월" }),
+    Object.freeze({ key: "net_deposit_revenue", label: "입금 매출" })
+  ]),
+  inquiry_status: Object.freeze([
+    Object.freeze({ key: "status", label: "상태" }),
+    Object.freeze({ key: "count", label: "건수" })
+  ]),
+  revenue_ranking: Object.freeze([
+    Object.freeze({ key: "rank", label: "순위" }),
+    Object.freeze({ key: "client_name", label: "고객" }),
+    Object.freeze({ key: "matched_inflow_amount", label: "연결 입금" }),
+    Object.freeze({ key: "linked_refund_amount", label: "환불" }),
+    Object.freeze({ key: "net_deposit_revenue", label: "입금 매출" }),
+    Object.freeze({ key: "latest_deposit_date", label: "최근 입금일" })
+  ]),
+  receivables_ranking: Object.freeze([
+    Object.freeze({ key: "rank", label: "순위" }),
+    Object.freeze({ key: "client_name", label: "고객" }),
+    Object.freeze({ key: "agreed_amount", label: "약정 수임료" }),
+    Object.freeze({ key: "active_allocated_amount", label: "반영 입금" }),
+    Object.freeze({ key: "receivable_amount", label: "미수금" }),
+    Object.freeze({ key: "earliest_due_date", label: "가장 이른 지급기한" })
+  ])
+});
+const CLIENT_FIXED_REPORT_CONTRACT_VERSION = "client-fixed-reports.v1";
+const CLIENT_FIXED_REPORT_SNAPSHOT_VERSION = 1;
+const CLIENT_FIXED_REPORT_MAX_TOKEN_BYTES = 16 * 1024;
+const CLIENT_FIXED_REPORT_MAX_CSV_BYTES = 16 * 1024;
+const CLIENT_FIXED_REPORT_TIMEZONES = new Set(["Asia/Seoul"]);
+const CLIENT_FIXED_REPORT_REVENUE_PERIODS = new Set(["month", "quarter", "year"]);
+const CLIENT_FIXED_REPORT_SOURCE_STATUSES = new Set([
+  "available",
+  "no_data",
+  "partial"
+]);
+const CLIENT_FIXED_REPORT_IDEMPOTENCY_KEY = /^[A-Za-z0-9._:~-]{1,200}$/u;
+const CLIENT_FIXED_REPORT_SHA256 = /^[a-f0-9]{64}$/u;
+const CLIENT_FIXED_REPORT_SAFE_CODE = /^[A-Z][A-Z0-9_]{1,159}$/u;
+const CLIENT_FIXED_REPORT_SAFE_REF = /^[A-Za-z0-9._:-]{1,200}$/u;
+
+function clientFixedReportText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function clientFixedReportSafeRef(value) {
+  const text = clientFixedReportText(value);
+  return CLIENT_FIXED_REPORT_SAFE_REF.test(text) ? text : null;
+}
+
+function clientFixedReportSafeErrorCodes(body) {
+  return Array.isArray(body?.safe_error_codes)
+    ? body.safe_error_codes
+      .filter((code) => (
+        typeof code === "string"
+        && CLIENT_FIXED_REPORT_SAFE_CODE.test(code)
+      ))
+      .slice(0, 24)
+    : [];
+}
+
+function clientFixedReportByteLength(value) {
+  return typeof value === "string"
+    ? new TextEncoder().encode(value).byteLength
+    : 0;
+}
+
+function clientFixedReportSourceStatus(value) {
+  const status = clientFixedReportText(value);
+  return CLIENT_FIXED_REPORT_SOURCE_STATUSES.has(status) ? status : null;
+}
+
+function clientFixedReportUnavailable({
+  status = 0,
+  code = "SIGNED_SESSION_REQUIRED",
+  kind = "error",
+  uiState = "error",
+  outcome = "blocked",
+  auditRecorded = false
+} = {}) {
+  return {
+    kind,
+    status,
+    outcome,
+    uiState,
+    safeErrorCodes: [code],
+    auditRecorded,
+    countLeakPrevented: true,
+    productionReadyClaim: false
+  };
+}
+
+function clientFixedReportGuardedResult(response, body, fallbackCode) {
+  const status = Number(response?.status ?? 0);
+  const codes = clientFixedReportSafeErrorCodes(body);
+  const outcome = clientFixedReportText(body?.outcome) || "blocked";
+  const state = clientFixedReportText(body?.ui_state);
+  const denied = status === 403
+    || ["denied", "permission_denied"].includes(state)
+    || ["denied", "permission_denied"].includes(outcome);
+  const review = ["review", "review_required"].includes(state)
+    || outcome === "review_required";
+  const partial = state === "partial" || outcome === "partial";
+  const kind = status === 409
+    ? "conflict"
+    : denied || review
+      ? "guarded"
+      : partial
+        ? "partial"
+        : "error";
+  return {
+    kind,
+    status,
+    outcome,
+    uiState: denied
+      ? "denied"
+      : review
+        ? "review_required"
+        : partial
+          ? "partial"
+          : "error",
+    safeErrorCodes: codes.length > 0 ? codes : [fallbackCode],
+    auditRecorded: body?.audit_recorded === true,
+    countLeakPrevented: body?.count_leak_prevented === true,
+    productionReadyClaim: false
+  };
+}
+
+async function clientFixedReportJsonRequest(path, {
+  method = "GET",
+  routeContext,
+  payload
+} = {}) {
+  if (!routeContext || !path) {
+    return {
+      unavailable: clientFixedReportUnavailable(),
+      response: null,
+      body: null
+    };
+  }
+  let response;
+  let text;
+  try {
+    response = await apiFetch(path, {
+      method,
+      headers: {
+        ...(payload === undefined ? {} : { "content-type": "application/json" }),
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(
+          routeContext.permissionContext
+        )
+      },
+      ...(payload === undefined ? {} : { body: JSON.stringify(payload) })
+    });
+    text = await response.text();
+  } catch {
+    return {
+      unavailable: clientFixedReportUnavailable({
+        code: "NETWORK_OR_PARSE_ERROR"
+      }),
+      response: null,
+      body: null
+    };
+  }
+  let body;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return {
+      unavailable: clientFixedReportUnavailable({
+        status: response.status,
+        code: "INVALID_ERROR_RESPONSE",
+        kind: response.status === 409 ? "conflict" : "error"
+      }),
+      response,
+      body: null
+    };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return {
+      unavailable: clientFixedReportUnavailable({
+        status: response.status,
+        code: "INVALID_ERROR_RESPONSE",
+        kind: response.status === 409 ? "conflict" : "error"
+      }),
+      response,
+      body: null
+    };
+  }
+  return { unavailable: null, response, body };
+}
+
+function clientFixedReportAuditEvent(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const event = {
+    event_id: clientFixedReportText(value.event_id),
+    action: clientFixedReportText(value.action),
+    decision: clientFixedReportText(value.decision),
+    tenant_authority: value.tenant_authority,
+    actor_id_included: value.actor_id_included,
+    tenant_id_included: value.tenant_id_included,
+    raw_rows_included: value.raw_rows_included,
+    source_values_included: value.source_values_included,
+    production_ready_claim: value.production_ready_claim
+  };
+  return (
+    CLIENT_FIXED_REPORT_SAFE_REF.test(event.event_id)
+    && ["allow", "replay"].includes(event.decision)
+    && event.tenant_authority === "signed_session"
+    && event.actor_id_included === false
+    && event.tenant_id_included === false
+    && event.raw_rows_included === false
+    && event.source_values_included === false
+    && event.production_ready_claim === false
+  ) ? event : null;
+}
+
+function clientFixedReportColumnsAndRows(reportId, columns, rows) {
+  const expected = CLIENT_FIXED_REPORT_COLUMNS[reportId];
+  if (
+    !expected
+    || !Array.isArray(columns)
+    || columns.length !== expected.length
+    || !columns.every((column, index) => (
+      column
+      && typeof column === "object"
+      && !Array.isArray(column)
+      && column.key === expected[index].key
+      && column.label === expected[index].label
+    ))
+    || !Array.isArray(rows)
+  ) return null;
+  return {
+    columns: expected.map(({ key, label }) => ({ key, label })),
+    rows: rows.map((row) => (
+      row && typeof row === "object" && !Array.isArray(row)
+        ? Object.fromEntries(expected.map(({ key }) => [key, row[key]]))
+        : null
+    ))
+  };
+}
+
+function clientFixedReportScreenItem(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const reportId = clientFixedReportText(value.report_id);
+  const table = clientFixedReportColumnsAndRows(
+    reportId,
+    value.columns,
+    value.rows
+  );
+  const snapshot = value.snapshot;
+  const sourceStatus = clientFixedReportSourceStatus(value.source_status);
+  if (
+    !table
+    || table.rows.some((row) => row === null)
+    || !snapshot
+    || typeof snapshot !== "object"
+    || Array.isArray(snapshot)
+    || !clientFixedReportText(snapshot.token)
+    || clientFixedReportByteLength(snapshot.token) > CLIENT_FIXED_REPORT_MAX_TOKEN_BYTES
+    || snapshot.version !== CLIENT_FIXED_REPORT_SNAPSHOT_VERSION
+    || !Number.isFinite(Date.parse(snapshot.expires_at))
+    || sourceStatus === null
+  ) return null;
+  const item = {
+    report_id: reportId,
+    columns: table.columns,
+    rows: table.rows,
+    row_count: value.row_count,
+    row_limit: value.row_limit,
+    as_of: value.as_of,
+    timezone: value.timezone,
+    source_status: sourceStatus,
+    snapshot: {
+      token: snapshot.token,
+      version: snapshot.version,
+      expires_at: snapshot.expires_at
+    },
+    print_contract: {
+      rows_source: value.print_contract?.rows_source,
+      server_pdf_required: value.print_contract?.server_pdf_required
+    },
+    bounded_result: value.bounded_result,
+    permission_prefilter_applied: value.permission_prefilter_applied,
+    count_leak_prevented: value.count_leak_prevented,
+    raw_bank_source_included: value.raw_bank_source_included,
+    raw_source_payload_included: value.raw_source_payload_included,
+    contact_pii_included: value.contact_pii_included,
+    internal_ids_included: value.internal_ids_included,
+    source_digest_included: value.source_digest_included,
+    production_ready_claim: value.production_ready_claim
+  };
+  return (
+    CLIENT_FIXED_REPORT_IDS.has(item.report_id)
+    && Number.isSafeInteger(item.row_count)
+    && Number.isSafeInteger(item.row_limit)
+    && item.row_count >= 0
+    && item.row_limit > 0
+    && item.row_count <= item.row_limit
+    && Number.isFinite(Date.parse(item.as_of))
+    && CLIENT_FIXED_REPORT_TIMEZONES.has(item.timezone)
+    && item.print_contract.rows_source === "screen_snapshot"
+    && item.print_contract.server_pdf_required === false
+    && item.bounded_result === true
+    && item.permission_prefilter_applied === true
+    && item.count_leak_prevented === true
+    && item.raw_bank_source_included === false
+    && item.raw_source_payload_included === false
+    && item.contact_pii_included === false
+    && item.internal_ids_included === false
+    && item.source_digest_included === false
+    && item.production_ready_claim === false
+  ) ? item : null;
+}
+
+function clientFixedReportCsvItem(value, {
+  reportId,
+  snapshotVersion
+}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const table = clientFixedReportColumnsAndRows(
+    clientFixedReportText(value.report_id),
+    value.columns,
+    value.rows
+  );
+  if (!table || table.rows.some((row) => row === null)) return null;
+  const item = {
+    report_id: clientFixedReportText(value.report_id),
+    columns: table.columns,
+    rows: table.rows,
+    row_count: value.row_count,
+    snapshot_version: value.snapshot_version,
+    as_of: value.as_of,
+    source_status: clientFixedReportSourceStatus(value.source_status),
+    csv_text: value.csv_text,
+    csv_sha256: value.csv_sha256,
+    csv_byte_size: value.csv_byte_size,
+    mime_type: value.mime_type,
+    permission_prefilter_applied: value.permission_prefilter_applied,
+    count_leak_prevented: value.count_leak_prevented,
+    formula_injection_escaped: value.formula_injection_escaped,
+    raw_bank_source_included: value.raw_bank_source_included,
+    raw_source_payload_included: value.raw_source_payload_included,
+    contact_pii_included: value.contact_pii_included,
+    internal_ids_included: value.internal_ids_included,
+    production_ready_claim: value.production_ready_claim
+  };
+  return (
+    item.report_id === reportId
+    && item.snapshot_version === snapshotVersion
+    && Array.isArray(item.columns)
+    && Array.isArray(item.rows)
+    && Number.isSafeInteger(item.row_count)
+    && item.row_count === item.rows.length
+    && item.source_status !== null
+    && Number.isFinite(Date.parse(item.as_of))
+    && typeof item.csv_text === "string"
+    && item.csv_text.length > 0
+    && Number.isSafeInteger(item.csv_byte_size)
+    && item.csv_byte_size === clientFixedReportByteLength(item.csv_text)
+    && item.csv_byte_size <= CLIENT_FIXED_REPORT_MAX_CSV_BYTES
+    && CLIENT_FIXED_REPORT_SHA256.test(item.csv_sha256)
+    && item.mime_type === "text/csv; charset=utf-8"
+    && item.permission_prefilter_applied === true
+    && item.count_leak_prevented === true
+    && item.formula_injection_escaped === true
+    && item.raw_bank_source_included === false
+    && item.raw_source_payload_included === false
+    && item.contact_pii_included === false
+    && item.internal_ids_included === false
+    && item.production_ready_claim === false
+  ) ? item : null;
+}
+
+export function getClientFixedReportRouteContext({
+  ctx = "allow",
+  operation = "read",
+  permissionRef = CLIENT_FIXED_REPORT_PERMISSION_REF,
+  auditHintRef = CLIENT_FIXED_REPORT_AUDIT_HINT_REF,
+  source = globalThis
+} = {}) {
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope) return null;
+  const defaultTenant = clientFixedReportText(envelope.tenant_refs.default);
+  const clientTenant = clientFixedReportText(envelope.tenant_refs.client);
+  if (defaultTenant && clientTenant && defaultTenant !== clientTenant) return null;
+  const tenantId = defaultTenant || clientTenant;
+  const context = permissionContextFor(
+    ctx,
+    clientFixedReportPermissionContexts(operation),
+    "client"
+  );
+  if (
+    !tenantId
+    || !clientFixedReportText(permissionRef)
+    || !clientFixedReportText(auditHintRef)
+    || clientFixedReportText(context?.principal?.tenant_id) !== tenantId
+  ) return null;
+  return {
+    tenant_id: tenantId,
+    permission_ref: clientFixedReportText(permissionRef),
+    audit_hint_ref: clientFixedReportText(auditHintRef),
+    permissionContext: context
+  };
+}
+
+export async function fetchClientFixedReport({
+  reportId,
+  ctx = "allow",
+  permissionRef = CLIENT_FIXED_REPORT_PERMISSION_REF,
+  auditHintRef = CLIENT_FIXED_REPORT_AUDIT_HINT_REF,
+  asOf = null,
+  timezone = "Asia/Seoul",
+  revenueRankingPeriod = "year"
+} = {}) {
+  const normalizedReportId = clientFixedReportText(reportId);
+  const routeContext = getClientFixedReportRouteContext({
+    ctx,
+    operation: "read",
+    permissionRef,
+    auditHintRef
+  });
+  if (
+    !CLIENT_FIXED_REPORT_IDS.has(normalizedReportId)
+    || !CLIENT_FIXED_REPORT_TIMEZONES.has(timezone)
+    || !CLIENT_FIXED_REPORT_REVENUE_PERIODS.has(revenueRankingPeriod)
+    || (asOf !== null && !Number.isFinite(Date.parse(asOf)))
+  ) {
+    return clientFixedReportUnavailable({
+      code: "CLIENT_FIXED_REPORT_REQUEST_INVALID"
+    });
+  }
+  const params = routeContext && new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref,
+    timezone,
+    revenue_ranking_period: revenueRankingPeriod
+  });
+  if (params && asOf) params.set("as_of", new Date(asOf).toISOString());
+  const result = await clientFixedReportJsonRequest(
+    params
+      ? `/api/reports/clients/fixed/${encodeURIComponent(normalizedReportId)}?${params}`
+      : "",
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const outcome = result.body.outcome;
+  const partial = outcome === "partial";
+  const acceptedOutcome = ["passed", "empty", "partial"].includes(outcome);
+  const stateMismatch = partial
+    ? result.body.ui_state !== "partial"
+    : result.body.ui_state !== (outcome === "empty" ? "no_data" : null);
+  if (
+    !result.response.ok
+    || !acceptedOutcome
+  ) {
+    return clientFixedReportGuardedResult(
+      result.response,
+      result.body,
+      "CLIENT_FIXED_REPORT_READ_FAILED"
+    );
+  }
+  if (stateMismatch) {
+    return clientFixedReportUnavailable({
+      status: result.response.status,
+      code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
+    });
+  }
+  const item = clientFixedReportScreenItem(result.body.item);
+  const auditEvent = clientFixedReportAuditEvent(result.body.audit_event);
+  const empty = result.body.outcome === "empty";
+  const sourceStatus = item?.source_status;
+  const projected = {
+    kind: "data",
+    status: result.response.status,
+    requestId: clientFixedReportSafeRef(result.body.request_id),
+    outcome: result.body.outcome,
+    uiState: partial ? "partial" : empty ? "empty" : null,
+    item,
+    sourceStatus,
+    exportSnapshot: item?.snapshot ?? null,
+    safeErrorCodes: clientFixedReportSafeErrorCodes(result.body),
+    auditHintRef: result.body.audit_hint_ref,
+    auditEvent,
+    countLeakPrevented: result.body.count_leak_prevented === true,
+    permissionPrefilterApplied: item?.permission_prefilter_applied === true,
+    rawBankSourceIncluded: false,
+    rawSourcePayloadIncluded: false,
+    credentialMaterialIncluded: false,
+    productionReadyClaim: result.body.production_ready_claim === true
+  };
+  const model = item && buildClientFixedReportsModel(projected);
+  const report = model && selectClientFixedReport(model, normalizedReportId);
+  const valid = (
+    result.response.status === 200
+    && result.body.audit_hint_ref === routeContext.audit_hint_ref
+    && result.body.raw_sql_included === false
+    && result.body.raw_query_payload_included === false
+    && result.body.source_payload_included === false
+    && result.body.production_ready_claim === false
+    && projected.safeErrorCodes.length === 0
+    && auditEvent?.action === "report.client_fixed.screen.read"
+    && auditEvent.decision === "allow"
+    && item?.report_id === normalizedReportId
+    && item.row_count === item.rows?.length
+    && sourceStatus === (partial ? "partial" : empty ? "no_data" : "available")
+    && report?.state === (partial ? "partial" : empty ? "empty" : "data")
+  );
+  return valid ? projected : clientFixedReportUnavailable({
+    status: result.response.status,
+    code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
+  });
+}
+
+export async function exportClientFixedReportCsv({
+  reportId,
+  contractVersion,
+  snapshotToken,
+  snapshotVersion,
+  idempotencyKey,
+  ctx = "allow",
+  permissionRef = CLIENT_FIXED_REPORT_PERMISSION_REF,
+  auditHintRef = CLIENT_FIXED_REPORT_AUDIT_HINT_REF
+} = {}) {
+  const normalizedReportId = clientFixedReportText(reportId);
+  const normalizedToken = typeof snapshotToken === "string" ? snapshotToken : "";
+  const normalizedKey = clientFixedReportText(idempotencyKey);
+  const routeContext = getClientFixedReportRouteContext({
+    ctx,
+    operation: "export",
+    permissionRef,
+    auditHintRef
+  });
+  if (
+    !CLIENT_FIXED_REPORT_IDS.has(normalizedReportId)
+    || contractVersion !== CLIENT_FIXED_REPORT_CONTRACT_VERSION
+    || !normalizedToken
+    || clientFixedReportByteLength(normalizedToken) > CLIENT_FIXED_REPORT_MAX_TOKEN_BYTES
+    || snapshotVersion !== CLIENT_FIXED_REPORT_SNAPSHOT_VERSION
+    || !CLIENT_FIXED_REPORT_IDEMPOTENCY_KEY.test(normalizedKey)
+  ) {
+    return clientFixedReportUnavailable({
+      code: "CLIENT_FIXED_REPORT_EXPORT_REQUEST_INVALID"
+    });
+  }
+  const result = await clientFixedReportJsonRequest(
+    routeContext
+      ? `/api/reports/clients/fixed/${encodeURIComponent(normalizedReportId)}.csv`
+      : "",
+    {
+      method: "POST",
+      routeContext,
+      payload: routeContext ? {
+        tenant_id: routeContext.tenant_id,
+        permission_ref: routeContext.permission_ref,
+        audit_hint_ref: routeContext.audit_hint_ref,
+        snapshot_token: normalizedToken,
+        snapshot_version: snapshotVersion,
+        idempotency_key: normalizedKey
+      } : undefined
+    }
+  );
+  if (result.unavailable) return result.unavailable;
+  const replay = result.body.idempotent_replay === true;
+  const outcome = result.body.outcome;
+  const partial = outcome === "partial";
+  const acceptedOutcome = ["created", "idempotent_replay", "partial"].includes(outcome)
+    && (!replay || ["idempotent_replay", "partial"].includes(outcome))
+    && (replay || ["created", "partial"].includes(outcome));
+  const knownOutcome = ["created", "idempotent_replay", "partial"].includes(outcome);
+  const stateMismatch = partial
+    ? result.body.ui_state !== "partial"
+    : result.body.ui_state !== null;
+  if (
+    !result.response.ok
+    || !knownOutcome
+  ) {
+    return clientFixedReportGuardedResult(
+      result.response,
+      result.body,
+      "CLIENT_FIXED_REPORT_EXPORT_FAILED"
+    );
+  }
+  if (!acceptedOutcome || stateMismatch) {
+    return clientFixedReportUnavailable({
+      status: result.response.status,
+      code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
+    });
+  }
+  const item = clientFixedReportCsvItem(result.body.item, {
+    reportId: normalizedReportId,
+    snapshotVersion
+  });
+  const auditEvent = clientFixedReportAuditEvent(result.body.audit_event);
+  const safeErrorCodes = clientFixedReportSafeErrorCodes(result.body);
+  const valid = (
+    result.response.status === (replay ? 200 : 201)
+    && result.body.audit_hint_ref === routeContext.audit_hint_ref
+    && result.body.idempotent_replay === replay
+    && result.body.count_leak_prevented === true
+    && result.body.raw_sql_included === false
+    && result.body.raw_query_payload_included === false
+    && result.body.source_payload_included === false
+    && result.body.production_ready_claim === false
+    && safeErrorCodes.length === 0
+    && item
+    && item.source_status === (partial ? "partial" : "available")
+    && auditEvent?.action === (
+      replay
+        ? "report.client_fixed.csv.replay"
+        : "report.client_fixed.csv.export"
+    )
+    && auditEvent.decision === (replay ? "replay" : "allow")
+  );
+  return valid ? {
+    kind: "data",
+    status: result.response.status,
+    requestId: clientFixedReportSafeRef(result.body.request_id),
+    outcome: result.body.outcome,
+    uiState: partial ? "partial" : null,
+    item,
+    auditEvent,
+    safeErrorCodes,
+    auditHintRef: result.body.audit_hint_ref,
+    countLeakPrevented: true,
+    rawSqlIncluded: false,
+    rawQueryPayloadIncluded: false,
+    sourcePayloadIncluded: false,
+    idempotentReplay: replay,
+    sourceStatus: item.source_status,
+    productionReadyClaim: false
+  } : clientFixedReportUnavailable({
+    status: result.response.status,
+    code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
   });
 }
 
