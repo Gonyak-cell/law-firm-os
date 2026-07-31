@@ -20,13 +20,16 @@ assert.equal(existsSync(executablePath), true, `packaged executable is required:
 mkdirSync(artifactDir, { recursive: true });
 
 const today = new Date();
-const todayParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+const localDateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+const seoulDateParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul",
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
 }).formatToParts(today).map(({ type, value }) => [type, value]));
-const todayKey = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
+const seoulDateKey = `${seoulDateParts.year}-${seoulDateParts.month}-${seoulDateParts.day}`;
+const seoulMonthKey = seoulDateKey.slice(0, 7);
+const localAgendaStartIso = new Date(`${localDateKey}T12:00:00`).toISOString();
 const nowIso = today.toISOString();
 const session = {
   state: "signed_in",
@@ -93,13 +96,13 @@ const server = createServer(async (request, response) => {
   if (pathname === "/api/home/action-inbox") {
     const type = url.searchParams.get("type");
     const items = type === "task"
-      ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${todayKey}T12:00:00`, status: "todo" }]
+      ? [{ id: "task_dashboard_today", type: "task", title: "오늘 계약서 검토", matter_ref: matters[0].matter_id, due_at: `${localDateKey}T12:00:00`, status: "todo" }]
       : type === "approval"
-        ? [{ id: "approval_dashboard_pending", type: "approval", subtype: "leave", title: "연차 휴가 신청", requester: "합성 구성원", matter_ref: matters[0].matter_id, due_at: `${todayKey}T18:00:00`, status: "pending" }]
+        ? [{ id: "approval_dashboard_pending", type: "approval", subtype: "leave", title: "연차 휴가 신청", requester: "합성 구성원", matter_ref: matters[0].matter_id, due_at: `${localDateKey}T18:00:00`, status: "pending" }]
         : [];
     return respondJson(response, 200, { ...listBody(items), counts: { approval: 1, task_late: 0, task_today: 1 } });
   }
-  if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: `${todayKey}T03:00:00.000Z`, type: "event" }] });
+  if (pathname === "/api/home/agenda") return respondJson(response, 200, { ...listBody(), events: [{ id: "agenda_dashboard_today", title: "고객 미팅", starts_at: localAgendaStartIso, type: "event" }] });
   if (pathname === "/api/home/feed") return respondJson(response, 200, { ...listBody(), entries: [{ id: "feed_dashboard_notice", tab: "notice", source: "AMIC 공지", title: "대시보드 QA 공지", body_preview: "패키지 화면 검증용 합성 공지", published_at: nowIso }], source_statuses: [] });
   if (pathname === "/api/matters/recently-viewed") return respondJson(response, 200, listBody([{ ...matters[0], viewed_at: nowIso }]));
   if (pathname === "/api/matters") return respondJson(response, 200, listBody(matters));
@@ -152,7 +155,7 @@ const server = createServer(async (request, response) => {
           { category: "rent_office", label: "임차·사무실", primary_type: "operating_expense", amount: 750000, transaction_count: 1, individual_values_included: false }
         ],
         monthly: [{
-          month: todayKey.slice(0, 7),
+          month: seoulMonthKey,
           currency: "KRW",
           total_inflow: 15000000,
           total_outflow: 13000000,
@@ -181,13 +184,13 @@ const server = createServer(async (request, response) => {
       production_ready_claim: false
     });
   }
-  if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: todayKey.slice(0, 7), currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, processed_cost: 4000000 }]), source_statuses: [] });
+  if (pathname === "/api/analytics/finance/monthly") return respondJson(response, 200, { ...listBody([{ month: seoulMonthKey, currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, processed_cost: 4000000 }]), source_statuses: [] });
   if (pathname === "/api/analytics/finance/clients") return respondJson(response, 200, { ...listBody([{ client_group_id: "client_dashboard_revenue", client_group_label: "마루 주식회사", currency: "KRW", billed_amount: 12000000, collected_amount: 9000000, ar_balance: 3000000 }]), source_statuses: [] });
   if (pathname === "/api/hrx/payroll/dashboard-summary") {
     return respondJson(response, 200, {
       ...listBody([{ summary_ref: "aggregate_only" }]),
       summary: {
-        month: todayKey.slice(0, 7),
+        month: seoulMonthKey,
         currency: "KRW",
         run_status: "closed",
         gross_krw: 9000000,
