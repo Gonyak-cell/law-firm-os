@@ -237,6 +237,7 @@
       "crm.engagement.decide",
       "outlook.connection.manage",
       "outlook.inquiry.capture",
+      "master_data.client.write",
       "finance.fee.write",
       "analytics.client.read",
       "analytics.client.export"
@@ -265,6 +266,7 @@
         "crm.inquiry.evidence.read",
         "outlook.connection.manage",
         "outlook.inquiry.capture",
+        "master_data.client.write",
         "finance.fee.write",
         "analytics.client.read",
         "analytics.client.export"
@@ -276,6 +278,7 @@
         "crm.engagement.decide",
         "outlook.connection.manage",
         "outlook.inquiry.capture",
+        "master_data.client.write",
         "finance.fee.write",
         "analytics.client.read",
         "analytics.client.export"
@@ -287,6 +290,7 @@
         "crm.engagement.decide",
         "outlook.connection.manage",
         "outlook.inquiry.capture",
+        "master_data.client.write",
         "finance.fee.write",
         "analytics.client.read",
         "analytics.client.export"
