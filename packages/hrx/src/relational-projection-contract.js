@@ -99,6 +99,15 @@ const FIELD_TRANSFORMS = Object.freeze({
       retain_target_on_read: true,
     }),
   ]),
+  hrx_lifecycle_templates: Object.freeze([
+    Object.freeze({
+      operation: "json-alias",
+      source_field: "tasks",
+      source_shape: "array",
+      target_column: "tasks_json",
+      retain_target_on_read: false,
+    }),
+  ]),
   hrx_offboarding_cases: Object.freeze([
     ...[
       "access_revocations",
@@ -110,6 +119,17 @@ const FIELD_TRANSFORMS = Object.freeze({
       operation: "json-alias",
       source_field: sourceField,
       source_shape: "array",
+      target_column: `${sourceField}_json`,
+      retain_target_on_read: false,
+    })),
+    ...[
+      ["template_ref", "object"],
+      ["template_snapshot", "object"],
+      ["tasks", "array"],
+    ].map(([sourceField, sourceShape]) => Object.freeze({
+      operation: "json-alias",
+      source_field: sourceField,
+      source_shape: sourceShape,
       target_column: `${sourceField}_json`,
       retain_target_on_read: false,
     })),
@@ -139,6 +159,16 @@ const FIELD_TRANSFORMS = Object.freeze({
       target_column: "access_requests_json",
       retain_target_on_read: false,
     }),
+    ...[
+      "template_ref",
+      "template_snapshot",
+    ].map((sourceField) => Object.freeze({
+      operation: "json-alias",
+      source_field: sourceField,
+      source_shape: "object",
+      target_column: `${sourceField}_json`,
+      retain_target_on_read: false,
+    })),
   ]),
 });
 
@@ -156,8 +186,11 @@ const WAVE_TWO = new Set([
   "hrx_applications",
   "hrx_interviews",
   "hrx_offers",
+  "hrx_recruiting_pipeline_receipts",
+  "hrx_lifecycle_templates",
   "hrx_onboarding_plans",
   "hrx_offboarding_cases",
+  "hrx_offboarding_evidence_receipts",
 ]);
 const WAVE_FIVE = new Set([
   "hrx_audit_events",

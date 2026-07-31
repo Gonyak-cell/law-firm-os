@@ -46,7 +46,7 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
   assert.equal([...productRules.matchAll(/font-weight:\s*600;/g)].length, 1);
   assert.equal([...productRules.matchAll(/font-weight:\s*700;/g)].length, 1);
   assert.match(productRules, /table tbody,[\s\S]{0,300}\.subscribe-table-row \*[\s\S]{0,40}font-weight: 400;/);
-  assert.match(productRules, /\.data-table thead th,[\s\S]{0,500}\.subscribe-table-head \*[\s\S]{0,40}font-weight: 600;/);
+  assert.match(productRules, /\.data-table thead th,[\s\S]{0,800}\.subscribe-table-head \*[\s\S]{0,40}font-weight: 600;/);
   assert.match(stylesSource, /\.dashboard-record-row,[\s\S]{0,80}\.dashboard-record-row \*[\s\S]{0,40}font-weight: 400;/);
   assert.match(stylesSource, /\.dashboard-record-row \{[\s\S]{0,260}grid-template-columns:[\s\S]{0,180}18px;/);
   assert.match(stylesSource, /\.dashboard-record-copy \{[\s\S]{0,80}display: contents;/);
@@ -274,25 +274,32 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   assert.match(shellSource, /label: "업무 관리"[\s\S]*label: "사건 운영"/);
   assert.doesNotMatch(shellSource, /업무 진행|외부 일정|검토 의견/);
   assert.doesNotMatch(shellSource, /label: "Pipeline"|label: "상담\/수임 제안"|label: "잠재 고객"|label: "매출 내역"|label: "청구"/);
-  assert.match(shellSource, /peopleNavigationGroups/);
+  const approvedClientMiddleDotCopy = [
+    "상담·수임 관리",
+    "수임료·미수금",
+    "법인·단체",
+    "통장·거래명세서",
+    "고객·상담 검색",
+    "문의·고객 맥락",
+    "이름·건수",
+    "고객·요청 범위 검색",
+    " · "
+  ];
+  const normalizedClientSources = approvedClientMiddleDotCopy.reduce(
+    (source, copy) => source.replaceAll(copy, copy.replaceAll("·", "")),
+    `${shellSource}\n${clientsSource}`
+  );
+  assert.doesNotMatch(`${normalizedClientSources}\n${globalUtilitySource}\n${homeSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
+  assert.match(shellSource, /getPeopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(shellSource, /children\.length === 1 && children\[0\]\.section === "people-attendance-records"/);
   assert.match(shellSource, /label: group\.label,[\s\S]{0,120}view: "people",[\s\S]{0,120}section: child\.section/);
-  assert.match(shellSource, /hiddenPeopleSidebarGroupLabels = new Set\(\["근무일정"\]\)/);
-  assert.match(shellSource, /hiddenPeopleSidebarGroupLabels\.has\(group\.label\)/);
-  for (const hiddenPeopleSection of [
-    "people-role",
-    "people-work-profile",
-    "people-pay-work-profile",
-    "people-unscheduled-attendance",
-    "people-attendance-upload",
-    "people-break-records",
-    "people-attendance-missing-alerts",
-    "people-attendance-lock",
-    "people-attendance-verification"
-  ]) {
-    assert.match(shellSource, new RegExp(`hiddenPeopleSidebarSections[\\s\\S]{0,500}"${hiddenPeopleSection}"`));
-  }
+  assert.match(peopleCatalogSource, /PEOPLE_SIDEBAR_ENABLED_SECTIONS/);
+  assert.match(peopleCatalogSource, /sidebar_visibility/);
+  assert.match(peopleCatalogSource, /route_enabled/);
+  assert.match(peopleCatalogSource, /availability/);
+  assert.match(peopleCatalogSource, /section: "people-overview"/);
+  assert.match(appSource, /resolvePeopleRoute/);
   assert.match(shellSource, /count: typeof child\.badge === "number" \? child\.badge : null/);
   assert.match(peopleHomeSource, /currentSection === "people-attendance-records"/);
   assert.doesNotMatch(peopleHomeSource, /\["people-work-schedule", "people-current-work-status", "people-attendance-records"\]/);
@@ -300,7 +307,11 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   assert.match(attendanceSource, /data-attendance-clock-in="true"/);
   assert.match(attendanceSource, /data-attendance-clock-out="true"/);
   assert.match(attendanceSource, /columns=\{\["근무일", "출근시간", "퇴근시간"\]\}/);
-  assert.doesNotMatch(attendanceSource, /fetchHrxOvertimeRisk|data-upl-d04-month-input|recorded_hours:|<select|type="date"|attendance-calendar|attendance-risk/);
+  assert.match(attendanceSource, /const correctionWorkflowEnabled = featureFlags\.attendance_correction_workflow/);
+  assert.match(attendanceSource, /const payrollHandoffEnabled = featureFlags\.payroll_handoff/);
+  assert.match(attendanceSource, /fetchHrxOvertimeRisk/);
+  assert.match(attendanceSource, /\{showOvertime && \(/);
+  assert.doesNotMatch(attendanceSource, /data-upl-d04-month-input|recorded_hours:|attendance-calendar|attendance-risk/);
   assert.match(shellSource, /fetchUserProfile/);
   assert.match(shellSource, /readLawosSessionEnvelope/);
   assert.match(shellSource, /sidebarSessionProfile/);
@@ -488,7 +499,10 @@ test("WP-FIN-3 mounts server-reconciled finance views with guarded states and re
   assert.match(financeSource, /data-home-cashflow-business-summary="true"/);
   assert.match(financeSource, /data-home-cashflow-monthly-table="true"/);
   assert.match(financeSource, /data-home-cashflow-transaction-table="true"/);
-  assert.match(financeSource, /현재 등록된 고객과 연결된 입금을 매출로 집계합니다/);
+  assert.match(financeSource, /입금 배정 전에는 매출로 확정하지 않습니다/);
+  for (const metric of ["인식 매출", "청구 수납", "직접 보수", "선수·예치", "미분류 입금"]) {
+    assert.match(financeSource, new RegExp(metric));
+  }
   assert.match(financeSource, /data-bank-classification-toolbar="true"/);
   assert.match(financeSource, /writeFinanceFilters/);
   assert.match(apiClientSource, /tenant_id: FINANCE_TENANT_ID/);
@@ -525,11 +539,16 @@ test("WP-FIN-4 reuses the Matter charge panel for Home finance operations", asyn
 
   assert.match(homeSource, /if \(homeFinanceSectionIds\.has\(activeHomeSection\)\)/);
   assert.match(financeSource, /<HomeFinanceOperations liveCtx=\{liveCtx\} activeSection=\{activeSection\}/);
-  assert.match(operationsSource, /import \{ ChargePanel \} from "\.\/MattersSurface\.jsx"/);
+  assert.match(operationsSource, /import \{ ChargePanel, createFinancePaymentFormDraft \} from "\.\/MattersSurface\.jsx"/);
+  assert.match(operationsSource, /allocateFinancePayment/);
   assert.match(operationsSource, /<ChargePanel/);
   assert.doesNotMatch(operationsSource, /function ChargePanel|function ChargeActionPanel/);
   assert.match(mattersSource, /export function ChargePanel/);
   assert.match(mattersSource, /data-finance-operation-mode=\{operationMode\}/);
+  assert.match(mattersSource, /data-matter-payment-form="true"/);
+  assert.match(mattersSource, /data-matter-payment-allocation-type="true"/);
+  assert.match(mattersSource, /data-matter-payment-allocation-action="true"/);
+  assert.match(mattersSource, /청구서 없는 사건 보수/);
   assert.match(mattersSource, /expenseDate: todayWorkDate\(\)/);
   assert.match(mattersSource, /disbursedAt: todayWorkDate\(\)/);
   assert.match(apiClientSource, /expense_date: expenseDate/);
@@ -1936,7 +1955,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmClientActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.doesNotMatch(peopleSource, new RegExp(source));
   }
-  assert.match(peopleSource, /: "people-members"/);
+  assert.match(peopleSource, /peopleDefaultSection\(resolvedFeatureFlags\)/);
   assert.match(peopleSource, /data-people-work-layer="white"/);
   assert.doesNotMatch(peopleSource, /PageHeader|peopleTitle|구성원 관리/);
   assert.match(peopleSource, /data-people-detail-open=\{selectedEmployeeId \? "true" : "false"\}/);
@@ -2115,7 +2134,7 @@ test("product tables do not render raw ids or dummy KPI values", async () => {
   assert.doesNotMatch(recruiting, /job\.position_count\]/);
   assert.match(recruiting, /recruiting-row-detail/);
   assert.match(recruiting, /합격 전환/);
-  assert.match(recruiting, /보상 참조/);
+  assert.doesNotMatch(recruiting, /name="(?:offer_document_ref|compensation_ref|consent_evidence_ref)"/);
 
   const leave = await readWebFile("src/people/leave/LeaveRequestPage.tsx");
   assert.doesNotMatch(leave, /available_balance\s*\?\?|,\s*request\.amount\s*,/);
@@ -2128,7 +2147,8 @@ test("product tables do not render raw ids or dummy KPI values", async () => {
 
   const employeeProfile = await readWebFile("src/people/employees/EmployeeProfile.tsx");
   assert.match(employeeProfile, /data-hrx-compensation-records/);
-  assert.match(employeeProfile, /마스킹 참조/);
+  assert.match(employeeProfile, /급여 금액 비공개/);
+  assert.doesNotMatch(employeeProfile, /마스킹 참조/);
   assert.doesNotMatch(employeeProfile, /compensation_amount|amount_minor|encrypted_amount_ref/);
 
   const auth = await readWebFile("src/components/AuthSurface.jsx");

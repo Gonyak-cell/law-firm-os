@@ -1,6 +1,6 @@
 export const HRX_OVERTIME_STATES = Object.freeze(["submitted", "approved", "rejected", "cancelled", "exported"]);
 export const HRX_OVERTIME_RISK_TYPES = Object.freeze(["weekly_limit_exceeded", "unapproved_overtime_detected"]);
-export const HRX_PAYROLL_OVERTIME_SEGMENT_KINDS = Object.freeze(["overtime", "night", "holiday"]);
+export const HRX_PAYROLL_OVERTIME_SEGMENT_KINDS = Object.freeze(["overtime", "night", "holiday", "weekly_holiday"]);
 
 const OVERTIME_TRANSITIONS = Object.freeze({
   submitted: Object.freeze(["approved", "rejected", "cancelled"]),
@@ -22,6 +22,30 @@ function requiredHours(input, field) {
     throw new TypeError(`${field} must be a finite number greater than 0`);
   }
   return value;
+}
+
+function wholeMinutes(value, field, { allowZero = false } = {}) {
+  const minutes = Number(value);
+  if (!Number.isSafeInteger(minutes) || (allowZero ? minutes < 0 : minutes <= 0)) {
+    throw new TypeError(`${field} must be ${allowZero ? "a non-negative" : "a positive"} whole number of minutes`);
+  }
+  return minutes;
+}
+
+function minutesFromRequest(input = {}) {
+  if (input.requested_minutes !== undefined && input.requested_minutes !== null) {
+    return wholeMinutes(input.requested_minutes, "requested_minutes");
+  }
+  const minutes = requiredHours(input, "hours") * 60;
+  if (!Number.isSafeInteger(minutes)) throw new TypeError("hours must resolve to positive whole minutes");
+  return minutes;
+}
+
+function overtimeWarningCodes({ calculatedMinutes, requestedMinutes, approvedMinutes }) {
+  const warnings = [];
+  if (requestedMinutes > calculatedMinutes) warnings.push("OVERTIME_REQUEST_EXCEEDS_CALCULATED");
+  if (approvedMinutes > calculatedMinutes) warnings.push("OVERTIME_APPROVAL_EXCEEDS_CALCULATED");
+  return Object.freeze(warnings);
 }
 
 function clone(value) {
@@ -51,23 +75,49 @@ export function createOvertimeRequest(input = {}) {
   if (!HRX_OVERTIME_STATES.includes(state)) throw new TypeError(`state must be one of ${HRX_OVERTIME_STATES.join(", ")}`);
   if (state === "approved" && !input.approver_id) throw new TypeError("approver_id is required for approved overtime");
   if (state === "exported" && !input.export_ref) throw new TypeError("export_ref is required for exported overtime");
+  const requestedMinutes = minutesFromRequest(input);
+  const calculatedMinutes = wholeMinutes(
+    input.calculated_minutes ?? requestedMinutes,
+    "calculated_minutes",
+    { allowZero: true },
+  );
+  const approvedMinutes = ["approved", "exported"].includes(state)
+    ? wholeMinutes(input.approved_minutes ?? requestedMinutes, "approved_minutes")
+    : 0;
+  if (approvedMinutes > requestedMinutes) throw new TypeError("approved_minutes must not exceed requested_minutes");
+  if (["approved", "exported"].includes(state) && input.approver_id === input.employee_id) {
+    const error = new Error("Overtime request must be approved by another person");
+    error.safe_error_code = "HRX_OVERTIME_SELF_APPROVAL";
+    throw error;
+  }
   const payrollSegmentKind = input.payroll_segment_kind ?? "overtime";
   if (!HRX_PAYROLL_OVERTIME_SEGMENT_KINDS.includes(payrollSegmentKind)) {
     throw new TypeError(`payroll_segment_kind must be one of ${HRX_PAYROLL_OVERTIME_SEGMENT_KINDS.join(", ")}`);
   }
+  const warningCodes = overtimeWarningCodes({
+    calculatedMinutes,
+    requestedMinutes,
+    approvedMinutes,
+  });
   return Object.freeze({
     tenant_id: requiredString(input, "tenant_id"),
     overtime_id: requiredString(input, "overtime_id"),
     employee_id: requiredString(input, "employee_id"),
     work_date: requiredString(input, "work_date"),
-    hours: requiredHours(input, "hours"),
+    hours: requestedMinutes / 60,
+    calculated_minutes: calculatedMinutes,
+    requested_minutes: requestedMinutes,
+    approved_minutes: approvedMinutes,
     reason: requiredString(input, "reason"),
     state,
     submitted_at: input.submitted_at ?? new Date().toISOString(),
     approver_id: input.approver_id ?? null,
     decided_at: input.decided_at ?? null,
+    decision_reason: input.decision_reason ?? null,
     export_ref: input.export_ref ?? null,
     source_ref: input.source_ref ?? `OvertimeRequest:${requiredString(input, "overtime_id")}`,
+    calculation_basis_ref: input.calculation_basis_ref ?? null,
+    warning_codes_json: JSON.stringify(warningCodes),
     payroll_segment_kind: payrollSegmentKind,
   });
 }
@@ -81,9 +131,13 @@ export function transitionOvertimeRequest(request = {}, change = {}) {
   if (nextState === "approved" && !change.approver_id && !current.approver_id) {
     throw new TypeError("approver_id is required for approved overtime");
   }
+  const approvedMinutes = ["approved", "exported"].includes(nextState)
+    ? change.approved_minutes ?? (["approved", "exported"].includes(current.state) ? current.approved_minutes : current.requested_minutes)
+    : 0;
   return createOvertimeRequest({
     ...current,
     ...change,
+    approved_minutes: approvedMinutes,
     decided_at: ["approved", "rejected", "cancelled"].includes(nextState)
       ? change.decided_at ?? new Date().toISOString()
       : current.decided_at,
@@ -99,11 +153,57 @@ export function createOvertimeExportRecord(request = {}, input = {}) {
     export_ref: exportRef,
     overtime_id: overtime.overtime_id,
     employee_id: overtime.employee_id,
-    hours: overtime.hours,
+    hours: overtime.approved_minutes / 60,
+    calculated_minutes: overtime.calculated_minutes,
+    requested_minutes: overtime.requested_minutes,
+    approved_minutes: overtime.approved_minutes,
     work_date: overtime.work_date,
     calculation_runtime: false,
     human_review_required: true,
     source_ref: `OvertimeRequest:${overtime.overtime_id}`,
+  });
+}
+
+function attendanceMinutes(row = {}) {
+  const attendance = row ?? {};
+  if (Number.isFinite(Number(attendance.recorded_hours))) {
+    const minutes = Number(attendance.recorded_hours) * 60;
+    if (Number.isSafeInteger(minutes) && minutes >= 0) return minutes;
+  }
+  if (attendance.clock_in_at && attendance.clock_out_at) {
+    const elapsed = Date.parse(attendance.clock_out_at) - Date.parse(attendance.clock_in_at);
+    if (Number.isFinite(elapsed) && elapsed >= 0 && elapsed % 60_000 === 0) return elapsed / 60_000;
+  }
+  return 0;
+}
+
+export function calculateOvertimeReviewMinutes({
+  employee_id,
+  work_date,
+  requested_minutes,
+  hours,
+  attendance_records = [],
+  standard_daily_minutes = 480,
+} = {}) {
+  const employeeId = requiredString({ employee_id }, "employee_id");
+  const workDate = requiredString({ work_date }, "work_date");
+  const requestedMinutes = minutesFromRequest({ requested_minutes, hours });
+  const standardDailyMinutes = wholeMinutes(standard_daily_minutes, "standard_daily_minutes");
+  const effective = effectiveAttendanceRecords(attendance_records)
+    .filter((row) => row.employee_id === employeeId && row.work_date === workDate)
+    .sort((left, right) => `${right.updated_at ?? right.created_at ?? ""}:${right.attendance_id}`
+      .localeCompare(`${left.updated_at ?? left.created_at ?? ""}:${left.attendance_id}`))[0] ?? null;
+  const recordedMinutes = attendanceMinutes(effective);
+  const calculatedMinutes = Math.max(0, recordedMinutes - standardDailyMinutes);
+  return Object.freeze({
+    calculated_minutes: calculatedMinutes,
+    requested_minutes: requestedMinutes,
+    calculation_basis_ref: effective?.source_ref ?? null,
+    warning_codes: overtimeWarningCodes({
+      calculatedMinutes,
+      requestedMinutes,
+      approvedMinutes: 0,
+    }),
   });
 }
 

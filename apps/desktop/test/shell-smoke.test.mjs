@@ -6,6 +6,7 @@ import test from "node:test";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
 import {
   PASSWORD_RESET_DEEP_LINK_CHANNEL,
+  authCallbackDeepLinkIntent,
   collectMatterDeepLinkArgs,
   configureDesktopAppIcon,
   configureDesktopProtocol,
@@ -130,6 +131,20 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.match(preloadSource, /claimLogoIntro/);
   assert.match(preloadSource, /api: "session:api"/);
   assert.match(preloadSource, /api: \(payload\) => invokeAllowed\("api", payload\)/);
+});
+
+test("desktop shell marks the auth callback bridge not ready during renderer reload or crash", async () => {
+  let notReadyCalls = 0;
+  const { window } = await startDesktopShell({
+    BrowserWindowConstructor: FakeBrowserWindow,
+    onAuthCallbackNotReady() {
+      notReadyCalls += 1;
+    }
+  });
+
+  window.navigationHandlers.get("did-start-loading")();
+  window.navigationHandlers.get("render-process-gone")();
+  assert.equal(notReadyCalls, 2);
 });
 
 test("desktop logo intro claim remains pending until the hidden main window is shown", async () => {
@@ -422,8 +437,9 @@ test("desktop shell hands password reset deep link intent to renderer without ex
   ]);
 });
 
-test("desktop deep link helpers ignore non-reset routes and collect matter argv URLs", () => {
+test("desktop deep link helpers accept only their own routes and collect matter argv URLs", () => {
   const token = "abcdefghijklmnopqrstuvwxyzABCDE_123456";
+  const callback = "matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ";
   assert.equal(passwordResetDeepLinkIntent("matter://matter/MAT-248"), null);
   assert.equal(passwordResetDeepLinkIntent("https://example.com"), null);
   assert.deepEqual(passwordResetDeepLinkIntent(`matter://password-reset/confirm?token=${token}`), {
@@ -434,6 +450,14 @@ test("desktop deep link helpers ignore non-reset routes and collect matter argv 
   assert.deepEqual(collectMatterDeepLinkArgs(["matter", "--flag", `matter://password-reset/confirm?token=${token}`]), [
     `matter://password-reset/confirm?token=${token}`
   ]);
+  assert.deepEqual(authCallbackDeepLinkIntent(callback), {
+    type: "auth_callback",
+    routeOnly: true,
+    code: "0.ABC_def-123",
+    state: "outlook-state:01HQ"
+  });
+  assert.equal(authCallbackDeepLinkIntent("matter://auth/wrong?code=0.ABC_def-123&state=outlook-state:01HQ"), null);
+  assert.equal(authCallbackDeepLinkIntent("https://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ"), null);
   assert.deepEqual(sendPasswordResetDeepLink(null, "matter://matter/MAT-248"), {
     sent: false,
     reason: "not_password_reset_deep_link"

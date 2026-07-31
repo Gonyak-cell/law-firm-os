@@ -3,7 +3,7 @@ import { stableJsonStringify } from "../../persistence/src/durable-file.js";
 import { appendFinanceAuditEvent } from "./finance-audit.js";
 
 export const BANK_CLASSIFICATION_CATEGORIES = Object.freeze({
-  client_receipt: Object.freeze({ primary_type: "sales", label: "고객 매출" }),
+  client_receipt: Object.freeze({ primary_type: "sales", label: "고객 입금" }),
   salary_payment: Object.freeze({ primary_type: "payroll", label: "급여 지급" }),
   tax: Object.freeze({ primary_type: "operating_expense", label: "세금" }),
   social_insurance: Object.freeze({ primary_type: "operating_expense", label: "4대보험" }),
@@ -306,6 +306,8 @@ function classificationProposal(transaction, values) {
     raw_source_payload_included: false,
     invoice_required: false,
     matter_required: false,
+    allocation_required_for_revenue: category === "client_receipt",
+    revenue_effect: category === "client_receipt" ? "candidate_only" : "none",
   });
 }
 

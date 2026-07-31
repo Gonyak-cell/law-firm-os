@@ -16,6 +16,7 @@ export const FINANCE_APPEND_ONLY_RECORD_TYPES = Object.freeze([
   "InvoiceCorrection",
   "InvoiceLine",
   "JournalEntry",
+  "PaymentAllocation",
   "PaymentMatch",
   "SettlementRun",
   "TaxExport",
@@ -51,6 +52,7 @@ const MONEY_FIELDS = Object.freeze({
   InvoiceCorrection: ["corrected_amount_due"],
   InvoiceLine: ["amount", "standard_amount", "retainer_drawdown_amount"],
   Payment: ["amount", "applied_amount", "unapplied_amount"],
+  PaymentAllocation: ["amount"],
   PaymentMatch: ["amount", "payment_available_before", "invoice_outstanding_before", "unapplied_amount_after"],
   PreBill: ["total_amount", "standard_amount", "adjustment_total", "retainer_drawdown_total"],
   TrustBalance: ["available_balance", "deposit_total", "drawdown_total", "refund_total", "refund_liability_amount"],
@@ -104,6 +106,15 @@ function references(record) {
   if (record.model_type === "PaymentMatch") {
     add("payment", "Payment", record.payment_id, { required: true });
     add("invoice", "Invoice", record.invoice_id, { required: true });
+  }
+  if (record.model_type === "PaymentAllocation") {
+    add("payment", "Payment", record.payment_id, { required: true });
+    add("invoice", "Invoice", record.invoice_id, { required: record.allocation_type === "invoice_payment" });
+    add("reverses_payment_allocation", "PaymentAllocation", record.reverses_payment_allocation_id, { required: record.status === "reversed" });
+    add("source_payment_match", "PaymentMatch", record.source_payment_match_id);
+  }
+  if (record.model_type === "Payment" && record.bank_transaction_id) {
+    add("bank_transaction", "BankTransaction", record.bank_transaction_id, { required: true });
   }
   if (record.model_type === "AccountingExport") {
     for (const journalId of record.journal_entry_refs ?? []) add("journal_entry", "JournalEntry", journalId, { required: true });
@@ -159,6 +170,9 @@ function uniqueKey(record) {
   if (record.model_type === "TaxInvoice" && record.tax_invoice_number) {
     return `tax-invoice-number:${hashDomainValue(record.tax_invoice_number)}`;
   }
+  if (record.model_type === "Payment" && record.bank_transaction_id) {
+    return `payment-bank-transaction:${hashDomainValue(record.bank_transaction_id)}`;
+  }
   if (record.model_type === "Payment" && record.bank_reference) {
     return `payment-bank-reference:${hashDomainValue(record.bank_reference)}`;
   }
@@ -205,6 +219,7 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "Invoice.invoice_number",
     "TaxInvoice.tax_invoice_number",
     "Payment.bank_reference_hash",
+    "Payment.bank_transaction_id",
     "ARBalance.invoice_id",
     "TrustBalance.matter_id+currency",
     "BankImportBatch.source_manifest_hash",
@@ -217,6 +232,10 @@ export const FINANCE_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
     "Invoice.prebill_id->PreBill",
     "PaymentMatch.payment_id->Payment",
     "PaymentMatch.invoice_id->Invoice",
+    "PaymentAllocation.payment_id->Payment",
+    "PaymentAllocation.invoice_id->Invoice",
+    "PaymentAllocation.reverses_payment_allocation_id->PaymentAllocation",
+    "Payment.bank_transaction_id->BankTransaction",
     "ARBalance.invoice_id->Invoice",
     "TrustLedgerEntry.invoice_id->Invoice",
     "BankTransaction.bank_import_batch_id->BankImportBatch",
@@ -507,6 +526,60 @@ export function reconcileFinanceRecords(records = []) {
       "ClientDepositAllocation reversal breakdown does not reconcile",
     );
   }
+  const payments = indexBy(values, "Payment", "payment_id");
+  const paymentMatches = indexBy(values, "PaymentMatch", "payment_match_id");
+  const paymentAllocations = recordsOf(values, "PaymentAllocation");
+  const allocationsById = indexBy(values, "PaymentAllocation", "payment_allocation_id");
+  const reversedAllocationIds = new Set();
+  for (const allocation of paymentAllocations) {
+    const payment = payments.get(allocation.payment_id);
+    if (!payment) throw Object.assign(new Error("PaymentAllocation.payment_id is missing"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    const amount = money(allocation.amount, "PaymentAllocation.amount");
+    if (amount <= 0) throw Object.assign(new Error("PaymentAllocation.amount must be positive"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    if (allocation.currency !== payment.currency) throw Object.assign(new Error("PaymentAllocation currency does not match Payment"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    if (!["invoice_payment", "direct_fee", "client_advance", "trust_deposit", "other_non_revenue"].includes(allocation.allocation_type)) {
+      throw Object.assign(new Error("PaymentAllocation allocation_type is invalid"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    }
+    if (allocation.status === "reversed") {
+      const original = allocationsById.get(allocation.reverses_payment_allocation_id);
+      if (!original || original.status === "reversed") throw Object.assign(new Error("PaymentAllocation reversal target is invalid"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+      if (reversedAllocationIds.has(original.payment_allocation_id)) throw Object.assign(new Error("PaymentAllocation cannot be reversed twice"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+      if (original.payment_id !== allocation.payment_id || original.currency !== allocation.currency || money(original.amount, "PaymentAllocation.amount") !== amount) {
+        throw Object.assign(new Error("PaymentAllocation reversal does not match original"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+      }
+      reversedAllocationIds.add(original.payment_allocation_id);
+      continue;
+    }
+    if (allocation.reverses_payment_allocation_id) throw Object.assign(new Error("posted PaymentAllocation cannot reverse another allocation"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    if (allocation.allocation_type === "invoice_payment") {
+      const invoice = invoices.get(allocation.invoice_id);
+      if (!invoice) throw Object.assign(new Error("invoice_payment requires Invoice"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+      if (invoice.currency !== allocation.currency) throw Object.assign(new Error("PaymentAllocation currency does not match Invoice"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    } else if (allocation.invoice_id) {
+      throw Object.assign(new Error("only invoice_payment may reference Invoice"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    }
+    if (["direct_fee", "client_advance", "trust_deposit"].includes(allocation.allocation_type) && !allocation.client_group_id) {
+      throw Object.assign(new Error(`${allocation.allocation_type} requires client_group_id`), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    }
+    if (["direct_fee", "trust_deposit"].includes(allocation.allocation_type) && !allocation.matter_id) {
+      throw Object.assign(new Error(`${allocation.allocation_type} requires matter_id`), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    }
+    if (allocation.source_payment_match_id && !paymentMatches.has(allocation.source_payment_match_id)) {
+      throw Object.assign(new Error("PaymentAllocation source PaymentMatch is missing"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    }
+  }
+  const representedMatches = new Set(paymentAllocations.map((row) => row.source_payment_match_id).filter(Boolean));
+  for (const payment of payments.values()) {
+    const activeAllocationAmount = paymentAllocations
+      .filter((row) => row.payment_id === payment.payment_id && row.status !== "reversed" && !reversedAllocationIds.has(row.payment_allocation_id))
+      .reduce((sum, row) => sum + money(row.amount, "PaymentAllocation.amount"), 0);
+    const legacyMatchAmount = recordsOf(values, "PaymentMatch")
+      .filter((row) => row.payment_id === payment.payment_id && !representedMatches.has(row.payment_match_id))
+      .reduce((sum, row) => sum + money(row.amount ?? row.matched_amount, "PaymentMatch.amount"), 0);
+    if (activeAllocationAmount + legacyMatchAmount > money(payment.amount, "Payment.amount")) {
+      throw Object.assign(new Error("Payment allocations exceed Payment amount"), { safe_error_code: "FINANCE_RECONCILIATION_FAILED", status: 409 });
+    }
+  }
 
   const summary = {
     record_count: values.length,
@@ -520,6 +593,7 @@ export function reconcileFinanceRecords(records = []) {
     invoice_prebill_matched_count: recordsOf(values, "Invoice").filter((record) => prebills.has(record.prebill_id)).length,
     invoice_prebill_missing_count: recordsOf(values, "Invoice").filter((record) => record.prebill_id && !prebills.has(record.prebill_id)).length,
     ar_balance_count: recordsOf(values, "ARBalance").length,
+    payment_allocation_count: paymentAllocations.length,
     payment_match_count: recordsOf(values, "PaymentMatch").length,
     journal_entry_count: recordsOf(values, "JournalEntry").length,
     trust_ledger_entry_count: trustEntries.length,

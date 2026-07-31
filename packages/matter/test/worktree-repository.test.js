@@ -114,8 +114,20 @@ test("WT-01-04 upgrades a legacy file-store migration manifest without losing re
   const persisted = JSON.parse(readFileSync(filePath, "utf8"));
 
   // Then
-  assert.deepEqual(repository.migrations.map(({ id }) => id), ["001_matter_core", "002_matter_worktree"]);
-  assert.deepEqual(persisted.migrations.map(({ id }) => id), ["001_matter_core", "002_matter_worktree"]);
+  assert.deepEqual(repository.migrations.map(({ id }) => id), [
+    "001_matter_core",
+    "002_matter_worktree",
+    "003_people_member_fields",
+    "004_people_calendar_fields",
+    "005_people_task_fields",
+  ]);
+  assert.deepEqual(persisted.migrations.map(({ id }) => id), [
+    "001_matter_core",
+    "002_matter_worktree",
+    "003_people_member_fields",
+    "004_people_calendar_fields",
+    "005_people_task_fields",
+  ]);
   assert.equal(legacy.marker, "retain");
 });
 

@@ -78,17 +78,23 @@ const TRANSFORM_TARGETS = Object.freeze({
     "restricted_access",
   ],
   hrx_leave_balance_entries: ["metadata_json"],
+  hrx_lifecycle_templates: ["tasks_json"],
   hrx_offboarding_cases: [
     "access_revocations_json",
     "document_returns_json",
     "legal_hold_checks_json",
     "matter_reassignments_json",
     "handover_items_json",
+    "template_ref_json",
+    "template_snapshot_json",
+    "tasks_json",
   ],
   hrx_onboarding_plans: [
     "tasks_json",
     "document_refs_json",
     "access_requests_json",
+    "template_ref_json",
+    "template_snapshot_json",
   ],
   hrx_offers: ["compensation_restricted"],
 });
@@ -421,7 +427,7 @@ function w15Packet() {
   }).packet;
 }
 
-test("W15 contract bundle emits all 77 mappings or an exact blocked gap", () => {
+test("W15 contract bundle emits every HRX mapping or an exact blocked gap", () => {
   const cleanInventory = inventory();
   const accepted = createJsonPostgresW15ContractBundle({
     schema: schema(),
@@ -429,8 +435,11 @@ test("W15 contract bundle emits all 77 mappings or an exact blocked gap", () => 
     performanceAcceptance: performance(cleanInventory),
   });
   assert.equal(accepted.summary.outcome, "PASS");
-  assert.equal(accepted.mappingManifest.table_count, 77);
-  assert.equal(accepted.dependencyOrder.dependency_order.length, 77);
+  assert.equal(accepted.mappingManifest.table_count, HRX_STORE_TABLES.length);
+  assert.equal(
+    accepted.dependencyOrder.dependency_order.length,
+    HRX_STORE_TABLES.length,
+  );
   assert.equal(accepted.gapReport.blocked_table_count, 0);
 
   const blockedInventory = inventory({ blocked: true });
@@ -464,7 +473,7 @@ test("W15 contract bundle emits all 77 mappings or an exact blocked gap", () => 
     resolution.resolution_sha256,
   );
   assert.equal(remediated.gapReport.unmapped_nonnull_field_count, 1);
-  assert.equal(remediated.mappingManifest.table_count, 77);
+  assert.equal(remediated.mappingManifest.table_count, HRX_STORE_TABLES.length);
 });
 
 test("W15 preflight binds the complete predecessor chain and exact target", () => {

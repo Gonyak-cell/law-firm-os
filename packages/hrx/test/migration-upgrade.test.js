@@ -5,17 +5,27 @@ import { auditHrxCheckpointUpgrades } from "../../../scripts/validate-hrx-checkp
 test("MG-005 upgrades 010, 020, and 025 file databases without data loss", () => {
   const report = auditHrxCheckpointUpgrades();
   assert.equal(report.verdict, "PASS");
-  assert.equal(report.final_migration_count, 32);
-  assert.equal(report.final_migration, "032_hrx_professional_profile.sql");
+  assert.equal(report.final_migration_count, 48);
+  assert.equal(report.final_migration, "048_hrx_recruiting_pipeline_receipts.sql");
   assert.deepEqual(report.checkpoints.map(({ checkpoint }) => checkpoint), [10, 20, 25]);
-  assert.deepEqual(report.checkpoints.map(({ upgrade_migration_count }) => upgrade_migration_count), [22, 12, 7]);
+  assert.deepEqual(report.checkpoints.map(({ upgrade_migration_count }) => upgrade_migration_count), [38, 28, 23]);
   assert.equal(report.checkpoint_count, 3);
   assert.equal(report.total_seeded_table_count, 32);
   assert.equal(report.total_seeded_row_count, 32);
   assert.equal(report.total_changed_existing_row_count, 0);
   assert.equal(report.total_lost_existing_row_count, 0);
   assert.equal(report.total_unexpected_new_row_count, 0);
-  assert.equal(report.total_backfill_check_count, 30);
+  assert.equal(report.total_backfill_check_count, 31);
+  assert.deepEqual(
+    report.checkpoints.find(({ checkpoint }) => checkpoint === 25).backfill_checks
+      .find(({ field }) => field === "hrx_payroll_runs.filing_source_hash"),
+    {
+      field: "hrx_payroll_runs.filing_source_hash",
+      actual: null,
+      expected: null,
+      verdict: "PASS",
+    },
+  );
   for (const checkpoint of report.checkpoints) {
     assert.equal(checkpoint.verdict, "PASS");
     assert.equal(checkpoint.data_snapshot_sha256_before, checkpoint.data_snapshot_sha256_after);

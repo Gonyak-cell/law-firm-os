@@ -28,13 +28,13 @@ import amicLawLogo from "../assets/amic-law.svg";
 import {
   globalUtilityCatalog,
   globalUtilityItems,
-  isLegacyGlobalRoute,
   modeExceptionUtilityViewIds
 } from "../data/globalUtilities.js";
 import { fetchMatterRecentlyViewed, fetchMatterRecords, fetchUserProfile, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "../data/apiClient.js";
 import { MatterSplash } from "./MatterSplash.jsx";
-import { peopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
+import { getPeopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
+import { safePeopleLabel } from "../people/peoplePresentation.ts";
 import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
 import {
   canAdjustLeaveLedger as canAdjustLeaveLedgerForRecords,
@@ -56,20 +56,6 @@ const peopleIconMap = {
   users: UserPlus
 };
 
-const peopleGlobalGroupLabels = new Set(["요청/전자결재", "리포트", "메시지", "전자계약", "회사 설정"]);
-const hiddenPeopleSidebarGroupLabels = new Set(["근무일정"]);
-const hiddenPeopleSidebarSections = new Set([
-  "people-role",
-  "people-work-profile",
-  "people-pay-work-profile",
-  "people-unscheduled-attendance",
-  "people-attendance-upload",
-  "people-leave-accrual-manual",
-  "people-break-records",
-  "people-attendance-missing-alerts",
-  "people-attendance-lock",
-  "people-attendance-verification"
-]);
 const genericSessionDisplayNames = new Set(["사용자", "세션 사용자"]);
 const searchClockFormatter = new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
 const searchDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric" });
@@ -91,6 +77,18 @@ function shellSessionFirst(records, keys) {
     }
   }
   return "";
+}
+
+function shellSessionIdentifiers(records) {
+  const identifiers = [];
+  for (const record of records) {
+    if (!record || typeof record !== "object") continue;
+    for (const key of ["user_id", "actor_ref", "email"]) {
+      const value = shellSessionText(record[key]);
+      if (value && !identifiers.includes(value)) identifiers.push(value);
+    }
+  }
+  return identifiers;
 }
 
 function shellSessionDisplayName(records) {
@@ -117,11 +115,12 @@ function sidebarSessionProfile(profileUser) {
     sessionEnvelope
   ];
   const name = shellSessionDisplayName(records);
-  const userRef = shellSessionFirst(records, ["user_id", "actor_ref", "email"]);
+  const identifiers = shellSessionIdentifiers(records);
+  const userRef = identifiers[0] ?? "";
   const role = shellSessionFirst(records, ["title", "source_title", "primary_role_label", "role_label", "position", "job_title"]);
   return {
-    name: name || userRef,
-    role,
+    name: safePeopleLabel(name, { identifiers }),
+    role: safePeopleLabel(role, { identifiers }),
     userRef,
     canManageLeavePolicy: canManageLeavePolicyForRecords(records),
     canApproveLeave: canApproveLeaveForRecords(records),
@@ -177,21 +176,9 @@ function searchHistoryTime(value, relative = false) {
 }
 
 function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = false, canExecuteLeaveAccrual = false, canAdjustLeaveLedger = false, canSettleLeaveTermination = false, canManageLeavePromotion = false } = {}) {
-  return peopleNavigationGroups.map((group) => {
-    if (hiddenPeopleSidebarGroupLabels.has(group.label)) return null;
-    if (peopleGlobalGroupLabels.has(group.label) && group.label !== "요청/전자결재") return null;
+  return getPeopleNavigationGroups({ canManageLeavePolicy, canApproveLeave, canExecuteLeaveAccrual, canAdjustLeaveLedger, canSettleLeaveTermination, canManageLeavePromotion }).map((group) => {
     const GroupIcon = peopleIconMap[group.icon] ?? ClipboardList;
-    const children = group.children
-      .filter((child) => !hiddenPeopleSidebarSections.has(child.section))
-      .filter((child) => group.label !== "요청/전자결재" || ["people-leave-requests", "people-annual-leave-notices"].includes(child.section))
-      .filter((child) => !isLegacyGlobalRoute("people", child.section))
-      .filter((child) => child.requiredScope !== "hrx.leave.policy.read" || canManageLeavePolicy)
-      .filter((child) => child.requiredScope !== "hrx.leave.approve" || canApproveLeave)
-      .filter((child) => child.requiredScope !== "hrx.leave.accrual.execute" || canExecuteLeaveAccrual)
-      .filter((child) => child.requiredScope !== "hrx.leave.ledger.adjust" || canAdjustLeaveLedger)
-      .filter((child) => child.requiredScope !== "hrx.leave.termination.settle" || canSettleLeaveTermination)
-      .filter((child) => child.requiredScope !== "hrx.leave.promotion.manage" || canManageLeavePromotion);
-    if (children.length === 0) return null;
+    const children = group.children;
     if (children.length === 1 && children[0].section === "people-attendance-records") {
       const child = children[0];
       return {
@@ -218,7 +205,7 @@ function peopleSidebarGroups({ canManageLeavePolicy = false, canApproveLeave = f
         };
       })
     };
-  }).filter(Boolean);
+  });
 }
 
 export function LoadingSurface({ labels, locale, setLocale, className = "", message = labels.loading }) {
@@ -1006,9 +993,10 @@ export function Sidebar({
   }, [view]);
   const sessionIdentity = sidebarSessionProfile(profileUser);
   const forestUserName = sessionIdentity.name;
+  const forestUserLabel = forestUserName || shellLabel(labels, "sessionUserFallback", "사용자");
   const forestUserRole = sessionIdentity.role;
   const forestUserPhoto = forestUserName ? memberPhotoFor(forestUserName) : undefined;
-  const forestUserInitial = (forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")).trim().slice(0, 1);
+  const forestUserInitial = forestUserLabel.trim().slice(0, 1);
   useEffect(() => {
     let cancelled = false;
     Promise.allSettled([readDesktopMatterSessionStatus(), fetchUserProfile({ ctx: "allow" })]).then((results) => {
@@ -1251,7 +1239,7 @@ export function Sidebar({
           {forestUserPhoto ? <img src={forestUserPhoto} alt="" /> : forestUserInitial}
         </span>
         <span className="forest-sidebar-user-copy">
-          <strong>{forestUserName || shellLabel(labels, "sessionUserFallback", "사용자")}</strong>
+          <strong>{forestUserLabel}</strong>
           {forestUserRole && <small>{forestUserRole}</small>}
         </span>
       </button>

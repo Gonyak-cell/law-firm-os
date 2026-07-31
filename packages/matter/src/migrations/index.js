@@ -11,6 +11,24 @@ export const MATTER_CORE_MIGRATIONS = Object.freeze([
     checksum: "matter-worktree-v1-model-storage",
     description: "Matter Worktree and template storage keyed by tenant and canonical model identifiers",
   }),
+  Object.freeze({
+    id: "003_people_member_fields",
+    filename: "003_people_member_fields.sql",
+    checksum: "people-member-fields-v1-effective-identity",
+    description: "MatterMember effective period and verified Employee identity expansion",
+  }),
+  Object.freeze({
+    id: "004_people_calendar_fields",
+    filename: "004_people_calendar_fields.sql",
+    checksum: "people-calendar-fields-v1-explicit-kind-provider",
+    description: "MatterCalendarEvent explicit kind and tenant-unique provider identity expansion",
+  }),
+  Object.freeze({
+    id: "005_people_task_fields",
+    filename: "005_people_task_fields.sql",
+    checksum: "people-task-fields-v1-user-time-estimate",
+    description: "MatterTask explicit User assignment, time interval, and estimate expansion",
+  }),
 ]);
 
 export function runMatterMigrations(store) {

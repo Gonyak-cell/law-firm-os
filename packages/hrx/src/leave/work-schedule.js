@@ -187,6 +187,10 @@ export function createSqlWorkScheduleResolver({ store, holidayResolver = () => f
   }
 
   return Object.freeze({
+    readDays(input = {}) {
+      return Object.freeze(resolveDays(input));
+    },
+
     resolve(input = {}) {
       return allocate(resolveDays(input), input.requested_minutes);
     },

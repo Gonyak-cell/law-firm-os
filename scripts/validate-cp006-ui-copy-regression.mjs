@@ -73,6 +73,8 @@ function worktreeDiffQuiet(paths) {
 
 const styles = text("apps/web/src/styles.css");
 const shell = text("apps/web/src/components/Shell.jsx");
+const peopleCatalog = text("apps/web/src/people/peopleFeatureCatalog.js");
+const peopleSidebarEnabledSections = peopleCatalog.match(/const PEOPLE_SIDEBAR_ENABLED_SECTIONS = new Set\(\[([\s\S]*?)\]\);/)?.[1] ?? "";
 const dashboardList = text("apps/web/src/components/DashboardList.jsx");
 const primitives = text("apps/web/src/components/primitives.jsx");
 const home = text("apps/web/src/components/HomeSurface.jsx");
@@ -138,8 +140,8 @@ const sourceChecks = {
   people_panel_kicker_absent: !productUiSource.includes("people-panel-kicker"),
   forbidden_helper_copy_absent: forbiddenCopyMatches.length === 0,
   internal_reconciliation_copy_absent: !/meta="이중 승인"|>잔액 대조<|>불일치<|>기준 없음</.test(productUiSource),
-  work_schedule_group_hidden: shell.includes('hiddenPeopleSidebarGroupLabels = new Set(["근무일정"])'),
-  role_and_work_profile_hidden: ["people-role", "people-work-profile", "people-pay-work-profile"].every((section) => shell.includes(`"${section}"`)),
+  work_schedule_group_hidden: !peopleSidebarEnabledSections.includes('"people-work-schedule"'),
+  role_and_work_profile_hidden: ["people-role", "people-work-profile", "people-pay-work-profile"].every((section) => !peopleSidebarEnabledSections.includes(`"${section}"`)),
   attendance_menu_flattened: shell.includes('children.length === 1 && children[0].section === "people-attendance-records"'),
   attendance_is_clock_only: attendance.includes('data-simple-attendance="true"') && attendance.includes('data-attendance-clock-in="true"') && attendance.includes('data-attendance-clock-out="true"') && !/<select|type="date"|attendance-calendar|attendance-risk/.test(attendance),
   search_named_search: vault.includes('<ForestHero title="Search"') && i18n.includes('vaultTitle: "Search"'),

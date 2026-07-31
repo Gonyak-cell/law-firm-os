@@ -22,6 +22,11 @@ export function canApproveLeave(records = []) {
   return scopes.includes("hrx.leave.team.read") && scopes.includes("hrx.leave.approve");
 }
 
+export function canApproveOvertime(records = []) {
+  const scopes = listCurrentHrxScopes(records);
+  return scopes.includes("hrx.overtime.team.read") && scopes.includes("hrx.overtime.approve");
+}
+
 export function canExecuteLeaveAccrual(records = []) {
   return listCurrentHrxScopes(records).includes("hrx.leave.accrual.execute");
 }

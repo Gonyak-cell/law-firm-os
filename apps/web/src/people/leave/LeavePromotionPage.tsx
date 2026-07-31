@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { FileCheck2 } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import {
+  providerDeliveryLabel,
+  providerDeliveryState,
+} from "./providerDeliveryState.ts";
+import {
   createHrxLeavePromotionCampaign,
   fetchHrxLeavePromotionWorkspace,
   issueHrxLeavePromotionBatch,
@@ -11,12 +15,23 @@ import {
   recordHrxLeavePromotionResponse,
   revokeHrxLeavePromotionEvidence
 } from "../hrxApiClient.ts";
+import {
+  safePeopleLabel,
+  UNRESOLVED_EMPLOYEE_LABEL,
+} from "../peoplePresentation.ts";
 
 type Row = Record<string, unknown>;
 
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
   return typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
+}
+
+function employeeLabel(row: Row | null | undefined) {
+  return safePeopleLabel(text(row, "employee_display_name"), {
+    identifiers: [text(row, "employee_id"), text(row, "user_id"), text(row, "recipient_id")],
+    fallback: UNRESOLVED_EMPLOYEE_LABEL,
+  });
 }
 
 function number(row: Row | null | undefined, field: string) {
@@ -40,11 +55,15 @@ function rows(row: Row | null | undefined, field: string) {
 }
 
 function deliveryLabel(value: string) {
-  return (({ not_created: "미생성", pending: "확인 중", delivered: "전달", failed: "실패" } as Record<string, string>)[value] ?? value) || "-";
+  return providerDeliveryLabel(providerDeliveryState({
+    state: value,
+    providerKind: "delivery",
+    deliveryEvidenceVerified: ["delivered", "viewed"].includes(value),
+  }));
 }
 
 function evidenceEventLabel(value: string) {
-  return (({ delivered: "전달", viewed: "열람", failed: "실패" } as Record<string, string>)[value] ?? value) || "-";
+  return (({ delivered: "전달 확인", viewed: "열람 확인", failed: "실패" } as Record<string, string>)[value] ?? value) || "-";
 }
 
 function stateTone(value: string) {
@@ -70,11 +89,11 @@ function noticeVersion(year: string, stage: "first" | "second") {
 
 const STATE_LABELS: Record<string, string> = {
   first_notice_pending: "1차 문서 생성 전",
-  first_notice_issued: "1차 전달 확인 중",
+  first_notice_issued: "1차 처리 대기",
   first_delivery_failed: "1차 전달 실패",
   awaiting_employee_response: "직원 응답 대기",
   employee_responded: "직원 응답 기록",
-  second_notice_issued: "2차 전달 확인 중",
+  second_notice_issued: "2차 처리 대기",
   second_delivery_failed: "2차 전달 실패",
   second_notice_delivered: "2차 열람 확인 대기",
   second_notice_viewed: "2차 증거 확인"
@@ -278,7 +297,7 @@ export function LeavePromotionPage() {
           <span><small>응답 기한</small><strong>전달 후 {number(schedule, "employee_response_days")}일</strong></span>
           <span><small>2차 마감</small><strong>{dateTime(schedule?.second_notice_deadline_at)}</strong></span>
         </div>
-        <div className="data-table-wrap"><table className="data-table"><thead><tr><th>구성원</th><th>미사용</th><th>예약</th><th>해제</th><th>소멸</th></tr></thead><tbody>{previewTargets.map((row) => <tr key={text(row, "employee_id")}><td><strong>{text(row, "employee_display_name")}</strong></td><td>{number(row, "unused_days")}일</td><td>{number(row, "reserved_minutes")}분</td><td>{number(row, "released_minutes")}분</td><td>{number(row, "expired_minutes")}분</td></tr>)}</tbody></table></div>
+        <div className="data-table-wrap"><table className="data-table"><thead><tr><th>구성원</th><th>미사용</th><th>예약</th><th>해제</th><th>소멸</th></tr></thead><tbody>{previewTargets.map((row) => <tr key={text(row, "employee_id")}><td><strong>{employeeLabel(row)}</strong></td><td>{number(row, "unused_days")}일</td><td>{number(row, "reserved_minutes")}분</td><td>{number(row, "released_minutes")}분</td><td>{number(row, "expired_minutes")}분</td></tr>)}</tbody></table></div>
       </section>}
 
       <section className="leave-accrual-section">
@@ -299,8 +318,8 @@ export function LeavePromotionPage() {
               const firstReady = text(recipient, "first_delivery_state") === "delivered";
               const hasResponse = Boolean(text(recipient, "responded_at"));
               return <tr key={recipientId} data-promotion-recipient-id={recipientId}>
-                <td className="leave-promotion-select-cell"><input type="checkbox" aria-label={`${text(recipient, "employee_display_name")} 선택`} checked={checked} onChange={(event) => setSelectedRecipientIds((current) => event.target.checked ? [...new Set([...current, recipientId])] : current.filter((value) => value !== recipientId))} /></td>
-                <td><strong>{text(recipient, "employee_display_name")}</strong></td>
+                <td className="leave-promotion-select-cell"><input type="checkbox" aria-label={`${employeeLabel(recipient)} 선택`} checked={checked} onChange={(event) => setSelectedRecipientIds((current) => event.target.checked ? [...new Set([...current, recipientId])] : current.filter((value) => value !== recipientId))} /></td>
+                <td><strong>{employeeLabel(recipient)}</strong></td>
                 <td>{number(recipient, "unused_days")}일</td>
                 <td><span className="record-state-badge" data-state={stateTone(text(recipient, "state"))}>{STATE_LABELS[text(recipient, "state")] ?? text(recipient, "state")}</span></td>
                 <td>{deliveryLabel(text(recipient, "first_delivery_state"))}</td>
@@ -319,9 +338,9 @@ export function LeavePromotionPage() {
       </section>
 
       {selectedRecipient && <section className="leave-accrual-section leave-promotion-evidence" data-leave-promotion-evidence="true">
-        <div className="leave-accrual-section-head"><h3>수신자 처리</h3><span>{text(selectedRecipient, "employee_display_name")}</span></div>
+        <div className="leave-accrual-section-head"><h3>수신자 처리</h3><span>{employeeLabel(selectedRecipient)}</span></div>
         <div className="leave-promotion-response-form">
-          <label><span>사용 희망일</span><input aria-label={`${text(selectedRecipient, "employee_display_name")} 사용 희망일`} type="date" value={responseDate} onChange={(event) => setResponseDate(event.target.value)} /></label>
+          <label><span>사용 희망일</span><input aria-label={`${employeeLabel(selectedRecipient)} 사용 희망일`} type="date" value={responseDate} onChange={(event) => setResponseDate(event.target.value)} /></label>
           <button type="button" className="secondary-button" disabled={!selectedFirstReady || selectedHasResponse || busy === `response:${text(selectedRecipient, "recipient_id")}`} onClick={() => void submitResponse(selectedRecipient)}>응답 기록</button>
         </div>
         <div className="leave-promotion-evidence-form">

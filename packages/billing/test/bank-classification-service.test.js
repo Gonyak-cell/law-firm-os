@@ -136,14 +136,19 @@ test("bank classification preview links registered-client inflows and exact payr
       category: byId.get("bank_tx_a").category,
       client_group_id: byId.get("bank_tx_a").client_group_id,
       invoice_required: byId.get("bank_tx_a").invoice_required,
+      allocation_required_for_revenue: byId.get("bank_tx_a").allocation_required_for_revenue,
+      revenue_effect: byId.get("bank_tx_a").revenue_effect,
     },
     {
       primary_type: "sales",
       category: "client_receipt",
       client_group_id: "client-best",
       invoice_required: false,
+      allocation_required_for_revenue: true,
+      revenue_effect: "candidate_only",
     },
   );
+  assert.equal(byId.get("bank_tx_a").category_label, "고객 입금");
   assert.equal(byId.get("bank_tx_b").primary_type, "payroll");
   assert.equal(byId.get("bank_tx_b").employee_id, "emp-jws");
   assert.equal(byId.get("bank_tx_b").payroll_category, "partner");

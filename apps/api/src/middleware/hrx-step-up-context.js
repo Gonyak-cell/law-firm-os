@@ -35,11 +35,12 @@ export function parseHrxStepUpContext(headers = {}, { verifier } = {}) {
   return Object.freeze({ ok: true, token: verified.token, source: verified.source ?? "signed_step_up_token" });
 }
 
-export function authorizeHrxStepUpRequest({ action, context = {}, headers = {}, now, verifier } = {}) {
+export function authorizeHrxStepUpRequest({ action, policyPurpose, context = {}, headers = {}, now, verifier } = {}) {
   const resolvedVerifier = verifier ?? createHrxStepUpAuthority();
   const parsed = parseHrxStepUpContext(headers, { verifier: resolvedVerifier });
   const decision = evaluateHrxStepUp({
     action,
+    policyPurpose,
     context,
     token: parsed.ok ? parsed.token : null,
     now: now ?? resolvedVerifier.nowIso?.(),
@@ -56,5 +57,6 @@ export function authorizeHrxStepUpRequest({ action, context = {}, headers = {}, 
     step_up_required: true,
     fail_closed: true,
     action,
+    required_purpose: decision.required_purpose ?? null,
   });
 }

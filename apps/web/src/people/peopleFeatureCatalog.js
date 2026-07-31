@@ -21,7 +21,7 @@ export const PEOPLE_FEATURE_STATES = {
   }
 };
 
-export const PEOPLE_FEATURE_GROUPS = [
+const PEOPLE_FEATURE_GROUP_DEFINITIONS = [
   {
     label: "관리",
     icon: "users",
@@ -504,7 +504,7 @@ export const PEOPLE_FEATURE_GROUPS = [
         icon: "file",
         state: "integration_required",
         summary: "근로계약서 전송과 서명 완료본을 관리합니다.",
-        capabilities: ["근로계약서", "글로싸인/모두싸인 연동", "완료본 보관"]
+        capabilities: ["근로계약서", "연차휴가 사용 촉진 문서", "글로싸인/모두싸인 연동", "완료본 보관"]
       }
     ]
   },
@@ -676,25 +676,144 @@ export const PEOPLE_FEATURE_GROUPS = [
   }
 ];
 
-export const PEOPLE_FEATURE_ITEMS = PEOPLE_FEATURE_GROUPS.flatMap((group) =>
-  group.children.map((item) => ({
-    ...item,
-    groupLabel: group.label,
-    stateMeta: PEOPLE_FEATURE_STATES[item.state] ?? PEOPLE_FEATURE_STATES.setup_required,
-    badge: item.count ?? (PEOPLE_FEATURE_STATES[item.state] ?? PEOPLE_FEATURE_STATES.setup_required).badge
-  }))
-);
+const PEOPLE_SIDEBAR_ENABLED_SECTIONS = new Set([
+  "people-members",
+  "people-org-chart",
+  "people-recruiting",
+  "people-lifecycle",
+  "people-attendance-records",
+  "people-leave",
+  "people-leave-types",
+  "people-leave-accrual-auto",
+  "people-leave-usage",
+  "people-leave-termination",
+  "people-leave-requests",
+  "people-annual-leave-notices",
+  "people-close",
+  "people-payroll",
+  "people-pay-statement",
+  "people-pay-rules"
+]);
 
-export const PEOPLE_SECTION_IDS = PEOPLE_FEATURE_ITEMS.map((item) => item.section);
+const PEOPLE_EXTEND_SECTIONS = new Set([
+  "people-members",
+  "people-attendance-records",
+  "people-payroll",
+  "people-pay-statement"
+]);
 
-export function getPeopleFeatureBySection(section) {
-  return PEOPLE_FEATURE_ITEMS.find((item) => item.section === section) ?? null;
+const PEOPLE_DEDICATED_SECTIONS = new Set([
+  "people-members",
+  "people-org-chart",
+  "people-documents",
+  "people-certificates",
+  "people-leave",
+  "people-leave-requests",
+  "people-leave-types",
+  "people-leave-accrual-auto",
+  "people-leave-accrual-manual",
+  "people-leave-usage",
+  "people-leave-termination",
+  "people-annual-leave-notices",
+  "people-approvals",
+  "people-recruiting",
+  "people-lifecycle",
+  "people-policy",
+  "people-audit",
+  "people-analytics",
+  "people-risk",
+  "people-attendance-records",
+  "people-ai",
+  "people-close",
+  "people-payroll",
+  "people-pay-statement",
+  "people-pay-rules",
+  "people-admin"
+]);
+
+const PEOPLE_SCOPE_ACCESS_KEYS = Object.freeze({
+  "hrx.leave.policy.read": "canManageLeavePolicy",
+  "hrx.leave.approve": "canApproveLeave",
+  "hrx.leave.accrual.execute": "canExecuteLeaveAccrual",
+  "hrx.leave.ledger.adjust": "canAdjustLeaveLedger",
+  "hrx.leave.termination.settle": "canSettleLeaveTermination",
+  "hrx.leave.promotion.manage": "canManageLeavePromotion"
+});
+
+function implementationState(item) {
+  if (PEOPLE_EXTEND_SECTIONS.has(item.section)) return "extend";
+  if (PEOPLE_DEDICATED_SECTIONS.has(item.section)) return "existing";
+  if (item.state === "integration_required") return "provider-gated";
+  return "new";
 }
 
-export const peopleNavigationGroups = PEOPLE_FEATURE_GROUPS.map((group) => ({
-  ...group,
-  children: group.children.map((item) => ({
+function catalogItem(item, groupLabel) {
+  const stateMeta = PEOPLE_FEATURE_STATES[item.state] ?? PEOPLE_FEATURE_STATES.setup_required;
+  const sidebarVisibility = PEOPLE_SIDEBAR_ENABLED_SECTIONS.has(item.section);
+  return {
     ...item,
-    badge: item.count ?? (PEOPLE_FEATURE_STATES[item.state] ?? PEOPLE_FEATURE_STATES.setup_required).badge
-  }))
+    groupLabel,
+    implementation_state: implementationState(item),
+    availability: sidebarVisibility ? "enabled" : "disabled",
+    sidebar_visibility: sidebarVisibility,
+    route_enabled: sidebarVisibility,
+    requiredScope: item.requiredScope ?? null,
+    stateMeta,
+    badge: item.count ?? stateMeta.badge
+  };
+}
+
+export const PEOPLE_FEATURE_GROUPS = PEOPLE_FEATURE_GROUP_DEFINITIONS.map((group) => ({
+  ...group,
+  children: group.children.map((item) => catalogItem(item, group.label))
 }));
+
+export const PEOPLE_FEATURE_ITEMS = PEOPLE_FEATURE_GROUPS.flatMap((group) => group.children);
+
+export const PEOPLE_INTERNAL_FEATURE_ITEMS = [
+  {
+    label: "팀 현황",
+    section: "people-overview",
+    icon: "users",
+    state: "active",
+    groupLabel: "관리",
+    implementation_state: "new",
+    availability: "enabled",
+    sidebar_visibility: false,
+    route_enabled: true,
+    requiredScope: null,
+    summary: "오늘 일정과 담당 업무를 구성원별로 확인합니다.",
+    capabilities: ["오늘 처리 목록", "구성원별 시간표", "담당 사건", "확인 필요 항목"],
+    stateMeta: PEOPLE_FEATURE_STATES.active,
+    badge: null
+  }
+];
+
+const PEOPLE_ALL_FEATURE_ITEMS = [...PEOPLE_FEATURE_ITEMS, ...PEOPLE_INTERNAL_FEATURE_ITEMS];
+
+export const PEOPLE_SECTION_IDS = PEOPLE_ALL_FEATURE_ITEMS.map((item) => item.section);
+
+export function getPeopleFeatureBySection(section) {
+  return PEOPLE_ALL_FEATURE_ITEMS.find((item) => item.section === section) ?? null;
+}
+
+export function getPeopleNavigationGroups(access = {}) {
+  return PEOPLE_FEATURE_GROUPS
+    .map((group) => ({
+      ...group,
+      children: group.children.filter((item) => {
+        if (!item.sidebar_visibility) return false;
+        const accessKey = PEOPLE_SCOPE_ACCESS_KEYS[item.requiredScope];
+        return !accessKey || access[accessKey] === true;
+      })
+    }))
+    .filter((group) => group.children.length > 0);
+}
+
+export function resolvePeopleRoute(view, section, { overviewEnabled = true } = {}) {
+  if (view !== "people") return section;
+  const defaultSection = overviewEnabled ? "people-overview" : "people-members";
+  if (!section) return defaultSection;
+  if (section === "people-overview" && !overviewEnabled) return "people-members";
+  return getPeopleFeatureBySection(section)?.route_enabled === true ? section : defaultSection;
+}

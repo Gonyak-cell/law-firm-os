@@ -34,7 +34,8 @@ import {
   synchronizeClientDepositAllocationReversals,
 } from "../../../packages/billing/src/client-deposit-reallocation-service.js";
 import { buildClientReceivables } from "../../../packages/billing/src/client-receivables-service.js";
-import { importPayment } from "../../../packages/payments/src/payment-service.js";
+import { confirmBankReceipt, importPayment } from "../../../packages/payments/src/payment-service.js";
+import { allocatePayment } from "../../../packages/payments/src/payment-allocation-service.js";
 import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
 import { createArAgingSnapshot } from "../../../packages/payments/src/ar-service.js";
 import { createAccountingCsvExport } from "../../../packages/payments/src/accounting-export-service.js";
@@ -97,6 +98,8 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/finance/invoices",
     "GET /api/finance/payments",
     "POST /api/finance/payments",
+    "GET /api/finance/payment-allocations",
+    "POST /api/finance/payment-allocations",
     "GET /api/finance/payment-matches",
     "POST /api/finance/payment-matches",
     "GET /api/finance/ar-aging",
@@ -328,7 +331,7 @@ function requiredFinanceScope(action = "") {
   if (["finance:time:approve", "finance:prebill:approve", "finance:prebill:reject"].includes(action)) return "finance.approve";
   if (action.startsWith("finance:time:")) return "finance.time.write";
   if (action.startsWith("finance:expense:") || action.startsWith("finance:disbursement:")) return "finance.expense.write";
-  if (action.startsWith("finance:payment:") || action.startsWith("finance:payment_match:") || action.startsWith("finance:trust_ledger:")) return "finance.payment.write";
+  if (action.startsWith("finance:payment:") || action.startsWith("finance:payment_allocation:") || action.startsWith("finance:payment_match:") || action.startsWith("finance:trust_ledger:")) return "finance.payment.write";
   if (action.startsWith("finance:accounting_export:")) return "finance.export";
   if (action.startsWith("finance:audit:")) return "finance.audit.read";
   if (action.startsWith("finance:ar:")) return "analytics.finance.read";
@@ -1921,6 +1924,7 @@ function classificationCommandResponse({
   auditHintRef,
   depositAllocation = null,
   depositAllocationReversal = null,
+  confirmedPayments = [],
   review = false,
 }) {
   const commandReceipts = classificationCommandReceipts(
@@ -1936,7 +1940,13 @@ function classificationCommandResponse({
         created_count: result.created_count,
         updated_count: result.updated_count,
         ...(review
-          ? { rule_count: result.rule_count }
+          ? {
+              rule_count: result.rule_count,
+              payment_count: confirmedPayments.length,
+              payments: Object.freeze(
+                confirmedPayments.map(sanitizeFinanceItem),
+              ),
+            }
           : { protected_manual_count: result.protected_manual_count }),
         summary: result.summary,
         command_receipt: commandReceipts.length === 1
@@ -1964,6 +1974,30 @@ function classificationCommandError(message, safeErrorCode, status = 409) {
     safe_error_code: safeErrorCode,
     status,
   });
+}
+
+function confirmReviewedBankReceipts({
+  decisions,
+  repository,
+  tenantId,
+  actorId,
+  idempotencyKey,
+}) {
+  return decisions
+    .filter((decision) => decision.category === "client_receipt")
+    .map((decision) => confirmBankReceipt({
+      repository,
+      bank_transaction_id: decision.bank_transaction_id,
+      payment: {
+        payment_id: `payment:bank:${decision.bank_transaction_id}`,
+        tenant_id: tenantId,
+        client_group_id: decision.client_group_id,
+        matter_id: decision.matter_id ?? null,
+      },
+      actor_id: actorId,
+      idempotency_key:
+        `${idempotencyKey}:payment:${decision.bank_transaction_id}`,
+    }).payment);
 }
 
 function classificationResourceGate({
@@ -2330,6 +2364,13 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
         idempotencyKey: body.idempotency_key,
         requestId,
         auditHintRef: query.audit_hint_ref,
+        confirmedPayments: confirmReviewedBankReceipts({
+          decisions: submittedDecisions,
+          repository: runtime.repository,
+          tenantId: query.tenant_id,
+          actorId: context.principal.user_id,
+          idempotencyKey: body.idempotency_key,
+        }),
         review: true,
       });
     }
@@ -2421,6 +2462,13 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
       auditHintRef: query.audit_hint_ref,
       depositAllocation,
       depositAllocationReversal,
+      confirmedPayments: confirmReviewedBankReceipts({
+        decisions,
+        repository: runtime.repository,
+        tenantId: query.tenant_id,
+        actorId: context.principal.user_id,
+        idempotencyKey: body.idempotency_key,
+      }),
       review: true,
     });
   } catch (error) {
@@ -3556,7 +3604,37 @@ export function handleFinancePaymentMatchCreate({ body, context, requestId, runt
       auditEvent: result.audit_event,
       status: result.idempotent_replay ? 200 : 201,
       extra: {
+        payment_allocation: sanitizeFinanceItem(result.payment_allocation),
         invoice: sanitizeFinanceItem(result.invoice),
+        payment: sanitizeFinanceItem(result.payment),
+        idempotent_replay: result.idempotent_replay,
+      },
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+}
+
+export function handleFinancePaymentAllocationCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
+  const query = { tenant_id: body?.allocation?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
+  const gated = routeGate({ context, query, requestId, action: "finance:payment_allocation:write", resourceType: "payment_allocation", repository: runtime.repository });
+  if (gated) return gated;
+  try {
+    const result = allocatePayment({
+      repository: runtime.repository,
+      allocation: body.allocation,
+      actor_id: context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+    });
+    return itemResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "created",
+      item: result.payment_allocation,
+      auditEvent: result.audit_event,
+      status: result.idempotent_replay ? 200 : 201,
+      extra: {
+        invoice: result.invoice ? sanitizeFinanceItem(result.invoice) : null,
         payment: sanitizeFinanceItem(result.payment),
         idempotent_replay: result.idempotent_replay,
       },
@@ -3920,6 +3998,10 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
     return listResponse({ query, context, requestId, runtime, action: "finance:payment:read", resourceType: "payment", modelType: "Payment" });
   }
   if (pathname === "/api/finance/payments" && method === "POST") return handleFinancePaymentImport({ body, context, requestId, runtime });
+  if (pathname === "/api/finance/payment-allocations" && method === "GET") {
+    return listResponse({ query, context, requestId, runtime, action: "finance:payment_allocation:read", resourceType: "payment_allocation", modelType: "PaymentAllocation" });
+  }
+  if (pathname === "/api/finance/payment-allocations" && method === "POST") return handleFinancePaymentAllocationCreate({ body, context, requestId, runtime });
   if (pathname === "/api/finance/payment-matches" && method === "GET") {
     return listResponse({ query, context, requestId, runtime, action: "finance:payment_match:read", resourceType: "payment_match", modelType: "PaymentMatch" });
   }

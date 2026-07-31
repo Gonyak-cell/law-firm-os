@@ -6,6 +6,7 @@ import {
   createExternalLeaveCalendarAdapter,
   createLeaveCollaborationAdapter,
   createMatterLeaveCalendarAdapter,
+  resolveLeaveIntegrationProviderSwitches,
 } from "../src/leave/provider-adapters.js";
 
 const NOW = "2026-07-14T00:00:00.000Z";
@@ -40,6 +41,7 @@ test("LV-INT-001 and LV-INT-002 keep one private Matter event through approve, c
   await adapter.deliver(deliveryInput({ ...changedPayload, operation: "delete" }, "calendar:cancel"));
 
   assert.match(approved.provider_receipt_ref, /^MatterCalendarReceipt:/);
+  assert.equal(approved.delivery_state, "delivered");
   assert.deepEqual(writes.map((row) => row.operation), ["upsert", "upsert", "delete"]);
   assert.equal(new Set(writes.map((row) => row.event_id)).size, 1);
   assert.doesNotMatch(JSON.stringify(writes), /"(employee_id|leave_type|leave_type_id|reason|reason_text|attachment_id|attachment_ids|document_id|document_ids)":/);
@@ -54,10 +56,13 @@ test("LV-INT-003 Google and Outlook adapters use opaque OAuth references, determ
       async deleteEvent(command) { commands.push({ operation: "delete", ...command }); return { provider_receipt_ref: `${providerId}:delete:receipt` }; },
     };
     const adapter = createExternalLeaveCalendarAdapter({ providerId, oauthReference: `OAuthConnection:${providerId}:sandbox`, client, clock: () => NOW });
-    await adapter.deliver(deliveryInput(calendarPayload, `${providerId}:upsert`));
-    await adapter.deliver(deliveryInput(calendarPayload, `${providerId}:upsert`));
-    await adapter.deliver(deliveryInput({ ...calendarPayload, operation: "delete" }, `${providerId}:delete`));
+    const upserted = await adapter.deliver(deliveryInput(calendarPayload, `${providerId}:upsert`));
+    const replayed = await adapter.deliver(deliveryInput(calendarPayload, `${providerId}:upsert`));
+    const deleted = await adapter.deliver(deliveryInput({ ...calendarPayload, operation: "delete" }, `${providerId}:delete`));
     assert.equal(commands.length, 2);
+    assert.equal(upserted.delivery_state, "delivered");
+    assert.deepEqual(replayed, upserted);
+    assert.equal(deleted.delivery_state, "delivered");
     assert.equal(commands[0].event_id, commands[1].event_id);
     assert.deepEqual(commands.map((row) => row.operation), ["upsert", "delete"]);
     assert.doesNotMatch(JSON.stringify(commands), /access_token|refresh_token|client_secret|Bearer /i);
@@ -86,10 +91,38 @@ test("LV-INT-004 Slack and Teams send only one minimal public notification per i
     const composite = createCompositeLeaveIntegrationProvider({ providerKind: "notification", providers: [adapter] });
     for (const [index, payload] of payloads.entries()) {
       const input = { ...deliveryInput(payload, `${providerId}:${index}`), provider_kind: "notification", event_type: payload.event_code };
-      await composite.deliver(input);
-      await composite.deliver(input);
+      const sent = await composite.deliver(input);
+      const replayed = await composite.deliver(input);
+      assert.equal(sent.delivery_state, "sent");
+      assert.deepEqual(replayed, sent);
     }
     assert.equal(commands.length, 4);
     assert.doesNotMatch(JSON.stringify(commands), /employee_id|reason|attachment|document_id|start_date|end_date/);
   }
+});
+
+test("each leave integration target has an independent fail-closed switch", () => {
+  assert.deepEqual(resolveLeaveIntegrationProviderSwitches(), {
+    schedule: true,
+    attendance: true,
+    payroll: true,
+    notification: true,
+  });
+  assert.deepEqual(resolveLeaveIntegrationProviderSwitches({
+    schedule: false,
+    notification: false,
+  }), {
+    schedule: false,
+    attendance: true,
+    payroll: true,
+    notification: false,
+  });
+  assert.throws(
+    () => resolveLeaveIntegrationProviderSwitches({ email: false }),
+    /unsupported leave integration provider switch/,
+  );
+  assert.throws(
+    () => resolveLeaveIntegrationProviderSwitches({ payroll: "false" }),
+    /must be boolean/,
+  );
 });

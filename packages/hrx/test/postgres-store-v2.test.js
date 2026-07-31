@@ -32,16 +32,16 @@ test("HRX domain inventory covers migrations, tables, append-only, CAS, payroll 
   const store = currentSourceStore();
   try {
     const result = createHrxDomainSnapshot({ store, tenant_id: TENANT });
-    assert.equal(result.inventory.migration_count, 32);
-    assert.equal(result.inventory.expected_migration_count, 32);
-    assert.equal(result.inventory.table_count, 77);
-    assert.equal(result.inventory.append_only_table_count, 11);
-    assert.equal(result.inventory.cas_table_count, 26);
+    assert.equal(result.inventory.migration_count, 48);
+    assert.equal(result.inventory.expected_migration_count, 48);
+    assert.equal(result.inventory.table_count, 83);
+    assert.equal(result.inventory.append_only_table_count, 15);
+    assert.equal(result.inventory.cas_table_count, 28);
     assert.equal(result.inventory.tenant_mismatch_count, 0);
     assert.equal(result.inventory.product_row_count > 0, true);
     assert.equal(result.inventory.table_counts.hrx_employees > 0, true);
     assert.equal(result.inventory.table_counts.hrx_payroll_runs > 0, true);
-    assert.equal(Object.keys(result.inventory.table_hashes).length, 77);
+    assert.equal(Object.keys(result.inventory.table_hashes).length, 83);
     assert.equal(result.inventory.integrity.row_count, result.inventory.product_row_count);
     assert.equal(result.inventory.integrity.primary_key_integrity_passed, true);
     assert.equal(result.inventory.integrity.unique_integrity_passed, true);

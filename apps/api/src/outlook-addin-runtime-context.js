@@ -1364,7 +1364,11 @@ function createFollowup({ body, context, requestId, runtime }) {
     action: "outlook:followup:create",
   });
   if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
-  const service = createMatterActivityCalendarChannelService({ repository: runtime.matterRuntime.repository });
+  const service = createMatterActivityCalendarChannelService({
+    repository: runtime.matterRuntime.repository,
+    peopleAssignmentAuthority: runtime.matterRuntime.peopleAssignmentAuthority,
+    clock: runtime.matterRuntime.clock,
+  });
   const result =
     kind === "deadline"
       ? service.createCalendarEvent({
@@ -1374,6 +1378,7 @@ function createFollowup({ body, context, requestId, runtime }) {
           event: {
             event_id: optionalString(body.event_id, `deadline_${safeId(body.source_email_thread_id ?? requestId)}`),
             title: requiredString(body.title, "title"),
+            event_kind: "deadline",
             starts_at: requiredString(body.due_at ?? body.starts_at, "due_at"),
             criticality: body.criticality ?? "standard",
             legal_consequence: body.legal_consequence ?? "internal",
@@ -1389,7 +1394,7 @@ function createFollowup({ body, context, requestId, runtime }) {
             activity_type: "task",
             title: requiredString(body.title, "title"),
             due_at: body.due_at ?? null,
-            assigned_to: body.assigned_to ?? actorId,
+            assigned_to_user_id: body.assigned_to_user_id ?? actorId,
             status: "todo",
           },
         });

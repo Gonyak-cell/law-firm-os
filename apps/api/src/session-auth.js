@@ -203,7 +203,7 @@ function permissionRulesFromScopes(scopes = []) {
     ["finance.time.write", ["finance:time:"]],
     ["finance.expense.write", ["finance:expense:", "finance:disbursement:"]],
     ["finance.billing.write", ["finance:fee_arrangement:", "finance:wip:", "finance:wip_snapshot:", "finance:prebill:", "finance:invoice:"]],
-    ["finance.payment.write", ["finance:payment:", "finance:payment_match:", "finance:trust_ledger:"]],
+    ["finance.payment.write", ["finance:payment:", "finance:payment_allocation:", "finance:payment_match:", "finance:trust_ledger:"]],
     ["finance.export", ["finance:accounting_export:"]],
     ["finance.audit.read", ["finance:audit:"]],
   ]);
@@ -860,6 +860,33 @@ export function createApiSessionAuth({
     });
     securityAuditStore.append(event);
     return event;
+  }
+
+  async function appendProviderCallbackAudit(event = {}) {
+    if (event.action !== "hrx.payroll.statement.provider_callback.denied") {
+      throw new TypeError("provider callback audit action is invalid");
+    }
+    if (
+      event.raw_payload_included !== false
+      || event.payroll_amounts_included !== false
+      || event.employee_identifier_included !== false
+      || event.mutation_applied !== false
+    ) {
+      throw new TypeError("provider callback audit privacy boundary is invalid");
+    }
+    return appendSecurityAudit({
+      action: event.action,
+      object_id:
+        event.provider_event_identifier_hash
+        ?? event.provider_receipt_identifier_hash
+        ?? event.request_id
+        ?? "provider_callback",
+      context: null,
+      details: {
+        ...event,
+        token_material_returned: false,
+      },
+    });
   }
 
   async function publicSecurityUser(user) {
@@ -2239,6 +2266,7 @@ export function createApiSessionAuth({
     confirmPasswordReset,
     verifyToken,
     resolvePermissionContextFromHeaders,
+    appendProviderCallbackAudit,
     handleAuthApiRequest,
     validateStepUpChallenge,
     handleSecurityAdminApiRequest,

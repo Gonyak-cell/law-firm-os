@@ -1,7 +1,10 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { renderSimpleTextPdf } from "../../../billing/src/invoice-pdf-service.js";
 import { createLocalStorageAdapter } from "../../../dms/src/storage/local-storage-adapter.js";
-import { createHrxProviderReceipt } from "../provider-receipt-contract.js";
+import {
+  assertHrxProviderReceiptForOperation,
+  createHrxSandboxProviderOperationBoundary,
+} from "../provider-receipt-contract.js";
 import { createXlsxBuffer } from "../leave/xlsx-export.js";
 
 export const PAYROLL_STATEMENT_TEMPLATE_VERSION = "forest-payroll-statement-v1";
@@ -88,7 +91,27 @@ function statementObjectId(statement) {
   return `payroll/${statement.run_id}/${statement.employee_id}/${statement.document_hash}.pdf`;
 }
 
-function statementView(statement) {
+function deliveryReceiptView(receipt, { includeProviderEvidence = false } = {}) {
+  return Object.freeze({
+    delivery_receipt_id: receipt.delivery_receipt_id,
+    statement_id: receipt.statement_id,
+    channel: receipt.channel,
+    state: receipt.state,
+    provider_result_state: receipt.provider_result_state ?? "queued",
+    provider_id: includeProviderEvidence ? receipt.provider_id ?? null : null,
+    provider_receipt_id: includeProviderEvidence ? receipt.provider_receipt_id ?? null : null,
+    safe_error_code: includeProviderEvidence ? receipt.safe_error_code ?? null : null,
+    attempt_count: receipt.attempt_count ?? 0,
+    provider_receipt_ref: includeProviderEvidence ? receipt.provider_receipt_ref ?? null : null,
+    created_at: receipt.created_at,
+    last_attempt_at: receipt.last_attempt_at ?? null,
+    delivered_at: receipt.delivered_at,
+    viewed_at: receipt.viewed_at,
+    failed_at: receipt.failed_at,
+  });
+}
+
+function statementView(statement, { deliveryReceipts = [], includeProviderEvidence = false } = {}) {
   return Object.freeze({
     statement_id: statement.statement_id,
     run_id: statement.run_id,
@@ -101,6 +124,9 @@ function statementView(statement) {
     delivered_at: statement.delivered_at,
     viewed_at: statement.viewed_at,
     revoked_at: statement.revoked_at,
+    delivery_receipts: Object.freeze(deliveryReceipts.map((receipt) => deliveryReceiptView(receipt, {
+      includeProviderEvidence,
+    }))),
   });
 }
 
@@ -109,6 +135,8 @@ export function createPayrollDocumentService({
   store,
   artifactVault = createEncryptedPayrollArtifactVault({ allowSyntheticSecret: true }),
   deliveryPort = null,
+  providerBoundary = createHrxSandboxProviderOperationBoundary("delivery"),
+  providerDeliveryEnabled = true,
   clock = () => new Date().toISOString(),
 } = {}) {
   if (!repository || !store) throw new TypeError("payroll document service requires repository and store");
@@ -178,13 +206,16 @@ export function createPayrollDocumentService({
       template_id: template.template_id,
       generated_count: statements.length - existing.size,
       statement_count: statements.length,
-      statements: Object.freeze(statements.map(statementView)),
+      statements: Object.freeze(statements.map((statement) => statementView(statement))),
       production_ready_claim: false,
     });
   }
 
   function list(context, input = {}) {
-    return Object.freeze(repository.listStatements(context, input).map(statementView));
+    return Object.freeze(repository.listStatements(context, input).map((statement) => statementView(statement, {
+      deliveryReceipts: repository.listDeliveryReceipts(context, { statement_id: statement.statement_id }),
+      includeProviderEvidence: true,
+    })));
   }
 
   async function exportRegister(context, input = {}) {
@@ -221,22 +252,155 @@ export function createPayrollDocumentService({
     });
   }
 
+  function applyDeliveryProviderReceipt(context, statement, receipt, providerReceipt, {
+    providerStatusPoll = false,
+  } = {}) {
+    const providerEvidence = {
+      expected_version: receipt.state_version,
+      provider_id: providerReceipt.provider_id,
+      provider_receipt_id: providerReceipt.receipt_id,
+      attempt_started_at: providerReceipt.requested_at,
+      provider_status_poll: providerStatusPoll,
+    };
+    if (providerReceipt.state === "succeeded" && providerReceipt.delivery_state === "sent") {
+      receipt = repository.recordDeliveryProviderResult(context, {
+        delivery_receipt_id: receipt.delivery_receipt_id,
+        provider_result_state: "sent",
+        provider_receipt_ref: providerReceipt.provider_receipt_ref,
+        receipt_hash: providerReceipt.payload_hash.slice(7),
+        ...providerEvidence,
+      });
+    } else if (providerReceipt.state === "succeeded") {
+      receipt = repository.transitionDeliveryReceipt(context, {
+        delivery_receipt_id: receipt.delivery_receipt_id,
+        state: "delivered",
+        provider_receipt_ref: providerReceipt.provider_receipt_ref,
+        receipt_hash: providerReceipt.payload_hash.slice(7),
+        ...providerEvidence,
+      });
+      if (statement.state === "generated") {
+        statement = repository.transitionStatement(context, {
+          statement_id: statement.statement_id,
+          state: "delivered",
+          expected_version: statement.state_version,
+        });
+      }
+      if (providerReceipt.delivery_state === "read") {
+        receipt = repository.transitionDeliveryReceipt(context, {
+          delivery_receipt_id: receipt.delivery_receipt_id,
+          state: "viewed",
+          expected_version: receipt.state_version,
+        });
+        if (statement.state === "delivered") {
+          statement = repository.transitionStatement(context, {
+            statement_id: statement.statement_id,
+            state: "viewed",
+            expected_version: statement.state_version,
+          });
+        }
+      }
+    } else if (providerReceipt.state === "failed") {
+      receipt = repository.transitionDeliveryReceipt(context, {
+        delivery_receipt_id: receipt.delivery_receipt_id,
+        state: "failed",
+        safe_error_code: "HRX_PAYROLL_PROVIDER_REPORTED_FAILED",
+        ...providerEvidence,
+      });
+    } else {
+      receipt = repository.recordDeliveryProviderResult(context, {
+        delivery_receipt_id: receipt.delivery_receipt_id,
+        provider_result_state: providerReceipt.delivery_state,
+        receipt_hash: providerReceipt.payload_hash.slice(7),
+        ...providerEvidence,
+      });
+    }
+    return { statement, receipt };
+  }
+
+  function recordDeliveryProviderStatusIssue(context, receipt, safeErrorCode) {
+    return repository.recordDeliveryProviderResult(context, {
+      delivery_receipt_id: receipt.delivery_receipt_id,
+      provider_result_state: "unknown",
+      expected_version: receipt.state_version,
+      safe_error_code: safeErrorCode,
+      provider_id: receipt.provider_id,
+      provider_receipt_id: receipt.provider_receipt_id,
+      provider_status_poll: true,
+    });
+  }
+
   async function deliver(context, input = {}) {
     const runId = requiredString(input, "run_id");
     const channel = requiredString(input, "channel");
     if (!["email", "message", "self_service"].includes(channel)) throw new TypeError("channel is unsupported");
+    const providerChannel = channel !== "self_service";
+    if (providerChannel && !providerDeliveryEnabled) {
+      throw safeError("Payroll statement provider delivery is disabled", "HRX_PAYROLL_STATEMENT_DELIVERY_DISABLED", 409);
+    }
+    if (providerChannel && !deliveryPort?.send) {
+      throw safeError("Authoritative payroll statement delivery provider is required", "HRX_PAYROLL_DELIVERY_PROVIDER_REQUIRED", 503);
+    }
     const statements = repository.listStatements(context, { run_id: runId });
     const results = [];
-    for (const statement of statements) {
+    let skippedRevokedCount = 0;
+    let retryCount = 0;
+    const maximumAttempts = Number.isSafeInteger(providerBoundary?.maximum_attempts)
+      && providerBoundary.maximum_attempts > 0
+      ? providerBoundary.maximum_attempts
+      : 3;
+    for (let statement of statements) {
+      if (statement.state === "revoked") {
+        skippedRevokedCount += 1;
+        continue;
+      }
       let receipt = repository.listDeliveryReceipts(context, { statement_id: statement.statement_id, channel })[0];
       if (!receipt) receipt = repository.createDeliveryReceipt(context, { statement_id: statement.statement_id, channel });
-      if (receipt.state === "failed") receipt = repository.transitionDeliveryReceipt(context, { delivery_receipt_id: receipt.delivery_receipt_id, state: "queued", expected_version: receipt.state_version });
-      if (!deliveryPort?.send || ["delivered", "viewed"].includes(receipt.state)) {
+      let retrying = false;
+      let attemptStartedAt = null;
+      if (receipt.state === "failed") {
+        if (providerChannel && receipt.attempt_count >= maximumAttempts) {
+          results.push(receipt);
+          continue;
+        }
+        attemptStartedAt = clock();
+        receipt = repository.transitionDeliveryReceipt(context, {
+          delivery_receipt_id: receipt.delivery_receipt_id,
+          state: "queued",
+          expected_version: receipt.state_version,
+          attempt_started_at: attemptStartedAt,
+        });
+        retrying = true;
+        retryCount += 1;
+      }
+      if (channel === "self_service") {
+        if (receipt.state === "queued") {
+          receipt = repository.transitionDeliveryReceipt(context, {
+            delivery_receipt_id: receipt.delivery_receipt_id,
+            state: "delivered",
+            expected_version: receipt.state_version,
+            provider_id: "lawos-internal",
+            provider_receipt_id: `internal-${statement.statement_id}`,
+            provider_receipt_ref: `provider:internal/payroll-statement/${statement.statement_id}`,
+            receipt_hash: statement.document_hash,
+          });
+          if (statement.state === "generated") {
+            statement = repository.transitionStatement(context, {
+              statement_id: statement.statement_id,
+              state: "delivered",
+              expected_version: statement.state_version,
+            });
+          }
+        }
+        results.push(receipt);
+        continue;
+      }
+      if (["delivered", "viewed"].includes(receipt.state)
+        || (receipt.attempt_count > 0 && receipt.provider_result_state === "sent")) {
         results.push(receipt);
         continue;
       }
       const payloadHash = `sha256:${hash(Buffer.from(JSON.stringify({ statement_id: statement.statement_id, document_hash: statement.document_hash, channel })) )}`;
-      const providerReceipt = createHrxProviderReceipt(await deliveryPort.send({
+      const providerRequest = {
         tenant_id: context.tenant_id,
         statement_id: statement.statement_id,
         employee_id: statement.employee_id,
@@ -244,29 +408,182 @@ export function createPayrollDocumentService({
         document_hash: statement.document_hash,
         payload_hash: payloadHash,
         idempotency_key: `${statement.statement_id}:${channel}:${statement.document_hash}`,
-      }));
-      if (providerReceipt.state === "succeeded") {
+      };
+
+      if (!retrying && receipt.attempt_count > 0 && ["queued", "unknown"].includes(receipt.provider_result_state)) {
+        if (!receipt.provider_receipt_id || typeof deliveryPort.status !== "function") {
+          receipt = recordDeliveryProviderStatusIssue(
+            context,
+            receipt,
+            "HRX_PAYROLL_PROVIDER_STATUS_REQUIRED",
+          );
+          results.push(receipt);
+          continue;
+        }
+        let providerStatusInput;
+        try {
+          providerStatusInput = await deliveryPort.status({
+            ...providerRequest,
+            provider_receipt_id: receipt.provider_receipt_id,
+          });
+        } catch {
+          receipt = recordDeliveryProviderStatusIssue(
+            context,
+            receipt,
+            "HRX_PAYROLL_PROVIDER_STATUS_UNAVAILABLE",
+          );
+          results.push(receipt);
+          continue;
+        }
+        let providerStatus;
+        try {
+          providerStatus = assertHrxProviderReceiptForOperation(
+            providerStatusInput,
+            {
+              boundary: providerBoundary,
+              tenant_id: context.tenant_id,
+              operation: `statement.${channel}`,
+              idempotency_key: providerRequest.idempotency_key,
+              payload_hash: payloadHash,
+              attempt_count: receipt.attempt_count,
+            },
+          ).receipt;
+        } catch {
+          receipt = recordDeliveryProviderStatusIssue(
+            context,
+            receipt,
+            "HRX_PAYROLL_PROVIDER_STATUS_INVALID",
+          );
+          results.push(receipt);
+          continue;
+        }
+        ({ statement, receipt } = applyDeliveryProviderReceipt(
+          context,
+          statement,
+          receipt,
+          providerStatus,
+          { providerStatusPoll: true },
+        ));
+        results.push(receipt);
+        continue;
+      }
+
+      if (receipt.attempt_count >= maximumAttempts) {
+        results.push(receipt);
+        continue;
+      }
+      attemptStartedAt ??= clock();
+      let providerReceiptInput;
+      try {
+        providerReceiptInput = await deliveryPort.send(providerRequest);
+      } catch {
         receipt = repository.transitionDeliveryReceipt(context, {
           delivery_receipt_id: receipt.delivery_receipt_id,
-          state: "delivered",
+          state: "failed",
           expected_version: receipt.state_version,
-          provider_receipt_ref: providerReceipt.provider_receipt_ref,
-          receipt_hash: providerReceipt.payload_hash.slice(7),
+          safe_error_code: "HRX_PAYROLL_PROVIDER_REQUEST_FAILED",
+          attempt_started_at: attemptStartedAt,
         });
-        if (statement.state === "generated") repository.transitionStatement(context, { statement_id: statement.statement_id, state: "delivered", expected_version: statement.state_version });
-      } else if (providerReceipt.state === "failed") {
-        receipt = repository.transitionDeliveryReceipt(context, { delivery_receipt_id: receipt.delivery_receipt_id, state: "failed", expected_version: receipt.state_version });
+        results.push(receipt);
+        continue;
       }
+      let providerReceipt;
+      try {
+        providerReceipt = assertHrxProviderReceiptForOperation(
+          providerReceiptInput,
+          {
+            boundary: providerBoundary,
+            tenant_id: context.tenant_id,
+            operation: `statement.${channel}`,
+            idempotency_key: providerRequest.idempotency_key,
+            payload_hash: payloadHash,
+            attempt_count: receipt.attempt_count + 1,
+          },
+        ).receipt;
+      } catch {
+        receipt = repository.transitionDeliveryReceipt(context, {
+          delivery_receipt_id: receipt.delivery_receipt_id,
+          state: "failed",
+          expected_version: receipt.state_version,
+          safe_error_code: "HRX_PAYROLL_PROVIDER_RECEIPT_INVALID",
+          attempt_started_at: attemptStartedAt,
+        });
+        results.push(receipt);
+        continue;
+      }
+      ({ statement, receipt } = applyDeliveryProviderReceipt(
+        context,
+        statement,
+        receipt,
+        providerReceipt,
+      ));
       results.push(receipt);
     }
-    return Object.freeze({ run_id: runId, channel, receipts: Object.freeze(results.map(clone)), delivered_count: results.filter((row) => ["delivered", "viewed"].includes(row.state)).length });
+    const counts = Object.freeze({
+      queued_count: results.filter((row) => row.provider_result_state === "queued").length,
+      sent_count: results.filter((row) => row.provider_result_state === "sent").length,
+      delivered_count: results.filter((row) => row.provider_result_state === "delivered").length,
+      read_count: results.filter((row) => row.provider_result_state === "read").length,
+      failed_count: results.filter((row) => row.provider_result_state === "failed").length,
+      unknown_count: results.filter((row) => row.provider_result_state === "unknown").length,
+    });
+    const completedCount = counts.delivered_count + counts.read_count;
+    const overallState = counts.failed_count > 0
+      ? completedCount + counts.sent_count > 0 ? "partial" : "failed"
+      : counts.unknown_count > 0
+        ? "unknown"
+        : counts.queued_count > 0
+          ? "queued"
+          : counts.sent_count > 0
+            ? "sent"
+            : completedCount === results.length && results.length > 0
+              ? "delivered"
+              : "empty";
+    return Object.freeze({
+      run_id: runId,
+      channel,
+      overall_state: overallState,
+      requested_count: results.length,
+      skipped_revoked_count: skippedRevokedCount,
+      retry_count: retryCount,
+      ...counts,
+      receipts: Object.freeze(results.map((row) => deliveryReceiptView(row, { includeProviderEvidence: true }))),
+      production_ready_claim: false,
+    });
   }
 
   function selfList(context, input = {}) {
     const employeeId = requiredString(input, "employee_id");
     return Object.freeze(repository.listStatements(context, { employee_id: employeeId })
       .filter((row) => ["delivered", "viewed"].includes(row.state))
-      .map(statementView));
+      .map((statement) => statementView(statement, {
+        deliveryReceipts: repository.listDeliveryReceipts(context, { statement_id: statement.statement_id }),
+      })));
+  }
+
+  function ingestProviderStatus(context, input = {}) {
+    const result = repository.applyDeliveryProviderEvent(context, input);
+    return Object.freeze({
+      outcome: result.replayed ? "replayed" : "applied",
+      replayed: result.replayed,
+      provider_event: Object.freeze({
+        provider_event_id: result.event.provider_event_id,
+        provider_event_state: result.event.provider_event_state,
+        event_occurred_at: result.event.event_occurred_at,
+      }),
+      delivery_receipt: deliveryReceiptView(result.receipt, { includeProviderEvidence: true }),
+      statement: Object.freeze({
+        statement_id: result.statement.statement_id,
+        state: result.statement.state,
+        state_version: result.statement.state_version,
+        delivered_at: result.statement.delivered_at,
+        viewed_at: result.statement.viewed_at,
+        revoked_at: result.statement.revoked_at,
+      }),
+      raw_payload_included: false,
+      payroll_amounts_included: false,
+      production_ready_claim: false,
+    });
   }
 
   async function read(context, input = {}) {
@@ -292,7 +609,9 @@ export function createPayrollDocumentService({
     if (selfReceipt?.state === "delivered") repository.transitionDeliveryReceipt(context, { delivery_receipt_id: selfReceipt.delivery_receipt_id, state: "viewed", expected_version: selfReceipt.state_version });
     const issuedAt = clock();
     return Object.freeze({
-      statement: statementView(statement),
+      statement: statementView(statement, {
+        deliveryReceipts: repository.listDeliveryReceipts(context, { statement_id: statement.statement_id }),
+      }),
       filename: `${statement.run_id}-${statement.employee_id}.pdf`,
       mime_type: "application/pdf",
       content_base64: bytes.toString("base64"),
@@ -303,13 +622,31 @@ export function createPayrollDocumentService({
   }
 
   function revoke(context, input = {}) {
-    const statement = repository.getStatement(context, { statement_id: requiredString(input, "statement_id") });
+    let statement = repository.getStatement(context, { statement_id: requiredString(input, "statement_id") });
     if (!statement) throw safeError("Payroll statement not found", "HRX_PAYROLL_STATEMENT_NOT_FOUND", 404);
-    if (statement.state === "revoked") return statementView(statement);
-    return statementView(repository.transitionStatement(context, { statement_id: statement.statement_id, state: "revoked", expected_version: statement.state_version }));
+    if (statement.state !== "revoked") {
+      statement = repository.transitionStatement(context, {
+        statement_id: statement.statement_id,
+        state: "revoked",
+        expected_version: statement.state_version,
+      });
+    }
+    for (const receipt of repository.listDeliveryReceipts(context, { statement_id: statement.statement_id })) {
+      if (receipt.state !== "revoked") {
+        repository.transitionDeliveryReceipt(context, {
+          delivery_receipt_id: receipt.delivery_receipt_id,
+          state: "revoked",
+          expected_version: receipt.state_version,
+        });
+      }
+    }
+    return statementView(statement, {
+      deliveryReceipts: repository.listDeliveryReceipts(context, { statement_id: statement.statement_id }),
+      includeProviderEvidence: true,
+    });
   }
 
-  return Object.freeze({ generate, list, exportRegister, deliver, selfList, read, revoke });
+  return Object.freeze({ generate, list, exportRegister, deliver, ingestProviderStatus, selfList, read, revoke });
 }
 
 export { createEncryptedPayrollArtifactVault };

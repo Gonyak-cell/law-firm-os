@@ -65,6 +65,10 @@ test("HRX compensation records expose only masked hashes after signed step-up", 
   assert.equal(visible.body.compensation_records[0].compensation_id, COMPENSATION_ID);
   assert.equal(visible.body.compensation_records[0].encrypted_amount_ref_included, false);
   assert.equal(visible.body.compensation_records[0].raw_amount_included, false);
+  assert.deepEqual(Object.keys(visible.body.compensation_records[0]).sort(), [
+    "compensation_id", "currency_ref", "effective_from", "effective_to", "employee_id", "encrypted_amount_ref_included",
+    "masked_compensation_ref", "raw_amount_included",
+  ].sort());
   assert.equal(JSON.stringify(visible.body).includes("lawos-comp-v1."), false);
   assert.equal(JSON.stringify(visible.body).includes("local-kms://"), false);
   assert.equal(JSON.stringify(visible.body).includes(String(SYNTHETIC_AMOUNT_MINOR)), false);
@@ -84,6 +88,10 @@ test("HRX compensation records expose only masked hashes after signed step-up", 
   assert.equal(confirmed.body.compensation_amount, null);
   assert.equal(confirmed.body.encrypted_amount_ref_included, false);
   assert.equal(confirmed.body.raw_amount_included, false);
+  assert.deepEqual(Object.keys(confirmed.body).sort(), [
+    "compensation_amount", "compensation_id", "currency_ref", "employee_id", "encrypted_amount_ref_included",
+    "masked_compensation_ref", "outcome", "payroll_runtime_opened", "raw_amount_included", "request_id",
+  ].sort());
   assert.equal(JSON.stringify(confirmed.body).includes("lawos-comp-v1."), false);
   assert.equal(JSON.stringify(confirmed.body).includes("local-kms://"), false);
   assert.equal(JSON.stringify(confirmed.body).includes(String(SYNTHETIC_AMOUNT_MINOR)), false);

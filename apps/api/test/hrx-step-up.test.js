@@ -127,3 +127,53 @@ test("HRX step-up rejects signed tokens with the wrong sensitive purpose", () =>
   assert.equal(generic.effect, "challenge");
   assert.equal(generic.reason, "hrx_step_up_purpose_mismatch");
 });
+
+test("HRX payroll step-up fails closed for missing, unknown, or undeclared action-purpose policies", () => {
+  const token = {
+    tenant_id: "tenant-a",
+    actor_id: "hr-001",
+    purpose: "payroll_export_review",
+    mfa: true,
+    assurance_level: 2,
+    expires_at: "2026-06-19T00:05:00.000Z",
+  };
+  const invalidPolicies = [
+    { action: "hrx.payroll.export" },
+    { action: "hrx.payroll.export", policyPurpose: "payroll_unknown" },
+    { action: "hrx.payroll.unknown", policyPurpose: "payroll_export_review" },
+    { action: "hrx.payroll.payment.approve", policyPurpose: "payroll_filing_processing" },
+  ];
+
+  for (const policy of invalidPolicies) {
+    const decision = evaluateHrxStepUp({
+      ...policy,
+      context,
+      token: { ...token, purpose: policy.policyPurpose ?? token.purpose },
+      now: "2026-06-19T00:00:00.000Z",
+    });
+    assert.equal(decision.effect, "challenge");
+    assert.equal(decision.reason, "hrx_step_up_policy_purpose_invalid");
+    assert.equal(decision.fail_closed, true);
+  }
+});
+
+test("HRX payroll step-up uses the declared route purpose when one action has multiple policies", () => {
+  for (const policyPurpose of ["payroll_filing_processing", "payroll_year_end_processing"]) {
+    const decision = evaluateHrxStepUp({
+      action: "hrx.payroll.filing.prepare",
+      policyPurpose,
+      context,
+      now: "2026-06-19T00:00:00.000Z",
+      token: {
+        tenant_id: "tenant-a",
+        actor_id: "hr-001",
+        purpose: policyPurpose,
+        mfa: true,
+        assurance_level: 2,
+        expires_at: "2026-06-19T00:05:00.000Z",
+      },
+    });
+    assert.equal(decision.effect, "allow");
+    assert.equal(decision.purpose, policyPurpose);
+  }
+});

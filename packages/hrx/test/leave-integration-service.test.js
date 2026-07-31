@@ -163,6 +163,73 @@ test("LV-07 keeps an unconfigured provider in pending_sync instead of reporting 
   store.close();
 });
 
+test("provider result readback separates notification send acceptance from confirmed delivery", async () => {
+  const store = seedLeaveStore();
+  const internal = createInternalLeaveIntegrationProviders();
+  const integration = createLeaveIntegrationService({
+    store,
+    providers: {
+      ...internal,
+      notification: {
+        mode: "synthetic_notification_acceptance",
+        async deliver() {
+          return { provider_receipt_ref: "SyntheticNotification:accepted" };
+        },
+      },
+    },
+    clock: () => NOW,
+    retryDelayMs: 0,
+    idFactory: sequentialIds(),
+  });
+  await approvedRequest(store, { requestId: "leave-provider-result-state" });
+  await integration.process({ tenant_id: TENANT, actor_id: "integration-worker" }, { limit: 20 });
+  const status = integration.list({ tenant_id: TENANT, actor_id: "integration-worker" });
+  const deliveryResults = status.rows.flatMap((row) => row.deliveries);
+  assert.equal(
+    deliveryResults.filter((row) => row.provider_kind === "notification").every((row) => row.provider_result_state === "sent"),
+    true,
+  );
+  assert.equal(
+    deliveryResults.filter((row) => row.provider_kind === "schedule").every((row) => row.provider_result_state === "delivered"),
+    true,
+  );
+  assert.equal(status.summary.provider_results.sent > 0, true);
+  store.close();
+});
+
+test("a disabled leave provider stays unknown without calling the provider or claiming full success", async () => {
+  const store = seedLeaveStore();
+  const internal = createInternalLeaveIntegrationProviders();
+  let scheduleCalls = 0;
+  const integration = createLeaveIntegrationService({
+    store,
+    providers: {
+      ...internal,
+      schedule: {
+        mode: "synthetic_schedule",
+        async deliver() {
+          scheduleCalls += 1;
+          return { provider_receipt_ref: "SyntheticSchedule:should-not-run", delivery_state: "delivered" };
+        },
+      },
+    },
+    providerEnabled: { schedule: false },
+    clock: () => NOW,
+    retryDelayMs: 0,
+    idFactory: sequentialIds(),
+  });
+  await approvedRequest(store, { requestId: "leave-provider-disabled" });
+  await integration.process({ tenant_id: TENANT, actor_id: "integration-worker" }, { limit: 20 });
+  const status = integration.list({ tenant_id: TENANT, actor_id: "integration-worker" });
+  const schedule = status.rows.flatMap((row) => row.deliveries).find((row) => row.provider_kind === "schedule");
+  assert.equal(scheduleCalls, 0);
+  assert.equal(schedule.state, "not_configured");
+  assert.equal(schedule.provider_result_state, "unknown");
+  assert.equal(schedule.last_error_code, "LEAVE_PROVIDER_DISABLED");
+  assert.equal(status.summary.pending_sync > 0, true);
+  store.close();
+});
+
 test("LV-INT-005 isolates a poison delivery and requeues only the selected dead letter", async () => {
   const store = seedLeaveStore();
   const internal = createInternalLeaveIntegrationProviders();
@@ -230,7 +297,7 @@ test("LV-INT-005 isolates a poison delivery and requeues only the selected dead 
   store.close();
 });
 
-test("LV-PROM-003 sends only promotion document references and requires a provider receipt", async () => {
+test("LV-PROM-003 sends only promotion document references and requires confirmed delivery evidence", async () => {
   const store = seedLeaveStore();
   const promotion = createLeavePromotionService({
     store,
@@ -255,7 +322,9 @@ test("LV-PROM-003 sends only promotion document references and requires a provid
     providers: { notification: { mode: "synthetic_notification", async deliver(input) {
       attempts += 1;
       idempotencyKeys.push(input.idempotency_key);
-      return attempts === 1 ? {} : { provider_receipt_ref: "SyntheticNotificationReceipt:LV-PROM-003" };
+      return attempts === 1
+        ? {}
+        : { provider_receipt_ref: "SyntheticNotificationReceipt:LV-PROM-003", delivery_state: "delivered" };
     } } },
     promotionDeliveryRecorder: (workerContext, input) => promotion.recordEvidence({ ...workerContext, authorized_employee_ids: [EMPLOYEE] }, input.recipient_id, input),
     clock: () => NOW,
@@ -294,6 +363,179 @@ test("LV-PROM-003 sends only promotion document references and requires a provid
   assert.equal(deliveredRecipient.evidence_receipts.length, 1);
   assert.equal(deliveredRecipient.evidence_receipts[0].provider_receipt_ref, "SyntheticNotificationReceipt:LV-PROM-003");
   store.close();
+});
+
+test("promotion provider bridge keeps send acceptance separate from delivery and read evidence", async () => {
+  const cases = [
+    {
+      label: "accepted",
+      result: { provider_receipt_ref: "PromotionProvider:accepted", delivery_state: "accepted" },
+      provider_result_state: "sent",
+      delivery_state: "pending",
+      evidence_types: [],
+      retryable: false,
+    },
+    {
+      label: "sent",
+      result: { provider_receipt_ref: "PromotionProvider:sent", delivery_state: "sent" },
+      provider_result_state: "sent",
+      delivery_state: "pending",
+      evidence_types: [],
+      retryable: false,
+    },
+    {
+      label: "delivered",
+      result: { provider_receipt_ref: "PromotionProvider:delivered", delivery_state: "delivered" },
+      provider_result_state: "delivered",
+      delivery_state: "delivered",
+      evidence_types: ["delivered"],
+      retryable: false,
+    },
+    {
+      label: "read",
+      result: { provider_receipt_ref: "PromotionProvider:read", delivery_state: "read" },
+      provider_result_state: "read",
+      delivery_state: "delivered",
+      evidence_types: ["delivered", "viewed"],
+      retryable: false,
+    },
+    {
+      label: "failed",
+      result: { delivery_state: "failed", error_code: "PROMOTION_PROVIDER_REJECTED" },
+      provider_result_state: "failed",
+      delivery_state: "failed",
+      evidence_types: ["failed"],
+      retryable: true,
+    },
+    {
+      label: "unknown",
+      result: { provider_receipt_ref: "PromotionProvider:unknown", delivery_state: "unknown" },
+      provider_result_state: "unknown",
+      delivery_state: "pending",
+      evidence_types: [],
+      retryable: true,
+    },
+  ];
+
+  for (const scenario of cases) {
+    const store = seedLeaveStore();
+    const promotion = createLeavePromotionService({
+      store,
+      documents: createSqlHrxDocumentStore({ store }),
+      clock: () => NOW,
+      idFactory: sequentialIds(),
+      employeeDirectory: () => [{ employee_id: EMPLOYEE, display_name: "합성 구성원", status: "active" }],
+    });
+    const promotionContext = { tenant_id: TENANT, actor_id: "hr-operator", authorized_employee_ids: [EMPLOYEE] };
+    const campaign = promotion.create(promotionContext, {
+      policy_version_id: "policy-paid-v1",
+      entitlement_period_end: "2026-12-31",
+      schedule_profile_id: "kr_lsa61_standard_v2025_10_23",
+      idempotency_key: `promotion-provider-${scenario.label}`,
+    });
+    const recipientId = campaign.recipients[0].recipient_id;
+    promotion.issueFirstNotice(promotionContext, recipientId, { document_version: "notice-v1" });
+    const noticeOutbox = store.query("selectOne", {
+      table: "hrx_leave_sync_outbox",
+      where: { tenant_id: TENANT, event_type: "leave.promotion.first_notice_issued" },
+    });
+    const idempotencyKeys = [];
+    const integration = createLeaveIntegrationService({
+      store,
+      providers: {
+        notification: {
+          mode: "promotion_provider_bridge",
+          async deliver(input) {
+            idempotencyKeys.push(input.idempotency_key);
+            return scenario.result;
+          },
+        },
+      },
+      promotionDeliveryRecorder: (workerContext, input) => promotion.recordEvidence(
+        { ...workerContext, authorized_employee_ids: [EMPLOYEE] },
+        input.recipient_id,
+        input,
+      ),
+      clock: () => NOW,
+      retryDelayMs: 0,
+      idFactory: sequentialIds(),
+    });
+    const workerContext = { tenant_id: TENANT, actor_id: "integration-worker" };
+
+    await integration.process(workerContext, { event_ids: [noticeOutbox.outbox_event_id] });
+    const readback = integration.list(workerContext).rows
+      .find((row) => row.outbox_event_id === noticeOutbox.outbox_event_id);
+    const delivery = readback.deliveries[0];
+    const recipient = promotion.get(promotionContext, campaign.campaign_id).recipients[0];
+    assert.equal(delivery.provider_result_state, scenario.provider_result_state, scenario.label);
+    assert.equal(delivery.state, scenario.retryable ? (scenario.label === "failed" ? "failed" : "pending_sync") : "delivered", scenario.label);
+    assert.equal(recipient.first_delivery_state, scenario.delivery_state, scenario.label);
+    assert.deepEqual(recipient.evidence_receipts.map((receipt) => receipt.event_type).sort(), scenario.evidence_types, scenario.label);
+
+    const replay = await integration.process(workerContext, { event_ids: [noticeOutbox.outbox_event_id] });
+    assert.equal(replay.processed_count, scenario.retryable ? 1 : 0, scenario.label);
+    assert.equal(new Set(idempotencyKeys).size, 1, scenario.label);
+    assert.equal(
+      promotion.get(promotionContext, campaign.campaign_id).recipients[0].evidence_receipts.length,
+      scenario.evidence_types.length,
+      scenario.label,
+    );
+    if (scenario.label === "accepted") {
+      assert.throws(
+        () => integration.recordProviderResult(workerContext, {
+          delivery_id: delivery.delivery_id,
+          delivery_state: "delivered",
+        }),
+        (error) => error.safe_error_code === "HRX_LEAVE_PROVIDER_RECEIPT_REQUIRED",
+      );
+      assert.throws(
+        () => integration.recordProviderResult(workerContext, {
+          delivery_id: delivery.delivery_id,
+          provider_receipt_ref: "PromotionProvider:other",
+          delivery_state: "delivered",
+        }),
+        (error) => error.safe_error_code === "HRX_LEAVE_PROVIDER_RECEIPT_MISMATCH",
+      );
+      const deliveredResult = integration.recordProviderResult(workerContext, {
+        delivery_id: delivery.delivery_id,
+        provider_receipt_ref: scenario.result.provider_receipt_ref,
+        delivery_state: "delivered",
+      });
+      assert.equal(deliveredResult.delivery.provider_result_state, "delivered");
+      assert.equal(deliveredResult.replayed, false);
+      let updatedRecipient = promotion.get(promotionContext, campaign.campaign_id).recipients[0];
+      assert.equal(updatedRecipient.first_delivery_state, "delivered");
+      assert.deepEqual(updatedRecipient.evidence_receipts.map((receipt) => receipt.event_type), ["delivered"]);
+
+      const deliveredReplay = integration.recordProviderResult(workerContext, {
+        delivery_id: delivery.delivery_id,
+        provider_receipt_ref: scenario.result.provider_receipt_ref,
+        delivery_state: "delivered",
+      });
+      assert.equal(deliveredReplay.replayed, true);
+      assert.equal(promotion.get(promotionContext, campaign.campaign_id).recipients[0].evidence_receipts.length, 1);
+
+      const readResult = integration.recordProviderResult(workerContext, {
+        delivery_id: delivery.delivery_id,
+        provider_receipt_ref: scenario.result.provider_receipt_ref,
+        delivery_state: "read",
+      });
+      assert.equal(readResult.delivery.provider_result_state, "read");
+      updatedRecipient = promotion.get(promotionContext, campaign.campaign_id).recipients[0];
+      assert.equal(updatedRecipient.first_delivery_state, "delivered");
+      assert.ok(updatedRecipient.first_viewed_at);
+      assert.deepEqual(updatedRecipient.evidence_receipts.map((receipt) => receipt.event_type).sort(), ["delivered", "viewed"]);
+      assert.throws(
+        () => integration.recordProviderResult(workerContext, {
+          delivery_id: delivery.delivery_id,
+          provider_receipt_ref: scenario.result.provider_receipt_ref,
+          delivery_state: "sent",
+        }),
+        (error) => error.safe_error_code === "HRX_LEAVE_PROVIDER_RESULT_OUT_OF_ORDER",
+      );
+    }
+    store.close();
+  }
 });
 
 test("LV-TYPE-006 projects a zero-paid snapshot without calculating compensation", async () => {

@@ -3,6 +3,7 @@ import {
   createMatterActivityCalendarChannelService,
   createMatterCoreSyntheticFixture,
   createMatterDocumentEmailBuilderService,
+  createMatterPeopleAssignmentAuthority,
   createMatterRepository,
   AMIC_CURRENT_MATTER_CLIENTS,
   AMIC_CURRENT_MATTER_CODE_CANDIDATES,
@@ -21,6 +22,7 @@ import {
 import {
   MATTER_ONBOARDING_GATE_ERROR_CODE,
   addMatterTeamMember,
+  addPeopleVisibleMatterTeamMember,
   evaluateMatterAssignmentOnboardingReadiness,
 } from "../../../packages/matter/src/staffing-service.js";
 import { appendMatterAuditEvent } from "../../../packages/matter/src/audit.js";
@@ -36,7 +38,10 @@ import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.
 import { handleMatterWorktreeRead, handleMatterWorktreeTemplateList } from "./matter-worktree-read-api.js";
 import { handleMatterWorktreeCreate, handleMatterWorktreeNodeArchive, handleMatterWorktreeNodeCreate, handleMatterWorktreeNodePatch, handleMatterWorktreeTemplateApply } from "./matter-worktree-write-api.js";
 import { handleMatterWorktreeTaskComplete, handleMatterWorktreeTaskReopen, handleMatterWorktreeTaskUnblock } from "./matter-worktree-task-api.js";
-import { MATTER_VAULT_REGISTERED_TENANT_ID } from "./matter-vault-account-registry.js";
+import {
+  MATTER_VAULT_REGISTERED_TENANT_ID,
+  listRegisteredAccounts,
+} from "./matter-vault-account-registry.js";
 
 export const MATTER_API_ERROR_CODES = Object.freeze({
   tenant_required: "MATTER_TENANT_REQUIRED",
@@ -256,6 +261,8 @@ export function createMatterRuntimeSeed({
       return {
         ...tenantScopedRecord,
         employee_id: "emp-001",
+        valid_from: record.created_at ?? "2026-06-09T00:00:00.000Z",
+        identity_resolution_state: "resolved",
       };
     }
     return tenantScopedRecord;
@@ -472,12 +479,77 @@ function defaultEmployeeDirectory(seed = MATTER_EMPLOYEE_DIRECTORY_SEED) {
   });
 }
 
-function createHrxEmployeeDirectory(hrxRuntime, fallbackDirectory = defaultEmployeeDirectory()) {
+function defaultEmployeeUserLinkDirectory(seed = MATTER_EMPLOYEE_DIRECTORY_SEED) {
+  return Object.freeze({
+    listEmployeeUserLinks({ tenant_id, employee_id, user_id } = {}) {
+      return seed
+        .filter((employee) => employee.tenant_id === tenant_id && employee.user_id)
+        .filter((employee) => !employee_id || employee.employee_id === employee_id)
+        .filter((employee) => !user_id || employee.user_id === user_id)
+        .map((employee) => Object.freeze({
+          tenant_id: employee.tenant_id,
+          link_id: `matter-runtime-login:${employee.tenant_id}:${employee.employee_id}`,
+          employee_id: employee.employee_id,
+          user_id: employee.user_id,
+          purpose: "login_mapping",
+          source_ref: "matter_runtime_employee_directory",
+        }));
+    },
+  });
+}
+
+function defaultUserDirectory(
+  accounts = listRegisteredAccounts(),
+  syntheticEmployees = MATTER_EMPLOYEE_DIRECTORY_SEED,
+) {
+  const rows = [
+    ...accounts.flatMap((account) => (
+      (account.tenant_ids ?? []).map((tenantId) => Object.freeze({
+        tenant_id: tenantId,
+        user_id: account.user_id,
+        display_name: account.display_name ?? null,
+        email: account.email ?? null,
+        source_title: account.source_title ?? null,
+        status: account.status,
+        login_allowed: account.status === "active",
+        source_ref: "matter_vault_account_registry",
+      }))
+    )),
+    ...syntheticEmployees
+      .filter((employee) => employee.user_id)
+      .map((employee) => Object.freeze({
+        tenant_id: employee.tenant_id,
+        user_id: employee.user_id,
+        status: employee.status === "active" ? "active" : "inactive",
+        source_ref: "matter_runtime_synthetic_user",
+        synthetic_only: true,
+      })),
+  ];
+  return Object.freeze({
+    listUsers({ tenant_id, user_id } = {}) {
+      return Object.freeze(rows.filter((user) => (
+        (!tenant_id || user.tenant_id === tenant_id)
+        && (!user_id || user.user_id === user_id)
+      )));
+    },
+  });
+}
+
+function createHrxEmployeeDirectory(hrxRuntime) {
   return Object.freeze({
     get({ tenant_id, employee_id } = {}) {
       const employee = hrxRuntime?.repository?.getEmployee?.({ tenant_id, employee_id });
       if (employee) return { ...employee, availability: employee.availability ?? "available" };
-      return fallbackDirectory?.get?.({ tenant_id, employee_id }) ?? null;
+      return null;
+    },
+  });
+}
+
+function createHrxEmployeeUserLinkDirectory(hrxRuntime) {
+  return Object.freeze({
+    listEmployeeUserLinks(query = {}) {
+      const hrxLinks = hrxRuntime?.repository?.listEmployeeUserLinks?.(query) ?? [];
+      return Object.freeze([...hrxLinks]);
     },
   });
 }
@@ -508,21 +580,39 @@ export function createMatterRuntimeContext({
   repository = createMatterRepository({ seedRecords: MATTER_RUNTIME_SEED.records }),
   hrxRuntime = null,
   employeeDirectory = hrxRuntime ? createHrxEmployeeDirectory(hrxRuntime) : defaultEmployeeDirectory(),
+  employeeUserLinkDirectory = hrxRuntime
+    ? createHrxEmployeeUserLinkDirectory(hrxRuntime)
+    : defaultEmployeeUserLinkDirectory(),
+  userDirectory = defaultUserDirectory(),
+  clock = () => new Date().toISOString(),
   onboardingGate = hrxRuntime ? createHrxOnboardingGate(hrxRuntime) : null,
   dms = createSideEffectAdapter("matter_dms"),
   dmsRuntime = null,
   billing = createSideEffectAdapter("matter_billing"),
   clearanceRepository = null,
 } = {}) {
-  return Object.freeze({
+  const runtime = {
     repository,
     employeeDirectory,
+    employeeUserLinkDirectory,
+    userDirectory,
+    clock,
     onboardingGate,
     dms,
     dmsRuntime,
     billing,
     clearanceRepository,
     seed_ref: MATTER_RUNTIME_SEED.fixture_id,
+  };
+  return Object.freeze({
+    ...runtime,
+    peopleAssignmentAuthority: createMatterPeopleAssignmentAuthority({
+      repository,
+      employeeDirectory,
+      employeeUserLinkDirectory,
+      userDirectory,
+      clock,
+    }),
   });
 }
 
@@ -684,6 +774,7 @@ function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_
 }
 
 const UUID_INPUT_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const OPAQUE_MEMBER_PRESENTATION_REFERENCE = /^(?:(?:iam[-_]?user)|(?:azure[-_]?ad|aad|object|oid)|(?:user|employee|emp|member|account|acct|principal|identity|login))(?:[_:-]|$)/i;
 const VAULT_UPLOAD_PREFLIGHT_ELIGIBLE_STATUSES = new Set(["opening", "open"]);
 
 function serializeVaultBridgeMatterLookupItem(record, runtime) {
@@ -1136,7 +1227,49 @@ function serializeMatterRuntimeClient(record) {
   });
 }
 
-function serializeMember(record) {
+function serializeMember(record, runtime = null) {
+  const employee = record.employee_id
+    ? runtime?.employeeDirectory?.get?.({
+        tenant_id: record.tenant_id,
+        employee_id: record.employee_id,
+      }) ?? null
+    : null;
+  const asOf = runtime?.clock?.() ?? new Date().toISOString();
+  const asOfMs = Date.parse(asOf);
+  const validFromMs = record.valid_from ? Date.parse(record.valid_from) : null;
+  const validToMs = record.valid_to ? Date.parse(record.valid_to) : null;
+  const validWindow = Boolean(record.valid_from)
+    && Number.isFinite(validFromMs)
+    && (!record.valid_to || Number.isFinite(validToMs))
+    && Number.isFinite(asOfMs)
+    && validFromMs <= asOfMs
+    && (!Number.isFinite(asOfMs) || !Number.isFinite(validToMs) || validToMs >= asOfMs);
+  const authorityState = runtime?.peopleAssignmentAuthority?.resolveTaskAssignee?.({
+    tenant_id: record.tenant_id,
+    matter_id: record.matter_id,
+    user_id: record.user_id,
+    as_of: asOf,
+  })?.state ?? "unresolved";
+  const identityResolutionState = authorityState === "resolved" ? "resolved" : authorityState;
+  const assignmentEligible = employee?.status === "active"
+    && record.status === "active"
+    && validWindow
+    && identityResolutionState === "resolved";
+  const identityReferences = [record.user_id, record.employee_id, record.member_id];
+  const safePresentationText = (value) => {
+    const text = typeof value === "string" ? value.trim() : "";
+    const normalized = text.toLowerCase();
+    const matchesIdentity = identityReferences.some((reference) => (
+      String(reference ?? "").trim().toLowerCase() === normalized
+    ));
+    if (!text || matchesIdentity || OPAQUE_MEMBER_PRESENTATION_REFERENCE.test(text)
+      || UUID_INPUT_PATTERN.test(text) || text.includes("@")) return null;
+    return text;
+  };
+  const displayName = safePresentationText(employee?.display_name);
+  const title = [employee?.title, employee?.job_title, employee?.position]
+    .map(safePresentationText)
+    .find(Boolean) ?? null;
   return Object.freeze({
     tenant_id: record.tenant_id,
     resource_id: record.member_id,
@@ -1144,9 +1277,15 @@ function serializeMember(record) {
     matter_id: record.matter_id,
     employee_id: record.employee_id,
     user_id: record.user_id,
+    display_name: displayName,
+    title,
     role: record.role,
     status: record.status,
     access_scope: record.access_scope,
+    valid_from: record.valid_from ?? null,
+    valid_to: record.valid_to ?? null,
+    identity_resolution_state: identityResolutionState,
+    assignment_eligible: assignmentEligible,
   });
 }
 
@@ -1256,7 +1395,11 @@ function queryFromBody(body = {}) {
 }
 
 function matterActivityService(runtime) {
-  return createMatterActivityCalendarChannelService({ repository: runtime.repository });
+  return createMatterActivityCalendarChannelService({
+    repository: runtime.repository,
+    peopleAssignmentAuthority: runtime.peopleAssignmentAuthority,
+    clock: runtime.clock,
+  });
 }
 
 function matterDocumentEmailBuilderService(runtime) {
@@ -1503,7 +1646,7 @@ export function handleMatterDetail({ matterId, query, context, requestId, runtim
   }
   const team = runtime.repository
     .list({ tenant_id: query.tenant_id, model_type: "MatterMember", matter_id: matterId })
-    .map(serializeMember);
+    .map((member) => serializeMember(member, runtime));
   const matterParties = listMatterParties({ repository: runtime.repository, tenant_id: query.tenant_id, matter_id: matterId });
   const { allowed: allowedMatterParties } = trimItemsByPermission({
     context,
@@ -2740,10 +2883,17 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
           event_id: `matter_team:${event.object_id}:${Date.now()}`,
         }),
     };
-    const persisted = addMatterTeamMember({
+    const writeMember = body?.member?.role === "responsible_attorney"
+      ? addPeopleVisibleMatterTeamMember
+      : addMatterTeamMember;
+    const persisted = writeMember({
       repository: runtime.repository,
       employeeDirectory: runtime.employeeDirectory,
+      employeeUserLinkDirectory: runtime.employeeUserLinkDirectory,
+      userDirectory: runtime.userDirectory,
+      peopleAssignmentAuthority: runtime.peopleAssignmentAuthority,
       onboardingGate: runtime.onboardingGate,
+      as_of: runtime.clock(),
       matter,
       member: { ...body.member, matter_id: matterId },
       actor_id: context.principal.user_id,
@@ -2753,12 +2903,20 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
       tenant_id: query.tenant_id,
       employee_id: persisted.employee_id,
     }) ?? null;
-    const ownerAssignment = persisted.role === "responsible_attorney"
+    const currentResponsibleIdentity = persisted.role === "responsible_attorney"
+      ? runtime.peopleAssignmentAuthority.resolveTaskAssignee({
+          tenant_id: query.tenant_id,
+          matter_id: matterId,
+          user_id: persisted.user_id,
+          as_of: runtime.clock(),
+        })
+      : null;
+    const ownerAssignment = currentResponsibleIdentity?.state === "resolved"
       ? {
           owner_employee_id: persisted.employee_id,
-          owner_user_id: persisted.user_id ?? employee?.user_id ?? null,
+          owner_user_id: persisted.user_id,
           owner_display_name: employee?.display_name ?? persisted.member_id,
-          assigned_at: new Date().toISOString(),
+          assigned_at: persisted.valid_from ?? new Date().toISOString(),
         }
       : null;
     const updatedMatter = ownerAssignment
@@ -2793,7 +2951,7 @@ export function handleMatterTeamMemberCreate({ matterId, body, context, requestI
     const response = {
         request_id: requestId,
         outcome: "created",
-        item: serializeMember(persisted),
+        item: serializeMember(persisted, runtime),
         matter: updatedMatter ? serializeMatter(updatedMatter, runtime) : null,
         owner_assignment: ownerAssignment,
         audit_event: ownerAuditEvent,
@@ -3004,7 +3162,26 @@ export function handleMatterOwnerChange({ matterId, body, context, requestId, ru
       ui_state: "blocked",
     });
   }
-  const assignedAt = body?.assigned_at && !Number.isNaN(Date.parse(body.assigned_at)) ? body.assigned_at : new Date().toISOString();
+  const assignedAt = runtime.clock();
+  const ownerIdentity = runtime.peopleAssignmentAuthority?.resolveEmployeeUserPair?.({
+    tenant_id: query.tenant_id,
+    employee_id: employee.employee_id,
+    requested_user_id: body?.owner?.user_id,
+  });
+  const ownerMembership = ownerIdentity?.state === "resolved"
+    ? runtime.peopleAssignmentAuthority.resolveTaskAssignee({
+        tenant_id: query.tenant_id,
+        matter_id: matterId,
+        user_id: ownerIdentity.user_id,
+        as_of: assignedAt,
+      })
+    : null;
+  if (ownerIdentity?.state !== "resolved" || ownerMembership?.state !== "resolved") {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
+  }
   const idempotencyKey = body?.idempotency_key ?? `matter-owner-change:${matterId}:${employee.employee_id}`;
   const replay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
   if (replay?.response) {
@@ -3022,7 +3199,7 @@ export function handleMatterOwnerChange({ matterId, body, context, requestId, ru
   }
   const ownerAssignment = {
     owner_employee_id: employee.employee_id,
-    owner_user_id: employee.user_id ?? null,
+    owner_user_id: ownerIdentity.user_id,
     owner_display_name: employee.display_name ?? "책임자",
     assigned_at: assignedAt,
   };

@@ -3339,9 +3339,11 @@ export function createMatterActivity({
   status = "todo",
   dueAt,
   bodyText,
+  assignedToUserId,
   ctx = "allow"
 } = {}) {
   const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const assigneeUserId = String(assignedToUserId ?? "").trim() || null;
   const stamp = Date.now();
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/activities`,
@@ -3357,7 +3359,8 @@ export function createMatterActivity({
         title,
         status,
         due_at: dueAt ?? new Date(Date.now() + 86400000).toISOString(),
-        body: bodyText
+        body: bodyText,
+        ...(activityType === "task" ? { assigned_to_user_id: assigneeUserId } : {})
       }
     },
     ctx
@@ -3398,6 +3401,7 @@ export function createMatterCalendarEvent({
   endsAt,
   criticality = "critical",
   legalConsequence = "court_deadline",
+  eventKind = "deadline",
   ctx = "allow"
 } = {}) {
   const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -3416,6 +3420,7 @@ export function createMatterCalendarEvent({
         event_id: `calendar_${safeMatterId}_${stamp}`,
         title,
         status: "scheduled",
+        event_kind: eventKind,
         starts_at: starts,
         ends_at: ends,
         criticality,
@@ -6658,6 +6663,7 @@ async function postFinanceRuntime({ path, payload, ctx = "allow", roleIds = null
     items: Array.isArray(body.items) ? body.items : [],
     invoice: body.invoice ?? null,
     payment: body.payment ?? null,
+    paymentAllocation: body.payment_allocation ?? null,
     auditEvent: body.audit_event ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
@@ -6918,8 +6924,19 @@ export function issueFinanceInvoice({ matterId, prebillId, billingClientPartyId 
   });
 }
 
-export function importFinancePayment({ matterId, amount = 100000, currency = "KRW", ctx = "allow" } = {}) {
-  const paymentId = uiStableId("payment_ui", matterId);
+export function importFinancePayment({
+  matterId,
+  clientGroupId = null,
+  amount = 100000,
+  currency = "KRW",
+  receivedAt = null,
+  paymentKey = null,
+  ctx = "allow"
+} = {}) {
+  if (!matterId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    return Promise.resolve({ kind: "error" });
+  }
+  const paymentId = uiStableId("payment_ui", paymentKey ?? `${matterId}_${receivedAt ?? "undated"}_${amount}_${currency}`);
   return postFinanceRuntime({
     path: "/api/finance/payments",
     ctx,
@@ -6928,23 +6945,26 @@ export function importFinancePayment({ matterId, amount = 100000, currency = "KR
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
-      idempotency_key: `ui-payment:${matterId}`,
+      idempotency_key: `ui-payment:${paymentId}`,
       payment: {
         payment_id: paymentId,
         tenant_id: FINANCE_TENANT_ID,
         matter_id: matterId,
-        bank_reference: `ui-payment:${matterId}`,
-        amount,
-        currency
+        client_group_id: clientGroupId,
+        bank_reference: `ui-payment:${paymentId}`,
+        amount: Number(amount),
+        currency,
+        received_at: receivedAt
       }
     }
   });
 }
 
-export function matchFinancePayment({ paymentId, invoiceId, amount, ctx = "allow" } = {}) {
+export function matchFinancePayment({ paymentId, invoiceId, amount, matchKey = null, ctx = "allow" } = {}) {
   if (!paymentId || !invoiceId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
     return Promise.resolve({ kind: "error" });
   }
+  const paymentMatchId = uiStableId("payment_match_ui", matchKey ?? `${paymentId}_${invoiceId}`);
   return postFinanceRuntime({
     path: "/api/finance/payment-matches",
     ctx,
@@ -6953,13 +6973,62 @@ export function matchFinancePayment({ paymentId, invoiceId, amount, ctx = "allow
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
-      idempotency_key: `ui-payment-match:${paymentId}:${invoiceId}`,
+      idempotency_key: `ui-payment-match:${paymentMatchId}`,
       match: {
-        payment_match_id: uiStableId("payment_match_ui", `${paymentId}_${invoiceId}`),
+        payment_match_id: paymentMatchId,
         tenant_id: FINANCE_TENANT_ID,
         payment_id: paymentId,
         invoice_id: invoiceId,
         amount: Number(amount)
+      }
+    }
+  });
+}
+
+export function allocateFinancePayment({
+  paymentId,
+  allocationType,
+  matterId = null,
+  clientGroupId = null,
+  invoiceId = null,
+  amount,
+  currency = "KRW",
+  allocatedAt = null,
+  allocationKey = null,
+  ctx = "allow"
+} = {}) {
+  if (
+    !paymentId
+    || !["invoice_payment", "direct_fee", "client_advance", "trust_deposit", "other_non_revenue"].includes(allocationType)
+    || !Number.isFinite(Number(amount))
+    || Number(amount) <= 0
+  ) {
+    return Promise.resolve({ kind: "error" });
+  }
+  const paymentAllocationId = uiStableId(
+    "payment_allocation_ui",
+    allocationKey ?? `${paymentId}_${allocationType}_${invoiceId ?? matterId ?? "unlinked"}_${amount}`
+  );
+  return postFinanceRuntime({
+    path: "/api/finance/payment-allocations",
+    ctx,
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
+      idempotency_key: `ui-payment-allocation:${paymentAllocationId}`,
+      allocation: {
+        payment_allocation_id: paymentAllocationId,
+        tenant_id: FINANCE_TENANT_ID,
+        payment_id: paymentId,
+        allocation_type: allocationType,
+        matter_id: matterId,
+        client_group_id: clientGroupId,
+        invoice_id: allocationType === "invoice_payment" ? invoiceId : null,
+        amount: Number(amount),
+        currency,
+        allocated_at: allocatedAt
       }
     }
   });

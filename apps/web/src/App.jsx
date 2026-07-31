@@ -13,12 +13,14 @@ import { VaultSurface } from "./components/VaultSurface.jsx";
 import { PortalSurface } from "./components/PortalSurface.jsx";
 import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
+import { resolvePeopleRoute } from "./people/peopleFeatureCatalog.js";
+import { readPeopleWebFeatureFlags } from "./people/peopleFeatureFlags.ts";
 import { isDesktopRendererLocation, loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
 import { emitHomeMetric } from "./data/homeTelemetry.js";
-import { canAdjustLeaveLedger, canApproveLeave, canExecuteLeaveAccrual, canExportLeaveReport, canManageLeavePolicy, canManageLeavePromotion, canSettleLeaveTermination } from "./data/hrxAccess.js";
+import { canAdjustLeaveLedger, canApproveLeave, canApproveOvertime, canExecuteLeaveAccrual, canExportLeaveReport, canManageLeavePolicy, canManageLeavePromotion, canSettleLeaveTermination } from "./data/hrxAccess.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
@@ -115,6 +117,7 @@ export function App() {
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const rawInitialView = redirectableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
+  const peopleFeatureFlags = readPeopleWebFeatureFlags();
   const initialCompanyAccess = readHomeCompanyAccess();
   const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection, initialCompanyAccess);
   const initialView = resolvedInitialRoute.view;
@@ -161,6 +164,7 @@ export function App() {
   const homeMessageCount = unreadMessageIds.size;
   const leavePolicyAccess = canManageLeavePolicy(homeCompanyAccessRecords());
   const leaveApprovalAccess = canApproveLeave(homeCompanyAccessRecords());
+  const overtimeApprovalAccess = canApproveOvertime(homeCompanyAccessRecords());
   const leaveAccrualAccess = canExecuteLeaveAccrual(homeCompanyAccessRecords());
   const leaveLedgerAccess = canAdjustLeaveLedger(homeCompanyAccessRecords());
   const leaveReportExportAccess = canExportLeaveReport(homeCompanyAccessRecords());
@@ -199,7 +203,10 @@ export function App() {
   const requestedDateTo = locationParams.get("date_to") ?? "";
 
   function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus, financeAccessRecords = homeCompanyAccessRecords()) {
-    const resolved = normalizeVaultRoute(normalizeHomeRoute(resolveGlobalShortcut(nextView, section)));
+    const peopleSection = resolvePeopleRoute(nextView, section, {
+      overviewEnabled: peopleFeatureFlags.people_overview
+    });
+    const resolved = normalizeVaultRoute(normalizeHomeRoute(resolveGlobalShortcut(nextView, peopleSection)));
     if (!routableViews.includes(resolved.view)) return { view: "home", section: homeFallbackSection };
     if (resolved.view === "home" && resolved.section === "home-company" && !companyAllowed) {
       return { ...resolved, section: "home-dashboard", homeCompanyAccessDenied: true };
@@ -207,6 +214,9 @@ export function App() {
     if (resolved.view === "home" && homeFinanceSectionIds.has(resolved.section) && !canAccessHomeFinanceSection(financeAccessRecords, resolved.section)) {
       const financeFallback = [...homeFinanceSectionIds].find((financeSection) => canAccessHomeFinanceSection(financeAccessRecords, financeSection));
       return { ...resolved, section: financeFallback ?? homeFallbackSection, homeFinanceAccessDenied: true };
+    }
+    if (nextView === "people" && section && peopleSection !== section) {
+      return { ...resolved, redirectedFrom: { view: nextView, section } };
     }
     return resolved;
   }
@@ -311,6 +321,22 @@ export function App() {
     else params.delete("date_from");
     if (routeContext.dateTo) params.set("date_to", routeContext.dateTo);
     else params.delete("date_to");
+    const peopleEmployeeId = typeof routeContext.employee_id === "string" ? routeContext.employee_id : "";
+    if (nextView === "people" && /^[A-Za-z0-9._:-]{1,160}$/.test(peopleEmployeeId)) {
+      params.set("employee_id", peopleEmployeeId);
+    } else {
+      params.delete("employee_id");
+    }
+    const peoplePeriod = typeof routeContext.period === "string" ? routeContext.period : "";
+    if (nextView === "people" && /^\d{4}-(0[1-9]|1[0-2])$/.test(peoplePeriod)) {
+      params.set("period", peoplePeriod);
+    } else {
+      params.delete("period");
+    }
+    if (nextView !== "people" || !["people-overview", "people-members"].includes(section)) {
+      params.delete("employee");
+      params.delete("tab");
+    }
     const hash = section ? `#${encodeURIComponent(section)}` : "";
     return `${window.location.pathname}?${params.toString()}${hash}`;
   }
@@ -713,7 +739,7 @@ export function App() {
               />
             )}
             {view === "matters" && <MattersSurface labels={labels} liveCtx={liveCtx} activeSection={activeSection} requestedMatterId={requestedMatterId} requestedMatterRevision={routeRevision} refreshSignal={globalRefreshSignal} onNavigateSection={(section) => navigateToView("matters", section)} />}
-            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
+            {view === "people" && <PeopleHome labels={labels} activeSection={activeSection} liveCtx={liveCtx} refreshSignal={globalRefreshSignal} featureFlags={peopleFeatureFlags} onNavigate={navigateToView} canManageLeavePolicy={leavePolicyAccess} canApproveLeave={leaveApprovalAccess} canApproveOvertime={overtimeApprovalAccess} canExecuteLeaveAccrual={leaveAccrualAccess} canAdjustLeaveLedger={leaveLedgerAccess} canExportLeaveReport={leaveReportExportAccess} canSettleLeaveTermination={leaveTerminationAccess} canManageLeavePromotion={leavePromotionAccess} />}
             {view === "vault" && (
               <VaultSurface
                 labels={labels}

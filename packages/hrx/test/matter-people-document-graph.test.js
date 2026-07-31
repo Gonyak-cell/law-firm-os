@@ -68,6 +68,103 @@ test("UPL-E-07 runtime seed derives graph rows from assignments and HR documents
   assert.equal(JSON.stringify(traversal).includes("document_body"), false);
 });
 
+test("UPL-E-07 runtime person labels never expose employee identifiers", () => {
+  const employees = [
+    { tenant_id, employee_id: "emp-email", display_name: "lee@example.com" },
+    { tenant_id, employee_id: "emp-uuid", display_name: "550e8400-e29b-41d4-a716-446655440000" },
+    { tenant_id, employee_id: "emp-hex", display_name: "0123456789abcdef0123456789abcdef" },
+    { tenant_id, employee_id: "emp-opaque", display_name: "opaque-9f2a4c7b8d1e" },
+    { tenant_id, employee_id: "emp-id-equal", display_name: "emp-id-equal" },
+    { tenant_id, employee_id: "emp-leena", name: "Leena Kim" },
+    { tenant_id, employee_id: "emp-doc-email", display_name: "doc.owner@example.com" },
+  ];
+  const assignments = employees.slice(0, 6).map((employee, index) => ({
+    tenant_id,
+    employee_id: employee.employee_id,
+    matter_id: `matter-label-${index + 1}`,
+  }));
+  const seed = createMatterPeopleDocumentGraphSeedFromRuntime({
+    tenant_id,
+    employees,
+    matter_assignments: assignments,
+    documents: [{
+      tenant_id,
+      employee_id: "emp-doc-email",
+      document_id: "doc-label-only",
+      document_type: "employment_contract",
+      title: "근로계약서",
+    }],
+  });
+
+  const personNodes = new Map(
+    seed.nodes
+      .filter((node) => node.node_type === "person")
+      .map((node) => [node.node_id, node]),
+  );
+  const unresolved = "구성원 이름 확인 필요";
+  for (const employeeId of ["emp-email", "emp-uuid", "emp-hex", "emp-opaque", "emp-id-equal", "emp-doc-email"]) {
+    const node = personNodes.get(employeeId);
+    assert.equal(node.node_id, employeeId);
+    assert.equal(node.display_label, unresolved);
+    assert.notEqual(node.display_label, node.node_id);
+  }
+  assert.equal(personNodes.get("emp-leena").node_id, "emp-leena");
+  assert.equal(personNodes.get("emp-leena").display_label, "Leena Kim");
+
+  const table = createMatterPeopleDocumentGraphTable(seed);
+  const traversal = table.traverse(
+    { tenant_id, start_type: "matter", start_id: "matter-label-1", depth: 1 },
+    privilegedPermission(),
+  );
+  const visibleAssignmentPerson = traversal.nodes.find((node) => node.node_type === "person");
+  assert.equal(visibleAssignmentPerson.node_id, "emp-email");
+  assert.equal(visibleAssignmentPerson.display_label, unresolved);
+});
+
+test("UPL-E-07 runtime document labels never expose missing or unsafe document identifiers", () => {
+  const seed = createMatterPeopleDocumentGraphSeedFromRuntime({
+    tenant_id,
+    documents: [
+      {
+        tenant_id,
+        employee_id: "emp-null-title",
+        document_id: "550e8400-e29b-41d4-a716-446655440000",
+        title: null,
+      },
+      {
+        tenant_id,
+        employee_id: "emp-opaque-title",
+        document_id: "doc-opaque-9f2a4c7b8d1e",
+        title: "doc-opaque-9f2a4c7b8d1e",
+      },
+      {
+        tenant_id,
+        employee_id: "emp-uuid-title",
+        document_id: "doc-uuid-title",
+        title: "550e8400-e29b-41d4-a716-446655440000",
+      },
+      {
+        tenant_id,
+        employee_id: "emp-legitimate-title",
+        document_id: "doc-legitimate-title",
+        title: "근로계약서",
+      },
+    ],
+  });
+  const documentNodes = new Map(
+    seed.nodes
+      .filter((node) => node.node_type === "document")
+      .map((node) => [node.node_id, node]),
+  );
+
+  assert.equal(documentNodes.get("550e8400-e29b-41d4-a716-446655440000").display_label, "문서 제목 확인 필요");
+  assert.equal(documentNodes.get("doc-opaque-9f2a4c7b8d1e").display_label, "문서 제목 확인 필요");
+  assert.equal(documentNodes.get("doc-uuid-title").display_label, "문서 제목 확인 필요");
+  assert.equal(documentNodes.get("doc-legitimate-title").display_label, "근로계약서");
+  assert.notEqual(documentNodes.get("550e8400-e29b-41d4-a716-446655440000").display_label, "550e8400-e29b-41d4-a716-446655440000");
+  assert.notEqual(documentNodes.get("doc-opaque-9f2a4c7b8d1e").display_label, "doc-opaque-9f2a4c7b8d1e");
+});
+
 test("UPL-E-07 traversal reaches people and documents from a matter pivot", () => {
   const table = createMatterPeopleDocumentGraphTable(createMatterPeopleDocumentGraphSeed(tenant_id));
   const traversal = table.traverse(

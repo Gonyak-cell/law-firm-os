@@ -11,6 +11,7 @@ import {
   fetchAiReviewQueue,
   fetchAnalyticsDashboards,
   fetchAnalyticsFinanceCashflow,
+  fetchAnalyticsFinanceMonthly,
   fetchCrmAccounts,
   fetchCrmLeads,
   fetchCrmOpportunities,
@@ -43,7 +44,7 @@ import {
 } from "./HomeDashboardCharts.jsx";
 import {
   buildClientDashboardModel,
-  buildBankCashflowDashboardModel,
+  buildHomeFinanceDashboardModel,
   buildLeaveDashboardModel,
   buildMatterDashboardModel,
   dashboardResultState,
@@ -957,6 +958,7 @@ export function HomeSurface({
     accounts: null,
     leads: null,
     opportunities: null,
+    revenueMonthly: null,
     cashflow: null,
     cashflowHistory: null
   });
@@ -1014,7 +1016,7 @@ export function HomeSurface({
   useEffect(() => {
     let cancelled = false;
     setResults([]);
-    setDashboardResults({ matters: null, accounts: null, leads: null, opportunities: null, cashflow: null, cashflowHistory: null });
+    setDashboardResults({ matters: null, accounts: null, leads: null, opportunities: null, revenueMonthly: null, cashflow: null, cashflowHistory: null });
     const args = { ctx: liveCtx };
     async function loadResults() {
       const month = seoulMonthKey(new Date());
@@ -1024,6 +1026,7 @@ export function HomeSurface({
         accounts,
         leads,
         opportunities,
+        revenueMonthly,
         cashflow,
         cashflowHistory,
         clientGroups,
@@ -1042,6 +1045,14 @@ export function HomeSurface({
         dashboardReadProbe(() => fetchCrmAccounts(args), "dashboard_crm_accounts"),
         dashboardReadProbe(() => fetchCrmLeads(args), "dashboard_crm_leads"),
         dashboardReadProbe(() => fetchCrmOpportunities(args), "dashboard_crm_opportunities"),
+        canViewDashboardCashflow
+          ? dashboardReadProbe(() => fetchAnalyticsFinanceMonthly({
+            ...args,
+            to: cashflowDateFormatter.format(new Date()),
+            currency: "KRW",
+            recognitionBasis: "collected"
+          }), "dashboard_finance_collected_revenue")
+          : Promise.resolve({ kind: "data", uiState: "denied", outcome: "denied", items: [] }),
         canViewDashboardCashflow
           ? dashboardReadProbe(() => fetchAnalyticsFinanceCashflow({
             ...args,
@@ -1069,7 +1080,7 @@ export function HomeSurface({
         homeReadProbe(fetchVaultDocuments(args), "vault_documents"),
         homeReadProbe(fetchDataRoomProjections(args), "vault_data_room")
       ]);
-      const dashboard = { matters, accounts, leads, opportunities, cashflow, cashflowHistory };
+      const dashboard = { matters, accounts, leads, opportunities, revenueMonthly, cashflow, cashflowHistory };
       if (desktopResults) return { results: desktopResults, dashboard };
       const nextResults = [
         { id: "client", result: combinePillarResults([clientGroups, accounts, leads, opportunities, portal, portalRfi]) },
@@ -1185,8 +1196,12 @@ export function HomeSurface({
   const filteredApprovalRows = sortApprovalRows(buildHomeActionRows(filteredApprovalItems, "approval", labels));
   const sentRequestRows = [];
   const financeDashboard = useMemo(
-    () => buildBankCashflowDashboardModel(dashboardResults.cashflow, dashboardResults.cashflowHistory),
-    [dashboardResults.cashflow, dashboardResults.cashflowHistory]
+    () => buildHomeFinanceDashboardModel(
+      dashboardResults.revenueMonthly,
+      dashboardResults.cashflow,
+      dashboardResults.cashflowHistory
+    ),
+    [dashboardResults.revenueMonthly, dashboardResults.cashflow, dashboardResults.cashflowHistory]
   );
   const clientDashboard = useMemo(() => buildClientDashboardModel({
     accounts: dashboardResults.accounts,
@@ -1197,7 +1212,7 @@ export function HomeSurface({
   const leaveDashboard = useMemo(() => buildLeaveDashboardModel(actionInbox.approval), [actionInbox.approval]);
   const payrollSummary = financeDashboard.payroll_summary;
   const nonPayrollOutflowSummary = financeDashboard.non_payroll_outflow_summary;
-  const payrollState = financeDashboard.state;
+  const payrollState = financeDashboard.cashflow_state ?? financeDashboard.state;
   const selectedRequestFilter = localizedRequestFilters.find((filter) => filter.id === requestFilter) ?? localizedRequestFilters[0];
   const guardedApprovalRows = filteredApprovalRows.filter((row) => row.status === "review" || row.status === "guarded");
   const readyApprovalRows = filteredApprovalRows.filter((row) => row.status === "live");
@@ -1768,15 +1783,18 @@ export function HomeSurface({
   }
 
   function renderDashboardGrid() {
-    const financeCurrentState = ["data", "partial"].includes(financeDashboard.state) && !financeDashboard.current ? "empty" : financeDashboard.state;
-    const revenueChartState = financeDashboard.state === "data" && !financeDashboard.has_series_data ? "empty" : financeDashboard.state;
+    const revenueState = financeDashboard.revenue_state ?? financeDashboard.state;
+    const cashflowState = financeDashboard.cashflow_state ?? financeDashboard.state;
+    const financeRevenueCurrentState = ["data", "partial"].includes(revenueState) && !financeDashboard.has_series_data ? "empty" : revenueState;
+    const financeCashflowCurrentState = ["data", "partial"].includes(cashflowState) && !payrollSummary && !nonPayrollOutflowSummary ? "empty" : cashflowState;
+    const revenueChartState = revenueState === "data" && !financeDashboard.has_series_data ? "empty" : revenueState;
     const payrollCurrentState = payrollState === "data" && !payrollSummary ? "empty" : payrollState;
     const payrollChartState = payrollCurrentState === "data" && Number(payrollSummary?.gross_krw ?? 0) <= 0 ? "empty" : payrollCurrentState;
-    const nonPayrollOutflowChartState = financeCurrentState === "data" && Number(nonPayrollOutflowSummary?.total_krw ?? 0) <= 0
+    const nonPayrollOutflowChartState = financeCashflowCurrentState === "data" && Number(nonPayrollOutflowSummary?.total_krw ?? 0) <= 0
       ? "empty"
-      : financeCurrentState === "data" && nonPayrollOutflowSummary?.source_complete === false
+      : financeCashflowCurrentState === "data" && nonPayrollOutflowSummary?.source_complete === false
         ? "partial"
-        : financeCurrentState;
+        : financeCashflowCurrentState;
     const selectedClientItems = clientDashboardTab === "new" ? clientDashboard.new_clients : clientDashboard.prospects;
     const selectedClientSourceState = clientDashboardTab === "new" ? clientDashboard.new_client_state : clientDashboard.prospect_state;
     const selectedClientState = selectedClientSourceState === "data" && selectedClientItems.length === 0 ? "empty" : selectedClientSourceState;
@@ -1795,9 +1813,9 @@ export function HomeSurface({
       >
         <HomeKpiCard
           title="이번달 매출"
-          state={financeCurrentState}
-          amount={financeDashboard.current?.billed_amount ?? null}
-          basis="KRW / 등록 고객 입금"
+          state={financeRevenueCurrentState}
+          amount={financeDashboard.current?.revenue_amount ?? null}
+          basis="KRW / 수납 기준 매출"
           changePercent={financeDashboard.revenue_change_percent}
           section="monthly-revenue"
           onOpen={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_revenue_kpi" })}
@@ -1812,7 +1830,7 @@ export function HomeSurface({
         />
         <HomeKpiCard
           title="이번달 비급여 출금"
-          state={financeCurrentState}
+          state={financeCashflowCurrentState}
           amount={financeDashboard.current?.non_payroll_outflow ?? null}
           basis="KRW / 급여 제외 은행 출금"
           changePercent={financeDashboard.non_payroll_outflow_change_percent}
@@ -1826,7 +1844,7 @@ export function HomeSurface({
           section="monthly-revenue-chart"
           onViewAll={() => openHomeRoute("home-finance-monthly", "home", { source: "monthly_revenue_chart" })}
           viewAllLabel="월별 매출 상세 보기"
-          headerExtra={<span className="home-dashboard-card-meta">최근 6개월 / 등록 고객 입금</span>}
+          headerExtra={<span className="home-dashboard-card-meta">최근 6개월 / 수납 기준</span>}
         >
           <HomeDashboardState state={revenueChartState} noun="월별 매출">
             <HomeRevenueBarChart series={financeDashboard.series} />

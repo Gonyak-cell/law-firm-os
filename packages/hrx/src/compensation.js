@@ -11,6 +11,16 @@ function requiredString(input, field) {
   return value.trim();
 }
 
+/** Return true when a compensation record covers the complete requested period. */
+export function compensationCoversPeriod(record = {}, periodStart, periodEnd = null) {
+  if (typeof record.effective_from !== "string" || typeof periodStart !== "string") return false;
+  if (periodEnd !== null && periodEnd !== undefined && typeof periodEnd !== "string") return false;
+  if (periodEnd && periodEnd < periodStart) return false;
+  if (record.effective_from > periodStart) return false;
+  if (periodEnd === null || periodEnd === undefined) return record.effective_to === null || record.effective_to === undefined;
+  return record.effective_to === null || record.effective_to === undefined || record.effective_to >= periodEnd;
+}
+
 function keyMaterial(input, { allowSyntheticKey = false } = {}) {
   const value = input ?? process.env[COMPENSATION_KEY_ENV];
   if (typeof value === "string" && value.length > 0) return value;
@@ -146,18 +156,13 @@ function clone(value) {
 
 function visibleCompensationRecord(record = {}) {
   return Object.freeze({
-    tenant_id: record.tenant_id,
     compensation_id: record.compensation_id,
     employee_id: record.employee_id,
     masked_compensation_ref: maskCompensationRef(record.encrypted_amount_ref),
     encrypted_amount_ref_included: false,
-    encryption_envelope: "lawos-comp-v1",
     currency_ref: record.currency_ref,
     effective_from: record.effective_from,
     effective_to: record.effective_to,
-    source_ref: record.source_ref,
-    employment_contract_id: record.employment_contract_id,
-    contract_document_ref: record.contract_document_ref,
     raw_amount_included: false,
   });
 }

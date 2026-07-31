@@ -37,12 +37,17 @@ const TEST_COLUMNS = Object.freeze({
     "restricted_access",
   ],
   hrx_leave_balance_entries: ["metadata_json"],
+  hrx_lifecycle_templates: ["tasks_json"],
   hrx_offboarding_cases: [
     "access_revocations_json",
     "document_returns_json",
     "legal_hold_checks_json",
     "matter_reassignments_json",
     "handover_items_json",
+    "template_ref_json",
+    "template_snapshot_json",
+    "tasks_json",
+    "leave_reconciliation_evidence_ref",
   ],
   hrx_onboarding_plans: [
     "employee_id",
@@ -50,6 +55,8 @@ const TEST_COLUMNS = Object.freeze({
     "tasks_json",
     "document_refs_json",
     "access_requests_json",
+    "template_ref_json",
+    "template_snapshot_json",
   ],
   hrx_offers: ["compensation_restricted"],
   hrx_payroll_runs: ["period_id", "previous_run_id"],
@@ -354,6 +361,26 @@ test("W15 mapping resolution preserves transformed fields and applies MATCH SIMP
     ),
     onboardingPayload,
   );
+  const offboardingEvidencePayload = {
+    tenant_id: "tenant-resolution",
+    offboarding_id: "offboarding-evidence-001",
+    leave_reconciliation_evidence_ref: "PayrollProviderReceipt:001",
+  };
+  const projectedOffboardingEvidence = projectHrxRelationalPayload(
+    offboardingEvidencePayload,
+    mapping("hrx_offboarding_cases"),
+  ).row;
+  assert.equal(
+    projectedOffboardingEvidence.leave_reconciliation_evidence_ref,
+    "PayrollProviderReceipt:001",
+  );
+  assert.deepEqual(
+    restoreHrxRelationalProjectionRow(
+      projectedOffboardingEvidence,
+      mapping("hrx_offboarding_cases"),
+    ),
+    offboardingEvidencePayload,
+  );
 
   assert.throws(
     () => projectHrxRelationalPayload({
@@ -401,7 +428,7 @@ test("W15 mapping resolution preserves transformed fields and applies MATCH SIMP
   );
 });
 
-test("W15 mapping contract covers all 77 relations in deterministic dependency order", async (t) => {
+test("W15 mapping contract covers every HRX relation in deterministic dependency order", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   await runHrxPostgresMigrations(fixture.adminPool, {
@@ -453,9 +480,9 @@ test("W15 mapping contract covers all 77 relations in deterministic dependency o
     performanceAcceptanceSha256: "a".repeat(64),
   });
   const validated = validateHrxRelationalMappingManifest(manifest);
-  assert.equal(validated.table_count, 77);
-  assert.equal(manifest.schema_only_table_count, 77);
-  assert.equal(new Set(manifest.dependency_order).size, 77);
+  assert.equal(validated.table_count, HRX_STORE_TABLES.length);
+  assert.equal(manifest.schema_only_table_count, HRX_STORE_TABLES.length);
+  assert.equal(new Set(manifest.dependency_order).size, HRX_STORE_TABLES.length);
   assert.ok(
     manifest.dependency_order.indexOf("hrx_employees")
       < manifest.dependency_order.indexOf("hrx_employment_profiles"),

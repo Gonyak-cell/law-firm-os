@@ -13,6 +13,7 @@ import { pathToFileURL } from "node:url";
 
 const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
+import { PEOPLE_FEATURE_FLAG_NAMES } from "../../../packages/hrx/src/people-feature-flags.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
@@ -44,6 +45,17 @@ import {
   handleRelationshipLookup,
 } from "./master-data-context.js";
 import { HRX_SESSION_BOUND_HEADER, authorizeHrxApiRequest } from "./middleware/hrx-authz.js";
+import {
+  denyPayrollStatementProviderCallback,
+  handlePayrollStatementProviderCallback,
+  isPayrollStatementProviderCallback,
+  verifyPayrollStatementProviderCallback,
+} from "./routes/hrx/payroll-statement-provider-callback.js";
+import {
+  LEAVE_PROVIDER_TENANT_HEADER,
+  handleLeaveProviderCallback,
+  isLeaveProviderCallback,
+} from "./routes/hrx/leave-provider-callback.js";
 import { appendHrxRouteAudit } from "./middleware/hrx-audit-write.js";
 import { HRX_STEP_UP_CONTEXT_HEADER, authorizeHrxStepUpRequest } from "./middleware/hrx-step-up-context.js";
 import { PERMISSION_CONTEXT_HEADER, PERMISSION_DECISION_ORDER, evaluateRouteDecision, parsePermissionContext } from "./permission-gate.js";
@@ -274,6 +286,15 @@ function createEphemeralHrxStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-hrx-runtime-")), "hrx-store.json");
 }
 
+export function resolvePeopleFeatureFlagsFromEnv(env = process.env) {
+  return Object.freeze(Object.fromEntries(
+    PEOPLE_FEATURE_FLAG_NAMES.map((name) => [
+      name,
+      env[`VITE_LAWOS_${name.toUpperCase()}`],
+    ]),
+  ));
+}
+
 function createEphemeralMasterDataStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-master-data-runtime-")), "master-data-store.json");
 }
@@ -338,24 +359,83 @@ function createEphemeralObjectAclStorePath() {
 
 export function createDefaultHrxRuntime({
   store,
-  storePath = process.env.LAWOS_HRX_STORE_PATH,
+  storePath,
   modelGateway,
-  runtimeProfile = resolveRuntimeProfile(),
+  clock,
+  runtimeProfile,
+  env = process.env,
+  peopleFeatureFlags,
+  peopleMetricsSink = null,
+  peopleProviderIdentities,
+  peopleProviderIdentityRepository,
+  outlookTokenVault,
+  outlookConsentService,
+  outlookConsentRepository,
+  outlookCalendarCache,
+  peopleOutlookConnections,
+  peopleOutlookCalendarSource,
+  outlookCalendarViewAdapter,
+  outlookConsentRefresh,
+  outlookSubjectAddressResolver,
+  outlookStateAuthority,
+  outlookOauthPort,
+  offboardingAccessSource,
+  leaveIntegrationProviders,
+  leaveIntegrationProviderEnabled,
+  payrollArtifactStorage,
+  payrollArtifactSecret,
+  compensationKeyMaterial,
+  payrollProviders,
 } = {}) {
-  const hrxStore = store ?? createFileHrxStore({ filePath: storePath || createEphemeralHrxStorePath() });
+  const resolvedRuntimeProfile = runtimeProfile ?? resolveRuntimeProfile(env);
+  const allowSyntheticRuntime = resolvedRuntimeProfile !== LAWOS_RUNTIME_PROFILES.operational;
+  const hrxStore = store ?? createFileHrxStore({
+    filePath: storePath ?? env.LAWOS_HRX_STORE_PATH ?? createEphemeralHrxStorePath(),
+  });
   runHrxMigrations(hrxStore);
   assertRuntimePersistenceStore(hrxStore, {
     bounded_context: "hrx",
     requiredTables: [...HRX_DURABLE_CORE_TABLES, ...HRX_DURABLE_WORKFLOW_TABLES],
   });
-  if (runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational) seedHrxDurableRuntimeStore(hrxStore);
+  if (resolvedRuntimeProfile !== LAWOS_RUNTIME_PROFILES.operational) seedHrxDurableRuntimeStore(hrxStore);
   return createHrxRuntimeContext({
     store: hrxStore,
     modelGateway,
-    allowSyntheticLeaveIntegrationProviders: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
-    allowSyntheticCompensationKey: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
-    seedPayrollRuntime: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
-    seedRuntimeFixtures: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
+    clock,
+    peopleFeatureFlags: peopleFeatureFlags ?? resolvePeopleFeatureFlagsFromEnv(env),
+    peopleMetricsSink,
+    peopleProviderIdentities,
+    peopleProviderIdentityRepository,
+    outlookTokenVault,
+    outlookConsentService,
+    outlookConsentRepository,
+    outlookCalendarCache,
+    peopleOutlookConnections,
+    peopleOutlookCalendarSource,
+    outlookCalendarViewAdapter,
+    outlookConsentRefresh,
+    outlookSubjectAddressResolver,
+    outlookStateAuthority,
+    outlookOauthPort,
+    offboardingAccessSource,
+    leaveIntegrationProviders,
+    leaveIntegrationProviderEnabled,
+    allowInMemoryOutlookTokenVault: allowSyntheticRuntime,
+    ...(payrollArtifactStorage ? { payrollArtifactStorage } : {}),
+    ...(payrollArtifactSecret ? { payrollArtifactSecret } : {}),
+    ...(compensationKeyMaterial ? { compensationKeyMaterial } : {}),
+    payrollProviders: Object.freeze({
+      ...payrollProviders,
+      allowSyntheticArtifactSecret: allowSyntheticRuntime,
+      allowSyntheticCompensationKey: allowSyntheticRuntime,
+      allowSyntheticProviders: allowSyntheticRuntime,
+    }),
+    allowSyntheticLeaveIntegrationProviders: allowSyntheticRuntime,
+    allowSyntheticPayrollArtifactSecret: allowSyntheticRuntime,
+    allowSyntheticCompensationKey: allowSyntheticRuntime,
+    allowSyntheticPayrollProviders: allowSyntheticRuntime,
+    seedPayrollRuntime: allowSyntheticRuntime,
+    seedRuntimeFixtures: allowSyntheticRuntime,
   });
 }
 
@@ -750,6 +830,13 @@ function requestUsesProductRuntime(req) {
 function publicRuntimeTenant(req) {
   const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
   const routeKey = `${req.method} ${pathname}`;
+  if (isPayrollStatementProviderCallback(req.method, pathname)) {
+    return req.lawosPayrollStatementProviderAuthorization?.verified?.tenant_id ?? null;
+  }
+  if (isLeaveProviderCallback(req.method, pathname)) {
+    const value = req.headers?.[LEAVE_PROVIDER_TENANT_HEADER];
+    return String(Array.isArray(value) ? value[0] ?? "" : value ?? "").trim() || null;
+  }
   return MATTER_VAULT_BRIDGE_ROUTES.has(routeKey) || isPortalExternalPublicRoute(req.method, pathname)
     ? MATTER_VAULT_REGISTERED_TENANT_ID
     : null;
@@ -1007,6 +1094,7 @@ function requestBodyTooLargeError() {
 
 export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIMIT_BYTES } = {}) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new TypeError("maxBytes must be a positive safe integer");
+  if (req.lawosRequestBodyParsed === true) return req.lawosParsedRequestBody;
   const declaredLength = Number(Array.isArray(req.headers?.["content-length"])
     ? req.headers["content-length"][0]
     : req.headers?.["content-length"]);
@@ -1020,6 +1108,7 @@ export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIM
     chunks.push(bytes);
   }
   const raw = Buffer.concat(chunks, totalBytes);
+  req.lawosRawRequestBody = raw;
   const contentType = contentTypeOf(req);
   let body = {};
   if (raw.length > 0 && contentType.toLowerCase().startsWith("multipart/form-data")) {
@@ -1035,6 +1124,8 @@ export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIM
   req.lawosRequestBodyHash = hashDomainValue(body);
   const bodyIdempotencyKey = String(body?.idempotency_key ?? "").trim();
   if (bodyIdempotencyKey) req.lawosRequestBodyIdempotencyKey = bodyIdempotencyKey;
+  req.lawosParsedRequestBody = body;
+  req.lawosRequestBodyParsed = true;
   return body;
 }
 
@@ -1219,11 +1310,11 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
-  const requestId = query.request_id || `req_${randomUUID()}`;
+  const requestId = req.lawosRequestId ?? query.request_id ?? `req_${randomUUID()}`;
   req.lawosRequestId = requestId;
 
   if (req.method === "OPTIONS") {
@@ -1374,6 +1465,36 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
+  if (isPayrollStatementProviderCallback(req.method, pathname)) {
+    const body = await readRequestBody(req, { maxBytes: 64 * 1024 });
+    const result = await handlePayrollStatementProviderCallback({
+      headers: req.headers,
+      body,
+      rawBody: req.lawosRawRequestBody,
+      runtime: hrxRuntime,
+      verifier: payrollStatementProviderVerifier,
+      audit: payrollStatementProviderAudit,
+      verified: req.lawosPayrollStatementProviderAuthorization,
+      requestId,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  if (isLeaveProviderCallback(req.method, pathname)) {
+    const body = await readRequestBody(req, { maxBytes: 64 * 1024 });
+    const result = await handleLeaveProviderCallback({
+      headers: req.headers,
+      body,
+      rawBody: req.lawosRawRequestBody,
+      runtime: hrxRuntime,
+      verifier: leaveProviderVerifier,
+      requestId,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
   const sessionContext = await sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
   if (!sessionContext.ok) {
     sendJson(req, res, sessionContext.status ?? 401, sessionContext.body ?? {
@@ -1428,6 +1549,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     }
     const hrxStepUp = authorizeHrxStepUpRequest({
       action: hrxAuthz.policy.action,
+      policyPurpose: hrxAuthz.policy.purpose,
       context: {
         ...hrxAuthz.context,
         session_jti: sessionContext.principal.session_jti ?? null,
@@ -1484,6 +1606,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       query,
       body,
       context: hrxRuntime,
+      matterContext: matterRuntime,
       requestContext: {
         ...hrxAuthz.context,
         hrx_scopes: hrxAuthz.principal?.hrx_scopes ?? [],
@@ -1830,6 +1953,9 @@ export function createApiServer({
   sessionAuth,
   sessionObjectAclResolver = null,
   requestRuntimeAuthority = null,
+  payrollStatementProviderVerifier = null,
+  payrollStatementProviderAudit = null,
+  leaveProviderVerifier = null,
   dataScope = process.env.LAWOS_DATA_SCOPE ?? null,
 } = {}) {
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
@@ -1838,6 +1964,10 @@ export function createApiServer({
     profile: runtimeProfile,
     objectAclResolver: sessionObjectAclResolver,
   });
+  const resolvedPayrollStatementProviderAudit = payrollStatementProviderAudit
+    ?? (typeof resolvedSessionAuth.appendProviderCallbackAudit === "function"
+      ? resolvedSessionAuth.appendProviderCallbackAudit.bind(resolvedSessionAuth)
+      : null);
   return http.createServer(async (req, res) => {
     try {
       const dispatchWithRuntimes = async (targetResponse, requestRuntimes = {}) => {
@@ -1880,12 +2010,48 @@ export function createApiServer({
           m365GraphConfig,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
+          payrollStatementProviderVerifier,
+          payrollStatementProviderAudit: resolvedPayrollStatementProviderAudit,
+          leaveProviderVerifier,
           runtimeProfile,
           persistenceAuthority,
           persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
           dataScope,
         });
       };
+
+      const requestPathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+      if (isPayrollStatementProviderCallback(req.method, requestPathname)) {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        let body;
+        try {
+          body = await readRequestBody(req, { maxBytes: 64 * 1024 });
+        } catch (error) {
+          const denial = await denyPayrollStatementProviderCallback({
+            audit: resolvedPayrollStatementProviderAudit,
+            headers: req.headers,
+            requestId,
+            status: Number.isInteger(error?.status) ? error.status : 400,
+            safeErrorCode: error?.safe_error_code ?? "HRX_PAYROLL_PROVIDER_BODY_INVALID",
+          });
+          sendJson(req, res, denial.status, denial.body);
+          return;
+        }
+        const authorization = await verifyPayrollStatementProviderCallback({
+          headers: req.headers,
+          body,
+          rawBody: req.lawosRawRequestBody,
+          verifier: payrollStatementProviderVerifier,
+          audit: resolvedPayrollStatementProviderAudit,
+          requestId,
+        });
+        if (!authorization.ok) {
+          sendJson(req, res, authorization.response.status, authorization.response.body);
+          return;
+        }
+        req.lawosPayrollStatementProviderAuthorization = authorization;
+      }
 
       if (!requestRuntimeAuthority || !requestUsesProductRuntime(req)) {
         await dispatchWithRuntimes(res);
@@ -1894,6 +2060,10 @@ export function createApiServer({
 
       let tenantId = publicRuntimeTenant(req);
       if (!tenantId) {
+        if (isPayrollStatementProviderCallback(req.method, requestPathname) || isLeaveProviderCallback(req.method, requestPathname)) {
+          await dispatchWithRuntimes(res);
+          return;
+        }
         const sessionContext = await resolvedSessionAuth.resolvePermissionContextFromHeaders(req.headers, {
           requestId: req.headers["x-request-id"] ?? "req_postgres_authority",
           requireSessionToken: true,
@@ -1914,6 +2084,9 @@ export function createApiServer({
           method: req.method,
           pathname: requestTarget.pathname,
           actor_id: req.lawosActorId ?? null,
+          retry_idempotent_conflict:
+            isPayrollStatementProviderCallback(req.method, requestPathname)
+            && req.lawosPayrollStatementProviderAuthorization?.ok === true,
           get request_body_hash() {
             return req.lawosRequestBodyHash ?? hashDomainValue({});
           },
@@ -1972,8 +2145,30 @@ export async function startApiServer({
   emailDmsRepository,
   dmsVerifyPermanentDeleteApproval,
   payrollArtifactSecret,
+  payrollProviders,
+  leaveIntegrationProviders,
+  leaveIntegrationProviderEnabled,
   payrollSecretsClient,
   payrollResolveArtifactSecret,
+  payrollStatementProviderVerifier,
+  payrollStatementProviderAudit,
+  leaveProviderVerifier,
+  peopleFeatureFlags,
+  peopleMetricsSink,
+  peopleProviderIdentities,
+  peopleProviderIdentityRepository,
+  outlookTokenVault,
+  outlookConsentService,
+  outlookConsentRepository,
+  outlookCalendarCache,
+  peopleOutlookConnections,
+  peopleOutlookCalendarSource,
+  outlookCalendarViewAdapter,
+  outlookConsentRefresh,
+  outlookSubjectAddressResolver,
+  outlookStateAuthority,
+  outlookOauthPort,
+  offboardingAccessSource,
   dmsStorePath,
   dmsObjectStorePath,
   crmIntakeRuntime: providedCrmIntakeRuntime,
@@ -2031,6 +2226,8 @@ export async function startApiServer({
     ...persistenceAuthorityEnv,
     LAWOS_RUNTIME_PROFILE: resolvedRuntimeProfile,
   };
+  const resolvedPeopleFeatureFlags =
+    peopleFeatureFlags ?? resolvePeopleFeatureFlagsFromEnv(resolvedPersistenceAuthorityEnv);
   const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
     staffAuthAuthority ?? resolvedPersistenceAuthorityEnv.LAWOS_STAFF_AUTHORITY,
   );
@@ -2143,6 +2340,25 @@ export async function startApiServer({
         dmsStorage: resolvedDmsStorage,
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
+        payrollProviders,
+        leaveIntegrationProviders,
+        leaveIntegrationProviderEnabled,
+        peopleFeatureFlags: resolvedPeopleFeatureFlags,
+        peopleMetricsSink,
+        peopleProviderIdentities,
+        peopleProviderIdentityRepository,
+        outlookTokenVault,
+        outlookConsentService,
+        outlookConsentRepository,
+        outlookCalendarCache,
+        peopleOutlookConnections,
+        peopleOutlookCalendarSource,
+        outlookCalendarViewAdapter,
+        outlookConsentRefresh,
+        outlookSubjectAddressResolver,
+        outlookStateAuthority,
+        outlookOauthPort,
+        offboardingAccessSource,
         hrxRelationalProjectionReader,
         bankImportPreviewTokens: resolvedBankImportPreviewTokens,
         clientFixedReportTokenAuthority:
@@ -2150,6 +2366,7 @@ export async function startApiServer({
         clientOperationsV2Enabled:
           resolvedClientOperationsV2Enabled,
         clientOperationsSchemaPool: postgresPool,
+        identityRepository,
       });
       const server = createApiServer({
         hrxRuntime: null,
@@ -2172,6 +2389,9 @@ export async function startApiServer({
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
         dataScope: resolvedPersistenceAuthorityEnv.LAWOS_DATA_SCOPE ?? process.env.LAWOS_DATA_SCOPE ?? null,
+        payrollStatementProviderVerifier,
+        payrollStatementProviderAudit,
+        leaveProviderVerifier,
       });
       server.once("close", () => {
         void persistenceAuthorityState.close?.();
@@ -2229,6 +2449,29 @@ export async function startApiServer({
         store: hrxStore,
         storePath: hrxStorePath ?? resolvedStorePaths.hrxStorePath,
         runtimeProfile: resolvedRuntimeProfile,
+        env: resolvedPersistenceAuthorityEnv,
+        peopleFeatureFlags: resolvedPeopleFeatureFlags,
+        peopleMetricsSink,
+        peopleProviderIdentities,
+        peopleProviderIdentityRepository,
+        outlookTokenVault,
+        outlookConsentService,
+        outlookConsentRepository,
+        outlookCalendarCache,
+        peopleOutlookConnections,
+        peopleOutlookCalendarSource,
+        outlookCalendarViewAdapter,
+        outlookConsentRefresh,
+        outlookSubjectAddressResolver,
+        outlookStateAuthority,
+        outlookOauthPort,
+        offboardingAccessSource,
+        payrollArtifactStorage: dmsStorage,
+        payrollArtifactSecret,
+        compensationKeyMaterial: payrollArtifactSecret,
+        payrollProviders,
+        leaveIntegrationProviders,
+        leaveIntegrationProviderEnabled,
       });
     } catch (error) {
       if (resolvedRuntimeProfile !== LAWOS_RUNTIME_PROFILES.operational) throw error;
@@ -2409,6 +2652,9 @@ export async function startApiServer({
     runtimeProfile: resolvedRuntimeProfile,
     persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,
+    payrollStatementProviderVerifier,
+    payrollStatementProviderAudit,
+    leaveProviderVerifier,
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
@@ -2426,6 +2672,21 @@ export async function startApiServer({
 
 let cliApiServer = null;
 let cliKeepAlive = null;
+
+export function startCliApiServer({
+  startupOptions = {},
+  payrollStatementProviderVerifier,
+  leaveProviderVerifier,
+  startApiServerFn = startApiServer,
+} = {}) {
+  return startApiServerFn({
+    ...startupOptions,
+    ...(payrollStatementProviderVerifier === undefined
+      ? {}
+      : { payrollStatementProviderVerifier }),
+    ...(leaveProviderVerifier === undefined ? {} : { leaveProviderVerifier }),
+  });
+}
 
 function stopCliServer(signal) {
   if (cliKeepAlive) {
@@ -2450,7 +2711,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       }
     : {};
   Promise.resolve()
-    .then(() => startApiServer(cliStartupOptions))
+    .then(() => startCliApiServer({ startupOptions: cliStartupOptions }))
     .then(({ server, port }) => {
       cliApiServer = server;
       cliKeepAlive = setInterval(() => {}, 2_147_483_647);

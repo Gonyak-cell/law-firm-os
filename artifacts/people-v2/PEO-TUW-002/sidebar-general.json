@@ -1,0 +1,18 @@
+{
+  "schema_version": "lawos.people-sidebar-snapshot.v1",
+  "fixture": "general",
+  "count": 11,
+  "items": [
+    { "group": "관리", "label": "구성원", "route": "people-members" },
+    { "group": "관리", "label": "조직", "route": "people-org-chart" },
+    { "group": "관리", "label": "구성원 등록", "route": "people-recruiting" },
+    { "group": "관리", "label": "입퇴사 관리", "route": "people-lifecycle" },
+    { "group": "출퇴근기록", "label": "출근/퇴근 기록", "route": "people-attendance-records" },
+    { "group": "휴가", "label": "휴가관리", "route": "people-leave" },
+    { "group": "휴가", "label": "휴가 사용 내역", "route": "people-leave-usage" },
+    { "group": "마감 및 급여", "label": "마감 관리", "route": "people-close" },
+    { "group": "마감 및 급여", "label": "급여정산", "route": "people-payroll" },
+    { "group": "마감 및 급여", "label": "급여명세서", "route": "people-pay-statement" },
+    { "group": "마감 및 급여", "label": "수당/최저임금", "route": "people-pay-rules" }
+  ]
+}

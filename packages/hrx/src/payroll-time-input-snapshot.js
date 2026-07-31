@@ -121,8 +121,12 @@ function intervalMinutes(row, timezone, holidays) {
   return Object.freeze({ total: duration / 60_000, night, holiday });
 }
 
-function overtimeMinutes(row) {
-  const minutes = Number(row.hours) * 60;
+function overtimeMinutes(row, { approvedOvertimeMinutesEnabled = false } = {}) {
+  const minutes = approvedOvertimeMinutesEnabled
+    && Number.isSafeInteger(Number(row.approved_minutes))
+    && Number(row.approved_minutes) > 0
+    ? Number(row.approved_minutes)
+    : Number(row.hours) * 60;
   if (!Number.isSafeInteger(minutes) || minutes <= 0) {
     throw new TypeError("approved overtime hours must resolve to positive whole minutes");
   }
@@ -182,7 +186,9 @@ export function projectApprovedPayrollTimeInput(input = {}) {
   }
   for (const row of overtime) {
     const totals = target(requiredString(row, "employee_id"), isoDate(row, "work_date"));
-    totals.overtime_minutes += overtimeMinutes(row);
+    totals.overtime_minutes += overtimeMinutes(row, {
+      approvedOvertimeMinutesEnabled: input.approved_overtime_minutes_enabled === true,
+    });
     totals.source_refs.push({
       object_type: "OvertimeRequest",
       object_id: requiredString(row, "overtime_id"),
@@ -239,6 +245,7 @@ export function projectApprovedPayrollTimeInput(input = {}) {
 
 export function createSqlPayrollTimeInputService({
   store,
+  approvedOvertimeMinutesEnabled = false,
   clock = () => new Date().toISOString(),
   idFactory = (prefix) => `${prefix}_${randomUUID()}`,
 } = {}) {
@@ -295,6 +302,7 @@ export function createSqlPayrollTimeInputService({
       return projectApprovedPayrollTimeInput({
         ...input,
         tenant_id: tenantId,
+        approved_overtime_minutes_enabled: approvedOvertimeMinutesEnabled,
         attendance_records: store.query("select", {
           table: "hrx_attendance_records",
           where: { tenant_id: tenantId },

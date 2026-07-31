@@ -14,6 +14,15 @@ import { createMatterWorktreeTemplate, createMatterWorktreeTemplateNode } from "
 export { createMatterWorktree, createMatterWorktreeNode } from "./worktree-model.js";
 export { createMatterWorktreeTemplate, createMatterWorktreeTemplateNode } from "./worktree-template-model.js";
 
+export const MATTER_CALENDAR_EVENT_KINDS = Object.freeze([
+  "court_hearing",
+  "deadline",
+  "meeting",
+  "external_visit",
+  "internal",
+  "unknown",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -119,6 +128,19 @@ export function createMatterClient(input) {
 }
 
 export function createMatterMember(input) {
+  const validFrom = input.valid_from ?? null;
+  const validTo = input.valid_to ?? null;
+  if (validFrom && Number.isNaN(Date.parse(validFrom))) throw new TypeError("MatterMember valid_from must be ISO date");
+  if (validTo && Number.isNaN(Date.parse(validTo))) throw new TypeError("MatterMember valid_to must be ISO date");
+  if (validFrom && validTo && Date.parse(validTo) < Date.parse(validFrom)) {
+    throw new TypeError("MatterMember valid_to must be on or after valid_from");
+  }
+  if (
+    input.identity_resolution_state != null
+    && !["resolved", "backfill_candidate", "unresolved"].includes(input.identity_resolution_state)
+  ) {
+    throw new TypeError("MatterMember identity_resolution_state is invalid");
+  }
   return freezeRecord({
     ...baseRecord("MatterMember", input),
     member_id: input.member_id,
@@ -127,10 +149,32 @@ export function createMatterMember(input) {
     role: input.role,
     status: input.status,
     access_scope: input.access_scope ?? "matter_team",
+    valid_from: validFrom,
+    valid_to: validTo,
+    identity_resolution_state: input.identity_resolution_state ?? null,
+    source_record_hash: input.source_record_hash ?? null,
   });
 }
 
 export function createMatterTask(input) {
+  if (input.assigned_to_employee_id != null || input.employee_id != null) {
+    throw new TypeError("MatterTask assignment must use a User identifier, not an Employee identifier");
+  }
+  if (input.assigned_to && input.assigned_to_user_id && input.assigned_to !== input.assigned_to_user_id) {
+    throw new TypeError("MatterTask assigned_to and assigned_to_user_id must not conflict");
+  }
+  const startsAt = input.starts_at ?? null;
+  const endsAt = input.ends_at ?? null;
+  if (startsAt && Number.isNaN(Date.parse(startsAt))) throw new TypeError("MatterTask starts_at must be ISO date");
+  if (endsAt && Number.isNaN(Date.parse(endsAt))) throw new TypeError("MatterTask ends_at must be ISO date");
+  if (endsAt && !startsAt) throw new TypeError("MatterTask starts_at is required when ends_at is set");
+  if (startsAt && endsAt && Date.parse(endsAt) < Date.parse(startsAt)) {
+    throw new TypeError("MatterTask ends_at must be on or after starts_at");
+  }
+  const estimatedMinutes = input.estimated_minutes ?? null;
+  if (estimatedMinutes != null && (!Number.isInteger(estimatedMinutes) || estimatedMinutes <= 0)) {
+    throw new TypeError("MatterTask estimated_minutes must be a positive integer");
+  }
   return freezeRecord({
     ...baseRecord("MatterTask", input),
     task_id: input.task_id,
@@ -138,12 +182,33 @@ export function createMatterTask(input) {
     status: input.status,
     created_by: input.created_by,
     assigned_to: input.assigned_to ?? null,
+    assigned_to_user_id: input.assigned_to_user_id ?? null,
+    starts_at: startsAt,
+    ends_at: endsAt,
+    estimated_minutes: estimatedMinutes,
+    assignment_resolution_state: input.assignment_resolution_state ?? null,
+    source_record_hash: input.source_record_hash ?? null,
     due_at: input.due_at ?? null,
     source_ref: input.source_ref ?? null,
   });
 }
 
 export function createMatterCalendarEvent(input) {
+  const eventKind = input.event_kind ?? "unknown";
+  if (!MATTER_CALENDAR_EVENT_KINDS.includes(eventKind)) {
+    throw new TypeError(`MatterCalendarEvent event_kind must be one of ${MATTER_CALENDAR_EVENT_KINDS.join(", ")}`);
+  }
+  if (Number.isNaN(Date.parse(input.starts_at))) throw new TypeError("MatterCalendarEvent starts_at must be ISO date");
+  if (input.ends_at && Number.isNaN(Date.parse(input.ends_at))) throw new TypeError("MatterCalendarEvent ends_at must be ISO date");
+  if (input.ends_at && Date.parse(input.ends_at) < Date.parse(input.starts_at)) {
+    throw new TypeError("MatterCalendarEvent ends_at must be on or after starts_at");
+  }
+  if ((input.provider_event_id || input.provider_series_id) && !input.provider) {
+    throw new TypeError("MatterCalendarEvent provider is required for provider identifiers");
+  }
+  if (["raw_provider_payload", "provider_payload", "raw_body", "body", "access_token"].some((field) => input[field] != null)) {
+    throw new TypeError("MatterCalendarEvent raw provider payload and body must not be stored");
+  }
   return freezeRecord({
     ...baseRecord("MatterCalendarEvent", input),
     event_id: input.event_id,
@@ -152,6 +217,11 @@ export function createMatterCalendarEvent(input) {
     starts_at: input.starts_at,
     ends_at: input.ends_at ?? null,
     source_ref: input.source_ref ?? null,
+    event_kind: eventKind,
+    provider: input.provider ?? null,
+    provider_event_id: input.provider_event_id ?? null,
+    provider_series_id: input.provider_series_id ?? null,
+    raw_provider_payload_included: false,
   });
 }
 

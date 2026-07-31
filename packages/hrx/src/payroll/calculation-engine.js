@@ -9,7 +9,7 @@ import {
 export const HRX_PAYROLL_EARNING_RULES_SCHEMA_VERSION = "law-firm-os.hrx.payroll-earning-rules.v0.1";
 
 const EMPLOYMENT_TYPES = new Set(["monthly", "hourly", "daily", "freelancer"]);
-const SEGMENTS = Object.freeze({ overtime: "OVERTIME", night: "NIGHT", holiday: "HOLIDAY" });
+const SEGMENTS = Object.freeze({ overtime: "OVERTIME", night: "NIGHT", holiday: "HOLIDAY", weekly_holiday: "WEEKLY_HOLIDAY" });
 const TOKEN_REF = /^[A-Za-z][A-Za-z0-9_-]*:[^\s]+$/;
 const CODE = /^[A-Z][A-Z0-9_]{0,63}$/;
 const HASH = /^(?:sha256:)?[a-f0-9]{64}$/i;
@@ -68,6 +68,13 @@ function enumValue(value, values, field) {
   return result;
 }
 
+function exactKeys(value, allowed, field) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${field} must be an object`);
+  const unknown = Object.keys(value).filter((key) => !allowed.includes(key));
+  if (unknown.length) throw new TypeError(`${field} contains unsupported field ${unknown[0]}`);
+  return value;
+}
+
 function stringSet(value, allowed, field) {
   if (value === undefined || value === null) return null;
   if (!Array.isArray(value) || value.length === 0) throw new TypeError(`${field} must be a non-empty array`);
@@ -78,6 +85,7 @@ function stringSet(value, allowed, field) {
 
 function normalizeAllowance(input, index) {
   const field = `allowances[${index}]`;
+  exactKeys(input, ["code", "amount_kind", "amount_krw", "rate_bps", "taxable", "non_taxable_limit_krw", "employment_types", "pay_groups"], field);
   const amountKind = enumValue(input?.amount_kind, ["fixed", "base_rate_bps"], `${field}.amount_kind`);
   const result = {
     code: code(input?.code, `${field}.code`),
@@ -95,6 +103,7 @@ function normalizeAllowance(input, index) {
 
 function normalizeSegment(input, segment) {
   if (input === undefined || input === null) return null;
+  exactKeys(input, ["rate_bps", "taxable", "employment_types"], `segment_rates.${segment}`);
   return {
     rate_bps: safeInteger(input.rate_bps, `segment_rates.${segment}.rate_bps`, { minimum: 0 }),
     taxable: boolean(input.taxable, `segment_rates.${segment}.taxable`),
@@ -117,10 +126,14 @@ function normalizeRules(ruleVersion) {
     }
   }
   if (!source || typeof source !== "object" || Array.isArray(source)) throw new TypeError("payroll earning rules are required");
+  exactKeys(source, ["schema_version", "fixture_only", "currency", "rounding_mode", "monthly", "segment_rates", "allowances", "unused_leave"], "rules");
   if (source.schema_version !== HRX_PAYROLL_EARNING_RULES_SCHEMA_VERSION) throw new TypeError("payroll earning rules schema_version is unsupported");
   if (source.currency !== "KRW") throw new TypeError("payroll earning rules currency must be KRW");
   const allowances = (source.allowances ?? []).map(normalizeAllowance);
   if (new Set(allowances.map((item) => item.code)).size !== allowances.length) throw new TypeError("allowance codes must be unique");
+  exactKeys(source.monthly, ["proration_basis", "rate_divisor_minutes", "unpaid_leave"], "monthly");
+  if (source.monthly?.unpaid_leave != null) exactKeys(source.monthly.unpaid_leave, ["rate_bps", "taxable"], "monthly.unpaid_leave");
+  exactKeys(source.segment_rates ?? {}, Object.keys(SEGMENTS), "segment_rates");
   const monthly = {
     proration_basis: enumValue(source.monthly?.proration_basis, ["calendar_days"], "monthly.proration_basis"),
     rate_divisor_minutes: optionalPositiveInteger(source.monthly?.rate_divisor_minutes, "monthly.rate_divisor_minutes"),
@@ -129,6 +142,7 @@ function normalizeRules(ruleVersion) {
       taxable: boolean(source.monthly.unpaid_leave.taxable, "monthly.unpaid_leave.taxable"),
     },
   };
+  if (source.unused_leave != null) exactKeys(source.unused_leave, ["rate_bps", "taxable", "eligibility", "max_minutes", "employment_types", "pay_groups"], "unused_leave");
   const unusedLeave = source.unused_leave == null ? null : {
     rate_bps: safeInteger(source.unused_leave.rate_bps, "unused_leave.rate_bps", { minimum: 0 }),
     taxable: boolean(source.unused_leave.taxable, "unused_leave.taxable"),

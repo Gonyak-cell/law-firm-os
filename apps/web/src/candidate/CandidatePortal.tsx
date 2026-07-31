@@ -25,6 +25,17 @@ function documentTypeLabel(value) {
   return "문서";
 }
 
+function privacyStateLabel(value) {
+  if (value === "active") return "동의 유효";
+  if (value === "retention_hold") return "보관 유지";
+  if (value === "retention_expired") return "보관 종료 처리 필요";
+  if (value === "deletion_requested") return "삭제 요청 처리 필요";
+  if (value === "consent_expired") return "동의 만료";
+  if (value === "consent_revoked") return "동의 철회";
+  if (value === "consent_missing") return "동의 확인 필요";
+  return "확인 필요";
+}
+
 export function CandidatePortal({ candidateId }) {
   const [result, setResult] = useState(null);
 
@@ -51,8 +62,12 @@ export function CandidatePortal({ candidateId }) {
     body = (
       <>
         <div className="property-grid people-profile-grid">
-          <Property label="지원자" value={result.candidate.legal_name} />
+          <Property label="지원자" value={result.candidate.legal_name ?? "개인정보 가림"} />
           <Property label="구분" value={candidateTypeLabel(result.candidate.data_subject_type)} />
+          <Property label="개인정보 처리" value={privacyStateLabel(result.candidate.privacy_state)} />
+          <Property label="동의 목적" value={result.candidate.consent_purpose === "recruiting_processing" ? "채용 절차" : "확인 필요"} />
+          <Property label="동의 만료" value={result.candidate.consent_expires_at ?? "확인 필요"} />
+          <Property label="보관 종료" value={result.candidate.retention_expires_at ?? "확인 필요"} />
           <Property label="지원 경로" value={result.candidate.source_ref ? "등록됨" : "미등록"} />
           <Property label="이력서" value={result.candidate.resume_ref ? "권한 필요" : "미등록"} />
         </div>

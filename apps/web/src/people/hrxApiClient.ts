@@ -4,14 +4,47 @@ const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
 const HRX_PAYROLL_BOUNDARY_ACTIONS = ["hrx.payroll.preview", "hrx.payroll.export"];
+const PEOPLE_SOURCE_ENVELOPE_SCHEMA_VERSION = "lawos.people-source-envelope.v1";
 const SAFE_SESSION_STATES = new Set(["signed_in"]);
+const PEOPLE_SOURCE_STATES = new Set(["ok", "partial", "blocked", "stale"]);
+const PEOPLE_SOURCE_ITEM_STATES = new Set(["ok", "blocked", "stale"]);
 const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
+const PEOPLE_OUTLOOK_STATE_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
 const FORBIDDEN_SESSION_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
+const PEOPLE_OUTLOOK_AUTHORIZE_HOST = "login.microsoftonline.com";
 
 type HrxClientRecord = Record<string, unknown>;
+export const HRX_STEP_UP_PURPOSES = Object.freeze([
+  "compensation_access",
+  "evaluation_review",
+  "payroll_export_review",
+  "payroll_payment_processing",
+  "payroll_filing_processing",
+  "payroll_statement_self_service",
+  "payroll_year_end_processing",
+  "payroll_year_end_review",
+  "security_audit",
+  "people_ai_final_decision",
+  "leave_policy_administration",
+  "leave_accrual_execute",
+  "leave_ledger_adjustment",
+  "leave_termination_settlement",
+] as const);
+export type HrxStepUpPurpose = typeof HRX_STEP_UP_PURPOSES[number];
+
+const HRX_STEP_UP_PURPOSE_SET = new Set<string>(HRX_STEP_UP_PURPOSES);
+const PAYROLL_EXPORT_REVIEW = "payroll_export_review" satisfies HrxStepUpPurpose;
+const PAYROLL_PAYMENT_PROCESSING = "payroll_payment_processing" satisfies HrxStepUpPurpose;
+const PAYROLL_FILING_PROCESSING = "payroll_filing_processing" satisfies HrxStepUpPurpose;
+const PAYROLL_STATEMENT_SELF_SERVICE = "payroll_statement_self_service" satisfies HrxStepUpPurpose;
+const PAYROLL_YEAR_END_PROCESSING = "payroll_year_end_processing" satisfies HrxStepUpPurpose;
+const PAYROLL_YEAR_END_REVIEW = "payroll_year_end_review" satisfies HrxStepUpPurpose;
+
 type HrxRequestOptions = Omit<RequestInit, "headers"> & {
   ctx?: string | null;
   headers?: Record<string, string>;
+  /** Purpose-bound step-up token to attach at this trust boundary. */
+  stepUpPurpose?: HrxStepUpPurpose | null;
 };
 type HrxApiResult = {
   kind: string;
@@ -19,6 +52,7 @@ type HrxApiResult = {
   status?: number;
   reason?: unknown;
   action?: unknown;
+  requiredPurpose?: HrxStepUpPurpose | null;
   [key: string]: unknown;
 };
 type HrxQueryParams = Record<string, string | number | boolean | null | undefined>;
@@ -34,6 +68,16 @@ declare global {
     __LAWOS_SESSION_CONTEXT__?: unknown;
     matterSession?: {
       desktopApiBaseUrl?: string;
+      onAuthCallbackDeepLink?: (handler: (intent: {
+        type?: unknown;
+        routeOnly?: unknown;
+        code?: unknown;
+        state?: unknown;
+      }) => void | Promise<void>) => (() => void) | void;
+      openOutlookAuthorization?: (authorizeUrl: string) => Promise<{
+        opened?: boolean;
+        reason?: unknown;
+      }>;
       api?: (input: {
         path?: string;
         method?: string;
@@ -50,6 +94,11 @@ declare global {
 }
 
 const HRX_STEP_UP_STORAGE_KEY = "lawos_hrx_step_up_token";
+
+function hrxStepUpStorageKey(purpose: string | null | undefined): string {
+  const normalizedPurpose = typeof purpose === "string" ? purpose.trim() : "";
+  return normalizedPurpose ? `${HRX_STEP_UP_STORAGE_KEY}:${normalizedPurpose}` : HRX_STEP_UP_STORAGE_KEY;
+}
 
 function desktopApiBaseUrl(): string {
   if (typeof window === "undefined" || !isDesktopRendererLocation(window.location)) return "";
@@ -130,21 +179,35 @@ function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
   return fetch(apiRequestUrl(input), { ...init, headers });
 }
 
-function signedHrxStepUpToken(): string {
+function signedHrxStepUpToken(purpose?: string | null): string {
   if (typeof window === "undefined") return "";
-  const token = window.sessionStorage?.getItem(HRX_STEP_UP_STORAGE_KEY) ?? "";
+  const token = window.sessionStorage?.getItem(hrxStepUpStorageKey(purpose)) ?? "";
   return token.startsWith("lawos_hrx_step_up_v1.") ? token : "";
 }
 
-export async function requestHrxStepUpSession(purpose: string, totpCode: string) {
+export function safeHrxStepUpPurpose(value: unknown): HrxStepUpPurpose | null {
+  return typeof value === "string" && HRX_STEP_UP_PURPOSE_SET.has(value)
+    ? value as HrxStepUpPurpose
+    : null;
+}
+
+export async function requestHrxStepUpSession(purpose: HrxStepUpPurpose, totpCode: string) {
+  const safePurpose = safeHrxStepUpPurpose(purpose);
+  if (!safePurpose) {
+    return { kind: "error" as const, reason: "HRX_STEP_UP_PURPOSE_UNSUPPORTED" };
+  }
   const result = await requestJson("/api/auth/step-up", {
     method: "POST",
-    body: JSON.stringify({ purpose, totp_code: totpCode })
+    body: JSON.stringify({ purpose: safePurpose, totp_code: totpCode })
   });
   const token = result.kind === "data" ? result.body.step_up_token : null;
   if (typeof token !== "string" || !token.startsWith("lawos_hrx_step_up_v1.")) {
     return { kind: "error" as const, reason: result.reason ?? "HRX_STEP_UP_FAILED" };
   }
+  // Keep a purpose-bound token for routes that have a distinct step-up
+  // purpose. The legacy key remains for older callers that do not declare a
+  // purpose, but is never used as a fallback for an explicit purpose.
+  window.sessionStorage?.setItem(hrxStepUpStorageKey(safePurpose), token);
   window.sessionStorage?.setItem(HRX_STEP_UP_STORAGE_KEY, token);
   return { kind: "data" as const, expires_at: result.body.expires_at ?? null };
 }
@@ -266,14 +329,14 @@ function currentDateKey(now = new Date()): string {
 }
 
 async function requestJson(path: string, options: HrxRequestOptions = {}): Promise<HrxApiResult> {
-  const { ctx: _ctx = null, headers = {}, ...fetchOptions } = options;
+  const { ctx: _ctx = null, headers = {}, stepUpPurpose = null, ...fetchOptions } = options;
   let response: Response;
   let body: HrxClientRecord | null;
   const requestHeaders = {
     "content-type": "application/json",
     ...sessionHrxRuntimeHeaders(),
     ...headers,
-    ...(signedHrxStepUpToken() ? { "x-lawos-hrx-step-up": signedHrxStepUpToken() } : {})
+    ...(signedHrxStepUpToken(stepUpPurpose) ? { "x-lawos-hrx-step-up": signedHrxStepUpToken(stepUpPurpose) } : {})
   };
   try {
     response = await apiFetch(path, {
@@ -287,12 +350,31 @@ async function requestJson(path: string, options: HrxRequestOptions = {}): Promi
   }
   if (!response.ok || body === null || typeof body !== "object") {
     if (body?.step_up_required === true) {
+      const declaredPurpose = body.required_purpose;
+      const requiredPurpose = safeHrxStepUpPurpose(declaredPurpose);
+      if (declaredPurpose !== undefined && declaredPurpose !== null && !requiredPurpose) {
+        return {
+          kind: "error",
+          body,
+          status: response.status,
+          reason: "HRX_STEP_UP_PURPOSE_UNSUPPORTED"
+        };
+      }
+      if (stepUpPurpose && requiredPurpose !== stepUpPurpose) {
+        return {
+          kind: "error",
+          body,
+          status: response.status,
+          reason: "HRX_STEP_UP_PURPOSE_MISMATCH"
+        };
+      }
       return {
         kind: "step_up_required",
         body,
         status: response.status,
         reason: body.safe_error_code ?? body.reason ?? "HRX_STEP_UP_REQUIRED",
-        action: body.action ?? null
+        action: body.action ?? null,
+        requiredPurpose
       };
     }
     if (body?.ui_state === "denied" || body?.ui_state === "review_required") {
@@ -320,8 +402,49 @@ export async function fetchHrxEmployees(options: HrxRequestOptions = {}) {
   return { kind: "data" as const, employees: result.body.employees };
 }
 
-export async function fetchHrxOrgChart(options: HrxRequestOptions = {}) {
-  const result = await requestJson("/api/hrx/org-chart", options);
+export async function createHrxEmployee(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/employees", {
+    method: "POST",
+    body: JSON.stringify(form)
+  });
+  if (result.kind !== "data" || result.body.outcome !== "created" || !result.body.employee) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYEE_CREATE_FAILED",
+      status: result.status ?? null
+    };
+  }
+  const employeeId = String((result.body.employee as HrxClientRecord).employee_id ?? "");
+  const readback = await fetchHrxEmployeeProfile(employeeId);
+  if (readback.kind !== "data") {
+    return { kind: "error" as const, reason: "HRX_EMPLOYEE_READBACK_FAILED", status: null };
+  }
+  return { kind: "data" as const, employee: readback.employee };
+}
+
+export async function updateHrxEmployee(employeeId: string | null | undefined, form: HrxClientRecord) {
+  if (!employeeId) return { kind: "empty" as const };
+  const result = await requestJson(`/api/hrx/employees/${encodeURIComponent(employeeId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(form)
+  });
+  if (result.kind !== "data" || result.body.outcome !== "updated" || !result.body.employee) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYEE_UPDATE_FAILED",
+      status: result.status ?? null
+    };
+  }
+  const readback = await fetchHrxEmployeeProfile(employeeId);
+  if (readback.kind !== "data") {
+    return { kind: "error" as const, reason: "HRX_EMPLOYEE_READBACK_FAILED", status: null };
+  }
+  return { kind: "data" as const, employee: readback.employee };
+}
+
+export async function fetchHrxOrgChart(options: HrxRequestOptions & { asOf?: string | null } = {}) {
+  const { asOf, ...requestOptions } = options;
+  const result = await requestJson(withQuery("/api/hrx/org-chart", { as_of: asOf }), requestOptions);
   if (result.kind === "guarded") {
     return {
       kind: "guarded" as const,
@@ -331,6 +454,7 @@ export async function fetchHrxOrgChart(options: HrxRequestOptions = {}) {
       employees: [],
       reporting_lines: [],
       change_events: [],
+      scheduled_changes: [],
       claim_boundary: result.body?.claim_boundary ?? null
     };
   }
@@ -344,20 +468,29 @@ export async function fetchHrxOrgChart(options: HrxRequestOptions = {}) {
     employees: result.body.employees,
     reporting_lines: Array.isArray(result.body.reporting_lines) ? result.body.reporting_lines : [],
     change_events: Array.isArray(result.body.change_events) ? result.body.change_events : [],
+    scheduled_changes: Array.isArray(result.body.scheduled_changes) ? result.body.scheduled_changes : [],
+    as_of: result.body.as_of ?? asOf ?? null,
     claim_boundary: result.body.claim_boundary ?? null
   };
 }
 
-export async function updateHrxReportingLine(employeeId: string | null | undefined, form: { org_unit_id?: string | null; manager_employee_id?: string | null } = {}) {
+export async function updateHrxReportingLine(employeeId: string | null | undefined, form: { org_unit_id?: string | null; manager_employee_id?: string | null; effective_from?: string | null } = {}) {
   if (!employeeId) return { kind: "empty" };
   const result = await requestJson(`/api/hrx/org-chart/employees/${encodeURIComponent(employeeId)}`, {
     method: "PATCH",
     body: JSON.stringify({
       org_unit_id: form.org_unit_id ?? null,
-      manager_employee_id: form.manager_employee_id ?? null
+      manager_employee_id: form.manager_employee_id ?? null,
+      effective_from: form.effective_from ?? currentDateKey()
     })
   });
-  if (result.kind !== "data" || result.body.outcome !== "updated") return { kind: "error" };
+  if (result.kind !== "data" || result.body.outcome !== "updated") {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_ORG_UPDATE_FAILED",
+      status: result.status ?? null
+    };
+  }
   return {
     kind: "data",
     employment_profile: result.body.employment_profile ?? null,
@@ -381,16 +514,130 @@ export async function fetchHrxEmployeeProfile(employeeId: string | null | undefi
   };
 }
 
+export async function fetchHrxEmploymentProfiles(employeeId: string | null | undefined, asOf = currentDateKey()) {
+  if (!employeeId) return { kind: "empty" as const };
+  const result = await requestJson(withQuery(
+    `/api/hrx/employees/${encodeURIComponent(employeeId)}/employment-profiles`,
+    { as_of: asOf }
+  ));
+  if (result.kind !== "data" || !Array.isArray(result.body.employment_profiles)) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYMENT_PROFILES_READ_FAILED",
+      status: result.status ?? null
+    };
+  }
+  return {
+    kind: "data" as const,
+    as_of: result.body.as_of ?? asOf,
+    current: result.body.current ?? null,
+    past: Array.isArray(result.body.past) ? result.body.past : [],
+    scheduled: Array.isArray(result.body.scheduled) ? result.body.scheduled : [],
+    employment_profiles: result.body.employment_profiles
+  };
+}
+
+export async function createHrxEmploymentProfile(
+  employeeId: string | null | undefined,
+  form: HrxClientRecord,
+  asOf = currentDateKey()
+) {
+  if (!employeeId) return { kind: "empty" as const };
+  const result = await requestJson(withQuery(
+    `/api/hrx/employees/${encodeURIComponent(employeeId)}/employment-profiles`,
+    { as_of: asOf }
+  ), {
+    method: "POST",
+    body: JSON.stringify(form)
+  });
+  if (result.kind !== "data" || result.body.outcome !== "created") {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYMENT_PROFILE_CREATE_FAILED",
+      status: result.status ?? null
+    };
+  }
+  return fetchHrxEmploymentProfiles(employeeId, asOf);
+}
+
+export async function fetchHrxEmployeeUserLinks(employeeId: string | null | undefined) {
+  if (!employeeId) return { kind: "empty" as const };
+  const result = await requestJson(withQuery("/api/hrx/employee-user-links", { employee_id: employeeId }));
+  if (result.kind !== "data" || !Array.isArray(result.body.links)) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYEE_USER_LINKS_READ_FAILED",
+      status: result.status ?? null
+    };
+  }
+  return {
+    kind: "data" as const,
+    links: result.body.links,
+    candidates: Array.isArray(result.body.candidates) ? result.body.candidates : [],
+    can_manage: result.body.can_manage === true
+  };
+}
+
+export async function createHrxEmployeeUserLink(
+  employeeId: string | null | undefined,
+  userId: string,
+  linkId?: string
+) {
+  if (!employeeId) return { kind: "empty" as const };
+  const generatedLinkId = linkId || `hrx_link_${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`}`;
+  const result = await requestJson("/api/hrx/employee-user-links", {
+    method: "POST",
+    body: JSON.stringify({
+      link_id: generatedLinkId,
+      employee_id: employeeId,
+      user_id: userId,
+      purpose: "login_mapping"
+    })
+  });
+  if (result.kind !== "data" || result.body.outcome !== "created") {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYEE_USER_LINK_CREATE_FAILED",
+      status: result.status ?? null
+    };
+  }
+  return fetchHrxEmployeeUserLinks(employeeId);
+}
+
+export async function revokeHrxEmployeeUserLink(
+  employeeId: string | null | undefined,
+  linkId: string
+) {
+  if (!employeeId || !linkId) return { kind: "empty" as const };
+  const result = await requestJson(`/api/hrx/employee-user-links/${encodeURIComponent(linkId)}/revoke`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  if (result.kind !== "data" || result.body.outcome !== "revoked") {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? "HRX_EMPLOYEE_USER_LINK_REVOKE_FAILED",
+      status: result.status ?? null
+    };
+  }
+  return fetchHrxEmployeeUserLinks(employeeId);
+}
+
 export async function fetchHrxCompensationRecords(employeeId: string | null | undefined) {
   if (!employeeId) return { kind: "empty" };
-  const result = await requestJson(withQuery("/api/hrx/compensation", { employee_id: employeeId }));
+  const result = await requestJson(withQuery("/api/hrx/compensation", { employee_id: employeeId }), {
+    stepUpPurpose: "compensation_access",
+  });
   if (result.kind === "step_up_required") return result;
-  if (result.kind !== "data" || !Array.isArray(result.body.compensation_records)) return { kind: "error" };
+  if (result.kind === "guarded") return result;
+  if (result.kind !== "data" || !Array.isArray(result.body.compensation_records)) {
+    return { kind: "error" as const, reason: result.reason ?? "HRX_COMPENSATION_READ_FAILED", status: result.status };
+  }
   return {
-    kind: "data",
-    compensation_records: result.body.compensation_records,
+    kind: "data" as const,
+    compensation_records: result.body.compensation_records as HrxCompensationRecord[],
     masked_compensation_ref: result.body.masked_compensation_ref ?? null,
-    payroll_runtime_opened: result.body.payroll_runtime_opened === true
+    payroll_runtime_opened: result.body.payroll_runtime_opened === true,
   };
 }
 
@@ -404,6 +651,7 @@ export async function fetchHrxAttendance(options: HrxQueryParams & { ctx?: strin
       outcome: result.body?.outcome ?? null,
       attendance: Array.isArray(result.body?.attendance) ? result.body.attendance : [],
       monthly_summary: result.body?.monthly_summary ?? null,
+      self_employee_id: result.body?.self_employee_id ?? null,
       permission_summary: result.body?.permission_summary ?? null,
       safeErrorCodes: result.body?.safe_error_codes ?? []
     };
@@ -412,7 +660,8 @@ export async function fetchHrxAttendance(options: HrxQueryParams & { ctx?: strin
   return {
     kind: "data" as const,
     attendance: result.body.attendance,
-    monthly_summary: result.body.monthly_summary ?? null
+    monthly_summary: result.body.monthly_summary ?? null,
+    self_employee_id: result.body.self_employee_id ?? null
   };
 }
 
@@ -438,10 +687,121 @@ export async function correctHrxAttendanceRecord(attendanceId: string, form: Hrx
   return { kind: "data" as const, attendance: result.body.attendance };
 }
 
+export async function fetchHrxAttendanceCorrectionRequests(employeeId?: string | null) {
+  const result = await requestJson(withQuery("/api/hrx/attendance/correction-requests", {
+    employee_id: employeeId
+  }));
+  if (result.kind !== "data" || !Array.isArray(result.body.correction_requests)) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? null,
+      body: result.body ?? {},
+      status: result.status
+    };
+  }
+  return {
+    kind: "data" as const,
+    correctionRequests: result.body.correction_requests
+  };
+}
+
+export async function requestHrxAttendanceCorrection(attendanceId: string, form: HrxClientRecord) {
+  const result = await requestJson(
+    `/api/hrx/attendance/${encodeURIComponent(attendanceId)}/correction-requests`,
+    {
+      method: "POST",
+      body: JSON.stringify(form)
+    }
+  );
+  if (result.kind !== "data" || !result.body.correction_request) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? null,
+      body: result.body ?? {},
+      status: result.status
+    };
+  }
+  return {
+    kind: "data" as const,
+    correctionRequest: result.body.correction_request
+  };
+}
+
+export async function decideHrxAttendanceCorrection(
+  correctionRequestId: string,
+  decision: "approve" | "reject",
+  form: HrxClientRecord
+) {
+  const result = await requestJson(
+    `/api/hrx/attendance/correction-requests/${encodeURIComponent(correctionRequestId)}/${decision}`,
+    {
+      method: "POST",
+      body: JSON.stringify(form)
+    }
+  );
+  if (result.kind !== "data" || !result.body.correction_request) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? null,
+      body: result.body ?? {},
+      status: result.status
+    };
+  }
+  return {
+    kind: "data" as const,
+    correctionRequest: result.body.correction_request,
+    attendance: result.body.attendance ?? null
+  };
+}
+
 export async function fetchHrxOvertimeRisk(options: HrxQueryParams = {}) {
   const result = await requestJson(withQuery("/api/hrx/overtime/risks", options));
   if (result.kind !== "data" || !result.body.risk_report) return { kind: "error" as const };
   return { kind: "data" as const, risk_report: result.body.risk_report };
+}
+
+export async function fetchHrxOvertime(options: HrxQueryParams = {}) {
+  const result = await requestJson(withQuery("/api/hrx/overtime", options));
+  if (result.kind === "guarded") {
+    return {
+      kind: "guarded" as const,
+      uiState: result.body?.ui_state ?? "denied",
+      overtime: Array.isArray(result.body?.overtime) ? result.body.overtime : [],
+    };
+  }
+  if (result.kind !== "data" || !Array.isArray(result.body.overtime)) {
+    return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+  }
+  return { kind: "data" as const, overtime: result.body.overtime };
+}
+
+export async function createHrxOvertimeRequest(form: HrxClientRecord) {
+  const result = await requestJson("/api/hrx/overtime", {
+    method: "POST",
+    body: JSON.stringify(form),
+  });
+  if (result.kind !== "data" || !result.body.overtime) {
+    return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+  }
+  return { kind: "data" as const, overtime: result.body.overtime };
+}
+
+export async function decideHrxOvertimeRequest(
+  overtimeId: string,
+  decision: "approve" | "reject",
+  form: HrxClientRecord,
+) {
+  const result = await requestJson(
+    `/api/hrx/overtime/${encodeURIComponent(overtimeId)}/${decision}`,
+    {
+      method: "POST",
+      body: JSON.stringify(form),
+    },
+  );
+  if (result.kind !== "data" || !result.body.overtime) {
+    return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+  }
+  return { kind: "data" as const, overtime: result.body.overtime };
 }
 
 function guardedLegalPeopleResult(result: HrxApiResult, collectionKey: string) {
@@ -1293,6 +1653,7 @@ export async function fetchRecruitingPipeline() {
   if (result.kind !== "data" || !Array.isArray(result.body.applications)) return { kind: "error" };
   return {
     kind: "data",
+    capabilities: result.body.capabilities ?? {},
     job_openings: result.body.job_openings ?? [],
     candidates: result.body.candidates ?? [],
     applications: result.body.applications,
@@ -1310,150 +1671,61 @@ export async function updateHrxApplicationStage(applicationId: string, stage: st
   return { kind: "data", application: result.body.application };
 }
 
-function formString(form: HrxClientRecord, field: string, fallback = ""): string {
-  const value = form[field];
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
-
-function recruitingSuffix(): string {
-  return new Date().toISOString().replace(/\D/g, "").slice(0, 14);
-}
-
-function scheduledIso(date: string, time: string): string {
-  return `${date || currentDateKey()}T${time || "10:00"}:00.000Z`;
-}
-
-export async function createHrxRecruitingJobOpening(form: HrxClientRecord, ids: Record<string, string>) {
-  return requestJson("/api/hrx/recruiting/job-openings", {
+export async function createHrxRecruitingPipeline(form: HrxClientRecord, idempotencyKey: string) {
+  const result = await requestJson("/api/hrx/recruiting/pipeline", {
     method: "POST",
     body: JSON.stringify({
-      job_opening_id: ids.job_opening_id,
-      title: formString(form, "job_title", "신규 포지션"),
-      department_ref: formString(form, "department_ref", "PracticeGroup:litigation"),
-      hiring_manager_employee_id: formString(form, "hiring_manager_employee_id", "emp-001"),
-      position_count: Number(form.position_count ?? 1),
-      state: "open",
-      approval_ref: ids.approval_ref,
-      opened_at: new Date().toISOString()
+      idempotency_key: idempotencyKey,
+      job_title: form.job_title,
+      department_ref: form.department_ref,
+      position_count: Number(form.position_count),
+      hiring_manager_employee_id: form.hiring_manager_employee_id,
+      candidate_name: form.candidate_name,
+      candidate_email: form.candidate_email,
+      interviewer_employee_id: form.interviewer_employee_id,
+      interview_date: form.interview_date,
+      interview_time: form.interview_time,
+      consent_expires_at: form.consent_expires_at,
+      retention_expires_at: form.retention_expires_at
     })
   });
-}
-
-export async function createHrxRecruitingCandidate(form: HrxClientRecord, ids: Record<string, string>) {
-  return requestJson("/api/hrx/recruiting/candidates", {
-    method: "POST",
-    body: JSON.stringify({
-      candidate_id: ids.candidate_id,
-      legal_name: formString(form, "candidate_name", "신규 지원자"),
-      email: formString(form, "candidate_email", ""),
-      source_ref: formString(form, "source_ref", `ATS:lawos-ui:${ids.suffix}`),
-      resume_ref: formString(form, "resume_ref", `vault-resume:${ids.suffix}`),
-      retention_policy_id: formString(form, "retention_policy_id", "candidate-retention-2y"),
-      consent: {
-        consent_id: ids.consent_id,
-        candidate_id: ids.candidate_id,
-        purpose: "recruiting_processing",
-        granted_at: new Date().toISOString(),
-        evidence_ref: formString(form, "consent_evidence_ref", `ConsentEvidence:lawos-ui:${ids.suffix}`)
-      }
-    })
-  });
-}
-
-export async function createHrxRecruitingApplication(form: HrxClientRecord, ids: Record<string, string>) {
-  return requestJson("/api/hrx/recruiting/applications", {
-    method: "POST",
-    body: JSON.stringify({
-      application_id: ids.application_id,
-      candidate_id: ids.candidate_id,
-      job_opening_id: ids.job_opening_id,
-      submitted_at: new Date().toISOString()
-    })
-  });
-}
-
-export async function createHrxRecruitingInterview(form: HrxClientRecord, ids: Record<string, string>) {
-  return requestJson("/api/hrx/recruiting/interviews", {
-    method: "POST",
-    body: JSON.stringify({
-      interview_id: ids.interview_id,
-      application_id: ids.application_id,
-      candidate_id: ids.candidate_id,
-      scheduled_for: scheduledIso(formString(form, "interview_date", currentDateKey()), formString(form, "interview_time", "10:00")),
-      schedule_source_ref: formString(form, "schedule_source_ref", `CalendarEvent:${ids.interview_id}`),
-      interviewer_employee_ids: [formString(form, "interviewer_employee_id", formString(form, "hiring_manager_employee_id", "emp-001"))]
-    })
-  });
-}
-
-export async function createHrxRecruitingOffer(form: HrxClientRecord, ids: Record<string, string>) {
-  return requestJson("/api/hrx/recruiting/offers", {
-    method: "POST",
-    body: JSON.stringify({
-      offer_id: ids.offer_id,
-      application_id: ids.application_id,
-      candidate_id: ids.candidate_id,
-      compensation_ref: formString(form, "compensation_ref", `CompPackage:${ids.offer_id}`),
-      document_ref: formString(form, "offer_document_ref", `vault-offer-letter:${ids.suffix}`),
-      state: "sent",
-      approval_ref: ids.approval_ref
-    })
-  });
-}
-
-export async function createHrxRecruitingPipeline(form: HrxClientRecord) {
-  const suffix = recruitingSuffix();
-  const ids = {
-    suffix,
-    approval_ref: `Approval:recruiting:${suffix}`,
-    job_opening_id: `job_ui_${suffix}`,
-    candidate_id: `cand_ui_${suffix}`,
-    consent_id: `consent_ui_${suffix}`,
-    application_id: `app_ui_${suffix}`,
-    interview_id: `int_ui_${suffix}`,
-    offer_id: `offer_ui_${suffix}`
-  };
-  const steps = [
-    ["job_opening", () => createHrxRecruitingJobOpening(form, ids)],
-    ["candidate", () => createHrxRecruitingCandidate(form, ids)],
-    ["application", () => createHrxRecruitingApplication(form, ids)],
-    ["interview", () => createHrxRecruitingInterview(form, ids)],
-    ["offer", () => createHrxRecruitingOffer(form, ids)]
-  ] as const;
-  const created: HrxClientRecord = {};
-  for (const [step, run] of steps) {
-    const result = await run();
-    if (result.kind !== "data") return { kind: "error", step };
-    created[step] = result.body;
+  if (result.kind !== "data" || !result.body.ids) {
+    return {
+      kind: "error" as const,
+      reason: result.kind === "error" ? result.reason ?? null : null
+    };
   }
-  return { kind: "data", ids, created };
+  return { kind: "data" as const, ids: result.body.ids };
 }
 
-export async function updateHrxOfferStage(offerId: string, state: string, approvalRef?: string) {
+export async function updateHrxOfferStage(offerId: string, state: string) {
   const result = await requestJson(`/api/hrx/recruiting/offers/${encodeURIComponent(offerId)}/stage`, {
     method: "POST",
-    body: JSON.stringify({ state, approval_ref: approvalRef })
+    body: JSON.stringify({ state })
   });
   if (result.kind !== "data" || !result.body.offer) return { kind: "error" };
   return { kind: "data", offer: result.body.offer };
 }
 
-export async function convertHrxApplicationToEmployee(applicationId: string, form: HrxClientRecord, refs: HrxClientRecord = {}) {
-  const suffix = String(refs.suffix ?? recruitingSuffix());
+export async function convertHrxApplicationToEmployee(applicationId: string, form: HrxClientRecord) {
+  const effectiveFrom = typeof form.effective_from === "string" ? form.effective_from.trim() : "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom)) {
+    return { kind: "error" as const, reason: "HRX_CANDIDATE_CONVERSION_EFFECTIVE_DATE_REQUIRED" };
+  }
   const result = await requestJson(`/api/hrx/recruiting/applications/${encodeURIComponent(applicationId)}/convert-to-employee`, {
     method: "POST",
     body: JSON.stringify({
-      approval_ref: formString(form, "conversion_approval_ref", `Approval:employee-conversion:${suffix}`),
-      employee_id: formString(form, "employee_id", `emp_ui_${suffix}`),
-      profile_id: formString(form, "profile_id", `profile_ui_${suffix}`),
-      title: formString(form, "employee_title", formString(form, "job_title", "구성원")),
-      org_unit_id: formString(form, "org_unit_id", "org_legal"),
-      manager_employee_id: formString(form, "manager_employee_id", formString(form, "hiring_manager_employee_id", "emp-001")),
-      effective_from: formString(form, "effective_from", currentDateKey())
+      idempotency_key: `candidate-conversion:${applicationId}`,
+      effective_from: effectiveFrom
     })
   });
   if (result.kind !== "data" || !result.body.conversion) return { kind: "error" };
-  return { kind: "data", conversion: result.body.conversion };
+  return {
+    kind: "data",
+    conversion: result.body.conversion,
+    receipt: result.body.receipt ?? null,
+    replayed: result.body.replayed === true
+  };
 }
 
 export async function fetchHrxLifecycleBoard() {
@@ -1476,16 +1748,36 @@ export async function fetchHrxLifecycleBoard() {
   };
 }
 
-export async function updateHrxOnboardingTask(onboardingId: string, taskId: string, status: string) {
+export async function updateHrxOnboardingTask(
+  onboardingId: string,
+  taskId: string,
+  patch: string | HrxClientRecord
+) {
   const result = await requestJson(
     `/api/hrx/lifecycle/onboarding/${encodeURIComponent(onboardingId)}/tasks/${encodeURIComponent(taskId)}`,
     {
       method: "POST",
-      body: JSON.stringify({ status })
+      body: JSON.stringify(typeof patch === "string" ? { status: patch } : patch)
     }
   );
   if (result.kind !== "data" || !result.body.onboarding) return { kind: "error" };
   return { kind: "data", onboarding: result.body.onboarding };
+}
+
+export async function updateHrxOffboardingTask(
+  offboardingId: string,
+  taskId: string,
+  patch: string | HrxClientRecord
+) {
+  const result = await requestJson(
+    `/api/hrx/lifecycle/offboarding/${encodeURIComponent(offboardingId)}/tasks/${encodeURIComponent(taskId)}`,
+    {
+      method: "POST",
+      body: JSON.stringify(typeof patch === "string" ? { status: patch } : patch)
+    }
+  );
+  if (result.kind !== "data" || !result.body.offboarding) return { kind: "error" };
+  return { kind: "data", offboarding: result.body.offboarding };
 }
 
 export async function closeHrxOffboardingCase(offboardingId: string) {
@@ -1496,7 +1788,12 @@ export async function closeHrxOffboardingCase(offboardingId: string) {
   if (result.kind !== "data" || !result.body.offboarding) {
     return { kind: "error", reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
   }
-  return { kind: "data", offboarding: result.body.offboarding };
+  return {
+    kind: "data",
+    offboarding: result.body.offboarding,
+    operationalClose: result.body.operational_close ?? null,
+    accountRevocation: result.body.account_revocation ?? null
+  };
 }
 
 export async function fetchHrxRiskEvents() {
@@ -1621,6 +1918,7 @@ export async function createHrxPayrollPreview(form: HrxClientRecord) {
     .filter(Boolean);
   const result = await requestJson("/api/hrx/payroll/preview", {
     method: "POST",
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
     body: JSON.stringify({
       preview_id: `payroll-preview-${Date.now()}`,
       payroll_period: form.payroll_period,
@@ -1635,6 +1933,7 @@ export async function createHrxPayrollPreview(form: HrxClientRecord) {
 export async function approveHrxPayrollPreview(previewId: string) {
   const result = await requestJson("/api/hrx/payroll/approve", {
     method: "POST",
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
     body: JSON.stringify({
       preview_id: previewId,
       approval_ref: `Approval:${previewId}`
@@ -1647,6 +1946,7 @@ export async function approveHrxPayrollPreview(previewId: string) {
 export async function exportHrxPayrollArtifact(previewId: string, exportArtifactRef: string | null | undefined) {
   const result = await requestJson("/api/hrx/payroll/export", {
     method: "POST",
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
     body: JSON.stringify({
       preview_id: previewId,
       export_artifact_ref: exportArtifactRef || `문서:${previewId}:내보내기-파일`,
@@ -1659,6 +1959,15 @@ export async function exportHrxPayrollArtifact(previewId: string, exportArtifact
 
 function payrollRuntimeResult(result: HrxApiResult, field: "workspace" | "bundle") {
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
+  if (result.kind === "guarded") {
+    const safeCodes = Array.isArray(result.body.safe_error_codes) ? result.body.safe_error_codes : [];
+    return {
+      kind: "error" as const,
+      reason: result.body.safe_error_code ?? safeCodes[0] ?? "HRX_AUTHZ_DENIED",
+      body: result.body,
+      status: result.status,
+    };
+  }
   if (result.kind !== "data" || !result.body[field]) {
     return { kind: "error" as const, reason: result.reason ?? null, body: result.body ?? {}, status: result.status };
   }
@@ -1680,73 +1989,237 @@ function payrollDashboardSummaryResult(result: HrxApiResult) {
   return { kind: "data" as const, summary: result.body.summary };
 }
 
+export type HrxPayrollItem = {
+  item_id: string;
+  code: string;
+  display_name: string;
+  kind: "earning" | "deduction";
+  tax_treatment: "taxable" | "non_taxable";
+  value_mode: "fixed" | "variable";
+  calculation_order: number;
+  effective_from: string;
+  effective_to: string | null;
+  status: "active" | "inactive";
+  state_version: number;
+};
+
+export type HrxCompensationRecord = {
+  compensation_id: string;
+  employee_id: string;
+  masked_compensation_ref: string;
+  encrypted_amount_ref_included: false;
+  raw_amount_included: false;
+  currency_ref: string | null;
+  effective_from: string;
+  effective_to: string | null;
+};
+
+export type HrxPayrollItemAssignment = {
+  assignment_id: string;
+  payroll_profile_id: string;
+  employee_id: string;
+  item_id: string;
+  version: number;
+  masked_compensation_ref: string;
+  encrypted_amount_ref_included: false;
+  raw_amount_included: false;
+  effective_from: string;
+  effective_to: string | null;
+  status: "active" | "inactive";
+};
+
+export type HrxPayrollProfile = {
+  payroll_profile_id: string;
+  employee_id: string;
+  employment_type: "monthly" | "hourly" | "daily" | "freelancer";
+  pay_group_code: string;
+  currency: "KRW";
+  compensation_unit: "period" | "hour" | "day" | "contract" | "deliverable";
+  compensation_quantity: number;
+  effective_from: string;
+  effective_to: string | null;
+  status: "active" | "inactive";
+  state_version: number;
+  assignments: HrxPayrollItemAssignment[];
+};
+
 function payrollCatalogResult(result: HrxApiResult, field: "items" | "item" | "profiles" | "profile" | "assignment" | "approval_receipt") {
   if (result.kind === "step_up_required") return { ...result, kind: "step_up_required" as const };
-  if (result.kind !== "data" || !result.body[field]) return { kind: "error" as const, reason: result.reason ?? null, status: result.status };
+  if (result.kind === "guarded") {
+    const safeCodes = Array.isArray(result.body.safe_error_codes) ? result.body.safe_error_codes : [];
+    return {
+      kind: "guarded" as const,
+      uiState: result.body.ui_state ?? "denied",
+      reason: result.body.safe_error_code ?? safeCodes[0] ?? "HRX_AUTHZ_DENIED",
+      status: result.status,
+    };
+  }
+  if (result.kind !== "data" || !result.body[field]) {
+    return {
+      kind: "error" as const,
+      reason: result.reason ?? result.body?.safe_error_code ?? "HRX_PAYROLL_CATALOG_REQUEST_FAILED",
+      status: result.status,
+    };
+  }
   return { kind: "data" as const, [field]: result.body[field] };
 }
 
 export async function fetchHrxPayrollItems(includeInactive = false) {
-  return payrollCatalogResult(await requestJson(withQuery("/api/hrx/payroll/items", { include_inactive: includeInactive })), "items");
+  return payrollCatalogResult(await requestJson(withQuery("/api/hrx/payroll/items", { include_inactive: includeInactive }), {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "items");
 }
 
 export async function createHrxPayrollItem(form: HrxClientRecord) {
-  return payrollCatalogResult(await requestJson("/api/hrx/payroll/items", { method: "POST", body: JSON.stringify(form) }), "item");
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/items", {
+    method: "POST",
+    body: JSON.stringify(form),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "item");
 }
 
 export async function updateHrxPayrollItem(itemId: string, form: HrxClientRecord) {
-  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/items/${encodeURIComponent(itemId)}`, { method: "PATCH", body: JSON.stringify(form) }), "item");
+  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/items/${encodeURIComponent(itemId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(form),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "item");
 }
 
 export async function fetchHrxPayrollSelfProfile() {
-  return payrollCatalogResult(await requestJson("/api/hrx/payroll/me/profile"), "profiles");
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/me/profile", {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "profiles");
 }
 
-export async function fetchHrxPayrollProfile(employeeId: string, onDate?: string) {
-  return payrollCatalogResult(await requestJson(withQuery(`/api/hrx/payroll/profiles/${encodeURIComponent(employeeId)}`, { on_date: onDate })), "profiles");
+export async function fetchHrxPayrollProfile(employeeId: string, onDate?: string, includeHistory = false) {
+  return payrollCatalogResult(await requestJson(withQuery(`/api/hrx/payroll/profiles/${encodeURIComponent(employeeId)}`, {
+    on_date: onDate,
+    include_history: includeHistory,
+  }), { stepUpPurpose: PAYROLL_EXPORT_REVIEW }), "profiles");
 }
 
 export async function createHrxPayrollProfile(form: HrxClientRecord) {
-  return payrollCatalogResult(await requestJson("/api/hrx/payroll/profiles", { method: "POST", body: JSON.stringify(form) }), "profile");
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/profiles", {
+    method: "POST",
+    body: JSON.stringify(form),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "profile");
+}
+
+export async function updateHrxPayrollProfile(profileId: string, form: HrxClientRecord) {
+  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/profiles/${encodeURIComponent(profileId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(form),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "profile");
 }
 
 export async function assignHrxPayrollItem(profileId: string, form: HrxClientRecord) {
-  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/profiles/${encodeURIComponent(profileId)}/assignments`, { method: "POST", body: JSON.stringify(form) }), "assignment");
+  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/profiles/${encodeURIComponent(profileId)}/assignments`, {
+    method: "POST",
+    body: JSON.stringify(form),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "assignment");
+}
+
+export async function retireHrxPayrollItemAssignment(profileId: string, assignmentId: string, expectedVersion: number) {
+  return payrollCatalogResult(await requestJson(`/api/hrx/payroll/profiles/${encodeURIComponent(profileId)}/assignments/${encodeURIComponent(assignmentId)}/retire`, {
+    method: "POST",
+    body: JSON.stringify({ expected_version: expectedVersion }),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "assignment");
 }
 
 export async function approveHrxPayrollAttendance(form: HrxClientRecord) {
-  return payrollCatalogResult(await requestJson("/api/hrx/payroll/attendance-approvals", { method: "POST", body: JSON.stringify(form) }), "approval_receipt");
+  return payrollCatalogResult(await requestJson("/api/hrx/payroll/attendance-approvals", {
+    method: "POST",
+    body: JSON.stringify(form),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "approval_receipt");
 }
 
 export async function fetchHrxPayrollWorkspace() {
-  return payrollRuntimeResult(await requestJson("/api/hrx/payroll/periods"), "workspace");
+  return payrollRuntimeResult(await requestJson("/api/hrx/payroll/periods", {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "workspace");
+}
+
+export async function createHrxPayrollPeriod(form: HrxClientRecord) {
+  return payrollOperationResult(
+    await requestJson("/api/hrx/payroll/periods", {
+      method: "POST",
+      body: JSON.stringify(form),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "period",
+  );
+}
+
+export async function createHrxPayrollRun(form: HrxClientRecord) {
+  return payrollOperationResult(
+    await requestJson("/api/hrx/payroll/runs", {
+      method: "POST",
+      body: JSON.stringify(form),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "run",
+  );
+}
+
+export async function createHrxPayrollAdjustmentRun(form: HrxClientRecord) {
+  return payrollOperationResult(
+    await requestJson("/api/hrx/payroll/runs", {
+      method: "POST",
+      body: JSON.stringify({ ...form, run_type: "adjustment" }),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "run",
+  );
 }
 
 export async function fetchHrxPayrollDashboardSummary(month: string) {
-  return payrollDashboardSummaryResult(await requestJson(withQuery("/api/hrx/payroll/dashboard-summary", { month })));
+  return payrollDashboardSummaryResult(await requestJson(
+    withQuery("/api/hrx/payroll/dashboard-summary", { month }),
+    { stepUpPurpose: PAYROLL_EXPORT_REVIEW },
+  ));
 }
 
 export async function fetchHrxPayrollRun(runId: string) {
-  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}`), "bundle");
+  return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}`, {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "bundle");
+}
+
+export async function fetchHrxPayrollClosePrecheck(runId: string) {
+  return payrollOperationResult(
+    await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/precheck`, {
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "precheck",
+  );
 }
 
 export async function captureHrxPayrollRun(runId: string) {
   return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/snapshot`, {
     method: "POST",
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
   }), "bundle");
 }
 
 export async function previewHrxPayrollRun(runId: string) {
   return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/preview`, {
     method: "POST",
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
   }), "bundle");
 }
 
 export async function resolveHrxPayrollIssue(issueId: string, expectedVersion: number) {
   const result = await requestJson(`/api/hrx/payroll/issues/${encodeURIComponent(issueId)}/resolve`, {
     method: "POST",
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
     body: JSON.stringify({
       expected_version: expectedVersion,
       state: "resolved",
@@ -1763,14 +2236,16 @@ export async function resolveHrxPayrollIssue(issueId: string, expectedVersion: n
 export async function approveHrxPayrollRun(runId: string) {
   return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/approve`, {
     method: "POST",
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
   }), "bundle");
 }
 
 export async function closeHrxPayrollRun(runId: string) {
   return payrollRuntimeResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/close`, {
     method: "POST",
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
   }), "bundle");
 }
 
@@ -1780,84 +2255,440 @@ function payrollOperationResult(result: HrxApiResult, field: string) {
   return { kind: "data" as const, [field]: result.body[field] };
 }
 
+export async function fetchHrxPayrollAllowanceRules() {
+  return payrollOperationResult(await requestJson("/api/hrx/payroll/rules", {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "rules");
+}
+
+export async function createHrxPayrollAllowanceRule(form: HrxClientRecord) {
+  return payrollOperationResult(
+    await requestJson("/api/hrx/payroll/rules", {
+      method: "POST",
+      body: JSON.stringify(form),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "rule",
+  );
+}
+
+export async function reviewHrxPayrollAllowanceRule(ruleVersionId: string, expectedVersion: number) {
+  return payrollOperationResult(
+    await requestJson(`/api/hrx/payroll/rules/${encodeURIComponent(ruleVersionId)}/review`, {
+      method: "POST",
+      body: JSON.stringify({ expected_version: expectedVersion }),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "rule",
+  );
+}
+
+export async function publishHrxPayrollAllowanceRule(ruleVersionId: string, expectedVersion: number) {
+  return payrollOperationResult(
+    await requestJson(`/api/hrx/payroll/rules/${encodeURIComponent(ruleVersionId)}/publish`, {
+      method: "POST",
+      body: JSON.stringify({ expected_version: expectedVersion }),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "rule",
+  );
+}
+
+export async function fetchHrxMinimumWageStandards() {
+  const result = await requestJson("/api/hrx/payroll/minimum-wage", {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  });
+  const operation = payrollOperationResult(result, "standards");
+  if (operation.kind !== "data") return operation;
+  return {
+    kind: "data" as const,
+    standards: result.body.standards,
+    permissions: objectRecord(result.body.permissions) ?? {},
+  };
+}
+
+export async function createHrxMinimumWageStandard(form: HrxClientRecord) {
+  return payrollOperationResult(
+    await requestJson("/api/hrx/payroll/minimum-wage", {
+      method: "POST",
+      body: JSON.stringify(form),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "standard",
+  );
+}
+
+export async function legallyApproveHrxMinimumWageStandard(ruleVersionId: string, expectedVersion: number, legalReviewRef: string) {
+  return payrollOperationResult(
+    await requestJson(`/api/hrx/payroll/minimum-wage/${encodeURIComponent(ruleVersionId)}/legal-approve`, {
+      method: "POST",
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+      body: JSON.stringify({
+        expected_version: expectedVersion,
+        legal_review_ref: legalReviewRef,
+      }),
+    }),
+    "standard",
+  );
+}
+
+export async function reviewHrxMinimumWageStandard(ruleVersionId: string, expectedVersion: number) {
+  return payrollOperationResult(
+    await requestJson(`/api/hrx/payroll/minimum-wage/${encodeURIComponent(ruleVersionId)}/review`, {
+      method: "POST",
+      body: JSON.stringify({ expected_version: expectedVersion }),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "standard",
+  );
+}
+
+export async function publishHrxMinimumWageStandard(ruleVersionId: string, expectedVersion: number) {
+  return payrollOperationResult(
+    await requestJson(`/api/hrx/payroll/minimum-wage/${encodeURIComponent(ruleVersionId)}/publish`, {
+      method: "POST",
+      body: JSON.stringify({ expected_version: expectedVersion }),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "standard",
+  );
+}
+
+export async function previewHrxMinimumWageImpact(asOf: string) {
+  return payrollOperationResult(
+    await requestJson("/api/hrx/payroll/minimum-wage/preview", {
+      method: "POST",
+      body: JSON.stringify({ as_of: asOf }),
+      stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+    }),
+    "impact",
+  );
+}
+
 export async function fetchHrxPayrollStatements(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements`), "statements");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements`, {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "statements");
 }
 
 export async function generateHrxPayrollStatements(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements/generate`, { method: "POST", body: "{}" }), "generated");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements/generate`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "generated");
 }
 
 export async function deliverHrxPayrollStatements(runId: string, channel: "email" | "message" | "self_service") {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements/deliver`, { method: "POST", body: JSON.stringify({ channel }) }), "delivery");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/statements/deliver`, {
+    method: "POST",
+    body: JSON.stringify({ channel }),
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "delivery");
 }
 
 export async function exportHrxPayrollRegister(runId: string, format: "csv" | "xlsx") {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/export?format=${format}`), "artifact");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/export?format=${format}`, {
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "artifact");
 }
 
 export async function fetchHrxPayrollStatementsSelf() {
-  return payrollOperationResult(await requestJson("/api/hrx/payroll/statements/self"), "statements");
+  return payrollOperationResult(await requestJson("/api/hrx/payroll/statements/self", {
+    stepUpPurpose: PAYROLL_STATEMENT_SELF_SERVICE,
+  }), "statements");
 }
 
 export async function readHrxPayrollStatement(statementId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/statements/${encodeURIComponent(statementId)}/download`), "artifact");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/statements/${encodeURIComponent(statementId)}/download`, {
+    stepUpPurpose: PAYROLL_STATEMENT_SELF_SERVICE,
+  }), "artifact");
 }
 
 export async function revokeHrxPayrollStatement(statementId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/statements/${encodeURIComponent(statementId)}/revoke`, { method: "POST", body: "{}" }), "statement");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/statements/${encodeURIComponent(statementId)}/revoke`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_EXPORT_REVIEW,
+  }), "statement");
 }
 
 export async function prepareHrxPayrollPayment(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/payments/prepare`, { method: "POST", body: "{}" }), "payment");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/payments/prepare`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_PAYMENT_PROCESSING,
+  }), "payment");
 }
 
 export async function fetchHrxPayrollPayment(batchId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}`), "payment");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}`, {
+    stepUpPurpose: PAYROLL_PAYMENT_PROCESSING,
+  }), "payment");
 }
 
 export async function approveHrxPayrollPayment(batchId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/approve`, { method: "POST", body: "{}" }), "payment");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/approve`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_PAYMENT_PROCESSING,
+  }), "payment");
 }
 
 export async function exportHrxPayrollPayment(batchId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/export`, { method: "POST", body: "{}" }), "artifact");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/export`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_PAYMENT_PROCESSING,
+  }), "artifact");
 }
 
 export async function reconcileHrxPayrollPayment(batchId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/reconcile`, { method: "POST", body: "{}" }), "payment");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/reconcile`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_PAYMENT_PROCESSING,
+  }), "payment");
+}
+
+export async function retryFailedHrxPayrollPayment(batchId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/payment-batches/${encodeURIComponent(batchId)}/retry-failed`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_PAYMENT_PROCESSING,
+  }), "payment");
 }
 
 export async function fetchHrxPayrollFilings(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/filings`), "filings");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/filings`, {
+    stepUpPurpose: PAYROLL_FILING_PROCESSING,
+  }), "filings");
 }
 
 export async function createHrxPayrollFiling(runId: string, filingKind: "withholding" | "payment_statement" | "social_insurance" | "year_end") {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/filings`, { method: "POST", body: JSON.stringify({ filing_kind: filingKind }) }), "filing");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/filings`, {
+    method: "POST",
+    body: JSON.stringify({ filing_kind: filingKind }),
+    stepUpPurpose: PAYROLL_FILING_PROCESSING,
+  }), "filing");
 }
 
 export async function validateHrxPayrollFiling(filingJobId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/validate`, { method: "POST", body: "{}" }), "filing");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/validate`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_FILING_PROCESSING,
+  }), "filing");
 }
 
 export async function submitHrxPayrollFiling(filingJobId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/submit`, { method: "POST", body: "{}" }), "submission");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/submit`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_FILING_PROCESSING,
+  }), "submission");
 }
 
-export async function correctHrxPayrollFiling(filingJobId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/correct`, { method: "POST", body: "{}" }), "filing");
+export async function correctHrxPayrollFiling(filingJobId: string, replacementRunId: string) {
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/filings/${encodeURIComponent(filingJobId)}/correct`, {
+    method: "POST",
+    body: JSON.stringify({ replacement_run_id: replacementRunId }),
+    stepUpPurpose: PAYROLL_FILING_PROCESSING,
+  }), "filing");
 }
 
 export async function collectHrxPayrollYearEnd(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/collect`, { method: "POST", body: "{}" }), "year_end");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/collect`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_YEAR_END_PROCESSING,
+  }), "year_end");
 }
 
 export async function calculateHrxPayrollYearEnd(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/calculate`, { method: "POST", body: "{}" }), "year_end");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/calculate`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_YEAR_END_PROCESSING,
+  }), "year_end");
 }
 
 export async function reviewHrxPayrollYearEnd(runId: string) {
-  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/review`, { method: "POST", body: "{}" }), "year_end");
+  return payrollOperationResult(await requestJson(`/api/hrx/payroll/runs/${encodeURIComponent(runId)}/year-end/review`, {
+    method: "POST",
+    body: "{}",
+    stepUpPurpose: PAYROLL_YEAR_END_REVIEW,
+  }), "year_end");
+}
+
+export function parsePeopleSourceEnvelope(value: unknown) {
+  const envelope = objectRecord(value);
+  const data = objectRecord(envelope?.data);
+  const sourceStatus = Array.isArray(envelope?.source_status) ? envelope.source_status : null;
+  if (
+    envelope?.schema_version !== PEOPLE_SOURCE_ENVELOPE_SCHEMA_VERSION
+    || typeof envelope.as_of !== "string"
+    || !Number.isFinite(Date.parse(envelope.as_of))
+    || typeof envelope.timezone !== "string"
+    || !PEOPLE_SOURCE_STATES.has(String(envelope.state))
+    || !sourceStatus
+    || !data
+  ) {
+    return { kind: "error" as const, reason: "PEOPLE_SOURCE_ENVELOPE_INVALID" };
+  }
+  const normalizedStatus = sourceStatus.map((item) => {
+    const status = objectRecord(item);
+    if (
+      !status
+      || typeof status.source !== "string"
+      || !status.source.trim()
+      || !PEOPLE_SOURCE_ITEM_STATES.has(String(status.state))
+    ) return null;
+    return {
+      source: status.source,
+      state: status.state,
+      last_success_at: typeof status.last_success_at === "string" ? status.last_success_at : null,
+      stale_after: typeof status.stale_after === "string" ? status.stale_after : null,
+      safe_error_code: typeof status.safe_error_code === "string" ? status.safe_error_code : null
+    };
+  });
+  if (normalizedStatus.some((item) => item === null)) {
+    return { kind: "error" as const, reason: "PEOPLE_SOURCE_ENVELOPE_INVALID" };
+  }
+  return {
+    kind: "data" as const,
+    envelope: {
+      schema_version: PEOPLE_SOURCE_ENVELOPE_SCHEMA_VERSION,
+      state: envelope.state,
+      as_of: envelope.as_of,
+      timezone: envelope.timezone,
+      source_status: normalizedStatus,
+      data
+    }
+  };
+}
+
+export async function fetchPeopleDailyBrief(employeeId: string | null | undefined) {
+  if (!employeeId) return { kind: "empty" as const };
+  const result = await requestJson(`/api/hrx/people/members/${encodeURIComponent(employeeId)}/daily-brief`);
+  if (result.kind !== "data") {
+    return {
+      kind: "error" as const,
+      status: result.status ?? null,
+      reason: result.reason ?? "PEOPLE_DAILY_BRIEF_REQUEST_FAILED"
+    };
+  }
+  return parsePeopleSourceEnvelope(result.body);
+}
+
+function parsePeopleOutlookConnection(result: HrxApiResult) {
+  if (result.kind !== "data") {
+    return {
+      kind: "error" as const,
+      status: result.status ?? null,
+      reason: result.reason ?? "OUTLOOK_CONNECTION_REQUEST_FAILED"
+    };
+  }
+  const connection = objectRecord(result.body.connection);
+  if (
+    !connection
+    || connection.provider !== "microsoft_graph"
+    || typeof connection.connection_state !== "string"
+    || connection.delegated_scope !== "Calendars.ReadBasic"
+    || Object.keys(connection).some((key) => /(access|refresh)?_?token|secret|credential/i.test(key))
+  ) {
+    return { kind: "error" as const, status: null, reason: "OUTLOOK_CONNECTION_RESPONSE_INVALID" };
+  }
+  const authorizeUrl = connection.authorize_url;
+  const stateRef = connection.state_ref;
+  const hasAuthorization = authorizeUrl !== undefined || stateRef !== undefined;
+  if (hasAuthorization && !isAllowedPeopleOutlookAuthorizeUrl(authorizeUrl)) {
+    return { kind: "error" as const, status: null, reason: "OUTLOOK_AUTHORIZE_URL_NOT_ALLOWED" };
+  }
+  if (
+    hasAuthorization
+    && (
+      connection.connection_state !== "consent_pending"
+      || typeof stateRef !== "string"
+      || !PEOPLE_OUTLOOK_STATE_PATTERN.test(stateRef)
+    )
+  ) {
+    return { kind: "error" as const, status: null, reason: "OUTLOOK_AUTHORIZATION_RESPONSE_INVALID" };
+  }
+  const {
+    authorize_url: _authorizeUrl,
+    state_ref: _stateRef,
+    ...publicConnection
+  } = connection;
+  return {
+    kind: "data" as const,
+    connection: publicConnection,
+    authorization: hasAuthorization
+      ? { authorize_url: authorizeUrl as string, state_ref: stateRef as string }
+      : null
+  };
+}
+
+export function isAllowedPeopleOutlookAuthorizeUrl(value: unknown): value is string {
+  if (typeof value !== "string" || !value.trim() || value.length > 8192) return false;
+  try {
+    const url = new URL(value);
+    const hasSecretParameter = [...url.searchParams.keys()].some((key) => (
+      /^(?:access_token|refresh_token|id_token|client_secret)$/i.test(key)
+    ));
+    return url.protocol === "https:"
+      && url.hostname === PEOPLE_OUTLOOK_AUTHORIZE_HOST
+      && url.username === ""
+      && url.password === ""
+      && (url.port === "" || url.port === "443")
+      && /^\/[^/]+\/oauth2\/v2\.0\/authorize\/?$/.test(url.pathname)
+      && url.hash === ""
+      && !hasSecretParameter;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchPeopleOutlookConnection(employeeId: string | null | undefined) {
+  if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
+  return parsePeopleOutlookConnection(await requestJson(
+    `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`
+  ));
+}
+
+export async function updatePeopleOutlookConnection(
+  employeeId: string | null | undefined,
+  action: "begin" | "retry" | "complete",
+  input: Record<string, unknown> = {},
+) {
+  if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
+  return parsePeopleOutlookConnection(await requestJson(
+    `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
+    {
+      method: "POST",
+      body: JSON.stringify({ action, ...input })
+    }
+  ));
+}
+
+export async function disconnectPeopleOutlookConnection(employeeId: string | null | undefined) {
+  if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
+  return parsePeopleOutlookConnection(await requestJson(
+    `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
+    { method: "DELETE" }
+  ));
+}
+
+export async function fetchPeopleTeamOperations() {
+  const result = await requestJson("/api/hrx/people/team-operations");
+  if (result.kind !== "data") {
+    return {
+      kind: "error" as const,
+      status: result.status ?? null,
+      reason: result.reason ?? "PEOPLE_TEAM_OPERATIONS_REQUEST_FAILED"
+    };
+  }
+  return parsePeopleSourceEnvelope(result.body);
 }
 
 export async function fetchHrxPeopleOverview(options = {}) {

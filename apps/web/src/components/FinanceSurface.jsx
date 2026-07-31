@@ -178,8 +178,13 @@ function SummaryLedger({ totals }) {
             <span>{row.transaction_count}건 · 추론 날짜 {row.date_inferred_count}건</span>
           </header>
           <dl>
+            <div><dt>인식 매출</dt><dd>{moneyLabel(row.revenue_amount, row.currency)}</dd></div>
             <div><dt>청구액</dt><dd>{moneyLabel(row.billed_amount, row.currency)}</dd></div>
-            <div><dt>수납액</dt><dd>{moneyLabel(row.collected_amount, row.currency)}</dd></div>
+            <div><dt>청구 수납</dt><dd>{moneyLabel(row.invoice_collected_amount, row.currency)}</dd></div>
+            <div><dt>직접 보수</dt><dd>{moneyLabel(row.direct_fee_amount, row.currency)}</dd></div>
+            <div><dt>선수·예치</dt><dd>{moneyLabel(row.advance_trust_amount, row.currency)}</dd></div>
+            <div><dt>미분류 입금</dt><dd>{moneyLabel(row.unallocated_receipt_amount, row.currency)}</dd></div>
+            <div><dt>기타 비매출</dt><dd>{moneyLabel(row.other_non_revenue_amount, row.currency)}</dd></div>
             <div><dt>사건비용</dt><dd>{moneyLabel(row.matter_cost, row.currency)}</dd></div>
             <div><dt>미수금</dt><dd>{moneyLabel(row.ar_balance, row.currency)}</dd></div>
             <div><dt>기여액</dt><dd>{moneyLabel(row.contribution_amount, row.currency)}</dd></div>
@@ -194,11 +199,11 @@ function MonthlyTable({ rows }) {
   return (
     <div className="home-finance-table-wrap" data-home-finance-monthly-table="true">
       <table>
-        <thead><tr><th>월</th><th>통화</th><th>청구액</th><th>수납액</th><th>사건비용</th><th>회수 가능 비용</th><th>미수금</th></tr></thead>
+        <thead><tr><th>월</th><th>통화</th><th>인식 매출</th><th>청구액</th><th>청구 수납</th><th>직접 보수</th><th>선수·예치</th><th>미분류 입금</th><th>사건비용</th><th>미수금</th></tr></thead>
         <tbody>
           {rows.map((row) => (
             <tr key={`${row.month}:${row.currency}`}>
-              <th scope="row">{row.month}</th><td>{row.currency}</td><td>{moneyLabel(row.billed_amount, row.currency)}</td><td>{moneyLabel(row.collected_amount, row.currency)}</td><td>{moneyLabel(row.matter_cost, row.currency)}</td><td>{moneyLabel(row.recoverable_cost, row.currency)}</td><td>{moneyLabel(row.ar_balance, row.currency)}</td>
+              <th scope="row">{row.month}</th><td>{row.currency}</td><td>{moneyLabel(row.revenue_amount, row.currency)}</td><td>{moneyLabel(row.billed_amount, row.currency)}</td><td>{moneyLabel(row.invoice_collected_amount, row.currency)}</td><td>{moneyLabel(row.direct_fee_amount, row.currency)}</td><td>{moneyLabel(row.advance_trust_amount, row.currency)}</td><td>{moneyLabel(row.unallocated_receipt_amount, row.currency)}</td><td>{moneyLabel(row.matter_cost, row.currency)}</td><td>{moneyLabel(row.ar_balance, row.currency)}</td>
             </tr>
           ))}
         </tbody>
@@ -211,11 +216,11 @@ function ClientTable({ rows }) {
   return (
     <div className="home-finance-table-wrap" data-home-finance-client-table="true">
       <table>
-        <thead><tr><th>고객</th><th>통화</th><th>Matter</th><th>청구액</th><th>수납액</th><th>사건비용</th><th>미수금</th><th>기여액</th></tr></thead>
+        <thead><tr><th>고객</th><th>통화</th><th>Matter</th><th>인식 매출</th><th>청구액</th><th>청구 수납</th><th>직접 보수</th><th>선수·예치</th><th>미분류 입금</th><th>사건비용</th><th>미수금</th><th>기여액</th></tr></thead>
         <tbody>
           {rows.map((row, index) => (
             <tr key={`${row.client_group_id ?? "unlinked"}:${row.currency}:${index}`} data-home-finance-unlinked-client={!row.client_group_id ? "true" : undefined}>
-              <th scope="row">{safeClientLabel(row)}</th><td>{row.currency}</td><td>{row.matter_count}</td><td>{moneyLabel(row.billed_amount, row.currency)}</td><td>{moneyLabel(row.collected_amount, row.currency)}</td><td>{moneyLabel(row.matter_cost, row.currency)}</td><td>{moneyLabel(row.ar_balance, row.currency)}</td><td>{moneyLabel(row.contribution_amount, row.currency)}</td>
+              <th scope="row">{safeClientLabel(row)}</th><td>{row.currency}</td><td>{row.matter_count}</td><td>{moneyLabel(row.revenue_amount, row.currency)}</td><td>{moneyLabel(row.billed_amount, row.currency)}</td><td>{moneyLabel(row.invoice_collected_amount, row.currency)}</td><td>{moneyLabel(row.direct_fee_amount, row.currency)}</td><td>{moneyLabel(row.advance_trust_amount, row.currency)}</td><td>{moneyLabel(row.unallocated_receipt_amount, row.currency)}</td><td>{moneyLabel(row.matter_cost, row.currency)}</td><td>{moneyLabel(row.ar_balance, row.currency)}</td><td>{moneyLabel(row.contribution_amount, row.currency)}</td>
             </tr>
           ))}
         </tbody>
@@ -303,7 +308,7 @@ function CashflowSummary({ summary, reconciliation }) {
 function CashflowBusinessSummary({ summary }) {
   if (!summary) return null;
   const metrics = [
-    ["등록 고객 매출", summary.sales_amount],
+    ["고객 입금 후보", summary.sales_amount],
     ["운영비", summary.operating_expense_amount],
     ["급여 지급액", summary.payroll_payment_amount],
     ["비영업 자금", summary.non_operating_amount]
@@ -313,7 +318,7 @@ function CashflowBusinessSummary({ summary }) {
       <header>
         <div>
           <strong>거래 분류 현황</strong>
-          <span>등록 고객과 연결된 입금만 매출로 집계합니다.</span>
+          <span>고객과 연결된 입금은 후보이며, 배정 후 매출이 확정됩니다.</span>
         </div>
         <span>{summary.classified_count}건 중 미연결 {summary.unclassified_count}건</span>
       </header>
@@ -328,7 +333,7 @@ function CashflowMonthlyTable({ rows }) {
   return (
     <div className="home-finance-table-wrap home-cashflow-monthly-table" data-home-cashflow-monthly-table="true">
       <table>
-        <thead><tr><th>월</th><th>입금</th><th>출금</th><th>매출</th><th>운영비</th><th>급여</th><th>순이동</th><th>거래</th></tr></thead>
+        <thead><tr><th>월</th><th>입금</th><th>출금</th><th>고객 입금 후보</th><th>운영비</th><th>급여</th><th>순이동</th><th>거래</th></tr></thead>
         <tbody>
           {rows.map((row) => (
             <tr key={row.month}>
@@ -573,7 +578,7 @@ function CashflowSurface({ liveCtx = "allow", refreshSignal = 0 }) {
         ? "적용할 거래를 선택하세요."
         : missingStateVersion
           ? "선택한 거래의 분류 버전을 확인하지 못해 적용하지 않았습니다."
-          : "매출로 분류할 거래의 고객을 선택하세요.";
+          : "고객 입금으로 분류할 거래의 고객을 선택하세요.";
       setMutationState({ busy: false, message });
       return;
     }
@@ -595,7 +600,7 @@ function CashflowSurface({ liveCtx = "allow", refreshSignal = 0 }) {
   return (
     <section className="home-finance-surface home-cashflow-surface" data-home-finance-surface="true" data-home-finance-section="home-finance-cashflow">
       <CashflowFilters filters={filters} categories={options.categories} onChange={updateFilter} />
-      <p className="home-finance-scope-note">은행 입출금 기준입니다. 현재 등록된 고객과 연결된 입금을 매출로 집계합니다.</p>
+      <p className="home-finance-scope-note">은행 입출금 기준입니다. 고객과 연결된 입금은 입금 후보로 표시하며, 입금 배정 전에는 매출로 확정하지 않습니다.</p>
       <FinanceReadState result={cashflow}>
         <CashflowSummary summary={summary} reconciliation={cashflow?.item?.reconciliation} />
         <CashflowBusinessSummary summary={businessSummary} />
@@ -694,7 +699,7 @@ function FinanceAggregateSurface({ liveCtx = "allow", activeSection = "home-fina
   return (
     <section className="home-finance-surface" data-home-finance-surface="true" data-home-finance-section={section}>
       <FinanceFilters filters={filters} clients={clientRows} onChange={updateFilter} />
-      <p className="home-finance-scope-note">Matter 기반 청구, 수납, 사건비용 집계입니다. 급여와 일반 관리비는 포함하지 않습니다.</p>
+      <p className="home-finance-scope-note">Matter 기반 청구, 수납, 사건비용 집계입니다. 입금은 배정 유형이 확정되기 전까지 매출로 계산하지 않으며, 급여와 일반 관리비는 포함하지 않습니다.</p>
       <FinanceReadState result={activeResult}>
         <ReconciliationNotice totals={totals} partial={[overview, monthly, clients].some((result) => result?.outcome === "partial")} />
         {section === "home-finance-overview" && (

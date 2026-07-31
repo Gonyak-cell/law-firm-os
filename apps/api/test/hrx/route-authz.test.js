@@ -57,6 +57,32 @@ test.before(async () => {
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
 test("HRX route policy map resolves implemented server routes and denies unknown routes", () => {
+  assert.equal(
+    resolveHrxRoutePolicy({
+      method: "GET",
+      pathname: "/api/hrx/people/team-operations",
+    }).required_scope,
+    "hrx.employee.read",
+  );
+  assert.equal(
+    resolveHrxRoutePolicy({
+      method: "GET",
+      pathname: "/api/hrx/people/members/emp-001/daily-brief",
+    }).required_scope,
+    "hrx.employee.read",
+  );
+  assert.equal(resolveHrxRoutePolicy({
+    method: "GET",
+    pathname: "/api/hrx/people/members/emp-001/outlook-connection",
+  }).required_scope, "hrx.employee.read");
+  assert.equal(resolveHrxRoutePolicy({
+    method: "POST",
+    pathname: "/api/hrx/people/members/emp-001/outlook-connection",
+  }).required_scope, "hrx.employee.read");
+  assert.equal(resolveHrxRoutePolicy({
+    method: "DELETE",
+    pathname: "/api/hrx/people/members/emp-001/outlook-connection",
+  }).required_scope, "hrx.employee.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/employees" }).required_scope, "hrx.employee.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/employees" }).required_scope, "hrx.employee.write");
   assert.equal(resolveHrxRoutePolicy({ method: "PATCH", pathname: "/api/hrx/employees/emp-001" }).required_scope, "hrx.employee.write");
@@ -75,16 +101,19 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation" }).action, "hrx.compensation.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation/comp-001/decrypt" }).required_scope, "hrx.compensation.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/compensation/comp-001/decrypt" }).action, "hrx.compensation.decrypt");
-  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/attendance" }).required_scope, "hrx.attendance.read");
-  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance" }).required_scope, "hrx.attendance.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/attendance" }).required_scope, "hrx.attendance.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance" }).required_scope, "hrx.attendance.self.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/attendance/correction-requests" }).required_scope, "hrx.attendance.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance/att-001/correction-requests" }).required_scope, "hrx.attendance.self.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance/correction-requests/corr-001/approve" }).required_scope, "hrx.attendance.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/attendance/att-001/correct" }).required_scope, "hrx.attendance.write");
-  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/overtime" }).required_scope, "hrx.overtime.read");
-  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime" }).required_scope, "hrx.overtime.write");
-  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/overtime/risks" }).required_scope, "hrx.overtime.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/overtime" }).required_scope, "hrx.overtime.self.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime" }).required_scope, "hrx.overtime.self.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/overtime/risks" }).required_scope, "hrx.overtime.self.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/risks" }).required_scope, "hrx.risk.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/risks/scan" }).required_scope, "hrx.risk.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/risks/hrx-risk:employment_contract_missing:emp-001:current/transition" }).required_scope, "hrx.risk.write");
-  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime/ot-001/approve" }).required_scope, "hrx.overtime.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/overtime/ot-001/approve" }).required_scope, "hrx.overtime.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/leave/leave-001/approve" }).required_scope, "hrx.leave.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/search" }).required_scope, "hrx.legal_people.read");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/legal-people/person_client_contact_001" }).required_scope, "hrx.legal_people.read");
@@ -94,8 +123,10 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/onboarding" }).required_scope, "hrx.lifecycle.read");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/onboarding/onb-001/tasks/task-001" }).required_scope, "hrx.lifecycle.write");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/lifecycle/offboarding" }).required_scope, "hrx.lifecycle.read");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/offboarding/off-001/evidence" }).required_scope, "hrx.lifecycle.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/lifecycle/offboarding/off-001/close" }).required_scope, "hrx.lifecycle.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/job-openings" }).required_scope, "hrx.candidate.write");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/pipeline" }).required_scope, "hrx.candidate.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/candidates" }).required_scope, "hrx.candidate.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/applications" }).required_scope, "hrx.candidate.write");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/recruiting/interviews" }).required_scope, "hrx.candidate.write");
@@ -112,6 +143,8 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/periods" }).required_scope, "hrx.payroll.preview");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs" }).required_scope, "hrx.payroll.preview");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/snapshot" }).required_scope, "hrx.payroll.preview");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/minimum-wage/rule-001/legal-approve" }).required_scope, "hrx.payroll.minimum_wage.legal_review");
+  assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/minimum-wage/rule-001/legal-approve" }).action, "hrx.payroll.minimum_wage.legal_review");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/issues/issue-001/resolve" }).required_scope, "hrx.payroll.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/close" }).required_scope, "hrx.payroll.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/statements/self" }).required_scope, "hrx.payroll.statement.self.read");
@@ -122,6 +155,24 @@ test("HRX route policy map resolves implemented server routes and denies unknown
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/payment-batches/batch-001/approve" }).required_scope, "hrx.payroll.payment.approve");
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/runs/run-001/filings" }).required_scope, "hrx.payroll.filing.prepare");
   assert.equal(resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/filings/filing-001/submit" }).required_scope, "hrx.payroll.filing.submit");
+  const filingPreparationPolicy = resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/filings" });
+  const yearEndProcessingPolicy = resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/year-end/collect" });
+  assert.equal(filingPreparationPolicy.action, yearEndProcessingPolicy.action);
+  assert.equal(filingPreparationPolicy.purpose, "payroll_filing_processing");
+  assert.equal(yearEndProcessingPolicy.purpose, "payroll_year_end_processing");
+  const filingSubmissionPolicy = resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/filings/filing-001/submit" });
+  const yearEndReviewPolicy = resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/runs/run-001/year-end/review" });
+  assert.equal(filingSubmissionPolicy.action, yearEndReviewPolicy.action);
+  assert.equal(filingSubmissionPolicy.purpose, "payroll_filing_processing");
+  assert.equal(yearEndReviewPolicy.purpose, "payroll_year_end_review");
+  assert.equal(
+    resolveHrxRoutePolicy({ method: "POST", pathname: "/api/hrx/payroll/payment-batches/batch-001/approve" }).purpose,
+    "payroll_payment_processing",
+  );
+  assert.equal(
+    resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/payroll/statements/statement-001/download" }).purpose,
+    "payroll_statement_self_service",
+  );
   assert.equal(resolveHrxRoutePolicy({ method: "GET", pathname: "/api/hrx/not-mapped" }), null);
 });
 
@@ -152,10 +203,10 @@ test("HRX compensation route requires compensation read scope before step-up run
   assert.equal(body.required_scope, "hrx.compensation.read");
 });
 
-test("HRX attendance write route requires attendance write scope before runtime", async () => {
+test("HRX attendance self-service write requires its dedicated scope before runtime", async () => {
   const { status, body } = await json("/api/hrx/attendance", {
     method: "POST",
-    headers: staffHeaders,
+    headers: noHrxHeaders,
     body: JSON.stringify({
       attendance_id: "att-authz-denied",
       employee_id: "emp-001",
@@ -166,7 +217,56 @@ test("HRX attendance write route requires attendance write scope before runtime"
   });
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
-  assert.equal(body.required_scope, "hrx.attendance.write");
+  assert.equal(body.required_scope, "hrx.attendance.self.write");
+});
+
+test("HRX attendance self-service write rejects another employee after route authorization", async () => {
+  const { status, body } = await json("/api/hrx/attendance", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({
+      attendance_id: "att-authz-other-employee",
+      employee_id: "emp-001",
+      work_date: "2026-07-02",
+      status: "present",
+      source_ref: "TimeClock:authz-other-employee",
+    }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(body.attendance, null);
+});
+
+test("HRX elevated administrator cannot proxy attendance or overtime through self-service HTTP routes", async () => {
+  const attendance = await json("/api/hrx/attendance", {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify({
+      attendance_id: "att-admin-proxy-denied",
+      employee_id: "emp-001",
+      work_date: "2026-07-02",
+      status: "present",
+      source_ref: "TimeClock:admin-proxy-denied",
+    }),
+  });
+  assert.equal(attendance.status, 403);
+  assert.equal(attendance.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(attendance.body.attendance, null);
+
+  const overtime = await json("/api/hrx/overtime", {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify({
+      overtime_id: "ot-admin-proxy-denied",
+      employee_id: "emp-001",
+      work_date: "2026-07-02",
+      requested_minutes: 60,
+      reason: "관리자 대리 신청 시도",
+    }),
+  });
+  assert.equal(overtime.status, 403);
+  assert.equal(overtime.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(overtime.body.overtime, null);
 });
 
 test("HRX document lifecycle write routes require document write scope before runtime", async () => {
@@ -211,10 +311,10 @@ test("HRX document lifecycle write routes require document write scope before ru
   assert.equal(terminate.body.required_scope, "hrx.document.write");
 });
 
-test("HRX overtime write route requires overtime write scope before runtime", async () => {
+test("HRX overtime self-service submit requires its dedicated scope before runtime", async () => {
   const { status, body } = await json("/api/hrx/overtime", {
     method: "POST",
-    headers: staffHeaders,
+    headers: noHrxHeaders,
     body: JSON.stringify({
       overtime_id: "ot-authz-denied",
       employee_id: "emp-001",
@@ -225,7 +325,35 @@ test("HRX overtime write route requires overtime write scope before runtime", as
   });
   assert.equal(status, 403);
   assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
-  assert.equal(body.required_scope, "hrx.overtime.write");
+  assert.equal(body.required_scope, "hrx.overtime.self.write");
+});
+
+test("HRX overtime self-service submit rejects another employee after route authorization", async () => {
+  const { status, body } = await json("/api/hrx/overtime", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({
+      overtime_id: "ot-authz-other-employee",
+      employee_id: "emp-001",
+      work_date: "2026-07-02",
+      hours: 2,
+      reason: "other employee",
+    }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  assert.equal(body.overtime, null);
+});
+
+test("HRX overtime decision requires approval scope before runtime", async () => {
+  const { status, body } = await json("/api/hrx/overtime/ot-authz-denied/approve", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ decision_reason: "approval denied" }),
+  });
+  assert.equal(status, 403);
+  assert.equal(body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(body.required_scope, "hrx.overtime.approve");
 });
 
 test("HRX risk scan and transition routes require risk write scope before runtime", async () => {
@@ -428,6 +556,15 @@ test("HRX payroll runtime routes enforce preview and approval scopes before runt
   assert.equal(snapshot.status, 403);
   assert.equal(snapshot.body.safe_error_code, "HRX_AUTHZ_DENIED");
   assert.equal(snapshot.body.required_scope, "hrx.payroll.preview");
+
+  const legalReview = await json("/api/hrx/payroll/minimum-wage/minimum-wage-authz-denied/legal-approve", {
+    method: "POST",
+    headers: staffHeaders,
+    body: JSON.stringify({ expected_version: 1, legal_review_ref: "document:legal/authz-denied" }),
+  });
+  assert.equal(legalReview.status, 403);
+  assert.equal(legalReview.body.safe_error_code, "HRX_AUTHZ_DENIED");
+  assert.equal(legalReview.body.required_scope, "hrx.payroll.minimum_wage.legal_review");
 
   const resolve = await json("/api/hrx/payroll/issues/payroll-issue-authz-denied/resolve", {
     method: "POST",

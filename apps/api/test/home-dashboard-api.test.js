@@ -214,6 +214,8 @@ function createSourceRuntime({ failMatterTasks = false } = {}) {
           title: "Review source task",
           status: "todo",
           assigned_to: account.user_id,
+          assigned_to_user_id: account.user_id,
+          assignment_resolution_state: "resolved",
           due_at: "2026-07-07T10:00:00.000Z",
         },
         {
@@ -222,6 +224,7 @@ function createSourceRuntime({ failMatterTasks = false } = {}) {
           event_id: "matter-calendar-source-001",
           matter_id: "matter-source-001",
           title: "Filing deadline",
+          event_kind: "deadline",
           status: "scheduled",
           starts_at: "2026-07-07T12:00:00.000Z",
           ends_at: "2026-07-07T12:30:00.000Z",

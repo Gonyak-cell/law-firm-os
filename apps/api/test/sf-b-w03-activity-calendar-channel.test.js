@@ -126,6 +126,7 @@ test("SF-B-W03R critical calendar changes are approval state first and confirm w
         event: {
           event_id: "calendar_sf_b_w03_deadline",
           title: "Expert report deadline",
+          event_kind: "deadline",
           status: "scheduled",
           starts_at: "2026-07-10T01:00:00.000Z",
           ends_at: "2026-07-10T02:00:00.000Z",
@@ -186,6 +187,7 @@ test("SF-B-W03R deadline confirmation binds the signed confirmer and canonical m
         event: {
           event_id: deadlineId,
           title: "Canonical matter deadline",
+          event_kind: "deadline",
           starts_at: "2026-07-20T01:00:00.000Z",
           criticality: "critical",
           legal_consequence: "court_deadline",

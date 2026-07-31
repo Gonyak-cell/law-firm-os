@@ -278,6 +278,7 @@ test("Finance inventory classifies mutable documents and append-only ledgers and
     assert.equal(result.inventory.append_only_record_types.includes("TrustLedgerEntry"), true);
     assert.equal(result.inventory.mutable_record_types.includes("Invoice"), true);
     assert.equal(FINANCE_APPEND_ONLY_RECORD_TYPES.includes("PaymentMatch"), true);
+    assert.equal(FINANCE_APPEND_ONLY_RECORD_TYPES.includes("PaymentAllocation"), true);
     assert.equal(result.inventory.reconciliation.currency_mismatch_count, 0);
     assert.equal(result.inventory.reconciliation.time_minutes, 60);
     assert.equal(result.inventory.reconciliation.wip_item_count, 1);
@@ -286,6 +287,7 @@ test("Finance inventory classifies mutable documents and append-only ledgers and
     assert.equal(result.inventory.reconciliation.invoice_prebill_matched_count, 1);
     assert.equal(result.inventory.reconciliation.invoice_prebill_missing_count, 0);
     assert.equal(result.inventory.reconciliation.ar_balance_count, 1);
+    assert.equal(result.inventory.reconciliation.payment_allocation_count, 1);
     assert.equal(result.inventory.reconciliation.payment_match_count, 1);
     assert.equal(result.inventory.reconciliation.journal_entry_count, 1);
     assert.equal(result.inventory.reconciliation.trust_ledger_entry_count, 2);

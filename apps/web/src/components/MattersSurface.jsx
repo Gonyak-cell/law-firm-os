@@ -5,6 +5,7 @@ import { CalendarClock, CheckCircle2, FileText, Link2, ListChecks, MessageSquare
 import { classifyMatterPracticeArea } from "../../../../packages/matter/src/practice-area.js";
 import heroMatterArchitecture from "../assets/heroes/hero-matter-architecture.jpg";
 import {
+  allocateFinancePayment,
   changeMatterOwner,
   completeMatterStatus,
   createAnalyticsExport,
@@ -69,9 +70,11 @@ import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 import { MatterWorktreeSurface } from "./MatterWorktreeSurface.jsx";
+import { buildMatterTaskAssigneeOptions } from "../data/matterAssigneeDisplay.js";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
+const EMPTY_TASK_ASSIGNEE_OPTIONS = Object.freeze([]);
 const MATTER_SECTIONS = new Set([
   "matter-home",
   "matters-list",
@@ -369,6 +372,22 @@ function defaultAccountingExportForm() {
   };
 }
 
+function financeDraftKey(prefix) {
+  const randomId = globalThis.crypto?.randomUUID?.();
+  return randomId ? `${prefix}_${randomId}` : `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function createFinancePaymentFormDraft() {
+  return {
+    receivedAt: todayWorkDate(),
+    amount: "100000",
+    currency: "KRW",
+    allocationType: "direct_fee",
+    paymentKey: financeDraftKey("payment"),
+    allocationKey: financeDraftKey("allocation")
+  };
+}
+
 function normalizeDurationMinutes(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) return 1;
@@ -379,6 +398,24 @@ function normalizeMoneyAmount(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) return 1;
   return Math.round(parsed * 100) / 100;
+}
+
+function paymentAllocationLabel(type) {
+  if (type === "invoice_payment") return "발행 청구서 수납";
+  if (type === "direct_fee") return "청구서 없는 사건 보수";
+  if (type === "client_advance") return "선수금";
+  if (type === "trust_deposit") return "예치금";
+  if (type === "other_non_revenue") return "기타 비매출";
+  return "나중에 분류";
+}
+
+function paymentAllocationGuidance(type, hasInvoice) {
+  if (type === "invoice_payment") return hasInvoice ? "발행 청구서 수납으로 매출에 포함됩니다." : "먼저 청구서를 발행하세요.";
+  if (type === "direct_fee") return "청구서 없이 받은 사건 보수로 배정하면 수납 기준 매출에 포함됩니다.";
+  if (type === "client_advance") return "선수금은 매출에서 제외됩니다.";
+  if (type === "trust_deposit") return "예치금은 매출에서 제외됩니다.";
+  if (type === "other_non_revenue") return "기타 입금은 매출에서 제외됩니다.";
+  return "입금만 기록하고 매출에는 반영하지 않습니다.";
 }
 
 function addElapsedTimerMinutes(form, startedAt, now = Date.now()) {
@@ -1659,16 +1696,70 @@ function ActivityWorkspacePanel({
   actionLabel = "작업",
   createButtonLabel = "작업 추가",
   createTitle = "증거 검토 작업",
-  bodyText = null
+  bodyText = null,
+  assigneeOptions = EMPTY_TASK_ASSIGNEE_OPTIONS,
+  defaultAssigneeUserId = "",
+  matterSelected = false
 }) {
   const activities = resultItems(activityResult);
-  const targetActivity = activities.find((item) => item.activity_type === activityType) ?? createResult?.item ?? activities[0] ?? null;
+  const targetActivity =
+    activities.find((item) => item.activity_type === activityType) ??
+    (createResult?.item?.activity_type === activityType ? createResult.item : null);
+  const isTask = activityType === "task";
+  const currentAssigneeUserId = isTask ? String(targetActivity?.assigned_to_user_id ?? "").trim() : "";
+  const preferredUserId = currentAssigneeUserId || defaultAssigneeUserId;
+  const preferredAssigneeUserId = assigneeOptions.some(({ userId }) => userId === preferredUserId)
+    ? preferredUserId
+    : assigneeOptions[0]?.userId ?? "";
+  const [taskAssigneeUserId, setTaskAssigneeUserId] = useState(preferredAssigneeUserId);
+
+  useEffect(() => {
+    setTaskAssigneeUserId((current) => (
+      assigneeOptions.some(({ userId }) => userId === current) ? current : preferredAssigneeUserId
+    ));
+  }, [assigneeOptions, preferredAssigneeUserId]);
+
+  function createActivity(event) {
+    event.preventDefault();
+    onCreateActivity({
+      activityType,
+      title: createTitle,
+      bodyText,
+      assignedToUserId: isTask ? taskAssigneeUserId : null
+    });
+  }
+
   return (
     <div className="matter-live-stack" data-sf-b-w03-activity-workspace="true" data-lcx-vltui-06-activity-type={activityType}>
-      <div className="record-action-grid" data-sf-b-w03-activity-composer="true">
+      <form className="record-action-grid" data-sf-b-w03-activity-composer="true" onSubmit={createActivity}>
         <div className="record-action-strip">
           <div>
             <strong>{actionLabel}</strong>
+            {isTask && (
+              <div className="record-action-edit-form" data-matter-task-assignee-form="true">
+                <label>
+                  <span>업무 담당자</span>
+                  <select
+                    aria-label="업무 담당자"
+                    value={taskAssigneeUserId}
+                    onChange={(event) => setTaskAssigneeUserId(event.target.value)}
+                    disabled={createPending || assigneeOptions.length === 0}
+                    required
+                  >
+                    {assigneeOptions.length === 0 && (
+                      <option value="">
+                        {matterSelected ? "Matter 담당 변호사를 먼저 지정하세요" : "업무 보드에서 Matter를 먼저 선택하세요"}
+                      </option>
+                    )}
+                    {assigneeOptions.map((option) => (
+                      <option key={option.userId} value={option.userId}>
+                        {option.label} ({option.roleLabel})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
             <ActionNotice
               pending={createPending}
               result={createResult}
@@ -1678,9 +1769,8 @@ function ActivityWorkspacePanel({
           </div>
           <button
             className="secondary-button"
-            type="button"
-            disabled={createPending}
-            onClick={() => onCreateActivity({ activityType, title: createTitle, bodyText })}
+            type="submit"
+            disabled={createPending || (isTask && !taskAssigneeUserId)}
           >
             <ListChecks size={15} />
             {createButtonLabel}
@@ -1696,12 +1786,17 @@ function ActivityWorkspacePanel({
               successText="상태가 저장되었습니다."
             />
           </div>
-          <button className="secondary-button" type="button" disabled={!targetActivity || patchPending} onClick={() => onPatchActivity(targetActivity)}>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={!targetActivity || patchPending || (isTask && !taskAssigneeUserId)}
+            onClick={() => onPatchActivity(targetActivity, { assignedToUserId: isTask ? taskAssigneeUserId : null })}
+          >
             <Pencil size={15} />
-            상태 저장
+            {isTask ? "상태와 담당자 저장" : "상태 저장"}
           </button>
         </div>
-      </div>
+      </form>
       {createResult?.kind === "data" && createResult.item && (
         <div className="record-boundary-note" data-sf-b-w03-activity-create-result="true">
           <ShieldCheck size={15} />
@@ -1977,6 +2072,7 @@ function ChargeActionPanel({
   paymentResult,
   paymentMatchResult,
   accountingExportResult,
+  paymentForm,
   timeEntryForm,
   expenseForm,
   disbursementForm,
@@ -1995,6 +2091,7 @@ function ChargeActionPanel({
   onTimeEntryFormChange,
   onExpenseFormChange,
   onDisbursementFormChange,
+  onPaymentFormChange,
   onAccountingExportFormChange,
   onToggleTimeTimer,
   onCreateTimeEntry,
@@ -2017,6 +2114,11 @@ function ChargeActionPanel({
   const activeInvoice = issuedInvoice ?? invoiceRows[0] ?? null;
   const payment = paymentResult?.kind === "data" ? paymentResult.item : null;
   const paymentMatch = paymentMatchResult?.kind === "data" ? paymentMatchResult.item : null;
+  const paymentAllocation = paymentMatchResult?.paymentAllocation
+    ?? (paymentMatch?.allocation_type ? paymentMatch : null);
+  const allocationType = paymentAllocation?.allocation_type
+    ?? paymentForm?.allocationType
+    ?? "direct_fee";
   const accountingExport = accountingExportResult?.kind === "data" ? accountingExportResult.item : null;
   const invoiceOutstanding = activeInvoice
     ? Math.max(0, Number(activeInvoice.amount_due ?? 0) - Number(activeInvoice.amount_paid ?? 0))
@@ -2024,6 +2126,26 @@ function ChargeActionPanel({
   const unappliedPayment = payment
     ? Number(payment.unapplied_amount ?? payment.amount ?? 0)
     : 0;
+  const requestedAllocationAmount = Number(paymentForm?.amount ?? 0);
+  const allocationAmount = Math.min(
+    Number.isFinite(requestedAllocationAmount) ? requestedAllocationAmount : 0,
+    unappliedPayment,
+    allocationType === "invoice_payment" ? invoiceOutstanding : Number.POSITIVE_INFINITY
+  );
+  const allocationRequiresInvoice = allocationType === "invoice_payment";
+  const canImportPayment = Boolean(
+    matter
+    && paymentForm?.receivedAt
+    && Number.isFinite(requestedAllocationAmount)
+    && requestedAllocationAmount > 0
+  );
+  const canAllocatePayment = Boolean(
+    matter
+    && payment
+    && allocationType !== "unallocated"
+    && allocationAmount > 0
+    && (!allocationRequiresInvoice || activeInvoice)
+  );
   return (
     <div className="record-action-grid" data-matter-charge-actions="true" data-finance-operation-mode={operationMode}>
       <div className="record-action-strip record-action-time-entry-strip" data-matter-time-entry-action="true">
@@ -2214,21 +2336,84 @@ function ChargeActionPanel({
           발행
         </button>
       </div>
-      <div className="record-action-strip" data-finance-billing-action="true" data-matter-charge-step="payment-allocation" data-matter-payment-match-action="true">
+      <div className="record-action-strip record-action-time-entry-strip" data-finance-billing-action="true" data-matter-charge-step="payment-allocation" data-matter-payment-match-action="true">
         <div>
-          <strong>{paymentMatch ? moneyLabel(paymentMatch.amount, "KRW") : payment ? "수납 대기" : "수납 배정"}</strong>
-          <span>{payment ? `미배정 ${moneyLabel(unappliedPayment, payment.currency ?? "KRW")}` : activeInvoice ? "청구 잔액 기준" : "청구서 필요"}</span>
+          <strong>{paymentAllocation ? paymentAllocationLabel(paymentAllocation.allocation_type) : payment ? "미분류 입금" : "입금 기록"}</strong>
+          <span>
+            {paymentAllocation
+              ? moneyLabel(paymentAllocation.amount, paymentAllocation.currency ?? payment?.currency ?? "KRW")
+              : payment
+                ? `미배정 ${moneyLabel(unappliedPayment, payment.currency ?? "KRW")}`
+                : "청구서 없이도 먼저 기록할 수 있습니다."}
+          </span>
           <ActionNotice pending={paymentPending} result={paymentResult} pendingText="수납 기록 중입니다." successText="수납이 기록되었습니다." />
           <ActionNotice pending={paymentMatchPending} result={paymentMatchResult} pendingText="입금 배정 중입니다." successText="입금이 배정되었습니다." />
+          <small
+            data-matter-payment-revenue-effect={["invoice_payment", "direct_fee"].includes(allocationType) ? "revenue" : "non-revenue"}
+          >
+            {paymentAllocationGuidance(allocationType, Boolean(activeInvoice))}
+          </small>
         </div>
-        <div className="record-action-button-group">
-          <button className="secondary-button" type="button" data-matter-payment-import-action="true" disabled={!matter || !activeInvoice || invoiceOutstanding <= 0 || paymentPending} onClick={onImportPayment}>
+        <form className="record-action-edit-form time-entry-form" data-matter-payment-form="true" onSubmit={onImportPayment}>
+          <label>
+            입금일
+            <input
+              type="date"
+              value={paymentForm?.receivedAt ?? ""}
+              onChange={(event) => onPaymentFormChange("receivedAt", event.target.value)}
+            />
+          </label>
+          <label>
+            금액
+            <input
+              type="number"
+              min="1"
+              step="100"
+              value={paymentForm?.amount ?? ""}
+              onChange={(event) => onPaymentFormChange("amount", event.target.value)}
+            />
+          </label>
+          <label>
+            통화
+            <select value={paymentForm?.currency ?? "KRW"} onChange={(event) => onPaymentFormChange("currency", event.target.value)}>
+              <option value="KRW">KRW</option>
+              <option value="USD">USD</option>
+            </select>
+          </label>
+          <label className="time-entry-narrative-field">
+            입금 성격
+            <select
+              data-matter-payment-allocation-type="true"
+              value={paymentForm?.allocationType ?? "direct_fee"}
+              onChange={(event) => onPaymentFormChange("allocationType", event.target.value)}
+            >
+              <option value="direct_fee">청구서 없는 사건 보수</option>
+              <option value="invoice_payment" disabled={!activeInvoice}>발행 청구서 수납</option>
+              <option value="client_advance">선수금</option>
+              <option value="trust_deposit">예치금</option>
+              <option value="other_non_revenue">기타 비매출</option>
+              <option value="unallocated">나중에 분류</option>
+            </select>
+          </label>
+          <button
+            className="secondary-button"
+            type="button"
+            data-matter-payment-import-action="true"
+            disabled={!canImportPayment || paymentPending}
+            onClick={onImportPayment}
+          >
             입금 기록
           </button>
-          <button className="secondary-button" type="button" disabled={!matter || !activeInvoice || !payment || invoiceOutstanding <= 0 || paymentMatchPending} onClick={onMatchPayment}>
+          <button
+            className="secondary-button"
+            type="button"
+            data-matter-payment-allocation-action="true"
+            disabled={!canAllocatePayment || paymentPending || paymentMatchPending}
+            onClick={onMatchPayment}
+          >
             배정
           </button>
-        </div>
+        </form>
       </div>
       {showAccountingExport && <div className="record-action-strip record-action-time-entry-strip" data-finance-billing-action="true" data-matter-accounting-export-action="true">
         <div>
@@ -2290,6 +2475,7 @@ export function ChargePanel({
   paymentResult,
   paymentMatchResult,
   accountingExportResult,
+  paymentForm,
   timeEntryForm,
   expenseForm,
   disbursementForm,
@@ -2308,6 +2494,7 @@ export function ChargePanel({
   onTimeEntryFormChange,
   onExpenseFormChange,
   onDisbursementFormChange,
+  onPaymentFormChange,
   onAccountingExportFormChange,
   onToggleTimeTimer,
   onCreateTimeEntry,
@@ -2354,6 +2541,7 @@ export function ChargePanel({
         paymentResult={paymentResult}
         paymentMatchResult={paymentMatchResult}
         accountingExportResult={accountingExportResult}
+        paymentForm={paymentForm}
         timeEntryForm={timeEntryForm}
         expenseForm={expenseForm}
         disbursementForm={disbursementForm}
@@ -2372,6 +2560,7 @@ export function ChargePanel({
         onTimeEntryFormChange={onTimeEntryFormChange}
         onExpenseFormChange={onExpenseFormChange}
         onDisbursementFormChange={onDisbursementFormChange}
+        onPaymentFormChange={onPaymentFormChange}
         onAccountingExportFormChange={onAccountingExportFormChange}
         onToggleTimeTimer={onToggleTimeTimer}
         onCreateTimeEntry={onCreateTimeEntry}
@@ -2672,6 +2861,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [timeEntryForm, setTimeEntryForm] = useState(defaultTimeEntryForm);
   const [expenseForm, setExpenseForm] = useState(defaultExpenseForm);
   const [disbursementForm, setDisbursementForm] = useState(defaultDisbursementForm);
+  const [paymentForm, setPaymentForm] = useState(createFinancePaymentFormDraft);
   const [accountingExportForm, setAccountingExportForm] = useState(defaultAccountingExportForm);
   const [timeTimerStartedAt, setTimeTimerStartedAt] = useState(null);
   const [timeTimerSeconds, setTimeTimerSeconds] = useState(0);
@@ -2777,6 +2967,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     (selectedMatterId === requestedMatterId ? matters.find((item) => item.matter_id === selectedMatterId) : null) ??
     null;
   const activeMatterId = selectedMatter?.matter_id ?? null;
+  const taskAssigneeOptions = useMemo(
+    () => buildMatterTaskAssigneeOptions(commandResult, selectedMatter),
+    [commandResult, selectedMatter]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -2847,7 +3041,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setTimeEntryForm(defaultTimeEntryForm());
     setExpenseForm(defaultExpenseForm());
     setDisbursementForm(defaultDisbursementForm());
+    setPaymentForm(createFinancePaymentFormDraft());
     setAccountingExportForm(defaultAccountingExportForm());
+    setPaymentResult(null);
+    setPaymentMatchResult(null);
     setTimeTimerStartedAt(null);
     setTimeTimerSeconds(0);
   }, [activeMatterId]);
@@ -2984,6 +3181,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
 
   function handleDisbursementFormChange(field, value) {
     setDisbursementForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handlePaymentFormChange(field, value) {
+    setPaymentForm((current) => ({ ...current, [field]: value }));
   }
 
   function handleAccountingExportFormChange(field, value) {
@@ -3383,7 +3584,13 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setChannelResult(channel);
   }
 
-  async function handleCreateActivity({ activityType = "task", title = "증거 검토 작업", status = "todo", bodyText = null } = {}) {
+  async function handleCreateActivity({
+    activityType = "task",
+    title = "증거 검토 작업",
+    status = "todo",
+    bodyText = null,
+    assignedToUserId = null
+  } = {}) {
     if (!activeMatterId) return;
     setActivityCreatePending(true);
     const next = await createMatterActivity({
@@ -3392,6 +3599,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       title,
       status,
       bodyText,
+      assignedToUserId,
       ctx: liveCtx
     });
     setActivityCreateResult(next);
@@ -3401,14 +3609,18 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
-  async function handlePatchActivity(activity) {
+  async function handlePatchActivity(activity, { assignedToUserId = null } = {}) {
     const activityId = activity?.activity_id;
     if (!activeMatterId || !activityId) return;
+    const patch = { status: activity.status === "todo" ? "in_progress" : activity.status };
+    if (activity.activity_type === "task" && assignedToUserId) {
+      patch.assigned_to_user_id = assignedToUserId;
+    }
     setActivityPatchPending(true);
     const next = await patchMatterActivity({
       matterId: activeMatterId,
       activityId,
-      patch: { status: activity.status === "todo" ? "in_progress" : activity.status },
+      patch,
       ctx: liveCtx
     });
     setActivityPatchResult(next);
@@ -3539,15 +3751,20 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     if (next.kind === "data" && next.item) upsertFinanceInvoice(next.item);
   }
 
-  async function handleImportPayment() {
-    if (!activeMatterId) return;
-    const issuedInvoice = invoiceIssueResult?.kind === "data" ? invoiceIssueResult.item : null;
-    const invoice = issuedInvoice ?? selectedInvoices[0] ?? null;
-    const amount = invoice ? Math.max(0, Number(invoice.amount_due ?? 0) - Number(invoice.amount_paid ?? 0)) : 0;
-    if (!invoice || amount <= 0) return;
+  async function handleImportPayment(event) {
+    event?.preventDefault?.();
+    const amount = Number(paymentForm.amount);
+    if (!activeMatterId || !Number.isFinite(amount) || amount <= 0 || !paymentForm.receivedAt) return;
     setPaymentPending(true);
-    const currency = invoice.currency ?? "KRW";
-    const next = await importFinancePayment({ matterId: activeMatterId, amount, currency, ctx: liveCtx });
+    const next = await importFinancePayment({
+      matterId: activeMatterId,
+      clientGroupId: selectedMatter?.client_group_id ?? selectedMatter?.billing_client_party_id ?? selectedMatter?.client_id,
+      amount,
+      currency: paymentForm.currency || "KRW",
+      receivedAt: paymentForm.receivedAt,
+      paymentKey: paymentForm.paymentKey,
+      ctx: liveCtx
+    });
     setPaymentResult(next);
     setPaymentPending(false);
   }
@@ -3558,10 +3775,35 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     const payment = paymentResult?.kind === "data" ? paymentResult.item : null;
     const invoiceOutstanding = invoice ? Math.max(0, Number(invoice.amount_due ?? 0) - Number(invoice.amount_paid ?? 0)) : 0;
     const paymentAvailable = payment ? Number(payment.unapplied_amount ?? payment.amount ?? 0) : 0;
-    const amount = Math.min(invoiceOutstanding, paymentAvailable);
-    if (!invoice?.invoice_id || !payment?.payment_id || amount <= 0) return;
+    const requestedAmount = Number(paymentForm.amount);
+    const allocationType = paymentForm.allocationType;
+    const amount = Math.min(
+      Number.isFinite(requestedAmount) ? requestedAmount : 0,
+      paymentAvailable,
+      allocationType === "invoice_payment" ? invoiceOutstanding : Number.POSITIVE_INFINITY
+    );
+    if (!payment?.payment_id || allocationType === "unallocated" || amount <= 0) return;
+    if (allocationType === "invoice_payment" && !invoice?.invoice_id) return;
     setPaymentMatchPending(true);
-    const next = await matchFinancePayment({ paymentId: payment.payment_id, invoiceId: invoice.invoice_id, amount, ctx: liveCtx });
+    const next = allocationType === "invoice_payment"
+      ? await matchFinancePayment({
+          paymentId: payment.payment_id,
+          invoiceId: invoice.invoice_id,
+          amount,
+          matchKey: paymentForm.allocationKey,
+          ctx: liveCtx
+        })
+      : await allocateFinancePayment({
+          paymentId: payment.payment_id,
+          allocationType,
+          matterId: activeMatterId,
+          clientGroupId: payment.client_group_id ?? selectedMatter?.client_group_id ?? selectedMatter?.billing_client_party_id ?? selectedMatter?.client_id,
+          amount,
+          currency: payment.currency ?? paymentForm.currency ?? "KRW",
+          allocatedAt: paymentForm.receivedAt,
+          allocationKey: paymentForm.allocationKey,
+          ctx: liveCtx
+        });
     setPaymentMatchResult(next);
     setPaymentMatchPending(false);
     if (next.kind === "data" && next.invoice) {
@@ -3570,6 +3812,15 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
     if (next.kind === "data" && next.payment) {
       setPaymentResult((current) => ({ ...(current?.kind === "data" ? current : {}), kind: "data", item: next.payment }));
+      if (next.item) {
+        const nextDraft = createFinancePaymentFormDraft();
+        const remaining = Number(next.payment.unapplied_amount ?? next.payment.unallocated_amount ?? 0);
+        setPaymentForm((current) => ({
+          ...current,
+          allocationKey: nextDraft.allocationKey,
+          ...(remaining <= 0 ? { paymentKey: nextDraft.paymentKey } : {})
+        }));
+      }
     }
   }
 
@@ -3657,6 +3908,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           patchPending={activityPatchPending}
           onCreateActivity={handleCreateActivity}
           onPatchActivity={handlePatchActivity}
+          assigneeOptions={taskAssigneeOptions}
+          defaultAssigneeUserId={selectedMatter?.owner_user_id ?? ""}
+          matterSelected={Boolean(selectedMatter)}
         />
       );
     }
@@ -3772,6 +4026,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             paymentResult={paymentResult}
             paymentMatchResult={paymentMatchResult}
             accountingExportResult={accountingExportResult}
+            paymentForm={paymentForm}
             timeEntryForm={timeEntryForm}
             expenseForm={expenseForm}
             disbursementForm={disbursementForm}
@@ -3790,6 +4045,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             onTimeEntryFormChange={handleTimeEntryFormChange}
             onExpenseFormChange={handleExpenseFormChange}
             onDisbursementFormChange={handleDisbursementFormChange}
+            onPaymentFormChange={handlePaymentFormChange}
             onAccountingExportFormChange={handleAccountingExportFormChange}
             onToggleTimeTimer={handleToggleTimeTimer}
             onCreateTimeEntry={handleCreateTimeEntry}
@@ -3990,6 +4246,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               patchPending={activityPatchPending}
               onCreateActivity={handleCreateActivity}
               onPatchActivity={handlePatchActivity}
+              assigneeOptions={taskAssigneeOptions}
+              defaultAssigneeUserId={selectedMatter?.owner_user_id ?? ""}
+              matterSelected={Boolean(selectedMatter)}
             />
           </Panel>
         )}
@@ -4072,6 +4331,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               paymentResult={paymentResult}
               paymentMatchResult={paymentMatchResult}
               accountingExportResult={accountingExportResult}
+              paymentForm={paymentForm}
               timeEntryForm={timeEntryForm}
               expenseForm={expenseForm}
               disbursementForm={disbursementForm}
@@ -4090,6 +4350,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               onTimeEntryFormChange={handleTimeEntryFormChange}
               onExpenseFormChange={handleExpenseFormChange}
               onDisbursementFormChange={handleDisbursementFormChange}
+              onPaymentFormChange={handlePaymentFormChange}
               onAccountingExportFormChange={handleAccountingExportFormChange}
               onToggleTimeTimer={handleToggleTimeTimer}
               onCreateTimeEntry={handleCreateTimeEntry}

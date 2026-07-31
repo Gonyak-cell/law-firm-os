@@ -148,6 +148,16 @@ function runConstraintProbes(database) {
         'tenant-mg004', 'receipt-mg004', 'attendance-mg004', 'employee-mg004', 'manager-mg004',
         '2026-07-15T18:30:00+09:00', 'Attendance:MG004:v1', 'MG004:approve:attendance'
       );
+
+      INSERT INTO hrx_offboarding_cases (
+        tenant_id, offboarding_id, employee_id, separation_date, state,
+        access_revocations_json, document_returns_json, legal_hold_checks_json,
+        matter_reassignments_json, handover_items_json,
+        leave_reconciliation_status
+      ) VALUES (
+        'tenant-mg004', 'offboarding-mg004', 'employee-mg004', '2026-07-31', 'open',
+        '[]', '[]', '[]', '[]', '[]', 'pending'
+      );
     `);
 
     const update = database.prepare(`
@@ -211,6 +221,66 @@ function runConstraintProbes(database) {
       `),
       /CHECK constraint failed/,
     ));
+    results.push(expectDatabaseError(
+      "offboarding_leave_completion_without_evidence_blocked",
+      () => database.exec(`
+        INSERT INTO hrx_offboarding_cases (
+          tenant_id, offboarding_id, employee_id, separation_date, state,
+          access_revocations_json, document_returns_json, legal_hold_checks_json,
+          matter_reassignments_json, handover_items_json,
+          leave_reconciliation_status
+        ) VALUES (
+          'tenant-mg004', 'offboarding-missing-evidence', 'employee-mg004',
+          '2026-07-31', 'open', '[]', '[]', '[]', '[]', '[]',
+          'approved_and_synced'
+        )
+      `),
+      /provider evidence must be recorded together/,
+    ));
+    results.push(expectDatabaseError(
+      "offboarding_leave_split_completion_update_blocked",
+      () => database.exec(`
+        UPDATE hrx_offboarding_cases
+        SET leave_reconciliation_status = 'approved_and_synced'
+        WHERE tenant_id = 'tenant-mg004'
+          AND offboarding_id = 'offboarding-mg004'
+      `),
+      /provider evidence must be recorded together/,
+    ));
+    const leaveCompletion = database.prepare(`
+      UPDATE hrx_offboarding_cases
+      SET leave_reconciliation_status = 'approved_and_synced',
+          leave_reconciliation_evidence_ref = 'PayrollProviderReceipt:mg004'
+      WHERE tenant_id = 'tenant-mg004'
+        AND offboarding_id = 'offboarding-mg004'
+    `).run();
+    if (Number(leaveCompletion.changes) !== 1) {
+      throw new Error("atomic offboarding leave completion probe failed");
+    }
+    results.push(Object.freeze({
+      label: "offboarding_leave_completion_with_evidence_allowed",
+      verdict: "PASS",
+    }));
+    results.push(expectDatabaseError(
+      "offboarding_leave_evidence_clear_without_status_blocked",
+      () => database.exec(`
+        UPDATE hrx_offboarding_cases
+        SET leave_reconciliation_evidence_ref = NULL
+        WHERE tenant_id = 'tenant-mg004'
+          AND offboarding_id = 'offboarding-mg004'
+      `),
+      /provider evidence must be recorded together/,
+    ));
+    results.push(expectDatabaseError(
+      "offboarding_leave_status_regression_with_evidence_blocked",
+      () => database.exec(`
+        UPDATE hrx_offboarding_cases
+        SET leave_reconciliation_status = 'pending'
+        WHERE tenant_id = 'tenant-mg004'
+          AND offboarding_id = 'offboarding-mg004'
+      `),
+      /provider evidence must be recorded together/,
+    ));
   } finally {
     database.exec("ROLLBACK TO mg004_constraint_probe");
     database.exec("RELEASE mg004_constraint_probe");
@@ -220,10 +290,15 @@ function runConstraintProbes(database) {
 
 export function auditFreshHrxDatabase() {
   const migrations = loadHrxCoreMigrations();
-  const expectedOrdinals = Array.from({ length: 32 }, (_, index) => String(index + 1).padStart(3, "0"));
+  const expectedOrdinals = Array.from(
+    { length: migrations.length },
+    (_, index) => String(index + 1).padStart(3, "0"),
+  );
   const actualOrdinals = migrations.map((migration) => migration.filename.slice(0, 3));
   if (JSON.stringify(actualOrdinals) !== JSON.stringify(expectedOrdinals)) {
-    throw new Error(`fresh DB migration lineage is not contiguous 001-032: ${actualOrdinals.join(",")}`);
+    throw new Error(
+      `fresh DB migration lineage is not contiguous 001-${expectedOrdinals.at(-1)}: ${actualOrdinals.join(",")}`,
+    );
   }
   const combinedSql = migrations.map((migration) => migration.sql).join("\n");
   const expected = Object.freeze({
@@ -279,6 +354,25 @@ export function auditFreshHrxDatabase() {
       requiredColumn(database, "hrx_leave_accrual_rules", "version", { type: "INTEGER", notnull: 1, default_value: "1" }),
       requiredColumn(database, "hrx_leave_accrual_rules", "supersedes_rule_id", { type: "TEXT", notnull: 0 }),
       requiredColumn(database, "hrx_leave_accrual_runs", "as_of_date", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_payment_items", "provider_result_state", { type: "TEXT", notnull: 1, default_value: "'pending'" }),
+      requiredColumn(database, "hrx_payroll_payment_items", "attempt_count", { type: "INTEGER", notnull: 1, default_value: "0" }),
+      requiredColumn(database, "hrx_payroll_filing_jobs", "provider_result_state", { type: "TEXT", notnull: 1, default_value: "'not_submitted'" }),
+      requiredColumn(database, "hrx_payroll_filing_jobs", "attempt_count", { type: "INTEGER", notnull: 1, default_value: "0" }),
+      requiredColumn(database, "hrx_payroll_delivery_receipts", "provider_result_state", { type: "TEXT", notnull: 1, default_value: "'queued'" }),
+      requiredColumn(database, "hrx_offboarding_cases", "leave_reconciliation_evidence_ref", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_delivery_receipts", "provider_id", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_delivery_receipts", "provider_receipt_id", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_delivery_receipts", "attempt_started_at", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_rule_versions", "legal_reviewed_by_actor_id", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_rule_versions", "legal_review_ref", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_rule_versions", "legal_reviewed_at", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_filing_jobs", "last_attempt_at", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_leave_promotion_campaigns", "business_fingerprint", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_provider_operations", "result_payload_json", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_provider_operations", "result_payload_hash", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_provider_operations", "provider_response_hash", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_runs", "filing_source_hash", { type: "TEXT", notnull: 0 }),
+      requiredColumn(database, "hrx_payroll_filing_jobs", "previous_job_ref", { type: "TEXT", notnull: 0 }),
     ]);
     const forbiddenColumnChecks = Object.freeze([
       assertForbiddenColumn(database, "hrx_payroll_profiles", "pay_frequency"),

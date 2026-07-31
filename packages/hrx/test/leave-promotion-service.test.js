@@ -106,6 +106,56 @@ test("promotion target and deadlines are reproducible from released, expired, an
   store.close();
 });
 
+test("promotion preview, campaign, recipient, and response DTO labels fail closed for opaque employee names", () => {
+  const { store, documents } = fixture();
+  const unsafeEmployeeNames = [
+    "prefixEMP-PROMOTION-1post",
+    "lawyer@example.com",
+    "550e8400-e29b-41d4-a716-446655440000",
+    "0123456789abcdef0123456789abcdef",
+    "opaque-9f2a4c7b8d1e",
+  ];
+  let sequence = 0;
+  const unsafeService = (displayName) => createLeavePromotionService({
+    store,
+    documents,
+    clock: () => "2026-07-05T01:00:00.000Z",
+    idFactory: (prefix) => `${prefix}-unsafe-${++sequence}`,
+    employeeDirectory: () => [
+      { employee_id: EMPLOYEE_ONE, display_name: displayName, status: "active" },
+      { employee_id: EMPLOYEE_TWO, display_name: "이두나", status: "active" },
+      { employee_id: EMPLOYEE_THREE, display_name: displayName, status: "inactive" },
+      { employee_id: EMPLOYEE_FOUR, display_name: "최소액", status: "active" },
+    ],
+  });
+  for (const displayName of unsafeEmployeeNames) {
+    const preview = unsafeService(displayName).preview(context, campaignInput);
+    assert.equal(preview.targets.find((row) => row.employee_id === EMPLOYEE_ONE).employee_display_name, "구성원 이름 확인 필요");
+    assert.equal(preview.exclusions.find((row) => row.employee_id === EMPLOYEE_THREE).employee_display_name, "구성원 이름 확인 필요");
+    assert.equal(JSON.stringify(preview).includes(displayName), false);
+  }
+
+  const service = unsafeService(unsafeEmployeeNames[0]);
+  const campaign = service.create(context, { ...campaignInput, idempotency_key: "promotion-unsafe-labels" });
+  const targetRecipient = campaign.recipients.find((row) => row.employee_id === EMPLOYEE_ONE);
+  assert.equal(targetRecipient.employee_display_name, "구성원 이름 확인 필요");
+  assert.equal(campaign.exclusions.find((row) => row.employee_id === EMPLOYEE_THREE).employee_display_name, "구성원 이름 확인 필요");
+
+  store.query("updateOne", {
+    table: "hrx_leave_promotion_recipients",
+    where: { tenant_id: TENANT, recipient_id: targetRecipient.recipient_id },
+    patch: { employee_display_name: "prefixEMP-PROMOTION-1post" },
+  });
+  const listed = service.get(context, campaign.campaign_id);
+  const listedRecipient = listed.recipients.find((row) => row.recipient_id === targetRecipient.recipient_id);
+  assert.equal(listedRecipient.employee_display_name, "구성원 이름 확인 필요");
+  assert.equal(JSON.stringify(listed).includes("prefixEMP-PROMOTION-1post"), false);
+  const issued = service.issueFirstNotice(context, targetRecipient.recipient_id, { document_version: "notice-v1" });
+  assert.equal(issued.employee_display_name, "구성원 이름 확인 필요");
+  assert.equal(`${issued.employee_display_name} 선택`.includes("EMP-PROMOTION-1"), false);
+  store.close();
+});
+
 test("delivery failures remain failures and first response is separated from second notice evidence", () => {
   const { store, documents, service, setNow } = fixture();
   const campaign = service.create(context, campaignInput);
@@ -162,6 +212,31 @@ test("promotion list and recipient actions fail closed to the authorized employe
   assert.equal(service.list(scoped)[0].recipients.length, 1);
   const hidden = campaign.recipients.find((recipient) => recipient.employee_id === EMPLOYEE_TWO);
   assert.throws(() => service.issueFirstNotice(scoped, hidden.recipient_id, { document_version: "notice-v1" }), /not found/);
+  store.close();
+});
+
+test("promotion list serializes only scoped campaign targets, exclusions, and counts across tenant boundaries", () => {
+  const { store, service } = fixture();
+  service.create(context, campaignInput);
+
+  const scoped = { ...context, authorized_employee_ids: [EMPLOYEE_ONE, EMPLOYEE_THREE] };
+  const [listed] = service.list(scoped);
+  assert.equal(listed.target_count, 1);
+  assert.equal(listed.excluded_count, 1);
+  assert.deepEqual(listed.recipients.map((row) => row.employee_id), [EMPLOYEE_ONE]);
+  assert.deepEqual(listed.exclusions.map((row) => [row.employee_id, row.reason]), [[EMPLOYEE_THREE, "employee_inactive"]]);
+
+  const serialized = JSON.stringify(listed);
+  for (const forbidden of [EMPLOYEE_TWO, EMPLOYEE_FOUR, "이두나", "최소액", "below_threshold"]) {
+    assert.equal(serialized.includes(forbidden), false, `serialized campaign leaked ${forbidden}`);
+  }
+
+  const unrestricted = service.list(context)[0];
+  assert.equal(unrestricted.target_count, 2);
+  assert.equal(unrestricted.excluded_count, 2);
+  assert.deepEqual(unrestricted.exclusions.map((row) => row.employee_id), [EMPLOYEE_THREE, EMPLOYEE_FOUR]);
+
+  assert.deepEqual(service.list({ ...scoped, tenant_id: "tenant-other" }), []);
   store.close();
 });
 
