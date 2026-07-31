@@ -6,6 +6,9 @@ import {
   BANK_CLASSIFICATION_CATEGORIES,
   autoClassifyBankTransactions,
   bankEmployeePayrollCategory,
+  bankTransactionClassificationId,
+  previewBankTransactionClassifications,
+  resolveBankClassificationCommandReplay,
   reviewBankTransactionClassifications,
   summarizeBankTransactionClassifications,
 } from "../../../packages/billing/src/bank-classification-service.js";
@@ -63,6 +66,8 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/finance/bank-transactions",
     "GET /api/finance/bank-classifications",
     "GET /api/finance/bank-classification-options",
+    "GET /api/finance/client-deposits",
+    "GET /api/finance/client-deposits/:bank_transaction_id",
     "POST /api/finance/bank-imports/preview",
     "POST /api/finance/bank-imports",
     "POST /api/finance/bank-classifications/auto",
@@ -128,6 +133,8 @@ export const FINANCE_API_ERROR_CODES = Object.freeze({
   preview_no_new_transactions: "FINANCE_PREVIEW_NO_NEW_TRANSACTIONS",
   client_transaction_rows_rejected: "FINANCE_CLIENT_TRANSACTION_ROWS_REJECTED",
   idempotency_conflict: "FINANCE_IDEMPOTENCY_CONFLICT",
+  classification_version_conflict: "FINANCE_BANK_CLASSIFICATION_VERSION_CONFLICT",
+  client_link_invalid: "FINANCE_CLIENT_LINK_INVALID",
 });
 
 export const FINANCE_RUNTIME_SEED = Object.freeze([
@@ -332,16 +339,65 @@ function explicitScopeDecision(context, requiredScope) {
   return { effect: "deny", reason: `finance_scope_required:${requiredScope}`, fail_closed: true };
 }
 
-function routeGate({ context, query, requestId, action, resourceType, repository }) {
+function aclResourceId(entry = {}) {
+  return entry.resource_id ?? entry.client_group_id ?? null;
+}
+
+function collectionPermissionContext(context) {
+  if (!context || typeof context !== "object") return context;
+  return {
+    ...context,
+    object_acl: Array.isArray(context.object_acl)
+      ? context.object_acl.filter((entry) => aclResourceId(entry) === null)
+      : [],
+  };
+}
+
+function resourcePermissionContext(context, resourceId) {
+  if (!context || typeof context !== "object") return context;
+  return {
+    ...context,
+    object_acl: Array.isArray(context.object_acl)
+      ? context.object_acl.filter((entry) => {
+          const scopedId = aclResourceId(entry);
+          return scopedId === null || scopedId === resourceId;
+        })
+      : [],
+  };
+}
+
+function routeGate({
+  context,
+  query,
+  requestId,
+  action,
+  resourceType,
+  resourceId = null,
+  repository,
+}) {
   const invalid = validateCommon(query, requestId);
   if (invalid) return invalid;
-  const decision = explicitScopeDecision(context, requiredFinanceScope(action)) ?? evaluateRouteDecision({
-    context,
-    resource: { tenant_id: query.tenant_id, resource_type: resourceType },
+  const scopedContext = resourceId === null
+    ? context
+    : resourcePermissionContext(context, resourceId);
+  const decision = explicitScopeDecision(scopedContext, requiredFinanceScope(action)) ?? evaluateRouteDecision({
+    context: scopedContext,
+    resource: {
+      tenant_id: query.tenant_id,
+      resource_type: resourceType,
+      ...(resourceId === null ? {} : { resource_id: resourceId }),
+    },
     action,
   });
   const response = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
-  if (response) appendFinanceRouteAudit({ repository, context, query, action, resourceType, decision });
+  if (response) appendFinanceRouteAudit({
+    repository,
+    context: scopedContext,
+    query,
+    action,
+    resourceType,
+    decision,
+  });
   return response;
 }
 
@@ -397,6 +453,237 @@ function sanitizeBankImportBatch(record) {
     raw_source_payload_included: false,
     credential_material_included: false,
     production_ready_claim: false,
+  });
+}
+
+const CLIENT_DEPOSIT_RECEIPT_BINDINGS = Object.freeze([
+  "bank_transaction_id",
+  "bank_transaction_classification_id",
+  "state_version",
+  "client_group_id",
+  "refund_of_bank_transaction_id",
+  "idempotency_key",
+  "request_fingerprint",
+]);
+
+const CLIENT_DEPOSIT_SUPPORTED_COMMANDS = Object.freeze([
+  Object.freeze({
+    command: "auto_classify",
+    method: "POST",
+    path: "/api/finance/bank-classifications/auto",
+    required_body_fields: Object.freeze([
+      "tenant_id",
+      "permission_ref",
+      "audit_hint_ref",
+      "idempotency_key",
+      "bank_transaction_id",
+      "expected_state_version",
+    ]),
+    response_binding_fields: CLIENT_DEPOSIT_RECEIPT_BINDINGS,
+  }),
+  Object.freeze({
+    command: "manual_client_link",
+    method: "POST",
+    path: "/api/finance/bank-classifications/review",
+    required_body_fields: Object.freeze([
+      "tenant_id",
+      "permission_ref",
+      "audit_hint_ref",
+      "idempotency_key",
+      "decisions[].bank_transaction_id",
+      "decisions[].category=client_receipt",
+      "decisions[].client_group_id",
+      "decisions[].expected_state_version",
+    ]),
+    response_binding_fields: CLIENT_DEPOSIT_RECEIPT_BINDINGS,
+  }),
+  Object.freeze({
+    command: "refund_link",
+    method: "POST",
+    path: "/api/finance/bank-classifications/review",
+    required_body_fields: Object.freeze([
+      "tenant_id",
+      "permission_ref",
+      "audit_hint_ref",
+      "idempotency_key",
+      "decisions[].bank_transaction_id",
+      "decisions[].category=refund_reversal",
+      "decisions[].refund_of_bank_transaction_id",
+      "decisions[].expected_state_version",
+    ]),
+    response_binding_fields: CLIENT_DEPOSIT_RECEIPT_BINDINGS,
+  }),
+]);
+const BANK_TRANSACTION_READ_ACTION = "finance:bank_transaction:read";
+const BANK_CLASSIFICATION_READ_ACTION =
+  "finance:bank_classification:read";
+const CLIENT_READ_ACTION = "analytics:client:read";
+const EMPLOYEE_READ_ACTION = "hrx.employee.read";
+
+function sourceReferenceFields(transaction = {}) {
+  const source = (Array.isArray(transaction.source_refs)
+    ? transaction.source_refs
+    : []).find((reference) => (
+      ["xlsx", "pdf"].includes(reference?.source_type)
+      && /^[a-f0-9]{64}$/u.test(String(reference?.source_hash ?? ""))
+    ));
+  return Object.freeze({
+    source_type: source?.source_type ?? null,
+    source_file_sha256: source?.source_hash ?? null,
+    source_row_number: Number.isSafeInteger(source?.row) && source.row > 0
+      ? source.row
+      : null,
+    source_page_number: Number.isSafeInteger(source?.page) && source.page > 0
+      ? source.page
+      : null,
+    bank_reference_hash: sha256([
+      transaction.tenant_id,
+      transaction.bank_transaction_id,
+      transaction.transaction_fingerprint,
+    ].join("|")),
+  });
+}
+
+function clientDepositCommandsFor(record = {}) {
+  return Object.freeze([
+    "auto_classify",
+    ...(record.transaction_direction === "inflow"
+      ? ["manual_client_link"]
+      : []),
+    ...(record.transaction_direction === "outflow"
+      ? ["refund_link"]
+      : []),
+  ]);
+}
+
+function sanitizeClientDeposit(record, transaction, directories) {
+  const client = directories.clientRecords.find((candidate) => (
+    candidate.model_type === "ClientGroup"
+    && candidate.client_group_id === record.client_group_id
+  ));
+  return Object.freeze({
+    model_type: "ClientDeposit",
+    resource_id: transaction.bank_transaction_id,
+    tenant_id: transaction.tenant_id,
+    bank_transaction_id: transaction.bank_transaction_id,
+    bank_transaction_classification_id:
+      record.bank_transaction_classification_id,
+    transaction_date: transaction.date ?? record.transaction_date,
+    occurred_at: transaction.occurred_at
+      ?? `${transaction.date ?? record.transaction_date}T00:00:00.000Z`,
+    transaction_direction: transaction.direction
+      ?? record.transaction_direction,
+    amount: Number(transaction.amount ?? record.amount),
+    currency: transaction.currency ?? record.currency,
+    category: record.category,
+    category_label:
+      BANK_CLASSIFICATION_CATEGORIES[record.category]?.label
+      ?? record.category_label,
+    primary_type: record.primary_type,
+    client_group_id: record.client_group_id ?? null,
+    client_group_label:
+      client?.display_name
+      ?? client?.canonical_display_name
+      ?? null,
+    status: record.status,
+    confidence: record.confidence,
+    classification_source: record.classification_source,
+    rationale_code: record.rationale_code,
+    manual_lock: record.manual_lock === true,
+    refund_of_bank_transaction_id:
+      record.refund_of_bank_transaction_id ?? null,
+    state_version: Number(record.state_version),
+    ...sourceReferenceFields(transaction),
+    available_commands: clientDepositCommandsFor(record),
+    source_metadata_included: false,
+    raw_source_payload_included: false,
+    raw_account_included: false,
+    raw_counterparty_included: false,
+    raw_memo_included: false,
+    transaction_fingerprint_included: false,
+    credential_material_included: false,
+    production_ready_claim: false,
+  });
+}
+
+function resourceDecision({
+  context,
+  tenantId,
+  resourceType,
+  resourceId,
+  action,
+}) {
+  return evaluateRouteDecision({
+    context: resourcePermissionContext(context, resourceId),
+    resource: {
+      tenant_id: tenantId,
+      resource_type: resourceType,
+      resource_id: resourceId,
+    },
+    action,
+  });
+}
+
+function resourceAllowed(input) {
+  return resourceDecision(input).effect === "allow";
+}
+
+function bankTransactionAllowed(context, tenantId, bankTransactionId) {
+  return resourceAllowed({
+    context,
+    tenantId,
+    resourceType: "BankTransaction",
+    resourceId: bankTransactionId,
+    action: BANK_TRANSACTION_READ_ACTION,
+  });
+}
+
+function bankClassificationAllowed(
+  context,
+  tenantId,
+  classificationId,
+  bankTransactionId,
+) {
+  const resourceIds = new Set(
+    [classificationId, bankTransactionId].filter(Boolean),
+  );
+  const scopedContext = {
+    ...context,
+    object_acl: Array.isArray(context?.object_acl)
+      ? context.object_acl.filter((entry) => {
+          const scopedId = aclResourceId(entry);
+          return scopedId === null || resourceIds.has(scopedId);
+        })
+      : [],
+  };
+  return evaluateRouteDecision({
+    context: scopedContext,
+    resource: {
+      tenant_id: tenantId,
+      resource_type: "BankTransactionClassification",
+      resource_id: classificationId ?? bankTransactionId,
+    },
+    action: BANK_CLASSIFICATION_READ_ACTION,
+  }).effect === "allow";
+}
+
+function clientGroupAllowed(context, tenantId, clientGroupId) {
+  return !clientGroupId || resourceAllowed({
+    context,
+    tenantId,
+    resourceType: "ClientGroup",
+    resourceId: clientGroupId,
+    action: CLIENT_READ_ACTION,
+  });
+}
+
+function employeeAllowed(context, tenantId, employeeId) {
+  return !employeeId || resourceAllowed({
+    context,
+    tenantId,
+    resourceType: "Employee",
+    resourceId: employeeId,
+    action: EMPLOYEE_READ_ACTION,
   });
 }
 
@@ -505,15 +792,18 @@ function bankImportApproved(body = {}) {
   return value === true || String(value).toLowerCase() === "true";
 }
 
-function classificationDirectories(runtime, tenantId) {
-  const clientRecords = (runtime.clientRecords
+function classificationClientRecords(runtime, tenantId) {
+  return Object.freeze((runtime.clientRecords
     ?? listBankClassificationClientRecords(
       runtime.masterDataRepository,
       tenantId,
       runtime.matterRepository,
-    )).filter((record) => !record.tenant_id || record.tenant_id === tenantId);
+    )).filter((record) => !record.tenant_id || record.tenant_id === tenantId));
+}
+
+function classificationDirectories(runtime, tenantId) {
   return Object.freeze({
-    clientRecords: Object.freeze(clientRecords),
+    clientRecords: classificationClientRecords(runtime, tenantId),
     employees: runtime.employeeRepository
       ? listAmicBankClassificationEmployees({
           repository: runtime.employeeRepository,
@@ -527,6 +817,355 @@ const INACTIVE_CLIENT_STATUSES = new Set(["inactive", "archived", "deleted", "me
 
 function activeClientRecord(record) {
   return !INACTIVE_CLIENT_STATUSES.has(String(record.status ?? "active").trim().toLowerCase());
+}
+
+function clientDepositEmptyResponse(requestId, auditHintRef) {
+  return {
+    status: 404,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item: null,
+      items: [],
+      safe_error_codes: [],
+      audit_hint_ref: auditHintRef,
+      ui_state: "empty",
+      permission_prefilter_applied: true,
+      count_leak_prevented: true,
+      unauthorized_count_included: false,
+      raw_source_payload_included: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function decodeClientDepositCursor(value) {
+  if (!value) return null;
+  try {
+    const cursor = JSON.parse(
+      Buffer.from(String(value), "base64url").toString("utf8"),
+    );
+    if (
+      cursor?.version !== 1
+      || typeof cursor.occurred_at !== "string"
+      || cursor.occurred_at === ""
+      || typeof cursor.bank_transaction_id !== "string"
+      || cursor.bank_transaction_id === ""
+    ) {
+      throw new TypeError("Invalid client deposit cursor");
+    }
+    return cursor;
+  } catch {
+    throw new TypeError("Invalid client deposit cursor");
+  }
+}
+
+function encodeClientDepositCursor(item) {
+  return Buffer.from(JSON.stringify({
+    version: 1,
+    occurred_at: item.occurred_at,
+    bank_transaction_id: item.bank_transaction_id,
+  })).toString("base64url");
+}
+
+function clientDepositAfterCursor(item, cursor) {
+  if (!cursor) return true;
+  return item.occurred_at < cursor.occurred_at
+    || (
+      item.occurred_at === cursor.occurred_at
+      && item.bank_transaction_id < cursor.bank_transaction_id
+    );
+}
+
+function clientDepositListResponse({ query, context, requestId, runtime }) {
+  const action = BANK_TRANSACTION_READ_ACTION;
+  const resourceType = "client_deposit";
+  const gated = routeGate({
+    context: collectionPermissionContext(context),
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+  if (
+    (query.from && !/^\d{4}-\d{2}-\d{2}$/u.test(query.from))
+    || (query.to && !/^\d{4}-\d{2}-\d{2}$/u.test(query.to))
+    || (
+      query.direction
+      && !["inflow", "outflow"].includes(query.direction)
+    )
+    || (
+      query.status
+      && !["confirmed", "review_required"].includes(query.status)
+    )
+    || (
+      query.limit !== undefined
+      && (
+        !Number.isSafeInteger(Number(query.limit))
+        || Number(query.limit) < 1
+        || Number(query.limit) > 500
+      )
+    )
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [FINANCE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  if (
+    query.client_group_id
+    && !clientGroupAllowed(context, query.tenant_id, query.client_group_id)
+  ) {
+    return errorResponse(
+      403,
+      requestId,
+      [FINANCE_API_ERROR_CODES.unauthorized_omission],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "denied" },
+    );
+  }
+
+  let cursor;
+  try {
+    cursor = decodeClientDepositCursor(query.cursor);
+  } catch {
+    return errorResponse(
+      400,
+      requestId,
+      [FINANCE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  const directories = Object.freeze({
+    clientRecords: classificationClientRecords(runtime, query.tenant_id),
+  });
+  const candidates = runtime.repository
+    .list({
+      tenant_id: query.tenant_id,
+      model_type: "BankTransactionClassification",
+    })
+    .filter((record) => bankTransactionAllowed(
+      context,
+      query.tenant_id,
+      record.bank_transaction_id,
+    ))
+    .filter((record) => bankClassificationAllowed(
+      context,
+      query.tenant_id,
+      record.bank_transaction_classification_id,
+      record.bank_transaction_id,
+    ))
+    .filter((record) => {
+      return clientGroupAllowed(
+        context,
+        query.tenant_id,
+        record.client_group_id,
+      );
+    })
+    .filter((record) => (
+      record.transaction_direction === "inflow"
+      || record.category === "refund_reversal"
+    ))
+    .filter((record) => !query.from || record.transaction_date >= query.from)
+    .filter((record) => !query.to || record.transaction_date <= query.to)
+    .filter((record) => (
+      !query.direction
+      || record.transaction_direction === query.direction
+    ))
+    .filter((record) => !query.status || record.status === query.status)
+    .filter((record) => (
+      !query.client_group_id
+      || record.client_group_id === query.client_group_id
+    ))
+    .map((record) => {
+      const transaction = runtime.repository.get({
+        tenant_id: query.tenant_id,
+        model_type: "BankTransaction",
+        id: record.bank_transaction_id,
+      });
+      return transaction
+        ? [record, transaction]
+        : null;
+    })
+    .filter(Boolean)
+    .map(([record, transaction]) => sanitizeClientDeposit(
+      record,
+      transaction,
+      directories,
+    ))
+    .sort((left, right) => (
+      String(right.occurred_at).localeCompare(String(left.occurred_at))
+      || right.bank_transaction_id.localeCompare(left.bank_transaction_id)
+    ))
+    .filter((item) => clientDepositAfterCursor(item, cursor));
+  const limit = Number(query.limit ?? 200);
+  const hasMore = candidates.length > limit;
+  const items = candidates.slice(0, limit);
+  const nextCursor = hasMore
+    ? encodeClientDepositCursor(items.at(-1))
+    : null;
+  appendFinanceSensitiveReadAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action,
+    resourceType,
+    returnedCount: items.length,
+    metadata: {
+      permission_prefilter_applied: true,
+      raw_source_payload_included: false,
+      raw_account_included: false,
+      raw_counterparty_included: false,
+      raw_memo_included: false,
+    },
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      items,
+      supported_commands: CLIENT_DEPOSIT_SUPPORTED_COMMANDS,
+      page_info: {
+        returned_count: items.length,
+        omitted_item_count: null,
+        has_more: hasMore,
+        next_cursor: nextCursor,
+      },
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: items.length === 0 ? "empty" : null,
+      permission_prefilter_applied: true,
+      count_leak_prevented: true,
+      unauthorized_count_included: false,
+      raw_source_payload_included: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function clientDepositDetailResponse({
+  bankTransactionId,
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  const action = BANK_TRANSACTION_READ_ACTION;
+  const resourceType = "client_deposit";
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action,
+    resourceType,
+    resourceId: bankTransactionId,
+    repository: runtime.repository,
+  });
+  if (gated) return gated;
+
+  const classifications = runtime.repository.list({
+    tenant_id: query.tenant_id,
+    model_type: "BankTransactionClassification",
+    bank_transaction_id: bankTransactionId,
+  });
+  if (classifications.length !== 1) {
+    return clientDepositEmptyResponse(
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+  const [classification] = classifications;
+  if (
+    !bankClassificationAllowed(
+      context,
+      query.tenant_id,
+      classification.bank_transaction_classification_id,
+      classification.bank_transaction_id,
+    )
+  ) {
+    return clientDepositEmptyResponse(
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+  if (
+    classification.transaction_direction !== "inflow"
+    && classification.category !== "refund_reversal"
+  ) {
+    return clientDepositEmptyResponse(
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+  if (
+    classification.client_group_id
+    && !clientGroupAllowed(
+      context,
+      query.tenant_id,
+      classification.client_group_id,
+    )
+  ) {
+    return clientDepositEmptyResponse(
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+  const transaction = runtime.repository.get({
+    tenant_id: query.tenant_id,
+    model_type: "BankTransaction",
+    id: bankTransactionId,
+  });
+  if (!transaction) {
+    return clientDepositEmptyResponse(
+      requestId,
+      query.audit_hint_ref,
+    );
+  }
+  const directories = Object.freeze({
+    clientRecords: classificationClientRecords(runtime, query.tenant_id),
+  });
+  const item = sanitizeClientDeposit(
+    classification,
+    transaction,
+    directories,
+  );
+  appendFinanceSensitiveReadAudit({
+    repository: runtime.repository,
+    context,
+    query,
+    action,
+    resourceType,
+    returnedCount: 1,
+    metadata: {
+      bank_transaction_id: bankTransactionId,
+      permission_prefilter_applied: true,
+      raw_source_payload_included: false,
+      raw_account_included: false,
+      raw_counterparty_included: false,
+      raw_memo_included: false,
+    },
+  });
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: "passed",
+      item,
+      supported_commands: CLIENT_DEPOSIT_SUPPORTED_COMMANDS,
+      safe_error_codes: [],
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: null,
+      permission_prefilter_applied: true,
+      count_leak_prevented: true,
+      unauthorized_count_included: false,
+      raw_source_payload_included: false,
+      production_ready_claim: false,
+    },
+  };
 }
 
 function sanitizeBankClassification(record, transaction, directories) {
@@ -603,7 +1242,14 @@ function bankTransactionListResponse({ query, context, requestId, runtime }) {
 function bankClassificationListResponse({ query, context, requestId, runtime }) {
   const action = "finance:bank_classification:read";
   const resourceType = "bank_transaction_classification";
-  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  const gated = routeGate({
+    context: collectionPermissionContext(context),
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
   if (gated) return gated;
   const from = query.from ?? null;
   const to = query.to ?? null;
@@ -625,6 +1271,27 @@ function bankClassificationListResponse({ query, context, requestId, runtime }) 
   const transactionsById = new Map(transactions.map((row) => [row.bank_transaction_id, row]));
   const filtered = runtime.repository
     .list({ tenant_id: query.tenant_id, model_type: "BankTransactionClassification" })
+    .filter((record) => bankTransactionAllowed(
+      context,
+      query.tenant_id,
+      record.bank_transaction_id,
+    ))
+    .filter((record) => bankClassificationAllowed(
+      context,
+      query.tenant_id,
+      record.bank_transaction_classification_id,
+      record.bank_transaction_id,
+    ))
+    .filter((record) => clientGroupAllowed(
+      context,
+      query.tenant_id,
+      record.client_group_id,
+    ))
+    .filter((record) => employeeAllowed(
+      context,
+      query.tenant_id,
+      record.employee_id,
+    ))
     .filter((record) => !from || record.transaction_date >= from)
     .filter((record) => !to || record.transaction_date <= to)
     .filter((record) => !query.direction || record.transaction_direction === query.direction)
@@ -681,13 +1348,25 @@ function bankClassificationListResponse({ query, context, requestId, runtime }) 
 function bankClassificationOptionsResponse({ query, context, requestId, runtime }) {
   const action = "finance:bank_classification:options";
   const resourceType = "bank_transaction_classification";
-  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  const gated = routeGate({
+    context: collectionPermissionContext(context),
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
   if (gated) return gated;
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   const directories = classificationDirectories(runtime, query.tenant_id);
   const clientCandidates = directories.clientRecords
     .filter((record) => record.model_type === "ClientGroup" && activeClientRecord(record))
+    .filter((record) => clientGroupAllowed(
+      context,
+      query.tenant_id,
+      record.client_group_id,
+    ))
     .map((record) => Object.freeze({
       client_group_id: record.client_group_id,
       label: record.display_name ?? record.canonical_display_name ?? record.client_group_id,
@@ -708,6 +1387,11 @@ function bankClassificationOptionsResponse({ query, context, requestId, runtime 
   }));
   const employees = directories.employees
     .filter((record) => record.status !== "inactive")
+    .filter((record) => employeeAllowed(
+      context,
+      query.tenant_id,
+      record.employee_id,
+    ))
     .map((record) => Object.freeze({
       employee_id: record.employee_id,
       label: record.display_name,
@@ -738,6 +1422,159 @@ function bankClassificationOptionsResponse({ query, context, requestId, runtime 
   };
 }
 
+function classificationCommandReceipts(result, idempotencyKey) {
+  return Object.freeze((result.classifications ?? []).map((classification) => (
+    Object.freeze({
+      bank_transaction_id: classification.bank_transaction_id,
+      bank_transaction_classification_id:
+        classification.bank_transaction_classification_id,
+      state_version: classification.state_version,
+      category: classification.category,
+      status: classification.status,
+      client_group_id: classification.client_group_id ?? null,
+      refund_of_bank_transaction_id:
+        classification.refund_of_bank_transaction_id ?? null,
+      idempotency_key: result.idempotency_key ?? idempotencyKey,
+      request_fingerprint: result.request_fingerprint,
+      raw_source_payload_included: false,
+      production_ready_claim: false,
+    })
+  )));
+}
+
+function classificationCommandResultAllowed({
+  result,
+  context,
+  tenantId,
+  action,
+  repository,
+}) {
+  const receipts = result.classifications ?? [];
+  const affectedCount = Number(result.created_count ?? 0)
+    + Number(result.updated_count ?? 0)
+    + Number(result.protected_manual_count ?? 0);
+  if (receipts.length !== affectedCount) return false;
+  return receipts.every((receipt) => {
+    if (
+      !resourceAllowed({
+        context,
+        tenantId,
+        resourceType: "BankTransactionClassification",
+        resourceId: receipt.bank_transaction_id,
+        action,
+      })
+      || !bankTransactionAllowed(
+        context,
+        tenantId,
+        receipt.bank_transaction_id,
+      )
+      || !bankClassificationAllowed(
+        context,
+        tenantId,
+        receipt.bank_transaction_classification_id,
+        receipt.bank_transaction_id,
+      )
+      || !clientGroupAllowed(
+        context,
+        tenantId,
+        receipt.client_group_id,
+      )
+      || !employeeAllowed(context, tenantId, receipt.employee_id)
+    ) {
+      return false;
+    }
+    const originalId = receipt.refund_of_bank_transaction_id;
+    if (!originalId) return true;
+    if (!bankTransactionAllowed(context, tenantId, originalId)) return false;
+    const [original] = repository.list({
+      tenant_id: tenantId,
+      model_type: "BankTransactionClassification",
+      bank_transaction_id: originalId,
+    });
+    return Boolean(
+      original
+      && bankClassificationAllowed(
+        context,
+        tenantId,
+        original.bank_transaction_classification_id,
+        original.bank_transaction_id,
+      ),
+    );
+  });
+}
+
+function classificationCommandResponse({
+  result,
+  idempotencyKey,
+  requestId,
+  auditHintRef,
+  depositAllocation = null,
+  depositAllocationReversal = null,
+  review = false,
+}) {
+  const commandReceipts = classificationCommandReceipts(
+    result,
+    idempotencyKey,
+  );
+  return {
+    status: 200,
+    body: {
+      request_id: requestId,
+      outcome: result.idempotent_replay ? "idempotent_replay" : "classified",
+      item: {
+        created_count: result.created_count,
+        updated_count: result.updated_count,
+        ...(review
+          ? { rule_count: result.rule_count }
+          : { protected_manual_count: result.protected_manual_count }),
+        summary: result.summary,
+        command_receipt: commandReceipts.length === 1
+          ? commandReceipts[0]
+          : null,
+      },
+      command_receipts: commandReceipts,
+      idempotency_key: result.idempotency_key ?? idempotencyKey,
+      request_fingerprint: result.request_fingerprint,
+      audit_event: result.audit_event,
+      safe_error_codes: [],
+      audit_hint_ref: auditHintRef,
+      idempotent_replay: result.idempotent_replay,
+      deposit_allocation: summarizeDepositAllocation(depositAllocation),
+      deposit_allocation_reversal:
+        summarizeDepositAllocationReversal(depositAllocationReversal),
+      raw_source_payload_included: false,
+      production_ready_claim: false,
+    },
+  };
+}
+
+function classificationCommandError(message, safeErrorCode, status = 409) {
+  return Object.assign(new TypeError(message), {
+    safe_error_code: safeErrorCode,
+    status,
+  });
+}
+
+function classificationResourceGate({
+  context,
+  query,
+  requestId,
+  runtime,
+  action,
+  resourceId,
+  resourceType = "bank_transaction_classification",
+}) {
+  return routeGate({
+    context,
+    query,
+    requestId,
+    action,
+    resourceType,
+    resourceId,
+    repository: runtime.repository,
+  });
+}
+
 export function handleFinanceBankClassificationAuto({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = {
     tenant_id: body?.tenant_id,
@@ -746,12 +1583,150 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
   };
   const action = "finance:bank_classification:auto";
   const resourceType = "bank_transaction_classification";
-  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  const targetId = body?.bank_transaction_id === undefined
+    ? null
+    : String(body.bank_transaction_id ?? "").trim();
+  if (body?.bank_transaction_id !== undefined && !targetId) {
+    return errorResponse(
+      400,
+      requestId,
+      [FINANCE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action,
+    resourceType,
+    resourceId: targetId,
+    repository: runtime.repository,
+  });
   if (gated) return gated;
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
+    if (
+      targetId !== null
+      && (
+        !Number.isSafeInteger(body.expected_state_version)
+        || body.expected_state_version < 0
+      )
+    ) {
+      throw new TypeError(
+        "expected_state_version is required for a targeted automatic classification",
+      );
+    }
+    const replayPayload = {
+      bank_transaction_id: targetId,
+      expected_state_version: targetId === null
+        ? null
+        : body.expected_state_version,
+    };
+    const replay = resolveBankClassificationCommandReplay({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      actor_id: context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+      action: "bank.transaction.classification.auto",
+      payload: replayPayload,
+    });
+    if (replay) {
+      if (!classificationCommandResultAllowed({
+        result: replay,
+        context,
+        tenantId: query.tenant_id,
+        action,
+        repository: runtime.repository,
+      })) {
+        return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+      }
+      return classificationCommandResponse({
+        result: replay,
+        idempotencyKey: body.idempotency_key,
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
     const directories = classificationDirectories(runtime, query.tenant_id);
+    const transactions = runtime.repository.list({
+      tenant_id: query.tenant_id,
+      model_type: "BankTransaction",
+    }).filter((transaction) => (
+      targetId === null || transaction.bank_transaction_id === targetId
+    ));
+    if (targetId !== null && transactions.length !== 1) {
+      throw classificationCommandError(
+        "BankTransaction not found",
+        FINANCE_API_ERROR_CODES.not_found,
+        404,
+      );
+    }
+    const proposals = previewBankTransactionClassifications({
+      transactions,
+      client_records: directories.clientRecords,
+      employees: directories.employees,
+      rules: runtime.repository.list({
+        tenant_id: query.tenant_id,
+        model_type: "BankClassificationRule",
+      }),
+    }).classifications;
+    const proposalByTransactionId = new Map(proposals.map((proposal) => [
+      proposal.bank_transaction_id,
+      proposal,
+    ]));
+    const allowedTransactionIds = transactions
+      .filter((transaction) => {
+        const transactionId = transaction.bank_transaction_id;
+        if (
+          !bankTransactionAllowed(context, query.tenant_id, transactionId)
+          || !resourceAllowed({
+            context,
+            tenantId: query.tenant_id,
+            resourceType: "BankTransactionClassification",
+            resourceId: transactionId,
+            action,
+          })
+        ) {
+          return false;
+        }
+        const [existing] = runtime.repository.list({
+          tenant_id: query.tenant_id,
+          model_type: "BankTransactionClassification",
+          bank_transaction_id: transactionId,
+        });
+        const proposal = proposalByTransactionId.get(transactionId);
+        const effective = (
+          existing?.manual_lock === true
+          || existing?.classification_source === "manual_review"
+        )
+          ? existing
+          : proposal;
+        return Boolean(
+          effective
+          && bankClassificationAllowed(
+            context,
+            query.tenant_id,
+            effective.bank_transaction_classification_id,
+            transactionId,
+          )
+          && clientGroupAllowed(
+            context,
+            query.tenant_id,
+            effective.client_group_id,
+          )
+          && employeeAllowed(
+            context,
+            query.tenant_id,
+            effective.employee_id,
+          ),
+        );
+      })
+      .map((transaction) => transaction.bank_transaction_id);
+    if (targetId !== null && allowedTransactionIds.length !== 1) {
+      return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+    }
     const {
       result,
       depositAllocation,
@@ -768,30 +1743,30 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
         employees: directories.employees,
         actor_id: context.principal.user_id,
         idempotency_key: body.idempotency_key,
+        bank_transaction_id: targetId,
+        expected_state_version: body.expected_state_version,
+        bank_transaction_ids: targetId === null
+          ? allowedTransactionIds
+          : null,
       }),
     });
-    return {
-      status: 200,
-      body: {
-        request_id: requestId,
-        outcome: result.idempotent_replay ? "idempotent_replay" : "classified",
-        item: {
-          created_count: result.created_count,
-          updated_count: result.updated_count,
-          protected_manual_count: result.protected_manual_count,
-          summary: result.summary,
-        },
-        audit_event: result.audit_event,
-        safe_error_codes: [],
-        audit_hint_ref: query.audit_hint_ref,
-        idempotent_replay: result.idempotent_replay,
-        deposit_allocation: summarizeDepositAllocation(depositAllocation),
-        deposit_allocation_reversal:
-          summarizeDepositAllocationReversal(depositAllocationReversal),
-        raw_source_payload_included: false,
-        production_ready_claim: false,
-      },
-    };
+    if (!classificationCommandResultAllowed({
+      result,
+      context,
+      tenantId: query.tenant_id,
+      action,
+      repository: runtime.repository,
+    })) {
+      return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+    }
+    return classificationCommandResponse({
+      result,
+      idempotencyKey: body.idempotency_key,
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      depositAllocation,
+      depositAllocationReversal,
+    });
   } catch (error) {
     return errorResponse(error?.status ?? 400, requestId, [
       error?.safe_error_code ?? FINANCE_API_ERROR_CODES.validation_error,
@@ -810,19 +1785,185 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
   };
   const action = "finance:bank_classification:review";
   const resourceType = "bank_transaction_classification";
-  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository });
+  const gated = routeGate({
+    context: collectionPermissionContext(context),
+    query,
+    requestId,
+    action,
+    resourceType,
+    repository: runtime.repository,
+  });
   if (gated) return gated;
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
+    const submittedDecisions = body?.decisions;
+    if (
+      !Array.isArray(submittedDecisions)
+      || submittedDecisions.length < 1
+      || submittedDecisions.length > 500
+    ) {
+      throw new TypeError("decisions must contain 1 to 500 rows");
+    }
+    for (const decision of submittedDecisions) {
+      const transactionId = String(
+        decision?.bank_transaction_id ?? "",
+      ).trim();
+      if (!transactionId) throw new TypeError("bank_transaction_id is required");
+      if (
+        !Number.isSafeInteger(decision.expected_state_version)
+        || decision.expected_state_version < 0
+      ) {
+        throw new TypeError(
+          "expected_state_version must be a non-negative integer",
+        );
+      }
+      const targetDenied = classificationResourceGate({
+        context,
+        query,
+        requestId,
+        runtime,
+        action,
+        resourceId: transactionId,
+      });
+      if (targetDenied) return targetDenied;
+      if (
+        !bankTransactionAllowed(context, query.tenant_id, transactionId)
+        || !bankClassificationAllowed(
+          context,
+          query.tenant_id,
+          bankTransactionClassificationId({
+            tenant_id: query.tenant_id,
+            bank_transaction_id: transactionId,
+          }),
+          transactionId,
+        )
+      ) {
+        return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+      }
+      if (
+        decision.category === "client_receipt"
+        || (
+          decision.category === "refund_reversal"
+          && decision.client_group_id !== undefined
+        )
+      ) {
+        const clientGroupId = String(
+          decision.client_group_id ?? "",
+        ).trim();
+        if (!clientGroupId) {
+          throw new TypeError("client_group_id is required");
+        }
+        if (
+          !clientGroupAllowed(context, query.tenant_id, clientGroupId)
+        ) {
+          return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+        }
+      }
+      if (
+        decision.employee_id
+        && !employeeAllowed(
+          context,
+          query.tenant_id,
+          decision.employee_id,
+        )
+      ) {
+        return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+      }
+      if (decision.category === "refund_reversal") {
+        const originalId = String(
+          decision.refund_of_bank_transaction_id ?? "",
+        ).trim();
+        if (!originalId) {
+          throw new TypeError(
+            "refund_of_bank_transaction_id is required",
+          );
+        }
+        const originalDenied = classificationResourceGate({
+          context,
+          query,
+          requestId,
+          runtime,
+          action,
+          resourceId: originalId,
+          resourceType: "client_deposit",
+        });
+        if (originalDenied) return originalDenied;
+        if (
+          !bankTransactionAllowed(context, query.tenant_id, originalId)
+        ) {
+          return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+        }
+      }
+    }
+    const replay = resolveBankClassificationCommandReplay({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      actor_id: context.principal.user_id,
+      idempotency_key: body.idempotency_key,
+      action: "bank.transaction.classification.review",
+      payload: { decisions: submittedDecisions },
+    });
+    if (replay) {
+      if (!classificationCommandResultAllowed({
+        result: replay,
+        context,
+        tenantId: query.tenant_id,
+        action,
+        repository: runtime.repository,
+      })) {
+        return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+      }
+      return classificationCommandResponse({
+        result: replay,
+        idempotencyKey: body.idempotency_key,
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+        review: true,
+      });
+    }
+    for (const decision of submittedDecisions) {
+      if (decision.category !== "refund_reversal") continue;
+      const originalId = String(
+        decision.refund_of_bank_transaction_id,
+      ).trim();
+      const [originalClassification] = runtime.repository.list({
+        tenant_id: query.tenant_id,
+        model_type: "BankTransactionClassification",
+        bank_transaction_id: originalId,
+      });
+      if (
+        !originalClassification
+        || !bankClassificationAllowed(
+          context,
+          query.tenant_id,
+          originalClassification.bank_transaction_classification_id,
+          originalId,
+        )
+        || !clientGroupAllowed(
+          context,
+          query.tenant_id,
+          originalClassification.client_group_id,
+        )
+      ) {
+        return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+      }
+    }
     const directories = classificationDirectories(runtime, query.tenant_id);
     const clientIds = new Set(directories.clientRecords
       .filter((record) => record.model_type === "ClientGroup" && activeClientRecord(record))
       .map((record) => record.client_group_id));
     const employeeIds = new Set(directories.employees.map((record) => record.employee_id));
-    const decisions = (body.decisions ?? []).map((decision) => {
-      if (decision.category === "client_receipt" && !clientIds.has(decision.client_group_id)) {
-        throw new TypeError("A registered client is required");
+    const decisions = submittedDecisions.map((decision) => {
+      if (
+        ["client_receipt", "refund_reversal"].includes(decision.category)
+        && decision.client_group_id
+        && !clientIds.has(decision.client_group_id)
+      ) {
+        throw classificationCommandError(
+          "A registered client is required",
+          FINANCE_API_ERROR_CODES.client_link_invalid,
+        );
       }
       if (decision.employee_id && !employeeIds.has(decision.employee_id)) {
         throw new TypeError("A registered employee is required");
@@ -850,30 +1991,27 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
         decisions,
         actor_id: context.principal.user_id,
         idempotency_key: body.idempotency_key,
+        require_expected_state_version: true,
       }),
     });
-    return {
-      status: 200,
-      body: {
-        request_id: requestId,
-        outcome: result.idempotent_replay ? "idempotent_replay" : "classified",
-        item: {
-          created_count: result.created_count,
-          updated_count: result.updated_count,
-          rule_count: result.rule_count,
-          summary: result.summary,
-        },
-        audit_event: result.audit_event,
-        safe_error_codes: [],
-        audit_hint_ref: query.audit_hint_ref,
-        idempotent_replay: result.idempotent_replay,
-        deposit_allocation: summarizeDepositAllocation(depositAllocation),
-        deposit_allocation_reversal:
-          summarizeDepositAllocationReversal(depositAllocationReversal),
-        raw_source_payload_included: false,
-        production_ready_claim: false,
-      },
-    };
+    if (!classificationCommandResultAllowed({
+      result,
+      context,
+      tenantId: query.tenant_id,
+      action,
+      repository: runtime.repository,
+    })) {
+      return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
+    }
+    return classificationCommandResponse({
+      result,
+      idempotencyKey: body.idempotency_key,
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+      depositAllocation,
+      depositAllocationReversal,
+      review: true,
+    });
   } catch (error) {
     return errorResponse(error?.status ?? 400, requestId, [
       error?.safe_error_code ?? FINANCE_API_ERROR_CODES.validation_error,
@@ -2254,6 +3392,7 @@ export function handleFinanceAudit({ query, context, requestId, runtime = DEFAUL
 
 export async function handleFinanceApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const feeCommitmentMatch = /^\/api\/finance\/fee-commitments\/([^/]+)$/u.exec(pathname);
+  const clientDepositMatch = /^\/api\/finance\/client-deposits\/([^/]+)$/u.exec(pathname);
   if (pathname === "/api/finance/bank-transactions" && method === "GET") {
     return bankTransactionListResponse({ query, context, requestId, runtime });
   }
@@ -2262,6 +3401,23 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
   }
   if (pathname === "/api/finance/bank-classification-options" && method === "GET") {
     return bankClassificationOptionsResponse({ query, context, requestId, runtime });
+  }
+  if (pathname === "/api/finance/client-deposits" && method === "GET") {
+    return clientDepositListResponse({
+      query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  if (clientDepositMatch && method === "GET") {
+    return clientDepositDetailResponse({
+      bankTransactionId: decodeURIComponent(clientDepositMatch[1]),
+      query,
+      context,
+      requestId,
+      runtime,
+    });
   }
   if (pathname === "/api/finance/bank-imports/preview" && method === "POST") {
     return handleFinanceBankImportPreview({ body, context, requestId, runtime });

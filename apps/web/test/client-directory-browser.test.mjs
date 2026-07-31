@@ -64,9 +64,104 @@ function clientDirectoryBody() {
   };
 }
 
+function clientDepositBody() {
+  const transactionId = "bank-client-directory-deposit";
+  const bindings = [
+    "bank_transaction_id",
+    "bank_transaction_classification_id",
+    "state_version",
+    "client_group_id",
+    "refund_of_bank_transaction_id",
+    "idempotency_key",
+    "request_fingerprint"
+  ];
+  return {
+    request_id: "client-directory-deposit",
+    outcome: "passed",
+    ui_state: null,
+    items: [{
+      model_type: "ClientDeposit",
+      resource_id: transactionId,
+      tenant_id: "tenant-client-directory-browser",
+      bank_transaction_id: transactionId,
+      bank_transaction_classification_id: "classification-client-directory-deposit",
+      transaction_date: "2026-07-31",
+      occurred_at: "2026-07-31T05:00:00.000Z",
+      transaction_direction: "inflow",
+      amount: 1_500_000,
+      currency: "KRW",
+      category: "client_receipt",
+      category_label: "고객 매출",
+      primary_type: "sales",
+      client_group_id: "client-allowed",
+      client_group_label: "새봄테크",
+      status: "confirmed",
+      confidence: "high",
+      classification_source: "automatic",
+      rationale_code: "client_exact",
+      manual_lock: false,
+      refund_of_bank_transaction_id: null,
+      state_version: 1,
+      source_type: "xlsx",
+      source_file_sha256: "a".repeat(64),
+      source_row_number: 3,
+      source_page_number: null,
+      bank_reference_hash: "b".repeat(64),
+      available_commands: ["auto_classify", "manual_client_link"],
+      source_metadata_included: false,
+      raw_source_payload_included: false,
+      raw_account_included: false,
+      raw_counterparty_included: false,
+      raw_memo_included: false,
+      transaction_fingerprint_included: false,
+      credential_material_included: false,
+      production_ready_claim: false
+    }],
+    supported_commands: [
+      {
+        command: "auto_classify",
+        method: "POST",
+        path: "/api/finance/bank-classifications/auto",
+        required_body_fields: ["tenant_id", "bank_transaction_id", "expected_state_version"],
+        response_binding_fields: bindings
+      },
+      {
+        command: "manual_client_link",
+        method: "POST",
+        path: "/api/finance/bank-classifications/review",
+        required_body_fields: ["tenant_id", "decisions[].bank_transaction_id"],
+        response_binding_fields: bindings
+      },
+      {
+        command: "refund_link",
+        method: "POST",
+        path: "/api/finance/bank-classifications/review",
+        required_body_fields: ["tenant_id", "decisions[].refund_of_bank_transaction_id"],
+        response_binding_fields: bindings
+      }
+    ],
+    page_info: {
+      returned_count: 1,
+      omitted_item_count: null,
+      has_more: false,
+      next_cursor: null
+    },
+    safe_error_codes: [],
+    audit_hint_ref: "ui_client_deposit_operations_probe",
+    permission_prefilter_applied: true,
+    count_leak_prevented: true,
+    unauthorized_count_included: false,
+    raw_source_payload_included: false,
+    production_ready_claim: false
+  };
+}
+
 function apiBody(pathname, state) {
   if (pathname === "/api/analytics/clients") {
     return clientDirectoryBody();
+  }
+  if (pathname === "/api/finance/client-deposits") {
+    return clientDepositBody();
   }
   if (
     pathname
@@ -352,6 +447,28 @@ test("CL-P5-W02-T01 고객 목록과 상세 탭은 주소·권한·반응형 계
     const page = await browser.newPage({
       viewport: { width: 1440, height: 1000 }
     });
+    await page.addInitScript(() => {
+      sessionStorage.setItem("lawos.api.session", JSON.stringify({
+        token_type: "Bearer",
+        session_token: "lawos_session_v1.client_directory_browser",
+        expires_at: "2099-01-01T00:00:00.000Z"
+      }));
+      sessionStorage.setItem("lawos.session.envelope", JSON.stringify({
+        schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
+        state: "signed_in",
+        session_ref: "session-client-directory-browser",
+        source: "api_signed_session",
+        actor_ref: "user-client-directory-browser",
+        tenant_refs: {
+          default: "tenant-client-directory-browser",
+          client: "tenant-client-directory-browser"
+        },
+        role_ids: ["system_super_admin"],
+        scopes: ["finance.bank.read"],
+        review_state: "allow",
+        expires_at: "2099-01-01T00:00:00.000Z"
+      }));
+    });
     page.on("request", (request) => {
       requestedPaths.push(new URL(request.url()).pathname);
     });
@@ -429,18 +546,22 @@ test("CL-P5-W02-T01 고객 목록과 상세 탭은 주소·권한·반응형 계
       name: /입금 매출 내역 열기/
     }).click();
     await page.waitForFunction(() => location.hash === "#client-sales-history");
+    await page.waitForSelector('[data-client-deposit-operations="true"]');
     await page.waitForSelector(
-      '[data-client-related-finance-guard="deposit_revenue"]'
+      '[data-client-deposit-transaction="bank-client-directory-deposit"]'
     );
     assert.equal(
       await page.locator('[data-record-overlay="client"]').count(),
       0
     );
-    const depositGuardText = await page.locator(
-      '[data-client-related-finance-guard="deposit_revenue"]'
-    ).innerText();
-    assert.match(depositGuardText, /입금 매출 기준과 기존 청구 기준/);
-    assert.match(depositGuardText, /정확하지 않은 금액은 보여 주지 않습니다/);
+    assert.equal(
+      await page.locator(".client-deposit-filters label:last-child select").inputValue(),
+      "client-allowed"
+    );
+    assert.match(
+      await page.locator('[data-client-deposit-operations="true"]').innerText(),
+      /수납 기준/
+    );
     assert.equal(
       await page.locator("#client-sales-history table").count(),
       0

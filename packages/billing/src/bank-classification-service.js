@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { stableJsonStringify } from "../../persistence/src/durable-file.js";
 import { appendFinanceAuditEvent } from "./finance-audit.js";
 
 export const BANK_CLASSIFICATION_CATEGORIES = Object.freeze({
@@ -47,6 +48,8 @@ const PAYROLL_TITLE_RULES = Object.freeze([
   Object.freeze({ category: "partner", pattern: /partner|파트너|대표변호사|구성원변호사/iu }),
   Object.freeze({ category: "advisor", pattern: /advisor|adviser|counsel|고문|자문위원|자문역/iu }),
 ]);
+const AUTO_CLASSIFICATION_ACTION = "bank.transaction.classification.auto";
+const REVIEW_CLASSIFICATION_ACTION = "bank.transaction.classification.review";
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -62,7 +65,60 @@ function freeze(value) {
   return Object.freeze(value);
 }
 
-function classificationId(transaction) {
+function commandFingerprint({ action, tenantId, actorId, payload }) {
+  return createHash("sha256")
+    .update(stableJsonStringify({
+      action,
+      tenant_id: tenantId,
+      actor_id: actorId,
+      payload,
+    }))
+    .digest("hex");
+}
+
+function classificationConflict(message, safeErrorCode, status = 409) {
+  return Object.assign(new TypeError(message), {
+    safe_error_code: safeErrorCode,
+    status,
+  });
+}
+
+export function resolveBankClassificationCommandReplay({
+  repository,
+  tenant_id,
+  actor_id,
+  idempotency_key,
+  action,
+  payload,
+} = {}) {
+  const tenantId = requiredString({ tenant_id }, "tenant_id");
+  const actorId = requiredString({ actor_id }, "actor_id");
+  const idempotencyKey = requiredString({ idempotency_key }, "idempotency_key");
+  const commandAction = requiredString({ action }, "action");
+  const requestFingerprint = commandFingerprint({
+    action: commandAction,
+    tenantId,
+    actorId,
+    payload,
+  });
+  const replay = repository.getIdempotency({
+    tenant_id: tenantId,
+    idempotency_key: idempotencyKey,
+  });
+  if (!replay) return null;
+  if (
+    replay.operation !== commandAction
+    || replay.request_fingerprint !== requestFingerprint
+  ) {
+    throw classificationConflict(
+      "idempotency_key is already bound to another bank classification request",
+      "FINANCE_IDEMPOTENCY_CONFLICT",
+    );
+  }
+  return freeze({ ...replay.response, idempotent_replay: true });
+}
+
+export function bankTransactionClassificationId(transaction) {
   return stableId("bank_classification", `${transaction.tenant_id}|${transaction.bank_transaction_id}`);
 }
 
@@ -217,7 +273,7 @@ function classificationProposal(transaction, values) {
   }
   return freeze({
     model_type: "BankTransactionClassification",
-    bank_transaction_classification_id: classificationId(transaction),
+    bank_transaction_classification_id: bankTransactionClassificationId(transaction),
     tenant_id: transaction.tenant_id,
     bank_transaction_id: transaction.bank_transaction_id,
     account_ref: transaction.account_ref,
@@ -428,6 +484,21 @@ export function summarizeBankTransactionClassifications(classifications = []) {
   });
 }
 
+function classificationCommandReceipt(record) {
+  return freeze({
+    bank_transaction_id: record.bank_transaction_id,
+    bank_transaction_classification_id:
+      record.bank_transaction_classification_id,
+    state_version: record.state_version,
+    category: record.category,
+    status: record.status,
+    client_group_id: record.client_group_id ?? null,
+    employee_id: record.employee_id ?? null,
+    refund_of_bank_transaction_id:
+      record.refund_of_bank_transaction_id ?? null,
+  });
+}
+
 function persistClassifications({
   repository,
   tenant_id,
@@ -436,45 +507,97 @@ function persistClassifications({
   idempotency_key,
   action,
   rules = [],
+  request_fingerprint,
+  expected_state_versions = new Map(),
+  receipt_transaction_ids = null,
 } = {}) {
   const tenantId = requiredString({ tenant_id }, "tenant_id");
   const actorId = requiredString({ actor_id }, "actor_id");
   const idempotencyKey = requiredString({ idempotency_key }, "idempotency_key");
+  const requestFingerprint = requiredString(
+    { request_fingerprint },
+    "request_fingerprint",
+  );
   const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey });
-  if (replay) return freeze({ ...replay.response, idempotent_replay: true });
+  if (replay) {
+    if (
+      replay.operation !== action
+      || replay.request_fingerprint !== requestFingerprint
+    ) {
+      throw classificationConflict(
+        "idempotency_key is already bound to another bank classification request",
+        "FINANCE_IDEMPOTENCY_CONFLICT",
+      );
+    }
+    return freeze({ ...replay.response, idempotent_replay: true });
+  }
 
   return repository.transaction((tx) => {
     let createdCount = 0;
     let updatedCount = 0;
     let protectedManualCount = 0;
+    const receipts = [];
+    const summaryRecords = [];
     for (const classification of classifications) {
       const existing = tx.get({
         tenant_id: tenantId,
         model_type: "BankTransactionClassification",
         id: classification.bank_transaction_classification_id,
       });
+      const expectedVersion = expected_state_versions.get(
+        classification.bank_transaction_id,
+      );
+      const currentVersion = Number(existing?.state_version ?? 0);
+      if (
+        expectedVersion !== undefined
+        && (
+          !Number.isSafeInteger(expectedVersion)
+          || expectedVersion < 0
+          || expectedVersion !== currentVersion
+        )
+      ) {
+        throw classificationConflict(
+          "Bank classification state_version is stale",
+          "FINANCE_BANK_CLASSIFICATION_VERSION_CONFLICT",
+        );
+      }
       if (
         (existing?.manual_lock === true || existing?.classification_source === "manual_review")
         && classification.classification_source !== "manual_review"
       ) {
         protectedManualCount += 1;
+        if (
+          receipt_transaction_ids === null
+          || receipt_transaction_ids.has(classification.bank_transaction_id)
+        ) {
+          summaryRecords.push(existing);
+          receipts.push(classificationCommandReceipt(existing));
+        }
         continue;
       }
       const next = freeze({
         ...classification,
-        state_version: Number(existing?.state_version ?? 0) + 1,
+        state_version: currentVersion + 1,
         created_at: existing?.created_at,
       });
+      let persisted;
       if (existing) {
-        tx.update({
+        persisted = tx.update({
           tenant_id: tenantId,
           model_type: "BankTransactionClassification",
           id: classification.bank_transaction_classification_id,
         }, next);
         updatedCount += 1;
       } else {
-        tx.create(next);
+        persisted = tx.create(next);
         createdCount += 1;
+      }
+      if (
+        receipt_transaction_ids === null
+        || receipt_transaction_ids.has(classification.bank_transaction_id)
+      ) {
+        summaryRecords.push(persisted);
+        receipts.push(classificationCommandReceipt(persisted));
       }
     }
     for (const rule of rules) {
@@ -486,8 +609,7 @@ function persistClassifications({
       if (tx.get(ref)) tx.update(ref, rule);
       else tx.create(rule);
     }
-    const persisted = tx.list({ tenant_id: tenantId, model_type: "BankTransactionClassification" });
-    const summary = summarizeBankTransactionClassifications(persisted);
+    const summary = summarizeBankTransactionClassifications(summaryRecords);
     const auditEvent = appendFinanceAuditEvent({
       repository: tx,
       event: {
@@ -521,6 +643,9 @@ function persistClassifications({
       protected_manual_count: protectedManualCount,
       rule_count: rules.length,
       summary,
+      classifications: freeze(receipts),
+      idempotency_key: idempotencyKey,
+      request_fingerprint: requestFingerprint,
       audit_event: auditEvent,
       idempotent_replay: false,
     });
@@ -528,6 +653,7 @@ function persistClassifications({
       tenant_id: tenantId,
       idempotency_key: idempotencyKey,
       operation: action,
+      request_fingerprint: requestFingerprint,
       response,
     });
     return response;
@@ -541,9 +667,83 @@ export function autoClassifyBankTransactions({
   employees = [],
   actor_id,
   idempotency_key,
+  bank_transaction_id = null,
+  expected_state_version,
+  bank_transaction_ids = null,
 } = {}) {
   const tenantId = requiredString({ tenant_id }, "tenant_id");
-  const transactions = repository.list({ tenant_id: tenantId, model_type: "BankTransaction" });
+  const actorId = requiredString({ actor_id }, "actor_id");
+  const transactionId = bank_transaction_id === null
+    ? null
+    : requiredString({ bank_transaction_id }, "bank_transaction_id");
+  if (bank_transaction_ids !== null && !Array.isArray(bank_transaction_ids)) {
+    throw new TypeError(
+      "bank_transaction_ids must contain unique transaction IDs",
+    );
+  }
+  const allowedTransactionIds = bank_transaction_ids === null
+    ? null
+    : new Set(bank_transaction_ids.map((value) => requiredString(
+        { bank_transaction_id: value },
+        "bank_transaction_id",
+      )));
+  if (
+    bank_transaction_ids !== null
+    && allowedTransactionIds.size !== bank_transaction_ids.length
+  ) {
+    throw new TypeError("bank_transaction_ids must contain unique transaction IDs");
+  }
+  if (transactionId !== null && allowedTransactionIds !== null) {
+    throw new TypeError(
+      "bank_transaction_ids cannot be combined with bank_transaction_id",
+    );
+  }
+  const requestPayload = {
+    bank_transaction_id: transactionId,
+    expected_state_version: transactionId === null
+      ? null
+      : expected_state_version,
+  };
+  const replay = resolveBankClassificationCommandReplay({
+    repository,
+    tenant_id: tenantId,
+    actor_id: actorId,
+    idempotency_key,
+    action: AUTO_CLASSIFICATION_ACTION,
+    payload: requestPayload,
+  });
+  if (replay) return replay;
+  const allTransactions = repository.list({
+    tenant_id: tenantId,
+    model_type: "BankTransaction",
+  });
+  const transactions = transactionId === null
+    ? allowedTransactionIds === null
+      ? allTransactions
+      : allTransactions.filter((transaction) => (
+          allowedTransactionIds.has(transaction.bank_transaction_id)
+        ))
+    : allTransactions.filter((transaction) => (
+        transaction.bank_transaction_id === transactionId
+      ));
+  if (transactionId !== null && transactions.length !== 1) {
+    throw classificationConflict(
+      "BankTransaction not found",
+      "FINANCE_NOT_FOUND",
+      404,
+    );
+  }
+  if (
+    transactionId !== null
+    && (
+      !Number.isSafeInteger(expected_state_version)
+      || expected_state_version < 0
+    )
+  ) {
+    throw new TypeError(
+      "expected_state_version must be a non-negative integer for a targeted automatic classification",
+    );
+  }
   const rules = repository.list({ tenant_id: tenantId, model_type: "BankClassificationRule" });
   const preview = previewBankTransactionClassifications({
     transactions,
@@ -555,9 +755,21 @@ export function autoClassifyBankTransactions({
     repository,
     tenant_id: tenantId,
     classifications: preview.classifications,
-    actor_id,
+    actor_id: actorId,
     idempotency_key,
-    action: "bank.transaction.classification.auto",
+    action: AUTO_CLASSIFICATION_ACTION,
+    request_fingerprint: commandFingerprint({
+      action: AUTO_CLASSIFICATION_ACTION,
+      tenantId,
+      actorId,
+      payload: requestPayload,
+    }),
+    expected_state_versions: transactionId === null
+      ? new Map()
+      : new Map([[transactionId, expected_state_version]]),
+    receipt_transaction_ids: transactionId === null
+      ? allowedTransactionIds
+      : new Set([transactionId]),
   });
 }
 
@@ -628,7 +840,7 @@ function refundLinkValues({
   const originalClassification = repository.get({
     tenant_id: tenantId,
     model_type: "BankTransactionClassification",
-    id: classificationId(originalTransaction),
+    id: bankTransactionClassificationId(originalTransaction),
   });
   if (
     originalClassification?.category !== "client_receipt"
@@ -638,6 +850,15 @@ function refundLinkValues({
     throw refundError(
       "The original inflow is not confirmed client revenue",
       "FINANCE_REFUND_ORIGINAL_NOT_REVENUE",
+    );
+  }
+  if (
+    decision.client_group_id
+    && decision.client_group_id !== originalClassification.client_group_id
+  ) {
+    throw refundError(
+      "A client refund must use the original receipt customer",
+      "FINANCE_REFUND_CLIENT_MISMATCH",
     );
   }
   if (transaction.currency !== originalTransaction.currency) {
@@ -698,25 +919,56 @@ export function reviewBankTransactionClassifications({
   decisions = [],
   actor_id,
   idempotency_key,
+  require_expected_state_version = false,
 } = {}) {
   const tenantId = requiredString({ tenant_id }, "tenant_id");
   const actorId = requiredString({ actor_id }, "actor_id");
   if (!Array.isArray(decisions) || decisions.length === 0 || decisions.length > 500) {
     throw new TypeError("decisions must contain 1 to 500 rows");
   }
-  const now = new Date().toISOString();
-  const rules = [];
   const transactionIds = new Set();
   for (const decision of decisions) {
     const bankTransactionId = requiredString(decision, "bank_transaction_id");
+    if (
+      require_expected_state_version
+      && (
+        !Number.isSafeInteger(decision.expected_state_version)
+        || decision.expected_state_version < 0
+      )
+    ) {
+      throw new TypeError(
+        "expected_state_version must be a non-negative integer",
+      );
+    }
     if (transactionIds.has(bankTransactionId)) {
       throw new TypeError(`Duplicate classification decision: ${bankTransactionId}`);
     }
     transactionIds.add(bankTransactionId);
   }
+  const replay = resolveBankClassificationCommandReplay({
+    repository,
+    tenant_id: tenantId,
+    actor_id: actorId,
+    idempotency_key,
+    action: REVIEW_CLASSIFICATION_ACTION,
+    payload: { decisions },
+  });
+  if (replay) return replay;
+  const now = new Date().toISOString();
+  const rules = [];
   const pendingRefundAmounts = new Map();
+  const expectedStateVersions = new Map();
   const classifications = decisions.map((decision) => {
     const bankTransactionId = requiredString(decision, "bank_transaction_id");
+    if (decision.expected_state_version !== undefined) {
+      const expectedVersion = decision.expected_state_version;
+      if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0) {
+        throw new TypeError(
+          "expected_state_version must be a non-negative integer",
+        );
+      }
+      expectedStateVersions.set(bankTransactionId, expectedVersion);
+    }
     const transaction = repository.get({
       tenant_id: tenantId,
       model_type: "BankTransaction",
@@ -726,7 +978,7 @@ export function reviewBankTransactionClassifications({
     const existing = repository.get({
       tenant_id: tenantId,
       model_type: "BankTransactionClassification",
-      id: classificationId(transaction),
+      id: bankTransactionClassificationId(transaction),
     });
     const refundLink = decision.category === "refund_reversal"
       ? refundLinkValues({
@@ -773,7 +1025,15 @@ export function reviewBankTransactionClassifications({
     classifications,
     actor_id: actorId,
     idempotency_key,
-    action: "bank.transaction.classification.review",
+    action: REVIEW_CLASSIFICATION_ACTION,
     rules,
+    request_fingerprint: commandFingerprint({
+      action: REVIEW_CLASSIFICATION_ACTION,
+      tenantId,
+      actorId,
+      payload: { decisions },
+    }),
+    expected_state_versions: expectedStateVersions,
+    receipt_transaction_ids: transactionIds,
   });
 }

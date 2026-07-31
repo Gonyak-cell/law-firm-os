@@ -736,7 +736,8 @@ function wp5ApiBody(pathname, searchParams, state) {
           primary_type: "operating_expense",
           classification_source: "automatic",
           confidence: "medium",
-          status: "confirmed"
+          status: "confirmed",
+          state_version: 1
         },
         {
           bank_transaction_id: "bank-tx-in",
@@ -753,7 +754,8 @@ function wp5ApiBody(pathname, searchParams, state) {
           classification_source: "automatic",
           confidence: "needs_review",
           rationale_code: "no_registered_client_match",
-          status: "review_required"
+          status: "review_required",
+          state_version: 1
         }
       ]),
       summary: { confirmed_count: 1, review_count: 1, transaction_count: 2 }
@@ -1416,6 +1418,7 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
       bank_transaction_id: "bank-tx-in",
       category: "client_receipt",
       client_group_id: "client-hanbit-002",
+      expected_state_version: 1,
       remember_match: true,
       match_field: "counterparty"
     }]);

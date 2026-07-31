@@ -555,12 +555,26 @@ function CashflowSurface({ liveCtx = "allow", refreshSignal = 0 }) {
         category,
         ...(category === "client_receipt" ? { client_group_id: linkedId } : {}),
         ...(category === "salary_payment" && linkedId ? { employee_id: linkedId } : {}),
+        expected_state_version: row?.state_version,
         remember_match: rememberMatch,
         match_field: "counterparty"
       };
     });
-    if (decisions.length === 0 || decisions.some((row) => row.category === "client_receipt" && !row.client_group_id)) {
-      setMutationState({ busy: false, message: decisions.length === 0 ? "적용할 거래를 선택하세요." : "매출로 분류할 거래의 고객을 선택하세요." });
+    const missingStateVersion = decisions.some((decision) => (
+      !Number.isSafeInteger(decision.expected_state_version)
+      || decision.expected_state_version < 0
+    ));
+    if (
+      decisions.length === 0
+      || missingStateVersion
+      || decisions.some((decision) => decision.category === "client_receipt" && !decision.client_group_id)
+    ) {
+      const message = decisions.length === 0
+        ? "적용할 거래를 선택하세요."
+        : missingStateVersion
+          ? "선택한 거래의 분류 버전을 확인하지 못해 적용하지 않았습니다."
+          : "매출로 분류할 거래의 고객을 선택하세요.";
+      setMutationState({ busy: false, message });
       return;
     }
     setMutationState({ busy: true, message: "" });

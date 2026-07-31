@@ -24,7 +24,6 @@ import {
   fetchAnalyticsClientDirectory,
   fetchAnalyticsClientOperationsDetail,
   fetchAnalyticsClientOperationsDashboard,
-  fetchAnalyticsFinanceClients,
   fetchCrmAccountContacts,
   fetchCrmAccounts,
   fetchCrmClientActivities,
@@ -97,6 +96,7 @@ import {
   safeReasonLabel,
   validateClientRegistrationForm
 } from "./ClientRegistrationModel.js";
+import { ClientDepositOperationsPanel } from "./ClientDepositOperationsPanel.jsx";
 
 const CLIENT_SECTIONS = new Set([
   "clients-home",
@@ -1121,22 +1121,6 @@ function ClientNewCustomersPanel({ ctx = "allow", onCreated = () => {} }) {
         </div>
       )}
     </div>
-  );
-}
-
-function ClientSalesHistoryPanel({ result }) {
-  const state = renderLiveState(result, "매출 내역");
-  if (state) return state;
-  return (
-    <DataTable
-      columns={["고객", "청구", "수납", "미수"]}
-      rows={resultItems(result).map((item) => [
-        clientDashboardRecordLabel(item.client_group_label, item.client_group_id, "고객명 미확인"),
-        clientDashboardMoneyLabel(item.billed_amount, item.currency),
-        clientDashboardMoneyLabel(item.collected_amount, item.currency),
-        clientDashboardMoneyLabel(item.ar_balance, item.currency)
-      ])}
-    />
   );
 }
 
@@ -3336,7 +3320,6 @@ export function ClientsSurface({
   const [clientSettingsResult, setClientSettingsResult] = useState(null);
   const [financeInvoicesResult, setFinanceInvoicesResult] = useState(null);
   const [financeArAgingResult, setFinanceArAgingResult] = useState(null);
-  const [financeClientsResult, setFinanceClientsResult] = useState(null);
   const [
     clientOperationsDashboardResult,
     setClientOperationsDashboardResult
@@ -3613,35 +3596,6 @@ export function ClientsSurface({
       cancelled = true;
     };
   }, [liveCtx, refreshToken]);
-
-  useEffect(() => {
-    if (
-      (
-        currentSection !== "clients-home"
-        && currentSection !== "client-sales-history"
-      )
-      || relatedFinanceKind === "deposit_revenue"
-    ) {
-      setFinanceClientsResult(null);
-      return undefined;
-    }
-    let cancelled = false;
-    const guardedResult = guardedResultForContext(liveCtx);
-    if (guardedResult) {
-      setFinanceClientsResult(guardedResult);
-      return () => { cancelled = true; };
-    }
-    setFinanceClientsResult(null);
-    fetchAnalyticsFinanceClients({ ctx: liveCtx }).then((result) => {
-      if (!cancelled) setFinanceClientsResult(result);
-    });
-    return () => { cancelled = true; };
-  }, [
-    currentSection,
-    liveCtx,
-    refreshToken,
-    relatedFinanceKind
-  ]);
 
   const clients = useMemo(() => resultItems(clientsResult), [clientsResult]);
   const activeRequestedClientId = currentSection === "clients-list"
@@ -5198,7 +5152,7 @@ export function ClientsSurface({
         )}
         {currentSection === "client-sales-history" && (
           <Panel id="client-sales-history" className="record-list-panel" title="입금 매출 내역" meta="" hideHeader>
-            {relatedFinanceKind === "deposit_revenue" ? (
+            {relatedFinanceKind === "deposit_revenue" && (clientsResult === null || !relatedFinanceClient) ? (
               <ClientRelatedFinanceGuard
                 client={relatedFinanceClient}
                 kind="deposit_revenue"
@@ -5206,7 +5160,12 @@ export function ClientsSurface({
                 onReturn={handleClientRelatedFinanceReturn}
               />
             ) : (
-              <ClientSalesHistoryPanel result={financeClientsResult} />
+              <ClientDepositOperationsPanel
+                ctx={liveCtx}
+                clients={clients}
+                initialClientId={relatedFinanceClient ? clientRecordId(relatedFinanceClient) : ""}
+                onReturn={relatedFinanceClient ? handleClientRelatedFinanceReturn : null}
+              />
             )}
           </Panel>
         )}

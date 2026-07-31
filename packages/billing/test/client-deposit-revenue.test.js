@@ -574,7 +574,7 @@ test("VC-CL-REV-008 고객 환불은 원입금과 고객을 잇고 누적 원입
     },
   );
 
-  const linked = reviewBankTransactionClassifications({
+  assert.throws(() => reviewBankTransactionClassifications({
     repository,
     tenant_id: TENANT,
     decisions: [{
@@ -582,6 +582,21 @@ test("VC-CL-REV-008 고객 환불은 원입금과 고객을 잇고 누적 원입
       category: "refund_reversal",
       refund_of_bank_transaction_id: original.bank_transaction_id,
       client_group_id: "client-attacker-supplied",
+      remember_match: true,
+    }],
+    actor_id: ACTOR,
+    idempotency_key: "reject-cross-client-refund",
+  }), (error) => (
+    error.safe_error_code === "FINANCE_REFUND_CLIENT_MISMATCH"
+    && error.status === 409
+  ));
+  const linked = reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [{
+      bank_transaction_id: firstRefund.bank_transaction_id,
+      category: "refund_reversal",
+      refund_of_bank_transaction_id: original.bank_transaction_id,
       remember_match: true,
     }],
     actor_id: ACTOR,
@@ -709,5 +724,76 @@ test("manual review rejects duplicate decisions for one bank transaction", () =>
     tenant_id: TENANT,
     model_type: "BankTransactionClassification",
   }).length, 0);
+  repository.close();
+});
+
+test("exact refund retry replays before mutable original-state validation", () => {
+  const original = bankTransaction(
+    "bank_refund_replay_origin",
+    "리플레이 고객",
+    500_000,
+  );
+  const refund = bankTransaction(
+    "bank_refund_replay_target",
+    "리플레이 고객 환불",
+    100_000,
+    {
+      direction: "outflow",
+      source_category: "고객 환불",
+    },
+  );
+  const repository = createFinanceRepository({
+    seedRecords: [original, refund],
+  });
+  autoClassifyBankTransactions({
+    repository,
+    tenant_id: TENANT,
+    client_records: [client("client-replay", "리플레이 고객")],
+    actor_id: ACTOR,
+    idempotency_key: "refund-replay-auto",
+  });
+  const decisions = [{
+    bank_transaction_id: refund.bank_transaction_id,
+    category: "refund_reversal",
+    refund_of_bank_transaction_id: original.bank_transaction_id,
+    expected_state_version: 1,
+  }];
+  const first = reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions,
+    actor_id: ACTOR,
+    idempotency_key: "refund-replay-stable",
+  });
+  reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [{
+      bank_transaction_id: original.bank_transaction_id,
+      category: "other_inflow",
+      expected_state_version: 1,
+    }],
+    actor_id: ACTOR,
+    idempotency_key: "refund-replay-original-change",
+  });
+  const replay = reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions,
+    actor_id: ACTOR,
+    idempotency_key: "refund-replay-stable",
+  });
+  assert.equal(replay.idempotent_replay, true);
+  assert.deepEqual(replay.classifications, first.classifications);
+  assert.throws(() => reviewBankTransactionClassifications({
+    repository,
+    tenant_id: TENANT,
+    decisions: [{
+      ...decisions[0],
+      client_group_id: "client-replay",
+    }],
+    actor_id: ACTOR,
+    idempotency_key: "refund-replay-stable",
+  }), (error) => error?.safe_error_code === "FINANCE_IDEMPOTENCY_CONFLICT");
   repository.close();
 });

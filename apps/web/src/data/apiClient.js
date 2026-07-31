@@ -31,6 +31,8 @@ const CRM_INQUIRY_EVIDENCE_PERMISSION_REF = "ui_cmp_g6_crm_inquiry_evidence_read
 const CRM_INQUIRY_EVIDENCE_AUDIT_HINT_REF = "ui_cmp_g6_crm_inquiry_evidence_read_probe";
 const DEFAULT_FINANCE_PERMISSION_REF = "ui_cmp_g7_finance_live";
 const DEFAULT_FINANCE_AUDIT_HINT_REF = "ui_cmp_g7_finance_probe";
+const CLIENT_DEPOSIT_PERMISSION_REF = "ui_client_deposit_operations";
+const CLIENT_DEPOSIT_AUDIT_HINT_REF = "ui_client_deposit_operations_probe";
 const DEFAULT_ANALYTICS_PERMISSION_REF = "ui_cmp_g8_analytics_live";
 const DEFAULT_ANALYTICS_AUDIT_HINT_REF = "ui_cmp_g8_analytics_probe";
 const DEFAULT_AI_PERMISSION_REF = "ui_cmp_g9_ai_live";
@@ -7565,6 +7567,910 @@ export function fetchFinanceBankClassificationOptions(options = {}) {
   return fetchFinanceCollection({
     ...options,
     path: "/api/finance/bank-classification-options",
+  });
+}
+
+const CLIENT_DEPOSIT_SOURCE_TYPES = new Set(["xlsx", "pdf"]);
+const CLIENT_DEPOSIT_DIRECTIONS = new Set(["inflow", "outflow"]);
+const CLIENT_DEPOSIT_STATUSES = new Set(["confirmed", "review_required", "unreviewed"]);
+const CLIENT_DEPOSIT_IMPORT_STATUSES = new Set(["new", "duplicate", "error"]);
+const CLIENT_DEPOSIT_HASH = /^[a-f0-9]{64}$/u;
+const CLIENT_DEPOSIT_PREVIEW_ID = /^bank_import_preview_[a-f0-9]{24}$/u;
+const CLIENT_DEPOSIT_IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/u;
+const CLIENT_DEPOSIT_CANONICAL_BASE64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
+const CLIENT_DEPOSIT_MAX_FILE_BYTES = Object.freeze({
+  xlsx: 16 * 1024 * 1024,
+  pdf: 8 * 1024 * 1024
+});
+const CLIENT_DEPOSIT_COMMAND_PATHS = Object.freeze({
+  auto_classify: "/api/finance/bank-classifications/auto",
+  manual_client_link: "/api/finance/bank-classifications/review",
+  refund_link: "/api/finance/bank-classifications/review"
+});
+
+function clientDepositText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function clientDepositFileSourceType(filename, mimeType) {
+  const normalizedName = clientDepositText(filename).split(/[\\/]/u).at(-1);
+  const normalizedMime = clientDepositText(mimeType).toLowerCase();
+  if (
+    normalizedName?.toLowerCase().endsWith(".xlsx")
+    && [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/octet-stream"
+    ].includes(normalizedMime)
+  ) return { filename: normalizedName, mimeType: normalizedMime, sourceType: "xlsx" };
+  if (
+    normalizedName?.toLowerCase().endsWith(".pdf")
+    && normalizedMime === "application/pdf"
+  ) return { filename: normalizedName, mimeType: normalizedMime, sourceType: "pdf" };
+  return null;
+}
+
+function clientDepositCanonicalBase64ByteLength(value) {
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || value.length % 4 !== 0
+    || !CLIENT_DEPOSIT_CANONICAL_BASE64.test(value)
+  ) return null;
+  try {
+    if (typeof globalThis.atob === "function" && typeof globalThis.btoa === "function") {
+      const decoded = globalThis.atob(value);
+      return globalThis.btoa(decoded) === value ? decoded.length : null;
+    }
+    if (globalThis.Buffer?.from) {
+      const decoded = globalThis.Buffer.from(value, "base64");
+      return decoded.toString("base64") === value ? decoded.byteLength : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function normalizeClientDepositEncodedFile(file) {
+  if (!file || typeof file !== "object" || Array.isArray(file)) return null;
+  const metadata = clientDepositFileSourceType(file.filename, file.mime_type);
+  const byteSize = file.byte_size;
+  const contentBase64 = file.content_base64;
+  if (
+    !metadata
+    || !Number.isSafeInteger(byteSize)
+    || byteSize < 1
+    || byteSize > CLIENT_DEPOSIT_MAX_FILE_BYTES[metadata.sourceType]
+    || typeof contentBase64 !== "string"
+    || contentBase64.length !== 4 * Math.ceil(byteSize / 3)
+    || clientDepositCanonicalBase64ByteLength(contentBase64) !== byteSize
+  ) return null;
+  return {
+    filename: metadata.filename,
+    mime_type: metadata.mimeType,
+    byte_size: byteSize,
+    content_base64: contentBase64
+  };
+}
+
+function clientDepositSafeCodes(body) {
+  return Array.isArray(body?.safe_error_codes)
+    ? body.safe_error_codes.filter((value) => typeof value === "string").slice(0, 24)
+    : [];
+}
+
+function clientDepositUnavailable(code = "SIGNED_SESSION_REQUIRED") {
+  return {
+    kind: "blocked",
+    status: 0,
+    outcome: "blocked",
+    uiState: "blocked",
+    items: [],
+    safeErrorCodes: [code],
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+export function getClientDepositRouteContext({
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF,
+  source = globalThis
+} = {}) {
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope) return null;
+  const defaultTenant = clientDepositText(envelope.tenant_refs.default);
+  const clientTenant = clientDepositText(envelope.tenant_refs.client);
+  if (defaultTenant && clientTenant && defaultTenant !== clientTenant) return null;
+  const tenantId = defaultTenant || clientTenant;
+  if (!tenantId || !clientDepositText(permissionRef) || !clientDepositText(auditHintRef)) return null;
+  const context = permissionContextFor(ctx, FINANCE_PERMISSION_CONTEXTS, "client");
+  if (clientDepositText(context?.principal?.tenant_id) !== tenantId) return null;
+  return {
+    tenant_id: tenantId,
+    permission_ref: clientDepositText(permissionRef),
+    audit_hint_ref: clientDepositText(auditHintRef),
+    permissionContext: context
+  };
+}
+
+function clientDepositGuardedResult(response, body) {
+  const status = Number(response?.status ?? 0);
+  const uiState = clientDepositText(body?.ui_state);
+  const outcome = clientDepositText(body?.outcome) || "blocked";
+  const kind = status === 409
+    ? "conflict"
+    : status === 403 && (!uiState || uiState === "denied")
+      ? "guarded"
+      : ["review", "review_required"].includes(uiState) || outcome === "review_required"
+        ? "guarded"
+        : status === 404 && uiState === "empty"
+          ? "empty"
+          : "error";
+  return {
+    kind,
+    status,
+    requestId: body?.request_id ?? null,
+    outcome: status === 409 ? "conflict" : outcome,
+    uiState: status === 409
+      ? "conflict"
+      : status === 403 && !uiState
+        ? "denied"
+        : uiState || (kind === "empty" ? "empty" : "error"),
+    item: null,
+    items: [],
+    safeErrorCodes: clientDepositSafeCodes(body),
+    countLeakPrevented: body?.count_leak_prevented === true,
+    permissionPrefilterApplied: body?.permission_prefilter_applied === true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+async function clientDepositJsonRequest(path, {
+  method = "GET",
+  payload = null,
+  routeContext
+} = {}) {
+  if (!routeContext) return { unavailable: clientDepositUnavailable() };
+  const init = {
+    method,
+    headers: {
+      [PERMISSION_CONTEXT_HEADER]: JSON.stringify(routeContext.permissionContext)
+    }
+  };
+  if (payload !== null) {
+    init.headers["content-type"] = "application/json";
+    init.body = JSON.stringify(payload);
+  }
+  let response;
+  try {
+    response = await apiFetch(path, init);
+  } catch {
+    return { unavailable: { ...clientDepositUnavailable("NETWORK_ERROR"), kind: "error", uiState: "error" } };
+  }
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    if (!response.ok) {
+      return {
+        response,
+        body: {
+          outcome: "blocked",
+          ui_state: response.status === 409
+            ? "conflict"
+            : response.status === 403
+              ? "denied"
+              : "error",
+          safe_error_codes: ["INVALID_ERROR_RESPONSE"]
+        }
+      };
+    }
+    return {
+      unavailable: {
+        ...clientDepositUnavailable("INVALID_RESPONSE"),
+        kind: "error",
+        status: response.status,
+        uiState: "error"
+      }
+    };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return {
+      unavailable: {
+        ...clientDepositUnavailable("INVALID_RESPONSE"),
+        kind: "error",
+        status: response.status,
+        uiState: "error"
+      }
+    };
+  }
+  return { response, body };
+}
+
+function projectClientDepositItem(item, tenantId) {
+  const id = clientDepositText(item?.bank_transaction_id);
+  const classificationId = clientDepositText(item?.bank_transaction_classification_id);
+  const direction = clientDepositText(item?.transaction_direction);
+  const status = clientDepositText(item?.status);
+  if (
+    item?.model_type !== "ClientDeposit"
+    || clientDepositText(item.tenant_id) !== tenantId
+    || !id
+    || !classificationId
+    || !CLIENT_DEPOSIT_DIRECTIONS.has(direction)
+    || !Number.isSafeInteger(item.amount)
+    || item.amount < 0
+    || item.currency !== "KRW"
+    || !CLIENT_DEPOSIT_STATUSES.has(status)
+    || !Number.isSafeInteger(item.state_version)
+    || item.state_version < 1
+    || item.source_metadata_included !== false
+    || item.raw_source_payload_included !== false
+    || item.raw_account_included !== false
+    || item.raw_counterparty_included !== false
+    || item.raw_memo_included !== false
+    || item.transaction_fingerprint_included !== false
+    || item.credential_material_included !== false
+    || item.production_ready_claim !== false
+  ) {
+    return null;
+  }
+  const availableCommands = Array.isArray(item.available_commands)
+    ? item.available_commands.filter((command) => Object.hasOwn(CLIENT_DEPOSIT_COMMAND_PATHS, command))
+    : [];
+  return {
+    model_type: "ClientDeposit",
+    resource_id: id,
+    tenant_id: tenantId,
+    bank_transaction_id: id,
+    bank_transaction_classification_id: classificationId,
+    transaction_date: clientDepositText(item.transaction_date) || null,
+    occurred_at: clientDepositText(item.occurred_at) || null,
+    transaction_direction: direction,
+    amount: item.amount,
+    currency: "KRW",
+    category: clientDepositText(item.category),
+    category_label: clientDepositText(item.category_label) || null,
+    primary_type: clientDepositText(item.primary_type) || null,
+    client_group_id: clientDepositText(item.client_group_id) || null,
+    client_group_label: clientDepositText(item.client_group_label) || null,
+    status,
+    confidence: clientDepositText(item.confidence),
+    classification_source: clientDepositText(item.classification_source),
+    rationale_code: clientDepositText(item.rationale_code),
+    manual_lock: item.manual_lock === true,
+    refund_of_bank_transaction_id:
+      clientDepositText(item.refund_of_bank_transaction_id) || null,
+    state_version: item.state_version,
+    source_type: CLIENT_DEPOSIT_SOURCE_TYPES.has(clientDepositText(item.source_type))
+      ? clientDepositText(item.source_type)
+      : null,
+    source_file_sha256: CLIENT_DEPOSIT_HASH.test(clientDepositText(item.source_file_sha256))
+      ? clientDepositText(item.source_file_sha256)
+      : null,
+    source_row_number: Number.isSafeInteger(item.source_row_number) && item.source_row_number > 0
+      ? item.source_row_number
+      : null,
+    source_page_number: Number.isSafeInteger(item.source_page_number) && item.source_page_number > 0
+      ? item.source_page_number
+      : null,
+    bank_reference_hash: CLIENT_DEPOSIT_HASH.test(clientDepositText(item.bank_reference_hash))
+      ? clientDepositText(item.bank_reference_hash)
+      : null,
+    available_commands: availableCommands,
+    source_metadata_included: false,
+    raw_source_payload_included: false,
+    raw_account_included: false,
+    raw_counterparty_included: false,
+    raw_memo_included: false,
+    transaction_fingerprint_included: false,
+    credential_material_included: false,
+    production_ready_claim: false
+  };
+}
+
+function projectClientDepositCommands(commands) {
+  if (!Array.isArray(commands)) return null;
+  const projected = commands.map((entry) => {
+    const command = clientDepositText(entry?.command);
+    const path = clientDepositText(entry?.path);
+    if (
+      entry?.method !== "POST"
+      || !Object.hasOwn(CLIENT_DEPOSIT_COMMAND_PATHS, command)
+      || CLIENT_DEPOSIT_COMMAND_PATHS[command] !== path
+      || !Array.isArray(entry.required_body_fields)
+      || !Array.isArray(entry.response_binding_fields)
+    ) return null;
+    return { command, method: "POST", path };
+  });
+  return projected.every(Boolean) && projected.length === 3 ? projected : null;
+}
+
+export async function fetchClientDeposits({
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF,
+  from = null,
+  to = null,
+  direction = null,
+  status = null,
+  clientGroupId = null,
+  limit = 100,
+  cursor = null
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientDepositUnavailable();
+  const params = new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref,
+    limit: String(limit)
+  });
+  for (const [key, value] of Object.entries({
+    from,
+    to,
+    direction,
+    status,
+    client_group_id: clientGroupId,
+    cursor
+  })) {
+    if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
+  }
+  const result = await clientDepositJsonRequest(
+    `/api/finance/client-deposits?${params.toString()}`,
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const page = body.page_info;
+  const commands = projectClientDepositCommands(body.supported_commands);
+  const items = Array.isArray(body.items)
+    ? body.items.map((item) => projectClientDepositItem(item, routeContext.tenant_id))
+    : null;
+  const valid = (
+    ["passed", "partial"].includes(body.outcome)
+    && Array.isArray(items)
+    && items.every(Boolean)
+    && new Set(items.map((item) => item.bank_transaction_id)).size === items.length
+    && commands
+    && page
+    && page.returned_count === items.length
+    && page.omitted_item_count === null
+    && typeof page.has_more === "boolean"
+    && (
+      (page.has_more && clientDepositText(page.next_cursor))
+      || (!page.has_more && page.next_cursor === null)
+    )
+    && body.permission_prefilter_applied === true
+    && body.count_leak_prevented === true
+    && body.unauthorized_count_included === false
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+    && Array.isArray(body.safe_error_codes)
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "error",
+      status: response.status,
+      uiState: "error"
+    };
+  }
+  const state = body.outcome === "partial"
+    ? "partial"
+    : items.length === 0
+      ? "empty"
+      : "data";
+  return {
+    kind: state,
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: state === "data" ? null : state,
+    items,
+    supportedCommands: commands,
+    pageInfo: {
+      returnedCount: page.returned_count,
+      omittedItemCount: null,
+      hasMore: page.has_more,
+      nextCursor: page.next_cursor
+    },
+    safeErrorCodes: clientDepositSafeCodes(body),
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    unauthorizedCountIncluded: false,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+export async function fetchClientDepositDetail({
+  transactionId,
+  expectedClassificationId = null,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  const id = clientDepositText(transactionId);
+  if (!routeContext || !id) return clientDepositUnavailable();
+  const params = new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref
+  });
+  const result = await clientDepositJsonRequest(
+    `/api/finance/client-deposits/${encodeURIComponent(id)}?${params.toString()}`,
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const item = projectClientDepositItem(body.item, routeContext.tenant_id);
+  const commands = projectClientDepositCommands(body.supported_commands);
+  const valid = (
+    body.outcome === "passed"
+    && item?.bank_transaction_id === id
+    && (!expectedClassificationId
+      || item.bank_transaction_classification_id === expectedClassificationId)
+    && commands
+    && body.permission_prefilter_applied === true
+    && body.count_leak_prevented === true
+    && body.unauthorized_count_included === false
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "error",
+      status: response.status,
+      uiState: "error"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    item,
+    supportedCommands: commands,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    auditHintRef: body.audit_hint_ref ?? null,
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+export async function encodeClientDepositBankFile(file) {
+  const metadata = clientDepositFileSourceType(
+    file?.name ?? file?.filename,
+    file?.type ?? file?.mime_type
+  );
+  if (!metadata || typeof file?.arrayBuffer !== "function") return null;
+  const buffer = await file.arrayBuffer();
+  if (!(buffer instanceof ArrayBuffer) || buffer.byteLength < 1
+      || buffer.byteLength > CLIENT_DEPOSIT_MAX_FILE_BYTES[metadata.sourceType]
+      || (file?.size !== undefined
+        && (!Number.isSafeInteger(file.size) || file.size !== buffer.byteLength))) return null;
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  const base64 = typeof btoa === "function"
+    ? btoa(binary)
+    : globalThis.Buffer?.from(bytes)?.toString("base64");
+  if (!base64) return null;
+  return normalizeClientDepositEncodedFile({
+    filename: metadata.filename,
+    mime_type: metadata.mimeType,
+    byte_size: buffer.byteLength,
+    content_base64: base64
+  });
+}
+
+function projectClientDepositPreviewItem(item) {
+  const id = clientDepositText(item?.bank_transaction_id);
+  const status = clientDepositText(item?.status);
+  if (
+    !id
+    || !CLIENT_DEPOSIT_IMPORT_STATUSES.has(status)
+    || item.source_metadata_included !== false
+    || item.transaction_fingerprint_included !== false
+    || item.raw_source_payload_included !== false
+  ) return null;
+  return {
+    bank_transaction_id: id,
+    row_number: Number.isSafeInteger(item.row_number) && item.row_number > 0
+      ? item.row_number
+      : null,
+    status,
+    direction: CLIENT_DEPOSIT_DIRECTIONS.has(clientDepositText(item.direction))
+      ? clientDepositText(item.direction)
+      : null,
+    amount: Number.isSafeInteger(item.amount) && item.amount >= 0 ? item.amount : null,
+    currency: item.currency === "KRW" ? "KRW" : null,
+    date: clientDepositText(item.date) || null,
+    occurred_at: clientDepositText(item.occurred_at) || null,
+    balance_after: Number.isSafeInteger(item.balance_after) && item.balance_after >= 0
+      ? item.balance_after
+      : null,
+    source_type: CLIENT_DEPOSIT_SOURCE_TYPES.has(clientDepositText(item.source_type))
+      ? clientDepositText(item.source_type)
+      : null,
+    safe_error_code: clientDepositText(item.safe_error_code) || null,
+    source_metadata_included: false,
+    transaction_fingerprint_included: false,
+    raw_source_payload_included: false
+  };
+}
+
+export async function previewClientDepositBankImport({
+  file,
+  accountRef,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientDepositUnavailable();
+  const preparedFile = typeof file?.content_base64 === "string"
+    ? normalizeClientDepositEncodedFile(file)
+    : await encodeClientDepositBankFile(file);
+  if (!preparedFile || !clientDepositText(accountRef)) {
+    return { ...clientDepositUnavailable("SOURCE_FILE_INVALID"), kind: "error", uiState: "error" };
+  }
+  const payload = {
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref,
+    account_ref: clientDepositText(accountRef),
+    file: preparedFile
+  };
+  const result = await clientDepositJsonRequest(
+    "/api/finance/bank-imports/preview",
+    { method: "POST", payload, routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const preview = body.preview;
+  const counts = preview?.counts;
+  const items = Array.isArray(preview?.items)
+    ? preview.items.map(projectClientDepositPreviewItem)
+    : null;
+  const valid = (
+    body.outcome === "preview_ready"
+    && CLIENT_DEPOSIT_PREVIEW_ID.test(clientDepositText(preview?.preview_id))
+    && CLIENT_DEPOSIT_HASH.test(clientDepositText(preview?.preview_manifest_sha256))
+    && CLIENT_DEPOSIT_HASH.test(clientDepositText(preview?.source_file_sha256))
+    && CLIENT_DEPOSIT_SOURCE_TYPES.has(clientDepositText(preview?.source_type))
+    && clientDepositText(preview?.account_ref) === clientDepositText(accountRef)
+    && counts
+    && ["total", "new", "duplicate", "error"].every((key) => (
+      Number.isSafeInteger(counts[key]) && counts[key] >= 0
+    ))
+    && counts.total === counts.new + counts.duplicate + counts.error
+    && Array.isArray(items)
+    && items.every(Boolean)
+    && items.length === counts.total
+    && new Set(items.map((item) => item.bank_transaction_id)).size === items.length
+    && items.filter((item) => item.status === "new").length === counts.new
+    && items.filter((item) => item.status === "duplicate").length === counts.duplicate
+    && items.filter((item) => item.status === "error").length === counts.error
+    && clientDepositText(preview.preview_confirmation_token)
+    && Number.isFinite(Date.parse(preview.confirmation_expires_at))
+    && preview.confirmation_token_included === true
+    && preview.product_records_mutated === false
+    && preview.raw_source_payload_included === false
+    && body.count_leak_prevented === true
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "error",
+      status: response.status,
+      uiState: "error"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    adapter_capability: "finance-bank-import-preview-v1",
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    preview: {
+      preview_id: preview.preview_id,
+      preview_manifest_sha256: preview.preview_manifest_sha256,
+      source_file_sha256: preview.source_file_sha256,
+      source_type: preview.source_type,
+      account_ref: preview.account_ref,
+      counts: {
+        total: counts.total,
+        new: counts.new,
+        duplicate: counts.duplicate,
+        error: counts.error
+      },
+      items,
+      extracted_page_count: Number.isSafeInteger(preview.extracted_page_count)
+        ? preview.extracted_page_count
+        : null,
+      extracted_character_count: Number.isSafeInteger(preview.extracted_character_count)
+        ? preview.extracted_character_count
+        : null,
+      preview_confirmation_token: preview.preview_confirmation_token,
+      confirmation_expires_at: preview.confirmation_expires_at,
+      confirmation_token_included: true,
+      product_records_mutated: false,
+      raw_source_payload_included: false
+    },
+    preparedFile,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    countLeakPrevented: true,
+    permissionPrefilterApplied: true,
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+function validClientDepositCommandContext(command, routeContext) {
+  return (
+    command
+    && typeof command === "object"
+    && !Array.isArray(command)
+    && command.tenant_id === routeContext?.tenant_id
+    && clientDepositText(command.permission_ref) === routeContext.permission_ref
+    && clientDepositText(command.audit_hint_ref) === routeContext.audit_hint_ref
+    && CLIENT_DEPOSIT_IDEMPOTENCY_KEY.test(clientDepositText(command.idempotency_key))
+    && command.transactions === undefined
+    && command.matter_id === undefined
+    && command.invoice_id === undefined
+  );
+}
+
+export async function confirmClientDepositBankImport({
+  command,
+  expectedPreview,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  const expectedId = clientDepositText(expectedPreview?.previewId ?? expectedPreview?.preview_id);
+  const expectedNew = expectedPreview?.counts?.new;
+  const preparedFile = normalizeClientDepositEncodedFile(command?.file);
+  if (
+    !routeContext
+    || !validClientDepositCommandContext(command, routeContext)
+    || !expectedId
+    || !Number.isSafeInteger(expectedNew)
+    || command.production_import_approved !== true
+    || !clientDepositText(command.preview_confirmation_token)
+    || !preparedFile
+  ) {
+    return { ...clientDepositUnavailable("INVALID_COMMAND"), kind: "error", uiState: "error" };
+  }
+  const payload = { ...command, file: preparedFile };
+  const result = await clientDepositJsonRequest(
+    "/api/finance/bank-imports",
+    { method: "POST", payload, routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const item = body.item;
+  const replay = body.outcome === "idempotent_replay";
+  const valid = (
+    ["created", "idempotent_replay"].includes(body.outcome)
+    && body.idempotent_replay === replay
+    && body.confirmed_preview_id === expectedId
+    && body.transaction_count === expectedNew
+    && item
+    && item.model_type === "BankImportBatch"
+    && item.tenant_id === routeContext.tenant_id
+    && item.preview_id === expectedId
+    && item.transaction_count === expectedNew
+    && item.source_hashes_included === false
+    && item.raw_source_payload_included === false
+    && item.credential_material_included === false
+    && item.production_ready_claim === false
+    && body.confirmation_token_included === false
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("INVALID_RESPONSE"),
+      kind: "conflict",
+      status: response.status,
+      uiState: "conflict",
+      outcome: "conflict"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    item: {
+      bank_import_batch_id: item.bank_import_batch_id,
+      tenant_id: routeContext.tenant_id,
+      preview_id: expectedId,
+      source_file_sha256: item.source_file_sha256 ?? null,
+      source_type: item.source_type,
+      account_ref: item.account_ref,
+      transaction_count: expectedNew,
+      raw_source_payload_included: false,
+      production_ready_claim: false
+    },
+    transactionCount: expectedNew,
+    confirmedPreviewId: expectedId,
+    sourceFileSha256: item.source_file_sha256 ?? null,
+    idempotentReplay: replay,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    rawSourcePayloadIncluded: false,
+    productionReadyClaim: false
+  };
+}
+
+function projectClientDepositReceipt(receipt) {
+  if (
+    !receipt
+    || typeof receipt !== "object"
+    || Array.isArray(receipt)
+    || !clientDepositText(receipt.bank_transaction_id)
+    || !clientDepositText(receipt.bank_transaction_classification_id)
+    || !Number.isSafeInteger(receipt.state_version)
+    || receipt.state_version < 1
+    || !clientDepositText(receipt.category)
+    || !clientDepositText(receipt.status)
+    || !CLIENT_DEPOSIT_IDEMPOTENCY_KEY.test(clientDepositText(receipt.idempotency_key))
+    || !CLIENT_DEPOSIT_HASH.test(clientDepositText(receipt.request_fingerprint))
+    || !Object.hasOwn(receipt, "client_group_id")
+    || !Object.hasOwn(receipt, "refund_of_bank_transaction_id")
+    || receipt.raw_source_payload_included !== false
+    || receipt.production_ready_claim !== false
+  ) return null;
+  return {
+    bank_transaction_id: receipt.bank_transaction_id,
+    bank_transaction_classification_id: receipt.bank_transaction_classification_id,
+    state_version: receipt.state_version,
+    category: receipt.category,
+    status: receipt.status,
+    client_group_id: clientDepositText(receipt.client_group_id) || null,
+    refund_of_bank_transaction_id:
+      clientDepositText(receipt.refund_of_bank_transaction_id) || null,
+    idempotency_key: receipt.idempotency_key,
+    request_fingerprint: receipt.request_fingerprint,
+    raw_source_payload_included: false,
+    production_ready_claim: false
+  };
+}
+
+async function postClientDepositClassification({
+  path,
+  command,
+  binding,
+  ctx,
+  permissionRef,
+  auditHintRef
+}) {
+  const routeContext = getClientDepositRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext || !validClientDepositCommandContext(command, routeContext) || !binding) {
+    return { ...clientDepositUnavailable("INVALID_COMMAND"), kind: "error", uiState: "error" };
+  }
+  const result = await clientDepositJsonRequest(
+    path,
+    { method: "POST", payload: command, routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const { response, body } = result;
+  if (!response.ok) return clientDepositGuardedResult(response, body);
+  const receipts = Array.isArray(body.command_receipts)
+    ? body.command_receipts.map(projectClientDepositReceipt)
+    : [];
+  const itemReceipt = projectClientDepositReceipt(body.item?.command_receipt);
+  const receipt = receipts[0];
+  const expectedClient = Object.hasOwn(binding, "expected_client_group_id")
+    ? clientDepositText(binding.expected_client_group_id) || null
+    : receipt?.client_group_id;
+  const expectedRefund = Object.hasOwn(binding, "expected_refund_of_bank_transaction_id")
+    ? clientDepositText(binding.expected_refund_of_bank_transaction_id) || null
+    : receipt?.refund_of_bank_transaction_id;
+  const replay = body.outcome === "idempotent_replay";
+  const valid = (
+    ["classified", "idempotent_replay"].includes(body.outcome)
+    && body.idempotent_replay === replay
+    && receipts.length === 1
+    && receipt
+    && itemReceipt
+    && JSON.stringify(receipt) === JSON.stringify(itemReceipt)
+    && receipt.bank_transaction_id === binding.selected_transaction_id
+    && receipt.bank_transaction_classification_id === binding.selected_classification_id
+    && receipt.state_version >= binding.expected_state_version
+    && receipt.idempotency_key === command.idempotency_key
+    && body.idempotency_key === command.idempotency_key
+    && receipt.request_fingerprint === body.request_fingerprint
+    && (!Object.hasOwn(binding, "expected_category")
+      || receipt.category === binding.expected_category)
+    && (!Object.hasOwn(binding, "expected_status")
+      || receipt.status === binding.expected_status)
+    && receipt.client_group_id === expectedClient
+    && receipt.refund_of_bank_transaction_id === expectedRefund
+    && body.raw_source_payload_included === false
+    && body.production_ready_claim === false
+  );
+  if (!valid) {
+    return {
+      ...clientDepositUnavailable("RECEIPT_BINDING_FAILED"),
+      kind: "blocked",
+      status: response.status,
+      uiState: "blocked"
+    };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    requestId: body.request_id ?? null,
+    outcome: body.outcome,
+    uiState: null,
+    tenant_id: routeContext.tenant_id,
+    item: { command_receipt: receipt },
+    command_receipts: [receipt],
+    idempotency_key: body.idempotency_key,
+    request_fingerprint: body.request_fingerprint,
+    idempotent_replay: replay,
+    safeErrorCodes: clientDepositSafeCodes(body),
+    raw_source_payload_included: false,
+    production_ready_claim: false
+  };
+}
+
+export function autoClassifyClientDeposit({
+  command,
+  binding,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  return postClientDepositClassification({
+    path: "/api/finance/bank-classifications/auto",
+    command,
+    binding,
+    ctx,
+    permissionRef,
+    auditHintRef
+  });
+}
+
+export function reviewClientDepositClassification({
+  command,
+  binding,
+  ctx = "allow",
+  permissionRef = CLIENT_DEPOSIT_PERMISSION_REF,
+  auditHintRef = CLIENT_DEPOSIT_AUDIT_HINT_REF
+} = {}) {
+  return postClientDepositClassification({
+    path: "/api/finance/bank-classifications/review",
+    command,
+    binding,
+    ctx,
+    permissionRef,
+    auditHintRef
   });
 }
 

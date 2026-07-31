@@ -1311,7 +1311,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금"]) {
     assert.match(clientDashboardModelSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmInquiries", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientDirectory", "fetchAnalyticsClientOperationsDetail", "fetchAnalyticsClientOperationsDashboard"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmInquiries", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmClientActivities", "ClientDepositOperationsPanel", "fetchAnalyticsClientDirectory", "fetchAnalyticsClientOperationsDetail", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.match(clientsSource, new RegExp(source));
   }
   assert.match(apiClientSource, /export async function fetchAnalyticsClientDirectory/);
@@ -1355,7 +1355,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchCrmContacts/);
   assert.match(clientsSource, /fetchCrmAccountContacts/);
   assert.match(clientsSource, /fetchCrmMergeProposals/);
-  assert.match(clientsSource, /fetchCrmActivities/);
+  assert.match(clientsSource, /fetchCrmClientActivities/);
   assert.match(clientsSource, /fetchCrmProposals/);
   assert.match(clientsSource, /fetchCrmClientSettings/);
   assert.match(clientsSource, /fetchFinanceInvoices/);
@@ -1429,12 +1429,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-sf-b-w02-contact-record-action="true"/);
   assert.match(clientsSource, /data-sf-b-w02-contact-record-action-result="true"/);
   assert.match(clientsSource, /createCrmAccount/);
-  assert.match(clientsSource, /createCrmActivity/);
+  assert.match(clientsSource, /createCrmContactActivityMemo/);
   assert.match(clientsSource, /createCrmContact/);
   assert.match(clientsSource, /createCrmProposal/);
   assert.match(clientsSource, /createCrmMergeProposal/);
   assert.match(clientsSource, /executeCrmMergeProposal/);
-  assert.match(clientsSource, /patchCrmActivity/);
+  assert.match(clientsSource, /updateCrmConsultation/);
   assert.match(clientsSource, /patchCrmAccount/);
   assert.match(clientsSource, /patchCrmClientSetting/);
   assert.match(clientsSource, /patchCrmContact/);
@@ -1933,7 +1933,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   for (const title of ["새 문의", "오늘 상담", "수임 검토 중", "이번 달 입금 매출", "총 미수금", "오늘 확인할 일"]) {
     assert.doesNotMatch(peopleSource, new RegExp(title));
   }
-  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
+  for (const source of ["fetchCrmAccounts", "fetchCrmLeads", "fetchCrmOpportunities", "fetchCrmContacts", "fetchCrmClientActivities", "fetchAnalyticsFinanceClients", "fetchAnalyticsClientOperationsDashboard"]) {
     assert.doesNotMatch(peopleSource, new RegExp(source));
   }
   assert.match(peopleSource, /: "people-members"/);

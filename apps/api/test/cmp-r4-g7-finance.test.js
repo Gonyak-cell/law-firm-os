@@ -637,6 +637,7 @@ test("VC-CL-AR-004 고객 입금 확인은 기존 수임료 약정에 같은 저
       bank_transaction_id: "bank-transaction-review-allocation-api",
       category: "client_receipt",
       client_group_id: "client-review-allocation-api",
+      expected_state_version: 0,
     }],
   };
   try {
@@ -992,6 +993,7 @@ test("client refund review derives the original client and rejects an excessive 
         bank_transaction_id: refund.bank_transaction_id,
         category: "refund_reversal",
         refund_of_bank_transaction_id: original.bank_transaction_id,
+        expected_state_version: 1,
       }],
     },
     query: {},
@@ -1034,6 +1036,7 @@ test("client refund review derives the original client and rejects an excessive 
         bank_transaction_id: excessive.bank_transaction_id,
         category: "refund_reversal",
         refund_of_bank_transaction_id: original.bank_transaction_id,
+        expected_state_version: 1,
       }],
     },
     query: {},
@@ -1293,6 +1296,7 @@ test("AMIC super-admin classifies a saved client short name and payroll initials
           bank_transaction_id: "bank-classification-client-api",
           category: "client_receipt",
           client_group_id: "client-best-api",
+          expected_state_version: 1,
           remember_match: true,
           match_field: "counterparty",
         }],
