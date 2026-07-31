@@ -4476,27 +4476,46 @@ export function createRetryablePromiseCache(factory) {
   });
 }
 
-const apiRuntimeCache = createRetryablePromiseCache(async () => {
-  const matterRepository = await createLambdaMatterRepository();
-  const hrxStepUpSecrets = await resolveLambdaHrxStepUpSecrets();
-  const hrxRelationalProjection =
-    await loadHrxRelationalProjectionRuntimeInput();
-  return startApiServer({
-    port: 0,
-    sessionSecret: await resolveLambdaSessionSecret(),
-    ...hrxStepUpSecrets,
-    ...(hrxRelationalProjection
-      ? {
-          hrxRelationalProjectionMappingManifest:
-            hrxRelationalProjection.mappingManifest,
-          hrxRelationalProjectionValidationResultSha256:
-            hrxRelationalProjection.validationEvidence.result_sha256,
-        }
-      : {}),
-    passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
-    ...(matterRepository ? { matterRepository } : {}),
+export function createLambdaApiRuntimeCache({
+  payrollStatementProviderVerifier = null,
+  leaveProviderVerifier = null,
+  leaveIntegrationProviders,
+  leaveIntegrationProviderEnabled,
+  startApiServerFn = startApiServer,
+  createMatterRepositoryFn = createLambdaMatterRepository,
+  resolveHrxStepUpSecretsFn = resolveLambdaHrxStepUpSecrets,
+  loadHrxRelationalProjectionFn = loadHrxRelationalProjectionRuntimeInput,
+  resolveSessionSecretFn = resolveLambdaSessionSecret,
+  createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
+} = {}) {
+  return createRetryablePromiseCache(async () => {
+    const matterRepository = await createMatterRepositoryFn();
+    const hrxStepUpSecrets = await resolveHrxStepUpSecretsFn();
+    const hrxRelationalProjection =
+      await loadHrxRelationalProjectionFn();
+    return startApiServerFn({
+      port: 0,
+      sessionSecret: await resolveSessionSecretFn(),
+      ...hrxStepUpSecrets,
+      ...(hrxRelationalProjection
+        ? {
+            hrxRelationalProjectionMappingManifest:
+              hrxRelationalProjection.mappingManifest,
+            hrxRelationalProjectionValidationResultSha256:
+              hrxRelationalProjection.validationEvidence.result_sha256,
+          }
+        : {}),
+      passwordResetEmailDelivery: createPasswordResetEmailDeliveryFn(),
+      ...(matterRepository ? { matterRepository } : {}),
+      payrollStatementProviderVerifier,
+      leaveProviderVerifier,
+      leaveIntegrationProviders,
+      leaveIntegrationProviderEnabled,
+    });
   });
-});
+}
+
+const apiRuntimeCache = createLambdaApiRuntimeCache();
 
 async function apiRuntime() {
   return apiRuntimeCache.get();
@@ -4515,6 +4534,53 @@ async function resetCachedApiServer() {
     await new Promise((resolveClose) => current.server.close(resolveClose));
   }
 }
+
+export function createLambdaHttpHandler({
+  runtimeCache,
+  payrollStatementProviderVerifier = null,
+  leaveProviderVerifier = null,
+  leaveIntegrationProviders,
+  leaveIntegrationProviderEnabled,
+  startApiServerFn = startApiServer,
+  createMatterRepositoryFn = createLambdaMatterRepository,
+  resolveHrxStepUpSecretsFn = resolveLambdaHrxStepUpSecrets,
+  loadHrxRelationalProjectionFn = loadHrxRelationalProjectionRuntimeInput,
+  resolveSessionSecretFn = resolveLambdaSessionSecret,
+  createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
+  fetchFn = fetch,
+} = {}) {
+  const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
+    payrollStatementProviderVerifier,
+    leaveProviderVerifier,
+    leaveIntegrationProviders,
+    leaveIntegrationProviderEnabled,
+    startApiServerFn,
+    createMatterRepositoryFn,
+    resolveHrxStepUpSecretsFn,
+    loadHrxRelationalProjectionFn,
+    resolveSessionSecretFn,
+    createPasswordResetEmailDeliveryFn,
+  });
+  return async (event = {}) => {
+    const method = requestMethod(event).toUpperCase();
+    const runtime = await resolvedRuntimeCache.get();
+    const response = await fetchFn(`http://127.0.0.1:${runtime.port}${requestPath(event)}`, {
+      method,
+      headers: requestHeaders(event),
+      body: requestBody(event, method),
+    });
+    const body = await response.text();
+    const headers = Object.fromEntries(response.headers.entries());
+    return {
+      statusCode: response.status,
+      headers,
+      body,
+      isBase64Encoded: false,
+    };
+  };
+}
+
+const defaultLambdaHttpHandler = createLambdaHttpHandler({ runtimeCache: apiRuntimeCache });
 
 export async function handler(event = {}) {
   if (maintenanceAction(event) === LAWOS_PASSWORD_RESET_WORKER_ACTION) {
@@ -4573,19 +4639,5 @@ export async function handler(event = {}) {
       public_http_endpoint: false,
     });
   }
-  const method = requestMethod(event).toUpperCase();
-  const baseUrl = await apiBaseUrl();
-  const response = await fetch(`${baseUrl}${requestPath(event)}`, {
-    method,
-    headers: requestHeaders(event),
-    body: requestBody(event, method)
-  });
-  const body = await response.text();
-  const headers = Object.fromEntries(response.headers.entries());
-  return {
-    statusCode: response.status,
-    headers,
-    body,
-    isBase64Encoded: false
-  };
+  return defaultLambdaHttpHandler(event);
 }

@@ -70,9 +70,11 @@ import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 import { MatterWorktreeSurface } from "./MatterWorktreeSurface.jsx";
+import { buildMatterTaskAssigneeOptions } from "../data/matterAssigneeDisplay.js";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
+const EMPTY_TASK_ASSIGNEE_OPTIONS = Object.freeze([]);
 const MATTER_SECTIONS = new Set([
   "matter-home",
   "matters-list",
@@ -1694,16 +1696,70 @@ function ActivityWorkspacePanel({
   actionLabel = "작업",
   createButtonLabel = "작업 추가",
   createTitle = "증거 검토 작업",
-  bodyText = null
+  bodyText = null,
+  assigneeOptions = EMPTY_TASK_ASSIGNEE_OPTIONS,
+  defaultAssigneeUserId = "",
+  matterSelected = false
 }) {
   const activities = resultItems(activityResult);
-  const targetActivity = activities.find((item) => item.activity_type === activityType) ?? createResult?.item ?? activities[0] ?? null;
+  const targetActivity =
+    activities.find((item) => item.activity_type === activityType) ??
+    (createResult?.item?.activity_type === activityType ? createResult.item : null);
+  const isTask = activityType === "task";
+  const currentAssigneeUserId = isTask ? String(targetActivity?.assigned_to_user_id ?? "").trim() : "";
+  const preferredUserId = currentAssigneeUserId || defaultAssigneeUserId;
+  const preferredAssigneeUserId = assigneeOptions.some(({ userId }) => userId === preferredUserId)
+    ? preferredUserId
+    : assigneeOptions[0]?.userId ?? "";
+  const [taskAssigneeUserId, setTaskAssigneeUserId] = useState(preferredAssigneeUserId);
+
+  useEffect(() => {
+    setTaskAssigneeUserId((current) => (
+      assigneeOptions.some(({ userId }) => userId === current) ? current : preferredAssigneeUserId
+    ));
+  }, [assigneeOptions, preferredAssigneeUserId]);
+
+  function createActivity(event) {
+    event.preventDefault();
+    onCreateActivity({
+      activityType,
+      title: createTitle,
+      bodyText,
+      assignedToUserId: isTask ? taskAssigneeUserId : null
+    });
+  }
+
   return (
     <div className="matter-live-stack" data-sf-b-w03-activity-workspace="true" data-lcx-vltui-06-activity-type={activityType}>
-      <div className="record-action-grid" data-sf-b-w03-activity-composer="true">
+      <form className="record-action-grid" data-sf-b-w03-activity-composer="true" onSubmit={createActivity}>
         <div className="record-action-strip">
           <div>
             <strong>{actionLabel}</strong>
+            {isTask && (
+              <div className="record-action-edit-form" data-matter-task-assignee-form="true">
+                <label>
+                  <span>업무 담당자</span>
+                  <select
+                    aria-label="업무 담당자"
+                    value={taskAssigneeUserId}
+                    onChange={(event) => setTaskAssigneeUserId(event.target.value)}
+                    disabled={createPending || assigneeOptions.length === 0}
+                    required
+                  >
+                    {assigneeOptions.length === 0 && (
+                      <option value="">
+                        {matterSelected ? "Matter 담당 변호사를 먼저 지정하세요" : "업무 보드에서 Matter를 먼저 선택하세요"}
+                      </option>
+                    )}
+                    {assigneeOptions.map((option) => (
+                      <option key={option.userId} value={option.userId}>
+                        {option.label} ({option.roleLabel})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
             <ActionNotice
               pending={createPending}
               result={createResult}
@@ -1713,9 +1769,8 @@ function ActivityWorkspacePanel({
           </div>
           <button
             className="secondary-button"
-            type="button"
-            disabled={createPending}
-            onClick={() => onCreateActivity({ activityType, title: createTitle, bodyText })}
+            type="submit"
+            disabled={createPending || (isTask && !taskAssigneeUserId)}
           >
             <ListChecks size={15} />
             {createButtonLabel}
@@ -1731,12 +1786,17 @@ function ActivityWorkspacePanel({
               successText="상태가 저장되었습니다."
             />
           </div>
-          <button className="secondary-button" type="button" disabled={!targetActivity || patchPending} onClick={() => onPatchActivity(targetActivity)}>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={!targetActivity || patchPending || (isTask && !taskAssigneeUserId)}
+            onClick={() => onPatchActivity(targetActivity, { assignedToUserId: isTask ? taskAssigneeUserId : null })}
+          >
             <Pencil size={15} />
-            상태 저장
+            {isTask ? "상태와 담당자 저장" : "상태 저장"}
           </button>
         </div>
-      </div>
+      </form>
       {createResult?.kind === "data" && createResult.item && (
         <div className="record-boundary-note" data-sf-b-w03-activity-create-result="true">
           <ShieldCheck size={15} />
@@ -2907,6 +2967,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     (selectedMatterId === requestedMatterId ? matters.find((item) => item.matter_id === selectedMatterId) : null) ??
     null;
   const activeMatterId = selectedMatter?.matter_id ?? null;
+  const taskAssigneeOptions = useMemo(
+    () => buildMatterTaskAssigneeOptions(commandResult, selectedMatter),
+    [commandResult, selectedMatter]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -3520,7 +3584,13 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setChannelResult(channel);
   }
 
-  async function handleCreateActivity({ activityType = "task", title = "증거 검토 작업", status = "todo", bodyText = null } = {}) {
+  async function handleCreateActivity({
+    activityType = "task",
+    title = "증거 검토 작업",
+    status = "todo",
+    bodyText = null,
+    assignedToUserId = null
+  } = {}) {
     if (!activeMatterId) return;
     setActivityCreatePending(true);
     const next = await createMatterActivity({
@@ -3529,6 +3599,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       title,
       status,
       bodyText,
+      assignedToUserId,
       ctx: liveCtx
     });
     setActivityCreateResult(next);
@@ -3538,14 +3609,18 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
-  async function handlePatchActivity(activity) {
+  async function handlePatchActivity(activity, { assignedToUserId = null } = {}) {
     const activityId = activity?.activity_id;
     if (!activeMatterId || !activityId) return;
+    const patch = { status: activity.status === "todo" ? "in_progress" : activity.status };
+    if (activity.activity_type === "task" && assignedToUserId) {
+      patch.assigned_to_user_id = assignedToUserId;
+    }
     setActivityPatchPending(true);
     const next = await patchMatterActivity({
       matterId: activeMatterId,
       activityId,
-      patch: { status: activity.status === "todo" ? "in_progress" : activity.status },
+      patch,
       ctx: liveCtx
     });
     setActivityPatchResult(next);
@@ -3833,6 +3908,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           patchPending={activityPatchPending}
           onCreateActivity={handleCreateActivity}
           onPatchActivity={handlePatchActivity}
+          assigneeOptions={taskAssigneeOptions}
+          defaultAssigneeUserId={selectedMatter?.owner_user_id ?? ""}
+          matterSelected={Boolean(selectedMatter)}
         />
       );
     }
@@ -4168,6 +4246,9 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               patchPending={activityPatchPending}
               onCreateActivity={handleCreateActivity}
               onPatchActivity={handlePatchActivity}
+              assigneeOptions={taskAssigneeOptions}
+              defaultAssigneeUserId={selectedMatter?.owner_user_id ?? ""}
+              matterSelected={Boolean(selectedMatter)}
             />
           </Panel>
         )}

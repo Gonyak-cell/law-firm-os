@@ -5,6 +5,7 @@ import {
   HRX_LEAVE_ENTITLEMENT_STATES,
   deriveLeaveEntitlementLifecycle,
 } from "./entitlement-lifecycle.js";
+import { publicEmployeeDisplayName, publicPeopleLabel } from "../people-presentation.js";
 import { createXlsxBuffer } from "./xlsx-export.js";
 
 const EXPORT_HEADERS = Object.freeze([
@@ -41,6 +42,11 @@ const OCCURRENCE_EXPORT_HEADERS = Object.freeze({
   month: Object.freeze(["월", "발생 건수", "발생(분)", "사용(분)", "예약(분)", "소멸(분)", "잔여(분)"]),
   type: Object.freeze(["휴가 유형 ID", "휴가 유형", "발생 건수", "발생(분)", "사용(분)", "예약(분)", "소멸(분)", "잔여(분)"]),
 });
+
+const LEAVE_GROUP_NAME_FALLBACK = "휴가 그룹 이름 확인 필요";
+const LEAVE_POLICY_NAME_FALLBACK = "휴가 기준 이름 확인 필요";
+const EMPLOYEE_NAME_FALLBACK = "구성원 이름 확인 필요";
+const ORG_UNIT_NAME_FALLBACK = "조직 이름 확인 필요";
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -305,11 +311,17 @@ export function createLeaveReportingService({ store, employeeDirectory = () => [
         return Object.freeze({
           entitlement_id: entitlement.entitlement_id,
           employee_id: entitlement.employee_id,
-          employee_display_name: employee?.display_name ?? "구성원",
+          employee_display_name: publicEmployeeDisplayName(employee, EMPLOYEE_NAME_FALLBACK),
           org_unit_id: employee?.org_unit_id ?? null,
-          org_unit_label: employee?.org_unit_label ?? null,
+          org_unit_label: publicPeopleLabel(employee?.org_unit_label, {
+            references: [employee?.org_unit_id],
+            fallback: ORG_UNIT_NAME_FALLBACK,
+          }),
           group_id: entitlement.group_id,
-          group_display_name: groups.get(entitlement.group_id)?.display_name ?? entitlement.group_id,
+          group_display_name: publicPeopleLabel(groups.get(entitlement.group_id)?.display_name, {
+            references: [entitlement.group_id, entitlement.policy_version_id],
+            fallback: LEAVE_GROUP_NAME_FALLBACK,
+          }),
           policy_version_id: entitlement.policy_version_id,
           valid_from: entitlement.valid_from,
           expires_on: entitlement.expires_on ?? null,
@@ -433,9 +445,14 @@ export function createLeaveReportingService({ store, employeeDirectory = () => [
       const balance = calculateLeaveBalance(bucket.entries, { tenant_id: tenantId, employee_id: rowEmployeeId, ...queryScope });
       return Object.freeze({
         employee_id: rowEmployeeId,
-        employee_display_name: employees.get(rowEmployeeId)?.display_name ?? "구성원",
+        employee_display_name: publicEmployeeDisplayName(employees.get(rowEmployeeId), EMPLOYEE_NAME_FALLBACK),
         group_id: bucket.scope.kind === "group" ? bucket.scope.id : null,
-        group_display_name: bucket.scope.kind === "group" ? groups.get(bucket.scope.id)?.display_name ?? bucket.scope.id : bucket.scope.id,
+        group_display_name: bucket.scope.kind === "group"
+          ? publicPeopleLabel(groups.get(bucket.scope.id)?.display_name, {
+            references: [bucket.scope.id],
+            fallback: LEAVE_GROUP_NAME_FALLBACK,
+          })
+          : LEAVE_POLICY_NAME_FALLBACK,
         ...balance,
       });
     }).sort((left, right) => left.employee_display_name.localeCompare(right.employee_display_name, "ko") || left.group_display_name.localeCompare(right.group_display_name, "ko"));
@@ -473,9 +490,12 @@ export function createLeaveReportingService({ store, employeeDirectory = () => [
         return Object.freeze({
           entry_id: row.entry_id,
           employee_id: row.employee_id,
-          employee_display_name: employees.get(row.employee_id)?.display_name ?? "구성원",
+          employee_display_name: publicEmployeeDisplayName(employees.get(row.employee_id), EMPLOYEE_NAME_FALLBACK),
           group_id: row.group_id ?? null,
-          group_display_name: groups.get(row.group_id)?.display_name ?? row.policy_id ?? "이전 원장",
+          group_display_name: publicPeopleLabel(groups.get(row.group_id)?.display_name, {
+            references: [row.group_id, row.policy_id, row.policy_version_id],
+            fallback: row.policy_id ? LEAVE_POLICY_NAME_FALLBACK : LEAVE_GROUP_NAME_FALLBACK,
+          }),
           entry_type: row.entry_type,
           adjustment_direction: row.adjustment_direction ?? null,
           amount_minutes: Number(row.amount_minutes ?? Math.round(Number(row.amount ?? 0) * 60)),

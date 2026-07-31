@@ -1860,9 +1860,24 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await page.waitForFunction(() => window.location.hash === "#client-leads");
 
     await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-dashboard`, { waitUntil: "networkidle" });
-    await page.waitForSelector('[data-client-dashboard="true"]');
-    assert.equal(new URL(page.url()).searchParams.get("view"), "clients");
-    assert.equal(new URL(page.url()).hash, "#clients-home");
+    await page.waitForSelector('[data-hr-workforce-table="true"]');
+    assert.equal(new URL(page.url()).searchParams.get("view"), "people");
+    assert.equal(new URL(page.url()).hash, "#people-members");
+    assert.equal(await page.locator('[data-client-dashboard="true"]').count(), 0);
+
+    const hiddenPeopleApiRequests = [];
+    page.on("request", (request) => {
+      if (/\/api\/hrx\/(?:leave\/accrual\/manual|analytics|ai)\b/.test(request.url())) {
+        hiddenPeopleApiRequests.push(request.url());
+      }
+    });
+    for (const hiddenSection of ["people-work-schedule", "people-leave-accrual-manual", "people-analytics", "people-risk"]) {
+      await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#${hiddenSection}`, { waitUntil: "networkidle" });
+      await page.waitForSelector('[data-hr-workforce-table="true"]');
+      assert.equal(new URL(page.url()).hash, "#people-members");
+      assert.equal(await page.locator(`[data-people-feature-state="${hiddenSection}"]`).count(), 0);
+    }
+    assert.deepEqual(hiddenPeopleApiRequests, []);
 
     await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-members`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-hr-workforce-table="true"]');

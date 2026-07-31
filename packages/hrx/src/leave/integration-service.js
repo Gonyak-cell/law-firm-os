@@ -1,13 +1,50 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createSqlHrxAuditEventStore } from "../../../audit/src/hrx-event-store-sql.js";
-import { createMatterLeaveCalendarAdapter } from "./provider-adapters.js";
+import { normalizeHrxProviderDeliveryState } from "../provider-receipt-contract.js";
+import {
+  createMatterLeaveCalendarAdapter,
+  resolveLeaveIntegrationProviderSwitches,
+} from "./provider-adapters.js";
 
 const PROVIDER_KINDS = Object.freeze(["schedule", "attendance", "payroll", "notification"]);
+const PROVIDER_RESULT_RANK = Object.freeze({ queued: 0, sent: 1, delivered: 2, read: 3 });
 
 function requiredString(input, field) {
   const value = input?.[field];
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
   return value.trim();
+}
+
+function opaqueProviderValue(input, field, maxLength = 255) {
+  const value = requiredString(input, field);
+  if (value.length > maxLength || !/^[A-Za-z0-9][A-Za-z0-9._:-]+$/.test(value)) {
+    throw guardedError(`${field} is invalid`, "HRX_LEAVE_PROVIDER_EVENT_INVALID", 400);
+  }
+  return value;
+}
+
+function opaqueProviderReceiptRef(input) {
+  const value = requiredString(input, "provider_receipt_ref");
+  if (
+    value.length > 512
+    || !/^[A-Za-z][A-Za-z0-9_-]*:[^\s@]+$/.test(value)
+    || /bearer|password|client[_-]?secret|access[_-]?token/i.test(value)
+  ) {
+    throw guardedError("provider_receipt_ref is invalid", "HRX_LEAVE_PROVIDER_EVENT_INVALID", 400);
+  }
+  return value;
+}
+
+function isoTimestamp(input, field) {
+  const value = requiredString(input, field);
+  if (Number.isNaN(Date.parse(value))) throw guardedError(`${field} is invalid`, "HRX_LEAVE_PROVIDER_EVENT_INVALID", 400);
+  return new Date(value).toISOString();
+}
+
+function sha256Value(input, field) {
+  const value = requiredString(input, field).toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(value)) throw guardedError(`${field} is invalid`, "HRX_LEAVE_PROVIDER_EVENT_INVALID", 400);
+  return value;
 }
 
 function parseJson(value, fallback = {}) {
@@ -41,6 +78,40 @@ function safeErrorCode(error) {
   return typeof candidate === "string" && /^[A-Z0-9_]{3,80}$/.test(candidate)
     ? candidate
     : "LEAVE_PROVIDER_DELIVERY_FAILED";
+}
+
+function providerErrorCode(result, fallback) {
+  for (const candidate of [result?.safe_error_code, result?.error_code]) {
+    if (typeof candidate === "string" && /^[A-Z0-9_]{3,80}$/.test(candidate)) return candidate;
+  }
+  return fallback;
+}
+
+function providerResultState(providerKind, result, providerReceiptRef) {
+  const deliveryStates = ["accepted", "queued", "sent", "delivered", "read", "failed", "unknown"];
+  const reportedState = result?.delivery_state
+    ?? (deliveryStates.includes(result?.status) ? result.status : null)
+    ?? (deliveryStates.includes(result?.state) ? result.state : null);
+  const deliveryState = reportedState === "accepted" ? "sent" : reportedState;
+  const receiptStates = ["pending", "succeeded", "failed"];
+  const state = receiptStates.includes(result?.state)
+    ? result.state
+    : receiptStates.includes(result?.status)
+      ? result.status
+      : providerReceiptRef
+        ? "succeeded"
+        : "pending";
+  return normalizeHrxProviderDeliveryState({
+    state,
+    provider_kind: providerKind === "schedule"
+      ? "calendar"
+      : providerKind === "notification"
+        ? "delivery"
+        : providerKind,
+    ...(deliveryState == null ? {} : { delivery_state: deliveryState }),
+    delivery_evidence_verified: result?.delivery_evidence_verified === true,
+    read_evidence_verified: result?.read_evidence_verified === true,
+  });
 }
 
 function requestContext(store, outbox) {
@@ -231,7 +302,36 @@ function payloadFor(store, outbox, providerKind) {
 
 function deliveryView(row) {
   const { payload_json: payloadJson, ...delivery } = row;
-  return Object.freeze({ ...delivery, payload: Object.freeze(parseJson(payloadJson, {})) });
+  const providerKind = row.provider_kind === "schedule"
+    ? "calendar"
+    : row.provider_kind === "notification"
+      ? "delivery"
+      : row.provider_kind;
+  const providerResultState = row.provider_result_state ?? normalizeHrxProviderDeliveryState({
+    state: row.state,
+    provider_kind: providerKind,
+    provider_receipt_ref: row.provider_receipt_ref,
+    delivery_evidence_verified: row.state === "delivered" && row.provider_kind !== "notification",
+  });
+  return Object.freeze({
+    ...delivery,
+    provider_result_state: providerResultState,
+    payload: Object.freeze(parseJson(payloadJson, {})),
+  });
+}
+
+function providerEventDeliveryView(row) {
+  const delivery = deliveryView(row);
+  return Object.freeze({
+    delivery_id: delivery.delivery_id,
+    provider_kind: delivery.provider_kind,
+    state: delivery.state,
+    provider_result_state: delivery.provider_result_state,
+    attempt_count: delivery.attempt_count,
+    last_error_code: delivery.last_error_code,
+    provider_receipt_ref: delivery.provider_receipt_ref,
+    delivered_at: delivery.delivered_at,
+  });
 }
 
 export function createInternalLeaveIntegrationProviders() {
@@ -248,9 +348,13 @@ export function createInternalLeaveIntegrationProviders() {
       const receipt = existing ?? Object.freeze({
         payload_hash: payloadHash,
         provider_receipt_ref: `InternalLeaveProjection:${providerKind}:${digest(key).slice(0, 24)}`,
+        delivery_state: "delivered",
       });
       receipts.set(key, receipt);
-      return Object.freeze({ provider_receipt_ref: receipt.provider_receipt_ref });
+      return Object.freeze({
+        provider_receipt_ref: receipt.provider_receipt_ref,
+        delivery_state: receipt.delivery_state,
+      });
     },
   })]));
   providers.schedule = createMatterLeaveCalendarAdapter();
@@ -260,6 +364,7 @@ export function createInternalLeaveIntegrationProviders() {
 export function createLeaveIntegrationService({
   store,
   providers = {},
+  providerEnabled = {},
   terminationDeliveryRecorder,
   promotionDeliveryRecorder,
   clock = () => new Date().toISOString(),
@@ -270,6 +375,7 @@ export function createLeaveIntegrationService({
   if (!store || typeof store.query !== "function" || typeof store.transaction !== "function") {
     throw new TypeError("leave integration service requires a transactional store");
   }
+  const providerSwitches = resolveLeaveIntegrationProviderSwitches(providerEnabled);
   const audit = createSqlHrxAuditEventStore({ store });
 
   function tenantDeadLetter(tenantId, deliveryId) {
@@ -367,6 +473,7 @@ export function createLeaveIntegrationService({
       provider_mode: providerMode,
       event_type: outbox.event_type,
       state: "pending_sync",
+      provider_result_state: "queued",
       payload_hash: payloadHash,
       payload_json: JSON.stringify(payload),
       idempotency_key: idempotencyKey,
@@ -379,6 +486,240 @@ export function createLeaveIntegrationService({
     } });
   }
 
+  function recordPromotionProviderResult(context, outbox, current, resultState, providerReceiptRef, occurredAt = clock()) {
+    if (!/^leave\.promotion\.(first|second)_notice_issued$/.test(outbox.event_type)) return;
+    if (!["delivered", "read", "failed"].includes(resultState)) return;
+    if (typeof promotionDeliveryRecorder !== "function") {
+      throw guardedError("Leave promotion delivery recorder is not configured", "HRX_LEAVE_PROMOTION_RECORDER_NOT_CONFIGURED");
+    }
+    const payload = parseJson(current.payload_json, {});
+    const recipientRef = requiredString(payload, "promotion_recipient_ref");
+    const recipientMatch = /^LeavePromotionRecipient:(.+)$/.exec(recipientRef);
+    if (!recipientMatch) throw guardedError("Leave promotion recipient reference is invalid", "HRX_LEAVE_PROMOTION_RECIPIENT_REF_INVALID");
+    const stage = requiredString(payload, "notice_stage");
+    const evidenceInput = (eventType) => ({
+      recipient_id: recipientMatch[1],
+      stage,
+      event_type: eventType,
+      evidence_hash: eventType === "delivered"
+        ? digest({
+            payload_hash: current.payload_hash,
+            provider_receipt_ref: providerReceiptRef,
+            idempotency_key: current.idempotency_key,
+          })
+        : digest({
+            payload_hash: current.payload_hash,
+            provider_receipt_ref: providerReceiptRef || null,
+            idempotency_key: current.idempotency_key,
+            event_type: eventType,
+          }),
+      ...(eventType === "delivered" ? { provider_receipt_ref: providerReceiptRef } : {}),
+      occurred_at: occurredAt,
+      idempotency_key: eventType === "delivered"
+        ? `promotion-delivery:${current.idempotency_key}`
+        : `promotion-${eventType}:${current.idempotency_key}`,
+    });
+    if (resultState === "failed") {
+      promotionDeliveryRecorder(context, evidenceInput("failed"));
+      return;
+    }
+    promotionDeliveryRecorder(context, evidenceInput("delivered"));
+    if (resultState === "read") promotionDeliveryRecorder(context, evidenceInput("viewed"));
+  }
+
+  function recordProviderResult(context, input = {}) {
+    const tenantId = requiredString(context, "tenant_id");
+    requiredString(context, "actor_id");
+    const deliveryId = requiredString(input, "delivery_id");
+    const current = store.query("selectOne", {
+      table: "hrx_leave_integration_deliveries",
+      where: { tenant_id: tenantId, delivery_id: deliveryId },
+    });
+    if (!current) throw guardedError("Leave integration delivery not found", "HRX_LEAVE_INTEGRATION_DELIVERY_NOT_FOUND", 404);
+    const outbox = store.query("selectOne", {
+      table: "hrx_leave_sync_outbox",
+      where: { tenant_id: tenantId, outbox_event_id: current.outbox_event_id },
+    });
+    if (!outbox) throw guardedError("Leave integration event not found", "HRX_LEAVE_INTEGRATION_EVENT_NOT_FOUND", 404);
+
+    const reportedReceiptRef = typeof input.provider_receipt_ref === "string"
+      ? input.provider_receipt_ref.trim()
+      : "";
+    const providerReceiptRef = reportedReceiptRef || current.provider_receipt_ref || "";
+    const resultState = providerResultState(current.provider_kind, input, providerReceiptRef);
+    const occurredAt = input.occurred_at == null ? clock() : isoTimestamp(input, "occurred_at");
+    if (["sent", "delivered", "read"].includes(resultState) && !reportedReceiptRef) {
+      throw guardedError("Leave provider result requires its receipt reference", "HRX_LEAVE_PROVIDER_RECEIPT_REQUIRED", 400);
+    }
+    if (current.provider_receipt_ref && reportedReceiptRef !== current.provider_receipt_ref) {
+      throw guardedError("Leave provider receipt does not match the delivery", "HRX_LEAVE_PROVIDER_RECEIPT_MISMATCH", 409);
+    }
+    if (current.provider_result_state === resultState) {
+      return Object.freeze({ delivery: deliveryView(current), outbox: Object.freeze({ ...outbox }), replayed: true });
+    }
+
+    const currentRank = PROVIDER_RESULT_RANK[current.provider_result_state];
+    const targetRank = PROVIDER_RESULT_RANK[resultState];
+    if (Number.isInteger(targetRank)) {
+      if (targetRank === 0) {
+        throw guardedError("Leave provider callback cannot return to queued", "HRX_LEAVE_PROVIDER_RESULT_OUT_OF_ORDER", 409);
+      }
+      if (Number.isInteger(currentRank) && (targetRank < currentRank || targetRank > currentRank + 1)) {
+        throw guardedError("Leave provider result cannot move backward", "HRX_LEAVE_PROVIDER_RESULT_OUT_OF_ORDER", 409);
+      }
+      recordPromotionProviderResult(context, outbox, current, resultState, providerReceiptRef, occurredAt);
+      const updated = store.query("updateOne", {
+        table: "hrx_leave_integration_deliveries",
+        where: { tenant_id: tenantId, delivery_id: deliveryId },
+        patch: {
+          state: "delivered",
+          provider_result_state: resultState,
+          last_error_code: null,
+          provider_receipt_ref: providerReceiptRef,
+          delivered_at: current.delivered_at ?? occurredAt,
+          updated_at: clock(),
+        },
+      });
+      resolveDeadLetter(updated);
+      appendAudit(context, outbox, current.provider_kind, resultState, Number(updated.attempt_count ?? 0));
+      const allDeliveries = store.query("select", {
+        table: "hrx_leave_integration_deliveries",
+        where: { tenant_id: tenantId, outbox_event_id: outbox.outbox_event_id },
+      });
+      const updatedOutbox = finalizeOutbox(outbox, allDeliveries);
+      return Object.freeze({ delivery: deliveryView(updated), outbox: Object.freeze({ ...updatedOutbox }), replayed: false });
+    }
+
+    if (
+      !["failed", "unknown"].includes(resultState)
+      || ["delivered", "read"].includes(current.provider_result_state)
+      || (resultState === "unknown" && Number.isInteger(currentRank) && currentRank >= PROVIDER_RESULT_RANK.sent)
+    ) {
+      throw guardedError("Leave provider result is out of order", "HRX_LEAVE_PROVIDER_RESULT_OUT_OF_ORDER", 409);
+    }
+    const errorCode = providerErrorCode(
+      input,
+      resultState === "failed" ? "HRX_LEAVE_PROVIDER_REPORTED_FAILED" : "HRX_LEAVE_PROVIDER_RESULT_UNKNOWN",
+    );
+    recordPromotionProviderResult(context, outbox, current, resultState, "", occurredAt);
+    const updated = store.query("updateOne", {
+      table: "hrx_leave_integration_deliveries",
+      where: { tenant_id: tenantId, delivery_id: deliveryId },
+      patch: {
+        state: resultState === "failed" ? "failed" : "pending_sync",
+        provider_result_state: resultState,
+        last_error_code: errorCode,
+        provider_receipt_ref: resultState === "unknown" ? providerReceiptRef || null : null,
+        delivered_at: null,
+        updated_at: clock(),
+      },
+    });
+    appendAudit(context, outbox, current.provider_kind, resultState, Number(updated.attempt_count ?? 0), errorCode);
+    const allDeliveries = store.query("select", {
+      table: "hrx_leave_integration_deliveries",
+      where: { tenant_id: tenantId, outbox_event_id: outbox.outbox_event_id },
+    });
+    const updatedOutbox = finalizeOutbox(outbox, allDeliveries);
+    return Object.freeze({ delivery: deliveryView(updated), outbox: Object.freeze({ ...updatedOutbox }), replayed: false });
+  }
+
+  function applyProviderEvent(context, input = {}) {
+    const tenantId = requiredString(context, "tenant_id");
+    const actorId = requiredString(context, "actor_id");
+    const providerEventId = opaqueProviderValue(input, "provider_event_id");
+    const providerId = opaqueProviderValue(input, "provider_id", 128);
+    const providerReceiptRef = opaqueProviderReceiptRef(input);
+    const providerEventState = requiredString(input, "provider_event_state").toLowerCase();
+    if (!["accepted", "sent", "delivered", "read", "failed", "unknown"].includes(providerEventState)) {
+      throw guardedError("Leave provider event state is unsupported", "HRX_LEAVE_PROVIDER_EVENT_STATE_UNKNOWN", 400);
+    }
+    const eventOccurredAt = isoTimestamp(input, "event_occurred_at");
+    const payloadHash = sha256Value(input, "payload_hash");
+    const eventId = `leave_provider_event_${digest(`${tenantId}:${providerEventId}`).slice(0, 28)}`;
+    const existingEvent = store.query("selectOne", {
+      table: "hrx_audit_events",
+      where: { tenant_id: tenantId, event_id: eventId },
+    });
+    if (existingEvent) {
+      const metadata = parseJson(existingEvent.metadata_json, {});
+      const sameEvent = metadata.provider_event_id === providerEventId
+        && metadata.provider_id === providerId
+        && metadata.provider_receipt_ref === providerReceiptRef
+        && metadata.provider_event_state === providerEventState
+        && metadata.payload_hash === payloadHash
+        && metadata.event_occurred_at === eventOccurredAt;
+      if (!sameEvent) {
+        throw guardedError("Leave provider event id was reused with different content", "HRX_LEAVE_PROVIDER_EVENT_CONFLICT", 409);
+      }
+      const replayDelivery = store.query("selectOne", {
+        table: "hrx_leave_integration_deliveries",
+        where: { tenant_id: tenantId, delivery_id: existingEvent.object_id },
+      });
+      if (!replayDelivery) throw guardedError("Leave integration delivery not found", "HRX_LEAVE_INTEGRATION_DELIVERY_NOT_FOUND", 404);
+      return Object.freeze({
+        outcome: "replayed",
+        replayed: true,
+        provider_event: Object.freeze({ provider_event_id: providerEventId, provider_event_state: providerEventState, event_occurred_at: eventOccurredAt }),
+        delivery: providerEventDeliveryView(replayDelivery),
+        raw_payload_included: false,
+        private_fields_included: false,
+        production_ready_claim: false,
+      });
+    }
+
+    const matchingDeliveries = store.query("select", {
+      table: "hrx_leave_integration_deliveries",
+      where: { tenant_id: tenantId, provider_receipt_ref: providerReceiptRef },
+    });
+    if (matchingDeliveries.length !== 1) {
+      throw guardedError("Leave provider receipt does not resolve one delivery", "HRX_LEAVE_PROVIDER_RECEIPT_NOT_FOUND", 404);
+    }
+    const delivery = matchingDeliveries[0];
+    const provider = providers[delivery.provider_kind];
+    if (typeof provider?.provider_id !== "string" || !provider.provider_id.trim()) {
+      throw guardedError("Leave provider identity is not configured", "HRX_LEAVE_PROVIDER_IDENTITY_REQUIRED", 503);
+    }
+    if (provider.provider_id !== providerId) {
+      throw guardedError("Leave provider identity does not match the delivery", "HRX_LEAVE_PROVIDER_ID_MISMATCH", 403);
+    }
+    const result = recordProviderResult(context, {
+      delivery_id: delivery.delivery_id,
+      provider_receipt_ref: providerReceiptRef,
+      delivery_state: providerEventState,
+      occurred_at: eventOccurredAt,
+      ...(providerEventState === "failed" ? { error_code: providerErrorCode(input, "HRX_LEAVE_PROVIDER_REPORTED_FAILED") } : {}),
+    });
+    audit.append({
+      event_id: eventId,
+      tenant_id: tenantId,
+      actor_id: actorId,
+      action: `hrx.leave.integration.provider_event.${providerEventState}`,
+      object_type: "LeaveIntegrationDelivery",
+      object_id: delivery.delivery_id,
+      decision: "allow",
+      reason: "leave_integration_provider_event_recorded",
+      occurred_at: eventOccurredAt,
+      metadata: {
+        provider_event_id: providerEventId,
+        provider_id: providerId,
+        provider_receipt_ref: providerReceiptRef,
+        provider_event_state: providerEventState,
+        payload_hash: payloadHash,
+        event_occurred_at: eventOccurredAt,
+        raw_payload_included: false,
+      },
+    });
+    return Object.freeze({
+      outcome: "applied",
+      replayed: false,
+      provider_event: Object.freeze({ provider_event_id: providerEventId, provider_event_state: providerEventState, event_occurred_at: eventOccurredAt }),
+      delivery: providerEventDeliveryView(result.delivery),
+      raw_payload_included: false,
+      private_fields_included: false,
+      production_ready_claim: false,
+    });
+  }
+
   async function deliver(context, outbox, current) {
     if (current.state === "delivered") return current;
     const openDeadLetter = tenantDeadLetter(current.tenant_id, current.delivery_id);
@@ -386,11 +727,34 @@ export function createLeaveIntegrationService({
     const provider = providers[current.provider_kind];
     const deliverFn = typeof provider === "function" ? provider : provider?.deliver;
     const attemptCount = Number(current.attempt_count ?? 0) + 1;
+    if (providerSwitches[current.provider_kind] === false) {
+      const updated = store.query("updateOne", {
+        table: "hrx_leave_integration_deliveries",
+        where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
+        patch: {
+          state: "not_configured",
+          provider_result_state: "unknown",
+          attempt_count: attemptCount,
+          last_error_code: "LEAVE_PROVIDER_DISABLED",
+          provider_receipt_ref: null,
+          delivered_at: null,
+          updated_at: clock(),
+        },
+      });
+      appendAudit(context, outbox, current.provider_kind, "not_configured", attemptCount, "LEAVE_PROVIDER_DISABLED");
+      return updated;
+    }
     if (typeof deliverFn !== "function") {
       const updated = store.query("updateOne", {
         table: "hrx_leave_integration_deliveries",
         where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
-        patch: { state: "not_configured", attempt_count: attemptCount, last_error_code: "LEAVE_PROVIDER_NOT_CONFIGURED", updated_at: clock() },
+        patch: {
+          state: "not_configured",
+          provider_result_state: "unknown",
+          attempt_count: attemptCount,
+          last_error_code: "LEAVE_PROVIDER_NOT_CONFIGURED",
+          updated_at: clock(),
+        },
       });
       appendAudit(context, outbox, current.provider_kind, "not_configured", attemptCount, "LEAVE_PROVIDER_NOT_CONFIGURED");
       return updated;
@@ -404,12 +768,66 @@ export function createLeaveIntegrationService({
         payload: parseJson(current.payload_json, {}),
       });
       const providerReceiptRef = typeof result?.provider_receipt_ref === "string" ? result.provider_receipt_ref.trim() : "";
-      if (!providerReceiptRef) {
+      const resultState = providerResultState(current.provider_kind, result, providerReceiptRef);
+      if (resultState === "failed") {
+        const errorCode = providerErrorCode(result, "HRX_LEAVE_PROVIDER_REPORTED_FAILED");
+        recordPromotionProviderResult(context, outbox, current, resultState, "");
+        const updated = store.query("updateOne", {
+          table: "hrx_leave_integration_deliveries",
+          where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
+          patch: {
+            state: "failed",
+            provider_result_state: resultState,
+            attempt_count: attemptCount,
+            last_error_code: errorCode,
+            provider_receipt_ref: null,
+            delivered_at: null,
+            updated_at: clock(),
+          },
+        });
+        appendAudit(context, outbox, current.provider_kind, "failed", attemptCount, errorCode);
+        if (attemptCount >= maxDeliveryAttempts) {
+          upsertDeadLetter(outbox, updated, errorCode);
+          appendAudit(context, outbox, current.provider_kind, "dead_lettered", attemptCount, errorCode);
+        }
+        return updated;
+      }
+      if (resultState === "unknown") {
+        const errorCode = providerErrorCode(result, "HRX_LEAVE_PROVIDER_RESULT_UNKNOWN");
+        const updated = store.query("updateOne", {
+          table: "hrx_leave_integration_deliveries",
+          where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
+          patch: {
+            state: "pending_sync",
+            provider_result_state: resultState,
+            attempt_count: attemptCount,
+            last_error_code: errorCode,
+            provider_receipt_ref: providerReceiptRef || null,
+            delivered_at: null,
+            updated_at: clock(),
+          },
+        });
+        appendAudit(context, outbox, current.provider_kind, "pending_sync", attemptCount, errorCode);
+        if (attemptCount >= maxDeliveryAttempts) {
+          upsertDeadLetter(outbox, updated, errorCode);
+          appendAudit(context, outbox, current.provider_kind, "dead_lettered", attemptCount, errorCode);
+        }
+        return updated;
+      }
+      if (resultState === "queued" || !providerReceiptRef) {
         const errorCode = "HRX_PROVIDER_RECEIPT_PENDING";
         const updated = store.query("updateOne", {
           table: "hrx_leave_integration_deliveries",
           where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
-          patch: { state: "pending_sync", attempt_count: attemptCount, last_error_code: errorCode, provider_receipt_ref: null, delivered_at: null, updated_at: clock() },
+          patch: {
+            state: "pending_sync",
+            provider_result_state: "queued",
+            attempt_count: attemptCount,
+            last_error_code: errorCode,
+            provider_receipt_ref: null,
+            delivered_at: null,
+            updated_at: clock(),
+          },
         });
         appendAudit(context, outbox, current.provider_kind, "pending_sync", attemptCount, errorCode);
         return updated;
@@ -420,30 +838,19 @@ export function createLeaveIntegrationService({
         }
         terminationDeliveryRecorder(context, { outbox_event_id: outbox.outbox_event_id, provider_receipt: result?.provider_receipt });
       }
-      if (/^leave\.promotion\.(first|second)_notice_issued$/.test(outbox.event_type)) {
-        if (typeof promotionDeliveryRecorder !== "function") {
-          throw guardedError("Leave promotion delivery recorder is not configured", "HRX_LEAVE_PROMOTION_RECORDER_NOT_CONFIGURED");
-        }
-        const payload = parseJson(current.payload_json, {});
-        const recipientRef = requiredString(payload, "promotion_recipient_ref");
-        const recipientMatch = /^LeavePromotionRecipient:(.+)$/.exec(recipientRef);
-        if (!recipientMatch) throw guardedError("Leave promotion recipient reference is invalid", "HRX_LEAVE_PROMOTION_RECIPIENT_REF_INVALID");
-        const stage = requiredString(payload, "notice_stage");
-        const evidenceHash = digest({ payload_hash: current.payload_hash, provider_receipt_ref: providerReceiptRef, idempotency_key: current.idempotency_key });
-        promotionDeliveryRecorder(context, {
-          recipient_id: recipientMatch[1],
-          stage,
-          event_type: "delivered",
-          evidence_hash: evidenceHash,
-          provider_receipt_ref: providerReceiptRef,
-          occurred_at: clock(),
-          idempotency_key: `promotion-delivery:${current.idempotency_key}`,
-        });
-      }
+      recordPromotionProviderResult(context, outbox, current, resultState, providerReceiptRef);
       const updated = store.query("updateOne", {
         table: "hrx_leave_integration_deliveries",
         where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
-        patch: { state: "delivered", attempt_count: attemptCount, last_error_code: null, provider_receipt_ref: providerReceiptRef, delivered_at: clock(), updated_at: clock() },
+        patch: {
+          state: "delivered",
+          provider_result_state: resultState,
+          attempt_count: attemptCount,
+          last_error_code: null,
+          provider_receipt_ref: providerReceiptRef,
+          delivered_at: clock(),
+          updated_at: clock(),
+        },
       });
       resolveDeadLetter(updated);
       appendAudit(context, outbox, current.provider_kind, "delivered", attemptCount);
@@ -453,7 +860,13 @@ export function createLeaveIntegrationService({
       const updated = store.query("updateOne", {
         table: "hrx_leave_integration_deliveries",
         where: { tenant_id: current.tenant_id, delivery_id: current.delivery_id },
-        patch: { state: "failed", attempt_count: attemptCount, last_error_code: errorCode, updated_at: clock() },
+        patch: {
+          state: "failed",
+          provider_result_state: "failed",
+          attempt_count: attemptCount,
+          last_error_code: errorCode,
+          updated_at: clock(),
+        },
       });
       appendAudit(context, outbox, current.provider_kind, "failed", attemptCount, errorCode);
       if (attemptCount >= maxDeliveryAttempts) {
@@ -530,6 +943,12 @@ export function createLeaveIntegrationService({
       failed_deliveries: deliveries.filter((row) => row.state === "failed").length,
       not_configured: deliveries.filter((row) => row.state === "not_configured").length,
       dead_lettered: deadLetters.filter((row) => row.state === "open").length,
+      provider_results: Object.freeze(Object.fromEntries(
+        ["queued", "sent", "delivered", "read", "failed", "unknown"].map((state) => [
+          state,
+          deliveries.filter((row) => deliveryView(row).provider_result_state === state).length,
+        ]),
+      )),
     };
     return Object.freeze({ summary: Object.freeze(summary), rows: Object.freeze(rows), dead_letters: Object.freeze(deadLetters) });
   }
@@ -553,6 +972,18 @@ export function createLeaveIntegrationService({
       table: "hrx_leave_sync_outbox",
       where: { tenant_id: tenantId, outbox_event_id: current.outbox_event_id },
       patch: { state: "pending_sync", available_at: now, updated_at: now },
+    });
+    store.query("updateOne", {
+      table: "hrx_leave_integration_deliveries",
+      where: { tenant_id: tenantId, delivery_id: current.delivery_id },
+      patch: {
+        state: "pending_sync",
+        provider_result_state: "queued",
+        last_error_code: null,
+        provider_receipt_ref: null,
+        delivered_at: null,
+        updated_at: now,
+      },
     });
     audit.append({
       event_id: idFactory("leave_integration_requeue_audit"),
@@ -588,5 +1019,5 @@ export function createLeaveIntegrationService({
     return Object.freeze({ processed_count: results.length, results: Object.freeze(results), status: list(context) });
   }
 
-  return Object.freeze({ list, process, retryDeadLetter });
+  return Object.freeze({ list, process, recordProviderResult, applyProviderEvent, retryDeadLetter });
 }

@@ -51,6 +51,7 @@ import {
 } from "./home-dashboard-runtime-context.js";
 import { createEnterpriseReadinessRuntimeContext } from "./enterprise-readiness-context.js";
 import { LAWOS_OFFLINE_REJECTED_POLICY } from "./persistence-authority.js";
+import { createPostgresPayrollReconciliationCheckpoint } from "./hrx-payroll-reconciliation-checkpoint.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -71,6 +72,7 @@ const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
   "DOMAIN_SHADOW_DIFFERENCE",
   "HRX_POSTGRES_BASELINE_CONFLICT",
   "REPOSITORY_VERSION_CONFLICT",
+  "POSTGRES_UNIQUE_CONFLICT",
 ]);
 
 function requiredText(value, name) {
@@ -79,8 +81,46 @@ function requiredText(value, name) {
   return text;
 }
 
-export function isRetryablePostgresReadConflict(error, method) {
-  return ["GET", "HEAD"].includes(String(method ?? "").toUpperCase())
+function createIdentityUserDirectorySnapshot(users = []) {
+  const rows = Object.freeze((Array.isArray(users) ? users : []).map((user) => {
+    const membershipActive = user.tenant_memberships?.some((membership) => (
+      membership?.tenant_id === user.tenant_id
+        && membership?.status === "active"
+    ));
+    const status = user.status === "active" && membershipActive ? "active" : "inactive";
+    return Object.freeze({
+      tenant_id: user.tenant_id,
+      user_id: user.user_id,
+      display_name: user.display_name ?? null,
+      email: user.email ?? null,
+      source_title: user.source_title ?? null,
+      status,
+      login_allowed: status === "active"
+        && (!user.credential_status || ["active", "must_change"].includes(user.credential_status))
+        && user.profile?.login_allowed !== false,
+      source_ref: "postgres-v2-identity-ledger",
+    });
+  }));
+  return Object.freeze({
+    listUsers({ tenant_id, user_id } = {}) {
+      return Object.freeze(rows.filter((user) => (
+        (!tenant_id || user.tenant_id === tenant_id)
+        && (!user_id || user.user_id === user_id)
+      )));
+    },
+  });
+}
+
+function isPayrollReconciliationMutation(method, pathname) {
+  return String(method ?? "").toUpperCase() === "POST"
+    && /^\/api\/hrx\/payroll\/payment-batches\/[^/]+\/(?:reconcile|retry-failed)$/u
+      .test(String(pathname ?? ""));
+}
+
+export function isRetryablePostgresReadConflict(error, method, { allowIdempotentWriteRetry = false } = {}) {
+  const normalizedMethod = String(method ?? "").toUpperCase();
+  return (["GET", "HEAD"].includes(normalizedMethod)
+      || (allowIdempotentWriteRetry && normalizedMethod === "POST"))
     && POSTGRES_READ_RETRYABLE_CONFLICTS.has(error?.safe_error_code);
 }
 
@@ -89,6 +129,7 @@ export async function runPostgresReadWithBaselineRetry({
   execute,
   wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
   retryLimit = POSTGRES_READ_RETRY_LIMIT,
+  allowIdempotentWriteRetry = false,
 } = {}) {
   if (typeof execute !== "function" || typeof wait !== "function") {
     throw new TypeError("PostgreSQL request execution and wait callbacks are required");
@@ -96,11 +137,14 @@ export async function runPostgresReadWithBaselineRetry({
   if (!Number.isInteger(retryLimit) || retryLimit < 0 || retryLimit > POSTGRES_READ_RETRY_LIMIT) {
     throw new TypeError(`PostgreSQL read retry limit must be between zero and ${POSTGRES_READ_RETRY_LIMIT}`);
   }
+  if (typeof allowIdempotentWriteRetry !== "boolean") {
+    throw new TypeError("allowIdempotentWriteRetry must be a boolean");
+  }
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await execute({ attempt: attempt + 1 });
     } catch (error) {
-      if (!isRetryablePostgresReadConflict(error, method) || attempt >= retryLimit) throw error;
+      if (!isRetryablePostgresReadConflict(error, method, { allowIdempotentWriteRetry }) || attempt >= retryLimit) throw error;
       await wait(5 * (2 ** attempt));
     }
   }
@@ -152,17 +196,69 @@ function createHrxDomainParticipant(requestContext, projectionReader) {
   });
 }
 
-function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRuntime, payrollArtifactSecret, payrollProviders } = {}) {
+function createRequestRuntimes({
+  repositories,
+  hrxStore,
+  identityUserDirectory,
+  dmsStorage,
+  dmsUploadRuntime,
+  payrollArtifactSecret,
+  payrollProviders,
+  bankReconciliationCheckpoint,
+  leaveIntegrationProviders,
+  leaveIntegrationProviderEnabled,
+  peopleFeatureFlags,
+  peopleMetricsSink,
+  peopleProviderIdentities,
+  peopleProviderIdentityRepository,
+  outlookTokenVault,
+  outlookConsentService,
+  outlookConsentRepository,
+  outlookCalendarCache,
+  peopleOutlookConnections,
+  peopleOutlookCalendarSource,
+  outlookCalendarViewAdapter,
+  outlookConsentRefresh,
+  outlookSubjectAddressResolver,
+  outlookStateAuthority,
+  outlookOauthPort,
+  offboardingAccessSource,
+} = {}) {
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
     payrollArtifactStorage: dmsStorage,
     payrollArtifactSecret,
     compensationKeyMaterial: payrollArtifactSecret,
+    leaveIntegrationProviders,
+    leaveIntegrationProviderEnabled,
     allowSyntheticLeaveIntegrationProviders: false,
     allowSyntheticPayrollArtifactSecret: false,
     allowSyntheticCompensationKey: false,
     allowSyntheticPayrollProviders: false,
-    payrollProviders,
+    payrollProviders: Object.freeze({
+      ...payrollProviders,
+      bankReconciliationCheckpoint,
+      allowSyntheticArtifactSecret: false,
+      allowSyntheticCompensationKey: false,
+      allowSyntheticProviders: false,
+    }),
+    peopleFeatureFlags,
+    peopleMetricsSink,
+    peopleProviderIdentities,
+    peopleProviderIdentityRepository,
+    outlookTokenVault,
+    outlookConsentService,
+    outlookConsentRepository,
+    outlookCalendarCache,
+    peopleOutlookConnections,
+    peopleOutlookCalendarSource,
+    outlookCalendarViewAdapter,
+    outlookConsentRefresh,
+    outlookSubjectAddressResolver,
+    outlookStateAuthority,
+    outlookOauthPort,
+    offboardingAccessSource,
+    allowInMemoryOutlookTokenVault: false,
     seedPayrollRuntime: false,
     seedRuntimeFixtures: false,
   });
@@ -186,6 +282,7 @@ function createRequestRuntimes({ repositories, hrxStore, dmsStorage, dmsUploadRu
     repository: repositories.matterRepository,
     dmsRuntime,
     hrxRuntime,
+    ...(identityUserDirectory ? { userDirectory: identityUserDirectory } : {}),
     clearanceRepository: repositories.intakeRepository,
   });
   const financeRuntime = createFinanceRuntimeContext({
@@ -237,7 +334,26 @@ export function createPostgresApiRuntimeAuthority({
   dmsUploadRuntime,
   payrollArtifactSecret,
   payrollProviders = Object.freeze({}),
+  leaveIntegrationProviders,
+  leaveIntegrationProviderEnabled = Object.freeze({}),
+  peopleFeatureFlags = Object.freeze({}),
+  peopleMetricsSink = null,
+  peopleProviderIdentities,
+  peopleProviderIdentityRepository,
+  outlookTokenVault,
+  outlookConsentService,
+  outlookConsentRepository,
+  outlookCalendarCache,
+  peopleOutlookConnections,
+  peopleOutlookCalendarSource,
+  outlookCalendarViewAdapter,
+  outlookConsentRefresh,
+  outlookSubjectAddressResolver,
+  outlookStateAuthority,
+  outlookOauthPort,
+  offboardingAccessSource,
   hrxRelationalProjectionReader = null,
+  identityRepository = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
@@ -259,14 +375,23 @@ export function createPostgresApiRuntimeAuthority({
         !== "function")) {
     throw new TypeError("HRX relational projection reader contract is invalid");
   }
+  const bankReconciliationCheckpoint =
+    createPostgresPayrollReconciliationCheckpoint({ ledger });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     if (typeof command !== "function") throw new TypeError("PostgreSQL API command callback is required");
     const method = String(request_context?.method ?? "").toUpperCase();
+    const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
+      || isPayrollReconciliationMutation(method, request_context?.pathname);
     return runPostgresReadWithBaselineRetry({
       method,
+      allowIdempotentWriteRetry,
+      ...(allowIdempotentWriteRetry ? { retryLimit: 2 } : {}),
       execute: async () => {
+        const identityUsers = identityRepository?.listDirectoryUsers
+          ? await identityRepository.listDirectoryUsers({ tenant_id: tenantId })
+          : [];
         const productCommand = await runRecordRepositoryMultiDomainCommand({
           ledger,
           tenant_id: tenantId,
@@ -280,10 +405,32 @@ export function createPostgresApiRuntimeAuthority({
           command: (repositories) => command(createRequestRuntimes({
             repositories,
             hrxStore: repositories.hrxStore,
+            ...(identityRepository?.listDirectoryUsers
+              ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
+              : {}),
             dmsStorage,
             dmsUploadRuntime,
             payrollArtifactSecret,
             payrollProviders,
+            bankReconciliationCheckpoint,
+            leaveIntegrationProviders,
+            leaveIntegrationProviderEnabled,
+            peopleFeatureFlags,
+            peopleMetricsSink,
+            peopleProviderIdentities,
+            peopleProviderIdentityRepository,
+            outlookTokenVault,
+            outlookConsentService,
+            outlookConsentRepository,
+            outlookCalendarCache,
+            peopleOutlookConnections,
+            peopleOutlookCalendarSource,
+            outlookCalendarViewAdapter,
+            outlookConsentRefresh,
+            outlookSubjectAddressResolver,
+            outlookStateAuthority,
+            outlookOauthPort,
+            offboardingAccessSource,
           })),
         });
         return productCommand.result;

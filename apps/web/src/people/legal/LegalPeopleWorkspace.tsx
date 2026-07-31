@@ -4,6 +4,7 @@ import { Building2, LockKeyhole, Network, Scale, Search, ShieldAlert, UsersRound
 import { Panel, Property } from "../../components/primitives.jsx";
 import { fetchLegalPeopleEthics, fetchLegalPeopleRelationships, fetchLegalPeopleSearch, fetchLegalPersonDetail } from "../hrxApiClient.ts";
 import { memberPhotoFor } from "../memberPhotos.js";
+import { safePeopleLabel, UNRESOLVED_EMPLOYEE_LABEL } from "../peoplePresentation.ts";
 
 const TYPE_FILTERS = [
   { id: "", label: "전체", icon: UsersRound },
@@ -34,7 +35,9 @@ function statusLabel(value) {
   if (value === "review_required") return "검토 필요";
   if (value === "blocked") return "차단";
   if (value === "historical") return "이력";
-  return value ?? "확인 필요";
+  if (value === "proposed") return "검토 전";
+  if (value === "inactive") return "비활성";
+  return "상태 확인 필요";
 }
 
 function relationshipLabel(value) {
@@ -47,7 +50,7 @@ function relationshipLabel(value) {
     person_to_conflict_subject: "이해상충 대상",
     person_to_ethical_wall_membership: "접근 제한"
   };
-  return labels[value] ?? value ?? "관계";
+  return labels[value] ?? "관련 기록";
 }
 
 function reviewStateLabel(value) {
@@ -55,31 +58,125 @@ function reviewStateLabel(value) {
   if (value === "reviewed") return "검토됨";
   if (value === "escalated") return "상향 검토";
   if (value === "blocked") return "차단";
-  return value ?? "확인 필요";
+  return "상태 확인 필요";
 }
 
 function reviewTypeLabel(value) {
   if (value === "conflict_check") return "이해상충";
   if (value === "ethical_wall") return "접근 제한";
-  return value ?? "검토";
+  return "검토 기록";
 }
 
 function priorityLabel(value) {
   if (value === "urgent") return "긴급";
   if (value === "high") return "높음";
   if (value === "normal") return "보통";
-  return value ?? "보통";
+  return "보통";
+}
+
+const TARGET_RECORD_LABELS = {
+  person: "참여자 기록",
+  organization: "조직 기록",
+  client: "Client 기록",
+  matter: "Matter 기록",
+  document: "문서 기록",
+  conflict: "이해상충 기록",
+  ethical_wall: "접근 제한 기록",
+};
+
+const RELATED_RECORD_LABELS = {
+  person: "참여자 관련 기록",
+  organization: "조직 관련 기록",
+  client: "Client 관련 기록",
+  matter: "Matter 관련 기록",
+  document: "문서 관련 기록",
+  conflict: "이해상충 관련 기록",
+  ethical_wall: "접근 제한 관련 기록",
+};
+
+const REVIEWER_ROLE_LABELS = {
+  conflicts_reviewer: "이해상충 검토자",
+  legal_ops: "법무 운영 담당자",
+  security_admin: "보안 관리자",
+  matter_admin: "Matter 관리자",
+  responsible_attorney: "담당 변호사",
+};
+
+const REASON_LABELS = {
+  relationship_sensitive: "관계 정보 보호",
+  conflict_check: "이해상충 확인",
+  ethical_wall: "접근 제한 확인",
+  reviewer_required: "검토자 확인 필요",
+};
+
+const ACCESS_EFFECT_LABELS = {
+  restrict: "접근 제한",
+  allow_limited: "제한적 접근",
+  review_required: "검토 후 결정",
+  blocked: "접근 차단",
+};
+
+const DECISION_LABELS = {
+  allow_limited_reference: "제한적 참조 허용",
+  escalate: "상향 검토",
+  block_access: "접근 차단",
+  needs_human_review: "사람 검토 필요",
+  restricted_reference: "제한된 기록",
+};
+
+function safeDisplayLabel(value, identifiers = [], fallback = "확인 필요") {
+  return safePeopleLabel(value, { identifiers, fallback });
+}
+
+function personLabel(person) {
+  return safeDisplayLabel(person?.display_name, [person?.person_id], UNRESOLVED_EMPLOYEE_LABEL);
+}
+
+function personTypeLabel(person) {
+  return safeDisplayLabel(person?.korean_label, [person?.type_id], "참여자");
+}
+
+function personRoleLabel(person) {
+  return safeDisplayLabel(person?.primary_role, [person?.person_id], "역할 미등록");
+}
+
+function organizationLabel(person) {
+  return safeDisplayLabel(person?.organization_label, [person?.organization_id], "조직 미등록");
+}
+
+function firstSafeValue(items, field, identifierField, fallback = "없음") {
+  if (!Array.isArray(items) || items.length === 0) return fallback;
+  return items
+    .map((item) => safeDisplayLabel(item?.[field], [item?.[identifierField]], ""))
+    .filter(Boolean)
+    .join(", ") || fallback;
+}
+
+function recordLabel(value, fallback = "관련 기록") {
+  const prefix = typeof value === "string" ? value.trim().split(":", 1)[0].toLowerCase() : "";
+  return RELATED_RECORD_LABELS[prefix] ?? fallback;
+}
+
+function reviewerRoleLabel(value) {
+  return REVIEWER_ROLE_LABELS[value] ?? "검토 담당자";
+}
+
+function reasonLabel(value) {
+  return REASON_LABELS[value] ?? "보호 사유 확인 필요";
+}
+
+function accessEffectLabel(value) {
+  return ACCESS_EFFECT_LABELS[value] ?? "접근 상태 확인 필요";
+}
+
+function decisionLabel(value) {
+  return DECISION_LABELS[value] ?? "사람 검토 필요";
 }
 
 function targetLabel(relationship) {
   if (relationship.access_state === "restricted") return "권한 제한";
-  if (!relationship.target_id) return "미표시";
-  return `${relationship.target_type}:${relationship.target_id}`;
-}
-
-function firstValue(items, field, fallback = "없음") {
-  if (!Array.isArray(items) || items.length === 0) return fallback;
-  return items.map((item) => item[field]).filter(Boolean).join(", ") || fallback;
+  if (!relationship.target_id) return "관련 기록 없음";
+  return TARGET_RECORD_LABELS[relationship.target_type] ?? "관련 기록";
 }
 
 function modeFilters(mode) {
@@ -154,13 +251,17 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
   }, [liveCtx, selectedPersonId, refreshKey]);
 
   const people = searchResult?.kind === "data" ? searchResult.people : [];
-  const detail = detailResult?.kind === "data" ? detailResult : null;
+  const detail = detailResult?.kind === "data" && detailResult.person ? detailResult : null;
   const relationships = detail?.relationships ?? (relationshipResult?.kind === "data" ? relationshipResult.relationships : []);
   const ethics = ethicsResult?.kind === "data" ? ethicsResult : null;
   const reviewQueue = ethics?.review_queue ?? [];
   const ethicalWalls = ethics?.ethical_walls ?? [];
   const reviewerReceipts = ethics?.reviewer_receipts ?? [];
   const restrictedCount = relationships.filter((relationship) => relationship.access_state === "restricted").length;
+  const selectedPersonLabel = personLabel(detail?.person);
+  const selectedPersonTypeLabel = personTypeLabel(detail?.person);
+  const selectedPersonRoleLabel = personRoleLabel(detail?.person);
+  const selectedOrganizationLabel = organizationLabel(detail?.person);
 
   return (
     <div className="legal-people-runtime-grid span-2" data-lcx-ppl-05-ui="true">
@@ -183,6 +284,9 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
         {people.length > 0 && (
           <div className="people-row-list legal-people-row-list">
             {people.map((person) => {
+              const displayName = personLabel(person);
+              const typeLabel = personTypeLabel(person);
+              const organization = organizationLabel(person);
               const photo = memberPhotoFor(person.display_name);
               return (
                 <button
@@ -192,10 +296,10 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                   data-compact-record="true"
                   onClick={() => setSelectedPersonId(person.person_id)}
                 >
-                  <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : person.display_name?.slice(0, 1) ?? "P"}</span>
+                  <span className="people-row-avatar">{photo ? <img src={photo} alt="" /> : displayName.slice(0, 1) || "P"}</span>
                   <span>
-                    <strong>{person.display_name}</strong>
-                    <small>{person.korean_label}, {person.organization_label ?? "조직 미등록"}</small>
+                    <strong>{displayName}</strong>
+                    <small>{typeLabel}, {organization}</small>
                   </span>
                   <em>{statusLabel(person.status)}</em>
                 </button>
@@ -209,25 +313,26 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
         {!selectedPersonId && <div className="live-data-state live-data-empty">참여자 기록을 선택하세요.</div>}
         {selectedPersonId && detailResult === null && <div className="live-data-state live-data-loading">참여자 상세를 불러오는 중입니다</div>}
         {detailResult?.kind === "error" && <div className="live-data-state live-data-error">참여자 상세를 불러오지 못했습니다.</div>}
+        {detailResult?.kind === "data" && !detailResult.person && <div className="live-data-state live-data-empty">상세 정보는 권한 제한으로 표시할 수 없습니다.</div>}
         {detail && (
           <div className="legal-people-detail-stack">
             <div className="legal-people-identity">
               <span className="people-row-avatar">
                 {memberPhotoFor(detail.person.display_name)
                   ? <img src={memberPhotoFor(detail.person.display_name)} alt="" />
-                  : detail.person.display_name?.slice(0, 1) ?? "P"}
+                  : selectedPersonLabel.slice(0, 1) || "P"}
               </span>
               <div>
-                <strong>{detail.person.display_name}</strong>
-                <small>{detail.person.korean_label}, {detail.person.primary_role ?? "역할 미등록"}</small>
+                <strong>{selectedPersonLabel}</strong>
+                <small>{selectedPersonTypeLabel}, {selectedPersonRoleLabel}</small>
               </div>
               <em>{detail.person.permission_summary?.sensitive_fields_visible ? "상세 권한" : "제한 보기"}</em>
             </div>
             <div className="property-grid people-profile-grid">
-              <Property label="조직" value={detail.person.organization_label ?? "미등록"} />
+              <Property label="조직" value={selectedOrganizationLabel} />
               <Property label="상태" value={statusLabel(detail.person.status)} />
-              <Property label="Client" value={firstValue(detail.clients, "display_label")} />
-              <Property label="Matter" value={firstValue(detail.matters, "display_label")} />
+              <Property label="Client" value={firstSafeValue(detail.clients, "display_label", "client_id")} />
+              <Property label="Matter" value={firstSafeValue(detail.matters, "display_label", "matter_id")} />
               <Property label="감사 요약" value={`${detail.audit_summary?.event_count ?? 0}건`} />
               <Property label="제한 관계" value={`${restrictedCount}건`} />
             </div>
@@ -280,7 +385,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                 <div key={item.review_item_id} className={`legal-ethics-row ${item.state}`} data-compact-record="true">
                   <div>
                     <strong>{reviewTypeLabel(item.review_type)}, {reviewStateLabel(item.state)}</strong>
-                    <small>{item.related_ref}, {item.reviewer_role_required}</small>
+                    <small>{recordLabel(item.related_ref)}, {reviewerRoleLabel(item.reviewer_role_required)}</small>
                   </div>
                   <span>{priorityLabel(item.priority)}</span>
                   <em>{item.ai_final_decision_allowed ? "확인 필요" : "사람 검토"}</em>
@@ -299,9 +404,9 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
                 <div key={wall.wall_ref_id} className={`legal-ethics-row ${wall.wall_status}`} data-compact-record="true">
                   <div>
                     <strong>{reviewStateLabel(wall.wall_status)}</strong>
-                    <small>{wall.matter_id}, {wall.reason_code}</small>
+                    <small>{recordLabel(wall.matter_id, "Matter 기록")}, {reasonLabel(wall.reason_code)}</small>
                   </div>
-                  <span>{wall.access_effect}</span>
+                  <span>{accessEffectLabel(wall.access_effect)}</span>
                   <em>{wall.reviewer_receipt_id ? "검토 기록" : "대기"}</em>
                 </div>
               ))}
@@ -317,8 +422,8 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
               {reviewerReceipts.map((receipt) => (
                 <div key={receipt.receipt_id} className={receipt.access_state === "restricted" ? "legal-ethics-row restricted" : "legal-ethics-row"} data-compact-record="true">
                   <div>
-                    <strong>{receipt.decision}</strong>
-                    <small>{receipt.reviewer_role}, {receipt.review_item_id}</small>
+                    <strong>{decisionLabel(receipt.decision)}</strong>
+                    <small>{reviewerRoleLabel(receipt.reviewer_role)}, 검토 항목</small>
                   </div>
                   <span>{receipt.rollback_ref ? "되돌림 기준" : "제한"}</span>
                   <em>{receipt.ai_final_decision_allowed ? "확인 필요" : "사람 검토"}</em>

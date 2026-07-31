@@ -13,9 +13,19 @@ const RUN_TRANSITIONS = Object.freeze({
 const PERIOD_TRANSITIONS = Object.freeze({ draft: new Set(["open"]), open: new Set(["closed"]), closed: new Set() });
 const STATEMENT_TRANSITIONS = Object.freeze({ generated: new Set(["delivered", "revoked"]), delivered: new Set(["viewed", "revoked"]), viewed: new Set(["revoked"]), revoked: new Set() });
 const DELIVERY_TRANSITIONS = Object.freeze({ queued: new Set(["delivered", "failed", "revoked"]), delivered: new Set(["viewed", "revoked"]), viewed: new Set(["revoked"]), failed: new Set(["queued", "revoked"]), revoked: new Set() });
+const DELIVERY_PROVIDER_EVENT_STATES = new Set(["accepted", "sent", "delivered", "read", "failed"]);
+const DELIVERY_PROVIDER_RESULT_RANK = Object.freeze({ queued: 0, sent: 1, delivered: 2, read: 3 });
+const DELIVERY_PROVIDER_EVENT_MAX_FUTURE_SKEW_MS = 15 * 60 * 1000;
+const DELIVERY_PROVIDER_REPORTED_FAILED = "HRX_PAYROLL_PROVIDER_REPORTED_FAILED";
+const PROVIDER_OPERATION_KINDS = new Set(["delivery", "calendar", "payroll", "bank", "filing"]);
+const PROVIDER_OPERATION_TERMINAL_STATES = new Set(["succeeded", "failed", "unknown"]);
+export const HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED = "HRX_PAYROLL_RECONCILIATION_MANUAL_REQUIRED";
 const PAYMENT_BATCH_TRANSITIONS = Object.freeze({ draft: new Set(["approved", "failed"]), approved: new Set(["exported", "failed"]), exported: new Set(["reconciled", "failed"]), reconciled: new Set(), failed: new Set() });
-const PAYMENT_ITEM_TRANSITIONS = Object.freeze({ pending: new Set(["exported", "failed"]), exported: new Set(["paid", "failed"]), paid: new Set(), failed: new Set() });
-const FILING_TRANSITIONS = Object.freeze({ draft: new Set(["validated"]), validated: new Set(["submitted"]), submitted: new Set(["accepted", "rejected"]), rejected: new Set(["corrected"]), corrected: new Set(["validated"]), accepted: new Set() });
+const PAYMENT_ITEM_TRANSITIONS = Object.freeze({ pending: new Set(["exported", "failed"]), exported: new Set(["paid", "failed"]), paid: new Set(), failed: new Set(["paid", "failed"]) });
+const FILING_TRANSITIONS = Object.freeze({ draft: new Set(["validated"]), validated: new Set(["submitted"]), submitted: new Set(["accepted", "rejected"]), rejected: new Set(), corrected: new Set(["validated"]), accepted: new Set() });
+
+export const HRX_PAYMENT_RECONCILIATION_RESULT_SCHEMA_VERSION = "law-firm-os.hrx.payroll-payment-reconciliation-result.v1";
+export const HRX_PAYROLL_FILING_SOURCE_MANIFEST_SCHEMA_VERSION = "law-firm-os.hrx.payroll-filing-source-manifest.v1";
 
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -31,14 +41,149 @@ function digest(value) {
   return createHash("sha256").update(JSON.stringify(stable(value))).digest("hex");
 }
 
+export function createPayrollFilingSourceManifest(bundle = {}) {
+  const results = Array.isArray(bundle.results) ? bundle.results : [];
+  const lineItems = Array.isArray(bundle.line_items) ? bundle.line_items : [];
+  return Object.freeze({
+    schema_version: HRX_PAYROLL_FILING_SOURCE_MANIFEST_SCHEMA_VERSION,
+    results: Object.freeze([...results]
+      .sort((left, right) => (
+        left.employee_id.localeCompare(right.employee_id)
+        || left.result_id.localeCompare(right.result_id)
+      ))
+      .map((result) => Object.freeze({
+        employee_id: requiredString(result, "employee_id"),
+        source_result_ref: `artifact:payroll-result/${requiredString(result, "result_id")}`,
+        source_result_hash: sha256Value(result, "result_hash"),
+        input_snapshot_ref: `artifact:payroll-input/${requiredString(result, "input_snapshot_id")}`,
+        gross_krw: requiredInteger(result, "gross_krw"),
+        deduction_krw: requiredInteger(result, "deduction_krw"),
+        net_krw: requiredInteger(result, "net_krw"),
+        issue_count: requiredInteger(result, "issue_count", { nonNegative: true }),
+        line_items: Object.freeze(lineItems
+          .filter((line) => line.result_id === result.result_id)
+          .sort((left, right) => left.line_item_id.localeCompare(right.line_item_id))
+          .map((line) => {
+            const source = {
+              source_line_ref: `artifact:payroll-line/${requiredString(line, "line_item_id")}`,
+              item_kind: requiredString(line, "item_kind"),
+              item_code: requiredString(line, "item_code"),
+              formula_code: requiredString(line, "formula_code"),
+              rule_version_ref: line.rule_version_id
+                ? `artifact:payroll-rule/${requiredString(line, "rule_version_id")}`
+                : null,
+              amount_krw: requiredInteger(line, "amount_krw"),
+              quantity_minutes: line.quantity_minutes ?? null,
+              metadata: JSON.parse(line.metadata_json ?? "{}"),
+            };
+            return Object.freeze({
+              ...source,
+              source_line_hash: digest(source),
+            });
+          })),
+      }))),
+  });
+}
+
+export function createPayrollFilingSourceHash(bundle = {}) {
+  return digest(createPayrollFilingSourceManifest(bundle));
+}
+
 function requiredString(input, field) {
   const value = input?.[field];
   if (typeof value !== "string" || !value.trim()) throw new TypeError(`${field} is required`);
   return value.trim();
 }
 
+function safeOpaqueId(input, field, maximumLength = 255) {
+  const value = requiredString(input, field);
+  if (value.length > maximumLength || !/^[A-Za-z0-9][A-Za-z0-9._:-]+$/.test(value)) {
+    throw new TypeError(`${field} must be a safe opaque identifier`);
+  }
+  return value;
+}
+
+function sha256Value(input, field) {
+  const value = requiredString(input, field);
+  if (!/^[a-f0-9]{64}$/i.test(value)) throw new TypeError(`${field} must be a SHA-256 hex digest`);
+  return value.toLowerCase();
+}
+
+function isoTimestamp(input, field) {
+  const value = requiredString(input, field);
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) throw new TypeError(`${field} must be an ISO timestamp`);
+  return new Date(parsed).toISOString();
+}
+
 function optionalString(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function correctionKey(input) {
+  const value = requiredString(input, "correction_key");
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/.test(value)) {
+    throw new TypeError("correction_key must be a safe opaque key");
+  }
+  return value;
+}
+
+function normalizeCorrectionAdjustments(inputs, { correction_key: key, previous_run_id: previousRunId } = {}) {
+  const rows = inputs.map((input) => {
+    const amountKrw = requiredInteger(input, "amount_krw");
+    if (amountKrw < 0) {
+      throw guardedError(
+        "과지급 회수·상계 절차가 없어 음수 정정은 처리할 수 없습니다",
+        "HRX_PAYROLL_RECOVERY_WORKFLOW_REQUIRED",
+        409,
+      );
+    }
+    if (amountKrw === 0) {
+      throw guardedError("정정 금액은 1원 이상이어야 합니다", "HRX_PAYROLL_ADJUSTMENT_AMOUNT_INVALID", 409);
+    }
+    const reasonCode = requiredString(input, "reason_code");
+    if (reasonCode === "EXCESS_PAYMENT") {
+      throw guardedError(
+        "과지급 회수·상계 절차가 없어 해당 정정 사유는 지원하지 않습니다",
+        "HRX_PAYROLL_RECOVERY_WORKFLOW_REQUIRED",
+        409,
+      );
+    }
+    return {
+      adjustment_id: input.adjustment_id,
+      employee_id: requiredString(input, "employee_id"),
+      reason_code: reasonCode,
+      amount_krw: amountKrw,
+      taxable: input.taxable !== false,
+    };
+  }).sort((left, right) => left.employee_id.localeCompare(right.employee_id));
+  if (rows.some((row, index) => rows[index - 1]?.employee_id === row.employee_id)) {
+    throw new TypeError("each employee may appear once per correction run");
+  }
+  return rows.map((row, index) => ({
+    ...row,
+    previous_run_ref: `artifact:payroll-run/${previousRunId}`,
+    adjustment_ref: `artifact:payroll-adjustment/${digest({ correction_key: key, employee_id: row.employee_id, index }).slice(0, 32)}`,
+  }));
+}
+
+function correctionRequestHash(periodId, previousRunId, adjustments) {
+  return digest({
+    schema_version: "law-firm-os.hrx.payroll-correction-request.v1",
+    period_id: periodId,
+    previous_run_id: previousRunId,
+    adjustments: [...adjustments]
+      .sort((left, right) => left.employee_id.localeCompare(right.employee_id))
+      .map((row) => ({
+        adjustment_id: row.adjustment_id ?? null,
+        employee_id: row.employee_id,
+        previous_run_ref: row.previous_run_ref,
+        adjustment_ref: row.adjustment_ref,
+        reason_code: row.reason_code,
+        amount_krw: row.amount_krw,
+        taxable: row.taxable === true || row.taxable === 1,
+      })),
+  });
 }
 
 function contextValues(context) {
@@ -96,9 +241,11 @@ export function createPayrollRepository({
   store,
   clock = () => new Date().toISOString(),
   idFactory = (prefix) => `${prefix}_${randomUUID()}`,
+  faultInjector = () => {},
 } = {}) {
   assertHrxStorePort(store);
   if (typeof store.transaction !== "function") throw new TypeError("payroll repository requires a transactional store");
+  if (typeof faultInjector !== "function") throw new TypeError("payroll repository faultInjector must be a function");
 
   function appendAudit(tx, context, action, objectType, objectId, metadata = {}) {
     const events = tx.query("select", { table: "hrx_audit_events", where: { tenant_id: context.tenant_id } });
@@ -210,8 +357,9 @@ export function createPayrollRepository({
       const duplicate = store.query("selectOne", { table: "hrx_payroll_runs", where: { tenant_id: context.tenant_id, period_id: periodId, run_type: "regular" } });
       if (duplicate) throw guardedError("Regular payroll run already exists for period", "HRX_PAYROLL_RUN_DUPLICATE", 409);
     } else if (runType === "adjustment") {
-      const previous = requireRow(store, "hrx_payroll_runs", { tenant_id: context.tenant_id, run_id: requiredString(input, "previous_run_id") }, "Previous payroll run");
-      if (previous.period_id !== periodId || previous.status !== "closed") throw guardedError("Adjustment requires a closed run in the same period", "HRX_PAYROLL_ADJUSTMENT_SOURCE_INVALID", 409);
+      throw guardedError("Adjustment payroll runs must include at least one correction", "HRX_PAYROLL_ADJUSTMENT_EMPTY", 409);
+    } else {
+      throw new TypeError("run_type must be regular or adjustment");
     }
     const now = clock();
     const row = {
@@ -220,9 +368,12 @@ export function createPayrollRepository({
       period_id: periodId,
       run_type: runType,
       previous_run_id: previousRunId,
+      correction_key: null,
+      correction_request_hash: null,
       status: "draft",
       snapshot_hash: null,
       result_hash: null,
+      filing_source_hash: null,
       prepared_by_actor_id: context.actor_id,
       approved_by_actor_id: null,
       approved_at: null,
@@ -232,6 +383,90 @@ export function createPayrollRepository({
       updated_at: now,
     };
     return auditedInsert(context, "hrx_payroll_runs", row, "hrx.payroll.run.create", "PayrollRun", row.run_id);
+  }
+
+  function createAdjustmentRun(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const periodId = requiredString(input, "period_id");
+    const previousRunId = requiredString(input, "previous_run_id");
+    const runCorrectionKey = correctionKey(input);
+    const adjustmentInputs = Array.isArray(input.adjustments) ? input.adjustments : [];
+    if (adjustmentInputs.length === 0) throw guardedError("Adjustment payroll runs must include at least one correction", "HRX_PAYROLL_ADJUSTMENT_EMPTY", 409);
+    const normalizedAdjustments = normalizeCorrectionAdjustments(adjustmentInputs, {
+      correction_key: runCorrectionKey,
+      previous_run_id: previousRunId,
+    });
+    const requestHash = correctionRequestHash(periodId, previousRunId, normalizedAdjustments);
+    const replay = store.query("selectOne", { table: "hrx_payroll_runs", where: { tenant_id: context.tenant_id, correction_key: runCorrectionKey } });
+    if (replay) {
+      const persistedHash = replay.correction_request_hash ?? correctionRequestHash(
+        replay.period_id,
+        replay.previous_run_id,
+        listAdjustments(context, { run_id: replay.run_id }),
+      );
+      if (replay.period_id !== periodId || replay.previous_run_id !== previousRunId || replay.run_type !== "adjustment" || persistedHash !== requestHash) {
+        throw guardedError("Correction key is already bound to another payroll run", "HRX_PAYROLL_CORRECTION_KEY_CONFLICT", 409);
+      }
+      return Object.freeze({
+        run: Object.freeze({ ...clone(replay), idempotent_replay: true }),
+        adjustments: listAdjustments(context, { run_id: replay.run_id }),
+        idempotent_replay: true,
+      });
+    }
+    requireRow(store, "hrx_payroll_periods", { tenant_id: context.tenant_id, period_id: periodId }, "Payroll period");
+    const previous = requireRow(store, "hrx_payroll_runs", { tenant_id: context.tenant_id, run_id: previousRunId }, "Previous payroll run");
+    if (previous.period_id !== periodId || previous.status !== "closed") {
+      throw guardedError("Adjustment requires a closed run in the same period", "HRX_PAYROLL_ADJUSTMENT_SOURCE_INVALID", 409);
+    }
+    const now = clock();
+    const runId = input.run_id ?? idFactory("payroll_run");
+    const run = {
+      tenant_id: context.tenant_id,
+      run_id: runId,
+      period_id: periodId,
+      run_type: "adjustment",
+      previous_run_id: previousRunId,
+      correction_key: runCorrectionKey,
+      correction_request_hash: requestHash,
+      status: "draft",
+      snapshot_hash: null,
+      result_hash: null,
+      filing_source_hash: null,
+      prepared_by_actor_id: context.actor_id,
+      approved_by_actor_id: null,
+      approved_at: null,
+      closed_at: null,
+      state_version: 1,
+      created_at: now,
+      updated_at: now,
+    };
+    const adjustmentRows = normalizedAdjustments.map((adjustmentInput) => ({
+      tenant_id: context.tenant_id,
+      adjustment_id: adjustmentInput.adjustment_id ?? idFactory("payroll_adjustment"),
+      run_id: runId,
+      employee_id: adjustmentInput.employee_id,
+      previous_run_ref: adjustmentInput.previous_run_ref,
+      adjustment_ref: adjustmentInput.adjustment_ref,
+      reason_code: adjustmentInput.reason_code,
+      amount_krw: adjustmentInput.amount_krw,
+      taxable: adjustmentInput.taxable ? 1 : 0,
+      created_by_actor_id: context.actor_id,
+      created_at: now,
+    }));
+    return store.transaction((tx) => {
+      const insertedRun = tx.query("insert", { table: "hrx_payroll_runs", row: run });
+      appendAudit(tx, context, "hrx.payroll.run.create", "PayrollRun", runId, { table: "hrx_payroll_runs", correction: true });
+      const insertedAdjustments = adjustmentRows.map((row) => {
+        const inserted = tx.query("insert", { table: "hrx_payroll_adjustments", row });
+        appendAudit(tx, context, "hrx.payroll.adjustment.create", "PayrollAdjustment", row.adjustment_id, { table: "hrx_payroll_adjustments", run_id: runId });
+        return Object.freeze(clone(inserted));
+      });
+      return Object.freeze({
+        run: Object.freeze(clone(insertedRun)),
+        adjustments: Object.freeze(insertedAdjustments),
+        idempotent_replay: false,
+      });
+    });
   }
 
   function getRun(contextInput, input = {}) {
@@ -262,7 +497,10 @@ export function createPayrollRepository({
       patch.approved_by_actor_id = context.actor_id;
       patch.approved_at = now;
     }
-    if (next === "closed") patch.closed_at = now;
+    if (next === "closed") {
+      patch.closed_at = now;
+      patch.filing_source_hash = createPayrollFilingSourceHash(getRunBundle(context, { run_id: runId }));
+    }
     let outbox = null;
     if (next === "approved") {
       const receiptHash = requiredSha256(input, "step_up_receipt_hash");
@@ -273,7 +511,16 @@ export function createPayrollRepository({
         payload: { run_id: runId, step_up_receipt_ref: requiredTokenizedRef(input, "step_up_receipt_ref"), step_up_receipt_hash: receiptHash },
       };
     }
-    if (next === "closed") outbox = { run_id: runId, event_type: "payroll.close", idempotency_key: `payroll.close:${runId}`, payload: { run_id: runId, result_hash: current.result_hash } };
+    if (next === "closed") outbox = {
+      run_id: runId,
+      event_type: "payroll.close",
+      idempotency_key: `payroll.close:${runId}`,
+      payload: {
+        run_id: runId,
+        result_hash: current.result_hash,
+        filing_source_hash: patch.filing_source_hash,
+      },
+    };
     return auditedUpdate(context, "hrx_payroll_runs", { tenant_id: context.tenant_id, run_id: runId }, patch, version, `hrx.payroll.run.${next}`, "PayrollRun", runId, { outbox });
   }
 
@@ -362,6 +609,25 @@ export function createPayrollRepository({
     const runId = requiredString(input, "run_id");
     const run = requireRow(store, "hrx_payroll_runs", { tenant_id: context.tenant_id, run_id: runId }, "Payroll run");
     if (run.run_type !== "adjustment" || run.status !== "draft") throw guardedError("Adjustment input requires a draft adjustment run", "HRX_PAYROLL_ADJUSTMENT_STATE_INVALID", 409);
+    const reasonCode = requiredString(input, "reason_code");
+    const amountKrw = requiredInteger(input, "amount_krw");
+    if (amountKrw < 0) {
+      throw guardedError(
+        "과지급 회수·상계 절차가 없어 음수 정정은 처리할 수 없습니다",
+        "HRX_PAYROLL_RECOVERY_WORKFLOW_REQUIRED",
+        409,
+      );
+    }
+    if (amountKrw === 0) {
+      throw guardedError("정정 금액은 1원 이상이어야 합니다", "HRX_PAYROLL_ADJUSTMENT_AMOUNT_INVALID", 409);
+    }
+    if (reasonCode === "EXCESS_PAYMENT") {
+      throw guardedError(
+        "과지급 회수·상계 절차가 없어 해당 정정 사유는 지원하지 않습니다",
+        "HRX_PAYROLL_RECOVERY_WORKFLOW_REQUIRED",
+        409,
+      );
+    }
     const row = {
       tenant_id: context.tenant_id,
       adjustment_id: input.adjustment_id ?? idFactory("payroll_adjustment"),
@@ -369,13 +635,12 @@ export function createPayrollRepository({
       employee_id: requiredString(input, "employee_id"),
       previous_run_ref: requiredTokenizedRef(input, "previous_run_ref"),
       adjustment_ref: requiredTokenizedRef(input, "adjustment_ref"),
-      reason_code: requiredString(input, "reason_code"),
-      amount_krw: requiredInteger(input, "amount_krw"),
+      reason_code: reasonCode,
+      amount_krw: amountKrw,
       taxable: input.taxable === true ? 1 : 0,
       created_by_actor_id: context.actor_id,
       created_at: clock(),
     };
-    if (row.amount_krw === 0) throw new TypeError("amount_krw must not be zero");
     return auditedInsert(context, "hrx_payroll_adjustments", row, "hrx.payroll.adjustment.create", "PayrollAdjustment", row.adjustment_id);
   }
 
@@ -468,13 +733,20 @@ export function createPayrollRepository({
 
   function createEmployeeResult(contextInput, input = {}) {
     const context = contextValues(contextInput);
+    const run = requireRow(store, "hrx_payroll_runs", {
+      tenant_id: context.tenant_id,
+      run_id: requiredString(input, "run_id"),
+    }, "Payroll run");
+    if (!["draft", "snapshot_ready"].includes(run.status)) {
+      throw guardedError("Payroll results are immutable after preview", "HRX_PAYROLL_RESULT_IMMUTABLE", 409);
+    }
     const gross = requiredInteger(input, "gross_krw");
     const deductions = requiredInteger(input, "deduction_krw");
     const net = requiredInteger(input, "net_krw");
     const row = {
       tenant_id: context.tenant_id,
       result_id: input.result_id ?? idFactory("payroll_result"),
-      run_id: requiredString(input, "run_id"),
+      run_id: run.run_id,
       employee_id: requiredString(input, "employee_id"),
       input_snapshot_id: requiredString(input, "input_snapshot_id"),
       gross_krw: gross,
@@ -556,10 +828,21 @@ export function createPayrollRepository({
 
   function addLineItem(contextInput, input = {}) {
     const context = contextValues(contextInput);
+    const result = requireRow(store, "hrx_payroll_employee_results", {
+      tenant_id: context.tenant_id,
+      result_id: requiredString(input, "result_id"),
+    }, "Payroll employee result");
+    const run = requireRow(store, "hrx_payroll_runs", {
+      tenant_id: context.tenant_id,
+      run_id: result.run_id,
+    }, "Payroll run");
+    if (!["draft", "snapshot_ready"].includes(run.status)) {
+      throw guardedError("Payroll result lines are immutable after preview", "HRX_PAYROLL_RESULT_IMMUTABLE", 409);
+    }
     const row = {
       tenant_id: context.tenant_id,
       line_item_id: input.line_item_id ?? idFactory("payroll_line"),
-      result_id: requiredString(input, "result_id"),
+      result_id: result.result_id,
       item_kind: requiredString(input, "item_kind"),
       item_code: requiredString(input, "item_code"),
       formula_code: requiredString(input, "formula_code"),
@@ -586,6 +869,9 @@ export function createPayrollRepository({
       rules_json: JSON.stringify(stable(input.rules ?? {})),
       approval_state: "draft",
       created_by_actor_id: context.actor_id,
+      legal_reviewed_by_actor_id: null,
+      legal_review_ref: null,
+      legal_reviewed_at: null,
       reviewed_by_actor_id: null,
       published_by_actor_id: null,
       published_at: null,
@@ -596,11 +882,48 @@ export function createPayrollRepository({
     return auditedInsert(context, "hrx_payroll_rule_versions", row, "hrx.payroll.rule.create", "PayrollRuleVersion", row.rule_version_id);
   }
 
+  function legallyApproveMinimumWageRuleVersion(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const ruleId = requiredString(input, "rule_version_id");
+    const current = requireRow(store, "hrx_payroll_rule_versions", { tenant_id: context.tenant_id, rule_version_id: ruleId }, "Payroll rule");
+    if (current.rule_kind !== "minimum_wage" || current.approval_state !== "draft") {
+      throw guardedError("Only a draft minimum wage rule can receive legal approval", "HRX_MINIMUM_WAGE_LEGAL_REVIEW_STATE_INVALID", 409);
+    }
+    if (context.actor_id === current.created_by_actor_id) {
+      throw guardedError("Minimum wage rule author cannot legally approve own rule", "HRX_PAYROLL_SELF_APPROVAL", 403);
+    }
+    const rules = JSON.parse(current.rules_json);
+    if (rules.legal_review_state !== "pending" || rules.legal_review_ref) {
+      throw guardedError("Minimum wage rule is not pending legal review", "HRX_MINIMUM_WAGE_LEGAL_REVIEW_STATE_INVALID", 409);
+    }
+    const version = expectedVersion(input);
+    const legalReviewRef = requiredTokenizedRef(input, "legal_review_ref");
+    const legalReviewedAt = clock();
+    return auditedUpdate(context, "hrx_payroll_rule_versions", { tenant_id: context.tenant_id, rule_version_id: ruleId }, {
+      rules_json: JSON.stringify(stable({
+        ...rules,
+        legal_review_state: "approved",
+        legal_review_ref: legalReviewRef,
+      })),
+      legal_reviewed_by_actor_id: context.actor_id,
+      legal_review_ref: legalReviewRef,
+      legal_reviewed_at: legalReviewedAt,
+      state_version: version + 1,
+      updated_at: legalReviewedAt,
+    }, version, "hrx.payroll.minimum_wage.legal_approve", "PayrollRuleVersion", ruleId);
+  }
+
   function reviewRuleVersion(contextInput, input = {}) {
     const context = contextValues(contextInput);
     const ruleId = requiredString(input, "rule_version_id");
     const current = requireRow(store, "hrx_payroll_rule_versions", { tenant_id: context.tenant_id, rule_version_id: ruleId }, "Payroll rule");
     if (current.approval_state !== "draft") throw guardedError("Only draft payroll rule can be reviewed", "HRX_PAYROLL_RULE_STATE_INVALID", 409);
+    if (current.rule_kind === "minimum_wage") {
+      const rules = JSON.parse(current.rules_json);
+      if (rules.legal_review_state !== "approved" || !rules.legal_review_ref) {
+        throw guardedError("Minimum wage rule requires legal approval before payroll review", "HRX_MINIMUM_WAGE_LEGAL_REVIEW_REQUIRED", 403);
+      }
+    }
     if (context.actor_id === current.created_by_actor_id) throw guardedError("Payroll rule author cannot review own rule", "HRX_PAYROLL_SELF_APPROVAL", 403);
     const version = expectedVersion(input);
     return auditedUpdate(context, "hrx_payroll_rule_versions", { tenant_id: context.tenant_id, rule_version_id: ruleId }, {
@@ -761,10 +1084,16 @@ export function createPayrollRepository({
       delivery_receipt_id: input.delivery_receipt_id ?? idFactory("payroll_delivery"),
       statement_id: requiredString(input, "statement_id"),
       channel: requiredString(input, "channel"),
+      provider_id: null,
+      provider_receipt_id: null,
       provider_receipt_ref: null,
       receipt_hash: null,
       state: "queued",
+      provider_result_state: "queued",
+      safe_error_code: null,
       attempt_count: 0,
+      attempt_started_at: null,
+      last_attempt_at: null,
       state_version: 1,
       created_at: now,
       updated_at: now,
@@ -783,12 +1112,109 @@ export function createPayrollRepository({
     assertTransition(current.state, next, DELIVERY_TRANSITIONS, "Payroll delivery");
     const version = expectedVersion(input);
     const now = clock();
+    const providerStatusPoll = input.provider_status_poll === true;
+    if (providerStatusPoll && current.attempt_count < 1) {
+      throw guardedError("Payroll provider status requires a prior delivery attempt", "HRX_PAYROLL_DELIVERY_STATE_INVALID", 409);
+    }
+    const nextAttemptCount = current.attempt_count + (providerStatusPoll ? 0 : 1);
+    const attemptStartedAt = providerStatusPoll
+      ? current.attempt_started_at
+      : isoTimestamp({
+          attempt_started_at: input.attempt_started_at ?? now,
+        }, "attempt_started_at");
+    const lastAttemptAt = providerStatusPoll ? current.last_attempt_at : now;
     const patch = { state: next, state_version: version + 1, updated_at: now };
-    if (next === "queued") patch.attempt_count = current.attempt_count + 1;
-    if (next === "delivered") Object.assign(patch, { provider_receipt_ref: requiredString(input, "provider_receipt_ref"), receipt_hash: requiredString(input, "receipt_hash"), delivered_at: now, attempt_count: current.attempt_count + 1 });
-    if (next === "viewed") patch.viewed_at = now;
-    if (next === "failed") Object.assign(patch, { failed_at: now, attempt_count: current.attempt_count + 1 });
+    if (next === "queued") Object.assign(patch, {
+      provider_result_state: "queued",
+      safe_error_code: null,
+      ...(input.attempt_started_at == null
+        ? {}
+        : { attempt_started_at: isoTimestamp(input, "attempt_started_at") }),
+    });
+    if (next === "delivered") Object.assign(patch, {
+      provider_receipt_ref: requiredString(input, "provider_receipt_ref"),
+      receipt_hash: requiredString(input, "receipt_hash"),
+      provider_id: safeOpaqueId(input, "provider_id", 128),
+      provider_receipt_id: optionalString(input.provider_receipt_id),
+      provider_result_state: "delivered",
+      safe_error_code: null,
+      delivered_at: now,
+      attempt_count: nextAttemptCount,
+      attempt_started_at: attemptStartedAt,
+      last_attempt_at: lastAttemptAt,
+    });
+    if (next === "viewed") Object.assign(patch, {
+      provider_result_state: "read",
+      viewed_at: now,
+    });
+    if (next === "failed") Object.assign(patch, {
+      provider_result_state: "failed",
+      safe_error_code: requiredString({ safe_error_code: input.safe_error_code ?? "DELIVERY_FAILED" }, "safe_error_code"),
+      failed_at: now,
+      attempt_count: nextAttemptCount,
+      attempt_started_at: attemptStartedAt,
+      last_attempt_at: lastAttemptAt,
+    });
+    if (next === "failed" && input.provider_id != null) {
+      patch.provider_id = safeOpaqueId(input, "provider_id", 128);
+      patch.provider_receipt_id = optionalString(input.provider_receipt_id);
+    }
     return auditedUpdate(context, "hrx_payroll_delivery_receipts", { tenant_id: context.tenant_id, delivery_receipt_id: receiptId }, patch, version, `hrx.payroll.delivery.${next}`, "PayrollDeliveryReceipt", receiptId);
+  }
+
+  function recordDeliveryProviderResult(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const receiptId = requiredString(input, "delivery_receipt_id");
+    const providerResultState = requiredString(input, "provider_result_state");
+    if (!["queued", "sent", "unknown"].includes(providerResultState)) {
+      throw new TypeError("provider_result_state must be queued, sent, or unknown");
+    }
+    const current = requireRow(store, "hrx_payroll_delivery_receipts", {
+      tenant_id: context.tenant_id,
+      delivery_receipt_id: receiptId,
+    }, "Payroll delivery receipt");
+    if (current.state !== "queued") {
+      throw guardedError("Queued payroll delivery is required", "HRX_PAYROLL_DELIVERY_STATE_INVALID", 409);
+    }
+    const version = expectedVersion(input);
+    const now = clock();
+    const providerStatusPoll = input.provider_status_poll === true;
+    if (providerStatusPoll && current.attempt_count < 1) {
+      throw guardedError("Payroll provider status requires a prior delivery attempt", "HRX_PAYROLL_DELIVERY_STATE_INVALID", 409);
+    }
+    const patch = {
+      provider_result_state: providerResultState,
+      safe_error_code: optionalString(input.safe_error_code),
+      attempt_count: current.attempt_count + (providerStatusPoll ? 0 : 1),
+      attempt_started_at: providerStatusPoll
+        ? current.attempt_started_at
+        : isoTimestamp({
+            attempt_started_at: input.attempt_started_at ?? now,
+          }, "attempt_started_at"),
+      last_attempt_at: providerStatusPoll ? current.last_attempt_at : now,
+      state_version: version + 1,
+      updated_at: now,
+    };
+    if (input.provider_id != null) {
+      patch.provider_id = safeOpaqueId(input, "provider_id", 128);
+      patch.provider_receipt_id = optionalString(input.provider_receipt_id);
+    }
+    if (providerResultState === "sent") {
+      patch.provider_receipt_ref = requiredString(input, "provider_receipt_ref");
+      patch.receipt_hash = requiredString(input, "receipt_hash");
+    } else if (input.receipt_hash != null) {
+      patch.receipt_hash = requiredString(input, "receipt_hash");
+    }
+    return auditedUpdate(
+      context,
+      "hrx_payroll_delivery_receipts",
+      { tenant_id: context.tenant_id, delivery_receipt_id: receiptId },
+      patch,
+      version,
+      "hrx.payroll.delivery.provider_result",
+      "PayrollDeliveryReceipt",
+      receiptId,
+    );
   }
 
   function getDeliveryReceipt(contextInput, input = {}) {
@@ -806,6 +1232,1072 @@ export function createPayrollRepository({
     return Object.freeze(store.query("select", { table: "hrx_payroll_delivery_receipts", where })
       .sort((left, right) => right.updated_at.localeCompare(left.updated_at))
       .map(clone));
+  }
+
+  function applyDeliveryProviderEvent(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const providerEventId = safeOpaqueId(input, "provider_event_id");
+    const providerId = safeOpaqueId(input, "provider_id", 128);
+    const providerReceiptRef = requiredString(input, "provider_receipt_ref");
+    const providerEventState = requiredString(input, "provider_event_state").toLowerCase();
+    if (!DELIVERY_PROVIDER_EVENT_STATES.has(providerEventState)) {
+      throw guardedError("Payroll provider event state is unsupported", "HRX_PAYROLL_PROVIDER_EVENT_STATE_UNKNOWN", 400);
+    }
+    const targetResultState = providerEventState === "accepted" ? "sent" : providerEventState;
+    const payloadHash = sha256Value(input, "payload_hash");
+    const eventOccurredAt = isoTimestamp(input, "event_occurred_at");
+
+    return store.transaction((tx) => {
+      const existing = tx.query("selectOne", {
+        table: "hrx_payroll_statement_provider_events",
+        where: { tenant_id: context.tenant_id, provider_event_id: providerEventId },
+      });
+      if (existing) {
+        const sameEvent = existing.provider_id === providerId
+          && existing.provider_receipt_ref === providerReceiptRef
+          && existing.provider_event_state === providerEventState
+          && existing.payload_hash === payloadHash
+          && existing.event_occurred_at === eventOccurredAt;
+        if (!sameEvent) {
+          throw guardedError("Payroll provider event id was reused with different content", "HRX_PAYROLL_PROVIDER_EVENT_CONFLICT", 409);
+        }
+        const replayReceipt = requireRow(tx, "hrx_payroll_delivery_receipts", {
+          tenant_id: context.tenant_id,
+          delivery_receipt_id: existing.delivery_receipt_id,
+        }, "Payroll delivery receipt");
+        const replayStatement = requireRow(tx, "hrx_payroll_statements", {
+          tenant_id: context.tenant_id,
+          statement_id: existing.statement_id,
+        }, "Payroll statement");
+        return Object.freeze({
+          event: Object.freeze(clone(existing)),
+          receipt: Object.freeze(clone(replayReceipt)),
+          statement: Object.freeze(clone(replayStatement)),
+          replayed: true,
+        });
+      }
+
+      let receipt = requireRow(tx, "hrx_payroll_delivery_receipts", {
+        tenant_id: context.tenant_id,
+        provider_receipt_ref: providerReceiptRef,
+      }, "Payroll delivery receipt");
+      let statement = requireRow(tx, "hrx_payroll_statements", {
+        tenant_id: context.tenant_id,
+        statement_id: receipt.statement_id,
+      }, "Payroll statement");
+      if (receipt.provider_id !== providerId) {
+        throw guardedError("Payroll provider identity does not match the delivery receipt", "HRX_PAYROLL_PROVIDER_ID_MISMATCH", 403);
+      }
+      if (receipt.state === "revoked" || statement.state === "revoked") {
+        throw guardedError("Revoked payroll delivery cannot accept provider events", "HRX_PAYROLL_DELIVERY_REVOKED", 409);
+      }
+      const receivedAt = clock();
+      if (Date.parse(eventOccurredAt) > Date.parse(receivedAt) + DELIVERY_PROVIDER_EVENT_MAX_FUTURE_SKEW_MS) {
+        throw guardedError("Payroll provider event timestamp is too far in the future", "HRX_PAYROLL_PROVIDER_EVENT_TIME_INVALID", 409);
+      }
+      const currentResultState = receipt.provider_result_state ?? "queued";
+      const failureEvent = providerEventState === "failed";
+      const currentRank = DELIVERY_PROVIDER_RESULT_RANK[currentResultState];
+      const targetRank = DELIVERY_PROVIDER_RESULT_RANK[targetResultState];
+      if (failureEvent) {
+        if (currentResultState !== "sent" || receipt.state !== "queued") {
+          throw guardedError("Payroll provider failure event is out of order", "HRX_PAYROLL_PROVIDER_EVENT_OUT_OF_ORDER", 409);
+        }
+      } else {
+        if (!Number.isInteger(currentRank)) {
+          throw guardedError("Payroll delivery provider state cannot accept callbacks", "HRX_PAYROLL_DELIVERY_STATE_INVALID", 409);
+        }
+        if (targetRank < currentRank || targetRank > currentRank + 1) {
+          throw guardedError("Payroll provider event is out of order", "HRX_PAYROLL_PROVIDER_EVENT_OUT_OF_ORDER", 409);
+        }
+      }
+      const attemptStartedAt = receipt.attempt_started_at ?? receipt.last_attempt_at;
+      if (attemptStartedAt && Date.parse(eventOccurredAt) < Date.parse(attemptStartedAt)) {
+        throw guardedError("Payroll provider event predates the delivery attempt", "HRX_PAYROLL_PROVIDER_EVENT_OUT_OF_ORDER", 409);
+      }
+      const latestEvent = tx.query("select", {
+        table: "hrx_payroll_statement_provider_events",
+        where: {
+          tenant_id: context.tenant_id,
+          delivery_receipt_id: receipt.delivery_receipt_id,
+        },
+      }).sort((left, right) => right.event_occurred_at.localeCompare(left.event_occurred_at))[0];
+      if (latestEvent && Date.parse(eventOccurredAt) < Date.parse(latestEvent.event_occurred_at)) {
+        throw guardedError("Payroll provider event timestamp is out of order", "HRX_PAYROLL_PROVIDER_EVENT_OUT_OF_ORDER", 409);
+      }
+
+      if (failureEvent || targetRank > currentRank) {
+        const receiptPatch = failureEvent
+          ? {
+              state: "failed",
+              provider_result_state: "failed",
+              safe_error_code: DELIVERY_PROVIDER_REPORTED_FAILED,
+              failed_at: eventOccurredAt,
+              state_version: receipt.state_version + 1,
+              updated_at: receivedAt,
+            }
+          : {
+              provider_result_state: targetResultState,
+              safe_error_code: null,
+              state_version: receipt.state_version + 1,
+              updated_at: receivedAt,
+            };
+        if (!failureEvent && targetResultState === "delivered") Object.assign(receiptPatch, {
+          state: "delivered",
+          delivered_at: eventOccurredAt,
+        });
+        if (!failureEvent && targetResultState === "read") Object.assign(receiptPatch, {
+          state: "viewed",
+          viewed_at: eventOccurredAt,
+        });
+        receipt = tx.query("updateOne", {
+          table: "hrx_payroll_delivery_receipts",
+          where: { tenant_id: context.tenant_id, delivery_receipt_id: receipt.delivery_receipt_id },
+          expected_version: receipt.state_version,
+          patch: receiptPatch,
+        });
+        if (!receipt) throw guardedError("Payroll delivery receipt not found", "HRX_PAYROLL_NOT_FOUND", 404);
+
+        if (!failureEvent && targetResultState === "delivered" && statement.state === "generated") {
+          statement = tx.query("updateOne", {
+            table: "hrx_payroll_statements",
+            where: { tenant_id: context.tenant_id, statement_id: statement.statement_id },
+            expected_version: statement.state_version,
+            patch: {
+              state: "delivered",
+              delivered_at: eventOccurredAt,
+              state_version: statement.state_version + 1,
+            },
+          });
+        }
+        if (!failureEvent && targetResultState === "read" && statement.state === "delivered") {
+          statement = tx.query("updateOne", {
+            table: "hrx_payroll_statements",
+            where: { tenant_id: context.tenant_id, statement_id: statement.statement_id },
+            expected_version: statement.state_version,
+            patch: {
+              state: "viewed",
+              viewed_at: eventOccurredAt,
+              state_version: statement.state_version + 1,
+            },
+          });
+        }
+      }
+
+      const event = tx.query("insert", {
+        table: "hrx_payroll_statement_provider_events",
+        row: {
+          tenant_id: context.tenant_id,
+          provider_event_id: providerEventId,
+          delivery_receipt_id: receipt.delivery_receipt_id,
+          statement_id: statement.statement_id,
+          provider_id: providerId,
+          provider_receipt_ref: providerReceiptRef,
+          provider_event_state: providerEventState,
+          payload_hash: payloadHash,
+          event_occurred_at: eventOccurredAt,
+          received_at: receivedAt,
+        },
+      });
+      appendAudit(
+        tx,
+        context,
+        `hrx.payroll.delivery.provider_event.${providerEventState}`,
+        "PayrollDeliveryReceipt",
+        receipt.delivery_receipt_id,
+        {
+          provider_id: providerId,
+          provider_event_id: providerEventId,
+          provider_event_state: providerEventState,
+          provider_receipt_ref: providerReceiptRef,
+          payload_hash: payloadHash,
+          raw_payload_included: false,
+        },
+      );
+      return Object.freeze({
+        event: Object.freeze(clone(event)),
+        receipt: Object.freeze(clone(receipt)),
+        statement: Object.freeze(clone(statement)),
+        replayed: false,
+      });
+    });
+  }
+
+  function listDeliveryProviderEvents(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const where = { tenant_id: context.tenant_id };
+    for (const field of ["delivery_receipt_id", "statement_id", "provider_id", "provider_receipt_ref"]) {
+      if (input[field]) where[field] = input[field];
+    }
+    return Object.freeze(store.query("select", {
+      table: "hrx_payroll_statement_provider_events",
+      where,
+    }).sort((left, right) => left.received_at.localeCompare(right.received_at)).map(clone));
+  }
+
+  function providerOperationScope(input = {}) {
+    const providerKind = requiredString(input, "provider_kind");
+    if (!PROVIDER_OPERATION_KINDS.has(providerKind)) throw new TypeError("provider_kind is unsupported");
+    return Object.freeze({
+      provider_kind: providerKind,
+      operation: requiredString(input, "operation"),
+      idempotency_key: requiredString(input, "idempotency_key"),
+      request_hash: requiredSha256(input, "request_hash"),
+    });
+  }
+
+  function beginProviderOperation(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const scope = providerOperationScope(input);
+    const requestedMaximum = requiredInteger({
+      maximum_attempts: input.maximum_attempts ?? 3,
+    }, "maximum_attempts", { nonNegative: true });
+    if (requestedMaximum < 1) throw new TypeError("maximum_attempts must be a positive integer");
+    const now = clock();
+    return store.transaction((tx) => {
+      const current = tx.query("selectOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: scope.provider_kind,
+          idempotency_key: scope.idempotency_key,
+        },
+      });
+      if (current) {
+        if (current.operation !== scope.operation || current.request_hash !== scope.request_hash) {
+          throw guardedError("Provider idempotency key is bound to another request", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+        }
+        if (current.state === "unknown"
+          && current.provider_kind === "bank"
+          && current.operation === "bulk_transfer_reconcile"
+          && current.safe_error_code === HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED) {
+          return Object.freeze({
+            operation: Object.freeze(clone(current)),
+            should_execute: false,
+            idempotent_replay: true,
+            retrying: false,
+          });
+        }
+        if (["in_progress", "pending", "succeeded"].includes(current.state)) {
+          return Object.freeze({
+            operation: Object.freeze(clone(current)),
+            should_execute: false,
+            idempotent_replay: true,
+            retrying: false,
+          });
+        }
+        const maximumAttempts = Math.min(Number(current.maximum_attempts), requestedMaximum);
+        if (!["failed", "unknown"].includes(current.state) || current.attempt_count >= maximumAttempts) {
+          throw guardedError("Provider retry limit exceeded", "HRX_PROVIDER_RETRY_LIMIT_EXCEEDED", 409);
+        }
+        const patch = {
+          state: "in_progress",
+          attempt_count: current.attempt_count + 1,
+          maximum_attempts: maximumAttempts,
+          provider_receipt_id: null,
+          provider_receipt_ref: null,
+          safe_error_code: null,
+          result_payload_json: null,
+          result_payload_hash: null,
+          provider_response_hash: null,
+          state_version: current.state_version + 1,
+          updated_at: now,
+          last_attempt_at: now,
+          completed_at: null,
+        };
+        const updated = tx.query("updateOne", {
+          table: "hrx_payroll_provider_operations",
+          where: {
+            tenant_id: context.tenant_id,
+            provider_operation_id: current.provider_operation_id,
+          },
+          expected_version: current.state_version,
+          patch,
+        });
+        appendAudit(
+          tx,
+          context,
+          "hrx.payroll.provider_operation.retry",
+          "PayrollProviderOperation",
+          current.provider_operation_id,
+          {
+            provider_kind: scope.provider_kind,
+            operation: scope.operation,
+            attempt_count: updated.attempt_count,
+          },
+        );
+        return Object.freeze({
+          operation: Object.freeze(clone(updated)),
+          should_execute: true,
+          idempotent_replay: false,
+          retrying: true,
+        });
+      }
+      const row = {
+        tenant_id: context.tenant_id,
+        provider_operation_id: input.provider_operation_id ?? idFactory("payroll_provider_operation"),
+        ...scope,
+        state: "in_progress",
+        attempt_count: 1,
+        maximum_attempts: requestedMaximum,
+        provider_receipt_id: null,
+        provider_receipt_ref: null,
+        safe_error_code: null,
+        result_payload_json: null,
+        result_payload_hash: null,
+        provider_response_hash: null,
+        state_version: 1,
+        created_by_actor_id: context.actor_id,
+        created_at: now,
+        updated_at: now,
+        last_attempt_at: now,
+        completed_at: null,
+      };
+      const inserted = tx.query("insert", {
+        table: "hrx_payroll_provider_operations",
+        row,
+      });
+      appendAudit(
+        tx,
+        context,
+        "hrx.payroll.provider_operation.begin",
+        "PayrollProviderOperation",
+        row.provider_operation_id,
+        {
+          provider_kind: scope.provider_kind,
+          operation: scope.operation,
+          attempt_count: 1,
+        },
+      );
+      return Object.freeze({
+        operation: Object.freeze(clone(inserted)),
+        should_execute: true,
+        idempotent_replay: false,
+        retrying: false,
+      });
+    });
+  }
+
+  function expirePaymentReconciliationClaim(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const idempotencyKey = requiredString(input, "idempotency_key");
+    const requestHash = requiredSha256(input, "request_hash");
+    const leaseDurationMs = requiredInteger({
+      lease_duration_ms: input.lease_duration_ms,
+    }, "lease_duration_ms", { nonNegative: true });
+    if (leaseDurationMs < 1) throw new TypeError("lease_duration_ms must be a positive integer");
+    const now = clock();
+    const nowMs = Date.parse(now);
+    if (!Number.isFinite(nowMs)) throw new TypeError("payroll repository clock must return an ISO timestamp");
+    return store.transaction((tx) => {
+      const current = tx.query("selectOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: "bank",
+          idempotency_key: idempotencyKey,
+        },
+      });
+      if (!current) throw guardedError("Payroll provider operation not found", "HRX_PAYROLL_NOT_FOUND", 404);
+      if (current.operation !== "bulk_transfer_reconcile" || current.request_hash !== requestHash) {
+        throw guardedError("Provider idempotency key is bound to another request", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+      }
+      if (current.state !== "in_progress") {
+        return Object.freeze({
+          operation: Object.freeze(clone(current)),
+          expired: false,
+          idempotent_replay: true,
+        });
+      }
+      const lastAttemptMs = Date.parse(current.last_attempt_at);
+      if (!Number.isFinite(lastAttemptMs)) {
+        throw guardedError("Provider operation lease timestamp is invalid", "HRX_PROVIDER_OPERATION_STATE_INVALID", 409);
+      }
+      if (nowMs < lastAttemptMs + leaseDurationMs) {
+        return Object.freeze({
+          operation: Object.freeze(clone(current)),
+          expired: false,
+          idempotent_replay: true,
+        });
+      }
+      const updated = tx.query("updateOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_operation_id: current.provider_operation_id,
+        },
+        expected_version: current.state_version,
+        patch: {
+          state: "unknown",
+          safe_error_code: HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED,
+          state_version: current.state_version + 1,
+          updated_at: now,
+          completed_at: now,
+        },
+      });
+      appendAudit(
+        tx,
+        context,
+        "hrx.payroll.provider_operation.unknown_reconciliation_required",
+        "PayrollProviderOperation",
+        current.provider_operation_id,
+        {
+          provider_kind: current.provider_kind,
+          operation: current.operation,
+          attempt_count: current.attempt_count,
+          idempotency_key: current.idempotency_key,
+          request_hash: current.request_hash,
+        },
+      );
+      return Object.freeze({
+        operation: Object.freeze(clone(updated)),
+        expired: true,
+        idempotent_replay: false,
+      });
+    });
+  }
+
+  function beginFilingSubmissionAttempt(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const filingJobId = requiredString(input, "filing_job_id");
+    const scope = providerOperationScope(input);
+    if (scope.provider_kind !== "filing") throw new TypeError("filing submission requires provider_kind filing");
+    const requestedMaximum = requiredInteger({
+      maximum_attempts: input.maximum_attempts ?? 3,
+    }, "maximum_attempts", { nonNegative: true });
+    if (requestedMaximum < 1) throw new TypeError("maximum_attempts must be a positive integer");
+    const leaseDurationMs = requiredInteger({
+      lease_duration_ms: input.lease_duration_ms ?? 15 * 60 * 1000,
+    }, "lease_duration_ms", { nonNegative: true });
+    if (leaseDurationMs < 1) throw new TypeError("lease_duration_ms must be a positive integer");
+    const now = clock();
+    const nowMs = Date.parse(now);
+    if (!Number.isFinite(nowMs)) throw new TypeError("payroll repository clock must return an ISO timestamp");
+
+    return store.transaction((tx) => {
+      let job = requireRow(tx, "hrx_payroll_filing_jobs", {
+        tenant_id: context.tenant_id,
+        filing_job_id: filingJobId,
+      }, "Payroll filing job");
+      if (job.package_hash !== scope.request_hash
+        || scope.operation !== `filing.${job.filing_kind}`
+        || scope.idempotency_key !== `${job.filing_job_id}:${job.package_hash}`) {
+        throw guardedError("Filing provider request does not match the immutable package", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+      }
+
+      let operation = tx.query("selectOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: "filing",
+          idempotency_key: scope.idempotency_key,
+        },
+      });
+      if (operation) {
+        if (operation.operation !== scope.operation || operation.request_hash !== scope.request_hash) {
+          throw guardedError("Provider idempotency key is bound to another request", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+        }
+        if (["pending", "succeeded"].includes(operation.state)) {
+          return Object.freeze({
+            operation: Object.freeze(clone(operation)),
+            job: Object.freeze(clone(job)),
+            should_execute: false,
+            idempotent_replay: true,
+            recovered: false,
+          });
+        }
+        if (operation.state === "in_progress") {
+          const leaseStartedAt = Date.parse(operation.last_attempt_at);
+          const leaseActive = Number.isFinite(leaseStartedAt) && nowMs < leaseStartedAt + leaseDurationMs;
+          if (leaseActive) {
+            return Object.freeze({
+              operation: Object.freeze(clone(operation)),
+              job: Object.freeze(clone(job)),
+              should_execute: false,
+              idempotent_replay: true,
+              recovered: false,
+            });
+          }
+          if (job.state !== "submitted"
+            || job.provider_submission_key !== scope.idempotency_key
+            || Number(job.attempt_count) !== Number(operation.attempt_count)) {
+            throw guardedError("Filing submission attempt state is inconsistent", "HRX_PAYROLL_FILING_ATTEMPT_STATE_INVALID", 409);
+          }
+          operation = tx.query("updateOne", {
+            table: "hrx_payroll_provider_operations",
+            where: {
+              tenant_id: context.tenant_id,
+              provider_operation_id: operation.provider_operation_id,
+            },
+            expected_version: operation.state_version,
+            patch: {
+              state_version: operation.state_version + 1,
+              updated_at: now,
+              last_attempt_at: now,
+            },
+          });
+          appendAudit(tx, context, "hrx.payroll.provider_operation.resume", "PayrollProviderOperation", operation.provider_operation_id, {
+            provider_kind: "filing",
+            operation: scope.operation,
+            attempt_count: operation.attempt_count,
+          });
+          return Object.freeze({
+            operation: Object.freeze(clone(operation)),
+            job: Object.freeze(clone(job)),
+            should_execute: true,
+            idempotent_replay: false,
+            recovered: true,
+          });
+        }
+        const maximumAttempts = Math.min(Number(operation.maximum_attempts), requestedMaximum);
+        if (operation.state !== "unknown" || operation.attempt_count >= maximumAttempts) {
+          throw guardedError("Provider retry limit exceeded", "HRX_PROVIDER_RETRY_LIMIT_EXCEEDED", 409);
+        }
+        if (job.state !== "submitted" || job.provider_submission_key !== scope.idempotency_key) {
+          throw guardedError("Submitted payroll filing is required", "HRX_PAYROLL_FILING_STATE_INVALID", 409);
+        }
+        const nextAttemptCount = Number(operation.attempt_count) + 1;
+        if (Number(job.attempt_count) + 1 !== nextAttemptCount) {
+          throw guardedError("Filing provider attempt counter is out of sync", "HRX_PROVIDER_ATTEMPT_COUNT_MISMATCH", 409);
+        }
+        operation = tx.query("updateOne", {
+          table: "hrx_payroll_provider_operations",
+          where: {
+            tenant_id: context.tenant_id,
+            provider_operation_id: operation.provider_operation_id,
+          },
+          expected_version: operation.state_version,
+          patch: {
+            state: "in_progress",
+            attempt_count: nextAttemptCount,
+            maximum_attempts: maximumAttempts,
+            provider_receipt_id: null,
+            provider_receipt_ref: null,
+            safe_error_code: null,
+            state_version: operation.state_version + 1,
+            updated_at: now,
+            last_attempt_at: now,
+            completed_at: null,
+          },
+        });
+        job = tx.query("updateOne", {
+          table: "hrx_payroll_filing_jobs",
+          where: { tenant_id: context.tenant_id, filing_job_id: filingJobId },
+          expected_version: job.state_version,
+          patch: {
+            provider_result_state: "queued",
+            safe_error_code: null,
+            attempt_count: nextAttemptCount,
+            last_attempt_at: now,
+            state_version: job.state_version + 1,
+            updated_at: now,
+          },
+        });
+        appendAudit(tx, context, "hrx.payroll.provider_operation.retry", "PayrollProviderOperation", operation.provider_operation_id, {
+          provider_kind: "filing",
+          operation: scope.operation,
+          attempt_count: nextAttemptCount,
+        });
+        appendAudit(tx, context, "hrx.payroll.filing.provider_attempt", "PayrollFilingJob", filingJobId, {
+          attempt_count: nextAttemptCount,
+          provider_submission_key: scope.idempotency_key,
+        });
+        return Object.freeze({
+          operation: Object.freeze(clone(operation)),
+          job: Object.freeze(clone(job)),
+          should_execute: true,
+          idempotent_replay: false,
+          recovered: false,
+        });
+      }
+
+      if (job.state !== "validated") {
+        throw guardedError("Validated payroll filing is required", "HRX_PAYROLL_FILING_STATE_INVALID", 409);
+      }
+      operation = tx.query("insert", {
+        table: "hrx_payroll_provider_operations",
+        row: {
+          tenant_id: context.tenant_id,
+          provider_operation_id: input.provider_operation_id ?? idFactory("payroll_provider_operation"),
+          ...scope,
+          state: "in_progress",
+          attempt_count: 1,
+          maximum_attempts: requestedMaximum,
+          provider_receipt_id: null,
+          provider_receipt_ref: null,
+          safe_error_code: null,
+          state_version: 1,
+          created_by_actor_id: context.actor_id,
+          created_at: now,
+          updated_at: now,
+          last_attempt_at: now,
+          completed_at: null,
+        },
+      });
+      faultInjector("filing_submission.after_operation_begin", Object.freeze({
+        filing_job_id: filingJobId,
+        provider_operation_id: operation.provider_operation_id,
+      }));
+      job = tx.query("updateOne", {
+        table: "hrx_payroll_filing_jobs",
+        where: { tenant_id: context.tenant_id, filing_job_id: filingJobId },
+        expected_version: job.state_version,
+        patch: {
+          state: "submitted",
+          submitted_at: now,
+          provider_result_state: "queued",
+          safe_error_code: null,
+          attempt_count: 1,
+          provider_submission_key: scope.idempotency_key,
+          last_attempt_at: now,
+          state_version: job.state_version + 1,
+          updated_at: now,
+        },
+      });
+      appendAudit(tx, context, "hrx.payroll.provider_operation.begin", "PayrollProviderOperation", operation.provider_operation_id, {
+        provider_kind: "filing",
+        operation: scope.operation,
+        attempt_count: 1,
+      });
+      appendAudit(tx, context, "hrx.payroll.filing.submitted", "PayrollFilingJob", filingJobId, {
+        provider_submission_key: scope.idempotency_key,
+        attempt_count: 1,
+      });
+      appendOutbox(tx, context, {
+        run_id: job.run_id,
+        event_type: "payroll.filing.submitted",
+        idempotency_key: `${filingJobId}:submitted:${job.state_version}`,
+        payload: { filing_job_id: filingJobId, filing_kind: job.filing_kind, state: "submitted" },
+      });
+      return Object.freeze({
+        operation: Object.freeze(clone(operation)),
+        job: Object.freeze(clone(job)),
+        should_execute: true,
+        idempotent_replay: false,
+        recovered: false,
+      });
+    });
+  }
+
+  function completeProviderOperation(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const providerKind = requiredString(input, "provider_kind");
+    const idempotencyKey = requiredString(input, "idempotency_key");
+    const next = requiredString(input, "state");
+    if (!["pending", "succeeded", "failed", "unknown"].includes(next)) throw new TypeError("provider operation result state is unsupported");
+    const version = expectedVersion(input);
+    const providerReceiptId = optionalString(input.provider_receipt_id);
+    const providerReceiptRef = optionalString(input.provider_receipt_ref);
+    const safeErrorCode = optionalString(input.safe_error_code);
+    if (["pending", "succeeded", "failed"].includes(next) && !providerReceiptId) throw new TypeError(`${next} provider operation requires provider_receipt_id`);
+    if (next === "succeeded" && !providerReceiptRef) throw new TypeError("succeeded provider operation requires provider_receipt_ref");
+    if (next !== "succeeded" && providerReceiptRef) throw new TypeError("only succeeded provider operation may store provider_receipt_ref");
+    if (["failed", "unknown"].includes(next) && !safeErrorCode) throw new TypeError(`${next} provider operation requires safe_error_code`);
+    if (!["failed", "unknown"].includes(next) && safeErrorCode) throw new TypeError(`${next} provider operation must not store safe_error_code`);
+    return store.transaction((tx) => {
+      const current = tx.query("selectOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: providerKind,
+          idempotency_key: idempotencyKey,
+        },
+      });
+      if (!current) throw guardedError("Payroll provider operation not found", "HRX_PAYROLL_NOT_FOUND", 404);
+      if (PROVIDER_OPERATION_TERMINAL_STATES.has(current.state)) {
+        const sameResult = current.state === next
+          && current.provider_receipt_id === providerReceiptId
+          && current.provider_receipt_ref === providerReceiptRef
+          && current.safe_error_code === safeErrorCode;
+        if (!sameResult) throw guardedError("Provider operation is already complete", "HRX_PROVIDER_OPERATION_COMPLETE", 409);
+        return Object.freeze({ operation: Object.freeze(clone(current)), idempotent_replay: true });
+      }
+      if (!["in_progress", "pending"].includes(current.state)) throw guardedError("Provider operation state is invalid", "HRX_PROVIDER_OPERATION_STATE_INVALID", 409);
+      if (version !== current.state_version) throw guardedError("Provider operation version is stale", "HRX_STATE_VERSION_CONFLICT", 409);
+      for (const [field, value] of [["provider_receipt_id", providerReceiptId], ["provider_receipt_ref", providerReceiptRef]]) {
+        if (!value) continue;
+        const duplicate = tx.query("select", {
+          table: "hrx_payroll_provider_operations",
+          where: {
+            tenant_id: context.tenant_id,
+            provider_kind: providerKind,
+            [field]: value,
+          },
+        }).find((row) => row.provider_operation_id !== current.provider_operation_id);
+        if (duplicate) throw guardedError("Provider receipt is already bound to another operation", "HRX_PROVIDER_RECEIPT_DUPLICATE", 409);
+      }
+      const now = clock();
+      const patch = {
+        state: next,
+        provider_receipt_id: providerReceiptId,
+        provider_receipt_ref: providerReceiptRef,
+        safe_error_code: safeErrorCode,
+        state_version: current.state_version + 1,
+        updated_at: now,
+        completed_at: next === "pending" ? null : now,
+      };
+      const updated = tx.query("updateOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_operation_id: current.provider_operation_id,
+        },
+        expected_version: current.state_version,
+        patch,
+      });
+      appendAudit(
+        tx,
+        context,
+        `hrx.payroll.provider_operation.${next}`,
+        "PayrollProviderOperation",
+        current.provider_operation_id,
+        {
+          provider_kind: current.provider_kind,
+          operation: current.operation,
+          attempt_count: current.attempt_count,
+        },
+      );
+      return Object.freeze({ operation: Object.freeze(clone(updated)), idempotent_replay: false });
+    });
+  }
+
+  function stagePaymentReconciliationResult(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const providerKind = requiredString(input, "provider_kind");
+    const idempotencyKey = requiredString(input, "idempotency_key");
+    const requestHash = requiredSha256(input, "request_hash");
+    const providerResponseHash = requiredSha256(input, "provider_response_hash");
+    const resultPayloadHash = requiredSha256(input, "result_payload_hash");
+    const providerReceiptId = requiredString(input, "provider_receipt_id");
+    const version = expectedVersion(input);
+    const payload = clone(input.result_payload);
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new TypeError("result_payload must be an object");
+    if (payload.schema_version !== HRX_PAYMENT_RECONCILIATION_RESULT_SCHEMA_VERSION) {
+      throw new TypeError("payment reconciliation result schema is unsupported");
+    }
+    if (digest(payload) !== resultPayloadHash) {
+      throw guardedError("Payment reconciliation result hash does not match its payload", "HRX_PAYROLL_PAYMENT_RESULT_HASH_MISMATCH", 409);
+    }
+    const resultPayloadJson = JSON.stringify(stable(payload));
+    return store.transaction((tx) => {
+      const current = tx.query("selectOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: providerKind,
+          idempotency_key: idempotencyKey,
+        },
+      });
+      if (!current) throw guardedError("Payroll provider operation not found", "HRX_PAYROLL_NOT_FOUND", 404);
+      if (providerKind !== "bank" || current.operation !== "bulk_transfer_reconcile" || current.request_hash !== requestHash) {
+        throw guardedError("Provider idempotency key is bound to another request", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+      }
+      const sameResult = current.provider_receipt_id === providerReceiptId
+        && current.result_payload_hash === resultPayloadHash
+        && current.provider_response_hash === providerResponseHash;
+      if (current.state === "succeeded" || current.state === "pending") {
+        if (!sameResult) throw guardedError("Provider result conflicts with the staged reconciliation", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+        return Object.freeze({ operation: Object.freeze(clone(current)), idempotent_replay: true });
+      }
+      const recoverableUnknown = current.state === "unknown"
+        && current.safe_error_code === HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED;
+      if (current.state !== "in_progress" && !recoverableUnknown) {
+        throw guardedError("Provider operation state is invalid", "HRX_PROVIDER_OPERATION_STATE_INVALID", 409);
+      }
+      if (version !== current.state_version) throw guardedError("Provider operation version is stale", "HRX_STATE_VERSION_CONFLICT", 409);
+      const duplicate = tx.query("select", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: providerKind,
+          provider_receipt_id: providerReceiptId,
+        },
+      }).find((row) => row.provider_operation_id !== current.provider_operation_id);
+      if (duplicate) throw guardedError("Provider receipt is already bound to another operation", "HRX_PROVIDER_RECEIPT_DUPLICATE", 409);
+      const now = clock();
+      const updated = tx.query("updateOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_operation_id: current.provider_operation_id,
+        },
+        expected_version: current.state_version,
+        patch: {
+          state: "pending",
+          provider_receipt_id: providerReceiptId,
+          provider_receipt_ref: null,
+          safe_error_code: null,
+          result_payload_json: resultPayloadJson,
+          result_payload_hash: resultPayloadHash,
+          provider_response_hash: providerResponseHash,
+          state_version: current.state_version + 1,
+          updated_at: now,
+          completed_at: null,
+        },
+      });
+      appendAudit(
+        tx,
+        context,
+        "hrx.payroll.provider_operation.pending",
+        "PayrollProviderOperation",
+        current.provider_operation_id,
+        {
+          provider_kind: current.provider_kind,
+          operation: current.operation,
+          attempt_count: current.attempt_count,
+          result_payload_hash: resultPayloadHash,
+          provider_response_hash: providerResponseHash,
+        },
+      );
+      return Object.freeze({ operation: Object.freeze(clone(updated)), idempotent_replay: false });
+    });
+  }
+
+  function settlePaymentReconciliation(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const idempotencyKey = requiredString(input, "idempotency_key");
+    const requestHash = requiredSha256(input, "request_hash");
+    const expectedProviderResponseHash = input.provider_response_hash == null
+      ? null
+      : requiredSha256(input, "provider_response_hash");
+    return store.transaction((tx) => {
+      const operation = tx.query("selectOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: "bank",
+          idempotency_key: idempotencyKey,
+        },
+      });
+      if (!operation) throw guardedError("Payroll provider operation not found", "HRX_PAYROLL_NOT_FOUND", 404);
+      if (operation.operation !== "bulk_transfer_reconcile" || operation.request_hash !== requestHash) {
+        throw guardedError("Provider idempotency key is bound to another request", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+      }
+      if (expectedProviderResponseHash && operation.provider_response_hash !== expectedProviderResponseHash) {
+        throw guardedError("Provider result conflicts with the staged reconciliation", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+      }
+      let payload;
+      try {
+        payload = JSON.parse(requiredString(operation, "result_payload_json"));
+      } catch {
+        throw guardedError("Staged payment reconciliation result is invalid", "HRX_PAYROLL_PAYMENT_RESULT_HASH_MISMATCH", 409);
+      }
+      if (payload.schema_version !== HRX_PAYMENT_RECONCILIATION_RESULT_SCHEMA_VERSION
+        || digest(payload) !== requiredSha256(operation, "result_payload_hash")) {
+        throw guardedError("Staged payment reconciliation result is invalid", "HRX_PAYROLL_PAYMENT_RESULT_HASH_MISMATCH", 409);
+      }
+      if (payload.idempotency_key !== idempotencyKey || payload.request_hash !== requestHash) {
+        throw guardedError("Staged payment reconciliation scope is invalid", "HRX_PROVIDER_IDEMPOTENCY_CONFLICT", 409);
+      }
+      const batchId = requiredString(payload, "payment_batch_id");
+      const readBundle = () => {
+        const batch = tx.query("selectOne", {
+          table: "hrx_payroll_payment_batches",
+          where: { tenant_id: context.tenant_id, payment_batch_id: batchId },
+        });
+        if (!batch) throw guardedError("Payroll payment batch not found", "HRX_PAYROLL_NOT_FOUND", 404);
+        return Object.freeze({
+          batch: Object.freeze(clone(batch)),
+          items: Object.freeze(tx.query("select", {
+            table: "hrx_payroll_payment_items",
+            where: { tenant_id: context.tenant_id, payment_batch_id: batchId },
+          }).sort((left, right) => left.employee_id.localeCompare(right.employee_id)).map((row) => Object.freeze(clone(row)))),
+        });
+      };
+      if (operation.state === "succeeded") {
+        return Object.freeze({
+          ...readBundle(),
+          operation: Object.freeze(clone(operation)),
+          idempotent_replay: true,
+        });
+      }
+      if (operation.state !== "pending") {
+        throw guardedError("Provider operation is not ready to settle", "HRX_PROVIDER_OPERATION_IN_PROGRESS", 409);
+      }
+      const mode = requiredString(payload, "mode");
+      if (!["initial", "retry"].includes(mode)) throw new TypeError("payment reconciliation mode is unsupported");
+      const batch = tx.query("selectOne", {
+        table: "hrx_payroll_payment_batches",
+        where: { tenant_id: context.tenant_id, payment_batch_id: batchId },
+      });
+      if (!batch) throw guardedError("Payroll payment batch not found", "HRX_PAYROLL_NOT_FOUND", 404);
+      const expectedBatchState = mode === "initial" ? "exported" : "reconciled";
+      if (batch.state !== expectedBatchState || batch.state_version !== payload.expected_batch_version) {
+        throw guardedError("Payroll payment batch changed before reconciliation", "HRX_STATE_VERSION_CONFLICT", 409);
+      }
+      const stagedItems = Array.isArray(payload.items) ? payload.items : [];
+      if (stagedItems.length === 0) throw new TypeError("payment reconciliation items are required");
+      const currentItems = tx.query("select", {
+        table: "hrx_payroll_payment_items",
+        where: { tenant_id: context.tenant_id, payment_batch_id: batchId },
+      });
+      const expectedItems = mode === "initial"
+        ? currentItems
+        : currentItems.filter((item) => item.state === "failed");
+      const stagedItemIds = new Set(stagedItems.map((item) => requiredString(item, "payment_item_id")));
+      if (stagedItemIds.size !== stagedItems.length
+        || expectedItems.length !== stagedItems.length
+        || expectedItems.some((item) => !stagedItemIds.has(item.payment_item_id))) {
+        throw guardedError("Payment reconciliation item scope changed", "HRX_PAYROLL_PAYMENT_RETRY_SCOPE_INVALID", 409);
+      }
+      const now = clock();
+      stagedItems.forEach((staged, index) => {
+        const itemId = requiredString(staged, "payment_item_id");
+        const current = currentItems.find((item) => item.payment_item_id === itemId);
+        if (!current || current.employee_id !== requiredString(staged, "employee_id")) {
+          throw guardedError("Payment reconciliation item is outside the batch", "HRX_PAYROLL_PAYMENT_RETRY_SCOPE_INVALID", 409);
+        }
+        if (current.state !== (mode === "initial" ? "exported" : "failed")
+          || current.state_version !== staged.expected_version) {
+          throw guardedError("Payroll payment item changed before reconciliation", "HRX_STATE_VERSION_CONFLICT", 409);
+        }
+        const providerResultState = requiredString(staged, "provider_result_state");
+        if (!["succeeded", "failed", "unknown"].includes(providerResultState)) {
+          throw new TypeError("payment reconciliation provider_result_state is unsupported");
+        }
+        const nextState = providerResultState === "succeeded" ? "paid" : "failed";
+        const patch = {
+          state: nextState,
+          provider_receipt_ref: nextState === "paid" ? requiredTokenizedRef(staged, "provider_receipt_ref") : null,
+          provider_result_state: providerResultState,
+          safe_error_code: providerResultState === "failed"
+            ? requiredString(staged, "safe_error_code")
+            : optionalString(staged.safe_error_code),
+          attempt_count: Number(current.attempt_count ?? 0) + 1,
+          last_attempt_at: now,
+          state_version: current.state_version + 1,
+          updated_at: now,
+          paid_at: nextState === "paid" ? now : current.paid_at,
+        };
+        const updated = tx.query("updateOne", {
+          table: "hrx_payroll_payment_items",
+          where: { tenant_id: context.tenant_id, payment_item_id: itemId },
+          expected_version: current.state_version,
+          patch,
+        });
+        if (!updated) throw guardedError("Payroll payment item not found", "HRX_PAYROLL_NOT_FOUND", 404);
+        appendAudit(
+          tx,
+          context,
+          `hrx.payroll.payment_item.${nextState}`,
+          "PayrollPaymentItem",
+          itemId,
+          { from_version: current.state_version, to_version: patch.state_version },
+        );
+        faultInjector("payment_reconciliation.after_item", Object.freeze({
+          item_index: index,
+          payment_item_id: itemId,
+          payment_batch_id: batchId,
+        }));
+      });
+      let updatedBatch = batch;
+      if (mode === "initial") {
+        const nextVersion = batch.state_version + 1;
+        updatedBatch = tx.query("updateOne", {
+          table: "hrx_payroll_payment_batches",
+          where: { tenant_id: context.tenant_id, payment_batch_id: batchId },
+          expected_version: batch.state_version,
+          patch: {
+            state: "reconciled",
+            provider_receipt_ref: requiredTokenizedRef(payload, "provider_receipt_ref"),
+            completed_at: now,
+            state_version: nextVersion,
+            updated_at: now,
+          },
+        });
+        if (!updatedBatch) throw guardedError("Payroll payment batch not found", "HRX_PAYROLL_NOT_FOUND", 404);
+        appendAudit(
+          tx,
+          context,
+          "hrx.payroll.payment_batch.reconciled",
+          "PayrollPaymentBatch",
+          batchId,
+          { from_version: batch.state_version, to_version: nextVersion },
+        );
+        appendOutbox(tx, context, {
+          run_id: batch.run_id,
+          event_type: "payroll.payment.reconciled",
+          idempotency_key: `${batchId}:reconciled:${nextVersion}`,
+          payload: { payment_batch_id: batchId, state: "reconciled" },
+        });
+      }
+      faultInjector("payment_reconciliation.before_complete", Object.freeze({
+        payment_batch_id: batchId,
+        provider_operation_id: operation.provider_operation_id,
+      }));
+      const providerReceiptRef = requiredTokenizedRef(payload, "provider_receipt_ref");
+      const duplicateReceiptRef = tx.query("select", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_kind: "bank",
+          provider_receipt_ref: providerReceiptRef,
+        },
+      }).find((row) => row.provider_operation_id !== operation.provider_operation_id);
+      if (duplicateReceiptRef) throw guardedError("Provider receipt is already bound to another operation", "HRX_PROVIDER_RECEIPT_DUPLICATE", 409);
+      const updatedOperation = tx.query("updateOne", {
+        table: "hrx_payroll_provider_operations",
+        where: {
+          tenant_id: context.tenant_id,
+          provider_operation_id: operation.provider_operation_id,
+        },
+        expected_version: operation.state_version,
+        patch: {
+          state: "succeeded",
+          provider_receipt_ref: providerReceiptRef,
+          safe_error_code: null,
+          state_version: operation.state_version + 1,
+          updated_at: now,
+          completed_at: now,
+        },
+      });
+      if (!updatedOperation) throw guardedError("Payroll provider operation not found", "HRX_PAYROLL_NOT_FOUND", 404);
+      appendAudit(
+        tx,
+        context,
+        "hrx.payroll.provider_operation.succeeded",
+        "PayrollProviderOperation",
+        operation.provider_operation_id,
+        {
+          provider_kind: operation.provider_kind,
+          operation: operation.operation,
+          attempt_count: operation.attempt_count,
+        },
+      );
+      return Object.freeze({
+        batch: Object.freeze(clone(updatedBatch)),
+        items: Object.freeze(tx.query("select", {
+          table: "hrx_payroll_payment_items",
+          where: { tenant_id: context.tenant_id, payment_batch_id: batchId },
+        }).sort((left, right) => left.employee_id.localeCompare(right.employee_id)).map((row) => Object.freeze(clone(row)))),
+        operation: Object.freeze(clone(updatedOperation)),
+        idempotent_replay: false,
+      });
+    });
+  }
+
+  function getProviderOperation(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    return clone(store.query("selectOne", {
+      table: "hrx_payroll_provider_operations",
+      where: {
+        tenant_id: context.tenant_id,
+        provider_kind: requiredString(input, "provider_kind"),
+        idempotency_key: requiredString(input, "idempotency_key"),
+      },
+    }));
+  }
+
+  function listProviderOperations(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const where = { tenant_id: context.tenant_id };
+    for (const field of ["provider_kind", "operation", "idempotency_key", "state"]) {
+      if (input[field]) where[field] = input[field];
+    }
+    return Object.freeze(store.query("select", {
+      table: "hrx_payroll_provider_operations",
+      where,
+    }).sort((left, right) => left.created_at.localeCompare(right.created_at)).map(clone));
   }
 
   function createPaymentBatch(contextInput, input = {}) {
@@ -842,6 +2334,10 @@ export function createPayrollRepository({
       amount_krw: requiredInteger(input, "amount_krw", { nonNegative: true }),
       provider_receipt_ref: null,
       state: "pending",
+      provider_result_state: "pending",
+      safe_error_code: null,
+      attempt_count: 0,
+      last_attempt_at: null,
       state_version: 1,
       created_at: now,
       updated_at: now,
@@ -884,8 +2380,25 @@ export function createPayrollRepository({
     const current = requireRow(store, "hrx_payroll_payment_items", { tenant_id: context.tenant_id, payment_item_id: itemId }, "Payroll payment item");
     assertTransition(current.state, next, PAYMENT_ITEM_TRANSITIONS, "Payroll payment item");
     const version = expectedVersion(input);
-    const patch = { state: next, state_version: version + 1, updated_at: clock() };
-    if (next === "paid") Object.assign(patch, { provider_receipt_ref: requiredString(input, "provider_receipt_ref"), paid_at: clock() });
+    const now = clock();
+    const patch = { state: next, state_version: version + 1, updated_at: now };
+    if (next === "paid") Object.assign(patch, {
+      provider_receipt_ref: requiredString(input, "provider_receipt_ref"),
+      provider_result_state: "succeeded",
+      safe_error_code: null,
+      attempt_count: Number(current.attempt_count ?? 0) + 1,
+      last_attempt_at: now,
+      paid_at: now,
+    });
+    if (next === "failed") Object.assign(patch, {
+      provider_receipt_ref: null,
+      provider_result_state: input.provider_result_state === "unknown" ? "unknown" : "failed",
+      safe_error_code: input.provider_result_state === "unknown"
+        ? optionalString(input.safe_error_code)
+        : requiredString({ safe_error_code: input.safe_error_code ?? "BANK_ITEM_FAILED" }, "safe_error_code"),
+      attempt_count: Number(current.attempt_count ?? 0) + 1,
+      last_attempt_at: now,
+    });
     return auditedUpdate(context, "hrx_payroll_payment_items", { tenant_id: context.tenant_id, payment_item_id: itemId }, patch, version, `hrx.payroll.payment_item.${next}`, "PayrollPaymentItem", itemId);
   }
 
@@ -926,16 +2439,52 @@ export function createPayrollRepository({
   function createFilingJob(contextInput, input = {}) {
     const context = contextValues(contextInput);
     const now = clock();
+    const runId = requiredString(input, "run_id");
+    const filingKind = requiredString(input, "filing_kind");
+    const schemaVersion = requiredString(input, "schema_version");
+    const packageHash = requiredSha256(input, "package_hash");
+    const previousJobRef = optionalString(input.previous_job_ref);
+    const run = requireRow(store, "hrx_payroll_runs", {
+      tenant_id: context.tenant_id,
+      run_id: runId,
+    }, "Payroll run");
+    if (run.status !== "closed" || !["regular", "adjustment"].includes(run.run_type)) {
+      throw guardedError("Closed regular or adjustment payroll run is required", "HRX_PAYROLL_RUN_NOT_CLOSED", 409);
+    }
+    if (previousJobRef) {
+      const match = /^artifact:payroll-filing\/([A-Za-z0-9][A-Za-z0-9._:-]+)$/.exec(requiredTokenizedRef({ previous_job_ref: previousJobRef }, "previous_job_ref"));
+      if (!match) throw new TypeError("previous_job_ref must identify a payroll filing job");
+      const previous = requireRow(store, "hrx_payroll_filing_jobs", {
+        tenant_id: context.tenant_id,
+        filing_job_id: match[1],
+      }, "Previous payroll filing job");
+      if (previous.state !== "rejected"
+        || run.run_type !== "adjustment"
+        || run.previous_run_id !== previous.run_id
+        || previous.filing_kind !== filingKind
+        || previous.schema_version !== schemaVersion) {
+        throw guardedError("Payroll filing correction source is invalid", "HRX_PAYROLL_FILING_CORRECTION_SOURCE_INVALID", 409);
+      }
+      if (previous.package_hash === packageHash) {
+        throw guardedError("Payroll filing correction must change the package", "HRX_PAYROLL_FILING_CORRECTION_NO_CHANGE", 409);
+      }
+    }
     const row = {
       tenant_id: context.tenant_id,
       filing_job_id: input.filing_job_id ?? idFactory("payroll_filing"),
-      run_id: requiredString(input, "run_id"),
-      filing_kind: requiredString(input, "filing_kind"),
-      schema_version: requiredString(input, "schema_version"),
-      package_ref: requiredString(input, "package_ref"),
-      package_hash: requiredString(input, "package_hash"),
+      run_id: runId,
+      filing_kind: filingKind,
+      schema_version: schemaVersion,
+      package_ref: requiredTokenizedRef(input, "package_ref"),
+      package_hash: packageHash,
+      previous_job_ref: previousJobRef,
       provider_receipt_ref: null,
       state: "draft",
+      provider_result_state: "not_submitted",
+      safe_error_code: null,
+      attempt_count: 0,
+      provider_submission_key: null,
+      last_attempt_at: null,
       state_version: 1,
       created_by_actor_id: context.actor_id,
       created_at: now,
@@ -955,8 +2504,32 @@ export function createPayrollRepository({
     const version = expectedVersion(input);
     const now = clock();
     const patch = { state: next, state_version: version + 1, updated_at: now };
-    if (next === "submitted") patch.submitted_at = now;
-    if (['accepted', 'rejected'].includes(next)) Object.assign(patch, { provider_receipt_ref: requiredString(input, "provider_receipt_ref"), completed_at: now });
+    if (next === "submitted") Object.assign(patch, {
+      submitted_at: now,
+      provider_result_state: "queued",
+      safe_error_code: null,
+      provider_submission_key: input.provider_submission_key ?? `${jobId}:${current.package_hash}`,
+    });
+    if (['accepted', 'rejected'].includes(next)) {
+      const providerReceiptRef = requiredString(input, "provider_receipt_ref");
+      const duplicate = store.query("select", {
+        table: "hrx_payroll_filing_jobs",
+        where: { tenant_id: context.tenant_id, provider_receipt_ref: providerReceiptRef },
+      }).find((row) => row.filing_job_id !== jobId);
+      if (duplicate) throw guardedError("Provider filing receipt is already bound to another job", "HRX_PAYROLL_FILING_RECEIPT_DUPLICATE", 409);
+      Object.assign(patch, {
+        provider_receipt_ref: providerReceiptRef,
+        provider_result_state: next === "accepted" ? "accepted" : "failed",
+        safe_error_code: next === "accepted"
+          ? null
+          : requiredString({ safe_error_code: input.safe_error_code ?? "FILING_REJECTED" }, "safe_error_code"),
+        completed_at: now,
+      });
+    }
+    if (next === "corrected") Object.assign(patch, {
+      provider_result_state: "corrected",
+      safe_error_code: null,
+    });
     const options = ["submitted", "accepted", "rejected"].includes(next) ? {
       outbox: {
         run_id: current.run_id,
@@ -966,6 +2539,40 @@ export function createPayrollRepository({
       },
     } : {};
     return auditedUpdate(context, "hrx_payroll_filing_jobs", { tenant_id: context.tenant_id, filing_job_id: jobId }, patch, version, `hrx.payroll.filing.${next}`, "PayrollFilingJob", jobId, options);
+  }
+
+  function recordFilingProviderAttempt(contextInput, input = {}) {
+    const context = contextValues(contextInput);
+    const jobId = requiredString(input, "filing_job_id");
+    const current = requireRow(store, "hrx_payroll_filing_jobs", {
+      tenant_id: context.tenant_id,
+      filing_job_id: jobId,
+    }, "Payroll filing job");
+    if (current.state !== "submitted") throw guardedError("Submitted payroll filing is required", "HRX_PAYROLL_FILING_STATE_INVALID", 409);
+    const version = expectedVersion(input);
+    const attemptCount = Number(current.attempt_count ?? 0) + 1;
+    if (input.attempt_count != null && input.attempt_count !== attemptCount) {
+      throw guardedError("Filing provider attempt counter is out of sync", "HRX_PROVIDER_ATTEMPT_COUNT_MISMATCH", 409);
+    }
+    const now = clock();
+    return auditedUpdate(
+      context,
+      "hrx_payroll_filing_jobs",
+      { tenant_id: context.tenant_id, filing_job_id: jobId },
+      {
+        provider_result_state: "queued",
+        safe_error_code: null,
+        attempt_count: attemptCount,
+        provider_submission_key: input.provider_submission_key ?? current.provider_submission_key ?? `${jobId}:${current.package_hash}`,
+        last_attempt_at: now,
+        state_version: version + 1,
+        updated_at: now,
+      },
+      version,
+      "hrx.payroll.filing.provider_attempt",
+      "PayrollFilingJob",
+      jobId,
+    );
   }
 
   function getFilingJob(contextInput, input = {}) {
@@ -1113,6 +2720,7 @@ export function createPayrollRepository({
     listPeriods,
     transitionPeriod,
     createRun,
+    createAdjustmentRun,
     getRun,
     listRuns,
     transitionRun,
@@ -1130,6 +2738,7 @@ export function createPayrollRepository({
     reopenIssue,
     addLineItem,
     createRuleVersion,
+    legallyApproveMinimumWageRuleVersion,
     reviewRuleVersion,
     publishRuleVersion,
     listRuleVersions,
@@ -1143,8 +2752,19 @@ export function createPayrollRepository({
     listStatements,
     createDeliveryReceipt,
     transitionDeliveryReceipt,
+    recordDeliveryProviderResult,
     getDeliveryReceipt,
     listDeliveryReceipts,
+    applyDeliveryProviderEvent,
+    listDeliveryProviderEvents,
+    beginProviderOperation,
+    expirePaymentReconciliationClaim,
+    beginFilingSubmissionAttempt,
+    completeProviderOperation,
+    stagePaymentReconciliationResult,
+    settlePaymentReconciliation,
+    getProviderOperation,
+    listProviderOperations,
     createPaymentBatch,
     addPaymentItem,
     transitionPaymentBatch,
@@ -1155,6 +2775,7 @@ export function createPayrollRepository({
     listPaymentItems,
     createFilingJob,
     transitionFilingJob,
+    recordFilingProviderAttempt,
     getFilingJob,
     listFilingJobs,
     createYearEndCase,

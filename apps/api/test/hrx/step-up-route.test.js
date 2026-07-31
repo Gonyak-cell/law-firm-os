@@ -47,6 +47,13 @@ const LEAVE_ACCRUAL_STEP_UP_HEADER = signedStepUpHeader({
   authority: stepUpAuthority,
 });
 
+const LEAVE_POLICY_STEP_UP_HEADER = signedStepUpHeader({
+  tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+  actor_id: SESSION_ACCOUNT.user_id,
+  purpose: "leave_policy_administration",
+  authority: stepUpAuthority,
+});
+
 const LEAVE_LEDGER_STEP_UP_HEADER = signedStepUpHeader({
   tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
   actor_id: SESSION_ACCOUNT.user_id,
@@ -66,6 +73,40 @@ const PAYROLL_STEP_UP_HEADER = signedStepUpHeader({
   actor_id: SESSION_ACCOUNT.user_id,
   purpose: "payroll_export_review",
   authority: stepUpAuthority,
+});
+
+const PAYROLL_PURPOSE_HEADERS = Object.freeze({
+  payroll_export_review: PAYROLL_STEP_UP_HEADER,
+  payroll_payment_processing: signedStepUpHeader({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    actor_id: SESSION_ACCOUNT.user_id,
+    purpose: "payroll_payment_processing",
+    authority: stepUpAuthority,
+  }),
+  payroll_filing_processing: signedStepUpHeader({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    actor_id: SESSION_ACCOUNT.user_id,
+    purpose: "payroll_filing_processing",
+    authority: stepUpAuthority,
+  }),
+  payroll_statement_self_service: signedStepUpHeader({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    actor_id: SESSION_ACCOUNT.user_id,
+    purpose: "payroll_statement_self_service",
+    authority: stepUpAuthority,
+  }),
+  payroll_year_end_processing: signedStepUpHeader({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    actor_id: SESSION_ACCOUNT.user_id,
+    purpose: "payroll_year_end_processing",
+    authority: stepUpAuthority,
+  }),
+  payroll_year_end_review: signedStepUpHeader({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    actor_id: SESSION_ACCOUNT.user_id,
+    purpose: "payroll_year_end_review",
+    authority: stepUpAuthority,
+  }),
 });
 
 async function json(path, options = {}) {
@@ -201,6 +242,99 @@ test("leave accrual and ledger mutations require matching signed step-up purpose
   assert.equal(terminationReachedRuntime.body.safe_error_code, "HRX_API_VALIDATION_ERROR");
 });
 
+test("leave policy create, update, publish, and version routes require matching signed step-up purpose", async () => {
+  const groupId = "step-up-policy-group";
+  const typeId = "step-up-policy-type";
+  const policyId = "step-up-policy-v1";
+  const mutations = [
+    {
+      path: "/api/hrx/leave/groups",
+      method: "POST",
+      body: { group_id: groupId, code: "STEP_UP_POLICY", display_name: "정책 보안 검증" },
+      expectedStatus: 201,
+    },
+    {
+      path: "/api/hrx/leave/types",
+      method: "POST",
+      body: {
+        leave_type_id: typeId,
+        group_id: groupId,
+        code: "STEP_UP_POLICY_TYPE",
+        display_name: "정책 보안 휴가",
+        request_unit: "minutes",
+      },
+      expectedStatus: 201,
+    },
+    {
+      path: "/api/hrx/leave/policies",
+      method: "POST",
+      body: {
+        policy_version_id: policyId,
+        group_id: groupId,
+        policy_code: "step-up-policy",
+        version: 1,
+        effective_from: "2026-01-01",
+        rules: { reserve_on_submit: true },
+      },
+      expectedStatus: 201,
+    },
+    {
+      path: `/api/hrx/leave/groups/${groupId}`,
+      method: "PATCH",
+      body: { display_name: "정책 보안 검증 수정", expected_version: 1 },
+      expectedStatus: 200,
+    },
+    {
+      path: `/api/hrx/leave/types/${typeId}`,
+      method: "PATCH",
+      body: { display_name: "정책 보안 휴가 수정" },
+      expectedStatus: 200,
+    },
+    {
+      path: `/api/hrx/leave/policies/${policyId}`,
+      method: "PATCH",
+      body: { rules: { reserve_on_submit: false } },
+      expectedStatus: 200,
+    },
+    {
+      path: `/api/hrx/leave/policies/${policyId}/publish`,
+      method: "POST",
+      body: {},
+      expectedStatus: 200,
+    },
+    {
+      path: `/api/hrx/leave/policies/${policyId}/versions`,
+      method: "POST",
+      body: { policy_version_id: "step-up-policy-v2", effective_from: "2027-01-01" },
+      expectedStatus: 201,
+    },
+  ];
+
+  for (const mutation of mutations) {
+    const options = {
+      method: mutation.method,
+      headers: { ...baseHeaders, "content-type": "application/json" },
+      body: JSON.stringify(mutation.body),
+    };
+    const challenged = await json(mutation.path, options);
+    assert.equal(challenged.status, 403, `${mutation.method} ${mutation.path} must require step-up`);
+    assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+
+    const mismatched = await json(mutation.path, {
+      ...options,
+      headers: { ...options.headers, "x-lawos-hrx-step-up": LEAVE_ACCRUAL_STEP_UP_HEADER },
+    });
+    assert.equal(mismatched.status, 403, `${mutation.method} ${mutation.path} must reject a mismatched purpose`);
+    assert.equal(mismatched.body.reason, "hrx_step_up_purpose_mismatch");
+
+    const allowed = await json(mutation.path, {
+      ...options,
+      headers: { ...options.headers, "x-lawos-hrx-step-up": LEAVE_POLICY_STEP_UP_HEADER },
+    });
+    assert.equal(allowed.status, mutation.expectedStatus, `${mutation.method} ${mutation.path} must accept matching step-up`);
+  }
+});
+
 test("payroll catalog requires a matching signed payroll step-up token", async () => {
   const challenged = await json("/api/hrx/payroll/items", { headers: baseHeaders });
   assert.equal(challenged.status, 403);
@@ -218,4 +352,124 @@ test("payroll catalog requires a matching signed payroll step-up token", async (
   assert.equal(allowed.status, 200);
   assert.equal(allowed.body.outcome, "ok");
   assert.ok(Array.isArray(allowed.body.items));
+});
+
+test("payroll routes isolate every declared step-up purpose through the real route boundary", async () => {
+  const routes = [
+    {
+      label: "export review",
+      path: "/api/hrx/payroll/items",
+      purpose: "payroll_export_review",
+      expectedStatus: 200,
+      expectedOutcome: "ok",
+    },
+    {
+      label: "payment approval",
+      method: "POST",
+      path: "/api/hrx/payroll/payment-batches/step-up-missing-batch/approve",
+      purpose: "payroll_payment_processing",
+      expectedStatus: 404,
+      expectedSafeErrorCode: "HRX_PAYROLL_PAYMENT_NOT_FOUND",
+    },
+    {
+      label: "filing preparation",
+      method: "POST",
+      path: "/api/hrx/payroll/runs/step-up-missing-run/filings",
+      purpose: "payroll_filing_processing",
+      body: { filing_kind: "social_insurance" },
+      expectedStatus: 404,
+      expectedSafeErrorCode: "HRX_PAYROLL_NOT_FOUND",
+    },
+    {
+      label: "filing submission",
+      method: "POST",
+      path: "/api/hrx/payroll/filings/step-up-missing-filing/submit",
+      purpose: "payroll_filing_processing",
+      expectedStatus: 404,
+      expectedSafeErrorCode: "HRX_PAYROLL_FILING_NOT_FOUND",
+    },
+    {
+      label: "statement self service",
+      path: "/api/hrx/payroll/statements/step-up-missing-statement/download",
+      purpose: "payroll_statement_self_service",
+      expectedStatus: 404,
+      expectedSafeErrorCode: "HRX_PAYROLL_STATEMENT_NOT_FOUND",
+    },
+    {
+      label: "year-end processing",
+      method: "POST",
+      path: "/api/hrx/payroll/runs/step-up-missing-run/year-end/collect",
+      purpose: "payroll_year_end_processing",
+      expectedStatus: 404,
+      expectedSafeErrorCode: "HRX_PAYROLL_NOT_FOUND",
+    },
+    {
+      label: "year-end review",
+      method: "POST",
+      path: "/api/hrx/payroll/runs/step-up-missing-run/year-end/review",
+      purpose: "payroll_year_end_review",
+      expectedStatus: 409,
+      expectedSafeErrorCode: "HRX_PAYROLL_YEAR_END_STATE_INVALID",
+    },
+  ];
+
+  for (const route of routes) {
+    const request = {
+      method: route.method ?? "GET",
+      headers: { ...baseHeaders },
+      ...(route.body ? { body: JSON.stringify(route.body) } : {}),
+    };
+    if (route.body) request.headers["content-type"] = "application/json";
+
+    const challenged = await json(route.path, request);
+    assert.equal(challenged.status, 403, `${route.label} must require step-up`);
+    assert.equal(challenged.body.required_purpose, route.purpose, `${route.label} must declare its exact purpose`);
+
+    for (const [tokenPurpose, header] of Object.entries(PAYROLL_PURPOSE_HEADERS)) {
+      if (tokenPurpose === route.purpose) continue;
+      const denied = await json(route.path, {
+        ...request,
+        headers: { ...request.headers, "x-lawos-hrx-step-up": header },
+      });
+      assert.equal(denied.status, 403, `${route.label} must reject ${tokenPurpose}`);
+      assert.equal(denied.body.reason, "hrx_step_up_purpose_mismatch", `${route.label} must isolate ${route.purpose}`);
+    }
+
+    const allowedThroughBoundary = await json(route.path, {
+      ...request,
+      headers: { ...request.headers, "x-lawos-hrx-step-up": PAYROLL_PURPOSE_HEADERS[route.purpose] },
+    });
+    assert.equal(allowedThroughBoundary.status, route.expectedStatus, `${route.label} must accept its declared purpose`);
+    if (route.expectedSafeErrorCode) {
+      assert.equal(allowedThroughBoundary.body.safe_error_code, route.expectedSafeErrorCode);
+    } else {
+      assert.equal(allowedThroughBoundary.body.outcome, route.expectedOutcome);
+    }
+  }
+});
+
+test("minimum wage legal approval requires the legal scope and matching payroll step-up purpose", async () => {
+  const path = "/api/hrx/payroll/minimum-wage/missing-rule/legal-approve";
+  const challenged = await json(path, {
+    method: "POST",
+    headers: { ...baseHeaders, "content-type": "application/json" },
+    body: JSON.stringify({ expected_version: 1, legal_review_ref: "document:legal/missing-rule" }),
+  });
+  assert.equal(challenged.status, 403);
+  assert.equal(challenged.body.safe_error_code, "HRX_STEP_UP_REQUIRED");
+
+  const mismatched = await json(path, {
+    method: "POST",
+    headers: { ...baseHeaders, "content-type": "application/json", "x-lawos-hrx-step-up": LEAVE_ACCRUAL_STEP_UP_HEADER },
+    body: JSON.stringify({ expected_version: 1, legal_review_ref: "document:legal/missing-rule" }),
+  });
+  assert.equal(mismatched.status, 403);
+  assert.equal(mismatched.body.reason, "hrx_step_up_purpose_mismatch");
+
+  const allowedThroughBoundary = await json(path, {
+    method: "POST",
+    headers: { ...baseHeaders, "content-type": "application/json", "x-lawos-hrx-step-up": PAYROLL_STEP_UP_HEADER },
+    body: JSON.stringify({ expected_version: 1, legal_review_ref: "document:legal/missing-rule" }),
+  });
+  assert.equal(allowedThroughBoundary.body.safe_error_code, "HRX_PAYROLL_RULE_PUBLISH_DISABLED");
 });

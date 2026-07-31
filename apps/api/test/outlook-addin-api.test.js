@@ -5,16 +5,17 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   createDefaultDmsRuntime,
-  createDefaultMatterRuntime,
   startApiServer,
 } from "../src/server.js";
 import { createDmsRepository, createFileStorageAdapter } from "../../../packages/dms/src/index.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
+import { createMatterRuntimeContext } from "../src/matter-runtime-context.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = "tenant_outlook_addin_test";
 const MATTER = "matter_outlook_addin_test";
-const ACTOR = "outlook_addin_test_user";
+const ACTOR = "user_amic_jwsuh";
+const EMPLOYEE = "employee_outlook_addin_test";
 
 async function jsonFetch(baseUrl, path, init = {}, sessionHeaders = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -54,8 +55,46 @@ function seedMatterRepository() {
         permission_envelope_id: "perm:outlook:addin:test",
         audit_trace_id: "audit:outlook:addin:test",
       },
+      {
+        model_type: "MatterMember",
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        member_id: "member_outlook_addin_test",
+        employee_id: EMPLOYEE,
+        user_id: ACTOR,
+        role: "associate",
+        status: "active",
+        valid_from: "2026-07-03T00:00:00.000Z",
+        identity_resolution_state: "resolved",
+      },
     ],
   });
+}
+
+function seedPeopleDirectories() {
+  const employee = {
+    tenant_id: TENANT,
+    employee_id: EMPLOYEE,
+    display_name: "Outlook Add-in Test Attorney",
+    status: "active",
+  };
+  const employeeUserLink = {
+    tenant_id: TENANT,
+    link_id: "link_outlook_addin_test",
+    employee_id: EMPLOYEE,
+    user_id: ACTOR,
+    purpose: "login_mapping",
+  };
+  const user = { tenant_id: TENANT, user_id: ACTOR, status: "active" };
+  return {
+    employeeDirectory: {
+      get: ({ tenant_id, employee_id } = {}) => (
+        employee.tenant_id === tenant_id && employee.employee_id === employee_id ? employee : null
+      ),
+    },
+    employeeUserLinkDirectory: [employeeUserLink],
+    userDirectory: [user],
+  };
 }
 
 function emailFixture() {
@@ -93,7 +132,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     rootPath: join(mkdtempSync(join(tmpdir(), "outlook-addin-dms-")), "objects"),
   });
   const dmsRuntime = createDefaultDmsRuntime({ repository: dmsRepository, storage });
-  const matterRuntime = createDefaultMatterRuntime({ repository: matterRepository, dmsRuntime });
+  const matterRuntime = createMatterRuntimeContext({
+    repository: matterRepository,
+    dmsRuntime,
+    ...seedPeopleDirectories(),
+    clock: () => "2026-07-03T02:00:00.000Z",
+  });
   const started = await startApiServer({ port: 0, matterRuntime, dmsRuntime });
   const baseUrl = `http://${started.host}:${started.port}`;
   try {
@@ -196,6 +240,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       }),
     });
     assert.equal(followup.outcome, "created");
+    assert.equal(followup.item.assigned_to_user_id, ACTOR);
     assert.equal(followup.auto_created_without_lawyer_approval, false);
 
     const sent = await json("/api/outlook/sent/file", {

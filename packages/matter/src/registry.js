@@ -2798,6 +2798,7 @@ export const MATTER_CORE_MODEL_DEFINITIONS = Object.freeze({
     lifecycle_statuses: Object.freeze(["active", "paused", "removed"]),
     matter_trace_policy: "required",
     required_fields: Object.freeze(["member_id", "tenant_id", "matter_id", "user_id", "role", "status"]),
+    optional_people_fields: Object.freeze(["employee_id", "valid_from", "valid_to", "identity_resolution_state", "source_record_hash"]),
   }),
   MatterTask: Object.freeze({
     primary_id: "task_id",
@@ -2806,6 +2807,7 @@ export const MATTER_CORE_MODEL_DEFINITIONS = Object.freeze({
     lifecycle_statuses: MATTER_TASK_STATUSES,
     matter_trace_policy: "required",
     required_fields: Object.freeze(["task_id", "tenant_id", "matter_id", "title", "status", "created_by"]),
+    optional_people_fields: Object.freeze(["assigned_to_user_id", "starts_at", "ends_at", "estimated_minutes", "assignment_resolution_state", "source_record_hash"]),
   }),
   MatterCalendarEvent: Object.freeze({
     primary_id: "event_id",
@@ -2814,6 +2816,7 @@ export const MATTER_CORE_MODEL_DEFINITIONS = Object.freeze({
     lifecycle_statuses: Object.freeze(["scheduled", "rescheduled", "cancelled", "completed"]),
     matter_trace_policy: "required",
     required_fields: Object.freeze(["event_id", "tenant_id", "matter_id", "title", "status", "starts_at"]),
+    optional_people_fields: Object.freeze(["event_kind", "provider", "provider_event_id", "provider_series_id"]),
   }),
   MatterChecklist: Object.freeze({
     primary_id: "checklist_id",

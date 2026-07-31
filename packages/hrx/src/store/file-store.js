@@ -11,6 +11,7 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_leave_balance_entries: ["tenant_id", "entry_id"],
   hrx_leave_requests: ["tenant_id", "request_id"],
   hrx_attendance_records: ["tenant_id", "attendance_id"],
+  hrx_attendance_correction_requests: ["tenant_id", "correction_request_id"],
   hrx_overtime_requests: ["tenant_id", "overtime_id"],
   hrx_risk_events: ["tenant_id", "risk_event_id"],
   hrx_operational_approvals: ["tenant_id", "approval_id"],
@@ -21,8 +22,11 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_applications: ["tenant_id", "application_id"],
   hrx_interviews: ["tenant_id", "interview_id"],
   hrx_offers: ["tenant_id", "offer_id"],
+  hrx_recruiting_pipeline_receipts: ["tenant_id", "pipeline_receipt_id"],
+  hrx_lifecycle_templates: ["tenant_id", "template_version_id"],
   hrx_onboarding_plans: ["tenant_id", "onboarding_id"],
   hrx_offboarding_cases: ["tenant_id", "offboarding_id"],
+  hrx_offboarding_evidence_receipts: ["tenant_id", "receipt_id"],
   hrx_audit_events: ["tenant_id", "event_id"],
   hrx_ai_review_items: ["tenant_id", "review_id"],
   hrx_ai_source_registry: ["tenant_id", "source_ref"],
@@ -73,6 +77,8 @@ const PRIMARY_KEYS = Object.freeze({
   hrx_payroll_statement_templates: ["tenant_id", "template_id"],
   hrx_payroll_statements: ["tenant_id", "statement_id"],
   hrx_payroll_delivery_receipts: ["tenant_id", "delivery_receipt_id"],
+  hrx_payroll_statement_provider_events: ["tenant_id", "provider_event_id"],
+  hrx_payroll_provider_operations: ["tenant_id", "provider_operation_id"],
   hrx_payroll_payment_batches: ["tenant_id", "payment_batch_id"],
   hrx_payroll_payment_items: ["tenant_id", "payment_item_id"],
   hrx_payroll_filing_jobs: ["tenant_id", "filing_job_id"],
@@ -85,6 +91,7 @@ const PRIMARY_KEYS = Object.freeze({
 const TABLES = Object.freeze([...HRX_DURABLE_CORE_TABLES, ...HRX_DURABLE_WORKFLOW_TABLES]);
 const MUTATING_OPERATIONS = new Set(["insert", "updateOne", "deleteOne"]);
 const CAS_TABLES = new Set([
+  "hrx_attendance_correction_requests",
   "hrx_leave_groups",
   "hrx_work_schedule_profiles",
   "hrx_leave_entitlements",
@@ -106,6 +113,7 @@ const CAS_TABLES = new Set([
   "hrx_payroll_statement_templates",
   "hrx_payroll_statements",
   "hrx_payroll_delivery_receipts",
+  "hrx_payroll_provider_operations",
   "hrx_payroll_payment_batches",
   "hrx_payroll_payment_items",
   "hrx_payroll_filing_jobs",
@@ -115,9 +123,12 @@ const CAS_TABLES = new Set([
 
 const APPEND_ONLY_TABLES = new Set([
   "hrx_audit_events",
+  "hrx_attendance_records",
   "hrx_compensation_records",
   "hrx_leave_balance_entries",
   "hrx_leave_command_receipts",
+  "hrx_recruiting_pipeline_receipts",
+  "hrx_offboarding_evidence_receipts",
   "hrx_payroll_input_snapshots",
   "hrx_payroll_item_assignments",
   "hrx_attendance_approval_receipts",
@@ -125,6 +136,7 @@ const APPEND_ONLY_TABLES = new Set([
   "hrx_payroll_line_items",
   "hrx_payroll_adjustments",
   "hrx_payroll_outbox",
+  "hrx_payroll_statement_provider_events",
 ]);
 
 const UNIQUE_CONSTRAINTS = Object.freeze({
@@ -132,6 +144,7 @@ const UNIQUE_CONSTRAINTS = Object.freeze({
   hrx_operational_approvals: [["tenant_id", "object_type", "object_id"]],
   hrx_operational_policies: [["tenant_id", "policy_id"]],
   hrx_ai_source_registry: [["tenant_id", "source_ref"]],
+  hrx_recruiting_pipeline_receipts: [["tenant_id", "idempotency_key"]],
   hrx_leave_groups: [["tenant_id", "code"]],
   hrx_leave_types: [["tenant_id", "code"]],
   hrx_leave_policy_versions: [["tenant_id", "policy_code", "version"]],
@@ -161,7 +174,10 @@ const UNIQUE_CONSTRAINTS = Object.freeze({
   hrx_leave_command_receipts: [["tenant_id", "idempotency_key"]],
   hrx_leave_request_attachments: [["tenant_id", "request_id", "document_id"]],
   hrx_leave_termination_reconciliations: [["tenant_id", "idempotency_key"]],
-  hrx_leave_promotion_campaigns: [["tenant_id", "idempotency_key"]],
+  hrx_leave_promotion_campaigns: [
+    ["tenant_id", "idempotency_key"],
+    ["tenant_id", "business_fingerprint"],
+  ],
   hrx_leave_promotion_recipients: [["tenant_id", "campaign_id", "employee_id"]],
   hrx_leave_promotion_evidence_receipts: [["tenant_id", "idempotency_key"]],
   hrx_leave_sync_outbox: [["tenant_id", "idempotency_key"]],
@@ -180,7 +196,10 @@ const UNIQUE_CONSTRAINTS = Object.freeze({
     ["tenant_id", "reverses_entry_id"],
   ],
   hrx_payroll_periods: [["tenant_id", "period_code"]],
-  hrx_payroll_runs: [["tenant_id", "period_id", "run_type", "previous_run_id"]],
+  hrx_payroll_runs: [
+    ["tenant_id", "period_id", "run_type", "previous_run_id"],
+    ["tenant_id", "correction_key"],
+  ],
   hrx_payroll_profiles: [["tenant_id", "employee_id", "effective_from"]],
   hrx_payroll_items: [["tenant_id", "code"]],
   hrx_payroll_item_assignments: [["tenant_id", "employee_id", "item_id", "version"]],
@@ -194,10 +213,27 @@ const UNIQUE_CONSTRAINTS = Object.freeze({
   hrx_payroll_rule_versions: [["tenant_id", "rule_kind", "version_code"]],
   hrx_payroll_statement_templates: [["tenant_id", "version_code"]],
   hrx_payroll_statements: [["tenant_id", "run_id", "employee_id"]],
-  hrx_payroll_delivery_receipts: [["tenant_id", "statement_id", "channel"]],
+  hrx_payroll_delivery_receipts: [
+    ["tenant_id", "statement_id", "channel"],
+    ["tenant_id", "provider_receipt_ref"],
+    ["tenant_id", "provider_id", "provider_receipt_id"],
+  ],
+  hrx_payroll_statement_provider_events: [
+    ["tenant_id", "provider_event_id"],
+  ],
+  hrx_payroll_provider_operations: [
+    ["tenant_id", "provider_kind", "idempotency_key"],
+    ["tenant_id", "provider_kind", "provider_receipt_id"],
+    ["tenant_id", "provider_kind", "provider_receipt_ref"],
+  ],
   hrx_payroll_payment_batches: [["tenant_id", "run_id", "bank_format_code"]],
   hrx_payroll_payment_items: [["tenant_id", "payment_batch_id", "employee_id"]],
-  hrx_payroll_filing_jobs: [["tenant_id", "run_id", "filing_kind", "schema_version"]],
+  hrx_payroll_filing_jobs: [
+    ["tenant_id", "run_id", "filing_kind", "schema_version"],
+    ["tenant_id", "provider_receipt_ref"],
+    ["tenant_id", "provider_submission_key"],
+    ["tenant_id", "previous_job_ref"],
+  ],
   hrx_payroll_issues: [["tenant_id", "run_id", "employee_id", "issue_code"]],
   hrx_payroll_adjustments: [["tenant_id", "run_id", "employee_id", "adjustment_ref"]],
   hrx_payroll_outbox: [["tenant_id", "idempotency_key"]],
@@ -284,6 +320,21 @@ function assertUniqueConstraints(state, table, row) {
       (candidate) => fields.every((field) => candidate[field] === row[field]) && !samePrimaryKey(table, candidate, row),
     );
     if (duplicate) throw new Error(`${table} unique constraint failed: ${fields.join(", ")}`);
+  }
+  if (
+    table === "hrx_leave_promotion_campaigns"
+    && isPresent(row.business_fingerprint)
+    && state.tables.hrx_leave_promotion_campaigns.some(
+      (candidate) =>
+        candidate.tenant_id === row.tenant_id
+        && candidate.policy_version_id === row.policy_version_id
+        && candidate.entitlement_period_end === row.entitlement_period_end
+        && candidate.schedule_profile_id === row.schedule_profile_id
+        && isPresent(candidate.business_fingerprint)
+        && !samePrimaryKey(table, candidate, row),
+    )
+  ) {
+    throw new Error("leave promotion campaign fingerprinted business basis must be unique");
   }
 }
 
@@ -484,6 +535,10 @@ function assertPayrollReferences(state, table, row) {
       ["hrx_payroll_statement_templates", ["tenant_id", "template_id"]],
     ],
     hrx_payroll_delivery_receipts: [["hrx_payroll_statements", ["tenant_id", "statement_id"]]],
+    hrx_payroll_statement_provider_events: [
+      ["hrx_payroll_delivery_receipts", ["tenant_id", "delivery_receipt_id"]],
+      ["hrx_payroll_statements", ["tenant_id", "statement_id"]],
+    ],
     hrx_payroll_payment_batches: [["hrx_payroll_runs", ["tenant_id", "run_id"]]],
     hrx_payroll_payment_items: [
       ["hrx_payroll_payment_batches", ["tenant_id", "payment_batch_id"]],
@@ -530,6 +585,7 @@ function assertPayrollConstraints(state, table, row) {
     if (row.run_type === "regular" && isPresent(row.previous_run_id)) throw new TypeError("regular payroll run cannot reference previous_run_id");
     assertSha256(row.snapshot_hash, "payroll run snapshot_hash", { optional: true });
     assertSha256(row.result_hash, "payroll run result_hash", { optional: true });
+    assertSha256(row.filing_source_hash, "payroll run filing_source_hash", { optional: true });
     if (['approved', 'closed'].includes(row.status) && ![row.approved_by_actor_id, row.approved_at].every(isPresent)) throw new TypeError("approved payroll run requires approval fields");
     if (row.status === "closed" && !isPresent(row.closed_at)) throw new TypeError("closed payroll run requires closed_at");
   }
@@ -624,9 +680,23 @@ function assertPayrollConstraints(state, table, row) {
     if (isPresent(row.effective_to)) assertIsoDate(row.effective_to, "payroll rule effective_to");
     if (isPresent(row.effective_to) && row.effective_from > row.effective_to) throw new TypeError("payroll rule effective range is invalid");
     assertSha256(row.source_document_hash, "payroll rule source_document_hash");
-    assertNoPrivateJson(parseJson(row.rules_json, "payroll rule rules_json"), "payroll rule rules");
+    const rules = parseJson(row.rules_json, "payroll rule rules_json");
+    assertNoPrivateJson(rules, "payroll rule rules");
     if (!['draft', 'reviewed', 'published', 'retired'].includes(row.approval_state)) throw new TypeError("payroll rule approval_state is invalid");
     if (row.approval_state === "published" && ![row.reviewed_by_actor_id, row.published_by_actor_id, row.published_at].every(isPresent)) throw new TypeError("published payroll rule requires review and publish fields");
+    const legalReviewFields = [row.legal_reviewed_by_actor_id, row.legal_review_ref, row.legal_reviewed_at];
+    if (legalReviewFields.some(isPresent) && !legalReviewFields.every(isPresent)) throw new TypeError("minimum wage legal review evidence is incomplete");
+    if (legalReviewFields.every(isPresent)) {
+      assertTokenizedRef(row.legal_review_ref, "minimum wage legal_review_ref");
+      if (row.legal_reviewed_by_actor_id === row.created_by_actor_id) throw new TypeError("minimum wage rule author cannot legally approve own rule");
+      if (Number.isNaN(Date.parse(row.legal_reviewed_at))) throw new TypeError("minimum wage legal_reviewed_at is invalid");
+      if (row.rule_kind !== "minimum_wage" || rules.legal_review_state !== "approved" || rules.legal_review_ref !== row.legal_review_ref) {
+        throw new TypeError("minimum wage legal review evidence does not match the rule package");
+      }
+    }
+    if (row.rule_kind === "minimum_wage" && ["reviewed", "published"].includes(row.approval_state) && !legalReviewFields.every(isPresent)) {
+      throw new TypeError("reviewed minimum wage rule requires immutable legal review evidence");
+    }
   }
   if (table === "hrx_payroll_statement_templates") {
     assertSha256(row.template_hash, "payroll statement template_hash");
@@ -644,8 +714,64 @@ function assertPayrollConstraints(state, table, row) {
     if (!['queued', 'delivered', 'viewed', 'failed', 'revoked'].includes(row.state)) throw new TypeError("payroll delivery state is invalid");
     if (!Number.isInteger(row.attempt_count) || row.attempt_count < 0) throw new TypeError("payroll delivery attempt_count must be a non-negative integer");
     assertTokenizedRef(row.provider_receipt_ref, "payroll delivery provider_receipt_ref", { optional: true });
+    if (row.provider_id != null && !/^[A-Za-z0-9][A-Za-z0-9._:-]{1,127}$/.test(row.provider_id)) throw new TypeError("payroll delivery provider_id is invalid");
+    if (row.provider_receipt_id != null && (typeof row.provider_receipt_id !== "string" || !row.provider_receipt_id.trim() || row.provider_receipt_id.length > 255)) throw new TypeError("payroll delivery provider_receipt_id is invalid");
+    if (row.provider_receipt_id != null && row.provider_id == null) throw new TypeError("payroll delivery provider receipt id requires provider_id");
     assertSha256(row.receipt_hash, "payroll delivery receipt_hash", { optional: true });
+    if (row.provider_result_state != null && !["queued", "sent", "delivered", "read", "failed", "unknown"].includes(row.provider_result_state)) throw new TypeError("payroll delivery provider_result_state is invalid");
+    if (row.attempt_count != null && (!Number.isInteger(row.attempt_count) || row.attempt_count < 0)) throw new TypeError("payroll delivery attempt_count must be a non-negative integer");
+    if (row.attempt_started_at != null && Number.isNaN(Date.parse(row.attempt_started_at))) throw new TypeError("payroll delivery attempt_started_at is invalid");
+    if (["sent", "delivered", "read"].includes(row.provider_result_state) && ![row.provider_id, row.provider_receipt_ref, row.receipt_hash, row.last_attempt_at].every(isPresent)) throw new TypeError("successful payroll delivery provider result requires receipt evidence");
+    if (row.provider_result_state === "failed" && ![row.safe_error_code, row.last_attempt_at].every(isPresent)) throw new TypeError("failed payroll delivery provider result requires a safe error");
     if (['delivered', 'viewed'].includes(row.state) && ![row.provider_receipt_ref, row.receipt_hash, row.delivered_at].every(isPresent)) throw new TypeError("delivered payroll statement requires provider receipt fields");
+  }
+  if (table === "hrx_payroll_statement_provider_events") {
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{1,254}$/.test(row.provider_event_id)) throw new TypeError("payroll statement provider_event_id is invalid");
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{1,127}$/.test(row.provider_id)) throw new TypeError("payroll statement provider_id is invalid");
+    assertTokenizedRef(row.provider_receipt_ref, "payroll statement provider event provider_receipt_ref");
+    if (!["accepted", "sent", "delivered", "read", "failed"].includes(row.provider_event_state)) throw new TypeError("payroll statement provider event state is invalid");
+    assertSha256(row.payload_hash, "payroll statement provider event payload_hash");
+    if (![row.event_occurred_at, row.received_at].every(isPresent)) throw new TypeError("payroll statement provider event timestamps are required");
+  }
+  if (table === "hrx_payroll_provider_operations") {
+    if (!["delivery", "calendar", "payroll", "bank", "filing"].includes(row.provider_kind)) throw new TypeError("payroll provider operation kind is invalid");
+    if (typeof row.operation !== "string" || !row.operation.trim()) throw new TypeError("payroll provider operation is required");
+    if (typeof row.idempotency_key !== "string" || !row.idempotency_key.trim()) throw new TypeError("payroll provider operation idempotency_key is required");
+    assertSha256(row.request_hash, "payroll provider operation request_hash");
+    if (!["in_progress", "pending", "succeeded", "failed", "unknown"].includes(row.state)) throw new TypeError("payroll provider operation state is invalid");
+    if (!Number.isInteger(row.attempt_count) || row.attempt_count < 1) throw new TypeError("payroll provider operation attempt_count must be a positive integer");
+    if (!Number.isInteger(row.maximum_attempts) || row.maximum_attempts < 1 || row.attempt_count > row.maximum_attempts) throw new TypeError("payroll provider operation maximum_attempts is invalid");
+    if (row.provider_receipt_id != null && (typeof row.provider_receipt_id !== "string" || !row.provider_receipt_id.trim())) throw new TypeError("payroll provider operation provider_receipt_id is invalid");
+    assertTokenizedRef(row.provider_receipt_ref, "payroll provider operation provider_receipt_ref", { optional: true });
+    if (row.state === "pending" && (!isPresent(row.provider_receipt_id) || [row.provider_receipt_ref, row.safe_error_code, row.completed_at].some(isPresent))) {
+      throw new TypeError("pending payroll provider operation evidence is invalid");
+    }
+    if (row.state === "succeeded" && ![row.provider_receipt_id, row.provider_receipt_ref, row.completed_at].every(isPresent)) {
+      throw new TypeError("succeeded payroll provider operation requires receipt evidence");
+    }
+    if (row.state === "failed" && ![row.provider_receipt_id, row.safe_error_code, row.completed_at].every(isPresent)) {
+      throw new TypeError("failed payroll provider operation requires failure evidence");
+    }
+    if (row.state === "unknown" && !isPresent(row.safe_error_code)) throw new TypeError("unknown payroll provider operation requires a safe error");
+    const stagedResultFields = [row.result_payload_json, row.result_payload_hash, row.provider_response_hash];
+    const stagedResultFieldCount = stagedResultFields.filter(isPresent).length;
+    if (stagedResultFieldCount !== 0 && stagedResultFieldCount !== stagedResultFields.length) {
+      throw new TypeError("staged payroll provider result evidence is incomplete");
+    }
+    if (stagedResultFieldCount === stagedResultFields.length) {
+      if (row.provider_kind !== "bank"
+        || row.operation !== "bulk_transfer_reconcile"
+        || !["pending", "succeeded"].includes(row.state)) {
+        throw new TypeError("staged payroll provider result scope is invalid");
+      }
+      assertSha256(row.result_payload_hash, "payroll provider operation result_payload_hash");
+      assertSha256(row.provider_response_hash, "payroll provider operation provider_response_hash");
+      assertNoPrivateJson(
+        parseJson(row.result_payload_json, "payroll provider operation result_payload_json"),
+        "payroll provider operation staged result",
+      );
+    }
+    if (![row.created_by_actor_id, row.created_at, row.updated_at, row.last_attempt_at].every(isPresent)) throw new TypeError("payroll provider operation audit fields are required");
   }
   if (table === "hrx_payroll_payment_batches") {
     assertSha256(row.checksum, "payroll payment batch checksum");
@@ -661,6 +787,8 @@ function assertPayrollConstraints(state, table, row) {
     assertTokenizedRef(row.provider_receipt_ref, "payroll payment item provider_receipt_ref", { optional: true });
     if (!Number.isInteger(row.amount_krw) || row.amount_krw < 0) throw new TypeError("payroll payment amount_krw must be a non-negative integer");
     if (!['pending', 'exported', 'paid', 'failed'].includes(row.state)) throw new TypeError("payroll payment item state is invalid");
+    if (row.provider_result_state != null && !["pending", "succeeded", "failed", "unknown"].includes(row.provider_result_state)) throw new TypeError("payroll payment provider_result_state is invalid");
+    if (row.attempt_count != null && (!Number.isInteger(row.attempt_count) || row.attempt_count < 0)) throw new TypeError("payroll payment attempt_count must be a non-negative integer");
     if (row.state === "paid" && ![row.provider_receipt_ref, row.paid_at].every(isPresent)) throw new TypeError("paid payroll item requires receipt and paid_at");
   }
   if (table === "hrx_payroll_filing_jobs") {
@@ -668,9 +796,12 @@ function assertPayrollConstraints(state, table, row) {
     if (!['draft', 'validated', 'submitted', 'accepted', 'rejected', 'corrected'].includes(row.state)) throw new TypeError("payroll filing state is invalid");
     assertTokenizedRef(row.package_ref, "payroll filing package_ref");
     assertSha256(row.package_hash, "payroll filing package_hash");
+    assertTokenizedRef(row.previous_job_ref, "payroll filing previous_job_ref", { optional: true });
     assertTokenizedRef(row.provider_receipt_ref, "payroll filing provider_receipt_ref", { optional: true });
     if (['submitted', 'accepted', 'rejected'].includes(row.state) && !isPresent(row.submitted_at)) throw new TypeError("submitted payroll filing requires submitted_at");
     if (['accepted', 'rejected'].includes(row.state) && !isPresent(row.provider_receipt_ref)) throw new TypeError("completed payroll filing requires provider_receipt_ref");
+    if (row.provider_result_state != null && !["not_submitted", "queued", "accepted", "failed", "unknown", "corrected"].includes(row.provider_result_state)) throw new TypeError("payroll filing provider_result_state is invalid");
+    if (row.attempt_count != null && (!Number.isInteger(row.attempt_count) || row.attempt_count < 0)) throw new TypeError("payroll filing attempt_count must be a non-negative integer");
   }
   if (table === "hrx_payroll_issues") {
     if (!['warning', 'blocker'].includes(row.severity)) throw new TypeError("payroll issue severity is invalid");
@@ -720,6 +851,23 @@ function assertPayrollConstraints(state, table, row) {
 }
 
 function assertCoreConstraints(state, table, row) {
+  if (table === "hrx_offboarding_cases") {
+    const leaveCompleted =
+      row.leave_reconciliation_status === "approved_and_synced";
+    const leaveEvidenceRef = row.leave_reconciliation_evidence_ref;
+    const hasLeaveEvidence =
+      typeof leaveEvidenceRef === "string" &&
+      leaveEvidenceRef.trim() !== "";
+    if (
+      leaveCompleted
+        ? !hasLeaveEvidence
+        : leaveEvidenceRef !== null && leaveEvidenceRef !== undefined
+    ) {
+      throw new TypeError(
+        "offboarding leave completion and provider evidence must be recorded together",
+      );
+    }
+  }
   if (table === "hrx_risk_events") {
     for (const field of ["category", "risk_type", "severity", "title", "intake_source_ref", "owner_role", "detected_on", "status"]) {
       if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`HRX risk event ${field} is required`);
@@ -751,6 +899,39 @@ function assertCoreConstraints(state, table, row) {
   if (table === "hrx_operational_policies") {
     assertNoPrivateJson(row, "HRX operational policy");
   }
+  if (table === "hrx_recruiting_pipeline_receipts") {
+    for (const field of [
+      "idempotency_key",
+      "job_opening_id",
+      "consent_id",
+      "candidate_id",
+      "application_id",
+      "interview_id",
+      "offer_id",
+      "created_by_actor_id",
+      "created_at",
+    ]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) {
+        throw new TypeError(`recruiting pipeline receipt ${field} is required`);
+      }
+    }
+    if (!/^[a-f0-9]{64}$/.test(row.input_hash)) {
+      throw new TypeError("recruiting pipeline receipt input_hash must be a SHA-256 hex digest");
+    }
+    if (Number.isNaN(Date.parse(row.created_at))) {
+      throw new TypeError("recruiting pipeline receipt created_at must be an ISO timestamp");
+    }
+    for (const [foreignTable, field] of [
+      ["hrx_job_openings", "job_opening_id"],
+      ["hrx_candidate_consents", "consent_id"],
+      ["hrx_candidates", "candidate_id"],
+      ["hrx_applications", "application_id"],
+      ["hrx_interviews", "interview_id"],
+      ["hrx_offers", "offer_id"],
+    ]) {
+      assertForeignKey(state, table, row, foreignTable, ["tenant_id", field]);
+    }
+  }
   if (table === "hrx_ai_source_registry") {
     for (const field of ["source_type", "sensitivity", "tags_json", "indexed_by"]) {
       if (typeof row[field] !== "string" || !row[field].trim()) throw new TypeError(`HRX AI source registry ${field} is required`);
@@ -764,7 +945,7 @@ function assertCoreConstraints(state, table, row) {
       if (Object.hasOwn(row, blocked)) throw new TypeError(`HRX AI source registry must not include ${blocked}`);
     }
   }
-  if (["hrx_documents", "hrx_compensation_records", "hrx_leave_balance_entries", "hrx_leave_requests", "hrx_attendance_records", "hrx_overtime_requests"].includes(table)) {
+  if (["hrx_documents", "hrx_compensation_records", "hrx_leave_balance_entries", "hrx_leave_requests", "hrx_attendance_records", "hrx_attendance_correction_requests", "hrx_overtime_requests"].includes(table)) {
     const employeeExists = state.tables.hrx_employees.some(
       (employee) => employee.tenant_id === row.tenant_id && employee.employee_id === row.employee_id,
     );
@@ -818,6 +999,92 @@ function assertCoreConstraints(state, table, row) {
       (record) => record.tenant_id === row.tenant_id && record.attendance_id === row.correction_of_attendance_id,
     );
     if (!originalExists) throw new ReferenceError(`Attendance correction source not found: ${row.correction_of_attendance_id}`);
+    const existingCorrection = state.tables.hrx_attendance_records.some(
+      (record) =>
+        record.tenant_id === row.tenant_id &&
+        record.correction_of_attendance_id === row.correction_of_attendance_id,
+    );
+    if (existingCorrection) throw new Error(`Attendance record already corrected: ${row.correction_of_attendance_id}`);
+  }
+  if (table === "hrx_attendance_correction_requests") {
+    for (const field of [
+      "attendance_id",
+      "employee_id",
+      "source_version",
+      "proposed_attendance_id",
+      "requested_changes_json",
+      "reason",
+      "state",
+      "requested_by_actor_id",
+      "requested_at",
+      "created_at",
+      "updated_at",
+    ]) {
+      if (typeof row[field] !== "string" || !row[field].trim()) {
+        throw new TypeError(`Attendance correction request ${field} is required`);
+      }
+    }
+    if (!/^sha256:[a-f0-9]{64}$/.test(row.source_version)) {
+      throw new TypeError("Attendance correction request source_version is invalid");
+    }
+    if (!Number.isSafeInteger(row.state_version) || row.state_version < 1) {
+      throw new TypeError("Attendance correction request state_version is invalid");
+    }
+    const changes = parseJson(
+      row.requested_changes_json,
+      "Attendance correction request requested_changes_json",
+      "object",
+    );
+    const changeFields = new Set(["status", "recorded_hours", "clock_in_at", "clock_out_at"]);
+    if (
+      Object.keys(changes).length === 0 ||
+      Object.keys(changes).some((field) => !changeFields.has(field))
+    ) {
+      throw new TypeError("Attendance correction request changes are invalid");
+    }
+    const source = state.tables.hrx_attendance_records.find(
+      (record) =>
+        record.tenant_id === row.tenant_id &&
+        record.attendance_id === row.attendance_id &&
+        record.employee_id === row.employee_id,
+    );
+    if (!source) throw new ReferenceError(`Attendance correction source not found: ${row.attendance_id}`);
+    if (!["pending", "approved", "rejected"].includes(row.state)) {
+      throw new TypeError("Attendance correction request state is invalid");
+    }
+    const resolved = ["approved", "rejected"].includes(row.state);
+    if (
+      resolved !== Boolean(row.reviewed_by_actor_id && row.reviewed_at && row.review_reason)
+    ) {
+      throw new TypeError("Attendance correction request review fields are inconsistent");
+    }
+    if (row.state === "approved") {
+      if (!row.approved_attendance_id) {
+        throw new TypeError("Approved attendance correction request requires approved_attendance_id");
+      }
+      const approved = state.tables.hrx_attendance_records.some(
+        (record) =>
+          record.tenant_id === row.tenant_id &&
+          record.attendance_id === row.approved_attendance_id,
+      );
+      if (!approved) {
+        throw new ReferenceError(`Approved attendance correction not found: ${row.approved_attendance_id}`);
+      }
+    } else if (row.approved_attendance_id) {
+      throw new TypeError("Only approved attendance correction requests may reference an approved record");
+    }
+    if (
+      row.state === "pending" &&
+      state.tables.hrx_attendance_correction_requests.some(
+        (request) =>
+          request.tenant_id === row.tenant_id &&
+          request.attendance_id === row.attendance_id &&
+          request.state === "pending" &&
+          !samePrimaryKey(table, request, row),
+      )
+    ) {
+      throw new Error(`Pending attendance correction already exists: ${row.attendance_id}`);
+    }
   }
   if (table === "hrx_audit_events") {
     if (typeof row.event_hash !== "string" || row.event_hash.trim() === "") {
@@ -986,6 +1253,9 @@ function assertCoreConstraints(state, table, row) {
     for (const field of ["policy_version_id", "reference_date", "entitlement_period_end", "schedule_profile_id", "legal_schedule_json", "legal_basis_code", "legal_basis_version", "source_version", "calculation_snapshot_hash", "exclusions_json", "idempotency_key"]) {
       if (typeof row[field] !== "string" || row[field].trim() === "") throw new TypeError(`leave promotion campaign ${field} is required`);
     }
+    if (isPresent(row.business_fingerprint) && !/^[a-f0-9]{64}$/.test(row.business_fingerprint)) {
+      throw new TypeError("leave promotion campaign business_fingerprint must be a SHA-256 hex digest");
+    }
     for (const field of ["threshold_minutes", "standard_day_minutes"]) {
       if (!Number.isInteger(row[field]) || row[field] <= 0) throw new TypeError(`leave promotion campaign ${field} must be a positive integer`);
     }
@@ -1030,6 +1300,12 @@ function assertCoreConstraints(state, table, row) {
     }
     if (!["pending_sync", "delivered", "failed", "not_configured"].includes(row.state)) {
       throw new TypeError("leave integration delivery state is invalid");
+    }
+    if (
+      row.provider_result_state != null
+      && !["queued", "sent", "delivered", "read", "failed", "unknown"].includes(row.provider_result_state)
+    ) {
+      throw new TypeError("leave integration provider_result_state is invalid");
     }
     if (!Number.isInteger(row.attempt_count) || row.attempt_count < 0) {
       throw new TypeError("leave integration delivery attempt_count must be a non-negative integer");
@@ -1239,6 +1515,12 @@ function executeQuery(state, operation, params = {}) {
 
   if (operation === "insert") {
     const row = clone(params.row);
+    if (
+      table === "hrx_leave_promotion_campaigns"
+      && (typeof row.business_fingerprint !== "string" || !/^[a-f0-9]{64}$/.test(row.business_fingerprint))
+    ) {
+      throw new TypeError("new leave promotion campaign requires a SHA-256 business_fingerprint");
+    }
     assertPrimaryKey(table, row);
     assertCoreConstraints(state, table, row);
     if (rows.some((current) => samePrimaryKey(table, current, row))) {
@@ -1261,6 +1543,32 @@ function executeQuery(state, operation, params = {}) {
     const index = rows.findIndex((row) => matchesWhere(row, params.where));
     if (index === -1) return undefined;
     const current = rows[index];
+    const promotionBusinessFields = [
+      "business_fingerprint",
+      "policy_version_id",
+      "entitlement_period_end",
+      "schedule_profile_id",
+    ];
+    const promotionPatch = params.patch ?? {};
+    if (
+      table === "hrx_leave_promotion_campaigns"
+      && promotionBusinessFields.some((field) => Object.hasOwn(promotionPatch, field))
+      && (
+        Object.hasOwn(promotionPatch, "business_fingerprint")
+        && (
+          typeof promotionPatch.business_fingerprint !== "string"
+          || !/^[a-f0-9]{64}$/.test(promotionPatch.business_fingerprint)
+        )
+        || isPresent(current.business_fingerprint)
+        && promotionBusinessFields.some(
+          (field) =>
+            Object.hasOwn(promotionPatch, field)
+            && promotionPatch[field] !== current[field],
+        )
+      )
+    ) {
+      throw new TypeError("leave promotion campaign business_fingerprint is invalid or immutable");
+    }
     if (table === "hrx_payroll_rule_versions" && ["published", "retired"].includes(current.approval_state)) {
       throw new TypeError("published payroll rule history is immutable");
     }

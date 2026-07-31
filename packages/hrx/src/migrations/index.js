@@ -134,6 +134,70 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "032_hrx_professional_profile",
     filename: "032_hrx_professional_profile.sql",
   }),
+  Object.freeze({
+    id: "033_hrx_lifecycle_templates",
+    filename: "033_hrx_lifecycle_templates.sql",
+  }),
+  Object.freeze({
+    id: "034_hrx_offboarding_evidence",
+    filename: "034_hrx_offboarding_evidence.sql",
+  }),
+  Object.freeze({
+    id: "035_hrx_attendance_immutability",
+    filename: "035_hrx_attendance_immutability.sql",
+  }),
+  Object.freeze({
+    id: "036_hrx_attendance_correction_requests",
+    filename: "036_hrx_attendance_correction_requests.sql",
+  }),
+  Object.freeze({
+    id: "037_hrx_leave_provider_result_state",
+    filename: "037_hrx_leave_provider_result_state.sql",
+  }),
+  Object.freeze({
+    id: "038_hrx_overtime_minutes",
+    filename: "038_hrx_overtime_minutes.sql",
+  }),
+  Object.freeze({
+    id: "039_hrx_payroll_adjustment_keys",
+    filename: "039_hrx_payroll_adjustment_keys.sql",
+  }),
+  Object.freeze({
+    id: "040_hrx_payroll_provider_states",
+    filename: "040_hrx_payroll_provider_states.sql",
+  }),
+  Object.freeze({
+    id: "041_hrx_offboarding_leave_evidence",
+    filename: "041_hrx_offboarding_leave_evidence.sql",
+  }),
+  Object.freeze({
+    id: "042_hrx_payroll_statement_provider_events",
+    filename: "042_hrx_payroll_statement_provider_events.sql",
+  }),
+  Object.freeze({
+    id: "043_hrx_minimum_wage_legal_review",
+    filename: "043_hrx_minimum_wage_legal_review.sql",
+  }),
+  Object.freeze({
+    id: "044_hrx_payroll_provider_attempts",
+    filename: "044_hrx_payroll_provider_attempts.sql",
+  }),
+  Object.freeze({
+    id: "045_hrx_leave_promotion_fingerprint",
+    filename: "045_hrx_leave_promotion_fingerprint.sql",
+  }),
+  Object.freeze({
+    id: "046_hrx_payment_reconciliation_staging",
+    filename: "046_hrx_payment_reconciliation_staging.sql",
+  }),
+  Object.freeze({
+    id: "047_hrx_payroll_filing_corrections",
+    filename: "047_hrx_payroll_filing_corrections.sql",
+  }),
+  Object.freeze({
+    id: "048_hrx_recruiting_pipeline_receipts",
+    filename: "048_hrx_recruiting_pipeline_receipts.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

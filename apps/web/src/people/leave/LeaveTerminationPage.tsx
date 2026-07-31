@@ -3,12 +3,23 @@ import { Play } from "lucide-react";
 import { Panel } from "../../components/primitives.jsx";
 import { HrxStepUpChallenge } from "../security/HrxStepUpChallenge.tsx";
 import { approveHrxLeaveTermination, executeHrxLeaveTermination, fetchHrxLeaveTerminationWorkspace, previewHrxLeaveTermination } from "../hrxApiClient.ts";
+import {
+  safePeopleLabel,
+  UNRESOLVED_EMPLOYEE_LABEL,
+} from "../peoplePresentation.ts";
 
 type Row = Record<string, unknown>;
 
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
   return typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
+}
+
+function employeeLabel(row: Row | null | undefined) {
+  return safePeopleLabel(text(row, "employee_display_name"), {
+    identifiers: [text(row, "employee_id"), text(row, "user_id"), text(row, "offboarding_id"), text(row, "reconciliation_id")],
+    fallback: UNRESOLVED_EMPLOYEE_LABEL,
+  });
 }
 
 function number(row: Row | null | undefined, field: string) {
@@ -120,7 +131,7 @@ export function LeaveTerminationPage() {
       <section className="leave-accrual-section">
         <div className="leave-accrual-section-head"><h3>정산 대상</h3></div>
         <div className="leave-termination-controls">
-          <label><span>퇴사 예정자</span><select value={selectedEmployee} onChange={(event) => { setSelectedEmployee(event.target.value); setPreview(null); setResult(null); }}><option value="">대상 선택</option>{candidates.map((row) => <option key={text(row, "offboarding_id")} value={text(row, "employee_id")}>{text(row, "employee_display_name")} · {text(row, "termination_date")}</option>)}</select></label>
+          <label><span>퇴사 예정자</span><select value={selectedEmployee} onChange={(event) => { setSelectedEmployee(event.target.value); setPreview(null); setResult(null); }}><option value="">대상 선택</option>{candidates.map((row) => <option key={text(row, "offboarding_id")} value={text(row, "employee_id")}>{employeeLabel(row)} · {text(row, "termination_date")}</option>)}</select></label>
           <button className="secondary-button" type="button" disabled={!candidate || busy === "preview"} onClick={() => void runPreview()}>정산 미리보기</button>
           <button className="secondary-button" type="button" disabled={!preview || Boolean(text(preview, "approval_receipt_id")) || validationErrors.length > 0 || busy === "approve" || Boolean(result)} onClick={() => void approve()}>승인 기록</button>
           <button className="primary-button" type="button" disabled={!preview || !text(preview, "approval_receipt_id") || validationErrors.length > 0 || busy === "execute" || Boolean(result)} onClick={() => void execute()}><Play size={14} />정산 실행</button>
@@ -145,7 +156,7 @@ export function LeaveTerminationPage() {
 
       <section className="leave-accrual-section">
         <div className="leave-accrual-section-head"><h3>최근 정산</h3><span>{history.length}건</span></div>
-        {history.length > 0 && <div className="data-table-wrap"><table className="data-table"><thead><tr><th>생성 시각</th><th>구성원</th><th>퇴사일</th><th>구분</th><th>상태</th></tr></thead><tbody>{history.slice(0, 10).map((row) => { const rowResult = row.result as Row | undefined; return <tr key={text(row, "reconciliation_id")}><td>{text(row, "created_at").replace("T", " ").slice(0, 16)}</td><td>{text(rowResult, "employee_display_name")}</td><td>{text(row, "termination_date")}</td><td>{text(row, "mode") === "execute" ? "실행" : "미리보기"}</td><td>{reconciliationStateLabel(text(row, "state"))}</td></tr>; })}</tbody></table></div>}
+        {history.length > 0 && <div className="data-table-wrap"><table className="data-table"><thead><tr><th>생성 시각</th><th>구성원</th><th>퇴사일</th><th>구분</th><th>상태</th></tr></thead><tbody>{history.slice(0, 10).map((row) => { const rowResult = row.result as Row | undefined; return <tr key={text(row, "reconciliation_id")}><td>{text(row, "created_at").replace("T", " ").slice(0, 16)}</td><td>{employeeLabel({ ...row, ...(rowResult ?? {}) })}</td><td>{text(row, "termination_date")}</td><td>{text(row, "mode") === "execute" ? "실행" : "미리보기"}</td><td>{reconciliationStateLabel(text(row, "state"))}</td></tr>; })}</tbody></table></div>}
       </section>
     </Panel>
   );

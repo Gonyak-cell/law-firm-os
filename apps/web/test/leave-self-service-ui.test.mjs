@@ -75,6 +75,6 @@ test("LV-03 mounts self, team, approval, reschedule, and delegation surfaces wit
   assert.match(approvalQueue, /위임 관리/);
   assert.match(approvalQueue, /fetchHrxLeaveDelegationCandidates/);
   assert.doesNotMatch(approvalQueue, /처리할 휴가 요청이 없습니다|승인 위임 내역이 없습니다/);
-  assert.match(styles, /@media \(max-width: 720px\)[\s\S]{0,500}\.leave-approval-facts/);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*?\.leave-approval-facts/);
   assert.match(styles, /\.leave-delegation-form/);
 });

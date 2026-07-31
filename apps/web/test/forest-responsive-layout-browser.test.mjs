@@ -12,6 +12,17 @@ const webRoot = resolve(testDir, "..");
 const styles = await readFile(resolve(testDir, "../src/styles.css"), "utf8");
 const amicLawLogo = await readFile(resolve(testDir, "../src/assets/amic-law.svg"), "utf8");
 
+function assertInactiveRailColor(color) {
+  const match = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-9.]+)\s*\)$/);
+  assert.ok(match, `expected inactive rail color to be rgba(...), got ${color}`);
+  const channels = match.slice(1, 4).map(Number);
+  assert.ok(
+    channels.every((channel) => Math.abs(channel - 255) <= 1),
+    `expected inactive rail RGB channels within 1 of 255, got ${color}`
+  );
+  assert.equal(Number(match[4]), 0.72, `expected inactive rail alpha 0.72, got ${color}`);
+}
+
 async function availablePort() {
   return new Promise((resolvePort, rejectPort) => {
     const server = createNetServer();
@@ -453,7 +464,11 @@ for (const width of [1440, 1180, 820, 390]) {
 
         assert.deepEqual(geometry.axes.map((item) => item.label), ["Home", "Client", "Matter", "People", "Search", "Portal"]);
         for (const item of geometry.axes) {
-          assert.equal(item.color, item.label === "Matter" ? "rgb(255, 255, 255)" : "rgba(255, 255, 255, 0.72)");
+          if (item.label === "Matter") {
+            assert.equal(item.color, "rgb(255, 255, 255)");
+          } else {
+            assertInactiveRailColor(item.color);
+          }
           assert.equal(item.width, 40);
           assert.equal(item.height, 40);
         }

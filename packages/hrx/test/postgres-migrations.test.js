@@ -10,18 +10,27 @@ import {
   runHrxPostgresMigrations,
   verifyHrxPostgresMigrationState,
 } from "../src/postgres-migrations.js";
+import { loadHrxCoreMigrations } from "../src/migrations/index.js";
 import { HRX_APPEND_ONLY_TABLES, HRX_STORE_TABLES } from "../src/store/file-store.js";
 
-test("HRX migration inventory classifies all 32 SQLite sources and translates every abort trigger", () => {
+test("HRX migration inventory classifies every SQLite source and translates every abort trigger", () => {
   const inventory = classifyHrxPostgresMigrationGaps();
-  assert.equal(inventory.migration_count, 32);
-  assert.equal(inventory.table_count, 77);
-  assert.equal(inventory.compatible_count + inventory.translated_trigger_migration_count, 32);
-  assert.equal(inventory.translated_trigger_count, 14);
+  const sourceMigrations = loadHrxCoreMigrations();
+  assert.equal(inventory.migration_count, sourceMigrations.length);
+  assert.equal(inventory.table_count, HRX_STORE_TABLES.length);
+  assert.equal(
+    inventory.compatible_count + inventory.translated_trigger_migration_count,
+    sourceMigrations.length,
+  );
+  assert.equal(
+    inventory.translated_trigger_count,
+    inventory.rows.reduce((count, row) => count + row.sqlite_trigger_count, 0),
+  );
   assert.equal(inventory.rows.every((row) => row.translated_sql_ready), true);
   assert.equal(inventory.rows.every((row) => row.destructive_statement_count === 0), true);
-  assert.equal(listHrxPostgresMigrations().length, 38);
-  assert.equal(new Set(listHrxPostgresMigrations().map((migration) => migration.id)).size, 38);
+  const postgresMigrations = listHrxPostgresMigrations();
+  assert.equal(postgresMigrations.length >= sourceMigrations.length, true);
+  assert.equal(new Set(postgresMigrations.map((migration) => migration.id)).size, postgresMigrations.length);
 });
 
 test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery contracts", async (t) => {
@@ -50,6 +59,30 @@ test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery 
     table_count: HRX_STORE_TABLES.length,
     forced_rls_count: HRX_STORE_TABLES.length,
     policy_count: HRX_STORE_TABLES.length,
+  });
+
+  const filingCorrectionSchema = await fixture.adminPool.query(
+    `SELECT
+       EXISTS (
+         SELECT 1
+           FROM information_schema.columns
+          WHERE table_schema = 'lawos_hrx'
+            AND table_name = 'hrx_payroll_runs'
+            AND column_name = 'filing_source_hash'
+       ) AS filing_source_hash_exists,
+       EXISTS (
+         SELECT 1
+           FROM information_schema.columns
+          WHERE table_schema = 'lawos_hrx'
+            AND table_name = 'hrx_payroll_filing_jobs'
+            AND column_name = 'previous_job_ref'
+       ) AS previous_job_ref_exists,
+       to_regclass('lawos_hrx.uq_hrx_payroll_filing_previous_job')::text AS previous_job_unique_index`,
+  );
+  assert.deepEqual(filingCorrectionSchema.rows[0], {
+    filing_source_hash_exists: true,
+    previous_job_ref_exists: true,
+    previous_job_unique_index: "lawos_hrx.uq_hrx_payroll_filing_previous_job",
   });
 
   const appendOnlyTriggers = await fixture.adminPool.query(
@@ -98,6 +131,69 @@ test("HRX PostgreSQL migrations pass fresh, upgrade, RLS, checksum and recovery 
      VALUES ($1, 'employee-rls-001', 'Synthetic employee', 'active')`,
     ["tenant-hrx-a"],
   ));
+  await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: "tenant-hrx-a" },
+    (client) => client.query(
+      `INSERT INTO lawos_hrx.hrx_offboarding_cases
+         (tenant_id, offboarding_id, employee_id, separation_date, state,
+          access_revocations_json, document_returns_json, legal_hold_checks_json,
+          matter_reassignments_json, handover_items_json,
+          leave_reconciliation_status)
+       VALUES ($1, 'offboarding-evidence-001', 'employee-rls-001',
+               '2026-07-31', 'open', '[]', '[]', '[]', '[]', '[]', 'pending')`,
+      ["tenant-hrx-a"],
+    ),
+  );
+  for (const query of [
+    `INSERT INTO lawos_hrx.hrx_offboarding_cases
+       (tenant_id, offboarding_id, employee_id, separation_date, state,
+        access_revocations_json, document_returns_json, legal_hold_checks_json,
+        matter_reassignments_json, handover_items_json,
+        leave_reconciliation_status)
+     VALUES ($1, 'offboarding-evidence-missing', 'employee-rls-001',
+             '2026-07-31', 'open', '[]', '[]', '[]', '[]', '[]',
+             'approved_and_synced')`,
+    `UPDATE lawos_hrx.hrx_offboarding_cases
+        SET leave_reconciliation_status = 'approved_and_synced'
+      WHERE tenant_id = $1
+        AND offboarding_id = 'offboarding-evidence-001'`,
+  ]) {
+    await assert.rejects(
+      withPostgresTransaction(
+        fixture.appPool,
+        { tenant_id: "tenant-hrx-a" },
+        (client) => client.query(query, ["tenant-hrx-a"]),
+      ),
+      (error) => error?.postgres_code === "23514",
+    );
+  }
+  await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: "tenant-hrx-a" },
+    (client) => client.query(
+      `UPDATE lawos_hrx.hrx_offboarding_cases
+          SET leave_reconciliation_status = 'approved_and_synced',
+              leave_reconciliation_evidence_ref = 'PayrollProviderReceipt:postgres-001'
+        WHERE tenant_id = $1
+          AND offboarding_id = 'offboarding-evidence-001'`,
+      ["tenant-hrx-a"],
+    ),
+  );
+  await assert.rejects(
+    withPostgresTransaction(
+      fixture.appPool,
+      { tenant_id: "tenant-hrx-a" },
+      (client) => client.query(
+        `UPDATE lawos_hrx.hrx_offboarding_cases
+            SET leave_reconciliation_status = 'pending'
+          WHERE tenant_id = $1
+            AND offboarding_id = 'offboarding-evidence-001'`,
+        ["tenant-hrx-a"],
+      ),
+    ),
+    (error) => error?.postgres_code === "23514",
+  );
   const hidden = await withPostgresTransaction(fixture.appPool, { tenant_id: "tenant-hrx-b" }, (client) => client.query(
     "SELECT employee_id FROM lawos_hrx.hrx_employees WHERE employee_id = 'employee-rls-001'",
   ));

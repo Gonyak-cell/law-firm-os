@@ -16,6 +16,7 @@ test("HRX migrations create required tables idempotently", () => {
     "hrx_leave_balance_entries",
     "hrx_leave_requests",
     "hrx_attendance_records",
+    "hrx_attendance_correction_requests",
     "hrx_overtime_requests",
     "hrx_job_openings",
     "hrx_candidates",
@@ -23,8 +24,11 @@ test("HRX migrations create required tables idempotently", () => {
     "hrx_applications",
     "hrx_interviews",
     "hrx_offers",
+    "hrx_recruiting_pipeline_receipts",
+    "hrx_lifecycle_templates",
     "hrx_onboarding_plans",
     "hrx_offboarding_cases",
+    "hrx_offboarding_evidence_receipts",
     "hrx_audit_events",
     "hrx_ai_review_items",
     "hrx_ai_source_chunks",
@@ -125,6 +129,30 @@ test("HRX migrations create required tables idempotently", () => {
   assert.match(sql, /ALTER TABLE hrx_leave_accrual_rules ADD COLUMN supersedes_rule_id/);
   assert.match(sql, /ALTER TABLE hrx_leave_accrual_runs ADD COLUMN as_of_date/);
   assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_leave_accrual_rules_logical_version/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_lifecycle_template_version/);
+  assert.match(sql, /ALTER TABLE hrx_offboarding_cases\s+ADD COLUMN template_ref_json/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_offboarding_evidence_immutable_update/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_attendance_single_correction/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_attendance_records_immutable_update/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_attendance_correction_pending/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_runs ADD COLUMN correction_key/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_runs ADD COLUMN correction_request_hash/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS idx_hrx_payroll_runs_correction_key/);
+  assert.match(sql, /ALTER TABLE hrx_offboarding_cases\s+ADD COLUMN leave_reconciliation_evidence_ref/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_offboarding_leave_evidence_insert/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_offboarding_leave_evidence_update/);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS hrx_payroll_statement_provider_events/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_rule_versions\s+ADD COLUMN legal_review_ref/);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS hrx_payroll_provider_operations/);
+  assert.match(sql, /ALTER TABLE hrx_leave_promotion_campaigns\s+ADD COLUMN business_fingerprint/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_provider_operations\s+ADD COLUMN result_payload_json/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_provider_operations\s+ADD COLUMN result_payload_hash/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_provider_operations\s+ADD COLUMN provider_response_hash/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_runs\s+ADD COLUMN filing_source_hash/);
+  assert.match(sql, /ALTER TABLE hrx_payroll_filing_jobs\s+ADD COLUMN previous_job_ref/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS uq_hrx_payroll_filing_previous_job/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_recruiting_pipeline_receipts_immutable_update/);
+  assert.match(sql, /CREATE TRIGGER IF NOT EXISTS trg_hrx_recruiting_pipeline_receipts_immutable_delete/);
 });
 
 test("HRX core migration is non-destructive", () => {
@@ -158,5 +186,5 @@ test("HRX migration loader rejects destructive SQL", () => {
     /unsafe SQL pattern/,
   );
   assert.equal(loadHrxCoreMigrations()[0].id, "001_hrx_core");
-  assert.equal(loadHrxCoreMigrations().at(-1).id, "032_hrx_professional_profile");
+  assert.equal(loadHrxCoreMigrations().at(-1).id, "048_hrx_recruiting_pipeline_receipts");
 });

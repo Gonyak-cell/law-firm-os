@@ -1045,18 +1045,19 @@ function collectMatterTaskItems(matterRuntime, { tenant_id, context, query } = {
         matter_ref: task.matter_id ?? null,
         due_at: task.due_at,
         risk_tier: riskTier(task.risk_tier, "normal"),
-        assignee_id: task.assigned_to ?? task.assignee_id ?? null,
-        assigned_to: task.assigned_to ?? null,
+        assignee_id: task.assigned_to_user_id
+          ?? (task.assignment_resolution_state === "resolved" ? task.assigned_to : null),
+        assigned_to: task.assigned_to_user_id
+          ?? (task.assignment_resolution_state === "resolved" ? task.assigned_to : null),
         _requires_actor_assignment: true,
       }),
     )
     .filter((task) => isAssignedToActor(task, context, query));
 }
 
-function agendaKindForMatterEvent(event = {}) {
-  const text = `${event.kind ?? ""} ${event.source_ref ?? ""} ${event.title ?? ""}`.toLowerCase();
-  if (text.includes("hearing") || text.includes("court")) return "hearing";
-  if (text.includes("deadline") || text.includes("due")) return "deadline";
+export function agendaKindForMatterEvent(event = {}) {
+  if (event.event_kind === "court_hearing") return "hearing";
+  if (event.event_kind === "deadline") return "deadline";
   return "meeting";
 }
 

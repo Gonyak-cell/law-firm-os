@@ -2,12 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MainProcessAuthCoordinator } from "../src/main/auth.js";
 import { APPROVED_DEV_RENDERER_URL, isApprovedRendererUrl } from "../src/main/origin-policy.js";
-import { registerSessionIpcHandlers, SESSION_CHANNELS } from "../src/main/session-ipc.js";
+import {
+  isAllowedOutlookAuthorizationUrl,
+  registerSessionIpcHandlers,
+  SESSION_CHANNELS
+} from "../src/main/session-ipc.js";
 
 const trustedSender = (event) => isApprovedRendererUrl(event?.senderFrame?.url ?? event?.sender?.getURL?.());
 
 class FakeIpcMain {
   handlers = new Map();
+  listeners = new Map();
 
   handle(channel, handler) {
     this.handlers.set(channel, handler);
@@ -17,10 +22,22 @@ class FakeIpcMain {
     this.handlers.delete(channel);
   }
 
+  on(channel, handler) {
+    this.listeners.set(channel, handler);
+  }
+
+  removeListener(channel, handler) {
+    if (this.listeners.get(channel) === handler) this.listeners.delete(channel);
+  }
+
   invoke(channel, payload, event = { senderFrame: { url: APPROVED_DEV_RENDERER_URL } }) {
     const handler = this.handlers.get(channel);
     if (!handler) throw new Error(`missing handler: ${channel}`);
     return handler(event, payload);
+  }
+
+  emit(channel, event = { senderFrame: { url: APPROVED_DEV_RENDERER_URL } }, payload) {
+    this.listeners.get(channel)?.(event, payload);
   }
 }
 
@@ -162,6 +179,153 @@ test("session IPC does not consume the logo intro before the desktop window is s
   assert.equal((await firstClaim).play_logo_animation, true);
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.claimLogoIntro)).play_logo_animation, false);
   registration.dispose();
+});
+
+test("session IPC opens only the Microsoft Outlook authorization endpoint without returning its query", async () => {
+  const ipcMain = new FakeIpcMain();
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const opened = [];
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    openExternal: async (url) => {
+      opened.push(url);
+    }
+  });
+  const allowedUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test&state=outlook-state:01HQ";
+
+  assert.equal(isAllowedOutlookAuthorizationUrl(allowedUrl), true);
+  const result = await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl });
+  assert.deepEqual(result, { opened: true });
+  assert.deepEqual(opened, [allowedUrl]);
+  assert.equal(JSON.stringify(result).includes("client_id"), false);
+  assert.equal(JSON.stringify(result).includes("outlook-state"), false);
+
+  const rejected = [
+    "http://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "https://login.microsoftonline.com.evil.example/common/oauth2/v2.0/authorize",
+    "https://evil.example@login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "https://login.microsoftonline.com:444/common/oauth2/v2.0/authorize",
+    "https://login.microsoftonline.com/oauth2/v2.0/authorize",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize#fragment",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?access_token=must-not-open",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?refresh_token=must-not-open",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?id_token=must-not-open",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_secret=must-not-open",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?credential_ref=must-not-open",
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?token=must-not-open"
+  ];
+  for (const url of rejected) {
+    assert.equal(isAllowedOutlookAuthorizationUrl(url), false);
+    assert.deepEqual(
+      await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url }),
+      { opened: false, reason: "outlook_authorization_url_not_allowed" }
+    );
+  }
+  assert.deepEqual(opened, [allowedUrl]);
+
+  registration.dispose();
+});
+
+test("auth callback ready IPC flushes the main-process queue only after preload listener registration", () => {
+  const ipcMain = new FakeIpcMain();
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  let readyCalls = 0;
+  const acknowledgements = [];
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    onAuthCallbackReady(rendererId) {
+      readyCalls += 1;
+      assert.equal(rendererId, "4f40dbce-3cd6-4d61-a04c-15aa324eb191");
+      return [{ sent: true }];
+    },
+    onAuthCallbackAcknowledged(payload) {
+      acknowledgements.push(payload);
+    }
+  });
+
+  ipcMain.emit(
+    SESSION_CHANNELS.authCallbackReady,
+    { senderFrame: { url: APPROVED_DEV_RENDERER_URL } },
+    { renderer_id: "4f40dbce-3cd6-4d61-a04c-15aa324eb191" }
+  );
+  assert.equal(readyCalls, 1);
+  ipcMain.emit(
+    SESSION_CHANNELS.authCallbackAcknowledge,
+    { senderFrame: { url: APPROVED_DEV_RENDERER_URL } },
+    {
+      renderer_id: "4f40dbce-3cd6-4d61-a04c-15aa324eb191",
+      state: "outlook-state:accepted"
+    }
+  );
+  assert.deepEqual(acknowledgements, [{
+    rendererId: "4f40dbce-3cd6-4d61-a04c-15aa324eb191",
+    state: "outlook-state:accepted"
+  }]);
+  ipcMain.emit(
+    SESSION_CHANNELS.authCallbackReady,
+    { senderFrame: { url: "file:///tmp/untrusted.html" } }
+  );
+  assert.equal(readyCalls, 1);
+  ipcMain.emit(
+    SESSION_CHANNELS.authCallbackAcknowledge,
+    { senderFrame: { url: "file:///tmp/untrusted.html" } },
+    {
+      renderer_id: "4f40dbce-3cd6-4d61-a04c-15aa324eb191",
+      state: "outlook-state:untrusted"
+    }
+  );
+  assert.equal(acknowledgements.length, 1);
+  registration.dispose();
+  assert.equal(ipcMain.listeners.has(SESSION_CHANNELS.authCallbackReady), false);
+  assert.equal(ipcMain.listeners.has(SESSION_CHANNELS.authCallbackAcknowledge), false);
+});
+
+test("Outlook authorization IPC fails closed for missing opener errors and untrusted renderers", async () => {
+  const allowedUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=lawos-test";
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+
+  const unavailableIpc = new FakeIpcMain();
+  const unavailableRegistration = registerSessionIpcHandlers({
+    ipcMain: unavailableIpc,
+    coordinator,
+    isTrustedSender: trustedSender
+  });
+  assert.deepEqual(
+    await unavailableIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl }),
+    { opened: false, reason: "outlook_authorization_opener_unavailable" }
+  );
+  unavailableRegistration.dispose();
+
+  const failingIpc = new FakeIpcMain();
+  let calls = 0;
+  const failingRegistration = registerSessionIpcHandlers({
+    ipcMain: failingIpc,
+    coordinator,
+    isTrustedSender: trustedSender,
+    openExternal: async () => {
+      calls += 1;
+      throw new Error(`provider failure containing ${allowedUrl}`);
+    }
+  });
+  assert.deepEqual(
+    await failingIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl }),
+    { opened: false, reason: "outlook_authorization_open_failed" }
+  );
+  await assert.rejects(
+    () => failingIpc.invoke(
+      SESSION_CHANNELS.openOutlookAuthorization,
+      { url: allowedUrl },
+      { senderFrame: { url: "file:///tmp/untrusted.html" } }
+    ),
+    (error) => error?.code === "UNTRUSTED_RENDERER_IPC_SENDER"
+  );
+  assert.equal(calls, 1);
+  failingRegistration.dispose();
 });
 
 test("session IPC preserves login lockout state without signing the renderer in", async () => {

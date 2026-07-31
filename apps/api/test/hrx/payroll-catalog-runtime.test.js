@@ -6,6 +6,7 @@ import { hrxRoleProfileAllowsPolicy, hrxScopesForRoleProfile } from "../../src/h
 import { resolveHrxRoutePolicy } from "../../src/routes/hrx/route-policy-map.js";
 import { runHrxMigrations } from "../../../../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../../../../packages/hrx/src/store/file-store.js";
+import { encryptCompensationAmount } from "../../../../packages/hrx/src/compensation.js";
 
 const TENANT = "tenant-payroll-catalog-runtime";
 const NOW = "2026-07-15T01:00:00.000Z";
@@ -53,6 +54,43 @@ test("RC-005-F exposes tenant-scoped catalog and masked profile assignments thro
       user_id: "user-self",
       purpose: "login_mapping",
     });
+    store.query("insert", {
+      table: "hrx_compensation_records",
+      row: {
+        tenant_id: TENANT,
+        compensation_id: "comp-self",
+        employee_id: "emp-self",
+        encrypted_amount_ref: encryptCompensationAmount({ tenant_id: TENANT, employee_id: "emp-self", compensation_id: "comp-self", amount_minor: 3_000_000, currency_ref: "KRW" }, { allowSyntheticKey: true }),
+        currency_ref: "KRW",
+        raw_amount_included: false,
+        effective_from: "2026-01-01",
+        effective_to: null,
+        source_ref: "artifact:synthetic-compensation/emp-self",
+        employment_contract_id: "contract-emp-self",
+        contract_document_ref: "artifact:contract/emp-self",
+        created_at: NOW,
+        updated_at: NOW,
+      },
+    });
+    context.repository.createEmployee({ tenant_id: TENANT, employee_id: "emp-other", display_name: "다른 구성원", status: "active" });
+    store.query("insert", {
+      table: "hrx_compensation_records",
+      row: {
+        tenant_id: TENANT,
+        compensation_id: "comp-other",
+        employee_id: "emp-other",
+        encrypted_amount_ref: encryptCompensationAmount({ tenant_id: TENANT, employee_id: "emp-other", compensation_id: "comp-other", amount_minor: 3_100_000, currency_ref: "KRW" }, { allowSyntheticKey: true }),
+        currency_ref: "KRW",
+        raw_amount_included: false,
+        effective_from: "2026-01-01",
+        effective_to: null,
+        source_ref: "artifact:synthetic-compensation/emp-other",
+        employment_contract_id: "contract-emp-other",
+        contract_document_ref: "artifact:contract/emp-other",
+        created_at: NOW,
+        updated_at: NOW,
+      },
+    });
 
     const createdItem = await request(context, "/api/hrx/payroll/items", "POST", {
       item_id: "base-salary",
@@ -72,10 +110,59 @@ test("RC-005-F exposes tenant-scoped catalog and masked profile assignments thro
       employee_id: "emp-self",
       employment_type: "monthly",
       pay_group_code: "KR-MONTHLY",
-      compensation_ref: "compensation:profile-self",
+      compensation_ref: "compensation:comp-self",
+      deduction_input: {
+        dependent_count: 0,
+        income_tax_exempt: false,
+        withholding_category: null,
+        pension: { enrolled: false },
+        health: { enrolled: false },
+        employment_insurance: { enrolled: false },
+      },
       effective_from: "2026-01-01",
     });
     assert.equal(profile.status, 201, JSON.stringify(profile.body));
+
+    const deductionInput = {
+      dependent_count: 0,
+      income_tax_exempt: false,
+      withholding_category: null,
+      pension: { enrolled: false },
+      health: { enrolled: false },
+      employment_insurance: { enrolled: false },
+    };
+    const missingCompensation = await request(context, "/api/hrx/payroll/profiles", "POST", {
+      payroll_profile_id: "profile-missing-compensation",
+      employee_id: "emp-self",
+      employment_type: "monthly",
+      pay_group_code: "KR-MONTHLY",
+      compensation_ref: "compensation:not-found",
+      deduction_input: deductionInput,
+      effective_from: "2026-02-01",
+    });
+    assert.equal(missingCompensation.status, 400);
+    assert.equal(missingCompensation.body.safe_error_code, "HRX_PAYROLL_COMPENSATION_RECORD_MISSING");
+    const crossEmployee = await request(context, "/api/hrx/payroll/profiles", "POST", {
+      payroll_profile_id: "profile-cross-employee",
+      employee_id: "emp-self",
+      employment_type: "monthly",
+      pay_group_code: "KR-MONTHLY",
+      compensation_ref: "compensation:comp-other",
+      deduction_input: deductionInput,
+      effective_from: "2026-02-01",
+    });
+    assert.equal(crossEmployee.status, 400);
+    assert.equal(crossEmployee.body.safe_error_code, "HRX_PAYROLL_COMPENSATION_EMPLOYEE_MISMATCH");
+    const missingDeduction = await request(context, "/api/hrx/payroll/profiles", "POST", {
+      payroll_profile_id: "profile-missing-deduction",
+      employee_id: "emp-self",
+      employment_type: "monthly",
+      pay_group_code: "KR-MONTHLY",
+      compensation_ref: "compensation:comp-self",
+      effective_from: "2026-02-01",
+    });
+    assert.equal(missingDeduction.status, 400);
+    assert.equal(missingDeduction.body.safe_error_code, "HRX_PAYROLL_DEDUCTION_INPUT_REQUIRED");
 
     const assignment = await request(context, "/api/hrx/payroll/profiles/profile-self/assignments", "POST", {
       assignment_id: "assignment-self-v1",
@@ -101,6 +188,45 @@ test("RC-005-F exposes tenant-scoped catalog and masked profile assignments thro
     assert.equal(self.status, 200, JSON.stringify(self.body));
     assert.equal(self.body.profiles[0].employee_id, "emp-self");
     assert.equal(self.body.profiles[0].assignments.length, 1);
+    assert.deepEqual(Object.keys(self.body.profiles[0]).sort(), [
+      "assignments", "compensation_quantity", "compensation_unit", "currency", "effective_from", "effective_to",
+      "employee_id", "employment_type", "pay_group_code", "payroll_profile_id", "state_version", "status",
+    ].sort());
+    assert.deepEqual(Object.keys(self.body.profiles[0].assignments[0]).sort(), [
+      "assignment_id", "currency_ref", "effective_from", "effective_to", "employee_id", "encrypted_amount_ref_included",
+      "item_id", "masked_compensation_ref", "payroll_profile_id", "raw_amount_included", "status", "version",
+    ].sort());
+    assert.equal(Object.hasOwn(self.body.profiles[0], "compensation_ref"), false);
+    assert.equal(Object.hasOwn(self.body.profiles[0], "deduction_input_json"), false);
+    assert.equal(Object.hasOwn(self.body.profiles[0].assignments[0], "source_ref"), false);
+
+    const retiredAssignment = await request(context, "/api/hrx/payroll/profiles/profile-self/assignments/assignment-self-v1/retire", "POST", {
+      expected_version: 1,
+    });
+    assert.equal(retiredAssignment.status, 200, JSON.stringify(retiredAssignment.body));
+    assert.equal(retiredAssignment.body.assignment.status, "inactive");
+
+    const mismatch = await request(context, "/api/hrx/payroll/profiles/profile-self", "PATCH", {
+      payroll_profile_id: "different-profile",
+      status: "inactive",
+    });
+    assert.equal(mismatch.status, 400);
+    assert.equal(mismatch.body.safe_error_code, "HRX_PAYROLL_PROFILE_ID_MISMATCH");
+    for (const bodyId of ["", null, 123]) {
+      const invalidBodyId = await request(context, "/api/hrx/payroll/profiles/profile-self", "PATCH", {
+        payroll_profile_id: bodyId,
+        status: "inactive",
+      });
+      assert.equal(invalidBodyId.status, 400, JSON.stringify(invalidBodyId.body));
+      assert.equal(invalidBodyId.body.safe_error_code, "HRX_PAYROLL_PROFILE_ID_MISMATCH");
+    }
+    const matching = await request(context, "/api/hrx/payroll/profiles/profile-self", "PATCH", {
+      payroll_profile_id: "profile-self",
+      expected_version: 1,
+      status: "inactive",
+    });
+    assert.equal(matching.status, 200, JSON.stringify(matching.body));
+    assert.equal(matching.body.profile.status, "inactive");
 
     const isolated = await request(
       context,

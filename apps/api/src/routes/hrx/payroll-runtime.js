@@ -1,6 +1,173 @@
 import { randomUUID } from "node:crypto";
 import { SYNTHETIC_PAYROLL_FILING_SCHEMAS } from "../../../../../packages/hrx/src/payroll/filing-service.js";
+import { HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED } from "../../../../../packages/hrx/src/payroll/repository.js";
 import { createPayrollStepUpReceipt } from "../../../../../packages/hrx/src/payroll/run-service.js";
+import { serializePayrollClosePrecheck } from "../../../../../packages/hrx/src/payroll/close-precheck.js";
+import { serializeMinimumWageImpact } from "../../../../../packages/hrx/src/payroll/minimum-wage.js";
+import {
+  publicEmployeeDisplayName,
+  publicPeopleLabel,
+} from "../../../../../packages/hrx/src/people-presentation.js";
+
+const PAYMENT_RECONCILIATION_REMATERIALIZATION_ERRORS = new WeakSet();
+const PUBLIC_PAYROLL_SAFE_ERROR_CODES = new Set(`
+  HRX_MINIMUM_WAGE_COVERAGE_INVALID
+  HRX_MINIMUM_WAGE_INPUT_SOURCE_REQUIRED
+  HRX_MINIMUM_WAGE_LEGAL_REVIEW_REQUIRED
+  HRX_MINIMUM_WAGE_LEGAL_REVIEW_SCOPE_REQUIRED
+  HRX_MINIMUM_WAGE_LEGAL_REVIEW_STATE_INVALID
+  HRX_MINIMUM_WAGE_NOT_FOUND
+  HRX_PAYROLL_ADJUSTMENT_AMOUNT_INVALID
+  HRX_PAYROLL_ADJUSTMENT_EMPTY
+  HRX_PAYROLL_ADJUSTMENT_SOURCE_CHANGED
+  HRX_PAYROLL_ADJUSTMENT_SOURCE_INVALID
+  HRX_PAYROLL_ADJUSTMENT_STATE_INVALID
+  HRX_PAYROLL_ASSIGNMENT_CURRENCY_MISMATCH
+  HRX_PAYROLL_ASSIGNMENT_INACTIVE
+  HRX_PAYROLL_ASSIGNMENT_ITEM_PERIOD
+  HRX_PAYROLL_ASSIGNMENT_NOT_CURRENT
+  HRX_PAYROLL_ASSIGNMENT_NOT_FOUND
+  HRX_PAYROLL_ASSIGNMENT_PERIOD_OVERLAP
+  HRX_PAYROLL_ASSIGNMENT_PROFILE_PERIOD
+  HRX_PAYROLL_ATTENDANCE_APPROVAL_IDEMPOTENCY_CONFLICT
+  HRX_PAYROLL_ATTENDANCE_NOT_FOUND
+  HRX_PAYROLL_BANK_PROVIDER_REQUIRED
+  HRX_PAYROLL_BLOCKERS_OPEN
+  HRX_PAYROLL_CLOSE_PRECHECK_BLOCKED
+  HRX_PAYROLL_CLOSE_PRECHECK_DISABLED
+  HRX_PAYROLL_COMPENSATION_EMPLOYEE_MISMATCH
+  HRX_PAYROLL_COMPENSATION_PERIOD_MISMATCH
+  HRX_PAYROLL_COMPENSATION_RECORD_MISSING
+  HRX_PAYROLL_COMPENSATION_REF_INVALID
+  HRX_PAYROLL_CORRECTION_KEY_CONFLICT
+  HRX_PAYROLL_DASHBOARD_MONTH_INVALID
+  HRX_PAYROLL_DEDUCTION_INPUT_INVALID
+  HRX_PAYROLL_DEDUCTION_INPUT_REQUIRED
+  HRX_PAYROLL_DELIVERY_PROVIDER_REQUIRED
+  HRX_PAYROLL_DELIVERY_REVOKED
+  HRX_PAYROLL_DELIVERY_STATE_INVALID
+  HRX_PAYROLL_FILING_ATTEMPT_STATE_INVALID
+  HRX_PAYROLL_FILING_CORRECTION_NO_CHANGE
+  HRX_PAYROLL_FILING_CORRECTION_SOURCE_INVALID
+  HRX_PAYROLL_FILING_NOT_FOUND
+  HRX_PAYROLL_FILING_PROVIDER_PENDING
+  HRX_PAYROLL_FILING_PROVIDER_REQUIRED
+  HRX_PAYROLL_FILING_RECEIPT_DUPLICATE
+  HRX_PAYROLL_FILING_RECORDS_FORBIDDEN
+  HRX_PAYROLL_FILING_RESULTS_REQUIRED
+  HRX_PAYROLL_FILING_RESULT_DUPLICATE
+  HRX_PAYROLL_FILING_SCHEMA_UNAPPROVED
+  HRX_PAYROLL_FILING_SOURCE_HASH_MISMATCH
+  HRX_PAYROLL_FILING_SOURCE_VERIFICATION_REQUIRED
+  HRX_PAYROLL_FILING_STATE_INVALID
+  HRX_PAYROLL_FILING_TOTAL_MISMATCH
+  HRX_PAYROLL_ISSUE_STATE_INVALID
+  HRX_PAYROLL_ITEM_INACTIVE
+  HRX_PAYROLL_ITEM_NOT_FOUND
+  HRX_PAYROLL_MIGRATION_APPROVAL_REQUIRED
+  HRX_PAYROLL_MIGRATION_BACKUP_UNAVAILABLE
+  HRX_PAYROLL_MIGRATION_ROLLBACK_STALE
+  HRX_PAYROLL_NOT_FOUND
+  HRX_PAYROLL_NO_PAYABLE_ITEMS
+  HRX_PAYROLL_PAYMENT_ACCOUNT_MISSING
+  HRX_PAYROLL_PAYMENT_APPROVER_SEPARATION
+  HRX_PAYROLL_PAYMENT_COUNT_MISMATCH
+  HRX_PAYROLL_PAYMENT_NOT_FOUND
+  HRX_PAYROLL_PAYMENT_OUTCOME_DUPLICATE
+  HRX_PAYROLL_PAYMENT_RECONCILIATION_INCOMPLETE
+  HRX_PAYROLL_PAYMENT_RESULT_HASH_MISMATCH
+  HRX_PAYROLL_PAYMENT_RESULT_INVALID
+  HRX_PAYROLL_PAYMENT_RETRY_SCOPE_INVALID
+  HRX_PAYROLL_PAYMENT_STATE_INVALID
+  HRX_PAYROLL_PAYMENT_TAMPERED
+  HRX_PAYROLL_PAYMENT_TOTAL_MISMATCH
+  HRX_PAYROLL_PREVIEW_EXISTS
+  HRX_PAYROLL_PROFILE_ID_MISMATCH
+  HRX_PAYROLL_PROFILE_INACTIVE
+  HRX_PAYROLL_PROFILE_NOT_FOUND
+  HRX_PAYROLL_PROVIDER_EVENT_CONFLICT
+  HRX_PAYROLL_PROVIDER_EVENT_OUT_OF_ORDER
+  HRX_PAYROLL_PROVIDER_EVENT_STATE_UNKNOWN
+  HRX_PAYROLL_PROVIDER_EVENT_TIME_INVALID
+  HRX_PAYROLL_PROVIDER_ID_MISMATCH
+  HRX_PAYROLL_PROVIDER_RECEIPT_INVALID
+  HRX_PAYROLL_PROVIDER_RECEIPT_REQUIRED
+  HRX_PAYROLL_PROVIDER_REPORTED_FAILED
+  HRX_PAYROLL_PROVIDER_REQUEST_FAILED
+  HRX_PAYROLL_PROVIDER_STATUS_INVALID
+  HRX_PAYROLL_PROVIDER_STATUS_REQUIRED
+  HRX_PAYROLL_PROVIDER_STATUS_UNAVAILABLE
+  HRX_PAYROLL_RECONCILIATION_MANUAL_REQUIRED
+  HRX_PAYROLL_RECONCILIATION_RECOVERY_STATE_INVALID
+  HRX_PAYROLL_RECOVERY_WORKFLOW_REQUIRED
+  HRX_PAYROLL_RESULT_IMMUTABLE
+  HRX_PAYROLL_RETIREMENT_PLAN_DUPLICATE
+  HRX_PAYROLL_RULE_COVERAGE_INVALID
+  HRX_PAYROLL_RULE_NOT_FOUND
+  HRX_PAYROLL_RULE_PUBLISH_DISABLED
+  HRX_PAYROLL_RULE_STATE_INVALID
+  HRX_PAYROLL_RUNTIME_ERROR
+  HRX_PAYROLL_RUN_DUPLICATE
+  HRX_PAYROLL_RUN_NOT_CLOSED
+  HRX_PAYROLL_SELF_APPROVAL
+  HRX_PAYROLL_SNAPSHOT_MISMATCH
+  HRX_PAYROLL_STATEMENT_DELIVERY_DISABLED
+  HRX_PAYROLL_STATEMENT_INTEGRITY
+  HRX_PAYROLL_STATEMENT_NOT_FOUND
+  HRX_PAYROLL_STATE_INVALID
+  HRX_PAYROLL_TEMPLATE_STATE_INVALID
+  HRX_PAYROLL_TENANT_MISMATCH
+  HRX_PAYROLL_TERMINATION_DATE_INVALID
+  HRX_PAYROLL_TIME_OVERTIME_EXCEEDS_ATTENDANCE
+  HRX_PAYROLL_WITHHOLDING_CATEGORY_REQUIRED
+  HRX_PAYROLL_YEAR_END_COLLECTION_INCOMPLETE
+  HRX_PAYROLL_YEAR_END_COLLECTION_REQUIRED
+  HRX_PAYROLL_YEAR_END_INPUT_IMMUTABLE
+  HRX_PAYROLL_YEAR_END_REVIEW_REQUIRED
+  HRX_PAYROLL_YEAR_END_STATE_INVALID
+  HRX_POSTGRES_BASELINE_CONFLICT
+  HRX_PROVIDER_ATTEMPT_COUNT_MISMATCH
+  HRX_PROVIDER_CONNECTION_REQUIRED
+  HRX_PROVIDER_IDEMPOTENCY_CONFLICT
+  HRX_PROVIDER_ITEM_DUPLICATE
+  HRX_PROVIDER_OPERATION_COMPLETE
+  HRX_PROVIDER_OPERATION_IN_PROGRESS
+  HRX_PROVIDER_OPERATION_STATE_INVALID
+  HRX_PROVIDER_PRODUCTION_REFERENCE_REQUIRED
+  HRX_PROVIDER_RECEIPT_DUPLICATE
+  HRX_PROVIDER_RECEIPT_SCOPE_MISMATCH
+  HRX_PROVIDER_RESULT_UNKNOWN
+  HRX_PROVIDER_RETRY_LIMIT_EXCEEDED
+  HRX_PROVIDER_SYNTHETIC_PRODUCTION_FORBIDDEN
+  HRX_PROVIDER_SYNTHETIC_RECEIPT_FORBIDDEN
+  HRX_STATE_VERSION_CONFLICT
+  HRX_STEP_UP_EXPIRED
+  HRX_STEP_UP_INVALID
+  HRX_STEP_UP_REQUIRED
+  HRX_STEP_UP_SCOPE_INVALID
+  POSTGRES_ACCESS_DENIED
+  POSTGRES_OPERATION_FAILED
+  POSTGRES_TRANSACTION_RETRY_EXHAUSTED
+  POSTGRES_UNIQUE_CONFLICT
+`.trim().split(/\s+/));
+
+const PROVIDER_ERROR_BY_ACTION = Object.freeze({
+  "filing-submit": Object.freeze({
+    status: 503,
+    safe_error_code: "HRX_PAYROLL_FILING_PROVIDER_UNAVAILABLE",
+    reason: "급여 신고 연동을 일시적으로 사용할 수 없습니다.",
+  }),
+  payment: Object.freeze({
+    status: 503,
+    safe_error_code: "HRX_PAYROLL_PAYMENT_PROVIDER_UNAVAILABLE",
+    reason: "급여 지급 연동을 일시적으로 사용할 수 없습니다.",
+  }),
+  statement: Object.freeze({
+    status: 503,
+    safe_error_code: "HRX_PAYROLL_STATEMENT_PROVIDER_UNAVAILABLE",
+    reason: "급여명세서 연동을 일시적으로 사용할 수 없습니다.",
+  }),
+});
 
 function response(status, body) {
   return Object.freeze({ status, body: Object.freeze(body) });
@@ -21,12 +188,70 @@ function parseJson(value, fallback) {
   }
 }
 
-function safeError(error) {
-  return response(error?.status ?? 400, {
-    outcome: "blocked",
-    safe_error_code: error?.safe_error_code ?? "HRX_PAYROLL_RUNTIME_ERROR",
-    reason: error?.message ?? "Payroll runtime request failed",
+const MISSING_EMPLOYEE_DISPLAY_NAME = "구성원 이름 확인 필요";
+
+function safeHumanDisplayName(value, fallback, opaqueIdentifiers = []) {
+  return publicPeopleLabel(value, {
+    references: opaqueIdentifiers,
+    fallback,
   });
+}
+
+function publicErrorReason(status) {
+  if (status === 401 || status === 403) return "급여 작업 권한을 확인할 수 없습니다.";
+  if (status === 404) return "요청한 급여 정보를 찾을 수 없습니다.";
+  if (status === 409) return "현재 상태에서는 급여 작업을 처리할 수 없습니다.";
+  if (status === 429) return "급여 요청이 많습니다. 잠시 후 다시 시도해 주세요.";
+  if (status >= 500) return "급여 서비스를 일시적으로 사용할 수 없습니다.";
+  return "급여 요청값을 확인해 주세요.";
+}
+
+function providerError(action) {
+  if (action === "filing-submit") return PROVIDER_ERROR_BY_ACTION["filing-submit"];
+  if (action?.startsWith("payment-")) return PROVIDER_ERROR_BY_ACTION.payment;
+  if (action?.startsWith("statement")) return PROVIDER_ERROR_BY_ACTION.statement;
+  return Object.freeze({
+    status: 500,
+    safe_error_code: "HRX_PAYROLL_RUNTIME_ERROR",
+    reason: "급여 요청을 처리할 수 없습니다.",
+  });
+}
+
+function safeError(error, action) {
+  const safeErrorCode = typeof error?.safe_error_code === "string"
+    && PUBLIC_PAYROLL_SAFE_ERROR_CODES.has(error.safe_error_code)
+    ? error.safe_error_code
+    : null;
+  if (!safeErrorCode) {
+    const fallback = error instanceof TypeError
+      ? Object.freeze({
+          status: 400,
+          safe_error_code: "HRX_PAYROLL_REQUEST_INVALID",
+          reason: "급여 요청값을 확인해 주세요.",
+        })
+      : providerError(action);
+    return response(fallback.status, {
+      outcome: "blocked",
+      safe_error_code: fallback.safe_error_code,
+      reason: fallback.reason,
+    });
+  }
+  const status = Number.isInteger(error?.status) && error.status >= 400 && error.status < 600
+    ? error.status
+    : 400;
+  return response(status, {
+    outcome: "blocked",
+    safe_error_code: safeErrorCode,
+    reason: publicErrorReason(status),
+  });
+}
+
+function hasScope(context, scope) {
+  return Array.isArray(context?.hrx_scopes) && context.hrx_scopes.includes(scope);
+}
+
+function canViewPayrollAmounts(context) {
+  return context?.can_view_payroll_details === true || hasScope(context, "hrx.payroll.amount.read");
 }
 
 function runStatusLabel(status) {
@@ -123,9 +348,218 @@ function paymentBundle(runtime, context, batchId) {
   return Object.freeze({ ...value, production_ready_claim: false });
 }
 
-function employeeRows(store, context, bundle) {
-  const employees = new Map(store.query("select", { table: "hrx_employees", where: { tenant_id: context.tenant_id } })
-    .map((row) => [row.employee_id, row]));
+function paymentReconciliationPending(operation) {
+  return response(202, {
+    outcome: "pending",
+    provider_operation_state: operation.state,
+    retryable: false,
+    manual_reconciliation_required: false,
+    production_ready_claim: false,
+  });
+}
+
+function paymentReconciliationUnknown(claim) {
+  return response(409, {
+    outcome: "unknown_reconciliation_required",
+    safe_error_code: HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED,
+    provider_operation_state: "unknown",
+    idempotency_key: claim.plan.scope.idempotency_key,
+    payload_hash: claim.plan.scope.payload_hash,
+    retryable: false,
+    manual_reconciliation_required: true,
+    effectful_retry_blocked: true,
+    production_ready_claim: false,
+  });
+}
+
+function supportsReadOnlyReconciliationLookup(port) {
+  return port?.recovery_lookup === "read_only_by_idempotency_key"
+    && typeof port.lookup === "function";
+}
+
+function sameProviderOperationVersion(local, authoritative) {
+  return local?.provider_operation_id === authoritative?.provider_operation_id
+    && local?.request_hash === authoritative?.request_hash
+    && local?.state === authoritative?.state
+    && local?.state_version === authoritative?.state_version;
+}
+
+function paymentReconciliationRematerializationRequired() {
+  const error = new Error("PostgreSQL bank checkpoint changed after HRX materialization");
+  error.safe_error_code = "HRX_POSTGRES_BASELINE_CONFLICT";
+  error.status = 409;
+  PAYMENT_RECONCILIATION_REMATERIALIZATION_ERRORS.add(error);
+  return error;
+}
+
+async function executePaymentReconciliation(runtime, context, {
+  payment_batch_id: batchId,
+  mode,
+  body = {},
+} = {}) {
+  const current = runtime.paymentService.bundle(context, batchId);
+  if (mode === "initial" && current.batch.state === "reconciled") {
+    const payment = runtime.paymentService.reconcile(context, { payment_batch_id: batchId });
+    return response(200, {
+      outcome: "replayed",
+      payment: Object.freeze({ ...payment, production_ready_claim: false }),
+    });
+  }
+  if (mode === "retry" && !current.items.some((item) => item.state === "failed")) {
+    const payment = runtime.paymentService.retryFailed(context, { payment_batch_id: batchId });
+    return response(200, {
+      outcome: "replayed",
+      payment: Object.freeze({ ...payment, production_ready_claim: false }),
+    });
+  }
+  const operatorRecovery = body?.confirm_unknown_reconciliation === true;
+  if (!operatorRecovery && typeof runtime.bankReconciliationPort?.reconcile !== "function") {
+    const error = new Error("Authoritative bank reconciliation provider is required");
+    error.safe_error_code = "HRX_PAYROLL_BANK_PROVIDER_REQUIRED";
+    error.status = 503;
+    throw error;
+  }
+  const claimInput = Object.freeze({ payment_batch_id: batchId, mode });
+  let checkpointClaim = null;
+  let claim;
+  if (runtime.bankReconciliationCheckpoint) {
+    const prepared = runtime.paymentService.prepareReconciliationClaim(context, claimInput);
+    if (prepared.status === "completed") {
+      return response(200, {
+        outcome: "replayed",
+        payment: Object.freeze({ ...prepared.payment, production_ready_claim: false }),
+      });
+    }
+    checkpointClaim = await runtime.bankReconciliationCheckpoint.claim(context, prepared);
+    if (!checkpointClaim.should_execute
+      && checkpointClaim.operation?.state === "in_progress") {
+      checkpointClaim = await runtime.bankReconciliationCheckpoint.expire(context, prepared);
+      if (checkpointClaim.operation?.state === "in_progress") {
+        return paymentReconciliationPending(checkpointClaim.operation);
+      }
+    }
+    if (!checkpointClaim.should_execute
+      && !sameProviderOperationVersion(prepared.operation, checkpointClaim.operation)) {
+      throw paymentReconciliationRematerializationRequired();
+    }
+    claim = runtime.paymentService.claimReconciliation(context, claimInput, {
+      plan: prepared.plan,
+    });
+  } else {
+    claim = runtime.paymentService.claimReconciliation(context, claimInput);
+  }
+  if (claim.status === "completed") {
+    return response(200, {
+      outcome: "replayed",
+      payment: Object.freeze({ ...claim.payment, production_ready_claim: false }),
+    });
+  }
+  const authoritativeOperation = checkpointClaim?.operation ?? claim.operation;
+  const manualRequired = authoritativeOperation.state === "unknown"
+    && authoritativeOperation.safe_error_code === HRX_PAYMENT_RECONCILIATION_MANUAL_REQUIRED;
+  if (manualRequired) {
+    let providerResult = operatorRecovery ? body : null;
+    if (!providerResult && supportsReadOnlyReconciliationLookup(runtime.bankReconciliationPort)) {
+      providerResult = await runtime.bankReconciliationPort.lookup({
+        context,
+        bundle: claim.plan.current,
+        mode,
+        ...claim.provider_request,
+      });
+    }
+    if (!providerResult) return paymentReconciliationUnknown(claim);
+    const validated = runtime.paymentService.validateReconciliationResult(context, claim, providerResult);
+    if (runtime.bankReconciliationCheckpoint) {
+      await runtime.bankReconciliationCheckpoint.stage(context, claim, validated);
+    }
+    const payment = runtime.paymentService.recoverReconciliation(
+      context,
+      claim,
+      providerResult,
+      validated,
+    );
+    return response(200, {
+      outcome: payment.reconciliation_state,
+      payment: Object.freeze({ ...payment, production_ready_claim: false }),
+    });
+  }
+  if (operatorRecovery) {
+    const error = new Error("Manual bank reconciliation is not required");
+    error.safe_error_code = "HRX_PAYROLL_RECONCILIATION_RECOVERY_STATE_INVALID";
+    error.status = 409;
+    throw error;
+  }
+  if (checkpointClaim && !checkpointClaim.should_execute) {
+    return paymentReconciliationPending(authoritativeOperation);
+  }
+  if (!claim.should_execute) return paymentReconciliationPending(claim.operation);
+
+  let providerResult;
+  try {
+    providerResult = await runtime.bankReconciliationPort.reconcile({
+      context,
+      bundle: claim.plan.current,
+      mode,
+      ...claim.provider_request,
+    });
+  } catch (error) {
+    if (runtime.bankReconciliationCheckpoint) {
+      await runtime.bankReconciliationCheckpoint.fail(context, claim, error);
+    }
+    runtime.paymentService.failReconciliation(context, claim, error);
+    throw error;
+  }
+  let payment;
+  try {
+    const validated = runtime.paymentService.validateReconciliationResult(context, claim, providerResult);
+    if (runtime.bankReconciliationCheckpoint) {
+      await runtime.bankReconciliationCheckpoint.stage(context, claim, validated);
+    }
+    payment = runtime.paymentService.settleReconciliation(context, claim, providerResult, validated);
+  } catch (error) {
+    if (runtime.bankReconciliationCheckpoint) {
+      await runtime.bankReconciliationCheckpoint.fail(context, claim, error);
+    }
+    runtime.paymentService.failReconciliation(context, claim, error);
+    throw error;
+  }
+  return response(200, {
+    outcome: mode === "initial" ? "reconciled" : payment.reconciliation_state,
+    payment: Object.freeze({ ...payment, production_ready_claim: false }),
+  });
+}
+
+function payrollPresentationDirectory(store, context) {
+  const employeeRecords = store.query("select", { table: "hrx_employees", where: { tenant_id: context.tenant_id } });
+  const links = store.query("select", { table: "hrx_employee_user_links", where: { tenant_id: context.tenant_id } });
+  const opaqueIdentifiers = [
+    ...employeeRecords.map((row) => row.employee_id),
+    ...links.map((row) => row.user_id),
+  ].filter((value) => typeof value === "string" && value.trim());
+  const displayNames = new Map(employeeRecords.map((row) => [
+    row.employee_id,
+    safeHumanDisplayName(row.display_name, MISSING_EMPLOYEE_DISPLAY_NAME, [
+      ...opaqueIdentifiers,
+      row.employee_id,
+      ...links.filter((link) => link.employee_id === row.employee_id).map((link) => link.user_id),
+    ]),
+  ]));
+  const actorDisplayName = (actorId) => {
+    if (typeof actorId !== "string" || !actorId.trim()) return null;
+    const matchingLinks = links.filter((link) => link.user_id === actorId);
+    if (matchingLinks.length !== 1) return null;
+    const employee = employeeRecords.find((row) => row.employee_id === matchingLinks[0].employee_id);
+    if (!employee) return null;
+    return safeHumanDisplayName(employee.display_name, null, [
+      actorId,
+      employee.employee_id,
+      ...opaqueIdentifiers,
+    ]);
+  };
+  return { displayNames, actorDisplayName };
+}
+
+function employeeRows(bundle, presentation) {
   const issues = new Map();
   for (const row of bundle.issues) {
     const values = issues.get(row.employee_id) ?? [];
@@ -142,7 +576,7 @@ function employeeRows(store, context, bundle) {
     return Object.freeze({
       employee_id: employeeId,
       result_id: result?.result_id ?? null,
-      display_name: employees.get(employeeId)?.display_name ?? employeeId,
+      display_name: presentation.displayNames.get(employeeId) ?? MISSING_EMPLOYEE_DISPLAY_NAME,
       gross_krw: result?.gross_krw ?? 0,
       deduction_krw: result?.deduction_krw ?? 0,
       net_krw: result?.net_krw ?? 0,
@@ -156,7 +590,9 @@ function employeeRows(store, context, bundle) {
 
 function runBundle(runtime, store, context, runId) {
   const bundle = runtime.payrollRepository.getRunBundle(context, { run_id: runId });
-  const employees = employeeRows(store, context, bundle);
+  const presentation = payrollPresentationDirectory(store, context);
+  const employees = employeeRows(bundle, presentation);
+  const approvedByActorDisplayName = presentation.actorDisplayName(bundle.run.approved_by_actor_id);
   const totals = employees.reduce((sum, row) => ({
     gross_krw: sum.gross_krw + row.gross_krw,
     deduction_krw: sum.deduction_krw + row.deduction_krw,
@@ -176,16 +612,41 @@ function runBundle(runtime, store, context, runId) {
       unpaid_leave_minutes: row.unpaid_leave_minutes,
       captured_at: row.captured_at,
     }))),
-    run: Object.freeze({ ...bundle.run, status_label: runStatusLabel(bundle.run.status) }),
+    run: Object.freeze({
+      ...bundle.run,
+      status_label: runStatusLabel(bundle.run.status),
+      approved_by_actor_display_name: approvedByActorDisplayName,
+    }),
     employees: Object.freeze(employees),
     totals: Object.freeze(totals),
     line_items: Object.freeze(bundle.line_items.map((row) => ({ ...row, metadata: parseJson(row.metadata_json, {}) }))),
     issues: Object.freeze(bundle.issues.map((row) => ({ ...row, details: parseJson(row.details_json, {}) }))),
     adjustments: runtime.payrollRepository.listAdjustments(context, { run_id: runId }),
     statements: runtime.documentService.list(context, { run_id: runId }),
-    payment_batches: runtime.payrollRepository.listPaymentBatches(context, { run_id: runId }),
+    payment_batches: runtime.payrollRepository.listPaymentBatches(context, { run_id: runId }).map((batch) => Object.freeze({
+      ...batch,
+      items: runtime.payrollRepository.listPaymentItems(context, { payment_batch_id: batch.payment_batch_id }).map((item) => Object.freeze({
+        payment_item_id: item.payment_item_id,
+        employee_id: item.employee_id,
+        amount_krw: item.amount_krw,
+        state: item.state,
+        provider_result_state: item.provider_result_state ?? (item.state === "paid" ? "succeeded" : item.state),
+        safe_error_code: item.safe_error_code ?? null,
+        attempt_count: item.attempt_count ?? 0,
+        paid_at: item.paid_at ?? null,
+        state_version: item.state_version,
+        account_ref_included: false,
+      })),
+    })),
     filings: runtime.filingService.list(context, { run_id: runId }),
     year_end: runtime.yearEndService?.summary(context, { run_id: runId }) ?? null,
+    audit_history: Object.freeze(runtime.payrollRepository.listAuditEvents(context, { object_id: runId }).map((event) => Object.freeze({
+      event_id: event.event_id,
+      action: event.action,
+      actor_id: event.actor_id,
+      actor_display_name: presentation.actorDisplayName(event.actor_id),
+      occurred_at: event.occurred_at,
+    }))),
   });
 }
 
@@ -242,8 +703,135 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
         if (request.method === "POST" && action === "profile-create") {
           return response(201, { outcome: "created", profile: runtime.profileService.createProfile(context, request.body) });
         }
+        if (request.method === "PATCH" && action === "profile-update") {
+          const pathProfileId = requiredString(request.params, "payroll_profile_id");
+          const body = request.body && typeof request.body === "object" && !Array.isArray(request.body) ? request.body : {};
+          if (Object.hasOwn(body, "payroll_profile_id") && body.payroll_profile_id !== pathProfileId) {
+            const error = new Error("Payroll profile path and body identifiers must match");
+            error.safe_error_code = "HRX_PAYROLL_PROFILE_ID_MISMATCH";
+            error.status = 400;
+            throw error;
+          }
+          return response(200, { outcome: "updated", profile: runtime.profileService.updateProfile(context, { ...body, payroll_profile_id: pathProfileId }) });
+        }
         if (request.method === "POST" && action === "assignment-create") {
           return response(201, { outcome: "created", assignment: runtime.profileService.createAssignment(context, requiredString(request.params, "payroll_profile_id"), request.body) });
+        }
+        if (request.method === "POST" && action === "assignment-retire") {
+          return response(200, { outcome: "retired", assignment: runtime.profileService.retireAssignment(context, requiredString(request.params, "payroll_profile_id"), requiredString(request.params, "assignment_id"), request.body) });
+        }
+        if (action === "rules-list" && request.method === "GET") {
+          return response(200, { outcome: "ok", rules: runtime.allowanceRuleService.list(context) });
+        }
+        if (action === "rules-create" && request.method === "POST") {
+          return response(201, { outcome: "created", rule: runtime.allowanceRuleService.createDraft(context, request.body) });
+        }
+        if (action === "rules-review" && request.method === "POST") {
+          return response(200, { outcome: "reviewed", rule: runtime.allowanceRuleService.review(context, {
+            rule_version_id: requiredString(request.params, "rule_version_id"),
+            expected_version: request.body.expected_version,
+          }) });
+        }
+        if (action === "rules-publish" && request.method === "POST") {
+          if (context.step_up_verified !== true || context.step_up_purpose !== "payroll_export_review") {
+            return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_export_review", fail_closed: true });
+          }
+          return response(200, { outcome: "published", rule: runtime.allowanceRuleService.publish(context, {
+            rule_version_id: requiredString(request.params, "rule_version_id"),
+            expected_version: request.body.expected_version,
+          }) });
+        }
+        if (action === "minimum-wage-list" && request.method === "GET") {
+          return response(200, {
+            outcome: "ok",
+            standards: runtime.minimumWageService.list(context),
+            permissions: Object.freeze({
+              can_legal_approve: hasScope(context, "hrx.payroll.minimum_wage.legal_review"),
+            }),
+          });
+        }
+        if (action === "minimum-wage-create" && request.method === "POST") {
+          return response(201, { outcome: "created", standard: runtime.minimumWageService.createDraft(context, request.body) });
+        }
+        if (action === "minimum-wage-legal-approve" && request.method === "POST") {
+          if (!hasScope(context, "hrx.payroll.minimum_wage.legal_review")) {
+            return response(403, {
+              outcome: "blocked",
+              safe_error_code: "HRX_MINIMUM_WAGE_LEGAL_REVIEW_SCOPE_REQUIRED",
+              fail_closed: true,
+            });
+          }
+          if (context.step_up_verified !== true || context.step_up_purpose !== "payroll_export_review") {
+            return response(403, {
+              outcome: "blocked",
+              safe_error_code: "HRX_STEP_UP_REQUIRED",
+              step_up_required: true,
+              required_purpose: "payroll_export_review",
+              fail_closed: true,
+            });
+          }
+          return response(200, { outcome: "legal_approved", standard: runtime.minimumWageService.legallyApprove(context, {
+            rule_version_id: requiredString(request.params, "rule_version_id"),
+            expected_version: request.body.expected_version,
+            legal_review_ref: request.body.legal_review_ref,
+          }) });
+        }
+        if (action === "minimum-wage-review" && request.method === "POST") {
+          return response(200, { outcome: "reviewed", standard: runtime.minimumWageService.review(context, {
+            rule_version_id: requiredString(request.params, "rule_version_id"),
+            expected_version: request.body.expected_version,
+          }) });
+        }
+        if (action === "minimum-wage-publish" && request.method === "POST") {
+          if (context.step_up_verified !== true || context.step_up_purpose !== "payroll_export_review") {
+            return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_export_review", fail_closed: true });
+          }
+          return response(200, { outcome: "published", standard: runtime.minimumWageService.publish(context, {
+            rule_version_id: requiredString(request.params, "rule_version_id"),
+            expected_version: request.body.expected_version,
+          }) });
+        }
+        if (action === "minimum-wage-preview" && request.method === "POST") {
+          let employees;
+          if (runtime.minimumWageInputResolver?.resolve) {
+            employees = await runtime.minimumWageInputResolver.resolve(context, {
+              as_of: request.body.as_of,
+            });
+          } else if (runtime.provider_mode === "synthetic-test" && Array.isArray(request.body.employees)) {
+            employees = request.body.employees;
+          } else {
+            return response(503, {
+              outcome: "blocked",
+              safe_error_code: "HRX_MINIMUM_WAGE_INPUT_SOURCE_REQUIRED",
+              production_ready_claim: false,
+            });
+          }
+          const employeeRecords = store.query("select", { table: "hrx_employees", where: { tenant_id: context.tenant_id } });
+          const userIdByEmployeeId = new Map(
+            store.query("select", { table: "hrx_employee_user_links", where: { tenant_id: context.tenant_id } })
+              .map((link) => [link.employee_id, link.user_id]),
+          );
+          const displayNameByEmployeeId = new Map(
+            employeeRecords.map((employee) => [
+              employee.employee_id,
+              publicEmployeeDisplayName({
+                ...employee,
+                user_id: userIdByEmployeeId.get(employee.employee_id),
+              }, MISSING_EMPLOYEE_DISPLAY_NAME),
+            ]),
+          );
+          employees = employees.map((employee) => ({
+            ...employee,
+            display_name: displayNameByEmployeeId.get(employee.employee_id) ?? MISSING_EMPLOYEE_DISPLAY_NAME,
+          }));
+          const report = runtime.minimumWageService.preview(context, {
+            as_of: request.body.as_of,
+            employees,
+          });
+          return response(200, {
+            outcome: report.review_required_count > 0 ? "review_required" : "ok",
+            impact: serializeMinimumWageImpact(report, { can_view_amounts: canViewPayrollAmounts(context) }),
+          });
         }
         if (request.method === "POST" && action === "attendance-approve") {
           const approvalReceipt = runtime.timeInputService.recordAttendanceApproval(context, request.body);
@@ -283,14 +871,33 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
         if (request.method === "GET" && action === "bundle") {
           return response(200, { outcome: "ok", bundle: runBundle(runtime, store, context, requiredString(request.params, "run_id")) });
         }
+        if (request.method === "GET" && action === "precheck") {
+          if (!runtime.closePrecheckService) return response(404, { outcome: "blocked", safe_error_code: "HRX_PAYROLL_CLOSE_PRECHECK_DISABLED" });
+          const report = runtime.closePrecheckService.evaluate(context, {
+            run_id: requiredString(request.params, "run_id"),
+            as_of: request.query?.as_of,
+          });
+          return response(200, {
+            outcome: report.ready ? "ready" : "review_required",
+            precheck: serializePayrollClosePrecheck(report, { can_view_details: context.can_view_payroll_details === true }),
+          });
+        }
         if (request.method === "POST" && action === "period-create") {
           let period = runtime.payrollRepository.createPeriod(context, request.body);
           if (request.body.open === true) period = runtime.payrollRepository.transitionPeriod(context, { period_id: period.period_id, status: "open", expected_version: period.state_version });
           return response(201, { outcome: "created", period });
         }
         if (request.method === "POST" && action === "run-create") {
+          if (request.body.run_type === "adjustment") {
+            const created = runtime.payrollRepository.createAdjustmentRun(context, request.body);
+            return response(created.idempotent_replay ? 200 : 201, {
+              outcome: created.idempotent_replay ? "replayed" : "created",
+              run: created.run,
+              adjustments: created.adjustments,
+            });
+          }
           const run = runtime.payrollRepository.createRun(context, request.body);
-          return response(201, { outcome: "created", run });
+          return response(run.idempotent_replay ? 200 : 201, { outcome: run.idempotent_replay ? "replayed" : "created", run });
         }
         if (request.method === "POST" && action === "snapshot") {
           const capture = runtime.inputSnapshotService.capture(context, { ...request.body, run_id: requiredString(request.params, "run_id") });
@@ -311,7 +918,7 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "resolved", issue });
         }
         if (request.method === "POST" && action === "approve") {
-          if (context.step_up_verified !== true) {
+          if (context.step_up_verified !== true || context.step_up_purpose !== "payroll_export_review") {
             return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_export_review", fail_closed: true });
           }
           const runId = requiredString(request.params, "run_id");
@@ -346,7 +953,7 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
         }
         if (request.method === "POST" && action === "statements-deliver") {
           const delivery = await runtime.documentService.deliver(context, { ...request.body, run_id: requiredString(request.params, "run_id") });
-          return response(200, { outcome: delivery.delivered_count ? "delivered" : "queued", delivery });
+          return response(200, { outcome: delivery.overall_state, delivery });
         }
         if (request.method === "GET" && action === "statements-self") {
           const employeeId = selfEmployeeId(store, context);
@@ -368,8 +975,8 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "ok", payment: paymentBundle(runtime, context, requiredString(request.params, "payment_batch_id")) });
         }
         if (request.method === "POST" && action === "payment-approve") {
-          if (context.step_up_verified !== true) {
-            return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_export_review", fail_closed: true });
+          if (context.step_up_verified !== true || context.step_up_purpose !== "payroll_payment_processing") {
+            return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_payment_processing", fail_closed: true });
           }
           const batchId = requiredString(request.params, "payment_batch_id");
           const now = clock();
@@ -382,20 +989,18 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "exported", artifact });
         }
         if (request.method === "POST" && action === "payment-reconcile") {
-          const batchId = requiredString(request.params, "payment_batch_id");
-          const current = runtime.paymentService.bundle(context, batchId);
-          if (!runtime.bankReconciliationPort?.reconcile) {
-            const error = new Error("Authoritative bank reconciliation provider is required");
-            error.safe_error_code = "HRX_PAYROLL_BANK_PROVIDER_REQUIRED";
-            error.status = 503;
-            throw error;
-          }
-          const providerResult = await runtime.bankReconciliationPort.reconcile({ context, bundle: current });
-          const payment = runtime.paymentService.reconcile(context, {
-            payment_batch_id: batchId,
-            ...providerResult,
+          return await executePaymentReconciliation(runtime, context, {
+            payment_batch_id: requiredString(request.params, "payment_batch_id"),
+            mode: "initial",
+            body: request.body,
           });
-          return response(200, { outcome: "reconciled", payment: Object.freeze({ ...payment, production_ready_claim: false }) });
+        }
+        if (request.method === "POST" && action === "payment-retry-failed") {
+          return await executePaymentReconciliation(runtime, context, {
+            payment_batch_id: requiredString(request.params, "payment_batch_id"),
+            mode: "retry",
+            body: request.body,
+          });
         }
         if (request.method === "GET" && action === "filing-list") {
           const runId = requiredString(request.params, "run_id");
@@ -404,8 +1009,11 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
         if (request.method === "POST" && action === "filing-create") {
           const filingKind = requiredString(request.body, "filing_kind");
           const runId = requiredString(request.params, "run_id");
-          const records = filingKind === "year_end" ? runtime.yearEndService.filingRecords(context, { run_id: runId }) : request.body.records;
-          const filing = await runtime.filingService.createPackage(context, { ...request.body, run_id: runId, ...(records ? { records } : {}), schema_version: request.body.schema_version ?? SYNTHETIC_PAYROLL_FILING_SCHEMAS[filingKind] });
+          const filing = await runtime.filingService.createPackage(context, {
+            ...request.body,
+            run_id: runId,
+            schema_version: request.body.schema_version ?? SYNTHETIC_PAYROLL_FILING_SCHEMAS[filingKind],
+          });
           return response(200, { outcome: "created", filing });
         }
         if (request.method === "POST" && action === "year-end-collect") {
@@ -417,8 +1025,8 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: "calculated", year_end: runtime.yearEndService.calculateRun(context, { ...request.body, run_id: runId }) });
         }
         if (request.method === "POST" && action === "year-end-review") {
-          if (context.step_up_verified !== true) {
-            return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_export_review", fail_closed: true });
+          if (context.step_up_verified !== true || context.step_up_purpose !== "payroll_year_end_review") {
+            return response(403, { outcome: "blocked", safe_error_code: "HRX_STEP_UP_REQUIRED", step_up_required: true, required_purpose: "payroll_year_end_review", fail_closed: true });
           }
           const runId = requiredString(request.params, "run_id");
           const reviewReceiptRef = `artifact:step-up/payroll-year-end/${randomUUID()}`;
@@ -433,12 +1041,13 @@ export function createHrxPayrollRuntimeRoute({ runtime, store, audit, clock = ()
           return response(200, { outcome: submission.job.state, submission });
         }
         if (request.method === "POST" && action === "filing-correct") {
-          const filing = runtime.filingService.correct(context, { ...request.body, filing_job_id: requiredString(request.params, "filing_job_id") });
+          const filing = await runtime.filingService.correct(context, { ...request.body, filing_job_id: requiredString(request.params, "filing_job_id") });
           return response(200, { outcome: "corrected", filing });
         }
         return response(405, { outcome: "blocked", safe_error_code: "METHOD_NOT_ALLOWED" });
       } catch (error) {
-        return safeError(error);
+        if (PAYMENT_RECONCILIATION_REMATERIALIZATION_ERRORS.has(error)) throw error;
+        return safeError(error, request.params?.action);
       }
     },
   });

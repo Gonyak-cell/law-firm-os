@@ -112,8 +112,166 @@ test("termination preview and execute reconcile future reservations, append the 
   const synced = service.recordPayrollDelivery(context, { outbox_event_id: executed.result.payroll_outbox_event_id, provider_receipt: payrollReceipt(store, executed.result.payroll_outbox_event_id) });
   assert.equal(synced.state, "approved_and_synced");
   const readyOffboarding = store.query("selectOne", { table: "hrx_offboarding_cases", where: { tenant_id: TENANT, offboarding_id: "off-001" } });
+  assert.equal(readyOffboarding.leave_reconciliation_status, "approved_and_synced");
+  assert.equal(readyOffboarding.leave_reconciliation_evidence_ref, "PayrollProviderReceipt:001");
   assert.equal(closeOffboardingCase(readyOffboarding).state, "closed");
   assert.equal(store.query("selectOne", { table: "hrx_leave_sync_outbox", where: { tenant_id: TENANT, outbox_event_id: executed.result.payroll_outbox_event_id } }).provider_receipt_ref, "PayrollProviderReceipt:001");
+});
+
+test("termination presentation fields fail closed when group or employee names are missing", () => {
+  const { store, service, context } = fixture();
+  store.query("updateOne", {
+    table: "hrx_leave_groups",
+    where: { tenant_id: TENANT, group_id: "annual" },
+    expected_version: 1,
+    patch: { display_name: null, state_version: 2 },
+  });
+  store.query("updateOne", {
+    table: "hrx_employees",
+    where: { tenant_id: TENANT, employee_id: "emp-001" },
+    patch: { display_name: null },
+  });
+
+  const candidates = service.candidates(context);
+  assert.equal(candidates[0].employee_id, "emp-001");
+  assert.equal(candidates[0].employee_display_name, "구성원 이름 확인 필요");
+  assert.notEqual(candidates[0].employee_display_name, candidates[0].employee_id);
+  assert.equal(candidates[0].employee_display_name.includes(candidates[0].employee_id), false);
+
+  const preview = service.preview(context, { employee_id: "emp-001", termination_date: "2026-07-31" });
+  assert.equal(preview.result.employee_id, "emp-001");
+  assert.equal(preview.result.employee_display_name, "구성원 이름 확인 필요");
+  assert.notEqual(preview.result.employee_display_name, preview.result.employee_id);
+  assert.equal(preview.result.employee_display_name.includes(preview.result.employee_id), false);
+  assert.equal(preview.result.groups[0].group_id, "annual");
+  assert.equal(preview.result.groups[0].group_display_name, "휴가 그룹 이름 확인 필요");
+  assert.notEqual(preview.result.groups[0].group_display_name, preview.result.groups[0].group_id);
+  assert.equal(preview.result.groups[0].group_display_name.includes(preview.result.groups[0].group_id), false);
+});
+
+test("termination candidates and previews reject opaque or contact identifiers as names", () => {
+  for (const displayName of [
+    "AAD-OBJECT-42",
+    "lawyer@example.com",
+    "550e8400-e29b-01d4-0716-446655440000",
+    "0123456789abcdef0123456789abcdef",
+    "prefixEMP-001post",
+  ]) {
+    const { store, service, context } = fixture();
+    store.query("updateOne", {
+      table: "hrx_employees",
+      where: { tenant_id: TENANT, employee_id: "emp-001" },
+      patch: { display_name: displayName },
+    });
+    const candidate = service.candidates(context)[0];
+    assert.equal(candidate.employee_display_name, "구성원 이름 확인 필요");
+    const preview = service.preview(context, {
+      employee_id: "emp-001",
+      termination_date: "2026-07-31",
+    });
+    assert.equal(preview.result.employee_display_name, "구성원 이름 확인 필요");
+    assert.equal(JSON.stringify(candidate).includes(displayName), false);
+    assert.equal(JSON.stringify(preview.result).includes(displayName), false);
+  }
+});
+
+test("termination delivery rolls back every completion state when provider evidence is missing or conflicts", () => {
+  const { store, service, context } = fixture();
+  assert.throws(
+    () => store.query("updateOne", {
+      table: "hrx_offboarding_cases",
+      where: { tenant_id: TENANT, offboarding_id: "off-001" },
+      patch: {
+        leave_reconciliation_evidence_ref: "PayrollProviderReceipt:split-write",
+      },
+    }),
+    /completion and provider evidence must be recorded together/,
+  );
+  assert.throws(
+    () => store.query("updateOne", {
+      table: "hrx_offboarding_cases",
+      where: { tenant_id: TENANT, offboarding_id: "off-001" },
+      patch: {
+        leave_reconciliation_status: "approved_and_synced",
+        leave_reconciliation_evidence_ref: "   ",
+      },
+    }),
+    /completion and provider evidence must be recorded together/,
+  );
+  const preview = service.preview(context, {
+    employee_id: "emp-001",
+    termination_date: "2026-07-31",
+  });
+  const approval = service.approve(
+    { ...context, actor_id: "hr-approver" },
+    { preview_reconciliation_id: preview.reconciliation_id },
+  );
+  const executed = service.execute(context, {
+    preview_reconciliation_id: preview.reconciliation_id,
+    approval_receipt_id: approval.approval_receipt_id,
+    idempotency_key: "termination-execute-rollback",
+  });
+
+  assert.throws(
+    () => service.recordPayrollDelivery(context, {
+      outbox_event_id: executed.result.payroll_outbox_event_id,
+      provider_receipt: payrollReceipt(
+        store,
+        executed.result.payroll_outbox_event_id,
+        { provider_receipt_ref: null },
+      ),
+    }),
+    /succeeded receipt requires provider receipt evidence/,
+  );
+  assert.equal(
+    store.query("selectOne", {
+      table: "hrx_leave_sync_outbox",
+      where: {
+        tenant_id: TENANT,
+        outbox_event_id: executed.result.payroll_outbox_event_id,
+      },
+    }).state,
+    "pending",
+  );
+
+  store.query("updateOne", {
+    table: "hrx_offboarding_cases",
+    where: { tenant_id: TENANT, offboarding_id: "off-001" },
+    patch: {
+      leave_reconciliation_status: "approved_and_synced",
+      leave_reconciliation_evidence_ref: "PayrollProviderReceipt:conflict",
+    },
+  });
+  assert.throws(
+    () => service.recordPayrollDelivery(context, {
+      outbox_event_id: executed.result.payroll_outbox_event_id,
+      provider_receipt: payrollReceipt(store, executed.result.payroll_outbox_event_id),
+    }),
+    (error) => error.safe_error_code === "HRX_LEAVE_TERMINATION_EVIDENCE_CONFLICT",
+  );
+  const outbox = store.query("selectOne", {
+    table: "hrx_leave_sync_outbox",
+    where: {
+      tenant_id: TENANT,
+      outbox_event_id: executed.result.payroll_outbox_event_id,
+    },
+  });
+  const reconciliation = store.query("selectOne", {
+    table: "hrx_leave_termination_reconciliations",
+    where: { tenant_id: TENANT, reconciliation_id: executed.reconciliation_id },
+  });
+  const offboarding = store.query("selectOne", {
+    table: "hrx_offboarding_cases",
+    where: { tenant_id: TENANT, offboarding_id: "off-001" },
+  });
+  assert.equal(outbox.state, "pending");
+  assert.equal(outbox.provider_receipt_ref, null);
+  assert.equal(reconciliation.state, "approved_pending_sync");
+  assert.equal(offboarding.leave_reconciliation_status, "approved_and_synced");
+  assert.equal(
+    offboarding.leave_reconciliation_evidence_ref,
+    "PayrollProviderReceipt:conflict",
+  );
 });
 
 test("termination execute rejects a stale preview and remains idempotent after success", () => {

@@ -16,12 +16,20 @@ import {
   retryHrxLeaveAccrualBatch,
   updateHrxLeaveAccrualRule
 } from "../hrxApiClient.ts";
+import { safeEmployeeLabel } from "../peoplePresentation.ts";
 
 type Row = Record<string, unknown>;
 
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
   return typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
+}
+
+function employeeDisplayName(row: Row) {
+  return safeEmployeeLabel({
+    employee_id: row.employee_id,
+    display_name: row.display_name,
+  });
 }
 
 function number(row: Row | null | undefined, field: string) {
@@ -456,7 +464,7 @@ export function LeaveAccrualAutoPage({ canExport = false }: { canExport?: boolea
               <span>중복 <strong>{number(counts, "duplicates")}</strong></span>
               <span>확인 필요 <strong>{number(counts, "errors")}</strong></span>
             </div>
-            <div className="data-table-wrap"><table className="data-table"><thead><tr><th>구성원</th><th>결과</th><th>발생량</th><th>근거</th><th>유효기간</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${text(row, "employee_id")}:${index}`} data-compact-record="true"><td>{text(row, "display_name") || text(row, "employee_id")}</td><td><span className={`record-state-badge ${text(row, "status")}`}>{statusLabel(text(row, "status"))}</span></td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{reasonLabel(text(row, "reason_code"))}</td><td>{text(row, "valid_from") || "-"} ~ {text(row, "expires_on") || "-"}</td></tr>)}</tbody></table></div>
+            <div className="data-table-wrap"><table className="data-table"><thead><tr><th>구성원</th><th>결과</th><th>발생량</th><th>근거</th><th>유효기간</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${text(row, "employee_id")}:${index}`} data-compact-record="true"><td>{employeeDisplayName(row)}</td><td><span className={`record-state-badge ${text(row, "status")}`}>{statusLabel(text(row, "status"))}</span></td><td>{number(row, "amount_minutes").toLocaleString("ko-KR")}분</td><td>{reasonLabel(text(row, "reason_code"))}</td><td>{text(row, "valid_from") || "-"} ~ {text(row, "expires_on") || "-"}</td></tr>)}</tbody></table></div>
           </>
         )}
         {runMode === "batch" && batch && <>

@@ -24,6 +24,8 @@ test("Employee profile is scoped and keeps compensation masked by default", asyn
   assert.match(profile, /HrxStepUpChallenge/);
   assert.match(profile, /label="보상 정보" value=\{compensationStatus\(compensationResult\)\}/);
   assert.match(profile, /data-hrx-compensation-records="true"/);
+  assert.match(profile, /급여 금액 비공개/);
+  assert.doesNotMatch(profile, /마스킹 참조/);
   assert.match(profile, /masked_compensation_ref/);
   assert.match(profile, /contract_document_ref/);
   assert.doesNotMatch(profile, /현재 조직/);

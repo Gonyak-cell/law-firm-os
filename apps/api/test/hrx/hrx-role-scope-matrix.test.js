@@ -20,14 +20,29 @@ test("GOV-003 defines employee, manager, HR, payroll preparer, approver and audi
     ["employee", "manager", "hr", "payroll_preparer", "payroll_approver", "auditor", "admin"],
   );
   assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.leave.approve"), false);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.attendance.self.read"), true);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.attendance.self.write"), true);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.attendance.read"), false);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.attendance.write"), false);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.overtime.self.read"), true);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.overtime.self.write"), true);
+  assert.equal(hrxScopesForRoleProfile("employee").includes("hrx.overtime.approve"), false);
   assert.equal(hrxScopesForRoleProfile("manager").includes("hrx.leave.approve"), true);
+  assert.equal(hrxScopesForRoleProfile("manager").includes("hrx.overtime.team.read"), true);
+  assert.equal(hrxScopesForRoleProfile("manager").includes("hrx.overtime.approve"), true);
   assert.equal(hrxScopesForRoleProfile("hr").includes("hrx.leave.policy.write"), true);
+  assert.equal(hrxScopesForRoleProfile("hr").includes("hrx.attendance.self.read"), true);
+  assert.equal(hrxScopesForRoleProfile("hr").includes("hrx.attendance.read"), true);
+  assert.equal(hrxScopesForRoleProfile("hr").includes("hrx.overtime.approve"), true);
+  assert.equal(hrxScopesForRoleProfile("hr").includes("hrx.overtime.write"), true);
   assert.equal(hrxScopesForRoleProfile("hr").includes("hrx.payroll.statement.self.read"), true);
   assert.equal(hrxScopesForRoleProfile("hr").some((scope) => ["hrx.payroll.preview", "hrx.payroll.approve", "hrx.payroll.export"].includes(scope)), false);
   assert.equal(hrxScopesForRoleProfile("payroll_preparer").includes("hrx.payroll.export"), true);
   assert.equal(hrxScopesForRoleProfile("payroll_preparer").includes("hrx.payroll.approve"), false);
   assert.equal(hrxScopesForRoleProfile("payroll_approver").includes("hrx.payroll.approve"), true);
   assert.equal(hrxScopesForRoleProfile("payroll_approver").includes("hrx.payroll.export"), false);
+  assert.equal(hrxScopesForRoleProfile("payroll_approver").includes("hrx.payroll.minimum_wage.legal_review"), false);
+  assert.equal(hrxScopesForRoleProfile("admin").includes("hrx.payroll.minimum_wage.legal_review"), true);
   assert.deepEqual(hrxScopesForRoleProfile("auditor"), ["hrx.audit.read"]);
   assert.throws(() => hrxScopesForRoleProfile("unknown"), /Unknown HRX role profile/);
 });
@@ -38,13 +53,19 @@ test("GOV-003 route decisions keep leave administration and payroll duties separ
   const leavePolicyWrite = policy("POST", "/api/hrx/leave/accrual/rules");
   const payrollPreview = policy("POST", "/api/hrx/payroll/preview");
   const payrollApprove = policy("POST", "/api/hrx/payroll/approve");
+  const minimumWageLegalReview = policy("POST", "/api/hrx/payroll/minimum-wage/minimum-wage-2027/legal-approve");
   const payrollExport = policy("POST", "/api/hrx/payroll/export");
+  const overtimeSubmit = policy("POST", "/api/hrx/overtime");
+  const overtimeApprove = policy("POST", "/api/hrx/overtime/overtime-001/approve");
   const auditRead = policy("GET", "/api/hrx/audit");
 
   assert.equal(hrxRoleProfileAllowsPolicy("employee", self), true);
   assert.equal(hrxRoleProfileAllowsPolicy("employee", team), false);
   assert.equal(hrxRoleProfileAllowsPolicy("manager", team), true);
   assert.equal(hrxRoleProfileAllowsPolicy("manager", leavePolicyWrite), false);
+  assert.equal(hrxRoleProfileAllowsPolicy("employee", overtimeSubmit), true);
+  assert.equal(hrxRoleProfileAllowsPolicy("employee", overtimeApprove), false);
+  assert.equal(hrxRoleProfileAllowsPolicy("manager", overtimeApprove), true);
   assert.equal(hrxRoleProfileAllowsPolicy("hr", leavePolicyWrite), true);
   assert.equal(hrxRoleProfileAllowsPolicy("hr", payrollPreview), false);
   assert.equal(hrxRoleProfileAllowsPolicy("payroll_preparer", payrollPreview), true);
@@ -52,14 +73,16 @@ test("GOV-003 route decisions keep leave administration and payroll duties separ
   assert.equal(hrxRoleProfileAllowsPolicy("payroll_preparer", payrollExport), true);
   assert.equal(hrxRoleProfileAllowsPolicy("payroll_approver", payrollPreview), true);
   assert.equal(hrxRoleProfileAllowsPolicy("payroll_approver", payrollApprove), true);
+  assert.equal(hrxRoleProfileAllowsPolicy("payroll_approver", minimumWageLegalReview), false);
+  assert.equal(hrxRoleProfileAllowsPolicy("admin", minimumWageLegalReview), true);
   assert.equal(hrxRoleProfileAllowsPolicy("payroll_approver", payrollExport), false);
   assert.equal(hrxRoleProfileAllowsPolicy("auditor", auditRead), true);
   assert.equal(hrxRoleProfileAllowsPolicy("auditor", payrollPreview), false);
 });
 
-test("GOV-003 covers every leave, payroll and audit route with at least one allow and one deny", () => {
+test("GOV-003 covers every leave, overtime, payroll and audit route with at least one allow and one deny", () => {
   const profiles = listHrxRoleScopeProfiles();
-  const policies = listHrxRoutePolicies().filter((entry) => ["leave", "payroll", "audit"].includes(entry.sensitivity));
+  const policies = listHrxRoutePolicies().filter((entry) => ["leave", "overtime", "payroll", "audit"].includes(entry.sensitivity));
   assert.ok(policies.length > 0);
   for (const routePolicy of policies) {
     const decisions = profiles.map((profile) => hrxRoleProfileAllowsPolicy(profile.profile_id, routePolicy));

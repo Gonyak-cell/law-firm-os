@@ -13,6 +13,9 @@ export const HRX_POSTGRES_SCHEMA = "lawos_hrx";
 export const HRX_POSTGRES_MIGRATION_VERSION = "law-firm-os.hrx-postgres-migrations.v0.1";
 
 const SQLITE_ABORT_TRIGGER = /CREATE\s+TRIGGER\s+IF\s+NOT\s+EXISTS\s+([a-z0-9_]+)\s+BEFORE\s+(UPDATE|DELETE)\s+ON\s+([a-z0-9_]+)\s+BEGIN\s+SELECT\s+RAISE\s*\(\s*ABORT\s*,\s*'[^']*'\s*\)\s*;\s*END\s*;/giu;
+const SQLITE_PROMOTION_FINGERPRINT_TRIGGER = /CREATE\s+TRIGGER\s+IF\s+NOT\s+EXISTS\s+trg_hrx_leave_promotion_fingerprint_required\s+BEFORE\s+INSERT\s+ON\s+hrx_leave_promotion_campaigns\s+WHEN[\s\S]*?BEGIN\s+SELECT\s+RAISE\s*\(\s*ABORT\s*,\s*'leave promotion campaign business fingerprint is required'\s*\)\s*;\s*END\s*;/giu;
+const SQLITE_PROMOTION_FINGERPRINT_UPDATE_TRIGGER = /CREATE\s+TRIGGER\s+IF\s+NOT\s+EXISTS\s+trg_hrx_leave_promotion_fingerprint_update\s+BEFORE\s+UPDATE\s+OF\s+business_fingerprint\s*,\s*policy_version_id\s*,\s*entitlement_period_end\s*,\s*schedule_profile_id\s+ON\s+hrx_leave_promotion_campaigns\s+WHEN[\s\S]*?BEGIN\s+SELECT\s+RAISE\s*\(\s*ABORT\s*,\s*'leave promotion campaign business fingerprint is invalid or immutable'\s*\)\s*;\s*END\s*;/giu;
+const SQLITE_OFFBOARDING_LEAVE_EVIDENCE_TRIGGER = /CREATE\s+TRIGGER\s+IF\s+NOT\s+EXISTS\s+(trg_hrx_offboarding_leave_evidence_(?:insert|update))\s+BEFORE\s+(INSERT|UPDATE\s+OF\s+leave_reconciliation_status\s*,\s*leave_reconciliation_evidence_ref)\s+ON\s+hrx_offboarding_cases\s+WHEN[\s\S]*?BEGIN\s+SELECT\s+RAISE\s*\(\s*ABORT\s*,\s*'offboarding leave completion and provider evidence must be recorded together'\s*\)\s*;\s*END\s*;/giu;
 
 function quoteIdentifier(value) {
   const identifier = String(value ?? "");
@@ -21,7 +24,88 @@ function quoteIdentifier(value) {
 }
 
 export function translateHrxMigrationToPostgres(sql) {
-  const translatedTriggers = String(sql).replace(
+  const translatedFingerprintTrigger = String(sql).replace(
+    SQLITE_PROMOTION_FINGERPRINT_TRIGGER,
+    () => [
+      "CREATE OR REPLACE FUNCTION lawos_runtime.require_hrx_leave_promotion_fingerprint()",
+      "RETURNS trigger",
+      "LANGUAGE plpgsql",
+      "AS $$",
+      "BEGIN",
+      "  IF NEW.business_fingerprint IS NULL",
+      "     OR NEW.business_fingerprint !~ '^[a-f0-9]{64}$'",
+      "     OR (",
+      "       TG_OP = 'UPDATE'",
+      "       AND OLD.business_fingerprint IS NOT NULL",
+      "       AND (",
+      "         NEW.business_fingerprint IS DISTINCT FROM OLD.business_fingerprint",
+      "         OR NEW.policy_version_id IS DISTINCT FROM OLD.policy_version_id",
+      "         OR NEW.entitlement_period_end IS DISTINCT FROM OLD.entitlement_period_end",
+      "         OR NEW.schedule_profile_id IS DISTINCT FROM OLD.schedule_profile_id",
+      "       )",
+      "     ) THEN",
+      "    RAISE EXCEPTION 'leave promotion campaign business fingerprint is required'",
+      "      USING ERRCODE = '23514';",
+      "  END IF;",
+      "  RETURN NEW;",
+      "END;",
+      "$$;",
+      "DROP TRIGGER IF EXISTS trg_hrx_leave_promotion_fingerprint_required",
+      "  ON hrx_leave_promotion_campaigns;",
+      "CREATE TRIGGER trg_hrx_leave_promotion_fingerprint_required",
+      "BEFORE INSERT ON hrx_leave_promotion_campaigns",
+      "FOR EACH ROW EXECUTE FUNCTION lawos_runtime.require_hrx_leave_promotion_fingerprint();",
+    ].join("\n"),
+  );
+  const translatedFingerprintUpdateTrigger = translatedFingerprintTrigger.replace(
+    SQLITE_PROMOTION_FINGERPRINT_UPDATE_TRIGGER,
+    () => [
+      "DROP TRIGGER IF EXISTS trg_hrx_leave_promotion_fingerprint_update",
+      "  ON hrx_leave_promotion_campaigns;",
+      "CREATE TRIGGER trg_hrx_leave_promotion_fingerprint_update",
+      "BEFORE UPDATE OF business_fingerprint, policy_version_id,",
+      "  entitlement_period_end, schedule_profile_id",
+      "ON hrx_leave_promotion_campaigns",
+      "FOR EACH ROW EXECUTE FUNCTION lawos_runtime.require_hrx_leave_promotion_fingerprint();",
+    ].join("\n"),
+  );
+  const translatedOffboardingLeaveEvidenceTriggers =
+    translatedFingerprintUpdateTrigger.replace(
+      SQLITE_OFFBOARDING_LEAVE_EVIDENCE_TRIGGER,
+      (_match, triggerName, operation) => {
+        const postgresOperation = operation.toUpperCase().startsWith("UPDATE")
+          ? "UPDATE OF leave_reconciliation_status, leave_reconciliation_evidence_ref"
+          : "INSERT";
+        return [
+          "CREATE OR REPLACE FUNCTION lawos_runtime.require_hrx_offboarding_leave_evidence()",
+          "RETURNS trigger",
+          "LANGUAGE plpgsql",
+          "AS $$",
+          "BEGIN",
+          "  IF (",
+          "    NEW.leave_reconciliation_status = 'approved_and_synced'",
+          "    AND (",
+          "      NEW.leave_reconciliation_evidence_ref IS NULL",
+          "      OR btrim(NEW.leave_reconciliation_evidence_ref) = ''",
+          "    )",
+          "  ) OR (",
+          "    NEW.leave_reconciliation_status <> 'approved_and_synced'",
+          "    AND NEW.leave_reconciliation_evidence_ref IS NOT NULL",
+          "  ) THEN",
+          "    RAISE EXCEPTION 'offboarding leave completion and provider evidence must be recorded together'",
+          "      USING ERRCODE = '23514';",
+          "  END IF;",
+          "  RETURN NEW;",
+          "END;",
+          "$$;",
+          `DROP TRIGGER IF EXISTS ${quoteIdentifier(triggerName)} ON hrx_offboarding_cases;`,
+          `CREATE TRIGGER ${quoteIdentifier(triggerName)}`,
+          `BEFORE ${postgresOperation} ON hrx_offboarding_cases`,
+          "FOR EACH ROW EXECUTE FUNCTION lawos_runtime.require_hrx_offboarding_leave_evidence();",
+        ].join("\n");
+      },
+    );
+  const translatedTriggers = translatedOffboardingLeaveEvidenceTriggers.replace(
     SQLITE_ABORT_TRIGGER,
     (_match, triggerName, operation, tableName) => [
       `DROP TRIGGER IF EXISTS ${quoteIdentifier(triggerName)} ON ${quoteIdentifier(tableName)};`,
@@ -274,7 +358,12 @@ export function listHrxPostgresMigrations() {
 export function classifyHrxPostgresMigrationGaps() {
   const migrations = loadHrxCoreMigrations();
   const rows = migrations.map((migration) => {
-    const sqliteTriggerCount = [...migration.sql.matchAll(new RegExp(SQLITE_ABORT_TRIGGER.source, "giu"))].length;
+    const sqliteTriggerCount = [
+      ...migration.sql.matchAll(new RegExp(SQLITE_ABORT_TRIGGER.source, "giu")),
+      ...migration.sql.matchAll(new RegExp(SQLITE_PROMOTION_FINGERPRINT_TRIGGER.source, "giu")),
+      ...migration.sql.matchAll(new RegExp(SQLITE_PROMOTION_FINGERPRINT_UPDATE_TRIGGER.source, "giu")),
+      ...migration.sql.matchAll(new RegExp(SQLITE_OFFBOARDING_LEAVE_EVIDENCE_TRIGGER.source, "giu")),
+    ].length;
     return Object.freeze({
       migration_id: migration.id,
       filename: migration.filename,

@@ -3059,9 +3059,11 @@ export function createMatterActivity({
   status = "todo",
   dueAt,
   bodyText,
+  assignedToUserId,
   ctx = "allow"
 } = {}) {
   const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const assigneeUserId = String(assignedToUserId ?? "").trim() || null;
   const stamp = Date.now();
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/activities`,
@@ -3077,7 +3079,8 @@ export function createMatterActivity({
         title,
         status,
         due_at: dueAt ?? new Date(Date.now() + 86400000).toISOString(),
-        body: bodyText
+        body: bodyText,
+        ...(activityType === "task" ? { assigned_to_user_id: assigneeUserId } : {})
       }
     },
     ctx
@@ -3118,6 +3121,7 @@ export function createMatterCalendarEvent({
   endsAt,
   criticality = "critical",
   legalConsequence = "court_deadline",
+  eventKind = "deadline",
   ctx = "allow"
 } = {}) {
   const safeMatterId = String(matterId ?? "matter").replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -3136,6 +3140,7 @@ export function createMatterCalendarEvent({
         event_id: `calendar_${safeMatterId}_${stamp}`,
         title,
         status: "scheduled",
+        event_kind: eventKind,
         starts_at: starts,
         ends_at: ends,
         criticality,

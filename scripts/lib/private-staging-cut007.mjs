@@ -858,10 +858,19 @@ export async function runPrivateStagingCut007({
         user_id: principals.attorney.user_id,
         role: "responsible_attorney",
         status: "active",
+        valid_from: issuedAt,
       },
     },
   });
-  invariant(team.body.item?.employee_id === principals.attorney.employee_id, "matter-team-assignment", "matter team linkage mismatch", team);
+  invariant(
+    team.body.item?.employee_id === principals.attorney.employee_id
+      && team.body.item?.user_id === principals.attorney.user_id
+      && team.body.item?.identity_resolution_state === "resolved"
+      && team.body.item?.valid_from === issuedAt,
+    "matter-team-assignment",
+    "matter team linkage did not preserve the canonical active Employee/User pair",
+    team,
+  );
   const matterList = await request("matter-list-search", 200, {
     path: `/api/matters?${query(primaryTenantId, "matter-read")}`,
     token: adminToken,

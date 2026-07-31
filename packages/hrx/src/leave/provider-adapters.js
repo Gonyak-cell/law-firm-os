@@ -1,8 +1,12 @@
 import { createHash } from "node:crypto";
-import { HRX_PROVIDER_RECEIPT_SCHEMA_VERSION, assertHrxProviderReceiptSucceeded } from "../provider-receipt-contract.js";
+import {
+  HRX_PROVIDER_RECEIPT_SCHEMA_VERSION,
+  assertHrxProviderReceiptSucceeded,
+} from "../provider-receipt-contract.js";
 
 const CALENDAR_PROVIDER_IDS = Object.freeze(["matter_calendar", "google_calendar", "outlook_calendar"]);
 const COLLABORATION_PROVIDER_IDS = Object.freeze(["slack", "teams"]);
+export const LEAVE_INTEGRATION_PROVIDER_KINDS = Object.freeze(["schedule", "attendance", "payroll", "notification"]);
 const PRIVATE_FIELD_NAMES = Object.freeze([
   "employee_id",
   "leave_type",
@@ -51,7 +55,24 @@ function assertNoPrivateFields(payload, label) {
   return payload;
 }
 
-function receipt({ input, providerId, providerKind, providerReceiptRef, clock }) {
+export function resolveLeaveIntegrationProviderSwitches(input = {}) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new TypeError("leave integration provider switches must be an object");
+  }
+  for (const key of Object.keys(input)) {
+    if (!LEAVE_INTEGRATION_PROVIDER_KINDS.includes(key)) {
+      throw new TypeError(`unsupported leave integration provider switch: ${key}`);
+    }
+    if (typeof input[key] !== "boolean") {
+      throw new TypeError(`leave integration provider switch ${key} must be boolean`);
+    }
+  }
+  return Object.freeze(Object.fromEntries(
+    LEAVE_INTEGRATION_PROVIDER_KINDS.map((kind) => [kind, input[kind] !== false]),
+  ));
+}
+
+function receipt({ input, providerId, providerKind, providerReceiptRef, deliveryState, clock }) {
   return assertHrxProviderReceiptSucceeded({
     schema_version: HRX_PROVIDER_RECEIPT_SCHEMA_VERSION,
     receipt_id: `leave_provider_receipt_${digest(`${input.tenant_id}:${providerId}:${input.idempotency_key}`).slice(0, 28)}`,
@@ -62,6 +83,7 @@ function receipt({ input, providerId, providerKind, providerReceiptRef, clock })
     idempotency_key: input.idempotency_key,
     payload_hash: `sha256:${digest(input.payload)}`,
     state: "succeeded",
+    delivery_state: deliveryState,
     requested_at: clock(),
     completed_at: clock(),
     provider_receipt_ref: requiredString(providerReceiptRef, "provider_receipt_ref"),
@@ -80,12 +102,35 @@ function idempotentAdapter({ providerId, providerKind, mode, clock, write }) {
       const previous = receipts.get(key);
       if (previous) {
         if (previous.payload_hash !== payloadHash) throw new TypeError("provider idempotency key was reused with a different payload");
-        return Object.freeze({ provider_receipt_ref: previous.provider_receipt_ref });
+        return Object.freeze({
+          provider_receipt_ref: previous.provider_receipt_ref,
+          delivery_state: previous.delivery_state,
+        });
       }
-      const providerReceiptRef = await write(input);
-      const validated = receipt({ input, providerId, providerKind, providerReceiptRef, clock });
-      receipts.set(key, Object.freeze({ payload_hash: payloadHash, provider_receipt_ref: validated.provider_receipt_ref }));
-      return Object.freeze({ provider_receipt_ref: validated.provider_receipt_ref });
+      const result = await write(input);
+      const providerReceiptRef = typeof result === "string" ? result : result?.provider_receipt_ref;
+      const deliveryState = typeof result === "object" && result
+        ? result.delivery_state
+        : providerKind === "calendar"
+          ? "delivered"
+          : "sent";
+      const validated = receipt({
+        input,
+        providerId,
+        providerKind,
+        providerReceiptRef,
+        deliveryState,
+        clock,
+      });
+      receipts.set(key, Object.freeze({
+        payload_hash: payloadHash,
+        provider_receipt_ref: validated.provider_receipt_ref,
+        delivery_state: validated.delivery_state,
+      }));
+      return Object.freeze({
+        provider_receipt_ref: validated.provider_receipt_ref,
+        delivery_state: validated.delivery_state,
+      });
     },
   });
 }
@@ -118,7 +163,10 @@ export function createMatterLeaveCalendarAdapter({ clock = () => new Date().toIS
       const payload = assertLeaveCalendarProjection(input.payload);
       const eventId = `MatterLeaveEvent:${digest(`${input.tenant_id}:${payload.schedule_object_ref}`).slice(0, 24)}`;
       if (typeof write === "function") await write(Object.freeze({ event_id: eventId, ...payload }));
-      return `MatterCalendarReceipt:${eventId}:${payload.operation}`;
+      return {
+        provider_receipt_ref: `MatterCalendarReceipt:${eventId}:${payload.operation}`,
+        delivery_state: "delivered",
+      };
     },
   });
 }
@@ -149,7 +197,10 @@ export function createExternalLeaveCalendarAdapter({ providerId, oauthReference,
       const result = payload.operation === "delete"
         ? await client.deleteEvent(command)
         : await client.upsertEvent(command);
-      return result?.provider_receipt_ref;
+      return {
+        provider_receipt_ref: result?.provider_receipt_ref,
+        delivery_state: result?.delivery_state ?? "delivered",
+      };
     },
   });
 }
@@ -186,7 +237,10 @@ export function createLeaveCollaborationAdapter({ providerId, connectionReferenc
         recipient_token: payload.recipient_token,
         route: payload.route,
       }));
-      return result?.provider_receipt_ref;
+      return {
+        provider_receipt_ref: result?.provider_receipt_ref,
+        delivery_state: result?.delivery_state ?? "sent",
+      };
     },
   });
 }
@@ -200,11 +254,18 @@ export function createCompositeLeaveIntegrationProvider({ providerKind, provider
     mode: `composite:${providers.map((provider) => provider.provider_id ?? provider.mode).join(",")}`,
     async deliver(input) {
       const refs = [];
+      const states = [];
       for (const provider of providers) {
         const result = await provider.deliver({ ...input, idempotency_key: `${input.idempotency_key}:${provider.provider_id ?? provider.mode}` });
         refs.push(requiredString(result?.provider_receipt_ref, "provider_receipt_ref"));
+        states.push(result?.delivery_state ?? "unknown");
       }
-      return Object.freeze({ provider_receipt_ref: `LeaveProviderSet:${providerKind}:${digest(refs).slice(0, 24)}` });
+      const deliveryState = ["unknown", "queued", "sent", "delivered", "read"]
+        .find((state) => states.includes(state)) ?? "unknown";
+      return Object.freeze({
+        provider_receipt_ref: `LeaveProviderSet:${providerKind}:${digest(refs).slice(0, 24)}`,
+        delivery_state: deliveryState,
+      });
     },
   });
 }

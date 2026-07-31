@@ -289,9 +289,9 @@ function seedCheckpoint025(database) {
       result_hash, prepared_by_actor_id, approved_by_actor_id, approved_at, closed_at,
       state_version, created_at, updated_at
     ) VALUES (
-      'tenant-cp25', 'payroll-run-cp25', 'period-cp25', 'regular', NULL, 'previewed',
-      'payroll-snapshot-cp25', 'payroll-result-cp25', 'payroll-cp25', NULL, NULL, NULL,
-      3, '${fixedTimestamp}', '${fixedTimestamp}'
+      'tenant-cp25', 'payroll-run-cp25', 'period-cp25', 'regular', NULL, 'closed',
+      'payroll-snapshot-cp25', 'payroll-result-cp25', 'payroll-cp25', 'approver-cp25',
+      '${fixedTimestamp}', '${fixedTimestamp}', 5, '${fixedTimestamp}', '${fixedTimestamp}'
     );
 
     INSERT INTO hrx_payroll_profiles (
@@ -404,6 +404,9 @@ function assertBackfills(database, checkpoint) {
   );
   if (checkpoint === 20) checks.push(
     ["hrx_overtime_requests.payroll_segment_kind", scalar(database, "SELECT payroll_segment_kind AS value FROM hrx_overtime_requests"), null],
+  );
+  if (checkpoint === 25) checks.push(
+    ["hrx_payroll_runs.filing_source_hash", scalar(database, "SELECT filing_source_hash AS value FROM hrx_payroll_runs"), null],
   );
   for (const [label, actual, expected] of checks) {
     if (actual !== expected) throw new Error(`checkpoint ${checkpoint} backfill mismatch: ${label}=${actual} expected ${expected}`);

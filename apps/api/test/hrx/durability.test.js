@@ -9,17 +9,50 @@ import { createSqlAttendanceStore } from "../../../../packages/hrx/src/attendanc
 import { createSqlHrxDocumentStore } from "../../../../packages/hrx/src/documents.js";
 import { createSqlLeaveBalanceLedger } from "../../../../packages/hrx/src/leave/balance.js";
 import { createSqlLeaveRequestStore } from "../../../../packages/hrx/src/leave/request-service.js";
+import { createOffboardingSourceVersion } from "../../../../packages/hrx/src/offboarding-evidence.js";
 import { createSqlOvertimeStore } from "../../../../packages/hrx/src/overtime.js";
 import { createHrxRuntimeContext, handleHrxApiRequest } from "../../src/hrx-runtime-context.js";
 import { createSqlHrxRepository } from "../../../../packages/hrx/src/repository-sql.js";
 import { createFileHrxStore } from "../../../../packages/hrx/src/store/file-store.js";
 import { runHrxMigrations } from "../../../../packages/hrx/src/migrations/index.js";
 
+function syntheticOffboardingAccessSource() {
+  const evidenceRef = "LX-11:AccessRevocation:off-001:idp-core";
+  return Object.freeze({
+    read({ tenant_id, offboarding_id, employee_id, system_ref }) {
+      return Object.freeze({
+        tenant_id,
+        offboarding_id,
+        employee_id,
+        system_ref,
+        revoked: true,
+        evidence_ref: evidenceRef,
+        access_source_version: createOffboardingSourceVersion({
+          system_ref,
+          revoked: true,
+          confirmation_ref: evidenceRef,
+        }),
+      });
+    },
+  });
+}
+
+function testRecruitingSourceAuthority() {
+  return Object.freeze({
+    verify() {
+      return true;
+    },
+  });
+}
+
 test("HRX runtime repository write survives store reopen", () => {
   const storeFile = join(mkdtempSync(join(tmpdir(), "hrx-runtime-durability-")), "hrx-store.json");
   const store = createFileHrxStore({ filePath: storeFile });
   runHrxMigrations(store);
-  const context = createHrxRuntimeContext({ store });
+  const context = createHrxRuntimeContext({
+    store,
+    offboardingAccessSource: syntheticOffboardingAccessSource(),
+  });
   context.repository.createEmployee({
     tenant_id: "tenant-a",
     employee_id: "emp-durable",
@@ -122,12 +155,43 @@ test("HRX recruiting and lifecycle writes survive runtime reopen", () => {
     hrx_scopes: ["hrx.candidate.write", "hrx.lifecycle.write"],
     session_bound: true,
   });
-  const post = (context, pathname, body = {}) => handleHrxApiRequest({ pathname, method: "POST", body, context, requestContext });
-  const get = (context, pathname, query = {}) => handleHrxApiRequest({ pathname, method: "GET", query, context, requestContext });
+  const matterContext = Object.freeze({
+    repository: Object.freeze({
+      list() {
+        return [];
+      },
+    }),
+  });
+  const post = (context, pathname, body = {}) => handleHrxApiRequest({
+    pathname,
+    method: "POST",
+    body,
+    context,
+    matterContext,
+    requestContext,
+  });
+  const get = (context, pathname, query = {}) => handleHrxApiRequest({
+    pathname,
+    method: "GET",
+    query,
+    context,
+    matterContext,
+    requestContext,
+  });
 
   const store = createFileHrxStore({ filePath: storeFile });
   runHrxMigrations(store);
-  const context = createHrxRuntimeContext({ store });
+  const context = createHrxRuntimeContext({
+    store,
+    offboardingAccessSource: syntheticOffboardingAccessSource(),
+    recruitingSourceAuthority: testRecruitingSourceAuthority(),
+  });
+  context.repository.createEmployee({
+    tenant_id: "tenant-a",
+    employee_id: "emp-001",
+    display_name: "Durable Hiring Manager",
+    status: "active",
+  });
   assert.equal(post(context, "/api/hrx/recruiting/job-openings", {
     job_opening_id: "job-durable",
     title: "Durable Recruiting Counsel",
@@ -170,26 +234,60 @@ test("HRX recruiting and lifecycle writes survive runtime reopen", () => {
     offer_id: "offer-durable",
     application_id: "app-durable",
     candidate_id: "cand-durable",
-    compensation_ref: "CompPackage:durable",
+    compensation_ref: "CompensationRef:durable",
     document_ref: "DMS:offer-durable",
     state: "sent",
     approval_ref: "Approval:offer-durable",
   }).status, 201);
   assert.equal(post(context, "/api/hrx/recruiting/applications/app-durable/stage", { stage: "offer" }).status, 200);
+  assert.equal(post(context, "/api/hrx/recruiting/applications/app-durable/stage", { stage: "hired" }).status, 200);
   assert.equal(post(context, "/api/hrx/recruiting/offers/offer-durable/stage", { state: "accepted" }).status, 200);
+  const conversionBody = {
+    idempotency_key: "candidate-conversion:app-durable",
+    effective_from: "2026-08-01",
+  };
+  const converted = post(
+    context,
+    "/api/hrx/recruiting/applications/app-durable/convert-to-employee",
+    conversionBody,
+  );
+  assert.equal(converted.status, 201);
+  const convertedEmployeeId = converted.body.receipt.results.employee.value.employee_id;
+  assert.match(convertedEmployeeId, /^emp_candidate_[a-f0-9]{24}$/);
+  assert.equal(converted.body.receipt.results.employee_user_link.outcome, "not_requested");
   assert.equal(post(context, "/api/hrx/lifecycle/onboarding/onb-001/tasks/policy-ack", { status: "completed" }).status, 200);
   assert.equal(post(context, "/api/hrx/lifecycle/offboarding/off-001/close").status, 200);
   store.close();
 
   const reopenedStore = createFileHrxStore({ filePath: storeFile });
   runHrxMigrations(reopenedStore);
-  const reopened = createHrxRuntimeContext({ store: reopenedStore });
+  const reopened = createHrxRuntimeContext({
+    store: reopenedStore,
+    offboardingAccessSource: syntheticOffboardingAccessSource(),
+    recruitingSourceAuthority: testRecruitingSourceAuthority(),
+  });
   const pipeline = get(reopened, "/api/hrx/recruiting/pipeline").body;
   assert.equal(pipeline.job_openings.some((item) => item.job_opening_id === "job-durable"), true);
   assert.equal(pipeline.candidates.some((item) => item.candidate_id === "cand-durable"), true);
-  assert.equal(pipeline.applications.find((item) => item.application_id === "app-durable")?.stage, "offer");
+  assert.equal(pipeline.applications.find((item) => item.application_id === "app-durable")?.stage, "hired");
   assert.equal(pipeline.interviews.some((item) => item.interview_id === "int-durable"), true);
   assert.equal(pipeline.offers.find((item) => item.offer_id === "offer-durable")?.state, "accepted");
+  assert.equal(
+    reopened.repository.getEmployee({ tenant_id: "tenant-a", employee_id: convertedEmployeeId }).source_ref,
+    "Candidate:cand-durable",
+  );
+  assert.equal(
+    reopened.repository.listEmployeeUserLinks({ tenant_id: "tenant-a", employee_id: convertedEmployeeId }).length,
+    0,
+  );
+  const replayed = post(
+    reopened,
+    "/api/hrx/recruiting/applications/app-durable/convert-to-employee",
+    conversionBody,
+  );
+  assert.equal(replayed.status, 200);
+  assert.equal(replayed.body.replayed, true);
+  assert.deepEqual(replayed.body.receipt, converted.body.receipt);
   const onboarding = get(reopened, "/api/hrx/lifecycle/onboarding").body.onboarding.find((item) => item.onboarding_id === "onb-001");
   assert.equal(onboarding.tasks.find((task) => task.task_id === "policy-ack")?.status, "completed");
   const offboarding = get(reopened, "/api/hrx/lifecycle/offboarding").body.offboarding.find((item) => item.offboarding_id === "off-001");
@@ -224,7 +322,10 @@ test("operational HRX construction is read-only and risk, approval, policy, and 
 
   const store = createFileHrxStore({ filePath: storeFile });
   runHrxMigrations(store);
-  const context = createHrxRuntimeContext({ store });
+  const context = createHrxRuntimeContext({
+    store,
+    recruitingSourceAuthority: testRecruitingSourceAuthority(),
+  });
   const consentCountBeforeInvalidCandidate = store.snapshot().tables.hrx_candidate_consents.length;
   assert.equal(request(context, "/api/hrx/recruiting/candidates", "POST", {
     candidate_id: "candidate-invalid-atomicity",

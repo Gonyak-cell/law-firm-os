@@ -14,11 +14,20 @@ import { createSqlPayrollItemCatalog } from "../../../packages/hrx/src/payroll-i
 import { createSqlPayrollProfileService } from "../../../packages/hrx/src/payroll-profile-service.js";
 import { createSqlPayrollTimeInputService } from "../../../packages/hrx/src/payroll-time-input-snapshot.js";
 import { createPayrollInputSnapshotService, createServerCompensationResolver } from "../../../packages/hrx/src/payroll/input-snapshot-service.js";
-import { createPayrollPaymentService } from "../../../packages/hrx/src/payroll/payment-service.js";
+import { createPayrollClosePrecheck } from "../../../packages/hrx/src/payroll/close-precheck.js";
+import { createPayrollAllowanceRuleService } from "../../../packages/hrx/src/payroll/allowance-rule-service.js";
+import { createMinimumWageService } from "../../../packages/hrx/src/payroll/minimum-wage.js";
+import {
+  createPayrollPaymentReconciliationScope,
+  createPayrollPaymentService,
+} from "../../../packages/hrx/src/payroll/payment-service.js";
 import { createPayrollRepository } from "../../../packages/hrx/src/payroll/repository.js";
 import { createPayrollRunService } from "../../../packages/hrx/src/payroll/run-service.js";
 import { createPayrollYearEndService } from "../../../packages/hrx/src/payroll/year-end-service.js";
-import { HRX_PROVIDER_RECEIPT_SCHEMA_VERSION } from "../../../packages/hrx/src/provider-receipt-contract.js";
+import {
+  HRX_PROVIDER_RECEIPT_SCHEMA_VERSION,
+  createHrxSandboxProviderOperationBoundary,
+} from "../../../packages/hrx/src/provider-receipt-contract.js";
 
 const SYNTHETIC_PERIOD = Object.freeze({
   period_id: "payroll-period-2026-07",
@@ -148,6 +157,20 @@ function syntheticReceipt(request, { providerKind, operation }) {
   });
 }
 
+function payrollProviderBoundary(kind, allowSyntheticProviders, configured) {
+  if (configured) return configured;
+  if (allowSyntheticProviders) return createHrxSandboxProviderOperationBoundary(kind);
+  return Object.freeze({
+    environment: "production",
+    provider_kind: kind,
+    provider_connection_ref: `provider:production/${kind}/unconfigured`,
+    credential_ref: `vault:production/${kind}/unconfigured`,
+    connection_state: "disconnected",
+    allow_synthetic: false,
+    maximum_attempts: 3,
+  });
+}
+
 export function seedSyntheticPayrollRuntimeStore(store, tenantIds, options = {}) {
   const now = options.clock ?? (() => "2026-07-15T01:00:00.000Z");
   const repository = createPayrollRepository({ store, clock: now });
@@ -249,8 +272,16 @@ export function createHrxPayrollRuntime({
   accountResolver: providedAccountResolver,
   bankAdapter,
   bankReconciliationPort,
+  bankReconciliationCheckpoint,
+  reconciliationLeaseMs,
   filingProviderPort,
   filingSchemaRegistry,
+  providerBoundaries = {},
+  payrollHandoffEnabled = false,
+  payrollClosePrecheckEnabled = false,
+  payrollRulePublishEnabled = false,
+  payrollStatementDeliveryEnabled = allowSyntheticProviders,
+  minimumWageInputResolver = null,
 } = {}) {
   if (!store) return null;
   const itemCatalog = createSqlPayrollItemCatalog({ store, audit, ...(clock ? { clock } : {}) });
@@ -263,7 +294,11 @@ export function createHrxPayrollRuntime({
     ...(clock ? { clock } : {}),
     encryptionOptions: compensationEncryptionOptions,
   });
-  const timeInputService = createSqlPayrollTimeInputService({ store, ...(clock ? { clock } : {}) });
+  const timeInputService = createSqlPayrollTimeInputService({
+    store,
+    approvedOvertimeMinutesEnabled: payrollHandoffEnabled,
+    ...(clock ? { clock } : {}),
+  });
   const payrollRepository = createPayrollRepository({ store, ...(clock ? { clock } : {}) });
   const inputSnapshotService = createPayrollInputSnapshotService({
     store,
@@ -274,9 +309,28 @@ export function createHrxPayrollRuntime({
       allowSyntheticKey: allowSyntheticCompensationKey,
     }),
     policyManifest: (tenantId) => payrollPolicy(tenantId),
+    payrollHandoffEnabled,
     ...(clock ? { clock } : {}),
   });
-  const runService = createPayrollRunService({ payrollRepository, inputSnapshotService, ...(clock ? { clock } : {}) });
+  const closePrecheckService = payrollClosePrecheckEnabled
+    ? createPayrollClosePrecheck({ store, payrollRepository, ...(clock ? { clock } : {}) })
+    : null;
+  const allowanceRuleService = createPayrollAllowanceRuleService({
+    payrollRepository,
+    production: !allowSyntheticProviders,
+    publishEnabled: payrollRulePublishEnabled,
+  });
+  const minimumWageService = createMinimumWageService({
+    payrollRepository,
+    production: !allowSyntheticProviders,
+    publishEnabled: payrollRulePublishEnabled,
+  });
+  const runService = createPayrollRunService({
+    payrollRepository,
+    inputSnapshotService,
+    closePrecheckService,
+    ...(clock ? { clock } : {}),
+  });
   const artifactVault = createEncryptedPayrollArtifactVault({
     ...(artifactStorage ? { storage: artifactStorage } : {}),
     ...(artifactSecret ? { secret: artifactSecret } : {}),
@@ -291,6 +345,8 @@ export function createHrxPayrollRuntime({
         return syntheticReceipt(request, { providerKind: "delivery", operation: `statement.${request.channel}` });
       },
     } : null),
+    providerBoundary: payrollProviderBoundary("delivery", allowSyntheticProviders, providerBoundaries.delivery),
+    providerDeliveryEnabled: payrollStatementDeliveryEnabled,
     ...(clock ? { clock } : {}),
   });
   const syntheticAccountResolver = {
@@ -322,6 +378,8 @@ export function createHrxPayrollRuntime({
     accountResolver,
     bankAdapter: bankAdapter ?? (allowSyntheticProviders ? undefined : unavailableBankAdapter),
     artifactVault,
+    providerBoundary: payrollProviderBoundary("bank", allowSyntheticProviders, providerBoundaries.bank),
+    ...(reconciliationLeaseMs ? { reconciliationLeaseMs } : {}),
     ...(clock ? { clock } : {}),
   });
   const filingService = createPayrollFilingService({
@@ -333,23 +391,35 @@ export function createHrxPayrollRuntime({
       },
     } : null),
     schemaRegistry: filingSchemaRegistry ?? (allowSyntheticProviders ? SYNTHETIC_PAYROLL_FILING_SCHEMAS : Object.freeze({})),
+    providerBoundary: payrollProviderBoundary("filing", allowSyntheticProviders, providerBoundaries.filing),
     ...(clock ? { clock } : {}),
   });
   const resolvedBankReconciliationPort = bankReconciliationPort ?? (allowSyntheticProviders ? Object.freeze({
-    async reconcile({ context, bundle }) {
+    async reconcile({ context, bundle, mode = "initial", idempotency_key: idempotencyKey, payload_hash: payloadHash, request_hash: requestHash }) {
+      const targetItems = mode === "retry" ? bundle.items.filter((item) => item.state === "failed") : bundle.items;
+      const scope = createPayrollPaymentReconciliationScope({ batch: bundle.batch, items: targetItems, mode });
+      if (idempotencyKey !== scope.idempotency_key
+        || payloadHash !== scope.payload_hash
+        || requestHash !== scope.payload_hash.slice("sha256:".length)) {
+        const error = new Error("Bank reconciliation request scope does not match the claimed operation");
+        error.safe_error_code = "HRX_PROVIDER_IDEMPOTENCY_CONFLICT";
+        error.status = 409;
+        throw error;
+      }
       const providerReceipt = syntheticReceipt({
         tenant_id: context.tenant_id,
-        idempotency_key: `${bundle.batch.payment_batch_id}:reconcile`,
-        payload_hash: `sha256:${sha256({ payment_batch_id: bundle.batch.payment_batch_id, checksum: bundle.batch.checksum })}`,
+        idempotency_key: idempotencyKey,
+        payload_hash: payloadHash,
       }, { providerKind: "bank", operation: "bulk_transfer_reconcile" });
       return Object.freeze({
         provider_receipt: providerReceipt,
-        items: bundle.items.map((item) => Object.freeze({
+        items: targetItems.map((item) => Object.freeze({
           employee_id: item.employee_id,
           state: "paid",
           provider_receipt_ref: `provider:sandbox/bank/item/${item.payment_item_id}`,
         })),
-        reported_paid_total_krw: bundle.items.reduce((sum, item) => sum + item.amount_krw, 0),
+        reported_item_count: targetItems.length,
+        reported_paid_total_krw: targetItems.reduce((sum, item) => sum + item.amount_krw, 0),
       });
     },
   }) : null);
@@ -360,6 +430,10 @@ export function createHrxPayrollRuntime({
     timeInputService,
     payrollRepository,
     inputSnapshotService,
+    closePrecheckService,
+    allowanceRuleService,
+    minimumWageService,
+    minimumWageInputResolver,
     runService,
     documentService,
     paymentService,
@@ -367,6 +441,7 @@ export function createHrxPayrollRuntime({
     yearEndService,
     artifactVault,
     bankReconciliationPort: resolvedBankReconciliationPort,
+    bankReconciliationCheckpoint: bankReconciliationCheckpoint ?? null,
     provider_mode: allowSyntheticProviders ? "synthetic-test" : "external-required",
   });
 }

@@ -5,6 +5,10 @@ const EMPLOYEE_SCOPES = Object.freeze([
   "hrx.leave.write",
   "hrx.leave.self.read",
   "hrx.leave.self.write",
+  "hrx.attendance.self.read",
+  "hrx.attendance.self.write",
+  "hrx.overtime.self.read",
+  "hrx.overtime.self.write",
   "hrx.payroll.self.read",
   "hrx.payroll.statement.self.read",
 ]);
@@ -15,6 +19,8 @@ const MANAGER_SCOPES = Object.freeze([
   "hrx.approval.write",
   "hrx.leave.team.read",
   "hrx.leave.approve",
+  "hrx.overtime.team.read",
+  "hrx.overtime.approve",
   "hrx.legal_people.read",
   "hrx.analytics.read",
   "hrx.ai.assistant",
@@ -105,6 +111,7 @@ export const HRX_ROLE_SCOPE_PROFILES = Object.freeze({
     "hrx.evaluation.read",
     "hrx.evaluation.review",
     "hrx.evaluation.write",
+    "hrx.payroll.minimum_wage.legal_review",
   ]),
 });
 

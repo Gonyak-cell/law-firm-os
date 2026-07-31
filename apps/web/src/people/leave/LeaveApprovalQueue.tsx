@@ -9,6 +9,7 @@ import {
   fetchHrxLeaveDelegations,
   resolveHrxLeaveApproval
 } from "../hrxApiClient.ts";
+import { safeEmployeeLabel, safePeopleLabel } from "../peoplePresentation.ts";
 
 type Row = Record<string, unknown>;
 type RescheduleDraft = {
@@ -22,6 +23,21 @@ type RescheduleDraft = {
 function text(row: Row | null | undefined, field: string) {
   const value = row?.[field];
   return typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
+}
+
+function employeeLabel(row: Row | null | undefined, field = "display_name") {
+  return safeEmployeeLabel({
+    employee_id: row?.employee_id,
+    user_id: row?.user_id,
+    display_name: row?.[field],
+  });
+}
+
+function actorLabel(row: Row | null | undefined, fallback = "승인자") {
+  return safePeopleLabel(text(row, "display_name"), {
+    identifiers: [row?.actor_id, row?.employee_id, row?.user_id],
+    fallback,
+  });
 }
 
 function record(row: Row | null | undefined, field: string) {
@@ -172,7 +188,7 @@ export function LeaveApprovalQueue() {
             return (
               <article className="leave-approval-row" key={requestId}>
                 <div className="leave-approval-summary">
-                  <div><strong>{text(request, "employee_display_name") || "구성원"}</strong><span>{text(request, "leave_type_display_name") || "휴가"} · {formatPeriod(request)}</span></div>
+                  <div><strong>{employeeLabel(request, "employee_display_name")}</strong><span>{text(request, "leave_type_display_name") || "휴가"} · {formatPeriod(request)}</span></div>
                   <span className="record-state-badge" data-state="review">{approval.escalated === true ? "대체 승인" : approval.delegated === true ? "위임 승인" : "승인 대기"}</span>
                 </div>
                 <dl className="leave-approval-facts">
@@ -224,7 +240,7 @@ export function LeaveApprovalQueue() {
       <section className="leave-delegation-section" aria-labelledby="leave-delegation-title">
         <div className="leave-form-section-title"><UserRoundCog size={15} /><strong id="leave-delegation-title">위임 관리</strong><span>{activeDelegations}건 활성</span></div>
         <form className="leave-delegation-form" onSubmit={createDelegation}>
-          <label><span>위임받을 승인자</span><select required value={delegationForm.delegate_actor_id} onChange={(event) => setDelegationForm({ ...delegationForm, delegate_actor_id: event.target.value })}>{candidates.map((candidate) => <option key={text(candidate, "actor_id")} value={text(candidate, "actor_id")}>{text(candidate, "display_name")} {text(candidate, "source_title")}</option>)}</select></label>
+          <label><span>위임받을 승인자</span><select required value={delegationForm.delegate_actor_id} onChange={(event) => setDelegationForm({ ...delegationForm, delegate_actor_id: event.target.value })}>{candidates.map((candidate) => <option key={text(candidate, "actor_id")} value={text(candidate, "actor_id")}>{actorLabel(candidate)} {text(candidate, "source_title")}</option>)}</select></label>
           <label><span>시작</span><input required type="datetime-local" value={delegationForm.valid_from} onChange={(event) => setDelegationForm({ ...delegationForm, valid_from: event.target.value })} /></label>
           <label><span>종료</span><input required type="datetime-local" value={delegationForm.valid_to} onChange={(event) => setDelegationForm({ ...delegationForm, valid_to: event.target.value })} /></label>
           <button className="secondary-button" disabled={!delegationForm.delegate_actor_id || Boolean(busy)}>위임 추가</button>
@@ -237,7 +253,7 @@ export function LeaveApprovalQueue() {
               const state = text(delegation, "state");
               return (
                 <div className="leave-delegation-row" key={delegationId}>
-                  <div><strong>{text(delegate, "display_name") || "승인자"}</strong><span>{text(delegation, "valid_from").slice(0, 10)} ~ {text(delegation, "valid_to").slice(0, 10)}</span></div>
+                  <div><strong>{actorLabel(delegate)}</strong><span>{text(delegation, "valid_from").slice(0, 10)} ~ {text(delegation, "valid_to").slice(0, 10)}</span></div>
                   <span className="record-state-badge" data-state={state === "active" ? "live" : state === "revoked" ? "error" : "review"}>{formatDelegationState(state)}</span>
                   <div className="approval-actions">
                     {["active", "scheduled"].includes(state) && <button className="secondary-button" type="button" disabled={Boolean(busy)} onClick={() => void run(`revoke:${delegationId}`, () => closeHrxLeaveDelegation(delegationId, "revoke"))}>철회</button>}

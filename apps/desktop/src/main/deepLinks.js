@@ -29,7 +29,8 @@ export const DEEP_LINK_ROUTE_SPECS = Object.freeze({
     host: "auth",
     type: "auth_callback",
     path: "/callback",
-    allowedQuery: Object.freeze(["code", "state", "issuer"])
+    allowedQuery: Object.freeze(["code", "state"]),
+    requiredQuery: Object.freeze(["code", "state"])
   }),
   password_reset_confirm: Object.freeze({
     host: "password-reset",
@@ -69,7 +70,11 @@ export const DEEP_LINK_AUDIT_EVENTS = Object.freeze({
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{1,127}$/;
 const RESET_TOKEN_PATTERN = /^(?=.{16,256}$)[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$/;
+const AUTHORIZATION_CODE_PATTERN = /^(?=.{1,4096}$)[\x21-\x7e]+$/;
+const AUTH_CALLBACK_STATE_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
 const REDACTED_RESET_TOKEN = "[reset-token-redacted]";
+const REDACTED_AUTHORIZATION_CODE = "[oauth-code-redacted]";
+const REDACTED_AUTH_CALLBACK_STATE = "[oauth-state-redacted]";
 const FORBIDDEN_ACTION_HOSTS = new Set([
   "mutate",
   "mutation",
@@ -111,6 +116,11 @@ function assertKnownQuery(url, allowedQuery) {
       throw new DeepLinkError("UNKNOWN_QUERY_PARAMETER", `Unknown deep link query parameter: ${key}`);
     }
   }
+  for (const key of allowedQuery) {
+    if (url.searchParams.getAll(key).length > 1) {
+      throw new DeepLinkError("DUPLICATE_QUERY_PARAMETER", `Duplicate deep link query parameter: ${key}`);
+    }
+  }
 }
 
 function parseIdentifier(url, idField) {
@@ -128,11 +138,21 @@ function queryValue(url, key) {
 
 export function redactDeepLinkIntent(intent) {
   if (!intent || typeof intent !== "object") return intent;
-  if (intent.type !== "password_reset_confirm") return { ...intent };
-  return {
-    ...intent,
-    token: REDACTED_RESET_TOKEN
-  };
+  if (intent.type === "password_reset_confirm") {
+    return {
+      ...intent,
+      token: REDACTED_RESET_TOKEN
+    };
+  }
+  if (intent.type === "auth_callback") {
+    return {
+      type: intent.type,
+      routeOnly: true,
+      code: REDACTED_AUTHORIZATION_CODE,
+      state: REDACTED_AUTH_CALLBACK_STATE
+    };
+  }
+  return { ...intent };
 }
 
 export function parseMatterDeepLink(candidate) {
@@ -150,21 +170,28 @@ export function parseMatterDeepLink(candidate) {
 
   if (url.hostname === DEEP_LINK_ROUTE_SPECS.auth_callback.host) {
     const spec = DEEP_LINK_ROUTE_SPECS.auth_callback;
-    if (url.pathname !== spec.path) {
+    if (url.pathname !== spec.path || url.username || url.password || url.port || url.hash) {
       throw new DeepLinkError("INVALID_AUTH_CALLBACK_PATH", "Auth callback path must be /callback");
     }
     assertKnownQuery(url, spec.allowedQuery);
-    for (const required of ["code", "state", "issuer"]) {
+    for (const required of spec.requiredQuery) {
       if (!queryValue(url, required)) {
         throw new DeepLinkError("MISSING_AUTH_CALLBACK_QUERY", `Auth callback missing ${required}`);
       }
     }
+    const code = queryValue(url, "code");
+    const state = queryValue(url, "state");
+    if (!AUTHORIZATION_CODE_PATTERN.test(code)) {
+      throw new DeepLinkError("INVALID_AUTH_CALLBACK_CODE", "Auth callback code shape is invalid");
+    }
+    if (!AUTH_CALLBACK_STATE_PATTERN.test(state)) {
+      throw new DeepLinkError("INVALID_AUTH_CALLBACK_STATE", "Auth callback state shape is invalid");
+    }
     return {
       type: spec.type,
       routeOnly: true,
-      code: queryValue(url, "code"),
-      state: queryValue(url, "state"),
-      issuer: queryValue(url, "issuer")
+      code,
+      state
     };
   }
 

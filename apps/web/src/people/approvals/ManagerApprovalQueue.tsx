@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { DataTable, Panel } from "../../components/primitives.jsx";
 import { fetchHrxApprovals, fetchHrxAuditEvents, resolveHrxApproval } from "../hrxApiClient.ts";
+import { safePeopleLabel } from "../peoplePresentation.ts";
 
 type ApprovalAction = "approve" | "reject";
 type HrxRecord = Record<string, unknown>;
@@ -22,21 +23,63 @@ function actionLabel(value: unknown) {
   return "확인";
 }
 
+const OBJECT_TYPE_LABELS: Record<string, string> = {
+  leaverequest: "휴가 요청",
+  leave_request: "휴가 요청",
+  document: "문서",
+  employee: "구성원",
+  candidate: "지원자",
+  legalrisk: "법무 리스크",
+  legal_risk: "법무 리스크",
+  approvalrequest: "승인 요청",
+  attendance: "근무 기록",
+  overtime: "초과근무",
+  expense: "비용 정산",
+  payroll: "급여",
+};
+
 function objectTypeLabel(value: unknown) {
-  if (value === "leave_request" || value === "LeaveRequest") return "휴가 요청";
-  if (value === "document") return "문서";
-  if (value === "employee") return "구성원";
-  if (value === "candidate") return "지원자";
-  return "요청";
+  const key = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return OBJECT_TYPE_LABELS[key] ?? "요청";
 }
 
-function objectDisplayLabel(value: unknown, index: number, objectId?: unknown) {
-  if (typeof objectId === "string" && objectId.trim()) return objectId;
-  if (value === "leave_request" || value === "LeaveRequest") return "휴가 요청";
-  if (value === "document") return "문서";
-  if (value === "employee") return "구성원";
-  if (value === "candidate") return "지원자";
-  return "요청";
+function humanMetadataLabel(record: HrxRecord) {
+  const objectId = typeof record.object_id === "string" ? record.object_id.trim() : null;
+  const nested = record.object && typeof record.object === "object" && !Array.isArray(record.object)
+    ? record.object as HrxRecord
+    : null;
+  const metadata = record.metadata && typeof record.metadata === "object" && !Array.isArray(record.metadata)
+    ? record.metadata as HrxRecord
+    : null;
+  const candidates = [
+    record.object_name,
+    record.object_label,
+    record.label,
+    record.display_name,
+    record.name,
+    record.employee_name,
+    record.requester_name,
+    record.candidate_name,
+    record.document_name,
+    record.title,
+    nested?.display_name,
+    nested?.name,
+    nested?.label,
+    nested?.title,
+    metadata?.object_name,
+    metadata?.display_name,
+    metadata?.employee_name,
+    metadata?.requester_name,
+  ];
+  for (const candidate of candidates) {
+    const label = safePeopleLabel(candidate, { identifiers: [objectId] });
+    if (label) return label;
+  }
+  return null;
+}
+
+export function objectDisplayLabel(record: HrxRecord) {
+  return humanMetadataLabel(record) ?? objectTypeLabel(record.object_type);
 }
 
 export function ManagerApprovalQueue() {
@@ -78,7 +121,7 @@ export function ManagerApprovalQueue() {
             <div className="approval-row" key={approvalId || `approval-${index}`}>
               <div>
                 <strong>{objectTypeLabel(approval.object_type)}</strong>
-                <span>{objectDisplayLabel(approval.object_type, index, approval.object_id)}</span>
+                <span>{objectDisplayLabel(approval)}</span>
               </div>
               <em>{approvalStateLabel(approval.state)}</em>
               <div className="approval-actions">
@@ -104,7 +147,7 @@ export function ManagerApprovalQueue() {
       {audit?.kind === "data" && (
         <DataTable
           columns={["기록", "작업", "대상", "결과"]}
-          rows={audit.events.slice(-4).map((event: HrxRecord, index: number) => [`기록 ${index + 1}`, actionLabel(event.action), objectDisplayLabel(event.object_type, index, event.object_id), approvalStateLabel(event.decision)])}
+          rows={audit.events.slice(-4).map((event: HrxRecord, index: number) => [`기록 ${index + 1}`, actionLabel(event.action), objectDisplayLabel(event), approvalStateLabel(event.decision)])}
         />
       )}
     </Panel>

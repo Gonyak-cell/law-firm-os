@@ -1,0 +1,1399 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>People 전체 메뉴 구현계획 v2</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #65717f;
+      --line: #d7dde5;
+      --soft: #f5f7f9;
+      --paper: #ffffff;
+      --navy: #183b56;
+      --blue: #246b91;
+      --green: #216e55;
+      --amber: #8a5a12;
+      --red: #9a3b3b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Pretendard, "Apple SD Gothic Neo", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #eef1f4;
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.58;
+    }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    code {
+      font-family: var(--mono);
+      font-size: .9em;
+      overflow-wrap: anywhere;
+    }
+    main {
+      width: min(1460px, calc(100% - 32px));
+      margin: 24px auto 72px;
+    }
+    .page-header,
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .page-header {
+      padding: 34px 38px 30px;
+      border-top: 5px solid var(--navy);
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 760;
+      letter-spacing: .04em;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 980px;
+      margin-bottom: 14px;
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1.12;
+      letter-spacing: -.04em;
+    }
+    h2 {
+      margin-bottom: 10px;
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: -.025em;
+    }
+    h3 {
+      margin-bottom: 8px;
+      font-size: 19px;
+      line-height: 1.3;
+    }
+    .lede {
+      max-width: 980px;
+      margin-bottom: 22px;
+      color: #3e4b59;
+      font-size: 17px;
+    }
+    .header-facts {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .header-fact {
+      min-height: 94px;
+      padding: 16px;
+      background: var(--paper);
+    }
+    .header-fact span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .header-fact strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      display: flex;
+      gap: 18px;
+      margin: 14px 0;
+      padding: 12px 16px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+      white-space: nowrap;
+    }
+    nav a {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    section {
+      margin-top: 14px;
+      padding: 30px 34px;
+    }
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--blue);
+      background: #f2f7fa;
+    }
+    .note strong { display: block; margin-bottom: 4px; }
+    .grid-2,
+    .grid-3,
+    .visual-grid,
+    .decision-grid {
+      display: grid;
+      gap: 14px;
+    }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .decision-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .visual-grid { grid-template-columns: 1.2fr 1fr 1fr; }
+    .panel {
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .panel p:last-child,
+    .panel ul:last-child { margin-bottom: 0; }
+    .panel strong.heading {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 17px;
+    }
+    .visual {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--soft);
+    }
+    .visual img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top;
+    }
+    .visual figcaption {
+      padding: 12px 14px 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
+    table {
+      width: 100%;
+      min-width: 850px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f0f3f6;
+      color: #354250;
+      font-size: 12px;
+      letter-spacing: .015em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .status {
+      display: inline-block;
+      min-width: 72px;
+      padding: 2px 7px;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 760;
+      text-align: center;
+    }
+    .status.verify { color: var(--green); background: #f1f8f5; }
+    .status.harden { color: var(--amber); background: #fff8ec; }
+    .status.new { color: var(--blue); background: #f2f7fa; }
+    .status.evidence { color: var(--red); background: #fff4f4; }
+    .train-list {
+      display: grid;
+      gap: 0;
+      border: 1px solid var(--line);
+    }
+    .train {
+      display: grid;
+      grid-template-columns: 70px 1fr minmax(180px, .4fr);
+      gap: 16px;
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+    .train:last-child { border-bottom: 0; }
+    .train-id {
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .train p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+    .train-range {
+      align-self: center;
+      color: #465463;
+      font-family: var(--mono);
+      font-size: 12px;
+      text-align: right;
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .section-head p { max-width: 900px; margin: 0; color: var(--muted); }
+    .section-count {
+      flex: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .tuw-list { display: grid; gap: 10px; min-width: 0; }
+    details.tuw {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    details.tuw[open] { border-color: #aebdca; }
+    details.tuw > summary {
+      display: grid;
+      grid-template-columns: 118px 88px minmax(260px, 1.4fr) minmax(170px, .6fr);
+      gap: 12px;
+      align-items: center;
+      padding: 14px 15px;
+      cursor: pointer;
+      list-style: none;
+    }
+    details.tuw > summary::-webkit-details-marker { display: none; }
+    details.tuw > summary::after {
+      content: "열기";
+      grid-column: 4;
+      grid-row: 1;
+      justify-self: end;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    details.tuw[open] > summary::after { content: "닫기"; }
+    .tuw-id {
+      color: var(--navy);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .tuw-title {
+      min-width: 0;
+      font-weight: 760;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .tuw-deps {
+      padding-right: 38px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-align: right;
+    }
+    .tuw-body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      border-top: 1px solid var(--line);
+      background: var(--line);
+    }
+    .tuw-cell {
+      min-width: 0;
+      min-height: 108px;
+      padding: 14px 15px;
+      background: #fbfcfd;
+      overflow-wrap: anywhere;
+    }
+    .tuw-cell.full { grid-column: 1 / -1; min-height: auto; }
+    .tuw-cell b {
+      display: block;
+      margin-bottom: 5px;
+      color: #43515e;
+      font-size: 11px;
+      letter-spacing: .025em;
+    }
+    .tuw-cell p { margin: 0; font-size: 13px; }
+    .tuw-cell code { font-size: 11px; }
+    .gate-list { counter-reset: gate; display: grid; gap: 10px; }
+    .gate {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 14px;
+      padding: 15px;
+      border: 1px solid var(--line);
+    }
+    .gate-id { color: var(--red); font-family: var(--mono); font-size: 12px; font-weight: 800; }
+    .gate p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .source-list { display: grid; gap: 10px; }
+    .source-row {
+      display: grid;
+      grid-template-columns: 210px 1fr 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .source-row:last-child { border-bottom: 0; }
+    .source-row p { margin: 0; color: var(--muted); font-size: 13px; }
+    .footnote { color: var(--muted); font-size: 12px; }
+    ul { padding-left: 20px; }
+    li + li { margin-top: 5px; }
+    .mono-block {
+      margin: 0;
+      padding: 14px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #202a33;
+      color: #f4f7f9;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre;
+    }
+    @media (max-width: 900px) {
+      main { width: min(100% - 16px, 1460px); margin-top: 8px; }
+      .page-header, section { padding: 22px 18px; }
+      .header-facts, .grid-2, .grid-3, .decision-grid, .visual-grid { grid-template-columns: 1fr; }
+      .train { grid-template-columns: 54px 1fr; }
+      .train-range { grid-column: 2; text-align: left; }
+      details.tuw > summary { grid-template-columns: 96px 80px minmax(0, 1fr); }
+      details.tuw > summary::after { grid-column: 3; grid-row: 2; }
+      .tuw-deps { grid-column: 1 / -1; padding: 0; text-align: left; }
+      .tuw-body { grid-template-columns: 1fr; }
+      .tuw-cell.full { grid-column: auto; }
+      .source-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <p class="eyebrow">LAW FIRM OS · PEOPLE · IMPLEMENTATION PLAN V2 · 2026-07-30</p>
+      <h1>People 전체 메뉴 구현계획 v2</h1>
+      <p class="lede">
+        10명 안팎의 로펌이 실제로 쓰는 팀 현황, 구성원별 오늘 일정·업무, 담당 사건, 근태·휴가·마감 흐름을
+        기존 코드 위에 증분 구현하는 계획입니다. 이전 43개 안을 코드와 테스트에 다시 대조해, 신규 개발로 잘못 분류한
+        급여·휴가·입퇴사 기능은 재사용·보강으로 돌리고 과대 작업은 검증 가능한 단위로 나눴습니다.
+      </p>
+      <div class="header-facts" aria-label="계획 핵심 정보">
+        <div class="header-fact"><span>구현 작업</span><strong><span data-total-tuw>70</span> TUW</strong></div>
+        <div class="header-fact"><span>독립 출시 흐름</span><strong>8개</strong></div>
+        <div class="header-fact"><span>별도 운영 게이트</span><strong>7개</strong></div>
+        <div class="header-fact"><span>사이드바 계약</span><strong>일반 11 / 권한형 16</strong></div>
+      </div>
+    </header>
+
+    <nav aria-label="문서 목차">
+      <a href="#changes">v2 변경점</a>
+      <a href="#scope">범위 고정</a>
+      <a href="#baseline">현재 구현</a>
+      <a href="#authority">데이터 기준</a>
+      <a href="#trains">출시 흐름</a>
+      <a href="#tuw-plan">70 TUW</a>
+      <a href="#menu-map">메뉴 연결</a>
+      <a href="#gates">운영 게이트</a>
+      <a href="#sources">리서치 근거</a>
+    </nav>
+
+    <section id="changes">
+      <div class="section-head">
+        <div>
+          <h2>v1에서 바로잡은 핵심</h2>
+          <p>계획을 길게 만든 것이 아니라, 구현 사실과 권위 데이터, 실패 조건을 더 정확히 고쳤습니다.</p>
+        </div>
+      </div>
+      <div class="decision-grid">
+        <article class="panel">
+          <strong class="heading">기존 기능은 다시 만들지 않음</strong>
+          <p>구성원·조직·채용·입퇴사·근태·휴가·급여 API와 화면이 이미 있습니다. 각 항목을 <b>현행 확인 → 결함 보강 → 외부 증거</b>로 재분류하고 기존 상태 머신을 유지합니다.</p>
+        </article>
+        <article class="panel">
+          <strong class="heading">시간 계산은 1분, 눈금만 30분</strong>
+          <p>10분·20분 일정도 정확히 겹침 계산합니다. 시간표의 30분 눈금은 읽기 보조일 뿐이며, 08:00–19:00 고정 범위도 실제 일정에 맞춰 자동 확장합니다.</p>
+        </article>
+        <article class="panel">
+          <strong class="heading">People 대시보드는 내부 기본 경로</strong>
+          <p><code>people-overview</code>를 People 진입 기본값으로 추가하지만 사이드바 항목은 만들지 않습니다. 기존 <b>구성원</b> 메뉴는 <code>people-members</code> 그대로 유지합니다.</p>
+        </article>
+        <article class="panel">
+          <strong class="heading">재판 포함 기준은 하나</strong>
+          <p>현재 유효한 <code>MatterMember.role=responsible_attorney</code>와 확정된 <code>employee_id</code>만 사용합니다. 자유 텍스트 담당자, Matter 열람권한, 업무 담당자는 재판 담당 판정에 쓰지 않습니다.</p>
+        </article>
+        <article class="panel">
+          <strong class="heading">Outlook은 일정과 할 일을 분리</strong>
+          <p>필수 참석·미거절·미취소 회의만 <b>오늘 할 일</b>에 넣습니다. 선택 참석과 주최자 단독 일정은 시간표에만 표시하고, 타인의 일정 제목·장소·본문은 공개하지 않습니다.</p>
+        </article>
+        <article class="panel">
+          <strong class="heading">급여 마감은 재개방하지 않음</strong>
+          <p>현재 불변 마감 모델을 유지합니다. 마감 뒤 오류는 기존 <code>adjustment</code> 실행으로 정정하며, 화면 문구도 “마감 취소” 대신 <b>정정 정산 시작</b>으로 바꿉니다.</p>
+        </article>
+      </div>
+      <div class="note" style="margin-top:14px">
+        <strong>이번 계획에 넣지 않은 것</strong>
+        인원 증감·입사자·퇴사자 KPI, 일별 업무량 퍼센트, 전사 HR 분석, “커버리지 매트릭스” 같은 번역투,
+        숨겨 둔 근무일정·리포트·메시지·전자계약·회사 설정 메뉴의 활성화는 범위 밖입니다.
+      </div>
+    </section>
+
+    <section id="scope">
+      <div class="section-head">
+        <div>
+          <h2>범위와 사이드바 계약</h2>
+          <p>기능은 활성 화면 안의 탭·상세 패널·내부 기본 경로로 확장합니다. 사이드바는 현재 노출 상태를 그대로 고정합니다.</p>
+        </div>
+      </div>
+      <div class="grid-2">
+        <article class="panel">
+          <h3>일반 사용자에게 보이는 11개</h3>
+          <p>구성원, 조직, 구성원 등록, 입퇴사 관리, 출퇴근기록, 휴가관리, 휴가 사용 내역, 마감 관리, 급여정산, 급여명세서, 수당/최저임금</p>
+        </article>
+        <article class="panel">
+          <h3>권한이 있을 때 추가되는 5개</h3>
+          <p>휴가 그룹/유형, 휴가 자동 발생, 퇴사 휴가 정산, 휴가 요청, 연차 사용 촉진</p>
+        </article>
+        <article class="panel">
+          <h3>계속 비활성</h3>
+          <p>근무일정 전체, 직무/역할, 근로정보, 근로정보 기준, 무일정 근무 출퇴근, 엑셀 업로드, 휴게시간 기록, 누락 알림, 출퇴근기록 확정, 인증 방식, 휴가 수동 발생</p>
+        </article>
+        <article class="panel">
+          <h3>그룹 단위로 계속 숨김</h3>
+          <p>기타 요청/전자결재, People 리포트, 메시지, 전자계약, 회사 설정, HR Data Room 및 현재 비활성 계획</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="baseline">
+      <div class="section-head">
+        <div>
+          <h2>현재 코드에서 확인된 구현</h2>
+          <p>다음은 계획이 아니라 현재 저장소에 존재하는 컴포넌트·API·도메인입니다. v2는 이 기반을 우선 재사용합니다.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>영역</th><th>현재 구현</th><th>실제 공백</th><th>주요 코드</th></tr></thead>
+          <tbody>
+            <tr><td>구성원·조직</td><td>목록, 조직 보기, 선택, 상세 drawer, 마스킹 보상정보, Employee↔User API</td><td>오늘/담당 사건 탭, 예정 변경 UX, 무결성 대사</td><td><code>PeopleHome.tsx</code><br><code>PeopleWorkforceDirectory.tsx</code><br><code>EmployeeProfile.tsx</code></td></tr>
+            <tr><td>구성원 등록</td><td>채용 파이프라인, 후보자, 면접, 제안, 구성원 전환</td><td>직접 등록 우선 UX, 동의·최소수집, 전환 멱등성 증거</td><td><code>RecruitingPipeline.tsx</code><br><code>routes/hrx/recruiting.js</code></td></tr>
+            <tr><td>입퇴사</td><td>입사 업무 완료, 접근 회수·문서·법적 보류·Matter 재배정·인계·휴가 정산 종료 조건</td><td>버전 기준, 실행 항목 영속성, 실제 처리 경로 연결</td><td><code>onboarding.js</code><br><code>offboarding.js</code><br><code>LifecycleBoard.tsx</code></td></tr>
+            <tr><td>출퇴근</td><td>일별 기록, 월 요약, 원본 참조 정정 레코드, 저장·재조회</td><td>정정 승인, 초과근로 인계, 활성 화면 내 탭</td><td><code>attendance.js</code><br><code>hrx-runtime-context.js</code><br><code>AttendanceWorkspace.tsx</code></td></tr>
+            <tr><td>휴가</td><td>정책, 신청·승인, 자동/수동 발생, 사용내역, 퇴사정산, 촉진, 외부 일정 투영</td><td>팀 시간표 연결, 사유 가림, 메뉴별 실제 처리·통지 증거</td><td><code>people/leave/*</code><br><code>packages/hrx/src/leave/*</code></td></tr>
+            <tr><td>급여</td><td>기간, 기준본, 계산, 이슈, 이중 승인, 마감, 지급, 신고, 연말정산, 명세서</td><td>마감 전 통합 점검, 전용 마감/수당 화면, 실제 외부 서비스와 운영 증거</td><td><code>PayrollBoundaryPanel.tsx</code><br><code>packages/hrx/src/payroll/*</code></td></tr>
+            <tr><td>팀 현황</td><td>People overview는 단순 인원 수, Matter 화면에는 일정·업무 존재</td><td>People용 Matter 집계, 구성원 오늘 조회, 시간표, Outlook</td><td><code>fetchHrxPeopleOverview</code><br><code>MatterTask</code><br><code>MatterCalendarEvent</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="visual-heading">
+      <div class="section-head">
+        <div>
+          <h2 id="visual-heading">화면 방향</h2>
+          <p>기존 화면을 갈아엎기보다 People 기본 경로와 현재 구성원 상세 drawer를 확장합니다.</p>
+        </div>
+      </div>
+      <div class="visual-grid">
+        <figure class="visual">
+          <img src="references/current.png" alt="현재 People 화면" />
+          <figcaption>현재 화면과 메뉴 구조는 유지하고, People 진입 시 내부 overview를 먼저 보여줍니다.</figcaption>
+        </figure>
+        <figure class="visual">
+          <img src="references/intraday-schedule.png" alt="시간 단위 팀 일정 제안" />
+          <figcaption>구성원 행과 실제 시간 구간을 결합합니다. 계산은 1분, 눈금은 30분입니다.</figcaption>
+        </figure>
+        <figure class="visual">
+          <img src="references/member-today.png" alt="구성원별 오늘 상세 제안" />
+          <figcaption>기존 drawer를 오늘·담당 사건·프로필로 확장합니다. 별도 페이지를 늘리지 않습니다.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="authority">
+      <div class="section-head">
+        <div>
+          <h2>데이터 기준과 포함 규칙</h2>
+          <p>한 화면에서 출처를 섞더라도 어떤 데이터가 무엇을 결정하는지는 섞지 않습니다.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>판정</th><th>권위 데이터</th><th>포함 조건</th><th>제외·충돌 처리</th></tr></thead>
+          <tbody>
+            <tr><td>구성원</td><td>HRX <code>Employee</code></td><td>현재 tenant, 재직 상태</td><td>로그인 계정과 별도 보존</td></tr>
+            <tr><td>로그인 연결</td><td><code>EmployeeUserLink</code></td><td>활성 링크 1개</td><td>중복 링크 거부, 과거 링크 감사 유지</td></tr>
+            <tr><td>담당 변호사</td><td><code>MatterMember</code></td><td><code>responsible_attorney</code>, 현재 유효, 확정된 <code>employee_id</code></td><td><code>responsible_lawyer</code> 자유 텍스트와 열람권한은 판정에 미사용</td></tr>
+            <tr><td>재판기일</td><td><code>MatterCalendarEvent.event_kind</code></td><td><code>court_hearing</code> + 위 담당 변호사 조건</td><td>제목 문자열 추론 금지, 미분류는 “일정 종류 확인 필요”</td></tr>
+            <tr><td>사건 업무</td><td><code>MatterTask.assigned_to_user_id</code></td><td>명시적 개인 배정 + 오늘 범위 + 미완료</td><td>사건 담당자라는 이유로 모든 업무를 자동 포함하지 않음</td></tr>
+            <tr><td>Outlook 회의</td><td>Microsoft Graph <code>calendarView</code></td><td>필수 참석, 미거절, 미취소, 아직 종료 전</td><td>선택 참석·주최자 단독은 시간표 전용, 타인 제목·장소·본문 가림</td></tr>
+            <tr><td>휴가</td><td>승인된 HRX 휴가 구간</td><td>당일과 겹치는 승인 구간</td><td>팀 화면에는 사유·증빙 미포함</td></tr>
+            <tr><td>급여</td><td>마감된 급여 기준본</td><td>승인·마감 상태</td><td>마감본 수정 금지, 오류는 정정 정산으로 보정</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footnote" style="margin-top:10px">“오늘”은 tenant 시간대의 <code>[00:00, 다음날 00:00)</code>와 겹치는 구간입니다. 1차 기본 시간대는 <code>Asia/Seoul</code>이며 응답에 기준 시간대와 <code>as_of</code>를 반드시 포함합니다.</p>
+    </section>
+
+    <section id="trains">
+      <div class="section-head">
+        <div>
+          <h2>8개 독립 출시 흐름</h2>
+          <p>Outlook·급여 외부 서비스 연결이 늦어져도 Matter 기반 팀 현황은 별도로 출시할 수 있습니다.</p>
+        </div>
+      </div>
+      <div class="train-list">
+        <div class="train"><span class="train-id">R0</span><div><strong>사실·메뉴·권한 고정</strong><p>기존 구현과 사이드바, 응답 상태, 권한 필터를 먼저 고정</p></div><span class="train-range">TUW 001–006</span></div>
+        <div class="train"><span class="train-id">R1</span><div><strong>Matter 데이터 정비</strong><p>담당자·일정 종류·업무 시간 필드를 안전하게 전환</p></div><span class="train-range">TUW 007–015</span></div>
+        <div class="train"><span class="train-id">R2</span><div><strong>팀 현황과 개인 상세</strong><p>Outlook 없이도 오늘 업무·담당 재판·담당 사건을 사용. 남은 가능 시간(030)은 근로정보·휴가 검증 뒤 후속 활성화</p></div><span class="train-range">TUW 016–029 + 030 후속</span></div>
+        <div class="train"><span class="train-id">R3</span><div><strong>Outlook 일정</strong><p>사용자 동의, 보안 저장, 일정 판정, 부분 실패를 독립 출시</p></div><span class="train-range">TUW 031–038</span></div>
+        <div class="train"><span class="train-id">R4</span><div><strong>구성원·조직·등록·입퇴사</strong><p>이미 있는 HRX 흐름을 소규모 로펌 UX로 보강</p></div><span class="train-range">TUW 039–047</span></div>
+        <div class="train"><span class="train-id">R5</span><div><strong>출퇴근</strong><p>기존 추가형 정정 모델을 승인·활성 화면으로 완성. 급여 인계(050)는 급여 기능 대조 뒤 활성화</p></div><span class="train-range">TUW 048–051</span></div>
+        <div class="train"><span class="train-id">R6</span><div><strong>휴가</strong><p>팀 일정 반영과 활성 메뉴별 처리·권한·통지 결과를 검증</p></div><span class="train-range">TUW 052–059</span></div>
+        <div class="train"><span class="train-id">R7</span><div><strong>마감·급여</strong><p>기존 급여 처리 흐름을 재사용해 전용 화면과 외부 처리 증거를 보강</p></div><span class="train-range">TUW 060–070</span></div>
+      </div>
+      <div class="note" style="margin-top:14px">
+        <strong>가장 짧은 사용자 가치 경로</strong>
+        <code>001 → 002 → 004 → 005 → 007–015 → 016 → 017 → 019 → 027–029</code>.
+        이 경로가 끝나면 Outlook 없이도 팀원을 클릭해 오늘 사건 업무·담당 재판·담당 Matter를 확인할 수 있습니다.
+      </div>
+    </section>
+
+    <section id="tuw-plan">
+      <div class="section-head">
+        <div>
+          <h2>70개 검증 가능한 작업 단위</h2>
+          <p>각 TUW는 현행 근거, 변경 범위, 자동 검증, 수동 증거, 롤백 조건을 갖습니다. 행을 열면 세부 내용을 볼 수 있습니다.</p>
+        </div>
+        <span class="section-count">implementation units · 001–070</span>
+      </div>
+      <div class="note" style="margin-bottom:18px">
+        <strong>테스트 파일 표기 원칙</strong>
+        현재 존재하는 테스트는 그대로 재사용합니다. <code>people-*</code>, <code>outlook-*</code>처럼 새 경로로 적힌 테스트와
+        <code>web:e2e</code> 사례 이름은 해당 TUW가 반드시 함께 추가해야 할 산출물이며, 지금 실행 가능하다고 주장하는 목록이 아닙니다.
+      </div>
+      <div id="tuw-sections"></div>
+    </section>
+
+    <section id="menu-map">
+      <div class="section-head">
+        <div>
+          <h2>활성 메뉴와 TUW 연결</h2>
+          <p>메뉴 하나를 “완료”라고 부르기 위해 필요한 작업과 실제 종료 조건입니다.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>화면</th><th>주요 TUW</th><th>완료 판단</th></tr></thead>
+          <tbody>
+            <tr><td>People 기본 화면</td><td>016–030, 038, 052</td><td>팀 현황·분 단위 시간표·확인 목록·출처 상태가 실제 데이터로 동작. 사이드바 항목 추가 없음</td></tr>
+            <tr><td>구성원</td><td>017, 027–029, 039–041</td><td>구성원 클릭 → 오늘/담당 사건/프로필, 등록·수정·계정 연결의 저장 후 재조회</td></tr>
+            <tr><td>조직</td><td>040, 042</td><td>현재와 예정 변경 분리, 적용일 기준 재조회, 순환 관계 차단</td></tr>
+            <tr><td>구성원 등록</td><td>043–045</td><td>직접 등록 우선, 후보자 최소수집, 수락된 제안의 멱등 전환</td></tr>
+            <tr><td>입퇴사 관리</td><td>046–047</td><td>기준 버전과 실행 항목 분리, Matter 인계·접근 회수·휴가 대사 전 종료 차단</td></tr>
+            <tr><td>출퇴근기록</td><td>048–051</td><td>원본 불변, 정정 승인, 승인 초과근로만 급여 인계, 숨김 메뉴는 내부 탭으로도 활성화하지 않음</td></tr>
+            <tr><td>휴가관리·사용 내역</td><td>052–053</td><td>승인 구간이 시간표·가용시간에 반영되고 팀 화면에서 사유 비공개</td></tr>
+            <tr><td>권한형 휴가 5개</td><td>054–058</td><td>각 메뉴가 별도 권한·멱등성·저장 후 재조회·직접 URL 거부를 통과</td></tr>
+            <tr><td>마감 관리</td><td>060–063</td><td>기존 급여 상태 머신으로 차단 항목 처리→승인→마감, 마감 후에는 정정 정산만 허용</td></tr>
+            <tr><td>급여정산</td><td>060–063, 068–069</td><td>계산·승인·마감·지급·신고의 내부 상태와 외부 결과를 분리해 재조회</td></tr>
+            <tr><td>급여명세서</td><td>070</td><td>본인 열람, 관리자 가림, 생성·전달·도달·실패·재시도 상태 구분</td></tr>
+            <tr><td>수당/최저임금</td><td>064–067</td><td>제한된 규칙, 유효일·검토·승인, 최저임금 영향 후보와 근거 확인</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="gates">
+      <div class="section-head">
+        <div>
+          <h2>구현 TUW와 분리한 7개 운영 게이트</h2>
+          <p>로컬 테스트, 배포, 외부 서비스, 실제 tenant, 운영 승인을 서로 다른 완료선으로 관리합니다.</p>
+        </div>
+      </div>
+      <div class="gate-list">
+        <div class="gate"><span class="gate-id">RG-01</span><div><strong>단위 PR 게이트</strong><p>해당 TUW의 지정 테스트, 허용·거부·가림·직접 URL 실패 경로 검사, 변경 파일 lint/typecheck, 실행 결과 기록이 있어야 merge 후보가 됩니다.</p></div></div>
+        <div class="gate"><span class="gate-id">RG-02</span><div><strong>Matter 팀 현황 출시</strong><p><code>people_team_operations</code> flag 아래 10명 fixture와 권한 제한 fixture를 검증하고, Outlook 없이 별도 승인합니다.</p></div></div>
+        <div class="gate"><span class="gate-id">RG-03</span><div><strong>Outlook 연결 준비</strong><p>M365 관리자 승인, 사용자별 <code>Calendars.ReadBasic</code> 동의, 토큰 보관, 철회, Graph 시험 환경, 개인정보 검토가 모두 확인돼야 기능을 켭니다.</p></div></div>
+        <div class="gate"><span class="gate-id">RG-04</span><div><strong>People 활성 메뉴 회귀</strong><p>일반 11개/권한형 16개, 비활성 메뉴 0건, loading·empty·error·denied·partial, 키보드·모바일·한국어 카피를 누적 검증합니다.</p></div></div>
+        <div class="gate"><span class="gate-id">RG-05</span><div><strong>급여 외부 서비스 준비</strong><p>시험 데이터 통과는 운영 준비가 아닙니다. 은행·신고·전달 서비스별 시험 환경 결과와 안전한 실패 처리를 별도로 승인합니다.</p></div></div>
+        <div class="gate"><span class="gate-id">RG-06</span><div><strong>정확한 main·패키지·API</strong><p>동일 SHA의 web build, desktop package hash, API/Lambda version, 로그인 세션 재시작 후 핵심 흐름을 확인합니다.</p></div></div>
+        <div class="gate"><span class="gate-id">RG-07</span><div><strong>실제 tenant 운영 승인</strong><p>실제 10명 명부, 담당 재판 표본, 필수 참석 회의, 휴가·근태·급여 대사와 rollback 담당자를 기록한 뒤 소유자가 승인합니다.</p></div></div>
+      </div>
+      <h3 style="margin-top:22px">누적 검증 명령</h3>
+      <pre class="mono-block">npm --workspace apps/web run test:ui
+npm --workspace apps/api run test
+npm test
+npm run hrx:authz:validate
+npm run hrx:security:validate
+npm run hrx:ui:validate
+npm run hrx:release:validate
+npm run hrx:no-premature-claim:validate
+npm run build
+npm run matter-desktop:dashboard-package-qa</pre>
+    </section>
+
+    <section id="sources">
+      <div class="section-head">
+        <div>
+          <h2>오픈소스·공식 API 근거와 적용 범위</h2>
+          <p>참고 제품의 화면을 복제하지 않고, 검증된 도메인 경계와 실패 규칙만 가져옵니다.</p>
+        </div>
+      </div>
+      <div class="source-list">
+        <div class="source-row"><strong>ERPNext Employee</strong><p>Employee와 User를 분리하고 활성 사용자 연결 중복을 차단하는 패턴</p><p><a href="https://github.com/frappe/erpnext/blob/ec02b5fa640beb995ff74c13d76c915518661c60/erpnext/setup/doctype/employee/employee.py#L296-L327">SHA 고정 소스</a> · TUW 007, 039–041</p></div>
+        <div class="source-row"><strong>Frappe HRMS Onboarding</strong><p>기준에서 실행 업무를 만들고 필수 업무를 완료해야 다음 상태로 이동하는 패턴</p><p><a href="https://github.com/frappe/hrms/blob/2d9e4a0bc7a8d18c42c25cc7ff95eb52b460c6b1/hrms/hr/doctype/employee_onboarding/employee_onboarding.py#L17-L100">SHA 고정 소스</a> · TUW 046–047</p></div>
+        <div class="source-row"><strong>Frappe HRMS Check-in</strong><p>원본 타각을 직접 고치지 않고 중복·연결 이후 변경을 차단하는 원칙</p><p><a href="https://github.com/frappe/hrms/blob/2d9e4a0bc7a8d18c42c25cc7ff95eb52b460c6b1/hrms/hr/doctype/employee_checkin/employee_checkin.py#L24-L85">SHA 고정 소스</a> · TUW 048–051</p></div>
+        <div class="source-row"><strong>Frappe HRMS Payroll</strong><p>기간 상태와 계산을 분리하고 출퇴근 누락을 제출 전 차단하는 패턴</p><p><a href="https://github.com/frappe/hrms/blob/2d9e4a0bc7a8d18c42c25cc7ff95eb52b460c6b1/hrms/payroll/doctype/payroll_entry/payroll_entry.py#L36-L116">SHA 고정 소스</a> · TUW 060–063</p></div>
+        <div class="source-row"><strong>Microsoft Graph</strong><p><code>calendarView</code>의 현지 시간대, 반복 일정, 페이지 이동과 attendee type/status 판정</p><p><a href="https://learn.microsoft.com/en-us/graph/api/user-list-calendarview?view=graph-rest-1.0">calendarView</a> · <a href="https://learn.microsoft.com/en-us/graph/api/resources/attendee?view=graph-rest-1.0">attendee</a> · TUW 031–038</p></div>
+        <div class="source-row"><strong>OpenProject Team Planner</strong><p>사람을 행으로 두고 업무를 시간축에 놓는 팀 계획 패턴. Law Firm OS는 분 단위 일정과 개인정보 가림을 추가</p><p><a href="https://www.openproject.org/docs/user-guide/team-planner/">공식 문서</a> · TUW 022–026</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>계획 완료의 의미</h2>
+      <p>
+        이 문서는 구현 순서와 테스트 경계를 확정한 설계 산출물입니다. 제품 코드, 배포, 실제 Outlook·은행·신고 연결은 아직 변경하지 않았습니다.
+        첫 구현 PR은 <code>PEO-TUW-001</code>과 <code>PEO-TUW-002</code>로 현재 사실과 사이드바 계약을 고정한 뒤 시작합니다.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const sections = [
+      {
+        key: "A",
+        title: "A. 사실·메뉴·공통 경계",
+        description: "현재 구현을 다시 발명하지 않고, 이후 작업이 따라야 할 메뉴·응답·권한 기준을 고정합니다.",
+        items: [
+          {
+            id: "PEO-TUW-001", kind: "verify", title: "현재 구현·경로·소유 영역 원장 고정", deps: "없음",
+            baseline: "PeopleHome은 구성원, 조직, 휴가, 채용, 입퇴사, 근태, 급여, 명세서 컴포넌트를 이미 직접 렌더링합니다.",
+            change: "활성 16개 메뉴를 existing / extend / new / provider-gated로 분류하고 route→component→client→API→domain→test를 기계 판독 가능한 원장으로 고정합니다.",
+            owner: "Web People + HRX API. 기준 파일: apps/web/src/people/PeopleHome.tsx, peopleFeatureCatalog.js, hrxApiClient.ts.",
+            test: "누락 route 0건, 실제 컴포넌트가 있는데 new로 표기된 항목 0건, 처리되지 않는 active route 0건.",
+            command: "node --test apps/web/test/people-implementation-inventory.test.mjs",
+            evidence: "artifacts/people-v2/PEO-TUW-001/implementation-ledger.json. 실패 시 코드 변경 없이 원장만 수정."
+          },
+          {
+            id: "PEO-TUW-002", kind: "verify", title: "사이드바 11/16과 비활성 항목 고정", deps: "001",
+            baseline: "Shell.jsx의 그룹·section 필터가 근무일정과 여러 준비 기능을 숨깁니다. 기존 테스트는 일부 이름만 확인합니다.",
+            change: "일반 사용자 11개, 전체 권한 사용자 16개를 이름·순서·route까지 고정합니다. people-overview 한 건을 제외한 숨김 항목은 sidebar뿐 아니라 route_enabled=false로 두고 직접 경로에서도 실행하지 않습니다.",
+            owner: "Web shell. 기준 파일: apps/web/src/components/Shell.jsx, ui-regression.test.mjs, home-dashboard-r1.test.mjs.",
+            test: "두 권한 fixture의 정확한 개수, 중복 route 0건, 휴가 수동 발생·근무일정·리포트 그룹 미노출, 숨김 route는 컴포넌트·API 호출 없이 overview로 안전 복귀.",
+            command: "node --test apps/web/test/ui-regression.test.mjs apps/web/test/home-dashboard-r1.test.mjs",
+            evidence: "권한별 sidebar snapshot 2종. 실패하면 신규 People UI flag를 끄고 기존 sidebar로 복귀."
+          },
+          {
+            id: "PEO-TUW-003", kind: "harden", title: "기능 목록을 사이드바 단일 기준으로 전환", deps: "001–002",
+            baseline: "현재 노출은 Shell.jsx의 숨김 집합과 catalog의 state가 이중으로 결정되며, 숨긴 항목 중 state=active도 있습니다.",
+            change: "catalog에 implementation_state, availability, sidebar_visibility, route_enabled, requiredScope를 분리해 명시합니다. people-overview만 sidebar=false/route=true 예외이고 나머지 숨김 항목은 availability=disabled/route=false로 고정합니다.",
+            owner: "peopleFeatureCatalog.js + Shell.jsx. 화면 기능 state와 navigation visibility는 별도 필드로 유지.",
+            test: "전환 전후 11/16 목록 byte-equivalent, 내부 people-overview는 sidebar=false/route=true, 그 외 숨김 항목은 direct hash에서도 렌더·API 호출 0건.",
+            command: "node --test apps/web/test/people-catalog-navigation.test.mjs apps/web/test/ui-regression.test.mjs",
+            evidence: "before/after route manifest. 문제가 생기면 Shell의 기존 필터를 한 릴리스 동안 fallback으로 유지."
+          },
+          {
+            id: "PEO-TUW-004", kind: "new", title: "출처 상태·기준시각 공통 응답 계약", deps: "001",
+            baseline: "기능별 loading/error 표현은 있으나 Matter·HRX·Outlook을 섞는 조회의 공통 partial/freshness 계약은 없습니다.",
+            change: "schema_version, as_of, timezone, source_status[{source,state,last_success_at,stale_after,safe_error_code}]를 공통 envelope로 만듭니다.",
+            owner: "packages/hrx People read-model + apps/api HRX runtime + hrxApiClient.ts.",
+            test: "연동 실패가 0건으로 직렬화되지 않음, partial에서 정상 출처 유지, 내부 오류·token·provider payload 미노출.",
+            command: "node --test packages/hrx/test/people-source-envelope.test.js apps/api/test/hrx/people-source-envelope.test.js",
+            evidence: "ok/partial/blocked/stale fixture. envelope version flag로 이전 응답으로 즉시 복귀."
+          },
+          {
+            id: "PEO-TUW-005", kind: "harden", title: "권한 적용 후 집계·가림 계약", deps: "004",
+            baseline: "HRX scope와 Matter 윤리벽 테스트는 존재하지만 People 교차 조회는 아직 없습니다.",
+            change: "대상 구성원의 명시적 배정 ∩ 조회자의 Matter 열람권한 ∩ tenant 순으로 필터한 뒤 건수와 목록을 계산합니다. 필드별 개인정보 가림 표를 추가합니다.",
+            owner: "Matter permission envelope + apps/api hrx-role-scope-matrix + People selectors.",
+            test: "금지 Matter가 행·합계·빈 상태 추론에 미노출, 교차 tenant 403, 타인 회의 제목·휴가 사유·급여 금액 가림.",
+            command: "node --test apps/api/test/hrx/people-operations-authz.test.js apps/api/test/security/matter-vault-ethical-wall.test.js",
+            evidence: "allow/deny/redact/existence-hidden 판정표. 오류 시 endpoint 전체 fail-closed."
+          },
+          {
+            id: "PEO-TUW-006", kind: "harden", title: "출처별 기능 전환 스위치와 상태 기록", deps: "004–005",
+            baseline: "People의 신규 집계가 한 번에 켜질 경우 Matter·Outlook·capacity 실패를 독립 롤백하기 어렵습니다.",
+            change: "people_overview, people_member_brief, outlook_calendar, people_capacity를 독립 flag로 두고 요청 수·partial·stale·denied만 비식별 집계합니다.",
+            owner: "기존 feature flag/telemetry 패턴 재사용. 신규 개인정보 로깅 금지.",
+            test: "각 flag off 시 기존 구성원 화면 정상, Outlook off가 Matter brief를 막지 않음, 로그에 제목·이름·token 없음.",
+            command: "node --test packages/hrx/test/people-feature-flags.test.js apps/web/test/people-feature-flag-fallback.test.mjs",
+            evidence: "flag 조합 8종 receipt. 문제 발생 시 해당 출처만 kill switch."
+          }
+        ]
+      },
+      {
+        key: "B",
+        title: "B. Matter 담당자·일정·업무 데이터 전환",
+        description: "개인 오늘 할 일의 정확도를 좌우하는 세 모델을 필드 추가 → 기존 데이터 검증 이관 → 저장·조회 전환 순서로 바꿉니다.",
+        items: [
+          {
+            id: "PEO-TUW-007", kind: "harden", title: "담당 변호사 권위와 식별자 무결성 계약", deps: "005",
+            baseline: "Matter에는 responsible_lawyer 자유 텍스트와 MatterMember가 공존하고, 일부 MatterMember는 employee_id 없이 user_id만 가질 수 있습니다.",
+            change: "People 판정은 active responsible_attorney + 확정 employee_id만 사용합니다. legacy user_id는 활성 EmployeeUserLink가 정확히 하나일 때만 backfill 후보로 인정합니다.",
+            owner: "packages/matter model/staffing + packages/hrx identity-link + People selector.",
+            test: "자유 텍스트·열람권한·task assignee는 담당 변호사로 판정하지 않음, 중복/미연결 user는 unresolved.",
+            command: "node --test packages/matter/test/people-assignment-authority.test.js packages/hrx/test/identity-link.test.js",
+            evidence: "employee↔user↔MatterMember 무결성 보고서. unresolved는 숨기지 않고 ‘담당자 지정 필요’로만 노출."
+          },
+          {
+            id: "PEO-TUW-008", kind: "harden", title: "Matter 담당자 유효기간 필드 추가·기존 데이터 이관", deps: "007",
+            baseline: "MatterMember는 status만 있고 적용 시작·종료일이 없어 예정 인계와 과거 배정을 구분하기 어렵습니다.",
+            change: "valid_from/valid_to와 identity_resolution_state를 nullable로 확장합니다. 감사 이벤트 시각과 유일 EmployeeUserLink로 재실행 가능한 backfill을 만들고 불확실 행은 격리합니다.",
+            owner: "packages/matter schema/registry/repository + migration. 기존 필드 삭제 없음.",
+            test: "migration 2회 실행 동일, 기간 역전·교차 tenant 거부, 불확실 시 추정 날짜 생성 금지, 원본 hash 보존.",
+            command: "node --test packages/matter/test/people-member-migration.test.js",
+            evidence: "expand/backfill 검증 쿼리와 unresolved CSV. rollback은 새 reader 전환 전까지만 허용."
+          },
+          {
+            id: "PEO-TUW-009", kind: "harden", title: "Matter 담당자 저장·조회 전환", deps: "008",
+            baseline: "기존 writer는 employee_id를 선택적으로 받고 현재 selector는 status 중심입니다.",
+            change: "신규 People-visible 배정은 employee_id/valid_from을 필수화합니다. reader는 날짜 범위와 status를 함께 보고, 구형 행은 검증된 backfill만 dual-read합니다.",
+            owner: "packages/matter staffing-service, API route, People selector.",
+            test: "현재·미래·종료 배정, 같은 Matter의 복수 담당 변호사, unresolved legacy 제외, old/new writer 동시 실행.",
+            command: "node --test packages/matter/test/staffing-service.test.js packages/matter/test/people-member-cutover.test.js",
+            evidence: "dual-read parity receipt. mismatch가 0이 되기 전 legacy read 제거 금지."
+          },
+          {
+            id: "PEO-TUW-010", kind: "new", title: "Matter 일정 종류·외부 식별값 계약", deps: "005",
+            baseline: "MatterCalendarEvent에는 starts_at/ends_at/source_ref가 있지만 법원 기일을 식별하는 구조 필드와 Graph 중복 키가 없습니다.",
+            change: "event_kind(enum: court_hearing, deadline, meeting, external_visit, internal, unknown), provider, provider_event_id, provider_series_id 계약을 정의합니다.",
+            owner: "packages/matter model/registry/activity-calendar service.",
+            test: "허용 enum, 취소 상태, 시간 역전, provider id tenant 유일성, 비공개 payload·Graph raw body 저장 금지.",
+            command: "node --test packages/matter/test/people-calendar-contract.test.js",
+            evidence: "스키마 기준 데이터와 허용·거부 사례. 필드 추가 방식이므로 기존 화면 영향 없음."
+          },
+          {
+            id: "PEO-TUW-011", kind: "harden", title: "Matter 일정 필드 추가·안전한 기존 데이터 이관", deps: "010",
+            baseline: "기존 화면 일부는 제목 문자열로 기일을 추론하지만 이는 신뢰할 수 없습니다.",
+            change: "필드를 추가하고 명확한 source metadata가 있는 행만 backfill합니다. 제목만 있는 행은 unknown으로 두고 ‘일정 종류 확인 필요’ 목록을 만듭니다.",
+            owner: "packages/matter migration/backfill + 검증 script.",
+            test: "제목 ‘재판 준비’가 court_hearing으로 오분류되지 않음, provider 키 충돌 격리, 재실행 동일.",
+            command: "node --test packages/matter/test/people-calendar-migration.test.js",
+            evidence: "classified/unknown/conflict 건수와 표본. 강제 추론 스위치 없음."
+          },
+          {
+            id: "PEO-TUW-012", kind: "harden", title: "Matter 일정 저장·조회 전환과 제목 추론 제거", deps: "011",
+            baseline: "현재 calendar writer는 event_kind를 받지 않고 Home 계열 조회에 제목 기반 추론이 남아 있습니다.",
+            change: "신규 일정 writer가 event_kind를 요구하고 People reader는 explicit court_hearing만 재판으로 봅니다. legacy unknown은 재판 할 일에서 제외합니다.",
+            owner: "activity-calendar-channel-service, matters route/UI, home-dashboard runtime, People selector.",
+            test: "court_hearing 포함, unknown/deadline/internal 제외, cancelled 제외, 기존 Matter 달력 회귀 없음.",
+            command: "node --test packages/matter/test/people-calendar-cutover.test.js apps/api/test/hrx/people-hearing-selector.test.js",
+            evidence: "old/new selector 차이 보고서. feature flag로 구 reader 복귀 가능하되 People 재판 판정은 보수적으로 유지."
+          },
+          {
+            id: "PEO-TUW-013", kind: "new", title: "Matter 업무 개인 배정·시간 계약", deps: "005",
+            baseline: "MatterTask는 assigned_to와 due_at만 있어 식별자 종류, 시작/종료, 예상 소요시간이 불명확합니다.",
+            change: "assigned_to_user_id, starts_at, ends_at, estimated_minutes를 선택 필드로 정의합니다. due_at은 기한으로 유지하고 시간 지정과 예상시간을 분리합니다.",
+            owner: "packages/matter model/registry/activity service.",
+            test: "분 단위 구간, 교차일, 끝<시작 거부, estimated_minutes 양수, user id와 employee id 혼용 거부.",
+            command: "node --test packages/matter/test/people-task-contract.test.js",
+            evidence: "task schema fixture. 기존 due_at 기반 화면은 유지."
+          },
+          {
+            id: "PEO-TUW-014", kind: "harden", title: "Matter 업무 필드 추가·기존 데이터 검증 이관", deps: "013",
+            baseline: "기존 assigned_to가 실제 user id인지 보장되지 않고 시간 정보는 due_at뿐입니다.",
+            change: "정확한 User 레코드와 일치하는 assigned_to만 assigned_to_user_id로 복사합니다. starts/ends/estimate는 추정하지 않고 null, 모호한 행은 확인 목록에 남깁니다.",
+            owner: "packages/matter migration/backfill.",
+            test: "unknown 식별자 미복사, 시간 추정 0건, 재실행 동일, old row hash와 due_at 보존.",
+            command: "node --test packages/matter/test/people-task-migration.test.js",
+            evidence: "resolved/unresolved backfill receipt. writer cutover 전까지만 rollback."
+          },
+          {
+            id: "PEO-TUW-015", kind: "harden", title: "Matter 업무 저장·조회 전환", deps: "014",
+            baseline: "기존 writer와 Home 조회는 assigned_to를 직접 비교합니다.",
+            change: "신규 writer는 assigned_to_user_id를 사용하고 People 할 일은 명시 배정만 포함합니다. 사건 담당 변호사라는 이유로 사건의 모든 업무를 넣지 않습니다.",
+            owner: "activity-calendar-channel-service, matters API/UI, People task selector.",
+            test: "명시 배정 포함, 다른 user·미배정 제외, done/cancelled 제외, due-only와 time-bound 업무 분리, dual-read parity.",
+            command: "node --test packages/matter/test/people-task-cutover.test.js apps/api/test/hrx/people-task-selector.test.js",
+            evidence: "old/new read 비교. mismatch 행은 확인 목록으로 보내고 자동 귀속 금지."
+          }
+        ]
+      },
+      {
+        key: "C",
+        title: "C. 팀 현황과 구성원별 오늘",
+        description: "Matter만으로 먼저 쓸 수 있는 수직 흐름을 만들고 Outlook과 휴가는 뒤에서 선택적으로 보강합니다.",
+        items: [
+          {
+            id: "PEO-TUW-016", kind: "new", title: "People용 Matter 조회 규칙 3종", deps: "009, 012, 015",
+            baseline: "Matter 화면에는 일정·업무가 있지만 People 구성원 기준 selector는 없습니다.",
+            change: "activeAttorneyAssignments, memberTasks, memberEvents를 순수 함수로 분리하고 tenant/조회자 권한을 입력으로 받습니다.",
+            owner: "packages/matter 또는 packages/hrx의 People projection 모듈. DB 조회와 판정 로직 분리.",
+            test: "권한 필터 전후 건수 누설 없음, 동일 입력 결정성, 담당자/재판/업무 포함·제외 표 전체 통과.",
+            command: "node --test packages/hrx/test/people-matter-selectors.test.js",
+            evidence: "golden fixture와 result hash. selector 단위 rollback 가능."
+          },
+          {
+            id: "PEO-TUW-017", kind: "new", title: "구성원별 오늘 조회 API", deps: "004–005, 016",
+            baseline: "기존 구성원 상세 API는 프로필과 마스킹 보상정보만 반환합니다.",
+            change: "GET /api/hrx/people/members/:employeeId/daily-brief를 추가하고 route-policy, runtime handler, web client, desktop allowlist를 함께 등록합니다.",
+            owner: "apps/api HRX route/runtime + hrxApiClient.ts.",
+            test: "schema_version/as_of/source_status, 오늘 업무·담당 재판·담당 Matter, 400/403/404 안전 오류, 직접 URL 권한.",
+            command: "node --test apps/api/test/hrx/people-daily-brief.test.js apps/api/test/hrx/route-authz.test.js",
+            evidence: "API fixture 8종. people_member_brief flag off 시 기존 프로필만 유지."
+          },
+          {
+            id: "PEO-TUW-018", kind: "new", title: "팀 운영 요약 API", deps: "004–005, 016",
+            baseline: "현재 People overview는 employee_count/active_count/on_leave_count 중심입니다.",
+            change: "GET /api/hrx/people/team-operations에서 구성원별 오늘 구간, 시간 미정 업무, 담당 사건 수, 확인 항목을 반환합니다. 상세은 daily-brief에 맡깁니다.",
+            owner: "apps/api HRX runtime + packages/hrx People projection.",
+            test: "10명 fixture, 동일 as_of 결정성, pagination 불필요한 bounded 응답, 권한 없는 Matter 건수 미포함, partial source 유지.",
+            command: "node --test apps/api/test/hrx/people-team-operations.test.js",
+            evidence: "응답 크기·결정성·권한 receipt. people_overview flag로 독립 롤백."
+          },
+          {
+            id: "PEO-TUW-019", kind: "harden", title: "People 내부 기본 경로 people-overview", deps: "002–003, 018",
+            baseline: "현재 People 진입 기본값은 people-members이며 구성원 메뉴와 진입 화면이 같습니다.",
+            change: "People rail 진입만 people-overview로 보내고 구성원 메뉴 route는 그대로 둡니다. catalog에는 sidebar_visibility=false로 등록합니다.",
+            owner: "PeopleHome route resolution + Shell navigation contract.",
+            test: "People 진입→overview, 구성원 클릭→people-members, 뒤로가기·deep link, sidebar 11/16 불변.",
+            command: "node --test apps/web/test/people-overview-routing.test.mjs apps/web/test/ui-regression.test.mjs",
+            evidence: "route transition browser receipt. flag off 시 default를 people-members로 복귀."
+          },
+          {
+            id: "PEO-TUW-020", kind: "new", title: "팀 현황 레이아웃과 출처 상태", deps: "018–019",
+            baseline: "기존 overview는 소규모 로펌의 오늘 의사결정을 지원하지 않습니다.",
+            change: "상단에 오늘 처리 목록, 구성원별 시간표, 2주 확인 일정, 기일·기한 담당 현황을 배치하고 source_status를 각 블록 가까이에 표시합니다.",
+            owner: "신규 PeopleOverview 컴포넌트. 기존 Panel/DataTable/상태 컴포넌트 재사용.",
+            test: "loading/empty/error/denied/partial/stale 구분, 숫자와 행 수 일치, dead CTA 0건, 1024/1440/모바일.",
+            command: "node --test apps/web/test/people-overview-ui.test.mjs",
+            evidence: "세 viewport screenshot. 컴포넌트 단위 제거로 기존 members 화면 복귀."
+          },
+          {
+            id: "PEO-TUW-021", kind: "new", title: "오늘 처리 목록 4종", deps: "018, 020",
+            baseline: "현재 People에는 업무를 바로 처리할 수 있는 공통 대기열이 없습니다.",
+            change: "오늘 할 일, 담당자 지정 필요, 인계 확인, 시간기록 확인을 실제 근거 행으로 구성하고 각 행을 Matter/입퇴사/시간기록 경로로 연결합니다.",
+            owner: "People overview queue projection + Web rows.",
+            test: "행 수=badge 수, 권한 없는 행 미노출, 빈 상태와 데이터 오류 구분, 링크가 정확한 대상·탭으로 이동.",
+            command: "node --test packages/hrx/test/people-action-queues.test.js apps/web/test/people-action-queues-ui.test.mjs",
+            evidence: "4 queue fixture와 navigation receipt. 개별 queue flag로 숨김 가능."
+          },
+          {
+            id: "PEO-TUW-022", kind: "new", title: "분 단위 일정 구간 계산기", deps: "016",
+            baseline: "일 단위 또는 30분 단위 추정은 짧은 회의와 겹침을 왜곡합니다.",
+            change: "저장·겹침·합집합·높이를 1분 정밀도로 계산합니다. tenant 날짜 경계, 종일, 자정 교차, 취소 구간을 처리합니다.",
+            owner: "packages/hrx People interval utility. UI와 무관한 순수 함수.",
+            test: "10/20/30분, 부분·완전 겹침, 자정, DST 입력 방어, 서울 시간대, 종료<시작 거부.",
+            command: "node --test packages/hrx/test/people-intervals.test.js",
+            evidence: "golden interval fixture. 계산기 단위 교체 가능."
+          },
+          {
+            id: "PEO-TUW-023", kind: "new", title: "구성원별 오늘 시간표", deps: "020, 022",
+            baseline: "현재 People에는 사람을 행으로 둔 시간축이 없습니다.",
+            change: "1명 1행, 30분 눈금, 실제 일정에 따라 06:00–22:00 안에서 범위를 자동 확장합니다. block은 분 단위 위치·높이를 사용합니다.",
+            owner: "PeopleOverview intraday timeline. Matter·Outlook·휴가 source style은 구분하되 범례를 항상 표시.",
+            test: "키보드로 block 상세 열기, 겹침 lane, 30분 미만 표시, 모바일 가로 스크롤 containment, 제목 가림.",
+            command: "node --test apps/web/test/people-intraday-timeline.test.mjs",
+            evidence: "desktop/mobile screenshot과 keyboard trace. timeline block flag로 독립 롤백."
+          },
+          {
+            id: "PEO-TUW-024", kind: "new", title: "업무량 1단계: 확정·미정·예상 없음", deps: "015–016, 020",
+            baseline: "소정근로시간·휴가가 완전히 검증되기 전 남은 가능 시간을 퍼센트로 보여주면 오판합니다.",
+            change: "이번 주를 시간 확정, 시간 미정(예상분 있음), 예상시간 없음의 세 값으로만 표시합니다. capacity 퍼센트와 자동 배치는 만들지 않습니다.",
+            owner: "People workload projection + simple bar/list.",
+            test: "예상 없음이 0분으로 바뀌지 않음, 겹친 확정 구간 합집합, 미완료 업무만 포함, 소수 인원 가독성.",
+            command: "node --test packages/hrx/test/people-workload-stage1.test.js apps/web/test/people-workload-ui.test.mjs",
+            evidence: "업무 0/시간 미정/예상 없음 fixture. 독립 block rollback."
+          },
+          {
+            id: "PEO-TUW-025", kind: "new", title: "앞으로 14일 확인 일정", deps: "016, 018, 022",
+            baseline: "모든 날짜를 채운 달력은 10명 조직의 중요한 예외를 묻히게 합니다.",
+            change: "재판·기한, 담당자 미지정, 일정 충돌, 승인 휴가와 충돌처럼 확인 이유가 있는 날만 나열합니다.",
+            owner: "People attention projection + overview list.",
+            test: "문제 없는 날 미표시, 같은 원인의 중복 경고 제거, 권한 없는 사건 존재 누설 없음, day-percent 미사용.",
+            command: "node --test packages/hrx/test/people-attention-window.test.js",
+            evidence: "14일 exception fixture와 링크 도착 화면."
+          },
+          {
+            id: "PEO-TUW-026", kind: "new", title: "기일·기한 담당 현황", deps: "009, 012, 016, 020",
+            baseline: "현재 People에서 주요 일정과 담당 변호사 수·인계 상태를 함께 볼 수 없습니다.",
+            change: "14일 안의 court_hearing/deadline을 Matter별로 보여주고 0명=담당자 지정 필요, 1명=담당 확인, 2명+=공동 담당으로 자연스럽게 표시합니다.",
+            owner: "People staffing projection + overview table.",
+            test: "종료·미래 배정 제외, 복수 담당, unknown event 제외, Matter 윤리벽, 다음 일정순 정렬.",
+            command: "node --test packages/hrx/test/people-deadline-staffing.test.js apps/web/test/people-deadline-staffing-ui.test.mjs",
+            evidence: "0/1/2+ 담당 fixture. table block flag로 독립 롤백."
+          },
+          {
+            id: "PEO-TUW-027", kind: "harden", title: "기존 구성원 상세 패널의 탭·직접 링크", deps: "017, 019",
+            baseline: "PeopleHome의 drawer는 focus trap/Escape/초점 복귀가 이미 있고 EmployeeProfile만 렌더링합니다.",
+            change: "기존 접근성 구조를 유지하며 오늘/담당 사건/프로필 탭, ?employee=&tab= deep link, overview와 구성원 목록의 공통 open action을 추가합니다. 새 E2E spec과 people-member-detail runner 사례를 같은 TUW에서 등록합니다.",
+            owner: "PeopleHome.tsx + MemberDetailPanel + apps/web/e2e/hrx/people-member-detail.spec.ts + scripts/run-web-e2e.mjs. 새 modal 라이브러리 도입 없음.",
+            test: "행 클릭, 탭키 순환, Escape, backdrop, 닫은 뒤 원 행 초점, 브라우저 뒤로가기, 직접 deep link 권한, runner가 새 spec을 실제 실행.",
+            command: "node --test apps/web/test/people-member-drawer.test.mjs && npm run web:e2e -- people-member-detail",
+            evidence: "keyboard trace와 3탭 screenshot. tab flag off 시 기존 EmployeeProfile만 표시."
+          },
+          {
+            id: "PEO-TUW-028", kind: "new", title: "구성원 상세 ‘오늘’ 탭", deps: "017, 022, 027",
+            baseline: "개인 프로필에는 오늘 사건 업무·재판·회의를 모아보는 보기가 없습니다.",
+            change: "시간순으로 사건 업무, 담당 재판, 일정 구간을 표시합니다. Matter 업무는 명시 user 배정, 재판은 active responsible_attorney만 포함합니다.",
+            owner: "MemberTodayTab + daily-brief client.",
+            test: "담당 미지정 재판 제외, 열람만 가능한 사건 제외, 완료 업무 제외, 종료된 회의는 시간표에만 남고 할 일에서 제외.",
+            command: "node --test apps/web/test/people-member-today.test.mjs && npm run web:e2e -- people-member-detail",
+            evidence: "포함/제외 판정표와 실제 drawer screenshot."
+          },
+          {
+            id: "PEO-TUW-029", kind: "new", title: "구성원 상세 ‘담당 사건’ 탭", deps: "009, 017, 027",
+            baseline: "구성원별로 현재 담당 중인 Matter를 한 목록에서 볼 수 없습니다.",
+            change: "현재 유효한 responsible_attorney 배정만 보여주고 Matter code, 사건명, 역할, 다음 중요 일정, 인계 상태를 반환합니다.",
+            owner: "daily-brief assigned_matters projection + MemberMattersTab.",
+            test: "다음 중요 일정순, 일정 없으면 코드순, 종료/미래/미해결 배정 제외, 조회자 권한 교집합, 행 deep link.",
+            command: "node --test apps/api/test/hrx/people-assigned-matters.test.js apps/web/test/people-member-matters.test.mjs",
+            evidence: "정렬 fixture와 Matter 도착 receipt."
+          },
+          {
+            id: "PEO-TUW-030", kind: "new", title: "업무량 2단계: 남은 가능 시간", deps: "022, 024, 040, 052",
+            baseline: "1단계는 정확한 capacity 분모가 없어 상태 퍼센트를 표시하지 않습니다.",
+            change: "유효일 기준 소정근로분 − 일정 구간 합집합 − 승인 휴가분으로 남은 가능 시간을 계산합니다. 근로정보가 없으면 ‘근로시간 확인 필요’로 둡니다.",
+            owner: "People capacity projection. 자동 배치·성과평가·순위화 없음.",
+            test: "겹친 회의 중복 차감 금지, 승인 전 휴가 미차감, 음수는 초과 예정으로 별도 표시, missing profile 추정 금지.",
+            command: "node --test packages/hrx/test/people-capacity.test.js apps/web/test/people-capacity-ui.test.mjs",
+            evidence: "분모/차감 근거 drilldown. people_capacity flag로 독립 출시."
+          }
+        ]
+      },
+      {
+        key: "D",
+        title: "D. Outlook 일정",
+        description: "M365 외부 승인과 코드 구현을 분리하고, 개인 일정의 최소 권한·가림·부분 실패를 먼저 설계합니다.",
+        items: [
+          {
+            id: "PEO-TUW-031", kind: "new", title: "구성원↔Microsoft 365 계정 연결", deps: "004–006",
+            baseline: "EmployeeUserLink는 로그인 계정용이고 People 일정용 provider identity는 없습니다.",
+            change: "provider_identity에 tenant, employee_id, provider_subject_id, connection_state, consent_ref만 저장합니다. 메일 주소를 권위 식별자로 쓰지 않습니다.",
+            owner: "packages/integrations-core + HRX integration route. EmployeeUserLink와 별도 객체.",
+            test: "한 employee의 중복 활성 연결 차단, provider subject 재사용 차단, 연결 해제 후 감사 보존, 교차 tenant 거부.",
+            command: "node --test packages/integrations-core/test/people-provider-identity.test.js",
+            evidence: "connect/disconnect receipt. Outlook flag off와 연결 삭제를 분리."
+          },
+          {
+            id: "PEO-TUW-032", kind: "new", title: "사용자 동의·토큰 보관·철회", deps: "031",
+            baseline: "현재 Microsoft Graph 연결 앱은 준비/승인 전 상태이며 일정 token 보관 계약이 없습니다.",
+            change: "1차는 사용자별 delegated Calendars.ReadBasic만 허용합니다. token은 Secrets Manager/암호화 저장소에 두고 앱 DB에는 opaque ref, expiry, scope hash만 둡니다.",
+            owner: "Integrations + Admin/security. M365 관리자 승인 문서는 외부 RG-03 선행.",
+            test: "scope 과다 요청 거부, 만료 refresh, 철회 즉시 차단, 로그·API·receipt에 token/secret 없음, 키 회전.",
+            command: "node --test packages/integrations-core/test/outlook-token-vault.test.js apps/api/test/hrx/outlook-consent.test.js",
+            evidence: "sandbox consent/rotate/revoke receipt. 오류 시 outlook_calendar flag off."
+          },
+          {
+            id: "PEO-TUW-033", kind: "new", title: "Graph calendarView 읽기 모듈", deps: "032",
+            baseline: "기존 Outlook add-in은 이메일 filing 중심이고 People 일일 calendarView reader는 없습니다.",
+            change: "tenant 현지일 start/end offset, Prefer: outlook.timezone, @odata.nextLink, 반복 발생·예외를 처리하는 읽기 전용 adapter를 만듭니다.",
+            owner: "packages/integrations-core outlook-calendar adapter. 본문·첨부 미요청.",
+            test: "2페이지, 반복 예외, 종일, KST, 429 Retry-After bounded retry, 401 refresh 1회, malformed response fail-safe.",
+            command: "node --test packages/integrations-core/test/outlook-calendar-view.test.js",
+            evidence: "Graph sandbox fixture/response hash. provider call과 read model 분리."
+          },
+          {
+            id: "PEO-TUW-034", kind: "new", title: "일정 임시저장·최신 시각·보존기간", deps: "004, 033",
+            baseline: "팀 화면을 열 때마다 10명 calendarView를 전부 호출하면 지연·throttle·개인정보 보존 문제가 생깁니다.",
+            change: "필요한 시간·상태·attendee 판정용 최소 필드만 짧게 캐시하고 delta/etag가 가능하면 사용합니다. retention과 삭제 요청을 명시합니다.",
+            owner: "Integrations cache + People source_status.",
+            test: "cache hit/miss, stale 표시, token 철회 시 삭제, 429 partial, 다른 employee/tenant cache key 충돌 금지.",
+            command: "node --test packages/integrations-core/test/outlook-calendar-cache.test.js",
+            evidence: "cache TTL/retention receipt. 캐시 장애 시 직접 무제한 호출하지 않고 partial."
+          },
+          {
+            id: "PEO-TUW-035", kind: "new", title: "필수 참석 회의 판정기", deps: "033",
+            baseline: "Graph attendee type/status를 People 할 일로 변환하는 규칙이 없습니다.",
+            change: "required && response!=declined && !cancelled && end>as_of만 오늘 할 일에 포함합니다. optional과 organizer-only는 시간표 전용입니다.",
+            owner: "순수 Outlook classifier. UI와 adapter에서 분리.",
+            test: "required/optional/declined/tentative/accepted/cancelled/organizer/all-day/ended 판정 전체.",
+            command: "node --test packages/hrx/test/outlook-meeting-classifier.test.js",
+            evidence: "판정표 fixture. 규칙 변경은 versioned classifier로만."
+          },
+          {
+            id: "PEO-TUW-036", kind: "new", title: "Outlook 개인정보 가림", deps: "005, 033",
+            baseline: "팀장이 타인의 일반 회의 제목·장소를 볼 수 있는 필드 권한이 정의되지 않았습니다.",
+            change: "본인은 기본 제목을 볼 수 있으나 타인 조회는 시간·busy·required 여부만 반환합니다. private은 본인에게도 ‘비공개 일정’, body/location/attachments는 항상 제외합니다.",
+            owner: "Outlook projection redactor + API serializer.",
+            test: "self/manager/people_ops/admin, private/sensitivity normal, raw payload 누설, error log 누설, count inference.",
+            command: "node --test apps/api/test/hrx/outlook-calendar-privacy.test.js",
+            evidence: "필드별 allow/redact matrix. privacy 오류는 출처 전체 blocked."
+          },
+          {
+            id: "PEO-TUW-037", kind: "new", title: "Matter·Outlook 중복과 충돌 처리", deps: "010–012, 033–036",
+            baseline: "같은 재판이 Matter와 Outlook에 존재할 수 있으나 공통 provider key가 없고 자동 문자열 중복 제거는 위험합니다.",
+            change: "Matter provider_event_id/series_id가 있으면 정확 일치로 묶고, 없으면 자동 병합하지 않고 ‘중복 가능’으로 표시합니다. 재판 종류·담당자는 Matter가 권위입니다.",
+            owner: "People event merge utility.",
+            test: "exact provider match, series occurrence, iCalUId 보조키, 키 없음, 시간 충돌, 취소 불일치, privacy 유지.",
+            command: "node --test packages/hrx/test/people-event-dedupe.test.js",
+            evidence: "merged/conflict/possible_duplicate fixture. merge rule flag로 독립 롤백."
+          },
+          {
+            id: "PEO-TUW-038", kind: "harden", title: "Outlook을 팀·개인 조회에 증분 연결", deps: "017–018, 031–037",
+            baseline: "Matter 기반 daily-brief/team-operations는 Outlook 없이 동작하도록 설계했습니다.",
+            change: "source_status에 Outlook을 추가하고 required 회의는 오늘 할 일, 그 외 연결된 일정은 시간표에만 합칩니다. 연결·해제·다시 시도 UI를 구성원 상세에 둡니다.",
+            owner: "People read model + MemberToday/Overview + integration settings panel.",
+            test: "Outlook down에서도 Matter 데이터 유지, 미연결/동의 필요/만료/partial/stale, 연결 해제 뒤 즉시 미노출.",
+            command: "node --test apps/api/test/hrx/people-outlook-integration.test.js apps/web/test/people-outlook-state.test.mjs",
+            evidence: "Graph sandbox + partial browser receipt. outlook_calendar flag로 독립 출시."
+          }
+        ]
+      },
+      {
+        key: "E",
+        title: "E. 구성원·조직·등록·입퇴사",
+        description: "이미 존재하는 HRX 도메인과 화면을 유지하면서 소규모 조직에 필요한 직접 등록, 적용일, 계정 연결, 인계 흐름을 완성합니다.",
+        items: [
+          {
+            id: "PEO-TUW-039", kind: "harden", title: "구성원 등록·수정과 저장 후 재조회", deps: "001, 005",
+            baseline: "employees POST/GET/PATCH와 구성원 목록·프로필이 이미 있습니다.",
+            change: "목록에서 등록·수정 drawer를 열고 저장 직후 서버에서 같은 행을 재조회합니다. 실패 시 입력을 보존하고 중복 식별자 오류를 자연스러운 한국어로 표시합니다.",
+            owner: "PeopleWorkforceDirectory + employees route/client.",
+            test: "필수값, 중복 employee_id, 403, 저장 후 재조회, 낙관적 UI 금지, 오류 후 입력 보존.",
+            command: "node --test apps/api/test/hrx/employees.test.js apps/web/test/people-employee-editor.test.mjs",
+            evidence: "create/update/readback browser receipt. 기존 목록은 fallback."
+          },
+          {
+            id: "PEO-TUW-040", kind: "harden", title: "근로정보 적용일 조회·변경 화면", deps: "039",
+            baseline: "EmploymentProfile effective_from과 transition 도메인·테스트가 이미 있습니다.",
+            change: "새 도메인을 만들지 않고 현재/예정/과거 프로필을 as-of 조회하며 기간 겹침과 종료 상태를 보강합니다. 숨긴 근로정보 메뉴는 열지 않고 구성원 상세 안에서 관리합니다.",
+            owner: "employment-profile repository/service/API + EmployeeProfile tab.",
+            test: "미래 변경 현재 미반영, 기준일 이후 반영, 기간 겹침 거부, terminated→active 금지, 과거 조회 불변.",
+            command: "node --test packages/hrx/test/employment-profile.test.js apps/api/test/hrx/employees.test.js apps/web/test/people-employment-history.test.mjs",
+            evidence: "as-of fixture와 화면. 신규 history UI만 flag 가능."
+          },
+          {
+            id: "PEO-TUW-041", kind: "harden", title: "구성원↔로그인 계정 연결 화면", deps: "039",
+            baseline: "employee-user-links create/list/revoke API와 identity-link 테스트가 이미 있습니다.",
+            change: "구성원 상세 ‘계정’ 영역에서 연결·해제하고, 활성 user 중복과 본인 계정 오연결을 서버가 차단합니다.",
+            owner: "EmployeeProfile + employees route + identity-link repository.",
+            test: "Employee만 존재 가능, 같은 User 중복 활성 링크 409, revoke 후 과거 감사 유지, 교차 tenant 403.",
+            command: "node --test packages/hrx/test/identity-link.test.js apps/api/test/hrx/employees.test.js apps/web/test/people-user-link.test.mjs",
+            evidence: "link/revoke/readback receipt. UI 제거해도 API history 유지."
+          },
+          {
+            id: "PEO-TUW-042", kind: "harden", title: "조직·상급자 예정 변경", deps: "040",
+            baseline: "org unit, reporting line, effective date 도메인과 조직도 update API가 이미 있습니다.",
+            change: "현재 조직도와 예정 변경을 분리하고 적용일을 입력합니다. 변경은 삭제가 아니라 종료일/새 행으로 남깁니다.",
+            owner: "PeopleWorkforceDirectory org view + org/reporting-line services.",
+            test: "미래 변경 현재 미반영, 적용일 이후 반영, self-manager·순환·기간 겹침 거부, 저장 후 as-of 재조회.",
+            command: "node --test packages/hrx/test/org.test.js apps/web/test/people-org-effective-date.test.mjs",
+            evidence: "현재/예정 화면과 순환 관계 거부 사례."
+          },
+          {
+            id: "PEO-TUW-043", kind: "harden", title: "구성원 등록의 ‘직접 등록’ 우선 보기", deps: "039–040",
+            baseline: "현재 구성원 등록 화면은 완전한 채용 pipeline form을 먼저 보여줍니다.",
+            change: "10명 로펌에 맞게 직접 등록을 기본으로 두고 입사 예정/후보자는 보조 보기로 둡니다. 기존 Employee API를 재사용합니다.",
+            owner: "RecruitingPipeline 화면 구조 + People employee editor.",
+            test: "직접 등록→목록 재조회, 입사 예정 effective date, 채용 KPI 미노출, 기존 pipeline 데이터 보존.",
+            command: "node --test apps/web/test/people-registration-modes.test.mjs",
+            evidence: "세 보기 screenshot. 기본 탭만 되돌릴 수 있음."
+          },
+          {
+            id: "PEO-TUW-044", kind: "harden", title: "후보자 동의·최소수집·보관 상태", deps: "043",
+            baseline: "candidate/application/interview/offer 도메인과 화면은 있으나 소규모 UX에서 개인정보 상태가 두드러지지 않습니다.",
+            change: "후보자 동의 ref, 처리 목적, 보관 만료, 접근 가능한 역할을 명시하고 면접 메모·문서 원문은 Vault ref로만 연결합니다.",
+            owner: "RecruitingPipeline + recruiting route/domain.",
+            test: "동의 없는 저장 차단, forbidden raw document/body, 만료 후보 마스킹/삭제 요청, 역할별 메모 접근.",
+            command: "node --test packages/hrx/test/recruiting-privacy.test.js apps/api/test/hrx/recruiting.test.js",
+            evidence: "consent/expiry fixture. candidate view 독립 비활성 가능."
+          },
+          {
+            id: "PEO-TUW-045", kind: "harden", title: "수락된 제안의 구성원 전환 멱등성", deps: "039–044",
+            baseline: "convert-to-employee route와 UI action이 이미 있습니다.",
+            change: "accepted offer만 전환하고 idempotency key, 생성 employee/profile/user-link 결과를 한 receipt로 고정합니다.",
+            owner: "recruiting conversion service/API + RecruitingPipeline.",
+            test: "미수락 거부, 같은 key 재요청 같은 결과, 다른 key 중복 employee 차단, 부분 실패 재시도, 감사 이벤트.",
+            command: "node --test apps/api/test/hrx/recruiting.test.js packages/hrx/test/job-opening.test.js",
+            evidence: "conversion receipt. 실패 시 생성 중간 상태를 숨기지 않고 복구 대기."
+          },
+          {
+            id: "PEO-TUW-046", kind: "harden", title: "입퇴사 기준 버전과 실행 항목", deps: "039–042",
+            baseline: "onboarding/offboarding 도메인과 LifecycleBoard가 있지만 기본 task와 seeded 배열 중심입니다.",
+            change: "역할별 template version에서 owner/due/required/dependency를 가진 instance를 영속 생성합니다. 진행 중 instance는 기준 변경 영향을 받지 않습니다.",
+            owner: "onboarding/offboarding repository/API + LifecycleBoard.",
+            test: "template v2가 기존 instance 불변, 필수 dependency 미완료 차단, 실패·재시도 상태, tenant 분리.",
+            command: "node --test packages/hrx/test/onboarding.test.js apps/api/test/hrx/lifecycle.test.js apps/web/e2e/hrx/lifecycle-board.spec.ts",
+            evidence: "template/instance 비교와 browser receipt. 새 template 생성만 중지 가능."
+          },
+          {
+            id: "PEO-TUW-047", kind: "harden", title: "퇴사 종료 전 Matter 인계·접근 회수 증거", deps: "009, 046",
+            baseline: "offboarding.js는 Matter 재배정, 인계, 접근·문서·legal hold·휴가 정산을 이미 차단 조건으로 봅니다.",
+            change: "각 blocker를 실제 Matter/권한/휴가 처리 경로와 연결하고 현재 ledger의 evidence_ref만 종료에 사용할 수 있게 합니다.",
+            owner: "offboarding service/API + LifecycleBoard.",
+            test: "미배정 Matter 1건도 close 409, 오래된 evidence 거부, 자기확인 금지, 모두 완료 후 close/readback, 종료 후 계정 revoke.",
+            command: "node --test packages/hrx/test/offboarding.test.js apps/api/test/hrx/lifecycle.test.js apps/web/e2e/hrx/lifecycle-board.spec.ts",
+            evidence: "blocker→처리→close 전 과정 receipt. close 불변, 오류는 새 evidence로 재시도."
+          }
+        ]
+      },
+      {
+        key: "F",
+        title: "F. 출퇴근기록",
+        description: "현재 일별 기록과 추가형 정정 모델을 먼저 검증하고, 새 타각 원장은 실제 기기 연동이 선정될 때까지 만들지 않습니다.",
+        items: [
+          {
+            id: "PEO-TUW-048", kind: "verify", title: "기존 출퇴근·정정 불변 계약 감사", deps: "001, 005",
+            baseline: "attendance.js는 원본을 참조하는 새 correction record를 만들고 API는 월 요약과 저장·정정을 제공합니다.",
+            change: "원본 불변, correction chain, effective record 판정, tenant/source/timezone을 contract test로 고정합니다. 새 raw clock-event 모델은 기본 범위에서 제외합니다.",
+            owner: "packages/hrx attendance + apps/api hrx-runtime-context.",
+            test: "원본 row 불변, correction_of 참조, 중복 correction, 월 요약 effective count, 교차 tenant, KST.",
+            command: "node --test packages/hrx/test/attendance.test.js packages/hrx/test/attendance-sql.test.js apps/api/test/hrx/route-authz.test.js",
+            evidence: "기존 계약 감사 보고서. 결함 없으면 도메인 코드 변경 0."
+          },
+          {
+            id: "PEO-TUW-049", kind: "harden", title: "출퇴근 정정 요청·승인·반려", deps: "048",
+            baseline: "정정 레코드는 있으나 사용자 요청→다른 승인자→반영 흐름과 UI가 없습니다.",
+            change: "pending/approved/rejected 상태와 이유·승인자를 추가하고 approved일 때만 effective record로 반영합니다. 원본은 계속 불변입니다.",
+            owner: "attendance correction workflow/API + AttendanceWorkspace.",
+            test: "본인 요청, 자기 승인 금지, 승인 전 월 요약 불변, 승인 후 새 effective row, 반려·중복 승인·stale version.",
+            command: "node --test packages/hrx/test/attendance-correction-workflow.test.js apps/api/test/hrx/attendance-correction.test.js",
+            evidence: "request/approve/readback receipt. workflow flag off 시 관리자 직접 correction 기존 경계 유지."
+          },
+          {
+            id: "PEO-TUW-050", kind: "harden", title: "초과근로 승인과 급여 입력 인계", deps: "049, 060",
+            baseline: "overtime 도메인과 payroll attendance approval route가 있으나 활성 화면에서 연결되지 않습니다.",
+            change: "계산 시간, 신청 시간, 승인 시간을 분리하고 승인된 분만 급여 snapshot 입력에 전달합니다.",
+            owner: "overtime service + payroll input snapshot + AttendanceWorkspace.",
+            test: "미승인/반려=급여 0분, 승인 후 반영, 정정 뒤 기존 마감본 불변, 과다시간 warning, 자기 승인 금지.",
+            command: "node --test packages/hrx/test/overtime.test.js packages/hrx/test/payroll-input-snapshot-service.test.js",
+            evidence: "attendance→approval→payroll input fixture. payroll handoff flag로 분리."
+          },
+          {
+            id: "PEO-TUW-051", kind: "harden", title: "출퇴근기록 활성 작업공간 완성", deps: "048–050",
+            baseline: "현재 AttendanceWorkspace는 구성원 선택과 출근·퇴근 입력·기록 목록 중심입니다.",
+            change: "내 기록, 팀 기록, 정정 요청, 초과근로를 화면 내부 보기로 제공합니다. 숨겨 둔 출퇴근 관련 메뉴는 사이드바에 추가하지 않습니다.",
+            owner: "AttendanceWorkspace.tsx + existing EmployeeList.",
+            test: "권한별 탭, invalid chronology, 저장 후 재조회, correction/OT 처리, loading/empty/error/denied, 모바일/키보드.",
+            command: "node --test apps/web/test/home-dashboard-r1.test.mjs apps/web/test/people-attendance-workspace.test.mjs",
+            evidence: "self/manager screenshot과 sidebar 11/16 재검사."
+          }
+        ]
+      },
+      {
+        key: "G",
+        title: "G. 휴가",
+        description: "기존 휴가 도메인을 재사용하되, 팀 시간표 연결과 권한형 5개 메뉴를 서로 다른 검증 단위로 관리합니다.",
+        items: [
+          {
+            id: "PEO-TUW-052", kind: "harden", title: "승인 휴가 구간을 시간표·가용시간에 반영", deps: "004–005, 022, 028",
+            baseline: "휴가 request segment와 일정 provider adapter는 있으나 People team projection에 연결되지 않았습니다.",
+            change: "승인된 분 단위 구간만 팀 시간표와 capacity에 투영하고 팀 응답에서는 사유·증빙·정책 메모를 제거합니다.",
+            owner: "leave integration service + People projection.",
+            test: "시간차/반일/종일, pending/rejected/cancelled 제외, 겹침, 사유 가림, 타인/본인 필드 차이.",
+            command: "node --test packages/hrx/test/leave-integration-service.test.js packages/hrx/test/people-leave-intervals.test.js",
+            evidence: "leave segment fixture와 가림 API receipt. leave projection flag로 독립 롤백."
+          },
+          {
+            id: "PEO-TUW-053", kind: "verify", title: "휴가관리·휴가 사용 내역 사용자 흐름", deps: "001–005",
+            baseline: "LeaveRequestPage와 LeaveUsagePage, API·domain 테스트가 이미 있습니다.",
+            change: "신청→저장→승인 상태→원장→사용 내역 재조회, self/team 권한과 상태 문구를 한 browser receipt로 묶습니다.",
+            owner: "기존 leave pages/routes. 결함이 확인된 파일만 수정.",
+            test: "분 단위 신청, 잔액 부족, 중복 구간, 직접 URL, loading/empty/error/denied, 내보내기 권한.",
+            command: "node --test packages/hrx/test/leave-request.test.js apps/web/e2e/hrx/leave-request.spec.ts",
+            evidence: "end-to-end leave receipt. 통과 시 신규 도메인 코드 없음."
+          },
+          {
+            id: "PEO-TUW-054", kind: "verify", title: "권한형: 휴가 그룹/유형", deps: "002–005",
+            baseline: "LeaveTypeSettingsPage와 policy version service/API가 존재합니다.",
+            change: "정책 생성·새 버전·시행일·중지의 저장 후 재조회, 겹침 차단, scope와 step-up을 검증합니다.",
+            owner: "leave policy page/service/API.",
+            test: "hrx.leave.policy.read/write, effective overlap 409, 과거 version 불변, 직접 URL 403.",
+            command: "node --test packages/hrx/test/leave-policy-service.test.js apps/api/test/hrx/leave-policy-api.test.js",
+            evidence: "policy lifecycle receipt. 메뉴는 권한 사용자에게만 유지."
+          },
+          {
+            id: "PEO-TUW-055", kind: "verify", title: "권한형: 휴가 자동 발생", deps: "002–005, 054",
+            baseline: "규칙 version, preview, batch, step-up, 멱등성 UI/API가 존재합니다.",
+            change: "규칙→미리보기→실행→원장 대사를 실제 저장 경계로 재검증하고 synthetic/partial 결과를 구분합니다.",
+            owner: "LeaveAccrualAutoPage + accrual services/routes.",
+            test: "같은 실행 key 중복 원장 0, preview와 execute 합계 일치, 범위/step-up/부분 실패, 재시도.",
+            command: "node --test packages/hrx/test/leave-accrual-service.test.js apps/api/test/hrx/leave-accrual-api.test.js",
+            evidence: "batch/ledger receipt. provider 문제는 자동 발생 전체 성공으로 표시 금지."
+          },
+          {
+            id: "PEO-TUW-056", kind: "verify", title: "권한형: 퇴사 휴가 정산", deps: "002–005, 047",
+            baseline: "LeaveTerminationPage, 이중 승인, 급여 인계, offboarding close 연계가 존재합니다.",
+            change: "퇴사일 기준 balance→preview→다른 승인자 승인→급여 handoff→offboarding readiness를 한 흐름으로 검증합니다.",
+            owner: "termination settlement service/API/UI.",
+            test: "자기 승인 금지, stale balance, 재계산, handoff 실패, sync 완료 전 offboarding close 차단.",
+            command: "node --test packages/hrx/test/leave-termination-service.test.js apps/api/test/hrx/leave-management-api.test.js",
+            evidence: "termination-to-payroll receipt. 실패 상태 보존."
+          },
+          {
+            id: "PEO-TUW-057", kind: "verify", title: "권한형: 휴가 요청 승인", deps: "002–005, 053",
+            baseline: "LeaveApprovalQueue와 지정 승인·위임·시기변경 협의 도메인이 존재합니다.",
+            change: "내 결재 차례만 노출, 위임 기간, 의견과 승인 결과의 durable readback, 직접 route 거부를 보강합니다.",
+            owner: "leave approval UI/routes/domain.",
+            test: "승인자 아닌 사용자 403, 자기 요청 자기 승인 금지, delegation 만료, concurrent decision, 승인 후 ledger.",
+            command: "node --test packages/hrx/test/leave-approval.test.js apps/api/test/hrx/leave-role-scopes.test.js",
+            evidence: "approval/delegation receipt."
+          },
+          {
+            id: "PEO-TUW-058", kind: "verify", title: "권한형: 연차 사용 촉진", deps: "002–005, 054",
+            baseline: "법정 일정, 대상 산정, 1·2차 문서, 전달·열람·응답 상태 도메인과 화면이 존재합니다.",
+            change: "법정 기준 version, 대상 원장 snapshot, 문서 ref, 전달과 실제 도달·열람을 분리해 검증합니다.",
+            owner: "LeavePromotionPage + promotion service/provider receipt.",
+            test: "기준일 경계, 대상 제외, 중복 캠페인, 법률검토 필요 상태, 발송 성공≠도달 성공.",
+            command: "node --test packages/hrx/test/leave-promotion-service.test.js apps/api/test/hrx/leave-promotion-api.test.js",
+            evidence: "campaign/document/delivery receipt. 법률검토 전 운영 완료 표시 금지."
+          },
+          {
+            id: "PEO-TUW-059", kind: "harden", title: "휴가 외부 일정·통지 결과 공통화", deps: "004, 052–058",
+            baseline: "leave provider adapter와 UI retry 상태가 있으나 메뉴별 결과 표현이 다를 수 있습니다.",
+            change: "calendar projection, email/document delivery에 provider receipt contract를 적용하고 queued/sent/delivered/read/failed/unknown을 일관되게 표시합니다.",
+            owner: "leave provider adapters + provider-receipt-contract + 관련 UI.",
+            test: "idempotent upsert/delete/send, opaque connection ref, secret/private field 거부, partial retry, 실제 도달 미확인.",
+            command: "node --test packages/hrx/test/leave-provider-adapters.test.js packages/hrx/test/provider-receipt-contract.test.js apps/web/test/leave-integration-ui.test.mjs",
+            evidence: "provider sandbox receipts. 각 provider별 kill switch."
+          }
+        ]
+      },
+      {
+        key: "H",
+        title: "H. 마감·급여·명세서",
+        description: "기존 급여 런타임을 권위로 유지합니다. 전용 마감/수당 화면과 실제 provider 증거만 보강하며 두 번째 상태 머신을 만들지 않습니다.",
+        items: [
+          {
+            id: "PEO-TUW-060", kind: "verify", title: "급여 API·DB·화면·외부 서비스 기능 대조", deps: "001, 005",
+            baseline: "기간, snapshot, preview, issue, approve, close, payment, filing, year-end, statements가 이미 구현돼 있습니다.",
+            change: "각 기능을 reuse / UI gap / domain defect / provider missing / evidence missing으로 분류하고 PayrollBoundaryPanel action과 route를 대조합니다.",
+            owner: "Payroll domain/API/Web 공동. 새로운 상태 머신 추가 금지.",
+            test: "route-policy 누락 0, UI action이 없는 API와 API 없는 UI action 목록, production_ready_claim=false 유지.",
+            command: "node --test packages/hrx/test/payroll-readiness-contract.test.js apps/web/test/payroll-workspace-ui.test.mjs",
+            evidence: "payroll capability ledger. 감사 통과 전 061 이후 착수 금지."
+          },
+          {
+            id: "PEO-TUW-061", kind: "harden", title: "마감 전 통합 점검 연결 모듈", deps: "040, 049–050, 053–056, 060",
+            baseline: "payroll input snapshot과 blocker issue는 있지만 활성 ‘마감 관리’ 화면용 교차 도메인 점검이 부족합니다.",
+            change: "근태 누락·미승인 정정/초과근로, 휴가 원장, 퇴사일, 유효 근로정보, published 급여 규칙을 기존 snapshot issue로 투영합니다.",
+            owner: "payroll input-snapshot service + close precheck serializer.",
+            test: "각 blocker의 근거 ref·처리 route, 권한 없는 상세 가림, 같은 as_of 결정성, blocker 1건이면 approve/close 금지.",
+            command: "node --test packages/hrx/test/payroll-close-precheck.test.js apps/api/test/hrx/payroll-runtime.test.js",
+            evidence: "blocker fixture와 처리 링크. precheck adapter flag로 기존 payroll panel 영향 차단."
+          },
+          {
+            id: "PEO-TUW-062", kind: "harden", title: "마감 관리 전용 작업공간", deps: "060–061",
+            baseline: "people-close는 audit_required 안내 패널이지만 PayrollBoundaryPanel 안에는 capture→preview→approve→close와 issue 해결이 있습니다.",
+            change: "PayrollBoundaryPanel의 기존 hook/action을 재사용하는 close mode를 만들고 점검·처리 링크·다른 승인자·마감 이력을 집중 표시합니다.",
+            owner: "people-close route + PayrollBoundaryPanel mode/shared hook. 도메인 복제 금지.",
+            test: "점검→처리→재점검→다른 승인자 승인→close→reload, denied/partial, sidebar 불변.",
+            command: "node --test apps/web/test/people-close-workspace.test.mjs && npm run web:e2e -- hrx-payroll-boundary",
+            evidence: "browser flow와 audit ids. mode 제거 시 기존 payroll workspace 유지."
+          },
+          {
+            id: "PEO-TUW-063", kind: "harden", title: "마감 후 정정 정산 흐름", deps: "060–062",
+            baseline: "closed는 종결 상태이고 repository는 adjustment run을 지원합니다. v1의 재개방 계획은 현재 모델과 충돌합니다.",
+            change: "‘마감 취소’를 제거하고 원 마감본을 참조하는 정정 정산 시작, 차액 계산, 별도 승인·마감으로 보정합니다.",
+            owner: "기존 payroll adjustment run service + close/payroll UI copy.",
+            test: "원 마감본 hash 불변, adjustment 없이 closed 수정 거부, 차액만 지급/신고, 중복 correction key, 4-eyes.",
+            command: "node --test packages/hrx/test/payroll-run-service.test.js apps/web/test/payroll-adjustment-ui.test.mjs",
+            evidence: "original/adjustment 비교 receipt. adjustment UI flag off 가능, 원본은 항상 불변."
+          },
+          {
+            id: "PEO-TUW-064", kind: "harden", title: "수당/최저임금 기존 항목·규칙 대조", deps: "060",
+            baseline: "payroll item/profile/assignment API와 statutory rule version service가 있지만 people-pay-rules는 안내 패널입니다.",
+            change: "기존 earning/deduction item, profile assignment, rule version을 활성 화면 요구사항과 연결하고 중복 필드·새 evaluator 필요 여부를 확정합니다.",
+            owner: "payroll-item-catalog + statutory-rule-service + people-pay-rules route.",
+            test: "item/profile/rule CRUD·effective date·readback, 화면 요구 필드 100% 매핑, 새 JS 식 엔진 0.",
+            command: "node --test packages/hrx/test/payroll-item-catalog.test.js packages/hrx/test/payroll-statutory-rule-service.test.js",
+            evidence: "field crosswalk. 감사 뒤 결함만 065–067에서 수정."
+          },
+          {
+            id: "PEO-TUW-065", kind: "harden", title: "제한된 수당 규칙과 검토·승인", deps: "064",
+            baseline: "규칙 version은 draft/reviewed/published를 지원하지만 범용 사용자 식은 안전하게 열려 있지 않습니다.",
+            change: "연장·야간·휴일·주휴를 허용된 입력·연산·반올림 enum으로만 정의하고 자유 JavaScript/임의 필드 참조를 금지합니다.",
+            owner: "payroll rule service + rules workspace.",
+            test: "허용 rule kind, 기간 겹침, draft 미적용, published만 계산, 과거 급여 재현, injection/unknown field 거부.",
+            command: "node --test packages/hrx/test/payroll-allowance-rules.test.js apps/api/test/hrx/payroll-runtime.test.js",
+            evidence: "rule version golden fixture. rule publish flag로 운영 적용 통제."
+          },
+          {
+            id: "PEO-TUW-066", kind: "new", title: "최저임금 기준 이력과 영향 계산", deps: "040, 064–065",
+            baseline: "현재 payroll 규칙에는 statutory package가 있으나 수당/최저임금 화면용 후보 판정과 법정 기준 provenance가 명확하지 않습니다.",
+            change: "법정 시급, 시행일, 포함·제외 수당, 월 환산분, 출처 hash를 version으로 저장하고 ‘미달 후보’만 계산합니다. 자동 법률판단은 하지 않습니다.",
+            owner: "minimum-wage validator + statutory rule service. 법률검토 승인 필요.",
+            test: "시행일 경계, 포함/제외 수당, part-time, 월 환산, 반올림, 정확 경계, 과거 기준 재현.",
+            command: "node --test packages/hrx/test/payroll-minimum-wage.test.js",
+            evidence: "법정 기준 출처 hash와 golden fixture. legal_review_state=approved 전 운영 적용 금지."
+          },
+          {
+            id: "PEO-TUW-067", kind: "new", title: "수당/최저임금 작업공간", deps: "064–066",
+            baseline: "people-pay-rules는 현재 PeopleFeatureStatePanel을 보여줍니다.",
+            change: "규칙 목록·새 버전·검토·승인·시행일과 구성원별 영향 미리보기를 제공하고, 판단 근거를 drilldown합니다.",
+            owner: "PayRulesWorkspace + existing payroll APIs/new minimum wage preview endpoint.",
+            test: "draft/reviewed/published 전이, 자기 승인 금지, step-up, 영향 행 근거, 금액 가림, keyboard/mobile.",
+            command: "node --test apps/web/test/people-pay-rules-workspace.test.mjs",
+            evidence: "규칙 전이와 impact screenshot. workspace flag off 시 안내 패널 복귀."
+          },
+          {
+            id: "PEO-TUW-068", kind: "evidence", title: "급여 외부 서비스·시험 데이터 운영 경계", deps: "004, 060",
+            baseline: "payment/filing 서비스와 provider receipt contract가 있고 synthetic adapter도 명시적으로 존재합니다.",
+            change: "운영 환경에서 synthetic receipt를 성공으로 인정하지 않고 provider connection, credential ref, idempotency, safe error, retry 상태를 공통 검사합니다.",
+            owner: "provider-receipt-contract + payroll runtime/provider adapters.",
+            test: "synthetic production 거부, secret/raw payload 미노출, 같은 key 중복 실행 방지, 부분 성공, 재시도 범위.",
+            command: "node --test packages/hrx/test/provider-receipt-contract.test.js packages/hrx/test/payroll-readiness-contract.test.js",
+            evidence: "sandbox receipt만 생성. 실제 운영 준비는 RG-05에서 별도 승인."
+          },
+          {
+            id: "PEO-TUW-069", kind: "harden", title: "급여 지급·신고 결과 대사", deps: "063, 068",
+            baseline: "Payment/Filing service와 PayrollBoundaryPanel action은 이미 준비·승인·export·reconcile·validate·submit·correct를 지원합니다.",
+            change: "직원별 지급 성공/실패/미확인과 신고 접수/실패/보정을 화면에서 분리하고 부분 성공을 전체 성공으로 표시하지 않습니다.",
+            owner: "기존 payment/filing services + PayrollBoundaryPanel.",
+            test: "성공 건 중복 지급 금지, 실패 건만 재처리, 총액/건수 대사, 접수번호 중복, 계좌·세금정보 가림.",
+            command: "node --test packages/hrx/test/payroll-payment-service.test.js packages/hrx/test/payroll-filing-service.test.js packages/hrx/test/payroll-reconciliation.test.js",
+            evidence: "provider sandbox reconciliation. 실제 provider receipt는 RG-05."
+          },
+          {
+            id: "PEO-TUW-070", kind: "harden", title: "급여명세서 생성·전달·열람 상태", deps: "063, 068",
+            baseline: "PayrollStatementWorkspace와 generate/deliver/self/download/revoke API가 이미 있습니다.",
+            change: "생성, 발송 요청, provider 수락, 도달, 열람, 실패, 재시도, revoke를 분리하고 본인/관리자 필드 가림을 보강합니다.",
+            owner: "payroll document/delivery service + PayrollStatementWorkspace.",
+            test: "본인은 자기 명세서만, 관리자 목록 금액 가림, sent≠delivered, idempotent retry, revoked download 거부.",
+            command: "node --test packages/hrx/test/payroll-document-service.test.js apps/web/test/payroll-workspace-ui.test.mjs",
+            evidence: "delivery sandbox와 self/admin browser receipt. 전달 provider만 독립 kill switch."
+          }
+        ]
+      }
+    ];
+
+    const kindLabel = {
+      verify: "현행 확인",
+      harden: "기존 보강",
+      new: "신규 통합",
+      evidence: "외부 증거"
+    };
+
+    const esc = (value) => String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+
+    function renderTuw(item) {
+      return `
+        <details class="tuw" id="${esc(item.id)}">
+          <summary>
+            <span class="tuw-id">${esc(item.id)}</span>
+            <span class="status ${esc(item.kind)}">${esc(kindLabel[item.kind])}</span>
+            <span class="tuw-title">${esc(item.title)}</span>
+            <span class="tuw-deps">선행 ${esc(item.deps)}</span>
+          </summary>
+          <div class="tuw-body">
+            <div class="tuw-cell"><b>현재 기준</b><p>${esc(item.baseline)}</p></div>
+            <div class="tuw-cell"><b>완료 결과</b><p>${esc(item.change)}</p></div>
+            <div class="tuw-cell"><b>소유 영역</b><p>${esc(item.owner)}</p></div>
+            <div class="tuw-cell"><b>자동 합격 기준</b><p>${esc(item.test)}</p></div>
+            <div class="tuw-cell"><b>실행 명령</b><p><code>${esc(item.command)}</code></p></div>
+            <div class="tuw-cell"><b>증거·롤백</b><p>${esc(item.evidence)}</p></div>
+          </div>
+        </details>`;
+    }
+
+    const mount = document.querySelector("#tuw-sections");
+    const allItems = sections.flatMap((section) => section.items);
+    mount.innerHTML = sections.map((section) => `
+      <div style="margin-top:28px" aria-labelledby="heading-${section.key}">
+        <div class="section-head">
+          <div><h3 id="heading-${section.key}">${esc(section.title)}</h3><p>${esc(section.description)}</p></div>
+          <span class="section-count">${section.items.length} TUW</span>
+        </div>
+        <div class="tuw-list">${section.items.map(renderTuw).join("")}</div>
+      </div>`).join("");
+
+    document.querySelectorAll("[data-total-tuw]").forEach((node) => { node.textContent = String(allItems.length); });
+  </script>
+</body>
+</html>

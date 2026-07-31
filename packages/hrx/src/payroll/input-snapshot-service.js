@@ -1,12 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createCompanyTimePayrollPolicyManifest } from "../company-policy-manifest.js";
-import { decryptCompensationAmountRef } from "../compensation.js";
+import { compensationCoversPeriod, decryptCompensationAmountRef } from "../compensation.js";
 import { assertHrxStorePort } from "../store/port.js";
 import { createPayrollDataHash } from "./repository.js";
 import { selectApprovedAttendance } from "../payroll-time-input-snapshot.js";
 
 const PAYROLL_TYPES = new Set(["monthly", "hourly", "daily", "freelancer"]);
-const OVERTIME_SEGMENTS = new Set(["overtime", "night", "holiday"]);
+const OVERTIME_SEGMENTS = new Set(["overtime", "night", "holiday", "weekly_holiday"]);
 const REMEDIABLE_ISSUES = new Set([
   "PAYROLL_PROFILE_MISSING",
   "PAYROLL_PROFILE_AMBIGUOUS",
@@ -54,6 +54,13 @@ function dateMax(...values) {
 
 function dateMin(...values) {
   return values.filter(Boolean).sort()[0];
+}
+
+function compensationPeriod(period, payrollProfile) {
+  return Object.freeze({
+    period_start: dateMax(period.period_start, payrollProfile.effective_from),
+    period_end: dateMin(period.period_end, payrollProfile.effective_to),
+  });
 }
 
 function daysInclusive(start, end) {
@@ -166,7 +173,7 @@ function captureAttendance(store, tenantId, employeeId, period, manifest) {
   };
 }
 
-function captureOvertime(store, tenantId, employeeId, period, manifest) {
+function captureOvertime(store, tenantId, employeeId, period, manifest, { payrollHandoffEnabled = false } = {}) {
   const rows = store.query("select", { table: "hrx_overtime_requests", where: { tenant_id: tenantId, employee_id: employeeId } })
     .filter((row) => row.work_date >= period.period_start && row.work_date <= period.period_end)
     .filter((row) => ["approved", "exported"].includes(row.state))
@@ -178,12 +185,35 @@ function captureOvertime(store, tenantId, employeeId, period, manifest) {
     seen.add(row.overtime_id);
     const segment = row.payroll_segment_kind ?? "overtime";
     if (!OVERTIME_SEGMENTS.has(segment)) throw inputIssue("PAYROLL_OVERTIME_SEGMENT_INVALID", "OVERTIME_SEGMENT_INVALID");
-    totals[`${segment}_minutes`] += roundMinutes(Number(row.hours) * 60, manifest.standard_work);
+    const approvedMinutes = payrollHandoffEnabled && Number.isSafeInteger(Number(row.approved_minutes)) && Number(row.approved_minutes) > 0
+      ? Number(row.approved_minutes)
+      : Number(row.hours) * 60;
+    totals[`${segment}_minutes`] += roundMinutes(approvedMinutes, manifest.standard_work);
   }
   const selected = rows.filter((row, index) => rows.findIndex((candidate) => candidate.overtime_id === row.overtime_id) === index);
+  const warnings = payrollHandoffEnabled
+    ? selected.flatMap((row) => {
+        try {
+          return JSON.parse(row.warning_codes_json ?? "[]").map((code) => ({
+            code: code === "OVERTIME_APPROVAL_EXCEEDS_CALCULATED"
+              ? "PAYROLL_OVERTIME_APPROVAL_EXCEEDS_CALCULATED"
+              : "PAYROLL_OVERTIME_REQUEST_EXCEEDS_CALCULATED",
+            details: {
+              overtime_id: row.overtime_id,
+              calculated_minutes: Number(row.calculated_minutes ?? 0),
+              requested_minutes: Number(row.requested_minutes ?? Number(row.hours) * 60),
+              approved_minutes: Number(row.approved_minutes ?? Number(row.hours) * 60),
+            },
+          }));
+        } catch {
+          throw inputIssue("PAYROLL_OVERTIME_WARNING_INVALID", "OVERTIME_WARNING_CODES_INVALID");
+        }
+      })
+    : [];
   return {
     data: Object.freeze({ ...totals, source_count: selected.length }),
-    refs: sourceRows(selected, "overtime", "overtime_id", ["overtime_id", "work_date", "hours", "state", "decided_at", "payroll_segment_kind"]),
+    refs: sourceRows(selected, "overtime", "overtime_id", ["overtime_id", "work_date", "hours", "calculated_minutes", "requested_minutes", "approved_minutes", "state", "decided_at", "payroll_segment_kind"]),
+    warnings,
   };
 }
 
@@ -289,7 +319,8 @@ export function createServerCompensationResolver({ store, keyMaterial, allowSynt
       const compensationId = decodeURIComponent(compensationRef.slice("compensation:".length));
       const record = store.query("selectOne", { table: "hrx_compensation_records", where: { tenant_id: tenantId, compensation_id: compensationId } });
       if (!record || record.employee_id !== employeeId) throw inputIssue("PAYROLL_COMPENSATION_INVALID", "COMPENSATION_RECORD_MISSING");
-      if (input.period_start && input.period_end && !overlap(record, input.period_start, input.period_end)) {
+      if ((input.period_start !== undefined || input.period_end !== undefined)
+        && !compensationCoversPeriod(record, input.period_start, input.period_end)) {
         throw inputIssue("PAYROLL_COMPENSATION_INVALID", "COMPENSATION_PERIOD_MISMATCH");
       }
       let decrypted;
@@ -327,6 +358,7 @@ export function createPayrollInputSnapshotService({
   payrollRepository,
   compensationResolver,
   policyManifest,
+  payrollHandoffEnabled = false,
   clock = () => new Date().toISOString(),
   idFactory = (prefix) => `${prefix}_${randomUUID()}`,
 } = {}) {
@@ -370,11 +402,12 @@ export function createPayrollInputSnapshotService({
 
   function hydrateSnapshot(context, snapshot, period) {
     const inputData = JSON.parse(snapshot.input_json);
+    const requestedPeriod = compensationPeriod(period, inputData.payroll_profile);
     const resolved = compensationResolver.resolve(context, {
       employee_id: snapshot.employee_id,
       compensation_ref: inputData.payroll_profile.compensation_ref,
-      period_start: period.period_start,
-      period_end: period.period_end,
+      period_start: requestedPeriod.period_start,
+      period_end: requestedPeriod.period_end,
     });
     if (resolved.source_hash !== inputData.payroll_profile.compensation_source_hash) {
       throw inputIssue("PAYROLL_COMPENSATION_INVALID", "COMPENSATION_SOURCE_CHANGED");
@@ -408,7 +441,13 @@ export function createPayrollInputSnapshotService({
     const companyPolicy = manifest(context.tenant_id);
     const payrollProfiles = payrollRepository.listProfiles(context);
     const employmentProfiles = store.query("select", { table: "hrx_employment_profiles", where: { tenant_id: context.tenant_id } });
-    const employees = eligibleEmployees(context.tenant_id, period, payrollProfiles, employmentProfiles);
+    const eligible = eligibleEmployees(context.tenant_id, period, payrollProfiles, employmentProfiles);
+    const adjustmentEmployeeIds = run.run_type === "adjustment"
+      ? new Set(payrollRepository.listAdjustments(context, { run_id: runId }).map((row) => row.employee_id))
+      : null;
+    const employees = adjustmentEmployeeIds
+      ? eligible.filter((employee) => adjustmentEmployeeIds.has(employee.employee_id))
+      : eligible;
     const existingSnapshots = new Map(payrollRepository.getRunBundle(context, { run_id: runId }).snapshots.map((row) => [row.employee_id, row]));
 
     for (const employee of employees) {
@@ -431,16 +470,24 @@ export function createPayrollInputSnapshotService({
           "EMPLOYMENT_PROFILE_MISSING",
           "EMPLOYMENT_PROFILE_AMBIGUOUS",
         );
+        const requestedPeriod = compensationPeriod(period, payrollProfile);
         const compensation = compensationResolver.resolve(context, {
           employee_id: employee.employee_id,
           compensation_ref: payrollProfile.compensation_ref,
-          period_start: period.period_start,
-          period_end: period.period_end,
+          period_start: requestedPeriod.period_start,
+          period_end: requestedPeriod.period_end,
         });
         const attendance = captureAttendance(store, context.tenant_id, employee.employee_id, period, companyPolicy);
-        const overtime = captureOvertime(store, context.tenant_id, employee.employee_id, period, companyPolicy);
+        const overtime = captureOvertime(
+          store,
+          context.tenant_id,
+          employee.employee_id,
+          period,
+          companyPolicy,
+          { payrollHandoffEnabled },
+        );
         const leave = captureLeave(store, context.tenant_id, employee.employee_id, period);
-        for (const warning of [...attendance.warnings, ...(leave.warnings ?? [])]) {
+        for (const warning of [...attendance.warnings, ...(overtime.warnings ?? []), ...(leave.warnings ?? [])]) {
           ensureIssue(context, {
             run_id: runId,
             employee_id: employee.employee_id,

@@ -7,6 +7,7 @@ import { createFileHrxStore } from "../src/store/file-store.js";
 import { createSqlHrxRepository } from "../src/repository-sql.js";
 import { runHrxMigrations } from "../src/migrations/index.js";
 import {
+  calculateOvertimeReviewMinutes,
   createInMemoryOvertimeStore,
   createOvertimeExportRecord,
   createOvertimeRequest,
@@ -109,4 +110,98 @@ test("weekly overtime risk report detects unapproved excess and weekly 52-hour b
     report.events.filter((event) => event.risk_type === "unapproved_overtime_detected").map((event) => event.work_date).sort().join(","),
     "2026-07-07,2026-07-08,2026-07-09",
   );
+});
+
+test("PEO-TUW-050 separates calculated, requested, and approved minutes with review warnings", () => {
+  const review = calculateOvertimeReviewMinutes({
+    employee_id: "emp-001",
+    work_date: "2026-07-20",
+    requested_minutes: 180,
+    attendance_records: [{
+      tenant_id: "tenant-a",
+      attendance_id: "att-overtime-review",
+      employee_id: "emp-001",
+      work_date: "2026-07-20",
+      recorded_hours: 10,
+      source_ref: "TimeClock:att-overtime-review:v1",
+    }],
+  });
+  assert.deepEqual(review, {
+    calculated_minutes: 120,
+    requested_minutes: 180,
+    calculation_basis_ref: "TimeClock:att-overtime-review:v1",
+    warning_codes: ["OVERTIME_REQUEST_EXCEEDS_CALCULATED"],
+  });
+
+  const submitted = createOvertimeRequest({
+    ...overtime,
+    work_date: "2026-07-20",
+    ...review,
+  });
+  assert.deepEqual(
+    [submitted.calculated_minutes, submitted.requested_minutes, submitted.approved_minutes],
+    [120, 180, 0],
+  );
+  assert.deepEqual(JSON.parse(submitted.warning_codes_json), ["OVERTIME_REQUEST_EXCEEDS_CALCULATED"]);
+
+  const approved = transitionOvertimeRequest(submitted, {
+    state: "approved",
+    approver_id: "manager-001",
+    approved_minutes: 90,
+    decision_reason: "출퇴근기록과 업무 사유 확인",
+  });
+  assert.deepEqual(
+    [approved.calculated_minutes, approved.requested_minutes, approved.approved_minutes],
+    [120, 180, 90],
+  );
+  assert.equal(approved.decision_reason, "출퇴근기록과 업무 사유 확인");
+
+  const rejected = transitionOvertimeRequest(createOvertimeRequest({
+    ...overtime,
+    overtime_id: "ot-rejected",
+    ...review,
+  }), { state: "rejected", approver_id: "manager-001" });
+  assert.equal(rejected.approved_minutes, 0);
+});
+
+test("PEO-FIX-050 calculates a null attendance basis without exposing an implementation exception", () => {
+  assert.deepEqual(
+    calculateOvertimeReviewMinutes({
+      employee_id: "emp-001",
+      work_date: "2026-07-31",
+      requested_minutes: 60,
+      attendance_records: [],
+    }),
+    {
+      calculated_minutes: 0,
+      requested_minutes: 60,
+      calculation_basis_ref: null,
+      warning_codes: ["OVERTIME_REQUEST_EXCEEDS_CALCULATED"],
+    },
+  );
+});
+
+test("PEO-TUW-050 blocks self approval and warns instead of silently accepting excess minutes", () => {
+  const submitted = createOvertimeRequest({
+    ...overtime,
+    calculated_minutes: 60,
+    requested_minutes: 120,
+  });
+  assert.throws(
+    () => transitionOvertimeRequest(submitted, {
+      state: "approved",
+      approver_id: "emp-001",
+      approved_minutes: 120,
+    }),
+    (error) => error.safe_error_code === "HRX_OVERTIME_SELF_APPROVAL",
+  );
+  const approved = transitionOvertimeRequest(submitted, {
+    state: "approved",
+    approver_id: "manager-001",
+    approved_minutes: 120,
+  });
+  assert.deepEqual(JSON.parse(approved.warning_codes_json), [
+    "OVERTIME_REQUEST_EXCEEDS_CALCULATED",
+    "OVERTIME_APPROVAL_EXCEEDS_CALCULATED",
+  ]);
 });

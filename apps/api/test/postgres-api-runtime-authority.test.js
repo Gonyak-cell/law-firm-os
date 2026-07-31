@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { addPeopleVisibleMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import {
   createPostgresApiRuntimeAuthority,
   runPostgresReadWithBaselineRetry,
@@ -16,13 +22,23 @@ import { handleHrxApiRequest } from "../src/hrx-runtime-context.js";
 import { handleRecordsSearch } from "../src/master-data-context.js";
 import { handlePortalApiRequest } from "../src/portal-runtime-context.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
+import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
+import { createOffboardingCase } from "../../../packages/hrx/src/offboarding.js";
+import { createDurablePeopleOutlookStateAuthority } from "../../../packages/integrations-core/src/people-outlook-connection.js";
 
 const TENANT_A = "tenant_postgres_api_authority_a";
 const TENANT_B = "tenant_postgres_api_authority_b";
 const PAYROLL_ARTIFACT_SECRET = "postgres-api-authority-test-payroll-artifact-secret";
+const TERMINATION_DELIVERY_AT = "2026-07-31T09:00:00.000Z";
+
+function stableStringify(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+}
 
 async function importHrxAuthorityBaseline(ledger, tenantId) {
   const store = createFileHrxStore();
@@ -34,7 +50,255 @@ async function importHrxAuthorityBaseline(ledger, tenantId) {
   }
 }
 
-test("PostgreSQL API authority retries bounded read baseline conflicts but never retries mutations", async () => {
+async function importMatterAssignmentIdentityBaseline(ledger, tenantId, { employeeId, userId }) {
+  const store = createFileHrxStore();
+  try {
+    runHrxMigrations(store);
+    const repository = createSqlHrxRepository({
+      store,
+      clock: () => "2026-07-31T00:00:00.000Z",
+    });
+    repository.transaction((tx) => {
+      tx.createEmployee({
+        tenant_id: tenantId,
+        employee_id: employeeId,
+        display_name: "PostgreSQL Matter assignment attorney",
+        work_email: `${userId}@example.test`,
+        status: "active",
+        source_ref: "postgres-matter-assignment-test",
+      });
+      tx.createEmployeeUserLink({
+        tenant_id: tenantId,
+        link_id: `link-${employeeId}`,
+        employee_id: employeeId,
+        user_id: userId,
+        purpose: "login_mapping",
+        source_ref: "postgres-matter-assignment-test",
+      });
+    });
+    await ledger.importSnapshot(createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot);
+  } finally {
+    store.close();
+  }
+}
+
+async function assertMatterAssignmentRejectsInactiveIdentity({
+  fixture,
+  tenantId,
+  employeeId,
+  userId,
+  accountStatus,
+  membershipStatus,
+  idempotencySuffix,
+}) {
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const identityLedger = createPostgresIdentityLedger({
+    pool: fixture.appPool,
+    clock: () => "2026-07-31T00:00:00.000Z",
+  });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: `postgres-api-matter-assignment-${idempotencySuffix}`,
+  });
+  const identityInput = `postgres-matter-assignment-${idempotencySuffix}`;
+  await identityLedger.provisionDirectoryUser({
+    tenant_id: tenantId,
+    actor_id: "user_postgres_matter_assignment_test",
+    idempotency_key: `${identityInput}-v1`,
+    request_hash: createHash("sha256").update(`${identityInput}-v1`).digest("hex"),
+    user: {
+      user_id: userId,
+      email: `${userId}@example.test`,
+      status: accountStatus,
+      display_name: "PostgreSQL Matter assignment attorney",
+      source_ref: "postgres-matter-assignment-test",
+    },
+    membership: {
+      status: membershipStatus,
+      role_profile_id: "lawos_staff",
+      role_ids: ["lawos_staff"],
+      scopes: ["matter:read"],
+      hrx_scopes: ["hrx:self"],
+      source_ref: "postgres-matter-assignment-test",
+    },
+  });
+  await importMatterAssignmentIdentityBaseline(ledger, tenantId, { employeeId, userId });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+    identityRepository: identityLedger,
+  });
+
+  return authority.run({
+    tenant_id: tenantId,
+    request_context: {
+      method: "POST",
+      pathname: "/api/matters/matter-postgres-assignment/team",
+      actor_id: "user_postgres_matter_assignment_test",
+    },
+    command(runtimes) {
+      const directoryUser = runtimes.matterRuntime.userDirectory.listUsers({
+        tenant_id: tenantId,
+        user_id: userId,
+      });
+      assert.equal(directoryUser.length, 1);
+      assert.equal(directoryUser[0].status, "inactive");
+
+      const identity = runtimes.matterRuntime.peopleAssignmentAuthority.resolveEmployeeUserPair({
+        tenant_id: tenantId,
+        employee_id: employeeId,
+        requested_user_id: userId,
+      });
+      assert.deepEqual(identity, {
+        state: "unresolved",
+        reason: "user_identity_inactive",
+      });
+      assert.throws(() => addPeopleVisibleMatterTeamMember({
+        repository: runtimes.matterRuntime.repository,
+        employeeDirectory: runtimes.matterRuntime.employeeDirectory,
+        employeeUserLinkDirectory: runtimes.matterRuntime.employeeUserLinkDirectory,
+        userDirectory: runtimes.matterRuntime.userDirectory,
+        peopleAssignmentAuthority: runtimes.matterRuntime.peopleAssignmentAuthority,
+        as_of: "2026-07-31T00:00:00.000Z",
+        matter: {
+          tenant_id: tenantId,
+          matter_id: "matter-postgres-assignment-negative",
+        },
+        member: {
+          member_id: `member-${idempotencySuffix}`,
+          tenant_id: tenantId,
+          matter_id: "matter-postgres-assignment-negative",
+          employee_id: employeeId,
+          user_id: userId,
+          role: "responsible_attorney",
+          status: "active",
+          valid_from: "2026-07-01T00:00:00.000Z",
+        },
+        actor_id: "user_postgres_matter_assignment_test",
+      }), /user_identity_inactive/u);
+      return identity;
+    },
+  });
+}
+
+async function importPendingTerminationDeliveryBaseline(ledger, tenantId) {
+  const store = createFileHrxStore();
+  const offboardingId = "off-postgres-payroll-evidence";
+  const employeeId = "employee-postgres-payroll-evidence";
+  const previewReconciliationId = "leave-preview-postgres-payroll-evidence";
+  const reconciliationId = "leave-execute-postgres-payroll-evidence";
+  const outboxEventId = "leave-outbox-postgres-payroll-evidence";
+  const outboxIdempotencyKey =
+    "termination:off-postgres-payroll-evidence:payroll-outbox";
+  const payload = {
+    offboarding_id: offboardingId,
+    totals: { unused_minutes: 480 },
+    raw_compensation_amount_included: false,
+  };
+  try {
+    runHrxMigrations(store);
+    store.query("insert", {
+      table: "hrx_employees",
+      row: {
+        tenant_id: tenantId,
+        employee_id: employeeId,
+        display_name: "PostgreSQL termination evidence",
+        status: "active",
+      },
+    });
+    store.query("insert", {
+      table: "hrx_offboarding_cases",
+      row: createOffboardingCase({
+        tenant_id: tenantId,
+        offboarding_id: offboardingId,
+        employee_id: employeeId,
+        separation_date: "2026-07-31",
+        state: "open",
+        leave_reconciliation_status: "approved_pending_sync",
+      }),
+    });
+    store.query("insert", {
+      table: "hrx_leave_termination_reconciliations",
+      row: {
+        tenant_id: tenantId,
+        reconciliation_id: reconciliationId,
+        employee_id: employeeId,
+        termination_date: "2026-07-31",
+        snapshot_hash: "termination-snapshot-hash",
+        state: "approved_pending_sync",
+        result_json: JSON.stringify({
+          offboarding_id: offboardingId,
+          payroll_outbox_event_id: outboxEventId,
+          sync_state: "pending",
+        }),
+        idempotency_key: "termination-execute:postgres-payroll-evidence",
+        created_at: TERMINATION_DELIVERY_AT,
+        approved_at: TERMINATION_DELIVERY_AT,
+        mode: "execute",
+        source_version: "termination-source-version",
+        preview_reconciliation_id: previewReconciliationId,
+        approved_by_actor_id: "user-people-ops-reviewer",
+        executed_by_actor_id: "user-people-ops-operator",
+        completed_at: null,
+      },
+    });
+    store.query("insert", {
+      table: "hrx_leave_sync_outbox",
+      row: {
+        tenant_id: tenantId,
+        outbox_event_id: outboxEventId,
+        aggregate_type: "LeaveTerminationReconciliation",
+        aggregate_id: previewReconciliationId,
+        event_type: "leave.termination.payroll_reconciliation_requested",
+        payload_json: JSON.stringify(payload),
+        idempotency_key: outboxIdempotencyKey,
+        state: "pending",
+        attempt_count: 0,
+        available_at: TERMINATION_DELIVERY_AT,
+        delivered_at: null,
+        provider_receipt_ref: null,
+        last_error_code: null,
+        updated_at: TERMINATION_DELIVERY_AT,
+        created_at: TERMINATION_DELIVERY_AT,
+      },
+    });
+    await ledger.importSnapshot(
+      createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot,
+    );
+  } finally {
+    store.close();
+  }
+  return {
+    employeeId,
+    offboardingId,
+    reconciliationId,
+    outboxEventId,
+    providerReceiptRef: "PayrollProviderReceipt:postgres-payroll-evidence",
+    providerReceipt: {
+      schema_version: "law-firm-os.hrx.provider-receipt.v0.1",
+      receipt_id: "payroll-receipt-postgres-payroll-evidence",
+      tenant_id: tenantId,
+      provider_kind: "payroll",
+      provider_id: "payroll-authority",
+      operation: "payroll.termination.reconciliation",
+      idempotency_key: `${outboxIdempotencyKey}:payroll`,
+      payload_hash: `sha256:${createHash("sha256").update(stableStringify(payload)).digest("hex")}`,
+      state: "succeeded",
+      requested_at: TERMINATION_DELIVERY_AT,
+      completed_at: TERMINATION_DELIVERY_AT,
+      provider_receipt_ref:
+        "PayrollProviderReceipt:postgres-payroll-evidence",
+      error_code: null,
+    },
+  };
+}
+
+test("PostgreSQL API authority retries bounded reads and only explicitly idempotent mutations", async () => {
   const waits = [];
   let readAttempts = 0;
   const result = await runPostgresReadWithBaselineRetry({
@@ -71,6 +335,80 @@ test("PostgreSQL API authority retries bounded read baseline conflicts but never
     },
   }), /mutation conflict/u);
   assert.equal(mutationAttempts, 1);
+
+  let idempotentMutationAttempts = 0;
+  const idempotentMutation = await runPostgresReadWithBaselineRetry({
+    method: "POST",
+    retryLimit: 2,
+    allowIdempotentWriteRetry: true,
+    wait: async () => {},
+    execute: async () => {
+      idempotentMutationAttempts += 1;
+      if (idempotentMutationAttempts === 1) {
+        throw Object.assign(new Error("idempotent mutation conflict"), {
+          safe_error_code: "REPOSITORY_VERSION_CONFLICT",
+        });
+      }
+      return "idempotent-mutation-replayed";
+    },
+  });
+  assert.equal(idempotentMutation, "idempotent-mutation-replayed");
+  assert.equal(idempotentMutationAttempts, 2);
+
+  let uniqueConflictAttempts = 0;
+  const uniqueConflictReplay = await runPostgresReadWithBaselineRetry({
+    method: "POST",
+    retryLimit: 2,
+    allowIdempotentWriteRetry: true,
+    wait: async () => {},
+    execute: async () => {
+      uniqueConflictAttempts += 1;
+      if (uniqueConflictAttempts === 1) {
+        throw Object.assign(new Error("concurrent idempotency claim"), {
+          safe_error_code: "POSTGRES_UNIQUE_CONFLICT",
+        });
+      }
+      return "unique-conflict-rematerialized";
+    },
+  });
+  assert.equal(uniqueConflictReplay, "unique-conflict-rematerialized");
+  assert.equal(uniqueConflictAttempts, 2);
+});
+
+test("PostgreSQL Matter assignment excludes a disabled identity account", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  const identity = await assertMatterAssignmentRejectsInactiveIdentity({
+    fixture,
+    tenantId: "tenant_postgres_matter_assignment_disabled_account",
+    employeeId: "employee-postgres-matter-disabled-account",
+    userId: "user-postgres-matter-disabled-account",
+    accountStatus: "disabled",
+    membershipStatus: "active",
+    idempotencySuffix: "disabled-account",
+  });
+  assert.deepEqual(identity, {
+    state: "unresolved",
+    reason: "user_identity_inactive",
+  });
+});
+
+test("PostgreSQL Matter assignment excludes an inactive same-tenant identity membership", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  const identity = await assertMatterAssignmentRejectsInactiveIdentity({
+    fixture,
+    tenantId: "tenant_postgres_matter_assignment_disabled_membership",
+    employeeId: "employee-postgres-matter-disabled-membership",
+    userId: "user-postgres-matter-disabled-membership",
+    accountStatus: "active",
+    membershipStatus: "disabled",
+    idempotencySuffix: "disabled-membership",
+  });
+  assert.deepEqual(identity, {
+    state: "unresolved",
+    reason: "user_identity_inactive",
+  });
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {
@@ -371,6 +709,305 @@ test("PostgreSQL API authority commits HRX with central idempotency, audit and o
   assert.equal((await ledger.listIdempotency({ tenant_id: TENANT_A, domain_id: "hrx" })).length, 1);
   assert.equal((await ledger.listAudit({ tenant_id: TENANT_A, domain_id: "hrx" })).length, 1);
   assert.equal((await ledger.listOutbox({ tenant_id: TENANT_A, domain_id: "hrx" })).length, 1);
+});
+
+test("PostgreSQL API authority binds People flags and optional metrics without enabling synthetic payroll", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const outlookStateDirectory = mkdtempSync(
+    join(tmpdir(), "lawos-postgres-people-outlook-state-"),
+  );
+  t.after(() => rmSync(outlookStateDirectory, { recursive: true, force: true }));
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "postgres-api-people-bootstrap-test" });
+  const peopleMetricsSink = Object.freeze({
+    emit(metric) {
+      return metric;
+    },
+  });
+  const outlookTokenVault = Object.freeze({
+    durable: true,
+    opaque_at_rest: true,
+    test_only: false,
+  });
+  let providerIdentityState = {
+    schema_version: "people-provider-identity.v1",
+    records: [],
+    audit_events: [],
+    rebind_receipts: [],
+  };
+  const peopleProviderIdentityRepository = Object.freeze({
+    durable: true,
+    test_only: false,
+    loadState() {
+      return structuredClone(providerIdentityState);
+    },
+    replaceState(nextState) {
+      providerIdentityState = structuredClone(nextState);
+      return structuredClone(providerIdentityState);
+    },
+  });
+  const outlookConsentService = Object.freeze({
+    grant() {},
+    revoke() {},
+    snapshot() {
+      return [{
+        tenant_id: TENANT_A,
+        consent_ref: "outlook-consent-postgres",
+        connection_state: "active",
+        expires_at: "2099-07-31T00:00:00.000Z",
+      }];
+    },
+    resolveCredential() {
+      return {
+        credential_ref: "external-vault:postgres",
+        expires_at: "2099-07-31T00:00:00.000Z",
+      };
+    },
+  });
+  const adapterCalls = [];
+  const outlookCalendarViewAdapter = Object.freeze({
+    async read(input) {
+      adapterCalls.push(input);
+      return { events: [] };
+    },
+  });
+  const outlookOauthPort = Object.freeze({
+    begin() {
+      return {
+        state_ref: "outlook-state-postgres",
+        authorize_url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      };
+    },
+    resolveSubjectAddress() {
+      return "lawyer@example.test";
+    },
+  });
+  const outlookStateAuthority = createDurablePeopleOutlookStateAuthority({
+    filePath: join(outlookStateDirectory, "oauth-state.json"),
+  });
+  const offboardingAccessSource = Object.freeze({
+    read({ tenant_id, offboarding_id, employee_id, system_ref }) {
+      return {
+        tenant_id,
+        offboarding_id,
+        employee_id,
+        system_ref,
+        revoked: true,
+        evidence_ref: `IamAuthority:${offboarding_id}:${system_ref}`,
+        access_source_version: "iam-authority:v1",
+      };
+    },
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+    peopleFeatureFlags: {
+      people_overview: true,
+      people_member_brief: true,
+      outlook_calendar: true,
+    },
+    peopleMetricsSink,
+    peopleProviderIdentityRepository,
+    outlookTokenVault,
+    outlookConsentService,
+    outlookCalendarViewAdapter,
+    outlookStateAuthority,
+    outlookOauthPort,
+    offboardingAccessSource,
+    payrollProviders: {
+      allowSyntheticArtifactSecret: true,
+      allowSyntheticProviders: true,
+    },
+  });
+  await importHrxAuthorityBaseline(ledger, TENANT_A);
+
+  const bootstrap = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/hrx/people/team-operations",
+    },
+    async command(runtimes) {
+      const hrxRuntime = runtimes.hrxRuntime;
+      const authorization = hrxRuntime.peopleOutlookConnections.begin({
+        tenant_id: TENANT_A,
+        employee_id: "employee-outlook-postgres",
+        can_manage: true,
+      });
+      hrxRuntime.peopleProviderIdentities.connect({
+        tenant_id: TENANT_A,
+        employee_id: "employee-outlook-postgres",
+        provider_identity_id: "provider-identity-postgres",
+        provider_subject_id: "provider-subject-postgres",
+        consent_ref: "outlook-consent-postgres",
+      });
+      const first = hrxRuntime.peopleOutlookCalendarSource.read({
+        tenant_id: TENANT_A,
+        employee_ids: ["employee-outlook-postgres"],
+        as_of: "2026-07-31",
+      });
+      await hrxRuntime.peopleOutlookCalendarSource.whenIdle();
+      const connected = hrxRuntime.peopleOutlookCalendarSource.read({
+        tenant_id: TENANT_A,
+        employee_ids: ["employee-outlook-postgres"],
+        as_of: "2026-07-31",
+      });
+      return {
+        people_overview: hrxRuntime.peopleFeatureFlags.people_overview,
+        people_member_brief: hrxRuntime.peopleFeatureFlags.people_member_brief,
+        metrics_sink_bound: hrxRuntime.peopleMetricsSink === peopleMetricsSink,
+        payroll_provider_mode: hrxRuntime.payrollRuntime.provider_mode,
+        bank_reconciliation_port: hrxRuntime.payrollRuntime.bankReconciliationPort,
+        outlook_token_vault_bound: hrxRuntime.outlookTokenVault === outlookTokenVault,
+        outlook_state_authority_bound:
+          hrxRuntime.outlookStateAuthority === outlookStateAuthority,
+        offboarding_access_source_bound:
+          hrxRuntime.offboardingAccessSource === offboardingAccessSource,
+        offboarding_source_probe: hrxRuntime.offboardingAccessSource.read({
+          tenant_id: TENANT_A,
+          offboarding_id: "off-postgres-bootstrap",
+          employee_id: "employee-outlook-postgres",
+          system_ref: "IdP:core",
+        }),
+        outlook_authorization_state: authorization.connection_state,
+        outlook_first_state: first.state,
+        outlook_connected_state: connected.state,
+      };
+    },
+  });
+
+  assert.deepEqual(bootstrap, {
+    people_overview: true,
+    people_member_brief: true,
+    metrics_sink_bound: true,
+    payroll_provider_mode: "external-required",
+    bank_reconciliation_port: null,
+    outlook_token_vault_bound: true,
+    outlook_state_authority_bound: true,
+    offboarding_access_source_bound: true,
+    offboarding_source_probe: {
+      tenant_id: TENANT_A,
+      offboarding_id: "off-postgres-bootstrap",
+      employee_id: "employee-outlook-postgres",
+      system_ref: "IdP:core",
+      revoked: true,
+      evidence_ref: "IamAuthority:off-postgres-bootstrap:IdP:core",
+      access_source_version: "iam-authority:v1",
+    },
+    outlook_authorization_state: "consent_pending",
+    outlook_first_state: "blocked",
+    outlook_connected_state: "ok",
+  });
+  assert.equal(adapterCalls.length, 1);
+  assert.equal(adapterCalls[0].credential_ref, "external-vault:postgres");
+  assert.equal(adapterCalls[0].subject_address, "lawyer@example.test");
+});
+
+test("PostgreSQL API authority persists termination completion and its authoritative payroll evidence together", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-termination-evidence-test",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+    leaveIntegrationProviders: {
+      payroll: {
+        operational_authority: true,
+        provider_id: "payroll-authority",
+      },
+    },
+    leaveIntegrationProviderEnabled: { payroll: true },
+  });
+  const seeded = await importPendingTerminationDeliveryBaseline(
+    ledger,
+    TENANT_A,
+  );
+
+  const completion = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/api/hrx/leave/termination/provider-delivery",
+      idempotency_key: "postgres-termination-evidence-completion",
+    },
+    command({ hrxRuntime }) {
+      return hrxRuntime.leaveTerminationService.recordPayrollDelivery(
+        {
+          tenant_id: TENANT_A,
+          actor_id: "user-people-ops-operator",
+        },
+        {
+          outbox_event_id: seeded.outboxEventId,
+          provider_receipt: seeded.providerReceipt,
+        },
+      );
+    },
+  });
+  assert.equal(completion.state, "approved_and_synced");
+
+  const persisted = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: `/api/hrx/lifecycle/offboarding/${seeded.offboardingId}`,
+    },
+    command({ hrxRuntime }) {
+      const store = hrxRuntime.leaveManagementStore;
+      return {
+        offboarding: store.query("selectOne", {
+          table: "hrx_offboarding_cases",
+          where: {
+            tenant_id: TENANT_A,
+            offboarding_id: seeded.offboardingId,
+          },
+        }),
+        reconciliation: store.query("selectOne", {
+          table: "hrx_leave_termination_reconciliations",
+          where: {
+            tenant_id: TENANT_A,
+            reconciliation_id: seeded.reconciliationId,
+          },
+        }),
+        outbox: store.query("selectOne", {
+          table: "hrx_leave_sync_outbox",
+          where: {
+            tenant_id: TENANT_A,
+            outbox_event_id: seeded.outboxEventId,
+          },
+        }),
+      };
+    },
+  });
+  assert.equal(
+    persisted.offboarding.leave_reconciliation_status,
+    "approved_and_synced",
+  );
+  assert.equal(
+    persisted.offboarding.leave_reconciliation_evidence_ref,
+    seeded.providerReceiptRef,
+  );
+  assert.equal(persisted.reconciliation.state, "approved_and_synced");
+  assert.equal(persisted.outbox.state, "delivered");
+  assert.equal(
+    persisted.outbox.provider_receipt_ref,
+    seeded.providerReceiptRef,
+  );
 });
 
 test("PostgreSQL API authority overlays relational HRX reads only while preserving generic-ledger writes", async (t) => {
