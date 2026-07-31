@@ -1,4 +1,5 @@
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
+import { hashEventBody } from "../../../packages/audit/src/events.js";
 import { createLead } from "../../../packages/crm/src/lead-service.js";
 import {
   CRM_LEAD_INQUIRY_ERROR_CODES,
@@ -138,6 +139,7 @@ export const CRM_INTAKE_API_ERROR_CODES = Object.freeze({
     CRM_CONSULTATION_ERROR_CODES.outlook_event_conflict,
   consultation_outlook_event_state_invalid:
     CRM_CONSULTATION_ERROR_CODES.outlook_event_state_invalid,
+  activity_idempotency_conflict: "CRM_ACTIVITY_IDEMPOTENCY_CONFLICT",
   engagement_idempotency_conflict:
     CRM_ENGAGEMENT_ERROR_CODES.idempotency_conflict,
   engagement_inquiry_not_found:
@@ -1040,6 +1042,18 @@ const DIRECT_MATTER_REFERENCE_FIELDS = Object.freeze([
   "matter_open_command",
 ]);
 
+const CONTACT_HISTORY_MEMO_ACTIVITY_FIELDS = Object.freeze([
+  "crm_activity_id",
+  "tenant_id",
+  "lead_id",
+  "activity_type",
+  "subject",
+  "confidential",
+  "status",
+]);
+
+const CONTACT_HISTORY_MEMO_AUDIT_REASON = "contact_memo_recorded";
+
 const OUTLOOK_EVENT_COMMAND_FIELDS = Object.freeze([
   "tenant_id",
   "permission_ref",
@@ -1116,6 +1130,164 @@ function actorIdFrom(body, context) {
   return typeof actorId === "string" && actorId.trim() !== "" ? actorId : null;
 }
 
+function normalizedActivityReference(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized === "" ? null : normalized;
+}
+
+function validLeadLinkedMemoActivity(activity = {}) {
+  if (!activity || typeof activity !== "object" || Array.isArray(activity)) return false;
+  if (Object.keys(activity).some((field) => !CONTACT_HISTORY_MEMO_ACTIVITY_FIELDS.includes(field))) {
+    return false;
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(activity, "tenant_id")
+    && !normalizedActivityReference(activity.tenant_id)
+  ) {
+    return false;
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(activity, "crm_activity_id")
+    && !normalizedActivityReference(activity.crm_activity_id)
+  ) {
+    return false;
+  }
+  if (Object.prototype.hasOwnProperty.call(activity, "lead_id") && !normalizedActivityReference(activity.lead_id)) {
+    return false;
+  }
+  if (activity.activity_type !== "note" || activity.status !== "active") return false;
+  if (
+    Object.prototype.hasOwnProperty.call(activity, "confidential")
+    && typeof activity.confidential !== "boolean"
+  ) {
+    return false;
+  }
+  const subject = typeof activity.subject === "string" ? activity.subject.trim() : "";
+  return subject.length >= 1 && subject.length <= 160;
+}
+
+function authoritativeActivityTenant({ activity = {}, body = {}, context } = {}) {
+  const principalTenantId = normalizedActivityReference(context?.principal?.tenant_id);
+  if (!principalTenantId) return null;
+  const requestedTenantIds = [activity.tenant_id, body.tenant_id]
+    .map(normalizedActivityReference)
+    .filter(Boolean);
+  if (new Set(requestedTenantIds).size > 1) return null;
+  const requestedTenantId = requestedTenantIds[0] ?? principalTenantId;
+  if (
+    requestedTenantId !== principalTenantId
+    && !(context?.principal?.tenant_ids ?? []).includes(requestedTenantId)
+  ) {
+    return null;
+  }
+  return requestedTenantId;
+}
+
+function activityNoExistenceResponse({ requestId, auditHintRef } = {}) {
+  return errorResponse(
+    404,
+    requestId,
+    [CRM_INTAKE_API_ERROR_CODES.not_found],
+    {
+      audit_hint_ref: auditHintRef,
+      ui_state: "empty",
+    },
+  );
+}
+
+function crmInquiryReadAllowsActivityLink({ context, tenantId, leadId } = {}) {
+  const globalDecision = supplementalReadDecision({
+    context,
+    tenantId,
+    resourceType: "crm_inquiry",
+    action: "crm:inquiry:read",
+  });
+  if (globalDecision.effect !== "allow") return false;
+  const objectDecision = evaluateRouteDecision({
+    context: permissionContextForResource(context, leadId),
+    resource: {
+      tenant_id: tenantId,
+      resource_type: "crm_inquiry",
+      resource_id: leadId,
+    },
+    action: "crm:inquiry:read",
+  });
+  return objectDecision.effect === "allow";
+}
+
+function linkedOpportunityForLead(runtime, tenantId, lead, requestedOpportunityId = null) {
+  const opportunities = runtime.crmRepository
+    .list({ tenant_id: tenantId, model_type: "Opportunity" })
+    .filter((opportunity) => (
+      opportunity.lead_id === lead.lead_id
+      && opportunity.party_id === lead.party_id
+    ));
+  if (requestedOpportunityId) {
+    return opportunities.find(
+      (opportunity) => opportunity.opportunity_id === requestedOpportunityId,
+    ) ?? null;
+  }
+  const explicitOpportunityId = normalizedActivityReference(lead.opportunity_id);
+  if (explicitOpportunityId) {
+    return opportunities.find(
+      (opportunity) => opportunity.opportunity_id === explicitOpportunityId,
+    ) ?? null;
+  }
+  return opportunities.length === 1 ? opportunities[0] : null;
+}
+
+function knownPartyForActivity(runtime, tenantId, partyId) {
+  const normalizedPartyId = normalizedActivityReference(partyId);
+  if (!normalizedPartyId) return null;
+  const masterParty = runtime.masterDataRepository?.list({
+    tenant_id: tenantId,
+    model_type: "Party",
+  }).find((party) => party.party_id === normalizedPartyId);
+  if (masterParty) return masterParty;
+  return runtime.crmRepository.list({ tenant_id: tenantId })
+    .find((record) => record.party_id === normalizedPartyId) ?? null;
+}
+
+function activityCreateFingerprint({
+  tenantId,
+  activityId,
+  leadId,
+  opportunityId,
+  partyId,
+  subject,
+  confidential,
+  activityType,
+  actorId,
+  reason,
+} = {}) {
+  return hashEventBody({
+    operation: "crm_activity_create_v2",
+    tenant_id: tenantId,
+    activity_id: activityId,
+    lead_id: leadId,
+    opportunity_id: opportunityId,
+    party_id: partyId,
+    subject,
+    confidential: confidential === true,
+    activity_type: activityType,
+    actor_id: actorId,
+    reason,
+  });
+}
+
+function assertActivityCreateReplay(replay, fingerprint) {
+  if (
+    replay.operation !== "crm_activity_create"
+    || replay.request_fingerprint !== fingerprint
+  ) {
+    const error = new Error("Activity idempotency key is already bound to another request");
+    error.status = 409;
+    error.safe_error_code = CRM_INTAKE_API_ERROR_CODES.activity_idempotency_conflict;
+    throw error;
+  }
+}
+
 function partyDisplayName(runtime, tenantId, partyId) {
   if (!runtime?.masterDataRepository || !partyId) return null;
   return runtime.masterDataRepository
@@ -1148,8 +1320,8 @@ function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
     resource_id: activity.crm_activity_id,
     tenant_id: activity.tenant_id,
     crm_activity_id: activity.crm_activity_id,
-    party_id: activity.party_id,
     party_display_name: partyDisplayName(runtime, activity.tenant_id, activity.party_id),
+    party_id_included: false,
     lead_id: activity.lead_id ?? null,
     opportunity_id: activity.opportunity_id ?? null,
     activity_type: activity.activity_type,
@@ -1176,6 +1348,46 @@ function serializeActivity(activity = {}, runtime = DEFAULT_RUNTIME) {
     direct_matter_reference_included: false,
     production_ready_claim: false,
   });
+}
+
+function sanitizeActivityReplayResponse(
+  response = {},
+  { canonicalizeMemoAudit = false } = {},
+) {
+  if (!response?.item || typeof response.item !== "object" || Array.isArray(response.item)) {
+    return response;
+  }
+  const { party_id: _partyId, ...safeItem } = response.item;
+  const auditEvent = response.audit_event;
+  const auditMetadata = auditEvent?.metadata;
+  const {
+    raw_reason: _rawReason,
+    raw_subject: _rawSubject,
+    raw_memo_content: _rawMemoContent,
+    ...safeAuditMetadata
+  } = auditMetadata && typeof auditMetadata === "object" && !Array.isArray(auditMetadata)
+    ? auditMetadata
+    : {};
+  const safeAuditEvent = canonicalizeMemoAudit
+    && auditEvent
+    && typeof auditEvent === "object"
+    && !Array.isArray(auditEvent)
+    ? {
+        ...auditEvent,
+        reason: CONTACT_HISTORY_MEMO_AUDIT_REASON,
+        metadata: {
+          ...safeAuditMetadata,
+          raw_reason_included: false,
+          raw_subject_included: false,
+          raw_memo_content_included: false,
+        },
+      }
+    : auditEvent;
+  return {
+    ...response,
+    item: sanitizeItem({ ...safeItem, party_id_included: false }),
+    ...(safeAuditEvent ? { audit_event: safeAuditEvent } : {}),
+  };
 }
 
 function serializeProposal(proposal = {}) {
@@ -2749,73 +2961,271 @@ export function handleCrmActivityList({ query, context, requestId, runtime = DEF
 
 export function handleCrmActivityCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const activity = body?.activity ?? {};
+  const leadId = normalizedActivityReference(activity.lead_id);
+  const signedTenantId = normalizedActivityReference(context?.principal?.tenant_id);
+  const authoritativeTenantId = authoritativeActivityTenant({ activity, body, context });
+  const requestedTenantId = normalizedActivityReference(activity.tenant_id)
+    ?? normalizedActivityReference(body?.tenant_id)
+    ?? signedTenantId;
   const query = {
-    tenant_id: activity.tenant_id ?? body?.tenant_id,
+    tenant_id: authoritativeTenantId ?? requestedTenantId,
     permission_ref: body?.permission_ref,
     audit_hint_ref: body?.audit_hint_ref,
   };
+  const leadLinkedRequest = Boolean(leadId);
+  if (
+    leadLinkedRequest
+    && !authoritativeTenantId
+  ) {
+    const invalid = validateCommon(query, requestId);
+    if (invalid) return invalid;
+    return activityNoExistenceResponse({
+      requestId,
+      auditHintRef: query.audit_hint_ref,
+    });
+  }
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
   if (includesDirectMatterReference(activity)) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
+  if (
+    Object.prototype.hasOwnProperty.call(activity, "lead_id")
+    && !leadId
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  if (
+    leadLinkedRequest
+    && ["party_id", "opportunity_id"].some((field) => (
+      Object.prototype.hasOwnProperty.call(body ?? {}, field)
+    ))
+  ) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+  if (leadLinkedRequest && !validLeadLinkedMemoActivity(activity)) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
   const actorId = actorIdFrom(body, context);
   if (!actorId) {
     return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
   }
-  const activityId = String(activity.crm_activity_id ?? `activity_${Date.now().toString(36)}`).replace(/[^a-zA-Z0-9_-]/g, "_");
-  const idempotencyKey = body?.idempotency_key ?? `crm-activity-create:${query.tenant_id}:${activityId}`;
+
+  let derivedPartyId = leadLinkedRequest
+    ? null
+    : normalizedActivityReference(activity.party_id);
+  let derivedOpportunity = null;
+  let linkageType = "legacy_party_or_opportunity";
+  let lead = null;
+  if (leadLinkedRequest) {
+    lead = runtime.crmRepository.get({
+      tenant_id: query.tenant_id,
+      model_type: "Lead",
+      lead_id: leadId,
+    });
+    if (!lead || !crmInquiryReadAllowsActivityLink({
+      context,
+      tenantId: query.tenant_id,
+      leadId,
+    })) {
+      return activityNoExistenceResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    derivedPartyId = normalizedActivityReference(lead.party_id);
+    derivedOpportunity = linkedOpportunityForLead(
+      runtime,
+      query.tenant_id,
+      lead,
+    );
+    linkageType = "lead";
+  } else {
+    const requestedOpportunityId = normalizedActivityReference(activity.opportunity_id);
+    if (requestedOpportunityId) {
+      derivedOpportunity = runtime.crmRepository.get({
+        tenant_id: query.tenant_id,
+        model_type: "Opportunity",
+        opportunity_id: requestedOpportunityId,
+      });
+      if (!derivedOpportunity) {
+        return activityNoExistenceResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      if (derivedPartyId && derivedPartyId !== derivedOpportunity.party_id) {
+        return activityNoExistenceResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      derivedPartyId = normalizedActivityReference(derivedOpportunity.party_id);
+    }
+    if (!knownPartyForActivity(runtime, query.tenant_id, derivedPartyId)) {
+      return activityNoExistenceResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+  }
+  if (!derivedPartyId) {
+    return errorResponse(
+      400,
+      requestId,
+      [CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+  }
+
+  const activityType = normalizedActivityReference(activity.activity_type) ?? "note";
+  const subject = String(activity.subject ?? "").trim();
+  const explicitActivityId = normalizedActivityReference(activity.crm_activity_id);
+  const idempotencyKey = normalizedActivityReference(body?.idempotency_key)
+    ?? `crm-activity-create:${query.tenant_id}:${leadId ?? derivedPartyId}:${hashEventBody({ subject, confidential: activity.confidential === true, actor_id: actorId })}`;
+  const activityId = String(
+    explicitActivityId
+      ?? `activity_${hashEventBody({
+        tenant_id: query.tenant_id,
+        idempotency_key: idempotencyKey,
+        lead_id: leadId,
+        subject,
+        actor_id: actorId,
+      }).slice(0, 32)}`,
+  ).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const reason = normalizedActivityReference(body?.reason) ?? "activity_created";
+  const fingerprint = activityCreateFingerprint({
+    tenantId: query.tenant_id,
+    activityId: explicitActivityId,
+    leadId,
+    opportunityId: derivedOpportunity?.opportunity_id ?? null,
+    partyId: derivedPartyId,
+    subject,
+    confidential: activity.confidential === true,
+    activityType,
+    actorId,
+    reason,
+  });
   const replay = runtime.crmRepository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
   if (replay?.response) {
-    return { status: 200, body: { ...replay.response, request_id: requestId, outcome: "idempotent_replay", idempotent_replay: true, audit_hint_ref: query.audit_hint_ref, production_ready_claim: false } };
+    try {
+      // A lead-linked memo must never inherit a legacy entry that was recorded
+      // without a payload fingerprint. Legacy party/opportunity callers may
+      // still replay their pre-fingerprint entries for compatibility.
+      if (leadLinkedRequest || replay.request_fingerprint !== null) {
+        assertActivityCreateReplay(replay, fingerprint);
+      }
+    } catch (error) {
+      return errorResponse(
+        error.status ?? 409,
+        requestId,
+        [error.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.activity_idempotency_conflict],
+        { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+      );
+    }
+    const replayResponse = sanitizeActivityReplayResponse(replay.response, {
+      canonicalizeMemoAudit: leadLinkedRequest,
+    });
+    return { status: 200, body: { ...replayResponse, request_id: requestId, outcome: "idempotent_replay", idempotent_replay: true, audit_hint_ref: query.audit_hint_ref, production_ready_claim: false } };
   }
   try {
     const createdAt = activity.created_at && !Number.isNaN(Date.parse(activity.created_at)) ? activity.created_at : new Date().toISOString();
-    const created = runtime.crmRepository.create({
-      model_type: "CRMActivity",
-      crm_activity_id: activityId,
-      tenant_id: query.tenant_id,
-      party_id: activity.party_id,
-      opportunity_id: activity.opportunity_id ?? null,
-      activity_type: activity.activity_type ?? "note",
-      subject: String(activity.subject ?? "").trim(),
-      confidential: activity.confidential === true,
-      status: activity.status ?? "active",
-      owner_user_id: actorId,
-      permission_ref: query.permission_ref,
-      audit_hint_ref: query.audit_hint_ref,
-      created_by: actorId,
-      created_at: createdAt,
-      direct_matter_reference_included: false,
-      production_ready_claim: false,
+    const result = runtime.crmRepository.transaction((tx) => {
+      const created = tx.create({
+        model_type: "CRMActivity",
+        crm_activity_id: activityId,
+        tenant_id: query.tenant_id,
+        party_id: derivedPartyId,
+        lead_id: leadId,
+        opportunity_id: derivedOpportunity?.opportunity_id ?? null,
+        activity_type: activityType,
+        activity_kind: activity.activity_kind ?? null,
+        subject,
+        confidential: activity.confidential === true,
+        status: activity.status ?? "active",
+        owner_user_id: actorId,
+        permission_ref: query.permission_ref,
+        audit_hint_ref: query.audit_hint_ref,
+        created_by: actorId,
+        created_at: createdAt,
+        scheduled_start: activity.scheduled_start ?? null,
+        scheduled_end: activity.scheduled_end ?? null,
+        timezone: activity.timezone ?? null,
+        completed_at: activity.completed_at ?? null,
+        outcome: activity.outcome ?? null,
+        next_action: activity.next_action ?? null,
+        direct_matter_reference_included: false,
+        production_ready_claim: false,
+      });
+      const auditEvent = tx.appendAudit({
+        event_id: `crm.activity.created:${query.tenant_id}:${activityId}:${idempotencyKey}`,
+        tenant_id: query.tenant_id,
+        actor_id: actorId,
+        action: "crm.activity.created",
+        object_type: "CRMActivity",
+        object_id: activityId,
+        idempotency_key: idempotencyKey,
+        decision: "allow",
+        reason: leadLinkedRequest ? CONTACT_HISTORY_MEMO_AUDIT_REASON : reason,
+        occurred_at: createdAt,
+        metadata: {
+          permission_ref: query.permission_ref,
+          linkage_type: linkageType,
+          lead_id: leadId,
+          opportunity_id: derivedOpportunity?.opportunity_id ?? null,
+          confidential: activity.confidential === true,
+          subject_sha256: hashEventBody({ subject }),
+          reason_sha256: hashEventBody({ reason }),
+          raw_reason_included: false,
+          raw_memo_content_included: false,
+          raw_subject_included: false,
+          direct_matter_reference_included: false,
+        },
+      });
+      const response = {
+        request_id: requestId,
+        outcome: "created",
+        item: sanitizeItem(serializeActivity(created, runtime)),
+        audit_event: auditEvent,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        idempotent_replay: false,
+        state_idempotent: true,
+        production_ready_claim: false,
+      };
+      tx.recordIdempotency({
+        tenant_id: query.tenant_id,
+        idempotency_key: idempotencyKey,
+        operation: "crm_activity_create",
+        request_fingerprint: fingerprint,
+        response,
+        created_at: createdAt,
+      });
+      return { response };
     });
-    const auditEvent = runtime.crmRepository.appendAudit({
-      event_id: `crm.activity.created:${query.tenant_id}:${activityId}`,
-      tenant_id: query.tenant_id,
-      actor_id: actorId,
-      action: "crm.activity.created",
-      object_type: "CRMActivity",
-      object_id: activityId,
-      decision: "allow",
-      reason: body?.reason ?? "activity_created",
-      occurred_at: createdAt,
-      metadata: { permission_ref: query.permission_ref, confidential: activity.confidential === true, direct_matter_reference_included: false },
-    });
-    const response = {
-      request_id: requestId,
-      outcome: "created",
-      item: sanitizeItem(serializeActivity(created, runtime)),
-      audit_event: auditEvent,
-      safe_error_codes: [],
-      audit_hint_ref: query.audit_hint_ref,
-      idempotent_replay: false,
-      state_idempotent: true,
-      production_ready_claim: false,
-    };
-    runtime.crmRepository.recordIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey, operation: "crm_activity_create", response, created_at: createdAt });
-    return { status: 201, body: response };
-  } catch {
-    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+    return { status: 201, body: result.response };
+  } catch (error) {
+    return errorResponse(
+      error.status ?? 400,
+      requestId,
+      [error.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
   }
 }
 
@@ -2863,6 +3273,7 @@ export function handleCrmActivityPatch({ activityId, body, context, requestId, r
           idempotent_replay: result.idempotent_replay,
           inquiry: result.lead
             ? {
+                tenant_id: query.tenant_id,
                 lead_id: result.lead.lead_id,
                 next_action: result.lead.next_action,
                 version: result.lead.version,
@@ -3542,6 +3953,7 @@ export function handleCrmConsultationCreate({
       extra: {
         idempotent_replay: result.idempotent_replay,
         inquiry: {
+          tenant_id: query.tenant_id,
           lead_id: result.lead.lead_id,
           next_action: result.lead.next_action,
           version: result.lead.version,

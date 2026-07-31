@@ -192,6 +192,8 @@ export function App() {
   const requestedInquiryId = locationParams.get("inquiry_id") ?? "";
   const requestedOpportunityId = locationParams.get("opportunity_id") ?? "";
   const requestedOpportunityQuery = locationParams.get("opportunity_query") ?? "";
+  const requestedConsultationId = locationParams.get("consultation_id") ?? "";
+  const requestedConsultationQuery = locationParams.get("consultation_query") ?? "";
   const requestedDocumentId = locationParams.get("document_id") ?? "";
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
@@ -223,6 +225,8 @@ export function App() {
       inquiryId: params.get("inquiry_id") ?? "",
       opportunityId: params.get("opportunity_id") ?? "",
       opportunityQuery: params.get("opportunity_query") ?? "",
+      consultationId: params.get("consultation_id") ?? "",
+      consultationQuery: params.get("consultation_query") ?? "",
       documentId: params.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: params.get("date_from") ?? "",
@@ -265,6 +269,18 @@ export function App() {
       else params.delete("opportunity_query");
     } else {
       params.delete("opportunity_query");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "consultationId")) {
+      if (routeContext.consultationId) params.set("consultation_id", routeContext.consultationId);
+      else params.delete("consultation_id");
+    } else {
+      params.delete("consultation_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "consultationQuery")) {
+      if (routeContext.consultationQuery) params.set("consultation_query", routeContext.consultationQuery);
+      else params.delete("consultation_query");
+    } else {
+      params.delete("consultation_query");
     }
     for (const key of ["month", "tab", "period"]) {
       if (Object.prototype.hasOwnProperty.call(routeContext, key)) {
@@ -522,6 +538,8 @@ export function App() {
       query: initialQuery,
       opportunityId: initialParams.get("opportunity_id") ?? "",
       opportunityQuery: initialParams.get("opportunity_query") ?? "",
+      consultationId: initialParams.get("consultation_id") ?? "",
+      consultationQuery: initialParams.get("consultation_query") ?? "",
       documentId: initialParams.get("document_id") ?? "",
       currentVersionOnly: true,
       dateFrom: initialParams.get("date_from") ?? "",
@@ -689,6 +707,8 @@ export function App() {
                 requestedInquiryId={requestedInquiryId}
                 requestedOpportunityId={requestedOpportunityId}
                 requestedOpportunityQuery={requestedOpportunityQuery}
+                requestedConsultationId={requestedConsultationId}
+                requestedConsultationQuery={requestedConsultationQuery}
                 requestedClientRevision={routeRevision}
               />
             )}

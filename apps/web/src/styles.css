@@ -11087,6 +11087,423 @@ html[data-theme="dark"] .public-preview {
   }
 }
 
+/* Client 상담·접촉 명령 surfaces share the existing record tokens and keep
+   every write attached to an explicitly selected, authorized context. */
+.client-consultation-surface,
+.client-consultation-list,
+.client-consultation-detail,
+.client-activities-surface,
+.client-activities-list,
+.client-command-form {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.client-consultation-toolbar,
+.client-command-form-heading,
+.client-command-form-footer,
+.client-consultation-detail-header,
+.client-consultation-detail-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 12px;
+}
+
+.client-consultation-toolbar > div,
+.client-consultation-search,
+.client-command-form-heading > div,
+.client-command-field,
+.client-consultation-detail-header > div,
+.client-consultation-detail-actions > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.client-consultation-toolbar strong,
+.client-command-form-heading strong,
+.client-command-form > strong,
+.client-consultation-detail-header h2,
+.client-consultation-detail-actions strong {
+  margin: 0;
+  color: var(--am-text);
+  font-size: var(--am-font-size-section);
+}
+
+.client-consultation-toolbar span,
+.client-consultation-search > span,
+.client-command-form-heading span,
+.client-command-form-footer > span,
+.client-consultation-detail-kicker,
+.client-consultation-detail-actions span,
+.client-command-field > span,
+.client-command-repair > span {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-consultation-search {
+  min-width: min(280px, 100%);
+}
+
+.client-consultation-search input,
+.client-command-field input,
+.client-command-field select,
+.client-command-field textarea,
+.client-command-form > .client-command-field input,
+.client-command-form > .client-command-field select,
+.client-command-form > .client-command-field textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+}
+
+.client-command-field textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.client-consultation-search input:focus-visible,
+.client-consultation-tabs button:focus-visible,
+.client-consultation-row-button:focus-visible,
+.client-command-form input:focus-visible,
+.client-command-form select:focus-visible,
+.client-command-form textarea:focus-visible,
+.client-command-form button:focus-visible {
+  outline: 2px solid var(--am-blue);
+  outline-offset: 2px;
+}
+
+.client-consultation-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+}
+
+.client-consultation-tabs button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--am-text-muted);
+  font: inherit;
+  font-size: var(--am-font-size-meta);
+  cursor: pointer;
+}
+
+.client-consultation-tabs button:hover,
+.client-consultation-tabs button.active {
+  background: var(--am-surface);
+  color: var(--am-text);
+  box-shadow: var(--am-shadow-soft);
+}
+
+.client-consultation-boundary-note,
+.client-activities-boundary-note,
+.client-command-state,
+.client-command-repair,
+.client-consultation-state,
+.client-activities-state {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  overflow-wrap: anywhere;
+}
+
+.client-command-state.success {
+  border-color: color-mix(in srgb, var(--am-success) 42%, var(--am-border));
+  background: color-mix(in srgb, var(--am-success) 10%, var(--am-surface));
+  color: var(--am-success);
+}
+
+.client-command-state.denied,
+.client-command-state.review_required,
+.client-command-state.conflict,
+.client-command-state.error {
+  border-color: color-mix(in srgb, var(--am-danger) 36%, var(--am-border));
+  background: color-mix(in srgb, var(--am-danger) 8%, var(--am-surface));
+  color: var(--am-danger);
+}
+
+.client-consultation-list,
+.client-activities-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+}
+
+.client-consultation-row,
+.client-activity-row {
+  min-width: 0;
+  border-bottom: 1px solid var(--am-border-soft);
+  background: var(--am-surface);
+}
+
+.client-consultation-row:last-child,
+.client-activity-row:last-child {
+  border-bottom: 0;
+}
+
+.client-consultation-row:hover,
+.client-consultation-row.selected {
+  background: var(--am-blue-soft);
+}
+
+.client-consultation-row.selected {
+  box-shadow: inset 3px 0 0 var(--am-blue);
+}
+
+.client-consultation-row-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.48fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--am-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-consultation-row-heading,
+.client-consultation-row-meta,
+.client-activity-row {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.client-consultation-row-heading strong,
+.client-consultation-row-heading span,
+.client-consultation-row-meta b,
+.client-consultation-row-meta span,
+.client-activity-row strong,
+.client-activity-row span,
+.client-activity-row small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-consultation-row-heading span,
+.client-consultation-row-meta span,
+.client-activity-row span,
+.client-activity-row small {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-consultation-row-meta b {
+  color: var(--am-blue);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-activity-row {
+  padding: 12px;
+}
+
+.client-command-form {
+  padding: 14px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface);
+}
+
+.client-command-form.compact {
+  padding: 12px;
+  border-color: var(--am-border-soft);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+}
+
+.client-command-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.client-command-field,
+.client-command-checkbox {
+  min-width: 0;
+}
+
+.client-command-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: var(--am-text);
+  font-size: var(--am-font-size-meta);
+}
+
+.client-command-checkbox input {
+  flex: 0 0 auto;
+}
+
+.client-command-form-footer {
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--am-border-soft);
+}
+
+.client-consultation-detail {
+  padding: 14px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-md);
+  background: var(--am-surface);
+  box-shadow: var(--am-shadow-soft);
+}
+
+.client-consultation-detail-header h2 {
+  overflow-wrap: anywhere;
+}
+
+.client-consultation-detail-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.client-consultation-detail-facts span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  color: var(--am-text);
+  font-size: var(--am-font-size-meta);
+  overflow-wrap: anywhere;
+}
+
+.client-consultation-detail-facts b {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  font-weight: 400;
+}
+
+.client-consultation-detail-actions {
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--am-border-soft);
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.client-consultation-completed-summary {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface-subtle);
+}
+
+.client-consultation-completed-summary > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.client-consultation-completed-summary strong {
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  font-weight: 500;
+}
+
+.client-consultation-completed-summary span,
+.client-consultation-completed-summary p {
+  color: var(--am-text);
+  font-size: var(--am-font-size-meta);
+  overflow-wrap: anywhere;
+}
+
+.client-consultation-completed-summary p {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--am-border-soft);
+  color: var(--am-text-muted);
+}
+
+.client-command-repair {
+  display: grid;
+  gap: 5px;
+  border-color: #e4c791;
+  background: #fffaf0;
+  color: var(--am-text);
+}
+
+@media (max-width: 820px) {
+  .client-consultation-toolbar,
+  .client-command-form-heading,
+  .client-command-form-footer,
+  .client-consultation-detail-header,
+  .client-consultation-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .client-consultation-search {
+    min-width: 0;
+  }
+
+  .client-consultation-detail-actions .secondary-button,
+  .client-command-form-footer .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .client-consultation-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .client-consultation-tabs button {
+    width: 100%;
+  }
+
+  .client-consultation-row-button {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .client-command-form-grid,
+  .client-consultation-detail-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .client-detail-state {
   margin: 0;
 }

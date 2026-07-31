@@ -6,7 +6,6 @@ import heroClientArchitecture from "../assets/heroes/hero-client-architecture.jp
 import {
   createCrmAccount,
   createClientGroup,
-  createCrmActivity,
   createCrmContact,
   createCrmMergeProposal,
   createCrmOpportunity,
@@ -15,13 +14,20 @@ import {
   approveIntakeConflictWaiver,
   approveIntakeEngagement,
   executeCrmMergeProposal,
+  createCrmConsultation,
+  updateCrmConsultation,
+  completeCrmConsultation,
+  linkCrmConsultationOutlookEvent,
+  decideCrmEngagement,
+  repairCrmEngagement,
+  createCrmContactActivityMemo,
   fetchAnalyticsClientDirectory,
   fetchAnalyticsClientOperationsDetail,
   fetchAnalyticsClientOperationsDashboard,
   fetchAnalyticsFinanceClients,
-  fetchCrmActivities,
   fetchCrmAccountContacts,
   fetchCrmAccounts,
+  fetchCrmClientActivities,
   fetchCrmClientSettings,
   fetchCrmContacts,
   fetchCrmInquiries,
@@ -40,7 +46,6 @@ import {
   issueIntakeClearanceToken,
   openMatterFromIntakeClearance,
   bulkUpdateRecordActions,
-  patchCrmActivity,
   patchCrmAccount,
   patchCrmClientSetting,
   patchCrmContact,
@@ -77,6 +82,10 @@ import {
   clientOpportunityStatusCode,
   clientOpportunityStatusLabel
 } from "./ClientOpportunityModel.js";
+import {
+  buildClientConsultationModel,
+  clientConsultationStatusLabel
+} from "./ClientConsultationModel.js";
 import {
   CLIENT_REGISTRATION_INITIAL_FORM,
   clientRegistrationFingerprint,
@@ -1191,44 +1200,455 @@ function ClientRelatedFinanceGuard({
   );
 }
 
-function ClientActivitiesPanel({ result, createResult, patchResult, createPending, patchPending, onCreate, onPatch }) {
-  const state = renderLiveState(result, "접촉 이력");
-  if (state) return state;
-  const activities = resultItems(result);
-  const editableActivity = activities[0] ?? null;
+function clientCommandResultState(result) {
+  if (!result) return null;
+  if (result.kind === "denied" || result.uiState === "denied" || result.outcome === "denied") return "denied";
+  if (result.kind === "review_required" || result.uiState === "review_required" || result.outcome === "review_required") return "review_required";
+  if (result.kind === "conflict" || result.uiState === "conflict" || result.status === 409) return "conflict";
+  if (result.uiState === "partial" || result.outcome === "partial") return "partial";
+  if (result.kind === "error" || result.uiState === "error" || result.outcome === "error") return "error";
+  if (result.kind === "data") return "data";
+  return "error";
+}
+
+function clientCommandResultCopy(result, noun = "처리") {
+  const state = clientCommandResultState(result);
+  if (state === "denied") return `${noun} 권한이 없습니다.`;
+  if (state === "review_required") return `${noun} 전에 담당자 확인이 필요합니다.`;
+  if (state === "conflict") return `최신 정보와 달라 ${noun}하지 못했습니다. 화면을 새로 확인해 주세요.`;
+  if (state === "partial") return `${noun} 결과 일부만 확인되었습니다.`;
+  if (state === "error") return `${noun} 결과를 확인하지 못했습니다. 같은 작업을 다시 시도해 주세요.`;
+  if (state === "data") {
+    if (result.idempotentReplay) return `${noun} 요청을 다시 확인했습니다.`;
+    return `${noun}이 기록되었습니다.`;
+  }
+  return null;
+}
+
+function clientCommandStateNotice(result, noun) {
+  const state = clientCommandResultState(result);
+  if (!state || state === "data") return null;
+  return <div className={`client-command-state ${state}`} role="status" data-client-command-state={state}>{clientCommandResultCopy(result, noun)}</div>;
+}
+
+function clientWorkflowStepLabel(value) {
+  const labels = {
+    decision_recorded: "수임 결정 기록",
+    client_group_resolved: "고객 그룹 확인",
+    fee_commitment_created: "수임료 반영",
+    fee_commitment_cancelled: "수임료 반영 취소"
+  };
+  return labels[value] ?? "추가 확인 필요";
+}
+
+function inquiryVersionDescriptor(result) {
+  const item = result?.kind === "data" && result.item && typeof result.item === "object" ? result.item : null;
+  if (!item) return null;
+  const inquiryId = String(item.lead_id ?? item.inquiryId ?? "").trim() || null;
+  const inquiryVersion = Number.isSafeInteger(item.version) && item.version >= 1 ? item.version : null;
+  return inquiryId && inquiryVersion ? { inquiryId, inquiryVersion } : null;
+}
+
+function inquiryCommandDescriptor(result) {
+  const item = result?.kind === "data" && result.item && typeof result.item === "object" ? result.item : null;
+  const base = inquiryVersionDescriptor(result);
+  if (!item || !base) return null;
+  const opportunity = item.opportunity && typeof item.opportunity === "object" ? item.opportunity : null;
+  const inquiryVersion = base.inquiryVersion;
+  const opportunityId = String(item.opportunity_id ?? opportunity?.opportunity_id ?? "").trim() || null;
+  const engagementVersion = Number.isSafeInteger(
+    item.engagement_decision_version ?? opportunity?.engagement_decision_version
+  )
+    ? Number(item.engagement_decision_version ?? opportunity.engagement_decision_version)
+    : null;
+  const workflowId = String(opportunity?.engagement_workflow_id ?? item.engagement_workflow_id ?? "").trim() || null;
+  const workflowStatus = opportunity?.engagement_workflow_status ?? item.engagement_workflow_status ?? null;
+  if (!opportunityId || !engagementVersion) {
+    return { ...base, opportunityId: null, engagementVersion: null, workflowId: null, workflowStatus: null, engagementDecision: "pending" };
+  }
+  return {
+    inquiryId: base.inquiryId,
+    inquiryVersion,
+    opportunityId,
+    engagementVersion,
+    workflowId,
+    workflowStatus,
+    engagementDecision: opportunity?.engagement_decision ?? item.engagement_decision ?? "pending"
+  };
+}
+
+function consultationLocalDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(date).reduce((acc, part) => ({ ...acc, [part.type]: part.value }), {});
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+function consultationDateTimeToIso(value) {
+  const normalized = String(value ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/u.test(normalized)) return null;
+  const date = new Date(`${normalized}:00+09:00`);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function clientCommandIdempotencyKey(ref, scope, fingerprint) {
+  const normalized = `${scope}:${fingerprint}`;
+  const existing = ref.current.get(normalized);
+  if (existing) return existing;
+  const random = typeof globalThis.crypto?.randomUUID === "function"
+    ? globalThis.crypto.randomUUID().replace(/-/gu, "")
+    : `${Date.now()}${Math.random().toString(36).slice(2)}`;
+  const next = `ui_${scope}_${random}`.slice(0, 190);
+  ref.current.set(normalized, next);
+  return next;
+}
+
+function clientCommandTimestamp(ref, idempotencyKey) {
+  const existing = ref.current.get(idempotencyKey);
+  if (existing) return existing;
+  const timestamp = new Date().toISOString();
+  ref.current.set(idempotencyKey, timestamp);
+  return timestamp;
+}
+
+function consultationResultStateCopy(state) {
+  if (state === "loading") return "상담 목록을 불러오는 중입니다.";
+  if (state === "denied") return "상담 목록을 볼 권한이 없습니다.";
+  if (state === "review_required") return "상담 목록을 보려면 담당자 확인이 필요합니다.";
+  if (state === "partial") return "상담 일부만 확인할 수 있습니다. 확인 가능한 기록만 표시합니다.";
+  if (state === "error") return "상담 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.";
+  return "등록된 상담이 없습니다.";
+}
+
+function ClientConsultationTabs({ model, onTabChange }) {
   return (
-    <div className="clients-live-stack" data-client-activities-connected="true">
-      <div className="record-action-strip" data-client-activity-create-action="true">
-        <div>
-          <strong>접촉 이력 추가</strong>
-          <span>Client와 Pipeline 기준으로 후속 조치를 남깁니다.</span>
-          <ActionNotice pending={createPending} result={createResult} pendingText="이력을 추가 중입니다." successText="접촉 이력이 추가되었습니다." />
-        </div>
-        <button className="secondary-button" type="button" disabled={createPending} onClick={onCreate}>
-          <Plus size={15} />
-          추가
+    <div className="client-consultation-tabs" role="tablist" aria-label="상담 상태">
+      {model.statusTabs.map((tab) => (
+        <button
+          key={tab.code}
+          type="button"
+          role="tab"
+          aria-selected={model.activeStatusTab === tab.code}
+          className={model.activeStatusTab === tab.code ? "active" : ""}
+          onClick={() => onTabChange(tab.code)}
+        >
+          {tab.label}
         </button>
-      </div>
-      <div className="record-action-strip" data-client-activity-patch-action="true">
+      ))}
+    </div>
+  );
+}
+
+function InquiryContextSelect({ inquiries, selectedInquiryId, onChange, disabled = false, label = "문의 선택" }) {
+  return (
+    <label className="client-command-field">
+      <span>{label}</span>
+      <select value={selectedInquiryId ?? ""} onChange={(event) => onChange(event.target.value)} disabled={disabled}>
+        <option value="">문의에서 선택하세요</option>
+        {inquiries.map((inquiry) => (
+          <option key={inquiry.inquiryId} value={inquiry.inquiryId}>{inquiry.displayName}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function ConsultationScheduleForm({ inquiries, selectedInquiryId, pending, result, onInquiryChange, onSubmit }) {
+  const [form, setForm] = useState({ inquiryId: selectedInquiryId ?? "", subject: "", start: "", end: "", confidential: false });
+  useEffect(() => {
+    setForm((current) => ({ ...current, inquiryId: selectedInquiryId ?? "" }));
+  }, [selectedInquiryId]);
+  function update(field, value) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+  function submit(event) {
+    event.preventDefault();
+    const start = consultationDateTimeToIso(form.start);
+    const end = consultationDateTimeToIso(form.end);
+    if (!form.inquiryId || !start || !end || new Date(end).getTime() <= new Date(start).getTime()) return;
+    const subject = form.confidential ? "보호된 상담" : form.subject.trim();
+    if (!subject) return;
+    onSubmit({ ...form, subject, scheduledStart: start, scheduledEnd: end });
+  }
+  const start = consultationDateTimeToIso(form.start);
+  const end = consultationDateTimeToIso(form.end);
+  const valid = Boolean(form.inquiryId && start && end && new Date(end).getTime() > new Date(start).getTime() && (form.confidential || form.subject.trim()));
+  return (
+    <form className="client-command-form" data-client-consultation-schedule-form="true" onSubmit={submit}>
+      <div className="client-command-form-heading">
         <div>
-          <strong>이력 검토 표시</strong>
-          <span>{editableActivity ? businessLabel(editableActivity.subject, "접촉 이력") : "검토할 이력 없음"}</span>
-          <ActionNotice pending={patchPending} result={patchResult} pendingText="상태를 업데이트 중입니다." successText="접촉 이력 상태가 기록되었습니다." />
+          <strong>상담 일정 등록</strong>
+          <span>권한이 확인된 문의를 선택한 뒤 서울 시간으로 일정을 입력합니다.</span>
         </div>
-        <button className="secondary-button" type="button" disabled={!editableActivity || patchPending} onClick={() => onPatch(editableActivity)}>
-          <ShieldCheck size={15} />
-          검토 표시
-        </button>
       </div>
-      <DataTable
-        columns={["접촉", "유형", "상태", "보호"]}
-        rows={activities.map((item, index) => [
-          businessLabel(item.subject, `접촉 이력 ${index + 1}`),
-          activityTypeLabel(item.activity_type),
-          clientStatus(item.status),
-          item.confidential ? "보호됨" : "표시 가능"
-        ])}
-      />
+      <div className="client-command-form-grid">
+        <InquiryContextSelect
+          inquiries={inquiries}
+          selectedInquiryId={form.inquiryId}
+          disabled={pending}
+          onChange={(value) => { update("inquiryId", value); onInquiryChange(value); }}
+        />
+        <label className="client-command-field">
+          <span>상담 제목</span>
+          <input value={form.subject} disabled={pending || form.confidential} onChange={(event) => update("subject", event.target.value)} placeholder="예: 계약 검토 초기 상담" />
+        </label>
+        <label className="client-command-field">
+          <span>시작</span>
+          <input type="datetime-local" value={form.start} disabled={pending} onChange={(event) => update("start", event.target.value)} />
+        </label>
+        <label className="client-command-field">
+          <span>종료</span>
+          <input type="datetime-local" value={form.end} disabled={pending} onChange={(event) => update("end", event.target.value)} />
+        </label>
+        <label className="client-command-checkbox">
+          <input type="checkbox" checked={form.confidential} disabled={pending} onChange={(event) => update("confidential", event.target.checked)} />
+          <span>상담 상세 보호</span>
+        </label>
+      </div>
+      <div className="client-command-form-footer">
+        <span>시간대: Asia/Seoul</span>
+        <button className="primary-button" type="submit" disabled={!valid || pending}>{pending ? "등록 중" : "상담 일정 등록"}</button>
+      </div>
+      {clientCommandStateNotice(result, "상담 일정 등록")}
+      {result && clientCommandResultState(result) === "data" ? <div className="client-command-state success" role="status">상담 일정이 기록되었습니다.</div> : null}
+    </form>
+  );
+}
+
+function ConsultationCompletionForm({ consultation, pending, result, onSubmit }) {
+  const [form, setForm] = useState({ outcome: "", nextAction: "" });
+  useEffect(() => {
+    setForm({ outcome: "", nextAction: "" });
+  }, [consultation?.consultationId, consultation?.version]);
+  const valid = Boolean(form.outcome.trim() && form.nextAction.trim());
+  return (
+    <form className="client-command-form compact" data-client-consultation-complete-form="true" onSubmit={(event) => { event.preventDefault(); if (valid) onSubmit(form); }}>
+      <strong>상담 완료 기록</strong>
+      <label className="client-command-field"><span>상담 결과</span><textarea value={form.outcome} disabled={pending} onChange={(event) => setForm((current) => ({ ...current, outcome: event.target.value }))} rows={3} /></label>
+      <label className="client-command-field"><span>다음 행동</span><input value={form.nextAction} disabled={pending} onChange={(event) => setForm((current) => ({ ...current, nextAction: event.target.value }))} /></label>
+      <button className="secondary-button" type="submit" disabled={!valid || pending}>{pending ? "완료 기록 중" : "상담 완료"}</button>
+      {clientCommandStateNotice(result, "상담 완료 기록")}
+      {result && clientCommandResultState(result) === "data" ? <div className="client-command-state success" role="status">상담 결과와 다음 행동을 기록했습니다.</div> : null}
+    </form>
+  );
+}
+
+function ConsultationRescheduleForm({ consultation, pending, result, onSubmit }) {
+  const [form, setForm] = useState({ start: "", end: "" });
+  useEffect(() => {
+    setForm({ start: consultationLocalDateTime(consultation?.scheduledStart), end: consultationLocalDateTime(consultation?.scheduledEnd) });
+  }, [consultation?.consultationId, consultation?.version, consultation?.scheduledStart, consultation?.scheduledEnd]);
+  const start = consultationDateTimeToIso(form.start);
+  const end = consultationDateTimeToIso(form.end);
+  const valid = Boolean(start && end && new Date(end).getTime() > new Date(start).getTime());
+  return (
+    <form className="client-command-form compact" data-client-consultation-reschedule-form="true" onSubmit={(event) => { event.preventDefault(); if (valid) onSubmit({ ...form, scheduledStart: start, scheduledEnd: end }); }}>
+      <strong>상담 일정 변경</strong>
+      <div className="client-command-form-grid">
+        <label className="client-command-field"><span>새 시작</span><input type="datetime-local" value={form.start} disabled={pending} onChange={(event) => setForm((current) => ({ ...current, start: event.target.value }))} /></label>
+        <label className="client-command-field"><span>새 종료</span><input type="datetime-local" value={form.end} disabled={pending} onChange={(event) => setForm((current) => ({ ...current, end: event.target.value }))} /></label>
+      </div>
+      <button className="secondary-button" type="submit" disabled={!valid || pending}>{pending ? "변경 중" : "일정 변경"}</button>
+      {clientCommandStateNotice(result, "상담 일정 변경")}
+      {result && clientCommandResultState(result) === "data" ? <div className="client-command-state success" role="status">상담 일정을 변경했습니다.</div> : null}
+    </form>
+  );
+}
+
+function ConsultationCompletedSummary({ consultation }) {
+  const protectedDetails = consultation?.confidential === true;
+  const outcome = protectedDetails ? "상세 내용 보호됨" : consultation?.outcome ?? "결과 미기록";
+  const nextAction = protectedDetails ? "상세 내용 보호됨" : consultation?.nextAction ?? "다음 행동 미기록";
+  return (
+    <div className="client-consultation-completed-summary" data-client-consultation-completed-summary="true">
+      <div>
+        <strong>상담 결과</strong>
+        <span>{outcome}</span>
+      </div>
+      <div>
+        <strong>다음 행동</strong>
+        <span>{nextAction}</span>
+      </div>
+      <p>완료된 상담은 일정과 Outlook 연결을 변경할 수 없습니다.</p>
+    </div>
+  );
+}
+
+function EngagementDecisionForm({ inquiry, descriptor, pending, result, repairPending, repairResult, onSubmit, onRepair }) {
+  const [form, setForm] = useState({ decision: "accepted", amount: "", amountUnknownConfirmed: false, closeReason: "" });
+  useEffect(() => {
+    setForm({ decision: "accepted", amount: "", amountUnknownConfirmed: false, closeReason: "" });
+  }, [inquiry?.inquiryId, descriptor?.inquiryVersion, descriptor?.engagementVersion]);
+  const amount = form.amount.trim() ? Number(form.amount.replace(/,/gu, "")) : null;
+  const acceptedValid = form.decision !== "accepted" || (form.amountUnknownConfirmed || Number.isSafeInteger(amount) && amount >= 0);
+  const valid = Boolean(form.decision === "declined" ? form.closeReason.trim() : acceptedValid);
+  const processing = result?.processing;
+  const repairRequired = processing?.workflowStatus === "repair_required" || result?.repairCommand;
+  return (
+    <div className="client-command-form" data-client-engagement-form="true">
+      <div className="client-command-form-heading">
+        <div>
+          <strong>수임 결정</strong>
+          <span>수임 확정과 Matter 개설은 별도 단계입니다.</span>
+        </div>
+      </div>
+      <div className="client-command-form-grid">
+        <label className="client-command-field"><span>결정</span><select value={form.decision} disabled={pending} onChange={(event) => setForm((current) => ({ ...current, decision: event.target.value }))}><option value="accepted">수임 확정</option><option value="declined">수임하지 않음</option></select></label>
+        {form.decision === "accepted" ? (
+          <>
+            <label className="client-command-field"><span>수임료 금액</span><input inputMode="numeric" value={form.amount} disabled={pending || form.amountUnknownConfirmed} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} placeholder="금액을 입력하세요" /></label>
+            <label className="client-command-checkbox"><input type="checkbox" checked={form.amountUnknownConfirmed} disabled={pending || Boolean(form.amount.trim())} onChange={(event) => setForm((current) => ({ ...current, amountUnknownConfirmed: event.target.checked }))} /><span>금액 미정으로 확정</span></label>
+          </>
+        ) : (
+          <label className="client-command-field"><span>거절 사유</span><textarea value={form.closeReason} disabled={pending} onChange={(event) => setForm((current) => ({ ...current, closeReason: event.target.value }))} rows={3} /></label>
+        )}
+      </div>
+      <button className="secondary-button" type="button" disabled={!descriptor?.opportunityId || !descriptor?.engagementVersion || !valid || pending} onClick={() => onSubmit({ ...form, agreedAmount: form.decision === "accepted" && !form.amountUnknownConfirmed ? amount : undefined })}>{pending ? "결정 기록 중" : "결정 기록"}</button>
+      {clientCommandStateNotice(result, "수임 결정")}
+      {result && clientCommandResultState(result) === "data" && !repairRequired ? <div className="client-command-state success" role="status">수임 결정이 기록되었습니다. Matter 개설은 별도 단계입니다.</div> : null}
+      {repairRequired ? (
+        <div className="client-command-repair" data-client-engagement-repair="true">
+          <strong>추가 반영이 필요합니다</strong>
+          <span>확인이 필요한 단계: {clientWorkflowStepLabel(processing?.failedStep)}</span>
+          <span>담당자 확인용 처리 기록이 남아 있습니다.</span>
+          <button className="secondary-button" type="button" disabled={repairPending} onClick={() => onRepair({ expectedWorkflowVersion: result?.repairCommand?.expectedWorkflowVersion ?? processing?.workflowVersion })}>{repairPending ? "재시도 중" : "안전하게 재시도"}</button>
+          {clientCommandStateNotice(repairResult, "수임 반영 재시도")}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ClientConsultationPanel({
+  result,
+  model,
+  inquiries,
+  inquiriesState = "loading",
+  selectedInquiryId,
+  inquiryDetailResult,
+  schedulePending,
+  scheduleResult,
+  reschedulePending,
+  rescheduleResult,
+  outlookPending,
+  outlookResult,
+  completePending,
+  completeResult,
+  decisionPending,
+  decisionResult,
+  repairPending,
+  repairResult,
+  onInquiryChange,
+  onTabChange,
+  onSearchChange,
+  onSelectConsultation,
+  onCloseConsultation,
+  onSchedule,
+  onReschedule,
+  onOutlook,
+  onComplete,
+  onDecision,
+  onRepair
+}) {
+  if (["loading", "denied", "review_required", "error"].includes(model.state)) {
+    return <div className={`client-consultation-state live-data-state live-data-${model.state === "denied" ? "denied" : model.state === "review_required" ? "review" : model.state === "error" ? "error" : "loading"}`} role="status" data-client-consultation-state={model.state}><strong>{consultationResultStateCopy(model.state)}</strong></div>;
+  }
+  const selected = model.selectedConsultation;
+  const descriptor = inquiryCommandDescriptor(inquiryDetailResult);
+  const selectedInquiry = inquiries.find((inquiry) => inquiry.inquiryId === selectedInquiryId) ?? null;
+  const selectedOutlookState = selected?.outlookState ?? "not_created";
+  const hasSearchOrTabNoMatch = model.consultations.length === 0 && Array.isArray(result?.consultations) && result.consultations.length > 0;
+  return (
+    <div className="client-consultation-surface" data-client-consultation-surface="true">
+      <div className="client-consultation-toolbar">
+        <div>
+          <strong>상담 일정을 정하고 결과까지 이어서 기록합니다.</strong>
+          <span>목록에서 상담을 먼저 선택하고, 문의는 별도로 권한을 확인합니다.</span>
+        </div>
+        <label className="client-consultation-search"><span>고객·상담 검색</span><input type="search" value={model.searchQuery} onChange={(event) => onSearchChange(event.target.value)} placeholder="고객명 또는 상담 제목" aria-label="고객·상담 검색" /></label>
+      </div>
+      <ClientConsultationTabs model={model} onTabChange={onTabChange} />
+      {model.state === "partial" ? <div className="client-consultation-boundary-note" role="status">{consultationResultStateCopy("partial")}</div> : null}
+      {model.consultations.length === 0 ? (
+        <div className="client-consultation-state live-data-state live-data-empty" role="status" data-client-consultation-state="empty"><strong>{hasSearchOrTabNoMatch ? "조건에 맞는 상담이 없습니다." : consultationResultStateCopy("empty")}</strong></div>
+      ) : (
+        <div className="client-consultation-list" role="list" aria-label="상담 목록">
+          {model.consultations.map((consultation) => {
+            const isSelected = consultation.consultationId === model.selectedConsultationId;
+            return <div className={isSelected ? "client-consultation-row selected" : "client-consultation-row"} role="listitem" key={consultation.consultationId}>
+              <button type="button" className="client-consultation-row-button" data-client-consultation-row="true" aria-pressed={isSelected} aria-label={`${consultation.displayName} 상담 선택`} onClick={() => onSelectConsultation(consultation.consultationId)}>
+                <span className="client-consultation-row-heading"><strong>{consultation.displayName}</strong><span>{consultation.subject}</span></span>
+                <span className="client-consultation-row-meta"><b>{consultation.statusLabel}</b><span>{consultation.localDate} · {consultation.timezone}</span></span>
+              </button>
+            </div>;
+          })}
+        </div>
+      )}
+      {inquiriesState === "partial" ? <div className="client-consultation-boundary-note" role="status">문의 일부만 확인할 수 있어 선택 가능한 문의만 표시합니다.</div> : null}
+      {inquiriesState === "empty" ? <div className="client-consultation-boundary-note" role="status">일정을 등록하려면 권한이 확인된 문의가 필요합니다.</div> : null}
+      {inquiriesState === "denied" ? <div className="client-consultation-boundary-note" role="status">문의 조회 권한이 없어 상담 일정을 등록할 수 없습니다.</div> : null}
+      {inquiriesState === "review_required" ? <div className="client-consultation-boundary-note" role="status">문의 조회에 담당자 확인이 필요해 상담 일정을 등록할 수 없습니다.</div> : null}
+      {inquiriesState === "error" ? <div className="client-consultation-boundary-note" role="status">문의 정보를 확인하지 못해 상담 일정을 등록할 수 없습니다.</div> : null}
+      <ConsultationScheduleForm inquiries={inquiries} selectedInquiryId={selectedInquiryId} pending={schedulePending || inquiriesState !== "data" && inquiriesState !== "partial"} result={scheduleResult} onInquiryChange={onInquiryChange} onSubmit={onSchedule} />
+      {selected ? (
+        <section className="client-consultation-detail" data-client-consultation-detail="true" aria-labelledby="client-consultation-detail-heading">
+          <div className="client-consultation-detail-header"><div><span className="client-consultation-detail-kicker">선택한 상담</span><h2 id="client-consultation-detail-heading">{selected.displayName}</h2></div><button type="button" className="record-overlay-close" aria-label="상담 상세 닫기" autoFocus onClick={onCloseConsultation}><X size={17} /></button></div>
+          <div className="client-consultation-detail-facts"><span><b>제목</b>{selected.subject}</span><span><b>일정</b>{selected.scheduledStart ? `${selected.localDate} · ${selected.timezone}` : "일정 미정"}</span><span><b>상태</b>{clientConsultationStatusLabel(selected.status)}</span><span><b>보호</b>{selected.confidential ? "상세 보호" : "표시 가능"}</span></div>
+          {!selected.completedAt ? (
+            <>
+              <div className="client-consultation-detail-actions"><div><strong>Outlook 일정</strong><span>{selectedOutlookState === "linked" ? "연결됨" : selectedOutlookState === "update_required" ? "업데이트 필요" : "아직 연결하지 않음"}</span></div><button type="button" className="secondary-button" disabled={outlookPending || selectedOutlookState === "linked"} onClick={onOutlook}>{outlookPending ? "연결 중" : selectedOutlookState === "update_required" ? "Outlook 업데이트" : "Outlook 연결"}</button></div>
+              {clientCommandStateNotice(outlookResult, "Outlook 일정 연결")}
+              {outlookResult && clientCommandResultState(outlookResult) === "data" ? <div className="client-command-state success" role="status">{outlookResult.outlookCalendarState === "linked" ? "Outlook 일정이 연결되었습니다." : "Outlook 일정 업데이트가 필요합니다."} 자동 동기화는 사용하지 않습니다.</div> : null}
+              <ConsultationRescheduleForm consultation={selected} pending={reschedulePending} result={rescheduleResult} onSubmit={onReschedule} />
+              <ConsultationCompletionForm consultation={selected} pending={completePending} result={completeResult} onSubmit={onComplete} />
+            </>
+          ) : <ConsultationCompletedSummary consultation={selected} />}
+          <EngagementDecisionForm inquiry={selectedInquiry} descriptor={descriptor} pending={decisionPending} result={decisionResult} repairPending={repairPending} repairResult={repairResult} onSubmit={onDecision} onRepair={onRepair} />
+          {!descriptor && selectedInquiryId ? <div className="client-consultation-boundary-note" role="status">문의 상세의 최신 버전과 수임 정보를 확인한 뒤 결정할 수 있습니다.</div> : null}
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function ClientActivitiesPanel({ result, inquiries, inquiriesState = "loading", selectedInquiryId, createResult, createPending, onInquiryChange, onCreate }) {
+  const contactActivities = result?.kind === "data" && Array.isArray(result.contactActivities) ? result.contactActivities : [];
+  const state = result === null ? "loading" : result?.uiState === "denied" || result?.kind === "denied" ? "denied" : result?.uiState === "review_required" || result?.kind === "review_required" ? "review_required" : result?.uiState === "partial" ? "partial" : result?.kind === "error" ? "error" : result?.kind === "data" && contactActivities.length === 0 ? "empty" : "data";
+  const [form, setForm] = useState({ subject: "", reason: "", confidential: false });
+  const valid = Boolean(selectedInquiryId && form.subject.trim() && form.reason.trim());
+  if (["loading", "denied", "review_required", "error"].includes(state)) {
+    const copy = state === "loading" ? "접촉 이력을 불러오는 중입니다." : state === "denied" ? "접촉 이력을 볼 권한이 없습니다." : state === "review_required" ? "접촉 이력을 보려면 담당자 확인이 필요합니다." : "접촉 이력을 불러오지 못했습니다. 잠시 후 다시 시도하세요.";
+    return <div className="client-activities-state live-data-state" role="status" data-client-activities-state={state}><strong>{copy}</strong></div>;
+  }
+  return (
+    <div className="client-activities-surface" data-client-activities-connected="true">
+      {state === "partial" ? <div className="client-activities-boundary-note" role="status">접촉 이력 일부만 확인할 수 있습니다.</div> : null}
+      {inquiriesState === "partial" ? <div className="client-activities-boundary-note" role="status">문의 일부만 확인할 수 있어 선택 가능한 문의만 표시합니다.</div> : null}
+      {inquiriesState === "empty" ? <div className="client-activities-boundary-note" role="status">메모를 남기려면 권한이 확인된 문의가 필요합니다.</div> : null}
+      {inquiriesState === "denied" ? <div className="client-activities-boundary-note" role="status">문의 조회 권한이 없어 메모를 기록할 수 없습니다.</div> : null}
+      {inquiriesState === "review_required" ? <div className="client-activities-boundary-note" role="status">문의 조회에 담당자 확인이 필요해 메모를 기록할 수 없습니다.</div> : null}
+      {inquiriesState === "error" ? <div className="client-activities-boundary-note" role="status">문의 정보를 확인하지 못해 메모를 기록할 수 없습니다.</div> : null}
+      <form className="client-command-form" data-client-activity-memo-form="true" onSubmit={(event) => { event.preventDefault(); if (!valid) return; onCreate({ ...form, subject: form.subject.trim(), reason: form.reason.trim() }); }}>
+        <div className="client-command-form-heading"><div><strong>접촉 메모 추가</strong><span>권한이 확인된 문의를 선택해 일반 메모만 남깁니다. 상담 기록은 이 목록에 섞지 않습니다.</span></div></div>
+        <InquiryContextSelect inquiries={inquiries} selectedInquiryId={selectedInquiryId} disabled={inquiriesState !== "data" && inquiriesState !== "partial" || createPending} onChange={onInquiryChange} label="문의·고객 맥락" />
+        <label className="client-command-field"><span>메모</span><textarea value={form.subject} onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))} rows={3} placeholder="후속 연락 내용을 입력하세요" /></label>
+        <label className="client-command-field"><span>기록 사유</span><input value={form.reason} onChange={(event) => setForm((current) => ({ ...current, reason: event.target.value }))} placeholder="예: 상담 후속 연락을 기록함" /></label>
+        <label className="client-command-checkbox"><input type="checkbox" checked={form.confidential} onChange={(event) => setForm((current) => ({ ...current, confidential: event.target.checked }))} /><span>메모 상세 보호</span></label>
+        <div className="client-command-form-footer"><span>{selectedInquiryId ? "선택한 문의에만 연결합니다." : "문의를 먼저 선택하세요."}</span><button className="primary-button" type="submit" disabled={!valid || createPending || inquiriesState !== "data" && inquiriesState !== "partial"}>{createPending ? "기록 중" : "메모 기록"}</button></div>
+        {clientCommandStateNotice(createResult, "접촉 메모 기록")}
+        {createResult && clientCommandResultState(createResult) === "data" ? <div className="client-command-state success" role="status">접촉 메모가 기록되었습니다.</div> : null}
+      </form>
+      {state === "empty" ? <div className="client-activities-state live-data-state live-data-empty" role="status"><strong>접촉 이력이 없습니다.</strong></div> : null}
+      {contactActivities.length > 0 ? <div className="client-activities-list" role="list" aria-label="접촉 이력 목록">{contactActivities.map((item, index) => <article className="client-activity-row" role="listitem" key={item.activityId ?? `contact-${index}`}><strong>{item.confidential ? "보호된 이력" : businessLabel(item.subject, "접촉 메모")}</strong><span>{item.partyDisplayName ?? "고객명 확인 필요"}</span><small>{item.confidential ? "상세 보호" : "메모"}</small></article>)}</div> : null}
     </div>
   );
 }
@@ -2898,6 +3318,8 @@ export function ClientsSurface({
   requestedInquiryId = "",
   requestedOpportunityId = "",
   requestedOpportunityQuery = "",
+  requestedConsultationId = "",
+  requestedConsultationQuery = "",
   requestedClientRevision = 0
 }) {
   const [clientsResult, setClientsResult] = useState(null);
@@ -2921,6 +3343,7 @@ export function ClientsSurface({
   ] = useState(null);
   const [inquiriesResult, setInquiriesResult] = useState(null);
   const [inquiryDetailResult, setInquiryDetailResult] = useState(null);
+  const [commandInquiryDetailResult, setCommandInquiryDetailResult] = useState(null);
   const [opportunitiesResult, setOpportunitiesResult] = useState(null);
   const [intakeResult, setIntakeResult] = useState(null);
   const [intakeAuditResult, setIntakeAuditResult] = useState(null);
@@ -2937,7 +3360,12 @@ export function ClientsSurface({
   const [mergeCreateResult, setMergeCreateResult] = useState(null);
   const [mergeExecuteResult, setMergeExecuteResult] = useState(null);
   const [activityCreateResult, setActivityCreateResult] = useState(null);
-  const [activityPatchResult, setActivityPatchResult] = useState(null);
+  const [consultationScheduleResult, setConsultationScheduleResult] = useState(null);
+  const [consultationRescheduleResult, setConsultationRescheduleResult] = useState(null);
+  const [consultationOutlookResult, setConsultationOutlookResult] = useState(null);
+  const [consultationCompleteResult, setConsultationCompleteResult] = useState(null);
+  const [clientEngagementDecisionResult, setClientEngagementDecisionResult] = useState(null);
+  const [clientEngagementRepairResult, setClientEngagementRepairResult] = useState(null);
   const [proposalCreateResult, setProposalCreateResult] = useState(null);
   const [proposalPatchResult, setProposalPatchResult] = useState(null);
   const [clientSettingPatchResult, setClientSettingPatchResult] = useState(null);
@@ -2964,7 +3392,12 @@ export function ClientsSurface({
   const [mergeCreatePending, setMergeCreatePending] = useState(false);
   const [mergeExecutePending, setMergeExecutePending] = useState(false);
   const [activityCreatePending, setActivityCreatePending] = useState(false);
-  const [activityPatchPending, setActivityPatchPending] = useState(false);
+  const [consultationSchedulePending, setConsultationSchedulePending] = useState(false);
+  const [consultationReschedulePending, setConsultationReschedulePending] = useState(false);
+  const [consultationOutlookPending, setConsultationOutlookPending] = useState(false);
+  const [consultationCompletePending, setConsultationCompletePending] = useState(false);
+  const [clientEngagementDecisionPending, setClientEngagementDecisionPending] = useState(false);
+  const [clientEngagementRepairPending, setClientEngagementRepairPending] = useState(false);
   const [proposalCreatePending, setProposalCreatePending] = useState(false);
   const [proposalPatchPending, setProposalPatchPending] = useState(false);
   const [clientSettingPatchPending, setClientSettingPatchPending] = useState(false);
@@ -2980,6 +3413,11 @@ export function ClientsSurface({
   const opportunityTriggerRef = useRef(null);
   const opportunitySelectionRef = useRef("");
   const handoffRequestRef = useRef(0);
+  const consultationSelectionRef = useRef("");
+  const consultationRequestRef = useRef(0);
+  const consultationTriggerRef = useRef(null);
+  const commandKeyRef = useRef(new Map());
+  const commandTimestampRef = useRef(new Map());
   const currentSection = CLIENT_SECTIONS.has(activeSection) ? activeSection : "clients-home";
   const normalizedRequestedClientId = String(
     requestedClientId ?? ""
@@ -3049,6 +3487,25 @@ export function ClientsSurface({
   }, [liveCtx, refreshToken]);
 
   useEffect(() => {
+    const activitySection = currentSection === "client-consultation-proposals" || currentSection === "client-activities";
+    if (!activitySection) {
+      setActivitiesResult(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const guardedResult = guardedResultForContext(liveCtx);
+    setActivitiesResult(null);
+    if (guardedResult) {
+      setActivitiesResult(guardedResult);
+      return () => { cancelled = true; };
+    }
+    fetchCrmClientActivities({ ctx: liveCtx }).then((result) => {
+      if (!cancelled) setActivitiesResult(result);
+    });
+    return () => { cancelled = true; };
+  }, [currentSection, liveCtx, refreshToken]);
+
+  useEffect(() => {
     let cancelled = false;
     setLegalPeopleClientResult(null);
     fetchLegalPeopleSearch({ client_id: "client_lcx_001", ctx: liveCtx }).then((next) => {
@@ -3063,6 +3520,7 @@ export function ClientsSurface({
     let cancelled = false;
     setInquiriesResult(null);
     setInquiryDetailResult(null);
+    setCommandInquiryDetailResult(null);
     setOpportunitiesResult(null);
     setIntakeResult(null);
     setIntakeAuditResult(null);
@@ -3080,7 +3538,12 @@ export function ClientsSurface({
     setMergeCreateResult(null);
     setMergeExecuteResult(null);
     setActivityCreateResult(null);
-    setActivityPatchResult(null);
+    setConsultationScheduleResult(null);
+    setConsultationRescheduleResult(null);
+    setConsultationOutlookResult(null);
+    setConsultationCompleteResult(null);
+    setClientEngagementDecisionResult(null);
+    setClientEngagementRepairResult(null);
     setProposalCreateResult(null);
     setProposalPatchResult(null);
     setClientSettingPatchResult(null);
@@ -3116,7 +3579,6 @@ export function ClientsSurface({
       fetchCrmAccounts({ ctx: liveCtx }),
       fetchCrmContacts({ ctx: liveCtx }),
       fetchCrmMergeProposals({ ctx: liveCtx }),
-      fetchCrmActivities({ ctx: liveCtx }),
       fetchCrmProposals({ ctx: liveCtx }),
       fetchCrmClientSettings({ ctx: liveCtx }),
       fetchFinanceInvoices({ ctx: liveCtx }),
@@ -3129,7 +3591,6 @@ export function ClientsSurface({
       accounts,
       contacts,
       mergeProposals,
-      activities,
       proposals,
       clientSettings,
       financeInvoices,
@@ -3143,7 +3604,6 @@ export function ClientsSurface({
       setAccountsResult(accounts);
       setContactsResult(contacts);
       setMergeProposalsResult(mergeProposals);
-      setActivitiesResult(activities);
       setProposalsResult(proposals);
       setClientSettingsResult(clientSettings);
       setFinanceInvoicesResult(financeInvoices);
@@ -3202,6 +3662,15 @@ export function ClientsSurface({
   ))
     ? activeRequestedInquiryId
     : "";
+  const normalizedRequestedCommandInquiryId = String(requestedInquiryId ?? "").trim();
+  const commandInquirySection = currentSection === "client-consultation-proposals" || currentSection === "client-activities";
+  const activeCommandInquiryId = commandInquirySection ? normalizedRequestedCommandInquiryId : "";
+  const authorizedCommandInquiryId = resultItems(inquiriesResult).some((inquiry) => (
+    inquiry?.lead_id === activeCommandInquiryId
+    || inquiry?.inquiryId === activeCommandInquiryId
+  ))
+    ? activeCommandInquiryId
+    : "";
 
   useEffect(() => {
     let cancelled = false;
@@ -3251,6 +3720,18 @@ export function ClientsSurface({
     requestedClientRevision
   ]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setCommandInquiryDetailResult(null);
+    if (!authorizedCommandInquiryId) {
+      return () => { cancelled = true; };
+    }
+    fetchCrmInquiryDetail({ inquiryId: authorizedCommandInquiryId, ctx: liveCtx }).then((result) => {
+      if (!cancelled) setCommandInquiryDetailResult(result);
+    });
+    return () => { cancelled = true; };
+  }, [authorizedCommandInquiryId, commandInquirySection, liveCtx, refreshToken, requestedClientRevision]);
+
   const clientDirectoryModel = useMemo(() => buildClientDirectoryModel({
     clientsResult,
     operationsResult: clientOperationsDetailResult,
@@ -3288,6 +3769,26 @@ export function ClientsSurface({
     requestedClientRevision,
     requestedClientTab,
     requestedOpportunityQuery
+  ]);
+  const normalizedRequestedConsultationId = String(requestedConsultationId ?? "").trim();
+  const activeRequestedConsultationId = currentSection === "client-consultation-proposals"
+    ? normalizedRequestedConsultationId
+    : "";
+  const normalizedRequestedConsultationQuery = String(requestedConsultationQuery ?? "");
+  const activeRequestedConsultationQuery = currentSection === "client-consultation-proposals"
+    ? normalizedRequestedConsultationQuery
+    : "";
+  const clientConsultationModel = useMemo(() => buildClientConsultationModel({
+    consultationsResult: activitiesResult,
+    requestedConsultationId: activeRequestedConsultationId,
+    statusTab: requestedClientTab,
+    searchQuery: activeRequestedConsultationQuery
+  }), [
+    activeRequestedConsultationId,
+    activeRequestedConsultationQuery,
+    activitiesResult,
+    requestedClientRevision,
+    requestedClientTab
   ]);
   const relatedFinanceClient = relatedFinanceKind
     ? clients.find((client) => (
@@ -3640,36 +4141,6 @@ export function ClientsSurface({
           productionReadyClaim: false
         };
       });
-    }
-  }
-
-  async function handleCreateActivity() {
-    setActivityCreatePending(true);
-    const next = await createCrmActivity({
-      partyId: selectedClientPartyId,
-      opportunityId: selectedOpportunity?.opportunity_id ?? "opp_cmp_g6_synthetic_001",
-      subject: "Client 후속 조치",
-      ctx: liveCtx
-    });
-    setActivityCreateResult(next);
-    setActivityCreatePending(false);
-    if (next.kind === "data" && next.item) {
-      setActivitiesResult((current) => upsertResultItem(current, next.item, "crm_activity_id"));
-    }
-  }
-
-  async function handlePatchActivity(activity) {
-    if (!activity?.crm_activity_id) return;
-    setActivityPatchPending(true);
-    const next = await patchCrmActivity({
-      activityId: activity.crm_activity_id,
-      fieldUpdates: { status: "review_required" },
-      ctx: liveCtx
-    });
-    setActivityPatchResult(next);
-    setActivityPatchPending(false);
-    if (next.kind === "data" && next.item) {
-      setActivitiesResult((current) => upsertResultItem(current, next.item, "crm_activity_id"));
     }
   }
 
@@ -4055,6 +4526,301 @@ export function ClientsSurface({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [activeRequestedOpportunityId, clientOpportunityModel.activeStatusTab, clientOpportunityModel.searchQuery]);
 
+  function invalidateConsultationActions() {
+    consultationRequestRef.current += 1;
+    setConsultationSchedulePending(false);
+    setConsultationReschedulePending(false);
+    setConsultationOutlookPending(false);
+    setConsultationCompletePending(false);
+    setClientEngagementDecisionPending(false);
+    setClientEngagementRepairPending(false);
+    setConsultationScheduleResult(null);
+    setConsultationRescheduleResult(null);
+    setConsultationOutlookResult(null);
+    setConsultationCompleteResult(null);
+    setClientEngagementDecisionResult(null);
+    setClientEngagementRepairResult(null);
+  }
+
+  function consultationActionStillCurrent(requestId, consultationId = activeRequestedConsultationId, inquiryId = authorizedCommandInquiryId) {
+    return requestId === consultationRequestRef.current
+      && currentSection === "client-consultation-proposals"
+      && activeRequestedConsultationId === consultationId
+      && authorizedCommandInquiryId === inquiryId;
+  }
+
+  async function refreshClientActivityRead(requestId, consultationId = activeRequestedConsultationId, inquiryId = authorizedCommandInquiryId) {
+    const next = await fetchCrmClientActivities({ ctx: liveCtx });
+    if (consultationActionStillCurrent(requestId, consultationId, inquiryId)) setActivitiesResult(next);
+  }
+
+  async function refreshCommandInquiryDetail(requestId, inquiryId = authorizedCommandInquiryId) {
+    if (!inquiryId) return;
+    const detail = await fetchCrmInquiryDetail({ inquiryId, ctx: liveCtx });
+    if (consultationActionStillCurrent(requestId, activeRequestedConsultationId, inquiryId)) {
+      setCommandInquiryDetailResult(detail);
+    }
+  }
+
+  useEffect(() => {
+    consultationSelectionRef.current = clientConsultationModel.selectedConsultationId ?? "";
+  }, [clientConsultationModel.selectedConsultationId]);
+
+  useEffect(() => {
+    invalidateConsultationActions();
+  }, [activeCommandInquiryId, activeRequestedConsultationId, activeRequestedConsultationQuery, currentSection, liveCtx, refreshToken, requestedClientTab]);
+
+  function handleConsultationInquiryChange(inquiryId) {
+    const normalizedId = String(inquiryId ?? "").trim();
+    invalidateConsultationActions();
+    onNavigate("clients", currentSection, {
+      consultationId: activeRequestedConsultationId,
+      consultationQuery: activeRequestedConsultationQuery,
+      inquiryId: normalizedId,
+      tab: clientConsultationModel.activeStatusTab
+    });
+  }
+
+  function handleConsultationSelect(consultationId) {
+    const normalizedId = String(consultationId ?? "").trim();
+    if (!normalizedId) return;
+    const consultation = clientConsultationModel.consultations.find((item) => item.consultationId === normalizedId);
+    if (!consultation) return;
+    invalidateConsultationActions();
+    const activeElement = document.activeElement;
+    consultationTriggerRef.current = activeElement && typeof activeElement.focus === "function" ? activeElement : null;
+    const inquiryId = consultation.inquiryId && clientInquiryModel.inquiries.some((item) => item.inquiryId === consultation.inquiryId)
+      ? consultation.inquiryId
+      : "";
+    onNavigate("clients", "client-consultation-proposals", {
+      consultationId: normalizedId,
+      consultationQuery: clientConsultationModel.searchQuery,
+      inquiryId,
+      tab: clientConsultationModel.activeStatusTab
+    });
+  }
+
+  function handleConsultationClose() {
+    invalidateConsultationActions();
+    onNavigate("clients", "client-consultation-proposals", {
+      consultationId: "",
+      consultationQuery: clientConsultationModel.searchQuery,
+      inquiryId: activeCommandInquiryId,
+      tab: clientConsultationModel.activeStatusTab
+    });
+    const trigger = consultationTriggerRef.current;
+    consultationTriggerRef.current = null;
+    window.requestAnimationFrame(() => {
+      if (trigger && document.contains(trigger)) trigger.focus();
+    });
+  }
+
+  function handleConsultationTabChange(tab) {
+    invalidateConsultationActions();
+    onNavigate("clients", "client-consultation-proposals", {
+      consultationId: "",
+      consultationQuery: clientConsultationModel.searchQuery,
+      inquiryId: activeCommandInquiryId,
+      tab
+    });
+  }
+
+  function handleConsultationSearchChange(query) {
+    invalidateConsultationActions();
+    onNavigate("clients", "client-consultation-proposals", {
+      consultationId: "",
+      consultationQuery: query,
+      inquiryId: activeCommandInquiryId,
+      tab: clientConsultationModel.activeStatusTab
+    });
+  }
+
+  useEffect(() => {
+    if (!activeRequestedConsultationId) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") handleConsultationClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [activeRequestedConsultationId, activeCommandInquiryId, clientConsultationModel.activeStatusTab, clientConsultationModel.searchQuery]);
+
+  async function handleScheduleConsultation(form) {
+    const inquiryId = String(form?.inquiryId ?? "").trim();
+    const descriptor = inquiryVersionDescriptor(commandInquiryDetailResult);
+    if (!inquiryId || !descriptor || descriptor.inquiryId !== inquiryId || !descriptor.inquiryVersion) {
+      setConsultationScheduleResult({ kind: "error", status: 400, outcome: "blocked", uiState: "error", safeErrorCodes: ["CRM_INQUIRY_VERSION_UNAVAILABLE"] });
+      return;
+    }
+    const fingerprint = JSON.stringify({ inquiryId, version: descriptor.inquiryVersion, subject: form.subject, start: form.scheduledStart, end: form.scheduledEnd, confidential: form.confidential });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "consultation_schedule", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setConsultationSchedulePending(true);
+    setConsultationScheduleResult(null);
+    const next = await createCrmConsultation({
+      inquiryId,
+      expectedInquiryVersion: descriptor.inquiryVersion,
+      consultation: {
+        subject: form.subject,
+        scheduled_start: form.scheduledStart,
+        scheduled_end: form.scheduledEnd,
+        timezone: "Asia/Seoul",
+        confidential: form.confidential
+      },
+      idempotencyKey,
+      reason: "상담 일정 등록",
+      ctx: liveCtx
+    });
+    if (!consultationActionStillCurrent(requestId, activeRequestedConsultationId, inquiryId)) return;
+    const returnedInquiryId = next?.inquiry?.leadId ?? next?.item?.leadId ?? null;
+    const canonical = next?.kind === "data"
+      && next.item?.activityKind === "consultation"
+      && returnedInquiryId === inquiryId;
+    setConsultationScheduleResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_CONSULTATION_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setConsultationSchedulePending(false);
+    if (canonical) {
+      await Promise.all([
+        refreshClientActivityRead(requestId, activeRequestedConsultationId, inquiryId),
+        refreshCommandInquiryDetail(requestId, inquiryId)
+      ]);
+    }
+  }
+
+  async function handleRescheduleConsultation(form) {
+    const selected = clientConsultationModel.selectedConsultation;
+    if (!selected?.consultationId || !selected.version) return;
+    const fingerprint = JSON.stringify({ consultationId: selected.consultationId, version: selected.version, start: form.scheduledStart, end: form.scheduledEnd });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "consultation_reschedule", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setConsultationReschedulePending(true);
+    setConsultationRescheduleResult(null);
+    const next = await updateCrmConsultation({
+      consultationId: selected.consultationId,
+      expectedVersion: selected.version,
+      fieldUpdates: { scheduled_start: form.scheduledStart, scheduled_end: form.scheduledEnd, timezone: "Asia/Seoul" },
+      idempotencyKey,
+      reason: "상담 시간 변경",
+      ctx: liveCtx
+    });
+    if (!consultationActionStillCurrent(requestId)) return;
+    const canonical = next?.kind === "data" && next.item?.consultationId === selected.consultationId;
+    setConsultationRescheduleResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_CONSULTATION_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setConsultationReschedulePending(false);
+    if (canonical) await refreshClientActivityRead(requestId);
+  }
+
+  async function handleConsultationOutlook() {
+    const selected = clientConsultationModel.selectedConsultation;
+    if (!selected?.consultationId || !selected.version) return;
+    const fingerprint = JSON.stringify({ consultationId: selected.consultationId, version: selected.version });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "consultation_outlook", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setConsultationOutlookPending(true);
+    setConsultationOutlookResult(null);
+    const next = await linkCrmConsultationOutlookEvent({ consultationId: selected.consultationId, expectedVersion: selected.version, idempotencyKey, reason: "Outlook 일정 연결", ctx: liveCtx });
+    if (!consultationActionStillCurrent(requestId)) return;
+    const canonical = next?.kind === "data" && next.item?.consultationId === selected.consultationId;
+    setConsultationOutlookResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_CONSULTATION_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setConsultationOutlookPending(false);
+    if (canonical) await refreshClientActivityRead(requestId);
+  }
+
+  async function handleCompleteConsultation(form) {
+    const selected = clientConsultationModel.selectedConsultation;
+    if (!selected?.consultationId || !selected.version || !form?.outcome?.trim() || !form?.nextAction?.trim()) return;
+    const fingerprint = JSON.stringify({ consultationId: selected.consultationId, version: selected.version, outcome: form.outcome.trim(), nextAction: form.nextAction.trim() });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "consultation_complete", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setConsultationCompletePending(true);
+    setConsultationCompleteResult(null);
+    const completedAt = clientCommandTimestamp(commandTimestampRef, idempotencyKey);
+    const next = await completeCrmConsultation({ consultationId: selected.consultationId, expectedVersion: selected.version, completedAt, outcome: form.outcome.trim(), nextAction: form.nextAction.trim(), idempotencyKey, reason: "상담 결과 기록", ctx: liveCtx });
+    if (!consultationActionStillCurrent(requestId)) return;
+    const canonical = next?.kind === "data" && next.item?.consultationId === selected.consultationId;
+    setConsultationCompleteResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_CONSULTATION_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setConsultationCompletePending(false);
+    if (canonical) {
+      await Promise.all([
+        refreshClientActivityRead(requestId),
+        refreshCommandInquiryDetail(requestId)
+      ]);
+    }
+  }
+
+  async function handleClientEngagementDecision(form) {
+    const inquiryId = authorizedCommandInquiryId;
+    const descriptor = inquiryCommandDescriptor(commandInquiryDetailResult);
+    if (!inquiryId || !descriptor || descriptor.inquiryId !== inquiryId || !descriptor.opportunityId || !descriptor.engagementVersion) {
+      setClientEngagementDecisionResult({ kind: "error", status: 400, outcome: "blocked", uiState: "error", safeErrorCodes: ["CRM_INQUIRY_VERSION_UNAVAILABLE"] });
+      return;
+    }
+    const fingerprint = JSON.stringify({ inquiryId, inquiryVersion: descriptor.inquiryVersion, engagementVersion: descriptor.engagementVersion, decision: form.decision, amount: form.agreedAmount ?? null, amountUnknownConfirmed: form.amountUnknownConfirmed === true, closeReason: form.closeReason ?? "" });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "engagement_decision", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setClientEngagementDecisionPending(true);
+    setClientEngagementDecisionResult(null);
+    const next = await decideCrmEngagement({ inquiryId, engagementDecision: form.decision, expectedInquiryVersion: descriptor.inquiryVersion, expectedEngagementVersion: descriptor.engagementVersion, agreedAmount: form.decision === "accepted" ? form.agreedAmount : undefined, amountUnknownConfirmed: form.decision === "accepted" ? form.amountUnknownConfirmed === true : undefined, closeReason: form.decision === "declined" ? form.closeReason : undefined, idempotencyKey, reason: "수임 여부 확정", ctx: liveCtx });
+    if (!consultationActionStillCurrent(requestId, activeRequestedConsultationId, inquiryId)) return;
+    const returnedInquiryId = next?.inquiry?.leadId ?? next?.item?.leadId ?? null;
+    const canonical = next?.kind === "data" && returnedInquiryId === inquiryId;
+    setClientEngagementDecisionResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_ENGAGEMENT_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setClientEngagementDecisionPending(false);
+    if (canonical) await fetchCrmInquiryDetail({ inquiryId, ctx: liveCtx }).then((detail) => {
+      if (consultationActionStillCurrent(requestId, activeRequestedConsultationId, inquiryId)) setCommandInquiryDetailResult(detail);
+    });
+  }
+
+  async function handleClientEngagementRepair({ expectedWorkflowVersion } = {}) {
+    const inquiryId = authorizedCommandInquiryId;
+    const workflowVersion = Number(expectedWorkflowVersion);
+    if (!inquiryId || !Number.isSafeInteger(workflowVersion) || workflowVersion < 1) return;
+    const fingerprint = JSON.stringify({ inquiryId, workflowVersion });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "engagement_repair", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setClientEngagementRepairPending(true);
+    setClientEngagementRepairResult(null);
+    const next = await repairCrmEngagement({ inquiryId, expectedWorkflowVersion: workflowVersion, idempotencyKey, reason: "수임 반영 재시도", ctx: liveCtx });
+    if (!consultationActionStillCurrent(requestId, activeRequestedConsultationId, inquiryId)) return;
+    const canonical = next?.kind === "data" && (next.inquiry?.leadId ?? inquiryId) === inquiryId;
+    setClientEngagementRepairResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_ENGAGEMENT_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setClientEngagementRepairPending(false);
+    if (canonical) {
+      setClientEngagementDecisionResult(next);
+      await refreshCommandInquiryDetail(requestId, inquiryId);
+    }
+  }
+
+  async function handleCreateClientActivityMemo(form) {
+    const inquiryId = authorizedCommandInquiryId;
+    const detailItem = commandInquiryDetailResult?.kind === "data" ? commandInquiryDetailResult.item : null;
+    const inquiryVersion = Number.isSafeInteger(detailItem?.version) && detailItem.version >= 1 ? detailItem.version : null;
+    if (!inquiryId || !inquiryVersion || !form?.subject?.trim() || !form?.reason?.trim()) {
+      setActivityCreateResult({ kind: "error", status: 400, outcome: "blocked", uiState: "error", safeErrorCodes: ["CRM_INQUIRY_VERSION_UNAVAILABLE"] });
+      return;
+    }
+    const fingerprint = JSON.stringify({ inquiryId, inquiryVersion, subject: form.subject.trim(), reason: form.reason.trim(), confidential: form.confidential === true });
+    const idempotencyKey = clientCommandIdempotencyKey(commandKeyRef, "contact_memo", fingerprint);
+    const requestId = consultationRequestRef.current + 1;
+    consultationRequestRef.current = requestId;
+    setActivityCreatePending(true);
+    setActivityCreateResult(null);
+    const next = await createCrmContactActivityMemo({ inquiryId, subject: form.subject.trim(), confidential: form.confidential === true, idempotencyKey, reason: form.reason.trim(), ctx: liveCtx });
+    if (requestId !== consultationRequestRef.current || currentSection !== "client-activities" || authorizedCommandInquiryId !== inquiryId) return;
+    const returnedInquiryId = next?.inquiry?.leadId ?? next?.item?.leadId ?? null;
+    const canonical = next?.kind === "data" && returnedInquiryId === inquiryId;
+    setActivityCreateResult(canonical ? next : next?.kind === "data" ? { ...next, kind: "error", uiState: "error", outcome: "error", safeErrorCodes: ["CRM_ACTIVITY_RESPONSE_CONTEXT_MISMATCH"] } : next);
+    setActivityCreatePending(false);
+    if (canonical) {
+      const refreshed = await fetchCrmClientActivities({ ctx: liveCtx });
+      if (requestId === consultationRequestRef.current && currentSection === "client-activities" && authorizedCommandInquiryId === inquiryId) setActivitiesResult(refreshed);
+    }
+  }
+
   function handleClientGroupCreated(item) {
     const clientGroupId = String(item?.client_group_id ?? "").trim();
     const displayName = String(item?.display_name ?? "").trim();
@@ -4270,47 +5036,39 @@ export function ClientsSurface({
           </Panel>
         )}
         {currentSection === "client-consultation-proposals" && (
-          <>
-            <Panel id="client-consultation-proposals-intake" className="record-list-panel" title="상담 기록">
-              <ClientIntakePipelineSurface
-                result={intakeResult}
-                auditResult={intakeAuditResult}
-                activeIntake={activeIntake}
-                createResult={intakeCreateResult}
-                conflictResult={conflictResult}
-                decisionResult={decisionResult}
-                waiverResult={waiverResult}
-                engagementResult={engagementResult}
-                clearanceResult={clearanceResult}
-                matterOpeningResult={matterOpeningResult}
-                createPending={intakeCreatePending}
-                conflictPending={conflictPending}
-                decisionPending={decisionPending}
-                waiverPending={waiverPending}
-                engagementPending={engagementPending}
-                clearancePending={clearancePending}
-                matterOpeningPending={matterOpeningPending}
-                onCreateIntake={handleCreateIntakePipeline}
-                onConflictCheck={handleConflictCheck}
-                onConflictDecision={handleConflictDecision}
-                onWaiverApprove={handleWaiverApprove}
-                onEngagementApprove={handleEngagementApprove}
-                onClearance={handleClearance}
-                onMatterOpening={handleMatterOpening}
-              />
-            </Panel>
-            <Panel id="client-consultation-proposals-contracts" className="record-list-panel" title="수임 제안">
-              <ClientContractsPanel
-                result={proposalsResult}
-                createResult={proposalCreateResult}
-                patchResult={proposalPatchResult}
-                createPending={proposalCreatePending}
-                patchPending={proposalPatchPending}
-                onCreate={handleCreateProposal}
-                onProviderCheck={handleProposalProviderCheck}
-              />
-            </Panel>
-          </>
+          <Panel id="client-consultation-proposals" className="record-list-panel" title="상담·수임 관리" hideHeader>
+            <ClientConsultationPanel
+              result={activitiesResult}
+              model={clientConsultationModel}
+              inquiries={clientInquiryModel.inquiries}
+              inquiriesState={clientInquiryModel.listState}
+              selectedInquiryId={authorizedCommandInquiryId}
+              inquiryDetailResult={commandInquiryDetailResult}
+              schedulePending={consultationSchedulePending}
+              scheduleResult={consultationScheduleResult}
+              reschedulePending={consultationReschedulePending}
+              rescheduleResult={consultationRescheduleResult}
+              outlookPending={consultationOutlookPending}
+              outlookResult={consultationOutlookResult}
+              completePending={consultationCompletePending}
+              completeResult={consultationCompleteResult}
+              decisionPending={clientEngagementDecisionPending}
+              decisionResult={clientEngagementDecisionResult}
+              repairPending={clientEngagementRepairPending}
+              repairResult={clientEngagementRepairResult}
+              onInquiryChange={handleConsultationInquiryChange}
+              onTabChange={handleConsultationTabChange}
+              onSearchChange={handleConsultationSearchChange}
+              onSelectConsultation={handleConsultationSelect}
+              onCloseConsultation={handleConsultationClose}
+              onSchedule={handleScheduleConsultation}
+              onReschedule={handleRescheduleConsultation}
+              onOutlook={handleConsultationOutlook}
+              onComplete={handleCompleteConsultation}
+              onDecision={handleClientEngagementDecision}
+              onRepair={handleClientEngagementRepair}
+            />
+          </Panel>
         )}
         {currentSection === "client-accounts" && (
           <Panel id="client-accounts" className="record-list-panel" title="계정 정보" hideHeader>
@@ -4357,12 +5115,13 @@ export function ClientsSurface({
           <Panel id="client-activities" className="record-list-panel" title="접촉 이력" hideHeader>
             <ClientActivitiesPanel
               result={activitiesResult}
+              inquiries={clientInquiryModel.inquiries}
+              inquiriesState={clientInquiryModel.listState}
+              selectedInquiryId={authorizedCommandInquiryId}
               createResult={activityCreateResult}
-              patchResult={activityPatchResult}
               createPending={activityCreatePending}
-              patchPending={activityPatchPending}
-              onCreate={handleCreateActivity}
-              onPatch={handlePatchActivity}
+              onInquiryChange={handleConsultationInquiryChange}
+              onCreate={handleCreateClientActivityMemo}
             />
           </Panel>
         )}

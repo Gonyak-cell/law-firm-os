@@ -17,7 +17,9 @@ import {
 } from "../src/data/apiClient.js";
 
 const inquiry = (overrides = {}) => ({
+  tenant_id: "tenant_client_inquiry",
   lead_id: "lead-visible",
+  version: 1,
   display_name: "계약 검토 문의",
   visible_status: "new",
   visible_status_label: "새 문의",
@@ -45,6 +47,9 @@ const evidence = (overrides = {}) => ({
 
 const detail = (overrides = {}) => ({
   ...inquiry(),
+  opportunity: null,
+  direct_matter_reference_included: false,
+  production_ready_claim: false,
   consultations_access: "allowed",
   consultations: [{
     scheduled_start: "2026-08-01T01:00:00.000Z",
@@ -308,6 +313,21 @@ test("문의 API는 서명된 권한 문맥과 canonical evidence content 경로
 
 test("문의 목록의 partial은 보존하고 5xx는 guarded blocked로 오분류하지 않는다", async () => {
   const originalFetch = globalThis.fetch;
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+  const storage = memoryStorage();
+  storage.setItem(LAWOS_SESSION_ENVELOPE_STORAGE_KEY, JSON.stringify({
+    schema_version: LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION,
+    state: "signed_in",
+    session_ref: "session_client_inquiry_partial",
+    source: "api_signed_session",
+    actor_ref: "user_client_inquiry",
+    tenant_refs: { default: "tenant_client_inquiry", crm: "tenant_client_inquiry" },
+    role_ids: ["crm_operator"],
+    scopes: ["crm.inquiry.read"],
+    review_state: "allow",
+    expires_at: "2099-01-01T00:00:00.000Z"
+  }));
+  Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: storage });
   let mode = "partial";
   globalThis.fetch = async () => mode === "partial"
     ? response(listBody([inquiry({ assigned_user_id: null })], { data_status: "partial" }))
@@ -322,5 +342,7 @@ test("문의 목록의 partial은 보존하고 5xx는 guarded blocked로 오분�
     assert.equal(unavailable.uiState, "error");
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalStorage) Object.defineProperty(globalThis, "sessionStorage", originalStorage);
+    else delete globalThis.sessionStorage;
   }
 });

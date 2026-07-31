@@ -131,6 +131,7 @@ test("VC-CL-CON-001 / CL-P3-W02-T03 실제 API는 앱 기준 상담 예약·완�
     assert.equal(scheduled.status, 201);
     assert.equal(scheduled.body.outcome, "scheduled");
     assert.equal(scheduled.body.item.activity_kind, "consultation");
+    assert.equal(scheduled.body.item.tenant_id, TENANT);
     assert.equal(scheduled.body.item.lead_id, LEAD_ID);
     assert.equal(
       scheduled.body.item.scheduled_start,
@@ -143,6 +144,7 @@ test("VC-CL-CON-001 / CL-P3-W02-T03 실제 API는 앱 기준 상담 예약·완�
     assert.equal(scheduled.body.item.timezone, "Asia/Seoul");
     assert.equal(scheduled.body.item.version, 1);
     assert.equal(scheduled.body.inquiry.version, 3);
+    assert.equal(scheduled.body.inquiry.tenant_id, TENANT);
     assert.equal(scheduled.body.inquiry.next_action, "상담 준비");
     assert.equal(scheduled.body.item.direct_matter_reference_included, false);
     assert.equal(
@@ -193,6 +195,7 @@ test("VC-CL-CON-001 / CL-P3-W02-T03 실제 API는 앱 기준 상담 예약·완�
     );
     assert.equal(completed.status, 200);
     assert.equal(completed.body.outcome, "completed");
+    assert.equal(completed.body.item.tenant_id, TENANT);
     assert.equal(
       completed.body.item.completed_at,
       "2026-08-01T02:05:00.000Z",
@@ -201,6 +204,7 @@ test("VC-CL-CON-001 / CL-P3-W02-T03 실제 API는 앱 기준 상담 예약·완�
     assert.equal(completed.body.item.next_action, "수임 여부 검토");
     assert.equal(completed.body.item.version, 2);
     assert.equal(completed.body.inquiry.version, 4);
+    assert.equal(completed.body.inquiry.tenant_id, TENANT);
     assert.equal(completed.body.inquiry.next_action, "수임 여부 검토");
     assert.equal(
       JSON.stringify(completed.body.audit_event).includes(

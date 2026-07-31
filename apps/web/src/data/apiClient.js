@@ -4360,6 +4360,8 @@ const CRM_INQUIRY_STATUS_LABELS = Object.freeze({
 });
 const CRM_INQUIRY_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u;
 const CRM_INQUIRY_SHA256_PATTERN = /^[a-f0-9]{64}$/iu;
+const CRM_INQUIRY_DECISIONS = new Set(["pending", "accepted", "declined"]);
+const CRM_INQUIRY_WORKFLOW_STATUSES = new Set(["completed", "in_progress", "repair_required"]);
 
 function safeCrmInquiryId(value) {
   const normalized = typeof value === "string" ? value.trim() : "";
@@ -4376,15 +4378,75 @@ function safeCrmInquirySource(value) {
   return value === "outlook_addin" || value === "manual" ? value : null;
 }
 
-function safeCrmInquirySummary(item) {
+function safeCrmInquiryVersion(value) {
+  return Number.isSafeInteger(value) && value >= 1 ? value : null;
+}
+
+function safeCrmInquiryDecision(value) {
+  if (value === null || value === undefined) return null;
+  return CRM_INQUIRY_DECISIONS.has(value) ? value : null;
+}
+
+function safeCrmInquiryWorkflowStatus(value) {
+  if (value === null || value === undefined) return null;
+  return CRM_INQUIRY_WORKFLOW_STATUSES.has(value) ? value : null;
+}
+
+function safeCrmInquiryOpportunity(item, expectedOpportunityId) {
+  if (item === null || item === undefined) return null;
+  if (typeof item !== "object" || Array.isArray(item)) return null;
+  const opportunityId = safeCrmInquiryId(item.opportunity_id);
+  const stage = typeof item.stage === "string" ? item.stage.trim() : "";
+  const decision = safeCrmInquiryDecision(item.engagement_decision);
+  const decisionVersion = safeCrmInquiryVersion(item.engagement_decision_version);
+  const workflowId = item.engagement_workflow_id === null || item.engagement_workflow_id === undefined
+    ? null
+    : safeCrmInquiryId(item.engagement_workflow_id);
+  const workflowStatus = safeCrmInquiryWorkflowStatus(item.engagement_workflow_status);
+  const hasWorkflowId = Object.prototype.hasOwnProperty.call(item, "engagement_workflow_id");
+  const hasWorkflowStatus = Object.prototype.hasOwnProperty.call(item, "engagement_workflow_status");
+  if (
+    !opportunityId
+    || expectedOpportunityId === null
+    || opportunityId !== expectedOpportunityId
+    || !stage
+    || !Object.prototype.hasOwnProperty.call(item, "engagement_decision")
+    || (item.engagement_decision !== null && item.engagement_decision !== undefined && decision === null)
+    || !decisionVersion
+    || (hasWorkflowId && item.engagement_workflow_id !== null && item.engagement_workflow_id !== undefined && !workflowId)
+    || (hasWorkflowStatus && item.engagement_workflow_status !== null && item.engagement_workflow_status !== undefined && !workflowStatus)
+    || item.direct_matter_reference_included !== false
+    || item.production_ready_claim !== false
+  ) return null;
+  return {
+    opportunity_id: opportunityId,
+    stage,
+    engagement_decision: decision,
+    engagement_decision_version: decisionVersion,
+    engagement_workflow_id: workflowId,
+    engagement_workflow_status: workflowStatus,
+    direct_matter_reference_included: false,
+    production_ready_claim: false
+  };
+}
+
+function safeCrmInquirySummary(item, { expectedTenantId = null } = {}) {
   if (!item || typeof item !== "object" || Array.isArray(item)) return null;
   const leadId = safeCrmInquiryId(item.lead_id);
+  const version = safeCrmInquiryVersion(item.version);
   const displayName = typeof item.display_name === "string" ? item.display_name.trim() : "";
   const visibleStatus = typeof item.visible_status === "string" ? item.visible_status.trim() : "";
   const visibleStatusLabel = typeof item.visible_status_label === "string" ? item.visible_status_label.trim() : "";
   const source = safeCrmInquirySource(item.source);
+  const opportunityId = item.opportunity_id === null || item.opportunity_id === undefined
+    ? null
+    : safeCrmInquiryId(item.opportunity_id);
+  const engagementDecision = safeCrmInquiryDecision(item.engagement_decision);
+  const engagementWorkflowStatus = safeCrmInquiryWorkflowStatus(item.engagement_workflow_status);
   if (
     !leadId
+    || !version
+    || (expectedTenantId !== null && item.tenant_id !== expectedTenantId)
     || !displayName
     || !Object.prototype.hasOwnProperty.call(CRM_INQUIRY_STATUS_LABELS, visibleStatus)
     || visibleStatusLabel !== CRM_INQUIRY_STATUS_LABELS[visibleStatus]
@@ -4393,17 +4455,25 @@ function safeCrmInquirySummary(item) {
     || (item.next_action !== null && item.next_action !== undefined && typeof item.next_action !== "string")
     || !Object.prototype.hasOwnProperty.call(item, "assigned_user_id")
     || (item.assigned_user_id !== null && typeof item.assigned_user_id !== "string")
+    || (item.opportunity_id !== null && item.opportunity_id !== undefined && !opportunityId)
+    || (item.engagement_decision !== null && item.engagement_decision !== undefined && engagementDecision === null)
+    || (item.engagement_workflow_status !== null && item.engagement_workflow_status !== undefined && engagementWorkflowStatus === null)
+    || (opportunityId === null && (engagementDecision !== null || engagementWorkflowStatus !== null))
     || Object.prototype.hasOwnProperty.call(item, "assigned")
   ) return null;
   const assigned = typeof item.assigned_user_id === "string" && item.assigned_user_id.trim().length > 0;
   return {
     lead_id: leadId,
+    version,
     display_name: displayName,
     visible_status: visibleStatus,
     visible_status_label: visibleStatusLabel,
     source,
     received_at: safeCrmInquiryDate(item.received_at),
     assigned,
+    opportunity_id: opportunityId,
+    engagement_decision: engagementDecision,
+    engagement_workflow_status: engagementWorkflowStatus,
     next_action: item.next_action === null || item.next_action === undefined
       ? null
       : item.next_action.trim()
@@ -4547,7 +4617,10 @@ export async function fetchCrmInquiries({ ctx = "allow" } = {}) {
   if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review_required") {
     return inquiryPermissionResult(response, body);
   }
-  const items = Array.isArray(body?.items) ? body.items.map(safeCrmInquirySummary) : null;
+  const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+  const items = Array.isArray(body?.items)
+    ? body.items.map((item) => safeCrmInquirySummary(item, { expectedTenantId }))
+    : null;
   const hasPageInfo = body?.page_info && typeof body.page_info === "object";
   const valid = (
     body
@@ -4605,7 +4678,12 @@ export async function fetchCrmInquiryDetail({ inquiryId, ctx = "allow" } = {}) {
     return inquiryPermissionResult(response, body);
   }
   const item = body?.item;
-  const summary = safeCrmInquirySummary(item);
+  const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+  const summary = safeCrmInquirySummary(item, { expectedTenantId });
+  const hasOpportunity = Boolean(item && Object.prototype.hasOwnProperty.call(item, "opportunity"));
+  const opportunity = hasOpportunity
+    ? safeCrmInquiryOpportunity(item.opportunity, summary?.opportunity_id ?? null)
+    : null;
   const consultations = Array.isArray(item?.consultations) ? item.consultations.map(safeCrmInquiryConsultation) : null;
   const consultationsAccess = item?.consultations_access;
   const evidence = item?.evidence;
@@ -4642,6 +4720,8 @@ export async function fetchCrmInquiryDetail({ inquiryId, ctx = "allow" } = {}) {
     && body.outcome === "passed"
     && summary
     && summary.lead_id === normalizedId
+    && hasOpportunity
+    && (summary.opportunity_id === null ? opportunity === null : opportunity !== null)
     && consultations
     && consultations.every(Boolean)
     && ["allowed", "denied", "unavailable"].includes(consultationsAccess)
@@ -4661,6 +4741,7 @@ export async function fetchCrmInquiryDetail({ inquiryId, ctx = "allow" } = {}) {
     uiState: body.data_status === "partial" ? "partial" : null,
     item: {
       ...summary,
+      opportunity,
       consultations,
       consultations_access: consultationsAccess,
       evidence: {
@@ -4811,6 +4892,1054 @@ export async function fetchCrmInquiryEvidenceContent({ evidenceId, kind, ctx = "
     safeErrorCodes: body.safe_error_codes
   };
 }
+
+// Client 상담·접촉 이력 명령은 기존 generic CRM write helper와 분리한다.
+// 이 경계에서는 요청키·사유·기대 version을 호출자가 반드시 주고, 응답은
+// 허용된 canonical 필드만 남긴다. Matter 생성/선택 필드는 이 계층에서 받지 않는다.
+const CRM_CLIENT_CONSULTATION_PERMISSION_REF = "ui_cmp_g6_crm_consultation_write";
+const CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF = "ui_cmp_g6_crm_consultation_write_probe";
+const CRM_CLIENT_CONSULTATION_CALENDAR_PERMISSION_REF = "ui_cmp_g6_crm_consultation_calendar";
+const CRM_CLIENT_CONSULTATION_CALENDAR_AUDIT_HINT_REF = "ui_cmp_g6_crm_consultation_calendar_probe";
+const CRM_CLIENT_ENGAGEMENT_PERMISSION_REF = "ui_cmp_g6_crm_engagement_write";
+const CRM_CLIENT_ENGAGEMENT_AUDIT_HINT_REF = "ui_cmp_g6_crm_engagement_write_probe";
+const CRM_CLIENT_ACTIVITY_PERMISSION_REF = "ui_cmp_g6_crm_activity_write";
+const CRM_CLIENT_ACTIVITY_AUDIT_HINT_REF = "ui_cmp_g6_crm_activity_write_probe";
+const CRM_CLIENT_ACTIVITY_READ_PERMISSION_REF = "ui_cmp_g6_crm_activity_read";
+const CRM_CLIENT_ACTIVITY_READ_AUDIT_HINT_REF = "ui_cmp_g6_crm_activity_read_probe";
+const CRM_COMMAND_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u;
+const CRM_COMMAND_SAFE_CODE_PATTERN = /^[A-Z0-9_:-]{1,160}$/u;
+const CRM_CLIENT_ACTIVITY_TYPES = new Set(["call", "email", "meeting", "note", "task"]);
+const CRM_OUTLOOK_WEB_HOSTS = new Set([
+  "outlook.office.com",
+  "outlook.office365.com"
+]);
+const CRM_CONSULTATION_UPDATE_FIELDS = new Set([
+  "scheduled_start",
+  "scheduled_end",
+  "timezone",
+  "completed_at",
+  "outcome",
+  "next_action",
+  "subject",
+  "confidential"
+]);
+const CRM_MATTER_REFERENCE_FIELDS = new Set([
+  "matter_id",
+  "matter_ref",
+  "matter_number",
+  "matter_create_command",
+  "matter_open_command"
+]);
+const CRM_WRITE_SUCCESS_OUTCOMES = new Set([
+  "created",
+  "scheduled",
+  "updated",
+  "completed",
+  "outlook_event_created",
+  "linked",
+  "already_linked",
+  "idempotent_replay",
+  "repair_required"
+]);
+const CRM_WORKFLOW_STEPS = new Set([
+  "decision_recorded",
+  "client_group_resolved",
+  "fee_commitment_created",
+  "fee_commitment_cancelled"
+]);
+
+function requiredCrmCommandText(value, field, maxLength = 500) {
+  if (typeof value !== "string") throw new TypeError(`${field} is required`);
+  const normalized = value.trim();
+  if (!normalized || normalized.length > maxLength) throw new TypeError(`${field} is required`);
+  return normalized;
+}
+
+function requiredCrmCommandId(value, field) {
+  const normalized = requiredCrmCommandText(value, field, 200);
+  if (!CRM_COMMAND_ID_PATTERN.test(normalized)) throw new TypeError(`${field} is invalid`);
+  return normalized;
+}
+
+function requiredCrmCommandVersion(value, field) {
+  if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`${field} is required`);
+  return value;
+}
+
+function optionalCrmCommandText(value, field, maxLength = 500) {
+  if (value === undefined || value === null || value === "") return null;
+  return requiredCrmCommandText(value, field, maxLength);
+}
+
+function assertNoCrmMatterReference(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return;
+  if (Object.keys(value).some((key) => CRM_MATTER_REFERENCE_FIELDS.has(key))) {
+    throw new TypeError("Matter references are not accepted by Client 상담 명령");
+  }
+}
+
+function commandInputError(code = "CRM_CLIENT_COMMAND_INVALID") {
+  return {
+    kind: "error",
+    status: 400,
+    outcome: "blocked",
+    uiState: "blocked",
+    item: null,
+    safeErrorCodes: [code]
+  };
+}
+
+function commandSafeId(value) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return CRM_COMMAND_ID_PATTERN.test(normalized) ? normalized : null;
+}
+
+function commandSafeDate(value, { required = false } = {}) {
+  if (value === undefined || value === null || value === "") return required ? null : null;
+  if (typeof value !== "string" || !value.trim() || Number.isNaN(Date.parse(value))) return null;
+  return value.trim();
+}
+
+function commandSafeVersion(value) {
+  return Number.isSafeInteger(value) && value >= 1 ? value : null;
+}
+
+function commandSafeString(value, maxLength = 500) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized && normalized.length <= maxLength ? normalized : null;
+}
+
+function commandSafeOutcomeCodes(value) {
+  return Array.isArray(value)
+    && value.every((code) => typeof code === "string" && CRM_COMMAND_SAFE_CODE_PATTERN.test(code))
+    ? value
+    : null;
+}
+
+function commandSafeOutlookCalendar(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const state = ["not_created", "linked", "update_required"].includes(value.state)
+    ? value.state
+    : null;
+  if (!state || value.automatic_sync_enabled !== false || value.provider_event_identifier_included !== false || value.transaction_identifier_included !== false) return null;
+  const webLink = value.web_link === null || value.web_link === undefined
+    ? null
+    : commandSafeString(value.web_link, 2_048);
+  const createdAt = commandSafeDate(value.created_at);
+  const mailboxScope = value.mailbox_scope === "me" ? "me" : null;
+  if (webLink !== null) {
+    try {
+      const parsed = new URL(webLink);
+      const hostname = parsed.hostname.toLowerCase();
+      const allowedHost = [...CRM_OUTLOOK_WEB_HOSTS].some((host) => hostname === host || hostname.endsWith(`.${host}`));
+      if (parsed.protocol !== "https:" || parsed.username || parsed.password || !allowedHost) return null;
+    } catch {
+      return null;
+    }
+  }
+  // A linked event is actionable only when the server returned a complete,
+  // mailbox-scoped Outlook receipt.  A not-created consultation intentionally
+  // has no link or creation timestamp yet, but still carries the safe mailbox
+  // scope and the three disabled/omitted provider flags above.
+  if (state === "not_created") {
+    if (webLink !== null || createdAt !== null || mailboxScope !== "me") return null;
+  } else if (webLink === null || createdAt === null || mailboxScope !== "me") {
+    return null;
+  }
+  return {
+    state,
+    webLink,
+    createdAt,
+    mailboxScope,
+    automaticSyncEnabled: false
+  };
+}
+
+function commandSafeActivity(item, { expectedId = null, expectedLeadId = null, expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const resourceId = item.resource_id === null || item.resource_id === undefined ? null : commandSafeId(item.resource_id);
+  const activityId = item.crm_activity_id === null || item.crm_activity_id === undefined ? null : commandSafeId(item.crm_activity_id);
+  const consultationId = activityId ?? resourceId;
+  const activityKind = item.activity_kind === null || item.activity_kind === undefined
+    ? null
+    : item.activity_kind === "consultation" ? "consultation" : "__invalid__";
+  const activityType = commandSafeString(item.activity_type, 80);
+  const confidential = item.confidential === true;
+  const version = commandSafeVersion(item.version);
+  const subject = commandSafeString(item.subject, 160);
+  const confidentialSubjectIncluded = item.confidential_subject_included;
+  const confidentialDetailsIncluded = item.confidential_details_included;
+  if (
+    !consultationId
+    || (item.resource_id !== null && item.resource_id !== undefined && !resourceId)
+    || (item.crm_activity_id !== null && item.crm_activity_id !== undefined && !activityId)
+    || (resourceId !== null && activityId !== null && resourceId !== activityId)
+    || (expectedId !== null && consultationId !== expectedId)
+    || (expectedTenantId !== null && item.tenant_id !== expectedTenantId)
+    || activityKind === "__invalid__"
+    || !activityType
+    || !CRM_CLIENT_ACTIVITY_TYPES.has(activityType)
+    || (activityKind === "consultation" && activityType !== "meeting")
+    || !version
+    || typeof item.confidential !== "boolean"
+    || typeof confidentialSubjectIncluded !== "boolean"
+    || typeof confidentialDetailsIncluded !== "boolean"
+    || confidentialSubjectIncluded !== !confidential
+    || subject === null
+  ) return null;
+  if (item.direct_matter_reference_included !== false || item.production_ready_claim !== false) return null;
+  if (confidential) {
+    if (!["보호된 상담", "보호된 이력"].includes(subject) || confidentialDetailsIncluded !== false) return null;
+  } else if (confidentialDetailsIncluded !== true) {
+    return null;
+  }
+  const leadId = item.lead_id === null || item.lead_id === undefined ? null : commandSafeId(item.lead_id);
+  const opportunityId = item.opportunity_id === null || item.opportunity_id === undefined ? null : commandSafeId(item.opportunity_id);
+  if (item.lead_id !== null && item.lead_id !== undefined && !leadId) return null;
+  if (item.opportunity_id !== null && item.opportunity_id !== undefined && !opportunityId) return null;
+  if (expectedLeadId !== null && leadId !== expectedLeadId) return null;
+  const partyDisplayName = item.party_display_name === null || item.party_display_name === undefined
+    ? null
+    : commandSafeString(item.party_display_name, 240);
+  if (item.party_display_name !== null && item.party_display_name !== undefined && partyDisplayName === null) return null;
+  const outcome = confidential ? null : optionalCrmCommandText(item.outcome, "outcome", 2_000);
+  const nextAction = confidential ? null : optionalCrmCommandText(item.next_action, "next_action", 500);
+  if (!confidential && ((item.outcome !== null && item.outcome !== undefined && outcome === null) || (item.next_action !== null && item.next_action !== undefined && nextAction === null))) return null;
+  const scheduledStart = commandSafeDate(item.scheduled_start);
+  const scheduledEnd = commandSafeDate(item.scheduled_end);
+  const completedAt = commandSafeDate(item.completed_at);
+  if ((item.scheduled_start !== null && item.scheduled_start !== undefined && scheduledStart === null) || (item.scheduled_end !== null && item.scheduled_end !== undefined && scheduledEnd === null) || (item.completed_at !== null && item.completed_at !== undefined && completedAt === null)) return null;
+  const status = commandSafeString(item.status, 64);
+  if (!status) return null;
+  const outlookCalendar = activityKind === "consultation" ? commandSafeOutlookCalendar(item.outlook_calendar) : null;
+  if (activityKind === "consultation" && !outlookCalendar) return null;
+  return {
+    consultationId,
+    activityId: consultationId,
+    leadId,
+    opportunityId,
+    activityKind,
+    activityType,
+    partyDisplayName,
+    subject,
+    confidential,
+    confidentialSubjectIncluded,
+    confidentialDetailsIncluded,
+    scheduledStart,
+    scheduledEnd,
+    timezone: commandSafeString(item.timezone, 80),
+    completedAt,
+    outcome,
+    nextAction,
+    outlookCalendar,
+    version,
+    status,
+    occurredAt: commandSafeDate(item.occurred_at),
+    createdAt: commandSafeDate(item.created_at),
+    updatedAt: commandSafeDate(item.updated_at)
+  };
+}
+
+function commandSafeInquiry(item, { expectedLeadId = null, expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const leadId = commandSafeId(item.lead_id);
+  const version = commandSafeVersion(item.version);
+  if (!leadId || !version || (expectedLeadId !== null && leadId !== expectedLeadId) || (expectedTenantId !== null && item.tenant_id !== expectedTenantId)) return null;
+  const nextAction = item.next_action === null || item.next_action === undefined
+    ? null
+    : commandSafeString(item.next_action, 500);
+  if (item.next_action !== null && item.next_action !== undefined && nextAction === null) return null;
+  return { leadId, version, nextAction };
+}
+
+function commandSafeEngagement(item, { expectedOpportunityId = null, expectedTenantId = null } = {}) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+  const resourceId = item.resource_id === null || item.resource_id === undefined ? null : commandSafeId(item.resource_id);
+  const opportunityRef = item.opportunity_id === null || item.opportunity_id === undefined ? null : commandSafeId(item.opportunity_id);
+  const opportunityId = opportunityRef ?? resourceId;
+  const workflowId = commandSafeId(item.engagement_workflow_id);
+  const stage = commandSafeString(item.stage, 64);
+  const decision = ["pending", "accepted", "declined"].includes(item.engagement_decision)
+    ? item.engagement_decision
+    : null;
+  const decisionVersion = commandSafeVersion(item.engagement_decision_version);
+  const workflowStatus = ["completed", "in_progress", "repair_required"].includes(item.engagement_workflow_status)
+    ? item.engagement_workflow_status
+    : null;
+  if (
+    !opportunityId
+    || (item.resource_id !== null && item.resource_id !== undefined && !resourceId)
+    || (item.opportunity_id !== null && item.opportunity_id !== undefined && !opportunityRef)
+    || (resourceId !== null && opportunityRef !== null && resourceId !== opportunityRef)
+    || !workflowId
+    || !stage
+    || !decision
+    || !decisionVersion
+    || !workflowStatus
+  ) return null;
+  if (expectedOpportunityId !== null && opportunityId !== expectedOpportunityId) return null;
+  if (expectedTenantId !== null && item.tenant_id !== expectedTenantId) return null;
+  if (item.direct_matter_reference_included !== false || item.production_ready_claim !== false) return null;
+  return {
+    opportunityId,
+    engagementWorkflowId: workflowId,
+    stage,
+    engagementDecision: decision,
+    engagementDecisionVersion: decisionVersion,
+    engagementWorkflowStatus: workflowStatus
+  };
+}
+
+function commandSafeProcessing(value, { expectedInquiryId = null, expectedOpportunityId = null, expectedTenantId = null } = {}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const workflowId = commandSafeId(value.engagement_workflow_id);
+  const leadId = commandSafeId(value.lead_id);
+  const opportunityId = commandSafeId(value.opportunity_id);
+  const decision = ["pending", "accepted", "declined"].includes(value.decision)
+    ? value.decision
+    : null;
+  const workflowStatus = ["completed", "in_progress", "repair_required"].includes(value.workflow_status)
+    ? value.workflow_status
+    : null;
+  const workflowVersion = commandSafeVersion(value.workflow_version);
+  const completedSteps = Array.isArray(value.completed_steps)
+    ? value.completed_steps.filter((step) => CRM_WORKFLOW_STEPS.has(step))
+    : null;
+  const failedStep = value.failed_step === null || value.failed_step === undefined
+    ? null
+    : CRM_WORKFLOW_STEPS.has(value.failed_step) ? value.failed_step : "__invalid__";
+  const safeErrorCode = value.safe_error_code === null || value.safe_error_code === undefined
+    ? null
+    : typeof value.safe_error_code === "string" && CRM_COMMAND_SAFE_CODE_PATTERN.test(value.safe_error_code)
+      ? value.safe_error_code
+      : "__invalid__";
+  const engagementDecisionVersion = value.engagement_decision_version === null || value.engagement_decision_version === undefined
+    ? null
+    : commandSafeVersion(value.engagement_decision_version);
+  if (
+    !workflowId
+    || !leadId
+    || !opportunityId
+    || !decision
+    || !workflowStatus
+    || !workflowVersion
+    || !completedSteps
+    || completedSteps.length !== (value.completed_steps ?? []).length
+    || new Set(completedSteps).size !== completedSteps.length
+    || failedStep === "__invalid__"
+    || safeErrorCode === "__invalid__"
+    || (value.engagement_decision_version !== null && value.engagement_decision_version !== undefined && !engagementDecisionVersion)
+    || (workflowStatus === "repair_required" && (!failedStep || !safeErrorCode))
+    || (workflowStatus !== "repair_required" && (failedStep !== null || safeErrorCode !== null))
+    || (expectedInquiryId !== null && leadId !== expectedInquiryId)
+    || (expectedOpportunityId !== null && opportunityId !== expectedOpportunityId)
+    || (expectedTenantId !== null && value.tenant_id !== undefined && value.tenant_id !== expectedTenantId)
+  ) return null;
+  return {
+    workflowId,
+    leadId,
+    opportunityId,
+    decision,
+    engagementDecisionVersion,
+    workflowStatus,
+    workflowVersion,
+    completedSteps,
+    failedStep,
+    safeErrorCode,
+    automaticMatterCreation: value.automatic_matter_creation === false ? false : null
+  };
+}
+
+function engagementProcessingConsistent(item, inquiry, processing) {
+  if (!item || !inquiry || !processing) return false;
+  if (
+    item.engagementWorkflowId !== processing.workflowId
+    || item.engagementWorkflowStatus !== processing.workflowStatus
+    || item.engagementDecision !== processing.decision
+    || item.opportunityId !== processing.opportunityId
+    || processing.leadId !== inquiry.leadId
+  ) return false;
+  return processing.engagementDecisionVersion === null
+    || item.engagementDecisionVersion === processing.engagementDecisionVersion;
+}
+
+function engagementProcessingReceiptConsistent(processing, safeErrorCodes) {
+  if (!processing || !Array.isArray(safeErrorCodes)) return false;
+  if (processing.workflowStatus === "repair_required") {
+    return processing.failedStep !== null
+      && processing.safeErrorCode !== null
+      && safeErrorCodes.length === 1
+      && safeErrorCodes[0] === processing.safeErrorCode;
+  }
+  return processing.failedStep === null
+    && processing.safeErrorCode === null
+    && safeErrorCodes.length === 0;
+}
+
+function commandSafeAuditEvent(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const action = commandSafeString(value.action, 160);
+  if (!action) return null;
+  const decision = value.decision === undefined || value.decision === null
+    ? null
+    : commandSafeString(value.decision, 80);
+  return { action, decision };
+}
+
+function classifyCrmCommandResponse(response, body) {
+  const status = Number(response?.status ?? 0) || 0;
+  const outcome = typeof body?.outcome === "string" ? body.outcome : null;
+  const uiState = typeof body?.ui_state === "string" ? body.ui_state : null;
+  const safeErrorCodes = commandSafeOutcomeCodes(body?.safe_error_codes);
+  if (!body || typeof body !== "object" || Array.isArray(body) || !outcome || !safeErrorCodes) {
+    return { kind: "error", status, outcome: "error", uiState: "error", item: null, safeErrorCodes: [] };
+  }
+  if (status === 403 || outcome === "denied" || uiState === "denied") {
+    return { kind: "denied", status, outcome, uiState: "denied", item: null, safeErrorCodes };
+  }
+  if (outcome === "review_required" || outcome === "approval_required" || uiState === "review" || uiState === "review_required" || uiState === "approval_required") {
+    return { kind: "review_required", status, outcome, uiState: "review_required", item: null, safeErrorCodes };
+  }
+  const conflict = status === 409 || uiState === "conflict" || safeErrorCodes.some((code) => /CONFLICT|VERSION|STALE|ACTIVE_EXISTS|TRANSITION_INVALID|UPDATE_INVALID/iu.test(code));
+  if (conflict) {
+    return { kind: "conflict", status, outcome, uiState: "conflict", item: null, safeErrorCodes };
+  }
+  if (status >= 500 || !response?.ok || !CRM_WRITE_SUCCESS_OUTCOMES.has(outcome)) {
+    return { kind: "error", status, outcome: outcome ?? "error", uiState: "error", item: null, safeErrorCodes };
+  }
+  return { kind: "data", status, outcome, uiState: uiState ?? null, safeErrorCodes, body };
+}
+
+async function crmClientWriteRequest({ path, payload, ctx, permissionRef, auditHintRef, parse } = {}) {
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  let response;
+  let body;
+  try {
+    response = await apiFetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, outcome: "error", uiState: "error", item: null, safeErrorCodes: [] };
+  }
+  const classified = classifyCrmCommandResponse(response, body);
+  if (classified.kind !== "data") return classified;
+  try {
+    return parse(classified, body, { permissionRef, auditHintRef });
+  } catch {
+    return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+  }
+}
+
+async function crmClientActivityPatchRequest({ activityId, payload, ctx, permissionRef, auditHintRef } = {}) {
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/activities/${encodeURIComponent(activityId)}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+      },
+      body: JSON.stringify(payload)
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, outcome: "error", uiState: "error", item: null, safeErrorCodes: [] };
+  }
+  const classified = classifyCrmCommandResponse(response, body);
+  if (classified.kind !== "data") return classified;
+  let item;
+  let inquiry;
+  try {
+    const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+    item = commandSafeActivity(body.item, { expectedId: activityId, expectedTenantId });
+    inquiry = body.inquiry === null || body.inquiry === undefined ? null : commandSafeInquiry(body.inquiry, { expectedTenantId });
+  } catch {
+    return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+  }
+  if (!item || (body.inquiry !== null && body.inquiry !== undefined && (!inquiry || (item.leadId !== null && inquiry.leadId !== item.leadId)))) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+  }
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: classified.outcome,
+    uiState: classified.uiState,
+    item,
+    inquiry,
+    auditEvent: commandSafeAuditEvent(body.audit_event),
+    idempotentReplay: body.idempotent_replay === true,
+    safeErrorCodes: classified.safeErrorCodes,
+    automaticMatterCreation: false,
+    directMatterReferenceIncluded: false
+  };
+}
+
+function buildCrmCommandResult(error) {
+  return error instanceof TypeError || error instanceof Error
+    ? commandInputError()
+    : commandInputError();
+}
+
+export async function createCrmConsultation({
+  inquiryId,
+  expectedInquiryVersion,
+  consultation = {},
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const expectedVersion = requiredCrmCommandVersion(expectedInquiryVersion, "expectedInquiryVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    assertNoCrmMatterReference(consultation);
+    if (!consultation || typeof consultation !== "object" || Array.isArray(consultation)) throw new TypeError("consultation is required");
+    const allowed = ["subject", "scheduled_start", "scheduled_end", "timezone", "assigned_user_id", "confidential", "next_action"];
+    if (Object.keys(consultation).some((field) => !allowed.includes(field))) throw new TypeError("consultation contains unsupported fields");
+    if (consultation.confidential !== undefined && typeof consultation.confidential !== "boolean") throw new TypeError("confidential is invalid");
+    for (const field of ["scheduled_start", "scheduled_end", "timezone"]) {
+      if (typeof consultation[field] !== "string" || !consultation[field].trim()) throw new TypeError(`${field} is required`);
+    }
+    const tenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+    const payload = {
+      tenant_id: tenantId,
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_inquiry_version: expectedVersion,
+      reason: changeReason,
+      idempotency_key: key,
+      consultation: {
+        scheduled_start: consultation.scheduled_start,
+        scheduled_end: consultation.scheduled_end,
+        timezone: consultation.timezone,
+        ...(consultation.subject === undefined ? {} : { subject: consultation.subject }),
+        ...(consultation.assigned_user_id === undefined ? {} : { assigned_user_id: consultation.assigned_user_id }),
+        ...(consultation.confidential === undefined ? {} : { confidential: consultation.confidential }),
+        ...(consultation.next_action === undefined ? {} : { next_action: consultation.next_action })
+      }
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/inquiries/${encodeURIComponent(normalizedInquiryId)}/consultations`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const item = commandSafeActivity(body.item, { expectedLeadId: normalizedInquiryId, expectedTenantId });
+        const inquiry = body.inquiry === null || body.inquiry === undefined ? null : commandSafeInquiry(body.inquiry, { expectedLeadId: normalizedInquiryId, expectedTenantId });
+        if (!item || item.activityKind !== "consultation" || !inquiry) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          inquiry,
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const scheduleCrmConsultation = createCrmConsultation;
+
+export async function updateCrmConsultation({
+  consultationId,
+  expectedVersion,
+  fieldUpdates,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedId = requiredCrmCommandId(consultationId, "consultationId");
+    const version = requiredCrmCommandVersion(expectedVersion, "expectedVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    if (!fieldUpdates || typeof fieldUpdates !== "object" || Array.isArray(fieldUpdates) || Object.keys(fieldUpdates).length === 0) throw new TypeError("fieldUpdates is required");
+    assertNoCrmMatterReference(fieldUpdates);
+    if (Object.keys(fieldUpdates).some((field) => !CRM_CONSULTATION_UPDATE_FIELDS.has(field))) throw new TypeError("fieldUpdates contains unsupported fields");
+    if (Object.hasOwn(fieldUpdates, "confidential") && typeof fieldUpdates.confidential !== "boolean") throw new TypeError("confidential is invalid");
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_version: version,
+      field_updates: { ...fieldUpdates },
+      reason: changeReason,
+      idempotency_key: key
+    };
+    return await crmClientActivityPatchRequest({ activityId: normalizedId, payload, ctx, permissionRef: safePermissionRef, auditHintRef: safeAuditHintRef });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export async function completeCrmConsultation({
+  consultationId,
+  expectedVersion,
+  completedAt,
+  outcome,
+  nextAction,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedCompletedAt = requiredCrmCommandText(completedAt, "completedAt", 80);
+    if (commandSafeDate(normalizedCompletedAt) === null) throw new TypeError("completedAt is invalid");
+    const normalizedOutcome = requiredCrmCommandText(outcome, "outcome", 2_000);
+    const normalizedNextAction = requiredCrmCommandText(nextAction, "nextAction", 500);
+    return await updateCrmConsultation({
+      consultationId,
+      expectedVersion,
+      fieldUpdates: { completed_at: normalizedCompletedAt, outcome: normalizedOutcome, next_action: normalizedNextAction },
+      idempotencyKey,
+      reason,
+      permissionRef,
+      auditHintRef,
+      ctx
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const completeClientConsultation = completeCrmConsultation;
+
+export async function linkCrmConsultationOutlookEvent({
+  consultationId,
+  expectedVersion,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_CONSULTATION_CALENDAR_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_CONSULTATION_CALENDAR_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedId = requiredCrmCommandId(consultationId, "consultationId");
+    const version = requiredCrmCommandVersion(expectedVersion, "expectedVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_version: version,
+      reason: changeReason,
+      idempotency_key: key
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/consultations/${encodeURIComponent(normalizedId)}/outlook-event`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const item = commandSafeActivity(body.item, { expectedId: normalizedId, expectedTenantId });
+        if (
+          !item
+          || item.activityKind !== "consultation"
+          || typeof body.provider_call_executed !== "boolean"
+          || body.credential_material_included !== false
+          || body.production_ready_claim !== false
+        ) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          outlookCalendarState: item.outlookCalendar.state,
+          providerCallExecuted: body.provider_call_executed === true,
+          credentialMaterialIncluded: body.credential_material_included === true,
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const createCrmConsultationOutlookEvent = linkCrmConsultationOutlookEvent;
+
+export async function decideCrmEngagement({
+  inquiryId,
+  engagementDecision,
+  expectedInquiryVersion,
+  expectedEngagementVersion,
+  agreedAmount,
+  amountUnknownConfirmed,
+  dueDate,
+  closeReason,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_ENGAGEMENT_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ENGAGEMENT_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const decision = requiredCrmCommandText(engagementDecision, "engagementDecision", 32);
+    if (!["pending", "accepted", "declined"].includes(decision)) throw new TypeError("engagementDecision is invalid");
+    const inquiryVersion = requiredCrmCommandVersion(expectedInquiryVersion, "expectedInquiryVersion");
+    const engagementVersion = requiredCrmCommandVersion(expectedEngagementVersion, "expectedEngagementVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    assertNoCrmMatterReference({ closeReason });
+    if (decision === "declined" && !requiredCrmCommandText(closeReason, "closeReason")) throw new TypeError("closeReason is required");
+    if (decision === "accepted") {
+      const hasAmount = agreedAmount !== undefined && agreedAmount !== null;
+      if (hasAmount && (!Number.isSafeInteger(agreedAmount) || agreedAmount < 0)) throw new TypeError("agreedAmount is invalid");
+      if (!hasAmount && amountUnknownConfirmed !== true) throw new TypeError("amountUnknownConfirmed is required");
+      if (hasAmount && amountUnknownConfirmed === true) throw new TypeError("amountUnknownConfirmed is invalid");
+    }
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      engagement_decision: decision,
+      expected_inquiry_version: inquiryVersion,
+      expected_engagement_version: engagementVersion,
+      reason: changeReason,
+      idempotency_key: key,
+      ...(agreedAmount === undefined ? {} : { agreed_amount: agreedAmount }),
+      ...(amountUnknownConfirmed === undefined ? {} : { amount_unknown_confirmed: amountUnknownConfirmed }),
+      ...(dueDate === undefined ? {} : { due_date: dueDate }),
+      ...(closeReason === undefined ? {} : { close_reason: closeReason })
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/inquiries/${encodeURIComponent(normalizedInquiryId)}/engagement-decisions`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const processing = commandSafeProcessing(body.processing, {
+          expectedInquiryId: normalizedInquiryId,
+          expectedTenantId
+        });
+        const item = commandSafeEngagement(body.item, {
+          expectedOpportunityId: processing?.opportunityId ?? null,
+          expectedTenantId
+        });
+        const inquiry = commandSafeInquiry(body.inquiry, {
+          expectedLeadId: normalizedInquiryId,
+          expectedTenantId
+        });
+        if (!item || !inquiry || !processing || !engagementProcessingConsistent(item, inquiry, processing) || !engagementProcessingReceiptConsistent(processing, classified.safeErrorCodes) || body.automatic_matter_creation !== false || body.direct_matter_reference_included !== false || processing.automaticMatterCreation !== false) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          inquiry,
+          processing,
+          repairCommand: processing.workflowStatus === "completed"
+            ? null
+            : { inquiryId: normalizedInquiryId, expectedWorkflowVersion: processing.workflowVersion },
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export async function repairCrmEngagement({
+  inquiryId,
+  expectedWorkflowVersion,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_ENGAGEMENT_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ENGAGEMENT_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const normalizedInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const workflowVersion = requiredCrmCommandVersion(expectedWorkflowVersion, "expectedWorkflowVersion");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      expected_workflow_version: workflowVersion,
+      reason: changeReason,
+      idempotency_key: key
+    };
+    return await crmClientWriteRequest({
+      path: `/api/crm/inquiries/${encodeURIComponent(normalizedInquiryId)}/engagement-repair`,
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const processing = commandSafeProcessing(body.processing, {
+          expectedInquiryId: normalizedInquiryId,
+          expectedTenantId
+        });
+        const item = commandSafeEngagement(body.item, {
+          expectedOpportunityId: processing?.opportunityId ?? null,
+          expectedTenantId
+        });
+        const inquiry = commandSafeInquiry(body.inquiry, {
+          expectedLeadId: normalizedInquiryId,
+          expectedTenantId
+        });
+        if (!item || !inquiry || !processing || !engagementProcessingConsistent(item, inquiry, processing) || !engagementProcessingReceiptConsistent(processing, classified.safeErrorCodes) || body.automatic_matter_creation !== false || body.direct_matter_reference_included !== false || processing.automaticMatterCreation !== false) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          inquiry,
+          processing,
+          repairCommand: processing.workflowStatus === "completed"
+            ? null
+            : { inquiryId: normalizedInquiryId, expectedWorkflowVersion: processing.workflowVersion },
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export async function createCrmContactActivityMemo({
+  inquiryId,
+  activityId,
+  partyId,
+  opportunityId,
+  subject,
+  confidential = false,
+  idempotencyKey,
+  reason,
+  permissionRef = CRM_CLIENT_ACTIVITY_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ACTIVITY_AUDIT_HINT_REF,
+  ctx = "allow"
+} = {}) {
+  try {
+    const safeInquiryId = requiredCrmCommandId(inquiryId, "inquiryId");
+    const key = requiredCrmCommandId(idempotencyKey, "idempotencyKey");
+    const changeReason = requiredCrmCommandText(reason, "reason");
+    const memoSubject = requiredCrmCommandText(subject, "subject", 2_000);
+    if (typeof confidential !== "boolean") throw new TypeError("confidential is invalid");
+    const safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    const safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+    const safeActivityId = activityId === undefined || activityId === null ? null : requiredCrmCommandId(activityId, "activityId");
+    if (partyId !== undefined || opportunityId !== undefined) throw new TypeError("partyId/opportunityId are not accepted; inquiryId is authoritative");
+    assertNoCrmMatterReference({ activityId, inquiryId, partyId, opportunityId });
+    const activity = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      ...(safeActivityId ? { crm_activity_id: safeActivityId } : {}),
+      lead_id: safeInquiryId,
+      activity_type: "note",
+      subject: memoSubject,
+      confidential,
+      status: "active"
+    };
+    const payload = {
+      tenant_id: tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID),
+      permission_ref: safePermissionRef,
+      audit_hint_ref: safeAuditHintRef,
+      reason: changeReason,
+      idempotency_key: key,
+      activity
+    };
+    return await crmClientWriteRequest({
+      path: "/api/crm/activities",
+      payload,
+      ctx,
+      permissionRef: safePermissionRef,
+      auditHintRef: safeAuditHintRef,
+      parse: (classified, body) => {
+        const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+        const item = commandSafeActivity(body.item, {
+          expectedId: safeActivityId,
+          expectedLeadId: safeInquiryId,
+          expectedTenantId
+        });
+        if (!item || item.activityKind !== null || item.activityType !== "note" || body.item?.direct_matter_reference_included !== false) return { kind: "error", status: classified.status, outcome: "error", uiState: "error", item: null, safeErrorCodes: classified.safeErrorCodes };
+        return {
+          kind: "data",
+          status: classified.status,
+          outcome: classified.outcome,
+          uiState: classified.uiState,
+          item,
+          auditEvent: commandSafeAuditEvent(body.audit_event),
+          idempotentReplay: body.idempotent_replay === true,
+          safeErrorCodes: classified.safeErrorCodes,
+          automaticMatterCreation: false,
+          directMatterReferenceIncluded: false
+        };
+      }
+    });
+  } catch (error) {
+    return buildCrmCommandResult(error);
+  }
+}
+
+export const createClientActivityMemo = createCrmContactActivityMemo;
+
+// GET /api/crm/activities is the signed-session read boundary for the Client
+// 상담 화면.  The server serializer intentionally includes tenant/party/owner
+// identifiers for authorization and audit purposes; this adapter validates the
+// complete response and returns only the display-safe activity projection.
+export async function fetchCrmClientActivities({
+  ctx = "allow",
+  permissionRef = CRM_CLIENT_ACTIVITY_READ_PERMISSION_REF,
+  auditHintRef = CRM_CLIENT_ACTIVITY_READ_AUDIT_HINT_REF
+} = {}) {
+  let safePermissionRef;
+  let safeAuditHintRef;
+  try {
+    safePermissionRef = requiredCrmCommandText(permissionRef, "permissionRef", 160);
+    safeAuditHintRef = requiredCrmCommandText(auditHintRef, "auditHintRef", 160);
+  } catch {
+    return { kind: "error", status: 400, outcome: "blocked", uiState: "blocked", items: [], contactActivities: [] };
+  }
+  const context = permissionContextFor(ctx, CRM_INTAKE_PERMISSION_CONTEXTS, "crm");
+  const params = inquiryReadParams(safePermissionRef, safeAuditHintRef);
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/crm/activities?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", status: 0, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  if (response.status >= 500) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  if (!response.ok || body?.outcome === "denied" || body?.outcome === "review_required" || body?.ui_state === "denied" || body?.ui_state === "review" || body?.ui_state === "review_required") {
+    const guarded = inquiryPermissionResult(response, body);
+    const guardedKind = guarded.uiState === "denied"
+      ? "denied"
+      : guarded.uiState === "review_required"
+        ? "review_required"
+        : "guarded";
+    return { ...guarded, kind: guardedKind, contactActivities: [] };
+  }
+  let safeItems;
+  let safeErrorCodes;
+  try {
+    const expectedTenantId = tenantIdForDomain("crm", CRM_INTAKE_TENANT_ID);
+    safeItems = Array.isArray(body?.items)
+      ? body.items.map((item) => item?.tenant_id === expectedTenantId ? commandSafeActivity(item) : null)
+      : null;
+    safeErrorCodes = Array.isArray(body?.safe_error_codes)
+      && body.safe_error_codes.every((code) => typeof code === "string" && CRM_COMMAND_SAFE_CODE_PATTERN.test(code))
+      ? body.safe_error_codes
+      : null;
+  } catch {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  const pageInfo = body?.page_info;
+  const valid = (
+    body
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && body.outcome === "passed"
+    && body.audit_hint_ref === safeAuditHintRef
+    && body.production_ready_claim === false
+    && body.count_leak_prevented === true
+    && Array.isArray(body.items)
+    && safeItems
+    && safeItems.every(Boolean)
+    && safeErrorCodes
+    && pageInfo
+    && typeof pageInfo === "object"
+    && !Array.isArray(pageInfo)
+    && pageInfo.returned_count === safeItems.length
+    && pageInfo.omitted_item_count === null
+  );
+  if (!valid) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  const ids = safeItems.map((item) => item.activityId);
+  if (new Set(ids).size !== ids.length) {
+    return { kind: "error", status: response.status, outcome: "error", uiState: "error", items: [], contactActivities: [] };
+  }
+  const consultations = safeItems.filter((item) => item.activityKind === "consultation");
+  const contactActivities = safeItems.filter((item) => item.activityKind === null);
+  return {
+    kind: "data",
+    status: response.status,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? (safeItems.length === 0 ? "empty" : null),
+    // Keep the complete safe activity list for contact-history consumers while
+    // exposing typed collections so consultation screens never treat a memo as
+    // a scheduled consultation.
+    items: safeItems,
+    consultations,
+    contactActivities,
+    pageInfo: { returnedCount: safeItems.length, omittedItemCount: null },
+    safeErrorCodes,
+    auditHintRef: safeAuditHintRef,
+    countLeakPrevented: true,
+    productionReadyClaim: false
+  };
+}
+
+export const fetchCrmConsultationActivities = fetchCrmClientActivities;
+export const fetchClientActivities = fetchCrmClientActivities;
 
 export function fetchCrmOpportunities(options = {}) {
   return fetchCrmIntakeCollection({ ...options, path: "/api/crm/opportunities" });

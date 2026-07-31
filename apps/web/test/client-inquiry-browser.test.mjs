@@ -31,23 +31,33 @@ function listBody() {
     data_status: "complete",
     items: [
       {
+        tenant_id: "tenant_client_inquiry_browser",
         lead_id: "lead-visible",
+        version: 1,
         display_name: "계약 검토 문의",
         visible_status: "new",
         visible_status_label: "새 문의",
         source: "outlook_addin",
         received_at: "2026-07-31T01:00:00.000Z",
         assigned_user_id: null,
+        opportunity_id: "opp-visible",
+        engagement_decision: "pending",
+        engagement_workflow_status: null,
         next_action: "담당 변호사 지정"
       },
       {
+        tenant_id: "tenant_client_inquiry_browser",
         lead_id: "lead-manual",
+        version: 1,
         display_name: "직접 등록 문의",
         visible_status: "reviewing",
         visible_status_label: "확인 중",
         source: "manual",
         received_at: "2026-07-30T08:00:00.000Z",
         assigned_user_id: "user-attorney",
+        opportunity_id: "opp-manual",
+        engagement_decision: "pending",
+        engagement_workflow_status: null,
         next_action: "상담 일정 확인"
       }
     ],
@@ -69,6 +79,16 @@ function detailBody() {
     data_status: "complete",
     item: {
       ...listBody().items[0],
+      opportunity: {
+        opportunity_id: "opp-visible",
+        stage: "qualified",
+        engagement_decision: "pending",
+        engagement_decision_version: 1,
+        engagement_workflow_id: null,
+        engagement_workflow_status: null,
+        direct_matter_reference_included: false,
+        production_ready_claim: false
+      },
       consultations_access: "allowed",
       consultations: [{
         scheduled_start: "2026-08-01T01:00:00.000Z",
