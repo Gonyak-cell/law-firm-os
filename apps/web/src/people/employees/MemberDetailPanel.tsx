@@ -28,19 +28,12 @@ type OutlookOAuthCallback = {
   state: string;
   error: string | null;
 };
-type OutlookOAuthPending = {
-  schema_version: "lawos.people.outlook-oauth-pending.v1";
-  started_at: number;
-};
 
 const TABS: ReadonlyArray<{ id: MemberDetailTab; label: string }> = [
   { id: "today", label: "오늘" },
   { id: "matters", label: "담당 사건" },
   { id: "profile", label: "프로필" },
 ];
-const OUTLOOK_OAUTH_PENDING_STORAGE_KEY = "lawos.people.outlook-oauth.pending.v1";
-const OUTLOOK_OAUTH_PENDING_SCHEMA_VERSION = "lawos.people.outlook-oauth-pending.v1";
-const OUTLOOK_OAUTH_CALLBACK_MAX_AGE_MS = 10 * 60 * 1000;
 const OUTLOOK_OAUTH_CALLBACK_KEYS = [
   "code",
   "state",
@@ -67,41 +60,6 @@ function safeOAuthCode(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const code = value.trim();
   return code && code.length <= 4096 && !/[\u0000-\u001F\u007F]/.test(code) ? code : null;
-}
-
-function readOutlookOAuthPending(): OutlookOAuthPending | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const value = JSON.parse(window.sessionStorage.getItem(OUTLOOK_OAUTH_PENDING_STORAGE_KEY) ?? "null");
-    if (
-      value?.schema_version !== OUTLOOK_OAUTH_PENDING_SCHEMA_VERSION
-      || !Number.isFinite(value.started_at)
-    ) return null;
-    return value as OutlookOAuthPending;
-  } catch {
-    return null;
-  }
-}
-
-function writeOutlookOAuthPending(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    window.sessionStorage.setItem(OUTLOOK_OAUTH_PENDING_STORAGE_KEY, JSON.stringify({
-      schema_version: OUTLOOK_OAUTH_PENDING_SCHEMA_VERSION,
-      started_at: Date.now(),
-    } satisfies OutlookOAuthPending));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function clearOutlookOAuthPending(): void {
-  try {
-    window.sessionStorage.removeItem(OUTLOOK_OAUTH_PENDING_STORAGE_KEY);
-  } catch {
-    // Storage can be unavailable in hardened browser contexts.
-  }
 }
 
 function parseOutlookOAuthCallback(value: {
@@ -579,15 +537,6 @@ export function MemberDetailPanel({
       setOutlookConnection(next);
       const authorization = next.authorization;
       if (authorization) {
-        if (!writeOutlookOAuthPending()) {
-          setOutlookNotice({
-            kind: "error",
-            message: "연결 요청을 안전하게 저장하지 못했습니다. 다시 시도해 주세요.",
-            retry: true,
-          });
-          setOutlookBusy(false);
-          return;
-        }
         if (typeof window.matterSession?.openOutlookAuthorization === "function") {
           let opened = false;
           try {
@@ -596,7 +545,6 @@ export function MemberDetailPanel({
             opened = false;
           }
           if (!opened) {
-            clearOutlookOAuthPending();
             setOutlookNotice({
               kind: "error",
               message: "Microsoft 로그인 창을 열지 못했습니다. 다시 시도해 주세요.",
@@ -626,7 +574,6 @@ export function MemberDetailPanel({
     setOutlookBusy(true);
     const next = await disconnectPeopleOutlookConnection(employeeId);
     if (next.kind === "data") {
-      clearOutlookOAuthPending();
       setOutlookConnection(next);
       setDailyBrief(null);
       fetchPeopleDailyBrief(employeeId).then(setDailyBrief);
@@ -642,27 +589,10 @@ export function MemberDetailPanel({
 
   const completeOutlookOAuth = async (callback: OutlookOAuthCallback) => {
     if (!outlookCalendarEnabled || outlookCallbackRunningRef.current) return;
-    const pending = readOutlookOAuthPending();
-    if (!pending) return;
     const callbackEmployeeId = employeeIdRef.current;
     outlookCallbackRunningRef.current = true;
     setOutlookBusy(true);
-    const pendingAge = Date.now() - pending.started_at;
-    if (pendingAge < 0 || pendingAge > OUTLOOK_OAUTH_CALLBACK_MAX_AGE_MS) {
-      clearOutlookOAuthPending();
-      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
-      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
-      setOutlookNotice({
-        kind: "error",
-        message: "연결 요청 시간이 지났습니다. 다시 연결해 주세요.",
-        retry: true,
-      });
-      setOutlookBusy(false);
-      outlookCallbackRunningRef.current = false;
-      return;
-    }
     if (callback.error) {
-      clearOutlookOAuthPending();
       const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
       if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
       const cancelled = callback.error === "access_denied";
@@ -693,7 +623,6 @@ export function MemberDetailPanel({
       authorization_code: callback.code,
       state_ref: callback.state,
     });
-    clearOutlookOAuthPending();
     if (next.kind === "data") {
       if (callbackEmployeeId === employeeIdRef.current) {
         setOutlookConnection(next);
@@ -743,7 +672,7 @@ export function MemberDetailPanel({
       setOutlookNotice(null);
       return;
     }
-    if (readOutlookOAuthCallbackFromLocation() && readOutlookOAuthPending()) return;
+    if (readOutlookOAuthCallbackFromLocation()) return;
     if (outlookCallbackRunningRef.current) return;
     let cancelled = false;
     setOutlookConnection(null);
@@ -758,7 +687,7 @@ export function MemberDetailPanel({
   useEffect(() => {
     if (!outlookCalendarEnabled) return;
     const callback = readOutlookOAuthCallbackFromLocation();
-    if (!callback || !readOutlookOAuthPending()) return;
+    if (!callback) return;
     clearOutlookOAuthCallbackFromLocation();
     void completeOutlookOAuth(callback);
   }, [employeeId, outlookCalendarEnabled]);
