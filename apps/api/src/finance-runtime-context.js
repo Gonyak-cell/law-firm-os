@@ -688,6 +688,54 @@ function clientGroupAllowed(context, tenantId, clientGroupId) {
   });
 }
 
+function validateReviewMatter({ runtime, context, tenantId, decision }) {
+  if (decision?.matter_id === undefined || decision.matter_id === null) {
+    return null;
+  }
+  const matterId = String(decision.matter_id).trim();
+  if (typeof decision.matter_id !== "string" || !matterId || matterId !== decision.matter_id) {
+    throw new TypeError("matter_id must be a canonical non-empty string");
+  }
+  const repository = runtime.matterRepository ?? runtime.repository;
+  const matter = repository?.list?.({
+    tenant_id: tenantId,
+    model_type: "Matter",
+    matter_id: matterId,
+  })?.find((record) => record.matter_id === matterId);
+  if (!matter) {
+    throw classificationCommandError(
+      "Matter not found",
+      FINANCE_API_ERROR_CODES.client_link_invalid,
+      400,
+    );
+  }
+  const matterClientId = matter.client_group_id ?? matter.client_id ?? null;
+  if (!matterClientId || matterClientId !== decision.client_group_id) {
+    throw classificationCommandError(
+      "Matter does not belong to the selected client",
+      FINANCE_API_ERROR_CODES.client_link_invalid,
+      400,
+    );
+  }
+  const permission = evaluateRouteDecision({
+    context: resourcePermissionContext(context, matterId),
+    resource: {
+      tenant_id: tenantId,
+      resource_type: "matter",
+      resource_id: matterId,
+      matter_id: matterId,
+    },
+    action: "matter:read",
+  });
+  if (permission.effect !== "allow") {
+    throw Object.assign(new Error("Matter is not authorized for this operation"), {
+      safe_error_code: FINANCE_API_ERROR_CODES.unauthorized_omission,
+      status: 403,
+    });
+  }
+  return matterId;
+}
+
 function employeeAllowed(context, tenantId, employeeId) {
   return !employeeId || resourceAllowed({
     context,
@@ -1997,6 +2045,7 @@ function confirmReviewedBankReceipts({
       actor_id: actorId,
       idempotency_key:
         `${idempotencyKey}:payment:${decision.bank_transaction_id}`,
+      allow_rebind: true,
     }).payment);
 }
 
@@ -2305,6 +2354,12 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
           return clientDepositEmptyResponse(requestId, query.audit_hint_ref);
         }
       }
+      validateReviewMatter({
+        runtime,
+        context,
+        tenantId: query.tenant_id,
+        decision,
+      });
       if (
         decision.employee_id
         && !employeeAllowed(
@@ -2432,6 +2487,7 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
       result,
       depositAllocation,
       depositAllocationReversal,
+      confirmedPayments,
     } = mutateWithDepositAllocation({
       repository: runtime.repository,
       tenantId: query.tenant_id,
@@ -2444,6 +2500,15 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
         actor_id: context.principal.user_id,
         idempotency_key: body.idempotency_key,
         require_expected_state_version: true,
+      }),
+      afterCommand: () => ({
+        confirmedPayments: confirmReviewedBankReceipts({
+          decisions,
+          repository: runtime.repository,
+          tenantId: query.tenant_id,
+          actorId: context.principal.user_id,
+          idempotencyKey: body.idempotency_key,
+        }),
       }),
     });
     if (!classificationCommandResultAllowed({
@@ -2462,13 +2527,7 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
       auditHintRef: query.audit_hint_ref,
       depositAllocation,
       depositAllocationReversal,
-      confirmedPayments: confirmReviewedBankReceipts({
-        decisions,
-        repository: runtime.repository,
-        tenantId: query.tenant_id,
-        actorId: context.principal.user_id,
-        idempotencyKey: body.idempotency_key,
-      }),
+      confirmedPayments,
       review: true,
     });
   } catch (error) {
@@ -2976,6 +3035,7 @@ function mutateWithDepositAllocation({
   actorId,
   idempotencyKey,
   command,
+  afterCommand = null,
 }) {
   return repository.transaction(() => {
     const result = command();
@@ -2986,6 +3046,9 @@ function mutateWithDepositAllocation({
         depositAllocationReversal: null,
       });
     }
+    const followUp = typeof afterCommand === "function"
+      ? afterCommand({ result })
+      : null;
     const depositAllocationReversal =
       synchronizeClientDepositAllocationReversals({
         repository,
@@ -3004,6 +3067,7 @@ function mutateWithDepositAllocation({
       result,
       depositAllocation,
       depositAllocationReversal,
+      ...(followUp && typeof followUp === "object" ? followUp : {}),
     });
   });
 }

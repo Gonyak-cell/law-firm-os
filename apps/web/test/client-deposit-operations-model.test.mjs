@@ -18,7 +18,14 @@ import {
 } from "../src/components/ClientDepositOperationsModel.js";
 
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
+import { normalizeFeeCommitment } from "../../../packages/billing/src/fee-commitment-model.js";
+import { normalizeClientDepositAllocation } from "../../../packages/billing/src/client-deposit-allocation-model.js";
 import { renderSimpleTextPdf } from "../../../packages/billing/src/invoice-pdf-service.js";
+import {
+  allocatePayment,
+  reversePaymentAllocation,
+} from "../../../packages/payments/src/payment-allocation-service.js";
+import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
 import {
   createFinanceRuntimeContext,
   handleFinanceApiRequest,
@@ -74,16 +81,64 @@ function bankTransactionFor(item, overrides = {}) {
   };
 }
 
-async function financeRoute({ runtime, pathname, method = "GET", query = {}, body = {}, requestId }) {
+async function financeRoute({ runtime, pathname, method = "GET", query = {}, body = {}, requestId, context = permissionContext() }) {
   return handleFinanceApiRequest({
     pathname,
     method,
     query,
     body,
-    context: permissionContext(),
+    context,
     requestId: requestId ?? `request-${method.toLowerCase()}-${pathname.replaceAll("/", "-")}`,
     runtime,
   });
+}
+
+function manualRelinkFixture(transactionId, { matterRepository = null } = {}) {
+  const seed = classificationItem({
+    bank_transaction_id: transactionId,
+    bank_transaction_classification_id: bankClassificationId(TENANT, transactionId),
+    status: "review_required",
+    confidence: "needs_review",
+    classification_source: "automatic",
+    rationale_code: "client_name_ambiguous",
+    client_group_id: null,
+    client_group_label: null,
+  });
+  const repository = createFinanceRepository({
+    seedRecords: [bankTransactionFor(seed), seed],
+  });
+  const runtime = createFinanceRuntimeContext({
+    repository,
+    matterRepository,
+    clientRecords: [
+      { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-authorized-1", display_name: "첫 고객", status: "active" },
+      { model_type: "ClientGroup", tenant_id: TENANT, client_group_id: "client-authorized-2", display_name: "두 번째 고객", status: "active" },
+    ],
+  });
+  return { seed, repository, runtime };
+}
+
+async function reviewClientReceipt({ runtime, seed, idempotencyKey, requestId, clientGroupId, expectedStateVersion, matterId }) {
+  const decision = {
+    bank_transaction_id: seed.bank_transaction_id,
+    category: "client_receipt",
+    client_group_id: clientGroupId,
+    expected_state_version: expectedStateVersion,
+    ...(matterId === undefined ? {} : { matter_id: matterId }),
+  };
+  const response = await financeRoute({
+    runtime,
+    pathname: "/api/finance/bank-classifications/review",
+    method: "POST",
+    body: {
+      ...ROUTE_CONTEXT,
+      idempotency_key: idempotencyKey,
+      decisions: [decision],
+    },
+    requestId,
+  });
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  return response;
 }
 
 function adapterWrite(routeResponse) {
@@ -575,6 +630,21 @@ test("실제 수동 연결·재연결 응답과 GET 결과가 manual_client_reli
       requestId: "request-client-deposit-manual-write-1",
     });
     assert.equal(firstWrite.status, 200, JSON.stringify(firstWrite.body));
+    const firstPayments = repository.list({ tenant_id: TENANT, model_type: "Payment" });
+    assert.equal(firstPayments.length, 1);
+    const paymentId = firstPayments[0].payment_id;
+    assert.equal(firstPayments[0].bank_transaction_id, seed.bank_transaction_id);
+    assert.equal(firstPayments[0].client_group_id, "client-authorized-1");
+    assert.equal(firstWrite.body.item.payment_count, 1);
+    assert.equal(firstWrite.body.item.payments[0].payment_id, paymentId);
+
+    // Simulate an existing Matter binding on the first receipt. A relink that
+    // omits Matter must clear it rather than carry it across client groups.
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: paymentId,
+    }, { matter_id: "matter-client-deposit-model-old" });
     const firstActionModel = buildClientDepositOperationsModel({
       classificationsResult: firstReadResult,
       requestedTransactionId: seed.bank_transaction_id,
@@ -618,6 +688,28 @@ test("실제 수동 연결·재연결 응답과 GET 결과가 manual_client_reli
       requestId: "request-client-deposit-manual-write-2",
     });
     assert.equal(secondWrite.status, 200, JSON.stringify(secondWrite.body));
+    assert.equal(secondWrite.body.item.payment_count, 1);
+    assert.equal(secondWrite.body.item.payments[0].payment_id, paymentId);
+    assert.equal(secondWrite.body.item.payments[0].client_group_id, "client-authorized-2");
+    assert.equal(secondWrite.body.item.payments[0].matter_id, null);
+    const secondPayments = repository.list({ tenant_id: TENANT, model_type: "Payment" });
+    assert.equal(secondPayments.length, 1);
+    assert.equal(secondPayments[0].payment_id, paymentId);
+    assert.equal(secondPayments[0].client_group_id, "client-authorized-2");
+    assert.equal(secondPayments[0].matter_id, null);
+
+    const replayWrite = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: secondCommand,
+      requestId: "request-client-deposit-manual-write-2-replay",
+    });
+    assert.equal(replayWrite.status, 200, JSON.stringify(replayWrite.body));
+    assert.equal(replayWrite.body.outcome, "idempotent_replay");
+    assert.equal(replayWrite.body.item.payment_count, 1);
+    assert.equal(replayWrite.body.item.payments[0].payment_id, paymentId);
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "Payment" }).length, 1);
 
     const finalRead = await financeRoute({
       runtime,
@@ -632,6 +724,526 @@ test("실제 수동 연결·재연결 응답과 GET 결과가 manual_client_reli
     assert.equal(finalModel.state, "data");
     assert.equal(finalModel.rows[0].linkKind, "manual");
     assert.equal(finalModel.rows[0].clientGroupId, "client-authorized-2");
+    assert.equal(
+      repository.get({
+        tenant_id: TENANT,
+        model_type: "BankTransactionClassification",
+        bank_transaction_classification_id: seed.bank_transaction_classification_id,
+      }).rationale_code,
+      "manual_client_relinked",
+    );
+  } finally {
+    repository.close();
+  }
+});
+
+test("기존 Payment가 있어도 새 고객 첫 자동 배분은 Payment 재연결 뒤 생성된다", async () => {
+  const { seed, repository, runtime } = manualRelinkFixture("bank-inflow-model-new-allocation");
+  try {
+    await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-1",
+      expectedStateVersion: 1,
+      idempotencyKey: "client-deposit-new-allocation-001",
+      requestId: "request-client-deposit-new-allocation-1",
+    });
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "BankTransaction",
+      bank_transaction_id: seed.bank_transaction_id,
+    }, { transaction_fingerprint: "new-allocation-transaction-fingerprint" });
+    repository.create(normalizeFeeCommitment({
+      fee_commitment_id: "fee-new-allocation-client",
+      tenant_id: TENANT,
+      client_group_id: "client-authorized-2",
+      opportunity_id: "opportunity-new-allocation-client",
+      matter_id: null,
+      currency: "KRW",
+      agreed_amount: seed.amount,
+      due_date: "2026-08-15",
+      accepted_at: "2026-07-31T06:00:00+09:00",
+      status: "active",
+      source_fee_arrangement_id: null,
+      state_version: 1,
+      created_by: ACTOR,
+      updated_by: ACTOR,
+      reason: "새 고객 배분 fixture",
+    }));
+    const relink = await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-2",
+      expectedStateVersion: 2,
+      idempotencyKey: "client-deposit-new-allocation-002",
+      requestId: "request-client-deposit-new-allocation-2",
+    });
+    assert.equal(relink.body.item.payment_count, 1);
+    assert.equal(relink.body.item.payments[0].client_group_id, "client-authorized-2");
+    const allocations = repository.list({ tenant_id: TENANT, model_type: "ClientDepositAllocation" });
+    assert.equal(allocations.length, 1);
+    assert.equal(allocations[0].client_group_id, "client-authorized-2");
+    assert.equal(allocations[0].status, "active");
+  } finally {
+    repository.close();
+  }
+});
+
+test("실제 수동 재연결 Payment 검증 실패는 분류 변경도 원자적으로 되돌린다", async () => {
+  const { seed, repository, runtime } = manualRelinkFixture("bank-inflow-model-atomic");
+  try {
+    await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-1",
+      expectedStateVersion: 1,
+      idempotencyKey: "client-deposit-atomic-001",
+      requestId: "request-client-deposit-atomic-write-1",
+    });
+    const [payment] = repository.list({ tenant_id: TENANT, model_type: "Payment" });
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: payment.payment_id,
+    }, { amount: 999 });
+
+    const failedRelink = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-atomic-002",
+        decisions: [{
+          bank_transaction_id: seed.bank_transaction_id,
+          category: "client_receipt",
+          client_group_id: "client-authorized-2",
+          expected_state_version: 2,
+        }],
+      },
+      requestId: "request-client-deposit-atomic-write-2",
+    });
+    assert.equal(failedRelink.status, 400, JSON.stringify(failedRelink.body));
+    assert.deepEqual(failedRelink.body.safe_error_codes, ["FINANCE_API_VALIDATION_ERROR"]);
+    const restoredClassification = repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    });
+    assert.equal(restoredClassification.client_group_id, "client-authorized-1");
+    assert.equal(restoredClassification.state_version, 2);
+    assert.equal(restoredClassification.rationale_code, "manual_client_linked");
+    assert.equal(repository.getIdempotency({
+      tenant_id: TENANT,
+      idempotency_key: "client-deposit-atomic-002",
+    }), undefined);
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "Payment" }).length, 1);
+    assert.equal(repository.get({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: payment.payment_id,
+    }).amount, 999);
+  } finally {
+    repository.close();
+  }
+});
+
+test("실제 수동 재연결은 기존 ClientDepositAllocation이 전액 되돌림 상태여도 원자적으로 차단한다", async () => {
+  const { seed, repository, runtime } = manualRelinkFixture("bank-inflow-model-cda-guard");
+  try {
+    await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-1",
+      expectedStateVersion: 1,
+      idempotencyKey: "client-deposit-cda-guard-001",
+      requestId: "request-client-deposit-cda-guard-1",
+    });
+    const [payment] = repository.list({ tenant_id: TENANT, model_type: "Payment" });
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "BankTransaction",
+      bank_transaction_id: seed.bank_transaction_id,
+    }, { transaction_fingerprint: "cda-guard-transaction-fingerprint" });
+    repository.create(normalizeFeeCommitment({
+      fee_commitment_id: "fee-cda-guard-old",
+      tenant_id: TENANT,
+      client_group_id: "client-authorized-1",
+      opportunity_id: "opportunity-cda-guard-old",
+      matter_id: null,
+      currency: "KRW",
+      agreed_amount: seed.amount,
+      due_date: "2026-08-15",
+      accepted_at: "2026-07-31T06:00:00+09:00",
+      status: "active",
+      source_fee_arrangement_id: null,
+      state_version: 1,
+      created_by: ACTOR,
+      updated_by: ACTOR,
+      reason: "CDA guard fixture",
+    }));
+    const allocation = normalizeClientDepositAllocation({
+      client_deposit_allocation_id: "allocation-cda-guard-reversed",
+      tenant_id: TENANT,
+      client_group_id: "client-authorized-1",
+      bank_transaction_id: seed.bank_transaction_id,
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+      fee_commitment_id: "fee-cda-guard-old",
+      currency: "KRW",
+      allocated_amount: seed.amount,
+      reversed_amount: seed.amount,
+      refund_reversed_amount: 0,
+      adjustment_reversed_amount: seed.amount,
+      allocation_source: "automatic",
+      manual_lock: false,
+      state_version: 2,
+      allocated_at: "2026-07-31T06:30:00+09:00",
+      created_by: ACTOR,
+      updated_by: ACTOR,
+      reason: "기존 배분 전액 되돌림",
+    });
+    repository.create(allocation);
+    const storedAllocation = repository.get({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+      client_deposit_allocation_id: allocation.client_deposit_allocation_id,
+    });
+    const beforeClassification = repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    });
+
+    const failedRelink = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-cda-guard-002",
+        decisions: [{
+          bank_transaction_id: seed.bank_transaction_id,
+          category: "client_receipt",
+          client_group_id: "client-authorized-2",
+          expected_state_version: 2,
+        }],
+      },
+      requestId: "request-client-deposit-cda-guard-2",
+    });
+    assert.equal(failedRelink.status, 409, JSON.stringify(failedRelink.body));
+    assert.deepEqual(failedRelink.body.safe_error_codes, ["FINANCE_DEPOSIT_ALLOCATION_STATE_INVALID"]);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    }), beforeClassification);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "ClientDepositAllocation",
+      client_deposit_allocation_id: allocation.client_deposit_allocation_id,
+    }), storedAllocation);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: payment.payment_id,
+    }), payment);
+    assert.equal(repository.getIdempotency({
+      tenant_id: TENANT,
+      idempotency_key: "client-deposit-cda-guard-002",
+    }), undefined);
+  } finally {
+    repository.close();
+  }
+});
+
+test("실제 수동 재연결은 활성 PaymentAllocation이 있으면 Payment와 분류를 변경하지 않는다", async () => {
+  const { seed, repository, runtime } = manualRelinkFixture("bank-inflow-model-payment-guard");
+  try {
+    await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-1",
+      expectedStateVersion: 1,
+      idempotencyKey: "client-deposit-payment-guard-001",
+      requestId: "request-client-deposit-payment-guard-1",
+    });
+    const [payment] = repository.list({ tenant_id: TENANT, model_type: "Payment" });
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: payment.payment_id,
+    }, { matter_id: "matter-payment-guard-old" });
+    const posted = allocatePayment({
+      repository,
+      allocation: {
+        payment_allocation_id: "payment-allocation-guard",
+        tenant_id: TENANT,
+        payment_id: payment.payment_id,
+        allocation_type: "direct_fee",
+        matter_id: "matter-payment-guard-old",
+        client_group_id: "client-authorized-1",
+        amount: 500,
+        currency: "KRW",
+        allocated_at: "2026-07-31T07:00:00+09:00",
+      },
+      actor_id: ACTOR,
+      idempotency_key: "payment-allocation-guard-001",
+    });
+    const beforeClassification = repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    });
+    const failedRelink = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-payment-guard-002",
+        decisions: [{
+          bank_transaction_id: seed.bank_transaction_id,
+          category: "client_receipt",
+          client_group_id: "client-authorized-2",
+          expected_state_version: 2,
+        }],
+      },
+      requestId: "request-client-deposit-payment-guard-2",
+    });
+    assert.equal(failedRelink.status, 409, JSON.stringify(failedRelink.body));
+    assert.deepEqual(failedRelink.body.safe_error_codes, ["FINANCE_DEPOSIT_ALLOCATION_STATE_INVALID"]);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    }), beforeClassification);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: payment.payment_id,
+    }), posted.payment);
+    assert.equal(repository.get({
+      tenant_id: TENANT,
+      model_type: "PaymentAllocation",
+      payment_allocation_id: "payment-allocation-guard",
+    }).status, "posted");
+    assert.equal(repository.getIdempotency({
+      tenant_id: TENANT,
+      idempotency_key: "client-deposit-payment-guard-002",
+    }), undefined);
+  } finally {
+    repository.close();
+  }
+});
+
+test("실제 수동 연결은 Matter 존재·고객 소유·객체 ACL을 모두 확인하고 실패 시 쓰지 않는다", async () => {
+  let matterRows = [];
+  const matterRepository = {
+    list() {
+      return matterRows;
+    },
+  };
+  const { seed, repository, runtime } = manualRelinkFixture(
+    "bank-inflow-model-matter-guard",
+    { matterRepository },
+  );
+  const decision = {
+    bank_transaction_id: seed.bank_transaction_id,
+    category: "client_receipt",
+    client_group_id: "client-authorized-1",
+    matter_id: "matter-client-deposit-guard",
+    expected_state_version: 1,
+  };
+  const classificationBefore = repository.get({
+    tenant_id: TENANT,
+    model_type: "BankTransactionClassification",
+    bank_transaction_classification_id: seed.bank_transaction_classification_id,
+  });
+  try {
+    const missing = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-matter-guard-missing",
+        decisions: [decision],
+      },
+      requestId: "request-client-deposit-matter-guard-missing",
+    });
+    assert.equal(missing.status, 400, JSON.stringify(missing.body));
+    assert.deepEqual(missing.body.safe_error_codes, ["FINANCE_CLIENT_LINK_INVALID"]);
+
+    matterRows = [{
+      model_type: "Matter",
+      tenant_id: TENANT,
+      matter_id: decision.matter_id,
+      client_group_id: "client-authorized-2",
+      status: "open",
+    }];
+    const wrongOwner = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-matter-guard-owner",
+        decisions: [decision],
+      },
+      requestId: "request-client-deposit-matter-guard-owner",
+    });
+    assert.equal(wrongOwner.status, 400, JSON.stringify(wrongOwner.body));
+    assert.deepEqual(wrongOwner.body.safe_error_codes, ["FINANCE_CLIENT_LINK_INVALID"]);
+
+    matterRows = [{ ...matterRows[0], client_group_id: "client-authorized-1" }];
+    const nonCanonical = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-matter-guard-whitespace",
+        decisions: [{
+          ...decision,
+          matter_id: ` ${decision.matter_id} `,
+        }],
+      },
+      requestId: "request-client-deposit-matter-guard-whitespace",
+    });
+    assert.equal(nonCanonical.status, 400, JSON.stringify(nonCanonical.body));
+    assert.deepEqual(nonCanonical.body.safe_error_codes, ["FINANCE_API_VALIDATION_ERROR"]);
+    const denied = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      context: {
+        ...permissionContext(),
+        object_acl: [{
+          id: "deny-matter-client-deposit-guard",
+          effect: "deny",
+          principal_id: ACTOR,
+          resource_id: decision.matter_id,
+          action: "matter:read",
+        }],
+      },
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-matter-guard-acl",
+        decisions: [decision],
+      },
+      requestId: "request-client-deposit-matter-guard-acl",
+    });
+    assert.equal(denied.status, 403, JSON.stringify(denied.body));
+    assert.deepEqual(denied.body.safe_error_codes, ["FINANCE_UNAUTHORIZED_OMISSION"]);
+    assert.deepEqual(repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    }), classificationBefore);
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "Payment" }).length, 0);
+    for (const idempotencyKey of [
+      "client-deposit-matter-guard-missing",
+      "client-deposit-matter-guard-owner",
+      "client-deposit-matter-guard-whitespace",
+      "client-deposit-matter-guard-acl",
+    ]) {
+      assert.equal(repository.getIdempotency({ tenant_id: TENANT, idempotency_key: idempotencyKey }), undefined);
+    }
+    const linked = await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-1",
+      expectedStateVersion: 1,
+      matterId: decision.matter_id,
+      idempotencyKey: "client-deposit-matter-guard-allowed",
+      requestId: "request-client-deposit-matter-guard-allowed",
+    });
+    assert.equal(linked.body.item.payments[0].matter_id, decision.matter_id);
+    assert.equal(repository.get({
+      tenant_id: TENANT,
+      model_type: "BankTransactionClassification",
+      bank_transaction_classification_id: seed.bank_transaction_classification_id,
+    }).matter_id, decision.matter_id);
+  } finally {
+    repository.close();
+  }
+});
+
+test("표현된 legacy PaymentMatch와 되돌린 PaymentAllocation은 재연결을 영구 차단하지 않는다", async () => {
+  const { seed, repository, runtime } = manualRelinkFixture("bank-inflow-model-match-reversal");
+  try {
+    await reviewClientReceipt({
+      runtime,
+      seed,
+      clientGroupId: "client-authorized-1",
+      expectedStateVersion: 1,
+      idempotencyKey: "client-deposit-match-reversal-001",
+      requestId: "request-client-deposit-match-reversal-1",
+    });
+    const [payment] = repository.list({ tenant_id: TENANT, model_type: "Payment" });
+    repository.update({
+      tenant_id: TENANT,
+      model_type: "Payment",
+      payment_id: payment.payment_id,
+    }, { matter_id: "matter-match-reversal-old" });
+    repository.create({
+      model_type: "Invoice",
+      invoice_id: "invoice-represented",
+      tenant_id: TENANT,
+      matter_id: "matter-match-reversal-old",
+      client_group_id: "client-authorized-1",
+      amount_due: 500,
+      amount_paid: 0,
+      currency: "KRW",
+      status: "issued",
+    });
+    const matched = matchPaymentToInvoice({
+      repository,
+      match: {
+        payment_match_id: "legacy-match-represented",
+        tenant_id: TENANT,
+        payment_id: payment.payment_id,
+        invoice_id: "invoice-represented",
+        amount: 500,
+        currency: "KRW",
+        matched_at: "2026-07-31T07:00:00+09:00",
+      },
+      actor_id: ACTOR,
+      idempotency_key: "legacy-match-represented-001",
+    });
+    const reversed = reversePaymentAllocation({
+      repository,
+      reversal: {
+        tenant_id: TENANT,
+        payment_allocation_id: "allocation-represented-reversal",
+        reverses_payment_allocation_id: matched.payment_allocation.payment_allocation_id,
+        reason_code: "test_reversal",
+      },
+      actor_id: ACTOR,
+      idempotency_key: "legacy-match-represented-reversal-001",
+    });
+    assert.equal(reversed.reversed_allocation.status, "reversed");
+    const relink = await financeRoute({
+      runtime,
+      pathname: "/api/finance/bank-classifications/review",
+      method: "POST",
+      body: {
+        ...ROUTE_CONTEXT,
+        idempotency_key: "client-deposit-match-reversal-002",
+        decisions: [{
+          bank_transaction_id: seed.bank_transaction_id,
+          category: "client_receipt",
+          client_group_id: "client-authorized-2",
+          expected_state_version: 2,
+        }],
+      },
+      requestId: "request-client-deposit-match-reversal-2",
+    });
+    assert.equal(relink.status, 200, JSON.stringify(relink.body));
+    assert.equal(relink.body.item.payment_count, 1);
+    assert.equal(relink.body.item.payments[0].payment_id, payment.payment_id);
+    assert.equal(relink.body.item.payments[0].client_group_id, "client-authorized-2");
+    assert.equal(repository.list({ tenant_id: TENANT, model_type: "Payment" }).length, 1);
   } finally {
     repository.close();
   }

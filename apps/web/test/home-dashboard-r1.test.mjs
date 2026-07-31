@@ -229,9 +229,9 @@ function wp5DateKey(offset = 0) {
 }
 
 function wp5MonthKey(offset = 0) {
-  const now = new Date();
-  const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  const seoulNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const date = new Date(Date.UTC(seoulNow.getUTCFullYear(), seoulNow.getUTCMonth() + offset, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 function visibleLineCount(text, expected) {
@@ -579,9 +579,9 @@ function wp5ApiBody(pathname, searchParams, state) {
   }
   if (pathname === "/api/matters") {
     return list("dashboard-matters", [
-      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
+      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: new Date().toISOString() },
       { matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", matter_type_english: "LIT", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) },
-      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: wp5IsoDay(-2) }
+      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: new Date().toISOString() }
     ]);
   }
   if (pathname === "/api/matters/recently-viewed") {
@@ -591,7 +591,7 @@ function wp5ApiBody(pathname, searchParams, state) {
     return list("dashboard-intakes", [{ intake_request_id: "intake-dashboard-1", display_name: "고객 A", requested_scope_summary: "신규 자문 수임", status: "review_required", requested_at: wp5IsoDay(-1) }]);
   }
   if (pathname === "/api/crm/accounts") {
-    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: new Date().toISOString() }]);
   }
   if (pathname === "/api/crm/leads") {
     return list("dashboard-leads", [{ lead_id: "lead-dashboard-1", display_name: "담당자 unsafe-dashboard@amic.kr", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
@@ -638,7 +638,7 @@ function wp5ApiBody(pathname, searchParams, state) {
   if (pathname === "/api/analytics/finance/monthly") {
     return {
       request_id: "wp-fin-3-monthly", outcome: "passed",
-      items: [{ month: wp5DateKey().slice(0, 7), currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 150 : 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
+      items: [{ month: wp5MonthKey(), currency: "KRW", billed_amount: 900, collected_amount: 400, invoice_collected_amount: 250, direct_fee_amount: 150, collected_revenue_amount: 400, unallocated_receipt_amount: 75, advance_trust_amount: 50, other_non_revenue_amount: 25, revenue_amount: recognitionBasis === "collected" ? 400 : 900, recognition_basis: recognitionBasis, matter_cost: 250, processed_cost: 250, recoverable_cost: 250, ar_balance: 500, contribution_amount: recognitionBasis === "collected" ? 150 : 650, unlinked_amount: 50, transaction_count: 7, date_inferred_count: 1 }],
       source_statuses: [], safe_error_codes: [], audit_hint_ref: "wp-fin-3-monthly-audit", count_leak_prevented: true, raw_source_payload_included: false, production_ready_claim: false
     };
   }
@@ -691,7 +691,7 @@ function wp5ApiBody(pathname, searchParams, state) {
           { category: "bank_postage_fee", label: "수수료·우편", amount: 46_390, transaction_count: 11 }
         ],
         monthly: [{
-          month: wp5DateKey().slice(0, 7),
+          month: wp5MonthKey(),
           currency: "KRW",
           total_inflow: 159_443_060,
           total_outflow: 227_166_172,

@@ -1,4 +1,13 @@
 import { appendFinanceAuditEvent } from "../../billing/src/finance-audit.js";
+import { listActivePaymentAllocations } from "./payment-allocation-service.js";
+
+const EXCLUDED_PAYMENT_MATCH_STATUSES = new Set([
+  "cancelled",
+  "canceled",
+  "void",
+  "rejected",
+  "deleted",
+]);
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -51,6 +60,7 @@ export function confirmBankReceipt({
   payment = {},
   actor_id,
   idempotency_key,
+  allow_rebind = false,
 } = {}) {
   const tenantId = requiredString(payment, "tenant_id");
   const bankTransactionId = requiredString({ bank_transaction_id }, "bank_transaction_id");
@@ -65,6 +75,143 @@ export function confirmBankReceipt({
   if (existing) {
     const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key });
     if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
+    if (allow_rebind) {
+      return repository.transaction((tx) => {
+        const replayInside = tx.getIdempotency({
+          tenant_id: tenantId,
+          idempotency_key,
+        });
+        if (replayInside) return Object.freeze({ ...replayInside.response, idempotent_replay: true });
+        const currentTransaction = tx.get({
+          tenant_id: tenantId,
+          model_type: "BankTransaction",
+          bank_transaction_id: bankTransactionId,
+        });
+        const current = tx.get({
+          tenant_id: tenantId,
+          model_type: "Payment",
+          payment_id: existing.payment_id,
+        });
+        if (
+          !currentTransaction
+          || currentTransaction.direction !== "inflow"
+          || !current
+          || current.bank_transaction_id !== bankTransactionId
+        ) {
+          throw new Error("BankTransaction Payment binding changed during relink");
+        }
+        const amount = Number(currentTransaction.amount);
+        const currency = currentTransaction.currency ?? "KRW";
+        if (
+          Number(current.amount) !== amount
+          || current.currency !== currency
+        ) {
+          throw new Error("Existing bank Payment does not reconcile with its BankTransaction");
+        }
+        const nextClientGroupId = payment.client_group_id
+          ?? current.client_group_id
+          ?? null;
+        const nextMatterId = Object.hasOwn(payment, "matter_id")
+          ? payment.matter_id
+          : current.matter_id ?? null;
+        const bindingChanged = nextClientGroupId !== (current.client_group_id ?? null)
+          || nextMatterId !== (current.matter_id ?? null);
+        const clientBindingChanged = nextClientGroupId
+          !== (current.client_group_id ?? null);
+        if (clientBindingChanged) {
+          const clientDepositAllocations = tx.list({
+            tenant_id: tenantId,
+            model_type: "ClientDepositAllocation",
+            bank_transaction_id: bankTransactionId,
+          });
+          if (clientDepositAllocations.length > 0) {
+            throw Object.assign(
+              new Error("Bank receipt cannot change client while deposit allocations exist"),
+              {
+                safe_error_code: "FINANCE_DEPOSIT_ALLOCATION_STATE_INVALID",
+                status: 409,
+              },
+            );
+          }
+        }
+        if (bindingChanged) {
+          const activePaymentAllocations = listActivePaymentAllocations({
+            repository: tx,
+            tenant_id: tenantId,
+            payment_id: current.payment_id,
+          });
+          const representedPaymentMatches = new Set(
+            tx
+              .list({
+                tenant_id: tenantId,
+                model_type: "PaymentAllocation",
+                payment_id: current.payment_id,
+              })
+              .map((row) => row.source_payment_match_id)
+              .filter((paymentMatchId) => typeof paymentMatchId === "string" && paymentMatchId.trim() !== ""),
+          );
+          const activePaymentMatches = tx
+            .list({
+              tenant_id: tenantId,
+              model_type: "PaymentMatch",
+              payment_id: current.payment_id,
+            })
+            .filter((row) => !EXCLUDED_PAYMENT_MATCH_STATUSES.has(
+              String(row.status ?? "").toLowerCase(),
+            ))
+            .filter((row) => !representedPaymentMatches.has(row.payment_match_id));
+          if (activePaymentAllocations.length > 0 || activePaymentMatches.length > 0) {
+            throw Object.assign(
+              new Error("Bank receipt cannot be rebound while active payment allocations exist"),
+              {
+                safe_error_code: "FINANCE_DEPOSIT_ALLOCATION_STATE_INVALID",
+                status: 409,
+              },
+            );
+          }
+        }
+        const updated = tx.update({
+          tenant_id: tenantId,
+          model_type: "Payment",
+          payment_id: current.payment_id,
+        }, {
+          client_group_id: nextClientGroupId,
+          matter_id: nextMatterId,
+        });
+        const auditEvent = appendFinanceAuditEvent({
+          repository: tx,
+          event: {
+            tenant_id: tenantId,
+            actor_id,
+            action: "payment.rebind",
+            object_type: "Payment",
+            object_id: updated.payment_id,
+            idempotency_key,
+            metadata: {
+              bank_transaction_id: bankTransactionId,
+              previous_client_group_id: current.client_group_id ?? null,
+              client_group_id: updated.client_group_id ?? null,
+              previous_matter_id: current.matter_id ?? null,
+              matter_id: updated.matter_id ?? null,
+              raw_source_payload_included: false,
+            },
+          },
+        });
+        const response = Object.freeze({
+          outcome: "relinked",
+          payment: updated,
+          audit_event: auditEvent,
+          idempotent_replay: false,
+        });
+        tx.recordIdempotency({
+          tenant_id: tenantId,
+          idempotency_key,
+          operation: "payment_rebind",
+          response,
+        });
+        return response;
+      });
+    }
     throw new Error("BankTransaction already has a Payment");
   }
   const classification = repository.list({

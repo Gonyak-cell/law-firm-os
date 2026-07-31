@@ -1,7 +1,7 @@
 {
   "schema_version": "lawos.people-implementation-ledger.v2",
-  "source_sha": "4bd04b22f6cfc91aca72eae9c494100d25a3e6fd",
-  "captured_at": "2026-07-31T13:12:05.990Z",
+  "source_sha": "7a3566646233249dd86f2ca510b4f47135de2e3d",
+  "captured_at": "2026-07-31T18:26:09.779Z",
   "scope": "People sidebar routes visible to a user with all current People permissions",
   "classification": {
     "existing": "A dedicated screen, client call, API route, domain owner, and regression test already exist.",
@@ -14,9 +14,9 @@
     "renderer_import_graph_superset": "All transitive HRX client imports owned by the mounted renderer; individual controls may narrow reachability."
   },
   "provenance": {
-    "branch": "codex/people-main-integration-20260731",
-    "base_sha": "34d16954f54a188f93b087e3bc4ad1bce99c049f",
-    "head_sha": "4bd04b22f6cfc91aca72eae9c494100d25a3e6fd",
+    "branch": "codex/client-operations-v2-implementation-20260730",
+    "base_sha": "3af9d6b0cca510dd957c4ebc3112aad61d1191db",
+    "head_sha": "7a3566646233249dd86f2ca510b4f47135de2e3d",
     "head_semantics": "captured_pre_generation_head",
     "raw_argv": [
       "node",
@@ -29,7 +29,7 @@
     "inventory_sha256": "e4c7551e9429b7cb583f3c4dfac2280d2768257b0b950a88779da35c01bbb974",
     "manual_claims_sha256": "259b7f14133191a09d6372ec6aef0cceaed306c9caf3e801b95c7588e0fb7e41",
     "runtime_source_fingerprint_sha256": "37479889767822fb617dc3071b8db0e9b13bd26dec50dff52c117ff24a3e4e19",
-    "source_fingerprint_sha256": "508423e87fd88ae3b9507e7d58b489c3db1d1934295cb735bb8db0a1e9d60e68",
+    "source_fingerprint_sha256": "f6551f59d42298ccf2f8e62d87715d1c5da544325f42a9e99deff39f984c31b4",
     "source_files": [
       "apps/api/src/routes/hrx/route-policy-map.js",
       "apps/api/test/hrx-runtime-api.test.js",

@@ -327,14 +327,18 @@ export function App() {
     } else {
       params.delete("employee_id");
     }
-    const peoplePeriod = typeof routeContext.period === "string" ? routeContext.period : "";
-    if (nextView === "people" && /^\d{4}-(0[1-9]|1[0-2])$/.test(peoplePeriod)) {
-      params.set("period", peoplePeriod);
+    const requestedPeriod = typeof routeContext.period === "string" ? routeContext.period : "";
+    const peoplePeriod = nextView === "people" && /^\d{4}-(0[1-9]|1[0-2])$/.test(requestedPeriod);
+    const clientPeriod = nextView === "clients" && /^(?:month|quarter|year)$/.test(requestedPeriod);
+    if (peoplePeriod || clientPeriod) {
+      params.set("period", requestedPeriod);
     } else {
       params.delete("period");
     }
     if (nextView !== "people" || !["people-overview", "people-members"].includes(section)) {
       params.delete("employee");
+    }
+    if (nextView === "people" && !["people-overview", "people-members"].includes(section)) {
       params.delete("tab");
     }
     const hash = section ? `#${encodeURIComponent(section)}` : "";
