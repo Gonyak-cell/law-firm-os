@@ -229,10 +229,9 @@ test("Outlook connect keeps begin DTO, returns through the People route, and com
   }
 });
 
-test("Outlook callback rejects state mismatch without completing and supports a fresh retry", async () => {
+test("Outlook callback lets the server reject state mismatch and supports a fresh retry", async () => {
   const harness = await startPeopleOverviewHarness();
   try {
-    let validState = false;
     const page = await openPeopleOverviewPage({
       ...harness,
       employeeId: "emp-1",
@@ -242,38 +241,85 @@ test("Outlook callback rejects state mismatch without completing and supports a 
       outlookAuthorizeUrl: microsoftAuthorizeUrl,
     });
     const actions = outlookPostActions(page);
-    await page.route("https://login.microsoftonline.com/**", (route) => route.fulfill({
-      status: 200,
-      contentType: "text/html",
-      body: `<script>location.replace(${JSON.stringify(peopleOutlookCallbackUrl(harness.baseUrl, {
-        code: "authorization-code-2",
-        state: validState ? "oauth-state-1" : "oauth-state-mismatch",
-      }))})</script>`,
-    }));
+    await page.addInitScript(() => {
+      window.matterSession = {
+        async openOutlookAuthorization() {
+          return { opened: true };
+        },
+        onAuthCallbackDeepLink(handler) {
+          window.__deliverOutlookCallback = handler;
+          return () => {
+            delete window.__deliverOutlookCallback;
+          };
+        },
+      };
+    });
+    await page.reload({ waitUntil: "networkidle" });
 
     await page.locator('[data-outlook-connection-state="not_connected"]')
       .getByRole("button", { name: "연결", exact: true })
       .click();
+    await page.locator('[data-outlook-connection-state="consent_pending"]').waitFor();
+    const pendingStorage = await page.evaluate(() => {
+      const raw = sessionStorage.getItem("lawos.people.outlook-oauth.pending.v1");
+      return raw ? { raw, value: JSON.parse(raw) } : null;
+    });
+    assert.deepEqual(Object.keys(pendingStorage?.value ?? {}).sort(), ["schema_version", "started_at"]);
+    assert.equal(pendingStorage?.raw.includes("employee_id"), false);
+    assert.equal(pendingStorage?.raw.includes("employeeId"), false);
+    assert.equal(pendingStorage?.raw.includes("emp-1"), false);
+    assert.equal(pendingStorage?.raw.includes("oauth-state-1"), false);
+    assert.equal(pendingStorage?.raw.includes("oauth-state-mismatch"), false);
+    await page.evaluate(() => window.__deliverOutlookCallback({
+      type: "auth_callback",
+      routeOnly: true,
+      code: "authorization-code-2",
+      state: "oauth-state-mismatch",
+    }));
     await page.locator('[data-outlook-oauth-notice="error"]').waitFor();
-    assert.equal(actions.filter((item) => item.action === "complete").length, 0);
+    assert.equal(actions.filter((item) => item.action === "complete").length, 1);
+    assert.deepEqual(actions.at(-1), {
+      action: "complete",
+      authorization_code: "authorization-code-2",
+      state_ref: "oauth-state-mismatch",
+    });
     assert.equal(new URL(page.url()).searchParams.has("code"), false);
     assert.equal(
-      await page.evaluate(() => sessionStorage.getItem("lawos.people.outlook-oauth.pending.v1") !== null),
-      true,
+      await page.evaluate(() => sessionStorage.getItem("lawos.people.outlook-oauth.pending.v1")),
+      null,
     );
 
+    await page.evaluate(() => sessionStorage.setItem(
+      "lawos.people.outlook-oauth.pending.v1",
+      JSON.stringify({
+        schema_version: "lawos.people.outlook-oauth-pending.v1",
+        started_at: Date.now(),
+      }),
+    ));
     const pollutedCallback = new URL(page.url());
     pollutedCallback.searchParams.set("code", "authorization-code-polluted");
     pollutedCallback.searchParams.append("state", "oauth-state-1");
     pollutedCallback.searchParams.append("state", "oauth-state-mismatch");
     await page.goto(pollutedCallback.toString(), { waitUntil: "networkidle" });
-    await page.getByText("연결 요청을 확인하지 못했습니다. 다시 연결해 주세요.", { exact: true }).waitFor();
-    assert.equal(actions.filter((item) => item.action === "complete").length, 0);
-
-    validState = true;
-    await page.getByRole("button", { name: "다시 시도", exact: true }).click();
-    await page.locator('[data-outlook-connection-state="connected"]').waitFor();
+    await page.locator('[data-outlook-oauth-notice="error"]').waitFor();
     assert.equal(actions.filter((item) => item.action === "complete").length, 1);
+
+    const retryResponse = page.waitForResponse((response) => (
+      response.url().includes("outlook-connection")
+      && response.request().method() === "POST"
+      && response.status() === 200
+    ));
+    await page.getByRole("button", { name: "다시 시도", exact: true }).click();
+    await retryResponse;
+    await page.locator('[data-outlook-connection-state="consent_pending"]').waitFor();
+    await page.evaluate(() => window.__deliverOutlookCallback({
+      type: "auth_callback",
+      routeOnly: true,
+      code: "authorization-code-2",
+      state: "oauth-state-1",
+    }));
+    await page.locator('[data-outlook-connection-state="connected"]').waitFor();
+    assert.equal(actions.filter((item) => item.action === "complete").length, 2);
     await page.close();
   } finally {
     await harness.close();
@@ -432,8 +478,6 @@ test("expired Outlook callback state is cleared without calling complete", async
     await page.evaluate(() => {
       sessionStorage.setItem("lawos.people.outlook-oauth.pending.v1", JSON.stringify({
         schema_version: "lawos.people.outlook-oauth-pending.v1",
-        employee_id: "emp-1",
-        state_ref: "oauth-state-1",
         started_at: Date.now() - (11 * 60 * 1000),
       }));
     });

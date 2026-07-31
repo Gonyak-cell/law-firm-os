@@ -80,8 +80,9 @@ test("lifecycle board shows the fixed template version, due dates, dependencies,
     assert.equal(await accountRow.getByRole("button", { name: "완료", exact: true }).isDisabled(), true);
     const documentsRow = page.locator(".lifecycle-task-row").filter({ hasText: "입사 서류 확인" });
     await documentsRow.getByRole("button", { name: "완료", exact: true }).click();
-    await accountRow.getByRole("button", { name: "완료", exact: true }).waitFor({ state: "visible" });
-    assert.equal(await accountRow.getByRole("button", { name: "완료", exact: true }).isDisabled(), false);
+    const accountCompleteButton = accountRow.getByRole("button", { name: "완료", exact: true });
+    await accountCompleteButton.click({ trial: true });
+    assert.equal(await accountCompleteButton.isDisabled(), false);
 
     const handoverRow = page.locator(".lifecycle-task-row").filter({ hasText: "담당 사건 인수인계" });
     await handoverRow.getByRole("button", { name: "다시 시도", exact: true }).click();

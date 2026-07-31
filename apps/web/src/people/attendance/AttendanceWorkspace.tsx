@@ -55,7 +55,12 @@ const EMPTY_FORM = {
   clock_in: "",
   clock_out: ""
 };
-const attendanceDateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "numeric", day: "numeric" });
+const attendanceDateFormatter = new Intl.DateTimeFormat("ko-KR", {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  timeZone: "Asia/Seoul"
+});
 const attendanceTimeFormatter = new Intl.DateTimeFormat("ko-KR", {
   hour: "2-digit",
   minute: "2-digit",

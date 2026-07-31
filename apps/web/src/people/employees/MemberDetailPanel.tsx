@@ -30,8 +30,6 @@ type OutlookOAuthCallback = {
 };
 type OutlookOAuthPending = {
   schema_version: "lawos.people.outlook-oauth-pending.v1";
-  employee_id: string;
-  state_ref: string;
   started_at: number;
 };
 
@@ -43,7 +41,6 @@ const TABS: ReadonlyArray<{ id: MemberDetailTab; label: string }> = [
 const OUTLOOK_OAUTH_PENDING_STORAGE_KEY = "lawos.people.outlook-oauth.pending.v1";
 const OUTLOOK_OAUTH_PENDING_SCHEMA_VERSION = "lawos.people.outlook-oauth-pending.v1";
 const OUTLOOK_OAUTH_CALLBACK_MAX_AGE_MS = 10 * 60 * 1000;
-const OUTLOOK_OAUTH_STATE_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
 const OUTLOOK_OAUTH_CALLBACK_KEYS = [
   "code",
   "state",
@@ -78,10 +75,6 @@ function readOutlookOAuthPending(): OutlookOAuthPending | null {
     const value = JSON.parse(window.sessionStorage.getItem(OUTLOOK_OAUTH_PENDING_STORAGE_KEY) ?? "null");
     if (
       value?.schema_version !== OUTLOOK_OAUTH_PENDING_SCHEMA_VERSION
-      || typeof value.employee_id !== "string"
-      || !value.employee_id
-      || typeof value.state_ref !== "string"
-      || !OUTLOOK_OAUTH_STATE_PATTERN.test(value.state_ref)
       || !Number.isFinite(value.started_at)
     ) return null;
     return value as OutlookOAuthPending;
@@ -90,13 +83,11 @@ function readOutlookOAuthPending(): OutlookOAuthPending | null {
   }
 }
 
-function writeOutlookOAuthPending(employeeId: string, stateRef: string): boolean {
-  if (typeof window === "undefined" || !employeeId || !OUTLOOK_OAUTH_STATE_PATTERN.test(stateRef)) return false;
+function writeOutlookOAuthPending(): boolean {
+  if (typeof window === "undefined") return false;
   try {
     window.sessionStorage.setItem(OUTLOOK_OAUTH_PENDING_STORAGE_KEY, JSON.stringify({
       schema_version: OUTLOOK_OAUTH_PENDING_SCHEMA_VERSION,
-      employee_id: employeeId,
-      state_ref: stateRef,
       started_at: Date.now(),
     } satisfies OutlookOAuthPending));
     return true;
@@ -568,6 +559,8 @@ export function MemberDetailPanel({
   const [outlookBusy, setOutlookBusy] = useState(false);
   const [outlookNotice, setOutlookNotice] = useState<OutlookOAuthNotice | null>(null);
   const outlookCallbackRunningRef = useRef(false);
+  const employeeIdRef = useRef(employeeId);
+  employeeIdRef.current = employeeId;
 
   const refreshOutlookConnection = () => {
     if (!outlookCalendarEnabled) return;
@@ -586,7 +579,7 @@ export function MemberDetailPanel({
       setOutlookConnection(next);
       const authorization = next.authorization;
       if (authorization) {
-        if (!writeOutlookOAuthPending(employeeId, authorization.state_ref)) {
+        if (!writeOutlookOAuthPending()) {
           setOutlookNotice({
             kind: "error",
             message: "연결 요청을 안전하게 저장하지 못했습니다. 다시 시도해 주세요.",
@@ -651,13 +644,14 @@ export function MemberDetailPanel({
     if (!outlookCalendarEnabled || outlookCallbackRunningRef.current) return;
     const pending = readOutlookOAuthPending();
     if (!pending) return;
+    const callbackEmployeeId = employeeIdRef.current;
     outlookCallbackRunningRef.current = true;
     setOutlookBusy(true);
     const pendingAge = Date.now() - pending.started_at;
     if (pendingAge < 0 || pendingAge > OUTLOOK_OAUTH_CALLBACK_MAX_AGE_MS) {
       clearOutlookOAuthPending();
-      const current = await fetchPeopleOutlookConnection(pending.employee_id);
-      if (pending.employee_id === employeeId) setOutlookConnection(current);
+      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
+      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
       setOutlookNotice({
         kind: "error",
         message: "연결 요청 시간이 지났습니다. 다시 연결해 주세요.",
@@ -667,25 +661,16 @@ export function MemberDetailPanel({
       outlookCallbackRunningRef.current = false;
       return;
     }
-    if (callback.state !== pending.state_ref) {
-      const current = await fetchPeopleOutlookConnection(pending.employee_id);
-      if (pending.employee_id === employeeId) setOutlookConnection(current);
-      setOutlookNotice({
-        kind: "error",
-        message: "연결 요청을 확인하지 못했습니다. 다시 연결해 주세요.",
-        retry: true,
-      });
-      setOutlookBusy(false);
-      outlookCallbackRunningRef.current = false;
-      return;
-    }
     if (callback.error) {
       clearOutlookOAuthPending();
-      const current = await fetchPeopleOutlookConnection(pending.employee_id);
-      if (pending.employee_id === employeeId) setOutlookConnection(current);
+      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
+      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
+      const cancelled = callback.error === "access_denied";
       setOutlookNotice({
-        kind: "cancelled",
-        message: "Outlook 연결을 취소했습니다. 다시 시도할 수 있습니다.",
+        kind: cancelled ? "cancelled" : "error",
+        message: cancelled
+          ? "Outlook 연결을 취소했습니다. 다시 시도할 수 있습니다."
+          : "연결 요청을 확인하지 못했습니다. 다시 연결해 주세요.",
         retry: true,
       });
       setOutlookBusy(false);
@@ -693,8 +678,8 @@ export function MemberDetailPanel({
       return;
     }
     if (!callback.code) {
-      const current = await fetchPeopleOutlookConnection(pending.employee_id);
-      if (pending.employee_id === employeeId) setOutlookConnection(current);
+      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
+      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
       setOutlookNotice({
         kind: "error",
         message: "Outlook 인증 코드를 받지 못했습니다. 다시 시도해 주세요.",
@@ -704,16 +689,16 @@ export function MemberDetailPanel({
       outlookCallbackRunningRef.current = false;
       return;
     }
-    const next = await updatePeopleOutlookConnection(pending.employee_id, "complete", {
+    const next = await updatePeopleOutlookConnection(callbackEmployeeId, "complete", {
       authorization_code: callback.code,
       state_ref: callback.state,
     });
     clearOutlookOAuthPending();
     if (next.kind === "data") {
-      if (pending.employee_id === employeeId) {
+      if (callbackEmployeeId === employeeIdRef.current) {
         setOutlookConnection(next);
         setDailyBrief(null);
-        fetchPeopleDailyBrief(employeeId).then(setDailyBrief);
+        fetchPeopleDailyBrief(callbackEmployeeId).then(setDailyBrief);
       }
       setOutlookNotice({
         kind: "success",
@@ -721,11 +706,15 @@ export function MemberDetailPanel({
         retry: false,
       });
     } else {
-      const current = await fetchPeopleOutlookConnection(pending.employee_id);
-      if (pending.employee_id === employeeId) setOutlookConnection(current);
+      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
+      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
+      const stateRejected = next.reason === "OUTLOOK_OAUTH_STATE_INVALID"
+        || next.reason === "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED";
       setOutlookNotice({
         kind: "error",
-        message: "Outlook 연결을 마치지 못했습니다. 다시 시도해 주세요.",
+        message: stateRejected
+          ? "연결 요청을 확인하지 못했습니다. 다시 연결해 주세요."
+          : "Outlook 연결을 마치지 못했습니다. 다시 시도해 주세요.",
         retry: true,
       });
     }
