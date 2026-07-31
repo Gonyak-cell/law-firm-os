@@ -1,7 +1,7 @@
 {
   "schema_version": "lawos.people-implementation-ledger.v2",
-  "source_sha": "41f2141d2bcdcb3a083f7c1caabdb924c258e152",
-  "captured_at": "2026-07-31T12:04:02.848Z",
+  "source_sha": "1d06d1f989623b5d87ae4bf0452f42391a1428fc",
+  "captured_at": "2026-07-31T12:40:39.837Z",
   "scope": "People sidebar routes visible to a user with all current People permissions",
   "classification": {
     "existing": "A dedicated screen, client call, API route, domain owner, and regression test already exist.",
@@ -16,7 +16,7 @@
   "provenance": {
     "branch": "codex/people-main-integration-20260731",
     "base_sha": "34d16954f54a188f93b087e3bc4ad1bce99c049f",
-    "head_sha": "41f2141d2bcdcb3a083f7c1caabdb924c258e152",
+    "head_sha": "1d06d1f989623b5d87ae4bf0452f42391a1428fc",
     "head_semantics": "captured_pre_generation_head",
     "raw_argv": [
       "node",
@@ -28,8 +28,8 @@
     "replay_command_sha256": "4e29d997e65e1e03c793d674d0e2740cb63a8145a8442b8b5d7c3c82ba5f002c",
     "inventory_sha256": "e4c7551e9429b7cb583f3c4dfac2280d2768257b0b950a88779da35c01bbb974",
     "manual_claims_sha256": "259b7f14133191a09d6372ec6aef0cceaed306c9caf3e801b95c7588e0fb7e41",
-    "runtime_source_fingerprint_sha256": "debce8c2a917bfa63724e85555af41d0dc5fdb73071560dd23f667cf561de044",
-    "source_fingerprint_sha256": "fe9da186e113f2aa3ea0aeda1aec5b16d2f07446f43184a3d135cef4f42b8fc8",
+    "runtime_source_fingerprint_sha256": "2fd0e4180958b7df237bbd0f11e36e5e566b5c4b6ed31f1d1940f279de633d38",
+    "source_fingerprint_sha256": "3be45810eb78ceebc0f07154dc7c8ce0606201e3a2e7ef4db104c8d4791179e7",
     "source_files": [
       "apps/api/src/routes/hrx/route-policy-map.js",
       "apps/api/test/hrx-runtime-api.test.js",

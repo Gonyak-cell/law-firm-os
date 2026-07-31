@@ -1,17 +1,17 @@
 {
   "schema_version": "lawos.people-v2-release-candidate.v1",
-  "recorded_at": "2026-07-31T21:05:07+09:00",
+  "recorded_at": "2026-07-31T21:45:09+09:00",
   "scope": "source_merge_candidate_only",
   "base": {
     "ref": "origin/main",
     "commit": "34d16954f54a188f93b087e3bc4ad1bce99c049f"
   },
   "source_candidate": {
-    "commit": "8787e2d2da33c8363a025f41a701644cb35a61bd",
-    "tree": "e3e3d43ac993a8cc4da2187f3cabaf6330a4b77d",
-    "changed_path_count": 401,
-    "name_status_sha256": "6027f32596154353e6dcb6a8ca24fa63694f57cbf39d96eecf8149f05bd44e16",
-    "digest_command": "git diff --name-status -z origin/main..8787e2d2 | shasum -a 256"
+    "commit": "1d06d1f989623b5d87ae4bf0452f42391a1428fc",
+    "tree": "8f4a0513f15d7809f3d511ad04d57a579b33a3b0",
+    "changed_path_count": 403,
+    "name_status_sha256": "e7520e987030e6cec9aaa314adb056f0ea50e0dc2dfd86482c318f1d7a4db9c2",
+    "digest_command": "git diff --name-status -z origin/main..1d06d1f9 | shasum -a 256"
   },
   "verification": {
     "local": [
@@ -52,6 +52,22 @@
         "failed": 0,
         "skipped": 1,
         "note": "Vite 테스트 서버 경합을 막기 위해 공식 진입점을 test-concurrency=1로 고정했다."
+      },
+      {
+        "gate": "outlook_callback_storage_security",
+        "command": "npm --workspace apps/web exec -- node --test --test-concurrency=1 test/people-outlook-state.test.mjs",
+        "result": "pass",
+        "passed": 10,
+        "failed": 0,
+        "note": "브라우저에는 만료 판단용 시작 시각만 저장하고 구성원 ID와 OAuth state는 서버 권위로 검증한다."
+      },
+      {
+        "gate": "ci_timezone_and_async_determinism",
+        "commands": [
+          "TZ=UTC npm --workspace apps/web exec -- node --test --test-concurrency=1 test/people-attendance-workspace.test.mjs",
+          "TZ=UTC npm --workspace apps/web exec -- node --test --test-concurrency=1 test/people-lifecycle-template.test.mjs"
+        ],
+        "result": "pass"
       },
       {
         "gate": "web_typecheck_and_build",
@@ -110,7 +126,8 @@
     ],
     "remote_required": [
       "HRX rollout validation",
-      "JSON PostgreSQL exact-head security"
+      "JSON PostgreSQL exact-head security",
+      "CodeQL"
     ],
     "local_full_api_suite": {
       "result": "not_used_as_local_merge_evidence",
@@ -119,6 +136,7 @@
   },
   "review": {
     "migration_integrity": "approved",
+    "security_and_ci_remediation": "approved",
     "blockers": 0,
     "watch": [
       "people-data-migration.js module size"
@@ -134,8 +152,8 @@
     "external_gate_document": "docs/launch/people-v2-external-gates-and-release-2026-07-31.md"
   },
   "replay": {
-    "verify_candidate_tree": "git show -s --format=%T 8787e2d2",
-    "verify_changed_path_count": "git diff --name-only origin/main..8787e2d2 | wc -l",
-    "verify_changed_path_digest": "git diff --name-status -z origin/main..8787e2d2 | shasum -a 256"
+    "verify_candidate_tree": "git show -s --format=%T 1d06d1f9",
+    "verify_changed_path_count": "git diff --name-only origin/main..1d06d1f9 | wc -l",
+    "verify_changed_path_digest": "git diff --name-status -z origin/main..1d06d1f9 | shasum -a 256"
   }
 }
