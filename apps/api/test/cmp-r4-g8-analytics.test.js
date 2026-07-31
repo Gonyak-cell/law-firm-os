@@ -5,7 +5,10 @@ import { join } from "node:path";
 import test from "node:test";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
-import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
+import {
+  findRegisteredAccountByUserId,
+  MATTER_VAULT_REGISTERED_TENANT_ID,
+} from "../src/matter-vault-account-registry.js";
 import { resolveLawosUserRoleAssignment } from "../src/lawos-role-registry.js";
 import { createAnalyticsRuntimeContext } from "../src/analytics-runtime-context.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
@@ -251,12 +254,18 @@ test("WP-FIN-5 finance analytics require an explicit signed-session scope and au
   const runtime = financeReadModelRuntime();
   const staff = findRegisteredAccountByUserId("user_amic_sypark");
   assert.ok(staff);
+  const signedTenant = staff.tenant_memberships?.[0]?.tenant_id;
+  assert.equal(signedTenant, MATTER_VAULT_REGISTERED_TENANT_ID);
+  assert.notEqual(signedTenant, TENANT);
   await withServer(async (baseUrl) => {
     const denied = await json(baseUrl, `/api/analytics/finance/overview?${BASE_QUERY}`, { account: staff });
     assert.equal(denied.status, 403);
     assert.deepEqual(denied.body.items, []);
     assert.equal(denied.body.count_leak_prevented, true);
-    const audit = runtime.repository.listAudit({ tenant_id: TENANT });
+    const attackerTenantAudit = runtime.repository.listAudit({ tenant_id: TENANT });
+    assert.equal(attackerTenantAudit.length, 0);
+    const audit = runtime.repository.listAudit({ tenant_id: signedTenant });
+    assert.equal(audit.length, 1);
     assert.equal(audit.at(-1).decision, "deny");
     assert.equal(audit.at(-1).reason, "finance_scope_required:analytics.finance.read");
     assert.equal(audit.at(-1).metadata.raw_payload_included, false);

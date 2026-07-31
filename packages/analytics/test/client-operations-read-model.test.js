@@ -509,6 +509,156 @@ test("CL-P4-W01-T01 허용 고객이 없으면 Finance·CRM·Matter 원천을 �
   assert.equal("omitted_count" in result.access_scope, false);
 });
 
+test("CL-P4-W01-T01 ClientGroup ACL은 같은 ID의 다른 resource_type과 충돌하지 않는다", () => {
+  const clientGroupId = "client_acl_resource_type";
+  const masterDataRepository = repository([{
+    model_type: "ClientGroup",
+    tenant_id: TENANT,
+    client_group_id: clientGroupId,
+    display_name: "리소스 타입 ACL 고객",
+    member_party_ids: ["party_acl_resource_type"],
+    primary_party_id: "party_acl_resource_type",
+    status: "active",
+  }]);
+  const principal = {
+    user_id: STAFF,
+    tenant_id: TENANT,
+    role_ids: ["lawos_staff"],
+  };
+  const clientReadRule = {
+    id: "staff-client-read-resource-type",
+    effect: "allow",
+    action: "analytics:client:read",
+  };
+  const resolve = ({ rules = [], object_acl = [] } = {}) => (
+    resolveClientOperationsAccessScope({
+      masterDataRepository,
+      tenant_id: TENANT,
+      permission_context: {
+        principal,
+        rules,
+        object_acl,
+      },
+    })
+  );
+  const aclEntry = ({
+    effect,
+    resource_type,
+    resource_id = clientGroupId,
+    includeResourceType = true,
+  }) => {
+    const entry = {
+      id: `${effect}-${resource_type ?? "absent"}`,
+      effect,
+      principal_id: STAFF,
+      action: "analytics:client:read",
+      resource_id,
+    };
+    if (includeResourceType) entry.resource_type = resource_type;
+    return entry;
+  };
+
+  const wrongTypeAllow = resolve({
+    object_acl: [aclEntry({
+      effect: "allow",
+      resource_type: "Matter",
+    })],
+  });
+  assert.equal(wrongTypeAllow.access_state, "no_access");
+  assert.deepEqual(wrongTypeAllow.allowed_client_group_ids, []);
+
+  const wrongTypeDeny = resolve({
+    rules: [clientReadRule],
+    object_acl: [aclEntry({
+      effect: "deny",
+      resource_type: "Matter",
+    })],
+  });
+  assert.equal(wrongTypeDeny.access_state, "allowed");
+  assert.deepEqual(
+    wrongTypeDeny.allowed_client_group_ids,
+    [clientGroupId],
+  );
+
+  const exactAllow = resolve({
+    object_acl: [aclEntry({
+      effect: "allow",
+      resource_type: "ClientGroup",
+    })],
+  });
+  assert.equal(exactAllow.access_state, "allowed");
+  assert.deepEqual(exactAllow.allowed_client_group_ids, [clientGroupId]);
+
+  const exactWildcardAllow = resolve({
+    object_acl: [aclEntry({
+      effect: "allow",
+      resource_type: "ClientGroup",
+      resource_id: "*",
+    })],
+  });
+  assert.equal(exactWildcardAllow.access_state, "allowed");
+  assert.deepEqual(
+    exactWildcardAllow.allowed_client_group_ids,
+    [clientGroupId],
+  );
+
+  const exactDeny = resolve({
+    rules: [clientReadRule],
+    object_acl: [aclEntry({
+      effect: "deny",
+      resource_type: "ClientGroup",
+    })],
+  });
+  assert.equal(exactDeny.access_state, "no_access");
+  assert.deepEqual(exactDeny.allowed_client_group_ids, []);
+
+  const exactWildcardDeny = resolve({
+    rules: [clientReadRule],
+    object_acl: [aclEntry({
+      effect: "deny",
+      resource_type: "ClientGroup",
+      resource_id: "*",
+    })],
+  });
+  assert.equal(exactWildcardDeny.access_state, "no_access");
+  assert.deepEqual(exactWildcardDeny.allowed_client_group_ids, []);
+
+  for (const [resourceType, includeResourceType] of [
+    ["*", true],
+    [null, true],
+    [undefined, false],
+  ]) {
+    const legacyAllow = resolve({
+      object_acl: [aclEntry({
+        effect: "allow",
+        resource_type: resourceType,
+        includeResourceType,
+      })],
+    });
+    assert.equal(legacyAllow.access_state, "allowed");
+    assert.deepEqual(
+      legacyAllow.allowed_client_group_ids,
+      [clientGroupId],
+    );
+  }
+  for (const [resourceType, includeResourceType] of [
+    ["*", true],
+    [null, true],
+    [undefined, false],
+  ]) {
+    const legacyDeny = resolve({
+      rules: [clientReadRule],
+      object_acl: [aclEntry({
+        effect: "deny",
+        resource_type: resourceType,
+        includeResourceType,
+      })],
+    });
+    assert.equal(legacyDeny.access_state, "no_access");
+    assert.deepEqual(legacyDeny.allowed_client_group_ids, []);
+  }
+});
+
 test("CL-P4-W01-T01 중복 고객 ID와 여러 고객에 걸친 Party를 fail-closed로 거절한다", () => {
   const context = permissionContext();
   assert.throws(

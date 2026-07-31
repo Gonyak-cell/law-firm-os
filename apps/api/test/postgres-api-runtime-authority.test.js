@@ -25,6 +25,10 @@ import {
   handleRecordsSearch,
 } from "../src/master-data-context.js";
 import { handlePortalApiRequest } from "../src/portal-runtime-context.js";
+import { handleReportsApiRequest } from "../src/reports-runtime-context.js";
+import {
+  createPostgresSessionObjectAclResolver,
+} from "../src/session-object-acl-authority.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { createHrxDomainSnapshot } from "../../../packages/hrx/src/postgres-store-v2.js";
@@ -40,6 +44,9 @@ import {
 import {
   createEmailDmsRepository,
 } from "../../../packages/email-dms/src/repository.js";
+import {
+  createClientFixedReportSnapshotTokenAuthority,
+} from "../../../packages/reports/src/index.js";
 
 const TENANT_A = "tenant_postgres_api_authority_a";
 const TENANT_B = "tenant_postgres_api_authority_b";
@@ -564,7 +571,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   assert.equal(storedLead.payload.version, 4);
 });
 
-test("PostgreSQL API authority persists accepted inquiry handoff and reads the Client access scope plus KPIs", async (t) => {
+test("PostgreSQL API authority persists accepted inquiry handoff and serves fixed Client report snapshots and CSV", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
@@ -576,6 +583,12 @@ test("PostgreSQL API authority persists accepted inquiry handoff and reads the C
     dmsStorage,
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
     bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    clientFixedReportTokenAuthority:
+      createClientFixedReportSnapshotTokenAuthority({
+        secret:
+          "postgres-api-fixed-report-token-secret-material-20260731",
+        now: () => Date.parse("2026-07-30T03:00:10.000Z"),
+      }),
     dmsUploadRuntime: createPostgresDmsUploadRuntime({
       pool: fixture.appPool,
       storage: dmsStorage,
@@ -1068,6 +1081,437 @@ test("PostgreSQL API authority persists accepted inquiry handoff and reads the C
     clientDashboard.item.credential_material_included,
     false,
   );
+  const currentPrincipalAclId =
+    "postgres-fixed-report-current-principal-deny";
+  const otherPrincipalAclId =
+    "postgres-fixed-report-other-principal-deny";
+  const otherTenantAclId =
+    "postgres-fixed-report-other-tenant-deny";
+  await ledger.write({
+    tenant_id: TENANT_A,
+    domain_id: "authz",
+    record_type: "ObjectAcl",
+    record_id: currentPrincipalAclId,
+    expected_version: 0,
+    payload: {
+      tenant_id: TENANT_A,
+      acl_id: currentPrincipalAclId,
+      resource_id: created.body.processing.client_group_id,
+      client_group_id: created.body.processing.client_group_id,
+      principal_id: context.principal.user_id,
+      effect: "deny",
+      action: "analytics:client:read",
+    },
+  });
+  await ledger.write({
+    tenant_id: TENANT_A,
+    domain_id: "authz",
+    record_type: "ObjectAcl",
+    record_id: otherPrincipalAclId,
+    expected_version: 0,
+    payload: {
+      tenant_id: TENANT_A,
+      acl_id: otherPrincipalAclId,
+      resource_id: created.body.processing.client_group_id,
+      client_group_id: created.body.processing.client_group_id,
+      principal_id: "user-postgres-other-principal",
+      effect: "deny",
+      action: "analytics:client:read",
+    },
+  });
+  await ledger.write({
+    tenant_id: TENANT_B,
+    domain_id: "authz",
+    record_type: "ObjectAcl",
+    record_id: otherTenantAclId,
+    expected_version: 0,
+    payload: {
+      tenant_id: TENANT_B,
+      acl_id: otherTenantAclId,
+      resource_id: "client-group-other-tenant",
+      client_group_id: "client-group-other-tenant",
+      principal_id: context.principal.user_id,
+      effect: "deny",
+      action: "analytics:client:read",
+    },
+  });
+  const objectAclResolver = createPostgresSessionObjectAclResolver({
+    ledger,
+  });
+  const objectAclResolution = await objectAclResolver({
+    tenant_id: TENANT_A,
+    user_id: context.principal.user_id,
+  });
+  const otherPrincipalResolution = await objectAclResolver({
+    tenant_id: TENANT_A,
+    user_id: "user-postgres-other-principal",
+  });
+  const otherTenantResolution = await objectAclResolver({
+    tenant_id: TENANT_B,
+    user_id: context.principal.user_id,
+  });
+  const allowedReaderResolution = await objectAclResolver({
+    tenant_id: TENANT_A,
+    user_id: "user-postgres-fixed-report-reader",
+  });
+  assert.equal(objectAclResolution.authoritative, true);
+  assert.equal(
+    objectAclResolution.source_ref,
+    "postgres-v2:lawos_domain.authz/ObjectAcl",
+  );
+  assert.deepEqual(
+    objectAclResolution.object_acl.map(({ id }) => id),
+    [currentPrincipalAclId],
+  );
+  assert.deepEqual(
+    otherPrincipalResolution.object_acl.map(({ id }) => id),
+    [otherPrincipalAclId],
+  );
+  assert.deepEqual(
+    otherTenantResolution.object_acl.map(({ id }) => id),
+    [otherTenantAclId],
+  );
+  assert.deepEqual(allowedReaderResolution.object_acl, []);
+  assert.deepEqual((await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: "authz",
+    record_type: "ObjectAcl",
+  })).map(({ record_id }) => record_id), [
+    currentPrincipalAclId,
+    otherPrincipalAclId,
+  ]);
+  const deniedFixedContext = Object.freeze({
+    ...context,
+    object_acl: objectAclResolution.object_acl,
+    object_acl_authority: Object.freeze({
+      status: "authoritative",
+      source_ref: objectAclResolution.source_ref,
+    }),
+  });
+  const allowedFixedContext = Object.freeze({
+    ...context,
+    principal: Object.freeze({
+      ...context.principal,
+      user_id: "user-postgres-fixed-report-reader",
+    }),
+    object_acl: allowedReaderResolution.object_acl,
+    object_acl_authority: Object.freeze({
+      status: "authoritative",
+      source_ref: allowedReaderResolution.source_ref,
+    }),
+  });
+
+  const fixedReportQuery = {
+    tenant_id: TENANT_A,
+    permission_ref: "perm-postgres-fixed-report",
+    audit_hint_ref: "audit-postgres-fixed-report",
+    as_of: "2026-07-30T03:00:00.000Z",
+    revenue_ranking_period: "year",
+  };
+  const deniedFixedScreen = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname:
+        "/api/reports/clients/fixed/receivables_ranking",
+      actor_id: deniedFixedContext.principal.user_id,
+    },
+    command(runtimes) {
+      return handleReportsApiRequest({
+        pathname:
+          "/api/reports/clients/fixed/receivables_ranking",
+        method: "GET",
+        query: fixedReportQuery,
+        body: {},
+        context: deniedFixedContext,
+        requestId:
+          "request-postgres-fixed-report-denied-screen",
+        runtime: {
+          analyticsRuntime: runtimes.analyticsRuntime,
+        },
+      });
+    },
+  });
+  assert.equal(deniedFixedScreen.status, 200);
+  assert.equal(deniedFixedScreen.body.outcome, "empty");
+  assert.equal(deniedFixedScreen.body.ui_state, "no_data");
+  assert.deepEqual(deniedFixedScreen.body.item.rows, []);
+  assert.equal(
+    JSON.stringify(deniedFixedScreen.body).includes("12000000"),
+    false,
+  );
+  const deniedFixedCsv = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname:
+        "/api/reports/clients/fixed/receivables_ranking.csv",
+      idempotency_key:
+        "postgres-fixed-report-denied-export-1",
+      actor_id: deniedFixedContext.principal.user_id,
+    },
+    command(runtimes) {
+      return handleReportsApiRequest({
+        pathname:
+          "/api/reports/clients/fixed/receivables_ranking.csv",
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref:
+            "perm-postgres-fixed-report-denied-export",
+          audit_hint_ref:
+            "audit-postgres-fixed-report-denied-export",
+          snapshot_token:
+            deniedFixedScreen.body.item.snapshot.token,
+          snapshot_version:
+            deniedFixedScreen.body.item.snapshot.version,
+          idempotency_key:
+            "postgres-fixed-report-denied-export-1",
+        },
+        context: deniedFixedContext,
+        requestId:
+          "request-postgres-fixed-report-denied-export",
+        runtime: {
+          analyticsRuntime: runtimes.analyticsRuntime,
+        },
+      });
+    },
+  });
+  assert.equal(deniedFixedCsv.status, 201);
+  assert.deepEqual(deniedFixedCsv.body.item.rows, []);
+  assert.equal(
+    JSON.stringify(deniedFixedCsv.body).includes("12000000"),
+    false,
+  );
+
+  const fixedScreen = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname:
+        "/api/reports/clients/fixed/receivables_ranking",
+      actor_id: allowedFixedContext.principal.user_id,
+    },
+    command(runtimes) {
+      return handleReportsApiRequest({
+        pathname:
+          "/api/reports/clients/fixed/receivables_ranking",
+        method: "GET",
+        query: fixedReportQuery,
+        body: {},
+        context: allowedFixedContext,
+        requestId: "request-postgres-fixed-report-screen",
+        runtime: {
+          analyticsRuntime: runtimes.analyticsRuntime,
+        },
+      });
+    },
+  });
+  assert.equal(
+    fixedScreen.status,
+    200,
+    JSON.stringify(fixedScreen.body),
+  );
+  assert.equal(fixedScreen.body.item.row_count, 1);
+  assert.equal(
+    fixedScreen.body.item.rows[0].receivable_amount,
+    12_000_000,
+  );
+
+  const fixedCsv = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname:
+        "/api/reports/clients/fixed/receivables_ranking.csv",
+      idempotency_key: "postgres-fixed-report-export-1",
+      actor_id: allowedFixedContext.principal.user_id,
+    },
+    command(runtimes) {
+      return handleReportsApiRequest({
+        pathname:
+          "/api/reports/clients/fixed/receivables_ranking.csv",
+        method: "POST",
+        query: {},
+        body: {
+          tenant_id: TENANT_A,
+          permission_ref: "perm-postgres-fixed-report-export",
+          audit_hint_ref: "audit-postgres-fixed-report-export",
+          snapshot_token:
+            fixedScreen.body.item.snapshot.token,
+          snapshot_version:
+            fixedScreen.body.item.snapshot.version,
+          idempotency_key: "postgres-fixed-report-export-1",
+        },
+        context: allowedFixedContext,
+        requestId: "request-postgres-fixed-report-export",
+        runtime: {
+          analyticsRuntime: runtimes.analyticsRuntime,
+        },
+      });
+    },
+  });
+  assert.equal(
+    fixedCsv.status,
+    201,
+    JSON.stringify(fixedCsv.body),
+  );
+  assert.deepEqual(
+    fixedCsv.body.item.rows,
+    fixedScreen.body.item.rows,
+  );
+  const malformedPrincipalCases = [
+    {
+      tenant_id: "tenant_postgres_acl_missing_principal",
+      record_id: "postgres-acl-missing-principal",
+    },
+    {
+      tenant_id: "tenant_postgres_acl_non_string_principal",
+      record_id: "postgres-acl-non-string-principal",
+      principal_id: 42,
+    },
+  ];
+  for (const malformed of malformedPrincipalCases) {
+    await ledger.write({
+      tenant_id: malformed.tenant_id,
+      domain_id: "authz",
+      record_type: "ObjectAcl",
+      record_id: malformed.record_id,
+      expected_version: 0,
+      payload: {
+        tenant_id: malformed.tenant_id,
+        acl_id: malformed.record_id,
+        resource_id: "revenue_ranking",
+        ...(malformed.principal_id === undefined
+          ? {}
+          : { principal_id: malformed.principal_id }),
+        effect: "deny",
+        action: "analytics:client:read",
+      },
+    });
+    await assert.rejects(
+      objectAclResolver({
+        tenant_id: malformed.tenant_id,
+        user_id: context.principal.user_id,
+      }),
+      /ObjectAcl\.principal_id is invalid/u,
+    );
+  }
+  assert.deepEqual(
+    (await objectAclResolver({
+      tenant_id: TENANT_A,
+      user_id: context.principal.user_id,
+    })).object_acl.map(({ id }) => id),
+    [currentPrincipalAclId],
+  );
+
+  const whitespacePrincipalAclId =
+    "postgres-acl-whitespace-principal";
+  await ledger.write({
+    tenant_id: TENANT_A,
+    domain_id: "authz",
+    record_type: "ObjectAcl",
+    record_id: whitespacePrincipalAclId,
+    expected_version: 0,
+    payload: {
+      tenant_id: TENANT_A,
+      acl_id: whitespacePrincipalAclId,
+      resource_id: "revenue_ranking",
+      principal_id: `${context.principal.user_id} `,
+      effect: "deny",
+      action: "analytics:client:read",
+    },
+  });
+  await assert.rejects(
+    objectAclResolver({
+      tenant_id: TENANT_A,
+      user_id: context.principal.user_id,
+    }),
+    /ObjectAcl\.principal_id is invalid/u,
+  );
+
+  const malformedCanonicalPostgresAclCases = [
+    ["action", "action", "analytics:client:read "],
+    ["actions", "actions", ["analytics:client:read "]],
+    ["resource-id", "resource_id", `${created.body.processing.client_group_id} `],
+    ["client-group-id", "client_group_id", `${created.body.processing.client_group_id} `],
+    ["resource-type", "resource_type", "ClientGroup "],
+  ];
+  for (const [label, field, value] of malformedCanonicalPostgresAclCases) {
+    const tenantId = `tenant_postgres_acl_malformed_${label}`;
+    const recordId = `postgres-acl-malformed-canonical-${label}`;
+    await ledger.write({
+      tenant_id: tenantId,
+      domain_id: "authz",
+      record_type: "ObjectAcl",
+      record_id: recordId,
+      expected_version: 0,
+      payload: {
+        tenant_id: tenantId,
+        acl_id: recordId,
+        resource_id: created.body.processing.client_group_id,
+        client_group_id: created.body.processing.client_group_id,
+        principal_id: context.principal.user_id,
+        effect: "deny",
+        action: "analytics:client:read",
+        [field]: value,
+      },
+    });
+    await assert.rejects(
+      objectAclResolver({
+        tenant_id: tenantId,
+        user_id: context.principal.user_id,
+      }),
+      new RegExp(`ObjectAcl\\.${field} is invalid`, "u"),
+    );
+  }
+
+  console.log(JSON.stringify({
+    scenario: "postgres-client-fixed-report",
+    screen_status: fixedScreen.status,
+    csv_status: fixedCsv.status,
+    row_count: fixedScreen.body.item.row_count,
+    screen_csv_equal: true,
+    token_authority_injected_per_request: true,
+    object_acl_authority:
+      "postgres-v2:lawos_domain.authz/ObjectAcl",
+    current_principal_acl_count:
+      objectAclResolution.object_acl.length,
+    other_principal_leak_count:
+      objectAclResolution.object_acl.filter(
+        ({ id }) => id === otherPrincipalAclId,
+      ).length,
+    other_tenant_leak_count:
+      objectAclResolution.object_acl.filter(
+        ({ id }) => id === otherTenantAclId,
+      ).length,
+    persisted_client_group_deny_screen_status:
+      deniedFixedScreen.status,
+    persisted_client_group_deny_csv_status:
+      deniedFixedCsv.status,
+    persisted_client_group_deny_row_count:
+      deniedFixedScreen.body.item.row_count,
+    denied_receivable_amount_included: false,
+    authoritative_empty_reader_screen_status:
+      fixedScreen.status,
+    authoritative_empty_reader_csv_status:
+      fixedCsv.status,
+    malformed_principal_cases_rejected: [
+      "whitespace",
+      "missing",
+      "non-string",
+    ],
+    malformed_canonical_acl_cases_rejected: [
+      "action",
+      "actions",
+      "resource_id",
+      "client_group_id",
+      "resource_type",
+    ],
+    malformed_other_tenant_does_not_poison_current_tenant:
+      true,
+  }));
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {
@@ -1736,6 +2180,7 @@ test("PostgreSQL API authority resolves ClientGroup and Opportunity before commi
             category: "refund_reversal",
             refund_of_bank_transaction_id:
               "bank-transaction-postgres-fee-commitment",
+            expected_state_version: 0,
           }],
         },
         context,

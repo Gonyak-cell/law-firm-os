@@ -57,6 +57,12 @@ import {
 } from "./home-dashboard-runtime-context.js";
 import { createEnterpriseReadinessRuntimeContext } from "./enterprise-readiness-context.js";
 import { LAWOS_OFFLINE_REJECTED_POLICY } from "./persistence-authority.js";
+import {
+  selectClientOperationsReadPath,
+} from "./client-operations-migration.js";
+import {
+  createClientOperationsPostgresReadProvider,
+} from "./client-operations-read-providers.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -167,6 +173,9 @@ function createRequestRuntimes({
   payrollArtifactSecret,
   payrollProviders,
   bankImportPreviewTokens,
+  clientFixedReportTokenAuthority,
+  clientOperationsReadPathSelector,
+  clientOperationsV2ReadProvider,
 } = {}) {
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
@@ -219,12 +228,17 @@ function createRequestRuntimes({
     employeeRepository: hrxRuntime.repository,
     bankImportPreviewTokens,
   });
-  const analyticsRuntime = createAnalyticsRuntimeContext({
-    repository: repositories.analyticsRepository,
-    financeRepository: repositories.financeRepository,
-    masterDataRepository: repositories.masterDataRepository,
-    crmRepository: repositories.crmRepository,
-    matterRepository: repositories.matterRepository,
+  const analyticsRuntime = Object.freeze({
+    ...createAnalyticsRuntimeContext({
+      repository: repositories.analyticsRepository,
+      financeRepository: repositories.financeRepository,
+      masterDataRepository: repositories.masterDataRepository,
+      crmRepository: repositories.crmRepository,
+      matterRepository: repositories.matterRepository,
+      clientOperationsReadPathSelector,
+      clientOperationsV2ReadProvider,
+    }),
+    clientFixedReportTokenAuthority,
   });
   const aiRuntime = createAiRuntimeContext({ repository: repositories.aiRepository });
   const portalRuntime = createPortalRuntimeContext({ repository: repositories.portalRepository });
@@ -266,6 +280,9 @@ export function createPostgresApiRuntimeAuthority({
   payrollProviders = Object.freeze({}),
   hrxRelationalProjectionReader = null,
   bankImportPreviewTokens,
+  clientFixedReportTokenAuthority = null,
+  clientOperationsV2Enabled = false,
+  clientOperationsSchemaPool = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
@@ -283,6 +300,33 @@ export function createPostgresApiRuntimeAuthority({
       || typeof bankImportPreviewTokens?.verify !== "function") {
     throw new TypeError("PostgreSQL API authority requires bank import preview token authority");
   }
+  if (
+    clientFixedReportTokenAuthority != null
+    && (
+      typeof clientFixedReportTokenAuthority.issue !== "function"
+      || typeof clientFixedReportTokenAuthority.verify !== "function"
+    )
+  ) {
+    throw new TypeError(
+      "Client fixed report token authority is invalid",
+    );
+  }
+  if (typeof clientOperationsV2Enabled !== "boolean") {
+    throw new TypeError(
+      "Client operations v2 feature switch must be boolean",
+    );
+  }
+  if (
+    clientOperationsV2Enabled
+    && (
+      typeof clientOperationsSchemaPool?.query !== "function"
+      || typeof clientOperationsSchemaPool?.connect !== "function"
+    )
+  ) {
+    throw new TypeError(
+      "Client operations v2 requires the verified PostgreSQL schema pool",
+    );
+  }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
       || hrxRelationalProjectionReader.fallback_authority
@@ -291,6 +335,8 @@ export function createPostgresApiRuntimeAuthority({
         !== "function")) {
     throw new TypeError("HRX relational projection reader contract is invalid");
   }
+  const clientOperationsV2ReadProvider =
+    createClientOperationsPostgresReadProvider({ ledger });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
@@ -317,6 +363,15 @@ export function createPostgresApiRuntimeAuthority({
             payrollArtifactSecret,
             payrollProviders,
             bankImportPreviewTokens,
+            clientFixedReportTokenAuthority,
+            clientOperationsV2ReadProvider,
+            clientOperationsReadPathSelector: ({ tenant_id }) =>
+              selectClientOperationsReadPath({
+                enabled: clientOperationsV2Enabled,
+                ledger,
+                pool: clientOperationsSchemaPool,
+                tenant_id,
+              }),
           })),
         });
         return productCommand.result;
@@ -338,6 +393,8 @@ export function createPostgresApiRuntimeAuthority({
       hrx_relational_projection_authority: "read-model-only",
       hrx_relational_projection_fallback:
         "postgres-v2-generic-ledger",
+      client_operations_v2_enabled:
+        clientOperationsV2Enabled,
       json_fallback: false,
       dual_write: false,
       offline_mutation: false,

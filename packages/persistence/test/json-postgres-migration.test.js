@@ -15,6 +15,7 @@ import { createMigratedPostgresFixture } from "./helpers/disposable-postgres.js"
 const TENANT = "tenant_lawos_staging_migration_a";
 const OTHER_TENANT = "tenant_lawos_staging_migration_b";
 const ORDERED_DOMAINS = [
+  "authz",
   "hrx",
   "master-data",
   "crm",
@@ -434,7 +435,7 @@ test("full synthetic import preserves versions, replays as no-op, and is hidden 
   assert.equal(first.safe_counts.tenant_negative_visible_count, 0);
   assert.equal(first.domains.every((domain) => domain.readback_equal === true), true);
   assert.equal(first.domains.every((domain) => domain.replayed_noop_count === domain.accepted_count), true);
-  assert.deepEqual(first.domains.find((domain) => domain.domain_id === "matter").state_version_distribution, { "5": 1 });
+  assert.deepEqual(first.domains.find((domain) => domain.domain_id === "matter").state_version_distribution, { "6": 1 });
 
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
   const matter = await ledger.read({
@@ -443,7 +444,7 @@ test("full synthetic import preserves versions, replays as no-op, and is hidden 
     record_type: "SyntheticmatterRecord",
     record_id: "synthetic-matter-001",
   });
-  assert.equal(matter.state_version, 5);
+  assert.equal(matter.state_version, 6);
   assert.equal(matter.payload.matter_code, "SYN-2026-001");
 
   const hrx = await ledger.read({

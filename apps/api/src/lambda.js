@@ -53,6 +53,9 @@ import { appendNdjsonDurably } from "../../../packages/persistence/src/durable-a
 import {
   loadHrxRelationalProjectionRuntimeInput,
 } from "./hrx-relational-projection-input.js";
+import {
+  LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV,
+} from "./client-operations-config.js";
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4329,6 +4332,8 @@ const apiRuntimeCache = createRetryablePromiseCache(async () => {
       : {}),
     passwordResetEmailDelivery: createLambdaPasswordResetEmailDelivery(),
     ...(matterRepository ? { matterRepository } : {}),
+    clientOperationsV2Enabled:
+      process.env[LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV],
   });
 });
 

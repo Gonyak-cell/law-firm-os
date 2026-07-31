@@ -81,14 +81,20 @@ function objectAcl(permissionContext) {
 function aclForResource(
   permissionContext,
   resourceId,
-  { clientGroupFallback = false } = {},
+  { clientGroupFallback = false, resourceType = null } = {},
 ) {
   return objectAcl(permissionContext).filter((entry) => {
     const targetId = entry.resource_id
       ?? (clientGroupFallback ? entry.client_group_id : undefined);
-    return targetId === undefined
+    const entryResourceType = entry.resource_type;
+    const resourceTypeMatches = entryResourceType == null
+      || entryResourceType === "*"
+      || entryResourceType === resourceType;
+    return resourceTypeMatches
+      && (targetId === undefined
       || targetId === null
-      || targetId === resourceId;
+      || targetId === "*"
+      || targetId === resourceId);
   });
 }
 
@@ -98,9 +104,14 @@ function activeClientGroup(record) {
   );
 }
 
-function aclForClientGroup(permissionContext, clientGroupId) {
+function aclForClientGroup(
+  permissionContext,
+  clientGroupId,
+  resourceType,
+) {
   return aclForResource(permissionContext, clientGroupId, {
     clientGroupFallback: true,
+    resourceType,
   });
 }
 
@@ -163,6 +174,7 @@ function clientGroupDecision(permissionContext, clientGroup) {
     objectAcl: aclForClientGroup(
       permissionContext,
       clientGroup.client_group_id,
+      "ClientGroup",
     ),
   });
 }
@@ -217,7 +229,9 @@ function readDecision(
     },
     action,
     rules: permissionRules(permissionContext),
-    objectAcl: aclForResource(permissionContext, resourceId),
+    objectAcl: aclForResource(permissionContext, resourceId, {
+      resourceType,
+    }),
   });
 }
 

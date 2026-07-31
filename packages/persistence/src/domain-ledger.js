@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 export const DOMAIN_LEDGER_CONTRACT_VERSION = "law-firm-os.domain-ledger.v0.1";
 export const DOMAIN_MIGRATION_RECEIPT_SCHEMA_VERSION = "law-firm-os.domain-migration-receipt.v0.1";
 export const DOMAIN_IDS = Object.freeze([
+  "authz",
   "master-data",
   "matter",
   "crm",

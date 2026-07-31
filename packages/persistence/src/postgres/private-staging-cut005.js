@@ -7,6 +7,7 @@ import {
 import { createPostgresDomainLedger } from "./domain-ledger.js";
 
 const ORDERED_DOMAINS = Object.freeze([
+  "authz",
   "hrx",
   "master-data",
   "crm",

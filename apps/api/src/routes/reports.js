@@ -1,4 +1,27 @@
+import {
+  CLIENT_FIXED_REPORT_IDS,
+} from "../../../../packages/reports/src/index.js";
+
+const CLIENT_FIXED_REPORT_ID_SET = new Set(
+  CLIENT_FIXED_REPORT_IDS,
+);
+
 export const REPORT_ROUTE_POLICIES = Object.freeze([
+  Object.freeze({
+    method: "POST",
+    pattern:
+      /^\/api\/reports\/clients\/fixed\/([^/.]+)\.csv$/,
+    action: "analytics:client:export",
+    resource_type: "client_fixed_report_export",
+    fixed_client_report: true,
+  }),
+  Object.freeze({
+    method: "GET",
+    pattern: /^\/api\/reports\/clients\/fixed\/([^/]+)$/,
+    action: "analytics:client:read",
+    resource_type: "client_fixed_report",
+    fixed_client_report: true,
+  }),
   Object.freeze({
     method: "GET",
     pattern: /^\/api\/reports$/,
@@ -52,7 +75,17 @@ export const REPORT_ROUTE_POLICIES = Object.freeze([
 export function matchReportRoute({ pathname, method } = {}) {
   for (const policy of REPORT_ROUTE_POLICIES) {
     const match = pathname.match(policy.pattern);
-    if (match && policy.method === method) return Object.freeze({ ...policy, params: Object.freeze(match.slice(1)) });
+    if (!match || policy.method !== method) continue;
+    if (
+      policy.fixed_client_report
+      && !CLIENT_FIXED_REPORT_ID_SET.has(match[1])
+    ) {
+      continue;
+    }
+    return Object.freeze({
+      ...policy,
+      params: Object.freeze(match.slice(1)),
+    });
   }
   return null;
 }

@@ -3,6 +3,10 @@ import {
   buildClientReceivablesModel,
   buildFeeCommitmentCommand
 } from "../components/ClientReceivablesModel.js";
+import {
+  buildClientFixedReportsModel,
+  selectClientFixedReport
+} from "../components/ClientFixedReportsModel.js";
 
 const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
@@ -41,6 +45,8 @@ const CLIENT_DEPOSIT_PERMISSION_REF = "ui_client_deposit_operations";
 const CLIENT_DEPOSIT_AUDIT_HINT_REF = "ui_client_deposit_operations_probe";
 const CLIENT_RECEIVABLES_PERMISSION_REF = "ui_client_receivables";
 const CLIENT_RECEIVABLES_AUDIT_HINT_REF = "ui_client_receivables_probe";
+const CLIENT_FIXED_REPORT_PERMISSION_REF = "ui_client_fixed_reports";
+const CLIENT_FIXED_REPORT_AUDIT_HINT_REF = "ui_client_fixed_reports_probe";
 const DEFAULT_ANALYTICS_PERMISSION_REF = "ui_cmp_g8_analytics_live";
 const DEFAULT_ANALYTICS_AUDIT_HINT_REF = "ui_cmp_g8_analytics_probe";
 const DEFAULT_AI_PERMISSION_REF = "ui_cmp_g9_ai_live";
@@ -959,6 +965,37 @@ const REPORT_PERMISSION_CONTEXTS = {
     object_acl: []
   }
 };
+
+function clientFixedReportPermissionContexts(operation) {
+  const actions = operation === "export"
+    ? ["analytics:client:read", "analytics:client:export"]
+    : ["analytics:client:read"];
+  return {
+    allow: {
+      principal: REPORT_PRINCIPAL,
+      rules: actions.map((action, index) => ({
+        id: `rule_client_fixed_report_allow_${index + 1}`,
+        effect: "allow",
+        action
+      })),
+      object_acl: []
+    },
+    denied: {
+      principal: REPORT_PRINCIPAL,
+      rules: [],
+      object_acl: []
+    },
+    review: {
+      principal: REPORT_PRINCIPAL,
+      rules: actions.map((action, index) => ({
+        id: `rule_client_fixed_report_review_${index + 1}`,
+        effect: "review_required",
+        action
+      })),
+      object_acl: []
+    }
+  };
+}
 
 // Gated master-data responses (200/403/...) share this 8-key shape. Other
 // statuses (404 unknown route, 405, 500) use a smaller shape and must parse
@@ -9279,6 +9316,650 @@ export function createAnalyticsExport({ dashboardId, ctx = "allow" } = {}) {
         permission_ref: DEFAULT_ANALYTICS_PERMISSION_REF
       }
     }
+  });
+}
+
+const CLIENT_FIXED_REPORT_IDS = new Set([
+  "monthly_deposit_revenue",
+  "inquiry_status",
+  "revenue_ranking",
+  "receivables_ranking"
+]);
+const CLIENT_FIXED_REPORT_COLUMNS = Object.freeze({
+  monthly_deposit_revenue: Object.freeze([
+    Object.freeze({ key: "month", label: "월" }),
+    Object.freeze({ key: "net_deposit_revenue", label: "입금 매출" })
+  ]),
+  inquiry_status: Object.freeze([
+    Object.freeze({ key: "status", label: "상태" }),
+    Object.freeze({ key: "count", label: "건수" })
+  ]),
+  revenue_ranking: Object.freeze([
+    Object.freeze({ key: "rank", label: "순위" }),
+    Object.freeze({ key: "client_name", label: "고객" }),
+    Object.freeze({ key: "matched_inflow_amount", label: "연결 입금" }),
+    Object.freeze({ key: "linked_refund_amount", label: "환불" }),
+    Object.freeze({ key: "net_deposit_revenue", label: "입금 매출" }),
+    Object.freeze({ key: "latest_deposit_date", label: "최근 입금일" })
+  ]),
+  receivables_ranking: Object.freeze([
+    Object.freeze({ key: "rank", label: "순위" }),
+    Object.freeze({ key: "client_name", label: "고객" }),
+    Object.freeze({ key: "agreed_amount", label: "약정 수임료" }),
+    Object.freeze({ key: "active_allocated_amount", label: "반영 입금" }),
+    Object.freeze({ key: "receivable_amount", label: "미수금" }),
+    Object.freeze({ key: "earliest_due_date", label: "가장 이른 지급기한" })
+  ])
+});
+const CLIENT_FIXED_REPORT_CONTRACT_VERSION = "client-fixed-reports.v1";
+const CLIENT_FIXED_REPORT_SNAPSHOT_VERSION = 1;
+const CLIENT_FIXED_REPORT_MAX_TOKEN_BYTES = 16 * 1024;
+const CLIENT_FIXED_REPORT_MAX_CSV_BYTES = 16 * 1024;
+const CLIENT_FIXED_REPORT_TIMEZONES = new Set(["Asia/Seoul"]);
+const CLIENT_FIXED_REPORT_REVENUE_PERIODS = new Set(["month", "quarter", "year"]);
+const CLIENT_FIXED_REPORT_SOURCE_STATUSES = new Set([
+  "available",
+  "no_data",
+  "partial"
+]);
+const CLIENT_FIXED_REPORT_IDEMPOTENCY_KEY = /^[A-Za-z0-9._:~-]{1,200}$/u;
+const CLIENT_FIXED_REPORT_SHA256 = /^[a-f0-9]{64}$/u;
+const CLIENT_FIXED_REPORT_SAFE_CODE = /^[A-Z][A-Z0-9_]{1,159}$/u;
+const CLIENT_FIXED_REPORT_SAFE_REF = /^[A-Za-z0-9._:-]{1,200}$/u;
+
+function clientFixedReportText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function clientFixedReportSafeRef(value) {
+  const text = clientFixedReportText(value);
+  return CLIENT_FIXED_REPORT_SAFE_REF.test(text) ? text : null;
+}
+
+function clientFixedReportSafeErrorCodes(body) {
+  return Array.isArray(body?.safe_error_codes)
+    ? body.safe_error_codes
+      .filter((code) => (
+        typeof code === "string"
+        && CLIENT_FIXED_REPORT_SAFE_CODE.test(code)
+      ))
+      .slice(0, 24)
+    : [];
+}
+
+function clientFixedReportByteLength(value) {
+  return typeof value === "string"
+    ? new TextEncoder().encode(value).byteLength
+    : 0;
+}
+
+function clientFixedReportSourceStatus(value) {
+  const status = clientFixedReportText(value);
+  return CLIENT_FIXED_REPORT_SOURCE_STATUSES.has(status) ? status : null;
+}
+
+function clientFixedReportUnavailable({
+  status = 0,
+  code = "SIGNED_SESSION_REQUIRED",
+  kind = "error",
+  uiState = "error",
+  outcome = "blocked",
+  auditRecorded = false
+} = {}) {
+  return {
+    kind,
+    status,
+    outcome,
+    uiState,
+    safeErrorCodes: [code],
+    auditRecorded,
+    countLeakPrevented: true,
+    productionReadyClaim: false
+  };
+}
+
+function clientFixedReportGuardedResult(response, body, fallbackCode) {
+  const status = Number(response?.status ?? 0);
+  const codes = clientFixedReportSafeErrorCodes(body);
+  const outcome = clientFixedReportText(body?.outcome) || "blocked";
+  const state = clientFixedReportText(body?.ui_state);
+  const denied = status === 403
+    || ["denied", "permission_denied"].includes(state)
+    || ["denied", "permission_denied"].includes(outcome);
+  const review = ["review", "review_required"].includes(state)
+    || outcome === "review_required";
+  const partial = state === "partial" || outcome === "partial";
+  const kind = status === 409
+    ? "conflict"
+    : denied || review
+      ? "guarded"
+      : partial
+        ? "partial"
+        : "error";
+  return {
+    kind,
+    status,
+    outcome,
+    uiState: denied
+      ? "denied"
+      : review
+        ? "review_required"
+        : partial
+          ? "partial"
+          : "error",
+    safeErrorCodes: codes.length > 0 ? codes : [fallbackCode],
+    auditRecorded: body?.audit_recorded === true,
+    countLeakPrevented: body?.count_leak_prevented === true,
+    productionReadyClaim: false
+  };
+}
+
+async function clientFixedReportJsonRequest(path, {
+  method = "GET",
+  routeContext,
+  payload
+} = {}) {
+  if (!routeContext || !path) {
+    return {
+      unavailable: clientFixedReportUnavailable(),
+      response: null,
+      body: null
+    };
+  }
+  let response;
+  let text;
+  try {
+    response = await apiFetch(path, {
+      method,
+      headers: {
+        ...(payload === undefined ? {} : { "content-type": "application/json" }),
+        [PERMISSION_CONTEXT_HEADER]: JSON.stringify(
+          routeContext.permissionContext
+        )
+      },
+      ...(payload === undefined ? {} : { body: JSON.stringify(payload) })
+    });
+    text = await response.text();
+  } catch {
+    return {
+      unavailable: clientFixedReportUnavailable({
+        code: "NETWORK_OR_PARSE_ERROR"
+      }),
+      response: null,
+      body: null
+    };
+  }
+  let body;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return {
+      unavailable: clientFixedReportUnavailable({
+        status: response.status,
+        code: "INVALID_ERROR_RESPONSE",
+        kind: response.status === 409 ? "conflict" : "error"
+      }),
+      response,
+      body: null
+    };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return {
+      unavailable: clientFixedReportUnavailable({
+        status: response.status,
+        code: "INVALID_ERROR_RESPONSE",
+        kind: response.status === 409 ? "conflict" : "error"
+      }),
+      response,
+      body: null
+    };
+  }
+  return { unavailable: null, response, body };
+}
+
+function clientFixedReportAuditEvent(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const event = {
+    event_id: clientFixedReportText(value.event_id),
+    action: clientFixedReportText(value.action),
+    decision: clientFixedReportText(value.decision),
+    tenant_authority: value.tenant_authority,
+    actor_id_included: value.actor_id_included,
+    tenant_id_included: value.tenant_id_included,
+    raw_rows_included: value.raw_rows_included,
+    source_values_included: value.source_values_included,
+    production_ready_claim: value.production_ready_claim
+  };
+  return (
+    CLIENT_FIXED_REPORT_SAFE_REF.test(event.event_id)
+    && ["allow", "replay"].includes(event.decision)
+    && event.tenant_authority === "signed_session"
+    && event.actor_id_included === false
+    && event.tenant_id_included === false
+    && event.raw_rows_included === false
+    && event.source_values_included === false
+    && event.production_ready_claim === false
+  ) ? event : null;
+}
+
+function clientFixedReportColumnsAndRows(reportId, columns, rows) {
+  const expected = CLIENT_FIXED_REPORT_COLUMNS[reportId];
+  if (
+    !expected
+    || !Array.isArray(columns)
+    || columns.length !== expected.length
+    || !columns.every((column, index) => (
+      column
+      && typeof column === "object"
+      && !Array.isArray(column)
+      && column.key === expected[index].key
+      && column.label === expected[index].label
+    ))
+    || !Array.isArray(rows)
+  ) return null;
+  return {
+    columns: expected.map(({ key, label }) => ({ key, label })),
+    rows: rows.map((row) => (
+      row && typeof row === "object" && !Array.isArray(row)
+        ? Object.fromEntries(expected.map(({ key }) => [key, row[key]]))
+        : null
+    ))
+  };
+}
+
+function clientFixedReportScreenItem(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const reportId = clientFixedReportText(value.report_id);
+  const table = clientFixedReportColumnsAndRows(
+    reportId,
+    value.columns,
+    value.rows
+  );
+  const snapshot = value.snapshot;
+  const sourceStatus = clientFixedReportSourceStatus(value.source_status);
+  if (
+    !table
+    || table.rows.some((row) => row === null)
+    || !snapshot
+    || typeof snapshot !== "object"
+    || Array.isArray(snapshot)
+    || !clientFixedReportText(snapshot.token)
+    || clientFixedReportByteLength(snapshot.token) > CLIENT_FIXED_REPORT_MAX_TOKEN_BYTES
+    || snapshot.version !== CLIENT_FIXED_REPORT_SNAPSHOT_VERSION
+    || !Number.isFinite(Date.parse(snapshot.expires_at))
+    || sourceStatus === null
+  ) return null;
+  const item = {
+    report_id: reportId,
+    columns: table.columns,
+    rows: table.rows,
+    row_count: value.row_count,
+    row_limit: value.row_limit,
+    as_of: value.as_of,
+    timezone: value.timezone,
+    source_status: sourceStatus,
+    snapshot: {
+      token: snapshot.token,
+      version: snapshot.version,
+      expires_at: snapshot.expires_at
+    },
+    print_contract: {
+      rows_source: value.print_contract?.rows_source,
+      server_pdf_required: value.print_contract?.server_pdf_required
+    },
+    bounded_result: value.bounded_result,
+    permission_prefilter_applied: value.permission_prefilter_applied,
+    count_leak_prevented: value.count_leak_prevented,
+    raw_bank_source_included: value.raw_bank_source_included,
+    raw_source_payload_included: value.raw_source_payload_included,
+    contact_pii_included: value.contact_pii_included,
+    internal_ids_included: value.internal_ids_included,
+    source_digest_included: value.source_digest_included,
+    production_ready_claim: value.production_ready_claim
+  };
+  return (
+    CLIENT_FIXED_REPORT_IDS.has(item.report_id)
+    && Number.isSafeInteger(item.row_count)
+    && Number.isSafeInteger(item.row_limit)
+    && item.row_count >= 0
+    && item.row_limit > 0
+    && item.row_count <= item.row_limit
+    && Number.isFinite(Date.parse(item.as_of))
+    && CLIENT_FIXED_REPORT_TIMEZONES.has(item.timezone)
+    && item.print_contract.rows_source === "screen_snapshot"
+    && item.print_contract.server_pdf_required === false
+    && item.bounded_result === true
+    && item.permission_prefilter_applied === true
+    && item.count_leak_prevented === true
+    && item.raw_bank_source_included === false
+    && item.raw_source_payload_included === false
+    && item.contact_pii_included === false
+    && item.internal_ids_included === false
+    && item.source_digest_included === false
+    && item.production_ready_claim === false
+  ) ? item : null;
+}
+
+function clientFixedReportCsvItem(value, {
+  reportId,
+  snapshotVersion
+}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const table = clientFixedReportColumnsAndRows(
+    clientFixedReportText(value.report_id),
+    value.columns,
+    value.rows
+  );
+  if (!table || table.rows.some((row) => row === null)) return null;
+  const item = {
+    report_id: clientFixedReportText(value.report_id),
+    columns: table.columns,
+    rows: table.rows,
+    row_count: value.row_count,
+    snapshot_version: value.snapshot_version,
+    as_of: value.as_of,
+    source_status: clientFixedReportSourceStatus(value.source_status),
+    csv_text: value.csv_text,
+    csv_sha256: value.csv_sha256,
+    csv_byte_size: value.csv_byte_size,
+    mime_type: value.mime_type,
+    permission_prefilter_applied: value.permission_prefilter_applied,
+    count_leak_prevented: value.count_leak_prevented,
+    formula_injection_escaped: value.formula_injection_escaped,
+    raw_bank_source_included: value.raw_bank_source_included,
+    raw_source_payload_included: value.raw_source_payload_included,
+    contact_pii_included: value.contact_pii_included,
+    internal_ids_included: value.internal_ids_included,
+    production_ready_claim: value.production_ready_claim
+  };
+  return (
+    item.report_id === reportId
+    && item.snapshot_version === snapshotVersion
+    && Array.isArray(item.columns)
+    && Array.isArray(item.rows)
+    && Number.isSafeInteger(item.row_count)
+    && item.row_count === item.rows.length
+    && item.source_status !== null
+    && Number.isFinite(Date.parse(item.as_of))
+    && typeof item.csv_text === "string"
+    && item.csv_text.length > 0
+    && Number.isSafeInteger(item.csv_byte_size)
+    && item.csv_byte_size === clientFixedReportByteLength(item.csv_text)
+    && item.csv_byte_size <= CLIENT_FIXED_REPORT_MAX_CSV_BYTES
+    && CLIENT_FIXED_REPORT_SHA256.test(item.csv_sha256)
+    && item.mime_type === "text/csv; charset=utf-8"
+    && item.permission_prefilter_applied === true
+    && item.count_leak_prevented === true
+    && item.formula_injection_escaped === true
+    && item.raw_bank_source_included === false
+    && item.raw_source_payload_included === false
+    && item.contact_pii_included === false
+    && item.internal_ids_included === false
+    && item.production_ready_claim === false
+  ) ? item : null;
+}
+
+export function getClientFixedReportRouteContext({
+  ctx = "allow",
+  operation = "read",
+  permissionRef = CLIENT_FIXED_REPORT_PERMISSION_REF,
+  auditHintRef = CLIENT_FIXED_REPORT_AUDIT_HINT_REF,
+  source = globalThis
+} = {}) {
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope) return null;
+  const defaultTenant = clientFixedReportText(envelope.tenant_refs.default);
+  const clientTenant = clientFixedReportText(envelope.tenant_refs.client);
+  if (defaultTenant && clientTenant && defaultTenant !== clientTenant) return null;
+  const tenantId = defaultTenant || clientTenant;
+  const context = permissionContextFor(
+    ctx,
+    clientFixedReportPermissionContexts(operation),
+    "client"
+  );
+  if (
+    !tenantId
+    || !clientFixedReportText(permissionRef)
+    || !clientFixedReportText(auditHintRef)
+    || clientFixedReportText(context?.principal?.tenant_id) !== tenantId
+  ) return null;
+  return {
+    tenant_id: tenantId,
+    permission_ref: clientFixedReportText(permissionRef),
+    audit_hint_ref: clientFixedReportText(auditHintRef),
+    permissionContext: context
+  };
+}
+
+export async function fetchClientFixedReport({
+  reportId,
+  ctx = "allow",
+  permissionRef = CLIENT_FIXED_REPORT_PERMISSION_REF,
+  auditHintRef = CLIENT_FIXED_REPORT_AUDIT_HINT_REF,
+  asOf = null,
+  timezone = "Asia/Seoul",
+  revenueRankingPeriod = "year"
+} = {}) {
+  const normalizedReportId = clientFixedReportText(reportId);
+  const routeContext = getClientFixedReportRouteContext({
+    ctx,
+    operation: "read",
+    permissionRef,
+    auditHintRef
+  });
+  if (
+    !CLIENT_FIXED_REPORT_IDS.has(normalizedReportId)
+    || !CLIENT_FIXED_REPORT_TIMEZONES.has(timezone)
+    || !CLIENT_FIXED_REPORT_REVENUE_PERIODS.has(revenueRankingPeriod)
+    || (asOf !== null && !Number.isFinite(Date.parse(asOf)))
+  ) {
+    return clientFixedReportUnavailable({
+      code: "CLIENT_FIXED_REPORT_REQUEST_INVALID"
+    });
+  }
+  const params = routeContext && new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref,
+    timezone,
+    revenue_ranking_period: revenueRankingPeriod
+  });
+  if (params && asOf) params.set("as_of", new Date(asOf).toISOString());
+  const result = await clientFixedReportJsonRequest(
+    params
+      ? `/api/reports/clients/fixed/${encodeURIComponent(normalizedReportId)}?${params}`
+      : "",
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  const outcome = result.body.outcome;
+  const partial = outcome === "partial";
+  const acceptedOutcome = ["passed", "empty", "partial"].includes(outcome);
+  const stateMismatch = partial
+    ? result.body.ui_state !== "partial"
+    : result.body.ui_state !== (outcome === "empty" ? "no_data" : null);
+  if (
+    !result.response.ok
+    || !acceptedOutcome
+  ) {
+    return clientFixedReportGuardedResult(
+      result.response,
+      result.body,
+      "CLIENT_FIXED_REPORT_READ_FAILED"
+    );
+  }
+  if (stateMismatch) {
+    return clientFixedReportUnavailable({
+      status: result.response.status,
+      code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
+    });
+  }
+  const item = clientFixedReportScreenItem(result.body.item);
+  const auditEvent = clientFixedReportAuditEvent(result.body.audit_event);
+  const empty = result.body.outcome === "empty";
+  const sourceStatus = item?.source_status;
+  const projected = {
+    kind: "data",
+    status: result.response.status,
+    requestId: clientFixedReportSafeRef(result.body.request_id),
+    outcome: result.body.outcome,
+    uiState: partial ? "partial" : empty ? "empty" : null,
+    item,
+    sourceStatus,
+    exportSnapshot: item?.snapshot ?? null,
+    safeErrorCodes: clientFixedReportSafeErrorCodes(result.body),
+    auditHintRef: result.body.audit_hint_ref,
+    auditEvent,
+    countLeakPrevented: result.body.count_leak_prevented === true,
+    permissionPrefilterApplied: item?.permission_prefilter_applied === true,
+    rawBankSourceIncluded: false,
+    rawSourcePayloadIncluded: false,
+    credentialMaterialIncluded: false,
+    productionReadyClaim: result.body.production_ready_claim === true
+  };
+  const model = item && buildClientFixedReportsModel(projected);
+  const report = model && selectClientFixedReport(model, normalizedReportId);
+  const valid = (
+    result.response.status === 200
+    && result.body.audit_hint_ref === routeContext.audit_hint_ref
+    && result.body.raw_sql_included === false
+    && result.body.raw_query_payload_included === false
+    && result.body.source_payload_included === false
+    && result.body.production_ready_claim === false
+    && projected.safeErrorCodes.length === 0
+    && auditEvent?.action === "report.client_fixed.screen.read"
+    && auditEvent.decision === "allow"
+    && item?.report_id === normalizedReportId
+    && item.row_count === item.rows?.length
+    && sourceStatus === (partial ? "partial" : empty ? "no_data" : "available")
+    && report?.state === (partial ? "partial" : empty ? "empty" : "data")
+  );
+  return valid ? projected : clientFixedReportUnavailable({
+    status: result.response.status,
+    code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
+  });
+}
+
+export async function exportClientFixedReportCsv({
+  reportId,
+  contractVersion,
+  snapshotToken,
+  snapshotVersion,
+  idempotencyKey,
+  ctx = "allow",
+  permissionRef = CLIENT_FIXED_REPORT_PERMISSION_REF,
+  auditHintRef = CLIENT_FIXED_REPORT_AUDIT_HINT_REF
+} = {}) {
+  const normalizedReportId = clientFixedReportText(reportId);
+  const normalizedToken = typeof snapshotToken === "string" ? snapshotToken : "";
+  const normalizedKey = clientFixedReportText(idempotencyKey);
+  const routeContext = getClientFixedReportRouteContext({
+    ctx,
+    operation: "export",
+    permissionRef,
+    auditHintRef
+  });
+  if (
+    !CLIENT_FIXED_REPORT_IDS.has(normalizedReportId)
+    || contractVersion !== CLIENT_FIXED_REPORT_CONTRACT_VERSION
+    || !normalizedToken
+    || clientFixedReportByteLength(normalizedToken) > CLIENT_FIXED_REPORT_MAX_TOKEN_BYTES
+    || snapshotVersion !== CLIENT_FIXED_REPORT_SNAPSHOT_VERSION
+    || !CLIENT_FIXED_REPORT_IDEMPOTENCY_KEY.test(normalizedKey)
+  ) {
+    return clientFixedReportUnavailable({
+      code: "CLIENT_FIXED_REPORT_EXPORT_REQUEST_INVALID"
+    });
+  }
+  const result = await clientFixedReportJsonRequest(
+    routeContext
+      ? `/api/reports/clients/fixed/${encodeURIComponent(normalizedReportId)}.csv`
+      : "",
+    {
+      method: "POST",
+      routeContext,
+      payload: routeContext ? {
+        tenant_id: routeContext.tenant_id,
+        permission_ref: routeContext.permission_ref,
+        audit_hint_ref: routeContext.audit_hint_ref,
+        snapshot_token: normalizedToken,
+        snapshot_version: snapshotVersion,
+        idempotency_key: normalizedKey
+      } : undefined
+    }
+  );
+  if (result.unavailable) return result.unavailable;
+  const replay = result.body.idempotent_replay === true;
+  const outcome = result.body.outcome;
+  const partial = outcome === "partial";
+  const acceptedOutcome = ["created", "idempotent_replay", "partial"].includes(outcome)
+    && (!replay || ["idempotent_replay", "partial"].includes(outcome))
+    && (replay || ["created", "partial"].includes(outcome));
+  const knownOutcome = ["created", "idempotent_replay", "partial"].includes(outcome);
+  const stateMismatch = partial
+    ? result.body.ui_state !== "partial"
+    : result.body.ui_state !== null;
+  if (
+    !result.response.ok
+    || !knownOutcome
+  ) {
+    return clientFixedReportGuardedResult(
+      result.response,
+      result.body,
+      "CLIENT_FIXED_REPORT_EXPORT_FAILED"
+    );
+  }
+  if (!acceptedOutcome || stateMismatch) {
+    return clientFixedReportUnavailable({
+      status: result.response.status,
+      code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
+    });
+  }
+  const item = clientFixedReportCsvItem(result.body.item, {
+    reportId: normalizedReportId,
+    snapshotVersion
+  });
+  const auditEvent = clientFixedReportAuditEvent(result.body.audit_event);
+  const safeErrorCodes = clientFixedReportSafeErrorCodes(result.body);
+  const valid = (
+    result.response.status === (replay ? 200 : 201)
+    && result.body.audit_hint_ref === routeContext.audit_hint_ref
+    && result.body.idempotent_replay === replay
+    && result.body.count_leak_prevented === true
+    && result.body.raw_sql_included === false
+    && result.body.raw_query_payload_included === false
+    && result.body.source_payload_included === false
+    && result.body.production_ready_claim === false
+    && safeErrorCodes.length === 0
+    && item
+    && item.source_status === (partial ? "partial" : "available")
+    && auditEvent?.action === (
+      replay
+        ? "report.client_fixed.csv.replay"
+        : "report.client_fixed.csv.export"
+    )
+    && auditEvent.decision === (replay ? "replay" : "allow")
+  );
+  return valid ? {
+    kind: "data",
+    status: result.response.status,
+    requestId: clientFixedReportSafeRef(result.body.request_id),
+    outcome: result.body.outcome,
+    uiState: partial ? "partial" : null,
+    item,
+    auditEvent,
+    safeErrorCodes,
+    auditHintRef: result.body.audit_hint_ref,
+    countLeakPrevented: true,
+    rawSqlIncluded: false,
+    rawQueryPayloadIncluded: false,
+    sourcePayloadIncluded: false,
+    idempotentReplay: replay,
+    sourceStatus: item.source_status,
+    productionReadyClaim: false
+  } : clientFixedReportUnavailable({
+    status: result.response.status,
+    code: "CLIENT_FIXED_REPORT_RESPONSE_INVALID"
   });
 }
 

@@ -1358,8 +1358,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /fetchCrmClientActivities/);
   assert.match(clientsSource, /fetchCrmProposals/);
   assert.match(clientsSource, /fetchCrmClientSettings/);
-  assert.match(clientsSource, /fetchFinanceInvoices/);
-  assert.match(clientsSource, /fetchFinanceArAging/);
+  assert.doesNotMatch(clientsSource, /fetchFinanceInvoices|fetchFinanceArAging/);
+  assert.match(apiClientSource, /fetchClientReceivables/);
   assert.match(clientsSource, /handoffCrmOpportunityToIntake/);
   assert.match(clientsSource, /createIntakeConflictCheck/);
   assert.match(clientsSource, /recordIntakeConflictDecision/);
@@ -1460,10 +1460,10 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(clientsSource, /data-intake-engagement-approval-flow="true"/);
   assert.match(clientsSource, /data-intake-matter-opening-flow="true"/);
   assert.match(clientsSource, /Matter 개설/);
-  assert.match(clientsSource, /data-client-billing-connected="true"/);
+  assert.match(clientsSource, /ClientReceivablesContainer/);
   assert.match(clientsSource, /data-client-settings-connected="true"/);
   assert.match(clientsSource, /data-client-contract-esign-provider-blocked="true"/);
-  assert.match(clientsSource, /data-client-billing-provider-blocked="true"/);
+  assert.match(clientsSource, /initialClientId=\{normalizedRequestedClientId\}/);
   assert.doesNotMatch(clientsSource, /data-client-planned-section|메뉴를 준비 중입니다/);
   assert.doesNotMatch(clientsSource, /Client, 담당자, Opportunity, 상담 이력/);
   assert.match(clientsSource, /renderLiveState\(result, "고객"\)/);

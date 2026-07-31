@@ -29,6 +29,7 @@ export const JSON_POSTGRES_MIGRATION_MODES = Object.freeze([
 ]);
 
 const DOMAIN_ORDER = new Map([
+  "authz",
   "hrx",
   "master-data",
   "crm",

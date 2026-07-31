@@ -22,6 +22,7 @@ Generated for enterprise audit remediation v3, C4/C8.
 | LAWOS_AUDIT_STORE_PATH | api-security-audit | yes | Local-development NDJSON audit path. |
 | LAWOS_AUTH_CREDENTIAL_STORE_PATH | api-auth-credentials | yes | Legacy local-development credential path; disabled in operational. |
 | LAWOS_AUTH_PASSWORD_RESET_STORE_PATH | api-auth-password-reset | yes | Legacy local-development reset-token path; disabled in operational. |
+| LAWOS_OBJECT_ACL_STORE_PATH | api-auth-object-acl | yes | Canonical local-development `ObjectAcl` trust-store path used by signed-session authorization. |
 | LAWOS_DMS_OBJECT_STORE_PATH | vault-dms | derived | Optional explicit object-byte root. Defaults to `LAWOS_DMS_STORE_PATH + ".objects"` when omitted. |
 
 These paths are never an operational authority. `LAWOS_RUNTIME_PROFILE=operational` requires `postgres-v2` and rejects `file-current`, including explicit file paths. PostgreSQL initialization failure is fail-closed and does not fall back to these files.
@@ -39,6 +40,11 @@ Bare `node apps/api/src/server.js`, `npm run api:start`, desktop development, an
 | LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID | yes | Secret reference for payroll artifact encryption material. |
 
 All operational domains use the PostgreSQL RepositoryPortV2 path with transaction, tenant RLS, optimistic version, idempotency, audit, and outbox capabilities. JSON fallback, dual-write, offline mutation, and legacy JSON maintenance writers are disabled.
+
+Signed-session object ACLs use tenant-RLS records in the PostgreSQL
+`authz` domain with record type `ObjectAcl`. An authoritative empty result is
+valid; query failure or tenant mismatch makes fixed Client reports unavailable
+instead of falling back to caller headers or local files.
 
 ## Session And Step-Up
 

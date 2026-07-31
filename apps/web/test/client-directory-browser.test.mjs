@@ -64,6 +64,83 @@ function clientDirectoryBody() {
   };
 }
 
+function clientReceivablesBody() {
+  return {
+    request_id: "client-directory-receivables",
+    outcome: "passed",
+    ui_state: null,
+    safe_error_codes: [],
+    audit_hint_ref: "ui_client_receivables_probe",
+    basis: "fee_commitment_and_bank_deposit",
+    basis_label: "수임료 약정·은행 입금 기준",
+    currency: "KRW",
+    as_of: "2026-07-31T00:00:00.000Z",
+    total_receivables: 1_000_000,
+    unknown_amount_count: 0,
+    total_overpayment: 0,
+    unallocated_amount: 0,
+    unallocated_amount_basis: "same_as_total_overpayment",
+    clients: [{
+      client_group_id: "client-allowed",
+      display_name: "새봄테크"
+    }],
+    ranking: [{
+      rank: 1,
+      client_group_id: "client-allowed",
+      display_name: "새봄테크",
+      agreed_amount: 1_000_000,
+      active_allocated_amount: 0,
+      receivable_amount: 1_000_000,
+      earliest_due_date: "2026-08-31"
+    }],
+    client_summaries: [{
+      client_group_id: "client-allowed",
+      agreed_amount: 1_000_000,
+      active_allocated_amount: 0,
+      receivable_amount: 1_000_000,
+      unknown_amount_count: 0,
+      overpayment_amount: 0
+    }],
+    details: {
+      fee_commitments: [{
+        fee_commitment_id: "fee-client-directory-receivables",
+        client_group_id: "client-allowed",
+        agreed_amount: 1_000_000,
+        active_allocated_amount: 0,
+        receivable_amount: 1_000_000,
+        due_date: "2026-08-31",
+        accepted_at: "2026-07-31T00:00:00.000Z",
+        status: "active",
+        state_version: 1
+      }],
+      deposits: [],
+      allocations: []
+    },
+    reconciliation: {
+      status: "passed",
+      ranking_total: 1_000_000,
+      commitment_detail_total: 1_000_000,
+      client_summary_total: 1_000_000,
+      overpayment_detail_total: 0
+    },
+    count_leak_prevented: true,
+    permission_prefilter_applied: true,
+    unauthorized_count_included: false,
+    raw_bank_source_included: false,
+    raw_source_payload_included: false,
+    source_metadata_included: false,
+    raw_account_included: false,
+    raw_counterparty_included: false,
+    raw_memo_included: false,
+    transaction_fingerprint_included: false,
+    bank_reference_included: false,
+    credential_material_included: false,
+    invoice_required: false,
+    matter_required: false,
+    production_ready_claim: false
+  };
+}
+
 function clientDepositBody() {
   const transactionId = "bank-client-directory-deposit";
   const bindings = [
@@ -159,6 +236,9 @@ function clientDepositBody() {
 function apiBody(pathname, state) {
   if (pathname === "/api/analytics/clients") {
     return clientDirectoryBody();
+  }
+  if (pathname === "/api/finance/client-receivables") {
+    return clientReceivablesBody();
   }
   if (pathname === "/api/finance/client-deposits") {
     return clientDepositBody();
@@ -597,14 +677,19 @@ test("CL-P5-W02-T01 고객 목록과 상세 탭은 주소·권한·반응형 계
       name: /수임료·미수금 열기/
     }).click();
     await page.waitForFunction(() => location.hash === "#client-billing");
-    await page.waitForSelector(
-      '[data-client-related-finance-guard="receivables"]'
+    await page.waitForSelector('[data-client-receivables-state="data"]');
+    assert.notEqual(
+      await page.locator('[data-client-receivables-client-select="true"]').inputValue(),
+      ""
     );
-    const receivablesGuardText = await page.locator(
-      '[data-client-related-finance-guard="receivables"]'
-    ).innerText();
-    assert.match(receivablesGuardText, /수임료·미수금 기준과 기존 송장 잔액 기준/);
-    assert.match(receivablesGuardText, /정확하지 않은 금액은 보여 주지 않습니다/);
+    assert.equal(
+      await page.locator('[data-client-receivables-fee-select="true"]').inputValue(),
+      ""
+    );
+    assert.match(
+      await page.locator('[data-client-receivables-engagement-create-notice="true"]').innerText(),
+      /상담·수임 관리에서 수임을 확정할 때/u
+    );
     assert.equal(
       await page.locator("#client-billing table").count(),
       0

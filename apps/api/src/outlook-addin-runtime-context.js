@@ -5,6 +5,7 @@ import { createM365GraphConnectionService } from "../../../packages/email-dms/sr
 import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-ports.js";
 import {
   createInquiryEvidenceStorageService,
+  INQUIRY_EVIDENCE_STORAGE_ERROR_CODES,
 } from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
 import {
   createOutlookInquiryRegistrationService,
@@ -188,6 +189,28 @@ function evaluateOutlookPermission({ context, tenant_id, matter_id = null, resou
     },
     action,
   });
+}
+
+function permissionContextForResource(context, resourceId) {
+  return {
+    ...context,
+    object_acl: (context?.object_acl ?? []).filter((entry) => (
+      entry.resource_id === undefined
+      || (resourceId !== null && entry.resource_id === resourceId)
+    )),
+  };
+}
+
+function inquiryEvidenceNotFoundResponse({ requestId, auditHintRef }) {
+  return errorResponse(
+    404,
+    requestId,
+    [INQUIRY_EVIDENCE_STORAGE_ERROR_CODES.not_found],
+    {
+      audit_hint_ref: auditHintRef,
+      ui_state: "empty",
+    },
+  );
 }
 
 function m365Principal(context, requestedTenantId) {
@@ -977,6 +1000,73 @@ async function handleInquiryEvidenceContentRead({
         decision,
         auditHintRef: query.audit_hint_ref,
       });
+    }
+    const evidenceRepository = runtime?.emailDmsRuntime?.repository;
+    if (typeof evidenceRepository?.get !== "function") {
+      return inquiryEvidenceNotFoundResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    let evidence;
+    try {
+      evidence = evidenceRepository.get({
+        tenant_id: principal.tenant_id,
+        model_type: "InquiryEmailEvidence",
+        inquiry_email_evidence_id: evidenceId,
+      });
+    } catch {
+      return inquiryEvidenceNotFoundResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    if (!evidence) {
+      return inquiryEvidenceNotFoundResponse({
+        requestId,
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    if (evidence.lead_id) {
+      const crmRepository = runtime?.crmIntakeRuntime?.crmRepository;
+      if (typeof crmRepository?.get !== "function") {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      let inquiry;
+      try {
+        inquiry = crmRepository.get({
+          tenant_id: principal.tenant_id,
+          model_type: "Lead",
+          lead_id: evidence.lead_id,
+        });
+      } catch {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      if (!inquiry) {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
+      const inquiryDecision = evaluateOutlookPermission({
+        context: permissionContextForResource(context, evidence.lead_id),
+        tenant_id: principal.tenant_id,
+        resource_type: "crm_inquiry",
+        resource_id: evidence.lead_id,
+        action: "crm:inquiry:read",
+      });
+      if (inquiryDecision.effect !== "allow") {
+        return inquiryEvidenceNotFoundResponse({
+          requestId,
+          auditHintRef: query.audit_hint_ref,
+        });
+      }
     }
     const objectKind =
       query.kind === "original"

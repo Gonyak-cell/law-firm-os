@@ -32,6 +32,7 @@ import {
   fetchCrmInquiries,
   fetchCrmInquiryDetail,
   fetchCrmInquiryEvidenceContent,
+  fetchClientFixedReport,
   fetchCrmMergeProposals,
   fetchCrmOpportunities,
   fetchCrmProposals,
@@ -49,13 +50,14 @@ import {
   patchCrmProposal,
   recordIntakeConflictDecision,
   reviewClientGroup,
-  updateRecordActionField
+  updateRecordActionField,
+  exportClientFixedReportCsv
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, Panel, Property } from "./primitives.jsx";
 import { ImportDataMappingPanel } from "./ImportDataMappingPanel.jsx";
 import { DataCloudEnrichmentPanel } from "./DataCloudEnrichmentPanel.jsx";
-import { ReportBuilderPanel } from "./ReportBuilderPanel.jsx";
+import { ClientFixedReportsContainer } from "./ClientFixedReportsContainer.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { DashboardListCard, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 import { buildClientOperationsDashboardModel } from "./ClientOperationsDashboardModel.js";
@@ -351,14 +353,18 @@ function upsertResultItem(current, nextItem, key) {
 function renderLiveState(result, noun) {
   if (result === null) {
     return (
-      <div className="live-data-state live-data-loading">
+      <div className="live-data-state live-data-loading" role="status">
         <strong>{noun} 목록을 불러오는 중입니다</strong>
       </div>
     );
   }
-  if (result.kind === "error") {
+  if (
+    result.kind === "error"
+    || result.uiState === "error"
+    || result.outcome === "error"
+  ) {
     return (
-      <div className="live-data-state live-data-unavailable live-data-error">
+      <div className="live-data-state live-data-unavailable live-data-error" role="alert">
         <strong>{noun} 목록을 불러오지 못했습니다</strong>
         새로고침하거나 연결 상태를 확인하세요.
       </div>
@@ -366,7 +372,7 @@ function renderLiveState(result, noun) {
   }
   if (result.uiState === "denied") {
     return (
-      <div className="live-data-state live-data-denied">
+      <div className="live-data-state live-data-denied" role="status">
         <strong>접근 권한이 없습니다</strong>
         담당자에게 접근을 요청하세요.
       </div>
@@ -374,15 +380,24 @@ function renderLiveState(result, noun) {
   }
   if (result.uiState === "review_required" || result.outcome === "review_required") {
     return (
-      <div className="live-data-state live-data-review">
+      <div className="live-data-state live-data-review" role="status">
         <strong>검토가 필요합니다</strong>
         담당자 확인 후 {noun} 정보를 볼 수 있습니다.
       </div>
     );
   }
+  if (result.uiState === "partial" || result.outcome === "partial") {
+    if (resultItems(result).length > 0) return null;
+    return (
+      <div className="live-data-state live-data-partial" role="status">
+        <strong>{noun} 목록 일부만 확인할 수 있습니다</strong>
+        확인 가능한 {noun} 정보가 없습니다.
+      </div>
+    );
+  }
   if (result.uiState === "empty" || resultItems(result).length === 0) {
     return (
-      <div className="live-data-state live-data-empty">
+      <div className="live-data-state live-data-empty" role="status">
         <strong>표시할 {noun} 정보가 없습니다</strong>
       </div>
     );
@@ -2177,8 +2192,14 @@ function ClientsTable({ result, selectedClientId, onSelectClient }) {
   if (state) return state;
   const items = resultItems(result);
   const reviewCount = items.filter((item) => item.status === "review_required").length;
+  const partial = result?.uiState === "partial" || result?.outcome === "partial";
   return (
     <div className="clients-live-stack">
+      {partial && (
+        <div className="client-list-boundary-note" role="status">
+          고객 목록 일부만 확인할 수 있습니다. 확인 가능한 고객만 표시합니다.
+        </div>
+      )}
       {reviewCount > 0 && (
         <div className="client-review-strip">
           <ShieldCheck size={15} />
@@ -5120,7 +5141,11 @@ export function ClientsSurface({
           <DataCloudEnrichmentPanel ctx={liveCtx} />
         )}
         {currentSection === "client-reports" && (
-          <ReportBuilderPanel ctx={liveCtx} selectedClient={selectedClient} />
+          <ClientFixedReportsContainer
+            ctx={liveCtx}
+            readReport={fetchClientFixedReport}
+            exportReport={exportClientFixedReportCsv}
+          />
         )}
         {currentSection === "client-import" && (
           <ImportDataMappingPanel ctx={liveCtx} surface="client" />

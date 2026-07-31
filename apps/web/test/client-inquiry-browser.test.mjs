@@ -335,6 +335,9 @@ test("Client 새 문의는 canonical list/detail/evidence를 1440·820·390에�
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !new URL(location.href).searchParams.get("inquiry_id"));
     await page.locator('[data-record-overlay="inquiry"]').waitFor({ state: "hidden" });
+    await page.waitForFunction(() => (
+      document.activeElement?.matches("[data-client-inquiry-row-button]")
+    ));
     assert.equal(await page.evaluate(() => document.activeElement?.matches("[data-client-inquiry-row-button]")), true);
     const mobileOverflow = await page.evaluate(() => ({
       document: document.documentElement.scrollWidth - document.documentElement.clientWidth,

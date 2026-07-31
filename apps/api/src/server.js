@@ -25,6 +25,9 @@ import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-re
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
+import {
+  createClientFixedReportSnapshotTokenAuthority,
+} from "../../../packages/reports/src/index.js";
 import { createAiGovernanceRepository } from "../../../packages/ai-governance/src/runtime-repository.js";
 import { createClientPortalRepository } from "../../../packages/client-portal/src/runtime-repository.js";
 import { createUiReadinessRepository } from "../../../packages/platform/src/ui-readiness-repository.js";
@@ -177,6 +180,13 @@ import {
   createHrxRelationalProjectionReader,
 } from "../../../packages/hrx/src/relational-projection-reader.js";
 import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-authority.js";
+import {
+  createFileSessionObjectAclResolver,
+  createPostgresSessionObjectAclResolver,
+} from "./session-object-acl-authority.js";
+import {
+  resolveClientOperationsV2Enabled,
+} from "./client-operations-config.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
@@ -212,6 +222,7 @@ function startupStorePathOptions(options = {}) {
     securityAuditStorePath: options.securityAuditStorePath,
     authCredentialStorePath: options.authCredentialStorePath,
     authPasswordResetStorePath: options.authPasswordResetStorePath,
+    objectAclStorePath: options.objectAclStorePath,
   };
 }
 
@@ -316,6 +327,13 @@ function createEphemeralUiReadinessStorePath() {
 
 function createEphemeralEnterpriseReadinessStorePath() {
   return join(mkdtempSync(join(tmpdir(), "lawos-enterprise-readiness-runtime-")), "enterprise-readiness-store.json");
+}
+
+function createEphemeralObjectAclStorePath() {
+  return join(
+    mkdtempSync(join(tmpdir(), "lawos-object-acl-runtime-")),
+    "object-acl-store.json",
+  );
 }
 
 export function createDefaultHrxRuntime({
@@ -1810,6 +1828,7 @@ export function createApiServer({
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
   sessionAuth,
+  sessionObjectAclResolver = null,
   requestRuntimeAuthority = null,
   dataScope = process.env.LAWOS_DATA_SCOPE ?? null,
 } = {}) {
@@ -1817,6 +1836,7 @@ export function createApiServer({
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     stepUpAuthority: resolvedStepUpAuthority,
     profile: runtimeProfile,
+    objectAclResolver: sessionObjectAclResolver,
   });
   return http.createServer(async (req, res) => {
     try {
@@ -1931,7 +1951,6 @@ export async function startApiServer({
   persistenceAuthority,
   persistenceAuthorityEnv = process.env,
   persistenceConnectPostgres,
-  persistenceVerifyPostgresMigrations,
   persistenceSecretsClient,
   persistenceResolvePostgresSecret,
   sessionSecret,
@@ -1971,6 +1990,7 @@ export async function startApiServer({
   analyticsRepository,
   analyticsStorePath,
   analyticsFinanceRepository,
+  clientOperationsV2Enabled,
   aiRuntime,
   aiRepository,
   aiStorePath,
@@ -1988,8 +2008,10 @@ export async function startApiServer({
   securityAuditStorePath,
   authCredentialStorePath,
   authPasswordResetStorePath,
+  objectAclStorePath,
   passwordResetEmailDelivery,
   sessionAuth,
+  sessionObjectAclResolver,
   staffAuthAuthority,
   staffOidcProvider,
   entraSecretsClient,
@@ -2012,11 +2034,15 @@ export async function startApiServer({
   const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
     staffAuthAuthority ?? resolvedPersistenceAuthorityEnv.LAWOS_STAFF_AUTHORITY,
   );
+  const resolvedClientOperationsV2Enabled =
+    resolveClientOperationsV2Enabled({
+      value: clientOperationsV2Enabled,
+      env: resolvedPersistenceAuthorityEnv,
+    });
   const persistenceAuthorityState = await preparePersistenceAuthority({
     value: persistenceAuthority,
     env: resolvedPersistenceAuthorityEnv,
     connectPostgres: persistenceConnectPostgres,
-    verifyPostgresMigrations: persistenceVerifyPostgresMigrations,
     secretsClient: persistenceSecretsClient,
     resolvePostgresSecret: persistenceResolvePostgresSecret,
   });
@@ -2027,6 +2053,10 @@ export async function startApiServer({
   const resolvedBankImportPreviewTokens = createBankImportPreviewTokenAuthority({
     secret: resolvedSessionSecret,
   });
+  const resolvedClientFixedReportTokens =
+    createClientFixedReportSnapshotTokenAuthority({
+      secret: resolvedSessionSecret,
+    });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
@@ -2066,6 +2096,15 @@ export async function startApiServer({
         throw runtimePreflightError("postgres-v2 authority connector must expose transaction-capable pool");
       }
       const identityRepository = createPostgresIdentityLedger({ pool: postgresPool });
+      const domainLedger = createPostgresDomainLedger({
+        pool: postgresPool,
+      });
+      const resolvedSessionObjectAclResolver =
+        sessionObjectAclResolver === undefined
+          ? createPostgresSessionObjectAclResolver({
+              ledger: domainLedger,
+            })
+          : sessionObjectAclResolver;
       const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
         profile: resolvedRuntimeProfile,
         secret: resolvedSessionSecret,
@@ -2074,6 +2113,7 @@ export async function startApiServer({
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,
         identityRepository,
+        objectAclResolver: resolvedSessionObjectAclResolver,
       });
       const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
       const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
@@ -2099,12 +2139,17 @@ export async function startApiServer({
                 hrxRelationalProjectionValidationResultSha256,
             });
       const requestRuntimeAuthority = createPostgresApiRuntimeAuthority({
-        ledger: createPostgresDomainLedger({ pool: postgresPool }),
+        ledger: domainLedger,
         dmsStorage: resolvedDmsStorage,
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
         hrxRelationalProjectionReader,
         bankImportPreviewTokens: resolvedBankImportPreviewTokens,
+        clientFixedReportTokenAuthority:
+          resolvedClientFixedReportTokens,
+        clientOperationsV2Enabled:
+          resolvedClientOperationsV2Enabled,
+        clientOperationsSchemaPool: postgresPool,
       });
       const server = createApiServer({
         hrxRuntime: null,
@@ -2172,6 +2217,7 @@ export async function startApiServer({
       securityAuditStorePath,
       authCredentialStorePath,
       authPasswordResetStorePath,
+      objectAclStorePath,
     }),
   });
   const resolvedStorePaths = storePreflight.storePaths;
@@ -2276,7 +2322,7 @@ export async function startApiServer({
       financeRuntimeContext = null;
     }
   }
-  const analyticsRuntimeContext =
+  const baseAnalyticsRuntimeContext =
     analyticsRuntime ??
     createDefaultAnalyticsRuntime({
       repository: analyticsRepository,
@@ -2286,6 +2332,13 @@ export async function startApiServer({
       crmRepository: crmIntakeRuntime?.crmRepository ?? null,
       matterRepository: matterRuntimeContext?.repository ?? null,
     });
+  const analyticsRuntimeContext = Object.freeze({
+    ...baseAnalyticsRuntimeContext,
+    clientFixedReportTokenAuthority:
+      baseAnalyticsRuntimeContext
+        ?.clientFixedReportTokenAuthority
+      ?? resolvedClientFixedReportTokens,
+  });
   const aiRuntimeContext =
     aiRuntime ??
     createDefaultAiRuntime({ repository: aiRepository, storePath: aiStorePath ?? resolvedStorePaths.aiStorePath });
@@ -2316,6 +2369,15 @@ export async function startApiServer({
       repository: enterpriseReadinessRepository,
       storePath: enterpriseReadinessStorePath ?? resolvedStorePaths.enterpriseReadinessStorePath,
     });
+  const resolvedSessionObjectAclResolver =
+    sessionObjectAclResolver === undefined
+      ? createFileSessionObjectAclResolver({
+          storePath:
+            objectAclStorePath
+            ?? resolvedStorePaths.objectAclStorePath
+            ?? createEphemeralObjectAclStorePath(),
+        })
+      : sessionObjectAclResolver;
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
     profile: resolvedRuntimeProfile,
     secret: resolvedSessionSecret,
@@ -2324,6 +2386,7 @@ export async function startApiServer({
     passwordResetTokenStorePath: authPasswordResetStorePath ?? resolvedStorePaths.authPasswordResetStorePath,
     passwordResetEmailDelivery,
     stepUpAuthority: resolvedStepUpAuthority,
+    objectAclResolver: resolvedSessionObjectAclResolver,
   });
   const server = createApiServer({
     hrxRuntime: runtime,

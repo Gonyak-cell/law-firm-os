@@ -13,10 +13,13 @@ import {
 } from "../../../packages/analytics/src/metrics-service.js";
 import { createAnalyticsExport } from "../../../packages/analytics/src/export-control-service.js";
 import { buildCashflowReadModel, buildFinanceReadModels } from "../../../packages/analytics/src/finance-read-model.js";
-import {
-  createClientOperationsReadModel,
-} from "../../../packages/analytics/src/client-operations-read-model.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import {
+  selectClientOperationsReadPath,
+} from "./client-operations-migration.js";
+import {
+  createClientOperationsLegacyReadProvider,
+} from "./client-operations-read-providers.js";
 
 export const ANALYTICS_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "analytics",
@@ -102,20 +105,31 @@ export function createAnalyticsRuntimeContext({
   crmRepository = null,
   matterRepository = null,
   clock = () => new Date(),
+  clientOperationsReadPathSelector = null,
+  clientOperationsLegacyReadProvider = null,
+  clientOperationsV2ReadProvider = null,
 } = {}) {
+  const legacyReadProvider =
+    clientOperationsLegacyReadProvider
+    ?? createClientOperationsLegacyReadProvider({
+      masterDataRepository,
+      financeRepository,
+      crmRepository,
+      matterRepository,
+      clock,
+    });
   return Object.freeze({
     repository,
     financeRepository,
     masterDataRepository,
     crmRepository,
     matterRepository,
-    clientOperationsReadModel: createClientOperationsReadModel({
-      masterDataRepository,
-      financeRepository,
-      crmRepository,
-      matterRepository,
-      clock,
-    }),
+    clientOperationsReadModel: legacyReadProvider,
+    clientOperationsLegacyReadProvider: legacyReadProvider,
+    clientOperationsV2ReadProvider,
+    clientOperationsReadPathSelector:
+      clientOperationsReadPathSelector
+      ?? (() => selectClientOperationsReadPath()),
     seed_ref: "cmp-g8-analytics-synthetic",
   });
 }
@@ -146,10 +160,17 @@ function validateCommon(query, requestId) {
 }
 
 function appendAnalyticsRouteAudit({ repository, context, query, action, resourceType, decision } = {}) {
-  if (!repository || typeof repository.appendAudit !== "function" || !query?.tenant_id || decision?.effect === "allow") return null;
+  const authoritativeTenantId = context?.principal?.tenant_id;
+  if (
+    !repository
+    || typeof repository.appendAudit !== "function"
+    || typeof authoritativeTenantId !== "string"
+    || !authoritativeTenantId.trim()
+    || decision?.effect === "allow"
+  ) return null;
   return repository.appendAudit({
     event_id: `analytics_route_${randomUUID()}`,
-    tenant_id: query.tenant_id,
+    tenant_id: authoritativeTenantId,
     actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
     action,
     object_type: resourceType,
@@ -363,7 +384,7 @@ function financeReadModelResponse({ kind, query, context, requestId, runtime }) 
   }
 }
 
-export function handleClientOperationsDashboard({
+export async function handleClientOperationsDashboard({
   query,
   context,
   requestId,
@@ -379,8 +400,32 @@ export function handleClientOperationsDashboard({
   });
   if (gated) return gated;
   const generatedAt = new Date().toISOString();
+  const readPath = await (
+    typeof runtime?.clientOperationsReadPathSelector === "function"
+      ? runtime.clientOperationsReadPathSelector({
+          tenant_id: context.principal.tenant_id,
+        })
+      : selectClientOperationsReadPath()
+  );
+  const selectedReadProvider = readPath.active
+    ? runtime?.clientOperationsV2ReadProvider
+    : runtime?.clientOperationsLegacyReadProvider;
+  const publicReadPath = Object.freeze({
+    feature_flag: readPath.feature_flag,
+    active: readPath.active,
+    read_path: readPath.read_path,
+    reason: readPath.reason,
+    postgres_records_preserved:
+      readPath.postgres_records_preserved,
+    destructive_rollback: readPath.destructive_rollback,
+    verification_source: readPath.verification_source,
+    caller_verification_accepted:
+      readPath.caller_verification_accepted,
+    provider_authority:
+      selectedReadProvider?.authority ?? null,
+  });
   if (
-    typeof runtime?.clientOperationsReadModel?.readDashboard
+    typeof selectedReadProvider?.readDashboard
       !== "function"
   ) {
     return {
@@ -397,13 +442,17 @@ export function handleClientOperationsDashboard({
           checked_at: generatedAt,
           latest_record_at: null,
           item_count: null,
-          safe_error_code:
-            "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
+          safe_error_code: readPath.active
+            ? "CLIENT_OPERATIONS_V2_RUNTIME_UNAVAILABLE"
+            : "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
         }],
         safe_error_codes: [
-          "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
+          readPath.active
+            ? "CLIENT_OPERATIONS_V2_RUNTIME_UNAVAILABLE"
+            : "CLIENT_OPERATIONS_RUNTIME_UNAVAILABLE",
         ],
         audit_hint_ref: query.audit_hint_ref,
+        client_operations_read_path: publicReadPath,
         count_leak_prevented: true,
         raw_source_payload_included: false,
         credential_material_included: false,
@@ -413,8 +462,8 @@ export function handleClientOperationsDashboard({
   }
   try {
     const result =
-      runtime.clientOperationsReadModel.readDashboard({
-        tenant_id: query.tenant_id,
+      await selectedReadProvider.readDashboard({
+        tenant_id: context.principal.tenant_id,
         permission_context: context,
         as_of: query.as_of ?? undefined,
         timezone: query.timezone ?? "Asia/Seoul",
@@ -429,6 +478,7 @@ export function handleClientOperationsDashboard({
         request_id: requestId,
         ...result.item,
         audit_hint_ref: query.audit_hint_ref,
+        client_operations_read_path: publicReadPath,
       },
     };
   } catch (error) {
@@ -464,6 +514,7 @@ export function handleClientOperationsDashboard({
           : [],
         safe_error_codes: [safeCode],
         audit_hint_ref: query.audit_hint_ref,
+        client_operations_read_path: publicReadPath,
         count_leak_prevented: true,
         raw_source_payload_included: false,
         credential_material_included: false,
@@ -849,7 +900,7 @@ export function handleClientProfitabilityCreate({ body, context, requestId, runt
 
 export function handleAnalyticsExportCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.analytics_export?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "analytics:export:write", resourceType: "analytics_export" });
+  const gated = routeGate({ context, query, requestId, action: "analytics:export:write", resourceType: "analytics_export", repository: runtime.repository });
   if (gated) return gated;
   try {
     const result = createAnalyticsExport({
