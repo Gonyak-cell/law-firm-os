@@ -33,6 +33,7 @@ import {
   reallocateClientDeposit,
   synchronizeClientDepositAllocationReversals,
 } from "../../../packages/billing/src/client-deposit-reallocation-service.js";
+import { buildClientReceivables } from "../../../packages/billing/src/client-receivables-service.js";
 import { importPayment } from "../../../packages/payments/src/payment-service.js";
 import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
 import { createArAgingSnapshot } from "../../../packages/payments/src/ar-service.js";
@@ -68,6 +69,7 @@ export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/finance/bank-classification-options",
     "GET /api/finance/client-deposits",
     "GET /api/finance/client-deposits/:bank_transaction_id",
+    "GET /api/finance/client-receivables",
     "POST /api/finance/bank-imports/preview",
     "POST /api/finance/bank-imports",
     "POST /api/finance/bank-classifications/auto",
@@ -135,6 +137,9 @@ export const FINANCE_API_ERROR_CODES = Object.freeze({
   idempotency_conflict: "FINANCE_IDEMPOTENCY_CONFLICT",
   classification_version_conflict: "FINANCE_BANK_CLASSIFICATION_VERSION_CONFLICT",
   client_link_invalid: "FINANCE_CLIENT_LINK_INVALID",
+  client_receivables_limit_exceeded:
+    "FINANCE_CLIENT_RECEIVABLES_LIMIT_EXCEEDED",
+  client_receivables_unavailable: "FINANCE_CLIENT_RECEIVABLES_UNAVAILABLE",
 });
 
 export const FINANCE_RUNTIME_SEED = Object.freeze([
@@ -518,6 +523,9 @@ const BANK_TRANSACTION_READ_ACTION = "finance:bank_transaction:read";
 const BANK_CLASSIFICATION_READ_ACTION =
   "finance:bank_classification:read";
 const CLIENT_READ_ACTION = "analytics:client:read";
+const CLIENT_RECEIVABLES_READ_ACTION =
+  "finance:ar:client_receivables:read";
+const CLIENT_RECEIVABLES_RESOURCE_TYPE = "client_receivables";
 const EMPLOYEE_READ_ACTION = "hrx.employee.read";
 
 function sourceReferenceFields(transaction = {}) {
@@ -814,9 +822,412 @@ function classificationDirectories(runtime, tenantId) {
 }
 
 const INACTIVE_CLIENT_STATUSES = new Set(["inactive", "archived", "deleted", "merged", "closed"]);
+const CLIENT_RECEIVABLES_READ_LIMITS = Object.freeze({
+  client_groups: 500,
+  fee_commitments: 5_000,
+  bank_transaction_classifications: 5_000,
+  bank_transactions: 5_000,
+  client_deposit_allocations: 5_000,
+  total_finance_rows: 10_000,
+});
+const CLIENT_RECEIVABLES_ACTIVE_CLIENT_STATUSES = new Set([
+  "active",
+  "current",
+  "open",
+]);
+const CLIENT_RECEIVABLES_SAFE_BOUNDARY = Object.freeze({
+  count_leak_prevented: true,
+  permission_prefilter_applied: true,
+  unauthorized_count_included: false,
+  raw_bank_source_included: false,
+  raw_source_payload_included: false,
+  source_metadata_included: false,
+  raw_account_included: false,
+  raw_counterparty_included: false,
+  raw_memo_included: false,
+  transaction_fingerprint_included: false,
+  bank_reference_included: false,
+  credential_material_included: false,
+  invoice_required: false,
+  matter_required: false,
+  production_ready_claim: false,
+});
 
 function activeClientRecord(record) {
   return !INACTIVE_CLIENT_STATUSES.has(String(record.status ?? "active").trim().toLowerCase());
+}
+
+function activeClientReceivablesRecord(record) {
+  return CLIENT_RECEIVABLES_ACTIVE_CLIENT_STATUSES.has(
+    String(record.status ?? "active").trim().toLowerCase(),
+  );
+}
+
+function clientReceivablesUnavailableResponse({
+  status,
+  requestId,
+  outcome = "blocked",
+  uiState,
+  safeErrorCodes,
+  auditHintRef,
+}) {
+  return {
+    status,
+    body: {
+      request_id: requestId,
+      outcome,
+      ui_state: uiState,
+      safe_error_codes: safeErrorCodes,
+      audit_hint_ref: auditHintRef ?? null,
+      ...CLIENT_RECEIVABLES_SAFE_BOUNDARY,
+    },
+  };
+}
+
+function clientReceivablesGateResponse(response) {
+  return clientReceivablesUnavailableResponse({
+    status: response.status,
+    requestId: response.body.request_id,
+    outcome: response.body.outcome,
+    uiState: response.body.ui_state ?? (
+      response.status === 403 ? "denied" : "error"
+    ),
+    safeErrorCodes: response.body.safe_error_codes,
+    auditHintRef: response.body.audit_hint_ref,
+  });
+}
+
+function safeClientReceivablesClient(record, tenantId) {
+  const clientGroupId = typeof record?.client_group_id === "string"
+    ? record.client_group_id.trim()
+    : "";
+  const displayName = typeof (
+    record?.display_name ?? record?.canonical_display_name
+  ) === "string"
+    ? (record.display_name ?? record.canonical_display_name).trim()
+    : "";
+  if (!clientGroupId || !displayName || record?.tenant_id !== tenantId) {
+    throw new TypeError("Authorized ClientGroup is invalid");
+  }
+  return Object.freeze({
+    model_type: "ClientGroup",
+    tenant_id: tenantId,
+    client_group_id: clientGroupId,
+    display_name: displayName,
+    status: String(record.status ?? "active").trim().toLowerCase(),
+  });
+}
+
+function permittedClientReceivablesClients(runtime, tenantId, context) {
+  return classificationClientRecords(runtime, tenantId)
+    .filter((record) => (
+      record.model_type === "ClientGroup"
+      && record.tenant_id === tenantId
+      && typeof record.client_group_id === "string"
+      && record.client_group_id.length > 0
+    ))
+    .filter((record) => clientGroupAllowed(
+      context,
+      tenantId,
+      record.client_group_id,
+    ))
+    .filter((record) => activeClientReceivablesRecord(record))
+    .map((record) => safeClientReceivablesClient(record, tenantId))
+    .sort((left, right) => (
+      left.display_name.localeCompare(right.display_name, "ko")
+      || left.client_group_id.localeCompare(right.client_group_id, "en")
+    ));
+}
+
+function clientReceivablesFinanceRows(repository, tenantId, clientIds) {
+  const byPermittedClient = (modelType) => repository
+    .list({ tenant_id: tenantId, model_type: modelType })
+    .filter((record) => clientIds.has(record.client_group_id));
+  const bankTransactionClassifications = byPermittedClient(
+    "BankTransactionClassification",
+  );
+  const transactionIds = new Set(
+    bankTransactionClassifications
+      .map((record) => record.bank_transaction_id)
+      .filter((value) => typeof value === "string" && value.trim() !== ""),
+  );
+  return Object.freeze({
+    FeeCommitment: Object.freeze(byPermittedClient("FeeCommitment")),
+    BankTransactionClassification: Object.freeze(
+      bankTransactionClassifications,
+    ),
+    BankTransaction: Object.freeze(repository
+      .list({ tenant_id: tenantId, model_type: "BankTransaction" })
+      .filter((record) => transactionIds.has(record.bank_transaction_id))),
+    ClientDepositAllocation: Object.freeze(
+      byPermittedClient("ClientDepositAllocation"),
+    ),
+  });
+}
+
+function clientReceivablesRowsWithinLimits(clients, rows) {
+  const counts = {
+    client_groups: clients.length,
+    fee_commitments: rows.FeeCommitment.length,
+    bank_transaction_classifications:
+      rows.BankTransactionClassification.length,
+    bank_transactions: rows.BankTransaction.length,
+    client_deposit_allocations: rows.ClientDepositAllocation.length,
+  };
+  counts.total_finance_rows = Object.values(counts)
+    .slice(1)
+    .reduce((total, count) => total + count, 0);
+  return Object.entries(counts).every(
+    ([name, count]) => count <= CLIENT_RECEIVABLES_READ_LIMITS[name],
+  );
+}
+
+function clientReceivablesReadRepository(rows, tenantId) {
+  return Object.freeze({
+    list(query = {}) {
+      if (query.tenant_id !== tenantId || !Object.hasOwn(rows, query.model_type)) {
+        throw new TypeError("Client receivables repository query is not permitted");
+      }
+      return rows[query.model_type];
+    },
+  });
+}
+
+function sortClientReceivablesAllocations(allocations) {
+  return Object.freeze([...allocations].sort((left, right) => (
+    left.client_group_id.localeCompare(right.client_group_id, "en")
+    || left.fee_commitment_id.localeCompare(right.fee_commitment_id, "en")
+    || left.bank_transaction_id.localeCompare(
+      right.bank_transaction_id,
+      "en",
+    )
+    || left.client_deposit_allocation_id.localeCompare(
+      right.client_deposit_allocation_id,
+      "en",
+    )
+  )));
+}
+
+function clientReceivablesFeeCommitments(details, sourceRows) {
+  const sourceById = new Map(sourceRows.map((row) => [
+    row.fee_commitment_id,
+    row,
+  ]));
+  return Object.freeze(details.map((detail) => {
+    const source = sourceById.get(detail.fee_commitment_id);
+    if (
+      !source
+      || !["active", "superseded", "cancelled"].includes(source.status)
+      || !Number.isSafeInteger(source.state_version)
+      || source.state_version < 1
+    ) {
+      throw new TypeError("FeeCommitment read metadata is invalid");
+    }
+    return Object.freeze({
+      ...detail,
+      status: source.status,
+      state_version: source.state_version,
+    });
+  }));
+}
+
+function clientReceivablesResponse({ query, context, requestId, runtime }) {
+  const invalid = validateCommon(query, requestId);
+  if (invalid) {
+    return clientReceivablesUnavailableResponse({
+      status: invalid.status,
+      requestId,
+      uiState: "error",
+      safeErrorCodes: invalid.body.safe_error_codes,
+      auditHintRef: query?.audit_hint_ref,
+    });
+  }
+  const signedTenantId = typeof context?.principal?.tenant_id === "string"
+    ? context.principal.tenant_id.trim()
+    : "";
+  if (!signedTenantId) {
+    return clientReceivablesUnavailableResponse({
+      status: 403,
+      requestId,
+      uiState: "denied",
+      safeErrorCodes: [FINANCE_API_ERROR_CODES.unauthorized_omission],
+      auditHintRef: query.audit_hint_ref,
+    });
+  }
+  if (query.tenant_id !== signedTenantId) {
+    appendFinanceRouteAudit({
+      repository: runtime.repository,
+      context,
+      query: { ...query, tenant_id: signedTenantId },
+      action: CLIENT_RECEIVABLES_READ_ACTION,
+      resourceType: CLIENT_RECEIVABLES_RESOURCE_TYPE,
+      decision: {
+        effect: "deny",
+        reason: "finance_signed_tenant_mismatch",
+        fail_closed: true,
+      },
+    });
+    return clientReceivablesUnavailableResponse({
+      status: 403,
+      requestId,
+      uiState: "denied",
+      safeErrorCodes: [FINANCE_API_ERROR_CODES.unauthorized_omission],
+      auditHintRef: query.audit_hint_ref,
+    });
+  }
+  const gated = routeGate({
+    context: collectionPermissionContext(context),
+    query,
+    requestId,
+    action: CLIENT_RECEIVABLES_READ_ACTION,
+    resourceType: CLIENT_RECEIVABLES_RESOURCE_TYPE,
+    repository: runtime.repository,
+  });
+  if (gated) return clientReceivablesGateResponse(gated);
+
+  try {
+    const permittedClients = permittedClientReceivablesClients(
+      runtime,
+      signedTenantId,
+      context,
+    );
+    const clientIds = new Set(
+      permittedClients.map((client) => client.client_group_id),
+    );
+    const rows = clientReceivablesFinanceRows(
+      runtime.repository,
+      signedTenantId,
+      clientIds,
+    );
+    if (!clientReceivablesRowsWithinLimits(permittedClients, rows)) {
+      appendFinanceRouteAudit({
+        repository: runtime.repository,
+        context,
+        query,
+        action: CLIENT_RECEIVABLES_READ_ACTION,
+        resourceType: CLIENT_RECEIVABLES_RESOURCE_TYPE,
+        decision: {
+          effect: "review_required",
+          reason: FINANCE_API_ERROR_CODES
+            .client_receivables_limit_exceeded
+            .toLowerCase(),
+          fail_closed: true,
+        },
+      });
+      return clientReceivablesUnavailableResponse({
+        status: 200,
+        requestId,
+        outcome: "review_required",
+        uiState: "review_required",
+        safeErrorCodes: [
+          FINANCE_API_ERROR_CODES.client_receivables_limit_exceeded,
+        ],
+        auditHintRef: query.audit_hint_ref,
+      });
+    }
+    const report = buildClientReceivables({
+      repository: clientReceivablesReadRepository(rows, signedTenantId),
+      tenant_id: signedTenantId,
+      permitted_client_records: permittedClients,
+    });
+    const details = Object.freeze({
+      fee_commitments: clientReceivablesFeeCommitments(
+        report.details.fee_commitments,
+        rows.FeeCommitment,
+      ),
+      deposits: report.details.deposits,
+      allocations: sortClientReceivablesAllocations(
+        report.details.allocations,
+      ),
+    });
+    const clients = Object.freeze(permittedClients.map((client) => (
+      Object.freeze({
+        client_group_id: client.client_group_id,
+        display_name: client.display_name,
+      })
+    )));
+    const empty = (
+      details.fee_commitments.length === 0
+      && details.deposits.length === 0
+      && details.allocations.length === 0
+    );
+    appendFinanceSensitiveReadAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action: CLIENT_RECEIVABLES_READ_ACTION,
+      resourceType: CLIENT_RECEIVABLES_RESOURCE_TYPE,
+      returnedCount: (
+        clients.length
+        + details.fee_commitments.length
+        + details.deposits.length
+        + details.allocations.length
+      ),
+      metadata: {
+        permission_prefilter_applied: true,
+        unauthorized_count_included: false,
+        raw_bank_source_included: false,
+        raw_source_payload_included: false,
+        raw_account_included: false,
+        raw_counterparty_included: false,
+        raw_memo_included: false,
+        transaction_fingerprint_included: false,
+        client_name_included_in_audit: false,
+        amount_included_in_audit: false,
+      },
+    });
+    return {
+      status: 200,
+      body: {
+        request_id: requestId,
+        outcome: "passed",
+        ui_state: empty ? "empty" : null,
+        safe_error_codes: [],
+        audit_hint_ref: query.audit_hint_ref,
+        basis: report.basis,
+        basis_label: report.basis_label,
+        currency: report.currency,
+        as_of: report.as_of,
+        total_receivables: report.total_receivables,
+        unknown_amount_count: report.unknown_amount_count,
+        total_overpayment: report.total_overpayment,
+        unallocated_amount: report.total_overpayment,
+        unallocated_amount_basis: "same_as_total_overpayment",
+        clients,
+        ranking: report.ranking,
+        client_summaries: report.client_summaries,
+        details,
+        reconciliation: report.reconciliation,
+        ...CLIENT_RECEIVABLES_SAFE_BOUNDARY,
+      },
+    };
+  } catch {
+    try {
+      appendFinanceRouteAudit({
+        repository: runtime.repository,
+        context,
+        query,
+        action: CLIENT_RECEIVABLES_READ_ACTION,
+        resourceType: CLIENT_RECEIVABLES_RESOURCE_TYPE,
+        decision: {
+          effect: "deny",
+          reason: FINANCE_API_ERROR_CODES
+            .client_receivables_unavailable
+            .toLowerCase(),
+          fail_closed: true,
+        },
+      });
+    } catch {}
+    return clientReceivablesUnavailableResponse({
+      status: 503,
+      requestId,
+      uiState: "error",
+      safeErrorCodes: [
+        FINANCE_API_ERROR_CODES.client_receivables_unavailable,
+      ],
+      auditHintRef: query.audit_hint_ref,
+    });
+  }
 }
 
 function clientDepositEmptyResponse(requestId, auditHintRef) {
@@ -3401,6 +3812,14 @@ export async function handleFinanceApiRequest({ pathname, method, query, body, c
   }
   if (pathname === "/api/finance/bank-classification-options" && method === "GET") {
     return bankClassificationOptionsResponse({ query, context, requestId, runtime });
+  }
+  if (pathname === "/api/finance/client-receivables" && method === "GET") {
+    return clientReceivablesResponse({
+      query,
+      context,
+      requestId,
+      runtime,
+    });
   }
   if (pathname === "/api/finance/client-deposits" && method === "GET") {
     return clientDepositListResponse({

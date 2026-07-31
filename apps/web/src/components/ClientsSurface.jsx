@@ -35,8 +35,6 @@ import {
   fetchCrmMergeProposals,
   fetchCrmOpportunities,
   fetchCrmProposals,
-  fetchFinanceArAging,
-  fetchFinanceInvoices,
   fetchIntakeAudit,
   fetchIntakeRequests,
   fetchRecordActionAudit,
@@ -97,6 +95,7 @@ import {
   validateClientRegistrationForm
 } from "./ClientRegistrationModel.js";
 import { ClientDepositOperationsPanel } from "./ClientDepositOperationsPanel.jsx";
+import { ClientReceivablesContainer } from "./ClientReceivablesContainer.jsx";
 
 const CLIENT_SECTIONS = new Set([
   "clients-home",
@@ -1794,47 +1793,6 @@ function ClientConflictPanel({
   );
 }
 
-function ClientChargePanel({ invoicesResult, arAgingResult }) {
-  const invoiceState = renderLiveState(invoicesResult, "청구 내역");
-  const arState = renderLiveState(arAgingResult, "미수금");
-  return (
-    <div className="clients-live-stack" data-client-billing-connected="true">
-      <div className="record-action-strip" data-client-billing-provider-blocked="true">
-        <div>
-          <strong>송장 발송</strong>
-          <span>송장 발송 준비가 필요합니다.</span>
-        </div>
-        <button className="secondary-button" type="button" disabled>
-          <ShieldCheck size={15} />
-          발송 대기
-        </button>
-      </div>
-      {invoiceState ?? (
-        <DataTable
-          columns={["송장", "상태", "청구액", "수납"]}
-          rows={resultItems(invoicesResult).map((item, index) => [
-            item.invoice_id ? `송장 ${index + 1}` : "송장",
-            item.status ?? "확인 필요",
-            amountLabel(item.amount_due, item.currency),
-            amountLabel(item.amount_paid, item.currency)
-          ])}
-        />
-      )}
-      {arState ?? (
-        <DataTable
-          columns={["미수금", "상태", "잔액", "Client"]}
-          rows={resultItems(arAgingResult).map((item, index) => [
-            item.invoice_id ? `미수 ${index + 1}` : "미수",
-            item.status ?? "확인 필요",
-            amountLabel(item.balance, "KRW"),
-            linkedLabel(item.billing_client_party_id)
-          ])}
-        />
-      )}
-    </div>
-  );
-}
-
 function ClientSettingsPanel({ result, patchResult, patchPending, onPatch }) {
   const state = renderLiveState(result, "설정");
   if (state) return state;
@@ -3318,8 +3276,6 @@ export function ClientsSurface({
   const [activitiesResult, setActivitiesResult] = useState(null);
   const [proposalsResult, setProposalsResult] = useState(null);
   const [clientSettingsResult, setClientSettingsResult] = useState(null);
-  const [financeInvoicesResult, setFinanceInvoicesResult] = useState(null);
-  const [financeArAgingResult, setFinanceArAgingResult] = useState(null);
   const [
     clientOperationsDashboardResult,
     setClientOperationsDashboardResult
@@ -3452,6 +3408,11 @@ export function ClientsSurface({
   useEffect(() => {
     let cancelled = false;
     setClientsResult(null);
+    if (currentSection === "client-billing") {
+      return () => {
+        cancelled = true;
+      };
+    }
     const guardedResult = guardedResultForContext(liveCtx);
     if (guardedResult) {
       setClientsResult(guardedResult);
@@ -3467,7 +3428,7 @@ export function ClientsSurface({
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken]);
+  }, [currentSection, liveCtx, refreshToken]);
 
   useEffect(() => {
     const activitySection = currentSection === "client-consultation-proposals" || currentSection === "client-activities";
@@ -3514,8 +3475,6 @@ export function ClientsSurface({
     setActivitiesResult(null);
     setProposalsResult(null);
     setClientSettingsResult(null);
-    setFinanceInvoicesResult(null);
-    setFinanceArAgingResult(null);
     setAccountCreateResult(null);
     setContactCreateResult(null);
     setMergeCreateResult(null);
@@ -3535,6 +3494,11 @@ export function ClientsSurface({
     setIntakeCreateResult(null);
     setAccountRecordActionResult(null);
     setContactRecordActionResult(null);
+    if (currentSection === "client-billing") {
+      return () => {
+        cancelled = true;
+      };
+    }
     const guardedResult = guardedResultForContext(liveCtx);
     if (guardedResult) {
       setInquiriesResult(guardedResult);
@@ -3548,8 +3512,6 @@ export function ClientsSurface({
       setActivitiesResult(guardedResult);
       setProposalsResult(guardedResult);
       setClientSettingsResult(guardedResult);
-      setFinanceInvoicesResult(guardedResult);
-      setFinanceArAgingResult(guardedResult);
       return () => {
         cancelled = true;
       };
@@ -3563,9 +3525,7 @@ export function ClientsSurface({
       fetchCrmContacts({ ctx: liveCtx }),
       fetchCrmMergeProposals({ ctx: liveCtx }),
       fetchCrmProposals({ ctx: liveCtx }),
-      fetchCrmClientSettings({ ctx: liveCtx }),
-      fetchFinanceInvoices({ ctx: liveCtx }),
-      fetchFinanceArAging({ ctx: liveCtx })
+      fetchCrmClientSettings({ ctx: liveCtx })
     ]).then(async ([
       inquiries,
       opportunities,
@@ -3575,9 +3535,7 @@ export function ClientsSurface({
       contacts,
       mergeProposals,
       proposals,
-      clientSettings,
-      financeInvoices,
-      financeArAging
+      clientSettings
     ]) => {
       if (cancelled) return;
       setInquiriesResult(inquiries);
@@ -3589,13 +3547,11 @@ export function ClientsSurface({
       setMergeProposalsResult(mergeProposals);
       setProposalsResult(proposals);
       setClientSettingsResult(clientSettings);
-      setFinanceInvoicesResult(financeInvoices);
-      setFinanceArAgingResult(financeArAging);
     });
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken]);
+  }, [currentSection, liveCtx, refreshToken]);
 
   const clients = useMemo(() => resultItems(clientsResult), [clientsResult]);
   const activeRequestedClientId = currentSection === "clients-list"
@@ -5135,19 +5091,10 @@ export function ClientsSurface({
         )}
         {currentSection === "client-billing" && (
           <Panel id="client-billing" className="record-list-panel" title="수임료·미수금" hideHeader>
-            {relatedFinanceKind === "receivables" ? (
-              <ClientRelatedFinanceGuard
-                client={relatedFinanceClient}
-                kind="receivables"
-                loading={clientsResult === null}
-                onReturn={handleClientRelatedFinanceReturn}
-              />
-            ) : (
-              <ClientChargePanel
-                invoicesResult={financeInvoicesResult}
-                arAgingResult={financeArAgingResult}
-              />
-            )}
+            <ClientReceivablesContainer
+              ctx={liveCtx}
+              initialClientId={normalizedRequestedClientId}
+            />
           </Panel>
         )}
         {currentSection === "client-sales-history" && (

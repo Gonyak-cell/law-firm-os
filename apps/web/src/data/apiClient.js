@@ -1,3 +1,9 @@
+import {
+  buildClientDepositReallocationCommand,
+  buildClientReceivablesModel,
+  buildFeeCommitmentCommand
+} from "../components/ClientReceivablesModel.js";
+
 const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 const runtimeTenant = (...parts) => parts.join("_");
@@ -33,6 +39,8 @@ const DEFAULT_FINANCE_PERMISSION_REF = "ui_cmp_g7_finance_live";
 const DEFAULT_FINANCE_AUDIT_HINT_REF = "ui_cmp_g7_finance_probe";
 const CLIENT_DEPOSIT_PERMISSION_REF = "ui_client_deposit_operations";
 const CLIENT_DEPOSIT_AUDIT_HINT_REF = "ui_client_deposit_operations_probe";
+const CLIENT_RECEIVABLES_PERMISSION_REF = "ui_client_receivables";
+const CLIENT_RECEIVABLES_AUDIT_HINT_REF = "ui_client_receivables_probe";
 const DEFAULT_ANALYTICS_PERMISSION_REF = "ui_cmp_g8_analytics_live";
 const DEFAULT_ANALYTICS_AUDIT_HINT_REF = "ui_cmp_g8_analytics_probe";
 const DEFAULT_AI_PERMISSION_REF = "ui_cmp_g9_ai_live";
@@ -7790,6 +7798,537 @@ async function clientDepositJsonRequest(path, {
     };
   }
   return { response, body };
+}
+
+const CLIENT_RECEIVABLES_BOUNDARY = Object.freeze({
+  count_leak_prevented: true,
+  permission_prefilter_applied: true,
+  unauthorized_count_included: false,
+  raw_bank_source_included: false,
+  raw_source_payload_included: false,
+  source_metadata_included: false,
+  raw_account_included: false,
+  raw_counterparty_included: false,
+  raw_memo_included: false,
+  transaction_fingerprint_included: false,
+  bank_reference_included: false,
+  credential_material_included: false,
+  invoice_required: false,
+  matter_required: false,
+  production_ready_claim: false
+});
+const CLIENT_RECEIVABLES_ROW_FIELDS = Object.freeze({
+  fee_commitments: Object.freeze([
+    "fee_commitment_id", "client_group_id", "agreed_amount",
+    "active_allocated_amount", "receivable_amount", "due_date", "accepted_at",
+    "status", "state_version"
+  ]),
+  deposits: Object.freeze([
+    "bank_transaction_id", "client_group_id", "gross_amount",
+    "linked_refund_amount", "net_amount", "active_allocated_amount",
+    "overpayment_amount", "occurred_at"
+  ]),
+  allocations: Object.freeze([
+    "client_deposit_allocation_id", "client_group_id", "bank_transaction_id",
+    "fee_commitment_id", "allocated_amount", "reversed_amount", "active_amount",
+    "allocation_source", "manual_lock", "state_version"
+  ]),
+  clients: Object.freeze(["client_group_id", "display_name"]),
+  ranking: Object.freeze([
+    "rank", "client_group_id", "display_name", "agreed_amount",
+    "active_allocated_amount", "receivable_amount", "earliest_due_date"
+  ]),
+  client_summaries: Object.freeze([
+    "client_group_id", "agreed_amount", "active_allocated_amount",
+    "receivable_amount", "unknown_amount_count", "overpayment_amount"
+  ])
+});
+
+function clientReceivablesUnavailable(code = "SIGNED_SESSION_REQUIRED", {
+  kind = "blocked",
+  status = 0,
+  uiState = "blocked"
+} = {}) {
+  return {
+    ...clientDepositUnavailable(code),
+    kind,
+    status,
+    uiState,
+    invoiceRequired: false,
+    matterRequired: false
+  };
+}
+
+function clientReceivablesSafeCodes(body) {
+  const codes = body?.safe_error_codes;
+  return Array.isArray(codes)
+    && codes.length <= 24
+    && codes.every((code) => typeof code === "string" && code.trim() && code.length <= 160)
+    ? [...codes]
+    : null;
+}
+
+function clientReceivablesBoundaryIsSafe(body) {
+  return Object.entries(CLIENT_RECEIVABLES_BOUNDARY)
+    .every(([key, value]) => body?.[key] === value);
+}
+
+function projectClientReceivablesRows(rows, fields, limit) {
+  if (
+    !Array.isArray(rows)
+    || rows.length > limit
+    || rows.some((row) => !row || typeof row !== "object" || Array.isArray(row))
+  ) return null;
+  return rows.map((row) => Object.fromEntries(
+    fields.filter((field) => Object.hasOwn(row, field)).map((field) => [field, row[field]])
+  ));
+}
+
+function projectClientReceivablesReconciliation(value, {
+  totalReceivables,
+  totalOverpayment
+}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const projected = {
+    status: value.status,
+    ranking_total: value.ranking_total,
+    commitment_detail_total: value.commitment_detail_total,
+    client_summary_total: value.client_summary_total,
+    overpayment_detail_total: value.overpayment_detail_total
+  };
+  const totals = [
+    projected.ranking_total,
+    projected.commitment_detail_total,
+    projected.client_summary_total,
+    projected.overpayment_detail_total
+  ];
+  return (
+    projected.status === "passed"
+    && totals.every((amount) => Number.isSafeInteger(amount) && amount >= 0)
+    && projected.ranking_total === totalReceivables
+    && projected.commitment_detail_total === totalReceivables
+    && projected.client_summary_total === totalReceivables
+    && projected.overpayment_detail_total === totalOverpayment
+  ) ? projected : null;
+}
+
+function clientReceivablesGuardedResult(response, body) {
+  const status = Number(response?.status ?? 0);
+  const safeErrorCodes = clientReceivablesSafeCodes(body);
+  const nonJsonConflict = status === 409 && safeErrorCodes?.includes("INVALID_ERROR_RESPONSE");
+  const safeMutationError = status >= 400
+    && body?.count_leak_prevented === true
+    && body?.production_ready_claim === false;
+  if (
+    !safeErrorCodes
+    || (!nonJsonConflict && !safeMutationError && !clientReceivablesBoundaryIsSafe(body))
+  ) {
+    return clientReceivablesUnavailable("INVALID_RESPONSE", { kind: "error", status, uiState: "error" });
+  }
+  const review = ["review", "review_required"].includes(body.ui_state)
+    || body.outcome === "review_required";
+  const denied = status === 403 || ["denied", "permission_denied"].includes(body.ui_state);
+  const partial = body.ui_state === "partial" || body.outcome === "partial";
+  const conflict = status === 409;
+  return {
+    ...clientReceivablesUnavailable(safeErrorCodes[0] ?? "REQUEST_BLOCKED", {
+      kind: conflict ? "conflict" : partial ? "partial" : denied || review ? "guarded" : "error",
+      status,
+      uiState: conflict ? "conflict" : partial ? "partial" : denied ? "denied" : review ? "review_required" : "error"
+    }),
+    requestId: typeof body.request_id === "string" ? body.request_id : null,
+    outcome: conflict ? "conflict" : body.outcome ?? "blocked",
+    safeErrorCodes,
+    ...(partial ? {
+      clients: [],
+      ranking: [],
+      client_summaries: [],
+      details: { fee_commitments: [], deposits: [], allocations: [] }
+    } : {})
+  };
+}
+
+function projectClientReceivablesSuccess(body, routeContext, status) {
+  const details = Object.fromEntries(["fee_commitments", "deposits", "allocations"].map((key) => [
+    key,
+    projectClientReceivablesRows(
+      body.details?.[key],
+      CLIENT_RECEIVABLES_ROW_FIELDS[key],
+      5_000
+    )
+  ]));
+  const clients = projectClientReceivablesRows(
+    body.clients,
+    CLIENT_RECEIVABLES_ROW_FIELDS.clients,
+    500
+  );
+  const ranking = projectClientReceivablesRows(
+    body.ranking,
+    CLIENT_RECEIVABLES_ROW_FIELDS.ranking,
+    500
+  );
+  const clientSummaries = projectClientReceivablesRows(
+    body.client_summaries,
+    CLIENT_RECEIVABLES_ROW_FIELDS.client_summaries,
+    500
+  );
+  const safeErrorCodes = clientReceivablesSafeCodes(body);
+  const reconciliation = projectClientReceivablesReconciliation(
+    body.reconciliation,
+    {
+      totalReceivables: body.total_receivables,
+      totalOverpayment: body.total_overpayment
+    }
+  );
+  const clientIds = new Set(clients?.map((row) => row.client_group_id));
+  const clientRows = [
+    ...(ranking ?? []),
+    ...(clientSummaries ?? []),
+    ...(details.fee_commitments ?? []),
+    ...(details.deposits ?? []),
+    ...(details.allocations ?? [])
+  ];
+  const empty = body.ui_state === "empty";
+  const valid = (
+    status === 200
+    && body.outcome === "passed"
+    && [null, "empty"].includes(body.ui_state)
+    && body.audit_hint_ref === routeContext.audit_hint_ref
+    && body.basis === "fee_commitment_and_bank_deposit"
+    && body.currency === "KRW"
+    && body.unallocated_amount_basis === "same_as_total_overpayment"
+    && body.unallocated_amount === body.total_overpayment
+    && safeErrorCodes?.length === 0
+    && clientReceivablesBoundaryIsSafe(body)
+    && clients && ranking && clientSummaries
+    && reconciliation
+    && Object.values(details).every(Boolean)
+    && Object.values(details).reduce((count, rows) => count + rows.length, 0) <= 10_000
+    && clients.every((row) => (
+      typeof row.client_group_id === "string" && row.client_group_id.trim()
+      && typeof row.display_name === "string" && row.display_name.trim()
+    ))
+    && new Set(clients.map((row) => row.client_group_id)).size === clients.length
+    && clientRows.every((row) => clientIds.has(row.client_group_id))
+    && details.fee_commitments.every((row) => (
+      row.status === "active"
+      && Number.isSafeInteger(row.state_version) && row.state_version > 0
+    ))
+    && details.allocations.every((row) => (
+      Number.isSafeInteger(row.state_version) && row.state_version > 0
+    ))
+    && (!empty || (
+      Object.values(details).every((rows) => rows.length === 0)
+      && body.total_receivables === 0
+      && body.unknown_amount_count === 0
+      && body.total_overpayment === 0
+    ))
+  );
+  if (!valid) return null;
+  const projected = {
+    kind: "data",
+    status,
+    requestId: typeof body.request_id === "string" ? body.request_id : null,
+    outcome: "passed",
+    uiState: body.ui_state,
+    basis: body.basis,
+    currency: body.currency,
+    as_of: body.as_of,
+    total_receivables: body.total_receivables,
+    unknown_amount_count: body.unknown_amount_count,
+    total_overpayment: body.total_overpayment,
+    unallocated_amount: body.unallocated_amount,
+    clients,
+    ranking: empty ? [] : ranking,
+    client_summaries: empty ? [] : clientSummaries,
+    details,
+    reconciliation,
+    safeErrorCodes,
+    auditHintRef: body.audit_hint_ref,
+    ...CLIENT_RECEIVABLES_BOUNDARY
+  };
+  const model = buildClientReceivablesModel({
+    receivablesResult: projected,
+    clientsResult: projected
+  });
+  return model.state === (empty ? "empty" : "data") ? projected : null;
+}
+
+export function getClientReceivablesRouteContext(options = {}) {
+  const {
+    ctx = "allow",
+    permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+    auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF,
+    source = globalThis
+  } = options;
+  const envelope = readLawosSessionEnvelope(source);
+  if (!envelope) return null;
+  const defaultTenant = clientDepositText(envelope.tenant_refs.default);
+  const clientTenant = clientDepositText(envelope.tenant_refs.client);
+  if (defaultTenant && clientTenant && defaultTenant !== clientTenant) return null;
+  const tenantId = defaultTenant || clientTenant;
+  if (!tenantId || !clientDepositText(permissionRef) || !clientDepositText(auditHintRef)) return null;
+  const context = permissionContextFor(ctx, FINANCE_PERMISSION_CONTEXTS, "client");
+  if (clientDepositText(context?.principal?.tenant_id) !== tenantId) return null;
+  return {
+    tenant_id: tenantId,
+    permission_ref: clientDepositText(permissionRef),
+    audit_hint_ref: clientDepositText(auditHintRef),
+    permissionContext: context
+  };
+}
+
+export async function fetchClientReceivables({
+  ctx = "allow",
+  permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+  auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientReceivablesRouteContext({ ctx, permissionRef, auditHintRef });
+  const params = routeContext && new URLSearchParams({
+    tenant_id: routeContext.tenant_id,
+    permission_ref: routeContext.permission_ref,
+    audit_hint_ref: routeContext.audit_hint_ref
+  });
+  const result = await clientDepositJsonRequest(
+    params ? `/api/finance/client-receivables?${params}` : "",
+    { routeContext }
+  );
+  if (result.unavailable) return result.unavailable;
+  if (!result.response.ok || result.body.outcome !== "passed") {
+    return clientReceivablesGuardedResult(result.response, result.body);
+  }
+  return projectClientReceivablesSuccess(result.body, routeContext, result.response.status)
+    ?? clientReceivablesUnavailable("INVALID_RESPONSE", {
+      kind: "error",
+      status: result.response.status,
+      uiState: "error"
+    });
+}
+
+function clientReceivablesMutationResult(response, body, routeContext, {
+  outcome,
+  targetField,
+  targetId,
+  expectedStateVersion = null
+}) {
+  const replay = body?.idempotent_replay === true;
+  const acceptedOutcomes = Array.isArray(outcome) ? outcome : [outcome];
+  const valid = (
+    response.status === 200
+    && clientReceivablesSafeCodes(body)?.length === 0
+    && body.audit_hint_ref === routeContext.audit_hint_ref
+    && body.production_ready_claim === false
+    && typeof body.idempotent_replay === "boolean"
+    && (replay
+      ? body.outcome === "idempotent_replay"
+      : acceptedOutcomes.includes(body.outcome))
+    && body.item?.[targetField] === targetId
+    && (expectedStateVersion === null
+      || body.item.state_version === expectedStateVersion + 1)
+  );
+  const item = targetField === "fee_commitment_id"
+    ? {
+      fee_commitment_id: targetId,
+      state_version: body.item?.state_version,
+      status: body.item?.status
+    }
+    : {
+      bank_transaction_id: targetId,
+      active_allocated_amount: body.item?.active_allocated_amount,
+      unallocated_amount: body.item?.unallocated_amount
+    };
+  return valid ? {
+    kind: "data",
+    status: 200,
+    outcome: body.outcome,
+    item,
+    items: [],
+    idempotentReplay: replay,
+    safeErrorCodes: [],
+    productionReadyClaim: false
+  } : null;
+}
+
+export async function patchClientFeeCommitment({
+  ctx = "allow",
+  operation = "edit",
+  feeCommitmentId,
+  expectedStateVersion,
+  changes = null,
+  reason,
+  idempotencyKey,
+  permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+  auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientReceivablesRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientReceivablesUnavailable();
+  let command;
+  try {
+    command = buildFeeCommitmentCommand({
+      operation,
+      tenantId: routeContext.tenant_id,
+      feeCommitmentId,
+      expectedStateVersion,
+      ...(operation === "cancel" ? {} : { changes }),
+      reason,
+      idempotencyKey
+    });
+  } catch {
+    return clientReceivablesUnavailable("INVALID_COMMAND", { kind: "error", uiState: "error" });
+  }
+  const result = await clientDepositJsonRequest(
+    `/api/finance/fee-commitments/${encodeURIComponent(command.fee_commitment_id)}`,
+    {
+      method: "PATCH",
+      routeContext,
+      payload: {
+        tenant_id: command.tenant_id,
+        permission_ref: routeContext.permission_ref,
+        audit_hint_ref: routeContext.audit_hint_ref,
+        expected_state_version: command.expected_state_version,
+        changes: command.changes,
+        reason: command.reason,
+        idempotency_key: command.idempotency_key
+      }
+    }
+  );
+  if (result.unavailable) return result.unavailable;
+  if (!result.response.ok) return clientReceivablesGuardedResult(result.response, result.body);
+  const projected = clientReceivablesMutationResult(result.response, result.body, routeContext, {
+    outcome: operation === "cancel" ? "cancelled" : "updated",
+    targetField: "fee_commitment_id",
+    targetId: command.fee_commitment_id,
+    expectedStateVersion: command.expected_state_version
+  });
+  if (projected && operation === "cancel" && projected.item.status !== "cancelled") {
+    return clientReceivablesUnavailable("INVALID_RESPONSE", {
+      kind: "error", status: result.response.status, uiState: "error"
+    });
+  }
+  return projected ?? clientReceivablesUnavailable("INVALID_RESPONSE", {
+    kind: "error", status: result.response.status, uiState: "error"
+  });
+}
+
+export async function reallocateClientReceivableDeposit({
+  ctx = "allow",
+  bankTransactionId,
+  clientGroupId,
+  depositNetAmount,
+  expectedAllocations,
+  targets,
+  reason,
+  idempotencyKey,
+  permissionRef = CLIENT_RECEIVABLES_PERMISSION_REF,
+  auditHintRef = CLIENT_RECEIVABLES_AUDIT_HINT_REF
+} = {}) {
+  const routeContext = getClientReceivablesRouteContext({ ctx, permissionRef, auditHintRef });
+  if (!routeContext) return clientReceivablesUnavailable();
+  const selectedClientId = clientDepositText(clientGroupId);
+  if (
+    !selectedClientId
+    || !Number.isSafeInteger(depositNetAmount)
+    || depositNetAmount < 0
+  ) {
+    return clientReceivablesUnavailable("INVALID_COMMAND", { kind: "error", uiState: "error" });
+  }
+  let command;
+  try {
+    command = buildClientDepositReallocationCommand({
+      tenantId: routeContext.tenant_id,
+      bankTransactionId,
+      expectedAllocations,
+      targets,
+      reason,
+      idempotencyKey
+    });
+  } catch {
+    return clientReceivablesUnavailable("INVALID_COMMAND", { kind: "error", uiState: "error" });
+  }
+  const result = await clientDepositJsonRequest(
+    "/api/finance/client-deposit-allocations/reallocate",
+    {
+      method: "POST",
+      routeContext,
+      payload: {
+        ...command,
+        permission_ref: routeContext.permission_ref,
+        audit_hint_ref: routeContext.audit_hint_ref
+      }
+    }
+  );
+  if (result.unavailable) return result.unavailable;
+  if (!result.response.ok) return clientReceivablesGuardedResult(result.response, result.body);
+  const projected = clientReceivablesMutationResult(result.response, result.body, routeContext, {
+    outcome: ["reallocated", "unchanged"],
+    targetField: "bank_transaction_id",
+    targetId: command.bank_transaction_id
+  });
+  const expected = new Map(command.expected_allocations.map((row) => [
+    row.client_deposit_allocation_id,
+    row.state_version
+  ]));
+  const targetsByFee = new Map(command.targets.map((row) => [
+    row.fee_commitment_id,
+    row.active_amount
+  ]));
+  const items = projectClientReceivablesRows(
+    result.body.items,
+    CLIENT_RECEIVABLES_ROW_FIELDS.allocations,
+    200
+  );
+  const responseVersions = new Map(items?.map((row) => [
+    row.client_deposit_allocation_id,
+    row.state_version
+  ]));
+  const responseFees = new Set(items?.map((row) => row.fee_commitment_id));
+  const returnedTotal = items?.reduce((sum, row) => (
+    Number.isSafeInteger(row.active_amount) && Number.isSafeInteger(sum + row.active_amount)
+      ? sum + row.active_amount
+      : Number.NaN
+  ), 0);
+  const targetTotal = command.targets.reduce((sum, row) => sum + row.active_amount, 0);
+  const valid = projected
+    && result.body.raw_source_payload_included === false
+    && items
+    && items.length === targetsByFee.size
+    && responseVersions.size === items.length
+    && responseFees.size === targetsByFee.size
+    && Number.isSafeInteger(projected.item.active_allocated_amount)
+    && projected.item.active_allocated_amount >= 0
+    && Number.isSafeInteger(projected.item.unallocated_amount)
+    && projected.item.unallocated_amount >= 0
+    && Number.isSafeInteger(targetTotal)
+    && returnedTotal === targetTotal
+    && projected.item.active_allocated_amount === targetTotal
+    && projected.item.unallocated_amount === depositNetAmount - targetTotal
+    && items.every((row) => (
+      row.client_group_id === selectedClientId
+      && row.bank_transaction_id === command.bank_transaction_id
+      && targetsByFee.get(row.fee_commitment_id) === row.active_amount
+      && Number.isSafeInteger(row.allocated_amount) && row.allocated_amount >= 0
+      && Number.isSafeInteger(row.reversed_amount) && row.reversed_amount >= 0
+      && row.allocated_amount - row.reversed_amount === row.active_amount
+      && row.allocation_source === "manual"
+      && row.manual_lock === true
+      && Number.isSafeInteger(row.state_version) && row.state_version > 0
+    ))
+    && [...expected].every(([id, version]) => (
+      Number.isSafeInteger(responseVersions.get(id))
+      && responseVersions.get(id) >= version
+      && responseVersions.get(id) <= version + 1
+    ))
+    && items.every((row) => (
+      expected.has(row.client_deposit_allocation_id)
+      || row.state_version === 1
+    ));
+  return valid ? {
+    ...projected,
+    items,
+    rawSourcePayloadIncluded: false
+  } : clientReceivablesUnavailable("INVALID_RESPONSE", {
+    kind: "error", status: result.response.status, uiState: "error"
+  });
 }
 
 function projectClientDepositItem(item, tenantId) {
