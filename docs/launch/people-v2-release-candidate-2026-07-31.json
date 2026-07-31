@@ -1,17 +1,17 @@
 {
   "schema_version": "lawos.people-v2-release-candidate.v1",
-  "recorded_at": "2026-07-31T21:45:09+09:00",
+  "recorded_at": "2026-07-31T22:12:14+09:00",
   "scope": "source_merge_candidate_only",
   "base": {
     "ref": "origin/main",
     "commit": "34d16954f54a188f93b087e3bc4ad1bce99c049f"
   },
   "source_candidate": {
-    "commit": "1d06d1f989623b5d87ae4bf0452f42391a1428fc",
-    "tree": "8f4a0513f15d7809f3d511ad04d57a579b33a3b0",
+    "commit": "4bd04b22f6cfc91aca72eae9c494100d25a3e6fd",
+    "tree": "95e15e09051c65bcdbdfd5eb4e2e06d87802f37e",
     "changed_path_count": 403,
     "name_status_sha256": "e7520e987030e6cec9aaa314adb056f0ea50e0dc2dfd86482c318f1d7a4db9c2",
-    "digest_command": "git diff --name-status -z origin/main..1d06d1f9 | shasum -a 256"
+    "digest_command": "git diff --name-status -z origin/main..4bd04b22 | shasum -a 256"
   },
   "verification": {
     "local": [
@@ -54,12 +54,12 @@
         "note": "Vite 테스트 서버 경합을 막기 위해 공식 진입점을 test-concurrency=1로 고정했다."
       },
       {
-        "gate": "outlook_callback_storage_security",
-        "command": "npm --workspace apps/web exec -- node --test --test-concurrency=1 test/people-outlook-state.test.mjs",
+        "gate": "outlook_callback_server_authority",
+        "command": "node --test apps/web/test/people-outlook-state.test.mjs",
         "result": "pass",
         "passed": 10,
         "failed": 0,
-        "note": "브라우저에는 만료 판단용 시작 시각만 저장하고 구성원 ID와 OAuth state는 서버 권위로 검증한다."
+        "note": "브라우저에는 OAuth 흐름 상태를 저장하지 않는다. tenant, employee, state hash, 만료는 서버가 토큰 교환 전에 검증한다."
       },
       {
         "gate": "ci_timezone_and_async_determinism",
@@ -152,8 +152,8 @@
     "external_gate_document": "docs/launch/people-v2-external-gates-and-release-2026-07-31.md"
   },
   "replay": {
-    "verify_candidate_tree": "git show -s --format=%T 1d06d1f9",
-    "verify_changed_path_count": "git diff --name-only origin/main..1d06d1f9 | wc -l",
-    "verify_changed_path_digest": "git diff --name-status -z origin/main..1d06d1f9 | shasum -a 256"
+    "verify_candidate_tree": "git show -s --format=%T 4bd04b22",
+    "verify_changed_path_count": "git diff --name-only origin/main..4bd04b22 | wc -l",
+    "verify_changed_path_digest": "git diff --name-status -z origin/main..4bd04b22 | shasum -a 256"
   }
 }
