@@ -1,0 +1,94 @@
+{
+  "schema_version": "law-firm-os.client-operations-package-evidence.v1",
+  "verification": {
+    "mode": "release",
+    "scenario_id": "VC-CL-PKG-001",
+    "run_id": "<UTC-run-id>",
+    "claims": {
+      "exact_main": false,
+      "logged_in_screen": false,
+      "deployed": false,
+      "source_api_package_screen_sha_bound": false
+    }
+  },
+  "source": {
+    "sha": "0000000000000000000000000000000000000000",
+    "branch": "<branch-or-DETACHED>",
+    "main_sha": "0000000000000000000000000000000000000000",
+    "worktree_dirty": false
+  },
+  "web_build": {
+    "receipt_path": "runs/<UTC-run-id>/receipts/web-build.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/web-build.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "artifact_path": "runs/<UTC-run-id>/artifacts/web-build.tgz",
+    "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "embedded_manifest_path": "runs/<UTC-run-id>/artifacts/web-build.tgz.manifest.json",
+    "embedded_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "addin_build": {
+    "receipt_path": "runs/<UTC-run-id>/receipts/addin-build.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/addin-build.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "artifact_path": "runs/<UTC-run-id>/artifacts/addin-build.tgz",
+    "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "embedded_manifest_path": "runs/<UTC-run-id>/artifacts/addin-build.tgz.manifest.json",
+    "embedded_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "migration_receipt": {
+    "receipt_path": "runs/<UTC-run-id>/receipts/migration.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/migration.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "migration_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "api_signed_session_receipt": {
+    "receipt_path": "runs/<UTC-run-id>/receipts/api-signed-session.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/api-signed-session.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "api_artifact_path": "runs/<UTC-run-id>/artifacts/api-package.tgz",
+    "api_artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "api_embedded_manifest_path": "runs/<UTC-run-id>/artifacts/api-package.tgz.manifest.json",
+    "api_embedded_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "api_response_path": "runs/<UTC-run-id>/responses/api-signed-session.json",
+    "api_response_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "fixture_values_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "package_artifact": {
+    "artifact_path": "runs/<UTC-run-id>/artifacts/client-operations-package.zip",
+    "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "embedded_manifest_path": "runs/<UTC-run-id>/artifacts/client-operations-package.zip.manifest.json",
+    "embedded_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "receipt_path": "runs/<UTC-run-id>/receipts/package-artifact.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/package-artifact.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "source_sha": "0000000000000000000000000000000000000000",
+    "web_artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "addin_artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "migration_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "api_artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "logged_in_screen_receipt": {
+    "receipt_path": "runs/<UTC-run-id>/receipts/logged-in-screen.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/logged-in-screen.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "screen_path": "runs/<UTC-run-id>/screens/client-operations.png",
+    "screen_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "package_artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "runtime_metadata_path": "runs/<UTC-run-id>/screens/client-operations.runtime.json",
+    "runtime_metadata_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "capture_receipt_path": "runs/<UTC-run-id>/responses/browser-capture.json",
+    "capture_receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "deploy_receipt": {
+    "receipt_path": "runs/<UTC-run-id>/receipts/deploy.json",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attestation_path": "runs/<UTC-run-id>/receipts/deploy.attestation.json",
+    "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}
