@@ -87,7 +87,7 @@ test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures s
   for (const section of ["kpi-new_inquiries", "kpi-consultations_today", "kpi-engagement_reviews", "kpi-deposit_revenue_month", "kpi-receivables_total", "attention-items", "monthly-deposit-revenue", "inquiry-status", "revenue-ranking", "receivables-ranking"]) {
     assert.match(packageQaSource, new RegExp(`"${section}"`));
   }
-  for (const selector of ["client_kpi_count", "client_attention_item_count", "client_revenue_month_count", "client_inquiry_status_count", "client_revenue_ranking_row_count", "client_receivables_ranking_row_count", "client_natural_copy_visible", "legacy_client_section_count"]) {
+  for (const selector of ["client_kpi_values", "client_attention_items", "client_revenue_points", "client_inquiry_statuses", "client_revenue_ranking", "client_receivables_ranking", "client_natural_copy_visible", "legacy_client_section_count"]) {
     assert.match(packageQaSource, new RegExp(selector));
   }
   assert.match(packageQaSource, /data-client-dashboard-state\"\) === \"data\"/);

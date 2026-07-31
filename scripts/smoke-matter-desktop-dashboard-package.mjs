@@ -611,6 +611,7 @@ try {
     await page.locator(".page-canvas").evaluate((node) => { node.scrollTop = 0; });
     const snapshot = await page.evaluate(({ selector }) => {
       const surfaceText = document.querySelector(selector)?.innerText ?? "";
+      const clientRoot = document.querySelector(selector);
       const revenueChartCard = document.querySelector(`${selector} .home-dashboard-revenue-chart-card`)?.getBoundingClientRect();
       const payrollChartCard = document.querySelector(`${selector} .home-dashboard-payroll-chart-card`)?.getBoundingClientRect();
       const nonPayrollChartCard = document.querySelector(`${selector} .home-dashboard-nonpayroll-chart-card`)?.getBoundingClientRect();
@@ -628,9 +629,27 @@ try {
         people_dashboard_count: document.querySelectorAll('[data-people-dashboard="true"]').length,
         legacy_customer_dashboard_title_count: ["신규 고객", "잠재 고객/접촉", "매출 순위", "고객 미팅", "미수금"].filter((title) => surfaceText.includes(title)).length,
         client_kpi_ids: [...document.querySelectorAll(`${selector} [data-client-dashboard-kpis="true"] [data-client-kpi]`)].map((node) => node.getAttribute("data-client-kpi")).filter(Boolean),
-        client_deposit_revenue_kpi_visible: (document.querySelector(`${selector} [data-client-kpi="deposit_revenue_month"]`)?.innerText ?? "").includes("33,000,000원"),
-        client_receivables_kpi_visible: (document.querySelector(`${selector} [data-client-kpi="receivables_total"]`)?.innerText ?? "").includes("9,000,000원"),
-        client_ranking_fixture_visible: ["새봄테크", "한빛건설"].every((value) => surfaceText.includes(value)),
+        client_kpi_values: Object.fromEntries([...clientRoot?.querySelectorAll('[data-client-dashboard-kpis="true"] [data-client-kpi]') ?? []].map((node) => [
+          node.getAttribute("data-client-kpi"),
+          node.querySelector(".client-dashboard-kpi-value strong")?.textContent?.trim() ?? ""
+        ])),
+        client_attention_items: [...clientRoot?.querySelectorAll('[data-client-attention="true"] .dashboard-record-row') ?? []].map((node) => node.innerText.replace(/\s+/g, " ").trim()),
+        client_revenue_points: [...clientRoot?.querySelectorAll('[data-client-revenue-chart="true"] [data-client-revenue-month]') ?? []].map((node) => ({
+          month: node.getAttribute("data-client-revenue-month"),
+          amount: Number(node.getAttribute("data-client-revenue-amount"))
+        })),
+        client_inquiry_statuses: [...clientRoot?.querySelectorAll('[data-client-inquiry-status="true"] [data-client-inquiry-status-code]') ?? []].map((node) => ({
+          code: node.getAttribute("data-client-inquiry-status-code"),
+          label: node.getAttribute("aria-label")
+        })),
+        client_revenue_ranking: {
+          total: clientRoot?.querySelector('[data-client-ranking="revenue"] [data-client-ranking-total]')?.getAttribute("data-client-ranking-total") ?? null,
+          rows: [...clientRoot?.querySelectorAll('[data-client-ranking="revenue"] .dashboard-record-row') ?? []].map((node) => node.innerText.replace(/\s+/g, " ").trim())
+        },
+        client_receivables_ranking: {
+          total: clientRoot?.querySelector('[data-client-ranking="receivables"] [data-client-ranking-total]')?.getAttribute("data-client-ranking-total") ?? null,
+          rows: [...clientRoot?.querySelectorAll('[data-client-ranking="receivables"] .dashboard-record-row') ?? []].map((node) => node.innerText.replace(/\s+/g, " ").trim())
+        },
         client_kpi_count: document.querySelectorAll(`${selector} [data-client-dashboard-kpis="true"] [data-client-kpi]`).length,
         client_attention_item_count: document.querySelectorAll(`${selector} [data-client-attention="true"] .dashboard-record-row`).length,
         client_revenue_chart_count: document.querySelectorAll(`${selector} [data-client-revenue-chart="true"]`).length,
@@ -706,15 +725,42 @@ try {
       if (view === "clients") {
         assert.equal(snapshot.client_kpi_count, 5, "Client must render the five operations KPIs");
         assert.deepEqual([...snapshot.client_kpi_ids].sort(), ["deposit_revenue_month", "engagement_reviews", "new_inquiries", "receivables_total", "consultations_today"].sort(), "Client KPI IDs must remain canonical");
-        assert.equal(snapshot.client_deposit_revenue_kpi_visible, true, "Client must render the deposit-revenue KPI value");
-        assert.equal(snapshot.client_receivables_kpi_visible, true, "Client must render the receivables KPI value");
-        assert.equal(snapshot.client_ranking_fixture_visible, true, "Client must render the top-revenue and receivables names");
+        assert.deepEqual(snapshot.client_kpi_values, {
+          new_inquiries: "1건",
+          consultations_today: "1건",
+          engagement_reviews: "1건",
+          deposit_revenue_month: "33,000,000원",
+          receivables_total: "9,000,000원"
+        }, "Client KPI values must match the fixture");
         assert.equal(snapshot.client_attention_item_count, 5, "Client must render the action queue");
+        for (const expectedAttention of [
+          ["새봄테크", "새 문의 담당자 지정"],
+          ["한빛건설", "오늘 상담"],
+          ["다온 유한회사", "수임 검토"],
+          ["마루 주식회사", "입금 고객 연결", "33,000,000원"],
+          ["한빛건설", "수임료 입력", "9,000,000원"]
+        ]) {
+          assert(snapshot.client_attention_items.some((row) => expectedAttention.every((value) => row.includes(value))), `Client action queue must include ${expectedAttention.join(" / ")}`);
+        }
         assert.equal(snapshot.client_revenue_chart_count, 1, "Client must render the monthly deposit-revenue chart");
         assert.equal(snapshot.client_revenue_month_count, 12, "Client must render twelve monthly deposit-revenue points");
+        assert.deepEqual(snapshot.client_revenue_points, clientRevenuePoints.map(({ month, net_deposit_revenue: amount }) => ({ month, amount })), "Client revenue chart months and amounts must match the fixture");
         assert.equal(snapshot.client_inquiry_status_count, 6, "Client must render all inquiry status buckets");
+        assert.deepEqual(snapshot.client_inquiry_statuses, [
+          { code: "new", label: "새 문의 1건" },
+          { code: "reviewing", label: "확인 중 0건" },
+          { code: "consultation_scheduled", label: "상담 예정 1건" },
+          { code: "engagement_review", label: "수임 검토 중 1건" },
+          { code: "engaged", label: "수임 확정 1건" },
+          { code: "not_engaged", label: "수임하지 않음 1건" }
+        ], "Client inquiry status codes and values must match the fixture");
         assert.equal(snapshot.client_revenue_ranking_row_count, 2, "Client must render top-revenue ranking rows");
+        assert.equal(snapshot.client_revenue_ranking.total, "36000000", "Client revenue ranking total must match the fixture");
+        assert(snapshot.client_revenue_ranking.rows[0]?.includes("1위 새봄테크") && snapshot.client_revenue_ranking.rows[0]?.includes("25,000,000원"), "Client revenue rank 1 must match the fixture");
+        assert(snapshot.client_revenue_ranking.rows[1]?.includes("2위 한빛건설") && snapshot.client_revenue_ranking.rows[1]?.includes("11,000,000원"), "Client revenue rank 2 must match the fixture");
         assert.equal(snapshot.client_receivables_ranking_row_count, 1, "Client must render receivables ranking rows");
+        assert.equal(snapshot.client_receivables_ranking.total, "9000000", "Client receivables ranking total must match the fixture");
+        assert(snapshot.client_receivables_ranking.rows[0]?.includes("1위 한빛건설") && snapshot.client_receivables_ranking.rows[0]?.includes("9,000,000원"), "Client receivables rank 1 must match the fixture");
         assert.equal(snapshot.client_natural_copy_visible, true, "Client must render natural Korean operations copy");
         assert.equal(snapshot.legacy_client_section_count, 0, "Retired five-section Client dashboard must stay absent");
       }
