@@ -20,7 +20,13 @@ assert.equal(existsSync(executablePath), true, `packaged executable is required:
 mkdirSync(artifactDir, { recursive: true });
 
 const today = new Date();
-const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+const todayParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).formatToParts(today).map(({ type, value }) => [type, value]));
+const todayKey = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
 const nowIso = today.toISOString();
 const session = {
   state: "signed_in",

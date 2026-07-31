@@ -65,6 +65,17 @@ test("product typography uses bundled Pretendard and SUITE without mono or macOS
 test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures separately", async () => {
   const packageQaSource = await readWebFile("../../scripts/smoke-matter-desktop-dashboard-package.mjs");
 
+  assert.match(packageQaSource, /const todayParts = Object\.fromEntries\(new Intl\.DateTimeFormat\("en-CA", \{[\s\S]{0,160}timeZone: "Asia\/Seoul"[\s\S]{0,160}\}\)\.formatToParts\(today\)/);
+  assert.match(packageQaSource, /const todayKey = `\$\{todayParts\.year\}-\$\{todayParts\.month\}-\$\{todayParts\.day\}`;/);
+  assert.doesNotMatch(packageQaSource, /today\.get(?:FullYear|Month|Date)\(\)/);
+  const boundaryParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date("2026-07-31T15:00:00.000Z")).map(({ type, value }) => [type, value]));
+  assert.equal(`${boundaryParts.year}-${boundaryParts.month}-${boundaryParts.day}`, "2026-08-01");
+
   assert.match(packageQaSource, /data-home-tab-prefix="home-client-dashboard"\]\[data-home-tab-id="prospects"/);
   assert.match(packageQaSource, /\["바른 그룹", "새롬 자문"\]\.every/);
   assert.match(packageQaSource, /data-home-tab-prefix="home-matter-dashboard"\]\[data-home-tab-id="closed"/);
