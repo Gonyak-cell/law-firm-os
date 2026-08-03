@@ -11,6 +11,11 @@ import {
 test("employment history separates current, scheduled, and past rows and rejects overlaps", async () => {
   const harness = await startPeopleManagementHarness();
   const evidenceDir = join(repoRoot, "artifacts/people-v2/PEO-TUW-040");
+  const effectiveDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
+  const effectiveFrom = effectiveDate.toISOString().slice(0, 10);
+  const previousDate = new Date(effectiveDate.getTime() - (24 * 60 * 60 * 1000))
+    .toISOString()
+    .slice(0, 10);
   await mkdir(evidenceDir, { recursive: true });
   try {
     const { page, state } = await openPeopleManagementPage(harness);
@@ -20,20 +25,20 @@ test("employment history separates current, scheduled, and past rows and rejects
     await history.waitFor();
     assert.match(await history.locator("[data-people-employment-current]").innerText(), /파트너 변호사/);
 
-    await history.getByLabel("적용일").fill("2026-08-01");
+    await history.getByLabel("적용일").fill(effectiveFrom);
     await history.getByLabel("직위").fill("시니어 파트너");
     await history.getByRole("button", { name: "변경 예약" }).click();
-    await history.getByText("2026-08-01 / 시니어 파트너 / 재직", { exact: true }).waitFor();
+    await history.getByText(`${effectiveFrom} / 시니어 파트너 / 재직`, { exact: true }).waitFor();
     assert.match(await history.locator("[data-people-employment-current]").innerText(), /파트너 변호사/);
-    assert.equal(state.profiles.get("emp-1")[0].effective_to, "2026-07-31");
-    assert.equal(currentTitle(state.profiles.get("emp-1"), "2026-07-30"), "파트너 변호사");
-    assert.equal(currentTitle(state.profiles.get("emp-1"), "2026-08-01"), "시니어 파트너");
+    assert.equal(state.profiles.get("emp-1")[0].effective_to, previousDate);
+    assert.equal(currentTitle(state.profiles.get("emp-1"), previousDate), "파트너 변호사");
+    assert.equal(currentTitle(state.profiles.get("emp-1"), effectiveFrom), "시니어 파트너");
     await page.screenshot({
       path: join(evidenceDir, "employment-current-and-scheduled.png"),
       fullPage: true,
     });
 
-    await history.getByLabel("적용일").fill("2026-08-01");
+    await history.getByLabel("적용일").fill(effectiveFrom);
     await history.getByLabel("직위").fill("겹치는 변경");
     await history.getByRole("button", { name: "변경 예약" }).click();
     await history.getByText("같은 적용일에 이미 등록된 근로정보가 있습니다.", { exact: true }).waitFor();
