@@ -11,6 +11,11 @@ import {
 test("organization editor keeps a future change out of the current chart and verifies it as-of", async () => {
   const harness = await startPeopleManagementHarness();
   const evidenceDir = join(repoRoot, "artifacts/people-v2/PEO-TUW-042");
+  const effectiveDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
+  const effectiveFrom = effectiveDate.toISOString().slice(0, 10);
+  const previousDate = new Date(effectiveDate.getTime() - (24 * 60 * 60 * 1000))
+    .toISOString()
+    .slice(0, 10);
   await mkdir(evidenceDir, { recursive: true });
   try {
     const { page, state } = await openPeopleManagementPage({
@@ -22,22 +27,25 @@ test("organization editor keeps a future change out of the current chart and ver
     await editor.getByLabel("구성원").selectOption("emp-1");
     await editor.getByLabel("직속 상급자").selectOption("emp-2");
     await editor.getByLabel("조직").selectOption("group_firm_leadership");
-    await editor.getByLabel("적용일").fill("2026-08-01");
+    await editor.getByLabel("적용일").fill(effectiveFrom);
     await editor.getByRole("button", { name: "저장" }).click();
     const savedState = page.locator("[data-hr-workforce-local-state]");
     await savedState.waitFor();
-    assert.match(await savedState.innerText(), /2026-08-01부터 적용될 변경으로 기록했습니다/);
+    assert.match(
+      await savedState.innerText(),
+      new RegExp(`${effectiveFrom}부터 적용될 변경으로 기록했습니다`),
+    );
 
     const scheduled = page.locator("[data-hr-org-scheduled-changes]");
     await scheduled.getByText("김아민", { exact: true }).waitFor();
     assert.match(await scheduled.innerText(), /Firm Leadership/);
-    assert.equal(currentOrg(state.profiles.get("emp-1"), "2026-07-30"), "group_litigation");
-    assert.equal(currentOrg(state.profiles.get("emp-1"), "2026-08-01"), "group_firm_leadership");
+    assert.equal(currentOrg(state.profiles.get("emp-1"), previousDate), "group_litigation");
+    assert.equal(currentOrg(state.profiles.get("emp-1"), effectiveFrom), "group_firm_leadership");
 
-    const after = await page.evaluate(async () => {
-      const response = await fetch("/api/hrx/org-chart?as_of=2026-08-01");
+    const after = await page.evaluate(async (asOf) => {
+      const response = await fetch(`/api/hrx/org-chart?as_of=${encodeURIComponent(asOf)}`);
       return response.json();
-    });
+    }, effectiveFrom);
     assert.equal(
       after.employees.find((employee) => employee.employee_id === "emp-1").org_unit_id,
       "group_firm_leadership",

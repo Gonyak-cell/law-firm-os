@@ -635,10 +635,13 @@ test("HRX runtime employee user-link candidates fail closed for opaque labels wh
 
 test("HRX runtime organization changes remain scheduled until their effective date and reject cycles", () => {
   const context = employeeManagementRuntime();
+  const effectiveFrom = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000))
+    .toISOString()
+    .slice(0, 10);
   const first = runtimeRequest(context, "/api/hrx/org-chart/employees/emp-a", "PATCH", {
     org_unit_id: "group_firm_leadership",
     manager_employee_id: "emp-b",
-    effective_from: "2026-08-01",
+    effective_from: effectiveFrom,
   });
   assert.equal(first.status, 200);
   assert.equal(first.body.org_chart.employees.find((row) => row.employee_id === "emp-a").org_unit_id, "group_litigation");
@@ -649,7 +652,7 @@ test("HRX runtime organization changes remain scheduled until their effective da
     "/api/hrx/org-chart",
     "GET",
     {},
-    { as_of: "2026-08-01" },
+    { as_of: effectiveFrom },
   );
   const employeeAfter = after.body.employees.find((row) => row.employee_id === "emp-a");
   assert.equal(employeeAfter.org_unit_id, "group_firm_leadership");
@@ -658,7 +661,7 @@ test("HRX runtime organization changes remain scheduled until their effective da
   const cycle = runtimeRequest(context, "/api/hrx/org-chart/employees/emp-b", "PATCH", {
     org_unit_id: "group_firm_leadership",
     manager_employee_id: "emp-a",
-    effective_from: "2026-08-01",
+    effective_from: effectiveFrom,
   });
   assert.equal(cycle.status, 400);
   assert.equal(cycle.body.safe_error_code, "HRX_ORG_REPORTING_LINE_CYCLE");
