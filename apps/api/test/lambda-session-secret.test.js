@@ -88,6 +88,11 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
   });
   const leaveIntegrationProviderEnabled = Object.freeze({ payroll: true });
   const peopleOutlookRuntimeFactory = () => Object.freeze({});
+  const m365GraphConfig = Object.freeze({
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+  });
   let startupOptions;
   let forwardedRequest;
   const lambdaHandler = createLambdaHttpHandler({
@@ -105,6 +110,8 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
     createPasswordResetEmailDeliveryFn: () => undefined,
     resolvePeopleOutlookRuntimeFactoryFn: async () =>
       peopleOutlookRuntimeFactory,
+    resolveClientOutlookM365GraphConfigFn: async () =>
+      m365GraphConfig,
     fetchFn: async (url, options) => {
       forwardedRequest = { url, options };
       return new Response(JSON.stringify({ outcome: "blocked" }), {
@@ -130,6 +137,7 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
     startupOptions.peopleOutlookRuntimeFactory,
     peopleOutlookRuntimeFactory,
   );
+  assert.equal(startupOptions.m365GraphConfig, m365GraphConfig);
   assert.equal(
     startupOptions.leaveIntegrationProviders,
     leaveIntegrationProviders,

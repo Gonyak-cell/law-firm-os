@@ -7,6 +7,9 @@ import {
 import {
   PEOPLE_OUTLOOK_DELEGATED_SCOPE,
 } from "../../../packages/email-dms/src/people-outlook-connection-model.js";
+import {
+  M365_GRAPH_REQUIRED_SCOPES,
+} from "../../../packages/email-dms/src/m365-connection-model.js";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -22,6 +25,24 @@ export const PEOPLE_OUTLOOK_OAUTH_SCOPES = Object.freeze([
   ...OIDC_SCOPES,
   PEOPLE_OUTLOOK_DELEGATED_SCOPE,
 ]);
+export const CLIENT_OUTLOOK_OAUTH_SCOPES = Object.freeze([
+  ...new Set([...OIDC_SCOPES, ...M365_GRAPH_REQUIRED_SCOPES]),
+]);
+
+const MICROSOFT_DELEGATED_OAUTH_SCOPE_PROFILES = Object.freeze({
+  people_outlook: Object.freeze({
+    scopes: PEOPLE_OUTLOOK_OAUTH_SCOPES,
+    required_access_scopes: Object.freeze([PEOPLE_OUTLOOK_DELEGATED_SCOPE]),
+    connection_scopes: Object.freeze([PEOPLE_OUTLOOK_DELEGATED_SCOPE]),
+  }),
+  client_outlook_addin: Object.freeze({
+    scopes: CLIENT_OUTLOOK_OAUTH_SCOPES,
+    required_access_scopes: Object.freeze(
+      M365_GRAPH_REQUIRED_SCOPES.filter((scope) => scope !== "offline_access"),
+    ),
+    connection_scopes: M365_GRAPH_REQUIRED_SCOPES,
+  }),
+});
 
 function requiredText(value, name, maxLength = 4096) {
   const text = String(value ?? "").trim();
@@ -115,21 +136,54 @@ function normalizedEmail(value) {
   return email;
 }
 
-function grantedScopes(value) {
-  const scopes = String(value ?? "")
+function oauthScopeProfile(value) {
+  const profile = MICROSOFT_DELEGATED_OAUTH_SCOPE_PROFILES[value];
+  if (!profile) throw new TypeError("scope_profile is invalid");
+  return profile;
+}
+
+function canonicalScope(value, profile) {
+  let scope = String(value ?? "").trim();
+  try {
+    scope = decodeURIComponent(scope);
+  } catch {
+    throw providerError(
+      "OUTLOOK_SCOPE_INSUFFICIENT",
+      "Microsoft authorization returned an invalid scope",
+      403,
+    );
+  }
+  const graphPrefix = "https://graph.microsoft.com/";
+  if (scope.toLowerCase().startsWith(graphPrefix)) {
+    scope = scope.slice(graphPrefix.length);
+  }
+  return profile.scopes.find(
+    (allowed) => allowed.toLowerCase() === scope.toLowerCase(),
+  ) ?? scope;
+}
+
+function grantedScopes(value, profile) {
+  const returnedScopes = String(value ?? "")
     .split(/\s+/u)
     .map((scope) => scope.trim())
     .filter(Boolean);
+  const scopes = (returnedScopes.length > 0
+    ? returnedScopes
+    : profile.required_access_scopes
+  ).map((scope) => canonicalScope(scope, profile));
   const byLowercase = new Map(scopes.map((scope) => [scope.toLowerCase(), scope]));
-  if (!byLowercase.has(PEOPLE_OUTLOOK_DELEGATED_SCOPE.toLowerCase())) {
+  const missingScopes = profile.required_access_scopes.filter(
+    (scope) => !byLowercase.has(scope.toLowerCase()),
+  );
+  if (missingScopes.length > 0) {
     throw providerError(
       "OUTLOOK_SCOPE_INSUFFICIENT",
-      "Microsoft authorization did not grant Calendars.ReadBasic",
+      `Microsoft authorization did not grant ${missingScopes.join(", ")}`,
       403,
     );
   }
   const allowed = new Set(
-    PEOPLE_OUTLOOK_OAUTH_SCOPES.map((scope) => scope.toLowerCase()),
+    profile.scopes.map((scope) => scope.toLowerCase()),
   );
   const unexpectedGraphScope = scopes.find((scope) => (
     scope.includes(".") && !allowed.has(scope.toLowerCase())
@@ -142,6 +196,16 @@ function grantedScopes(value) {
     );
   }
   return Object.freeze([...byLowercase.values()]);
+}
+
+function connectionScopes(scopes, profile) {
+  const resolved = new Map(
+    scopes.map((scope) => [scope.toLowerCase(), scope]),
+  );
+  if (profile.scopes.includes("offline_access")) {
+    resolved.set("offline_access", "offline_access");
+  }
+  return Object.freeze([...resolved.values()]);
 }
 
 function tokenExpiry(body, now) {
@@ -160,8 +224,10 @@ export function createMicrosoftDelegatedOAuthClient({
   fetch_impl = globalThis.fetch,
   clock = () => Date.now(),
   jwks_ttl_ms = 5 * 60 * 1000,
+  scope_profile = "people_outlook",
 } = {}) {
   const config = normalizeMicrosoftDelegatedOAuthConfig(rawConfig);
+  const scopeProfile = oauthScopeProfile(scope_profile);
   if (typeof fetch_impl !== "function") throw new TypeError("fetch_impl is required");
   if (typeof clock !== "function") throw new TypeError("clock is required");
   if (!Number.isSafeInteger(jwks_ttl_ms) || jwks_ttl_ms < 1) {
@@ -333,8 +399,9 @@ export function createMicrosoftDelegatedOAuthClient({
       claims.preferred_username ?? claims.email ?? claims.upn,
     );
     if (
-      sha256(mailboxAddress)
-      !== requiredText(expected_email_hash, "expected_email_hash", 64)
+      expected_email_hash != null
+      && sha256(mailboxAddress)
+        !== requiredText(expected_email_hash, "expected_email_hash", 64)
     ) {
       throw providerError(
         "OUTLOOK_ACCOUNT_MISMATCH",
@@ -363,7 +430,10 @@ export function createMicrosoftDelegatedOAuthClient({
 
   return Object.freeze({
     provider: "microsoft-identity-platform",
-    delegated_scope: PEOPLE_OUTLOOK_DELEGATED_SCOPE,
+    delegated_scope: scopeProfile.connection_scopes.length === 1
+      ? scopeProfile.connection_scopes[0]
+      : null,
+    delegated_scopes: scopeProfile.connection_scopes,
     redirect_uri: config.redirect_uri,
     authorizationUrl({
       state,
@@ -371,7 +441,7 @@ export function createMicrosoftDelegatedOAuthClient({
       nonce,
       login_hint,
     } = {}) {
-      const stateValue = requiredText(state, "state", 200);
+      const stateValue = requiredText(state, "state", 4096);
       const codeChallenge = requiredText(
         code_challenge,
         "code_challenge",
@@ -382,19 +452,22 @@ export function createMicrosoftDelegatedOAuthClient({
         throw new TypeError("code_challenge is invalid");
       }
       const url = new URL(authorizeEndpoint);
-      url.search = new URLSearchParams({
+      const parameters = new URLSearchParams({
         client_id: config.client_id,
         response_type: "code",
         redirect_uri: config.redirect_uri,
         response_mode: "query",
-        scope: PEOPLE_OUTLOOK_OAUTH_SCOPES.join(" "),
+        scope: scopeProfile.scopes.join(" "),
         state: stateValue,
         nonce: nonceValue,
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
-        login_hint: normalizedEmail(login_hint),
         prompt: "select_account",
-      }).toString();
+      });
+      if (login_hint != null && String(login_hint).trim()) {
+        parameters.set("login_hint", normalizedEmail(login_hint));
+      }
+      url.search = parameters.toString();
       return url.toString();
     },
     async exchange({
@@ -427,19 +500,27 @@ export function createMicrosoftDelegatedOAuthClient({
         code: authorizationCode,
         redirect_uri: config.redirect_uri,
         code_verifier: codeVerifier,
-        scope: PEOPLE_OUTLOOK_OAUTH_SCOPES.join(" "),
+        scope: scopeProfile.scopes.join(" "),
       }, "authorization code exchange");
       const identity = await verifyIdToken(body.id_token, {
         expected_nonce_hash,
         expected_email_hash,
         expected_subject_id,
       });
+      const refreshToken = requiredText(
+        body.refresh_token,
+        "refresh_token",
+        32 * 1024,
+      );
       return Object.freeze({
         ...identity,
         access_token: requiredText(body.access_token, "access_token", 32 * 1024),
-        refresh_token: requiredText(body.refresh_token, "refresh_token", 32 * 1024),
+        refresh_token: refreshToken,
         expires_at: tokenExpiry(body, now),
-        granted_scopes: grantedScopes(body.scope),
+        granted_scopes: connectionScopes(
+          grantedScopes(body.scope, scopeProfile),
+          scopeProfile,
+        ),
       });
     },
     async refresh({ refresh_token } = {}) {
@@ -454,7 +535,7 @@ export function createMicrosoftDelegatedOAuthClient({
         grant_type: "refresh_token",
         refresh_token: currentRefreshToken,
         redirect_uri: config.redirect_uri,
-        scope: PEOPLE_OUTLOOK_OAUTH_SCOPES.join(" "),
+        scope: scopeProfile.scopes.join(" "),
       }, "token refresh");
       return Object.freeze({
         access_token: requiredText(body.access_token, "access_token", 32 * 1024),
@@ -462,7 +543,10 @@ export function createMicrosoftDelegatedOAuthClient({
           ? requiredText(body.refresh_token, "refresh_token", 32 * 1024)
           : currentRefreshToken,
         expires_at: tokenExpiry(body, now),
-        granted_scopes: grantedScopes(body.scope),
+        granted_scopes: connectionScopes(
+          grantedScopes(body.scope, scopeProfile),
+          scopeProfile,
+        ),
       });
     },
   });

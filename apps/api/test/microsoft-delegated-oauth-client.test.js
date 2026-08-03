@@ -7,6 +7,7 @@ import {
 import test from "node:test";
 
 import {
+  CLIENT_OUTLOOK_OAUTH_SCOPES,
   PEOPLE_OUTLOOK_OAUTH_SCOPES,
   createMicrosoftDelegatedOAuthClient,
 } from "../src/microsoft-delegated-oauth-client.js";
@@ -128,6 +129,60 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
   assert.equal(tokenForm.get("grant_type"), "authorization_code");
   assert.equal(tokenForm.get("redirect_uri"), REDIRECT_URI);
   assert.equal(tokenForm.get("client_secret"), null);
+});
+
+test("Client Outlook OAuth profile requests only the Add-in delegated scopes and validates the Entra subject", async () => {
+  const provider = fixture({
+    scopes: [
+      "https://graph.microsoft.com/Mail.Read",
+      "https://graph.microsoft.com/Calendars.ReadWrite",
+    ],
+  });
+  const client = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      client_secret: "client-outlook-secret-never-return",
+      redirect_uri:
+        "https://pilot.example.invalid/api/outlook/connection/callback",
+    },
+    fetch_impl: provider.fetchImpl,
+    clock: () => NOW,
+    scope_profile: "client_outlook_addin",
+  });
+  const authorizationUrl = new URL(client.authorizationUrl({
+    state: "encrypted-state.".repeat(30),
+    code_challenge: "B".repeat(43),
+    nonce: NONCE,
+  }));
+
+  assert.deepEqual(
+    authorizationUrl.searchParams.get("scope").split(" "),
+    CLIENT_OUTLOOK_OAUTH_SCOPES,
+  );
+  assert.equal(
+    authorizationUrl.searchParams.get("scope").includes("Calendars.ReadBasic"),
+    false,
+  );
+  assert.equal(authorizationUrl.searchParams.has("login_hint"), false);
+  assert.equal(authorizationUrl.searchParams.get("state").length > 200, true);
+
+  const exchanged = await client.exchange({
+    code: "0.ABC_client_outlook_code-20260803",
+    code_verifier: "C".repeat(43),
+    expected_nonce_hash: digest(NONCE),
+    expected_subject_id: "entra-subject-jwsuh",
+  });
+  assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
+  assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
+  assert.deepEqual(
+    [...exchanged.granted_scopes].sort(),
+    ["Calendars.ReadWrite", "Mail.Read", "offline_access"].sort(),
+  );
+  const tokenCall = provider.calls.find(({ url }) => url.endsWith("/token"));
+  const tokenForm = new URLSearchParams(tokenCall.options.body);
+  assert.equal(tokenForm.get("scope"), CLIENT_OUTLOOK_OAUTH_SCOPES.join(" "));
+  assert.equal(tokenForm.get("client_secret"), "client-outlook-secret-never-return");
 });
 
 test("delegated OAuth rejects a token carrying broader Graph permissions", async () => {

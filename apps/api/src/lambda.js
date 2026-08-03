@@ -63,6 +63,9 @@ import {
 import {
   resolveLambdaPeopleOutlookRuntimeFactory,
 } from "./people-outlook-operational-runtime.js";
+import {
+  resolveLambdaClientOutlookM365GraphConfig,
+} from "./client-outlook-operational-runtime.js";
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4495,6 +4498,8 @@ export function createLambdaApiRuntimeCache({
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
   resolvePeopleOutlookRuntimeFactoryFn =
     resolveLambdaPeopleOutlookRuntimeFactory,
+  resolveClientOutlookM365GraphConfigFn =
+    resolveLambdaClientOutlookM365GraphConfig,
 } = {}) {
   return createRetryablePromiseCache(async () => {
     const matterRepository = await createMatterRepositoryFn();
@@ -4503,6 +4508,8 @@ export function createLambdaApiRuntimeCache({
       await loadHrxRelationalProjectionFn();
     const peopleOutlookRuntimeFactory =
       await resolvePeopleOutlookRuntimeFactoryFn();
+    const m365GraphConfig =
+      await resolveClientOutlookM365GraphConfigFn();
     return startApiServerFn({
       port: 0,
       sessionSecret: await resolveSessionSecretFn(),
@@ -4520,6 +4527,7 @@ export function createLambdaApiRuntimeCache({
       ...(peopleOutlookRuntimeFactory
         ? { peopleOutlookRuntimeFactory }
         : {}),
+      ...(m365GraphConfig ? { m365GraphConfig } : {}),
       clientOperationsV2Enabled:
         process.env[LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV],
       payrollStatementProviderVerifier,
@@ -4564,6 +4572,8 @@ export function createLambdaHttpHandler({
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
   resolvePeopleOutlookRuntimeFactoryFn =
     resolveLambdaPeopleOutlookRuntimeFactory,
+  resolveClientOutlookM365GraphConfigFn =
+    resolveLambdaClientOutlookM365GraphConfig,
   fetchFn = fetch,
 } = {}) {
   const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
@@ -4578,6 +4588,7 @@ export function createLambdaHttpHandler({
     resolveSessionSecretFn,
     createPasswordResetEmailDeliveryFn,
     resolvePeopleOutlookRuntimeFactoryFn,
+    resolveClientOutlookM365GraphConfigFn,
   });
   return async (event = {}) => {
     const method = requestMethod(event).toUpperCase();
