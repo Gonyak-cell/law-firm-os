@@ -4,9 +4,11 @@ import {
   chmodSync,
   existsSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
 } from "node:fs";
 import { basename, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   validateJsonPostgresExecutionPacket,
   verifyJsonPostgresExecutionApproval,
@@ -43,14 +45,19 @@ import {
   assertJsonPostgresArtifactBucketState,
   assertJsonPostgresArtifactStoreBinding,
   assertJsonPostgresProductionCaller,
+  assertJsonPostgresProfileArtifactReviewedChangeSet,
+  assertJsonPostgresProfileArtifactTargetStack,
   assertJsonPostgresProductionStack,
+  buildJsonPostgresProfileArtifactTransition,
   buildJsonPostgresArtifactStoreParameters,
   buildJsonPostgresProductionStackParameters,
   createJsonPostgresProductionWorkerEventLocator,
   jsonPostgresProductionCombinedTemplateSha256,
   jsonPostgresProductionInfrastructureResultSha256,
   jsonPostgresProductionParametersSha256,
+  normalizeJsonPostgresProductionStackParameters,
   validateJsonPostgresProductionChangeSet,
+  validateJsonPostgresProfileArtifactChangeSet,
   validateJsonPostgresW15ProductionChangeSet,
   validateJsonPostgresW15WorkerObservability,
 } from "./lib/json-postgres-production-execution.mjs";
@@ -81,6 +88,8 @@ const OPERATIONS = new Set([
   "upload-artifact",
   "create-production-change-set",
   "execute-production-change-set",
+  "create-profile-artifact-change-set",
+  "execute-profile-artifact-change-set",
   "remove-eni-bootstrap",
   "bootstrap-database",
   "create-runtime-restart-change-set",
@@ -109,6 +118,12 @@ const OPERATIONS = new Set([
 const INPUT_VERSION = "law-firm-os.json-postgres-production-infrastructure-input.v1";
 const SHA256 = /^[a-f0-9]{64}$/u;
 const AWS_LAMBDA_ENVIRONMENT_MAX_BYTES = 4096;
+const REPOSITORY_ROOT = realpathSync(
+  fileURLToPath(new URL("../", import.meta.url)),
+);
+if (realpathSync(process.cwd()) !== REPOSITORY_ROOT) {
+  throw new Error("production infrastructure runner cwd must be its repository root");
+}
 
 function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -126,7 +141,7 @@ function requiredOption(name) {
 
 function git(...args) {
   return execFileSync("git", args, {
-    cwd: process.cwd(),
+    cwd: REPOSITORY_ROOT,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
   }).trim();
@@ -134,7 +149,7 @@ function git(...args) {
 
 function gitIsAncestor(ancestor, descendant) {
   return spawnSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
-    cwd: process.cwd(),
+    cwd: REPOSITORY_ROOT,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
   }).status === 0;
@@ -152,7 +167,7 @@ function awsArgs(args, { region = true } = {}) {
 
 function awsJson(args, options = {}) {
   const output = execFileSync("aws", awsArgs(args, options), {
-    cwd: process.cwd(),
+    cwd: REPOSITORY_ROOT,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
@@ -162,7 +177,7 @@ function awsJson(args, options = {}) {
 
 function awsTryJson(args, options = {}) {
   const result = spawnSync("aws", awsArgs(args, options), {
-    cwd: process.cwd(),
+    cwd: REPOSITORY_ROOT,
     encoding: "utf8",
     maxBuffer: 32 * 1024 * 1024,
   });
@@ -175,7 +190,7 @@ function awsTryJson(args, options = {}) {
 
 function awsWait(args) {
   execFileSync("aws", awsArgs(args), {
-    cwd: process.cwd(),
+    cwd: REPOSITORY_ROOT,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
@@ -189,9 +204,7 @@ function outputMap(stack) {
 }
 
 function parameterMap(stack) {
-  return Object.fromEntries(
-    (stack?.Parameters ?? []).map(({ ParameterKey, ParameterValue }) => [ParameterKey, ParameterValue]),
-  );
+  return normalizeJsonPostgresProductionStackParameters(stack);
 }
 
 function currentStack(name) {
@@ -223,6 +236,8 @@ function createChangeSet({
   label,
   templateUrl = null,
   w15 = false,
+  profileArtifactAction = null,
+  profileArtifactTransitionSha256 = null,
 }) {
   const templateByteSize = readFileSync(templatePath).byteLength;
   let resolvedTemplateUrl = templateUrl;
@@ -264,23 +279,32 @@ function createChangeSet({
   assertChangeSetTemplate(created.Id, templateSha256);
   const validationInput = {
     template,
+    expectedParameters: parameters,
     parametersSha256: jsonPostgresProductionParametersSha256(parameters),
     templateSha256,
     templateUrl: resolvedTemplateUrl,
   };
-  return w15
-    ? validateJsonPostgresW15ProductionChangeSet(
+  if (w15) {
+    return validateJsonPostgresW15ProductionChangeSet(
       described,
       validationInput,
-    )
-    : validateJsonPostgresProductionChangeSet(described, {
-      stackName,
-      changeSetType: type,
+    );
+  }
+  if (profileArtifactAction !== null) {
+    return validateJsonPostgresProfileArtifactChangeSet(described, {
       ...validationInput,
+      profileArtifactAction,
+      profileArtifactTransitionSha256,
     });
+  }
+  return validateJsonPostgresProductionChangeSet(described, {
+    stackName,
+    changeSetType: type,
+    ...validationInput,
+  });
 }
 
-function executeReviewedChangeSet(review) {
+function executeReviewedChangeSet(review, expectedParameters) {
   const current = awsJson([
     "cloudformation", "describe-change-set",
     "--change-set-name", review.change_set_id,
@@ -294,19 +318,33 @@ function executeReviewedChangeSet(review) {
     : productionTemplate;
   const validationInput = {
     template,
+    expectedParameters,
     parametersSha256: review.parameters_sha256,
     templateSha256: review.template_sha256,
     templateUrl: review.template_url ?? null,
   };
-  const validated = review.purpose === "w15-relational-projection-rebind"
+  let validated;
+  if (review.purpose === "w15-relational-projection-rebind"
     || review.purpose === "w15-incremental-worker-enable"
-    || review.purpose === "w15-incremental-worker-disable"
-    ? validateJsonPostgresW15ProductionChangeSet(current, validationInput)
-    : validateJsonPostgresProductionChangeSet(current, {
+    || review.purpose === "w15-incremental-worker-disable") {
+    validated = validateJsonPostgresW15ProductionChangeSet(
+      current,
+      validationInput,
+    );
+  } else if (review.purpose === "profile-artifact-rebind") {
+    validated = validateJsonPostgresProfileArtifactChangeSet(current, {
+      ...validationInput,
+      profileArtifactAction: review.profile_artifact_action,
+      profileArtifactTransitionSha256:
+        review.profile_artifact_transition_sha256,
+    });
+  } else {
+    validated = validateJsonPostgresProductionChangeSet(current, {
       stackName: review.stack_name,
       changeSetType: review.change_set_type,
       ...validationInput,
     });
+  }
   if (validated.reviewed_change_set_sha256 !== review.reviewed_change_set_sha256) {
     throw new Error("reviewed CloudFormation change set drifted");
   }
@@ -572,6 +610,143 @@ function verifiedReceipt(path, kind, trustRegistry, packet) {
   return receipt;
 }
 
+function assertProfileArtifactUploadVersion(upload) {
+  const artifactStore = currentStack(
+    JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
+  );
+  const artifactKmsKeyArn = outputMap(artifactStore).ArtifactKmsKeyArn;
+  const head = awsJson([
+    "s3api", "head-object",
+    "--bucket", packet.target.artifact_bucket_name,
+    "--key", upload.artifact_key,
+    "--version-id", upload.artifact_version,
+    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+    "--checksum-mode", "ENABLED",
+  ]);
+  const expectedChecksum = Buffer.from(
+    upload.artifact_sha256,
+    "hex",
+  ).toString("base64");
+  const retainUntil = Date.parse(head.ObjectLockRetainUntilDate);
+  if (!/^(?:CREATE|UPDATE)_COMPLETE$/u.test(
+    artifactStore?.StackStatus ?? "",
+  )
+    || !artifactKmsKeyArn
+    || upload.artifact_byte_size !== artifactBytes.byteLength
+    || head.VersionId !== upload.artifact_version
+    || Number(head.ContentLength) !== artifactBytes.byteLength
+    || head.ServerSideEncryption !== "aws:kms"
+    || head.SSEKMSKeyId !== artifactKmsKeyArn
+    || head.Metadata?.sha256 !== upload.artifact_sha256
+    || head.Metadata?.["source-sha"] !== upload.source_sha
+    || head.Metadata?.["source-tree"] !== upload.source_tree
+    || head.Metadata?.["packet-sha256"] !== upload.packet_sha256
+    || head.ChecksumSHA256 !== expectedChecksum
+    || head.ObjectLockMode !== "COMPLIANCE"
+    || !Number.isFinite(retainUntil)
+    || retainUntil <= Date.now()) {
+    throw new Error("profile artifact immutable upload version drifted");
+  }
+  return Object.freeze({
+    target_artifact_version_verified: true,
+    target_artifact_version_head_verified_count: 1,
+    target_artifact_version: head.VersionId,
+    target_artifact_object_lock_mode: head.ObjectLockMode,
+    target_artifact_server_side_encryption: head.ServerSideEncryption,
+    target_artifact_kms_key_ref_sha256:
+      sha256ProgramBytes(head.SSEKMSKeyId),
+  });
+}
+
+function profileArtifactOperationInput(currentProductionStack) {
+  if (!currentProductionStack) {
+    throw new Error("profile artifact update requires the completed production stack");
+  }
+  const profileArtifactAction = requiredOption(
+    "--profile-artifact-action",
+  );
+  const baselineManifestBytes = readPrivateProgramBytes(
+    requiredOption("--baseline-artifact-manifest"),
+    "baseline production artifact manifest",
+  );
+  let baselineManifest;
+  try {
+    baselineManifest = JSON.parse(baselineManifestBytes);
+  } catch {
+    throw new Error("baseline production artifact manifest is not valid JSON");
+  }
+  const upload = readPrivateProgramJson(
+    requiredOption("--artifact-upload-evidence"),
+    "profile artifact upload evidence",
+  );
+  const priorPromoteExecutionReceiptBytes = profileArtifactAction === "rollback"
+    ? readPrivateProgramBytes(
+        requiredOption("--prior-profile-artifact-promote-receipt"),
+        "prior profile artifact promote execution receipt",
+      )
+    : null;
+  const priorPromoteExecutionReceiptAuthorityBytes =
+    profileArtifactAction === "rollback"
+      ? readPrivateProgramBytes(
+          requiredOption(
+            "--prior-profile-artifact-promote-receipt-authority",
+          ),
+          "prior profile artifact promote execution receipt authority",
+        )
+      : null;
+  const priorPromoteExecutionReceiptSignatureBytes =
+    profileArtifactAction === "rollback"
+      ? readPrivateProgramBytes(
+          requiredOption(
+            "--prior-profile-artifact-promote-receipt-signature",
+          ),
+          "prior profile artifact promote execution receipt signature",
+        )
+      : null;
+  const priorPromoteExecutionReceiptTrustRegistryBytes =
+    profileArtifactAction === "rollback"
+      ? readPrivateProgramBytes(
+          requiredOption(
+            "--prior-profile-artifact-promote-receipt-trust-registry",
+          ),
+          "prior profile artifact promote execution receipt trust registry",
+        )
+      : null;
+  if (upload.cloudformation_template?.sha256
+      !== sha256ProgramBytes(readFileSync(productionTemplatePath))
+    || !upload.cloudformation_template?.version_id
+    || !upload.cloudformation_template?.template_url) {
+    throw new Error("profile artifact upload template evidence is invalid");
+  }
+  const transition = buildJsonPostgresProfileArtifactTransition({
+    profileArtifactAction,
+    packet,
+    baselineManifest,
+    baselineManifestSha256: sha256ProgramBytes(baselineManifestBytes),
+    targetManifest: artifactManifest,
+    targetManifestSha256: sha256ProgramBytes(artifactManifestBytes),
+    artifactUploadEvidence: upload,
+    priorPromoteExecutionReceiptBytes,
+    priorPromoteExecutionReceiptAuthorityBytes,
+    priorPromoteExecutionReceiptSignatureBytes,
+    priorPromoteExecutionReceiptTrustRegistryBytes,
+    currentStack: currentProductionStack,
+    trustRegistrySha256: registrySha256,
+    approvalId: approval.approval_id,
+    owner: input.owner,
+    reviewDate: input.review_date,
+    expirationDate: input.expiration_date,
+    runtimeGeneration: input.runtime_generation,
+  });
+  const uploadVersion = assertProfileArtifactUploadVersion(upload);
+  return Object.freeze({
+    profileArtifactAction,
+    upload,
+    uploadVersion,
+    transition,
+  });
+}
+
 const operation = requiredOption("--operation");
 if (!OPERATIONS.has(operation)) throw new Error("unsupported production infrastructure operation");
 const goLiveOperation = operation === "create-go-live-change-set"
@@ -678,7 +853,10 @@ if (jsonPostgresProductionCombinedTemplateSha256({
   throw new Error("production combined infrastructure template binding drifted");
 }
 validateJsonPostgresProductionCost(
-  JSON.parse(readFileSync("infra/lawos-production/cost-estimate.json", "utf8")),
+  JSON.parse(readFileSync(
+    join(REPOSITORY_ROOT, "infra/lawos-production/cost-estimate.json"),
+    "utf8",
+  )),
 );
 const input = readPrivateProgramJson(
   requiredOption("--execution-input"),
@@ -764,7 +942,7 @@ if (operation === "preflight"
     parameters,
     label: "production-artifact-store",
   });
-  const stack = executeReviewedChangeSet(review);
+  const stack = executeReviewedChangeSet(review, parameters);
   result = {
     operation,
     outcome: "PASS",
@@ -901,7 +1079,7 @@ if (operation === "preflight"
     || review.inventory_bootstrap_only !== w15BootstrapOperation) {
     throw new Error("reviewed W15 production change set is invalid");
   }
-  const stack = executeReviewedChangeSet(review);
+  const stack = executeReviewedChangeSet(review, review.expected_parameters);
   assertJsonPostgresProductionStack(stack, {
     packet,
     artifactVersion: review.artifact_version,
@@ -963,7 +1141,7 @@ if (operation === "preflight"
     label: "w15-eni-removal",
     w15: true,
   });
-  const updated = executeReviewedChangeSet(review);
+  const updated = executeReviewedChangeSet(review, parameters);
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: parameters.ArtifactVersion,
@@ -1466,7 +1644,10 @@ if (operation === "preflight"
     W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker enable",
   );
-  const updated = executeReviewedChangeSet(review);
+  const updated = executeReviewedChangeSet(
+    review,
+    review.expected_parameters,
+  );
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: review.artifact_version,
@@ -1564,7 +1745,10 @@ if (operation === "preflight"
     W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker disable",
   );
-  const updated = executeReviewedChangeSet(review);
+  const updated = executeReviewedChangeSet(
+    review,
+    review.expected_parameters,
+  );
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: review.artifact_version,
@@ -1588,6 +1772,128 @@ if (operation === "preflight"
     stack_status: updated.StackStatus,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
+    temporary_eni_allow_count: 0,
+    aws_mutation_count: 1,
+    production_write_count: 0,
+  };
+} else if (operation === "create-profile-artifact-change-set") {
+  const current = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
+  const profileArtifact = profileArtifactOperationInput(current);
+  const review = createChangeSet({
+    stackName: JSON_POSTGRES_PRODUCTION_STACK,
+    type: "UPDATE",
+    templatePath: productionTemplatePath,
+    template: productionTemplate,
+    templateSha256: productionValidation.template_sha256,
+    parameters: profileArtifact.transition.parameters,
+    label:
+      `production-profile-artifact-${profileArtifact.profileArtifactAction}`,
+    templateUrl:
+      profileArtifact.upload.cloudformation_template.template_url,
+    profileArtifactAction: profileArtifact.profileArtifactAction,
+    profileArtifactTransitionSha256:
+      profileArtifact.transition.evidence
+        .profile_artifact_transition_sha256,
+  });
+  result = {
+    schema_version:
+      "law-firm-os.json-postgres-production-reviewed-change-set.v1",
+    operation,
+    outcome: "PASS",
+    caller,
+    ...review,
+    ...profileArtifact.transition.evidence,
+    ...profileArtifact.uploadVersion,
+    artifact_version:
+      profileArtifact.transition.evidence.target_artifact_version,
+    aws_mutation_count: 1,
+    production_write_count: 0,
+  };
+} else if (operation === "execute-profile-artifact-change-set") {
+  const review = readPrivateProgramJson(
+    requiredOption("--reviewed-change-set"),
+    "reviewed profile artifact change set",
+  );
+  const current = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
+  const profileArtifact = profileArtifactOperationInput(current);
+  assertJsonPostgresProfileArtifactReviewedChangeSet(review, {
+    transition: profileArtifact.transition,
+    template: productionTemplate,
+    uploadVersion: profileArtifact.uploadVersion,
+  });
+  const updated = executeReviewedChangeSet(
+    review,
+    profileArtifact.transition.parameters,
+  );
+  const targetStack = assertJsonPostgresProfileArtifactTargetStack(updated, {
+    transition: profileArtifact.transition,
+  });
+  validateEniAuthorityRemoved({ includeProjection: true });
+  const lambdaFunctions = [
+    "lawos-production-api",
+    "lawos-production-admin",
+    "lawos-production-projection-auditor",
+    "lawos-production-projection-worker",
+  ];
+  const targetLambdaCodeSha256 = Buffer.from(
+    packet.bindings.artifact_sha256,
+    "hex",
+  ).toString("base64");
+  let runtimeGenerationBoundLambdaCount = 0;
+  for (const functionName of lambdaFunctions) {
+    const configuration = awsJson([
+      "lambda", "get-function-configuration", "--function-name", functionName,
+    ]);
+    const environment = configuration.Environment?.Variables ?? {};
+    if (configuration.State !== "Active"
+      || configuration.LastUpdateStatus !== "Successful"
+      || configuration.CodeSha256 !== targetLambdaCodeSha256
+      || environment.LAWOS_DEPLOYMENT_COMMIT !== sourceSha
+      || environment.LAWOS_DEPLOYMENT_TREE !== sourceTree
+      || environment.LAWOS_DEPLOYMENT_ARTIFACT_SHA256
+        !== packet.bindings.artifact_sha256
+      || environment.LAWOS_EXECUTION_PACKET_SHA256
+        !== packet.packet_sha256
+      || Number(environment.LAWOS_RUNTIME_GENERATION)
+        !== profileArtifact.transition.evidence
+          .target_runtime_generation) {
+      throw new Error(`${functionName} exact profile artifact binding failed`);
+    }
+    runtimeGenerationBoundLambdaCount += 1;
+  }
+  const passwordResetRule = awsJson([
+    "events", "describe-rule",
+    "--name", "lawos-production-password-reset-worker",
+  ]);
+  const projectionWorkerRule = awsJson([
+    "events", "describe-rule",
+    "--name", "lawos-production-projection-worker",
+  ]);
+  const expectedProjectionWorkerState =
+    profileArtifact.transition.evidence.projection_worker_enabled
+      ? "ENABLED"
+      : "DISABLED";
+  if (passwordResetRule.State !== "ENABLED"
+    || projectionWorkerRule.State !== expectedProjectionWorkerState) {
+    throw new Error("profile artifact update changed a production schedule state");
+  }
+  result = {
+    operation,
+    purpose: "profile-artifact-rebind",
+    outcome: "PASS",
+    caller,
+    reviewed_change_set_sha256: review.reviewed_change_set_sha256,
+    ...profileArtifact.transition.evidence,
+    ...profileArtifact.uploadVersion,
+    production_traffic_enabled: targetStack.production_traffic_enabled,
+    lambda_eni_bootstrap_enabled:
+      targetStack.lambda_eni_bootstrap_enabled,
+    projection_worker_enabled: targetStack.projection_worker_enabled,
+    projection_worker_schedule_state: projectionWorkerRule.State,
+    active_successful_lambda_count: lambdaFunctions.length,
+    lambda_code_sha256_verified_count: lambdaFunctions.length,
+    runtime_generation_bound_lambda_count:
+      runtimeGenerationBoundLambdaCount,
     temporary_eni_allow_count: 0,
     aws_mutation_count: 1,
     production_write_count: 0,
@@ -1653,7 +1959,7 @@ if (operation === "preflight"
     || review.stack_name !== JSON_POSTGRES_PRODUCTION_STACK) {
     throw new Error("reviewed production change-set evidence is invalid");
   }
-  const stack = executeReviewedChangeSet(review);
+  const stack = executeReviewedChangeSet(review, review.expected_parameters);
   assertJsonPostgresProductionStack(stack, {
     packet,
     artifactVersion: review.artifact_version,
@@ -1697,7 +2003,7 @@ if (operation === "preflight"
     parameters,
     label: "production-eni-removal",
   });
-  const updated = executeReviewedChangeSet(review);
+  const updated = executeReviewedChangeSet(review, parameters);
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: parameters.ArtifactVersion,
@@ -1848,7 +2154,10 @@ if (operation === "preflight"
     "PasswordResetWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
   ]), "runtime restart");
-  const updated = executeReviewedChangeSet(review);
+  const updated = executeReviewedChangeSet(
+    review,
+    review.expected_parameters,
+  );
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: review.artifact_version,
@@ -1975,7 +2284,10 @@ if (operation === "preflight"
     "PasswordResetWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
   ]), "go-live traffic");
-  const updated = executeReviewedChangeSet(review);
+  const updated = executeReviewedChangeSet(
+    review,
+    review.expected_parameters,
+  );
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: review.artifact_version,

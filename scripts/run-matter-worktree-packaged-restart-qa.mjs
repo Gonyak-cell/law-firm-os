@@ -9,11 +9,14 @@ import { highestPrivilegeRegisteredAccount } from "../apps/api/src/matter-vault-
 import { createMatterRepository } from "../packages/matter/src/repository.js";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
+const desktopVersion = JSON.parse(
+  readFileSync(path.join(repoRoot, "apps/desktop/package.json"), "utf8"),
+).version;
 const executablePath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter");
 const appContentPath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Resources/app");
 const rendererPath = path.join(appContentPath, "src/renderer/web");
-const zipPath = path.join(repoRoot, "apps/desktop/dist/mac/matter-internal-0.1.15-macos.zip");
-const dmgPath = path.join(repoRoot, "apps/desktop/dist/mac/matter-internal-0.1.15-macos.dmg");
+const zipPath = path.join(repoRoot, `apps/desktop/dist/mac/matter-internal-${desktopVersion}-macos.zip`);
+const dmgPath = path.join(repoRoot, `apps/desktop/dist/mac/matter-internal-${desktopVersion}-macos.dmg`);
 const evidenceDir = path.join(repoRoot, "workbook/matter-worktree-evidence/WT-04-07");
 const receiptPath = path.join(evidenceDir, "packaged-restart-receipt.json");
 const userDataPath = mkdtempSync(path.join(tmpdir(), "matter-worktree-packaged-restart-"));
@@ -138,46 +141,76 @@ function seedIsolatedStore() {
   repository.close();
 }
 
-async function launchPackagedApp() {
-  const app = await electron.launch({
-    executablePath,
-    args: ["--disable-gpu"],
-    env: {
-      ...packagedQaEnvironment,
-      MATTER_DESKTOP_LOCAL_API_DISABLED: "0",
-      MATTER_DESKTOP_LOCAL_API_ENABLED: "1",
-      MATTER_DESKTOP_RUNTIME_STORE_DIR: runtimeStoreDir,
-      MATTER_DESKTOP_USER_DATA_PATH: userDataPath,
-    },
-    timeout: 45_000,
-  });
-  const page = await app.firstWindow({ timeout: 45_000 });
-  const window = await app.browserWindow(page);
-  await window.evaluate((target) => target.setBounds({ x: 60, y: 30, width: 1440, height: 960 }));
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addStyleTag({ content: ".forest-sidebar-user { visibility: hidden !important; }" });
-  assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/offline\.html$/, "QA must start from the exact repo-local Forest login renderer");
-  assert.match(await page.evaluate(() => window.matterSession?.desktopApiBaseUrl ?? ""), /^http:\/\/127\.0\.0\.1:\d+$/, "QA must use the packaged isolated local API");
+function assertPackagedRendererUrl(candidate, message) {
+  const url = new URL(candidate);
+  assert.equal(url.protocol, "matter-app:", message);
+  assert.equal(url.hostname, "app", message);
+  assert.equal(url.port, "", message);
+  assert.equal(url.username, "", message);
+  assert.equal(url.password, "", message);
+  assert.equal(url.pathname, "/index.html", message);
+  assert.equal(url.searchParams.get("desktop"), "1", message);
+}
 
-  if (await page.locator('[data-login-screen="forest-split"]').count()) {
-    await page.fill("[data-login-email]", account.email);
-    await page.fill("[data-login-password]", account.local_dev.synthetic_token);
-    await page.click('[data-login-form="email-password"] button[type="submit"]');
+async function launchPackagedApp() {
+  let app;
+  try {
+    app = await electron.launch({
+      executablePath,
+      args: ["--disable-gpu"],
+      env: {
+        ...packagedQaEnvironment,
+        MATTER_DESKTOP_LOCAL_API_DISABLED: "0",
+        MATTER_DESKTOP_LOCAL_API_ENABLED: "1",
+        MATTER_DESKTOP_RUNTIME_STORE_DIR: runtimeStoreDir,
+        MATTER_DESKTOP_USER_DATA_PATH: userDataPath,
+      },
+      timeout: 45_000,
+    });
+    const page = await app.firstWindow({ timeout: 45_000 });
+    const window = await app.browserWindow(page);
+    await window.evaluate((target) => target.setBounds({ x: 60, y: 30, width: 1440, height: 960 }));
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addStyleTag({ content: ".forest-sidebar-user { visibility: hidden !important; }" });
+    assertPackagedRendererUrl(page.url(), "QA must start from the exact secure packaged renderer");
+    assert.match(await page.evaluate(() => window.matterSession?.desktopApiBaseUrl ?? ""), /^http:\/\/127\.0\.0\.1:\d+$/, "QA must use the packaged isolated local API");
+
+    await page.waitForSelector(
+      '[data-login-screen="forest-split"], [data-product-axis-nav="global-rail"]',
+      { state: "visible", timeout: 45_000 },
+    );
+    if (await page.locator('[data-login-screen="forest-split"]').count()) {
+      await page.fill("[data-login-email]", account.email);
+      await page.fill("[data-login-password]", account.local_dev.synthetic_token);
+      await page.click('[data-login-form="email-password"] button[type="submit"]');
+    }
+    await page.waitForSelector('[data-product-axis-nav="global-rail"]', { timeout: 45_000 });
+    assertPackagedRendererUrl(page.url(), "QA must remain on the exact secure packaged renderer");
+    return { app, page };
+  } catch (error) {
+    await app?.close().catch(() => {});
+    throw error;
   }
-  await page.waitForSelector('[data-product-axis-nav="global-rail"]', { timeout: 45_000 });
-  assert.match(page.url(), /apps\/desktop\/dist\/mac\/matter\.app\/Contents\/Resources\/app\/src\/renderer\/web\/index\.html/, "QA must hand off to the exact repo-local packaged product renderer");
-  return { app, page };
 }
 
 async function openSeededWorktree(page) {
   await page.locator('[data-product-axis="matters"]').click();
-  await page.locator('[data-context-sidebar="matters"]').waitFor({ state: "visible" });
-  const workManagement = page.locator('.sidebar-group-toggle', { hasText: "업무 관리" }).first();
-  if ((await workManagement.getAttribute("aria-expanded")) !== "true") await workManagement.click();
-  await page.locator('[data-sidebar-section="matter-worktree"]').click();
-  await page.locator('.matter-worktree').waitFor({ state: "visible", timeout: 30_000 });
-  await page.locator('.matter-worktree-selector select').selectOption(matterId);
-  const checkbox = page.getByRole("checkbox", { name: `${taskTitle} 완료` });
+  const matterSidebar = page.locator('[data-context-sidebar="matters"]');
+  await matterSidebar.waitFor({ state: "visible" });
+  await matterSidebar.getByRole("button", { name: "업무", exact: true }).click();
+  const workScreen = page.locator('[data-matter-small-firm-screen="matter-work"]');
+  await workScreen.waitFor({ state: "visible", timeout: 30_000 });
+  await workScreen
+    .getByRole("tablist", { name: "업무 보기 방식" })
+    .getByRole("tab", { name: "워크트리", exact: true })
+    .click();
+  await page
+    .locator('[data-matter-small-firm-screen="matter-work"][data-matter-work-layout="worktree"]')
+    .waitFor({ state: "visible", timeout: 30_000 });
+  const worktree = workScreen.locator(".matter-worktree");
+  await worktree.waitFor({ state: "visible", timeout: 30_000 });
+  await worktree.locator('.matter-worktree-selector select').selectOption(matterId);
+  const checkbox = worktree.getByRole("checkbox", { name: `${taskTitle} 완료` });
   await checkbox.waitFor({ state: "visible", timeout: 30_000 });
   return checkbox;
 }
@@ -190,35 +223,33 @@ async function run() {
   let secondRuntimeBaseUrl;
   let worktreePracticeTypography;
   try {
-    ({ app: firstApp } = await launchPackagedApp().then(async ({ app, page }) => {
-      firstRuntimeBaseUrl = await page.evaluate(() => window.matterSession.desktopApiBaseUrl);
-      const checkbox = await openSeededWorktree(page);
-      assert.equal(await checkbox.isChecked(), false, "seeded task must start incomplete");
-      await checkbox.click();
-      await assert.doesNotReject(() => checkbox.waitFor({ state: "visible" }));
-      await page.waitForFunction((label) => document.querySelector(`input[aria-label="${label}"]`)?.checked === true, `${taskTitle} 완료`, { timeout: 30_000 });
-      assert.match(await page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "first launch must show completed progress");
-      await page.locator(".matter-worktree-stage").screenshot({ path: path.join(evidenceDir, "packaged-before-restart.png"), animations: "disabled", caret: "hide" });
-      return { app };
-    }));
+    const firstLaunch = await launchPackagedApp();
+    firstApp = firstLaunch.app;
+    firstRuntimeBaseUrl = await firstLaunch.page.evaluate(() => window.matterSession.desktopApiBaseUrl);
+    const firstCheckbox = await openSeededWorktree(firstLaunch.page);
+    assert.equal(await firstCheckbox.isChecked(), false, "seeded task must start incomplete");
+    await firstCheckbox.click();
+    await assert.doesNotReject(() => firstCheckbox.waitFor({ state: "visible" }));
+    await firstLaunch.page.waitForFunction((label) => document.querySelector(`input[aria-label="${label}"]`)?.checked === true, `${taskTitle} 완료`, { timeout: 30_000 });
+    assert.match(await firstLaunch.page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "first launch must show completed progress");
+    await firstLaunch.page.locator(".matter-worktree-stage").screenshot({ path: path.join(evidenceDir, "packaged-before-restart.png"), animations: "disabled", caret: "hide" });
     await firstApp.close();
     firstApp = null;
 
-    ({ app: secondApp } = await launchPackagedApp().then(async ({ app, page }) => {
-      secondRuntimeBaseUrl = await page.evaluate(() => window.matterSession.desktopApiBaseUrl);
-      const checkbox = await openSeededWorktree(page);
-      assert.equal(await checkbox.isChecked(), true, "completed task must remain checked after full app restart");
-      assert.match(await page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "second launch must restore completed progress");
-      worktreePracticeTypography = await page.locator('.matter-worktree-practice-areas button').evaluateAll((buttons) => ({
-        labels: buttons.map((button) => button.textContent.trim()),
-        font_sizes: buttons.map((button) => getComputedStyle(button).fontSize),
-      }));
-      assert.deepEqual(worktreePracticeTypography, {
-        labels: ["송무", "기업 자문", "분쟁", "트랜잭션"],
-        font_sizes: ["16px", "16px", "16px", "16px"],
-      });
-      return { app };
+    const secondLaunch = await launchPackagedApp();
+    secondApp = secondLaunch.app;
+    secondRuntimeBaseUrl = await secondLaunch.page.evaluate(() => window.matterSession.desktopApiBaseUrl);
+    const secondCheckbox = await openSeededWorktree(secondLaunch.page);
+    assert.equal(await secondCheckbox.isChecked(), true, "completed task must remain checked after full app restart");
+    assert.match(await secondLaunch.page.locator('.matter-worktree-progress-copy').innerText(), /1\/1 완료/, "second launch must restore completed progress");
+    worktreePracticeTypography = await secondLaunch.page.locator('.matter-worktree-practice-areas button').evaluateAll((buttons) => ({
+      labels: buttons.map((button) => button.textContent.trim()),
+      font_sizes: buttons.map((button) => getComputedStyle(button).fontSize),
     }));
+    assert.deepEqual(worktreePracticeTypography, {
+      labels: ["송무", "기업 자문", "분쟁", "트랜잭션"],
+      font_sizes: ["16px", "16px", "16px", "16px"],
+    });
     await secondApp.close();
     secondApp = null;
 

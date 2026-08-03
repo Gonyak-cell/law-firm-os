@@ -195,7 +195,7 @@ test("synthetic identity approval is bound to the exact source SHA and tree", ()
   );
 });
 
-test("artifact source overrides remove real client candidates and user role assignments", () => {
+test("artifact source overrides remove real client, matter, and user role assignments", () => {
   const overrides = PRIVATE_STAGING_SOURCE_OVERRIDES.map((entry) => {
     const bytes = readFileSync(entry.source_path);
     return {
@@ -206,7 +206,7 @@ test("artifact source overrides remove real client candidates and user role assi
     };
   });
   assert.deepEqual(validatePrivateStagingSourceOverrides(overrides), {
-    override_count: 2,
+    override_count: 3,
     real_identity_match_count: 0,
     real_client_candidate_count: 0,
   });

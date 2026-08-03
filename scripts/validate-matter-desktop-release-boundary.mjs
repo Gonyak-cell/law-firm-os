@@ -1,146 +1,60 @@
 #!/usr/bin/env node
-import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+
+// Compatibility entrypoint. The legacy implementation trusted Markdown PASS
+// strings and internal artifacts; only the structured formal boundary may now
+// authorize RFD-TUW-012.
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { readDesktopBuildSourceIdentity } from "./lib/matter-desktop-provenance.mjs";
 import {
   readDesktopReleaseArtifactStage,
   requireDesktopReleaseArtifact,
 } from "./lib/matter-desktop-release-paths.mjs";
+import { main } from "./validate-matter-desktop-macos-release-boundary.mjs";
 
-const ROOT = process.cwd();
-const sourceIdentity = readDesktopBuildSourceIdentity(ROOT);
-assert.equal(sourceIdentity.sourceDirty, false, "release boundary validation requires a clean product source");
-if (process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA) {
-  assert.equal(sourceIdentity.sourceSha, process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA);
-}
-const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
-const releaseId = `matter-desktop-internal-${desktopPackage.version}`;
-const releaseStage = readDesktopReleaseArtifactStage({
-  repoRoot: ROOT,
-  version: desktopPackage.version,
-  sourceSha: sourceIdentity.sourceSha,
-  channel: "internal",
-});
-const manifestPath = path.join(releaseStage.artifactRoot, "release-manifest.json");
-const macosReceiptPath = path.join(
-  ROOT,
-  requireDesktopReleaseArtifact(releaseStage.index, "macos_build_receipt").path,
-);
-const releaseReceiptPath = path.join(ROOT, "docs/desktop/matter-desktop-temporary-release-receipt.md");
-const ownerPacketPath = path.join(ROOT, "docs/desktop/matter-desktop-owner-decision-packet.md");
+const argv = process.argv.slice(2);
 
-function readRequired(filePath) {
-  assert(existsSync(filePath), `missing file: ${path.relative(ROOT, filePath)}`);
-  return readFileSync(filePath, "utf8");
+function valueFor(flag) {
+  const inline = argv.find((argument) => argument.startsWith(`${flag}=`));
+  if (inline) return inline.slice(flag.length + 1);
+  const index = argv.indexOf(flag);
+  return index === -1 ? undefined : argv[index + 1];
 }
 
-function receiptValue(source, label) {
-  const prefix = `- ${label}:`;
-  const line = source.split(/\r?\n/).find((entry) => entry.startsWith(prefix));
-  assert(line, `missing receipt line: ${label}`);
-  return line.slice(prefix.length).trim();
+function assertShaScopedReceipt() {
+  const receiptPath = valueFor("--receipt");
+  if (!receiptPath) return null;
+  const repoRoot = path.resolve(valueFor("--repo-root") ?? process.cwd());
+  const source = readDesktopBuildSourceIdentity(repoRoot);
+  const desktopPackage = JSON.parse(readFileSync(path.join(repoRoot, "apps/desktop/package.json"), "utf8"));
+  const stage = readDesktopReleaseArtifactStage({
+    repoRoot,
+    version: desktopPackage.version,
+    sourceSha: source.sourceSha,
+    channel: "formal",
+  });
+  const stagedReceipt = requireDesktopReleaseArtifact(stage.index, "macos_release_boundary_receipt");
+  if (path.resolve(receiptPath) !== path.resolve(repoRoot, stagedReceipt.path)) throw new Error("SHA_SCOPED_RECEIPT_REQUIRED");
+  const releaseManifestPath = valueFor("--release-manifest");
+  if (!releaseManifestPath || path.resolve(releaseManifestPath) !== path.join(stage.artifactRoot, "release-manifest.json")) throw new Error("SHA_SCOPED_RELEASE_MANIFEST_REQUIRED");
+  const receipt = JSON.parse(readFileSync(path.resolve(receiptPath), "utf8"));
+  const stagedDmg = requireDesktopReleaseArtifact(stage.index, "macos_dmg_image");
+  const stagedBuildManifest = requireDesktopReleaseArtifact(stage.index, "macos_build_manifest");
+  if (receipt?.artifacts?.disk_image?.sha256 !== stagedDmg.sha256 || receipt?.artifacts?.disk_image?.bytes !== stagedDmg.bytes) throw new Error("STAGED_DMG_RECEIPT_MISMATCH");
+  if (receipt?.build_manifest?.sha256 !== stagedBuildManifest.sha256 || receipt?.build_manifest?.bytes !== stagedBuildManifest.bytes) throw new Error("STAGED_BUILD_MANIFEST_RECEIPT_MISMATCH");
+  return stage;
 }
 
-const manifest = JSON.parse(readRequired(manifestPath));
-const macosReceipt = readRequired(macosReceiptPath);
-const releaseReceipt = readRequired(releaseReceiptPath);
-const ownerPacket = readRequired(ownerPacketPath);
-
-const signing = {
-  developerIdSigning: receiptValue(macosReceipt, "Developer ID signing"),
-  requestedSigningMode: receiptValue(macosReceipt, "requested signing mode"),
-  resolvedSigningIdentity: receiptValue(macosReceipt, "resolved signing identity"),
-  codesignVerify: receiptValue(macosReceipt, "codesign verify"),
-  strictCodesignVerify: receiptValue(macosReceipt, "strict codesign verify"),
-  gatekeeperAssess: receiptValue(macosReceipt, "gatekeeper assess"),
-  publicDistributionApproval: receiptValue(macosReceipt, "public distribution approval"),
-  notarizationRequested: receiptValue(macosReceipt, "notarization requested"),
-  notarizationCredentialSource: receiptValue(macosReceipt, "notarization credential source"),
-  notarizationState: receiptValue(macosReceipt, "notarization state"),
-};
-
-assert.equal(manifest.release_id, releaseId, "release manifest id mismatch");
-assert.equal(manifest.source_sha, sourceIdentity.sourceSha, "release manifest source SHA mismatch");
-assert.equal(manifest.source_tree, sourceIdentity.sourceTree, "release manifest source tree mismatch");
-assert.equal(manifest.artifact_root, releaseStage.relativeRoot, "release artifact root mismatch");
-assert.equal(manifest.generic_build_paths_are_release_truth, false, "generic build paths must not be release truth");
-assert.equal(manifest.public_release_claim, false, "public release claim must remain false");
-assert.equal(manifest.production_go_live_claim, false, "production go-live claim must remain false");
-assert.equal(manifest.owner_approval_claim, false, "owner approval claim must remain false");
-assert.equal(manifest.app_store_distribution_claim, false, "App Store distribution claim must remain false");
-assert.equal(manifest.external_pilot_distribution_claim, false, "external pilot distribution claim must remain false");
-
-assert.equal(signing.developerIdSigning, "applied", "Developer ID signing must be applied for release boundary closeout");
-assert.equal(signing.requestedSigningMode, "developer-id", "macOS build must be run in Developer ID signing mode");
-assert.match(signing.resolvedSigningIdentity, /^Developer ID Application:/, "resolved signing identity must be a Developer ID Application identity");
-assert.equal(signing.codesignVerify, "pass", "codesign verify must pass");
-assert.equal(signing.strictCodesignVerify, "pass", "strict codesign verify must pass");
-assert.equal(signing.gatekeeperAssess, "pass", "Gatekeeper assessment must pass after notarization and stapling");
-assert.equal(signing.publicDistributionApproval, "not claimed", "public distribution approval must not be claimed");
-assert.equal(signing.notarizationRequested, "true", "notarization must be requested for notarized release boundary closeout");
-assert.equal(signing.notarizationCredentialSource, "present", "notarization credential source must be recorded as present");
-assert.equal(signing.notarizationState, "submitted_and_accepted_by_notarytool", "notarization state must record accepted notarytool submission");
-
-assert.deepEqual(manifest.macos_signing, {
-  developer_id_signing: signing.developerIdSigning,
-  requested_signing_mode: signing.requestedSigningMode,
-  resolved_signing_identity: signing.resolvedSigningIdentity,
-  codesign_verify: signing.codesignVerify,
-  strict_codesign_verify: signing.strictCodesignVerify,
-  gatekeeper_assess: signing.gatekeeperAssess,
-  public_distribution_approval: signing.publicDistributionApproval,
-  notarization_requested: signing.notarizationRequested,
-  notarization_credential_source: signing.notarizationCredentialSource,
-  notarization_state: signing.notarizationState,
-}, "release manifest macOS signing state must match macOS receipt");
-
-const requiredReleaseReceiptPhrases = [
-  "Developer ID signing | applied",
-  "notarization requested | true",
-  "notarization credential source | present",
-  "notarization state | submitted_and_accepted_by_notarytool",
-  "Public release: false",
-  "Production go-live: false",
-  "Owner approval: false",
-];
-for (const phrase of requiredReleaseReceiptPhrases) {
-  assert(releaseReceipt.includes(phrase), `release receipt missing boundary phrase: ${phrase}`);
+try {
+  const shaScopedStage = assertShaScopedReceipt();
+  process.exitCode = main(argv, { shaScopedStage });
+} catch {
+  process.stderr.write(`${JSON.stringify({
+    validator: "matter-desktop-macos-release-boundary",
+    verdict: "FAIL",
+    code: "SHA_SCOPED_RECEIPT_REQUIRED",
+    message: "final validation requires the exact SHA-scoped structured receipt (details redacted)",
+    details: {},
+  })}\n`);
+  process.exitCode = 1;
 }
-
-const ownerPacketStatusOk =
-  ownerPacket.includes("Status: owner-decision-not-recorded") ||
-  ownerPacket.includes("Status: owner-approval-gate-recorded");
-assert(ownerPacketStatusOk, "owner decision packet status must be not-recorded or owner-approval-gate-recorded");
-
-const requiredOwnerPacketPhrases = [
-  "| public-release | false |",
-  "| owner-approved | false |",
-  "notarization",
-  "public release: false",
-];
-for (const phrase of requiredOwnerPacketPhrases) {
-  assert(ownerPacket.includes(phrase), `owner decision packet missing boundary phrase: ${phrase}`);
-}
-
-console.log(
-  JSON.stringify(
-    {
-      verdict: "PASS",
-      release_id: releaseId,
-      source_sha: sourceIdentity.sourceSha,
-      artifact_root: releaseStage.relativeRoot,
-      developer_id_signing: signing.developerIdSigning,
-      signing_identity: signing.resolvedSigningIdentity,
-      codesign_verify: signing.codesignVerify,
-      strict_codesign_verify: signing.strictCodesignVerify,
-      gatekeeper_assess: signing.gatekeeperAssess,
-      notarization_state: signing.notarizationState,
-      public_release_claim: false,
-      production_go_live_claim: false,
-      owner_approval_claim: false,
-    },
-    null,
-    2,
-  ),
-);

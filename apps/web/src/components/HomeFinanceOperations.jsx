@@ -19,7 +19,8 @@ import {
   lockFinanceWipSnapshot,
   matchFinancePayment,
   readLawosApiSession,
-  readLawosSessionEnvelope
+  readLawosSessionEnvelope,
+  rejectFinancePreBill
 } from "../data/apiClient.js";
 import { ChargePanel, createFinancePaymentFormDraft } from "./MattersSurface.jsx";
 import { canAccessFinanceScope } from "../data/financeAccess.js";
@@ -227,10 +228,27 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refres
     const created = snapshot.kind === "data" && snapshot.item?.wip_snapshot_id
       ? await createFinancePreBill({ matterId, wipSnapshotId: snapshot.item.wip_snapshot_id, ctx: liveCtx })
       : snapshot;
-    const approved = created.kind === "data" && created.item?.prebill_id
-      ? await approveFinancePreBill({ prebillId: created.item.prebill_id, ctx: liveCtx })
-      : created;
-    setPrebillResult(approved);
+    setPrebillResult(created);
+    setBusy("prebill", false);
+  }
+
+  async function approvePrebill({ adjustmentAmount = 0, reasonCode = "" } = {}) {
+    const prebill = prebillResult?.kind === "data" ? prebillResult.item : null;
+    if (!selectedMatter || !prebill?.prebill_id) return;
+    setBusy("prebill", true);
+    const amount = Number(adjustmentAmount);
+    const adjustment = Number.isFinite(amount) && amount > 0 ? { amount, reasonCode } : null;
+    const result = await approveFinancePreBill({ prebillId: prebill.prebill_id, adjustment, ctx: liveCtx });
+    setPrebillResult(result);
+    setBusy("prebill", false);
+  }
+
+  async function rejectPrebill({ reasonCode = "" } = {}) {
+    const prebill = prebillResult?.kind === "data" ? prebillResult.item : null;
+    if (!selectedMatter || !prebill?.prebill_id) return;
+    setBusy("prebill", true);
+    const result = await rejectFinancePreBill({ prebillId: prebill.prebill_id, reasonCode, ctx: liveCtx });
+    setPrebillResult(result);
     setBusy("prebill", false);
   }
 
@@ -352,7 +370,7 @@ export function HomeFinanceOperations({ liveCtx = "allow", activeSection, refres
           onPaymentFormChange={(field, value) => setPaymentForm((current) => ({ ...current, [field]: value }))}
           onAccountingExportFormChange={(field, value) => setAccountingExportForm((current) => ({ ...current, [field]: value }))}
           onToggleTimeTimer={toggleTimer} onCreateTimeEntry={createTime} onCreateExpense={createExpense} onCreateDisbursement={createDisbursement}
-          onGenerateWip={generateWip} onCreatePreBill={createPrebill} onIssueInvoice={issueInvoice} onImportPayment={importPayment} onMatchPayment={matchPayment} onCreateAccountingExport={createAccountingExport}
+          onGenerateWip={generateWip} onCreatePreBill={createPrebill} onApprovePreBill={approvePrebill} onRejectPreBill={rejectPrebill} onIssueInvoice={issueInvoice} onImportPayment={importPayment} onMatchPayment={matchPayment} onCreateAccountingExport={createAccountingExport}
         />
       )}
     </section>

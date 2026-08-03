@@ -12,6 +12,7 @@ import {
   fetchMatterWorktree,
   fetchMatterWorktreeTemplates,
   patchMatterWorktreeNode,
+  readMatterTenantId,
   readLawosSessionEnvelope,
   reopenMatterWorktreeTask,
   unblockMatterWorktreeTask,
@@ -58,10 +59,9 @@ function matterSearchText(matter) {
 function mutationPayload(reason, extra = {}) {
   const session = readLawosSessionEnvelope();
   const actorId = session?.actor_ref ?? "matter_client_operator";
-  const tenantId = session?.tenant_refs?.matter ?? session?.tenant_refs?.default ?? "tenant_amic_matter_vault";
   const nonce = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return {
-    tenant_id: tenantId,
+    tenant_id: readMatterTenantId(),
     permission_ref: "ui_matter_worktree_live",
     audit_hint_ref: "ui_matter_worktree_probe",
     actor_id: actorId,
@@ -90,6 +90,7 @@ function WorktreeNode({ node, level, expandedIds, selectedId, pendingTaskId, onS
         tabIndex={selectedId === node.node_id ? 0 : -1}
         data-worktree-node-id={node.node_id}
         data-worktree-node-title={node.title}
+        data-task-id={task?.task_id}
         onClick={() => onSelect(node.node_id)}
         onKeyDown={(event) => onKeyDown(event, node)}
       >

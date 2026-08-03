@@ -9,16 +9,9 @@ const worktreeSource = await readFile(new URL("../src/components/MatterWorktreeS
 const stylesSource = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
 
 test("WT-03-01 registers one Worktree route in the required work-management order", () => {
-  const workManagement = shellSource.slice(
-    shellSource.indexOf('label: "업무 관리"'),
-    shellSource.indexOf('label: "사건 운영"')
-  );
-
-  assert.match(
-    workManagement,
-    /label: "업무 보드"[\s\S]*label: "워크트리"[\s\S]*label: "할 일"[\s\S]*label: "일정"/
-  );
-  assert.equal((workManagement.match(/section: "matter-worktree"/g) ?? []).length, 1);
+  assert.match(shellSource, /MATTER_CANONICAL_ROUTES[\s\S]*id: "matter-work"[\s\S]*section: "matter-work"/);
+  assert.match(shellSource, /id: "matter-calendar"[\s\S]*section: "matter-calendar"/);
+  assert.equal((shellSource.match(/section: "matter-worktree"/g) ?? []).length, 0);
   assert.match(mattersSource, /"matter-worktree"/);
 });
 

@@ -4,7 +4,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { directoryDigest } from "../lib/matter-desktop-provenance.mjs";
+import {
+  createDesktopBuildManifest,
+  DESKTOP_RENDERER_DIGEST_ALGORITHM,
+  directoryDigest,
+} from "../lib/matter-desktop-provenance.mjs";
 import {
   APPROVED_DESKTOP_ASSET_HASHES,
   FORBIDDEN_LEGACY_ASSET_HASHES,
@@ -77,11 +81,23 @@ test("PV-006 packaged renderer accepts only current web entry and approved asset
   write(appRoot, "src/renderer/web/amic-law-icon.png", icon);
   write(appRoot, "build/amic-law-logo-accent.svg", logo);
   const rendererDigest = directoryDigest(path.join(appRoot, "src/renderer/web"));
-  write(resourcesRoot, "matter-build-manifest.json", `${JSON.stringify({
-    source_sha: SOURCE_SHA,
-    source_dirty: false,
-    renderer: rendererDigest,
-  })}\n`);
+  write(resourcesRoot, "matter-build-manifest.json", `${JSON.stringify(createDesktopBuildManifest({
+    version: "0.1.17",
+    sourceSha: SOURCE_SHA,
+    sourceTree: "b".repeat(40),
+    sourceDirty: false,
+    renderer: { ...rendererDigest, algorithm: DESKTOP_RENDERER_DIGEST_ALGORITHM },
+    channel: "formal",
+    platform: "darwin",
+    arch: "arm64",
+    appId: "com.amic.matter.desktop",
+    requestedRuntimeMode: "none",
+    effectiveRuntimeMode: "none",
+    runtimeIncluded: false,
+    runtimeDataClass: "none",
+    nonDistributable: false,
+    distributable: true,
+  }))}\n`);
 
   const result = inspectPackagedRenderer({
     resourcesRoot,
@@ -103,11 +119,23 @@ test("PV-006 packaged renderer fails closed on offline entry, old mark, or wrong
   write(appRoot, "src/renderer/web/index.html", "<!doctype html>");
   write(appRoot, "src/renderer/offline.html", "old login");
   write(appRoot, "build/matter-mark.svg", "old mark");
-  write(resourcesRoot, "matter-build-manifest.json", `${JSON.stringify({
-    source_sha: "b".repeat(40),
-    source_dirty: false,
-    renderer: { sha256: "c".repeat(64), file_count: 1 },
-  })}\n`);
+  write(resourcesRoot, "matter-build-manifest.json", `${JSON.stringify(createDesktopBuildManifest({
+    version: "0.1.17",
+    sourceSha: "b".repeat(40),
+    sourceTree: "c".repeat(40),
+    sourceDirty: false,
+    renderer: { sha256: "c".repeat(64), file_count: 1, algorithm: DESKTOP_RENDERER_DIGEST_ALGORITHM },
+    channel: "formal",
+    platform: "darwin",
+    arch: "arm64",
+    appId: "com.amic.matter.desktop",
+    requestedRuntimeMode: "none",
+    effectiveRuntimeMode: "none",
+    runtimeIncluded: false,
+    runtimeDataClass: "none",
+    nonDistributable: false,
+    distributable: true,
+  }))}\n`);
 
   assert.throws(() => inspectPackagedRenderer({
     resourcesRoot,

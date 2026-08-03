@@ -39,19 +39,21 @@ function isInDateWindow(record = {}, fromDate, toDate) {
 }
 
 function csvCell(value) {
-  const text = value === undefined || value === null ? "" : String(value);
-  return /[",\n]/.test(text) ? `"${text.replaceAll("\"", "\"\"")}"` : text;
+  const rawText = value === undefined || value === null ? "" : String(value);
+  const text = typeof value === "string" && /^[=+\-@\t\r]/u.test(rawText) ? `'${rawText}` : rawText;
+  return /[",\n\r]/u.test(text) ? `"${text.replaceAll("\"", "\"\"")}"` : text;
 }
 
 function sha256(text) {
   return createHash("sha256").update(text).digest("hex");
 }
 
-export function buildAccountingExportCsv({ repository, tenant_id, from_date, to_date } = {}) {
+export function buildAccountingExportCsv({ repository, tenant_id, from_date, to_date, journal_entries } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   if (from_date && to_date && from_date > to_date) throw new Error("from_date must be before to_date");
-  const journalEntries = repository
-    .list({ tenant_id, model_type: "JournalEntry" })
+  const journalEntries = (Array.isArray(journal_entries)
+    ? journal_entries
+    : repository.list({ tenant_id, model_type: "JournalEntry" }))
     .filter((entry) => isInDateWindow(entry, from_date, to_date));
   const rows = [];
   let debitTotal = 0;
@@ -133,14 +135,14 @@ export function createAccountingExport({ repository, accounting_export, actor_id
   });
 }
 
-export function createAccountingCsvExport({ repository, tenant_id, from_date, to_date, actor_id, idempotency_key, accounting_export_id } = {}) {
+export function createAccountingCsvExport({ repository, tenant_id, from_date, to_date, actor_id, idempotency_key, accounting_export_id, journal_entries } = {}) {
   requiredString({ tenant_id }, "tenant_id");
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   const replay = repository.getIdempotency({ tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
   return repository.transaction((tx) => {
-    const csv = buildAccountingExportCsv({ repository: tx, tenant_id, from_date, to_date });
+    const csv = buildAccountingExportCsv({ repository: tx, tenant_id, from_date, to_date, journal_entries });
     const record = tx.create({
       model_type: "AccountingExport",
       accounting_export_id: accounting_export_id ?? `accounting-export:${tenant_id}:${from_date ?? "start"}:${to_date ?? "end"}`,

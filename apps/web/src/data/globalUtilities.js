@@ -13,6 +13,7 @@ import {
   Settings,
   ShieldCheck
 } from "lucide-react";
+import { resolveMatterRoute as resolveMatterCatalogRoute } from "../components/matter-small-firm/routes.js";
 
 function legacy(view, section) {
   return { view, section };
@@ -504,12 +505,6 @@ const directRouteMap = new Map([
   ["finance:finance-payments", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-payments" } })],
   ["finance:finance-withdrawal", route("home", "home-finance-billing", { redirectedFrom: { view: "finance", section: "finance-withdrawal" } })],
   ["matters:matter-approvals", route("home", "home-requests", { redirectedFrom: { view: "matters", section: "matter-approvals", filter: "finance" }, filter: "finance" })],
-  ["matters:matter-time", route("home", "home-finance-time", { redirectedFrom: { view: "matters", section: "matter-time" } })],
-  ["matters:matter-expenses", route("home", "home-finance-expenses", { redirectedFrom: { view: "matters", section: "matter-expenses" } })],
-  ["matters:matter-billing", route("home", "home-finance-billing", { redirectedFrom: { view: "matters", section: "matter-billing" } })],
-  ["matters:matter-ar", route("home", "home-finance-ar", { redirectedFrom: { view: "matters", section: "matter-ar" } })],
-  ["matters:matter-external-schedule", route("matters", "matter-calendar", { redirectedFrom: { view: "matters", section: "matter-external-schedule" } })],
-  ["matters:matter-notes", route("matters", "matter-board", { redirectedFrom: { view: "matters", section: "matter-notes" } })],
   ["policies:policies-company", route("vault", "vault-documents")],
   ["policies:policies-employment-contracts", route("home", "home-esign")],
   ["policies:policies-annual-leave", route("vault", "vault-documents")]
@@ -539,8 +534,11 @@ export function isLegacyGlobalRoute(view, section) {
   return legacyGlobalRouteMap.has(`${view}:${section}`);
 }
 
-export function resolveGlobalShortcut(view, section = "") {
-  if (view === "matters" && !section) return { view, section: "matter-board" };
+export function resolveGlobalShortcut(view, section = "", filter = "") {
+  if (view === "matters") {
+    const matterUtilityRoute = directRouteMap.get(`${view}:${section}`);
+    return matterUtilityRoute ?? resolveMatterCatalogRoute(section, filter);
+  }
   const direct = resolveFinalUtilityRoute(view, section);
   if (direct) return direct;
   const legacyRoute = legacyGlobalRouteMap.get(`${view}:${section}`);

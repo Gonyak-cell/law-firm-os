@@ -6,8 +6,12 @@ import { classifyMatterPracticeArea } from "../../../../packages/matter/src/prac
 import heroMatterArchitecture from "../assets/heroes/hero-matter-architecture.jpg";
 import {
   allocateFinancePayment,
+  allocateMatterOpsPayment,
+  archiveMatterOpsMatter,
   changeMatterOwner,
   completeMatterStatus,
+  createMatterOpsFollowup,
+  createMatterOpsTimeEntry,
   createAnalyticsExport,
   createFinanceDisbursement,
   createFinanceExpense,
@@ -15,6 +19,9 @@ import {
   createMatterActivity,
   createMatterCalendarEvent,
   createMatterChannelMessage,
+  createMatterOpsMeeting,
+  createMatterOpsPreBill,
+  createMatterOpsTask,
   fetchAnalyticsDashboards,
   fetchAnalyticsMatterProfitability,
   fetchAnalyticsRealization,
@@ -32,25 +39,40 @@ import {
   fetchMatterCommandCenter,
   fetchMatterDeadlines,
   fetchMatterListViews,
+  fetchMatterOpsCalendar,
+  fetchMatterOpsCloseout,
+  fetchMatterOpsDetail,
+  fetchMatterOpsActivePeople,
+  fetchMatterOpsFollowup,
+  fetchMatterOpsFollowups,
+  fetchMatterOpsDeadlineHistory,
+  fetchMatterOpsMatters,
+  fetchMatterOpsPayments,
+  fetchMatterOpsReportCsv,
+  fetchMatterOpsTasks,
+  fetchMatterOpsTimeBilling,
+  fetchMatterOpsToday,
+  fetchMatterOpsWip,
   fetchMatterRecentlyViewed,
   fetchMatterRecords,
   fetchMatterTimeline,
   fetchRecordActionAudit,
   fetchRecordActionFields,
   approveFinancePreBill,
-  createFinancePreBill,
-  generateFinanceWip,
+  generateMatterOpsWip,
+  handoffMatterOpsMatter,
   issueFinanceInvoice,
-  importFinancePayment,
-  lockFinanceWipSnapshot,
-  matchFinancePayment,
+  importMatterOpsPayment,
+  lockMatterOpsTimeWeek,
   markMatterRecentlyViewed,
   patchMatterActivity,
+  patchMatterOpsTask,
   patchMatterCalendarEvent,
   refreshAnalyticsDashboards,
   refreshMatterProfitability,
   registerMatterParty,
   registerMatterStakeholder,
+  rejectFinancePreBill,
   syncMatterChannelProvider,
   confirmMatterDeadlineChange,
   bulkUpdateRecordActions,
@@ -58,7 +80,13 @@ import {
   updateMatterInlineFields,
   updateMatterProfile,
   readLawosApiSession,
-  readLawosSessionEnvelope
+  readLawosSessionEnvelope,
+  reverseMatterOpsPaymentAllocation,
+  rescheduleMatterOpsDeadline,
+  submitMatterOpsTimeWeek,
+  unlockMatterOpsTimeWeek,
+  updateMatterOpsFollowup,
+  restoreMatterOpsMatter
 } from "../data/apiClient.js";
 import { ForestHero } from "./ForestHero.jsx";
 import { DataTable, Panel, Property } from "./primitives.jsx";
@@ -70,6 +98,11 @@ import { MatterVaultPanel } from "./MatterVaultPanel.jsx";
 import { fetchLegalPeopleSearch } from "../people/hrxApiClient.ts";
 import { DashboardListCard, DashboardReadState, DashboardRecordList, DashboardRecordRow } from "./DashboardList.jsx";
 import { MatterWorktreeSurface } from "./MatterWorktreeSurface.jsx";
+import { MatterDetailTabs } from "./matter-small-firm/MatterDetailTabs.jsx";
+import { MatterOperationsSurface } from "./matter-small-firm/MatterOperationsSurface.jsx";
+import { createPaymentReversalController, fetchPaymentReversalSurfaces } from "./matter-small-firm/paymentReversalController.js";
+import { MATTER_SMALL_FIRM_SECTIONS, matterRouteFilter, resolveMatterSmallFirmRoute, writeMatterRouteFilter } from "./matter-small-firm/routes.js";
+import "./matter-small-firm/matter-small-firm.css";
 
 const MATTER_PERMISSION_REF = "ui_cmp_g4_matter_live";
 const MATTER_AUDIT_HINT_REF = "ui_cmp_g4_matter_probe";
@@ -107,6 +140,64 @@ const MATTER_SECTIONS = new Set([
   "matter-integrations",
   "matter-settings"
 ]);
+
+export function composeMatterTodayResult(today, calendar) {
+  if (today?.kind !== "data") return today;
+  if (
+    ["error", "blocked", "guarded"].includes(calendar?.kind)
+    || ["denied", "blocked", "review_required"].includes(calendar?.uiState)
+  ) {
+    return calendar;
+  }
+  if (calendar?.kind !== "data") return today;
+  return {
+    ...today,
+    item: {
+      ...today.item,
+      week_schedule: calendar.items
+    }
+  };
+}
+
+export function readMatterLedgerRoute(source = globalThis) {
+  try {
+    const params = new URLSearchParams(source?.location?.search ?? "");
+    const encoded = params.get("ledger_ref");
+    if (!encoded) return null;
+    const value = JSON.parse(encoded);
+    if (!value?.model_type || !value?.id || !value?.matter_id) return null;
+    return {
+      model_type: String(value.model_type),
+      id: String(value.id),
+      matter_id: String(value.matter_id)
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function writeMatterLedgerRoute(matterId, ledgerRef = null, source = globalThis) {
+  if (!source?.history || !source?.location) return;
+  const params = new URLSearchParams(source.location.search ?? "");
+  if (matterId) params.set("matter_id", matterId);
+  else params.delete("matter_id");
+  if (ledgerRef?.model_type && ledgerRef?.id && ledgerRef?.matter_id) {
+    params.set("ledger_ref", JSON.stringify({
+      model_type: ledgerRef.model_type,
+      id: ledgerRef.id,
+      matter_id: ledgerRef.matter_id
+    }));
+  } else {
+    params.delete("ledger_ref");
+  }
+  const search = params.toString();
+  source.history.replaceState(
+    source.history.state,
+    "",
+    `${source.location.pathname}${search ? `?${search}` : ""}${source.location.hash ?? ""}`
+  );
+}
+
 const MATTER_PATH_STEPS = ["신규", "이해상충", "계약", "수행", "청구"];
 const MATTER_EXTERNAL_SCHEDULE_ROWS = [
   ["법원 일정", "판결선고 청취, 변론기일, 조정기일", "법원명, 재판부, 사건번호, 출석자"],
@@ -887,7 +978,12 @@ function percentLabel(value) {
 
 function actionMessage(result, successText) {
   if (!result) return null;
-  if (result.kind === "error") return "처리하지 못했습니다.";
+  if (result.kind === "error") {
+    if (result.persisted === true && result.message) return result.message;
+    return "처리하지 못했습니다.";
+  }
+  if (result.kind === "guarded") return "이 작업을 수행할 권한이 없습니다.";
+  if (result.kind === "blocked") return "요청이 차단되었습니다.";
   if (result.uiState === "approval_required") return "승인이 필요합니다.";
   if (result.uiState === "provider_blocked") return "설정과 승인이 필요합니다.";
   if (result.uiState === "blocked" || result.uiState === "review_required") return "검토가 필요합니다.";
@@ -1127,12 +1223,19 @@ function MatterPath({ matter }) {
 
 function MatterRecordPanel({
   matter,
+  detailResult,
+  activityResult,
   commandResult,
   timelineResult,
   deadlineResult,
   channelResult,
+  timeResult,
+  invoiceResult,
+  agingResult,
   billingCount,
   analyticsCount,
+  billingPanel,
+  selectedLedgerRef,
   inlineEditResult,
   inlineEditPending,
   onInlineEdit,
@@ -1151,6 +1254,15 @@ function MatterRecordPanel({
   onRecordActionOwnerBlocked,
   onMatterProfileSave,
   onMatterStakeholderRegister,
+  onOpenVault,
+  onNavigateRoute,
+  peopleResult,
+  handoffPending,
+  handoffResult,
+  onHandoffMatter,
+  closePending,
+  closeResult,
+  onCloseMatter,
   onClose
 }) {
   const command = commandResult?.kind === "data" ? commandResult : null;
@@ -1162,6 +1274,13 @@ function MatterRecordPanel({
   const vaultCount = command?.vaultSummary?.document_count ?? matter?.document_count ?? 0;
   const recordActionFields = recordActionFieldsResult?.kind === "data" && Array.isArray(recordActionFieldsResult.item?.fields) ? recordActionFieldsResult.item.fields : [];
   const recordActionAuditCount = resultItems(recordActionAuditResult).length;
+  const detailItem = detailResult?.item;
+  const canMutateDetail = detailResult?.kind === "data"
+    && detailItem
+    && typeof detailItem === "object"
+    && !Array.isArray(detailItem)
+    && Object.keys(detailItem).length > 0
+    && !["denied", "blocked", "error", "review_required"].includes(detailResult.uiState);
   const matterProfile = command?.matterProfile ?? {
     profile_id: `matter_profile_${matter?.matter_id ?? "unknown"}`,
     matter_id: matter?.matter_id ?? null,
@@ -1170,7 +1289,7 @@ function MatterRecordPanel({
     evidence: { review_status: matter?.matter_profile_review_status ?? "not_available" },
   };
   return (
-    <aside className="record-side-panel" data-matter-record-workspace="right-panel">
+    <aside className="record-side-panel matter-small-firm-detail" data-matter-record-workspace="right-panel">
       <div className="record-side-header">
         <div>
           <span className="eyebrow">레코드</span>
@@ -1180,42 +1299,55 @@ function MatterRecordPanel({
           <X size={17} />
         </button>
       </div>
-      <div className="property-grid tight">
-        <Property label="상태" value={matter ? matterStatus(matter.status) : "대기"} />
-        <Property label="Client" value={matter ? matterClientLabel(matter) : "미지정"} />
-        <Property label="청구" value={matter ? billingStatus(matter.wip_status) : "대기"} />
-        <Property label="책임자" value={ownerLabel(matter)} />
-        <Property label="팀" value={String(teamCount)} />
-        <Property label="문서" value={String(vaultCount)} />
-      </div>
-      <MatterProfilePanel
-        profile={matterProfile}
-        stakeholders={command?.matterStakeholders ?? []}
-        onSave={onMatterProfileSave}
-        onRegisterStakeholder={onMatterStakeholderRegister}
+      <MatterDetailTabs
+        matter={matter}
+        detailResult={detailResult}
+        activityResult={activityResult}
+        timelineResult={timelineResult}
+        deadlineResult={deadlineResult}
+        channelResult={channelResult}
+        timeResult={timeResult}
+        invoiceResult={invoiceResult}
+        agingResult={agingResult}
+        selectedLedgerRef={selectedLedgerRef}
+        onOpenVault={onOpenVault}
+        onNavigateRoute={onNavigateRoute}
+        peopleResult={peopleResult}
+        handoffPending={handoffPending}
+        handoffResult={handoffResult}
+        onHandoffMatter={onHandoffMatter}
+        closePending={closePending}
+        closeResult={closeResult}
+        onCloseMatter={onCloseMatter}
+        billingPanel={canMutateDetail ? billingPanel : null}
+        overview={(
+          <>
+            <div className="property-grid tight">
+              <Property label="상태" value={matter ? matterStatus(matter.status) : "대기"} />
+              <Property label="Client" value={matter ? matterClientLabel(matter) : "미지정"} />
+              <Property label="청구" value={matter ? billingStatus(matter.wip_status) : "대기"} />
+              <Property label="책임자" value={ownerLabel(matter)} />
+              <Property label="팀" value={String(teamCount)} />
+              <Property label="문서" value={String(vaultCount)} />
+            </div>
+            <MatterProfilePanel
+              profile={matterProfile}
+              stakeholders={command?.matterStakeholders ?? []}
+              onSave={onMatterProfileSave}
+              onRegisterStakeholder={onMatterStakeholderRegister}
+            />
+            <div className="record-meter-grid">
+              <div><span>활동</span><strong>{timelineEntries.length}</strong></div>
+              <div data-sf-b-w03-right-panel-deadline-highlight="true"><span>기한</span><strong>{deadlineCount}</strong></div>
+              <div data-sf-b-w03-right-panel-channel-tab="true"><span>대화</span><strong>{channelCount}</strong></div>
+              <div><span>청구</span><strong>{billingCount}</strong></div>
+              <div><span>분석</span><strong>{analyticsCount}</strong></div>
+            </div>
+          </>
+        )}
       />
-      <div className="record-meter-grid">
-        <div>
-          <span>활동</span>
-          <strong>{timelineEntries.length}</strong>
-        </div>
-        <div data-sf-b-w03-right-panel-deadline-highlight="true">
-          <span>기한</span>
-          <strong>{deadlineCount}</strong>
-        </div>
-        <div data-sf-b-w03-right-panel-channel-tab="true">
-          <span>대화</span>
-          <strong>{channelCount}</strong>
-        </div>
-        <div>
-          <span>청구</span>
-          <strong>{billingCount}</strong>
-        </div>
-        <div>
-          <span>분석</span>
-          <strong>{analyticsCount}</strong>
-        </div>
-      </div>
+      {canMutateDetail && (
+        <>
       <div className="record-action-strip" data-matter-record-inline-edit-action="true">
         <div>
           <strong>청구 상태</strong>
@@ -1314,6 +1446,8 @@ function MatterRecordPanel({
         <ShieldCheck size={15} />
         <span>최근 작업 {recordActionAuditCount}건</span>
       </div>
+        </>
+      )}
     </aside>
   );
 }
@@ -2011,6 +2145,8 @@ function ChargeActionPanel({
   invoiceIssueResult,
   paymentResult,
   paymentMatchResult,
+  paymentAllocationResult,
+  paymentReversalResult,
   accountingExportResult,
   paymentForm,
   timeEntryForm,
@@ -2027,6 +2163,7 @@ function ChargeActionPanel({
   invoiceIssuePending,
   paymentPending,
   paymentMatchPending,
+  paymentReversalPending,
   accountingExportPending,
   onTimeEntryFormChange,
   onExpenseFormChange,
@@ -2039,23 +2176,48 @@ function ChargeActionPanel({
   onCreateDisbursement,
   onGenerateWip,
   onCreatePreBill,
+  onApprovePreBill,
+  onRejectPreBill,
   onIssueInvoice,
   onImportPayment,
   onMatchPayment,
+  onReversePayment,
   onCreateAccountingExport
 }) {
+  const [writeDownAmount, setWriteDownAmount] = useState("");
+  const [writeDownReason, setWriteDownReason] = useState("");
+  const [prebillValidation, setPrebillValidation] = useState("");
+  const [paymentReversalReason, setPaymentReversalReason] = useState("");
   const timeEntry = timeEntryResult?.kind === "data" ? timeEntryResult.item : null;
   const expense = expenseResult?.kind === "data" ? expenseResult.item : null;
   const disbursement = disbursementResult?.kind === "data" ? disbursementResult.item : null;
-  const wipItems = wipResult?.kind === "data" ? wipResult.items : [];
+  const wipItems = wipResult?.kind === "data" ? (wipResult.items?.length ? wipResult.items : wipResult.wipItems ?? []) : [];
   const wipTotal = wipItems.reduce((total, item) => total + Number(item.amount ?? 0), 0);
-  const prebill = prebillResult?.kind === "data" ? prebillResult.item : null;
+  const prebill = prebillResult?.item ?? prebillResult?.prebill ?? null;
+  const prebillAwaitingReview = ["partner_review_required", "review_required", "pending_review"].includes(prebill?.status);
   const issuedInvoice = invoiceIssueResult?.kind === "data" ? invoiceIssueResult.item : null;
   const activeInvoice = issuedInvoice ?? invoiceRows[0] ?? null;
   const payment = paymentResult?.kind === "data" ? paymentResult.item : null;
   const paymentMatch = paymentMatchResult?.kind === "data" ? paymentMatchResult.item : null;
+  const allocationRows = resultItems(paymentAllocationResult);
+  const reversedAllocationIds = new Set(
+    allocationRows.map((row) => row.reverses_payment_allocation_id).filter(Boolean)
+  );
+  const activeAllocation = allocationRows
+    .filter((row) =>
+      row.status !== "reversed"
+      && !reversedAllocationIds.has(row.payment_allocation_id))
+    .sort((left, right) =>
+      String(left.allocated_at ?? left.created_at ?? "").localeCompare(
+        String(right.allocated_at ?? right.created_at ?? "")
+      ))
+    .at(-1) ?? null;
   const paymentAllocation = paymentMatchResult?.paymentAllocation
-    ?? (paymentMatch?.allocation_type ? paymentMatch : null);
+    ?? (paymentMatch?.allocation_type ? paymentMatch : null)
+    ?? activeAllocation;
+  useEffect(() => {
+    setPaymentReversalReason("");
+  }, [paymentAllocation?.payment_allocation_id]);
   const allocationType = paymentAllocation?.allocation_type
     ?? paymentForm?.allocationType
     ?? "direct_fee";
@@ -2086,6 +2248,45 @@ function ChargeActionPanel({
     && allocationAmount > 0
     && (!allocationRequiresInvoice || activeInvoice)
   );
+
+  function submitPreBillApproval({ adjusted = false } = {}) {
+    if (!prebillAwaitingReview) {
+      setPrebillValidation("먼저 PreBill을 생성해 주세요.");
+      return;
+    }
+    const adjustmentAmount = writeDownAmount === "" ? 0 : Number(writeDownAmount);
+    if (adjusted && (!Number.isFinite(adjustmentAmount) || adjustmentAmount <= 0)) {
+      setPrebillValidation("Write-down 금액을 확인해 주세요.");
+      return;
+    }
+    if (adjusted && adjustmentAmount > wipTotal) {
+      setPrebillValidation("Write-down은 WIP 금액을 초과할 수 없습니다.");
+      return;
+    }
+    if (adjusted && !writeDownReason.trim()) {
+      setPrebillValidation("조정 사유를 입력해 주세요.");
+      return;
+    }
+    setPrebillValidation("");
+    onApprovePreBill?.({
+      adjustmentAmount: adjusted ? adjustmentAmount : 0,
+      reasonCode: adjusted ? writeDownReason.trim() : ""
+    });
+  }
+
+  function submitPreBillRejection() {
+    if (!prebillAwaitingReview) {
+      setPrebillValidation("반려할 PreBill을 확인해 주세요.");
+      return;
+    }
+    if (!writeDownReason.trim()) {
+      setPrebillValidation("반려 사유를 입력해 주세요.");
+      return;
+    }
+    setPrebillValidation("");
+    onRejectPreBill?.({ reasonCode: writeDownReason.trim() });
+  }
+
   return (
     <div className="record-action-grid" data-matter-charge-actions="true" data-finance-operation-mode={operationMode}>
       <div className="record-action-strip record-action-time-entry-strip" data-matter-time-entry-action="true">
@@ -2258,13 +2459,77 @@ function ChargeActionPanel({
       </div>
       <div className="record-action-strip" data-finance-billing-action="true" data-matter-charge-step="prebill-review" data-matter-prebill-review-action="true">
         <div>
-          <strong>{prebill ? billingStatus(prebill.status) : "검토"}</strong>
-          <span>{prebill ? "사전검토 승인됨" : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
-          <ActionNotice pending={prebillPending} result={prebillResult} pendingText="검토 승인 중입니다." successText="사전검토가 승인되었습니다." />
+          <strong data-matter-prebill-status={prebill?.status ?? "not_created"}>{prebill ? billingStatus(prebill.status) : "미생성"}</strong>
+          <span>{prebill ? `PreBill ${prebill.prebill_id}` : wipTotal > 0 ? moneyLabel(wipTotal, "KRW") : "WIP 필요"}</span>
+          <ActionNotice pending={prebillPending} result={prebillResult} pendingText="PreBill 상태를 반영 중입니다." successText="PreBill 상태를 갱신했습니다." />
+          {prebillResult && prebillResult.kind !== "data" && (
+            <small role="alert">{prebillResult.message ?? "PreBill 작업을 완료하지 못했습니다."}</small>
+          )}
         </div>
-        <button className="secondary-button" type="button" disabled={!matter || wipItems.length === 0 || prebillPending} onClick={onCreatePreBill}>
-          검토 승인
-        </button>
+        <div className="record-action-edit-form time-entry-form">
+          <label>
+            Write-down
+            <input
+              aria-label="Write-down"
+              type="number"
+              min="0"
+              step="100"
+              value={writeDownAmount}
+              onChange={(event) => setWriteDownAmount(event.target.value)}
+            />
+          </label>
+          <label>
+            조정·반려 사유
+            <input
+              aria-label="조정·반려 사유"
+              value={writeDownReason}
+              onChange={(event) => setWriteDownReason(event.target.value)}
+            />
+          </label>
+          {!prebill && (
+            <button
+              className="secondary-button"
+              type="button"
+              data-matter-prebill-create-action="true"
+              disabled={!matter || wipItems.length === 0 || prebillPending}
+              onClick={onCreatePreBill}
+            >
+              PreBill 생성
+            </button>
+          )}
+          {prebillAwaitingReview && (
+            <>
+              <button
+                className="secondary-button"
+                type="button"
+                data-matter-prebill-approve-no-adjust-action="true"
+                disabled={prebillPending}
+                onClick={() => submitPreBillApproval()}
+              >
+                조정 없이 승인
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                data-matter-prebill-approve-adjust-action="true"
+                disabled={prebillPending}
+                onClick={() => submitPreBillApproval({ adjusted: true })}
+              >
+                조정 후 승인
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                data-matter-prebill-reject-action="true"
+                disabled={prebillPending}
+                onClick={submitPreBillRejection}
+              >
+                반려
+              </button>
+            </>
+          )}
+          {prebillValidation && <small role="alert">{prebillValidation}</small>}
+        </div>
       </div>
       <div className="record-action-strip" data-finance-billing-action="true" data-matter-charge-step="invoice-issue" data-matter-invoice-issue-action="true">
         <div>
@@ -2272,7 +2537,7 @@ function ChargeActionPanel({
           <span>{activeInvoice ? moneyLabel(activeInvoice.amount_due, activeInvoice.currency ?? "KRW") : "승인 검토 기준"}</span>
           <ActionNotice pending={invoiceIssuePending} result={invoiceIssueResult} pendingText="청구서 발행 중입니다." successText="청구서가 발행되었습니다." />
         </div>
-        <button className="secondary-button" type="button" disabled={!matter || !prebill || invoiceIssuePending} onClick={onIssueInvoice}>
+        <button className="secondary-button" type="button" disabled={!matter || prebill?.status !== "partner_approved" || invoiceIssuePending} onClick={onIssueInvoice}>
           발행
         </button>
       </div>
@@ -2288,6 +2553,19 @@ function ChargeActionPanel({
           </span>
           <ActionNotice pending={paymentPending} result={paymentResult} pendingText="수납 기록 중입니다." successText="수납이 기록되었습니다." />
           <ActionNotice pending={paymentMatchPending} result={paymentMatchResult} pendingText="입금 배정 중입니다." successText="입금이 배정되었습니다." />
+          <span
+            role="status"
+            data-matter-payment-reversal-result={
+              paymentReversalPending ? "pending" : paymentReversalResult?.kind ?? "idle"
+            }
+          >
+            <ActionNotice
+              pending={paymentReversalPending}
+              result={paymentReversalResult}
+              pendingText="입금 배정을 취소하고 미수금을 다시 계산하는 중입니다."
+              successText="입금 배정을 취소하고 미수금을 다시 계산했습니다."
+            />
+          </span>
           <small
             data-matter-payment-revenue-effect={["invoice_payment", "direct_fee"].includes(allocationType) ? "revenue" : "non-revenue"}
           >
@@ -2353,6 +2631,32 @@ function ChargeActionPanel({
           >
             배정
           </button>
+          {paymentAllocation && (
+            <>
+              <label className="time-entry-narrative-field">
+                취소 사유
+                <input
+                  aria-label="입금 배정 취소 사유"
+                  data-matter-payment-reversal-reason="true"
+                  value={paymentReversalReason}
+                  disabled={paymentReversalPending}
+                  onChange={(event) => setPaymentReversalReason(event.target.value)}
+                />
+              </label>
+              <button
+                className="secondary-button"
+                type="button"
+                data-matter-payment-reversal-action="true"
+                disabled={paymentReversalPending || !paymentReversalReason.trim()}
+                onClick={() => onReversePayment?.({
+                  allocation: paymentAllocation,
+                  reason: paymentReversalReason.trim()
+                })}
+              >
+                배정 취소
+              </button>
+            </>
+          )}
         </form>
       </div>
       {showAccountingExport && <div className="record-action-strip record-action-time-entry-strip" data-finance-billing-action="true" data-matter-accounting-export-action="true">
@@ -2414,6 +2718,8 @@ export function ChargePanel({
   invoiceIssueResult,
   paymentResult,
   paymentMatchResult,
+  paymentAllocationResult,
+  paymentReversalResult,
   accountingExportResult,
   paymentForm,
   timeEntryForm,
@@ -2430,6 +2736,7 @@ export function ChargePanel({
   invoiceIssuePending,
   paymentPending,
   paymentMatchPending,
+  paymentReversalPending,
   accountingExportPending,
   onTimeEntryFormChange,
   onExpenseFormChange,
@@ -2442,9 +2749,12 @@ export function ChargePanel({
   onCreateDisbursement,
   onGenerateWip,
   onCreatePreBill,
+  onApprovePreBill,
+  onRejectPreBill,
   onIssueInvoice,
   onImportPayment,
   onMatchPayment,
+  onReversePayment,
   onCreateAccountingExport
 }) {
   const loading = timeResult === null || invoiceResult === null || agingResult === null;
@@ -2463,9 +2773,35 @@ export function ChargePanel({
       </div>
     );
   }
+  const guardedResult = [timeResult, invoiceResult, agingResult].find((result) =>
+    result?.uiState === "denied"
+    || result?.uiState === "blocked"
+    || ["guarded", "blocked"].includes(result?.kind));
+  if (guardedResult) {
+    return (
+      <div className="live-data-state live-data-review" data-matter-charge-state={guardedResult.uiState ?? guardedResult.kind}>
+        <strong>{guardedResult.uiState === "denied" ? "청구 정보 접근 권한이 없습니다" : "청구 정보 처리가 막혀 있습니다"}</strong>
+      </div>
+    );
+  }
   const timeRows = resultItems(timeResult).filter((item) => !matterId || item.matter_id === matterId);
   const invoiceRows = resultItems(invoiceResult).filter((item) => !matterId || item.matter_id === matterId);
   const agingRows = resultItems(agingResult).filter((item) => !matterId || item.matter_id === matterId);
+  const arBalance = Number(
+    agingResult?.summary?.balance
+    ?? agingResult?.summary?.balance_total
+    ?? agingRows.reduce((total, item) => total + Number(item.balance ?? item.balance_total ?? 0), 0)
+  );
+  const arSummary = (
+    <div
+      className="record-boundary-note"
+      data-matter-ar-balance={Number.isFinite(arBalance) ? arBalance : 0}
+      data-matter-ar-bucket={agingRows[0]?.bucket ?? agingRows[0]?.aging_bucket ?? (arBalance > 0 ? "current" : "none")}
+    >
+      <strong>미수 잔액 {moneyLabel(Number.isFinite(arBalance) ? arBalance : 0, "KRW")}</strong>
+      <span>{arBalance > 0 ? billingStatus(agingRows[0]?.bucket ?? agingRows[0]?.aging_bucket) : "미수금 없음"}</span>
+    </div>
+  );
   const actionPanel = operationMode === "ar" ? null : (
       <ChargeActionPanel
         operationMode={operationMode}
@@ -2480,6 +2816,8 @@ export function ChargePanel({
         invoiceIssueResult={invoiceIssueResult}
         paymentResult={paymentResult}
         paymentMatchResult={paymentMatchResult}
+        paymentAllocationResult={paymentAllocationResult}
+        paymentReversalResult={paymentReversalResult}
         accountingExportResult={accountingExportResult}
         paymentForm={paymentForm}
         timeEntryForm={timeEntryForm}
@@ -2496,6 +2834,7 @@ export function ChargePanel({
         invoiceIssuePending={invoiceIssuePending}
         paymentPending={paymentPending}
         paymentMatchPending={paymentMatchPending}
+        paymentReversalPending={paymentReversalPending}
         accountingExportPending={accountingExportPending}
         onTimeEntryFormChange={onTimeEntryFormChange}
         onExpenseFormChange={onExpenseFormChange}
@@ -2508,9 +2847,12 @@ export function ChargePanel({
         onCreateDisbursement={onCreateDisbursement}
         onGenerateWip={onGenerateWip}
         onCreatePreBill={onCreatePreBill}
+        onApprovePreBill={onApprovePreBill}
+        onRejectPreBill={onRejectPreBill}
         onIssueInvoice={onIssueInvoice}
         onImportPayment={onImportPayment}
         onMatchPayment={onMatchPayment}
+        onReversePayment={onReversePayment}
         onCreateAccountingExport={onCreateAccountingExport}
     />
   );
@@ -2518,6 +2860,7 @@ export function ChargePanel({
     return (
       <div className="workspace-mini-grid">
         {actionPanel}
+        {arSummary}
         <div className="live-data-state live-data-empty">
           <strong>표시할 청구 정보가 없습니다</strong>
         </div>
@@ -2527,6 +2870,7 @@ export function ChargePanel({
   return (
     <div className="workspace-mini-grid" data-upl-b01-time-entry-readback-count={timeRows.length}>
       {actionPanel}
+      {arSummary}
       {["all", "time"].includes(operationMode) && <DataTable
         columns={["내용", "일자", "상태", "분"]}
         rows={timeRows.map((item, index) => [
@@ -2566,6 +2910,7 @@ export function ChargePanel({
           invoiceIssueResult?.auditEvent,
           paymentResult?.auditEvent,
           paymentMatchResult?.auditEvent,
+          paymentReversalResult?.auditEvent,
           accountingExportResult?.auditEvent
         ].filter(Boolean)}
         marker="matter-finance-audit-trail"
@@ -2771,6 +3116,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [invoiceIssueResult, setInvoiceIssueResult] = useState(null);
   const [paymentResult, setPaymentResult] = useState(null);
   const [paymentMatchResult, setPaymentMatchResult] = useState(null);
+  const [paymentAllocationResult, setPaymentAllocationResult] = useState(null);
+  const [paymentReversalResult, setPaymentReversalResult] = useState(null);
   const [accountingExportResult, setAccountingExportResult] = useState(null);
   const [analyticsRefreshResult, setAnalyticsRefreshResult] = useState(null);
   const [analyticsExportResult, setAnalyticsExportResult] = useState(null);
@@ -2797,6 +3144,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [channelResult, setChannelResult] = useState(null);
   const [channelMessageResult, setChannelMessageResult] = useState(null);
   const [channelProviderResult, setChannelProviderResult] = useState(null);
+  const [matterOpsDetailResult, setMatterOpsDetailResult] = useState(null);
   const [legalPeopleMatterResult, setLegalPeopleMatterResult] = useState(null);
   const [timeEntryForm, setTimeEntryForm] = useState(defaultTimeEntryForm);
   const [expenseForm, setExpenseForm] = useState(defaultExpenseForm);
@@ -2813,6 +3161,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [invoiceIssuePending, setInvoiceIssuePending] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
   const [paymentMatchPending, setPaymentMatchPending] = useState(false);
+  const [paymentReversalPending, setPaymentReversalPending] = useState(false);
   const [accountingExportPending, setAccountingExportPending] = useState(false);
   const [analyticsRefreshPending, setAnalyticsRefreshPending] = useState(false);
   const [analyticsExportPending, setAnalyticsExportPending] = useState(false);
@@ -2830,20 +3179,79 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   const [deadlineConfirmPending, setDeadlineConfirmPending] = useState(false);
   const [channelMessagePending, setChannelMessagePending] = useState(false);
   const [channelProviderPending, setChannelProviderPending] = useState(false);
+  const [matterOpsResult, setMatterOpsResult] = useState(null);
+  const [matterOpsRefreshToken, setMatterOpsRefreshToken] = useState(0);
+  const [matterListView, setMatterListView] = useState("active");
+  const [matterWorkView, setMatterWorkView] = useState("my");
+  const [matterWorkLayout, setMatterWorkLayout] = useState("list");
+  const [matterFollowupView, setMatterFollowupView] = useState("today");
+  const [matterTimeBillingView, setMatterTimeBillingView] = useState("time");
+  const [matterTaskUpdatePendingId, setMatterTaskUpdatePendingId] = useState(null);
+  const [matterTaskUpdateResult, setMatterTaskUpdateResult] = useState(null);
+  const [matterTaskCreatePending, setMatterTaskCreatePending] = useState(false);
+  const [matterTaskCreateResult, setMatterTaskCreateResult] = useState(null);
+  const [matterMeetingResult, setMatterMeetingResult] = useState(null);
+  const [matterMeetingPending, setMatterMeetingPending] = useState(false);
+  const [matterOpsPeopleResult, setMatterOpsPeopleResult] = useState(null);
+  const [matterHandoffResult, setMatterHandoffResult] = useState(null);
+  const [matterHandoffPending, setMatterHandoffPending] = useState(false);
+  const [matterFollowupMutationResult, setMatterFollowupMutationResult] = useState(null);
+  const [matterFollowupMutationPending, setMatterFollowupMutationPending] = useState(false);
+  const [matterFollowupDetailResult, setMatterFollowupDetailResult] = useState(null);
+  const [matterQuickTimeResult, setMatterQuickTimeResult] = useState(null);
+  const [matterQuickTimePending, setMatterQuickTimePending] = useState(false);
+  const [matterRestoreResult, setMatterRestoreResult] = useState(null);
+  const [matterRestorePendingId, setMatterRestorePendingId] = useState(null);
+  const [matterArchiveResult, setMatterArchiveResult] = useState(null);
+  const [matterArchivePendingId, setMatterArchivePendingId] = useState(null);
+  const [matterTimeWeekResult, setMatterTimeWeekResult] = useState(null);
+  const [matterTimeWeekPendingAction, setMatterTimeWeekPendingAction] = useState(null);
+  const [matterDeadlineRescheduleResult, setMatterDeadlineRescheduleResult] = useState(null);
+  const [matterDeadlineReschedulePendingId, setMatterDeadlineReschedulePendingId] = useState(null);
+  const [matterDeadlineHistoryResult, setMatterDeadlineHistoryResult] = useState(null);
+  const [matterReportResult, setMatterReportResult] = useState(null);
+  const [matterReportPending, setMatterReportPending] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const refreshSignalRef = useRef(refreshSignal);
+  const wipRetryAttemptsRef = useRef(new Map());
   const [createdItems, setCreatedItems] = useState([]);
-  const [selectedMatterId, setSelectedMatterId] = useState(null);
+  const [selectedLedgerRef, setSelectedLedgerRef] = useState(() => readMatterLedgerRoute());
+  const [selectedMatterId, setSelectedMatterId] = useState(() => readMatterLedgerRoute()?.matter_id ?? null);
   const [selectedMatterIds, setSelectedMatterIds] = useState([]);
   const [activeListViewId, setActiveListViewId] = useState(null);
   const [matterCodeEditValue, setMatterCodeEditValue] = useState("");
   const [activeMatterBoardTab, setActiveMatterBoardTab] = useState("dashboard");
-  const currentSection = MATTER_SECTIONS.has(activeSection) ? activeSection : "matter-home";
+  const routeFilter = typeof window === "undefined" ? "" : matterRouteFilter(window.location.search);
+  const matterRoute = resolveMatterSmallFirmRoute(activeSection, routeFilter);
+  const currentSection = activeSection === "matter-vault" ? activeSection : matterRoute.section;
+  const isMatterSmallFirmSection = MATTER_SMALL_FIRM_SECTIONS.includes(currentSection);
   const currentOwnerRefs = useMemo(() => sessionOwnerRefs(), [refreshToken]);
 
   useEffect(() => {
     if (currentSection === "matter-board") setActiveMatterBoardTab("dashboard");
   }, [currentSection]);
+
+  useEffect(() => {
+    const mode = matterRoute.mode;
+    if (currentSection === "matter-list" && ["active", "closeout", "closed", "archived"].includes(mode)) {
+      setMatterListView(mode);
+    }
+    if (currentSection === "matter-work") {
+      if (mode === "board") setMatterWorkLayout("board");
+      else if (mode === "worktree") setMatterWorkLayout("worktree");
+      else if (mode === "tasks") setMatterWorkLayout("list");
+      if (["my", "overdue", "waiting", "unassigned"].includes(mode)) setMatterWorkView(mode);
+    }
+    if (currentSection === "matter-followups") {
+      if (mode === "client-requests") setMatterFollowupView("waiting_client");
+      else if (["today", "waiting_client", "stale_7d"].includes(mode)) setMatterFollowupView(mode);
+    }
+    if (currentSection === "matter-time-billing") {
+      if (mode === "ar") setMatterTimeBillingView("ar");
+      else if (mode === "billing") setMatterTimeBillingView("wip");
+      else if (["time", "missing", "wip"].includes(mode)) setMatterTimeBillingView(mode);
+    }
+  }, [currentSection, matterRoute.mode]);
 
   useEffect(() => {
     if (refreshSignalRef.current === refreshSignal) return;
@@ -2886,6 +3294,42 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     };
   }, [liveCtx, refreshToken]);
 
+  useEffect(() => {
+    if (!isMatterSmallFirmSection || currentSection === "matter-list") {
+      setMatterOpsResult(null);
+      return undefined;
+    }
+    let cancelled = false;
+    setMatterOpsResult(null);
+    let request;
+    if (currentSection === "matter-today") {
+      request = Promise.all([
+        fetchMatterOpsToday({ ctx: liveCtx }),
+        fetchMatterOpsCalendar({ ctx: liveCtx })
+      ]).then(([today, calendar]) => composeMatterTodayResult(today, calendar));
+    }
+    else if (currentSection === "matter-work") {
+      request = fetchMatterOpsTasks({ view: matterWorkLayout === "board" ? "board" : matterWorkView, ctx: liveCtx });
+    }
+    else if (currentSection === "matter-calendar") request = fetchMatterOpsCalendar({ ctx: liveCtx });
+    else if (currentSection === "matter-followups") request = fetchMatterOpsFollowups({ view: matterFollowupView, ctx: liveCtx });
+    else request = fetchMatterOpsTimeBilling({ ctx: liveCtx });
+    request.then((next) => {
+      if (!cancelled) setMatterOpsResult(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    currentSection,
+    isMatterSmallFirmSection,
+    liveCtx,
+    matterFollowupView,
+    matterOpsRefreshToken,
+    matterWorkLayout,
+    matterWorkView
+  ]);
+
   const matters = useMemo(() => {
     const fetched = result?.kind === "data" ? result.items : [];
     const byId = new Map();
@@ -2902,11 +3346,68 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     () => visibleMatters.filter((item) => matterBoardCategory(item) === activeMatterBoardTab),
     [activeMatterBoardTab, visibleMatters]
   );
+  const selectableMatters = isMatterSmallFirmSection ? matters : visibleMatters;
   const selectedMatter =
     visibleMatters.find((item) => item.matter_id === selectedMatterId) ??
+    (isMatterSmallFirmSection ? matters.find((item) => item.matter_id === selectedMatterId) : null) ??
     (selectedMatterId === requestedMatterId ? matters.find((item) => item.matter_id === selectedMatterId) : null) ??
     null;
   const activeMatterId = selectedMatter?.matter_id ?? null;
+
+  useEffect(() => {
+    const needsPeople = Boolean(activeMatterId) || currentSection === "matter-followups";
+    if (!needsPeople) {
+      setMatterOpsPeopleResult(null);
+      return undefined;
+    }
+    let cancelled = false;
+    setMatterOpsPeopleResult(null);
+    fetchMatterOpsActivePeople().then((next) => {
+      if (!cancelled) setMatterOpsPeopleResult(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMatterId, currentSection, refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMatterOpsDetailResult(null);
+    setPaymentAllocationResult(null);
+    if (!activeMatterId) return undefined;
+    Promise.all([
+      fetchMatterOpsDetail({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterOpsCloseout({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterOpsTimeBilling({ matterId: activeMatterId, ctx: liveCtx })
+    ]).then(([detail, closeout, billing]) => {
+      if (cancelled) return;
+      setPaymentAllocationResult(billing.kind === "data"
+        ? {
+            kind: "data",
+            items: Array.isArray(billing.item?.payment_allocations)
+              ? billing.item.payment_allocations
+              : [],
+            uiState: billing.uiState
+          }
+        : billing);
+      if (detail.kind !== "data") {
+        setMatterOpsDetailResult(detail);
+        return;
+      }
+      setMatterOpsDetailResult({
+        ...detail,
+        item: {
+          ...detail.item,
+          close_blockers: ["data", "empty"].includes(closeout.kind) ? closeout.items : [],
+          closeout_state: closeout.kind,
+          can_close: ["data", "empty"].includes(closeout.kind) ? closeout.canClose === true : false
+        }
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMatterId, liveCtx, matterOpsRefreshToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2926,7 +3427,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   }, [liveCtx, refreshToken, activeMatterId]);
 
   useEffect(() => {
-    if (currentSection !== "matters-list" || !requestedMatterId) return;
+    if (currentSection !== "matter-list" || !requestedMatterId) return;
     if (!matters.some((item) => item.matter_id === requestedMatterId)) return;
     setSelectedMatterId(requestedMatterId);
   }, [currentSection, matters, requestedMatterId, requestedMatterRevision]);
@@ -2947,18 +3448,19 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   }, [activeListViewId, listViews]);
 
   useEffect(() => {
-    if (visibleMatters.length === 0) {
-      if (selectedMatterId !== null) setSelectedMatterId(null);
+    if (result === null) return;
+    if (selectableMatters.length === 0) {
+      if (selectedMatterId !== null) handleCloseMatterOverlay();
       return;
     }
     if (
       selectedMatterId !== null &&
       selectedMatterId !== requestedMatterId &&
-      !visibleMatters.some((item) => item.matter_id === selectedMatterId)
+      !selectableMatters.some((item) => item.matter_id === selectedMatterId)
     ) {
-      setSelectedMatterId(null);
+      handleCloseMatterOverlay();
     }
-  }, [requestedMatterId, selectedMatterId, visibleMatters]);
+  }, [requestedMatterId, result, selectableMatters, selectedMatterId]);
 
   useEffect(() => {
     setMatterCodeEditValue(selectedMatter?.matter_code ?? "");
@@ -2967,7 +3469,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   useEffect(() => {
     if (!selectedMatter) return undefined;
     const onKeyDown = (event) => {
-      if (event.key === "Escape") setSelectedMatterId(null);
+      if (event.key === "Escape") handleCloseMatterOverlay();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -2981,6 +3483,10 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     setAccountingExportForm(defaultAccountingExportForm());
     setPaymentResult(null);
     setPaymentMatchResult(null);
+    setPaymentReversalResult(null);
+    setPaymentReversalPending(false);
+    setStatusTransitionResult(null);
+    setMatterHandoffResult(null);
     setTimeTimerStartedAt(null);
     setTimeTimerSeconds(0);
   }, [activeMatterId]);
@@ -3323,6 +3829,22 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     return next;
   }
 
+  function handleSelectMatter(matterId, ledgerRef = null) {
+    if (!matterId) return;
+    const canonicalLedgerRef = ledgerRef?.model_type && ledgerRef?.id
+      ? { model_type: ledgerRef.model_type, id: ledgerRef.id, matter_id: matterId }
+      : null;
+    setSelectedMatterId(matterId);
+    setSelectedLedgerRef(canonicalLedgerRef);
+    writeMatterLedgerRoute(matterId, canonicalLedgerRef);
+  }
+
+  function handleCloseMatterOverlay() {
+    setSelectedMatterId(null);
+    setSelectedLedgerRef(null);
+    writeMatterLedgerRoute(null, null);
+  }
+
   function applyMatterUpdate(nextMatter) {
     if (!nextMatter) return;
     setSelectedMatterId(nextMatter.matter_id);
@@ -3538,6 +4060,147 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     }
   }
 
+  async function handleCreateMatterMeeting({ matterId, title, attendeeIds, decisions, followUpTaskIds }) {
+    if (!matterId || !title || attendeeIds.length === 0 || decisions.length === 0) return;
+    setMatterMeetingPending(true);
+    const next = await createMatterOpsMeeting({
+      matterId,
+      title,
+      attendeeIds,
+      decisions,
+      followUpTaskIds,
+      ctx: liveCtx
+    });
+    setMatterMeetingResult(next);
+    setMatterMeetingPending(false);
+    if (next.kind === "data") {
+      setMatterOpsRefreshToken((value) => value + 1);
+      if (matterId === activeMatterId) await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleMatterHandoff({ ownerUserId, backupUserId, note }) {
+    if (!activeMatterId || !ownerUserId || !String(note ?? "").trim()) return;
+    setMatterHandoffPending(true);
+    setMatterHandoffResult(null);
+    const next = await handoffMatterOpsMatter({
+      matterId: activeMatterId,
+      ownerUserId,
+      backupUserId,
+      note,
+      ctx: liveCtx
+    });
+    if (next.kind !== "data") {
+      setMatterHandoffResult(next);
+      setMatterHandoffPending(false);
+      return;
+    }
+    const taskView = matterWorkLayout === "board" ? "board" : matterWorkView;
+    const [detail, closeout, tasks] = await Promise.all([
+      fetchMatterOpsDetail({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterOpsCloseout({ matterId: activeMatterId, ctx: liveCtx }),
+      fetchMatterOpsTasks({ view: taskView, ctx: liveCtx })
+    ]);
+    if (next.matter) applyMatterUpdate(next.matter);
+    if (detail.kind === "data") {
+      setMatterOpsDetailResult({
+        ...detail,
+        item: {
+          ...detail.item,
+          close_blockers: ["data", "empty"].includes(closeout.kind) ? closeout.items : [],
+          closeout_state: closeout.kind,
+          can_close: ["data", "empty"].includes(closeout.kind) ? closeout.canClose === true : false
+        }
+      });
+    } else {
+      setMatterOpsDetailResult(detail);
+    }
+    if (currentSection === "matter-work") setMatterOpsResult(tasks);
+    const rereadSucceeded = detail.kind === "data" && ["data", "empty"].includes(tasks.kind);
+    setMatterHandoffResult(rereadSucceeded
+      ? next
+      : {
+          kind: "error",
+          status: 0,
+          persisted: true,
+          message: "인수인계는 저장됐지만 최신 사건 상세와 업무 목록을 모두 불러오지 못했습니다."
+        });
+    setMatterHandoffPending(false);
+  }
+
+  async function handleMatterFollowupMutation(command, payload) {
+    setMatterFollowupMutationPending(true);
+    setMatterFollowupMutationResult(null);
+    const next = await command({ ...payload, ctx: liveCtx });
+    if (next.kind !== "data") {
+      setMatterFollowupMutationResult(next);
+      setMatterFollowupMutationPending(false);
+      return;
+    }
+    const followupId = next.item?.followup_id;
+    if (!followupId) {
+      setMatterFollowupMutationResult({
+        kind: "error",
+        persisted: true,
+        message: "후속 조치는 저장됐지만 최신 항목 ID를 확인하지 못했습니다."
+      });
+      setMatterFollowupMutationPending(false);
+      return;
+    }
+    const canonical = await fetchMatterOpsFollowup({ followupId, ctx: liveCtx });
+    setMatterFollowupDetailResult(canonical);
+    if (canonical.kind !== "data") {
+      setMatterFollowupMutationResult({
+        ...canonical,
+        kind: "error",
+        persisted: true,
+        message: "후속 조치는 저장됐지만 최신 상태를 다시 불러오지 못했습니다."
+      });
+      setMatterFollowupMutationPending(false);
+      return;
+    }
+    const collection = await fetchMatterOpsFollowups({ view: matterFollowupView, ctx: liveCtx });
+    if (currentSection === "matter-followups" && ["data", "empty"].includes(collection.kind)) {
+      setMatterOpsResult(collection);
+    }
+    setMatterFollowupMutationResult(next);
+    setMatterFollowupMutationPending(false);
+  }
+
+  function handleCreateMatterFollowup(payload) {
+    return handleMatterFollowupMutation(createMatterOpsFollowup, payload);
+  }
+
+  function handleUpdateMatterFollowup(payload) {
+    return handleMatterFollowupMutation(updateMatterOpsFollowup, payload);
+  }
+
+  async function handleCreateMatterQuickTimeEntry({ matterId, roleId, workDate, durationMinutes, narrative, billable }) {
+    if (!matterId || !workDate || !narrative || !Number.isFinite(Number(durationMinutes)) || Number(durationMinutes) <= 0) return;
+    setMatterQuickTimePending(true);
+    const next = await createMatterOpsTimeEntry({
+      matterId,
+      durationMinutes: normalizeDurationMinutes(durationMinutes),
+      roleId,
+      workDate,
+      narrative,
+      billable: billable === true,
+      ctx: liveCtx
+    });
+    setMatterQuickTimeResult(next);
+    setMatterQuickTimePending(false);
+    if (next.kind === "data") {
+      setMatterOpsRefreshToken((value) => value + 1);
+      if (next.item && matterId === activeMatterId) {
+        setTimeResult((current) => ({
+          ...(current?.kind === "data" ? current : {}),
+          kind: "data",
+          items: [next.item, ...resultItems(current).filter((item) => item.time_entry_id !== next.item.time_entry_id)]
+        }));
+      }
+    }
+  }
+
   async function handlePatchActivity(activity) {
     const activityId = activity?.activity_id;
     if (!activeMatterId || !activityId) return;
@@ -3553,6 +4216,183 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     if (next.kind === "data") {
       await refreshMatterActivitySurfaces();
     }
+  }
+
+  async function handleMatterTaskStatusChange(task, status, reason) {
+    const taskId = task?.task_id ?? task?.id;
+    const taskMatterId = task?.matter_id ?? task?.matter?.id;
+    if (!taskId || !taskMatterId || !status) return;
+    setMatterTaskUpdatePendingId(taskId);
+    const next = await patchMatterOpsTask({
+      matterId: taskMatterId,
+      taskId,
+      status,
+      reason,
+      ctx: liveCtx
+    });
+    setMatterTaskUpdateResult(next);
+    setMatterTaskUpdatePendingId(null);
+    if (next.kind === "data") {
+      setMatterOpsRefreshToken((value) => value + 1);
+      if (taskMatterId === activeMatterId) await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleCreateMatterTask({ matterId, title, assignedTo, dueAt, priority, idempotencyKey }) {
+    setMatterTaskCreatePending(true);
+    setMatterTaskCreateResult(null);
+    const next = await createMatterOpsTask({
+      matterId,
+      title,
+      assignedTo,
+      dueAt,
+      priority,
+      idempotencyKey,
+      ctx: liveCtx
+    });
+    setMatterTaskCreateResult(next);
+    setMatterTaskCreatePending(false);
+    if (next.kind === "data") {
+      setMatterOpsRefreshToken((value) => value + 1);
+      if (matterId === activeMatterId) await refreshMatterActivitySurfaces();
+    }
+  }
+
+  async function handleMatterTimeWeek(action, payload) {
+    const command = action === "submit"
+      ? submitMatterOpsTimeWeek
+      : action === "lock"
+        ? lockMatterOpsTimeWeek
+        : unlockMatterOpsTimeWeek;
+    setMatterTimeWeekPendingAction(action);
+    setMatterTimeWeekResult(null);
+    const next = await command({ ...payload, ctx: liveCtx });
+    setMatterTimeWeekResult(next);
+    setMatterTimeWeekPendingAction(null);
+    if (next.kind === "data") setMatterOpsRefreshToken((value) => value + 1);
+  }
+
+  async function handleRescheduleMatterDeadline(row, { startsAt, endsAt, reason }) {
+    const deadlineId = row?.event_id ?? row?.deadline_id ?? row?.id;
+    const rowMatterId = row?.matter_id ?? row?.ledger_ref?.matter_id;
+    if (!deadlineId || !rowMatterId) return;
+    setMatterDeadlineReschedulePendingId(deadlineId);
+    setMatterDeadlineRescheduleResult(null);
+    const next = await rescheduleMatterOpsDeadline({
+      deadlineId,
+      matterId: rowMatterId,
+      startsAt,
+      endsAt,
+      reason,
+      ctx: liveCtx
+    });
+    setMatterDeadlineRescheduleResult(next);
+    setMatterDeadlineReschedulePendingId(null);
+    if (next.kind !== "data") return;
+    const history = await fetchMatterOpsDeadlineHistory({
+      deadlineId,
+      matterId: rowMatterId,
+      ctx: liveCtx
+    });
+    setMatterDeadlineHistoryResult(history);
+    setMatterOpsRefreshToken((value) => value + 1);
+    if (rowMatterId === activeMatterId) await refreshMatterActivitySurfaces();
+  }
+
+  async function handleArchiveMatter(matter) {
+    if (!matter?.matter_id) return;
+    setMatterArchivePendingId(matter.matter_id);
+    setMatterArchiveResult(null);
+    const next = await archiveMatterOpsMatter({
+      matterId: matter.matter_id,
+      reason: "종결 사건 보관",
+      ctx: liveCtx
+    });
+    setMatterArchiveResult(next);
+    setMatterArchivePendingId(null);
+    if (next.kind !== "data") return;
+    const archived = await fetchMatterOpsMatters({ view: "archived", ctx: liveCtx });
+    if (archived.kind === "data") applyMatterUpdates(archived.items);
+    else if (next.matter ?? next.item) applyMatterUpdate(next.matter ?? next.item);
+    setMatterListView("archived");
+    writeMatterRouteFilter("archived");
+  }
+
+  async function handleRestoreMatter(matter) {
+    if (!matter?.matter_id) return;
+    setMatterRestorePendingId(matter.matter_id);
+    setMatterRestoreResult(null);
+    const next = await restoreMatterOpsMatter({
+      matterId: matter.matter_id,
+      targetStatus: "closed",
+      ctx: liveCtx
+    });
+    setMatterRestoreResult(next);
+    setMatterRestorePendingId(null);
+    if (next.kind !== "data" || !next.item) return;
+    setCreatedItems((current) => [
+      next.item,
+      ...current.filter((item) => item.matter_id !== next.item.matter_id)
+    ]);
+    setResult((current) => ({
+      ...(current?.kind === "data" ? current : {}),
+      kind: "data",
+      items: [
+        next.item,
+        ...resultItems(current).filter((item) => item.matter_id !== next.item.matter_id)
+      ]
+    }));
+    setMatterOpsRefreshToken((value) => value + 1);
+  }
+
+  async function handleDownloadMatterReport() {
+    setMatterReportPending(true);
+    setMatterReportResult(null);
+    const next = await fetchMatterOpsReportCsv({ ctx: liveCtx });
+    setMatterReportResult(next);
+    setMatterReportPending(false);
+    if (next.kind !== "data" || typeof document === "undefined") return;
+    const url = URL.createObjectURL(new Blob([next.csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "matter-weekly-operations.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleMatterListViewChange(view) {
+    setMatterListView(view);
+    writeMatterRouteFilter(view);
+  }
+
+  function handleMatterWorkViewChange(view) {
+    setMatterWorkView(view);
+    writeMatterRouteFilter(view);
+  }
+
+  function handleMatterWorkLayoutChange(layout) {
+    setMatterWorkLayout(layout);
+    writeMatterRouteFilter(layout === "list" ? matterWorkView : layout);
+  }
+
+  function handleMatterFollowupViewChange(view) {
+    setMatterFollowupView(view);
+    writeMatterRouteFilter(view);
+  }
+
+  function handleMatterTimeBillingViewChange(view) {
+    setMatterTimeBillingView(view);
+    writeMatterRouteFilter(view);
+  }
+
+  function handleMatterOpsNavigate(section, filter = "") {
+    onNavigateSection(section);
+    writeMatterRouteFilter(filter);
+  }
+
+  function handleMatterOpsRetry() {
+    if (currentSection === "matter-list") setRefreshToken((value) => value + 1);
+    else setMatterOpsRefreshToken((value) => value + 1);
   }
 
   async function handleCreateCalendarEvent() {
@@ -3635,35 +4475,138 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
   async function handleGenerateWip() {
     if (!activeMatterId) return;
     setWipPending(true);
-    const next = await generateFinanceWip({ matterId: activeMatterId, ctx: liveCtx });
-    setWipResult(next);
+    const retryAttempt = wipRetryAttemptsRef.current.get(activeMatterId);
+    let projection = null;
+    let eligibleSet = retryAttempt?.sourceSet ?? null;
+    if (!eligibleSet) {
+      projection = await fetchMatterOpsWip({ matterId: activeMatterId, ctx: liveCtx });
+      eligibleSet = projection?.kind === "data"
+        ? projection.item?.eligible_source_sets?.find((sourceSet) =>
+            sourceSet?.matter_id === activeMatterId
+            && Number(sourceSet?.source_count) > 0
+            && Array.isArray(sourceSet?.source_refs))
+        : null;
+    }
+    if (!eligibleSet) {
+      setWipResult(projection?.kind === "data"
+        ? { kind: "error", message: "새로 청구할 승인 원장이 없습니다." }
+        : projection);
+      setWipPending(false);
+      return;
+    }
+    wipRetryAttemptsRef.current.set(activeMatterId, { sourceSet: eligibleSet });
+    const next = await generateMatterOpsWip({
+      matterId: activeMatterId,
+      sourceSet: eligibleSet,
+      ctx: liveCtx
+    });
+    if (next?.kind === "data" || Number(next?.status) > 0) {
+      wipRetryAttemptsRef.current.delete(activeMatterId);
+    }
+    setWipResult(next?.kind === "data"
+      ? { ...next, items: next.wipItems, sourceSetId: eligibleSet.source_set_id }
+      : next);
     setWipPending(false);
   }
 
   async function handleCreatePreBillReview() {
-    const wipItems = wipResult?.kind === "data" ? wipResult.items : [];
+    const wipItems = wipResult?.kind === "data" ? (wipResult.items ?? wipResult.wipItems ?? []) : [];
     if (!activeMatterId || wipItems.length === 0) return;
     setPrebillPending(true);
-    const snapshot = await lockFinanceWipSnapshot({ matterId: activeMatterId, wipItems, ctx: liveCtx });
-    if (snapshot.kind !== "data" || !snapshot.item?.wip_snapshot_id) {
-      setPrebillResult(snapshot);
-      setPrebillPending(false);
-      return;
-    }
-    const created = await createFinancePreBill({ matterId: activeMatterId, wipSnapshotId: snapshot.item.wip_snapshot_id, ctx: liveCtx });
-    if (created.kind !== "data" || !created.item?.prebill_id) {
+    const created = await createMatterOpsPreBill({
+      matterId: activeMatterId,
+      wipItems,
+      sourceSetId: wipResult.sourceSetId,
+      ctx: liveCtx
+    });
+    const createdPrebill = created?.prebill ?? created?.item;
+    if (created.kind !== "data" || !createdPrebill?.prebill_id) {
       setPrebillResult(created);
       setPrebillPending(false);
       return;
     }
-    const approved = await approveFinancePreBill({ prebillId: created.item.prebill_id, ctx: liveCtx });
-    setPrebillResult(approved);
+    setPrebillResult({
+      ...created,
+      item: createdPrebill,
+      prebill: createdPrebill,
+      wipSnapshot: created.wipSnapshot,
+      sourceSetId: wipResult.sourceSetId
+    });
+    setPrebillPending(false);
+  }
+
+  async function handleApprovePreBillReview({ adjustmentAmount = 0, reasonCode = "" } = {}) {
+    const currentPrebill = prebillResult?.item ?? prebillResult?.prebill;
+    const wipItems = wipResult?.kind === "data" ? (wipResult.items ?? wipResult.wipItems ?? []) : [];
+    const wipTotal = wipItems.reduce((total, item) => total + Number(item.amount ?? 0), 0);
+    if (!activeMatterId || !currentPrebill?.prebill_id) return;
+    if (!Number.isFinite(Number(adjustmentAmount)) || Number(adjustmentAmount) < 0 || Number(adjustmentAmount) > wipTotal) {
+      setPrebillResult({
+        ...prebillResult,
+        kind: "error",
+        item: currentPrebill,
+        prebill: currentPrebill,
+        message: "Write-down은 WIP 금액을 초과할 수 없습니다."
+      });
+      return;
+    }
+    const adjustment = Number(adjustmentAmount) > 0
+      ? { amount: Number(adjustmentAmount), reasonCode }
+      : null;
+    setPrebillPending(true);
+    const approved = await approveFinancePreBill({
+      prebillId: currentPrebill.prebill_id,
+      adjustment,
+      ctx: liveCtx
+    });
+    setPrebillResult(approved?.kind === "data"
+      ? {
+          ...approved,
+          item: approved.item ?? currentPrebill,
+          prebill: approved.item ?? currentPrebill,
+          wipSnapshot: prebillResult?.wipSnapshot,
+          sourceSetId: prebillResult?.sourceSetId
+        }
+      : {
+          ...approved,
+          item: currentPrebill,
+          prebill: currentPrebill,
+          wipSnapshot: prebillResult?.wipSnapshot,
+          sourceSetId: prebillResult?.sourceSetId
+        });
+    setPrebillPending(false);
+  }
+
+  async function handleRejectPreBillReview({ reasonCode = "" } = {}) {
+    const currentPrebill = prebillResult?.item ?? prebillResult?.prebill;
+    if (!activeMatterId || !currentPrebill?.prebill_id || !String(reasonCode).trim()) return;
+    setPrebillPending(true);
+    const rejected = await rejectFinancePreBill({
+      prebillId: currentPrebill.prebill_id,
+      reasonCode,
+      ctx: liveCtx
+    });
+    setPrebillResult(rejected?.kind === "data"
+      ? {
+          ...rejected,
+          item: rejected.item ?? currentPrebill,
+          prebill: rejected.item ?? currentPrebill,
+          wipSnapshot: prebillResult?.wipSnapshot,
+          sourceSetId: prebillResult?.sourceSetId
+        }
+      : {
+          ...rejected,
+          item: currentPrebill,
+          prebill: currentPrebill,
+          wipSnapshot: prebillResult?.wipSnapshot,
+          sourceSetId: prebillResult?.sourceSetId
+        });
     setPrebillPending(false);
   }
 
   async function handleIssueInvoice() {
-    const prebill = prebillResult?.kind === "data" ? prebillResult.item : null;
-    if (!activeMatterId || !prebill?.prebill_id) return;
+    const prebill = prebillResult?.item ?? prebillResult?.prebill;
+    if (!activeMatterId || !prebill?.prebill_id || prebill.status !== "partner_approved") return;
     setInvoiceIssuePending(true);
     const next = await issueFinanceInvoice({
       matterId: activeMatterId,
@@ -3681,7 +4624,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     const amount = Number(paymentForm.amount);
     if (!activeMatterId || !Number.isFinite(amount) || amount <= 0 || !paymentForm.receivedAt) return;
     setPaymentPending(true);
-    const next = await importFinancePayment({
+    const next = await importMatterOpsPayment({
       matterId: activeMatterId,
       clientGroupId: selectedMatter?.client_group_id ?? selectedMatter?.billing_client_party_id ?? selectedMatter?.client_id,
       amount,
@@ -3690,9 +4633,112 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
       paymentKey: paymentForm.paymentKey,
       ctx: liveCtx
     });
-    setPaymentResult(next);
+    if (next.kind !== "data") {
+      setPaymentResult(next);
+      setPaymentPending(false);
+      return;
+    }
+    const paymentId = next.payment?.payment_id ?? next.item?.payment_id;
+    const refreshed = await refreshMatterPaymentSurfaces(activeMatterId, paymentId);
+    if (refreshed.kind !== "data") {
+      setPaymentResult({
+        ...refreshed,
+        kind: "error",
+        persisted: true,
+        message: "입금은 기록됐지만 최신 입금·사건·미수금 상태를 모두 불러오지 못했습니다."
+      });
+    }
     setPaymentPending(false);
   }
+
+  function applyMatterScopedBilling(scoped) {
+    if (scoped.kind !== "data") {
+      setAgingResult(scoped);
+      setPaymentAllocationResult(scoped);
+      return scoped;
+    }
+    const payload = scoped.item ?? {};
+    setInvoiceResult({
+      kind: "data",
+      items: Array.isArray(payload.invoices) ? payload.invoices : [],
+      uiState: scoped.uiState
+    });
+    setAgingResult({
+      kind: "data",
+      items: Array.isArray(payload.ar?.rows) ? payload.ar.rows : [],
+      summary: payload.ar?.totals ?? { balance: 0, invoice_count: 0 },
+      uiState: scoped.uiState
+    });
+    setPaymentAllocationResult({
+      kind: "data",
+      items: Array.isArray(payload.payment_allocations) ? payload.payment_allocations : [],
+      uiState: scoped.uiState
+    });
+    if (currentSection === "matter-time-billing") setMatterOpsResult(scoped);
+    return scoped;
+  }
+
+  async function refreshMatterPaymentSurfaces(matterId, paymentId) {
+    const [payments, detail, closeout, scoped] = await fetchPaymentReversalSurfaces({
+      matterId,
+      ctx: liveCtx,
+      fetchPayments: fetchMatterOpsPayments,
+      fetchDetail: fetchMatterOpsDetail,
+      fetchCloseout: fetchMatterOpsCloseout,
+      fetchTimeBilling: fetchMatterOpsTimeBilling
+    });
+    const canonicalPayment = payments.kind === "data"
+      ? payments.items.find((item) => item.payment_id === paymentId) ?? null
+      : null;
+    if (canonicalPayment) {
+      setPaymentResult({ ...payments, item: canonicalPayment });
+    }
+    if (detail.kind === "data") {
+      setMatterOpsDetailResult({
+        ...detail,
+        item: {
+          ...detail.item,
+          close_blockers: ["data", "empty"].includes(closeout.kind) ? closeout.items : [],
+          closeout_state: closeout.kind,
+          can_close: ["data", "empty"].includes(closeout.kind) ? closeout.canClose === true : false
+        }
+      });
+    } else {
+      setMatterOpsDetailResult(detail);
+    }
+    applyMatterScopedBilling(scoped);
+    const canonicalInvoices = scoped.kind === "data" && Array.isArray(scoped.item?.invoices)
+      ? scoped.item.invoices
+      : [];
+    const currentInvoiceId = invoiceIssueResult?.item?.invoice_id;
+    const canonicalInvoice = canonicalInvoices.find((item) => item.invoice_id === currentInvoiceId)
+      ?? canonicalInvoices[0]
+      ?? null;
+    if (canonicalInvoice) {
+      setInvoiceIssueResult((current) => ({
+        ...(current?.kind === "data" ? current : {}),
+        kind: "data",
+        item: canonicalInvoice
+      }));
+    }
+    if (
+      !canonicalPayment
+      || detail.kind !== "data"
+      || !["data", "empty"].includes(closeout.kind)
+      || scoped.kind !== "data"
+    ) {
+      return { kind: "error" };
+    }
+    return { kind: "data", item: canonicalPayment };
+  }
+
+  const paymentReversalController = createPaymentReversalController({
+    reversePayment: reverseMatterOpsPaymentAllocation,
+    refreshPaymentSurfaces: refreshMatterPaymentSurfaces,
+    onPending: setPaymentReversalPending,
+    onResult: setPaymentReversalResult,
+    onPaymentMatchCleared: () => setPaymentMatchResult(null)
+  });
 
   async function handleMatchPayment() {
     const issuedInvoice = invoiceIssueResult?.kind === "data" ? invoiceIssueResult.item : null;
@@ -3711,11 +4757,12 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
     if (allocationType === "invoice_payment" && !invoice?.invoice_id) return;
     setPaymentMatchPending(true);
     const next = allocationType === "invoice_payment"
-      ? await matchFinancePayment({
+      ? await allocateMatterOpsPayment({
+          matterId: activeMatterId,
           paymentId: payment.payment_id,
           invoiceId: invoice.invoice_id,
           amount,
-          matchKey: paymentForm.allocationKey,
+          allocationKey: paymentForm.allocationKey,
           ctx: liveCtx
         })
       : await allocateFinancePayment({
@@ -3730,23 +4777,36 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           ctx: liveCtx
         });
     setPaymentMatchResult(next);
+    if (next.kind !== "data") {
+      setPaymentMatchPending(false);
+      return;
+    }
+    const refreshed = await refreshMatterPaymentSurfaces(activeMatterId, payment.payment_id);
+    if (refreshed.kind !== "data") {
+      setPaymentResult({
+        kind: "error",
+        persisted: true,
+        message: "입금 배정은 저장됐지만 최신 입금·사건·미수금 상태를 모두 불러오지 못했습니다."
+      });
+    } else {
+      const nextDraft = createFinancePaymentFormDraft();
+      const remaining = Number(refreshed.item.unapplied_amount ?? refreshed.item.unallocated_amount ?? 0);
+      setPaymentForm((current) => ({
+        ...current,
+        allocationKey: nextDraft.allocationKey,
+        ...(remaining <= 0 ? { paymentKey: nextDraft.paymentKey } : {})
+      }));
+    }
     setPaymentMatchPending(false);
-    if (next.kind === "data" && next.invoice) {
-      setInvoiceIssueResult((current) => ({ ...(current?.kind === "data" ? current : {}), kind: "data", item: next.invoice }));
-      upsertFinanceInvoice(next.invoice);
-    }
-    if (next.kind === "data" && next.payment) {
-      setPaymentResult((current) => ({ ...(current?.kind === "data" ? current : {}), kind: "data", item: next.payment }));
-      if (next.item) {
-        const nextDraft = createFinancePaymentFormDraft();
-        const remaining = Number(next.payment.unapplied_amount ?? next.payment.unallocated_amount ?? 0);
-        setPaymentForm((current) => ({
-          ...current,
-          allocationKey: nextDraft.allocationKey,
-          ...(remaining <= 0 ? { paymentKey: nextDraft.paymentKey } : {})
-        }));
-      }
-    }
+  }
+
+  async function handleReversePayment({ allocation, reason } = {}) {
+    await paymentReversalController.execute({
+      matterId: activeMatterId,
+      allocation,
+      reason,
+      ctx: liveCtx
+    });
   }
 
   async function handleAnalyticsRefresh() {
@@ -3801,6 +4861,65 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         };
       });
     }
+  }
+
+  function renderChargeWorkspace() {
+    return (
+      <ChargePanel
+        timeResult={timeResult}
+        invoiceResult={invoiceResult}
+        agingResult={agingResult}
+        financeAuditResult={financeAuditResult}
+        matter={selectedMatter}
+        matterId={activeMatterId}
+        timeEntryResult={timeEntryResult}
+        expenseResult={expenseResult}
+        disbursementResult={disbursementResult}
+        wipResult={wipResult}
+        prebillResult={prebillResult}
+        invoiceIssueResult={invoiceIssueResult}
+        paymentResult={paymentResult}
+        paymentMatchResult={paymentMatchResult}
+        paymentAllocationResult={paymentAllocationResult}
+        paymentReversalResult={paymentReversalResult}
+        accountingExportResult={accountingExportResult}
+        paymentForm={paymentForm}
+        timeEntryForm={timeEntryForm}
+        expenseForm={expenseForm}
+        disbursementForm={disbursementForm}
+        accountingExportForm={accountingExportForm}
+        timeTimerRunning={Boolean(timeTimerStartedAt)}
+        timeTimerSeconds={timeTimerSeconds}
+        timeEntryPending={timeEntryPending}
+        expensePending={expensePending}
+        disbursementPending={disbursementPending}
+        wipPending={wipPending}
+        prebillPending={prebillPending}
+        invoiceIssuePending={invoiceIssuePending}
+        paymentPending={paymentPending}
+        paymentMatchPending={paymentMatchPending}
+        paymentReversalPending={paymentReversalPending}
+        accountingExportPending={accountingExportPending}
+        onTimeEntryFormChange={handleTimeEntryFormChange}
+        onExpenseFormChange={handleExpenseFormChange}
+        onDisbursementFormChange={handleDisbursementFormChange}
+        onPaymentFormChange={handlePaymentFormChange}
+        onAccountingExportFormChange={handleAccountingExportFormChange}
+        onToggleTimeTimer={handleToggleTimeTimer}
+        onCreateTimeEntry={handleCreateTimeEntry}
+        onCreateExpense={handleCreateExpense}
+        onCreateDisbursement={handleCreateDisbursement}
+        onGenerateWip={handleGenerateWip}
+        onCreatePreBill={handleCreatePreBillReview}
+        onApprovePreBill={handleApprovePreBillReview}
+        onRejectPreBill={handleRejectPreBillReview}
+        onIssueInvoice={handleIssueInvoice}
+        onImportPayment={handleImportPayment}
+        onMatchPayment={handleMatchPayment}
+        onReversePayment={handleReversePayment}
+        onCreateAccountingExport={handleCreateAccountingExport}
+      />
+    );
   }
 
   const connectedMatterSection = MATTER_CONNECTED_SECTIONS[currentSection];
@@ -3947,6 +5066,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             invoiceIssueResult={invoiceIssueResult}
             paymentResult={paymentResult}
             paymentMatchResult={paymentMatchResult}
+            paymentAllocationResult={paymentAllocationResult}
+            paymentReversalResult={paymentReversalResult}
             accountingExportResult={accountingExportResult}
             paymentForm={paymentForm}
             timeEntryForm={timeEntryForm}
@@ -3963,6 +5084,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             invoiceIssuePending={invoiceIssuePending}
             paymentPending={paymentPending}
             paymentMatchPending={paymentMatchPending}
+            paymentReversalPending={paymentReversalPending}
             accountingExportPending={accountingExportPending}
             onTimeEntryFormChange={handleTimeEntryFormChange}
             onExpenseFormChange={handleExpenseFormChange}
@@ -3975,9 +5097,12 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             onCreateDisbursement={handleCreateDisbursement}
             onGenerateWip={handleGenerateWip}
             onCreatePreBill={handleCreatePreBillReview}
+            onApprovePreBill={handleApprovePreBillReview}
+            onRejectPreBill={handleRejectPreBillReview}
             onIssueInvoice={handleIssueInvoice}
             onImportPayment={handleImportPayment}
             onMatchPayment={handleMatchPayment}
+            onReversePayment={handleReversePayment}
             onCreateAccountingExport={handleCreateAccountingExport}
           />
           <div className="record-boundary-note" data-lcx-vltui-06-expense-finance-boundary="true">
@@ -4021,16 +5146,23 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
 
   const selectedMatterOverlay = currentSection !== "matter-opening" && selectedMatter ? (
     <div className="record-overlay-layer" data-record-overlay="matter">
-      <button type="button" className="record-overlay-scrim" aria-label="Matter code 정보 닫기" onClick={() => setSelectedMatterId(null)} />
+      <button type="button" className="record-overlay-scrim" aria-label="Matter code 정보 닫기" onClick={handleCloseMatterOverlay} />
       <div className="record-overlay-panel" role="dialog" aria-modal="true" aria-label={`${matterCodeLabel(selectedMatter)} 정보`}>
         <MatterRecordPanel
           matter={selectedMatter}
+          detailResult={matterOpsDetailResult}
+          activityResult={activityResult}
           commandResult={commandResult}
           timelineResult={timelineResult}
           deadlineResult={deadlineResult}
           channelResult={channelResult}
+          timeResult={timeResult}
+          invoiceResult={invoiceResult}
+          agingResult={agingResult}
           billingCount={billingCount}
           analyticsCount={analyticsCount}
+          billingPanel={renderChargeWorkspace()}
+          selectedLedgerRef={selectedLedgerRef}
           inlineEditResult={inlineEditResult}
           inlineEditPending={inlineEditPending}
           onInlineEdit={handleInlineEdit}
@@ -4049,7 +5181,22 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
           onRecordActionOwnerBlocked={handleRecordActionOwnerBlocked}
           onMatterProfileSave={handleMatterProfileSave}
           onMatterStakeholderRegister={handleMatterStakeholderRegister}
-          onClose={() => setSelectedMatterId(null)}
+          onOpenVault={() => {
+            handleCloseMatterOverlay();
+            onNavigateSection("matter-vault");
+          }}
+          onNavigateRoute={(section, filter) => {
+            handleCloseMatterOverlay();
+            handleMatterOpsNavigate(section, filter);
+          }}
+          peopleResult={matterOpsPeopleResult}
+          handoffPending={matterHandoffPending}
+          handoffResult={matterHandoffResult}
+          onHandoffMatter={handleMatterHandoff}
+          closePending={statusTransitionPending}
+          closeResult={statusTransitionResult}
+          onCloseMatter={handleCompleteStatus}
+          onClose={handleCloseMatterOverlay}
         />
       </div>
     </div>
@@ -4063,6 +5210,76 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
         className="matter-runtime-grid record-workspace record-workspace-list-only"
         data-salesforce-matter-workspace="list-detail-overlay"
       >
+        {isMatterSmallFirmSection && (
+          <Panel id={currentSection} className="record-list-panel matter-small-firm-panel" title={currentSection} hideHeader>
+            <MatterOperationsSurface
+              section={currentSection}
+              mode={matterRoute.mode}
+              result={matterOpsResult}
+              mattersResult={result}
+              matters={matters}
+              onRetry={handleMatterOpsRetry}
+              onSelectMatter={handleSelectMatter}
+              onNavigateSection={handleMatterOpsNavigate}
+              listView={matterListView}
+              onListViewChange={handleMatterListViewChange}
+              workView={matterWorkView}
+              workLayout={matterWorkLayout}
+              onWorkViewChange={handleMatterWorkViewChange}
+              onWorkLayoutChange={handleMatterWorkLayoutChange}
+              onTaskStatusChange={handleMatterTaskStatusChange}
+              taskUpdatePendingId={matterTaskUpdatePendingId}
+              taskUpdateResult={matterTaskUpdateResult}
+              taskCreatePending={matterTaskCreatePending}
+              taskCreateResult={matterTaskCreateResult}
+              onCreateTask={handleCreateMatterTask}
+              archivePendingId={matterArchivePendingId}
+              archiveResult={matterArchiveResult}
+              onArchiveMatter={handleArchiveMatter}
+              restorePendingId={matterRestorePendingId}
+              restoreResult={matterRestoreResult}
+              onRestoreMatter={handleRestoreMatter}
+              followupView={matterFollowupView}
+              onFollowupViewChange={handleMatterFollowupViewChange}
+              timeBillingView={matterTimeBillingView}
+              onTimeBillingViewChange={handleMatterTimeBillingViewChange}
+              meetingPending={matterMeetingPending}
+              meetingResult={matterMeetingResult}
+              onCreateMeeting={handleCreateMatterMeeting}
+              peopleResult={matterOpsPeopleResult}
+              followupMutationPending={matterFollowupMutationPending}
+              followupMutationResult={matterFollowupMutationResult}
+              followupDetailResult={matterFollowupDetailResult}
+              onCreateFollowup={handleCreateMatterFollowup}
+              onUpdateFollowup={handleUpdateMatterFollowup}
+              timeEntryPending={matterQuickTimePending}
+              timeEntryResult={matterQuickTimeResult}
+              onCreateTimeEntry={handleCreateMatterQuickTimeEntry}
+              timeWeekPendingAction={matterTimeWeekPendingAction}
+              timeWeekResult={matterTimeWeekResult}
+              onSubmitTimeWeek={(payload) => handleMatterTimeWeek("submit", payload)}
+              onLockTimeWeek={(payload) => handleMatterTimeWeek("lock", payload)}
+              onUnlockTimeWeek={(payload) => handleMatterTimeWeek("unlock", payload)}
+              deadlineReschedulePendingId={matterDeadlineReschedulePendingId}
+              deadlineRescheduleResult={matterDeadlineRescheduleResult}
+              deadlineHistoryResult={matterDeadlineHistoryResult}
+              onRescheduleDeadline={handleRescheduleMatterDeadline}
+              reportPending={matterReportPending}
+              reportResult={matterReportResult}
+              onDownloadReport={handleDownloadMatterReport}
+              opening={(
+                <MatterOpeningWizard
+                  liveCtx={liveCtx}
+                  onCreated={(item) => {
+                    setCreatedItems((current) => [...current, item]);
+                    setSelectedMatterId(item.matter_id);
+                  }}
+                />
+              )}
+              worktree={<MatterWorktreeSurface matters={matters} liveCtx={liveCtx} />}
+            />
+          </Panel>
+        )}
         {currentSection === "matter-home" && (
           <Panel id="matter-home" className="record-list-panel" title="대시보드" hideHeader>
             <MatterDashboardPanel
@@ -4171,7 +5388,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
             />
           </Panel>
         )}
-        {currentSection === "matter-calendar" && (
+        {currentSection === "matter-calendar" && !isMatterSmallFirmSection && (
           <Panel id="matter-calendar" className="record-list-panel" title="일정" hideHeader>
             <CalendarWorkspacePanel
               calendarResult={calendarResult}
@@ -4249,6 +5466,8 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               invoiceIssueResult={invoiceIssueResult}
               paymentResult={paymentResult}
               paymentMatchResult={paymentMatchResult}
+              paymentAllocationResult={paymentAllocationResult}
+              paymentReversalResult={paymentReversalResult}
               accountingExportResult={accountingExportResult}
               paymentForm={paymentForm}
               timeEntryForm={timeEntryForm}
@@ -4265,6 +5484,7 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               invoiceIssuePending={invoiceIssuePending}
               paymentPending={paymentPending}
               paymentMatchPending={paymentMatchPending}
+              paymentReversalPending={paymentReversalPending}
               accountingExportPending={accountingExportPending}
               onTimeEntryFormChange={handleTimeEntryFormChange}
               onExpenseFormChange={handleExpenseFormChange}
@@ -4277,9 +5497,12 @@ export function MattersSurface({ labels, liveCtx = "allow", activeSection = "", 
               onCreateDisbursement={handleCreateDisbursement}
               onGenerateWip={handleGenerateWip}
               onCreatePreBill={handleCreatePreBillReview}
+              onApprovePreBill={handleApprovePreBillReview}
+              onRejectPreBill={handleRejectPreBillReview}
               onIssueInvoice={handleIssueInvoice}
               onImportPayment={handleImportPayment}
               onMatchPayment={handleMatchPayment}
+              onReversePayment={handleReversePayment}
               onCreateAccountingExport={handleCreateAccountingExport}
             />
           </Panel>

@@ -6,14 +6,11 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packagedRosterPath = join(__dirname, "hrx-member-roster-source-of-truth.json");
 const packagedContactPath = join(__dirname, "hrx-member-contact-source-of-truth.json");
-const packagedPhotoSourcePath = join(__dirname, "hrx-member-photos");
 const packagedProfessionalProfileCatalogPath = join(__dirname, "hrx-public-professional-profile-catalog.json");
 const configuredRosterSourcePath = String(process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH ?? "").trim();
 const configuredContactSourcePath = String(process.env.LAWOS_HRX_MEMBER_CONTACT_SOURCE_PATH ?? "").trim();
-const configuredPhotoSourcePath = String(process.env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH ?? "").trim();
 const configuredRosterPath = configuredRosterSourcePath ? resolve(process.cwd(), configuredRosterSourcePath) : null;
 const contactSourcePath = configuredContactSourcePath ? resolve(process.cwd(), configuredContactSourcePath) : null;
-const photoSourcePath = configuredPhotoSourcePath ? resolve(process.cwd(), configuredPhotoSourcePath) : null;
 const repoRosterPath = resolve(
   __dirname,
   "../../../docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
@@ -24,11 +21,20 @@ export const HRX_MEMBER_ROSTER_SOURCE_PATH = configuredRosterPath ?? (
   existsSync(packagedRosterPath) ? packagedRosterPath : existsSync(repoRosterPath) ? repoRosterPath : null
 );
 export const HRX_MEMBER_CONTACT_SOURCE_PATH = contactSourcePath ?? (existsSync(packagedContactPath) ? packagedContactPath : null);
-export const HRX_MEMBER_PHOTO_SOURCE_PATH = photoSourcePath ?? (existsSync(packagedPhotoSourcePath) ? packagedPhotoSourcePath : null);
 export const HRX_PUBLIC_PROFESSIONAL_PROFILE_SOURCE_REF = "hrx-public-professional-profile-catalog";
 
-const SAFE_MEMBER_PHOTO_REF = /^[A-Za-z0-9_-]{1,128}$/u;
 const OPAQUE_EMPLOYEE_REF = /^[a-f0-9]{64}$/u;
+
+export {
+  createHrxMemberPhotoProvider,
+  HRX_MEMBER_PHOTO_ARTIFACT_METADATA_FILE_NAME,
+  HRX_MEMBER_PHOTO_ARTIFACT_METADATA_PATH,
+  HRX_MEMBER_PHOTO_ARTIFACT_METADATA_SCHEMA,
+  HRX_MEMBER_PHOTO_SOURCE_PATH,
+  memberPhotoDataUrlForEmployeeId,
+  memberPhotoResultForEmployeeId,
+  validatedMemberPhotoGenerationRef,
+} from "./hrx-member-photo-provider.js";
 
 function deepFreeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -203,13 +209,4 @@ export function findHrxPublicProfessionalProfileByEmployeeId(
     professional_profile: objectField(row, "professional_profile"),
     source_ref: HRX_PUBLIC_PROFESSIONAL_PROFILE_SOURCE_REF,
   });
-}
-
-export function memberPhotoDataUrlForEmployeeId(employeeId, sourcePath = HRX_MEMBER_PHOTO_SOURCE_PATH) {
-  const normalized = String(employeeId ?? "").trim();
-  if (!sourcePath || !SAFE_MEMBER_PHOTO_REF.test(normalized)) return null;
-  const fileName = `${createHash("sha256").update(normalized).digest("hex")}.png`;
-  const filePath = join(sourcePath, fileName);
-  if (!existsSync(filePath)) return null;
-  return `data:image/png;base64,${readFileSync(filePath).toString("base64")}`;
 }

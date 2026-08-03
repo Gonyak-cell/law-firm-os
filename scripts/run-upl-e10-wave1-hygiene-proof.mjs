@@ -2,6 +2,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
+import { summarizeSloplintFindings } from "./lib/upl-e10-sloplint-escapes.mjs";
 
 const ROOT = process.cwd();
 const ARTIFACT_JSON = resolve(
@@ -45,7 +46,7 @@ function run(command, args) {
 }
 
 function changedUiSourceFiles() {
-  const stdout = execFileSync("git", ["status", "--porcelain"], {
+  const stdout = execFileSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], {
     cwd: ROOT,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -104,16 +105,17 @@ function parseSloplint(result, { allowedFiles = [] } = {}) {
   if (!result.pass) return { parse_error: "sloplint command failed", strong_count: null, weak_count: null, findings: [] };
   try {
     const parsed = JSON.parse(result.stdout);
-    const allowed = new Set(allowedFiles);
-    const findings = (Array.isArray(parsed.findings) ? parsed.findings : []).filter((finding) => allowed.has(finding.file));
-    return {
-      finding_count: findings.length,
-      strong_count: findings.filter((finding) => finding.severity === "strong").length,
-      weak_count: findings.filter((finding) => finding.severity === "weak").length,
-      no_verify_count: findings.filter((finding) => finding.severity === "no-verify").length,
-      files: [...new Set(findings.map((finding) => finding.file))].sort(),
-      remaining_findings_documented_as: "weak CSS hierarchy/theme/motion signals retained for row-level manual review; no strong or no-verify findings remain in changed tree",
-    };
+    return summarizeSloplintFindings(parsed.findings, {
+      allowedFiles,
+      readSource(finding) {
+        const lines = readFileSync(resolve(ROOT, finding.file), "utf8").split("\n");
+        const index = finding.line - 1;
+        return {
+          sourceLine: lines[index] ?? "",
+          sourceContext: lines.slice(Math.max(0, index - 12), index + 13).join("\n"),
+        };
+      },
+    });
   } catch (error) {
     return { parse_error: error.message, strong_count: null, weak_count: null, findings: [] };
   }

@@ -1,0 +1,170 @@
+{
+  "schema_version": "law-firm-os.matter-small-firm-foundation.v1",
+  "fixture_id": "matter-small-firm-foundation-v1",
+  "synthetic_only": true,
+  "tenant_id": "tenant_small_firm_qa",
+  "as_of": "2026-07-30T00:00:00.000Z",
+  "timezone": "Asia/Seoul",
+  "seed_contract": {
+    "sort_key": "id",
+    "expected_counts": {
+      "people": 10,
+      "matters": 12,
+      "tasks": 28,
+      "calendar_events": 8,
+      "followups": 6,
+      "time_entries": 25,
+      "wip": 4,
+      "invoices": 3,
+      "receivables": 3
+    },
+    "matter_status_counts": {
+      "opening": 2,
+      "active": 7,
+      "on_hold": 1,
+      "closed": 1,
+      "archived": 1
+    },
+    "task_lane_counts": {
+      "overdue": 3,
+      "today": 4,
+      "waiting": 5,
+      "blocked": 2,
+      "unassigned": 2,
+      "done_or_archived": 12
+    },
+    "followup_queue_counts": {
+      "firm_reply": 2,
+      "client_reply": 2,
+      "snoozed": 1,
+      "done": 1
+    },
+    "time_contract": {
+      "non_billable": 4,
+      "locked": 12,
+      "missing_person_ids": ["person-09", "person-10", "person-04"]
+    },
+    "invoice_status_counts": {
+      "draft": 1,
+      "sent": 1,
+      "partial": 1
+    }
+  },
+  "people": [
+    { "person_id": "person-01", "role": "partner", "display_name": "[QA] Partner 01", "active": true },
+    { "person_id": "person-02", "role": "partner", "display_name": "[QA] Partner 02", "active": true },
+    { "person_id": "person-03", "role": "attorney", "display_name": "[QA] Attorney 01", "active": true },
+    { "person_id": "person-04", "role": "attorney", "display_name": "[QA] Attorney 02", "active": true },
+    { "person_id": "person-05", "role": "attorney", "display_name": "[QA] Attorney 03", "active": true },
+    { "person_id": "person-06", "role": "attorney", "display_name": "[QA] Attorney 04", "active": true },
+    { "person_id": "person-07", "role": "litigation_staff", "display_name": "[QA] Matter Staff 01", "active": true },
+    { "person_id": "person-08", "role": "litigation_staff", "display_name": "[QA] Matter Staff 02", "active": true },
+    { "person_id": "person-09", "role": "billing_ops", "display_name": "[QA] Billing 01", "active": true },
+    { "person_id": "person-10", "role": "office_admin", "display_name": "[QA] Office 01", "active": true }
+  ],
+  "matters": [
+    { "matter_id": "matter-001", "matter_code": "K-2026-001", "title": "[QA] K-2026-001", "status": "opening", "owner_id": "person-03", "backup_user_id": "person-07" },
+    { "matter_id": "matter-002", "matter_code": "K-2026-002", "title": "[QA] K-2026-002", "status": "opening", "owner_id": "person-04", "backup_user_id": "person-08" },
+    { "matter_id": "matter-003", "matter_code": "K-2026-003", "title": "[QA] K-2026-003", "status": "active", "owner_id": "person-03", "backup_user_id": "person-07" },
+    { "matter_id": "matter-004", "matter_code": "K-2026-004", "title": "[QA] K-2026-004", "status": "active", "owner_id": "person-04", "backup_user_id": "person-08" },
+    { "matter_id": "matter-005", "matter_code": "K-2026-005", "title": "[QA] K-2026-005", "status": "active", "owner_id": "person-05", "backup_user_id": "person-07" },
+    { "matter_id": "matter-006", "matter_code": "K-2026-006", "title": "[QA] K-2026-006", "status": "active", "owner_id": "person-06", "backup_user_id": "person-08" },
+    { "matter_id": "matter-007", "matter_code": "K-2026-007", "title": "[QA] K-2026-007", "status": "active", "owner_id": "person-03", "backup_user_id": "person-07" },
+    { "matter_id": "matter-008", "matter_code": "K-2026-008", "title": "[QA] K-2026-008", "status": "active", "owner_id": "person-04", "backup_user_id": "person-08" },
+    { "matter_id": "matter-009", "matter_code": "K-2026-009", "title": "[QA] K-2026-009", "status": "active", "owner_id": "person-05", "backup_user_id": "person-07" },
+    { "matter_id": "matter-010", "matter_code": "K-2026-010", "title": "[QA] K-2026-010", "status": "on_hold", "owner_id": "person-06", "backup_user_id": "person-08" },
+    { "matter_id": "matter-011", "matter_code": "K-2026-011", "title": "[QA] K-2026-011", "status": "closed", "owner_id": "person-03", "backup_user_id": "person-07" },
+    { "matter_id": "matter-012", "matter_code": "K-2026-012", "title": "[QA] K-2026-012", "status": "archived", "owner_id": "person-04", "backup_user_id": "person-08" }
+  ],
+  "tasks": [
+    { "task_id": "task-001", "matter_id": "matter-003", "title": "[QA] 초과 업무 01", "owner_id": "person-03", "backup_user_id": "person-07", "status": "open", "lane": "overdue", "due_at": "2026-07-27T09:00:00.000Z", "source_ref": "fixture:task-001" },
+    { "task_id": "task-002", "matter_id": "matter-004", "title": "[QA] 초과 업무 02", "owner_id": "person-04", "backup_user_id": "person-08", "status": "open", "lane": "overdue", "due_at": "2026-07-28T09:00:00.000Z", "source_ref": "fixture:task-002" },
+    { "task_id": "task-003", "matter_id": "matter-005", "title": "[QA] 초과 업무 03", "owner_id": "person-05", "backup_user_id": "person-07", "status": "open", "lane": "overdue", "due_at": "2026-07-29T09:00:00.000Z", "source_ref": "fixture:task-003" },
+    { "task_id": "task-004", "matter_id": "matter-006", "title": "[QA] 오늘 업무 01", "owner_id": "person-06", "backup_user_id": "person-08", "status": "open", "lane": "today", "due_at": "2026-07-30T09:00:00.000Z", "source_ref": "fixture:task-004" },
+    { "task_id": "task-005", "matter_id": "matter-007", "title": "[QA] 오늘 업무 02", "owner_id": "person-03", "backup_user_id": "person-07", "status": "open", "lane": "today", "due_at": "2026-07-30T10:00:00.000Z", "source_ref": "fixture:task-005" },
+    { "task_id": "task-006", "matter_id": "matter-008", "title": "[QA] 오늘 업무 03", "owner_id": "person-04", "backup_user_id": "person-08", "status": "open", "lane": "today", "due_at": "2026-07-30T11:00:00.000Z", "source_ref": "fixture:task-006" },
+    { "task_id": "task-007", "matter_id": "matter-009", "title": "[QA] 오늘 업무 04", "owner_id": "person-05", "backup_user_id": "person-07", "status": "open", "lane": "today", "due_at": "2026-07-30T06:00:00.000Z", "source_ref": "fixture:task-007" },
+    { "task_id": "task-008", "matter_id": "matter-010", "title": "[QA] 대기 업무 01", "owner_id": "person-06", "backup_user_id": "person-08", "status": "waiting", "lane": "waiting", "wait_state": "client_reply", "due_at": "2026-08-01T09:00:00.000Z", "source_ref": "fixture:task-008" },
+    { "task_id": "task-009", "matter_id": "matter-003", "title": "[QA] 대기 업무 02", "owner_id": "person-03", "backup_user_id": "person-07", "status": "waiting", "lane": "waiting", "wait_state": "counterparty_reply", "due_at": "2026-08-02T09:00:00.000Z", "source_ref": "fixture:task-009" },
+    { "task_id": "task-010", "matter_id": "matter-004", "title": "[QA] 대기 업무 03", "owner_id": "person-04", "backup_user_id": "person-08", "status": "waiting", "lane": "waiting", "wait_state": "internal_review", "due_at": "2026-08-03T09:00:00.000Z", "source_ref": "fixture:task-010" },
+    { "task_id": "task-011", "matter_id": "matter-005", "title": "[QA] 대기 업무 04", "owner_id": "person-05", "backup_user_id": "person-07", "status": "waiting", "lane": "waiting", "wait_state": "client_reply", "due_at": "2026-08-04T09:00:00.000Z", "source_ref": "fixture:task-011" },
+    { "task_id": "task-012", "matter_id": "matter-006", "title": "[QA] 대기 업무 05", "owner_id": "person-06", "backup_user_id": "person-08", "status": "waiting", "lane": "waiting", "wait_state": "external_dependency", "due_at": "2026-08-05T09:00:00.000Z", "source_ref": "fixture:task-012" },
+    { "task_id": "task-013", "matter_id": "matter-007", "title": "[QA] 막힘 업무 01", "owner_id": "person-03", "backup_user_id": "person-07", "status": "blocked", "lane": "blocked", "blocked_reason": "원본 자료 대기", "due_at": "2026-08-01T13:00:00.000Z", "source_ref": "fixture:task-013" },
+    { "task_id": "task-014", "matter_id": "matter-008", "title": "[QA] 막힘 업무 02", "owner_id": "person-04", "backup_user_id": "person-08", "status": "blocked", "lane": "blocked", "blocked_reason": "승인 대기", "due_at": "2026-08-02T13:00:00.000Z", "source_ref": "fixture:task-014" },
+    { "task_id": "task-015", "matter_id": "matter-009", "title": "[QA] 미배정 업무 01", "owner_id": null, "backup_user_id": "person-07", "status": "open", "lane": "unassigned", "due_at": "2026-08-01T15:00:00.000Z", "source_ref": "fixture:task-015" },
+    { "task_id": "task-016", "matter_id": "matter-010", "title": "[QA] 미배정 업무 02", "owner_id": null, "backup_user_id": "person-08", "status": "open", "lane": "unassigned", "due_at": "2026-08-02T06:00:00.000Z", "source_ref": "fixture:task-016" },
+    { "task_id": "task-017", "matter_id": "matter-001", "title": "[QA] 완료 업무 01", "owner_id": "person-03", "backup_user_id": "person-07", "status": "done", "lane": "done", "due_at": "2026-07-15T09:00:00.000Z", "completed_at": "2026-07-15T10:00:00.000Z", "source_ref": "fixture:task-017" },
+    { "task_id": "task-018", "matter_id": "matter-002", "title": "[QA] 완료 업무 02", "owner_id": "person-04", "backup_user_id": "person-08", "status": "done", "lane": "done", "due_at": "2026-07-16T09:00:00.000Z", "completed_at": "2026-07-16T10:00:00.000Z", "source_ref": "fixture:task-018" },
+    { "task_id": "task-019", "matter_id": "matter-003", "title": "[QA] 완료 업무 03", "owner_id": "person-05", "backup_user_id": "person-07", "status": "done", "lane": "done", "due_at": "2026-07-17T09:00:00.000Z", "completed_at": "2026-07-17T10:00:00.000Z", "source_ref": "fixture:task-019" },
+    { "task_id": "task-020", "matter_id": "matter-004", "title": "[QA] 완료 업무 04", "owner_id": "person-06", "backup_user_id": "person-08", "status": "done", "lane": "done", "due_at": "2026-07-18T09:00:00.000Z", "completed_at": "2026-07-18T10:00:00.000Z", "source_ref": "fixture:task-020" },
+    { "task_id": "task-021", "matter_id": "matter-005", "title": "[QA] 완료 업무 05", "owner_id": "person-03", "backup_user_id": "person-07", "status": "done", "lane": "done", "due_at": "2026-07-19T09:00:00.000Z", "completed_at": "2026-07-19T10:00:00.000Z", "source_ref": "fixture:task-021" },
+    { "task_id": "task-022", "matter_id": "matter-006", "title": "[QA] 완료 업무 06", "owner_id": "person-04", "backup_user_id": "person-08", "status": "done", "lane": "done", "due_at": "2026-07-20T09:00:00.000Z", "completed_at": "2026-07-20T10:00:00.000Z", "source_ref": "fixture:task-022" },
+    { "task_id": "task-023", "matter_id": "matter-007", "title": "[QA] 보관 업무 01", "owner_id": "person-05", "backup_user_id": "person-07", "status": "archived", "lane": "archived", "due_at": "2026-07-01T09:00:00.000Z", "archived_at": "2026-07-02T10:00:00.000Z", "source_ref": "fixture:task-023" },
+    { "task_id": "task-024", "matter_id": "matter-008", "title": "[QA] 보관 업무 02", "owner_id": "person-06", "backup_user_id": "person-08", "status": "archived", "lane": "archived", "due_at": "2026-07-02T09:00:00.000Z", "archived_at": "2026-07-03T10:00:00.000Z", "source_ref": "fixture:task-024" },
+    { "task_id": "task-025", "matter_id": "matter-009", "title": "[QA] 보관 업무 03", "owner_id": "person-03", "backup_user_id": "person-07", "status": "archived", "lane": "archived", "due_at": "2026-07-03T09:00:00.000Z", "archived_at": "2026-07-04T10:00:00.000Z", "source_ref": "fixture:task-025" },
+    { "task_id": "task-026", "matter_id": "matter-010", "title": "[QA] 보관 업무 04", "owner_id": "person-04", "backup_user_id": "person-08", "status": "archived", "lane": "archived", "due_at": "2026-07-04T09:00:00.000Z", "archived_at": "2026-07-05T10:00:00.000Z", "source_ref": "fixture:task-026" },
+    { "task_id": "task-027", "matter_id": "matter-011", "title": "[QA] 보관 업무 05", "owner_id": "person-05", "backup_user_id": "person-07", "status": "archived", "lane": "archived", "due_at": "2026-07-05T09:00:00.000Z", "archived_at": "2026-07-06T10:00:00.000Z", "source_ref": "fixture:task-027" },
+    { "task_id": "task-028", "matter_id": "matter-012", "title": "[QA] 보관 업무 06", "owner_id": "person-06", "backup_user_id": "person-08", "status": "archived", "lane": "archived", "due_at": "2026-07-06T09:00:00.000Z", "archived_at": "2026-07-07T10:00:00.000Z", "source_ref": "fixture:task-028" }
+  ],
+  "calendar_events": [
+    { "event_id": "event-001", "matter_id": "matter-003", "kind": "court", "title": "[QA] 조정기일", "starts_at": "2026-07-30T05:00:00.000Z", "source": "local" },
+    { "event_id": "event-002", "matter_id": "matter-004", "kind": "filing", "title": "[QA] 서면 제출", "starts_at": "2026-07-31T00:00:00.000Z", "source": "local" },
+    { "event_id": "event-003", "matter_id": "matter-005", "kind": "consultation", "title": "[QA] 의뢰인 상담", "starts_at": "2026-08-01T02:00:00.000Z", "source": "local" },
+    { "event_id": "event-004", "matter_id": "matter-006", "kind": "internal_review", "title": "[QA] 내부 검토", "starts_at": "2026-08-01T06:00:00.000Z", "source": "local" },
+    { "event_id": "event-005", "matter_id": "matter-007", "kind": "court", "title": "[QA] 변론기일", "starts_at": "2026-08-02T01:00:00.000Z", "source": "local" },
+    { "event_id": "event-006", "matter_id": "matter-008", "kind": "filing", "title": "[QA] 보정서 제출", "starts_at": "2026-08-03T00:00:00.000Z", "source": "local" },
+    { "event_id": "event-007", "matter_id": "matter-009", "kind": "consultation", "title": "[QA] 결과 보고", "starts_at": "2026-08-04T02:00:00.000Z", "source": "local" },
+    { "event_id": "event-008", "matter_id": "matter-010", "kind": "internal_review", "title": "[QA] 주간 점검", "starts_at": "2026-08-05T06:00:00.000Z", "source": "local" }
+  ],
+  "followups": [
+    { "followup_id": "followup-001", "matter_id": "matter-003", "type": "email", "queue": "firm_reply", "title": "[QA] 손해자료 회신", "owner_id": "person-03", "last_contact_at": "2026-07-29T03:00:00.000Z", "next_action_at": "2026-07-30T06:00:00.000Z" },
+    { "followup_id": "followup-002", "matter_id": "matter-004", "type": "call", "queue": "firm_reply", "title": "[QA] 검토 결과 안내", "owner_id": "person-04", "last_contact_at": "2026-07-28T03:00:00.000Z", "next_action_at": "2026-07-30T07:00:00.000Z" },
+    { "followup_id": "followup-003", "matter_id": "matter-005", "type": "meeting", "queue": "client_reply", "title": "[QA] 계약서 보완 요청", "owner_id": "person-05", "last_contact_at": "2026-07-29T05:00:00.000Z", "next_action_at": "2026-08-01T04:00:00.000Z" },
+    { "followup_id": "followup-004", "matter_id": "matter-006", "type": "email", "queue": "client_reply", "title": "[QA] 원본 자료 요청", "owner_id": "person-06", "last_contact_at": "2026-07-28T05:00:00.000Z", "next_action_at": "2026-08-02T04:00:00.000Z" },
+    { "followup_id": "followup-005", "matter_id": "matter-007", "type": "note", "queue": "snoozed", "title": "[QA] 다음 주 확인", "owner_id": "person-03", "last_contact_at": "2026-07-25T05:00:00.000Z", "snoozed_until": "2026-08-06T01:00:00.000Z" },
+    { "followup_id": "followup-006", "matter_id": "matter-008", "type": "call", "queue": "done", "title": "[QA] 일정 확인 완료", "owner_id": "person-04", "last_contact_at": "2026-07-29T07:00:00.000Z", "completed_at": "2026-07-29T07:30:00.000Z" }
+  ],
+  "time_entries": [
+    { "time_entry_id": "time-001", "matter_id": "matter-003", "person_id": "person-03", "minutes": 90, "billable": true, "locked": true, "entry_date": "2026-07-20" },
+    { "time_entry_id": "time-002", "matter_id": "matter-004", "person_id": "person-04", "minutes": 60, "billable": true, "locked": true, "entry_date": "2026-07-21" },
+    { "time_entry_id": "time-003", "matter_id": "matter-005", "person_id": "person-05", "minutes": 45, "billable": true, "locked": true, "entry_date": "2026-07-22" },
+    { "time_entry_id": "time-004", "matter_id": "matter-006", "person_id": "person-06", "minutes": 30, "billable": false, "locked": true, "entry_date": "2026-07-23" },
+    { "time_entry_id": "time-005", "matter_id": "matter-007", "person_id": "person-03", "minutes": 120, "billable": true, "locked": true, "entry_date": "2026-07-24" },
+    { "time_entry_id": "time-006", "matter_id": "matter-008", "person_id": "person-04", "minutes": 75, "billable": true, "locked": true, "entry_date": "2026-07-25" },
+    { "time_entry_id": "time-007", "matter_id": "matter-009", "person_id": "person-05", "minutes": 50, "billable": false, "locked": true, "entry_date": "2026-07-26" },
+    { "time_entry_id": "time-008", "matter_id": "matter-010", "person_id": "person-06", "minutes": 80, "billable": true, "locked": true, "entry_date": "2026-07-27" },
+    { "time_entry_id": "time-009", "matter_id": "matter-003", "person_id": "person-03", "minutes": 110, "billable": true, "locked": true, "entry_date": "2026-07-28" },
+    { "time_entry_id": "time-010", "matter_id": "matter-004", "person_id": "person-04", "minutes": 55, "billable": true, "locked": true, "entry_date": "2026-07-29" },
+    { "time_entry_id": "time-011", "matter_id": "matter-005", "person_id": "person-05", "minutes": 40, "billable": false, "locked": true, "entry_date": "2026-07-29" },
+    { "time_entry_id": "time-012", "matter_id": "matter-006", "person_id": "person-06", "minutes": 65, "billable": true, "locked": true, "entry_date": "2026-07-29" },
+    { "time_entry_id": "time-013", "matter_id": "matter-007", "person_id": "person-03", "minutes": 95, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-014", "matter_id": "matter-008", "person_id": "person-04", "minutes": 70, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-015", "matter_id": "matter-009", "person_id": "person-05", "minutes": 35, "billable": false, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-016", "matter_id": "matter-010", "person_id": "person-06", "minutes": 85, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-017", "matter_id": "matter-003", "person_id": "person-03", "minutes": 100, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-018", "matter_id": "matter-004", "person_id": "person-04", "minutes": 50, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-019", "matter_id": "matter-005", "person_id": "person-05", "minutes": 25, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-020", "matter_id": "matter-006", "person_id": "person-06", "minutes": 70, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-021", "matter_id": "matter-007", "person_id": "person-03", "minutes": 45, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-022", "matter_id": "matter-008", "person_id": "person-04", "minutes": 60, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-023", "matter_id": "matter-009", "person_id": "person-05", "minutes": 30, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-024", "matter_id": "matter-010", "person_id": "person-06", "minutes": 55, "billable": true, "locked": false, "entry_date": "2026-07-30" },
+    { "time_entry_id": "time-025", "matter_id": "matter-011", "person_id": "person-03", "minutes": 20, "billable": true, "locked": false, "entry_date": "2026-07-30" }
+  ],
+  "wip": [
+    { "wip_id": "wip-001", "matter_id": "matter-003", "amount": 900000, "currency": "KRW", "status": "ready", "source_time_entry_ids": ["time-001", "time-009"] },
+    { "wip_id": "wip-002", "matter_id": "matter-004", "amount": 750000, "currency": "KRW", "status": "ready", "source_time_entry_ids": ["time-002", "time-010"] },
+    { "wip_id": "wip-003", "matter_id": "matter-005", "amount": 500000, "currency": "KRW", "status": "ready", "source_time_entry_ids": ["time-003", "time-011"] },
+    { "wip_id": "wip-004", "matter_id": "matter-006", "amount": 650000, "currency": "KRW", "status": "ready", "source_time_entry_ids": ["time-004", "time-012"] }
+  ],
+  "invoices": [
+    { "invoice_id": "invoice-001", "matter_id": "matter-003", "status": "draft", "total_amount": 900000, "currency": "KRW", "issued_at": null, "due_at": "2026-08-29T00:00:00.000Z" },
+    { "invoice_id": "invoice-002", "matter_id": "matter-004", "status": "sent", "total_amount": 750000, "currency": "KRW", "issued_at": "2026-07-10T00:00:00.000Z", "due_at": "2026-08-09T00:00:00.000Z" },
+    { "invoice_id": "invoice-003", "matter_id": "matter-005", "status": "partial", "total_amount": 500000, "paid_amount": 150000, "currency": "KRW", "issued_at": "2026-06-10T00:00:00.000Z", "due_at": "2026-07-10T00:00:00.000Z" }
+  ],
+  "receivables": [
+    { "receivable_id": "ar-001", "invoice_id": "invoice-002", "matter_id": "matter-004", "balance": 750000, "currency": "KRW", "age_days": 21, "bucket": "1_30" },
+    { "receivable_id": "ar-002", "invoice_id": "invoice-003", "matter_id": "matter-005", "balance": 350000, "currency": "KRW", "age_days": 50, "bucket": "31_60" },
+    { "receivable_id": "ar-003", "invoice_id": "invoice-003", "matter_id": "matter-005", "balance": 150000, "currency": "KRW", "age_days": 95, "bucket": "90_plus" }
+  ]
+}

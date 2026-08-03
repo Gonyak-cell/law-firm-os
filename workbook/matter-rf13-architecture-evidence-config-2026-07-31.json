@@ -1,0 +1,95 @@
+{
+  "schema_version": "law-firm-os.rf13-maintainability-architecture-evidence.v1",
+  "tuw_id": "RFD-TUW-037",
+  "status": "IN_PROGRESS",
+  "status_reason": "Upstream architecture splits remain in progress; measurements do not establish behaviour parity.",
+  "responsibility_schema": {
+    "schema_version": "law-firm-os.rf13-responsibility-tags.v1",
+    "allowed_tags": [
+      "api-composition",
+      "authorization",
+      "browser-scenario",
+      "catalog",
+      "domain-service",
+      "evidence-publication",
+      "finance-boundary",
+      "mutation-orchestration",
+      "persistence",
+      "read-model",
+      "route-dispatch",
+      "runtime-composition",
+      "support-fixture",
+      "test-scenario",
+      "validation",
+      "web-surface"
+    ]
+  },
+  "literal_patterns": [
+    {
+      "id": "api-route-literal",
+      "kind": "route",
+      "pattern": "[\\\"'`]\\/(?:api|health)(?:\\/|[\\\"'`])",
+      "flags": "g"
+    },
+    {
+      "id": "matter-route-literal",
+      "kind": "route",
+      "pattern": "[\\\"'`]\\/matter(?:s|\\/|[\\\"'`])",
+      "flags": "g"
+    },
+    {
+      "id": "action-literal",
+      "kind": "action",
+      "pattern": "[\\\"'`](?:create|update|delete|archive|close|restore|approve|reject|reverse)[\\\"'`]",
+      "flags": "g"
+    }
+  ],
+  "files": [
+    {
+      "path": "apps/api/src/finance-runtime-context.js",
+      "responsibility_tags": ["finance-boundary", "runtime-composition"],
+      "behavior_evidence_refs": []
+    },
+    {
+      "path": "apps/api/src/matter-small-firm-api-catalog.js",
+      "responsibility_tags": ["api-composition", "catalog"],
+      "behavior_evidence_refs": []
+    },
+    {
+      "path": "apps/api/src/matter-small-firm-api.js",
+      "responsibility_tags": ["api-composition", "authorization", "route-dispatch"],
+      "behavior_evidence_refs": []
+    },
+    {
+      "path": "apps/api/test/matter-current-seed-worktree.test.js",
+      "responsibility_tags": ["support-fixture", "test-scenario"],
+      "behavior_evidence_refs": []
+    },
+    {
+      "path": "apps/web/src/components/MattersSurface.jsx",
+      "responsibility_tags": ["mutation-orchestration", "web-surface"],
+      "behavior_evidence_refs": []
+    },
+    {
+      "path": "apps/web/test/matter-small-firm-live-http-e2e.test.mjs",
+      "responsibility_tags": ["browser-scenario", "test-scenario"],
+      "behavior_evidence_refs": []
+    },
+    {
+      "path": "packages/payments/src/payment-allocation-service.js",
+      "responsibility_tags": ["domain-service", "persistence", "validation"],
+      "behavior_evidence_refs": []
+    }
+  ],
+  "before": {
+    "status": "NOT_RECORDED",
+    "source_sha": null,
+    "files": [],
+    "note": "Populate from an independently captured baseline; never infer it from current files."
+  },
+  "behavior_evidence": {
+    "status": "PENDING",
+    "references": [],
+    "note": "Record characterization and regression receipts separately from architecture measurements."
+  }
+}

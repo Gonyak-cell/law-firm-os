@@ -136,6 +136,14 @@ const sharedFields = [
   "renderer",
   "channel",
   "app_id",
+  "policy_version",
+  "policy",
+  "requested_runtime_mode",
+  "effective_runtime_mode",
+  "runtime_included",
+  "runtime_data_class",
+  "non_distributable",
+  "distributable",
   "public_release_claim",
   "production_go_live_claim",
 ];
@@ -158,6 +166,12 @@ assert.equal(windowsInstallerManifest.sourceDirty, false);
 assert.equal(windowsInstallerManifest.rendererSha256, windowsRecord.manifest.renderer.sha256);
 assert.equal(windowsInstallerManifest.rendererFiles, windowsRecord.manifest.renderer.file_count);
 assert.equal(windowsInstallerManifest.builtAt, windowsRecord.manifest.built_at);
+assert.equal(windowsInstallerManifest.runtimeRequestedMode, windowsRecord.manifest.requested_runtime_mode);
+assert.equal(windowsInstallerManifest.runtimeEffectiveMode, windowsRecord.manifest.effective_runtime_mode);
+assert.equal(windowsInstallerManifest.runtimeIncluded, windowsRecord.manifest.runtime_included);
+assert.equal(windowsInstallerManifest.runtimeDataClass, windowsRecord.manifest.runtime_data_class);
+assert.equal(windowsInstallerManifest.runtimeNonDistributable, windowsRecord.manifest.non_distributable);
+assert.equal(windowsInstallerManifest.runtimeDistributable, windowsRecord.manifest.distributable);
 
 console.log(JSON.stringify({
   verdict: "PASS",

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { MATTER_DOMAIN_DESCRIPTOR } from "../../../packages/matter/src/central-ledger.js";
+import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import {
   createPostgresApiRuntimeAuthority,
@@ -14,6 +17,10 @@ import { handleFinanceApiRequest } from "../src/finance-runtime-context.js";
 import { handleHomeDashboardApiRequest } from "../src/home-dashboard-runtime-context.js";
 import { handleHrxApiRequest } from "../src/hrx-runtime-context.js";
 import { handleRecordsSearch } from "../src/master-data-context.js";
+import {
+  MATTER_RUNTIME_CANONICAL_TENANT_ID,
+  createMatterRuntimeSeed,
+} from "../src/matter-runtime-context.js";
 import { handlePortalApiRequest } from "../src/portal-runtime-context.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
@@ -71,6 +78,73 @@ test("PostgreSQL API authority retries bounded read baseline conflicts but never
     },
   }), /mutation conflict/u);
   assert.equal(mutationAttempts, 1);
+});
+
+test("PostgreSQL API authority leaves canonical Matter bytes unchanged when membership and worktree are absent", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const seed = createMatterRuntimeSeed({
+    syntheticTenantId: "tenant_postgres_bootstrap_fixture",
+    currentMatterTenantId: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+    includeCurrentMatterCodes: true,
+  });
+  const repository = createMatterRepository({
+    seedRecords: seed.records.filter(
+      ({ tenant_id: tenantId }) => tenantId === MATTER_RUNTIME_CANONICAL_TENANT_ID,
+    ),
+  });
+  const snapshot = createRecordRepositoryDomainSnapshot({
+    descriptor: MATTER_DOMAIN_DESCRIPTOR,
+    repositories: [{ source_id: "postgres-bootstrap-negative-fixture", repository }],
+    tenant_id: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+  }).snapshot;
+  repository.close();
+  await ledger.importSnapshot(snapshot);
+  await importHrxAuthorityBaseline(ledger, MATTER_RUNTIME_CANONICAL_TENANT_ID);
+
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "postgres-bootstrap-negative-test" });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+  });
+  const before = Buffer.from(JSON.stringify(await ledger.list({
+    tenant_id: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+    domain_id: "matter",
+  })));
+
+  const result = await authority.run({
+    tenant_id: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+    request_context: {
+      method: "GET",
+      pathname: "/api/matters/postgres-bootstrap-negative",
+    },
+    command: ({ matterRuntime }) => ({
+      members: matterRuntime.repository.list({
+        tenant_id: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+        model_type: "MatterMember",
+      }).length,
+      worktrees: matterRuntime.repository.list({
+        tenant_id: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+        model_type: "MatterWorktree",
+      }).length,
+    }),
+  });
+
+  assert.deepEqual(result, { members: 0, worktrees: 0 });
+  assert.deepEqual(
+    Buffer.from(JSON.stringify(await ledger.list({
+      tenant_id: MATTER_RUNTIME_CANONICAL_TENANT_ID,
+      domain_id: "matter",
+    }))),
+    before,
+  );
 });
 
 test("PostgreSQL API authority completes the concurrent audited browser read set without leaking conflicts", async (t) => {

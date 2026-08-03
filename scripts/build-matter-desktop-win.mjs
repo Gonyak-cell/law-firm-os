@@ -16,6 +16,15 @@ import {
   readDesktopBuildSourceIdentity,
   writeDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
+import {
+  buildDesktopArtifactPrivacyCorpus,
+  createRf13DistPrivacyMemberReceipt,
+  desktopArtifactPrivacyCorpusSha256,
+  expandedDesktopArtifactDescriptor,
+  inspectExpandedDesktopArtifact,
+  inspectZipDesktopArtifact,
+  writeDesktopArtifactPrivacyJson,
+} from "./lib/matter-desktop-artifact-privacy.mjs";
 import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -42,8 +51,14 @@ const artifactPath = join(distRoot, `${artifactName}-win-installer-manifest.json
 const signaturePath = `${artifactPath}.sig`;
 const externalBuildManifestPath = join(distRoot, `${artifactName}-win-build-manifest.json`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
+const privacyArtifactRoot = "apps/desktop/dist/win/privacy";
+const packageDirectoryPrivacyReceiptPath = `${packageDir}.privacy.json`;
+const packageZipPrivacyReceiptPath = `${packageZipPath}.privacy.json`;
 const iconPath = join(desktopRoot, "build/icon.ico");
 const formalReleaseMarkerName = "matter-formal-release.json";
+const runtimeMode = process.env.MATTER_DESKTOP_RUNTIME_MODE;
+const privateLocalOptIn = process.env.MATTER_DESKTOP_PRIVATE_LOCAL_OPT_IN;
+const nonDistributable = process.env.MATTER_DESKTOP_NON_DISTRIBUTABLE;
 const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
   /(^|\/)test($|\/)/,
@@ -79,7 +94,7 @@ async function zipPackageDirectory(sourceDir, targetZipPath) {
     return;
   }
   if (existsSync("/usr/bin/ditto")) {
-    await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", sourceDir, targetZipPath]);
+    await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--keepParent", sourceDir, targetZipPath]);
     return;
   }
   await execFileAsync("zip", ["-qry", targetZipPath, basename(sourceDir)], {
@@ -96,6 +111,7 @@ await mkdir(dirname(receiptPath), { recursive: true });
 const packageOutRoot = await mkdtemp(join(tmpdir(), "matter-desktop-win-packager-"));
 let buildManifest;
 let buildManifestHash;
+let runtimeMetadata;
 
 try {
   const [generatedAppRoot] = await packager({
@@ -114,10 +130,14 @@ try {
     ignore: shouldIgnorePackagedPath
   });
   await cp(generatedAppRoot, packageDir, { recursive: true });
-  await copyDesktopLocalApiRuntime({
+  runtimeMetadata = await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(packageDir, "resources", "app"),
     repoRoot,
-    formalRelease
+    channel: releaseChannel,
+    runtimeMode,
+    privateLocalOptIn,
+    nonDistributable,
+    formalRelease,
   });
   const markerPath = join(packageDir, "resources", formalReleaseMarkerName);
   if (formalRelease) {
@@ -133,6 +153,12 @@ try {
     platform: "win32",
     arch: "x64",
     appId,
+    requestedRuntimeMode: runtimeMetadata.requestedRuntimeMode,
+    effectiveRuntimeMode: runtimeMetadata.effectiveRuntimeMode,
+    runtimeIncluded: runtimeMetadata.included,
+    runtimeDataClass: runtimeMetadata.dataClass,
+    nonDistributable: runtimeMetadata.nonDistributable,
+    distributable: runtimeMetadata.distributable,
   });
   ({ sha256: buildManifestHash } = await writeDesktopBuildManifest({
     manifest: buildManifest,
@@ -143,6 +169,59 @@ try {
   await rm(packageOutRoot, { recursive: true, force: true });
 }
 await zipPackageDirectory(packageDir, packageZipPath);
+
+let privacyCorpusSha256 = null;
+let packageDirectoryPrivacyReceipt = null;
+let packageZipPrivacyReceipt = null;
+if (formalRelease) {
+  const corpus = await buildDesktopArtifactPrivacyCorpus({ repoRoot, env: process.env });
+  privacyCorpusSha256 = desktopArtifactPrivacyCorpusSha256(corpus);
+  const expandedInspection = await inspectExpandedDesktopArtifact({
+    rootPath: packageDir,
+    buildManifest,
+    corpus,
+    displayBase: repoRoot,
+  });
+  const directoryArtifact = expandedDesktopArtifactDescriptor({
+    id: "windows_package_directory",
+    inspection: expandedInspection,
+  });
+  const directoryMemberPath = `${privacyArtifactRoot}/evidence/members-${directoryArtifact.id}.json`;
+  await writeDesktopArtifactPrivacyJson(join(repoRoot, directoryMemberPath), expandedInspection.member_manifest);
+  packageDirectoryPrivacyReceipt = createRf13DistPrivacyMemberReceipt({
+    receiptId: `rfd-tuw-007-${buildManifest.source_sha.slice(0, 12)}-${directoryArtifact.id}`,
+    artifact: directoryArtifact,
+    buildManifest,
+    inspection: expandedInspection,
+    memberManifestPath: directoryMemberPath,
+  });
+  await writeDesktopArtifactPrivacyJson(packageDirectoryPrivacyReceiptPath, packageDirectoryPrivacyReceipt);
+  const zipInspection = await inspectZipDesktopArtifact({
+    artifactPath: packageZipPath,
+    artifactKind: "unsigned_package_zip",
+    expectedRootName: basename(packageDir),
+    expectedExpandedInspection: expandedInspection,
+    buildManifest,
+    corpus,
+    displayBase: repoRoot,
+  });
+  const artifactDescriptor = {
+    id: "windows_package_zip",
+    kind: "unsigned_package_zip",
+    sha256: zipInspection.artifact_sha256,
+    bytes: zipInspection.artifact_bytes,
+  };
+  const memberPath = `${privacyArtifactRoot}/evidence/members-${artifactDescriptor.id}.json`;
+  await writeDesktopArtifactPrivacyJson(join(repoRoot, memberPath), expandedInspection.member_manifest);
+  packageZipPrivacyReceipt = createRf13DistPrivacyMemberReceipt({
+    receiptId: `rfd-tuw-007-${buildManifest.source_sha.slice(0, 12)}-${artifactDescriptor.id}`,
+    artifact: artifactDescriptor,
+    buildManifest,
+    inspection: zipInspection,
+    memberManifestPath: memberPath,
+  });
+  await writeDesktopArtifactPrivacyJson(packageZipPrivacyReceiptPath, packageZipPrivacyReceipt);
+}
 
 const iconHash = sha256(await readFile(iconPath));
 const executableHash = sha256(await readFile(executablePath));
@@ -164,6 +243,13 @@ const artifact = {
   rendererSha256: buildManifest.renderer.sha256,
   rendererFiles: buildManifest.renderer.file_count,
   builtAt: buildManifest.built_at,
+  runtimeRequestedMode: runtimeMetadata.requestedRuntimeMode,
+  runtimeEffectiveMode: runtimeMetadata.effectiveRuntimeMode,
+  runtimeIncluded: runtimeMetadata.included,
+  runtimeNonDistributable: runtimeMetadata.nonDistributable,
+  runtimeDistributable: runtimeMetadata.distributable,
+  runtimeDataClass: runtimeMetadata.dataClass,
+  runtimePrivacyBoundary: runtimeMetadata.privacyBoundary,
   icon: "build/icon.ico",
   iconSha256: iconHash,
   packageDirectory: `apps/desktop/dist/win/${artifactName}-win32-x64`,
@@ -207,6 +293,19 @@ Source dirty: \`${buildManifest.source_dirty}\`
 Renderer SHA-256: \`${buildManifest.renderer.sha256}\`
 Renderer files: \`${buildManifest.renderer.file_count}\`
 Built at: \`${buildManifest.built_at}\`
+
+## Runtime Data Boundary
+
+- requested runtime data mode: \`${runtimeMetadata.requestedRuntimeMode}\`
+- effective runtime data mode: \`${runtimeMetadata.effectiveRuntimeMode}\`
+- bundled local API runtime included: ${runtimeMetadata.included}
+- non-distributable artifact: ${runtimeMetadata.nonDistributable}
+- distributable artifact: ${runtimeMetadata.distributable}
+- runtime data class: \`${runtimeMetadata.dataClass}\`
+- privacy boundary: \`${runtimeMetadata.privacyBoundary}\`
+- artifact privacy corpus sha256: \`${privacyCorpusSha256 ?? "not_run_non_formal"}\`
+- package directory privacy: ${packageDirectoryPrivacyReceipt?.status ?? "not_run_non_formal"}
+- unsigned package ZIP privacy: ${packageZipPrivacyReceipt?.status ?? "not_run_non_formal"}
 
 ## Signing
 
@@ -261,6 +360,18 @@ console.log(
       renderer_sha256: buildManifest.renderer.sha256,
       renderer_files: buildManifest.renderer.file_count,
       built_at: buildManifest.built_at,
+      runtime_requested_mode: runtimeMetadata.requestedRuntimeMode,
+      runtime_effective_mode: runtimeMetadata.effectiveRuntimeMode,
+      runtime_included: runtimeMetadata.included,
+      runtime_non_distributable: runtimeMetadata.nonDistributable,
+      runtime_distributable: runtimeMetadata.distributable,
+      runtime_data_class: runtimeMetadata.dataClass,
+      runtime_privacy_boundary: runtimeMetadata.privacyBoundary,
+      artifact_privacy_corpus_sha256: privacyCorpusSha256,
+      package_directory_privacy: packageDirectoryPrivacyReceipt?.status ?? "NOT_RUN_NON_FORMAL",
+      package_directory_privacy_receipt: formalRelease ? `apps/desktop/dist/win/${artifactName}-win32-x64.privacy.json` : null,
+      package_zip_privacy: packageZipPrivacyReceipt?.status ?? "NOT_RUN_NON_FORMAL",
+      package_zip_privacy_receipt: formalRelease ? `apps/desktop/dist/win/${artifactName}-win32-x64-unsigned.zip.privacy.json` : null,
       signing_identity: signatureKey,
       manifest_hash: manifestHash,
       executable_hash: executableHash,

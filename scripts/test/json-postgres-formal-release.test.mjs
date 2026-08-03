@@ -55,7 +55,7 @@ const artifacts = [
     : { native_signature_verified: true }),
 }));
 const artifactManifest = {
-  schema_version: "law-firm-os.json-postgres-production-artifact.v1",
+  schema_version: "law-firm-os.json-postgres-production-artifact.v2",
   source_sha: packet.source_sha,
   source_tree: packet.source_tree,
   data_scope: "approved-immutable-inputs-only",
@@ -69,8 +69,20 @@ const artifactManifest = {
   packaged_real_identity_count: 0,
   packaged_real_client_count: 0,
   packaged_static_role_assignment_count: 0,
+  packaged_private_profile_photo_count: 10,
   secrets_in_environment: false,
   production_ready_claim: false,
+  profile_photo_artifact: {
+    metadata_path: "apps/api/src/hrx-member-photo-artifact-metadata.json",
+    metadata_schema_version: "law-firm-os.profile-photo-artifact-metadata.v1",
+    metadata_sha256: "f".repeat(64),
+    generation_ref: `profile_generation_${"d".repeat(32)}`,
+    private_manifest_schema_version: "law-firm-os.profile-photo-replacement-manifest.v2",
+    private_manifest_sha256: "d".repeat(64),
+    private_manifest_entry_count: 10,
+    injected_photo_entry_count: 10,
+    git_source_photo_entry_count: 0,
+  },
   artifact_sha256: packet.bindings.artifact_sha256,
 };
 const reproducibility = createJsonPostgresArtifactReproducibilityEvidence({

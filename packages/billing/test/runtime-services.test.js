@@ -22,6 +22,8 @@ import {
   createFeeArrangement,
   createRateCard,
   createTimeEntry,
+  lockTimeWeek,
+  submitTimeWeek,
 } from "../../time-expense/src/index.js";
 import {
   computeArBalance,
@@ -85,6 +87,24 @@ function buildFinanceChain(repository = createFinanceRepository()) {
     idempotency_key: "time-1",
   });
   approveTimeEntryForWip({ repository, tenant_id: TENANT, time_entry_id: "time-g7-001", actor_id: ACTOR, idempotency_key: "time-approve-1" });
+  submitTimeWeek({
+    repository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    time_entry_ids: ["time-g7-001"],
+    week_start: "2026-06-15",
+    now: "2026-06-20T09:00:00.000Z",
+    idempotency_key: "time-submit-1",
+  });
+  lockTimeWeek({
+    repository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    time_entry_ids: ["time-g7-001"],
+    week_start: "2026-06-15",
+    now: "2026-06-20T09:01:00.000Z",
+    idempotency_key: "time-lock-1",
+  });
   createExpense({
     repository,
     expense: {
@@ -379,6 +399,25 @@ function buildFeeArrangementInvoice({ suffix, type, terms = {}, timeEntries = [{
       idempotency_key: `time-b11-${suffix}-${index}-approve`,
     });
   }
+  const timeEntryIds = timeEntries.map((_, index) => `time-g7-b11-${suffix}-${index}`);
+  submitTimeWeek({
+    repository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    time_entry_ids: timeEntryIds,
+    week_start: "2026-06-29",
+    now: "2026-07-02T09:00:00.000Z",
+    idempotency_key: `time-b11-${suffix}-submit`,
+  });
+  lockTimeWeek({
+    repository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    time_entry_ids: timeEntryIds,
+    week_start: "2026-06-29",
+    now: "2026-07-02T09:01:00.000Z",
+    idempotency_key: `time-b11-${suffix}-lock`,
+  });
 
   const wip = generateWipFromApprovedItems({
     repository,

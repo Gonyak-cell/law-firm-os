@@ -5,9 +5,66 @@ import { readFileSync, readdirSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-export const DESKTOP_BUILD_MANIFEST_SCHEMA = "law-firm-os.matter-desktop-build-provenance.v1";
+export const DESKTOP_BUILD_MANIFEST_SCHEMA = "law-firm-os.matter-desktop-build-provenance.v2";
+export const DESKTOP_RELEASE_POLICY_SCHEMA = "law-firm-os.matter-desktop-release-policy.v1";
 export const DESKTOP_RENDERER_DIGEST_ALGORITHM = "sha256(sorted sha256 file manifest with ./ relative paths)";
 export const DESKTOP_RELEASE_CHANNELS = Object.freeze(["dev", "internal", "candidate", "formal"]);
+export const DESKTOP_RUNTIME_DATA_MODES = Object.freeze(["none", "synthetic", "private-local"]);
+
+export const DESKTOP_RELEASE_CHANNEL_POLICY = Object.freeze({
+  dev: Object.freeze({
+    dataMode: "synthetic",
+    allowedDataClass: "synthetic_only",
+    allowedDataModes: Object.freeze(["synthetic", "private-local"]),
+    allowedDataClasses: Object.freeze({ synthetic: "synthetic_only", "private-local": "private_local" }),
+    privateLocalAllowed: true,
+    privateLocalRequiresExplicitGuards: true,
+    apiTarget: "local_api",
+    deploymentTarget: "developer_workstation",
+    deliveryTarget: "none",
+    distributable: false,
+    thinClient: false,
+  }),
+  internal: Object.freeze({
+    dataMode: "synthetic",
+    allowedDataClass: "synthetic_only",
+    allowedDataModes: Object.freeze(["synthetic", "private-local"]),
+    allowedDataClasses: Object.freeze({ synthetic: "synthetic_only", "private-local": "private_local" }),
+    privateLocalAllowed: true,
+    privateLocalRequiresExplicitGuards: true,
+    apiTarget: "local_api",
+    deploymentTarget: "internal_qa",
+    deliveryTarget: "internal_only",
+    distributable: false,
+    thinClient: false,
+  }),
+  candidate: Object.freeze({
+    dataMode: "none",
+    allowedDataClass: "none",
+    allowedDataModes: Object.freeze(["none"]),
+    allowedDataClasses: Object.freeze({ none: "none" }),
+    privateLocalAllowed: false,
+    privateLocalRequiresExplicitGuards: false,
+    apiTarget: "external_authenticated_api",
+    deploymentTarget: "controlled_review",
+    deliveryTarget: "controlled_review_only",
+    distributable: false,
+    thinClient: true,
+  }),
+  formal: Object.freeze({
+    dataMode: "none",
+    allowedDataClass: "none",
+    allowedDataModes: Object.freeze(["none"]),
+    allowedDataClasses: Object.freeze({ none: "none" }),
+    privateLocalAllowed: false,
+    privateLocalRequiresExplicitGuards: false,
+    apiTarget: "external_authenticated_api",
+    deploymentTarget: "formal_distribution",
+    deliveryTarget: "external_distribution",
+    distributable: true,
+    thinClient: true,
+  }),
+});
 
 const DESKTOP_RELEASE_CHANNEL_CONFIG = Object.freeze({
   dev: Object.freeze({
@@ -76,6 +133,14 @@ const MANIFEST_KEYS = [
   "arch",
   "app_id",
   "built_at",
+  "policy_version",
+  "policy",
+  "requested_runtime_mode",
+  "effective_runtime_mode",
+  "runtime_included",
+  "runtime_data_class",
+  "non_distributable",
+  "distributable",
   "public_release_claim",
   "production_go_live_claim",
 ];
@@ -90,6 +155,11 @@ export function desktopReleaseChannelConfig(channel = "internal") {
     `release channel must be one of: ${DESKTOP_RELEASE_CHANNELS.join(", ")}`,
   );
   return DESKTOP_RELEASE_CHANNEL_CONFIG[channel];
+}
+
+export function desktopReleaseChannelPolicy(channel = "internal") {
+  desktopReleaseChannelConfig(channel);
+  return DESKTOP_RELEASE_CHANNEL_POLICY[channel];
 }
 
 export function sha256File(filePath) {
@@ -177,6 +247,64 @@ export function assertDesktopFormalBuildProvenance({
   };
 }
 
+function policyManifestForChannel(channel) {
+  const policy = desktopReleaseChannelPolicy(channel);
+  return {
+    data_mode: policy.dataMode,
+    allowed_data_modes: [...policy.allowedDataModes],
+    allowed_data_classes: { ...policy.allowedDataClasses },
+    api_target: policy.apiTarget,
+    deployment_target: policy.deploymentTarget,
+    delivery_target: policy.deliveryTarget,
+    distributable: policy.distributable,
+    thin_client: policy.thinClient,
+    private_local_allowed: policy.privateLocalAllowed,
+    private_local_requires_explicit_guards: policy.privateLocalRequiresExplicitGuards,
+  };
+}
+
+function validateRuntimeManifestFields(manifest, channelConfig) {
+  assert.equal(manifest.policy_version, DESKTOP_RELEASE_POLICY_SCHEMA);
+  assert.deepEqual(Object.keys(manifest.policy), [
+    "data_mode",
+    "allowed_data_modes",
+    "allowed_data_classes",
+    "api_target",
+    "deployment_target",
+    "delivery_target",
+    "distributable",
+    "thin_client",
+    "private_local_allowed",
+    "private_local_requires_explicit_guards",
+  ]);
+  assert.deepEqual(manifest.policy, policyManifestForChannel(manifest.channel), "manifest policy must match its release channel");
+  assert.ok(DESKTOP_RUNTIME_DATA_MODES.includes(manifest.requested_runtime_mode));
+  assert.ok(DESKTOP_RUNTIME_DATA_MODES.includes(manifest.effective_runtime_mode));
+  assert.ok(manifest.policy.allowed_data_modes.includes(manifest.requested_runtime_mode), "requested runtime mode is not allowed by the channel policy");
+  assert.equal(manifest.effective_runtime_mode, manifest.requested_runtime_mode, "effective runtime mode must equal requested runtime mode");
+  assert.equal(
+    manifest.runtime_data_class,
+    manifest.policy.allowed_data_classes[manifest.effective_runtime_mode],
+    "runtime data class must match the policy mode",
+  );
+  assert.equal(typeof manifest.runtime_included, "boolean");
+  assert.equal(manifest.runtime_included, manifest.effective_runtime_mode !== "none");
+  assert.equal(typeof manifest.non_distributable, "boolean");
+  assert.equal(typeof manifest.distributable, "boolean");
+  assert.equal(manifest.distributable, manifest.policy.distributable);
+  assert.equal(manifest.non_distributable, !manifest.distributable);
+  if (manifest.effective_runtime_mode === "private-local") {
+    assert.equal(manifest.policy.private_local_allowed, true);
+    assert.equal(manifest.policy.private_local_requires_explicit_guards, true);
+    assert.equal(manifest.non_distributable, true);
+  }
+  if (channelConfig.formal) {
+    assert.equal(manifest.effective_runtime_mode, "none");
+    assert.equal(manifest.runtime_included, false);
+    assert.equal(manifest.non_distributable, false);
+  }
+}
+
 export function validateDesktopBuildManifest(manifest) {
   assert.ok(manifest && typeof manifest === "object" && !Array.isArray(manifest), "build manifest must be an object");
   assert.deepEqual(Object.keys(manifest), MANIFEST_KEYS, "build manifest keys must match the PV-002 schema");
@@ -196,6 +324,7 @@ export function validateDesktopBuildManifest(manifest) {
   assert.ok(manifest.platform === "darwin" ? ["arm64", "x64"].includes(manifest.arch) : manifest.arch === "x64");
   assert.equal(manifest.app_id, channelConfig.appId, "app_id must match release channel");
   assert.equal(new Date(manifest.built_at).toISOString(), manifest.built_at, "built_at must be a canonical ISO timestamp");
+  validateRuntimeManifestFields(manifest, channelConfig);
   assert.equal(manifest.public_release_claim, false);
   assert.equal(manifest.production_go_live_claim, false);
   return manifest;
@@ -211,6 +340,12 @@ export function createDesktopBuildManifest({
   platform,
   arch,
   appId,
+  requestedRuntimeMode,
+  effectiveRuntimeMode,
+  runtimeIncluded,
+  runtimeDataClass,
+  nonDistributable,
+  distributable,
   builtAt = new Date().toISOString(),
 }) {
   return validateDesktopBuildManifest({
@@ -227,6 +362,14 @@ export function createDesktopBuildManifest({
     arch,
     app_id: appId,
     built_at: builtAt,
+    policy_version: DESKTOP_RELEASE_POLICY_SCHEMA,
+    policy: policyManifestForChannel(channel),
+    requested_runtime_mode: requestedRuntimeMode,
+    effective_runtime_mode: effectiveRuntimeMode,
+    runtime_included: runtimeIncluded,
+    runtime_data_class: runtimeDataClass,
+    non_distributable: nonDistributable,
+    distributable,
     public_release_claim: false,
     production_go_live_claim: false,
   });

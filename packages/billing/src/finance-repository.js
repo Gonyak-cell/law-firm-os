@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 
 export const FINANCE_PRIMARY_ID_FIELDS = Object.freeze({
@@ -34,6 +35,39 @@ export const FINANCE_PRIMARY_ID_FIELDS = Object.freeze({
 
 function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
+function canonicalJsonValue(value) {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new TypeError("idempotency request numbers must be finite");
+    return value;
+  }
+  if (Array.isArray(value)) return value.map((item) => canonicalJsonValue(item ?? null));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.keys(value)
+        .filter((key) => value[key] !== undefined)
+        .sort()
+        .map((key) => [key, canonicalJsonValue(value[key])]),
+    );
+  }
+  throw new TypeError("idempotency request must contain JSON values");
+}
+
+export function canonicalFinanceRequestFingerprint(request = {}) {
+  return createHash("sha256").update(JSON.stringify(canonicalJsonValue(request))).digest("hex");
+}
+
+export class FinanceIdempotencyConflictError extends Error {
+  constructor() {
+    super("idempotency key was already used for a different finance request");
+    this.name = "FinanceIdempotencyConflictError";
+    this.code = "FINANCE_IDEMPOTENCY_CONFLICT";
+    this.safe_error_code = "IDEMPOTENCY_CONFLICT";
+    this.status = 409;
+    this.status_code = 409;
+  }
 }
 
 function assertTenant(tenantId) {
@@ -100,6 +134,27 @@ function normalizeState(input) {
   };
 }
 
+function optionalIdentity(value) {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+function idempotencyCandidate(entry = {}) {
+  return {
+    operation: optionalIdentity(entry.operation) ?? "finance_operation",
+    actor_id: optionalIdentity(entry.actor_id),
+    object_type: optionalIdentity(entry.object_type),
+    object_id: optionalIdentity(entry.object_id),
+    request_fingerprint: optionalIdentity(entry.request_fingerprint)
+      ?? canonicalFinanceRequestFingerprint(entry.request ?? {}),
+  };
+}
+
+function assertMatchingIdempotency(existing, expected, fields) {
+  if (fields.some((field) => (existing[field] ?? null) !== (expected[field] ?? null))) {
+    throw new FinanceIdempotencyConflictError();
+  }
+}
+
 export function createFinanceRepository({
   filePath,
   seedRecords = [],
@@ -150,6 +205,24 @@ export function createFinanceRepository({
     const normalized = normalizeRecord(record);
     const key = recordKey(normalized);
     if (!overwrite && records.has(key)) throw new Error(`${normalized.model_type} already exists: ${primaryIdOf(normalized)}`);
+    if (normalized.model_type === "WipItem") {
+      const duplicateSource = [...records.values()].find(
+        (item) =>
+          item.model_type === "WipItem" &&
+          item.tenant_id === normalized.tenant_id &&
+          item.matter_id === normalized.matter_id &&
+          item.source_model_type === normalized.source_model_type &&
+          item.source_id === normalized.source_id &&
+          recordKey(item) !== key,
+      );
+      if (duplicateSource) {
+        const error = new Error("WIP source item already exists for this matter");
+        error.code = "FINANCE_WIP_SOURCE_CONFLICT";
+        error.status = 409;
+        error.status_code = 409;
+        throw error;
+      }
+    }
     records.set(key, clone(normalized));
     persist();
     return Object.freeze(clone(normalized));
@@ -176,12 +249,19 @@ export function createFinanceRepository({
     },
     upsert(record) {
       assertOpen();
+      const current = records.get(refKey(record));
+      if (current?.model_type === "WipSnapshot" && current.immutable_snapshot === true) {
+        throw new Error("immutable WIP snapshot cannot be changed");
+      }
       return put(record, { overwrite: true });
     },
     update(ref, patch = {}) {
       assertOpen();
       const current = records.get(refKey(ref));
       if (!current) throw new Error(`${ref.model_type} not found: ${ref.id ?? ref.resource_id}`);
+      if (current.model_type === "WipSnapshot" && current.immutable_snapshot === true) {
+        throw new Error("immutable WIP snapshot cannot be changed");
+      }
       return put({ ...current, ...patch, tenant_id: current.tenant_id, model_type: current.model_type }, { overwrite: true });
     },
     get(ref) {
@@ -209,20 +289,42 @@ export function createFinanceRepository({
       if (typeof entry.idempotency_key !== "string" || entry.idempotency_key.trim() === "") {
         throw new TypeError("idempotency_key is required");
       }
+      const candidate = idempotencyCandidate(entry);
+      const key = `${entry.tenant_id}:${entry.idempotency_key}`;
+      const existing = idempotency.get(key);
+      if (existing) {
+        assertMatchingIdempotency(
+          existing,
+          candidate,
+          ["operation", "actor_id", "object_type", "object_id", "request_fingerprint"],
+        );
+        return Object.freeze(clone(existing));
+      }
       const value = Object.freeze({
         tenant_id: entry.tenant_id,
         idempotency_key: entry.idempotency_key,
-        operation: entry.operation ?? "finance_operation",
+        ...candidate,
         response: clone(entry.response ?? {}),
         created_at: entry.created_at ?? new Date().toISOString(),
       });
-      idempotency.set(`${value.tenant_id}:${value.idempotency_key}`, clone(value));
+      idempotency.set(key, clone(value));
       persist();
       return value;
     },
     getIdempotency(ref = {}) {
       assertOpen();
-      return Object.freeze(clone(idempotency.get(`${ref.tenant_id}:${ref.idempotency_key}`)));
+      const existing = idempotency.get(`${ref.tenant_id}:${ref.idempotency_key}`);
+      if (!existing) return undefined;
+      const expected = idempotencyCandidate(ref);
+      const fields = [
+        ...(Object.hasOwn(ref, "operation") ? ["operation"] : []),
+        ...(Object.hasOwn(ref, "actor_id") ? ["actor_id"] : []),
+        ...(Object.hasOwn(ref, "object_type") ? ["object_type"] : []),
+        ...(Object.hasOwn(ref, "object_id") ? ["object_id"] : []),
+        ...(Object.hasOwn(ref, "request") || Object.hasOwn(ref, "request_fingerprint") ? ["request_fingerprint"] : []),
+      ];
+      assertMatchingIdempotency(existing, expected, fields);
+      return Object.freeze(clone(existing));
     },
     appendAudit(event = {}) {
       assertOpen();

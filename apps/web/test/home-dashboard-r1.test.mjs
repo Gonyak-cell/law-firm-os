@@ -7,13 +7,16 @@ import { chromium } from "playwright";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
+import { installMatterUiSignedSession } from "./support/lawos-session-test-support.mjs";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(testDir, "..");
 
-function installRouteWindow({ view, section, roleIds = [] }) {
+function installRouteWindow({ view, section, roleIds = [], matterId = "" }) {
   const storage = new Map();
-  const search = `?view=${encodeURIComponent(view)}&ctx=allow`;
+  const params = new URLSearchParams({ view, ctx: "allow" });
+  if (matterId) params.set("matter_id", matterId);
+  const search = `?${params.toString()}`;
   const hash = section ? `#${encodeURIComponent(section)}` : "";
   globalThis.window = {
     location: { pathname: "/", search, hash, protocol: "http:" },
@@ -111,6 +114,12 @@ async function availablePort() {
       server.close(() => resolvePort(port));
     });
   });
+}
+
+async function newSignedHomePage(browser, options) {
+  const page = await browser.newPage(options);
+  await installMatterUiSignedSession(page);
+  return page;
 }
 
 async function compactRecordLayoutFailures(page) {
@@ -273,9 +282,9 @@ function wp5ApiBody(pathname, searchParams, state) {
   }
   if (pathname === "/api/matters") {
     return list("dashboard-matters", [
-      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) },
+      { matter_id: "matter-dashboard-opening", matter_code: "2026-101", title: "신규 자문", client_display_name: "고객 A", status: "opening", matter_type_english: "Advisory", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(0) },
       { matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "진행 자문", client_display_name: "고객 B", status: "active", matter_type_english: "LIT", owner_user_id: "jwsuh@amic.kr", updated_at: wp5IsoDay(0) },
-      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: wp5IsoDay(-2) }
+      { matter_id: "matter-dashboard-closed", matter_code: "2026-088", title: "종결 자문", client_display_name: "고객 C", status: "closed", matter_type_english: "DEAL", closed_at: wp5IsoDay(0) }
     ]);
   }
   if (pathname === "/api/matters/recently-viewed") {
@@ -285,7 +294,7 @@ function wp5ApiBody(pathname, searchParams, state) {
     return list("dashboard-intakes", [{ intake_request_id: "intake-dashboard-1", display_name: "고객 A", requested_scope_summary: "신규 자문 수임", status: "review_required", requested_at: wp5IsoDay(-1) }]);
   }
   if (pathname === "/api/crm/accounts") {
-    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
+    return list("dashboard-accounts", [{ account_id: "account-dashboard-1", display_name: "account-dashboard-1", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(0) }]);
   }
   if (pathname === "/api/crm/leads") {
     return list("dashboard-leads", [{ lead_id: "lead-dashboard-1", display_name: "담당자 unsafe-dashboard@amic.kr", status: "active", owner_user_id: "jwsuh@amic.kr", created_at: wp5IsoDay(-1) }]);
@@ -623,20 +632,23 @@ test("R1 WP-2 renders dedicated Home utility screens from legacy route context",
   assert.match(company, /data-home-audit-summary="true"/);
 });
 
-test("WP-FIN-1 resolves finance and Matter settlement routes into Home", async () => {
-  const cases = [
+test("WP-FIN-1 resolves finance and Matter settlement routes into their canonical surfaces", async () => {
+  const homeCases = [
     { view: "finance", section: "finance-matter-billing", target: "home-finance-billing" },
-    { view: "finance", section: "finance-expenses", target: "home-finance-expenses" },
-    { view: "matters", section: "matter-time", target: "home-finance-time" },
-    { view: "matters", section: "matter-expenses", target: "home-finance-expenses" },
-    { view: "matters", section: "matter-billing", target: "home-finance-billing" },
-    { view: "matters", section: "matter-ar", target: "home-finance-ar" }
+    { view: "finance", section: "finance-expenses", target: "home-finance-expenses" }
   ];
-  for (const route of cases) {
+  for (const route of homeCases) {
     const html = await renderAppAtLegacyRoute(route);
     assert.match(html, new RegExp(`data-active-home-section="${route.target}"`));
     assert.match(html, new RegExp(`data-home-finance-route-contract="${route.target}"`));
     assert.match(html, /data-sidebar-group="home-finance"/);
+  }
+  for (const route of ["matter-time", "matter-expenses", "matter-billing", "matter-ar"]) {
+    const html = await renderAppAtLegacyRoute({ view: "matters", section: route, matterId: "matter_wp_fin" });
+    assert.match(html, /data-matter-small-firm-screen="matter-time-billing"/);
+    assert.match(html, /data-context-sidebar="matters"/);
+    assert.match(html, /class="sidebar-item active" aria-current="location"[\s\S]*?<span class="sidebar-label">시간·청구<\/span>/);
+    assert.doesNotMatch(html, /data-home-finance-route-contract=/);
   }
   const approvals = await renderAppAtLegacyRoute({ view: "matters", section: "matter-approvals" });
   assert.match(approvals, /data-active-home-section="home-requests"/);
@@ -655,24 +667,22 @@ test("WP-FIN-1 preserves Matter context and sidebar state in the browser", async
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
     await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow&matter_id=matter_wp_fin#matter-time`, { waitUntil: "networkidle" });
-    await page.waitForSelector('[data-home-finance-route-contract="home-finance-time"]');
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-time-billing"]');
     await page.waitForFunction(() => {
       const url = new URL(window.location.href);
-      return url.searchParams.get("view") === "home" && url.searchParams.get("matter_id") === "matter_wp_fin" && url.hash === "#home-finance-time";
+      return url.searchParams.get("view") === "matters" && url.searchParams.get("matter_id") === "matter_wp_fin" && url.searchParams.get("filter") === "time" && url.hash === "#matter-time-billing";
     });
 
-    const group = page.locator('[data-sidebar-group="home-finance"]');
-    assert.equal(await group.count(), 1);
-    assert.equal(await group.locator(".sidebar-group-toggle").getAttribute("aria-expanded"), "true");
-    await group.getByRole("button", { name: "고객별 매출/비용", exact: true }).click();
-    await page.waitForSelector('[data-home-finance-route-contract="home-finance-clients"]');
-    assert.equal(new URL(page.url()).hash, "#home-finance-clients");
+    const matterSidebar = page.locator('[data-context-sidebar="matters"]');
+    assert.equal(await matterSidebar.locator(".sidebar-group-toggle").count(), 0);
+    assert.equal(await matterSidebar.getByRole("button", { name: "시간·청구", exact: true }).getAttribute("aria-current"), "location");
+    assert.equal(await matterSidebar.locator(".sidebar-child").count(), 0);
   } finally {
     await browser.close();
     await server.close();
@@ -690,13 +700,13 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
 
-    for (const view of ["home", "clients", "matters", "people"]) {
+    for (const view of ["home", "clients", "people"]) {
       await page.goto(`http://127.0.0.1:${port}/?view=${view}&ctx=allow`, { waitUntil: "networkidle" });
       const overlayScrim = page.locator(".record-overlay-scrim");
       if (await overlayScrim.count()) await overlayScrim.click();
@@ -726,6 +736,17 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
       }
       assert.equal(await page.locator(".context-subnav").count(), 0, `${view} must not render duplicate top contextual navigation`);
     }
+
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-today`, { waitUntil: "networkidle" });
+    const matterSidebar = page.locator('[data-context-sidebar="matters"]');
+    assert.deepEqual(
+      await matterSidebar.locator(".sidebar-nav > .sidebar-item .sidebar-label").allTextContents(),
+      ["오늘", "사건", "업무", "일정", "연락·후속", "시간·청구"]
+    );
+    assert.equal(await matterSidebar.locator(".sidebar-nav > .sidebar-item").count(), 6);
+    assert.equal(await matterSidebar.locator(".sidebar-group-toggle").count(), 0, "Matter must stay flat instead of adding accordion groups");
+    assert.equal(await matterSidebar.locator(".sidebar-child").count(), 0, "Matter flat routes must not render nested children");
+    assert.equal(await page.locator(".context-subnav").count(), 0, "Matter must not render duplicate top contextual navigation");
 
     await page.goto(`http://127.0.0.1:${port}/?view=people&ctx=allow#people-members`, { waitUntil: "networkidle" });
     const peopleSidebar = page.locator('[data-context-sidebar="people"] .sidebar-nav');
@@ -865,7 +886,7 @@ test("attendance workspace records only clock-in and clock-out times", async () 
   let submitted = null;
   const consoleErrors = [];
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     page.on("console", (message) => {
       if (message.type() === "error") consoleErrors.push(message.text());
     });
@@ -939,18 +960,18 @@ test("mixed Korean and English record text uses regular Pretendard and SUITE", a
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
 
-    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matters-list`, { waitUntil: "networkidle" });
-    await page.waitForSelector('[data-matter-selected-record-list="true"] .matter-selectable-record-button strong');
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-list`, { waitUntil: "networkidle" });
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-list"] .matter-ops-table tbody tr strong');
     const matterTypography = await page.evaluate(async () => {
       await document.fonts.ready;
-      const header = getComputedStyle(document.querySelector(".matter-selectable-header"));
-      const record = getComputedStyle(document.querySelector(".matter-selectable-record-button strong"));
+      const header = getComputedStyle(document.querySelector('[data-matter-small-firm-screen="matter-list"] .matter-ops-header h2'));
+      const record = getComputedStyle(document.querySelector('[data-matter-small-firm-screen="matter-list"] .matter-ops-table tbody tr strong'));
       return {
         headerFamily: header.fontFamily,
         headerWeight: header.fontWeight,
@@ -961,7 +982,7 @@ test("mixed Korean and English record text uses regular Pretendard and SUITE", a
       };
     });
     assert.match(matterTypography.headerFamily, /SUITE Matter/);
-    assert.equal(matterTypography.headerWeight, "600");
+    assert.equal(matterTypography.headerWeight, "700");
     assert.match(matterTypography.recordFamily, /Pretendard Matter/);
     assert.doesNotMatch(matterTypography.recordFamily, /IBM Plex|Mono|SFMono|Menlo/);
     assert.equal(matterTypography.recordWeight, "400");
@@ -998,7 +1019,7 @@ test("WP-FIN-3 renders reconciled Home finance views and keeps filters in the UR
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1280, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
@@ -1057,7 +1078,7 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
   const listBody = (items = []) => ({ request_id: "wp-fin-4-list", outcome: "passed", items, page_info: { next_cursor: null, returned_count: items.length }, safe_error_codes: [], audit_hint_ref: "wp-fin-4-audit", ui_state: items.length === 0 ? "empty" : null, count_leak_prevented: true, production_ready_claim: false });
   const actionBody = (extra = {}) => ({ request_id: "wp-fin-4-action", outcome: "created", safe_error_codes: [], audit_hint_ref: "wp-fin-4-action-audit", production_ready_claim: false, ...extra });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 1000 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 1000 } });
     await page.route("**/api/**", async (route) => {
       const request = route.request();
       const url = new URL(request.url());
@@ -1073,8 +1094,8 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
       if (url.pathname === "/api/finance/disbursements" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { disbursement_id: "disbursement-live-1", matter_id: "matter-live-1", amount: 15000, currency: "KRW" } }), 201);
       if (url.pathname === "/api/finance/wip") return jsonResponse(route, actionBody({ items: [{ wip_item_id: "wip-live-1", matter_id: "matter-live-1", amount: 1000, currency: "KRW" }] }), 201);
       if (url.pathname === "/api/finance/wip-snapshots") return jsonResponse(route, actionBody({ item: { wip_snapshot_id: "snapshot-live-1" } }), 201);
-      if (url.pathname === "/api/finance/prebills") return jsonResponse(route, actionBody({ item: { prebill_id: "prebill-live-1", status: "draft" } }), 201);
-      if (url.pathname === "/api/finance/prebills/approve") return jsonResponse(route, actionBody({ item: { prebill_id: "prebill-live-1", status: "approved" } }));
+      if (url.pathname === "/api/finance/prebills") return jsonResponse(route, actionBody({ item: { prebill_id: "prebill-live-1", status: "partner_review_required" } }), 201);
+      if (url.pathname === "/api/finance/prebills/approve") return jsonResponse(route, actionBody({ item: { prebill_id: request.postDataJSON().prebill_id, status: "partner_approved" } }));
       if (url.pathname === "/api/finance/invoices" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { invoice_id: "invoice-live-1", matter_id: "matter-live-1", invoice_number: "INV-001", amount_due: 1000, amount_paid: 0, currency: "KRW", status: "issued" } }), 201);
       if (url.pathname === "/api/finance/payments" && request.method() === "POST") return jsonResponse(route, actionBody({ item: { payment_id: "payment-live-1", matter_id: "matter-live-1", amount: 1000, unapplied_amount: 1000, currency: "KRW" } }), 201);
       if (url.pathname === "/api/finance/payment-matches") return jsonResponse(route, actionBody({ item: { payment_match_id: "match-live-1", amount: 1000 }, invoice: { invoice_id: "invoice-live-1", matter_id: "matter-live-1", amount_due: 1000, amount_paid: 1000, currency: "KRW", status: "paid" }, payment: { payment_id: "payment-live-1", amount: 1000, unapplied_amount: 0, currency: "KRW" } }), 201);
@@ -1101,8 +1122,12 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     await financeSubnav.getByRole("button", { name: "청구/수납", exact: true }).click();
     await page.waitForSelector('[data-home-finance-operation="billing"]');
     await page.getByRole("button", { name: "청구 준비", exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('[data-matter-prebill-review-action="true"] button')?.disabled);
-    await page.getByRole("button", { name: "검토 승인", exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector('[data-matter-prebill-create-action="true"]')?.disabled);
+    await page.locator('[data-matter-prebill-create-action="true"]').click();
+    await page.locator('[data-matter-prebill-status="partner_review_required"]').waitFor();
+    await page.waitForFunction(() => !document.querySelector('[data-matter-prebill-approve-no-adjust-action="true"]')?.disabled);
+    await page.locator('[data-matter-prebill-approve-no-adjust-action="true"]').click();
+    await page.locator('[data-matter-prebill-status="partner_approved"]').waitFor();
     await page.waitForFunction(() => !document.querySelector('[data-matter-invoice-issue-action="true"] button')?.disabled);
     await page.getByRole("button", { name: "발행", exact: true }).click();
     await page.waitForFunction(() => !document.querySelector('[data-matter-payment-import-action="true"]')?.disabled);
@@ -1123,6 +1148,18 @@ test("WP-FIN-4 runs the shared Matter finance workflow from Home", async () => {
     for (const expected of ["POST /api/finance/time-entries", "POST /api/finance/expenses", "POST /api/finance/disbursements", "POST /api/finance/wip", "POST /api/finance/wip-snapshots", "POST /api/finance/prebills", "POST /api/finance/prebills/approve", "POST /api/finance/invoices", "POST /api/finance/payments", "POST /api/finance/payment-matches", "GET /api/finance/accounting-export.csv"]) {
       assert.ok(calls.includes(expected), `missing ${expected}`);
     }
+    assert.deepEqual(calls.filter((call) => call.startsWith("POST /api/finance/")), [
+      "POST /api/finance/time-entries",
+      "POST /api/finance/expenses",
+      "POST /api/finance/disbursements",
+      "POST /api/finance/wip",
+      "POST /api/finance/wip-snapshots",
+      "POST /api/finance/prebills",
+      "POST /api/finance/prebills/approve",
+      "POST /api/finance/invoices",
+      "POST /api/finance/payments",
+      "POST /api/finance/payment-matches"
+    ]);
   } finally {
     await browser.close();
     await server.close();
@@ -1155,7 +1192,7 @@ test("WP-FIN-4A records and allocates a direct fee without an invoice", async ()
     ...extra,
   });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 1000 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 1000 } });
     await page.route("**/api/**", async (route) => {
       const request = route.request();
       const url = new URL(request.url());
@@ -1247,7 +1284,7 @@ test("WP-FIN-5 exposes only scoped finance navigation and hides accounting expor
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1280, height: 900 } });
     await page.addInitScript(() => {
       window.__LAWOS_SESSION_CONTEXT__ = {
         schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
@@ -1318,7 +1355,7 @@ test("R1 WP-3 opens Home message threads and decreases unread counts at runtime"
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp3ApiBody(url.pathname));
@@ -1357,7 +1394,7 @@ test("R1 WP-5 renders the new Home summary while preserving dedicated action que
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
@@ -1418,58 +1455,70 @@ test("R1 WP-5 renders the new Home summary while preserving dedicated action que
   }
 });
 
-test("Matter work management groups board tabs and integrates external schedules", async () => {
+test("Matter work management keeps six flat routes and integrates board and calendar views", async () => {
   const port = await availablePort();
   const server = await createServer({ root: webRoot, logLevel: "silent", server: { host: "127.0.0.1", port, strictPort: true } });
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
+      if (url.pathname === "/api/matter/ops/tasks") {
+        return jsonResponse(route, {
+          request_id: "r1-matter-work",
+          outcome: "passed",
+          items: [{ task_id: "matter-work-task", matter_id: "matter-dashboard-active", title: "법원 서면 검토", status: "todo", owner_user_id: "jwsuh@amic.kr", due_at: wp5IsoDay(0) }],
+          safe_error_codes: [],
+          production_ready_claim: false
+        });
+      }
+      if (url.pathname === "/api/matter/ops/calendar") {
+        return jsonResponse(route, {
+          request_id: "r1-matter-calendar",
+          outcome: "passed",
+          items: [
+            { event_id: "matter-calendar-court", matter_id: "matter-dashboard-active", title: "법원 일정", starts_at: wp5IsoDay(0, 10), source_label: "법원" },
+            { event_id: "matter-calendar-tax", matter_id: "matter-dashboard-active", title: "세무서 업무", starts_at: wp5IsoDay(0, 14), source_label: "세무서" }
+          ],
+          safe_error_codes: [],
+          production_ready_claim: false
+        });
+      }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
 
     await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-home`, { waitUntil: "networkidle" });
     const matterSidebar = page.locator('[data-context-sidebar="matters"]');
-    assert.deepEqual(await matterSidebar.locator(".sidebar-group-toggle > span:nth-child(2)").allTextContents(), ["업무 관리", "사건 운영", "소통", "리포트"]);
-    assert.doesNotMatch(await matterSidebar.innerText(), /업무 진행|외부 일정|검토 의견/);
+    assert.deepEqual(await matterSidebar.locator(".sidebar-nav > .sidebar-item .sidebar-label").allTextContents(), ["오늘", "사건", "업무", "일정", "연락·후속", "시간·청구"]);
+    assert.equal(await matterSidebar.locator(".sidebar-nav > .sidebar-item").count(), 6);
+    assert.equal(await matterSidebar.locator(".sidebar-group-toggle").count(), 0);
+    assert.equal(await matterSidebar.locator(".sidebar-child").count(), 0);
+    assert.doesNotMatch(await matterSidebar.innerText(), /업무 관리|사건 운영|소통|리포트|업무 진행|외부 일정|검토 의견/);
 
-    const workManagement = matterSidebar.locator('[data-sidebar-group="matter-board"]');
-    if (await workManagement.locator(".sidebar-group-toggle").getAttribute("aria-expanded") !== "true") await workManagement.locator(".sidebar-group-toggle").click();
-    assert.deepEqual(await workManagement.locator(".sidebar-child").allTextContents(), ["업무 보드", "워크트리", "할 일", "일정"]);
-    await workManagement.getByRole("button", { name: "업무 보드", exact: true }).click();
-    await page.waitForFunction(() => window.location.hash === "#matter-board");
-
-    const boardTabs = page.getByRole("tablist", { name: "업무 보드" });
-    assert.deepEqual(await boardTabs.getByRole("tab").allTextContents(), ["홈", "송무", "기업 자문", "분쟁", "트랜잭션"]);
-    assert.equal(await boardTabs.getByRole("tab", { name: "홈" }).getAttribute("aria-selected"), "true");
-    assert.equal((await page.getByRole("tabpanel", { name: "홈" }).innerText()).trim(), "");
-
-    await boardTabs.getByRole("tab", { name: "송무" }).click();
-    assert.equal(await boardTabs.getByRole("tab", { name: "송무" }).getAttribute("aria-selected"), "true");
-    assert.equal(await page.locator('[data-matter-select-row="true"]').count(), 1);
-    assert.match(await page.locator('[data-matter-select-row="true"]').innerText(), /진행 자문/);
-
-    await boardTabs.getByRole("tab", { name: "송무" }).press("ArrowRight");
-    assert.equal(await boardTabs.getByRole("tab", { name: "기업 자문" }).getAttribute("aria-selected"), "true");
-    assert.equal(await boardTabs.getByRole("tab", { name: "기업 자문" }).evaluate((node) => document.activeElement === node), true);
-    await boardTabs.getByRole("tab", { name: "기업 자문" }).press("Home");
-    assert.equal(await boardTabs.getByRole("tab", { name: "홈" }).getAttribute("aria-selected"), "true");
-    assert.equal(await boardTabs.getByRole("tab", { name: "홈" }).evaluate((node) => document.activeElement === node), true);
+    const workManagement = matterSidebar.getByRole("button", { name: "업무", exact: true });
+    await workManagement.click();
+    await page.waitForFunction(() => window.location.hash === "#matter-work");
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-work"]');
+    const workModes = page.getByRole("tablist", { name: "업무 보기 방식" });
+    assert.deepEqual(await workModes.getByRole("tab").allTextContents(), ["목록", "보드", "워크트리"]);
+    await workModes.getByRole("tab", { name: "보드", exact: true }).click();
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-work"][data-matter-work-layout="board"]');
+    assert.equal(await page.locator('[data-task-id="matter-work-task"]').count(), 1);
+    assert.match(await page.locator('[data-task-id="matter-work-task"]').innerText(), /법원 서면 검토/);
 
     await page.goto("about:blank");
     await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-timeline`, { waitUntil: "networkidle" });
-    assert.equal(await page.locator('[data-sf-b-w03-activity-workspace="true"]').count(), 1);
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-followups"]');
+    assert.equal(await page.locator('[data-matter-small-firm-screen="matter-followups"]').count(), 1);
 
     await page.goto("about:blank");
     await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-external-schedule`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.location.hash === "#matter-calendar");
-    assert.equal(await workManagement.getByRole("button", { name: "일정", exact: true }).getAttribute("aria-current"), "location");
-
-    await workManagement.getByRole("button", { name: "일정", exact: true }).click();
-    await page.waitForFunction(() => window.location.hash === "#matter-calendar");
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-calendar"]');
+    const calendarRoute = matterSidebar.getByRole("button", { name: "일정", exact: true });
+    assert.equal(await calendarRoute.getAttribute("aria-current"), "location");
     assert.equal(await page.getByText("법원 일정", { exact: true }).count(), 1);
     assert.equal(await page.getByText("세무서 업무", { exact: true }).count(), 1);
   } finally {
@@ -1485,12 +1534,34 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0, matterListCalls: 0, matterListLimits: [] };
   try {
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1280, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/matters") {
         state.matterListCalls += 1;
         state.matterListLimits.push(url.searchParams.get("limit"));
+      }
+      if (url.pathname === "/api/matter/ops/today") {
+        return jsonResponse(route, {
+          request_id: "r1-matter-today",
+          outcome: "passed",
+          item: {
+            priority_rows: [{ task_id: "matter-today-task", matter_id: "matter-dashboard-active", title: "오늘 확인할 업무", owner_user_id: "jwsuh@amic.kr", priority: "high" }],
+            next_actions: [{ task_id: "matter-today-next", matter_id: "matter-dashboard-active", matter_code: "2026-099", title: "의뢰인에게 진행 상황 공유", owner_user_id: "jwsuh@amic.kr" }],
+            metrics: { missing_time_count: 1, wip_count: 2, overdue_ar_count: 1 }
+          },
+          safe_error_codes: [],
+          production_ready_claim: false
+        });
+      }
+      if (url.pathname === "/api/matter/ops/calendar") {
+        return jsonResponse(route, {
+          request_id: "r1-matter-today-calendar",
+          outcome: "passed",
+          items: [{ event_id: "matter-today-calendar", matter_id: "matter-dashboard-active", title: "오늘 회의", starts_at: wp5IsoDay(0, 10), source_label: "사건 일정" }],
+          safe_error_codes: [],
+          production_ready_claim: false
+        });
       }
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
     });
@@ -1752,7 +1823,12 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await refreshedActionInbox;
 
     await page.locator("[data-global-create-trigger]").click();
-    await page.waitForFunction(() => new URL(window.location.href).searchParams.get("view") === "matters" && window.location.hash === "#matter-opening");
+    await page.waitForFunction(() => {
+      const url = new URL(window.location.href);
+      return url.searchParams.get("view") === "matters"
+        && url.searchParams.get("filter") === "opening"
+        && url.hash === "#matter-list";
+    });
     await page.goto(`http://127.0.0.1:${port}/?view=home&ctx=allow#home-dashboard`, { waitUntil: "networkidle" });
 
     const matterListCallsBeforeSearch = state.matterListCalls;
@@ -1783,7 +1859,7 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     assert.equal(state.matterListCalls, matterListCallsBeforeSearch + 1, "refocusing search must reuse the loaded history");
     await page.locator('[data-search-history-section="viewed"] .search-history-row').click();
     await page.waitForURL(/matter_id=matter-dashboard-active/);
-    await page.waitForSelector('#matters-list');
+    await page.waitForSelector('[data-matter-small-firm-screen="matter-list"]');
     assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 1, "recent history must open the selected Matter");
     await page.locator('.record-overlay-scrim').click();
     assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 0);
@@ -1793,32 +1869,24 @@ test("dashboard bodies render the requested Home, Matter, and Client work areas 
     await page.locator('[data-search-history-section="viewed"] .search-history-row').click();
     await page.waitForSelector('[data-record-overlay="matter"]');
     assert.equal(await page.locator('[data-record-overlay="matter"]').count(), 1, "selecting the same recent Matter again must reopen it");
-    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-home`, { waitUntil: "networkidle" });
-    await page.waitForSelector('[data-matter-dashboard="true"]');
-    for (const title of ["최근 작업", "오늘의 To Do", "나의 매터(담당 지정)", "신규 수임", "종결 매터"]) {
-      assert.equal(await page.getByText(title, { exact: true }).count(), 1, `Matter must show ${title}`);
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-today`, { waitUntil: "networkidle" });
+    const matterToday = page.locator('[data-matter-small-firm-screen="matter-today"]');
+    await matterToday.waitFor();
+    await matterToday.locator("#matter-today-priority").waitFor();
+    for (const [id, title] of [
+      ["matter-today-priority", "지금 처리할 것"],
+      ["matter-today-week", "이번 주 일정"],
+      ["matter-today-money", "시간·청구"],
+      ["matter-today-next", "사건별 다음 행동"],
+      ["matter-today-review", "주간 운영 점검"]
+    ]) {
+      assert.match(await matterToday.locator(`#${id}`).innerText(), new RegExp(`^${title}`), `Matter Today must show ${title}`);
     }
-    assert.equal(await page.locator('[data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0);
-    assert.equal(await page.locator('[data-dashboard-section="closed-matters"] .dashboard-record-row').count(), 1);
-    const recentMatterRow = page.locator('[data-dashboard-section="recent-work"] .dashboard-record-row').first();
-    assert.equal(await recentMatterRow.locator("strong").evaluate((node) => getComputedStyle(node).fontWeight), "400");
-    assert.equal(await recentMatterRow.locator("small").innerText(), "고객 B");
-    assert.equal((await recentMatterRow.innerText()).split("진행 자문").length - 1, 1);
-    const matterRowLayout = await recentMatterRow.evaluate((row) => {
-      const title = row.querySelector("strong").getBoundingClientRect();
-      const meta = row.querySelector("small").getBoundingClientRect();
-      return {
-        copyDisplay: getComputedStyle(row.querySelector(".dashboard-record-copy")).display,
-        titleCenter: title.top + title.height / 2,
-        metaCenter: meta.top + meta.height / 2,
-        overflow: row.scrollWidth > row.clientWidth
-      };
-    });
-    assert.equal(matterRowLayout.copyDisplay, "contents");
-    assert.ok(Math.abs(matterRowLayout.titleCenter - matterRowLayout.metaCenter) < 2, "Matter record fields must share one table row");
-    assert.equal(matterRowLayout.overflow, false);
-    assert.deepEqual(await compactRecordLayoutFailures(page), [], "Matter compact records must remain one-line");
-    assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Matter panel metadata must remain on the title line");
+    assert.equal(await page.locator('[data-matter-dashboard="true"], [data-matter-dashboard-kpis], [data-matter-priority-queue]').count(), 0);
+    assert.equal(await page.locator('[data-matter-weekly-review="true"]').count(), 1);
+    assert.equal(await page.locator('[data-task-id="matter-today-task"]').count(), 1);
+    assert.match(await page.locator('[data-task-id="matter-today-task"]').innerText(), /오늘 확인할 업무/);
+    assert.deepEqual(await panelHeaderLayoutFailures(page), [], "Matter Today panel metadata must remain on the title line");
 
     await page.goto(`http://127.0.0.1:${port}/?view=clients&ctx=allow#clients-home`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-client-dashboard="true"]');
@@ -1897,7 +1965,7 @@ test("search history keeps a failed source distinct from a genuinely empty sourc
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/matters/recently-viewed") return jsonResponse(route, {});
@@ -1923,7 +1991,7 @@ test("Client prospect card preserves readable sources when one source is denied"
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1280, height: 820 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/crm/contacts") {
@@ -1956,7 +2024,7 @@ test("Home dashboard keeps independent cards available when bank cashflow is den
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/analytics/finance/cashflow") {
@@ -1994,7 +2062,7 @@ test("Home bank cashflow review challenge never renders as a permission denial",
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/analytics/finance/cashflow") {
@@ -2031,7 +2099,7 @@ test("Home dashboard preserves a source error without hiding independent cards",
   await server.listen();
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     let matterCalls = 0;
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
@@ -2070,7 +2138,7 @@ test("R1 WP-6 renders notification dot from action inbox counts and i18n labels 
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
@@ -2111,7 +2179,7 @@ test("R1 WP-7 keeps approval counts aligned across navigation and dedicated view
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
@@ -2200,7 +2268,7 @@ test("R1 WP-7 emits Home first-action and deep-link telemetry at runtime", async
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.addInitScript((eventName) => {
       window.__MATTER_HOME_METRIC_EVENTS__ = [];
       window.addEventListener(eventName, (event) => {
@@ -2252,7 +2320,7 @@ test("R1 WP-8 opens profile as a standalone shell and normalizes Home fallback s
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
@@ -2311,7 +2379,7 @@ test("profile keeps session identity context but never masks an API read failure
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.addInitScript(() => {
       window.matterSession = {
         status: async () => ({
@@ -2360,7 +2428,7 @@ test("profile uses account English name and HRX role fields in the portrait pane
   const browser = await chromium.launch({ headless: true });
   const state = { decisionCalls: 0, newsCalls: 0 };
   try {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
     await page.addInitScript(() => {
       window.matterSession = {
         status: async () => ({
@@ -2495,6 +2563,80 @@ test("profile uses account English name and HRX role fields in the portrait pane
     const mobilePortrait = await profile.locator("[data-profile-portrait-panel]").boundingBox();
     assert.ok(mobilePortrait && mobilePortrait.width <= 280);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+});
+
+test("profile renders the initials fallback when a populated profile has no portrait", async () => {
+  const port = await availablePort();
+  const server = await createServer({
+    root: webRoot,
+    logLevel: "silent",
+    server: { host: "127.0.0.1", port, strictPort: true }
+  });
+  await server.listen();
+  const browser = await chromium.launch({ headless: true });
+  const state = { decisionCalls: 0, newsCalls: 0 };
+  try {
+    const page = await newSignedHomePage(browser, { viewport: { width: 1366, height: 900 } });
+    await page.addInitScript(() => {
+      window.matterSession = {
+        status: async () => ({
+          state: "signed_in",
+          user_id: "user_profile_fallback",
+          display_name: "Synthetic Profile",
+          tenant_id: "tenant_amic_matter_vault"
+        })
+      };
+    });
+    await page.route("**/api/**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === "/api/profile/me") {
+        return jsonResponse(route, {
+          request_id: "profile-initials-fallback",
+          outcome: "passed",
+          item: {
+            user_id: "user_profile_fallback",
+            employee_id: "emp_profile_fallback",
+            display_name: "Synthetic Profile",
+            english_name: "Synthetic User",
+            title: "검수 담당자",
+            department: "검수",
+            professional_profile: {
+              experience: ["Synthetic profile fixture"],
+              education: [],
+              qualifications: [],
+              practice_areas: []
+            },
+            photo_url: null,
+            photo_included: false
+          },
+          safe_error_codes: [],
+          audit_hint_ref: "ui_profile_initials_fallback_probe",
+          ui_state: "populated",
+          count_leak_prevented: true,
+          production_ready_claim: false
+        });
+      }
+      return jsonResponse(route, wp5ApiBody(url.pathname, url.searchParams, state));
+    });
+    await page.goto(`http://127.0.0.1:${port}/?view=matters&ctx=allow#matter-calendar`, { waitUntil: "networkidle" });
+    await page.locator("[data-profile-trigger]").click();
+
+    const profile = page.locator('[data-user-profile-surface="my-profile"]');
+    await profile.waitFor();
+    await page.waitForFunction(() => document.querySelector('[data-user-profile-surface="my-profile"]')?.getAttribute("data-profile-api-state") === "populated");
+
+    const fallback = profile.locator(".matter-profile-portrait-fallback");
+    assert.equal(await fallback.isVisible(), true);
+    assert.equal(await fallback.innerText(), "S");
+    assert.equal(await profile.locator(".matter-profile-portrait-image").count(), 0);
+    assert.equal(await profile.locator(".matter-profile-portrait-media img").count(), 0);
+    assert.equal(await profile.locator("[data-profile-english-name]").innerText(), "Synthetic User");
+    assert.equal(await profile.locator("[data-profile-title]").innerText(), "검수 담당자");
+    assert.equal(await profile.getByRole("button", { name: "Edit" }).isVisible(), true);
   } finally {
     await browser.close();
     await server.close();

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
   DESKTOP_RELEASE_ARTIFACT_SCHEMA,
@@ -8,10 +10,23 @@ import {
   desktopReleaseArtifactRoot,
   validateDesktopReleaseArtifactIndex,
 } from "../lib/matter-desktop-release-paths.mjs";
+import {
+  FORMAL_PACKAGE_RUNNER,
+  FORMAL_PACKAGE_SCRIPT,
+  FORMAL_RELEASE_COMPATIBILITY_SCRIPT,
+  assertFormalPackageCommandContract,
+  readDesktopCommandPackages,
+  resolveNpmScriptGraph,
+} from "../lib/matter-desktop-formal-command-contract.mjs";
+import {
+  buildFormalPackagePlan,
+  validateFormalPackagePlan,
+} from "../run-matter-desktop-formal-package.mjs";
 
 const VERSION = "0.1.17";
 const SOURCE_SHA = "a".repeat(40);
 const SOURCE_TREE = "b".repeat(40);
+const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 function validIndex() {
   const artifactRoot = desktopReleaseArtifactRelativeRoot({
@@ -139,5 +154,49 @@ test("PV-005 release indexes bind every artifact to the exact scoped root", () =
   assert.throws(
     () => validateDesktopReleaseArtifactIndex({ ...index, generic_build_paths_are_release_truth: true }),
     /generic build paths/,
+  );
+});
+
+test("PV-005 resolves the formal package alias before checking stage and package consumers", () => {
+  const packages = readDesktopCommandPackages(REPO_ROOT);
+  const contract = assertFormalPackageCommandContract(packages);
+  const commandText = contract.planText;
+  assert.match(commandText, /stage-matter-desktop-release-artifacts\.mjs/u);
+  assert.match(commandText, /validate-pv005-release-artifact-paths\.mjs --package/u);
+  assert.match(commandText, /release-matter-desktop-formal\.mjs/u);
+  assert.match(commandText, /validate-matter-desktop-formal-release-bundle\.mjs/u);
+  assert.doesNotMatch(commandText, /matter-desktop:formal-remote-smoke|matter-desktop:aws-runtime:smoke|run-formal-deployed-api-package-qa/u);
+  const scripts = JSON.parse(readFileSync(path.join(REPO_ROOT, "package.json"), "utf8")).scripts;
+  assert.equal(scripts[FORMAL_PACKAGE_SCRIPT], FORMAL_PACKAGE_RUNNER);
+  assert.equal(scripts[FORMAL_RELEASE_COMPATIBILITY_SCRIPT], `npm run ${FORMAL_PACKAGE_SCRIPT}`);
+  assert.equal(contract.planValidation.stage_index < contract.planValidation.pv005_package_index, true);
+  assert.equal(contract.planValidation.pv005_package_index < contract.planValidation.release_index, true);
+});
+
+test("PV-005 command graph rejects cycles and missing aliases instead of skipping release-path gates", () => {
+  const cycle = resolveNpmScriptGraph({
+    rootScripts: {
+      "matter-desktop:formal-package": "npm run formal-alias",
+      "formal-alias": "npm run matter-desktop:formal-package",
+    },
+    rootName: "matter-desktop:formal-package",
+  });
+  assert.equal(cycle.errors.some(({ code }) => code === "CYCLE"), true);
+
+  const missing = resolveNpmScriptGraph({
+    rootScripts: { "matter-desktop:formal-package": "npm run missing-stage" },
+    rootName: "matter-desktop:formal-package",
+  });
+  assert.deepEqual(missing.errors.map(({ code }) => code), ["UNDEFINED_ALIAS"]);
+});
+
+test("PV-005 rejects a structured plan that moves package validation before staging", () => {
+  const plan = [...buildFormalPackagePlan({ repoRoot: REPO_ROOT })];
+  const stageIndex = plan.findIndex(({ id }) => id === "stage-release-artifacts");
+  const packageIndex = plan.findIndex(({ id }) => id === "pv005-package");
+  [plan[stageIndex], plan[packageIndex]] = [plan[packageIndex], plan[stageIndex]];
+  assert.throws(
+    () => validateFormalPackagePlan(plan),
+    /step order is invalid|stage before PV005 package validation/u,
   );
 });

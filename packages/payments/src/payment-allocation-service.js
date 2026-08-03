@@ -1,5 +1,10 @@
 import { appendFinanceAuditEvent } from "../../billing/src/finance-audit.js";
 
+export {
+  backfillPaymentMatchesAsAllocations,
+  buildPaymentAllocationMigrationPlan,
+} from "./payment-allocation-migration.js";
+
 export const PAYMENT_ALLOCATION_TYPES = Object.freeze([
   "invoice_payment",
   "direct_fee",
@@ -53,6 +58,79 @@ function activeAllocationState(repository, tenantId, paymentId) {
   return { allocations, activeAllocations, legacyMatches, allocatedAmount: Math.round(allocatedAmount * 100) / 100 };
 }
 
+function invoiceLifecycleStatus(invoice) {
+  const status = invoice.lifecycle_status ?? invoice.status;
+  if (status === "issued") return "sent";
+  if (status === "partially_paid") return "partial";
+  return status;
+}
+
+function invoicePaymentPatch(invoice, paid) {
+  const fullyPaid = paid >= Number(invoice.amount_due ?? 0);
+  const lifecycleStatus = fullyPaid ? "paid" : paid > 0 ? "partial" : "sent";
+  const canonicalStatus = invoice.lifecycle_contract === "small_firm_v1";
+  const outstandingAmount = Math.max(0, Math.round((Number(invoice.amount_due ?? 0) - paid) * 100) / 100);
+  return {
+    amount_paid: paid,
+    outstanding_amount: outstandingAmount,
+    lifecycle_status: lifecycleStatus,
+    status: fullyPaid
+      ? "paid"
+      : paid > 0
+        ? canonicalStatus ? "partial" : "partially_paid"
+        : canonicalStatus ? "sent" : "issued",
+    updates_database_rows: true,
+  };
+}
+
+function requireMatchingInvoiceProvenance(payment, allocation, invoice) {
+  const paymentMatterId = optionalString(payment.matter_id);
+  const invoiceMatterId = optionalString(invoice.matter_id);
+  if (paymentMatterId && invoiceMatterId && paymentMatterId !== invoiceMatterId) {
+    throw new Error("payment Matter must match Invoice Matter");
+  }
+  const paymentClientGroupId = optionalString(payment.client_group_id);
+  const invoiceClientGroupId = optionalString(invoice.client_group_id);
+  if (paymentClientGroupId && invoiceClientGroupId && paymentClientGroupId !== invoiceClientGroupId) {
+    throw new Error("payment client group must match Invoice client group");
+  }
+  const allocationMatterId = optionalString(allocation.matter_id);
+  if (allocationMatterId && invoiceMatterId && allocationMatterId !== invoiceMatterId) {
+    throw new Error("allocation Matter must match Invoice Matter");
+  }
+  const allocationClientGroupId = optionalString(allocation.client_group_id);
+  if (allocationClientGroupId && invoiceClientGroupId && allocationClientGroupId !== invoiceClientGroupId) {
+    throw new Error("allocation client group must match Invoice client group");
+  }
+}
+
+function requireMatchingAllocationProvenance(payment, allocation) {
+  const paymentMatterId = optionalString(payment.matter_id);
+  const allocationMatterId = optionalString(allocation.matter_id);
+  if (paymentMatterId && allocationMatterId && paymentMatterId !== allocationMatterId) {
+    throw new Error("payment Matter must match allocation Matter");
+  }
+  const paymentClientGroupId = optionalString(payment.client_group_id);
+  const allocationClientGroupId = optionalString(allocation.client_group_id);
+  if (paymentClientGroupId && allocationClientGroupId && paymentClientGroupId !== allocationClientGroupId) {
+    throw new Error("payment client group must match allocation client group");
+  }
+}
+
+export function loadPaymentAllocationReferences({ repository, allocation } = {}) {
+  const tenantId = requiredString(allocation, "tenant_id");
+  const paymentId = requiredString(allocation, "payment_id");
+  const payment = repository.get({ tenant_id: tenantId, model_type: "Payment", payment_id: paymentId });
+  if (!payment) throw new Error("payment is required for allocation");
+  let invoice = null;
+  if (allocation.allocation_type === "invoice_payment") {
+    const invoiceId = requiredString(allocation, "invoice_id");
+    invoice = repository.get({ tenant_id: tenantId, model_type: "Invoice", invoice_id: invoiceId });
+    if (!invoice) throw new Error("invoice is required for invoice_payment");
+  }
+  return Object.freeze({ payment, invoice });
+}
+
 export function listActivePaymentAllocations({ repository, tenant_id, payment_id } = {}) {
   const tenantId = requiredString({ tenant_id }, "tenant_id");
   const paymentId = requiredString({ payment_id }, "payment_id");
@@ -91,9 +169,10 @@ function updatePaymentProjection(repository, payment) {
   );
 }
 
-function validateAllocationTarget(repository, payment, allocation, amount) {
+function validateAllocationTarget(payment, allocation, amount, canonicalInvoice) {
   const type = requiredString(allocation, "allocation_type");
   if (!PAYMENT_ALLOCATION_TYPES.includes(type)) throw new TypeError("allocation_type is invalid");
+  requireMatchingAllocationProvenance(payment, allocation);
   const invoiceId = optionalString(allocation.invoice_id);
   if (type !== "invoice_payment" && invoiceId) throw new TypeError("invoice_id is only allowed for invoice_payment");
   const currency = optionalString(allocation.currency)?.toUpperCase() ?? optionalString(payment.currency)?.toUpperCase() ?? "KRW";
@@ -104,8 +183,12 @@ function validateAllocationTarget(repository, payment, allocation, amount) {
   let clientGroupId = optionalString(allocation.client_group_id) ?? optionalString(payment.client_group_id);
   if (type === "invoice_payment") {
     requiredString(allocation, "invoice_id");
-    invoice = repository.get({ tenant_id: payment.tenant_id, model_type: "Invoice", invoice_id: allocation.invoice_id });
+    invoice = canonicalInvoice;
     if (!invoice) throw new Error("invoice is required for invoice_payment");
+    requireMatchingInvoiceProvenance(payment, allocation, invoice);
+    if (["draft", "void"].includes(invoiceLifecycleStatus(invoice))) {
+      throw new Error("invoice_payment requires a sent invoice");
+    }
     if (currency !== optionalString(invoice.currency)?.toUpperCase()) throw new Error("allocation currency must match invoice currency");
     const invoiceOutstanding = Math.max(0, Number(invoice.amount_due ?? 0) - Number(invoice.amount_paid ?? 0));
     if (amount > invoiceOutstanding) throw new Error("allocation amount exceeds invoice outstanding");
@@ -122,12 +205,11 @@ function postAllocation(repository, allocation, { compatibilityPaymentMatch = nu
   const paymentId = requiredString(allocation, "payment_id");
   requiredString(allocation, "payment_allocation_id");
   const amount = money(allocation.amount);
-  const payment = repository.get({ tenant_id: tenantId, model_type: "Payment", payment_id: paymentId });
-  if (!payment) throw new Error("payment is required for allocation");
+  const { payment, invoice } = loadPaymentAllocationReferences({ repository, allocation });
   const before = activeAllocationState(repository, tenantId, paymentId);
   const available = Math.max(0, Number(payment.amount ?? 0) - before.allocatedAmount);
   if (amount > available) throw new Error("allocation amount exceeds available payment");
-  const target = validateAllocationTarget(repository, payment, allocation, amount);
+  const target = validateAllocationTarget(payment, allocation, amount, invoice);
   const record = repository.create({
     ...allocation,
     model_type: "PaymentAllocation",
@@ -146,11 +228,7 @@ function postAllocation(repository, allocation, { compatibilityPaymentMatch = nu
     const paid = Math.round((Number(target.invoice.amount_paid ?? 0) + amount) * 100) / 100;
     updatedInvoice = repository.update(
       { tenant_id: tenantId, model_type: "Invoice", invoice_id: target.invoice.invoice_id },
-      {
-        amount_paid: paid,
-        status: paid >= Number(target.invoice.amount_due ?? 0) ? "paid" : "partially_paid",
-        updates_database_rows: true,
-      },
+      invoicePaymentPatch(target.invoice, paid),
     );
   }
 
@@ -183,7 +261,21 @@ export function allocatePayment({
   const actorId = requiredString({ actor_id }, "actor_id");
   const idempotencyKey = requiredString({ idempotency_key }, "idempotency_key");
   const tenantId = requiredString(allocation, "tenant_id");
-  const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey });
+  const objectType = compatibility_payment_match ? "PaymentMatch" : "PaymentAllocation";
+  const objectId = compatibility_payment_match?.payment_match_id ?? allocation.payment_allocation_id;
+  const idempotency = {
+    tenant_id: tenantId,
+    idempotency_key: idempotencyKey,
+    operation: "payment_allocate",
+    actor_id: actorId,
+    object_type: objectType,
+    object_id: objectId,
+    request: {
+      allocation,
+      compatibility_payment_match,
+    },
+  };
+  const replay = repository.getIdempotency(idempotency);
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
   return repository.transaction((tx) => {
     const posted = postAllocation(tx, allocation, { compatibilityPaymentMatch: compatibility_payment_match });
@@ -207,12 +299,12 @@ export function allocatePayment({
       audit_event: auditEvent,
       idempotent_replay: false,
     });
-    tx.recordIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey, operation: "payment_allocate", response });
+    tx.recordIdempotency({ ...idempotency, response });
     return response;
   });
 }
 
-function postReversal(repository, original, reversal) {
+function postReversal(repository, original, reversal, actorId) {
   const state = activeAllocationState(repository, original.tenant_id, original.payment_id);
   if (!state.activeAllocations.some((row) => row.payment_allocation_id === original.payment_allocation_id)) {
     throw new Error("payment allocation is not active");
@@ -222,11 +314,12 @@ function postReversal(repository, original, reversal) {
   }
   const record = repository.create({
     ...original,
-    ...reversal,
     model_type: "PaymentAllocation",
     payment_allocation_id: requiredString(reversal, "payment_allocation_id"),
     status: "reversed",
     reverses_payment_allocation_id: original.payment_allocation_id,
+    actor_id: actorId,
+    reason_code: requiredString(reversal, "reason_code"),
     reversed_at: reversal.reversed_at ?? new Date().toISOString(),
   });
   let invoice = null;
@@ -236,11 +329,7 @@ function postReversal(repository, original, reversal) {
     const paid = Math.max(0, Math.round((Number(current.amount_paid ?? 0) - Number(original.amount ?? 0)) * 100) / 100);
     invoice = repository.update(
       { tenant_id: original.tenant_id, model_type: "Invoice", invoice_id: original.invoice_id },
-      {
-        amount_paid: paid,
-        status: paid === 0 ? "issued" : paid >= Number(current.amount_due ?? 0) ? "paid" : "partially_paid",
-        updates_database_rows: true,
-      },
+      invoicePaymentPatch(current, paid),
     );
   }
   const payment = repository.get({ tenant_id: original.tenant_id, model_type: "Payment", payment_id: original.payment_id });
@@ -253,12 +342,21 @@ export function reversePaymentAllocation({ repository, reversal, actor_id, idemp
   const tenantId = requiredString(reversal, "tenant_id");
   const originalId = requiredString(reversal, "reverses_payment_allocation_id");
   requiredString(reversal, "reason_code");
-  const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey });
+  const idempotency = {
+    tenant_id: tenantId,
+    idempotency_key: idempotencyKey,
+    operation: "payment_allocation_reverse",
+    actor_id: actorId,
+    object_type: "PaymentAllocation",
+    object_id: requiredString(reversal, "payment_allocation_id"),
+    request: { reversal },
+  };
+  const replay = repository.getIdempotency(idempotency);
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
   return repository.transaction((tx) => {
     const original = tx.get({ tenant_id: tenantId, model_type: "PaymentAllocation", payment_allocation_id: originalId });
     if (!original) throw new Error("payment allocation not found");
-    const reversed = postReversal(tx, original, reversal);
+    const reversed = postReversal(tx, original, reversal, actorId);
     const auditEvent = appendFinanceAuditEvent({
       repository: tx,
       event: {
@@ -278,7 +376,7 @@ export function reversePaymentAllocation({ repository, reversal, actor_id, idemp
       audit_event: auditEvent,
       idempotent_replay: false,
     });
-    tx.recordIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey, operation: "payment_allocation_reverse", response });
+    tx.recordIdempotency({ ...idempotency, response });
     return response;
   });
 }
@@ -310,8 +408,7 @@ export function reallocateDirectFeeToInvoice({
     const reversed = postReversal(tx, original, {
       payment_allocation_id: reversal_payment_allocation_id,
       reason_code,
-      actor_id: actorId,
-    });
+    }, actorId);
     const posted = postAllocation(tx, {
       payment_allocation_id: invoice_payment_allocation_id,
       tenant_id: tenantId,
@@ -345,129 +442,6 @@ export function reallocateDirectFeeToInvoice({
       idempotent_replay: false,
     });
     tx.recordIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey, operation: "payment_reallocate_to_invoice", response });
-    return response;
-  });
-}
-
-export function buildPaymentAllocationMigrationPlan({ repository, tenant_id } = {}) {
-  const tenantId = requiredString({ tenant_id }, "tenant_id");
-  const payments = repository.list({ tenant_id: tenantId, model_type: "Payment" });
-  const matches = repository
-    .list({ tenant_id: tenantId, model_type: "PaymentMatch" })
-    .filter((row) => !EXCLUDED_STATUSES.has(String(row.status ?? "").toLowerCase()));
-  const allocations = repository.list({ tenant_id: tenantId, model_type: "PaymentAllocation" });
-  const representedMatches = new Set(allocations.map((row) => optionalString(row.source_payment_match_id)).filter(Boolean));
-  const matchesByPayment = new Map();
-  for (const match of matches) {
-    const rows = matchesByPayment.get(match.payment_id) ?? [];
-    rows.push(match);
-    matchesByPayment.set(match.payment_id, rows);
-  }
-  const invoicePaymentBackfill = matches
-    .filter((match) => !representedMatches.has(match.payment_match_id))
-    .map((match) => ({
-      payment_allocation_id: `allocation:${match.payment_match_id}`,
-      tenant_id: tenantId,
-      payment_id: match.payment_id,
-      invoice_id: match.invoice_id,
-      allocation_type: "invoice_payment",
-      amount: Number(match.amount ?? match.matched_amount ?? 0),
-      currency: match.currency ?? null,
-      matter_id: match.matter_id ?? null,
-      allocated_at: match.matched_at ?? match.created_at ?? null,
-      source_payment_match_id: match.payment_match_id,
-    }))
-    .sort((left, right) => left.payment_allocation_id.localeCompare(right.payment_allocation_id));
-  const matchedPayments = payments
-    .filter((row) => matchesByPayment.has(row.payment_id))
-    .map((row) => ({
-      payment_id: row.payment_id,
-      payment_amount: Number(row.amount ?? 0),
-      matched_amount: matchesByPayment.get(row.payment_id).reduce((total, match) => total + Number(match.amount ?? match.matched_amount ?? 0), 0),
-    }))
-    .sort((left, right) => left.payment_id.localeCompare(right.payment_id));
-  const allocatedPaymentIds = new Set(allocations.map((row) => row.payment_id));
-  const unallocatedPayments = payments
-    .filter((row) => !matchesByPayment.has(row.payment_id) && !allocatedPaymentIds.has(row.payment_id))
-    .map((row) => ({ payment_id: row.payment_id, amount: Number(row.amount ?? 0), currency: row.currency ?? null }))
-    .sort((left, right) => left.payment_id.localeCompare(right.payment_id));
-  return Object.freeze({
-    tenant_id: tenantId,
-    invoice_payment_backfill: Object.freeze(invoicePaymentBackfill),
-    matched_payments: Object.freeze(matchedPayments),
-    unallocated_payments: Object.freeze(unallocatedPayments),
-    auto_promoted_revenue_count: 0,
-    dry_run: true,
-  });
-}
-
-export function backfillPaymentMatchesAsAllocations({
-  repository,
-  tenant_id,
-  actor_id,
-  idempotency_key,
-  dry_run = true,
-} = {}) {
-  const tenantId = requiredString({ tenant_id }, "tenant_id");
-  const plan = buildPaymentAllocationMigrationPlan({ repository, tenant_id: tenantId });
-  if (dry_run) return plan;
-  const actorId = requiredString({ actor_id }, "actor_id");
-  const idempotencyKey = requiredString({ idempotency_key }, "idempotency_key");
-  const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey });
-  if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
-  return repository.transaction((tx) => {
-    const created = [];
-    for (const candidate of plan.invoice_payment_backfill) {
-      const match = tx.get({
-        tenant_id: tenantId,
-        model_type: "PaymentMatch",
-        payment_match_id: candidate.source_payment_match_id,
-      });
-      const payment = tx.get({ tenant_id: tenantId, model_type: "Payment", payment_id: candidate.payment_id });
-      const invoice = tx.get({ tenant_id: tenantId, model_type: "Invoice", invoice_id: candidate.invoice_id });
-      if (!match || !payment || !invoice) throw new Error("PaymentMatch backfill requires Payment and Invoice");
-      if (payment.currency !== invoice.currency) throw new Error("PaymentMatch backfill currency mismatch");
-      created.push(tx.create({
-        ...candidate,
-        model_type: "PaymentAllocation",
-        amount: Number(candidate.amount),
-        currency: candidate.currency ?? payment.currency,
-        matter_id: candidate.matter_id ?? invoice.matter_id ?? payment.matter_id ?? null,
-        client_group_id: invoice.client_group_id ?? payment.client_group_id ?? null,
-        status: "posted",
-        allocated_at: candidate.allocated_at ?? match.matched_at ?? match.created_at,
-        actor_id: actorId,
-        reason_code: "legacy_payment_match_backfill",
-        migration_backfill: true,
-      }));
-    }
-    const auditEvent = appendFinanceAuditEvent({
-      repository: tx,
-      event: {
-        tenant_id: tenantId,
-        actor_id: actorId,
-        action: "payment.allocation.backfill",
-        object_type: "PaymentAllocation",
-        object_id: "legacy-payment-match-backfill",
-        idempotency_key: idempotencyKey,
-        metadata: {
-          created_count: created.length,
-          unmatched_payment_count: plan.unallocated_payments.length,
-          automatic_revenue_promotion_applied: false,
-        },
-      },
-    });
-    const response = Object.freeze({
-      outcome: "created",
-      created_count: created.length,
-      payment_allocations: Object.freeze(created),
-      unallocated_payments: plan.unallocated_payments,
-      auto_promoted_revenue_count: 0,
-      audit_event: auditEvent,
-      dry_run: false,
-      idempotent_replay: false,
-    });
-    tx.recordIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey, operation: "payment_allocation_backfill", response });
     return response;
   });
 }

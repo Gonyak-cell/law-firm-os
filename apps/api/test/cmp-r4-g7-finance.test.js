@@ -7,6 +7,7 @@ import { createFinanceRepository } from "../../../packages/billing/src/finance-r
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { listAmicBankClassificationEmployees } from "../src/amic-bank-classification-directory.js";
+import { createFinanceRuntimeContext, handleFinanceApiRequest } from "../src/finance-runtime-context.js";
 import { findRegisteredAccountByUserId } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
 import { startApiServer } from "../src/server.js";
@@ -276,6 +277,234 @@ test("direct receipt API records and allocates cash without an Invoice under the
     assert.deepEqual(denied.body.items, []);
     assert.equal(denied.body.count_leak_prevented, true);
   }, { financeRepository });
+});
+
+test("legacy payment allocation authorizes every stored and requested Matter before mutation", async () => {
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      {
+        model_type: "Payment",
+        payment_id: "payment-api-invoice-wall",
+        tenant_id: TENANT,
+        matter_id: "matter-api-clear",
+        client_group_id: "client-api-shared",
+        amount: 100,
+        currency: "KRW",
+        status: "imported",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-api-invoice-wall",
+        tenant_id: TENANT,
+        matter_id: "matter-api-walled",
+        client_group_id: "client-api-shared",
+        amount_due: 100,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-api-payment-wall",
+        tenant_id: TENANT,
+        matter_id: "matter-api-walled",
+        client_group_id: "client-api-shared",
+        amount: 100,
+        currency: "KRW",
+        status: "imported",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-api-payment-wall",
+        tenant_id: TENANT,
+        matter_id: "matter-api-clear",
+        client_group_id: "client-api-shared",
+        amount_due: 100,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-api-client-mismatch",
+        tenant_id: TENANT,
+        matter_id: "matter-api-clear",
+        client_group_id: "client-api-a",
+        amount: 100,
+        currency: "KRW",
+        status: "imported",
+      },
+      {
+        model_type: "Invoice",
+        invoice_id: "invoice-api-client-mismatch",
+        tenant_id: TENANT,
+        matter_id: "matter-api-clear",
+        client_group_id: "client-api-b",
+        amount_due: 100,
+        amount_paid: 0,
+        currency: "KRW",
+        status: "issued",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-api-direct-boundary",
+        tenant_id: TENANT,
+        matter_id: "matter-api-clear",
+        client_group_id: "client-api-shared",
+        amount: 100,
+        currency: "KRW",
+        status: "imported",
+      },
+      {
+        model_type: "Payment",
+        payment_id: "payment-api-direct-matterless",
+        tenant_id: TENANT,
+        client_group_id: "client-api-shared",
+        amount: 100,
+        currency: "KRW",
+        status: "imported",
+      },
+    ],
+  });
+  const wallContext = {
+    principal: { user_id: "user_cmp_g7_finance", tenant_id: TENANT, role_ids: ["finance_user"] },
+    rules: [
+      { id: "allow_payment_allocation", effect: "allow", action: "finance:payment_allocation:write" },
+      {
+        id: "deny_walled_payment_allocation",
+        effect: "deny",
+        action: "finance:payment_allocation:write",
+        ethical_wall_matter_id: "matter-api-walled",
+      },
+    ],
+    object_acl: [],
+  };
+  const runtime = createFinanceRuntimeContext({ repository: financeRepository });
+
+  async function postAllocation({
+    paymentId,
+    invoiceId,
+    allocationId,
+    context,
+    allocationType = "invoice_payment",
+    matterId = "matter-api-clear",
+    clientGroupId,
+  }) {
+    return handleFinanceApiRequest({
+      pathname: "/api/finance/payment-allocations",
+      method: "POST",
+      context,
+      requestId: `request-${allocationId}`,
+      runtime,
+      body: {
+        tenant_id: TENANT,
+        permission_ref: "perm-payment-allocation-boundary",
+        audit_hint_ref: "audit-payment-allocation-boundary",
+        idempotency_key: allocationId,
+        allocation: {
+          payment_allocation_id: allocationId,
+          tenant_id: TENANT,
+          payment_id: paymentId,
+          ...(invoiceId ? { invoice_id: invoiceId } : {}),
+          allocation_type: allocationType,
+          matter_id: matterId,
+          ...(clientGroupId ? { client_group_id: clientGroupId } : {}),
+          amount: 100,
+          currency: "KRW",
+        },
+      },
+    });
+  }
+
+  const invoiceWall = await postAllocation({
+    paymentId: "payment-api-invoice-wall",
+    invoiceId: "invoice-api-invoice-wall",
+    allocationId: "allocation-api-invoice-wall",
+    context: wallContext,
+  });
+  assert.equal(invoiceWall.status, 403);
+
+  const paymentWall = await postAllocation({
+    paymentId: "payment-api-payment-wall",
+    invoiceId: "invoice-api-payment-wall",
+    allocationId: "allocation-api-payment-wall",
+    context: wallContext,
+  });
+  assert.equal(paymentWall.status, 403);
+
+  const clientMismatch = await postAllocation({
+    paymentId: "payment-api-client-mismatch",
+    invoiceId: "invoice-api-client-mismatch",
+    allocationId: "allocation-api-client-mismatch",
+    context: JSON.parse(permissionContext()),
+  });
+  assert.equal(clientMismatch.status, 400);
+  assert.deepEqual(clientMismatch.body.safe_error_codes, ["FINANCE_API_VALIDATION_ERROR"]);
+
+  const directFeeWall = await postAllocation({
+    paymentId: "payment-api-direct-boundary",
+    allocationId: "allocation-api-direct-wall",
+    context: wallContext,
+    allocationType: "direct_fee",
+    matterId: "matter-api-walled",
+    clientGroupId: "client-api-shared",
+  });
+  assert.equal(directFeeWall.status, 403);
+
+  const trustDepositWall = await postAllocation({
+    paymentId: "payment-api-direct-boundary",
+    allocationId: "allocation-api-trust-wall",
+    context: wallContext,
+    allocationType: "trust_deposit",
+    matterId: "matter-api-walled",
+    clientGroupId: "client-api-shared",
+  });
+  assert.equal(trustDepositWall.status, 403);
+
+  const matterlessDirectFeeWall = await postAllocation({
+    paymentId: "payment-api-direct-matterless",
+    allocationId: "allocation-api-direct-matterless-wall",
+    context: wallContext,
+    allocationType: "direct_fee",
+    matterId: "matter-api-walled",
+    clientGroupId: "client-api-shared",
+  });
+  assert.equal(matterlessDirectFeeWall.status, 403);
+
+  const directFeeCrossMatter = await postAllocation({
+    paymentId: "payment-api-direct-boundary",
+    allocationId: "allocation-api-direct-cross-matter",
+    context: JSON.parse(permissionContext()),
+    allocationType: "direct_fee",
+    matterId: "matter-api-other-clear",
+    clientGroupId: "client-api-shared",
+  });
+  assert.equal(directFeeCrossMatter.status, 400);
+
+  const directFeeClientMismatch = await postAllocation({
+    paymentId: "payment-api-direct-boundary",
+    allocationId: "allocation-api-direct-client-mismatch",
+    context: JSON.parse(permissionContext()),
+    allocationType: "direct_fee",
+    matterId: "matter-api-clear",
+    clientGroupId: "client-api-other",
+  });
+  assert.equal(directFeeClientMismatch.status, 400);
+
+  assert.equal(financeRepository.list({ tenant_id: TENANT, model_type: "PaymentAllocation" }).length, 0);
+  assert.equal(financeRepository.snapshot().idempotency.length, 0);
+  assert.equal(financeRepository.listAudit({ tenant_id: TENANT }).some((event) => event.action === "payment.allocate"), false);
+  for (const invoiceId of [
+    "invoice-api-invoice-wall",
+    "invoice-api-payment-wall",
+    "invoice-api-client-mismatch",
+  ]) {
+    assert.equal(financeRepository.get({
+      tenant_id: TENANT,
+      model_type: "Invoice",
+      invoice_id: invoiceId,
+    }).amount_paid, 0);
+  }
 });
 
 test("AMIC super-admin imports and reads sanitized BankTransaction rows while staff remains fail-closed", async () => {
@@ -1221,6 +1450,31 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
         role_rates: [{ role_id: "partner", hourly_rate: 100000 }],
         status: "active",
       },
+      {
+        model_type: "FeeArrangement",
+        fee_arrangement_id: "fee_arrangement_api_g7_b14",
+        tenant_id: TENANT,
+        matter_id: "matter_api_g7_b14",
+        billing_profile_id: "billing_profile_api_g7_b14",
+        rate_card_id: "rate_api_g7_b14",
+        type: "hourly",
+        arrangement_type: "hourly",
+        status: "active",
+      },
+      {
+        model_type: "WipSnapshot",
+        wip_snapshot_id: "wip_snapshot_api_g7_b14_reject",
+        tenant_id: TENANT,
+        matter_id: "matter_api_g7_b14",
+        item_refs: [],
+        item_snapshots: [],
+        locked_at: "2026-07-10T00:00:00.000Z",
+        immutable_snapshot: true,
+        total_amount: 0,
+        standard_amount: 0,
+        retainer_drawdown_total: 0,
+        success_fee_applied: false,
+      },
     ],
   });
 
@@ -1277,6 +1531,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
     assert.equal(approved.status, 200);
     assert.equal(approved.body.item.status, "approved");
     assert.equal(approved.body.item.approved_for_wip, true);
+    assert.match(approved.body.item.locked_at, /^\d{4}-\d{2}-\d{2}T/);
 
     const expense = await json(baseUrl, "/api/finance/expenses", {
       method: "POST",
@@ -1427,7 +1682,7 @@ test("G7 approval expense disbursement and WIP lock routes feed WIP sources", as
           prebill_id: "prebill_api_g7_b04_reject",
           tenant_id: TENANT,
           matter_id: "matter_api_g7_b14",
-          wip_snapshot_id: snapshot.body.item.wip_snapshot_id,
+          wip_snapshot_id: "wip_snapshot_api_g7_b14_reject",
           partner_reviewer_id: "user_cmp_g7_partner",
           currency: "KRW",
         },
@@ -1621,5 +1876,455 @@ test("G7 accounting CSV export filters period and balances journal rows", async 
     assert.equal(readAudit.metadata.export_content_included_in_audit, false);
     assert.equal(readAudit.metadata.raw_payload_included, false);
     assert.equal(readAudit.metadata.credential_material_included, false);
+  }, { financeRepository });
+});
+
+function preBillApprovalSeed(prebillId, totalAmount = 100) {
+  return {
+    model_type: "PreBill",
+    prebill_id: prebillId,
+    tenant_id: TENANT,
+    matter_id: `matter-${prebillId}`,
+    wip_snapshot_id: `snapshot-${prebillId}`,
+    partner_reviewer_id: "user_cmp_g7_partner",
+    currency: "KRW",
+    status: "partner_review_required",
+    total_amount: totalAmount,
+    adjustments_total: 0,
+    adjustment_total: 0,
+    approved_without_adjustment: false,
+  };
+}
+
+function preBillApprovalBody(prebillId, idempotencyKey, adjustment) {
+  return {
+    tenant_id: TENANT,
+    permission_ref: "perm_ref_cmp_g7_write",
+    audit_hint_ref: "audit_hint_cmp_g7_write",
+    idempotency_key: idempotencyKey,
+    prebill_id: prebillId,
+    ...(adjustment === undefined ? {} : { adjustment }),
+  };
+}
+
+function financeRepositoryWithFault(repository, { method, error }) {
+  let faultCount = 0;
+  const fail = () => {
+    faultCount += 1;
+    throw error;
+  };
+  if (method === "getIdempotency") {
+    return {
+      repository: Object.freeze({ ...repository, getIdempotency: fail }),
+      faultCount: () => faultCount,
+    };
+  }
+  return {
+    repository: Object.freeze({
+      ...repository,
+      transaction(callback) {
+        return repository.transaction((tx) => callback(Object.freeze({ ...tx, [method]: fail })));
+      },
+    }),
+    faultCount: () => faultCount,
+  };
+}
+
+function injectedFinanceError(message, { code, status } = {}) {
+  const error = new Error(message);
+  if (code) error.code = code;
+  if (status) error.status = status;
+  return error;
+}
+
+test("TUW-34 finance HTTP applies canonical write-down approval and preserves no-adjustment approval", async () => {
+  const adjustedPrebillId = "prebill-api-write-down";
+  const plainPrebillId = "prebill-api-without-adjustment";
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      preBillApprovalSeed(adjustedPrebillId),
+      preBillApprovalSeed(plainPrebillId),
+    ],
+  });
+  const writeDownBody = preBillApprovalBody(
+    adjustedPrebillId,
+    "api-prebill-write-down-approve",
+    {
+      adjustment_id: "adjustment-api-write-down",
+      prebill_id: adjustedPrebillId,
+      adjustment_type: "write_down",
+      amount: 40,
+      reason_code: "partner_write_down",
+    },
+  );
+  writeDownBody.total_amount = 1;
+
+  await withServer(async (baseUrl) => {
+    const approved = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify(writeDownBody),
+    });
+    assert.equal(approved.status, 200);
+    assert.equal(approved.body.item.prebill_id, adjustedPrebillId);
+    assert.equal(approved.body.item.status, "partner_approved");
+    assert.equal(approved.body.item.total_amount, 60);
+    assert.equal(approved.body.item.adjustments_total, 40);
+    assert.equal(approved.body.item.approved_without_adjustment, false);
+    assert.equal(approved.body.adjustment.adjustment_id, "adjustment-api-write-down");
+    assert.equal(approved.body.adjustment.amount, 40);
+
+    const storedAdjustment = financeRepository.get({
+      tenant_id: TENANT,
+      model_type: "BillingAdjustment",
+      adjustment_id: "adjustment-api-write-down",
+    });
+    assert.equal(storedAdjustment.prebill_id, adjustedPrebillId);
+    assert.equal(storedAdjustment.adjustment_type, "write_down");
+    assert.equal(storedAdjustment.total_amount, undefined);
+
+    const afterApproval = financeRepository.snapshot();
+    const replay = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify(writeDownBody),
+    });
+    assert.equal(replay.status, 200);
+    assert.equal(replay.body.outcome, "idempotent_replay");
+    assert.equal(replay.body.idempotent_replay, true);
+    assert.deepEqual(financeRepository.snapshot(), afterApproval);
+
+    const plain = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify(preBillApprovalBody(
+        plainPrebillId,
+        "api-prebill-without-adjustment-approve",
+      )),
+    });
+    assert.equal(plain.status, 200);
+    assert.equal(plain.body.item.status, "partner_approved");
+    assert.equal(plain.body.item.total_amount, 100);
+    assert.equal(plain.body.item.adjustments_total, 0);
+    assert.equal(plain.body.item.approved_without_adjustment, true);
+    assert.equal(
+      financeRepository.list({ tenant_id: TENANT, model_type: "BillingAdjustment" }).length,
+      1,
+    );
+    assert.deepEqual(
+      financeRepository
+        .listAudit({ tenant_id: TENANT })
+        .filter((event) => event.action.startsWith("prebill."))
+        .map((event) => event.action)
+        .sort(),
+      ["prebill.adjustment.approve", "prebill.approve_without_adjustment"],
+    );
+  }, { financeRepository });
+});
+
+test("TUW-34 finance HTTP keeps arbitrary no-adjustment failures on generic safe envelopes", async () => {
+  const failures = [
+    {
+      label: "internal",
+      error: injectedFinanceError(
+        "SENTINEL_INTERNAL_REPOSITORY_MESSAGE",
+        { code: "SENTINEL_INTERNAL_REPOSITORY_CODE" },
+      ),
+      expectedStatus: 500,
+      expectedSafeCode: "API_INTERNAL_ERROR",
+      expectedError: "internal_error",
+    },
+    {
+      label: "untyped conflict",
+      error: injectedFinanceError(
+        "SENTINEL_CONFLICT_REPOSITORY_MESSAGE",
+        { code: "SENTINEL_CONFLICT_REPOSITORY_CODE", status: 409 },
+      ),
+      expectedStatus: 409,
+      expectedSafeCode: "REPOSITORY_VERSION_CONFLICT",
+      expectedError: "conflict",
+    },
+    {
+      label: "dependency unavailable",
+      error: injectedFinanceError(
+        "SENTINEL_UNAVAILABLE_REPOSITORY_MESSAGE",
+        { code: "SENTINEL_UNAVAILABLE_REPOSITORY_CODE", status: 503 },
+      ),
+      expectedStatus: 503,
+      expectedSafeCode: "API_DEPENDENCY_UNAVAILABLE",
+      expectedError: "dependency_unavailable",
+    },
+  ];
+
+  for (const failure of failures) {
+    const prebillId = `prebill-api-no-adjustment-${failure.label.replaceAll(" ", "-")}`;
+    const financeRepository = createFinanceRepository({
+      seedRecords: [preBillApprovalSeed(prebillId)],
+    });
+    const fault = financeRepositoryWithFault(financeRepository, {
+      method: "getIdempotency",
+      error: failure.error,
+    });
+    const before = financeRepository.snapshot();
+    await withServer(async (baseUrl) => {
+      const response = await json(baseUrl, "/api/finance/prebills/approve", {
+        method: "POST",
+        headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+        body: JSON.stringify(preBillApprovalBody(
+          prebillId,
+          `api-no-adjustment-${failure.label}`,
+        )),
+      });
+      assert.equal(response.status, failure.expectedStatus, failure.label);
+      assert.equal(response.body.outcome, "blocked", failure.label);
+      assert.deepEqual(response.body.safe_error_codes, [failure.expectedSafeCode], failure.label);
+      assert.equal(response.body.error, failure.expectedError, failure.label);
+      assert.equal(response.body.detail_exposed, false, failure.label);
+      assert.equal(response.body.code, undefined, failure.label);
+      assert.equal(response.body.message, undefined, failure.label);
+      assert.doesNotMatch(JSON.stringify(response.body), /SENTINEL_/u, failure.label);
+    }, { financeRepository: fault.repository });
+    assert.equal(fault.faultCount(), 1, failure.label);
+    assert.deepEqual(financeRepository.snapshot(), before, failure.label);
+  }
+
+  const financeRepository = createFinanceRepository();
+  await withServer(async (baseUrl) => {
+    const missing = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify(preBillApprovalBody(
+        "prebill-api-no-adjustment-missing",
+        "api-no-adjustment-missing",
+      )),
+    });
+    assert.equal(missing.status, 400);
+    assert.deepEqual(missing.body.safe_error_codes, ["FINANCE_API_VALIDATION_ERROR"]);
+    assert.equal(missing.body.code, "FINANCE_API_VALIDATION_ERROR");
+    assert.equal(missing.body.message, "PreBill not found");
+  }, { financeRepository });
+});
+
+test("TUW-34 finance HTTP rolls back write-down approval and receipt-stage faults", async () => {
+  const failures = [
+    {
+      label: "approval update",
+      method: "update",
+      error: injectedFinanceError(
+        "SENTINEL_APPROVAL_STAGE_MESSAGE",
+        { code: "SENTINEL_APPROVAL_STAGE_CODE" },
+      ),
+      expectedStatus: 500,
+      expectedSafeCode: "API_INTERNAL_ERROR",
+      expectedError: "internal_error",
+    },
+    {
+      label: "idempotency receipt",
+      method: "recordIdempotency",
+      error: injectedFinanceError(
+        "SENTINEL_RECEIPT_STAGE_MESSAGE",
+        { code: "SENTINEL_RECEIPT_STAGE_CODE", status: 503 },
+      ),
+      expectedStatus: 503,
+      expectedSafeCode: "API_DEPENDENCY_UNAVAILABLE",
+      expectedError: "dependency_unavailable",
+    },
+  ];
+
+  for (const failure of failures) {
+    const suffix = failure.label.replaceAll(" ", "-");
+    const prebillId = `prebill-api-write-down-${suffix}`;
+    const financeRepository = createFinanceRepository({
+      seedRecords: [preBillApprovalSeed(prebillId)],
+    });
+    const fault = financeRepositoryWithFault(financeRepository, failure);
+    const before = financeRepository.snapshot();
+    await withServer(async (baseUrl) => {
+      const response = await json(baseUrl, "/api/finance/prebills/approve", {
+        method: "POST",
+        headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+        body: JSON.stringify(preBillApprovalBody(
+          prebillId,
+          `api-write-down-${suffix}`,
+          {
+            adjustment_id: `adjustment-api-write-down-${suffix}`,
+            prebill_id: prebillId,
+            adjustment_type: "write_down",
+            amount: 10,
+            reason_code: "partner_write_down",
+          },
+        )),
+      });
+      assert.equal(response.status, failure.expectedStatus, failure.label);
+      assert.equal(response.body.outcome, "blocked", failure.label);
+      assert.deepEqual(response.body.safe_error_codes, [failure.expectedSafeCode], failure.label);
+      assert.equal(response.body.error, failure.expectedError, failure.label);
+      assert.equal(response.body.detail_exposed, false, failure.label);
+      assert.equal(response.body.code, undefined, failure.label);
+      assert.equal(response.body.message, undefined, failure.label);
+      assert.doesNotMatch(JSON.stringify(response.body), /SENTINEL_/u, failure.label);
+    }, { financeRepository: fault.repository });
+    assert.equal(fault.faultCount(), 1, failure.label);
+    assert.deepEqual(financeRepository.snapshot(), before, failure.label);
+  }
+});
+
+test("TUW-34 finance HTTP rejects invalid write-downs and changed replay without partial writes", async () => {
+  const invalidCases = [
+    {
+      label: "amount exceeds canonical PreBill total",
+      prebillId: "prebill-api-write-down-excess",
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-excess",
+        prebill_id: "prebill-api-write-down-excess",
+        adjustment_type: "write_down",
+        amount: 101,
+        reason_code: "partner_write_down",
+      },
+      message: "adjustment amount exceeds PreBill remaining amount",
+    },
+    {
+      label: "zero amount",
+      prebillId: "prebill-api-write-down-zero",
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-zero",
+        prebill_id: "prebill-api-write-down-zero",
+        adjustment_type: "write_down",
+        amount: 0,
+        reason_code: "partner_write_down",
+      },
+      message: "adjustment amount must be positive",
+    },
+    {
+      label: "negative amount",
+      prebillId: "prebill-api-write-down-negative",
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-negative",
+        prebill_id: "prebill-api-write-down-negative",
+        adjustment_type: "write_down",
+        amount: -1,
+        reason_code: "partner_write_down",
+      },
+      message: "adjustment amount must be positive",
+    },
+    {
+      label: "missing PreBill",
+      prebillId: "prebill-api-write-down-missing",
+      seed: false,
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-missing",
+        prebill_id: "prebill-api-write-down-missing",
+        adjustment_type: "write_down",
+        amount: 10,
+        reason_code: "partner_write_down",
+      },
+      message: "PreBill not found",
+    },
+    {
+      label: "mismatched PreBill",
+      prebillId: "prebill-api-write-down-mismatch",
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-mismatch",
+        prebill_id: "prebill-api-write-down-other",
+        adjustment_type: "write_down",
+        amount: 10,
+        reason_code: "partner_write_down",
+      },
+      message: "adjustment prebill_id must match prebill_id",
+    },
+    {
+      label: "unsupported adjustment type",
+      prebillId: "prebill-api-write-down-type",
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-type",
+        prebill_id: "prebill-api-write-down-type",
+        adjustment_type: "write_off",
+        amount: 10,
+        reason_code: "partner_write_down",
+      },
+      message: "adjustment_type must be write_down",
+    },
+    {
+      label: "forged adjustment total",
+      prebillId: "prebill-api-write-down-forged",
+      adjustment: {
+        adjustment_id: "adjustment-api-write-down-forged",
+        prebill_id: "prebill-api-write-down-forged",
+        adjustment_type: "write_down",
+        amount: 10,
+        reason_code: "partner_write_down",
+        total_amount: 1,
+      },
+      message: "adjustment contains unsupported fields",
+    },
+  ];
+  const replayPrebillId = "prebill-api-write-down-conflict";
+  const financeRepository = createFinanceRepository({
+    seedRecords: [
+      ...invalidCases
+        .filter((testCase) => testCase.seed !== false)
+        .map((testCase) => preBillApprovalSeed(testCase.prebillId)),
+      preBillApprovalSeed(replayPrebillId),
+    ],
+  });
+
+  await withServer(async (baseUrl) => {
+    for (const testCase of invalidCases) {
+      const before = financeRepository.snapshot();
+      const response = await json(baseUrl, "/api/finance/prebills/approve", {
+        method: "POST",
+        headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+        body: JSON.stringify(preBillApprovalBody(
+          testCase.prebillId,
+          `api-${testCase.prebillId}`,
+          testCase.adjustment,
+        )),
+      });
+      assert.equal(response.status, 400, testCase.label);
+      assert.deepEqual(
+        response.body.safe_error_codes,
+        ["FINANCE_API_VALIDATION_ERROR"],
+        testCase.label,
+      );
+      assert.equal(response.body.code, "FINANCE_API_VALIDATION_ERROR", testCase.label);
+      assert.equal(response.body.message, testCase.message, testCase.label);
+      assert.deepEqual(financeRepository.snapshot(), before, testCase.label);
+    }
+
+    const originalBody = preBillApprovalBody(
+      replayPrebillId,
+      "api-prebill-write-down-conflict",
+      {
+        adjustment_id: "adjustment-api-write-down-conflict",
+        prebill_id: replayPrebillId,
+        adjustment_type: "write_down",
+        amount: 10,
+        reason_code: "partner_write_down",
+      },
+    );
+    const original = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify(originalBody),
+    });
+    assert.equal(original.status, 200);
+    const afterOriginal = financeRepository.snapshot();
+
+    const conflict = await json(baseUrl, "/api/finance/prebills/approve", {
+      method: "POST",
+      headers: { [PERMISSION_CONTEXT_HEADER]: permissionContext("allow", ["partner"]) },
+      body: JSON.stringify({
+        ...originalBody,
+        adjustment: { ...originalBody.adjustment, amount: 11 },
+      }),
+    });
+    assert.equal(conflict.status, 409);
+    assert.deepEqual(conflict.body.safe_error_codes, ["IDEMPOTENCY_CONFLICT"]);
+    assert.equal(conflict.body.code, "FINANCE_IDEMPOTENCY_CONFLICT");
+    assert.equal(
+      conflict.body.message,
+      "idempotency key was already used for a different finance request",
+    );
+    assert.deepEqual(financeRepository.snapshot(), afterOriginal);
   }, { financeRepository });
 });

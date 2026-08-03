@@ -16,10 +16,19 @@ import {
   readDesktopBuildSourceIdentity,
 } from "./lib/matter-desktop-provenance.mjs";
 import {
+  buildDesktopArtifactPrivacyCorpus,
+  createWindowsInstallerPrivacyBuilderReceipt,
+  desktopArtifactPrivacyCorpusSha256,
+  inspectDesktopArtifactBytes,
+  inspectExpandedDesktopArtifact,
+  writeDesktopArtifactPrivacyJson,
+} from "./lib/matter-desktop-artifact-privacy.mjs";
+import {
   injectMatterDesktopAuthenticodeConfiguration,
   resolveMatterDesktopAuthenticodeConfiguration,
   validateMatterDesktopAuthenticodeSignatures,
 } from "./lib/matter-desktop-authenticode.mjs";
+import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const npxExecutable = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "npx";
@@ -43,21 +52,17 @@ assertDesktopFormalBuildProvenance({
 const appId = channelConfig.appId;
 const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
+const installerPrivacyBuilderReceiptPath = `${installerPath}.privacy-builder.json`;
 const blockmapPath = `${installerPath}.blockmap`;
 const unpackedPath = join(desktopRoot, "dist", "win-unpacked");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
 const buildManifestName = "matter-build-manifest.json";
 const formalReleaseMarkerName = "matter-formal-release.json";
-const rendererRoot = join(desktopRoot, "src", "renderer", "web");
-const installerBuildManifest = createDesktopBuildManifest({
-  version: packageJson.version,
-  ...sourceIdentity,
-  renderer: directoryDigest(rendererRoot),
-  channel: releaseChannel,
-  platform: "win32",
-  arch: "x64",
-  appId,
-});
+const runtimeMode = process.env.MATTER_DESKTOP_RUNTIME_MODE;
+const privateLocalOptIn = process.env.MATTER_DESKTOP_PRIVATE_LOCAL_OPT_IN;
+const nonDistributable = process.env.MATTER_DESKTOP_NON_DISTRIBUTABLE;
+let installerBuildManifest;
+let runtimeMetadata;
 const runtimeAssetPaths = [
   "build/amic-law-a-lockup-accent.svg",
   "build/amic-law-mic-accent.svg",
@@ -104,6 +109,7 @@ async function authenticodeRecord(filePath) {
 }
 
 await rm(installerPath, { force: true });
+await rm(installerPrivacyBuilderReceiptPath, { force: true });
 await rm(blockmapPath, { force: true });
 await rm(unpackedPath, { recursive: true, force: true });
 
@@ -117,6 +123,30 @@ try {
   await mkdir(stagingProjectRoot, { recursive: true });
   await cp(join(desktopRoot, "src"), join(stagingProjectRoot, "src"), { recursive: true });
   await cp(join(desktopRoot, "build"), join(stagingProjectRoot, "build"), { recursive: true });
+  runtimeMetadata = await copyDesktopLocalApiRuntime({
+    targetAppSourceDir: stagingProjectRoot,
+    repoRoot,
+    channel: releaseChannel,
+    runtimeMode,
+    privateLocalOptIn,
+    nonDistributable,
+    formalRelease,
+  });
+  installerBuildManifest = createDesktopBuildManifest({
+    version: packageJson.version,
+    ...sourceIdentity,
+    renderer: directoryDigest(join(stagingProjectRoot, "src", "renderer", "web")),
+    channel: releaseChannel,
+    platform: "win32",
+    arch: "x64",
+    appId,
+    requestedRuntimeMode: runtimeMetadata.requestedRuntimeMode,
+    effectiveRuntimeMode: runtimeMetadata.effectiveRuntimeMode,
+    runtimeIncluded: runtimeMetadata.included,
+    runtimeDataClass: runtimeMetadata.dataClass,
+    nonDistributable: runtimeMetadata.nonDistributable,
+    distributable: runtimeMetadata.distributable,
+  });
   const provenanceRoot = join(stagingProjectRoot, ".release-provenance");
   await mkdir(provenanceRoot, { recursive: true });
   await writeFile(
@@ -158,7 +188,10 @@ try {
     "",
   ].join("\n");
   const builderConfiguration = injectMatterDesktopAuthenticodeConfiguration(
-    (await readFile(builderConfigPath, "utf8")).trimEnd(),
+    (await readFile(builderConfigPath, "utf8")).trimEnd().replace(
+      /^files:\s*$/mu,
+      'files:\n  - "runtime/**/*"',
+    ),
     authenticodeConfiguration,
   );
   await writeFile(
@@ -202,6 +235,15 @@ try {
     "Windows installer renderer must match its build manifest",
   );
   assert.equal(
+    existsSync(join(packagedResources, "app", "runtime")),
+    runtimeMetadata.included,
+    "Windows installer runtime presence must match its build manifest",
+  );
+  const packagedManifest = JSON.parse(await readFile(packagedBuildManifestPath, "utf8"));
+  assert.equal(packagedManifest.runtime_included, runtimeMetadata.included);
+  assert.equal(packagedManifest.effective_runtime_mode, runtimeMetadata.effectiveRuntimeMode);
+  assert.equal(packagedManifest.runtime_data_class, runtimeMetadata.dataClass);
+  assert.equal(
     existsSync(join(packagedResources, formalReleaseMarkerName)),
     formalRelease,
     "Windows installer formal marker must match the release channel",
@@ -227,6 +269,39 @@ for (const assetPath of runtimeAssetPaths) {
 
 const installer = await fileRecord(installerPath);
 const blockmap = await fileRecord(blockmapPath);
+let privacyCorpusSha256 = null;
+let installerPrivacyBuilderReceipt = null;
+if (formalRelease) {
+  const corpus = await buildDesktopArtifactPrivacyCorpus({ repoRoot, env: process.env });
+  privacyCorpusSha256 = desktopArtifactPrivacyCorpusSha256(corpus);
+  const [byteInspection, sourcePayloadInspection] = await Promise.all([
+    inspectDesktopArtifactBytes({
+      artifactPath: installerPath,
+      artifactKind: "nsis_installer",
+      corpus,
+      displayBase: repoRoot,
+    }),
+    inspectExpandedDesktopArtifact({
+      rootPath: unpackedPath,
+      buildManifest: installerBuildManifest,
+      corpus,
+      displayBase: repoRoot,
+    }),
+  ]);
+  installerPrivacyBuilderReceipt = createWindowsInstallerPrivacyBuilderReceipt({
+    receiptId: `rfd-tuw-007-${installerBuildManifest.source_sha.slice(0, 12)}-windows-installer-builder`,
+    artifact: {
+      id: "windows_installer",
+      kind: "nsis_installer",
+      sha256: installer.sha256,
+      bytes: installer.bytes,
+    },
+    buildManifest: installerBuildManifest,
+    byteInspection,
+    sourcePayloadInspection,
+  });
+  await writeDesktopArtifactPrivacyJson(installerPrivacyBuilderReceiptPath, installerPrivacyBuilderReceipt);
+}
 const authenticodeResult = authenticodeConfiguration
   ? validateMatterDesktopAuthenticodeSignatures([
       await authenticodeRecord(installerPath),
@@ -239,7 +314,7 @@ const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const relativeInstallerPath = "apps/desktop/dist/" + `${artifactName}-win-x64.exe`;
 const relativeBlockmapPath = `${relativeInstallerPath}.blockmap`;
 const priorReceipt = existsSync(receiptPath) ? await readFile(receiptPath, "utf8") : "";
-const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer thumbprint sha256: \`${authenticodeResult ? sha256(Buffer.from(authenticodeResult.signer_thumbprint_sha256_source)) : "not_applicable"}\`\n`;
+const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer requested runtime mode: \`${runtimeMetadata.requestedRuntimeMode}\`\n- Windows installer effective runtime mode: \`${runtimeMetadata.effectiveRuntimeMode}\`\n- Windows installer runtime included: ${runtimeMetadata.included}\n- Windows installer runtime data class: \`${runtimeMetadata.dataClass}\`\n- Windows installer non-distributable: ${runtimeMetadata.nonDistributable}\n- Windows installer runtime identity boundary: ${runtimeMetadata.identityBoundary?.real_identity_marker_count ?? 0} real markers\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows installer privacy corpus sha256: \`${privacyCorpusSha256 ?? "not_run_non_formal"}\`\n- Windows installer privacy state: ${installerPrivacyBuilderReceipt?.status ?? "not_run_non_formal"}\n- Windows installer privacy sidecar: \`${formalRelease ? `${relativeInstallerPath}.privacy-builder.json` : "not_applicable"}\`\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer thumbprint sha256: \`${authenticodeResult ? sha256(Buffer.from(authenticodeResult.signer_thumbprint_sha256_source)) : "not_applicable"}\`\n`;
 
 await mkdir(dirname(receiptPath), { recursive: true });
 await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}`);
@@ -262,6 +337,15 @@ console.log(
       installer_source_tree: installerBuildManifest.source_tree,
       installer_source_dirty: installerBuildManifest.source_dirty,
       installer_renderer_sha256: installerBuildManifest.renderer.sha256,
+      runtime_requested_mode: runtimeMetadata.requestedRuntimeMode,
+      runtime_effective_mode: runtimeMetadata.effectiveRuntimeMode,
+      runtime_included: runtimeMetadata.included,
+      runtime_data_class: runtimeMetadata.dataClass,
+      runtime_non_distributable: runtimeMetadata.nonDistributable,
+      runtime_identity_real_marker_count: runtimeMetadata.identityBoundary?.real_identity_marker_count ?? 0,
+      installer_privacy_corpus_sha256: privacyCorpusSha256,
+      installer_privacy_state: installerPrivacyBuilderReceipt?.status ?? "NOT_RUN_NON_FORMAL",
+      installer_privacy_builder_receipt: formalRelease ? `${relativeInstallerPath}.privacy-builder.json` : null,
       installer_formal_marker: formalRelease && existsSync(packagedFormalMarkerPath),
       windows_native_install_smoke: nativeInstallSmoke,
       windows_authenticode_signing: Boolean(authenticodeResult),

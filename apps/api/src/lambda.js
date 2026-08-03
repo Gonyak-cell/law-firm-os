@@ -47,7 +47,7 @@ import { buildCashflowReadModel } from "../../../packages/analytics/src/finance-
 import {
   backfillPaymentMatchesAsAllocations,
   buildPaymentAllocationMigrationPlan,
-} from "../../../packages/payments/src/payment-allocation-service.js";
+} from "../../../packages/payments/src/payment-allocation-migration.js";
 import {
   readDurableJsonFile,
   removeDurableJsonFile,

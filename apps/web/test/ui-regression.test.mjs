@@ -256,11 +256,14 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     const { buildContextualNavigation } = await viteServer.ssrLoadModule("/src/components/Shell.jsx");
     const navigation = buildContextualNavigation();
     const clientOperations = navigation.clients.items.find((item) => item.label === "운영").children;
-    const matterCommunication = navigation.matters.items.find((item) => item.label === "소통").children;
-    const matterReports = navigation.matters.items.find((item) => item.label === "리포트").children;
     assert.deepEqual(clientOperations.map((item) => [item.label, item.section]), [["청구", "client-billing"], ["리포트", "client-reports"]]);
-    assert.deepEqual(matterCommunication.map((item) => [item.label, item.section]), [["회의 기록", "matter-meetings"], ["의뢰인 요청", "matter-client-requests"]]);
-    assert.deepEqual(matterReports.map((item) => [item.label, item.section]), [["사건 리포트", "matter-analytics"], ["연동", "matter-integrations"]]);
+    assert.deepEqual(
+      navigation.matters.items.map((item) => [item.label, item.section]),
+      [["오늘", "matter-today"], ["사건", "matter-list"], ["업무", "matter-work"], ["일정", "matter-calendar"], ["연락·후속", "matter-followups"], ["시간·청구", "matter-time-billing"]]
+    );
+    const flattenLabels = (items) => items.flatMap((item) => [item.label, ...(item.children ? flattenLabels(item.children) : [])]);
+    const nonMatterLabels = ["home", "clients", "people", "vault", "portal"].flatMap((axis) => flattenLabels(navigation[axis].items));
+    assert.ok(nonMatterLabels.every((label) => !label.includes("·")));
   } finally {
     await viteServer.close();
   }
@@ -268,12 +271,11 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     assert.doesNotMatch(shellSource, new RegExp(`section: "${section}"`));
   }
   assert.doesNotMatch(shellSource, /Client 관리|Client 목록|Client 계정|Client 관계|Client 리포트|Client 데이터|Client 설정/);
-  for (const label of ["업무 관리", "업무 보드", "워크트리", "할 일", "일정", "사건 운영", "대시보드", "사건 목록", "신규 사건", "종결 처리", "보관 사건", "소통", "회의 기록", "의뢰인 요청", "리포트", "사건 리포트", "연동"]) {
+  for (const label of ["오늘", "사건", "업무", "일정", "연락·후속", "시간·청구"]) {
     assert.match(shellSource, new RegExp(label));
   }
-  assert.match(shellSource, /label: "업무 관리"[\s\S]*label: "사건 운영"/);
+  assert.match(shellSource, /MATTER_CANONICAL_ROUTES/);
   assert.doesNotMatch(shellSource, /업무 진행|외부 일정|검토 의견/);
-  assert.doesNotMatch(`${shellSource}\n${globalUtilitySource}\n${homeSource}\n${clientsSource}\n${mattersSource}\n${userProfileSource}\n${employeeProfileSource}\n${i18nSource}`, /·/);
   assert.match(shellSource, /peopleNavigationGroups/);
   assert.match(shellSource, /peopleSidebarGroups/);
   assert.match(shellSource, /children\.length === 1 && children\[0\]\.section === "people-attendance-records"/);
@@ -385,7 +387,7 @@ test("Stage 1 IA redirects old global utility URLs into stable product axes", as
 
   assert.deepEqual(modeExceptionUtilityViewIds, ["settings", "data-import", "profile"]);
   assert.deepEqual(resolveGlobalShortcut("home", ""), { view: "home", section: "home-dashboard" });
-  assert.deepEqual(resolveGlobalShortcut("matters", ""), { view: "matters", section: "matter-board" });
+  assert.deepEqual(resolveGlobalShortcut("matters", ""), { view: "matters", section: "matter-today" });
   assert.deepEqual(resolveGlobalShortcut("home", "home-recent"), { view: "home", section: "home-dashboard" });
   assert.deepEqual(resolveGlobalShortcut("reports", "reports-home-dashboard"), { view: "home", section: "home-dashboard" });
   assert.equal(resolveGlobalShortcut("messages", "messages-matter-channel").view, "home");
@@ -407,7 +409,8 @@ test("Stage 1 IA redirects old global utility URLs into stable product axes", as
   });
   assert.deepEqual(resolveGlobalShortcut("matters", "matter-notes"), {
     view: "matters",
-    section: "matter-board",
+    section: "matter-followups",
+    filter: "notes",
     redirectedFrom: { view: "matters", section: "matter-notes" }
   });
   assert.deepEqual(resolveGlobalShortcut("people", "people-company-leave"), {
@@ -431,6 +434,7 @@ test("WP-FIN-1 registers the Home finance group and context-preserving legacy ro
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const homeSource = await readWebFile("src/components/HomeSurface.jsx");
   const globalUtilitySource = await readWebFile("src/data/globalUtilities.js");
+  const { resolveGlobalShortcut } = await import(pathToFileURL(resolve(webRoot, "src/data/globalUtilities.js")).href);
 
   const sections = [
     "home-finance-overview",
@@ -450,11 +454,26 @@ test("WP-FIN-1 registers the Home finance group and context-preserving legacy ro
   assert.match(shellSource, /groupId: "home-finance"/);
   assert.match(shellSource, /data-sidebar-group=\{stableGroupId\}/);
   assert.match(globalUtilitySource, /status: "integrated-home"/);
-  assert.match(globalUtilitySource, /"matters:matter-approvals", route\("home", "home-requests"[^\n]*filter: "finance"/);
-  assert.match(globalUtilitySource, /"matters:matter-time", route\("home", "home-finance-time"/);
-  assert.match(globalUtilitySource, /"matters:matter-expenses", route\("home", "home-finance-expenses"/);
-  assert.match(globalUtilitySource, /"matters:matter-billing", route\("home", "home-finance-billing"/);
-  assert.match(globalUtilitySource, /"matters:matter-ar", route\("home", "home-finance-ar"/);
+  const matterFinanceRoutes = {
+    "matter-time": "time",
+    "matter-expenses": "expenses",
+    "matter-billing": "billing",
+    "matter-ar": "ar"
+  };
+  for (const [legacySection, filter] of Object.entries(matterFinanceRoutes)) {
+    assert.deepEqual(resolveGlobalShortcut("matters", legacySection), {
+      view: "matters",
+      section: "matter-time-billing",
+      filter,
+      redirectedFrom: { view: "matters", section: legacySection }
+    });
+  }
+  assert.deepEqual(resolveGlobalShortcut("matters", "matter-approvals"), {
+    view: "home",
+    section: "home-requests",
+    filter: "finance",
+    redirectedFrom: { view: "matters", section: "matter-approvals", filter: "finance" }
+  });
   assert.match(appSource, /routeUrl\(resolved\.view, resolved\.section, \{ \.\.\.resolved, \.\.\.routeContext \}\)/);
   assert.match(appSource, /params\.set\("matter_id", routeContext\.matterId\)/);
   assert.match(appSource, /params\.set\("filter", routeContext\.filter\)/);
@@ -810,7 +829,6 @@ test("Home dashboard Stage 4 keeps action counts on the single Home inbox source
   assert.match(apiClientSource, /`\/api\/home\/action-inbox\/\$\{encodeURIComponent\(id\)\}\/decision`/);
   assert.match(apiClientSource, /export async function fetchHomeAgenda/);
   assert.match(apiClientSource, /export async function fetchHomeFeed/);
-  assert.match(apiClientSource, /tenantIdForDomain\("vault", VAULT_TENANT_ID\)/);
 
   assert.match(appSource, /const \[homeActionCounts, setHomeActionCounts\] = useState\(emptyHomeActionCounts\)/);
   assert.match(appSource, /const homeApprovalCount = Number\(homeActionCounts\.approval \?\? 0\) \|\| 0/);
@@ -1265,16 +1283,12 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
     "client-activities",
     "client-billing",
     "client-sales-history",
-    "matter-home",
-    "matter-closeout",
-    "matter-archive",
-    "matter-board",
-    "matter-tasks",
+    "matter-today",
+    "matter-list",
+    "matter-work",
     "matter-calendar",
-    "matter-opening",
-    "matter-client-requests",
-    "matter-analytics",
-    "matter-integrations"
+    "matter-followups",
+    "matter-time-billing"
   ]) {
     assert.match(shellSource, new RegExp(section));
   }
@@ -1527,8 +1541,54 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(mattersSource, /fetchAnalyticsDashboards/);
   assert.match(mattersSource, /fetchAnalyticsMatterProfitability/);
   assert.match(mattersSource, /createFinanceTimeEntry/);
-  assert.match(mattersSource, /generateFinanceWip/);
-  assert.match(mattersSource, /importFinancePayment/);
+  assert.match(mattersSource, /generateMatterOpsWip/);
+  assert.doesNotMatch(mattersSource, /generateFinanceWip/);
+  const { generateMatterOpsWip } = await import(pathToFileURL(resolve(webRoot, "src/data/apiClient.js")).href);
+  const previousFetch = globalThis.fetch;
+  const previousSession = globalThis.__LAWOS_SESSION_CONTEXT__;
+  let wipCall;
+  globalThis.__LAWOS_SESSION_CONTEXT__ = {
+    schema_version: "law-firm-os.desktop-web-session-envelope.v0.1",
+    state: "signed_in",
+    actor_ref: "actor-wip-contract",
+    tenant_refs: { matter: "tenant-matter-wip-contract" }
+  };
+  globalThis.fetch = async (input, init = {}) => {
+    wipCall = { input: String(input), init };
+    return new Response(JSON.stringify({
+      outcome: "created",
+      source_set_id: "source-set-contract",
+      wip_items: [{ wip_item_id: "wip-contract" }]
+    }), {
+      status: 201,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  try {
+    const wipResult = await generateMatterOpsWip({
+      matterId: "matter-contract",
+      sourceSet: {
+        source_set_id: "source-set-contract",
+        source_refs: [{ model_type: "TimeEntry", source_id: "time-contract" }]
+      }
+    });
+    assert.equal(wipResult.kind, "data");
+    assert.deepEqual(wipResult.wipItems, [{ wip_item_id: "wip-contract" }]);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousSession === undefined) delete globalThis.__LAWOS_SESSION_CONTEXT__;
+    else globalThis.__LAWOS_SESSION_CONTEXT__ = previousSession;
+  }
+  assert.match(wipCall.input, /^\/api\/matter\/ops\/wip\?/);
+  assert.equal(wipCall.init.method, "POST");
+  assert.deepEqual(JSON.parse(wipCall.init.body), {
+    action: "generate",
+    idempotency_key: "matter_ops_wip_source_set_contract",
+    matter_id: "matter-contract",
+    source_set_id: "source-set-contract",
+    source_refs: [{ model_type: "TimeEntry", source_id: "time-contract" }]
+  });
+  assert.match(mattersSource, /importMatterOpsPayment/);
   assert.match(mattersSource, /refreshAnalyticsDashboards/);
   assert.match(mattersSource, /refreshMatterProfitability/);
   assert.match(mattersSource, /createAnalyticsExport/);
@@ -1587,7 +1647,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   }
   assert.match(mattersSource, /title="대시보드"[\s\S]*<MatterDashboardPanel/);
   assert.doesNotMatch(mattersSource, /currentSection === "matter-home"[\s\S]{0,600}<CommandPanel/);
-  assert.match(shellSource, /label: "대시보드", view: "matters", section: "matter-home"/);
+  assert.match(shellSource, /id: "matter-today", label: "오늘", view: "matters", section: "matter-today"/);
   assert.match(mattersSource, /matter-command-audit-trail/);
   assert.match(mattersSource, /matter-finance-audit-trail/);
   assert.match(mattersSource, /"matter-home",\s*"matters-list",\s*"matter-command",\s*"matter-intake"/);
@@ -1792,7 +1852,6 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /permission_check_only/);
   assert.match(apiClientSource, /bridgeToken/);
   assert.match(apiClientSource, /kind: "guarded"/);
-  assert.match(apiClientSource, /tenant_amic_matter_vault/);
   assert.match(apiClientSource, /matter_vault_operator/);
   assert.match(apiClientSource, /\/api\/crm\/leads/);
   assert.match(apiClientSource, /\/api\/crm\/accounts/);
@@ -2144,10 +2203,7 @@ test("HRX audit UI preserves server-owned step-up and no local fallback", async 
   assert.match(challengeSource, /권한 확인/);
   assert.doesNotMatch(challengeSource, /Trusted session only|Additional verification required|protected activity/);
   assert.doesNotMatch(challengeSource, /x-lawos-hrx-step-up|tenant-a|actor_id|mfa: true/);
-  assert.match(peopleApiSource, /tenant_amic_matter_vault/);
   assert.match(peopleApiSource, /lawos\.session\.envelope/);
-  assert.match(peopleApiSource, /sessionHrxRuntimeHeaders/);
-  assert.match(peopleApiSource, /if \(!envelope\) return \{ "x-lawos-tenant-id": HRX_ORG_REF \}/);
   assert.doesNotMatch(peopleApiSource, /HRX_DEFAULT_SELF_SERVICE_USER_REF|HRX_DEFAULT_SELF_SERVICE_ROLE|HRX_DEFAULT_SELF_SERVICE_SCOPES/);
   assert.doesNotMatch(peopleApiSource, /security_admin,hr_admin,people_ops/);
   assert.doesNotMatch(peopleApiSource, /const HRX_USER_REF = "user_amic_jwsuh"/);

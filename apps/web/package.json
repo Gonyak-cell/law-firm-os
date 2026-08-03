@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --project tsconfig.json --noEmit --pretty false",
-    "test:ui": "node --test test/*.test.mjs"
+    "test:ui": "node --test --test-concurrency=1 test/*.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",

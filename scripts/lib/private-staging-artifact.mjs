@@ -40,6 +40,11 @@ export const PRIVATE_STAGING_SOURCE_OVERRIDES = Object.freeze([
     target_path: "apps/api/src/lawos-role-registry.js",
     purpose: "remove-real-user-role-assignments",
   }),
+  Object.freeze({
+    source_path: "packages/matter/src/private-staging-matter-code-candidates.js",
+    target_path: "packages/matter/src/amic-matter-code-candidates.js",
+    purpose: "remove-real-matter-candidates",
+  }),
 ]);
 
 function requiredText(value, name) {
@@ -388,6 +393,11 @@ export function validatePrivateStagingSourceOverrides(overrides) {
     if (override.target_path.endsWith("amic-client-candidates.js")
       && !/AMIC_CURRENT_CLIENT_CANDIDATES\s*=\s*Object\.freeze\(\[\]\)/u.test(text)) {
       throw new Error("private staging client candidate override must be empty");
+    }
+    if (override.target_path.endsWith("amic-matter-code-candidates.js")
+      && (!/AMIC_CURRENT_MATTER_CLIENTS\s*=\s*Object\.freeze\(\[\]\)/u.test(text)
+        || !/AMIC_CURRENT_MATTER_CODE_CANDIDATES\s*=\s*Object\.freeze\(\[\]\)/u.test(text))) {
+      throw new Error("private staging matter candidate override must be empty");
     }
     if (override.target_path.endsWith("lawos-role-registry.js")
       && !text.includes('LAWOS_ROLE_REGISTRY_SOURCE = "private-synthetic-identity-manifest"')) {

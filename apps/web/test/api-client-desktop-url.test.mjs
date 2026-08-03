@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { installMatterUiSignedSessionContext } from "./support/lawos-session-test-support.mjs";
 
 test("desktop file renderer can route Matter API calls through handoff query fallback", async () => {
   const calls = [];
@@ -13,6 +14,7 @@ test("desktop file renderer can route Matter API calls through handoff query fal
     },
     matterSession: {},
   };
+  const restoreSession = installMatterUiSignedSessionContext();
   globalThis.fetch = async (input, init) => {
     calls.push({ input, init });
     return {
@@ -40,6 +42,7 @@ test("desktop file renderer can route Matter API calls through handoff query fal
     assert.match(calls[0].input, /^http:\/\/127\.0\.0\.1:52016\/api\/matters\?/);
     assert.match(calls[0].init.headers["x-lawos-permission-context"], /matter_runtime_user/);
   } finally {
+    restoreSession();
     globalThis.window = previousWindow;
     globalThis.fetch = previousFetch;
   }
@@ -79,6 +82,7 @@ test("packaged matter-app renderer routes signed Matter API calls through the ma
       },
     },
   };
+  const restoreSession = installMatterUiSignedSessionContext();
   globalThis.fetch = async () => {
     throw new Error("packaged renderer must not bypass the main-process bridge");
   };
@@ -93,6 +97,7 @@ test("packaged matter-app renderer routes signed Matter API calls through the ma
     assert.match(bridgeCalls[0].path, /^\/api\/matters\?/);
     assert.equal(bridgeCalls[0].method, "GET");
   } finally {
+    restoreSession();
     globalThis.window = previousWindow;
     globalThis.fetch = previousFetch;
   }

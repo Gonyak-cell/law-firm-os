@@ -4,6 +4,7 @@ export * from "./service.js";
 export * from "./validators.js";
 export * from "./payment-service.js";
 export * from "./payment-allocation-service.js";
+export * from "./payment-allocation-migration.js";
 export * from "./matching-service.js";
 export * from "./ar-service.js";
 export * from "./journal-service.js";

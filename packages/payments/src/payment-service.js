@@ -6,26 +6,44 @@ function requiredString(input, field) {
   return value.trim();
 }
 
-export function importPayment({ repository, payment, actor_id, idempotency_key } = {}) {
+function persistImportedPayment({
+  repository,
+  payment,
+  actor_id,
+  idempotency_key,
+  initial_status = "imported",
+  duplicate_candidate_payment_ids = [],
+} = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   requiredString(payment, "tenant_id");
   requiredString(payment, "bank_reference");
   const amount = Number(payment.amount);
   if (!Number.isFinite(amount) || amount <= 0) throw new Error("payment amount must be positive");
-  const replay = repository.getIdempotency({ tenant_id: payment.tenant_id, idempotency_key });
+  const idempotency = {
+    tenant_id: payment.tenant_id,
+    idempotency_key,
+    operation: "payment_import",
+    actor_id,
+    object_type: "Payment",
+    object_id: payment.payment_id,
+    request: { payment },
+  };
+  const replay = repository.getIdempotency(idempotency);
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
   return repository.transaction((tx) => {
     const record = tx.create({
       ...payment,
       model_type: "Payment",
       amount,
-      status: payment.status ?? "imported",
-      allocation_status: payment.allocation_status ?? "unallocated",
-      allocated_amount: payment.allocated_amount ?? 0,
-      unallocated_amount: payment.unallocated_amount ?? amount,
-      applied_amount: payment.applied_amount ?? 0,
-      unapplied_amount: payment.unapplied_amount ?? amount,
+      status: initial_status,
+      allocation_status: "unallocated",
+      allocated_amount: 0,
+      unallocated_amount: amount,
+      applied_amount: 0,
+      unapplied_amount: amount,
+      duplicate_review_required: initial_status === "duplicate_review",
+      duplicate_candidate_payment_ids: Object.freeze([...duplicate_candidate_payment_ids]),
       imported_at: payment.imported_at ?? new Date().toISOString(),
     });
     const auditEvent = appendFinanceAuditEvent({
@@ -40,9 +58,13 @@ export function importPayment({ repository, payment, actor_id, idempotency_key }
       },
     });
     const response = Object.freeze({ outcome: "created", payment: record, audit_event: auditEvent, idempotent_replay: false });
-    tx.recordIdempotency({ tenant_id: record.tenant_id, idempotency_key, operation: "payment_import", response });
+    tx.recordIdempotency({ ...idempotency, response });
     return response;
   });
+}
+
+export function importPayment({ repository, payment, actor_id, idempotency_key } = {}) {
+  return persistImportedPayment({ repository, payment, actor_id, idempotency_key });
 }
 
 export function confirmBankReceipt({
@@ -81,7 +103,7 @@ export function confirmBankReceipt({
     .filter((row) => Number(row.amount) === amount && row.currency === currency)
     .filter((row) => String(row.received_at ?? row.payment_date ?? row.imported_at ?? "").slice(0, 10) === date)
     .map((row) => row.payment_id);
-  return importPayment({
+  return persistImportedPayment({
     repository,
     payment: {
       ...payment,
@@ -92,12 +114,11 @@ export function confirmBankReceipt({
       amount,
       currency,
       received_at: receivedAt,
-      status: duplicateCandidates.length > 0 ? "duplicate_review" : payment.status,
-      duplicate_review_required: duplicateCandidates.length > 0,
-      duplicate_candidate_payment_ids: duplicateCandidates,
       revenue_effect: "none_until_allocated",
     },
     actor_id,
     idempotency_key,
+    initial_status: duplicateCandidates.length > 0 ? "duplicate_review" : "imported",
+    duplicate_candidate_payment_ids: duplicateCandidates,
   });
 }

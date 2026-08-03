@@ -55,6 +55,17 @@ const ACCOUNT = "770880870480";
 const REGION = "ap-northeast-2";
 const INPUT_BUCKET = "lawos-prod-program-input-770880870480";
 const INPUT_KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
+const PROFILE_PHOTO_ARTIFACT_BINDING = Object.freeze({
+  metadata_path: "apps/api/src/hrx-member-photo-artifact-metadata.json",
+  metadata_schema_version: "law-firm-os.profile-photo-artifact-metadata.v1",
+  metadata_sha256: "f".repeat(64),
+  generation_ref: `profile_generation_${"d".repeat(32)}`,
+  private_manifest_schema_version: "law-firm-os.profile-photo-replacement-manifest.v2",
+  private_manifest_sha256: "d".repeat(64),
+  private_manifest_entry_count: 10,
+  injected_photo_entry_count: 10,
+  git_source_photo_entry_count: 0,
+});
 const W15_TRANSFORM_TARGET_COLUMNS = Object.freeze({
   hrx_audit_events: ["metadata_json"],
   hrx_candidates: ["crm_party_linked"],
@@ -666,7 +677,7 @@ test("CUT-011 inputs require only exact signed CUT-009 and CUT-010 PASS receipts
   const objects = new Map([[
     "manifest",
     {
-      schema_version: "law-firm-os.json-postgres-production-artifact.v1",
+      schema_version: "law-firm-os.json-postgres-production-artifact.v2",
       operational_authority: "postgres-v2",
       json_fallback: false,
       json_writer: false,
@@ -676,6 +687,8 @@ test("CUT-011 inputs require only exact signed CUT-009 and CUT-010 PASS receipts
       memory_fallback: false,
       artifact_runtime_store_entry_count: 0,
       artifact_real_json_store_count: 0,
+      packaged_private_profile_photo_count: 10,
+      profile_photo_artifact: PROFILE_PHOTO_ARTIFACT_BINDING,
     },
   ]]);
   for (const [index, kind] of ["cut-009", "cut-010"].entries()) {
@@ -708,7 +721,7 @@ test("CUT-011 inputs require only exact signed CUT-009 and CUT-010 PASS receipts
       sign(null, Buffer.from(canonicalizeJsonPostgresProgramReceipt(receipt)), privateKey),
     );
   }
-  const result = await loadJsonPostgresRetirementInputs({
+  const loadRetirement = () => loadJsonPostgresRetirementInputs({
     inputLocators: {
       deployment_manifest: { key: "manifest", sha256: artifactManifestSha256 },
       predecessors: ["cut-009", "cut-010"].map((kind) => ({
@@ -729,11 +742,31 @@ test("CUT-011 inputs require only exact signed CUT-009 and CUT-010 PASS receipts
     readBytes: async ({ locator }) => objects.get(locator.key),
     now: Date.parse("2026-07-24T00:30:00.000Z"),
   });
+  const result = await loadRetirement();
   assert.deepEqual(
     result.predecessors.map((item) => item.receipt_kind),
     ["cut-009", "cut-010"],
   );
   assert.equal(result.deploymentManifest.operational_authority, "postgres-v2");
+  objects.set("manifest", {
+    ...result.deploymentManifest,
+    schema_version: "law-firm-os.json-postgres-production-artifact.v1",
+  });
+  await assert.rejects(
+    loadRetirement(),
+    (error) => error?.code === "LAWOS_PROGRAM_RETIREMENT_MANIFEST",
+  );
+  objects.set("manifest", {
+    ...result.deploymentManifest,
+    profile_photo_artifact: {
+      ...result.deploymentManifest.profile_photo_artifact,
+      unsupported: "synthetic-only",
+    },
+  });
+  await assert.rejects(
+    loadRetirement(),
+    (error) => error?.code === "LAWOS_PROGRAM_RETIREMENT_MANIFEST",
+  );
 });
 
 test("W15 projection inputs require exact signed W12, CUT-012, and go-live predecessor receipts", async () => {

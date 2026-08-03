@@ -30,6 +30,12 @@ function validInput(overrides = {}) {
     platform: "darwin",
     arch: "arm64",
     appId: "com.amic.matter.desktop.internal",
+    requestedRuntimeMode: "synthetic",
+    effectiveRuntimeMode: "synthetic",
+    runtimeIncluded: true,
+    runtimeDataClass: "synthetic_only",
+    nonDistributable: true,
+    distributable: false,
     builtAt: "2026-07-16T02:30:00.000Z",
     ...overrides,
   };
@@ -38,7 +44,7 @@ function validInput(overrides = {}) {
 test("PV-002 build manifest records version, full SHA, renderer hash, channel, and time", () => {
   const manifest = createDesktopBuildManifest(validInput());
 
-  assert.equal(manifest.schema_version, "law-firm-os.matter-desktop-build-provenance.v1");
+  assert.equal(manifest.schema_version, "law-firm-os.matter-desktop-build-provenance.v2");
   assert.equal(manifest.product_name, "matter");
   assert.equal(manifest.package_name, "@law-firm-os/desktop");
   assert.equal(manifest.version, "0.1.17");
@@ -51,6 +57,18 @@ test("PV-002 build manifest records version, full SHA, renderer hash, channel, a
   assert.equal(manifest.arch, "arm64");
   assert.equal(manifest.app_id, "com.amic.matter.desktop.internal");
   assert.equal(manifest.built_at, "2026-07-16T02:30:00.000Z");
+  assert.equal(manifest.policy_version, "law-firm-os.matter-desktop-release-policy.v1");
+  assert.deepEqual(manifest.policy.allowed_data_modes, ["synthetic", "private-local"]);
+  assert.deepEqual(manifest.policy.allowed_data_classes, {
+    synthetic: "synthetic_only",
+    "private-local": "private_local",
+  });
+  assert.equal(manifest.requested_runtime_mode, "synthetic");
+  assert.equal(manifest.effective_runtime_mode, "synthetic");
+  assert.equal(manifest.runtime_included, true);
+  assert.equal(manifest.runtime_data_class, "synthetic_only");
+  assert.equal(manifest.non_distributable, true);
+  assert.equal(manifest.distributable, false);
   assert.equal(manifest.public_release_claim, false);
   assert.equal(manifest.production_go_live_claim, false);
   assert.equal(validateDesktopBuildManifest(manifest), manifest);
@@ -67,11 +85,44 @@ test("PV-002 build manifest rejects incomplete or forged provenance", () => {
     { channel: "latest" },
     { platform: "linux" },
     { builtAt: "not-a-time" },
+    { requestedRuntimeMode: "private-local" },
+    { effectiveRuntimeMode: "none" },
+    { runtimeIncluded: false },
+    { runtimeDataClass: "private_local" },
+    { nonDistributable: false },
+    { distributable: true },
   ];
 
   for (const mutation of mutations) {
     assert.throws(() => createDesktopBuildManifest(validInput(mutation)));
   }
+});
+
+test("PV-002 binds the runtime claim to the canonical channel policy", () => {
+  const manifest = createDesktopBuildManifest(validInput());
+  const forgedPolicy = {
+    ...manifest,
+    policy: {
+      ...manifest.policy,
+      data_mode: "none",
+    },
+  };
+  assert.throws(
+    () => validateDesktopBuildManifest(forgedPolicy),
+    /manifest policy must match its release channel/,
+  );
+
+  const forgedRuntime = {
+    ...manifest,
+    requested_runtime_mode: "none",
+    effective_runtime_mode: "none",
+    runtime_included: false,
+    runtime_data_class: "none",
+  };
+  assert.throws(
+    () => validateDesktopBuildManifest(forgedRuntime),
+    /requested runtime mode is not allowed|effective runtime mode must equal requested runtime mode|runtime data class must match the policy mode/,
+  );
 });
 
 test("PV-002 renderer digest is stable across filesystem creation order", () => {

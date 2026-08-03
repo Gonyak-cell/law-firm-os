@@ -3,6 +3,7 @@ export * from "./service.js";
 export * from "./validators.js";
 export * from "./client-matter-g5.js";
 export * from "./time-entry-service.js";
+export * from "./weekly-time-service.js";
 export * from "./rate-card-service.js";
 export * from "./fee-arrangement-service.js";
 export * from "./expense-service.js";

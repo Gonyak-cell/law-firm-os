@@ -17,6 +17,16 @@ function auditCollector() {
   return { events, audit: { append(event) { events.push(event); } } };
 }
 
+function assertTaskTransitionError(callback, { code, message, ErrorType = Error }) {
+  assert.throws(callback, (error) => {
+    assert.equal(error.constructor, ErrorType);
+    assert.equal(error.message, message);
+    assert.equal(error.status, 422);
+    assert.equal(error.safe_error_code, code);
+    return true;
+  });
+}
+
 test("WT-01-09 completes todo directly through MatterTask.status", async () => {
   // Given
   const { completeMatterTask } = await import("../src/task-service.js");
@@ -43,7 +53,10 @@ test("WT-01-09 rejects blocked completion without changing MatterTask", async ()
   const completeBlocked = () => completeMatterTask({ repository, task: blocked, actor_id: "user_wt_01_09" });
 
   // Then
-  assert.throws(completeBlocked, /cannot transition from blocked to done/);
+  assertTaskTransitionError(completeBlocked, {
+    code: "MATTER_TASK_TRANSITION_INVALID",
+    message: "MatterTask cannot transition from blocked to done",
+  });
   assert.equal(repository.get({ tenant_id: blocked.tenant_id, model_type: "MatterTask", id: blocked.task_id }).status, "blocked");
 });
 
@@ -57,7 +70,11 @@ test("WT-01-09 reopens done to in_progress only with a reason", async () => {
   const reopenWithoutReason = () => reopenMatterTask({ repository, task: done, actor_id: "user_wt_01_09", reason: "" });
 
   // Then
-  assert.throws(reopenWithoutReason, /reason is required/);
+  assertTaskTransitionError(reopenWithoutReason, {
+    code: "MATTER_TASK_TRANSITION_REASON_REQUIRED",
+    message: "reason is required",
+    ErrorType: TypeError,
+  });
   assert.equal(repository.get({ tenant_id: done.tenant_id, model_type: "MatterTask", id: done.task_id }).status, "done");
 });
 
@@ -87,4 +104,32 @@ test("WT-01-09 unblocks blocked tasks only with a reason", async () => {
 
   // Then
   assert.equal(unblocked.status, "in_progress");
+});
+
+test("WT-01-09 leaves repository failures untyped for API runtime classification", async () => {
+  // Given
+  const { transitionMatterTask } = await import("../src/task-service.js");
+  const repositoryFailure = new Error("repository unavailable");
+  const repository = {
+    update() {
+      throw repositoryFailure;
+    },
+  };
+
+  // When
+  const transition = () => transitionMatterTask({
+    repository,
+    task: taskInput,
+    to_status: "in_progress",
+    actor_id: "user_wt_01_09",
+    reason: "started",
+  });
+
+  // Then
+  assert.throws(transition, (error) => {
+    assert.equal(error, repositoryFailure);
+    assert.equal(error.status, undefined);
+    assert.equal(error.safe_error_code, undefined);
+    return true;
+  });
 });

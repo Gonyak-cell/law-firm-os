@@ -7,6 +7,15 @@ import {
   readDesktopReleaseArtifactStage,
   requireDesktopReleaseArtifact,
 } from "./lib/matter-desktop-release-paths.mjs";
+import {
+  FORMAL_PACKAGE_RUNNER,
+  FORMAL_PACKAGE_SCRIPT,
+  FORMAL_RELEASE_COMPATIBILITY_SCRIPT,
+} from "./lib/matter-desktop-formal-command-contract.mjs";
+import {
+  buildFormalPackagePlan,
+  validateFormalPackagePlan,
+} from "./run-matter-desktop-formal-package.mjs";
 
 const usage = "usage: node scripts/validate-pv005-release-artifact-paths.mjs --source|--package|--help";
 const mode = process.argv[2];
@@ -73,11 +82,10 @@ if (mode === "--source") {
     scripts["matter-desktop:release-paths:validate"],
     "node scripts/validate-pv005-release-artifact-paths.mjs --source",
   );
-  for (const [name, channel] of [
-    ["matter-desktop:temporary-release", "internal"],
-    ["matter-desktop:formal-release", "formal"],
+  const temporaryRelease = scripts["matter-desktop:temporary-release"] ?? "";
+  for (const [name, channel, command] of [
+    ["matter-desktop:temporary-release", "internal", temporaryRelease],
   ]) {
-    const command = scripts[name] ?? "";
     const stageCommand = `MATTER_DESKTOP_RELEASE_CHANNEL=${channel} node scripts/stage-matter-desktop-release-artifacts.mjs`;
     const packageValidation = `MATTER_DESKTOP_RELEASE_CHANNEL=${channel} node scripts/validate-pv005-release-artifact-paths.mjs --package`;
     assert(command.includes(stageCommand), `${name} must stage ${channel} artifacts`);
@@ -85,6 +93,18 @@ if (mode === "--source") {
     assert(command.indexOf(stageCommand) < command.indexOf("release-matter-desktop-"), `${name} must stage before release assembly`);
     assert(command.indexOf(packageValidation) < command.indexOf("release-matter-desktop-"), `${name} must validate before release assembly`);
   }
+
+  assert.equal(scripts[FORMAL_PACKAGE_SCRIPT], FORMAL_PACKAGE_RUNNER, "formal package must use the structured local runner");
+  assert.equal(
+    scripts[FORMAL_RELEASE_COMPATIBILITY_SCRIPT],
+    `npm run ${FORMAL_PACKAGE_SCRIPT}`,
+    "formal release must be the compatibility alias to formal package",
+  );
+  const formalPlan = buildFormalPackagePlan({ repoRoot: ROOT });
+  const formalPlanValidation = validateFormalPackagePlan(formalPlan, { rootScripts: scripts, repoRoot: ROOT });
+  assert.equal(formalPlanValidation.stage_index < formalPlanValidation.pv005_package_index, true);
+  assert.equal(formalPlanValidation.pv005_package_index < formalPlanValidation.release_index, true);
+  assert.equal(formalPlanValidation.release_index < formalPlanValidation.bundle_index, true);
 
   console.log(JSON.stringify({
     verdict: "PASS",

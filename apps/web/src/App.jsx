@@ -115,8 +115,9 @@ export function App() {
   const initialLocale = initialParams.get("locale") === "en" ? "en" : "ko";
   const rawInitialView = redirectableViews.includes(initialParams.get("view")) ? initialParams.get("view") : "home";
   const rawInitialSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
+  const initialFilter = initialParams.get("filter") ?? "";
   const initialCompanyAccess = readHomeCompanyAccess();
-  const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection, initialCompanyAccess);
+  const resolvedInitialRoute = resolveRoute(rawInitialView, rawInitialSection, initialCompanyAccess, homeCompanyAccessRecords(), initialFilter);
   const initialView = resolvedInitialRoute.view;
   const initialAuthStep = ["signup", "signupModal", "login", "verify", "password", "org", "reset", "sent", "onboarding"].includes(initialParams.get("authStep"))
     ? initialParams.get("authStep")
@@ -183,7 +184,9 @@ export function App() {
   const notificationItems = useMemo(() => buildNotificationItems({ homeActionCounts, labels }), [homeActionCounts, labels]);
   const notificationSignature = notificationItems.map((item) => item.id).join("|");
   const notificationUnreadCount = notificationItemsRead ? 0 : notificationItems.length;
-  const initialRouteWasRedirected = rawInitialView !== initialView || rawInitialSection !== initialSection;
+  const initialRouteWasRedirected = rawInitialView !== initialView
+    || rawInitialSection !== initialSection
+    || initialFilter !== (resolvedInitialRoute.filter ?? "");
   const initialCurrentVersionWasUnsupported = initialView === "vault" && initialParams.get("current_version") === "all";
   const locationParams = new URLSearchParams(window.location.search);
   const requestedMatterId = locationParams.get("matter_id") ?? "";
@@ -191,8 +194,8 @@ export function App() {
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
 
-  function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus, financeAccessRecords = homeCompanyAccessRecords()) {
-    const resolved = normalizeVaultRoute(normalizeHomeRoute(resolveGlobalShortcut(nextView, section)));
+  function resolveRoute(nextView, section = "", companyAllowed = canViewCompanyStatus, financeAccessRecords = homeCompanyAccessRecords(), filter = "") {
+    const resolved = normalizeVaultRoute(normalizeHomeRoute(resolveGlobalShortcut(nextView, section, filter)));
     if (!routableViews.includes(resolved.view)) return { view: "home", section: homeFallbackSection };
     if (resolved.view === "home" && resolved.section === "home-company" && !companyAllowed) {
       return { ...resolved, section: "home-dashboard", homeCompanyAccessDenied: true };
@@ -211,7 +214,7 @@ export function App() {
     const rawSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
     const companyAllowed = readHomeCompanyAccess();
     return {
-      ...resolveRoute(rawView, rawSection, companyAllowed),
+      ...resolveRoute(rawView, rawSection, companyAllowed, homeCompanyAccessRecords(), params.get("filter") ?? ""),
       liveCtx: nextLiveCtx,
       companyAllowed,
       query: params.get("query") ?? "",
@@ -225,7 +228,10 @@ export function App() {
   function routeUrl(nextView, section = "", routeContext = {}) {
     const params = new URLSearchParams(window.location.search);
     params.set("view", nextView);
-    params.set("ctx", liveCtx);
+    const routeLiveCtx = ["allow", "denied", "review"].includes(routeContext.liveCtx)
+      ? routeContext.liveCtx
+      : liveCtx;
+    params.set("ctx", routeLiveCtx);
     if (routeContext.filter) params.set("filter", routeContext.filter);
     else params.delete("filter");
     if (Object.prototype.hasOwnProperty.call(routeContext, "query")) {
@@ -237,7 +243,7 @@ export function App() {
     if (Object.prototype.hasOwnProperty.call(routeContext, "matterId")) {
       if (routeContext.matterId) params.set("matter_id", routeContext.matterId);
       else params.delete("matter_id");
-    } else if (!homeFinanceSectionIds.has(section)) {
+    } else if (nextView !== "matters" && !homeFinanceSectionIds.has(section)) {
       params.delete("matter_id");
     }
     if (Object.prototype.hasOwnProperty.call(routeContext, "documentId")) {
@@ -246,7 +252,7 @@ export function App() {
     } else {
       params.delete("document_id");
     }
-    if (Object.prototype.hasOwnProperty.call(routeContext, "currentVersionOnly")) {
+    if (nextView === "vault" && Object.prototype.hasOwnProperty.call(routeContext, "currentVersionOnly")) {
       params.set("current_version", "current");
     } else {
       params.delete("current_version");
@@ -279,7 +285,7 @@ export function App() {
     setContextSidebarOpen(false);
     const companyAllowed = readHomeCompanyAccess();
     setCanViewCompanyStatus(companyAllowed);
-    const resolved = resolveRoute(nextView, section, companyAllowed);
+    const resolved = resolveRoute(nextView, section, companyAllowed, homeCompanyAccessRecords(), routeContext.filter ?? "");
     if (!routableViews.includes(resolved.view)) return;
     const requestedSection = section || "";
     const resolvedSection = resolved.section || "";
@@ -427,7 +433,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (!desktopSessionChecked) return undefined;
+    if (!desktopSessionChecked || ["auth", "loading"].includes(view)) return undefined;
     let cancelled = false;
     fetchHomeMessageItems({ ctx: liveCtx }).then((items) => {
       if (cancelled) return;
@@ -442,7 +448,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [desktopSessionChecked, liveCtx]);
+  }, [desktopSessionChecked, liveCtx, view]);
 
   useEffect(() => {
     setNotificationItemsRead(utilityDrawerType === "notifications");
@@ -477,20 +483,27 @@ export function App() {
       home_company_access_denied: homeCompanyAccessDenied,
       open_notifications: resolvedInitialRoute.openNotifications === true
     });
-    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, {
+    const initialRouteContext = {
       ...resolvedInitialRoute,
       query: initialQuery,
       documentId: initialParams.get("document_id") ?? "",
-      currentVersionOnly: true,
       dateFrom: initialParams.get("date_from") ?? "",
       dateTo: initialParams.get("date_to") ?? ""
-    }));
+    };
+    if (initialView === "vault") initialRouteContext.currentVersionOnly = true;
+    window.history.replaceState({ view, section: activeSection }, "", routeUrl(view, activeSection, initialRouteContext));
   }, []);
 
   useEffect(() => {
     const onPopState = () => {
       const nextRoute = routeFromLocation();
       const nextParams = new URLSearchParams(window.location.search);
+      const rawView = redirectableViews.includes(nextParams.get("view")) ? nextParams.get("view") : "home";
+      const rawSection = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : "";
+      const rawFilter = nextParams.get("filter") ?? "";
+      const matterRouteNeedsCanonicalUrl = rawView !== nextRoute.view
+        || rawSection !== nextRoute.section
+        || rawFilter !== (nextRoute.filter ?? "");
       setContextSidebarOpen(false);
       setView(nextRoute.view);
       setLiveCtx(nextRoute.liveCtx);
@@ -505,12 +518,22 @@ export function App() {
       }
       setUtilityDrawerType(nextRoute.openNotifications ? "notifications" : "");
       if (nextRoute.openNotifications) setNotificationItemsRead(true);
-      if (nextRoute.view === "vault" && nextParams.get("current_version") === "all") {
-        nextParams.set("current_version", "current");
+      if (matterRouteNeedsCanonicalUrl || nextRoute.view === "vault" && nextParams.get("current_version") === "all") {
+        const canonicalRouteContext = {
+          ...nextRoute,
+          query: nextRoute.query,
+          documentId: nextRoute.documentId,
+          dateFrom: nextRoute.dateFrom,
+          dateTo: nextRoute.dateTo
+        };
+        delete canonicalRouteContext.currentVersionOnly;
+        if (nextRoute.view === "vault" && nextParams.get("current_version") === "all") {
+          canonicalRouteContext.currentVersionOnly = true;
+        }
         window.history.replaceState(
           { view: nextRoute.view, section: nextRoute.section },
           "",
-          `${window.location.pathname}?${nextParams.toString()}${window.location.hash}`
+          routeUrl(nextRoute.view, nextRoute.section, canonicalRouteContext)
         );
       }
     };

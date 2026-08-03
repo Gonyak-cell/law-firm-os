@@ -1,0 +1,560 @@
+[
+  {
+    "id": "RFD-TUW-001",
+    "dependencies": [],
+    "runner": "GIT_READ_ONLY",
+    "producer_paths": [
+      "scripts/capture-rf13-debt-remediation-baseline.mjs",
+      "scripts/validate-rf13-debt-remediation-baseline.mjs"
+    ],
+    "accepted_observations": {
+      "captures_byte_equivalent": true,
+      "historical_artifact_qa_only": true,
+      "historical_artifact_not_distributable": true
+    }
+  },
+  {
+    "id": "RFD-TUW-002",
+    "dependencies": ["RFD-TUW-001"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/desktop/test/runtime-package.test.mjs"],
+    "accepted_observations": {
+      "internal_non_distributable": true,
+      "candidate_formal_private_runtime_zero": true,
+      "policy_receipt_parity": true
+    }
+  },
+  {
+    "id": "RFD-TUW-003",
+    "dependencies": ["RFD-TUW-001"],
+    "runner": "VALIDATOR",
+    "producer_paths": ["scripts/validate-rf13-dist-authority-checkpoint.mjs"],
+    "accepted_observations": {
+      "authority_dimensions_separated": true,
+      "credential_values_absent": true,
+      "mutation_not_authorized": true,
+      "rollback_owner_recorded": true
+    }
+  },
+  {
+    "id": "RFD-TUW-004",
+    "dependencies": ["RFD-TUW-002"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["scripts/test/matter-desktop-synthetic-runtime.test.mjs"],
+    "accepted_observations": {
+      "synthetic_people_count": 10,
+      "protected_roster_findings": 0,
+      "restart_inputs_present": true
+    }
+  },
+  {
+    "id": "RFD-TUW-005",
+    "dependencies": ["RFD-TUW-002", "RFD-TUW-004"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/desktop/test/runtime-package.test.mjs"],
+    "accepted_observations": {
+      "private_local_explicit_opt_in": true,
+      "private_local_non_distributable": true,
+      "formal_runtime_entries": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-006",
+    "dependencies": ["RFD-TUW-004"],
+    "runner": "VALIDATOR",
+    "producer_paths": ["scripts/validate-matter-desktop-private-data-boundary.mjs"],
+    "accepted_observations": {
+      "negative_bundle_rejected": true,
+      "formal_fixture_accepted": true,
+      "sensitive_values_redacted": true
+    }
+  },
+  {
+    "id": "RFD-TUW-007",
+    "dependencies": ["RFD-TUW-005", "RFD-TUW-006"],
+    "runner": "VALIDATOR",
+    "producer_paths": ["scripts/validate-matter-desktop-private-data-boundary.mjs"],
+    "accepted_observations": {
+      "artifact_formats_scanned": 4,
+      "internal_private_release_rejected": true,
+      "artifact_hashes_recorded": true
+    }
+  },
+  {
+    "id": "RFD-TUW-008",
+    "dependencies": ["RFD-TUW-006"],
+    "runner": "VALIDATOR",
+    "producer_paths": ["scripts/validate-public-renderer-no-hrx-roster-pii.mjs"],
+    "accepted_observations": {
+      "scanner_corpus_shared": true,
+      "untracked_bad_file_rejected": true,
+      "protected_findings": 0,
+      "omitted_directories": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-009",
+    "dependencies": ["RFD-TUW-007"],
+    "runner": "VALIDATOR",
+    "producer_paths": ["scripts/validate-pv003-clean-sha-build-gate.mjs"],
+    "accepted_observations": {
+      "dirty_and_sha_mismatch_rejected": true,
+      "clean_exact_sha_accepted": true
+    }
+  },
+  {
+    "id": "RFD-TUW-010",
+    "dependencies": ["RFD-TUW-009"],
+    "runner": "GIT_READ_ONLY",
+    "producer_paths": ["scripts/prepare-rfd010-release-candidate.mjs"],
+    "accepted_observations": {
+      "source_commit_sealed": true,
+      "release_sha_unique": true,
+      "remote_states_separated": true,
+      "artifact_collisions": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-011",
+    "dependencies": ["RFD-TUW-003", "RFD-TUW-010"],
+    "runner": "FORMAL_RELEASE_VALIDATOR",
+    "producer_paths": ["scripts/validate-matter-desktop-formal-release-bundle.mjs"],
+    "accepted_observations": {
+      "package_remote_mutations": 0,
+      "platform_manifests_same_source": true,
+      "private_runtime_findings": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-012",
+    "dependencies": ["RFD-TUW-011"],
+    "runner": "MACOS_NATIVE_QA",
+    "producer_paths": ["scripts/run-formal-macos-package-qa.sh"],
+    "implementation_dependency_paths": [
+      "scripts/run-formal-macos-package-qa.mjs",
+      "scripts/lib/formal-package-loopback-launcher.mjs"
+    ],
+    "accepted_observations": {
+      "app_signature_verified": true,
+      "dmg_signature_verified": true,
+      "notarization_stapled": true,
+      "gatekeeper_accepted": true
+    }
+  },
+  {
+    "id": "RFD-TUW-013",
+    "dependencies": ["RFD-TUW-011"],
+    "runner": "WINDOWS_NATIVE_QA",
+    "producer_paths": ["scripts/run-formal-windows-package-qa.ps1"],
+    "implementation_dependency_paths": [
+      "scripts/run-formal-windows-package-qa.mjs",
+      "scripts/lib/formal-package-loopback-launcher.mjs"
+    ],
+    "accepted_observations": {
+      "native_install_uninstall_verified": true,
+      "native_qa": "PASS",
+      "windows_release": "PASS"
+    }
+  },
+  {
+    "id": "RFD-TUW-014",
+    "dependencies": ["RFD-TUW-011", "RFD-TUW-012", "RFD-TUW-013"],
+    "runner": "MULTI_PLATFORM_PACKAGE_QA",
+    "producer_paths": [
+      "scripts/run-formal-macos-package-qa.sh",
+      "scripts/run-formal-windows-package-qa.ps1"
+    ],
+    "implementation_dependency_paths": [
+      "scripts/run-formal-macos-package-qa.mjs",
+      "scripts/run-formal-windows-package-qa.mjs",
+      "scripts/lib/formal-package-loopback-launcher.mjs",
+      "scripts/lib/formal-package-renderer-url.mjs"
+    ],
+    "accepted_observations": {
+      "production_auth_http": true,
+      "bundled_api_entries": 0,
+      "operator_token_entries": 0,
+      "synthetic_people_count": 10,
+      "matter_scenario_verified": true,
+      "console_errors": 0,
+      "macos_native_qa": true,
+      "windows_native_qa": true,
+      "node_options_bypass_rejected": true,
+      "node_path_bypass_rejected": true,
+      "preload_bypass_rejected": true
+    }
+  },
+  {
+    "id": "RFD-TUW-015",
+    "dependencies": ["RFD-TUW-003", "RFD-TUW-010", "RFD-TUW-014"],
+    "runner": "DEPLOYED_API_PACKAGE_QA",
+    "producer_paths": [
+      "scripts/run-formal-deployed-api-package-qa.sh",
+      "scripts/run-formal-deployed-api-package-qa.ps1"
+    ],
+    "accepted_observations": {
+      "non_loopback_api": true,
+      "source_api_artifact_bound": true,
+      "tenant_people_count": 10,
+      "profile_or_initials_count": 10,
+      "cross_tenant_rows": 0,
+      "durable_write_duplicates": 0,
+      "production_writes": 0,
+      "console_errors": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-016",
+    "dependencies": ["RFD-TUW-015"],
+    "runner": "DEPLOYED_API_RESTART_QA",
+    "producer_paths": ["scripts/run-formal-deployed-api-restart-qa.mjs"],
+    "accepted_observations": {
+      "initial_logins": 1,
+      "second_launch_session_restored": true,
+      "matter_state_equal": true,
+      "cross_userdata_tenant_mix": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-017",
+    "dependencies": ["RFD-TUW-011", "RFD-TUW-015", "RFD-TUW-016"],
+    "runner": "ROLLBACK_EXECUTOR",
+    "producer_paths": ["scripts/validate-matter-rollback-receipt.mjs"],
+    "accepted_observations": {
+      "api_roundtrip_a_b_a": true,
+      "desktop_roundtrip_b_a": true,
+      "target_sha_verified": true,
+      "data_rollback_writes": 0,
+      "production_rollback_claimed": false
+    }
+  },
+  {
+    "id": "RFD-TUW-018",
+    "dependencies": [
+      "RFD-TUW-012",
+      "RFD-TUW-013",
+      "RFD-TUW-014",
+      "RFD-TUW-015",
+      "RFD-TUW-016",
+      "RFD-TUW-017"
+    ],
+    "runner": "CANARY_QA",
+    "producer_paths": ["scripts/run-rfd018-canary-monitor.mjs"],
+    "accepted_observations": {
+      "canary_people_count": 1,
+      "rollback_trigger_injected": true,
+      "rf13_dist_manifest_sealed": true,
+      "internal_artifact_references": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-019",
+    "dependencies": ["RFD-TUW-018"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["packages/payments/test/payment-allocation-service.test.js"],
+    "accepted_observations": {
+      "migration_output_byte_equivalent": true,
+      "idempotency_receipt_byte_equivalent": true,
+      "failure_fixture_writes": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-020",
+    "dependencies": ["RFD-TUW-019"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["packages/payments/test/payment-allocation-service.test.js"],
+    "accepted_observations": {
+      "public_exports_equal": true,
+      "caller_results_equal": true,
+      "transaction_code_not_moved": true
+    }
+  },
+  {
+    "id": "RFD-TUW-021",
+    "dependencies": ["RFD-TUW-020"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["packages/payments/test/payment-allocation-service.test.js"],
+    "accepted_observations": {
+      "plan_hash_equal": true,
+      "replay_new_writes": 0,
+      "unmatched_inflow_auto_revenue": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-022",
+    "dependencies": ["RFD-TUW-018"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/web/test/matter-payment-reversal-browser.test.mjs"],
+    "accepted_observations": {
+      "user_messages_equal": true,
+      "refresh_targets_equal": true,
+      "stable_ids_equal": true,
+      "failure_and_success_paths_verified": true
+    }
+  },
+  {
+    "id": "RFD-TUW-023",
+    "dependencies": ["RFD-TUW-022"],
+    "runner": "BROWSER_QA",
+    "producer_paths": ["apps/web/test/matter-payment-reversal-browser.test.mjs"],
+    "accepted_observations": {
+      "production_handler_rendered": true,
+      "negative_mutation_rejected": true,
+      "production_change_detected": true
+    }
+  },
+  {
+    "id": "RFD-TUW-024",
+    "dependencies": ["RFD-TUW-023"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/web/test/matter-payment-reversal-browser.test.mjs"],
+    "accepted_observations": {
+      "three_states_equal": true,
+      "api_requests_equal": true,
+      "implementation_copy_absent": true
+    }
+  },
+  {
+    "id": "RFD-TUW-025",
+    "dependencies": ["RFD-TUW-018"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/matter-small-firm-api.test.js"],
+    "accepted_observations": {
+      "response_hash_equal": true,
+      "denied_count_leaks": 0,
+      "cross_tenant_and_error_verified": true
+    }
+  },
+  {
+    "id": "RFD-TUW-026",
+    "dependencies": ["RFD-TUW-025"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/matter-small-firm-api.test.js"],
+    "accepted_observations": {
+      "route_contract_equal": true,
+      "mutation_code_not_moved": true,
+      "performance_contract_verified": true
+    }
+  },
+  {
+    "id": "RFD-TUW-027",
+    "dependencies": ["RFD-TUW-026"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/matter-small-firm-api.test.js"],
+    "accepted_observations": {
+      "timeline_scope_equal": true,
+      "canonical_client_equal": true,
+      "blocker_equal": true,
+      "csv_totals_equal": true
+    }
+  },
+  {
+    "id": "RFD-TUW-028",
+    "dependencies": ["RFD-TUW-026", "RFD-TUW-027"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/matter-small-firm-api.test.js"],
+    "accepted_observations": {
+      "route_list_equal": true,
+      "status_mapping_equal": true,
+      "safe_error_codes_equal": true,
+      "pure_loc_reduced": true
+    }
+  },
+  {
+    "id": "RFD-TUW-029",
+    "dependencies": ["RFD-TUW-028"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/cmp-r4-g7-finance.test.js"],
+    "accepted_observations": {
+      "authorization_matrix_equal": true,
+      "error_matrix_equal": true,
+      "audit_matrix_equal": true,
+      "failed_writes": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-030",
+    "dependencies": ["RFD-TUW-029"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/cmp-r4-g7-finance.test.js"],
+    "accepted_observations": {
+      "prebill_results_equal": true,
+      "error_mapping_equal": true,
+      "transaction_auth_not_moved": true
+    }
+  },
+  {
+    "id": "RFD-TUW-031",
+    "dependencies": ["RFD-TUW-030"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/cmp-r4-g7-finance.test.js"],
+    "accepted_observations": {
+      "raw_provenance_equal": true,
+      "review_history_equal": true,
+      "idempotency_equal": true,
+      "unmatched_inflow_auto_revenue": 0
+    }
+  },
+  {
+    "id": "RFD-TUW-032",
+    "dependencies": ["RFD-TUW-031"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/cmp-r4-g7-finance.test.js"],
+    "accepted_observations": {
+      "lineage_equal": true,
+      "reversal_equal": true,
+      "ar_results_equal": true,
+      "transaction_boundary_preserved": true
+    }
+  },
+  {
+    "id": "RFD-TUW-033",
+    "dependencies": ["RFD-TUW-032"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/cmp-r4-g7-finance.test.js"],
+    "accepted_observations": {
+      "amounts_equal": true,
+      "buckets_equal": true,
+      "csv_hash_equal": true,
+      "audit_count_equal": true,
+      "permission_trim_preserved": true
+    }
+  },
+  {
+    "id": "RFD-TUW-034",
+    "dependencies": ["RFD-TUW-030", "RFD-TUW-031", "RFD-TUW-032", "RFD-TUW-033"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/cmp-r4-g7-finance.test.js"],
+    "accepted_observations": {
+      "public_exports_compatible": true,
+      "server_imports_compatible": true,
+      "route_response_drift": 0,
+      "source_size_reduced": true
+    }
+  },
+  {
+    "id": "RFD-TUW-035",
+    "dependencies": ["RFD-TUW-028"],
+    "runner": "NODE_TEST",
+    "producer_paths": ["apps/api/test/matter-current-seed-worktree.test.js"],
+    "accepted_observations": {
+      "startup_byte_equivalent": true,
+      "explicit_fixture_opt_in_isolated": true,
+      "independent_failure_verified": true
+    }
+  },
+  {
+    "id": "RFD-TUW-036",
+    "dependencies": ["RFD-TUW-024", "RFD-TUW-034"],
+    "runner": "BROWSER_QA",
+    "producer_paths": ["apps/web/test/matter-small-firm-live-http-e2e.test.mjs"],
+    "accepted_observations": {
+      "people_count": 10,
+      "duplicates": 0,
+      "ar_balance": 0,
+      "closed_verified": true,
+      "unexpected": 0,
+      "product_assertion_not_copied": true
+    }
+  },
+  {
+    "id": "RFD-TUW-037",
+    "dependencies": ["RFD-TUW-024", "RFD-TUW-028", "RFD-TUW-034", "RFD-TUW-035", "RFD-TUW-036"],
+    "runner": "ARCHITECTURE_EVIDENCE",
+    "producer_paths": ["scripts/generate-matter-rf13-architecture-evidence.mjs"],
+    "accepted_observations": {
+      "manifest_deterministic": true,
+      "pure_loc_measured": true,
+      "public_exports_measured": true,
+      "route_count_measured": true,
+      "file_split_not_success_condition": true
+    }
+  },
+  {
+    "id": "RFD-TUW-038",
+    "dependencies": ["RFD-TUW-018"],
+    "runner": "PERFORMANCE_PROBE",
+    "producer_paths": ["scripts/run-matter-desktop-cold-start-probe.mjs"],
+    "implementation_dependency_paths": [
+      "scripts/lib/matter-rf13-operational-evidence.mjs",
+      "scripts/lib/matter-desktop-cold-start-contract.mjs"
+    ],
+    "accepted_observations": {
+      "cold_start_receipt": null
+    }
+  },
+  {
+    "id": "RFD-TUW-039",
+    "dependencies": ["RFD-TUW-037", "RFD-TUW-038"],
+    "runner": "PACKAGE_QA",
+    "producer_paths": ["scripts/run-formal-macos-package-qa.mjs"],
+    "implementation_dependency_paths": [
+      "scripts/lib/formal-package-renderer-url.mjs",
+      "scripts/lib/formal-package-loopback-evidence.mjs",
+      "scripts/lib/formal-package-loopback-transcript.mjs",
+      "scripts/lib/matter-rf13-operational-evidence.mjs"
+    ],
+    "accepted_observations": {
+      "dependency_receipts": null,
+      "package_qa_receipt": null,
+      "package_qa_transcript": null,
+      "parent_baseline_source": null,
+      "changed_paths": null
+    }
+  },
+  {
+    "id": "RFD-TUW-040",
+    "dependencies": ["RFD-TUW-039"],
+    "runner": "PERFORMANCE_PROBE",
+    "producer_paths": ["scripts/run-matter-desktop-cold-start-probe.mjs"],
+    "implementation_dependency_paths": [
+      "scripts/lib/matter-rf13-operational-evidence.mjs",
+      "scripts/lib/matter-rf13-operational-attestation.mjs",
+      "scripts/lib/matter-desktop-cold-start-contract.mjs",
+      "scripts/lib/formal-package-loopback-evidence.mjs"
+    ],
+    "accepted_observations": {
+      "decision": "ADOPTED_MEASURED_GAIN",
+      "lineage_receipts": null,
+      "candidate_cold_start_receipt": null,
+      "web_full_receipt": null,
+      "package_qa_receipt": null,
+      "package_qa_transcript": null,
+      "final_state": null
+    }
+  },
+  {
+    "id": "RFD-TUW-041",
+    "dependencies": ["RFD-TUW-018"],
+    "runner": "PROFILE_PHOTO_MANIFEST",
+    "producer_paths": ["scripts/validate-profile-photo-replacement-manifest.mjs"],
+    "implementation_dependency_paths": [
+      "scripts/lib/matter-rf13-operational-evidence.mjs",
+      "scripts/lib/matter-rf13-operational-attestation.mjs",
+      "scripts/lib/json-postgres-production-execution.mjs",
+      "scripts/lib/profile-media-measurement-validator.mjs"
+    ],
+    "accepted_observations": {
+      "profile_operation_receipt": null,
+      "measurement_receipt": null
+    }
+  },
+  {
+    "id": "RFD-TUW-042",
+    "dependencies": ["RFD-TUW-041"],
+    "runner": "VALIDATOR",
+    "producer_paths": ["scripts/validate-profile-media-operability-decision.mjs"],
+    "implementation_dependency_paths": [
+      "scripts/lib/matter-rf13-operational-evidence.mjs",
+      "scripts/lib/matter-rf13-operational-attestation.mjs",
+      "scripts/lib/json-postgres-production-execution.mjs",
+      "scripts/lib/profile-media-production-evidence-files.mjs",
+      "scripts/lib/profile-media-admin-goal.mjs",
+      "scripts/lib/profile-media-measurement-validator.mjs"
+    ],
+    "accepted_observations": {
+      "rfd041_receipt": null,
+      "decision_receipt": null
+    }
+  }
+]

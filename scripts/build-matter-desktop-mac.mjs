@@ -17,6 +17,15 @@ import {
   readDesktopBuildSourceIdentity,
   writeDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
+import {
+  buildDesktopArtifactPrivacyCorpus,
+  createRf13DistPrivacyMemberReceipt,
+  desktopArtifactPrivacyCorpusSha256,
+  inspectDmgDesktopArtifact,
+  inspectExpandedDesktopArtifact,
+  inspectZipDesktopArtifact,
+  writeDesktopArtifactPrivacyJson,
+} from "./lib/matter-desktop-artifact-privacy.mjs";
 import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -68,9 +77,15 @@ const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
+const privacyArtifactRoot = "apps/desktop/dist/mac/privacy";
+const zipPrivacyReceiptPath = `${zipPath}.privacy.json`;
+const dmgPrivacyReceiptPath = `${dmgPath}.privacy.json`;
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
 const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
+const runtimeMode = process.env.MATTER_DESKTOP_RUNTIME_MODE;
+const privateLocalOptIn = process.env.MATTER_DESKTOP_PRIVATE_LOCAL_OPT_IN;
+const nonDistributable = process.env.MATTER_DESKTOP_NON_DISTRIBUTABLE;
 process.env.PATH = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", process.env.PATH].filter(Boolean).join(":");
 const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
@@ -215,6 +230,7 @@ if (notarizationRequested && !osxNotarize) {
 const notarizationState = osxNotarize ? "submitted_and_accepted_by_notarytool" : "not_submitted_internal_only";
 let buildManifest;
 let buildManifestHash;
+let runtimeMetadata;
 
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(distRoot, { recursive: true });
@@ -243,10 +259,14 @@ try {
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
-  await copyDesktopLocalApiRuntime({
+  runtimeMetadata = await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(generatedAppBundle, "Contents", "Resources", "app"),
     repoRoot,
-    formalRelease
+    channel: releaseChannel,
+    runtimeMode,
+    privateLocalOptIn,
+    nonDistributable,
+    formalRelease,
   });
   const generatedMarkerPath = join(generatedAppBundle, "Contents", "Resources", formalReleaseMarkerName);
   if (formalRelease) {
@@ -263,6 +283,12 @@ try {
     platform: "darwin",
     arch,
     appId: appBundleId,
+    requestedRuntimeMode: runtimeMetadata.requestedRuntimeMode,
+    effectiveRuntimeMode: runtimeMetadata.effectiveRuntimeMode,
+    runtimeIncluded: runtimeMetadata.included,
+    runtimeDataClass: runtimeMetadata.dataClass,
+    nonDistributable: runtimeMetadata.nonDistributable,
+    distributable: runtimeMetadata.distributable,
   });
   ({ sha256: buildManifestHash } = await writeDesktopBuildManifest({
     manifest: buildManifest,
@@ -315,7 +341,7 @@ if (osxSign && developerIdSignature !== "pass") {
   throw new Error(`Developer ID signature verification failed: ${developerIdSignature}`);
 }
 const executableSmoke = await packagedExecutableSmoke();
-await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
+await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--keepParent", appBundle, zipPath]);
 await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
 let dmgCodesignVerify = "not_applied_internal_package";
@@ -346,6 +372,53 @@ if (formalRelease && [dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidat
   throw new Error(`Formal DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify })}`);
 }
 
+let privacyCorpusSha256 = null;
+let zipPrivacyReceipt = null;
+let dmgPrivacyReceipt = null;
+if (formalRelease) {
+  const corpus = await buildDesktopArtifactPrivacyCorpus({ repoRoot, env: process.env });
+  privacyCorpusSha256 = desktopArtifactPrivacyCorpusSha256(corpus);
+  const expandedInspection = await inspectExpandedDesktopArtifact({
+    rootPath: appBundle,
+    buildManifest,
+    corpus,
+    displayBase: repoRoot,
+  });
+  const zipInspection = await inspectZipDesktopArtifact({
+    artifactPath: zipPath,
+    expectedRootName: "matter.app",
+    expectedExpandedInspection: expandedInspection,
+    buildManifest,
+    corpus,
+    displayBase: repoRoot,
+  });
+  const dmgInspection = await inspectDmgDesktopArtifact({
+    artifactPath: dmgPath,
+    expectedRootName: "matter.app",
+    expectedExpandedInspection: expandedInspection,
+    buildManifest,
+    corpus,
+    displayBase: repoRoot,
+  });
+  for (const [artifact, inspection, receiptFile] of [
+    [{ id: "macos_zip_archive", kind: "zip_archive", sha256: zipInspection.artifact_sha256, bytes: zipInspection.artifact_bytes }, zipInspection, zipPrivacyReceiptPath],
+    [{ id: "macos_dmg_image", kind: "dmg_image", sha256: dmgInspection.artifact_sha256, bytes: dmgInspection.artifact_bytes }, dmgInspection, dmgPrivacyReceiptPath],
+  ]) {
+    const memberPath = `${privacyArtifactRoot}/evidence/members-${artifact.id}.json`;
+    await writeDesktopArtifactPrivacyJson(join(repoRoot, memberPath), expandedInspection.member_manifest);
+    const privacyReceipt = createRf13DistPrivacyMemberReceipt({
+      receiptId: `rfd-tuw-007-${buildManifest.source_sha.slice(0, 12)}-${artifact.id}`,
+      artifact,
+      buildManifest,
+      inspection,
+      memberManifestPath: memberPath,
+    });
+    await writeDesktopArtifactPrivacyJson(receiptFile, privacyReceipt);
+    if (artifact.id === "macos_zip_archive") zipPrivacyReceipt = privacyReceipt;
+    else dmgPrivacyReceipt = privacyReceipt;
+  }
+}
+
 const receipt = `# macOS ${channelConfig.receiptLabel} Build Receipt
 
 Status: ${channelConfig.receiptStatusPrefix}_electron_app_bundle_created
@@ -364,6 +437,19 @@ Source dirty: \`${buildManifest.source_dirty}\`
 Renderer SHA-256: \`${buildManifest.renderer.sha256}\`
 Renderer files: \`${buildManifest.renderer.file_count}\`
 Built at: \`${buildManifest.built_at}\`
+
+## Runtime Data Boundary
+
+- requested runtime data mode: \`${runtimeMetadata.requestedRuntimeMode}\`
+- effective runtime data mode: \`${runtimeMetadata.effectiveRuntimeMode}\`
+- bundled local API runtime included: ${runtimeMetadata.included}
+- non-distributable artifact: ${runtimeMetadata.nonDistributable}
+- distributable artifact: ${runtimeMetadata.distributable}
+- runtime data class: \`${runtimeMetadata.dataClass}\`
+- privacy boundary: \`${runtimeMetadata.privacyBoundary}\`
+- artifact privacy corpus sha256: \`${privacyCorpusSha256 ?? "not_run_non_formal"}\`
+- ZIP artifact privacy: ${zipPrivacyReceipt?.status ?? "not_run_non_formal"}
+- DMG artifact privacy: ${dmgPrivacyReceipt?.status ?? "not_run_non_formal"}
 
 ## Package Structure
 
@@ -400,9 +486,12 @@ Built at: \`${buildManifest.built_at}\`
 - executable exists: ${existsSync(executablePath)}
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
-- private HRX contact source excluded: ${!existsSync(packagedPrivateContactSourcePath)}
-- private HRX roster source excluded: ${!existsSync(packagedPrivateRosterSourcePath)}
-- private HRX photo source excluded: ${!existsSync(packagedPrivatePhotoSourcePath)}
+- private HRX contact data excluded: ${runtimeMetadata.effectiveRuntimeMode !== "private-local"}
+- private HRX roster data excluded: ${runtimeMetadata.effectiveRuntimeMode !== "private-local"}
+- private HRX photo data excluded: ${runtimeMetadata.effectiveRuntimeMode !== "private-local"}
+- synthetic HRX contact source included: ${runtimeMetadata.effectiveRuntimeMode === "synthetic" && existsSync(packagedPrivateContactSourcePath)}
+- synthetic HRX roster source included: ${runtimeMetadata.effectiveRuntimeMode === "synthetic" && existsSync(packagedPrivateRosterSourcePath)}
+- synthetic HRX photo source included: ${runtimeMetadata.effectiveRuntimeMode === "synthetic" && existsSync(packagedPrivatePhotoSourcePath)}
 - public HRX professional profile catalog included: ${existsSync(packagedPublicProfessionalProfileCatalogPath)}
 - formal release marker: ${formalRelease ? existsSync(formalReleaseMarkerPath) : !existsSync(formalReleaseMarkerPath)}
 - web renderer prepare state: ${webRendererPrepareState}
@@ -442,6 +531,18 @@ console.log(
       renderer_sha256: buildManifest.renderer.sha256,
       renderer_files: buildManifest.renderer.file_count,
       built_at: buildManifest.built_at,
+      runtime_requested_mode: runtimeMetadata.requestedRuntimeMode,
+      runtime_effective_mode: runtimeMetadata.effectiveRuntimeMode,
+      runtime_included: runtimeMetadata.included,
+      runtime_non_distributable: runtimeMetadata.nonDistributable,
+      runtime_distributable: runtimeMetadata.distributable,
+      runtime_data_class: runtimeMetadata.dataClass,
+      runtime_privacy_boundary: runtimeMetadata.privacyBoundary,
+      artifact_privacy_corpus_sha256: privacyCorpusSha256,
+      zip_artifact_privacy: zipPrivacyReceipt?.status ?? "NOT_RUN_NON_FORMAL",
+      dmg_artifact_privacy: dmgPrivacyReceipt?.status ?? "NOT_RUN_NON_FORMAL",
+      zip_privacy_receipt: formalRelease ? `apps/desktop/dist/mac/${artifactName}-macos.zip.privacy.json` : null,
+      dmg_privacy_receipt: formalRelease ? `apps/desktop/dist/mac/${artifactName}-macos.dmg.privacy.json` : null,
       signing_mode: signingMode,
       signing_identity: osxSign?.identity ?? "not_applied_internal_package",
       developer_id_signature: developerIdSignature,
@@ -458,9 +559,12 @@ console.log(
       dmg_image_verify: dmgImageVerify,
       install_smoke_result: "pass",
       packaged_app_icon: existsSync(packagedIconPath),
-      private_hrx_contact_source_excluded: !existsSync(packagedPrivateContactSourcePath),
-      private_hrx_roster_source_excluded: !existsSync(packagedPrivateRosterSourcePath),
-      private_hrx_photo_source_excluded: !existsSync(packagedPrivatePhotoSourcePath),
+      private_hrx_contact_source_excluded: runtimeMetadata.effectiveRuntimeMode !== "private-local",
+      private_hrx_roster_source_excluded: runtimeMetadata.effectiveRuntimeMode !== "private-local",
+      private_hrx_photo_source_excluded: runtimeMetadata.effectiveRuntimeMode !== "private-local",
+      synthetic_hrx_contact_source_included: runtimeMetadata.effectiveRuntimeMode === "synthetic" && existsSync(packagedPrivateContactSourcePath),
+      synthetic_hrx_roster_source_included: runtimeMetadata.effectiveRuntimeMode === "synthetic" && existsSync(packagedPrivateRosterSourcePath),
+      synthetic_hrx_photo_source_included: runtimeMetadata.effectiveRuntimeMode === "synthetic" && existsSync(packagedPrivatePhotoSourcePath),
       public_hrx_professional_profile_catalog_included: existsSync(packagedPublicProfessionalProfileCatalogPath),
       formal_release_local_api_default_disabled: formalRelease && existsSync(formalReleaseMarkerPath),
       electron_runtime_packaged: true,

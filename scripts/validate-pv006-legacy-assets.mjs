@@ -12,6 +12,7 @@ import {
 import {
   desktopReleaseChannelConfig,
   readDesktopBuildSourceIdentity,
+  validateDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
 
 const usage = "usage: node scripts/validate-pv006-legacy-assets.mjs --source|--bundle|--help";
@@ -104,7 +105,7 @@ const macResourcesRoot = process.env.MATTER_DESKTOP_MAC_RESOURCES_ROOT
 const winResourcesRoot = process.env.MATTER_DESKTOP_WIN_RESOURCES_ROOT
   ?? path.join(ROOT, `apps/desktop/dist/win/${artifactName}-win32-x64/resources`);
 const manifests = [macResourcesRoot, winResourcesRoot].map((resourcesRoot) => (
-  JSON.parse(readFileSync(path.join(resourcesRoot, "matter-build-manifest.json"), "utf8"))
+  validateDesktopBuildManifest(JSON.parse(readFileSync(path.join(resourcesRoot, "matter-build-manifest.json"), "utf8")))
 ));
 for (const manifest of manifests) {
   assert.equal(manifest.channel, channel, "bundle channel mismatch");

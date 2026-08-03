@@ -1,0 +1,136 @@
+{
+  "schema_version": "law-firm-os.rf13-dist.canary-observation-fixture.v1",
+  "source_sha": "1111111111111111111111111111111111111111",
+  "source_tree": "2222222222222222222222222222222222222222",
+  "macos_artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+  "synthetic": true,
+  "user_count": 1,
+  "observations": [
+    {
+      "isolated_profile_install": "PASS",
+      "health": "PASS",
+      "login": "PASS",
+      "home": "PASS",
+      "matter": "PASS",
+      "people": "PASS",
+      "time_billing": "PASS",
+      "restart": "PASS"
+    }
+  ],
+  "monitoring": {
+    "duration_minutes": 15,
+    "five_xx_count": 0,
+    "timeout_count": 0,
+    "consecutive_core_read_failures": 0,
+    "login_failure_count": 0,
+    "tenant_exposure_count": 0,
+    "write_integrity_failure_count": 0,
+    "uncertain_write_result_count": 0,
+    "signature_or_hash_mismatch_count": 0,
+    "latency_actions": [
+      {
+        "action": "home_read",
+        "baseline_median_ms": 100,
+        "samples_ms": [
+          100,
+          101,
+          99,
+          102,
+          98
+        ],
+        "recheck_after_minutes": 5,
+        "recheck_samples_ms": [
+          101,
+          100,
+          99,
+          102,
+          98
+        ]
+      },
+      {
+        "action": "matter_read",
+        "baseline_median_ms": 100,
+        "samples_ms": [
+          100,
+          101,
+          99,
+          102,
+          98
+        ],
+        "recheck_after_minutes": 5,
+        "recheck_samples_ms": [
+          101,
+          100,
+          99,
+          102,
+          98
+        ]
+      },
+      {
+        "action": "people_read",
+        "baseline_median_ms": 100,
+        "samples_ms": [
+          100,
+          101,
+          99,
+          102,
+          98
+        ],
+        "recheck_after_minutes": 5,
+        "recheck_samples_ms": [
+          101,
+          100,
+          99,
+          102,
+          98
+        ]
+      },
+      {
+        "action": "time_entry_read",
+        "baseline_median_ms": 100,
+        "samples_ms": [
+          100,
+          101,
+          99,
+          102,
+          98
+        ],
+        "recheck_after_minutes": 5,
+        "recheck_samples_ms": [
+          101,
+          100,
+          99,
+          102,
+          98
+        ]
+      },
+      {
+        "action": "billing_read",
+        "baseline_median_ms": 100,
+        "samples_ms": [
+          100,
+          101,
+          99,
+          102,
+          98
+        ],
+        "recheck_after_minutes": 5,
+        "recheck_samples_ms": [
+          101,
+          100,
+          99,
+          102,
+          98
+        ]
+      }
+    ]
+  },
+  "boundary": {
+    "sanitized": true,
+    "identities_present": false,
+    "private_hashes_present": false,
+    "real_client_data_used": false,
+    "network_contacted_by_fixture": false,
+    "mutation_executed_by_fixture": false
+  }
+}

@@ -1,0 +1,1486 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>10인 로펌용 Matter 업무 OS · OSS 리서치와 TUW 계획</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172232;
+      --muted: #5d6878;
+      --line: #cfd7e3;
+      --line-strong: #98a6b8;
+      --paper: #ffffff;
+      --canvas: #f4f6f9;
+      --blue: #145ea8;
+      --blue-soft: #eaf4ff;
+      --green: #176b4d;
+      --green-soft: #eaf6f0;
+      --amber: #8a5500;
+      --amber-soft: #fff5df;
+      --red: #a23434;
+      --red-soft: #fff0f0;
+      --slate-soft: #edf1f5;
+      --surface-subtle: #fafbfc;
+      --surface-header: #f2f5f8;
+      --surface-hover: #fbfcfd;
+      --code-surface: #f5f7fa;
+      --code-line: #dce2ea;
+      --dark-surface: #101722;
+      --dark-ink: #edf3fa;
+      --blue-line: #a7c9ee;
+      --ink-nav: #344258;
+      --ink-table: #324057;
+      --ink-status: #4d5670;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      --font-xs: 12px;
+      --font-sm: 13px;
+      --font-base: 15px;
+      --font-md: 16px;
+      --font-lg: 18px;
+      --font-xl: 20px;
+      --font-summary: 22px;
+      --font-2xl: 27px;
+      --font-hero-min: 30px;
+      --font-hero-max: 44px;
+      --font-status: 11px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-copy: 10px;
+      --space-3: 12px;
+      --space-14: 14px;
+      --space-4: 16px;
+      --space-5: 18px;
+      --space-6: 20px;
+      --space-7: 22px;
+      --space-8: 24px;
+      --space-9: 28px;
+      --space-heading-top: 30px;
+      --space-10: 32px;
+      --space-header-bottom: 34px;
+      --space-11: 38px;
+      --space-12: 44px;
+      --space-13: 48px;
+      --space-page-bottom: 64px;
+      --table-cell-block: 11px;
+      --status-pad-block: 2px;
+      --status-pad-inline: 7px;
+      --list-indent: 22px;
+      --list-item-gap: 6px;
+      --phase-copy-gap: 5px;
+      --disclosure-inline: 14px;
+      --screen-reader-size: 1px;
+      --screen-reader-offset: -1px;
+      --radius-sm: 3px;
+      --content-max: 1120px;
+      --copy-max: 900px;
+      --page-gutter: 32px;
+      --finding-key-width: 200px;
+      --phase-key-width: 104px;
+      --mobile-key-width: 104px;
+      --status-min-width: 58px;
+      --line-thin: 1px;
+      --line-accent: 4px;
+      --line-summary: 5px;
+      --link-offset: 3px;
+      --link-hover-thickness: 2px;
+      --focus-offset: -3px;
+      --focus-ring: 2px solid var(--blue);
+      --focus-ring-strong: 3px solid var(--blue);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: var(--font-base)/1.7 var(--sans);
+    }
+    main {
+      width: min(var(--content-max), calc(100% - var(--page-gutter)));
+      margin: var(--space-9) auto var(--space-page-bottom);
+      background: var(--paper);
+      border: var(--line-thin) solid var(--line);
+    }
+    header {
+      padding: var(--space-12) var(--space-13) var(--space-header-bottom);
+      border-bottom: var(--line-thin) solid var(--line);
+    }
+    section {
+      padding: var(--space-11) var(--space-13);
+      border-bottom: var(--line-thin) solid var(--line);
+    }
+    section:last-child { border-bottom: 0; }
+    h1, h2, h3, h4 {
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.3;
+      letter-spacing: -0.025em;
+    }
+    h1 { max-width: var(--copy-max); font-size: clamp(var(--font-hero-min), 5vw, var(--font-hero-max)); }
+    h2 { margin-bottom: var(--space-5); font-size: var(--font-2xl); }
+    h3 { margin-top: var(--space-heading-top); margin-bottom: var(--space-3); font-size: var(--font-xl); }
+    h4 { margin-top: var(--space-7); margin-bottom: var(--space-2); font-size: var(--font-md); }
+    p { margin: var(--space-copy) 0; }
+    section > p { max-width: var(--copy-max); }
+    a { color: var(--blue); text-underline-offset: var(--link-offset); }
+    a:hover { text-decoration-thickness: var(--link-hover-thickness); }
+    code {
+      padding: var(--line-thin) var(--space-1);
+      border: var(--line-thin) solid var(--code-line);
+      background: var(--code-surface);
+      font: 0.88em/1.5 var(--mono);
+    }
+    .eyebrow {
+      margin-bottom: var(--space-3);
+      color: var(--blue);
+      font-size: var(--font-sm);
+      font-weight: 750;
+      letter-spacing: 0.04em;
+    }
+    .deck {
+      max-width: var(--copy-max);
+      margin: var(--space-5) 0 0;
+      color: var(--muted);
+      font-size: var(--font-lg);
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-5);
+      margin-top: var(--space-8);
+      color: var(--muted);
+      font-size: var(--font-sm);
+    }
+    .meta span { overflow-wrap: anywhere; }
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-5);
+      padding: var(--space-14) var(--space-13);
+      border-bottom: var(--line-thin) solid var(--line);
+      background: var(--surface-subtle);
+      font-size: var(--font-sm);
+    }
+    .toc a { color: var(--ink-nav); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .tldr {
+      padding: var(--space-7) var(--space-8);
+      border: var(--line-thin) solid var(--blue-line);
+      border-left: var(--line-summary) solid var(--blue);
+      background: var(--blue-soft);
+    }
+    .tldr h2 { margin-bottom: var(--space-copy); font-size: var(--font-summary); }
+    .tldr ol { margin-bottom: 0; }
+    .finding-list {
+      display: grid;
+      grid-template-columns: var(--finding-key-width) 1fr;
+      margin: var(--space-8) 0 0;
+      border-top: var(--line-thin) solid var(--line);
+    }
+    .finding-list dt,
+    .finding-list dd {
+      margin: 0;
+      padding: var(--space-3) 0;
+      border-bottom: var(--line-thin) solid var(--line);
+    }
+    .finding-list dt {
+      padding-right: var(--space-5);
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .finding-list dd { font-weight: 650; }
+    .callout {
+      margin: var(--space-5) 0;
+      padding: var(--space-4) var(--space-5);
+      border-left: var(--line-accent) solid var(--line-strong);
+      background: var(--slate-soft);
+    }
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: var(--amber-soft);
+    }
+    .callout.success {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+    .table-wrap {
+      width: 100%;
+      margin: var(--space-5) 0 var(--space-2);
+      overflow-x: auto;
+      border: var(--line-thin) solid var(--line);
+      outline-offset: var(--radius-sm);
+    }
+    .table-wrap:focus { outline: var(--focus-ring); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--paper);
+      font-size: var(--font-sm);
+    }
+    th, td {
+      padding: var(--table-cell-block) var(--space-3);
+      border-right: var(--line-thin) solid var(--line);
+      border-bottom: var(--line-thin) solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      background: var(--surface-header);
+      color: var(--ink-table);
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: var(--surface-hover); }
+    .status {
+      display: inline-block;
+      min-width: var(--status-min-width);
+      padding: var(--status-pad-block) var(--status-pad-inline);
+      border: var(--line-thin) solid currentColor;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-status);
+      font-weight: 750;
+      line-height: 1.4;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .status.keep { color: var(--green); background: var(--green-soft); }
+    .status.merge { color: var(--amber); background: var(--amber-soft); }
+    .status.move { color: var(--ink-status); background: var(--slate-soft); }
+    .status.defer { color: var(--red); background: var(--red-soft); }
+    .num {
+      font-family: var(--mono);
+      font-size: var(--font-xs);
+      white-space: nowrap;
+    }
+    ul, ol { padding-left: var(--list-indent); }
+    li + li { margin-top: var(--list-item-gap); }
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-5);
+      margin-top: var(--space-6);
+    }
+    figure {
+      margin: 0;
+      border: var(--line-thin) solid var(--line);
+      background: var(--surface-subtle);
+    }
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-bottom: var(--line-thin) solid var(--line);
+    }
+    figure > a {
+      display: block;
+      background: var(--paper);
+    }
+    figure > a:focus { outline: var(--focus-ring-strong); outline-offset: var(--focus-offset); }
+    figcaption {
+      padding: var(--space-copy) var(--space-3);
+      color: var(--muted);
+      font-size: var(--font-xs);
+      line-height: 1.5;
+    }
+    pre.wireframe {
+      margin: var(--space-14) 0 var(--list-item-gap);
+      padding: var(--space-5);
+      overflow-x: auto;
+      border: var(--line-thin) solid var(--line-strong);
+      background: var(--dark-surface);
+      color: var(--dark-ink);
+      font: var(--font-xs)/1.55 var(--mono);
+    }
+    .phase {
+      display: grid;
+      grid-template-columns: var(--phase-key-width) 1fr;
+      gap: var(--space-5);
+      padding: var(--space-5) 0;
+      border-top: var(--line-thin) solid var(--line);
+    }
+    .phase:last-of-type { border-bottom: var(--line-thin) solid var(--line); }
+    .phase-id {
+      color: var(--blue);
+      font: 750 var(--font-sm)/1.5 var(--mono);
+    }
+    .phase h3 { margin: 0 0 var(--list-item-gap); font-size: var(--font-lg); }
+    .phase p { margin: var(--phase-copy-gap) 0; }
+    details {
+      margin: var(--space-3) 0;
+      border: var(--line-thin) solid var(--line);
+      background: var(--surface-subtle);
+    }
+    summary {
+      padding: var(--space-3) var(--disclosure-inline);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    details > div { padding: 0 var(--disclosure-inline) var(--disclosure-inline); }
+    .source-list {
+      padding-left: var(--space-6);
+      font-size: var(--font-sm);
+      overflow-wrap: anywhere;
+    }
+    .tuw-compact-index { display: none; }
+    .small { color: var(--muted); font-size: var(--font-xs); }
+    footer {
+      padding: var(--space-7) var(--space-13);
+      border-top: var(--line-thin) solid var(--line);
+      background: var(--surface-subtle);
+      color: var(--muted);
+      font-size: var(--font-xs);
+    }
+    @media (max-width: 760px) {
+      main { width: 100%; margin: 0; border: 0; }
+      header, section { padding: var(--space-9) var(--space-6); }
+      .toc { padding: var(--space-3) var(--space-6); }
+      .evidence-grid { grid-template-columns: 1fr; }
+      .finding-list, .phase { grid-template-columns: 1fr; }
+      .finding-list dt { border-bottom: 0; padding-bottom: var(--status-pad-block); }
+      .finding-list dd { padding-top: var(--status-pad-block); }
+      footer { padding: var(--space-6); }
+      .tuw-compact-index {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-2);
+        margin: var(--space-5) 0;
+        padding: 0;
+        list-style: none;
+      }
+      .tuw-compact-index li { margin: 0; }
+      .tuw-compact-index a {
+        display: block;
+        padding: var(--space-2) var(--space-3);
+        border: var(--line-thin) solid var(--line);
+        background: var(--surface-subtle);
+        color: var(--ink-nav);
+        font-size: var(--font-sm);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .tuw-mobile-group {
+        margin: var(--space-2) 0;
+        background: var(--paper);
+      }
+      .tuw-mobile-group > summary {
+        color: var(--ink-nav);
+        font-size: var(--font-sm);
+      }
+      .tuw-mobile-group > .table-wrap { margin: 0; }
+      .tuw-mobile-group > p,
+      .tuw-mobile-group > .callout {
+        margin-right: var(--space-3);
+        margin-left: var(--space-3);
+      }
+      .table-wrap {
+        overflow: visible;
+        border: 0;
+      }
+      .table-wrap table,
+      .table-wrap tbody {
+        display: block;
+        width: 100%;
+      }
+      .table-wrap thead {
+        position: absolute;
+        width: var(--screen-reader-size);
+        height: var(--screen-reader-size);
+        padding: 0;
+        margin: var(--screen-reader-offset);
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .table-wrap tbody tr {
+        display: block;
+        border: var(--line-thin) solid var(--line);
+        background: var(--paper);
+      }
+      .table-wrap tbody tr + tr { margin-top: var(--space-3); }
+      .table-wrap td {
+        display: grid;
+        grid-template-columns: var(--mobile-key-width) minmax(0, 1fr);
+        gap: var(--space-3);
+        width: 100%;
+        padding: var(--space-3);
+        border-right: 0;
+        border-bottom: var(--line-thin) solid var(--line);
+        overflow-wrap: anywhere;
+      }
+      .table-wrap td:last-child { border-bottom: 0; }
+      .table-wrap td::before {
+        color: var(--muted);
+        font-weight: 750;
+      }
+      .table-wrap code,
+      .table-wrap .num {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .table-wrap[aria-label$=" TUW"] td:nth-child(1)::before { content: "ID"; }
+      .table-wrap[aria-label$=" TUW"] td:nth-child(2)::before { content: "작업"; }
+      .table-wrap[aria-label$=" TUW"] td:nth-child(3)::before { content: "변경점"; }
+      .table-wrap[aria-label$=" TUW"] td:nth-child(4)::before { content: "통과 기준"; }
+      .table-wrap[aria-label$=" TUW"] td:nth-child(5)::before { content: "선행"; }
+
+      .table-wrap[aria-label="TUW 테스트 실행 매트릭스"] td:nth-child(1)::before { content: "TUW"; }
+      .table-wrap[aria-label="TUW 테스트 실행 매트릭스"] td:nth-child(2)::before { content: "테스트 파일"; }
+      .table-wrap[aria-label="TUW 테스트 실행 매트릭스"] td:nth-child(3)::before { content: "집중 검증"; }
+      .table-wrap[aria-label="TUW 테스트 실행 매트릭스"] td:nth-child(4)::before { content: "완료 명령"; }
+
+      .table-wrap[aria-label="대형 조직 관점과 소규모 로펌 관점 비교"] td:nth-child(1)::before { content: "기존 질문"; }
+      .table-wrap[aria-label="대형 조직 관점과 소규모 로펌 관점 비교"] td:nth-child(2)::before { content: "운영 질문"; }
+      .table-wrap[aria-label="대형 조직 관점과 소규모 로펌 관점 비교"] td:nth-child(3)::before { content: "제품 결정"; }
+
+      .table-wrap[aria-label="현재 메뉴 통합 결정"] td:nth-child(1)::before { content: "현재 메뉴"; }
+      .table-wrap[aria-label="현재 메뉴 통합 결정"] td:nth-child(2)::before { content: "판정"; }
+      .table-wrap[aria-label="현재 메뉴 통합 결정"] td:nth-child(3)::before { content: "새 위치"; }
+      .table-wrap[aria-label="현재 메뉴 통합 결정"] td:nth-child(4)::before { content: "이유"; }
+
+      .table-wrap[aria-label="OSS 조사 요약"] td:nth-child(1)::before { content: "프로젝트"; }
+      .table-wrap[aria-label="OSS 조사 요약"] td:nth-child(2)::before { content: "채택 패턴"; }
+      .table-wrap[aria-label="OSS 조사 요약"] td:nth-child(3)::before { content: "미채택"; }
+      .table-wrap[aria-label="OSS 조사 요약"] td:nth-child(4)::before { content: "라이선스"; }
+
+      .table-wrap[aria-label="기존 코드 재사용 지도"] td:nth-child(1)::before { content: "운영 능력"; }
+      .table-wrap[aria-label="기존 코드 재사용 지도"] td:nth-child(2)::before { content: "현재 재사용점"; }
+      .table-wrap[aria-label="기존 코드 재사용 지도"] td:nth-child(3)::before { content: "남은 일"; }
+
+      .table-wrap[aria-label="10인 운영 fixture"] td:nth-child(1)::before { content: "영역"; }
+      .table-wrap[aria-label="10인 운영 fixture"] td:nth-child(2)::before { content: "고정 데이터"; }
+      .table-wrap[aria-label="10인 운영 fixture"] td:nth-child(3)::before { content: "검증 상황"; }
+
+      .table-wrap[aria-label="후순위 기능"] td:nth-child(1)::before { content: "후순위"; }
+      .table-wrap[aria-label="후순위 기능"] td:nth-child(2)::before { content: "지금 아닌 이유"; }
+      .table-wrap[aria-label="후순위 기능"] td:nth-child(3)::before { content: "재검토 신호"; }
+    }
+    @media print {
+      body { background: var(--paper); }
+      main { width: 100%; margin: 0; border: 0; }
+      a { color: inherit; }
+      section, figure, .phase { break-inside: avoid; }
+      details { break-inside: auto; }
+      details > summary { display: none; }
+      details:not([open]) > *:not(summary) { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">소규모 로펌 운영 설계 · 소스 감사 · OSS 리서치</div>
+      <h1>10인 로펌용 Matter 업무 OS</h1>
+      <p class="deck">
+        권한 체계나 이해상충 관리가 제품의 중심이 아니라, 열 명이 매일 사건을 놓치지 않고
+        인수인계하고 시간을 기록해 청구·수금까지 마치는 운영 체계를 중심으로 Matter를 다시 설계했다.
+        결론은 <strong>13개 메뉴를 6개 일일 목적 메뉴로 축소</strong>하고,
+        기존 <code>MatterTask</code>와 시간·WIP·청구 서비스를 하나의 흐름으로 연결하는 것이다.
+      </p>
+      <div class="meta">
+        <span>기준 소스 <code>origin/main@34d16954f54a</code></span>
+        <span>브랜치 <code>codex/matter-menu-gap-oss-research-20260730</code></span>
+        <span>조사일 2026-07-30</span>
+        <span>대상: 변호사·스태프 포함 약 10명</span>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="보고서 목차">
+      <a href="#summary">제안</a>
+      <a href="#principles">운영 원칙</a>
+      <a href="#evidence">현재 상태</a>
+      <a href="#ia">6개 메뉴</a>
+      <a href="#daily-loop">일일 흐름</a>
+      <a href="#oss">OSS 근거</a>
+      <a href="#reuse">기존 코드 재사용</a>
+      <a href="#tuw">42개 TUW</a>
+      <a href="#fixture">테스트 데이터</a>
+      <a href="#gates">출시 게이트</a>
+      <a href="#defer">후순위</a>
+      <a href="#sources">출처</a>
+    </nav>
+
+    <section id="summary">
+      <div class="tldr">
+        <h2>제안 요약</h2>
+        <ol>
+          <li><strong>Matter의 첫 화면은 “대시보드”가 아니라 “오늘”</strong>이다. 기한 초과·오늘 마감·우리 답변 대기·미배정·시간 누락을 이름과 다음 행동까지 보여준다.</li>
+          <li><strong>업무 보드·할 일·워크트리는 같은 <code>MatterTask</code>의 보기</strong>로 합친다. 보드는 보기 전환, 워크트리는 복잡한 사건 상세 탭이다.</li>
+          <li><strong>회의 기록과 의뢰인 요청은 “연락·후속”으로 통합</strong>한다. 회의·전화·메일·내부 메모는 하나의 타임라인에 남고, 후속조치만 업무 큐에 올라온다.</li>
+          <li><strong>시간 기록 → WIP → 청구서 → 미수금</strong>을 Matter 안의 한 작업 흐름으로 만든다. 복잡한 회계 자동화보다 누락 시간과 청구 대기를 먼저 없앤다.</li>
+          <li><strong>신규 사건은 상단 행동, 종결은 사건 상세 절차, 보관은 저장된 보기, 연동은 전역 설정</strong>으로 옮긴다. 비어 있는 메뉴를 채우지 않고 메뉴 자체를 줄인다.</li>
+          <li>계획은 <strong>42개의 Testable Unit of Work</strong>로 나눴다. 각 단위는 하나의 계약 또는 화면 행동, 결정적 fixture, 자동 테스트, 수동 수용 시나리오를 가진다.</li>
+        </ol>
+      </div>
+
+      <dl class="finding-list">
+        <dt>북극성</dt>
+        <dd>“누가, 어느 사건에서, 오늘 무엇을 해야 하며, 다음 기한과 다음 청구는 무엇인가?”에 30초 안에 답한다.</dd>
+        <dt>핵심 원장</dt>
+        <dd>Matter · MatterTask · MatterCalendarEvent · MatterActivity/FollowUp · TimeEntry · WIP · Invoice/Payment</dd>
+        <dt>일일 화면</dt>
+        <dd>오늘 · 사건 · 업무 · 일정 · 연락·후속 · 시간·청구</dd>
+        <dt>첫 사용 가능 게이트</dt>
+        <dd>TUW-01~21 완료 시 오늘/사건/업무/일정/인수인계가 한 원장으로 작동</dd>
+        <dt>운영 완결 게이트</dt>
+        <dd>TUW-01~36 완료 시 의뢰인 후속과 시간→WIP→청구→수금이 연결</dd>
+      </dl>
+    </section>
+
+    <section id="principles">
+      <h2>10인 로펌에 맞춘 판단 기준</h2>
+      <p>
+        대형 조직용 통제 화면을 축소하는 방식이 아니라, 작은 팀의 하루를 출발점으로 삼았다.
+        역할은 단순히 <strong>담당자 + 백업 담당자</strong>로 두고, 복잡한 팀·포트폴리오·승인 계층은 기본 흐름에서 제외한다.
+      </p>
+
+      <div class="table-wrap" tabindex="0" aria-label="대형 조직 관점과 소규모 로펌 관점 비교">
+        <table>
+          <thead>
+            <tr><th>기존 설계가 묻는 질문</th><th>10인 로펌 OS가 묻는 질문</th><th>제품 결정</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>이 사용자가 이 사건을 볼 수 있는가?</td><td>오늘 빠뜨리면 안 되는 기한은 무엇인가?</td><td>기존 권한 회귀 테스트는 유지하되 홈의 주인공은 기한·업무다.</td></tr>
+            <tr><td>승인 단계가 몇 개인가?</td><td>누가 끝내고 누가 백업하는가?</td><td>담당자·백업자·다음 행동·기한 네 필드를 우선한다.</td></tr>
+            <tr><td>각 기능을 어느 메뉴에 넣을까?</td><td>같은 기록을 여러 화면에서 다시 만들고 있지 않은가?</td><td>원장은 하나, 목록·보드·캘린더·워크트리는 projection으로 둔다.</td></tr>
+            <tr><td>고급 분석을 무엇까지 제공할까?</td><td>이번 주 시간 누락·청구 대기·30일 초과 미수는 얼마인가?</td><td>행동으로 이어지는 운영 숫자만 먼저 노출한다.</td></tr>
+            <tr><td>외부 시스템을 모두 동기화할까?</td><td>동기화가 없어도 로컬 업무를 완료할 수 있는가?</td><td>로컬 사건·업무·일정이 canonical이고 연동 실패는 상태로만 보인다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout success">
+        <strong>제품 원칙:</strong> 모든 노출 행동은 기존 서비스에 실제로 저장되거나, 명시적인 오류·차단 상태를 보여야 한다.
+        설명 카드, 빈 탭, 저장되지 않는 보드 이동은 완료로 보지 않는다.
+      </div>
+    </section>
+
+    <section id="evidence">
+      <h2>현재 화면에서 바로 보이는 운영 문제</h2>
+      <p>
+        현재 Matter 사이드바는 13개 메뉴를 노출하지만, 일일 우선순위를 만드는 대신 기능 이름을 나열한다.
+        대시보드는 최근 작업·오늘 To Do·내 사건·신규 수임·종결 사건 다섯 목록이고,
+        업무 보드의 기본 홈은 빈 패널이다. 10명 조직에서는 메뉴 수보다
+        “초과 기한, 답변 대기, 미배정, 누락 시간”의 정렬이 중요하다.
+      </p>
+
+      <div class="evidence-grid">
+        <figure>
+          <a href="references/current-matter-dashboard.png">
+            <img src="references/current-matter-dashboard.png" alt="현재 Matter 대시보드 화면">
+          </a>
+          <figcaption>현재 대시보드. 다섯 목록은 데이터 경로가 있지만 오늘의 우선순위와 돈의 흐름을 한 큐로 만들지 못한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/current-matter-board.png">
+            <img src="references/current-matter-board.png" alt="현재 Matter 업무 보드의 빈 홈 화면">
+          </a>
+          <figcaption>업무 보드의 기본 홈은 빈 패널이다. 별도 제품으로 채우지 말고 MatterTask 목록·보드 보기로 합쳐야 한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/current-matter-tasks.png">
+            <img src="references/current-matter-tasks.png" alt="현재 Matter 할 일 화면">
+          </a>
+          <figcaption>할 일은 이미 canonical MatterTask 경로를 사용한다. 새 업무 모델을 추가할 이유가 없다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/current-client-requests.png">
+            <img src="references/current-client-requests.png" alt="현재 의뢰인 요청 화면">
+          </a>
+          <figcaption>의뢰인 요청은 설명·조합형 성격이 강하다. 요청, 연락, 회의 후속을 하나의 대기 상태로 재구성해야 한다.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="ia">
+      <h2>권장 Matter IA: 13개에서 6개로</h2>
+      <p>
+        메뉴는 데이터 종류가 아니라 사용자의 일일 목적을 반영한다. 새 사건과 새 업무는 화면 상단의 전역 행동으로 두고,
+        선택된 사건에서는 같은 여섯 기능을 사건 범위로 좁혀 본다.
+      </p>
+
+      <pre class="wireframe" aria-label="권장 Matter 메뉴 구조">MATTER
+├─ 오늘                 기한·업무·후속·시간·청구의 우선순위
+├─ 사건                 활성/종결/보관 저장 보기 + 사건 상세
+├─ 업무                 내 업무/초과/대기/미배정 + 목록/보드 전환
+├─ 일정                 주간 일정·기한, 로컬 사건 일정이 원장
+├─ 연락·후속            우리 답변/의뢰인 답변/최근 연락 없음
+└─ 시간·청구            내 시간/누락/청구 대기/WIP/미수금
+
+상단 행동: [새 업무] [새 사건] [시간 입력]
+사건 상세: 개요 | 업무·기한 | 연락·기록 | 문서 | 시간·청구
+복잡한 사건만: 업무·기한 안에서 [워크트리 보기]</pre>
+
+      <div class="table-wrap" tabindex="0" aria-label="현재 메뉴 통합 결정">
+        <table>
+          <thead>
+            <tr><th>현재 메뉴</th><th>판정</th><th>새 위치</th><th>이유</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>대시보드</td><td><span class="status keep">재설계</span></td><td>오늘</td><td>최근 항목이 아니라 행동 기한순으로 정렬한다.</td></tr>
+            <tr><td>사건 목록</td><td><span class="status keep">유지</span></td><td>사건</td><td>활성·종결·보관은 같은 목록의 저장 보기다.</td></tr>
+            <tr><td>신규 사건</td><td><span class="status move">행동화</span></td><td>상단 “새 사건”</td><td>자주 쓰는 생성 행동이지 탐색 목적지가 아니다.</td></tr>
+            <tr><td>업무 보드 · 할 일 · 워크트리</td><td><span class="status merge">통합</span></td><td>업무</td><td>모두 같은 MatterTask를 다른 형태로 보아야 한다.</td></tr>
+            <tr><td>일정</td><td><span class="status keep">유지</span></td><td>일정</td><td>업무 기한과 사건 일정을 한 주간 화면에서 본다.</td></tr>
+            <tr><td>회의 기록 · 의뢰인 요청</td><td><span class="status merge">통합</span></td><td>연락·후속</td><td>회의·전화·메일·요청은 타임라인, 미완료 후속만 큐다.</td></tr>
+            <tr><td>사건 리포트</td><td><span class="status move">흡수</span></td><td>오늘의 주간 점검 / 사건 상세</td><td>별도 분석 메뉴보다 운영 회의와 사건별 상세가 낫다.</td></tr>
+            <tr><td>종결 처리</td><td><span class="status move">이동</span></td><td>사건 상세 행동</td><td>선택한 사건을 닫는 절차이지 독립 탐색 화면이 아니다.</td></tr>
+            <tr><td>보관 사건</td><td><span class="status move">보기화</span></td><td>사건 &gt; 보관</td><td>보관은 lifecycle 필터이고 별도 원장이 아니다.</td></tr>
+            <tr><td>연동</td><td><span class="status defer">전역 이동</span></td><td>설정</td><td>Matter에서는 연결 상태와 재시도만 보여준다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="daily-loop">
+      <h2>업무 OS의 하루</h2>
+
+      <h3>1. 오전 9시: “오늘”에서 팀 위험을 확인</h3>
+      <pre class="wireframe" aria-label="오늘 화면 와이어프레임">오늘  7월 30일 목요일                         [새 업무] [시간 입력]
+────────────────────────────────────────────────────────────────────────
+지금 처리할 것
+! 2일 초과   K-2026-014 준비서면 검토        담당 김변호사  [열기]
+! 오늘 15:00 K-2026-022 상담자료 발송          미배정        [담당 지정]
+↔ 우리 답변  K-2026-009 손해자료 확인          박변호사      [답변 기록]
+■ 막힘       K-2026-018 등기부 원본 대기        백업 이실장    [인수인계]
+
+이번 주 일정                         시간·청구
+목 14:00 조정기일                    어제 시간 미입력 3명
+금 11:00 의뢰인 보고                 청구 대기 WIP 4건
+월 09:00 서면 제출                   30일 초과 미수 2건
+
+사건별 다음 행동
+K-2026-014 | 준비서면 검토 | 김변호사 | 2일 초과
+K-2026-009 | 손해자료 회신 | 박변호사 | 오늘</pre>
+
+      <h3>2. 업무 중: 기록은 사건으로, 행동은 큐로</h3>
+      <ol>
+        <li>회의·전화·메일·내부 메모는 사건 타임라인에 한 번 기록한다.</li>
+        <li>후속 행동이 필요하면 같은 기록에서 MatterTask를 한 번 생성하고 <code>source_ref</code>로 연결한다.</li>
+        <li>담당자가 자리를 비우면 백업 담당자에게 넘기고, 미완료 업무·다음 기한·최근 메모가 인수인계 이벤트에 묶인다.</li>
+        <li>보드에서 옮긴 업무와 목록에서 바꾼 업무는 같은 MatterTask를 즉시 반영한다.</li>
+      </ol>
+
+      <h3>3. 퇴근 전·금요일: 시간과 돈의 누락을 닫음</h3>
+      <ol>
+        <li>퇴근 전 “내 시간”에서 오늘 미입력 사건을 확인하고 빠르게 기록한다.</li>
+        <li>금요일에는 주간 시간을 제출·잠그고, 청구 담당자가 잠긴 청구 가능 시간을 WIP로 검토한다.</li>
+        <li>청구서는 <code>draft → sent → partial → paid</code>로만 시작하고, due date를 넘으면 미수금 큐에 올라온다.</li>
+        <li>월요일 운영 점검은 초과 기한·미배정·의뢰인 후속·누락 시간·청구 대기·미수금만 본다.</li>
+      </ol>
+    </section>
+
+    <section id="oss">
+      <h2>소규모 운영에 맞는 OSS 근거</h2>
+      <p>
+        완성품을 포크하는 조사가 아니라, 작은 팀에 유효한 상태 모델과 상호작용을 고르는 조사다.
+        copyleft 또는 source-available 코드는 복사하지 않고 동작·스키마 아이디어만 독립 구현한다.
+      </p>
+
+      <div class="evidence-grid">
+        <figure>
+          <a href="references/web-jlawyer-functions.png">
+            <img src="references/web-jlawyer-functions.png" alt="j-lawyer.org 기능 설명 화면">
+          </a>
+          <figcaption>j-lawyer.org. 사건 안에 관계자·문서·기한·시간·히스토리·보관을 묶는 법률 업무 중심 구조가 가장 가깝다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/web-leantime-tasks.png">
+            <img src="references/web-leantime-tasks.png" alt="Leantime 업무 관리 문서 화면">
+          </a>
+          <figcaption>Leantime. 제목·담당자·기한·상태를 가진 하나의 업무를 목록·보드에서 함께 쓰는 경량 패턴을 참고한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/web-chatwoot-private-notes.png">
+            <img src="references/web-chatwoot-private-notes.png" alt="Chatwoot 내부 메모 기능 화면">
+          </a>
+          <figcaption>Chatwoot. 외부 응답과 내부 메모, 담당자, 대기 상태, 마지막 활동 시각을 한 대화 흐름에서 관리한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/web-kimai-weekly.png">
+            <img src="references/web-kimai-weekly.png" alt="Kimai 주간 시간 기록 문서 화면">
+          </a>
+          <figcaption>Kimai. 주간 스프레드시트형 시간 입력과 billable/not-exported 상태가 누락 시간·청구 대기 흐름에 적합하다.</figcaption>
+        </figure>
+      </div>
+
+      <div class="table-wrap" tabindex="0" aria-label="OSS 조사 요약">
+        <table>
+          <thead>
+            <tr><th>프로젝트</th><th>채택할 패턴</th><th>채택하지 않을 것</th><th>라이선스 주의</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>j-lawyer.org</strong></td>
+              <td>한 사건 안의 관계자·문서·캘린더·시간·히스토리, 상대 날짜 기한 템플릿, 명시적 invoice 상태</td>
+              <td>독일 법률·청구 규칙과 전체 애플리케이션 구조</td>
+              <td>AGPLv3 — 행위 참고만</td>
+            </tr>
+            <tr>
+              <td><strong>Leantime</strong></td>
+              <td>빠른 업무 생성, current-user·상태·기한 필터, 보드 요약의 미배정·이번 주 마감</td>
+              <td>목표·마일스톤·스프린트·포트폴리오 계층</td>
+              <td>AGPLv3 — 코드 복사 금지</td>
+            </tr>
+            <tr>
+              <td><strong>Chatwoot</strong></td>
+              <td>open/pending/snoozed/done, waiting_since, 담당자, 내부 메모와 외부 메시지 구분</td>
+              <td>옴니채널 고객지원 제품 전체와 SLA 체계</td>
+              <td>MIT core, enterprise 경계 확인</td>
+            </tr>
+            <tr>
+              <td><strong>Twenty</strong></td>
+              <td>canonical record 타임라인, 저장된 필터, 목록/보드가 같은 record를 반영</td>
+              <td>범용 CRM 객체·워크플로 빌더</td>
+              <td>AGPLv3 + Enterprise로 표시된 상용 파일</td>
+            </tr>
+            <tr>
+              <td><strong>Kimai</strong></td>
+              <td>billable + not-exported WIP, 주간 완결성, 기간 제출·잠금</td>
+              <td>플러그인 생태계와 별도 고객/프로젝트 원장</td>
+              <td>AGPLv3 — 상태만 참고</td>
+            </tr>
+            <tr>
+              <td><strong>Invoice Ninja</strong></td>
+              <td>draft/sent/partial/paid/overdue/void, applied payment, AR aging·reminder</td>
+              <td>호스팅·결제 플랫폼 전체</td>
+              <td>ELv2 source-available — hosted/managed service 제한, 전문 검토 필요</td>
+            </tr>
+            <tr>
+              <td><strong>Plane · OpenProject</strong></td>
+              <td>completed_at/archived_at, open/closed/overdue 계산</td>
+              <td>이슈 트래커·자원 계획·enterprise scheduling</td>
+              <td>AGPLv3 / GPLv3</td>
+            </tr>
+            <tr>
+              <td><strong>ArkCase</strong></td>
+              <td>법률 도메인 용어의 보조 참고</td>
+              <td>Java·Tomcat·Solr·ActiveMQ·Alfresco·Pentaho를 포함한 무거운 인프라 도입</td>
+              <td>LGPLv3 — 규모 적합성 관점에서 미채택</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="reuse">
+      <h2>새로 만들기 전에 재사용할 현재 코드</h2>
+      <p>
+        로컬 소스에는 업무·활동·일정·시간·WIP·청구의 핵심 서비스가 이미 있다.
+        다만 이는 완성된 end-to-end 흐름이 아니라 재사용 가능한 primitive다.
+        가장 작은 구현 경로는 새 원장을 만드는 대신 기존 primitive에 필요한 필드·idempotent command·운영 read model·화면을 명시적으로 추가하는 것이다.
+      </p>
+
+      <div class="table-wrap" tabindex="0" aria-label="기존 코드 재사용 지도">
+        <table>
+          <thead>
+            <tr><th>운영 능력</th><th>현재 재사용점</th><th>남은 일</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>업무 원장</td>
+              <td><code>packages/matter/src/model.js</code>의 현재 MatterTask, <code>task-service.js</code>의 기존 상태 전이·audit·전이 idempotency</td>
+              <td>현재 모델에 없는 우선순위·대기 이유·완료/보관 시각·백업 담당자 필드, 생성 idempotency와 daily query</td>
+            </tr>
+            <tr>
+              <td>목록·보드·워크트리 일치</td>
+              <td><code>activity-calendar-channel-service.js</code>와 Worktree projection이 같은 MatterTask 사용</td>
+              <td>보드 기본 탭을 실제 MatterTask 보기로 바꾸고 중복 생성 회귀 테스트</td>
+            </tr>
+            <tr>
+              <td>타임라인</td>
+              <td>Task · Activity · CalendarEvent · ChannelMessage를 합치는 <code>listActivities</code></td>
+              <td>meeting/call/email/note/follow-up 타입, 내부/외부 가시성, 마지막 연락 projection</td>
+            </tr>
+            <tr>
+              <td>일정·기한</td>
+              <td>MatterCalendarEvent CRUD와 task due date를 합치는 deadline query</td>
+              <td>주간 UI, 상대 날짜 템플릿, 로컬 reminder candidate</td>
+            </tr>
+            <tr>
+              <td>시간</td>
+              <td><code>createTimeEntry</code>, <code>approveTimeEntryForWip</code></td>
+              <td>현재 서비스에 없는 submitted_at/locked_at/grace 계약, 내 주간 입력·누락일 UI와 bulk 동작</td>
+            </tr>
+            <tr>
+              <td>WIP·청구·수금</td>
+              <td>WIP 생성·immutable snapshot, PreBill, Invoice, payment matching, AR aging</td>
+              <td>각 primitive를 연결하는 Matter 범위 API/UI, 요율·fee arrangement 검증, payment apply 화면과 reconciled E2E</td>
+            </tr>
+            <tr>
+              <td>종결</td>
+              <td>MatterChecklist와 close blocker·status history 테스트</td>
+              <td>업무·기한·미청구 시간·미수금의 actionable blocker 화면</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tuw">
+      <h2>42개 Testable Units of Work</h2>
+      <p>
+        각 TUW는 원칙적으로 0.5~2 엔지니어링 일 범위다. 하나의 저장/API 계약 또는 하나의 사용자 행동을 넘기지 않는다.
+        “통과”는 <strong>결정적 fixture + 자동 테스트 + 화면 happy path + empty/error path</strong>를 모두 의미한다.
+        일정 추정치가 아니라 이슈 분할 크기다.
+      </p>
+
+      <ul class="tuw-compact-index" aria-label="TUW 모바일 빠른 탐색">
+        <li><a href="#tuw-r0">R0 · 기반 (01–05)</a></li>
+        <li><a href="#tuw-r1">R1 · 업무 (06–15)</a></li>
+        <li><a href="#tuw-r2">R2 · 사건 (16–22)</a></li>
+        <li><a href="#tuw-r3">R3 · 후속 (23–29)</a></li>
+        <li><a href="#tuw-r4">R4 · 청구 (30–36)</a></li>
+        <li><a href="#tuw-r5">R5 · 출시 (37–42)</a></li>
+        <li><a href="#tuw-qa">검증 규약</a></li>
+      </ul>
+
+      <h3 id="tuw-r0" data-tuw-group data-range="TUW-01–05">R0 · 구조와 테스트 바닥</h3>
+      <div class="table-wrap" tabindex="0" aria-label="R0 TUW">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>작업 단위</th><th>주요 재사용/변경</th><th>통과 기준</th><th>선행</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">TUW-01</td>
+              <td><strong>10인 운영 fixture</strong><br>고정 시각과 10명·12사건·업무·기한·후속·시간·WIP·AR seed</td>
+              <td>기존 runtime test repository/fixture 패턴</td>
+              <td>두 번 seed해도 ID·건수·정렬이 동일하며, 기준 시각에서 초과/오늘/이번 주 결과가 고정된다.</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-02</td>
+              <td><strong>6개 메뉴 계약</strong><br>오늘/사건/업무/일정/연락·후속/시간·청구</td>
+              <td><code>Shell.jsx</code> route table + snapshot test</td>
+              <td>노출 route가 정확히 6개이고 모두 비어 있지 않은 component로 resolve한다.</td>
+              <td>01</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-03</td>
+              <td><strong>기존 route 정리</strong><br>board/tasks/worktree 등 legacy URL 보존</td>
+              <td><code>MattersSurface.jsx</code> dispatcher</td>
+              <td>기존 13개 URL이 새 화면/필터로 결정적으로 redirect하고, dead route가 0개다.</td>
+              <td>02</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-04</td>
+              <td><strong>공통 운영 행 계약</strong><br>id, matter, title, owner, backup, status, due, source</td>
+              <td><code>safeActivity</code>/read projection</td>
+              <td>Task·Activity·Calendar 행이 같은 DTO로 normalize되고 canonical ID 중복이 제거된다.</td>
+              <td>01</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-05</td>
+              <td><strong>화면 상태 매트릭스</strong><br>loading/empty/error/blocked 구분</td>
+              <td>기존 <code>DashboardReadState</code>와 runtime safe error</td>
+              <td>6개 화면 각각 네 상태 fixture가 있고 빈 div·가짜 성공 문구가 없다.</td>
+              <td>02</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tuw-r1" data-tuw-group data-range="TUW-06–15">R1 · 오늘, 업무, 일정</h3>
+      <div class="table-wrap" tabindex="0" aria-label="R1 TUW">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>작업 단위</th><th>주요 재사용/변경</th><th>통과 기준</th><th>선행</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">TUW-06</td>
+              <td><strong>MatterTask 스키마 확장</strong><br>현재 없는 priority, wait_state, blocked_reason, completed_at, archived_at, backup_user_id</td>
+              <td><code>packages/matter/src/model.js</code> + repository migration/default</td>
+              <td>기존 record가 기본값으로 읽히고 새 필드는 round-trip된다. 잘못된 status·date·priority는 거절된다.</td>
+              <td>04</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-07</td>
+              <td><strong>업무 상태 전이 보강</strong><br>canonical todo→in_progress/blocked/done/cancelled 유지, wait_state는 별도</td>
+              <td><code>task-service.js</code> 기존 transition matrix + timestamp patch</td>
+              <td>Done은 completed_at, archive는 archived_at을 새로 기록한다. block/reopen은 이유 없으면 4xx이고 기존 Worktree transition 테스트가 그대로 통과한다.</td>
+              <td>06</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-08</td>
+              <td><strong>idempotent 빠른 업무 생성</strong><br>제목·사건·담당자·기한만으로 생성</td>
+              <td><code>createActivity</code> task branch를 감싸는 새 command/idempotency 계약</td>
+              <td>같은 idempotency key의 POST 두 번 후 MatterTask·audit·timeline이 각 1건이고 reload 후 동일 task_id가 보인다.</td>
+              <td>06</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-09</td>
+              <td><strong>오늘·초과 query</strong><br>고정 clock 기반 due_today/overdue</td>
+              <td>공통 운영 projection</td>
+              <td>완료·취소·보관은 제외되고 초과→오늘→향후 순서가 고정된다.</td>
+              <td>04,07</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-10</td>
+              <td><strong>4개 업무 저장 보기</strong><br>내 업무/기한 초과/대기/미배정</td>
+              <td>MatterTask query + URL filter</td>
+              <td>fixture의 각 활성 업무가 정의된 우선 lane에 정확히 한 번 나타나고 count가 행 수와 같다.</td>
+              <td>09</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-11</td>
+              <td><strong>업무 목록 UI</strong><br>담당자·사건·다음 기한·상태를 한 행에</td>
+              <td>기존 Matter list/table primitives</td>
+              <td>필터 deep link와 keyboard focus가 동작하고 0건/오류 상태가 구분된다.</td>
+              <td>05,10</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-12</td>
+              <td><strong>보드 parity</strong><br>같은 MatterTask를 상태 열로 표시</td>
+              <td>빈 Board Home 대체</td>
+              <td>카드 이동 후 목록과 사건 타임라인에 같은 task_id/status가 보이고 새 record가 생기지 않는다.</td>
+              <td>07,11</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-13</td>
+              <td><strong>기한 생성</strong><br>사건·시각·책임자·종류·리마인더</td>
+              <td>MatterCalendarEvent CRUD</td>
+              <td>ISO/timezone 검증, reload, audit가 통과하고 외부 provider 없이 저장된다.</td>
+              <td>04</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-14</td>
+              <td><strong>기한 변경 이력</strong><br>reschedule 이유와 이전/새 시각</td>
+              <td>기존 deadline history/critical change helper</td>
+              <td>변경 이력이 append-only이고 같은 idempotency key 재실행은 1건만 남긴다.</td>
+              <td>13</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-15</td>
+              <td><strong>주간 일정</strong><br>업무 due date + 사건 event 통합</td>
+              <td>deadline list projection</td>
+              <td>고정 fixture가 날짜순으로 한 번씩 표시되고 클릭 시 동일 원장 상세로 이동한다.</td>
+              <td>09,13</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tuw-r2" data-tuw-group data-range="TUW-16–22">R2 · 사건 상세와 인수인계</h3>
+      <div class="table-wrap" tabindex="0" aria-label="R2 TUW">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>작업 단위</th><th>주요 재사용/변경</th><th>통과 기준</th><th>선행</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">TUW-16</td>
+              <td><strong>사건 핵심 운영 요약</strong><br>담당·백업·다음 기한·다음 행동</td>
+              <td>Matter + task/calendar projection</td>
+              <td>12개 사건 fixture의 네 값이 원장 집계와 일치하고 hard-coded 값이 없다. 마지막 연락·WIP·AR는 TUW-26/33/36 완료 후 TUW-37에서 보강한다.</td>
+              <td>01,09,15</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-17</td>
+              <td><strong>사건별 next action</strong><br>열린 업무·기한에서 하나를 결정</td>
+              <td>새 entity 없이 derived query</td>
+              <td>초과 업무→오늘 기한→향후 업무 순 규칙이 결정적이며 없으면 “다음 행동 없음”이다.</td>
+              <td>09,15</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-18</td>
+              <td><strong>담당·백업·부재 coverage</strong><br>사건 owner/backup과 오늘·7일 부재를 함께 표시</td>
+              <td>MatterMember + backup_user_id + 기존 HRX absence/Home agenda projection</td>
+              <td>담당 없음/담당만/담당+백업/담당 부재 네 fixture가 구분된다. 담당자가 부재이고 7일 내 기한이면 백업 필요 행에 나타난다.</td>
+              <td>06,16</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-19</td>
+              <td><strong>인수인계 명령</strong><br>새 담당자·백업·메모·미완료 항목 묶음</td>
+              <td>task transition/audit/timeline 패턴</td>
+              <td>담당 변경 후 이전 사용자의 내 업무에서는 빠지고 새 담당자에게 나타나며 이벤트는 1건이다.</td>
+              <td>10,18</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-20</td>
+              <td><strong>사건 상세 5탭 shell</strong><br>개요/업무·기한/연락·기록/문서/시간·청구</td>
+              <td>현재 Matter detail panels + MatterVaultPanel의 matter-filtered 문서 보기</td>
+              <td>한 matter_id에서 각 탭 count가 일치하고 다른 사건 record가 섞이지 않는다. 문서는 새 원장 없이 Vault 업로드/상세로 deep link한다.</td>
+              <td>03,16</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-21</td>
+              <td><strong>통합 타임라인</strong><br>task/event/note/message를 newest-first</td>
+              <td><code>listActivities</code></td>
+              <td>각 source가 한 번씩 나타나고 type filter·stable order·tenant/matter 경계 테스트가 통과한다.</td>
+              <td>04,20</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-22</td>
+              <td><strong>회의 기록</strong><br>참석자·결정사항·후속 task IDs</td>
+              <td>MatterActivity <code>type=meeting</code></td>
+              <td>저장 후 타임라인에 나타나고 후속 task 링크가 동일 MatterTask로 resolve한다. 이메일은 이 단계에서 provider 수집이 아닌 수동 메타데이터 기록으로 한정한다.</td>
+              <td>08,21</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tuw-r3" data-tuw-group data-range="TUW-23–29">R3 · 의뢰인 연락과 후속</h3>
+      <div class="table-wrap" tabindex="0" aria-label="R3 TUW">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>작업 단위</th><th>주요 재사용/변경</th><th>통과 기준</th><th>선행</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">TUW-23</td>
+              <td><strong>후속조치 계약</strong><br>open/waiting_client/waiting_firm/snoozed/done</td>
+              <td>기존 Matter request/activity 확장 우선</td>
+              <td>waiting 상태는 owner와 next_action_at을 요구하고 done은 closed_at을 기록한다.</td>
+              <td>04</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-24</td>
+              <td><strong>후속 CRUD</strong><br>제목·채널·담당·백업·다음 행동·snooze</td>
+              <td>activity/channel repository + audit</td>
+              <td>create/update/get round-trip, overdue 계산, duplicate idempotency가 통과한다.</td>
+              <td>23</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-25</td>
+              <td><strong>내부 메모/외부 연락 구분</strong><br>direction + visibility + delivery state</td>
+              <td>MatterChannelMessage safe projection 확장; provider ingestion은 후순위</td>
+              <td>수동 기록된 외부 연락과 내부 메모가 구분되고 client view에는 internal이 없다. provider state가 있는 실패 outbound는 성공처럼 표시되지 않는다.</td>
+              <td>21,24</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-26</td>
+              <td><strong>마지막 연락 projection</strong><br>matter/client의 max occurred_at</td>
+              <td>timeline read model</td>
+              <td>과거 이벤트 재수집·중복 replay에도 last_contact_at이 뒤로 가지 않는다.</td>
+              <td>25</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-27</td>
+              <td><strong>3개 연락 저장 보기</strong><br>오늘 후속/의뢰인 답변 대기/7일 연락 없음</td>
+              <td>FollowUp + last_contact projection</td>
+              <td>6건 fixture의 count·정렬·deep link가 기대값과 일치한다.</td>
+              <td>24,26</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-28</td>
+              <td><strong>요청→업무 전환</strong><br>source_ref로 linked MatterTask 생성</td>
+              <td><code>createActivity</code> task branch</td>
+              <td>같은 요청을 두 번 전환해도 업무는 1건이고 타임라인에 관계가 보인다.</td>
+              <td>08,24</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-29</td>
+              <td><strong>후속 인수인계</strong><br>담당 변경 시 next action·최근 메모 묶음</td>
+              <td>TUW-19 handoff 재사용</td>
+              <td>새 담당자의 오늘 후속에 나타나고 이전 담당자에서는 사라지며 handoff event는 1건이다.</td>
+              <td>19,27</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tuw-r4" data-tuw-group data-range="TUW-30–36">R4 · 시간, WIP, 청구, 수금</h3>
+      <div class="table-wrap" tabindex="0" aria-label="R4 TUW">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>작업 단위</th><th>주요 재사용/변경</th><th>통과 기준</th><th>선행</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">TUW-30</td>
+              <td><strong>빠른 시간 입력</strong><br>일자·사건·역할·분·내용·청구 가능</td>
+              <td><code>createTimeEntry</code></td>
+              <td>양수 시간·필수 서술 검증, POST→reload, idempotency·audit가 통과한다.</td>
+              <td>01,20</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-31</td>
+              <td><strong>주간 입력 완결성</strong><br>사람별 입력일·분·누락일</td>
+              <td>TimeEntry read projection</td>
+              <td>고정 주간 fixture에서 사용자별 합계와 누락일이 원장 합계와 일치한다.</td>
+              <td>30</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-32</td>
+              <td><strong>새 주간 제출·잠금 계약</strong><br>현재 없는 submitted_at/locked_at + 짧은 grace</td>
+              <td><code>approveTimeEntryForWip</code>의 transaction/idempotency/audit 패턴만 재사용</td>
+              <td>잠긴 시간 기록 수정은 거절되고 유예기간 안의 명시적 잠금 해제 이력만 허용한다. 잠금 도입 전 승인 레코드도 동일한 상태로 읽히는 호환성 테스트를 통과한다.</td>
+              <td>31</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-33</td>
+              <td><strong>청구 대기 WIP query</strong><br>approved billable, 아직 invoice 없음</td>
+              <td><code>generateWipFromApprovedItems</code></td>
+              <td>비청구·미승인·이미 청구된 시간은 제외되고 사건별 금액/age 합계가 일치한다. 누락 요율·fee arrangement는 0원으로 조용히 처리하지 않고 오류 행으로 보인다.</td>
+              <td>32</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-34</td>
+              <td><strong>WIP snapshot·PreBill</strong><br>선택 항목 잠금과 검토</td>
+              <td><code>lockWipSnapshot</code>, PreBill service</td>
+              <td>snapshot이 immutable이고 write-down은 PreBill에만 반영되며 원시간은 바뀌지 않는다.</td>
+              <td>33</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-35</td>
+              <td><strong>청구서 lifecycle</strong><br>draft→sent→partial→paid, overdue/void</td>
+              <td>Invoice service</td>
+              <td>approved PreBill에서 한 번만 생성되고 due date 기반 overdue가 결정적으로 계산된다.</td>
+              <td>34</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-36</td>
+              <td><strong>Matter 수금 반영·AR 큐</strong><br>payment apply UI/API + current/1-30/31-60/61-90/90+</td>
+              <td>payment matching + <code>ar-service.js</code> primitive를 연결하는 새 Matter workflow</td>
+              <td>화면에서 부분 수금 후 balance와 bucket이 재계산되고 같은 payment replay는 중복 반영되지 않는다.</td>
+              <td>35</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tuw-r5" data-tuw-group data-range="TUW-37–42">R5 · 종결, 주간 점검, 출시</h3>
+      <div class="table-wrap" tabindex="0" aria-label="R5 TUW">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>작업 단위</th><th>주요 재사용/변경</th><th>통과 기준</th><th>선행</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">TUW-37</td>
+              <td><strong>오늘 운영 read model</strong><br>초과/오늘/우리 답변/막힘/미배정/시간 누락/WIP/AR</td>
+              <td>Home dashboard runtime projection</td>
+              <td>각 행과 숫자가 TUW-01 원장 값과 일치하고 클릭 시 정확한 저장 보기로 간다.</td>
+              <td>10,15,27,31,33,36</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-38</td>
+              <td><strong>종결 blocker</strong><br>열린 업무·기한·미청구 시간·미수금</td>
+              <td>MatterChecklist + close blockers</td>
+              <td>actionable blocker 목록을 표시하고 모두 해소한 fixture만 close가 성공한다.</td>
+              <td>10,15,33,36</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-39</td>
+              <td><strong>보관 저장 보기</strong><br>closed→archived→restore</td>
+              <td>Matter lifecycle/list filter</td>
+              <td>보관 사건은 기본 활성 목록에서 제외되고 “보관” URL에서만 보이며 restore가 기록된다.</td>
+              <td>03,38</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-40</td>
+              <td><strong>주간 운영 점검</strong><br>6개 질문의 표·CSV</td>
+              <td>TUW-37과 동일 query</td>
+              <td>UI 행과 CSV 행·합계가 동일하며 별도 분석 계산을 만들지 않는다.</td>
+              <td>37</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-41</td>
+              <td><strong>10인 E2E</strong><br>업무 생성→인수인계→후속→시간→WIP→청구→부분 수금→종결</td>
+              <td>Playwright/desktop fixture flow</td>
+              <td>한 결정적 시나리오가 실제 화면에서 완료되고 route·count·audit evidence를 남긴다.</td>
+              <td>37~40</td>
+            </tr>
+            <tr>
+              <td class="num">TUW-42</td>
+              <td><strong>회귀·성능·접근성 게이트</strong><br>중복 원장 방지와 실제 사용 규모</td>
+              <td>Matter/time/billing/home suites + rendered QA</td>
+              <td>기존 suite green. 20사건·200 활성업무·40기한·20후속, warm-up 10회 뒤 concurrency 4로 오늘/업무 queue 각 100회 조회 시 p95 ≤250ms·p99 ≤500ms·오류 0건. keyboard/contrast 확인, duplicate MatterTask 0건, 결과 JSON 보존.</td>
+              <td>41</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tuw-qa" data-tuw-group data-range="자동 검증 명령">TUW 실행 규약과 예정 테스트 파일</h3>
+      <p>
+        각 자동 테스트 제목은 <code>[TUW-XX]</code>로 시작한다. 따라서 같은 release 파일 안에서도
+        <code>node --test --test-name-pattern="TUW-08" &lt;file&gt;</code>처럼 한 단위만 독립 실행할 수 있다.
+        아래 파일은 구현 시 생성할 예정 경로이며, 기존 도메인 테스트와 나란히 둔다.
+      </p>
+      <div class="table-wrap" tabindex="0" aria-label="TUW 테스트 실행 매트릭스">
+        <table>
+          <thead>
+            <tr><th>TUW</th><th>예정 자동 테스트 파일</th><th>집중 검증</th><th>완료 명령</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">01–05</td>
+              <td><code>packages/matter/test/small-firm-foundation.test.js</code><br><code>apps/web/test/matter-small-firm-ia.test.mjs</code></td>
+              <td>fixture, 6개 route, legacy redirect, 공통 DTO, 네 UI 상태</td>
+              <td><code>node --test packages/matter/test/small-firm-foundation.test.js apps/web/test/matter-small-firm-ia.test.mjs</code></td>
+            </tr>
+            <tr>
+              <td class="num">06–15</td>
+              <td><code>packages/matter/test/small-firm-work-queue.test.js</code><br><code>apps/web/test/matter-small-firm-work-ui.test.mjs</code></td>
+              <td>schema 호환, transition, 생성 idempotency, 저장 보기, board/list, 기한·주간 일정</td>
+              <td><code>node --test packages/matter/test/small-firm-work-queue.test.js apps/web/test/matter-small-firm-work-ui.test.mjs</code></td>
+            </tr>
+            <tr>
+              <td class="num">16–22</td>
+              <td><code>packages/matter/test/small-firm-detail-handoff.test.js</code><br><code>apps/web/test/matter-small-firm-detail-ui.test.mjs</code></td>
+              <td>사건 요약, next action, 부재·백업, 인수인계, Vault 문서 연결, 타임라인·회의</td>
+              <td><code>node --test packages/matter/test/small-firm-detail-handoff.test.js apps/web/test/matter-small-firm-detail-ui.test.mjs</code></td>
+            </tr>
+            <tr>
+              <td class="num">23–29</td>
+              <td><code>packages/matter/test/small-firm-followup.test.js</code><br><code>apps/web/test/matter-small-firm-followup-ui.test.mjs</code></td>
+              <td>후속 상태, 수동 연락/내부 메모, 마지막 연락, 저장 보기, 요청→업무, 인수인계</td>
+              <td><code>node --test packages/matter/test/small-firm-followup.test.js apps/web/test/matter-small-firm-followup-ui.test.mjs</code></td>
+            </tr>
+            <tr>
+              <td class="num">30–36</td>
+              <td><code>packages/time-expense/test/small-firm-weekly-time.test.js</code><br><code>packages/billing/test/small-firm-billing-flow.test.js</code><br><code>packages/payments/test/small-firm-ar.test.js</code><br><code>apps/web/test/matter-small-firm-finance-ui.test.mjs</code></td>
+              <td>시간·잠금 migration, WIP·PreBill·Invoice, payment apply·AR UI와 reconciliation</td>
+              <td><code>node --test packages/time-expense/test/small-firm-weekly-time.test.js packages/billing/test/small-firm-billing-flow.test.js packages/payments/test/small-firm-ar.test.js apps/web/test/matter-small-firm-finance-ui.test.mjs</code></td>
+            </tr>
+            <tr>
+              <td class="num">37–42</td>
+              <td><code>packages/matter/test/small-firm-closeout-report.test.js</code><br><code>packages/matter/test/small-firm-ops-performance.test.js</code><br><code>apps/web/test/matter-small-firm-e2e.test.mjs</code></td>
+              <td>오늘 read model, 종결·보관, CSV reconciliation, 10인 E2E, 성능·중복 원장</td>
+              <td><code>node --test packages/matter/test/small-firm-closeout-report.test.js packages/matter/test/small-firm-ops-performance.test.js apps/web/test/matter-small-firm-e2e.test.mjs</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <strong>모든 TUW의 공통 QA 4행:</strong>
+        <code>happy</code>는 저장 후 reload와 audit/source_ref를 확인하고,
+        <code>empty</code>는 0건 fixture에서 설명과 첫 행동을 확인하며,
+        <code>error</code>는 repository/API 오류를 주입해 stale 성공이나 빈 화면이 없는지 확인한다.
+        mutation은 같은 idempotency key를 두 번 보내 중복 0건을 확인한다.
+        UI가 있는 TUW는 1440px과 390px에서 deep link·keyboard focus·loading/empty/error를 캡처한다.
+      </div>
+
+      <p class="small">
+        TUW-42 성능 실행은 <code>node --test packages/matter/test/small-firm-ops-performance.test.js</code>이며,
+        대상 query는 <code>/api/matter/ops/today</code>와 업무 저장 보기 read endpoint다.
+        결과는 <code>.artifacts/matter-small-firm/performance.json</code>에 요청 수·동시성·p50/p95/p99·오류 수·source SHA와 함께 기록한다.
+      </p>
+    </section>
+
+    <section id="fixture">
+      <h2>결정적 10인 테스트 데이터</h2>
+      <p>
+        “샘플이 보인다”가 아니라 운영 규칙이 검증되도록 fixture 자체를 제품 계약으로 둔다.
+        개인정보·실제 사건명은 쓰지 않고 고정 clock을 사용한다.
+      </p>
+
+      <div class="table-wrap" tabindex="0" aria-label="10인 운영 fixture">
+        <table>
+          <thead>
+            <tr><th>영역</th><th>고정 데이터</th><th>검증하려는 상황</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>사람 10명</td><td>파트너 2, 변호사 4, 송무/법무 스태프 2, 운영·청구 1, 사무 1</td><td>담당·백업·미배정·휴가 인수인계</td></tr>
+            <tr><td>사건 12건</td><td>개시 2, 진행 7, 보류 1, 종결 1, 보관 1</td><td>활성 목록과 lifecycle 저장 보기</td></tr>
+            <tr><td>업무 28건</td><td>초과 3, 오늘 4, 대기 5, 막힘 2, 미배정 2, 완료/보관 12</td><td>lane 중복 없음, 완료·보관 제외, board/list parity</td></tr>
+            <tr><td>일정 8건</td><td>법정기일·제출기한·상담·내부 검토</td><td>task due date와 calendar event 통합 정렬</td></tr>
+            <tr><td>후속 6건</td><td>우리 답변 2, 의뢰인 답변 2, snoozed 1, done 1</td><td>next_action, last_contact, 담당 변경</td></tr>
+            <tr><td>시간 25건</td><td>입력 누락 3명, non-billable 4건, 잠금 12건</td><td>주간 완결성, WIP 포함/제외</td></tr>
+            <tr><td>청구·수금</td><td>WIP 4건, draft 1, sent 1, partial 1, 31일 초과 1</td><td>청구 lifecycle, 부분 수금, AR aging</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>대표 E2E 시나리오</h3>
+      <ol>
+        <li>사무 담당자가 K-2026-014에 오늘 마감 업무를 만들고 담당자를 지정하지 않는다.</li>
+        <li>“오늘” 화면에서 미배정으로 보이고 파트너가 김변호사, 백업 이실장에게 인수인계한다.</li>
+        <li>김변호사가 의뢰인 전화 기록을 남기고 “금요일 자료 확인” 후속 업무를 생성한다.</li>
+        <li>업무를 완료하고 90분의 청구 가능 시간을 입력한 뒤 주간 제출한다.</li>
+        <li>청구 담당자가 WIP를 잠그고 청구서를 발행한다. 일부 수금 후 balance가 31~60일 bucket으로 남는다.</li>
+        <li>종결을 시도하면 미수금 blocker가 보인다. 잔액 반영 후 종결·보관이 성공하고 모든 단계가 타임라인에 남는다.</li>
+      </ol>
+    </section>
+
+    <section id="gates">
+      <h2>구현 순서와 출시 게이트</h2>
+      <div class="phase">
+        <div class="phase-id">GATE A</div>
+        <div>
+          <h3>일일 업무가 끊기지 않음 · TUW-01~21</h3>
+          <p>기존 MatterTask를 호환 확장하고 생성 idempotency를 새로 보강한 뒤, 6개 메뉴, 오늘/초과/대기/미배정, 보드 parity, 주간 일정, 사건 요약, 부재 포함 인수인계, 통합 타임라인이 작동한다.</p>
+          <p><strong>사용 가능 판정:</strong> 열 명이 별도 스프레드시트 없이 오늘 업무와 이번 주 기한을 나누고 넘길 수 있다.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-id">GATE B</div>
+        <div>
+          <h3>의뢰인 후속이 끊기지 않음 · TUW-22~29</h3>
+          <p>수동 기록한 회의·전화·메일 메타데이터·내부 메모가 사건 타임라인에 모이고, 우리 답변·의뢰인 답변·최근 연락 없음 큐가 작동한다. Outlook/provider 자동 수집은 이 게이트에 포함하지 않는다.</p>
+          <p><strong>사용 가능 판정:</strong> 담당자가 자리를 비워도 다른 사람이 최근 기록과 다음 행동을 보고 이어받을 수 있다.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-id">GATE C</div>
+        <div>
+          <h3>일한 시간이 청구·수금으로 이어짐 · TUW-30~36</h3>
+          <p>기존 시간·WIP·Invoice·Payment·AR primitive 위에 새 Matter 범위 API/UI를 구현해 주간 누락 확인, 제출·잠금, WIP, PreBill, Invoice, Payment, AR aging이 같은 사건과 reconciled된다.</p>
+          <p><strong>사용 가능 판정:</strong> 미입력 시간과 청구 대기 금액을 매주 닫고, 연체 잔액에 담당 행동을 붙일 수 있다.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-id">GATE D</div>
+        <div>
+          <h3>팀 운영과 종결이 검증됨 · TUW-37~42</h3>
+          <p>오늘 운영 read model, 종결 blocker, 보관 보기, 주간 점검, 10인 E2E, 회귀·성능·접근성 증거가 모두 통과한다.</p>
+          <p><strong>출시 판정:</strong> 실제 패키지/스테이징에서 고정 시나리오를 실행한 evidence가 있을 때만 완료다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="defer">
+      <h2>명시적으로 뒤로 미룰 것</h2>
+      <div class="table-wrap" tabindex="0" aria-label="후순위 기능">
+        <table>
+          <thead>
+            <tr><th>후순위</th><th>지금 하지 않는 이유</th><th>다시 검토할 신호</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>정교한 Ethical Wall·이해상충 UX</td><td>기존 안전 경계는 유지하되 현재 병목은 일일 운영 누락이다.</td><td>실제 다중 팀·외부 협업으로 접근 경계가 반복 문제일 때</td></tr>
+            <tr><td>AI 후보·지식 그래프·위키</td><td>업무·기한·연락 원장이 완결되지 않으면 AI가 참고할 운영 사실이 약하다.</td><td>타임라인·업무·문서의 데이터 품질과 사용자 습관이 안정된 뒤</td></tr>
+            <tr><td>독립 이슈 원장·워크플로 빌더</td><td>10명 조직에는 MatterTask의 canonical status, 새 wait_state와 기존 source_ref로 충분하다.</td><td>같은 사건에서 100개 이상 복잡한 병렬 작업이 반복될 때</td></tr>
+            <tr><td>다중 캘린더 양방향 자동화</td><td>provider 실패가 로컬 업무를 막아서는 안 된다.</td><td>로컬 일정 사용이 안정되고 첫 provider adapter의 오류율을 측정한 뒤</td></tr>
+            <tr><td>완전한 회계·신탁계정·세무 자동화</td><td>첫 목표는 시간→WIP→청구→미수금 가시성이다.</td><td>회계 시스템 경계와 법적 책임 소유자가 정해진 뒤</td></tr>
+            <tr><td>별도 Portal/Chat 채널</td><td>처음에는 Outlook 기반 연락 기록과 후속 큐가 작다.</td><td>의뢰인 셀프서비스 요구와 실제 외부 채널 사용량이 확인된 뒤</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warning">
+        <strong>안전 경계를 삭제한다는 뜻은 아니다.</strong>
+        기존 tenant·matter 경계, 승인된 역할, audit/idempotency 회귀는 TUW-42에서 지킨다.
+        다만 권한 UI와 통제 시나리오가 홈·메뉴·스프린트의 중심을 차지하지 않게 한다.
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>근거와 출처</h2>
+      <details open>
+        <summary>현재 Law Firm OS 소스</summary>
+        <div>
+          <ul class="source-list">
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/Shell.jsx#L909-L948">현재 Matter 사이드바 13개 메뉴</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/MattersSurface.jsx#L1027-L1091">현재 Matter 대시보드 5개 목록</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/MattersSurface.jsx#L4117-L4153">업무 보드의 빈 홈 패널</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/matter/src/model.js#L121-L155">MatterTask·MatterCalendarEvent 모델</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/matter/src/task-service.js#L4-L74">MatterTask 상태 전이·audit·idempotency</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/matter/src/activity-calendar-channel-service.js#L167-L259">Task·Activity·Calendar·Channel 통합 활동 서비스</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/time-expense/src/time-entry-service.js#L15-L80">시간 입력·WIP 승인 서비스</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/billing/src/wip-service.js#L81-L209">WIP 생성·immutable snapshot</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/payments/src/ar-service.js#L36-L142">due date 기반 AR aging snapshot</a></li>
+          </ul>
+        </div>
+      </details>
+
+      <details open>
+        <summary>법률 사건관리 OSS</summary>
+        <div>
+          <ul class="source-list">
+            <li><a href="https://jlawyerorg.github.io/j-lawyer-documentation/benutzerhandbuch/aktenverwaltung/index.html">j-lawyer 사건관리 공식 문서</a></li>
+            <li><a href="https://www.j-lawyer.org/?page_id=22">j-lawyer 공식 기능 설명</a></li>
+            <li><a href="https://github.com/jlawyerorg/j-lawyer-org/blob/8d13d893f79f5f386b4a52c0095c24c13d65b311/j-lawyer-server-entities/src/main/java/com/jdimension/jlawyer/persistence/ArchiveFileBean.java#L694-L770">사건·담당변호사·보조자·분류·캘린더 연결 모델</a></li>
+            <li><a href="https://github.com/jlawyerorg/j-lawyer-org/blob/8d13d893f79f5f386b4a52c0095c24c13d65b311/j-lawyer-server-entities/src/main/java/com/jdimension/jlawyer/persistence/CalendarEntryTemplate.java#L685-L710">상대 날짜 기한 템플릿</a></li>
+            <li><a href="https://github.com/jlawyerorg/j-lawyer-org/blob/8d13d893f79f5f386b4a52c0095c24c13d65b311/j-lawyer-server-entities/src/main/java/com/jdimension/jlawyer/persistence/Timesheet.java#L685-L720">사건 연결 Timesheet</a></li>
+            <li><a href="https://github.com/jlawyerorg/j-lawyer-org/blob/8d13d893f79f5f386b4a52c0095c24c13d65b311/j-lawyer-server-entities/src/main/java/com/jdimension/jlawyer/persistence/Invoice.java#L690-L740">명시적 Invoice 상태</a></li>
+            <li><a href="https://github.com/ArkCase/ArkCase/blob/cda48134fe489ce6297030264da0abe886d58b7b/README.md#L1-L43">ArkCase 인프라 구성</a></li>
+          </ul>
+        </div>
+      </details>
+
+      <details open>
+        <summary>업무·타임라인·저장 보기 OSS</summary>
+        <div>
+          <ul class="source-list">
+            <li><a href="https://github.com/leantime/leantime/blob/bc85923d8299663a8fec89f451e7aa82544cb8c1/app/Domain/Tickets/Tools/AddTaskTool.php#L38-L80">Leantime 빠른 업무 계약</a></li>
+            <li><a href="https://github.com/leantime/leantime/blob/bc85923d8299663a8fec89f451e7aa82544cb8c1/app/Domain/Tickets/Tools/FindTasksTool.php#L42-L86">Leantime 사용자·상태 업무 조회</a></li>
+            <li><a href="https://github.com/leantime/leantime/blob/bc85923d8299663a8fec89f451e7aa82544cb8c1/app/Domain/Tickets/Models/BoardSummary.php#L7-L24">Leantime BoardSummary</a></li>
+            <li><a href="https://github.com/makeplane/plane/blob/7564480cf73c7ea8b037c002f3fe6cfd2267367e/apps/api/plane/db/models/issue.py#L92-L161">Plane 완료·보관 상태 모델</a></li>
+            <li><a href="https://github.com/chatwoot/chatwoot/blob/6ed0f11e6b37b02804f6d9506daa50b4efa9602f/app/models/conversation.rb#L75-L140">Chatwoot 대화 상태·대기·담당 모델</a></li>
+            <li><a href="https://github.com/chatwoot/chatwoot/blob/6ed0f11e6b37b02804f6d9506daa50b4efa9602f/app/models/message.rb#L87-L120">Chatwoot 내부 메모·외부 메시지·전송 상태</a></li>
+            <li><a href="https://github.com/twentyhq/twenty/blob/cdeebb1a185e4d53186464fc5ffe576dfd3b6fd9/packages/twenty-front/src/modules/activities/timeline-activities/hooks/useTimelineActivities.ts#L19-L130">Twenty canonical record 타임라인</a></li>
+            <li><a href="https://github.com/twentyhq/twenty/blob/c25ae729144b637effa4c21927763469f49207c8/packages/twenty-front/src/modules/views/hooks/internal/usePerformViewFilterAPIPersist.ts#L21-L128">Twenty 저장된 보기 필터</a></li>
+          </ul>
+        </div>
+      </details>
+
+      <details open>
+        <summary>시간·청구·수금 OSS</summary>
+        <div>
+          <ul class="source-list">
+            <li><a href="https://www.kimai.org/documentation/weekly-times.html">Kimai 주간 시간 입력 공식 문서</a></li>
+            <li><a href="https://www.kimai.org/documentation/invoices.html">Kimai invoice 공식 문서</a></li>
+            <li><a href="https://github.com/kimai/kimai/blob/7c2ed4b07cca2e15b1ab4cc5947afdf899a76401/src/Entity/Timesheet.php#L153-L201">Kimai Timesheet 핵심 필드</a></li>
+            <li><a href="https://github.com/kimai/kimai/blob/7c2ed4b07cca2e15b1ab4cc5947afdf899a76401/src/Repository/Query/TimesheetQuery.php#L25-L67">Kimai exported·billable·date query</a></li>
+            <li><a href="https://github.com/kimai/kimai/blob/7c2ed4b07cca2e15b1ab4cc5947afdf899a76401/src/Timesheet/TimesheetStatisticService.php#L48-L98">Kimai 주간 통계 집계</a></li>
+            <li><a href="https://github.com/invoiceninja/invoiceninja/blob/9f8bc547af68cefe5654367614ce8e8223a30755/app/Models/Invoice.php#L50-L126">Invoice Ninja Invoice·balance·due date 모델</a></li>
+            <li><a href="https://github.com/invoiceninja/invoiceninja/blob/9f8bc547af68cefe5654367614ce8e8223a30755/app/Models/Payment.php#L30-L117">Invoice Ninja Payment 상태·applied·refund 모델</a></li>
+          </ul>
+        </div>
+      </details>
+
+      <p class="small">
+        리서치 방식: 현재 렌더링 화면 + pinned local source + 공식 프로젝트 문서 + SHA 고정 GitHub 소스.
+        Lazyweb MCP 검색/보고서 도구는 이번 실행 환경에서 호출되지 않아, 해당 데이터베이스 결과를 혼합하지 않고 이 제약을 명시했다.
+      </p>
+    </section>
+
+    <footer>
+      이 문서는 제품·구현 계획이다. 소스 merge, 패키지, 배포, 실제 사용자 검증 완료를 의미하지 않는다.
+      OSS 코드는 라이선스 검토 없이 복사하지 않는다.
+    </footer>
+  </main>
+  <script>
+    (() => {
+      if (!window.matchMedia("(max-width: 760px)").matches) return;
+
+      const section = document.querySelector("#tuw");
+      const index = section?.querySelector(".tuw-compact-index");
+      if (!section || !index) return;
+
+      Array.from(section.children)
+        .filter((element) => element.matches("h3[data-tuw-group]"))
+        .forEach((heading) => {
+          const content = [];
+          let sibling = heading.nextElementSibling;
+          while (sibling && !sibling.matches("h3[data-tuw-group]")) {
+            const nextSibling = sibling.nextElementSibling;
+            content.push(sibling);
+            sibling = nextSibling;
+          }
+          if (!content.length) return;
+
+          const group = document.createElement("details");
+          group.className = "tuw-mobile-group";
+          group.id = heading.id;
+
+          const summary = document.createElement("summary");
+          summary.textContent = `${heading.textContent} · ${heading.dataset.range}`;
+
+          heading.removeAttribute("id");
+          heading.replaceWith(group);
+          group.append(summary, ...content);
+        });
+
+      index.addEventListener("click", (event) => {
+        const link = event.target.closest("a");
+        if (!link) return;
+        const target = document.querySelector(link.getAttribute("href"));
+        if (target instanceof HTMLDetailsElement) target.open = true;
+      });
+    })();
+  </script>
+</body>
+</html>

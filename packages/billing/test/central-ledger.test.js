@@ -11,6 +11,8 @@ import {
 } from "../src/central-ledger.js";
 import { approveTimeEntryForWip, createTimeEntry } from "../../time-expense/src/time-entry-service.js";
 import { createRateCard } from "../../time-expense/src/rate-card-service.js";
+import { createFeeArrangement } from "../../time-expense/src/fee-arrangement-service.js";
+import { lockTimeWeek, submitTimeWeek } from "../../time-expense/src/weekly-time-service.js";
 import { generateWipFromApprovedItems, lockWipSnapshot } from "../src/wip-service.js";
 import { approvePreBillWithoutAdjustment, createPreBill } from "../src/prebill-service.js";
 import { createInvoiceFromPreBill } from "../src/invoice-service.js";
@@ -41,6 +43,20 @@ function buildFinanceSource() {
     actor_id: ACTOR,
     idempotency_key: "rate-rs-dom-finance",
   });
+  createFeeArrangement({
+    repository,
+    fee_arrangement: {
+      fee_arrangement_id: "fee-rs-dom-finance",
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      billing_profile_id: "billing-profile-rs-dom-finance",
+      rate_card_id: rate.rate_card.rate_card_id,
+      type: "hourly",
+    },
+    rate_card: rate.rate_card,
+    actor_id: ACTOR,
+    idempotency_key: "fee-rs-dom-finance",
+  });
   createTimeEntry({
     repository,
     time_entry: {
@@ -62,6 +78,24 @@ function buildFinanceSource() {
     time_entry_id: "time-rs-dom-finance",
     actor_id: ACTOR,
     idempotency_key: "time-approve-rs-dom-finance",
+  });
+  submitTimeWeek({
+    repository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    time_entry_ids: ["time-rs-dom-finance"],
+    week_start: "2026-07-13",
+    now: "2026-07-16T09:00:00.000Z",
+    idempotency_key: "time-submit-rs-dom-finance",
+  });
+  lockTimeWeek({
+    repository,
+    tenant_id: TENANT,
+    actor_id: ACTOR,
+    time_entry_ids: ["time-rs-dom-finance"],
+    week_start: "2026-07-13",
+    now: "2026-07-16T09:01:00.000Z",
+    idempotency_key: "time-lock-rs-dom-finance",
   });
   const wip = generateWipFromApprovedItems({
     repository,

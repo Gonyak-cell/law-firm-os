@@ -68,6 +68,12 @@ function withFixture(run) {
       platform: "darwin",
       arch: "arm64",
       appId: "com.amic.matter.desktop.internal",
+      requestedRuntimeMode: "synthetic",
+      effectiveRuntimeMode: "synthetic",
+      runtimeIncluded: true,
+      runtimeDataClass: "synthetic_only",
+      nonDistributable: true,
+      distributable: false,
       builtAt: "2026-07-16T00:00:00.000Z",
     });
     const manifestBody = serializeDesktopBuildManifest(manifest);

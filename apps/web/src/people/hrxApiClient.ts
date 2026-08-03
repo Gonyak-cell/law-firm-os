@@ -1,6 +1,4 @@
 import { isDesktopRendererLocation, readLawosApiSession } from "../data/apiClient.js";
-
-const HRX_ORG_REF = "tenant_amic_matter_vault";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
 const HRX_PAYROLL_BOUNDARY_ACTIONS = ["hrx.payroll.preview", "hrx.payroll.export"];
@@ -171,7 +169,7 @@ function hasForbiddenSessionKey(value: unknown): boolean {
   return Object.entries(record).some(([key, nested]) => FORBIDDEN_SESSION_TEXT.test(key) || hasForbiddenSessionKey(nested));
 }
 
-function safeTenantRefs(value: unknown, fallbackTenantRef: unknown): Record<string, string> {
+function safeTenantRefs(value: unknown): Record<string, string> {
   const tenantRefs: Record<string, string> = {};
   const source = objectRecord(value);
   for (const [key, tenantRef] of Object.entries(source ?? {})) {
@@ -179,8 +177,6 @@ function safeTenantRefs(value: unknown, fallbackTenantRef: unknown): Record<stri
     const safeRef = safeSessionRef(tenantRef);
     if (safeKey && safeRef) tenantRefs[safeKey] = safeRef;
   }
-  const fallback = safeSessionRef(fallbackTenantRef);
-  if (fallback && !tenantRefs.default) tenantRefs.default = fallback;
   return tenantRefs;
 }
 
@@ -208,8 +204,8 @@ function readUrlHrxSessionEnvelope(): Record<string, unknown> | null {
       actor_ref: actorRef,
       tenant_refs: {
         default: tenantRef,
-        vault: HRX_ORG_REF,
-        hrx: HRX_ORG_REF
+        vault: tenantRef,
+        hrx: tenantRef
       },
       role_ids: params.getAll("desktop_role_ref"),
       scopes: params.getAll("desktop_scope_ref"),
@@ -226,11 +222,13 @@ function readHrxSessionEnvelope(): HrxSessionEnvelope | null {
   const schemaVersion = safeSessionRef(raw.schema_version);
   const state = typeof raw.state === "string" ? raw.state : null;
   const actorRef = safeSessionRef(raw.actor_ref ?? raw.user_ref ?? raw.user_id);
-  const tenantRefs = safeTenantRefs(raw.tenant_refs, raw.tenant_ref ?? raw.tenant_id);
-  const expiresAt = typeof raw.expires_at === "string" ? raw.expires_at : null;
+  const tenantRefs = safeTenantRefs(raw.tenant_refs);
+  if (raw.expires_at !== undefined && raw.expires_at !== null && typeof raw.expires_at !== "string") return null;
+  const expiresAt = typeof raw.expires_at === "string" && raw.expires_at.trim() ? raw.expires_at : null;
   const expiresAtMs = expiresAt ? Date.parse(expiresAt) : Number.NaN;
   if (schemaVersion !== LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION || !SAFE_SESSION_STATES.has(state ?? "") || !actorRef) return null;
   if (Object.keys(tenantRefs).length === 0) return null;
+  if (expiresAt && !Number.isFinite(expiresAtMs)) return null;
   if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) return null;
   return {
     actor_ref: actorRef,
@@ -240,11 +238,12 @@ function readHrxSessionEnvelope(): HrxSessionEnvelope | null {
   };
 }
 
-function sessionHrxRuntimeHeaders(): Record<string, string> {
+function sessionHrxRuntimeHeaders(): Record<string, string> | null {
   const envelope = readHrxSessionEnvelope();
-  if (!envelope) return { "x-lawos-tenant-id": HRX_ORG_REF };
+  const tenantRef = envelope?.tenant_refs.hrx;
+  if (!envelope || !tenantRef) return null;
   return {
-    "x-lawos-tenant-id": envelope.tenant_refs.hrx ?? envelope.tenant_refs.vault ?? envelope.tenant_refs.default ?? HRX_ORG_REF,
+    "x-lawos-tenant-id": tenantRef,
     "x-lawos-actor-id": envelope.actor_ref,
     "x-lawos-actor-role": envelope.role_ids.join(","),
     "x-lawos-hrx-scopes": envelope.scopes.join(",")
@@ -267,11 +266,13 @@ function currentDateKey(now = new Date()): string {
 
 async function requestJson(path: string, options: HrxRequestOptions = {}): Promise<HrxApiResult> {
   const { ctx: _ctx = null, headers = {}, ...fetchOptions } = options;
+  const sessionHeaders = sessionHrxRuntimeHeaders();
+  if (!sessionHeaders) return { kind: "error", reason: "signed_hrx_session_required", body: {} };
   let response: Response;
   let body: HrxClientRecord | null;
   const requestHeaders = {
     "content-type": "application/json",
-    ...sessionHrxRuntimeHeaders(),
+    ...sessionHeaders,
     ...headers,
     ...(signedHrxStepUpToken() ? { "x-lawos-hrx-step-up": signedHrxStepUpToken() } : {})
   };
@@ -1447,7 +1448,7 @@ export async function convertHrxApplicationToEmployee(applicationId: string, for
       employee_id: formString(form, "employee_id", `emp_ui_${suffix}`),
       profile_id: formString(form, "profile_id", `profile_ui_${suffix}`),
       title: formString(form, "employee_title", formString(form, "job_title", "구성원")),
-      org_unit_id: formString(form, "org_unit_id", "org_legal"),
+      org_unit_id: formString(form, "org_unit_id") || undefined,
       manager_employee_id: formString(form, "manager_employee_id", formString(form, "hiring_manager_employee_id", "emp-001")),
       effective_from: formString(form, "effective_from", currentDateKey())
     })

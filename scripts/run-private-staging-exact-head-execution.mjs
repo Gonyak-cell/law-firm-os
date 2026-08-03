@@ -112,7 +112,7 @@ function privateRegularFile(candidate, name, { outsideWorktree = true } = {}) {
   const input = resolve(candidate);
   if (!existsSync(input) || lstatSync(input).isSymbolicLink()) throw new Error(`${name} must be an existing non-symlink file`);
   const path = realpathSync(input);
-  if (!statSync(path).isFile() || (statSync(path).mode & 0o077) !== 0) throw new Error(`${name} must be a private 0600 regular file`);
+  if (!statSync(path).isFile() || (statSync(path).mode & 0o777) !== 0o600) throw new Error(`${name} must be a private 0600 regular file`);
   if (outsideWorktree) {
     const rel = relative(realpathSync(process.cwd()), path);
     if (!(rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel))) throw new Error(`${name} must remain outside the worktree`);
@@ -371,6 +371,7 @@ async function health() {
   ));
   const capabilities = body.persistence_authority_capabilities ?? {};
   if (!response.ok
+    || body.source_revision !== packet.source_sha
     || body.persistence_authority !== "postgres-v2"
     || body.auth_authority?.staff_auth_authority !== "internal-password"
     || body.runtime_safety_policy?.offline_capability !== "rejected"
@@ -543,6 +544,7 @@ async function deploy() {
     source_sha: packet.source_sha,
     source_tree: packet.source_tree,
     artifact_sha256: packet.artifact_sha256,
+    api_endpoint_sha256: sha256(apiEndpoint.origin),
     artifact_s3_version_sha256: sha256(artifactVersionId),
     stack_id_fingerprint: sha256(stack.StackId),
     stack_status: stack.StackStatus,
@@ -565,7 +567,7 @@ async function deploy() {
     verified_sandbox_recipient_count: sesReadiness.verified_sandbox_recipient_count,
     protected_resource_mutation_count: 0,
     real_data_count: 0,
-  }, { infrastructure_evidence_sha256: infrastructureEvidence.sha256, template_sha256: templateSha256, artifact_s3_version_sha256: sha256(artifactVersionId) }, { staging_deployment_executed: true });
+  }, { infrastructure_evidence_sha256: infrastructureEvidence.sha256, template_sha256: templateSha256, artifact_s3_version_sha256: sha256(artifactVersionId), api_endpoint_sha256: sha256(apiEndpoint.origin) }, { staging_deployment_executed: true });
   writeReceipt("database-bootstrap", startedAt, {
     migration_count: Number(bootstrap.result.migration_count),
     migration_applied_count: Number(bootstrap.result.migration_applied_count),
@@ -825,7 +827,7 @@ async function cut007() {
     memory_fallback_count: 0,
     wrong_tenant_visible_count: 0,
     real_data_count: 0,
-  }, { result_sha256: resultEvidence.sha256, execution_fingerprint_sha256: result.execution_fingerprint, readback_fingerprint_sha256: result.readback_fingerprint, browser_evidence_fingerprint_sha256: result.browser_smoke.evidence_fingerprint }, { cut_007_executed: true, browser_smoke_passed: true, synthetic_mailbox_delivery_verified: true });
+  }, { result_sha256: resultEvidence.sha256, execution_fingerprint_sha256: result.execution_fingerprint, readback_fingerprint_sha256: result.readback_fingerprint, browser_evidence_fingerprint_sha256: result.browser_smoke.evidence_fingerprint, api_endpoint_sha256: sha256(apiEndpoint.origin) }, { cut_007_executed: true, browser_smoke_passed: true, synthetic_mailbox_delivery_verified: true });
   progress("cut-007", "pass", { api_call_count: result.safe_counts.api_call_count, browser_screenshot_count: result.browser_smoke.screenshot_count });
 }
 
@@ -907,6 +909,7 @@ async function cut007Browser() {
     prior_readback_fingerprint_sha256: result.prior_readback_fingerprint,
     current_readback_fingerprint_sha256: result.readback_fingerprint,
     browser_evidence_fingerprint_sha256: result.browser_smoke.evidence_fingerprint,
+    api_endpoint_sha256: sha256(apiEndpoint.origin),
   }, {
     cut_007_executed: true,
     prior_control_evidence_reused: true,
@@ -1056,6 +1059,7 @@ process.stdout.write(`${JSON.stringify({
   source_tree: sourceTree,
   artifact_sha256: packet.artifact_sha256,
   approval_id: approvalId,
+  api_endpoint_sha256: apiEndpoint ? sha256(apiEndpoint.origin) : null,
   unsigned_receipt_directory: unsignedReceiptDir,
   signing_required: true,
   production_contacted: false,

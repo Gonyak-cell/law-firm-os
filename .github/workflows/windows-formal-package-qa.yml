@@ -14,6 +14,13 @@ on:
       - scripts/build-matter-desktop-win.mjs
       - scripts/prepare-matter-desktop-web-renderer.mjs
       - scripts/run-formal-windows-package-qa.mjs
+      - scripts/run-formal-windows-package-qa.ps1
+      - scripts/validate-matter-desktop-windows-native-qa-receipt.mjs
+      - scripts/lib/matter-desktop-authenticode.mjs
+      - scripts/lib/matter-desktop-windows-native-qa.mjs
+      - scripts/lib/matter-desktop-windows-release-gate.mjs
+      - scripts/lib/matter-desktop-artifact-privacy.mjs
+      - scripts/lib/formal-package-loopback-launcher.mjs
       - scripts/lib/matter-desktop-provenance.mjs
   workflow_dispatch:
     inputs:
@@ -74,27 +81,121 @@ jobs:
           npm --workspace apps/desktop run build:win:installer
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Record exact package transfer manifest
+        shell: pwsh
+        run: |
+          $workspaceRoot = (Resolve-Path ".").Path
+          $distRoot = (Resolve-Path "apps\desktop\dist").Path
+          $packageFiles = @(
+            Get-ChildItem -LiteralPath $distRoot -File -Recurse
+            Get-Item -LiteralPath "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md"
+          )
+          $records = $packageFiles | ForEach-Object {
+            [ordered]@{
+              path = [System.IO.Path]::GetRelativePath($workspaceRoot, $_.FullName).Replace('\', '/')
+              sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              bytes = $_.Length
+            }
+          } | Sort-Object path
+          if ($records.Count -lt 1) { throw "formal Windows package tree is empty" }
+          New-Item -ItemType Directory -Force "artifacts\QA-006\build" | Out-Null
+          [ordered]@{
+            schema_version = "law-firm-os.rfd-tuw-013.windows-package-transfer.v1"
+            source_sha = "${{ env.QA_SOURCE_SHA }}"
+            files = @($records)
+          } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath "artifacts\QA-006\build\windows-package-transfer-manifest.json" -Encoding utf8NoBOM
+
+      - name: Upload exact formal Windows package input
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-formal-package-input-${{ env.QA_SOURCE_SHA }}
+          path: |
+            apps/desktop/dist/
+            docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+
+      - name: Remove local build output before artifact QA
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "apps\desktop\dist" -Recurse -Force
+          Remove-Item -LiteralPath "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md" -Force
+
+      - name: Download exact formal Windows package input
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-formal-package-input-${{ env.QA_SOURCE_SHA }}
+          path: .
+
+      - name: Verify downloaded package bytes
+        shell: pwsh
+        run: |
+          $manifest = Get-Content -Raw "artifacts\QA-006\build\windows-package-transfer-manifest.json" | ConvertFrom-Json
+          if ($manifest.source_sha -ne "${{ env.QA_SOURCE_SHA }}") { throw "package transfer source SHA mismatch" }
+          $workspaceRoot = (Resolve-Path ".").Path
+          $expectedDistCount = @($manifest.files | Where-Object { $_.path.StartsWith('apps/desktop/dist/') }).Count
+          $distRoot = (Resolve-Path "apps\desktop\dist").Path
+          $actualDistCount = @(Get-ChildItem -LiteralPath $distRoot -File -Recurse).Count
+          if ($actualDistCount -ne $expectedDistCount) { throw "downloaded package member count mismatch" }
+          foreach ($record in $manifest.files) {
+            $file = Join-Path $workspaceRoot $record.path
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "downloaded package member missing: $($record.path)" }
+            $item = Get-Item -LiteralPath $file
+            $digest = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($item.Length -ne $record.bytes -or $digest -ne $record.sha256) { throw "downloaded package member drifted: $($record.path)" }
+          }
+
       - name: Run native install, login, leave, payroll, restart, and uninstall QA
+        id: native_qa
+        continue-on-error: true
         env:
           MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
           MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ github.workspace }}\artifacts\QA-006
-        run: node scripts/run-formal-windows-package-qa.mjs
-
-      - name: Verify native result and preserve signing boundary
         shell: pwsh
         run: |
-          $receipt = Get-Content -Raw "artifacts\QA-006\formal-windows-package-qa.json" | ConvertFrom-Json
-          if ($receipt.native_verdict -ne "PASS") { throw "Windows native QA did not pass" }
-          if ($receipt.scenarios.PSObject.Properties.Value -contains $false) { throw "A Windows native scenario failed" }
-          if ($receipt.authenticode.valid -eq $false -and $receipt.verdict -ne "BLOCKED_AUTHENTICODE") { throw "Unsigned artifact boundary is inconsistent" }
+          $launcher = (Resolve-Path "scripts\run-formal-windows-package-qa.ps1").Path
+          pwsh -NoLogo -NoProfile -NonInteractive -File $launcher
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify exact-source native result and signing authority boundary
+        if: always()
+        shell: pwsh
+        run: |
+          $version = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
+          $sourceTree = (git rev-parse "HEAD^{tree}").Trim()
+          $releaseId = "matter-desktop-v$version-rfd-tuw-013"
+          node scripts/validate-matter-desktop-windows-native-qa-receipt.mjs `
+            --receipt "artifacts\QA-006\rfd-tuw-013-windows-native-qa.json" `
+            --authority "artifacts\QA-006\windows-signing-authority.json" `
+            --inventory "artifacts\QA-006\windows-uninstall-inventory.json" `
+            --installer "apps\desktop\dist\matter-$version-win-x64.exe" `
+            --blockmap "apps\desktop\dist\matter-$version-win-x64.exe.blockmap" `
+            --package-zip "apps\desktop\dist\win\matter-$version-win32-x64-unsigned.zip" `
+            --installer-manifest "apps\desktop\dist\win\matter-$version-win-installer-manifest.json" `
+            --installer-manifest-signature "apps\desktop\dist\win\matter-$version-win-installer-manifest.json.sig" `
+            --unpacked-executable "apps\desktop\dist\win-unpacked\matter.exe" `
+            --build-manifest "apps\desktop\dist\win\matter-$version-win-build-manifest.json" `
+            --embedded-build-manifest "apps\desktop\dist\win-unpacked\resources\matter-build-manifest.json" `
+            --windows-build-receipt "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md" `
+            --source-sha "${{ env.QA_SOURCE_SHA }}" `
+            --source-tree $sourceTree `
+            --version $version `
+            --release-id $releaseId `
+            --expected-native-qa PASS `
+            --report "artifacts\QA-006\rfd-tuw-013-windows-native-qa-validation.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ("${{ steps.native_qa.outcome }}" -ne "success") { throw "Windows native QA runner failed" }
 
       - name: Copy build provenance
         if: always()
         shell: pwsh
         run: |
+          $version = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
           New-Item -ItemType Directory -Force "artifacts\QA-006\build" | Out-Null
-          Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-build-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
-          Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-installer-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
+          Get-ChildItem "apps\desktop\dist\win\*-win-build-manifest.json" -ErrorAction SilentlyContinue | Copy-Item -Destination "artifacts\QA-006\build\"
+          Get-ChildItem "apps\desktop\dist\win\*-win-installer-manifest.json" -ErrorAction SilentlyContinue | Copy-Item -Destination "artifacts\QA-006\build\"
+          Copy-Item "apps\desktop\dist\matter-$version-win-x64.exe.privacy-builder.json" "artifacts\QA-006\build\" -ErrorAction Stop
           Copy-Item "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
           Copy-Item "apps\desktop\dist\win-unpacked\resources\app\src\renderer\web" "artifacts\QA-006\build\renderer" -Recurse -ErrorAction SilentlyContinue
 

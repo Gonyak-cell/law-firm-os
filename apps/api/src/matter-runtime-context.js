@@ -47,6 +47,8 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
   unauthorized_omission: "MATTER_UNAUTHORIZED_OMISSION",
   review_required: "MATTER_REVIEW_REQUIRED",
   approval_required: "MATTER_APPROVAL_REQUIRED",
+  closeout_blocked: "MATTER_CLOSEOUT_BLOCKED",
+  closeout_guard_unavailable: "MATTER_CLOSEOUT_GUARD_UNAVAILABLE",
   not_found: "MATTER_NOT_FOUND",
   vault_bridge_required: "MATTER_VAULT_BRIDGE_REQUIRED",
   vault_bridge_blocked: "MATTER_VAULT_BRIDGE_BLOCKED",
@@ -147,6 +149,8 @@ const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 const MAX_BULK_MATTERS = 25;
 const AMIC_CURRENT_MATTER_CODE_SOURCE_REVISION = "amic_current_onedrive_matter_code_inventory_2026_07_01";
+const CURRENT_MATTER_WORKTREE_SEED_ACTOR_ID = "user_amic_jwsuh";
+const CURRENT_MATTER_WORKTREE_SEED_SOURCE_REVISION = "runtime-seed-small-firm-worktree-v1";
 export const MATTER_RUNTIME_SYNTHETIC_TENANT_ID = "tenant_rp05_synthetic";
 export const MATTER_RUNTIME_CANONICAL_TENANT_ID = MATTER_VAULT_REGISTERED_TENANT_ID;
 export const LAWOS_CURRENT_MATTER_CODE_SEED_TENANT_ENV = "LAWOS_CURRENT_MATTER_CODE_SEED_TENANT";
@@ -405,6 +409,79 @@ export function createMatterRuntimeSeed({
 
 export const MATTER_RUNTIME_SEED = createMatterRuntimeSeed();
 
+function seedCurrentMatterWorktree(repository) {
+  const tenantId = MATTER_RUNTIME_SEED.current_matter_code_tenant_id;
+  const matter = AMIC_CURRENT_MATTER_CODE_CANDIDATES[0];
+  if (!tenantId || !matter) return;
+  const ref = {
+    tenant_id: tenantId,
+    matter_id: matter.matter_id,
+  };
+  const currentMatter = repository.get({
+    tenant_id: tenantId,
+    model_type: "Matter",
+    id: matter.matter_id,
+  });
+  if (!currentMatter?.permission_envelope_id) return;
+  const existingWorktrees = repository.list({ ...ref, model_type: "MatterWorktree" });
+  const existingActorMembers = repository
+    .list({ ...ref, model_type: "MatterMember" })
+    .filter(({ user_id: userId }) => userId === CURRENT_MATTER_WORKTREE_SEED_ACTOR_ID);
+  if (
+    existingWorktrees.length > 0
+    && (
+      existingActorMembers.length > 0
+      || existingWorktrees.every(({ status }) => status !== "active")
+    )
+  ) return;
+
+  repository.transaction((records) => {
+    const worktrees = records.list({ ...ref, model_type: "MatterWorktree" });
+    const actorMembers = records
+      .list({ ...ref, model_type: "MatterMember" })
+      .filter(({ user_id: userId }) => userId === CURRENT_MATTER_WORKTREE_SEED_ACTOR_ID);
+    const seedAt = "2026-07-01T00:00:00.000+09:00";
+    const seedActor = "matter_small_firm_runtime_seed";
+    const evidence = {
+      source_revision: CURRENT_MATTER_WORKTREE_SEED_SOURCE_REVISION,
+      permission_envelope_id: currentMatter.permission_envelope_id,
+      audit_trace_id: currentMatter.audit_trace_id,
+      synthetic_only: true,
+    };
+    if (
+      actorMembers.length === 0
+      && (worktrees.length === 0 || worktrees.some(({ status }) => status === "active"))
+    ) {
+      records.create({
+        ...ref,
+        ...evidence,
+        model_type: "MatterMember",
+        member_id: `member_small_firm_${matter.matter_id}_${CURRENT_MATTER_WORKTREE_SEED_ACTOR_ID}`,
+        user_id: CURRENT_MATTER_WORKTREE_SEED_ACTOR_ID,
+        role: "responsible_attorney",
+        status: "active",
+        access_scope: "matter_team",
+        created_by: seedActor,
+        created_at: seedAt,
+      });
+    }
+    if (worktrees.length === 0) {
+      records.create({
+        ...ref,
+        ...evidence,
+        model_type: "MatterWorktree",
+        worktree_id: `worktree_small_firm_${matter.matter_id}`,
+        status: "active",
+        version: 1,
+        created_by: seedActor,
+        created_at: seedAt,
+        updated_by: seedActor,
+        updated_at: seedAt,
+      });
+    }
+  });
+}
+
 export const MATTER_EMPLOYEE_DIRECTORY_SEED = Object.freeze([
   Object.freeze({
     tenant_id: MATTER_RUNTIME_SYNTHETIC_TENANT_ID,
@@ -513,7 +590,9 @@ export function createMatterRuntimeContext({
   dmsRuntime = null,
   billing = createSideEffectAdapter("matter_billing"),
   clearanceRepository = null,
+  seedCurrentMatterWorktreeFixture = false,
 } = {}) {
+  if (seedCurrentMatterWorktreeFixture === true) seedCurrentMatterWorktree(repository);
   return Object.freeze({
     repository,
     employeeDirectory,
@@ -542,6 +621,7 @@ function errorResponse(status, requestId, codes, extra = {}) {
       production_ready_claim: false,
       ...(extra.safe_message ? { message: extra.safe_message } : {}),
       ...(extra.onboarding_gate ? { onboarding_gate: extra.onboarding_gate } : {}),
+      ...(extra.closeout ? { closeout: extra.closeout } : {}),
     },
   };
 }
@@ -3263,6 +3343,45 @@ function normalizeMatterBulkIds(body = {}, requestId) {
   return { value: Object.freeze(uniqueIds) };
 }
 
+function matterCloseoutGuard(runtime, { tenantId, matterId } = {}) {
+  if (typeof runtime.resolveCloseoutBlockers !== "function") return { available: false, blockers: [] };
+  try {
+    const blockers = runtime.resolveCloseoutBlockers({
+      tenant_id: tenantId,
+      matter_id: matterId,
+    });
+    if (!Array.isArray(blockers)) throw new TypeError("closeout blocker resolver must return an array");
+    return { available: true, blockers };
+  } catch {
+    return { available: true, error: true, blockers: [] };
+  }
+}
+
+function closeoutGuardError(requestId, auditHintRef, guard, matterIds) {
+  if (guard.error) {
+    return errorResponse(503, requestId, [MATTER_API_ERROR_CODES.closeout_guard_unavailable], {
+      audit_hint_ref: auditHintRef,
+      ui_state: "error",
+      closeout: {
+        can_close: false,
+        guard_available: false,
+      },
+    });
+  }
+  if (guard.blockers.length > 0) {
+    return errorResponse(422, requestId, [MATTER_API_ERROR_CODES.closeout_blocked], {
+      audit_hint_ref: auditHintRef,
+      ui_state: "blocked",
+      closeout: {
+        can_close: false,
+        guard_available: true,
+        blocked_matter_ids: matterIds,
+      },
+    });
+  }
+  return null;
+}
+
 export function handleMatterStatusTransition({ matterId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
   const query = {
     tenant_id: body?.tenant_id,
@@ -3300,6 +3419,21 @@ export function handleMatterStatusTransition({ matterId, body, context, requestI
           production_ready_claim: false,
         },
       };
+    }
+    if (transition.targetStatus === "closed") {
+      const closeoutGuard = matterCloseoutGuard(runtime, {
+        tenantId: query.tenant_id,
+        matterId,
+      });
+      if (closeoutGuard.available) {
+        const blocked = closeoutGuardError(
+          requestId,
+          query.audit_hint_ref,
+          closeoutGuard,
+          [matterId],
+        );
+        if (blocked) return blocked;
+      }
     }
     const patch = {
       status: transition.targetStatus,
@@ -3426,6 +3560,21 @@ export function handleMatterBulkStatusTransition({ body, context, requestId, run
         audit_hint_ref: query.audit_hint_ref,
         ui_state: "empty",
       });
+    }
+    if (transition.targetStatus === "closed" && typeof runtime.resolveCloseoutBlockers === "function") {
+      for (const matterId of normalizedIds.value) {
+        const closeoutGuard = matterCloseoutGuard(runtime, {
+          tenantId: query.tenant_id,
+          matterId,
+        });
+        const blocked = closeoutGuardError(
+          requestId,
+          query.audit_hint_ref,
+          closeoutGuard,
+          [matterId],
+        );
+        if (blocked) return blocked;
+      }
     }
     const safeBulkId = String(idempotencyKey).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80);
     const updatedItems = [];

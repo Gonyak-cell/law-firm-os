@@ -283,6 +283,8 @@
     "matter-desktop:version:validate": "node scripts/validate-pv001-desktop-version.mjs --package",
     "matter-desktop:provenance:validate": "node scripts/validate-pv002-build-manifest.mjs --package",
     "matter-desktop:formal-build-gate:validate": "node scripts/validate-pv003-clean-sha-build-gate.mjs --source",
+    "matter-desktop:formal-deployed-api-qa:macos": "\"$PWD/scripts/run-formal-deployed-api-package-qa.sh\"",
+    "matter-desktop:formal-deployed-api-qa:windows": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"%CD%\\scripts\\run-formal-deployed-api-package-qa.ps1\"",
     "matter-desktop:channels:validate": "node scripts/validate-pv004-desktop-channels.mjs --source",
     "matter-desktop:release-artifacts:stage": "node scripts/stage-matter-desktop-release-artifacts.mjs",
     "matter-desktop:release-paths:validate": "node scripts/validate-pv005-release-artifact-paths.mjs --source",
@@ -308,7 +310,11 @@
     "matter-desktop:real-client-data-migration:approval:validate": "node scripts/validate-matter-desktop-real-client-data-migration-approval-receipt.mjs",
     "matter-desktop:temporary-release": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge && npm run matter-desktop:aws-runtime:smoke && MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac && npm --workspace apps/desktop run build:win && npm run matter-desktop:legacy-assets:validate && MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/validate-pv006-legacy-assets.mjs --bundle && MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/stage-matter-desktop-release-artifacts.mjs && MATTER_DESKTOP_RELEASE_CHANNEL=internal node scripts/validate-pv005-release-artifact-paths.mjs --package && node scripts/release-matter-desktop-temporary.mjs && npm run matter-desktop:temporary-release:validate && node scripts/validate-matter-desktop-temporary-release-bundle.mjs && node scripts/validate-matter-desktop-release-boundary.mjs && node scripts/validate-matter-desktop-no-public-release-claim.mjs",
     "matter-desktop:formal-release:validate": "node scripts/validate-matter-desktop-formal-release-bundle.mjs",
-    "matter-desktop:formal-release": "npm --workspace apps/desktop run test:smoke && npm --workspace apps/desktop run test:file-bridge && npm run matter-desktop:aws-runtime:smoke && MATTER_DESKTOP_RELEASE_CHANNEL=formal MATTER_NOTARY_KEYCHAIN_PROFILE=matter-notary MATTER_DESKTOP_SIGN=developer-id MATTER_DESKTOP_NOTARIZE=1 npm --workspace apps/desktop run build:mac && MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win && MATTER_DESKTOP_RELEASE_CHANNEL=formal npm --workspace apps/desktop run build:win:installer && npm run public-renderer:pii:validate && npm run matter-desktop:legacy-assets:validate && MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/validate-pv006-legacy-assets.mjs --bundle && MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/stage-matter-desktop-release-artifacts.mjs && MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/validate-pv005-release-artifact-paths.mjs --package && node scripts/release-matter-desktop-formal.mjs && npm run matter-desktop:formal-release:validate && node scripts/validate-matter-desktop-no-public-release-claim.mjs",
+    "matter-desktop:formal-package:macos": "MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/build-matter-desktop-mac.mjs",
+    "matter-desktop:formal-package:windows": "MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/build-matter-desktop-win.mjs && MATTER_DESKTOP_RELEASE_CHANNEL=formal node scripts/build-matter-desktop-win-installer.mjs",
+    "matter-desktop:formal-package": "node scripts/run-matter-desktop-formal-package.mjs",
+    "matter-desktop:formal-release": "npm run matter-desktop:formal-package",
+    "matter-desktop:formal-remote-smoke": "npm run matter-desktop:aws-runtime:smoke && node scripts/run-formal-deployed-api-package-qa.mjs",
     "public-renderer:pii:validate": "node scripts/validate-public-renderer-no-hrx-roster-pii.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
@@ -460,6 +466,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@babel/parser": "^7.29.7",
     "playwright": "^1.60.0",
     "postcss": "8.5.23"
   },

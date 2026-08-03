@@ -786,16 +786,35 @@ test("G4 Matter bulk status transition is permission gated, audited, and persist
       snapshot_hash: "sha256:clearance-api-bulk-open-001",
     },
   });
+  const secondBulkMatter = {
+    ...openingPayload().matter,
+    model_type: "Matter",
+    matter_id: "matter_api_bulk_open_002",
+    matter_code: "M-API-BULK-PRESEEDED-002",
+    title: "Second API bulk Matter",
+    matter_number: "M-TENANT-RP05-API-BULK-002",
+    permission_envelope_id: "perm_matter_api_bulk_open_002",
+    audit_trace_id: "audit_matter_api_bulk_open_002",
+  };
+  createMatterRepository({
+    filePath: storePath,
+    seedRecords: [secondBulkMatter],
+  }).close();
+  const bulkTransitionPayload = bulkStatusPayload({
+    matter_ids: [
+      bulkOpeningPayload.matter.matter_id,
+      secondBulkMatter.matter_id,
+    ],
+  });
   await withServer(async (baseUrl) => {
     const created = await json(baseUrl, "/api/matters/openings", {
       method: "POST",
       body: JSON.stringify(bulkOpeningPayload),
     });
     assert.equal(created.status, 201);
-
     const bulk = await json(baseUrl, "/api/matters/bulk/status-transitions", {
       method: "POST",
-      body: JSON.stringify(bulkStatusPayload()),
+      body: JSON.stringify(bulkTransitionPayload),
     });
     assert.equal(bulk.status, 200);
     assert.equal(bulk.body.outcome, "updated");
@@ -810,7 +829,7 @@ test("G4 Matter bulk status transition is permission gated, audited, and persist
 
     const replay = await json(baseUrl, "/api/matters/bulk/status-transitions", {
       method: "POST",
-      body: JSON.stringify(bulkStatusPayload()),
+      body: JSON.stringify(bulkTransitionPayload),
     });
     assert.equal(replay.status, 200);
     assert.equal(replay.body.outcome, "idempotent_replay");
@@ -820,7 +839,10 @@ test("G4 Matter bulk status transition is permission gated, audited, and persist
     assert.equal(audit.status, 200);
     assert.ok(audit.body.items.some((event) => event.action === "matter.bulk.status_transition"));
     assert.ok(audit.body.items.some((event) => event.action === "matter.status.bulk_transitioned"));
-  }, { matterStorePath: storePath, intakeRepository: intakeRepositoryWithClearances([bulkOpeningPayload.clearance_token]) });
+  }, {
+    matterStorePath: storePath,
+    intakeRepository: intakeRepositoryWithClearances([bulkOpeningPayload.clearance_token]),
+  });
 
   await withServer(async (baseUrl) => {
     const detail = await json(baseUrl, `/api/matters/matter_api_bulk_open_001?${BASE_QUERY}`);
@@ -832,8 +854,34 @@ test("G4 Matter bulk status transition is permission gated, audited, and persist
 
 test("G4 Matter status transition is idempotent, audited, and persisted", async () => {
   const storePath = join(mkdtempSync(join(tmpdir(), "lawos-matter-status-g4-")), "matter-store.json");
+  const statusOpeningPayload = openingPayload({
+    idempotency_key: "matter-api-status-open-001",
+    matter_number_seed: "API-STATUS-001",
+    matter: {
+      ...openingPayload().matter,
+      matter_id: "matter_api_status_open_001",
+      title: "API status transition matter",
+      matter_number: "M-TENANT-RP05-API-STATUS-001",
+      permission_envelope_id: "perm_matter_api_status_open_001",
+      audit_trace_id: "audit_matter_api_status_open_001",
+    },
+    clearance_token: {
+      ...openingPayload().clearance_token,
+      clearance_token_id: "clearance_api_status_open_001",
+      intake_request_id: "intake_api_status_open_001",
+      conflict_check_id: "conflict_api_status_open_001",
+      engagement_id: "engagement_api_status_open_001",
+      snapshot_hash: "sha256:clearance-api-status-open-001",
+    },
+  });
   await withServer(async (baseUrl) => {
-    const updated = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/status-transitions", {
+    const created = await json(baseUrl, "/api/matters/openings", {
+      method: "POST",
+      body: JSON.stringify(statusOpeningPayload),
+    });
+    assert.equal(created.status, 201);
+
+    const updated = await json(baseUrl, "/api/matters/matter_api_status_open_001/status-transitions", {
       method: "POST",
       body: JSON.stringify(statusTransitionPayload()),
     });
@@ -849,7 +897,7 @@ test("G4 Matter status transition is idempotent, audited, and persisted", async 
     assert.equal(updated.body.audit_event.action, "matter.status.transitioned");
     assert.equal(updated.body.timeline_event.document_bytes_included, false);
 
-    const replay = await json(baseUrl, "/api/matters/matter_rp05_synthetic_opening/status-transitions", {
+    const replay = await json(baseUrl, "/api/matters/matter_api_status_open_001/status-transitions", {
       method: "POST",
       body: JSON.stringify(statusTransitionPayload()),
     });
@@ -860,10 +908,13 @@ test("G4 Matter status transition is idempotent, audited, and persisted", async 
     const audit = await json(baseUrl, `/api/matters/audit?${BASE_QUERY}`);
     assert.equal(audit.status, 200);
     assert.ok(audit.body.items.some((event) => event.action === "matter.status.transitioned"));
-  }, { matterStorePath: storePath });
+  }, {
+    matterStorePath: storePath,
+    intakeRepository: intakeRepositoryWithClearances([statusOpeningPayload.clearance_token]),
+  });
 
   await withServer(async (baseUrl) => {
-    const detail = await json(baseUrl, `/api/matters/matter_rp05_synthetic_opening?${BASE_QUERY}`);
+    const detail = await json(baseUrl, `/api/matters/matter_api_status_open_001?${BASE_QUERY}`);
     assert.equal(detail.status, 200);
     assert.equal(detail.body.item.status, "closed");
     assert.equal(detail.body.item.closed_at, "2026-06-20T12:00:00.000Z");

@@ -1,37 +1,52 @@
 import { randomUUID } from "node:crypto";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { runFinancePostgresCommand } from "../../../packages/billing/src/central-ledger.js";
-import { importBankTransactionBatch } from "../../../packages/billing/src/bank-transaction-service.js";
 import {
   BANK_CLASSIFICATION_CATEGORIES,
-  autoClassifyBankTransactions,
-  bankEmployeePayrollCategory,
-  reviewBankTransactionClassifications,
   summarizeBankTransactionClassifications,
-} from "../../../packages/billing/src/bank-classification-service.js";
-import { approveTimeEntryForWip, createTimeEntry } from "../../../packages/time-expense/src/time-entry-service.js";
-import { createFeeArrangement, findFeeArrangementForMatter } from "../../../packages/time-expense/src/fee-arrangement-service.js";
-import { createExpense } from "../../../packages/time-expense/src/expense-service.js";
-import { createDisbursement } from "../../../packages/time-expense/src/disbursement-service.js";
-import { generateWipFromApprovedItems, lockWipSnapshot } from "../../../packages/billing/src/wip-service.js";
-import { approvePreBillWithoutAdjustment, createPreBill, rejectPreBill } from "../../../packages/billing/src/prebill-service.js";
-import { createInvoiceFromPreBill } from "../../../packages/billing/src/invoice-service.js";
-import { confirmBankReceipt, importPayment } from "../../../packages/payments/src/payment-service.js";
-import { allocatePayment } from "../../../packages/payments/src/payment-allocation-service.js";
-import { matchPaymentToInvoice } from "../../../packages/payments/src/matching-service.js";
-import { createArAgingSnapshot } from "../../../packages/payments/src/ar-service.js";
-import { createAccountingCsvExport } from "../../../packages/payments/src/accounting-export-service.js";
+  classificationDirectories,
+  listAmicBankClassificationEmployees,
+  runFinanceBankClassificationAuto,
+  runFinanceBankClassificationReview,
+  runFinanceBankImport,
+  sanitizeBankClassification,
+  sanitizeBankImportBatch,
+  sanitizeBankTransaction,
+} from "./finance-bank-boundary.js";
+import {
+  financePaymentMatchMatterIds,
+  financePaymentAllocationMatterIds,
+  runFinanceBillingDisbursementCreate,
+  runFinanceBillingExpenseCreate,
+  runFinanceBillingFeeArrangementCreate,
+  runFinanceBillingInvoiceIssue,
+  runFinanceBillingPaymentAllocationCreate,
+  runFinanceBillingPaymentImport,
+  runFinanceBillingPaymentMatchCreate,
+  runFinanceBillingPreBillApprove,
+  runFinanceBillingPreBillCreate,
+  runFinanceBillingPreBillReject,
+  runFinanceBillingTimeEntryApprove,
+  runFinanceBillingTimeEntryCreate,
+  runFinanceBillingWipGenerate,
+  runFinanceBillingWipSnapshotLock,
+} from "./finance-billing-boundary.js";
 import {
   drawdownTrustToInvoice,
-  getTrustBalanceReport,
   receiveTrustDeposit,
   recordTrustRefundLiability,
 } from "../../../packages/payments/src/trust-ledger-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import { mapPreBillApprovalDomainError } from "./finance-prebill-boundary.js";
+import { mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
-  listAmicBankClassificationEmployees,
-  listBankClassificationClientRecords,
-} from "./amic-bank-classification-directory.js";
+  runFinanceAccountingCsvExport,
+  runFinanceArAgingRead,
+  runFinanceAuditRead,
+  runFinanceTrustBalanceRead,
+  listFinanceAccountingJournalEntries,
+} from "./finance-read-export-boundary.js";
+import { createFinanceRuntimeRouter } from "./finance-runtime-router.js";
 
 export const FINANCE_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "finance",
@@ -286,12 +301,18 @@ function explicitScopeDecision(context, requiredScope) {
   return { effect: "deny", reason: `finance_scope_required:${requiredScope}`, fail_closed: true };
 }
 
-function routeGate({ context, query, requestId, action, resourceType, repository }) {
+function routeGate({ context, query, requestId, action, resourceType, repository, resource = {}, collectionRead = false }) {
   const invalid = validateCommon(query, requestId);
   if (invalid) return invalid;
+  const routeObjectAcl = collectionRead && Array.isArray(context?.object_acl) && resource.resource_id === undefined
+    ? context.object_acl.filter((entry) => entry.resource_id === undefined)
+    : context?.object_acl;
+  const routeContext = routeObjectAcl === context?.object_acl
+    ? context
+    : { ...context, object_acl: routeObjectAcl };
   const decision = explicitScopeDecision(context, requiredFinanceScope(action)) ?? evaluateRouteDecision({
-    context,
-    resource: { tenant_id: query.tenant_id, resource_type: resourceType },
+    context: routeContext,
+    resource: { ...resource, tenant_id: query.tenant_id, resource_type: resourceType },
     action,
   });
   const response = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
@@ -326,68 +347,6 @@ function sanitizeFinanceItem(record) {
     ...safe,
     bank_reference_included: false,
     journal_lines_included: false,
-    credential_material_included: false,
-    production_ready_claim: false,
-  });
-}
-
-function sanitizeBankTransaction(record) {
-  const { source_refs, transaction_fingerprint, ...safe } = record;
-  return Object.freeze({
-    ...safe,
-    source_metadata_included: false,
-    transaction_fingerprint_included: false,
-    raw_source_payload_included: false,
-    credential_material_included: false,
-    production_ready_claim: false,
-  });
-}
-
-function sanitizeBankImportBatch(record) {
-  const { source_manifest_hash, source_hashes, ...safe } = record;
-  return Object.freeze({
-    ...safe,
-    source_hashes_included: false,
-    raw_source_payload_included: false,
-    credential_material_included: false,
-    production_ready_claim: false,
-  });
-}
-
-function classificationDirectories(runtime, tenantId) {
-  const clientRecords = runtime.clientRecords
-    ?? listBankClassificationClientRecords(
-      runtime.masterDataRepository,
-      tenantId,
-      runtime.matterRepository,
-    );
-  return Object.freeze({
-    clientRecords,
-    employees: runtime.employeeRepository
-      ? listAmicBankClassificationEmployees({
-          repository: runtime.employeeRepository,
-          tenantId,
-        })
-      : runtime.employees ?? Object.freeze([]),
-  });
-}
-
-function sanitizeBankClassification(record, transaction, directories) {
-  const { normalized_match_value, ...safeClassification } = record;
-  const employee = directories.employees.find((candidate) => candidate.employee_id === record.employee_id);
-  const client = directories.clientRecords.find((candidate) => (
-    candidate.model_type === "ClientGroup" && candidate.client_group_id === record.client_group_id
-  ));
-  const safeTransaction = sanitizeBankTransaction(transaction);
-  return Object.freeze({
-    ...safeTransaction,
-    ...safeClassification,
-    category_label: BANK_CLASSIFICATION_CATEGORIES[record.category]?.label ?? record.category_label,
-    client_group_label: client?.display_name ?? client?.canonical_display_name ?? null,
-    employee_label: employee?.display_name ?? null,
-    employee_title: employee?.title ?? null,
-    source_metadata_included: false,
-    raw_source_payload_included: false,
     credential_material_included: false,
     production_ready_claim: false,
   });
@@ -581,12 +540,10 @@ export function handleFinanceBankClassificationAuto({ body, context, requestId, 
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
-    const directories = classificationDirectories(runtime, query.tenant_id);
-    const result = autoClassifyBankTransactions({
+    const result = runFinanceBankClassificationAuto({
       repository: runtime.repository,
+      runtime,
       tenant_id: query.tenant_id,
-      client_records: directories.clientRecords,
-      employees: directories.employees,
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
@@ -630,47 +587,15 @@ export function handleFinanceBankClassificationReview({ body, context, requestId
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
-    const directories = classificationDirectories(runtime, query.tenant_id);
-    const clientIds = new Set(directories.clientRecords
-      .filter((record) => record.model_type === "ClientGroup")
-      .map((record) => record.client_group_id));
-    const employeeIds = new Set(directories.employees.map((record) => record.employee_id));
-    const decisions = (body.decisions ?? []).map((decision) => {
-      if (decision.category === "client_receipt" && !clientIds.has(decision.client_group_id)) {
-        throw new TypeError("A registered client is required");
-      }
-      if (decision.employee_id && !employeeIds.has(decision.employee_id)) {
-        throw new TypeError("A registered employee is required");
-      }
-      const employee = directories.employees.find((record) => record.employee_id === decision.employee_id);
-      return {
-        ...decision,
-        ...(decision.category === "salary_payment"
-          ? { payroll_category: employee ? bankEmployeePayrollCategory(employee) : "unclassified" }
-          : {}),
-      };
-    });
-    const result = reviewBankTransactionClassifications({
+    const bankReview = runFinanceBankClassificationReview({
       repository: runtime.repository,
+      runtime,
       tenant_id: query.tenant_id,
-      decisions,
+      decisions: body.decisions ?? [],
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
-    const confirmedPayments = decisions
-      .filter((decision) => decision.category === "client_receipt")
-      .map((decision) => confirmBankReceipt({
-        repository: runtime.repository,
-        bank_transaction_id: decision.bank_transaction_id,
-        payment: {
-          payment_id: `payment:bank:${decision.bank_transaction_id}`,
-          tenant_id: query.tenant_id,
-          client_group_id: decision.client_group_id,
-          matter_id: decision.matter_id ?? null,
-        },
-        actor_id: context.principal.user_id,
-        idempotency_key: `${body.idempotency_key}:payment:${decision.bank_transaction_id}`,
-      }).payment);
+    const { result, confirmedPayments } = bankReview;
     return {
       status: 200,
       body: {
@@ -726,10 +651,9 @@ export function handleFinanceBankImport({ body, context, requestId, runtime = DE
     });
   }
   try {
-    const result = importBankTransactionBatch({
+    const result = runFinanceBankImport({
       repository: runtime.repository,
-      bank_import_batch: body.bank_import_batch,
-      transactions: body.transactions,
+      body,
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
@@ -794,12 +718,49 @@ function itemResponse({ requestId, auditHintRef, outcome, item, auditEvent, stat
   };
 }
 
+function preBillApprovalErrorResponse(error, requestId, auditHintRef) {
+  const safeDomainError = mapPreBillApprovalDomainError(error);
+  if (safeDomainError) {
+    const response = errorResponse(
+      safeDomainError.status,
+      requestId,
+      [safeDomainError.code],
+      { audit_hint_ref: auditHintRef, ui_state: "blocked" },
+    );
+    return {
+      ...response,
+      body: {
+        ...response.body,
+        code: safeDomainError.code,
+        message: safeDomainError.message,
+      },
+    };
+  }
+  const mapped = mapApiHandlerError(error, { requestId });
+  const idempotencyConflict = (
+    error?.status === 409
+    && error?.code === "FINANCE_IDEMPOTENCY_CONFLICT"
+    && error?.safe_error_code === "IDEMPOTENCY_CONFLICT"
+  );
+  if (!idempotencyConflict) return mapped;
+  return {
+    ...mapped,
+    body: {
+      ...mapped.body,
+      audit_hint_ref: auditHintRef,
+      ui_state: "blocked",
+      code: "FINANCE_IDEMPOTENCY_CONFLICT",
+      message: "idempotency key was already used for a different finance request",
+    },
+  };
+}
+
 export function handleFinanceTimeEntryCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.time_entry?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, action: "finance:time:write", resourceType: "time_entry", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = createTimeEntry({
+    const result = runFinanceBillingTimeEntryCreate({
       repository: runtime.repository,
       time_entry: body.time_entry,
       actor_id: context.principal.user_id,
@@ -828,7 +789,7 @@ export function handleFinanceTimeEntryApprove({ body, context, requestId, runtim
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
-    const result = approveTimeEntryForWip({
+    const result = runFinanceBillingTimeEntryApprove({
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       time_entry_id: body.time_entry_id,
@@ -854,7 +815,7 @@ export function handleFinanceExpenseCreate({ body, context, requestId, runtime =
   const gated = routeGate({ context, query, requestId, action: "finance:expense:write", resourceType: "expense", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = createExpense({
+    const result = runFinanceBillingExpenseCreate({
       repository: runtime.repository,
       expense: body.expense,
       actor_id: context.principal.user_id,
@@ -879,7 +840,7 @@ export function handleFinanceDisbursementCreate({ body, context, requestId, runt
   const gated = routeGate({ context, query, requestId, action: "finance:disbursement:write", resourceType: "disbursement", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = createDisbursement({
+    const result = runFinanceBillingDisbursementCreate({
       repository: runtime.repository,
       disbursement: body.disbursement,
       actor_id: context.principal.user_id,
@@ -904,15 +865,10 @@ export function handleFinanceFeeArrangementCreate({ body, context, requestId, ru
   const gated = routeGate({ context, query, requestId, action: "finance:fee_arrangement:write", resourceType: "fee_arrangement", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const rateCard = body.rate_card ?? runtime.repository.get({
-      tenant_id: body.fee_arrangement.tenant_id,
-      model_type: "RateCard",
-      rate_card_id: body.fee_arrangement.rate_card_id,
-    });
-    const result = createFeeArrangement({
+    const result = runFinanceBillingFeeArrangementCreate({
       repository: runtime.repository,
       fee_arrangement: body.fee_arrangement,
-      rate_card: rateCard,
+      rate_card: body.rate_card,
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
@@ -935,19 +891,13 @@ export function handleFinanceWipGenerate({ body, context, requestId, runtime = D
   const gated = routeGate({ context, query, requestId, action: "finance:wip:write", resourceType: "wip_item", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const rateCard = runtime.repository.get({ tenant_id: body.tenant_id, model_type: "RateCard", rate_card_id: body.rate_card_id ?? "rate_cmp_g7_seed" });
-    const feeArrangement = body.fee_arrangement ?? findFeeArrangementForMatter({
+    const result = runFinanceBillingWipGenerate({
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       matter_id: body.matter_id,
+      rate_card_id: body.rate_card_id,
+      fee_arrangement: body.fee_arrangement,
       fee_arrangement_id: body.fee_arrangement_id,
-    });
-    const result = generateWipFromApprovedItems({
-      repository: runtime.repository,
-      tenant_id: body.tenant_id,
-      matter_id: body.matter_id,
-      rate_card: rateCard,
-      fee_arrangement: feeArrangement,
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
     });
@@ -970,7 +920,7 @@ export function handleFinanceWipSnapshotLock({ body, context, requestId, runtime
   const gated = routeGate({ context, query, requestId, action: "finance:wip_snapshot:write", resourceType: "wip_snapshot", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = lockWipSnapshot({
+    const result = runFinanceBillingWipSnapshotLock({
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       matter_id: body.matter_id,
@@ -998,7 +948,7 @@ export function handleFinancePreBillCreate({ body, context, requestId, runtime =
   const gated = routeGate({ context, query, requestId, action: "finance:prebill:write", resourceType: "prebill", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = createPreBill({
+    const result = runFinanceBillingPreBillCreate({
       repository: runtime.repository,
       prebill: body.prebill,
       actor_id: context.principal.user_id,
@@ -1027,8 +977,9 @@ export function handleFinancePreBillApprove({ body, context, requestId, runtime 
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
-    const result = approvePreBillWithoutAdjustment({
+    const result = runFinanceBillingPreBillApprove({
       repository: runtime.repository,
+      body,
       tenant_id: body.tenant_id,
       prebill_id: body.prebill_id,
       actor_id: context.principal.user_id,
@@ -1041,10 +992,13 @@ export function handleFinancePreBillApprove({ body, context, requestId, runtime 
       item: result.prebill,
       auditEvent: result.audit_event,
       status: 200,
-      extra: { idempotent_replay: result.idempotent_replay },
+      extra: {
+        ...(result.adjustment ? { adjustment: sanitizeFinanceItem(result.adjustment) } : {}),
+        idempotent_replay: result.idempotent_replay,
+      },
     });
-  } catch {
-    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  } catch (error) {
+    return preBillApprovalErrorResponse(error, requestId, query.audit_hint_ref);
   }
 }
 
@@ -1057,7 +1011,7 @@ export function handleFinancePreBillReject({ body, context, requestId, runtime =
   const roleDenied = partnerApprovalGate({ context, query, requestId, runtime, action, resourceType });
   if (roleDenied) return roleDenied;
   try {
-    const result = rejectPreBill({
+    const result = runFinanceBillingPreBillReject({
       repository: runtime.repository,
       tenant_id: body.tenant_id,
       prebill_id: body.prebill_id,
@@ -1084,7 +1038,7 @@ export function handleFinanceInvoiceIssue({ body, context, requestId, runtime = 
   const gated = routeGate({ context, query, requestId, action: "finance:invoice:write", resourceType: "invoice", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = createInvoiceFromPreBill({
+    const result = runFinanceBillingInvoiceIssue({
       repository: runtime.repository,
       invoice: body.invoice,
       actor_id: context.principal.user_id,
@@ -1109,7 +1063,7 @@ export function handleFinancePaymentImport({ body, context, requestId, runtime =
   const gated = routeGate({ context, query, requestId, action: "finance:payment:write", resourceType: "payment", repository: runtime.repository });
   if (gated) return gated;
   try {
-    const result = importPayment({
+    const result = runFinanceBillingPaymentImport({
       repository: runtime.repository,
       payment: body.payment,
       actor_id: context.principal.user_id,
@@ -1131,10 +1085,39 @@ export function handleFinancePaymentImport({ body, context, requestId, runtime =
 
 export function handleFinancePaymentMatchCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.match?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "finance:payment_match:write", resourceType: "payment_match", repository: runtime.repository });
-  if (gated) return gated;
+  const invalid = validateCommon(query, requestId);
+  if (invalid) return invalid;
+  let canonicalMatterIds;
   try {
-    const result = matchPaymentToInvoice({
+    canonicalMatterIds = financePaymentMatchMatterIds({
+      repository: runtime.repository,
+      match: body?.match,
+      tenant_id: query.tenant_id,
+      rejectContradictory: false,
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  for (const matterId of canonicalMatterIds) {
+    const gated = routeGate({
+      context,
+      query,
+      requestId,
+      action: "finance:payment_match:write",
+      resourceType: "payment_match",
+      repository: runtime.repository,
+      resource: {
+        resource_id: body?.match?.payment_match_id ?? null,
+        matter_id: matterId,
+      },
+    });
+    if (gated) return gated;
+  }
+  if (canonicalMatterIds.length > 1) {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  try {
+    const result = runFinanceBillingPaymentMatchCreate({
       repository: runtime.repository,
       match: body.match,
       actor_id: context.principal.user_id,
@@ -1161,10 +1144,39 @@ export function handleFinancePaymentMatchCreate({ body, context, requestId, runt
 
 export function handleFinancePaymentAllocationCreate({ body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
   const query = { tenant_id: body?.allocation?.tenant_id ?? body?.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
-  const gated = routeGate({ context, query, requestId, action: "finance:payment_allocation:write", resourceType: "payment_allocation", repository: runtime.repository });
-  if (gated) return gated;
+  const invalid = validateCommon(query, requestId);
+  if (invalid) return invalid;
+  let canonicalMatterIds;
   try {
-    const result = allocatePayment({
+    canonicalMatterIds = financePaymentAllocationMatterIds({
+      repository: runtime.repository,
+      allocation: body?.allocation,
+      tenant_id: query.tenant_id,
+      rejectContradictory: false,
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  for (const matterId of canonicalMatterIds) {
+    const gated = routeGate({
+      context,
+      query,
+      requestId,
+      action: "finance:payment_allocation:write",
+      resourceType: "payment_allocation",
+      repository: runtime.repository,
+      resource: {
+        resource_id: body.allocation.payment_allocation_id ?? null,
+        matter_id: matterId,
+      },
+    });
+    if (gated) return gated;
+  }
+  if (canonicalMatterIds.length > 1) {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  }
+  try {
+    const result = runFinanceBillingPaymentAllocationCreate({
       repository: runtime.repository,
       allocation: body.allocation,
       actor_id: context.principal.user_id,
@@ -1268,31 +1280,42 @@ export function handleFinanceTrustRefundCreate({ body, context, requestId, runti
 }
 
 export function handleFinanceTrustBalances({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "finance:trust_ledger:read", resourceType: "trust_balance", repository: runtime.repository });
+  const action = "finance:trust_ledger:read";
+  const resourceType = "trust_balance";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository, collectionRead: true });
   if (gated) return gated;
-  const report = getTrustBalanceReport({
+  const sourceBalances = runtime.repository
+    .list({ tenant_id: query.tenant_id, model_type: "TrustBalance", matter_id: query.matter_id })
+    .filter((item) => !query.currency || item.currency === query.currency);
+  const { allowed: visibleBalances } = trimItemsByPermission({
+    context,
+    items: sourceBalances,
+    action,
+    resourceType,
+  });
+  const report = runFinanceTrustBalanceRead({
     repository: runtime.repository,
     tenant_id: query.tenant_id,
     matter_id: query.matter_id,
     currency: query.currency,
+    sourceRecords: visibleBalances,
   });
-  const { allowed } = trimItemsByPermission({ context, items: report.items.map(sanitizeFinanceItem), action: "finance:trust_ledger:read", resourceType: "trust_balance" });
   appendFinanceSensitiveReadAudit({
     repository: runtime.repository,
     context,
     query,
-    action: "finance:trust_ledger:read",
-    resourceType: "trust_balance",
-    returnedCount: allowed.length,
+    action,
+    resourceType,
+    returnedCount: report.items.length,
   });
   return {
     status: 200,
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: allowed,
+      items: report.items,
       summary: report.summary,
-      page_info: { returned_count: allowed.length, omitted_item_count: null },
+      page_info: { returned_count: report.items.length, omitted_item_count: null },
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
       count_leak_prevented: true,
@@ -1302,45 +1325,49 @@ export function handleFinanceTrustBalances({ query, context, requestId, runtime 
 }
 
 export function handleFinanceArAging({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "finance:ar:read", resourceType: "ar_aging", repository: runtime.repository });
+  const action = "finance:ar:read";
+  const resourceType = "ar_aging";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository, collectionRead: true });
   if (gated) return gated;
-  let snapshots = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "ARAgingSnapshot" });
-  if (query.as_of_date) snapshots = snapshots.filter((snapshot) => snapshot.as_of_date === query.as_of_date);
-  let generatedSnapshot = false;
-  if (snapshots.length === 0) {
-    try {
-      const created = createArAgingSnapshot({
-        repository: runtime.repository,
-        tenant_id: query.tenant_id,
-        actor_id: context.principal.user_id,
-        idempotency_key: `api-ar-aging:${query.tenant_id}:${query.as_of_date ?? "latest"}`,
-        ar_aging_snapshot_id: `ar_aging_api_${query.tenant_id}_${query.as_of_date ?? "latest"}`,
-        as_of_date: query.as_of_date,
-      });
-      snapshots = [created.ar_aging_snapshot];
-      generatedSnapshot = true;
-    } catch {
-      return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
-        audit_hint_ref: query.audit_hint_ref,
-        ui_state: "blocked",
-      });
-    }
+  const sourceBalances = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "ARBalance" });
+  const { allowed: visibleBalances } = trimItemsByPermission({
+    context,
+    items: sourceBalances,
+    action,
+    resourceType,
+  });
+  let report;
+  try {
+    report = runFinanceArAgingRead({
+      repository: runtime.repository,
+      tenant_id: query.tenant_id,
+      actor_id: context.principal.user_id,
+      as_of_date: query.as_of_date,
+      sourceRecords: visibleBalances,
+      sourceRecordCount: sourceBalances.length,
+    });
+  } catch {
+    return errorResponse(400, requestId, [FINANCE_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+    });
   }
+  const { allowed } = trimItemsByPermission({ context, items: report.items, action, resourceType });
   appendFinanceSensitiveReadAudit({
     repository: runtime.repository,
     context,
     query,
-    action: "finance:ar:read",
-    resourceType: "ar_aging",
-    returnedCount: snapshots.length,
-    metadata: { generated_snapshot_when_missing: generatedSnapshot },
+    action,
+    resourceType,
+    returnedCount: allowed.length,
+    metadata: { generated_snapshot_when_missing: report.generated_snapshot, visible_source_count: visibleBalances.length },
   });
   return {
     status: 200,
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: snapshots.map(sanitizeFinanceItem),
+      items: allowed,
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
       count_leak_prevented: true,
@@ -1350,51 +1377,78 @@ export function handleFinanceArAging({ query, context, requestId, runtime = DEFA
 }
 
 export function handleFinanceAccountingExportCsv({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "finance:accounting_export:read", resourceType: "accounting_export", repository: runtime.repository });
+  const action = "finance:accounting_export:read";
+  const resourceType = "accounting_export";
+  const gated = routeGate({ context, query, requestId, action, resourceType, repository: runtime.repository, collectionRead: true });
   if (gated) return gated;
+  const sourceEntries = listFinanceAccountingJournalEntries({
+    repository: runtime.repository,
+    tenant_id: query.tenant_id,
+    from_date: query.from_date,
+    to_date: query.to_date,
+  });
+  const { allowed: visibleEntries } = trimItemsByPermission({
+    context,
+    items: sourceEntries,
+    action,
+    resourceType: "journal_entry",
+  });
+  const idempotencyKey = query.idempotency_key
+    ?? `api-accounting-export:${query.tenant_id}:${query.from_date ?? "start"}:${query.to_date ?? "end"}`;
+  const existingReplay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
+  const existingExport = existingReplay?.operation === "accounting_csv_export_create"
+    ? existingReplay.response?.accounting_export
+    : null;
+  const visibleEntryIds = new Set(visibleEntries.map((entry) => entry.journal_entry_id));
+  if (existingExport && (!Array.isArray(existingExport.journal_entry_refs)
+    || existingExport.journal_entry_refs.some((entryId) => !visibleEntryIds.has(entryId)))) {
+    appendFinanceRouteAudit({
+      repository: runtime.repository,
+      context,
+      query,
+      action,
+      resourceType,
+      decision: { effect: "deny", reason: "accounting_export_replay_contains_hidden_source", fail_closed: true },
+    });
+    return errorResponse(403, requestId, [FINANCE_API_ERROR_CODES.unauthorized_omission], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "denied",
+    });
+  }
   try {
-    const result = createAccountingCsvExport({
+    const result = runFinanceAccountingCsvExport({
       repository: runtime.repository,
       tenant_id: query.tenant_id,
       from_date: query.from_date,
       to_date: query.to_date,
       actor_id: context.principal.user_id,
-      idempotency_key: query.idempotency_key ?? `api-accounting-export:${query.tenant_id}:${query.from_date ?? "start"}:${query.to_date ?? "end"}`,
+      idempotency_key: idempotencyKey,
       accounting_export_id: query.accounting_export_id,
+      journal_entries: visibleEntries,
     });
     const item = result.accounting_export;
+    const exportedEntryCount = Array.isArray(item.journal_entry_refs)
+      ? item.journal_entry_refs.length
+      : visibleEntries.length;
     appendFinanceSensitiveReadAudit({
       repository: runtime.repository,
       context,
       query,
-      action: "finance:accounting_export:read",
-      resourceType: "accounting_export",
-      returnedCount: 1,
-      metadata: { export_content_included_in_audit: false },
+      action,
+      resourceType,
+      returnedCount: exportedEntryCount,
+      metadata: {
+        export_content_included_in_audit: false,
+        visible_journal_entry_count: exportedEntryCount,
+        csv_row_count: item.row_count,
+      },
     });
     return {
       status: result.idempotent_replay ? 200 : 201,
       body: {
         request_id: requestId,
         outcome: result.idempotent_replay ? "idempotent_replay" : "created",
-        item: {
-          accounting_export_id: item.accounting_export_id,
-          tenant_id: item.tenant_id,
-          export_format: item.export_format,
-          status: item.status,
-          from_date: item.from_date,
-          to_date: item.to_date,
-          csv_text: item.csv_text,
-          csv_sha256: item.csv_sha256,
-          row_count: item.row_count,
-          debit_total: item.debit_total,
-          credit_total: item.credit_total,
-          balanced: item.balanced,
-          bank_reference_included: false,
-          credential_material_included: false,
-          raw_journal_payload_included: false,
-          production_ready_claim: false,
-        },
+        item,
         audit_event: result.audit_event,
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
@@ -1407,14 +1461,26 @@ export function handleFinanceAccountingExportCsv({ query, context, requestId, ru
 }
 
 export function handleFinanceAudit({ query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({ context, query, requestId, action: "finance:audit:read", resourceType: "finance_audit", repository: runtime.repository });
+  const gated = routeGate({ context, query, requestId, action: "finance:audit:read", resourceType: "finance_audit", repository: runtime.repository, collectionRead: true });
   if (gated) return gated;
+  const report = runFinanceAuditRead({ repository: runtime.repository, tenant_id: query.tenant_id });
+  const permissionItems = report.items.map((event) => ({
+    ...event,
+    resource_id: event.resource_id ?? event.object_id ?? event.event_id,
+  }));
+  const { allowed } = trimItemsByPermission({
+    context,
+    items: permissionItems,
+    action: "finance:audit:read",
+    resourceType: "finance_audit",
+  });
+  const allowedSet = new Set(allowed);
   return {
     status: 200,
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: runtime.repository.listAudit({ tenant_id: query.tenant_id }),
+      items: report.items.filter((_event, index) => allowedSet.has(permissionItems[index])),
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
       count_leak_prevented: true,
@@ -1423,74 +1489,46 @@ export function handleFinanceAudit({ query, context, requestId, runtime = DEFAUL
   };
 }
 
+const FINANCE_ROUTE_HANDLERS = Object.freeze({
+  bankTransactionListResponse,
+  bankClassificationListResponse,
+  bankClassificationOptionsResponse,
+  handleFinanceBankImport,
+  handleFinanceBankClassificationAuto,
+  handleFinanceBankClassificationReview,
+  listResponse: (request, options) => listResponse({ ...request, ...options }),
+  handleFinanceTimeEntryCreate,
+  handleFinanceTimeEntryApprove,
+  handleFinanceExpenseCreate,
+  handleFinanceDisbursementCreate,
+  handleFinanceFeeArrangementCreate,
+  handleFinanceWipGenerate,
+  handleFinanceWipSnapshotLock,
+  handleFinancePreBillCreate,
+  handleFinancePreBillApprove,
+  handleFinancePreBillReject,
+  handleFinanceInvoiceIssue,
+  handleFinancePaymentImport,
+  handleFinancePaymentAllocationCreate,
+  handleFinancePaymentMatchCreate,
+  handleFinanceArAging,
+  handleFinanceAccountingExportCsv,
+  handleFinanceTrustBalances,
+  handleFinanceTrustDepositCreate,
+  handleFinanceTrustDrawdownCreate,
+  handleFinanceTrustRefundCreate,
+  handleFinanceAudit,
+});
+
+const FINANCE_RUNTIME_ROUTER = createFinanceRuntimeRouter({
+  handlers: FINANCE_ROUTE_HANDLERS,
+  notFound: ({ query, requestId }) => errorResponse(404, requestId, [FINANCE_API_ERROR_CODES.not_found], {
+    audit_hint_ref: query.audit_hint_ref,
+  }),
+});
+
 export async function handleFinanceApiRequest({ pathname, method, query, body, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  if (pathname === "/api/finance/bank-transactions" && method === "GET") {
-    return bankTransactionListResponse({ query, context, requestId, runtime });
-  }
-  if (pathname === "/api/finance/bank-classifications" && method === "GET") {
-    return bankClassificationListResponse({ query, context, requestId, runtime });
-  }
-  if (pathname === "/api/finance/bank-classification-options" && method === "GET") {
-    return bankClassificationOptionsResponse({ query, context, requestId, runtime });
-  }
-  if (pathname === "/api/finance/bank-imports" && method === "POST") {
-    return handleFinanceBankImport({ body, context, requestId, runtime });
-  }
-  if (pathname === "/api/finance/bank-classifications/auto" && method === "POST") {
-    return handleFinanceBankClassificationAuto({ body, context, requestId, runtime });
-  }
-  if (pathname === "/api/finance/bank-classifications/review" && method === "POST") {
-    return handleFinanceBankClassificationReview({ body, context, requestId, runtime });
-  }
-  if (pathname === "/api/finance/time-entries" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:time:read", resourceType: "time_entry", modelType: "TimeEntry" });
-  }
-  if (pathname === "/api/finance/time-entries" && method === "POST") return handleFinanceTimeEntryCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/time-entries/approve" && method === "POST") return handleFinanceTimeEntryApprove({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/expenses" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:expense:read", resourceType: "expense", modelType: "Expense" });
-  }
-  if (pathname === "/api/finance/expenses" && method === "POST") return handleFinanceExpenseCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/disbursements" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:disbursement:read", resourceType: "disbursement", modelType: "Disbursement" });
-  }
-  if (pathname === "/api/finance/disbursements" && method === "POST") return handleFinanceDisbursementCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/fee-arrangements" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:fee_arrangement:read", resourceType: "fee_arrangement", modelType: "FeeArrangement" });
-  }
-  if (pathname === "/api/finance/fee-arrangements" && method === "POST") return handleFinanceFeeArrangementCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/wip" && method === "POST") return handleFinanceWipGenerate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/wip-snapshots" && method === "POST") return handleFinanceWipSnapshotLock({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/prebills" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:prebill:read", resourceType: "prebill", modelType: "PreBill" });
-  }
-  if (pathname === "/api/finance/prebills" && method === "POST") return handleFinancePreBillCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/prebills/approve" && method === "POST") return handleFinancePreBillApprove({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/prebills/reject" && method === "POST") return handleFinancePreBillReject({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/invoices" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:invoice:read", resourceType: "invoice", modelType: "Invoice" });
-  }
-  if (pathname === "/api/finance/invoices" && method === "POST") return handleFinanceInvoiceIssue({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/payments" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:payment:read", resourceType: "payment", modelType: "Payment" });
-  }
-  if (pathname === "/api/finance/payments" && method === "POST") return handleFinancePaymentImport({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/payment-allocations" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:payment_allocation:read", resourceType: "payment_allocation", modelType: "PaymentAllocation" });
-  }
-  if (pathname === "/api/finance/payment-allocations" && method === "POST") return handleFinancePaymentAllocationCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/payment-matches" && method === "GET") {
-    return listResponse({ query, context, requestId, runtime, action: "finance:payment_match:read", resourceType: "payment_match", modelType: "PaymentMatch" });
-  }
-  if (pathname === "/api/finance/payment-matches" && method === "POST") return handleFinancePaymentMatchCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/ar-aging" && method === "GET") return handleFinanceArAging({ query, context, requestId, runtime });
-  if (pathname === "/api/finance/accounting-export.csv" && method === "GET") return handleFinanceAccountingExportCsv({ query, context, requestId, runtime });
-  if (pathname === "/api/finance/trust-balances" && method === "GET") return handleFinanceTrustBalances({ query, context, requestId, runtime });
-  if (pathname === "/api/finance/trust-deposits" && method === "POST") return handleFinanceTrustDepositCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/trust-drawdowns" && method === "POST") return handleFinanceTrustDrawdownCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/trust-refunds" && method === "POST") return handleFinanceTrustRefundCreate({ body, context, requestId, runtime });
-  if (pathname === "/api/finance/audit" && method === "GET") return handleFinanceAudit({ query, context, requestId, runtime });
-  return errorResponse(404, requestId, [FINANCE_API_ERROR_CODES.not_found], { audit_hint_ref: query.audit_hint_ref });
+  return FINANCE_RUNTIME_ROUTER({ pathname, method, query, body, context, requestId, runtime });
 }
 
 function financeRequestTenantId(query, body) {

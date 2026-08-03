@@ -806,6 +806,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
             "Fn::GetAtt": ["ProductionKey", "Arn"],
           },
           LAWOS_RUNTIME_PROFILE: "operational",
+          LAWOS_RUNTIME_GENERATION: { Ref: "RuntimeGeneration" },
           NODE_EXTRA_CA_CERTS: "/var/task/certs/global-bundle.pem",
         },
       },
@@ -1270,6 +1271,8 @@ export function validateJsonPostgresProductionTemplate(template) {
     || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
       ?.LAWOS_PROGRAM_EXECUTION_ROLE !== "projection-auditor"
     || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_RUNTIME_GENERATION?.Ref !== "RuntimeGeneration"
+    || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
       ?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID?.Ref
       !== "ProjectionAuditorDatabaseSecret"
     || resources.ProjectionAuditorFunction?.Properties?.Environment?.Variables
@@ -1283,6 +1286,8 @@ export function validateJsonPostgresProductionTemplate(template) {
       !== 1
     || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
       ?.LAWOS_PROGRAM_EXECUTION_ROLE !== "projection-writer"
+    || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_RUNTIME_GENERATION?.Ref !== "RuntimeGeneration"
     || resources.ProjectionWorkerFunction?.Properties?.Environment?.Variables
       ?.LAWOS_PROJECTION_DATABASE_SECRET_ID?.Ref
       !== "ProjectionDatabaseSecret"

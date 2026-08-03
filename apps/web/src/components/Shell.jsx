@@ -45,6 +45,10 @@ import {
   canSettleLeaveTermination as canSettleLeaveTerminationForRecords,
   canManageLeavePolicy as canManageLeavePolicyForRecords
 } from "../data/hrxAccess.js";
+import {
+  MATTER_LEGACY_ROUTE_REDIRECTS as MATTER_LEGACY_ROUTE_REDIRECTS_FROM_CATALOG,
+  resolveMatterRoute as resolveMatterRouteFromCatalog
+} from "./matter-small-firm/routes.js";
 
 const peopleIconMap = {
   bell: Bell,
@@ -801,6 +805,30 @@ const sidebarMeta = {
   }
 };
 
+/**
+ * Matter's daily-purpose navigation contract.
+ *
+ * Keep these routes as one flat list: board, task list, and worktree are
+ * presentations of the same work ledger, while closeout/archive/reporting
+ * are filters or actions owned by a canonical surface.  The dispatcher can
+ * evolve independently; the sidebar only exposes these six destinations.
+ */
+export const MATTER_CANONICAL_ROUTES = Object.freeze([
+  Object.freeze({ id: "matter-today", label: "오늘", view: "matters", section: "matter-today", icon: LayoutDashboard, surface: "MattersSurface" }),
+  Object.freeze({ id: "matter-list", label: "사건", view: "matters", section: "matter-list", icon: ClipboardList, surface: "MattersSurface" }),
+  Object.freeze({ id: "matter-work", label: "업무", view: "matters", section: "matter-work", icon: ClipboardList, surface: "MattersSurface" }),
+  Object.freeze({ id: "matter-calendar", label: "일정", view: "matters", section: "matter-calendar", icon: CalendarDays, surface: "MattersSurface" }),
+  Object.freeze({ id: "matter-followups", label: "연락·후속", view: "matters", section: "matter-followups", icon: Mail, surface: "MattersSurface" }),
+  Object.freeze({ id: "matter-time-billing", label: "시간·청구", view: "matters", section: "matter-time-billing", icon: FileText, surface: "MattersSurface" })
+]);
+
+export const MATTER_LEGACY_ROUTE_REDIRECTS = MATTER_LEGACY_ROUTE_REDIRECTS_FROM_CATALOG;
+
+/** Resolve a Matter route without rendering a second legacy destination. */
+export function resolveMatterRoute(section = "", filter = "") {
+  return resolveMatterRouteFromCatalog(section, filter);
+}
+
 export function buildContextualNavigation({
   labels = {},
   financeAccessRecords = [],
@@ -908,45 +936,10 @@ export function buildContextualNavigation({
     },
     matters: {
       ...sidebarMeta.matters,
-      items: [
-        {
-          label: "업무 관리",
-          icon: FileText,
-          children: [
-            { label: "업무 보드", view: "matters", section: "matter-board", icon: LayoutDashboard },
-            { label: "워크트리", view: "matters", section: "matter-worktree", icon: Share2 },
-            { label: "할 일", view: "matters", section: "matter-tasks", icon: ClipboardList },
-            { label: "일정", view: "matters", section: "matter-calendar", icon: CalendarDays }
-          ]
-        },
-        {
-          label: "사건 운영",
-          icon: LayoutDashboard,
-          children: [
-            { label: "대시보드", view: "matters", section: "matter-home", icon: LayoutDashboard, active: true },
-            { label: "사건 목록", view: "matters", section: "matters-list", icon: ClipboardList },
-            { label: "신규 사건", view: "matters", section: "matter-opening", icon: Plus },
-            { label: "종결 처리", view: "matters", section: "matter-closeout", icon: ShieldCheck },
-            { label: "보관 사건", view: "matters", section: "matter-archive", icon: FileText }
-          ]
-        },
-        {
-          label: "소통",
-          icon: Mail,
-          children: [
-            { label: "회의 기록", view: "matters", section: "matter-meetings", icon: ClipboardList },
-            { label: "의뢰인 요청", view: "matters", section: "matter-client-requests", icon: FileText }
-          ]
-        },
-        {
-          label: "리포트",
-          icon: Settings,
-          children: [
-            { label: "사건 리포트", view: "matters", section: "matter-analytics", icon: ClipboardList },
-            { label: "연동", view: "matters", section: "matter-integrations", icon: Bell }
-          ]
-        }
-      ]
+      items: MATTER_CANONICAL_ROUTES.map((route, index) => ({
+        ...route,
+        active: index === 0
+      }))
     },
     people: { ...sidebarMeta.people, items: peopleSidebarGroups({ canManageLeavePolicy, canApproveLeave, canExecuteLeaveAccrual, canAdjustLeaveLedger, canExportLeaveReport, canSettleLeaveTermination, canManageLeavePromotion }) },
     vault: {

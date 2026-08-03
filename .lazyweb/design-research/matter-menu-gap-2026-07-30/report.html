@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Matter 메뉴 구현 갭 · 중복 · OSS 코드 리서치</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182230;
+      --muted: #5d6878;
+      --line: #cfd7e3;
+      --line-strong: #98a6b8;
+      --paper: #ffffff;
+      --canvas: #f4f6f9;
+      --blue: #145ea8;
+      --blue-soft: #eaf4ff;
+      --green: #176b4d;
+      --green-soft: #eaf6f0;
+      --amber: #8a5500;
+      --amber-soft: #fff5df;
+      --red: #a23434;
+      --red-soft: #fff0f0;
+      --slate-soft: #edf1f5;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.7 var(--sans);
+    }
+    main {
+      width: min(1040px, calc(100% - 32px));
+      margin: 28px auto 64px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+    }
+    header {
+      padding: 44px 48px 34px;
+      border-bottom: 1px solid var(--line);
+    }
+    section {
+      padding: 38px 48px;
+      border-bottom: 1px solid var(--line);
+    }
+    section:last-child { border-bottom: 0; }
+    h1, h2, h3, h4 {
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.3;
+      letter-spacing: -0.025em;
+    }
+    h1 { max-width: 780px; font-size: clamp(30px, 5vw, 46px); }
+    h2 { margin-bottom: 18px; font-size: 27px; }
+    h3 { margin-top: 30px; margin-bottom: 12px; font-size: 20px; }
+    h4 { margin-top: 22px; margin-bottom: 8px; font-size: 16px; }
+    p { margin: 10px 0; }
+    section > p { max-width: 820px; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    code {
+      padding: 1px 4px;
+      border: 1px solid #dce2ea;
+      background: #f5f7fa;
+      font: 0.88em/1.5 var(--mono);
+    }
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .deck {
+      max-width: 840px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .meta span { overflow-wrap: anywhere; }
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      padding: 14px 48px;
+      border-bottom: 1px solid var(--line);
+      background: #fafbfc;
+      font-size: 13px;
+    }
+    .toc a { color: #344258; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .tldr {
+      padding: 22px 24px;
+      border: 1px solid #a7c9ee;
+      border-left: 5px solid var(--blue);
+      background: var(--blue-soft);
+    }
+    .tldr h2 { margin-bottom: 10px; font-size: 22px; }
+    .tldr ol { margin-bottom: 0; }
+    .finding-list {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      margin: 24px 0 0;
+      border-top: 1px solid var(--line);
+    }
+    .finding-list dt,
+    .finding-list dd {
+      margin: 0;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .finding-list dt {
+      padding-right: 18px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .finding-list dd { font-weight: 650; }
+    .callout {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--line-strong);
+      background: var(--slate-soft);
+    }
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: var(--amber-soft);
+    }
+    .callout.danger {
+      border-left-color: var(--red);
+      background: var(--red-soft);
+    }
+    .callout.success {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+    .table-wrap {
+      width: 100%;
+      margin: 18px 0 8px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      outline-offset: 3px;
+    }
+    .table-wrap:focus { outline: 2px solid var(--blue); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--paper);
+      font-size: 13px;
+    }
+    th, td {
+      padding: 11px 12px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      background: #f2f5f8;
+      color: #324057;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: #fbfcfd; }
+    .status {
+      display: inline-block;
+      min-width: 58px;
+      padding: 2px 7px;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.4;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .status.good { color: var(--green); background: var(--green-soft); }
+    .status.partial { color: var(--amber); background: var(--amber-soft); }
+    .status.empty { color: var(--red); background: var(--red-soft); }
+    .status.merge { color: #4d5670; background: var(--slate-soft); }
+    .num {
+      font-family: var(--mono);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    ul, ol { padding-left: 22px; }
+    li + li { margin-top: 6px; }
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+    figure {
+      margin: 0;
+      border: 1px solid var(--line);
+      background: #fafbfc;
+    }
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-bottom: 1px solid var(--line);
+    }
+    figure > a {
+      display: block;
+      background: #fff;
+    }
+    figure > a:focus { outline: 3px solid var(--blue); outline-offset: -3px; }
+    figcaption {
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    pre.wireframe {
+      margin: 14px 0 6px;
+      padding: 18px;
+      overflow-x: auto;
+      border: 1px solid var(--line-strong);
+      background: #101722;
+      color: #edf3fa;
+      font: 12px/1.55 var(--mono);
+    }
+    .decision {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 0 18px;
+      border-top: 1px solid var(--line);
+    }
+    .decision > div {
+      padding: 13px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .decision .label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .phase {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 18px;
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+    .phase:last-of-type { border-bottom: 1px solid var(--line); }
+    .phase-id {
+      color: var(--blue);
+      font: 750 13px/1.5 var(--mono);
+    }
+    .phase h3 { margin: 0 0 6px; font-size: 18px; }
+    .phase p { margin: 5px 0; }
+    details {
+      margin: 12px 0;
+      border: 1px solid var(--line);
+      background: #fafbfc;
+    }
+    summary {
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    details > div { padding: 0 14px 14px; }
+    .source-list {
+      padding-left: 20px;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    footer {
+      padding: 22px 48px;
+      border-top: 1px solid var(--line);
+      background: #fafbfc;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 760px) {
+      main { width: 100%; margin: 0; border: 0; }
+      header, section { padding: 28px 20px; }
+      .toc { padding: 12px 20px; }
+      .evidence-grid { grid-template-columns: 1fr; }
+      .finding-list, .decision, .phase { grid-template-columns: 1fr; }
+      .finding-list dt, .decision .label { border-bottom: 0; padding-bottom: 2px; }
+      .finding-list dd, .decision > div:not(.label) { padding-top: 2px; }
+      footer { padding: 20px; }
+    }
+    @media print {
+      body { background: #fff; }
+      main { width: 100%; margin: 0; border: 0; }
+      a { color: inherit; }
+      section, figure, .phase { break-inside: avoid; }
+      details { break-inside: auto; }
+      details > summary { display: none; }
+      details:not([open]) > *:not(summary) { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Design evidence · source audit · OSS code research</div>
+      <h1>Matter 메뉴 구현 갭 · 중복 · OSS 코드 리서치</h1>
+      <p class="deck">
+        현재 <strong>13개 노출 메뉴</strong>를 실제 렌더링 화면, 현재 소스, 승인 대기 중인 제품 IA,
+        백엔드 도메인 계약과 대조했다. 빈 화면을 채우는 것보다 먼저 메뉴 소유권과 데이터 원장을 정리하는 실행안이다.
+      </p>
+      <div class="meta">
+        <span>기준 소스 <code>origin/main@34d16954f54a</code></span>
+        <span>브랜치 <code>codex/matter-menu-gap-oss-research-20260730</code></span>
+        <span>조사일 2026-07-30</span>
+        <span>현재 화면: 로컬 live 모드 캡처</span>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="보고서 목차">
+      <a href="#summary">결론</a>
+      <a href="#evidence">현재 화면</a>
+      <a href="#inventory">13개 메뉴 판정</a>
+      <a href="#design-gap">설계 대비 갭</a>
+      <a href="#duplicates">중복 감사</a>
+      <a href="#target-ia">권장 IA</a>
+      <a href="#oss">OSS 코드 패턴</a>
+      <a href="#plan">구현 계획</a>
+      <a href="#acceptance">수용 기준</a>
+      <a href="#sources">출처</a>
+    </nav>
+
+    <section id="summary">
+      <div class="tldr">
+        <h2>결론부터</h2>
+        <ol>
+          <li><strong>소스 기준 핵심 구현 경로가 확인된 메뉴는 3개</strong>다: 사건 목록, 신규 사건, 워크트리. 이번 조사만으로 운영 영속성·권한 시나리오까지 완료됐다고 판정하지는 않는다.</li>
+          <li><strong>4개는 데이터 경로가 있으나 화면·설계가 미완성</strong>이다: 대시보드, 할 일, 일정, 사건 리포트.</li>
+          <li><strong>6개는 빈 화면 또는 설명용 조합에 가깝다</strong>: 업무 보드, 종결 처리, 보관 사건, 회의 기록, 의뢰인 요청, 연동.</li>
+          <li>현재 메뉴 13개를 그대로 구현하지 말고 <strong>10개로 정리</strong>한다. 종결은 사건 상세의 워크플로로, 보관은 사건 목록의 저장된 보기로, 연동 설정은 전역 설정으로 옮긴다.</li>
+          <li><strong>새 Task 모델은 만들지 않는다.</strong> 할 일·워크트리는 이미 같은 <code>MatterTask</code>를 사용한다. 업무 큐와 보드는 같은 원장의 읽기 투영이어야 한다.</li>
+        </ol>
+      </div>
+
+      <dl class="finding-list">
+        <dt>가장 명확한 결함</dt>
+        <dd>업무 보드의 기본 ‘홈’ 탭은 DOM상 빈 <code>tabpanel</code>만 렌더링한다.</dd>
+        <dt>가장 큰 설계 갭</dt>
+        <dd>Matter Home 11영역 중 ‘오늘의 할 일’만 부분 대응하고 10영역은 화면상 부재다.</dd>
+        <dt>가장 큰 중복</dt>
+        <dd>업무 보드의 비홈 탭은 업무 카드가 아니라 사건 목록을 분야별로 다시 보여준다.</dd>
+        <dt>가장 위험한 오해</dt>
+        <dd>연동·발송·게시 버튼이 있다는 사실은 외부 공급자 연결 또는 프로덕션 준비 완료를 뜻하지 않는다.</dd>
+        <dt>권장 우선순위</dt>
+        <dd>IA 정리 → 단일 업무 원장 투영 → Matter Home 읽기 모델 → 종결/요청 상태기계 → 공급자 어댑터 순서.</dd>
+      </dl>
+
+      <div class="callout warning">
+        <strong>판정 경계.</strong> 이 보고서의 화면 증거는 현재 커밋을 로컬 live 모드로 실행해 캡처한 것이다.
+        로컬 세션에서 보인 로딩·API 오류는 배포 앱의 데이터 손실이나 운영 장애를 증명하지 않는다.
+        반대로 설명용 표와 버튼이 렌더링된다는 사실도 영속 쓰기, 권한, 감사, 외부 전송이 완료됐다는 증거가 아니다.
+      </div>
+    </section>
+
+    <section id="evidence">
+      <h2>현재 화면에서 확인한 증거</h2>
+      <p>
+        사이드바는 4개 그룹, 13개 메뉴를 노출한다. 구현 상태는 같은 수준이 아니다.
+        특히 업무 보드는 ‘홈’ 탭이 완전히 비어 있고, 종결·보관·회의·요청·연동은 정적인 설명 표 또는 범용 패널 조합이 화면의 대부분을 차지한다.
+      </p>
+
+      <div class="evidence-grid">
+        <figure>
+          <a href="references/current-state-matter-board.png" aria-label="업무 보드 화면 원본 열기">
+            <img src="references/current-state-matter-board.png" alt="홈 탭이 빈 현재 Matter 업무 보드 화면">
+          </a>
+          <figcaption><strong>업무 보드.</strong> 탭 아래가 비어 있다. 소스도 기본 탭에 빈 div만 렌더링한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-dashboard.png" aria-label="Matter 대시보드 화면 원본 열기">
+            <img src="references/matter-dashboard.png" alt="5개 목록 카드로 구성된 현재 Matter 대시보드">
+          </a>
+          <figcaption><strong>대시보드.</strong> 최근 작업·오늘 To Do·나의 매터·신규 수임·종결 매터의 5개 목록이다. 11영역 IA와 다르다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-tasks.png" aria-label="할 일 화면 원본 열기">
+            <img src="references/matter-tasks.png" alt="설명 표와 활동 입력 화면으로 구성된 현재 할 일 메뉴">
+          </a>
+          <figcaption><strong>할 일.</strong> 활동 생성·목록 경로는 있으나 설계된 4개 Work Queue lane은 없다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-closeout.png" aria-label="종결 처리 화면 원본 열기">
+            <img src="references/matter-closeout.png" alt="정적 설명 표와 생애주기 패널로 구성된 종결 처리 화면">
+          </a>
+          <figcaption><strong>종결 처리.</strong> 체크리스트 설명과 범용 생애주기 패널은 있지만 명시적 종결 게이트·상태기계가 없다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-archive.png" aria-label="보관 사건 화면 원본 열기">
+            <img src="references/matter-archive.png" alt="종결 처리와 유사한 현재 보관 사건 화면">
+          </a>
+          <figcaption><strong>보관 사건.</strong> 종결 처리와 같은 생애주기 패널을 재사용한다. 별도 최상위 메뉴의 필요성이 약하다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-client-requests.png" aria-label="의뢰인 요청 화면 원본 열기">
+            <img src="references/matter-client-requests.png" alt="채널과 승인 패널을 조합한 현재 의뢰인 요청 화면">
+          </a>
+          <figcaption><strong>의뢰인 요청.</strong> 채널과 승인 카드를 조합했지만 외부 요청자·응답·SLA를 가진 요청 원장은 없다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-meetings.png" aria-label="회의 기록 화면 원본 열기">
+            <img src="references/matter-meetings.png" alt="일정과 채널 패널을 조합한 현재 회의 기록 화면">
+          </a>
+          <figcaption><strong>회의 기록.</strong> 일정과 채널의 재조합이다. 참석자·결정·후속조치라는 회의 고유 계약은 보이지 않는다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-integrations.png" aria-label="Matter 연동 화면 원본 열기">
+            <img src="references/matter-integrations.png" alt="연동 상태와 정책 설명 카드로 구성된 현재 연동 화면">
+          </a>
+          <figcaption><strong>연동.</strong> 공급자 자격증명·동기화 커서·오류·재시도 상태를 가진 연결 원장 대신 상태 설명을 보여준다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/matter-analytics.png" aria-label="사건 리포트 화면 원본 열기">
+            <img src="references/matter-analytics.png" alt="로딩 상태가 지속된 현재 사건 리포트 화면">
+          </a>
+          <figcaption><strong>사건 리포트.</strong> 분석 읽기 경로는 있으나 이 로컬 세션에서는 로딩 상태가 지속됐다. 운영 데이터 손실의 증거로 해석하지 않는다.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="inventory">
+      <h2>노출된 13개 메뉴 판정</h2>
+      <p>
+        ‘구현’은 버튼 유무가 아니라 실제 데이터 원장, 상태 전이, 권한, 감사, 실패 상태까지 연결됐는지를 기준으로 판정했다.
+      </p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="노출된 Matter 메뉴 13개 구현 상태 표">
+        <table>
+          <caption class="sr-only">노출된 Matter 메뉴 13개의 현재 구현 증거, 설계 대비 갭과 권장 조치</caption>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">메뉴 / 경로</th>
+              <th scope="col">현재 판정</th>
+              <th scope="col">현재 증거</th>
+              <th scope="col">설계 대비 갭</th>
+              <th scope="col">권장 조치</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">01</td>
+              <td><strong>업무 보드</strong><br><code>matter-board</code></td>
+              <td><span class="status empty">빈 화면</span></td>
+              <td>기본 홈은 빈 패널. 나머지 탭은 송무·자문 등으로 필터한 <em>사건 목록</em>.</td>
+              <td>업무 상태·담당자·기한을 움직이는 보드가 아니다.</td>
+              <td>홈 탭 삭제. <code>MatterTask</code> 기반 상태 Kanban으로 교체.</td>
+            </tr>
+            <tr>
+              <td class="num">02</td>
+              <td><strong>워크트리</strong><br><code>matter-worktree</code></td>
+              <td><span class="status good">경로 확인</span></td>
+              <td>노드 CRUD, 업무 연결, 완료·재개·차단 해제, 버전·감사 계약이 존재.</td>
+              <td>전용 보기로서는 타당. 업무 큐와 상태 표현을 맞춰야 함.</td>
+              <td>유지. 노드는 구조, <code>MatterTask</code>는 단일 업무 원장으로 고정.</td>
+            </tr>
+            <tr>
+              <td class="num">03</td>
+              <td><strong>할 일</strong><br><code>matter-tasks</code></td>
+              <td><span class="status partial">부분 구현</span></td>
+              <td>활동 서비스가 <code>MatterTask</code> 생성·수정·목록·타임라인을 처리.</td>
+              <td>설계된 나의 업무·기한 초과·검토 필요·승인 요청의 4개 구간 부재.</td>
+              <td>메뉴명을 <strong>업무 큐</strong>로 변경하고 기존 원장의 투영으로 구현.</td>
+            </tr>
+            <tr>
+              <td class="num">04</td>
+              <td><strong>일정</strong><br><code>matter-calendar</code></td>
+              <td><span class="status partial">부분 구현</span></td>
+              <td>로컬 <code>MatterCalendarEvent</code>, 마감, 활동 타임라인 경로가 있음.</td>
+              <td>외부 캘린더 자격증명·동기화 건강·재연결·읽기전용 상태가 분리되지 않음.</td>
+              <td>로컬 일정을 정본으로 유지하고 공급자 연결 상태를 별도 표시.</td>
+            </tr>
+            <tr>
+              <td class="num">05</td>
+              <td><strong>대시보드</strong><br><code>matter-home</code></td>
+              <td><span class="status partial">부분 구현</span></td>
+              <td>최근 작업·오늘 To Do·나의 매터·신규 수임·종결 매터 5개 목록.</td>
+              <td>Matter Home 11영역 중 오늘의 액션만 부분 대응. 선택 Matter 중심 화면도 아님.</td>
+              <td>선택 사건의 Summary부터 Knowledge 후보까지 권한 인지 read model로 재구축.</td>
+            </tr>
+            <tr>
+              <td class="num">06</td>
+              <td><strong>사건 목록</strong><br><code>matters-list</code></td>
+              <td><span class="status good">경로 확인</span></td>
+              <td>실제 Matter 목록·선택·필터·상세 오버레이 경로.</td>
+              <td>보관/종결이 별도 메뉴와 중복.</td>
+              <td>유지. 활성·종결·보관을 저장된 보기로 통합.</td>
+            </tr>
+            <tr>
+              <td class="num">07</td>
+              <td><strong>신규 사건</strong><br><code>matter-opening</code></td>
+              <td><span class="status good">경로 확인</span></td>
+              <td>사건 생성·프로필·이해상충/당사자·상태 전이 계약과 연결.</td>
+              <td>설계 단계와 실제 상태 enum을 계속 정합화할 필요.</td>
+              <td>유지. 이해상충·수임 승인·필수 필드 게이트를 서버 기준으로 고정.</td>
+            </tr>
+            <tr>
+              <td class="num">08</td>
+              <td><strong>종결 처리</strong><br><code>matter-closeout</code></td>
+              <td><span class="status empty">설명형</span></td>
+              <td>정적 체크리스트 표와 범용 생애주기 패널.</td>
+              <td>미수금·법적 보존·문서 QC·승인·감사·후속 작업을 묶는 원자적 종결 계약 부재.</td>
+              <td>사건 상세의 <strong>종결 워크플로</strong>로 이동. 차단 사유와 승인 증거를 저장.</td>
+            </tr>
+            <tr>
+              <td class="num">09</td>
+              <td><strong>보관 사건</strong><br><code>matter-archive</code></td>
+              <td><span class="status merge">중복</span></td>
+              <td>종결 처리와 같은 <code>LifecycleBoundaryPanel</code>을 공유.</td>
+              <td>보관은 독립 업무 공간보다 Matter 상태/보기의 성격이 강함.</td>
+              <td>사건 목록의 ‘보관됨’ 저장 보기로 병합. 재활성화는 승인된 action으로 유지.</td>
+            </tr>
+            <tr>
+              <td class="num">10</td>
+              <td><strong>회의 기록</strong><br><code>matter-meetings</code></td>
+              <td><span class="status empty">조합형</span></td>
+              <td>Calendar 패널과 Channel 패널의 재사용.</td>
+              <td>참석자·의제·결정·후속조치·회의록 버전이라는 고유 데이터가 없음.</td>
+              <td>기본은 활동 기록의 <code>meeting</code> 유형으로 병합. 고유 계약이 필요할 때만 Meeting aggregate 추가.</td>
+            </tr>
+            <tr>
+              <td class="num">11</td>
+              <td><strong>의뢰인 요청</strong><br><code>matter-client-requests</code></td>
+              <td><span class="status empty">조합형</span></td>
+              <td>Channel 패널과 Approval 패널의 재사용.</td>
+              <td>외부 요청자, 요청/응답 본문, SLA, 첨부, 공개 범위, Portal 소유권이 불명확.</td>
+              <td><strong>의뢰인 요청 검토</strong>로 명확화. 내부 검토는 Matter, 외부 응답은 Portal이 소유.</td>
+            </tr>
+            <tr>
+              <td class="num">12</td>
+              <td><strong>사건 리포트</strong><br><code>matter-analytics</code></td>
+              <td><span class="status partial">부분 구현</span></td>
+              <td>분석 읽기 투영 경로는 있으나 캡처 시 로딩 상태가 지속.</td>
+              <td>필터·기준시각·출처·정의·내보내기 증거가 약함. 전역 Reports와 역할 중복 가능.</td>
+              <td>Matter 범위의 고정 보고서만 유지하거나 Matter 조건이 적용된 전역 리포트 허브로 연결.</td>
+            </tr>
+            <tr>
+              <td class="num">13</td>
+              <td><strong>연동</strong><br><code>matter-integrations</code></td>
+              <td><span class="status empty">설명형</span></td>
+              <td>연동 상태·정책 설명 카드. 공급자 연결 원장과 건강 상태가 보이지 않음.</td>
+              <td>전역 Settings와 설정 소유권 중복. Matter별 binding과 전역 credential의 경계 부재.</td>
+              <td>설정은 전역 Settings로 이동. Matter에는 연결 상태·마지막 동기화·재연결 action만 노출.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout success">
+        <strong>중요한 재사용 지점.</strong> 활동 서비스가 만든 업무와 워크트리가 연결한 업무는 둘 다
+        <code>MatterTask</code>다. 워크트리 노드를 제거해도 업무 레코드는 유지하도록 이미 계약돼 있다.
+        구현 계획은 이 정본을 확장하는 대신 읽기 투영과 상태 vocabulary를 정리한다.
+      </div>
+    </section>
+
+    <section id="design-gap">
+      <h2>제품 설계 대비 핵심 갭</h2>
+      <p>
+        현재 릴리스 계획이 Wave 1 제품 UI로 명시한 화면군은 <strong>Matter Home, Work Queue,
+        Document Workspace, Outlook Add-in Pane, Issue Ledger, Admin Console</strong>이다.
+        현재 사이드바 13개와 일대일 대응하지 않는다. 메뉴 수를 늘리기보다 이 6개 흐름을 끊김 없이 만드는 것이 우선이다.
+      </p>
+
+      <h3>Matter Home 11영역 대조</h3>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Matter Home 11영역 현재 상태 표">
+        <table>
+          <caption class="sr-only">Matter Home 설계 11영역과 현재 상태 및 필요한 읽기 모델</caption>
+          <thead>
+            <tr>
+              <th scope="col">IA 영역</th>
+              <th scope="col">현재 상태</th>
+              <th scope="col">필요 읽기 모델 / 경계</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>MH-01 사건 요약</td><td><span class="status empty">부재</span></td><td>선택 Matter의 의뢰인·상대방·유형·단계·담당·기밀도</td></tr>
+            <tr><td>MH-02 오늘의 액션</td><td><span class="status partial">부분</span></td><td><code>MatterTask</code> + 검토 + 승인 요청을 날짜·위험순으로 결합</td></tr>
+            <tr><td>MH-03 중요 기한</td><td><span class="status empty">부재</span></td><td>법원·제출·계약·의뢰인 응답 기한과 계산 근거</td></tr>
+            <tr><td>MH-04 열린 이슈</td><td><span class="status empty">부재</span></td><td>Issue Ledger의 위험도·담당·다음 행동</td></tr>
+            <tr><td>MH-05 최근 문서</td><td><span class="status empty">부재</span></td><td>Vault file_ref, 버전, 출처, QC 상태</td></tr>
+            <tr><td>MH-06 최근 이메일</td><td><span class="status empty">부재</span></td><td>Outlook filing 완료 thread만, 보낸이/제목 권한 마스킹</td></tr>
+            <tr><td>MH-07 의뢰인 대기</td><td><span class="status empty">부재</span></td><td>ClientRequest의 공개 가능한 상태·기한</td></tr>
+            <tr><td>MH-08 상대방 대기</td><td><span class="status empty">부재</span></td><td>협상/회신 blocker와 다음 확인일</td></tr>
+            <tr><td>MH-09 AI 후보</td><td><span class="status empty">부재</span></td><td>Wave 1에서는 비대화형 dark-launch placeholder만 허용</td></tr>
+            <tr><td>MH-10 청구·업무량</td><td><span class="status empty">부재</span></td><td>Matter 범위 시간·예산·팀 업무량; 권한별 금액 마스킹</td></tr>
+            <tr><td>MH-11 지식 후보</td><td><span class="status empty">부재</span></td><td>출처가 있는 지식 후보와 검토 상태</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Work Queue 4개 구간 대조</h3>
+      <p>
+        현재 ‘할 일’은 활동 생성/목록이다. 설계는 다음 네 lane을 정확히 요구한다.
+        HR 업무는 Wave 1에서 제외하며, 서버 성공 전 영구 optimistic mutation을 금지한다.
+      </p>
+      <div class="decision">
+        <div class="label">나의 업무</div><div>현재 사용자 소유 업무. 기한 오름차순, 위험도 내림차순. 시작·중지·차단·완료·검토 요청.</div>
+        <div class="label">기한 초과</div><div>완료/취소가 아니고 <code>due_at &lt; now</code>. 재일정·차단·에스컬레이션.</div>
+        <div class="label">검토 필요</div><div>검토자 자격이 있는 항목만. 승인·반려·수정 요청·검토 인수.</div>
+        <div class="label">승인 요청</div><div>승인 역할이 있는 사용자만 세부 정보와 최종 action을 본다. 무권한 count도 0.</div>
+      </div>
+
+      <pre class="wireframe" aria-label="권장 Matter Home과 Work Queue 구조">
+Matter Home · MAT-2026-014                              [권한: allow]
+────────────────────────────────────────────────────────────────────
+사건 요약     의뢰인 / 상대방 / 단계 / 담당 / 기밀도      [상세 열기]
+중요 기한     07.31 답변서 · D-1     08.05 기일 · D-6
+오늘의 액션   □ 증거목록 검토        □ 의뢰인 확인 요청
+열린 이슈     HIGH 관할 이슈         MEDIUM 손해액 산정
+────────────────────────────────────────────────────────────────────
+최근 문서     최근 이메일            대기: 의뢰인 2 / 상대방 1
+청구·업무량   지식 후보              AI 후보: Wave 1 비활성
+
+업무 큐
+────────────────────────────────────────────────────────────────────
+[나의 업무 12] [기한 초과 3] [검토 필요 4] [승인 요청 2]
+상태      업무              사건          담당       기한       다음 작업
+차단      증거목록 정리     MAT-014       김변호사   오늘       [차단 해제]
+검토      계약서 초안       MAT-021       박변호사   내일       [검토 열기]</pre>
+    </section>
+
+    <section id="duplicates">
+      <h2>기능·메뉴 중복 감사</h2>
+      <p>
+        중복은 단순히 이름이 비슷한지를 보지 않고, 같은 데이터의 정본과 같은 사용자 결정을 두 화면이 소유하는지로 판단했다.
+      </p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Matter 메뉴와 다른 제품 영역의 중복 감사 표">
+        <table>
+          <caption class="sr-only">Matter 내부 및 전역 제품 영역과 겹치는 표면의 중복 판정과 소유권 결정</caption>
+          <thead>
+            <tr>
+              <th scope="col">겹치는 표면</th>
+              <th scope="col">판정</th>
+              <th scope="col">소유권 결정</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>업무 보드 ‘홈’ ↔ 대시보드</td>
+              <td><span class="status merge">삭제</span></td>
+              <td>대시보드가 Matter Home을 소유. 보드의 빈 홈 탭은 삭제.</td>
+            </tr>
+            <tr>
+              <td>업무 보드 분야 탭 ↔ 사건 목록</td>
+              <td><span class="status merge">재정의</span></td>
+              <td>사건 분류 목록은 사건 목록의 저장된 보기. 업무 보드는 <code>MatterTask</code> 상태 보드.</td>
+            </tr>
+            <tr>
+              <td>할 일 ↔ 워크트리 업무</td>
+              <td><span class="status good">정상 공유</span></td>
+              <td>이미 단일 <code>MatterTask</code>. 할 일은 queue, 워크트리는 구조적 placement만 소유.</td>
+            </tr>
+            <tr>
+              <td>종결 처리 ↔ 보관 사건 ↔ 사건 목록</td>
+              <td><span class="status merge">병합</span></td>
+              <td>종결은 사건 상세 작업, 보관은 상태/저장된 보기, 목록은 탐색을 소유.</td>
+            </tr>
+            <tr>
+              <td>회의 기록 ↔ 일정 ↔ 활동/채널</td>
+              <td><span class="status merge">기본 병합</span></td>
+              <td>회의는 활동의 유형. 참석자·결정·후속조치가 법적 기록으로 요구될 때만 전용 aggregate.</td>
+            </tr>
+            <tr>
+              <td>의뢰인 요청 ↔ Portal 요청</td>
+              <td><span class="status partial">경계 명확화</span></td>
+              <td>Matter는 내부 검토/배정, Portal은 외부 작성·응답·첨부·수신 확인.</td>
+            </tr>
+            <tr>
+              <td>사건 리포트 ↔ 전역 Reports</td>
+              <td><span class="status partial">범위 분리</span></td>
+              <td>Matter에는 고정된 사건 보고서만. 임의 분석/빌더/포트폴리오는 전역 Reports.</td>
+            </tr>
+            <tr>
+              <td>연동 ↔ 전역 Settings</td>
+              <td><span class="status merge">이동</span></td>
+              <td>credential·scope·webhook은 전역 Settings. Matter는 binding/health만 읽음.</td>
+            </tr>
+            <tr>
+              <td>숨은 증거·양식 경로 ↔ Vault</td>
+              <td><span class="status merge">연결 경로</span></td>
+              <td>문서 원본·버전·검색은 Vault 정본. Matter-filtered Vault로 이동하는 단축 경로만 허용.</td>
+            </tr>
+            <tr>
+              <td>Matter 일정/할 일 ↔ Home 요약</td>
+              <td><span class="status good">정상 투영</span></td>
+              <td>Matter가 쓰기를 소유하고 Home은 집계 읽기만 소유.</td>
+            </tr>
+            <tr>
+              <td>Matter 팀 ↔ People</td>
+              <td><span class="status good">정상 분리</span></td>
+              <td>People은 인력/가용성 정본, Matter 팀은 사건별 staffing·접근 범위.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout danger">
+        <strong>숨은 경로 부채.</strong> 화면 컴포넌트는 32개 Matter section을 허용하지만 현재 사이드바는 13개만 노출한다.
+        숨은 19개 경로를 ‘언젠가 쓸 메뉴’로 방치하면 Vault·Search·Finance·Settings의 전역 소유권과 다시 충돌한다.
+        유지할 경로는 연결 경로 또는 사건 상세 탭으로 명시하고, 나머지는 이동/폐기 예정 목록을 만든다.
+      </div>
+    </section>
+
+    <section id="target-ia">
+      <h2>권장 Matter 정보구조: 13개 → 10개</h2>
+      <p>
+        최상위 메뉴는 사용자가 매일 반복하는 목적을 기준으로 남긴다. 상태 전이 action과 저장된 보기는 메뉴로 승격하지 않는다.
+      </p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="권장 Matter 정보구조 10개 메뉴 표">
+        <table>
+          <caption class="sr-only">13개에서 10개로 정리한 권장 Matter 메뉴와 데이터 소유권</caption>
+          <thead>
+            <tr>
+              <th scope="col">그룹</th>
+              <th scope="col">권장 메뉴</th>
+              <th scope="col">소유 데이터 / 역할</th>
+              <th scope="col">기존 메뉴 처리</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="5">업무</th><td>Matter 홈</td><td>11영역 권한 인지 읽기 모델</td><td>대시보드 재구축</td></tr>
+            <tr><td>업무 큐</td><td><code>MatterTask</code> + 검토/승인 투영</td><td>할 일 이름·구조 변경</td></tr>
+            <tr><td>업무 보드</td><td><code>MatterTask</code> 상태 Kanban</td><td>빈 홈과 사건 분류 탭 제거</td></tr>
+            <tr><td>워크트리</td><td>업무의 구조적 placement</td><td>유지</td></tr>
+            <tr><td>일정</td><td>로컬 일정·기한 + 공급자 동기화 상태</td><td>유지·연동 상태 보강</td></tr>
+            <tr><th scope="rowgroup" rowspan="2">사건</th><td>사건 목록</td><td>활성/종결/보관 저장 보기</td><td>보관 사건 병합</td></tr>
+            <tr><td>신규 사건</td><td>이해상충·수임 승인·프로필</td><td>유지</td></tr>
+            <tr><th scope="rowgroup" rowspan="2">소통</th><td>활동 기록</td><td>회의·통화·이메일 기록·결정·후속조치</td><td>회의 기록 병합</td></tr>
+            <tr><td>의뢰인 요청 검토</td><td>내부 배정·SLA·승인, Portal 연결</td><td>이름·경계 변경</td></tr>
+            <tr><th scope="row">리포트</th><td>사건 리포트</td><td>고정 정의·출처·기준시각이 있는 Matter 투영</td><td>유지 또는 Matter 조건이 적용된 전역 Reports 연결</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="decision">
+        <div class="label">메뉴에서 제외</div><div>종결 처리, 보관 사건, 연동.</div>
+        <div class="label">사건 상세 작업</div><div>종결 시작, 종결 승인, 재활성화, 연동 상태 확인.</div>
+        <div class="label">전역 소유</div><div>Vault 원본/검색, Portal 외부 응답, Settings credential, Reports 임의 분석.</div>
+        <div class="label">호환 처리</div><div>기존 route는 새 위치로 명시적 redirect하고 감사/북마크를 위해 deprecation 기간을 둔다.</div>
+      </div>
+
+      <pre class="wireframe" aria-label="권장 Matter 메뉴 구조">
+Matter
+├─ 업무
+│  ├─ Matter 홈
+│  ├─ 업무 큐
+│  ├─ 업무 보드
+│  ├─ 워크트리
+│  └─ 일정
+├─ 사건
+│  ├─ 사건 목록  [활성 | 종결 | 보관]
+│  └─ 신규 사건
+├─ 소통
+│  ├─ 활동 기록  [회의 | 통화 | 이메일 | 결정]
+│  └─ 의뢰인 요청 검토  → 외부 응답은 Portal
+└─ 리포트
+   └─ 사건 리포트
+
+사건 상세 작업: [종결 시작] [재활성화] [Vault 열기] [연동 상태]
+전역 소유: Vault · Portal · Settings/Integrations · Reports</pre>
+    </section>
+
+    <section id="oss">
+      <h2>오픈소스 SaaS 코드 리서치</h2>
+      <p>
+        화면 모양이 아니라 상태 모델, 권한 경계, 동기화 실패, 감사 이벤트가 실제 코드에서 어떻게 분리되는지를 조사했다.
+        아래 패턴은 현재 Law Firm OS 도메인에 맞춰 재구현해야 하며, copyleft 저장소 코드를 직접 복사하지 않는다.
+      </p>
+
+      <div class="table-wrap" tabindex="0" role="region" aria-label="오픈소스 SaaS 코드 패턴 적용 표">
+        <table>
+          <caption class="sr-only">현재 Matter 구현 갭별 오픈소스 코드 패턴, 채택 설계와 라이선스 주의사항</caption>
+          <thead>
+            <tr>
+              <th scope="col">현재 갭</th>
+              <th scope="col">검토한 OSS 코드 패턴</th>
+              <th scope="col">채택할 설계</th>
+              <th scope="col">복사하지 않을 것 / 주의</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>업무 큐·보드</td>
+              <td>
+                <a href="https://github.com/makeplane/plane/blob/7564480cf73c7ea8b037c002f3fe6cfd2267367e/apps/api/plane/db/models/issue.py#L92-L161">Plane Issue 상태·보관 필드</a>,
+                <a href="https://github.com/opf/openproject/blob/456c13724dcc471ba6c31e0e143b8e72821ba22b/app/models/work_package.rb#L87-L111">OpenProject WorkPackage open/closed/overdue</a>
+              </td>
+              <td>단일 업무 원장, 의미 기반 상태군, 보관과 완료 분리, 서버 상태 규칙이 허용할 때만 끌어놓기.</td>
+              <td>Plane AGPL, OpenProject GPL. UI/코드 복사 금지; 행위와 테스트 계약만 참고.</td>
+            </tr>
+            <tr>
+              <td>Matter Home·보고서</td>
+              <td>
+                <a href="https://github.com/frappe/frappe/blob/5aef9956c7bf58d36cfd59e2242cc1a26d385ea2/frappe/desk/doctype/workspace/workspace.json#L49-L75">Frappe Workspace 구성</a>,
+                <a href="https://github.com/frappe/frappe/blob/5aef9956c7bf58d36cfd59e2242cc1a26d385ea2/frappe/desk/reportview.py#L106-L159">권한 검증 report view</a>
+              </td>
+              <td>영역 정의는 구성 가능하되 모든 query에 허용 field/filter를 서버에서 검증. 기준시각·출처·정의를 함께 표시.</td>
+              <td>사용자 정의 dashboard가 permission kernel을 우회하지 않도록 제한.</td>
+            </tr>
+            <tr>
+              <td>활동·회의·의뢰인 요청</td>
+              <td>
+                <a href="https://github.com/chatwoot/chatwoot/blob/6ed0f11e6b37b02804f6d9506daa50b4efa9602f/app/models/message.rb#L1-L24">Chatwoot internal message와 delivery 상태</a>,
+                <a href="https://github.com/chatwoot/chatwoot/blob/6ed0f11e6b37b02804f6d9506daa50b4efa9602f/app/models/concerns/activity_message_handler.rb#L1-L71">typed activity event</a>
+              </td>
+              <td>내부/외부 공개 범위, 요청 상태, SLA, 담당, 공급자 전달 상태를 별도 필드로 관리. 변경은 유형화된 감사 이벤트.</td>
+              <td>단일 <code>private</code> boolean에 윤리장벽을 맡기지 않음. 외부 메시지의 hard delete 금지.</td>
+            </tr>
+            <tr>
+              <td>사건 상세 활동·저장된 보기</td>
+              <td>
+                <a href="https://github.com/twentyhq/twenty/blob/cdeebb1a185e4d53186464fc5ffe576dfd3b6fd9/packages/twenty-front/src/modules/activities/timeline-activities/hooks/useTimelineActivities.ts#L19-L130">Twenty 정본 레코드 타임라인</a>,
+                <a href="https://github.com/twentyhq/twenty/blob/cdeebb1a185e4d53186464fc5ffe576dfd3b6fd9/packages/twenty-front/src/modules/views/hooks/internal/usePerformViewFilterAPIPersist.ts#L21-L128">saved view filter persistence</a>
+              </td>
+              <td><code>matter_id</code> 정본 타임라인, 중복 판정, 활성/종결/보관 저장 보기.</td>
+              <td>Twenty core는 AGPL. enterprise-marked 코드는 별도 상용 조건 확인.</td>
+            </tr>
+            <tr>
+              <td>일정·연동 상태</td>
+              <td>
+                <a href="https://github.com/calcom/cal.com/blob/3894f37e14eae5082770f35ff1fde72110c0e6b6/packages/prisma/schema.prisma#L978-L1020">Cal.com 선택 캘린더 동기화 상태</a>,
+                <a href="https://github.com/calcom/cal.com/blob/3894f37e14eae5082770f35ff1fde72110c0e6b6/packages/features/calendars/lib/CalendarManager.ts#L129-L210">revoked/invalid credential 오류</a>
+              </td>
+              <td>로컬 일정과 credential, selected/destination calendar, cursor, last success/error, retry를 분리.</td>
+              <td>‘연동됨’ 한 단어로 건강 상태를 뭉개지 않음. revoked·expired·read-only를 명시.</td>
+            </tr>
+            <tr>
+              <td>종결·승인·감사</td>
+              <td>
+                <a href="https://github.com/documenso/documenso/blob/6ec67d1c4db67812c737a30e40f8e0bd6086f920/packages/prisma/schema.prisma#L380-L444">Documenso 문서 상태</a>,
+                <a href="https://github.com/documenso/documenso/blob/6ec67d1c4db67812c737a30e40f8e0bd6086f920/packages/api/v1/implementation.ts#L1363-L1444">트랜잭션과 감사 기록</a>
+              </td>
+              <td>역할 기반 승인, 상태기계, 감사, commit 이후 outbox/webhook. 종결 체크는 하나의 boolean이 아님.</td>
+              <td>AGPL 코드 복사 금지. 전자서명 모델을 사건 종결에 그대로 전용하지 않음.</td>
+            </tr>
+            <tr>
+              <td>법률 사건 맥락</td>
+              <td>
+                <a href="https://github.com/ArkCase/ArkCase/blob/cda48134fe489ce6297030264da0abe886d58b7b/README.md#L1-L43">ArkCase 사례관리 구성</a>,
+                <a href="https://github.com/NodineLegal/OpenLawOffice/blob/7e0f52004be5b75ccb85124ac8600c6eca38c7d2/OpenLawOffice.WebClient/OpenLawOffice.WebClient.csproj#L180-L230">OpenLawOffice matter taxonomy</a>
+              </td>
+              <td>참여자 역할, note provenance, 이해상충, 감사 vocabulary만 비교 기준으로 사용.</td>
+              <td>ArkCase는 무거운 구형 스택, OpenLawOffice는 2016년 이후 정체. 제품 기반으로 채택하지 않음.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>외부 화면에서 확인한 동작 원칙</h3>
+      <div class="evidence-grid">
+        <figure>
+          <a href="references/web-openproject-action-boards.png" aria-label="OpenProject Action board 참고 화면 원본 열기">
+            <img src="references/web-openproject-action-boards.png" alt="OpenProject action board 공식 문서 화면">
+          </a>
+          <figcaption><strong><a href="https://www.openproject.org/docs/user-guide/agile-boards/">OpenProject Action board</a>.</strong> 열이 실제 속성을 나타내고, drag가 서버 상태 변경을 수행하며 권한·workflow가 이를 제한한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/web-chatwoot-private-notes.png" aria-label="Chatwoot Private Notes 참고 화면 원본 열기">
+            <img src="references/web-chatwoot-private-notes.png" alt="Chatwoot private notes 공식 기능 화면">
+          </a>
+          <figcaption><strong><a href="https://www.chatwoot.com/features/private-notes">Chatwoot Private Notes</a>.</strong> 내부 협업 메시지와 외부 고객 메시지를 사용 목적부터 분리한다.</figcaption>
+        </figure>
+        <figure>
+          <a href="references/web-frappe-workspace.png" aria-label="Frappe Workspace 참고 화면 원본 열기">
+            <img src="references/web-frappe-workspace.png" alt="Frappe Workspace 공식 문서 화면">
+          </a>
+          <figcaption><strong><a href="https://docs.frappe.io/erpnext/user/manual/en/workspace">Frappe Workspace</a>.</strong> 요약·바로가기·차트는 구성할 수 있지만 문서/보고서 권한은 별도 서버 검증이 필요하다.</figcaption>
+        </figure>
+      </div>
+
+      <div class="callout warning">
+        <strong>라이선스 경계.</strong> Plane·Twenty·Documenso는 AGPL 계열, OpenProject·ERPNext는 GPL 계열이다.
+        이번 결과는 SHA 고정 코드 읽기를 통한 동작/계약 리서치다. 직접 코드, 컴포넌트, 스타일을 도입하려면 별도 라이선스 검토가 선행돼야 한다.
+      </div>
+    </section>
+
+    <section id="plan">
+      <h2>구현 계획</h2>
+      <p>
+        새 메뉴를 하나씩 독립 구현하면 동일한 업무·활동·권한 로직이 다시 갈라진다.
+        아래 순서는 정보구조와 정본을 먼저 고정하고, 같은 데이터에서 여러 화면을 안전하게 만드는 순서다.
+      </p>
+
+      <div class="phase">
+        <div class="phase-id">P0<br>2–3일</div>
+        <div>
+          <h3>정보구조와 소유권 고정</h3>
+          <p><strong>작업:</strong> 13→10 메뉴 결정, 숨은 19개 경로를 유지·연결·이동·제거로 분류, 빈 보드 홈 제거, 종결·보관·연동 위치 변경.</p>
+          <p><strong>산출물:</strong> 경로 이동표, 화면-도메인 소유권 표, 기존 URL 이동 테스트.</p>
+          <p><strong>게이트:</strong> 각 최상위 메뉴가 하나의 사용자 목적과 하나의 정본 소유자를 가져야 한다.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-id">P1<br>1 sprint</div>
+        <div>
+          <h3>도메인·읽기 투영 정리</h3>
+          <p><strong>재사용:</strong> 기존 <code>MatterTask</code>, <code>MatterCalendarEvent</code>, Activity/Channel, Worktree, Audit repository.</p>
+          <p><strong>추가:</strong> <code>MatterHomeProjection</code>, <code>WorkQueueProjection</code>, <code>ClientRequest</code>, <code>MatterCloseoutChecklist</code>, <code>IntegrationConnectionHealth</code>.</p>
+          <p><strong>원칙:</strong> 보드/큐/워크트리는 동일 Task ID와 상태를 사용한다. Worktree node는 task placement일 뿐 복제본이 아니다.</p>
+          <p><strong>게이트:</strong> tenant → matter membership/Ethical Wall → field permission을 query 이전에 검사하고 count leak을 막는다.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-id">P2<br>1 sprint</div>
+        <div>
+          <h3>핵심 화면 구현</h3>
+          <p><strong>Matter Home:</strong> T03 core 5(요약·오늘 액션·기한·이슈·문서)부터 구현하고 collaboration 6을 뒤이어 연결.</p>
+          <p><strong>Work Queue:</strong> 정확히 4개 구간. HR 업무 제외. 서버 성공 뒤 갱신하며 실패 시 이전 상태 유지.</p>
+          <p><strong>Work Board:</strong> 상태 열과 담당/기한 필터, workflow가 허용한 이동만 제공. 사건 분야는 filter로만 제공.</p>
+          <p><strong>종결:</strong> 사건 상세 drawer에서 미수금·법적 보존·문서 QC·의뢰인 보고·승인을 통과해야 종료.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-id">P3<br>1 sprint</div>
+        <div>
+          <h3>소통·리포트·공급자 경계</h3>
+          <p><strong>활동:</strong> 회의·통화·이메일·결정을 typed activity로 기록하고 correction event로 정정.</p>
+          <p><strong>의뢰인 요청:</strong> Matter 내부 review와 Portal 외부 response를 source_ref로 연결하되 접근 경계를 공유하지 않음.</p>
+          <p><strong>리포트:</strong> 정의·분모·기준시각·출처·제외 조건이 있는 고정 투영.</p>
+          <p><strong>연동:</strong> credential, scope, webhook, cursor, last success/error, retry를 전역 Settings에서 소유. Matter는 상태만 투영.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-id">P4<br>gate</div>
+        <div>
+          <h3>보안·감사·실사용 수락</h3>
+          <p><strong>상태:</strong> loading, empty, error, denied, review_required를 서로 다른 UI로 검증. 무한 loading 금지.</p>
+          <p><strong>쓰기:</strong> idempotency key, non-bypassable audit, after-commit outbox, partial failure rollback.</p>
+          <p><strong>표면 QA:</strong> 실제 로그인 사용자, 제한 Matter, 종결/재활성화, 공급자 credential 만료, Portal 왕복을 staging에서 실행.</p>
+          <p><strong>출시 경계:</strong> 로컬/합성 데이터 green을 배포·공급자·프로덕션 준비 완료로 승격하지 않는다.</p>
+        </div>
+      </div>
+
+      <h3>종결·보관 권장 상태 흐름</h3>
+      <pre class="wireframe" aria-label="권장 종결과 보관 상태 흐름">
+ACTIVE
+  │ [종결 시작: reason + expected_version]
+  ▼
+CLOSEOUT_IN_PROGRESS
+  ├─ 문서 QC 미완료 ───────────────┐
+  ├─ 미수금 정책 미충족 ──────────┤  → BLOCKED(reason_codes[])
+  ├─ legal hold / 보존 검토 ──────┤
+  └─ 의뢰인 종결 보고 미완료 ─────┘
+  │ 모든 gate + 승인 + audit receipt
+  ▼
+CLOSED ── retention policy 적용 ──▶ ARCHIVED_VIEW
+  │
+  └─ [재활성화 요청] → 승인 + 사유 + audit → ACTIVE
+
+외부 알림·webhook·문서 이동은 commit 이후 outbox가 처리한다.</pre>
+
+      <h3>의뢰인 요청 권장 경계</h3>
+      <pre class="wireframe" aria-label="Matter와 Portal 사이 의뢰인 요청 경계">
+Portal (외부 actor)             Matter (내부 actor)
+──────────────────             ─────────────────────────
+요청 열람/응답/첨부   ───────▶  요청 검토·담당 배정·SLA
+수신 확인              ◀──────  승인된 공개 응답
+
+공유 키: request_id, matter_id, source_ref, public_status
+분리 필드: internal_note, reviewer, permission_state, provider_delivery_state
+금지: 내부 note의 Portal 노출 / 외부 actor를 내부 author로 치환 / hard delete</pre>
+    </section>
+
+    <section id="acceptance">
+      <h2>구현 완료 수용 기준</h2>
+      <ol>
+        <li><strong>빈 경로 0개.</strong> 모든 노출 메뉴는 불러오는 중·비어 있음·오류·권한 없음·검토 필요·준비 완료 중 하나를 명시적으로 렌더링한다.</li>
+        <li><strong>업무 정본 1개.</strong> 큐·보드·워크트리에서 동일 task ID를 열고, 한 화면의 완료가 나머지 두 화면에 반영된다.</li>
+        <li><strong>Work Queue 정확히 4개 구간.</strong> HR 민감 업무는 결과에 섞여도 UI가 차단하고 발견 사항을 기록한다.</li>
+        <li><strong>Matter Home 11영역.</strong> 각 영역은 source status와 permission state를 가지며, denied/review_required에서 값과 count를 누출하지 않는다.</li>
+        <li><strong>종결은 원자적 상태 전이.</strong> 문서 QC, 미수금 정책, 보존/법적 hold, 의뢰인 보고, 승인 중 하나라도 실패하면 closed가 되지 않는다.</li>
+        <li><strong>보관은 보기.</strong> 별도 복제 테이블 없이 <code>archived_at</code>/상태와 저장된 filter로 탐색한다.</li>
+        <li><strong>외부 연동은 정직한 상태.</strong> connected, read-only, expired, revoked, retrying, failed를 구분하고 마지막 성공/오류 시각을 표시한다.</li>
+        <li><strong>감사와 재시도.</strong> 모든 성공한 쓰기는 idempotent audit receipt를 남기고 외부 부작용은 outbox로 재시도한다.</li>
+        <li><strong>실화면 QA.</strong> 제한 사용자·Ethical Wall·종결/재활성화·Portal 왕복·credential 만료를 실제 staging 화면에서 재현한다.</li>
+        <li><strong>회귀 게이트.</strong> 경로 이동, 권한 정보 비누출, 상태 전이, 새로고침/재시작 영속, 키보드/초점 접근성, 한국어 문구를 자동·수동으로 확인한다.</li>
+      </ol>
+
+      <div class="callout">
+        <strong>현재 UI의 AI slop 관찰.</strong> 균일한 카드 반복, 설명용 표가 실제 기능처럼 보이는 구성,
+        낮은 대비의 비활성 영역, 반복되는 강조선, 빈 탭과 반응 없는 control이 제품 신뢰를 떨어뜨린다.
+        구현 시 카드 수를 늘리기보다 업무 우선순위, 상태, 다음 action을 표·목록·drawer로 명확히 보여줘야 한다.
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>근거와 출처</h2>
+      <p>
+        소스 링크는 조사 시점 SHA에 고정했다. 로컬 제품 문서 중 Matter Home·Work Queue IA는
+        <code>draft_completed_pending_l1_w01_scope_decision</code> 상태이므로 구현 기준으로 유용하지만 최종 책임자 범위 승인 전제다.
+      </p>
+
+      <details open>
+        <summary>Law Firm OS 현재 소스·설계</summary>
+        <div>
+          <ul class="source-list">
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/Shell.jsx#L909-L948">현재 Matter 사이드바 13개 메뉴</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/MattersSurface.jsx#L76-L109">허용된 Matter section 32개</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/MattersSurface.jsx#L122-L128">업무 보드 탭 정의</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/MattersSurface.jsx#L1027-L1091">현재 대시보드 5개 목록</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/web/src/components/MattersSurface.jsx#L4117-L4153">업무 보드 빈 홈 패널</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/matter/src/activity-calendar-channel-service.js#L167-L242">Activity 서비스의 MatterTask 재사용</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/api/src/matter-worktree-task-api.js#L1-L42">Worktree의 MatterTask 전이 API</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/apps/api/src/matter-worktree-write-api.js#L143-L160">Worktree 노드만 보관하는 변경</a>, <a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/packages/matter/src/worktree-projection.js#L27-L49">노드가 MatterTask를 참조하는 투영</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/workbook/matter-post-cp-launch-plan.md#L186-L198">Wave 1 제품 UI 범위와 staging 완료 게이트</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/docs/product-ui/ia/matter-home.md#L26-L81">Matter Home 11영역·권한 계약</a></li>
+            <li><a href="https://github.com/Gonyak-cell/law-firm-os/blob/34d16954f54a188f93b087e3bc4ad1bce99c049f/docs/product-ui/ia/work-queue.md#L26-L70">Work Queue 4개 구간·상태 전이 계약</a></li>
+          </ul>
+        </div>
+      </details>
+
+      <details open>
+        <summary>업무·보드·워크스페이스 OSS</summary>
+        <div>
+          <ul class="source-list">
+            <li>Plane <a href="https://github.com/makeplane/plane/blob/7564480cf73c7ea8b037c002f3fe6cfd2267367e/apps/api/plane/db/models/issue.py#L92-L161">Issue model</a>, <a href="https://github.com/makeplane/plane/blob/7564480cf73c7ea8b037c002f3fe6cfd2267367e/apps/api/plane/api/views/project.py#L365-L414">archive query default</a>, AGPL-3.0.</li>
+            <li>OpenProject <a href="https://github.com/opf/openproject/blob/456c13724dcc471ba6c31e0e143b8e72821ba22b/app/models/work_package.rb#L87-L111">WorkPackage scopes</a>, <a href="https://github.com/opf/openproject/blob/456c13724dcc471ba6c31e0e143b8e72821ba22b/modules/resource_management/app/services/resource_allocations/availability.rb#L75-L114">availability/capacity</a>, GPLv3.</li>
+            <li>Frappe <a href="https://github.com/frappe/frappe/blob/5aef9956c7bf58d36cfd59e2242cc1a26d385ea2/frappe/model/workflow.py#L43-L77">workflow transition</a>, <a href="https://github.com/frappe/frappe/blob/5aef9956c7bf58d36cfd59e2242cc1a26d385ea2/frappe/desk/form/activity.py#L17-L32">permission-aware activity timeline</a>, MIT.</li>
+            <li>ERPNext <a href="https://github.com/frappe/erpnext/blob/7febc28ed6cb4cd15ecd172a9fc8ff77ecda18cb/erpnext/support/report/issue_analytics/issue_analytics.py#L14-L84">Issue Analytics</a>, GPLv3.</li>
+            <li>Twenty <a href="https://github.com/twentyhq/twenty/blob/cdeebb1a185e4d53186464fc5ffe576dfd3b6fd9/packages/twenty-front/src/modules/activities/timeline-activities/types/TimelineActivity.ts#L4-L28">TimelineActivity</a>, <a href="https://github.com/twentyhq/twenty/blob/cdeebb1a185e4d53186464fc5ffe576dfd3b6fd9/packages/twenty-front/src/modules/object-record/record-field-list/record-detail-section/duplicate/components/RecordDetailDuplicatesSection.tsx#L25-L67">duplicate merge UI</a>, AGPL core.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details open>
+        <summary>소통·연동·승인 OSS</summary>
+        <div>
+          <ul class="source-list">
+            <li>Chatwoot <a href="https://github.com/chatwoot/chatwoot/blob/6ed0f11e6b37b02804f6d9506daa50b4efa9602f/app/models/conversation.rb#L1-L53">Conversation status/priority</a>, <a href="https://github.com/chatwoot/chatwoot/blob/6ed0f11e6b37b02804f6d9506daa50b4efa9602f/app/models/attachment.rb#L24-L79">attachment validation</a>, MIT core.</li>
+            <li>Cal.com <a href="https://github.com/calcom/cal.com/blob/3894f37e14eae5082770f35ff1fde72110c0e6b6/packages/prisma/schema.prisma#L308-L373">credential/destination calendar</a>, <a href="https://github.com/calcom/cal.com/blob/3894f37e14eae5082770f35ff1fde72110c0e6b6/packages/features/tasker/task-processor.ts#L14-L35">retry processor</a>, MIT.</li>
+            <li>Documenso <a href="https://github.com/documenso/documenso/blob/6ec67d1c4db67812c737a30e40f8e0bd6086f920/packages/prisma/schema.prisma#L541-L655">recipient role/order</a>, <a href="https://github.com/documenso/documenso/blob/6ec67d1c4db67812c737a30e40f8e0bd6086f920/packages/lib/server-only/document/complete-document-with-token.ts#L328-L355">completion audit/webhook/job</a>, AGPL.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details open>
+        <summary>법률 사례관리 비교</summary>
+        <div>
+          <ul class="source-list">
+            <li>ArkCase <a href="https://github.com/ArkCase/ArkCase/blob/cda48134fe489ce6297030264da0abe886d58b7b/README.md#L1-L43">architecture/readme</a>, <a href="https://github.com/ArkCase/ArkCase/blob/cda48134fe489ce6297030264da0abe886d58b7b/acm-services/acm-service-audit/src/main/java/com/armedia/acm/audit/service/AuditService.java#L42-L49">audit transaction boundary</a>, LGPL-3.0.</li>
+            <li>OpenLawOffice <a href="https://github.com/NodineLegal/OpenLawOffice/blob/7e0f52004be5b75ccb85124ac8600c6eca38c7d2/OpenLawOffice.WebClient/OpenLawOffice.WebClient.csproj#L255-L300">conflicts feature taxonomy</a>, Apache-2.0, 2016년의 역사적 비교 자료.</li>
+            <li>Casebox는 archived 상태이며 명확한 도입용 라이선스 근거가 부족해 구현 후보에서 제외.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <footer>
+      보고서 경로:
+      <code>.lazyweb/design-research/matter-menu-gap-2026-07-30/report.html</code>.
+      현재 소스·실화면·설계 계약·SHA 고정 OSS 코드에 기반한 구현 전 리서치이며, 배포 완료 증거가 아니다.
+    </footer>
+  </main>
+</body>
+</html>

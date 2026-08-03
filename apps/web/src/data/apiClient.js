@@ -2,8 +2,6 @@ const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 const runtimeTenant = (...parts) => parts.join("_");
 const TENANT_ID = runtimeTenant("tenant", "rp04", "synthetic");
-const VAULT_TENANT_ID = "tenant_amic_matter_vault";
-const MATTER_TENANT_ID = VAULT_TENANT_ID;
 const CRM_INTAKE_TENANT_ID = runtimeTenant("tenant", "cmp", "g6", "synthetic");
 const FINANCE_TENANT_ID = runtimeTenant("tenant", "cmp", "g7", "synthetic");
 const ANALYTICS_TENANT_ID = runtimeTenant("tenant", "cmp", "g8", "synthetic");
@@ -110,7 +108,8 @@ export {
   validateLcxFullReadinessModel
 } from "./readinessModel.js";
 
-const SESSION_DOMAINS = ["client", "matter", "vault", "crm", "default"];
+const SESSION_DOMAINS = ["client", "matter", "vault", "crm", "hrx", "default"];
+const STRICT_SESSION_TENANT_DOMAINS = new Set(["matter", "vault", "hrx"]);
 const SAFE_SESSION_STATES = new Set(["signed_in"]);
 const SAFE_REVIEW_STATES = new Set(["allow", "review", "denied"]);
 const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -381,6 +380,7 @@ function sessionAuthorizedHeaders(headers = {}) {
 async function apiFetch(input, init = {}) {
   const headers = sessionAuthorizedHeaders(init.headers);
   const bound = bindApiRequestToSignedSession(input, { ...init, headers });
+  if (bound.kind === "blocked") throw new Error(bound.reason);
   const bridge = desktopReadBridge();
   if (bridge && typeof bound.input === "string" && bound.input.startsWith("/")) {
     const response = await bridge({
@@ -410,13 +410,13 @@ const PRINCIPAL = {
 
 const MATTER_PRINCIPAL = {
   user_id: "matter_matter_operator",
-  tenant_id: MATTER_TENANT_ID,
+  tenant_id: null,
   role_ids: ["matter_runtime_user"]
 };
 
 const VAULT_PRINCIPAL = {
   user_id: "matter_vault_operator",
-  tenant_id: VAULT_TENANT_ID,
+  tenant_id: null,
   role_ids: ["system_super_admin", "tenant_owner", "managing_partner", "security_admin", "matter_vault_admin", "matter_vault_user", "dms_reader"]
 };
 
@@ -599,7 +599,8 @@ function readUrlSessionEnvelope(source) {
         client: tenantRef,
         matter: tenantRef,
         vault: tenantRef,
-        crm: tenantRef
+        crm: tenantRef,
+        hrx: tenantRef
       },
       role_ids: params.getAll("desktop_role_ref"),
       scopes: params.getAll("desktop_scope_ref"),
@@ -632,12 +633,14 @@ export function readLawosSessionEnvelope(source = globalThis) {
   const sourceRef = safeSessionRef(raw.source ?? raw.source_ref);
   const tenantRefs = safeTenantRefs(raw.tenant_refs, raw.tenant_ref ?? raw.tenant_id);
   const reviewState = SAFE_REVIEW_STATES.has(raw.review_state) ? raw.review_state : "allow";
-  const expiresAt = typeof raw.expires_at === "string" ? raw.expires_at : null;
+  if (raw.expires_at !== undefined && raw.expires_at !== null && typeof raw.expires_at !== "string") return null;
+  const expiresAt = typeof raw.expires_at === "string" && raw.expires_at.trim() ? raw.expires_at : null;
   const expiresAtMs = expiresAt ? Date.parse(expiresAt) : Number.NaN;
 
   if (schemaVersion !== LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION) return null;
   if (!SAFE_SESSION_STATES.has(state) || !actorRef) return null;
   if (Object.keys(tenantRefs).length === 0) return null;
+  if (expiresAt && !Number.isFinite(expiresAtMs)) return null;
   if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) return null;
 
   return {
@@ -655,12 +658,22 @@ export function readLawosSessionEnvelope(source = globalThis) {
 }
 
 function tenantRefForDomain(envelope, domain, fallbackTenantId) {
-  if (!envelope) return fallbackTenantId;
-  return envelope.tenant_refs[domain] ?? envelope.tenant_refs.default ?? fallbackTenantId;
+  if (!envelope) return null;
+  if (envelope.tenant_refs[domain]) return envelope.tenant_refs[domain];
+  if (STRICT_SESSION_TENANT_DOMAINS.has(domain)) return null;
+  return envelope.tenant_refs.default ?? fallbackTenantId ?? null;
 }
 
 function tenantIdForDomain(domain, fallbackTenantId) {
   return tenantRefForDomain(readLawosSessionEnvelope(), domain, fallbackTenantId);
+}
+
+export function readMatterTenantId(source = globalThis) {
+  return tenantRefForDomain(readLawosSessionEnvelope(source), "matter");
+}
+
+function readVaultTenantId(source = globalThis) {
+  return tenantRefForDomain(readLawosSessionEnvelope(source), "vault");
 }
 
 function requestTenantDomain(pathname = "") {
@@ -671,7 +684,7 @@ function requestTenantDomain(pathname = "") {
   if (pathname.startsWith("/api/portal") || pathname.startsWith("/api/data-room")) return "portal";
   if (pathname.startsWith("/api/hrx") || pathname.startsWith("/api/profile")) return "hrx";
   if (pathname.startsWith("/api/vault")) return "vault";
-  if (pathname.startsWith("/api/matters")) return "matter";
+  if (/^\/api\/matters?(?:\/|$)/u.test(pathname)) return "matter";
   if (pathname.startsWith("/master-data")) return "client";
   return "default";
 }
@@ -688,17 +701,18 @@ function bindJsonTenant(value, tenantId) {
 }
 
 export function bindApiRequestToSignedSession(input, init = {}, source = globalThis) {
-  if (typeof input !== "string") return { input, init };
+  if (typeof input !== "string") return { kind: "bound", input, init };
   const envelope = readLawosSessionEnvelope(source);
-  if (!envelope || envelope.state !== "signed_in") return { input, init };
+  if (!envelope || envelope.state !== "signed_in") return { kind: "blocked", reason: "signed_session_required" };
   const absolute = /^[a-z][a-z0-9+.-]*:\/\//iu.test(input);
   const url = new URL(input, "http://lawos.session.local");
+  const domain = requestTenantDomain(url.pathname);
   const tenantId = tenantRefForDomain(
     envelope,
-    requestTenantDomain(url.pathname),
+    domain,
     envelope.tenant_refs.default
   );
-  if (!tenantId) return { input, init };
+  if (!tenantId) return { kind: "blocked", reason: `${domain}_tenant_required` };
   if (url.searchParams.has("tenant_id")) url.searchParams.set("tenant_id", tenantId);
   let body = init.body;
   const headers = plainHeaders(init.headers);
@@ -712,6 +726,7 @@ export function bindApiRequestToSignedSession(input, init = {}, source = globalT
     }
   }
   return {
+    kind: "bound",
     input: absolute ? url.href : `${url.pathname}${url.search}${url.hash}`,
     init: body === init.body ? init : { ...init, body }
   };
@@ -1109,7 +1124,7 @@ function homeDashboardQuery({
 } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+    tenant_id: readVaultTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -1196,7 +1211,7 @@ export async function decideHomeActionInboxItem({
 } = {}) {
   const { context } = homeDashboardQuery({ ctx, permissionRef, auditHintRef });
   const bodyPayload = {
-    tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+    tenant_id: readVaultTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef,
     action,
@@ -1343,7 +1358,7 @@ export async function fetchMatterRecords({
   try {
     do {
       const params = new URLSearchParams({
-        tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+        tenant_id: readMatterTenantId(),
         permission_ref: permissionRef,
         audit_hint_ref: auditHintRef,
         limit: String(limit)
@@ -1397,7 +1412,7 @@ export async function fetchMatterClients({
   try {
     do {
       const params = new URLSearchParams({
-        tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+        tenant_id: readMatterTenantId(),
         permission_ref: permissionRef,
         audit_hint_ref: auditHintRef,
         limit: String(limit)
@@ -1445,7 +1460,7 @@ export async function fetchMatterListViews({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef,
     limit: String(limit)
@@ -1491,7 +1506,7 @@ export async function fetchMatterRecentlyViewed({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef,
     limit: String(limit)
@@ -1581,7 +1596,7 @@ function matterWorktreeResult(response, body) {
 async function matterWorktreeRequest({ method = "GET", path, payload, ctx = "allow", query = false } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    tenant_id: readMatterTenantId(),
     permission_ref: payload?.permission_ref ?? DEFAULT_MATTER_PERMISSION_REF,
     audit_hint_ref: payload?.audit_hint_ref ?? DEFAULT_MATTER_AUDIT_HINT_REF
   });
@@ -1642,9 +1657,10 @@ export function unblockMatterWorktreeTask({ matterId, taskId, payload, ctx = "al
 
 async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow", contextOverride = null } = {}) {
   const context = contextOverride ?? permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
+  let response;
   let body;
   try {
-    const response = await apiFetch(path, {
+    response = await apiFetch(path, {
       method,
       headers: {
         "content-type": "application/json",
@@ -1654,14 +1670,16 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
     });
     body = await response.json();
   } catch {
-    return { kind: "error" };
+    return { kind: "error", status: 0, message: "네트워크 연결을 확인해 주세요." };
   }
   if (!body || typeof body !== "object" || Array.isArray(body) || !("outcome" in body)) {
-    return { kind: "error" };
+    return { kind: "error", status: response?.status ?? 0, message: "서버 응답을 확인하지 못했습니다." };
   }
   return {
     kind: "data",
+    status: response?.status ?? 0,
     statusOutcome: body.outcome,
+    commandOutcome: body.command_outcome ?? null,
     item: body.item ?? null,
     items: Array.isArray(body.items) ? body.items : [],
     matter: body.matter ?? null,
@@ -1679,6 +1697,19 @@ async function writeMatterRuntime({ method = "POST", path, payload, ctx = "allow
     approvalRequest: body.approval_request ?? null,
     publishState: body.publish_state ?? null,
     preview: body.preview ?? null,
+    wipItems: Array.isArray(body.wip_items) ? body.wip_items : [],
+    sourceSetId: body.source_set_id ?? null,
+    sourceRefs: Array.isArray(body.source_refs) ? body.source_refs : [],
+    wipSnapshot: body.wip_snapshot ?? null,
+    prebill: body.prebill ?? null,
+    invoice: body.invoice ?? null,
+    payment: body.payment ?? null,
+    paymentAllocation: body.payment_allocation ?? null,
+    reversedAllocation: body.reversed_allocation ?? null,
+    arBalance: body.ar_balance ?? null,
+    arQueue: body.ar_queue ?? null,
+    adjustment: body.adjustment ?? null,
+    history: Array.isArray(body.history) ? body.history : [],
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
     message: body.message ?? null,
@@ -1706,14 +1737,15 @@ async function fetchMatterRuntimeCollection({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
 
   let body;
   try {
-    const response = await apiFetch(`${path}?${params.toString()}`, {
+    const separator = path.includes("?") ? "&" : "?";
+    const response = await apiFetch(`${path}${separator}${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -1730,6 +1762,8 @@ async function fetchMatterRuntimeCollection({
     outcome: body.outcome,
     uiState: body.ui_state,
     items: body.items,
+    count: body.count ?? body.items.length,
+    canClose: body.can_close,
     pageInfo: body.page_info ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
@@ -1746,14 +1780,15 @@ async function fetchMatterRuntimeItem({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
 
   let body;
   try {
-    const response = await apiFetch(`${path}?${params.toString()}`, {
+    const separator = path.includes("?") ? "&" : "?";
+    const response = await apiFetch(`${path}${separator}${params.toString()}`, {
       headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
     });
     body = await response.json();
@@ -1761,7 +1796,18 @@ async function fetchMatterRuntimeItem({
     return { kind: "error" };
   }
 
-  if (!body || typeof body !== "object" || Array.isArray(body) || !("item" in body)) {
+  const hasItemOrGuardedShape =
+    body
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && (
+      "item" in body
+      || (
+        Array.isArray(body.items)
+        && ["denied", "review_required", "blocked", "error", "conflict"].includes(body.ui_state)
+      )
+    );
+  if (!hasItemOrGuardedShape) {
     return { kind: "error" };
   }
   return {
@@ -1775,6 +1821,757 @@ async function fetchMatterRuntimeItem({
     countLeakPrevented: body.count_leak_prevented === true,
     productionReadyClaim: body.production_ready_claim === true
   };
+}
+
+function normalizeMatterOpsRead(result) {
+  if (result?.kind !== "data") return result;
+  if (result.uiState === "error") return { ...result, kind: "error" };
+  if (result.uiState === "blocked") return { ...result, kind: "blocked" };
+  if (result.uiState === "denied" || result.uiState === "review_required") {
+    return { ...result, kind: "guarded" };
+  }
+  if (result.uiState === "empty") return { ...result, kind: "empty" };
+  return result;
+}
+
+function matterOpsPath(path, query = {}) {
+  const params = new URLSearchParams();
+  const values = typeof query === "string" ? { view: query } : query;
+  for (const [key, value] of Object.entries(values ?? {})) {
+    if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
+  }
+  const search = params.toString();
+  return search ? `${path}?${search}` : path;
+}
+
+function matterOpsMutationPath(path) {
+  const params = new URLSearchParams({
+    tenant_id: readMatterTenantId(),
+    permission_ref: DEFAULT_MATTER_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_MATTER_AUDIT_HINT_REF
+  });
+  return `${path}?${params.toString()}`;
+}
+
+function normalizeMatterOpsWrite(result) {
+  if (result?.kind !== "data") return result;
+  if (Number(result.status) >= 400) {
+    if (result.status === 401 || result.status === 403) return { ...result, kind: "guarded" };
+    return { ...result, kind: result.uiState === "blocked" ? "blocked" : "error" };
+  }
+  if (result.uiState === "denied" || result.uiState === "review_required") {
+    return { ...result, kind: "guarded" };
+  }
+  if (result.uiState === "blocked") return { ...result, kind: "blocked" };
+  if (
+    result.uiState === "error"
+    || !["passed", "created", "updated", "approved", "submitted", "locked", "unlocked", "idempotent_replay"].includes(result.statusOutcome)
+  ) {
+    return { ...result, kind: "error" };
+  }
+  return result;
+}
+
+export async function fetchMatterOpsToday({ ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeItem({
+    path: "/api/matter/ops/today",
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsTasks({ view = "my", ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: matterOpsPath("/api/matter/ops/tasks", { view }),
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsCalendar({ ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: "/api/matter/ops/calendar",
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsFollowups({ view = "today", ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: matterOpsPath("/api/matter/ops/followups", view),
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsFollowup({ followupId, ctx = "allow" } = {}) {
+  if (!followupId) return { kind: "error", message: "후속 조치를 선택해 주세요." };
+  return normalizeMatterOpsRead(await fetchMatterRuntimeItem({
+    path: `/api/matter/ops/followups/${encodeURIComponent(followupId)}`,
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsActivePeople() {
+  let employeeResponse;
+  let linkResponse;
+  let employeeBody;
+  let linkBody;
+  try {
+    [employeeResponse, linkResponse] = await Promise.all([
+      apiFetch("/api/hrx/employees"),
+      apiFetch("/api/hrx/employee-user-links")
+    ]);
+    [employeeBody, linkBody] = await Promise.all([
+      employeeResponse.json(),
+      linkResponse.json()
+    ]);
+  } catch {
+    return { kind: "error", status: 0, message: "담당자 목록을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요." };
+  }
+  const guarded = [employeeResponse, linkResponse].find((response) => [401, 403].includes(response.status));
+  if (guarded) {
+    return { kind: "guarded", status: guarded.status, message: "담당자 목록을 볼 권한이 없습니다." };
+  }
+  if (
+    !employeeResponse.ok
+    || !linkResponse.ok
+    || !Array.isArray(employeeBody?.employees)
+    || !Array.isArray(linkBody?.links)
+  ) {
+    return { kind: "error", status: employeeResponse.status || linkResponse.status, message: "담당자 목록의 서버 응답을 확인하지 못했습니다." };
+  }
+  const employeesById = new Map(
+    employeeBody.employees
+      .filter((employee) => employee?.status === "active")
+      .map((employee) => [employee.employee_id, employee])
+  );
+  const byUserId = new Map();
+  for (const link of linkBody.links) {
+    const employee = employeesById.get(link?.employee_id);
+    const userId = String(link?.user_id ?? "").trim();
+    if (
+      !employee
+      || !userId
+      || link?.revoked === true
+      || link?.revoked_at
+      || link?.status === "revoked"
+    ) continue;
+    byUserId.set(userId, {
+      user_id: userId,
+      employee_id: employee.employee_id,
+      display_name: employee.display_name ?? employee.legal_name ?? userId,
+      status: "active"
+    });
+  }
+  return {
+    kind: "data",
+    items: [...byUserId.values()].sort((left, right) =>
+      String(left.display_name).localeCompare(String(right.display_name), "ko"))
+  };
+}
+
+export async function fetchMatterOpsTimeBilling({ matterId, ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeItem({
+    path: matterOpsPath("/api/matter/ops/time-billing", { matter_id: matterId }),
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsMatters({ view = "active", ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: matterOpsPath("/api/matter/ops/matters", { view }),
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsWip({ matterId, ctx = "allow" } = {}) {
+  if (!matterId) return { kind: "error", message: "사건을 선택해 주세요." };
+  return normalizeMatterOpsRead(await fetchMatterRuntimeItem({
+    path: matterOpsPath("/api/matter/ops/wip", { matter_id: matterId }),
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsPayments({ matterId, ctx = "allow" } = {}) {
+  if (!matterId) return { kind: "error", message: "사건을 선택해 주세요." };
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: matterOpsPath("/api/matter/ops/payments", { matter_id: matterId }),
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsDetail({ matterId, ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeItem({
+    path: `/api/matter/ops/matters/${encodeURIComponent(matterId)}`,
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsCloseout({ matterId, ctx = "allow" } = {}) {
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: `/api/matter/ops/matters/${encodeURIComponent(matterId)}/closeout`,
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsReportCsv({ ctx = "allow" } = {}) {
+  const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
+  const params = new URLSearchParams({
+    tenant_id: readMatterTenantId(),
+    permission_ref: DEFAULT_MATTER_PERMISSION_REF,
+    audit_hint_ref: DEFAULT_MATTER_AUDIT_HINT_REF
+  });
+  try {
+    const response = await apiFetch(`/api/matter/ops/report.csv?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    if (!response.ok) return { kind: "error", uiState: "error" };
+    let csv = await response.text();
+    if (response.headers.get("content-type")?.includes("application/json")) {
+      try {
+        const bridged = JSON.parse(csv);
+        if (typeof bridged === "string") csv = bridged;
+      } catch {
+        return { kind: "error", uiState: "error" };
+      }
+    }
+    return { kind: "data", csv };
+  } catch {
+    return { kind: "error", uiState: "error" };
+  }
+}
+
+export async function createMatterOpsTask({
+  matterId,
+  title,
+  assignedTo,
+  dueAt,
+  priority = "normal",
+  idempotencyKey = null,
+  ctx = "allow"
+} = {}) {
+  if (!matterId || !String(title ?? "").trim() || !assignedTo || !dueAt) {
+    return { kind: "error", message: "사건과 제목, 담당자, 기한을 입력해 주세요." };
+  }
+  const localMatch = String(dueAt).trim().match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
+  );
+  let canonicalDueAt = null;
+  if (localMatch) {
+    const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = localMatch;
+    const localDueAt = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+      Number(millisecond.padEnd(3, "0"))
+    );
+    const expectedParts = [year, month, day, hour, minute, second].map(Number);
+    const actualParts = [
+      localDueAt.getFullYear(),
+      localDueAt.getMonth() + 1,
+      localDueAt.getDate(),
+      localDueAt.getHours(),
+      localDueAt.getMinutes(),
+      localDueAt.getSeconds()
+    ];
+    if (expectedParts.every((value, index) => value === actualParts[index])) {
+      canonicalDueAt = localDueAt.toISOString();
+    }
+  } else if (
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(String(dueAt).trim())
+  ) {
+    const instant = new Date(String(dueAt).trim());
+    if (Number.isFinite(instant.getTime())) canonicalDueAt = instant.toISOString();
+  }
+  if (!canonicalDueAt) {
+    return { kind: "error", message: "기한은 날짜와 시간을 명확하게 입력해 주세요." };
+  }
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath("/api/matter/ops/tasks"),
+    payload: {
+      idempotency_key: idempotencyKey || uiRuntimeId("matter_ops_task_create"),
+      task: {
+        matter_id: matterId,
+        title: String(title).trim(),
+        assigned_to: assignedTo,
+        due_at: canonicalDueAt,
+        priority
+      }
+    },
+    ctx
+  }));
+}
+
+export async function handoffMatterOpsMatter({
+  matterId,
+  ownerUserId,
+  backupUserId = null,
+  note,
+  ctx = "allow"
+} = {}) {
+  const normalizedNote = String(note ?? "").trim();
+  if (!matterId || !ownerUserId || !normalizedNote) {
+    return { kind: "error", message: "새 담당자와 인수인계 사유를 입력해 주세요." };
+  }
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/matters/${encodeURIComponent(matterId)}/handoffs`),
+    payload: {
+      idempotency_key: uiStableId(
+        "matter_ops_handoff",
+        `${matterId}:${ownerUserId}:${backupUserId ?? "none"}:${normalizedNote}`
+      ),
+      new_owner_user_id: ownerUserId,
+      new_backup_user_id: backupUserId || null,
+      note: normalizedNote
+    },
+    ctx
+  }));
+}
+
+function matterOpsFollowupFields({
+  title,
+  channel,
+  status,
+  ownerId,
+  backupOwnerId,
+  nextAction,
+  nextActionAt
+} = {}) {
+  const normalizedTitle = String(title ?? "").trim();
+  const normalizedAction = String(nextAction ?? "").trim();
+  const parsedDueAt = new Date(nextActionAt ?? "");
+  if (
+    !normalizedTitle
+    || !normalizedAction
+    || !ownerId
+    || !channel
+    || !status
+    || Number.isNaN(parsedDueAt.getTime())
+  ) {
+    return null;
+  }
+  return {
+    title: normalizedTitle,
+    channel,
+    status,
+    owner_id: ownerId,
+    backup_owner_id: backupOwnerId || null,
+    next_action: normalizedAction,
+    next_action_at: parsedDueAt.toISOString()
+  };
+}
+
+export async function createMatterOpsFollowup({
+  matterId,
+  title,
+  channel = "call",
+  status = "open",
+  ownerId,
+  backupOwnerId = null,
+  nextAction,
+  nextActionAt,
+  ctx = "allow"
+} = {}) {
+  const followup = matterOpsFollowupFields({
+    title,
+    channel,
+    status,
+    ownerId,
+    backupOwnerId,
+    nextAction,
+    nextActionAt
+  });
+  if (!matterId || !followup) {
+    return { kind: "error", message: "사건, 제목, 다음 행동, 담당자와 기한을 입력해 주세요." };
+  }
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath("/api/matter/ops/followups"),
+    payload: {
+      idempotency_key: uiRuntimeId("matter_ops_followup_create"),
+      matter_id: matterId,
+      followup
+    },
+    ctx
+  }));
+}
+
+export async function updateMatterOpsFollowup({
+  followupId,
+  matterId,
+  title,
+  channel = "call",
+  status = "open",
+  ownerId,
+  backupOwnerId = null,
+  nextAction,
+  nextActionAt,
+  ctx = "allow"
+} = {}) {
+  const patch = matterOpsFollowupFields({
+    title,
+    channel,
+    status,
+    ownerId,
+    backupOwnerId,
+    nextAction,
+    nextActionAt
+  });
+  if (!followupId || !matterId || !patch) {
+    return { kind: "error", message: "수정할 후속 조치와 필수 항목을 확인해 주세요." };
+  }
+  return normalizeMatterOpsWrite(await patchMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/followups/${encodeURIComponent(followupId)}`),
+    payload: {
+      idempotency_key: uiStableId(
+        "matter_ops_followup_update",
+        `${followupId}:${JSON.stringify(patch)}`
+      ),
+      matter_id: matterId,
+      patch
+    },
+    ctx
+  }));
+}
+
+export async function patchMatterOpsTask({
+  taskId,
+  matterId,
+  status,
+  reason,
+  ctx = "allow"
+} = {}) {
+  const payload = {
+    idempotency_key: uiRuntimeId("matter_ops_task"),
+    status,
+    ...(matterId ? { matter_id: matterId } : {}),
+    ...(typeof reason === "string" && reason.trim() ? { reason } : {})
+  };
+  return normalizeMatterOpsWrite(await patchMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/tasks/${encodeURIComponent(taskId)}`),
+    payload,
+    ctx
+  }));
+}
+
+function matterOpsWeekMutation(action, {
+  actorId,
+  weekStart,
+  graceMinutes,
+  reason,
+  ctx = "allow"
+} = {}) {
+  if (!actorId || !weekStart || (action === "unlock" && !String(reason ?? "").trim())) {
+    return Promise.resolve({
+      kind: "error",
+      message: action === "unlock" ? "잠금 해제 사유를 입력해 주세요." : "주간 시간 대상을 확인해 주세요."
+    });
+  }
+  const stableKey = `${action}:${actorId}:${weekStart}:${graceMinutes ?? ""}:${String(reason ?? "").trim()}`;
+  return postMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/time-weeks/${action}`),
+    payload: {
+      idempotency_key: uiStableId("matter_ops_time_week", stableKey),
+      actor_ids: [actorId],
+      week_start: weekStart,
+      ...(Number.isFinite(Number(graceMinutes)) ? { grace_minutes: Number(graceMinutes) } : {}),
+      ...(String(reason ?? "").trim() ? { reason: String(reason).trim() } : {})
+    },
+    ctx
+  }).then(normalizeMatterOpsWrite);
+}
+
+export function submitMatterOpsTimeWeek(options = {}) {
+  return matterOpsWeekMutation("submit", options);
+}
+
+export function lockMatterOpsTimeWeek(options = {}) {
+  return matterOpsWeekMutation("lock", options);
+}
+
+export function unlockMatterOpsTimeWeek(options = {}) {
+  return matterOpsWeekMutation("unlock", options);
+}
+
+export async function createMatterOpsTimeEntry({
+  matterId,
+  roleId = "partner",
+  workDate,
+  durationMinutes,
+  narrative,
+  billable = true,
+  ctx = "allow"
+} = {}) {
+  const timeEntryId = uiRuntimeId("matter_ops_time");
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath("/api/matter/ops/time-entries"),
+    payload: {
+      idempotency_key: timeEntryId,
+      time_entry: {
+        time_entry_id: timeEntryId,
+        matter_id: matterId,
+        role_id: roleId,
+        work_date: workDate,
+        duration_minutes: durationMinutes,
+        narrative,
+        billable
+      }
+    },
+    ctx
+  }));
+}
+
+export async function rescheduleMatterOpsDeadline({
+  deadlineId,
+  matterId,
+  startsAt,
+  endsAt,
+  reason,
+  ctx = "allow"
+} = {}) {
+  if (!deadlineId || !matterId || !startsAt || !endsAt || !String(reason ?? "").trim()) {
+    return { kind: "error", message: "새 일정과 변경 사유를 입력해 주세요." };
+  }
+  return normalizeMatterOpsWrite(await patchMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/deadlines/${encodeURIComponent(deadlineId)}`),
+    payload: {
+      idempotency_key: uiStableId("matter_ops_deadline", `${deadlineId}:${startsAt}:${endsAt}:${reason}`),
+      matter_id: matterId,
+      new_starts_at: startsAt,
+      new_ends_at: endsAt,
+      reason: String(reason).trim()
+    },
+    ctx
+  }));
+}
+
+export async function fetchMatterOpsDeadlineHistory({ deadlineId, matterId, ctx = "allow" } = {}) {
+  if (!deadlineId) return { kind: "error", message: "기한 기록을 확인할 수 없습니다." };
+  return normalizeMatterOpsRead(await fetchMatterRuntimeCollection({
+    path: matterOpsPath(`/api/matter/ops/deadlines/${encodeURIComponent(deadlineId)}/history`, {
+      matter_id: matterId
+    }),
+    ctx
+  }));
+}
+
+export async function createMatterOpsMeeting({
+  matterId,
+  title,
+  attendeeIds = [],
+  decisions = [],
+  followUpTaskIds = [],
+  ctx = "allow"
+} = {}) {
+  const meetingId = uiRuntimeId("matter_ops_meeting");
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/matters/${encodeURIComponent(matterId)}/meetings`),
+    payload: {
+      idempotency_key: meetingId,
+      meeting: {
+        meeting_id: meetingId,
+        title,
+        attendee_ids: attendeeIds,
+        decisions,
+        follow_up_task_ids: followUpTaskIds,
+        occurred_at: new Date().toISOString()
+      }
+    },
+    ctx
+  }));
+}
+
+export async function archiveMatterOpsMatter({
+  matterId,
+  reason = "종결 사건 보관",
+  ctx = "allow"
+} = {}) {
+  if (!matterId || !String(reason ?? "").trim()) {
+    return { kind: "error", message: "보관할 사건과 사유를 확인해 주세요." };
+  }
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/matters/${encodeURIComponent(matterId)}/archive`),
+    payload: {
+      idempotency_key: uiStableId("matter_ops_archive", matterId),
+      reason: String(reason).trim()
+    },
+    ctx
+  }));
+}
+
+export async function restoreMatterOpsMatter({
+  matterId,
+  targetStatus = "closed",
+  reason = "archived_matter_restored_from_operations",
+  ctx = "allow"
+} = {}) {
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/matters/${encodeURIComponent(matterId)}/restore`),
+    payload: {
+      idempotency_key: uiRuntimeId("matter_ops_restore"),
+      target_status: targetStatus,
+      reason
+    },
+    ctx
+  }));
+}
+
+function matterOpsSourceIdentity(sourceRefs = []) {
+  return sourceRefs
+    .map((source) => `${source?.model_type ?? ""}:${source?.source_id ?? ""}`)
+    .sort()
+    .join("|");
+}
+
+function matterOpsCycleId(prefix, identity) {
+  const safeIdentity = String(identity ?? "cycle")
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(-48);
+  return `${prefix}_${safeIdentity || "cycle"}`;
+}
+
+export async function generateMatterOpsWip({
+  matterId,
+  sourceSet = null,
+  sourceRefs = null,
+  ctx = "allow"
+} = {}) {
+  const eligibleRefs = Array.isArray(sourceSet?.source_refs)
+    ? sourceSet.source_refs
+    : Array.isArray(sourceRefs) ? sourceRefs : [];
+  if (!matterId || eligibleRefs.length === 0) {
+    return { kind: "error", message: "새로 청구할 승인 원장이 없습니다." };
+  }
+  const sourceSetId = sourceSet?.source_set_id ?? matterOpsSourceIdentity(eligibleRefs);
+  const result = normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath("/api/matter/ops/wip"),
+    payload: {
+      action: "generate",
+      idempotency_key: matterOpsCycleId("matter_ops_wip", sourceSetId),
+      matter_id: matterId,
+      source_set_id: sourceSetId,
+      source_refs: eligibleRefs
+    },
+    ctx
+  }));
+  return result?.kind === "data" ? { ...result, sourceSetId } : result;
+}
+
+export async function createMatterOpsPreBill({
+  matterId,
+  wipItems = [],
+  sourceSetId = null,
+  ctx = "allow"
+} = {}) {
+  const wipItemIds = wipItems.map((item) => item?.wip_item_id).filter(Boolean).sort();
+  if (!matterId || wipItemIds.length === 0) {
+    return { kind: "error", message: "PreBill로 묶을 WIP가 없습니다." };
+  }
+  const cycleIdentity = sourceSetId
+    ?? wipItems.find((item) => item?.source_set_id)?.source_set_id
+    ?? wipItemIds.join("|");
+  const wipSnapshotId = matterOpsCycleId("wip_snapshot", cycleIdentity);
+  const prebillId = matterOpsCycleId("prebill", cycleIdentity);
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath("/api/matter/ops/wip"),
+    payload: {
+      action: "prebill",
+      idempotency_key: matterOpsCycleId("matter_ops_prebill", cycleIdentity),
+      matter_id: matterId,
+      source_set_id: sourceSetId ?? null,
+      wip_item_ids: wipItemIds,
+      wip_snapshot_id: wipSnapshotId,
+      prebill: {
+        prebill_id: prebillId,
+        partner_reviewer_id: "matter_finance_partner",
+        currency: "KRW"
+      }
+    },
+    ctx
+  }));
+}
+
+export async function importMatterOpsPayment({
+  matterId,
+  clientGroupId = null,
+  amount,
+  currency = "KRW",
+  receivedAt,
+  paymentKey = null,
+  ctx = "allow"
+} = {}) {
+  if (!matterId || !Number.isFinite(Number(amount)) || Number(amount) <= 0 || !receivedAt) {
+    return { kind: "error", message: "입금일과 금액을 확인해 주세요." };
+  }
+  const paymentId = uiStableId("payment_ui", paymentKey ?? `${matterId}:${receivedAt}:${amount}:${currency}`);
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath("/api/matter/ops/payments"),
+    payload: {
+      idempotency_key: `matter_ops_payment:${paymentId}`,
+      payment: {
+        payment_id: paymentId,
+        matter_id: matterId,
+        client_group_id: clientGroupId,
+        bank_reference: `manual-import:${paymentId}`,
+        amount: Number(amount),
+        currency,
+        received_at: receivedAt
+      }
+    },
+    ctx
+  }));
+}
+
+export async function allocateMatterOpsPayment({
+  matterId,
+  paymentId,
+  invoiceId,
+  amount,
+  allocationKey = null,
+  ctx = "allow"
+} = {}) {
+  if (!matterId || !paymentId || !invoiceId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    return { kind: "error", message: "입금과 청구서 배정 정보를 확인해 주세요." };
+  }
+  const identity = allocationKey ?? `${paymentId}:${invoiceId}:${amount}`;
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath(`/api/matter/ops/payments/${encodeURIComponent(paymentId)}/allocations`),
+    payload: {
+      idempotency_key: uiStableId("matter_ops_payment_allocation", identity),
+      matter_id: matterId,
+      invoice_id: invoiceId,
+      amount: Number(amount),
+      payment_allocation_id: uiStableId("payment_allocation_ui", identity)
+    },
+    ctx
+  }));
+}
+
+export async function reverseMatterOpsPaymentAllocation({
+  matterId,
+  paymentId,
+  paymentAllocationId,
+  reason,
+  reversalKey = null,
+  ctx = "allow"
+} = {}) {
+  const normalizedReason = String(reason ?? "").trim();
+  if (!matterId || !paymentId || !paymentAllocationId || !normalizedReason) {
+    return { kind: "error", message: "취소할 입금 배정과 사유를 확인해 주세요." };
+  }
+  const identity = reversalKey ?? paymentAllocationId;
+  return normalizeMatterOpsWrite(await postMatterRuntime({
+    path: matterOpsMutationPath(
+      `/api/matter/ops/payments/${encodeURIComponent(paymentId)}/allocations/${encodeURIComponent(paymentAllocationId)}/reversal`
+    ),
+    payload: {
+      idempotency_key: uiStableId("matter_ops_payment_allocation_reversal", identity),
+      matter_id: matterId,
+      reversal_payment_allocation_id: uiStableId("payment_allocation_reversal_ui", identity),
+      reason: normalizedReason
+    },
+    ctx
+  }));
 }
 
 function adminPermissionPayload(overrides = {}) {
@@ -2253,7 +3050,7 @@ export function fetchDataCloudAudit({ ctx = "allow" } = {}) {
 
 function importDataPayload(overrides = {}) {
   return {
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: "ui_sf_b_w05_import_data_mapping",
     audit_hint_ref: "ui_sf_b_w05_import_data_mapping_probe",
     actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2264,7 +3061,7 @@ function importDataPayload(overrides = {}) {
 async function fetchImportDataCollection({ path, ctx = "allow" } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("matter", MATTER_TENANT_ID),
+    tenant_id: readMatterTenantId(),
     permission_ref: "ui_sf_b_w05_import_data_mapping",
     audit_hint_ref: "ui_sf_b_w05_import_data_mapping_probe"
   });
@@ -2434,7 +3231,7 @@ function recordActionRuntime(objectName, ctx = "allow") {
   if (normalized === "matter") {
     return {
       objectName: normalized,
-      tenantId: tenantIdForDomain("matter", MATTER_TENANT_ID),
+      tenantId: readMatterTenantId(),
       principal: MATTER_PRINCIPAL,
       context: permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter"),
       permissionRef: "ui_sf_b_w02_record_actions_matter",
@@ -2586,13 +3383,13 @@ function normalizeMatterTeamMemberPayload(payload = {}) {
   const safeMember = payload.member ?? {};
   return {
     ...payload,
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: payload.permission_ref ?? "ui_cmp_g4_matter_team",
     audit_hint_ref: payload.audit_hint_ref ?? "ui_cmp_g4_matter_team_probe",
     actor_id: payload.actor_id ?? actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
     member: {
       ...safeMember,
-      tenant_id: MATTER_TENANT_ID
+      tenant_id: readMatterTenantId()
     }
   };
 }
@@ -2600,17 +3397,17 @@ function normalizeMatterTeamMemberPayload(payload = {}) {
 function normalizeMatterOpeningPayload(payload = {}) {
   return {
     ...payload,
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     matter: payload.matter
       ? {
           ...payload.matter,
-          tenant_id: MATTER_TENANT_ID
+          tenant_id: readMatterTenantId()
         }
       : payload.matter,
     clearance_token: payload.clearance_token
       ? {
           ...payload.clearance_token,
-          tenant_id: payload.clearance_token.tenant_id ?? MATTER_TENANT_ID
+          tenant_id: readMatterTenantId()
         }
       : payload.clearance_token
   };
@@ -2628,7 +3425,7 @@ export function openMatterFromIntakeClearance({
   ctx = "allow"
 } = {}) {
   const matterId = uiRuntimeId("matter_intake_ui");
-  const tenantId = MATTER_TENANT_ID;
+  const tenantId = readMatterTenantId();
   const actorId = actorRefForDomain("matter", MATTER_PRINCIPAL.user_id);
   const partyId = clientPartyId ?? intakeRequest?.requesting_party_id ?? "party_cmp_g6_client_001";
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
@@ -2680,13 +3477,13 @@ export function registerMatterParty({ matterId, displayName, partyRole = "advers
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/parties`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_upl_c01_matter_party_write",
       audit_hint_ref: "ui_upl_c01_matter_party_write_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
       idempotency_key: `ui:${safeMatterId}:party:${stamp}`,
       matter_party: {
-        tenant_id: MATTER_TENANT_ID,
+        tenant_id: readMatterTenantId(),
         matter_id: matterId,
         display_name: displayName,
         party_kind: partyKind,
@@ -2704,7 +3501,7 @@ export function updateMatterProfile({ matterId, profile = {}, ctx = "allow" } = 
   return patchMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/profile`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_matter_profile_write",
       audit_hint_ref: "ui_matter_profile_write_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2721,7 +3518,7 @@ export function registerMatterStakeholder({ matterId, stakeholder = {}, ctx = "a
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/stakeholders`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_matter_stakeholder_write",
       audit_hint_ref: "ui_matter_stakeholder_write_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2736,7 +3533,7 @@ export function saveMatterListView({ label = "개시 Matter", status = "opening"
   return postMatterRuntime({
     path: "/api/matters/list-views",
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w02_list_views_write",
       audit_hint_ref: "ui_sf_b_w02_list_views_write_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2755,7 +3552,7 @@ export function bulkCompleteMatterStatus({ matterIds = [], ctx = "allow" } = {})
   return postMatterRuntime({
     path: "/api/matters/bulk/status-transitions",
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w02_matter_bulk_status_transition",
       audit_hint_ref: "ui_sf_b_w02_matter_bulk_status_transition_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2774,7 +3571,7 @@ export function changeMatterOwner({ matterId, employeeId = "emp-001", ctx = "all
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/owner-change`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w02_matter_owner_change",
       audit_hint_ref: "ui_sf_b_w02_matter_owner_change_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2798,7 +3595,7 @@ export function updateMatterInlineFields({
   return patchMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w02_matter_inline_patch",
       audit_hint_ref: "ui_sf_b_w02_matter_inline_patch_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2816,7 +3613,7 @@ export function createMatterDocumentFacade({ matterId, title, contentText, ctx =
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/documents`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_mv_matter_document_facade",
       audit_hint_ref: "ui_mv_matter_document_facade_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2857,7 +3654,7 @@ export function createMatterBuilderDraft({
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_builder_draft_create",
       audit_hint_ref: "ui_sf_b_w04_builder_draft_create_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2885,7 +3682,7 @@ export function patchMatterBuilderDraft({
   return patchMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_builder_draft_patch",
       audit_hint_ref: "ui_sf_b_w04_builder_draft_patch_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2912,7 +3709,7 @@ export function requestMatterBuilderApproval({ matterId, draftId, ctx = "allow" 
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}/approval-requests`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_builder_approval_request",
       audit_hint_ref: "ui_sf_b_w04_builder_approval_request_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2935,7 +3732,7 @@ export function publishMatterBuilderDraftToVault({ matterId, draftId, ctx = "all
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/builder-drafts/${encodeURIComponent(draftId)}/publish-to-vault`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_builder_publish",
       audit_hint_ref: "ui_sf_b_w04_builder_publish_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id)
@@ -2958,7 +3755,7 @@ export function createMatterEmailDraft({
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/email-drafts`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_email_draft_create",
       audit_hint_ref: "ui_sf_b_w04_email_draft_create_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -2987,7 +3784,7 @@ export function patchMatterEmailDraft({
   return patchMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/email-drafts/${encodeURIComponent(draftId)}`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_email_draft_patch",
       audit_hint_ref: "ui_sf_b_w04_email_draft_patch_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3002,7 +3799,7 @@ export function requestMatterEmailDraftSendBoundary({ matterId, draftId, ctx = "
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/email-drafts/${encodeURIComponent(draftId)}/send`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w04_email_send_boundary",
       audit_hint_ref: "ui_sf_b_w04_email_send_boundary_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id)
@@ -3017,7 +3814,7 @@ export function completeMatterStatus({ matterId, ctx = "allow" } = {}) {
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/status-transitions`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w02_matter_status_transition",
       audit_hint_ref: "ui_sf_b_w02_matter_status_transition_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3033,7 +3830,7 @@ export function markMatterRecentlyViewed({ matterId, ctx = "allow" } = {}) {
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/recently-viewed`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w02_recently_viewed",
       audit_hint_ref: "ui_sf_b_w02_recently_viewed_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3066,7 +3863,7 @@ export function createMatterActivity({
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/activities`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_activity_write",
       audit_hint_ref: "ui_sf_b_w03_activity_write_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3091,7 +3888,7 @@ export function patchMatterActivity({ matterId, activityId, patch = { status: "i
   return patchMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/activities/${encodeURIComponent(activityId)}`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_activity_patch",
       audit_hint_ref: "ui_sf_b_w03_activity_patch_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3127,7 +3924,7 @@ export function createMatterCalendarEvent({
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/calendar-events`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_calendar_write",
       audit_hint_ref: "ui_sf_b_w03_calendar_write_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3156,7 +3953,7 @@ export function patchMatterCalendarEvent({ matterId, eventId, patch = {}, ctx = 
   return patchMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/calendar-events/${encodeURIComponent(eventId)}`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_calendar_patch",
       audit_hint_ref: "ui_sf_b_w03_calendar_patch_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3192,7 +3989,7 @@ export function confirmMatterDeadlineChange({
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/deadlines/${encodeURIComponent(deadlineId)}/confirm-change`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_deadline_confirm",
       audit_hint_ref: "ui_sf_b_w03_deadline_confirm_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3222,7 +4019,7 @@ export function createMatterChannelMessage({
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/channel/messages`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_channel_message",
       audit_hint_ref: "ui_sf_b_w03_channel_message_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id),
@@ -3240,7 +4037,7 @@ export function syncMatterChannelProvider({ matterId, ctx = "allow" } = {}) {
   return postMatterRuntime({
     path: `/api/matters/${encodeURIComponent(matterId)}/channel/provider-sync`,
     payload: {
-      tenant_id: MATTER_TENANT_ID,
+      tenant_id: readMatterTenantId(),
       permission_ref: "ui_sf_b_w03_channel_provider_sync",
       audit_hint_ref: "ui_sf_b_w03_channel_provider_sync_probe",
       actor_id: actorRefForDomain("matter", MATTER_PRINCIPAL.user_id)
@@ -3257,7 +4054,7 @@ export async function fetchMatterCommandCenter({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3309,7 +4106,7 @@ export async function fetchMatterVaultSummary({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3353,7 +4150,7 @@ export async function fetchMatterTimeline({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3388,7 +4185,7 @@ export async function fetchMatterAudit({
 } = {}) {
   const context = permissionContextFor(ctx, MATTER_PERMISSION_CONTEXTS, "matter");
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3432,7 +4229,7 @@ export async function fetchVaultDocuments({
 } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
-    tenant_id: VAULT_TENANT_ID,
+    tenant_id: readVaultTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3484,7 +4281,7 @@ export async function fetchVaultSearch({
 } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
-    tenant_id: VAULT_TENANT_ID,
+    tenant_id: readVaultTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3534,7 +4331,7 @@ export async function fetchVaultSearchPreferences({
 } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
-    tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+    tenant_id: readVaultTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -3577,7 +4374,7 @@ export async function writeVaultSearchPreferences({
         [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
       },
       body: JSON.stringify({
-        tenant_id: tenantIdForDomain("vault", VAULT_TENANT_ID),
+        tenant_id: readVaultTenantId(),
         permission_ref: permissionRef,
         audit_hint_ref: auditHintRef,
         operation,
@@ -3658,7 +4455,7 @@ export async function fetchVaultMatterLookup({ ctx = "allow", query = "", bridge
   const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
   if (bridgeToken) headers[VAULT_BRIDGE_TOKEN_HEADER] = bridgeToken;
   const params = new URLSearchParams({
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: DEFAULT_VAULT_PERMISSION_REF,
     audit_hint_ref: DEFAULT_VAULT_AUDIT_HINT_REF,
     q: query
@@ -3721,7 +4518,7 @@ export async function fetchVaultUploadPreflight({
   const headers = { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) };
   if (bridgeToken) headers[VAULT_BRIDGE_TOKEN_HEADER] = bridgeToken;
   const payload = {
-    tenant_id: MATTER_TENANT_ID,
+    tenant_id: readMatterTenantId(),
     permission_ref: DEFAULT_VAULT_PERMISSION_REF,
     audit_hint_ref: DEFAULT_VAULT_AUDIT_HINT_REF,
     action: "upload_preflight",
@@ -3815,7 +4612,7 @@ export async function uploadVaultDocumentFile({
   const form = new FormData();
   const document = {
     document_id: documentId,
-    tenant_id: VAULT_TENANT_ID,
+    tenant_id: readVaultTenantId(),
     matter_id: selectedMatter?.matter_id ?? "matter_rp05_synthetic_opening",
     workspace_id: selectedMatter?.workspace_id ?? "workspace_rp07_synthetic",
     title: title.trim() || fileName,
@@ -3825,7 +4622,7 @@ export async function uploadVaultDocumentFile({
     audit_trace_id: "audit_rp07_vault",
     mime_type: file.type || "application/octet-stream"
   };
-  form.set("tenant_id", VAULT_TENANT_ID);
+  form.set("tenant_id", readVaultTenantId());
   form.set("permission_ref", permissionRef);
   form.set("audit_hint_ref", auditHintRef);
   form.set("idempotency_key", `ui-vault-upload:${documentId}`);
@@ -3891,7 +4688,7 @@ async function fetchMatterVaultCollection({
 } = {}) {
   const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
   const params = new URLSearchParams({
-    tenant_id: VAULT_TENANT_ID,
+    tenant_id: readVaultTenantId(),
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
@@ -4780,6 +5577,7 @@ async function postFinanceRuntime({ path, payload, ctx = "allow", roleIds = null
     invoice: body.invoice ?? null,
     payment: body.payment ?? null,
     paymentAllocation: body.payment_allocation ?? null,
+    adjustment: body.adjustment ?? null,
     auditEvent: body.audit_event ?? null,
     safeErrorCodes: body.safe_error_codes ?? [],
     auditHintRef: body.audit_hint_ref ?? null,
@@ -5000,8 +5798,21 @@ export function createFinancePreBill({ matterId, wipSnapshotId, ctx = "allow" } 
   });
 }
 
-export function approveFinancePreBill({ prebillId, ctx = "allow" } = {}) {
+export function approveFinancePreBill({ prebillId, adjustment = null, ctx = "allow" } = {}) {
   if (!prebillId) return Promise.resolve({ kind: "error" });
+  const adjustmentAmount = Number(adjustment?.amount);
+  const canonicalAdjustment = adjustment && Number.isFinite(adjustmentAmount) && adjustmentAmount > 0
+    ? {
+        adjustment_id: `adjustment_${prebillId}`,
+        prebill_id: prebillId,
+        adjustment_type: "write_down",
+        amount: adjustmentAmount,
+        reason_code: String(adjustment.reasonCode ?? adjustment.reason_code ?? "").trim()
+      }
+    : null;
+  if (adjustment && (!canonicalAdjustment || !canonicalAdjustment.reason_code)) {
+    return Promise.resolve({ kind: "error", message: "Write-down 금액과 조정 사유를 확인해 주세요." });
+  }
   return postFinanceRuntime({
     path: "/api/finance/prebills/approve",
     ctx,
@@ -5012,13 +5823,36 @@ export function approveFinancePreBill({ prebillId, ctx = "allow" } = {}) {
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
       actor_id: "matter_finance_partner",
       idempotency_key: `ui-prebill-approve:${prebillId}`,
-      prebill_id: prebillId
+      prebill_id: prebillId,
+      ...(canonicalAdjustment ? { adjustment: canonicalAdjustment } : {})
+    }
+  });
+}
+
+export function rejectFinancePreBill({ prebillId, reasonCode, ctx = "allow" } = {}) {
+  const normalizedReason = String(reasonCode ?? "").trim();
+  if (!prebillId || !normalizedReason) {
+    return Promise.resolve({ kind: "error", message: "반려 사유를 입력해 주세요." });
+  }
+  return postFinanceRuntime({
+    path: "/api/finance/prebills/reject",
+    ctx,
+    roleIds: ["partner"],
+    payload: {
+      tenant_id: FINANCE_TENANT_ID,
+      permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
+      audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
+      actor_id: "matter_finance_partner",
+      idempotency_key: `ui-prebill-reject:${prebillId}:${normalizedReason}`,
+      prebill_id: prebillId,
+      reason_code: normalizedReason
     }
   });
 }
 
 export function issueFinanceInvoice({ matterId, prebillId, billingClientPartyId = "party_cmp_g6_client_001", ctx = "allow" } = {}) {
   if (!matterId || !prebillId) return Promise.resolve({ kind: "error" });
+  const invoiceId = uiStableId("invoice_ui", prebillId);
   return postFinanceRuntime({
     path: "/api/finance/invoices",
     ctx,
@@ -5027,9 +5861,9 @@ export function issueFinanceInvoice({ matterId, prebillId, billingClientPartyId 
       permission_ref: DEFAULT_FINANCE_PERMISSION_REF,
       audit_hint_ref: DEFAULT_FINANCE_AUDIT_HINT_REF,
       actor_id: actorRefForDomain("matter", FINANCE_PRINCIPAL.user_id),
-      idempotency_key: `ui-invoice:${matterId}`,
+      idempotency_key: `ui-invoice:${prebillId}`,
       invoice: {
-        invoice_id: uiStableId("invoice_ui", matterId),
+        invoice_id: invoiceId,
         tenant_id: FINANCE_TENANT_ID,
         matter_id: matterId,
         prebill_id: prebillId,

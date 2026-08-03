@@ -4,11 +4,13 @@ import { createFinanceRepository } from "../../billing/src/finance-repository.js
 import { confirmBankReceipt, importPayment } from "../src/payment-service.js";
 import {
   allocatePayment,
-  backfillPaymentMatchesAsAllocations,
-  buildPaymentAllocationMigrationPlan,
   reallocateDirectFeeToInvoice,
   reversePaymentAllocation,
 } from "../src/payment-allocation-service.js";
+import {
+  backfillPaymentMatchesAsAllocations,
+  buildPaymentAllocationMigrationPlan,
+} from "../src/payment-allocation-migration.js";
 import { matchPaymentToInvoice } from "../src/matching-service.js";
 
 const TENANT = "tenant-direct-receipt";

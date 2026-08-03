@@ -5,17 +5,14 @@ import {
   existsSync,
   lstatSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   readdirSync,
   realpathSync,
-  rmSync,
   statSync,
   lutimesSync,
   utimesSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import {
@@ -28,12 +25,15 @@ import {
   JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS,
   JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES,
   emptyJsonPostgresProductionSources,
+  loadJsonPostgresProductionProfilePhotoBundle,
+  materializeJsonPostgresProductionProfilePhotoBundle,
   parseJsonPostgresProductionGitTree,
   redactJsonPostgresProductionRuntimeSource,
   validateJsonPostgresProductionArtifactEntries,
   validateJsonPostgresProductionDeploymentManifest,
   validateJsonPostgresProductionSourceBoundary,
   validateJsonPostgresProductionSourceOverrides,
+  withJsonPostgresProductionArtifactOutputTransaction,
 } from "./lib/json-postgres-production-artifact.mjs";
 import {
   HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH,
@@ -136,249 +136,283 @@ if (sourceSha !== required(option("--source-sha", sourceSha), "--source-sha")
   || sourceTree !== required(option("--source-tree", sourceTree), "--source-tree")) {
   throw new Error("production artifact source SHA/tree drifted");
 }
-if (git("status", "--porcelain=v1", "--untracked-files=all")) {
-  throw new Error("production artifact build requires a clean exact-head worktree");
-}
 const outputDir = outsideRepository(option("--output-dir"), "--output-dir");
 const providedCaPath = option("--rds-ca-bundle")
   ? providedCaBundlePath(option("--rds-ca-bundle"))
   : null;
+const privateProfilePhotoDirectory = outsideRepository(
+  option("--profile-photo-directory"),
+  "--profile-photo-directory",
+);
+const privateProfilePhotoManifest = outsideRepository(
+  option("--profile-photo-manifest"),
+  "--profile-photo-manifest",
+);
+const privateProfilePhotoBundle = loadJsonPostgresProductionProfilePhotoBundle({
+  directory: privateProfilePhotoDirectory,
+  manifestPath: privateProfilePhotoManifest,
+  repositoryRoot: realpathSync(process.cwd()),
+});
+if (git("status", "--porcelain=v1", "--untracked-files=all")) {
+  throw new Error("production artifact build requires a clean exact-head worktree");
+}
 mkdirSync(outputDir, { recursive: true, mode: 0o700 });
 chmodSync(outputDir, 0o700);
-const stagingRoot = mkdtempSync(join(tmpdir(), "lawos-production-artifact-"));
-
-try {
-  const tracked = parseJsonPostgresProductionGitTree(
-    gitBytes("ls-tree", "-rz", "--full-tree", sourceSha),
-  );
-  for (const entry of tracked) {
-    const targetPath = join(stagingRoot, entry.path);
-    mkdirSync(dirname(targetPath), { recursive: true });
-    const exactBlobBytes = gitBytes("cat-file", "blob", entry.oid);
-    writeFileSync(targetPath, exactBlobBytes, {
-      mode: entry.mode === "100755" ? 0o755 : 0o644,
+const caBytes = providedCaPath
+  ? readFileSync(providedCaPath)
+  : await (async () => {
+    const response = await fetch(RDS_CA_URL, {
+      signal: AbortSignal.timeout(30_000),
     });
-    assertPrivateStagingGitBlobMaterialization(
-      entry,
-      exactBlobBytes,
-      readFileSync(targetPath),
+    if (!response.ok) {
+      throw new Error(`RDS CA bundle fetch failed: HTTP ${response.status}`);
+    }
+    return Buffer.from(await response.arrayBuffer());
+  })();
+const ca = validateRdsCaBundle(caBytes);
+const archiveFilename = `lawos-production-${sourceSha}.zip`;
+const manifestFilename = `lawos-production-${sourceSha}.manifest.json`;
+const output = withJsonPostgresProductionArtifactOutputTransaction({
+  outputDir,
+  archiveFilename,
+  manifestFilename,
+  build({ archivePath, manifestPath, stagingRoot }) {
+    const tracked = parseJsonPostgresProductionGitTree(
+      gitBytes("ls-tree", "-rz", "--full-tree", sourceSha),
     );
-  }
-
-  const emptySources = emptyJsonPostgresProductionSources();
-  for (const [targetPath, value] of [
-    ["apps/api/src/matter-vault-user-registration-seed.json", emptySources.account_seed],
-    ["apps/api/src/hrx-member-roster-source-of-truth.json", emptySources.roster],
-  ]) {
-    const absoluteTarget = join(stagingRoot, targetPath);
-    mkdirSync(dirname(absoluteTarget), { recursive: true });
-    writeFileSync(absoluteTarget, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o644 });
-  }
-
-  const publicProfessionalProfiles = publicProfessionalProfileCatalog(
-    JSON.parse(
-      gitBytes("show", `${sourceSha}:${HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH}`)
-        .toString("utf8"),
-    ),
-    { opaqueEmployeeRefs: true },
-  );
-  const publicProfessionalProfileText = `${JSON.stringify(publicProfessionalProfiles, null, 2)}\n`;
-  writeFileSync(
-    join(stagingRoot, JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY),
-    publicProfessionalProfileText,
-    { mode: 0o644 },
-  );
-
-  const sourceOverrides = JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES.map((override) => {
-    const bytes = readFileSync(join(stagingRoot, override.source_path));
-    const targetPath = join(stagingRoot, override.target_path);
-    mkdirSync(dirname(targetPath), { recursive: true });
-    writeFileSync(targetPath, bytes, { mode: 0o644 });
-    return {
-      ...override,
-      sha256: sha256(bytes),
-      byte_size: bytes.byteLength,
-      text: bytes.toString("utf8"),
-    };
-  });
-  const overrideValidation =
-    validateJsonPostgresProductionSourceOverrides(sourceOverrides);
-
-  const sourceRedactions = JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS.map((targetPath) => {
-    const absoluteTarget = join(stagingRoot, targetPath);
-    const redacted = redactJsonPostgresProductionRuntimeSource({
-      targetPath,
-      text: readFileSync(absoluteTarget, "utf8"),
-    });
-    writeFileSync(absoluteTarget, redacted.text, { mode: 0o644 });
-    return {
-      target_path: targetPath,
-      purpose: redacted.purpose,
-      sha256: sha256(Buffer.from(redacted.text)),
-      byte_size: redacted.byte_size,
-    };
-  });
-
-  const sourceBoundary = validateJsonPostgresProductionSourceBoundary(
-    [
-      ...tracked
-        .map((entry) => entry.path)
-        .filter((path) => !/\.(?:png|jpg|jpeg|webp)$/iu.test(path))
-        .map((path) => ({
-          path,
-          text: readFileSync(join(stagingRoot, path), "utf8"),
-        })),
-      {
-        path: JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
-        text: publicProfessionalProfileText,
-      },
-    ],
-  );
-
-  const caBytes = providedCaPath
-    ? readFileSync(providedCaPath)
-    : await (async () => {
-      const response = await fetch(RDS_CA_URL, {
-        signal: AbortSignal.timeout(30_000),
+    for (const entry of tracked) {
+      const targetPath = join(stagingRoot, entry.path);
+      mkdirSync(dirname(targetPath), { recursive: true });
+      const exactBlobBytes = gitBytes("cat-file", "blob", entry.oid);
+      writeFileSync(targetPath, exactBlobBytes, {
+        mode: entry.mode === "100755" ? 0o755 : 0o644,
       });
-      if (!response.ok) {
-        throw new Error(`RDS CA bundle fetch failed: HTTP ${response.status}`);
-      }
-      return Buffer.from(await response.arrayBuffer());
-    })();
-  const ca = validateRdsCaBundle(caBytes);
-  const caPath = join(stagingRoot, "certs/global-bundle.pem");
-  mkdirSync(dirname(caPath), { recursive: true });
-  writeFileSync(caPath, caBytes, { mode: 0o644 });
+      assertPrivateStagingGitBlobMaterialization(
+        entry,
+        exactBlobBytes,
+        readFileSync(targetPath),
+      );
+    }
+    const profilePhotoMaterialization =
+      materializeJsonPostgresProductionProfilePhotoBundle({
+        bundle: privateProfilePhotoBundle,
+        stagingRoot,
+      });
 
-  const npmVersion = execFileSync("npm", ["--version"], { encoding: "utf8" }).trim();
-  execFileSync(
-    "npm",
-    ["ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"],
-    {
+    const emptySources = emptyJsonPostgresProductionSources();
+    for (const [targetPath, value] of [
+      ["apps/api/src/matter-vault-user-registration-seed.json", emptySources.account_seed],
+      ["apps/api/src/hrx-member-roster-source-of-truth.json", emptySources.roster],
+    ]) {
+      const absoluteTarget = join(stagingRoot, targetPath);
+      mkdirSync(dirname(absoluteTarget), { recursive: true });
+      writeFileSync(absoluteTarget, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o644 });
+    }
+
+    const publicProfessionalProfiles = publicProfessionalProfileCatalog(
+      JSON.parse(
+        gitBytes("show", `${sourceSha}:${HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH}`)
+          .toString("utf8"),
+      ),
+      { opaqueEmployeeRefs: true },
+    );
+    const publicProfessionalProfileText = `${JSON.stringify(publicProfessionalProfiles, null, 2)}\n`;
+    writeFileSync(
+      join(stagingRoot, JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY),
+      publicProfessionalProfileText,
+      { mode: 0o644 },
+    );
+
+    const sourceOverrides = JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES.map((override) => {
+      const bytes = readFileSync(join(stagingRoot, override.source_path));
+      const targetPath = join(stagingRoot, override.target_path);
+      mkdirSync(dirname(targetPath), { recursive: true });
+      writeFileSync(targetPath, bytes, { mode: 0o644 });
+      return {
+        ...override,
+        sha256: sha256(bytes),
+        byte_size: bytes.byteLength,
+        text: bytes.toString("utf8"),
+      };
+    });
+    const overrideValidation =
+      validateJsonPostgresProductionSourceOverrides(sourceOverrides);
+
+    const sourceRedactions = JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS.map((targetPath) => {
+      const absoluteTarget = join(stagingRoot, targetPath);
+      const redacted = redactJsonPostgresProductionRuntimeSource({
+        targetPath,
+        text: readFileSync(absoluteTarget, "utf8"),
+      });
+      writeFileSync(absoluteTarget, redacted.text, { mode: 0o644 });
+      return {
+        target_path: targetPath,
+        purpose: redacted.purpose,
+        sha256: sha256(Buffer.from(redacted.text)),
+        byte_size: redacted.byte_size,
+      };
+    });
+
+    const sourceBoundary = validateJsonPostgresProductionSourceBoundary(
+      [
+        ...tracked
+          .map((entry) => entry.path)
+          .filter((path) => !/\.(?:png|jpg|jpeg|webp)$/iu.test(path))
+          .map((path) => ({
+            path,
+            text: readFileSync(join(stagingRoot, path), "utf8"),
+          })),
+        {
+          path: JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
+          text: publicProfessionalProfileText,
+        },
+      ],
+    );
+
+    const caPath = join(stagingRoot, "certs/global-bundle.pem");
+    mkdirSync(dirname(caPath), { recursive: true });
+    writeFileSync(caPath, caBytes, { mode: 0o644 });
+
+    const npmVersion = execFileSync("npm", ["--version"], { encoding: "utf8" }).trim();
+    execFileSync(
+      "npm",
+      ["ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"],
+      {
+        cwd: stagingRoot,
+        env: { ...process.env, NODE_ENV: "production" },
+        stdio: ["ignore", "ignore", "inherit"],
+      },
+    );
+    const sourceTimestamp = new Date(
+      Number(git("show", "-s", "--format=%ct", sourceSha)) * 1000,
+    );
+    const deploymentManifest = {
+      schema_version: JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+      source_sha: sourceSha,
+      source_tree: sourceTree,
+      source_timestamp: sourceTimestamp.toISOString(),
+      runtime: `nodejs${nodeMajor}.x`,
+      node_version: process.versions.node,
+      npm_version: npmVersion,
+      dependency_lock_sha256: sha256(
+        readFileSync(join(stagingRoot, "package-lock.json")),
+      ),
+      rds_ca_bundle: {
+        source: RDS_CA_URL,
+        retrieval_mode: "validated-truststore-bytes",
+        sha256: sha256(caBytes),
+        byte_size: ca.byte_size,
+        certificate_count: ca.certificate_count,
+      },
+      source_overrides: sourceOverrides.map(({ text: _text, ...override }) => override),
+      source_override_count: overrideValidation.override_count,
+      source_redactions: sourceRedactions,
+      source_redaction_count: sourceRedactions.length,
+      scanned_source_count: sourceBoundary.scanned_source_count,
+      packaged_real_identity_count: 0,
+      packaged_real_client_count: overrideValidation.packaged_real_client_count,
+      packaged_static_role_assignment_count:
+        overrideValidation.packaged_static_role_assignment_count,
+      packaged_private_profile_photo_count:
+        profilePhotoMaterialization.binding.injected_photo_entry_count,
+      packaged_account_seed_count: 0,
+      packaged_roster_count: 0,
+      packaged_public_professional_profile_count: publicProfessionalProfiles.profiles.length,
+      data_scope: "approved-immutable-inputs-only",
+      operational_authority: "postgres-v2",
+      json_fallback: false,
+      json_writer: false,
+      dual_write: false,
+      file_current_authority: false,
+      offline_mutation: false,
+      memory_fallback: false,
+      secrets_in_environment: false,
+      production_ready_claim: false,
+      profile_photo_artifact: profilePhotoMaterialization.binding,
+    };
+    validateJsonPostgresProductionDeploymentManifest(deploymentManifest);
+    writeFileSync(
+      join(stagingRoot, "deployment-manifest.json"),
+      `${JSON.stringify(deploymentManifest, null, 2)}\n`,
+      { mode: 0o644 },
+    );
+
+    const deterministicEntries = deterministicArchiveEntries(stagingRoot, sourceTimestamp);
+    execFileSync("zip", ["-X", "-q", archivePath, "-@"], {
       cwd: stagingRoot,
-      env: { ...process.env, NODE_ENV: "production" },
-      stdio: ["ignore", "ignore", "inherit"],
-    },
-  );
-  const sourceTimestamp = new Date(
-    Number(git("show", "-s", "--format=%ct", sourceSha)) * 1000,
-  );
-  const deploymentManifest = {
-    schema_version: JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
-    source_sha: sourceSha,
-    source_tree: sourceTree,
-    source_timestamp: sourceTimestamp.toISOString(),
-    runtime: `nodejs${nodeMajor}.x`,
-    node_version: process.versions.node,
-    npm_version: npmVersion,
-    dependency_lock_sha256: sha256(
-      readFileSync(join(stagingRoot, "package-lock.json")),
-    ),
-    rds_ca_bundle: {
-      source: RDS_CA_URL,
-      retrieval_mode: "validated-truststore-bytes",
-      sha256: sha256(caBytes),
-      byte_size: ca.byte_size,
-      certificate_count: ca.certificate_count,
-    },
-    source_overrides: sourceOverrides.map(({ text: _text, ...override }) => override),
-    source_override_count: overrideValidation.override_count,
-    source_redactions: sourceRedactions,
-    source_redaction_count: sourceRedactions.length,
-    scanned_source_count: sourceBoundary.scanned_source_count,
-    packaged_real_identity_count: 0,
-    packaged_real_client_count: overrideValidation.packaged_real_client_count,
-    packaged_static_role_assignment_count:
-      overrideValidation.packaged_static_role_assignment_count,
-    packaged_account_seed_count: 0,
-    packaged_roster_count: 0,
-    packaged_public_professional_profile_count: publicProfessionalProfiles.profiles.length,
-    data_scope: "approved-immutable-inputs-only",
-    operational_authority: "postgres-v2",
-    json_fallback: false,
-    json_writer: false,
-    dual_write: false,
-    file_current_authority: false,
-    offline_mutation: false,
-    memory_fallback: false,
-    secrets_in_environment: false,
-    production_ready_claim: false,
-  };
-  validateJsonPostgresProductionDeploymentManifest(deploymentManifest);
-  writeFileSync(
-    join(stagingRoot, "deployment-manifest.json"),
-    `${JSON.stringify(deploymentManifest, null, 2)}\n`,
-    { mode: 0o644 },
-  );
-
-  const archiveFilename = `lawos-production-${sourceSha}.zip`;
-  const manifestFilename = `lawos-production-${sourceSha}.manifest.json`;
-  const archivePath = join(outputDir, archiveFilename);
-  const manifestPath = join(outputDir, manifestFilename);
-  if (existsSync(archivePath) || existsSync(manifestPath)) {
-    throw new Error("production artifact output already exists");
-  }
-  const deterministicEntries = deterministicArchiveEntries(stagingRoot, sourceTimestamp);
-  execFileSync("zip", ["-X", "-q", archivePath, "-@"], {
-    cwd: stagingRoot,
-    input: `${deterministicEntries.join("\n")}\n`,
-  });
-  chmodSync(archivePath, 0o600);
-  const entries = execFileSync("unzip", ["-Z1", archivePath], {
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-  }).trim().split("\n").filter((entry) => entry && !entry.endsWith("/"));
-  const validatedEntries = validateJsonPostgresProductionArtifactEntries(entries);
-  const archiveBytes = readFileSync(archivePath);
-  if (archiveBytes.byteLength > 50 * 1024 * 1024) {
-    throw new Error("production artifact exceeds the direct Lambda archive limit");
-  }
-  const archiveSha = sha256(archiveBytes);
-  const outerManifest = {
-    ...deploymentManifest,
-    artifact_filename: archiveFilename,
-    artifact_sha256: archiveSha,
-    artifact_byte_size: archiveBytes.byteLength,
-    artifact_entry_count: validatedEntries.entry_count,
-    artifact_entries_sha256: sha256(
-      Buffer.from(`${entries.sort().join("\n")}\n`),
-    ),
-    artifact_runtime_store_entry_count: 0,
-    artifact_real_json_store_count: 0,
-    artifact_private_staging_entry_count: 0,
-    artifact_s3_key: `lawos-production/${sourceSha}/${archiveSha}.zip`,
-    manifest_canonical_sha256: "",
-  };
-  outerManifest.manifest_canonical_sha256 = sha256(
-    Buffer.from(stableJson({
-      ...outerManifest,
+      input: `${deterministicEntries.join("\n")}\n`,
+    });
+    chmodSync(archivePath, 0o600);
+    const entries = execFileSync("unzip", ["-Z1", archivePath], {
+      encoding: "utf8",
+      maxBuffer: 16 * 1024 * 1024,
+    }).trim().split("\n").filter((entry) => entry && !entry.endsWith("/"));
+    const validatedEntries = validateJsonPostgresProductionArtifactEntries(entries, {
+      profilePhotoArtifact: profilePhotoMaterialization.binding,
+    });
+    const archiveBytes = readFileSync(archivePath);
+    if (archiveBytes.byteLength > 50 * 1024 * 1024) {
+      throw new Error("production artifact exceeds the direct Lambda archive limit");
+    }
+    const archiveSha = sha256(archiveBytes);
+    const outerManifest = {
+      ...deploymentManifest,
+      artifact_filename: archiveFilename,
+      artifact_sha256: archiveSha,
+      artifact_byte_size: archiveBytes.byteLength,
+      artifact_entry_count: validatedEntries.entry_count,
+      artifact_entries_sha256: sha256(
+        Buffer.from(`${entries.sort().join("\n")}\n`),
+      ),
+      artifact_runtime_store_entry_count: 0,
+      artifact_real_json_store_count: 0,
+      artifact_private_staging_entry_count: 0,
+      artifact_s3_key: `lawos-production/${sourceSha}/${archiveSha}.zip`,
       manifest_canonical_sha256: "",
-    })),
-  );
-  writeFileSync(
-    manifestPath,
-    `${JSON.stringify(outerManifest, null, 2)}\n`,
-    { mode: 0o600 },
-  );
-  chmodSync(manifestPath, 0o600);
-  process.stdout.write(`${JSON.stringify({
-    verdict: "PASS",
-    source_sha: sourceSha,
-    source_tree: sourceTree,
-    artifact_sha256: archiveSha,
-    artifact_byte_size: archiveBytes.byteLength,
-    artifact_entry_count: validatedEntries.entry_count,
-    artifact_path: archivePath,
-    manifest_path: manifestPath,
-    artifact_s3_key: outerManifest.artifact_s3_key,
-    packaged_real_identity_count: 0,
-    packaged_real_client_count: 0,
-    packaged_static_role_assignment_count: 0,
-    legacy_authority_counter_total: 0,
-    secret_material_recorded: false,
-    upload_executed: false,
-  }, null, 2)}\n`);
-} finally {
-  rmSync(stagingRoot, { recursive: true, force: true });
-}
+    };
+    outerManifest.manifest_canonical_sha256 = sha256(
+      Buffer.from(stableJson({
+        ...outerManifest,
+        manifest_canonical_sha256: "",
+      })),
+    );
+    validateJsonPostgresProductionDeploymentManifest(outerManifest);
+    writeFileSync(
+      manifestPath,
+      `${JSON.stringify(outerManifest, null, 2)}\n`,
+      { mode: 0o600 },
+    );
+    chmodSync(manifestPath, 0o600);
+    return Object.freeze({
+      archiveSha,
+      archiveByteSize: archiveBytes.byteLength,
+      artifactEntryCount: validatedEntries.entry_count,
+      artifactS3Key: outerManifest.artifact_s3_key,
+      profilePhotoGenerationRef:
+        profilePhotoMaterialization.binding.generation_ref,
+      profilePhotoInjectedEntryCount:
+        profilePhotoMaterialization.binding.injected_photo_entry_count,
+    });
+  },
+});
+process.stdout.write(`${JSON.stringify({
+  verdict: "PASS",
+  source_sha: sourceSha,
+  source_tree: sourceTree,
+  artifact_sha256: output.result.archiveSha,
+  artifact_byte_size: output.result.archiveByteSize,
+  artifact_entry_count: output.result.artifactEntryCount,
+  artifact_path: output.archivePath,
+  manifest_path: output.manifestPath,
+  artifact_s3_key: output.result.artifactS3Key,
+  packaged_real_identity_count: 0,
+  packaged_real_client_count: 0,
+  packaged_static_role_assignment_count: 0,
+  profile_photo_generation_ref:
+    output.result.profilePhotoGenerationRef,
+  profile_photo_injected_entry_count:
+    output.result.profilePhotoInjectedEntryCount,
+  legacy_authority_counter_total: 0,
+  secret_material_recorded: false,
+  upload_executed: false,
+}, null, 2)}\n`);

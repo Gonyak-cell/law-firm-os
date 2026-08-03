@@ -57,6 +57,27 @@ export { JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION };
 const SHA1 = /^[0-9a-f]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
 const TOKEN = /^[A-Za-z0-9._:-]{1,200}$/u;
+const JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA =
+  "law-firm-os.json-postgres-production-artifact.v2";
+const JSON_POSTGRES_PRODUCTION_PROFILE_PHOTO_METADATA_SCHEMA =
+  "law-firm-os.profile-photo-artifact-metadata.v1";
+const JSON_POSTGRES_PRODUCTION_PROFILE_PHOTO_METADATA_ENTRY =
+  "apps/api/src/hrx-member-photo-artifact-metadata.json";
+const PROFILE_PHOTO_MANIFEST_SCHEMA_VERSION =
+  "law-firm-os.profile-photo-replacement-manifest.v2";
+const PROFILE_PHOTO_GENERATION_REF = /^profile_generation_[a-f0-9]{32}$/u;
+const PROFILE_PHOTO_ENTRY_COUNT = 10;
+const PROFILE_PHOTO_BINDING_KEYS = Object.freeze([
+  "metadata_path",
+  "metadata_schema_version",
+  "metadata_sha256",
+  "generation_ref",
+  "private_manifest_schema_version",
+  "private_manifest_sha256",
+  "private_manifest_entry_count",
+  "injected_photo_entry_count",
+  "git_source_photo_entry_count",
+]);
 const AUTHORIZATION_KEYS = Object.freeze([
   "packet",
   "trust_registry",
@@ -247,16 +268,44 @@ export function assertJsonPostgresProgramDirectInvoke(event = {}, {
 }
 
 function validateRetirementDeploymentManifest(manifest) {
-  if (manifest?.schema_version !== "law-firm-os.json-postgres-production-artifact.v1"
-    || manifest.operational_authority !== "postgres-v2"
-    || manifest.json_fallback !== false
-    || manifest.json_writer !== false
-    || manifest.dual_write !== false
-    || manifest.file_current_authority !== false
-    || manifest.offline_mutation !== false
-    || manifest.memory_fallback !== false
-    || manifest.artifact_runtime_store_entry_count !== 0
-    || manifest.artifact_real_json_store_count !== 0) {
+  let profilePhotoArtifact;
+  try {
+    closedObject(
+      manifest?.profile_photo_artifact,
+      PROFILE_PHOTO_BINDING_KEYS,
+      "production profile-photo artifact binding",
+    );
+    profilePhotoArtifact = manifest.profile_photo_artifact;
+  } catch {
+    fail(
+      "LAWOS_PROGRAM_RETIREMENT_MANIFEST",
+      "production profile-photo artifact binding is missing or contains unsupported fields",
+    );
+  }
+  if (manifest?.schema_version !== JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA
+    || manifest?.operational_authority !== "postgres-v2"
+    || manifest?.json_fallback !== false
+    || manifest?.json_writer !== false
+    || manifest?.dual_write !== false
+    || manifest?.file_current_authority !== false
+    || manifest?.offline_mutation !== false
+    || manifest?.memory_fallback !== false
+    || manifest?.artifact_runtime_store_entry_count !== 0
+    || manifest?.artifact_real_json_store_count !== 0
+    || manifest?.packaged_private_profile_photo_count !== PROFILE_PHOTO_ENTRY_COUNT
+    || profilePhotoArtifact.metadata_path !== JSON_POSTGRES_PRODUCTION_PROFILE_PHOTO_METADATA_ENTRY
+    || profilePhotoArtifact.metadata_schema_version
+      !== JSON_POSTGRES_PRODUCTION_PROFILE_PHOTO_METADATA_SCHEMA
+    || !SHA256.test(profilePhotoArtifact.metadata_sha256 ?? "")
+    || !PROFILE_PHOTO_GENERATION_REF.test(profilePhotoArtifact.generation_ref ?? "")
+    || !SHA256.test(profilePhotoArtifact.private_manifest_sha256 ?? "")
+    || profilePhotoArtifact.generation_ref
+      !== `profile_generation_${profilePhotoArtifact.private_manifest_sha256.slice(0, 32)}`
+    || profilePhotoArtifact.private_manifest_schema_version
+      !== PROFILE_PHOTO_MANIFEST_SCHEMA_VERSION
+    || profilePhotoArtifact.private_manifest_entry_count !== PROFILE_PHOTO_ENTRY_COUNT
+    || profilePhotoArtifact.injected_photo_entry_count !== PROFILE_PHOTO_ENTRY_COUNT
+    || profilePhotoArtifact.git_source_photo_entry_count !== 0) {
     fail("LAWOS_PROGRAM_RETIREMENT_MANIFEST", "production deployment manifest retains a legacy authority");
   }
   return manifest;

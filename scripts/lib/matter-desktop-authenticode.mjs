@@ -49,25 +49,54 @@ export function injectMatterDesktopAuthenticodeConfiguration(source, configurati
   );
 }
 
-export function validateMatterDesktopAuthenticodeSignatures(records = []) {
+function normalizedSigner(record) {
+  return {
+    thumbprint_sha1: String(record?.signer_thumbprint ?? "").replaceAll(/\s/gu, "").toUpperCase(),
+    subject: String(record?.signer_subject ?? "").trim(),
+    issuer: String(record?.signer_issuer ?? "").trim(),
+    team_equivalent: String(record?.signer_team_equivalent ?? "").trim(),
+  };
+}
+
+export function validateMatterDesktopAuthenticodeSignatures(records = [], { expectedSigner } = {}) {
   if (!Array.isArray(records) || records.length !== 2) {
     throw new Error("installer and packaged executable Authenticode records are required");
   }
   for (const record of records) {
+    const signer = normalizedSigner(record);
     if (record?.status !== "Valid"
-      || record?.status_message !== "Signature verified."
       || record?.signature_type !== "Authenticode"
+      || record?.signer_certificate_present !== true
       || record?.time_stamper_certificate_present !== true
-      || !/^[0-9A-F]{40}$/u.test(record.signer_thumbprint ?? "")) {
+      || !THUMBPRINT.test(signer.thumbprint_sha1)) {
       throw new Error("Authenticode signature or RFC3161 timestamp validation failed");
     }
   }
-  if (new Set(records.map((record) => record.signer_thumbprint)).size !== 1) {
+  const signers = records.map(normalizedSigner);
+  if (new Set(signers.map(({ thumbprint_sha1 }) => thumbprint_sha1)).size !== 1) {
     throw new Error("installer and packaged executable use different Authenticode signers");
+  }
+  if (expectedSigner) {
+    const expected = {
+      thumbprint_sha1: String(expectedSigner.thumbprint_sha1 ?? "").replaceAll(/\s/gu, "").toUpperCase(),
+      subject: String(expectedSigner.subject ?? "").trim(),
+      issuer: String(expectedSigner.issuer ?? "").trim(),
+      team_equivalent: String(expectedSigner.team_equivalent ?? "").trim(),
+    };
+    if (!THUMBPRINT.test(expected.thumbprint_sha1)
+      || !expected.subject
+      || !expected.issuer
+      || !expected.team_equivalent
+      || signers.some((signer) => Object.keys(expected).some((key) => signer[key] !== expected[key]))) {
+      throw new Error("Authenticode signer does not match the approved Windows signing authority");
+    }
   }
   return Object.freeze({
     signature_count: 2,
-    signer_thumbprint_sha256_source: records[0].signer_thumbprint,
+    signer_thumbprint_sha256_source: signers[0].thumbprint_sha1,
+    signer_subject: signers[0].subject || null,
+    signer_issuer: signers[0].issuer || null,
+    signer_team_equivalent: signers[0].team_equivalent || null,
     timestamp_verified: true,
   });
 }

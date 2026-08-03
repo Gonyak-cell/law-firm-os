@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { directoryDigest } from "./matter-desktop-provenance.mjs";
+import { directoryDigest, validateDesktopBuildManifest } from "./matter-desktop-provenance.mjs";
 
 export const RETIRED_UI_PATHS = Object.freeze([
   "docs/ui-reference",
@@ -134,7 +134,12 @@ export function inspectPackagedRenderer({
   const manifestPath = path.join(resourcesRoot, "matter-build-manifest.json");
   if (!existsSync(rendererEntry)) throw new Error("PV-006 bundle rejected: current web renderer entry is missing");
   if (!existsSync(manifestPath)) throw new Error("PV-006 bundle rejected: build manifest is missing");
-  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  let manifest;
+  try {
+    manifest = validateDesktopBuildManifest(JSON.parse(readFileSync(manifestPath, "utf8")));
+  } catch {
+    throw new Error("PV-006 bundle rejected: build manifest failed canonical v2 validation");
+  }
   if (manifest.source_sha !== expectedSourceSha) throw new Error(`PV-006 bundle rejected: source SHA mismatch (${manifest.source_sha})`);
   if (manifest.source_dirty !== false) throw new Error("PV-006 bundle rejected: source is dirty");
   const rendererDigest = directoryDigest(rendererRoot);

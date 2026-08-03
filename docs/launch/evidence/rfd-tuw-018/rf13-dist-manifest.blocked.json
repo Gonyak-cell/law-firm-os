@@ -1,0 +1,100 @@
+{
+  "schema_version": "law-firm-os.rf13-dist.manifest.v1",
+  "manifest_id": "RF13-DIST",
+  "status": "BLOCKED",
+  "template": true,
+  "source": {
+    "sha": "0000000000000000000000000000000000000000",
+    "tree": "0000000000000000000000000000000000000000",
+    "dirty": false
+  },
+  "release": {
+    "version": "0.0.0-template",
+    "channel": "formal",
+    "app_id": "com.amic.matter.desktop",
+    "artifact_root": null,
+    "release_index": null
+  },
+  "artifacts": [],
+  "gates": {
+    "privacy": {
+      "status": "BLOCKED",
+      "index": null,
+      "members": [],
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "clean_sha": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "macos_release": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "windows_native_qa": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "windows_release": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "exact_source_api": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "login": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "restart": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "rollback": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    },
+    "canary": {
+      "status": "BLOCKED",
+      "artifact_ids": [],
+      "receipt": null,
+      "reason_code": "PREREQUISITES_ABSENT"
+    }
+  },
+  "claims": {
+    "rf13_dist_complete": false,
+    "macos_external_distribution_ready": false,
+    "windows_external_distribution_ready": false,
+    "production_go_live": false
+  },
+  "production_authority_receipt": null,
+  "boundary": {
+    "validator_read_only": true,
+    "network_contacted_by_validator": false,
+    "mutation_executed_by_validator": false,
+    "historical_internal_rf13_accepted": false,
+    "identities_recorded": false,
+    "private_hashes_recorded": false
+  },
+  "sealed_at": null,
+  "reason_codes": [
+    "PREREQUISITES_ABSENT"
+  ]
+}

@@ -7,6 +7,7 @@ import {
   DESKTOP_RELEASE_CHANNELS,
   createDesktopBuildManifest,
   desktopReleaseChannelConfig,
+  desktopReleaseChannelPolicy,
 } from "./lib/matter-desktop-provenance.mjs";
 
 const usage = "usage: node scripts/validate-pv004-desktop-channels.mjs [--source|--help]";
@@ -38,6 +39,7 @@ const renderer = {
   algorithm: "sha256(sorted sha256 file manifest with ./ relative paths)",
 };
 for (const config of channelMatrix) {
+  const policy = desktopReleaseChannelPolicy(config.channel);
   for (const [platform, arch] of [["darwin", "arm64"], ["win32", "x64"]]) {
     const manifest = createDesktopBuildManifest({
       version: "0.1.17",
@@ -49,6 +51,12 @@ for (const config of channelMatrix) {
       platform,
       arch,
       appId: config.appId,
+      requestedRuntimeMode: policy.dataMode,
+      effectiveRuntimeMode: policy.dataMode,
+      runtimeIncluded: policy.dataMode !== "none",
+      runtimeDataClass: policy.allowedDataClasses[policy.dataMode],
+      nonDistributable: !policy.distributable,
+      distributable: policy.distributable,
       builtAt: "2026-07-16T00:00:00.000Z",
     });
     assert.equal(manifest.app_id, config.appId);
@@ -66,6 +74,8 @@ for (const relativePath of builderPaths) {
   if (!source.includes("desktopReleaseChannelConfig")) bypasses.push(`${relativePath}:config`);
   if (!source.includes("channelConfig.appId")) bypasses.push(`${relativePath}:app-id`);
   if (!source.includes("channelConfig.artifactPrefix")) bypasses.push(`${relativePath}:artifact-prefix`);
+  if (!source.includes("copyDesktopLocalApiRuntime")) bypasses.push(`${relativePath}:runtime-stager`);
+  if (!source.includes("runtimeMetadata")) bypasses.push(`${relativePath}:runtime-manifest-binding`);
   if (/\["internal",\s*"formal"\]/.test(source)) bypasses.push(`${relativePath}:legacy-two-channel-list`);
 }
 assert.deepEqual(bypasses, [], `PV-004 channel registry bypasses found: ${bypasses.join(", ")}`);

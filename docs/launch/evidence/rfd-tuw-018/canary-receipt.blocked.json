@@ -1,0 +1,52 @@
+{
+  "schema_version": "law-firm-os.rf13-dist.canary-receipt.v1",
+  "receipt_id": "RFD-TUW-018-CANARY-TEMPLATE",
+  "status": "BLOCKED",
+  "template": true,
+  "source_sha": "0000000000000000000000000000000000000000",
+  "source_tree": "0000000000000000000000000000000000000000",
+  "macos_artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "observation_mode": "template",
+  "user_count": 0,
+  "checks": {
+    "isolated_profile_install": "BLOCKED",
+    "health": "BLOCKED",
+    "login": "BLOCKED",
+    "home": "BLOCKED",
+    "matter": "BLOCKED",
+    "people": "BLOCKED",
+    "time_billing": "BLOCKED",
+    "restart": "BLOCKED"
+  },
+  "monitoring": {
+    "duration_minutes": 0,
+    "five_xx_count": 0,
+    "timeout_count": 0,
+    "consecutive_core_read_failures": 0,
+    "login_failure_count": 0,
+    "tenant_exposure_count": 0,
+    "write_integrity_failure_count": 0,
+    "uncertain_write_result_count": 0,
+    "signature_or_hash_mismatch_count": 0,
+    "latency_actions": []
+  },
+  "rollback_trigger": {
+    "triggered": false,
+    "codes": [],
+    "source": "none"
+  },
+  "evidence": {
+    "authority_receipt": null
+  },
+  "boundary": {
+    "monitor_read_only": true,
+    "network_contacted_by_monitor": false,
+    "mutation_executed_by_monitor": false,
+    "identities_recorded": false,
+    "private_hashes_recorded": false,
+    "real_canary_executed_by_monitor": false
+  },
+  "reason_codes": [
+    "PREREQUISITES_ABSENT"
+  ]
+}

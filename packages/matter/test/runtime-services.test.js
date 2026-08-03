@@ -10,6 +10,7 @@ import {
   changeMatterDeadline,
   closeMatter,
   confirmCriticalDeadlineChange,
+  createMatter,
   createMatterAuditEvent,
   createMatterClientReportProjection,
   createMatterRepository,
@@ -78,6 +79,50 @@ test("Matter repository persists tenant-scoped records across reopen", () => {
   const reopened = createMatterRepository({ filePath: storePath });
   assert.equal(reopened.list({ tenant_id, model_type: "Matter" }).length, 1);
   assert.equal(reopened.list({ tenant_id: "tenant-other", model_type: "Matter" }).length, 0);
+});
+
+test("Matter owner and backup fields preserve legacy responsible lawyer compatibility across reopen", () => {
+  const storePath = filePath("matter-owner-backup-");
+  const repository = createMatterRepository({ filePath: storePath });
+  repository.create(createMatter(matterInput({
+    matter_id: "matter-owner-legacy",
+    responsible_lawyer: "lawyer-legacy",
+  })));
+  const currentCreated = repository.create(createMatter(matterInput({
+    matter_id: "matter-owner-current",
+    responsible_lawyer: "lawyer-reference",
+    owner_user_id: "user-current-owner",
+    backup_user_id: "user-current-backup",
+  })));
+  assert.equal(currentCreated.owner_user_id, "user-current-owner");
+  assert.equal(currentCreated.backup_user_id, "user-current-backup");
+  repository.update(
+    { tenant_id, model_type: "Matter", matter_id: "matter-owner-current" },
+    {
+      owner_user_id: "user-handoff-owner",
+      backup_user_id: "user-handoff-backup",
+    },
+  );
+  repository.close();
+
+  const reopened = createMatterRepository({ filePath: storePath });
+  const legacy = reopened.get({
+    tenant_id,
+    model_type: "Matter",
+    matter_id: "matter-owner-legacy",
+  });
+  const current = reopened.get({
+    tenant_id,
+    model_type: "Matter",
+    matter_id: "matter-owner-current",
+  });
+
+  assert.equal(legacy.owner_user_id, "lawyer-legacy");
+  assert.equal(legacy.responsible_lawyer, "lawyer-legacy");
+  assert.equal(legacy.backup_user_id, null);
+  assert.equal(current.owner_user_id, "user-handoff-owner");
+  assert.equal(current.backup_user_id, "user-handoff-backup");
+  assert.equal(current.responsible_lawyer, "lawyer-reference");
 });
 
 test("Matter repository seed guard preserves existing durable records during runtime restart", () => {

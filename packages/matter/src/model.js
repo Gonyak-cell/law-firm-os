@@ -22,6 +22,52 @@ function freezeList(list) {
   return Object.freeze([...(list ?? [])]);
 }
 
+export const MATTER_TASK_PRIORITIES = Object.freeze(["low", "normal", "high", "urgent"]);
+
+export function assertMatterIsoTimestamp(value, field = "timestamp") {
+  const match = typeof value === "string"
+    ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(value)
+    : null;
+  const [year, month, day, hour, minute, second, offsetHour = "00", offsetMinute = "00"] =
+    match?.slice(1).map(Number) ?? [];
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+  if (
+    !match
+    || !daysInMonth
+    || day < 1
+    || day > daysInMonth
+    || hour > 23
+    || minute > 59
+    || second > 59
+    || offsetHour > 23
+    || offsetMinute > 59
+    || Number.isNaN(Date.parse(value))
+  ) {
+    throw new TypeError(`${field} must be an ISO timestamp with timezone`);
+  }
+  return value;
+}
+
+function optionalIsoTimestamp(value, field) {
+  return value == null ? null : assertMatterIsoTimestamp(value, field);
+}
+
+function optionalTaskDueAt(value) {
+  if (value == null) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    if (!Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value) return value;
+  }
+  return assertMatterIsoTimestamp(value, "due_at");
+}
+
+function optionalTaskText(value, field) {
+  if (value == null || value === "") return null;
+  if (typeof value !== "string") throw new TypeError(`${field} must be a string`);
+  return value.trim() || null;
+}
+
 export function missingMatterCoreRequiredFields(modelType, input) {
   const definition = getMatterCoreModelDefinition(modelType);
   const nullable = new Set(definition.nullable_required_fields ?? []);
@@ -66,6 +112,7 @@ export function createMatter(input) {
   if (!MATTER_LIFECYCLE_STATUSES.includes(input.status)) {
     throw new Error(`Matter status must be one of ${MATTER_LIFECYCLE_STATUSES.join(", ")}`);
   }
+  const responsibleLawyer = input.responsible_lawyer ?? null;
   return freezeRecord({
     ...baseRecord("Matter", input),
     matter_id: input.matter_id,
@@ -81,7 +128,9 @@ export function createMatter(input) {
     client_case_role: input.client_case_role ?? null,
     client_case_role_confidence: input.client_case_role_confidence ?? null,
     practice_group: input.practice_group ?? null,
-    responsible_lawyer: input.responsible_lawyer ?? null,
+    owner_user_id: input.owner_user_id ?? responsibleLawyer,
+    backup_user_id: input.backup_user_id ?? null,
+    responsible_lawyer: responsibleLawyer,
     source_revision: input.source_revision ?? null,
     source_updated_at: input.source_updated_at ?? null,
     approval_ref: input.approval_ref ?? null,
@@ -131,26 +180,50 @@ export function createMatterMember(input) {
 }
 
 export function createMatterTask(input) {
+  const priority = input.priority ?? "normal";
+  if (!MATTER_TASK_PRIORITIES.includes(priority)) {
+    throw new TypeError(`MatterTask priority must be one of ${MATTER_TASK_PRIORITIES.join(", ")}`);
+  }
+  const assignedTo = input.assigned_to ?? input.owner_user_id ?? null;
   return freezeRecord({
     ...baseRecord("MatterTask", input),
     task_id: input.task_id,
     title: input.title,
     status: input.status,
     created_by: input.created_by,
-    assigned_to: input.assigned_to ?? null,
-    due_at: input.due_at ?? null,
+    assigned_to: assignedTo,
+    owner_user_id: assignedTo,
+    backup_user_id: input.backup_user_id ?? null,
+    priority,
+    wait_state: optionalTaskText(input.wait_state, "wait_state"),
+    blocked_reason: optionalTaskText(input.blocked_reason, "blocked_reason"),
+    due_at: optionalTaskDueAt(input.due_at),
+    completed_at: optionalIsoTimestamp(input.completed_at, "completed_at"),
+    archived_at: optionalIsoTimestamp(input.archived_at, "archived_at"),
+    created_at: optionalIsoTimestamp(input.created_at, "created_at"),
+    updated_at: optionalIsoTimestamp(input.updated_at, "updated_at"),
     source_ref: input.source_ref ?? null,
   });
 }
 
 export function createMatterCalendarEvent(input) {
+  const startsAt = assertMatterIsoTimestamp(input.starts_at, "starts_at");
+  const endsAt = optionalIsoTimestamp(input.ends_at, "ends_at");
+  if (endsAt && Date.parse(endsAt) < Date.parse(startsAt)) {
+    throw new TypeError("ends_at must be after starts_at");
+  }
   return freezeRecord({
     ...baseRecord("MatterCalendarEvent", input),
     event_id: input.event_id,
     title: input.title,
     status: input.status,
-    starts_at: input.starts_at,
-    ends_at: input.ends_at ?? null,
+    starts_at: startsAt,
+    ends_at: endsAt,
+    responsible_user_id: input.responsible_user_id ?? input.assigned_to ?? null,
+    deadline_type: input.deadline_type ?? "internal",
+    reminder_rule: input.reminder_rule ?? "none",
+    created_at: optionalIsoTimestamp(input.created_at, "created_at"),
+    updated_at: optionalIsoTimestamp(input.updated_at, "updated_at"),
     source_ref: input.source_ref ?? null,
   });
 }

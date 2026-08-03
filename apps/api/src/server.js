@@ -47,7 +47,13 @@ import {
   resolveHrxEmployeeProfileByUserId,
   seedHrxDurableRuntimeStore,
 } from "./hrx-runtime-context.js";
-import { findHrxMemberRosterByUserId, memberPhotoDataUrlForEmployeeId } from "./hrx-member-roster-registry.js";
+import {
+  findHrxMemberRosterByUserId,
+} from "./hrx-member-roster-registry.js";
+import {
+  createHrxMemberPhotoProvider,
+  validatedMemberPhotoGenerationRef,
+} from "./hrx-member-photo-provider.js";
 import { findRegisteredAccountByUserId } from "./matter-vault-account-registry.js";
 import { MATTER_VAULT_REGISTERED_TENANT_ID } from "./matter-vault-account-registry.js";
 import {
@@ -59,6 +65,15 @@ import {
   handleMatterApiRequest,
   repairCurrentMatterInventoryClassification,
 } from "./matter-runtime-context.js";
+import {
+  MATTER_SMALL_FIRM_OPS_BOUNDED_CONTEXT,
+  createMatterSmallFirmRuntimeContext,
+} from "./matter-small-firm-runtime-context.js";
+import {
+  handleMatterSmallFirmApiRequest,
+  matterBusinessDate,
+  resolveMatterCloseoutBlockers,
+} from "./matter-small-firm-api.js";
 import {
   VAULT_DMS_BOUNDED_CONTEXT,
   VAULT_DMS_RUNTIME_SEED,
@@ -183,6 +198,11 @@ import {
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
+
+export function deploymentSourceRevision(env = process.env) {
+  const value = env?.LAWOS_DEPLOYMENT_COMMIT;
+  return typeof value === "string" && /^[0-9a-f]{40}$/u.test(value) ? value : undefined;
+}
 
 function normalizeRuntimeProfileOption(profile, env = process.env) {
   if (!profile) return resolveRuntimeProfile(env);
@@ -535,6 +555,7 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     API_AUTH_BOUNDED_CONTEXT,
     PROFILE_BOUNDED_CONTEXT,
     MATTER_BOUNDED_CONTEXT,
+    MATTER_SMALL_FIRM_OPS_BOUNDED_CONTEXT,
     VAULT_DMS_BOUNDED_CONTEXT,
     CRM_INTAKE_BOUNDED_CONTEXT,
     RECORD_ACTIONS_BOUNDED_CONTEXT,
@@ -642,6 +663,16 @@ function sendJson(req, res, status, body, extraHeaders = {}) {
     ...extraHeaders,
   });
   res.end(JSON.stringify(body));
+}
+
+function sendRaw(req, res, status, body, extraHeaders = {}) {
+  res.writeHead(status, {
+    "content-type": "application/octet-stream",
+    "cache-control": "no-store",
+    ...corsHeadersForRequest(req),
+    ...extraHeaders,
+  });
+  res.end(body);
 }
 
 function sendHtml(req, res, status, body) {
@@ -1017,7 +1048,7 @@ async function appendHrxDeniedRouteAudit({ runtime, context, route, policy, deci
   });
 }
 
-function handleProfileApiRequest({ pathname, method, query, context, requestId, runtime } = {}) {
+function handleProfileApiRequest({ pathname, method, query, context, requestId, runtime, profilePhotoProvider } = {}) {
   if (pathname !== "/api/profile/me") {
     return {
       status: 404,
@@ -1109,9 +1140,16 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   const primaryRoleLabel = profileMember.title || registeredAccount?.source_title || roleIds[0] || "";
   const workEmail = profileMember.work_email || registeredAccount?.email || "";
   const mobilePhone = rosterMember?.mobile_phone ?? profileMember.mobile_phone ?? "";
-  const photoUrl = memberPhotoDataUrlForEmployeeId(rosterMember?.employee_id ?? profileMember.employee_id);
+  const photoResult = profilePhotoProvider?.readForEmployeeId(
+    rosterMember?.employee_id ?? profileMember.employee_id,
+  ) ?? null;
+  const photoUrl = photoResult?.dataUrl ?? null;
+  const photoGenerationRef = validatedMemberPhotoGenerationRef(photoResult);
   return {
     status: 200,
+    headers: photoGenerationRef
+      ? { "x-lawos-profile-photo-generation": photoGenerationRef }
+      : {},
     body: {
       request_id: requestId,
       outcome: "passed",
@@ -1160,7 +1198,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, sessionAuth, stepUpAuthority, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null, profilePhotoProvider, now = () => new Date() } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1177,6 +1215,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   const isHrxPath = pathname.startsWith("/api/hrx");
   const isProfilePath = pathname.startsWith("/api/profile");
   const isMatterPath = pathname.startsWith("/api/matters");
+  const isMatterOpsPath = pathname.startsWith("/api/matter/ops");
   const isVaultPath = pathname.startsWith("/api/vault");
   const isCrmIntakePath = pathname.startsWith("/api/crm") || pathname.startsWith("/api/intake");
   const isRecordActionsPath = pathname.startsWith("/api/record-actions");
@@ -1202,6 +1241,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     isHrxPath ||
     isProfilePath ||
     isMatterPath ||
+    isMatterOpsPath ||
     isVaultPath ||
     isCrmIntakePath ||
     isRecordActionsPath ||
@@ -1222,7 +1262,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     sendJson(req, res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
     return;
   }
-  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && req.method !== "GET") {
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isMatterOpsPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && req.method !== "GET") {
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -1231,6 +1271,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     sendJson(req, res, 200, {
       status: "ok",
       time: new Date().toISOString(),
+      source_revision: deploymentSourceRevision(),
       runtime_profile: runtimeProfile,
       synthetic_login_enabled: runtimeProfile !== LAWOS_RUNTIME_PROFILES.operational,
       persistence_authority: persistenceAuthority,
@@ -1425,14 +1466,72 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isProfilePath) {
     const context = requestPermissionContext();
-    const result = handleProfileApiRequest({ pathname, method: req.method, query, context, requestId, runtime: hrxRuntime });
-    sendJson(req, res, result.status, result.body);
+    const result = handleProfileApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      context,
+      requestId,
+      runtime: hrxRuntime,
+      profilePhotoProvider,
+    });
+    sendJson(req, res, result.status, result.body, result.headers);
+    return;
+  }
+
+  if (isMatterOpsPath) {
+    if (!matterRuntime?.repository || !financeRuntime?.repository) {
+      sendJson(req, res, 503, {
+        request_id: requestId,
+        outcome: "blocked",
+        items: [],
+        safe_error_codes: ["MATTER_OPS_RUNTIME_UNAVAILABLE"],
+        audit_hint_ref: query.audit_hint_ref ?? null,
+        ui_state: "error",
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      });
+      return;
+    }
+    const context = requestPermissionContext();
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const result = await handleMatterSmallFirmApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context,
+      requestId,
+      runtime: createMatterSmallFirmRuntimeContext({
+        matterRepository: matterRuntime.repository,
+        financeRepository: financeRuntime.repository,
+        now,
+      }),
+    });
+    if (Object.hasOwn(result, "rawBody")) {
+      sendRaw(req, res, result.status, result.rawBody, result.headers);
+    } else {
+      sendJson(req, res, result.status, result.body, result.headers);
+    }
     return;
   }
 
   if (isMatterPath) {
     const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    const matterRuntimeWithCloseoutGuard = Object.freeze({
+      ...matterRuntime,
+      resolveCloseoutBlockers: ({ tenant_id, matter_id }) => resolveMatterCloseoutBlockers({
+        matterRepository: matterRuntime?.repository,
+        financeRepository: financeRuntime?.repository,
+        tenantId: tenant_id,
+        matterId: matter_id,
+        asOfDate: matterBusinessDate(
+          now(),
+          body.time_zone ?? query.time_zone ?? "Asia/Seoul",
+        ),
+      }),
+    });
     const result = await handleMatterApiRequest({
       pathname,
       method: req.method,
@@ -1441,7 +1540,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       headers: req.headers,
       context,
       requestId,
-      runtime: matterRuntime,
+      runtime: matterRuntimeWithCloseoutGuard,
     });
     sendJson(req, res, result.status, result.body, result.headers);
     return;
@@ -1714,6 +1813,8 @@ export function createApiServer({
   sessionAuth,
   requestRuntimeAuthority = null,
   dataScope = process.env.LAWOS_DATA_SCOPE ?? null,
+  profilePhotoProvider = createHrxMemberPhotoProvider(),
+  now = () => new Date(),
 } = {}) {
   const resolvedStepUpAuthority = stepUpAuthority ?? createHrxStepUpAuthority({ profile: runtimeProfile });
   const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
@@ -1750,6 +1851,8 @@ export function createApiServer({
           persistenceAuthority,
           persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
           dataScope,
+          profilePhotoProvider,
+          now,
         });
       };
 
@@ -1873,6 +1976,7 @@ export async function startApiServer({
   authPasswordResetStorePath,
   passwordResetEmailDelivery,
   sessionAuth,
+  profilePhotoProvider,
   staffAuthAuthority,
   staffOidcProvider,
   entraSecretsClient,
@@ -2004,6 +2108,7 @@ export async function startApiServer({
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
         dataScope: resolvedPersistenceAuthorityEnv.LAWOS_DATA_SCOPE ?? process.env.LAWOS_DATA_SCOPE ?? null,
+        profilePhotoProvider,
       });
       server.once("close", () => {
         void persistenceAuthorityState.close?.();
@@ -2198,6 +2303,7 @@ export async function startApiServer({
     runtimeProfile: resolvedRuntimeProfile,
     persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,
+    profilePhotoProvider,
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
