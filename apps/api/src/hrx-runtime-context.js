@@ -977,84 +977,81 @@ function peopleOutlookSource(context, actorContext, employeeIds, asOf, timezone)
       "OUTLOOK_CALENDAR_SOURCE_UNAVAILABLE",
     );
   }
-  let source;
+  const blocked = (error) => blockedPeopleOutlookSource(
+    context,
+    actorContext,
+    employeeIds,
+    typeof error?.safe_error_code === "string"
+      ? error.safe_error_code
+      : "OUTLOOK_CALENDAR_SOURCE_UNAVAILABLE",
+  );
+  const project = (source) => {
+    if (!source || !["ok", "stale", "blocked"].includes(source.state)) {
+      return blockedPeopleOutlookSource(
+        context,
+        actorContext,
+        employeeIds,
+        "OUTLOOK_CALENDAR_SOURCE_INVALID",
+      );
+    }
+    const viewerEmployeeId = peopleActorEmployeeId(context, actorContext);
+    const viewerRoles = peopleOutlookViewerRoles(actorContext);
+    const eventsByEmployeeId = {};
+    const dedupeEventsByEmployeeId = {};
+    for (const employeeId of employeeIds) {
+      const rawEvents = Array.isArray(source.events_by_employee_id?.[employeeId])
+        ? source.events_by_employee_id[employeeId]
+        : [];
+      const privacy = projectOutlookCalendarForViewer({
+        events: rawEvents,
+        viewer_employee_id: viewerEmployeeId,
+        subject_employee_id: employeeId,
+        viewer_roles: viewerRoles,
+      });
+      if (privacy.state !== "ok") {
+        return blockedPeopleOutlookSource(
+          context,
+          actorContext,
+          employeeIds,
+          privacy.safe_error_code ?? "OUTLOOK_CALENDAR_PRIVACY_FAILED",
+        );
+      }
+      eventsByEmployeeId[employeeId] = privacy.events;
+      dedupeEventsByEmployeeId[employeeId] = Object.freeze(privacy.events.map((event, index) => Object.freeze({
+        ...event,
+        provider_event_id: rawEvents[index]?.provider_event_id ?? null,
+        provider_series_id: rawEvents[index]?.provider_series_id ?? null,
+        ical_uid: rawEvents[index]?.ical_uid ?? null,
+      })));
+    }
+    const connectionStates = {};
+    for (const employeeId of employeeIds) {
+      connectionStates[employeeId] = source.connection_state_by_employee_id?.[employeeId]
+        ?? peopleOutlookConnectionState(context, actorContext, employeeId);
+    }
+    return Object.freeze({
+      state: source.state,
+      events_by_employee_id: Object.freeze(eventsByEmployeeId),
+      dedupe_events_by_employee_id: Object.freeze(dedupeEventsByEmployeeId),
+      connection_state_by_employee_id: Object.freeze(connectionStates),
+      last_success_at: typeof source.last_success_at === "string" ? source.last_success_at : null,
+      stale_after: typeof source.stale_after === "string" ? source.stale_after : null,
+      safe_error_code: typeof source.safe_error_code === "string" ? source.safe_error_code : null,
+    });
+  };
   try {
-    source = context.peopleOutlookCalendarSource.read({
+    const source = context.peopleOutlookCalendarSource.read({
       tenant_id: actorContext.tenant_id,
       employee_ids: Object.freeze([...employeeIds]),
       as_of: asOf,
       timezone,
     });
+    return source && typeof source.then === "function"
+      ? source.then(project, blocked)
+      : project(source);
   } catch (error) {
-    return blockedPeopleOutlookSource(
-      context,
-      actorContext,
-      employeeIds,
-      typeof error?.safe_error_code === "string"
-        ? error.safe_error_code
-        : "OUTLOOK_CALENDAR_SOURCE_UNAVAILABLE",
-    );
+    return blocked(error);
   }
-  if (source && typeof source.then === "function") {
-    return blockedPeopleOutlookSource(
-      context,
-      actorContext,
-      employeeIds,
-      "OUTLOOK_CALENDAR_ASYNC_SOURCE_UNSUPPORTED",
-    );
-  }
-  if (!source || !["ok", "stale", "blocked"].includes(source.state)) {
-    return blockedPeopleOutlookSource(
-      context,
-      actorContext,
-      employeeIds,
-      "OUTLOOK_CALENDAR_SOURCE_INVALID",
-    );
-  }
-  const viewerEmployeeId = peopleActorEmployeeId(context, actorContext);
-  const viewerRoles = peopleOutlookViewerRoles(actorContext);
-  const eventsByEmployeeId = {};
-  const dedupeEventsByEmployeeId = {};
-  for (const employeeId of employeeIds) {
-    const rawEvents = Array.isArray(source.events_by_employee_id?.[employeeId])
-      ? source.events_by_employee_id[employeeId]
-      : [];
-    const privacy = projectOutlookCalendarForViewer({
-      events: rawEvents,
-      viewer_employee_id: viewerEmployeeId,
-      subject_employee_id: employeeId,
-      viewer_roles: viewerRoles,
-    });
-    if (privacy.state !== "ok") {
-      return blockedPeopleOutlookSource(
-        context,
-        actorContext,
-        employeeIds,
-        privacy.safe_error_code ?? "OUTLOOK_CALENDAR_PRIVACY_FAILED",
-      );
-    }
-    eventsByEmployeeId[employeeId] = privacy.events;
-    dedupeEventsByEmployeeId[employeeId] = Object.freeze(privacy.events.map((event, index) => Object.freeze({
-      ...event,
-      provider_event_id: rawEvents[index]?.provider_event_id ?? null,
-      provider_series_id: rawEvents[index]?.provider_series_id ?? null,
-      ical_uid: rawEvents[index]?.ical_uid ?? null,
-    })));
-  }
-  const connectionStates = {};
-  for (const employeeId of employeeIds) {
-    connectionStates[employeeId] = source.connection_state_by_employee_id?.[employeeId]
-      ?? peopleOutlookConnectionState(context, actorContext, employeeId);
-  }
-  return Object.freeze({
-    state: source.state,
-    events_by_employee_id: Object.freeze(eventsByEmployeeId),
-    dedupe_events_by_employee_id: Object.freeze(dedupeEventsByEmployeeId),
-    connection_state_by_employee_id: Object.freeze(connectionStates),
-    last_success_at: typeof source.last_success_at === "string" ? source.last_success_at : null,
-    stale_after: typeof source.stale_after === "string" ? source.stale_after : null,
-    safe_error_code: typeof source.safe_error_code === "string" ? source.safe_error_code : null,
-  });
 }
 
 function peopleOutlookSourceStatus(source) {
@@ -1097,14 +1094,26 @@ function runPeopleFeatureRequest({
   operation,
 }) {
   emitPeopleFeatureTelemetry(context, actorContext, feature, "request");
+  const finish = (result) => {
+    const outcome = peopleFeatureEnvelopeOutcome(result);
+    if (outcome) {
+      emitPeopleFeatureTelemetry(context, actorContext, feature, outcome);
+    }
+    return result;
+  };
+  const reject = (error) => {
+    if (error?.status === 403) {
+      emitPeopleFeatureTelemetry(context, actorContext, feature, "denied");
+    }
+    throw error;
+  };
   try {
     const result = operation();
-    const outcome = peopleFeatureEnvelopeOutcome(result);
-    if (outcome) emitPeopleFeatureTelemetry(context, actorContext, feature, outcome);
-    return result;
+    return result && typeof result.then === "function"
+      ? result.then(finish, reject)
+      : finish(result);
   } catch (error) {
-    if (error?.status === 403) emitPeopleFeatureTelemetry(context, actorContext, feature, "denied");
-    throw error;
+    return reject(error);
   }
 }
 
@@ -1114,6 +1123,7 @@ function readPeopleDailyBrief({
   actorContext,
   permissionContext,
   employeeId,
+  resolvedOutlookSource,
 }) {
   if (!context.peopleFeatureFlags.people_member_brief) {
     throw safeHrxRuntimeError(404, "PEOPLE_MEMBER_BRIEF_DISABLED", "People member brief is disabled");
@@ -1156,7 +1166,25 @@ function readPeopleDailyBrief({
       : "missing";
   const taskUserId = identityResolution.state === "resolved" ? identityResolution.user_id : null;
   const matterSource = peopleMatterSource(matterContext, actorContext.tenant_id, permissionContext);
-  const outlookSource = peopleOutlookSource(context, actorContext, [employeeId], asOf, timezone);
+  const outlookSource = resolvedOutlookSource === undefined
+    ? peopleOutlookSource(
+      context,
+      actorContext,
+      [employeeId],
+      asOf,
+      timezone,
+    )
+    : resolvedOutlookSource;
+  if (outlookSource && typeof outlookSource.then === "function") {
+    return outlookSource.then((resolved) => readPeopleDailyBrief({
+      context,
+      matterContext,
+      actorContext,
+      permissionContext,
+      employeeId,
+      resolvedOutlookSource: resolved,
+    }));
+  }
   const sourceStatus = [
     {
       source: "hrx",
@@ -1292,6 +1320,7 @@ function readPeopleTeamOperations({
   matterContext,
   actorContext,
   permissionContext,
+  resolvedOutlookSource,
 }) {
   if (!context.peopleFeatureFlags.people_overview) {
     throw safeHrxRuntimeError(404, "PEOPLE_OVERVIEW_DISABLED", "People overview is disabled");
@@ -1334,7 +1363,24 @@ function readPeopleTeamOperations({
   }
   const matterSource = peopleMatterSource(matterContext, actorContext.tenant_id, permissionContext);
   const employeeIds = employees.map((employee) => employee.employee_id);
-  const outlookSource = peopleOutlookSource(context, actorContext, employeeIds, asOf, timezone);
+  const outlookSource = resolvedOutlookSource === undefined
+    ? peopleOutlookSource(
+      context,
+      actorContext,
+      employeeIds,
+      asOf,
+      timezone,
+    )
+    : resolvedOutlookSource;
+  if (outlookSource && typeof outlookSource.then === "function") {
+    return outlookSource.then((resolved) => readPeopleTeamOperations({
+      context,
+      matterContext,
+      actorContext,
+      permissionContext,
+      resolvedOutlookSource: resolved,
+    }));
+  }
   const leaveSource = context.peopleFeatureFlags.leave_projection
     ? (() => {
         if (!context.leaveManagementStore) {
@@ -2818,6 +2864,12 @@ function response(status, body) {
   return { status, body };
 }
 
+function responseMaybe(status, body) {
+  return body && typeof body.then === "function"
+    ? body.then((resolved) => response(status, resolved)).catch(safeError)
+    : response(status, body);
+}
+
 function legalPeopleGuardResponse({ permissionContext, actorContext, action, resourceId, shape }) {
   if (!permissionContext) return null;
   const decision = evaluateRouteDecision({
@@ -2983,6 +3035,13 @@ function requireTrustedRequestContext(requestContext = {}) {
     session_bound: requestContext.session_bound === true,
     step_up_verified: requestContext.step_up_verified === true,
     step_up_purpose: typeof requestContext.step_up_purpose === "string" ? requestContext.step_up_purpose : null,
+    email: typeof requestContext.email === "string"
+      ? requestContext.email.trim().toLowerCase()
+      : null,
+    entra_subject_id: typeof requestContext.entra_subject_id === "string"
+      && requestContext.entra_subject_id.trim()
+      ? requestContext.entra_subject_id.trim()
+      : null,
   });
 }
 
@@ -4612,11 +4671,17 @@ function peopleOutlookConnectionResponse({
   });
   let connection;
   let auditAction = "hrx.people.outlook_connection.read";
+  const signedPrincipal = {
+    user_id: actorContext.actor_id,
+    session_email: actorContext.email,
+    entra_subject_id: actorContext.entra_subject_id,
+  };
   if (method === "GET") {
     connection = context.peopleOutlookConnections.status({
       tenant_id: actorContext.tenant_id,
       employee_id: employeeId,
       can_manage: member.can_manage,
+      ...signedPrincipal,
     });
   } else if (method === "DELETE") {
     auditAction = "hrx.people.outlook_connection.disconnect";
@@ -4624,6 +4689,7 @@ function peopleOutlookConnectionResponse({
       tenant_id: actorContext.tenant_id,
       employee_id: employeeId,
       can_manage: member.can_manage,
+      ...signedPrincipal,
     });
   } else if (method === "POST") {
     const action = body?.action;
@@ -4633,6 +4699,7 @@ function peopleOutlookConnectionResponse({
         tenant_id: actorContext.tenant_id,
         employee_id: employeeId,
         can_manage: member.can_manage,
+        ...signedPrincipal,
       });
     } else if (action === "complete") {
       auditAction = "hrx.people.outlook_connection.complete";
@@ -4640,6 +4707,7 @@ function peopleOutlookConnectionResponse({
         tenant_id: actorContext.tenant_id,
         employee_id: employeeId,
         can_manage: member.can_manage,
+        ...signedPrincipal,
         authorization_code: body.authorization_code,
         state_ref: body.state_ref,
         ...(Object.hasOwn(body, "access_token") ? { access_token: body.access_token } : {}),
@@ -4652,23 +4720,28 @@ function peopleOutlookConnectionResponse({
   } else {
     throw safeHrxRuntimeError(405, "OUTLOOK_CONNECTION_METHOD_NOT_ALLOWED", "Outlook connection method is not allowed");
   }
-  appendRuntimeAudit(context.audit, {
-    ...actorContext,
-    action: auditAction,
-    object_type: "PeopleOutlookConnection",
-    object_id: employeeId,
-    reason: connection.connection_state,
-    metadata: {
-      employee_id: employeeId,
-      connection_state: connection.connection_state,
-      delegated_scope: connection.delegated_scope,
-      secret_material_recorded: false,
-    },
-  });
-  return Object.freeze({
-    outcome: "ok",
-    connection,
-  });
+  const finish = (resolvedConnection) => {
+    appendRuntimeAudit(context.audit, {
+      ...actorContext,
+      action: auditAction,
+      object_type: "PeopleOutlookConnection",
+      object_id: employeeId,
+      reason: resolvedConnection.connection_state,
+      metadata: {
+        employee_id: employeeId,
+        connection_state: resolvedConnection.connection_state,
+        delegated_scope: resolvedConnection.delegated_scope,
+        secret_material_recorded: false,
+      },
+    });
+    return Object.freeze({
+      outcome: "ok",
+      connection: resolvedConnection,
+    });
+  };
+  return connection && typeof connection.then === "function"
+    ? connection.then(finish)
+    : finish(connection);
 }
 
 export function handleHrxApiRequest({
@@ -4693,7 +4766,7 @@ export function handleHrxApiRequest({
       } catch {
         throw safeHrxRuntimeError(400, "PEOPLE_MEMBER_ID_INVALID", "employeeId encoding is invalid");
       }
-      return response(200, runPeopleFeatureRequest({
+      return responseMaybe(200, runPeopleFeatureRequest({
         context,
         actorContext,
         feature: "outlook_calendar",
@@ -4709,7 +4782,7 @@ export function handleHrxApiRequest({
     }
 
     if (pathname === "/api/hrx/people/team-operations" && method === "GET") {
-      return response(200, runPeopleFeatureRequest({
+      return responseMaybe(200, runPeopleFeatureRequest({
         context,
         actorContext,
         feature: "people_overview",
@@ -4730,7 +4803,7 @@ export function handleHrxApiRequest({
       } catch {
         throw safeHrxRuntimeError(400, "PEOPLE_MEMBER_ID_INVALID", "employeeId encoding is invalid");
       }
-      return response(200, runPeopleFeatureRequest({
+      return responseMaybe(200, runPeopleFeatureRequest({
         context,
         actorContext,
         feature: "people_member_brief",

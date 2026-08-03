@@ -1610,6 +1610,9 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       requestContext: {
         ...hrxAuthz.context,
         hrx_scopes: hrxAuthz.principal?.hrx_scopes ?? [],
+        email: sessionContext.principal.email ?? null,
+        entra_subject_id:
+          sessionContext.principal.entra_subject_id ?? null,
         step_up_verified: hrxStepUp.decision?.effect === "allow" && hrxStepUp.decision?.step_up_required === true,
         step_up_purpose: hrxStepUp.decision?.purpose ?? null,
       },
@@ -2163,6 +2166,7 @@ export async function startApiServer({
   outlookCalendarCache,
   peopleOutlookConnections,
   peopleOutlookCalendarSource,
+  peopleOutlookRuntimeFactory,
   outlookCalendarViewAdapter,
   outlookConsentRefresh,
   outlookSubjectAddressResolver,
@@ -2353,6 +2357,7 @@ export async function startApiServer({
         outlookCalendarCache,
         peopleOutlookConnections,
         peopleOutlookCalendarSource,
+        peopleOutlookRuntimeFactory,
         outlookCalendarViewAdapter,
         outlookConsentRefresh,
         outlookSubjectAddressResolver,

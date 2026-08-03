@@ -60,6 +60,9 @@ import {
 import {
   LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV,
 } from "./client-operations-config.js";
+import {
+  resolveLambdaPeopleOutlookRuntimeFactory,
+} from "./people-outlook-operational-runtime.js";
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4490,12 +4493,16 @@ export function createLambdaApiRuntimeCache({
   loadHrxRelationalProjectionFn = loadHrxRelationalProjectionRuntimeInput,
   resolveSessionSecretFn = resolveLambdaSessionSecret,
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
+  resolvePeopleOutlookRuntimeFactoryFn =
+    resolveLambdaPeopleOutlookRuntimeFactory,
 } = {}) {
   return createRetryablePromiseCache(async () => {
     const matterRepository = await createMatterRepositoryFn();
     const hrxStepUpSecrets = await resolveHrxStepUpSecretsFn();
     const hrxRelationalProjection =
       await loadHrxRelationalProjectionFn();
+    const peopleOutlookRuntimeFactory =
+      await resolvePeopleOutlookRuntimeFactoryFn();
     return startApiServerFn({
       port: 0,
       sessionSecret: await resolveSessionSecretFn(),
@@ -4510,6 +4517,9 @@ export function createLambdaApiRuntimeCache({
         : {}),
       passwordResetEmailDelivery: createPasswordResetEmailDeliveryFn(),
       ...(matterRepository ? { matterRepository } : {}),
+      ...(peopleOutlookRuntimeFactory
+        ? { peopleOutlookRuntimeFactory }
+        : {}),
       clientOperationsV2Enabled:
         process.env[LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV],
       payrollStatementProviderVerifier,
@@ -4552,6 +4562,8 @@ export function createLambdaHttpHandler({
   loadHrxRelationalProjectionFn = loadHrxRelationalProjectionRuntimeInput,
   resolveSessionSecretFn = resolveLambdaSessionSecret,
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
+  resolvePeopleOutlookRuntimeFactoryFn =
+    resolveLambdaPeopleOutlookRuntimeFactory,
   fetchFn = fetch,
 } = {}) {
   const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
@@ -4565,6 +4577,7 @@ export function createLambdaHttpHandler({
     loadHrxRelationalProjectionFn,
     resolveSessionSecretFn,
     createPasswordResetEmailDeliveryFn,
+    resolvePeopleOutlookRuntimeFactoryFn,
   });
   return async (event = {}) => {
     const method = requestMethod(event).toUpperCase();

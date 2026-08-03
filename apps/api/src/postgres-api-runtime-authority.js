@@ -234,6 +234,7 @@ function createRequestRuntimes({
   outlookCalendarCache,
   peopleOutlookConnections,
   peopleOutlookCalendarSource,
+  peopleOutlookRuntimeFactory,
   outlookCalendarViewAdapter,
   outlookConsentRefresh,
   outlookSubjectAddressResolver,
@@ -241,6 +242,12 @@ function createRequestRuntimes({
   outlookOauthPort,
   offboardingAccessSource,
 } = {}) {
+  const operationalPeopleOutlook =
+    typeof peopleOutlookRuntimeFactory === "function"
+      ? peopleOutlookRuntimeFactory({
+          repository: repositories.emailDmsRepository,
+        })
+      : null;
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
     payrollArtifactStorage: dmsStorage,
@@ -267,8 +274,10 @@ function createRequestRuntimes({
     outlookConsentService,
     outlookConsentRepository,
     outlookCalendarCache,
-    peopleOutlookConnections,
-    peopleOutlookCalendarSource,
+    peopleOutlookConnections:
+      peopleOutlookConnections ?? operationalPeopleOutlook?.connections,
+    peopleOutlookCalendarSource:
+      peopleOutlookCalendarSource ?? operationalPeopleOutlook?.calendarSource,
     outlookCalendarViewAdapter,
     outlookConsentRefresh,
     outlookSubjectAddressResolver,
@@ -380,6 +389,7 @@ export function createPostgresApiRuntimeAuthority({
   outlookCalendarCache,
   peopleOutlookConnections,
   peopleOutlookCalendarSource,
+  peopleOutlookRuntimeFactory,
   outlookCalendarViewAdapter,
   outlookConsentRefresh,
   outlookSubjectAddressResolver,
@@ -506,6 +516,7 @@ export function createPostgresApiRuntimeAuthority({
             outlookCalendarCache,
             peopleOutlookConnections,
             peopleOutlookCalendarSource,
+            peopleOutlookRuntimeFactory,
             outlookCalendarViewAdapter,
             outlookConsentRefresh,
             outlookSubjectAddressResolver,

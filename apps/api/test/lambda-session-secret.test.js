@@ -87,6 +87,7 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
     }),
   });
   const leaveIntegrationProviderEnabled = Object.freeze({ payroll: true });
+  const peopleOutlookRuntimeFactory = () => Object.freeze({});
   let startupOptions;
   let forwardedRequest;
   const lambdaHandler = createLambdaHttpHandler({
@@ -102,6 +103,8 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
     loadHrxRelationalProjectionFn: async () => null,
     resolveSessionSecretFn: async () => "lambda-provider-test-session-secret-32-bytes",
     createPasswordResetEmailDeliveryFn: () => undefined,
+    resolvePeopleOutlookRuntimeFactoryFn: async () =>
+      peopleOutlookRuntimeFactory,
     fetchFn: async (url, options) => {
       forwardedRequest = { url, options };
       return new Response(JSON.stringify({ outcome: "blocked" }), {
@@ -123,6 +126,10 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
   });
 
   assert.equal(startupOptions.payrollStatementProviderVerifier, verifier);
+  assert.equal(
+    startupOptions.peopleOutlookRuntimeFactory,
+    peopleOutlookRuntimeFactory,
+  );
   assert.equal(
     startupOptions.leaveIntegrationProviders,
     leaveIntegrationProviders,

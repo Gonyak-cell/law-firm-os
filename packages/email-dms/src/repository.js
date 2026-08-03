@@ -1,6 +1,7 @@
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 import { assertNoDmsPersistedSecrets } from "../../dms/src/persistence-guard.js";
 import { normalizeM365Connection } from "./m365-connection-model.js";
+import { normalizePeopleOutlookConnection } from "./people-outlook-connection-model.js";
 import {
   normalizeInquiryEmailEvidence,
   normalizeInquiryEvidenceFileObject,
@@ -8,6 +9,7 @@ import {
 
 export const EMAIL_DMS_PRIMARY_ID_FIELDS = Object.freeze({
   M365Connection: "m365_connection_id",
+  PeopleOutlookConnection: "people_outlook_connection_id",
   InquiryEmailEvidence: "inquiry_email_evidence_id",
   InquiryEvidenceFileObject: "inquiry_evidence_file_object_id",
 });
@@ -38,6 +40,9 @@ function normalizeModel(input = {}) {
   const modelType = assertModelType(input.model_type);
   if (modelType === "M365Connection") {
     return normalizeM365Connection(input);
+  }
+  if (modelType === "PeopleOutlookConnection") {
+    return normalizePeopleOutlookConnection(input);
   }
   if (modelType === "InquiryEmailEvidence") {
     return normalizeInquiryEmailEvidence(input);

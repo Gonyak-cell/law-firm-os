@@ -9,6 +9,7 @@ import {
   normalizeInquiryEvidenceFileObject,
 } from "./inquiry-evidence-model.js";
 import { normalizeM365Connection } from "./m365-connection-model.js";
+import { normalizePeopleOutlookConnection } from "./people-outlook-connection-model.js";
 import {
   EMAIL_DMS_PRIMARY_ID_FIELDS,
   emailDmsPrimaryIdOf,
@@ -38,6 +39,9 @@ function messageUniqueKey(record) {
 function uniqueKey(record) {
   if (record.model_type === "M365Connection") {
     return `m365-user:${record.user_id}`;
+  }
+  if (record.model_type === "PeopleOutlookConnection") {
+    return `people-outlook-employee:${record.employee_id}`;
   }
   if (record.model_type === "InquiryEmailEvidence") {
     return messageUniqueKey(record);
@@ -101,6 +105,8 @@ export const EMAIL_DMS_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
   references,
   pii_fields: [
     "mailbox_address",
+    "credential_envelope",
+    "provider_subject_id",
     "subject",
     "sender",
     "recipients",
@@ -109,6 +115,7 @@ export const EMAIL_DMS_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
   primary_key_fields: Object.values(EMAIL_DMS_PRIMARY_ID_FIELDS),
   unique_rules: [
     "M365Connection.tenant_id+user_id",
+    "PeopleOutlookConnection.tenant_id+employee_id",
     "InquiryEmailEvidence.tenant_id+mailbox_address+internet_message_id_or_graph_immutable_message_id",
     "InquiryEvidenceFileObject.tenant_id+inquiry_email_evidence_id+object_kind",
   ],
@@ -121,6 +128,7 @@ export const EMAIL_DMS_DOMAIN_DESCRIPTOR = createRecordDomainDescriptor({
 
 export function reconcileEmailDmsRecords(records = []) {
   let m365ConnectionCount = 0;
+  let peopleOutlookConnectionCount = 0;
   let inquiryEvidenceCount = 0;
   let inquiryFileObjectCount = 0;
   const evidenceIds = new Set();
@@ -130,6 +138,11 @@ export function reconcileEmailDmsRecords(records = []) {
     if (input.model_type === "M365Connection") {
       normalizeM365Connection(input);
       m365ConnectionCount += 1;
+      continue;
+    }
+    if (input.model_type === "PeopleOutlookConnection") {
+      normalizePeopleOutlookConnection(input);
+      peopleOutlookConnectionCount += 1;
       continue;
     }
     if (input.model_type === "InquiryEmailEvidence") {
@@ -190,6 +203,7 @@ export function reconcileEmailDmsRecords(records = []) {
   return Object.freeze({
     record_count: records.length,
     m365_connection_count: m365ConnectionCount,
+    people_outlook_connection_count: peopleOutlookConnectionCount,
     inquiry_email_evidence_count: inquiryEvidenceCount,
     inquiry_evidence_file_object_count: inquiryFileObjectCount,
     invariant_hash: hashDomainValue({
