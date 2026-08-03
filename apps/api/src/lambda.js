@@ -66,6 +66,9 @@ import {
 import {
   resolveLambdaClientOutlookM365GraphConfig,
 } from "./client-outlook-operational-runtime.js";
+import {
+  createMicrosoftEgressBrokerTransport,
+} from "./microsoft-egress-broker-transport.js";
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4500,16 +4503,24 @@ export function createLambdaApiRuntimeCache({
     resolveLambdaPeopleOutlookRuntimeFactory,
   resolveClientOutlookM365GraphConfigFn =
     resolveLambdaClientOutlookM365GraphConfig,
+  createMicrosoftEgressBrokerTransportFn =
+    createMicrosoftEgressBrokerTransport,
 } = {}) {
   return createRetryablePromiseCache(async () => {
     const matterRepository = await createMatterRepositoryFn();
     const hrxStepUpSecrets = await resolveHrxStepUpSecretsFn();
     const hrxRelationalProjection =
       await loadHrxRelationalProjectionFn();
+    const microsoftEgressTransport =
+      createMicrosoftEgressBrokerTransportFn();
     const peopleOutlookRuntimeFactory =
-      await resolvePeopleOutlookRuntimeFactoryFn();
+      await resolvePeopleOutlookRuntimeFactoryFn({
+        microsoft_egress_transport: microsoftEgressTransport,
+      });
     const m365GraphConfig =
-      await resolveClientOutlookM365GraphConfigFn();
+      await resolveClientOutlookM365GraphConfigFn({
+        microsoft_egress_transport: microsoftEgressTransport,
+      });
     return startApiServerFn({
       port: 0,
       sessionSecret: await resolveSessionSecretFn(),
@@ -4574,6 +4585,8 @@ export function createLambdaHttpHandler({
     resolveLambdaPeopleOutlookRuntimeFactory,
   resolveClientOutlookM365GraphConfigFn =
     resolveLambdaClientOutlookM365GraphConfig,
+  createMicrosoftEgressBrokerTransportFn =
+    createMicrosoftEgressBrokerTransport,
   fetchFn = fetch,
 } = {}) {
   const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
@@ -4589,6 +4602,7 @@ export function createLambdaHttpHandler({
     createPasswordResetEmailDeliveryFn,
     resolvePeopleOutlookRuntimeFactoryFn,
     resolveClientOutlookM365GraphConfigFn,
+    createMicrosoftEgressBrokerTransportFn,
   });
   return async (event = {}) => {
     const method = requestMethod(event).toUpperCase();

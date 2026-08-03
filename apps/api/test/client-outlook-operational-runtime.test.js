@@ -11,9 +11,11 @@ import {
 import {
   M365_GRAPH_REQUIRED_SCOPES,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
+import {
+  MICROSOFT_EGRESS_REDIRECT_URIS,
+} from "../src/microsoft-egress-broker-transport.js";
 
-const REDIRECT_URI =
-  "https://pilot.example.invalid/api/outlook/connection/callback";
+const REDIRECT_URI = MICROSOFT_EGRESS_REDIRECT_URIS.client;
 const SECRET_ID = "/lawos/test/client-outlook/config";
 const SECRET_CONFIG = Object.freeze({
   client_outlook: Object.freeze({
@@ -24,6 +26,13 @@ const SECRET_CONFIG = Object.freeze({
     state_encryption_key: Buffer.alloc(32, 7).toString("base64"),
     credential_secret_prefix: "/lawos/test/client-outlook/delegated",
   }),
+});
+const BROKER_TRANSPORT = Object.freeze({
+  async oauthJwksGet() {},
+  async oauthTokenExchange() {},
+  async oauthTokenRefresh() {},
+  async graphCalendarEventCreate() {},
+  async graphMailMessageExport() {},
 });
 
 function enabledEnv(overrides = {}) {
@@ -137,6 +146,7 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
     secrets_client: secretsClient,
     oauth_client_factory: oauthClientFactory,
     graph_provider: graphProvider,
+    microsoft_egress_transport: BROKER_TRANSPORT,
     clock,
   });
 
@@ -168,6 +178,10 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   assert.equal(
     oauthFactoryCalls[0].scope_profile,
     "client_outlook_addin",
+  );
+  assert.equal(
+    oauthFactoryCalls[0].microsoft_egress_transport,
+    BROKER_TRANSPORT,
   );
   assert.equal(
     oauthFactoryCalls[0].config.client_id,
@@ -220,5 +234,27 @@ test("Client Outlook provider refuses the separate People calendar secret shape"
       },
     }),
     /client_outlook secret configuration is required/u,
+  );
+
+  await assert.rejects(
+    resolveLambdaClientOutlookM365GraphConfig({
+      env: enabledEnv(),
+      secrets_client: {
+        async send() {
+          return {
+            SecretString: JSON.stringify({
+              client_outlook: {
+                ...SECRET_CONFIG.client_outlook,
+                redirect_uris: [
+                  "https://example.invalid/api/outlook/connection/callback",
+                ],
+              },
+            }),
+          };
+        },
+      },
+      microsoft_egress_transport: BROKER_TRANSPORT,
+    }),
+    /redirect_uris must match the client broker profile/u,
   );
 });

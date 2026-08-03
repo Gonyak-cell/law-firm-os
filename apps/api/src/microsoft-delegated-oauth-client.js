@@ -10,6 +10,9 @@ import {
 import {
   M365_GRAPH_REQUIRED_SCOPES,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
+import {
+  MICROSOFT_EGRESS_REDIRECT_URIS,
+} from "./microsoft-egress-broker-transport.js";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -34,6 +37,8 @@ const MICROSOFT_DELEGATED_OAUTH_SCOPE_PROFILES = Object.freeze({
     scopes: PEOPLE_OUTLOOK_OAUTH_SCOPES,
     required_access_scopes: Object.freeze([PEOPLE_OUTLOOK_DELEGATED_SCOPE]),
     connection_scopes: Object.freeze([PEOPLE_OUTLOOK_DELEGATED_SCOPE]),
+    redirect_profile: "people",
+    redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
   }),
   client_outlook_addin: Object.freeze({
     scopes: CLIENT_OUTLOOK_OAUTH_SCOPES,
@@ -41,6 +46,8 @@ const MICROSOFT_DELEGATED_OAUTH_SCOPE_PROFILES = Object.freeze({
       M365_GRAPH_REQUIRED_SCOPES.filter((scope) => scope !== "offline_access"),
     ),
     connection_scopes: M365_GRAPH_REQUIRED_SCOPES,
+    redirect_profile: "client",
+    redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.client,
   }),
 });
 
@@ -221,22 +228,33 @@ function tokenExpiry(body, now) {
 
 export function createMicrosoftDelegatedOAuthClient({
   config: rawConfig,
-  fetch_impl = globalThis.fetch,
+  microsoft_egress_transport,
   clock = () => Date.now(),
   jwks_ttl_ms = 5 * 60 * 1000,
   scope_profile = "people_outlook",
 } = {}) {
   const config = normalizeMicrosoftDelegatedOAuthConfig(rawConfig);
   const scopeProfile = oauthScopeProfile(scope_profile);
-  if (typeof fetch_impl !== "function") throw new TypeError("fetch_impl is required");
+  for (const method of [
+    "oauthJwksGet",
+    "oauthTokenExchange",
+    "oauthTokenRefresh",
+  ]) {
+    if (typeof microsoft_egress_transport?.[method] !== "function") {
+      throw new TypeError(`Microsoft egress transport ${method} is required`);
+    }
+  }
+  if (config.redirect_uri !== scopeProfile.redirect_uri) {
+    throw new TypeError(
+      `redirect_uri must match the ${scopeProfile.redirect_profile} broker profile`,
+    );
+  }
   if (typeof clock !== "function") throw new TypeError("clock is required");
   if (!Number.isSafeInteger(jwks_ttl_ms) || jwks_ttl_ms < 1) {
     throw new TypeError("jwks_ttl_ms must be a positive integer");
   }
   const authority = `https://login.microsoftonline.com/${config.tenant_id}`;
   const authorizeEndpoint = `${authority}/oauth2/v2.0/authorize`;
-  const tokenEndpoint = `${authority}/oauth2/v2.0/token`;
-  const jwksEndpoint = `${authority}/discovery/v2.0/keys`;
   let jwksCache = null;
 
   function nowMilliseconds() {
@@ -252,37 +270,31 @@ export function createMicrosoftDelegatedOAuthClient({
     return milliseconds;
   }
 
-  async function providerJson(url, options, operation) {
-    let response;
+  async function providerOperation(method, request, operation) {
     try {
-      response = await fetch_impl(url, {
-        ...options,
-        signal: options?.signal ?? AbortSignal.timeout(15_000),
-      });
-    } catch {
+      return await microsoft_egress_transport[method](request);
+    } catch (error) {
+      if (error?.status === 400 || error?.status === 401) {
+        throw providerError(
+          "OUTLOOK_PROVIDER_REJECTED",
+          `Microsoft ${operation} was rejected`,
+          401,
+        );
+      }
       throw providerError(
         "OUTLOOK_PROVIDER_UNAVAILABLE",
         `Microsoft ${operation} request failed`,
-        503,
+        error?.status === 403 ? 403 : 503,
       );
     }
-    const body = await response.json().catch(() => null);
-    if (!response.ok || !body || typeof body !== "object" || Array.isArray(body)) {
-      throw providerError(
-        "OUTLOOK_PROVIDER_REJECTED",
-        `Microsoft ${operation} was rejected`,
-        response.status === 400 || response.status === 401 ? 401 : 502,
-      );
-    }
-    return body;
   }
 
   async function signingKey(kid) {
     const now = nowMilliseconds();
     if (!jwksCache || jwksCache.expires_at <= now) {
-      const body = await providerJson(
-        jwksEndpoint,
-        { headers: { accept: "application/json" } },
+      const body = await providerOperation(
+        "oauthJwksGet",
+        { tenant_id: config.tenant_id },
         "signing key",
       );
       jwksCache = Object.freeze({
@@ -297,9 +309,9 @@ export function createMicrosoftDelegatedOAuthClient({
     ));
     if (!jwk) {
       jwksCache = null;
-      const body = await providerJson(
-        jwksEndpoint,
-        { headers: { accept: "application/json" } },
+      const body = await providerOperation(
+        "oauthJwksGet",
+        { tenant_id: config.tenant_id },
         "signing key",
       );
       jwksCache = Object.freeze({
@@ -415,19 +427,6 @@ export function createMicrosoftDelegatedOAuthClient({
     });
   }
 
-  async function tokenGrant(parameters, operation) {
-    const form = new URLSearchParams(parameters);
-    if (config.client_secret) form.set("client_secret", config.client_secret);
-    return providerJson(tokenEndpoint, {
-      method: "POST",
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-        accept: "application/json",
-      },
-      body: form.toString(),
-    }, operation);
-  }
-
   return Object.freeze({
     provider: "microsoft-identity-platform",
     delegated_scope: scopeProfile.connection_scopes.length === 1
@@ -494,13 +493,14 @@ export function createMicrosoftDelegatedOAuthClient({
         );
       }
       const now = nowMilliseconds();
-      const body = await tokenGrant({
+      const body = await providerOperation("oauthTokenExchange", {
+        tenant_id: config.tenant_id,
         client_id: config.client_id,
-        grant_type: "authorization_code",
-        code: authorizationCode,
-        redirect_uri: config.redirect_uri,
+        client_secret: config.client_secret,
+        authorization_code: authorizationCode,
         code_verifier: codeVerifier,
-        scope: scopeProfile.scopes.join(" "),
+        redirect_profile: scopeProfile.redirect_profile,
+        scopes: scopeProfile.scopes,
       }, "authorization code exchange");
       const identity = await verifyIdToken(body.id_token, {
         expected_nonce_hash,
@@ -530,12 +530,12 @@ export function createMicrosoftDelegatedOAuthClient({
         32 * 1024,
       );
       const now = nowMilliseconds();
-      const body = await tokenGrant({
+      const body = await providerOperation("oauthTokenRefresh", {
+        tenant_id: config.tenant_id,
         client_id: config.client_id,
-        grant_type: "refresh_token",
+        client_secret: config.client_secret,
         refresh_token: currentRefreshToken,
-        redirect_uri: config.redirect_uri,
-        scope: scopeProfile.scopes.join(" "),
+        scopes: scopeProfile.scopes,
       }, "token refresh");
       return Object.freeze({
         access_token: requiredText(body.access_token, "access_token", 32 * 1024),

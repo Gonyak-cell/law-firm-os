@@ -1,13 +1,18 @@
 export const MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES = Object.freeze({
-  invalid_request: "M365_GRAPH_MAIL_REQUEST_INVALID",
+  invalid_request: "M365_GRAPH_MAIL_INVALID_REQUEST",
   provider_error: "M365_GRAPH_MAIL_PROVIDER_ERROR",
   provider_response_invalid: "M365_GRAPH_MAIL_RESPONSE_INVALID",
   mime_too_large: "M365_GRAPH_MAIL_MIME_TOO_LARGE",
 });
 
-const DEFAULT_GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0";
-const DEFAULT_MAX_MIME_BYTES = 50 * 1024 * 1024;
-const DEFAULT_TIMEOUT_MS = 30_000;
+export const MICROSOFT_GRAPH_MAIL_MAX_MIME_BYTES = 3 * 1024 * 1024;
+
+function providerError(code, message, status = 502) {
+  return Object.assign(new Error(message), {
+    safe_error_code: code,
+    status,
+  });
+}
 
 function requiredString(value, field, maxLength = 2048) {
   const text = typeof value === "string" ? value.trim() : "";
@@ -21,117 +26,24 @@ function requiredString(value, field, maxLength = 2048) {
   return text;
 }
 
-function providerError(code, message, status = 502) {
-  return Object.assign(new Error(message), {
-    safe_error_code: code,
-    status,
-  });
+function optionalString(value, maxLength = 2048) {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  return text && text.length <= maxLength ? text : null;
 }
 
-function positiveLimit(value, fallback, field) {
-  const resolved = value ?? fallback;
-  if (!Number.isSafeInteger(resolved) || resolved < 1) {
-    throw new TypeError(`${field} must be a positive safe integer`);
+function positiveLimit(value) {
+  const resolved = value ?? MICROSOFT_GRAPH_MAIL_MAX_MIME_BYTES;
+  if (
+    !Number.isSafeInteger(resolved)
+    || resolved < 1
+    || resolved > MICROSOFT_GRAPH_MAIL_MAX_MIME_BYTES
+  ) {
+    throw new TypeError(
+      "max_mime_bytes must be within the 3 MiB broker limit",
+    );
   }
   return resolved;
-}
-
-function graphBaseUrl(value) {
-  const url = new URL(value ?? DEFAULT_GRAPH_BASE_URL);
-  if (
-    url.protocol !== "https:"
-    || url.username
-    || url.password
-    || url.search
-    || url.hash
-  ) {
-    throw new TypeError("graph_base_url must be a safe HTTPS URL");
-  }
-  return url.toString().replace(/\/+$/u, "");
-}
-
-function graphRequestHeaders(accessToken, extra = {}) {
-  return {
-    authorization: `Bearer ${accessToken}`,
-    accept: "application/json",
-    ...extra,
-  };
-}
-
-function providerRequestId(response) {
-  return response.headers.get("request-id")
-    ?? response.headers.get("client-request-id")
-    ?? null;
-}
-
-function safeProviderFailure(response, operation) {
-  return providerError(
-    MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_error,
-    `Microsoft Graph ${operation} failed`,
-    response.status === 401 || response.status === 403 ? 403 : 502,
-  );
-}
-
-async function readJson(response, operation) {
-  if (!response.ok) throw safeProviderFailure(response, operation);
-  try {
-    const value = await response.json();
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-      throw new TypeError("response body is not an object");
-    }
-    return value;
-  } catch (error) {
-    if (error?.safe_error_code) throw error;
-    throw providerError(
-      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
-      `Microsoft Graph ${operation} response is invalid`,
-    );
-  }
-}
-
-async function readBoundedBytes(response, maxBytes) {
-  if (!response.ok) throw safeProviderFailure(response, "MIME read");
-  const declaredLength = Number(response.headers.get("content-length"));
-  if (
-    Number.isFinite(declaredLength)
-    && declaredLength > maxBytes
-  ) {
-    throw providerError(
-      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large,
-      "Microsoft Graph MIME response exceeds the allowed size",
-      413,
-    );
-  }
-  const reader = response.body?.getReader?.();
-  if (!reader) {
-    const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.byteLength > maxBytes) {
-      throw providerError(
-        MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large,
-        "Microsoft Graph MIME response exceeds the allowed size",
-        413,
-      );
-    }
-    return bytes;
-  }
-  const chunks = [];
-  let byteLength = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const chunk = Buffer.from(value);
-    byteLength += chunk.byteLength;
-    if (byteLength > maxBytes) {
-      await reader.cancel().catch(() => {});
-      throw providerError(
-        MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large,
-        "Microsoft Graph MIME response exceeds the allowed size",
-        413,
-      );
-    }
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks, byteLength);
 }
 
 function normalizedAddress(value) {
@@ -144,15 +56,27 @@ function normalizedAddress(value) {
     : "";
   if (!email || email.length > 320 || !email.includes("@")) return null;
   return Object.freeze({
-    display_name:
-      typeof address.name === "string" && address.name.trim()
-        ? address.name.trim().slice(0, 200)
-        : null,
+    display_name: optionalString(
+      address.display_name ?? address.name,
+      200,
+    ),
     address: email,
   });
 }
 
 function normalizedRecipients(message) {
+  if (Array.isArray(message.recipients)) {
+    return Object.freeze(message.recipients.map((value) => {
+      const recipient = normalizedAddress(value);
+      if (!recipient) return null;
+      return Object.freeze({
+        ...recipient,
+        recipient_type: ["to", "cc", "bcc"].includes(value.recipient_type)
+          ? value.recipient_type
+          : "to",
+      });
+    }).filter(Boolean));
+  }
   const recipients = [];
   for (const [field, recipientType] of [
     ["toRecipients", "to"],
@@ -173,16 +97,24 @@ function normalizedRecipients(message) {
 }
 
 function normalizedMessageMetadata(message, immutableMessageId) {
+  if (!message || typeof message !== "object" || Array.isArray(message)) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph message metadata is invalid",
+    );
+  }
   if (
-    requiredString(message.id, "message.id")
-    !== immutableMessageId
+    message.id != null
+    && requiredString(message.id, "message.id") !== immutableMessageId
   ) {
     throw providerError(
       MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
       "Microsoft Graph message identity changed during retrieval",
     );
   }
-  const receivedAt = Date.parse(message.receivedDateTime);
+  const receivedAt = Date.parse(
+    message.received_at ?? message.receivedDateTime,
+  );
   if (!Number.isFinite(receivedAt)) {
     throw providerError(
       MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
@@ -190,29 +122,66 @@ function normalizedMessageMetadata(message, immutableMessageId) {
     );
   }
   return Object.freeze({
-    conversation_id:
-      typeof message.conversationId === "string"
-      && message.conversationId.trim()
-        ? message.conversationId.trim()
-        : null,
-    internet_message_id:
-      typeof message.internetMessageId === "string"
-      && message.internetMessageId.trim()
-        ? message.internetMessageId.trim()
-        : null,
-    subject:
-      typeof message.subject === "string"
-        ? message.subject.trim().slice(0, 998)
-        : "",
-    sender: normalizedAddress(message.from),
+    conversation_id: optionalString(
+      message.conversation_id ?? message.conversationId,
+      512,
+    ),
+    internet_message_id: optionalString(
+      message.internet_message_id ?? message.internetMessageId,
+      998,
+    ),
+    subject: optionalString(message.subject, 998) ?? "",
+    sender: normalizedAddress(message.sender ?? message.from),
     recipients: normalizedRecipients(message),
     received_at: new Date(receivedAt).toISOString(),
-    has_attachments: message.hasAttachments === true,
+    has_attachments:
+      message.has_attachments === true || message.hasAttachments === true,
   });
 }
 
+function decodedMime(result, maxBytes) {
+  const declaredBytes = Number(result?.mime_bytes);
+  if (!Number.isSafeInteger(declaredBytes) || declaredBytes < 1) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph MIME size is invalid",
+    );
+  }
+  if (declaredBytes > maxBytes) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large,
+      "Microsoft Graph MIME exceeds the 3 MiB broker limit",
+      413,
+    );
+  }
+  const encoded = requiredString(
+    result.mime_base64,
+    "mime_base64",
+    Math.ceil(MICROSOFT_GRAPH_MAIL_MAX_MIME_BYTES / 3) * 4 + 4,
+  );
+  if (
+    encoded.length % 4 !== 0
+    || !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)
+  ) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph MIME encoding is invalid",
+    );
+  }
+  const bytes = Buffer.from(encoded, "base64");
+  if (
+    bytes.byteLength !== declaredBytes
+    || bytes.toString("base64") !== encoded
+  ) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph MIME size does not reconcile",
+    );
+  }
+  return bytes;
+}
+
 function looksLikeMimeMessage(bytes) {
-  if (!Buffer.isBuffer(bytes) || bytes.byteLength === 0) return false;
   const head = bytes.subarray(0, Math.min(bytes.byteLength, 64 * 1024))
     .toString("latin1");
   return /(?:^|\r?\n)(?:from|to|date|subject|message-id|mime-version):/iu
@@ -220,7 +189,7 @@ function looksLikeMimeMessage(bytes) {
     && /\r?\n\r?\n/u.test(head);
 }
 
-function graphUtcDateTime(value, field) {
+function utcInstant(value, field) {
   const text = requiredString(value, field);
   const parsed = Date.parse(text);
   if (!Number.isFinite(parsed)) {
@@ -230,50 +199,76 @@ function graphUtcDateTime(value, field) {
       400,
     );
   }
-  return new Date(parsed).toISOString().replace(/Z$/u, "");
+  return new Date(parsed).toISOString();
+}
+
+function safeWebLink(value) {
+  if (value == null) return null;
+  const text = requiredString(value, "event.web_link");
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph calendar web link is invalid",
+    );
+  }
+  const hostname = url.hostname.toLowerCase();
+  const allowed = ["outlook.office.com", "outlook.office365.com"]
+    .some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  if (
+    url.protocol !== "https:"
+    || url.username
+    || url.password
+    || !allowed
+  ) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph calendar web link is invalid",
+    );
+  }
+  return url.toString();
+}
+
+function brokerFailure(error, operation) {
+  if (
+    error?.status === 413
+    || String(error?.safe_error_code ?? "").includes("MIME_TOO_LARGE")
+  ) {
+    return providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large,
+      "Microsoft Graph MIME exceeds the 3 MiB broker limit",
+      413,
+    );
+  }
+  return providerError(
+    MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_error,
+    `Microsoft Graph ${operation} failed through the egress broker`,
+    error?.status === 401 || error?.status === 403 ? 403 : 502,
+  );
 }
 
 export function createMicrosoftGraphMailProvider({
-  fetch_impl = globalThis.fetch,
-  graph_base_url = DEFAULT_GRAPH_BASE_URL,
-  max_mime_bytes = DEFAULT_MAX_MIME_BYTES,
-  timeout_ms = DEFAULT_TIMEOUT_MS,
+  microsoft_egress_transport,
+  max_mime_bytes,
 } = {}) {
-  if (typeof fetch_impl !== "function") {
-    throw new TypeError("fetch_impl is required");
-  }
-  const baseUrl = graphBaseUrl(graph_base_url);
-  const maxMimeBytes = positiveLimit(
-    max_mime_bytes,
-    DEFAULT_MAX_MIME_BYTES,
-    "max_mime_bytes",
-  );
-  const timeoutMs = positiveLimit(
-    timeout_ms,
-    DEFAULT_TIMEOUT_MS,
-    "timeout_ms",
-  );
-
-  async function graphFetch(path, options = {}) {
-    try {
-      return await fetch_impl(`${baseUrl}${path}`, {
-        ...options,
-        signal: options.signal ?? AbortSignal.timeout(timeoutMs),
-      });
-    } catch (error) {
-      if (error?.safe_error_code) throw error;
-      throw providerError(
-        MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_error,
-        "Microsoft Graph request failed",
-      );
+  for (const method of [
+    "graphCalendarEventCreate",
+    "graphMailMessageExport",
+  ]) {
+    if (typeof microsoft_egress_transport?.[method] !== "function") {
+      throw new TypeError(`Microsoft egress transport ${method} is required`);
     }
   }
+  const maxMimeBytes = positiveLimit(max_mime_bytes);
 
   return Object.freeze({
     provider: "microsoft-graph",
     mailbox_scope: "me",
     automatic_mailbox_scan_enabled: false,
     automatic_calendar_sync_enabled: false,
+
     async createMeCalendarEvent(input = {}) {
       const event = input.event;
       if (
@@ -299,79 +294,58 @@ export function createMicrosoftGraphMailProvider({
         "sensitivity",
         "show_as",
       ]);
-      if (
-        Object.keys(event).some(
-          (field) => !allowedEventFields.has(field),
-        )
-      ) {
+      if (Object.keys(event).some((field) => !allowedEventFields.has(field))) {
         throw providerError(
           MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request,
           "Microsoft Graph calendar event contains unsupported fields",
           400,
         );
       }
-      const accessToken = requiredString(
-        input.credential?.access_token,
-        "credential.access_token",
-        16 * 1024,
-      );
-      const transactionId = requiredString(
-        input.transaction_id,
-        "transaction_id",
-        128,
-      );
-      const start = graphUtcDateTime(event.start_at, "event.start_at");
-      const end = graphUtcDateTime(event.end_at, "event.end_at");
-      if (Date.parse(`${end}Z`) <= Date.parse(`${start}Z`)) {
+      const startAt = utcInstant(event.start_at, "event.start_at");
+      const endAt = utcInstant(event.end_at, "event.end_at");
+      if (Date.parse(endAt) <= Date.parse(startAt)) {
         throw providerError(
           MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.invalid_request,
           "Microsoft Graph calendar event must end after it starts",
           400,
         );
       }
-      const response = await graphFetch("/me/events", {
-        method: "POST",
-        headers: graphRequestHeaders(accessToken, {
-          "content-type": "application/json",
-        }),
-        body: JSON.stringify({
+      let result;
+      try {
+        result = await microsoft_egress_transport.graphCalendarEventCreate({
+          access_token: requiredString(
+            input.credential?.access_token,
+            "credential.access_token",
+            16 * 1024,
+          ),
           subject: requiredString(event.subject, "event.subject", 160),
-          start: {
-            dateTime: start,
-            timeZone: "UTC",
-          },
-          end: {
-            dateTime: end,
-            timeZone: "UTC",
-          },
-          transactionId,
-          sensitivity: "private",
-          showAs: "busy",
-        }),
-      });
-      if (response.status !== 201) {
-        if (!response.ok) {
-          throw safeProviderFailure(response, "calendar event create");
+          start_at: startAt,
+          end_at: endAt,
+          transaction_id: requiredString(
+            input.transaction_id,
+            "transaction_id",
+            128,
+          ),
+        });
+      } catch (error) {
+        if (error?.safe_error_code?.startsWith("M365_GRAPH_MAIL_")) {
+          throw error;
         }
-        throw providerError(
-          MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES
-            .provider_response_invalid,
-          "Microsoft Graph calendar create response is invalid",
-        );
+        throw brokerFailure(error, "calendar event create");
       }
-      const created = await readJson(
-        response,
-        "calendar event create",
-      );
       return Object.freeze({
-        event_id: requiredString(created.id, "event.id"),
-        web_link: requiredString(created.webLink, "event.webLink"),
-        provider_request_id: providerRequestId(response),
+        event_id: requiredString(result?.event_id, "event.id"),
+        web_link: safeWebLink(result?.web_link),
+        provider_request_id: optionalString(
+          result?.provider_request_id,
+          512,
+        ),
         mailbox_scope: "me",
         credential_material_included: false,
         production_ready_claim: false,
       });
     },
+
     async getMeMessageMime(input = {}) {
       if (
         input.mailbox_scope !== "me"
@@ -385,90 +359,52 @@ export function createMicrosoftGraphMailProvider({
           400,
         );
       }
-      const accessToken = requiredString(
-        input.credential?.access_token,
-        "credential.access_token",
-        16 * 1024,
-      );
-      const restMessageId = requiredString(
-        input.rest_message_id ?? input.message_id,
-        "rest_message_id",
-      );
-      const translationResponse = await graphFetch(
-        "/me/translateExchangeIds",
-        {
-          method: "POST",
-          headers: graphRequestHeaders(accessToken, {
-            "content-type": "application/json",
-          }),
-          body: JSON.stringify({
-            inputIds: [restMessageId],
-            sourceIdType: "restId",
-            targetIdType: "restImmutableEntryId",
-          }),
-        },
-      );
-      const translation = await readJson(
-        translationResponse,
-        "ID translation",
-      );
-      const translated = Array.isArray(translation.value)
-        ? translation.value
-        : [];
-      if (
-        translated.length !== 1
-        || translated[0]?.sourceId !== restMessageId
-      ) {
-        throw providerError(
-          MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
-          "Microsoft Graph ID translation response is invalid",
-        );
+      let result;
+      try {
+        result = await microsoft_egress_transport.graphMailMessageExport({
+          access_token: requiredString(
+            input.credential?.access_token,
+            "credential.access_token",
+            16 * 1024,
+          ),
+          rest_message_id: requiredString(
+            input.rest_message_id ?? input.message_id,
+            "rest_message_id",
+          ),
+        });
+      } catch (error) {
+        if (error?.safe_error_code?.startsWith("M365_GRAPH_MAIL_")) {
+          throw error;
+        }
+        throw brokerFailure(error, "mail export");
       }
       const immutableMessageId = requiredString(
-        translated[0].targetId,
-        "translation.targetId",
+        result?.immutable_message_id,
+        "immutable_message_id",
       );
-      const encodedId = encodeURIComponent(immutableMessageId);
-      const preferHeader = { Prefer: 'IdType="ImmutableId"' };
-      const metadataResponse = await graphFetch(
-        `/me/messages/${encodedId}?$select=id,internetMessageId,conversationId,subject,from,toRecipients,ccRecipients,bccRecipients,receivedDateTime,hasAttachments`,
-        {
-          method: "GET",
-          headers: graphRequestHeaders(accessToken, preferHeader),
-        },
-      );
-      const metadata = normalizedMessageMetadata(
-        await readJson(metadataResponse, "message metadata read"),
-        immutableMessageId,
-      );
-      const mimeResponse = await graphFetch(
-        `/me/messages/${encodedId}/$value`,
-        {
-          method: "GET",
-          headers: graphRequestHeaders(accessToken, {
-            ...preferHeader,
-            accept: "message/rfc822, application/octet-stream",
-          }),
-        },
-      );
-      const mimeBytes = await readBoundedBytes(
-        mimeResponse,
-        maxMimeBytes,
-      );
+      const mimeBytes = decodedMime(result, maxMimeBytes);
       if (!looksLikeMimeMessage(mimeBytes)) {
         throw providerError(
           MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
           "Microsoft Graph MIME response is invalid",
         );
       }
+      const metadata = normalizedMessageMetadata(
+        result.message_metadata,
+        immutableMessageId,
+      );
+      const requestIds = result.provider_request_ids;
       return Object.freeze({
         mime_bytes: mimeBytes,
         immutable_message_id: immutableMessageId,
-        internet_message_id: metadata.internet_message_id,
+        internet_message_id: optionalString(
+          result.internet_message_id ?? metadata.internet_message_id,
+          998,
+        ),
         message_metadata: metadata,
-        provider_request_id: providerRequestId(mimeResponse),
-        translation_request_id: providerRequestId(translationResponse),
-        metadata_request_id: providerRequestId(metadataResponse),
+        provider_request_id: optionalString(requestIds?.mime, 512),
+        translation_request_id: optionalString(requestIds?.translation, 512),
+        metadata_request_id: optionalString(requestIds?.metadata, 512),
         mailbox_scope: "me",
         credential_material_included: false,
         production_ready_claim: false,

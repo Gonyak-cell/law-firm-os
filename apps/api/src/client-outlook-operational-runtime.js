@@ -18,6 +18,10 @@ import {
   createMicrosoftDelegatedOAuthClient,
   normalizeMicrosoftDelegatedOAuthConfig,
 } from "./microsoft-delegated-oauth-client.js";
+import {
+  MICROSOFT_EGRESS_REDIRECT_URIS,
+  createMicrosoftEgressBrokerTransport,
+} from "./microsoft-egress-broker-transport.js";
 
 export const LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV =
   "LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID";
@@ -82,7 +86,7 @@ function approvedRedirectUris(values) {
   if (!Array.isArray(values) || values.length === 0) {
     throw new TypeError("redirect_uris are required");
   }
-  return Object.freeze([...new Set(values.map((value) => {
+  const redirectUris = [...new Set(values.map((value) => {
     const url = new URL(requiredText(value, "redirect_uri", 2048));
     if (
       url.protocol !== "https:"
@@ -93,7 +97,14 @@ function approvedRedirectUris(values) {
       throw new TypeError("redirect_uri must be an approved HTTPS callback URI");
     }
     return url.toString();
-  }))]);
+  }))];
+  if (
+    redirectUris.length !== 1
+    || redirectUris[0] !== MICROSOFT_EGRESS_REDIRECT_URIS.client
+  ) {
+    throw new TypeError("redirect_uris must match the client broker profile");
+  }
+  return Object.freeze(redirectUris);
 }
 
 function normalizeClientOutlookConfig(input = {}) {
@@ -230,14 +241,13 @@ function disabledProviderConfig(flags) {
 export function createClientOutlookDelegatedProvider({
   config: rawConfig,
   oauth_client_factory = createMicrosoftDelegatedOAuthClient,
-  fetch_impl = globalThis.fetch,
+  microsoft_egress_transport,
   clock = () => new Date(),
 } = {}) {
   const config = normalizeClientOutlookConfig(rawConfig);
   if (typeof oauth_client_factory !== "function") {
     throw new TypeError("oauth_client_factory is required");
   }
-  if (typeof fetch_impl !== "function") throw new TypeError("fetch_impl is required");
   if (typeof clock !== "function") throw new TypeError("clock is required");
   const clients = new Map();
 
@@ -250,7 +260,7 @@ export function createClientOutlookDelegatedProvider({
           client_secret: config.client_secret,
           redirect_uri: redirectUri,
         },
-        fetch_impl,
+        microsoft_egress_transport,
         clock,
         scope_profile: "client_outlook_addin",
       });
@@ -391,7 +401,7 @@ export function createClientOutlookM365GraphConfig({
   credential_vault,
   oauth_client_factory,
   graph_provider = null,
-  fetch_impl = globalThis.fetch,
+  microsoft_egress_transport,
   clock = () => new Date(),
 } = {}) {
   for (const method of [
@@ -407,11 +417,11 @@ export function createClientOutlookM365GraphConfig({
   const delegated = createClientOutlookDelegatedProvider({
     config,
     oauth_client_factory,
-    fetch_impl,
+    microsoft_egress_transport,
     clock,
   });
   const graph = graph_provider ?? createMicrosoftGraphMailProvider({
-    fetch_impl,
+    microsoft_egress_transport,
   });
   return Object.freeze({
     feature_enabled: flags?.feature_enabled === true,
@@ -435,7 +445,7 @@ export async function createClientOutlookM365GraphConfigFromSecretReference({
   secrets_client = null,
   oauth_client_factory,
   graph_provider,
-  fetch_impl = globalThis.fetch,
+  microsoft_egress_transport = null,
   clock = () => new Date(),
 } = {}) {
   const secretId = requiredText(
@@ -464,13 +474,15 @@ export async function createClientOutlookM365GraphConfigFromSecretReference({
     secret_prefix: config.credential_secret_prefix,
     client,
   });
+  const transport = microsoft_egress_transport
+    ?? createMicrosoftEgressBrokerTransport({ region });
   return createClientOutlookM365GraphConfig({
     config,
     flags,
     credential_vault: credentialVault,
     oauth_client_factory,
     graph_provider,
-    fetch_impl,
+    microsoft_egress_transport: transport,
     clock,
   });
 }

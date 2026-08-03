@@ -25,6 +25,21 @@ const NOW = Date.parse("2026-08-03T00:30:00.000Z");
 const ACCESS_TOKEN = "operational-access-token-never-persist";
 const REFRESH_TOKEN = "operational-refresh-token-never-persist";
 
+function brokerTransport(calendarViewList = async () => ({ events: [] })) {
+  return Object.freeze({
+    async oauthJwksGet() {
+      throw new Error("OAuth signing keys are outside this test");
+    },
+    async oauthTokenExchange() {
+      throw new Error("OAuth exchange is outside this test");
+    },
+    async oauthTokenRefresh() {
+      throw new Error("OAuth refresh is outside this test");
+    },
+    graphCalendarViewList: calendarViewList,
+  });
+}
+
 function dependencies({
   expiresAt = "2026-08-03T01:30:00.000Z",
   refreshResult = null,
@@ -91,10 +106,10 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
     },
     oauth_client: ports.oauthClient,
     clock: () => NOW,
-    fetch_impl: async (url, options) => {
-      graphCalls.push({ url, options });
-      return new Response(JSON.stringify({
-        value: [{
+    microsoft_egress_transport: brokerTransport(async (input) => {
+      graphCalls.push(input);
+      return {
+        events: [{
           id: "graph-required-meeting",
           subject: "필수 참석 회의",
           start: { dateTime: "2026-08-03T10:00:00", timeZone: "Asia/Seoul" },
@@ -131,11 +146,10 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
           iCalUId: "optional-meeting-ical",
           type: "singleInstance",
         }],
-      }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      });
-    },
+        page_count: 1,
+        provider_request_ids: ["people-calendar-request-001"],
+      };
+    }),
   });
   const runtime = factory({ repository });
   const principal = {
@@ -202,14 +216,12 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
     ["required", "optional"],
   );
   assert.equal(graphCalls.length, 1);
-  assert.equal(graphCalls[0].options.method, "GET");
-  assert.equal(graphCalls[0].options.headers.authorization, `Bearer ${ACCESS_TOKEN}`);
-  const graphUrl = new URL(graphCalls[0].url);
-  assert.equal(graphUrl.pathname, "/v1.0/me/calendarView");
-  const select = graphUrl.searchParams.get("$select").split(",");
-  assert.equal(select.includes("body"), false);
-  assert.equal(select.includes("attachments"), false);
-  assert.equal(select.includes("location"), false);
+  assert.equal(graphCalls[0].access_token, ACCESS_TOKEN);
+  assert.equal(graphCalls[0].timezone, "Asia/Seoul");
+  assert.match(graphCalls[0].start_date_time, /^2026-08-03T00:00:00/u);
+  assert.match(graphCalls[0].end_date_time, /^2026-08-04T00:00:00/u);
+  assert.equal(Object.hasOwn(graphCalls[0], "url"), false);
+  assert.equal(Object.hasOwn(graphCalls[0], "headers"), false);
 
   const disconnected = await runtime.connections.disconnect(principal);
   assert.equal(disconnected.connection_state, "not_connected");
@@ -249,13 +261,10 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
       state_encryption_key: Buffer.alloc(32, 12).toString("base64"),
     },
     oauth_client: ports.oauthClient,
-    fetch_impl: async (_url, options) => {
-      graphAuthorizations.push(options.headers.authorization);
-      return new Response(JSON.stringify({ value: [] }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      });
-    },
+    microsoft_egress_transport: brokerTransport(async (input) => {
+      graphAuthorizations.push(input.access_token);
+      return { events: [], page_count: 1, provider_request_ids: [] };
+    }),
     clock: () => NOW,
   })({ repository });
   const principal = {
@@ -282,8 +291,8 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
   assert.equal((await runtime.calendarSource.read(input)).state, "ok");
   assert.equal(ports.refreshCount(), 1);
   assert.deepEqual(graphAuthorizations, [
-    `Bearer ${rotatedAccessToken}`,
-    `Bearer ${rotatedAccessToken}`,
+    rotatedAccessToken,
+    rotatedAccessToken,
   ]);
   const snapshot = JSON.stringify(repository.snapshot());
   for (const secret of [
@@ -318,10 +327,10 @@ test("operational People Outlook clears encrypted tokens when Microsoft requires
       state_encryption_key: Buffer.alloc(32, 13).toString("base64"),
     },
     oauth_client: ports.oauthClient,
-    fetch_impl: async () => {
+    microsoft_egress_transport: brokerTransport(async () => {
       graphCallCount += 1;
       throw new Error("Graph should not run after rejected refresh");
-    },
+    }),
     clock: () => NOW,
   })({ repository });
   const principal = {
@@ -369,9 +378,9 @@ test("operational People Outlook rejects a callback for another signed account",
       state_encryption_key: Buffer.alloc(32, 8).toString("base64"),
     },
     oauth_client: ports.oauthClient,
-    fetch_impl: async () => {
+    microsoft_egress_transport: brokerTransport(async () => {
       throw new Error("Graph should not run");
-    },
+    }),
     clock: () => NOW,
   });
   const runtime = factory({ repository });
@@ -415,10 +424,10 @@ test("encrypted People Outlook credentials are bound to their DB identity contex
       state_encryption_key: Buffer.alloc(32, 9).toString("base64"),
     },
     oauth_client: ports.oauthClient,
-    fetch_impl: async () => {
+    microsoft_egress_transport: brokerTransport(async () => {
       graphCallCount += 1;
       throw new Error("Graph must not receive a credential from another context");
-    },
+    }),
     clock: () => NOW,
   })({ repository });
   const principal = {
@@ -484,9 +493,7 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
         };
       },
     },
-    fetch_impl: async () => {
-      throw new Error("Provider calls are outside this bootstrap test");
-    },
+    microsoft_egress_transport: brokerTransport(),
     clock: () => NOW,
   });
   const runtime = factory({ repository: createEmailDmsRepository() });
