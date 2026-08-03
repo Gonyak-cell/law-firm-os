@@ -88,6 +88,14 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
   });
   const leaveIntegrationProviderEnabled = Object.freeze({ payroll: true });
   const peopleOutlookRuntimeFactory = () => Object.freeze({});
+  const m365GraphConfig = Object.freeze({
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+  });
+  const microsoftEgressTransport = Object.freeze({});
+  let peopleResolverOptions;
+  let clientResolverOptions;
   let startupOptions;
   let forwardedRequest;
   const lambdaHandler = createLambdaHttpHandler({
@@ -103,8 +111,15 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
     loadHrxRelationalProjectionFn: async () => null,
     resolveSessionSecretFn: async () => "lambda-provider-test-session-secret-32-bytes",
     createPasswordResetEmailDeliveryFn: () => undefined,
-    resolvePeopleOutlookRuntimeFactoryFn: async () =>
-      peopleOutlookRuntimeFactory,
+    createMicrosoftEgressBrokerTransportFn: () => microsoftEgressTransport,
+    resolvePeopleOutlookRuntimeFactoryFn: async (options) => {
+      peopleResolverOptions = options;
+      return peopleOutlookRuntimeFactory;
+    },
+    resolveClientOutlookM365GraphConfigFn: async (options) => {
+      clientResolverOptions = options;
+      return m365GraphConfig;
+    },
     fetchFn: async (url, options) => {
       forwardedRequest = { url, options };
       return new Response(JSON.stringify({ outcome: "blocked" }), {
@@ -129,6 +144,15 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
   assert.equal(
     startupOptions.peopleOutlookRuntimeFactory,
     peopleOutlookRuntimeFactory,
+  );
+  assert.equal(startupOptions.m365GraphConfig, m365GraphConfig);
+  assert.equal(
+    peopleResolverOptions.microsoft_egress_transport,
+    microsoftEgressTransport,
+  );
+  assert.equal(
+    clientResolverOptions.microsoft_egress_transport,
+    microsoftEgressTransport,
   );
   assert.equal(
     startupOptions.leaveIntegrationProviders,

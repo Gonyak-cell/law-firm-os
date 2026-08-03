@@ -63,6 +63,12 @@ import {
 import {
   resolveLambdaPeopleOutlookRuntimeFactory,
 } from "./people-outlook-operational-runtime.js";
+import {
+  resolveLambdaClientOutlookM365GraphConfig,
+} from "./client-outlook-operational-runtime.js";
+import {
+  createMicrosoftEgressBrokerTransport,
+} from "./microsoft-egress-broker-transport.js";
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4495,14 +4501,26 @@ export function createLambdaApiRuntimeCache({
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
   resolvePeopleOutlookRuntimeFactoryFn =
     resolveLambdaPeopleOutlookRuntimeFactory,
+  resolveClientOutlookM365GraphConfigFn =
+    resolveLambdaClientOutlookM365GraphConfig,
+  createMicrosoftEgressBrokerTransportFn =
+    createMicrosoftEgressBrokerTransport,
 } = {}) {
   return createRetryablePromiseCache(async () => {
     const matterRepository = await createMatterRepositoryFn();
     const hrxStepUpSecrets = await resolveHrxStepUpSecretsFn();
     const hrxRelationalProjection =
       await loadHrxRelationalProjectionFn();
+    const microsoftEgressTransport =
+      createMicrosoftEgressBrokerTransportFn();
     const peopleOutlookRuntimeFactory =
-      await resolvePeopleOutlookRuntimeFactoryFn();
+      await resolvePeopleOutlookRuntimeFactoryFn({
+        microsoft_egress_transport: microsoftEgressTransport,
+      });
+    const m365GraphConfig =
+      await resolveClientOutlookM365GraphConfigFn({
+        microsoft_egress_transport: microsoftEgressTransport,
+      });
     return startApiServerFn({
       port: 0,
       sessionSecret: await resolveSessionSecretFn(),
@@ -4520,6 +4538,7 @@ export function createLambdaApiRuntimeCache({
       ...(peopleOutlookRuntimeFactory
         ? { peopleOutlookRuntimeFactory }
         : {}),
+      ...(m365GraphConfig ? { m365GraphConfig } : {}),
       clientOperationsV2Enabled:
         process.env[LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV],
       payrollStatementProviderVerifier,
@@ -4564,6 +4583,10 @@ export function createLambdaHttpHandler({
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
   resolvePeopleOutlookRuntimeFactoryFn =
     resolveLambdaPeopleOutlookRuntimeFactory,
+  resolveClientOutlookM365GraphConfigFn =
+    resolveLambdaClientOutlookM365GraphConfig,
+  createMicrosoftEgressBrokerTransportFn =
+    createMicrosoftEgressBrokerTransport,
   fetchFn = fetch,
 } = {}) {
   const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
@@ -4578,6 +4601,8 @@ export function createLambdaHttpHandler({
     resolveSessionSecretFn,
     createPasswordResetEmailDeliveryFn,
     resolvePeopleOutlookRuntimeFactoryFn,
+    resolveClientOutlookM365GraphConfigFn,
+    createMicrosoftEgressBrokerTransportFn,
   });
   return async (event = {}) => {
     const method = requestMethod(event).toUpperCase();

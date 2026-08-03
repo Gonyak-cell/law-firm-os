@@ -2959,12 +2959,11 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
           throw new Error("refresh should not run for this credential");
         },
       },
-      fetch_impl: async (url, options) => {
-        graphCalls.push({ url, options });
-        return new Response(JSON.stringify({ value: [] }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        });
+      microsoft_egress_transport: {
+        async graphCalendarViewList(input) {
+          graphCalls.push(input);
+          return { events: [], page_count: 1, provider_request_ids: [] };
+        },
       },
       clock: () => Date.parse("2026-08-03T00:30:00.000Z"),
     });
@@ -3050,10 +3049,10 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
   assert.equal(source.state, "ok");
   assert.equal(graphCalls.length, 1);
   assert.equal(
-    graphCalls[0].options.headers.authorization,
-    "Bearer postgres-outlook-access-token-never-persist",
+    graphCalls[0].access_token,
+    "postgres-outlook-access-token-never-persist",
   );
-  assert.equal(new URL(graphCalls[0].url).pathname, "/v1.0/me/calendarView");
+  assert.equal(Object.hasOwn(graphCalls[0], "url"), false);
 });
 
 test("PostgreSQL API authority persists termination completion and its authoritative payroll evidence together", async (t) => {

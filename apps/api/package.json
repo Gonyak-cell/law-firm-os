@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Law Firm OS modular backend API. First bounded context: Master Data read surface (master-data-contract v0.21).",
   "dependencies": {
+    "@aws-sdk/client-lambda": "3.1089.0",
     "@aws-sdk/client-s3": "^3.1089.0",
     "@aws-sdk/client-secrets-manager": "^3.1089.0",
     "@aws-sdk/client-sesv2": "^3.1090.0"

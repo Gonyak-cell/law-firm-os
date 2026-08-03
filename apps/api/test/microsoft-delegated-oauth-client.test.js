@@ -7,9 +7,13 @@ import {
 import test from "node:test";
 
 import {
+  CLIENT_OUTLOOK_OAUTH_SCOPES,
   PEOPLE_OUTLOOK_OAUTH_SCOPES,
   createMicrosoftDelegatedOAuthClient,
 } from "../src/microsoft-delegated-oauth-client.js";
+import {
+  MICROSOFT_EGRESS_REDIRECT_URIS,
+} from "../src/microsoft-egress-broker-transport.js";
 
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 const CLIENT_ID = "22222222-2222-4222-8222-222222222222";
@@ -57,37 +61,41 @@ function fixture({
     ...claims,
   });
   const calls = [];
-  const fetchImpl = async (url, options = {}) => {
-    calls.push({ url, options });
-    if (url.endsWith("/discovery/v2.0/keys")) {
-      return new Response(JSON.stringify({
+  const transport = {
+    async oauthJwksGet(input) {
+      calls.push({ method: "oauthJwksGet", input });
+      return {
         keys: [{
           ...jwk,
           kid: "people-outlook-test-key",
           use: "sig",
           alg: "RS256",
         }],
-      }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      });
-    }
-    if (url.endsWith("/oauth2/v2.0/token")) {
-      return new Response(JSON.stringify({
+      };
+    },
+    async oauthTokenExchange(input) {
+      calls.push({ method: "oauthTokenExchange", input });
+      return {
         token_type: "Bearer",
         access_token: "provider-access-token-never-persist",
         refresh_token: "provider-refresh-token-never-persist",
         id_token: idToken,
         expires_in: 3600,
         scope: scopes.join(" "),
-      }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      });
-    }
-    throw new Error(`unexpected URL: ${url}`);
+      };
+    },
+    async oauthTokenRefresh(input) {
+      calls.push({ method: "oauthTokenRefresh", input });
+      return {
+        token_type: "Bearer",
+        access_token: "provider-refreshed-access-token-never-persist",
+        refresh_token: "provider-refreshed-refresh-token-never-persist",
+        expires_in: 3600,
+        scope: scopes.join(" "),
+      };
+    },
   };
-  return { calls, fetchImpl };
+  return { calls, transport };
 }
 
 test("delegated OAuth requests only Calendars.ReadBasic and validates the signed Microsoft account", async () => {
@@ -98,7 +106,7 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
       client_id: CLIENT_ID,
       redirect_uri: REDIRECT_URI,
     },
-    fetch_impl: provider.fetchImpl,
+    microsoft_egress_transport: provider.transport,
     clock: () => NOW,
   });
   const authorizationUrl = new URL(client.authorizationUrl({
@@ -123,11 +131,70 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
   assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
   assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
   assert.equal(exchanged.expires_at, "2026-08-03T04:00:00.000Z");
-  const tokenCall = provider.calls.find(({ url }) => url.endsWith("/token"));
-  const tokenForm = new URLSearchParams(tokenCall.options.body);
-  assert.equal(tokenForm.get("grant_type"), "authorization_code");
-  assert.equal(tokenForm.get("redirect_uri"), REDIRECT_URI);
-  assert.equal(tokenForm.get("client_secret"), null);
+  const tokenCall = provider.calls.find(
+    ({ method }) => method === "oauthTokenExchange",
+  );
+  assert.equal(tokenCall.input.redirect_profile, "people");
+  assert.equal(Object.hasOwn(tokenCall.input, "redirect_uri"), false);
+  assert.equal(tokenCall.input.client_secret, null);
+});
+
+test("Client Outlook OAuth profile requests only the Add-in delegated scopes and validates the Entra subject", async () => {
+  const provider = fixture({
+    scopes: [
+      "https://graph.microsoft.com/Mail.Read",
+      "https://graph.microsoft.com/Calendars.ReadWrite",
+    ],
+  });
+  const client = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      client_secret: "client-outlook-secret-never-return",
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.client,
+    },
+    microsoft_egress_transport: provider.transport,
+    clock: () => NOW,
+    scope_profile: "client_outlook_addin",
+  });
+  const authorizationUrl = new URL(client.authorizationUrl({
+    state: "encrypted-state.".repeat(30),
+    code_challenge: "B".repeat(43),
+    nonce: NONCE,
+  }));
+
+  assert.deepEqual(
+    authorizationUrl.searchParams.get("scope").split(" "),
+    CLIENT_OUTLOOK_OAUTH_SCOPES,
+  );
+  assert.equal(
+    authorizationUrl.searchParams.get("scope").includes("Calendars.ReadBasic"),
+    false,
+  );
+  assert.equal(authorizationUrl.searchParams.has("login_hint"), false);
+  assert.equal(authorizationUrl.searchParams.get("state").length > 200, true);
+
+  const exchanged = await client.exchange({
+    code: "0.ABC_client_outlook_code-20260803",
+    code_verifier: "C".repeat(43),
+    expected_nonce_hash: digest(NONCE),
+    expected_subject_id: "entra-subject-jwsuh",
+  });
+  assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
+  assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
+  assert.deepEqual(
+    [...exchanged.granted_scopes].sort(),
+    ["Calendars.ReadWrite", "Mail.Read", "offline_access"].sort(),
+  );
+  const tokenCall = provider.calls.find(
+    ({ method }) => method === "oauthTokenExchange",
+  );
+  assert.deepEqual(tokenCall.input.scopes, CLIENT_OUTLOOK_OAUTH_SCOPES);
+  assert.equal(tokenCall.input.redirect_profile, "client");
+  assert.equal(
+    tokenCall.input.client_secret,
+    "client-outlook-secret-never-return",
+  );
 });
 
 test("delegated OAuth rejects a token carrying broader Graph permissions", async () => {
@@ -140,7 +207,7 @@ test("delegated OAuth rejects a token carrying broader Graph permissions", async
       client_id: CLIENT_ID,
       redirect_uri: REDIRECT_URI,
     },
-    fetch_impl: provider.fetchImpl,
+    microsoft_egress_transport: provider.transport,
     clock: () => NOW,
   });
   await assert.rejects(
@@ -176,7 +243,7 @@ test("delegated OAuth rejects another mailbox, unbound nonce, and ambiguous audi
         client_id: CLIENT_ID,
         redirect_uri: REDIRECT_URI,
       },
-      fetch_impl: provider.fetchImpl,
+      microsoft_egress_transport: provider.transport,
       clock: () => NOW,
     });
     await assert.rejects(
@@ -189,4 +256,35 @@ test("delegated OAuth rejects another mailbox, unbound nonce, and ambiguous audi
       (error) => error.safe_error_code === expectedCode,
     );
   }
+});
+
+test("delegated OAuth refresh uses only the fixed broker refresh request", async () => {
+  const provider = fixture();
+  const client = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+    },
+    microsoft_egress_transport: provider.transport,
+    clock: () => NOW,
+  });
+
+  const refreshed = await client.refresh({
+    refresh_token: "provider-current-refresh-token-never-persist",
+  });
+  const refreshCall = provider.calls.find(
+    ({ method }) => method === "oauthTokenRefresh",
+  );
+  assert.deepEqual(refreshCall.input, {
+    tenant_id: TENANT_ID,
+    client_id: CLIENT_ID,
+    client_secret: null,
+    refresh_token: "provider-current-refresh-token-never-persist",
+    scopes: PEOPLE_OUTLOOK_OAUTH_SCOPES,
+  });
+  assert.equal(
+    refreshed.access_token,
+    "provider-refreshed-access-token-never-persist",
+  );
 });

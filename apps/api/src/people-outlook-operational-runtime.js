@@ -23,6 +23,9 @@ import {
   createMicrosoftDelegatedOAuthClient,
   normalizeMicrosoftDelegatedOAuthConfig,
 } from "./microsoft-delegated-oauth-client.js";
+import {
+  createMicrosoftEgressBrokerTransport,
+} from "./microsoft-egress-broker-transport.js";
 
 export const LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV =
   "LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID";
@@ -524,14 +527,20 @@ function runtimeCredentialRef(record) {
 export function createPeopleOutlookOperationalRuntimeFactory({
   config: rawConfig,
   oauth_client = null,
-  fetch_impl = globalThis.fetch,
+  microsoft_egress_transport,
   clock = () => new Date(),
 } = {}) {
   const config = normalizeRuntimeConfig(rawConfig);
-  if (typeof fetch_impl !== "function") throw new TypeError("fetch_impl is required");
+  if (
+    typeof microsoft_egress_transport?.graphCalendarViewList !== "function"
+  ) {
+    throw new TypeError(
+      "Microsoft egress transport graphCalendarViewList is required",
+    );
+  }
   const oauth = oauth_client ?? createMicrosoftDelegatedOAuthClient({
     config,
-    fetch_impl,
+    microsoft_egress_transport,
     clock,
   });
   for (const method of ["authorizationUrl", "exchange", "refresh"]) {
@@ -891,7 +900,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       return Object.freeze({ record: currentRecord, credential });
     }
 
-    async function graphResponse(url, options, accessToken) {
+    async function graphResponse(url, options, accessToken, timezone) {
       const parsed = new URL(url);
       if (
         parsed.origin !== GRAPH_ORIGIN
@@ -904,31 +913,50 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           500,
         );
       }
-      let response;
       try {
-        response = await fetch_impl(parsed.toString(), {
-          method: "GET",
-          headers: {
-            ...options.headers,
-            authorization: `Bearer ${accessToken}`,
-          },
-          signal: AbortSignal.timeout(15_000),
+        const result = await microsoft_egress_transport.graphCalendarViewList({
+          access_token: accessToken,
+          start_date_time: requiredText(
+            parsed.searchParams.get("startDateTime"),
+            "startDateTime",
+            100,
+          ),
+          end_date_time: requiredText(
+            parsed.searchParams.get("endDateTime"),
+            "endDateTime",
+            100,
+          ),
+          timezone: requiredText(timezone, "timezone", 100),
         });
-      } catch {
+        if (!Array.isArray(result?.events)) {
+          throw failure(
+            "OUTLOOK_CALENDAR_RESPONSE_INVALID",
+            "Microsoft Graph calendar response is invalid",
+            502,
+          );
+        }
+        return Object.freeze({
+          status: 200,
+          headers: Object.freeze({}),
+          body: Object.freeze({ value: result.events }),
+        });
+      } catch (error) {
+        if (error?.status === 401 || error?.status === 429) {
+          return Object.freeze({
+            status: error.status,
+            headers: Object.freeze({
+              "retry-after": error.retry_after_seconds ?? 0,
+            }),
+            body: null,
+          });
+        }
+        if (error?.safe_error_code) throw error;
         throw failure(
           "OUTLOOK_CALENDAR_READ_FAILED",
-          "Microsoft Graph calendar request failed",
+          "Microsoft Graph calendar broker request failed",
           503,
         );
       }
-      const body = response.status === 200
-        ? await response.json().catch(() => null)
-        : null;
-      return Object.freeze({
-        status: response.status,
-        headers: response.headers,
-        body,
-      });
     }
 
     async function readCalendar(record, { date, timezone }) {
@@ -946,7 +974,12 @@ export function createPeopleOutlookOperationalRuntimeFactory({
               409,
             );
           }
-          return graphResponse(url, { method, headers }, active.credential.access_token);
+          return graphResponse(
+            url,
+            { method, headers },
+            active.credential.access_token,
+            timezone,
+          );
         },
         refreshCredential: async ({ credential_ref }) => {
           if (credential_ref !== runtimeCredentialRef(active.record)) {
@@ -1057,7 +1090,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
 export async function createPeopleOutlookOperationalRuntimeFactoryFromSecretReference({
   env = process.env,
   secrets_client = null,
-  fetch_impl = globalThis.fetch,
+  microsoft_egress_transport = null,
   clock = () => new Date(),
 } = {}) {
   const secretId = requiredText(
@@ -1099,7 +1132,9 @@ export async function createPeopleOutlookOperationalRuntimeFactoryFromSecretRefe
     : secret;
   return createPeopleOutlookOperationalRuntimeFactory({
     config,
-    fetch_impl,
+    microsoft_egress_transport:
+      microsoft_egress_transport
+      ?? createMicrosoftEgressBrokerTransport({ region }),
     clock,
   });
 }

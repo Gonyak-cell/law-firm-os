@@ -84,6 +84,7 @@ function safeMessageMetadata(value) {
 }
 
 function safeOutlookWebLink(value) {
+  if (value === null || value === undefined) return null;
   const text =
     typeof value === "string"
     && value.trim()
