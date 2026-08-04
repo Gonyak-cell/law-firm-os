@@ -306,6 +306,18 @@ function isDesktopPeopleOutlookWriteRoute(method, path) {
   );
 }
 
+function isDesktopPeopleOutlookCompletionRoute(method, path) {
+  return method === "POST" && path === "/api/hrx/people/me/outlook-connection/complete";
+}
+
+function isDesktopPeopleOutlookCompletionBody(body) {
+  if (!body || Object.keys(body).sort().join(",") !== "authorization_code,state_ref") return false;
+  return typeof body.authorization_code === "string"
+    && typeof body.state_ref === "string"
+    && /^(?=.{1,4096}$)[\x21-\x7e]+$/.test(body.authorization_code)
+    && /^[A-Za-z0-9._:-]{1,200}$/.test(body.state_ref);
+}
+
 function isDesktopHrxStepUpRoute(method, path) {
   return method === "POST" && path === "/api/auth/step-up";
 }
@@ -393,10 +405,22 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    const allowedPeopleOutlookWrite = isDesktopPeopleOutlookWriteRoute(
+    const allowedPeopleOutlookCompletion = isDesktopPeopleOutlookCompletionRoute(
       safeMethod,
       normalizedPathname,
     );
+    if (allowedPeopleOutlookCompletion && safePath !== normalizedPathname) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_path_blocked",
+        http_status: 403,
+        token_material_returned: false
+      };
+    }
+    const allowedPeopleOutlookWrite = isDesktopPeopleOutlookWriteRoute(
+      safeMethod,
+      normalizedPathname,
+    ) || allowedPeopleOutlookCompletion;
     const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopFinanceWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
@@ -430,6 +454,14 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       return {
         ok: false,
         reason: "desktop_runtime_write_body_invalid",
+        http_status: 400,
+        token_material_returned: false
+      };
+    }
+    if (allowedPeopleOutlookCompletion && !isDesktopPeopleOutlookCompletionBody(parsedBody)) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_outlook_completion_body_invalid",
         http_status: 400,
         token_material_returned: false
       };

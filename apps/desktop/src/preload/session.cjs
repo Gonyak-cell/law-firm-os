@@ -9,8 +9,6 @@ const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
   latestResetEmail: "session:password-reset:latest-email",
   confirmPasswordReset: "session:password-reset:confirm",
   openOutlookAuthorization: "desktop:outlook-authorization:open",
-  authCallbackReady: "desktop:auth-callback:ready",
-  authCallbackAcknowledge: "desktop:auth-callback:acknowledge",
   login: "session:login",
   features: "session:features",
   smoke: "session:smoke",
@@ -20,8 +18,18 @@ const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
 
 const PRELOAD_EVENT_ALLOWLIST = Object.freeze({
   passwordResetDeepLink: "desktop:password-reset:confirm",
-  authCallbackDeepLink: "desktop:auth-callback"
+  outlookConnectionResult: "desktop:outlook-connection:result"
 });
+
+const OUTLOOK_CONNECTION_RESULT_STATUSES = new Set([
+  "connected",
+  "expired",
+  "session_required",
+  "retryable",
+  "error"
+]);
+const SAFE_OUTLOOK_RESULT_ID = /^[A-Za-z0-9._:-]{1,160}$/;
+const SAFE_OUTLOOK_ERROR_CODE = /^[A-Z0-9_]{1,160}$/;
 
 function invokeAllowed(command, payload) {
   const channel = PRELOAD_CHANNEL_ALLOWLIST[command];
@@ -29,94 +37,70 @@ function invokeAllowed(command, payload) {
   return ipcRenderer.invoke(channel, payload);
 }
 
-function sendAllowed(command, payload) {
-  const channel = PRELOAD_CHANNEL_ALLOWLIST[command];
-  if (!channel) throw new Error(`Blocked preload session command: ${command}`);
-  ipcRenderer.send(channel, payload);
-}
+const pendingOutlookConnectionResults = [];
+let outlookConnectionResultHandler = null;
 
-const pendingAuthCallbacks = [];
-let authCallbackHandler = null;
-const authCallbackRendererId = globalThis.crypto.randomUUID();
-
-function safeAuthCallback(payload) {
+function safeOutlookConnectionResult(payload) {
   if (
-    payload?.type !== "auth_callback"
-    || typeof payload.code !== "string"
-    || typeof payload.state !== "string"
+    payload?.type !== "outlook_connection_result"
+    || !OUTLOOK_CONNECTION_RESULT_STATUSES.has(payload.status)
+    || !Number.isInteger(payload.http_status)
+    || payload.http_status < 0
+    || payload.http_status > 599
+    || !(
+      payload.safe_error_code === null
+      || (typeof payload.safe_error_code === "string" && SAFE_OUTLOOK_ERROR_CODE.test(payload.safe_error_code))
+    )
   ) return null;
-  return { type: "auth_callback", routeOnly: true, code: payload.code, state: payload.state };
-}
-
-function rememberPendingAuthCallback(callback, { first = false } = {}) {
-  if (
-    pendingAuthCallbacks.length >= 256
-    || pendingAuthCallbacks.some((pending) => pending.state === callback.state)
-  ) return false;
-  if (first) pendingAuthCallbacks.unshift(callback);
-  else pendingAuthCallbacks.push(callback);
-  return true;
-}
-
-function deliverAuthCallback(callback, handler) {
-  let result;
-  try {
-    result = handler(callback);
-  } catch {
-    return false;
-  }
-  const acknowledge = () => {
-    try {
-      sendAllowed("authCallbackAcknowledge", {
-        renderer_id: authCallbackRendererId,
-        state: callback.state
-      });
-      return true;
-    } catch {
-      return false;
-    }
+  const result = {
+    type: "outlook_connection_result",
+    status: payload.status,
+    http_status: payload.http_status,
+    safe_error_code: payload.safe_error_code
   };
-  if (result && typeof result.then === "function") {
-    Promise.resolve(result).then(
-      () => {
-        if (!acknowledge()) rememberPendingAuthCallback(callback);
-      },
-      () => rememberPendingAuthCallback(callback)
-    );
-  } else {
-    return acknowledge();
+  for (const field of ["employee_id", "connection_state"]) {
+    if (payload[field] === null) result[field] = null;
+    else if (typeof payload[field] === "string" && SAFE_OUTLOOK_RESULT_ID.test(payload[field])) result[field] = payload[field];
   }
-  return true;
+  return result;
 }
 
-ipcRenderer.on(PRELOAD_EVENT_ALLOWLIST.authCallbackDeepLink, (_event, payload) => {
-  const callback = safeAuthCallback(payload);
-  if (!callback) return;
-  if (authCallbackHandler) {
-    if (!deliverAuthCallback(callback, authCallbackHandler)) {
-      rememberPendingAuthCallback(callback, { first: true });
-    }
+function rememberOutlookConnectionResult(result) {
+  if (pendingOutlookConnectionResults.length >= 32) pendingOutlookConnectionResults.shift();
+  pendingOutlookConnectionResults.push(result);
+}
+
+ipcRenderer.on(PRELOAD_EVENT_ALLOWLIST.outlookConnectionResult, (_event, payload) => {
+  const result = safeOutlookConnectionResult(payload);
+  if (!result) return;
+  if (!outlookConnectionResultHandler) {
+    rememberOutlookConnectionResult(result);
     return;
   }
-  rememberPendingAuthCallback(callback);
+  try {
+    outlookConnectionResultHandler(result);
+  } catch {
+    rememberOutlookConnectionResult(result);
+  }
 });
-sendAllowed("authCallbackReady", { renderer_id: authCallbackRendererId });
 
 function onAllowedEvent(eventName, handler) {
   const channel = PRELOAD_EVENT_ALLOWLIST[eventName];
   if (!channel) throw new Error(`Blocked preload session event: ${eventName}`);
   if (typeof handler !== "function") return () => {};
-  if (eventName === "authCallbackDeepLink") {
-    authCallbackHandler = handler;
-    while (pendingAuthCallbacks.length > 0) {
-      const callback = pendingAuthCallbacks.shift();
-      if (!deliverAuthCallback(callback, handler)) {
-        rememberPendingAuthCallback(callback, { first: true });
+  if (eventName === "outlookConnectionResult") {
+    outlookConnectionResultHandler = handler;
+    while (pendingOutlookConnectionResults.length > 0) {
+      const result = pendingOutlookConnectionResults.shift();
+      try {
+        handler(result);
+      } catch {
+        pendingOutlookConnectionResults.unshift(result);
         break;
       }
     }
     return () => {
-      if (authCallbackHandler === handler) authCallbackHandler = null;
+      if (outlookConnectionResultHandler === handler) outlookConnectionResultHandler = null;
     };
   }
   const listener = (_event, payload) => {
@@ -143,7 +127,7 @@ const sessionApi = Object.freeze({
   api: (payload) => invokeAllowed("api", payload),
   logout: () => invokeAllowed("logout"),
   onPasswordResetDeepLink: (handler) => onAllowedEvent("passwordResetDeepLink", handler),
-  onAuthCallbackDeepLink: (handler) => onAllowedEvent("authCallbackDeepLink", handler)
+  onOutlookConnectionResult: (handler) => onAllowedEvent("outlookConnectionResult", handler)
 });
 
 contextBridge.exposeInMainWorld("matterSession", sessionApi);

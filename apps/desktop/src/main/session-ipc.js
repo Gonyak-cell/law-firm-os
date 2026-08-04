@@ -7,8 +7,6 @@ export const SESSION_CHANNELS = Object.freeze({
   latestResetEmail: "session:password-reset:latest-email",
   confirmPasswordReset: "session:password-reset:confirm",
   openOutlookAuthorization: "desktop:outlook-authorization:open",
-  authCallbackReady: "desktop:auth-callback:ready",
-  authCallbackAcknowledge: "desktop:auth-callback:acknowledge",
   login: "session:login",
   features: "session:features",
   smoke: "session:smoke",
@@ -18,6 +16,7 @@ export const SESSION_CHANNELS = Object.freeze({
 
 const OUTLOOK_AUTHORIZE_HOST = "login.microsoftonline.com";
 const OUTLOOK_SECRET_QUERY = /(?:token|secret|credential|password)/i;
+const OUTLOOK_CONNECTION_COMPLETE_ROUTE = "/api/hrx/people/me/outlook-connection/complete";
 
 export function isAllowedOutlookAuthorizationUrl(candidate) {
   if (typeof candidate !== "string" || !candidate.trim() || candidate.length > 8192) return false;
@@ -59,13 +58,27 @@ export function registerSessionIpcHandlers({
   coordinator,
   isTrustedSender,
   openExternal,
-  onAuthCallbackReady,
-  onAuthCallbackAcknowledged,
+  onSessionAvailable,
   waitForLogoIntroReady = () => undefined
 }) {
   if (!ipcMain?.handle) throw new Error("ipcMain.handle is required for session IPC registration");
   if (!coordinator) throw new Error("session coordinator is required for session IPC registration");
 
+  const login = async (payload) => {
+    const response = await coordinator.login(payload);
+    if (response?.session?.state === "signed_in") {
+      Promise.resolve().then(() => onSessionAvailable?.()).catch(() => undefined);
+    }
+    return response;
+  };
+  const api = (payload) => payload?.path === OUTLOOK_CONNECTION_COMPLETE_ROUTE
+    ? {
+      ok: false,
+      reason: "desktop_main_only_route",
+      http_status: 403,
+      token_material_returned: false
+    }
+    : coordinator.api(payload);
   const routes = [
     [SESSION_CHANNELS.status, () => coordinator.sessionStatus()],
     [SESSION_CHANNELS.claimLogoIntro, async () => {
@@ -78,10 +91,10 @@ export function registerSessionIpcHandlers({
     [SESSION_CHANNELS.latestResetEmail, (payload) => coordinator.latestResetEmail(payload)],
     [SESSION_CHANNELS.confirmPasswordReset, (payload) => coordinator.confirmPasswordReset(payload)],
     [SESSION_CHANNELS.openOutlookAuthorization, (payload) => openOutlookAuthorization(payload, openExternal)],
-    [SESSION_CHANNELS.login, (payload) => coordinator.login(payload)],
+    [SESSION_CHANNELS.login, login],
     [SESSION_CHANNELS.features, (payload) => coordinator.features(payload)],
     [SESSION_CHANNELS.smoke, (payload) => coordinator.smoke(payload)],
-    [SESSION_CHANNELS.api, (payload) => coordinator.api(payload)],
+    [SESSION_CHANNELS.api, api],
     [SESSION_CHANNELS.logout, () => coordinator.logout()]
   ];
 
@@ -94,32 +107,13 @@ export function registerSessionIpcHandlers({
     return route(payload);
   }]);
   for (const [channel, handler] of handlers) ipcMain.handle(channel, handler);
-  const authCallbackReadyHandler = (event, payload) => {
-    if (typeof isTrustedSender !== "function" || !isTrustedSender(event)) return;
-    onAuthCallbackReady?.(payload?.renderer_id);
-  };
-  const authCallbackAcknowledgeHandler = (event, payload) => {
-    if (typeof isTrustedSender !== "function" || !isTrustedSender(event)) return;
-    onAuthCallbackAcknowledged?.({
-      rendererId: payload?.renderer_id,
-      state: payload?.state
-    });
-  };
-  ipcMain.on?.(SESSION_CHANNELS.authCallbackReady, authCallbackReadyHandler);
-  ipcMain.on?.(SESSION_CHANNELS.authCallbackAcknowledge, authCallbackAcknowledgeHandler);
 
   return {
-    channels: [
-      ...handlers.map(([channel]) => channel),
-      SESSION_CHANNELS.authCallbackReady,
-      SESSION_CHANNELS.authCallbackAcknowledge
-    ],
+    channels: handlers.map(([channel]) => channel),
     dispose() {
       if (ipcMain.removeHandler) {
         for (const [channel] of handlers) ipcMain.removeHandler(channel);
       }
-      ipcMain.removeListener?.(SESSION_CHANNELS.authCallbackReady, authCallbackReadyHandler);
-      ipcMain.removeListener?.(SESSION_CHANNELS.authCallbackAcknowledge, authCallbackAcknowledgeHandler);
     }
   };
 }

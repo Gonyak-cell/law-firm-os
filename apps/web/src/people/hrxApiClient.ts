@@ -68,11 +68,13 @@ declare global {
     __LAWOS_SESSION_CONTEXT__?: unknown;
     matterSession?: {
       desktopApiBaseUrl?: string;
-      onAuthCallbackDeepLink?: (handler: (intent: {
+      onOutlookConnectionResult?: (handler: (result: {
         type?: unknown;
-        routeOnly?: unknown;
-        code?: unknown;
-        state?: unknown;
+        status?: unknown;
+        http_status?: unknown;
+        safe_error_code?: unknown;
+        employee_id?: unknown;
+        connection_state?: unknown;
       }) => void | Promise<void>) => (() => void) | void;
       openOutlookAuthorization?: (authorizeUrl: string) => Promise<{
         opened?: boolean;
@@ -2658,14 +2660,10 @@ export async function fetchPeopleOutlookConnection(employeeId: string | null | u
 
 export async function updatePeopleOutlookConnection(
   employeeId: string | null | undefined,
-  action: "begin" | "retry" | "complete",
-  input: Record<string, unknown> = {},
+  action: "begin" | "retry",
 ) {
   if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
-  const body: Record<string, unknown> = { action, ...input };
-  if (action === "begin" || action === "retry") {
-    body.idempotency_key = globalThis.crypto.randomUUID();
-  }
+  const body = { action, idempotency_key: globalThis.crypto.randomUUID() };
   return parsePeopleOutlookConnection(await requestJson(
     `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
     {

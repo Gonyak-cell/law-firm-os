@@ -133,20 +133,6 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.match(preloadSource, /api: \(payload\) => invokeAllowed\("api", payload\)/);
 });
 
-test("desktop shell marks the auth callback bridge not ready during renderer reload or crash", async () => {
-  let notReadyCalls = 0;
-  const { window } = await startDesktopShell({
-    BrowserWindowConstructor: FakeBrowserWindow,
-    onAuthCallbackNotReady() {
-      notReadyCalls += 1;
-    }
-  });
-
-  window.navigationHandlers.get("did-start-loading")();
-  window.navigationHandlers.get("render-process-gone")();
-  assert.equal(notReadyCalls, 2);
-});
-
 test("desktop logo intro claim remains pending until the hidden main window is shown", async () => {
   const ipcMain = new FakeIpcMain();
   let claimed = false;

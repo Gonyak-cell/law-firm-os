@@ -29,8 +29,8 @@ export const DEEP_LINK_ROUTE_SPECS = Object.freeze({
     host: "auth",
     type: "auth_callback",
     path: "/callback",
-    allowedQuery: Object.freeze(["code", "state", "session_state"]),
-    requiredQuery: Object.freeze(["code", "state"])
+    allowedQuery: Object.freeze(["code", "error", "error_description", "state", "session_state"]),
+    requiredQuery: Object.freeze(["state"])
   }),
   password_reset_confirm: Object.freeze({
     host: "password-reset",
@@ -73,6 +73,7 @@ const RESET_TOKEN_PATTERN = /^(?=.{16,256}$)[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$
 const AUTHORIZATION_CODE_PATTERN = /^(?=.{1,4096}$)[\x21-\x7e]+$/;
 const AUTH_CALLBACK_STATE_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
 const AUTH_CALLBACK_SESSION_STATE_PATTERN = /^(?=.{1,512}$)[\x21-\x7e]+$/;
+const AUTH_CALLBACK_ERROR_DESCRIPTION_PATTERN = /^(?=.{1,2048}$)[\x20-\x7e]+$/;
 const REDACTED_RESET_TOKEN = "[reset-token-redacted]";
 const REDACTED_AUTHORIZATION_CODE = "[oauth-code-redacted]";
 const REDACTED_AUTH_CALLBACK_STATE = "[oauth-state-redacted]";
@@ -181,10 +182,27 @@ export function parseMatterDeepLink(candidate) {
       }
     }
     const code = queryValue(url, "code");
+    const callbackError = queryValue(url, "error");
+    const errorDescription = queryValue(url, "error_description");
     const state = queryValue(url, "state");
     const sessionState = queryValue(url, "session_state");
-    if (!AUTHORIZATION_CODE_PATTERN.test(code)) {
+    if (!code && !callbackError) {
+      throw new DeepLinkError("MISSING_AUTH_CALLBACK_QUERY", "Auth callback missing code or error");
+    }
+    if (code && callbackError) {
+      throw new DeepLinkError("INVALID_AUTH_CALLBACK_QUERY", "Auth callback cannot contain both code and error");
+    }
+    if (code && !AUTHORIZATION_CODE_PATTERN.test(code)) {
       throw new DeepLinkError("INVALID_AUTH_CALLBACK_CODE", "Auth callback code shape is invalid");
+    }
+    if (callbackError && callbackError !== "access_denied") {
+      throw new DeepLinkError("INVALID_AUTH_CALLBACK_ERROR", "Auth callback error is not supported");
+    }
+    if (url.searchParams.has("error_description") && (
+      !callbackError
+      || !AUTH_CALLBACK_ERROR_DESCRIPTION_PATTERN.test(errorDescription ?? "")
+    )) {
+      throw new DeepLinkError("INVALID_AUTH_CALLBACK_ERROR_DESCRIPTION", "Auth callback error description shape is invalid");
     }
     if (!AUTH_CALLBACK_STATE_PATTERN.test(state)) {
       throw new DeepLinkError("INVALID_AUTH_CALLBACK_STATE", "Auth callback state shape is invalid");
@@ -195,7 +213,7 @@ export function parseMatterDeepLink(candidate) {
     return {
       type: spec.type,
       routeOnly: true,
-      code,
+      ...(callbackError ? { error: callbackError } : { code }),
       state
     };
   }

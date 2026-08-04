@@ -62,6 +62,17 @@ function request(context, method, body = {}, actorId = USER) {
   });
 }
 
+function completeRequest(context, body = {}, actorId = USER) {
+  return handleHrxApiRequest({
+    pathname: "/api/hrx/people/me/outlook-connection/complete",
+    method: "POST",
+    body,
+    context,
+    requestContext: actor(actorId),
+    permissionContext: permissionContext(),
+  });
+}
+
 function context(overrides = {}) {
   return createHrxRuntimeContext({
     repository: repository(),
@@ -145,12 +156,12 @@ test("OAuth completion stores delegated consent without returning or auditing to
     idempotency_key: BEGIN_IDEMPOTENCY_KEY,
   }).body.connection.connection_state, "consent_pending");
 
-  const completed = request(runtime, "POST", {
-    action: "complete",
+  const completed = completeRequest(runtime, {
     authorization_code: "authorization-code-1",
     state_ref: "oauth-state-1",
   });
   assert.equal(completed.status, 200);
+  assert.equal(completed.body.employee_id, EMPLOYEE);
   assert.equal(completed.body.connection.connection_state, "connected");
   assert.equal(completed.body.connection.delegated_scope, "Calendars.ReadBasic");
 
@@ -174,8 +185,7 @@ test("OAuth completion stores delegated consent without returning or auditing to
 
 test("client-supplied tokens are rejected and revoke immediately removes active identity", () => {
   const runtime = context();
-  const invalid = request(runtime, "POST", {
-    action: "complete",
+  const invalid = completeRequest(runtime, {
     authorization_code: "authorization-code-1",
     access_token: "client-token",
   });
@@ -186,8 +196,7 @@ test("client-supplied tokens are rejected and revoke immediately removes active 
     action: "begin",
     idempotency_key: BEGIN_IDEMPOTENCY_KEY,
   });
-  request(runtime, "POST", {
-    action: "complete",
+  completeRequest(runtime, {
     authorization_code: "authorization-code-2",
     state_ref: begun.body.connection.state_ref,
   });

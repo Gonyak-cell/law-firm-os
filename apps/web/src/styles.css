@@ -6021,6 +6021,23 @@ html[data-theme="dark"] .public-preview {
   color: var(--am-danger);
 }
 
+.outlook-connection-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 140;
+  align-items: center;
+  max-width: min(520px, calc(100vw - 32px));
+  transform: translateX(-50%);
+}
+
+.outlook-connection-toast .icon-button {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  color: currentColor;
+}
+
 .auth-links {
   display: flex;
   justify-content: space-between;

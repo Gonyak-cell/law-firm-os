@@ -40,11 +40,29 @@ test("People Outlook HTTPS callback creates only the bounded desktop deep link",
   assert.equal(location.pathname, "/callback");
   assert.equal(location.searchParams.get("code"), AUTHORIZATION_CODE);
   assert.equal(location.searchParams.get("state"), PEOPLE_STATE);
-  assert.equal(location.searchParams.get("session_state"), SESSION_STATE);
+  assert.equal(location.searchParams.has("session_state"), false);
   assert.deepEqual(
     [...new Set(location.searchParams.keys())].sort(),
-    ["code", "session_state", "state"],
+    ["code", "state"],
   );
+});
+
+test("People Outlook HTTPS callback returns access denial without forwarding Microsoft details", () => {
+  const privateDescription = "User declined consent for a private account";
+  const location = new URL(createPeopleOutlookDesktopCallbackLocation(
+    new URLSearchParams({
+      error: "access_denied",
+      error_description: privateDescription,
+      state: PEOPLE_STATE,
+      session_state: SESSION_STATE,
+    }),
+  ));
+
+  assert.equal(location.searchParams.get("error"), "access_denied");
+  assert.equal(location.searchParams.get("state"), PEOPLE_STATE);
+  assert.equal(location.searchParams.has("error_description"), false);
+  assert.equal(location.searchParams.has("session_state"), false);
+  assert.equal(location.toString().includes(privateDescription), false);
 });
 
 test("People Outlook HTTPS callback redirects before LawOS session auth", async () => {
@@ -63,7 +81,7 @@ test("People Outlook HTTPS callback redirects before LawOS session auth", async 
     const location = new URL(response.headers.get("location"));
     assert.equal(location.protocol, "matter:");
     assert.equal(location.searchParams.get("state"), PEOPLE_STATE);
-    assert.equal(location.searchParams.get("session_state"), SESSION_STATE);
+    assert.equal(location.searchParams.has("session_state"), false);
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.equal(response.headers.get("referrer-policy"), "no-referrer");
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
@@ -123,6 +141,24 @@ test("People callback rejects duplicate or injected parameters without a redirec
     assert.deepEqual(body.safe_error_codes, ["OUTLOOK_OAUTH_CALLBACK_INVALID"]);
     assert.equal(JSON.stringify(body).includes("forbidden"), false);
   });
+});
+
+test("People callback rejects mixed or unsupported authorization results", () => {
+  assert.throws(
+    () => createPeopleOutlookDesktopCallbackLocation(new URLSearchParams({
+      code: AUTHORIZATION_CODE,
+      error: "access_denied",
+      state: PEOPLE_STATE,
+    })),
+    /invalid/,
+  );
+  assert.throws(
+    () => createPeopleOutlookDesktopCallbackLocation(new URLSearchParams({
+      error: "temporarily_unavailable",
+      state: PEOPLE_STATE,
+    })),
+    /invalid/,
+  );
 });
 
 test("Client Add-in encrypted state is not routed through the People desktop bridge", async () => {

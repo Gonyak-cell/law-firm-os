@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, type ReactNode } from "react";
+import React, { useEffect, useState, type ReactNode } from "react";
 import {
   disconnectPeopleOutlookConnection,
   fetchPeopleDailyBrief,
@@ -23,25 +23,11 @@ type OutlookOAuthNotice = {
   message: string;
   retry: boolean;
 };
-type OutlookOAuthCallback = {
-  code: string | null;
-  state: string;
-  error: string | null;
-};
 
 const TABS: ReadonlyArray<{ id: MemberDetailTab; label: string }> = [
   { id: "today", label: "오늘" },
   { id: "matters", label: "담당 사건" },
   { id: "profile", label: "프로필" },
-];
-const OUTLOOK_OAUTH_CALLBACK_KEYS = [
-  "code",
-  "state",
-  "error",
-  "error_description",
-  "outlook_oauth_code",
-  "outlook_oauth_state",
-  "outlook_oauth_error",
 ];
 
 function record(value: unknown): UnknownRecord {
@@ -54,76 +40,6 @@ function rows(value: unknown): UnknownRecord[] {
 
 function text(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim() ? value : fallback;
-}
-
-function safeOAuthCode(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const code = value.trim();
-  return code && code.length <= 4096 && !/[\u0000-\u001F\u007F]/.test(code) ? code : null;
-}
-
-function parseOutlookOAuthCallback(value: {
-  code?: unknown;
-  state?: unknown;
-  error?: unknown;
-}): OutlookOAuthCallback | null {
-  if (
-    typeof value.state !== "string"
-    || !value.state
-    || value.state.length > 200
-    || /[\u0000-\u001F\u007F]/.test(value.state)
-  ) return null;
-  const code = safeOAuthCode(value.code);
-  const error = typeof value.error === "string" && value.error.trim()
-    ? value.error.trim().slice(0, 160)
-    : null;
-  return code || error ? { code, state: value.state, error } : null;
-}
-
-function readOutlookOAuthCallbackFromLocation(): OutlookOAuthCallback | null {
-  if (typeof window === "undefined") return null;
-  const params = new URL(window.location.href).searchParams;
-  const codeValues = [
-    ...params.getAll("outlook_oauth_code"),
-    ...params.getAll("code"),
-  ];
-  const stateValues = [
-    ...params.getAll("outlook_oauth_state"),
-    ...params.getAll("state"),
-  ];
-  const errorValues = [
-    ...params.getAll("outlook_oauth_error"),
-    ...params.getAll("error"),
-  ];
-  if (
-    stateValues.length !== 1
-    || codeValues.length > 1
-    || errorValues.length > 1
-    || (codeValues.length === 1 && errorValues.length === 1)
-  ) {
-    return codeValues.length > 0 || errorValues.length > 0
-      ? { code: null, state: "invalid-callback-state", error: "invalid_callback" }
-      : null;
-  }
-  return parseOutlookOAuthCallback({
-    code: codeValues[0],
-    state: stateValues[0],
-    error: errorValues[0],
-  });
-}
-
-function clearOutlookOAuthCallbackFromLocation(): void {
-  const url = new URL(window.location.href);
-  let changed = false;
-  for (const key of OUTLOOK_OAUTH_CALLBACK_KEYS) {
-    if (url.searchParams.has(key)) {
-      url.searchParams.delete(key);
-      changed = true;
-    }
-  }
-  if (changed) {
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  }
 }
 
 function formatDateTime(value: unknown, timezone: string): string {
@@ -522,9 +438,6 @@ export function MemberDetailPanel({
   const [outlookConnection, setOutlookConnection] = useState<OutlookConnectionResult | null>(null);
   const [outlookBusy, setOutlookBusy] = useState(false);
   const [outlookNotice, setOutlookNotice] = useState<OutlookOAuthNotice | null>(null);
-  const outlookCallbackRunningRef = useRef(false);
-  const employeeIdRef = useRef(employeeId);
-  employeeIdRef.current = employeeId;
 
   const refreshOutlookConnection = () => {
     if (!outlookCalendarEnabled) return;
@@ -596,70 +509,6 @@ export function MemberDetailPanel({
     setOutlookBusy(false);
   };
 
-  const completeOutlookOAuth = async (callback: OutlookOAuthCallback) => {
-    if (!outlookCalendarEnabled || outlookCallbackRunningRef.current) return;
-    const callbackEmployeeId = employeeIdRef.current;
-    outlookCallbackRunningRef.current = true;
-    setOutlookBusy(true);
-    if (callback.error) {
-      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
-      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
-      const cancelled = callback.error === "access_denied";
-      setOutlookNotice({
-        kind: cancelled ? "cancelled" : "error",
-        message: cancelled
-          ? "Outlook 연결을 취소했습니다. 다시 시도할 수 있습니다."
-          : "연결 요청을 확인하지 못했습니다. 다시 연결해 주세요.",
-        retry: true,
-      });
-      setOutlookBusy(false);
-      outlookCallbackRunningRef.current = false;
-      return;
-    }
-    if (!callback.code) {
-      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
-      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
-      setOutlookNotice({
-        kind: "error",
-        message: "Outlook 인증 코드를 받지 못했습니다. 다시 시도해 주세요.",
-        retry: true,
-      });
-      setOutlookBusy(false);
-      outlookCallbackRunningRef.current = false;
-      return;
-    }
-    const next = await updatePeopleOutlookConnection(callbackEmployeeId, "complete", {
-      authorization_code: callback.code,
-      state_ref: callback.state,
-    });
-    if (next.kind === "data") {
-      if (callbackEmployeeId === employeeIdRef.current) {
-        setOutlookConnection(next);
-        setDailyBrief(null);
-        fetchPeopleDailyBrief(callbackEmployeeId).then(setDailyBrief);
-      }
-      setOutlookNotice({
-        kind: "success",
-        message: "Outlook 일정을 연결했습니다.",
-        retry: false,
-      });
-    } else {
-      const current = await fetchPeopleOutlookConnection(callbackEmployeeId);
-      if (callbackEmployeeId === employeeIdRef.current) setOutlookConnection(current);
-      const stateRejected = next.reason === "OUTLOOK_OAUTH_STATE_INVALID"
-        || next.reason === "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED";
-      setOutlookNotice({
-        kind: "error",
-        message: stateRejected
-          ? "연결 요청을 확인하지 못했습니다. 다시 연결해 주세요."
-          : "Outlook 연결을 마치지 못했습니다. 다시 시도해 주세요.",
-        retry: true,
-      });
-    }
-    setOutlookBusy(false);
-    outlookCallbackRunningRef.current = false;
-  };
-
   useEffect(() => {
     if (!memberBriefEnabled) {
       setDailyBrief(null);
@@ -681,8 +530,6 @@ export function MemberDetailPanel({
       setOutlookNotice(null);
       return;
     }
-    if (readOutlookOAuthCallbackFromLocation()) return;
-    if (outlookCallbackRunningRef.current) return;
     let cancelled = false;
     setOutlookConnection(null);
     fetchPeopleOutlookConnection(employeeId).then((next) => {
@@ -692,29 +539,6 @@ export function MemberDetailPanel({
       cancelled = true;
     };
   }, [employeeId, outlookCalendarEnabled, refreshKey]);
-
-  useEffect(() => {
-    if (!outlookCalendarEnabled) return;
-    const callback = readOutlookOAuthCallbackFromLocation();
-    if (!callback) return;
-    clearOutlookOAuthCallbackFromLocation();
-    void completeOutlookOAuth(callback);
-  }, [employeeId, outlookCalendarEnabled]);
-
-  useEffect(() => {
-    if (!outlookCalendarEnabled || typeof window.matterSession?.onAuthCallbackDeepLink !== "function") {
-      return undefined;
-    }
-    const unsubscribe = window.matterSession.onAuthCallbackDeepLink((intent) => {
-      if (intent?.type !== "auth_callback" || intent.routeOnly !== true) return;
-      const callback = parseOutlookOAuthCallback({
-        code: intent.code,
-        state: intent.state,
-      });
-      return callback ? completeOutlookOAuth(callback) : undefined;
-    });
-    return typeof unsubscribe === "function" ? unsubscribe : undefined;
-  }, [employeeId, outlookCalendarEnabled]);
 
   const dailyData = dailyBrief?.kind === "data"
     ? record(record(dailyBrief.envelope).data)

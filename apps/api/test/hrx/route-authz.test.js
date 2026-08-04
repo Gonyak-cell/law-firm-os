@@ -79,6 +79,17 @@ test("HRX route policy map resolves implemented server routes and denies unknown
     method: "POST",
     pathname: "/api/hrx/people/members/emp-001/outlook-connection",
   }).required_scope, "hrx.employee.read");
+  const selfOutlookCompletion = resolveHrxRoutePolicy({
+    method: "POST",
+    pathname: "/api/hrx/people/me/outlook-connection/complete",
+  });
+  assert.equal(selfOutlookCompletion.required_scope, "hrx.employee.read");
+  assert.equal(
+    selfOutlookCompletion.resource_id,
+    "/api/hrx/people/me/outlook-connection/complete",
+  );
+  assert.deepEqual(selfOutlookCompletion.params, {});
+  assert.equal(Object.hasOwn(selfOutlookCompletion, "resource_param"), false);
   assert.equal(resolveHrxRoutePolicy({
     method: "DELETE",
     pathname: "/api/hrx/people/members/emp-001/outlook-connection",

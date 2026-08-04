@@ -32,6 +32,12 @@ test("parser accepts matter document task and auth callback route intents", () =
     code: "0.ABC_def-123",
     state: "outlook-state:01HQ"
   });
+  assert.deepEqual(parseMatterDeepLink("matter://auth/callback?error=access_denied&error_description=User%20cancelled&state=outlook-state:cancelled"), {
+    type: "auth_callback",
+    routeOnly: true,
+    error: "access_denied",
+    state: "outlook-state:cancelled"
+  });
 
   const reset = parseMatterDeepLink("matter://password-reset/confirm?token=abcdefghijklmnopqrstuvwxyzABCDE_123456");
   assert.deepEqual(reset, {
@@ -58,6 +64,9 @@ test("parser validates scheme route type identifier shape and unknown parameters
   assert.throws(() => parseMatterDeepLink("matter://outlook/callback?code=0.ABC_def-123&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_ROUTE");
   assert.throws(() => parseMatterDeepLink("https://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "UNSUPPORTED_SCHEME");
   assert.throws(() => parseMatterDeepLink("matter://auth/callback?state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "MISSING_AUTH_CALLBACK_QUERY");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?error=server_error&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_ERROR");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?error=access_denied&code=0.ABC_def-123&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_QUERY");
+  assert.throws(() => parseMatterDeepLink("matter://auth/callback?error=access_denied&error_description=&state=outlook-state:01HQ"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_ERROR_DESCRIPTION");
   assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ&state=replay"), (error) => error instanceof DeepLinkError && error.code === "DUPLICATE_QUERY_PARAMETER");
   assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=outlook-state:01HQ&session_state=valid&session_state=replay"), (error) => error instanceof DeepLinkError && error.code === "DUPLICATE_QUERY_PARAMETER");
   assert.throws(() => parseMatterDeepLink("matter://auth/callback?code=0.ABC_def-123&state=contains%20space"), (error) => error instanceof DeepLinkError && error.code === "INVALID_AUTH_CALLBACK_STATE");

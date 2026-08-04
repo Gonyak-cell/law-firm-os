@@ -115,7 +115,13 @@ function fakeRuntimeClient() {
 test("session IPC exposes account login and smoke without renderer token material", async () => {
   const ipcMain = new FakeIpcMain();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
-  const registration = registerSessionIpcHandlers({ ipcMain, coordinator, isTrustedSender: trustedSender });
+  let sessionAvailableCount = 0;
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    onSessionAvailable: () => { sessionAvailableCount += 1; }
+  });
 
   assert.deepEqual(registration.channels.sort(), Object.values(SESSION_CHANNELS).sort());
   assert.equal((await ipcMain.invoke(SESSION_CHANNELS.runtime)).configured, true);
@@ -137,6 +143,8 @@ test("session IPC exposes account login and smoke without renderer token materia
   assert.equal(JSON.stringify(login).includes("must-not-render"), false);
   assert.equal(JSON.stringify(login).includes("operatorToken"), false);
   assert.equal(JSON.stringify(login).includes("new-password"), false);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(sessionAvailableCount, 1);
 
   const denied = await ipcMain.invoke(SESSION_CHANNELS.smoke, {
     email: "general@amic.kr",
@@ -148,6 +156,18 @@ test("session IPC exposes account login and smoke without renderer token materia
   const api = await ipcMain.invoke(SESSION_CHANNELS.api, { path: "/api/matters", method: "GET" });
   assert.equal(api.body.items.length, 1);
   assert.equal(JSON.stringify(api).includes("sessionToken"), false);
+  const mainOnlyCompletion = await ipcMain.invoke(SESSION_CHANNELS.api, {
+    path: "/api/hrx/people/me/outlook-connection/complete",
+    method: "POST",
+    body: JSON.stringify({ authorization_code: "must-not-forward", state_ref: "must-not-forward" })
+  });
+  assert.deepEqual(mainOnlyCompletion, {
+    ok: false,
+    reason: "desktop_main_only_route",
+    http_status: 403,
+    token_material_returned: false
+  });
+  assert.equal(JSON.stringify(mainOnlyCompletion).includes("must-not-forward"), false);
 
   registration.dispose();
   assert.equal(ipcMain.handlers.size, 0);
@@ -229,60 +249,20 @@ test("session IPC opens only the Microsoft Outlook authorization endpoint withou
   registration.dispose();
 });
 
-test("auth callback ready IPC flushes the main-process queue only after preload listener registration", () => {
+test("session IPC exposes no raw OAuth callback readiness or acknowledgement channel", () => {
   const ipcMain = new FakeIpcMain();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
-  let readyCalls = 0;
-  const acknowledgements = [];
   const registration = registerSessionIpcHandlers({
     ipcMain,
     coordinator,
-    isTrustedSender: trustedSender,
-    onAuthCallbackReady(rendererId) {
-      readyCalls += 1;
-      assert.equal(rendererId, "4f40dbce-3cd6-4d61-a04c-15aa324eb191");
-      return [{ sent: true }];
-    },
-    onAuthCallbackAcknowledged(payload) {
-      acknowledgements.push(payload);
-    }
+    isTrustedSender: trustedSender
   });
 
-  ipcMain.emit(
-    SESSION_CHANNELS.authCallbackReady,
-    { senderFrame: { url: APPROVED_DEV_RENDERER_URL } },
-    { renderer_id: "4f40dbce-3cd6-4d61-a04c-15aa324eb191" }
-  );
-  assert.equal(readyCalls, 1);
-  ipcMain.emit(
-    SESSION_CHANNELS.authCallbackAcknowledge,
-    { senderFrame: { url: APPROVED_DEV_RENDERER_URL } },
-    {
-      renderer_id: "4f40dbce-3cd6-4d61-a04c-15aa324eb191",
-      state: "outlook-state:accepted"
-    }
-  );
-  assert.deepEqual(acknowledgements, [{
-    rendererId: "4f40dbce-3cd6-4d61-a04c-15aa324eb191",
-    state: "outlook-state:accepted"
-  }]);
-  ipcMain.emit(
-    SESSION_CHANNELS.authCallbackReady,
-    { senderFrame: { url: "file:///tmp/untrusted.html" } }
-  );
-  assert.equal(readyCalls, 1);
-  ipcMain.emit(
-    SESSION_CHANNELS.authCallbackAcknowledge,
-    { senderFrame: { url: "file:///tmp/untrusted.html" } },
-    {
-      renderer_id: "4f40dbce-3cd6-4d61-a04c-15aa324eb191",
-      state: "outlook-state:untrusted"
-    }
-  );
-  assert.equal(acknowledgements.length, 1);
+  assert.equal(SESSION_CHANNELS.authCallbackReady, undefined);
+  assert.equal(SESSION_CHANNELS.authCallbackAcknowledge, undefined);
+  assert.equal(registration.channels.some((channel) => channel.includes("auth-callback")), false);
+  assert.equal(ipcMain.listeners.size, 0);
   registration.dispose();
-  assert.equal(ipcMain.listeners.has(SESSION_CHANNELS.authCallbackReady), false);
-  assert.equal(ipcMain.listeners.has(SESSION_CHANNELS.authCallbackAcknowledge), false);
 });
 
 test("Outlook authorization IPC fails closed for missing opener errors and untrusted renderers", async () => {
