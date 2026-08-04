@@ -2,6 +2,7 @@ import {
   createCipheriv,
   createDecipheriv,
   createHash,
+  createHmac,
   hkdfSync,
   randomBytes,
   timingSafeEqual,
@@ -90,20 +91,22 @@ function sha256(value) {
   return createHash("sha256").update(String(value), "utf8").digest("hex");
 }
 
-function oauthStateDigest(value) {
-  // OAuth state contains 256 random bits and is a single-use CSRF token, not a password.
-  // lgtm[js/insufficient-password-hash]
-  return createHash("sha256").update(String(value), "utf8").digest("hex");
+function oauthStateMac(value, key) {
+  return createHmac("sha256", key)
+    .update(String(value), "utf8")
+    .digest("hex");
 }
 
-function stateHash(value) {
-  return `sha256:${oauthStateDigest(value)}`;
+function stateHash(value, key) {
+  return `sha256:${oauthStateMac(value, key)}`;
 }
 
-function sameStateHash(expected, value) {
-  if (!/^sha256:[a-f0-9]{64}$/u.test(String(expected ?? ""))) return false;
+function sameStateHash(expected, value, key) {
+  if (!/^sha256:[a-f0-9]{64}$/u.test(String(expected ?? ""))) {
+    return false;
+  }
   const expectedBytes = Buffer.from(expected.slice("sha256:".length), "hex");
-  const actualBytes = Buffer.from(oauthStateDigest(value), "hex");
+  const actualBytes = Buffer.from(oauthStateMac(value, key), "hex");
   return timingSafeEqual(expectedBytes, actualBytes);
 }
 
@@ -350,6 +353,7 @@ function normalizeRuntimeConfig(input = {}) {
       rootKey,
       "oauth-state-verifier",
     ),
+    state_digest_key: derivedEncryptionKey(rootKey, "oauth-state-digest"),
     credential_encryption_key: derivedEncryptionKey(
       rootKey,
       "delegated-token-bundle",
@@ -629,7 +633,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           session_email_hash: actor.session_email_hash,
           connection_state: "consent_pending",
           delegated_scope: PEOPLE_OUTLOOK_DELEGATED_SCOPE,
-          oauth_state_hash: stateHash(state),
+          oauth_state_hash: stateHash(state, config.state_digest_key),
           oauth_nonce_hash: sha256(nonce),
           oauth_verifier_ciphertext: encryptVerifier(
             verifier,
@@ -692,7 +696,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
         `people-outlook-complete:${peopleOutlookConnectionId({
           tenant_id: tenantId,
           employee_id: employeeId,
-        })}:${oauthStateDigest(state).slice(0, 32)}`;
+        })}:${oauthStateMac(state, config.state_digest_key).slice(0, 32)}`;
       const replay = repository.getIdempotency({
         tenant_id: tenantId,
         idempotency_key: completionIdempotencyKey,
@@ -710,7 +714,11 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       if (
         !current
         || current.connection_state !== "consent_pending"
-        || !sameStateHash(current.oauth_state_hash, state)
+        || !sameStateHash(
+          current.oauth_state_hash,
+          state,
+          config.state_digest_key,
+        )
       ) {
         throw failure(
           "OUTLOOK_OAUTH_STATE_INVALID",
