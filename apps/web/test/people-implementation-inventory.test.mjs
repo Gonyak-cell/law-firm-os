@@ -35,10 +35,19 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-function sourceFingerprint(relativePaths) {
+function sourceFingerprint(relativePaths, commit = null) {
   const payload = [...new Set(relativePaths)]
     .sort()
-    .map((relativePath) => `${relativePath}\0${readFileSync(path.join(repoRoot, relativePath), "utf8")}`)
+    .map((relativePath) => {
+      const source = commit
+        ? execFileSync("git", ["show", `${commit}:${relativePath}`], {
+            cwd: repoRoot,
+            encoding: "utf8",
+            maxBuffer: 4 * 1024 * 1024
+          })
+        : readFileSync(path.join(repoRoot, relativePath), "utf8");
+      return `${relativePath}\0${source}`;
+    })
     .join("\0");
   return sha256(payload);
 }
@@ -52,7 +61,7 @@ function sorted(values) {
   return [...values].sort();
 }
 
-test("PEO-TUW-001 receipt is bound to the current base, HEAD, command, and source graph", async () => {
+test("PEO-TUW-001 receipt is bound to its captured base, HEAD, command, and source graph", async () => {
   const ledger = loadLedger();
   const inventory = await buildPeopleImplementationInventory(repoRoot);
 
@@ -81,8 +90,14 @@ test("PEO-TUW-001 receipt is bound to the current base, HEAD, command, and sourc
   assert.equal(ledger.provenance.replay_command_sha256, sha256(PEOPLE_LEDGER_REPLAY_COMMAND));
   assert.equal(ledger.provenance.replay_command_sha256, inventory.replay_command_sha256);
   assert.equal(ledger.provenance.inventory_sha256, inventory.inventory_sha256);
-  assert.equal(ledger.provenance.runtime_source_fingerprint_sha256, inventory.source_fingerprint_sha256);
-  assert.equal(ledger.provenance.source_fingerprint_sha256, sourceFingerprint(ledger.provenance.source_files));
+  assert.equal(
+    ledger.provenance.runtime_source_fingerprint_sha256,
+    sourceFingerprint(inventory.source_files, ledger.provenance.head_sha)
+  );
+  assert.equal(
+    ledger.provenance.source_fingerprint_sha256,
+    sourceFingerprint(ledger.provenance.source_files, ledger.provenance.head_sha)
+  );
 
   const manualClaims = {
     classification: ledger.classification,
