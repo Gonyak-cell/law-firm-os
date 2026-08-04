@@ -4,6 +4,7 @@ import {
   createHash,
   hkdfSync,
   randomBytes,
+  scryptSync,
   timingSafeEqual,
 } from "node:crypto";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -29,6 +30,9 @@ import {
 import {
   createMicrosoftEgressBrokerTransport,
 } from "./microsoft-egress-broker-transport.js";
+import {
+  PEOPLE_OUTLOOK_OAUTH_STATE_PREFIX,
+} from "./people-outlook-oauth-callback.js";
 
 export const LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV =
   "LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID";
@@ -87,14 +91,20 @@ function sha256(value) {
   return createHash("sha256").update(String(value), "utf8").digest("hex");
 }
 
-function stateHash(value) {
-  return `sha256:${sha256(value)}`;
+function oauthStateDigest(value, key) {
+  return scryptSync(String(value), key, 32).toString("hex");
 }
 
-function sameStateHash(expected, value) {
-  if (!/^sha256:[a-f0-9]{64}$/u.test(String(expected ?? ""))) return false;
-  const expectedBytes = Buffer.from(expected.slice("sha256:".length), "hex");
-  const actualBytes = createHash("sha256").update(String(value), "utf8").digest();
+function stateHash(value, key) {
+  return `scrypt:${oauthStateDigest(value, key)}`;
+}
+
+function sameStateHash(expected, value, key) {
+  if (!/^scrypt:[a-f0-9]{64}$/u.test(String(expected ?? ""))) {
+    return false;
+  }
+  const expectedBytes = Buffer.from(expected.slice("scrypt:".length), "hex");
+  const actualBytes = Buffer.from(oauthStateDigest(value, key), "hex");
   return timingSafeEqual(expectedBytes, actualBytes);
 }
 
@@ -341,6 +351,7 @@ function normalizeRuntimeConfig(input = {}) {
       rootKey,
       "oauth-state-verifier",
     ),
+    state_digest_key: derivedEncryptionKey(rootKey, "oauth-state-digest"),
     credential_encryption_key: derivedEncryptionKey(
       rootKey,
       "delegated-token-bundle",
@@ -590,7 +601,9 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       const current = findRecord(repository, tenantId, employeeId);
       assertPrincipalBinding(current, actor);
       const now = instant(clock);
-      const state = randomBytes(32).toString("base64url");
+      const state = `${PEOPLE_OUTLOOK_OAUTH_STATE_PREFIX}${
+        randomBytes(32).toString("base64url")
+      }`;
       const nonce = randomBytes(32).toString("base64url");
       const verifier = randomBytes(32).toString("base64url");
       const challenge = createHash("sha256")
@@ -618,7 +631,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           session_email_hash: actor.session_email_hash,
           connection_state: "consent_pending",
           delegated_scope: PEOPLE_OUTLOOK_DELEGATED_SCOPE,
-          oauth_state_hash: stateHash(state),
+          oauth_state_hash: stateHash(state, config.state_digest_key),
           oauth_nonce_hash: sha256(nonce),
           oauth_verifier_ciphertext: encryptVerifier(
             verifier,
@@ -681,7 +694,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
         `people-outlook-complete:${peopleOutlookConnectionId({
           tenant_id: tenantId,
           employee_id: employeeId,
-        })}:${sha256(state).slice(0, 32)}`;
+        })}:${oauthStateDigest(state, config.state_digest_key).slice(0, 32)}`;
       const replay = repository.getIdempotency({
         tenant_id: tenantId,
         idempotency_key: completionIdempotencyKey,
@@ -699,7 +712,11 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       if (
         !current
         || current.connection_state !== "consent_pending"
-        || !sameStateHash(current.oauth_state_hash, state)
+        || !sameStateHash(
+          current.oauth_state_hash,
+          state,
+          config.state_digest_key,
+        )
       ) {
         throw failure(
           "OUTLOOK_OAUTH_STATE_INVALID",

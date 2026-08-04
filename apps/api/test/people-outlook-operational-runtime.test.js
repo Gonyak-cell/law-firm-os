@@ -20,6 +20,12 @@ import {
 import {
   LAWOS_M365_CONFIG_SECRET_ID_ENV,
 } from "../src/aws-secret-reference.js";
+import {
+  MICROSOFT_EGRESS_REDIRECT_URIS,
+} from "../src/microsoft-egress-broker-transport.js";
+import {
+  isPeopleOutlookOAuthState,
+} from "../src/people-outlook-oauth-callback.js";
 
 const TENANT = "tenant-people-outlook-operational";
 const EMPLOYEE = "emp-jwsuh";
@@ -27,6 +33,7 @@ const USER = "user-jwsuh";
 const NOW = Date.parse("2026-08-03T00:30:00.000Z");
 const ACCESS_TOKEN = "operational-access-token-never-persist";
 const REFRESH_TOKEN = "operational-refresh-token-never-persist";
+const CLIENT_SECRET = "people-outlook-client-secret-never-return";
 
 function brokerTransport(calendarViewList = async () => ({ events: [] })) {
   return Object.freeze({
@@ -53,7 +60,7 @@ function dependencies({
   let refreshCount = 0;
   const oauthClient = {
     authorizationUrl({ state, code_challenge, nonce, login_hint }) {
-      assert.match(state, /^[A-Za-z0-9_-]{43}$/u);
+      assert.equal(isPeopleOutlookOAuthState(state), true);
       assert.match(code_challenge, /^[A-Za-z0-9_-]{43}$/u);
       assert.match(nonce, /^[A-Za-z0-9_-]{43}$/u);
       const url = new URL(
@@ -104,7 +111,8 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
     config: {
       tenant_id: "11111111-1111-4111-8111-111111111111",
       client_id: "22222222-2222-4222-8222-222222222222",
-      redirect_uri: "matter://auth/callback",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
       state_encryption_key: Buffer.alloc(32, 7).toString("base64"),
     },
     oauth_client: ports.oauthClient,
@@ -169,7 +177,7 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
     tenant_id: TENANT,
     model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
   })[0];
-  assert.match(pending.oauth_state_hash, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(pending.oauth_state_hash, /^scrypt:[a-f0-9]{64}$/u);
   assert.match(pending.oauth_verifier_ciphertext, /^v1\./u);
   assert.equal(JSON.stringify(pending).includes(begun.state_ref), false);
 
@@ -260,7 +268,8 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
     config: {
       tenant_id: "11111111-1111-4111-8111-111111111111",
       client_id: "22222222-2222-4222-8222-222222222222",
-      redirect_uri: "matter://auth/callback",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
       state_encryption_key: Buffer.alloc(32, 12).toString("base64"),
     },
     oauth_client: ports.oauthClient,
@@ -326,7 +335,8 @@ test("operational People Outlook clears encrypted tokens when Microsoft requires
     config: {
       tenant_id: "11111111-1111-4111-8111-111111111111",
       client_id: "22222222-2222-4222-8222-222222222222",
-      redirect_uri: "matter://auth/callback",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
       state_encryption_key: Buffer.alloc(32, 13).toString("base64"),
     },
     oauth_client: ports.oauthClient,
@@ -377,7 +387,8 @@ test("operational People Outlook rejects a callback for another signed account",
     config: {
       tenant_id: "11111111-1111-4111-8111-111111111111",
       client_id: "22222222-2222-4222-8222-222222222222",
-      redirect_uri: "matter://auth/callback",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
       state_encryption_key: Buffer.alloc(32, 8).toString("base64"),
     },
     oauth_client: ports.oauthClient,
@@ -423,7 +434,8 @@ test("encrypted People Outlook credentials are bound to their DB identity contex
     config: {
       tenant_id: "11111111-1111-4111-8111-111111111111",
       client_id: "22222222-2222-4222-8222-222222222222",
-      redirect_uri: "matter://auth/callback",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
       state_encryption_key: Buffer.alloc(32, 9).toString("base64"),
     },
     oauth_client: ports.oauthClient,
@@ -490,7 +502,8 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
             conditional_access_auth_context_id: "c1",
             people_outlook: {
               client_id: "22222222-2222-4222-8222-222222222222",
-              redirect_uri: "matter://auth/callback",
+              client_secret: CLIENT_SECRET,
+              redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
               state_encryption_key: Buffer.alloc(32, 10).toString("base64"),
             },
           }),
@@ -536,7 +549,8 @@ test("People Outlook falls back to the shared M365 JSON Secret", async () => {
             tenant_id: "11111111-1111-4111-8111-111111111111",
             people_outlook: {
               client_id: "22222222-2222-4222-8222-222222222222",
-              redirect_uri: "matter://auth/callback",
+              client_secret: CLIENT_SECRET,
+              redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
               state_encryption_key: Buffer.alloc(32, 10).toString("base64"),
             },
             client_outlook: {

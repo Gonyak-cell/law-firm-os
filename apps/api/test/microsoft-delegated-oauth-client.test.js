@@ -17,7 +17,8 @@ import {
 
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 const CLIENT_ID = "22222222-2222-4222-8222-222222222222";
-const REDIRECT_URI = "matter://auth/callback";
+const REDIRECT_URI = MICROSOFT_EGRESS_REDIRECT_URIS.people;
+const PEOPLE_CLIENT_SECRET = "people-outlook-secret-never-return";
 const NOW = Date.parse("2026-08-03T03:00:00.000Z");
 const NONCE = "delegated-oauth-nonce-20260803";
 
@@ -98,12 +99,27 @@ function fixture({
   return { calls, transport };
 }
 
+test("delegated OAuth requires a server-side client secret for the HTTPS callback", () => {
+  assert.throws(
+    () => createMicrosoftDelegatedOAuthClient({
+      config: {
+        tenant_id: TENANT_ID,
+        client_id: CLIENT_ID,
+        redirect_uri: REDIRECT_URI,
+      },
+      microsoft_egress_transport: fixture().transport,
+    }),
+    /client_secret is required/u,
+  );
+});
+
 test("delegated OAuth requests only Calendars.ReadBasic and validates the signed Microsoft account", async () => {
   const provider = fixture();
   const client = createMicrosoftDelegatedOAuthClient({
     config: {
       tenant_id: TENANT_ID,
       client_id: CLIENT_ID,
+      client_secret: PEOPLE_CLIENT_SECRET,
       redirect_uri: REDIRECT_URI,
     },
     microsoft_egress_transport: provider.transport,
@@ -136,7 +152,7 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
   );
   assert.equal(tokenCall.input.redirect_profile, "people");
   assert.equal(Object.hasOwn(tokenCall.input, "redirect_uri"), false);
-  assert.equal(tokenCall.input.client_secret, null);
+  assert.equal(tokenCall.input.client_secret, PEOPLE_CLIENT_SECRET);
 });
 
 test("Client Outlook OAuth profile requests only the Add-in delegated scopes and validates the Entra subject", async () => {
@@ -205,6 +221,7 @@ test("delegated OAuth rejects a token carrying broader Graph permissions", async
     config: {
       tenant_id: TENANT_ID,
       client_id: CLIENT_ID,
+      client_secret: PEOPLE_CLIENT_SECRET,
       redirect_uri: REDIRECT_URI,
     },
     microsoft_egress_transport: provider.transport,
@@ -241,6 +258,7 @@ test("delegated OAuth rejects another mailbox, unbound nonce, and ambiguous audi
       config: {
         tenant_id: TENANT_ID,
         client_id: CLIENT_ID,
+        client_secret: PEOPLE_CLIENT_SECRET,
         redirect_uri: REDIRECT_URI,
       },
       microsoft_egress_transport: provider.transport,
@@ -264,6 +282,7 @@ test("delegated OAuth refresh uses only the fixed broker refresh request", async
     config: {
       tenant_id: TENANT_ID,
       client_id: CLIENT_ID,
+      client_secret: PEOPLE_CLIENT_SECRET,
       redirect_uri: REDIRECT_URI,
     },
     microsoft_egress_transport: provider.transport,
@@ -279,7 +298,7 @@ test("delegated OAuth refresh uses only the fixed broker refresh request", async
   assert.deepEqual(refreshCall.input, {
     tenant_id: TENANT_ID,
     client_id: CLIENT_ID,
-    client_secret: null,
+    client_secret: PEOPLE_CLIENT_SECRET,
     refresh_token: "provider-current-refresh-token-never-persist",
     scopes: PEOPLE_OUTLOOK_OAUTH_SCOPES,
   });

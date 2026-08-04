@@ -179,6 +179,10 @@ import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
+import {
+  createPeopleOutlookDesktopCallbackLocation,
+  isPeopleOutlookOAuthState,
+} from "./people-outlook-oauth-callback.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -790,6 +794,18 @@ function sendHtml(req, res, status, body) {
     ...corsHeadersForRequest(req),
   });
   res.end(body);
+}
+
+function sendExternalRedirect(req, res, location) {
+  res.writeHead(302, {
+    "cache-control": "no-store",
+    "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    location,
+    ...corsHeadersForRequest(req),
+  });
+  res.end();
 }
 
 function createBufferedResponse() {
@@ -1478,6 +1494,28 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       requestId,
     });
     sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  const isPeopleOutlookHttpsCallback =
+    req.method === "GET"
+    && pathname === "/api/outlook/connection/callback"
+    && url.searchParams.getAll("state").some(isPeopleOutlookOAuthState);
+  if (isPeopleOutlookHttpsCallback) {
+    try {
+      sendExternalRedirect(
+        req,
+        res,
+        createPeopleOutlookDesktopCallbackLocation(url.searchParams),
+      );
+    } catch {
+      sendJson(req, res, 400, {
+        request_id: requestId,
+        outcome: "blocked",
+        reason: "people_outlook_callback_invalid",
+        safe_error_codes: ["OUTLOOK_OAUTH_CALLBACK_INVALID"],
+      });
+    }
     return;
   }
 

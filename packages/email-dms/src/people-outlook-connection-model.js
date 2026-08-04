@@ -56,14 +56,20 @@ function requiredInstant(input, field) {
   return value;
 }
 
-function optionalSha256(input, field, { prefixed = false } = {}) {
+function optionalSha256(input, field) {
   const value = optionalString(input, field, 80);
   if (value === null) return null;
-  const pattern = prefixed
-    ? /^sha256:[a-f0-9]{64}$/u
-    : /^[a-f0-9]{64}$/u;
-  if (!pattern.test(value)) {
+  if (!/^[a-f0-9]{64}$/u.test(value)) {
     throw new TypeError(`${field} must be a SHA-256 digest`);
+  }
+  return value;
+}
+
+function optionalOauthStateDigest(input) {
+  const value = optionalString(input, "oauth_state_hash", 80);
+  if (value === null) return null;
+  if (!/^(?:sha256|scrypt):[a-f0-9]{64}$/u.test(value)) {
+    throw new TypeError("oauth_state_hash must be a supported digest");
   }
   return value;
 }
@@ -125,11 +131,7 @@ export function normalizePeopleOutlookConnection(input = {}) {
   if (!Number.isSafeInteger(stateVersion) || stateVersion < 1) {
     throw new TypeError("state_version must be a positive integer");
   }
-  const oauthStateHash = optionalSha256(
-    input,
-    "oauth_state_hash",
-    { prefixed: true },
-  );
+  const oauthStateHash = optionalOauthStateDigest(input);
   const oauthNonceHash = optionalSha256(input, "oauth_nonce_hash");
   const oauthVerifierCiphertext = optionalString(
     input,
