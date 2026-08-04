@@ -29,7 +29,7 @@ export const DEEP_LINK_ROUTE_SPECS = Object.freeze({
     host: "auth",
     type: "auth_callback",
     path: "/callback",
-    allowedQuery: Object.freeze(["code", "state"]),
+    allowedQuery: Object.freeze(["code", "state", "session_state"]),
     requiredQuery: Object.freeze(["code", "state"])
   }),
   password_reset_confirm: Object.freeze({
@@ -72,6 +72,7 @@ const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{1,127}$/;
 const RESET_TOKEN_PATTERN = /^(?=.{16,256}$)[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$/;
 const AUTHORIZATION_CODE_PATTERN = /^(?=.{1,4096}$)[\x21-\x7e]+$/;
 const AUTH_CALLBACK_STATE_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
+const AUTH_CALLBACK_SESSION_STATE_PATTERN = /^(?=.{1,512}$)[\x21-\x7e]+$/;
 const REDACTED_RESET_TOKEN = "[reset-token-redacted]";
 const REDACTED_AUTHORIZATION_CODE = "[oauth-code-redacted]";
 const REDACTED_AUTH_CALLBACK_STATE = "[oauth-state-redacted]";
@@ -181,11 +182,15 @@ export function parseMatterDeepLink(candidate) {
     }
     const code = queryValue(url, "code");
     const state = queryValue(url, "state");
+    const sessionState = queryValue(url, "session_state");
     if (!AUTHORIZATION_CODE_PATTERN.test(code)) {
       throw new DeepLinkError("INVALID_AUTH_CALLBACK_CODE", "Auth callback code shape is invalid");
     }
     if (!AUTH_CALLBACK_STATE_PATTERN.test(state)) {
       throw new DeepLinkError("INVALID_AUTH_CALLBACK_STATE", "Auth callback state shape is invalid");
+    }
+    if (url.searchParams.has("session_state") && !AUTH_CALLBACK_SESSION_STATE_PATTERN.test(sessionState ?? "")) {
+      throw new DeepLinkError("INVALID_AUTH_CALLBACK_SESSION_STATE", "Auth callback session state shape is invalid");
     }
     return {
       type: spec.type,
