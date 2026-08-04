@@ -546,6 +546,232 @@ test("operational People Outlook rejects a callback for another signed account",
   assert.equal(ports.exchangeCount(), 0);
 });
 
+test("operational People Outlook rebinds an expired same-email record before a migrated user begins authorization", () => {
+  const repository = createEmailDmsRepository();
+  const ports = dependencies();
+  const runtime = createPeopleOutlookOperationalRuntimeFactory({
+    config: {
+      tenant_id: "11111111-1111-4111-8111-111111111111",
+      client_id: "22222222-2222-4222-8222-222222222222",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
+      state_encryption_key: Buffer.alloc(32, 22).toString("base64"),
+    },
+    oauth_client: ports.oauthClient,
+    microsoft_egress_transport: brokerTransport(),
+    clock: () => NOW,
+  })({ repository });
+  const legacyPrincipal = {
+    tenant_id: TENANT,
+    employee_id: EMPLOYEE,
+    user_id: USER,
+    session_email: "jwsuh@amic.kr",
+    can_manage: true,
+  };
+  const begun = runtime.connections.begin(legacyPrincipal);
+  const pending = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  assert.throws(
+    () => runtime.connections.begin({
+      ...legacyPrincipal,
+      user_id: "user-jwsuh-after-password-reset",
+    }),
+    (error) => error.safe_error_code === "OUTLOOK_ACCOUNT_MISMATCH",
+  );
+  repository.update({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+    people_outlook_connection_id: pending.people_outlook_connection_id,
+  }, {
+    ...pending,
+    oauth_expires_at: new Date(NOW - 1).toISOString(),
+  });
+
+  const migrated = runtime.connections.begin({
+    ...legacyPrincipal,
+    user_id: "user-jwsuh-after-password-reset",
+  });
+  assert.equal(migrated.connection_state, "consent_pending");
+  const rebound = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  assert.equal(rebound.user_id, "user-jwsuh-after-password-reset");
+  assert.equal(rebound.session_email_hash, pending.session_email_hash);
+  assert.equal(rebound.state_version, 3);
+  assert.equal(rebound.oauth_expires_at, new Date(NOW + 10 * 60 * 1000).toISOString());
+  const audit = repository.listAudit({
+    tenant_id: TENANT,
+    object_id: rebound.people_outlook_connection_id,
+  });
+  const rebindAudit = audit.find(
+    ({ event_type }) => event_type === "people.outlook.connection.principal.rebound",
+  );
+  assert.equal(rebindAudit?.payload?.principal_rebound, true);
+  assert.equal(rebindAudit?.payload?.previous_user_id, USER);
+  assert.equal(rebindAudit?.payload?.credential_material_included, false);
+  assert.deepEqual(
+    audit.map(({ event_type }) => event_type),
+    [
+      "people.outlook.authorization.started",
+      "people.outlook.connection.principal.rebound",
+      "people.outlook.authorization.started",
+    ],
+  );
+  assert.equal(JSON.stringify(repository.snapshot()).includes(begun.state_ref), false);
+});
+
+test("operational People Outlook rejects email, subject, and active-credential principal rebinding", async () => {
+  const repository = createEmailDmsRepository();
+  const ports = dependencies();
+  const runtime = createPeopleOutlookOperationalRuntimeFactory({
+    config: {
+      tenant_id: "11111111-1111-4111-8111-111111111111",
+      client_id: "22222222-2222-4222-8222-222222222222",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
+      state_encryption_key: Buffer.alloc(32, 23).toString("base64"),
+    },
+    oauth_client: ports.oauthClient,
+    microsoft_egress_transport: brokerTransport(),
+    clock: () => NOW,
+  })({ repository });
+  const connectedPrincipal = {
+    tenant_id: TENANT,
+    employee_id: EMPLOYEE,
+    user_id: USER,
+    session_email: "jwsuh@amic.kr",
+    can_manage: true,
+  };
+  const begun = runtime.connections.begin(connectedPrincipal);
+  await runtime.connections.complete({
+    ...connectedPrincipal,
+    authorization_code: "0.ABC_rebind-guard-code-20260804",
+    state_ref: begun.state_ref,
+  });
+
+  assert.throws(
+    () => runtime.connections.begin({
+      ...connectedPrincipal,
+      user_id: "user-jwsuh-active-credential",
+    }),
+    (error) => error.safe_error_code === "OUTLOOK_ACCOUNT_MISMATCH",
+  );
+
+  const connected = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  repository.update({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+    people_outlook_connection_id: connected.people_outlook_connection_id,
+  }, {
+    ...connected,
+    connection_state: "reauthorization_required",
+    credential_envelope: null,
+    credential_expires_at: null,
+    safe_error_code: "OUTLOOK_REAUTHORIZATION_REQUIRED",
+  });
+  for (const candidate of [
+    {
+      user_id: "user-jwsuh-email-mismatch",
+      session_email: "other@amic.kr",
+    },
+    {
+      user_id: "user-jwsuh-subject-mismatch",
+      session_email: "jwsuh@amic.kr",
+      entra_subject_id: "entra-subject-other",
+    },
+  ]) {
+    assert.throws(
+      () => runtime.connections.begin({
+        ...connectedPrincipal,
+        ...candidate,
+      }),
+      (error) => error.safe_error_code === "OUTLOOK_ACCOUNT_MISMATCH",
+    );
+  }
+  const current = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  assert.equal(current.connection_state, "reauthorization_required");
+  assert.equal(current.user_id, USER);
+  assert.equal(current.credential_envelope, null);
+  assert.equal(ports.exchangeCount(), 1);
+});
+
+test("operational People Outlook permits same-email rebinding before disconnecting an inactive record", async () => {
+  const repository = createEmailDmsRepository();
+  const ports = dependencies();
+  const runtime = createPeopleOutlookOperationalRuntimeFactory({
+    config: {
+      tenant_id: "11111111-1111-4111-8111-111111111111",
+      client_id: "22222222-2222-4222-8222-222222222222",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
+      state_encryption_key: Buffer.alloc(32, 24).toString("base64"),
+    },
+    oauth_client: ports.oauthClient,
+    microsoft_egress_transport: brokerTransport(),
+    clock: () => NOW,
+  })({ repository });
+  const legacyPrincipal = {
+    tenant_id: TENANT,
+    employee_id: EMPLOYEE,
+    user_id: USER,
+    session_email: "jwsuh@amic.kr",
+    can_manage: true,
+  };
+  runtime.connections.begin(legacyPrincipal);
+  const pending = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  repository.update({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+    people_outlook_connection_id: pending.people_outlook_connection_id,
+  }, {
+    ...pending,
+    connection_state: "reauthorization_required",
+    credential_envelope: null,
+    credential_expires_at: null,
+    oauth_state_hash: null,
+    oauth_nonce_hash: null,
+    oauth_verifier_ciphertext: null,
+    oauth_expires_at: null,
+    safe_error_code: "OUTLOOK_REAUTHORIZATION_REQUIRED",
+  });
+
+  const disconnected = await runtime.connections.disconnect({
+    ...legacyPrincipal,
+    user_id: "user-jwsuh-after-password-reset",
+  });
+  assert.equal(disconnected.connection_state, "not_connected");
+  const revoked = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  assert.equal(revoked.user_id, "user-jwsuh-after-password-reset");
+  assert.equal(revoked.connection_state, "revoked");
+  assert.equal(revoked.credential_envelope, null);
+  assert.deepEqual(
+    repository.listAudit({
+      tenant_id: TENANT,
+      object_id: revoked.people_outlook_connection_id,
+    }).map(({ event_type }) => event_type),
+    [
+      "people.outlook.authorization.started",
+      "people.outlook.connection.principal.rebound",
+      "people.outlook.connection.disconnected",
+    ],
+  );
+});
+
 test("operational People Outlook rejects tenant and state mismatches before broker exchange", async () => {
   const repository = createEmailDmsRepository();
   const ports = dependencies();

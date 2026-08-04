@@ -542,6 +542,90 @@ function assertPrincipalBinding(record, actor) {
   }
 }
 
+function expiredConsentPending(record, now) {
+  return record?.connection_state === "consent_pending"
+    && Number.isFinite(Date.parse(record.oauth_expires_at))
+    && Date.parse(record.oauth_expires_at) <= now.getTime();
+}
+
+function assertInactivePrincipalRebind(record, actor, now) {
+  if (!record || record.user_id === actor.user_id) {
+    assertPrincipalBinding(record, actor);
+    return;
+  }
+
+  const sameSessionEmail = record.session_email_hash === actor.session_email_hash;
+  const sameMailboxEmail = !record.mailbox_address_hash
+    || record.mailbox_address_hash === actor.session_email_hash;
+  const sameProviderSubject = !actor.entra_subject_id
+    || !record.provider_subject_id
+    || actor.entra_subject_id === record.provider_subject_id;
+  const inactiveState = record.connection_state !== "connected"
+    && (
+      record.connection_state !== "consent_pending"
+      || expiredConsentPending(record, now)
+    );
+  const noCredential = record.credential_envelope === null;
+
+  if (
+    !sameSessionEmail
+    || !sameMailboxEmail
+    || !sameProviderSubject
+    || !inactiveState
+    || !noCredential
+  ) {
+    throw failure(
+      "OUTLOOK_ACCOUNT_MISMATCH",
+      "Outlook connection belongs to another signed account",
+      403,
+    );
+  }
+}
+
+function rebindInactivePrincipal(repository, current, actor, now) {
+  assertInactivePrincipalRebind(current, actor, now);
+  if (!current || current.user_id === actor.user_id) return current;
+
+  const expired = expiredConsentPending(current, now);
+  const nextState = expired
+    ? "reauthorization_required"
+    : current.connection_state;
+  return persistTransition(repository, {
+    current,
+    action: "people.outlook.connection.principal.rebound",
+    actor_id: actor.user_id,
+    idempotency_key:
+      `people-outlook-principal-rebind:${current.people_outlook_connection_id}:${current.state_version}:${actor.user_id}`,
+    audit_payload: {
+      principal_rebound: true,
+      previous_user_id: current.user_id,
+      reason: expired ? "expired_oauth_state" : "inactive_connection",
+      credential_material_included: false,
+    },
+    input: {
+      ...current,
+      user_id: actor.user_id,
+      session_email_hash: actor.session_email_hash,
+      connection_state: nextState,
+      ...(nextState === "reauthorization_required"
+        ? {
+            credential_envelope: null,
+            credential_expires_at: null,
+            oauth_state_hash: null,
+            oauth_nonce_hash: null,
+            oauth_verifier_ciphertext: null,
+            oauth_expires_at: null,
+            safe_error_code: expired
+              ? "OUTLOOK_OAUTH_STATE_EXPIRED"
+              : current.safe_error_code,
+          }
+        : {}),
+      state_version: current.state_version + 1,
+      updated_at: now.toISOString(),
+    },
+  });
+}
+
 function emptyEvents(employeeIds) {
   return Object.freeze(Object.fromEntries(
     employeeIds.map((employeeId) => [employeeId, Object.freeze([])]),
@@ -639,9 +723,9 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       const tenantId = requiredId(input.tenant_id, "tenant_id");
       const employeeId = requiredId(input.employee_id, "employee_id");
       const actor = principal(input);
-      const current = findRecord(repository, tenantId, employeeId);
-      assertPrincipalBinding(current, actor);
       const now = instant(clock);
+      let current = findRecord(repository, tenantId, employeeId);
+      current = rebindInactivePrincipal(repository, current, actor, now);
       const state = `${PEOPLE_OUTLOOK_OAUTH_STATE_PREFIX}${
         randomBytes(32).toString("base64url")
       }`;
@@ -1007,12 +1091,13 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       const tenantId = requiredId(input.tenant_id, "tenant_id");
       const employeeId = requiredId(input.employee_id, "employee_id");
       const actor = principal(input);
-      const current = findRecord(repository, tenantId, employeeId);
-      assertPrincipalBinding(current, actor);
+      const now = instant(clock);
+      let current = findRecord(repository, tenantId, employeeId);
+      current = rebindInactivePrincipal(repository, current, actor, now);
       if (!current || current.connection_state === "revoked") {
         return publicState(null, { canManage: true });
       }
-      const now = instant(clock).toISOString();
+      const revokedAt = now.toISOString();
       const revoked = persistTransition(repository, {
         current,
         action: "people.outlook.connection.disconnected",
@@ -1030,9 +1115,9 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           oauth_verifier_ciphertext: null,
           oauth_expires_at: null,
           safe_error_code: null,
-          revoked_at: now,
+          revoked_at: revokedAt,
           state_version: current.state_version + 1,
-          updated_at: now,
+          updated_at: revokedAt,
         },
       });
       return publicState(revoked, { canManage: true });

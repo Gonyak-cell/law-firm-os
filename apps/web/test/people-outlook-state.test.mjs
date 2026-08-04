@@ -115,6 +115,56 @@ test("Outlook connection panel distinguishes approval, reauthorization, error, a
   }
 });
 
+test("member request failures settle the panels and expose only safe Korean status details", async () => {
+  const harness = await startPeopleOverviewHarness();
+  try {
+    const page = await openPeopleOverviewPage({
+      ...harness,
+      employeeId: "emp-1",
+      tab: "today",
+      dailyMode: "error",
+      outlookCalendarEnabled: true,
+      outlookMode: "error",
+    });
+    await page.locator('[data-member-detail-tab="today"] .live-data-state.live-data-error').waitFor();
+    await page.locator('[data-outlook-connection-state="error"]').waitFor();
+    assert.equal(
+      await page.locator('[data-member-detail-tab="today"] .live-data-state.live-data-error')
+        .getByText("잠시 후 다시 확인해 주세요.", { exact: true }).count(),
+      1,
+    );
+    assert.equal(
+      await page.locator('[data-outlook-connection-state="error"]')
+        .getByText("잠시 후 다시 확인해 주세요.", { exact: true }).count(),
+      1,
+    );
+    assert.equal(await page.getByText("HTTP 500", { exact: false }).count(), 0);
+    assert.equal(await page.getByText("PEOPLE_DAILY_BRIEF_FAILED", { exact: false }).count(), 0);
+    assert.equal(await page.getByText("OUTLOOK_CONNECTION_READ_FAILED", { exact: false }).count(), 0);
+    assert.equal(await page.locator('[data-member-detail-tab="today"] .live-data-loading').count(), 0);
+    assert.equal(await page.locator('[data-outlook-connection-state="loading"]').count(), 0);
+    await page.close();
+
+    const rejected = await openPeopleOverviewPage({
+      ...harness,
+      employeeId: "emp-1",
+      tab: "today",
+      outlookCalendarEnabled: true,
+    });
+    await rejected.route("**/api/hrx/people/members/*/daily-brief", (route) => route.abort());
+    await rejected.route("**/api/hrx/people/members/*/outlook-connection", (route) => route.abort());
+    await rejected.reload({ waitUntil: "networkidle" });
+    await rejected.locator('[data-member-detail-tab="today"] .live-data-state.live-data-error').waitFor();
+    await rejected.locator('[data-outlook-connection-state="error"]').waitFor();
+    assert.equal(await rejected.getByText("연결이 원활하지 않습니다. 잠시 후 다시 확인해 주세요.", { exact: true }).count(), 2);
+    assert.equal(await rejected.locator('[data-member-detail-tab="today"] .live-data-loading').count(), 0);
+    assert.equal(await rejected.locator('[data-outlook-connection-state="loading"]').count(), 0);
+    await rejected.close();
+  } finally {
+    await harness.close();
+  }
+});
+
 test("team Outlook queue and timeline use source status and open the matching member", async () => {
   const harness = await startPeopleOverviewHarness();
   try {
