@@ -12,7 +12,10 @@ import {
 import {
   createMicrosoftGraphMailProvider,
 } from "../../../packages/email-dms/src/microsoft-graph-mail-provider.js";
-import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
+import {
+  resolveAwsJsonSecret,
+  resolveM365ConfigSecretId,
+} from "./aws-secret-reference.js";
 import { createAwsM365CredentialVault } from "./m365-credential-vault.js";
 import {
   createMicrosoftDelegatedOAuthClient,
@@ -448,10 +451,10 @@ export async function createClientOutlookM365GraphConfigFromSecretReference({
   microsoft_egress_transport = null,
   clock = () => new Date(),
 } = {}) {
-  const secretId = requiredText(
-    env[LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV],
-    LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV,
-  );
+  const secretId = resolveM365ConfigSecretId({
+    env,
+    specificEnvName: LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV,
+  });
   const region = requiredText(
     env.AWS_REGION
       ?? env.AWS_DEFAULT_REGION

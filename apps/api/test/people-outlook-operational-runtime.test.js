@@ -17,6 +17,9 @@ import {
   createHrxRuntimeContext,
   handleHrxApiRequest,
 } from "../src/hrx-runtime-context.js";
+import {
+  LAWOS_M365_CONFIG_SECRET_ID_ENV,
+} from "../src/aws-secret-reference.js";
 
 const TENANT = "tenant-people-outlook-operational";
 const EMPLOYEE = "emp-jwsuh";
@@ -474,6 +477,7 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
     env: {
       AWS_REGION: "ap-northeast-2",
       [LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV]: secretId,
+      [LAWOS_M365_CONFIG_SECRET_ID_ENV]: "/lawos/production/shared-m365/config",
     },
     secrets_client: {
       async send(command) {
@@ -514,6 +518,41 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
     ["GetSecretValueCommand"],
   );
   assert.equal(commands[0].input.SecretId, secretId);
+});
+
+test("People Outlook falls back to the shared M365 JSON Secret", async () => {
+  const commands = [];
+  const secretId = "/lawos/production/m365/config";
+  const factory = await createPeopleOutlookOperationalRuntimeFactoryFromSecretReference({
+    env: {
+      AWS_REGION: "ap-northeast-2",
+      [LAWOS_M365_CONFIG_SECRET_ID_ENV]: secretId,
+    },
+    secrets_client: {
+      async send(command) {
+        commands.push(command);
+        return {
+          SecretString: JSON.stringify({
+            tenant_id: "11111111-1111-4111-8111-111111111111",
+            people_outlook: {
+              client_id: "22222222-2222-4222-8222-222222222222",
+              redirect_uri: "matter://auth/callback",
+              state_encryption_key: Buffer.alloc(32, 10).toString("base64"),
+            },
+            client_outlook: {
+              configured_separately: true,
+            },
+          }),
+        };
+      },
+    },
+    microsoft_egress_transport: brokerTransport(),
+    clock: () => NOW,
+  });
+
+  assert.equal(typeof factory, "function");
+  assert.equal(commands.length, 1);
+  assert.deepEqual(commands[0].input, { SecretId: secretId });
 });
 
 test("Lambda Outlook bootstrap is disabled cleanly and fails closed when enabled without config", async () => {

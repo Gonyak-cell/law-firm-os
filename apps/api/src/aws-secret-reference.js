@@ -3,10 +3,30 @@ import {
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
 
+export const LAWOS_M365_CONFIG_SECRET_ID_ENV =
+  "LAWOS_M365_CONFIG_SECRET_ID";
+
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError(`${name} is required`);
   return text;
+}
+
+export function resolveM365ConfigSecretId({
+  env = process.env,
+  specificEnvName,
+} = {}) {
+  const specificName = requiredText(
+    specificEnvName,
+    "specific M365 config Secret environment name",
+  );
+  for (const name of [specificName, LAWOS_M365_CONFIG_SECRET_ID_ENV]) {
+    const secretId = String(env?.[name] ?? "").trim();
+    if (secretId) return secretId;
+  }
+  throw new TypeError(
+    `${specificName} or ${LAWOS_M365_CONFIG_SECRET_ID_ENV} is required`,
+  );
 }
 
 export async function resolveAwsSecretString({ secretId, region, client } = {}) {

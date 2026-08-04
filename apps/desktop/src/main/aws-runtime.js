@@ -299,6 +299,13 @@ function isDesktopHrxPayrollWriteRoute(method, path) {
   );
 }
 
+function isDesktopPeopleOutlookWriteRoute(method, path) {
+  return (
+    ["POST", "DELETE"].includes(method)
+    && /^\/api\/hrx\/people\/members\/[A-Za-z0-9._:-]+\/outlook-connection$/.test(path)
+  );
+}
+
 function isDesktopHrxStepUpRoute(method, path) {
   return method === "POST" && path === "/api/auth/step-up";
 }
@@ -386,10 +393,15 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
+    const allowedPeopleOutlookWrite = isDesktopPeopleOutlookWriteRoute(
+      safeMethod,
+      normalizedPathname,
+    );
     const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopFinanceWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxPayrollWriteRoute(safeMethod, normalizedPathname) ||
+      allowedPeopleOutlookWrite ||
       isDesktopHrxStepUpRoute(safeMethod, normalizedPathname);
     if (safeMethod !== "GET" && !allowedWrite) {
       return {
@@ -407,8 +419,14 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         token_material_returned: false
       };
     }
-    const parsedBody = allowedWrite ? parseDesktopMatterWriteBody(body) : body;
-    if (allowedWrite && !parsedBody) {
+    const parsedBody = allowedWrite && body != null
+      ? parseDesktopMatterWriteBody(body)
+      : body;
+    if (
+      allowedWrite
+      && !parsedBody
+      && !(allowedPeopleOutlookWrite && safeMethod === "DELETE" && body == null)
+    ) {
       return {
         ok: false,
         reason: "desktop_runtime_write_body_invalid",

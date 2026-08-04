@@ -408,6 +408,51 @@ test("runtime client read API bridge blocks writes and auth routes", async () =>
   assert.equal(outside.http_status, 403);
 });
 
+test("desktop runtime permits only the exact People Outlook connection mutations", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "passed" });
+    }
+  });
+  const path = "/api/hrx/people/members/emp_amic_jwsuh/outlook-connection";
+
+  const begin = await client.api({
+    path,
+    method: "POST",
+    body: JSON.stringify({ action: "begin" }),
+    sessionToken: "lawos_session_v1.secret"
+  });
+  const disconnect = await client.api({
+    path,
+    method: "DELETE",
+    sessionToken: "lawos_session_v1.secret"
+  });
+  const blocked = await Promise.all([
+    client.api({ path, method: "PATCH", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: `${path}/retry`, method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/people/members/emp_amic_jwsuh/profile", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+  const bodylessOtherDelete = await client.api({
+    path: "/api/matters/matter-001/worktree/nodes/node-001",
+    method: "DELETE",
+    sessionToken: "lawos_session_v1.secret"
+  });
+
+  assert.equal(begin.http_status, 200);
+  assert.equal(disconnect.http_status, 200);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].init.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].init.body), { action: "begin" });
+  assert.equal(calls[1].init.method, "DELETE");
+  assert.equal(calls[1].init.body, undefined);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
+  assert.equal(bodylessOtherDelete.http_status, 400);
+  assert.equal(bodylessOtherDelete.reason, "desktop_runtime_write_body_invalid");
+});
+
 test("desktop runtime permits only the exact Search preference mutation route", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({
