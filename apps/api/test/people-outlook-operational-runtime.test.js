@@ -177,7 +177,7 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
     tenant_id: TENANT,
     model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
   })[0];
-  assert.match(pending.oauth_state_hash, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(pending.oauth_state_hash, /^scrypt:[a-f0-9]{64}$/u);
   assert.match(pending.oauth_verifier_ciphertext, /^v1\./u);
   assert.equal(JSON.stringify(pending).includes(begun.state_ref), false);
 

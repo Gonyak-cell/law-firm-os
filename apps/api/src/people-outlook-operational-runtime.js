@@ -2,9 +2,9 @@ import {
   createCipheriv,
   createDecipheriv,
   createHash,
-  createHmac,
   hkdfSync,
   randomBytes,
+  scryptSync,
   timingSafeEqual,
 } from "node:crypto";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -91,22 +91,20 @@ function sha256(value) {
   return createHash("sha256").update(String(value), "utf8").digest("hex");
 }
 
-function oauthStateMac(value, key) {
-  return createHmac("sha256", key)
-    .update(String(value), "utf8")
-    .digest("hex");
+function oauthStateDigest(value, key) {
+  return scryptSync(String(value), key, 32).toString("hex");
 }
 
 function stateHash(value, key) {
-  return `sha256:${oauthStateMac(value, key)}`;
+  return `scrypt:${oauthStateDigest(value, key)}`;
 }
 
 function sameStateHash(expected, value, key) {
-  if (!/^sha256:[a-f0-9]{64}$/u.test(String(expected ?? ""))) {
+  if (!/^scrypt:[a-f0-9]{64}$/u.test(String(expected ?? ""))) {
     return false;
   }
-  const expectedBytes = Buffer.from(expected.slice("sha256:".length), "hex");
-  const actualBytes = Buffer.from(oauthStateMac(value, key), "hex");
+  const expectedBytes = Buffer.from(expected.slice("scrypt:".length), "hex");
+  const actualBytes = Buffer.from(oauthStateDigest(value, key), "hex");
   return timingSafeEqual(expectedBytes, actualBytes);
 }
 
@@ -696,7 +694,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
         `people-outlook-complete:${peopleOutlookConnectionId({
           tenant_id: tenantId,
           employee_id: employeeId,
-        })}:${oauthStateMac(state, config.state_digest_key).slice(0, 32)}`;
+        })}:${oauthStateDigest(state, config.state_digest_key).slice(0, 32)}`;
       const replay = repository.getIdempotency({
         tenant_id: tenantId,
         idempotency_key: completionIdempotencyKey,
