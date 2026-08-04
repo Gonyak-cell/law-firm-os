@@ -9,6 +9,7 @@ import {
 } from "./people-overview-test-support.mjs";
 
 const microsoftAuthorizeUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test";
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 function peopleOutlookCallbackUrl(baseUrl, params) {
   const url = new URL("/", baseUrl);
@@ -212,6 +213,8 @@ test("Outlook connect keeps begin DTO, returns through the People route, and com
     await page.locator('[data-outlook-oauth-notice="success"]').waitFor();
 
     assert.deepEqual(actions.map((item) => item.action), ["begin", "complete"]);
+    assert.deepEqual(Object.keys(actions[0]).sort(), ["action", "idempotency_key"]);
+    assert.match(actions[0].idempotency_key, uuidPattern);
     assert.deepEqual(actions[1], {
       action: "complete",
       authorization_code: "authorization-code-1",
@@ -260,6 +263,8 @@ test("Outlook callback lets the server reject state mismatch and supports a fres
       .getByRole("button", { name: "연결", exact: true })
       .click();
     await page.locator('[data-outlook-connection-state="consent_pending"]').waitFor();
+    const firstAttempt = actions.find((item) => item.action === "begin");
+    assert.match(firstAttempt.idempotency_key, uuidPattern);
     assert.equal(
       await page.evaluate(() => sessionStorage.getItem("lawos.people.outlook-oauth.pending.v1")),
       null,
@@ -299,6 +304,9 @@ test("Outlook callback lets the server reject state mismatch and supports a fres
     await page.getByRole("button", { name: "다시 시도", exact: true }).click();
     await retryResponse;
     await page.locator('[data-outlook-connection-state="consent_pending"]').waitFor();
+    const retryAttempt = actions.find((item) => item.action === "retry");
+    assert.match(retryAttempt.idempotency_key, uuidPattern);
+    assert.notEqual(retryAttempt.idempotency_key, firstAttempt.idempotency_key);
     await page.evaluate(() => window.__deliverOutlookCallback({
       type: "auth_callback",
       routeOnly: true,
@@ -307,6 +315,41 @@ test("Outlook callback lets the server reject state mismatch and supports a fres
     }));
     await page.locator('[data-outlook-connection-state="connected"]').waitFor();
     assert.equal(actions.filter((item) => item.action === "complete").length, 2);
+    await page.close();
+  } finally {
+    await harness.close();
+  }
+});
+
+test("Outlook idempotency conflict stays retryable and explains the failed connection attempt", async () => {
+  const harness = await startPeopleOverviewHarness();
+  try {
+    const page = await openPeopleOverviewPage({
+      ...harness,
+      employeeId: "emp-1",
+      tab: "today",
+      outlookCalendarEnabled: true,
+      outlookMode: "not_connected",
+    });
+    let requestBody = null;
+    await page.route("**/api/hrx/people/members/*/outlook-connection", async (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      requestBody = route.request().postDataJSON();
+      return route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({ safe_error_code: "DOMAIN_IDEMPOTENCY_REQUIRED" }),
+      });
+    });
+
+    await page.locator('[data-outlook-connection-state="not_connected"]')
+      .getByRole("button", { name: "연결", exact: true })
+      .click();
+    await page.getByText("이전 연결 요청과 충돌했습니다. 다시 연결해 주세요.", { exact: true }).waitFor();
+
+    assert.equal(requestBody.action, "begin");
+    assert.match(requestBody.idempotency_key, uuidPattern);
+    assert.equal(await page.getByRole("button", { name: "다시 시도", exact: true }).count(), 1);
     await page.close();
   } finally {
     await harness.close();

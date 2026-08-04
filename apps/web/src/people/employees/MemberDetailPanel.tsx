@@ -484,7 +484,13 @@ function OutlookConnectionPanel({
         <button type="button" onClick={() => onAction("retry")} disabled={busy}>다시 연결</button>
       )}
       {canManage && state === "not_connected" && (
-        <button type="button" onClick={() => onAction("begin")} disabled={busy}>연결</button>
+        <button
+          type="button"
+          onClick={() => onAction(notice?.retry ? "retry" : "begin")}
+          disabled={busy}
+        >
+          {notice?.retry ? "다시 시도" : "연결"}
+        </button>
       )}
       {canManage && ["admin_consent_required", "consent_pending"].includes(state) && (
         notice?.retry
@@ -562,7 +568,10 @@ export function MemberDetailPanel({
         kind: "error",
         message: next.reason === "OUTLOOK_AUTHORIZE_URL_NOT_ALLOWED"
           ? "허용되지 않은 Microsoft 로그인 주소가 차단되었습니다."
-          : "Outlook 연결을 시작하지 못했습니다. 다시 시도해 주세요.",
+          : next.reason === "DOMAIN_IDEMPOTENCY_REQUIRED"
+            || next.reason === "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED"
+            ? "이전 연결 요청과 충돌했습니다. 다시 연결해 주세요."
+            : "Outlook 연결을 시작하지 못했습니다. 다시 시도해 주세요.",
         retry: true,
       });
     }

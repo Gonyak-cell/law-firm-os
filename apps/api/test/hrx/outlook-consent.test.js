@@ -12,6 +12,7 @@ const EMPLOYEE = "emp-outlook";
 const USER = "user-outlook";
 const ACCESS_TOKEN = "access-token-must-never-leak";
 const REFRESH_TOKEN = "refresh-token-must-never-leak";
+const BEGIN_IDEMPOTENCY_KEY = "people-outlook-begin-001";
 
 function repository() {
   return createInMemoryHrxRepository({
@@ -105,15 +106,44 @@ test("Outlook connection routes are mapped to employee read plus a self-service 
     assert.equal(policy.required_scope, "hrx.employee.read");
     assert.equal(policy.resource_id, EMPLOYEE);
   }
-  const result = request(context(), "POST", { action: "begin" }, "user-other");
+  const result = request(context(), "POST", {
+    action: "begin",
+    idempotency_key: BEGIN_IDEMPOTENCY_KEY,
+  }, "user-other");
   assert.equal(result.status, 403);
   assert.equal(result.body.safe_error_code, "PEOPLE_MEMBER_READ_DENIED");
+});
+
+test("OAuth begin requires an explicit idempotency key before changing connection state", () => {
+  const runtime = context();
+  const missing = request(runtime, "POST", { action: "begin" });
+  assert.equal(missing.status, 400);
+  assert.equal(
+    missing.body.safe_error_code,
+    "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED",
+  );
+  const oversized = request(runtime, "POST", {
+    action: "retry",
+    idempotency_key: "x".repeat(256),
+  });
+  assert.equal(oversized.status, 400);
+  assert.equal(
+    oversized.body.safe_error_code,
+    "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED",
+  );
+  assert.equal(
+    request(runtime, "GET").body.connection.connection_state,
+    "not_connected",
+  );
 });
 
 test("OAuth completion stores delegated consent without returning or auditing token material", () => {
   const runtime = context();
   assert.equal(request(runtime, "GET").body.connection.connection_state, "not_connected");
-  assert.equal(request(runtime, "POST", { action: "begin" }).body.connection.connection_state, "consent_pending");
+  assert.equal(request(runtime, "POST", {
+    action: "begin",
+    idempotency_key: BEGIN_IDEMPOTENCY_KEY,
+  }).body.connection.connection_state, "consent_pending");
 
   const completed = request(runtime, "POST", {
     action: "complete",
@@ -152,7 +182,10 @@ test("client-supplied tokens are rejected and revoke immediately removes active 
   assert.equal(invalid.status, 400);
   assert.equal(invalid.body.safe_error_code, "OUTLOOK_OAUTH_BOUNDARY_INVALID");
 
-  const begun = request(runtime, "POST", { action: "begin" });
+  const begun = request(runtime, "POST", {
+    action: "begin",
+    idempotency_key: BEGIN_IDEMPOTENCY_KEY,
+  });
   request(runtime, "POST", {
     action: "complete",
     authorization_code: "authorization-code-2",

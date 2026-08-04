@@ -4694,6 +4694,16 @@ function peopleOutlookConnectionResponse({
   } else if (method === "POST") {
     const action = body?.action;
     if (action === "begin" || action === "retry") {
+      const idempotencyKey = typeof body?.idempotency_key === "string"
+        ? body.idempotency_key.trim()
+        : "";
+      if (!idempotencyKey || idempotencyKey.length > 255) {
+        throw safeHrxRuntimeError(
+          400,
+          "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED",
+          "Outlook connection idempotency_key is required and must not exceed 255 characters",
+        );
+      }
       auditAction = "hrx.people.outlook_connection.begin";
       connection = context.peopleOutlookConnections.begin({
         tenant_id: actorContext.tenant_id,
