@@ -13,7 +13,8 @@ export const OPERATION_NAMES = Object.freeze([
 const LOGIN_ORIGIN = "https://login.microsoftonline.com";
 const GRAPH_ORIGIN = "https://graph.microsoft.com";
 const REDIRECT_URIS = Object.freeze({
-  people: "matter://auth/callback",
+  people:
+    "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
   client:
     "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
 });

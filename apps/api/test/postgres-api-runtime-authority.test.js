@@ -2932,7 +2932,9 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
       config: {
         tenant_id: "11111111-1111-4111-8111-111111111111",
         client_id: "22222222-2222-4222-8222-222222222222",
-        redirect_uri: "matter://auth/callback",
+        client_secret: "people-outlook-client-secret-never-return",
+        redirect_uri:
+          "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
         state_encryption_key: Buffer.alloc(32, 11).toString("base64"),
       },
       oauth_client: {

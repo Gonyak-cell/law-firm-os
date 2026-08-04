@@ -101,9 +101,11 @@ export function normalizeMicrosoftDelegatedOAuthConfig(input = {}) {
   return Object.freeze({
     tenant_id: requiredUuid(input.tenant_id, "tenant_id"),
     client_id: requiredUuid(input.client_id, "client_id"),
-    client_secret: input.client_secret
-      ? requiredText(input.client_secret, "client_secret", 4096)
-      : null,
+    client_secret: requiredText(
+      input.client_secret,
+      "client_secret",
+      4096,
+    ),
     redirect_uri: redirectUri(input.redirect_uri),
   });
 }

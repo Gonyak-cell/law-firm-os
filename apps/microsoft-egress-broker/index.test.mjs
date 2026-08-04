@@ -87,7 +87,10 @@ test("token exchange fixes host, callback profile, and redirect policy", async (
   );
   assert.equal(calls[0].options.redirect, "error");
   const form = new URLSearchParams(calls[0].options.body);
-  assert.equal(form.get("redirect_uri"), "matter://auth/callback");
+  assert.equal(
+    form.get("redirect_uri"),
+    "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
+  );
   assert.equal(result.result.ignored, undefined);
   assert.equal(result.result.access_token, "access");
 });

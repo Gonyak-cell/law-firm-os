@@ -9,7 +9,8 @@ export const MICROSOFT_EGRESS_BROKER_FUNCTION_NAME =
   "lawos-microsoft-egress-prod";
 export const MICROSOFT_EGRESS_MAX_MIME_BYTES = 3 * 1024 * 1024;
 export const MICROSOFT_EGRESS_REDIRECT_URIS = Object.freeze({
-  people: "matter://auth/callback",
+  people:
+    "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
   client:
     "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
 });

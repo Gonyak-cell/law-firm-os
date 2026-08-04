@@ -164,6 +164,7 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
   );
   assert.equal(forwardedRequest.url, "http://127.0.0.1:32123/api/hrx/payroll/provider-callbacks/statement-delivery");
   assert.equal(forwardedRequest.options.method, "POST");
+  assert.equal(forwardedRequest.options.redirect, "manual");
   assert.equal(forwardedRequest.options.headers["x-provider-signature"], "signed-test-payload");
   assert.equal(result.statusCode, 503);
 });

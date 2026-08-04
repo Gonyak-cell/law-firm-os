@@ -92,9 +92,11 @@ Request:
 }
 ```
 
-`redirect_profile` is exactly `people` or `client`. The broker maps `people`
-to `matter://auth/callback` and `client` to
-`https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback`.
+`redirect_profile` is exactly `people` or `client`. Both profiles use the
+fixed HTTPS callback
+`https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback`, while
+their Entra applications, client credentials, scopes, state envelopes, and
+credential stores remain separate.
 The caller cannot submit a callback URL.
 
 Result:

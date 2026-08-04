@@ -4611,6 +4611,7 @@ export function createLambdaHttpHandler({
       method,
       headers: requestHeaders(event),
       body: requestBody(event, method),
+      redirect: "manual",
     });
     const body = await response.text();
     const headers = Object.fromEntries(response.headers.entries());

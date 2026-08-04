@@ -29,6 +29,9 @@ import {
 import {
   createMicrosoftEgressBrokerTransport,
 } from "./microsoft-egress-broker-transport.js";
+import {
+  PEOPLE_OUTLOOK_OAUTH_STATE_PREFIX,
+} from "./people-outlook-oauth-callback.js";
 
 export const LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV =
   "LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID";
@@ -590,7 +593,9 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       const current = findRecord(repository, tenantId, employeeId);
       assertPrincipalBinding(current, actor);
       const now = instant(clock);
-      const state = randomBytes(32).toString("base64url");
+      const state = `${PEOPLE_OUTLOOK_OAUTH_STATE_PREFIX}${
+        randomBytes(32).toString("base64url")
+      }`;
       const nonce = randomBytes(32).toString("base64url");
       const verifier = randomBytes(32).toString("base64url");
       const challenge = createHash("sha256")
