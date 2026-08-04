@@ -1,7 +1,7 @@
 {
   "schema_version": "lawos.people-implementation-ledger.v2",
-  "source_sha": "14325ab3a23f7ba2fefc753219b1252b2feb22fe",
-  "captured_at": "2026-08-03T09:28:31.586Z",
+  "source_sha": "f6b379914ab771c002aa61ec4790487d6f5587ed",
+  "captured_at": "2026-08-04T07:37:50.298Z",
   "scope": "People sidebar routes visible to a user with all current People permissions",
   "classification": {
     "existing": "A dedicated screen, client call, API route, domain owner, and regression test already exist.",
@@ -14,9 +14,9 @@
     "renderer_import_graph_superset": "All transitive HRX client imports owned by the mounted renderer; individual controls may narrow reachability."
   },
   "provenance": {
-    "branch": "codex/people-outlook-operational-wiring-20260803",
-    "base_sha": "e6ceccd30c55920f555e5e7cafe2aed1fc18d2f0",
-    "head_sha": "14325ab3a23f7ba2fefc753219b1252b2feb22fe",
+    "branch": "codex/people-outlook-oauth-reliability-20260804",
+    "base_sha": "e02ac7e70aafb1a1d8f71e0e8766873a8af16a16",
+    "head_sha": "f6b379914ab771c002aa61ec4790487d6f5587ed",
     "head_semantics": "captured_pre_generation_head",
     "raw_argv": [
       "node",
@@ -28,8 +28,8 @@
     "replay_command_sha256": "4e29d997e65e1e03c793d674d0e2740cb63a8145a8442b8b5d7c3c82ba5f002c",
     "inventory_sha256": "e4c7551e9429b7cb583f3c4dfac2280d2768257b0b950a88779da35c01bbb974",
     "manual_claims_sha256": "259b7f14133191a09d6372ec6aef0cceaed306c9caf3e801b95c7588e0fb7e41",
-    "runtime_source_fingerprint_sha256": "37479889767822fb617dc3071b8db0e9b13bd26dec50dff52c117ff24a3e4e19",
-    "source_fingerprint_sha256": "80bd4902ebf90a31fad25017ced7d87131ea511ed1b8ce7f4a0d7537cb88ad89",
+    "runtime_source_fingerprint_sha256": "a36fd4cea84f2514c920b3c56154b09b5f882bce69b9f7edcfa29bcf5ed5e225",
+    "source_fingerprint_sha256": "2df04b730ce4d6ab3b2f55801940609d875907832590cd4aaf0390554386e940",
     "source_files": [
       "apps/api/src/routes/hrx/route-policy-map.js",
       "apps/api/test/hrx-runtime-api.test.js",

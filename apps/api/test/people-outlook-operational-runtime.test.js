@@ -678,7 +678,10 @@ test("HRX routes await operational connection and calendar ports without changin
   const connectionPending = handleHrxApiRequest({
     pathname: `/api/hrx/people/members/${EMPLOYEE}/outlook-connection`,
     method: "POST",
-    body: { action: "begin" },
+    body: {
+      action: "begin",
+      idempotency_key: "people-outlook-begin-async-source-001",
+    },
     context: runtime,
     requestContext,
     permissionContext,

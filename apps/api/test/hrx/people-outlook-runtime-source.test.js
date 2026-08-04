@@ -272,7 +272,10 @@ test("operational-style runtime without an injected opaque vault fails only Outl
     runtime,
     `/api/hrx/people/members/${EMPLOYEE}/outlook-connection`,
     "POST",
-    { action: "begin" },
+    {
+      action: "begin",
+      idempotency_key: "people-outlook-begin-runtime-source-001",
+    },
   );
   assert.equal(begin.status, 503);
   assert.equal(begin.body.safe_error_code, "OUTLOOK_TOKEN_VAULT_REQUIRED");

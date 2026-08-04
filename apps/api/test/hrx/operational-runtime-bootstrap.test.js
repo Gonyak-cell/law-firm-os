@@ -405,6 +405,7 @@ test("createDefaultHrxRuntime operational Outlook ports complete consent and cal
     const connectionPath = "/api/hrx/people/members/emp-001/outlook-connection";
     const begun = peopleRequest(runtimeA, connectionPath, "staff", "POST", {
       action: "begin",
+      idempotency_key: "people-outlook-begin-operational-001",
     });
     assert.equal(begun.status, 200);
     assert.equal(begun.body.connection.connection_state, "consent_pending");

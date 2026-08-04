@@ -2662,11 +2662,15 @@ export async function updatePeopleOutlookConnection(
   input: Record<string, unknown> = {},
 ) {
   if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
+  const body: Record<string, unknown> = { action, ...input };
+  if (action === "begin" || action === "retry") {
+    body.idempotency_key = globalThis.crypto.randomUUID();
+  }
   return parsePeopleOutlookConnection(await requestJson(
     `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
     {
       method: "POST",
-      body: JSON.stringify({ action, ...input })
+      body: JSON.stringify(body)
     }
   ));
 }
