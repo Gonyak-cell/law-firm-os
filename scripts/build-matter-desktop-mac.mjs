@@ -68,6 +68,7 @@ const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
+const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
 const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
@@ -218,7 +219,6 @@ let buildManifestHash;
 
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(distRoot, { recursive: true });
-await mkdir(dirname(receiptPath), { recursive: true });
 const packageOutRoot = await mkdtemp(join(tmpdir(), "matter-desktop-packager-"));
 
 try {
@@ -421,7 +421,10 @@ Built at: \`${buildManifest.built_at}\`
 - external pilot distribution: false
 `;
 
-await writeFile(receiptPath, receipt);
+if (writeBuildReceipt) {
+  await mkdir(dirname(receiptPath), { recursive: true });
+  await writeFile(receiptPath, receipt);
+}
 
 console.log(
   JSON.stringify(
@@ -430,7 +433,7 @@ console.log(
       app_bundle: "apps/desktop/dist/mac/matter.app",
       zip: `apps/desktop/dist/mac/${artifactName}-macos.zip`,
       dmg: `apps/desktop/dist/mac/${artifactName}-macos.dmg`,
-      receipt: "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md",
+      receipt: writeBuildReceipt ? "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md" : null,
       release_channel: releaseChannel,
       app_id: appBundleId,
       build_manifest: `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`,

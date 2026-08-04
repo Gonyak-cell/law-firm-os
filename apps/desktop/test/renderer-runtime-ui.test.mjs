@@ -228,3 +228,15 @@ test("desktop web renderer uses restrained SaaS motion tokens", async () => {
   assert.match(source, /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition-duration: 1ms !important/);
   assert.match(source, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.live-data-loading/);
 });
+
+test("desktop web renderer build enables the People Outlook pilot surfaces", async () => {
+  const source = await readFile(
+    new URL("../../../scripts/prepare-matter-desktop-web-renderer.mjs", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(source, /VITE_LAWOS_PEOPLE_MEMBER_BRIEF:\s*"true"/);
+  assert.match(source, /VITE_LAWOS_OUTLOOK_CALENDAR:\s*"true"/);
+  assert.match(source, /env:\s*desktopWebBuildEnvironment/g);
+  assert.match(source, /MATTER_DESKTOP_BUILD_RECEIPT !== "0"/);
+});

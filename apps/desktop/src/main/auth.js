@@ -25,6 +25,48 @@ const RENDERER_FORBIDDEN_FIELDS = new Set([
 
 const ENCRYPTED_SECURE_STORE_SCHEMA_VERSION = "law-firm-os.desktop-secure-store.v1";
 const PERSISTED_SECURE_STORE_KEYS = new Set(["session_token", "session_snapshot"]);
+const TERMINAL_SESSION_RESTORE_SAFE_ERROR_CODES = new Set([
+  "AUTH_SESSION_INVALID",
+  "AUTH_SESSION_EXPIRED",
+  "AUTH_SESSION_REVOKED",
+  "AUTH_SESSION_UNKNOWN_USER",
+  "AUTH_SESSION_TENANT_DENIED",
+  "AUTH_ACCOUNT_DISABLED",
+  "AUTH_CREDENTIAL_REVOKED",
+  "AUTH_CREDENTIAL_MISSING",
+  "AUTH_CREDENTIAL_DISABLED",
+  "AUTH_PASSWORD_RESET_REQUIRED"
+]);
+const TERMINAL_SESSION_RESTORE_REASONS = new Set([
+  "auth_session_invalid",
+  "auth_session_expired",
+  "auth_session_revoked",
+  "auth_session_unknown_user",
+  "auth_session_tenant_denied",
+  "auth_account_disabled",
+  "account_disabled",
+  "credential_missing",
+  "credential_disabled",
+  "password_reset_required",
+  "credential_inactive",
+  "credential_revision_mismatch",
+  "session_not_active",
+  "session_revoked",
+  "tenant_membership_inactive",
+  "membership_revision_mismatch"
+]);
+const SAFE_SESSION_RESTORE_REASONS = new Set([
+  ...TERMINAL_SESSION_RESTORE_REASONS,
+  "runtime_client_not_configured",
+  "runtime_auth_not_configured",
+  "runtime_request_failed",
+  "runtime_response_not_json",
+  "session_restore_deferred",
+  "session_restore_failed",
+  "runtime_server_error",
+  "dependency_unavailable",
+  "internal_error"
+]);
 
 export const FORBIDDEN_RENDERER_TOKEN_FIELDS = Object.freeze(["access_token", "refresh_token", "id_token"]);
 
@@ -105,7 +147,7 @@ export function encryptedFileSecureStore({
       }
     } catch {
       entries.clear();
-      removeFile();
+      // A transient Keychain or file parse failure must not destroy the only persisted session copy.
     }
   };
 
@@ -153,6 +195,25 @@ export function encryptedFileSecureStore({
       return Object.fromEntries(entries);
     }
   };
+}
+
+function isTerminalSessionRestoreFailure(response) {
+  const httpStatus = Number(response?.http_status ?? response?.status ?? 0);
+  if (![401, 403].includes(httpStatus)) return false;
+  const payloads = [response, response?.body].filter((payload) => payload && typeof payload === "object");
+  return payloads.some((payload) => {
+    const safeErrorCodes = [
+      ...(Array.isArray(payload.safe_error_codes) ? payload.safe_error_codes : []),
+      payload.safe_error_code
+    ];
+    return safeErrorCodes.some((code) => TERMINAL_SESSION_RESTORE_SAFE_ERROR_CODES.has(code))
+      || TERMINAL_SESSION_RESTORE_REASONS.has(payload.reason);
+  });
+}
+
+function safeSessionRestoreReason(response, fallback) {
+  const reason = typeof response?.reason === "string" ? response.reason : "";
+  return SAFE_SESSION_RESTORE_REASONS.has(reason) ? reason : fallback;
 }
 
 export async function wipeSessionCaches({ secureStore, cacheStores = [] } = {}) {
@@ -332,11 +393,22 @@ export class MainProcessAuthCoordinator {
   async restoreSession() {
     const sessionToken = await this.#secureStore.get("session_token");
     if (sessionToken) {
-      const rawResponse = await this.#runtimeClient?.features?.({ sessionToken });
+      let rawResponse;
+      try {
+        rawResponse = await this.#runtimeClient?.features?.({ sessionToken });
+      } catch {
+        rawResponse = {
+          ok: false,
+          reason: "runtime_request_failed",
+          http_status: 0,
+          token_material_returned: false
+        };
+      }
       const response = sanitizeRendererPayload(
         rawResponse ?? {
           ok: false,
           reason: "runtime_client_not_configured",
+          http_status: 0,
           token_material_returned: false
         }
       );
@@ -344,10 +416,14 @@ export class MainProcessAuthCoordinator {
         this.#session = sanitizeRendererPayload(response.session);
         return this.sessionStatus();
       }
-      await this.#secureStore.delete("session_token");
+      const terminalFailure = isTerminalSessionRestoreFailure(response);
+      if (terminalFailure) await this.#secureStore.delete("session_token");
       this.#session = {
         state: "signed_out",
-        reason: response.reason ?? "session_restore_failed"
+        reason: safeSessionRestoreReason(
+          response,
+          terminalFailure ? "session_restore_failed" : "session_restore_deferred"
+        )
       };
       return this.sessionStatus();
     }

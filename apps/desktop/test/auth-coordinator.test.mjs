@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 import { tmpdir } from "node:os";
@@ -154,6 +154,37 @@ test("encrypted file secure store persists session token without plaintext token
   assert.equal(existsSync(filePath), false);
 });
 
+test("encrypted file secure store preserves persisted file when parsing fails", () => {
+  const filePath = join(mkdtempSync(join(tmpdir(), "matter-desktop-secure-store-")), "secure-session-store.json");
+  writeFileSync(filePath, "{not-json");
+  const before = readFileSync(filePath, "utf8");
+
+  const store = encryptedFileSecureStore({ filePath, safeStorage: fakeSafeStorage() });
+
+  assert.equal(existsSync(filePath), true);
+  assert.equal(readFileSync(filePath, "utf8"), before);
+  assert.deepEqual(store.snapshot(), {});
+});
+
+test("encrypted file secure store preserves persisted file when decryption fails", async () => {
+  const filePath = join(mkdtempSync(join(tmpdir(), "matter-desktop-secure-store-")), "secure-session-store.json");
+  const store = encryptedFileSecureStore({ filePath, safeStorage: fakeSafeStorage() });
+  await store.set("session_token", "lawos_session_v1.secret");
+  const before = readFileSync(filePath, "utf8");
+
+  const unavailableKeychain = {
+    isEncryptionAvailable: () => true,
+    decryptString: () => {
+      throw new Error("Keychain unavailable");
+    }
+  };
+  const reloaded = encryptedFileSecureStore({ filePath, safeStorage: unavailableKeychain });
+
+  assert.equal(existsSync(filePath), true);
+  assert.equal(readFileSync(filePath, "utf8"), before);
+  assert.deepEqual(reloaded.snapshot(), {});
+});
+
 test("auth coordinator restores a persisted session through runtime verification", async () => {
   const secureStore = memorySecureStore();
   await secureStore.set("session_token", "lawos_session_v1.secret");
@@ -251,7 +282,143 @@ test("auth coordinator persists and restores tokenless desktop sessions through 
   assert.deepEqual(restored.scopes, ["matter.read"]);
 });
 
-test("auth coordinator drops persisted session when runtime verification fails", async () => {
+test("auth coordinator preserves persisted session when runtime verification returns 5xx", async () => {
+  const secureStore = memorySecureStore();
+  await secureStore.set("session_token", "lawos_session_v1.server-error");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      features: async () => ({
+        ok: false,
+        reason: "dependency_unavailable",
+        safe_error_codes: ["API_DEPENDENCY_UNAVAILABLE"],
+        http_status: 503,
+        token_material_returned: false
+      })
+    }
+  });
+
+  const session = await coordinator.restoreSession();
+
+  assert.deepEqual(session, { state: "signed_out", reason: "dependency_unavailable" });
+  assert.equal(await secureStore.get("session_token"), "lawos_session_v1.server-error");
+  assert.equal(JSON.stringify(session).includes("lawos_session_v1.server-error"), false);
+});
+
+test("auth coordinator preserves persisted session when runtime verification throws a network error", async () => {
+  const secureStore = memorySecureStore();
+  await secureStore.set("session_token", "lawos_session_v1.network-error");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      features: async () => {
+        throw new Error("network failed while handling lawos_session_v1.network-error");
+      }
+    }
+  });
+
+  const session = await coordinator.restoreSession();
+
+  assert.deepEqual(session, { state: "signed_out", reason: "runtime_request_failed" });
+  assert.equal(await secureStore.get("session_token"), "lawos_session_v1.network-error");
+  assert.equal(JSON.stringify(session).includes("lawos_session_v1.network-error"), false);
+});
+
+test("auth coordinator preserves persisted session for unclassified upstream auth failures", async () => {
+  for (const httpStatus of [401, 403]) {
+    const secureStore = memorySecureStore();
+    const sessionToken = `lawos_session_v1.proxy-${httpStatus}`;
+    await secureStore.set("session_token", sessionToken);
+    const coordinator = new MainProcessAuthCoordinator({
+      secureStore,
+      runtimeClient: {
+        features: async () => ({
+          ok: false,
+          reason: "upstream_auth_proxy_error",
+          http_status: httpStatus,
+          token_material_returned: false
+        })
+      }
+    });
+
+    const session = await coordinator.restoreSession();
+
+    assert.deepEqual(session, { state: "signed_out", reason: "session_restore_deferred" });
+    assert.equal(await secureStore.get("session_token"), sessionToken);
+    assert.equal(JSON.stringify(session).includes(sessionToken), false);
+  }
+});
+
+test("auth coordinator preserves persisted session when the server received no bearer", async () => {
+  const secureStore = memorySecureStore();
+  await secureStore.set("session_token", "lawos_session_v1.missing-bearer");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      features: async () => ({
+        ok: false,
+        reason: "auth_session_required",
+        safe_error_codes: ["AUTH_SESSION_REQUIRED"],
+        http_status: 401,
+        token_material_returned: false
+      })
+    }
+  });
+
+  const session = await coordinator.restoreSession();
+
+  assert.deepEqual(session, { state: "signed_out", reason: "session_restore_deferred" });
+  assert.equal(await secureStore.get("session_token"), "lawos_session_v1.missing-bearer");
+  assert.equal(JSON.stringify(session).includes("lawos_session_v1.missing-bearer"), false);
+});
+
+test("auth coordinator preserves persisted session for login-only credential errors", async () => {
+  const secureStore = memorySecureStore();
+  await secureStore.set("session_token", "lawos_session_v1.login-error");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    runtimeClient: {
+      features: async () => ({
+        ok: false,
+        reason: "auth_credential_invalid",
+        safe_error_codes: ["AUTH_CREDENTIAL_INVALID"],
+        http_status: 401,
+        token_material_returned: false
+      })
+    }
+  });
+
+  const session = await coordinator.restoreSession();
+
+  assert.deepEqual(session, { state: "signed_out", reason: "session_restore_deferred" });
+  assert.equal(await secureStore.get("session_token"), "lawos_session_v1.login-error");
+});
+
+test("auth coordinator ignores terminal-looking error codes on non-auth responses", async () => {
+  for (const httpStatus of [0, 200, 429, 503]) {
+    const secureStore = memorySecureStore();
+    const sessionToken = `lawos_session_v1.stale-code-${httpStatus}`;
+    await secureStore.set("session_token", sessionToken);
+    const coordinator = new MainProcessAuthCoordinator({
+      secureStore,
+      runtimeClient: {
+        features: async () => ({
+          ok: false,
+          reason: "auth_session_invalid",
+          safe_error_codes: ["AUTH_SESSION_INVALID"],
+          http_status: httpStatus,
+          token_material_returned: false
+        })
+      }
+    });
+
+    await coordinator.restoreSession();
+
+    assert.equal(await secureStore.get("session_token"), sessionToken);
+  }
+});
+
+test("auth coordinator drops persisted session on terminal authentication failure", async () => {
   const secureStore = memorySecureStore();
   await secureStore.set("session_token", "lawos_session_v1.revoked");
   const coordinator = new MainProcessAuthCoordinator({
@@ -260,6 +427,8 @@ test("auth coordinator drops persisted session when runtime verification fails",
       features: async () => ({
         ok: false,
         reason: "auth_session_invalid",
+        safe_error_codes: ["AUTH_SESSION_INVALID"],
+        http_status: 401,
         token_material_returned: false
       })
     }

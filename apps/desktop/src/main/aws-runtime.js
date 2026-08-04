@@ -3,7 +3,8 @@ import { dirname, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_ENV_FILE = ".env.matter-vault-r4.local";
-const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://9mg4liadm6.execute-api.ap-northeast-2.amazonaws.com";
+const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://d2mthcc8vp3cr2.cloudfront.net";
+const DEFAULT_RUNTIME_REQUEST_TIMEOUT_MS = 30_000;
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
@@ -336,6 +337,9 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
   if (!baseUrl) throw new MatterVaultRuntimeConfigError("Matter-Vault runtime base URL is required");
   if (typeof fetchImpl !== "function") throw new MatterVaultRuntimeConfigError("fetch implementation is required");
   const runtimeBaseIsLoopback = isLoopbackBaseUrl(baseUrl);
+  const requestTimeoutMs = Number.isSafeInteger(config.requestTimeoutMs) && config.requestTimeoutMs > 0
+    ? config.requestTimeoutMs
+    : DEFAULT_RUNTIME_REQUEST_TIMEOUT_MS;
 
   const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true, authToken, headers: extraHeaders = {} } = {}) => {
     const credential = authToken ?? (authRequired ? operatorToken : "");
@@ -353,11 +357,12 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     const response = await fetchImpl(url, {
       method,
       headers,
-      body: body == null ? undefined : JSON.stringify(body)
+      body: body == null ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(requestTimeoutMs)
     }).catch((error) => ({
       ok: false,
-      reason: "runtime_request_failed",
-      error_code: error?.code ?? error?.name ?? "fetch_failed",
+      reason: error?.name === "TimeoutError" ? "runtime_request_timeout" : "runtime_request_failed",
+      error_code: error?.name === "TimeoutError" ? "TimeoutError" : error?.code ?? error?.name ?? "fetch_failed",
       http_status: 0,
       token_material_returned: false
     }));

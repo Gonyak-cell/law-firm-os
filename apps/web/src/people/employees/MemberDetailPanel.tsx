@@ -21,6 +21,7 @@ type OutlookConnectionResult = Awaited<ReturnType<typeof fetchPeopleOutlookConne
 type OutlookOAuthNotice = {
   kind: "cancelled" | "error" | "success";
   message: string;
+  detail?: string;
   retry: boolean;
 };
 
@@ -40,6 +41,49 @@ function rows(value: unknown): UnknownRecord[] {
 
 function text(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function safeHttpStatus(value: unknown): number | null {
+  return Number.isInteger(value) && Number(value) >= 100 && Number(value) <= 599
+    ? Number(value)
+    : null;
+}
+
+function safeRequestReason(value: unknown): string {
+  if (value === "request_timeout" || value === "runtime_request_timeout") {
+    return "응답이 지연되고 있습니다. 잠시 후 다시 확인해 주세요.";
+  }
+  if (value === "request_aborted") return "요청이 중단되었습니다. 다시 확인해 주세요.";
+  if (value === "network_or_parse_error" || value === "runtime_request_failed") {
+    return "연결이 원활하지 않습니다. 잠시 후 다시 확인해 주세요.";
+  }
+  if (value === "PEOPLE_DAILY_BRIEF_FAILED" || value === "OUTLOOK_CONNECTION_READ_FAILED") {
+    return "잠시 후 다시 확인해 주세요.";
+  }
+  if (value === "OUTLOOK_DISCONNECT_FAILED") return "연결 상태를 확인한 뒤 다시 시도해 주세요.";
+  if (value === "OUTLOOK_ACCOUNT_MISMATCH") return "현재 로그인 계정과 기존 Outlook 연결 정보가 일치하지 않습니다.";
+  if (value === "OUTLOOK_OAUTH_STATE_EXPIRED") return "연결 요청이 만료되었습니다. 다시 연결해 주세요.";
+  if (value === "OUTLOOK_CONNECTION_STATE_CONFLICT") return "연결 상태가 변경되었습니다. 다시 확인해 주세요.";
+  if (value === "unexpected_response") return "서버 응답을 확인하지 못했습니다.";
+  return "";
+}
+
+function requestErrorDetail(result: { status?: unknown; reason?: unknown }, fallback: string): string {
+  const reason = safeRequestReason(result.reason);
+  const status = safeHttpStatus(result.status);
+  if (reason) return reason;
+  if (status === 401 || status === 403) return "로그인 상태와 권한을 다시 확인해 주세요.";
+  if (status === 429) return "요청이 많아 처리가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
+  if (status && status >= 500) return "일시적인 오류가 발생했습니다. 잠시 후 다시 확인해 주세요.";
+  return fallback;
+}
+
+function failedDailyBrief(): DailyBriefResult {
+  return { kind: "error", status: null, reason: "network_or_parse_error" };
+}
+
+function failedOutlookConnection(): OutlookConnectionResult {
+  return { kind: "error", status: null, reason: "network_or_parse_error" };
 }
 
 function formatDateTime(value: unknown, timezone: string): string {
@@ -103,7 +147,11 @@ function DailyBriefState({
     return (
       <div className={`live-data-state ${denied ? "live-data-denied" : "live-data-error"}`}>
         <strong>{denied ? "이 구성원의 업무를 볼 권한이 없습니다" : "오늘 업무를 불러오지 못했습니다"}</strong>
-        {denied ? "구성원과 사건 열람 권한을 확인해 주세요." : "연결 상태를 확인해 주세요."}
+        <span>
+          {denied
+            ? "구성원과 사건 열람 권한을 확인해 주세요."
+            : requestErrorDetail(result, "연결 상태를 확인해 주세요.")}
+        </span>
       </div>
     );
   }
@@ -369,7 +417,10 @@ function OutlookConnectionPanel({
   if (result.kind !== "data") {
     return (
       <div className="member-outlook-connection" data-outlook-connection-state="error">
-        <div><strong>Outlook 상태를 확인하지 못했습니다</strong><span>잠시 뒤 다시 확인해 주세요.</span></div>
+        <div>
+          <strong>Outlook 상태를 확인하지 못했습니다</strong>
+          <span>{requestErrorDetail(result, "잠시 뒤 다시 확인해 주세요.")}</span>
+        </div>
         <button type="button" onClick={onRefresh} disabled={busy}>다시 확인</button>
       </div>
     );
@@ -391,6 +442,9 @@ function OutlookConnectionPanel({
           >
             {notice.message}
           </small>
+        )}
+        {notice?.detail && (
+          <small data-outlook-oauth-detail="safe-request-status">{notice.detail}</small>
         )}
       </div>
       {canManage && state === "connected" && (
@@ -441,17 +495,23 @@ export function MemberDetailPanel({
 
   const refreshOutlookConnection = () => {
     if (!outlookCalendarEnabled) return;
+    setOutlookBusy(true);
     setOutlookConnection(null);
-    fetchPeopleOutlookConnection(employeeId).then((next) => {
-      setOutlookConnection(next);
-      setOutlookBusy(false);
-    });
+    fetchPeopleOutlookConnection(employeeId)
+      .then((next) => setOutlookConnection(next))
+      .catch(() => setOutlookConnection(failedOutlookConnection()))
+      .finally(() => setOutlookBusy(false));
   };
 
   const updateOutlookConnection = async (action: "begin" | "retry") => {
     setOutlookNotice(null);
     setOutlookBusy(true);
-    const next = await updatePeopleOutlookConnection(employeeId, action);
+    let next: OutlookConnectionResult;
+    try {
+      next = await updatePeopleOutlookConnection(employeeId, action);
+    } catch {
+      next = failedOutlookConnection();
+    }
     if (next.kind === "data") {
       setOutlookConnection(next);
       const authorization = next.authorization;
@@ -484,7 +544,7 @@ export function MemberDetailPanel({
           : next.reason === "DOMAIN_IDEMPOTENCY_REQUIRED"
             || next.reason === "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED"
             ? "이전 연결 요청과 충돌했습니다. 다시 연결해 주세요."
-            : "Outlook 연결을 시작하지 못했습니다. 다시 시도해 주세요.",
+            : requestErrorDetail(next, "Outlook 연결을 시작하지 못했습니다. 다시 시도해 주세요."),
         retry: true,
       });
     }
@@ -494,15 +554,23 @@ export function MemberDetailPanel({
   const disconnectOutlookConnection = async () => {
     setOutlookNotice(null);
     setOutlookBusy(true);
-    const next = await disconnectPeopleOutlookConnection(employeeId);
+    let next: OutlookConnectionResult;
+    try {
+      next = await disconnectPeopleOutlookConnection(employeeId);
+    } catch {
+      next = failedOutlookConnection();
+    }
     if (next.kind === "data") {
       setOutlookConnection(next);
       setDailyBrief(null);
-      fetchPeopleDailyBrief(employeeId).then(setDailyBrief);
+      fetchPeopleDailyBrief(employeeId)
+        .then(setDailyBrief)
+        .catch(() => setDailyBrief(failedDailyBrief()));
     } else {
       setOutlookNotice({
         kind: "error",
         message: "Outlook 연결을 해제하지 못했습니다. 기존 연결은 유지됩니다.",
+        detail: requestErrorDetail(next, "연결 상태를 확인해 주세요."),
         retry: false,
       });
     }
@@ -516,9 +584,13 @@ export function MemberDetailPanel({
     }
     let cancelled = false;
     setDailyBrief(null);
-    fetchPeopleDailyBrief(employeeId).then((next) => {
-      if (!cancelled) setDailyBrief(next);
-    });
+    fetchPeopleDailyBrief(employeeId)
+      .then((next) => {
+        if (!cancelled) setDailyBrief(next);
+      })
+      .catch(() => {
+        if (!cancelled) setDailyBrief(failedDailyBrief());
+      });
     return () => {
       cancelled = true;
     };
@@ -532,9 +604,13 @@ export function MemberDetailPanel({
     }
     let cancelled = false;
     setOutlookConnection(null);
-    fetchPeopleOutlookConnection(employeeId).then((next) => {
-      if (!cancelled) setOutlookConnection(next);
-    });
+    fetchPeopleOutlookConnection(employeeId)
+      .then((next) => {
+        if (!cancelled) setOutlookConnection(next);
+      })
+      .catch(() => {
+        if (!cancelled) setOutlookConnection(failedOutlookConnection());
+      });
     return () => {
       cancelled = true;
     };

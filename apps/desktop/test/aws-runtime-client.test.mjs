@@ -133,7 +133,7 @@ test("runtime config falls back to production auth URL without operator credenti
     fetchImpl: async () => jsonResponse(200, { ok: true, token_material_returned: false })
   });
 
-  assert.equal(config.baseUrl, "https://9mg4liadm6.execute-api.ap-northeast-2.amazonaws.com");
+  assert.equal(config.baseUrl, "https://d2mthcc8vp3cr2.cloudfront.net");
   assert.equal(config.operatorToken, "");
   assert.equal(config.operatorRuntimeConfigured, false);
   assert.equal(config.localLoginEmail, "");
@@ -332,6 +332,24 @@ test("runtime client wraps reset confirm transport and non-json failures without
   assert.equal(html.response_body_present, true);
   assert.equal(html.http_status, 502);
   assert.equal(JSON.stringify(html).includes("reset-token-from-email-link"), false);
+});
+
+test("runtime client ends stalled requests at the configured deadline", async () => {
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    requestTimeoutMs: 5,
+    fetchImpl: async (_url, { signal }) => new Promise((resolve, reject) => {
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+    })
+  });
+
+  const response = await client.health();
+
+  assert.equal(response.ok, false);
+  assert.equal(response.reason, "runtime_request_timeout");
+  assert.equal(response.error_code, "TimeoutError");
+  assert.equal(response.http_status, 0);
+  assert.equal(response.token_material_returned, false);
 });
 
 test("runtime client preserves 403 deny responses for general-account smoke checks", async () => {

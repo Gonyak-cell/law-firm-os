@@ -1851,7 +1851,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(peopleApiSource, /params\.get\("desktop_api_base_url"\)/);
   assert.match(peopleApiSource, /function desktopReadBridge/);
   assert.match(peopleApiSource, /window\.matterSession\?\.api/);
-  assert.match(peopleApiSource, /response = await bridge|return bridge\(/);
+  assert.match(peopleApiSource, /bridge\(\{\s*path: input/);
+  assert.match(peopleApiSource, /abortablePromise\(bridgeRequest, init\.signal\)/);
   assert.match(peopleApiSource, /apiFetch\(path/);
   assert.match(apiClientSource, /session_principal_source: "desktop_web_session_envelope"/);
   assert.match(apiClientSource, /permissionContextFor\(ctx, PERMISSION_CONTEXTS, "client"\)/);

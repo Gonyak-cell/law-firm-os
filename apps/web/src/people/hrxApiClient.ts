@@ -12,6 +12,7 @@ const SAFE_REF_PATTERN = /^[A-Za-z0-9._:-]{1,160}$/;
 const PEOPLE_OUTLOOK_STATE_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
 const FORBIDDEN_SESSION_TEXT = /(password|reset|bearer|cookie|secret|credential|authorization|token|sk-)/i;
 const PEOPLE_OUTLOOK_AUTHORIZE_HOST = "login.microsoftonline.com";
+export const PEOPLE_REQUEST_TIMEOUT_MS = 20_000;
 
 type HrxClientRecord = Record<string, unknown>;
 export const HRX_STEP_UP_PURPOSES = Object.freeze([
@@ -43,6 +44,7 @@ const PAYROLL_YEAR_END_REVIEW = "payroll_year_end_review" satisfies HrxStepUpPur
 type HrxRequestOptions = Omit<RequestInit, "headers"> & {
   ctx?: string | null;
   headers?: Record<string, string>;
+  timeoutMs?: number | null;
   /** Purpose-bound step-up token to attach at this trust boundary. */
   stepUpPurpose?: HrxStepUpPurpose | null;
 };
@@ -155,6 +157,81 @@ function setHeader(headers: Record<string, string>, name: string, value: string)
   headers[existing ?? name] = value;
 }
 
+type RequestSignal = {
+  signal?: AbortSignal;
+  cleanup: () => void;
+  didTimeout: () => boolean;
+};
+
+function requestSignal(signal: AbortSignal | null | undefined, timeoutMs: number | null | undefined): RequestSignal {
+  if (!Number.isFinite(timeoutMs) || Number(timeoutMs) <= 0 || typeof AbortController === "undefined") {
+    return { signal: signal ?? undefined, cleanup: () => {}, didTimeout: () => false };
+  }
+  if (!signal && typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    const timeoutSignal = AbortSignal.timeout(Number(timeoutMs));
+    return {
+      signal: timeoutSignal,
+      cleanup: () => {},
+      didTimeout: () => timeoutSignal.aborted,
+    };
+  }
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, Number(timeoutMs));
+  const forwardAbort = () => controller.abort(signal?.reason);
+  if (signal) {
+    if (signal.aborted) forwardAbort();
+    else signal.addEventListener("abort", forwardAbort, { once: true });
+  }
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      globalThis.clearTimeout(timer);
+      signal?.removeEventListener("abort", forwardAbort);
+    },
+    didTimeout: () => timedOut,
+  };
+}
+
+function abortReason(signal: AbortSignal): unknown {
+  if (signal.reason) return signal.reason;
+  const error = new Error("The request was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function abortablePromise<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(abortReason(signal));
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      cleanup();
+      reject(abortReason(signal));
+    };
+    const cleanup = () => signal.removeEventListener("abort", onAbort);
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        cleanup();
+        resolve(value);
+      },
+      (error) => {
+        cleanup();
+        reject(error);
+      },
+    );
+  });
+}
+
+function safeDesktopTransportReason(value: unknown): string | null {
+  return value === "runtime_request_timeout" || value === "runtime_request_failed"
+    ? value
+    : null;
+}
+
 function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
   const headers = plainHeaders(init.headers);
   for (const name of ["x-lawos-tenant-id", "x-lawos-actor-id", "x-lawos-actor-role", "x-lawos-hrx-scopes"]) {
@@ -164,12 +241,13 @@ function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
   if (session?.session_token) setHeader(headers, "authorization", `Bearer ${session.session_token}`);
   const bridge = desktopReadBridge();
   if (bridge && typeof input === "string" && input.startsWith("/")) {
-    return bridge({
+    const bridgeRequest = Promise.resolve().then(() => bridge({
       path: input,
       method: init.method ?? "GET",
       headers,
       body: init.body ?? null
-    }).then((response) => {
+    }));
+    return abortablePromise(bridgeRequest, init.signal).then((response) => {
       const status = Number(response?.http_status ?? response?.status ?? 0) || 500;
       const body = response?.body ?? response ?? {};
       return new Response(JSON.stringify(body), {
@@ -331,7 +409,8 @@ function currentDateKey(now = new Date()): string {
 }
 
 async function requestJson(path: string, options: HrxRequestOptions = {}): Promise<HrxApiResult> {
-  const { ctx: _ctx = null, headers = {}, stepUpPurpose = null, ...fetchOptions } = options;
+  const { ctx: _ctx = null, headers = {}, stepUpPurpose = null, timeoutMs = null, ...fetchOptions } = options;
+  const request = requestSignal(fetchOptions.signal, timeoutMs);
   let response: Response;
   let body: HrxClientRecord | null;
   const requestHeaders = {
@@ -343,12 +422,24 @@ async function requestJson(path: string, options: HrxRequestOptions = {}): Promi
   try {
     response = await apiFetch(path, {
       ...fetchOptions,
+      signal: request.signal,
       credentials: "same-origin",
       headers: requestHeaders
     });
     body = await response.json();
-  } catch {
-    return { kind: "error", reason: "network_or_parse_error", body: {} };
+  } catch (error) {
+    return {
+      kind: "error",
+      status: null,
+      reason: request.didTimeout() || error?.name === "TimeoutError"
+        ? "request_timeout"
+        : error?.name === "AbortError"
+          ? "request_aborted"
+          : "network_or_parse_error",
+      body: {}
+    };
+  } finally {
+    request.cleanup();
   }
   if (!response.ok || body === null || typeof body !== "object") {
     if (body?.step_up_required === true) {
@@ -382,7 +473,15 @@ async function requestJson(path: string, options: HrxRequestOptions = {}): Promi
     if (body?.ui_state === "denied" || body?.ui_state === "review_required") {
       return { kind: "guarded", status: response.status, body };
     }
-    return { kind: "error", body: body ?? {}, status: response.status, reason: body?.safe_error_code ?? body?.error ?? "unexpected_response" };
+    return {
+      kind: "error",
+      body: body ?? {},
+      status: response.status,
+      reason: body?.safe_error_code
+        ?? body?.error
+        ?? safeDesktopTransportReason(body?.reason)
+        ?? "unexpected_response"
+    };
   }
   return { kind: "data", body };
 }
@@ -2572,7 +2671,9 @@ export function parsePeopleSourceEnvelope(value: unknown) {
 
 export async function fetchPeopleDailyBrief(employeeId: string | null | undefined) {
   if (!employeeId) return { kind: "empty" as const };
-  const result = await requestJson(`/api/hrx/people/members/${encodeURIComponent(employeeId)}/daily-brief`);
+  const result = await requestJson(`/api/hrx/people/members/${encodeURIComponent(employeeId)}/daily-brief`, {
+    timeoutMs: PEOPLE_REQUEST_TIMEOUT_MS,
+  });
   if (result.kind !== "data") {
     return {
       kind: "error" as const,
@@ -2654,7 +2755,8 @@ export function isAllowedPeopleOutlookAuthorizeUrl(value: unknown): value is str
 export async function fetchPeopleOutlookConnection(employeeId: string | null | undefined) {
   if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
   return parsePeopleOutlookConnection(await requestJson(
-    `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`
+    `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
+    { timeoutMs: PEOPLE_REQUEST_TIMEOUT_MS }
   ));
 }
 
@@ -2668,7 +2770,8 @@ export async function updatePeopleOutlookConnection(
     `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
     {
       method: "POST",
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      timeoutMs: PEOPLE_REQUEST_TIMEOUT_MS,
     }
   ));
 }
@@ -2677,7 +2780,7 @@ export async function disconnectPeopleOutlookConnection(employeeId: string | nul
   if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
   return parsePeopleOutlookConnection(await requestJson(
     `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
-    { method: "DELETE" }
+    { method: "DELETE", timeoutMs: PEOPLE_REQUEST_TIMEOUT_MS }
   ));
 }
 

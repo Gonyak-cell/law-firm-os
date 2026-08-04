@@ -507,6 +507,8 @@ test("macOS app bundle uses matter.icns instead of inherited Electron icon metad
   assert.match(macBuildSource, /CFBundleURLTypes/);
   assert.match(macBuildSource, /CFBundleURLSchemes:0 string matter/);
   assert.doesNotMatch(macBuildSource, /packagedIconPath\s*=\s*join\(resourcesDir,\s*"electron\.icns"\)/);
+  assert.match(macBuildSource, /MATTER_DESKTOP_BUILD_RECEIPT !== "0"/);
+  assert.match(macBuildSource, /receipt: writeBuildReceipt \? [^:]+ : null/);
 });
 
 test("desktop shell blocks unapproved renderer target and remote navigation", async () => {
