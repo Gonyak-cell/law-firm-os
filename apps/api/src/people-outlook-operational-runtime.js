@@ -18,7 +18,10 @@ import {
 import {
   createOutlookCalendarViewAdapter,
 } from "../../../packages/integrations-core/src/outlook-calendar-view.js";
-import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
+import {
+  resolveAwsJsonSecret,
+  resolveM365ConfigSecretId,
+} from "./aws-secret-reference.js";
 import {
   createMicrosoftDelegatedOAuthClient,
   normalizeMicrosoftDelegatedOAuthConfig,
@@ -1093,10 +1096,10 @@ export async function createPeopleOutlookOperationalRuntimeFactoryFromSecretRefe
   microsoft_egress_transport = null,
   clock = () => new Date(),
 } = {}) {
-  const secretId = requiredText(
-    env[LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV],
-    LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV,
-  );
+  const secretId = resolveM365ConfigSecretId({
+    env,
+    specificEnvName: LAWOS_PEOPLE_OUTLOOK_M365_CONFIG_SECRET_ID_ENV,
+  });
   const region = requiredText(
     env.AWS_REGION
       ?? env.AWS_DEFAULT_REGION

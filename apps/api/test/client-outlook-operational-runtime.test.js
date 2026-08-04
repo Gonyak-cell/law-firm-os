@@ -14,6 +14,9 @@ import {
 import {
   MICROSOFT_EGRESS_REDIRECT_URIS,
 } from "../src/microsoft-egress-broker-transport.js";
+import {
+  LAWOS_M365_CONFIG_SECRET_ID_ENV,
+} from "../src/aws-secret-reference.js";
 
 const REDIRECT_URI = MICROSOFT_EGRESS_REDIRECT_URIS.client;
 const SECRET_ID = "/lawos/test/client-outlook/config";
@@ -142,7 +145,9 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   });
 
   const config = await resolveLambdaClientOutlookM365GraphConfig({
-    env: enabledEnv(),
+    env: enabledEnv({
+      [LAWOS_M365_CONFIG_SECRET_ID_ENV]: "/lawos/test/shared-m365/config",
+    }),
     secrets_client: secretsClient,
     oauth_client_factory: oauthClientFactory,
     graph_provider: graphProvider,
@@ -217,6 +222,31 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
     JSON.stringify(completed).includes("client-outlook-secret-never-return"),
     false,
   );
+});
+
+test("Client Outlook Lambda config falls back to the shared M365 JSON Secret", async () => {
+  const secretCalls = [];
+  const env = enabledEnv({
+    [LAWOS_M365_CONFIG_SECRET_ID_ENV]: SECRET_ID,
+  });
+  delete env[LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV];
+
+  const config = await resolveLambdaClientOutlookM365GraphConfig({
+    env,
+    secrets_client: {
+      async send(command) {
+        secretCalls.push(command);
+        return { SecretString: JSON.stringify(SECRET_CONFIG) };
+      },
+    },
+    microsoft_egress_transport: BROKER_TRANSPORT,
+  });
+
+  assert.equal(secretCalls.length, 1);
+  assert.deepEqual(secretCalls[0].input, { SecretId: SECRET_ID });
+  assert.equal(config.feature_enabled, true);
+  assert.equal(config.inquiry_feature_enabled, true);
+  assert.equal(config.provider_runtime_enabled, true);
 });
 
 test("Client Outlook provider refuses the separate People calendar secret shape", async () => {
