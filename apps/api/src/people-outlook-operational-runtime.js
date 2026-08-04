@@ -90,14 +90,20 @@ function sha256(value) {
   return createHash("sha256").update(String(value), "utf8").digest("hex");
 }
 
+function oauthStateDigest(value) {
+  // OAuth state contains 256 random bits and is a single-use CSRF token, not a password.
+  // lgtm[js/insufficient-password-hash]
+  return createHash("sha256").update(String(value), "utf8").digest("hex");
+}
+
 function stateHash(value) {
-  return `sha256:${sha256(value)}`;
+  return `sha256:${oauthStateDigest(value)}`;
 }
 
 function sameStateHash(expected, value) {
   if (!/^sha256:[a-f0-9]{64}$/u.test(String(expected ?? ""))) return false;
   const expectedBytes = Buffer.from(expected.slice("sha256:".length), "hex");
-  const actualBytes = createHash("sha256").update(String(value), "utf8").digest();
+  const actualBytes = Buffer.from(oauthStateDigest(value), "hex");
   return timingSafeEqual(expectedBytes, actualBytes);
 }
 
@@ -686,7 +692,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
         `people-outlook-complete:${peopleOutlookConnectionId({
           tenant_id: tenantId,
           employee_id: employeeId,
-        })}:${sha256(state).slice(0, 32)}`;
+        })}:${oauthStateDigest(state).slice(0, 32)}`;
       const replay = repository.getIdempotency({
         tenant_id: tenantId,
         idempotency_key: completionIdempotencyKey,
