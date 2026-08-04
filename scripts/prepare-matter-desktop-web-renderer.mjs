@@ -13,12 +13,24 @@ const webRoot = join(repoRoot, "apps/web");
 const webDist = join(webRoot, "dist");
 const desktopRendererWeb = join(repoRoot, "apps/desktop/src/renderer/web");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-web/desktop-web-renderer-asset.md");
+const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
+const desktopWebBuildEnvironment = {
+  ...process.env,
+  VITE_LAWOS_PEOPLE_MEMBER_BRIEF: "true",
+  VITE_LAWOS_OUTLOOK_CALENDAR: "true"
+};
 
 try {
-  await execFileAsync("npm", ["--workspace", "apps/web", "run", "build"], { cwd: repoRoot });
+  await execFileAsync("npm", ["--workspace", "apps/web", "run", "build"], {
+    cwd: repoRoot,
+    env: desktopWebBuildEnvironment
+  });
 } catch (error) {
   if (error?.code !== "ENOENT") throw error;
-  await execFileAsync(process.execPath, [join(repoRoot, "node_modules/vite/bin/vite.js"), "build"], { cwd: webRoot });
+  await execFileAsync(process.execPath, [join(repoRoot, "node_modules/vite/bin/vite.js"), "build"], {
+    cwd: webRoot,
+    env: desktopWebBuildEnvironment
+  });
 }
 
 if (!existsSync(join(webDist, "index.html"))) {
@@ -26,7 +38,6 @@ if (!existsSync(join(webDist, "index.html"))) {
 }
 
 await rm(desktopRendererWeb, { recursive: true, force: true });
-await mkdir(dirname(receiptPath), { recursive: true });
 await cp(webDist, desktopRendererWeb, { recursive: true });
 
 const receipt = `# Desktop Web Renderer Asset Receipt
@@ -49,7 +60,10 @@ The canonical \`apps/web\` build was copied into the desktop auth shell handoff 
 - owner approval: false
 `;
 
-await writeFile(receiptPath, receipt);
+if (writeBuildReceipt) {
+  await mkdir(dirname(receiptPath), { recursive: true });
+  await writeFile(receiptPath, receipt);
+}
 
 console.log(JSON.stringify({
   verdict: "PASS",

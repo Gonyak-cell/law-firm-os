@@ -133,7 +133,7 @@ test("runtime config falls back to production auth URL without operator credenti
     fetchImpl: async () => jsonResponse(200, { ok: true, token_material_returned: false })
   });
 
-  assert.equal(config.baseUrl, "https://9mg4liadm6.execute-api.ap-northeast-2.amazonaws.com");
+  assert.equal(config.baseUrl, "https://d2mthcc8vp3cr2.cloudfront.net");
   assert.equal(config.operatorToken, "");
   assert.equal(config.operatorRuntimeConfigured, false);
   assert.equal(config.localLoginEmail, "");
