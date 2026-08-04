@@ -22,6 +22,16 @@ const HRX_ROUTE_POLICIES = Object.freeze([
     resource_param: "employee_id",
   },
   {
+    id: "hrx.people.outlook_connection.self_complete",
+    method: "POST",
+    pattern: /^\/api\/hrx\/people\/me\/outlook-connection\/complete$/,
+    action: "hrx.people.outlook_connection.write",
+    sensitivity: "employee",
+    required_scope: "hrx.employee.read",
+    purpose: "people_outlook_connection",
+    resource_type: "EmployeeUserLink",
+  },
+  {
     id: "hrx.people.outlook_connection.revoke",
     method: "DELETE",
     pattern: /^\/api\/hrx\/people\/members\/(?<employee_id>[^/]+)\/outlook-connection$/,

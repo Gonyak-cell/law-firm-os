@@ -1570,6 +1570,31 @@ function requireSingleEmployeeForActor(context, actorContext) {
   return active[0];
 }
 
+function requireUniquePeopleOutlookEmployeeForActor(context, actorContext) {
+  const resolution = resolveUniqueEmployeeUserLink({
+    tenant_id: actorContext.tenant_id,
+    user_id: actorContext.actor_id,
+    links: context.repository.listEmployeeUserLinks({
+      tenant_id: actorContext.tenant_id,
+      user_id: actorContext.actor_id,
+    }),
+  });
+  if (resolution.state === "unresolved_missing") {
+    throw safeHrxRuntimeError(403, "HRX_SELF_SERVICE_EMPLOYEE_REQUIRED", "Signed actor has no active EmployeeUserLink");
+  }
+  if (resolution.state !== "resolved") {
+    throw safeHrxRuntimeError(409, "HRX_SELF_SERVICE_EMPLOYEE_AMBIGUOUS", "Signed actor has multiple active EmployeeUserLinks");
+  }
+  const employee = context.repository.getEmployee({
+    tenant_id: actorContext.tenant_id,
+    employee_id: resolution.employee_id,
+  });
+  if (employee?.status !== "active") {
+    throw safeHrxRuntimeError(403, "HRX_SELF_SERVICE_EMPLOYEE_REQUIRED", "Signed actor has no active EmployeeUserLink");
+  }
+  return resolution.employee_id;
+}
+
 function applicantActorIds(context, tenantId, employeeId) {
   return [
     employeeId,
@@ -4662,6 +4687,7 @@ function peopleOutlookConnectionResponse({
   employeeId,
   method,
   body,
+  allowCompletion = false,
 }) {
   const member = requirePeopleOutlookMember({
     context,
@@ -4704,6 +4730,13 @@ function peopleOutlookConnectionResponse({
           "Outlook connection idempotency_key is required and must not exceed 255 characters",
         );
       }
+      if (Object.keys(body).sort().join(",") !== "action,idempotency_key") {
+        throw safeHrxRuntimeError(
+          400,
+          "OUTLOOK_CONNECTION_ACTION_INVALID",
+          "Outlook connection begin accepts only action and idempotency_key",
+        );
+      }
       auditAction = "hrx.people.outlook_connection.begin";
       connection = context.peopleOutlookConnections.begin({
         tenant_id: actorContext.tenant_id,
@@ -4711,7 +4744,23 @@ function peopleOutlookConnectionResponse({
         can_manage: member.can_manage,
         ...signedPrincipal,
       });
-    } else if (action === "complete") {
+    } else if (action === "complete" && allowCompletion) {
+      if ([
+        "access_token",
+        "refresh_token",
+        "id_token",
+        "token",
+        "token_bundle",
+        "client_secret",
+        "email",
+        "mailbox_address",
+      ].some((field) => Object.hasOwn(body, field))) {
+        throw safeHrxRuntimeError(
+          400,
+          "OUTLOOK_OAUTH_BOUNDARY_INVALID",
+          "OAuth credentials are accepted only from Microsoft",
+        );
+      }
       auditAction = "hrx.people.outlook_connection.complete";
       connection = context.peopleOutlookConnections.complete({
         tenant_id: actorContext.tenant_id,
@@ -4720,9 +4769,6 @@ function peopleOutlookConnectionResponse({
         ...signedPrincipal,
         authorization_code: body.authorization_code,
         state_ref: body.state_ref,
-        ...(Object.hasOwn(body, "access_token") ? { access_token: body.access_token } : {}),
-        ...(Object.hasOwn(body, "refresh_token") ? { refresh_token: body.refresh_token } : {}),
-        ...(Object.hasOwn(body, "email") ? { email: body.email } : {}),
       });
     } else {
       throw safeHrxRuntimeError(400, "OUTLOOK_CONNECTION_ACTION_INVALID", "Outlook connection action is invalid");
@@ -4746,6 +4792,7 @@ function peopleOutlookConnectionResponse({
     });
     return Object.freeze({
       outcome: "ok",
+      ...(allowCompletion ? { employee_id: employeeId } : {}),
       connection: resolvedConnection,
     });
   };
@@ -4767,6 +4814,84 @@ export function handleHrxApiRequest({
   try {
     const actorContext = requireTrustedRequestContext(requestContext);
     const tenantId = actorContext.tenant_id;
+
+    if (
+      pathname === "/api/hrx/people/me/outlook-connection/complete"
+      && method === "POST"
+    ) {
+      if (actorContext.session_bound !== true) {
+        throw safeHrxRuntimeError(
+          403,
+          "HRX_SIGNED_SESSION_REQUIRED",
+          "A signed LawOS session is required",
+        );
+      }
+      if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw safeHrxRuntimeError(
+          400,
+          "OUTLOOK_OAUTH_CALLBACK_INVALID",
+          "Outlook completion body is invalid",
+        );
+      }
+      if ([
+        "tenant_id",
+        "employee_id",
+        "user_id",
+        "actor_id",
+        "can_manage",
+        "session_email",
+        "entra_subject_id",
+      ].some((field) => Object.hasOwn(body, field))) {
+        throw safeHrxRuntimeError(
+          400,
+          "OUTLOOK_OAUTH_IDENTITY_INPUT_FORBIDDEN",
+          "Outlook completion identity is resolved from the signed session",
+        );
+      }
+      const completionFields = Object.keys(body).sort();
+      if (completionFields.join(",") !== "authorization_code,state_ref") {
+        const credentialFields = new Set([
+          "access_token",
+          "refresh_token",
+          "id_token",
+          "token",
+          "token_bundle",
+          "client_secret",
+          "email",
+          "mailbox_address",
+        ]);
+        const credentialIncluded = completionFields.some((field) => (
+          credentialFields.has(field)
+        ));
+        throw safeHrxRuntimeError(
+          400,
+          credentialIncluded
+            ? "OUTLOOK_OAUTH_BOUNDARY_INVALID"
+            : "OUTLOOK_OAUTH_CALLBACK_INVALID",
+          credentialIncluded
+            ? "OAuth credentials are accepted only from Microsoft"
+            : "Outlook completion accepts only authorization_code and state_ref",
+        );
+      }
+      const employeeId = requireUniquePeopleOutlookEmployeeForActor(
+        context,
+        actorContext,
+      );
+      return responseMaybe(200, runPeopleFeatureRequest({
+        context,
+        actorContext,
+        feature: "outlook_calendar",
+        operation: () => peopleOutlookConnectionResponse({
+          context,
+          actorContext,
+          permissionContext,
+          employeeId,
+          method: "POST",
+          body: { ...body, action: "complete" },
+          allowCompletion: true,
+        }),
+      }));
+    }
 
     const peopleOutlookConnectionMatch = pathname.match(/^\/api\/hrx\/people\/members\/([^/]+)\/outlook-connection$/);
     if (peopleOutlookConnectionMatch && ["GET", "POST", "DELETE"].includes(method)) {

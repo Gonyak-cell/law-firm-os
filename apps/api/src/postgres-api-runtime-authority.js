@@ -40,6 +40,7 @@ import { ENTERPRISE_READINESS_DOMAIN_DESCRIPTOR } from "../../../packages/enterp
 import {
   compareDomainSnapshotWithLedgerReadback,
   flushDomainSnapshotToScopedLedger,
+  materializeRecordRepositoryFromDomainLedger,
   runRecordRepositoryMultiDomainCommand,
 } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createMasterDataRuntimeContext } from "./master-data-context.js";
@@ -64,6 +65,7 @@ import {
   createClientOperationsPostgresReadProvider,
 } from "./client-operations-read-providers.js";
 import { createPostgresPayrollReconciliationCheckpoint } from "./hrx-payroll-reconciliation-checkpoint.js";
+import { createPostgresPeopleOutlookCompletionCheckpoint } from "./people-outlook-completion-checkpoint.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -80,6 +82,8 @@ const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "enterpriseReadinessRepository", descriptor: ENTERPRISE_READINESS_DOMAIN_DESCRIPTOR, create_repository: createEnterpriseReadinessRepository }),
 ]);
 const POSTGRES_READ_RETRY_LIMIT = 5;
+const PEOPLE_OUTLOOK_SELF_COMPLETION_PATH =
+  "/api/hrx/people/me/outlook-connection/complete";
 const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
   "DOMAIN_BASELINE_CONFLICT",
   "DOMAIN_SHADOW_DIFFERENCE",
@@ -128,6 +132,11 @@ function isPayrollReconciliationMutation(method, pathname) {
   return String(method ?? "").toUpperCase() === "POST"
     && /^\/api\/hrx\/payroll\/payment-batches\/[^/]+\/(?:reconcile|retry-failed)$/u
       .test(String(pathname ?? ""));
+}
+
+function isPeopleOutlookSelfCompletion(method, pathname) {
+  return String(method ?? "").toUpperCase() === "POST"
+    && String(pathname ?? "") === PEOPLE_OUTLOOK_SELF_COMPLETION_PATH;
 }
 
 export function isRetryablePostgresReadConflict(error, method, { allowIdempotentWriteRetry = false } = {}) {
@@ -222,6 +231,7 @@ function createRequestRuntimes({
   clientOperationsReadPathSelector,
   clientOperationsV2ReadProvider,
   bankReconciliationCheckpoint,
+  peopleOutlookCompletionCheckpoint,
   leaveIntegrationProviders,
   leaveIntegrationProviderEnabled,
   peopleFeatureFlags,
@@ -246,6 +256,8 @@ function createRequestRuntimes({
     typeof peopleOutlookRuntimeFactory === "function"
       ? peopleOutlookRuntimeFactory({
           repository: repositories.emailDmsRepository,
+          completion_checkpoint: peopleOutlookCompletionCheckpoint,
+          require_durable_completion: true,
         })
       : null;
   const hrxRuntime = createHrxRuntimeContext({
@@ -458,13 +470,20 @@ export function createPostgresApiRuntimeAuthority({
     createClientOperationsPostgresReadProvider({ ledger });
   const bankReconciliationCheckpoint =
     createPostgresPayrollReconciliationCheckpoint({ ledger });
+  const peopleOutlookCompletionCheckpoint =
+    createPostgresPeopleOutlookCompletionCheckpoint({ ledger });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     if (typeof command !== "function") throw new TypeError("PostgreSQL API command callback is required");
     const method = String(request_context?.method ?? "").toUpperCase();
+    const peopleOutlookSelfCompletion = isPeopleOutlookSelfCompletion(
+      method,
+      request_context?.pathname,
+    );
     const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
-      || isPayrollReconciliationMutation(method, request_context?.pathname);
+      || isPayrollReconciliationMutation(method, request_context?.pathname)
+      || peopleOutlookSelfCompletion;
     return runPostgresReadWithBaselineRetry({
       method,
       allowIdempotentWriteRetry,
@@ -473,59 +492,81 @@ export function createPostgresApiRuntimeAuthority({
         const identityUsers = identityRepository?.listDirectoryUsers
           ? await identityRepository.listDirectoryUsers({ tenant_id: tenantId })
           : [];
-        const productCommand = await runRecordRepositoryMultiDomainCommand({
-          ledger,
-          tenant_id: tenantId,
-          domains: PRODUCT_DOMAINS,
-          additional_domains: [
-            createHrxDomainParticipant(
-              request_context,
-              hrxRelationalProjectionReader,
-            ),
-          ],
-          command: (repositories) => command(createRequestRuntimes({
-            repositories,
-            hrxStore: repositories.hrxStore,
-            ...(identityRepository?.listDirectoryUsers
-              ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
-              : {}),
-            dmsStorage,
-            dmsUploadRuntime,
-            payrollArtifactSecret,
-            payrollProviders,
-            bankImportPreviewTokens,
-            clientFixedReportTokenAuthority,
-            clientOperationsV2ReadProvider,
-            clientOperationsReadPathSelector: ({ tenant_id }) =>
-              selectClientOperationsReadPath({
-                enabled: clientOperationsV2Enabled,
-                ledger,
-                pool: clientOperationsSchemaPool,
-                tenant_id,
-              }),
-            bankReconciliationCheckpoint,
-            leaveIntegrationProviders,
-            leaveIntegrationProviderEnabled,
-            peopleFeatureFlags,
-            peopleMetricsSink,
-            peopleProviderIdentities,
-            peopleProviderIdentityRepository,
-            outlookTokenVault,
-            outlookConsentService,
-            outlookConsentRepository,
-            outlookCalendarCache,
-            peopleOutlookConnections,
-            peopleOutlookCalendarSource,
-            peopleOutlookRuntimeFactory,
-            outlookCalendarViewAdapter,
-            outlookConsentRefresh,
-            outlookSubjectAddressResolver,
-            outlookStateAuthority,
-            outlookOauthPort,
-            offboardingAccessSource,
-          })),
-        });
-        return productCommand.result;
+        const detachedEmailDmsRepository = peopleOutlookSelfCompletion
+          ? await materializeRecordRepositoryFromDomainLedger({
+              ledger,
+              descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
+              tenant_id: tenantId,
+              create_repository: createEmailDmsRepository,
+            })
+          : null;
+        try {
+          const productCommand = await runRecordRepositoryMultiDomainCommand({
+            ledger,
+            tenant_id: tenantId,
+            domains: peopleOutlookSelfCompletion
+              ? PRODUCT_DOMAINS.filter(
+                  ({ key }) => key !== "emailDmsRepository",
+                )
+              : PRODUCT_DOMAINS,
+            additional_domains: [
+              createHrxDomainParticipant(
+                request_context,
+                hrxRelationalProjectionReader,
+              ),
+            ],
+            command: (repositories) => command(createRequestRuntimes({
+              repositories: detachedEmailDmsRepository
+                ? Object.freeze({
+                    ...repositories,
+                    emailDmsRepository: detachedEmailDmsRepository,
+                  })
+                : repositories,
+              hrxStore: repositories.hrxStore,
+              ...(identityRepository?.listDirectoryUsers
+                ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
+                : {}),
+              dmsStorage,
+              dmsUploadRuntime,
+              payrollArtifactSecret,
+              payrollProviders,
+              bankImportPreviewTokens,
+              clientFixedReportTokenAuthority,
+              clientOperationsV2ReadProvider,
+              clientOperationsReadPathSelector: ({ tenant_id }) =>
+                selectClientOperationsReadPath({
+                  enabled: clientOperationsV2Enabled,
+                  ledger,
+                  pool: clientOperationsSchemaPool,
+                  tenant_id,
+                }),
+              bankReconciliationCheckpoint,
+              peopleOutlookCompletionCheckpoint,
+              leaveIntegrationProviders,
+              leaveIntegrationProviderEnabled,
+              peopleFeatureFlags,
+              peopleMetricsSink,
+              peopleProviderIdentities,
+              peopleProviderIdentityRepository,
+              outlookTokenVault,
+              outlookConsentService,
+              outlookConsentRepository,
+              outlookCalendarCache,
+              peopleOutlookConnections,
+              peopleOutlookCalendarSource,
+              peopleOutlookRuntimeFactory,
+              outlookCalendarViewAdapter,
+              outlookConsentRefresh,
+              outlookSubjectAddressResolver,
+              outlookStateAuthority,
+              outlookOauthPort,
+              offboardingAccessSource,
+            })),
+          });
+          return productCommand.result;
+        } finally {
+          detachedEmailDmsRepository?.close();
+        }
       },
     });
   }

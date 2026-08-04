@@ -43,6 +43,7 @@ const GRAPH_CALENDAR_PATH = "/v1.0/me/calendarView";
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 const CREDENTIAL_REFRESH_SKEW_MS = 60 * 1000;
 const SOURCE_STALE_AFTER_MS = 5 * 60 * 1000;
+const OAUTH_COMPLETION_IN_PROGRESS = "OUTLOOK_AUTHORIZATION_IN_PROGRESS";
 const SAFE_ID = /^[A-Za-z0-9._:-]{1,200}$/u;
 const SAFE_STATE = /^[A-Za-z0-9_-]{43,128}$/u;
 const AUTHORIZATION_CODE_PATTERN = /^(?=.{1,4096}$)[\x21-\x7e]+$/u;
@@ -444,7 +445,23 @@ function persistTransition(repository, {
   response = {},
 }) {
   const run = (tx) => {
-    const saved = persistRecord(tx, current, input);
+    const latest = findRecord(tx, input.tenant_id, input.employee_id);
+    if (
+      (current === null && latest !== null)
+      || (current !== null && (
+        latest === null
+        || latest.people_outlook_connection_id
+          !== current.people_outlook_connection_id
+        || latest.state_version !== current.state_version
+      ))
+    ) {
+      throw failure(
+        "OUTLOOK_CONNECTION_STATE_CONFLICT",
+        "People Outlook connection changed concurrently",
+        409,
+      );
+    }
+    const saved = persistRecord(tx, latest, input);
     appendAudit(tx, saved, action, actor_id, audit_payload);
     tx.recordIdempotency({
       tenant_id: saved.tenant_id,
@@ -563,7 +580,11 @@ export function createPeopleOutlookOperationalRuntimeFactory({
     }
   }
 
-  return function createPeopleOutlookOperationalRuntime({ repository } = {}) {
+  return function createPeopleOutlookOperationalRuntime({
+    repository,
+    completion_checkpoint: completionCheckpoint = null,
+    require_durable_completion: requireDurableCompletion = false,
+  } = {}) {
     if (
       !repository
       || typeof repository.list !== "function"
@@ -572,8 +593,28 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       || typeof repository.appendAudit !== "function"
       || typeof repository.recordIdempotency !== "function"
       || typeof repository.getIdempotency !== "function"
+      || typeof repository.transaction !== "function"
     ) {
       throw new TypeError("Email DMS operational repository is required");
+    }
+    if (
+      completionCheckpoint != null
+      && ["claim", "finalize", "fail"].some(
+        (method) => typeof completionCheckpoint[method] !== "function",
+      )
+    ) {
+      throw new TypeError("People Outlook completion checkpoint is invalid");
+    }
+    if (requireDurableCompletion && completionCheckpoint == null) {
+      throw new TypeError(
+        "Durable People Outlook completion checkpoint is required",
+      );
+    }
+
+    function runCompletionStage(stage, tenantId, apply) {
+      return completionCheckpoint
+        ? completionCheckpoint[stage]({ tenant_id: tenantId, apply })
+        : repository.transaction(apply);
     }
 
     function status({ tenant_id, employee_id, can_manage = false } = {}) {
@@ -661,11 +702,16 @@ export function createPeopleOutlookOperationalRuntimeFactory({
 
     async function complete(input = {}) {
       assertSelf(input);
-      if (
-        Object.hasOwn(input, "access_token")
-        || Object.hasOwn(input, "refresh_token")
-        || Object.hasOwn(input, "email")
-      ) {
+      if ([
+        "access_token",
+        "refresh_token",
+        "id_token",
+        "token",
+        "token_bundle",
+        "client_secret",
+        "email",
+        "mailbox_address",
+      ].some((field) => Object.hasOwn(input, field))) {
         throw failure(
           "OUTLOOK_OAUTH_BOUNDARY_INVALID",
           "OAuth credentials are accepted only from Microsoft",
@@ -674,8 +720,6 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       const tenantId = requiredId(input.tenant_id, "tenant_id");
       const employeeId = requiredId(input.employee_id, "employee_id");
       const actor = principal(input);
-      const current = findRecord(repository, tenantId, employeeId);
-      assertPrincipalBinding(current, actor);
       const state = requiredText(input.state_ref, "state_ref", 200);
       const authorizationCode = requiredText(
         input.authorization_code,
@@ -695,94 +739,267 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           tenant_id: tenantId,
           employee_id: employeeId,
         })}:${oauthStateDigest(state, config.state_digest_key).slice(0, 32)}`;
-      const replay = repository.getIdempotency({
-        tenant_id: tenantId,
-        idempotency_key: completionIdempotencyKey,
+      const claim = await runCompletionStage("claim", tenantId, (tx) => {
+        const current = findRecord(tx, tenantId, employeeId);
+        assertPrincipalBinding(current, actor);
+        const replay = tx.getIdempotency({
+          tenant_id: tenantId,
+          idempotency_key: completionIdempotencyKey,
+        });
+        if (replay) {
+          const claimedVersion = Number(replay.response?.state_version);
+          const finalized = Number.isSafeInteger(claimedVersion)
+            ? tx.getIdempotency({
+                tenant_id: tenantId,
+                idempotency_key:
+                  `${completionIdempotencyKey}:connected:${claimedVersion}`,
+              })
+            : null;
+          return Object.freeze({ current, replay, finalized });
+        }
+        if (
+          !current
+          || current.connection_state !== "consent_pending"
+          || !sameStateHash(
+            current.oauth_state_hash,
+            state,
+            config.state_digest_key,
+          )
+        ) {
+          throw failure(
+            "OUTLOOK_OAUTH_STATE_INVALID",
+            "Outlook authorization state is invalid",
+          );
+        }
+        if (Date.parse(current.oauth_expires_at) <= instant(clock).getTime()) {
+          throw failure(
+            "OUTLOOK_OAUTH_STATE_EXPIRED",
+            "Outlook authorization state has expired",
+          );
+        }
+        const codeVerifier = decryptVerifier(
+          current.oauth_verifier_ciphertext,
+          config.state_encryption_key,
+        );
+        const now = instant(clock).toISOString();
+        const claimed = persistTransition(tx, {
+          current,
+          action: "people.outlook.authorization.consuming",
+          actor_id: actor.user_id,
+          idempotency_key: completionIdempotencyKey,
+          audit_payload: {
+            authorization_state_consumed: true,
+            credential_material_included: false,
+          },
+          response: { completion_stage: "consuming" },
+          input: {
+            ...current,
+            connection_state: "reauthorization_required",
+            oauth_state_hash: null,
+            oauth_nonce_hash: null,
+            oauth_verifier_ciphertext: null,
+            oauth_expires_at: null,
+            safe_error_code: OAUTH_COMPLETION_IN_PROGRESS,
+            state_version: current.state_version + 1,
+            updated_at: now,
+          },
+        });
+        return Object.freeze({
+          claimed,
+          code_verifier: codeVerifier,
+          expected_nonce_hash: current.oauth_nonce_hash,
+        });
       });
-      if (replay) {
-        if (!current) {
+      if (claim.replay) {
+        const claimedVersion = Number(claim.replay.response?.state_version);
+        if (
+          claim.replay.response?.completion_stage !== "consuming"
+          || claim.current?.people_outlook_connection_id
+            !== claim.replay.response?.people_outlook_connection_id
+          || !Number.isSafeInteger(claimedVersion)
+          || claimedVersion < 1
+          || claim.current.state_version < claimedVersion
+        ) {
           throw failure(
             "OUTLOOK_OAUTH_STATE_INVALID",
             "Outlook authorization replay state is incomplete",
             409,
           );
         }
-        return publicState(current, { canManage: true });
+        if (
+          claim.current.state_version === claimedVersion
+          && claim.current.safe_error_code === OAUTH_COMPLETION_IN_PROGRESS
+        ) {
+          throw failure(
+            OAUTH_COMPLETION_IN_PROGRESS,
+            "Outlook authorization is already being completed",
+            409,
+          );
+        }
+        if (claim.current.connection_state !== "connected") {
+          throw failure(
+            "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED",
+            "Outlook authorization must be restarted",
+            409,
+          );
+        }
+        if (
+          claim.finalized?.response?.completion_stage !== "connected"
+          || claim.finalized.response?.completion_claim_version
+            !== claimedVersion
+        ) {
+          throw failure(
+            "OUTLOOK_OAUTH_STATE_INVALID",
+            "Outlook authorization replay state is incomplete",
+            409,
+          );
+        }
+        return publicState(claim.current, { canManage: true });
       }
-      if (
-        !current
-        || current.connection_state !== "consent_pending"
-        || !sameStateHash(
-          current.oauth_state_hash,
-          state,
-          config.state_digest_key,
-        )
-      ) {
-        throw failure(
-          "OUTLOOK_OAUTH_STATE_INVALID",
-          "Outlook authorization state is invalid",
-        );
-      }
-      if (Date.parse(current.oauth_expires_at) <= instant(clock).getTime()) {
-        throw failure(
-          "OUTLOOK_OAUTH_STATE_EXPIRED",
-          "Outlook authorization state has expired",
-        );
-      }
+      const current = claim.claimed;
       const expectedSubjectId = current.provider_subject_id
         ?? actor.entra_subject_id;
-      const exchanged = await oauth.exchange({
-        code: authorizationCode,
-        code_verifier: decryptVerifier(
-          current.oauth_verifier_ciphertext,
-          config.state_encryption_key,
-        ),
-        expected_nonce_hash: current.oauth_nonce_hash,
-        expected_email_hash: actor.session_email_hash,
-        expected_subject_id: expectedSubjectId,
-      });
-      if (
-        actor.entra_subject_id
-        && exchanged.provider_subject_id !== actor.entra_subject_id
-      ) {
+      const markFailed = async () => {
+        try {
+          await runCompletionStage("fail", tenantId, (tx) => {
+            const latest = findRecord(tx, tenantId, employeeId);
+            if (
+              !latest
+              || latest.people_outlook_connection_id
+                !== current.people_outlook_connection_id
+              || latest.state_version !== current.state_version
+              || latest.safe_error_code !== OAUTH_COMPLETION_IN_PROGRESS
+            ) {
+              return latest;
+            }
+            const now = instant(clock).toISOString();
+            return persistTransition(tx, {
+              current: latest,
+              action: "people.outlook.authorization.failed",
+              actor_id: actor.user_id,
+              idempotency_key:
+                `${completionIdempotencyKey}:failed:${current.state_version}`,
+              audit_payload: { credential_material_included: false },
+              input: {
+                ...latest,
+                safe_error_code: "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED",
+                state_version: latest.state_version + 1,
+                updated_at: now,
+              },
+            });
+          });
+        } catch {
+          // Preserve the original safe failure when checkpoint cleanup conflicts.
+        }
+      };
+      let exchanged;
+      try {
+        exchanged = await oauth.exchange({
+          code: authorizationCode,
+          code_verifier: claim.code_verifier,
+          expected_nonce_hash: claim.expected_nonce_hash,
+          expected_email_hash: actor.session_email_hash,
+          expected_subject_id: expectedSubjectId,
+        });
+      } catch (error) {
+        await markFailed();
+        if (error?.safe_error_code === "OUTLOOK_ACCOUNT_MISMATCH") {
+          throw failure(
+            "OUTLOOK_ACCOUNT_MISMATCH",
+            "Microsoft account does not match the signed LawOS session",
+            403,
+          );
+        }
         throw failure(
-          "OUTLOOK_ACCOUNT_MISMATCH",
-          "Microsoft account does not match the signed LawOS session",
-          403,
+          "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED",
+          "Outlook authorization did not complete; start a new connection attempt",
+          409,
         );
       }
-      const now = instant(clock).toISOString();
-      const connected = persistTransition(repository, {
-        current,
-        action: "people.outlook.connection.connected",
-        actor_id: actor.user_id,
-        idempotency_key: completionIdempotencyKey,
-        audit_payload: {
-          mailbox_address_hash: sha256(exchanged.mailbox_address),
-        },
-        input: {
-          ...current,
-          connection_state: "connected",
-          provider_subject_id: exchanged.provider_subject_id,
-          mailbox_address_hash: sha256(exchanged.mailbox_address),
-          credential_envelope: encryptCredential(
-            exchanged,
-            current,
-            config.credential_encryption_key,
-          ),
-          connected_at: now,
-          credential_expires_at: exchanged.expires_at,
-          oauth_state_hash: null,
-          oauth_nonce_hash: null,
-          oauth_verifier_ciphertext: null,
-          oauth_expires_at: null,
-          safe_error_code: null,
-          revoked_at: null,
-          state_version: current.state_version + 1,
-          updated_at: now,
-        },
-      });
-      return publicState(connected, { canManage: true });
+      try {
+        const mailboxAddressHash = sha256(normalizedEmail(
+          exchanged.mailbox_address,
+        ));
+        if (
+          mailboxAddressHash !== actor.session_email_hash
+          || (
+            actor.entra_subject_id
+            && exchanged.provider_subject_id !== actor.entra_subject_id
+          )
+        ) {
+          throw failure(
+            "OUTLOOK_ACCOUNT_MISMATCH",
+            "Microsoft account does not match the signed LawOS session",
+            403,
+          );
+        }
+        const credentialEnvelope = encryptCredential(
+          exchanged,
+          current,
+          config.credential_encryption_key,
+        );
+        const connected = await runCompletionStage(
+          "finalize",
+          tenantId,
+          (tx) => {
+            const latest = findRecord(tx, tenantId, employeeId);
+            if (
+              !latest
+              || latest.people_outlook_connection_id
+                !== current.people_outlook_connection_id
+              || latest.state_version !== current.state_version
+              || latest.safe_error_code !== OAUTH_COMPLETION_IN_PROGRESS
+            ) {
+              throw failure(
+                "OUTLOOK_CONNECTION_STATE_CONFLICT",
+                "People Outlook connection changed concurrently",
+                409,
+              );
+            }
+            const now = instant(clock).toISOString();
+            return persistTransition(tx, {
+              current: latest,
+              action: "people.outlook.connection.connected",
+              actor_id: actor.user_id,
+              idempotency_key:
+                `${completionIdempotencyKey}:connected:${current.state_version}`,
+              audit_payload: { mailbox_address_hash: mailboxAddressHash },
+              response: {
+                completion_stage: "connected",
+                completion_claim_version: current.state_version,
+              },
+              input: {
+                ...latest,
+                connection_state: "connected",
+                provider_subject_id: exchanged.provider_subject_id,
+                mailbox_address_hash: mailboxAddressHash,
+                credential_envelope: credentialEnvelope,
+                connected_at: now,
+                credential_expires_at: exchanged.expires_at,
+                oauth_state_hash: null,
+                oauth_nonce_hash: null,
+                oauth_verifier_ciphertext: null,
+                oauth_expires_at: null,
+                safe_error_code: null,
+                revoked_at: null,
+                state_version: latest.state_version + 1,
+                updated_at: now,
+              },
+            });
+          },
+        );
+        return publicState(connected, { canManage: true });
+      } catch (error) {
+        await markFailed();
+        if (error?.safe_error_code === "OUTLOOK_ACCOUNT_MISMATCH") {
+          throw error;
+        }
+        throw failure(
+          "OUTLOOK_AUTHORIZATION_RESTART_REQUIRED",
+          "Outlook authorization did not complete; start a new connection attempt",
+          409,
+        );
+      }
     }
 
     async function disconnect(input = {}) {

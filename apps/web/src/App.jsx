@@ -15,6 +15,7 @@ import { UserProfileSurface } from "./components/UserProfileSurface.jsx";
 import { PeopleHome } from "./people/PeopleHome.tsx";
 import { resolvePeopleRoute } from "./people/peopleFeatureCatalog.js";
 import { readPeopleWebFeatureFlags } from "./people/peopleFeatureFlags.ts";
+import { parsePeopleOutlookConnectionResult, presentPeopleOutlookConnectionResult } from "./people/outlookConnectionResult.js";
 import { isDesktopRendererLocation, loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
@@ -147,6 +148,7 @@ export function App() {
   const [unreadMessageIds, setUnreadMessageIds] = useState(() => new Set());
   const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
   const [globalRefreshSignal, setGlobalRefreshSignal] = useState(0);
+  const [outlookConnectionNotice, setOutlookConnectionNotice] = useState(null);
   const [routeRevision, setRouteRevision] = useState(0);
   const readMessageIdsRef = useRef(new Set());
   const [desktopSessionChecked, setDesktopSessionChecked] = useState(() => !isDesktopRenderer());
@@ -531,6 +533,20 @@ export function App() {
   }, [desktopSessionChecked, liveCtx]);
 
   useEffect(() => {
+    if (!desktopSessionChecked || typeof window.matterSession?.onOutlookConnectionResult !== "function") {
+      return undefined;
+    }
+    const unsubscribe = window.matterSession.onOutlookConnectionResult((value) => {
+      const result = parsePeopleOutlookConnectionResult(value);
+      const presentation = presentPeopleOutlookConnectionResult(result);
+      if (!result || !presentation) return;
+      setOutlookConnectionNotice({ ...presentation, status: result.status });
+      if (result.status === "connected") setGlobalRefreshSignal((current) => current + 1);
+    });
+    return typeof unsubscribe === "function" ? unsubscribe : undefined;
+  }, [desktopSessionChecked]);
+
+  useEffect(() => {
     setNotificationItemsRead(utilityDrawerType === "notifications");
   }, [notificationSignature]);
 
@@ -645,6 +661,24 @@ export function App() {
 
   return (
     <div className="matter-app">
+      {outlookConnectionNotice && (
+        <div
+          className={["notice", "outlook-connection-toast", outlookConnectionNotice.tone].filter(Boolean).join(" ")}
+          role={outlookConnectionNotice.role}
+          aria-live={outlookConnectionNotice.role === "alert" ? "assertive" : "polite"}
+          data-outlook-connection-result={outlookConnectionNotice.status}
+        >
+          <span>{outlookConnectionNotice.message}</span>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Outlook 연결 알림 닫기"
+            onClick={() => setOutlookConnectionNotice(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div
         className={[
           "app-frame",

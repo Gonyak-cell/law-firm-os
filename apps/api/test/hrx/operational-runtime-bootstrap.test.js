@@ -409,15 +409,31 @@ test("createDefaultHrxRuntime operational Outlook ports complete consent and cal
     });
     assert.equal(begun.status, 200);
     assert.equal(begun.body.connection.connection_state, "consent_pending");
-    const completed = peopleRequest(runtimeB, connectionPath, "staff", "POST", {
-      action: "complete",
+    const completionPath = "/api/hrx/people/me/outlook-connection/complete";
+    const legacyCompletion = peopleRequest(
+      runtimeB,
+      connectionPath,
+      "staff",
+      "POST",
+      {
+        action: "complete",
+        authorization_code: "outlook-authorization-code",
+        state_ref: "outlook-state-operational",
+      },
+    );
+    assert.equal(legacyCompletion.status, 400);
+    assert.equal(
+      legacyCompletion.body.safe_error_code,
+      "OUTLOOK_CONNECTION_ACTION_INVALID",
+    );
+    const completed = peopleRequest(runtimeB, completionPath, "staff", "POST", {
       authorization_code: "outlook-authorization-code",
       state_ref: "outlook-state-operational",
     });
     assert.equal(completed.status, 200);
+    assert.equal(completed.body.employee_id, "emp-001");
     assert.equal(completed.body.connection.connection_state, "connected");
-    const replayed = peopleRequest(runtimeA, connectionPath, "staff", "POST", {
-      action: "complete",
+    const replayed = peopleRequest(runtimeA, completionPath, "staff", "POST", {
       authorization_code: "outlook-authorization-code-replay",
       state_ref: "outlook-state-operational",
     });

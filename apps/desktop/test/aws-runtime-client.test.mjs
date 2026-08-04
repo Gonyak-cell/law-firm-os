@@ -430,10 +430,36 @@ test("desktop runtime permits only the exact People Outlook connection mutations
     method: "DELETE",
     sessionToken: "lawos_session_v1.secret"
   });
+  const completion = await client.api({
+    path: "/api/hrx/people/me/outlook-connection/complete",
+    method: "POST",
+    body: JSON.stringify({
+      authorization_code: "0.MAIN_ONLY_code-123",
+      state_ref: "outlook-state:main-only-01"
+    }),
+    sessionToken: "lawos_session_v1.secret"
+  });
   const blocked = await Promise.all([
     client.api({ path, method: "PATCH", body: "{}", sessionToken: "lawos_session_v1.secret" }),
     client.api({ path: `${path}/retry`, method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
-    client.api({ path: "/api/hrx/people/members/emp_amic_jwsuh/profile", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" })
+    client.api({ path: "/api/hrx/people/members/emp_amic_jwsuh/profile", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/people/me/outlook-connection/complete/extra", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/people/me/outlook-connection/complete?next=1", method: "POST", body: "{}", sessionToken: "lawos_session_v1.secret" }),
+    client.api({ path: "/api/hrx/people/me/outlook-connection/complete", method: "PUT", body: "{}", sessionToken: "lawos_session_v1.secret" })
+  ]);
+  const invalidCompletionBodies = await Promise.all([
+    client.api({
+      path: "/api/hrx/people/me/outlook-connection/complete",
+      method: "POST",
+      body: JSON.stringify({ authorization_code: "0.CODE", state_ref: "state", access_token: "forbidden" }),
+      sessionToken: "lawos_session_v1.secret"
+    }),
+    client.api({
+      path: "/api/hrx/people/me/outlook-connection/complete",
+      method: "POST",
+      body: JSON.stringify({ authorization_code: "0.CODE" }),
+      sessionToken: "lawos_session_v1.secret"
+    })
   ]);
   const bodylessOtherDelete = await client.api({
     path: "/api/matters/matter-001/worktree/nodes/node-001",
@@ -443,12 +469,21 @@ test("desktop runtime permits only the exact People Outlook connection mutations
 
   assert.equal(begin.http_status, 200);
   assert.equal(disconnect.http_status, 200);
-  assert.equal(calls.length, 2);
+  assert.equal(completion.http_status, 200);
+  assert.equal(calls.length, 3);
   assert.equal(calls[0].init.method, "POST");
   assert.deepEqual(JSON.parse(calls[0].init.body), { action: "begin" });
   assert.equal(calls[1].init.method, "DELETE");
   assert.equal(calls[1].init.body, undefined);
-  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
+  assert.equal(calls[2].url, "http://127.0.0.1:4812/api/hrx/people/me/outlook-connection/complete");
+  assert.equal(calls[2].init.method, "POST");
+  assert.deepEqual(JSON.parse(calls[2].init.body), {
+    authorization_code: "0.MAIN_ONLY_code-123",
+    state_ref: "outlook-state:main-only-01"
+  });
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405, 405, 403, 405]);
+  assert.deepEqual(invalidCompletionBodies.map(({ http_status }) => http_status), [400, 400]);
+  assert.equal(calls.length, 3);
   assert.equal(bodylessOtherDelete.http_status, 400);
   assert.equal(bodylessOtherDelete.reason, "desktop_runtime_write_body_invalid");
 });

@@ -46,10 +46,19 @@ export function desktopWindowIconPath() {
 }
 
 export const PASSWORD_RESET_DEEP_LINK_CHANNEL = "desktop:password-reset:confirm";
-export const AUTH_CALLBACK_DEEP_LINK_CHANNEL = "desktop:auth-callback";
+export const OUTLOOK_CONNECTION_RESULT_CHANNEL = "desktop:outlook-connection:result";
+export const OUTLOOK_CONNECTION_COMPLETE_ROUTE = "/api/hrx/people/me/outlook-connection/complete";
+export const OUTLOOK_CALLBACK_TTL_MS = 10 * 60 * 1000;
 const MAX_REMEMBERED_AUTH_CALLBACKS = 256;
-const AUTH_CALLBACK_RENDERER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const AUTH_CALLBACK_STATE = /^[A-Za-z0-9._:-]{1,200}$/;
+const MAX_AUTH_CALLBACK_TRACE_ENTRIES = 128;
+const OUTLOOK_CALLBACK_RETRY_DELAY_MS = 15 * 1000;
+const SAFE_OUTLOOK_RESULT_VALUE = /^[A-Za-z0-9._:-]{1,160}$/;
+const SAFE_OUTLOOK_ERROR_CODE = /^[A-Z0-9_]{1,160}$/;
+const OUTLOOK_SESSION_REQUIRED_CODES = new Set([
+  "AUTH_SESSION_REQUIRED",
+  "DESKTOP_SESSION_REQUIRED",
+  "HRX_SIGNED_SESSION_REQUIRED"
+]);
 
 export function configureDesktopAppIcon(app) {
   app.dock?.setIcon?.(desktopWindowIconPath());
@@ -145,7 +154,7 @@ function parseRendererDeepLinkIntent(candidate) {
   return {
     type: intent.type,
     routeOnly: true,
-    code: intent.code,
+    ...(intent.error ? { error: intent.error } : { code: intent.code }),
     state: intent.state
   };
 }
@@ -165,11 +174,9 @@ function rendererDeepLinkIntent(candidate) {
 }
 
 function sendRendererDeepLinkIntent(window, intent) {
-  const channel = intent?.type === "auth_callback"
-    ? AUTH_CALLBACK_DEEP_LINK_CHANNEL
-    : intent?.type === "password_reset_confirm"
-      ? PASSWORD_RESET_DEEP_LINK_CHANNEL
-      : null;
+  const channel = intent?.type === "password_reset_confirm"
+    ? PASSWORD_RESET_DEEP_LINK_CHANNEL
+    : null;
   if (!channel || typeof window?.webContents?.send !== "function") {
     return { sent: false, reason: channel ? "renderer_unavailable" : "unsupported_renderer_deep_link" };
   }
@@ -211,63 +218,267 @@ function focusDesktopWindow(window) {
   return true;
 }
 
-export function createDesktopInstanceCoordinator({ app, argv = process.argv } = {}) {
+function safeOutlookResultValue(value, pattern = SAFE_OUTLOOK_RESULT_VALUE) {
+  return typeof value === "string" && pattern.test(value) ? value : null;
+}
+
+function classifyOutlookConnectionResponse(response = {}) {
+  const httpStatus = Number.isInteger(response?.http_status)
+    && response.http_status >= 0
+    && response.http_status <= 599
+    ? response.http_status
+    : 0;
+  const body = response?.body && typeof response.body === "object" && !Array.isArray(response.body)
+    ? response.body
+    : response && typeof response === "object" && !Array.isArray(response)
+      ? response
+      : {};
+  const connection = body.connection && typeof body.connection === "object" && !Array.isArray(body.connection)
+    ? body.connection
+    : body;
+  const safeErrorCode = safeOutlookResultValue(
+    body.safe_error_code ?? connection.safe_error_code,
+    SAFE_OUTLOOK_ERROR_CODE,
+  );
+  const connectionState = safeOutlookResultValue(connection.connection_state);
+  const payload = {
+    type: "outlook_connection_result",
+    status: "error",
+    http_status: httpStatus,
+    safe_error_code: safeErrorCode
+  };
+  const employeeId = safeOutlookResultValue(body.employee_id ?? connection.employee_id);
+  if (employeeId) payload.employee_id = employeeId;
+  if (connectionState) payload.connection_state = connectionState;
+
+  if (safeErrorCode === "OUTLOOK_OAUTH_STATE_EXPIRED") payload.status = "expired";
+  else if (safeErrorCode === "OUTLOOK_AUTHORIZATION_IN_PROGRESS") payload.status = "retryable";
+  else if (httpStatus === 401 || OUTLOOK_SESSION_REQUIRED_CODES.has(safeErrorCode)) {
+    payload.status = "session_required";
+  }
+  else if (httpStatus === 0 || httpStatus === 408 || httpStatus === 429 || httpStatus >= 500) {
+    payload.status = "retryable";
+  } else if (httpStatus >= 200 && httpStatus < 300 && connectionState === "connected") {
+    payload.status = "connected";
+  }
+  return {
+    payload,
+    terminal: !["retryable", "session_required"].includes(payload.status)
+  };
+}
+
+export function createDesktopInstanceCoordinator({
+  app,
+  argv = process.argv,
+  now = Date.now,
+  getAuthCoordinator = () => null,
+  setTimeoutImpl = setTimeout,
+  clearTimeoutImpl = clearTimeout,
+  retryDelayMs = OUTLOOK_CALLBACK_RETRY_DELAY_MS
+} = {}) {
   const pendingDeepLinks = [];
-  const rememberedAuthCallbackStates = new Set();
-  const authCallbacksSentToRenderer = new Set();
+  const pendingAuthCallbacks = new Map();
+  const rememberedAuthCallbacks = new Map();
+  const pendingOutlookResults = [];
+  const authCallbackPhaseTrace = [];
   let activeWindow = null;
   let deliveredDeepLinkCount = 0;
+  let deliveredOutlookResultCount = 0;
   let rejectedDeepLinkCount = 0;
   let duplicateAuthCallbackCount = 0;
   let authCallbackLimitRejectionCount = 0;
-  let acknowledgedAuthCallbackCount = 0;
-  let authCallbackRendererReady = false;
-  let authCallbackRendererId = null;
+  let completedAuthCallbackCount = 0;
+  let terminalAuthCallbackCount = 0;
   let lastIntent = null;
 
-  function authCallbackStateHash(state) {
+  function authCallbackStateFingerprint(state) {
     return createHash("sha256").update(state).digest("base64url");
   }
 
-  function rememberAuthCallback(intent) {
-    if (intent.type !== "auth_callback") return "accepted";
-    const stateHash = authCallbackStateHash(intent.state);
-    if (rememberedAuthCallbackStates.has(stateHash)) return "duplicate";
-    if (rememberedAuthCallbackStates.size >= MAX_REMEMBERED_AUTH_CALLBACKS) {
-      return "limit_reached";
-    }
-    rememberedAuthCallbackStates.add(stateHash);
-    return "accepted";
+  function traceAuthCallback(phase, stateFingerprint, at = now()) {
+    authCallbackPhaseTrace.push(Object.freeze({
+      phase,
+      timestamp: new Date(at).toISOString(),
+      state_fingerprint: stateFingerprint
+    }));
+    if (authCallbackPhaseTrace.length > MAX_AUTH_CALLBACK_TRACE_ENTRIES) authCallbackPhaseTrace.shift();
   }
 
-  function deliver(intent) {
-    const result = sendRendererDeepLinkIntent(activeWindow, intent);
-    if (result.sent) {
-      deliveredDeepLinkCount += 1;
-      if (intent.type === "auth_callback") {
-        authCallbacksSentToRenderer.add(authCallbackStateHash(intent.state));
-      }
+  function purgeExpiredFingerprints(at = now()) {
+    for (const [fingerprint, expiresAt] of rememberedAuthCallbacks) {
+      if (expiresAt <= at) rememberedAuthCallbacks.delete(fingerprint);
     }
+  }
+
+  function rememberAuthCallback(intent, receivedAt) {
+    const stateFingerprint = authCallbackStateFingerprint(intent.state);
+    purgeExpiredFingerprints(receivedAt);
+    if (rememberedAuthCallbacks.has(stateFingerprint)) return { status: "duplicate", stateFingerprint };
+    if (rememberedAuthCallbacks.size >= MAX_REMEMBERED_AUTH_CALLBACKS) {
+      return { status: "limit_reached", stateFingerprint };
+    }
+    rememberedAuthCallbacks.set(stateFingerprint, receivedAt + OUTLOOK_CALLBACK_TTL_MS);
+    return { status: "accepted", stateFingerprint };
+  }
+
+  function deliverDeepLink(intent) {
+    const result = sendRendererDeepLinkIntent(activeWindow, intent);
+    if (result.sent) deliveredDeepLinkCount += 1;
     return result;
   }
 
-  function deliverPending(predicate) {
+  function deliverPendingDeepLinks() {
     const results = [];
     for (let index = 0; index < pendingDeepLinks.length;) {
-      const intent = pendingDeepLinks[index];
-      if (!predicate(intent)) {
-        index += 1;
-        continue;
-      }
-      const result = deliver(intent);
+      const result = deliverDeepLink(pendingDeepLinks[index]);
       results.push(result);
-      if (result.sent && intent.type !== "auth_callback") {
-        pendingDeepLinks.splice(index, 1);
-        continue;
-      }
-      index += 1;
+      if (result.sent) pendingDeepLinks.splice(index, 1);
+      else index += 1;
     }
     return results;
+  }
+
+  function deliverOutlookResult(payload) {
+    if (typeof activeWindow?.webContents?.send !== "function") return false;
+    try {
+      activeWindow.webContents.send(OUTLOOK_CONNECTION_RESULT_CHANNEL, payload);
+      deliveredOutlookResultCount += 1;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function sendOutlookResult(payload) {
+    if (deliverOutlookResult(payload)) return;
+    if (pendingOutlookResults.length >= 32) pendingOutlookResults.shift();
+    pendingOutlookResults.push(payload);
+  }
+
+  function deliverPendingOutlookResults() {
+    while (pendingOutlookResults.length > 0) {
+      if (!deliverOutlookResult(pendingOutlookResults[0])) break;
+      pendingOutlookResults.shift();
+    }
+  }
+
+  function purgeAuthCallback(entry) {
+    if (entry.retryTimer) clearTimeoutImpl(entry.retryTimer);
+    if (entry.expiryTimer) clearTimeoutImpl(entry.expiryTimer);
+    entry.retryTimer = null;
+    entry.expiryTimer = null;
+    pendingAuthCallbacks.delete(entry.stateFingerprint);
+    entry.code = null;
+    entry.state = null;
+    entry.error = null;
+  }
+
+  function finishAuthCallback(entry, payload) {
+    traceAuthCallback(payload.status, entry.stateFingerprint);
+    sendOutlookResult(payload);
+    terminalAuthCallbackCount += 1;
+    if (payload.status === "connected") completedAuthCallbackCount += 1;
+    purgeAuthCallback(entry);
+  }
+
+  function expireAuthCallback(entry) {
+    finishAuthCallback(entry, {
+      type: "outlook_connection_result",
+      status: "expired",
+      http_status: 0,
+      safe_error_code: "OUTLOOK_OAUTH_CALLBACK_EXPIRED"
+    });
+  }
+
+  function scheduleAuthCallbackRetry(entry, delayMs = retryDelayMs) {
+    if (!pendingAuthCallbacks.has(entry.stateFingerprint) || entry.retryTimer) return;
+    const remaining = entry.expiresAt - now();
+    if (remaining <= 0) {
+      expireAuthCallback(entry);
+      return;
+    }
+    entry.retryTimer = setTimeoutImpl(() => {
+      entry.retryTimer = null;
+      void processAuthCallback(entry);
+    }, Math.min(delayMs, remaining));
+    entry.retryTimer?.unref?.();
+  }
+
+  function scheduleAuthCallbackExpiry(entry) {
+    const remaining = entry.expiresAt - now();
+    if (remaining <= 0) {
+      expireAuthCallback(entry);
+      return;
+    }
+    entry.expiryTimer = setTimeoutImpl(() => {
+      entry.expiryTimer = null;
+      if (pendingAuthCallbacks.has(entry.stateFingerprint)) expireAuthCallback(entry);
+    }, remaining);
+    entry.expiryTimer?.unref?.();
+  }
+
+  function processAuthCallback(entry) {
+    if (!pendingAuthCallbacks.has(entry.stateFingerprint)) return Promise.resolve();
+    if (entry.inFlight) return entry.inFlight;
+    if (entry.retryTimer) {
+      clearTimeoutImpl(entry.retryTimer);
+      entry.retryTimer = null;
+    }
+    const operation = (async () => {
+      if (now() >= entry.expiresAt) {
+        expireAuthCallback(entry);
+        return;
+      }
+      if (entry.error === "access_denied") {
+        finishAuthCallback(entry, {
+          type: "outlook_connection_result",
+          status: "error",
+          http_status: 0,
+          safe_error_code: "OUTLOOK_AUTHORIZATION_DENIED"
+        });
+        return;
+      }
+      if (!activeWindow) return;
+
+      entry.attemptCount += 1;
+      traceAuthCallback("request_started", entry.stateFingerprint);
+      let response;
+      try {
+        const authCoordinator = getAuthCoordinator();
+        response = typeof authCoordinator?.api === "function"
+          ? await authCoordinator.api({
+            path: OUTLOOK_CONNECTION_COMPLETE_ROUTE,
+            method: "POST",
+            body: JSON.stringify({ authorization_code: entry.code, state_ref: entry.state })
+          })
+          : { http_status: 401, body: { safe_error_code: "DESKTOP_SESSION_REQUIRED" } };
+      } catch {
+        response = { http_status: 0, body: { safe_error_code: "OUTLOOK_CONNECTION_REQUEST_FAILED" } };
+      }
+      if (!pendingAuthCallbacks.has(entry.stateFingerprint)) return;
+      if (now() >= entry.expiresAt) {
+        expireAuthCallback(entry);
+        return;
+      }
+      const result = classifyOutlookConnectionResponse(response);
+      traceAuthCallback(result.payload.status, entry.stateFingerprint);
+      sendOutlookResult(result.payload);
+      if (result.terminal) {
+        terminalAuthCallbackCount += 1;
+        if (result.payload.status === "connected") completedAuthCallbackCount += 1;
+        purgeAuthCallback(entry);
+      } else {
+        scheduleAuthCallbackRetry(entry);
+      }
+    })();
+    entry.inFlight = operation.finally(() => {
+      entry.inFlight = null;
+    });
+    return entry.inFlight;
+  }
+
+  function retryPendingAuthCallbacks() {
+    return Promise.all([...pendingAuthCallbacks.values()].map((entry) => processAuthCallback(entry)));
   }
 
   function dispatch(candidate) {
@@ -276,37 +487,54 @@ export function createDesktopInstanceCoordinator({ app, argv = process.argv } = 
       rejectedDeepLinkCount += 1;
       return { sent: false, reason: "unsupported_renderer_deep_link" };
     }
-    const callbackState = rememberAuthCallback(intent);
-    if (callbackState === "duplicate") {
-      duplicateAuthCallbackCount += 1;
-      return { sent: false, reason: "duplicate_auth_callback" };
+    if (intent.type === "auth_callback") {
+      const receivedAt = now();
+      const remembered = rememberAuthCallback(intent, receivedAt);
+      if (remembered.status === "duplicate") {
+        duplicateAuthCallbackCount += 1;
+        return { sent: false, reason: "duplicate_auth_callback" };
+      }
+      if (remembered.status === "limit_reached") {
+        rejectedDeepLinkCount += 1;
+        authCallbackLimitRejectionCount += 1;
+        return { sent: false, reason: "auth_callback_limit_reached" };
+      }
+      const entry = {
+        stateFingerprint: remembered.stateFingerprint,
+        code: intent.code ?? null,
+        state: intent.state,
+        error: intent.error ?? null,
+        receivedAt,
+        expiresAt: receivedAt + OUTLOOK_CALLBACK_TTL_MS,
+        attemptCount: 0,
+        inFlight: null,
+        retryTimer: null,
+        expiryTimer: null
+      };
+      pendingAuthCallbacks.set(entry.stateFingerprint, entry);
+      traceAuthCallback("queued", entry.stateFingerprint, receivedAt);
+      lastIntent = Object.freeze({ type: "auth_callback", state_fingerprint: entry.stateFingerprint });
+      scheduleAuthCallbackExpiry(entry);
+      if (activeWindow || entry.error === "access_denied") void processAuthCallback(entry);
+      return { sent: false, queued: true, intent: lastIntent };
     }
-    if (callbackState === "limit_reached") {
-      rejectedDeepLinkCount += 1;
-      authCallbackLimitRejectionCount += 1;
-      return { sent: false, reason: "auth_callback_limit_reached" };
-    }
+
     const redactedIntent = redactDeepLinkIntent(intent);
     lastIntent = redactedIntent;
-    if (intent.type === "auth_callback") {
-      pendingDeepLinks.push(intent);
-      if (!activeWindow || !authCallbackRendererReady) {
-        return { sent: false, queued: true, intent: redactedIntent };
-      }
-      return deliver(intent);
-    }
     if (!activeWindow) {
       pendingDeepLinks.push(intent);
       return { sent: false, queued: true, intent: redactedIntent };
     }
-    return deliver(intent);
+    return deliverDeepLink(intent);
   }
 
   for (const candidate of collectMatterDeepLinkArgs(argv)) dispatch(candidate);
 
   app.on("open-url", (event, url) => {
     event.preventDefault();
-    dispatch(url);
+    const result = dispatch(url);
+    if (result.reason !== "unsupported_renderer_deep_link") focusDesktopWindow(activeWindow);
+    return result;
   });
   app.on("second-instance", (_event, secondArgv = []) => {
     for (const url of collectMatterDeepLinkArgs(secondArgv)) dispatch(url);
@@ -315,65 +543,32 @@ export function createDesktopInstanceCoordinator({ app, argv = process.argv } = 
 
   return Object.freeze({
     setActiveWindow(window) {
-      const replacingActiveWindow = Boolean(activeWindow) && activeWindow !== window;
       activeWindow = window;
-      if (replacingActiveWindow) {
-        authCallbackRendererReady = false;
-        authCallbackRendererId = null;
-        authCallbacksSentToRenderer.clear();
-      }
-      return deliverPending((intent) => (
-        intent.type !== "auth_callback"
-        || (
-          authCallbackRendererReady
-          && !authCallbacksSentToRenderer.has(authCallbackStateHash(intent.state))
-        )
-      ));
+      deliverPendingOutlookResults();
+      const results = deliverPendingDeepLinks();
+      void retryPendingAuthCallbacks();
+      return results;
     },
-    setAuthCallbackRendererReady(rendererId) {
-      if (!AUTH_CALLBACK_RENDERER_ID.test(rendererId ?? "")) return [];
-      if (authCallbackRendererId !== rendererId) authCallbacksSentToRenderer.clear();
-      authCallbackRendererId = rendererId;
-      authCallbackRendererReady = true;
-      if (!activeWindow) return [];
-      return deliverPending((intent) => (
-        intent.type === "auth_callback"
-        && !authCallbacksSentToRenderer.has(authCallbackStateHash(intent.state))
-      ));
-    },
-    setAuthCallbackRendererNotReady() {
-      authCallbackRendererReady = false;
-      authCallbackRendererId = null;
-      authCallbacksSentToRenderer.clear();
-    },
-    acknowledgeAuthCallback({ rendererId, state } = {}) {
-      if (
-        !authCallbackRendererReady
-        || rendererId !== authCallbackRendererId
-        || !AUTH_CALLBACK_STATE.test(state ?? "")
-      ) return { acknowledged: false };
-      const stateHash = authCallbackStateHash(state);
-      if (!authCallbacksSentToRenderer.has(stateHash)) return { acknowledged: false };
-      const index = pendingDeepLinks.findIndex((intent) => (
-        intent.type === "auth_callback"
-        && authCallbackStateHash(intent.state) === stateHash
-      ));
-      if (index < 0) return { acknowledged: false };
-      pendingDeepLinks.splice(index, 1);
-      authCallbacksSentToRenderer.delete(stateHash);
-      acknowledgedAuthCallbackCount += 1;
-      return { acknowledged: true };
-    },
+    retryPendingAuthCallbacks,
     snapshot() {
+      for (const entry of [...pendingAuthCallbacks.values()]) {
+        if (now() >= entry.expiresAt) expireAuthCallback(entry);
+      }
+      purgeExpiredFingerprints();
       return Object.freeze({
         active_window: Boolean(activeWindow),
-        pending_deep_link_count: pendingDeepLinks.length,
+        pending_deep_link_count: pendingDeepLinks.length + pendingAuthCallbacks.size,
+        pending_auth_callback_count: pendingAuthCallbacks.size,
+        pending_outlook_result_count: pendingOutlookResults.length,
         delivered_deep_link_count: deliveredDeepLinkCount,
+        delivered_outlook_result_count: deliveredOutlookResultCount,
         rejected_deep_link_count: rejectedDeepLinkCount,
         duplicate_auth_callback_count: duplicateAuthCallbackCount,
         auth_callback_limit_rejection_count: authCallbackLimitRejectionCount,
-        acknowledged_auth_callback_count: acknowledgedAuthCallbackCount,
-        auth_callback_renderer_ready: authCallbackRendererReady,
+        completed_auth_callback_count: completedAuthCallbackCount,
+        terminal_auth_callback_count: terminalAuthCallbackCount,
+        remembered_auth_callback_count: rememberedAuthCallbacks.size,
+        auth_callback_phase_trace: Object.freeze(authCallbackPhaseTrace.map((entry) => ({ ...entry }))),
         last_intent: lastIntent,
       });
     },
@@ -387,9 +582,7 @@ export async function startDesktopShell({
   ipcMain,
   coordinator,
   openExternal,
-  onAuthCallbackReady,
-  onAuthCallbackAcknowledged,
-  onAuthCallbackNotReady,
+  onSessionAvailable,
   packaged = false,
   initialDeepLinkUrl
 } = {}) {
@@ -400,8 +593,6 @@ export async function startDesktopShell({
     originOptions
   );
   const window = await createMainWindow({ BrowserWindowConstructor, options: windowOptionsWithPreload(windowOptions) });
-  window.webContents.on("did-start-loading", () => onAuthCallbackNotReady?.());
-  window.webContents.on("render-process-gone", () => onAuthCallbackNotReady?.());
   const waitForLogoIntroReady = () => {
     if (window.isVisible?.()) return Promise.resolve();
     return new Promise((resolve) => window.once("show", resolve));
@@ -412,8 +603,7 @@ export async function startDesktopShell({
       coordinator,
       isTrustedSender,
       openExternal,
-      onAuthCallbackReady,
-      onAuthCallbackAcknowledged,
+      onSessionAvailable,
       waitForLogoIntroReady
     })
     : null;
@@ -427,7 +617,12 @@ export async function startElectronApp() {
   const { app, BrowserWindow, ipcMain, net, protocol, safeStorage, shell: electronShell } = await import("electron");
   if (!acquireDesktopSingleInstance(app)) return { primaryInstance: false };
   registerMatterAppScheme(protocol);
-  const instanceCoordinator = createDesktopInstanceCoordinator({ app, argv: process.argv });
+  let coordinator = null;
+  const instanceCoordinator = createDesktopInstanceCoordinator({
+    app,
+    argv: process.argv,
+    getAuthCoordinator: () => coordinator
+  });
   const userDataPath = desktopUserDataPath(app);
   await app.whenReady();
   installMatterAppProtocol({ protocol, net });
@@ -450,16 +645,14 @@ export async function startElectronApp() {
     safeStorage,
     formalRelease
   });
-  const coordinator = new MainProcessAuthCoordinator({ runtimeClient, secureStore });
+  coordinator = new MainProcessAuthCoordinator({ runtimeClient, secureStore });
   await coordinator.restoreSession();
   const shell = await startDesktopShell({
     BrowserWindowConstructor: BrowserWindow,
     ipcMain,
     coordinator,
     openExternal: (url) => electronShell.openExternal(url),
-    onAuthCallbackReady: (rendererId) => instanceCoordinator.setAuthCallbackRendererReady(rendererId),
-    onAuthCallbackAcknowledged: (payload) => instanceCoordinator.acknowledgeAuthCallback(payload),
-    onAuthCallbackNotReady: () => instanceCoordinator.setAuthCallbackRendererNotReady(),
+    onSessionAvailable: () => instanceCoordinator.retryPendingAuthCallbacks(),
     packaged: app.isPackaged === true,
   });
   instanceCoordinator.setActiveWindow(shell.window);

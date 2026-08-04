@@ -65,7 +65,12 @@ function stateSemanticLocator(page, surface = "#clients-home") {
 }
 
 async function semanticStateSnapshot(page, surface, pattern, context) {
-  const semanticTexts = await stateSemanticLocator(page, surface).allInnerTexts();
+  const semanticStates = stateSemanticLocator(page, surface);
+  await semanticStates
+    .filter({ hasText: pattern })
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
+  const semanticTexts = await semanticStates.allInnerTexts();
   assert.ok(semanticTexts.length > 0, `${context}: state copy must be exposed through role=status/alert`);
   assert.match(
     semanticTexts.join("\n"),

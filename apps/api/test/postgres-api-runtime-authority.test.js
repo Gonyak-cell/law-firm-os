@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import {
+  createHash,
+  generateKeyPairSync,
+  sign,
+} from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -51,6 +55,9 @@ import {
   createEmailDmsRepository,
 } from "../../../packages/email-dms/src/repository.js";
 import {
+  EMAIL_DMS_DOMAIN_DESCRIPTOR,
+} from "../../../packages/email-dms/src/central-ledger.js";
+import {
   PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
   PEOPLE_OUTLOOK_CREDENTIAL_ENVELOPE_PREFIX,
 } from "../../../packages/email-dms/src/people-outlook-connection-model.js";
@@ -62,6 +69,9 @@ import { createDurablePeopleOutlookStateAuthority } from "../../../packages/inte
 import {
   createPeopleOutlookOperationalRuntimeFactory,
 } from "../src/people-outlook-operational-runtime.js";
+import {
+  MICROSOFT_EGRESS_REDIRECT_URIS,
+} from "../src/microsoft-egress-broker-transport.js";
 
 const TENANT_A = "tenant_postgres_api_authority_a";
 const TENANT_B = "tenant_postgres_api_authority_b";
@@ -82,6 +92,21 @@ function stableStringify(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
   return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+}
+
+function signedMicrosoftIdToken(privateKey, claims) {
+  const header = Buffer.from(JSON.stringify({
+    alg: "RS256",
+    kid: "people-outlook-postgres-concurrency-key",
+    typ: "JWT",
+  })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify(claims)).toString("base64url");
+  const signature = sign(
+    "RSA-SHA256",
+    Buffer.from(`${header}.${payload}`),
+    privateKey,
+  ).toString("base64url");
+  return `${header}.${payload}.${signature}`;
 }
 
 async function importHrxAuthorityBaseline(ledger, tenantId) {
@@ -2869,6 +2894,8 @@ test("PostgreSQL API authority injects operational People Outlook ports with the
   });
   let factoryCalls = 0;
   let operationalRepository = null;
+  let completionCheckpoint = null;
+  let durableCompletionRequired = null;
   const authority = createPostgresApiRuntimeAuthority({
     ledger,
     dmsStorage,
@@ -2880,9 +2907,15 @@ test("PostgreSQL API authority injects operational People Outlook ports with the
       sourceOnly: false,
     }),
     peopleFeatureFlags: { outlook_calendar: true },
-    peopleOutlookRuntimeFactory({ repository }) {
+    peopleOutlookRuntimeFactory({
+      repository,
+      completion_checkpoint,
+      require_durable_completion,
+    }) {
       factoryCalls += 1;
       operationalRepository = repository;
+      completionCheckpoint = completion_checkpoint;
+      durableCompletionRequired = require_durable_completion;
       return Object.freeze({
         connections: operationalConnections,
         calendarSource: operationalCalendarSource,
@@ -2912,6 +2945,11 @@ test("PostgreSQL API authority injects operational People Outlook ports with the
   });
 
   assert.equal(factoryCalls, 1);
+  assert.equal(
+    completionCheckpoint?.kind,
+    "postgres-people-outlook-completion-checkpoint",
+  );
+  assert.equal(durableCompletionRequired, true);
   assert.deepEqual(binding, {
     repository_bound: true,
     connections_bound: true,
@@ -3003,18 +3041,29 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
   });
   assert.equal(begun.connection_state, "consent_pending");
 
-  const persisted = await authority.run({
+  const completed = await authority.run({
     tenant_id: TENANT_A,
     request_context: {
       method: "POST",
-      pathname: `/api/hrx/people/members/${principal.employee_id}/outlook-connection`,
+      pathname: "/api/hrx/people/me/outlook-connection/complete",
     },
-    async command({ hrxRuntime, emailDmsRuntime }) {
-      await hrxRuntime.peopleOutlookConnections.complete({
+    command({ hrxRuntime }) {
+      return hrxRuntime.peopleOutlookConnections.complete({
         ...principal,
         authorization_code: "0.ABC_postgres-outlook-roundtrip",
         state_ref: begun.state_ref,
       });
+    },
+  });
+  assert.equal(completed.connection_state, "connected");
+
+  const persisted = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/hrx/people/team-operations",
+    },
+    command({ emailDmsRuntime }) {
       return emailDmsRuntime.repository.list({
         tenant_id: TENANT_A,
         model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
@@ -3055,6 +3104,290 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
     "postgres-outlook-access-token-never-persist",
   );
   assert.equal(Object.hasOwn(graphCalls[0], "url"), false);
+});
+
+test("concurrent PostgreSQL self completion commits one durable claim before one broker exchange", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 24 });
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-api-people-outlook-concurrency-test",
+  });
+  const entraTenantId = "11111111-1111-4111-8111-111111111111";
+  const clientId = "22222222-2222-4222-8222-222222222222";
+  const clientSecret = "postgres-concurrent-client-secret-never-persist";
+  const employeeId = "employee-postgres-outlook-concurrent";
+  const userId = "user-postgres-outlook-concurrent";
+  const email = "postgres-outlook-concurrent@example.test";
+  const providerSubjectId = "entra-subject-postgres-outlook-concurrent";
+  const authorizationCode = "0.ABC_postgres-outlook-concurrent-code";
+  const accessToken = "postgres-concurrent-access-token-never-persist";
+  const refreshToken = "postgres-concurrent-refresh-token-never-persist";
+  const now = Date.parse("2026-08-03T00:30:00.000Z");
+  const { privateKey, publicKey } = generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  });
+  const jwk = publicKey.export({ format: "jwk" });
+  let oauthNonce = null;
+  let issuedIdToken = null;
+  let brokerExchangeCount = 0;
+  let brokerExchangeInput = null;
+  let releaseBrokerExchange;
+  let markBrokerExchangeStarted;
+  const brokerExchangeReleased = new Promise((resolve) => {
+    releaseBrokerExchange = resolve;
+  });
+  const brokerExchangeStarted = new Promise((resolve) => {
+    markBrokerExchangeStarted = resolve;
+  });
+  const microsoftEgressTransport = Object.freeze({
+    async oauthJwksGet() {
+      return {
+        keys: [{
+          ...jwk,
+          kid: "people-outlook-postgres-concurrency-key",
+          use: "sig",
+          alg: "RS256",
+        }],
+      };
+    },
+    async oauthTokenExchange(input) {
+      brokerExchangeCount += 1;
+      brokerExchangeInput = input;
+      markBrokerExchangeStarted();
+      await brokerExchangeReleased;
+      issuedIdToken = signedMicrosoftIdToken(privateKey, {
+        iss: `https://login.microsoftonline.com/${entraTenantId}/v2.0`,
+        tid: entraTenantId,
+        aud: clientId,
+        oid: providerSubjectId,
+        preferred_username: email,
+        nonce: oauthNonce,
+        iat: Math.floor(now / 1000),
+        nbf: Math.floor(now / 1000) - 10,
+        exp: Math.floor(now / 1000) + 3600,
+      });
+      return {
+        token_type: "Bearer",
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        id_token: issuedIdToken,
+        expires_in: 3600,
+        scope: "openid profile email offline_access Calendars.ReadBasic",
+      };
+    },
+    async oauthTokenRefresh() {
+      throw new Error("refresh must not run during OAuth completion");
+    },
+    async graphCalendarViewList() {
+      return { events: [], page_count: 1, provider_request_ids: [] };
+    },
+  });
+  const peopleOutlookRuntimeFactory =
+    createPeopleOutlookOperationalRuntimeFactory({
+      config: {
+        tenant_id: entraTenantId,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
+        state_encryption_key: Buffer.alloc(32, 18).toString("base64"),
+      },
+      microsoft_egress_transport: microsoftEgressTransport,
+      clock: () => now,
+    });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+    peopleFeatureFlags: { outlook_calendar: true },
+    peopleOutlookRuntimeFactory,
+  });
+  await importMatterAssignmentIdentityBaseline(ledger, TENANT_A, {
+    employeeId,
+    userId,
+  });
+  const principal = {
+    tenant_id: TENANT_A,
+    employee_id: employeeId,
+    user_id: userId,
+    session_email: email,
+    entra_subject_id: providerSubjectId,
+    can_manage: true,
+  };
+  const begun = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: `/api/hrx/people/members/${employeeId}/outlook-connection`,
+      actor_id: userId,
+    },
+    command({ hrxRuntime }) {
+      return hrxRuntime.peopleOutlookConnections.begin(principal);
+    },
+  });
+  const authorizationUrl = new URL(begun.authorize_url);
+  oauthNonce = authorizationUrl.searchParams.get("nonce");
+  assert.deepEqual(
+    authorizationUrl.searchParams.get("scope").split(" "),
+    ["openid", "profile", "email", "offline_access", "Calendars.ReadBasic"],
+  );
+  assert.equal(
+    authorizationUrl.searchParams.get("redirect_uri"),
+    MICROSOFT_EGRESS_REDIRECT_URIS.people,
+  );
+
+  const permissionContext = {
+    principal: {
+      user_id: userId,
+      tenant_id: TENANT_A,
+      role_ids: ["staff"],
+    },
+    rules: [{
+      id: "postgres-outlook-concurrent-employee-read",
+      effect: "allow",
+      action: "hrx.employee.read",
+    }],
+    object_acl: [],
+  };
+  let completionOccurrence = 0;
+  const completeRequest = () => {
+    completionOccurrence += 1;
+    return authority.run({
+      tenant_id: TENANT_A,
+      request_context: {
+        method: "POST",
+        pathname: "/api/hrx/people/me/outlook-connection/complete",
+        actor_id: userId,
+        idempotency_key:
+          `postgres-outlook-concurrent-complete-${completionOccurrence}`,
+      },
+      command({ hrxRuntime }) {
+        return handleHrxApiRequest({
+          pathname: "/api/hrx/people/me/outlook-connection/complete",
+          method: "POST",
+          body: {
+            authorization_code: authorizationCode,
+            state_ref: begun.state_ref,
+          },
+          context: hrxRuntime,
+          requestContext: {
+            tenant_id: TENANT_A,
+            actor_id: userId,
+            actor_role: "staff",
+            hrx_scopes: ["hrx.employee.read"],
+            session_bound: true,
+            email,
+            entra_subject_id: providerSubjectId,
+          },
+          permissionContext,
+        });
+      },
+    });
+  };
+
+  const first = completeRequest();
+  await brokerExchangeStarted;
+  assert.equal(brokerExchangeInput.redirect_profile, "people");
+  assert.equal(brokerExchangeInput.scopes.includes("Calendars.ReadBasic"), true);
+  assert.equal(brokerExchangeInput.scopes.includes("Calendars.ReadWrite"), false);
+  assert.equal(brokerExchangeInput.scopes.includes("Mail.Read"), false);
+  const second = await completeRequest();
+  assert.equal(second.status, 409);
+  assert.equal(
+    second.body.safe_error_code,
+    "OUTLOOK_AUTHORIZATION_IN_PROGRESS",
+  );
+  assert.equal(brokerExchangeCount, 1);
+
+  const claimedRecords = await ledger.list({
+    tenant_id: TENANT_A,
+    domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const claimed = claimedRecords.find(
+    ({ record_type }) => record_type === PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  );
+  assert.equal(claimed.payload.connection_state, "reauthorization_required");
+  assert.equal(claimed.payload.safe_error_code, "OUTLOOK_AUTHORIZATION_IN_PROGRESS");
+  assert.equal(claimed.payload.state_version, 2);
+  assert.equal(claimed.payload.oauth_state_hash, null);
+  assert.equal(claimed.payload.oauth_verifier_ciphertext, null);
+  const claimedIdempotency = await ledger.listIdempotency({
+    tenant_id: TENANT_A,
+    domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  assert.equal(
+    claimedIdempotency.filter(({ key }) => (
+      key.startsWith("people-outlook-complete:")
+    )).length,
+    1,
+  );
+
+  releaseBrokerExchange();
+  const firstResponse = await first;
+  assert.equal(firstResponse.status, 200);
+  assert.equal(firstResponse.body.employee_id, employeeId);
+  assert.equal(firstResponse.body.connection.connection_state, "connected");
+  const replayed = await completeRequest();
+  assert.equal(replayed.status, 200);
+  assert.equal(replayed.body.connection.connection_state, "connected");
+  assert.equal(brokerExchangeCount, 1);
+
+  const durable = {
+    records: await ledger.list({
+      tenant_id: TENANT_A,
+      domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+    }),
+    idempotency: await ledger.listIdempotency({
+      tenant_id: TENANT_A,
+      domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+    }),
+    audit: await ledger.listAudit({
+      tenant_id: TENANT_A,
+      domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+    }),
+  };
+  const connected = durable.records.find(
+    ({ record_type }) => record_type === PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  );
+  assert.equal(connected.payload.connection_state, "connected");
+  assert.equal(connected.payload.state_version, 3);
+  assert.equal(
+    connected.payload.credential_envelope.startsWith(
+      PEOPLE_OUTLOOK_CREDENTIAL_ENVELOPE_PREFIX,
+    ),
+    true,
+  );
+  assert.equal(
+    durable.audit.some(
+      ({ event_type }) => event_type === "people.outlook.authorization.consuming",
+    ),
+    true,
+  );
+  assert.equal(
+    durable.audit.some(
+      ({ event_type }) => event_type === "people.outlook.connection.connected",
+    ),
+    true,
+  );
+  const durableText = JSON.stringify(durable);
+  for (const secret of [
+    authorizationCode,
+    begun.state_ref,
+    accessToken,
+    refreshToken,
+    issuedIdToken,
+    brokerExchangeInput.code_verifier,
+    email,
+    clientSecret,
+  ]) {
+    assert.equal(durableText.includes(secret), false);
+  }
 });
 
 test("PostgreSQL API authority persists termination completion and its authoritative payroll evidence together", async (t) => {
