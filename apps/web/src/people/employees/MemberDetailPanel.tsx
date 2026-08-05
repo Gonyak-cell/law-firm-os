@@ -18,6 +18,9 @@ export type MemberDetailTab = "today" | "matters" | "profile";
 type Navigate = (view: string, section?: string, routeContext?: Record<string, unknown>) => void;
 type DailyBriefResult = Awaited<ReturnType<typeof fetchPeopleDailyBrief>>;
 type OutlookConnectionResult = Awaited<ReturnType<typeof fetchPeopleOutlookConnection>>;
+type PendingOutlookAuthorization = {
+  authorize_url: string;
+};
 type OutlookOAuthNotice = {
   kind: "cancelled" | "error" | "success";
   message: string;
@@ -400,14 +403,18 @@ function OutlookConnectionPanel({
   result,
   busy,
   notice,
+  hasPendingAuthorization,
   onAction,
+  onReopenAuthorization,
   onDisconnect,
   onRefresh,
 }: {
   result: OutlookConnectionResult | null;
   busy: boolean;
   notice: OutlookOAuthNotice | null;
+  hasPendingAuthorization: boolean;
   onAction: (action: "begin" | "retry") => void;
+  onReopenAuthorization: () => void;
   onDisconnect: () => void;
   onRefresh: () => void;
 }) {
@@ -429,12 +436,17 @@ function OutlookConnectionPanel({
   const state = text(connection.connection_state, "not_connected");
   const copy = OUTLOOK_CONNECTION_LABELS[state] ?? OUTLOOK_CONNECTION_LABELS.not_connected;
   const canManage = connection.can_manage === true;
+  const detail = state === "consent_pending" && hasPendingAuthorization
+    ? "로그인 창을 닫았거나 멈췄다면 같은 연결 요청을 다시 열 수 있습니다."
+    : state === "consent_pending"
+      ? "연결 요청이 사라졌습니다. 새 연결 요청을 시작해 주세요."
+      : copy.detail;
   return (
     <section className="member-outlook-connection" data-outlook-connection-state={state}>
       <div>
         <span>Outlook 일정</span>
         <strong>{copy.title}</strong>
-        <small>{canManage ? copy.detail : "일정 연결과 해제는 해당 구성원 본인만 할 수 있습니다."}</small>
+        <small>{canManage ? detail : "일정 연결과 해제는 해당 구성원 본인만 할 수 있습니다."}</small>
         {notice && (
           <small
             role={notice.kind === "error" ? "alert" : "status"}
@@ -463,9 +475,13 @@ function OutlookConnectionPanel({
         </button>
       )}
       {canManage && ["admin_consent_required", "consent_pending"].includes(state) && (
-        notice?.retry
-          ? <button type="button" onClick={() => onAction("retry")} disabled={busy}>다시 시도</button>
-          : <button type="button" onClick={onRefresh} disabled={busy}>승인 상태 확인</button>
+        state === "consent_pending" && hasPendingAuthorization
+          ? <button type="button" onClick={onReopenAuthorization} disabled={busy}>Microsoft 로그인 다시 열기</button>
+          : state === "consent_pending"
+            ? <button type="button" onClick={() => onAction("retry")} disabled={busy}>연결 다시 시작</button>
+            : notice?.retry
+              ? <button type="button" onClick={() => onAction("retry")} disabled={busy}>다시 시도</button>
+              : <button type="button" onClick={onRefresh} disabled={busy}>승인 상태 확인</button>
       )}
     </section>
   );
@@ -492,15 +508,60 @@ export function MemberDetailPanel({
   const [outlookConnection, setOutlookConnection] = useState<OutlookConnectionResult | null>(null);
   const [outlookBusy, setOutlookBusy] = useState(false);
   const [outlookNotice, setOutlookNotice] = useState<OutlookOAuthNotice | null>(null);
+  const [pendingOutlookAuthorization, setPendingOutlookAuthorization] = useState<PendingOutlookAuthorization | null>(null);
+
+  const applyOutlookConnection = (next: OutlookConnectionResult, preservePendingAuthorization = false) => {
+    setOutlookConnection(next);
+    if (next.kind !== "data") return;
+    if (next.authorization) {
+      setPendingOutlookAuthorization({ authorize_url: next.authorization.authorize_url });
+      return;
+    }
+    const state = text(record(next.connection).connection_state);
+    if (!preservePendingAuthorization || ["connected", "not_connected", "reauthorization_required", "admin_consent_required"].includes(state)) {
+      setPendingOutlookAuthorization(null);
+    }
+  };
 
   const refreshOutlookConnection = () => {
     if (!outlookCalendarEnabled) return;
     setOutlookBusy(true);
     setOutlookConnection(null);
     fetchPeopleOutlookConnection(employeeId)
-      .then((next) => setOutlookConnection(next))
+      .then((next) => applyOutlookConnection(next, true))
       .catch(() => setOutlookConnection(failedOutlookConnection()))
       .finally(() => setOutlookBusy(false));
+  };
+
+  const openOutlookAuthorization = async (authorizeUrl: string): Promise<boolean> => {
+    if (typeof window.matterSession?.openOutlookAuthorization === "function") {
+      try {
+        return (await window.matterSession.openOutlookAuthorization(authorizeUrl))?.opened === true;
+      } catch {
+        return false;
+      }
+    }
+    window.location.assign(authorizeUrl);
+    return true;
+  };
+
+  const reopenOutlookAuthorization = async () => {
+    const authorization = pendingOutlookAuthorization;
+    if (!authorization) {
+      await updateOutlookConnection("retry");
+      return;
+    }
+    setOutlookNotice(null);
+    setOutlookBusy(true);
+    const opened = await openOutlookAuthorization(authorization.authorize_url);
+    if (!opened) {
+      setOutlookNotice({
+        kind: "error",
+        message: "Microsoft 로그인 창을 다시 열지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        retry: false,
+      });
+    }
+    setOutlookBusy(false);
   };
 
   const updateOutlookConnection = async (action: "begin" | "retry") => {
@@ -513,27 +574,20 @@ export function MemberDetailPanel({
       next = failedOutlookConnection();
     }
     if (next.kind === "data") {
-      setOutlookConnection(next);
+      applyOutlookConnection(next);
       const authorization = next.authorization;
       if (authorization) {
-        if (typeof window.matterSession?.openOutlookAuthorization === "function") {
-          let opened = false;
-          try {
-            opened = (await window.matterSession.openOutlookAuthorization(authorization.authorize_url))?.opened === true;
-          } catch {
-            opened = false;
-          }
-          if (!opened) {
-            setOutlookNotice({
-              kind: "error",
-              message: "Microsoft 로그인 창을 열지 못했습니다. 다시 시도해 주세요.",
-              retry: true,
-            });
-          }
-          setOutlookBusy(false);
-          return;
+        const opened = await openOutlookAuthorization(authorization.authorize_url);
+        if (!opened) {
+          setOutlookNotice({
+            kind: "error",
+            message: typeof window.matterSession?.openOutlookAuthorization === "function"
+              ? "Microsoft 로그인 창을 열지 못했습니다. 다시 시도해 주세요."
+              : "Microsoft 로그인 창을 열지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            retry: typeof window.matterSession?.openOutlookAuthorization === "function",
+          });
         }
-        window.location.assign(authorization.authorize_url);
+        setOutlookBusy(false);
         return;
       }
     } else {
@@ -561,7 +615,7 @@ export function MemberDetailPanel({
       next = failedOutlookConnection();
     }
     if (next.kind === "data") {
-      setOutlookConnection(next);
+      applyOutlookConnection(next);
       setDailyBrief(null);
       fetchPeopleDailyBrief(employeeId)
         .then(setDailyBrief)
@@ -600,13 +654,15 @@ export function MemberDetailPanel({
     if (!outlookCalendarEnabled) {
       setOutlookConnection(null);
       setOutlookNotice(null);
+      setPendingOutlookAuthorization(null);
       return;
     }
     let cancelled = false;
     setOutlookConnection(null);
+    setPendingOutlookAuthorization(null);
     fetchPeopleOutlookConnection(employeeId)
       .then((next) => {
-        if (!cancelled) setOutlookConnection(next);
+        if (!cancelled) applyOutlookConnection(next);
       })
       .catch(() => {
         if (!cancelled) setOutlookConnection(failedOutlookConnection());
@@ -640,7 +696,9 @@ export function MemberDetailPanel({
           result={outlookConnection}
           busy={outlookBusy}
           notice={outlookNotice}
+          hasPendingAuthorization={pendingOutlookAuthorization !== null}
           onAction={updateOutlookConnection}
+          onReopenAuthorization={reopenOutlookAuthorization}
           onDisconnect={disconnectOutlookConnection}
           onRefresh={refreshOutlookConnection}
         />

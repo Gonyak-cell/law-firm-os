@@ -273,6 +273,133 @@ test("Outlook connect keeps the begin DTO while desktop completion exposes only 
   }
 });
 
+test("Outlook consent pending reopens the same authorization without another begin", async () => {
+  const harness = await startPeopleOverviewHarness();
+  const authorizeUrl = microsoftAuthorizeUrl;
+  try {
+    const page = await openPeopleOverviewPage({
+      ...harness,
+      employeeId: "emp-1",
+      tab: "today",
+      outlookCalendarEnabled: true,
+      outlookMode: "not_connected",
+      outlookAuthorizeUrl: authorizeUrl,
+    });
+    const actions = outlookPostActions(page);
+    await page.addInitScript(() => {
+      window.matterSession = {
+        async openOutlookAuthorization(url) {
+          window.__openedOutlookAuthorizeUrls = [
+            ...(window.__openedOutlookAuthorizeUrls ?? []),
+            url,
+          ];
+          return { opened: true };
+        },
+      };
+    });
+    await page.reload({ waitUntil: "networkidle" });
+
+    const connection = page.locator('[data-outlook-connection-state="not_connected"]');
+    await connection.getByRole("button", { name: "연결", exact: true }).click();
+    const pending = page.locator('[data-outlook-connection-state="consent_pending"]');
+    await pending.waitFor();
+    await pending.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).click();
+
+    assert.deepEqual(actions.map((item) => item.action), ["begin"]);
+    assert.deepEqual(
+      await page.evaluate(() => window.__openedOutlookAuthorizeUrls),
+      [authorizeUrl, authorizeUrl],
+    );
+    assert.equal(await page.getByRole("button", { name: "연결 다시 시작", exact: true }).count(), 0);
+    await page.close();
+  } finally {
+    await harness.close();
+  }
+});
+
+test("Outlook callback success clears the pending reopen action and missing authorization offers a fresh retry", async () => {
+  const harness = await startPeopleOverviewHarness();
+  try {
+    const page = await openPeopleOverviewPage({
+      ...harness,
+      employeeId: "emp-1",
+      tab: "today",
+      outlookCalendarEnabled: true,
+      outlookMode: "not_connected",
+      outlookAuthorizeUrl: microsoftAuthorizeUrl,
+    });
+    await page.addInitScript(() => {
+      window.matterSession = {
+        async openOutlookAuthorization() {
+          return { opened: true };
+        },
+        onOutlookConnectionResult(handler) {
+          window.__deliverOutlookConnectionResult = handler;
+          return () => delete window.__deliverOutlookConnectionResult;
+        },
+      };
+    });
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator('[data-outlook-connection-state="not_connected"]')
+      .getByRole("button", { name: "연결", exact: true })
+      .click();
+    const pending = page.locator('[data-outlook-connection-state="consent_pending"]');
+    await pending.waitFor();
+    assert.equal(await pending.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 1);
+
+    let callbackCompleted = false;
+    await page.route("**/api/hrx/people/members/*/outlook-connection", async (route) => {
+      if (route.request().method() !== "GET" || !callbackCompleted) return route.fallback();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          outcome: "ok",
+          connection: {
+            provider: "microsoft_graph",
+            connection_state: "connected",
+            can_manage: true,
+            delegated_scope: "Calendars.ReadBasic",
+            connected_at: "2026-07-30T09:00:00+09:00",
+            expires_at: "2026-07-30T18:00:00+09:00",
+          },
+        }),
+      });
+    });
+    callbackCompleted = true;
+    await page.evaluate(() => window.__deliverOutlookConnectionResult({
+      type: "outlook_connection_result",
+      status: "connected",
+      http_status: 200,
+      safe_error_code: null,
+      employee_id: "emp-1",
+      connection_state: "connected",
+    }));
+    await page.locator('[data-outlook-connection-state="connected"]').waitFor();
+    assert.equal(await page.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 0);
+
+    await page.close();
+
+    const recoveryPage = await openPeopleOverviewPage({
+      ...harness,
+      employeeId: "emp-1",
+      tab: "today",
+      outlookCalendarEnabled: true,
+      outlookMode: "consent_pending",
+    });
+    const actions = outlookPostActions(recoveryPage);
+    const recovery = recoveryPage.locator('[data-outlook-connection-state="consent_pending"]');
+    await recovery.waitFor();
+    await recovery.getByRole("button", { name: "연결 다시 시작", exact: true }).click();
+    assert.equal(actions.length, 1);
+    assert.equal(actions[0].action, "retry");
+    assert.match(actions[0].idempotency_key, uuidPattern);
+    await recoveryPage.close();
+  } finally {
+    await harness.close();
+  }
+});
+
 test("Outlook result bridge rejects raw OAuth fields and presents safe terminal errors", async () => {
   const harness = await startPeopleOverviewHarness();
   try {
