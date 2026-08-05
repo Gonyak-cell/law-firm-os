@@ -7,6 +7,7 @@ export const SESSION_CHANNELS = Object.freeze({
   latestResetEmail: "session:password-reset:latest-email",
   confirmPasswordReset: "session:password-reset:confirm",
   openOutlookAuthorization: "desktop:outlook-authorization:open",
+  copyOutlookAuthorization: "desktop:outlook-authorization:copy",
   login: "session:login",
   features: "session:features",
   smoke: "session:smoke",
@@ -18,6 +19,10 @@ const OUTLOOK_AUTHORIZE_HOST = "login.microsoftonline.com";
 const OUTLOOK_SECRET_QUERY = /(?:token|secret|credential|password)/i;
 const OUTLOOK_CONNECTION_COMPLETE_ROUTE = "/api/hrx/people/me/outlook-connection/complete";
 const OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT_MS = 10_000;
+const OUTLOOK_AUTHORIZATION_COPY_FAILED = Object.freeze({
+  copied: false,
+  reason: "outlook_authorization_copy_failed"
+});
 
 export function isAllowedOutlookAuthorizationUrl(candidate) {
   if (typeof candidate !== "string" || !candidate.trim() || candidate.length > 8192) return false;
@@ -79,11 +84,25 @@ async function openOutlookAuthorization(
   }
 }
 
+async function copyOutlookAuthorization(payload, writeClipboard) {
+  const url = payload?.url;
+  if (!isAllowedOutlookAuthorizationUrl(url) || typeof writeClipboard !== "function") {
+    return OUTLOOK_AUTHORIZATION_COPY_FAILED;
+  }
+  try {
+    await writeClipboard(url);
+    return { copied: true };
+  } catch {
+    return OUTLOOK_AUTHORIZATION_COPY_FAILED;
+  }
+}
+
 export function registerSessionIpcHandlers({
   ipcMain,
   coordinator,
   isTrustedSender,
   openExternal,
+  writeClipboard,
   outlookAuthorizationOpenTimeoutMs = OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT_MS,
   onSessionAvailable,
   waitForLogoIntroReady = () => undefined
@@ -121,6 +140,10 @@ export function registerSessionIpcHandlers({
       payload,
       openExternal,
       outlookAuthorizationOpenTimeoutMs
+    )],
+    [SESSION_CHANNELS.copyOutlookAuthorization, (payload) => copyOutlookAuthorization(
+      payload,
+      writeClipboard
     )],
     [SESSION_CHANNELS.login, login],
     [SESSION_CHANNELS.features, (payload) => coordinator.features(payload)],

@@ -20,6 +20,7 @@ type DailyBriefResult = Awaited<ReturnType<typeof fetchPeopleDailyBrief>>;
 type OutlookConnectionResult = Awaited<ReturnType<typeof fetchPeopleOutlookConnection>>;
 type PendingOutlookAuthorization = {
   authorize_url: string;
+  expires_at_ms: number;
 };
 type OutlookOAuthNotice = {
   kind: "cancelled" | "error" | "success";
@@ -27,6 +28,8 @@ type OutlookOAuthNotice = {
   detail?: string;
   retry: boolean;
 };
+
+const OUTLOOK_AUTHORIZATION_TTL_MS = 10 * 60 * 1000;
 
 const TABS: ReadonlyArray<{ id: MemberDetailTab; label: string }> = [
   { id: "today", label: "오늘" },
@@ -405,7 +408,7 @@ function OutlookConnectionPanel({
   notice,
   hasPendingAuthorization,
   onAction,
-  onReopenAuthorization,
+  onCopyAuthorization,
   onDisconnect,
   onRefresh,
 }: {
@@ -414,7 +417,7 @@ function OutlookConnectionPanel({
   notice: OutlookOAuthNotice | null;
   hasPendingAuthorization: boolean;
   onAction: (action: "begin" | "retry") => void;
-  onReopenAuthorization: () => void;
+  onCopyAuthorization: () => void;
   onDisconnect: () => void;
   onRefresh: () => void;
 }) {
@@ -476,7 +479,7 @@ function OutlookConnectionPanel({
       )}
       {canManage && ["admin_consent_required", "consent_pending"].includes(state) && (
         state === "consent_pending" && hasPendingAuthorization
-          ? <button type="button" onClick={onReopenAuthorization} disabled={busy}>Microsoft 로그인 다시 열기</button>
+          ? <button type="button" onClick={onCopyAuthorization} disabled={busy}>로그인 주소 복사</button>
           : state === "consent_pending"
             ? <button type="button" onClick={() => onAction("retry")} disabled={busy}>연결 다시 시작</button>
             : notice?.retry
@@ -514,7 +517,10 @@ export function MemberDetailPanel({
     setOutlookConnection(next);
     if (next.kind !== "data") return;
     if (next.authorization) {
-      setPendingOutlookAuthorization({ authorize_url: next.authorization.authorize_url });
+      setPendingOutlookAuthorization({
+        authorize_url: next.authorization.authorize_url,
+        expires_at_ms: Date.now() + OUTLOOK_AUTHORIZATION_TTL_MS,
+      });
       return;
     }
     const state = text(record(next.connection).connection_state);
@@ -545,19 +551,35 @@ export function MemberDetailPanel({
     return true;
   };
 
-  const reopenOutlookAuthorization = async () => {
+  const copyOutlookAuthorization = async () => {
     const authorization = pendingOutlookAuthorization;
     if (!authorization) {
       await updateOutlookConnection("retry");
       return;
     }
-    setOutlookNotice(null);
-    setOutlookBusy(true);
-    const opened = await openOutlookAuthorization(authorization.authorize_url);
-    if (!opened) {
+    if (Date.now() >= authorization.expires_at_ms) {
+      setPendingOutlookAuthorization(null);
       setOutlookNotice({
         kind: "error",
-        message: "Microsoft 로그인 창을 다시 열지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        message: "로그인 요청 시간이 지났습니다. 연결을 다시 시작해 주세요.",
+        retry: false,
+      });
+      return;
+    }
+    setOutlookNotice(null);
+    setOutlookBusy(true);
+    try {
+      const result = await window.matterSession?.copyOutlookAuthorization?.(authorization.authorize_url);
+      if (result?.copied !== true) throw new Error("clipboard_unavailable");
+      setOutlookNotice({
+        kind: "success",
+        message: "로그인 주소를 복사했습니다. 10분 안에 Chrome 새 탭 주소창에 붙여넣고, 다른 곳에는 공유하지 마세요.",
+        retry: false,
+      });
+    } catch {
+      setOutlookNotice({
+        kind: "error",
+        message: "로그인 주소를 복사하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         retry: false,
       });
     }
@@ -698,7 +720,7 @@ export function MemberDetailPanel({
           notice={outlookNotice}
           hasPendingAuthorization={pendingOutlookAuthorization !== null}
           onAction={updateOutlookConnection}
-          onReopenAuthorization={reopenOutlookAuthorization}
+          onCopyAuthorization={copyOutlookAuthorization}
           onDisconnect={disconnectOutlookConnection}
           onRefresh={refreshOutlookConnection}
         />

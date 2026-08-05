@@ -24,7 +24,9 @@ function loadSessionPreload({ listeners = new Map() } = {}) {
         ipcRenderer: {
           invoke(channel, payload) {
             invocations.push({ channel, payload });
-            return Promise.resolve({ opened: true });
+            return Promise.resolve(channel === "desktop:outlook-authorization:copy"
+              ? { copied: true }
+              : { opened: true });
           },
           send(channel, payload) {
             signals.push({ channel, payload });
@@ -147,6 +149,23 @@ test("session preload sends the Outlook authorization URL only through its allow
   );
   assert.deepEqual(JSON.parse(JSON.stringify(invocations)), [{
     channel: "desktop:outlook-authorization:open",
+    payload: { url: authorizeUrl }
+  }]);
+});
+
+test("session preload exposes only the narrow Outlook authorization copy command", async () => {
+  const { exposed, invocations } = loadSessionPreload();
+  const authorizeUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test";
+
+  assert.equal(exposed.api.clipboard, undefined);
+  assert.equal(exposed.api.readClipboard, undefined);
+  assert.equal(exposed.api.writeClipboard, undefined);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(await exposed.api.copyOutlookAuthorization(authorizeUrl))),
+    { copied: true }
+  );
+  assert.deepEqual(JSON.parse(JSON.stringify(invocations)), [{
+    channel: "desktop:outlook-authorization:copy",
     payload: { url: authorizeUrl }
   }]);
 });

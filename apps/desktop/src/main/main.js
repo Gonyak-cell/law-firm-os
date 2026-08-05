@@ -582,6 +582,7 @@ export async function startDesktopShell({
   ipcMain,
   coordinator,
   openExternal,
+  writeClipboard,
   onSessionAvailable,
   packaged = false,
   initialDeepLinkUrl
@@ -603,6 +604,7 @@ export async function startDesktopShell({
       coordinator,
       isTrustedSender,
       openExternal,
+      writeClipboard,
       onSessionAvailable,
       waitForLogoIntroReady
     })
@@ -614,7 +616,16 @@ export async function startDesktopShell({
 }
 
 export async function startElectronApp() {
-  const { app, BrowserWindow, ipcMain, net, protocol, safeStorage, shell: electronShell } = await import("electron");
+  const {
+    app,
+    BrowserWindow,
+    clipboard: electronClipboard,
+    ipcMain,
+    net,
+    protocol,
+    safeStorage,
+    shell: electronShell
+  } = await import("electron");
   if (!acquireDesktopSingleInstance(app)) return { primaryInstance: false };
   registerMatterAppScheme(protocol);
   let coordinator = null;
@@ -652,6 +663,7 @@ export async function startElectronApp() {
     ipcMain,
     coordinator,
     openExternal: (url) => electronShell.openExternal(url),
+    writeClipboard: (url) => electronClipboard.writeText(url),
     onSessionAvailable: () => instanceCoordinator.retryPendingAuthCallbacks(),
     packaged: app.isPackaged === true,
   });
