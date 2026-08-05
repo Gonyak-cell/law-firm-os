@@ -4730,7 +4730,7 @@ function peopleOutlookConnectionResponse({
           "Outlook connection idempotency_key is required and must not exceed 255 characters",
         );
       }
-      if (Object.keys(body).sort().join(",") !== "action,idempotency_key") {
+      if (Object.keys(body).filter((key) => key !== "actor_id").sort().join(",") !== "action,idempotency_key") {
         throw safeHrxRuntimeError(
           400,
           "OUTLOOK_CONNECTION_ACTION_INVALID",

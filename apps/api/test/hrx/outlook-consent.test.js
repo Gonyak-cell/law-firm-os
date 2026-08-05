@@ -148,6 +148,30 @@ test("OAuth begin requires an explicit idempotency key before changing connectio
   );
 });
 
+test("OAuth begin accepts the authenticated actor injected by the HTTP boundary", () => {
+  const runtime = context();
+  const begun = request(runtime, "POST", {
+    action: "retry",
+    actor_id: USER,
+    idempotency_key: "people-outlook-retry-authenticated-actor-001",
+  });
+  assert.equal(begun.status, 200);
+  assert.equal(begun.body.connection.connection_state, "consent_pending");
+  assert.equal(
+    request(runtime, "DELETE").body.connection.connection_state,
+    "not_connected",
+  );
+
+  const blocked = request(context(), "POST", {
+    action: "retry",
+    actor_id: USER,
+    idempotency_key: "people-outlook-retry-extra-key-001",
+    tenant_id: TENANT,
+  });
+  assert.equal(blocked.status, 400);
+  assert.equal(blocked.body.safe_error_code, "OUTLOOK_CONNECTION_ACTION_INVALID");
+});
+
 test("OAuth completion stores delegated consent without returning or auditing token material", () => {
   const runtime = context();
   assert.equal(request(runtime, "GET").body.connection.connection_state, "not_connected");
