@@ -96,6 +96,10 @@ test("operational Entra session authority persists only verified federated ident
     local_password_login: false,
     local_synthetic_login: false,
     account_directory: "postgres-v2",
+    object_acl_authority: "unavailable",
+    object_acl_authority_source_ref: null,
+    object_acl_authority_required_for_fixed_client_reports: true,
+    caller_permission_context_object_acl_trusted: false,
     default_totp: false,
     phishing_resistant_mfa_required: true,
   });
