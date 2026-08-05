@@ -1546,7 +1546,9 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     });
     return;
   }
-  req.lawosAuthenticatedActorId = sessionContext.principal.user_id;
+  if (pathname !== "/api/hrx/people/me/outlook-connection/complete") {
+    req.lawosAuthenticatedActorId = sessionContext.principal.user_id;
+  }
   const requestPermissionContext = () => sessionContext.context;
   const requestHeaders = () => {
     const principal = sessionContext.principal;
