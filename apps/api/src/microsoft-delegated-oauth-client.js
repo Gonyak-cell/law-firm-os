@@ -463,10 +463,11 @@ export function createMicrosoftDelegatedOAuthClient({
         nonce: nonceValue,
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
-        prompt: "select_account",
       });
       if (login_hint != null && String(login_hint).trim()) {
         parameters.set("login_hint", normalizedEmail(login_hint));
+      } else {
+        parameters.set("prompt", "select_account");
       }
       url.search = parameters.toString();
       return url.toString();

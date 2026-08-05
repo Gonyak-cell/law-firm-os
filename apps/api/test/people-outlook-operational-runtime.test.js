@@ -1036,6 +1036,8 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
     authorizeUrl.searchParams.get("redirect_uri"),
     MICROSOFT_EGRESS_REDIRECT_URIS.people,
   );
+  assert.equal(authorizeUrl.searchParams.get("login_hint"), "jwsuh@amic.kr");
+  assert.equal(authorizeUrl.searchParams.has("prompt"), false);
   assert.deepEqual(
     commands.map((command) => command.constructor.name),
     ["GetSecretValueCommand"],
