@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createAwsM365CredentialVault } from "../src/m365-credential-vault.js";
 
+const CLIENT_REFRESH_PROOF = "C".repeat(43);
+
 test("CL-P3-W00-T01 AWS M365 credential vault는 token 대신 불투명 참조만 반환하고 해제 시 현재 값을 폐기한다", async () => {
   const commands = [];
   const secretValues = new Map();
@@ -39,6 +41,8 @@ test("CL-P3-W00-T01 AWS M365 credential vault는 token 대신 불투명 참조�
     token_bundle: {
       access_token: "vault-access-token-synthetic",
       refresh_token: "vault-refresh-token-synthetic",
+      refresh_profile: "client",
+      refresh_profile_proof: CLIENT_REFRESH_PROOF,
       expires_at: "2026-08-30T00:00:00.000Z",
     },
   });
@@ -54,6 +58,8 @@ test("CL-P3-W00-T01 AWS M365 credential vault는 token 대신 불투명 참조�
   });
   assert.equal(resolved.access_token, "vault-access-token-synthetic");
   assert.equal(resolved.refresh_token, "vault-refresh-token-synthetic");
+  assert.equal(resolved.refresh_profile, "client");
+  assert.equal(resolved.refresh_profile_proof, CLIENT_REFRESH_PROOF);
 
   const deleted = await vault.deleteDelegatedCredential({
     credential_ref: credentialRef,
@@ -94,6 +100,8 @@ test("CL-P3-W00-T01 AWS M365 credential vault는 기존 참조를 새 secret으�
     token_bundle: {
       access_token: "replacement-access",
       refresh_token: "replacement-refresh",
+      refresh_profile: "client",
+      refresh_profile_proof: CLIENT_REFRESH_PROOF,
     },
   });
   assert.equal(result, existing);

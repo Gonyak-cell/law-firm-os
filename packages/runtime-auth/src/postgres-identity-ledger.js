@@ -779,6 +779,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const providerId = required(input.provider_id, "federated provider_id");
     const federatedTenantId = required(input.federated_tenant_id, "federated_tenant_id");
     const federatedSubjectId = required(input.federated_subject_id, "federated_subject_id");
+    const preservePrimaryCredential = input.preserve_primary_credential === true;
     return scoped(tenantId, async (client) => {
       await ensureAccountRow(client, tenantId, seed, clock);
       const locked = await client.query(
@@ -790,7 +791,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       );
       const current = locked.rows[0];
       if (current.federated_subject_id && (
-        current.credential_provider !== providerId
+        (!preservePrimaryCredential && current.credential_provider !== providerId)
         || current.federated_tenant_id !== federatedTenantId
         || current.federated_subject_id !== federatedSubjectId
       )) {
@@ -800,28 +801,29 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
           status: 403,
         });
       }
-      const bindingChanged = current.credential_provider !== providerId
+      const bindingChanged = (!preservePrimaryCredential && current.credential_provider !== providerId)
         || current.federated_tenant_id !== federatedTenantId
         || current.federated_subject_id !== federatedSubjectId;
-      const credentialRev = Number(current.credential_rev) + (current.credential_provider && bindingChanged ? 1 : 0);
+      const credentialRev = Number(current.credential_rev)
+        + (!preservePrimaryCredential && current.credential_provider && bindingChanged ? 1 : 0);
       const timestamp = iso(nowMs(clock));
       const result = await client.query(
         `UPDATE lawos_identity.accounts
             SET email = $3,
-                credential_provider = $4,
-                credential_status = 'active',
+                credential_provider = CASE WHEN $9::boolean THEN credential_provider ELSE $4 END,
+                credential_status = CASE WHEN $9::boolean THEN credential_status ELSE 'active' END,
                 credential_rev = $5,
-                password_hash = '{}'::jsonb,
+                password_hash = CASE WHEN $9::boolean THEN password_hash ELSE '{}'::jsonb END,
                 federated_tenant_id = $6,
                 federated_subject_id = $7,
-                failed_login_count = 0,
-                locked_until = NULL,
+                failed_login_count = CASE WHEN $9::boolean THEN failed_login_count ELSE 0 END,
+                locked_until = CASE WHEN $9::boolean THEN locked_until ELSE NULL END,
                 updated_at = $8::timestamptz
           WHERE tenant_id = $1 AND user_id = $2
         RETURNING tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
                   password_hash, federated_tenant_id, federated_subject_id,
                   failed_login_count, locked_until, created_at, updated_at`,
-        [tenantId, seed.user_id, seed.email, providerId, credentialRev, federatedTenantId, federatedSubjectId, timestamp],
+        [tenantId, seed.user_id, seed.email, providerId, credentialRev, federatedTenantId, federatedSubjectId, timestamp, preservePrimaryCredential],
       );
       if (credentialRev !== Number(current.credential_rev)) {
         await client.query(
@@ -834,12 +836,14 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
         );
       }
       await insertAudit(client, tenantId, {
-        action: bindingChanged ? "auth.federated_identity.bound" : "auth.federated_identity.verified",
+        action: input.audit_action
+          ?? (bindingChanged ? "auth.federated_identity.bound" : "auth.federated_identity.verified"),
         object_id: seed.user_id,
         actor_id: input.actor_id ?? seed.user_id,
         details: {
           provider_id: providerId,
           subject_bound: true,
+          primary_credential_preserved: preservePrimaryCredential,
           phishing_resistant_mfa: input.phishing_resistant_mfa === true,
           conditional_access_verified: input.conditional_access_verified === true,
         },
@@ -927,6 +931,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     const credentialRev = requireCredentialRevision(input.credential_rev);
     const issuedAt = iso(input.issued_at);
     const expiresAt = iso(input.expires_at);
+    const preserveLoginFailureState = input.preserve_login_failure_state === true;
     return scoped(tenantId, async (client) => {
       await ensureAccountRow(client, tenantId, seed, clock);
       const currentResult = await client.query(
@@ -950,18 +955,24 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       if (!["active", "must_change"].includes(current.credential_status)) {
         return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
       }
+      // Preserving the primary login failure state must never bypass an active
+      // lock.  Office SSO passes this flag so a successful binding does not
+      // clear counters, but the lock remains an authentication gate until it
+      // expires (or is cleared by an explicit administrative action).
       if (current.locked_until && millis(current.locked_until) > nowMs(clock)) {
         return Object.freeze({ ok: false, reason: "auth_login_locked", safe_error_code: "AUTH_LOGIN_LOCKED", status: 423, locked_until: iso(current.locked_until) });
       }
       if (credentialRev !== Number(current.credential_rev)) {
         return Object.freeze({ ok: false, reason: "credential_revision_mismatch", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
       }
-      const wasLocked = current.locked_until != null;
-      await client.query(
-        `UPDATE lawos_identity.accounts SET failed_login_count = 0, locked_until = NULL, updated_at = $3::timestamptz
-          WHERE tenant_id = $1 AND user_id = $2`,
-        [tenantId, seed.user_id, iso(nowMs(clock))],
-      );
+      const wasLocked = !preserveLoginFailureState && current.locked_until != null;
+      if (!preserveLoginFailureState) {
+        await client.query(
+          `UPDATE lawos_identity.accounts SET failed_login_count = 0, locked_until = NULL, updated_at = $3::timestamptz
+            WHERE tenant_id = $1 AND user_id = $2`,
+          [tenantId, seed.user_id, iso(nowMs(clock))],
+        );
+      }
       await client.query(
         `INSERT INTO lawos_identity.sessions
            (tenant_id, session_jti, session_id, user_id, credential_rev, membership_state_version, issued_at, expires_at)

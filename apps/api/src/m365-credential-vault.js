@@ -8,6 +8,7 @@ import {
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
 
 const CREDENTIAL_REF_PREFIX = "aws-secrets-manager:";
+const REFRESH_PROFILE_PROOF_PATTERN = /^[A-Za-z0-9_-]{43}$/u;
 
 function requiredString(value, field) {
   if (typeof value !== "string" || value.trim() === "") {
@@ -37,10 +38,26 @@ function tokenBundle(input) {
   }
   const accessToken = requiredString(input.access_token, "access_token");
   const refreshToken = requiredString(input.refresh_token, "refresh_token");
+  const refreshProfile = requiredString(
+    input.refresh_profile,
+    "refresh_profile",
+  );
+  const refreshProfileProof = requiredString(
+    input.refresh_profile_proof,
+    "refresh_profile_proof",
+  );
+  if (
+    !["people", "client"].includes(refreshProfile)
+    || !REFRESH_PROFILE_PROOF_PATTERN.test(refreshProfileProof)
+  ) {
+    throw new TypeError("refresh credential profile binding is invalid");
+  }
   return Object.freeze({
     ...structuredClone(input),
     access_token: accessToken,
     refresh_token: refreshToken,
+    refresh_profile: refreshProfile,
+    refresh_profile_proof: refreshProfileProof,
   });
 }
 

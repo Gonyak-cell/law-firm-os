@@ -25,6 +25,9 @@ import {
   MICROSOFT_EGRESS_REDIRECT_URIS,
   createMicrosoftEgressBrokerTransport,
 } from "./microsoft-egress-broker-transport.js";
+import {
+  createMicrosoftOfficeSsoProvider,
+} from "./microsoft-office-sso-provider.js";
 
 export const LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV =
   "LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID";
@@ -38,6 +41,8 @@ export const LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED_ENV =
 const OAUTH_STATE_SCHEMA = "lawos.client-outlook.oauth-state.v1";
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 const SAFE_ID = /^[A-Za-z0-9._:-]{1,200}$/u;
+const CLIENT_REFRESH_PROFILE = "client";
+const REFRESH_PROFILE_PROOF = /^[A-Za-z0-9_-]{43}$/u;
 
 function requiredText(value, name, maxLength = 4096) {
   const text = String(value ?? "").trim();
@@ -70,6 +75,25 @@ function providerError(message, status = 400) {
   return Object.assign(new Error(message), {
     safe_error_code: "M365_PROVIDER_RESPONSE_INVALID",
     status,
+  });
+}
+
+function clientRefreshBinding(input = {}) {
+  const profile = requiredText(input.refresh_profile, "refresh_profile", 16);
+  const proof = requiredText(
+    input.refresh_profile_proof,
+    "refresh_profile_proof",
+    128,
+  );
+  if (
+    profile !== CLIENT_REFRESH_PROFILE
+    || !REFRESH_PROFILE_PROOF.test(proof)
+  ) {
+    throw providerError("Microsoft refresh credential profile is invalid", 401);
+  }
+  return Object.freeze({
+    refresh_profile: profile,
+    refresh_profile_proof: proof,
   });
 }
 
@@ -238,6 +262,7 @@ function disabledProviderConfig(flags) {
     ...flags,
     allowed_redirect_uris: Object.freeze([]),
     external_readiness: Object.freeze({}),
+    office_sso_provider: null,
   });
 }
 
@@ -267,7 +292,7 @@ export function createClientOutlookDelegatedProvider({
         clock,
         scope_profile: "client_outlook_addin",
       });
-      for (const method of ["authorizationUrl", "exchange"]) {
+      for (const method of ["authorizationUrl", "exchange", "refresh"]) {
         if (typeof client?.[method] !== "function") {
           throw new TypeError(`Client Outlook OAuth client ${method} is required`);
         }
@@ -370,6 +395,46 @@ export function createClientOutlookDelegatedProvider({
         consented_at: now.toISOString(),
         expires_at: requiredText(result.expires_at, "expires_at", 100),
         token_bundle: Object.freeze({
+          ...clientRefreshBinding(result),
+          access_token: requiredText(
+            result.access_token,
+            "access_token",
+            32 * 1024,
+          ),
+          refresh_token: requiredText(
+            result.refresh_token,
+            "refresh_token",
+            32 * 1024,
+          ),
+          expires_at: requiredText(result.expires_at, "expires_at", 100),
+          granted_scopes: M365_GRAPH_REQUIRED_SCOPES,
+        }),
+      });
+    },
+
+    async refreshDelegatedCredential({ credential } = {}) {
+      const binding = clientRefreshBinding(credential);
+      const result = await oauthClient(config.redirect_uris[0]).refresh({
+        refresh_token: requiredText(
+          credential?.refresh_token,
+          "credential.refresh_token",
+          32 * 1024,
+        ),
+        ...binding,
+      });
+      const grantedByLowercase = new Set(
+        result.granted_scopes.map((scope) => String(scope).toLowerCase()),
+      );
+      if (M365_GRAPH_REQUIRED_SCOPES.some(
+        (scope) => !grantedByLowercase.has(scope.toLowerCase()),
+      )) {
+        throw providerError("Microsoft authorization scope is insufficient", 403);
+      }
+      return Object.freeze({
+        expires_at: requiredText(result.expires_at, "expires_at", 100),
+        token_bundle: Object.freeze({
+          ...credential,
+          ...clientRefreshBinding(result),
           access_token: requiredText(
             result.access_token,
             "access_token",
@@ -426,6 +491,15 @@ export function createClientOutlookM365GraphConfig({
   const graph = graph_provider ?? createMicrosoftGraphMailProvider({
     microsoft_egress_transport,
   });
+  const officeSsoProvider = createMicrosoftOfficeSsoProvider({
+    config: {
+      tenant_id: normalized.tenant_id,
+      client_id: normalized.client_id,
+      callback_uri: normalized.redirect_uris[0],
+    },
+    microsoft_egress_transport,
+    clock,
+  });
   return Object.freeze({
     feature_enabled: flags?.feature_enabled === true,
     inquiry_feature_enabled: flags?.inquiry_feature_enabled === true,
@@ -433,6 +507,7 @@ export function createClientOutlookM365GraphConfig({
     allowed_redirect_uris: normalized.redirect_uris,
     external_readiness: Object.freeze({}),
     credential_vault,
+    office_sso_provider: officeSsoProvider,
     provider: Object.freeze({
       ...graph,
       ...delegated,

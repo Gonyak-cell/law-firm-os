@@ -1,0 +1,145 @@
+name: Outlook Add-in Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/outlook-addin-validation.yml"
+      - "apps/addin/**"
+      - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
+      - "apps/microsoft-egress-broker/**"
+      - "apps/api/src/client-outlook-*.js"
+      - "apps/api/src/microsoft-egress-broker-transport.js"
+      - "apps/api/src/microsoft-delegated-oauth-client.js"
+      - "apps/api/src/microsoft-office-sso-provider.js"
+      - "apps/api/src/outlook-addin-runtime-context.js"
+      - "apps/api/src/people-outlook-operational-runtime.js"
+      - "apps/api/src/server.js"
+      - "apps/api/src/session-auth.js"
+      - "apps/api/test/client-outlook-*.test.js"
+      - "apps/api/test/microsoft-delegated-oauth-client.test.js"
+      - "apps/api/test/microsoft-egress-broker-transport.test.js"
+      - "apps/api/test/microsoft-office-sso-provider.test.js"
+      - "apps/api/test/office-sso-session-auth.test.js"
+      - "apps/api/test/outlook-addin-api.test.js"
+      - "apps/api/test/outlook-connection-api.test.js"
+      - "apps/api/test/people-outlook-https-callback.test.js"
+      - "apps/api/test/people-outlook-operational-runtime.test.js"
+      - "apps/api/test/session-auth-api.test.js"
+      - "packages/matter/src/activity-calendar-channel-service.js"
+      - "packages/email-dms/**"
+      - "packages/dms/src/postgres-upload-runtime.js"
+      - "packages/dms/test/upload-reconciliation.test.js"
+      - "packages/runtime-auth/src/postgres-identity-ledger.js"
+      - "packages/runtime-auth/test/postgres-identity-directory.test.js"
+      - "apps/api/test/sf-b-w03-activity-calendar-channel.test.js"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/outlook-addin-validation.yml"
+      - "apps/addin/**"
+      - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
+      - "apps/microsoft-egress-broker/**"
+      - "apps/api/src/client-outlook-*.js"
+      - "apps/api/src/microsoft-egress-broker-transport.js"
+      - "apps/api/src/microsoft-delegated-oauth-client.js"
+      - "apps/api/src/microsoft-office-sso-provider.js"
+      - "apps/api/src/outlook-addin-runtime-context.js"
+      - "apps/api/src/people-outlook-operational-runtime.js"
+      - "apps/api/src/server.js"
+      - "apps/api/src/session-auth.js"
+      - "apps/api/test/client-outlook-*.test.js"
+      - "apps/api/test/microsoft-delegated-oauth-client.test.js"
+      - "apps/api/test/microsoft-egress-broker-transport.test.js"
+      - "apps/api/test/microsoft-office-sso-provider.test.js"
+      - "apps/api/test/office-sso-session-auth.test.js"
+      - "apps/api/test/outlook-addin-api.test.js"
+      - "apps/api/test/outlook-connection-api.test.js"
+      - "apps/api/test/people-outlook-https-callback.test.js"
+      - "apps/api/test/people-outlook-operational-runtime.test.js"
+      - "apps/api/test/session-auth-api.test.js"
+      - "packages/matter/src/activity-calendar-channel-service.js"
+      - "packages/email-dms/**"
+      - "packages/dms/src/postgres-upload-runtime.js"
+      - "packages/dms/test/upload-reconciliation.test.js"
+      - "packages/runtime-auth/src/postgres-identity-ledger.js"
+      - "packages/runtime-auth/test/postgres-identity-directory.test.js"
+      - "apps/api/test/sf-b-w03-activity-calendar-channel.test.js"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Add-in and OAuth validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Require PostgreSQL test binaries
+        run: |
+          pg_bin="$(find /usr/lib/postgresql -type f -name initdb -perm -111 -print | sort -V | tail -1 | xargs dirname)"
+          test -x "$pg_bin/initdb"
+          test -x "$pg_bin/pg_ctl"
+          echo "$pg_bin" >> "$GITHUB_PATH"
+
+      - name: Add-in tests
+        run: npm --workspace apps/addin test
+
+      - name: Add-in production build
+        run: npm --workspace apps/addin run build
+
+      - name: Client Outlook API tests
+        run: >-
+          node --test
+          --test-concurrency=1
+          apps/api/test/client-outlook-https-callback.test.js
+          apps/api/test/client-outlook-operational-runtime.test.js
+          apps/api/test/microsoft-delegated-oauth-client.test.js
+          apps/api/test/microsoft-egress-broker-transport.test.js
+          apps/api/test/microsoft-office-sso-provider.test.js
+          apps/api/test/office-sso-session-auth.test.js
+          apps/api/test/outlook-addin-api.test.js
+          apps/api/test/outlook-connection-api.test.js
+          apps/api/test/people-outlook-https-callback.test.js
+          apps/api/test/people-outlook-operational-runtime.test.js
+          apps/api/test/session-auth-api.test.js
+          apps/api/test/sf-b-w03-activity-calendar-channel.test.js
+
+      - name: Microsoft egress broker tests
+        run: node --test apps/microsoft-egress-broker/index.test.mjs
+
+      - name: Email DMS provider and filing tests
+        run: node --test packages/email-dms/test/*.test.js
+
+      - name: DMS upload reconciliation tests (Node 22)
+        run: |
+          command -v initdb
+          command -v pg_ctl
+          node --test packages/dms/test/upload-reconciliation.test.js
+
+      - name: Office SSO identity binding persistence
+        run: node --test packages/runtime-auth/test/postgres-identity-directory.test.js
+
+      - name: Validate local and production manifests
+        run: |
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.xml
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.production.xml

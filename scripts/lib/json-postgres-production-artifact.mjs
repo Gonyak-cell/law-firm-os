@@ -29,7 +29,6 @@ export const JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES = Object.freeze([
 
 export const JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS = Object.freeze([
   "apps/api/src/lambda.js",
-  "apps/api/src/outlook-addin-runtime-context.js",
   "packages/matter/src/worktree-template-model.js",
 ]);
 
@@ -116,8 +115,6 @@ export function redactJsonPostgresProductionRuntimeSource({ targetPath, text } =
         return employeeIds.get(source);
       })
       .replaceAll("assumed-role/lawos-private-staging-api-role/", "assumed-role/lawos-production-api-role/");
-  } else if (path === "apps/api/src/outlook-addin-runtime-context.js") {
-    output = output.replaceAll("@amic.law", "@production.invalid");
   } else if (path === "packages/matter/src/worktree-template-model.js") {
     output = output.replace(/\b[A-Z0-9._%+-]+@amic\.kr\b/giu, "redacted-production-user@production.invalid");
   }

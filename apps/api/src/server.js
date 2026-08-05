@@ -183,6 +183,10 @@ import {
   createPeopleOutlookDesktopCallbackLocation,
   isPeopleOutlookOAuthState,
 } from "./people-outlook-oauth-callback.js";
+import {
+  createClientOutlookAddinCallbackLocation,
+  isClientOutlookOAuthState,
+} from "./client-outlook-oauth-callback.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -1497,22 +1501,28 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
-  const isPeopleOutlookHttpsCallback =
+  const isOutlookHttpsCallback =
     req.method === "GET"
-    && pathname === "/api/outlook/connection/callback"
-    && url.searchParams.getAll("state").some(isPeopleOutlookOAuthState);
-  if (isPeopleOutlookHttpsCallback) {
+    && pathname === "/api/outlook/connection/callback";
+  if (isOutlookHttpsCallback) {
     try {
+      const states = url.searchParams.getAll("state");
+      const createLocation = states.some(isPeopleOutlookOAuthState)
+        ? createPeopleOutlookDesktopCallbackLocation
+        : states.some(isClientOutlookOAuthState)
+          ? createClientOutlookAddinCallbackLocation
+          : null;
+      if (!createLocation) throw new TypeError("Outlook callback state is invalid");
       sendExternalRedirect(
         req,
         res,
-        createPeopleOutlookDesktopCallbackLocation(url.searchParams),
+        createLocation(url.searchParams),
       );
     } catch {
       sendJson(req, res, 400, {
         request_id: requestId,
         outcome: "blocked",
-        reason: "people_outlook_callback_invalid",
+        reason: "outlook_oauth_callback_invalid",
         safe_error_codes: ["OUTLOOK_OAUTH_CALLBACK_INVALID"],
       });
     }
@@ -1542,6 +1552,20 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       reason: "auth_session_required",
       safe_error_codes: ["AUTH_SESSION_REQUIRED"],
       token_material_returned: false,
+      production_ready_claim: false,
+    });
+    return;
+  }
+  if (
+    sessionContext.token_payload?.surface === "outlook_addin"
+    && !isOutlookPath
+  ) {
+    sendJson(req, res, 403, {
+      request_id: requestId,
+      outcome: "blocked",
+      ok: false,
+      reason: "auth_session_surface_denied",
+      safe_error_codes: ["AUTH_SESSION_SURFACE_DENIED"],
       production_ready_claim: false,
     });
     return;
@@ -2353,6 +2377,7 @@ export async function startApiServer({
         passwordResetEmailDelivery,
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,
+        officeSsoProvider: m365GraphConfig?.office_sso_provider ?? null,
         identityRepository,
         objectAclResolver: resolvedSessionObjectAclResolver,
       });

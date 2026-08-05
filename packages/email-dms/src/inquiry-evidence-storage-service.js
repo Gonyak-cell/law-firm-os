@@ -399,6 +399,7 @@ function collectMimeParts(bytes, state, depth = 0) {
         ...manifest,
       }),
       ...manifest,
+      sha256: sha256Hex(decoded),
     }));
     return;
   }

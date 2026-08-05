@@ -136,7 +136,11 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   const authorize = await request({
     pathname: "/api/outlook/connection/authorize",
     method: "POST",
-    body: { tenant_id: TENANT, redirect_uri: REDIRECT_URI },
+    body: {
+      actor_id: USER,
+      tenant_id: TENANT,
+      redirect_uri: REDIRECT_URI,
+    },
     runtime,
   });
   assert.equal(authorize.status, 200);
@@ -144,9 +148,10 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(authorize.body.item.pkce_used, true);
 
   const callback = await request({
-    pathname: "/api/outlook/connection/callback",
-    method: "GET",
-    query: {
+    pathname: "/api/outlook/connection/complete",
+    method: "POST",
+    body: {
+      actor_id: USER,
       tenant_id: TENANT,
       code: "api-test-code",
       state: "api-test-state",
@@ -163,9 +168,9 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(callbackText.includes("credential_ref"), false);
 
   const callbackReplay = await request({
-    pathname: "/api/outlook/connection/callback",
-    method: "GET",
-    query: {
+    pathname: "/api/outlook/connection/complete",
+    method: "POST",
+    body: {
       tenant_id: TENANT,
       code: "api-test-code-must-not-be-reused",
       state: "api-test-state",
@@ -176,6 +181,23 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(callbackReplay.status, 200);
   assert.equal(callbackReplay.body.item.replayed, true);
   assert.equal(graph.completion_count, 1);
+
+  const publicCallback = await request({
+    pathname: "/api/outlook/connection/callback",
+    method: "GET",
+    query: {
+      tenant_id: TENANT,
+      code: "api-test-code",
+      state: "api-test-state",
+      redirect_uri: REDIRECT_URI,
+    },
+    runtime,
+  });
+  assert.equal(publicCallback.status, 404);
+  assert.deepEqual(
+    publicCallback.body.safe_error_codes,
+    ["OUTLOOK_ADDIN_NOT_FOUND"],
+  );
 
   const connected = await request({
     pathname: "/api/outlook/connection",
@@ -246,5 +268,100 @@ test("CL-P3-W00-T01 Outlook 연결 API는 권한·tenant·Entra subject 누락�
   assert.equal(
     noEntra.body.safe_error_codes[0],
     "M365_ENTRA_SESSION_REQUIRED",
+  );
+});
+
+test("Client Outlook 연결 완료는 POST body만 받고 잘못된 callback 입력을 재사용하지 않는다", async () => {
+  const runtime = {
+    emailDmsRuntime: { repository: createEmailDmsRepository() },
+    m365GraphConfig: graphConfig().config,
+  };
+
+  const missingCode = await request({
+    pathname: "/api/outlook/connection/complete",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      state: "api-test-state",
+      redirect_uri: REDIRECT_URI,
+    },
+    runtime,
+  });
+  assert.equal(missingCode.status, 400);
+  assert.equal(
+    missingCode.body.safe_error_codes[0],
+    "M365_CONNECTION_VALIDATION_ERROR",
+  );
+  assert.equal(JSON.stringify(missingCode.body).includes("token"), false);
+
+  const queryOnly = await request({
+    pathname: "/api/outlook/connection/complete",
+    method: "POST",
+    query: {
+      tenant_id: TENANT,
+      code: "query-code-must-not-be-read",
+      state: "query-state-must-not-be-read",
+      redirect_uri: REDIRECT_URI,
+    },
+    runtime,
+  });
+  assert.equal(queryOnly.status, 400);
+  assert.equal(JSON.stringify(queryOnly.body).includes("query-code"), false);
+
+  const extraField = await request({
+    pathname: "/api/outlook/connection/complete",
+    method: "POST",
+    body: {
+      code: "api-test-code",
+      state: "api-test-state",
+      redirect_uri: REDIRECT_URI,
+      access_token: "caller-supplied-token-must-be-rejected",
+    },
+    runtime,
+  });
+  assert.equal(extraField.status, 400);
+  assert.equal(
+    extraField.body.safe_error_codes[0],
+    "M365_CONNECTION_VALIDATION_ERROR",
+  );
+  assert.equal(
+    JSON.stringify(extraField.body).includes("caller-supplied-token"),
+    false,
+  );
+
+  const authorizeExtraField = await request({
+    pathname: "/api/outlook/connection/authorize",
+    method: "POST",
+    body: {
+      redirect_uri: REDIRECT_URI,
+      client_secret: "caller-supplied-secret-must-be-rejected",
+    },
+    runtime,
+  });
+  assert.equal(authorizeExtraField.status, 400);
+  assert.equal(
+    authorizeExtraField.body.safe_error_codes[0],
+    "M365_CONNECTION_VALIDATION_ERROR",
+  );
+  assert.equal(
+    JSON.stringify(authorizeExtraField.body).includes("caller-supplied-secret"),
+    false,
+  );
+
+  const forgedTenant = await request({
+    pathname: "/api/outlook/connection/complete",
+    method: "POST",
+    body: {
+      tenant_id: "tenant-forged",
+      code: "forged-code",
+      state: "forged-state",
+      redirect_uri: REDIRECT_URI,
+    },
+    runtime,
+  });
+  assert.equal(forgedTenant.status, 403);
+  assert.equal(
+    forgedTenant.body.safe_error_codes[0],
+    "M365_CONNECTION_TENANT_MISMATCH",
   );
 });

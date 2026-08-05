@@ -112,6 +112,15 @@ function normalizedMessageMetadata(message, immutableMessageId) {
       "Microsoft Graph message identity changed during retrieval",
     );
   }
+  if (
+    typeof message.is_in_sent_items !== "boolean"
+    || typeof message.is_draft !== "boolean"
+  ) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph sent-message provenance is invalid",
+    );
+  }
   const receivedAt = Date.parse(
     message.received_at ?? message.receivedDateTime,
   );
@@ -131,11 +140,14 @@ function normalizedMessageMetadata(message, immutableMessageId) {
       998,
     ),
     subject: optionalString(message.subject, 998) ?? "",
-    sender: normalizedAddress(message.sender ?? message.from),
+    sender: normalizedAddress(message.sender),
+    from: normalizedAddress(message.from),
     recipients: normalizedRecipients(message),
     received_at: new Date(receivedAt).toISOString(),
     has_attachments:
       message.has_attachments === true || message.hasAttachments === true,
+    is_in_sent_items: message.is_in_sent_items,
+    is_draft: message.is_draft,
   });
 }
 
@@ -232,9 +244,17 @@ function safeWebLink(value) {
 }
 
 function brokerFailure(error, operation) {
+  const isMailExport = operation === "mail export";
   if (
-    error?.status === 413
-    || String(error?.safe_error_code ?? "").includes("MIME_TOO_LARGE")
+    isMailExport
+    && (
+      error?.status === 413
+      || error?.safe_error_code === "MICROSOFT_EGRESS_MIME_TOO_LARGE"
+      || (
+        error?.safe_error_code === "MICROSOFT_EGRESS_RESPONSE_TOO_LARGE"
+        && error?.status === 502
+      )
+    )
   ) {
     return providerError(
       MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large,

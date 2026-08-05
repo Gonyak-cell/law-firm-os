@@ -7,7 +7,6 @@ import {
 } from "../src/inquiry-actions.js";
 
 const INPUT = Object.freeze({
-  tenant_id: "tenant-addin-actions",
   rest_message_id: "rest-message-sensitive-identifier",
 });
 
@@ -33,7 +32,6 @@ test("CL-P3-W01-T05 같은 메일과 행동은 원본 ID가 드러나지 않는 
     "action",
     "idempotency_key",
     "rest_message_id",
-    "tenant_id",
   ]);
 });
 

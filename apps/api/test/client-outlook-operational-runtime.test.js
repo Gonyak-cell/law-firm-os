@@ -37,6 +37,8 @@ const BROKER_TRANSPORT = Object.freeze({
   async graphCalendarEventCreate() {},
   async graphMailMessageExport() {},
 });
+const CLIENT_REFRESH_PROOF = "C".repeat(43);
+const ROTATED_CLIENT_REFRESH_PROOF = "R".repeat(43);
 
 function enabledEnv(overrides = {}) {
   return {
@@ -76,6 +78,7 @@ test("Client Outlook Lambda config keeps disabled flags local and rejects an imp
     provider_runtime_enabled: false,
     allowed_redirect_uris: [],
     external_readiness: {},
+    office_sso_provider: null,
   });
   assert.equal(secretCalls, 0);
 
@@ -101,6 +104,7 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   const secretCalls = [];
   const oauthFactoryCalls = [];
   const exchangeCalls = [];
+  const refreshCalls = [];
   const clock = () => new Date("2026-08-03T09:00:00.000Z");
   const secretsClient = {
     async send(command) {
@@ -129,7 +133,24 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
           mailbox_address: "pilot.user@amic.kr",
           access_token: "access-token-never-return-to-client",
           refresh_token: "refresh-token-never-return-to-client",
+          refresh_profile: "client",
+          refresh_profile_proof: CLIENT_REFRESH_PROOF,
           expires_at: "2026-08-03T10:00:00.000Z",
+          granted_scopes: Object.freeze([
+            "openid",
+            "profile",
+            ...M365_GRAPH_REQUIRED_SCOPES,
+          ]),
+        });
+      },
+      async refresh(input) {
+        refreshCalls.push(input);
+        return Object.freeze({
+          access_token: "rotated-access-token-never-return-to-client",
+          refresh_token: "rotated-refresh-token-never-return-to-client",
+          refresh_profile: "client",
+          refresh_profile_proof: ROTATED_CLIENT_REFRESH_PROOF,
+          expires_at: "2026-08-03T11:00:00.000Z",
           granted_scopes: Object.freeze([
             "openid",
             "profile",
@@ -166,6 +187,21 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   assert.equal(typeof config.provider.beginDelegatedAuthorization, "function");
   assert.equal(typeof config.provider.completeDelegatedAuthorization, "function");
   assert.equal(typeof config.provider.revokeDelegatedCredential, "function");
+  assert.equal(
+    typeof config.office_sso_provider.verifyAccessToken,
+    "function",
+  );
+  assert.deepEqual(config.office_sso_provider.public_config, {
+    tenant_id: SECRET_CONFIG.client_outlook.tenant_id,
+    client_id: SECRET_CONFIG.client_outlook.client_id,
+    api_scope: `api://${SECRET_CONFIG.client_outlook.client_id}/access_as_user`,
+    callback_uri: REDIRECT_URI,
+  });
+  assert.equal(
+    JSON.stringify(config.office_sso_provider.public_config)
+      .includes(SECRET_CONFIG.client_outlook.client_secret),
+    false,
+  );
 
   const principal = {
     tenant_id: "tenant_amic_matter_vault",
@@ -221,6 +257,30 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   assert.equal(
     JSON.stringify(completed).includes("client-outlook-secret-never-return"),
     false,
+  );
+  assert.equal(completed.token_bundle.refresh_profile, "client");
+  assert.equal(
+    completed.token_bundle.refresh_profile_proof,
+    CLIENT_REFRESH_PROOF,
+  );
+  const refreshed = await config.provider.refreshDelegatedCredential({
+    credential: {
+      ...completed.token_bundle,
+      mailbox_address: completed.mailbox_address,
+    },
+  });
+  assert.deepEqual(refreshCalls, [{
+    refresh_token: "refresh-token-never-return-to-client",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+  }]);
+  assert.equal(
+    refreshed.token_bundle.access_token,
+    "rotated-access-token-never-return-to-client",
+  );
+  assert.equal(
+    refreshed.token_bundle.refresh_profile_proof,
+    ROTATED_CLIENT_REFRESH_PROOF,
   );
 });
 
@@ -287,4 +347,44 @@ test("Client Outlook provider refuses the separate People calendar secret shape"
     }),
     /redirect_uris must match the client broker profile/u,
   );
+});
+
+test("10인 내부 파일럿은 People과 Client가 같은 Entra 앱 ID를 사용해도 Client scope profile을 유지한다", async () => {
+  const resolved = await resolveLambdaClientOutlookM365GraphConfig({
+    env: enabledEnv(),
+    secrets_client: {
+      async send() {
+        return {
+          SecretString: JSON.stringify({
+            ...SECRET_CONFIG,
+            people_outlook: {
+              client_id: SECRET_CONFIG.client_outlook.client_id.toUpperCase(),
+            },
+          }),
+        };
+      },
+    },
+    microsoft_egress_transport: BROKER_TRANSPORT,
+  });
+
+  assert.equal(resolved.provider.provider, "microsoft-graph-delegated");
+  assert.equal(
+    resolved.office_sso_provider.public_config.client_id,
+    SECRET_CONFIG.client_outlook.client_id,
+  );
+  const begun = await resolved.provider.beginDelegatedAuthorization({
+    tenant_id: "tenant_amic_matter_vault",
+    user_id: "user_jwsuh",
+    entra_subject_id: "entra-subject-client-outlook",
+    redirect_uri: REDIRECT_URI,
+  });
+  const authorizeUrl = new URL(begun.authorization_url);
+  const scopes = authorizeUrl.searchParams.get("scope").split(" ");
+  assert.equal(
+    authorizeUrl.searchParams.get("client_id"),
+    SECRET_CONFIG.client_outlook.client_id,
+  );
+  assert.equal(scopes.includes("Calendars.ReadWrite"), true);
+  assert.equal(scopes.includes("Mail.Read"), true);
+  assert.equal(scopes.includes("Calendars.ReadBasic"), false);
 });

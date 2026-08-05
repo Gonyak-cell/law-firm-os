@@ -162,7 +162,7 @@ function credentialAad(record) {
   }), "utf8");
 }
 
-function credentialBundle(input = {}) {
+function credentialBundle(input = {}, { allowLegacyPeople = false } = {}) {
   const scopes = Array.isArray(input.granted_scopes)
     ? [...new Set(input.granted_scopes.map((scope) => (
       requiredText(scope, "granted_scope", 200)
@@ -197,6 +197,29 @@ function credentialBundle(input = {}) {
       409,
     );
   }
+  const legacyUnbound = allowLegacyPeople
+    && input.refresh_profile === undefined
+    && input.refresh_profile_proof === undefined;
+  const refreshProfile = legacyUnbound
+    ? null
+    : requiredText(input.refresh_profile, "refresh_profile", 16);
+  const refreshProfileProof = legacyUnbound
+    ? null
+    : requiredText(
+      input.refresh_profile_proof,
+      "refresh_profile_proof",
+      128,
+    );
+  if (!legacyUnbound && (
+    refreshProfile !== "people"
+    || !/^[A-Za-z0-9_-]{43}$/u.test(refreshProfileProof)
+  )) {
+    throw failure(
+      "OUTLOOK_CREDENTIAL_BINDING_INVALID",
+      "Outlook refresh credential profile is invalid",
+      409,
+    );
+  }
   return Object.freeze({
     access_token: requiredText(input.access_token, "access_token", 32 * 1024),
     refresh_token: requiredText(
@@ -204,6 +227,12 @@ function credentialBundle(input = {}) {
       "refresh_token",
       32 * 1024,
     ),
+    ...(legacyUnbound
+      ? { legacy_unbound_people_refresh: true }
+      : {
+        refresh_profile: refreshProfile,
+        refresh_profile_proof: refreshProfileProof,
+      }),
     expires_at: new Date(expiresAt).toISOString(),
     provider_subject_id: requiredText(
       input.provider_subject_id,
@@ -242,7 +271,11 @@ function encryptCredential(input, record, key) {
   }`;
 }
 
-function decryptCredential(record, key) {
+function decryptCredential(
+  record,
+  key,
+  { allowLegacyPeople = false } = {},
+) {
   try {
     const value = requiredText(
       record.credential_envelope,
@@ -283,7 +316,7 @@ function decryptCredential(record, key) {
     if (payload?.schema !== CREDENTIAL_ENVELOPE_SCHEMA) {
       throw new TypeError("credential payload schema is invalid");
     }
-    const bundle = credentialBundle(payload);
+    const bundle = credentialBundle(payload, { allowLegacyPeople });
     if (
       bundle.provider_subject_id !== record.provider_subject_id
       || sha256(bundle.mailbox_address) !== record.mailbox_address_hash
@@ -1148,6 +1181,33 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       });
     }
 
+    function bindLegacyCredentialRecord(record, credential) {
+      const now = instant(clock).toISOString();
+      return persistTransition(repository, {
+        current: record,
+        action: "people.outlook.credential.profile_bound",
+        actor_id: record.user_id,
+        idempotency_key:
+          `people-outlook-profile-bind:${record.people_outlook_connection_id}:${record.state_version}`,
+        audit_payload: {
+          encrypted_credential_replaced: true,
+          refresh_profile: "people",
+          legacy_credential_migrated: true,
+        },
+        input: {
+          ...record,
+          credential_envelope: encryptCredential(
+            credential,
+            record,
+            config.credential_encryption_key,
+          ),
+          safe_error_code: null,
+          state_version: record.state_version + 1,
+          updated_at: now,
+        },
+      });
+    }
+
     function markReauthorizationRequired(record, code) {
       const now = instant(clock).toISOString();
       return persistTransition(repository, {
@@ -1175,10 +1235,39 @@ export function createPeopleOutlookOperationalRuntimeFactory({
     }
 
     async function activeCredential(record, { forceRefresh = false } = {}) {
-      let credential = decryptCredential(
-        record,
-        config.credential_encryption_key,
-      );
+      let credential;
+      try {
+        credential = decryptCredential(
+          record,
+          config.credential_encryption_key,
+          { allowLegacyPeople: true },
+        );
+      } catch (error) {
+        if (error?.safe_error_code === "OUTLOOK_CREDENTIAL_BINDING_INVALID") {
+          markReauthorizationRequired(record, error.safe_error_code);
+        }
+        throw error;
+      }
+      let currentRecord = record;
+      if (credential.legacy_unbound_people_refresh === true) {
+        if (typeof oauth.bindLegacyPeopleRefresh !== "function") {
+          throw failure(
+            "OUTLOOK_CREDENTIAL_BINDING_INVALID",
+            "Legacy People Outlook credential binding is unavailable",
+            503,
+          );
+        }
+        const binding = await oauth.bindLegacyPeopleRefresh({
+          refresh_token: credential.refresh_token,
+        });
+        credential = {
+          ...credential,
+          refresh_profile: binding.refresh_profile,
+          refresh_profile_proof: binding.refresh_profile_proof,
+        };
+        delete credential.legacy_unbound_people_refresh;
+        currentRecord = bindLegacyCredentialRecord(record, credential);
+      }
       const expiresAt = Date.parse(credential.expires_at);
       if (!Number.isFinite(expiresAt)) {
         throw failure(
@@ -1187,7 +1276,6 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           409,
         );
       }
-      let currentRecord = record;
       if (
         forceRefresh
         || expiresAt <= instant(clock).getTime() + CREDENTIAL_REFRESH_SKEW_MS
@@ -1196,11 +1284,13 @@ export function createPeopleOutlookOperationalRuntimeFactory({
         try {
           refreshed = await oauth.refresh({
             refresh_token: credential.refresh_token,
+            refresh_profile: credential.refresh_profile,
+            refresh_profile_proof: credential.refresh_profile_proof,
           });
         } catch (error) {
           if (error?.status === 401) {
             markReauthorizationRequired(
-              record,
+              currentRecord,
               error.safe_error_code ?? "OUTLOOK_REAUTHORIZATION_REQUIRED",
             );
           }
@@ -1210,11 +1300,13 @@ export function createPeopleOutlookOperationalRuntimeFactory({
           ...credential,
           access_token: refreshed.access_token,
           refresh_token: refreshed.refresh_token,
+          refresh_profile: refreshed.refresh_profile,
+          refresh_profile_proof: refreshed.refresh_profile_proof,
           expires_at: refreshed.expires_at,
           granted_scopes: refreshed.granted_scopes,
         };
         currentRecord = updateCredentialRecord(
-          record,
+          currentRecord,
           credential,
           refreshed.expires_at,
         );

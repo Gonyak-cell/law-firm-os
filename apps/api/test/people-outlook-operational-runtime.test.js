@@ -1,4 +1,9 @@
 import assert from "node:assert/strict";
+import {
+  createCipheriv,
+  createHash,
+  hkdfSync,
+} from "node:crypto";
 import test from "node:test";
 
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
@@ -34,6 +39,50 @@ const NOW = Date.parse("2026-08-03T00:30:00.000Z");
 const ACCESS_TOKEN = "operational-access-token-never-persist";
 const REFRESH_TOKEN = "operational-refresh-token-never-persist";
 const CLIENT_SECRET = "people-outlook-client-secret-never-return";
+const PEOPLE_REFRESH_PROOF = "P".repeat(43);
+const ROTATED_PEOPLE_REFRESH_PROOF = "R".repeat(43);
+const CREDENTIAL_ENVELOPE_SCHEMA =
+  "lawos.people.outlook.credential-envelope.v1";
+
+function legacyCredentialEnvelope(record, rootKey, bundle) {
+  const key = Buffer.from(hkdfSync(
+    "sha256",
+    rootKey,
+    Buffer.from("lawos.people.outlook.v1", "utf8"),
+    Buffer.from("delegated-token-bundle", "utf8"),
+    32,
+  ));
+  const aad = Buffer.from(JSON.stringify({
+    schema: CREDENTIAL_ENVELOPE_SCHEMA,
+    tenant_id: record.tenant_id,
+    employee_id: record.employee_id,
+    user_id: record.user_id,
+    people_outlook_connection_id: record.people_outlook_connection_id,
+    session_email_hash: record.session_email_hash,
+  }), "utf8");
+  const iv = Buffer.alloc(12, 0x2a);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  cipher.setAAD(aad);
+  const ciphertext = Buffer.concat([
+    cipher.update(JSON.stringify({
+      schema: CREDENTIAL_ENVELOPE_SCHEMA,
+      ...bundle,
+    }), "utf8"),
+    cipher.final(),
+  ]);
+  const envelope = {
+    schema_version: 1,
+    alg: "AES-256-GCM",
+    key_ref: `sha256:${createHash("sha256").update(key).digest("hex").slice(0, 32)}`,
+    aad_hash: `sha256:${createHash("sha256").update(aad).digest("hex")}`,
+    iv: iv.toString("base64url"),
+    tag: cipher.getAuthTag().toString("base64url"),
+    ciphertext: ciphertext.toString("base64url"),
+  };
+  return `${PEOPLE_OUTLOOK_CREDENTIAL_ENVELOPE_PREFIX}${
+    Buffer.from(JSON.stringify(envelope), "utf8").toString("base64url")
+  }`;
+}
 
 function brokerTransport(calendarViewList = async () => ({ events: [] })) {
   return Object.freeze({
@@ -58,6 +107,9 @@ function dependencies({
   let exchangeInput;
   let exchangeCount = 0;
   let refreshCount = 0;
+  const refreshInputs = [];
+  let legacyBindingCount = 0;
+  const legacyBindingInputs = [];
   const oauthClient = {
     authorizationUrl({ state, code_challenge, nonce, login_hint }) {
       assert.equal(isPeopleOutlookOAuthState(state), true);
@@ -78,6 +130,8 @@ function dependencies({
         mailbox_address: "jwsuh@amic.kr",
         access_token: ACCESS_TOKEN,
         refresh_token: REFRESH_TOKEN,
+        refresh_profile: "people",
+        refresh_profile_proof: PEOPLE_REFRESH_PROOF,
         expires_at: expiresAt,
         granted_scopes: [
           "openid",
@@ -88,11 +142,20 @@ function dependencies({
         ],
       };
     },
-    async refresh() {
+    async refresh(input) {
       refreshCount += 1;
+      refreshInputs.push(structuredClone(input));
       if (refreshError) throw refreshError;
       if (refreshResult) return structuredClone(refreshResult);
       throw new Error("refresh should not run for an unexpired pilot token");
+    },
+    async bindLegacyPeopleRefresh(input) {
+      legacyBindingCount += 1;
+      legacyBindingInputs.push(structuredClone(input));
+      return {
+        refresh_profile: "people",
+        refresh_profile_proof: PEOPLE_REFRESH_PROOF,
+      };
     },
   };
   return {
@@ -100,6 +163,9 @@ function dependencies({
     exchangeCount: () => exchangeCount,
     exchangeInput: () => exchangeInput,
     refreshCount: () => refreshCount,
+    refreshInputs: () => structuredClone(refreshInputs),
+    legacyBindingCount: () => legacyBindingCount,
+    legacyBindingInputs: () => structuredClone(legacyBindingInputs),
   };
 }
 
@@ -371,6 +437,8 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
     refreshResult: {
       access_token: rotatedAccessToken,
       refresh_token: rotatedRefreshToken,
+      refresh_profile: "people",
+      refresh_profile_proof: ROTATED_PEOPLE_REFRESH_PROOF,
       expires_at: "2026-08-03T02:30:00.000Z",
       granted_scopes: [
         "openid",
@@ -421,6 +489,11 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
   assert.equal((await runtime.calendarSource.read(input)).state, "ok");
   assert.equal((await runtime.calendarSource.read(input)).state, "ok");
   assert.equal(ports.refreshCount(), 1);
+  assert.deepEqual(ports.refreshInputs(), [{
+    refresh_token: REFRESH_TOKEN,
+    refresh_profile: "people",
+    refresh_profile_proof: PEOPLE_REFRESH_PROOF,
+  }]);
   assert.deepEqual(graphAuthorizations, [
     rotatedAccessToken,
     rotatedAccessToken,
@@ -434,6 +507,138 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
   ]) {
     assert.equal(snapshot.includes(secret), false);
   }
+});
+
+test("legacy People credential is broker-bound to People, re-encrypted in the same connection, and audited before Graph use", async () => {
+  const rootKey = Buffer.alloc(32, 21);
+  const migratedAccessToken = "legacy-migrated-access-token-never-persist";
+  const migratedRefreshToken = "legacy-migrated-refresh-token-never-persist";
+  const repository = createEmailDmsRepository();
+  const ports = dependencies({
+    refreshResult: {
+      access_token: migratedAccessToken,
+      refresh_token: migratedRefreshToken,
+      refresh_profile: "people",
+      refresh_profile_proof: ROTATED_PEOPLE_REFRESH_PROOF,
+      expires_at: "2026-08-03T02:30:00.000Z",
+      granted_scopes: [
+        "openid",
+        "profile",
+        "email",
+        "offline_access",
+        "Calendars.ReadBasic",
+      ],
+    },
+  });
+  let graphCalls = 0;
+  const runtime = createPeopleOutlookOperationalRuntimeFactory({
+    config: {
+      tenant_id: "11111111-1111-4111-8111-111111111111",
+      client_id: "22222222-2222-4222-8222-222222222222",
+      client_secret: CLIENT_SECRET,
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
+      state_encryption_key: rootKey.toString("base64"),
+    },
+    oauth_client: ports.oauthClient,
+    microsoft_egress_transport: brokerTransport(async ({ access_token }) => {
+      graphCalls += 1;
+      assert.equal(access_token, migratedAccessToken);
+      return { events: [], page_count: 1, provider_request_ids: [] };
+    }),
+    clock: () => NOW,
+  })({ repository });
+  const principal = {
+    tenant_id: TENANT,
+    employee_id: EMPLOYEE,
+    user_id: USER,
+    session_email: "jwsuh@amic.kr",
+    can_manage: true,
+  };
+  const begun = runtime.connections.begin(principal);
+  await runtime.connections.complete({
+    ...principal,
+    authorization_code: "0.ABC_legacy-people-code-20260806",
+    state_ref: begun.state_ref,
+  });
+  const connected = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  const legacyEnvelope = legacyCredentialEnvelope(connected, rootKey, {
+    access_token: ACCESS_TOKEN,
+    refresh_token: REFRESH_TOKEN,
+    expires_at: "2026-08-03T00:30:30.000Z",
+    provider_subject_id: "entra-subject-jwsuh",
+    mailbox_address: "jwsuh@amic.kr",
+    granted_scopes: [
+      "openid",
+      "profile",
+      "email",
+      "offline_access",
+      "Calendars.ReadBasic",
+    ],
+  });
+  repository.update({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+    people_outlook_connection_id: connected.people_outlook_connection_id,
+  }, { credential_envelope: legacyEnvelope });
+
+  const readInput = {
+    tenant_id: TENANT,
+    employee_ids: [EMPLOYEE],
+    as_of: "2026-08-03",
+    timezone: "Asia/Seoul",
+  };
+  assert.equal((await runtime.calendarSource.read(readInput)).state, "ok");
+  assert.equal(ports.legacyBindingCount(), 1);
+  assert.deepEqual(ports.legacyBindingInputs(), [{
+    refresh_token: REFRESH_TOKEN,
+  }]);
+  assert.equal(ports.refreshCount(), 1);
+  assert.deepEqual(ports.refreshInputs(), [{
+    refresh_token: REFRESH_TOKEN,
+    refresh_profile: "people",
+    refresh_profile_proof: PEOPLE_REFRESH_PROOF,
+  }]);
+  assert.equal(graphCalls, 1);
+  const migrated = repository.list({
+    tenant_id: TENANT,
+    model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+  })[0];
+  assert.equal(
+    migrated.people_outlook_connection_id,
+    connected.people_outlook_connection_id,
+  );
+  assert.equal(migrated.state_version, connected.state_version + 2);
+  assert.notEqual(migrated.credential_envelope, legacyEnvelope);
+  const migrationAudit = repository.listAudit({ tenant_id: TENANT }).find(
+    ({ event_type }) => (
+      event_type === "people.outlook.credential.profile_bound"
+    ),
+  );
+  assert.equal(migrationAudit.payload.refresh_profile, "people");
+  assert.equal(migrationAudit.payload.legacy_credential_migrated, true);
+  assert.equal(
+    repository.listAudit({ tenant_id: TENANT }).some(
+      ({ event_type }) => (
+        event_type === "people.outlook.credential.refreshed"
+      ),
+    ),
+    true,
+  );
+  const persistedText = JSON.stringify(repository.snapshot());
+  assert.equal(persistedText.includes(ACCESS_TOKEN), false);
+  assert.equal(persistedText.includes(REFRESH_TOKEN), false);
+  assert.equal(persistedText.includes(PEOPLE_REFRESH_PROOF), false);
+  assert.equal(persistedText.includes(migratedAccessToken), false);
+  assert.equal(persistedText.includes(migratedRefreshToken), false);
+  assert.equal(persistedText.includes(ROTATED_PEOPLE_REFRESH_PROOF), false);
+
+  assert.equal((await runtime.calendarSource.read(readInput)).state, "ok");
+  assert.equal(ports.legacyBindingCount(), 1);
+  assert.equal(ports.refreshCount(), 1);
+  assert.equal(graphCalls, 2);
 });
 
 test("operational People Outlook clears encrypted tokens when Microsoft requires reauthorization", async () => {
@@ -1079,6 +1284,51 @@ test("People Outlook falls back to the shared M365 JSON Secret", async () => {
   assert.equal(typeof factory, "function");
   assert.equal(commands.length, 1);
   assert.deepEqual(commands[0].input, { SecretId: secretId });
+});
+
+test("10인 내부 파일럿은 같은 Entra 앱 ID에서도 People read-only scope profile을 유지한다", async () => {
+  const sharedClientId = "22222222-2222-4222-8222-222222222222";
+  const factory = await createPeopleOutlookOperationalRuntimeFactoryFromSecretReference({
+    env: {
+      AWS_REGION: "ap-northeast-2",
+      [LAWOS_M365_CONFIG_SECRET_ID_ENV]: "/lawos/production/m365/config",
+    },
+    secrets_client: {
+      async send() {
+        return {
+          SecretString: JSON.stringify({
+            tenant_id: "11111111-1111-4111-8111-111111111111",
+            people_outlook: {
+              client_id: sharedClientId,
+              client_secret: CLIENT_SECRET,
+              redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.people,
+              state_encryption_key: Buffer.alloc(32, 10).toString("base64"),
+            },
+            client_outlook: {
+              client_id: sharedClientId.toUpperCase(),
+            },
+          }),
+        };
+      },
+    },
+    microsoft_egress_transport: brokerTransport(),
+    clock: () => NOW,
+  });
+
+  const runtime = factory({ repository: createEmailDmsRepository() });
+  const begun = runtime.connections.begin({
+    tenant_id: TENANT,
+    employee_id: EMPLOYEE,
+    user_id: USER,
+    session_email: "jwsuh@amic.kr",
+    can_manage: true,
+  });
+  const authorizeUrl = new URL(begun.authorize_url);
+  const scopes = authorizeUrl.searchParams.get("scope").split(" ");
+  assert.equal(authorizeUrl.searchParams.get("client_id"), sharedClientId);
+  assert.equal(scopes.includes("Calendars.ReadBasic"), true);
+  assert.equal(scopes.includes("Calendars.ReadWrite"), false);
+  assert.equal(scopes.includes("Mail.Read"), false);
 });
 
 test("Lambda Outlook bootstrap is disabled cleanly and fails closed when enabled without config", async () => {

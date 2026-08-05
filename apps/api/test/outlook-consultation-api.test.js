@@ -148,7 +148,15 @@ function fixture({
             "outlook-consultation-access-token-never-return",
           refresh_token:
             "outlook-consultation-refresh-token-never-return",
+          mailbox_address: "calendar-user@example.invalid",
+          refresh_profile: "client",
+          refresh_profile_proof: "c".repeat(43),
+          expires_at: "2026-08-30T08:00:00.000Z",
+          granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
         };
+      },
+      async storeDelegatedCredential() {
+        throw new Error("unexpected credential refresh in consultation test");
       },
     },
     provider: {

@@ -5,13 +5,13 @@
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
   <Id>8f3cc90d-56dd-4c1c-b9c2-0a1100500101</Id>
-  <Version>0.1.0.0</Version>
+  <Version>1.0.0.0</Version>
   <ProviderName>Law Firm OS</ProviderName>
   <DefaultLocale>ko-KR</DefaultLocale>
-  <DisplayName DefaultValue="matter filing" />
-  <Description DefaultValue="Outlook에서 이메일을 matter에 filing하고 첨부와 후속 업무를 연결합니다." />
-  <IconUrl DefaultValue="https://localhost:5186/assets/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://localhost:5186/assets/icon-64.png" />
+  <DisplayName DefaultValue="LawOS 메일 보관" />
+  <Description DefaultValue="Outlook 메일과 첨부 파일을 Matter에 보관하고 후속 업무를 만듭니다." />
+  <IconUrl DefaultValue="https://localhost:5186/amic-law-icon.png" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:5186/amic-law-icon.png" />
   <SupportUrl DefaultValue="https://localhost:5186/support" />
   <AppDomains>
     <AppDomain>https://localhost:5186</AppDomain>
@@ -22,7 +22,7 @@
   </Hosts>
   <Requirements>
     <Sets>
-      <Set Name="Mailbox" MinVersion="1.13" />
+      <Set Name="Mailbox" MinVersion="1.14" />
     </Sets>
   </Requirements>
   <FormSettings>
@@ -33,7 +33,7 @@
       </DesktopSettings>
     </Form>
   </FormSettings>
-  <Permissions>ReadWriteMailbox</Permissions>
+  <Permissions>ReadItem</Permissions>
   <Rule xsi:type="RuleCollection" Mode="Or">
     <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
     <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
@@ -41,7 +41,7 @@
   <DisableEntityHighlighting>false</DisableEntityHighlighting>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Requirements>
-      <bt:Sets DefaultMinVersion="1.13">
+      <bt:Sets DefaultMinVersion="1.14">
         <bt:Set Name="Mailbox" />
       </bt:Sets>
     </Requirements>
@@ -93,32 +93,115 @@
               </Group>
             </OfficeTab>
           </ExtensionPoint>
-          <ExtensionPoint xsi:type="LaunchEvent">
-            <LaunchEvents>
-              <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="SoftBlock" />
-            </LaunchEvents>
-            <SourceLocation resid="Commands.Url" />
-          </ExtensionPoint>
         </DesktopFormFactor>
       </Host>
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:5186/assets/icon-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:5186/assets/icon-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:5186/assets/icon-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:5186/amic-law-icon.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:5186/amic-law-icon.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:5186/amic-law-icon.png" />
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:5186/index.html" />
         <bt:Url id="Commands.Url" DefaultValue="https://localhost:5186/index.html?commands=1" />
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="Group.Label" DefaultValue="matter" />
-        <bt:String id="TaskpaneButton.Label" DefaultValue="matter filing" />
+        <bt:String id="Group.Label" DefaultValue="LawOS" />
+        <bt:String id="TaskpaneButton.Label" DefaultValue="메일 처리" />
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="현재 메일을 matter에 filing하고 첨부·업무를 연결합니다." />
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="현재 메일을 Matter에 보관하고 첨부 파일과 후속 업무를 연결합니다." />
       </bt:LongStrings>
     </Resources>
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.14">
+          <bt:Set Name="Mailbox" />
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <Runtimes>
+            <Runtime resid="WebViewRuntime.Url" lifetime="short">
+              <Override type="javascript" resid="JSRuntime.Url" />
+            </Runtime>
+          </Runtimes>
+          <DesktopFormFactor>
+            <FunctionFile resid="Commands.Url" />
+            <ExtensionPoint xsi:type="MessageReadCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="msgReadGroup">
+                  <Label resid="Group.Label" />
+                  <Control xsi:type="Button" id="msgReadOpenPaneButton">
+                    <Label resid="TaskpaneButton.Label" />
+                    <Supertip>
+                      <Title resid="TaskpaneButton.Label" />
+                      <Description resid="TaskpaneButton.Tooltip" />
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Icon.16x16" />
+                      <bt:Image size="32" resid="Icon.32x32" />
+                      <bt:Image size="80" resid="Icon.80x80" />
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="Taskpane.Url" />
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+            <ExtensionPoint xsi:type="MessageComposeCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="msgComposeGroup">
+                  <Label resid="Group.Label" />
+                  <Control xsi:type="Button" id="msgComposeOpenPaneButton">
+                    <Label resid="TaskpaneButton.Label" />
+                    <Supertip>
+                      <Title resid="TaskpaneButton.Label" />
+                      <Description resid="TaskpaneButton.Tooltip" />
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Icon.16x16" />
+                      <bt:Image size="32" resid="Icon.32x32" />
+                      <bt:Image size="80" resid="Icon.80x80" />
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="Taskpane.Url" />
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="PromptUser" />
+              </LaunchEvents>
+              <SourceLocation resid="WebViewRuntime.Url" />
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Images>
+          <bt:Image id="Icon.16x16" DefaultValue="https://localhost:5186/amic-law-icon.png" />
+          <bt:Image id="Icon.32x32" DefaultValue="https://localhost:5186/amic-law-icon.png" />
+          <bt:Image id="Icon.80x80" DefaultValue="https://localhost:5186/amic-law-icon.png" />
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:5186/index.html" />
+          <bt:Url id="Commands.Url" DefaultValue="https://localhost:5186/index.html?commands=1" />
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:5186/event-runtime.html" />
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:5186/event-runtime.js" />
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="Group.Label" DefaultValue="LawOS" />
+          <bt:String id="TaskpaneButton.Label" DefaultValue="메일 처리" />
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="TaskpaneButton.Tooltip" DefaultValue="현재 메일을 Matter에 보관하고 첨부 파일과 후속 업무를 연결합니다." />
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
   </VersionOverrides>
 </OfficeApp>

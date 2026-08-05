@@ -104,6 +104,130 @@ test("PostgreSQL identity directory is tenant-scoped, replay-safe and never expo
   const account = await ledger.getAccount({ tenant_id: tenantId, user_id: input.user.user_id });
   assert.equal(account.credential_status, "active");
   assert.equal(account.password_hash.algorithm, "synthetic-test-hash");
+  const existingSession = await ledger.completeLogin({
+    tenant_id: tenantId,
+    user: input.user,
+    session_jti: "session-before-office-sso-binding",
+    session_id: "session-id-before-office-sso-binding",
+    credential_rev: account.credential_rev,
+    issued_at: "2026-07-20T03:00:00.000Z",
+    expires_at: "2026-07-20T04:00:00.000Z",
+  });
+  assert.equal(existingSession.ok, true);
+
+  const primaryLoginLock = await ledger.recordLoginFailure({
+    tenant_id: tenantId,
+    user: input.user,
+    max_failed_logins: 1,
+    lock_ms: 60 * 60 * 1000,
+  });
+  assert.equal(primaryLoginLock.locked, true);
+
+  const officeBound = await ledger.ensureFederatedAccount({
+    tenant_id: tenantId,
+    user: input.user,
+    provider_id: "microsoft-office-naa-sso-test",
+    federated_tenant_id: "11111111-1111-4111-8111-111111111111",
+    federated_subject_id: "22222222-2222-4222-8222-222222222222",
+    actor_id: input.user.user_id,
+    preserve_primary_credential: true,
+    audit_action: "auth.office_sso_identity.bound",
+  });
+  assert.equal(officeBound.credential_provider, account.credential_provider);
+  assert.equal(officeBound.credential_status, account.credential_status);
+  assert.equal(officeBound.credential_rev, account.credential_rev);
+  assert.deepEqual(officeBound.password_hash, account.password_hash);
+  assert.equal(officeBound.failed_login_count, primaryLoginLock.count);
+  assert.equal(officeBound.locked_until, primaryLoginLock.locked_until);
+  assert.equal(
+    officeBound.federated_tenant_id,
+    "11111111-1111-4111-8111-111111111111",
+  );
+  assert.equal(
+    officeBound.federated_subject_id,
+    "22222222-2222-4222-8222-222222222222",
+  );
+  assert.equal(
+    (await ledger.listSecurityAudit({ tenant_id: tenantId }))
+      .some((event) => event.action === "auth.office_sso_identity.bound"),
+    true,
+  );
+  assert.deepEqual(await ledger.validateSession({
+    tenant_id: tenantId,
+    session_jti: "session-before-office-sso-binding",
+    user_id: input.user.user_id,
+  }), {
+    ok: true,
+    user_id: input.user.user_id,
+    credential_rev: account.credential_rev,
+    credential_status: "active",
+  });
+  const lockedPasswordLogin = await ledger.completeLogin({
+    tenant_id: tenantId,
+    user: input.user,
+    session_jti: "password-session-while-locked",
+    session_id: "password-session-id-while-locked",
+    credential_rev: account.credential_rev,
+    issued_at: "2026-07-20T03:05:00.000Z",
+    expires_at: "2026-07-20T04:05:00.000Z",
+  });
+  assert.equal(lockedPasswordLogin.safe_error_code, "AUTH_LOGIN_LOCKED");
+
+  const officeSession = await ledger.completeLogin({
+    tenant_id: tenantId,
+    user: input.user,
+    session_jti: "office-session-while-password-locked",
+    session_id: "office-session-id-while-password-locked",
+    credential_rev: account.credential_rev,
+    issued_at: "2026-07-20T03:05:00.000Z",
+    expires_at: "2026-07-20T04:05:00.000Z",
+    preserve_login_failure_state: true,
+  });
+  assert.equal(officeSession.ok, false);
+  assert.equal(officeSession.status, 423);
+  assert.equal(officeSession.safe_error_code, "AUTH_LOGIN_LOCKED");
+  assert.deepEqual(await ledger.validateSession({
+    tenant_id: tenantId,
+    session_jti: "office-session-while-password-locked",
+    user_id: input.user.user_id,
+  }), {
+    ok: false,
+    reason: "session_not_active",
+    safe_error_code: "AUTH_SESSION_REVOKED",
+    status: 401,
+  });
+  const afterOfficeSession = await ledger.getAccount({
+    tenant_id: tenantId,
+    user_id: input.user.user_id,
+  });
+  assert.equal(afterOfficeSession.failed_login_count, primaryLoginLock.count);
+  assert.equal(afterOfficeSession.locked_until, primaryLoginLock.locked_until);
+  await assert.rejects(
+    ledger.ensureFederatedAccount({
+      tenant_id: tenantId,
+      user: input.user,
+      provider_id: "microsoft-office-naa-sso-test",
+      federated_tenant_id: "11111111-1111-4111-8111-111111111111",
+      federated_subject_id: "33333333-3333-4333-8333-333333333333",
+      actor_id: input.user.user_id,
+      preserve_primary_credential: true,
+    }),
+    (error) => error.safe_error_code === "FEDERATED_IDENTITY_CONFLICT",
+  );
+  const afterConflict = await ledger.getAccount({
+    tenant_id: tenantId,
+    user_id: input.user.user_id,
+  });
+  for (const field of [
+    "credential_provider",
+    "credential_status",
+    "credential_rev",
+    "federated_tenant_id",
+    "federated_subject_id",
+  ]) {
+    assert.equal(afterConflict[field], officeBound[field]);
+  }
+  assert.deepEqual(afterConflict.password_hash, officeBound.password_hash);
 
   await assert.rejects(ledger.provisionDirectoryUser({
     ...input,

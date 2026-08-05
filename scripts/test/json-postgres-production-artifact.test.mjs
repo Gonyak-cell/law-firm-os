@@ -4,6 +4,7 @@ import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
   JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
   JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
+  JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS,
   emptyJsonPostgresProductionSources,
   parseJsonPostgresProductionGitTree,
   redactJsonPostgresProductionRuntimeSource,
@@ -75,7 +76,6 @@ test("production redaction removes all real identity markers", () => {
   const fixtures = [
     ["apps/api/src/lambda.js",
       'const x = "lawos-owner-fixture@amic.kr user_amic_owner_fixture emp_amic_owner_fixture assumed-role/lawos-private-staging-api-role/";'],
-    ["apps/api/src/outlook-addin-runtime-context.js", 'const x = "someone@amic.law";'],
     ["packages/matter/src/worktree-template-model.js", 'const x = "someone@amic.kr";'],
   ];
   const redacted = fixtures.map(([targetPath, text]) => ({
@@ -87,6 +87,27 @@ test("production redaction removes all real identity markers", () => {
     0,
   );
   assert.doesNotMatch(JSON.stringify(redacted), /lawos-private-staging/iu);
+});
+
+test("production source boundary accepts marker-free Outlook source and rejects real identity markers generically", () => {
+  assert.equal(
+    JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS.includes("apps/api/src/outlook-addin-runtime-context.js"),
+    false,
+  );
+  assert.deepEqual(
+    validateJsonPostgresProductionSourceBoundary([{
+      path: "apps/api/src/outlook-addin-runtime-context.js",
+      text: 'const domain = process.env.M365_ALLOWED_DOMAIN ?? "example.invalid";\n',
+    }]),
+    { scanned_source_count: 1, real_identity_marker_count: 0 },
+  );
+  assert.throws(
+    () => validateJsonPostgresProductionSourceBoundary([{
+      path: "apps/api/src/outlook-addin-runtime-context.js",
+      text: 'const email = "someone@amic.kr";\n',
+    }]),
+    /real identity markers/u,
+  );
 });
 
 test("production overrides are empty and PostgreSQL membership backed", () => {

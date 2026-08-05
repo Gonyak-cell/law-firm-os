@@ -21,6 +21,8 @@ const REDIRECT_URI = MICROSOFT_EGRESS_REDIRECT_URIS.people;
 const PEOPLE_CLIENT_SECRET = "people-outlook-secret-never-return";
 const NOW = Date.parse("2026-08-03T03:00:00.000Z");
 const NONCE = "delegated-oauth-nonce-20260803";
+const PEOPLE_REFRESH_PROOF = "P".repeat(43);
+const CLIENT_REFRESH_PROOF = "C".repeat(43);
 
 function digest(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -62,6 +64,12 @@ function fixture({
     ...claims,
   });
   const calls = [];
+  const refreshProfile = scopes.some((scope) => (
+    scope.toLowerCase().endsWith("calendars.readbasic")
+  )) ? "people" : "client";
+  const refreshProfileProof = refreshProfile === "people"
+    ? PEOPLE_REFRESH_PROOF
+    : CLIENT_REFRESH_PROOF;
   const transport = {
     async oauthJwksGet(input) {
       calls.push({ method: "oauthJwksGet", input });
@@ -80,6 +88,8 @@ function fixture({
         token_type: "Bearer",
         access_token: "provider-access-token-never-persist",
         refresh_token: "provider-refresh-token-never-persist",
+        refresh_profile: refreshProfile,
+        refresh_profile_proof: refreshProfileProof,
         id_token: idToken,
         expires_in: 3600,
         scope: scopes.join(" "),
@@ -91,8 +101,17 @@ function fixture({
         token_type: "Bearer",
         access_token: "provider-refreshed-access-token-never-persist",
         refresh_token: "provider-refreshed-refresh-token-never-persist",
+        refresh_profile: refreshProfile,
+        refresh_profile_proof: refreshProfileProof,
         expires_in: 3600,
         scope: scopes.join(" "),
+      };
+    },
+    async oauthLegacyPeopleRefreshBind(input) {
+      calls.push({ method: "oauthLegacyPeopleRefreshBind", input });
+      return {
+        refresh_profile: "people",
+        refresh_profile_proof: PEOPLE_REFRESH_PROOF,
       };
     },
   };
@@ -149,6 +168,8 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
   assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
   assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
   assert.equal(exchanged.expires_at, "2026-08-03T04:00:00.000Z");
+  assert.equal(exchanged.refresh_profile, "people");
+  assert.equal(exchanged.refresh_profile_proof, PEOPLE_REFRESH_PROOF);
   const tokenCall = provider.calls.find(
     ({ method }) => method === "oauthTokenExchange",
   );
@@ -201,6 +222,8 @@ test("Client Outlook OAuth profile requests only the Add-in delegated scopes and
   });
   assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
   assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
+  assert.equal(exchanged.refresh_profile, "client");
+  assert.equal(exchanged.refresh_profile_proof, CLIENT_REFRESH_PROOF);
   assert.deepEqual(
     [...exchanged.granted_scopes].sort(),
     ["Calendars.ReadWrite", "Mail.Read", "offline_access"].sort(),
@@ -294,6 +317,8 @@ test("delegated OAuth refresh uses only the fixed broker refresh request", async
 
   const refreshed = await client.refresh({
     refresh_token: "provider-current-refresh-token-never-persist",
+    refresh_profile: "people",
+    refresh_profile_proof: PEOPLE_REFRESH_PROOF,
   });
   const refreshCall = provider.calls.find(
     ({ method }) => method === "oauthTokenRefresh",
@@ -303,10 +328,91 @@ test("delegated OAuth refresh uses only the fixed broker refresh request", async
     client_id: CLIENT_ID,
     client_secret: PEOPLE_CLIENT_SECRET,
     refresh_token: "provider-current-refresh-token-never-persist",
+    refresh_profile_proof: PEOPLE_REFRESH_PROOF,
+    redirect_profile: "people",
     scopes: PEOPLE_OUTLOOK_OAUTH_SCOPES,
   });
   assert.equal(
     refreshed.access_token,
     "provider-refreshed-access-token-never-persist",
   );
+});
+
+test("Client Outlook refresh carries the server-fixed client profile", async () => {
+  const provider = fixture({ scopes: CLIENT_OUTLOOK_OAUTH_SCOPES });
+  const client = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      client_secret: "client-outlook-secret-never-return",
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.client,
+    },
+    microsoft_egress_transport: provider.transport,
+    clock: () => NOW,
+    scope_profile: "client_outlook_addin",
+  });
+
+  await client.refresh({
+    refresh_token: "client-refresh-token-never-persist",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+  });
+  const refreshCall = provider.calls.find(
+    ({ method }) => method === "oauthTokenRefresh",
+  );
+  assert.deepEqual(refreshCall.input, {
+    tenant_id: TENANT_ID,
+    client_id: CLIENT_ID,
+    client_secret: "client-outlook-secret-never-return",
+    refresh_token: "client-refresh-token-never-persist",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    redirect_profile: "client",
+    scopes: CLIENT_OUTLOOK_OAUTH_SCOPES,
+  });
+  await assert.rejects(
+    client.bindLegacyPeopleRefresh({
+      refresh_token: "client-refresh-token-never-persist",
+    }),
+    (error) => (
+      error.safe_error_code === "OUTLOOK_REFRESH_PROFILE_INVALID"
+      && error.status === 403
+    ),
+  );
+  assert.equal(
+    provider.calls.some(
+      ({ method }) => method === "oauthLegacyPeopleRefreshBind",
+    ),
+    false,
+  );
+});
+
+test("People legacy refresh binding invokes a fixed broker operation without client secret or profile input", async () => {
+  const provider = fixture();
+  const client = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      client_secret: PEOPLE_CLIENT_SECRET,
+      redirect_uri: REDIRECT_URI,
+    },
+    microsoft_egress_transport: provider.transport,
+    clock: () => NOW,
+  });
+  const binding = await client.bindLegacyPeopleRefresh({
+    refresh_token: "legacy-people-refresh-token-never-persist",
+  });
+  assert.deepEqual(binding, {
+    refresh_profile: "people",
+    refresh_profile_proof: PEOPLE_REFRESH_PROOF,
+  });
+  const call = provider.calls.find(
+    ({ method }) => method === "oauthLegacyPeopleRefreshBind",
+  );
+  assert.deepEqual(call.input, {
+    tenant_id: TENANT_ID,
+    client_id: CLIENT_ID,
+    refresh_token: "legacy-people-refresh-token-never-persist",
+  });
+  assert.equal(Object.hasOwn(call.input, "client_secret"), false);
+  assert.equal(Object.hasOwn(call.input, "refresh_profile"), false);
 });

@@ -25,7 +25,6 @@ const REAL_IDENTITY_SOURCE_PATTERN = /@amic\.(?:kr|law)|\b(?:user|emp)_amic_[a-z
 
 export const PRIVATE_STAGING_SOURCE_REDACTION_TARGETS = Object.freeze([
   "apps/api/src/lambda.js",
-  "apps/api/src/outlook-addin-runtime-context.js",
   "packages/matter/src/worktree-template-model.js",
 ]);
 
@@ -78,8 +77,6 @@ export function redactPrivateStagingRuntimeSource({ targetPath, text, syntheticS
         }
         return employeeReplacements.get(source);
       });
-  } else if (path === "apps/api/src/outlook-addin-runtime-context.js") {
-    output = output.replaceAll("@amic.law", "@lawos-staging.invalid");
   } else if (path === "packages/matter/src/worktree-template-model.js") {
     output = output.replace(/\b[A-Z0-9._%+-]+@amic\.kr\b/giu, admin.email);
   }

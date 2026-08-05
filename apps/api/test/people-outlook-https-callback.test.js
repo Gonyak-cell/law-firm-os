@@ -161,7 +161,7 @@ test("People callback rejects mixed or unsupported authorization results", () =>
   );
 });
 
-test("Client Add-in encrypted state is not routed through the People desktop bridge", async () => {
+test("Client Add-in encrypted state is routed to the fixed task-pane callback without a LawOS session", async () => {
   await withServer(async (baseUrl) => {
     const query = new URLSearchParams({
       code: AUTHORIZATION_CODE,
@@ -172,7 +172,13 @@ test("Client Add-in encrypted state is not routed through the People desktop bri
       { redirect: "manual" },
     );
 
-    assert.equal(response.status, 401);
-    assert.equal(response.headers.has("location"), false);
+    assert.equal(response.status, 302);
+    const location = new URL(response.headers.get("location"));
+    assert.equal(location.origin, "https://d2mthcc8vp3cr2.cloudfront.net");
+    assert.equal(location.pathname, "/addin/oauth-callback.html");
+    assert.equal(location.search, "");
+    const fragment = new URLSearchParams(location.hash.slice(1));
+    assert.equal(fragment.get("code"), AUTHORIZATION_CODE);
+    assert.equal(fragment.get("state"), "v1.iv.ciphertext.tag");
   });
 });
