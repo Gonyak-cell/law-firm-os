@@ -21,9 +21,35 @@ function safeErrorCode(error) {
 }
 
 function warningCount(alertBody) {
-  return Array.isArray(alertBody?.item?.warnings)
+  const listedCount = Array.isArray(alertBody?.item?.warnings)
     ? alertBody.item.warnings.length
-    : Number(alertBody?.item?.warning_count ?? 0) || 0;
+    : 0;
+  const reportedCount = Number(alertBody?.item?.warning_count ?? 0) || 0;
+  return Math.max(listedCount, reportedCount);
+}
+
+function warningMessage(alertBody) {
+  const warnings = Array.isArray(alertBody?.item?.warnings)
+    ? alertBody.item.warnings
+    : [];
+  const count = Math.max(warningCount(alertBody), 1);
+  const titles = warnings
+    .map((warning) => warning?.title ?? warning?.code ?? warning?.warning_id)
+    .map((value) => String(value ?? "").replace(/[\u0000-\u001f\u007f]/gu, " ").replace(/\s+/gu, " ").trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  const detail = titles.length > 0 ? `\n${titles.join(" · ")}` : "";
+  const message = `보내기 전에 확인할 내용이 ${count}건 있습니다.${detail}`;
+  return message.length <= 500 ? message : `${message.slice(0, 497)}...`;
+}
+
+function warningCompletion(alertBody) {
+  return {
+    allowEvent: false,
+    errorMessage: warningMessage(alertBody),
+    cancelLabel: "확인 후 다시 보내기",
+    commandId: "msgComposeOpenPaneButton",
+  };
 }
 
 function failureWarning(error) {
@@ -70,7 +96,8 @@ function settleWithin(value, {
 }
 
 /**
- * Handle Outlook's send event without ever blocking the send operation.
+ * Handle Outlook's send event, presenting Smart Alerts warnings while keeping
+ * local read/evaluation failures fail-open for the pilot.
  *
  * `event.completed` is guarded locally rather than delegated to callers so a
  * late promise callback cannot complete the same Office event twice. Any
@@ -100,8 +127,8 @@ export async function handleOutlookMessageSend({
     throw new TypeError("Smart Alert timeouts are required");
   }
   let completed = false;
-  const completeOnce = () => {
-    const completion = { allowEvent: true };
+  const completeOnce = (payload = {}) => {
+    const completion = { allowEvent: true, ...payload };
     if (!completed) {
       completed = true;
       try {
@@ -166,7 +193,10 @@ export async function handleOutlookMessageSend({
       notificationError = error;
     }
 
-    const completion = completeOnce();
+    const hasWarnings = warningCount(alertBody) > 0;
+    const completion = hasWarnings || alertBody?.item?.send_blocked === true
+      ? completeOnce(warningCompletion(alertBody))
+      : completeOnce();
     recordResult({
       outcome: alertBody?.outcome ?? null,
       warning_count: warningCount(alertBody),

@@ -147,6 +147,13 @@ function safeErrorCode(error, fallback) {
   return typeof code === "string" && /^[A-Z0-9_]+$/u.test(code) ? code : fallback;
 }
 
+function uploadSessionIdentityConflict() {
+  return codedError(
+    "DMS upload session identity conflicts with existing state",
+    "DMS_UPLOAD_SESSION_IDENTITY_CONFLICT",
+  );
+}
+
 function rowToSession(row) {
   if (!row) return null;
   return Object.freeze({
@@ -568,6 +575,7 @@ export function createPostgresDmsUploadRuntime({
             WHERE tenant_id = $1 AND idempotency_key = $2`,
           [tenantId, idempotencyKey],
         );
+        if (!existing.rows[0]) throw uploadSessionIdentityConflict();
         if (existing.rows[0]?.request_hash !== requestHash) {
           throw codedError("DMS upload idempotency key was reused with a different request", "DMS_IDEMPOTENCY_CONFLICT");
         }

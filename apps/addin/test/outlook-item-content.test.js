@@ -7,6 +7,7 @@ import {
   attachmentContentToPayload,
   readOutlookAttachments,
   readOutlookComposeMessage,
+  readOutlookItemClassification,
   readOutlookItemBody,
   readOutlookItemTimestamps,
   outlookMessageTimestamps,
@@ -125,8 +126,44 @@ test("Smart Alerts 작성 화면은 수신자·제목·본문을 compose getAsyn
     name: "계약서.pdf",
     content_type: "application/pdf",
     size: 3,
-    confidentiality: "internal",
   }]);
+});
+
+test("첨부 기밀성은 Outlook sensitivityLabel ID에서 보수적으로 파생한다", async () => {
+  const label = await readOutlookItemClassification({
+    Office,
+    item: {
+      sensitivityLabel: {
+        getAsync(callback) { callback({ status: "succeeded", value: "label-001" }); },
+      },
+    },
+  });
+  assert.deepEqual(label, {
+    confidentiality: "confidential",
+    sensitivity_label_id: "label-001",
+  });
+
+  const unknown = await readOutlookItemClassification({
+    Office,
+    item: {
+      sensitivityLabel: {
+        getAsync(callback) { callback({ status: "succeeded", value: "label-unknown" }); },
+      },
+    },
+  });
+  assert.deepEqual(unknown, {
+    confidentiality: "confidential",
+    sensitivity_label_id: "label-unknown",
+  });
+
+  const unlabeled = await readOutlookItemClassification({
+    item: {
+      sensitivityLabel: {
+        getAsync(callback) { callback({ status: "succeeded", value: "" }); },
+      },
+    },
+  });
+  assert.deepEqual(unlabeled, {});
 });
 
 test("Base64 첨부는 원문 바이트를 유지하고 EML/iCalendar는 텍스트 바이트로 변환한다", () => {
@@ -137,6 +174,7 @@ test("Base64 첨부는 원문 바이트를 유지하고 EML/iCalendar는 텍스�
   });
   assert.equal(base64.content_base64, "YWJj");
   assert.equal(base64.content_text, undefined);
+  assert.equal(base64.confidentiality, undefined);
 
   const eml = attachmentContentToPayload({
     Office,

@@ -1550,6 +1550,18 @@ export function createApiSessionAuth({
         body: await disabledAccountBody(requestId, user),
       });
     }
+    // Office SSO preserves the primary login-failure counters when it binds a
+    // mailbox, but that preservation must not turn an active password lock
+    // into an alternate login path.  Check the authoritative account before
+    // minting a LawOS session; completeLogin repeats the check transactionally
+    // to cover a lock that is applied concurrently.
+    const loginLock = await failedLoginState(user.email, user);
+    if (loginLock.locked) {
+      return Object.freeze({
+        status: 423,
+        body: errorBody(requestId, "AUTH_LOGIN_LOCKED", "auth_login_locked"),
+      });
+    }
     const tenantId = homeTenantIdForUser(user, trustedTenantId);
     const principal = principalFromSignedSession({
       user,

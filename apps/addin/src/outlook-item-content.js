@@ -4,6 +4,7 @@ export const OUTLOOK_ITEM_CONTENT_ERROR_CODES = Object.freeze({
   body_unavailable: "OUTLOOK_ITEM_BODY_UNAVAILABLE",
   headers_unavailable: "OUTLOOK_ITEM_HEADERS_UNAVAILABLE",
   compose_field_unavailable: "OUTLOOK_COMPOSE_FIELD_UNAVAILABLE",
+  sensitivity_label_unavailable: "OUTLOOK_ITEM_SENSITIVITY_LABEL_UNAVAILABLE",
   attachment_content_unavailable: "OUTLOOK_ATTACHMENT_CONTENT_UNAVAILABLE",
   attachment_unsupported: "OUTLOOK_ATTACHMENT_CONTENT_UNSUPPORTED",
   attachment_missing_id: "OUTLOOK_ATTACHMENT_ID_REQUIRED",
@@ -75,6 +76,54 @@ function callOfficeAsync(target, methodName, args, { errorCode, message, timeout
       rejectOnce(contentError(errorCode, message, { cause: error }));
     }
   });
+}
+
+function safeClassificationText(value) {
+  if (typeof value !== "string") return null;
+  const text = value.trim().replace(/[\u0000-\u001f\u007f]/gu, " ").replace(/\s+/gu, " ");
+  return text.length > 256 ? text.slice(0, 256) : text || null;
+}
+
+/**
+ * Read only classification metadata exposed by Outlook's supported
+ * sensitivityLabel API. The API returns an opaque tenant-defined id, not a
+ * severity. The warning-only Smart Alerts rule therefore treats any nonempty
+ * label as confidential conservatively and preserves the id for review. It
+ * never changes the item, blocks attachment reads, or writes a label.
+ */
+export async function readOutlookItemClassification({ item, timeoutMs } = {}) {
+  if (typeof item?.sensitivityLabel?.getAsync !== "function") return Object.freeze({});
+  let sensitivityLabelId;
+  try {
+    sensitivityLabelId = safeClassificationText(await callOfficeAsync(
+      item.sensitivityLabel,
+      "getAsync",
+      [],
+      {
+        errorCode: OUTLOOK_ITEM_CONTENT_ERROR_CODES.sensitivity_label_unavailable,
+        message: "현재 Outlook 메일의 민감도 레이블을 읽을 수 없습니다.",
+        timeoutMs,
+      },
+    ));
+  } catch {
+    return Object.freeze({});
+  }
+  if (!sensitivityLabelId) return Object.freeze({});
+  return Object.freeze({
+    confidentiality: "confidential",
+    ...(sensitivityLabelId ? { sensitivity_label_id: sensitivityLabelId } : {}),
+  });
+}
+
+function classificationPayload(classification) {
+  return classification && typeof classification === "object"
+    ? Object.freeze({
+      ...(classification.confidentiality ? { confidentiality: classification.confidentiality } : {}),
+      ...(classification.sensitivity_label_id
+        ? { sensitivity_label_id: classification.sensitivity_label_id }
+        : {}),
+    })
+    : Object.freeze({});
 }
 
 export function readOutlookItemBody({ item, Office, timeoutMs } = {}) {
@@ -217,6 +266,7 @@ export async function readOutlookComposeMessage({
     displayName: profile.displayName,
     emailAddress: profile.emailAddress,
   });
+  const classification = await readOutlookItemClassification({ item, timeoutMs });
   const attachments = Object.freeze(
     (Array.isArray(item.attachments) ? item.attachments : [])
       .map((attachment) => ({
@@ -224,7 +274,7 @@ export async function readOutlookComposeMessage({
         name: attachment?.name ?? "첨부 파일",
         content_type: attachment?.contentType ?? "application/octet-stream",
         size: Number.isSafeInteger(attachment?.size) ? attachment.size : null,
-        confidentiality: "internal",
+        ...classificationPayload(classification),
       })),
   );
   return Object.freeze({
@@ -293,7 +343,7 @@ function ensureAttachmentSize({ byteLength, attachment, name } = {}) {
   );
 }
 
-export function attachmentContentToPayload({ attachment, content, Office } = {}) {
+export function attachmentContentToPayload({ attachment, content, Office, classification } = {}) {
   const format = formatType(Office, content?.format);
   const name = String(attachment?.name ?? "첨부 파일").trim() || "첨부 파일";
   const attachmentId = String(attachment?.id ?? attachment?.attachment_id ?? "").trim();
@@ -333,7 +383,7 @@ export function attachmentContentToPayload({ attachment, content, Office } = {})
       content_type: attachment.contentType ?? attachment.content_type ?? "application/octet-stream",
       size: Number.isSafeInteger(attachment.size) ? attachment.size : undefined,
       content_base64: encoded,
-      confidentiality: "internal",
+      ...classificationPayload(classification),
     });
   }
   if (format === "eml" || format === "icalendar") {
@@ -346,7 +396,7 @@ export function attachmentContentToPayload({ attachment, content, Office } = {})
         ?? (format === "eml" ? "message/rfc822" : "text/calendar"),
       size: Number.isSafeInteger(attachment.size) ? attachment.size : undefined,
       content_text: content.content,
-      confidentiality: "internal",
+      ...classificationPayload(classification),
     });
   }
   throw contentError(
@@ -356,7 +406,7 @@ export function attachmentContentToPayload({ attachment, content, Office } = {})
   );
 }
 
-export async function readOutlookAttachment({ item, attachment, Office, timeoutMs } = {}) {
+export async function readOutlookAttachment({ item, attachment, Office, timeoutMs, classification } = {}) {
   const attachmentId = String(attachment?.id ?? attachment?.attachment_id ?? "").trim();
   const name = String(attachment?.name ?? "첨부 파일").trim() || "첨부 파일";
   if (!attachmentId) {
@@ -374,21 +424,26 @@ export async function readOutlookAttachment({ item, attachment, Office, timeoutM
       { attachment_id: attachmentId, attachment_name: name, format: "url" },
     );
   }
+  const resolvedClassification = classification ?? await readOutlookItemClassification({
+    item,
+    timeoutMs,
+  });
   const content = await callOfficeAsync(item, "getAttachmentContentAsync", [attachmentId], {
     errorCode: OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_content_unavailable,
     message: `${name}: 첨부 내용을 읽지 못해 저장하지 않았습니다.`,
     timeoutMs,
   });
-  return attachmentContentToPayload({ attachment, content, Office });
+  return attachmentContentToPayload({ attachment, content, Office, classification: resolvedClassification });
 }
 
 export async function readOutlookAttachments({ item, attachments, Office, timeoutMs } = {}) {
   const source = Array.isArray(attachments) ? attachments : [];
   const payloads = [];
   const unsupported = [];
+  const classification = await readOutlookItemClassification({ item, timeoutMs });
   for (const attachment of source) {
     try {
-      payloads.push(await readOutlookAttachment({ item, attachment, Office, timeoutMs }));
+      payloads.push(await readOutlookAttachment({ item, attachment, Office, timeoutMs, classification }));
     } catch (error) {
       if (
         error?.safe_error_code === OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_missing_id

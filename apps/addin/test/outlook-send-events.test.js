@@ -16,7 +16,7 @@ function eventDouble() {
   };
 }
 
-test("성공적인 스마트 알림 평가 후 발송을 한 번만 허용하고 성공 결과를 기록한다", async () => {
+test("스마트 알림 경고는 PromptUser를 한 번 표시하고 평가 결과를 기록한다", async () => {
   const { event, calls } = eventDouble();
   const requests = [];
   const notifications = [];
@@ -43,8 +43,11 @@ test("성공적인 스마트 알림 평가 후 발송을 한 번만 허용하고
     record: (key, value) => records.push({ key, value }),
   });
 
-  assert.deepEqual(result, { allowEvent: true });
-  assert.deepEqual(calls, [{ allowEvent: true }]);
+  assert.equal(result.allowEvent, false);
+  assert.match(result.errorMessage, /확인할 내용이 1건/);
+  assert.equal(result.cancelLabel, "확인 후 다시 보내기");
+  assert.equal(result.commandId, "msgComposeOpenPaneButton");
+  assert.deepEqual(calls, [result]);
   assert.deepEqual(requests, [{
     path: OUTLOOK_SMART_ALERTS_PATH,
     options: {
@@ -61,11 +64,35 @@ test("성공적인 스마트 알림 평가 후 발송을 한 번만 허용하고
       warning_count: 1,
       send_blocked: false,
       provider_runtime_executed: true,
-      allowEvent: true,
+      allowEvent: false,
       raw_body_written: false,
       attachment_bytes_written: false,
     },
   }]);
+});
+
+test("send_blocked 응답은 PromptUser용 오류 메시지와 함께 전송을 멈춘다", async () => {
+  const { event, calls } = eventDouble();
+  const result = await handleOutlookMessageSend({
+    event,
+    readMessage: async () => ({ graph_message_id: "rest-message-blocked" }),
+    requestJson: async () => ({ item: { warnings: [], warning_count: 0, send_blocked: true } }),
+  });
+  assert.equal(result.allowEvent, false);
+  assert.match(result.errorMessage, /확인할 내용이 1건/);
+  assert.deepEqual(calls, [result]);
+});
+
+test("경고 배열이 없어도 서버 warning_count가 있으면 전송을 멈춘다", async () => {
+  const { event, calls } = eventDouble();
+  const result = await handleOutlookMessageSend({
+    event,
+    readMessage: async () => ({ graph_message_id: "rest-message-warning-count" }),
+    requestJson: async () => ({ item: { warnings: [], warning_count: 2, send_blocked: false } }),
+  });
+  assert.equal(result.allowEvent, false);
+  assert.match(result.errorMessage, /확인할 내용이 2건/);
+  assert.deepEqual(calls, [result]);
 });
 
 test("현재 메일을 읽을 수 없으면 API 없이 발송을 한 번 허용한다", async () => {
@@ -177,7 +204,9 @@ test("Outlook 경고 표시 콜백이 멈춰도 발송 이벤트를 완료한다
     requestTimeoutMs: 5,
     notificationTimeoutMs: 5,
   });
-  assert.deepEqual(calls, [{ allowEvent: true }]);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].allowEvent, false);
+  assert.match(calls[0].errorMessage, /확인할 내용이 1건/);
   assert.equal(records[0].value.notification_error, "OUTLOOK_WARNING_NOTIFICATION_TIMEOUT");
 });
 

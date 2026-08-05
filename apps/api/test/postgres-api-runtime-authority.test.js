@@ -675,6 +675,18 @@ test("PostgreSQL API authority commits canonical client registration, idempotenc
 test("PostgreSQL API authority persists consultation schedule and completion fields with CRM versions", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
+  const fixtureNow = new Date();
+  const consultationStart = new Date(fixtureNow.getTime() + (24 * 60 * 60 * 1000));
+  const consultationEnd = new Date(consultationStart.getTime() + (60 * 60 * 1000));
+  const consultationCompletedAt = new Date(
+    consultationEnd.getTime() + (5 * 60 * 1000),
+  );
+  const fixtureReceivedAt = new Date(
+    fixtureNow.getTime() - (24 * 60 * 60 * 1000),
+  );
+  const fixtureCredentialExpiresAt = new Date(
+    fixtureNow.getTime() + (30 * 24 * 60 * 60 * 1000),
+  );
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
   const dmsStorage = createLocalStorageAdapter({
     adapter_id: "postgres-api-consultation-test",
@@ -703,7 +715,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
       owner_user_id: "user-postgres-consultation-t03",
       inquiry_status: "reviewing",
       source: "manual",
-      received_at: "2026-07-30T08:55:00.000Z",
+      received_at: fixtureReceivedAt.toISOString(),
       next_action: "상담 일정 확인",
       version: 2,
     }],
@@ -755,8 +767,8 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
           expected_inquiry_version: 2,
           consultation: {
             subject: "PostgreSQL 상담",
-            scheduled_start: "2026-08-01T10:00:00+09:00",
-            scheduled_end: "2026-08-01T11:00:00+09:00",
+            scheduled_start: consultationStart.toISOString(),
+            scheduled_end: consultationEnd.toISOString(),
             timezone: "Asia/Seoul",
             next_action: "상담 준비",
           },
@@ -779,7 +791,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   });
   assert.equal(
     storedSchedule.payload.scheduled_start,
-    "2026-08-01T01:00:00.000Z",
+    consultationStart.toISOString(),
   );
   assert.equal(storedSchedule.payload.timezone, "Asia/Seoul");
   assert.equal(storedSchedule.payload.version, 1);
@@ -800,8 +812,8 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
       credential_ref:
         "aws-secrets-manager:synthetic/postgres-consultation",
       granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
-      consented_at: "2026-07-30T08:00:00.000Z",
-      expires_at: "2026-08-30T08:00:00.000Z",
+      consented_at: fixtureReceivedAt.toISOString(),
+      expires_at: fixtureCredentialExpiresAt.toISOString(),
       revoked_at: null,
       state_version: 1,
     }],
@@ -838,14 +850,21 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
           m365GraphConfig: {
             feature_enabled: true,
             provider_runtime_enabled: true,
-            clock: () => new Date("2026-07-30T09:00:00.000Z"),
+            clock: () => fixtureNow,
             credential_vault: {
               async resolveDelegatedCredential() {
                 return {
                   access_token:
                     "postgres-calendar-access-token-never-return",
+                  refresh_token:
+                    "postgres-calendar-refresh-token-never-return",
+                  refresh_profile: "client",
+                  refresh_profile_proof: "C".repeat(43),
+                  expires_at: fixtureCredentialExpiresAt.toISOString(),
+                  granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
                 };
               },
+              async storeDelegatedCredential() {},
             },
             provider: {
               async createMeCalendarEvent() {
@@ -864,7 +883,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
       });
     },
   });
-  assert.equal(linked.status, 201);
+  assert.equal(linked.status, 201, JSON.stringify(linked.body));
   assert.equal(calendarProviderCalls, 1);
   const storedOutlookEvent = await ledger.read({
     tenant_id: TENANT_A,
@@ -905,7 +924,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
           audit_hint_ref: "audit-postgres-consultation",
           expected_version: 2,
           field_updates: {
-            completed_at: "2026-08-01T11:05:00+09:00",
+            completed_at: consultationCompletedAt.toISOString(),
             outcome: "상담 완료",
             next_action: "수임 여부 검토",
           },
@@ -927,7 +946,7 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
   });
   assert.equal(
     storedCompletion.payload.completed_at,
-    "2026-08-01T02:05:00.000Z",
+    consultationCompletedAt.toISOString(),
   );
   assert.equal(storedCompletion.payload.outcome, "상담 완료");
   assert.equal(storedCompletion.payload.version, 3);
@@ -2985,6 +3004,8 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
             mailbox_address: "postgres-outlook@example.test",
             access_token: "postgres-outlook-access-token-never-persist",
             refresh_token: "postgres-outlook-refresh-token-never-persist",
+            refresh_profile: "people",
+            refresh_profile_proof: "P".repeat(43),
             expires_at: "2026-08-03T02:00:00.000Z",
             granted_scopes: [
               "openid",
@@ -3171,6 +3192,8 @@ test("concurrent PostgreSQL self completion commits one durable claim before one
         token_type: "Bearer",
         access_token: accessToken,
         refresh_token: refreshToken,
+        refresh_profile: "people",
+        refresh_profile_proof: "P".repeat(43),
         id_token: issuedIdToken,
         expires_in: 3600,
         scope: "openid profile email offline_access Calendars.ReadBasic",

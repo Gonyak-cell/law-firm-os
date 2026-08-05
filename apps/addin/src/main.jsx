@@ -29,6 +29,7 @@ import {
   readOutlookAttachments,
   readOutlookComposeMessage,
   readOutlookItemBody,
+  readOutlookItemClassification,
   readOutlookItemTimestamps,
 } from "./outlook-item-content.js";
 import { saveOutlookAttachments } from "./outlook-attachment-actions.js";
@@ -359,7 +360,6 @@ function officeItemSnapshot() {
           name: attachment.name,
           content_type: attachment.contentType,
           size: attachment.size,
-          confidentiality: "internal",
         }))
       : [],
   };
@@ -376,8 +376,13 @@ async function readCurrentOutlookItem({ includeAttachments = false, includeTimes
   } catch (error) {
     if (!allowBodyReadFailure) throw error;
   }
+  const classification = await readOutlookItemClassification({ item: officeItem });
   const next = {
     ...snapshot,
+    attachments: snapshot.attachments.map((attachment) => ({
+      ...attachment,
+      ...classification,
+    })),
     ...(includeTimestamps ? await readOutlookItemTimestamps({ item: officeItem }) : {}),
     // Only the bounded preview crosses the LawOS boundary. Raw body text is
     // never sent or persisted by this Add-in.

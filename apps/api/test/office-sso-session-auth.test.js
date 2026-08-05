@@ -301,7 +301,7 @@ test("Office SSO first exchange binds one active roster account without replacin
       credential_rev: 11,
       password_hash: passwordHash,
       failed_login_count: 4,
-      locked_until: "2026-08-05T07:00:00.000Z",
+      locked_until: "2026-08-05T05:00:00.000Z",
       federated_tenant_id: null,
       federated_subject_id: null,
     },
@@ -332,7 +332,7 @@ test("Office SSO first exchange binds one active roster account without replacin
   assert.equal(bound.credential_rev, 11);
   assert.deepEqual(bound.password_hash, passwordHash);
   assert.equal(bound.failed_login_count, 4);
-  assert.equal(bound.locked_until, "2026-08-05T07:00:00.000Z");
+  assert.equal(bound.locked_until, "2026-08-05T05:00:00.000Z");
   assert.equal(bound.federated_tenant_id, ENTRA_TENANT_ID);
   assert.equal(bound.federated_subject_id, ENTRA_SUBJECT_ID);
   assert.equal(fixture.completeLoginCalls[0].preserve_login_failure_state, true);
@@ -343,11 +343,28 @@ test("Office SSO first exchange binds one active roster account without replacin
   assert.equal(verified.principal.entra_subject_id, ENTRA_SUBJECT_ID);
 });
 
+test("Office SSO refuses to mint a session while the primary login lock is active", async () => {
+  const fixture = authFixture({
+    accountOverrides: {
+      failed_login_count: 5,
+      locked_until: "2026-08-05T07:00:00.000Z",
+    },
+  });
+
+  const blocked = await exchange(fixture.auth, "req-office-sso-active-lock");
+
+  assert.equal(blocked.status, 423);
+  assert.deepEqual(blocked.body.safe_error_codes, ["AUTH_LOGIN_LOCKED"]);
+  assert.equal(blocked.body.token_material_returned, false);
+  assert.equal(fixture.completeLoginCalls.length, 0);
+  assert.equal(fixture.sessions.size, 0);
+});
+
 test("Office SSO repeat exchange preserves the primary login failure state", async () => {
   const fixture = authFixture({
     accountOverrides: {
       failed_login_count: 4,
-      locked_until: "2026-08-05T07:00:00.000Z",
+      locked_until: "2026-08-05T05:00:00.000Z",
     },
   });
 
@@ -366,7 +383,7 @@ test("Office SSO repeat exchange preserves the primary login failure state", asy
   assert.equal(fixture.accounts.get(fixture.users[0].user_id).failed_login_count, 4);
   assert.equal(
     fixture.accounts.get(fixture.users[0].user_id).locked_until,
-    "2026-08-05T07:00:00.000Z",
+    "2026-08-05T05:00:00.000Z",
   );
 });
 

@@ -318,6 +318,54 @@ test("RS-DMS upload session is idempotent and finalizes document, version, file,
   assert.equal(runtime.production_ready_claim, false);
 });
 
+test("RS-DMS upload session rejects session, document-version and object identity conflicts", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const runtime = createPostgresDmsUploadRuntime({
+    pool: fixture.appPool,
+    storage: createLocalStorageAdapter({ adapter_id: "local-identity-conflict" }),
+    clock: () => new Date("2026-07-16T01:00:00.000Z"),
+  });
+  const base = sessionInput("identity-conflict");
+  await runtime.createUploadSession(base);
+
+  await assert.rejects(
+    runtime.createUploadSession({
+      ...base,
+      idempotency_key: "idem-identity-conflict-session",
+      document_id: "document-identity-conflict-session",
+      version_id: "version-identity-conflict-session-1",
+      object_id: "object-identity-conflict-session-1",
+    }),
+    (error) => error?.safe_error_code === "DMS_UPLOAD_SESSION_IDENTITY_CONFLICT"
+      && error.status === 409
+      && error.message === "DMS upload session identity conflicts with existing state"
+      && !error.detail
+      && !error.constraint,
+  );
+
+  await assert.rejects(
+    runtime.createUploadSession({
+      ...base,
+      session_id: "session-identity-conflict-document-version",
+      idempotency_key: "idem-identity-conflict-document-version",
+      object_id: "object-identity-conflict-document-version-1",
+    }),
+    (error) => error?.safe_error_code === "DMS_UPLOAD_SESSION_IDENTITY_CONFLICT",
+  );
+
+  await assert.rejects(
+    runtime.createUploadSession({
+      ...base,
+      session_id: "session-identity-conflict-object",
+      idempotency_key: "idem-identity-conflict-object",
+      document_id: "document-identity-conflict-object",
+      version_id: "version-identity-conflict-object-1",
+    }),
+    (error) => error?.safe_error_code === "DMS_UPLOAD_SESSION_IDENTITY_CONFLICT",
+  );
+});
+
 test("RS-DMS reconciler repairs every storage and transaction kill point without duplicate metadata", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;

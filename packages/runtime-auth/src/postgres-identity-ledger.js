@@ -955,7 +955,11 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       if (!["active", "must_change"].includes(current.credential_status)) {
         return Object.freeze({ ok: false, reason: "credential_inactive", safe_error_code: "AUTH_CREDENTIAL_REVOKED", status: 401 });
       }
-      if (!preserveLoginFailureState && current.locked_until && millis(current.locked_until) > nowMs(clock)) {
+      // Preserving the primary login failure state must never bypass an active
+      // lock.  Office SSO passes this flag so a successful binding does not
+      // clear counters, but the lock remains an authentication gate until it
+      // expires (or is cleared by an explicit administrative action).
+      if (current.locked_until && millis(current.locked_until) > nowMs(clock)) {
         return Object.freeze({ ok: false, reason: "auth_login_locked", safe_error_code: "AUTH_LOGIN_LOCKED", status: 423, locked_until: iso(current.locked_until) });
       }
       if (credentialRev !== Number(current.credential_rev)) {

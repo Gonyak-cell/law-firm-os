@@ -183,16 +183,18 @@ test("PostgreSQL identity directory is tenant-scoped, replay-safe and never expo
     expires_at: "2026-07-20T04:05:00.000Z",
     preserve_login_failure_state: true,
   });
-  assert.equal(officeSession.ok, true);
+  assert.equal(officeSession.ok, false);
+  assert.equal(officeSession.status, 423);
+  assert.equal(officeSession.safe_error_code, "AUTH_LOGIN_LOCKED");
   assert.deepEqual(await ledger.validateSession({
     tenant_id: tenantId,
     session_jti: "office-session-while-password-locked",
     user_id: input.user.user_id,
   }), {
-    ok: true,
-    user_id: input.user.user_id,
-    credential_rev: account.credential_rev,
-    credential_status: "active",
+    ok: false,
+    reason: "session_not_active",
+    safe_error_code: "AUTH_SESSION_REVOKED",
+    status: 401,
   });
   const afterOfficeSession = await ledger.getAccount({
     tenant_id: tenantId,
