@@ -137,6 +137,8 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
   assert.equal(requestedScopes.includes("Mail.Read"), false);
   assert.equal(requestedScopes.includes("User.Read"), false);
   assert.equal(authorizationUrl.searchParams.get("code_challenge_method"), "S256");
+  assert.equal(authorizationUrl.searchParams.get("login_hint"), "jwsuh@amic.kr");
+  assert.equal(authorizationUrl.searchParams.has("prompt"), false);
 
   const exchanged = await client.exchange({
     code: "0.ABC_provider_code-20260803",
@@ -188,6 +190,7 @@ test("Client Outlook OAuth profile requests only the Add-in delegated scopes and
     false,
   );
   assert.equal(authorizationUrl.searchParams.has("login_hint"), false);
+  assert.equal(authorizationUrl.searchParams.get("prompt"), "select_account");
   assert.equal(authorizationUrl.searchParams.get("state").length > 200, true);
 
   const exchanged = await client.exchange({
