@@ -217,7 +217,7 @@ test("session IPC opens only the Microsoft Outlook authorization endpoint withou
 
   assert.equal(isAllowedOutlookAuthorizationUrl(allowedUrl), true);
   const result = await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl });
-  assert.deepEqual(result, { opened: true });
+  assert.deepEqual(result, { opened: true, handoff_accepted: true });
   assert.deepEqual(opened, [allowedUrl]);
   assert.equal(JSON.stringify(result).includes("client_id"), false);
   assert.equal(JSON.stringify(result).includes("outlook-state"), false);
@@ -241,7 +241,7 @@ test("session IPC opens only the Microsoft Outlook authorization endpoint withou
     assert.equal(isAllowedOutlookAuthorizationUrl(url), false);
     assert.deepEqual(
       await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url }),
-      { opened: false, reason: "outlook_authorization_url_not_allowed" }
+      { opened: false, handoff_accepted: false, reason: "outlook_authorization_url_not_allowed" }
     );
   }
   assert.deepEqual(opened, [allowedUrl]);
@@ -277,7 +277,7 @@ test("Outlook authorization IPC fails closed for missing opener errors and untru
   });
   assert.deepEqual(
     await unavailableIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl }),
-    { opened: false, reason: "outlook_authorization_opener_unavailable" }
+    { opened: false, handoff_accepted: false, reason: "outlook_authorization_opener_unavailable" }
   );
   unavailableRegistration.dispose();
 
@@ -294,7 +294,7 @@ test("Outlook authorization IPC fails closed for missing opener errors and untru
   });
   assert.deepEqual(
     await failingIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl }),
-    { opened: false, reason: "outlook_authorization_open_failed" }
+    { opened: false, handoff_accepted: false, reason: "outlook_authorization_open_failed" }
   );
   await assert.rejects(
     () => failingIpc.invoke(
@@ -306,6 +306,29 @@ test("Outlook authorization IPC fails closed for missing opener errors and untru
   );
   assert.equal(calls, 1);
   failingRegistration.dispose();
+});
+
+test("Outlook authorization handoff fails closed when the opener never settles", async () => {
+  const ipcMain = new FakeIpcMain();
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    outlookAuthorizationOpenTimeoutMs: 1,
+    openExternal: () => new Promise(() => {})
+  });
+
+  const result = await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, {
+    url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=lawos-test"
+  });
+  assert.deepEqual(result, {
+    opened: false,
+    handoff_accepted: false,
+    reason: "outlook_authorization_open_timeout"
+  });
+  assert.equal(JSON.stringify(result).includes("lawos-test"), false);
+  registration.dispose();
 });
 
 test("session IPC preserves login lockout state without signing the renderer in", async () => {

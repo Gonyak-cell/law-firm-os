@@ -17,6 +17,7 @@ export const SESSION_CHANNELS = Object.freeze({
 const OUTLOOK_AUTHORIZE_HOST = "login.microsoftonline.com";
 const OUTLOOK_SECRET_QUERY = /(?:token|secret|credential|password)/i;
 const OUTLOOK_CONNECTION_COMPLETE_ROUTE = "/api/hrx/people/me/outlook-connection/complete";
+const OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT_MS = 10_000;
 
 export function isAllowedOutlookAuthorizationUrl(candidate) {
   if (typeof candidate !== "string" || !candidate.trim() || candidate.length > 8192) return false;
@@ -37,19 +38,44 @@ export function isAllowedOutlookAuthorizationUrl(candidate) {
     && !hasSecretParameter;
 }
 
-async function openOutlookAuthorization(payload, openExternal) {
+async function openOutlookAuthorization(
+  payload,
+  openExternal,
+  timeoutMs = OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT_MS
+) {
   const url = payload?.url;
   if (!isAllowedOutlookAuthorizationUrl(url)) {
-    return { opened: false, reason: "outlook_authorization_url_not_allowed" };
+    return { opened: false, handoff_accepted: false, reason: "outlook_authorization_url_not_allowed" };
   }
   if (typeof openExternal !== "function") {
-    return { opened: false, reason: "outlook_authorization_opener_unavailable" };
+    return { opened: false, handoff_accepted: false, reason: "outlook_authorization_opener_unavailable" };
   }
+  const boundedTimeoutMs = Number.isFinite(timeoutMs) && timeoutMs > 0
+    ? timeoutMs
+    : OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT_MS;
+  let timeout;
   try {
-    await openExternal(url);
-    return { opened: true };
-  } catch {
-    return { opened: false, reason: "outlook_authorization_open_failed" };
+    await new Promise((resolve, reject) => {
+      timeout = setTimeout(() => {
+        const error = new Error("Outlook authorization handoff timed out");
+        error.code = "OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT";
+        reject(error);
+      }, boundedTimeoutMs);
+      Promise.resolve()
+        .then(() => openExternal(url))
+        .then(resolve, reject);
+    });
+    return { opened: true, handoff_accepted: true };
+  } catch (error) {
+    return {
+      opened: false,
+      handoff_accepted: false,
+      reason: error?.code === "OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT"
+        ? "outlook_authorization_open_timeout"
+        : "outlook_authorization_open_failed"
+    };
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -58,6 +84,7 @@ export function registerSessionIpcHandlers({
   coordinator,
   isTrustedSender,
   openExternal,
+  outlookAuthorizationOpenTimeoutMs = OUTLOOK_AUTHORIZATION_OPEN_TIMEOUT_MS,
   onSessionAvailable,
   waitForLogoIntroReady = () => undefined
 }) {
@@ -90,7 +117,11 @@ export function registerSessionIpcHandlers({
     [SESSION_CHANNELS.requestPasswordReset, (payload) => coordinator.requestPasswordReset(payload)],
     [SESSION_CHANNELS.latestResetEmail, (payload) => coordinator.latestResetEmail(payload)],
     [SESSION_CHANNELS.confirmPasswordReset, (payload) => coordinator.confirmPasswordReset(payload)],
-    [SESSION_CHANNELS.openOutlookAuthorization, (payload) => openOutlookAuthorization(payload, openExternal)],
+    [SESSION_CHANNELS.openOutlookAuthorization, (payload) => openOutlookAuthorization(
+      payload,
+      openExternal,
+      outlookAuthorizationOpenTimeoutMs
+    )],
     [SESSION_CHANNELS.login, login],
     [SESSION_CHANNELS.features, (payload) => coordinator.features(payload)],
     [SESSION_CHANNELS.smoke, (payload) => coordinator.smoke(payload)],
