@@ -249,6 +249,84 @@ test("session IPC opens only the Microsoft Outlook authorization endpoint withou
   registration.dispose();
 });
 
+test("session IPC copies only an allowed Outlook authorization URL without returning its query", async () => {
+  const ipcMain = new FakeIpcMain();
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const copied = [];
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    writeClipboard: async (url) => {
+      copied.push(url);
+    }
+  });
+  const allowedUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test&state=outlook-state:01HQ";
+
+  const result = await ipcMain.invoke(SESSION_CHANNELS.copyOutlookAuthorization, { url: allowedUrl });
+  assert.deepEqual(result, { copied: true });
+  assert.deepEqual(copied, [allowedUrl]);
+  assert.equal(JSON.stringify(result).includes("client_id"), false);
+  assert.equal(JSON.stringify(result).includes("outlook-state"), false);
+
+  const fixedFailure = {
+    copied: false,
+    reason: "outlook_authorization_copy_failed"
+  };
+  assert.deepEqual(
+    await ipcMain.invoke(SESSION_CHANNELS.copyOutlookAuthorization, {
+      url: "https://evil.example/common/oauth2/v2.0/authorize?state=must-not-copy"
+    }),
+    fixedFailure
+  );
+  await assert.rejects(
+    () => ipcMain.invoke(
+      SESSION_CHANNELS.copyOutlookAuthorization,
+      { url: allowedUrl },
+      { senderFrame: { url: "file:///tmp/untrusted.html" } }
+    ),
+    (error) => error?.code === "UNTRUSTED_RENDERER_IPC_SENDER"
+  );
+  assert.deepEqual(copied, [allowedUrl]);
+
+  registration.dispose();
+});
+
+test("Outlook authorization copy IPC fails closed when clipboard writing is unavailable or fails", async () => {
+  const allowedUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=lawos-test";
+  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const fixedFailure = {
+    copied: false,
+    reason: "outlook_authorization_copy_failed"
+  };
+
+  const unavailableIpc = new FakeIpcMain();
+  const unavailableRegistration = registerSessionIpcHandlers({
+    ipcMain: unavailableIpc,
+    coordinator,
+    isTrustedSender: trustedSender
+  });
+  assert.deepEqual(
+    await unavailableIpc.invoke(SESSION_CHANNELS.copyOutlookAuthorization, { url: allowedUrl }),
+    fixedFailure
+  );
+  unavailableRegistration.dispose();
+
+  const failingIpc = new FakeIpcMain();
+  const failingRegistration = registerSessionIpcHandlers({
+    ipcMain: failingIpc,
+    coordinator,
+    isTrustedSender: trustedSender,
+    writeClipboard: async () => {
+      throw new Error(`clipboard failure containing ${allowedUrl}`);
+    }
+  });
+  const result = await failingIpc.invoke(SESSION_CHANNELS.copyOutlookAuthorization, { url: allowedUrl });
+  assert.deepEqual(result, fixedFailure);
+  assert.equal(JSON.stringify(result).includes("lawos-test"), false);
+  failingRegistration.dispose();
+});
+
 test("session IPC exposes no raw OAuth callback readiness or acknowledgement channel", () => {
   const ipcMain = new FakeIpcMain();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });

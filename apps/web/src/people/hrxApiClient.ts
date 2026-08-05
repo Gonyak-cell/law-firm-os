@@ -82,6 +82,10 @@ declare global {
         opened?: boolean;
         reason?: unknown;
       }>;
+      copyOutlookAuthorization?: (authorizeUrl: string) => Promise<{
+        copied?: boolean;
+        reason?: unknown;
+      }>;
       api?: (input: {
         path?: string;
         method?: string;

@@ -273,7 +273,7 @@ test("Outlook connect keeps the begin DTO while desktop completion exposes only 
   }
 });
 
-test("Outlook consent pending reopens the same authorization without another begin", async () => {
+test("Outlook consent pending copies the same authorization without another begin", async () => {
   const harness = await startPeopleOverviewHarness();
   const authorizeUrl = microsoftAuthorizeUrl;
   try {
@@ -287,6 +287,8 @@ test("Outlook consent pending reopens the same authorization without another beg
     });
     const actions = outlookPostActions(page);
     await page.addInitScript(() => {
+      window.__outlookTestNow = Date.now();
+      Date.now = () => window.__outlookTestNow;
       window.matterSession = {
         async openOutlookAuthorization(url) {
           window.__openedOutlookAuthorizeUrls = [
@@ -294,6 +296,13 @@ test("Outlook consent pending reopens the same authorization without another beg
             url,
           ];
           return { opened: true };
+        },
+        async copyOutlookAuthorization(url) {
+          window.__copiedOutlookAuthorizeUrls = [
+            ...(window.__copiedOutlookAuthorizeUrls ?? []),
+            url,
+          ];
+          return { copied: true };
         },
       };
     });
@@ -303,21 +312,40 @@ test("Outlook consent pending reopens the same authorization without another beg
     await connection.getByRole("button", { name: "연결", exact: true }).click();
     const pending = page.locator('[data-outlook-connection-state="consent_pending"]');
     await pending.waitFor();
-    await pending.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).click();
+    await pending.getByRole("button", { name: "로그인 주소 복사", exact: true }).click();
 
     assert.deepEqual(actions.map((item) => item.action), ["begin"]);
     assert.deepEqual(
       await page.evaluate(() => window.__openedOutlookAuthorizeUrls),
-      [authorizeUrl, authorizeUrl],
+      [authorizeUrl],
     );
+    assert.deepEqual(
+      await page.evaluate(() => window.__copiedOutlookAuthorizeUrls),
+      [authorizeUrl],
+    );
+    assert.equal(
+      await pending.getByText("로그인 주소를 복사했습니다. 10분 안에 Chrome 새 탭 주소창에 붙여넣고, 다른 곳에는 공유하지 마세요.", { exact: true }).count(),
+      1,
+    );
+    assert.equal((await page.locator("body").textContent()).includes(authorizeUrl), false);
     assert.equal(await page.getByRole("button", { name: "연결 다시 시작", exact: true }).count(), 0);
+
+    await page.evaluate(() => {
+      window.__outlookTestNow += 10 * 60 * 1000;
+    });
+    await pending.getByRole("button", { name: "로그인 주소 복사", exact: true }).click();
+    await pending.getByText("로그인 요청 시간이 지났습니다. 연결을 다시 시작해 주세요.", { exact: true }).waitFor();
+    assert.deepEqual(await page.evaluate(() => window.__copiedOutlookAuthorizeUrls), [authorizeUrl]);
+    assert.equal(actions.length, 1);
+    assert.equal(await pending.getByRole("button", { name: "로그인 주소 복사", exact: true }).count(), 0);
+    assert.equal(await pending.getByRole("button", { name: "연결 다시 시작", exact: true }).count(), 1);
     await page.close();
   } finally {
     await harness.close();
   }
 });
 
-test("Outlook callback success clears the pending reopen action and missing authorization offers a fresh retry", async () => {
+test("Outlook callback success clears the pending copy action and missing authorization offers a fresh retry", async () => {
   const harness = await startPeopleOverviewHarness();
   try {
     const page = await openPeopleOverviewPage({
@@ -345,7 +373,7 @@ test("Outlook callback success clears the pending reopen action and missing auth
       .click();
     const pending = page.locator('[data-outlook-connection-state="consent_pending"]');
     await pending.waitFor();
-    assert.equal(await pending.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 1);
+    assert.equal(await pending.getByRole("button", { name: "로그인 주소 복사", exact: true }).count(), 1);
 
     let callbackConnectionState = null;
     await page.route("**/api/hrx/people/members/*/outlook-connection", async (route) => {
@@ -376,7 +404,7 @@ test("Outlook callback success clears the pending reopen action and missing auth
       connection_state: "connected",
     }));
     await page.locator('[data-outlook-connection-state="connected"]').waitFor();
-    assert.equal(await page.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 0);
+    assert.equal(await page.getByRole("button", { name: "로그인 주소 복사", exact: true }).count(), 0);
 
     callbackConnectionState = "consent_pending";
     await page.evaluate(() => window.__deliverOutlookConnectionResult({
@@ -390,7 +418,7 @@ test("Outlook callback success clears the pending reopen action and missing auth
     const pendingWithoutAuthorization = page.locator('[data-outlook-connection-state="consent_pending"]');
     await pendingWithoutAuthorization.waitFor();
     assert.equal(await pendingWithoutAuthorization.getByRole("button", { name: "연결 다시 시작", exact: true }).count(), 1);
-    assert.equal(await pendingWithoutAuthorization.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 0);
+    assert.equal(await pendingWithoutAuthorization.getByRole("button", { name: "로그인 주소 복사", exact: true }).count(), 0);
 
     await page.close();
 

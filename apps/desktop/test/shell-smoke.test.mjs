@@ -97,10 +97,10 @@ class FakeIpcMain {
     this.handlers.delete(channel);
   }
 
-  invoke(channel) {
+  invoke(channel, payload) {
     return this.handlers.get(channel)?.({
       senderFrame: { url: packagedRendererUrl() }
-    });
+    }, payload);
   }
 }
 
@@ -159,6 +159,26 @@ test("desktop logo intro claim remains pending until the hidden main window is s
   shell.window.readyEvent.handler();
   assert.equal((await claim).play_logo_animation, true);
   assert.equal(claimed, true);
+  shell.sessionIpc.dispose();
+});
+
+test("desktop shell wires the Outlook authorization copy command to the main-process clipboard writer", async () => {
+  const ipcMain = new FakeIpcMain();
+  const copied = [];
+  const shell = await startDesktopShell({
+    BrowserWindowConstructor: FakeBrowserWindow,
+    ipcMain,
+    coordinator: {},
+    writeClipboard: (url) => {
+      copied.push(url);
+    }
+  });
+  const authorizeUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test&state=outlook-state:01HQ";
+
+  const result = await ipcMain.invoke("desktop:outlook-authorization:copy", { url: authorizeUrl });
+  assert.deepEqual(result, { copied: true });
+  assert.deepEqual(copied, [authorizeUrl]);
+  assert.equal(JSON.stringify(result).includes("outlook-state"), false);
   shell.sessionIpc.dispose();
 });
 
