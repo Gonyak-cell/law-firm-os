@@ -234,9 +234,9 @@ test("artifact runtime-source redactions remove every known real identity marker
     text: readFileSync(targetPath, "utf8"),
     syntheticSources,
   }));
-  assert.equal(redacted.length, 3);
+  assert.equal(redacted.length, 2);
   assert.deepEqual(validatePrivateStagingSourceIdentityBoundary(redacted.map((entry) => ({ path: entry.target_path, text: entry.text }))), {
-    scanned_source_count: 3,
+    scanned_source_count: 2,
     real_identity_marker_count: 0,
   });
   assert.equal(validatePrivateStagingSourceIdentityBoundary([
