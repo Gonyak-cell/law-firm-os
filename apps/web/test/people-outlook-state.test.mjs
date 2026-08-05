@@ -347,9 +347,9 @@ test("Outlook callback success clears the pending reopen action and missing auth
     await pending.waitFor();
     assert.equal(await pending.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 1);
 
-    let callbackCompleted = false;
+    let callbackConnectionState = null;
     await page.route("**/api/hrx/people/members/*/outlook-connection", async (route) => {
-      if (route.request().method() !== "GET" || !callbackCompleted) return route.fallback();
+      if (route.request().method() !== "GET" || callbackConnectionState === null) return route.fallback();
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -357,16 +357,16 @@ test("Outlook callback success clears the pending reopen action and missing auth
           outcome: "ok",
           connection: {
             provider: "microsoft_graph",
-            connection_state: "connected",
+            connection_state: callbackConnectionState,
             can_manage: true,
             delegated_scope: "Calendars.ReadBasic",
-            connected_at: "2026-07-30T09:00:00+09:00",
-            expires_at: "2026-07-30T18:00:00+09:00",
+            connected_at: callbackConnectionState === "connected" ? "2026-07-30T09:00:00+09:00" : null,
+            expires_at: callbackConnectionState === "connected" ? "2026-07-30T18:00:00+09:00" : null,
           },
         }),
       });
     });
-    callbackCompleted = true;
+    callbackConnectionState = "connected";
     await page.evaluate(() => window.__deliverOutlookConnectionResult({
       type: "outlook_connection_result",
       status: "connected",
@@ -377,6 +377,20 @@ test("Outlook callback success clears the pending reopen action and missing auth
     }));
     await page.locator('[data-outlook-connection-state="connected"]').waitFor();
     assert.equal(await page.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 0);
+
+    callbackConnectionState = "consent_pending";
+    await page.evaluate(() => window.__deliverOutlookConnectionResult({
+      type: "outlook_connection_result",
+      status: "connected",
+      http_status: 200,
+      safe_error_code: null,
+      employee_id: "emp-1",
+      connection_state: "connected",
+    }));
+    const pendingWithoutAuthorization = page.locator('[data-outlook-connection-state="consent_pending"]');
+    await pendingWithoutAuthorization.waitFor();
+    assert.equal(await pendingWithoutAuthorization.getByRole("button", { name: "연결 다시 시작", exact: true }).count(), 1);
+    assert.equal(await pendingWithoutAuthorization.getByRole("button", { name: "Microsoft 로그인 다시 열기", exact: true }).count(), 0);
 
     await page.close();
 
@@ -391,9 +405,13 @@ test("Outlook callback success clears the pending reopen action and missing auth
     const recovery = recoveryPage.locator('[data-outlook-connection-state="consent_pending"]');
     await recovery.waitFor();
     await recovery.getByRole("button", { name: "연결 다시 시작", exact: true }).click();
-    assert.equal(actions.length, 1);
+    await recovery.getByRole("button", { name: "연결 다시 시작", exact: true }).click();
+    assert.equal(actions.length, 2);
     assert.equal(actions[0].action, "retry");
+    assert.equal(actions[1].action, "retry");
     assert.match(actions[0].idempotency_key, uuidPattern);
+    assert.match(actions[1].idempotency_key, uuidPattern);
+    assert.notEqual(actions[0].idempotency_key, actions[1].idempotency_key);
     await recoveryPage.close();
   } finally {
     await harness.close();

@@ -439,11 +439,11 @@ function OutlookConnectionPanel({
   const detail = state === "consent_pending" && hasPendingAuthorization
     ? "로그인 창을 닫았거나 멈췄다면 같은 연결 요청을 다시 열 수 있습니다."
     : state === "consent_pending"
-      ? "연결 요청이 사라졌습니다. 새 연결 요청을 시작해 주세요."
+      ? "로그인 요청을 다시 열 수 없습니다. 연결을 다시 시작해 주세요."
       : copy.detail;
   return (
     <section className="member-outlook-connection" data-outlook-connection-state={state}>
-      <div>
+      <div aria-live="polite">
         <span>Outlook 일정</span>
         <strong>{copy.title}</strong>
         <small>{canManage ? detail : "일정 연결과 해제는 해당 구성원 본인만 할 수 있습니다."}</small>
