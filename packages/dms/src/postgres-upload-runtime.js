@@ -15,6 +15,23 @@ const ACTIVE_RECONCILIATION_STATES = Object.freeze([
   "failed",
   "expired",
 ]);
+const MAX_UPLOAD_INTENT_GENERATIONS = 32;
+const UPLOAD_INTENT_RETIREMENT_EVENT = "dms.upload_intent.retired";
+const UPLOAD_INTENT_FAMILY_OBJECT = "DmsUploadIntentFamily";
+const UPLOAD_INTENT_RETIREMENT_SCHEMA = "law-firm-os.dms-upload-intent-retirement.v1";
+const UPLOAD_INTENT_CANONICAL_ENVELOPE_FIELDS = Object.freeze([
+  "schema_version",
+  "family_id",
+  "identity_hash",
+  "document_id",
+  "matter_id",
+  "workspace_id",
+  "expected_sha256",
+  "expected_byte_size",
+  "permission_envelope_id",
+  "audit_trace_id",
+  "actor_id",
+]);
 
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -54,6 +71,66 @@ function requiredTimestamp(value, field) {
 
 function hashValue(value) {
   return createHash("sha256").update(stableJsonStringify(value)).digest("hex");
+}
+
+function requiredUploadIntentGeneration(value, field = "generation", maxGenerations = MAX_UPLOAD_INTENT_GENERATIONS) {
+  const generation = Number(value);
+  if (!Number.isSafeInteger(generation) || generation < 0 || generation >= maxGenerations) {
+    throw new TypeError(`${field} must be a supported upload intent generation`);
+  }
+  return generation;
+}
+
+function uploadIntentGenerationIds({ family_id, document_id, generation, max_generations = MAX_UPLOAD_INTENT_GENERATIONS } = {}) {
+  const familyId = requiredText(family_id, "family_id");
+  const documentId = requiredText(document_id, "document_id");
+  const boundedGeneration = requiredUploadIntentGeneration(generation, "generation", max_generations);
+  const familyRef = hashValue({ family_id: familyId });
+  const versionId = `version:${documentId}:outlook-attempt:${boundedGeneration}`;
+  return Object.freeze({
+    generation: boundedGeneration,
+    session_id: `dms-upload:outlook-mime:${familyRef}:g${boundedGeneration}`,
+    idempotency_key: `outlook-original-mime:${familyRef}:g${boundedGeneration}`,
+    version_id: versionId,
+    object_id: `object:${versionId}`,
+  });
+}
+
+function uploadIntentRetirementEventId(familyId, generation) {
+  return `audit:dms-upload-intent:${hashValue({ family_id: familyId })}:g${generation}:retired`;
+}
+
+function unsignedUploadIntentRetirementPayload(payload = {}) {
+  return Object.freeze({
+    schema_version: payload.schema_version,
+    family_id: payload.family_id,
+    identity_hash: payload.identity_hash,
+    document_id: payload.document_id,
+    matter_id: payload.matter_id,
+    workspace_id: payload.workspace_id,
+    expected_sha256: payload.expected_sha256,
+    expected_byte_size: Number(payload.expected_byte_size),
+    permission_envelope_id: payload.permission_envelope_id,
+    audit_trace_id: payload.audit_trace_id,
+    actor_id: payload.actor_id,
+    generation: Number(payload.generation),
+    next_generation: Number(payload.next_generation),
+    prior_session_id: payload.prior_session_id,
+    prior_idempotency_key: payload.prior_idempotency_key,
+    prior_request_hash: payload.prior_request_hash,
+    prior_version_id: payload.prior_version_id,
+    prior_object_id: payload.prior_object_id,
+    prior_receipt_hash: payload.prior_receipt_hash ?? null,
+    next_session_id: payload.next_session_id,
+    next_idempotency_key: payload.next_idempotency_key,
+    next_version_id: payload.next_version_id,
+    next_object_id: payload.next_object_id,
+    retired_at: payload.retired_at,
+  });
+}
+
+function uploadIntentRetirementReceiptHash(payload = {}) {
+  return hashValue(unsignedUploadIntentRetirementPayload(payload));
 }
 
 function codedError(message, code, status = 409, details = {}) {
@@ -146,6 +223,7 @@ export function createPostgresDmsUploadRuntime({
   reconcileLeaseMillis = 5 * 60 * 1_000,
   maxReconciliationAttempts = 5,
   reconciliationBackoffMillis = 1_000,
+  maxUploadIntentGenerations = MAX_UPLOAD_INTENT_GENERATIONS,
   workerId = `dms-worker:${idFactory()}`,
   transactionOptions = {},
   verifyPermanentDeleteApproval = null,
@@ -166,6 +244,9 @@ export function createPostgresDmsUploadRuntime({
   if (!Number.isSafeInteger(maxReconciliationAttempts) || maxReconciliationAttempts < 1) {
     throw new TypeError("maxReconciliationAttempts must be a positive integer");
   }
+  if (!Number.isSafeInteger(maxUploadIntentGenerations) || maxUploadIntentGenerations < 2) {
+    throw new TypeError("maxUploadIntentGenerations must be an integer of at least 2");
+  }
   const runtimeWorkerId = requiredText(workerId, "workerId");
 
   const transact = (tenantId, callback, options = {}) => withPostgresTransaction(
@@ -180,22 +261,241 @@ export function createPostgresDmsUploadRuntime({
     return transact(tenantId, (client) => selectSession(client, tenantId, sessionId), { readOnly: true });
   }
 
+  async function selectUploadIntentRetirementChain(client, tenantId, familyId) {
+    const result = await client.query(
+      `SELECT event_id, actor_id, payload, created_at
+         FROM lawos_dms.audit_events
+        WHERE tenant_id = $1
+          AND event_type = $2
+          AND object_type = $3
+          AND object_id = $4
+        ORDER BY
+          CASE
+            WHEN payload->>'generation' ~ '^[0-9]+$' THEN (payload->>'generation')::numeric
+            ELSE 9223372036854775807::numeric
+          END ASC,
+          created_at ASC,
+          event_id ASC`,
+      [tenantId, UPLOAD_INTENT_RETIREMENT_EVENT, UPLOAD_INTENT_FAMILY_OBJECT, familyId],
+    );
+    return Object.freeze(result.rows.map((row) => Object.freeze({
+      ...row.payload,
+      event_id: row.event_id,
+      actor_id: row.actor_id,
+      created_at: new Date(row.created_at).toISOString(),
+    })));
+  }
+
+  async function selectUploadIntentRetirementSessions(client, tenantId, receipts) {
+    const sessionIds = [...new Set(
+      receipts
+        .map((receipt) => receipt.prior_session_id)
+        .filter((sessionId) => typeof sessionId === "string" && sessionId.trim() !== ""),
+    )];
+    if (!sessionIds.length) return new Map();
+    const result = await client.query(
+      `SELECT *
+         FROM lawos_dms.upload_sessions
+        WHERE tenant_id = $1
+          AND session_id = ANY($2::text[])`,
+      [tenantId, sessionIds],
+    );
+    return new Map(result.rows.map((row) => [row.session_id, rowToSession(row)]));
+  }
+
+  function assertRetirementMatchesSession(receipt, session) {
+    if (!session
+      || session.state !== "expired"
+      || !session.orphan_deleted_at
+      || receipt.prior_session_id !== session.session_id
+      || receipt.prior_idempotency_key !== session.idempotency_key
+      || receipt.prior_request_hash !== session.request_hash
+      || receipt.matter_id !== session.matter_id
+      || receipt.workspace_id !== session.workspace_id
+      || receipt.document_id !== session.document_id
+      || receipt.prior_version_id !== session.version_id
+      || receipt.prior_object_id !== session.object_id
+      || receipt.expected_sha256 !== session.expected_sha256
+      || Number(receipt.expected_byte_size) !== session.expected_byte_size
+      || receipt.permission_envelope_id !== session.permission_envelope_id
+      || receipt.audit_trace_id !== session.audit_trace_id
+      || receipt.actor_id !== session.actor_id) {
+      throw codedError(
+        "DMS upload intent retirement receipt does not match its retained expired session",
+        "DMS_UPLOAD_INTENT_RETIREMENT_CONFLICT",
+      );
+    }
+  }
+
+  function validatedUploadIntentRetirement(receipt, {
+    familyId,
+    documentId,
+    identityHash,
+    expectedGeneration = null,
+    priorReceiptHash = null,
+    canonicalEnvelope = null,
+    maxUploadIntentGenerations = MAX_UPLOAD_INTENT_GENERATIONS,
+  }) {
+    if (!receipt) return null;
+    const generation = requiredUploadIntentGeneration(
+      receipt.generation,
+      "retirement generation",
+      maxUploadIntentGenerations,
+    );
+    const nextGenerationValue = Number(receipt.next_generation);
+    if (!Number.isSafeInteger(nextGenerationValue) || nextGenerationValue !== generation + 1) {
+      throw codedError(
+        "DMS upload intent retirement generations are not contiguous",
+        "DMS_UPLOAD_INTENT_RETIREMENT_CONFLICT",
+      );
+    }
+    if (nextGenerationValue >= maxUploadIntentGenerations) {
+      throw codedError(
+        "DMS upload intent retirement generation limit has been exhausted",
+        "DMS_UPLOAD_INTENT_GENERATION_EXHAUSTED",
+      );
+    }
+    const nextGeneration = requiredUploadIntentGeneration(
+      nextGenerationValue,
+      "retirement next_generation",
+      maxUploadIntentGenerations,
+    );
+    const currentIds = uploadIntentGenerationIds({
+      family_id: familyId,
+      document_id: documentId,
+      generation,
+      max_generations: maxUploadIntentGenerations,
+    });
+    const nextIds = uploadIntentGenerationIds({
+      family_id: familyId,
+      document_id: documentId,
+      generation: nextGeneration,
+      max_generations: maxUploadIntentGenerations,
+    });
+    const canonicalFieldsMatch = !canonicalEnvelope || UPLOAD_INTENT_CANONICAL_ENVELOPE_FIELDS.every(
+      (field) => receipt[field] === canonicalEnvelope[field],
+    );
+    const canonicalEnvelopeShapeValid = [
+      receipt.matter_id,
+      receipt.workspace_id,
+      receipt.permission_envelope_id,
+      receipt.audit_trace_id,
+      receipt.actor_id,
+    ].every((value) => typeof value === "string" && value.trim() !== "")
+      && /^[a-f0-9]{64}$/u.test(receipt.expected_sha256 ?? "")
+      && Number.isSafeInteger(Number(receipt.expected_byte_size))
+      && Number(receipt.expected_byte_size) >= 0;
+    if (
+      receipt.schema_version !== UPLOAD_INTENT_RETIREMENT_SCHEMA
+      || receipt.family_id !== familyId
+      || receipt.document_id !== documentId
+      || receipt.identity_hash !== identityHash
+      || (expectedGeneration != null && generation !== expectedGeneration)
+      || (generation === 0 ? receipt.prior_receipt_hash !== null : receipt.prior_receipt_hash !== priorReceiptHash)
+      || receipt.prior_session_id !== currentIds.session_id
+      || receipt.prior_idempotency_key !== currentIds.idempotency_key
+      || receipt.prior_version_id !== currentIds.version_id
+      || receipt.prior_object_id !== currentIds.object_id
+      || nextGeneration !== generation + 1
+      || receipt.event_id !== uploadIntentRetirementEventId(familyId, generation)
+      || receipt.next_session_id !== nextIds.session_id
+      || receipt.next_idempotency_key !== nextIds.idempotency_key
+      || receipt.next_version_id !== nextIds.version_id
+      || receipt.next_object_id !== nextIds.object_id
+      || !canonicalFieldsMatch
+      || !canonicalEnvelopeShapeValid
+      || !/^[a-f0-9]{64}$/u.test(receipt.receipt_hash ?? "")
+      || receipt.receipt_hash !== uploadIntentRetirementReceiptHash(receipt)
+    ) {
+      throw codedError(
+        "DMS upload intent retirement receipt conflicts with the canonical identity",
+        "DMS_UPLOAD_INTENT_RETIREMENT_CONFLICT",
+      );
+    }
+    return Object.freeze({ ...receipt, generation, next_generation: nextGeneration });
+  }
+
+  async function validatedUploadIntentRetirementChain(client, tenantId, receipts, context) {
+    if (!receipts.length) return Object.freeze([]);
+    const canonicalEnvelope = Object.freeze(Object.fromEntries(
+      UPLOAD_INTENT_CANONICAL_ENVELOPE_FIELDS.map((field) => [field, receipts[0][field]]),
+    ));
+    const sessions = await selectUploadIntentRetirementSessions(client, tenantId, receipts);
+    const validated = [];
+    for (const [index, receipt] of receipts.entries()) {
+      const checked = validatedUploadIntentRetirement(receipt, {
+        ...context,
+        expectedGeneration: index,
+        priorReceiptHash: validated[index - 1]?.receipt_hash ?? null,
+        canonicalEnvelope,
+      });
+      assertRetirementMatchesSession(checked, sessions.get(checked.prior_session_id));
+      validated.push(checked);
+    }
+    return Object.freeze(validated);
+  }
+
+  async function getLatestUploadIntentRetirement({
+    tenant_id,
+    family_id,
+    document_id,
+    identity_hash,
+  } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const familyId = requiredText(family_id, "family_id");
+    const documentId = requiredText(document_id, "document_id");
+    const identityHash = requiredSha256(identity_hash, "identity_hash");
+    return transact(tenantId, async (client) => {
+      const chain = await validatedUploadIntentRetirementChain(
+        client,
+        tenantId,
+        await selectUploadIntentRetirementChain(client, tenantId, familyId),
+        { familyId, documentId, identityHash, maxUploadIntentGenerations },
+      );
+      return chain.at(-1) ?? null;
+    }, { readOnly: true });
+  }
+
+  async function resolveUploadIntentGeneration(input = {}) {
+    const tenantId = requiredText(input.tenant_id, "tenant_id");
+    const familyId = requiredText(input.family_id, "family_id");
+    const documentId = requiredText(input.document_id, "document_id");
+    const identityHash = requiredSha256(input.identity_hash, "identity_hash");
+    const latest = await getLatestUploadIntentRetirement({
+      tenant_id: tenantId,
+      family_id: familyId,
+      document_id: documentId,
+      identity_hash: identityHash,
+    });
+    const generation = latest?.next_generation ?? 0;
+    return Object.freeze({
+      family_id: familyId,
+      identity_hash: identityHash,
+      prior_receipt_hash: latest?.receipt_hash ?? null,
+      ...uploadIntentGenerationIds({
+        family_id: familyId,
+        document_id: documentId,
+        generation,
+        max_generations: maxUploadIntentGenerations,
+      }),
+    });
+  }
+
   function nextUploadExpiry(ttlMillis = 15 * 60 * 1_000) {
     if (!Number.isSafeInteger(ttlMillis) || ttlMillis < 60_000) throw new TypeError("upload ttl must be at least one minute");
     return new Date(Date.parse(timestamp(clock)) + ttlMillis).toISOString();
   }
 
-  async function createUploadSession(input = {}) {
-    const tenantId = requiredText(input.tenant_id, "tenant_id");
-    const idempotencyKey = requiredText(input.idempotency_key, "idempotency_key");
-    const sessionId = input.session_id ? requiredText(input.session_id, "session_id") : `dms-upload:${idFactory()}`;
-    const adapterId = input.adapter_id ? requiredText(input.adapter_id, "adapter_id") : storage.adapter_id;
+  function normalizedUploadRequest(input = {}) {
+    const adapterId = input.adapter_id
+      ? requiredText(input.adapter_id, "adapter_id")
+      : storage.adapter_id;
     if (adapterId !== storage.adapter_id) {
       throw codedError("upload session adapter does not match runtime adapter", "DMS_STORAGE_ADAPTER_MISMATCH", 400);
     }
-    const normalized = Object.freeze({
-      tenant_id: tenantId,
-      idempotency_key: idempotencyKey,
+    return Object.freeze({
+      tenant_id: requiredText(input.tenant_id, "tenant_id"),
+      idempotency_key: requiredText(input.idempotency_key, "idempotency_key"),
       matter_id: requiredText(input.matter_id, "matter_id"),
       workspace_id: requiredText(input.workspace_id, "workspace_id"),
       document_id: requiredText(input.document_id, "document_id"),
@@ -212,8 +512,21 @@ export function createPostgresDmsUploadRuntime({
       actor_id: requiredText(input.actor_id, "actor_id"),
       expires_at: requiredTimestamp(input.expires_at, "expires_at"),
     });
+  }
+
+  async function createUploadSession(input = {}) {
+    const normalized = normalizedUploadRequest(input);
+    const tenantId = normalized.tenant_id;
+    const idempotencyKey = normalized.idempotency_key;
+    const sessionId = input.session_id ? requiredText(input.session_id, "session_id") : `dms-upload:${idFactory()}`;
     const requestHash = hashValue(normalized);
     const createdAt = timestamp(clock);
+    const initialNextAttemptAt = input.initial_next_attempt_at == null
+      ? createdAt
+      : requiredTimestamp(input.initial_next_attempt_at, "initial_next_attempt_at");
+    if (input.initial_next_attempt_at != null && initialNextAttemptAt !== normalized.expires_at) {
+      throw new TypeError("initial_next_attempt_at must equal expires_at");
+    }
     return transact(tenantId, async (client) => {
       const inserted = await client.query(
         `INSERT INTO lawos_dms.upload_sessions
@@ -222,8 +535,8 @@ export function createPostgresDmsUploadRuntime({
             expected_sha256, expected_byte_size, permission_envelope_id, audit_trace_id, actor_id,
             state, expires_at, next_attempt_at, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-                 $16, $17, $18, 'pending', $19::timestamptz, $20::timestamptz, $20::timestamptz, $20::timestamptz)
-         ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
+                 $16, $17, $18, 'pending', $19::timestamptz, $20::timestamptz, $21::timestamptz, $21::timestamptz)
+         ON CONFLICT DO NOTHING
          RETURNING *`,
         [
           tenantId,
@@ -236,7 +549,7 @@ export function createPostgresDmsUploadRuntime({
           normalized.version_id,
           normalized.version_number,
           normalized.object_id,
-          adapterId,
+          normalized.adapter_id,
           normalized.title,
           normalized.content_type,
           normalized.expected_sha256,
@@ -245,6 +558,7 @@ export function createPostgresDmsUploadRuntime({
           normalized.audit_trace_id,
           normalized.actor_id,
           normalized.expires_at,
+          initialNextAttemptAt,
           createdAt,
         ],
       );
@@ -276,6 +590,194 @@ export function createPostgresDmsUploadRuntime({
         created_at: createdAt,
       });
       return Object.freeze({ session: rowToSession(inserted.rows[0]), replayed: false });
+    });
+  }
+
+  function assertUploadIntentRolloverIdentity(session, expected) {
+    if (
+      session.matter_id !== requiredText(expected.matter_id, "matter_id")
+      || session.workspace_id !== requiredText(expected.workspace_id, "workspace_id")
+      || session.document_id !== requiredText(expected.document_id, "document_id")
+      || session.title !== requiredText(expected.title, "title")
+      || session.content_type !== "message/rfc822"
+      || session.expected_sha256 !== requiredSha256(expected.expected_sha256, "expected_sha256")
+      || session.expected_byte_size !== requiredByteSize(expected.expected_byte_size)
+      || session.permission_envelope_id !== requiredText(expected.permission_envelope_id, "permission_envelope_id")
+      || session.audit_trace_id !== requiredText(expected.audit_trace_id, "audit_trace_id")
+      || session.actor_id !== requiredText(expected.actor_id, "actor_id")
+    ) {
+      throw codedError(
+        "DMS upload intent rollover identity conflicts with the prior generation",
+        "DMS_UPLOAD_INTENT_IDENTITY_CONFLICT",
+      );
+    }
+  }
+
+  async function assertUploadIntentRolloverUncommitted(client, session, now) {
+    if (
+      session.state !== "expired"
+      || !session.orphan_deleted_at
+      || session.reconcile_owner
+      || session.reconcile_lease_expires_at
+      || session.stage_lease_owner
+      || session.stage_lease_token
+      || session.stage_lease_expires_at
+      || session.provider_finalize_owner
+      || session.provider_finalize_token
+      || session.provider_finalize_lease_expires_at
+      || session.provider_receipt
+      || session.provider_finalized_at
+      || session.metadata_committed_at
+      || session.finalized_at
+    ) {
+      throw codedError(
+        "DMS upload intent is not ready for a new generation",
+        "DMS_UPLOAD_INTENT_ROLLOVER_NOT_READY",
+      );
+    }
+    const protectedResult = await client.query(
+      `SELECT
+         EXISTS (
+           SELECT 1 FROM lawos_dms.documents
+            WHERE tenant_id = $1 AND document_id = $2
+         ) AS document_exists,
+         EXISTS (
+           SELECT 1 FROM lawos_dms.document_versions
+            WHERE tenant_id = $1 AND version_id = $3
+         ) AS version_exists,
+         EXISTS (
+           SELECT 1 FROM lawos_dms.file_objects
+            WHERE tenant_id = $1 AND object_id = $4
+         ) AS file_object_exists,
+         EXISTS (
+           SELECT 1 FROM lawos_dms.legal_holds
+            WHERE tenant_id = $1 AND document_id = $2 AND status = 'active'
+         ) AS held,
+         EXISTS (
+           SELECT 1 FROM lawos_dms.retention_policies
+            WHERE tenant_id = $1 AND document_id = $2 AND retain_until > $5::timestamptz
+         ) AS retained`,
+      [session.tenant_id, session.document_id, session.version_id, session.object_id, now],
+    );
+    if (Object.values(protectedResult.rows[0] ?? {}).some(Boolean)) {
+      throw codedError(
+        "DMS upload intent rollover is blocked by committed or governed evidence",
+        "DMS_UPLOAD_INTENT_ROLLOVER_BLOCKED",
+      );
+    }
+  }
+
+  async function rolloverExpiredUploadIntent({
+    tenant_id,
+    family_id,
+    identity_hash,
+    session_id,
+    expected = {},
+  } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const familyId = requiredText(family_id, "family_id");
+    const identityHash = requiredSha256(identity_hash, "identity_hash");
+    const sessionId = requiredText(session_id, "session_id");
+    const documentId = requiredText(expected.document_id, "document_id");
+    const retiredAt = timestamp(clock);
+    return transact(tenantId, async (client) => {
+      const locked = await selectSession(client, tenantId, sessionId, { lock: true });
+      assertUploadIntentRolloverIdentity(locked, expected);
+      const chain = await validatedUploadIntentRetirementChain(
+        client,
+        tenantId,
+        await selectUploadIntentRetirementChain(client, tenantId, familyId),
+        { familyId, documentId, identityHash, maxUploadIntentGenerations },
+      );
+      const latest = chain.at(-1) ?? null;
+      if (latest?.prior_session_id === sessionId) return latest;
+      const generation = latest?.next_generation ?? 0;
+      const currentIds = uploadIntentGenerationIds({
+        family_id: familyId,
+        document_id: documentId,
+        generation,
+        max_generations: maxUploadIntentGenerations,
+      });
+      if (
+        locked.session_id !== currentIds.session_id
+        || locked.idempotency_key !== currentIds.idempotency_key
+        || locked.version_id !== currentIds.version_id
+        || locked.object_id !== currentIds.object_id
+      ) {
+        throw codedError(
+          "DMS upload intent generation does not match the retirement chain",
+          "DMS_UPLOAD_INTENT_RETIREMENT_CONFLICT",
+        );
+      }
+      await assertUploadIntentRolloverUncommitted(client, locked, retiredAt);
+      const nextGeneration = generation + 1;
+      if (nextGeneration >= maxUploadIntentGenerations) {
+        throw codedError(
+          "DMS upload intent retirement generation limit has been exhausted",
+          "DMS_UPLOAD_INTENT_GENERATION_EXHAUSTED",
+        );
+      }
+      const nextIds = uploadIntentGenerationIds({
+        family_id: familyId,
+        document_id: documentId,
+        generation: nextGeneration,
+        max_generations: maxUploadIntentGenerations,
+      });
+      const unsignedPayload = unsignedUploadIntentRetirementPayload({
+        schema_version: UPLOAD_INTENT_RETIREMENT_SCHEMA,
+        family_id: familyId,
+        identity_hash: identityHash,
+        document_id: documentId,
+        matter_id: locked.matter_id,
+        workspace_id: locked.workspace_id,
+        expected_sha256: locked.expected_sha256,
+        expected_byte_size: locked.expected_byte_size,
+        permission_envelope_id: locked.permission_envelope_id,
+        audit_trace_id: locked.audit_trace_id,
+        actor_id: locked.actor_id,
+        generation,
+        next_generation: nextGeneration,
+        prior_session_id: locked.session_id,
+        prior_idempotency_key: locked.idempotency_key,
+        prior_request_hash: locked.request_hash,
+        prior_version_id: locked.version_id,
+        prior_object_id: locked.object_id,
+        prior_receipt_hash: latest?.receipt_hash ?? null,
+        next_session_id: nextIds.session_id,
+        next_idempotency_key: nextIds.idempotency_key,
+        next_version_id: nextIds.version_id,
+        next_object_id: nextIds.object_id,
+        retired_at: retiredAt,
+      });
+      const payload = Object.freeze({
+        ...unsignedPayload,
+        receipt_hash: uploadIntentRetirementReceiptHash(unsignedPayload),
+      });
+      const eventId = uploadIntentRetirementEventId(familyId, generation);
+      await appendAudit(client, {
+        tenant_id: tenantId,
+        event_id: eventId,
+        event_type: UPLOAD_INTENT_RETIREMENT_EVENT,
+        actor_id: locked.actor_id,
+        object_type: UPLOAD_INTENT_FAMILY_OBJECT,
+        object_id: familyId,
+        payload,
+        created_at: retiredAt,
+      });
+      const recordedChain = await validatedUploadIntentRetirementChain(
+        client,
+        tenantId,
+        await selectUploadIntentRetirementChain(client, tenantId, familyId),
+        { familyId, documentId, identityHash, maxUploadIntentGenerations },
+      );
+      const recorded = recordedChain.at(-1) ?? null;
+      if (recorded?.event_id !== eventId || recorded?.receipt_hash !== payload.receipt_hash) {
+        throw codedError(
+          "DMS upload intent retirement receipt was not recorded atomically",
+          "DMS_UPLOAD_INTENT_RETIREMENT_CONFLICT",
+        );
+      }
+      return recorded;
     });
   }
 
@@ -367,7 +869,7 @@ export function createPostgresDmsUploadRuntime({
         `UPDATE lawos_dms.upload_sessions
             SET stage_lease_owner = $3, stage_lease_token = $4,
                 stage_lease_expires_at = $5::timestamptz, retryable = false,
-                updated_at = $6::timestamptz
+                next_attempt_at = $5::timestamptz, updated_at = $6::timestamptz
           WHERE tenant_id = $1 AND session_id = $2
           RETURNING *`,
         [tenantId, sessionId, runtimeWorkerId, leaseToken, leaseExpiresAt, stageStartedAt],
@@ -858,19 +1360,22 @@ export function createPostgresDmsUploadRuntime({
     });
   }
 
-  async function releaseReconciliationClaim(tenantId, sessionId, { error = null } = {}) {
+  async function releaseReconciliationClaim(tenantId, sessionId, { error = null, next_attempt_at = null } = {}) {
     const releasedAt = timestamp(clock);
     return transact(tenantId, async (client) => {
       const locked = await selectSession(client, tenantId, sessionId, { lock: true });
       if (locked.reconcile_owner !== runtimeWorkerId) return locked;
       if (!error) {
+        const nextAttemptAt = next_attempt_at == null
+          ? releasedAt
+          : requiredTimestamp(next_attempt_at, "next_attempt_at");
         const result = await client.query(
           `UPDATE lawos_dms.upload_sessions
               SET reconcile_owner = NULL, reconcile_lease_expires_at = NULL,
                   next_attempt_at = $3::timestamptz, updated_at = $3::timestamptz
             WHERE tenant_id = $1 AND session_id = $2 AND reconcile_owner = $4
             RETURNING *`,
-          [tenantId, sessionId, releasedAt, runtimeWorkerId],
+          [tenantId, sessionId, nextAttemptAt, runtimeWorkerId],
         );
         return rowToSession(result.rows[0] ?? locked);
       }
@@ -929,7 +1434,9 @@ export function createPostgresDmsUploadRuntime({
             && Date.parse(session.stage_lease_expires_at) > Date.parse(now);
           if (activeStageLease) {
             outcomes.push(Object.freeze({ session_id: session.session_id, action: "stage_in_progress", state: session.state }));
-            await releaseReconciliationClaim(tenantId, session.session_id);
+            await releaseReconciliationClaim(tenantId, session.session_id, {
+              next_attempt_at: session.stage_lease_expires_at,
+            });
             continue;
           }
           if (staged && sessionExpired && !activeStageLease) {
@@ -946,7 +1453,9 @@ export function createPostgresDmsUploadRuntime({
               continue;
             }
             outcomes.push(Object.freeze({ session_id: session.session_id, action: "awaiting_bytes", state: session.state }));
-            await releaseReconciliationClaim(tenantId, session.session_id);
+            await releaseReconciliationClaim(tenantId, session.session_id, {
+              next_attempt_at: session.expires_at,
+            });
             continue;
           }
           await markBytesStored(session, staged, { eventActor: "dms-reconciler" });
@@ -1760,6 +2269,9 @@ export function createPostgresDmsUploadRuntime({
     createUploadSession,
     nextUploadExpiry,
     getUploadSession,
+    getLatestUploadIntentRetirement,
+    resolveUploadIntentGeneration,
+    rolloverExpiredUploadIntent,
     stageUpload,
     finalizeUpload,
     uploadDocument,

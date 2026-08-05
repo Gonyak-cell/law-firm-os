@@ -164,6 +164,8 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
     assert.ok(authContext);
     assert.deepEqual(authContext.endpoints, [
       "POST /api/auth/login",
+      "GET /api/auth/office-sso/config",
+      "POST /api/auth/office-sso/exchange",
       "POST /api/auth/oidc/start",
       "POST /api/auth/oidc/complete",
       "GET /api/auth/session",

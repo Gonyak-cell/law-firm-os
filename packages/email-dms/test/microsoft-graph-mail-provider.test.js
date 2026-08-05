@@ -29,10 +29,16 @@ function mailResult(overrides = {}) {
       internetMessageId: "<synthetic-inquiry@example.invalid>",
       conversationId: "conversation-synthetic-001",
       subject: "Synthetic inquiry",
+      sender: {
+        emailAddress: {
+          name: "Authenticated sender",
+          address: "AUTHENTICATED-SENDER@example.invalid",
+        },
+      },
       from: {
         emailAddress: {
-          name: "Synthetic sender",
-          address: "SENDER@example.invalid",
+          name: "Synthetic author",
+          address: "AUTHOR@example.invalid",
         },
       },
       toRecipients: [{
@@ -45,6 +51,8 @@ function mailResult(overrides = {}) {
       bccRecipients: [],
       receivedDateTime: "2026-07-30T08:00:00.000Z",
       hasAttachments: false,
+      is_in_sent_items: true,
+      is_draft: false,
     },
     mime_base64: MIME.toString("base64"),
     mime_bytes: MIME.byteLength,
@@ -109,12 +117,66 @@ test("CL-P3-W01-T02 Graph provider는 broker의 고정 mail export만 호출해 
     "<synthetic-inquiry@example.invalid>",
   );
   assert.deepEqual(result.message_metadata.sender, {
-    display_name: "Synthetic sender",
-    address: "sender@example.invalid",
+    display_name: "Authenticated sender",
+    address: "authenticated-sender@example.invalid",
+  });
+  assert.deepEqual(result.message_metadata.from, {
+    display_name: "Synthetic author",
+    address: "author@example.invalid",
   });
   assert.equal(result.mime_bytes.equals(MIME), true);
+  assert.equal(result.message_metadata.is_in_sent_items, true);
+  assert.equal(result.message_metadata.is_draft, false);
+  assert.equal(Object.hasOwn(result.message_metadata, "parent_folder_id"), false);
   assert.equal(result.provider_request_id, "request-mime-synthetic");
   assert.equal(JSON.stringify({ ...result, mime_bytes: null }).includes(ACCESS_TOKEN), false);
+});
+
+test("Graph provider는 Sent Items·draft 불리언을 엄격히 검증하고 폴더 ID를 노출하지 않는다", async () => {
+  for (const messageMetadata of [
+    { ...mailResult().message_metadata, is_in_sent_items: "true" },
+    { ...mailResult().message_metadata, is_draft: null },
+  ]) {
+    const fixture = providerFixture({
+      exportResult: mailResult({ message_metadata: messageMetadata }),
+    });
+    await assert.rejects(
+      fixture.provider.getMeMessageMime({
+        credential: { access_token: ACCESS_TOKEN },
+        rest_message_id: REST_ID,
+        mailbox_scope: "me",
+        prefer_immutable_id: true,
+        source_id_type: "restId",
+        target_id_type: "restImmutableEntryId",
+      }),
+      (error) => (
+        error.safe_error_code
+        === MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid
+      ),
+    );
+  }
+
+  const fixture = providerFixture({
+    exportResult: mailResult({
+      message_metadata: {
+        ...mailResult().message_metadata,
+        is_in_sent_items: false,
+        is_draft: true,
+        parentFolderId: "unsafe-folder-id",
+      },
+    }),
+  });
+  const result = await fixture.provider.getMeMessageMime({
+    credential: { access_token: ACCESS_TOKEN },
+    rest_message_id: REST_ID,
+    mailbox_scope: "me",
+    prefer_immutable_id: true,
+    source_id_type: "restId",
+    target_id_type: "restImmutableEntryId",
+  });
+  assert.equal(result.message_metadata.is_in_sent_items, false);
+  assert.equal(result.message_metadata.is_draft, true);
+  assert.equal(JSON.stringify(result).includes("unsafe-folder-id"), false);
 });
 
 test("CL-P3-W01-T02 Graph provider는 공유 mailbox와 3MiB 초과 MIME을 명확히 차단한다", async () => {
@@ -186,6 +248,75 @@ test("CL-P3-W01-T02 broker의 MIME 상한 오류도 동일한 안전 오류로 �
       && error.safe_error_code
         === MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large
       && !error.message.includes("provider body")
+    ),
+  );
+});
+
+test("Graph provider는 broker의 스트리밍 RESPONSE_TOO_LARGE도 메일 MIME 오류로 변환한다", async () => {
+  const transport = {
+    async graphMailMessageExport() {
+      throw Object.assign(new Error("provider body must stay hidden"), {
+        safe_error_code: "MICROSOFT_EGRESS_RESPONSE_TOO_LARGE",
+        status: 502,
+      });
+    },
+    async graphCalendarEventCreate() {},
+  };
+  const provider = createMicrosoftGraphMailProvider({
+    microsoft_egress_transport: transport,
+  });
+
+  await assert.rejects(
+    provider.getMeMessageMime({
+      credential: { access_token: ACCESS_TOKEN },
+      rest_message_id: REST_ID,
+      mailbox_scope: "me",
+      prefer_immutable_id: true,
+      source_id_type: "restId",
+      target_id_type: "restImmutableEntryId",
+    }),
+    (error) => (
+      error.status === 413
+      && error.safe_error_code
+        === MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.mime_too_large
+      && !error.message.includes("provider body")
+    ),
+  );
+});
+
+test("Graph provider는 일정 작업의 RESPONSE_TOO_LARGE를 MIME 오류로 오인하지 않는다", async () => {
+  const transport = {
+    async graphMailMessageExport() {},
+    async graphCalendarEventCreate() {
+      throw Object.assign(new Error("calendar response too large"), {
+        safe_error_code: "MICROSOFT_EGRESS_RESPONSE_TOO_LARGE",
+        status: 502,
+      });
+    },
+  };
+  const provider = createMicrosoftGraphMailProvider({
+    microsoft_egress_transport: transport,
+  });
+
+  await assert.rejects(
+    provider.createMeCalendarEvent({
+      credential: { access_token: ACCESS_TOKEN },
+      mailbox_scope: "me",
+      transaction_id: "00000000-0000-5000-8000-000000000004",
+      event: {
+        subject: "법률 상담",
+        start_at: "2026-08-01T01:00:00.000Z",
+        end_at: "2026-08-01T02:00:00.000Z",
+        time_zone: "UTC",
+        sensitivity: "private",
+        show_as: "busy",
+      },
+    }),
+    (error) => (
+      error.status === 502
+      && error.safe_error_code
+        === MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_error
+      && !error.message.includes("calendar response too large")
     ),
   );
 });

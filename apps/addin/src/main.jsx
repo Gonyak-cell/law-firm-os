@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   AlertTriangle,
@@ -11,8 +11,10 @@ import {
   ShieldCheck,
   TimerReset,
   UserPlus,
+  Unplug,
+  RefreshCw,
 } from "lucide-react";
-import { PublicClientApplication } from "@azure/msal-browser";
+import { createNestablePublicClientApplication } from "@azure/msal-browser";
 import {
   buildInquiryRegistrationRequest,
   inquiryResultCopy,
@@ -21,93 +23,181 @@ import {
 import {
   resolveCurrentOutlookRestMessageId,
 } from "./outlook-item-id.js";
+import {
+  OUTLOOK_ITEM_CONTENT_ERROR_CODES,
+  assertStableOutlookItemIdentity,
+  readOutlookAttachments,
+  readOutlookComposeMessage,
+  readOutlookItemBody,
+  readOutlookItemTimestamps,
+} from "./outlook-item-content.js";
+import { saveOutlookAttachments } from "./outlook-attachment-actions.js";
+import { createOutlookFilingRequest } from "./outlook-filing.js";
+import {
+  AUTH_ERROR_CODES,
+  AUTH_STATE,
+  GRAPH_STATE,
+  LAWOS_SESSION_STORAGE_KEY,
+  createAddinAuthError,
+  createSessionStore,
+  detectNestedAppAuth,
+  loadOfficeSsoConfig,
+  openOfficeOAuthDialog,
+  parseExchangeResponse,
+  parseSessionValidation,
+} from "./addin-auth.js";
+import {
+  handleOutlookMessageSend,
+  registerOutlookSendHandler,
+} from "./outlook-send-events.js";
+import {
+  isFiledEmailContextCurrent,
+  isOutlookActionContextCurrent,
+  isSameOutlookItem,
+  outlookItemIdentityKey,
+  subscribeToOutlookItemChanges,
+} from "./outlook-item-events.js";
+import {
+  DEFAULT_ADDIN_API_TIMEOUT_MS,
+  fetchAddinApi,
+} from "./addin-http.js";
 import "./styles.css";
 
-const ADDIN_SESSION_STORAGE_KEY = "lawos_addin_session_token";
-const params = new URLSearchParams(window.location.search);
-const TENANT_ID = params.get("tenantId") ?? "tenant_rp05_synthetic";
-const PROOF_MATTER_ID = params.get("matterId") ?? "matter_rp05_synthetic";
-const ENTRA_CLIENT_ID = params.get("entraClientId") ?? "";
-const ENTRA_TENANT_ID = params.get("entraTenantId") ?? "organizations";
-const MSAL_SCOPES = params.getAll("msalScope").length > 0 ? params.getAll("msalScope") : ["openid", "profile", "User.Read", "Mail.Read"];
+const ADDIN_SESSION_STORAGE_KEY = LAWOS_SESSION_STORAGE_KEY;
 let msalBridgePromise = null;
+let runtimeConfigPromise = null;
+let sessionStore = null;
+let authRecoveryPromise = null;
+let officeReadyPromise = null;
+let unauthorizedHandler = null;
+let sessionRecoveredHandler = null;
 
-function apiBaseUrl() {
-  const fromQuery = params.get("apiBase");
-  if (fromQuery) return fromQuery.replace(/\/+$/, "");
-  const fromOffice = window.Office?.context?.requirements ? "" : "";
-  return fromOffice;
+function authStorage() {
+  if (!sessionStore) {
+    sessionStore = createSessionStore({
+      sessionStorage: window.sessionStorage,
+      officeStorage: window.OfficeRuntime?.storage,
+      key: ADDIN_SESSION_STORAGE_KEY,
+    });
+  }
+  return sessionStore;
+}
+
+async function runtimeConfig() {
+  if (!runtimeConfigPromise) {
+    runtimeConfigPromise = loadOfficeSsoConfig({
+      location: window.location,
+      fetchImpl: (url, options) => fetchAddinApi({
+        url,
+        options,
+        fetchImpl: window.fetch.bind(window),
+      }),
+    }).catch((error) => {
+      runtimeConfigPromise = null;
+      throw error;
+    });
+  }
+  return runtimeConfigPromise;
+}
+
+async function apiBaseUrl() {
+  const config = await runtimeConfig();
+  return config.apiBase;
 }
 
 async function addinSessionToken() {
-  try {
-    const token = window.sessionStorage?.getItem(ADDIN_SESSION_STORAGE_KEY);
-    if (token) return token;
-  } catch {
-  }
-  try {
-    return (await window.OfficeRuntime?.storage?.getItem?.(ADDIN_SESSION_STORAGE_KEY)) ?? "";
-  } catch {
-    return "";
-  }
+  return authStorage().get();
+}
+
+async function waitForOfficeReady() {
+  if (officeReadyPromise) return officeReadyPromise;
+  const onReady = window.Office?.onReady;
+  if (typeof onReady !== "function") return undefined;
+  officeReadyPromise = new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    try {
+      const result = onReady(finish);
+      if (result && typeof result.then === "function") result.then(finish, finish);
+    } catch {
+      finish();
+    }
+  });
+  return officeReadyPromise;
 }
 
 async function initializeMsalBridge() {
-  if (!ENTRA_CLIENT_ID) {
-    const unconfigured = {
-      configured: false,
-      initialized: false,
-      account_count: 0,
-      scopes: MSAL_SCOPES,
-      provider_runtime_executed: false,
-      graph_request_executed: false,
-      token_material_returned: false,
-      production_write_claim: false,
-      reason: "entra_client_id_missing",
-    };
-    recordOutlookEventProbe("msal_bridge", unconfigured);
-    return unconfigured;
-  }
-
   if (!msalBridgePromise) {
     msalBridgePromise = (async () => {
-      const instance = new PublicClientApplication({
+      await waitForOfficeReady();
+      const config = await runtimeConfig();
+      const support = detectNestedAppAuth({ Office: window.Office, window });
+      if (!support.supported) {
+        throw createAddinAuthError(
+          support.reason ?? AUTH_ERROR_CODES.nestedAppAuthUnavailable,
+          "이 Outlook 환경에서는 Nested App Auth 1.1을 사용할 수 없습니다.",
+          { nested_app_auth: support },
+        );
+      }
+      const instance = await createNestablePublicClientApplication({
         auth: {
-          clientId: ENTRA_CLIENT_ID,
-          authority: `https://login.microsoftonline.com/${ENTRA_TENANT_ID}`,
+          clientId: config.clientId,
+          authority: config.authority,
+          redirectUri: config.naaRedirectUri,
+          postLogoutRedirectUri: config.naaRedirectUri,
         },
         cache: {
-          cacheLocation: "sessionStorage",
+          // Graph/NAA tokens are memory-only and never persisted by LawOS.
+          cacheLocation: "memoryStorage",
           storeAuthStateInCookie: false,
         },
       });
-      await instance.initialize();
       const accounts = instance.getAllAccounts();
       const receipt = {
         configured: true,
         initialized: true,
         account_count: accounts.length,
-        scopes: MSAL_SCOPES,
+        scopes: config.scopes,
+        nested_app_auth: "1.1",
         provider_runtime_executed: false,
         graph_request_executed: false,
         token_material_returned: false,
         production_write_claim: false,
       };
       recordOutlookEventProbe("msal_bridge", receipt);
-      return receipt;
-    })();
+      return { ...receipt, instance, config, receipt };
+    })().catch((error) => {
+      msalBridgePromise = null;
+      throw error;
+    });
   }
   return msalBridgePromise;
 }
 
-async function requestJson(path, { method = "GET", body } = {}) {
-  const token = await addinSessionToken();
+async function rawRequestJson(path, {
+  method = "GET",
+  body,
+  includeSession = true,
+  retryAfterUnauthorized = true,
+  timeoutMs = DEFAULT_ADDIN_API_TIMEOUT_MS,
+} = {}) {
+  const baseUrl = await apiBaseUrl();
+  const token = includeSession ? await addinSessionToken() : "";
   const headers = { "content-type": "application/json" };
   if (token) headers.authorization = `Bearer ${token}`;
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
+  const response = await fetchAddinApi({
+    url: `${baseUrl}${path}`,
+    timeoutMs,
+    fetchImpl: window.fetch.bind(window),
+    options: {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    },
   });
   let payload;
   try {
@@ -119,14 +209,109 @@ async function requestJson(path, { method = "GET", body } = {}) {
   }
   if (!response.ok) {
     const code = payload.safe_error_codes?.[0]
+      ?? payload.safe_error_code
       ?? payload.message
       ?? "request_failed";
     const error = new Error(code);
     error.safe_error_code = code;
     error.status = response.status;
+    error.payload = payload;
+    if (response.status === 401 && includeSession && retryAfterUnauthorized) {
+      await authStorage().clear();
+      unauthorizedHandler?.();
+    }
     throw error;
   }
   return payload;
+}
+
+async function requestJson(path, options = {}) {
+  try {
+    return await rawRequestJson(path, options);
+  } catch (error) {
+    if (error?.status === 401 && options.includeSession !== false && options.retryAfterUnauthorized !== false) {
+      try {
+        await acquireLawosSession({ interactive: false, force: true });
+        const retried = await rawRequestJson(path, { ...options, retryAfterUnauthorized: false });
+        sessionRecoveredHandler?.();
+        return retried;
+      } catch {
+        // A command/event path must remain non-interactive and fail closed.
+      }
+    }
+    throw error;
+  }
+}
+
+async function validateLawosSession() {
+  const token = await addinSessionToken();
+  if (!token) return { authenticated: false, safe_error_code: "AUTH_SESSION_REQUIRED" };
+  try {
+    const payload = await rawRequestJson("/api/auth/session", { retryAfterUnauthorized: false });
+    return parseSessionValidation(payload, 200);
+  } catch (error) {
+    if (error?.status === 401) {
+      await authStorage().clear();
+      return { authenticated: false, safe_error_code: error.safe_error_code ?? "AUTH_SESSION_INVALID" };
+    }
+    throw error;
+  }
+}
+
+async function acquireLawosSession({ interactive = false, force = false } = {}) {
+  if (authRecoveryPromise && !interactive) return authRecoveryPromise;
+  const run = (async () => {
+    if (!force) {
+      const existing = await validateLawosSession();
+      if (existing.authenticated) return existing;
+    }
+    const bridge = await initializeMsalBridge();
+    const activeAccount = bridge.instance.getActiveAccount?.() ?? null;
+    const silentRequest = {
+      scopes: bridge.config.scopes,
+      ...(activeAccount ? { account: activeAccount } : {}),
+    };
+    let result;
+    if (interactive && force) {
+      result = await bridge.instance.acquireTokenPopup({
+        scopes: bridge.config.scopes,
+        prompt: "select_account",
+      });
+    } else {
+      try {
+        result = await bridge.instance.acquireTokenSilent(silentRequest);
+      } catch (error) {
+        if (!interactive) {
+          throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "로그인을 눌러 LawOS에 로그인해 주세요.", { cause: error });
+        }
+        result = await bridge.instance.acquireTokenPopup({
+          scopes: bridge.config.scopes,
+          prompt: "select_account",
+        });
+      }
+    }
+    if (result?.account) {
+      bridge.instance.setActiveAccount?.(result.account);
+    }
+    const entraAccessToken = typeof result?.accessToken === "string" ? result.accessToken : "";
+    if (!entraAccessToken) {
+      throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "Microsoft 로그인 토큰을 받지 못했습니다.");
+    }
+    const exchange = await rawRequestJson("/api/auth/office-sso/exchange", {
+      method: "POST",
+      includeSession: false,
+      retryAfterUnauthorized: false,
+      body: { access_token: entraAccessToken },
+    });
+    // Drop the Entra token before storing or returning the LawOS session.
+    const lawosToken = parseExchangeResponse(exchange, 200);
+    await authStorage().set(lawosToken);
+    return validateLawosSession();
+  })();
+  if (!interactive) {
+    authRecoveryPromise = run.finally(() => { authRecoveryPromise = null; });
+  }
+  return run;
 }
 
 function recordOutlookEventProbe(key, value) {
@@ -148,54 +333,26 @@ function completeSendEvent(event, payload = {}) {
 
 function officeItemSnapshot() {
   const item = window.Office?.context?.mailbox?.item;
-  const now = new Date().toISOString();
-  if (!item) {
-    return {
-      graph_message_id: "graph-proof-outlook-001",
-      internet_message_id: "<proof-outlook-001@amic.law>",
-      conversation_id: "conversation-proof-outlook",
-      from: { name: "상대방 담당자", email: "counsel@example.com" },
-      to: [{ name: "AMIC 변호사", email: "lawyer@amic.law" }],
-      cc: [{ name: "고객 담당자", email: "client@example.com" }],
-      bcc: [],
-      subject: "계약 검토 의견 및 첨부",
-      body_preview: "계약 검토 의견입니다. 첨부 확인 부탁드립니다.",
-      sent_at: now,
-      received_at: now,
-      mailbox_ref: "mailbox:proof",
-      account_ref: "account:outlook-proof",
-      attachments: [
-        {
-          attachment_id: "att-proof-contract",
-          name: "계약검토의견.txt",
-          content_type: "text/plain",
-          content_text: "계약 검토 의견 proof attachment",
-          confidentiality: "confidential",
-        },
-        {
-          attachment_id: "att-proof-reference",
-          name: "참고자료.txt",
-          content_type: "text/plain",
-          content_text: "참고자료 proof attachment",
-          confidentiality: "internal",
-        },
-      ],
-    };
+  if (!item) return null;
+  let graphMessageId = null;
+  try {
+    graphMessageId = resolveCurrentOutlookRestMessageId({ Office: window.Office }).rest_message_id;
+  } catch {
+    // Smart-alert metadata can still be inspected, but filing must fail
+    // closed when Office cannot provide a REST-stable message identity.
   }
   return {
-    graph_message_id: item.itemId ?? `office-item-${Date.now()}`,
-    internet_message_id: item.internetMessageId ?? `<${item.itemId ?? Date.now()}@outlook.office>`,
-    conversation_id: item.conversationId ?? `conversation:${item.itemId ?? Date.now()}`,
-    from: item.from ? { name: item.from.displayName, email: item.from.emailAddress } : { name: null, email: "unknown@outlook" },
+    graph_message_id: graphMessageId,
+    internet_message_id: typeof item.internetMessageId === "string" && item.internetMessageId.trim() ? item.internetMessageId : null,
+    conversation_id: typeof item.conversationId === "string" && item.conversationId.trim() ? item.conversationId : null,
+    from: item.from ? { name: item.from.displayName, email: item.from.emailAddress } : { name: null, email: null },
     to: Array.isArray(item.to) ? item.to.map((recipient) => ({ name: recipient.displayName, email: recipient.emailAddress })) : [],
     cc: Array.isArray(item.cc) ? item.cc.map((recipient) => ({ name: recipient.displayName, email: recipient.emailAddress })) : [],
     bcc: [],
     subject: item.subject ?? "제목 없음",
-    body_preview: item.normalizedSubject ?? item.subject ?? "",
-    sent_at: item.dateTimeCreated ? new Date(item.dateTimeCreated).toISOString() : now,
-    received_at: item.dateTimeModified ? new Date(item.dateTimeModified).toISOString() : now,
+    body_preview: "",
     mailbox_ref: "mailbox:officejs",
-    account_ref: window.Office?.context?.mailbox?.userProfile?.emailAddress ?? "account:officejs",
+    account_ref: window.Office?.context?.mailbox?.userProfile?.emailAddress ?? null,
     attachments: Array.isArray(item.attachments)
       ? item.attachments.map((attachment) => ({
           attachment_id: attachment.id,
@@ -206,6 +363,41 @@ function officeItemSnapshot() {
         }))
       : [],
   };
+}
+
+async function readCurrentOutlookItem({ includeAttachments = false, includeTimestamps = false, requireStableIdentity = false, allowBodyReadFailure = false } = {}) {
+  const snapshot = officeItemSnapshot();
+  if (!snapshot) return null;
+  if (requireStableIdentity) assertStableOutlookItemIdentity(snapshot);
+  const officeItem = window.Office?.context?.mailbox?.item;
+  let bodyText = "";
+  try {
+    bodyText = await readOutlookItemBody({ item: officeItem, Office: window.Office });
+  } catch (error) {
+    if (!allowBodyReadFailure) throw error;
+  }
+  const next = {
+    ...snapshot,
+    ...(includeTimestamps ? await readOutlookItemTimestamps({ item: officeItem }) : {}),
+    // Only the bounded preview crosses the LawOS boundary. Raw body text is
+    // never sent or persisted by this Add-in.
+    body_preview: bodyText.slice(0, 500),
+  };
+  if (!includeAttachments) {
+    if (requireStableIdentity && !isSameOutlookItem(snapshot, officeItemSnapshot())) {
+      throw itemChangedDuringActionError();
+    }
+    return next;
+  }
+  const attachments = await readOutlookAttachments({
+    item: officeItem,
+    attachments: Array.isArray(officeItem?.attachments) ? officeItem.attachments : [],
+    Office: window.Office,
+  });
+  if (requireStableIdentity && !isSameOutlookItem(snapshot, officeItemSnapshot())) {
+    throw itemChangedDuringActionError();
+  }
+  return { ...next, ...attachments };
 }
 
 async function addWarningNotification(alertBody) {
@@ -219,7 +411,7 @@ async function addWarningNotification(alertBody) {
       {
         type: messageType,
         message: `확인할 내용이 ${warnings.length}건 있습니다.`,
-        icon: "icon16",
+        icon: "Icon.16x16",
         persistent: false,
       },
       () => resolve(),
@@ -228,37 +420,25 @@ async function addWarningNotification(alertBody) {
 }
 
 export async function onMessageSendHandler(event = {}) {
-  try {
-    const body = await requestJson("/api/outlook/smart-alerts/evaluate", {
-      method: "POST",
-      body: { message: officeItemSnapshot() },
-    });
-    await addWarningNotification(body);
-    const completion = completeSendEvent(event, { allowEvent: true });
-    recordOutlookEventProbe("last_send_handler_result", {
-      outcome: body.outcome ?? null,
-      warning_count: body.item?.warning_count ?? 0,
-      send_blocked: body.item?.send_blocked === true,
-      provider_runtime_executed: body.item?.provider_runtime_executed === true,
-      allowEvent: completion.allowEvent,
-      raw_body_written: false,
-      attachment_bytes_written: false,
-    });
-    return completion;
-  } catch (error) {
-    const completion = completeSendEvent(event, { allowEvent: true });
-    recordOutlookEventProbe("last_send_handler_result", {
-      outcome: "allowed_after_local_alert_error",
-      safe_error_code: error?.message ?? "smart_alert_evaluation_failed",
-      allowEvent: completion.allowEvent,
-      raw_body_written: false,
-      attachment_bytes_written: false,
-    });
-    return completion;
-  }
+  return handleOutlookMessageSend({
+    event: {
+      completed: (payload) => completeSendEvent(event, payload),
+    },
+    readMessage: (options) => readOutlookComposeMessage({
+      item: window.Office?.context?.mailbox?.item,
+      mailbox: window.Office?.context?.mailbox,
+      Office: window.Office,
+      ...options,
+    }),
+    requestJson,
+    addWarningNotification,
+    record: recordOutlookEventProbe,
+  });
 }
 
 function registerOutlookEventHandlers() {
+  // Commands may run without a mounted React pane. Keep this hook silent and
+  // non-interactive: the handler never opens a popup or Office dialog.
   window.__LAWOS_INIT_MSAL_BRIDGE = initializeMsalBridge;
   window.__LAWOS_RESOLVE_CURRENT_OUTLOOK_REST_MESSAGE_ID =
     () => resolveCurrentOutlookRestMessageId({
@@ -269,11 +449,67 @@ function registerOutlookEventHandlers() {
     onMessageSendHandler,
   };
   const associated = new Set(window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS ?? []);
-  if (typeof window.Office?.actions?.associate === "function") {
-    window.Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
+  if (registerOutlookSendHandler({ Office: window.Office, handler: onMessageSendHandler })) {
     associated.add("onMessageSendHandler");
   }
   window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS = [...associated];
+}
+
+function connectionPayload(body) {
+  return body?.item?.connection
+    ? body.item
+    : body?.item
+      ?? body?.connection
+      ?? body;
+}
+
+function graphConnectionState(body) {
+  const item = connectionPayload(body);
+  const connection = item?.connection ?? item;
+  const status = String(connection?.status ?? connection?.connection_state ?? item?.status ?? item?.connection_state ?? "not_connected").toLowerCase();
+  if (status === "connected" && connection?.active !== false) return GRAPH_STATE.connected;
+  if (["expired", "scope_insufficient", "reauthorization_required"].includes(status)) return GRAPH_STATE.reconnectRequired;
+  if (status === "unavailable" || item?.release_readiness?.status === "blocked") return GRAPH_STATE.notConnected;
+  return GRAPH_STATE.notConnected;
+}
+
+function graphConnectionRecord(body) {
+  const item = connectionPayload(body);
+  const connection = item?.connection ?? item;
+  return {
+    state: graphConnectionState(body),
+    status: String(connection?.status ?? connection?.connection_state ?? item?.status ?? item?.connection_state ?? "not_connected"),
+    stateVersion: Number(connection?.state_version ?? item?.state_version ?? 0) || 0,
+    missingScopes: Array.isArray(connection?.missing_scopes) ? connection.missing_scopes : [],
+    mailboxAddress: connection?.mailbox_address ?? item?.mailbox_address ?? null,
+    authorizationUrl: item?.authorization_url ?? body?.authorization_url ?? null,
+    oauthState: item?.state ?? body?.state ?? null,
+  };
+}
+
+function oauthStateFromAuthorizationUrl(authorizationUrl) {
+  try { return new URL(authorizationUrl).searchParams.get("state") ?? ""; } catch { return ""; }
+}
+
+function itemChangedDuringActionError() {
+  return Object.assign(new Error("OUTLOOK_ITEM_CHANGED_DURING_ACTION"), {
+    safe_error_code: "OUTLOOK_ITEM_CHANGED_DURING_ACTION",
+    user_message: "처리 중 다른 메일로 이동했습니다. 완료된 기록은 Matter에서 확인하고, 현재 메일은 다시 처리해 주세요.",
+  });
+}
+
+function actionContextChangedError() {
+  return Object.assign(new Error("OUTLOOK_ACTION_CONTEXT_CHANGED"), {
+    safe_error_code: "OUTLOOK_ACTION_CONTEXT_CHANGED",
+    user_message: "처리 중 메일 또는 Matter 선택이 바뀌었습니다. 완료된 기록은 Matter에서 확인하고, 현재 선택은 다시 처리해 주세요.",
+  });
+}
+
+function filedEmailDoesNotMatchError() {
+  return Object.assign(new Error("OUTLOOK_FILED_EMAIL_MISMATCH"), {
+    safe_error_code: "OUTLOOK_FILED_EMAIL_MISMATCH",
+    user_message: "현재 메일을 먼저 선택한 Matter에 보관한 뒤 다시 시도해 주세요.",
+  });
 }
 
 function StatusLine({ icon: Icon, label, value, tone = "neutral" }) {
@@ -299,6 +535,7 @@ function busyLabel(value) {
     new_inquiry: "새 문의를 등록하고 있습니다.",
     link_inquiry: "기존 문의에 연결하고 있습니다.",
     file: "Matter에 메일을 보관하고 있습니다.",
+    sent_file: "보낸 메일을 Matter에 보관하고 있습니다.",
     attachments: "첨부 파일을 저장하고 있습니다.",
     followup: "후속 업무를 만들고 있습니다.",
     alerts: "발송 전 확인 사항을 점검하고 있습니다.",
@@ -307,9 +544,13 @@ function busyLabel(value) {
 
 function App() {
   const [bootstrap, setBootstrap] = useState(null);
+  const [authState, setAuthState] = useState(AUTH_STATE.loading);
+  const [authError, setAuthError] = useState("");
+  const [graphConnection, setGraphConnection] = useState({ state: GRAPH_STATE.loading, status: "loading", stateVersion: 0, missingScopes: [] });
   const [matters, setMatters] = useState([]);
   const [inquiries, setInquiries] = useState([]);
-  const [selectedMatterId, setSelectedMatterId] = useState(PROOF_MATTER_ID);
+  const [selectedMatterId, setSelectedMatterId] = useState("");
+  const selectedMatterIdRef = useRef("");
   const [selectedLeadId, setSelectedLeadId] = useState("");
   const [inquiryResult, setInquiryResult] = useState(null);
   const [emailResult, setEmailResult] = useState(null);
@@ -320,32 +561,80 @@ function App() {
   const [documents, setDocuments] = useState([]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const item = useMemo(() => officeItemSnapshot(), []);
+  const [item, setItem] = useState(() => officeItemSnapshot());
+  const itemAvailable = item !== null;
+  const authenticated = authState === AUTH_STATE.authenticated;
+  const graphConnected = graphConnection.state === GRAPH_STATE.connected;
+  const readyForBusiness = authenticated && graphConnected;
+
+  function resetItemActionResults() {
+    setInquiryResult(null);
+    setEmailResult(null);
+    setAttachmentResult(null);
+    setFollowupResult(null);
+    setAlertResult(null);
+  }
+
+  function selectMatter(matterId) {
+    selectedMatterIdRef.current = matterId;
+    setSelectedMatterId(matterId);
+    setEmailResult(null);
+    setAttachmentResult(null);
+    setFollowupResult(null);
+  }
+
+  function actionErrorMessage(error) {
+    if (error?.user_message) return error.user_message;
+    if (error?.safe_error_code === "LAWOS_INTERACTION_REQUIRED" || error?.safe_error_code === "AUTH_SESSION_REQUIRED") {
+      return "LawOS에 로그인한 뒤 다시 시도해 주세요.";
+    }
+    if (error?.safe_error_code === "ADDIN_API_REQUEST_TIMEOUT") {
+      return "LawOS 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+    }
+    if (error?.safe_error_code === "OUTLOOK_OAUTH_PROVIDER_ERROR") {
+      return "Microsoft 연결을 완료하지 않았습니다. 다시 시도해 주세요.";
+    }
+    if (error?.safe_error_code === AUTH_ERROR_CODES.dialogUnavailable) {
+      return "Microsoft 연결 창을 열지 못했습니다. Outlook에서 다시 시도해 주세요.";
+    }
+    if (error?.safe_error_code === AUTH_ERROR_CODES.nestedAppAuthUnavailable || error?.safe_error_code === AUTH_ERROR_CODES.nestedAppAuthUnsupported) {
+      return "이 Outlook 환경에서는 보안 로그인을 사용할 수 없습니다.";
+    }
+    if (
+      error?.safe_error_code === "OUTLOOK_OAUTH_CALLBACK_INVALID"
+      || error?.safe_error_code === AUTH_ERROR_CODES.dialogStateMismatch
+      || error?.safe_error_code === AUTH_ERROR_CODES.dialogTimeout
+      || error?.safe_error_code === AUTH_ERROR_CODES.dialogOriginInvalid
+      || error?.safe_error_code === AUTH_ERROR_CODES.dialogMessageInvalid
+    ) {
+      return "Outlook 연결 요청이 만료되었거나 일치하지 않습니다.";
+    }
+    if (error?.safe_error_code === OUTLOOK_ITEM_CONTENT_ERROR_CODES.item_identity_required) {
+      return "실제 Outlook 메일 식별자를 확인할 수 없어 이 메일을 저장하지 않았습니다. Outlook에서 받은 메일을 다시 열어 주세요.";
+    }
+    return outlookActionErrorMessage(error);
+  }
 
   async function loadBase() {
     setError("");
     const [boot, matterBody, inquiryBody] = await Promise.all([
-      requestJson(`/api/outlook/bootstrap?tenant_id=${encodeURIComponent(TENANT_ID)}`),
-      requestJson(`/api/outlook/matters?tenant_id=${encodeURIComponent(TENANT_ID)}&q=${encodeURIComponent(PROOF_MATTER_ID)}`),
-      requestJson(`/api/outlook/inquiries?tenant_id=${encodeURIComponent(TENANT_ID)}&limit=50`),
+      requestJson("/api/outlook/bootstrap"),
+      requestJson("/api/outlook/matters?limit=50"),
+      requestJson("/api/outlook/inquiries?limit=50"),
     ]);
     const nextMatters = matterBody.items ?? [];
-    const nextMatterId = nextMatters.find(
-      (matter) => matter.matter_id === PROOF_MATTER_ID,
-    )?.matter_id ?? nextMatters[0]?.matter_id ?? "";
+    const nextMatterId = nextMatters[0]?.matter_id ?? "";
     const nextInquiries = inquiryBody.items ?? [];
     setBootstrap(boot.item);
     setMatters(nextMatters);
-    setSelectedMatterId(nextMatterId);
+    selectMatter(nextMatterId);
     setInquiries(nextInquiries);
     setSelectedLeadId(nextInquiries[0]?.lead_id ?? "");
     await refreshMatter(nextMatterId);
   }
 
   async function loadInquiries() {
-    const body = await requestJson(
-      `/api/outlook/inquiries?tenant_id=${encodeURIComponent(TENANT_ID)}&limit=50`,
-    );
+    const body = await requestJson("/api/outlook/inquiries?limit=50");
     const nextInquiries = body.items ?? [];
     setInquiries(nextInquiries);
     setSelectedLeadId((current) => (
@@ -362,37 +651,229 @@ function App() {
       return;
     }
     const [timelineBody, documentBody] = await Promise.all([
-      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/timeline?tenant_id=${encodeURIComponent(TENANT_ID)}`),
-      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/documents?tenant_id=${encodeURIComponent(TENANT_ID)}`),
+      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/timeline`),
+      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/documents`),
     ]);
     setTimeline(timelineBody.item?.visible_entries ?? []);
     setDocuments(documentBody.items ?? []);
   }
 
+  async function refreshGraphConnection({ loadBusinessData = true } = {}) {
+    const body = await requestJson("/api/outlook/connection");
+    const next = graphConnectionRecord(body);
+    setGraphConnection(next);
+    if (loadBusinessData && next.state === GRAPH_STATE.connected) {
+      try {
+        await loadBase();
+      } catch (error) {
+        // Keep the real connection status even if a secondary business read
+        // fails; callers can show the read error without inventing a logout.
+        if (error && typeof error === "object") error.graph_connection_state = next.state;
+        throw error;
+      }
+    } else if (next.state !== GRAPH_STATE.connected) {
+      setBootstrap(null);
+      setMatters([]);
+      setInquiries([]);
+      setTimeline([]);
+      setDocuments([]);
+      resetItemActionResults();
+    }
+    return next;
+  }
+
+  useEffect(() => subscribeToOutlookItemChanges({
+    Office: window.Office,
+    onChange: () => {
+      setItem(officeItemSnapshot());
+      resetItemActionResults();
+      setError("");
+    },
+  }), []);
+
   useEffect(() => {
-    loadBase().catch((nextError) => {
-      setError(outlookActionErrorMessage(nextError));
-    });
+    let cancelled = false;
+    unauthorizedHandler = () => {
+      if (cancelled) return;
+      setAuthState(AUTH_STATE.loginRequired);
+      setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
+      setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+      setBootstrap(null);
+      setMatters([]);
+      setInquiries([]);
+      setTimeline([]);
+      setDocuments([]);
+    };
+    sessionRecoveredHandler = () => {
+      if (cancelled) return;
+      setAuthState(AUTH_STATE.authenticated);
+      setAuthError("");
+      refreshGraphConnection().catch((nextError) => setError(actionErrorMessage(nextError)));
+    };
+    (async () => {
+      try {
+        await runtimeConfig();
+        if (cancelled) return;
+        setAuthState(AUTH_STATE.acquiring);
+        const session = await acquireLawosSession({ interactive: false });
+        if (!session?.authenticated) {
+          setAuthState(AUTH_STATE.loginRequired);
+          setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+          return;
+        }
+        if (cancelled) return;
+        setAuthState(AUTH_STATE.authenticated);
+        setAuthError("");
+        try {
+          await refreshGraphConnection();
+        } catch (nextError) {
+          if (nextError?.graph_connection_state !== GRAPH_STATE.connected) {
+            setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+          }
+          setError(actionErrorMessage(nextError));
+        }
+      } catch (nextError) {
+        if (cancelled) return;
+        const code = nextError?.safe_error_code;
+        if (code === "LAWOS_INTERACTION_REQUIRED" || code === "AUTH_SESSION_REQUIRED") {
+          setAuthState(AUTH_STATE.loginRequired);
+        } else if (code === AUTH_ERROR_CODES.nestedAppAuthUnavailable || code === AUTH_ERROR_CODES.nestedAppAuthUnsupported) {
+          setAuthState(AUTH_STATE.unavailable);
+          setAuthError(actionErrorMessage(nextError));
+        } else {
+          setAuthState(AUTH_STATE.loginRequired);
+          setAuthError(actionErrorMessage(nextError));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (unauthorizedHandler) unauthorizedHandler = null;
+      if (sessionRecoveredHandler) sessionRecoveredHandler = null;
+    };
   }, []);
 
+  async function signIn() {
+    setBusy("login");
+    setAuthState(AUTH_STATE.acquiring);
+    setAuthError("");
+    setError("");
+    try {
+      const session = await acquireLawosSession({ interactive: true, force: true });
+      if (!session?.authenticated) throw createAddinAuthError("AUTH_SESSION_REQUIRED", "LawOS 로그인을 확인해 주세요.");
+      setAuthState(AUTH_STATE.authenticated);
+      try {
+        await refreshGraphConnection();
+      } catch (nextError) {
+        if (nextError?.graph_connection_state !== GRAPH_STATE.connected) {
+          setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+        }
+        setError(actionErrorMessage(nextError));
+      }
+    } catch (nextError) {
+      setAuthState(nextError?.safe_error_code === AUTH_ERROR_CODES.nestedAppAuthUnavailable || nextError?.safe_error_code === AUTH_ERROR_CODES.nestedAppAuthUnsupported ? AUTH_STATE.unavailable : AUTH_STATE.loginRequired);
+      setAuthError(actionErrorMessage(nextError));
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function connectOutlook() {
+    const previousGraphState = graphConnection.state;
+    if (previousGraphState !== GRAPH_STATE.connected) {
+      setGraphConnection((current) => ({ ...current, state: GRAPH_STATE.connecting }));
+    }
+    setBusy("connect");
+    setError("");
+    try {
+      const config = await runtimeConfig();
+      const started = await requestJson("/api/outlook/connection/authorize", {
+        method: "POST",
+        body: { redirect_uri: config.callbackUri },
+      });
+      const item = connectionPayload(started);
+      const authorizationUrl = item?.authorization_url ?? started?.authorization_url;
+      const state = item?.state ?? started?.state ?? oauthStateFromAuthorizationUrl(authorizationUrl);
+      if (!authorizationUrl || !state) {
+        throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "Outlook 연결 주소를 받지 못했습니다.");
+      }
+      await openOfficeOAuthDialog({
+        Office: window.Office,
+        window,
+        location: window.location,
+        authorizationUrl,
+        state,
+        callbackUri: config.callbackUri,
+        path: config.oauthStartPath,
+        onComplete: async ({ code, state: callbackState, callbackUri }) => {
+          await requestJson("/api/outlook/connection/complete", {
+            method: "POST",
+            body: { code, state: callbackState, redirect_uri: callbackUri },
+          });
+        },
+      });
+      await refreshGraphConnection();
+    } catch (nextError) {
+      if (previousGraphState !== GRAPH_STATE.connected && nextError?.graph_connection_state !== GRAPH_STATE.connected) {
+        setGraphConnection((current) => ({
+          ...current,
+          state: previousGraphState === GRAPH_STATE.reconnectRequired
+            ? GRAPH_STATE.reconnectRequired
+            : GRAPH_STATE.notConnected,
+        }));
+      }
+      setError(actionErrorMessage(nextError));
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function disconnectOutlook() {
+    if (!graphConnected || !window.confirm("Outlook 연결을 해제할까요? 저장된 Graph 연결만 해제됩니다.")) return;
+    setGraphConnection((current) => ({ ...current, state: GRAPH_STATE.connecting }));
+    setBusy("disconnect");
+    setError("");
+    try {
+      const reason = "사용자가 Outlook 연결을 해제함";
+      await requestJson(`/api/outlook/connection?expected_state_version=${encodeURIComponent(graphConnection.stateVersion)}&reason=${encodeURIComponent(reason)}`, {
+        method: "DELETE",
+      });
+      await refreshGraphConnection({ loadBusinessData: false });
+    } catch (nextError) {
+      setGraphConnection((current) => ({ ...current, state: GRAPH_STATE.connected }));
+      setError(actionErrorMessage(nextError));
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function runAction(name, fn) {
+    if (!readyForBusiness) {
+      setError(authenticated ? "Outlook 연결 후 사용할 수 있습니다." : "LawOS 로그인 후 사용할 수 있습니다.");
+      return;
+    }
+    if (!itemAvailable) {
+      setError("Outlook에서 처리할 메일을 먼저 열어 주세요.");
+      return;
+    }
     setBusy(name);
     setError("");
     try {
       await fn();
     } catch (nextError) {
-      setError(outlookActionErrorMessage(nextError));
+      setError(actionErrorMessage(nextError));
     } finally {
       setBusy("");
     }
   }
 
   async function registerInquiry(action) {
+    const currentItem = officeItemSnapshot();
+    assertStableOutlookItemIdentity(currentItem);
     const identity = resolveCurrentOutlookRestMessageId({
       Office: window.Office,
     });
     const request = await buildInquiryRegistrationRequest({
-      tenant_id: TENANT_ID,
       action,
       rest_message_id: identity.rest_message_id,
       ...(action === "link_existing"
@@ -403,6 +884,9 @@ function App() {
       method: "POST",
       body: request,
     });
+    if (!isSameOutlookItem(currentItem, officeItemSnapshot())) {
+      throw itemChangedDuringActionError();
+    }
     setInquiryResult({
       action,
       outcome: body.outcome,
@@ -411,61 +895,136 @@ function App() {
     await loadInquiries();
   }
 
-  async function fileEmail() {
-    const body = await requestJson("/api/outlook/email/file", {
-      method: "POST",
-      body: { tenant_id: TENANT_ID, matter_id: selectedMatterId, email: item },
+  async function fileEmail({ mode = "manual" } = {}) {
+    const matterId = selectedMatterId;
+    const currentItem = await readCurrentOutlookItem({ includeTimestamps: true, requireStableIdentity: true });
+    const sourceItemKey = outlookItemIdentityKey(currentItem);
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      throw actionContextChangedError();
+    }
+    const filingRequest = createOutlookFilingRequest({
+      matterId,
+      email: currentItem,
+      mode,
     });
-    setEmailResult(body);
-    await refreshMatter(selectedMatterId);
+    const body = await requestJson(filingRequest.path, {
+      method: filingRequest.method,
+      body: filingRequest.body,
+    });
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      await refreshMatter(matterId);
+      throw actionContextChangedError();
+    }
+    setEmailResult({
+      ...body,
+      filing_mode: mode,
+      local_outlook_item_key: sourceItemKey,
+      local_matter_id: matterId,
+    });
+    setAttachmentResult(null);
+    setFollowupResult(null);
+    await refreshMatter(matterId);
+  }
+
+  async function fileSentEmail() {
+    return fileEmail({ mode: "sent" });
   }
 
   async function saveAttachments() {
-    const threadId = emailResult?.email_thread?.email_thread_id ?? `thread:${item.conversation_id}`;
-    const body = await requestJson("/api/outlook/attachments/save", {
-      method: "POST",
-      body: {
-        tenant_id: TENANT_ID,
-        matter_id: selectedMatterId,
-        email_thread_id: threadId,
-        selected_attachment_ids: item.attachments.map((attachment) => attachment.attachment_id),
-        attachments: item.attachments,
-      },
+    const matterId = selectedMatterId;
+    const currentItem = await readCurrentOutlookItem({ includeAttachments: true, requireStableIdentity: true });
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      throw actionContextChangedError();
+    }
+    if (!isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
+      throw filedEmailDoesNotMatchError();
+    }
+    const { result, notices } = await saveOutlookAttachments({
+      currentItem,
+      matterId,
+      emailResult,
+      requestJson,
+      errorMessage: outlookActionErrorMessage,
     });
-    setAttachmentResult(body);
-    await refreshMatter(selectedMatterId);
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      await refreshMatter(matterId);
+      throw actionContextChangedError();
+    }
+    setAttachmentResult(result);
+    if (notices.length > 0) setError(`저장하지 않은 첨부: ${notices.join(", ")}`);
+    await refreshMatter(matterId);
   }
 
   async function createFollowup() {
-    const threadId = emailResult?.email_thread?.email_thread_id ?? `thread:${item.conversation_id}`;
+    const matterId = selectedMatterId;
+    const currentItem = await readCurrentOutlookItem({ requireStableIdentity: true });
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      throw actionContextChangedError();
+    }
+    if (!isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
+      throw filedEmailDoesNotMatchError();
+    }
+    const threadId = emailResult?.email_thread?.email_thread_id ?? `thread:${currentItem.conversation_id}`;
     const dueAt = new Date(Date.now() + (24 * 60 * 60 * 1000))
       .toISOString();
     const body = await requestJson("/api/outlook/followups", {
       method: "POST",
       body: {
-        tenant_id: TENANT_ID,
-        matter_id: selectedMatterId,
+        matter_id: matterId,
         kind: "task",
         title: "메일 검토 후 후속 조치",
         due_at: dueAt,
         source_email_thread_id: threadId,
       },
     });
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      await refreshMatter(matterId);
+      throw actionContextChangedError();
+    }
     setFollowupResult(body);
-    await refreshMatter(selectedMatterId);
+    await refreshMatter(matterId);
   }
 
   async function evaluateAlerts() {
+    const currentItem = await readCurrentOutlookItem({ allowBodyReadFailure: true });
+    if (!currentItem) throw itemChangedDuringActionError();
     const body = await requestJson("/api/outlook/smart-alerts/evaluate", {
       method: "POST",
-      body: {
-        message: {
-          to: [{ name: "외부 수신자", email: "outside@example.com" }],
-          body_preview: "첨부 확인 부탁드립니다.",
-          attachments: [{ attachment_id: "conf-1", name: "비밀자료.pdf", confidentiality: "highly_confidential" }],
-        },
-      },
+      body: { message: currentItem },
     });
+    if (!isSameOutlookItem(currentItem, officeItemSnapshot())) {
+      throw itemChangedDuringActionError();
+    }
     setAlertResult(body);
   }
 
@@ -484,19 +1043,81 @@ function App() {
         <span className="mode-badge">확인 후 저장</span>
       </header>
 
-      <section className="status-stack" aria-label="연결 상태">
-        <StatusLine icon={ShieldCheck} label="로그인" value={bootstrap?.auth_shell?.signed_session_supported ? "연결됨" : "확인 중"} tone="good" />
-        <StatusLine icon={MailCheck} label="Outlook" value={bootstrap?.external_receipt_boundary?.entra_admin_consent_receipt_present ? "연결됨" : "연결 확인 필요"} />
+      <section className="status-stack" aria-label="연결 상태" aria-live="polite" data-testid="connection-status">
+        <StatusLine
+          icon={ShieldCheck}
+          label="LawOS 로그인"
+          value={authState === AUTH_STATE.authenticated ? "로그인됨" : authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring ? "확인 중" : authState === AUTH_STATE.unavailable ? "사용 불가" : "로그인 필요"}
+          tone={authState === AUTH_STATE.authenticated ? "good" : authState === AUTH_STATE.unavailable ? "warn" : "neutral"}
+        />
+        <StatusLine
+          icon={MailCheck}
+          label="Outlook 연결"
+          value={graphConnected ? "연결됨" : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting ? "확인 중" : graphConnection.state === GRAPH_STATE.reconnectRequired ? "다시 연결 필요" : "연결 필요"}
+          tone={graphConnected ? "good" : "neutral"}
+        />
         <StatusLine icon={AlertTriangle} label="발송 전 확인" value="안내만 표시" tone="warn" />
       </section>
+
+      <section className="pane-section auth-section" aria-labelledby="auth-title" data-testid="auth-controls">
+        <div className="section-title">
+          <ShieldCheck size={15} />
+          <h2 id="auth-title">연결 설정</h2>
+        </div>
+        {authState === AUTH_STATE.authenticated ? (
+          <p className="safe-copy">LawOS에 로그인되어 있습니다.</p>
+        ) : authState === AUTH_STATE.unavailable ? (
+          <p className="error" role="alert">{authError || "이 Outlook 환경에서는 보안 로그인을 사용할 수 없습니다."}</p>
+        ) : (
+          <>
+            <p className="safe-copy">Client·Matter 기능을 쓰려면 LawOS 로그인이 필요합니다.</p>
+            <button type="button" onClick={signIn} disabled={busy !== "" || authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring} data-testid="lawos-login-button">
+              <ShieldCheck size={15} />
+              {authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring ? "로그인 확인 중" : "LawOS 로그인"}
+            </button>
+            {authError ? <p className="field-note" role="status">{authError}</p> : null}
+          </>
+        )}
+        {authenticated ? (
+          <div className="connection-controls" data-testid="graph-controls">
+            <p className="safe-copy">
+              {graphConnected
+                ? "Client·Matter용 Outlook 연결이 활성화되어 있습니다."
+                : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting
+                  ? "Outlook 연결 상태를 확인하고 있습니다."
+                : graphConnection.state === GRAPH_STATE.reconnectRequired
+                  ? "Outlook을 다시 연결해 주세요."
+                  : "Client·Matter 기능을 사용하려면 Outlook 연결이 필요합니다."}
+            </p>
+            <div className="button-row">
+              <button type="button" onClick={connectOutlook} disabled={busy !== "" || graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting} data-testid="outlook-connect-button">
+                <RefreshCw size={15} />
+                {graphConnected ? "다시 연결" : "Outlook 연결"}
+              </button>
+              {graphConnected ? (
+                <button className="secondary-button" type="button" onClick={disconnectOutlook} disabled={busy !== ""} data-testid="outlook-disconnect-button">
+                  <Unplug size={15} />
+                  연결 해제
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      {!readyForBusiness ? (
+        <p className="notice" role="status" aria-live="polite" data-testid="business-gate">
+          {authenticated ? "Outlook 연결을 완료하면 Client·Matter 기능을 사용할 수 있습니다." : "LawOS 로그인 후 Client·Matter 기능이 열립니다."}
+        </p>
+      ) : null}
 
       <section className="pane-section">
         <div className="section-title">
           <FileText size={15} />
           <h2>현재 메일</h2>
         </div>
-        <strong className="subject">{item.subject}</strong>
-        <p className="safe-copy">{item.body_preview}</p>
+        <strong className="subject">{item?.subject ?? "메일을 열어 주세요"}</strong>
+        <p className="safe-copy">{item?.body_preview ?? "처리할 메일을 선택하면 내용이 표시됩니다."}</p>
       </section>
 
       <section className="pane-section action-section" aria-labelledby="mail-actions-title">
@@ -517,7 +1138,7 @@ function App() {
                 "new_inquiry",
                 () => registerInquiry("new"),
               )}
-              disabled={busy !== ""}
+              disabled={!readyForBusiness || !itemAvailable || busy !== ""}
               data-testid="new-inquiry-button"
             >
               <UserPlus size={15} />
@@ -535,7 +1156,7 @@ function App() {
               id="existing-inquiry-select"
               value={selectedLeadId}
               onChange={(event) => setSelectedLeadId(event.target.value)}
-              disabled={inquiries.length === 0 || busy !== ""}
+              disabled={!readyForBusiness || inquiries.length === 0 || busy !== ""}
               data-testid="existing-inquiry-select"
             >
               {inquiries.length === 0
@@ -553,7 +1174,7 @@ function App() {
                 "link_inquiry",
                 () => registerInquiry("link_existing"),
               )}
-              disabled={!selectedLeadId || busy !== ""}
+              disabled={!readyForBusiness || !itemAvailable || !selectedLeadId || busy !== ""}
               data-testid="link-inquiry-button"
             >
               <Link2 size={15} />
@@ -570,8 +1191,8 @@ function App() {
             <select
               id="matter-select"
               value={selectedMatterId}
-              onChange={(event) => setSelectedMatterId(event.target.value)}
-              disabled={matters.length === 0 || busy !== ""}
+              onChange={(event) => selectMatter(event.target.value)}
+              disabled={!readyForBusiness || matters.length === 0 || busy !== ""}
               data-testid="matter-select"
             >
               {matters.length === 0
@@ -589,12 +1210,23 @@ function App() {
               className="secondary-button"
               type="button"
               onClick={() => runAction("file", fileEmail)}
-              disabled={!selectedMatterId || busy !== ""}
+              disabled={!readyForBusiness || !itemAvailable || !selectedMatterId || busy !== ""}
               data-testid="file-email-button"
             >
               <Archive size={15} />
               Matter에 보관
             </button>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => runAction("sent_file", fileSentEmail)}
+              disabled={!readyForBusiness || !itemAvailable || !selectedMatterId || busy !== ""}
+              data-testid="file-sent-email-button"
+            >
+              <Archive size={15} />
+              보낸 메일 보관
+            </button>
+            <p className="field-note">보낸 편지함에서 연 메일만 선택해 사용하세요. 서버가 보낸 사람과 보관함을 확인합니다.</p>
           </div>
         </div>
       </section>
@@ -623,8 +1255,12 @@ function App() {
           <div>
             <strong>
               {emailResult.outcome === "idempotent_replay"
-                ? "이미 Matter에 보관된 메일입니다."
-                : "Matter에 보관했습니다."}
+                ? emailResult.filing_mode === "sent"
+                  ? "이미 보낸 메일을 Matter에 보관했습니다."
+                  : "이미 Matter에 보관된 메일입니다."
+                : emailResult.filing_mode === "sent"
+                  ? "보낸 메일을 Matter에 보관했습니다."
+                  : "Matter에 보관했습니다."}
             </strong>
             <span>{selectedMatter?.lookup_label ?? selectedMatterId}</span>
           </div>
@@ -637,15 +1273,15 @@ function App() {
           <h2>추가 작업</h2>
         </div>
         <div className="button-row">
-          <button className="secondary-button" type="button" onClick={() => runAction("attachments", saveAttachments)} disabled={!emailResult || busy !== ""} data-testid="save-attachments-button">
+          <button className="secondary-button" type="button" onClick={() => runAction("attachments", saveAttachments)} disabled={!readyForBusiness || !emailResult || busy !== ""} data-testid="save-attachments-button">
             <FolderDown size={15} />
             첨부 파일 저장
           </button>
-          <button className="secondary-button" type="button" onClick={() => runAction("followup", createFollowup)} disabled={!emailResult || busy !== ""} data-testid="create-task-button">
+          <button className="secondary-button" type="button" onClick={() => runAction("followup", createFollowup)} disabled={!readyForBusiness || !emailResult || busy !== ""} data-testid="create-task-button">
             <Check size={15} />
             후속 업무 만들기
           </button>
-          <button className="secondary-button full-width" type="button" onClick={() => runAction("alerts", evaluateAlerts)} disabled={busy !== ""} data-testid="smart-alert-button">
+          <button className="secondary-button full-width" type="button" onClick={() => runAction("alerts", evaluateAlerts)} disabled={!readyForBusiness || !itemAvailable || busy !== ""} data-testid="smart-alert-button">
             <AlertTriangle size={15} />
             발송 전 확인
           </button>
@@ -694,5 +1330,12 @@ function App() {
   );
 }
 
-registerOutlookEventHandlers();
-createRoot(document.getElementById("root")).render(<App />);
+async function mount() {
+  if (typeof window.Office?.onReady === "function") {
+    await window.Office.onReady();
+  }
+  registerOutlookEventHandlers();
+  createRoot(document.getElementById("root")).render(<App />);
+}
+
+void mount();

@@ -17,16 +17,25 @@ export const MICROSOFT_EGRESS_REDIRECT_URIS = Object.freeze({
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
-const REDIRECT_PROFILES = new Set(["people", "client"]);
-const SCOPE_ALLOWLIST = new Set([
-  "openid",
-  "profile",
-  "email",
-  "offline_access",
-  "Calendars.ReadBasic",
-  "Calendars.ReadWrite",
-  "Mail.Read",
-]);
+const SCOPE_PROFILES = Object.freeze({
+  people: Object.freeze([
+    "openid",
+    "profile",
+    "email",
+    "offline_access",
+    "Calendars.ReadBasic",
+  ]),
+  client: Object.freeze([
+    "openid",
+    "profile",
+    "email",
+    "offline_access",
+    "Calendars.ReadWrite",
+    "Mail.Read",
+  ]),
+});
+const REDIRECT_PROFILES = new Set(Object.keys(SCOPE_PROFILES));
+const REFRESH_PROFILE_PROOF_PATTERN = /^[A-Za-z0-9_-]{43}$/u;
 
 function requiredText(value, name, maxLength = 4096) {
   const text = String(value ?? "").trim();
@@ -42,6 +51,40 @@ function requiredUuid(value, name) {
   return text.toLowerCase();
 }
 
+function requiredRedirectProfile(value) {
+  if (
+    typeof value !== "string"
+    || value.length < 1
+    || value.length > 16
+    || !REDIRECT_PROFILES.has(value)
+  ) {
+    throw new TypeError("redirect_profile must be people or client");
+  }
+  return value;
+}
+
+function requiredScope(value) {
+  if (
+    typeof value !== "string"
+    || value.length < 1
+    || value.length > 64
+    || /[\u0000-\u001f\u007f]/u.test(value)
+  ) {
+    throw new TypeError("scope is required");
+  }
+  return value;
+}
+
+function requiredRefreshProfileProof(value) {
+  if (
+    typeof value !== "string"
+    || !REFRESH_PROFILE_PROOF_PATTERN.test(value)
+  ) {
+    throw new TypeError("refresh_profile_proof is invalid");
+  }
+  return value;
+}
+
 function exactInput(input, fields, name) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new TypeError(`${name} request is required`);
@@ -52,15 +95,21 @@ function exactInput(input, fields, name) {
   return input;
 }
 
-function scopes(value) {
+function scopes(value, redirectProfile) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError("scopes are required");
   }
-  const resolved = [...new Set(value.map((scope) => (
-    requiredText(scope, "scope", 64)
-  )))];
-  if (resolved.some((scope) => !SCOPE_ALLOWLIST.has(scope))) {
-    throw new TypeError("scopes contain an unsupported Microsoft permission");
+  const resolved = value.map(requiredScope);
+  const expected = SCOPE_PROFILES[redirectProfile];
+  if (
+    !expected
+    || new Set(resolved).size !== resolved.length
+    || resolved.length !== expected.length
+    || expected.some((scope) => !resolved.includes(scope))
+  ) {
+    throw new TypeError(
+      "scopes must exactly match the redirect profile permissions",
+    );
   }
   return resolved;
 }
@@ -207,33 +256,22 @@ export function createMicrosoftEgressBrokerTransport({
         "redirect_profile",
         "scopes",
       ], "oauth.token.exchange");
-      const redirectProfile = requiredText(
-        input.redirect_profile,
-        "redirect_profile",
-        16,
-      );
-      if (!REDIRECT_PROFILES.has(redirectProfile)) {
-        throw new TypeError("redirect_profile must be people or client");
-      }
+      const redirectProfile = requiredRedirectProfile(input.redirect_profile);
       return invoke("oauth.token.exchange", {
         tenant_id: requiredUuid(input.tenant_id, "tenant_id"),
         client_id: requiredUuid(input.client_id, "client_id"),
-        ...(input.client_secret
-          ? {
-              client_secret: requiredText(
-                input.client_secret,
-                "client_secret",
-                4096,
-              ),
-            }
-          : {}),
+        client_secret: requiredText(
+          input.client_secret,
+          "client_secret",
+          4096,
+        ),
         authorization_code: requiredText(
           input.authorization_code,
           "authorization_code",
         ),
         code_verifier: requiredText(input.code_verifier, "code_verifier", 128),
         redirect_profile: redirectProfile,
-        scopes: scopes(input.scopes),
+        scopes: scopes(input.scopes, redirectProfile),
       });
     },
 
@@ -243,22 +281,42 @@ export function createMicrosoftEgressBrokerTransport({
         "client_id",
         "client_secret",
         "refresh_token",
+        "refresh_profile_proof",
+        "redirect_profile",
         "scopes",
       ], "oauth.token.refresh");
+      const redirectProfile = requiredRedirectProfile(input.redirect_profile);
       return invoke("oauth.token.refresh", {
         tenant_id: requiredUuid(input.tenant_id, "tenant_id"),
         client_id: requiredUuid(input.client_id, "client_id"),
-        ...(input.client_secret
-          ? {
-              client_secret: requiredText(
-                input.client_secret,
-                "client_secret",
-                4096,
-              ),
-            }
-          : {}),
+        client_secret: requiredText(
+          input.client_secret,
+          "client_secret",
+          4096,
+        ),
         refresh_token: requiredText(input.refresh_token, "refresh_token", 32 * 1024),
-        scopes: scopes(input.scopes),
+        refresh_profile_proof: requiredRefreshProfileProof(
+          input.refresh_profile_proof,
+        ),
+        redirect_profile: redirectProfile,
+        scopes: scopes(input.scopes, redirectProfile),
+      });
+    },
+
+    async oauthLegacyPeopleRefreshBind(input = {}) {
+      exactInput(input, [
+        "tenant_id",
+        "client_id",
+        "refresh_token",
+      ], "oauth.refresh-profile.bind-legacy-people");
+      return invoke("oauth.refresh-profile.bind-legacy-people", {
+        tenant_id: requiredUuid(input.tenant_id, "tenant_id"),
+        client_id: requiredUuid(input.client_id, "client_id"),
+        refresh_token: requiredText(
+          input.refresh_token,
+          "refresh_token",
+          32 * 1024,
+        ),
       });
     },
 
@@ -299,10 +357,30 @@ export function createMicrosoftEgressBrokerTransport({
         "access_token",
         "rest_message_id",
       ], "graph.mailMessage.export");
-      const result = await invoke("graph.mailMessage.export", {
-        access_token: requiredText(input.access_token, "access_token", 32 * 1024),
-        rest_message_id: requiredText(input.rest_message_id, "rest_message_id"),
-      });
+      let result;
+      try {
+        result = await invoke("graph.mailMessage.export", {
+          access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+          rest_message_id: requiredText(input.rest_message_id, "rest_message_id"),
+        });
+      } catch (error) {
+        // The broker bounds the Graph MIME response before returning its
+        // envelope.  That path has no result.mime_bytes to inspect and is
+        // reported as RESPONSE_TOO_LARGE/502.  Normalize it only for the
+        // fixed mail-export operation; other broker operations must retain
+        // their original error contract.
+        if (
+          error?.safe_error_code === "MICROSOFT_EGRESS_RESPONSE_TOO_LARGE"
+          && error?.status === 502
+        ) {
+          throw brokerError(
+            "MICROSOFT_EGRESS_MIME_TOO_LARGE",
+            "Microsoft egress broker MIME exceeds the 3 MiB limit",
+            413,
+          );
+        }
+        throw error;
+      }
       if (!Number.isSafeInteger(result.mime_bytes) || result.mime_bytes < 1) {
         throw brokerError(
           "MICROSOFT_EGRESS_RESPONSE_INVALID",

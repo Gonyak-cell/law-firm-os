@@ -1,0 +1,5 @@
+{
+  "allowed": [
+    "https://localhost:5186/event-runtime.js"
+  ]
+}

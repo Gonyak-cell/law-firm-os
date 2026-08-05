@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://appsforoffice.microsoft.com; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'" />
+    <title>Microsoft 연결 완료</title>
+  </head>
+  <body>
+    <main>
+      <h1>Microsoft 연결</h1>
+      <p id="status">연결 결과를 전달하는 중입니다.</p>
+    </main>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script type="module" src="./oauth-callback.js"></script>
+  </body>
+</html>

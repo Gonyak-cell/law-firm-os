@@ -1,10 +1,15 @@
 import { Buffer } from "node:buffer";
+import {
+  createHmac,
+  timingSafeEqual,
+} from "node:crypto";
 
 export const CONTRACT_VERSION = "lawos.microsoft-egress.v1";
 export const OPERATION_NAMES = Object.freeze([
   "oauth.jwks.get",
   "oauth.token.exchange",
   "oauth.token.refresh",
+  "oauth.refresh-profile.bind-legacy-people",
   "graph.calendarView.list",
   "graph.calendarEvent.create",
   "graph.mailMessage.export",
@@ -18,15 +23,24 @@ const REDIRECT_URIS = Object.freeze({
   client:
     "https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback",
 });
-const ALLOWED_SCOPES = new Set([
-  "openid",
-  "profile",
-  "email",
-  "offline_access",
-  "Calendars.ReadBasic",
-  "Calendars.ReadWrite",
-  "Mail.Read",
-]);
+const SCOPE_PROFILES = Object.freeze({
+  people: Object.freeze([
+    "openid",
+    "profile",
+    "email",
+    "offline_access",
+    "Calendars.ReadBasic",
+  ]),
+  client: Object.freeze([
+    "openid",
+    "profile",
+    "email",
+    "offline_access",
+    "Calendars.ReadWrite",
+    "Mail.Read",
+  ]),
+});
+const ALLOWED_SCOPES = new Set(Object.values(SCOPE_PROFILES).flat());
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const PRINTABLE_ASCII = /^[\x21-\x7e]+$/u;
@@ -50,6 +64,13 @@ const CALENDAR_SELECT = [
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
 const MAX_RESULT_BYTES = 5 * 1024 * 1024;
 export const MAX_MIME_BYTES = 3 * 1024 * 1024;
+const REFRESH_PROFILE_PROOF_CONTEXT =
+  "lawos.microsoft-egress.refresh-profile.v1";
+export const REFRESH_PROFILE_PROOF_CURRENT_KEY_ENV =
+  "LAWOS_MICROSOFT_EGRESS_REFRESH_PROFILE_PROOF_CURRENT_KEY_B64URL";
+export const REFRESH_PROFILE_PROOF_PREVIOUS_KEY_ENV =
+  "LAWOS_MICROSOFT_EGRESS_REFRESH_PROFILE_PROOF_PREVIOUS_KEY_B64URL";
+const REFRESH_PROFILE_PROOF_KEY_BYTES = 32;
 
 class BrokerError extends Error {
   constructor(code, status = 400, details = {}) {
@@ -113,7 +134,7 @@ function isoInstant(value) {
   return new Date(candidate).toISOString();
 }
 
-function scopes(value) {
+function scopes(value, profile = null) {
   if (
     !Array.isArray(value)
     || value.length < 1
@@ -124,13 +145,123 @@ function scopes(value) {
   const unique = [...new Set(
     value.map((scope) => text(scope, { max: 64 })),
   )];
+  const expectedProfiles = profile === null
+    ? Object.values(SCOPE_PROFILES)
+    : [SCOPE_PROFILES[profile]];
   if (
     unique.length !== value.length
     || unique.some((scope) => !ALLOWED_SCOPES.has(scope))
+    || expectedProfiles.some(Boolean) === false
+    || !expectedProfiles.some((expected) => (
+      expected.length === unique.length
+      && expected.every((scope) => unique.includes(scope))
+    ))
   ) {
     invalid();
   }
   return unique;
+}
+
+function refreshProfileProof({
+  proofKey,
+  tenantId,
+  clientId,
+  profile,
+  refreshToken,
+}) {
+  return createHmac("sha256", proofKey)
+    .update([
+      REFRESH_PROFILE_PROOF_CONTEXT,
+      tenantId,
+      clientId,
+      profile,
+      refreshToken,
+    ].join("\u0000"), "utf8")
+    .digest("base64url");
+}
+
+function proofKey(value, field) {
+  if (!(value instanceof Uint8Array)) {
+    throw new TypeError(`${field} must be a 32-byte Uint8Array`);
+  }
+  const key = Buffer.from(value);
+  if (key.byteLength !== REFRESH_PROFILE_PROOF_KEY_BYTES) {
+    throw new TypeError(`${field} must be a 32-byte Uint8Array`);
+  }
+  return key;
+}
+
+function proofKeyring(value) {
+  if (!plainObject(value)) {
+    throw new TypeError("refresh_profile_proof_keyring is required");
+  }
+  const current = proofKey(value.current, "current proof key");
+  const previous = value.previous === null || value.previous === undefined
+    ? null
+    : proofKey(value.previous, "previous proof key");
+  if (previous && timingSafeEqual(current, previous)) {
+    throw new TypeError("current and previous proof keys must differ");
+  }
+  return Object.freeze({ current, previous });
+}
+
+function proofKeyFromEnvironment(value, field, { required }) {
+  if (value === undefined || value === null || value === "") {
+    if (!required) return null;
+    throw new TypeError(`${field} is required`);
+  }
+  if (
+    typeof value !== "string"
+    || !/^[A-Za-z0-9_-]{43}$/u.test(value)
+  ) {
+    throw new TypeError(`${field} must be unpadded base64url for 32 bytes`);
+  }
+  const key = Buffer.from(value, "base64url");
+  if (
+    key.byteLength !== REFRESH_PROFILE_PROOF_KEY_BYTES
+    || key.toString("base64url") !== value
+  ) {
+    throw new TypeError(`${field} must be unpadded base64url for 32 bytes`);
+  }
+  return key;
+}
+
+/**
+ * Broker-only production key contract:
+ * - LAWOS_MICROSOFT_EGRESS_REFRESH_PROFILE_PROOF_CURRENT_KEY_B64URL is required.
+ * - LAWOS_MICROSOFT_EGRESS_REFRESH_PROFILE_PROOF_PREVIOUS_KEY_B64URL is optional.
+ * - Each value is unpadded base64url encoding of exactly 32 random bytes.
+ */
+export function refreshProfileProofKeyringFromEnvironment(env = process.env) {
+  return proofKeyring({
+    current: proofKeyFromEnvironment(
+      env?.[REFRESH_PROFILE_PROOF_CURRENT_KEY_ENV],
+      REFRESH_PROFILE_PROOF_CURRENT_KEY_ENV,
+      { required: true },
+    ),
+    previous: proofKeyFromEnvironment(
+      env?.[REFRESH_PROFILE_PROOF_PREVIOUS_KEY_ENV],
+      REFRESH_PROFILE_PROOF_PREVIOUS_KEY_ENV,
+      { required: false },
+    ),
+  });
+}
+
+function verifyRefreshProfileProof(input, expectedProofs) {
+  const proof = text(input, {
+    min: 43,
+    max: 43,
+    pattern: /^[A-Za-z0-9_-]{43}$/u,
+  });
+  const actualBytes = Buffer.from(proof, "utf8");
+  let matched = 0;
+  for (const expected of expectedProofs) {
+    const expectedBytes = Buffer.from(expected, "utf8");
+    if (actualBytes.byteLength === expectedBytes.byteLength) {
+      matched |= timingSafeEqual(actualBytes, expectedBytes) ? 1 : 0;
+    }
+  }
+  if (matched === 0) invalid();
 }
 
 function providerRequestId(response) {
@@ -326,7 +457,7 @@ async function jwksGet(fetchImpl, request) {
   };
 }
 
-async function tokenCall(fetchImpl, request, grant) {
+async function tokenCall(fetchImpl, request, grant, resolveRefreshProofKeys) {
   const exchange = grant === "authorization_code";
   exactObject(request, {
     required: exchange
@@ -337,26 +468,40 @@ async function tokenCall(fetchImpl, request, grant) {
         "code_verifier",
         "redirect_profile",
         "scopes",
+        "client_secret",
       ]
-      : ["tenant_id", "client_id", "refresh_token", "scopes"],
-    optional: ["client_secret"],
+      : [
+        "tenant_id",
+        "client_id",
+        "refresh_token",
+        "refresh_profile_proof",
+        "redirect_profile",
+        "scopes",
+        "client_secret",
+      ],
   });
   const tenantId = uuid(request.tenant_id);
   const clientId = uuid(request.client_id);
-  const requestedScopes = scopes(request.scopes);
+  const clientSecret = text(request.client_secret, { max: 4096 });
+  const redirectProfile = text(request.redirect_profile, {
+    max: 16,
+    pattern: /^(?:people|client)$/u,
+  });
+  const requestedScopes = scopes(request.scopes, redirectProfile);
+  // Resolve broker proof configuration only after the request has passed
+  // schema/profile validation and before any token egress occurs. A missing
+  // or malformed production key therefore fails closed in the broker
+  // envelope without affecting unrelated operations.
+  const refreshProofKeys = resolveRefreshProofKeys();
   const form = new URLSearchParams({
     client_id: clientId,
+    client_secret: clientSecret,
     grant_type: grant,
     scope: requestedScopes.join(" "),
   });
-  if (Object.hasOwn(request, "client_secret")) {
-    form.set(
-      "client_secret",
-      text(request.client_secret, { max: 4096 }),
-    );
-  }
+  let currentRefreshToken = null;
   if (exchange) {
-    const redirectUri = REDIRECT_URIS[request.redirect_profile];
+    const redirectUri = REDIRECT_URIS[redirectProfile];
     if (!redirectUri) invalid();
     form.set(
       "code",
@@ -375,10 +520,20 @@ async function tokenCall(fetchImpl, request, grant) {
     );
     form.set("redirect_uri", redirectUri);
   } else {
-    form.set(
-      "refresh_token",
-      text(request.refresh_token, { max: 32 * 1024 }),
+    currentRefreshToken = text(request.refresh_token, { max: 32 * 1024 });
+    verifyRefreshProfileProof(
+      request.refresh_profile_proof,
+      [refreshProofKeys.current, refreshProofKeys.previous]
+        .filter(Boolean)
+        .map((key) => refreshProfileProof({
+          proofKey: key,
+          tenantId,
+          clientId,
+          profile: redirectProfile,
+          refreshToken: currentRefreshToken,
+        })),
     );
+    form.set("refresh_token", currentRefreshToken);
   }
   const pathname = `/${tenantId}/oauth2/v2.0/token`;
   const response = await fixedFetch(
@@ -395,9 +550,42 @@ async function tokenCall(fetchImpl, request, grant) {
     { origin: LOGIN_ORIGIN, pathname },
   );
   if (response.status !== 200) upstreamFailure(response);
+  const result = tokenResult(await readJson(response));
+  const boundRefreshToken = result.refresh_token ?? currentRefreshToken;
+  if (!boundRefreshToken) {
+    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
   return {
-    ...tokenResult(await readJson(response)),
+    ...result,
+    refresh_profile: redirectProfile,
+    refresh_profile_proof: refreshProfileProof({
+      proofKey: refreshProofKeys.current,
+      tenantId,
+      clientId,
+      profile: redirectProfile,
+      refreshToken: boundRefreshToken,
+    }),
     provider_request_id: providerRequestId(response),
+  };
+}
+
+function bindLegacyPeopleRefreshProfile(request, resolveRefreshProofKeys) {
+  exactObject(request, {
+    required: ["tenant_id", "client_id", "refresh_token"],
+  });
+  const tenantId = uuid(request.tenant_id);
+  const clientId = uuid(request.client_id);
+  const refreshToken = text(request.refresh_token, { max: 32 * 1024 });
+  const refreshProofKeys = resolveRefreshProofKeys();
+  return {
+    refresh_profile: "people",
+    refresh_profile_proof: refreshProfileProof({
+      proofKey: refreshProofKeys.current,
+      tenantId,
+      clientId,
+      profile: "people",
+      refreshToken,
+    }),
   };
 }
 
@@ -626,8 +814,23 @@ async function calendarEventCreate(fetchImpl, request) {
   };
 }
 
-function messageMetadata(value, immutableId) {
+function sentItemsFolderId(value) {
+  if (!plainObject(value)) {
+    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
+  const folderId = optionalString(value.id);
+  if (!folderId) {
+    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
+  return folderId;
+}
+
+function messageMetadata(value, immutableId, sentItemsId) {
   if (!plainObject(value) || value.id !== immutableId) {
+    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
+  const parentFolderId = optionalString(value.parentFolderId);
+  if (!parentFolderId || typeof value.isDraft !== "boolean") {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
   const recipients = (items) => {
@@ -644,6 +847,12 @@ function messageMetadata(value, immutableId) {
     internet_message_id: optionalString(value.internetMessageId),
     conversation_id: optionalString(value.conversationId),
     subject: optionalString(value.subject, 4096),
+    sender: plainObject(value.sender)
+      ? {
+        name: optionalString(value.sender.emailAddress?.name, 512),
+        address: optionalString(value.sender.emailAddress?.address, 320),
+      }
+      : null,
     from: plainObject(value.from)
       ? {
         name: optionalString(value.from.emailAddress?.name, 512),
@@ -655,6 +864,8 @@ function messageMetadata(value, immutableId) {
     bcc_recipients: recipients(value.bccRecipients ?? []),
     received_at: optionalString(value.receivedDateTime, 64),
     has_attachments: value.hasAttachments === true,
+    is_in_sent_items: parentFolderId === sentItemsId,
+    is_draft: value.isDraft,
   };
 }
 
@@ -706,12 +917,15 @@ async function mailMessageExport(fetchImpl, request) {
       "internetMessageId",
       "conversationId",
       "subject",
+      "sender",
       "from",
       "toRecipients",
       "ccRecipients",
       "bccRecipients",
       "receivedDateTime",
       "hasAttachments",
+      "parentFolderId",
+      "isDraft",
     ].join(","),
   );
   const immutableHeaders = graphHeaders(token, {
@@ -724,9 +938,21 @@ async function mailMessageExport(fetchImpl, request) {
     { origin: GRAPH_ORIGIN, pathname: messagePath },
   );
   if (metadataResponse.status !== 200) upstreamFailure(metadataResponse);
+  const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
+  const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
+  sentItemsUrl.searchParams.set("$select", "id");
+  const sentItemsResponse = await fixedFetch(
+    fetchImpl,
+    sentItemsUrl,
+    { method: "GET", headers: immutableHeaders },
+    { origin: GRAPH_ORIGIN, pathname: sentItemsPath },
+  );
+  if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
+  const sentItemsId = sentItemsFolderId(await readJson(sentItemsResponse));
   const metadata = messageMetadata(
     await readJson(metadataResponse),
     immutableId,
+    sentItemsId,
   );
   const mimePath = `${messagePath}/$value`;
   const mimeResponse = await fixedFetch(
@@ -763,6 +989,7 @@ async function mailMessageExport(fetchImpl, request) {
     provider_request_ids: {
       translation: providerRequestId(translationResponse),
       metadata: providerRequestId(metadataResponse),
+      sent_items: providerRequestId(sentItemsResponse),
       mime: providerRequestId(mimeResponse),
     },
   });
@@ -770,21 +997,63 @@ async function mailMessageExport(fetchImpl, request) {
 
 const OPERATIONS = Object.freeze({
   "oauth.jwks.get": jwksGet,
-  "oauth.token.exchange": (fetchImpl, request) => (
-    tokenCall(fetchImpl, request, "authorization_code")
+  "oauth.token.exchange": (fetchImpl, request, resolveRefreshProofKeys) => (
+    tokenCall(
+      fetchImpl,
+      request,
+      "authorization_code",
+      resolveRefreshProofKeys,
+    )
   ),
-  "oauth.token.refresh": (fetchImpl, request) => (
-    tokenCall(fetchImpl, request, "refresh_token")
+  "oauth.token.refresh": (fetchImpl, request, resolveRefreshProofKeys) => (
+    tokenCall(
+      fetchImpl,
+      request,
+      "refresh_token",
+      resolveRefreshProofKeys,
+    )
   ),
+  "oauth.refresh-profile.bind-legacy-people": (
+    _fetchImpl,
+    request,
+    resolveRefreshProofKeys,
+  ) => bindLegacyPeopleRefreshProfile(request, resolveRefreshProofKeys),
   "graph.calendarView.list": calendarViewList,
   "graph.calendarEvent.create": calendarEventCreate,
   "graph.mailMessage.export": mailMessageExport,
 });
 
-export function createHandler({ fetch_impl = globalThis.fetch } = {}) {
+export function createHandler({
+  fetch_impl = globalThis.fetch,
+  refresh_profile_proof_keyring,
+  refresh_profile_proof_keyring_from_environment,
+} = {}) {
   if (typeof fetch_impl !== "function") {
     throw new TypeError("fetch_impl is required");
   }
+  // Keep explicit test/in-process keyrings eagerly validated for backwards
+  // compatibility. Production handlers use the loader lazily so unrelated
+  // JWKS/Graph operations can still return their normal result when the
+  // proof-key configuration is absent.
+  const explicitRefreshProofKeys = refresh_profile_proof_keyring === undefined
+    ? null
+    : proofKeyring(refresh_profile_proof_keyring);
+  const loadRefreshProofKeys = typeof refresh_profile_proof_keyring_from_environment
+    === "function"
+    ? refresh_profile_proof_keyring_from_environment
+    : () => refreshProfileProofKeyringFromEnvironment(process.env);
+  let loadedRefreshProofKeys = explicitRefreshProofKeys;
+  const resolveRefreshProofKeys = () => {
+    if (loadedRefreshProofKeys) return loadedRefreshProofKeys;
+    try {
+      loadedRefreshProofKeys = proofKeyring(loadRefreshProofKeys());
+      return loadedRefreshProofKeys;
+    } catch {
+      // Never expose the environment variable names or values in the public
+      // broker envelope. The proof-dependent operation remains fail-closed.
+      throw new BrokerError("BROKER_CONFIG_UNAVAILABLE", 503);
+    }
+  };
   return async function microsoftEgressBroker(event) {
     const operation =
       typeof event?.operation === "string" && event.operation.length <= 80
@@ -799,7 +1068,11 @@ export function createHandler({ fetch_impl = globalThis.fetch } = {}) {
       if (!execute) {
         throw new BrokerError("UNSUPPORTED_OPERATION", 400);
       }
-      const result = await execute(fetch_impl, event.request);
+      const result = await execute(
+        fetch_impl,
+        event.request,
+        resolveRefreshProofKeys,
+      );
       return {
         contract_version: CONTRACT_VERSION,
         operation: event.operation,
@@ -825,4 +1098,9 @@ export function createHandler({ fetch_impl = globalThis.fetch } = {}) {
   };
 }
 
-export const handler = createHandler();
+let productionHandler = null;
+
+export async function handler(event) {
+  productionHandler ??= createHandler();
+  return productionHandler(event);
+}

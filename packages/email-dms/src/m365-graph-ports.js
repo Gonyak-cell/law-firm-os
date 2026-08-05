@@ -1,6 +1,6 @@
 import {
   M365_GRAPH_ERROR_CODES,
-  resolveActiveM365Connection,
+  acquireActiveM365Credential,
 } from "./m365-graph-connection-service.js";
 import { hashMailboxAddress } from "./m365-connection-model.js";
 
@@ -57,6 +57,7 @@ function safeMessageMetadata(value) {
       optionalString(value.internet_message_id, 998),
     subject: optionalString(value.subject, 998) ?? "",
     sender: safeAddress(value.sender),
+    from: safeAddress(value.from),
     recipients: Object.freeze(
       (Array.isArray(value.recipients) ? value.recipients : [])
         .slice(0, 1000)
@@ -80,6 +81,8 @@ function safeMessageMetadata(value) {
         ? new Date(receivedAt).toISOString()
         : null,
     has_attachments: value.has_attachments === true,
+    is_in_sent_items: value.is_in_sent_items === true,
+    is_draft: value.is_draft === true,
   });
 }
 
@@ -219,29 +222,21 @@ function assertOwnMailboxOnly(input = {}) {
 async function activeCredential({
   repository,
   credential_vault,
+  provider,
   required_scope,
   clock,
   input,
 }) {
-  const { connection } = resolveActiveM365Connection({
+  return acquireActiveM365Credential({
     repository,
+    credential_vault,
+    provider,
     tenant_id: input.tenant_id,
     user_id: input.user_id,
     entra_subject_id: input.entra_subject_id,
     required_scope,
     clock,
   });
-  const credential = await credential_vault.resolveDelegatedCredential({
-    credential_ref: connection.credential_ref,
-  });
-  if (!credential || typeof credential !== "object") {
-    throw commandError(
-      M365_GRAPH_ERROR_CODES.connection_not_found,
-      "Microsoft 365 delegated credential was not found",
-      409,
-    );
-  }
-  return Object.freeze({ connection, credential });
 }
 
 export function createM365MailPort({
@@ -277,6 +272,7 @@ export function createM365MailPort({
       const { connection, credential } = await activeCredential({
         repository,
         credential_vault,
+        provider,
         required_scope: "Mail.Read",
         clock,
         input,
@@ -386,6 +382,7 @@ export function createM365CalendarPort({
       const { credential } = await activeCredential({
         repository,
         credential_vault,
+        provider,
         required_scope: "Calendars.ReadWrite",
         clock,
         input,

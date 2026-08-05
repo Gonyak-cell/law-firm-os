@@ -109,6 +109,7 @@ function safeActivity(record) {
     due_at: record.due_at ?? record.starts_at ?? null,
     assigned_to_user_id: record.model_type === "MatterTask" ? record.assigned_to_user_id ?? null : null,
     assigned_to_label: record.assigned_to_user_id || record.assigned_to ? "지정됨" : "미지정",
+    source_ref: record.source_ref ?? null,
     safe_excerpt: record.safe_excerpt ?? null,
     raw_body_included: false,
     provider_event_id_included: false,
@@ -246,7 +247,9 @@ export function createMatterActivityCalendarChannelService({
         estimated_minutes: activity?.estimated_minutes ?? null,
         assignment_resolution_state: assignedToUserId ? "resolved" : null,
         due_at: dueAt,
-        source_ref: "sf_b_w03_activity",
+        source_ref: activity?.source_ref
+          ? safeText(activity.source_ref, "source_ref", { min: 1, max: 800 })
+          : "sf_b_w03_activity",
       }));
     } else {
       const activityId = safeId(activity?.activity_id, `activity_${type}_${Date.now().toString(36)}`);
@@ -288,7 +291,7 @@ export function createMatterActivityCalendarChannelService({
       occurred_at: now,
       type: `matter.activity.${type}`,
       title,
-      source_ref: safe.activity_id,
+      source_ref: safe.source_ref ?? safe.activity_id,
       source_object_id: safe.activity_id,
       safe_summary: { activity_type: type, status: safe.status },
     });

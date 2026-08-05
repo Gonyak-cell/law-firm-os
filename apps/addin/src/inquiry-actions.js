@@ -26,13 +26,11 @@ async function stableActionKey(value, cryptoImpl) {
 }
 
 export async function buildInquiryRegistrationRequest({
-  tenant_id,
   action,
   rest_message_id,
   existing_lead_id,
   cryptoImpl = globalThis.crypto,
 } = {}) {
-  const tenantId = requiredText(tenant_id, "tenant_id", 512);
   const nextAction = requiredText(action, "action", 32);
   if (!INQUIRY_ACTIONS.has(nextAction)) {
     throw new TypeError("action must be new or link_existing");
@@ -58,7 +56,6 @@ export async function buildInquiryRegistrationRequest({
     cryptoImpl,
   );
   return Object.freeze({
-    tenant_id: tenantId,
     action: nextAction,
     rest_message_id: restMessageId,
     ...(existingLeadId

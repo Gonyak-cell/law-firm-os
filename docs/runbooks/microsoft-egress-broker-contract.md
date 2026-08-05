@@ -95,8 +95,14 @@ Request:
 `redirect_profile` is exactly `people` or `client`. Both profiles use the
 fixed HTTPS callback
 `https://d2mthcc8vp3cr2.cloudfront.net/api/outlook/connection/callback`, while
-their Entra applications, client credentials, scopes, state envelopes, and
-credential stores remain separate.
+the pilot may use one shared Entra application (`client_id` and confidential
+credential) for both profiles. The profiles still remain separate at the
+application boundary: People requests allow only
+`openid profile email offline_access Calendars.ReadBasic`, while Client
+requests allow only `openid profile email offline_access Calendars.ReadWrite
+Mail.Read`. OAuth state envelopes, refresh-profile validation, and credential
+vault records are partitioned by profile; a request cannot select the other
+profile or mix scopes before Microsoft is called.
 The caller cannot submit a callback URL.
 
 Result:
@@ -109,6 +115,8 @@ Result:
   "ext_expires_in": 3600,
   "access_token": "...",
   "refresh_token": "...",
+  "refresh_profile": "people",
+  "refresh_profile_proof": "...",
   "id_token": "...",
   "provider_request_id": "..."
 }
@@ -124,17 +132,54 @@ Request:
 {
   "tenant_id": "uuid",
   "client_id": "uuid",
-  "client_secret": "optional confidential-client secret",
+  "client_secret": "confidential-client secret",
   "refresh_token": "...",
-  "scopes": ["offline_access", "Calendars.ReadBasic"]
+  "refresh_profile_proof": "...",
+  "redirect_profile": "people",
+  "scopes": [
+    "openid",
+    "profile",
+    "email",
+    "offline_access",
+    "Calendars.ReadBasic"
+  ]
 }
 ```
 
-Result uses the same schema as `oauth.token.exchange`.
+Result uses the same schema as `oauth.token.exchange` and always includes the
+validated `refresh_profile` (`people` or `client`) and a newly issued
+`refresh_profile_proof` bound to the returned refresh token. For the Client
+profile, set `redirect_profile` to `client` and send exactly
+`openid profile email offline_access Calendars.ReadWrite Mail.Read` in
+`scopes`; the broker rejects mixed or profile-inconsistent scopes.
 
 The complete scope allowlist is `openid`, `profile`, `email`,
 `offline_access`, `Calendars.ReadBasic`, `Calendars.ReadWrite`, and
 `Mail.Read`.
+
+### Refresh-profile proof keyring
+
+The broker owns the proof keyring used to bind a refresh token to its profile.
+Production configuration must provide:
+
+- `LAWOS_MICROSOFT_EGRESS_REFRESH_PROFILE_PROOF_CURRENT_KEY_B64URL` (required)
+- `LAWOS_MICROSOFT_EGRESS_REFRESH_PROFILE_PROOF_PREVIOUS_KEY_B64URL` (optional
+  during rotation)
+
+Each value is an unpadded base64url encoding of exactly 32 random bytes. The
+current and previous values must be distinct. The API never derives or
+chooses these values, and neither value may be logged, returned in an error,
+or pasted into chat. The broker accepts proofs made with either configured
+key; a successful refresh reissues the current-key proof.
+
+For a code/config rollout, add a newly generated current key to the existing
+broker environment first (the previous broker ignores this extra variable),
+then deploy the broker code and verify its health before changing API callers.
+For rotation, set the old current value as `...PREVIOUS...` and a new random
+32-byte value as `...CURRENT...`, deploy the broker, and leave the previous
+key in place until all active credentials have refreshed or the approved
+rotation window has elapsed. Remove the previous key only after that window;
+never remove the only current key.
 
 ### `graph.calendarView.list`
 

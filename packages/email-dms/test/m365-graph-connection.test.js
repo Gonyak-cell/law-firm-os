@@ -24,6 +24,8 @@ const NOW = "2026-07-30T06:00:00.000Z";
 const EXPIRES = "2026-08-30T06:00:00.000Z";
 const REDIRECT_URI =
   "https://app.example.invalid/api/outlook/connection/callback";
+const CLIENT_REFRESH_PROOF = "C".repeat(43);
+const ROTATED_CLIENT_REFRESH_PROOF = "R".repeat(43);
 
 function principal(overrides = {}) {
   return {
@@ -99,6 +101,10 @@ function fakeDependencies() {
         token_bundle: {
           access_token: "synthetic-access-token-never-persist",
           refresh_token: "synthetic-refresh-token-never-persist",
+          refresh_profile: "client",
+          refresh_profile_proof: CLIENT_REFRESH_PROOF,
+          expires_at: EXPIRES,
+          granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
         },
       };
     },
@@ -133,6 +139,11 @@ function fakeDependencies() {
             address: "SENDER@example.invalid",
             raw_body: "must-not-cross-port",
           },
+          from: {
+            display_name: "Synthetic author",
+            address: "AUTHOR@example.invalid",
+            raw_body: "must-not-cross-port",
+          },
           recipients: [{
             display_name: "Intake",
             address: "INTAKE@example.invalid",
@@ -141,7 +152,10 @@ function fakeDependencies() {
           }],
           received_at: "2026-07-30T05:59:00.000Z",
           has_attachments: false,
+          is_in_sent_items: true,
+          is_draft: false,
           body_html: "must-not-cross-port",
+          parent_folder_id: "must-not-cross-port",
         },
       };
     },
@@ -170,6 +184,9 @@ function fakeDependencies() {
         "synthetic-refresh-token-never-persist",
       );
       return { revoked: true };
+    },
+    async refreshDelegatedCredential() {
+      throw new Error("refresh should not run for an unexpired credential");
     },
   };
   return { calls, credentialVault, credentials, provider };
@@ -294,6 +311,7 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   });
   assert.equal(serialized.includes("synthetic-access-token"), false);
   assert.equal(serialized.includes("synthetic-refresh-token"), false);
+  assert.equal(serialized.includes(CLIENT_REFRESH_PROOF), false);
   assert.equal(persisted[0].credential_material_included, false);
   assert.equal(Object.hasOwn(persisted[0], "mailbox_address"), false);
   assert.equal(
@@ -331,6 +349,12 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
     message.message_metadata.sender.address,
     "sender@example.invalid",
   );
+  assert.equal(
+    message.message_metadata.from.address,
+    "author@example.invalid",
+  );
+  assert.equal(message.message_metadata.is_in_sent_items, true);
+  assert.equal(message.message_metadata.is_draft, false);
   const credentialRef = persisted[0].credential_ref;
   const validCredential =
     structuredClone(dependencies.credentials.get(credentialRef));
@@ -480,6 +504,7 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   }));
   assert.equal(auditText.includes("synthetic-access-token"), false);
   assert.equal(auditText.includes("synthetic-refresh-token"), false);
+  assert.equal(auditText.includes(CLIENT_REFRESH_PROOF), false);
 });
 
 test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 해제 상태로 남기고 안전한 오류를 반환한다", async () => {
@@ -541,6 +566,176 @@ test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 �
   );
 });
 
+test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고 첫 Graph action이 같은 vault ref에서 회전한다", async () => {
+  const expiringAt = "2026-07-30T05:59:30.000Z";
+  const rotatedExpiresAt = "2026-07-30T07:00:00.000Z";
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection({
+      consented_at: "2026-07-29T06:00:00.000Z",
+      expires_at: expiringAt,
+    })],
+  });
+  const dependencies = fakeDependencies();
+  const credentialRef = connection().credential_ref;
+  dependencies.credentials.set(credentialRef, {
+    access_token: "expiring-client-access-token",
+    refresh_token: "expiring-client-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: expiringAt,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  dependencies.provider.refreshDelegatedCredential = async ({ credential }) => {
+    dependencies.calls.push("provider:refresh");
+    assert.equal(credential.refresh_profile, "client");
+    assert.equal(credential.refresh_profile_proof, CLIENT_REFRESH_PROOF);
+    return {
+      expires_at: rotatedExpiresAt,
+      token_bundle: {
+        ...credential,
+        access_token: "rotated-client-access-token",
+        refresh_token: "rotated-client-refresh-token",
+        refresh_profile_proof: ROTATED_CLIENT_REFRESH_PROOF,
+        expires_at: rotatedExpiresAt,
+      },
+    };
+  };
+  dependencies.provider.getMeMessageMime = async ({ credential }) => {
+    dependencies.calls.push("provider:mail:/me");
+    assert.equal(credential.access_token, "rotated-client-access-token");
+    return {
+      mime_bytes: Buffer.from("From: sender@example.invalid\r\n\r\nRotated"),
+      immutable_message_id: "immutable-message-rotated-001",
+      internet_message_id: "<rotated-001@example.invalid>",
+      message_metadata: {
+        received_at: NOW,
+        is_in_sent_items: false,
+        is_draft: false,
+      },
+    };
+  };
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+  const beforeAction = service.getConnectionStatus(principal()).connection;
+  assert.equal(beforeAction.status, "connected");
+  assert.equal(beforeAction.active, true);
+  assert.equal(beforeAction.token_refresh_pending, true);
+  const mail = createM365MailPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  });
+
+  await mail.getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-rotated-001",
+  });
+
+  assert.deepEqual(
+    dependencies.calls.slice(0, 4),
+    ["vault:resolve", "provider:refresh", "vault:store", "provider:mail:/me"],
+  );
+  const stored = dependencies.credentials.get(credentialRef);
+  assert.equal(stored.refresh_token, "rotated-client-refresh-token");
+  assert.equal(
+    stored.refresh_profile_proof,
+    ROTATED_CLIENT_REFRESH_PROOF,
+  );
+  const updated = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(updated.expires_at, rotatedExpiresAt);
+  assert.equal(updated.state_version, 2);
+  const afterAction = service.getConnectionStatus(principal()).connection;
+  assert.equal(afterAction.status, "connected");
+  assert.equal(afterAction.active, true);
+  assert.equal(afterAction.token_refresh_pending, false);
+  const audit = repository.listAudit({ tenant_id: TENANT }).at(-1);
+  assert.equal(audit.event_type, "m365.connection.credential.refreshed");
+  assert.equal(audit.payload.refresh_token_rotated, true);
+  assert.doesNotMatch(JSON.stringify({ updated, audit }), /rotated-client/u);
+});
+
+test("Client refresh 401은 Graph 호출 전 연결과 vault credential을 폐기하고 재연결을 요구한다", async () => {
+  const expiringAt = "2026-07-30T06:00:30.000Z";
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection({ expires_at: expiringAt })],
+  });
+  const dependencies = fakeDependencies();
+  const credentialRef = connection().credential_ref;
+  dependencies.credentials.set(credentialRef, {
+    access_token: "rejected-client-access-token",
+    refresh_token: "rejected-client-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: expiringAt,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  dependencies.provider.refreshDelegatedCredential = async () => {
+    dependencies.calls.push("provider:refresh");
+    throw Object.assign(new Error("provider detail must not persist"), {
+      status: 401,
+      safe_error_code: "OUTLOOK_PROVIDER_REJECTED",
+    });
+  };
+  let graphCalls = 0;
+  dependencies.provider.getMeMessageMime = async () => {
+    graphCalls += 1;
+    throw new Error("Graph must not run after rejected refresh");
+  };
+  const mail = createM365MailPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  });
+
+  await assert.rejects(
+    mail.getOwnMessageMime({
+      ...principal(),
+      rest_message_id: "rest-message-rejected-001",
+    }),
+    (error) => (
+      error.safe_error_code
+        === M365_GRAPH_ERROR_CODES.reauthorization_required
+      && error.status === 401
+    ),
+  );
+  assert.equal(graphCalls, 0);
+  assert.equal(dependencies.credentials.has(credentialRef), false);
+  const disconnected = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(disconnected.revoked_at, NOW);
+  assert.equal(disconnected.state_version, 2);
+  assert.equal(
+    repository.listAudit({ tenant_id: TENANT }).at(-1).event_type,
+    "m365.connection.reauthorization_required",
+  );
+  assert.doesNotMatch(
+    JSON.stringify(repository.snapshot()),
+    /provider detail must not persist|rejected-client/u,
+  );
+});
+
 test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 provider 호출을 막는다", async () => {
   const dependencies = fakeDependencies();
   const expiredRepository = createEmailDmsRepository({
@@ -569,7 +764,7 @@ test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 p
     }),
     (error) => (
       error.safe_error_code
-        === M365_GRAPH_ERROR_CODES.connection_not_found
+        === M365_GRAPH_ERROR_CODES.reauthorization_required
     ),
   );
   assert.equal(dependencies.calls.includes("provider:mail:/me"), false);

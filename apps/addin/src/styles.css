@@ -117,6 +117,26 @@ h2 {
   color: #9a6100;
 }
 
+.status-line.neutral svg {
+  color: #627086;
+}
+
+.auth-section {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-section .section-title {
+  margin-bottom: 0;
+}
+
+.connection-controls {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #edf0f4;
+}
+
 .pane-section {
   padding: 11px;
 }

@@ -50,6 +50,8 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version: "law-firm-os.api-auth-session.v0.1",
   endpoints: Object.freeze([
     "POST /api/auth/login",
+    "GET /api/auth/office-sso/config",
+    "POST /api/auth/office-sso/exchange",
     "POST /api/auth/oidc/start",
     "POST /api/auth/oidc/complete",
     "GET /api/auth/session",
@@ -75,6 +77,7 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
 });
 
 const TOKEN_PREFIX = "lawos_session_v1";
+const OUTLOOK_ADDIN_SESSION_SURFACE = "outlook_addin";
 const DEFAULT_TTL_MS = 8 * 60 * 60 * 1000;
 const DEFAULT_MAX_FAILED_LOGINS = 5;
 const DEFAULT_LOGIN_LOCK_MS = 15 * 60 * 1000;
@@ -323,6 +326,7 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
     scopes: principal.scopes,
     hrx_scopes: Object.freeze([...hrxScopes]),
     assurance_level: principal.assurance_level,
+    surface: principal.surface ?? null,
     session_id: principal.session_id,
     credential_rev: principal.credential_rev ?? null,
     credential_status: principal.credential_status ?? null,
@@ -591,6 +595,26 @@ function normalizeLoginKey(email) {
   return String(email ?? "").trim().toLowerCase();
 }
 
+function officeSsoPublicConfig(provider) {
+  const source = provider?.public_config;
+  const fields = ["client_id", "tenant_id", "api_scope", "callback_uri"];
+  if (
+    !source
+    || typeof source !== "object"
+    || Array.isArray(source)
+    || fields.some((field) => (
+      typeof source[field] !== "string"
+      || !source[field].trim()
+      || source[field] !== source[field].trim()
+    ))
+  ) {
+    throw new TypeError("Office SSO public_config is required");
+  }
+  return Object.freeze(Object.fromEntries(
+    fields.map((field) => [field, source[field]]),
+  ));
+}
+
 function createPasswordResetToken(tenantId = null) {
   const material = randomBytes(32).toString("base64url");
   return tenantId ? `${base64UrlEncode(tenantId)}.${material}` : material;
@@ -670,6 +694,7 @@ function principalFromSignedSession({ user, payload = {}, trustedTenantId, reque
     privilege_rank: user.privilege_rank ?? null,
     assurance_level: credential?.assurance_level ?? user.assurance_level ?? "password",
     entra_subject_id: credential?.federated_subject_id ?? null,
+    surface: payload.surface ?? null,
     session_id: payload.sid ?? `sess_${user.user_id}`,
     session_jti: payload.jti ?? null,
     credential_rev: credential?.credential_rev ?? payload.credential_rev ?? null,
@@ -692,6 +717,7 @@ function principalWithDirectoryRoleContext(principal, user, tenantId) {
     hrx_scopes: Object.freeze([...(membership.hrx_scopes ?? roleAssignment.hrx_scopes ?? [])]),
     highest_privilege: user.highest_privilege === true,
     privilege_rank: user.privilege_rank ?? null,
+    surface: principal.surface ?? null,
   });
 }
 
@@ -716,6 +742,7 @@ export function createApiSessionAuth({
   stepUpAuthority = null,
   stepUpProvider = null,
   staffOidcProvider = null,
+  officeSsoProvider = null,
   identityRepository = null,
   objectAclResolver = null,
 } = {}) {
@@ -727,9 +754,21 @@ export function createApiSessionAuth({
     : null;
   const centralIdentityRepository = identityRepository ? assertIdentityLedger(identityRepository) : null;
   const federatedStaffAuthEnabled = !syntheticLoginEnabled && staffOidcProvider != null;
+  const officeSsoEnabled = !syntheticLoginEnabled && officeSsoProvider != null;
   if (federatedStaffAuthEnabled && !centralIdentityRepository) {
     throw new TypeError("Entra staff OIDC requires the central identity repository");
   }
+  if (officeSsoProvider != null) {
+    if (!officeSsoEnabled || !centralIdentityRepository) {
+      throw new TypeError("Office SSO requires the operational central identity repository");
+    }
+    if (typeof officeSsoProvider.verifyAccessToken !== "function") {
+      throw new TypeError("Office SSO verifyAccessToken is required");
+    }
+  }
+  const resolvedOfficeSsoPublicConfig = officeSsoEnabled
+    ? officeSsoPublicConfig(officeSsoProvider)
+    : null;
   if (!syntheticLoginEnabled && !centralIdentityRepository && !credentialStore && !credentialStorePath) {
     const error = new Error(`${LAWOS_AUTH_CREDENTIAL_STORE_ENV} is required for operational runtime profile`);
     error.code = "LAWOS_AUTH_CREDENTIAL_STORE_REQUIRED";
@@ -993,7 +1032,7 @@ export function createApiSessionAuth({
     });
   }
 
-  async function validateOperationalSession(user, credentialRev) {
+  async function validateOperationalSession(user, credentialRev, surface = null) {
     if (!centralIdentityRepository) return operationalCredentialStore.validateSessionCredential({ user, credentialRev });
     const record = await centralAccount(user);
     if (!record || Number(credentialRev) !== record.credential_rev) {
@@ -1005,13 +1044,32 @@ export function createApiSessionAuth({
     const verifiedFederatedCredential = federatedStaffAuthEnabled
       && record.credential_provider === staffOidcProvider.provider_id
       && Boolean(record.federated_subject_id);
+    const verifiedOfficeSsoCredential = surface === OUTLOOK_ADDIN_SESSION_SURFACE
+      && officeSsoEnabled
+      && record.federated_tenant_id === resolvedOfficeSsoPublicConfig.tenant_id
+      && Boolean(record.federated_subject_id);
+    if (surface === OUTLOOK_ADDIN_SESSION_SURFACE && !verifiedOfficeSsoCredential) {
+      return Object.freeze({
+        ok: false,
+        reason: "office_sso_binding_inactive",
+        safe_error_code: "AUTH_SESSION_REVOKED",
+        status: 401,
+      });
+    }
     return Object.freeze({
       ok: true,
       credential_rev: record.credential_rev,
       credential_status: record.credential_status,
       must_change_password: record.credential_status === "must_change",
-      assurance_level: verifiedFederatedCredential ? "phishing-resistant-mfa" : "password",
-      federated_subject_id: verifiedFederatedCredential ? record.federated_subject_id : null,
+      assurance_level: verifiedOfficeSsoCredential
+        ? "microsoft-office-naa"
+        : verifiedFederatedCredential
+          ? "phishing-resistant-mfa"
+          : "password",
+      federated_subject_id:
+        verifiedOfficeSsoCredential || verifiedFederatedCredential
+          ? record.federated_subject_id
+          : null,
     });
   }
 
@@ -1295,6 +1353,9 @@ export function createApiSessionAuth({
       exp: expiresAtMs,
     };
     if (Number.isInteger(principal.credential_rev)) payload.credential_rev = principal.credential_rev;
+    if (principal.surface === OUTLOOK_ADDIN_SESSION_SURFACE) {
+      payload.surface = OUTLOOK_ADDIN_SESSION_SURFACE;
+    }
     const payloadPart = base64UrlJson(payload);
     const signature = sign(sessionSecret, payloadPart);
     return Object.freeze({
@@ -1306,6 +1367,253 @@ export function createApiSessionAuth({
         principal,
         expiresAt: new Date(expiresAtMs).toISOString(),
         roleAssignment: resolveSessionRoleAssignment(user, { tenantId: principal.tenant_id }),
+      }),
+    });
+  }
+
+  function officeSsoConfig({ requestId = "req_unset" } = {}) {
+    if (!officeSsoEnabled) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(
+          requestId,
+          "AUTH_OFFICE_SSO_NOT_CONFIGURED",
+          "auth_office_sso_not_configured",
+        ),
+      });
+    }
+    return Object.freeze({
+      status: 200,
+      body: Object.freeze({
+        ...resolvedOfficeSsoPublicConfig,
+        configured: true,
+      }),
+    });
+  }
+
+  async function exchangeOfficeSso(body = {}, { requestId = "req_unset" } = {}) {
+    if (!officeSsoEnabled) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(
+          requestId,
+          "AUTH_OFFICE_SSO_NOT_CONFIGURED",
+          "auth_office_sso_not_configured",
+        ),
+      });
+    }
+    if (
+      !body
+      || typeof body !== "object"
+      || Array.isArray(body)
+      || Object.keys(body).length !== 1
+      || !Object.hasOwn(body, "access_token")
+      || typeof body.access_token !== "string"
+      || !body.access_token.trim()
+      || body.access_token.length > 32 * 1024
+    ) {
+      return Object.freeze({
+        status: 400,
+        body: errorBody(
+          requestId,
+          "AUTH_OFFICE_SSO_REQUEST_INVALID",
+          "auth_office_sso_request_invalid",
+        ),
+      });
+    }
+
+    let verification;
+    try {
+      verification = await officeSsoProvider.verifyAccessToken(
+        body.access_token,
+      );
+    } catch (error) {
+      return Object.freeze({
+        status: error?.status ?? 401,
+        body: errorBody(
+          requestId,
+          error?.safe_error_code ?? "AUTH_OFFICE_SSO_VERIFICATION_FAILED",
+          "auth_office_sso_verification_failed",
+        ),
+      });
+    }
+    const directory = await directoryUsers(trustedTenantId);
+    const records = await Promise.all(directory.map(async (user) => ({
+      user,
+      account: await centralIdentityRepository.getAccount({
+        tenant_id: trustedTenantId,
+        user_id: user.user_id,
+      }),
+    })));
+    let bindingMatches = records.filter(({ account }) => (
+      account?.federated_tenant_id === verification?.tenant_id
+      && account.federated_subject_id === verification?.assertion_id
+    ));
+    if (bindingMatches.length > 1) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(
+          requestId,
+          "AUTH_OFFICE_SSO_BINDING_AMBIGUOUS",
+          "auth_office_sso_binding_ambiguous",
+        ),
+      });
+    }
+    if (bindingMatches.length === 0) {
+      const email = verification?.email == null
+        ? null
+        : normalizeLoginKey(verification.email);
+      if (!email) {
+        return Object.freeze({
+          status: 403,
+          body: errorBody(
+            requestId,
+            "AUTH_OFFICE_SSO_ACCOUNT_UNBOUND",
+            "auth_office_sso_account_unbound",
+          ),
+        });
+      }
+      const emailMatches = records.filter(
+        ({ user }) => normalizeLoginKey(user.email) === email,
+      );
+      if (emailMatches.length !== 1) {
+        const safeErrorCode = emailMatches.length > 1
+          ? "AUTH_OFFICE_SSO_BINDING_AMBIGUOUS"
+          : "AUTH_OFFICE_SSO_ACCOUNT_UNMAPPED";
+        return Object.freeze({
+          status: 403,
+          body: errorBody(
+            requestId,
+            safeErrorCode,
+            safeErrorCode.toLowerCase(),
+          ),
+        });
+      }
+      const [{ user, account }] = emailMatches;
+      if (account?.federated_tenant_id || account?.federated_subject_id) {
+        return Object.freeze({
+          status: 403,
+          body: errorBody(
+            requestId,
+            "AUTH_OFFICE_SSO_SUBJECT_MISMATCH",
+            "auth_office_sso_subject_mismatch",
+          ),
+        });
+      }
+      if (account?.account_status !== "active") {
+        return Object.freeze({
+          status: 403,
+          body: await disabledAccountBody(requestId, user),
+        });
+      }
+      try {
+        const boundAccount = await centralIdentityRepository.ensureFederatedAccount({
+          tenant_id: trustedTenantId,
+          user: identitySeed(user),
+          provider_id: officeSsoProvider.provider_id,
+          federated_tenant_id: verification.tenant_id,
+          federated_subject_id: verification.assertion_id,
+          actor_id: user.user_id,
+          preserve_primary_credential: true,
+          audit_action: "auth.office_sso_identity.bound",
+        });
+        bindingMatches = [{ user, account: boundAccount }];
+      } catch (error) {
+        const conflict = error?.safe_error_code === "FEDERATED_IDENTITY_CONFLICT"
+          || error?.code === "23505";
+        const safeErrorCode = conflict
+          ? "AUTH_OFFICE_SSO_SUBJECT_MISMATCH"
+          : "AUTH_OFFICE_SSO_BINDING_UNAVAILABLE";
+        return Object.freeze({
+          status: conflict ? 403 : 503,
+          body: errorBody(requestId, safeErrorCode, safeErrorCode.toLowerCase()),
+        });
+      }
+    }
+    const [{ user, account }] = bindingMatches;
+    if (
+      verification.email != null
+      && normalizeLoginKey(verification.email) !== normalizeLoginKey(user.email)
+    ) {
+      return Object.freeze({
+        status: 403,
+        body: errorBody(
+          requestId,
+          "AUTH_OFFICE_SSO_SUBJECT_MISMATCH",
+          "auth_office_sso_subject_mismatch",
+        ),
+      });
+    }
+    if (account.account_status !== "active") {
+      return Object.freeze({
+        status: 403,
+        body: await disabledAccountBody(requestId, user),
+      });
+    }
+    const tenantId = homeTenantIdForUser(user, trustedTenantId);
+    const principal = principalFromSignedSession({
+      user,
+      payload: {
+        sid: `sess_office_sso_${randomUUID()}`,
+        credential_rev: account.credential_rev,
+        surface: OUTLOOK_ADDIN_SESSION_SURFACE,
+      },
+      trustedTenantId: tenantId,
+      requestId,
+      credential: {
+        credential_rev: account.credential_rev,
+        credential_status: account.credential_status,
+        assurance_level:
+          verification.assurance_level ?? "microsoft-office-naa",
+        federated_subject_id: verification.assertion_id,
+      },
+    });
+    if (!principal.ok) {
+      return Object.freeze({
+        status: principal.status_code ?? 403,
+        body: errorBody(
+          requestId,
+          "AUTH_OFFICE_SSO_ACCOUNT_DISABLED",
+          principal.reason ?? "auth_office_sso_account_disabled",
+        ),
+      });
+    }
+    const session = createToken({ principal, user });
+    const committed = await centralIdentityRepository.completeLogin({
+      tenant_id: tenantId,
+      user: identitySeed(user),
+      session_jti: session.payload.jti,
+      session_id: session.payload.sid,
+      credential_rev: account.credential_rev,
+      issued_at: session.payload.iat,
+      expires_at: session.payload.exp,
+      preserve_login_failure_state: true,
+    });
+    if (!committed.ok) {
+      return Object.freeze({
+        status: committed.status ?? 401,
+        body: errorBody(
+          requestId,
+          committed.safe_error_code ?? "AUTH_SESSION_INVALID",
+          committed.reason ?? "auth_session_invalid",
+        ),
+      });
+    }
+    return Object.freeze({
+      status: 200,
+      body: Object.freeze({
+        request_id: requestId,
+        outcome: "passed",
+        ok: true,
+        token_type: "Bearer",
+        session_token: session.token,
+        expires_at: session.expires_at,
+        session: session.session,
+        surface: OUTLOOK_ADDIN_SESSION_SURFACE,
+        credential_provider: officeSsoProvider.provider_id,
+        token_material_returned: true,
+        provider_token_material_returned: false,
+        production_ready_claim: false,
       }),
     });
   }
@@ -1596,7 +1904,18 @@ export function createApiSessionAuth({
     } catch {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
     }
-    if (payload.typ !== TOKEN_PREFIX || payload.exp <= now()) {
+    if (
+      !payload
+      || typeof payload !== "object"
+      || Array.isArray(payload)
+      || (
+        payload.surface !== undefined
+        && payload.surface !== OUTLOOK_ADDIN_SESSION_SURFACE
+      )
+    ) {
+      return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
+    }
+    if (payload.typ !== TOKEN_PREFIX || !Number.isFinite(payload.exp) || payload.exp <= now()) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_EXPIRED", "auth_session_expired") });
     }
     if (!centralIdentityRepository && revokedSessionJtis.has(payload.jti)) {
@@ -1615,7 +1934,11 @@ export function createApiSessionAuth({
     }
     const credential = syntheticLoginEnabled
       ? null
-      : await validateOperationalSession(user, payload.credential_rev);
+      : await validateOperationalSession(
+          user,
+          payload.credential_rev,
+          payload.surface ?? null,
+        );
     if (credential && !credential.ok) {
       return Object.freeze({ ok: false, status: credential.status ?? 401, body: errorBody(requestId, credential.safe_error_code, credential.reason) });
     }
@@ -1653,7 +1976,13 @@ export function createApiSessionAuth({
     return Object.freeze({
       ok: true,
       principal,
-      token_payload: Object.freeze({ jti: payload.jti, user_id: payload.user_id, tenant_id: payload.tenant_id, exp: payload.exp }),
+      token_payload: Object.freeze({
+        jti: payload.jti,
+        user_id: payload.user_id,
+        tenant_id: payload.tenant_id,
+        exp: payload.exp,
+        surface: payload.surface ?? null,
+      }),
       context: permissionContextFromPrincipal(principal, {
         allowSyntheticTenantAliases: syntheticLoginEnabled,
         objectAclAuthority,
@@ -1777,6 +2106,18 @@ export function createApiSessionAuth({
   }
 
   async function handleAuthApiRequest({ pathname, method, body = {}, headers = {}, requestId = "req_unset" } = {}) {
+    if (pathname === "/api/auth/office-sso/config") {
+      if (method !== "GET") {
+        return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      }
+      return officeSsoConfig({ requestId });
+    }
+    if (pathname === "/api/auth/office-sso/exchange") {
+      if (method !== "POST") {
+        return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      }
+      return exchangeOfficeSso(body, { requestId });
+    }
     if (pathname === "/api/auth/oidc/start") {
       if (method !== "POST") {
         return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
@@ -1887,6 +2228,16 @@ export function createApiSessionAuth({
         return Object.freeze({
           status: resolved.status ?? 401,
           body: resolved.body ?? errorBody(requestId, "AUTH_SESSION_REQUIRED", "auth_session_required"),
+        });
+      }
+      if (resolved.token_payload?.surface === OUTLOOK_ADDIN_SESSION_SURFACE) {
+        return Object.freeze({
+          status: 403,
+          body: errorBody(
+            requestId,
+            "AUTH_SESSION_SURFACE_DENIED",
+            "auth_session_surface_denied",
+          ),
         });
       }
       const proof = body.totp_code ?? body.mfa_totp ?? body.code ?? body.proof;

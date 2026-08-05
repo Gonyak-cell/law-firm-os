@@ -18,6 +18,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const AUTHORIZATION_CODE_PATTERN = /^(?=.{1,4096}$)[\x21-\x7e]+$/u;
 const PKCE_PATTERN = /^[A-Za-z0-9_-]{43,128}$/u;
+const REFRESH_PROFILE_PROOF_PATTERN = /^[A-Za-z0-9_-]{43}$/u;
 const OIDC_SCOPES = Object.freeze([
   "openid",
   "profile",
@@ -226,6 +227,29 @@ function tokenExpiry(body, now) {
     );
   }
   return new Date(now + (expiresIn * 1000)).toISOString();
+}
+
+function refreshBinding(body, expectedProfile) {
+  const profile = typeof body?.refresh_profile === "string"
+    ? body.refresh_profile
+    : "";
+  const proof = typeof body?.refresh_profile_proof === "string"
+    ? body.refresh_profile_proof
+    : "";
+  if (
+    profile !== expectedProfile
+    || !REFRESH_PROFILE_PROOF_PATTERN.test(proof)
+  ) {
+    throw providerError(
+      "OUTLOOK_REFRESH_PROFILE_INVALID",
+      "Microsoft refresh credential profile is invalid",
+      401,
+    );
+  }
+  return Object.freeze({
+    refresh_profile: profile,
+    refresh_profile_proof: proof,
+  });
 }
 
 export function createMicrosoftDelegatedOAuthClient({
@@ -517,6 +541,7 @@ export function createMicrosoftDelegatedOAuthClient({
       );
       return Object.freeze({
         ...identity,
+        ...refreshBinding(body, scopeProfile.redirect_profile),
         access_token: requiredText(body.access_token, "access_token", 32 * 1024),
         refresh_token: refreshToken,
         expires_at: tokenExpiry(body, now),
@@ -526,21 +551,46 @@ export function createMicrosoftDelegatedOAuthClient({
         ),
       });
     },
-    async refresh({ refresh_token } = {}) {
+    async refresh({
+      refresh_token,
+      refresh_profile,
+      refresh_profile_proof,
+    } = {}) {
       const currentRefreshToken = requiredText(
         refresh_token,
         "refresh_token",
         32 * 1024,
       );
+      if (refresh_profile !== scopeProfile.redirect_profile) {
+        throw providerError(
+          "OUTLOOK_REFRESH_PROFILE_INVALID",
+          "Microsoft refresh credential profile is invalid",
+          401,
+        );
+      }
+      const currentRefreshProfileProof =
+        typeof refresh_profile_proof === "string"
+          ? refresh_profile_proof
+          : "";
+      if (!REFRESH_PROFILE_PROOF_PATTERN.test(currentRefreshProfileProof)) {
+        throw providerError(
+          "OUTLOOK_REFRESH_PROFILE_INVALID",
+          "Microsoft refresh credential profile is invalid",
+          401,
+        );
+      }
       const now = nowMilliseconds();
       const body = await providerOperation("oauthTokenRefresh", {
         tenant_id: config.tenant_id,
         client_id: config.client_id,
         client_secret: config.client_secret,
         refresh_token: currentRefreshToken,
+        refresh_profile_proof: currentRefreshProfileProof,
+        redirect_profile: scopeProfile.redirect_profile,
         scopes: scopeProfile.scopes,
       }, "token refresh");
       return Object.freeze({
+        ...refreshBinding(body, scopeProfile.redirect_profile),
         access_token: requiredText(body.access_token, "access_token", 32 * 1024),
         refresh_token: body.refresh_token
           ? requiredText(body.refresh_token, "refresh_token", 32 * 1024)
@@ -551,6 +601,39 @@ export function createMicrosoftDelegatedOAuthClient({
           scopeProfile,
         ),
       });
+    },
+    async bindLegacyPeopleRefresh({ refresh_token } = {}) {
+      if (scopeProfile.redirect_profile !== "people") {
+        throw providerError(
+          "OUTLOOK_REFRESH_PROFILE_INVALID",
+          "Legacy refresh credential binding is available only for People",
+          403,
+        );
+      }
+      if (
+        typeof microsoft_egress_transport?.oauthLegacyPeopleRefreshBind
+        !== "function"
+      ) {
+        throw providerError(
+          "OUTLOOK_PROVIDER_UNAVAILABLE",
+          "Legacy People refresh credential binding is unavailable",
+          503,
+        );
+      }
+      const body = await providerOperation(
+        "oauthLegacyPeopleRefreshBind",
+        {
+          tenant_id: config.tenant_id,
+          client_id: config.client_id,
+          refresh_token: requiredText(
+            refresh_token,
+            "refresh_token",
+            32 * 1024,
+          ),
+        },
+        "legacy People refresh credential binding",
+      );
+      return refreshBinding(body, "people");
     },
   });
 }
