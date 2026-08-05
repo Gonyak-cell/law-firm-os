@@ -175,7 +175,14 @@ function runtime({
               refresh_token:
                 "outlook-inquiry-api-refresh-token-never-return",
               mailbox_address: "intake-user@example.invalid",
+              refresh_profile: "client",
+              refresh_profile_proof: "i".repeat(43),
+              expires_at: "2026-08-30T08:00:00.000Z",
+              granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
             };
+          },
+          async storeDelegatedCredential() {
+            throw new Error("unexpected credential refresh in inquiry test");
           },
         },
         provider: {
