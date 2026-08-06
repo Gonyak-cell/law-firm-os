@@ -48,6 +48,11 @@ import {
   parseSessionValidation,
 } from "./addin-auth.js";
 import {
+  createRegistrationLatch,
+  startOfficeTaskPane,
+  waitForOfficeReady,
+} from "./office-ready.js";
+import {
   handleOutlookMessageSend,
   registerOutlookSendHandler,
 } from "./outlook-send-events.js";
@@ -72,6 +77,7 @@ let authRecoveryPromise = null;
 let officeReadyPromise = null;
 let unauthorizedHandler = null;
 let sessionRecoveredHandler = null;
+const OFFICE_READY_EVENT = "lawos:office-ready";
 
 function authStorage() {
   if (!sessionStore) {
@@ -110,23 +116,14 @@ async function addinSessionToken() {
   return authStorage().get();
 }
 
-async function waitForOfficeReady() {
+async function ensureOfficeReady() {
   if (officeReadyPromise) return officeReadyPromise;
-  const onReady = window.Office?.onReady;
-  if (typeof onReady !== "function") return undefined;
-  officeReadyPromise = new Promise((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      resolve();
-    };
-    try {
-      const result = onReady(finish);
-      if (result && typeof result.then === "function") result.then(finish, finish);
-    } catch {
-      finish();
-    }
+  officeReadyPromise = waitForOfficeReady({
+    Office: window.Office,
+    onLateReady: () => {
+      officeReadyPromise = Promise.resolve({ status: "ready" });
+      window.dispatchEvent(new window.Event(OFFICE_READY_EVENT));
+    },
   });
   return officeReadyPromise;
 }
@@ -134,7 +131,7 @@ async function waitForOfficeReady() {
 async function initializeMsalBridge() {
   if (!msalBridgePromise) {
     msalBridgePromise = (async () => {
-      await waitForOfficeReady();
+      await ensureOfficeReady();
       const config = await runtimeConfig();
       const support = detectNestedAppAuth({ Office: window.Office, window });
       if (!support.supported) {
@@ -454,11 +451,18 @@ function registerOutlookEventHandlers() {
     onMessageSendHandler,
   };
   const associated = new Set(window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS ?? []);
-  if (registerOutlookSendHandler({ Office: window.Office, handler: onMessageSendHandler })) {
+  const registered = registerOutlookSendHandler({
+    Office: window.Office,
+    handler: onMessageSendHandler,
+  });
+  if (registered) {
     associated.add("onMessageSendHandler");
   }
   window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS = [...associated];
+  return registered;
 }
+
+const registerOutlookEventHandlersOnce = createRegistrationLatch(registerOutlookEventHandlers);
 
 function connectionPayload(body) {
   return body?.item?.connection
@@ -567,6 +571,7 @@ function App() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [item, setItem] = useState(() => officeItemSnapshot());
+  const [officeReadyEpoch, setOfficeReadyEpoch] = useState(0);
   const itemAvailable = item !== null;
   const authenticated = authState === AUTH_STATE.authenticated;
   const graphConnected = graphConnection.state === GRAPH_STATE.connected;
@@ -687,14 +692,32 @@ function App() {
     return next;
   }
 
-  useEffect(() => subscribeToOutlookItemChanges({
-    Office: window.Office,
-    onChange: () => {
+  useEffect(() => {
+    const handleLateOfficeReady = () => setOfficeReadyEpoch((current) => current + 1);
+    window.addEventListener(OFFICE_READY_EVENT, handleLateOfficeReady);
+    return () => window.removeEventListener(OFFICE_READY_EVENT, handleLateOfficeReady);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let unsubscribe = () => {};
+    void ensureOfficeReady().then(() => {
+      if (cancelled) return;
       setItem(officeItemSnapshot());
-      resetItemActionResults();
-      setError("");
-    },
-  }), []);
+      unsubscribe = subscribeToOutlookItemChanges({
+        Office: window.Office,
+        onChange: () => {
+          setItem(officeItemSnapshot());
+          resetItemActionResults();
+          setError("");
+        },
+      });
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [officeReadyEpoch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -756,7 +779,7 @@ function App() {
       if (unauthorizedHandler) unauthorizedHandler = null;
       if (sessionRecoveredHandler) sessionRecoveredHandler = null;
     };
-  }, []);
+  }, [officeReadyEpoch]);
 
   async function signIn() {
     setBusy("login");
@@ -1335,12 +1358,13 @@ function App() {
   );
 }
 
-async function mount() {
-  if (typeof window.Office?.onReady === "function") {
-    await window.Office.onReady();
-  }
-  registerOutlookEventHandlers();
-  createRoot(document.getElementById("root")).render(<App />);
+function mount() {
+  window.addEventListener(OFFICE_READY_EVENT, registerOutlookEventHandlersOnce);
+  startOfficeTaskPane({
+    render: () => createRoot(document.getElementById("root")).render(<App />),
+    waitForReady: ensureOfficeReady,
+    register: registerOutlookEventHandlersOnce,
+  });
 }
 
 void mount();
