@@ -110,3 +110,37 @@ test("CL-P3-W00-T01 AWS M365 credential vault는 기존 참조를 새 secret으�
     ["PutSecretValueCommand"],
   );
 });
+
+test("CL-P3-W00-T01 AWS M365 credential vault는 새 연결마다 삭제 예약과 충돌하지 않는 참조를 만든다", async () => {
+  const names = [];
+  let request = 0;
+  const vault = createAwsM365CredentialVault({
+    region: "ap-northeast-2",
+    secret_prefix: "lawos/test/m365",
+    client: {
+      async send(command) {
+        if (command.constructor.name === "CreateSecretCommand") {
+          names.push(command.input.Name);
+        }
+        return {};
+      },
+    },
+    idFactory: () => `00000000-0000-4000-8000-${String(++request).padStart(12, "0")}`,
+  });
+  const input = {
+    tenant_id: "tenant-vault-synthetic",
+    user_id: "user-vault-synthetic",
+    token_bundle: {
+      access_token: "vault-access-token-synthetic",
+      refresh_token: "vault-refresh-token-synthetic",
+      refresh_profile: "client",
+      refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    },
+  };
+
+  const first = await vault.storeDelegatedCredential(input);
+  const second = await vault.storeDelegatedCredential(input);
+
+  assert.notEqual(first, second);
+  assert.equal(new Set(names).size, 2);
+});

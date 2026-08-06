@@ -759,6 +759,7 @@ export function createM365GraphConnectionService({
     const current = findConnection(repository, principal);
     if (current) assertSubject(current, principal);
     const providerResult = await provider.completeDelegatedAuthorization({
+      ...principal,
       code: requiredString(input, "code"),
       state: requiredString(input, "state"),
       redirect_uri: allowedRedirectUri(
@@ -783,6 +784,9 @@ export function createM365GraphConnectionService({
       revoked_at: null,
       state_version: nextStateVersion,
     };
+    const reusableCredentialRef = current?.revoked_at
+      ? null
+      : current?.credential_ref ?? null;
     const credentialRef = await credential_vault.storeDelegatedCredential({
       tenant_id: principal.tenant_id,
       user_id: principal.user_id,
@@ -791,7 +795,7 @@ export function createM365GraphConnectionService({
         ...authorization.token_bundle,
         mailbox_address: authorization.mailbox_address,
       },
-      credential_ref: current?.credential_ref ?? null,
+      credential_ref: reusableCredentialRef,
     });
     const occurredAt = timestamp(clock);
     try {
@@ -811,7 +815,7 @@ export function createM365GraphConnectionService({
             occurred_at: occurredAt,
             payload: {
               previous_connection_present: Boolean(current),
-              token_replaced_in_vault: Boolean(current),
+              token_replaced_in_vault: Boolean(reusableCredentialRef),
             },
           });
           tx.recordIdempotency({
@@ -839,7 +843,7 @@ export function createM365GraphConnectionService({
         production_ready_claim: false,
       });
     } catch (error) {
-      if (!current) {
+      if (!reusableCredentialRef) {
         await credential_vault.deleteDelegatedCredential?.({
           credential_ref: credentialRef,
           reason: "connection_persistence_failed",
