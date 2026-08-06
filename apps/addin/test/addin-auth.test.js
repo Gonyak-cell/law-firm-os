@@ -118,11 +118,53 @@ test("대화상자 결과는 same-origin, 고정 type, 기대 state를 모두 �
     () => parseDialogMessage({ origin: "https://addin.example.invalid", expectedOrigin: "https://addin.example.invalid", expectedState: "state-002", rawMessage: result }),
     (error) => error.safe_error_code === AUTH_ERROR_CODES.dialogStateMismatch,
   );
+  assert.deepEqual(parseDialogMessage({
+    origin: "https://addin.example.invalid",
+    expectedOrigin: "https://addin.example.invalid",
+    expectedState: "state-001",
+    rawMessage: JSON.stringify({ type: "lawos-outlook-oauth", status: "connected" }),
+  }), { type: "lawos-outlook-oauth", status: "connected" });
+  for (const rawMessage of [
+    JSON.stringify({
+      type: "lawos-outlook-oauth",
+      status: "connected",
+      state: "state-001",
+    }),
+    JSON.stringify({
+      type: "lawos-outlook-oauth",
+      state: "state-001",
+      code: "code-001",
+      error: "access_denied",
+    }),
+    JSON.stringify({
+      type: "lawos-outlook-oauth",
+      state: "state-001",
+      code: "code-001",
+      extra: true,
+    }),
+  ]) {
+    assert.throws(
+      () => parseDialogMessage({
+        origin: "https://addin.example.invalid",
+        expectedOrigin: "https://addin.example.invalid",
+        expectedState: "state-001",
+        rawMessage,
+      }),
+      (error) => error.safe_error_code === AUTH_ERROR_CODES.dialogMessageInvalid,
+    );
+  }
 });
 
-function createDialogFixture({ status = "succeeded", onComplete = async () => {}, timeoutMs } = {}) {
+function createDialogFixture({
+  status = "succeeded",
+  onComplete = async () => {},
+  checkAuthorizationAttempt,
+  timeoutMs,
+} = {}) {
   const handlers = new Map();
   let closeCount = 0;
+  let clearIntervalCount = 0;
+  let pollHandler = null;
   let displayed = null;
   const dialog = {
     addEventHandler(type, handler) {
@@ -154,6 +196,19 @@ function createDialogFixture({ status = "succeeded", onComplete = async () => {}
     state: "state-001",
     callbackUri: "https://addin.example.invalid/api/outlook/connection/callback",
     onComplete,
+    ...(checkAuthorizationAttempt
+      ? {
+          checkAuthorizationAttempt,
+          setIntervalImpl(callback) {
+            pollHandler = callback;
+            return 7;
+          },
+          clearIntervalImpl() {
+            clearIntervalCount += 1;
+            pollHandler = null;
+          },
+        }
+      : {}),
     ...(timeoutMs ? { timeoutMs } : {}),
   });
   return {
@@ -162,11 +217,13 @@ function createDialogFixture({ status = "succeeded", onComplete = async () => {}
     handlers,
     dialog,
     get closeCount() { return closeCount; },
+    get clearIntervalCount() { return clearIntervalCount; },
     get displayed() { return displayed; },
+    async runPoll() { await pollHandler?.(); },
   };
 }
 
-test("Office OAuth 대화상자는 검증된 성공 응답을 한 번만 완료하고 닫는다", async () => {
+test("attempt_ref 없는 legacy authorize 응답은 검증된 messageParent 결과로 완료한다", async () => {
   const completions = [];
   const dialogFixture = createDialogFixture({ onComplete: async (message) => completions.push(message) });
   const message = {
@@ -243,12 +300,56 @@ test("Office OAuth 대화상자 열기 실패도 닫기 가능한 대화상자�
 });
 
 test("Office OAuth 대화상자가 응답하지 않으면 제한 시간 뒤 닫고 재시도할 수 있게 한다", async () => {
-  const stalledDialog = createDialogFixture({ timeoutMs: 5 });
+  const stalledDialog = createDialogFixture({
+    checkAuthorizationAttempt: async () => false,
+    timeoutMs: 5,
+  });
   await assert.rejects(
     stalledDialog.pending,
     (error) => error.safe_error_code === AUTH_ERROR_CODES.dialogTimeout,
   );
   assert.equal(stalledDialog.closeCount, 1);
+  assert.equal(stalledDialog.clearIntervalCount, 1);
+});
+
+test("Office OAuth 대화상자는 인증된 연결 상태 폴링 성공 시 bridge 없이 닫고 정리한다", async () => {
+  let checks = 0;
+  const dialogFixture = createDialogFixture({
+    checkAuthorizationAttempt: async () => {
+      checks += 1;
+      return checks === 2;
+    },
+    timeoutMs: 20,
+  });
+
+  await dialogFixture.runPoll();
+  assert.equal(dialogFixture.closeCount, 0);
+  await dialogFixture.runPoll();
+  await dialogFixture.pending;
+  assert.equal(checks, 2);
+  assert.equal(dialogFixture.closeCount, 1);
+  assert.equal(dialogFixture.clearIntervalCount, 1);
+});
+
+test("Office OAuth status bridge는 정확한 서버 시도 완료를 확인한 뒤에만 fast path로 닫는다", async () => {
+  let attemptComplete = false;
+  const dialogFixture = createDialogFixture({
+    checkAuthorizationAttempt: async () => attemptComplete,
+    timeoutMs: 20,
+  });
+  const messageHandler = dialogFixture.handlers.get("DialogMessageReceived");
+  const message = {
+    origin: "https://addin.example.invalid",
+    message: JSON.stringify({ type: "lawos-outlook-oauth", status: "connected" }),
+  };
+
+  await messageHandler(message);
+  assert.equal(dialogFixture.closeCount, 0);
+  attemptComplete = true;
+  await messageHandler(message);
+  await dialogFixture.pending;
+  assert.equal(dialogFixture.closeCount, 1);
+  assert.equal(dialogFixture.clearIntervalCount, 1);
 });
 
 test("sessionStorage와 OfficeRuntime storage에는 같은 LawOS 세션만 기록한다", async () => {

@@ -10,6 +10,9 @@ import {
   M365_GRAPH_REQUIRED_SCOPES,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
 import {
+  M365_GRAPH_CALLBACK_MODES,
+} from "../../../packages/email-dms/src/m365-graph-connection-service.js";
+import {
   createMicrosoftGraphMailProvider,
 } from "../../../packages/email-dms/src/microsoft-graph-mail-provider.js";
 import {
@@ -76,6 +79,14 @@ function providerError(message, status = 400) {
     safe_error_code: "M365_PROVIDER_RESPONSE_INVALID",
     status,
   });
+}
+
+function authorizationCallbackMode(value) {
+  const mode = value ?? M365_GRAPH_CALLBACK_MODES.legacy;
+  if (!Object.values(M365_GRAPH_CALLBACK_MODES).includes(mode)) {
+    throw providerError("Microsoft authorization callback mode is invalid");
+  }
+  return mode;
 }
 
 function clientRefreshBinding(input = {}) {
@@ -302,6 +313,28 @@ export function createClientOutlookDelegatedProvider({
     return clients.get(redirectUri);
   }
 
+  function validatedAuthorizationState(input = {}) {
+    const state = decryptState(input.state, config.state_encryption_key);
+    const redirectUri = approvedRedirectUri(
+      input.redirect_uri ?? state.redirect_uri,
+      config.redirect_uris,
+    );
+    const now = instant(clock);
+    if (
+      state.redirect_uri !== redirectUri
+      || !Number.isFinite(Date.parse(state.issued_at))
+      || !Number.isFinite(Date.parse(state.expires_at))
+      || Date.parse(state.issued_at) > now.getTime() + 60_000
+      || Date.parse(state.expires_at) <= now.getTime()
+    ) {
+      throw providerError("Microsoft authorization state is expired or invalid");
+    }
+    return Object.freeze({
+      ...state,
+      callback_mode: authorizationCallbackMode(state.callback_mode),
+    });
+  }
+
   return Object.freeze({
     async beginDelegatedAuthorization(input = {}) {
       const principal = statePrincipal(input);
@@ -310,6 +343,7 @@ export function createClientOutlookDelegatedProvider({
         config.redirect_uris,
       );
       const now = instant(clock);
+      const callbackMode = authorizationCallbackMode(input.callback_mode);
       const expiresAt = new Date(now.getTime() + OAUTH_STATE_TTL_MS);
       const nonce = randomBytes(32).toString("base64url");
       const verifier = randomBytes(32).toString("base64url");
@@ -319,6 +353,9 @@ export function createClientOutlookDelegatedProvider({
         redirect_uri: redirectUri,
         nonce,
         code_verifier: verifier,
+        ...(input.callback_mode === undefined
+          ? {}
+          : { callback_mode: callbackMode }),
         issued_at: now.toISOString(),
         expires_at: expiresAt.toISOString(),
       }, config.state_encryption_key);
@@ -330,10 +367,21 @@ export function createClientOutlookDelegatedProvider({
             .update(verifier, "utf8")
             .digest("base64url"),
         }),
+        attempt_ref: sha256(state),
+        callback_mode: callbackMode,
         expires_at: expiresAt.toISOString(),
         pkce_used: true,
         state_bound: true,
         credential_material_included: false,
+      });
+    },
+
+    resolveDelegatedAuthorizationState(input = {}) {
+      const state = validatedAuthorizationState(input);
+      return Object.freeze({
+        ...statePrincipal(state),
+        redirect_uri: state.redirect_uri,
+        callback_mode: state.callback_mode,
       });
     },
 
@@ -343,17 +391,13 @@ export function createClientOutlookDelegatedProvider({
         input.redirect_uri,
         config.redirect_uris,
       );
-      const state = decryptState(input.state, config.state_encryption_key);
+      const state = validatedAuthorizationState(input);
       const now = instant(clock);
       if (
         state.tenant_id !== principal.tenant_id
         || state.user_id !== principal.user_id
         || state.entra_subject_id !== principal.entra_subject_id
         || state.redirect_uri !== redirectUri
-        || !Number.isFinite(Date.parse(state.issued_at))
-        || !Number.isFinite(Date.parse(state.expires_at))
-        || Date.parse(state.issued_at) > now.getTime() + 60_000
-        || Date.parse(state.expires_at) <= now.getTime()
       ) {
         throw providerError("Microsoft authorization state does not match the signed session");
       }

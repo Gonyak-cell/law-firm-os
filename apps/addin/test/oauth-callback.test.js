@@ -9,6 +9,7 @@ const addinRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 const callbackSource = await readFile(path.join(addinRoot, "public/oauth-callback.js"), "utf8");
 
 function executeCallback(history, {
+  hash = "#code=test-code&state=test-state",
   messageParentReady = true,
   onReady = (callback) => callback(),
 } = {}) {
@@ -22,7 +23,7 @@ function executeCallback(history, {
   const window = {
     history,
     location: {
-      hash: "#code=test-code&state=test-state",
+      hash,
       origin: "https://addin.example.test",
       pathname: "/addin/oauth-callback.html",
     },
@@ -150,4 +151,17 @@ test("OAuth callback scrubs the authorization response from the dialog URL", () 
   assert.equal(replacements.flat().includes("test-code"), false);
   assert.equal(replacements.flat().includes("test-state"), false);
   assert.equal(result.delivered.length, 1);
+});
+
+test("Server-completed OAuth callback sends status only and retains no code or state", () => {
+  const result = executeCallback(undefined, { hash: "#status=connected" });
+
+  assert.equal(result.delivered.length, 1);
+  assert.deepEqual(JSON.parse(result.delivered[0].message), {
+    type: "lawos-outlook-oauth",
+    status: "connected",
+  });
+  assert.equal(result.status.textContent, "연결 완료를 확인했습니다. 이 창을 닫아도 됩니다.");
+  assert.equal(result.delivered[0].message.includes("code"), false);
+  assert.equal(result.delivered[0].message.includes("state"), false);
 });

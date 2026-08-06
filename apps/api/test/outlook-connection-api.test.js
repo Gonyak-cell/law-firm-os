@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { M365_GRAPH_REQUIRED_SCOPES } from "../../../packages/email-dms/src/m365-connection-model.js";
+import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 
 const TENANT = "tenant_outlook_connection_api";
@@ -36,6 +38,7 @@ function graphConfig() {
   const credentials = new Map();
   const calls = [];
   let completionCount = 0;
+  let authorizationCount = 0;
   return {
     calls,
     get completion_count() {
@@ -63,10 +66,16 @@ function graphConfig() {
         },
       },
       provider: {
-        async beginDelegatedAuthorization() {
+        async beginDelegatedAuthorization(input) {
+          authorizationCount += 1;
+          const state = authorizationCount === 1
+            ? "api-test-state"
+            : `api-test-state-${authorizationCount}`;
           return {
             authorization_url:
-              "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?state=api-test",
+              `https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?state=${state}`,
+            attempt_ref: createHash("sha256").update(state).digest("hex"),
+            callback_mode: input.callback_mode,
             expires_at: "2026-07-30T06:10:00.000Z",
             pkce_used: true,
             state_bound: true,
@@ -101,6 +110,7 @@ async function request({
   method,
   query = {},
   body = {},
+  headers = {},
   context = permissionContext(),
   runtime,
 }) {
@@ -109,6 +119,7 @@ async function request({
     method,
     query,
     body,
+    headers,
     context,
     requestId: `req_${method}_${pathname}`,
     runtime,
@@ -141,11 +152,29 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
       tenant_id: TENANT,
       redirect_uri: REDIRECT_URI,
     },
+    headers: {
+      "x-lawos-outlook-callback-mode": M365_GRAPH_CALLBACK_MODES.server_complete,
+    },
     runtime,
   });
   assert.equal(authorize.status, 200);
   assert.equal(authorize.body.outcome, "authorization_started");
   assert.equal(authorize.body.item.pkce_used, true);
+  assert.equal(
+    authorize.body.item.callback_mode,
+    M365_GRAPH_CALLBACK_MODES.server_complete,
+  );
+
+  const pendingAttempt = await request({
+    pathname: "/api/outlook/connection",
+    method: "GET",
+    query: { attempt_ref: authorize.body.item.attempt_ref },
+    runtime,
+  });
+  assert.equal(
+    pendingAttempt.body.item.authorization_attempt.status,
+    "pending",
+  );
 
   const callback = await request({
     pathname: "/api/outlook/connection/complete",
@@ -181,6 +210,41 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(callbackReplay.status, 200);
   assert.equal(callbackReplay.body.item.replayed, true);
   assert.equal(graph.completion_count, 1);
+
+  const completedAttempt = await request({
+    pathname: "/api/outlook/connection",
+    method: "GET",
+    query: { attempt_ref: authorize.body.item.attempt_ref },
+    runtime,
+  });
+  assert.equal(
+    completedAttempt.body.item.authorization_attempt.status,
+    "complete",
+  );
+
+  const secondAuthorize = await request({
+    pathname: "/api/outlook/connection/authorize",
+    method: "POST",
+    body: {
+      tenant_id: TENANT,
+      redirect_uri: REDIRECT_URI,
+    },
+    headers: {
+      "x-lawos-outlook-callback-mode": M365_GRAPH_CALLBACK_MODES.server_complete,
+    },
+    runtime,
+  });
+  const secondAttempt = await request({
+    pathname: "/api/outlook/connection",
+    method: "GET",
+    query: { attempt_ref: secondAuthorize.body.item.attempt_ref },
+    runtime,
+  });
+  assert.equal(secondAttempt.body.item.connection.status, "connected");
+  assert.equal(
+    secondAttempt.body.item.authorization_attempt.status,
+    "pending",
+  );
 
   const publicCallback = await request({
     pathname: "/api/outlook/connection/callback",

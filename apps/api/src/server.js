@@ -20,6 +20,7 @@ import { createMasterDataRepository } from "../../../packages/master-data/src/re
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
+import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
@@ -177,6 +178,7 @@ import {
 } from "./local-durable-store-paths.js";
 import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
+  handleClientOutlookAuthorizationCallback,
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
 import {
@@ -185,7 +187,9 @@ import {
 } from "./people-outlook-oauth-callback.js";
 import {
   createClientOutlookAddinCallbackLocation,
+  createClientOutlookLegacyAddinCallbackLocation,
   isClientOutlookOAuthState,
+  parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
@@ -847,7 +851,28 @@ function requestUsesProductRuntime(req) {
   return !["/api/health", "/health"].includes(pathname) && !pathname.startsWith("/api/auth");
 }
 
-function publicRuntimeTenant(req) {
+function clientOutlookCallbackRuntimeTenant(req, m365GraphConfig) {
+  const target = new URL(req.url || "/", `http://${HOST}`);
+  if (
+    req.method !== "GET"
+    || target.pathname.replace(/\/+$/, "") !== "/api/outlook/connection/callback"
+  ) return null;
+  try {
+    const callback = parseClientOutlookAuthorizationCallback(target.searchParams);
+    if (!callback.code) return null;
+    const resolver = m365GraphConfig?.provider
+      ?.resolveDelegatedAuthorizationState;
+    if (typeof resolver !== "function") return null;
+    const principal = resolver({ state: callback.state });
+    return principal.callback_mode === M365_GRAPH_CALLBACK_MODES.server_complete
+      ? principal.tenant_id
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function publicRuntimeTenant(req, m365GraphConfig) {
   const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
   const routeKey = `${req.method} ${pathname}`;
   if (isPayrollStatementProviderCallback(req.method, pathname)) {
@@ -857,6 +882,11 @@ function publicRuntimeTenant(req) {
     const value = req.headers?.[LEAVE_PROVIDER_TENANT_HEADER];
     return String(Array.isArray(value) ? value[0] ?? "" : value ?? "").trim() || null;
   }
+  const clientOutlookTenant = clientOutlookCallbackRuntimeTenant(
+    req,
+    m365GraphConfig,
+  );
+  if (clientOutlookTenant) return clientOutlookTenant;
   return MATTER_VAULT_BRIDGE_ROUTES.has(routeKey) || isPortalExternalPublicRoute(req.method, pathname)
     ? MATTER_VAULT_REGISTERED_TENANT_ID
     : null;
@@ -1505,20 +1535,74 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     req.method === "GET"
     && pathname === "/api/outlook/connection/callback";
   if (isOutlookHttpsCallback) {
+    let clientCallbackParsed = false;
     try {
       const states = url.searchParams.getAll("state");
-      const createLocation = states.some(isPeopleOutlookOAuthState)
-        ? createPeopleOutlookDesktopCallbackLocation
-        : states.some(isClientOutlookOAuthState)
-          ? createClientOutlookAddinCallbackLocation
-          : null;
-      if (!createLocation) throw new TypeError("Outlook callback state is invalid");
+      if (states.some(isPeopleOutlookOAuthState)) {
+        sendExternalRedirect(
+          req,
+          res,
+          createPeopleOutlookDesktopCallbackLocation(url.searchParams),
+        );
+        return;
+      }
+      if (!states.some(isClientOutlookOAuthState)) {
+        throw new TypeError("Outlook callback state is invalid");
+      }
+      const callback = parseClientOutlookAuthorizationCallback(
+        url.searchParams,
+      );
+      clientCallbackParsed = true;
+      const resolver = m365GraphConfig?.provider
+        ?.resolveDelegatedAuthorizationState;
+      if (typeof resolver !== "function") {
+        sendExternalRedirect(
+          req,
+          res,
+          createClientOutlookLegacyAddinCallbackLocation(url.searchParams),
+        );
+        return;
+      }
+      const callbackPrincipal = resolver({ state: callback.state });
+      if (callbackPrincipal.callback_mode !== M365_GRAPH_CALLBACK_MODES.server_complete) {
+        sendExternalRedirect(
+          req,
+          res,
+          createClientOutlookLegacyAddinCallbackLocation(url.searchParams),
+        );
+        return;
+      }
+      if (callback.error) {
+        sendExternalRedirect(
+          req,
+          res,
+          createClientOutlookAddinCallbackLocation("failed"),
+        );
+        return;
+      }
+      const result = await handleClientOutlookAuthorizationCallback({
+        code: callback.code,
+        state: callback.state,
+        requestId,
+        runtime: { emailDmsRuntime, m365GraphConfig, sessionAuth },
+      });
+      if (result.status !== 200) {
+        throw new TypeError("Outlook callback completion failed");
+      }
       sendExternalRedirect(
         req,
         res,
-        createLocation(url.searchParams),
+        createClientOutlookAddinCallbackLocation("connected"),
       );
     } catch {
+      if (clientCallbackParsed) {
+        sendExternalRedirect(
+          req,
+          res,
+          createClientOutlookAddinCallbackLocation("failed"),
+        );
+        return;
+      }
       sendJson(req, res, 400, {
         request_id: requestId,
         outcome: "blocked",
@@ -1908,6 +1992,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       method: req.method,
       query,
       body,
+      headers: req.headers,
       context,
       requestId,
       runtime: {
@@ -1916,6 +2001,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         emailDmsRuntime,
         crmIntakeRuntime,
         m365GraphConfig,
+        sessionAuth,
       },
     });
     sendJson(req, res, result.status, result.body, result.headers);
@@ -2125,7 +2211,7 @@ export function createApiServer({
         return;
       }
 
-      let tenantId = publicRuntimeTenant(req);
+      let tenantId = publicRuntimeTenant(req, m365GraphConfig);
       if (!tenantId) {
         if (isPayrollStatementProviderCallback(req.method, requestPathname) || isLeaveProviderCallback(req.method, requestPathname)) {
           await dispatchWithRuntimes(res);

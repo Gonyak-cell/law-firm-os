@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { createEmailDmsRepository } from "../src/repository.js";
 import {
@@ -8,6 +9,7 @@ import {
   normalizeM365Connection,
 } from "../src/m365-connection-model.js";
 import {
+  M365_GRAPH_CALLBACK_MODES,
   M365_GRAPH_ERROR_CODES,
   assessM365ExternalReadiness,
   createM365GraphConnectionService,
@@ -26,6 +28,10 @@ const REDIRECT_URI =
   "https://app.example.invalid/api/outlook/connection/callback";
 const CLIENT_REFRESH_PROOF = "C".repeat(43);
 const ROTATED_CLIENT_REFRESH_PROOF = "R".repeat(43);
+const AUTHORIZATION_STATE = "single-use-synthetic-state";
+const AUTHORIZATION_ATTEMPT_REF = createHash("sha256")
+  .update(AUTHORIZATION_STATE)
+  .digest("hex");
 
 function principal(overrides = {}) {
   return {
@@ -81,7 +87,9 @@ function fakeDependencies() {
       assert.deepEqual(input.scopes, M365_GRAPH_REQUIRED_SCOPES);
       return {
         authorization_url:
-          "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?state=synthetic",
+          `https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?state=${AUTHORIZATION_STATE}`,
+        attempt_ref: AUTHORIZATION_ATTEMPT_REF,
+        callback_mode: input.callback_mode,
         expires_at: "2026-07-30T06:10:00.000Z",
         pkce_used: true,
         state_bound: true,
@@ -297,16 +305,34 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   });
   assert.equal(started.pkce_used, true);
   assert.equal(started.state_bound, true);
+  assert.equal(started.attempt_ref, AUTHORIZATION_ATTEMPT_REF);
+  assert.equal(started.callback_mode, M365_GRAPH_CALLBACK_MODES.legacy);
+
+  const pendingAttempt = service.getAuthorizationAttemptStatus({
+    ...principal(),
+    attempt_ref: started.attempt_ref,
+  });
+  assert.equal(pendingAttempt.status, "pending");
 
   const completed = await service.completeAuthorization({
     ...principal(),
     code: "single-use-synthetic-code",
-    state: "single-use-synthetic-state",
+    state: AUTHORIZATION_STATE,
     redirect_uri: REDIRECT_URI,
   });
   assert.equal(completed.outcome, "connected");
   assert.equal(completed.connection.status, "connected");
   assert.equal(completed.connection.state_version, 1);
+
+  const completedAttempt = service.getAuthorizationAttemptStatus({
+    ...principal(),
+    attempt_ref: started.attempt_ref,
+  });
+  assert.equal(completedAttempt.status, "complete");
+  assert.equal(service.getAuthorizationAttemptStatus({
+    ...principal(),
+    attempt_ref: "f".repeat(64),
+  }).status, "pending");
 
   const persisted = repository.list({
     tenant_id: TENANT,
@@ -513,6 +539,116 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   assert.equal(auditText.includes("synthetic-access-token"), false);
   assert.equal(auditText.includes("synthetic-refresh-token"), false);
   assert.equal(auditText.includes(CLIENT_REFRESH_PROOF), false);
+});
+
+test("기존 durable 연결 replay는 synthetic request hash를 허용하되 operation 충돌은 거부한다", async () => {
+  const idempotencyKey = `m365-connect:${AUTHORIZATION_ATTEMPT_REF}`;
+  const dependencies = fakeDependencies();
+  const legacyRepository = createEmailDmsRepository();
+  legacyRepository.create(connection());
+  legacyRepository.recordIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: idempotencyKey,
+    operation: `request-hash:${"a".repeat(64)}`,
+    response: {
+      outcome: "connected",
+      m365_connection_id: m365ConnectionId(principal()),
+      state_version: 1,
+    },
+  });
+  const legacyService = createM365GraphConnectionService({
+    repository: legacyRepository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+  assert.equal(legacyService.getAuthorizationAttemptStatus({
+    ...principal(),
+    attempt_ref: AUTHORIZATION_ATTEMPT_REF,
+  }).status, "complete");
+  const replay = await legacyService.completeAuthorization({
+    ...principal(),
+    code: "unused-replay-code",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+  });
+  assert.equal(replay.replayed, true);
+  assert.equal(dependencies.calls.includes("provider:complete"), false);
+
+  const conflictingRepository = createEmailDmsRepository();
+  conflictingRepository.create(connection());
+  conflictingRepository.recordIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: idempotencyKey,
+    operation: "unrelated.operation",
+    response: {
+      operation: "m365.connection.connect",
+      outcome: "connected",
+      m365_connection_id: m365ConnectionId(principal()),
+      state_version: 1,
+    },
+  });
+  const conflictingService = createM365GraphConnectionService({
+    repository: conflictingRepository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+  assert.throws(
+    () => conflictingService.getAuthorizationAttemptStatus({
+      ...principal(),
+      attempt_ref: AUTHORIZATION_ATTEMPT_REF,
+    }),
+    (error) => error.safe_error_code === M365_GRAPH_ERROR_CODES.provider_invalid,
+  );
+  await assert.rejects(
+    conflictingService.completeAuthorization({
+      ...principal(),
+      code: "unused-conflicting-code",
+      state: AUTHORIZATION_STATE,
+      redirect_uri: REDIRECT_URI,
+    }),
+    (error) => error.safe_error_code === M365_GRAPH_ERROR_CODES.provider_invalid,
+  );
+});
+
+test("새 연결 credential은 바깥 요청 commit 실패 시 정리 대상으로 등록된다", async () => {
+  const repository = createEmailDmsRepository();
+  const dependencies = fakeDependencies();
+  const compensations = [];
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    request_failure_compensator: {
+      register(compensation) {
+        compensations.push(compensation);
+      },
+    },
+  });
+
+  await service.completeAuthorization({
+    ...principal(),
+    code: "single-use-synthetic-code",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+  });
+  assert.equal(dependencies.credentials.size, 1);
+  assert.equal(compensations.length, 1);
+
+  await compensations[0]();
+  assert.equal(dependencies.credentials.size, 0);
+  assert.equal(dependencies.calls.at(-1), "vault:delete");
 });
 
 test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재사용하지 않는다", async () => {
