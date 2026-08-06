@@ -137,7 +137,7 @@ test("task pane delegates OAuth, attachment, and send-event orchestration to the
   assert.match(mainSource, /import\s*\{\s*saveOutlookAttachments\s*\}\s*from\s*"\.\/outlook-attachment-actions\.js"/u);
   assert.match(mainSource, /await\s+saveOutlookAttachments\(\{[\s\S]*?currentItem,[\s\S]*?matterId,/u);
   assert.match(mainSource, /handleOutlookMessageSend\(\{[\s\S]*?readMessage:\s*\(options\)\s*=>\s*readOutlookComposeMessage\(\{/u);
-  assert.match(mainSource, /registerOutlookSendHandler\(\{\s*Office:\s*window\.Office,\s*handler:\s*onMessageSendHandler\s*\}\)/u);
+  assert.match(mainSource, /registerOutlookSendHandler\(\{\s*Office:\s*window\.Office,\s*handler:\s*onMessageSendHandler,?\s*\}\)/u);
   assert.match(mainSource, /subscribeToOutlookItemChanges\(\{[\s\S]*?setItem\(officeItemSnapshot\(\)\)[\s\S]*?resetItemActionResults\(\)/u);
   assert.match(mainSource, /readCurrentOutlookItem\(\{\s*includeTimestamps:\s*true,\s*requireStableIdentity:\s*true\s*\}\)/u);
   assert.equal(mainSource.includes("dateTimeModified"), false);
@@ -146,4 +146,8 @@ test("task pane delegates OAuth, attachment, and send-event orchestration to the
   assert.match(mainSource, /isFiledEmailContextCurrent\(\{\s*emailResult,\s*currentItem,\s*matterId\s*\}\)/u);
   assert.match(mainSource, /fetchAddinApi\(\{[\s\S]*?timeoutMs,[\s\S]*?fetchImpl:\s*window\.fetch\.bind\(window\)/u);
   assert.match(mainSource, /icon:\s*"Icon\.16x16"/u);
+  assert.match(mainSource, /startOfficeTaskPane\(\{/u);
+  assert.ok(mainSource.includes('render: () => createRoot(document.getElementById("root")).render(<App />)'), "task pane must delegate the first render");
+  assert.match(mainSource, /waitForReady:\s*ensureOfficeReady,[\s\S]*?register:\s*registerOutlookEventHandlersOnce/u);
+  assert.doesNotMatch(mainSource, /async\s+function\s+mount\s*\([^)]*\)\s*\{[\s\S]*?await\s+(?:window\.Office\.onReady|ensureOfficeReady)/u);
 });
