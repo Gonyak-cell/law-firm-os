@@ -44,13 +44,13 @@ function send({ finalAttempt = false } = {}) {
   }
 }
 
-if (!send()) {
-  const timer = window.setTimeout(() => send({ finalAttempt: true }), 5_000);
-  try {
-    window.Office?.onReady?.(() => {
-      if (send()) window.clearTimeout(timer);
-    });
-  } catch {
-    // The bounded final attempt still handles hosts that reject readiness registration.
-  }
+const timer = window.setTimeout(() => send({ finalAttempt: true }), 5_000);
+const onOfficeReady = () => {
+  if (send({ finalAttempt: true })) window.clearTimeout(timer);
+};
+try {
+  window.Office.initialize = onOfficeReady;
+  window.Office.onReady?.(onOfficeReady);
+} catch {
+  // The bounded final attempt still handles hosts that reject readiness registration.
 }

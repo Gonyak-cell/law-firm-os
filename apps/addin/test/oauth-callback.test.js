@@ -75,13 +75,15 @@ function executeCallback(history, {
   };
 }
 
-test("OAuth callback does not wait for Office.onReady before delivering", () => {
+test("OAuth callback falls back after a bounded Office.onReady wait", () => {
   const result = executeCallback(undefined, {
     onReady() {
       // Outlook for Mac can leave dialog pages waiting here indefinitely.
     },
   });
 
+  assert.equal(result.delivered.length, 0);
+  result.runTimeout();
   assert.equal(result.delivered.length, 1);
   assert.equal(result.status.textContent, "연결 응답을 전달했습니다. 이 창을 닫아도 됩니다.");
 });
