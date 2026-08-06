@@ -46,6 +46,7 @@ function jwt(privateKey, claims) {
 function fixture({
   scopes = PEOPLE_OUTLOOK_OAUTH_SCOPES,
   claims = {},
+  refresh_profile = null,
 } = {}) {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,
@@ -64,9 +65,11 @@ function fixture({
     ...claims,
   });
   const calls = [];
-  const refreshProfile = scopes.some((scope) => (
-    scope.toLowerCase().endsWith("calendars.readbasic")
-  )) ? "people" : "client";
+  const refreshProfile = refresh_profile ?? (
+    scopes.some((scope) => (
+      scope.toLowerCase().endsWith("calendars.readbasic")
+    )) ? "people" : "client"
+  );
   const refreshProfileProof = refreshProfile === "people"
     ? PEOPLE_REFRESH_PROOF
     : CLIENT_REFRESH_PROOF;
@@ -239,9 +242,80 @@ test("Client Outlook OAuth profile requests only the Add-in delegated scopes and
   );
 });
 
+test("single Entra app tokens keep each Outlook connection on its requested scope profile", async () => {
+  const appScopes = [...new Set([
+    ...PEOPLE_OUTLOOK_OAUTH_SCOPES,
+    ...CLIENT_OUTLOOK_OAUTH_SCOPES,
+  ])];
+  const peopleProvider = fixture({
+    scopes: appScopes,
+    refresh_profile: "people",
+  });
+  const peopleClient = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      client_secret: PEOPLE_CLIENT_SECRET,
+      redirect_uri: REDIRECT_URI,
+    },
+    microsoft_egress_transport: peopleProvider.transport,
+    clock: () => NOW,
+  });
+  const peopleExchange = await peopleClient.exchange({
+    code: "0.ABC_people_union_scope_code-20260806",
+    code_verifier: "C".repeat(43),
+    expected_nonce_hash: digest(NONCE),
+    expected_email_hash: digest("jwsuh@amic.kr"),
+  });
+  assert.deepEqual(peopleExchange.granted_scopes, ["Calendars.ReadBasic"]);
+  const peopleRefresh = await peopleClient.refresh({
+    refresh_token: "provider-people-refresh-token-never-persist",
+    refresh_profile: "people",
+    refresh_profile_proof: PEOPLE_REFRESH_PROOF,
+  });
+  assert.deepEqual(peopleRefresh.granted_scopes, ["Calendars.ReadBasic"]);
+
+  const clientProvider = fixture({
+    scopes: appScopes,
+    refresh_profile: "client",
+  });
+  const client = createMicrosoftDelegatedOAuthClient({
+    config: {
+      tenant_id: TENANT_ID,
+      client_id: CLIENT_ID,
+      client_secret: "client-outlook-secret-never-return",
+      redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.client,
+    },
+    microsoft_egress_transport: clientProvider.transport,
+    clock: () => NOW,
+    scope_profile: "client_outlook_addin",
+  });
+  const clientExchange = await client.exchange({
+    code: "0.ABC_client_union_scope_code-20260806",
+    code_verifier: "C".repeat(43),
+    expected_nonce_hash: digest(NONCE),
+    expected_subject_id: "entra-subject-jwsuh",
+  });
+  assert.deepEqual(clientExchange.granted_scopes, [
+    "Calendars.ReadWrite",
+    "Mail.Read",
+    "offline_access",
+  ]);
+  const clientRefresh = await client.refresh({
+    refresh_token: "provider-client-refresh-token-never-persist",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+  });
+  assert.deepEqual(clientRefresh.granted_scopes, [
+    "Calendars.ReadWrite",
+    "Mail.Read",
+    "offline_access",
+  ]);
+});
+
 test("delegated OAuth rejects a token carrying broader Graph permissions", async () => {
   const provider = fixture({
-    scopes: [...PEOPLE_OUTLOOK_OAUTH_SCOPES, "Mail.Read"],
+    scopes: [...PEOPLE_OUTLOOK_OAUTH_SCOPES, "Files.Read"],
   });
   const client = createMicrosoftDelegatedOAuthClient({
     config: {

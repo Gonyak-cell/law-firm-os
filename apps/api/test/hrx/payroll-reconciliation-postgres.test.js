@@ -22,6 +22,7 @@ import { createPostgresPayrollReconciliationCheckpoint } from "../../src/hrx-pay
 import { createPostgresApiRuntimeAuthority } from "../../src/postgres-api-runtime-authority.js";
 import { createApiServer } from "../../src/server.js";
 import { createHrxStepUpAuthority } from "../../src/hrx-step-up-token.js";
+import { createBankImportPreviewTokenAuthority } from "../../src/bank-import-preview-token.js";
 import { signedStepUpHeader } from "../hrx-step-up-test-helper.js";
 
 const TENANT = "tenant-payment-reconciliation-postgres";
@@ -30,6 +31,9 @@ const PREPARER = Object.freeze({ tenant_id: TENANT, actor_id: "payroll-preparer"
 const PAYROLL_APPROVER = Object.freeze({ tenant_id: TENANT, actor_id: "payroll-approver" });
 const PAYMENT_APPROVER = Object.freeze({ tenant_id: TENANT, actor_id: "payment-approver" });
 const PAYROLL_ARTIFACT_SECRET = "postgres-payment-reconciliation-test-artifact-secret";
+const BANK_IMPORT_PREVIEW_TOKENS = createBankImportPreviewTokenAuthority({
+  secret: "postgres-payment-reconciliation-bank-preview-secret-material",
+});
 const BANK_PROVIDER_ID = "seoul-bank-primary";
 const BANK_BOUNDARY = Object.freeze({
   environment: "production",
@@ -220,6 +224,7 @@ function createAuthority({
       sourceOnly: false,
     }),
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     payrollProviders: Object.freeze({
       bankReconciliationPort: bankPort,
       providerBoundaries: Object.freeze({ bank: BANK_BOUNDARY }),
