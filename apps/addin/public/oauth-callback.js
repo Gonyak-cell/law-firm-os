@@ -6,7 +6,13 @@ const message = {
   code: params.get("code") || "",
   error: params.get("error") || "",
 };
-window.history.replaceState(null, "", window.location.pathname);
+try {
+  if (typeof window.history?.replaceState === "function") {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+} catch {
+  // URL scrubbing is best-effort; it must not block callback delivery.
+}
 
 function show(messageText) {
   if (status) status.textContent = messageText;
