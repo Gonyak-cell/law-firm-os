@@ -51,6 +51,11 @@ const MICROSOFT_DELEGATED_OAUTH_SCOPE_PROFILES = Object.freeze({
     redirect_uri: MICROSOFT_EGRESS_REDIRECT_URIS.client,
   }),
 });
+const MICROSOFT_DELEGATED_OAUTH_APP_SCOPES = new Set(
+  Object.values(MICROSOFT_DELEGATED_OAUTH_SCOPE_PROFILES)
+    .flatMap((profile) => profile.scopes)
+    .map((scope) => scope.toLowerCase()),
+);
 
 function requiredText(value, name, maxLength = 4096) {
   const text = String(value ?? "").trim();
@@ -192,11 +197,9 @@ function grantedScopes(value, profile) {
       403,
     );
   }
-  const allowed = new Set(
-    profile.scopes.map((scope) => scope.toLowerCase()),
-  );
   const unexpectedGraphScope = scopes.find((scope) => (
-    scope.includes(".") && !allowed.has(scope.toLowerCase())
+    scope.includes(".")
+    && !MICROSOFT_DELEGATED_OAUTH_APP_SCOPES.has(scope.toLowerCase())
   ));
   if (unexpectedGraphScope) {
     throw providerError(
@@ -212,10 +215,9 @@ function connectionScopes(scopes, profile) {
   const resolved = new Map(
     scopes.map((scope) => [scope.toLowerCase(), scope]),
   );
-  if (profile.scopes.includes("offline_access")) {
-    resolved.set("offline_access", "offline_access");
-  }
-  return Object.freeze([...resolved.values()]);
+  return Object.freeze(profile.connection_scopes.filter((scope) => (
+    scope === "offline_access" || resolved.has(scope.toLowerCase())
+  )));
 }
 
 function tokenExpiry(body, now) {
