@@ -38,8 +38,4 @@ function send() {
   }
 }
 
-if (typeof window.Office?.onReady === "function") {
-  window.Office.onReady(send);
-} else {
-  send();
-}
+send();

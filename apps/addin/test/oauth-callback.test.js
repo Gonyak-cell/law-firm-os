@@ -8,7 +8,7 @@ import vm from "node:vm";
 const addinRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const callbackSource = await readFile(path.join(addinRoot, "public/oauth-callback.js"), "utf8");
 
-function executeCallback(history) {
+function executeCallback(history, { onReady = (callback) => callback() } = {}) {
   const delivered = [];
   const output = [];
   const status = { textContent: "" };
@@ -20,9 +20,7 @@ function executeCallback(history) {
       pathname: "/addin/oauth-callback.html",
     },
     Office: {
-      onReady(callback) {
-        callback();
-      },
+      onReady,
       context: {
         ui: {
           messageParent(message, options) {
@@ -56,6 +54,17 @@ function executeCallback(history) {
 
   return { delivered, output, status };
 }
+
+test("OAuth callback does not wait for Office.onReady before delivering", () => {
+  const result = executeCallback(undefined, {
+    onReady() {
+      // Outlook for Mac can leave dialog pages waiting here indefinitely.
+    },
+  });
+
+  assert.equal(result.delivered.length, 1);
+  assert.equal(result.status.textContent, "연결 응답을 전달했습니다. 이 창을 닫아도 됩니다.");
+});
 
 test("OAuth callback still reaches Office when history replacement is unavailable", async (t) => {
   for (const [name, history] of [
