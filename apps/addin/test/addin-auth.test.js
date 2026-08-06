@@ -187,6 +187,9 @@ test("Office OAuth 대화상자는 검증된 성공 응답을 한 번만 완료�
   assert.equal(dialogFixture.handlers.has("DialogEventReceived"), true);
   assert.match(dialogFixture.displayed.url, /^https:\/\/addin\.example\.invalid\/addin\/oauth-start\.html#/u);
   assert.deepEqual(dialogFixture.displayed.options, OUTLOOK_OAUTH_DIALOG_OPTIONS);
+  assert.notEqual(dialogFixture.displayed.options, OUTLOOK_OAUTH_DIALOG_OPTIONS);
+  assert.equal(Object.isFrozen(dialogFixture.displayed.options), false);
+  assert.equal(Object.isFrozen(OUTLOOK_OAUTH_DIALOG_OPTIONS), true);
 });
 
 test("Office OAuth 대화상자는 malformed 응답의 origin과 state를 거부하고 닫는다", async () => {
