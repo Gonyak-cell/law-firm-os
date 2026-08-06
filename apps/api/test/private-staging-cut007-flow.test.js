@@ -16,6 +16,7 @@ import {
 } from "../../../scripts/lib/private-staging-cut007.mjs";
 import { startApiServer } from "../src/server.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
+import { runClientOperationsPostgresMigrations } from "../src/client-operations-schema.js";
 import { runPrivateStagingCut007Readback } from "../src/private-staging-cut007-readback.js";
 import { runPrivateStagingSyntheticBaseline } from "../src/private-staging-synthetic-baseline.js";
 
@@ -279,6 +280,7 @@ test("CUT-007 browser resume revalidates PostgreSQL and runs only reset plus bro
 test("PostgreSQL session auth and the deployed reset worker share the configured tenant", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
+  await runClientOperationsPostgresMigrations(fixture.adminPool);
   const pool = {
     query: fixture.appPool.query.bind(fixture.appPool),
     connect: fixture.appPool.connect.bind(fixture.appPool),
@@ -325,6 +327,7 @@ test("PostgreSQL session auth and the deployed reset worker share the configured
 test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, finance, portal, restart, and PostgreSQL readback path", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
+  await runClientOperationsPostgresMigrations(fixture.adminPool);
   const sources = syntheticSources();
   await runPrivateStagingSyntheticBaseline({
     pool: fixture.appPool,

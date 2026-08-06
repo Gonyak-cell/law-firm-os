@@ -18,11 +18,15 @@ import {
 } from "../../src/routes/hrx/payroll-statement-provider-callback.js";
 import { createPostgresApiRuntimeAuthority } from "../../src/postgres-api-runtime-authority.js";
 import { createApiServer } from "../../src/server.js";
+import { createBankImportPreviewTokenAuthority } from "../../src/bank-import-preview-token.js";
 
 const TENANT = "tenant-payroll-provider-callback-postgres";
 const NOW = "2026-07-15T04:00:00.000Z";
 const PROVIDER_ID = "lawos-delivery-sandbox";
 const PAYROLL_ARTIFACT_SECRET = "postgres-payroll-provider-callback-test-secret";
+const BANK_IMPORT_PREVIEW_TOKENS = createBankImportPreviewTokenAuthority({
+  secret: "postgres-payroll-provider-callback-bank-preview-secret-material",
+});
 
 async function importSentStatementBaseline(ledger) {
   const store = createFileHrxStore();
@@ -112,6 +116,7 @@ function createAuthority({ fixture, ledger, storage }) {
       sourceOnly: false,
     }),
     payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
   });
 }
 
