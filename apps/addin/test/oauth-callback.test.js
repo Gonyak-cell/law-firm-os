@@ -8,10 +8,17 @@ import vm from "node:vm";
 const addinRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const callbackSource = await readFile(path.join(addinRoot, "public/oauth-callback.js"), "utf8");
 
-function executeCallback(history) {
+function executeCallback(history, {
+  messageParentReady = true,
+  onReady = (callback) => callback(),
+} = {}) {
   const delivered = [];
   const output = [];
   const status = { textContent: "" };
+  let pendingTimeout = null;
+  function messageParent(message, options) {
+    delivered.push({ message, options });
+  }
   const window = {
     history,
     location: {
@@ -20,16 +27,17 @@ function executeCallback(history) {
       pathname: "/addin/oauth-callback.html",
     },
     Office: {
-      onReady(callback) {
-        callback();
-      },
+      onReady,
       context: {
-        ui: {
-          messageParent(message, options) {
-            delivered.push({ message, options });
-          },
-        },
+        ui: messageParentReady ? { messageParent } : {},
       },
+    },
+    setTimeout(callback) {
+      pendingTimeout = callback;
+      return 1;
+    },
+    clearTimeout() {
+      pendingTimeout = null;
     },
   };
 
@@ -54,8 +62,49 @@ function executeCallback(history) {
     window,
   });
 
-  return { delivered, output, status };
+  return {
+    delivered,
+    output,
+    status,
+    enableMessageParent() {
+      window.Office.context.ui.messageParent = messageParent;
+    },
+    runTimeout() {
+      pendingTimeout?.();
+    },
+  };
 }
+
+test("OAuth callback falls back after a bounded Office.onReady wait", () => {
+  const result = executeCallback(undefined, {
+    onReady() {
+      // Outlook for Mac can leave dialog pages waiting here indefinitely.
+    },
+  });
+
+  assert.equal(result.delivered.length, 0);
+  result.runTimeout();
+  assert.equal(result.delivered.length, 1);
+  assert.equal(result.status.textContent, "연결 응답을 전달했습니다. 이 창을 닫아도 됩니다.");
+});
+
+test("OAuth callback retries once Office finishes delayed initialization", () => {
+  let ready;
+  const result = executeCallback(undefined, {
+    messageParentReady: false,
+    onReady(callback) {
+      ready = callback;
+    },
+  });
+
+  assert.equal(result.delivered.length, 0);
+  result.enableMessageParent();
+  ready();
+  ready();
+  result.runTimeout();
+  assert.equal(result.delivered.length, 1);
+  assert.equal(result.status.textContent, "연결 응답을 전달했습니다. 이 창을 닫아도 됩니다.");
+});
 
 test("OAuth callback still reaches Office when history replacement is unavailable", async (t) => {
   for (const [name, history] of [
