@@ -4588,6 +4588,7 @@ export function createLambdaHttpHandler({
   createMicrosoftEgressBrokerTransportFn =
     createMicrosoftEgressBrokerTransport,
   fetchFn = fetch,
+  logFn = console.warn,
 } = {}) {
   const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
     payrollStatementProviderVerifier,
@@ -4615,6 +4616,28 @@ export function createLambdaHttpHandler({
     });
     const body = await response.text();
     const headers = Object.fromEntries(response.headers.entries());
+    const path = event.rawPath || event.path || "/";
+    if (response.status >= 400 && path === "/api/outlook/email/file") {
+      let payload = {};
+      try {
+        payload = JSON.parse(body);
+      } catch {
+        // Invalid response bodies are represented by empty safe metadata.
+      }
+      logFn(JSON.stringify({
+        event: "lawos.outlook.request_failed",
+        method,
+        operation: "email_file",
+        request_id: typeof payload.request_id === "string"
+          && /^[A-Za-z0-9._:-]{1,128}$/u.test(payload.request_id)
+          ? payload.request_id
+          : "",
+        safe_error_codes: (Array.isArray(payload.safe_error_codes) ? payload.safe_error_codes : [])
+          .filter((code) => typeof code === "string" && /^[A-Z0-9_]+$/u.test(code))
+          .slice(0, 5),
+        status: response.status,
+      }));
+    }
     return {
       statusCode: response.status,
       headers,
