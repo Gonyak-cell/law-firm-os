@@ -201,12 +201,19 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
   assert.deepEqual(JSON.parse(logs[0]), {
     event: "lawos.outlook.request_failed",
     method: "POST",
-    path: "/api/outlook/email/file",
+    operation: "email_file",
     request_id: "req-outlook-file-1",
     safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
     status: 409,
   });
   assert.equal(logs[0].includes("must-not-be-logged"), false);
+
+  await lambdaHandler({
+    rawPath: "/api/outlook/matters/private-matter-id/documents",
+    rawQueryString: "code=must-not-be-logged&state=must-not-be-logged",
+    requestContext: { http: { method: "GET" } },
+  });
+  assert.equal(logs.length, 1);
 });
 
 async function createDurableStorePaths(root) {

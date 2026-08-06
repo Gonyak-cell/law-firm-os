@@ -4617,7 +4617,7 @@ export function createLambdaHttpHandler({
     const body = await response.text();
     const headers = Object.fromEntries(response.headers.entries());
     const path = event.rawPath || event.path || "/";
-    if (response.status >= 400 && path.startsWith("/api/outlook/")) {
+    if (response.status >= 400 && path === "/api/outlook/email/file") {
       let payload = {};
       try {
         payload = JSON.parse(body);
@@ -4627,7 +4627,7 @@ export function createLambdaHttpHandler({
       logFn(JSON.stringify({
         event: "lawos.outlook.request_failed",
         method,
-        path,
+        operation: "email_file",
         request_id: typeof payload.request_id === "string"
           && /^[A-Za-z0-9._:-]{1,128}$/u.test(payload.request_id)
           ? payload.request_id
