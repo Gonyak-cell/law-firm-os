@@ -2117,6 +2117,46 @@ export function createApiSessionAuth({
     return Object.freeze({ ...verified, authorization_present: true });
   }
 
+  async function verifyOutlookCallbackPrincipal(input = {}) {
+    const tenantId = String(input.tenant_id ?? "").trim();
+    const userId = String(input.user_id ?? "").trim();
+    const subjectId = String(input.entra_subject_id ?? "").trim();
+    const federatedTenantId = String(input.federated_tenant_id ?? "").trim();
+    if (!centralIdentityRepository) {
+      return Object.freeze({
+        ok: false,
+        status: 503,
+        safe_error_code: "AUTH_IDENTITY_AUTHORITY_UNAVAILABLE",
+      });
+    }
+    if (
+      !tenantId
+      || !userId
+      || !subjectId
+      || !federatedTenantId
+      || tenantId !== trustedTenantId
+    ) {
+      return Object.freeze({
+        ok: false,
+        status: 403,
+        safe_error_code: "AUTH_OUTLOOK_CALLBACK_PRINCIPAL_INVALID",
+      });
+    }
+    const user = await directoryUserByUserId(userId, tenantId);
+    const account = user ? await centralAccount(user) : null;
+    const active = account?.account_status === "active"
+      && account?.credential_status === "active"
+      && account?.federated_tenant_id === federatedTenantId
+      && account?.federated_subject_id === subjectId;
+    return active
+      ? Object.freeze({ ok: true })
+      : Object.freeze({
+          ok: false,
+          status: 403,
+          safe_error_code: "AUTH_OUTLOOK_CALLBACK_PRINCIPAL_INACTIVE",
+        });
+  }
+
   async function handleAuthApiRequest({ pathname, method, body = {}, headers = {}, requestId = "req_unset" } = {}) {
     if (pathname === "/api/auth/office-sso/config") {
       if (method !== "GET") {
@@ -2628,6 +2668,7 @@ export function createApiSessionAuth({
     processPasswordResetQueue,
     confirmPasswordReset,
     verifyToken,
+    verifyOutlookCallbackPrincipal,
     resolvePermissionContextFromHeaders,
     appendProviderCallbackAudit,
     handleAuthApiRequest,

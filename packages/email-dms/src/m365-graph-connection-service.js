@@ -8,6 +8,10 @@ import {
 } from "./m365-connection-model.js";
 
 export const M365_GRAPH_FEATURE_FLAG = "m365_graph_connection_v1";
+export const M365_GRAPH_CALLBACK_MODES = Object.freeze({
+  legacy: "legacy_message_parent_v1",
+  server_complete: "server_complete_v1",
+});
 
 export const M365_GRAPH_ERROR_CODES = Object.freeze({
   connection_not_found: "M365_CONNECTION_NOT_FOUND",
@@ -37,6 +41,32 @@ const EXTERNAL_READINESS_FIELDS = Object.freeze([
 ]);
 const CLIENT_CREDENTIAL_REFRESH_SKEW_MS = 60_000;
 const REFRESH_PROFILE_PROOF_PATTERN = /^[A-Za-z0-9_-]{43}$/u;
+const AUTHORIZATION_ATTEMPT_REF_PATTERN = /^[a-f0-9]{64}$/u;
+const M365_CONNECTION_OPERATION = "m365.connection.connect";
+const LEGACY_DURABLE_OPERATION_PATTERN = /^request-hash:[a-f0-9]{64}$/u;
+
+function isConnectionCompletionEntry(entry) {
+  const operation = entry?.operation;
+  const responseOperation = entry?.response?.operation;
+  if (operation === M365_CONNECTION_OPERATION) {
+    return responseOperation == null
+      || responseOperation === M365_CONNECTION_OPERATION;
+  }
+  return responseOperation == null
+    && LEGACY_DURABLE_OPERATION_PATTERN.test(operation ?? "");
+}
+
+function authorizationCallbackMode(value) {
+  const mode = value ?? M365_GRAPH_CALLBACK_MODES.legacy;
+  if (!Object.values(M365_GRAPH_CALLBACK_MODES).includes(mode)) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Microsoft authorization callback mode is invalid",
+      400,
+    );
+  }
+  return mode;
+}
 
 function requiredString(input, field) {
   const value = input?.[field];
@@ -103,6 +133,18 @@ function operationKey(prefix, value) {
   return `${prefix}:${createHash("sha256")
     .update(requiredString({ value }, "value"))
     .digest("hex")}`;
+}
+
+function authorizationAttemptKey(value) {
+  const attemptRef = requiredString({ value }, "value");
+  if (!AUTHORIZATION_ATTEMPT_REF_PATTERN.test(attemptRef)) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Microsoft authorization attempt reference is invalid",
+      400,
+    );
+  }
+  return `m365-connect:${attemptRef}`;
 }
 
 function assertEntraPrincipal(input = {}) {
@@ -522,8 +564,11 @@ export async function acquireActiveM365Credential({
 
 function validateAuthorizationStart(result) {
   const authorizationUrl = requiredString(result, "authorization_url");
+  const attemptRef = requiredString(result, "attempt_ref");
+  const callbackMode = authorizationCallbackMode(result.callback_mode);
   if (
     !authorizationUrl.startsWith("https://")
+    || !AUTHORIZATION_ATTEMPT_REF_PATTERN.test(attemptRef)
     || result.pkce_used !== true
     || result.state_bound !== true
   ) {
@@ -535,6 +580,8 @@ function validateAuthorizationStart(result) {
   }
   return Object.freeze({
     authorization_url: authorizationUrl,
+    attempt_ref: attemptRef,
+    callback_mode: callbackMode,
     expires_at: requiredString(result, "expires_at"),
     pkce_used: true,
     state_bound: true,
@@ -663,8 +710,15 @@ export function createM365GraphConnectionService({
   external_readiness = {},
   allowed_redirect_uris = [],
   clock = () => new Date(),
+  request_failure_compensator = null,
 } = {}) {
   assertRepository(repository);
+  if (
+    request_failure_compensator != null
+    && typeof request_failure_compensator.register !== "function"
+  ) {
+    throw new TypeError("Microsoft request failure compensator is invalid");
+  }
   const readiness = assessM365ExternalReadiness(external_readiness);
 
   function getConnectionStatus(input = {}) {
@@ -680,6 +734,33 @@ export function createM365GraphConnectionService({
       automatic_mailbox_scan_enabled: false,
       shared_mailbox_enabled: false,
       production_ready_claim: false,
+    });
+  }
+
+  function getAuthorizationAttemptStatus(input = {}) {
+    const principal = assertEntraPrincipal(input);
+    const attemptKey = authorizationAttemptKey(input.attempt_ref);
+    const completion = repository.getIdempotency({
+      tenant_id: principal.tenant_id,
+      idempotency_key: attemptKey,
+    });
+    if (!completion) return Object.freeze({ status: "pending" });
+    const connection = findConnection(repository, principal);
+    if (
+      !isConnectionCompletionEntry(completion)
+      || completion.response?.m365_connection_id !== m365ConnectionId(principal)
+      || !connection
+    ) {
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.provider_invalid,
+        "Microsoft authorization completion does not match its connection",
+      );
+    }
+    assertSubject(connection, principal);
+    return Object.freeze({
+      status: m365ConnectionStatus(connection, { clock }).active
+        ? "complete"
+        : "pending",
     });
   }
 
@@ -708,6 +789,7 @@ export function createM365GraphConnectionService({
       ),
       scopes: M365_GRAPH_REQUIRED_SCOPES,
       mailbox_scope: "me",
+      callback_mode: authorizationCallbackMode(input.callback_mode),
     });
     return validateAuthorizationStart(result);
   }
@@ -740,7 +822,11 @@ export function createM365GraphConnectionService({
     });
     if (replay) {
       const replayedConnection = findConnection(repository, principal);
-      if (!replayedConnection) {
+      if (
+        !isConnectionCompletionEntry(replay)
+        || replay.response?.m365_connection_id !== m365ConnectionId(principal)
+        || !replayedConnection
+      ) {
         throw commandError(
           M365_GRAPH_ERROR_CODES.provider_invalid,
           "Microsoft connection replay record is incomplete",
@@ -821,8 +907,10 @@ export function createM365GraphConnectionService({
           tx.recordIdempotency({
             tenant_id: principal.tenant_id,
             idempotency_key: idempotencyKey,
-            operation: "m365.connection.connect",
+            operation: M365_CONNECTION_OPERATION,
+            request_fingerprint: idempotencyKey.slice("m365-connect:".length),
             response: {
+              operation: M365_CONNECTION_OPERATION,
               outcome: current ? "reconnected" : "connected",
               m365_connection_id: saved.m365_connection_id,
               state_version: saved.state_version,
@@ -835,6 +923,14 @@ export function createM365GraphConnectionService({
         : current
           ? repository.update(connectionRef(principal), connection)
           : repository.create(connection);
+      if (!reusableCredentialRef && request_failure_compensator) {
+        request_failure_compensator.register(() => (
+          credential_vault.deleteDelegatedCredential({
+            credential_ref: credentialRef,
+            reason: "connection_request_commit_failed",
+          })
+        ));
+      }
       return Object.freeze({
         outcome: current ? "reconnected" : "connected",
         connection: presentConnection(persisted, { clock }),
@@ -968,6 +1064,7 @@ export function createM365GraphConnectionService({
 
   return Object.freeze({
     getConnectionStatus,
+    getAuthorizationAttemptStatus,
     beginAuthorization,
     completeAuthorization,
     revokeConnection,

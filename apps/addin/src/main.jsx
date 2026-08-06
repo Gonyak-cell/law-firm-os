@@ -78,6 +78,7 @@ let officeReadyPromise = null;
 let unauthorizedHandler = null;
 let sessionRecoveredHandler = null;
 const OFFICE_READY_EVENT = "lawos:office-ready";
+const CLIENT_OUTLOOK_CALLBACK_MODE = "server_complete_v1";
 
 function authStorage() {
   if (!sessionStore) {
@@ -179,13 +180,17 @@ async function initializeMsalBridge() {
 async function rawRequestJson(path, {
   method = "GET",
   body,
+  headers: requestHeaders = {},
   includeSession = true,
   retryAfterUnauthorized = true,
   timeoutMs = DEFAULT_ADDIN_API_TIMEOUT_MS,
 } = {}) {
   const baseUrl = await apiBaseUrl();
   const token = includeSession ? await addinSessionToken() : "";
-  const headers = { "content-type": "application/json" };
+  const headers = {
+    "content-type": "application/json",
+    ...requestHeaders,
+  };
   if (token) headers.authorization = `Bearer ${token}`;
   const response = await fetchAddinApi({
     url: `${baseUrl}${path}`,
@@ -817,10 +822,14 @@ function App() {
       const config = await runtimeConfig();
       const started = await requestJson("/api/outlook/connection/authorize", {
         method: "POST",
+        headers: {
+          "x-lawos-outlook-callback-mode": CLIENT_OUTLOOK_CALLBACK_MODE,
+        },
         body: { redirect_uri: config.callbackUri },
       });
       const item = connectionPayload(started);
       const authorizationUrl = item?.authorization_url ?? started?.authorization_url;
+      const attemptRef = item?.attempt_ref ?? started?.attempt_ref;
       const state = item?.state ?? started?.state ?? oauthStateFromAuthorizationUrl(authorizationUrl);
       if (!authorizationUrl || !state) {
         throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "Outlook 연결 주소를 받지 못했습니다.");
@@ -833,6 +842,17 @@ function App() {
         state,
         callbackUri: config.callbackUri,
         path: config.oauthStartPath,
+        ...(attemptRef
+          ? {
+              checkAuthorizationAttempt: async () => {
+                const body = await requestJson(
+                  `/api/outlook/connection?attempt_ref=${encodeURIComponent(attemptRef)}`,
+                );
+                return connectionPayload(body)?.authorization_attempt?.status
+                  === "complete";
+              },
+            }
+          : {}),
         onComplete: async ({ code, state: callbackState, callbackUri }) => {
           await requestJson("/api/outlook/connection/complete", {
             method: "POST",

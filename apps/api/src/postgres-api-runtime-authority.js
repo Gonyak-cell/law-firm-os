@@ -84,6 +84,8 @@ const PRODUCT_DOMAINS = Object.freeze([
 const POSTGRES_READ_RETRY_LIMIT = 5;
 const PEOPLE_OUTLOOK_SELF_COMPLETION_PATH =
   "/api/hrx/people/me/outlook-connection/complete";
+const CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH =
+  "/api/outlook/connection/callback";
 const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
   "DOMAIN_BASELINE_CONFLICT",
   "DOMAIN_SHADOW_DIFFERENCE",
@@ -139,15 +141,57 @@ function isPeopleOutlookSelfCompletion(method, pathname) {
     && String(pathname ?? "") === PEOPLE_OUTLOOK_SELF_COMPLETION_PATH;
 }
 
-export function isRetryablePostgresReadConflict(error, method, { allowIdempotentWriteRetry = false } = {}) {
+export function isRetryablePostgresReadConflict(error, method, {
+  allowIdempotentWriteRetry = false,
+  pathname = "",
+} = {}) {
   const normalizedMethod = String(method ?? "").toUpperCase();
+  if (
+    normalizedMethod === "GET"
+    && (String(pathname ?? "").replace(/\/+$/u, "") || "/")
+      === CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH
+  ) return false;
   return (["GET", "HEAD"].includes(normalizedMethod)
       || (allowIdempotentWriteRetry && normalizedMethod === "POST"))
     && POSTGRES_READ_RETRYABLE_CONFLICTS.has(error?.safe_error_code);
 }
 
+export async function runWithRequestFailureCompensation(execute) {
+  if (typeof execute !== "function") {
+    throw new TypeError("PostgreSQL request callback is required");
+  }
+  const compensations = [];
+  let sealed = false;
+  const requestFailureCompensator = Object.freeze({
+    register(compensation) {
+      if (sealed || typeof compensation !== "function") {
+        throw new TypeError("PostgreSQL request compensation is invalid");
+      }
+      compensations.push(compensation);
+    },
+  });
+  try {
+    const result = await execute(requestFailureCompensator);
+    sealed = true;
+    return result;
+  } catch (error) {
+    sealed = true;
+    for (const compensation of compensations.reverse()) {
+      try {
+        await compensation();
+      } catch {
+        if (error && typeof error === "object") {
+          error.request_compensation_failed = true;
+        }
+      }
+    }
+    throw error;
+  }
+}
+
 export async function runPostgresReadWithBaselineRetry({
   method,
+  pathname = "",
   execute,
   wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
   retryLimit = POSTGRES_READ_RETRY_LIMIT,
@@ -166,7 +210,10 @@ export async function runPostgresReadWithBaselineRetry({
     try {
       return await execute({ attempt: attempt + 1 });
     } catch (error) {
-      if (!isRetryablePostgresReadConflict(error, method, { allowIdempotentWriteRetry }) || attempt >= retryLimit) throw error;
+      if (!isRetryablePostgresReadConflict(error, method, {
+        allowIdempotentWriteRetry,
+        pathname,
+      }) || attempt >= retryLimit) throw error;
       await wait(5 * (2 ** attempt));
     }
   }
@@ -232,6 +279,7 @@ function createRequestRuntimes({
   clientOperationsV2ReadProvider,
   bankReconciliationCheckpoint,
   peopleOutlookCompletionCheckpoint,
+  requestFailureCompensator,
   leaveIntegrationProviders,
   leaveIntegrationProviderEnabled,
   peopleFeatureFlags,
@@ -314,6 +362,7 @@ function createRequestRuntimes({
     repository: repositories.emailDmsRepository,
     storage: dmsStorage,
     upload_runtime: dmsUploadRuntime,
+    request_failure_compensator: requestFailureCompensator,
     production_ready_claim: false,
   });
   const crmIntakeRuntime = createCrmIntakeRuntimeContext({
@@ -486,9 +535,12 @@ export function createPostgresApiRuntimeAuthority({
       || peopleOutlookSelfCompletion;
     return runPostgresReadWithBaselineRetry({
       method,
+      pathname: request_context?.pathname,
       allowIdempotentWriteRetry,
       ...(allowIdempotentWriteRetry ? { retryLimit: 2 } : {}),
-      execute: async () => {
+      execute: async () => runWithRequestFailureCompensation(async (
+        requestFailureCompensator,
+      ) => {
         const identityUsers = identityRepository?.listDirectoryUsers
           ? await identityRepository.listDirectoryUsers({ tenant_id: tenantId })
           : [];
@@ -542,6 +594,7 @@ export function createPostgresApiRuntimeAuthority({
                 }),
               bankReconciliationCheckpoint,
               peopleOutlookCompletionCheckpoint,
+              requestFailureCompensator,
               leaveIntegrationProviders,
               leaveIntegrationProviderEnabled,
               peopleFeatureFlags,
@@ -567,7 +620,7 @@ export function createPostgresApiRuntimeAuthority({
         } finally {
           detachedEmailDmsRepository?.close();
         }
-      },
+      }),
     });
   }
 

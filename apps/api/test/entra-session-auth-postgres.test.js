@@ -169,6 +169,21 @@ test("operational Entra session authority persists only verified federated ident
   assert.equal(verified.ok, true);
   assert.equal(verified.principal.entra_subject_id, "entra-subject-test");
 
+  assert.deepEqual(await auth.verifyOutlookCallbackPrincipal({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    user_id: account.user_id,
+    entra_subject_id: "entra-subject-test",
+    federated_tenant_id: "entra-tenant-test",
+  }), { ok: true });
+  const mismatchedCallbackPrincipal = await auth.verifyOutlookCallbackPrincipal({
+    tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+    user_id: account.user_id,
+    entra_subject_id: "another-entra-subject",
+    federated_tenant_id: "entra-tenant-test",
+  });
+  assert.equal(mismatchedCallbackPrincipal.ok, false);
+  assert.equal(mismatchedCallbackPrincipal.status, 403);
+
   const stored = await ledger.getAccount({ tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID, user_id: account.user_id });
   assert.equal(stored.credential_provider, provider.provider_id);
   assert.equal(stored.password_hash && Object.keys(stored.password_hash).length, 0);

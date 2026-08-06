@@ -4,6 +4,7 @@ export const NESTED_APP_AUTH_MIN_VERSION = "1.1";
 export const DEFAULT_OAUTH_START_PATH = "/addin/oauth-start.html";
 export const OAUTH_DIALOG_MESSAGE_TYPE = "lawos-outlook-oauth";
 export const OUTLOOK_OAUTH_DIALOG_TIMEOUT_MS = 9 * 60 * 1000;
+const OUTLOOK_OAUTH_ATTEMPT_POLL_INTERVAL_MS = 1_000;
 export const OUTLOOK_OAUTH_DIALOG_OPTIONS = Object.freeze({
   height: 70,
   width: 42,
@@ -352,16 +353,39 @@ export function parseDialogMessage({
   if (!message || typeof message !== "object" || message.type !== OAUTH_DIALOG_MESSAGE_TYPE) {
     throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "OAuth 대화상자 응답을 확인할 수 없습니다.");
   }
+  const messageKeys = Object.keys(message);
+  const status = text(message.status);
+  if (status) {
+    if (
+      messageKeys.length !== 2
+      || !messageKeys.includes("type")
+      || !messageKeys.includes("status")
+      || !["connected", "failed"].includes(status)
+    ) {
+      throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "OAuth 대화상자 응답 형식이 올바르지 않습니다.");
+    }
+  } else if (
+    messageKeys.some((key) => !["type", "state", "code", "error"].includes(key))
+  ) {
+    throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "OAuth 대화상자 응답 형식이 올바르지 않습니다.");
+  }
+  if (status === "failed") {
+    throw createAddinAuthError("OUTLOOK_OAUTH_PROVIDER_ERROR", "Microsoft 연결이 완료되지 않았습니다.");
+  }
+  if (status === "connected") {
+    return Object.freeze({ type: message.type, status });
+  }
   const state = text(message.state);
   if (!state || state !== text(expectedState)) {
     throw createAddinAuthError(AUTH_ERROR_CODES.dialogStateMismatch, "OAuth 연결 요청이 만료되었거나 일치하지 않습니다.");
   }
-  if (text(message.error)) {
-    throw createAddinAuthError("OUTLOOK_OAUTH_PROVIDER_ERROR", "Microsoft 연결이 완료되지 않았습니다.", { provider_error: text(message.error) });
-  }
+  const providerError = text(message.error);
   const code = text(message.code);
-  if (!code) {
-    throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "OAuth 대화상자 응답에 코드가 없습니다.");
+  if (Boolean(providerError) === Boolean(code)) {
+    throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "OAuth 대화상자 응답 형식이 올바르지 않습니다.");
+  }
+  if (providerError) {
+    throw createAddinAuthError("OUTLOOK_OAUTH_PROVIDER_ERROR", "Microsoft 연결이 완료되지 않았습니다.", { provider_error: text(message.error) });
   }
   return Object.freeze({ type: message.type, state, code });
 }
@@ -395,9 +419,12 @@ export function openOfficeOAuthDialog({
   callbackUri,
   path = DEFAULT_OAUTH_START_PATH,
   onComplete,
+  checkAuthorizationAttempt,
   timeoutMs = OUTLOOK_OAUTH_DIALOG_TIMEOUT_MS,
   setTimeoutImpl = globalThis.setTimeout,
   clearTimeoutImpl = globalThis.clearTimeout,
+  setIntervalImpl = globalThis.setInterval,
+  clearIntervalImpl = globalThis.clearInterval,
 } = {}) {
   const office = Office ?? window?.Office ?? globalThis.Office;
   const dialogApi = office?.context?.ui;
@@ -412,6 +439,14 @@ export function openOfficeOAuthDialog({
     || timeoutMs < 1
     || typeof setTimeoutImpl !== "function"
     || typeof clearTimeoutImpl !== "function"
+    || (
+      checkAuthorizationAttempt !== undefined
+      && (
+        typeof checkAuthorizationAttempt !== "function"
+        || typeof setIntervalImpl !== "function"
+        || typeof clearIntervalImpl !== "function"
+      )
+    )
   ) {
     throw createAddinAuthError(AUTH_ERROR_CODES.dialogMessageInvalid, "OAuth 연결 제한 시간이 올바르지 않습니다.");
   }
@@ -429,6 +464,8 @@ export function openOfficeOAuthDialog({
     let handlingMessage = false;
     let dialog = null;
     let timer = null;
+    let pollTimer = null;
+    let checkingAttempt = false;
 
     const closeDialog = () => {
       try { dialog?.close?.(); } catch { /* best effort */ }
@@ -437,8 +474,28 @@ export function openOfficeOAuthDialog({
       if (settled) return;
       settled = true;
       clearTimeoutImpl(timer);
+      if (pollTimer !== null) clearIntervalImpl(pollTimer);
       closeDialog();
       if (error) reject(error); else resolve();
+    };
+    const checkAttempt = async () => {
+      if (
+        settled
+        || checkingAttempt
+        || typeof checkAuthorizationAttempt !== "function"
+      ) return false;
+      checkingAttempt = true;
+      try {
+        if (await checkAuthorizationAttempt()) {
+          finish();
+          return true;
+        }
+      } catch {
+        // A transient status read must not replace the bounded dialog timeout.
+      } finally {
+        checkingAttempt = false;
+      }
+      return false;
     };
     const messageHandler = async (event) => {
       if (settled || handlingMessage) return;
@@ -450,6 +507,10 @@ export function openOfficeOAuthDialog({
           rawMessage: event?.message,
           expectedState: state,
         });
+        if (message.status === "connected") {
+          await checkAttempt();
+          return;
+        }
         await onComplete({ ...message, callbackUri });
         finish();
       } catch (error) {
@@ -493,6 +554,12 @@ export function openOfficeOAuthDialog({
                 finish(createAddinAuthError(AUTH_ERROR_CODES.dialogUnavailable, "연결 창이 닫혔습니다.", { dialog_error: event.error }));
               }
             });
+            if (!settled && typeof checkAuthorizationAttempt === "function") {
+              pollTimer = setIntervalImpl(
+                checkAttempt,
+                OUTLOOK_OAUTH_ATTEMPT_POLL_INTERVAL_MS,
+              );
+            }
           } catch (error) {
             finish(createAddinAuthError(AUTH_ERROR_CODES.dialogUnavailable, "연결 응답을 받을 수 없습니다.", { cause: error }));
           }

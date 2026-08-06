@@ -4,7 +4,11 @@ import {
   createEmailThread,
   OUTLOOK_EMAIL_OBJECT_FIELDS,
 } from "../../../packages/email-dms/src/email-model.js";
-import { createM365GraphConnectionService } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
+import {
+  M365_GRAPH_CALLBACK_MODES,
+  M365_GRAPH_ERROR_CODES,
+  createM365GraphConnectionService,
+} from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-ports.js";
 import {
   createSafeInquiryDisplayCopy,
@@ -764,6 +768,8 @@ function m365Service(runtime) {
   return createM365GraphConnectionService({
     repository: runtime?.emailDmsRuntime?.repository,
     ...(runtime?.m365GraphConfig ?? {}),
+    request_failure_compensator:
+      runtime?.emailDmsRuntime?.request_failure_compensator,
   });
 }
 
@@ -1309,11 +1315,23 @@ function handleM365ConnectionStatus({
       auditHintRef: query.audit_hint_ref,
     });
     if (gated) return gated;
-    const result = m365Service(runtime).getConnectionStatus(principal);
+    const service = m365Service(runtime);
+    const result = service.getConnectionStatus(principal);
+    const authorizationAttempt = query.attempt_ref
+      ? service.getAuthorizationAttemptStatus({
+          ...principal,
+          attempt_ref: query.attempt_ref,
+        })
+      : null;
     return success(200, {
       request_id: requestId,
       outcome: "passed",
-      item: result,
+      item: authorizationAttempt
+        ? Object.freeze({
+            ...result,
+            authorization_attempt: authorizationAttempt,
+          })
+        : result,
       audit_hint_ref: query.audit_hint_ref,
       credential_material_included: false,
     });
@@ -1326,8 +1344,84 @@ function handleM365ConnectionStatus({
   }
 }
 
+export async function handleClientOutlookAuthorizationCallback({
+  code,
+  state,
+  requestId,
+  runtime,
+} = {}) {
+  try {
+    const resolver = runtime?.m365GraphConfig?.provider
+      ?.resolveDelegatedAuthorizationState;
+    if (typeof resolver !== "function") {
+      throw Object.assign(
+        new Error("Microsoft authorization provider is unavailable"),
+        {
+          safe_error_code: M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
+          status: 503,
+        },
+      );
+    }
+    const principal = resolver({ state });
+    if (principal.callback_mode !== M365_GRAPH_CALLBACK_MODES.server_complete) {
+      throw Object.assign(
+        new Error("Microsoft authorization callback mode is not server-complete"),
+        {
+          safe_error_code: M365_GRAPH_ERROR_CODES.provider_invalid,
+          status: 400,
+        },
+      );
+    }
+    const principalAuthority = runtime?.sessionAuth
+      ?.verifyOutlookCallbackPrincipal;
+    if (typeof principalAuthority !== "function") {
+      throw Object.assign(
+        new Error("Outlook callback identity authority is unavailable"),
+        {
+          safe_error_code: M365_GRAPH_ERROR_CODES.entra_session_required,
+          status: 503,
+        },
+      );
+    }
+    const verified = await principalAuthority({
+      tenant_id: principal.tenant_id,
+      user_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+      federated_tenant_id:
+        runtime.m365GraphConfig?.office_sso_provider
+          ?.public_config?.tenant_id,
+    });
+    if (verified?.ok !== true) {
+      throw Object.assign(
+        new Error("Outlook callback identity binding is inactive"),
+        {
+          safe_error_code:
+            verified?.safe_error_code
+            ?? M365_GRAPH_ERROR_CODES.entra_session_required,
+          status: verified?.status ?? 403,
+        },
+      );
+    }
+    const result = await m365Service(runtime).completeAuthorization({
+      ...principal,
+      code,
+      state,
+      redirect_uri: principal.redirect_uri,
+    });
+    return success(200, {
+      request_id: requestId,
+      outcome: result.outcome,
+      item: result,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(error, requestId, null);
+  }
+}
+
 async function handleM365ConnectionAuthorize({
   body,
+  headers,
   context,
   requestId,
   runtime,
@@ -1345,6 +1439,9 @@ async function handleM365ConnectionAuthorize({
     const result = await m365Service(runtime).beginAuthorization({
       ...principal,
       redirect_uri: body.redirect_uri,
+      callback_mode:
+        String(headers?.["x-lawos-outlook-callback-mode"] ?? "").trim()
+        || undefined,
     });
     return success(200, {
       request_id: requestId,
@@ -2402,7 +2499,7 @@ function hasOnlyBodyFields(body, allowedFields) {
     && Object.keys(body).every((field) => allowedFields.includes(field));
 }
 
-export async function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, context, requestId, runtime } = {}) {
+export async function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, headers = {}, context, requestId, runtime } = {}) {
   try {
     if (pathname === "/api/outlook/bootstrap" && method === "GET") {
       return handleBootstrap({ query, context, requestId });
@@ -2433,6 +2530,7 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
       }
       return await handleM365ConnectionAuthorize({
         body,
+        headers,
         context,
         requestId,
         runtime,

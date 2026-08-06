@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
@@ -11,6 +12,9 @@ import {
 import {
   M365_GRAPH_REQUIRED_SCOPES,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
+import {
+  M365_GRAPH_CALLBACK_MODES,
+} from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import {
   MICROSOFT_EGRESS_REDIRECT_URIS,
 } from "../src/microsoft-egress-broker-transport.js";
@@ -208,11 +212,20 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
     user_id: "user_jwsuh",
     entra_subject_id: "entra-subject-client-outlook",
     redirect_uri: REDIRECT_URI,
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
   };
   const begun = await config.provider.beginDelegatedAuthorization(principal);
   const state = new URL(begun.authorization_url).searchParams.get("state");
   assert.equal(begun.pkce_used, true);
   assert.equal(begun.state_bound, true);
+  assert.equal(
+    begun.callback_mode,
+    M365_GRAPH_CALLBACK_MODES.server_complete,
+  );
+  assert.equal(
+    begun.attempt_ref,
+    createHash("sha256").update(state).digest("hex"),
+  );
   assert.equal(typeof state, "string");
   assert.equal(state.includes(principal.entra_subject_id), false);
   assert.equal(oauthFactoryCalls.length, 1);
@@ -239,6 +252,20 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
     /does not match the signed session/u,
   );
   assert.equal(exchangeCalls.length, 0);
+
+  assert.deepEqual(
+    config.provider.resolveDelegatedAuthorizationState({
+      state,
+      redirect_uri: REDIRECT_URI,
+    }),
+    {
+      tenant_id: principal.tenant_id,
+      user_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+      redirect_uri: REDIRECT_URI,
+      callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+    },
+  );
 
   const completed = await config.provider.completeDelegatedAuthorization({
     ...principal,

@@ -21,6 +21,7 @@ import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src
 import {
   createPostgresApiRuntimeAuthority,
   runPostgresReadWithBaselineRetry,
+  runWithRequestFailureCompensation,
 } from "../src/postgres-api-runtime-authority.js";
 import { handleAiApiRequest } from "../src/ai-runtime-context.js";
 import { handleAnalyticsApiRequest } from "../src/analytics-runtime-context.js";
@@ -394,6 +395,36 @@ test("PostgreSQL API authority retries bounded reads and only explicitly idempot
   assert.equal(readAttempts, 5);
   assert.deepEqual(waits, [5, 10, 20, 40]);
 
+  let callbackAttempts = 0;
+  await assert.rejects(runPostgresReadWithBaselineRetry({
+    method: "GET",
+    pathname: "/api/outlook/connection/callback",
+    retryLimit: 4,
+    wait: async () => assert.fail("OAuth callback must not be retried"),
+    execute: async () => {
+      callbackAttempts += 1;
+      throw Object.assign(new Error("callback commit conflict"), {
+        safe_error_code: "DOMAIN_BASELINE_CONFLICT",
+      });
+    },
+  }), /callback commit conflict/u);
+  assert.equal(callbackAttempts, 1);
+
+  let slashCallbackAttempts = 0;
+  await assert.rejects(runPostgresReadWithBaselineRetry({
+    method: "GET",
+    pathname: "/api/outlook/connection/callback/",
+    retryLimit: 4,
+    wait: async () => assert.fail("OAuth callback slash variant must not be retried"),
+    execute: async () => {
+      slashCallbackAttempts += 1;
+      throw Object.assign(new Error("slash callback commit conflict"), {
+        safe_error_code: "DOMAIN_BASELINE_CONFLICT",
+      });
+    },
+  }), /slash callback commit conflict/u);
+  assert.equal(slashCallbackAttempts, 1);
+
   let mutationAttempts = 0;
   await assert.rejects(runPostgresReadWithBaselineRetry({
     method: "POST",
@@ -443,6 +474,15 @@ test("PostgreSQL API authority retries bounded reads and only explicitly idempot
   });
   assert.equal(uniqueConflictReplay, "unique-conflict-rematerialized");
   assert.equal(uniqueConflictAttempts, 2);
+});
+
+test("PostgreSQL request failure runs registered external compensation once", async () => {
+  const calls = [];
+  await assert.rejects(runWithRequestFailureCompensation(async (compensator) => {
+    compensator.register(async () => calls.push("credential:deleted"));
+    throw new Error("domain flush failed");
+  }), /domain flush failed/u);
+  assert.deepEqual(calls, ["credential:deleted"]);
 });
 
 test("PostgreSQL Matter assignment excludes a disabled identity account", async (t) => {
