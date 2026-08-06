@@ -6,6 +6,7 @@ const message = {
   code: params.get("code") || "",
   error: params.get("error") || "",
 };
+let delivered = false;
 try {
   if (typeof window.history?.replaceState === "function") {
     window.history.replaceState(null, "", window.location.pathname);
@@ -18,24 +19,38 @@ function show(messageText) {
   if (status) status.textContent = messageText;
 }
 
-function send() {
+function send({ finalAttempt = false } = {}) {
+  if (delivered) return true;
   if (!message.state || (!message.code && !message.error)) {
+    delivered = true;
     show("연결 결과가 올바르지 않습니다. 이 창을 닫고 다시 시도해 주세요.");
-    return;
+    return true;
   }
   const serialized = JSON.stringify(message);
   if (typeof window.Office?.context?.ui?.messageParent !== "function") {
-    show("연결 응답을 전달할 수 없습니다. Outlook에서 다시 시도해 주세요.");
-    return;
+    if (finalAttempt) show("연결 응답을 전달할 수 없습니다. Outlook에서 다시 시도해 주세요.");
+    return false;
   }
   try {
     window.Office.context.ui.messageParent(serialized, {
       targetOrigin: window.location.origin,
     });
+    delivered = true;
     show("연결 응답을 전달했습니다. 이 창을 닫아도 됩니다.");
+    return true;
   } catch {
-    show("연결 응답을 전달하지 못했습니다. 이 창을 닫고 다시 시도해 주세요.");
+    if (finalAttempt) show("연결 응답을 전달하지 못했습니다. 이 창을 닫고 다시 시도해 주세요.");
+    return false;
   }
 }
 
-send();
+if (!send()) {
+  const timer = window.setTimeout(() => send({ finalAttempt: true }), 5_000);
+  try {
+    window.Office?.onReady?.(() => {
+      if (send()) window.clearTimeout(timer);
+    });
+  } catch {
+    // The bounded final attempt still handles hosts that reject readiness registration.
+  }
+}
