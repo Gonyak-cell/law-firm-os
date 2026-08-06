@@ -422,7 +422,7 @@ export function openOfficeOAuthDialog({
     authorizationUrl,
     state,
   });
-  const dialogOptions = OUTLOOK_OAUTH_DIALOG_OPTIONS;
+  const dialogOptions = { ...OUTLOOK_OAUTH_DIALOG_OPTIONS };
 
   return new Promise((resolve, reject) => {
     let settled = false;
