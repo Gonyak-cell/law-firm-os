@@ -61,7 +61,7 @@ function tokenBundle(input) {
   });
 }
 
-function secretName(prefix, tenantId, userId) {
+function secretName(prefix, tenantId, userId, generation) {
   const base = requiredString(prefix, "secret_prefix").replace(/\/+$/u, "");
   if (!/^[A-Za-z0-9/_+=.@-]+$/u.test(base)) {
     throw new TypeError("secret_prefix is invalid");
@@ -70,6 +70,7 @@ function secretName(prefix, tenantId, userId) {
     .update(JSON.stringify({
       tenant_id: requiredString(tenantId, "tenant_id"),
       user_id: requiredString(userId, "user_id"),
+      generation: requiredString(generation, "credential generation"),
     }))
     .digest("hex");
   return `${base}/${digest}`;
@@ -119,7 +120,7 @@ export function createAwsM365CredentialVault({
       const bundle = tokenBundle(token_bundle);
       const secretId = credential_ref
         ? secretIdFromReference(credential_ref)
-        : secretName(secret_prefix, tenant_id, user_id);
+        : secretName(secret_prefix, tenant_id, user_id, idFactory());
       const secretString = JSON.stringify(bundle);
       if (credential_ref) {
         await putSecret(secretId, secretString);

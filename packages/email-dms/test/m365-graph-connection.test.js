@@ -89,6 +89,14 @@ function fakeDependencies() {
     },
     async completeDelegatedAuthorization(input) {
       calls.push("provider:complete");
+      assert.deepEqual(
+        {
+          tenant_id: input.tenant_id,
+          user_id: input.user_id,
+          entra_subject_id: input.entra_subject_id,
+        },
+        principal(),
+      );
       assert.equal(input.mailbox_scope, "me");
       assert.equal(input.expected_entra_subject_id, SUBJECT);
       return {
@@ -505,6 +513,53 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   assert.equal(auditText.includes("synthetic-access-token"), false);
   assert.equal(auditText.includes("synthetic-refresh-token"), false);
   assert.equal(auditText.includes(CLIENT_REFRESH_PROOF), false);
+});
+
+test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재사용하지 않는다", async () => {
+  const revoked = connection({ revoked_at: NOW, state_version: 2 });
+  const repository = createEmailDmsRepository({ seedRecords: [revoked] });
+  const dependencies = fakeDependencies();
+  let storedInput = null;
+  dependencies.credentialVault.storeDelegatedCredential = async (input) => {
+    dependencies.calls.push("vault:store");
+    storedInput = structuredClone(input);
+    return "aws-secrets-manager:synthetic/m365/reconnected-user";
+  };
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+
+  const reconnected = await service.completeAuthorization({
+    ...principal(),
+    code: "single-use-reconnect-code",
+    state: "single-use-reconnect-state",
+    redirect_uri: REDIRECT_URI,
+  });
+
+  assert.equal(storedInput.credential_ref, null);
+  assert.equal(reconnected.outcome, "reconnected");
+  assert.equal(reconnected.connection.status, "connected");
+  assert.equal(reconnected.connection.state_version, 3);
+  const persisted = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(
+    persisted.credential_ref,
+    "aws-secrets-manager:synthetic/m365/reconnected-user",
+  );
+  assert.equal(persisted.revoked_at, null);
+  assert.equal(
+    repository.listAudit({ tenant_id: TENANT }).at(-1)
+      .payload.token_replaced_in_vault,
+    false,
+  );
 });
 
 test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 해제 상태로 남기고 안전한 오류를 반환한다", async () => {
