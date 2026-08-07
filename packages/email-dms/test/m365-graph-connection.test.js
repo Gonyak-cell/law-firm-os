@@ -64,15 +64,32 @@ function fakeDependencies() {
   const calls = [];
   const credentials = new Map();
   const credentialVault = {
+    referenceForGeneration({
+      entra_subject_id,
+      credential_generation,
+    }) {
+      const subjectDigest = createHash("sha256")
+        .update(entra_subject_id)
+        .digest("hex")
+        .slice(0, 16);
+      return `aws-secrets-manager:synthetic/m365/${subjectDigest}/${credential_generation}`;
+    },
     async storeDelegatedCredential(input) {
       calls.push("vault:store");
       const reference = input.credential_ref
-        ?? "aws-secrets-manager:synthetic/m365/user";
-      credentials.set(reference, structuredClone(input.token_bundle));
+        ?? this.referenceForGeneration(input);
+      if (!credentials.has(reference)) {
+        credentials.set(reference, structuredClone(input.token_bundle));
+      }
       return reference;
     },
     async resolveDelegatedCredential({ credential_ref }) {
       calls.push("vault:resolve");
+      if (!credentials.has(credential_ref)) {
+        throw Object.assign(new Error("credential not found"), {
+          name: "ResourceNotFoundException",
+        });
+      }
       return structuredClone(credentials.get(credential_ref));
     },
     async deleteDelegatedCredential({ credential_ref }) {
@@ -208,11 +225,19 @@ function fakeDependencies() {
   return { calls, credentialVault, credentials, provider };
 }
 
+function generationRef(credentialVault, stateVersion) {
+  return credentialVault.referenceForGeneration({
+    ...principal(),
+    credential_generation: `m365-connection-state-${stateVersion}`,
+  });
+}
+
 test("M365Connection은 delegated 본인 메일함과 보안 저장소 참조만 보존한다", () => {
   const normalized = normalizeM365Connection(connection());
   assert.equal(normalized.connection_authority, "delegated");
   assert.equal(normalized.mailbox_scope, "me");
   assert.equal(normalized.credential_material_included, false);
+  assert.deepEqual(normalized.pending_vault_cleanup_refs, []);
   assert.deepEqual(normalized.granted_scopes, [
     "Calendars.ReadWrite",
     "Mail.Read",
@@ -245,6 +270,23 @@ test("M365Connection은 delegated 본인 메일함과 보안 저장소 참조만
       credential_ref: "opaque-but-not-an-approved-secret-store",
     }),
     /AWS Secrets Manager reference/,
+  );
+  assert.throws(
+    () => normalizeM365Connection({
+      ...connection(),
+      pending_vault_cleanup_refs: [connection().credential_ref],
+    }),
+    /active credential_ref cannot be pending cleanup/,
+  );
+  assert.throws(
+    () => normalizeM365Connection({
+      ...connection({ revoked_at: NOW }),
+      pending_vault_cleanup_refs: [
+        "aws-secrets-manager:synthetic/m365/retired",
+        "aws-secrets-manager:synthetic/m365/retired",
+      ],
+    }),
+    /cannot contain duplicates/,
   );
   assert.throws(
     () => normalizeM365Connection({
@@ -530,9 +572,17 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   assert.equal(disconnected.outcome, "disconnected");
   assert.equal(disconnected.connection.status, "revoked");
   assert.deepEqual(
-    dependencies.calls.slice(-3),
-    ["vault:resolve", "provider:revoke", "vault:delete"],
+    dependencies.calls.slice(-2),
+    ["vault:resolve", "provider:revoke"],
   );
+  const revokedConnection = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.deepEqual(revokedConnection.pending_vault_cleanup_refs, [
+    credentialRef,
+    generationRef(dependencies.credentialVault, 2),
+  ]);
   const auditText = JSON.stringify(repository.listAudit({
     tenant_id: TENANT,
   }));
@@ -618,7 +668,7 @@ test("기존 durable 연결 replay는 synthetic request hash를 허용하되 ope
   );
 });
 
-test("새 연결 credential은 바깥 요청 commit 실패 시 정리 대상으로 등록된다", async () => {
+test("새 연결 credential은 결정적 generation으로 저장하고 outer 실패 보상 삭제를 등록하지 않는다", async () => {
   const repository = createEmailDmsRepository();
   const dependencies = fakeDependencies();
   const compensations = [];
@@ -644,22 +694,326 @@ test("새 연결 credential은 바깥 요청 commit 실패 시 정리 대상으�
     redirect_uri: REDIRECT_URI,
   });
   assert.equal(dependencies.credentials.size, 1);
-  assert.equal(compensations.length, 1);
-
-  await compensations[0]();
-  assert.equal(dependencies.credentials.size, 0);
-  assert.equal(dependencies.calls.at(-1), "vault:delete");
+  assert.equal(compensations.length, 0);
+  assert.equal(dependencies.credentials.size, 1);
+  assert.equal(
+    repository.list({ tenant_id: TENANT, model_type: "M365Connection" })[0]
+      .credential_ref,
+    generationRef(dependencies.credentialVault, 1),
+  );
 });
 
-test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재사용하지 않는다", async () => {
-  const revoked = connection({ revoked_at: NOW, state_version: 2 });
-  const repository = createEmailDmsRepository({ seedRecords: [revoked] });
+function localCompletionCheckpoint(repository) {
+  const run = ({ apply }) => repository.transaction(apply);
+  return Object.freeze({ claim: run, finalize: run, fail: run });
+}
+
+function completionRequestFingerprint({
+  state,
+  code,
+  redirect_uri = REDIRECT_URI,
+}) {
+  const digest = (value) => createHash("sha256")
+    .update(value)
+    .digest("hex");
+  return digest(JSON.stringify({
+    tenant_id: TENANT,
+    user_id: USER,
+    entra_subject_id: SUBJECT,
+    attempt_ref: digest(state),
+    authorization_code_hash: digest(code),
+    redirect_uri_hash: digest(redirect_uri),
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+  }));
+}
+
+function checkpointClaim(repository, {
+  state,
+  code,
+  redirect_uri = REDIRECT_URI,
+  claimant = "another-callback-request",
+} = {}) {
+  const attemptRef = createHash("sha256").update(state).digest("hex");
+  repository.recordIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-connect:${attemptRef}:claim`,
+    operation: "m365.connection.completion.claim",
+    request_fingerprint: completionRequestFingerprint({
+      state,
+      code,
+      redirect_uri,
+    }),
+    response: {
+      outcome: "claimed",
+      attempt_ref: attemptRef,
+      claimant_hash: createHash("sha256").update(claimant).digest("hex"),
+      m365_connection_id: m365ConnectionId(principal()),
+      credential_material_included: false,
+    },
+    created_at: NOW,
+  });
+  return attemptRef;
+}
+
+test("Client callback checkpoint는 provider를 한 번만 교환하고 replay는 attempt Secret으로 끝낸다", async () => {
+  const repository = createEmailDmsRepository();
   const dependencies = fakeDependencies();
-  let storedInput = null;
-  dependencies.credentialVault.storeDelegatedCredential = async (input) => {
-    dependencies.calls.push("vault:store");
-    storedInput = structuredClone(input);
-    return "aws-secrets-manager:synthetic/m365/reconnected-user";
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+  const input = {
+    ...principal(),
+    code: "checkpoint-code",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "callback-request-1",
+  };
+
+  const connected = await service.completeAuthorization(input);
+  const replay = await service.completeAuthorization({
+    ...input,
+    completion_claimant: "callback-request-2",
+  });
+
+  assert.equal(connected.outcome, "connected");
+  assert.equal(replay.replayed, true);
+  assert.equal(
+    dependencies.calls.filter((call) => call === "provider:complete").length,
+    1,
+  );
+  const attemptRef = createHash("sha256")
+    .update(AUTHORIZATION_STATE)
+    .digest("hex");
+  const attemptCredentialRef = dependencies.credentialVault
+    .referenceForGeneration({
+      ...principal(),
+      credential_generation: `m365-authorization-attempt-${attemptRef}`,
+    });
+  const persisted = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(persisted.credential_ref, attemptCredentialRef);
+  assert.deepEqual(persisted.pending_vault_cleanup_refs, [
+    generationRef(dependencies.credentialVault, 1),
+  ]);
+  assert.equal(
+    dependencies.credentials.get(attemptCredentialRef)
+      .authorization_attempt_ref,
+    attemptRef,
+  );
+  assert.equal(
+    dependencies.credentials.get(attemptCredentialRef).entra_subject_id,
+    SUBJECT,
+  );
+  assert.doesNotMatch(
+    JSON.stringify(repository.snapshot()),
+    /checkpoint-code/u,
+  );
+});
+
+test("Client callback은 같은 state에 다른 code를 replay하지 않는다", async () => {
+  const repository = createEmailDmsRepository();
+  const dependencies = fakeDependencies();
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+  const input = {
+    ...principal(),
+    code: "checkpoint-conflict-original-code",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "checkpoint-conflict-first",
+  };
+  await service.completeAuthorization(input);
+  const durableBefore = repository.snapshot();
+  const credentialsBefore = structuredClone([
+    ...dependencies.credentials.entries(),
+  ]);
+  const callsBefore = [...dependencies.calls];
+
+  await assert.rejects(service.completeAuthorization({
+    ...input,
+    code: "checkpoint-conflict-different-code",
+    completion_claimant: "checkpoint-conflict-replay",
+  }), (error) => (
+    error.safe_error_code === M365_GRAPH_ERROR_CODES.completion_conflict
+    && error.status === 409
+  ));
+  assert.deepEqual(repository.snapshot(), durableBefore);
+  assert.deepEqual(
+    [...dependencies.credentials.entries()],
+    credentialsBefore,
+  );
+  assert.deepEqual(dependencies.calls, callsBefore);
+});
+
+test("Client callback completed replay의 일시적 vault 장애는 연결과 Secret을 보존한다", async () => {
+  const repository = createEmailDmsRepository();
+  const dependencies = fakeDependencies();
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+  const input = {
+    ...principal(),
+    code: "checkpoint-transient-replay-code",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "checkpoint-transient-first",
+  };
+  await service.completeAuthorization(input);
+  const durableBefore = repository.snapshot();
+  const credentialsBefore = structuredClone([
+    ...dependencies.credentials.entries(),
+  ]);
+  const mutationCallsBefore = dependencies.calls.filter(
+    (call) => call !== "vault:resolve",
+  );
+  const transient = Object.assign(new Error("Secrets Manager throttled"), {
+    name: "ThrottlingException",
+    status: 503,
+  });
+  dependencies.credentialVault.resolveDelegatedCredential = async () => {
+    dependencies.calls.push("vault:resolve");
+    throw transient;
+  };
+
+  await assert.rejects(service.completeAuthorization({
+    ...input,
+    completion_claimant: "checkpoint-transient-replay",
+  }), (error) => error === transient);
+  assert.deepEqual(repository.snapshot(), durableBefore);
+  assert.deepEqual(
+    [...dependencies.credentials.entries()],
+    credentialsBefore,
+  );
+  assert.deepEqual(
+    dependencies.calls.filter((call) => call !== "vault:resolve"),
+    mutationCallsBefore,
+  );
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-connect:${AUTHORIZATION_ATTEMPT_REF}:failed`,
+  }), undefined);
+  assert.equal(repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0].revoked_at, null);
+});
+
+test("Client callback replay는 stale detached repo가 아니라 fresh checkpoint 연결을 검증한다", async () => {
+  const attemptRef = createHash("sha256")
+    .update(AUTHORIZATION_STATE)
+    .digest("hex");
+  const dependencies = fakeDependencies();
+  const attemptCredentialRef = dependencies.credentialVault
+    .referenceForGeneration({
+      ...principal(),
+      credential_generation: `m365-authorization-attempt-${attemptRef}`,
+    });
+  const durableRepository = createEmailDmsRepository({
+    seedRecords: [connection({ credential_ref: attemptCredentialRef })],
+  });
+  const replayCode = "durable-replay-code-must-not-exchange";
+  checkpointClaim(durableRepository, {
+    state: AUTHORIZATION_STATE,
+    code: replayCode,
+    claimant: "durable-replay-original-request",
+  });
+  durableRepository.recordIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-connect:${attemptRef}`,
+    operation: "m365.connection.connect",
+    request_fingerprint: completionRequestFingerprint({
+      state: AUTHORIZATION_STATE,
+      code: replayCode,
+    }),
+    response: {
+      operation: "m365.connection.connect",
+      outcome: "connected",
+      attempt_ref: attemptRef,
+      m365_connection_id: m365ConnectionId(principal()),
+      state_version: 1,
+      credential_material_included: false,
+    },
+    created_at: NOW,
+  });
+  dependencies.credentials.set(attemptCredentialRef, {
+    access_token: "durable-replay-access-token",
+    refresh_token: "durable-replay-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    ...principal(),
+    authorization_attempt_ref: attemptRef,
+    redirect_uri_hash: createHash("sha256")
+      .update(REDIRECT_URI)
+      .digest("hex"),
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+    mailbox_address: "synthetic.m365.user@example.invalid",
+    consented_at: NOW,
+    expires_at: EXPIRES,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  });
+  dependencies.provider.completeDelegatedAuthorization = async () => {
+    throw new Error("provider exchange must not run for durable replay");
+  };
+  const staleDetachedRepository = createEmailDmsRepository();
+  const service = createM365GraphConnectionService({
+    repository: staleDetachedRepository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(durableRepository),
+  });
+
+  const result = await service.completeAuthorization({
+    ...principal(),
+    code: replayCode,
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "durable-replay-request",
+  });
+  assert.equal(result.replayed, true);
+  assert.equal(result.connection.connection_id, connection().m365_connection_id);
+  assert.equal(staleDetachedRepository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  }).length, 0);
+});
+
+test("Client callback claim만 남은 다른 요청은 code·Secret을 건드리지 않고 in-progress를 반환한다", async () => {
+  const repository = createEmailDmsRepository();
+  checkpointClaim(repository, {
+    state: AUTHORIZATION_STATE,
+    code: "claimed-code-must-not-replay",
+  });
+  const dependencies = fakeDependencies();
+  dependencies.provider.completeDelegatedAuthorization = async () => {
+    throw new Error("provider exchange must not replay after a durable claim");
   };
   const service = createM365GraphConnectionService({
     repository,
@@ -669,6 +1023,265 @@ test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재�
     provider_runtime_enabled: true,
     allowed_redirect_uris: [REDIRECT_URI],
     clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+
+  await assert.rejects(service.completeAuthorization({
+    ...principal(),
+    code: "claimed-code-must-not-replay",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "different-callback-request",
+  }), (error) => (
+    error.safe_error_code === M365_GRAPH_ERROR_CODES.completion_in_progress
+    && error.status === 409
+  ));
+  const attemptRef = createHash("sha256")
+    .update(AUTHORIZATION_STATE)
+    .digest("hex");
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-connect:${attemptRef}:failed`,
+  }), undefined);
+  assert.equal(dependencies.calls.includes("vault:delete"), false);
+});
+
+test("Client callback은 같은 claimant의 기존 claim도 attempt Secret으로 복구하고 provider를 재호출하지 않는다", async () => {
+  const repository = createEmailDmsRepository();
+  const attemptRef = checkpointClaim(repository, {
+    state: AUTHORIZATION_STATE,
+    code: "staged-code-must-not-replay",
+    claimant: "staged-recovery-request",
+  });
+  const dependencies = fakeDependencies();
+  const attemptCredentialRef = dependencies.credentialVault
+    .referenceForGeneration({
+      ...principal(),
+      credential_generation: `m365-authorization-attempt-${attemptRef}`,
+    });
+  dependencies.credentials.set(attemptCredentialRef, {
+    access_token: "checkpoint-staged-access-token",
+    refresh_token: "checkpoint-staged-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    ...principal(),
+    authorization_attempt_ref: attemptRef,
+    redirect_uri_hash: createHash("sha256")
+      .update(REDIRECT_URI)
+      .digest("hex"),
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+    mailbox_address: "synthetic.m365.user@example.invalid",
+    consented_at: NOW,
+    expires_at: EXPIRES,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  });
+  dependencies.provider.completeDelegatedAuthorization = async () => {
+    throw new Error("provider exchange must not run after staged credential");
+  };
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+
+  const result = await service.completeAuthorization({
+    ...principal(),
+    code: "staged-code-must-not-replay",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "staged-recovery-request",
+  });
+  assert.equal(result.outcome, "connected");
+  assert.equal(repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0].credential_ref, attemptCredentialRef);
+});
+
+test("Client callback staged recovery의 일시적 vault 장애는 기존 연결과 Secret을 보존한다", async () => {
+  const repository = createEmailDmsRepository({ seedRecords: [connection()] });
+  const code = "staged-transient-code-must-not-replay";
+  const attemptRef = checkpointClaim(repository, {
+    state: AUTHORIZATION_STATE,
+    code,
+    claimant: "staged-transient-original-request",
+  });
+  const dependencies = fakeDependencies();
+  const attemptCredentialRef = dependencies.credentialVault
+    .referenceForGeneration({
+      ...principal(),
+      credential_generation: `m365-authorization-attempt-${attemptRef}`,
+    });
+  dependencies.credentials.set(connection().credential_ref, {
+    access_token: "active-credential-access-token",
+    refresh_token: "active-credential-refresh-token",
+  });
+  dependencies.credentials.set(attemptCredentialRef, {
+    access_token: "staged-transient-access-token",
+    refresh_token: "staged-transient-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    ...principal(),
+    authorization_attempt_ref: attemptRef,
+    redirect_uri_hash: createHash("sha256")
+      .update(REDIRECT_URI)
+      .digest("hex"),
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+    mailbox_address: "synthetic.m365.user@example.invalid",
+    consented_at: NOW,
+    expires_at: EXPIRES,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  });
+  const resolve = dependencies.credentialVault
+    .resolveDelegatedCredential.bind(dependencies.credentialVault);
+  const transient = Object.assign(new Error("Secrets Manager unavailable"), {
+    name: "ServiceUnavailableException",
+    status: 503,
+  });
+  dependencies.credentialVault.resolveDelegatedCredential = async (input) => {
+    if (input.credential_ref === attemptCredentialRef) {
+      dependencies.calls.push("vault:resolve");
+      throw transient;
+    }
+    return resolve(input);
+  };
+  dependencies.provider.completeDelegatedAuthorization = async () => {
+    throw new Error("provider exchange must not run during staged recovery");
+  };
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+  const durableBefore = repository.snapshot();
+  const credentialsBefore = structuredClone([
+    ...dependencies.credentials.entries(),
+  ]);
+
+  await assert.rejects(service.completeAuthorization({
+    ...principal(),
+    code,
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "staged-transient-recovery-request",
+  }), (error) => error === transient);
+  assert.deepEqual(repository.snapshot(), durableBefore);
+  assert.deepEqual(
+    [...dependencies.credentials.entries()],
+    credentialsBefore,
+  );
+  assert.equal(dependencies.calls.includes("vault:delete"), false);
+  assert.equal(dependencies.calls.includes("provider:complete"), false);
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-connect:${attemptRef}:failed`,
+  }), undefined);
+  assert.equal(repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0].revoked_at, null);
+});
+
+test("Client callback은 subject가 다른 staged Secret을 finalize하지 않고 tombstone 정리한다", async () => {
+  const repository = createEmailDmsRepository();
+  const attemptRef = checkpointClaim(repository, {
+    state: AUTHORIZATION_STATE,
+    code: "mismatched-staged-code-must-not-replay",
+  });
+  const dependencies = fakeDependencies();
+  const attemptCredentialRef = dependencies.credentialVault
+    .referenceForGeneration({
+      ...principal(),
+      credential_generation: `m365-authorization-attempt-${attemptRef}`,
+    });
+  dependencies.credentials.set(attemptCredentialRef, {
+    access_token: "mismatched-staged-access-token",
+    refresh_token: "mismatched-staged-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    ...principal({ entra_subject_id: "different-entra-subject" }),
+    authorization_attempt_ref: attemptRef,
+    redirect_uri_hash: createHash("sha256")
+      .update(REDIRECT_URI)
+      .digest("hex"),
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+    mailbox_address: "synthetic.m365.user@example.invalid",
+    consented_at: NOW,
+    expires_at: EXPIRES,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  });
+  dependencies.provider.completeDelegatedAuthorization = async () => {
+    throw new Error("provider exchange must not run for staged mismatch");
+  };
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    completion_checkpoint: localCompletionCheckpoint(repository),
+  });
+
+  await assert.rejects(service.completeAuthorization({
+    ...principal(),
+    code: "mismatched-staged-code-must-not-replay",
+    state: AUTHORIZATION_STATE,
+    redirect_uri: REDIRECT_URI,
+    completion_claimant: "mismatched-staged-request",
+  }), (error) => (
+    error.safe_error_code === M365_GRAPH_ERROR_CODES.reauthorization_required
+    && error.status === 409
+  ));
+  assert.equal(dependencies.credentials.has(attemptCredentialRef), false);
+  assert.equal(repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  }).length, 0);
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-connect:${attemptRef}:failed`,
+  }).response.outcome, "authorization_restart_required");
+});
+
+test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재사용하지 않는다", async () => {
+  const revoked = connection({ revoked_at: NOW, state_version: 2 });
+  const repository = createEmailDmsRepository({ seedRecords: [revoked] });
+  const dependencies = fakeDependencies();
+  let storedInput = null;
+  const postCommitActions = [];
+  dependencies.credentialVault.storeDelegatedCredential = async (input) => {
+    dependencies.calls.push("vault:store");
+    storedInput = structuredClone(input);
+    const ref = "aws-secrets-manager:synthetic/m365/reconnected-user";
+    dependencies.credentials.set(ref, structuredClone(input.token_bundle));
+    return ref;
+  };
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    request_failure_compensator: {
+      register() {},
+      registerPostCommit(action) {
+        postCommitActions.push(action);
+      },
+    },
   });
 
   const reconnected = await service.completeAuthorization({
@@ -678,7 +1291,8 @@ test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재�
     redirect_uri: REDIRECT_URI,
   });
 
-  assert.equal(storedInput.credential_ref, null);
+  assert.equal(storedInput.credential_ref, undefined);
+  assert.equal(storedInput.credential_generation, "m365-connection-state-3");
   assert.equal(reconnected.outcome, "reconnected");
   assert.equal(reconnected.connection.status, "connected");
   assert.equal(reconnected.connection.state_version, 3);
@@ -691,14 +1305,16 @@ test("CL-P3-W00-T01 해제 뒤 재연결은 삭제 예약 credential ref를 재�
     "aws-secrets-manager:synthetic/m365/reconnected-user",
   );
   assert.equal(persisted.revoked_at, null);
+  assert.deepEqual(persisted.pending_vault_cleanup_refs, [revoked.credential_ref]);
   assert.equal(
     repository.listAudit({ tenant_id: TENANT }).at(-1)
       .payload.token_replaced_in_vault,
-    false,
+    true,
   );
+  assert.equal(postCommitActions.length, 1);
 });
 
-test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 해제 상태로 남기고 안전한 오류를 반환한다", async () => {
+test("CL-P3-W00-T01 연결 해제는 commit 뒤 credential 정리를 시도하고 실패를 durable marker로 보존한다", async () => {
   const repository = createEmailDmsRepository({
     seedRecords: [connection()],
   });
@@ -711,6 +1327,7 @@ test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 �
     dependencies.calls.push("vault:delete");
     throw new Error("synthetic secret cleanup failure");
   };
+  const postCommitActions = [];
   const service = createM365GraphConnectionService({
     repository,
     credential_vault: dependencies.credentialVault,
@@ -719,36 +1336,42 @@ test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 �
     provider_runtime_enabled: true,
     allowed_redirect_uris: [REDIRECT_URI],
     clock: () => new Date(NOW),
+    request_failure_compensator: {
+      register() {},
+      registerPostCommit(action) {
+        postCommitActions.push(action);
+      },
+    },
   });
 
-  await assert.rejects(
-    service.revokeConnection({
-      ...principal(),
-      expected_state_version: 1,
-      reason: "사용자 연결 해제",
-    }),
-    (error) => (
-      error.safe_error_code
-        === M365_GRAPH_ERROR_CODES.credential_delete_failed
-      && error.status === 502
-      && !error.message.includes("synthetic secret cleanup failure")
-    ),
-  );
+  const disconnected = await service.revokeConnection({
+    ...principal(),
+    expected_state_version: 1,
+    reason: "사용자 연결 해제",
+  });
+  assert.equal(disconnected.outcome, "disconnected");
 
   assert.deepEqual(
     dependencies.calls,
-    ["vault:resolve", "provider:revoke", "vault:delete"],
+    ["vault:resolve", "provider:revoke"],
   );
+  assert.equal(postCommitActions.length, 1);
+  await assert.rejects(postCommitActions[0](), /synthetic secret cleanup failure/u);
   const persisted = repository.list({
     tenant_id: TENANT,
     model_type: "M365Connection",
   })[0];
   assert.equal(persisted.revoked_at, NOW);
   assert.equal(persisted.state_version, 2);
+  assert.deepEqual(persisted.pending_vault_cleanup_refs, [
+    connection().credential_ref,
+    generationRef(dependencies.credentialVault, 2),
+  ]);
   const audit = repository.listAudit({ tenant_id: TENANT }).at(-1);
   assert.equal(audit.event_type, "m365.connection.revoked");
   assert.equal(audit.payload.provider_revoked_first, true);
-  assert.equal(audit.payload.credential_reference_deleted, false);
+  assert.equal(audit.payload.credential_cleanup_requested, true);
+  assert.equal(Object.hasOwn(audit.payload, "credential_cleanup_ref"), false);
   assert.equal(
     JSON.stringify({ persisted, audit }).includes(
       "synthetic secret cleanup failure",
@@ -757,7 +1380,57 @@ test("CL-P3-W00-T01 provider 해제 뒤 credential 삭제 실패는 연결을 �
   );
 });
 
-test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고 첫 Graph action이 같은 vault ref에서 회전한다", async () => {
+test("연결 해제는 동시 요청이 만들 수 있는 다음 deterministic staged ref도 정리한다", async () => {
+  const repository = createEmailDmsRepository({ seedRecords: [connection()] });
+  const dependencies = fakeDependencies();
+  const currentRef = connection().credential_ref;
+  const stagedRef = dependencies.credentialVault.referenceForGeneration({
+    ...principal(),
+    credential_generation: "m365-connection-state-2",
+  });
+  dependencies.credentials.set(currentRef, {
+    access_token: "synthetic-access-token-never-persist",
+    refresh_token: "synthetic-refresh-token-never-persist",
+  });
+  dependencies.credentials.set(stagedRef, { staged: true });
+  const postCommitActions = [];
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+    request_failure_compensator: {
+      register() {},
+      registerPostCommit(action) {
+        postCommitActions.push(action);
+      },
+    },
+  });
+
+  await service.revokeConnection({
+    ...principal(),
+    expected_state_version: 1,
+    reason: "사용자 연결 해제",
+  });
+  const revoked = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.deepEqual(revoked.pending_vault_cleanup_refs, [currentRef, stagedRef]);
+  assert.equal(postCommitActions.length, 1);
+  await postCommitActions[0]();
+  assert.equal(dependencies.credentials.has(currentRef), false);
+  assert.equal(dependencies.credentials.has(stagedRef), false);
+  assert.doesNotMatch(
+    JSON.stringify(repository.listAudit({ tenant_id: TENANT })),
+    /aws-secrets-manager/iu,
+  );
+});
+
+test("Client refresh는 결정적 새 vault ref로 교체하고 commit 뒤 이전 ref만 정리한다", async () => {
   const expiringAt = "2026-07-30T05:59:30.000Z";
   const rotatedExpiresAt = "2026-07-30T07:00:00.000Z";
   const repository = createEmailDmsRepository({
@@ -768,6 +1441,12 @@ test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고
   });
   const dependencies = fakeDependencies();
   const credentialRef = connection().credential_ref;
+  const refreshedCredentialRef = dependencies.credentialVault.referenceForGeneration({
+    ...principal(),
+    credential_generation: "m365-connection-state-2",
+  });
+  const compensations = [];
+  const postCommitActions = [];
   dependencies.credentials.set(credentialRef, {
     access_token: "expiring-client-access-token",
     refresh_token: "expiring-client-refresh-token",
@@ -777,6 +1456,16 @@ test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고
     granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
     mailbox_address: "synthetic.m365.user@example.invalid",
   });
+  dependencies.credentialVault.storeDelegatedCredential = async (input) => {
+    dependencies.calls.push("vault:store");
+    assert.equal(input.credential_ref, undefined);
+    assert.equal(input.credential_generation, "m365-connection-state-2");
+    dependencies.credentials.set(
+      refreshedCredentialRef,
+      structuredClone(input.token_bundle),
+    );
+    return refreshedCredentialRef;
+  };
   dependencies.provider.refreshDelegatedCredential = async ({ credential }) => {
     dependencies.calls.push("provider:refresh");
     assert.equal(credential.refresh_profile, "client");
@@ -827,6 +1516,14 @@ test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고
     inquiry_feature_enabled: true,
     provider_runtime_enabled: true,
     clock: () => new Date(NOW),
+    request_failure_compensator: {
+      register(compensation) {
+        compensations.push(compensation);
+      },
+      registerPostCommit(action) {
+        postCommitActions.push(action);
+      },
+    },
   });
 
   await mail.getOwnMessageMime({
@@ -835,10 +1532,17 @@ test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고
   });
 
   assert.deepEqual(
-    dependencies.calls.slice(0, 4),
-    ["vault:resolve", "provider:refresh", "vault:store", "provider:mail:/me"],
+    dependencies.calls.slice(0, 6),
+    [
+      "vault:resolve",
+      "vault:resolve",
+      "provider:refresh",
+      "vault:store",
+      "vault:resolve",
+      "provider:mail:/me",
+    ],
   );
-  const stored = dependencies.credentials.get(credentialRef);
+  const stored = dependencies.credentials.get(refreshedCredentialRef);
   assert.equal(stored.refresh_token, "rotated-client-refresh-token");
   assert.equal(
     stored.refresh_profile_proof,
@@ -848,19 +1552,280 @@ test("Client 상태는 만료 credential을 갱신 가능 연결로 유지하고
     tenant_id: TENANT,
     model_type: "M365Connection",
   })[0];
+  assert.equal(updated.credential_ref, refreshedCredentialRef);
+  assert.deepEqual(updated.pending_vault_cleanup_refs, [credentialRef]);
   assert.equal(updated.expires_at, rotatedExpiresAt);
   assert.equal(updated.state_version, 2);
   const afterAction = service.getConnectionStatus(principal()).connection;
   assert.equal(afterAction.status, "connected");
   assert.equal(afterAction.active, true);
   assert.equal(afterAction.token_refresh_pending, false);
+  assert.equal(Object.hasOwn(afterAction, "pending_vault_cleanup_refs"), false);
   const audit = repository.listAudit({ tenant_id: TENANT }).at(-1);
   assert.equal(audit.event_type, "m365.connection.credential.refreshed");
   assert.equal(audit.payload.refresh_token_rotated, true);
-  assert.doesNotMatch(JSON.stringify({ updated, audit }), /rotated-client/u);
+  assert.equal(audit.payload.credential_cleanup_requested, true);
+  assert.equal(audit.payload.credential_cleanup_requested_count, 1);
+  assert.equal(Object.hasOwn(audit.payload, "credential_cleanup_ref"), false);
+  const refreshClaim = repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `m365-refresh:${updated.m365_connection_id}:1`,
+  });
+  assert.equal(refreshClaim.operation, "m365.connection.refresh");
+  assert.deepEqual(refreshClaim.response, {
+    outcome: "refreshed",
+    m365_connection_id: updated.m365_connection_id,
+    state_version: 2,
+    credential_material_included: false,
+  });
+  assert.doesNotMatch(
+    JSON.stringify({ updated, audit, refreshClaim }),
+    /rotated-client/u,
+  );
+  assert.equal(compensations.length, 0);
+  assert.equal(postCommitActions.length, 1);
+  await postCommitActions[0]();
+  assert.equal(dependencies.credentials.has(refreshedCredentialRef), true);
+  assert.equal(dependencies.credentials.has(credentialRef), false);
+  await mail.getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-rotated-001",
+  });
+  const cleaned = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.deepEqual(cleaned.pending_vault_cleanup_refs, []);
+  assert.equal(dependencies.credentials.has(refreshedCredentialRef), true);
+  assert.equal(dependencies.credentials.has(credentialRef), false);
 });
 
-test("Client refresh 401은 Graph 호출 전 연결과 vault credential을 폐기하고 재연결을 요구한다", async () => {
+test("outer commit이 사라진 refresh는 다음 요청이 같은 deterministic ref를 재사용한다", async () => {
+  const expiringAt = "2026-07-30T06:00:30.000Z";
+  const rotatedExpiresAt = "2026-07-30T07:00:00.000Z";
+  const seed = connection({ expires_at: expiringAt });
+  const dependencies = fakeDependencies();
+  dependencies.credentials.set(seed.credential_ref, {
+    access_token: "expiring-client-access-token",
+    refresh_token: "expiring-client-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: expiringAt,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  const generations = [];
+  const originalStore = dependencies.credentialVault.storeDelegatedCredential;
+  dependencies.credentialVault.storeDelegatedCredential = async function store(input) {
+    generations.push(input.credential_generation);
+    return originalStore.call(dependencies.credentialVault, input);
+  };
+  let refreshAttempt = 0;
+  dependencies.provider.refreshDelegatedCredential = async ({ credential }) => ({
+    token_bundle: {
+      ...credential,
+      access_token: `rotated-client-access-token-${++refreshAttempt}`,
+      refresh_token: `rotated-client-refresh-token-${refreshAttempt}`,
+      refresh_profile_proof: ROTATED_CLIENT_REFRESH_PROOF,
+      expires_at: rotatedExpiresAt,
+    },
+  });
+  const graphAccessTokens = [];
+  dependencies.provider.getMeMessageMime = async ({ credential }) => {
+    graphAccessTokens.push(credential.access_token);
+    return {
+      mime_bytes: Buffer.from("From: sender@example.invalid\r\n\r\nDeterministic"),
+      immutable_message_id: "immutable-message-deterministic-001",
+      internet_message_id: "<deterministic-001@example.invalid>",
+      message_metadata: {
+        received_at: NOW,
+        is_in_sent_items: false,
+        is_draft: false,
+      },
+    };
+  };
+  const run = async (repository) => createM365MailPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  }).getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-deterministic-001",
+  });
+
+  const discardedRepository = createEmailDmsRepository({ seedRecords: [seed] });
+  await run(discardedRepository);
+  const stagedRef = dependencies.credentialVault.referenceForGeneration({
+    ...principal(),
+    credential_generation: "m365-connection-state-2",
+  });
+  assert.equal(dependencies.credentials.has(stagedRef), true);
+
+  const retryRepository = createEmailDmsRepository({ seedRecords: [seed] });
+  await run(retryRepository);
+  assert.deepEqual(generations, ["m365-connection-state-2"]);
+  assert.equal(refreshAttempt, 1);
+  assert.equal(retryRepository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0].credential_ref, stagedRef);
+  assert.equal(dependencies.credentials.has(stagedRef), true);
+  assert.deepEqual(graphAccessTokens, [
+    "rotated-client-access-token-1",
+    "rotated-client-access-token-1",
+  ]);
+});
+
+test("refresh와 reconnect가 같은 generation을 쓰면 DB metadata도 실제 선점 bundle만 따른다", async () => {
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection()],
+  });
+  const dependencies = fakeDependencies();
+  const stagedRef = dependencies.credentialVault.referenceForGeneration({
+    ...principal(),
+    credential_generation: "m365-connection-state-2",
+  });
+  const stagedConsentedAt = "2026-07-29T06:00:00.000Z";
+  const stagedExpiresAt = "2026-07-30T07:00:00.000Z";
+  dependencies.credentials.set(stagedRef, {
+    access_token: "refresh-winner-access-token",
+    refresh_token: "refresh-winner-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: ROTATED_CLIENT_REFRESH_PROOF,
+    entra_subject_id: SUBJECT,
+    mailbox_address: "synthetic.m365.user@example.invalid",
+    consented_at: stagedConsentedAt,
+    expires_at: stagedExpiresAt,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  });
+  dependencies.provider.completeDelegatedAuthorization = async () => ({
+    authorization_attempt_consumed: true,
+    entra_subject_id: SUBJECT,
+    mailbox_address: "synthetic.m365.user@example.invalid",
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    consented_at: NOW,
+    expires_at: EXPIRES,
+    token_bundle: {
+      access_token: "reconnect-loser-access-token",
+      refresh_token: "reconnect-loser-refresh-token",
+      refresh_profile: "client",
+      refresh_profile_proof: CLIENT_REFRESH_PROOF,
+      expires_at: EXPIRES,
+      granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    },
+  });
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+
+  await service.completeAuthorization({
+    ...principal(),
+    code: "reconnect-loser-code",
+    state: "reconnect-loser-state",
+    redirect_uri: REDIRECT_URI,
+  });
+
+  const persisted = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(persisted.credential_ref, stagedRef);
+  assert.equal(persisted.consented_at, stagedConsentedAt);
+  assert.equal(persisted.expires_at, stagedExpiresAt);
+  assert.equal(
+    dependencies.credentials.get(stagedRef).access_token,
+    "refresh-winner-access-token",
+  );
+  assert.equal(
+    dependencies.credentials.get(stagedRef).refresh_token,
+    "refresh-winner-refresh-token",
+  );
+  assert.doesNotMatch(
+    JSON.stringify(repository.snapshot()),
+    /reconnect-loser-access-token|reconnect-loser-refresh-token/u,
+  );
+});
+
+test("같은 generation의 staged credential이 만료됐으면 overwrite하지 않고 reauth로 닫는다", async () => {
+  const expiringAt = "2026-07-30T06:00:30.000Z";
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection({ expires_at: expiringAt })],
+  });
+  const dependencies = fakeDependencies();
+  const currentRef = connection().credential_ref;
+  const stagedRef = dependencies.credentialVault.referenceForGeneration({
+    ...principal(),
+    credential_generation: "m365-connection-state-2",
+  });
+  dependencies.credentials.set(currentRef, {
+    access_token: "current-expiring-access",
+    refresh_token: "current-expiring-refresh",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: expiringAt,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  dependencies.credentials.set(stagedRef, {
+    access_token: "stale-staged-access",
+    refresh_token: "stale-staged-refresh",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: "2026-07-30T05:00:00.000Z",
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  let refreshProviderCalls = 0;
+  dependencies.provider.refreshDelegatedCredential = async () => {
+    refreshProviderCalls += 1;
+    throw new Error("provider refresh must not run for a staged credential");
+  };
+  let graphCalls = 0;
+  dependencies.provider.getMeMessageMime = async () => {
+    graphCalls += 1;
+    return {};
+  };
+  const mail = createM365MailPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  });
+
+  await assert.rejects(mail.getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-stale-staged",
+  }), (error) => (
+    error.safe_error_code === M365_GRAPH_ERROR_CODES.reauthorization_required
+  ));
+  assert.equal(graphCalls, 0);
+  assert.equal(refreshProviderCalls, 0);
+  assert.equal(
+    dependencies.credentials.get(stagedRef).access_token,
+    "stale-staged-access",
+  );
+  const revoked = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(revoked.revoked_at, NOW);
+  assert.deepEqual(revoked.pending_vault_cleanup_refs, [currentRef, stagedRef]);
+});
+
+test("Client refresh 401은 Graph 호출 전 연결을 해제하고 기존 vault ref 정리를 요청한다", async () => {
   const expiringAt = "2026-07-30T06:00:30.000Z";
   const repository = createEmailDmsRepository({
     seedRecords: [connection({ expires_at: expiringAt })],
@@ -884,6 +1849,7 @@ test("Client refresh 401은 Graph 호출 전 연결과 vault credential을 폐�
     });
   };
   let graphCalls = 0;
+  const postCommitActions = [];
   dependencies.provider.getMeMessageMime = async () => {
     graphCalls += 1;
     throw new Error("Graph must not run after rejected refresh");
@@ -896,6 +1862,12 @@ test("Client refresh 401은 Graph 호출 전 연결과 vault credential을 폐�
     inquiry_feature_enabled: true,
     provider_runtime_enabled: true,
     clock: () => new Date(NOW),
+    request_failure_compensator: {
+      register() {},
+      registerPostCommit(action) {
+        postCommitActions.push(action);
+      },
+    },
   });
 
   await assert.rejects(
@@ -910,21 +1882,188 @@ test("Client refresh 401은 Graph 호출 전 연결과 vault credential을 폐�
     ),
   );
   assert.equal(graphCalls, 0);
-  assert.equal(dependencies.credentials.has(credentialRef), false);
+  assert.equal(dependencies.credentials.has(credentialRef), true);
+  assert.equal(dependencies.calls.includes("vault:delete"), false);
   const disconnected = repository.list({
     tenant_id: TENANT,
     model_type: "M365Connection",
   })[0];
   assert.equal(disconnected.revoked_at, NOW);
   assert.equal(disconnected.state_version, 2);
+  assert.deepEqual(disconnected.pending_vault_cleanup_refs, [
+    credentialRef,
+    generationRef(dependencies.credentialVault, 2),
+  ]);
+  const audit = repository.listAudit({ tenant_id: TENANT }).at(-1);
+  assert.equal(audit.event_type, "m365.connection.reauthorization_required");
+  assert.equal(audit.payload.credential_cleanup_requested, true);
+  assert.equal(audit.payload.credential_cleanup_requested_count, 2);
+  assert.equal(Object.hasOwn(audit.payload, "credential_cleanup_ref"), false);
+  const reauthorizationClaim = repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key:
+      `m365-reauthorize:${disconnected.m365_connection_id}:1`,
+  });
   assert.equal(
-    repository.listAudit({ tenant_id: TENANT }).at(-1).event_type,
+    reauthorizationClaim.operation,
     "m365.connection.reauthorization_required",
   );
+  assert.deepEqual(reauthorizationClaim.response, {
+    outcome: "reauthorization_required",
+    m365_connection_id: disconnected.m365_connection_id,
+    state_version: 2,
+    credential_material_included: false,
+  });
   assert.doesNotMatch(
     JSON.stringify(repository.snapshot()),
     /provider detail must not persist|rejected-client/u,
   );
+  assert.equal(postCommitActions.length, 1);
+  await postCommitActions[0]();
+  assert.equal(dependencies.credentials.has(credentialRef), false);
+});
+
+test("commit 뒤 cleanup 실패는 다음 Graph 요청에서 재시도하고 active ref는 보존한다", async () => {
+  const activeRef = connection().credential_ref;
+  const retiredRef = "aws-secrets-manager:synthetic/m365/retired";
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection({
+      pending_vault_cleanup_refs: [retiredRef],
+    })],
+  });
+  const dependencies = fakeDependencies();
+  dependencies.credentials.set(activeRef, {
+    access_token: "synthetic-access-token-never-persist",
+    refresh_token: "synthetic-refresh-token-never-persist",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: EXPIRES,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  dependencies.credentials.set(retiredRef, { retired: true });
+  let cleanupAttempts = 0;
+  dependencies.credentialVault.deleteDelegatedCredential = async ({
+    credential_ref,
+  }) => {
+    dependencies.calls.push("vault:delete");
+    assert.equal(credential_ref, retiredRef);
+    cleanupAttempts += 1;
+    if (cleanupAttempts === 1) throw new Error("synthetic cleanup outage");
+    dependencies.credentials.delete(credential_ref);
+  };
+  const mail = createM365MailPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  });
+
+  await mail.getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-synthetic-001",
+  });
+  assert.deepEqual(repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0].pending_vault_cleanup_refs, [retiredRef]);
+  assert.equal(dependencies.credentials.has(activeRef), true);
+
+  await mail.getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-synthetic-001",
+  });
+  const cleaned = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.deepEqual(cleaned.pending_vault_cleanup_refs, []);
+  assert.equal(cleaned.credential_ref, activeRef);
+  assert.equal(dependencies.credentials.has(activeRef), true);
+  assert.equal(dependencies.credentials.has(retiredRef), false);
+  assert.equal(cleanupAttempts, 2);
+});
+
+test("이미 해제된 연결의 반복 DELETE는 남은 vault cleanup을 재시도한다", async () => {
+  const credentialRef = connection().credential_ref;
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection({
+      revoked_at: NOW,
+      state_version: 2,
+      pending_vault_cleanup_refs: [credentialRef],
+    })],
+  });
+  const dependencies = fakeDependencies();
+  dependencies.credentials.set(credentialRef, { retired: true });
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+
+  const result = await service.revokeConnection({
+    ...principal(),
+    expected_state_version: 2,
+    reason: "사용자 연결 해제 재시도",
+  });
+  assert.equal(result.outcome, "already_disconnected");
+  const cleaned = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.deepEqual(cleaned.pending_vault_cleanup_refs, []);
+  assert.equal(cleaned.state_version, 2);
+  assert.equal(dependencies.credentials.has(credentialRef), false);
+});
+
+test("generation 저장 전 vault delete·reference capability가 없으면 fail-closed한다", async () => {
+  const expiringAt = "2026-07-30T06:00:30.000Z";
+  const seededConnection = connection({ expires_at: expiringAt });
+  const repository = createEmailDmsRepository({
+    seedRecords: [seededConnection],
+  });
+  const dependencies = fakeDependencies();
+  dependencies.credentials.set(seededConnection.credential_ref, {
+    access_token: "expiring-client-access-token",
+    refresh_token: "expiring-client-refresh-token",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+    expires_at: expiringAt,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    mailbox_address: "synthetic.m365.user@example.invalid",
+  });
+  delete dependencies.credentialVault.deleteDelegatedCredential;
+  let graphCalls = 0;
+  dependencies.provider.getMeMessageMime = async () => {
+    graphCalls += 1;
+    return {};
+  };
+  const mail = createM365MailPort({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+    clock: () => new Date(NOW),
+  });
+
+  await assert.rejects(mail.getOwnMessageMime({
+    ...principal(),
+    rest_message_id: "rest-message-no-delete-capability",
+  }), (error) => (
+    error.safe_error_code === M365_GRAPH_ERROR_CODES.provider_runtime_disabled
+    && error.status === 503
+  ));
+  assert.equal(graphCalls, 0);
+  assert.equal(dependencies.calls.includes("vault:store"), false);
 });
 
 test("CL-P3-W00-T01 만료·scope 부족·외부 영수증 누락은 출시와 provider 호출을 막는다", async () => {

@@ -24,7 +24,13 @@ async function createCallbackFixture({ failAfterCommand = false } = {}) {
   const runtimeAuthorityTenants = [];
   const verifiedPrincipals = [];
   let exchangeCount = 0;
+  let failNextAfterCommand = failAfterCommand;
   let now = new Date("2026-08-06T01:00:00.000Z");
+  const completionCheckpoint = Object.freeze({
+    claim: ({ apply }) => repository.transaction(apply),
+    finalize: ({ apply }) => repository.transaction(apply),
+    fail: ({ apply }) => repository.transaction(apply),
+  });
   const graphConfig = createClientOutlookM365GraphConfig({
     config: {
       tenant_id: "11111111-1111-4111-8111-111111111111",
@@ -40,12 +46,34 @@ async function createCallbackFixture({ failAfterCommand = false } = {}) {
       provider_runtime_enabled: true,
     },
     credential_vault: {
-      async storeDelegatedCredential({ credential_ref, token_bundle }) {
-        const reference = credential_ref ?? "aws-secrets-manager:test/client-outlook";
-        credentials.set(reference, structuredClone(token_bundle));
+      referenceForGeneration({
+        entra_subject_id,
+        credential_generation,
+      }) {
+        return `aws-secrets-manager:test/client-outlook/${entra_subject_id}/${credential_generation}`;
+      },
+      async storeDelegatedCredential({
+        credential_ref,
+        credential_generation,
+        entra_subject_id,
+        token_bundle,
+      }) {
+        const reference = credential_ref
+          ?? this.referenceForGeneration({
+            entra_subject_id,
+            credential_generation,
+          });
+        if (!credentials.has(reference)) {
+          credentials.set(reference, structuredClone(token_bundle));
+        }
         return reference;
       },
       async resolveDelegatedCredential({ credential_ref }) {
+        if (!credentials.has(credential_ref)) {
+          throw Object.assign(new Error("credential not found"), {
+            name: "ResourceNotFoundException",
+          });
+        }
         return structuredClone(credentials.get(credential_ref));
       },
       async deleteDelegatedCredential({ credential_ref }) {
@@ -104,9 +132,11 @@ async function createCallbackFixture({ failAfterCommand = false } = {}) {
             emailDmsRuntime: {
               repository,
               request_failure_compensator: requestFailureCompensator,
+              client_outlook_completion_checkpoint: completionCheckpoint,
             },
           });
-          if (failAfterCommand) {
+          if (failNextAfterCommand) {
+            failNextAfterCommand = false;
             throw Object.assign(new Error("synthetic outer domain flush failure"), {
               safe_error_code: "DOMAIN_BASELINE_CONFLICT",
             });
@@ -188,7 +218,7 @@ test("Client Outlook HTTPS callback completes on the server and safely replays",
   }
 });
 
-test("Client Outlook 서버 callback은 바깥 domain flush 실패 시 새 credential을 정리한다", async () => {
+test("Client Outlook 서버 callback의 바깥 flush 실패는 deterministic credential을 재시도용으로 보존한다", async () => {
   const fixture = await createCallbackFixture({ failAfterCommand: true });
   try {
     const state = await beginAuthorization(fixture.graphConfig);
@@ -198,7 +228,15 @@ test("Client Outlook 서버 callback은 바깥 domain flush 실패 시 새 crede
 
     assert.equal(response.status, 500);
     assert.equal(fixture.exchangeCount, 1);
-    assert.equal(fixture.credentialCount, 0);
+    assert.equal(fixture.credentialCount, 1);
+    assert.equal(repositoryConnectionStatus(fixture.repository), "connected");
+
+    const replay = await fetch(callbackUrl(fixture, state), {
+      redirect: "manual",
+    });
+    assert.equal(replay.status, 302);
+    assert.equal(new URL(replay.headers.get("location")).hash, "#status=connected");
+    assert.equal(fixture.exchangeCount, 1);
   } finally {
     await fixture.close();
   }

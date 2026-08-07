@@ -9,7 +9,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import {
+  DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+  createDmsAuxiliaryRepository,
+} from "../../../packages/dms/src/central-ledger.js";
 import { addPeopleVisibleMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
+import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { MATTER_DOMAIN_DESCRIPTOR } from "../../../packages/matter/src/central-ledger.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -37,6 +43,10 @@ import {
 import { handlePortalApiRequest } from "../src/portal-runtime-context.js";
 import { handleReportsApiRequest } from "../src/reports-runtime-context.js";
 import {
+  handleClientOutlookAuthorizationCallback,
+  handleOutlookAddinApiRequest,
+} from "../src/outlook-addin-runtime-context.js";
+import {
   createPostgresSessionObjectAclResolver,
 } from "../src/session-object-acl-authority.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
@@ -52,6 +62,11 @@ import {
   hashMailboxAddress,
   m365ConnectionId,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
+import {
+  acquireActiveM365Credential,
+  M365_GRAPH_CALLBACK_MODES,
+  createM365GraphConnectionService,
+} from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import {
   createEmailDmsRepository,
 } from "../../../packages/email-dms/src/repository.js";
@@ -485,6 +500,48 @@ test("PostgreSQL request failure runs registered external compensation once", as
   assert.deepEqual(calls, ["credential:deleted"]);
 });
 
+test("PostgreSQL request success runs post-commit cleanup but never failure compensation", async () => {
+  const calls = [];
+  const result = await runWithRequestFailureCompensation(async (compensator) => {
+    compensator.register(async () => calls.push("new-credential:deleted"));
+    compensator.registerPostCommit(async () => calls.push("old-credential:deleted"));
+    return "committed";
+  });
+  assert.equal(result, "committed");
+  assert.deepEqual(calls, ["old-credential:deleted"]);
+});
+
+test("PostgreSQL request ignores post-commit cleanup failure after durable commit", async () => {
+  const result = await runWithRequestFailureCompensation(async (compensator) => {
+    compensator.registerPostCommit(async () => {
+      throw new Error("synthetic cleanup outage");
+    });
+    return "committed";
+  });
+  assert.equal(result, "committed");
+});
+
+test("PostgreSQL request does not retry after new credential compensation fails", async () => {
+  let attempts = 0;
+  await assert.rejects(runPostgresReadWithBaselineRetry({
+    method: "POST",
+    pathname: "/api/outlook/email/file",
+    retryLimit: 2,
+    allowIdempotentWriteRetry: true,
+    wait: async () => {},
+    execute: async () => runWithRequestFailureCompensation(async (compensator) => {
+      attempts += 1;
+      compensator.register(async () => {
+        throw new Error("synthetic vault cleanup outage");
+      });
+      throw Object.assign(new Error("baseline conflict with orphan risk"), {
+        safe_error_code: "REPOSITORY_VERSION_CONFLICT",
+      });
+    }),
+  }), (error) => error.request_compensation_failed === true);
+  assert.equal(attempts, 1);
+});
+
 test("PostgreSQL Matter assignment excludes a disabled identity account", async (t) => {
   const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
   if (!fixture) return;
@@ -886,7 +943,10 @@ test("PostgreSQL API authority persists consultation schedule and completion fie
         requestId: "request-postgres-consultation-outlook-event",
         runtime: {
           ...runtimes.crmIntakeRuntime,
-          emailDmsRuntime: { repository: emailDmsRepository },
+          emailDmsRuntime: {
+            ...runtimes.emailDmsRuntime,
+            repository: emailDmsRepository,
+          },
           m365GraphConfig: {
             feature_enabled: true,
             provider_runtime_enabled: true,
@@ -3451,6 +3511,780 @@ test("concurrent PostgreSQL self completion commits one durable claim before one
   ]) {
     assert.equal(durableText.includes(secret), false);
   }
+});
+
+test("PostgreSQL Outlook filing keeps the winning refreshed credential when a concurrent refresh gets 401", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 24 });
+  if (!fixture) return;
+  const tenant_id = "tenant_postgres_outlook_file_refresh";
+  const matter_id = "matter_postgres_outlook_file_refresh";
+  const user_id = "user_postgres_outlook_file_refresh";
+  const entra_subject_id = "entra-postgres-outlook-file-refresh";
+  const mailbox = "postgres-outlook-file-refresh@example.test";
+  const credential_ref = "aws-secrets-manager:synthetic/postgres-outlook-file-refresh";
+  const refreshed_credential_ref = `${credential_ref}/${entra_subject_id}/m365-connection-state-2`;
+  const connection_id = m365ConnectionId({ tenant_id, user_id });
+  const now = new Date("2026-08-07T00:00:00.000Z");
+  const expires_at = "2026-08-07T00:00:30.000Z";
+  const rotated_expires_at = "2026-08-07T02:00:00.000Z";
+  const [oldAccess, oldRefresh, newAccess, newRefresh] = [
+    "postgres-outlook-file-expiring-access-token-never-persist",
+    "postgres-outlook-file-expiring-refresh-token-never-persist",
+    "postgres-outlook-file-rotated-access-token-never-persist",
+    "postgres-outlook-file-rotated-refresh-token-never-persist",
+  ];
+  const email = {
+    graph_message_id: "rest:postgres-outlook-file-refresh",
+    internet_message_id: "<postgres-outlook-file-refresh@example.test>",
+    conversation_id: "conversation-postgres-outlook-file-refresh",
+    subject: "PostgreSQL Outlook refresh filing regression",
+    attachments: [],
+  };
+  const mime_bytes = Buffer.from(
+    "From: opposing@example.test\r\nSubject: " + email.subject
+      + "\r\nMessage-ID: " + email.internet_message_id
+      + "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain\r\n\r\nfixture",
+  );
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "postgres-api-outlook-file-refresh-test" });
+  const dmsUploadRuntime = createPostgresDmsUploadRuntime({
+    pool: fixture.appPool, storage: dmsStorage, sourceOnly: false, clock: () => now,
+    workerId: "dms-worker:postgres-outlook-file-refresh-test",
+  });
+  const credentialStore = {
+    [credential_ref]: {
+      access_token: oldAccess, refresh_token: oldRefresh, refresh_profile: "client",
+      refresh_profile_proof: "C".repeat(43), expires_at, granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+      mailbox_address: mailbox, entra_subject_id, consented_at: "2026-08-06T00:00:00.000Z",
+    },
+  };
+  let refreshCount = 0;
+  let graphCount = 0;
+  let storeCount = 0;
+  let deleteCount = 0;
+  const deletedRefs = [];
+  let firstRefreshStartedResolve;
+  let secondRefreshStartedResolve;
+  let winnerCommittedResolve;
+  const firstRefreshStarted = new Promise((resolve) => { firstRefreshStartedResolve = resolve; });
+  const secondRefreshStarted = new Promise((resolve) => { secondRefreshStartedResolve = resolve; });
+  const winnerCommitted = new Promise((resolve) => { winnerCommittedResolve = resolve; });
+  const m365GraphConfig = {
+    feature_enabled: true, inquiry_feature_enabled: true, provider_runtime_enabled: true, clock: () => now,
+    credential_vault: {
+      referenceForGeneration({
+        entra_subject_id: subjectId,
+        credential_generation,
+      }) {
+        return `${credential_ref}/${subjectId}/${credential_generation}`;
+      },
+      async resolveDelegatedCredential({ credential_ref: ref }) {
+        if (!credentialStore[ref]) {
+          throw Object.assign(new Error("credential not found"), {
+            name: "ResourceNotFoundException",
+          });
+        }
+        return structuredClone(credentialStore[ref]);
+      },
+      async storeDelegatedCredential({
+        credential_ref: ref,
+        credential_generation,
+        token_bundle,
+      }) {
+        storeCount += 1;
+        assert.equal(ref, undefined);
+        assert.equal(credential_generation, "m365-connection-state-2");
+        if (!credentialStore[refreshed_credential_ref]) {
+          credentialStore[refreshed_credential_ref] = structuredClone(token_bundle);
+        }
+        return refreshed_credential_ref;
+      },
+      async deleteDelegatedCredential({ credential_ref: ref }) {
+        deleteCount += 1; deletedRefs.push(ref); delete credentialStore[ref];
+      },
+    },
+    provider: {
+      async refreshDelegatedCredential({ credential }) {
+        refreshCount += 1; assert.equal(credential.access_token, oldAccess); assert.equal(credential.refresh_token, oldRefresh);
+        if (refreshCount === 1) {
+          firstRefreshStartedResolve();
+          await secondRefreshStarted;
+        } else {
+          secondRefreshStartedResolve();
+          await winnerCommitted;
+          throw Object.assign(new Error("concurrent refresh token rejected"), { status: 401 });
+        }
+        return {
+          expires_at: rotated_expires_at,
+          token_bundle: { ...credential, access_token: newAccess, refresh_token: newRefresh,
+            refresh_profile_proof: "R".repeat(43), expires_at: rotated_expires_at,
+            granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES] },
+        };
+      },
+      async getMeMessageMime({ credential, rest_message_id }) {
+        graphCount += 1; assert.equal(rest_message_id, email.graph_message_id); assert.equal(credential.access_token, newAccess);
+        return {
+          mime_bytes, immutable_message_id: "immutable:postgres-outlook-file-refresh",
+          internet_message_id: email.internet_message_id, provider_request_id: "provider:postgres-outlook-file-refresh",
+          message_metadata: {
+            conversation_id: email.conversation_id, internet_message_id: email.internet_message_id,
+            subject: email.subject, sender: { address: "opposing@example.test" }, from: { address: "opposing@example.test" },
+            recipients: [{ address: mailbox, recipient_type: "to" }], received_at: "2026-08-07T00:00:01.000Z",
+            has_attachments: false, is_in_sent_items: false, is_draft: false,
+          },
+        };
+      },
+    },
+  };
+  const sources = [
+    [MATTER_DOMAIN_DESCRIPTOR, createMatterRepository({ seedRecords: [{
+      model_type: "Matter", tenant_id, matter_id, matter_code: "POSTGRES/OUTLOOK/FILE/REFRESH",
+      client_id: "client_postgres_outlook_file_refresh", title: "PostgreSQL Outlook refresh filing Matter",
+      status: "open", created_by: user_id, created_at: "2026-08-06T00:00:00.000Z",
+      permission_envelope_id: "perm:postgres:outlook:file:refresh", audit_trace_id: "audit:postgres:outlook:file:refresh",
+    }] }), "matter"],
+    [DMS_AUXILIARY_DOMAIN_DESCRIPTOR, createDmsAuxiliaryRepository(), "dms"],
+    [EMAIL_DMS_DOMAIN_DESCRIPTOR, createEmailDmsRepository({ seedRecords: [{
+      model_type: "M365Connection", m365_connection_id: connection_id, tenant_id, user_id, entra_subject_id,
+      mailbox_address_hash: hashMailboxAddress(mailbox), credential_ref, granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+      consented_at: "2026-08-06T00:00:00.000Z", expires_at, revoked_at: null, state_version: 1,
+    }] }), "email-dms"],
+  ];
+  for (const [descriptor, repository, source_id] of sources) {
+    try {
+      await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+        descriptor, repositories: [{ source_id, repository }], tenant_id,
+      }).snapshot);
+    } finally { repository.close(); }
+  }
+  await importHrxAuthorityBaseline(ledger, tenant_id);
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger, dmsStorage, payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS, dmsUploadRuntime,
+  });
+  const context = {
+    principal: { tenant_id, user_id, email: mailbox, entra_subject_id },
+    rules: [{ id: "postgres-outlook-file-refresh-allow", effect: "allow", action: "*" }],
+    object_acl: [],
+  };
+  const run = (requestId) => authority.run({
+    tenant_id,
+    request_context: { method: "POST", pathname: "/api/outlook/email/file", idempotency_key: "postgres-outlook-file-refresh-request", actor_id: user_id },
+    command: (runtimes) => handleOutlookAddinApiRequest({
+      pathname: "/api/outlook/email/file", method: "POST", query: {},
+      body: { tenant_id, matter_id, email }, context, requestId,
+      runtime: { ...runtimes, m365GraphConfig },
+    }),
+  });
+  const read = async (domain_id) => ({
+    records: await ledger.list({ tenant_id, domain_id }),
+    idempotency: await ledger.listIdempotency({ tenant_id, domain_id }),
+    audit: await ledger.listAudit({ tenant_id, domain_id }),
+  });
+  const state = async () => ({
+    email: await read(EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id),
+    dms: await read(DMS_AUXILIARY_DOMAIN_DESCRIPTOR.domain_id),
+    matter: await read(MATTER_DOMAIN_DESCRIPTOR.domain_id),
+  });
+  const counts = (value) => [
+    value.email.idempotency.filter(({ key }) => key.startsWith("m365-refresh:")).length,
+    value.email.audit.filter(({ event_type }) => event_type === "m365.connection.credential.refreshed").length,
+    value.dms.records.filter(({ record_type }) => record_type === "DmsEmailThread").length,
+    value.dms.idempotency.filter(({ key }) => key.startsWith("outlook-email-file:")).length,
+    value.dms.audit.filter(({ event_type }) => event_type === "dms.email.thread.file").length,
+    value.matter.records.filter(({ record_type }) => record_type === "MatterTimelineEvent").length,
+    value.matter.idempotency.filter(({ key }) => key.startsWith("outlook-email-file:")).length,
+    value.matter.audit.filter(({ event_type }) => event_type === "matter.timeline.outlook.file").length,
+  ];
+  const firstRequest = run("request-postgres-outlook-file-refresh-first");
+  await firstRefreshStarted;
+  const winningRequest = firstRequest.then((result) => {
+    winnerCommittedResolve();
+    return result;
+  }, (error) => {
+    winnerCommittedResolve();
+    throw error;
+  });
+  const concurrentRequest = run("request-postgres-outlook-file-refresh-concurrent");
+  const [first, replay] = await Promise.all([winningRequest, concurrentRequest]);
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  assert.equal(first.body.outcome, "created");
+  assert.equal(first.body.safe_error_codes.includes("DOMAIN_IDEMPOTENCY_REQUIRED"), false);
+  assert.equal(replay.status, 200, JSON.stringify(replay.body));
+  assert.equal(replay.body.outcome, "idempotent_replay");
+  assert.equal(replay.body.idempotent_replay, true);
+  assert.deepEqual(
+    [refreshCount, storeCount, deleteCount, graphCount],
+    [2, 1, 2, 2],
+  );
+  assert.equal(Object.hasOwn(credentialStore, credential_ref), false);
+  assert.equal(Object.hasOwn(credentialStore, refreshed_credential_ref), true);
+  assert.deepEqual(deletedRefs, [credential_ref, credential_ref]);
+  const documentId = first.body.email_thread.filed_document_ids[0];
+  const firstDocument = await dmsUploadRuntime.getDocumentState({ tenant_id, document_id: documentId });
+  assert.equal(firstDocument.versions.length, 1);
+  const firstState = await state();
+  const connection = firstState.email.records.find(({ record_type }) => record_type === "M365Connection").payload;
+  assert.equal(connection.credential_ref, refreshed_credential_ref);
+  assert.deepEqual(connection.pending_vault_cleanup_refs, []);
+  assert.deepEqual([connection.state_version, connection.expires_at], [2, rotated_expires_at]);
+  assert.deepEqual(counts(firstState), [1, 1, 1, 2, 1, 1, 1, 1]);
+  assert.equal(
+    firstState.dms.idempotency.some(({ key }) => (
+      key === `outlook-matter-folders:${tenant_id}:${matter_id}:v1`
+    )),
+    true,
+  );
+  const replayDocument = await dmsUploadRuntime.getDocumentState({ tenant_id, document_id: documentId });
+  assert.equal(replayDocument.versions.length, 1);
+  assert.equal(replayDocument.document.current_version_id, firstDocument.document.current_version_id);
+  const replayState = await state();
+  assert.deepEqual(counts(replayState), counts(firstState));
+  assert.equal(replayState.dms.records.find(({ record_type }) => record_type === "DmsEmailThread").payload.status, "active");
+  assert.equal(replayState.matter.records.find(({ record_type }) => record_type === "MatterTimelineEvent").payload.source_object_id, first.body.email_thread.email_thread_id);
+  const durableText = JSON.stringify({ first: first.body, replay: replay.body, durable: replayState, document: replayDocument });
+  for (const secret of [oldAccess, oldRefresh, newAccess, newRefresh]) assert.equal(durableText.includes(secret), false);
+  assert.doesNotMatch(durableText, /(?:access_token|refresh_token|client_secret)/u);
+});
+
+test("PostgreSQL revoke tombstone blocks a provider-latched late refresh generation", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 16 });
+  if (!fixture) return;
+  const tenant_id = "tenant_postgres_m365_revoke_refresh_race";
+  const user_id = "user_postgres_m365_revoke_refresh_race";
+  const entra_subject_id = "subject_postgres_m365_revoke_refresh_race";
+  const mailbox = "postgres-m365-revoke-refresh-race@example.test";
+  const credential_ref =
+    "aws-secrets-manager:synthetic/postgres-m365-revoke-refresh-race/current";
+  const staged_ref =
+    `${credential_ref}/${entra_subject_id}/m365-connection-state-2`;
+  const connection_id = m365ConnectionId({ tenant_id, user_id });
+  const now = new Date("2026-08-07T00:00:00.000Z");
+  const expires_at = "2026-08-07T00:00:30.000Z";
+  const oldAccess = "postgres-revoke-race-old-access-never-persist";
+  const oldRefresh = "postgres-revoke-race-old-refresh-never-persist";
+  const lateAccess = "postgres-revoke-race-late-access-never-persist";
+  const lateRefresh = "postgres-revoke-race-late-refresh-never-persist";
+  const credentialStore = new Map([[credential_ref, {
+    access_token: oldAccess,
+    refresh_token: oldRefresh,
+    refresh_profile: "client",
+    refresh_profile_proof: "C".repeat(43),
+    entra_subject_id,
+    mailbox_address: mailbox,
+    consented_at: "2026-08-06T00:00:00.000Z",
+    expires_at,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  }]]);
+  const tombstones = new Set();
+  const deletedRefs = [];
+  let refreshCalls = 0;
+  let storeCalls = 0;
+  let graphCalls = 0;
+  let releaseRefresh;
+  let refreshStartedResolve;
+  const refreshStarted = new Promise((resolve) => {
+    refreshStartedResolve = resolve;
+  });
+  const refreshRelease = new Promise((resolve) => {
+    releaseRefresh = resolve;
+  });
+  const credential_vault = {
+    referenceForGeneration({
+      entra_subject_id: subjectId,
+      credential_generation,
+    }) {
+      return `${credential_ref}/${subjectId}/${credential_generation}`;
+    },
+    async resolveDelegatedCredential({ credential_ref: ref }) {
+      if (tombstones.has(ref)) {
+        throw Object.assign(new Error("credential generation revoked"), {
+          safe_error_code: "M365_REAUTHORIZATION_REQUIRED",
+          status: 401,
+        });
+      }
+      if (!credentialStore.has(ref)) {
+        throw Object.assign(new Error("credential not found"), {
+          name: "ResourceNotFoundException",
+        });
+      }
+      return structuredClone(credentialStore.get(ref));
+    },
+    async storeDelegatedCredential({
+      credential_generation,
+      token_bundle,
+    }) {
+      storeCalls += 1;
+      assert.equal(credential_generation, "m365-connection-state-2");
+      if (!tombstones.has(staged_ref) && !credentialStore.has(staged_ref)) {
+        credentialStore.set(staged_ref, structuredClone(token_bundle));
+      }
+      return staged_ref;
+    },
+    async deleteDelegatedCredential({ credential_ref: ref }) {
+      deletedRefs.push(ref);
+      credentialStore.delete(ref);
+      tombstones.add(ref);
+    },
+  };
+  const provider = {
+    async refreshDelegatedCredential({ credential }) {
+      refreshCalls += 1;
+      assert.equal(credential.access_token, oldAccess);
+      refreshStartedResolve();
+      await refreshRelease;
+      return {
+        token_bundle: {
+          ...credential,
+          access_token: lateAccess,
+          refresh_token: lateRefresh,
+          refresh_profile_proof: "R".repeat(43),
+          expires_at: "2026-08-07T02:00:00.000Z",
+          granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+        },
+      };
+    },
+    async revokeDelegatedCredential() {
+      return { revoked: true };
+    },
+    async getMeMessageMime() {
+      graphCalls += 1;
+      throw new Error("Graph must not run after revoke wins");
+    },
+  };
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const seedRepository = createEmailDmsRepository({ seedRecords: [{
+    model_type: "M365Connection",
+    m365_connection_id: connection_id,
+    tenant_id,
+    user_id,
+    entra_subject_id,
+    mailbox_address_hash: hashMailboxAddress(mailbox),
+    credential_ref,
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+    consented_at: "2026-08-06T00:00:00.000Z",
+    expires_at,
+    revoked_at: null,
+    state_version: 1,
+  }] });
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
+      repositories: [{ source_id: "email-dms", repository: seedRepository }],
+      tenant_id,
+    }).snapshot);
+  } finally {
+    seedRepository.close();
+  }
+  await importHrxAuthorityBaseline(ledger, tenant_id);
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-m365-revoke-refresh-race",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+      clock: () => now,
+      workerId: "dms-worker:postgres-m365-revoke-refresh-race",
+    }),
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+  });
+  const requestContext = (pathname) => ({
+    method: "POST",
+    pathname,
+    idempotency_key: `postgres-m365-revoke-refresh-race:${pathname}`,
+    actor_id: user_id,
+  });
+  const acquire = authority.run({
+    tenant_id,
+    request_context: requestContext("/test/m365/acquire"),
+    command: ({ emailDmsRuntime }) => acquireActiveM365Credential({
+      repository: emailDmsRuntime.repository,
+      credential_vault,
+      provider,
+      request_failure_compensator:
+        emailDmsRuntime.request_failure_compensator,
+      tenant_id,
+      user_id,
+      entra_subject_id,
+      required_scope: "Mail.Read",
+      clock: () => now,
+    }),
+  });
+  await refreshStarted;
+  const revoked = await authority.run({
+    tenant_id,
+    request_context: requestContext("/test/m365/revoke"),
+    command: ({ emailDmsRuntime }) => createM365GraphConnectionService({
+      repository: emailDmsRuntime.repository,
+      credential_vault,
+      provider,
+      feature_enabled: true,
+      provider_runtime_enabled: true,
+      clock: () => now,
+      request_failure_compensator:
+        emailDmsRuntime.request_failure_compensator,
+    }).revokeConnection({
+      tenant_id,
+      user_id,
+      entra_subject_id,
+      expected_state_version: 1,
+      reason: "concurrent user revoke",
+    }),
+  });
+  assert.equal(revoked.outcome, "disconnected");
+  assert.equal(tombstones.has(staged_ref), true);
+  releaseRefresh();
+  await assert.rejects(acquire);
+
+  assert.deepEqual([refreshCalls, storeCalls, graphCalls], [1, 1, 0]);
+  assert.equal(credentialStore.has(staged_ref), false);
+  assert.equal(deletedRefs.includes(credential_ref), true);
+  assert.equal(deletedRefs.includes(staged_ref), true);
+  const records = await ledger.list({
+    tenant_id,
+    domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const durableConnection = records.find(
+    ({ record_type }) => record_type === "M365Connection",
+  ).payload;
+  assert.equal(durableConnection.revoked_at, now.toISOString());
+  assert.equal(durableConnection.state_version, 2);
+  assert.notEqual(durableConnection.credential_ref, staged_ref);
+  const durableText = JSON.stringify({ records });
+  for (const secret of [oldAccess, oldRefresh, lateAccess, lateRefresh]) {
+    assert.equal(durableText.includes(secret), false);
+  }
+});
+
+test("PostgreSQL authenticated Client POST completion stays in the outer Email DMS transaction", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const tenant_id = "tenant_postgres_client_post_completion";
+  const user_id = "user_postgres_client_post_completion";
+  const entra_subject_id = "subject_postgres_client_post_completion";
+  const redirect_uri =
+    "https://app.example.invalid/api/outlook/connection/callback";
+  const credentialStore = new Map();
+  let exchangeCalls = 0;
+  const credential_vault = {
+    referenceForGeneration({ credential_generation }) {
+      return `aws-secrets-manager:synthetic/postgres-client-post/${credential_generation}`;
+    },
+    async storeDelegatedCredential(input) {
+      const ref = this.referenceForGeneration(input);
+      credentialStore.set(ref, structuredClone(input.token_bundle));
+      return ref;
+    },
+    async resolveDelegatedCredential({ credential_ref }) {
+      return structuredClone(credentialStore.get(credential_ref));
+    },
+    async deleteDelegatedCredential({ credential_ref }) {
+      credentialStore.delete(credential_ref);
+    },
+  };
+  const provider = {
+    async completeDelegatedAuthorization() {
+      exchangeCalls += 1;
+      return {
+        authorization_attempt_consumed: true,
+        entra_subject_id,
+        mailbox_address: "postgres-client-post@example.test",
+        granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+        consented_at: "2026-08-07T00:00:00.000Z",
+        expires_at: "2026-08-07T02:00:00.000Z",
+        token_bundle: {
+          access_token: "postgres-client-post-access-never-persist",
+          refresh_token: "postgres-client-post-refresh-never-persist",
+          refresh_profile: "client",
+          refresh_profile_proof: "P".repeat(43),
+          expires_at: "2026-08-07T02:00:00.000Z",
+          granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+        },
+      };
+    },
+  };
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const seedRepository = createEmailDmsRepository();
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
+      repositories: [{ source_id: "email-dms", repository: seedRepository }],
+      tenant_id,
+    }).snapshot);
+  } finally {
+    seedRepository.close();
+  }
+  await importHrxAuthorityBaseline(ledger, tenant_id);
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-client-post-completion",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+    }),
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+  });
+  const context = {
+    principal: {
+      tenant_id,
+      user_id,
+      entra_subject_id,
+      email: "postgres-client-post@example.test",
+    },
+    rules: [{ id: "postgres-client-post-allow", effect: "allow", action: "*" }],
+    object_acl: [],
+  };
+  const response = await authority.run({
+    tenant_id,
+    request_context: {
+      method: "POST",
+      pathname: "/api/outlook/connection/complete",
+      idempotency_key: "postgres-client-post-completion",
+      actor_id: user_id,
+    },
+    command: (runtimes) => handleOutlookAddinApiRequest({
+      pathname: "/api/outlook/connection/complete",
+      method: "POST",
+      body: {
+        actor_id: user_id,
+        tenant_id,
+        code: "postgres-client-post-code",
+        state: "postgres-client-post-state",
+        redirect_uri,
+      },
+      context,
+      requestId: "request-postgres-client-post-completion",
+      runtime: {
+        ...runtimes,
+        m365GraphConfig: {
+          feature_enabled: true,
+          provider_runtime_enabled: true,
+          allowed_redirect_uris: [redirect_uri],
+          clock: () => new Date("2026-08-07T00:00:00.000Z"),
+          credential_vault,
+          provider,
+        },
+      },
+    }),
+  });
+
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  assert.equal(response.body.outcome, "connected");
+  assert.equal(exchangeCalls, 1);
+  const records = await ledger.list({
+    tenant_id,
+    domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const connection = records.find(
+    ({ record_type }) => record_type === "M365Connection",
+  )?.payload;
+  assert.equal(connection?.state_version, 1);
+  assert.equal(
+    credentialStore.has(connection?.credential_ref),
+    true,
+  );
+  assert.doesNotMatch(
+    JSON.stringify({ records }),
+    /postgres-client-post-(?:access|refresh)-never-persist/u,
+  );
+});
+
+test("PostgreSQL Client callback checkpoint allows one exchange and replays from the attempt Secret", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 16 });
+  if (!fixture) return;
+  const tenant_id = "tenant_postgres_client_callback_checkpoint";
+  const user_id = "user_postgres_client_callback_checkpoint";
+  const entra_subject_id = "subject_postgres_client_callback_checkpoint";
+  const mailbox = "postgres-client-callback@example.test";
+  const state = "postgres-client-callback-state";
+  const code = "postgres-client-callback-code";
+  const redirect_uri =
+    "https://app.example.invalid/api/outlook/connection/callback";
+  const attempt_ref = createHash("sha256").update(state).digest("hex");
+  const credentialStore = new Map();
+  const tombstones = new Set();
+  let exchangeCalls = 0;
+  let exchangeStartedResolve;
+  let releaseExchange;
+  const exchangeStarted = new Promise((resolve) => {
+    exchangeStartedResolve = resolve;
+  });
+  const exchangeRelease = new Promise((resolve) => {
+    releaseExchange = resolve;
+  });
+  const credential_vault = {
+    referenceForGeneration({
+      entra_subject_id: subjectId,
+      credential_generation,
+    }) {
+      return `aws-secrets-manager:synthetic/postgres-client-callback/${subjectId}/${credential_generation}`;
+    },
+    async storeDelegatedCredential(input) {
+      const ref = this.referenceForGeneration(input);
+      if (!tombstones.has(ref) && !credentialStore.has(ref)) {
+        credentialStore.set(ref, structuredClone(input.token_bundle));
+      }
+      return ref;
+    },
+    async resolveDelegatedCredential({ credential_ref }) {
+      if (tombstones.has(credential_ref)) {
+        throw Object.assign(new Error("credential revoked"), {
+          safe_error_code: "M365_REAUTHORIZATION_REQUIRED",
+          status: 401,
+        });
+      }
+      if (!credentialStore.has(credential_ref)) {
+        throw Object.assign(new Error("credential not found"), {
+          name: "ResourceNotFoundException",
+        });
+      }
+      return structuredClone(credentialStore.get(credential_ref));
+    },
+    async deleteDelegatedCredential({ credential_ref }) {
+      credentialStore.delete(credential_ref);
+      tombstones.add(credential_ref);
+    },
+  };
+  const principal = Object.freeze({
+    tenant_id,
+    user_id,
+    entra_subject_id,
+    redirect_uri,
+    callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+  });
+  const provider = {
+    resolveDelegatedAuthorizationState() {
+      return principal;
+    },
+    async completeDelegatedAuthorization() {
+      exchangeCalls += 1;
+      exchangeStartedResolve();
+      await exchangeRelease;
+      return {
+        authorization_attempt_consumed: true,
+        entra_subject_id,
+        mailbox_address: mailbox,
+        granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+        consented_at: "2026-08-07T00:00:00.000Z",
+        expires_at: "2026-08-07T02:00:00.000Z",
+        token_bundle: {
+          access_token: "postgres-client-callback-access-never-persist",
+          refresh_token: "postgres-client-callback-refresh-never-persist",
+          refresh_profile: "client",
+          refresh_profile_proof: "C".repeat(43),
+          expires_at: "2026-08-07T02:00:00.000Z",
+          granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+        },
+      };
+    },
+  };
+  const m365GraphConfig = {
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [redirect_uri],
+    clock: () => new Date("2026-08-07T00:00:00.000Z"),
+    credential_vault,
+    provider,
+  };
+  const sessionAuth = {
+    async verifyOutlookCallbackPrincipal() {
+      return { ok: true };
+    },
+  };
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const seedRepository = createEmailDmsRepository();
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
+      repositories: [{ source_id: "email-dms", repository: seedRepository }],
+      tenant_id,
+    }).snapshot);
+  } finally {
+    seedRepository.close();
+  }
+  await importHrxAuthorityBaseline(ledger, tenant_id);
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "postgres-client-callback-checkpoint",
+  });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger,
+    dmsStorage,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool,
+      storage: dmsStorage,
+      sourceOnly: false,
+      clock: () => new Date("2026-08-07T00:00:00.000Z"),
+      workerId: "dms-worker:postgres-client-callback-checkpoint",
+    }),
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+  });
+  const run = (requestId) => authority.run({
+    tenant_id,
+    request_context: {
+      method: "GET",
+      pathname: "/api/outlook/connection/callback",
+      idempotency_key: `postgres-client-callback:${requestId}`,
+      actor_id: user_id,
+    },
+    command: (runtimes) => handleClientOutlookAuthorizationCallback({
+      code,
+      state,
+      requestId,
+      runtime: {
+        ...runtimes,
+        m365GraphConfig,
+        sessionAuth,
+      },
+    }),
+  });
+
+  const first = run("callback-request-first");
+  await exchangeStarted;
+  const concurrent = await run("callback-request-concurrent");
+  assert.equal(concurrent.status, 409);
+  assert.deepEqual(concurrent.body.safe_error_codes, [
+    "M365_AUTHORIZATION_COMPLETION_IN_PROGRESS",
+  ]);
+  assert.equal(exchangeCalls, 1);
+  assert.equal(credentialStore.size, 0);
+  releaseExchange();
+  const connected = await first;
+  assert.equal(connected.status, 200, JSON.stringify(connected.body));
+  assert.equal(connected.body.outcome, "connected");
+
+  const replay = await run("callback-request-replay");
+  assert.equal(replay.status, 200, JSON.stringify(replay.body));
+  assert.equal(replay.body.item.replayed, true);
+  assert.equal(exchangeCalls, 1);
+  const attemptCredentialRef = credential_vault.referenceForGeneration({
+    ...principal,
+    credential_generation: `m365-authorization-attempt-${attempt_ref}`,
+  });
+  assert.equal(credentialStore.has(attemptCredentialRef), true);
+  const records = await ledger.list({
+    tenant_id,
+    domain_id: EMAIL_DMS_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const durableConnection = records.find(
+    ({ record_type }) => record_type === "M365Connection",
+  ).payload;
+  assert.equal(durableConnection.credential_ref, attemptCredentialRef);
+  const durableText = JSON.stringify({ records });
+  assert.doesNotMatch(
+    durableText,
+    /postgres-client-callback-(?:access|refresh)-never-persist/u,
+  );
 });
 
 test("PostgreSQL API authority persists termination completion and its authoritative payroll evidence together", async (t) => {

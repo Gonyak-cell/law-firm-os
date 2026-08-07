@@ -1122,6 +1122,8 @@ function m365CalendarPort(runtime) {
       runtime?.emailDmsRuntime?.repository
       ?? runtime?.emailDmsRepository,
     ...(runtime?.m365GraphConfig ?? {}),
+    request_failure_compensator:
+      runtime?.emailDmsRuntime?.request_failure_compensator,
   });
 }
 

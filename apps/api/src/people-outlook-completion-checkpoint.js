@@ -18,6 +18,7 @@ const CHECKPOINT_RETRYABLE_CODES = new Set([
   "40001",
   "40P01",
   "DOMAIN_BASELINE_CONFLICT",
+  "DOMAIN_SHADOW_DIFFERENCE",
   "POSTGRES_UNIQUE_CONFLICT",
   "REPOSITORY_VERSION_CONFLICT",
 ]);
@@ -33,17 +34,24 @@ function isRetryable(error) {
     || CHECKPOINT_RETRYABLE_CODES.has(error?.safe_error_code);
 }
 
-export function createPostgresPeopleOutlookCompletionCheckpoint({ ledger } = {}) {
+export function createPostgresEmailDmsCompletionCheckpoint({
+  ledger,
+  workflow,
+} = {}) {
   if (!ledger || typeof ledger.transaction !== "function") {
     throw new TypeError(
-      "PostgreSQL domain ledger is required for the People Outlook completion checkpoint",
+      "PostgreSQL domain ledger is required for the Email DMS completion checkpoint",
     );
+  }
+  const workflowName = requiredText(workflow, "completion workflow");
+  if (!/^[a-z0-9-]+$/u.test(workflowName)) {
+    throw new TypeError("completion workflow is invalid");
   }
 
   async function mutate(stage, { tenant_id, apply } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     if (typeof apply !== "function") {
-      throw new TypeError(`People Outlook ${stage} checkpoint callback is required`);
+      throw new TypeError(`${workflowName} ${stage} checkpoint callback is required`);
     }
 
     for (let attempt = 0; ; attempt += 1) {
@@ -69,14 +77,14 @@ export function createPostgresPeopleOutlookCompletionCheckpoint({ ledger } = {})
             const result = apply(repository);
             if (result && typeof result.then === "function") {
               throw new TypeError(
-                `People Outlook ${stage} checkpoint callback must be synchronous`,
+                `${workflowName} ${stage} checkpoint callback must be synchronous`,
               );
             }
             const source = applyCommittedStateVersions(
               createRecordRepositoryDomainSnapshot({
                 descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
                 repositories: [{
-                  source_id: `people-outlook-completion-${stage}`,
+                  source_id: `${workflowName}-completion-${stage}`,
                   repository,
                 }],
                 tenant_id: tenantId,
@@ -104,9 +112,16 @@ export function createPostgresPeopleOutlookCompletionCheckpoint({ ledger } = {})
   }
 
   return Object.freeze({
-    kind: "postgres-people-outlook-completion-checkpoint",
+    kind: `postgres-${workflowName}-completion-checkpoint`,
     claim: (input) => mutate("claim", input),
     finalize: (input) => mutate("finalize", input),
     fail: (input) => mutate("fail", input),
+  });
+}
+
+export function createPostgresPeopleOutlookCompletionCheckpoint({ ledger } = {}) {
+  return createPostgresEmailDmsCompletionCheckpoint({
+    ledger,
+    workflow: "people-outlook",
   });
 }

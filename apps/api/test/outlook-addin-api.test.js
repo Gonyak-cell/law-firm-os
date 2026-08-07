@@ -1547,6 +1547,30 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       });
       assert.equal(pending.status, "draft");
       assert.equal(pending.filed_document_ids.length, 1);
+      const pendingMimeSha256 = createHash("sha256").update(messageMime({
+        hasAttachment: false,
+        internetMessageId: email.internet_message_id,
+      })).digest("hex");
+      assert.equal(
+        dmsRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key:
+            `outlook-email-file:${emailThreadId}:${pendingMimeSha256}:dms-pending`,
+        })?.response?.status,
+        "draft",
+      );
+      assert.equal(
+        dmsRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `outlook-matter-folders:${TENANT}:${MATTER}:v1`,
+        })?.operation,
+        "outlook_matter_folders_ensure",
+      );
+      assert.equal(
+        dmsRepository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })
+          .some(({ action }) => action === "dms.email.thread.file.pending"),
+        true,
+      );
       assert.equal(dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length, beforeDocumentCount);
       assert.equal(matterRepository.list({
         tenant_id: TENANT,
@@ -1666,7 +1690,11 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         .filter((document) => document.source_email_thread_id === emailThreadId);
       assert.equal(partialDocuments.length, 1);
       assert.deepEqual(pending.filed_document_ids, [partialDocuments[0].document_id]);
-      assert.equal(dmsRepository.listAudit({ tenant_id: TENANT, object_id: emailThreadId }).length, 0);
+      assert.deepEqual(
+        dmsRepository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })
+          .map(({ action }) => action),
+        ["dms.email.thread.file.pending"],
+      );
 
       const pendingAttachment = await fetch(`${baseUrl}/api/outlook/attachments/save`, {
         method: "POST",
@@ -1702,7 +1730,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(providerCallCount, beforeProviderCalls + 2);
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
       assert.deepEqual(retried.email_thread.filed_document_ids, [partialDocuments[0].document_id]);
-      assert.equal(dmsRepository.listAudit({ tenant_id: TENANT, object_id: emailThreadId }).length, 1);
+      assert.deepEqual(
+        dmsRepository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })
+          .map(({ action }) => action)
+          .sort(),
+        ["dms.email.thread.file", "dms.email.thread.file.pending"],
+      );
     });
 
     let fileBody;
@@ -2473,12 +2506,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         )).length,
         1,
       );
-      assert.equal(
+      assert.deepEqual(
         dmsRepository.listAudit({
           tenant_id: TENANT,
           object_id: manual.email_thread.email_thread_id,
-        }).length,
-        1,
+        }).map(({ action }) => action).sort(),
+        ["dms.email.thread.file", "dms.email.thread.file.pending"],
       );
       assert.equal(
         matterRepository.list({
@@ -2649,7 +2682,7 @@ test("phased upload runtime safely retries one post-claim intent and rejects cro
     assert.equal(retryServer.dmsRepository.listAudit({
       tenant_id: TENANT,
       object_id: expectedEmailThreadId(email),
-    }).length, 1);
+    }).length, 2);
 
     const crossMatter = await fetch(`${retryServer.base_url}/api/outlook/email/file`, {
       method: "POST",
@@ -2669,7 +2702,7 @@ test("phased upload runtime safely retries one post-claim intent and rejects cro
     assert.equal(retryServer.dmsRepository.listAudit({
       tenant_id: TENANT,
       object_id: expectedEmailThreadId(email),
-    }).length, 1);
+    }).length, 2);
   } finally {
     await retryServer.close();
   }
@@ -2818,7 +2851,7 @@ test("production-shaped phased MIME intent survives lost domain flush and resolv
     assert.equal(recovered.dmsRepository.listAudit({
       tenant_id: TENANT,
       object_id: processLossThreadId,
-    }).length, 1);
+    }).length, 2);
 
     const concurrentEmail = emailFixture({
       graph_message_id: "graph-phased-concurrent",
@@ -2874,7 +2907,7 @@ test("production-shaped phased MIME intent survives lost domain flush and resolv
     assert.equal(recovered.dmsRepository.listAudit({
       tenant_id: TENANT,
       object_id: concurrentThreadId,
-    }).length, 1);
+    }).length, 2);
     assert.equal(recovered.matterRepository.list({
       tenant_id: TENANT,
       model_type: "MatterTimelineEvent",
