@@ -14,6 +14,8 @@ export const M365_GRAPH_CALLBACK_MODES = Object.freeze({
 });
 
 export const M365_GRAPH_ERROR_CODES = Object.freeze({
+  completion_conflict: "M365_AUTHORIZATION_COMPLETION_CONFLICT",
+  completion_in_progress: "M365_AUTHORIZATION_COMPLETION_IN_PROGRESS",
   connection_not_found: "M365_CONNECTION_NOT_FOUND",
   credential_delete_failed: "M365_CREDENTIAL_DELETE_FAILED",
   entra_session_required: "M365_ENTRA_SESSION_REQUIRED",
@@ -54,6 +56,35 @@ function isConnectionCompletionEntry(entry) {
   }
   return responseOperation == null
     && LEGACY_DURABLE_OPERATION_PATTERN.test(operation ?? "");
+}
+
+function assertCompletionFingerprint(entry, expected) {
+  if (entry?.request_fingerprint !== expected) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.completion_conflict,
+      "Microsoft authorization completion is bound to another request",
+      409,
+    );
+  }
+}
+
+function assertCompletionClaim(entry, {
+  requestFingerprint,
+  attemptRef,
+  principal,
+}) {
+  assertCompletionFingerprint(entry, requestFingerprint);
+  if (
+    entry.operation !== "m365.connection.completion.claim"
+    || entry.response?.attempt_ref !== attemptRef
+    || entry.response?.m365_connection_id !== m365ConnectionId(principal)
+  ) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Microsoft authorization completion claim is invalid",
+      409,
+    );
+  }
 }
 
 function authorizationCallbackMode(value) {
@@ -135,6 +166,12 @@ function operationKey(prefix, value) {
     .digest("hex")}`;
 }
 
+function hashValue(value) {
+  return createHash("sha256")
+    .update(typeof value === "string" ? value : JSON.stringify(value))
+    .digest("hex");
+}
+
 function authorizationAttemptKey(value) {
   const attemptRef = requiredString({ value }, "value");
   if (!AUTHORIZATION_ATTEMPT_REF_PATTERN.test(attemptRef)) {
@@ -210,6 +247,217 @@ function findConnection(repository, principal) {
   return connection;
 }
 
+function cleanupReferences(connection, ...references) {
+  return Object.freeze([...new Set([
+    ...(connection?.pending_vault_cleanup_refs ?? []),
+    ...references.filter(Boolean),
+  ])]);
+}
+
+function credentialGeneration(stateVersion) {
+  return `m365-connection-state-${wholeVersion(
+    stateVersion,
+    "credential state version",
+  )}`;
+}
+
+function stagedCredentialReference(credentialVault, principal, stateVersion) {
+  return credentialVault.referenceForGeneration({
+    tenant_id: principal.tenant_id,
+    user_id: principal.user_id,
+    entra_subject_id: principal.entra_subject_id,
+    credential_generation: credentialGeneration(stateVersion),
+  });
+}
+
+function authorizationCredentialReference(
+  credentialVault,
+  principal,
+  attemptRef,
+) {
+  return credentialVault.referenceForGeneration({
+    ...principal,
+    credential_generation: `m365-authorization-attempt-${attemptRef}`,
+  });
+}
+
+function assertCredentialVault(credentialVault) {
+  for (const method of [
+    "resolveDelegatedCredential",
+    "storeDelegatedCredential",
+    "deleteDelegatedCredential",
+    "referenceForGeneration",
+  ]) {
+    if (typeof credentialVault?.[method] !== "function") {
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
+        "Microsoft 365 credential vault is unavailable",
+        503,
+      );
+    }
+  }
+}
+
+function registerCredentialCleanup({
+  request_failure_compensator,
+  credential_vault,
+  credential_refs,
+  reason,
+}) {
+  if (
+    typeof request_failure_compensator?.registerPostCommit !== "function"
+    || typeof credential_vault?.deleteDelegatedCredential !== "function"
+    || credential_refs.length === 0
+  ) return;
+  request_failure_compensator.registerPostCommit(async () => {
+    for (const credentialRef of credential_refs) {
+      await credential_vault.deleteDelegatedCredential({
+        credential_ref: credentialRef,
+        reason,
+      });
+    }
+  });
+}
+
+function requireM365Reauthorization({
+  repository,
+  credential_vault,
+  request_failure_compensator,
+  connection,
+  principal,
+  occurred_at,
+}) {
+  assertCredentialVault(credential_vault);
+  const stagedRef = stagedCredentialReference(
+    credential_vault,
+    principal,
+    connection.state_version + 1,
+  );
+  const cleanupRefs = cleanupReferences(
+    connection,
+    connection.credential_ref,
+    stagedRef,
+  );
+  const revoked = normalizeM365Connection({
+    ...connection,
+    revoked_at: occurred_at,
+    pending_vault_cleanup_refs: cleanupRefs,
+    state_version: connection.state_version + 1,
+  });
+  repository.transaction((tx) => {
+    const saved = tx.update(connectionRef(principal), revoked);
+    appendConnectionAudit(tx, {
+      connection: saved,
+      principal,
+      action: "m365.connection.reauthorization_required",
+      occurred_at,
+      payload: {
+        credential_cleanup_requested: true,
+        credential_cleanup_requested_count: cleanupRefs.length,
+      },
+    });
+    tx.recordIdempotency({
+      tenant_id: principal.tenant_id,
+      idempotency_key:
+        `m365-reauthorize:${saved.m365_connection_id}:${connection.state_version}`,
+      operation: "m365.connection.reauthorization_required",
+      response: {
+        outcome: "reauthorization_required",
+        m365_connection_id: saved.m365_connection_id,
+        state_version: saved.state_version,
+        credential_material_included: false,
+      },
+      created_at: occurred_at,
+    });
+    return saved;
+  });
+  registerCredentialCleanup({
+    request_failure_compensator,
+    credential_vault,
+    credential_refs: cleanupRefs,
+    reason: "credential_reauthorization_committed",
+  });
+  throw commandError(
+    M365_GRAPH_ERROR_CODES.reauthorization_required,
+    "Microsoft 365 connection requires reauthorization",
+    401,
+  );
+}
+
+function stagedCredentialRequiresReauthorization(error) {
+  return [
+    M365_GRAPH_ERROR_CODES.reauthorization_required,
+    M365_GRAPH_ERROR_CODES.provider_invalid,
+    M365_GRAPH_ERROR_CODES.scope_insufficient,
+    M365_GRAPH_ERROR_CODES.subject_mismatch,
+  ].includes(error?.safe_error_code);
+}
+
+async function drainCredentialCleanup({
+  repository,
+  credential_vault,
+  connection,
+  principal,
+  clock,
+}) {
+  if (
+    connection.pending_vault_cleanup_refs.length === 0
+    || typeof credential_vault?.deleteDelegatedCredential !== "function"
+  ) return connection;
+  const remaining = [];
+  let deletedCount = 0;
+  for (const credentialRef of connection.pending_vault_cleanup_refs) {
+    try {
+      await credential_vault.deleteDelegatedCredential({
+        credential_ref: credentialRef,
+        reason: "retired_credential_cleanup_retry",
+      });
+      deletedCount += 1;
+    } catch {
+      remaining.push(credentialRef);
+    }
+  }
+  if (deletedCount === 0) return connection;
+  const occurredAt = timestamp(clock);
+  const next = normalizeM365Connection({
+    ...connection,
+    pending_vault_cleanup_refs: remaining,
+  });
+  const cleanupFingerprint = createHash("sha256")
+    .update(JSON.stringify(connection.pending_vault_cleanup_refs))
+    .digest("hex")
+    .slice(0, 24);
+  return repository.transaction((tx) => {
+    const saved = tx.update(connectionRef(principal), next);
+    appendConnectionAudit(tx, {
+      connection: saved,
+      principal,
+      action: "m365.connection.credential.cleanup_completed",
+      event_discriminator: cleanupFingerprint,
+      occurred_at: occurredAt,
+      payload: {
+        credential_cleanup_completed_count: deletedCount,
+        credential_cleanup_remaining_count: remaining.length,
+      },
+    });
+    tx.recordIdempotency({
+      tenant_id: principal.tenant_id,
+      idempotency_key:
+        `m365-cleanup:${saved.m365_connection_id}:${connection.state_version}:${cleanupFingerprint}`,
+      operation: "m365.connection.credential.cleanup",
+      response: {
+        outcome: "cleanup_completed",
+        m365_connection_id: saved.m365_connection_id,
+        state_version: connection.state_version,
+        credential_cleanup_completed_count: deletedCount,
+        credential_material_included: false,
+      },
+      created_at: occurredAt,
+    });
+    return saved;
+  });
+}
+
 function assertSubject(connection, principal) {
   if (connection.entra_subject_id !== principal.entra_subject_id) {
     throw commandError(
@@ -283,12 +531,15 @@ function appendConnectionAudit(repository, {
   action,
   occurred_at,
   payload = {},
+  event_discriminator = null,
 }) {
   if (typeof repository.appendAudit !== "function") return null;
   return repository.appendAudit({
     tenant_id: principal.tenant_id,
     event_id:
-      `audit:${connection.m365_connection_id}:${connection.state_version}:${action}`,
+      `audit:${connection.m365_connection_id}:${connection.state_version}:${action}${
+        event_discriminator ? `:${event_discriminator}` : ""
+      }`,
     event_type: action,
     actor_id: principal.user_id,
     object_type: "M365Connection",
@@ -367,14 +618,22 @@ function clientCredential(value) {
       401,
     );
   }
-  return Object.freeze({
-    ...structuredClone(value),
-    access_token: requiredString(value, "access_token"),
-    refresh_token: requiredString(value, "refresh_token"),
-    refresh_profile: refreshProfile,
-    refresh_profile_proof: refreshProfileProof,
-    expires_at: new Date(expiresAt).toISOString(),
-  });
+  try {
+    return Object.freeze({
+      ...structuredClone(value),
+      access_token: requiredString(value, "access_token"),
+      refresh_token: requiredString(value, "refresh_token"),
+      refresh_profile: refreshProfile,
+      refresh_profile_proof: refreshProfileProof,
+      expires_at: new Date(expiresAt).toISOString(),
+    });
+  } catch {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.reauthorization_required,
+      "Microsoft 365 delegated credential requires reauthorization",
+      401,
+    );
+  }
 }
 
 function refreshScopes(value, connection) {
@@ -392,10 +651,130 @@ function refreshScopes(value, connection) {
   return Object.freeze(scopes);
 }
 
+function credentialReferenceMissing(error) {
+  const code = error?.name ?? error?.Code ?? error?.code;
+  return code === "ResourceNotFoundException";
+}
+
+function deterministicCredentialFailure(error) {
+  return credentialReferenceMissing(error)
+    || stagedCredentialRequiresReauthorization(error);
+}
+
+function stagedCredentialMetadata(value, principal) {
+  const credential = clientCredential(value);
+  let mailboxAddress;
+  let consentedAt;
+  let subjectId;
+  try {
+    mailboxAddress = requiredString(
+      credential,
+      "mailbox_address",
+    ).normalize("NFKC").toLowerCase();
+    consentedAt = requiredInstant(credential, "consented_at");
+    subjectId = requiredString(credential, "entra_subject_id");
+  } catch {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Stored Microsoft credential metadata is incomplete",
+      502,
+    );
+  }
+  if (subjectId !== principal.entra_subject_id) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.subject_mismatch,
+      "Stored Microsoft credential belongs to another Entra subject",
+      403,
+    );
+  }
+  if (Date.parse(credential.expires_at) <= Date.parse(consentedAt)) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Stored Microsoft credential expiry is invalid",
+      502,
+    );
+  }
+  const grantedScopes = refreshScopes(credential.granted_scopes, {
+    granted_scopes: M365_GRAPH_REQUIRED_SCOPES,
+  });
+  return Object.freeze({
+    credential,
+    mailbox_address: mailboxAddress,
+    mailbox_address_hash: hashMailboxAddress(mailboxAddress),
+    consented_at: consentedAt,
+    granted_scopes: grantedScopes,
+  });
+}
+
+function validateStagedCredential(value, connection, principal, now) {
+  const metadata = stagedCredentialMetadata(value, principal);
+  if (
+    metadata.mailbox_address_hash !== connection.mailbox_address_hash
+  ) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Stored Microsoft credential mailbox identity does not reconcile",
+      502,
+    );
+  }
+  refreshScopes(metadata.granted_scopes, connection);
+  return Object.freeze({
+    ...metadata,
+    expired:
+      Date.parse(metadata.credential.expires_at) <= Date.parse(now),
+  });
+}
+
+function validateAuthorizationCredential(
+  value,
+  principal,
+  attemptRef,
+  redirectUri,
+) {
+  const metadata = stagedCredentialMetadata(value, principal);
+  const binding = metadata.credential;
+  let tenantId;
+  let userId;
+  let storedAttemptRef;
+  let redirectUriHash;
+  let callbackMode;
+  try {
+    tenantId = requiredString(binding, "tenant_id");
+    userId = requiredString(binding, "user_id");
+    storedAttemptRef = requiredString(
+      binding,
+      "authorization_attempt_ref",
+    );
+    redirectUriHash = requiredString(binding, "redirect_uri_hash");
+    callbackMode = requiredString(binding, "callback_mode");
+  } catch {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Stored Microsoft authorization credential binding is incomplete",
+      502,
+    );
+  }
+  if (
+    tenantId !== principal.tenant_id
+    || userId !== principal.user_id
+    || storedAttemptRef !== attemptRef
+    || redirectUriHash !== hashValue(redirectUri)
+    || callbackMode !== M365_GRAPH_CALLBACK_MODES.server_complete
+  ) {
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.provider_invalid,
+      "Stored Microsoft authorization credential binding is invalid",
+      502,
+    );
+  }
+  return metadata;
+}
+
 export async function acquireActiveM365Credential({
   repository,
   credential_vault,
   provider,
+  request_failure_compensator = null,
   tenant_id,
   user_id,
   entra_subject_id,
@@ -404,13 +783,25 @@ export async function acquireActiveM365Credential({
   refresh_skew_ms = CLIENT_CREDENTIAL_REFRESH_SKEW_MS,
 } = {}) {
   assertRepository(repository);
+  if (
+    request_failure_compensator != null
+    && (
+      typeof request_failure_compensator.register !== "function"
+      || (
+        request_failure_compensator.registerPostCommit != null
+        && typeof request_failure_compensator.registerPostCommit !== "function"
+      )
+    )
+  ) {
+    throw new TypeError("Microsoft request failure compensator is invalid");
+  }
   const principal = assertEntraPrincipal({
     tenant_id,
     user_id,
     entra_subject_id,
   });
-  const connection = findConnection(repository, principal);
-  if (!connection || connection.revoked_at) {
+  let connection = findConnection(repository, principal);
+  if (!connection) {
     throw commandError(
       M365_GRAPH_ERROR_CODES.connection_not_found,
       "Microsoft 365 connection was not found",
@@ -418,6 +809,20 @@ export async function acquireActiveM365Credential({
     );
   }
   assertSubject(connection, principal);
+  if (connection.revoked_at) {
+    await drainCredentialCleanup({
+      repository,
+      credential_vault,
+      connection,
+      principal,
+      clock,
+    });
+    throw commandError(
+      M365_GRAPH_ERROR_CODES.connection_not_found,
+      "Microsoft 365 connection was not found",
+      404,
+    );
+  }
   if (
     required_scope
     && !connection.granted_scopes.includes(required_scope)
@@ -435,10 +840,7 @@ export async function acquireActiveM365Credential({
   ) {
     throw new TypeError("refresh_skew_ms must be between 0 and 300000");
   }
-  if (
-    typeof credential_vault?.resolveDelegatedCredential !== "function"
-    || typeof credential_vault?.storeDelegatedCredential !== "function"
-  ) {
+  if (typeof credential_vault?.resolveDelegatedCredential !== "function") {
     throw commandError(
       M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
       "Microsoft 365 credential vault is unavailable",
@@ -447,33 +849,14 @@ export async function acquireActiveM365Credential({
   }
   const now = timestamp(clock);
 
-  async function requireReauthorization() {
-    const revoked = normalizeM365Connection({
-      ...connection,
-      revoked_at: now,
-      state_version: connection.state_version + 1,
-    });
-    repository.transaction((tx) => {
-      const saved = tx.update(connectionRef(principal), revoked);
-      appendConnectionAudit(tx, {
-        connection: saved,
-        principal,
-        action: "m365.connection.reauthorization_required",
-        occurred_at: now,
-        payload: { credential_cleanup_requested: true },
-      });
-      return saved;
-    });
-    await credential_vault.deleteDelegatedCredential?.({
-      credential_ref: connection.credential_ref,
-      reason: "microsoft_reauthorization_required",
-    }).catch(() => {});
-    throw commandError(
-      M365_GRAPH_ERROR_CODES.reauthorization_required,
-      "Microsoft 365 connection requires reauthorization",
-      401,
-    );
-  }
+  const requireReauthorization = () => requireM365Reauthorization({
+    repository,
+    credential_vault,
+    request_failure_compensator,
+    connection,
+    principal,
+    occurred_at: now,
+  });
 
   let credential;
   try {
@@ -496,68 +879,162 @@ export async function acquireActiveM365Credential({
     Date.parse(connection.expires_at),
   );
   if (refreshAt > Date.parse(now) + refresh_skew_ms) {
+    connection = await drainCredentialCleanup({
+      repository,
+      credential_vault,
+      connection,
+      principal,
+      clock,
+    });
     return Object.freeze({ connection, credential, refreshed: false });
   }
-  if (typeof provider?.refreshDelegatedCredential !== "function") {
-    throw commandError(
-      M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
-      "Microsoft credential refresh provider is unavailable",
-      503,
-    );
-  }
-  let refreshedResult;
-  try {
-    refreshedResult = await provider.refreshDelegatedCredential({
-      credential,
-      entra_subject_id: principal.entra_subject_id,
-      mailbox_scope: "me",
-    });
-  } catch (error) {
-    if (error?.status === 401) return requireReauthorization();
-    throw error;
-  }
-  const refreshed = clientCredential(refreshedResult?.token_bundle);
-  const grantedScopes = refreshScopes(
-    refreshed.granted_scopes,
-    connection,
+  assertCredentialVault(credential_vault);
+  const nextStateVersion = connection.state_version + 1;
+  const refreshedCredentialRef = stagedCredentialReference(
+    credential_vault,
+    principal,
+    nextStateVersion,
   );
-  if (Date.parse(refreshed.expires_at) <= Date.parse(now)) {
-    throw commandError(
-      M365_GRAPH_ERROR_CODES.provider_invalid,
-      "Microsoft refreshed credential expiry is invalid",
-      502,
+  let staged;
+  try {
+    staged = validateStagedCredential(
+      await credential_vault.resolveDelegatedCredential({
+        credential_ref: refreshedCredentialRef,
+      }),
+      connection,
+      principal,
+      now,
     );
+  } catch (error) {
+    if (credentialReferenceMissing(error)) {
+      staged = null;
+    } else if (stagedCredentialRequiresReauthorization(error)) {
+      return requireReauthorization();
+    } else {
+      throw error;
+    }
   }
-  await credential_vault.storeDelegatedCredential({
-    tenant_id: principal.tenant_id,
-    user_id: principal.user_id,
-    token_bundle: refreshed,
-    credential_ref: connection.credential_ref,
-  });
+  if (!staged) {
+    if (typeof provider?.refreshDelegatedCredential !== "function") {
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
+        "Microsoft credential refresh provider is unavailable",
+        503,
+      );
+    }
+    let refreshedResult;
+    try {
+      refreshedResult = await provider.refreshDelegatedCredential({
+        credential,
+        entra_subject_id: principal.entra_subject_id,
+        mailbox_scope: "me",
+      });
+    } catch (error) {
+      if (error?.status === 401) return requireReauthorization();
+      throw error;
+    }
+    const refreshed = clientCredential(refreshedResult?.token_bundle);
+    refreshScopes(refreshed.granted_scopes, connection);
+    if (Date.parse(refreshed.expires_at) <= Date.parse(now)) {
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.provider_invalid,
+        "Microsoft refreshed credential expiry is invalid",
+        502,
+      );
+    }
+    const mailboxAddress = requiredString(
+      credential,
+      "mailbox_address",
+    ).normalize("NFKC").toLowerCase();
+    await credential_vault.storeDelegatedCredential({
+      tenant_id: principal.tenant_id,
+      user_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+      token_bundle: {
+        ...refreshed,
+        entra_subject_id: principal.entra_subject_id,
+        mailbox_address: mailboxAddress,
+        consented_at: connection.consented_at,
+        granted_scopes: refreshScopes(
+          refreshed.granted_scopes,
+          connection,
+        ),
+      },
+      credential_generation: credentialGeneration(nextStateVersion),
+    });
+    try {
+      staged = validateStagedCredential(
+        await credential_vault.resolveDelegatedCredential({
+          credential_ref: refreshedCredentialRef,
+        }),
+        connection,
+        principal,
+        now,
+      );
+    } catch (error) {
+      if (stagedCredentialRequiresReauthorization(error)) {
+        return requireReauthorization();
+      }
+      throw error;
+    }
+  }
+  if (staged.expired) {
+    return requireReauthorization();
+  }
+  const stagedCredential = staged.credential;
+  const grantedScopes = staged.granted_scopes;
   const next = normalizeM365Connection({
-    ...connection,
-    expires_at: refreshed.expires_at,
-    granted_scopes: grantedScopes,
-    state_version: connection.state_version + 1,
+      ...connection,
+      credential_ref: refreshedCredentialRef,
+      pending_vault_cleanup_refs: cleanupReferences(
+        connection,
+        connection.credential_ref,
+      ),
+      expires_at: stagedCredential.expires_at,
+      granted_scopes: grantedScopes,
+      consented_at: staged.consented_at,
+      mailbox_address_hash: staged.mailbox_address_hash,
+      state_version: nextStateVersion,
   });
   const persisted = repository.transaction((tx) => {
-    const saved = tx.update(connectionRef(principal), next);
-    appendConnectionAudit(tx, {
-      connection: saved,
-      principal,
-      action: "m365.connection.credential.refreshed",
-      occurred_at: now,
-      payload: {
-        credential_rotated_in_vault: true,
-        refresh_token_rotated:
-          refreshed.refresh_token !== credential.refresh_token,
-      },
-    });
-    return saved;
+      const saved = tx.update(connectionRef(principal), next);
+      appendConnectionAudit(tx, {
+        connection: saved,
+        principal,
+        action: "m365.connection.credential.refreshed",
+        occurred_at: now,
+        payload: {
+          credential_rotated_in_vault: true,
+          credential_cleanup_requested: true,
+          credential_cleanup_requested_count: 1,
+          refresh_token_rotated:
+            stagedCredential.refresh_token !== credential.refresh_token,
+        },
+      });
+      tx.recordIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key:
+          `m365-refresh:${saved.m365_connection_id}:${connection.state_version}`,
+        operation: "m365.connection.refresh",
+        response: {
+          outcome: "refreshed",
+          m365_connection_id: saved.m365_connection_id,
+          state_version: saved.state_version,
+          credential_material_included: false,
+        },
+        created_at: now,
+      });
+      return saved;
+  });
+  registerCredentialCleanup({
+    request_failure_compensator,
+    credential_vault,
+    credential_refs: persisted.pending_vault_cleanup_refs,
+    reason: "credential_refresh_committed",
   });
   return Object.freeze({
     connection: persisted,
-    credential: refreshed,
+    credential: stagedCredential,
     refreshed: true,
   });
 }
@@ -711,13 +1188,28 @@ export function createM365GraphConnectionService({
   allowed_redirect_uris = [],
   clock = () => new Date(),
   request_failure_compensator = null,
+  completion_checkpoint: completionCheckpoint = null,
 } = {}) {
   assertRepository(repository);
   if (
     request_failure_compensator != null
-    && typeof request_failure_compensator.register !== "function"
+    && (
+      typeof request_failure_compensator.register !== "function"
+      || (
+        request_failure_compensator.registerPostCommit != null
+        && typeof request_failure_compensator.registerPostCommit !== "function"
+      )
+    )
   ) {
     throw new TypeError("Microsoft request failure compensator is invalid");
+  }
+  if (
+    completionCheckpoint != null
+    && ["claim", "finalize", "fail"].some(
+      (method) => typeof completionCheckpoint[method] !== "function",
+    )
+  ) {
+    throw new TypeError("Microsoft completion checkpoint is invalid");
   }
   const readiness = assessM365ExternalReadiness(external_readiness);
 
@@ -794,6 +1286,497 @@ export function createM365GraphConnectionService({
     return validateAuthorizationStart(result);
   }
 
+  async function completeAuthorizationWithCheckpoint(input, principal) {
+    assertCredentialVault(credential_vault);
+    const state = requiredString(input, "state");
+    const code = requiredString(input, "code");
+    const redirectUri = allowedRedirectUri(
+      input.redirect_uri,
+      allowed_redirect_uris,
+    );
+    const idempotencyKey = operationKey("m365-connect", state);
+    const attemptRef = idempotencyKey.slice("m365-connect:".length);
+    const claimKey = `${idempotencyKey}:claim`;
+    const failedKey = `${idempotencyKey}:failed`;
+    const cleanupKey = `${failedKey}:cleanup`;
+    const claimantHash = hashValue(requiredString(
+      input,
+      "completion_claimant",
+    ));
+    const requestFingerprint = hashValue({
+      tenant_id: principal.tenant_id,
+      user_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+      attempt_ref: attemptRef,
+      authorization_code_hash: hashValue(code),
+      redirect_uri_hash: hashValue(redirectUri),
+      callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+    });
+    const attemptCredentialRef = authorizationCredentialReference(
+      credential_vault,
+      principal,
+      attemptRef,
+    );
+    const runStage = (stage, apply) => completionCheckpoint[stage]({
+      tenant_id: principal.tenant_id,
+      apply,
+    });
+
+    async function cleanupAttempt(reason) {
+      try {
+        await credential_vault.deleteDelegatedCredential({
+          credential_ref: attemptCredentialRef,
+          reason,
+        });
+        await runStage("fail", (tx) => {
+          if (!tx.getIdempotency({
+            tenant_id: principal.tenant_id,
+            idempotency_key: cleanupKey,
+          })) {
+            tx.recordIdempotency({
+              tenant_id: principal.tenant_id,
+              idempotency_key: cleanupKey,
+              operation: "m365.connection.completion.cleanup",
+              request_fingerprint: requestFingerprint,
+              response: {
+                outcome: "cleanup_completed",
+                attempt_ref: attemptRef,
+                credential_material_included: false,
+              },
+              created_at: timestamp(clock),
+            });
+          }
+          return true;
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function markFailed() {
+      await runStage("fail", (tx) => {
+        if (!tx.getIdempotency({
+          tenant_id: principal.tenant_id,
+          idempotency_key: failedKey,
+        })) {
+          const current = findConnection(tx, principal);
+          tx.recordIdempotency({
+            tenant_id: principal.tenant_id,
+            idempotency_key: failedKey,
+            operation: "m365.connection.completion.failed",
+            request_fingerprint: requestFingerprint,
+            response: {
+              outcome: "authorization_restart_required",
+              attempt_ref: attemptRef,
+              credential_cleanup_pending: true,
+              credential_material_included: false,
+            },
+            created_at: timestamp(clock),
+          });
+          if (current) {
+            appendConnectionAudit(tx, {
+              connection: current,
+              principal,
+              action: "m365.connection.authorization.failed",
+              event_discriminator: attemptRef,
+              occurred_at: timestamp(clock),
+              payload: {
+                authorization_attempt_ref: attemptRef,
+                credential_cleanup_pending: true,
+              },
+            });
+          }
+        }
+        return true;
+      });
+      await cleanupAttempt("authorization_completion_failed");
+    }
+
+    async function retireCompletedAttempt() {
+      const retired = await runStage("fail", (tx) => {
+        const current = findConnection(tx, principal);
+        if (
+          !current
+          || current.credential_ref !== attemptCredentialRef
+          || current.revoked_at
+        ) return current;
+        const occurredAt = timestamp(clock);
+        const cleanupRefs = cleanupReferences(
+          current,
+          current.credential_ref,
+          stagedCredentialReference(
+            credential_vault,
+            principal,
+            current.state_version + 1,
+          ),
+        );
+        const revoked = normalizeM365Connection({
+          ...current,
+          revoked_at: occurredAt,
+          pending_vault_cleanup_refs: cleanupRefs,
+          state_version: current.state_version + 1,
+        });
+        const saved = tx.update(connectionRef(principal), revoked);
+        appendConnectionAudit(tx, {
+          connection: saved,
+          principal,
+          action: "m365.connection.reauthorization_required",
+          event_discriminator: attemptRef,
+          occurred_at: occurredAt,
+          payload: {
+            authorization_attempt_ref: attemptRef,
+            credential_cleanup_requested: true,
+            credential_cleanup_requested_count: cleanupRefs.length,
+          },
+        });
+        return saved;
+      });
+      await markFailed();
+      for (const credentialRef of retired?.pending_vault_cleanup_refs ?? []) {
+        try {
+          await credential_vault.deleteDelegatedCredential({
+            credential_ref: credentialRef,
+            reason: "completed_authorization_credential_invalid",
+          });
+        } catch {
+          // The revoked connection retains the durable cleanup marker.
+        }
+      }
+    }
+
+    const claim = await runStage("claim", (tx) => {
+      const completed = tx.getIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: idempotencyKey,
+      });
+      const failed = tx.getIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: failedKey,
+      });
+      const existing = tx.getIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: claimKey,
+      });
+      if (existing) {
+        assertCompletionClaim(existing, {
+          requestFingerprint,
+          attemptRef,
+          principal,
+        });
+      }
+      if (completed) {
+        assertCompletionFingerprint(completed, requestFingerprint);
+        assertCompletionClaim(existing, {
+          requestFingerprint,
+          attemptRef,
+          principal,
+        });
+      }
+      if (completed || failed || existing) {
+        const current = completed ? findConnection(tx, principal) : null;
+        return Object.freeze({
+          completed,
+          failed,
+          claim: existing,
+          current,
+          should_exchange: false,
+        });
+      }
+      tx.recordIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: claimKey,
+        operation: "m365.connection.completion.claim",
+        request_fingerprint: requestFingerprint,
+        response: {
+          outcome: "claimed",
+          attempt_ref: attemptRef,
+          claimant_hash: claimantHash,
+          m365_connection_id: m365ConnectionId(principal),
+          credential_material_included: false,
+        },
+        created_at: timestamp(clock),
+      });
+      return Object.freeze({
+        completed: null,
+        failed: null,
+        claim: null,
+        should_exchange: true,
+      });
+    });
+
+    if (claim.failed) {
+      await cleanupAttempt("authorization_completion_retry_failed");
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.reauthorization_required,
+        "Microsoft authorization must be restarted",
+        409,
+      );
+    }
+
+    let staged;
+    if (claim.completed) {
+      try {
+        staged = validateAuthorizationCredential(
+          await credential_vault.resolveDelegatedCredential({
+            credential_ref: attemptCredentialRef,
+          }),
+          principal,
+          attemptRef,
+          redirectUri,
+        );
+      } catch (error) {
+        if (deterministicCredentialFailure(error)) {
+          await retireCompletedAttempt();
+        }
+        throw error;
+      }
+      const current = claim.current;
+      if (
+        !isConnectionCompletionEntry(claim.completed)
+        || !current
+        || current.credential_ref !== attemptCredentialRef
+      ) {
+        if (current?.credential_ref === attemptCredentialRef) {
+          await retireCompletedAttempt();
+        } else {
+          await markFailed();
+        }
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.provider_invalid,
+          "Microsoft connection replay record is incomplete",
+        );
+      }
+      return Object.freeze({
+        outcome: claim.completed.response?.outcome ?? "connected",
+        connection: presentConnection(current, { clock }),
+        release_readiness: readiness,
+        credential_material_included: false,
+        production_ready_claim: false,
+        replayed: true,
+      });
+    }
+
+    if (!claim.should_exchange) {
+      try {
+        staged = validateAuthorizationCredential(
+          await credential_vault.resolveDelegatedCredential({
+            credential_ref: attemptCredentialRef,
+          }),
+          principal,
+          attemptRef,
+          redirectUri,
+        );
+      } catch (error) {
+        if (credentialReferenceMissing(error)) {
+          throw commandError(
+            M365_GRAPH_ERROR_CODES.completion_in_progress,
+            "Microsoft authorization completion is in progress",
+            409,
+          );
+        }
+        if (stagedCredentialRequiresReauthorization(error)) {
+          await markFailed();
+          throw commandError(
+            M365_GRAPH_ERROR_CODES.reauthorization_required,
+            "Microsoft authorization must be restarted",
+            409,
+          );
+        }
+        throw error;
+      }
+    } else {
+      let authorization;
+      let vaultStageStarted = false;
+      try {
+        authorization = validateAuthorizationResult(
+          await provider.completeDelegatedAuthorization({
+            ...principal,
+            code,
+            state,
+            redirect_uri: redirectUri,
+            expected_entra_subject_id: principal.entra_subject_id,
+            mailbox_scope: "me",
+          }),
+          principal,
+        );
+        vaultStageStarted = true;
+        await credential_vault.storeDelegatedCredential({
+          ...principal,
+          token_bundle: {
+            ...authorization.token_bundle,
+            ...principal,
+            authorization_attempt_ref: attemptRef,
+            redirect_uri_hash: hashValue(redirectUri),
+            callback_mode: M365_GRAPH_CALLBACK_MODES.server_complete,
+            mailbox_address: authorization.mailbox_address,
+            consented_at: authorization.consented_at,
+            expires_at: authorization.expires_at,
+            granted_scopes: authorization.granted_scopes,
+          },
+          credential_generation:
+            `m365-authorization-attempt-${attemptRef}`,
+        });
+        staged = validateAuthorizationCredential(
+          await credential_vault.resolveDelegatedCredential({
+            credential_ref: attemptCredentialRef,
+          }),
+          principal,
+          attemptRef,
+          redirectUri,
+        );
+        if (
+          staged.mailbox_address_hash
+            !== authorization.mailbox_address_hash
+        ) {
+          throw commandError(
+            M365_GRAPH_ERROR_CODES.provider_invalid,
+            "Stored Microsoft authorization mailbox mismatched",
+            502,
+          );
+        }
+      } catch (error) {
+        if (
+          vaultStageStarted
+          && !deterministicCredentialFailure(error)
+        ) {
+          throw error;
+        }
+        await markFailed();
+        if (stagedCredentialRequiresReauthorization(error)) throw error;
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.reauthorization_required,
+          "Microsoft authorization must be restarted",
+          409,
+        );
+      }
+    }
+
+    const occurredAt = timestamp(clock);
+    const finalized = await runStage("finalize", (tx) => {
+      const durableClaim = tx.getIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: claimKey,
+      });
+      assertCompletionClaim(durableClaim, {
+        requestFingerprint,
+        attemptRef,
+        principal,
+      });
+      const replay = tx.getIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: idempotencyKey,
+      });
+      if (replay) {
+        assertCompletionFingerprint(replay, requestFingerprint);
+        const current = findConnection(tx, principal);
+        if (
+          !isConnectionCompletionEntry(replay)
+          || !current
+          || current.credential_ref !== attemptCredentialRef
+        ) {
+          throw commandError(
+            M365_GRAPH_ERROR_CODES.provider_invalid,
+            "Microsoft connection replay record is incomplete",
+          );
+        }
+        return Object.freeze({
+          connection: current,
+          outcome: replay.response?.outcome ?? "connected",
+          replayed: true,
+        });
+      }
+      if (tx.getIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: failedKey,
+      })) {
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.reauthorization_required,
+          "Microsoft authorization must be restarted",
+          409,
+        );
+      }
+      const current = findConnection(tx, principal);
+      if (current) assertSubject(current, principal);
+      const nextStateVersion = (current?.state_version ?? 0) + 1;
+      const predictedStateRef = stagedCredentialReference(
+        credential_vault,
+        principal,
+        nextStateVersion,
+      );
+      const connection = normalizeM365Connection({
+        model_type: "M365Connection",
+        m365_connection_id: m365ConnectionId(principal),
+        ...principal,
+        mailbox_address_hash: staged.mailbox_address_hash,
+        credential_ref: attemptCredentialRef,
+        pending_vault_cleanup_refs: cleanupReferences(
+          current,
+          current?.credential_ref,
+          predictedStateRef,
+        ),
+        granted_scopes: staged.granted_scopes,
+        consented_at: staged.consented_at,
+        expires_at: staged.credential.expires_at,
+        revoked_at: null,
+        state_version: nextStateVersion,
+      });
+      const saved = current
+        ? tx.update(connectionRef(principal), connection)
+        : tx.create(connection);
+      const outcome = current ? "reconnected" : "connected";
+      appendConnectionAudit(tx, {
+        connection: saved,
+        principal,
+        action: "m365.connection.connected",
+        occurred_at: occurredAt,
+        payload: {
+          previous_connection_present: Boolean(current),
+          token_replaced_in_vault: Boolean(current),
+          authorization_attempt_ref: attemptRef,
+          credential_cleanup_requested_count:
+            saved.pending_vault_cleanup_refs.length,
+        },
+      });
+      tx.recordIdempotency({
+        tenant_id: principal.tenant_id,
+        idempotency_key: idempotencyKey,
+        operation: M365_CONNECTION_OPERATION,
+        request_fingerprint: requestFingerprint,
+        response: {
+          operation: M365_CONNECTION_OPERATION,
+          outcome,
+          attempt_ref: attemptRef,
+          m365_connection_id: saved.m365_connection_id,
+          state_version: saved.state_version,
+          credential_material_included: false,
+        },
+        created_at: occurredAt,
+      });
+      return Object.freeze({ connection: saved, outcome, replayed: false });
+    });
+
+    for (const credentialRef of finalized.connection
+      .pending_vault_cleanup_refs) {
+      try {
+        await credential_vault.deleteDelegatedCredential({
+          credential_ref: credentialRef,
+          reason: "authorization_completion_committed",
+        });
+      } catch {
+        // The durable pending marker retries cleanup on the next M365 request.
+      }
+    }
+    return Object.freeze({
+      outcome: finalized.outcome,
+      connection: presentConnection(finalized.connection, { clock }),
+      release_readiness: readiness,
+      credential_material_included: false,
+      production_ready_claim: false,
+      ...(finalized.replayed ? { replayed: true } : {}),
+    });
+  }
+
   async function completeAuthorization(input = {}) {
     const principal = assertEntraPrincipal(input);
     assertProviderRuntime({
@@ -804,7 +1787,6 @@ export function createM365GraphConnectionService({
     });
     if (
       typeof provider.completeDelegatedAuthorization !== "function"
-      || typeof credential_vault.storeDelegatedCredential !== "function"
     ) {
       throw commandError(
         M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
@@ -812,6 +1794,10 @@ export function createM365GraphConnectionService({
         503,
       );
     }
+    if (completionCheckpoint) {
+      return completeAuthorizationWithCheckpoint(input, principal);
+    }
+    assertCredentialVault(credential_vault);
     const idempotencyKey = operationKey(
       "m365-connect",
       requiredString(input, "state"),
@@ -842,7 +1828,7 @@ export function createM365GraphConnectionService({
         replayed: true,
       });
     }
-    const current = findConnection(repository, principal);
+    let current = findConnection(repository, principal);
     if (current) assertSubject(current, principal);
     const providerResult = await provider.completeDelegatedAuthorization({
       ...principal,
@@ -860,36 +1846,80 @@ export function createM365GraphConnectionService({
       principal,
     );
     const nextStateVersion = (current?.state_version ?? 0) + 1;
-    const draft = {
-      m365_connection_id: m365ConnectionId(principal),
-      ...principal,
-      mailbox_address_hash: authorization.mailbox_address_hash,
-      granted_scopes: authorization.granted_scopes,
-      consented_at: authorization.consented_at,
-      expires_at: authorization.expires_at,
-      revoked_at: null,
-      state_version: nextStateVersion,
-    };
-    const reusableCredentialRef = current?.revoked_at
-      ? null
-      : current?.credential_ref ?? null;
     const credentialRef = await credential_vault.storeDelegatedCredential({
       tenant_id: principal.tenant_id,
       user_id: principal.user_id,
       entra_subject_id: principal.entra_subject_id,
       token_bundle: {
         ...authorization.token_bundle,
+        entra_subject_id: principal.entra_subject_id,
         mailbox_address: authorization.mailbox_address,
+        consented_at: authorization.consented_at,
+        expires_at: authorization.expires_at,
+        granted_scopes: authorization.granted_scopes,
       },
-      credential_ref: reusableCredentialRef,
+      credential_generation: credentialGeneration(nextStateVersion),
     });
     const occurredAt = timestamp(clock);
+    let staged;
     try {
-      const connection = normalizeM365Connection({
+      staged = stagedCredentialMetadata(
+        await credential_vault.resolveDelegatedCredential({
+          credential_ref: credentialRef,
+        }),
+        principal,
+      );
+    } catch (error) {
+      if (current && stagedCredentialRequiresReauthorization(error)) {
+        return requireM365Reauthorization({
+          repository,
+          credential_vault,
+          request_failure_compensator,
+          connection: current,
+          principal,
+          occurred_at: occurredAt,
+        });
+      }
+      throw error;
+    }
+    if (
+      staged.mailbox_address_hash !== authorization.mailbox_address_hash
+    ) {
+      if (current) {
+        return requireM365Reauthorization({
+          repository,
+          credential_vault,
+          request_failure_compensator,
+          connection: current,
+          principal,
+          occurred_at: occurredAt,
+        });
+      }
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.provider_invalid,
+        "Stored Microsoft authorization credential mailbox mismatched",
+        502,
+      );
+    }
+    const draft = {
+      m365_connection_id: m365ConnectionId(principal),
+      ...principal,
+      mailbox_address_hash: staged.mailbox_address_hash,
+      granted_scopes: staged.granted_scopes,
+      consented_at: staged.consented_at,
+      expires_at: staged.credential.expires_at,
+      revoked_at: null,
+      state_version: nextStateVersion,
+    };
+    const connection = normalizeM365Connection({
         ...draft,
         credential_ref: credentialRef,
-      });
-      const persisted = repository.transaction
+        pending_vault_cleanup_refs: cleanupReferences(
+          current,
+          current?.credential_ref,
+        ),
+    });
+    const persisted = repository.transaction
         ? repository.transaction((tx) => {
           const saved = current
             ? tx.update(connectionRef(principal), connection)
@@ -901,7 +1931,9 @@ export function createM365GraphConnectionService({
             occurred_at: occurredAt,
             payload: {
               previous_connection_present: Boolean(current),
-              token_replaced_in_vault: Boolean(reusableCredentialRef),
+              token_replaced_in_vault: Boolean(current),
+              credential_cleanup_requested_count:
+                connection.pending_vault_cleanup_refs.length,
             },
           });
           tx.recordIdempotency({
@@ -923,35 +1955,24 @@ export function createM365GraphConnectionService({
         : current
           ? repository.update(connectionRef(principal), connection)
           : repository.create(connection);
-      if (!reusableCredentialRef && request_failure_compensator) {
-        request_failure_compensator.register(() => (
-          credential_vault.deleteDelegatedCredential({
-            credential_ref: credentialRef,
-            reason: "connection_request_commit_failed",
-          })
-        ));
-      }
-      return Object.freeze({
-        outcome: current ? "reconnected" : "connected",
-        connection: presentConnection(persisted, { clock }),
-        release_readiness: readiness,
-        credential_material_included: false,
-        production_ready_claim: false,
-      });
-    } catch (error) {
-      if (!reusableCredentialRef) {
-        await credential_vault.deleteDelegatedCredential?.({
-          credential_ref: credentialRef,
-          reason: "connection_persistence_failed",
-        }).catch(() => {});
-      }
-      throw error;
-    }
+    registerCredentialCleanup({
+      request_failure_compensator,
+      credential_vault,
+      credential_refs: persisted.pending_vault_cleanup_refs,
+      reason: "connection_replacement_committed",
+    });
+    return Object.freeze({
+      outcome: current ? "reconnected" : "connected",
+      connection: presentConnection(persisted, { clock }),
+      release_readiness: readiness,
+      credential_material_included: false,
+      production_ready_claim: false,
+    });
   }
 
   async function revokeConnection(input = {}) {
     const principal = assertEntraPrincipal(input);
-    const current = findConnection(repository, principal);
+    let current = findConnection(repository, principal);
     if (!current) {
       return Object.freeze({
         outcome: "not_connected",
@@ -970,7 +1991,15 @@ export function createM365GraphConnectionService({
         "M365 connection changed after the screen was loaded",
       );
     }
+    assertCredentialVault(credential_vault);
     if (current.revoked_at) {
+      current = await drainCredentialCleanup({
+        repository,
+        credential_vault,
+        connection: current,
+        principal,
+        clock,
+      });
       return Object.freeze({
         outcome: "already_disconnected",
         connection: presentConnection(current, { clock }),
@@ -979,9 +2008,20 @@ export function createM365GraphConnectionService({
       });
     }
     const occurredAt = timestamp(clock);
+    const stagedRef = stagedCredentialReference(
+      credential_vault,
+      principal,
+      current.state_version + 1,
+    );
+    const cleanupRefs = cleanupReferences(
+      current,
+      current.credential_ref,
+      stagedRef,
+    );
     const revoked = normalizeM365Connection({
       ...current,
       revoked_at: occurredAt,
+      pending_vault_cleanup_refs: cleanupRefs,
       state_version: current.state_version + 1,
     });
     assertProviderRuntime({
@@ -991,9 +2031,7 @@ export function createM365GraphConnectionService({
       credentialVault: credential_vault,
     });
     if (
-      typeof credential_vault.resolveDelegatedCredential !== "function"
-      || typeof credential_vault.deleteDelegatedCredential !== "function"
-      || typeof provider.revokeDelegatedCredential !== "function"
+      typeof provider.revokeDelegatedCredential !== "function"
     ) {
       throw commandError(
         M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
@@ -1009,15 +2047,7 @@ export function createM365GraphConnectionService({
       entra_subject_id: principal.entra_subject_id,
       mailbox_scope: "me",
     });
-    let credentialDeleteError = null;
-    try {
-      await credential_vault.deleteDelegatedCredential({
-        credential_ref: current.credential_ref,
-        reason: requiredString(input, "reason"),
-      });
-    } catch (error) {
-      credentialDeleteError = error;
-    }
+    const reason = requiredString(input, "reason");
     const persisted = repository.transaction
       ? repository.transaction((tx) => {
         const saved = tx.update(connectionRef(principal), revoked);
@@ -1028,7 +2058,9 @@ export function createM365GraphConnectionService({
           occurred_at: occurredAt,
           payload: {
             provider_revoked_first: true,
-            credential_reference_deleted: credentialDeleteError === null,
+            credential_cleanup_requested: true,
+            credential_cleanup_requested_count:
+              cleanupRefs.length,
           },
         });
         tx.recordIdempotency({
@@ -1040,20 +2072,19 @@ export function createM365GraphConnectionService({
             outcome: "disconnected",
             m365_connection_id: saved.m365_connection_id,
             state_version: saved.state_version,
-            credential_reference_deleted: credentialDeleteError === null,
+            credential_cleanup_requested: true,
           },
           created_at: occurredAt,
         });
         return saved;
       })
       : repository.update(connectionRef(principal), revoked);
-    if (credentialDeleteError) {
-      throw Object.assign(commandError(
-        M365_GRAPH_ERROR_CODES.credential_delete_failed,
-        "Microsoft credential cleanup requires operator attention",
-        502,
-      ), { cause: credentialDeleteError });
-    }
+    registerCredentialCleanup({
+      request_failure_compensator,
+      credential_vault,
+      credential_refs: persisted.pending_vault_cleanup_refs,
+      reason,
+    });
     return Object.freeze({
       outcome: "disconnected",
       connection: presentConnection(persisted, { clock }),

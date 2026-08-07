@@ -101,6 +101,7 @@ function scheduledConsultation(repository) {
 
 function emailDmsRepository({
   granted_scopes = M365_GRAPH_REQUIRED_SCOPES,
+  expires_at = "2026-08-30T08:00:00.000Z",
 } = {}) {
   return createEmailDmsRepository({
     seedRecords: [{
@@ -119,7 +120,7 @@ function emailDmsRepository({
         "aws-secrets-manager:synthetic/outlook-consultation-api",
       granted_scopes: [...granted_scopes],
       consented_at: "2026-07-30T08:00:00.000Z",
-      expires_at: "2026-08-30T08:00:00.000Z",
+      expires_at,
       revoked_at: null,
       state_version: 1,
     }],
@@ -142,6 +143,12 @@ function fixture({
     provider_runtime_enabled,
     clock: () => new Date("2026-07-30T09:00:00.000Z"),
     credential_vault: {
+      referenceForGeneration({
+        entra_subject_id,
+        credential_generation,
+      }) {
+        return `aws-secrets-manager:synthetic/outlook-consultation-api/${entra_subject_id}/${credential_generation}`;
+      },
       async resolveDelegatedCredential() {
         return {
           access_token:
@@ -158,6 +165,7 @@ function fixture({
       async storeDelegatedCredential() {
         throw new Error("unexpected credential refresh in consultation test");
       },
+      async deleteDelegatedCredential() {},
     },
     provider: {
       async createMeCalendarEvent(input) {
@@ -187,6 +195,7 @@ function fixture({
     baseCrmRepository,
     events,
     providerInputs,
+    m365GraphConfig,
     get provider_calls() {
       return providerCalls;
     },
@@ -228,6 +237,102 @@ function request({
     runtime,
   });
 }
+
+test("CRM Outlook 일정 refresh도 outer request compensator를 전달한다", async () => {
+  const value = fixture();
+  const failures = [];
+  const postCommitActions = [];
+  const currentRef =
+    "aws-secrets-manager:synthetic/outlook-consultation-api";
+  const nextRef = `${currentRef}/${SUBJECT}/m365-connection-state-2`;
+  const refreshedExpiresAt = "2026-07-30T11:00:00.000Z";
+  const credentials = new Map([[currentRef, {
+    access_token: "expiring-calendar-access-token",
+    refresh_token: "expiring-calendar-refresh-token",
+    mailbox_address: "calendar-user@example.invalid",
+    refresh_profile: "client",
+    refresh_profile_proof: "c".repeat(43),
+    expires_at: "2026-07-30T09:00:30.000Z",
+    granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
+  }]]);
+  const runtime = {
+    crmRepository: value.baseCrmRepository,
+    emailDmsRuntime: {
+      repository: emailDmsRepository({
+        expires_at: "2026-07-30T09:00:30.000Z",
+      }),
+      request_failure_compensator: {
+        register(action) {
+          failures.push(action);
+        },
+        registerPostCommit(action) {
+          postCommitActions.push(action);
+        },
+      },
+    },
+    m365GraphConfig: {
+      ...value.m365GraphConfig,
+      credential_vault: {
+        referenceForGeneration({
+          entra_subject_id,
+          credential_generation,
+        }) {
+          return `${currentRef}/${entra_subject_id}/${credential_generation}`;
+        },
+        async resolveDelegatedCredential({ credential_ref }) {
+          if (!credentials.has(credential_ref)) {
+            throw Object.assign(new Error("credential not found"), {
+              name: "ResourceNotFoundException",
+            });
+          }
+          return structuredClone(credentials.get(credential_ref));
+        },
+        async storeDelegatedCredential({
+          credential_ref,
+          credential_generation,
+          token_bundle,
+        }) {
+          assert.equal(credential_ref, undefined);
+          assert.equal(credential_generation, "m365-connection-state-2");
+          credentials.set(nextRef, structuredClone(token_bundle));
+          return nextRef;
+        },
+        async deleteDelegatedCredential({ credential_ref }) {
+          credentials.delete(credential_ref);
+        },
+      },
+      provider: {
+        ...value.m365GraphConfig.provider,
+        async refreshDelegatedCredential({ credential }) {
+          return {
+            expires_at: refreshedExpiresAt,
+            token_bundle: {
+              ...credential,
+              access_token: "rotated-calendar-access-token",
+              refresh_token: "rotated-calendar-refresh-token",
+              refresh_profile_proof: "r".repeat(43),
+              expires_at: refreshedExpiresAt,
+            },
+          };
+        },
+      },
+    },
+  };
+
+  const response = await request({
+    activityId: value.activity.crm_activity_id,
+    runtime,
+  });
+  assert.equal(response.status, 201, JSON.stringify(response.body));
+  assert.equal(failures.length, 0);
+  assert.equal(postCommitActions.length, 1);
+  const stored = runtime.emailDmsRuntime.repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(stored.credential_ref, nextRef);
+  assert.deepEqual(stored.pending_vault_cleanup_refs, [currentRef]);
+});
 
 test("VC-CL-CON-002 / CL-P3-W02-T04 사용자가 누른 일정 생성은 재클릭해도 Graph event 한 건만 보존한다", async () => {
   const value = fixture();

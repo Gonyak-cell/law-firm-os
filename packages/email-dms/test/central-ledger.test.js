@@ -168,9 +168,16 @@ test("CL-P3-W01-T01 Email DMS PostgreSQL runtime authority는 증거·파일·�
   let providerCompletionCount = 0;
   const graphDependencies = {
     credential_vault: {
-      async storeDelegatedCredential({ token_bundle, credential_ref }) {
+      referenceForGeneration({
+        entra_subject_id,
+        credential_generation,
+      }) {
+        return `aws-secrets-manager:synthetic/email-dms-authority/${entra_subject_id}/${credential_generation}`;
+      },
+      async storeDelegatedCredential(input) {
+        const { token_bundle, credential_ref } = input;
         const reference = credential_ref
-          ?? "aws-secrets-manager:synthetic/email-dms-authority";
+          ?? this.referenceForGeneration(input);
         credentials.set(reference, structuredClone(token_bundle));
         return reference;
       },
@@ -194,6 +201,10 @@ test("CL-P3-W01-T01 Email DMS PostgreSQL runtime authority는 증거·파일·�
           token_bundle: {
             access_token: "authority-access-token-never-persist",
             refresh_token: "authority-refresh-token-never-persist",
+            refresh_profile: "client",
+            refresh_profile_proof: "P".repeat(43),
+            expires_at: "2026-08-30T07:30:00.000Z",
+            granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
           },
         };
       },

@@ -65,7 +65,10 @@ import {
   createClientOperationsPostgresReadProvider,
 } from "./client-operations-read-providers.js";
 import { createPostgresPayrollReconciliationCheckpoint } from "./hrx-payroll-reconciliation-checkpoint.js";
-import { createPostgresPeopleOutlookCompletionCheckpoint } from "./people-outlook-completion-checkpoint.js";
+import {
+  createPostgresEmailDmsCompletionCheckpoint,
+  createPostgresPeopleOutlookCompletionCheckpoint,
+} from "./people-outlook-completion-checkpoint.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -159,6 +162,7 @@ export function isRetryablePostgresReadConflict(error, method, {
   allowIdempotentWriteRetry = false,
   pathname = "",
 } = {}) {
+  if (error?.request_compensation_failed === true) return false;
   const normalizedMethod = String(method ?? "").toUpperCase();
   if (
     normalizedMethod === "GET"
@@ -175,6 +179,7 @@ export async function runWithRequestFailureCompensation(execute) {
     throw new TypeError("PostgreSQL request callback is required");
   }
   const compensations = [];
+  const postCommitActions = [];
   let sealed = false;
   const requestFailureCompensator = Object.freeze({
     register(compensation) {
@@ -183,10 +188,23 @@ export async function runWithRequestFailureCompensation(execute) {
       }
       compensations.push(compensation);
     },
+    registerPostCommit(action) {
+      if (sealed || typeof action !== "function") {
+        throw new TypeError("PostgreSQL post-commit action is invalid");
+      }
+      postCommitActions.push(action);
+    },
   });
   try {
     const result = await execute(requestFailureCompensator);
     sealed = true;
+    for (const action of postCommitActions) {
+      try {
+        await action();
+      } catch {
+        // The durable cleanup marker is retried by the next Microsoft request.
+      }
+    }
     return result;
   } catch (error) {
     sealed = true;
@@ -293,6 +311,7 @@ function createRequestRuntimes({
   clientOperationsV2ReadProvider,
   bankReconciliationCheckpoint,
   peopleOutlookCompletionCheckpoint,
+  clientOutlookCompletionCheckpoint,
   requestFailureCompensator,
   leaveIntegrationProviders,
   leaveIntegrationProviderEnabled,
@@ -377,6 +396,8 @@ function createRequestRuntimes({
     storage: dmsStorage,
     upload_runtime: dmsUploadRuntime,
     request_failure_compensator: requestFailureCompensator,
+    client_outlook_completion_checkpoint:
+      clientOutlookCompletionCheckpoint,
     production_ready_claim: false,
   });
   const crmIntakeRuntime = createCrmIntakeRuntimeContext({
@@ -535,6 +556,11 @@ export function createPostgresApiRuntimeAuthority({
     createPostgresPayrollReconciliationCheckpoint({ ledger });
   const peopleOutlookCompletionCheckpoint =
     createPostgresPeopleOutlookCompletionCheckpoint({ ledger });
+  const clientOutlookCompletionCheckpoint =
+    createPostgresEmailDmsCompletionCheckpoint({
+      ledger,
+      workflow: "client-outlook",
+    });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
@@ -544,6 +570,11 @@ export function createPostgresApiRuntimeAuthority({
       method,
       request_context?.pathname,
     );
+    const clientOutlookSelfCompletion = method === "GET"
+      && String(request_context?.pathname ?? "")
+        === CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH;
+    const emailDmsSelfCompletion = peopleOutlookSelfCompletion
+      || clientOutlookSelfCompletion;
     const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
       || isPayrollReconciliationMutation(method, request_context?.pathname)
       || peopleOutlookSelfCompletion
@@ -559,7 +590,7 @@ export function createPostgresApiRuntimeAuthority({
         const identityUsers = identityRepository?.listDirectoryUsers
           ? await identityRepository.listDirectoryUsers({ tenant_id: tenantId })
           : [];
-        const detachedEmailDmsRepository = peopleOutlookSelfCompletion
+        const detachedEmailDmsRepository = emailDmsSelfCompletion
           ? await materializeRecordRepositoryFromDomainLedger({
               ledger,
               descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
@@ -571,7 +602,7 @@ export function createPostgresApiRuntimeAuthority({
           const productCommand = await runRecordRepositoryMultiDomainCommand({
             ledger,
             tenant_id: tenantId,
-            domains: peopleOutlookSelfCompletion
+            domains: emailDmsSelfCompletion
               ? PRODUCT_DOMAINS.filter(
                   ({ key }) => key !== "emailDmsRepository",
                 )
@@ -609,6 +640,7 @@ export function createPostgresApiRuntimeAuthority({
                 }),
               bankReconciliationCheckpoint,
               peopleOutlookCompletionCheckpoint,
+              clientOutlookCompletionCheckpoint,
               requestFailureCompensator,
               leaveIntegrationProviders,
               leaveIntegrationProviderEnabled,

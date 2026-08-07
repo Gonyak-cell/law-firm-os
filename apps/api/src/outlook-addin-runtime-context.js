@@ -765,12 +765,15 @@ function m365RouteGate({
     });
 }
 
-function m365Service(runtime) {
+function m365Service(runtime, { useCompletionCheckpoint = false } = {}) {
   return createM365GraphConnectionService({
     repository: runtime?.emailDmsRuntime?.repository,
     ...(runtime?.m365GraphConfig ?? {}),
     request_failure_compensator:
       runtime?.emailDmsRuntime?.request_failure_compensator,
+    completion_checkpoint: useCompletionCheckpoint
+      ? runtime?.emailDmsRuntime?.client_outlook_completion_checkpoint
+      : null,
   });
 }
 
@@ -778,6 +781,8 @@ function m365MailPort(runtime) {
   return createM365MailPort({
     repository: runtime?.emailDmsRuntime?.repository,
     ...(runtime?.m365GraphConfig ?? {}),
+    request_failure_compensator:
+      runtime?.emailDmsRuntime?.request_failure_compensator,
   });
 }
 
@@ -1315,62 +1320,106 @@ function validateMatterDmsAuthority({ repository, matter, documentId } = {}) {
 }
 
 function ensureMatterFolders({ repository, matter, actor_id } = {}) {
-  const authority = validateMatterDmsAuthority({ repository, matter });
-  const { expected } = authority;
-  const workspaceId = expected.workspace_id;
-  let workspace = authority.workspace;
-  if (!workspace) {
-    workspace = repository.create({
-      ...createDmsWorkspace({
-        workspace_id: workspaceId,
-        tenant_id: matter.tenant_id,
-        matter_id: matter.matter_id,
-        name: matter.title ?? matter.matter_id,
-        status: "active",
-        permission_envelope_id: expected.permission_envelope_id,
-        audit_trace_id: expected.audit_trace_id,
-      }),
-      model_type: "DmsWorkspace",
-    });
+  if (typeof repository?.transaction !== "function") {
+    throw new Error("Matter DMS folder preparation requires an atomic repository transaction");
   }
-  const rootFolderId = expected.root_folder_id;
-  const existingRoot = authority.folders.find((folder) => folder.folder_id === rootFolderId);
-  if (!existingRoot) {
-    repository.create({
-      ...createDmsFolder({
-        folder_id: rootFolderId,
-        tenant_id: matter.tenant_id,
-        matter_id: matter.matter_id,
-        workspace_id: workspaceId,
-        name: "Root",
-        status: "active",
-        permission_envelope_id: expected.permission_envelope_id,
-        audit_trace_id: expected.audit_trace_id,
-      }),
-      model_type: "DmsFolder",
+  return repository.transaction((tx) => {
+    const authority = validateMatterDmsAuthority({ repository: tx, matter });
+    const { expected } = authority;
+    const workspaceId = expected.workspace_id;
+    let changed = false;
+    let workspace = authority.workspace;
+    if (!workspace) {
+      workspace = tx.create({
+        ...createDmsWorkspace({
+          workspace_id: workspaceId,
+          tenant_id: matter.tenant_id,
+          matter_id: matter.matter_id,
+          name: matter.title ?? matter.matter_id,
+          status: "active",
+          permission_envelope_id: expected.permission_envelope_id,
+          audit_trace_id: expected.audit_trace_id,
+        }),
+        model_type: "DmsWorkspace",
+      });
+      changed = true;
+    }
+    const rootFolderId = expected.root_folder_id;
+    const existingRoot = authority.folders.find((folder) => folder.folder_id === rootFolderId);
+    if (!existingRoot) {
+      tx.create({
+        ...createDmsFolder({
+          folder_id: rootFolderId,
+          tenant_id: matter.tenant_id,
+          matter_id: matter.matter_id,
+          workspace_id: workspaceId,
+          name: "Root",
+          status: "active",
+          permission_envelope_id: expected.permission_envelope_id,
+          audit_trace_id: expected.audit_trace_id,
+        }),
+        model_type: "DmsFolder",
+      });
+      changed = true;
+    }
+    const folders = expected.folders.map(({ name, folder_id: folderId }) => {
+      const existing = authority.folders.find((folder) => folder.folder_id === folderId)
+        ?? tx.get({ tenant_id: matter.tenant_id, model_type: "DmsFolder", folder_id: folderId });
+      if (existing) return existing;
+      changed = true;
+      return tx.create({
+        ...createDmsFolder({
+          folder_id: folderId,
+          tenant_id: matter.tenant_id,
+          matter_id: matter.matter_id,
+          workspace_id: workspaceId,
+          parent_folder_id: rootFolderId,
+          name,
+          status: "active",
+          permission_envelope_id: expected.permission_envelope_id,
+          audit_trace_id: expected.audit_trace_id,
+        }),
+        model_type: "DmsFolder",
+        created_by: actor_id,
+      });
     });
-  }
-  const folders = expected.folders.map(({ name, folder_id: folderId }) => {
-    const existing = authority.folders.find((folder) => folder.folder_id === folderId)
-      ?? repository.get({ tenant_id: matter.tenant_id, model_type: "DmsFolder", folder_id: folderId });
-    if (existing) return existing;
-    return repository.create({
-      ...createDmsFolder({
-        folder_id: folderId,
+    if (changed) {
+      const occurredAt = new Date().toISOString();
+      appendDmsAudit(tx, {
+        event_id:
+          `outlook.matter.folders:${matter.tenant_id}:${matter.matter_id}:v1`,
         tenant_id: matter.tenant_id,
-        matter_id: matter.matter_id,
-        workspace_id: workspaceId,
-        parent_folder_id: rootFolderId,
-        name,
-        status: "active",
-        permission_envelope_id: expected.permission_envelope_id,
-        audit_trace_id: expected.audit_trace_id,
-      }),
-      model_type: "DmsFolder",
-      created_by: actor_id,
+        actor_id,
+        action: "dms.matter.folders.ensure",
+        object_type: "DmsWorkspace",
+        object_id: workspaceId,
+        reason: "matter_folder_structure_prepared",
+        occurred_at: occurredAt,
+        metadata: {
+          matter_id: matter.matter_id,
+          folder_count: folders.length + 1,
+        },
+      });
+      tx.recordIdempotency({
+        tenant_id: matter.tenant_id,
+        idempotency_key:
+          `outlook-matter-folders:${matter.tenant_id}:${matter.matter_id}:v1`,
+        operation: "outlook_matter_folders_ensure",
+        response: {
+          outcome: "prepared",
+          matter_id: matter.matter_id,
+          workspace_id: workspaceId,
+          folder_count: folders.length + 1,
+        },
+        created_at: occurredAt,
+      });
+    }
+    return Object.freeze({
+      workspace,
+      root_folder_id: rootFolderId,
+      folders: Object.freeze(folders),
     });
   });
-  return Object.freeze({ workspace, root_folder_id: rootFolderId, folders: Object.freeze(folders) });
 }
 
 function listMatterTimeline({ repository, tenant_id, matter_id, actor } = {}) {
@@ -1551,11 +1600,14 @@ export async function handleClientOutlookAuthorizationCallback({
         },
       );
     }
-    const result = await m365Service(runtime).completeAuthorization({
+    const result = await m365Service(runtime, {
+      useCompletionCheckpoint: true,
+    }).completeAuthorization({
       ...principal,
       code,
       state,
       redirect_uri: principal.redirect_uri,
+      completion_claimant: requestId,
     });
     return success(200, {
       request_id: requestId,
@@ -2133,6 +2185,8 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     );
   }
   const documentId = `doc:${canonicalThread.email_thread_id}:original-mime:${canonical.mime_sha256}`;
+  const filingIdempotencyKey =
+    `outlook-email-file:${canonicalThread.email_thread_id}:${canonical.mime_sha256}`;
   const versionId = `version:${documentId}:1`;
   const workspaceId = `workspace:${matterId}`;
   const emailFolderId = `folder:${matterId}:00_Email`;
@@ -2238,24 +2292,82 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       body.audit_hint_ref,
     );
   }
-  if (!existingThread) {
-    const pendingThread = createEmailThread({
-      ...canonicalThread,
-      status: "draft",
-      filed_document_ids: Object.freeze([documentId]),
-    });
+  if (!existingThread || existingThread.status === "draft") {
     try {
-      existingThread = runtime.dmsRuntime.repository.create({
-        ...pendingThread,
-        model_type: "DmsEmailThread",
+      existingThread = runtime.dmsRuntime.repository.transaction((tx) => {
+        const pendingIdempotencyKey = `${filingIdempotencyKey}:dms-pending`;
+        const current = tx.get({
+          tenant_id: tenantId,
+          model_type: "DmsEmailThread",
+          email_thread_id: canonicalThread.email_thread_id,
+        });
+        const replay = tx.getIdempotency({
+          tenant_id: tenantId,
+          idempotency_key: pendingIdempotencyKey,
+        });
+        if (replay) {
+          if (
+            !current
+            || current.status !== "draft"
+            || replay.response?.email_thread_id !== current.email_thread_id
+            || replay.response?.matter_id !== current.matter_id
+            || replay.response?.document_id !== current.filed_document_ids?.[0]
+          ) {
+            throw new Error(
+              "Outlook pending filing idempotency conflicts with its draft thread",
+            );
+          }
+          return current;
+        }
+        const pending = current ?? tx.create({
+          ...createEmailThread({
+            ...canonicalThread,
+            status: "draft",
+            filed_document_ids: Object.freeze([documentId]),
+          }),
+          model_type: "DmsEmailThread",
+        });
+        if (
+          pending.status !== "draft"
+          || pending.matter_id !== matterId
+          || pending.filed_document_ids?.length !== 1
+          || pending.filed_document_ids[0] !== documentId
+        ) {
+          throw new Error("Outlook pending filing conflicts with its draft thread");
+        }
+        appendDmsAudit(tx, {
+          event_id:
+            `outlook.email.file.pending:${tenantId}:${canonicalThread.email_thread_id}`,
+          tenant_id: tenantId,
+          actor_id: actorId,
+          action: "dms.email.thread.file.pending",
+          object_type: "DmsEmailThread",
+          object_id: pending.email_thread_id,
+          reason: "email_thread_filing_prepared",
+          occurred_at: pending.filing_time,
+          metadata: {
+            matter_id: matterId,
+            document_id: documentId,
+            status: "draft",
+          },
+        });
+        tx.recordIdempotency({
+          tenant_id: tenantId,
+          idempotency_key: pendingIdempotencyKey,
+          operation: "outlook_email_file_pending",
+          response: {
+            outcome: "pending",
+            email_thread_id: pending.email_thread_id,
+            matter_id: pending.matter_id,
+            document_id: pending.filed_document_ids[0],
+            status: pending.status,
+          },
+          created_at: pending.filing_time,
+        });
+        return pending;
       });
     } catch (error) {
-      existingThread = runtime.dmsRuntime.repository.get({
-        tenant_id: tenantId,
-        model_type: "DmsEmailThread",
-        email_thread_id: canonicalThread.email_thread_id,
-      });
-      if (!existingThread) return m365ErrorResponse(error, requestId, body.audit_hint_ref);
+      return m365ErrorResponse(error, requestId, body.audit_hint_ref);
     }
   }
   try {
@@ -2297,7 +2409,6 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
-  const filingIdempotencyKey = `outlook-email-file:${canonicalThread.email_thread_id}:${canonical.mime_sha256}`;
   const result = fileEmailThreadToMatter({
     repository: runtime.dmsRuntime.repository,
     thread: existingThread,

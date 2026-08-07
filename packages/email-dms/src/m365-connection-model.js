@@ -61,6 +61,21 @@ function credentialReference(value) {
   return reference;
 }
 
+function credentialCleanupReferences(value, activeReference, revokedAt) {
+  if (value === null || value === undefined) return Object.freeze([]);
+  if (!Array.isArray(value)) {
+    throw new TypeError("pending_vault_cleanup_refs must be an array");
+  }
+  const references = value.map(credentialReference);
+  if (new Set(references).size !== references.length) {
+    throw new TypeError("pending_vault_cleanup_refs cannot contain duplicates");
+  }
+  if (!revokedAt && references.includes(activeReference)) {
+    throw new TypeError("active credential_ref cannot be pending cleanup");
+  }
+  return Object.freeze(references);
+}
+
 function grantedScopes(value) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError("granted_scopes is required");
@@ -134,6 +149,7 @@ export function normalizeM365Connection(input = {}) {
   if (input.mailbox_scope !== undefined && input.mailbox_scope !== "me") {
     throw new TypeError("M365Connection mailbox_scope must be me");
   }
+  const activeCredentialReference = credentialReference(input.credential_ref);
   return Object.freeze({
     model_type: "M365Connection",
     m365_connection_id: requiredString(input, "m365_connection_id"),
@@ -141,7 +157,12 @@ export function normalizeM365Connection(input = {}) {
     user_id: requiredString(input, "user_id"),
     entra_subject_id: requiredString(input, "entra_subject_id"),
     mailbox_address_hash: mailboxAddressHash,
-    credential_ref: credentialReference(input.credential_ref),
+    credential_ref: activeCredentialReference,
+    pending_vault_cleanup_refs: credentialCleanupReferences(
+      input.pending_vault_cleanup_refs,
+      activeCredentialReference,
+      revokedAt,
+    ),
     granted_scopes: grantedScopes(input.granted_scopes),
     consented_at: consentedAt,
     expires_at: expiresAt,

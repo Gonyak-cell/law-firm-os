@@ -61,7 +61,7 @@ function tokenBundle(input) {
   });
 }
 
-function secretName(prefix, tenantId, userId, generation) {
+function secretName(prefix, tenantId, userId, entraSubjectId, generation) {
   const base = requiredString(prefix, "secret_prefix").replace(/\/+$/u, "");
   if (!/^[A-Za-z0-9/_+=.@-]+$/u.test(base)) {
     throw new TypeError("secret_prefix is invalid");
@@ -70,6 +70,10 @@ function secretName(prefix, tenantId, userId, generation) {
     .update(JSON.stringify({
       tenant_id: requiredString(tenantId, "tenant_id"),
       user_id: requiredString(userId, "user_id"),
+      entra_subject_id: requiredString(
+        entraSubjectId,
+        "entra_subject_id",
+      ),
       generation: requiredString(generation, "credential generation"),
     }))
     .digest("hex");
@@ -79,6 +83,34 @@ function secretName(prefix, tenantId, userId, generation) {
 function resourceExists(error) {
   return error?.name === "ResourceExistsException"
     || error?.Code === "ResourceExistsException";
+}
+
+function credentialAlreadyDeleted(error) {
+  const code = error?.name ?? error?.Code ?? error?.code;
+  const message = String(
+    error?.message ?? error?.Message ?? error?.Error?.Message ?? "",
+  );
+  return code === "ResourceNotFoundException"
+    || (
+      code === "InvalidRequestException"
+      && /(?:marked|scheduled) for deletion/iu.test(message)
+    );
+}
+
+function credentialNotFound(error) {
+  const code = error?.name ?? error?.Code ?? error?.code;
+  return code === "ResourceNotFoundException";
+}
+
+function revokedCredentialError() {
+  return Object.assign(
+    new Error("Microsoft 365 delegated credential was revoked"),
+    {
+      name: "M365CredentialRevokedError",
+      safe_error_code: "M365_REAUTHORIZATION_REQUIRED",
+      status: 401,
+    },
+  );
 }
 
 export function createAwsM365CredentialVault({
@@ -114,13 +146,26 @@ export function createAwsM365CredentialVault({
     async storeDelegatedCredential({
       tenant_id,
       user_id,
+      entra_subject_id,
       token_bundle,
       credential_ref = null,
+      credential_generation = null,
     } = {}) {
       const bundle = tokenBundle(token_bundle);
+      if (credential_ref && credential_generation) {
+        throw new TypeError(
+          "credential_ref and credential_generation are mutually exclusive",
+        );
+      }
       const secretId = credential_ref
         ? secretIdFromReference(credential_ref)
-        : secretName(secret_prefix, tenant_id, user_id, idFactory());
+        : secretName(
+            secret_prefix,
+            tenant_id,
+            user_id,
+            entra_subject_id,
+            credential_generation ?? idFactory(),
+          );
       const secretString = JSON.stringify(bundle);
       if (credential_ref) {
         await putSecret(secretId, secretString);
@@ -139,17 +184,43 @@ export function createAwsM365CredentialVault({
           }));
         } catch (error) {
           if (!resourceExists(error)) throw error;
-          await putSecret(secretId, secretString);
+          if (!credential_generation) await putSecret(secretId, secretString);
         }
       }
       return credentialReference(secretId);
     },
+    referenceForGeneration({
+      tenant_id,
+      user_id,
+      entra_subject_id,
+      credential_generation,
+    } = {}) {
+      return credentialReference(secretName(
+        secret_prefix,
+        tenant_id,
+        user_id,
+        entra_subject_id,
+        credential_generation,
+      ));
+    },
     async resolveDelegatedCredential({ credential_ref } = {}) {
-      return tokenBundle(await resolveAwsJsonSecret({
-        secretId: secretIdFromReference(credential_ref),
-        region: resolvedRegion,
-        client: secrets,
-      }));
+      let value;
+      try {
+        value = await resolveAwsJsonSecret({
+          secretId: secretIdFromReference(credential_ref),
+          region: resolvedRegion,
+          client: secrets,
+        });
+      } catch (error) {
+        if (credentialAlreadyDeleted(error) && !credentialNotFound(error)) {
+          throw revokedCredentialError();
+        }
+        throw error;
+      }
+      if (value.credential_tombstone === true) {
+        throw revokedCredentialError();
+      }
+      return tokenBundle(value);
     },
     async deleteDelegatedCredential({
       credential_ref,
@@ -157,18 +228,44 @@ export function createAwsM365CredentialVault({
     } = {}) {
       const secretId = secretIdFromReference(credential_ref);
       const deletedAt = new Date().toISOString();
-      await putSecret(secretId, JSON.stringify({
+      const tombstone = JSON.stringify({
         revoked: true,
         revoked_at: deletedAt,
         reason_hash: createHash("sha256")
           .update(requiredString(reason, "reason"))
           .digest("hex"),
+        credential_tombstone: true,
         credential_material_included: false,
-      }));
-      await secrets.send(new DeleteSecretCommand({
-        SecretId: secretId,
-        RecoveryWindowInDays: recovery_window_days,
-      }));
+      });
+      try {
+        try {
+          await putSecret(secretId, tombstone);
+        } catch (error) {
+          if (!credentialNotFound(error)) throw error;
+          try {
+            await secrets.send(new CreateSecretCommand({
+              Name: secretId,
+              Description:
+                "Law Firm OS revoked Microsoft 365 credential generation",
+              SecretString: tombstone,
+              ClientRequestToken: idFactory(),
+              Tags: [{
+                Key: "lawos-purpose",
+                Value: "m365-delegated-user-tombstone",
+              }],
+            }));
+          } catch (createError) {
+            if (!resourceExists(createError)) throw createError;
+            await putSecret(secretId, tombstone);
+          }
+        }
+        await secrets.send(new DeleteSecretCommand({
+          SecretId: secretId,
+          RecoveryWindowInDays: recovery_window_days,
+        }));
+      } catch (error) {
+        if (!credentialAlreadyDeleted(error)) throw error;
+      }
       return Object.freeze({
         credential_ref,
         revoked_at: deletedAt,

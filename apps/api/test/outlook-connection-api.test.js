@@ -51,13 +51,34 @@ function graphConfig() {
       clock: () => new Date("2026-07-30T06:00:00.000Z"),
       external_readiness: {},
       credential_vault: {
-        async storeDelegatedCredential({ token_bundle, credential_ref }) {
+        referenceForGeneration({
+          entra_subject_id,
+          credential_generation,
+        }) {
+          return `aws-secrets-manager:synthetic/outlook-connection-api/${entra_subject_id}/${credential_generation}`;
+        },
+        async storeDelegatedCredential({
+          token_bundle,
+          credential_ref,
+          credential_generation,
+          entra_subject_id,
+        }) {
           const reference = credential_ref
-            ?? "aws-secrets-manager:synthetic/outlook-connection-api";
-          credentials.set(reference, structuredClone(token_bundle));
+            ?? this.referenceForGeneration({
+              entra_subject_id,
+              credential_generation,
+            });
+          if (!credentials.has(reference)) {
+            credentials.set(reference, structuredClone(token_bundle));
+          }
           return reference;
         },
         async resolveDelegatedCredential({ credential_ref }) {
+          if (!credentials.has(credential_ref)) {
+            throw Object.assign(new Error("credential not found"), {
+              name: "ResourceNotFoundException",
+            });
+          }
           return structuredClone(credentials.get(credential_ref));
         },
         async deleteDelegatedCredential({ credential_ref }) {
@@ -93,6 +114,10 @@ function graphConfig() {
             token_bundle: {
               access_token: "api-test-access-token-never-return",
               refresh_token: "api-test-refresh-token-never-return",
+              refresh_profile: "client",
+              refresh_profile_proof: "c".repeat(43),
+              expires_at: "2026-08-30T06:00:00.000Z",
+              granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
             },
           };
         },
@@ -287,10 +312,24 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(deleted.status, 200);
   assert.equal(deleted.body.outcome, "disconnected");
   assert.equal(deleted.body.item.connection.status, "revoked");
-  assert.deepEqual(
-    graph.calls,
-    ["provider_revoked", "credential_deleted"],
-  );
+  assert.deepEqual(graph.calls, ["provider_revoked"]);
+
+  const cleanupRetry = await request({
+    pathname: "/api/outlook/connection",
+    method: "DELETE",
+    query: {
+      expected_state_version: "2",
+      reason: "사용자 연결 해제 재시도",
+    },
+    runtime,
+  });
+  assert.equal(cleanupRetry.status, 200);
+  assert.equal(cleanupRetry.body.outcome, "already_disconnected");
+  assert.deepEqual(graph.calls, [
+    "provider_revoked",
+    "credential_deleted",
+    "credential_deleted",
+  ]);
 });
 
 test("CL-P3-W00-T01 Outlook 연결 API는 권한·tenant·Entra subject 누락을 fail-closed로 처리한다", async () => {
