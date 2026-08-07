@@ -2023,6 +2023,41 @@ test("이미 해제된 연결의 반복 DELETE는 남은 vault cleanup을 재시
   assert.equal(dependencies.credentials.has(credentialRef), false);
 });
 
+test("활성 연결의 stale 버전 DELETE는 provider·vault·상태 변경 없이 거부한다", async () => {
+  const repository = createEmailDmsRepository({
+    seedRecords: [connection({ state_version: 2 })],
+  });
+  const dependencies = fakeDependencies();
+  const service = createM365GraphConnectionService({
+    repository,
+    credential_vault: dependencies.credentialVault,
+    provider: dependencies.provider,
+    feature_enabled: true,
+    provider_runtime_enabled: true,
+    allowed_redirect_uris: [REDIRECT_URI],
+    clock: () => new Date(NOW),
+  });
+
+  await assert.rejects(
+    service.revokeConnection({
+      ...principal(),
+      expected_state_version: 1,
+      reason: "오래된 화면에서 연결 해제",
+    }),
+    (error) => (
+      error.safe_error_code === M365_GRAPH_ERROR_CODES.state_version_conflict
+    ),
+  );
+  const persisted = repository.list({
+    tenant_id: TENANT,
+    model_type: "M365Connection",
+  })[0];
+  assert.equal(persisted.state_version, 2);
+  assert.equal(persisted.revoked_at, null);
+  assert.deepEqual(dependencies.calls, []);
+  assert.deepEqual(repository.listAudit({ tenant_id: TENANT }), []);
+});
+
 test("generation 저장 전 vault delete·reference capability가 없으면 fail-closed한다", async () => {
   const expiringAt = "2026-07-30T06:00:30.000Z";
   const seededConnection = connection({ expires_at: expiringAt });

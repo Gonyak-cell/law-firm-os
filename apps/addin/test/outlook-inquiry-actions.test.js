@@ -93,4 +93,16 @@ test("CL-P3-W01-T05 처리 결과와 실패 사유를 자연스러운 한국어�
     }),
     "읽기 화면에서 저장된 메일을 선택해 주세요.",
   );
+  assert.equal(
+    outlookActionErrorMessage({
+      safe_error_code: "M365_CONNECTION_VERSION_CONFLICT",
+    }),
+    "연결 상태가 방금 바뀌었습니다. 다시 확인해 주세요.",
+  );
+  assert.equal(
+    outlookActionErrorMessage({
+      safe_error_code: "M365_CONNECTION_DISCONNECT_NOT_CONFIRMED",
+    }),
+    "연결 해제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요.",
+  );
 });

@@ -236,6 +236,65 @@ test("AWS M365 credential vault cleanup은 이미 삭제 예약된 참조를 성
   assert.equal(calls, 1);
 });
 
+test("AWS M365 credential vault는 삭제 예약이 지연돼도 tombstone 뒤 token을 다시 열지 않는다", async () => {
+  let secretString = JSON.stringify({
+    access_token: "must-be-erased-before-delete-retry",
+    refresh_token: "must-be-erased-before-delete-retry",
+    refresh_profile: "client",
+    refresh_profile_proof: CLIENT_REFRESH_PROOF,
+  });
+  let deleteAttempts = 0;
+  const vault = createAwsM365CredentialVault({
+    region: "ap-northeast-2",
+    secret_prefix: "lawos/test/m365",
+    client: {
+      async send(command) {
+        const name = command.constructor.name;
+        if (name === "PutSecretValueCommand") {
+          secretString = command.input.SecretString;
+          return {};
+        }
+        if (name === "GetSecretValueCommand") {
+          return { SecretString: secretString };
+        }
+        if (name === "DeleteSecretCommand") {
+          deleteAttempts += 1;
+          if (deleteAttempts === 1) {
+            throw Object.assign(new Error("temporary delete failure"), {
+              name: "ServiceUnavailableException",
+            });
+          }
+          return {};
+        }
+        throw new Error(`Unexpected command: ${name}`);
+      },
+    },
+    idFactory: () => "00000000-0000-4000-8000-000000000001",
+  });
+  const credentialRef =
+    "aws-secrets-manager:lawos/test/m365/delete-retry";
+
+  await assert.rejects(vault.deleteDelegatedCredential({
+    credential_ref: credentialRef,
+    reason: "connection revoked",
+  }), /temporary delete failure/u);
+  assert.equal(JSON.parse(secretString).credential_tombstone, true);
+  assert.equal(secretString.includes("must-be-erased-before-delete-retry"), false);
+  await assert.rejects(vault.resolveDelegatedCredential({
+    credential_ref: credentialRef,
+  }), (error) => (
+    error.safe_error_code === "M365_REAUTHORIZATION_REQUIRED"
+    && error.status === 401
+  ));
+
+  const cleaned = await vault.deleteDelegatedCredential({
+    credential_ref: credentialRef,
+    reason: "connection revoked cleanup retry",
+  });
+  assert.equal(cleaned.deletion_scheduled, true);
+  assert.equal(deleteAttempts, 2);
+});
+
 test("AWS M365 credential vault cleanup은 다른 InvalidRequest를 성공으로 숨기지 않는다", async () => {
   const vault = createAwsM365CredentialVault({
     region: "ap-northeast-2",

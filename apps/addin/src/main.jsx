@@ -67,6 +67,12 @@ import {
   DEFAULT_ADDIN_API_TIMEOUT_MS,
   fetchAddinApi,
 } from "./addin-http.js";
+import {
+  disconnectCurrentOutlookConnection,
+  isOutlookConnectionDisconnected,
+  outlookConnectionPayload,
+  parseOutlookConnectionRecord,
+} from "./outlook-connection-actions.js";
 import "./styles.css";
 
 const ADDIN_SESSION_STORAGE_KEY = LAWOS_SESSION_STORAGE_KEY;
@@ -469,38 +475,6 @@ function registerOutlookEventHandlers() {
 
 const registerOutlookEventHandlersOnce = createRegistrationLatch(registerOutlookEventHandlers);
 
-function connectionPayload(body) {
-  return body?.item?.connection
-    ? body.item
-    : body?.item
-      ?? body?.connection
-      ?? body;
-}
-
-function graphConnectionState(body) {
-  const item = connectionPayload(body);
-  const connection = item?.connection ?? item;
-  const status = String(connection?.status ?? connection?.connection_state ?? item?.status ?? item?.connection_state ?? "not_connected").toLowerCase();
-  if (status === "connected" && connection?.active !== false) return GRAPH_STATE.connected;
-  if (["expired", "scope_insufficient", "reauthorization_required"].includes(status)) return GRAPH_STATE.reconnectRequired;
-  if (status === "unavailable" || item?.release_readiness?.status === "blocked") return GRAPH_STATE.notConnected;
-  return GRAPH_STATE.notConnected;
-}
-
-function graphConnectionRecord(body) {
-  const item = connectionPayload(body);
-  const connection = item?.connection ?? item;
-  return {
-    state: graphConnectionState(body),
-    status: String(connection?.status ?? connection?.connection_state ?? item?.status ?? item?.connection_state ?? "not_connected"),
-    stateVersion: Number(connection?.state_version ?? item?.state_version ?? 0) || 0,
-    missingScopes: Array.isArray(connection?.missing_scopes) ? connection.missing_scopes : [],
-    mailboxAddress: connection?.mailbox_address ?? item?.mailbox_address ?? null,
-    authorizationUrl: item?.authorization_url ?? body?.authorization_url ?? null,
-    oauthState: item?.state ?? body?.state ?? null,
-  };
-}
-
 function oauthStateFromAuthorizationUrl(authorizationUrl) {
   try { return new URL(authorizationUrl).searchParams.get("state") ?? ""; } catch { return ""; }
 }
@@ -675,7 +649,7 @@ function App() {
 
   async function refreshGraphConnection({ loadBusinessData = true } = {}) {
     const body = await requestJson("/api/outlook/connection");
-    const next = graphConnectionRecord(body);
+    const next = parseOutlookConnectionRecord(body);
     setGraphConnection(next);
     if (loadBusinessData && next.state === GRAPH_STATE.connected) {
       try {
@@ -827,7 +801,7 @@ function App() {
         },
         body: { redirect_uri: config.callbackUri },
       });
-      const item = connectionPayload(started);
+      const item = outlookConnectionPayload(started);
       const authorizationUrl = item?.authorization_url ?? started?.authorization_url;
       const attemptRef = item?.attempt_ref ?? started?.attempt_ref;
       const state = item?.state ?? started?.state ?? oauthStateFromAuthorizationUrl(authorizationUrl);
@@ -848,7 +822,7 @@ function App() {
                 const body = await requestJson(
                   `/api/outlook/connection?attempt_ref=${encodeURIComponent(attemptRef)}`,
                 );
-                return connectionPayload(body)?.authorization_attempt?.status
+                return outlookConnectionPayload(body)?.authorization_attempt?.status
                   === "complete";
               },
             }
@@ -883,12 +857,29 @@ function App() {
     setError("");
     try {
       const reason = "사용자가 Outlook 연결을 해제함";
-      await requestJson(`/api/outlook/connection?expected_state_version=${encodeURIComponent(graphConnection.stateVersion)}&reason=${encodeURIComponent(reason)}`, {
-        method: "DELETE",
+      const result = await disconnectCurrentOutlookConnection({
+        readConnection: async () => parseOutlookConnectionRecord(
+          await requestJson("/api/outlook/connection"),
+        ),
+        deleteConnection: async (connection) => parseOutlookConnectionRecord(
+          await requestJson(`/api/outlook/connection?expected_state_version=${encodeURIComponent(connection.stateVersion)}&reason=${encodeURIComponent(reason)}`, {
+            method: "DELETE",
+          }),
+        ),
       });
-      await refreshGraphConnection({ loadBusinessData: false });
+      setGraphConnection(result.connection);
+      if (isOutlookConnectionDisconnected(result.connection)) {
+        setBootstrap(null);
+        setMatters([]);
+        setInquiries([]);
+        setTimeline([]);
+        setDocuments([]);
+        resetItemActionResults();
+      }
     } catch (nextError) {
-      setGraphConnection((current) => ({ ...current, state: GRAPH_STATE.connected }));
+      setGraphConnection(
+        nextError?.authoritative_connection ?? graphConnection,
+      );
       setError(actionErrorMessage(nextError));
     } finally {
       setBusy("");

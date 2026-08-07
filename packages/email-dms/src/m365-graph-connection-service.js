@@ -1982,16 +1982,7 @@ export function createM365GraphConnectionService({
       });
     }
     assertSubject(current, principal);
-    if (
-      current.state_version
-      !== wholeVersion(input.expected_state_version)
-    ) {
-      throw commandError(
-        M365_GRAPH_ERROR_CODES.state_version_conflict,
-        "M365 connection changed after the screen was loaded",
-      );
-    }
-    assertCredentialVault(credential_vault);
+    const expectedStateVersion = wholeVersion(input.expected_state_version);
     if (current.revoked_at) {
       current = await drainCredentialCleanup({
         repository,
@@ -2007,6 +1998,16 @@ export function createM365GraphConnectionService({
         production_ready_claim: false,
       });
     }
+    if (
+      current.state_version
+      !== expectedStateVersion
+    ) {
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.state_version_conflict,
+        "M365 connection changed after the screen was loaded",
+      );
+    }
+    assertCredentialVault(credential_vault);
     const occurredAt = timestamp(clock);
     const stagedRef = stagedCredentialReference(
       credential_vault,

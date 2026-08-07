@@ -318,7 +318,7 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
     pathname: "/api/outlook/connection",
     method: "DELETE",
     query: {
-      expected_state_version: "2",
+      expected_state_version: "1",
       reason: "사용자 연결 해제 재시도",
     },
     runtime,
