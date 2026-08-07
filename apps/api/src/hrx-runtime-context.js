@@ -1056,6 +1056,19 @@ function peopleOutlookSource(context, actorContext, employeeIds, asOf, timezone)
 
 function peopleOutlookSourceStatus(source) {
   if (!source) return [];
+  const connectionStates = Object.values(source.connection_state_by_employee_id ?? {});
+  const allNotConnected = connectionStates.length > 0 && connectionStates.every(
+    (connection) => connection?.connection_state === "not_connected",
+  );
+  if (source.state === "ok" && allNotConnected && !source.last_success_at) {
+    return [{
+      source: "outlook",
+      state: "blocked",
+      last_success_at: null,
+      stale_after: null,
+      safe_error_code: "OUTLOOK_CONSENT_NOT_FOUND",
+    }];
+  }
   return [{
     source: "outlook",
     state: source.state,
