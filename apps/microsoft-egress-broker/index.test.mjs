@@ -764,11 +764,6 @@ test("mail export proves Sent Items from fixed Graph paths without exposing fold
       calls.push({ url, options });
       if (calls.length === 1) {
         return json({
-          value: [{ sourceId: "rest-1", targetId: immutable }],
-        });
-      }
-      if (calls.length === 2) {
-        return json({
           id: immutable,
           internetMessageId: "<message@example.test>",
           toRecipients: [],
@@ -778,7 +773,7 @@ test("mail export proves Sent Items from fixed Graph paths without exposing fold
           isDraft: false,
         });
       }
-      if (calls.length === 3) {
+      if (calls.length === 2) {
         return json({ id: sentItemsId });
       }
       return new Response(
@@ -805,20 +800,32 @@ test("mail export proves Sent Items from fixed Graph paths without exposing fold
   assert.equal(result.result.message_metadata.is_in_sent_items, true);
   assert.equal(result.result.message_metadata.is_draft, false);
   assert.equal(JSON.stringify(result.result).includes(sentItemsId), false);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 3);
   assert.ok(calls.every(({ url }) => (
     url.startsWith("https://graph.microsoft.com/v1.0/me/")
   )));
+  assert.ok(calls.every(({ url }) => !url.includes("translateExchangeIds")));
   assert.ok(calls.every(({ options }) => options.redirect === "error"));
+  assert.ok(calls.every(({ options }) => (
+    options.headers.Prefer === 'IdType="ImmutableId"'
+  )));
   assert.equal(
-    new URL(calls[1].url).searchParams.get("$select").includes("parentFolderId"),
+    new URL(calls[0].url).pathname,
+    "/v1.0/me/messages/rest-1",
+  );
+  assert.equal(
+    new URL(calls[0].url).searchParams.get("$select").includes("parentFolderId"),
     true,
   );
   assert.equal(
-    new URL(calls[2].url).pathname,
+    new URL(calls[1].url).pathname,
     "/v1.0/me/mailFolders/sentitems",
   );
-  assert.equal(new URL(calls[2].url).searchParams.get("$select"), "id");
+  assert.equal(new URL(calls[1].url).searchParams.get("$select"), "id");
+  assert.equal(
+    new URL(calls[2].url).pathname,
+    "/v1.0/me/messages/immutable-1/$value",
+  );
 });
 
 test("mail export preserves divergent Graph sender and from provenance without synthesis", async () => {
@@ -827,11 +834,6 @@ test("mail export preserves divergent Graph sender and from provenance without s
     fetch_impl: async () => {
       calls += 1;
       if (calls === 1) {
-        return json({
-          value: [{ sourceId: "rest-divergent", targetId: "immutable-divergent" }],
-        });
-      }
-      if (calls === 2) {
         return json({
           id: "immutable-divergent",
           sender: {
@@ -853,7 +855,7 @@ test("mail export preserves divergent Graph sender and from provenance without s
           isDraft: false,
         });
       }
-      if (calls === 3) return json({ id: "sent-items-divergent" });
+      if (calls === 2) return json({ id: "sent-items-divergent" });
       return new Response(
         "From: mailbox.principal@example.test\r\n\r\nbody",
         { status: 200 },
@@ -879,6 +881,35 @@ test("mail export preserves divergent Graph sender and from provenance without s
   );
 });
 
+test("mail export rejects a metadata response without an immutable message ID", async () => {
+  let calls = 0;
+  let requestUrl = null;
+  const handler = createHandler({
+    fetch_impl: async (url) => {
+      calls += 1;
+      requestUrl = url;
+      return json({
+        parentFolderId: "inbox-1",
+        isDraft: false,
+        toRecipients: [],
+        ccRecipients: [],
+        bccRecipients: [],
+      });
+    },
+  });
+  const result = await handler(envelope("graph.mailMessage.export", {
+    access_token: "token",
+    rest_message_id: "rest/+?=1",
+  }));
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "UPSTREAM_RESPONSE_INVALID");
+  assert.equal(calls, 1);
+  assert.equal(
+    new URL(requestUrl).pathname,
+    "/v1.0/me/messages/rest%2F%2B%3F%3D1",
+  );
+});
+
 test("mail export distinguishes non-Sent and draft messages and rejects malformed proof", async () => {
   const immutable = "immutable-1";
   const sentItemsId = "sent-items-folder-1";
@@ -888,9 +919,6 @@ test("mail export distinguishes non-Sent and draft messages and rejects malforme
       fetch_impl: async () => {
         calls += 1;
         if (calls === 1) {
-          return json({ value: [{ sourceId: "rest-1", targetId: immutable }] });
-        }
-        if (calls === 2) {
           return json({
             id: immutable,
             parentFolderId,
@@ -900,7 +928,7 @@ test("mail export distinguishes non-Sent and draft messages and rejects malforme
             bccRecipients: [],
           });
         }
-        if (calls === 3) return json(folder);
+        if (calls === 2) return json(folder);
         return new Response(
           "From: sender@example.test\r\nTo: receiver@example.test\r\n\r\nbody",
           { status: 200 },
@@ -948,11 +976,6 @@ test("mail export rejects MIME larger than synchronous invoke limit", async () =
       calls += 1;
       if (calls === 1) {
         return json({
-          value: [{ sourceId: "rest-1", targetId: immutable }],
-        });
-      }
-      if (calls === 2) {
-        return json({
           id: immutable,
           parentFolderId: "sent-items-folder-1",
           isDraft: false,
@@ -961,7 +984,7 @@ test("mail export rejects MIME larger than synchronous invoke limit", async () =
           bccRecipients: [],
         });
       }
-      if (calls === 3) {
+      if (calls === 2) {
         return json({ id: "sent-items-folder-1" });
       }
       return new Response(Buffer.alloc(MAX_MIME_BYTES + 1, 65), {

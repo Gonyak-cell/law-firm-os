@@ -264,8 +264,11 @@ Request:
 { "access_token": "...", "rest_message_id": "..." }
 ```
 
-The broker fixes delegated `/me` scope, translates the REST ID to an immutable
-ID, reads selected metadata, and downloads the MIME `$value`. Because the
+The broker fixes delegated `/me` scope and uses the Office.js REST v2 message
+ID directly. It requests `Prefer: IdType="ImmutableId"`, takes the immutable ID
+from the metadata response, and downloads the MIME `$value` with that ID. This
+avoids the broader user-directory permission required by
+`translateExchangeIds`; delegated `Mail.Read` remains sufficient. Because the
 contract uses synchronous Lambda invocation and the broker has no S3 access,
 raw MIME is capped at 3 MiB so the base64 response stays below the Lambda
 response limit.
@@ -280,8 +283,8 @@ Result:
   "mime_base64": "...",
   "mime_bytes": 1234,
   "provider_request_ids": {
-    "translation": "...",
     "metadata": "...",
+    "sent_items": "...",
     "mime": "..."
   }
 }
