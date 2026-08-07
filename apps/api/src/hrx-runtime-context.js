@@ -4723,12 +4723,30 @@ function peopleOutlookConnectionResponse({
       ...signedPrincipal,
     });
   } else if (method === "DELETE") {
+    const idempotencyKey = typeof body?.idempotency_key === "string"
+      ? body.idempotency_key.trim()
+      : "";
+    if (!idempotencyKey || idempotencyKey.length > 255) {
+      throw safeHrxRuntimeError(
+        400,
+        "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED",
+        "Outlook connection idempotency_key is required and must not exceed 255 characters",
+      );
+    }
+    if (Object.keys(body).filter((key) => key !== "actor_id").join(",") !== "idempotency_key") {
+      throw safeHrxRuntimeError(
+        400,
+        "OUTLOOK_CONNECTION_ACTION_INVALID",
+        "Outlook connection disconnect accepts only idempotency_key",
+      );
+    }
     auditAction = "hrx.people.outlook_connection.disconnect";
     connection = context.peopleOutlookConnections.disconnect({
       tenant_id: actorContext.tenant_id,
       employee_id: employeeId,
       can_manage: member.can_manage,
       ...signedPrincipal,
+      idempotency_key: idempotencyKey,
     });
   } else if (method === "POST") {
     const action = body?.action;

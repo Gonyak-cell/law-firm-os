@@ -568,18 +568,23 @@ test("Outlook disconnect failure keeps the active connection visible", async () 
       outlookCalendarEnabled: true,
       outlookMode: "connected",
     });
-    await page.route("**/api/hrx/people/members/*/outlook-connection", (route) => (
-      route.request().method() === "DELETE"
-        ? route.fulfill({
+    let requestBody = null;
+    await page.route("**/api/hrx/people/members/*/outlook-connection", (route) => {
+      if (route.request().method() === "DELETE") {
+        requestBody = route.request().postDataJSON();
+        return route.fulfill({
             status: 503,
             contentType: "application/json",
             body: JSON.stringify({ safe_error_code: "OUTLOOK_DISCONNECT_FAILED" }),
-          })
-        : route.fallback()
-    ));
+          });
+      }
+      return route.fallback();
+    });
     const connection = page.locator('[data-outlook-connection-state="connected"]');
     await connection.getByRole("button", { name: "연결 해제", exact: true }).click();
     await page.getByText("Outlook 연결을 해제하지 못했습니다. 기존 연결은 유지됩니다.", { exact: true }).waitFor();
+    assert.deepEqual(Object.keys(requestBody), ["idempotency_key"]);
+    assert.match(requestBody.idempotency_key, uuidPattern);
     assert.equal(await connection.count(), 1);
     await page.close();
   } finally {

@@ -148,6 +148,24 @@ test("OAuth begin requires an explicit idempotency key before changing connectio
   );
 });
 
+test("Outlook disconnect requires one explicit idempotency key", () => {
+  const runtime = context();
+  for (const body of [
+    {},
+    { idempotency_key: "x".repeat(256) },
+    { idempotency_key: "people-outlook-disconnect-extra-field-001", access_token: "forbidden" },
+  ]) {
+    const blocked = request(runtime, "DELETE", body);
+    assert.equal(blocked.status, 400);
+    assert.equal(
+      blocked.body.safe_error_code,
+      body.access_token
+        ? "OUTLOOK_CONNECTION_ACTION_INVALID"
+        : "OUTLOOK_CONNECTION_IDEMPOTENCY_KEY_REQUIRED",
+    );
+  }
+});
+
 test("OAuth begin accepts the authenticated actor injected by the HTTP boundary", () => {
   const runtime = context();
   const begun = request(runtime, "POST", {
@@ -158,7 +176,9 @@ test("OAuth begin accepts the authenticated actor injected by the HTTP boundary"
   assert.equal(begun.status, 200);
   assert.equal(begun.body.connection.connection_state, "consent_pending");
   assert.equal(
-    request(runtime, "DELETE").body.connection.connection_state,
+    request(runtime, "DELETE", {
+      idempotency_key: "people-outlook-disconnect-authenticated-actor-001",
+    }).body.connection.connection_state,
     "not_connected",
   );
 
@@ -225,7 +245,9 @@ test("client-supplied tokens are rejected and revoke immediately removes active 
     state_ref: begun.body.connection.state_ref,
   });
   assert.equal(request(runtime, "GET").body.connection.connection_state, "connected");
-  const disconnected = request(runtime, "DELETE");
+  const disconnected = request(runtime, "DELETE", {
+    idempotency_key: "people-outlook-disconnect-token-cleanup-001",
+  });
   assert.equal(disconnected.status, 200);
   assert.equal(disconnected.body.connection.connection_state, "not_connected");
   assert.equal(runtime.peopleProviderIdentities.get({
