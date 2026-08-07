@@ -141,6 +141,20 @@ function isPeopleOutlookSelfCompletion(method, pathname) {
     && String(pathname ?? "") === PEOPLE_OUTLOOK_SELF_COMPLETION_PATH;
 }
 
+const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
+  "/api/outlook/email/file",
+  "/api/outlook/sent/file",
+  "/api/outlook/attachments/save",
+  "/api/outlook/followups",
+]);
+
+function isOutlookIdempotentMutation(method, pathname) {
+  return String(method ?? "").toUpperCase() === "POST"
+    && OUTLOOK_IDEMPOTENT_MUTATION_PATHS.has(
+      String(pathname ?? "").replace(/\/+$/u, "") || "/",
+    );
+}
+
 export function isRetryablePostgresReadConflict(error, method, {
   allowIdempotentWriteRetry = false,
   pathname = "",
@@ -532,7 +546,8 @@ export function createPostgresApiRuntimeAuthority({
     );
     const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
       || isPayrollReconciliationMutation(method, request_context?.pathname)
-      || peopleOutlookSelfCompletion;
+      || peopleOutlookSelfCompletion
+      || isOutlookIdempotentMutation(method, request_context?.pathname);
     return runPostgresReadWithBaselineRetry({
       method,
       pathname: request_context?.pathname,

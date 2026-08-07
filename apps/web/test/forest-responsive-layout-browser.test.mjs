@@ -432,6 +432,7 @@ for (const width of [1440, 1180, 820, 390]) {
       const browser = await chromium.launch({ headless: true });
       const page = await browser.newPage({ viewport: { width, height: 700 } });
       try {
+        await page.emulateMedia({ reducedMotion: "reduce" });
         await page.setContent(`<html data-skin="forest"><body>${shellMarkup(modeException)}</body></html>`);
         await page.addStyleTag({ content: styles });
         await page.waitForTimeout(250);
