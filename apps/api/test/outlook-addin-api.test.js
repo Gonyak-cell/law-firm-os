@@ -20,6 +20,7 @@ import {
   m365ConnectionId,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
+import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { createMatterRuntimeContext } from "../src/matter-runtime-context.js";
 
@@ -31,8 +32,114 @@ const EMPLOYEE = "employee_outlook_addin_test";
 const ENTRA_SUBJECT = "entra_subject_outlook_addin_test";
 const MAILBOX = "lawyer@amic.kr";
 const ATTACHMENT_BYTES = Buffer.from("contract attachment bytes");
+const ATTACHMENT_RECOVERY_BYTES = Buffer.from("attachment domain recovery bytes");
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 const MIME_BOUNDARY = "lawos-outlook-attachment-boundary";
+
+test("legacy filing replay backfills idempotency without overwriting its original audit actor", () => {
+  const repository = createDmsRepository();
+  const emailThreadId = "thread:legacy-filing-audit";
+  const eventId = `outlook.email.file:${TENANT}:${emailThreadId}`;
+  const thread = repository.create({
+    model_type: "DmsEmailThread",
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    email_thread_id: emailThreadId,
+    subject: "Legacy filing",
+    status: "active",
+    filing_user: "original-actor",
+    filed_document_ids: ["doc:legacy-original-mime"],
+    filing_time: "2026-08-06T00:00:00.000Z",
+    permission_envelope_id: "perm:legacy-filing-audit",
+    audit_trace_id: "audit:legacy-filing-audit",
+  });
+  repository.appendAudit({
+    event_id: eventId,
+    tenant_id: TENANT,
+    actor_id: "original-actor",
+    action: "dms.email.thread.file",
+    object_type: "DmsEmailThread",
+    object_id: emailThreadId,
+    decision: "allow",
+    reason: "email_thread_filed_to_matter",
+    occurred_at: thread.filing_time,
+  });
+
+  const result = fileEmailThreadToMatter({
+    repository,
+    thread,
+    actor_id: "replay-actor",
+    require_original_mime_document: true,
+    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
+    audit: {
+      append: (event, writer = repository) => writer.appendAudit({ ...event, event_id: eventId }),
+    },
+  });
+
+  assert.equal(result.outcome, "idempotent_replay");
+  assert.equal(repository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })[0].actor_id, "original-actor");
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
+  }).response.email_thread_id, emailThreadId);
+});
+
+test("legacy filing backfill fails closed when immutable audit provenance is missing or mismatched", () => {
+  for (const auditFixture of [
+    null,
+    { actor_id: "wrong-actor", occurred_at: "2026-08-06T00:00:00.000Z" },
+    { actor_id: "original-actor", occurred_at: "1999-01-01T00:00:00.000Z" },
+  ]) {
+    const repository = createDmsRepository();
+    const emailThreadId = `thread:legacy-filing-${auditFixture?.actor_id ?? "missing"}-${auditFixture?.occurred_at ?? "none"}`;
+    const idempotencyKey = `outlook-email-file:${emailThreadId}:legacy:dms`;
+    const thread = repository.create({
+      model_type: "DmsEmailThread",
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      email_thread_id: emailThreadId,
+      subject: "Legacy filing",
+      status: "active",
+      filing_user: "original-actor",
+      filed_document_ids: ["doc:legacy-original-mime"],
+      filing_time: "2026-08-06T00:00:00.000Z",
+      permission_envelope_id: "perm:legacy-filing-audit",
+      audit_trace_id: "audit:legacy-filing-audit",
+    });
+    if (auditFixture) {
+      repository.appendAudit({
+        event_id: `outlook.email.file:${TENANT}:${emailThreadId}`,
+        tenant_id: TENANT,
+        actor_id: auditFixture.actor_id,
+        action: "dms.email.thread.file",
+        object_type: "DmsEmailThread",
+        object_id: emailThreadId,
+        decision: "allow",
+        reason: "email_thread_filed_to_matter",
+        occurred_at: auditFixture.occurred_at,
+      });
+    }
+
+    assert.throws(() => fileEmailThreadToMatter({
+      repository,
+      thread,
+      actor_id: "replay-actor",
+      require_original_mime_document: true,
+      idempotency_key: idempotencyKey,
+      audit: {
+        append: (event, writer = repository) => writer.appendAudit({
+          ...event,
+          event_id: `outlook.email.file:${TENANT}:${emailThreadId}`,
+        }),
+      },
+    }), /audit/u);
+    assert.equal(repository.getIdempotency({ tenant_id: TENANT, idempotency_key: idempotencyKey }), undefined);
+    assert.equal(
+      repository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })[0]?.actor_id,
+      auditFixture?.actor_id,
+    );
+  }
+});
 
 function messageMime({
   attachmentBytes = ATTACHMENT_BYTES,
@@ -585,8 +692,12 @@ async function startPhasedUploadSagaServer({
   const matterRepository = seedMatterRepository();
   const baseDmsRepository = createDmsRepository({ seedRecords: dmsSeedRecords });
   let failNextFilingAudit = failFilingAudit;
-  const dmsRepository = Object.freeze({
+  let dmsRepository;
+  dmsRepository = Object.freeze({
     ...baseDmsRepository,
+    transaction(fn) {
+      return baseDmsRepository.transaction(() => fn(dmsRepository));
+    },
     create(record) {
       if (failAfterUploadIntent && record.model_type === "DmsWorkspace") {
         failAfterUploadIntent = false;
@@ -974,11 +1085,38 @@ test("existing nested Matter folders remain valid when their ancestry reaches th
 });
 
 test("Outlook add-in routes file email, save attachments, create follow-up, and warn without blocking send", async (t) => {
-  const matterRepository = seedMatterRepository();
+  const baseMatterRepository = seedMatterRepository();
+  let failNextFollowupIdempotency = false;
+  let failNextOutlookTimelineAudit = false;
+  let matterRepository;
+  matterRepository = Object.freeze({
+    ...baseMatterRepository,
+    transaction(fn) {
+      return baseMatterRepository.transaction(() => fn(matterRepository));
+    },
+    recordIdempotency(entry) {
+      if (failNextFollowupIdempotency && entry.operation === "outlook_followup_create") {
+        failNextFollowupIdempotency = false;
+        throw new Error("synthetic follow-up idempotency failure");
+      }
+      return baseMatterRepository.recordIdempotency(entry);
+    },
+    appendAudit(event) {
+      if (failNextOutlookTimelineAudit && event.action === "matter.timeline.outlook.file") {
+        failNextOutlookTimelineAudit = false;
+        throw new Error("synthetic Outlook timeline audit failure");
+      }
+      return baseMatterRepository.appendAudit(event);
+    },
+  });
   const baseDmsRepository = createDmsRepository();
   let failNextFilingAudit = false;
-  const dmsRepository = Object.freeze({
+  let dmsRepository;
+  dmsRepository = Object.freeze({
     ...baseDmsRepository,
+    transaction(fn) {
+      return baseDmsRepository.transaction(() => fn(dmsRepository));
+    },
     appendAudit(event) {
       if (failNextFilingAudit && event.action === "dms.email.thread.file") {
         failNextFilingAudit = false;
@@ -1115,7 +1253,9 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
               ? Buffer.alloc(MAX_ATTACHMENT_BYTES, 0x61)
               : attachmentOverLimit
                 ? Buffer.alloc(MAX_ATTACHMENT_BYTES + 1, 0x62)
-                : ATTACHMENT_BYTES,
+                : input.rest_message_id === "graph-attachment-domain-recovery"
+                  ? ATTACHMENT_RECOVERY_BYTES
+                  : ATTACHMENT_BYTES,
             duplicateAttachmentName: ambiguous,
             fromAddress,
             hasAttachment: !attachmentFree,
@@ -1595,6 +1735,81 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
       assert.equal(fileBody.email_thread.filed_document_ids.length, 1);
       assert.equal(fileBody.matter_timeline.visible_entries.some((entry) => entry.type === "outlook.email.filed"), true);
+      const mimeSha256 = fileBody.email_thread.filed_document_ids[0].split(":").at(-1);
+      const filingKey = `outlook-email-file:${fileBody.email_thread.email_thread_id}:${mimeSha256}`;
+      assert.equal(
+        dmsRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `${filingKey}:dms`,
+        })?.response?.email_thread_id,
+        fileBody.email_thread.email_thread_id,
+      );
+      const timelineEvent = matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).find((entry) => entry.source_object_id === fileBody.email_thread.email_thread_id);
+      assert.equal(
+        matterRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `${filingKey}:matter:${MATTER}`,
+        })?.response?.timeline_event_id,
+        timelineEvent.event_id,
+      );
+      assert.equal(
+        matterRepository.listAudit({
+          tenant_id: TENANT,
+          object_id: timelineEvent.event_id,
+        }).length,
+        1,
+      );
+    });
+
+    await t.test("existing matching timeline event backfills audit and idempotency on retry", async () => {
+      const email = emailFixture({ graph_message_id: "graph-legacy-timeline-recovery" });
+      const emailThreadId = expectedEmailThreadId(email);
+      const eventId = `outlook.email.filed:${TENANT}:${MATTER}:${emailThreadId}`;
+      const mimeSha256 = createHash("sha256").update(messageMime({
+        internetMessageId: email.internet_message_id,
+      })).digest("hex");
+      const documentId = `doc:${emailThreadId}:original-mime:${mimeSha256}`;
+      matterRepository.create({
+        model_type: "MatterTimelineEvent",
+        resource_id: eventId,
+        event_id: eventId,
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        occurred_at: "2026-07-03T01:30:00.000Z",
+        type: "outlook.email.filed",
+        title: "Outlook filing regression",
+        source_ref: emailThreadId,
+        source_module: "outlook-addin",
+        source_object_id: emailThreadId,
+        safe_summary: {
+          graph_message_id: `immutable:${email.graph_message_id}`,
+          internet_message_id: email.internet_message_id,
+          filed_document_ids: [documentId],
+          original_mime_document_id: documentId,
+          attachment_count: 1,
+          attachment_source_authority: "microsoft_graph_mime",
+          raw_body_included: false,
+          raw_mime_included: false,
+          storage_pointer_ref_included: false,
+        },
+        raw_body_included: false,
+        raw_provider_payload_included: false,
+      });
+
+      const recovered = await json("/api/outlook/email/file", {
+        method: "POST",
+        body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
+      });
+      const filingKey = `outlook-email-file:${emailThreadId}:${mimeSha256}:matter:${MATTER}`;
+      assert.equal(matterRepository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: filingKey,
+      })?.response?.timeline_event_id, eventId);
+      assert.equal(matterRepository.listAudit({ tenant_id: TENANT, object_id: eventId }).length, 1);
     });
 
     await t.test("caller participant spoof cannot alter persisted canonical Graph participants", async () => {
@@ -1859,6 +2074,29 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(attachmentBody.folder_structure[0], "00_Email");
       assert.equal(attachmentBody.folder_structure.at(-1), "99_Archive");
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
+      const attachmentSha256 = attachmentBody.items[0].version.sha256;
+      const attachmentKey = `outlook-attachment:${fileBody.email_thread.email_thread_id}:att-contract:${attachmentSha256}`;
+      assert.equal(
+        dmsRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `${attachmentKey}:dms-mapping`,
+        })?.response?.document_id,
+        attachmentBody.items[0].document.document_id,
+      );
+      assert.equal(
+        matterRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `${attachmentKey}:matter:${MATTER}`,
+        })?.response?.timeline_event_id,
+        attachmentBody.items[0].timeline_event.event_id,
+      );
+      assert.equal(
+        matterRepository.listAudit({
+          tenant_id: TENANT,
+          object_id: attachmentBody.items[0].timeline_event.event_id,
+        }).length,
+        1,
+      );
     });
 
     await t.test("canonical attachment replay is idempotent and performs no second upload", async () => {
@@ -1875,6 +2113,71 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       });
       assert.equal(duplicateBody.duplicate_count, 1);
       assert.equal(storageWriteCount, beforeStorageWrites);
+    });
+
+    await t.test("attachment retry repairs mapping and timeline after the upload already committed", async () => {
+      const recoveryEmail = emailFixture({
+        graph_message_id: "graph-attachment-domain-recovery",
+        attachments: [{
+          attachment_id: "att-contract",
+          name: "contract.txt",
+          content_type: "text/plain",
+          size: ATTACHMENT_RECOVERY_BYTES.byteLength,
+          sha256: createHash("sha256").update(ATTACHMENT_RECOVERY_BYTES).digest("hex"),
+          confidentiality: "confidential",
+        }],
+      });
+      const filed = await json("/api/outlook/email/file", {
+        method: "POST",
+        body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: recoveryEmail }),
+      });
+      const payload = {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        email_thread_id: filed.email_thread.email_thread_id,
+        selected_attachment_ids: ["att-contract"],
+        attachments: [attachmentPayload(ATTACHMENT_RECOVERY_BYTES)],
+      };
+      const beforeStorageWrites = storageWriteCount;
+      failNextOutlookTimelineAudit = true;
+      const interrupted = await fetch(`${baseUrl}/api/outlook/attachments/save`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify(payload),
+      });
+      assert.equal(interrupted.status, 400);
+      assert.equal(storageWriteCount, beforeStorageWrites + 1);
+      const documentId = `doc:${filed.email_thread.email_thread_id.replace(/[^a-zA-Z0-9._:-]/g, "_").slice(0, 96)}:att-contract`;
+      assert.equal(dmsRepository.get({
+        tenant_id: TENANT,
+        model_type: "DmsDocument",
+        document_id: documentId,
+      })?.source_email_thread_id, filed.email_thread.email_thread_id);
+      const mappingId = `email-attachment:${filed.email_thread.email_thread_id}:att-contract`;
+      assert.equal(dmsRepository.get({
+        tenant_id: TENANT,
+        model_type: "DmsEmailAttachmentMapping",
+        resource_id: mappingId,
+      })?.document_id, documentId);
+
+      const recovered = await json("/api/outlook/attachments/save", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      assert.equal(recovered.duplicate_count, 1);
+      assert.equal(recovered.items.length, 0);
+      assert.equal(storageWriteCount, beforeStorageWrites + 1);
+      const sha256 = createHash("sha256").update(ATTACHMENT_RECOVERY_BYTES).digest("hex");
+      const attachmentKey = `outlook-attachment:${filed.email_thread.email_thread_id}:att-contract:${sha256}`;
+      assert.equal(dmsRepository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: `${attachmentKey}:dms-mapping`,
+      })?.response?.document_id, documentId);
+      const timelineId = `outlook.attachment.saved:${TENANT}:${MATTER}:${documentId}`;
+      assert.equal(matterRepository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: `${attachmentKey}:matter:${MATTER}`,
+      })?.response?.timeline_event_id, timelineId);
     });
 
     const wrongMatterAttachment = await fetch(`${baseUrl}/api/outlook/attachments/save`, {
@@ -1988,6 +2291,85 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       `DmsEmailThread:${fileBody.email_thread.email_thread_id}`,
     );
     assert.equal(followup.auto_created_without_lawyer_approval, false);
+    const followupKey = `outlook-followup:${TENANT}:${MATTER}:task:${fileBody.email_thread.email_thread_id}:${followup.item.activity_id}`;
+    assert.equal(
+      matterRepository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: followupKey,
+      })?.response?.timeline_event?.event_id,
+      followup.timeline_event.event_id,
+    );
+    const replayedFollowup = await json("/api/outlook/followups", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        kind: "task",
+        title: "메일 검토 후 후속 조치",
+        due_at: "2026-07-10T09:00:00.000Z",
+        source_email_thread_id: fileBody.email_thread.email_thread_id,
+      }),
+    });
+    assert.equal(replayedFollowup.outcome, "idempotent_replay");
+    assert.equal(replayedFollowup.item.activity_id, followup.item.activity_id);
+    assert.equal(replayedFollowup.timeline_event.event_id, followup.timeline_event.event_id);
+
+    const conflictingFollowup = await fetch(`${baseUrl}/api/outlook/followups`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...sessionHeaders },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        kind: "task",
+        title: "같은 식별자의 변경된 후속 조치",
+        due_at: "2026-07-10T09:00:00.000Z",
+        source_email_thread_id: fileBody.email_thread.email_thread_id,
+      }),
+    });
+    assert.equal(conflictingFollowup.status, 400);
+    assert.equal(matterRepository.get({
+      tenant_id: TENANT,
+      model_type: "MatterTask",
+      resource_id: followup.item.activity_id,
+    })?.title, "메일 검토 후 후속 조치");
+
+    await t.test("follow-up idempotency failure rolls back the item, audit, and timeline", async () => {
+      const rollbackId = "followup_rollback";
+      const payload = {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        kind: "task",
+        task_id: "followup:rollback",
+        title: "후속 조치 원자성 검증",
+        due_at: "2026-07-11T09:00:00.000Z",
+        source_email_thread_id: fileBody.email_thread.email_thread_id,
+      };
+      failNextFollowupIdempotency = true;
+      const interrupted = await fetch(`${baseUrl}/api/outlook/followups`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify(payload),
+      });
+      assert.equal(interrupted.status, 400);
+      assert.equal(matterRepository.get({
+        tenant_id: TENANT,
+        model_type: "MatterTask",
+        resource_id: rollbackId,
+      }), undefined);
+      assert.equal(matterRepository.listAudit({ tenant_id: TENANT, object_id: rollbackId }).length, 0);
+      assert.equal(matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).some((event) => event.source_object_id === rollbackId), false);
+
+      const recovered = await json("/api/outlook/followups", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      assert.equal(recovered.outcome, "created");
+      assert.equal(recovered.item.activity_id, rollbackId);
+    });
 
     await t.test("canonical non-draft Sent Items message files one original MIME", async () => {
       const beforeProviderCalls = providerCallCount;

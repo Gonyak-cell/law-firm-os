@@ -23,6 +23,7 @@ import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/m
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
 import { createMatterActivityCalendarChannelService } from "../../../packages/matter/src/index.js";
 import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timeline-read-model.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
@@ -970,28 +971,90 @@ function normalizeEmailThread({ input = {}, tenant_id, matter_id, actor_id, mode
   });
 }
 
-function appendMatterTimeline({ repository, event } = {}) {
+function appendMatterTimeline({ repository, event, actorId, idempotencyKey } = {}) {
   const existing = repository.get({
     tenant_id: event.tenant_id,
     model_type: "MatterTimelineEvent",
     resource_id: event.event_id,
   });
-  if (existing) return existing;
-  return repository.create({
-    model_type: "MatterTimelineEvent",
-    resource_id: event.event_id,
-    event_id: event.event_id,
+  const replay = repository.getIdempotency({
     tenant_id: event.tenant_id,
-    matter_id: event.matter_id,
-    occurred_at: event.occurred_at ?? new Date().toISOString(),
-    type: event.type,
-    title: event.title,
-    source_ref: event.source_ref ?? null,
-    source_module: "outlook-addin",
-    source_object_id: event.source_object_id ?? null,
-    safe_summary: Object.freeze(event.safe_summary ?? {}),
-    raw_body_included: false,
-    raw_provider_payload_included: false,
+    idempotency_key: idempotencyKey,
+  });
+  if (replay) {
+    if (!existing || replay.response?.timeline_event_id !== existing.event_id) {
+      throw new Error("Outlook timeline idempotency entry conflicts with the persisted event");
+    }
+    return existing;
+  }
+  if (existing) {
+    if (
+      existing.matter_id !== event.matter_id
+      || existing.type !== event.type
+      || existing.title !== event.title
+      || existing.source_ref !== (event.source_ref ?? null)
+      || existing.source_object_id !== (event.source_object_id ?? null)
+      || hashDomainValue(existing.safe_summary ?? {}) !== hashDomainValue(event.safe_summary ?? {})
+    ) {
+      throw new Error("Outlook timeline event conflicts with the persisted event");
+    }
+  }
+  if (typeof repository.transaction !== "function") {
+    throw new Error("Outlook timeline append requires an atomic repository transaction");
+  }
+  return repository.transaction((tx) => {
+    const persisted = existing ?? tx.create({
+      model_type: "MatterTimelineEvent",
+      resource_id: event.event_id,
+      event_id: event.event_id,
+      tenant_id: event.tenant_id,
+      matter_id: event.matter_id,
+      occurred_at: event.occurred_at ?? new Date().toISOString(),
+      type: event.type,
+      title: event.title,
+      source_ref: event.source_ref ?? null,
+      source_module: "outlook-addin",
+      source_object_id: event.source_object_id ?? null,
+      safe_summary: Object.freeze(event.safe_summary ?? {}),
+      raw_body_included: false,
+      raw_provider_payload_included: false,
+    });
+    const auditEventId = `outlook.matter.timeline:${persisted.event_id}`;
+    const auditEvent = tx.listAudit({
+      tenant_id: persisted.tenant_id,
+      object_id: persisted.event_id,
+    }).find((entry) => entry.event_id === auditEventId) ?? tx.appendAudit({
+      event_id: auditEventId,
+      tenant_id: persisted.tenant_id,
+      actor_id: actorId,
+      action: "matter.timeline.outlook.file",
+      object_type: "MatterTimelineEvent",
+      object_id: persisted.event_id,
+      decision: "allow",
+      reason: "outlook_email_filed_to_matter",
+      occurred_at: persisted.occurred_at,
+      metadata: {
+        matter_id: persisted.matter_id,
+        source_object_id: persisted.source_object_id,
+        raw_provider_payload_included: false,
+        credential_material_included: false,
+      },
+    });
+    tx.recordIdempotency({
+      tenant_id: persisted.tenant_id,
+      idempotency_key: idempotencyKey,
+      operation: "outlook_matter_timeline_append",
+      object_type: "MatterTimelineEvent",
+      object_id: persisted.event_id,
+      actor_id: actorId,
+      response: {
+        timeline_event_id: persisted.event_id,
+        matter_id: persisted.matter_id,
+        audit_event_id: auditEvent.event_id,
+      },
+      created_at: persisted.occurred_at,
+    });
+    return persisted;
   });
 }
 
@@ -1011,6 +1074,92 @@ function appendDmsAudit(repository, event) {
       raw_provider_payload_included: false,
       credential_material_included: false,
     },
+  });
+}
+
+function persistOutlookAttachmentMapping({
+  repository,
+  mapping,
+  actorId,
+  idempotencyKey,
+  occurredAt,
+} = {}) {
+  const existing = repository.get({
+    tenant_id: mapping.tenant_id,
+    model_type: mapping.model_type,
+    resource_id: mapping.resource_id,
+  });
+  const replay = repository.getIdempotency({
+    tenant_id: mapping.tenant_id,
+    idempotency_key: idempotencyKey,
+  });
+  if (replay) {
+    if (
+      !existing
+      || replay.response?.mapping_id !== existing.mapping_id
+      || replay.response?.document_id !== existing.document_id
+      || replay.response?.sha256 !== existing.sha256
+    ) {
+      throw new Error("Outlook attachment mapping idempotency entry conflicts with the persisted mapping");
+    }
+    return existing;
+  }
+  if (existing) {
+    const invariantFields = [
+      "mapping_id",
+      "matter_id",
+      "email_thread_id",
+      "attachment_id",
+      "document_id",
+      "sha256",
+      "source_byte_size",
+      "source_message_ref",
+      "source_provenance_authority",
+    ];
+    if (invariantFields.some((field) => existing[field] !== mapping[field])) {
+      throw new Error("Outlook attachment mapping conflicts with the persisted mapping");
+    }
+  }
+  if (typeof repository.transaction !== "function") {
+    throw new Error("Outlook attachment mapping requires an atomic repository transaction");
+  }
+  return repository.transaction((tx) => {
+    const persisted = tx.upsert(mapping);
+    const auditEventId = `outlook.attachment.mapping:${mapping.tenant_id}:${mapping.mapping_id}`;
+    const auditEvent = tx.listAudit({
+      tenant_id: mapping.tenant_id,
+      object_id: mapping.mapping_id,
+    }).find((entry) => entry.event_id === auditEventId) ?? tx.appendAudit({
+      event_id: auditEventId,
+      tenant_id: mapping.tenant_id,
+      actor_id: actorId,
+      action: "dms.email.attachment.map",
+      object_type: mapping.model_type,
+      object_id: mapping.mapping_id,
+      decision: "allow",
+      reason: "outlook_attachment_mapped_to_document",
+      occurred_at: occurredAt ?? new Date().toISOString(),
+      metadata: {
+        email_thread_id: mapping.email_thread_id,
+        attachment_id: mapping.attachment_id,
+        document_id: mapping.document_id,
+        raw_provider_payload_included: false,
+        credential_material_included: false,
+      },
+    });
+    tx.recordIdempotency({
+      tenant_id: mapping.tenant_id,
+      idempotency_key: idempotencyKey,
+      operation: "outlook_attachment_mapping",
+      response: {
+        mapping_id: mapping.mapping_id,
+        document_id: mapping.document_id,
+        sha256: mapping.sha256,
+        audit_event_id: auditEvent.event_id,
+      },
+      created_at: occurredAt ?? new Date().toISOString(),
+    });
+    return persisted;
   });
 }
 
@@ -2148,14 +2297,16 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
+  const filingIdempotencyKey = `outlook-email-file:${canonicalThread.email_thread_id}:${canonical.mime_sha256}`;
   const result = fileEmailThreadToMatter({
     repository: runtime.dmsRuntime.repository,
     thread: existingThread,
     actor_id: actorId,
     require_original_mime_document: true,
+    idempotency_key: `${filingIdempotencyKey}:dms`,
     audit: {
-      append: (event) =>
-        appendDmsAudit(runtime.dmsRuntime.repository, {
+      append: (event, writer = runtime.dmsRuntime.repository) =>
+        appendDmsAudit(writer, {
           ...event,
           event_id: `outlook.email.file:${tenantId}:${canonicalThread.email_thread_id}`,
           occurred_at: existingThread.filing_time,
@@ -2165,6 +2316,8 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   const filedThread = result.thread;
   const timelineEvent = appendMatterTimeline({
     repository: runtime.matterRuntime.repository,
+    actorId,
+    idempotencyKey: `${filingIdempotencyKey}:matter:${matterId}`,
     event: {
       event_id: `outlook.email.filed:${tenantId}:${matterId}:${filedThread.email_thread_id}`,
       tenant_id: tenantId,
@@ -2260,12 +2413,24 @@ async function saveAttachments({ body, context, requestId, runtime }) {
   for (const attachment of attachments) {
     const bytes = verifiedBytes;
     const sha256 = verifiedSha256;
-    const duplicate = knownDocuments.find((document) => document.latest_sha256 === sha256);
-    if (duplicate) {
+    const documentId = `doc:${safeId(emailThreadId)}:${safeId(attachmentId)}`;
+    const canonicalDocument = knownDocuments.find((document) => document.document_id === documentId);
+    if (canonicalDocument && canonicalDocument.latest_sha256 !== sha256) {
+      throw new Error("Outlook attachment document conflicts with the canonical content hash");
+    }
+    const duplicate = canonicalDocument
+      ?? knownDocuments.find((document) => document.latest_sha256 === sha256);
+    if (duplicate && duplicate.document_id !== documentId) {
       duplicates.push(Object.freeze({ attachment_id: attachmentId, duplicate_document_id: duplicate.document_id, sha256 }));
       continue;
     }
-    const documentId = `doc:${safeId(emailThreadId)}:${safeId(attachmentId)}`;
+    if (duplicate && (
+      duplicate.matter_id !== matterId
+      || duplicate.source_email_thread_id !== emailThreadId
+      || duplicate.source_attachment_id !== attachmentId
+    )) {
+      throw new Error("Outlook attachment document conflicts with the canonical source identity");
+    }
     const versionId = `version:${documentId}:1`;
     const document = {
         document_id: documentId,
@@ -2287,49 +2452,61 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         source_policy: "source_required",
         source_provenance_authority: sourceAttachment.source_provenance.authority,
     };
-    const uploaded = postgresDms
-      ? await runtime.dmsRuntime.upload_runtime.uploadDocument({
-          document,
-          bytes,
-          actor_id: actorId,
-          idempotency_key: `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`,
-        })
-      : uploadDocument({
-          repository: runtime.dmsRuntime.repository,
-          storage: runtime.dmsRuntime.storage,
-          document,
-          bytes,
-          actor_id: actorId,
-          idempotency_key: `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`,
-        });
-    knownDocuments.push(uploaded.document);
+    const attachmentOperationKey = `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`;
+    const uploaded = duplicate
+      ? null
+      : postgresDms
+        ? await runtime.dmsRuntime.upload_runtime.uploadDocument({
+            document,
+            bytes,
+            actor_id: actorId,
+            idempotency_key: attachmentOperationKey,
+          })
+        : uploadDocument({
+            repository: runtime.dmsRuntime.repository,
+            storage: runtime.dmsRuntime.storage,
+            document,
+            bytes,
+            actor_id: actorId,
+            idempotency_key: attachmentOperationKey,
+          });
+    const persistedDocument = uploaded?.document ?? duplicate;
+    if (uploaded) knownDocuments.push(uploaded.document);
     const mappingId = `email-attachment:${emailThreadId}:${attachmentId}`;
-    runtime.dmsRuntime.repository.upsert({
-      model_type: "DmsEmailAttachmentMapping",
-      resource_id: mappingId,
-      mapping_id: mappingId,
-      tenant_id: tenantId,
-      matter_id: matterId,
-      email_thread_id: emailThreadId,
-      attachment_id: attachmentId,
-      document_id: uploaded.document.document_id,
-      sha256,
-      source_byte_size: sourceAttachment.source_provenance.byte_size,
-      source_message_ref: sourceAttachment.source_provenance.message_ref,
-      source_provenance_authority: sourceAttachment.source_provenance.authority,
-      raw_bytes_included: false,
-      storage_pointer_ref_included: false,
+    persistOutlookAttachmentMapping({
+      repository: runtime.dmsRuntime.repository,
+      actorId,
+      idempotencyKey: `${attachmentOperationKey}:dms-mapping`,
+      occurredAt: uploaded?.version?.created_at ?? thread.filing_time,
+      mapping: {
+        model_type: "DmsEmailAttachmentMapping",
+        resource_id: mappingId,
+        mapping_id: mappingId,
+        tenant_id: tenantId,
+        matter_id: matterId,
+        email_thread_id: emailThreadId,
+        attachment_id: attachmentId,
+        document_id: persistedDocument.document_id,
+        sha256,
+        source_byte_size: sourceAttachment.source_provenance.byte_size,
+        source_message_ref: sourceAttachment.source_provenance.message_ref,
+        source_provenance_authority: sourceAttachment.source_provenance.authority,
+        raw_bytes_included: false,
+        storage_pointer_ref_included: false,
+      },
     });
     const timelineEvent = appendMatterTimeline({
       repository: runtime.matterRuntime.repository,
+      actorId,
+      idempotencyKey: `${attachmentOperationKey}:matter:${matterId}`,
       event: {
         event_id: `outlook.attachment.saved:${tenantId}:${matterId}:${documentId}`,
         tenant_id: tenantId,
         matter_id: matterId,
         type: "outlook.attachment.saved",
-        title: uploaded.document.title,
-        source_ref: uploaded.document.document_id,
-        source_object_id: uploaded.document.document_id,
+        title: persistedDocument.title,
+        source_ref: persistedDocument.document_id,
+        source_object_id: persistedDocument.document_id,
         safe_summary: {
           email_thread_id: emailThreadId,
           sha256,
@@ -2339,6 +2516,14 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         },
       },
     });
+    if (duplicate) {
+      duplicates.push(Object.freeze({
+        attachment_id: attachmentId,
+        duplicate_document_id: duplicate.document_id,
+        sha256,
+      }));
+      continue;
+    }
     saved.push(
       Object.freeze({
         document: uploaded.document,
@@ -2387,25 +2572,89 @@ function createFollowup({ body, context, requestId, runtime }) {
   if (!sourceThread || sourceThread.matter_id !== matterId || sourceThread.status !== "active") {
     return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.email_not_found]);
   }
-  const service = createMatterActivityCalendarChannelService({
-    repository: runtime.matterRuntime.repository,
-    peopleAssignmentAuthority: runtime.matterRuntime.peopleAssignmentAuthority,
-    clock: runtime.matterRuntime.clock,
+  const followupId = (kind === "deadline"
+    ? optionalString(body.event_id, `deadline_${safeId(sourceEmailThreadId)}`)
+    : optionalString(body.task_id, `task_${safeId(sourceEmailThreadId)}`))
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 96);
+  const title = requiredString(body.title, "title");
+  const dueAt = kind === "deadline"
+    ? requiredString(body.due_at ?? body.starts_at, "due_at")
+    : optionalString(body.due_at, null);
+  const assignedToUserId = kind === "task"
+    ? optionalString(body.assigned_to_user_id, actorId)
+    : null;
+  const criticality = kind === "deadline" ? optionalString(body.criticality, "standard") : null;
+  const legalConsequence = kind === "deadline" ? optionalString(body.legal_consequence, "internal") : null;
+  const reminderRule = kind === "deadline" ? optionalString(body.reminder_rule, "none") : null;
+  const requestFingerprint = hashDomainValue({
+    tenant_id: tenantId,
+    matter_id: matterId,
+    kind,
+    followup_id: followupId,
+    source_email_thread_id: sourceEmailThreadId,
+    title,
+    due_at: dueAt,
+    assigned_to_user_id: assignedToUserId,
+    criticality: criticality,
+    legal_consequence: legalConsequence,
+    reminder_rule: reminderRule,
   });
-  const result =
-    kind === "deadline"
+  const followupIdempotencyKey = `outlook-followup:${tenantId}:${matterId}:${kind}:${sourceEmailThreadId}:${followupId}`;
+  const replay = runtime.matterRuntime.repository.getIdempotency({
+    tenant_id: tenantId,
+    idempotency_key: followupIdempotencyKey,
+  });
+  if (replay) {
+    if (
+      replay.request_fingerprint !== requestFingerprint
+      || replay.response?.kind !== kind
+      || replay.response?.source_email_thread_id !== sourceEmailThreadId
+      || !replay.response?.item
+      || !replay.response?.audit_event
+      || !replay.response?.timeline_event
+    ) {
+      throw new Error("Outlook follow-up idempotency entry conflicts with the persisted activity");
+    }
+    return success(200, {
+      request_id: requestId,
+      outcome: "idempotent_replay",
+      ...replay.response,
+      idempotent_replay: true,
+      auto_created_without_lawyer_approval: false,
+    });
+  }
+  const followupModelType = kind === "deadline" ? "MatterCalendarEvent" : "MatterTask";
+  const existingFollowup = runtime.matterRuntime.repository.get({
+    tenant_id: tenantId,
+    model_type: followupModelType,
+    resource_id: followupId,
+  });
+  if (existingFollowup) {
+    throw new Error("Outlook follow-up identity conflicts with an existing Matter activity");
+  }
+  if (typeof runtime.matterRuntime.repository.transaction !== "function") {
+    throw new Error("Outlook follow-up creation requires an atomic repository transaction");
+  }
+  const replayResponse = runtime.matterRuntime.repository.transaction((tx) => {
+    const service = createMatterActivityCalendarChannelService({
+      repository: tx,
+      peopleAssignmentAuthority: runtime.matterRuntime.peopleAssignmentAuthority,
+      clock: runtime.matterRuntime.clock,
+    });
+    const result = kind === "deadline"
       ? service.createCalendarEvent({
           tenant_id: tenantId,
           matter_id: matterId,
           actor_id: actorId,
           event: {
-            event_id: optionalString(body.event_id, `deadline_${safeId(sourceEmailThreadId)}`),
-            title: requiredString(body.title, "title"),
+            event_id: followupId,
+            title,
             event_kind: "deadline",
-            starts_at: requiredString(body.due_at ?? body.starts_at, "due_at"),
-            criticality: body.criticality ?? "standard",
-            legal_consequence: body.legal_consequence ?? "internal",
-            reminder_rule: body.reminder_rule ?? "none",
+            starts_at: dueAt,
+            criticality,
+            legal_consequence: legalConsequence,
+            reminder_rule: reminderRule,
           },
         })
       : service.createActivity({
@@ -2413,22 +2662,40 @@ function createFollowup({ body, context, requestId, runtime }) {
           matter_id: matterId,
           actor_id: actorId,
           activity: {
-            activity_id: optionalString(body.task_id, `task_${safeId(sourceEmailThreadId)}`),
+            activity_id: followupId,
             activity_type: "task",
-            title: requiredString(body.title, "title"),
-            due_at: body.due_at ?? null,
-            assigned_to_user_id: body.assigned_to_user_id ?? actorId,
+            title,
+            due_at: dueAt,
+            assigned_to_user_id: assignedToUserId,
             status: "todo",
             source_ref: `DmsEmailThread:${sourceEmailThreadId}`,
           },
         });
+    const response = {
+      kind,
+      source_email_thread_id: sourceEmailThreadId,
+      item: result.item,
+      audit_event: result.audit_event,
+      timeline_event: result.timeline_event,
+    };
+    tx.recordIdempotency({
+      tenant_id: tenantId,
+      idempotency_key: followupIdempotencyKey,
+      operation: "outlook_followup_create",
+      object_type: followupModelType,
+      object_id: followupId,
+      actor_id: actorId,
+      request_fingerprint: requestFingerprint,
+      response,
+      created_at: result.timeline_event.occurred_at,
+    });
+    return response;
+  });
   return success(201, {
     request_id: requestId,
     outcome: "created",
-    kind,
-    item: result.item,
-    audit_event: result.audit_event,
-    timeline_event: result.timeline_event,
+    ...replayResponse,
+    idempotent_replay: false,
     auto_created_without_lawyer_approval: false,
   });
 }
