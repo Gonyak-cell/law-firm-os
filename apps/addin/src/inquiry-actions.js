@@ -107,6 +107,10 @@ export function outlookActionErrorMessage(error) {
       "Outlook 연결 설정이 필요합니다.",
     M365_CONNECTION_VALIDATION_ERROR:
       "Outlook 연결 상태를 확인해 주세요.",
+    M365_CONNECTION_VERSION_CONFLICT:
+      "연결 상태가 방금 바뀌었습니다. 다시 확인해 주세요.",
+    M365_CONNECTION_DISCONNECT_NOT_CONFIRMED:
+      "연결 해제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요.",
     M365_GRAPH_FEATURE_DISABLED:
       "Outlook 문의 등록 기능이 아직 켜지지 않았습니다.",
     M365_PROVIDER_RUNTIME_DISABLED:
