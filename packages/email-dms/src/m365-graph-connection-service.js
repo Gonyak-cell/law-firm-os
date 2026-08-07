@@ -569,6 +569,7 @@ function presentConnection(connection, options) {
       mailbox_scope: "me",
       credential_material_included: false,
       token_refresh_pending: false,
+      credential_cleanup_pending: false,
       production_ready_claim: false,
     });
   }
@@ -588,6 +589,8 @@ function presentConnection(connection, options) {
     mailbox_scope: "me",
     credential_material_included: false,
     token_refresh_pending: credentialRefreshPending,
+    credential_cleanup_pending:
+      connection.pending_vault_cleanup_refs.length > 0,
     production_ready_claim: false,
   });
 }
