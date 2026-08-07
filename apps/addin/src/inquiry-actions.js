@@ -111,6 +111,8 @@ export function outlookActionErrorMessage(error) {
       "연결 상태가 방금 바뀌었습니다. 다시 확인해 주세요.",
     M365_CONNECTION_DISCONNECT_NOT_CONFIRMED:
       "연결 해제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요.",
+    M365_CONNECTION_CREDENTIAL_CLEANUP_PENDING:
+      "Outlook 연결은 해제됐지만 저장된 토큰을 정리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     M365_GRAPH_FEATURE_DISABLED:
       "Outlook 문의 등록 기능이 아직 켜지지 않았습니다.",
     M365_PROVIDER_RUNTIME_DISABLED:

@@ -327,6 +327,7 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   });
   const before = service.getConnectionStatus(principal());
   assert.equal(before.connection.status, "not_connected");
+  assert.equal(before.connection.credential_cleanup_pending, false);
   assert.equal(before.release_readiness.status, "blocked");
   assert.equal(before.automatic_mailbox_scan_enabled, false);
   await assert.rejects(
@@ -571,6 +572,11 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   });
   assert.equal(disconnected.outcome, "disconnected");
   assert.equal(disconnected.connection.status, "revoked");
+  assert.equal(disconnected.connection.credential_cleanup_pending, true);
+  assert.equal(
+    Object.hasOwn(disconnected.connection, "pending_vault_cleanup_refs"),
+    false,
+  );
   assert.deepEqual(
     dependencies.calls.slice(-2),
     ["vault:resolve", "provider:revoke"],
@@ -2014,6 +2020,11 @@ test("이미 해제된 연결의 반복 DELETE는 남은 vault cleanup을 재시
     reason: "사용자 연결 해제 재시도",
   });
   assert.equal(result.outcome, "already_disconnected");
+  assert.equal(result.connection.credential_cleanup_pending, false);
+  assert.equal(
+    Object.hasOwn(result.connection, "pending_vault_cleanup_refs"),
+    false,
+  );
   const cleaned = repository.list({
     tenant_id: TENANT,
     model_type: "M365Connection",

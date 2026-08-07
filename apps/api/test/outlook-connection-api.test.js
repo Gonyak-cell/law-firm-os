@@ -167,6 +167,10 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   });
   assert.equal(before.status, 200);
   assert.equal(before.body.item.connection.status, "not_connected");
+  assert.equal(
+    before.body.item.connection.credential_cleanup_pending,
+    false,
+  );
   assert.equal(before.body.item.release_readiness.status, "blocked");
 
   const authorize = await request({
@@ -312,6 +316,17 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(deleted.status, 200);
   assert.equal(deleted.body.outcome, "disconnected");
   assert.equal(deleted.body.item.connection.status, "revoked");
+  assert.equal(
+    deleted.body.item.connection.credential_cleanup_pending,
+    true,
+  );
+  assert.equal(
+    Object.hasOwn(
+      deleted.body.item.connection,
+      "pending_vault_cleanup_refs",
+    ),
+    false,
+  );
   assert.deepEqual(graph.calls, ["provider_revoked"]);
 
   const cleanupRetry = await request({
@@ -325,6 +340,10 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   });
   assert.equal(cleanupRetry.status, 200);
   assert.equal(cleanupRetry.body.outcome, "already_disconnected");
+  assert.equal(
+    cleanupRetry.body.item.connection.credential_cleanup_pending,
+    false,
+  );
   assert.deepEqual(graph.calls, [
     "provider_revoked",
     "credential_deleted",

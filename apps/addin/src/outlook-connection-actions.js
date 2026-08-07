@@ -1,6 +1,8 @@
 import { GRAPH_STATE } from "./addin-auth.js";
 
 const VERSION_CONFLICT = "M365_CONNECTION_VERSION_CONFLICT";
+const CREDENTIAL_CLEANUP_PENDING =
+  "M365_CONNECTION_CREDENTIAL_CLEANUP_PENDING";
 const RESPONSE_INVALID = "API_RESPONSE_INVALID";
 
 function invalidResponse() {
@@ -60,6 +62,14 @@ export function parseOutlookConnectionRecord(body) {
     !Number.isSafeInteger(stateVersion)
     || (status === "not_connected" ? stateVersion !== 0 : stateVersion < 1)
   ) throw invalidResponse();
+  const rawCredentialCleanupPending = connection
+    && Object.hasOwn(connection, "credential_cleanup_pending")
+    ? connection.credential_cleanup_pending
+    : item?.credential_cleanup_pending;
+  if (
+    rawCredentialCleanupPending !== undefined
+    && typeof rawCredentialCleanupPending !== "boolean"
+  ) throw invalidResponse();
   let state = GRAPH_STATE.unavailable;
   if (status === "connected" && connection?.active !== false) {
     state = GRAPH_STATE.connected;
@@ -76,7 +86,18 @@ export function parseOutlookConnectionRecord(body) {
     mailboxAddress: connection?.mailbox_address ?? item?.mailbox_address ?? null,
     authorizationUrl: item?.authorization_url ?? body?.authorization_url ?? null,
     oauthState: item?.state ?? body?.state ?? null,
+    credentialCleanupPending: rawCredentialCleanupPending === true,
   };
+}
+
+function cleanupPendingError(connection) {
+  return Object.assign(
+    new Error(CREDENTIAL_CLEANUP_PENDING),
+    {
+      safe_error_code: CREDENTIAL_CLEANUP_PENDING,
+      authoritative_connection: connection,
+    },
+  );
 }
 
 async function disconnectConnection({
@@ -84,13 +105,25 @@ async function disconnectConnection({
   readConnection,
   deleteConnection,
   retryVersionConflict,
+  cleanupRetryAvailable,
 }) {
   try {
     const deleted = await deleteConnection(current);
     if (isOutlookConnectionDisconnected(deleted)) {
+      if (deleted.credentialCleanupPending === true) {
+        if (!cleanupRetryAvailable) throw cleanupPendingError(deleted);
+        return disconnectConnection({
+          current: deleted,
+          readConnection,
+          deleteConnection,
+          retryVersionConflict: false,
+          cleanupRetryAvailable: false,
+        });
+      }
       return Object.freeze({ outcome: "disconnected", connection: deleted });
     }
   } catch (error) {
+    if (error?.safe_error_code === CREDENTIAL_CLEANUP_PENDING) throw error;
     let observed;
     try {
       observed = await readConnection();
@@ -98,6 +131,16 @@ async function disconnectConnection({
       throw error;
     }
     if (isOutlookConnectionDisconnected(observed)) {
+      if (observed.credentialCleanupPending === true) {
+        if (!cleanupRetryAvailable) throw cleanupPendingError(observed);
+        return disconnectConnection({
+          current: observed,
+          readConnection,
+          deleteConnection,
+          retryVersionConflict: false,
+          cleanupRetryAvailable: false,
+        });
+      }
       return Object.freeze({
         outcome: "disconnected_after_ambiguous_response",
         connection: observed,
@@ -113,6 +156,7 @@ async function disconnectConnection({
         readConnection,
         deleteConnection,
         retryVersionConflict: false,
+        cleanupRetryAvailable,
       });
     }
     error.authoritative_connection = observed;
@@ -121,6 +165,16 @@ async function disconnectConnection({
 
   const observed = await readConnection();
   if (isOutlookConnectionDisconnected(observed)) {
+    if (observed.credentialCleanupPending === true) {
+      if (!cleanupRetryAvailable) throw cleanupPendingError(observed);
+      return disconnectConnection({
+        current: observed,
+        readConnection,
+        deleteConnection,
+        retryVersionConflict: false,
+        cleanupRetryAvailable: false,
+      });
+    }
     return Object.freeze({ outcome: "disconnected", connection: observed });
   }
   throw Object.assign(
@@ -149,5 +203,6 @@ export async function disconnectCurrentOutlookConnection({
     readConnection,
     deleteConnection,
     retryVersionConflict: true,
+    cleanupRetryAvailable: true,
   });
 }

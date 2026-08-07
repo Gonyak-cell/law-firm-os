@@ -7,8 +7,13 @@ import {
   parseOutlookConnectionRecord,
 } from "../src/outlook-connection-actions.js";
 
-function connection(stateVersion, state = GRAPH_STATE.connected, status = "connected") {
-  return { state, status, stateVersion };
+function connection(
+  stateVersion,
+  state = GRAPH_STATE.connected,
+  status = "connected",
+  credentialCleanupPending = false,
+) {
+  return { state, status, stateVersion, credentialCleanupPending };
 }
 
 test("connection response parser rejects missing status instead of inventing not_connected", () => {
@@ -37,7 +42,36 @@ test("connection response parser accepts only an explicit not_connected absence"
   });
   assert.equal(parsed.state, GRAPH_STATE.notConnected);
   assert.equal(parsed.status, "not_connected");
+  assert.equal(parsed.credentialCleanupPending, false);
   assert.equal(isOutlookConnectionDisconnected(parsed), true);
+});
+
+test("connection response parser exposes only the credential cleanup boolean", () => {
+  const parsed = parseOutlookConnectionRecord({
+    item: {
+      connection: {
+        status: "revoked",
+        active: false,
+        state_version: 2,
+        credential_cleanup_pending: true,
+      },
+    },
+  });
+  assert.equal(parsed.credentialCleanupPending, true);
+  assert.equal(Object.hasOwn(parsed, "pending_vault_cleanup_refs"), false);
+  assert.throws(
+    () => parseOutlookConnectionRecord({
+      item: {
+        connection: {
+          status: "revoked",
+          active: false,
+          state_version: 2,
+          credential_cleanup_pending: "true",
+        },
+      },
+    }),
+    (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+  );
 });
 
 test("connection response parser rejects contradictory terminal activity", () => {
@@ -135,6 +169,39 @@ test("disconnect preflights the latest connection version", async () => {
   assert.equal(result.connection.state, GRAPH_STATE.notConnected);
 });
 
+test("disconnect retries one revoked response to drain pending credential cleanup", async () => {
+  const calls = [];
+  const result = await disconnectCurrentOutlookConnection({
+    readConnection: async () => connection(2),
+    deleteConnection: async (current) => {
+      calls.push(current.stateVersion);
+      return calls.length === 1
+        ? connection(3, GRAPH_STATE.notConnected, "revoked", true)
+        : connection(3, GRAPH_STATE.notConnected, "revoked", false);
+    },
+  });
+  assert.deepEqual(calls, [2, 3]);
+  assert.equal(result.connection.credentialCleanupPending, false);
+});
+
+test("disconnect fails closed when bounded credential cleanup remains pending", async () => {
+  const calls = [];
+  await assert.rejects(
+    disconnectCurrentOutlookConnection({
+      readConnection: async () => connection(2),
+      deleteConnection: async (current) => {
+        calls.push(current.stateVersion);
+        return connection(3, GRAPH_STATE.notConnected, "revoked", true);
+      },
+    }),
+    (error) => (
+      error.safe_error_code === "M365_CONNECTION_CREDENTIAL_CLEANUP_PENDING"
+      && error.authoritative_connection?.status === "revoked"
+    ),
+  );
+  assert.deepEqual(calls, [2, 3]);
+});
+
 test("disconnect converges to revoked after an ambiguous timeout", async () => {
   let reads = 0;
   const result = await disconnectCurrentOutlookConnection({
@@ -151,6 +218,29 @@ test("disconnect converges to revoked after an ambiguous timeout", async () => {
   });
   assert.equal(result.outcome, "disconnected_after_ambiguous_response");
   assert.equal(result.connection.status, "revoked");
+});
+
+test("ambiguous disconnect readback retries one pending credential cleanup", async () => {
+  let reads = 0;
+  const deletes = [];
+  const result = await disconnectCurrentOutlookConnection({
+    readConnection: async () => (
+      ++reads === 1
+        ? connection(1)
+        : connection(2, GRAPH_STATE.notConnected, "revoked", true)
+    ),
+    deleteConnection: async (current) => {
+      deletes.push(current.stateVersion);
+      if (deletes.length === 1) {
+        throw Object.assign(new Error("timeout"), {
+          safe_error_code: "ADDIN_API_REQUEST_TIMEOUT",
+        });
+      }
+      return connection(2, GRAPH_STATE.notConnected, "revoked", false);
+    },
+  });
+  assert.deepEqual(deletes, [1, 2]);
+  assert.equal(result.connection.credentialCleanupPending, false);
 });
 
 test("disconnect retries one version conflict with the authoritative version", async () => {
