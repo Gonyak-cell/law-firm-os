@@ -1100,8 +1100,8 @@ function App() {
         <StatusLine
           icon={MailCheck}
           label="Outlook 연결"
-          value={graphConnected ? "연결됨" : credentialCleanupPending ? "토큰 정리 필요" : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting ? "확인 중" : graphConnection.state === GRAPH_STATE.reconnectRequired ? "다시 연결 필요" : "연결 필요"}
-          tone={graphConnected ? "good" : "neutral"}
+          value={graphConnected ? "연결됨" : credentialCleanupPending ? "연결 정보 정리 필요" : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting ? "확인 중" : graphConnection.state === GRAPH_STATE.reconnectRequired ? "다시 연결 필요" : "연결 필요"}
+          tone={graphConnected ? "good" : credentialCleanupPending ? "warn" : "neutral"}
         />
         <StatusLine icon={AlertTriangle} label="발송 전 확인" value="안내만 표시" tone="warn" />
       </section>
@@ -1131,7 +1131,7 @@ function App() {
               {graphConnected
                 ? "Client·Matter용 Outlook 연결이 활성화되어 있습니다."
                 : credentialCleanupPending
-                  ? "Outlook 연결은 해제됐습니다. 저장된 토큰 정리를 다시 시도해 주세요."
+                  ? "Outlook 연결은 해제됐습니다. 저장된 연결 정보 정리를 다시 시도해 주세요."
                 : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting
                   ? "Outlook 연결 상태를 확인하고 있습니다."
                 : graphConnection.state === GRAPH_STATE.reconnectRequired
@@ -1142,7 +1142,7 @@ function App() {
               {credentialCleanupPending ? (
                 <button type="button" onClick={disconnectOutlook} disabled={busy !== ""} data-testid="outlook-cleanup-retry-button">
                   <RefreshCw size={15} />
-                  토큰 정리 다시 시도
+                  연결 정보 정리 다시 시도
                 </button>
               ) : (
                 <button type="button" onClick={connectOutlook} disabled={busy !== "" || graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting} data-testid="outlook-connect-button">
