@@ -535,6 +535,7 @@ function App() {
   const [authState, setAuthState] = useState(AUTH_STATE.loading);
   const [authError, setAuthError] = useState("");
   const [graphConnection, setGraphConnection] = useState({ state: GRAPH_STATE.loading, status: "loading", stateVersion: 0, missingScopes: [] });
+  const [disconnectConfirmationOpen, setDisconnectConfirmationOpen] = useState(false);
   const [matters, setMatters] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [selectedMatterId, setSelectedMatterId] = useState("");
@@ -555,6 +556,10 @@ function App() {
   const authenticated = authState === AUTH_STATE.authenticated;
   const graphConnected = graphConnection.state === GRAPH_STATE.connected;
   const readyForBusiness = authenticated && graphConnected;
+
+  useEffect(() => {
+    if (!graphConnected) setDisconnectConfirmationOpen(false);
+  }, [graphConnected]);
 
   function resetItemActionResults() {
     setInquiryResult(null);
@@ -851,7 +856,8 @@ function App() {
   }
 
   async function disconnectOutlook() {
-    if (!graphConnected || !window.confirm("Outlook 연결을 해제할까요? 저장된 Graph 연결만 해제됩니다.")) return;
+    if (!graphConnected) return;
+    setDisconnectConfirmationOpen(false);
     setGraphConnection((current) => ({ ...current, state: GRAPH_STATE.connecting }));
     setBusy("disconnect");
     setError("");
@@ -1134,12 +1140,25 @@ function App() {
                 {graphConnected ? "다시 연결" : "Outlook 연결"}
               </button>
               {graphConnected ? (
-                <button className="secondary-button" type="button" onClick={disconnectOutlook} disabled={busy !== ""} data-testid="outlook-disconnect-button">
+                <button className="secondary-button" type="button" onClick={() => setDisconnectConfirmationOpen(true)} disabled={busy !== ""} data-testid="outlook-disconnect-button">
                   <Unplug size={15} />
                   연결 해제
                 </button>
               ) : null}
             </div>
+            {graphConnected && disconnectConfirmationOpen ? (
+              <div className="connection-controls" role="group" aria-label="Outlook 연결 해제 확인" data-testid="outlook-disconnect-confirmation">
+                <p className="safe-copy">저장된 Outlook 연결과 토큰을 해제할까요?</p>
+                <div className="button-row">
+                  <button className="secondary-button" type="button" onClick={() => setDisconnectConfirmationOpen(false)} disabled={busy !== ""}>
+                    취소
+                  </button>
+                  <button type="button" onClick={disconnectOutlook} disabled={busy !== ""} data-testid="outlook-disconnect-confirm-button">
+                    연결 해제
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </section>
