@@ -555,6 +555,8 @@ function App() {
   const itemAvailable = item !== null;
   const authenticated = authState === AUTH_STATE.authenticated;
   const graphConnected = graphConnection.state === GRAPH_STATE.connected;
+  const credentialCleanupPending = graphConnection.status === "revoked"
+    && graphConnection.credentialCleanupPending === true;
   const readyForBusiness = authenticated && graphConnected;
 
   useEffect(() => {
@@ -856,7 +858,7 @@ function App() {
   }
 
   async function disconnectOutlook() {
-    if (!graphConnected) return;
+    if (!graphConnected && !credentialCleanupPending) return;
     setDisconnectConfirmationOpen(false);
     setGraphConnection((current) => ({ ...current, state: GRAPH_STATE.connecting }));
     setBusy("disconnect");
@@ -1098,7 +1100,7 @@ function App() {
         <StatusLine
           icon={MailCheck}
           label="Outlook 연결"
-          value={graphConnected ? "연결됨" : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting ? "확인 중" : graphConnection.state === GRAPH_STATE.reconnectRequired ? "다시 연결 필요" : "연결 필요"}
+          value={graphConnected ? "연결됨" : credentialCleanupPending ? "토큰 정리 필요" : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting ? "확인 중" : graphConnection.state === GRAPH_STATE.reconnectRequired ? "다시 연결 필요" : "연결 필요"}
           tone={graphConnected ? "good" : "neutral"}
         />
         <StatusLine icon={AlertTriangle} label="발송 전 확인" value="안내만 표시" tone="warn" />
@@ -1128,6 +1130,8 @@ function App() {
             <p className="safe-copy">
               {graphConnected
                 ? "Client·Matter용 Outlook 연결이 활성화되어 있습니다."
+                : credentialCleanupPending
+                  ? "Outlook 연결은 해제됐습니다. 저장된 토큰 정리를 다시 시도해 주세요."
                 : graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting
                   ? "Outlook 연결 상태를 확인하고 있습니다."
                 : graphConnection.state === GRAPH_STATE.reconnectRequired
@@ -1135,10 +1139,17 @@ function App() {
                   : "Client·Matter 기능을 사용하려면 Outlook 연결이 필요합니다."}
             </p>
             <div className="button-row">
-              <button type="button" onClick={connectOutlook} disabled={busy !== "" || graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting} data-testid="outlook-connect-button">
-                <RefreshCw size={15} />
-                {graphConnected ? "다시 연결" : "Outlook 연결"}
-              </button>
+              {credentialCleanupPending ? (
+                <button type="button" onClick={disconnectOutlook} disabled={busy !== ""} data-testid="outlook-cleanup-retry-button">
+                  <RefreshCw size={15} />
+                  토큰 정리 다시 시도
+                </button>
+              ) : (
+                <button type="button" onClick={connectOutlook} disabled={busy !== "" || graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting} data-testid="outlook-connect-button">
+                  <RefreshCw size={15} />
+                  {graphConnected ? "다시 연결" : "Outlook 연결"}
+                </button>
+              )}
               {graphConnected ? (
                 <button className="secondary-button" type="button" onClick={() => setDisconnectConfirmationOpen(true)} disabled={busy !== ""} data-testid="outlook-disconnect-button">
                   <Unplug size={15} />
