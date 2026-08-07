@@ -405,6 +405,7 @@ function outlookEmailDmsRepository() {
 
 function phasedUploadRuntimeFixture({
   clock = () => new Date("2026-08-06T00:00:00.000Z"),
+  failOnceAt = null,
 } = {}) {
   const sessionsById = new Map();
   const sessionsByKey = new Map();
@@ -412,6 +413,13 @@ function phasedUploadRuntimeFixture({
   const documentStates = new Map();
   const retirementsByFamily = new Map();
   let stageWriteCount = 0;
+  let remainingFailureStage = failOnceAt;
+
+  const failPlainOnce = (stage, code) => {
+    if (remainingFailureStage !== stage) return;
+    remainingFailureStage = null;
+    throw Object.assign(new Error(`synthetic ${stage} failure`), { code });
+  };
 
   const codedError = (message, safeErrorCode, status = 409) => Object.assign(
     new Error(message),
@@ -610,6 +618,7 @@ function phasedUploadRuntimeFixture({
       if (session.state !== "bytes_stored") {
         throw codedError("synthetic upload has no staged MIME", "DMS_UPLOAD_INVALID_STATE");
       }
+      failPlainOnce("finalize", "23505");
       const version = Object.freeze({
         version_id: session.version_id,
         document_id: session.document_id,
@@ -640,6 +649,7 @@ function phasedUploadRuntimeFixture({
     },
     async getDocumentState({ tenant_id, document_id }) {
       const state = documentStates.get(document_id);
+      if (state) failPlainOnce("state_read", "57P01");
       return state?.document.tenant_id === tenant_id ? state : null;
     },
     async reconcileUploadSessions({ tenant_id }) {
@@ -2693,6 +2703,46 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     emailDmsRepository.close();
   }
 });
+
+for (const [failureStage, expectedCode] of [
+  ["finalize", "OUTLOOK_EMAIL_FILE_MIME_FINALIZE_FAILED_23505"],
+  ["state_read", "OUTLOOK_EMAIL_FILE_MIME_STATE_READ_FAILED_57P01"],
+]) {
+  test(`phased Outlook MIME ${failureStage} failure is classified and retries without duplicate storage`, async () => {
+    const uploadFixture = phasedUploadRuntimeFixture({ failOnceAt: failureStage });
+    const email = phasedAuthorityEmail();
+    const server = await startPhasedUploadSagaServer({ uploadFixture });
+    try {
+      const interrupted = await fetch(`${server.base_url}/api/outlook/email/file`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer outlook-provenance-session",
+        },
+        body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
+      });
+      const interruptedBody = await interrupted.json();
+      assert.equal(interrupted.status, 400, JSON.stringify(interruptedBody));
+      assert.deepEqual(interruptedBody.safe_error_codes, [expectedCode]);
+      assert.equal(uploadFixture.stage_write_count, 1);
+
+      const recovered = await jsonFetch(
+        server.base_url,
+        "/api/outlook/email/file",
+        {
+          method: "POST",
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
+        },
+        { authorization: "Bearer outlook-provenance-session" },
+      );
+      assert.equal(recovered.outcome, "created");
+      assert.equal(uploadFixture.stage_write_count, 1);
+      assert.equal(uploadFixture.document_count, 1);
+    } finally {
+      await server.close();
+    }
+  });
+}
 
 test("phased upload runtime safely retries one post-claim intent and rejects cross-Matter reuse", async () => {
   let now = "2026-08-06T00:00:00.000Z";

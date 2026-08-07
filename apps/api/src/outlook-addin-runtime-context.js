@@ -61,6 +61,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
 
 export const OUTLOOK_ADDIN_ERROR_CODES = Object.freeze({
   connection_validation_error: "M365_CONNECTION_VALIDATION_ERROR",
+  email_file_mime_finalize_failed: "OUTLOOK_EMAIL_FILE_MIME_FINALIZE_FAILED",
+  email_file_mime_state_read_failed: "OUTLOOK_EMAIL_FILE_MIME_STATE_READ_FAILED",
   tenant_required: "OUTLOOK_ADDIN_TENANT_REQUIRED",
   permission_required: "OUTLOOK_ADDIN_PERMISSION_REQUIRED",
   validation_error: "OUTLOOK_ADDIN_VALIDATION_ERROR",
@@ -828,6 +830,27 @@ function m365ErrorResponse(error, requestId, auditHintRef) {
     audit_hint_ref: auditHintRef,
     ui_state: "blocked",
     credential_material_included: false,
+  });
+}
+
+function classifyM365StageError(error, fallbackCode) {
+  if (
+    typeof error?.safe_error_code === "string"
+    && /^[A-Z0-9_]+$/u.test(error.safe_error_code)
+  ) {
+    return error;
+  }
+  const diagnosticCode = typeof error?.code === "string"
+    && /^[A-Z0-9_]{1,32}$/u.test(error.code)
+    ? error.code
+    : null;
+  const safeErrorCode = diagnosticCode
+    ? `${fallbackCode}_${diagnosticCode}`
+    : fallbackCode;
+  return Object.assign(new Error(safeErrorCode, { cause: error }), {
+    code: `LAWOS_${safeErrorCode}`,
+    safe_error_code: safeErrorCode,
+    status: error?.status ?? 400,
   });
 }
 
@@ -2241,7 +2264,14 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   let phasedUploadRuntime;
   try {
     phasedUploadRuntime = phasedOriginalMimeUploadRuntime(runtime);
-    documentState = await originalMimeDocumentState({ runtime, tenantId, documentId });
+    try {
+      documentState = await originalMimeDocumentState({ runtime, tenantId, documentId });
+    } catch (error) {
+      throw classifyM365StageError(
+        error,
+        OUTLOOK_ADDIN_ERROR_CODES.email_file_mime_state_read_failed,
+      );
+    }
     if (documentState) {
       assertOriginalMimeDocument(documentState, {
         tenantId,
@@ -2379,11 +2409,25 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
           session_id: uploadIntent.session.session_id,
           bytes: canonical.mime_bytes,
         });
-        await phasedUploadRuntime.finalizeUpload({
-          tenant_id: tenantId,
-          session_id: uploadIntent.session.session_id,
-        });
-        documentState = await originalMimeDocumentState({ runtime, tenantId, documentId });
+        try {
+          await phasedUploadRuntime.finalizeUpload({
+            tenant_id: tenantId,
+            session_id: uploadIntent.session.session_id,
+          });
+        } catch (error) {
+          throw classifyM365StageError(
+            error,
+            OUTLOOK_ADDIN_ERROR_CODES.email_file_mime_finalize_failed,
+          );
+        }
+        try {
+          documentState = await originalMimeDocumentState({ runtime, tenantId, documentId });
+        } catch (error) {
+          throw classifyM365StageError(
+            error,
+            OUTLOOK_ADDIN_ERROR_CODES.email_file_mime_state_read_failed,
+          );
+        }
       } else {
         const uploaded = uploadDocument({
             repository: runtime.dmsRuntime.repository,
