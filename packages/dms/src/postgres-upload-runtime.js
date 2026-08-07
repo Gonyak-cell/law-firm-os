@@ -147,6 +147,19 @@ function safeErrorCode(error, fallback) {
   return typeof code === "string" && /^[A-Z0-9_]+$/u.test(code) ? code : fallback;
 }
 
+function classifyMetadataCommitError(error, stage) {
+  const hasSafeErrorCode = typeof error?.safe_error_code === "string"
+    && /^[A-Z0-9_]+$/u.test(error.safe_error_code);
+  const hasLawosCode = typeof error?.code === "string"
+    && /^LAWOS_[A-Z0-9_:]+$/u.test(error.code);
+  if (hasSafeErrorCode || hasLawosCode) return error;
+  return codedError(
+    "DMS metadata publication failed",
+    `DMS_METADATA_${stage}_FAILED`,
+    500,
+  );
+}
+
 function uploadSessionIdentityConflict() {
   return codedError(
     "DMS upload session identity conflicts with existing state",
@@ -928,8 +941,15 @@ export function createPostgresDmsUploadRuntime({
   }
 
   async function commitMetadata(session) {
-    const committedAt = timestamp(clock);
+    let stage = "CLOCK";
+    let committedAt;
+    try {
+      committedAt = timestamp(clock);
+    } catch (error) {
+      throw classifyMetadataCommitError(error, stage);
+    }
     return transact(session.tenant_id, async (client) => {
+      stage = "SESSION_READ";
       const locked = await selectSession(client, session.tenant_id, session.session_id, { lock: true });
       if (locked.state === "finalized") return locked;
       if (locked.state !== "provider_finalized") {
@@ -939,6 +959,7 @@ export function createPostgresDmsUploadRuntime({
         throw codedError("DMS staged receipt changed before metadata commit", "DMS_STAGED_DIGEST_MISMATCH");
       }
       faultInjector?.("before_metadata_commit", { session_id: locked.session_id });
+      stage = "DOCUMENT_UPSERT";
       await client.query(
         `INSERT INTO lawos_dms.documents
            (tenant_id, document_id, matter_id, workspace_id, title, status,
@@ -956,6 +977,7 @@ export function createPostgresDmsUploadRuntime({
           committedAt,
         ],
       );
+      stage = "DOCUMENT_READ";
       const document = await client.query(
         `SELECT d.matter_id, d.workspace_id, d.permission_envelope_id,
                 current_version.version_number AS current_version_number
@@ -968,6 +990,13 @@ export function createPostgresDmsUploadRuntime({
         [locked.tenant_id, locked.document_id],
       );
       const existingDocument = document.rows[0];
+      if (!existingDocument) {
+        throw codedError(
+          "DMS document metadata row was not found after upsert",
+          "DMS_METADATA_DOCUMENT_READ_FAILED",
+          500,
+        );
+      }
       if (
         existingDocument.matter_id !== locked.matter_id
         || existingDocument.workspace_id !== locked.workspace_id
@@ -975,6 +1004,7 @@ export function createPostgresDmsUploadRuntime({
       ) {
         throw codedError("DMS document authority envelope does not match existing document", "DMS_DOCUMENT_AUTHORITY_CONFLICT");
       }
+      stage = "FILE_OBJECT_INSERT";
       const fileObjectId = `file:${locked.version_id}`;
       await client.query(
         `INSERT INTO lawos_dms.file_objects
@@ -993,6 +1023,7 @@ export function createPostgresDmsUploadRuntime({
           committedAt,
         ],
       );
+      stage = "VERSION_INSERT";
       await client.query(
         `INSERT INTO lawos_dms.document_versions
            (tenant_id, version_id, document_id, version_number, file_object_id, sha256, created_by, created_at)
@@ -1009,6 +1040,7 @@ export function createPostgresDmsUploadRuntime({
         ],
       );
       if (existingDocument.current_version_number == null || locked.version_number > Number(existingDocument.current_version_number)) {
+        stage = "DOCUMENT_UPDATE";
         await client.query(
           `UPDATE lawos_dms.documents
               SET title = $3, current_version_id = $4, updated_at = $5::timestamptz
@@ -1016,6 +1048,7 @@ export function createPostgresDmsUploadRuntime({
           [locked.tenant_id, locked.document_id, locked.title, locked.version_id, committedAt],
         );
       }
+      stage = "METADATA_AUDIT";
       await appendAudit(client, {
         tenant_id: locked.tenant_id,
         event_id: `audit:${locked.session_id}:metadata-committed`,
@@ -1026,6 +1059,7 @@ export function createPostgresDmsUploadRuntime({
         payload: { session_id: locked.session_id, version_id: locked.version_id, sha256: locked.expected_sha256 },
         created_at: committedAt,
       });
+      stage = "OUTBOX_INSERT";
       await client.query(
         `INSERT INTO lawos_dms.outbox_events
            (tenant_id, event_id, event_type, aggregate_type, aggregate_id, payload, status, created_at)
@@ -1038,6 +1072,7 @@ export function createPostgresDmsUploadRuntime({
           committedAt,
         ],
       );
+      stage = "SESSION_UPDATE";
       const updated = await client.query(
         `UPDATE lawos_dms.upload_sessions
             SET state = 'finalized', metadata_committed_at = $3::timestamptz,
@@ -1050,6 +1085,15 @@ export function createPostgresDmsUploadRuntime({
           RETURNING *`,
         [locked.tenant_id, locked.session_id, committedAt],
       );
+      const finalized = rowToSession(updated.rows[0]);
+      if (!finalized) {
+        throw codedError(
+          "DMS upload session finalization did not return a row",
+          "DMS_METADATA_SESSION_UPDATE_FAILED",
+          500,
+        );
+      }
+      stage = "FINAL_AUDIT";
       await appendAudit(client, {
         tenant_id: locked.tenant_id,
         event_id: `audit:${locked.session_id}:finalized`,
@@ -1060,7 +1104,9 @@ export function createPostgresDmsUploadRuntime({
         payload: { state: "finalized", document_id: locked.document_id, version_id: locked.version_id },
         created_at: committedAt,
       });
-      return rowToSession(updated.rows[0]);
+      return finalized;
+    }).catch((error) => {
+      throw classifyMetadataCommitError(error, stage);
     });
   }
 

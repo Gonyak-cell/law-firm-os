@@ -12,6 +12,7 @@ import {
   sha256Hex,
 } from "../src/index.js";
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
+import { POSTGRES_TENANT_CONTEXT_SECRET } from "../../persistence/src/postgres/pool.js";
 import { stableJsonStringify } from "../../persistence/src/durable-file.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
 
@@ -100,6 +101,23 @@ function controlledFault() {
       const error = new Error(`injected DMS failure at ${point}`);
       error.code = `LAWOS_TEST_${point.toUpperCase()}`;
       throw error;
+    },
+  };
+}
+
+function interceptPoolQuery(pool, intercept) {
+  return {
+    [POSTGRES_TENANT_CONTEXT_SECRET]: pool[POSTGRES_TENANT_CONTEXT_SECRET],
+    async connect() {
+      const client = await pool.connect();
+      return {
+        query(...args) {
+          return intercept({ args, query: (...forwarded) => client.query(...forwarded) });
+        },
+        release(error) {
+          client.release(error);
+        },
+      };
     },
   };
 }
@@ -316,6 +334,78 @@ test("RS-DMS upload session is idempotent and finalizes document, version, file,
   assert.deepEqual(outOfOrder.versions.map((version) => version.version_number), [1, 2, 3]);
   assert.equal(runtime.source_only, true);
   assert.equal(runtime.production_ready_claim, false);
+});
+
+test("RS-DMS metadata commit classifies untyped stages and preserves typed errors", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const scenarios = [
+    {
+      prefix: "empty-document-read",
+      matches: (sql) => sql.includes("FROM lawos_dms.documents d") && sql.includes("FOR UPDATE OF d"),
+      intercept: () => Promise.resolve({ rows: [] }),
+      safe_error_code: "DMS_METADATA_DOCUMENT_READ_FAILED",
+    },
+    {
+      prefix: "untyped-document-read",
+      matches: (sql) => sql.includes("FROM lawos_dms.documents d") && sql.includes("FOR UPDATE OF d"),
+      intercept: () => { throw new Error("synthetic untyped document read failure"); },
+      safe_error_code: "DMS_METADATA_DOCUMENT_READ_FAILED",
+    },
+    {
+      prefix: "untyped-outbox-insert",
+      matches: (sql) => sql.includes("INSERT INTO lawos_dms.outbox_events"),
+      intercept: () => { throw new Error("synthetic untyped outbox failure"); },
+      safe_error_code: "DMS_METADATA_OUTBOX_INSERT_FAILED",
+    },
+    {
+      prefix: "unsafe-outbox-code",
+      matches: (sql) => sql.includes("INSERT INTO lawos_dms.outbox_events"),
+      intercept: () => { throw Object.assign(new Error("synthetic unsafe outbox failure"), { code: "unsafe-code" }); },
+      safe_error_code: "POSTGRES_OPERATION_FAILED",
+    },
+    {
+      prefix: "typed-file-object",
+      matches: (sql) => sql.includes("INSERT INTO lawos_dms.file_objects"),
+      intercept: () => {
+        throw Object.assign(new Error("synthetic typed file-object failure"), {
+          code: "LAWOS_TEST_METADATA_TYPED",
+          safe_error_code: "TEST_METADATA_TYPED",
+          status: 409,
+        });
+      },
+      safe_error_code: "TEST_METADATA_TYPED",
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    const storage = createLocalStorageAdapter({ adapter_id: `local-${scenario.prefix}` });
+    let intercepted = false;
+    const pool = interceptPoolQuery(fixture.appPool, ({ args, query }) => {
+      if (!intercepted && typeof args[0] === "string" && scenario.matches(args[0])) {
+        intercepted = true;
+        return scenario.intercept();
+      }
+      return query(...args);
+    });
+    const runtime = createPostgresDmsUploadRuntime({
+      pool,
+      storage,
+      clock: () => new Date("2026-07-16T01:45:00.000Z"),
+    });
+    const input = sessionInput(scenario.prefix, { adapter_id: storage.adapter_id });
+    await runtime.createUploadSession(input);
+    await runtime.stageUpload({ tenant_id: TENANT, session_id: input.session_id, bytes: BYTES });
+
+    await assert.rejects(
+      runtime.finalizeUpload({ tenant_id: TENANT, session_id: input.session_id }),
+      (error) => error?.safe_error_code === scenario.safe_error_code,
+    );
+    assert.equal(intercepted, true);
+
+    const recovered = await runtime.finalizeUpload({ tenant_id: TENANT, session_id: input.session_id });
+    assert.equal(recovered.session.state, "finalized");
+  }
 });
 
 test("RS-DMS upload session rejects session, document-version and object identity conflicts", async (t) => {
