@@ -17,9 +17,15 @@ function objectGovernanceUnset() {
   return error;
 }
 
-function fakeS3Client({ failRetentionOnce = false } = {}) {
+function fakeS3Client({
+  defaultRetentionUntil = null,
+  failDeleteOnce = false,
+  failRetentionOnce = false,
+  now = () => Date.now(),
+} = {}) {
   const objects = new Map();
   let version = 0;
+  let deleteFailurePending = failDeleteOnce;
   let retentionFailurePending = failRetentionOnce;
   const etag = (body) => `\"${sha256Hex(body).slice(0, 32)}\"`;
   return Object.freeze({
@@ -42,7 +48,9 @@ function fakeS3Client({ failRetentionOnce = false } = {}) {
           etag: etag(body),
           versionId: `v${++version}`,
           legalHold: "OFF",
-          retention: null,
+          retention: defaultRetentionUntil
+            ? { Mode: "GOVERNANCE", RetainUntilDate: new Date(defaultRetentionUntil) }
+            : null,
         };
         objects.set(input.Key, object);
         return { ETag: object.etag, VersionId: object.versionId };
@@ -81,6 +89,21 @@ function fakeS3Client({ failRetentionOnce = false } = {}) {
       }
       if (name === "DeleteObjectCommand") {
         const object = objects.get(input.Key);
+        if (deleteFailurePending) {
+          deleteFailurePending = false;
+          const error = new Error("synthetic delete denial");
+          error.name = "AccessDenied";
+          error.$metadata = { httpStatusCode: 403 };
+          throw error;
+        }
+        if (object?.retention?.RetainUntilDate
+          && new Date(object.retention.RetainUntilDate).getTime() > new Date(now()).getTime()
+          && input.BypassGovernanceRetention !== true) {
+          const error = new Error("governance retention blocks delete");
+          error.name = "AccessDenied";
+          error.$metadata = { httpStatusCode: 403 };
+          throw error;
+        }
         if (object && input.IfMatch && input.IfMatch !== object.etag) throw new Error("delete condition failed");
         objects.delete(input.Key);
         return {};
@@ -238,6 +261,46 @@ test("S3 adapter applies default retention only after commit so staged cleanup r
     retain_until: "2026-08-20T00:00:00.000Z",
   });
   assert.equal((await storage.getObjectRetention({ tenant_id: input.tenant_id, object_id: input.object_id })).retain_until, "2026-08-20T00:00:00.000Z");
+});
+
+test("S3 adapter defers staged cleanup when bucket-default retention protects the staged copy", async () => {
+  let now = new Date("2026-07-20T00:00:00.000Z");
+  const client = fakeS3Client({
+    defaultRetentionUntil: "2027-07-20T00:00:00.000Z",
+    now: () => now,
+  });
+  const storage = adapter({
+    client,
+    default_retention_days: 7,
+    clock: () => now,
+  });
+  const input = {
+    tenant_id: "tenant-a",
+    session_id: "session-staged-retention",
+    object_id: "object-staged-retention",
+    bytes: "retained staging copy",
+  };
+  await storage.stageObject(input);
+  const committed = await storage.finalizeObject(input);
+  assert.equal(committed.staged_cleanup_deferred, true);
+  assert.notEqual(await storage.statStagedObject(input), null);
+  assert.notEqual(await storage.statObject(input), null);
+  now = new Date("2027-07-21T00:00:00.000Z");
+  const cleaned = await storage.finalizeObject(input);
+  assert.equal(cleaned.staged_cleanup_deferred, false);
+  assert.equal(await storage.statStagedObject(input), null);
+});
+
+test("S3 adapter does not hide an unrelated staged delete denial", async () => {
+  const storage = adapter({ client: fakeS3Client({ failDeleteOnce: true }) });
+  const input = {
+    tenant_id: "tenant-a",
+    session_id: "session-delete-denied",
+    object_id: "object-delete-denied",
+    bytes: "delete denied",
+  };
+  await storage.stageObject(input);
+  await assert.rejects(storage.finalizeObject(input), /synthetic delete denial/u);
 });
 
 test("S3 adapter repairs retention before staged cleanup after a partial finalize failure", async () => {

@@ -1119,6 +1119,7 @@ export function createPostgresDmsUploadRuntime({
       sha256: receipt?.sha256 ?? session.expected_sha256,
       byte_size: Number(receipt?.byte_size ?? session.expected_byte_size),
       mime_type: receipt?.mime_type ?? session.content_type,
+      staged_cleanup_deferred: receipt?.staged_cleanup_deferred === true,
       raw_path_exposed: false,
       bytes_exposed: false,
     });

@@ -152,6 +152,27 @@ export function createS3StorageAdapter(config = {}) {
     return true;
   }
 
+  async function activeRetention(key, versionId) {
+    let retention = null;
+    try {
+      retention = await client.send(new GetObjectRetentionCommand({
+        ...common,
+        Key: key,
+        VersionId: versionId ?? undefined,
+      }));
+    } catch (error) {
+      if (!isObjectGovernanceUnset(error)) throw error;
+    }
+    const mode = retention?.Retention?.Mode;
+    const retainUntil = retention?.Retention?.RetainUntilDate;
+    const now = new Date(clock()).getTime();
+    if (!Number.isFinite(now)) throw new TypeError("S3 adapter clock returned an invalid timestamp");
+    const retainUntilTime = retainUntil ? new Date(retainUntil).getTime() : NaN;
+    return ["GOVERNANCE", "COMPLIANCE"].includes(mode)
+      && Number.isFinite(retainUntilTime)
+      && retainUntilTime > now;
+  }
+
   function receiptFromHead({ tenantId, sessionId, objectId, response }) {
     const sha256 = requireString(response.Metadata?.["lawos-sha256"], "S3 object sha256 metadata");
     const byteSize = Number(response.ContentLength);
@@ -270,14 +291,22 @@ export function createS3StorageAdapter(config = {}) {
       if (committed.sha256 !== staged.sha256) throw codedError("committed object has a different digest", "DMS_FINALIZE_CONFLICT");
     }
     const defaultRetentionApplied = await ensureDefaultRetention(committedKey, committed.response.VersionId);
-    await client.send(new DeleteObjectCommand({
-      ...common,
-      Key: stagedKey,
-      VersionId: staged.response.VersionId,
-    }));
-    await client.send(new DeleteObjectCommand({ ...common, Key: stagedKey }));
+    const stagedCleanupDeferred = objectLockEnabled
+      && await activeRetention(stagedKey, staged.response.VersionId);
+    if (!stagedCleanupDeferred) {
+      await client.send(new DeleteObjectCommand({
+        ...common,
+        Key: stagedKey,
+        VersionId: staged.response.VersionId,
+      }));
+      await client.send(new DeleteObjectCommand({ ...common, Key: stagedKey }));
+    }
     const receipt = await statObject({ tenant_id: tenantId, object_id: objectId });
-    return Object.freeze({ ...receipt, default_retention_applied: defaultRetentionApplied });
+    return Object.freeze({
+      ...receipt,
+      default_retention_applied: defaultRetentionApplied,
+      staged_cleanup_deferred: stagedCleanupDeferred,
+    });
   }
 
   async function deleteOrphan({ tenant_id, session_id, object_id } = {}) {
