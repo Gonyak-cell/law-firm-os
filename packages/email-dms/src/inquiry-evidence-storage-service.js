@@ -161,7 +161,11 @@ function contentType(headers) {
 
 function decodeHeaderWord(value) {
   if (typeof value !== "string") return "";
-  return value.replace(
+  const joined = value.replace(
+    /(=\?[^?]+\?[bq]\?[^?]*\?=)[ \t]+(?==\?[^?]+\?[bq]\?[^?]*\?=)/giu,
+    "$1",
+  );
+  return joined.replace(
     /=\?([^?]+)\?([bq])\?([^?]*)\?=/giu,
     (_, charset, encoding, encoded) => {
       try {

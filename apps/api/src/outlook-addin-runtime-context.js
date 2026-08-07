@@ -287,9 +287,10 @@ async function resolveCanonicalMessage({ thread, context, runtime }) {
         !usedCanonicalIndexes.has(index)
         && normalizedAttachmentName(attachment.file_name) === sourceName
       ));
-    if (Number.isSafeInteger(sourceAttachment.size) && sourceAttachment.size >= 0) {
-      matches = matches.filter(({ attachment }) => attachment.byte_size === sourceAttachment.size);
-    }
+    // Office.js and Graph attachment metadata report the Exchange attachment
+    // object's size, which can include metadata overhead. The decoded MIME part
+    // below is the content authority, so its byte length must not be compared to
+    // the advisory Office size.
     if (/^[a-f0-9]{64}$/u.test(sourceAttachment.sha256 ?? "")) {
       matches = matches.filter(({ attachment }) => digestMatches(attachment.sha256, sourceAttachment.sha256));
     }

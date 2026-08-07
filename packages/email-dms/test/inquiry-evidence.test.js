@@ -9,6 +9,7 @@ import {
 } from "../src/inquiry-evidence-model.js";
 import {
   INQUIRY_EVIDENCE_STORAGE_ERROR_CODES,
+  createSafeInquiryDisplayCopy,
   createInquiryEvidenceStorageService,
 } from "../src/inquiry-evidence-storage-service.js";
 import {
@@ -54,6 +55,44 @@ const STORAGE_MIME = Buffer.from([
   "--lawos-boundary--",
   "",
 ].join("\r\n"));
+
+test("MIME 파일명의 인접한 encoded-word는 RFC 2047 공백 없이 이어 붙인다", () => {
+  const mime = Buffer.from([
+    "From: sender@example.invalid",
+    "To: recipient@example.invalid",
+    "Date: Fri, 7 Aug 2026 06:00:00 +0000",
+    "Subject: Encoded attachment name",
+    "MIME-Version: 1.0",
+    "Content-Type: multipart/mixed; boundary=encoded-name-boundary",
+    "",
+    "--encoded-name-boundary",
+    "Content-Type: text/plain; charset=utf-8",
+    "",
+    "body",
+    "--encoded-name-boundary",
+    "Content-Type: application/octet-stream; name=\"=?UTF-8?B?Y2xpZW50LQ==?= =?UTF-8?B?Y29udHJhY3QuZG9jeA==?=\"",
+    "Content-Disposition: attachment; filename=\"=?UTF-8?B?Y2xpZW50LQ==?= =?UTF-8?B?Y29udHJhY3QuZG9jeA==?=\"",
+    "Content-Transfer-Encoding: base64",
+    "",
+    Buffer.from("verified attachment bytes").toString("base64"),
+    "--encoded-name-boundary--",
+    "",
+  ].join("\r\n"));
+
+  const copy = createSafeInquiryDisplayCopy({
+    mime_bytes: mime,
+    message_metadata: {
+      subject: "Encoded attachment name",
+      sender: { address: "sender@example.invalid" },
+      recipients: [{ address: "recipient@example.invalid" }],
+      received_at: "2026-08-07T06:00:00.000Z",
+    },
+  });
+
+  assert.equal(copy.attachment_manifest.length, 1);
+  assert.equal(copy.attachment_manifest[0].file_name, "client-contract.docx");
+  assert.equal(copy.attachment_manifest[0].byte_size, Buffer.byteLength("verified attachment bytes"));
+});
 
 function storageInput(overrides = {}) {
   return {
