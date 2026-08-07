@@ -35,6 +35,7 @@ const ATTACHMENT_BYTES = Buffer.from("contract attachment bytes");
 const ATTACHMENT_RECOVERY_BYTES = Buffer.from("attachment domain recovery bytes");
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 const MIME_BOUNDARY = "lawos-outlook-attachment-boundary";
+const SPLIT_ENCODED_ATTACHMENT_NAME = "=?UTF-8?B?Y2xpZW50LQ==?= =?UTF-8?B?Y29udHJhY3QuZG9jeA==?=";
 
 test("legacy filing replay backfills idempotency without overwriting its original audit actor", () => {
   const repository = createDmsRepository();
@@ -143,6 +144,8 @@ test("legacy filing backfill fails closed when immutable audit provenance is mis
 
 function messageMime({
   attachmentBytes = ATTACHMENT_BYTES,
+  attachmentContentType = "text/plain",
+  attachmentHeaderName = "contract.txt",
   duplicateAttachmentName = false,
   fromAddress = "opposing@example.com",
   hasAttachment = true,
@@ -166,8 +169,8 @@ function messageMime({
     ].join("\r\n"));
   }
   const attachmentPart = [
-    "Content-Type: text/plain; name=\"contract.txt\"",
-    "Content-Disposition: attachment; filename=\"contract.txt\"",
+    `Content-Type: ${attachmentContentType}; name="${attachmentHeaderName}"`,
+    `Content-Disposition: attachment; filename="${attachmentHeaderName}"`,
     "Content-Transfer-Encoding: base64",
     "",
     attachmentBytes.toString("base64"),
@@ -1180,6 +1183,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         }
         const identityMismatch = input.rest_message_id === "graph-identity-mismatch";
         const ambiguous = input.rest_message_id === "graph-ambiguous-attachments";
+        const officeAttachmentMetadata = input.rest_message_id === "graph-office-attachment-metadata";
         const oversizedMime = input.rest_message_id === "graph-oversized-mime";
         const attachmentAtLimit = input.rest_message_id === "graph-attachment-at-limit";
         const attachmentOverLimit = input.rest_message_id === "graph-attachment-over-limit";
@@ -1209,6 +1213,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
           "graph-attachment-at-limit": "<outlook-attachment-at-limit@amic.law>",
           "graph-attachment-over-limit": "<outlook-attachment-over-limit@amic.law>",
           "graph-participant-spoof": "<outlook-participant-spoof@amic.law>",
+          "graph-office-attachment-metadata": "<outlook-office-attachment-metadata@amic.law>",
           "graph-sent-after-manual": "<outlook-sent-after-manual@amic.law>",
           "graph-alias-a": "<outlook-alias-target@amic.law>",
           "graph-alias-b": "<outlook-alias-target@amic.law>",
@@ -1231,6 +1236,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
               "graph-attachment-at-limit": "conversation-attachment-at-limit",
               "graph-attachment-over-limit": "conversation-attachment-over-limit",
               "graph-participant-spoof": "conversation-participant-spoof",
+              "graph-office-attachment-metadata": "conversation-office-attachment-metadata",
               "graph-sent-after-manual": "conversation-sent-after-manual",
               "graph-alias-a": "conversation-alias-target",
               "graph-alias-b": "conversation-alias-target",
@@ -1256,6 +1262,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
                 : input.rest_message_id === "graph-attachment-domain-recovery"
                   ? ATTACHMENT_RECOVERY_BYTES
                   : ATTACHMENT_BYTES,
+            attachmentContentType: officeAttachmentMetadata
+              ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              : "text/plain",
+            attachmentHeaderName: officeAttachmentMetadata
+              ? SPLIT_ENCODED_ATTACHMENT_NAME
+              : "contract.txt",
             duplicateAttachmentName: ambiguous,
             fromAddress,
             hasAttachment: !attachmentFree,
@@ -1411,6 +1423,65 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         complete.email_thread.attachment_metadata.map((item) => item.source_provenance.occurrence),
         [0, 1],
       );
+      assert.equal(storageWriteCount, beforeStorageWrites + 1);
+    });
+
+    await t.test("Office attachment size overhead and adjacent encoded filename words reconcile to MIME bytes", async () => {
+      const beforeProviderCalls = providerCallCount;
+      const beforeStorageWrites = storageWriteCount;
+      const canonicalName = "client-contract.docx";
+      const filingEmail = (attachmentOverrides = {}) => emailFixture({
+        graph_message_id: "graph-office-attachment-metadata",
+        internet_message_id: "<outlook-office-attachment-metadata@amic.law>",
+        conversation_id: "conversation-office-attachment-metadata",
+        attachments: [{
+          attachment_id: "att-office-metadata",
+          name: canonicalName,
+          content_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          size: ATTACHMENT_BYTES.byteLength + 378,
+          confidentiality: "confidential",
+          ...attachmentOverrides,
+        }],
+      });
+      const assertProvenanceRejected = async (attachmentOverrides) => {
+        const response = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({
+            tenant_id: TENANT,
+            matter_id: MATTER,
+            email: filingEmail(attachmentOverrides),
+          }),
+        });
+        const responseBody = await response.json();
+        assert.equal(response.status, 409);
+        assert.deepEqual(responseBody.safe_error_codes, [
+          "OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH",
+        ]);
+        assert.equal(storageWriteCount, beforeStorageWrites);
+      };
+
+      await assertProvenanceRejected({ name: "different-contract.docx" });
+      await assertProvenanceRejected({ sha256: "0".repeat(64) });
+
+      const filed = await json("/api/outlook/email/file", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: filingEmail(),
+        }),
+      });
+
+      assert.equal(filed.outcome, "created");
+      assert.equal(filed.email_thread.attachment_metadata.length, 1);
+      assert.equal(filed.email_thread.attachment_metadata[0].name, canonicalName);
+      assert.equal(filed.email_thread.attachment_metadata[0].size, ATTACHMENT_BYTES.byteLength);
+      assert.equal(
+        filed.email_thread.attachment_metadata[0].sha256,
+        createHash("sha256").update(ATTACHMENT_BYTES).digest("hex"),
+      );
+      assert.equal(providerCallCount, beforeProviderCalls + 3);
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
     });
 
