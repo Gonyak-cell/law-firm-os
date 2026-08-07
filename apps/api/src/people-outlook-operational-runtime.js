@@ -1123,6 +1123,11 @@ export function createPeopleOutlookOperationalRuntimeFactory({
       assertSelf(input);
       const tenantId = requiredId(input.tenant_id, "tenant_id");
       const employeeId = requiredId(input.employee_id, "employee_id");
+      const requestIdempotencyKey = requiredText(
+        input.idempotency_key,
+        "idempotency_key",
+        255,
+      );
       const actor = principal(input);
       const now = instant(clock);
       let current = findRecord(repository, tenantId, employeeId);
@@ -1136,7 +1141,7 @@ export function createPeopleOutlookOperationalRuntimeFactory({
         action: "people.outlook.connection.disconnected",
         actor_id: actor.user_id,
         idempotency_key:
-          `people-outlook-disconnect:${current.people_outlook_connection_id}:${current.state_version}`,
+          `people-outlook-disconnect:${current.people_outlook_connection_id}:${current.state_version}:${sha256(requestIdempotencyKey)}`,
         audit_payload: { encrypted_credential_deleted: true },
         input: {
           ...current,

@@ -300,7 +300,10 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
   assert.equal(Object.hasOwn(graphCalls[0], "url"), false);
   assert.equal(Object.hasOwn(graphCalls[0], "headers"), false);
 
-  const disconnected = await runtime.connections.disconnect(principal);
+  const disconnected = await runtime.connections.disconnect({
+    ...principal,
+    idempotency_key: "people-outlook-disconnect-operational-001",
+  });
   assert.equal(disconnected.connection_state, "not_connected");
   const revoked = repository.list({
     tenant_id: TENANT,
@@ -955,6 +958,7 @@ test("operational People Outlook permits same-email rebinding before disconnecti
   const disconnected = await runtime.connections.disconnect({
     ...legacyPrincipal,
     user_id: "user-jwsuh-after-password-reset",
+    idempotency_key: "people-outlook-disconnect-password-reset-001",
   });
   assert.equal(disconnected.connection_state, "not_connected");
   const revoked = repository.list({

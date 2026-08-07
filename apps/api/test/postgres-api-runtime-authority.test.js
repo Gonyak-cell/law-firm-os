@@ -471,6 +471,25 @@ test("PostgreSQL API authority retries bounded reads and only explicitly idempot
   assert.equal(idempotentMutation, "idempotent-mutation-replayed");
   assert.equal(idempotentMutationAttempts, 2);
 
+  let idempotentDeleteAttempts = 0;
+  const idempotentDelete = await runPostgresReadWithBaselineRetry({
+    method: "DELETE",
+    retryLimit: 2,
+    allowIdempotentWriteRetry: true,
+    wait: async () => {},
+    execute: async () => {
+      idempotentDeleteAttempts += 1;
+      if (idempotentDeleteAttempts === 1) {
+        throw Object.assign(new Error("idempotent delete conflict"), {
+          safe_error_code: "DOMAIN_BASELINE_CONFLICT",
+        });
+      }
+      return "idempotent-delete-replayed";
+    },
+  });
+  assert.equal(idempotentDelete, "idempotent-delete-replayed");
+  assert.equal(idempotentDeleteAttempts, 2);
+
   let uniqueConflictAttempts = 0;
   const uniqueConflictReplay = await runPostgresReadWithBaselineRetry({
     method: "POST",
@@ -3141,7 +3160,6 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
     peopleFeatureFlags: { outlook_calendar: true },
     peopleOutlookRuntimeFactory,
   });
-  await importHrxAuthorityBaseline(ledger, TENANT_A);
   const principal = {
     tenant_id: TENANT_A,
     employee_id: "employee-postgres-outlook-roundtrip",
@@ -3149,6 +3167,10 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
     session_email: "postgres-outlook@example.test",
     can_manage: true,
   };
+  await importMatterAssignmentIdentityBaseline(ledger, TENANT_A, {
+    employeeId: principal.employee_id,
+    userId: principal.user_id,
+  });
 
   const begun = await authority.run({
     tenant_id: TENANT_A,
@@ -3225,6 +3247,103 @@ test("PostgreSQL People Outlook OAuth and encrypted credential survive separate 
     "postgres-outlook-access-token-never-persist",
   );
   assert.equal(Object.hasOwn(graphCalls[0], "url"), false);
+
+  const legacyDisconnectKey =
+    `people-outlook-disconnect:${persisted.people_outlook_connection_id}:${persisted.state_version}`;
+  await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "POST",
+      pathname: "/internal/test/people-outlook/legacy-disconnect-claim",
+      idempotency_key: "postgres-people-outlook-legacy-disconnect-claim",
+    },
+    command({ emailDmsRuntime }) {
+      return emailDmsRuntime.repository.recordIdempotency({
+        tenant_id: TENANT_A,
+        idempotency_key: legacyDisconnectKey,
+        operation: "people.outlook.connection.disconnected",
+        response: {
+          connection_state: "not_connected",
+          state_version: persisted.state_version + 1,
+          credential_material_included: false,
+        },
+        created_at: "2026-08-03T00:30:00.000Z",
+      });
+    },
+  });
+
+  const disconnectPath =
+    `/api/hrx/people/members/${principal.employee_id}/outlook-connection`;
+  const disconnectRequest = async (idempotencyKey) => authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "DELETE",
+      pathname: disconnectPath,
+      idempotency_key: idempotencyKey,
+    },
+    command({ hrxRuntime }) {
+      return handleHrxApiRequest({
+        pathname: disconnectPath,
+        method: "DELETE",
+        body: { idempotency_key: idempotencyKey },
+        context: hrxRuntime,
+        requestContext: {
+          tenant_id: TENANT_A,
+          actor_id: principal.user_id,
+          actor_role: "staff",
+          hrx_scopes: ["hrx.employee.read"],
+          session_bound: true,
+          email: principal.session_email,
+        },
+        permissionContext: {
+          principal: {
+            user_id: principal.user_id,
+            tenant_id: TENANT_A,
+            role_ids: ["staff"],
+          },
+          rules: [{
+            id: "postgres-people-outlook-disconnect-self-read",
+            effect: "allow",
+            action: "hrx.employee.read",
+          }],
+          object_acl: [],
+        },
+      });
+    },
+  });
+  const disconnected = await disconnectRequest(
+    "postgres-people-outlook-disconnect-request-001",
+  );
+  assert.equal(disconnected.status, 200);
+  assert.equal(disconnected.body.connection.connection_state, "not_connected");
+
+  const revoked = await authority.run({
+    tenant_id: TENANT_A,
+    request_context: {
+      method: "GET",
+      pathname: "/api/hrx/people/team-operations",
+    },
+    command({ emailDmsRuntime }) {
+      return emailDmsRuntime.repository.list({
+        tenant_id: TENANT_A,
+        model_type: PEOPLE_OUTLOOK_CONNECTION_MODEL_TYPE,
+      })[0];
+    },
+  });
+  assert.equal(revoked.connection_state, "revoked");
+  assert.equal(revoked.credential_envelope, null);
+  assert.equal(
+    JSON.stringify({ disconnected, revoked }).includes(
+      "postgres-outlook-access-token-never-persist",
+    ),
+    false,
+  );
+
+  const replayed = await disconnectRequest(
+    "postgres-people-outlook-disconnect-request-002",
+  );
+  assert.equal(replayed.status, 200);
+  assert.equal(replayed.body.connection.connection_state, "not_connected");
 });
 
 test("concurrent PostgreSQL self completion commits one durable claim before one broker exchange", async (t) => {

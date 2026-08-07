@@ -144,6 +144,12 @@ function isPeopleOutlookSelfCompletion(method, pathname) {
     && String(pathname ?? "") === PEOPLE_OUTLOOK_SELF_COMPLETION_PATH;
 }
 
+function isPeopleOutlookDisconnect(method, pathname) {
+  return String(method ?? "").toUpperCase() === "DELETE"
+    && /^\/api\/hrx\/people\/members\/[^/]+\/outlook-connection\/?$/u
+      .test(String(pathname ?? ""));
+}
+
 const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
   "/api/outlook/email/file",
   "/api/outlook/sent/file",
@@ -170,7 +176,10 @@ export function isRetryablePostgresReadConflict(error, method, {
       === CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH
   ) return false;
   return (["GET", "HEAD"].includes(normalizedMethod)
-      || (allowIdempotentWriteRetry && normalizedMethod === "POST"))
+      || (
+        allowIdempotentWriteRetry
+        && ["POST", "DELETE"].includes(normalizedMethod)
+      ))
     && POSTGRES_READ_RETRYABLE_CONFLICTS.has(error?.safe_error_code);
 }
 
@@ -578,6 +587,7 @@ export function createPostgresApiRuntimeAuthority({
     const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
       || isPayrollReconciliationMutation(method, request_context?.pathname)
       || peopleOutlookSelfCompletion
+      || isPeopleOutlookDisconnect(method, request_context?.pathname)
       || isOutlookIdempotentMutation(method, request_context?.pathname);
     return runPostgresReadWithBaselineRetry({
       method,

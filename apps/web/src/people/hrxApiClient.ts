@@ -2782,9 +2782,14 @@ export async function updatePeopleOutlookConnection(
 
 export async function disconnectPeopleOutlookConnection(employeeId: string | null | undefined) {
   if (!employeeId) return { kind: "error" as const, status: null, reason: "PEOPLE_MEMBER_ID_REQUIRED" };
+  const body = { idempotency_key: globalThis.crypto.randomUUID() };
   return parsePeopleOutlookConnection(await requestJson(
     `/api/hrx/people/members/${encodeURIComponent(employeeId)}/outlook-connection`,
-    { method: "DELETE", timeoutMs: PEOPLE_REQUEST_TIMEOUT_MS }
+    {
+      method: "DELETE",
+      body: JSON.stringify(body),
+      timeoutMs: PEOPLE_REQUEST_TIMEOUT_MS,
+    }
   ));
 }
 
