@@ -875,40 +875,7 @@ async function mailMessageExport(fetchImpl, request) {
   });
   const token = accessToken(request.access_token);
   const restId = text(request.rest_message_id, { max: 4096 });
-  const translatePath = "/v1.0/me/translateExchangeIds";
-  const translationResponse = await fixedFetch(
-    fetchImpl,
-    `${GRAPH_ORIGIN}${translatePath}`,
-    {
-      method: "POST",
-      headers: graphHeaders(token, {
-        "content-type": "application/json",
-      }),
-      body: JSON.stringify({
-        inputIds: [restId],
-        sourceIdType: "restId",
-        targetIdType: "restImmutableEntryId",
-      }),
-    },
-    { origin: GRAPH_ORIGIN, pathname: translatePath },
-  );
-  if (translationResponse.status !== 200) {
-    upstreamFailure(translationResponse);
-  }
-  const translation = await readJson(translationResponse);
-  const translated = Array.isArray(translation.value)
-    ? translation.value
-    : [];
-  if (
-    translated.length !== 1
-    || translated[0]?.sourceId !== restId
-    || typeof translated[0]?.targetId !== "string"
-  ) {
-    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
-  }
-  const immutableId = text(translated[0].targetId, { max: 4096 });
-  const encodedId = encodeURIComponent(immutableId);
-  const messagePath = `/v1.0/me/messages/${encodedId}`;
+  const messagePath = `/v1.0/me/messages/${encodeURIComponent(restId)}`;
   const metadataUrl = new URL(messagePath, GRAPH_ORIGIN);
   metadataUrl.searchParams.set(
     "$select",
@@ -938,6 +905,11 @@ async function mailMessageExport(fetchImpl, request) {
     { origin: GRAPH_ORIGIN, pathname: messagePath },
   );
   if (metadataResponse.status !== 200) upstreamFailure(metadataResponse);
+  const metadataValue = await readJson(metadataResponse);
+  const immutableId = optionalString(metadataValue?.id);
+  if (!immutableId || /[\u0000-\u001f\u007f]/u.test(immutableId)) {
+    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
   const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
   const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
   sentItemsUrl.searchParams.set("$select", "id");
@@ -950,11 +922,11 @@ async function mailMessageExport(fetchImpl, request) {
   if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
   const sentItemsId = sentItemsFolderId(await readJson(sentItemsResponse));
   const metadata = messageMetadata(
-    await readJson(metadataResponse),
+    metadataValue,
     immutableId,
     sentItemsId,
   );
-  const mimePath = `${messagePath}/$value`;
+  const mimePath = `/v1.0/me/messages/${encodeURIComponent(immutableId)}/$value`;
   const mimeResponse = await fixedFetch(
     fetchImpl,
     `${GRAPH_ORIGIN}${mimePath}`,
@@ -987,7 +959,6 @@ async function mailMessageExport(fetchImpl, request) {
     mime_base64: mime.toString("base64"),
     mime_bytes: mime.byteLength,
     provider_request_ids: {
-      translation: providerRequestId(translationResponse),
       metadata: providerRequestId(metadataResponse),
       sent_items: providerRequestId(sentItemsResponse),
       mime: providerRequestId(mimeResponse),
