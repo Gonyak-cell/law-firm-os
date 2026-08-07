@@ -209,6 +209,52 @@ function healthySource(state = "ok") {
   };
 }
 
+function notConnectedSource() {
+  return {
+    read({ employee_ids }) {
+      return {
+        state: "ok",
+        events_by_employee_id: Object.fromEntries(employee_ids.map((employeeId) => [employeeId, []])),
+        connection_state_by_employee_id: Object.fromEntries(employee_ids.map((employeeId) => [employeeId, {
+          provider: "microsoft_graph",
+          connection_state: "not_connected",
+          can_manage: employeeId === "emp-1",
+          delegated_scope: "Calendars.ReadBasic",
+          connected_at: null,
+          expires_at: null,
+          safe_error_code: null,
+        }])),
+        last_success_at: null,
+        stale_after: null,
+        safe_error_code: null,
+      };
+    },
+  };
+}
+
+test("individual brief treats an unconnected Outlook calendar as an unavailable source", () => {
+  const result = request(
+    context(notConnectedSource()),
+    "/api/hrx/people/members/emp-1/daily-brief",
+    "staff",
+  );
+
+  assert.equal(result.status, 200);
+  assert.equal(result.body.state, "partial");
+  assert.deepEqual(result.body.source_status.map(({ source, state, safe_error_code }) => [
+    source,
+    state,
+    safe_error_code,
+  ]), [
+    ["hrx", "ok", null],
+    ["matter", "ok", null],
+    ["outlook", "blocked", "OUTLOOK_CONSENT_NOT_FOUND"],
+  ]);
+  assert.equal(result.body.data.outlook_connection.connection_state, "not_connected");
+  assert.deepEqual(result.body.data.outlook_intervals, []);
+  assert.deepEqual(result.body.data.required_meetings, []);
+});
+
 test("individual brief adds only an upcoming required meeting to Today while retaining other schedule rows", () => {
   const result = request(
     context(healthySource()),
