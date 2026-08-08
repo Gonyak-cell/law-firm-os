@@ -3,29 +3,21 @@ import { BoundedS3NodeHttpHandler } from "./s3-bounded-http-handler.js";
 
 const boundedClients = new WeakMap();
 
-function lockBoundedTransport(client, handler) {
-  const config = client.config;
+function boundedFacade(client, handler) {
   const handle = handler.handle;
   const send = client.send.bind(client);
+  const destroy = client.destroy.bind(client);
   Object.freeze(handler);
-  Object.defineProperty(config, "requestHandler", {
-    configurable: false,
-    enumerable: true,
-    value: handler,
-    writable: false,
+  const config = Object.freeze({ requestHandler: handler });
+  const facade = Object.create(null);
+  Object.defineProperties(facade, {
+    config: { enumerable: true, value: config },
+    destroy: { value: destroy },
+    send: { value: send },
   });
-  Object.defineProperty(client, "config", {
-    configurable: false,
-    enumerable: true,
-    value: config,
-    writable: false,
-  });
-  Object.defineProperty(client, "send", {
-    configurable: false,
-    value: send,
-    writable: false,
-  });
-  boundedClients.set(client, Object.freeze({ config, handle, handler, send }));
+  Object.freeze(facade);
+  boundedClients.set(facade, Object.freeze({ config, destroy, handle, handler, send }));
+  return facade;
 }
 
 export function createBoundedS3Client(options = {}, requestHandlerOptions) {
@@ -34,8 +26,7 @@ export function createBoundedS3Client(options = {}, requestHandlerOptions) {
   }
   const handler = new BoundedS3NodeHttpHandler(requestHandlerOptions);
   const client = new S3Client({ ...options, requestHandler: handler });
-  lockBoundedTransport(client, handler);
-  return client;
+  return boundedFacade(client, handler);
 }
 
 export function assertBoundedS3Client(client) {
@@ -44,6 +35,7 @@ export function assertBoundedS3Client(client) {
       || client?.config !== capability.config
       || capability.config.requestHandler !== capability.handler
       || capability.handler.handle !== capability.handle
+      || client.destroy !== capability.destroy
       || client.send !== capability.send) {
     throw new TypeError("S3Client must be created by createBoundedS3Client");
   }

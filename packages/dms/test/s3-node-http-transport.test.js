@@ -42,7 +42,7 @@ function objectMetadataHeaders(bytes) {
   };
 }
 
-test("production adapter keeps exact dispatch across prototype, subclass, proxy, realm, and concurrent attacks", async (t) => {
+test("production adapter keeps exact dispatch across middleware, prototype, realm, and concurrent attacks", async (t) => {
   const bytes = Buffer.from("12345678");
   let providerBytes = 0;
   const requests = [];
@@ -97,6 +97,20 @@ test("production adapter keeps exact dispatch across prototype, subclass, proxy,
   const ordinary = new NodeHttpHandler();
   const derived = new (class extends NodeHttpHandler {})();
   const storage = adapter(client);
+  let shortCircuits = 0;
+  const shortCircuit = () => async () => {
+    shortCircuits += 1;
+    return { output: { Body: Buffer.from("synthetic") } };
+  };
+  assert.equal(client.middlewareStack, undefined);
+  for (const operation of ["add", "remove", "use", "concat", "clone"]) {
+    assert.throws(() => client.middlewareStack[operation](shortCircuit), TypeError);
+  }
+  assert.throws(() => { client.middlewareStack = { add: shortCircuit }; }, TypeError);
+  assert.equal(Reflect.defineProperty(client, "middlewareStack", { value: {} }), false);
+  assert.equal(shortCircuits, 0);
+  assert.equal(requests.length, 0);
+  assert.equal(providerBytes, 0);
   assert.throws(() => {
     client.config.requestHandler = ordinary;
   }, TypeError);

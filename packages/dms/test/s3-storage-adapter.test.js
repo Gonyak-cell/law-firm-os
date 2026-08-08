@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { after } from "node:test";
 import * as dms from "../src/index.js";
+import * as s3Storage from "../src/storage/s3-storage-adapter.js";
 import { assertStagedStorageAdapter, sha256Hex } from "../src/storage/storage-adapter.js";
-import { adapter, fakeS3Client } from "./s3-storage-adapter-test-helpers.js";
+import { adapter, closeAdapters } from "./s3-storage-adapter-test-helpers.js";
+
+after(closeAdapters);
 
 test("test-only S3 client injection is absent from the package API", () => {
   assert.equal("createS3StorageAdapterForTest" in dms, false);
+  assert.equal("createS3StorageAdapterForTest" in s3Storage, false);
 });
 
 test("S3 adapter stages, independently digests, finalizes, and isolates tenants", async () => {
@@ -65,15 +69,15 @@ test("S3 adapter never overwrites a concurrent finalize from another session", a
 test("S3 adapter round-trips provider legal hold and retention without accepting secrets", async () => {
   assert.throws(() => adapter({ access_key_id: "must-not-be-accepted" }), /credential_ref only/);
   const storage = adapter();
-  await storage.putObject({ tenant_id: "tenant-a", object_id: "held-object", bytes: "held" });
+  const committed = await storage.putObject({ tenant_id: "tenant-a", object_id: "held-object", bytes: "held" });
   assert.deepEqual(await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" }), {
     status: "OFF",
-    version_id: "v2",
+    version_id: committed.version_id,
   });
   assert.deepEqual(await storage.getObjectRetention({ tenant_id: "tenant-a", object_id: "held-object" }), {
     mode: null,
     retain_until: null,
-    version_id: "v2",
+    version_id: committed.version_id,
   });
   assert.equal((await storage.setObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
   assert.equal((await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
@@ -82,7 +86,7 @@ test("S3 adapter round-trips provider legal hold and retention without accepting
   assert.deepEqual(await storage.getObjectRetention({ tenant_id: "tenant-a", object_id: "held-object" }), {
     mode: "GOVERNANCE",
     retain_until: retainUntil,
-    version_id: "v2",
+    version_id: committed.version_id,
   });
 });
 
@@ -111,12 +115,11 @@ test("S3 adapter applies default retention only after commit so staged cleanup r
 
 test("S3 adapter defers staged cleanup when bucket-default retention protects the staged copy", async () => {
   let now = new Date("2026-07-20T00:00:00.000Z");
-  const client = fakeS3Client({
-    defaultRetentionUntil: "2027-07-20T00:00:00.000Z",
-    now: () => now,
-  });
   const storage = adapter({
-    client,
+    provider: {
+      defaultRetentionUntil: "2027-07-20T00:00:00.000Z",
+      now: () => now,
+    },
     default_retention_days: 7,
     clock: () => now,
   });
@@ -138,7 +141,7 @@ test("S3 adapter defers staged cleanup when bucket-default retention protects th
 });
 
 test("S3 adapter does not hide an unrelated staged delete denial", async () => {
-  const storage = adapter({ client: fakeS3Client({ failDeleteOnce: true }) });
+  const storage = adapter({ provider: { failDeleteOnce: true } });
   const input = {
     tenant_id: "tenant-a",
     session_id: "session-delete-denied",
@@ -150,9 +153,8 @@ test("S3 adapter does not hide an unrelated staged delete denial", async () => {
 });
 
 test("S3 adapter repairs retention before staged cleanup after a partial finalize failure", async () => {
-  const client = fakeS3Client({ failRetentionOnce: true });
   const storage = adapter({
-    client,
+    provider: { failRetentionOnce: true },
     default_retention_days: 7,
     clock: () => new Date("2026-07-20T00:00:00.000Z"),
   });
@@ -171,9 +173,8 @@ test("S3 adapter repairs retention before staged cleanup after a partial finaliz
 });
 
 test("S3 adapter repairs missing retention even when staged cleanup already occurred", async () => {
-  const client = fakeS3Client({ failRetentionOnce: true });
   const storage = adapter({
-    client,
+    provider: { failRetentionOnce: true },
     default_retention_days: 7,
     clock: () => new Date("2026-07-20T00:00:00.000Z"),
   });

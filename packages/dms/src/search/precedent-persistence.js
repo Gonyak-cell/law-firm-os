@@ -39,7 +39,14 @@ export async function appendPrecedentAudit(client, input) {
 
 export const ELIGIBLE_DOCUMENT_SQL = `
   d.status = 'active'
-  AND d.current_version_id = s.version_id
+  AND d.tenant_id = s.tenant_id
+  AND d.document_id = s.document_id
+  AND v.tenant_id = s.tenant_id
+  AND v.document_id = s.document_id
+  AND v.version_id = s.version_id
+  AND d.current_version_id = v.version_id
+  AND f.tenant_id = s.tenant_id
+  AND f.file_object_id = v.file_object_id
   AND d.privilege_status = 'cleared'
   AND d.current_privilege_label_id IS NOT NULL
   AND EXISTS (
@@ -54,6 +61,7 @@ export const ELIGIBLE_DOCUMENT_SQL = `
   )
   AND d.legal_hold_status <> 'active'
   AND v.sha256 = s.content_sha256
+  AND f.sha256 = v.sha256
   AND f.status = 'committed'
   AND NOT EXISTS (
     SELECT 1 FROM lawos_dms.legal_holds h

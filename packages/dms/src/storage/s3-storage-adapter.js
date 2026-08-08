@@ -30,7 +30,7 @@ function safePrefix(value = "lawos-dms") {
   if (prefix.split("/").includes("..")) throw new TypeError("prefix is invalid");
   return prefix;
 }
-function createS3StorageAdapterInternal(config = {}, allowTestClient = false) {
+function createS3StorageAdapterInternal(config = {}) {
   for (const field of Object.keys(config)) {
     if (field !== "credential_ref" && SECRET_FIELD.test(field)) {
       throw new TypeError(`S3 adapter accepts credential_ref only, not ${field}`);
@@ -44,7 +44,7 @@ function createS3StorageAdapterInternal(config = {}, allowTestClient = false) {
   const configuredClient = config.client ?? createBoundedS3Client({
     region: requireString(config.region, "region"),
   });
-  const client = allowTestClient ? configuredClient : assertBoundedS3Client(configuredClient);
+  const client = assertBoundedS3Client(configuredClient);
   const objectLockEnabled = config.object_lock_enabled === true;
   const defaultRetentionDays = config.default_retention_days == null ? null : Number(config.default_retention_days);
   if (defaultRetentionDays != null && (!objectLockEnabled || !Number.isInteger(defaultRetentionDays) || defaultRetentionDays < 1 || defaultRetentionDays > 36_500)) {
@@ -240,10 +240,4 @@ function createS3StorageAdapterInternal(config = {}, allowTestClient = false) {
 }
 export function createS3StorageAdapter(config) {
   return createS3StorageAdapterInternal(config);
-}
-
-export function createS3StorageAdapterForTest(config) {
-  if (!process.env.NODE_TEST_CONTEXT) throw new TypeError("test S3 adapter requires node:test");
-  if (!config?.client) throw new TypeError("test S3 adapter requires an explicit client");
-  return createS3StorageAdapterInternal(config, true);
 }

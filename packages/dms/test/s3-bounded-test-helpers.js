@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
-import {
-  createS3StorageAdapter,
-  createS3StorageAdapterForTest,
-} from "../src/storage/s3-storage-adapter.js";
+import { HeadObjectCommand } from "@aws-sdk/client-s3";
+import { readS3CommittedObjectBounded } from "../src/storage/s3-bounded-object-reader.js";
+import { createS3StorageAdapter } from "../src/storage/s3-storage-adapter.js";
 import { sha256Hex } from "../src/storage/storage-adapter.js";
 
 export const TENANT = "tenant-bounded-read";
@@ -94,13 +93,35 @@ export function fakeClient({
 }
 
 export function adapter(client) {
-  return createS3StorageAdapterForTest({
-    adapter_id: "s3-bounded-test",
-    bucket: "bounded-test",
-    prefix: "bounded",
-    expected_bucket_owner: "770880870480",
-    credential_ref: "aws-role:bounded-test",
-    client,
+  const adapterId = "s3-bounded-test";
+  const common = Object.freeze({ Bucket: "bounded-test", ExpectedBucketOwner: "770880870480" });
+  const key = "bounded/object";
+  return Object.freeze({
+    putObject() {},
+    getObject() {},
+    statObject() {},
+    async readObjectBounded({ tenant_id, object_id, max_bytes }) {
+      const response = await client.send(new HeadObjectCommand({ ...common, Key: key }));
+      const declared = Object.freeze({
+        adapter_id: adapterId,
+        tenant_id,
+        object_id,
+        byte_size: Number(response.ContentLength),
+        sha256: response.Metadata["lawos-sha256"],
+        mime_type: response.ContentType,
+      });
+      return readS3CommittedObjectBounded({
+        adapter_id: adapterId,
+        client,
+        common,
+        key,
+        tenant_id,
+        object_id,
+        max_bytes,
+        declared,
+        declared_metadata: response.Metadata,
+      });
+    },
   });
 }
 

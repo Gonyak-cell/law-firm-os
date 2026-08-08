@@ -14,7 +14,7 @@ import {
   fakeClient,
 } from "./s3-bounded-test-helpers.js";
 
-test("production S3 adapter exposes the bounded committed-object reader", () => {
+test("bounded S3 reader test harness exposes the committed-object contract", () => {
   const client = fakeClient({ headBytes: Buffer.from("12345678") });
   const storage = adapter(client);
   assert.equal(assertBoundedStorageReader(storage), storage);
