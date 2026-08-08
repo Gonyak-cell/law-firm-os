@@ -532,7 +532,6 @@ function phasedUploadRuntimeFixture({
         version_id: session.version_id,
         document_id: session.document_id,
         tenant_id: session.tenant_id,
-        matter_id: session.matter_id,
         version_number: 1,
         status: "current",
         file_object_id: `file:${session.version_id}`,
@@ -556,8 +555,8 @@ function phasedUploadRuntimeFixture({
       });
       const fileObject = Object.freeze({
         file_object_id: version.file_object_id,
+        object_id: session.object_id,
         tenant_id: session.tenant_id,
-        matter_id: session.matter_id,
         storage_pointer_ref: `object:${session.object_id}`,
         sha256: session.expected_sha256,
         byte_size: Number(session.expected_byte_size),
@@ -581,6 +580,26 @@ function phasedUploadRuntimeFixture({
       const state = documentStates.get(document_id);
       if (state) failPlainOnce("state_read", "57P01");
       return state?.document.tenant_id === tenant_id ? state : null;
+    },
+    async getDocumentIntegrityState({ tenant_id, document_id }) {
+      const state = documentStates.get(document_id);
+      if (!state || state.document.tenant_id !== tenant_id) return null;
+      const session = [...sessionsById.values()].find((entry) => entry.document_id === document_id);
+      const bytes = session ? stagedBytes.get(session.session_id) : null;
+      if (!bytes) throw codedError("synthetic provider object is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND");
+      const sha256 = createHash("sha256").update(bytes).digest("hex");
+      if (sha256 !== state.file_object.sha256 || bytes.byteLength !== Number(state.file_object.byte_size)) {
+        throw codedError("synthetic provider integrity mismatch", "DMS_COMMITTED_DIGEST_MISMATCH");
+      }
+      return Object.freeze({
+        ...state,
+        provider_integrity: Object.freeze({
+          object_id: state.file_object.object_id,
+          sha256,
+          byte_size: bytes.byteLength,
+          mime_type: state.file_object.mime_type,
+        }),
+      });
     },
     async reconcileUploadSessions({ tenant_id }) {
       const now = new Date(clock()).getTime();

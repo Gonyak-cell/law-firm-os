@@ -6,7 +6,7 @@ import {
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/index.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
-import { outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
+import { createDmsRepositoryMimeAuthority, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 
 export const TENANT = "tenant_receipt_readback_test";
 export const MATTER = "matter_receipt_readback_test";
@@ -110,6 +110,7 @@ export function runtimeFixture() {
     tenant_id: TENANT,
     matter_id: MATTER,
     file_object_id: FILE_OBJECT_ID,
+    object_id: "object:readback-a",
     sha256: MIME_SHA256,
     byte_size: 1,
     mime_type: "message/rfc822",
@@ -242,6 +243,18 @@ export function runtimeFixture() {
     },
   });
   fixtureMatterTimelineAuthority(matterRepository);
+  runtime.dmsRuntime.upload_runtime = createDmsRepositoryMimeAuthority(dmsRepository, {
+    provider: {
+      statObject: ({ tenant_id: tenantId, object_id: objectId }) => {
+        const fileObject = dmsRepository.list({ tenant_id: tenantId, model_type: "DmsFileObject" }).find((entry) => entry.object_id === objectId);
+        return fileObject ? { object_id: objectId, sha256: fileObject.sha256, byte_size: Number(fileObject.byte_size), mime_type: fileObject.mime_type } : null;
+      },
+      digestObject: ({ tenant_id: tenantId, object_id: objectId }) => {
+        const fileObject = dmsRepository.list({ tenant_id: tenantId, model_type: "DmsFileObject" }).find((entry) => entry.object_id === objectId);
+        return fileObject ? { object_id: objectId, sha256: fileObject.sha256, byte_size: Number(fileObject.byte_size) } : null;
+      },
+    },
+  });
   return { context, runtime, matterRepository, dmsRepository };
 }
 

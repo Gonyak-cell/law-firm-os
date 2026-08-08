@@ -2161,6 +2161,54 @@ export function createPostgresDmsUploadRuntime({
     }, { readOnly: true });
   }
 
+  async function verifyCommittedProviderObject({ tenant_id: tenantId, file_object: fileObject } = {}) {
+    if (!fileObject || fileObject.status !== "committed") {
+      throw codedError("DMS current object authority is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
+    }
+    if (typeof storage.statObject !== "function" || typeof storage.digestObject !== "function") {
+      throw codedError("DMS provider integrity authority is not configured", "DMS_PROVIDER_INTEGRITY_UNAVAILABLE", 503);
+    }
+    let stat;
+    let digest;
+    try {
+      stat = await storage.statObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+      digest = await storage.digestObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+    } catch {
+      throw codedError("DMS provider integrity authority readback failed", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
+    }
+    const expectedMime = fileObject.content_type ?? fileObject.mime_type;
+    const providerMime = (value) => value?.mime_type ?? value?.content_type;
+    const matches = (value) => (
+      value
+      && (value.object_id === undefined || value.object_id === fileObject.object_id)
+      && value.sha256 === fileObject.sha256
+      && Number.isSafeInteger(value.byte_size)
+      && Number.isSafeInteger(fileObject.byte_size)
+      && value.byte_size === fileObject.byte_size
+      && (providerMime(value) === undefined || providerMime(value) === expectedMime)
+    );
+    if (!matches(stat) || !matches(digest)) {
+      throw codedError("DMS provider integrity authority does not match PostgreSQL metadata", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
+    }
+    return Object.freeze({
+      object_id: fileObject.object_id,
+      sha256: fileObject.sha256,
+      byte_size: Number(fileObject.byte_size),
+      ...(expectedMime ? { mime_type: expectedMime } : {}),
+    });
+  }
+
+  async function getDocumentIntegrityState({ tenant_id, document_id } = {}) {
+    const tenantId = requiredText(tenant_id, "tenant_id");
+    const documentId = requiredText(document_id, "document_id");
+    const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
+    if (!state) return null;
+    const version = state.versions.find((item) => item.version_id === state.document.current_version_id);
+    const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
+    const providerIntegrity = await verifyCommittedProviderObject({ tenant_id: tenantId, file_object: fileObject });
+    return Object.freeze({ ...state, provider_integrity: providerIntegrity });
+  }
+
   async function listDocuments({ tenant_id, matter_id = null, actor_id = "dms-api" } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const matterId = matter_id == null ? null : requiredText(matter_id, "matter_id");
@@ -2244,6 +2292,7 @@ export function createPostgresDmsUploadRuntime({
     if (!version || !fileObject || fileObject.status !== "committed") {
       throw codedError("DMS current object is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
     }
+    await verifyCommittedProviderObject({ tenant_id: tenantId, file_object: fileObject });
     const object = await storage.getObject({ tenant_id: tenantId, object_id: fileObject.object_id });
     const objectByteSize = object.byte_size == null ? Buffer.byteLength(object.bytes) : Number(object.byte_size);
     if (object.sha256 !== fileObject.sha256 || objectByteSize !== Number(fileObject.byte_size)) {
@@ -2340,6 +2389,7 @@ export function createPostgresDmsUploadRuntime({
     reconcileDeleteIntents,
     getGovernanceAuthorizationResource,
     getDocumentState,
+    getDocumentIntegrityState,
     listDocuments,
     downloadDocument,
     listAuditEvents,

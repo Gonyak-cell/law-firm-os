@@ -51,6 +51,7 @@ export function seedOperationSpecificReceipts({ matterRepository, dmsRepository 
     tenant_id: TENANT,
     matter_id: MATTER,
     file_object_id: ATTACH_FILE_OBJECT_ID,
+    object_id: "object:readback-attachment-a",
     sha256: ATTACH_SHA256,
     byte_size: 3,
     mime_type: "application/pdf",

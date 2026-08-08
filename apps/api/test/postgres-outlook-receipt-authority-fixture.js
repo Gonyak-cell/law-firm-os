@@ -33,6 +33,37 @@ export function pgCounts(adminPool) {
   ).then(({ rows }) => rows[0]);
 }
 
+export async function pgSnapshot(adminPool) {
+  const tables = [
+    ["documents", "document_id"],
+    ["document_versions", "version_id"],
+    ["file_objects", "file_object_id"],
+    ["idempotency_keys", "idempotency_key"],
+    ["audit_events", "event_id"],
+    ["outbox_events", "event_id"],
+  ];
+  const values = await Promise.all(tables.map(async ([table, order]) => {
+    const result = await adminPool.query(`SELECT * FROM lawos_dms.${table} WHERE tenant_id = $1 ORDER BY ${order}`, [TENANT]);
+    return [table, result.rows];
+  }));
+  return Object.fromEntries(values);
+}
+
+export function createPgUploadRuntime(pg, storage) {
+  return createPostgresDmsUploadRuntime({
+    pool: pg.appPool,
+    storage,
+    sourceOnly: false,
+    clock: () => new Date("2026-08-08T00:00:00.000Z"),
+    verifyPermanentDeleteApproval: async () => ({
+      verified: true,
+      receipt_ref: "approval:pg-receipt-authority",
+      receipt_sha256: "d".repeat(64),
+      key_id: "key:pg-receipt-authority",
+    }),
+  });
+}
+
 export function readback(fixture) {
   return handleOutlookAddinApiRequest({
     pathname: "/api/outlook/operation-receipts/readback",
@@ -59,18 +90,7 @@ export async function createPgReceiptFixture(t) {
   if (!pg) return null;
   const fixture = runtimeFixture();
   const storage = createLocalStorageAdapter({ adapter_id: "pg-outlook-receipt-authority" });
-  const uploadRuntime = createPostgresDmsUploadRuntime({
-    pool: pg.appPool,
-    storage,
-    sourceOnly: false,
-    clock: () => new Date("2026-08-08T00:00:00.000Z"),
-    verifyPermanentDeleteApproval: async () => ({
-      verified: true,
-      receipt_ref: "approval:pg-receipt-authority",
-      receipt_sha256: "d".repeat(64),
-      key_id: "key:pg-receipt-authority",
-    }),
-  });
+  const uploadRuntime = createPgUploadRuntime(pg, storage);
   fixture.runtime.dmsRuntime.upload_runtime = uploadRuntime;
   fixture.runtime.m365GraphConfig.provider = {
     async getMeMessageMime() {
@@ -169,5 +189,5 @@ export async function createPgReceiptFixture(t) {
     operation: "matter_timeline_outlook_file",
     response: { timeline_event_id: timelineId },
   });
-  return { pg, fixture, uploadRuntime, repository, thread, key, digest, documentId, versionId, bytes };
+  return { pg, fixture, storage, uploadRuntime, repository, thread, key, digest, documentId, versionId, bytes };
 }

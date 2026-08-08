@@ -22,7 +22,7 @@ function seedMimeAuthority(repository, thread) {
   const authority = { permission_envelope_id: "permission:service-fixture", audit_trace_id: "audit:service-fixture" };
   repository.create({ model_type: "DmsDocument", tenant_id: thread.tenant_id, matter_id: thread.matter_id, document_id: documentId, workspace_id: `workspace:${thread.matter_id}`, folder_id: `folder:${thread.matter_id}:00_Email`, title: "canonical fixture.eml", status: "active", current_version_id: versionId, latest_sha256: sha256, source_email_thread_id: thread.email_thread_id, ...authority });
   repository.create({ model_type: "DmsDocumentVersion", tenant_id: thread.tenant_id, matter_id: thread.matter_id, version_id: versionId, document_id: documentId, version_number: 1, status: "current", file_object_id: fileObjectId, sha256, persisted: true, ...authority });
-  repository.create({ model_type: "DmsFileObject", tenant_id: thread.tenant_id, matter_id: thread.matter_id, file_object_id: fileObjectId, sha256, byte_size: 1, mime_type: "message/rfc822", storage_pointer_ref: `object:${thread.email_thread_id}`, status: "committed", ...authority });
+  repository.create({ model_type: "DmsFileObject", tenant_id: thread.tenant_id, matter_id: thread.matter_id, file_object_id: fileObjectId, object_id: `object:${thread.email_thread_id}`, sha256, byte_size: 1, mime_type: "message/rfc822", storage_pointer_ref: `object:${thread.email_thread_id}`, status: "committed", ...authority });
 }
 function assertSnapshotUnchanged(repository, before) { const after = JSON.stringify(repository.snapshot()); assert.equal(after, before); assert.equal(Buffer.byteLength(after), Buffer.byteLength(before)); assert.equal(JSON.parse(after).idempotency.length, JSON.parse(before).idempotency.length); }
 function serviceFixture() {
@@ -68,7 +68,12 @@ function serviceFixture() {
     },
   });
   seedMimeAuthority(repository, thread);
-  return { repository, thread, authority: createDmsRepositoryMimeAuthority(repository), idempotency_key: `${FILE_KEY}:dms` };
+  const objectId = `object:${thread.email_thread_id}`;
+  const provider = {
+    statObject: () => ({ object_id: objectId, sha256: thread.filed_document_ids[0].slice(-64), byte_size: 1, mime_type: "message/rfc822" }),
+    digestObject: () => ({ object_id: objectId, sha256: thread.filed_document_ids[0].slice(-64), byte_size: 1 }),
+  };
+  return { repository, thread, authority: createDmsRepositoryMimeAuthority(repository, { provider }), idempotency_key: `${FILE_KEY}:dms` };
 }
 function validEntry(fixture, overrides = {}) {
   return {

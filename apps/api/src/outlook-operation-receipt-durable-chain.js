@@ -1,4 +1,5 @@
 import { assertDurableOriginalMimeState } from "../../../packages/email-dms/src/email-filing-canonical.js";
+import { assertProviderIntegrityState } from "../../../packages/email-dms/src/durable-mime-authority.js";
 const DIGEST = /^[a-f0-9]{64}$/u;
 
 export function auditList(repository, tenantId, objectId) {
@@ -25,33 +26,26 @@ export function idempotency(repository, tenantId, key, predicate = () => true) {
   return Boolean(entry && predicate(entry));
 }
 
-async function authorityDocumentState({ repository, authority, tenantId, documentId }) {
-  if (typeof authority?.getDocumentState === "function") {
-    try {
-      return await authority.getDocumentState({ tenant_id: tenantId, document_id: documentId });
-    } catch {
-      return null;
-    }
+async function authorityDocumentState({ authority, tenantId, documentId }) {
+  if (typeof authority?.getDocumentIntegrityState !== "function") return null;
+  try {
+    return await authority.getDocumentIntegrityState({ tenant_id: tenantId, document_id: documentId });
+  } catch {
+    return null;
   }
-  const document = repository.get({ tenant_id: tenantId, model_type: "DmsDocument", document_id: documentId });
-  if (!document) return null;
-  const version = repository.get({
-    tenant_id: tenantId,
-    model_type: "DmsDocumentVersion",
-    version_id: document.current_version_id,
-  });
-  const fileObject = version?.file_object_id
-    ? repository.get({ tenant_id: tenantId, model_type: "DmsFileObject", file_object_id: version.file_object_id })
-    : null;
-  return { document, versions: version ? [version] : [], file_objects: fileObject ? [fileObject] : [], audit_events: auditList(repository, tenantId, documentId) };
 }
 
 export async function resolveVerifiedDocument({ repository, authority, tenantId, matterId, documentId, threadId, attachmentId, originalMimeSha256 } = {}) {
-  const state = await authorityDocumentState({ repository, authority, tenantId, documentId });
+  const state = await authorityDocumentState({ authority, tenantId, documentId });
   const document = state?.document;
   const version = state?.versions?.find((entry) => entry.version_id === document?.current_version_id);
   const fileObject = state?.file_objects?.find((entry) => entry.file_object_id === version?.file_object_id);
   const digest = document?.latest_sha256 ?? version?.sha256;
+  try {
+    assertProviderIntegrityState(state);
+  } catch {
+    return null;
+  }
   if (originalMimeSha256) {
     try {
       assertDurableOriginalMimeState(state, {
@@ -85,11 +79,12 @@ export async function resolveVerifiedDocument({ repository, authority, tenantId,
     || version.sha256 !== digest
     || fileObject.sha256 !== digest
     || (fileObject.status && !["committed", "active"].includes(fileObject.status))
+    || !Array.isArray(state.audit_events)
   ) return null;
   return Object.freeze({
     document,
     version,
     fileObject,
-    auditEvents: state.audit_events ?? auditList(repository, tenantId, document.document_id),
+    auditEvents: state.audit_events,
   });
 }

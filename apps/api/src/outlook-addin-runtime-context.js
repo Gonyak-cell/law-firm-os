@@ -2826,7 +2826,9 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     require_original_mime_document: true,
     idempotency_key: `${filingIdempotencyKey}:dms`,
     durable_mime_authority: runtime.dmsRuntime.upload_runtime
-      ?? createDmsRepositoryMimeAuthority(runtime.dmsRuntime.repository),
+      ?? createDmsRepositoryMimeAuthority(runtime.dmsRuntime.repository, {
+        provider: runtime.dmsRuntime.storage,
+      }),
     audit: {
       append: (event, writer = runtime.dmsRuntime.repository) =>
         appendDmsAudit(writer, {

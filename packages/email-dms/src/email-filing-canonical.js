@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { assertProviderIntegrityState } from "./durable-mime-authority.js";
+export { createDmsRepositoryMimeAuthority } from "./repository-mime-authority.js";
 export const OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION = "outlook_email_file";
 const FILING_MODES = new Set(["manual", "sent"]);
 const FILING_OUTCOMES = new Set(["created", "idempotent_replay"]);
@@ -50,10 +52,10 @@ function sameDocumentIds(left, right) {
     && left.every((value, index) => value === right[index]);
 }
 function durableMimeState(authority, binding) {
-  if (!authority || typeof authority.getDocumentState !== "function") {
+  if (!authority || typeof authority.getDocumentIntegrityState !== "function") {
     throw new Error("email filing requires a live durable original MIME document authority");
   }
-  return authority.getDocumentState({
+  return authority.getDocumentIntegrityState({
     tenant_id: binding.tenant_id,
     document_id: binding.filed_document_ids[0],
   });
@@ -67,11 +69,7 @@ export function assertDurableOriginalMimeState(state, {
   mime_sha256: mimeSha256,
 } = {}) {
   const durableDocumentState = state;
-  const document = durableDocumentState?.document;
-  const version = durableDocumentState?.versions?.find((item) => item.version_id === document?.current_version_id)
-    ?? durableDocumentState?.version;
-  const fileObject = durableDocumentState?.file_objects?.find((item) => item.file_object_id === version?.file_object_id)
-    ?? durableDocumentState?.file_object;
+  const { document, version, fileObject } = assertProviderIntegrityState(durableDocumentState);
   const documentMime = document?.mime_type ?? document?.content_type;
   const fileMime = fileObject?.mime_type ?? fileObject?.content_type;
   const durableSha = document?.latest_sha256 ?? version?.sha256 ?? fileObject?.sha256;
@@ -129,24 +127,6 @@ export async function assertCanonicalIdempotencyKey(key, thread, authority) {
     throw new Error("email filing idempotency key is not canonical");
   }
   return value;
-}
-
-export function createDmsRepositoryMimeAuthority(repository) {
-  if (!repository || typeof repository.get !== "function") {
-    throw new TypeError("email filing requires a DMS repository authority");
-  }
-  return Object.freeze({
-    getDocumentState({ tenant_id: tenantId, document_id: documentId }) {
-      const document = repository.get({ tenant_id: tenantId, model_type: "DmsDocument", document_id: documentId });
-      const version = document?.current_version_id
-        ? repository.get({ tenant_id: tenantId, model_type: "DmsDocumentVersion", version_id: document.current_version_id })
-        : null;
-      const fileObject = version?.file_object_id
-        ? repository.get({ tenant_id: tenantId, model_type: "DmsFileObject", file_object_id: version.file_object_id })
-        : null;
-      return { document, versions: version ? [version] : [], file_objects: fileObject ? [fileObject] : [] };
-    },
-  });
 }
 
 function canonicalFilingAuditMetadata(thread) {

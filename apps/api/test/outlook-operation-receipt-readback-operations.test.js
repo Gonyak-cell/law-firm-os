@@ -73,12 +73,21 @@ test("readback uses the production DMS authority adapter and fails safe on Matte
         document,
         versions: [version],
         file_objects: [fileObject],
+        provider_integrity: {
+          object_id: fileObject.object_id,
+          sha256: fileObject.sha256,
+          byte_size: Number(fileObject.byte_size),
+          mime_type: fileObject.mime_type,
+        },
         audit_events: [{ event_id: `audit:production:${documentId}`, event_type: "dms.document.metadata_committed", object_type: "DmsDocument", object_id: documentId }],
       }];
     }),
   );
   fixture.runtime.dmsRuntime.upload_runtime = {
     async getDocumentState({ tenant_id: tenantId, document_id: documentId }) {
+      return tenantId === fixture.context.principal.tenant_id ? authorityStates.get(documentId) ?? null : null;
+    },
+    async getDocumentIntegrityState({ tenant_id: tenantId, document_id: documentId }) {
       return tenantId === fixture.context.principal.tenant_id ? authorityStates.get(documentId) ?? null : null;
     },
   };

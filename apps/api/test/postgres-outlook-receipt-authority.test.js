@@ -54,10 +54,22 @@ test("PostgreSQL DMS authority binds Outlook replay to live rows and HTTP readba
   );
 
   const liveGetDocumentState = uploadRuntime.getDocumentState.bind(uploadRuntime);
+  const liveGetDocumentIntegrityState = uploadRuntime.getDocumentIntegrityState.bind(uploadRuntime);
   const byteSizeDriftAuthority = Object.freeze({
     ...uploadRuntime,
     getDocumentState: async (input) => {
       const authorityState = await liveGetDocumentState(input);
+      if (input.document_id !== documentId || !authorityState) return authorityState;
+      return {
+        ...authorityState,
+        file_objects: authorityState.file_objects.map((fileObject) => ({
+          ...fileObject,
+          byte_size: "drifted-at-authority-boundary",
+        })),
+      };
+    },
+    getDocumentIntegrityState: async (input) => {
+      const authorityState = await liveGetDocumentIntegrityState(input);
       if (input.document_id !== documentId || !authorityState) return authorityState;
       return {
         ...authorityState,
