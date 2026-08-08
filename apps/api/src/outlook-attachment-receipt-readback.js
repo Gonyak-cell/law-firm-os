@@ -1,4 +1,5 @@
 import {
+  assertExactOutlookSourceIdentity,
   OUTLOOK_SOURCE_IDENTITY_FIELDS,
   parseExactOutlookSourceIdentity,
 } from "../../../packages/email-dms/src/outlook-source-identity.js";
@@ -59,6 +60,12 @@ export function verifySuppliedOutlookAttachmentReceipts({
 }
 
 async function documentState({ dmsRuntime, tenantId, documentId } = {}) {
+  if (typeof dmsRuntime.upload_runtime?.getDocumentIntegrityState === "function") {
+    return await dmsRuntime.upload_runtime.getDocumentIntegrityState({
+      tenant_id: tenantId,
+      document_id: documentId,
+    });
+  }
   if (typeof dmsRuntime.upload_runtime?.getDocumentState === "function") {
     return await dmsRuntime.upload_runtime.getDocumentState({
       tenant_id: tenantId,
@@ -87,10 +94,14 @@ export async function readOutlookAttachmentReceiptState({
   matterId,
   supplied = [],
   attachmentId,
+  sourceIdentity,
 } = {}) {
   let threadSourceIdentity;
   try {
     threadSourceIdentity = parseExactOutlookSourceIdentity(thread);
+    if (sourceIdentity !== undefined) {
+      assertExactOutlookSourceIdentity(sourceIdentity, threadSourceIdentity);
+    }
   } catch {
     throw outlookAttachmentReceiptError("Filed Outlook thread source identity is incomplete or mismatched");
   }

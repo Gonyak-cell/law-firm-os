@@ -20,16 +20,22 @@ const EMAIL = SOURCE_IDENTITY;
 
 function serverReceipt(id, outcome = "created") {
   return {
+    version: 1,
     attachment_id: id,
     name: `${id}.pdf`,
     outcome,
+    tenant_id: "tenant-001",
     matter_id: "matter-001",
     email_thread_id: "thread-zero-trust",
     document_id: `document-${id}`,
-    version_id: outcome === "created" ? `version-${id}` : null,
+    version_id: `version-${id}`,
     sha256: "a".repeat(64),
     receipt_ref: `receipt-${id}`,
     receipt_token: `token-${id}`,
+    source_byte_size: 3,
+    source_message_ref: `message-ref-${id}`,
+    source_provenance_authority: "microsoft_graph_mime",
+    ...SOURCE_IDENTITY,
   };
 }
 
@@ -70,14 +76,17 @@ function attachment(id) {
 }
 
 function attachmentResponse(id) {
+  const receipt = serverReceipt(id);
   return {
+    request_id: `request-${id}`,
     outcome: "attachments_saved",
     items: [{
       document: { document_id: `document-${id}` },
       version: { version_id: `version-${id}`, sha256: "a".repeat(64) },
     }],
     duplicate_attachments: [],
-    attachment_receipt: serverReceipt(id),
+    duplicate_count: 0,
+    attachment_receipt: receipt,
   };
 }
 

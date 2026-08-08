@@ -10,6 +10,8 @@ import {
   INTERNET_ID,
   MATTER,
   REST_ID,
+  TENANT,
+  THREAD_ID,
   TASK_TIMELINE_ID,
   runtimeFixture,
 } from "./outlook-operation-receipt-readback-fixture.js";
@@ -40,6 +42,24 @@ async function readback(fixture, requestId) {
   });
 }
 
+function replaceThread(fixture, overrides) {
+  const thread = fixture.dmsRepository.get({
+    tenant_id: TENANT,
+    model_type: "DmsEmailThread",
+    email_thread_id: THREAD_ID,
+  });
+  fixture.dmsRepository.delete({
+    tenant_id: TENANT,
+    model_type: "DmsEmailThread",
+    email_thread_id: THREAD_ID,
+  });
+  fixture.dmsRepository.create({ ...thread, ...overrides });
+}
+
+function operations(response) {
+  return response.body.items.map((entry) => entry.operation);
+}
+
 test("readback reconstructs file, attachment, and follow-up operations from durable chains", async () => {
   const fixture = runtimeFixture();
   seedOperationSpecificReceipts(fixture);
@@ -58,6 +78,39 @@ test("readback reconstructs file, attachment, and follow-up operations from dura
   assert.equal(followup.email_thread_id, "thread:readback-a");
 });
 
+test("incomplete legacy attachment chain cannot remount save_attachments", async () => {
+  const fixture = runtimeFixture();
+  seedOperationSpecificReceipts(fixture);
+  replaceThread(fixture, { rest_message_id: null, item_key: null });
+  const response = await readback(fixture, "request:readback-legacy-attachment");
+  assert.equal(response.status, 200);
+  assert.deepEqual(operations(response), ["file_email", "create_followup"]);
+});
+
+test("wrong persisted REST identity cannot remount save_attachments", async () => {
+  const fixture = runtimeFixture();
+  seedOperationSpecificReceipts(fixture);
+  const wrongRest = "rest-readback-wrong";
+  replaceThread(fixture, {
+    rest_message_id: wrongRest,
+    item_key: [wrongRest, INTERNET_ID, CONVERSATION_ID].join("\u001f"),
+  });
+  const response = await readback(fixture, "request:readback-wrong-rest");
+  assert.equal(response.status, 200);
+  assert.deepEqual(operations(response), ["file_email", "create_followup"]);
+});
+
+test("wrong persisted item_key cannot remount save_attachments", async () => {
+  const fixture = runtimeFixture();
+  seedOperationSpecificReceipts(fixture);
+  replaceThread(fixture, {
+    item_key: ["rest-readback-wrong", INTERNET_ID, CONVERSATION_ID].join("\u001f"),
+  });
+  const response = await readback(fixture, "request:readback-wrong-item-key");
+  assert.equal(response.status, 200);
+  assert.deepEqual(operations(response), ["file_email", "create_followup"]);
+});
+
 test("readback uses the production DMS authority adapter and fails safe on Matter mismatch", async () => {
   const fixture = runtimeFixture();
   seedOperationSpecificReceipts(fixture);
@@ -66,7 +119,7 @@ test("readback uses the production DMS authority adapter and fails safe on Matte
       const localDocument = fixture.dmsRepository.get({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: documentId });
       const localVersion = fixture.dmsRepository.get({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocumentVersion", version_id: localDocument.current_version_id });
       const localFileObject = fixture.dmsRepository.get({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsFileObject", file_object_id: localVersion.file_object_id });
-      const { source_email_thread_id: _sourceThread, source_attachment_id: _sourceAttachment, latest_sha256: _latestSha, ...document } = localDocument;
+      const document = localDocument;
       const { matter_id: _versionMatter, status: _versionStatus, persisted: _persisted, ...version } = localVersion;
       const { matter_id: _fileMatter, ...fileObject } = localFileObject;
       return [documentId, {

@@ -29,9 +29,11 @@ function attachment(id) {
 
 function receipt(id, outcome = "created") {
   return {
+    version: 1,
     attachment_id: id,
     name: `${id}.pdf`,
     outcome,
+    tenant_id: "tenant-001",
     matter_id: "matter-001",
     email_thread_id: "thread-001",
     document_id: `document-${id}`,
@@ -39,6 +41,10 @@ function receipt(id, outcome = "created") {
     sha256: "a".repeat(64),
     receipt_ref: `receipt-${id}`,
     receipt_token: `token-${id}`,
+    source_byte_size: 3,
+    source_message_ref: `message-ref-${id}`,
+    source_provenance_authority: "microsoft_graph_mime",
+    ...SOURCE_IDENTITY,
   };
 }
 
@@ -91,6 +97,7 @@ function filingServer(ids, { fail = new Set(), duplicate = new Set() } = {}) {
       const next = receipt(id, duplicate.has(id) ? "duplicate" : "created");
       saved.set(id, next);
       return {
+        request_id: `request-${id}`,
         outcome: "attachments_saved",
         items: next.outcome === "created" ? [{
           document: { document_id: next.document_id },
@@ -99,8 +106,10 @@ function filingServer(ids, { fail = new Set(), duplicate = new Set() } = {}) {
         duplicate_attachments: next.outcome === "duplicate" ? [{
           attachment_id: id,
           duplicate_document_id: next.document_id,
+          version_id: next.version_id,
           sha256: next.sha256,
         }] : [],
+        duplicate_count: next.outcome === "duplicate" ? 1 : 0,
         attachment_receipt: next,
       };
     },

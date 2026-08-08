@@ -3,6 +3,11 @@ import {
   MAX_OUTLOOK_ATTACHMENT_BYTES,
   OUTLOOK_ITEM_CONTENT_ERROR_CODES,
 } from "./outlook-item-content.js";
+import {
+  assertExactOutlookSourceIdentity,
+  parseCapturedOutlookSourceIdentity,
+} from "../../../packages/email-dms/src/outlook-source-identity.js";
+import { parseExactDmsDocumentId } from "../../../packages/email-dms/src/exact-document-id.js";
 
 export const OUTLOOK_ATTACHMENT_SAVE_PATH = "/api/outlook/attachments/save";
 
@@ -78,6 +83,79 @@ function payloadByteLength(attachment = {}) {
   return 0;
 }
 
+function exactText(value, maxLength = 2_048) {
+  return typeof value === "string"
+    && value.length > 0
+    && value.length <= maxLength
+    && value === value.trim()
+    && !/[\u0000-\u001f\u007f]/u.test(value)
+    ? value
+    : "";
+}
+
+export function issuedOutlookAttachmentReceipt({
+  response,
+  attachment,
+  matterId,
+  emailThreadId,
+  sourceIdentity,
+} = {}) {
+  const receipt = response?.attachment_receipt;
+  let documentId;
+  try {
+    assertExactOutlookSourceIdentity(sourceIdentity, receipt);
+    documentId = parseExactDmsDocumentId(receipt?.document_id);
+  } catch {
+    throw new TypeError("Outlook attachment response has no authoritative receipt");
+  }
+  const created = receipt?.outcome === "created";
+  const duplicate = receipt?.outcome === "duplicate";
+  const createdItem = response?.items?.[0];
+  const duplicateItem = response?.duplicate_attachments?.[0];
+  if (
+    response?.outcome !== "attachments_saved"
+    || !exactText(response?.request_id)
+    || Object.hasOwn(response, "filing_operation")
+    || !Array.isArray(response?.items)
+    || !Array.isArray(response?.duplicate_attachments)
+    || !receipt
+    || receipt.version !== 1
+    || !exactText(receipt.tenant_id)
+    || receipt.matter_id !== matterId
+    || receipt.email_thread_id !== emailThreadId
+    || receipt.attachment_id !== attachment?.attachment_id
+    || receipt.name !== attachment?.name
+    || (!created && !duplicate)
+    || !exactText(receipt.version_id)
+    || !/^[a-f0-9]{64}$/u.test(receipt.sha256 ?? "")
+    || !exactText(receipt.receipt_ref)
+    || !exactText(receipt.receipt_token, 16_384)
+    || receipt.source_byte_size !== payloadByteLength(attachment)
+    || !exactText(receipt.source_message_ref)
+    || receipt.source_provenance_authority !== "microsoft_graph_mime"
+    || (created && (
+      response.items.length !== 1
+      || response.duplicate_attachments.length !== 0
+      || response.duplicate_count !== 0
+      || createdItem?.document?.document_id !== documentId
+      || createdItem?.version?.version_id !== receipt.version_id
+      || createdItem?.version?.sha256 !== receipt.sha256
+    ))
+    || (duplicate && (
+      response.items.length !== 0
+      || response.duplicate_attachments.length !== 1
+      || response.duplicate_count !== 1
+      || duplicateItem?.attachment_id !== receipt.attachment_id
+      || duplicateItem?.duplicate_document_id !== documentId
+      || duplicateItem?.version_id !== receipt.version_id
+      || duplicateItem?.sha256 !== receipt.sha256
+    ))
+  ) {
+    throw new TypeError("Outlook attachment response has no authoritative receipt");
+  }
+  return receipt;
+}
+
 function assertAttachmentBoundary(attachments, maxAttachmentBytes) {
   const ids = new Set();
   for (const attachment of attachments) {
@@ -138,6 +216,7 @@ export async function saveOutlookAttachments({
   ) throw new TypeError("operation callbacks are required");
 
   const item = currentItem && typeof currentItem === "object" ? currentItem : {};
+  const sourceIdentity = parseCapturedOutlookSourceIdentity(item);
   const attachmentLimit = Number.isSafeInteger(maxAttachmentBytes) && maxAttachmentBytes > 0
     ? Math.min(maxAttachmentBytes, MAX_OUTLOOK_ATTACHMENT_BYTES)
     : MAX_OUTLOOK_ATTACHMENT_BYTES;
@@ -185,11 +264,19 @@ export async function saveOutlookAttachments({
       });
       continue;
     }
+    const attachmentReceipt = issuedOutlookAttachmentReceipt({
+      response: body,
+      attachment,
+      matterId,
+      emailThreadId: threadId,
+      sourceIdentity,
+    });
     onReceipt(body);
     saved.push({
       attachment_id: attachment.attachment_id,
       name: attachment.name,
       outcome: body.outcome,
+      attachment_receipt: attachmentReceipt,
       body,
     });
   }

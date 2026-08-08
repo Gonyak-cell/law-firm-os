@@ -2550,9 +2550,9 @@ async function handleOutlookOperationReceiptReadback({ body, context, requestId,
     matterId,
     tenantId,
     canonicalItem: canonical.item,
-    dmsRepository: runtime.dmsRuntime.repository,
-    dmsAuthority: runtime.dmsRuntime.upload_runtime,
-    matterRepository: runtime.matterRuntime.repository,
+    dmsRuntime: runtime.dmsRuntime,
+    matterRuntime: runtime.matterRuntime,
+    attachmentReceiptAuthority: runtime.attachmentReceiptAuthority,
     actor: context?.principal,
     canReadDocument: async (documentId) => {
       const collectionDecision = outlookDocumentReadDecision({

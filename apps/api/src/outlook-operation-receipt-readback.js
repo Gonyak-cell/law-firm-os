@@ -6,6 +6,11 @@ import {
   resolveVerifiedDocument,
 } from "./outlook-operation-receipt-durable-chain.js";
 import { canonicalFilingAudit, validateOutlookEmailFileIdempotency } from "../../../packages/email-dms/src/email-filing-service.js";
+import {
+  outlookSourceItemKey,
+  parseExactOutlookSourceIdentity,
+} from "../../../packages/email-dms/src/outlook-source-identity.js";
+import { readOutlookAttachmentReceiptState } from "./outlook-attachment-receipt-readback.js";
 const DIGEST = /^[a-f0-9]{64}$/u;
 const FOLLOWUP_TYPES = new Set(["task", "deadline"]);
 const FILING_MODES = new Set(["manual", "sent"]);
@@ -132,46 +137,63 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
   });
 }
 
-async function attachmentReceipts({ thread, fileSummary, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument }) {
+async function attachmentReceipts({
+  thread,
+  fileSummary,
+  itemContextRef,
+  matterId,
+  tenantId,
+  sourceIdentity,
+  dmsRuntime,
+  matterRuntime,
+  attachmentReceiptAuthority,
+  timeline,
+  canReadDocument,
+}) {
   if (!fileSummary) return [];
-  return Promise.all(dmsRepository.list({ tenant_id: tenantId, model_type: "DmsEmailAttachmentMapping", matter_id: matterId })
-    .filter((mapping) => mapping.email_thread_id === thread.email_thread_id)
-    .map(async (mapping) => {
-      if (!await canReadDocument(mapping.document_id)) return null;
-      const document = await resolveVerifiedDocument({ repository: dmsRepository, authority: dmsAuthority, tenantId, matterId, documentId: mapping.document_id, threadId: thread.email_thread_id, attachmentId: mapping.attachment_id });
-      const digest = mapping.sha256;
-      if (!document || !DIGEST.test(digest ?? "") || document.version.sha256 !== digest) return null;
-      const operationKey = `outlook-attachment:${thread.email_thread_id}:${mapping.attachment_id}:${digest}`;
-      const mappingAudits = auditList(dmsRepository, tenantId, mapping.mapping_id);
-      const documentAudits = document.auditEvents.length ? document.auditEvents : auditList(dmsRepository, tenantId, mapping.document_id);
-      const event = timelineFor({
-        entries: timeline,
-        type: "outlook.attachment.saved",
-        sourceRef: mapping.document_id,
-        sourceObjectId: mapping.document_id,
-        check: (entry) => entry.safe_summary?.email_thread_id === thread.email_thread_id
-          && entry.safe_summary?.sha256 === digest,
-      });
-      if (
-        !hasAudit(mappingAudits, { action: "dms.email.attachment.map", objectType: "DmsEmailAttachmentMapping", objectId: mapping.mapping_id })
-        || !hasAudit(documentAudits, { action: "dms.document.upload", objectType: "DmsDocument", objectId: mapping.document_id })
-        || !event
-        || !hasAudit(auditList(matterRepository, tenantId, event.event_id), { action: "matter.timeline.outlook.file", objectType: "MatterTimelineEvent", objectId: event.event_id })
-        || !idempotency(dmsRepository, tenantId, `${operationKey}:dms-mapping`, (entry) => entry.response?.mapping_id === mapping.mapping_id && entry.response?.document_id === mapping.document_id)
-        || !idempotency(matterRepository, tenantId, `${operationKey}:matter:${matterId}`, (entry) => entry.response?.timeline_event_id === event.event_id)
-      ) return null;
-      return summary({
-        itemContextRef,
-        matterId,
-        operation: "save_attachments",
-        outcome: "attachments_saved",
-        requestId: opaqueRef(operationKey),
-        threadId: thread.email_thread_id,
-        documentIds: [mapping.document_id],
-        timelineIds: [event.event_id],
-        completedAt: iso(event.occurred_at),
-      });
-    }));
+  let state;
+  try {
+    state = await readOutlookAttachmentReceiptState({
+      dmsRuntime,
+      matterRuntime,
+      authority: attachmentReceiptAuthority,
+      thread,
+      tenantId,
+      matterId,
+      sourceIdentity,
+    });
+  } catch {
+    return [];
+  }
+  const dmsRepository = dmsRuntime.repository;
+  const matterRepository = matterRuntime.repository;
+  return Promise.all(state.receipts.map(async (receipt) => {
+    if (!await canReadDocument(receipt.document_id)) return null;
+    const operationKey = `outlook-attachment:${thread.email_thread_id}:${receipt.attachment_id}:${receipt.sha256}`;
+    const eventReplay = matterRepository.getIdempotency({
+      tenant_id: tenantId,
+      idempotency_key: `${operationKey}:matter:${matterId}`,
+    });
+    const event = timeline.find((entry) => entry.event_id === eventReplay?.response?.timeline_event_id);
+    if (
+      !event
+      || !hasAudit(auditList(dmsRepository, tenantId, receipt.receipt_ref), { action: "dms.email.attachment.map", objectType: "DmsEmailAttachmentMapping", objectId: receipt.receipt_ref })
+      || !hasAudit(auditList(dmsRepository, tenantId, receipt.document_id), { action: "dms.document.upload", objectType: "DmsDocument", objectId: receipt.document_id })
+      || !hasAudit(auditList(matterRepository, tenantId, event.event_id), { action: "matter.timeline.outlook.file", objectType: "MatterTimelineEvent", objectId: event.event_id })
+      || !idempotency(dmsRepository, tenantId, `${operationKey}:dms-mapping`, (entry) => entry.response?.mapping_id === receipt.receipt_ref && entry.response?.document_id === receipt.document_id)
+    ) return null;
+    return summary({
+      itemContextRef,
+      matterId,
+      operation: "save_attachments",
+      outcome: "attachments_saved",
+      requestId: opaqueRef(operationKey),
+      threadId: thread.email_thread_id,
+      documentIds: [receipt.document_id],
+      timelineIds: [event.event_id],
+      completedAt: iso(event.occurred_at),
+    });
+  }));
 }
 
 function followupRecords({ matterRepository, tenantId, matterId, threadId }) {
@@ -217,14 +239,26 @@ export async function reconstructOutlookOperationReceiptSummaries({
   matterId,
   tenantId,
   canonicalItem,
-  dmsRepository,
-  dmsAuthority,
-  matterRepository,
+  dmsRuntime,
+  matterRuntime,
+  attachmentReceiptAuthority,
   actor,
   canReadDocument,
 } = {}) {
+  const dmsRepository = dmsRuntime.repository;
+  const dmsAuthority = dmsRuntime.upload_runtime;
+  const matterRepository = matterRuntime.repository;
   const readDocument = typeof canReadDocument === "function" ? canReadDocument : async () => false;
   const timeline = visibleTimeline(matterRepository, tenantId, matterId, actor);
+  let sourceIdentity;
+  try {
+    sourceIdentity = parseExactOutlookSourceIdentity({
+      ...canonicalItem,
+      item_key: outlookSourceItemKey(canonicalItem),
+    });
+  } catch {
+    sourceIdentity = undefined;
+  }
   const threads = dmsRepository.list({ tenant_id: tenantId, model_type: "DmsEmailThread", matter_id: matterId })
     .filter((thread) => (
       thread.graph_message_id === canonicalItem?.canonical_graph_message_id
@@ -235,7 +269,21 @@ export async function reconstructOutlookOperationReceiptSummaries({
   for (const thread of threads) {
     const fileSummary = await fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument: readDocument });
     if (fileSummary) results.push(fileSummary);
-    results.push(...(await attachmentReceipts({ thread, fileSummary, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument: readDocument })).filter(Boolean));
+    if (sourceIdentity) {
+      results.push(...(await attachmentReceipts({
+        thread,
+        fileSummary,
+        itemContextRef,
+        matterId,
+        tenantId,
+        sourceIdentity,
+        dmsRuntime,
+        matterRuntime,
+        attachmentReceiptAuthority,
+        timeline,
+        canReadDocument: readDocument,
+      })).filter(Boolean));
+    }
     for (const candidate of followupRecords({ matterRepository, tenantId, matterId, threadId: thread.email_thread_id })) {
       const receipt = followupReceipt({ candidate, thread, fileSummary, itemContextRef, matterId, tenantId, matterRepository, timeline });
       if (receipt) results.push(receipt);

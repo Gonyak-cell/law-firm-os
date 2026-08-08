@@ -9,8 +9,11 @@ import {
 function input(attachments) {
   return {
     currentItem: {
+      rest_message_id: "rest-001",
+      internet_message_id: "<message-001@example.invalid>",
       conversation_id: "conversation-001",
       canonical_graph_message_id: "immutable:conversation-001",
+      item_key: ["rest-001", "<message-001@example.invalid>", "conversation-001"].join("\u001f"),
       attachments,
       unsupported: [],
     },

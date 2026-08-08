@@ -32,23 +32,6 @@ function priorTokens(previousReceipt) {
   });
 }
 
-function issuedReceipt(saved) {
-  const receipt = saved?.body?.attachment_receipt;
-  if (
-    !receipt
-    || id(receipt) !== saved.attachment_id
-    || !["created", "duplicate"].includes(receipt.outcome)
-    || typeof receipt.document_id !== "string"
-    || typeof receipt.version_id !== "string"
-    || !/^[a-f0-9]{64}$/u.test(receipt.sha256 ?? "")
-    || typeof receipt.receipt_ref !== "string"
-    || typeof receipt.receipt_token !== "string"
-  ) {
-    throw new TypeError("Outlook attachment response has no authoritative receipt");
-  }
-  return receipt;
-}
-
 function failure(value, fallback = "attachment content is unavailable") {
   return Object.freeze({
     attachment_id: id(value),
@@ -144,8 +127,11 @@ export async function fileOutlookEmailWithAttachments({
   if (attachments.length > 0) {
     saved = await saveOutlookAttachments({
       currentItem: {
-        conversation_id: email.conversation_id,
         canonical_graph_message_id: email.canonical_graph_message_id,
+        rest_message_id: email.rest_message_id,
+        internet_message_id: email.internet_message_id,
+        conversation_id: email.conversation_id,
+        item_key: email.item_key,
         attachments,
         unsupported: [],
       },
@@ -159,7 +145,7 @@ export async function fileOutlookEmailWithAttachments({
     });
   }
   const successfulTokens = array(saved.result?.saved_attachments)
-    .map(issuedReceipt)
+    .map(({ attachment_receipt: receipt }) => receipt)
     .map(({ receipt_ref, receipt_token }) => ({ receipt_ref, receipt_token }));
   emailReceipt = await fileOutlookEmail({
     matterId: nextMatterId,

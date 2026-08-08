@@ -6,6 +6,18 @@ import {
 } from "../src/outlook-attachment-actions.js";
 import { OUTLOOK_ITEM_CONTENT_ERROR_CODES } from "../src/outlook-item-content.js";
 
+const SOURCE_IDENTITY = Object.freeze({
+  canonical_graph_message_id: "immutable-001",
+  rest_message_id: "rest-001",
+  internet_message_id: "<message-001@example.invalid>",
+  conversation_id: "conversation-001",
+  item_key: [
+    "rest-001",
+    "<message-001@example.invalid>",
+    "conversation-001",
+  ].join("\u001f"),
+});
+
 function attachment(id, name = `${id}.pdf`) {
   return {
     attachment_id: id,
@@ -18,11 +30,45 @@ function attachment(id, name = `${id}.pdf`) {
 
 function item(overrides = {}) {
   return {
-    conversation_id: "conversation-001",
-    canonical_graph_message_id: "immutable-001",
+    ...SOURCE_IDENTITY,
     attachments: [attachment("att-001"), attachment("att-002")],
     unsupported: [],
     ...overrides,
+  };
+}
+
+function attachmentResponse(options) {
+  const selected = options.body.attachments[0];
+  const documentId = `document-${selected.attachment_id}`;
+  const versionId = `version-${selected.attachment_id}`;
+  const sha256 = "a".repeat(64);
+  return {
+    request_id: `request-${selected.attachment_id}`,
+    outcome: "attachments_saved",
+    items: [{
+      document: { document_id: documentId },
+      version: { version_id: versionId, sha256 },
+    }],
+    duplicate_attachments: [],
+    duplicate_count: 0,
+    attachment_receipt: {
+      version: 1,
+      receipt_ref: `receipt-${selected.attachment_id}`,
+      receipt_token: `token-${selected.attachment_id}`,
+      tenant_id: "tenant-001",
+      matter_id: options.body.matter_id,
+      email_thread_id: options.body.email_thread_id,
+      attachment_id: selected.attachment_id,
+      name: selected.name,
+      outcome: "created",
+      document_id: documentId,
+      version_id: versionId,
+      sha256,
+      source_byte_size: 3,
+      source_message_ref: `message-ref-${selected.attachment_id}`,
+      source_provenance_authority: "microsoft_graph_mime",
+      ...SOURCE_IDENTITY,
+    },
   };
 }
 
@@ -34,7 +80,7 @@ test("지원되는 첨부마다 한 번씩 POST하고 선택 ID와 Matter/스레
     emailResult: { email_thread: { email_thread_id: "thread-from-filed-email" } },
     requestJson: async (path, options) => {
       calls.push({ path, options });
-      return { outcome: "attachments_saved", attachment_id: options.body.selected_attachment_ids[0] };
+      return attachmentResponse(options);
     },
   });
 
@@ -79,13 +125,64 @@ test("item context가 첫 receipt 뒤 stale이면 receipt를 남기고 다음 wr
       },
       requestJson: async (_path, options) => {
         calls.push(options.body.selected_attachment_ids[0]);
-        return { outcome: "attachments_saved", source_identity: { canonical_graph_message_id: "immutable-001" } };
+        return attachmentResponse(options);
       },
     }),
     /OUTLOOK_ACTION_CONTEXT_CHANGED/u,
   );
   assert.deepEqual(calls, ["att-001"]);
   assert.equal(receipts.length, 1);
+});
+
+test("malformed attachment receipt는 callback과 다음 write 전에 거부한다", async () => {
+  const calls = [];
+  const receipts = [];
+  await assert.rejects(saveOutlookAttachments({
+    currentItem: item(),
+    matterId: "matter-malformed",
+    emailThreadId: "thread-malformed",
+    onReceipt(receipt) { receipts.push(receipt); },
+    requestJson: async (_path, options) => {
+      calls.push(options.body.selected_attachment_ids[0]);
+      return {
+        request_id: "request-malformed",
+        outcome: "attachments_saved",
+        items: [],
+        duplicate_attachments: [],
+        duplicate_count: 0,
+        attachment_receipt: { attachment_id: options.body.selected_attachment_ids[0] },
+      };
+    },
+  }), /no authoritative receipt/u);
+  assert.deepEqual(calls, ["att-001"]);
+  assert.deepEqual(receipts, []);
+});
+
+test("mismatched attachment source tuple은 callback과 다음 write 전에 거부한다", async () => {
+  const calls = [];
+  const receipts = [];
+  await assert.rejects(saveOutlookAttachments({
+    currentItem: item(),
+    matterId: "matter-mismatched",
+    emailThreadId: "thread-mismatched",
+    onReceipt(receipt) { receipts.push(receipt); },
+    requestJson: async (_path, options) => {
+      calls.push(options.body.selected_attachment_ids[0]);
+      const response = attachmentResponse(options);
+      response.attachment_receipt = {
+        ...response.attachment_receipt,
+        rest_message_id: "rest-mismatched",
+        item_key: [
+          "rest-mismatched",
+          SOURCE_IDENTITY.internet_message_id,
+          SOURCE_IDENTITY.conversation_id,
+        ].join("\u001f"),
+      };
+      return response;
+    },
+  }), /no authoritative receipt/u);
+  assert.deepEqual(calls, ["att-001"]);
+  assert.deepEqual(receipts, []);
 });
 
 test("canonical Graph identity가 없으면 attachment write를 보내지 않는다", async () => {
@@ -99,7 +196,7 @@ test("canonical Graph identity가 없으면 attachment write를 보내지 않는
         return {};
       },
     }),
-    /canonical_graph_message_id is required/u,
+    /canonical_graph_message_id is invalid/u,
   );
   assert.equal(requestCount, 0);
 });
@@ -111,7 +208,7 @@ test("필드 이메일 스레드가 없으면 실제 conversation_id를 fallback
     matterId: "matter-002",
     requestJson: async (_path, options) => {
       calls.push(options);
-      return { outcome: "attachments_saved" };
+      return attachmentResponse(options);
     },
   });
   assert.equal(calls[0].body.email_thread_id, "thread:conversation-001");
@@ -126,7 +223,7 @@ test("emailThreadId를 명시하면 이메일 결과와 fallback보다 우선한
     emailThreadId: "thread-explicit",
     requestJson: async (_path, options) => {
       calls.push(options);
-      return { outcome: "attachments_saved" };
+      return attachmentResponse(options);
     },
   });
   assert.equal(calls[0].body.email_thread_id, "thread-explicit");
@@ -151,7 +248,7 @@ test("일부 POST 실패는 저장 성공 결과와 실패/건너뜀 안내를 �
           safe_error_code: "M365_SCOPE_INSUFFICIENT",
         });
       }
-      return { outcome: "attachments_saved", item: { attachment_id: "att-001" } };
+      return attachmentResponse(options);
     },
   });
 

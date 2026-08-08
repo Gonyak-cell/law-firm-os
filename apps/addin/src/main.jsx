@@ -100,6 +100,20 @@ let sessionRecoveredHandler = null;
 const OFFICE_READY_EVENT = "lawos:office-ready";
 const CLIENT_OUTLOOK_CALLBACK_MODE = "server_complete_v1";
 
+export function createOutlookFilingReceiptCallback({
+  operationSnapshot,
+  reconcileOperationReceipt,
+} = {}) {
+  if (!operationSnapshot || typeof reconcileOperationReceipt !== "function") {
+    throw new TypeError("Outlook filing receipt callback context is required");
+  }
+  return (serverReceipt) => reconcileOperationReceipt(
+    operationSnapshot,
+    serverReceipt,
+    serverReceipt?.filing_operation ? "file_email" : "save_attachments",
+  );
+}
+
 function authStorage() {
   if (!sessionStore) {
     sessionStore = createSessionStore({
@@ -1359,11 +1373,10 @@ function App() {
       errorMessage: outlookActionErrorMessage,
       assertOperationCurrent: () =>
         assertOperationContextCurrent(operationSnapshot),
-      onReceipt: (serverReceipt) => reconcileOperationReceipt(
+      onReceipt: createOutlookFilingReceiptCallback({
         operationSnapshot,
-        serverReceipt,
-        serverReceipt?.filing_operation ? "file_email" : "save_attachments",
-      ),
+        reconcileOperationReceipt,
+      }),
     });
     assertOperationContextCurrent(operationSnapshot);
     setEmailResult({
@@ -1874,4 +1887,4 @@ function mount() {
   });
 }
 
-void mount();
+if (!import.meta.env.SSR) void mount();

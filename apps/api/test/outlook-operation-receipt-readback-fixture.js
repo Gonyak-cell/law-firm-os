@@ -7,6 +7,7 @@ import { createEmailDmsRepository } from "../../../packages/email-dms/src/reposi
 import { createDmsRepository } from "../../../packages/dms/src/index.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { createDmsRepositoryMimeAuthority, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
+import { createOutlookAttachmentReceiptAuthority } from "../src/outlook-attachment-receipt-authority.js";
 
 export const TENANT = "tenant_receipt_readback_test";
 export const MATTER = "matter_receipt_readback_test";
@@ -17,6 +18,7 @@ export const REST_ID = "rest-readback-a";
 export const CANONICAL_ID = "immutable:readback-a";
 export const INTERNET_ID = "<readback-a@amic.law>";
 export const CONVERSATION_ID = "conversation-readback-a";
+export const ITEM_KEY = [REST_ID, INTERNET_ID, CONVERSATION_ID].join("\u001f");
 export const THREAD_ID = "thread:readback-a";
 export const MIME_SHA256 = "a".repeat(64);
 export const DOCUMENT_ID = `doc:${THREAD_ID}:original-mime:${MIME_SHA256}`;
@@ -29,6 +31,9 @@ export const ATTACH_DOCUMENT_ID = "document:readback-attachment-a";
 const ATTACH_VERSION_ID = "version:readback-attachment-a";
 const ATTACH_FILE_OBJECT_ID = "file:readback-attachment-a";
 export const ATTACH_SHA256 = "b".repeat(64);
+export const ATTACH_BYTE_SIZE = 3;
+export const ATTACH_MESSAGE_REF = "message-ref:readback-a";
+export const ATTACH_PROVENANCE_AUTHORITY = "microsoft_graph_mime";
 const ATTACH_MAPPING_ID = "email-attachment:readback-a";
 export const ATTACH_TIMELINE_ID = "outlook.attachment.saved:readback-a";
 export const TASK_ID = "task:readback-a";
@@ -68,8 +73,11 @@ export function runtimeFixture() {
     matter_id: MATTER,
     email_thread_id: THREAD_ID,
     graph_message_id: CANONICAL_ID,
+    canonical_graph_message_id: CANONICAL_ID,
+    rest_message_id: REST_ID,
     internet_message_id: INTERNET_ID,
     conversation_id: CONVERSATION_ID,
+    item_key: ITEM_KEY,
     status: "active",
     filing_time: "2026-08-08T00:00:00.000Z",
     filing_user: ACTOR,
@@ -79,6 +87,16 @@ export function runtimeFixture() {
     audit_trace_id: "audit:readback",
     subject: "never returned subject",
     body_preview: "never returned body",
+    attachment_metadata: [{
+      attachment_id: ATTACHMENT_ID,
+      name: "attachment.pdf",
+      source_provenance: {
+        sha256: ATTACH_SHA256,
+        byte_size: ATTACH_BYTE_SIZE,
+        message_ref: ATTACH_MESSAGE_REF,
+        authority: ATTACH_PROVENANCE_AUTHORITY,
+      },
+    }],
   }, {
     model_type: "DmsDocument",
     tenant_id: TENANT,
@@ -148,6 +166,9 @@ export function runtimeFixture() {
     matterRuntime: { repository: matterRepository },
     dmsRuntime: { repository: dmsRepository },
     emailDmsRuntime: { repository: emailDmsRepository },
+    attachmentReceiptAuthority: createOutlookAttachmentReceiptAuthority({
+      secret: "outlook-operation-readback-test-secret-v1",
+    }),
     m365GraphConfig: {
       feature_enabled: true,
       inquiry_feature_enabled: true,
