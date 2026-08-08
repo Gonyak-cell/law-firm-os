@@ -11,6 +11,7 @@ import {
 
 const TENANT = "tenant-outm25";
 const USER = "user-outm25";
+const SUBJECT = "subject-outm25";
 const CONNECTION = "m365-connection-outm25";
 const MATTER = "matter-outm25";
 const CONVERSATION = "conversation-outm25";
@@ -38,6 +39,7 @@ function fixture(filePath, { dynamicSeed = false } = {}) {
       tenant_id: TENANT,
       m365_connection_id: CONNECTION,
       user_id: USER,
+      entra_subject_id: SUBJECT,
       mailbox_address_hash: "a".repeat(64),
       granted_scopes: ["Mail.Read", "Calendars.ReadWrite", "offline_access"],
       expires_at: connectionExpiresAt,
@@ -61,6 +63,7 @@ function enableInput(overrides = {}) {
   return {
     tenant_id: TENANT,
     user_id: USER,
+    entra_subject_id: SUBJECT,
     actor_id: USER,
     m365_connection_id: CONNECTION,
     matter_id: MATTER,
@@ -73,6 +76,22 @@ function enableInput(overrides = {}) {
   };
 }
 
+function revokeInput(policy, overrides = {}) {
+  return {
+    tenant_id: TENANT,
+    user_id: USER,
+    entra_subject_id: SUBJECT,
+    actor_id: USER,
+    m365_connection_id: CONNECTION,
+    matter_id: policy.matter_id,
+    policy_id: policy.policy_id,
+    reason: "user_disabled",
+    expected_version: policy.version,
+    idempotency_key: "revoke-outm25",
+    ...overrides,
+  };
+}
+
 test("OUTM-25 enables, replays, revokes, and re-enables one explicitly filed conversation", () => {
   // Given
   const filePath = join(mkdtempSync(join(tmpdir(), "outm25-policy-")), "state.json");
@@ -81,14 +100,7 @@ test("OUTM-25 enables, replays, revokes, and re-enables one explicitly filed con
   // When
   const enabled = firstRuntime.service.enable(enableInput());
   const replay = firstRuntime.service.enable(enableInput());
-  const revoked = firstRuntime.service.revoke({
-    tenant_id: TENANT,
-    actor_id: USER,
-    policy_id: enabled.policy.policy_id,
-    reason: "user_disabled",
-    expected_version: 1,
-    idempotency_key: "revoke-outm25",
-  });
+  const revoked = firstRuntime.service.revoke(revokeInput(enabled.policy));
   const secondRuntime = fixture(filePath);
   const reenabled = secondRuntime.service.enable(enableInput({
     idempotency_key: "reenable-outm25",
@@ -127,14 +139,11 @@ test("OUTM-25 rejects unfiled, mismatched, conflicting, stale, and changed-idemp
     /idempotency key conflicts/u,
   );
   assert.throws(
-    () => runtime.service.revoke({
-      tenant_id: TENANT,
-      actor_id: USER,
-      policy_id: enabled.policy.policy_id,
+    () => runtime.service.revoke(revokeInput(enabled.policy, {
       reason: "stale",
       expected_version: 9,
       idempotency_key: "stale-revoke",
-    }),
+    })),
     /version conflict/u,
   );
   assert.equal(runtime.repository.snapshot().policies.length, 1);
@@ -149,6 +158,10 @@ test("OUTM-25 pauses an active policy when current Matter permission changes", (
   // When
   const reconciled = runtime.service.reconcile({
     tenant_id: TENANT,
+    user_id: USER,
+    entra_subject_id: SUBJECT,
+    m365_connection_id: CONNECTION,
+    matter_id: MATTER,
     policy_id: enabled.policy.policy_id,
     actor_id: "conversation-policy-reconciler",
   });
@@ -163,7 +176,7 @@ test("OUTM-25 pauses an active policy when its delegated connection expires", ()
   const runtime = fixture();
   const enabled = runtime.service.enable(enableInput());
   runtime.expireConnection();
-  const reconciled = runtime.service.reconcile({ tenant_id: TENANT, policy_id: enabled.policy.policy_id, actor_id: "conversation-policy-reconciler" });
+  const reconciled = runtime.service.reconcile({ tenant_id: TENANT, user_id: USER, entra_subject_id: SUBJECT, m365_connection_id: CONNECTION, matter_id: MATTER, policy_id: enabled.policy.policy_id, actor_id: "conversation-policy-reconciler" });
   assert.equal(reconciled.policy.status, "paused");
   assert.equal(reconciled.policy.pause_reason, "connection_invalid");
 });
@@ -181,16 +194,37 @@ test("OUTM-25 requires revoke before moving one conversation to another Matter",
 
   // When / Then
   assert.throws(() => runtime.service.enable(movedInput), /revoke it first/u);
-  runtime.service.revoke({
-    tenant_id: TENANT,
-    actor_id: USER,
-    policy_id: first.policy.policy_id,
+  runtime.service.revoke(revokeInput(first.policy, {
     reason: "matter_changed",
-    expected_version: 1,
     idempotency_key: "revoke-before-move-outm25",
-  });
+  }));
   const moved = runtime.service.enable(movedInput);
   assert.equal(moved.outcome, "created");
   assert.equal(moved.policy.matter_id, "matter-outm25-next");
   assert.equal(runtime.repository.snapshot().policies.filter(({ status }) => status === "active").length, 1);
+});
+
+test("OUTM-25 rejects a same-tenant intruder before revoke or policy reconciliation", () => {
+  const runtime = fixture();
+  const enabled = runtime.service.enable(enableInput());
+  const intruder = {
+    user_id: "user-same-tenant-intruder",
+    entra_subject_id: "subject-same-tenant-intruder",
+    actor_id: "user-same-tenant-intruder",
+  };
+  assert.throws(
+    () => runtime.service.revoke(revokeInput(enabled.policy, { ...intruder, idempotency_key: "intruder-revoke" })),
+    /owner authority/u,
+  );
+  assert.throws(
+    () => runtime.service.reconcile({
+      tenant_id: TENANT,
+      ...intruder,
+      m365_connection_id: CONNECTION,
+      matter_id: MATTER,
+      policy_id: enabled.policy.policy_id,
+    }),
+    /owner authority/u,
+  );
+  assert.equal(runtime.repository.snapshot().policies[0].status, "active");
 });

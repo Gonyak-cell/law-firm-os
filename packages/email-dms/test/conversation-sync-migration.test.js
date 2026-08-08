@@ -25,10 +25,10 @@ test("OUTM-25..27 migration defines tenant-isolated policy, subscription, cursor
   ]) {
     assert.match(migration.sql, new RegExp(`CREATE TABLE IF NOT EXISTS lawos_email_dms\\.${table}`, "u"));
   }
-  assert.doesNotMatch(migration.sql, /\b(access_token|refresh_token|client_secret|client_state text)\b/iu);
+  assert.doesNotMatch(migration.sql, /\b(access_token|refresh_token|client_secret|client_state text|delta_link)\b/iu);
   assert.match(migration.sql, /client_state_hash text NOT NULL/u);
   assert.match(migration.sql, /UNIQUE \(tenant_id, m365_connection_id, resource\)/u);
-  assert.match(migration.sql, /UNIQUE \(tenant_id, subscription_id, resource, message_id\)/u);
+  assert.match(migration.sql, /UNIQUE \(tenant_id, dedupe_key\)/u);
   assert.match(migration.sql, /provider_subscription_id text NOT NULL/u);
   assert.match(migration.sql, /result_code text/u);
   assert.match(migration.sql, /graph_notification_receipts_immutable/u);
@@ -65,9 +65,10 @@ test("OUTM-27 PostgreSQL receipts and audit rows are tenant-isolated and immutab
     await client.query(
       `INSERT INTO lawos_email_dms.graph_notification_receipts
          (tenant_id, receipt_id, subscription_id, provider_subscription_id,
-          source, resource, message_id, change_type, received_at, payload_sha256)
+          source, resource, notification_kind, message_id, change_type,
+          received_at, payload_sha256)
        VALUES ($1, 'receipt-outm27', 'subscription-outm27', 'provider-outm27',
-               'webhook', 'me/mailFolders(''inbox'')/messages', 'message-outm27',
+               'webhook', 'me/mailFolders(''inbox'')/messages', 'message', 'message-outm27',
                'created', '2026-08-08T00:00:00.000Z', $2)`,
       ["tenant-outm27-a", "a".repeat(64)],
     );

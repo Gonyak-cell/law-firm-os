@@ -4,6 +4,7 @@ import {
   graphSubscriptionId,
   normalizeGraphSubscription,
   requiredSyncString,
+  syncDigest,
 } from "./conversation-sync-model.js";
 
 function hashClientState(value) {
@@ -14,7 +15,9 @@ function assertConnectionIdentity(connection, input) {
   if (!connection || connection.tenant_id !== input.tenant_id
     || connection.user_id !== input.user_id
     || connection.entra_subject_id !== input.entra_subject_id
-    || connection.m365_connection_id !== input.m365_connection_id) {
+    || connection.m365_connection_id !== input.m365_connection_id
+    || typeof connection.mailbox_address_hash !== "string"
+    || !/^[a-f0-9]{64}$/u.test(connection.mailbox_address_hash)) {
     throw new Error("matching Microsoft connection is required");
   }
 }
@@ -89,9 +92,17 @@ export function createGraphSubscriptionService({
         ...(current ?? existing ?? {}),
         subscription_id: subscriptionId,
         tenant_id: input.tenant_id,
+        user_id: input.user_id,
+        entra_subject_id: input.entra_subject_id,
+        entra_tenant_id: input.entra_tenant_id,
         m365_connection_id: input.m365_connection_id,
+        mailbox_ref: input.mailbox_ref,
         resource,
         client_state_hash: clientState ? hashClientState(clientState) : current.client_state_hash,
+        client_state_ref: current?.client_state_ref ?? syncDigest("client_state_ref", {
+          subscription_id: subscriptionId,
+          tenant_id: input.tenant_id,
+        }),
         status: current?.status ?? "pending",
         lease_owner: leaseOwner,
         lease_expires_at: new Date(now.getTime() + lease_ms).toISOString(),
@@ -173,12 +184,13 @@ export function createGraphSubscriptionService({
   }
 
   async function reconcile(input = {}) {
-    for (const field of ["tenant_id", "user_id", "entra_subject_id", "actor_id", "m365_connection_id"]) requiredSyncString(input, field);
+    for (const field of ["tenant_id", "user_id", "entra_subject_id", "entra_tenant_id", "actor_id", "m365_connection_id"]) requiredSyncString(input, field);
     const connection = connection_lookup(input);
     assertConnectionIdentity(connection, input);
+    input = { ...input, mailbox_ref: connection.mailbox_address_hash };
     const snapshot = repository.snapshot();
-    const activePolicies = snapshot.policies.filter((policy) => policy.tenant_id === input.tenant_id && policy.m365_connection_id === input.m365_connection_id && policy.status === "active");
-    const locals = snapshot.subscriptions.filter((entry) => entry.tenant_id === input.tenant_id && entry.m365_connection_id === input.m365_connection_id && entry.status !== "revoked");
+    const activePolicies = snapshot.policies.filter((policy) => policy.tenant_id === input.tenant_id && policy.user_id === input.user_id && policy.entra_subject_id === input.entra_subject_id && policy.m365_connection_id === input.m365_connection_id && policy.status === "active");
+    const locals = snapshot.subscriptions.filter((entry) => entry.tenant_id === input.tenant_id && entry.user_id === input.user_id && entry.entra_subject_id === input.entra_subject_id && entry.entra_tenant_id === input.entra_tenant_id && entry.m365_connection_id === input.m365_connection_id && entry.status !== "revoked");
     if (connection.revoked_at) {
       for (const local of locals) await deleteRemote(input, local);
       return { outcome: "revoked_connection", subscriptions: [] };
@@ -189,26 +201,20 @@ export function createGraphSubscriptionService({
       return { outcome: locals.length ? "revoked_without_active_policy" : "disabled_without_active_policy", subscriptions: [] };
     }
     const remote = await provider.listOwnMessageSubscriptions({ ...input, mailbox_scope: "me" });
-    const ownedIds = new Set(locals.map(({ provider_subscription_id: id }) => id).filter(Boolean));
-    const ownedHashes = new Set(locals.map(({ client_state_hash: hash }) => hash));
-    for (const candidate of remote) {
-      if (GRAPH_MESSAGE_RESOURCES.includes(candidate.resource)
-        && !ownedIds.has(candidate.provider_subscription_id)
-        && !ownedHashes.has(candidate.client_state_hash)) {
-        await provider.deleteOwnMessageSubscription({ ...input, mailbox_scope: "me", provider_subscription_id: candidate.provider_subscription_id });
-      }
-    }
     repository.transaction((state) => {
-      for (const local of state.subscriptions.filter((entry) => entry.tenant_id === input.tenant_id && entry.m365_connection_id === input.m365_connection_id && entry.status !== "revoked")) {
-        const match = remote.find((candidate) => candidate.resource === local.resource && (candidate.provider_subscription_id === local.provider_subscription_id || candidate.client_state_hash === local.client_state_hash));
+      for (const local of state.subscriptions.filter((entry) => entry.tenant_id === input.tenant_id && entry.user_id === input.user_id && entry.entra_subject_id === input.entra_subject_id && entry.entra_tenant_id === input.entra_tenant_id && entry.m365_connection_id === input.m365_connection_id && entry.status !== "revoked")) {
+        const match = remote.find((candidate) => candidate.provider_subscription_id === local.provider_subscription_id);
         if (match) {
+          if (match.resource !== local.resource || match.client_state_hash !== local.client_state_hash) {
+            throw new Error("Graph subscription ownership binding does not match");
+          }
           Object.assign(local, { provider_subscription_id: match.provider_subscription_id, provider_expires_at: match.expires_at, status: "active", updated_at: nowDate().toISOString() });
         } else if (local.provider_subscription_id) {
           Object.assign(local, { provider_subscription_id: null, provider_expires_at: null, status: "expired", updated_at: nowDate().toISOString() });
         }
       }
     });
-    const reconciledLocals = repository.snapshot().subscriptions.filter((entry) => entry.tenant_id === input.tenant_id && entry.m365_connection_id === input.m365_connection_id && entry.status !== "revoked");
+    const reconciledLocals = repository.snapshot().subscriptions.filter((entry) => entry.tenant_id === input.tenant_id && entry.user_id === input.user_id && entry.entra_subject_id === input.entra_subject_id && entry.entra_tenant_id === input.entra_tenant_id && entry.m365_connection_id === input.m365_connection_id && entry.status !== "revoked");
     const subscriptions = [];
     for (const resource of GRAPH_MESSAGE_RESOURCES) {
       const local = reconciledLocals.find((entry) => entry.resource === resource);

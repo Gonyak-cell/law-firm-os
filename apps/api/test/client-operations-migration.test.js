@@ -34,7 +34,7 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "ed7825dfb87a7a4579951368f390ef4d9061c696605f786738e8cb9fc02ea1ba",
+    "44597483e599ea7024bd0dc4a3f169388908831a520b11b51c3572c0d691da57",
   );
   assert.deepEqual(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-3).map(

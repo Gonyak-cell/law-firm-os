@@ -78,7 +78,10 @@ function headers(token) {
 function subscription(value, notificationUrl) {
   object(value);
   const normalizedResource = resource(value.resource);
-  if (value.changeType !== "created" || value.notificationUrl !== notificationUrl) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+  if (value.changeType !== "created" || value.notificationUrl !== notificationUrl
+    || value.lifecycleNotificationUrl !== notificationUrl) {
+    throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
   return {
     provider_subscription_id: subscriptionId(value.id),
     resource: normalizedResource,
@@ -100,7 +103,7 @@ export function createGraphConversationOperations({ graph_notification_url } = {
       if (request.change_type !== "created") invalid();
       const callback = requireConfiguration();
       const response = await graphFetch(fetchImpl, `${GRAPH_ORIGIN}/v1.0/subscriptions`, {
-        method: "POST", headers: headers(request.access_token), body: JSON.stringify({ changeType: "created", notificationUrl: callback, resource: resource(request.resource), expirationDateTime: instant(request.expiration_datetime), clientState: text(request.client_state, 128) }),
+        method: "POST", headers: headers(request.access_token), body: JSON.stringify({ changeType: "created", notificationUrl: callback, lifecycleNotificationUrl: callback, resource: resource(request.resource), expirationDateTime: instant(request.expiration_datetime), clientState: text(request.client_state, 128) }),
       });
       if (response.status !== 201) upstream(response);
       return subscription(await json(response), callback);
@@ -120,7 +123,7 @@ export function createGraphConversationOperations({ graph_notification_url } = {
       if (response.status !== 200) upstream(response);
       const body = await json(response);
       if (!Array.isArray(body.value) || body.value.length > 100) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
-      return body.value.filter((entry) => entry?.notificationUrl === callback && RESOURCES.has(entry?.resource)).map((entry) => subscription(entry, callback));
+      return body.value.filter((entry) => entry?.notificationUrl === callback && entry?.lifecycleNotificationUrl === callback && RESOURCES.has(entry?.resource)).map((entry) => subscription(entry, callback));
     },
     "graph.messageSubscription.delete": async (fetchImpl, request) => {
       exact(request, ["access_token", "provider_subscription_id"]);

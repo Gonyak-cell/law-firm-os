@@ -25,6 +25,10 @@ import { createMatterActivityCalendarChannelService } from "../../../packages/ma
 import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timeline-read-model.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import {
+  handleOutlookConversationPolicyApiRequest,
+  isOutlookConversationPolicyPath,
+} from "./outlook-conversation-policy-api.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -2140,10 +2144,10 @@ function handleMatterSearch({ query, context, requestId, runtime }) {
   });
 }
 
-async function fileEmail({ body, context, requestId, runtime, mode = "manual" }) {
+async function fileEmail({ body, context, requestId, runtime, mode = "manual", resolvedCanonical = null, filingActorId = null }) {
   const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
-  const actorId = actorFrom(context);
+  const actorId = filingActorId ?? actorFrom(context);
   const decision = evaluateOutlookPermission({
     context,
     tenant_id: tenantId,
@@ -2158,11 +2162,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   const requestedThread = normalizeEmailThread({ input: body, tenant_id: tenantId, matter_id: matterId, actor_id: actorId, mode });
   let canonical;
   try {
-    canonical = await resolveCanonicalMessage({
-      thread: requestedThread,
-      context,
-      runtime,
-    });
+    canonical = resolvedCanonical ?? await resolveCanonicalMessage({ thread: requestedThread, context, runtime });
     if (mode === "sent") {
       if (!canonical.sender_address) {
         throw sentMessageProvenanceError(
@@ -2514,6 +2514,13 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     external_send_state: mode === "sent" ? "provider_gated_no_external_send_claim" : "not_applicable",
     email_object_field_contract: OUTLOOK_EMAIL_OBJECT_FIELDS,
   });
+}
+
+export async function fileResolvedCanonicalOutlookEmail({ body, context, requestId, runtime, mode, resolvedCanonical, filingActorId } = {}) {
+  if (!resolvedCanonical || filingActorId !== "outlook-conversation-sync-service") {
+    throw new TypeError("resolved Outlook conversation filing authority is required");
+  }
+  return fileEmail({ body, context, requestId, runtime, mode, resolvedCanonical, filingActorId });
 }
 
 async function saveAttachments({ body, context, requestId, runtime }) {
@@ -2924,6 +2931,16 @@ function hasOnlyBodyFields(body, allowedFields) {
 
 export async function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, headers = {}, context, requestId, runtime } = {}) {
   try {
+    if (isOutlookConversationPolicyPath(pathname)) {
+      return await handleOutlookConversationPolicyApiRequest({
+        pathname,
+        method,
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
     if (pathname === "/api/outlook/bootstrap" && method === "GET") {
       return handleBootstrap({ query, context, requestId });
     }

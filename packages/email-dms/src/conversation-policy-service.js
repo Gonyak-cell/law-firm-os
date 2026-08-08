@@ -24,6 +24,7 @@ function assertConnection(connection, input, now) {
     || connection.tenant_id !== input.tenant_id
     || connection.m365_connection_id !== input.m365_connection_id
     || connection.user_id !== input.user_id
+    || connection.entra_subject_id !== input.entra_subject_id
     || connection.revoked_at
     || !Number.isFinite(Date.parse(connection.expires_at))
     || Date.parse(connection.expires_at) <= now.getTime()
@@ -32,6 +33,18 @@ function assertConnection(connection, input, now) {
     || connection.mailbox_scope !== "me"
   ) {
     throw new Error("active delegated me-only Mail.Read connection is required");
+  }
+}
+
+function assertPolicyOwner(policy, input, { requireActor = false } = {}) {
+  if (
+    policy.user_id !== input.user_id
+    || policy.entra_subject_id !== input.entra_subject_id
+    || policy.m365_connection_id !== input.m365_connection_id
+    || policy.matter_id !== input.matter_id
+    || (requireActor && input.actor_id !== policy.user_id)
+  ) {
+    throw new Error("conversation policy owner authority does not match");
   }
 }
 
@@ -98,17 +111,18 @@ export function createConversationPolicyService({
   }
 
   function enable(input = {}) {
-    for (const field of ["tenant_id", "user_id", "actor_id", "m365_connection_id", "matter_id", "conversation_id", "seed_email_thread_id", "seed_filing_receipt_ref", "idempotency_key"]) {
+    for (const field of ["tenant_id", "user_id", "entra_subject_id", "actor_id", "m365_connection_id", "matter_id", "conversation_id", "seed_email_thread_id", "seed_filing_receipt_ref", "idempotency_key"]) {
       requiredSyncString(input, field);
     }
+    if (input.actor_id !== input.user_id) throw new Error("conversation policy owner authority does not match");
     requireVersion(input.expected_version);
+    const connection = connection_lookup(input);
+    assertConnection(connection, input, clock());
+    if (!matter_access(input)) throw new Error("Matter access is required");
+    const seed = seed_filing_lookup(input);
     return repository.transaction((state) => {
       const replay = replayOrConflict(state, input, "enabled");
       if (replay) return replay;
-      const connection = connection_lookup(input);
-      assertConnection(connection, input, clock());
-      if (!matter_access(input)) throw new Error("Matter access is required");
-      const seed = seed_filing_lookup(input);
       assertSeed(seed, input);
       const policyId = conversationPolicyId(input);
       const activeConflict = state.policies.find((entry) => (
@@ -138,6 +152,7 @@ export function createConversationPolicyService({
         policy_id: policyId,
         tenant_id: input.tenant_id,
         user_id: input.user_id,
+        entra_subject_id: input.entra_subject_id,
         m365_connection_id: input.m365_connection_id,
         mailbox_ref: seed.mailbox_ref,
         conversation_id: input.conversation_id,
@@ -159,13 +174,16 @@ export function createConversationPolicyService({
   }
 
   function revoke(input = {}) {
-    for (const field of ["tenant_id", "actor_id", "policy_id", "reason", "idempotency_key"]) requiredSyncString(input, field);
+    for (const field of ["tenant_id", "user_id", "entra_subject_id", "actor_id", "m365_connection_id", "matter_id", "policy_id", "reason", "idempotency_key"]) requiredSyncString(input, field);
     requireVersion(input.expected_version);
     return repository.transaction((state) => {
-      const replay = replayOrConflict(state, input, "revoked");
-      if (replay) return replay;
       const existing = state.policies.find((entry) => entry.tenant_id === input.tenant_id && entry.policy_id === input.policy_id);
       if (!existing) throw new Error("conversation policy not found");
+      assertPolicyOwner(existing, input, { requireActor: true });
+      assertConnection(connection_lookup(input), input, clock());
+      if (!matter_access({ ...input, policy: existing })) throw new Error("Matter access is required");
+      const replay = replayOrConflict(state, input, "revoked");
+      if (replay) return replay;
       if (existing.version !== input.expected_version) throw new Error("conversation policy version conflict");
       const now = clock().toISOString();
       const policy = normalizeConversationPolicy({ ...existing, status: "revoked", pause_reason: input.reason, version: existing.version + 1, updated_at: now, revoked_at: now });
@@ -175,10 +193,11 @@ export function createConversationPolicyService({
   }
 
   function reconcile(input = {}) {
-    for (const field of ["tenant_id", "actor_id", "policy_id"]) requiredSyncString(input, field);
+    for (const field of ["tenant_id", "user_id", "entra_subject_id", "actor_id", "m365_connection_id", "matter_id", "policy_id"]) requiredSyncString(input, field);
     return repository.transaction((state) => {
       const existing = state.policies.find((entry) => entry.tenant_id === input.tenant_id && entry.policy_id === input.policy_id);
       if (!existing) throw new Error("conversation policy not found");
+      assertPolicyOwner(existing, input);
       if (existing.status !== "active") return { outcome: "unchanged", policy: existing };
       const lookup = { ...existing, actor_id: input.actor_id };
       let reason = null;

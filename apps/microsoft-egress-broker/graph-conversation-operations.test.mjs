@@ -42,6 +42,7 @@ test("OUTM-26 broker creates a basic me-only subscription without rich resource 
         clientState: "opaque-client-state-outm26",
         expirationDateTime: "2026-08-08T01:00:00.000Z",
         notificationUrl: CALLBACK,
+        lifecycleNotificationUrl: CALLBACK,
       }, 201);
     },
   });
@@ -60,6 +61,7 @@ test("OUTM-26 broker creates a basic me-only subscription without rich resource 
   assert.equal(new URL(calls[0].url).pathname, "/v1.0/subscriptions");
   const body = JSON.parse(calls[0].options.body);
   assert.equal(body.notificationUrl, CALLBACK);
+  assert.equal(body.lifecycleNotificationUrl, CALLBACK);
   assert.equal(body.resource, RESOURCE);
   assert.equal(Object.hasOwn(body, "includeResourceData"), false);
   assert.equal(result.result.client_state_hash, createHash("sha256").update("opaque-client-state-outm26").digest("hex"));
@@ -80,6 +82,7 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
         clientState: "opaque-client-state-outm26",
         expirationDateTime: "2026-08-08T01:00:00.000Z",
         notificationUrl: CALLBACK,
+        lifecycleNotificationUrl: CALLBACK,
       }] });
       if (options.method === "PATCH") return json({
         id: "provider-subscription-outm26",
@@ -88,6 +91,7 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
         clientState: "opaque-client-state-outm26",
         expirationDateTime: "2026-08-08T02:00:00.000Z",
         notificationUrl: CALLBACK,
+        lifecycleNotificationUrl: CALLBACK,
       });
       return new Response(null, { status: 204 });
     },

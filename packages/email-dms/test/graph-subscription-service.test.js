@@ -73,7 +73,9 @@ function fixture({ filePath, activePolicy = true, providerPrefix = "provider-out
       connection_lookup: () => ({
         tenant_id: TENANT,
         user_id: USER,
+        entra_subject_id: SUBJECT,
         m365_connection_id: CONNECTION,
+        mailbox_address_hash: "a".repeat(64),
         granted_scopes: ["Mail.Read"],
         expires_at: "2027-08-08T00:00:00.000Z",
         connection_authority: "delegated",
@@ -87,6 +89,7 @@ function fixture({ filePath, activePolicy = true, providerPrefix = "provider-out
       entra_subject_id: SUBJECT,
       actor_id: USER,
       m365_connection_id: CONNECTION,
+      mailbox_address_hash: "a".repeat(64),
       matter_id: "matter-outm26",
       conversation_id: "conversation-outm26",
       seed_email_thread_id: "thread-outm26",
@@ -103,6 +106,7 @@ function fixture({ filePath, activePolicy = true, providerPrefix = "provider-out
       user_id: USER,
       entra_subject_id: SUBJECT,
       m365_connection_id: CONNECTION,
+      mailbox_address_hash: "a".repeat(64),
       granted_scopes: ["Mail.Read"],
       expires_at: "2027-08-08T00:00:00.000Z",
       connection_authority: "delegated",
@@ -128,6 +132,7 @@ function input() {
     tenant_id: TENANT,
     user_id: USER,
     entra_subject_id: SUBJECT,
+    entra_tenant_id: "entra-tenant-outm26",
     actor_id: "graph-subscription-reconciler",
     m365_connection_id: CONNECTION,
   };
@@ -156,7 +161,7 @@ test("OUTM-26 creates only the Inbox and Sent Items me subscriptions after expli
   assert.match(enabled.repository.snapshot().subscriptions[0].client_state_hash, /^[a-f0-9]{64}$/u);
 });
 
-test("OUTM-26 survives restart, renews expiring pairs, and removes an expired remote orphan", async () => {
+test("OUTM-26 survives restart and renewal without deleting an unknown same-callback subscription", async () => {
   // Given
   const filePath = join(mkdtempSync(join(tmpdir(), "outm26-subscription-")), "state.json");
   const first = fixture({ filePath, providerPrefix: "provider-first-outm26" });
@@ -184,7 +189,8 @@ test("OUTM-26 survives restart, renews expiring pairs, and removes an expired re
   assert.equal(restarted.calls.filter(({ operation }) => operation === "renew").length, 2);
   assert.ok(recovered.subscriptions.every(({ provider_subscription_id: id }) => !originalIds.includes(id)));
   assert.equal(restarted.calls.filter(({ operation }) => operation === "create").length, 2);
-  assert.equal(restarted.calls.some(({ operation, input: request }) => operation === "delete" && request.provider_subscription_id === "provider-orphan-outm26"), true);
+  assert.equal(restarted.calls.some(({ operation, input: request }) => operation === "delete" && request.provider_subscription_id === "provider-orphan-outm26"), false);
+  assert.equal(restarted.remote.some(({ provider_subscription_id: id }) => id === "provider-orphan-outm26"), true);
   assert.equal(restarted.repository.snapshot().subscriptions.length, 2);
 });
 

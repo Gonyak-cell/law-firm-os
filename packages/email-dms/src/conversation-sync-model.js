@@ -11,6 +11,20 @@ export const CONVERSATION_POLICY_STATUSES = Object.freeze([
   "revoked",
 ]);
 
+export const GRAPH_SUBSCRIPTION_STATUSES = Object.freeze([
+  "pending",
+  "active",
+  "reauthorization_required",
+  "expired",
+  "revoked",
+]);
+
+export const GRAPH_LIFECYCLE_EVENTS = Object.freeze([
+  "missed",
+  "reauthorizationRequired",
+  "subscriptionRemoved",
+]);
+
 export function requiredSyncString(input, field, maxLength = 1024) {
   const value = input?.[field];
   if (typeof value !== "string" || value.trim() === "") {
@@ -51,6 +65,7 @@ export function normalizeConversationPolicy(input = {}) {
     policy_id: requiredSyncString(input, "policy_id"),
     tenant_id: requiredSyncString(input, "tenant_id"),
     user_id: requiredSyncString(input, "user_id"),
+    entra_subject_id: requiredSyncString(input, "entra_subject_id"),
     m365_connection_id: requiredSyncString(input, "m365_connection_id"),
     mailbox_ref: requiredSyncString(input, "mailbox_ref"),
     conversation_id: requiredSyncString(input, "conversation_id"),
@@ -89,16 +104,21 @@ export function normalizeGraphSubscription(input = {}) {
     throw new TypeError("client_state_hash must be a lowercase SHA-256 digest");
   }
   const status = requiredSyncString(input, "status");
-  if (!["pending", "active", "expired", "revoked"].includes(status)) {
+  if (!GRAPH_SUBSCRIPTION_STATUSES.includes(status)) {
     throw new TypeError("Graph subscription status is invalid");
   }
   return Object.freeze({
     subscription_id: requiredSyncString(input, "subscription_id"),
     tenant_id: requiredSyncString(input, "tenant_id"),
+    user_id: requiredSyncString(input, "user_id"),
+    entra_subject_id: requiredSyncString(input, "entra_subject_id"),
+    entra_tenant_id: requiredSyncString(input, "entra_tenant_id"),
     m365_connection_id: requiredSyncString(input, "m365_connection_id"),
+    mailbox_ref: requiredSyncString(input, "mailbox_ref"),
     resource,
     change_type: "created",
     client_state_hash: hash,
+    client_state_ref: requiredSyncString(input, "client_state_ref"),
     provider_subscription_id: input.provider_subscription_id ?? null,
     provider_expires_at: input.provider_expires_at ?? null,
     status,

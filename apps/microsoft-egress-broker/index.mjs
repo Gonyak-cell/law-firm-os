@@ -823,7 +823,7 @@ async function calendarEventCreate(fetchImpl, request) {
   };
 }
 
-function sentItemsFolderId(value) {
+function mailFolderId(value) {
   if (!plainObject(value)) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
@@ -834,12 +834,16 @@ function sentItemsFolderId(value) {
   return folderId;
 }
 
-function messageMetadata(value, immutableId, sentItemsId) {
+function messageMetadata(value, immutableId, inboxId, sentItemsId) {
   if (!plainObject(value) || value.id !== immutableId) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
   const parentFolderId = optionalString(value.parentFolderId);
-  if (!parentFolderId || typeof value.isDraft !== "boolean") {
+  const receivedAt = optionalString(value.receivedDateTime, 64);
+  const sentAt = optionalString(value.sentDateTime, 64);
+  if (!parentFolderId || typeof value.isDraft !== "boolean"
+    || !Number.isFinite(Date.parse(receivedAt))
+    || !Number.isFinite(Date.parse(sentAt))) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
   const recipients = (items) => {
@@ -871,9 +875,13 @@ function messageMetadata(value, immutableId, sentItemsId) {
     to_recipients: recipients(value.toRecipients ?? []),
     cc_recipients: recipients(value.ccRecipients ?? []),
     bcc_recipients: recipients(value.bccRecipients ?? []),
-    received_at: optionalString(value.receivedDateTime, 64),
+    received_at: new Date(receivedAt).toISOString(),
+    sent_at: new Date(sentAt).toISOString(),
     has_attachments: value.hasAttachments === true,
     is_in_sent_items: parentFolderId === sentItemsId,
+    folder_kind: parentFolderId === inboxId
+      ? "inbox"
+      : parentFolderId === sentItemsId ? "sentitems" : "other",
     is_draft: value.isDraft,
   };
 }
@@ -899,6 +907,7 @@ async function mailMessageExport(fetchImpl, request) {
       "ccRecipients",
       "bccRecipients",
       "receivedDateTime",
+      "sentDateTime",
       "hasAttachments",
       "parentFolderId",
       "isDraft",
@@ -919,6 +928,17 @@ async function mailMessageExport(fetchImpl, request) {
   if (!immutableId || /[\u0000-\u001f\u007f]/u.test(immutableId)) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
+  const inboxPath = "/v1.0/me/mailFolders/inbox";
+  const inboxUrl = new URL(inboxPath, GRAPH_ORIGIN);
+  inboxUrl.searchParams.set("$select", "id");
+  const inboxResponse = await fixedFetch(
+    fetchImpl,
+    inboxUrl,
+    { method: "GET", headers: immutableHeaders },
+    { origin: GRAPH_ORIGIN, pathname: inboxPath },
+  );
+  if (inboxResponse.status !== 200) upstreamFailure(inboxResponse);
+  const inboxId = mailFolderId(await readJson(inboxResponse));
   const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
   const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
   sentItemsUrl.searchParams.set("$select", "id");
@@ -929,10 +949,11 @@ async function mailMessageExport(fetchImpl, request) {
     { origin: GRAPH_ORIGIN, pathname: sentItemsPath },
   );
   if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
-  const sentItemsId = sentItemsFolderId(await readJson(sentItemsResponse));
+  const sentItemsId = mailFolderId(await readJson(sentItemsResponse));
   const metadata = messageMetadata(
     metadataValue,
     immutableId,
+    inboxId,
     sentItemsId,
   );
   const mimePath = `/v1.0/me/messages/${encodeURIComponent(immutableId)}/$value`;
@@ -969,6 +990,7 @@ async function mailMessageExport(fetchImpl, request) {
     mime_bytes: mime.byteLength,
     provider_request_ids: {
       metadata: providerRequestId(metadataResponse),
+      inbox: providerRequestId(inboxResponse),
       sent_items: providerRequestId(sentItemsResponse),
       mime: providerRequestId(mimeResponse),
     },

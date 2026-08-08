@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.conversation_policies (
   tenant_id text NOT NULL,
   policy_id text NOT NULL,
   user_id text NOT NULL,
+  entra_subject_id text NOT NULL,
   m365_connection_id text NOT NULL,
   mailbox_ref text NOT NULL,
   conversation_id text NOT NULL,
@@ -26,13 +27,21 @@ CREATE UNIQUE INDEX IF NOT EXISTS conversation_policy_active_placement_uq
 CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_subscriptions (
   tenant_id text NOT NULL,
   subscription_id text NOT NULL,
+  user_id text NOT NULL,
+  entra_subject_id text NOT NULL,
+  entra_tenant_id text NOT NULL,
   m365_connection_id text NOT NULL,
-  resource text NOT NULL,
+  mailbox_ref text NOT NULL CHECK (mailbox_ref ~ '^[a-f0-9]{64}$'),
+  resource text NOT NULL CHECK (resource IN (
+    'me/mailFolders(''inbox'')/messages',
+    'me/mailFolders(''sentitems'')/messages'
+  )),
   change_type text NOT NULL CHECK (change_type = 'created'),
   client_state_hash text NOT NULL CHECK (client_state_hash ~ '^[a-f0-9]{64}$'),
+  client_state_ref text NOT NULL CHECK (client_state_ref ~ '^client_state_ref_[a-f0-9]{32}$'),
   provider_subscription_id text,
   provider_expires_at timestamptz,
-  status text NOT NULL CHECK (status IN ('pending', 'active', 'expired', 'revoked')),
+  status text NOT NULL CHECK (status IN ('pending', 'active', 'reauthorization_required', 'expired', 'revoked')),
   lease_owner text,
   lease_expires_at timestamptz,
   attempt_count integer NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
@@ -41,14 +50,20 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_subscriptions (
   created_at timestamptz NOT NULL,
   updated_at timestamptz NOT NULL,
   PRIMARY KEY (tenant_id, subscription_id),
-  UNIQUE (tenant_id, m365_connection_id, resource)
+  UNIQUE (tenant_id, m365_connection_id, resource),
+  UNIQUE (tenant_id, client_state_ref)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS graph_subscription_provider_id_uq
+  ON lawos_email_dms.graph_subscriptions (provider_subscription_id)
+  WHERE provider_subscription_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_delta_cursors (
   tenant_id text NOT NULL,
   m365_connection_id text NOT NULL,
   resource text NOT NULL,
-  delta_link text,
+  cursor_ref text CHECK (cursor_ref IS NULL OR cursor_ref ~ '^sealed:v1:'),
+  reconciliation_required_at timestamptz,
   last_reconciled_at timestamptz,
   version bigint NOT NULL DEFAULT 1 CHECK (version >= 1),
   PRIMARY KEY (tenant_id, m365_connection_id, resource)
@@ -59,7 +74,12 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_notification_jobs (
   job_id text NOT NULL,
   subscription_id text NOT NULL,
   resource text NOT NULL,
-  message_id text NOT NULL,
+  notification_kind text NOT NULL CHECK (notification_kind IN ('message', 'lifecycle')),
+  job_kind text NOT NULL CHECK (job_kind IN ('message_notification', 'delta_reconciliation', 'subscription_reconcile')),
+  dedupe_key text NOT NULL,
+  message_id text,
+  lifecycle_event text CHECK (lifecycle_event IN ('missed', 'reauthorizationRequired', 'subscriptionRemoved')),
+  subscription_expiration_at timestamptz,
   status text NOT NULL CHECK (status IN ('pending', 'leased', 'retry', 'completed', 'dead_letter')),
   available_at timestamptz NOT NULL,
   lease_owner text,
@@ -70,7 +90,9 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_notification_jobs (
   created_at timestamptz NOT NULL,
   updated_at timestamptz NOT NULL,
   PRIMARY KEY (tenant_id, job_id),
-  UNIQUE (tenant_id, subscription_id, resource, message_id)
+  UNIQUE (tenant_id, dedupe_key),
+  CHECK ((notification_kind = 'message' AND message_id IS NOT NULL AND lifecycle_event IS NULL)
+      OR (notification_kind = 'lifecycle' AND message_id IS NULL AND lifecycle_event IS NOT NULL))
 );
 
 CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_notification_receipts (
@@ -80,12 +102,16 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_notification_receipts (
   provider_subscription_id text NOT NULL,
   source text NOT NULL CHECK (source IN ('webhook', 'delta_reconciliation')),
   resource text NOT NULL,
-  message_id text NOT NULL,
-  change_type text NOT NULL CHECK (change_type = 'created'),
+  notification_kind text NOT NULL CHECK (notification_kind IN ('message', 'lifecycle')),
+  message_id text,
+  lifecycle_event text CHECK (lifecycle_event IN ('missed', 'reauthorizationRequired', 'subscriptionRemoved')),
+  subscription_expiration_at timestamptz,
+  change_type text CHECK (change_type = 'created'),
   received_at timestamptz NOT NULL,
   payload_sha256 text NOT NULL CHECK (payload_sha256 ~ '^[a-f0-9]{64}$'),
   PRIMARY KEY (tenant_id, receipt_id),
-  UNIQUE (tenant_id, subscription_id, resource, message_id)
+  CHECK ((notification_kind = 'message' AND message_id IS NOT NULL AND lifecycle_event IS NULL)
+      OR (notification_kind = 'lifecycle' AND message_id IS NULL AND lifecycle_event IS NOT NULL))
 );
 
 CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_sync_audit_events (
@@ -117,6 +143,19 @@ BEGIN
   RAISE EXCEPTION 'graph sync receipt and audit rows are immutable';
 END
 $$;
+
+GRANT USAGE ON SCHEMA lawos_email_dms TO lawos_app;
+GRANT SELECT, INSERT, UPDATE ON
+  lawos_email_dms.conversation_policies,
+  lawos_email_dms.graph_subscriptions,
+  lawos_email_dms.graph_delta_cursors,
+  lawos_email_dms.graph_notification_jobs
+TO lawos_app;
+GRANT SELECT, INSERT ON
+  lawos_email_dms.graph_notification_receipts,
+  lawos_email_dms.graph_sync_audit_events,
+  lawos_email_dms.graph_sync_idempotency
+TO lawos_app;
 
 DROP TRIGGER IF EXISTS graph_notification_receipts_immutable
   ON lawos_email_dms.graph_notification_receipts;

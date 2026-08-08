@@ -78,12 +78,13 @@ function normalizedRecipients(message) {
     }).filter(Boolean));
   }
   const recipients = [];
-  for (const [field, recipientType] of [
-    ["toRecipients", "to"],
-    ["ccRecipients", "cc"],
-    ["bccRecipients", "bcc"],
+  for (const [fields, recipientType] of [
+    [["toRecipients", "to_recipients"], "to"],
+    [["ccRecipients", "cc_recipients"], "cc"],
+    [["bccRecipients", "bcc_recipients"], "bcc"],
   ]) {
-    for (const value of Array.isArray(message[field]) ? message[field] : []) {
+    const field = fields.find((candidate) => Array.isArray(message[candidate]));
+    for (const value of field ? message[field] : []) {
       const recipient = normalizedAddress(value);
       if (recipient) {
         recipients.push(Object.freeze({
@@ -124,10 +125,21 @@ function normalizedMessageMetadata(message, immutableMessageId) {
   const receivedAt = Date.parse(
     message.received_at ?? message.receivedDateTime,
   );
-  if (!Number.isFinite(receivedAt)) {
+  const sentAt = Date.parse(message.sent_at ?? message.sentDateTime);
+  const folderKind = message.folder_kind;
+  if (!Number.isFinite(receivedAt) || !Number.isFinite(sentAt)) {
     throw providerError(
       MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
       "Microsoft Graph message received time is invalid",
+    );
+  }
+  if (
+    !["inbox", "sentitems", "other"].includes(folderKind)
+    || message.is_in_sent_items !== (folderKind === "sentitems")
+  ) {
+    throw providerError(
+      MICROSOFT_GRAPH_MAIL_PROVIDER_ERROR_CODES.provider_response_invalid,
+      "Microsoft Graph message folder provenance is invalid",
     );
   }
   return Object.freeze({
@@ -144,9 +156,11 @@ function normalizedMessageMetadata(message, immutableMessageId) {
     from: normalizedAddress(message.from),
     recipients: normalizedRecipients(message),
     received_at: new Date(receivedAt).toISOString(),
+    sent_at: new Date(sentAt).toISOString(),
     has_attachments:
       message.has_attachments === true || message.hasAttachments === true,
     is_in_sent_items: message.is_in_sent_items,
+    folder_kind: folderKind,
     is_draft: message.is_draft,
   });
 }
