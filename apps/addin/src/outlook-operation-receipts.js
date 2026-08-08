@@ -2,22 +2,16 @@ import { sanitizeOutlookOperationReceiptSummary } from "./outlook-operation-rece
 const DEFAULT_MAX_ENTRIES = 24;
 const DEFAULT_TTL_MS = 30 * 60 * 1_000;
 const MAX_REF_LENGTH = 256;
+const SAFE_FILING_MODES = new Set(["manual", "sent"]);
 const SAFE_OUTCOMES = new Set(["created", "idempotent_replay", "attachments_saved", "pending", "prepared", "passed", "blocked", "denied", "review_required", "evaluated", "identity_resolved", "message_resolved", "authorization_started"]);
 function text(value, maxLength = MAX_REF_LENGTH) {
   if (typeof value !== "string") return "";
   const next = value.normalize("NFKC").trim();
-  return next.length > 0 && next.length <= maxLength && !/[\u0000-\u001f\u007f]/u.test(next)
-    ? next
-    : "";
+  return next.length > 0 && next.length <= maxLength && !/[\u0000-\u001f\u007f]/u.test(next) ? next : "";
 }
 function safeRef(value) {
   const next = text(value);
-  if (
-    !next
-    || /\s/u.test(next)
-    || next.includes("@")
-    || next.includes("://")
-  ) return "";
+  if (!next || /\s/u.test(next) || next.includes("@") || next.includes("://")) return "";
   return next;
 }
 function safeOperation(value) {
@@ -122,13 +116,20 @@ export function sanitizeOutlookOperationReceipt({
   const matterId = safeRef(operationSnapshot.matter_id);
   if (!itemContextRef || !matterId) return null;
   const outcome = SAFE_OUTCOMES.has(receipt.outcome) ? receipt.outcome : "completed";
+  const operationName = safeOperation(operation);
+  const hasFilingMode = Object.hasOwn(receipt, "filing_mode") || Object.hasOwn(receipt.item ?? {}, "filing_mode") || Object.hasOwn(receipt.email_thread ?? {}, "filing_mode");
+  const filingMode = hasFilingMode
+    ? text(receipt.filing_mode ?? receipt.item?.filing_mode ?? receipt.email_thread?.filing_mode, 16).toLowerCase()
+    : operationName === "file_email" ? "manual" : "";
+  if (operationName === "file_email" && !SAFE_FILING_MODES.has(filingMode)) return null;
   const extracted = receiptRefs(receipt);
   const completedAtMs = timestamp(completedAt ?? receipt.completed_at, nowMs);
   const summary = {
     item_context_ref: itemContextRef,
     matter_id: matterId,
-    operation: safeOperation(operation),
+    operation: operationName,
     outcome,
+    ...(hasFilingMode && filingMode ? { filing_mode: filingMode } : {}),
     ...(extracted.requestId ? { request_id: extracted.requestId } : {}),
     ...(extracted.emailThreadId ? { email_thread_id: extracted.emailThreadId } : {}),
     ...(extracted.documentIds.length ? { document_ids: Object.freeze(extracted.documentIds) } : {}),
@@ -191,6 +192,7 @@ export function createOutlookOperationReceiptArchive({
     const durableKey = JSON.stringify({
       operation: summary.operation,
       outcome: summary.outcome,
+      filing_mode: summary.filing_mode ?? null,
       email_thread_id: summary.email_thread_id ?? null,
       document_ids: summary.document_ids ?? [],
       timeline_event_ids: summary.timeline_event_ids ?? [],
@@ -202,7 +204,6 @@ export function createOutlookOperationReceiptArchive({
       summary,
       completedAtMs: timestamp(summary.completed_at, referenceMs),
       cachedAtMs: referenceMs,
-      verifiedAtMs: referenceMs,
       sequence: sequence++,
     }));
     prune(referenceMs);

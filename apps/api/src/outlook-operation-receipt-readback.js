@@ -7,8 +7,9 @@ import {
 } from "./outlook-operation-receipt-durable-chain.js";
 
 const DIGEST = /^[a-f0-9]{64}$/u;
-const FILE_EVENTS = new Set(["outlook.email.filed", "outlook.email.sent_filed"]);
 const FOLLOWUP_TYPES = new Set(["task", "deadline"]);
+const FILING_MODES = new Set(["manual", "sent"]);
+const FILING_OUTCOMES = new Set(["created", "idempotent_replay"]);
 
 function safeRef(value) {
   if (typeof value !== "string") return "";
@@ -49,12 +50,13 @@ function timelineFor({ entries, type, sourceRef, sourceObjectId, check = () => t
   ));
 }
 
-function summary({ itemContextRef, matterId, operation, outcome, requestId, threadId, documentIds, timelineIds, completedAt }) {
+function summary({ itemContextRef, matterId, operation, outcome, requestId, threadId, documentIds, timelineIds, completedAt, filingMode }) {
   const result = {
     item_context_ref: itemContextRef,
     matter_id: matterId,
     operation,
     outcome,
+    ...(filingMode ? { filing_mode: filingMode } : {}),
     ...(requestId ? { request_id: requestId } : {}),
     ...(threadId ? { email_thread_id: threadId } : {}),
     ...(documentIds?.length ? { document_ids: Object.freeze([...documentIds].sort()) } : {}),
@@ -64,10 +66,25 @@ function summary({ itemContextRef, matterId, operation, outcome, requestId, thre
   return Object.freeze(result);
 }
 
-async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline }) {
+function durableFilingOutcome({ thread, dmsRepository, tenantId, matterId, digest }) {
+  const entry = typeof dmsRepository.getIdempotency === "function"
+    ? dmsRepository.getIdempotency({
+      tenant_id: tenantId,
+      idempotency_key: `outlook-email-file:${thread.email_thread_id}:${digest}:dms`,
+    })
+    : null;
+  const candidate = entry?.response?.outcome
+    ?? (entry?.response?.idempotent_replay === true ? "idempotent_replay" : null)
+    ?? thread.filing_outcome;
+  return FILING_OUTCOMES.has(candidate) ? candidate : "created";
+}
+
+async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument }) {
   if (thread.status !== "active" || !Array.isArray(thread.filed_document_ids) || thread.filed_document_ids.length === 0) return null;
+  if (!FILING_MODES.has(thread.filing_mode)) return null;
   const documents = [];
   for (const documentId of thread.filed_document_ids) {
+    if (!await canReadDocument(documentId)) return null;
     const verified = await resolveVerifiedDocument({ repository: dmsRepository, authority: dmsAuthority, tenantId, matterId, documentId, threadId: thread.email_thread_id });
     if (!verified) return null;
     documents.push(verified);
@@ -101,7 +118,8 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
     itemContextRef,
     matterId,
     operation: "file_email",
-    outcome: "created",
+    outcome: durableFilingOutcome({ thread, dmsRepository, tenantId, matterId, digest }),
+    filingMode: thread.filing_mode,
     requestId: opaqueRef(`outlook-email-file:${thread.email_thread_id}:${digest}`),
     threadId: thread.email_thread_id,
     documentIds: thread.filed_document_ids,
@@ -110,11 +128,12 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
   });
 }
 
-async function attachmentReceipts({ thread, fileSummary, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline }) {
+async function attachmentReceipts({ thread, fileSummary, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument }) {
   if (!fileSummary) return [];
   return Promise.all(dmsRepository.list({ tenant_id: tenantId, model_type: "DmsEmailAttachmentMapping", matter_id: matterId })
     .filter((mapping) => mapping.email_thread_id === thread.email_thread_id)
     .map(async (mapping) => {
+      if (!await canReadDocument(mapping.document_id)) return null;
       const document = await resolveVerifiedDocument({ repository: dmsRepository, authority: dmsAuthority, tenantId, matterId, documentId: mapping.document_id, threadId: thread.email_thread_id, attachmentId: mapping.attachment_id });
       const digest = mapping.sha256;
       if (!document || !DIGEST.test(digest ?? "") || document.version.sha256 !== digest) return null;
@@ -198,7 +217,9 @@ export async function reconstructOutlookOperationReceiptSummaries({
   dmsAuthority,
   matterRepository,
   actor,
+  canReadDocument,
 } = {}) {
+  const readDocument = typeof canReadDocument === "function" ? canReadDocument : async () => false;
   const timeline = visibleTimeline(matterRepository, tenantId, matterId, actor);
   const threads = dmsRepository.list({ tenant_id: tenantId, model_type: "DmsEmailThread", matter_id: matterId })
     .filter((thread) => (
@@ -208,9 +229,9 @@ export async function reconstructOutlookOperationReceiptSummaries({
     ));
   const results = [];
   for (const thread of threads) {
-    const fileSummary = await fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline });
+    const fileSummary = await fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument: readDocument });
     if (fileSummary) results.push(fileSummary);
-    results.push(...(await attachmentReceipts({ thread, fileSummary, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline })).filter(Boolean));
+    results.push(...(await attachmentReceipts({ thread, fileSummary, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument: readDocument })).filter(Boolean));
     for (const candidate of followupRecords({ matterRepository, tenantId, matterId, threadId: thread.email_thread_id })) {
       const receipt = followupReceipt({ candidate, thread, fileSummary, itemContextRef, matterId, tenantId, matterRepository, timeline });
       if (receipt) results.push(receipt);

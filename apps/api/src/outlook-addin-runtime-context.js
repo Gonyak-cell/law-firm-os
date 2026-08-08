@@ -752,6 +752,17 @@ function permissionContextForResource(context, resourceId) {
   };
 }
 
+function outlookDocumentReadDecision({ context, tenantId, matterId, documentId }) {
+  return evaluateOutlookPermission({
+    context: permissionContextForResource(context, documentId),
+    tenant_id: tenantId,
+    matter_id: matterId,
+    resource_type: "dms_document",
+    resource_id: documentId,
+    action: "outlook:document:read",
+  });
+}
+
 function inquiryEvidenceNotFoundResponse({ requestId, auditHintRef }) {
   return errorResponse(
     404,
@@ -2400,6 +2411,21 @@ async function handleOutlookOperationReceiptReadback({ body, context, requestId,
     dmsAuthority: runtime.dmsRuntime.upload_runtime,
     matterRepository: runtime.matterRuntime.repository,
     actor: context?.principal,
+    canReadDocument: async (documentId) => {
+      const collectionDecision = outlookDocumentReadDecision({
+        context,
+        tenantId,
+        matterId,
+        documentId: matterId,
+      });
+      if (collectionDecision.effect !== "allow") return false;
+      return outlookDocumentReadDecision({
+        context,
+        tenantId,
+        matterId,
+        documentId,
+      }).effect === "allow";
+    },
   });
   return items.length
     ? success(200, {
@@ -2791,7 +2817,11 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
         }),
     },
   });
-  const filedThread = result.thread;
+  const filedThread = runtime.dmsRuntime.repository.update({
+    tenant_id: tenantId,
+    model_type: "DmsEmailThread",
+    email_thread_id: result.thread.email_thread_id,
+  }, { filing_outcome: result.outcome });
   writeGate = gate();
   if (writeGate.response) return writeGate.response;
   const timelineEvent = appendMatterTimeline({
@@ -2835,6 +2865,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       actor: context?.principal,
     }),
     idempotent_replay: result.outcome === "idempotent_replay",
+    filing_mode: mode,
     external_send_state: mode === "sent" ? "provider_gated_no_external_send_claim" : "not_applicable",
     email_object_field_contract: OUTLOOK_EMAIL_OBJECT_FIELDS,
   });
@@ -3523,19 +3554,24 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     if (documentsMatch && method === "GET") {
       const matterId = decodeURIComponent(documentsMatch[1]);
       const tenantId = requiredString(query.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
-      const decision = evaluateOutlookPermission({
+      const decision = outlookDocumentReadDecision({
         context,
-        tenant_id: tenantId,
-        matter_id: matterId,
-        resource_type: "dms_document",
-        resource_id: matterId,
-        action: "outlook:document:read",
+        tenantId,
+        matterId,
+        documentId: matterId,
       });
       if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
+      const items = listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId })
+        .filter((document) => outlookDocumentReadDecision({
+          context,
+          tenantId,
+          matterId,
+          documentId: document.document_id,
+        }).effect === "allow");
       return success(200, {
         request_id: requestId,
         outcome: "passed",
-        items: listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId }),
+        items,
         document_bytes_included: false,
       });
     }

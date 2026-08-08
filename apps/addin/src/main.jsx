@@ -1752,7 +1752,13 @@ function App() {
           data-testid="outlook-receipt-recovery"
           data-receipt-operation={receiptRecovery.operation}
         >
-          {receiptRecovery.outcome === "idempotent_replay" ? "이 Matter에 이미 처리된 기록이 있습니다." : "이 Matter의 완료된 기록을 확인했습니다."}
+          {receiptRecovery.filing_mode === "sent"
+            ? receiptRecovery.outcome === "idempotent_replay"
+              ? "이미 보낸 메일을 Matter에 보관했습니다."
+              : "보낸 메일을 Matter에 보관했습니다."
+            : receiptRecovery.outcome === "idempotent_replay"
+              ? "이 Matter에 이미 처리된 기록이 있습니다."
+              : "이 Matter의 완료된 기록을 확인했습니다."}
         </p>
       ) : null}
 

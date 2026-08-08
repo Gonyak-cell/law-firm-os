@@ -3,6 +3,7 @@ const SUMMARY_FIELDS = new Set([
   "matter_id",
   "operation",
   "outcome",
+  "filing_mode",
   "request_id",
   "email_thread_id",
   "document_ids",
@@ -10,6 +11,7 @@ const SUMMARY_FIELDS = new Set([
   "completed_at",
 ]);
 const OPERATIONS = new Set(["file_email", "save_attachments", "create_followup", "operation"]);
+const FILING_MODES = new Set(["manual", "sent"]);
 const OUTCOMES = new Set([
   "created",
   "idempotent_replay",
@@ -59,12 +61,16 @@ export function sanitizeOutlookOperationReceiptSummary(
   const matter = safeRef(summary.matter_id ?? matterId);
   const operation = safeRef(summary.operation);
   const outcome = safeRef(summary.outcome);
+  const hasFilingMode = Object.hasOwn(summary, "filing_mode");
+  const filingMode = hasFilingMode ? safeRef(summary.filing_mode) : operation === "file_email" ? "manual" : "";
   const completedAt = isoDate(summary.completed_at);
   if (
     !/^item-context:[a-f0-9]{16}$/u.test(context)
     || !matter
     || !OPERATIONS.has(operation)
     || !OUTCOMES.has(outcome)
+    || (operation === "file_email" && !FILING_MODES.has(filingMode))
+    || (operation !== "file_email" && filingMode)
     || !completedAt
   ) return null;
   const documentIds = refs(summary.document_ids);
@@ -76,6 +82,7 @@ export function sanitizeOutlookOperationReceiptSummary(
     matter_id: matter,
     operation,
     outcome,
+    ...(hasFilingMode && filingMode ? { filing_mode: filingMode } : {}),
     ...(requestId ? { request_id: requestId } : {}),
     ...(emailThreadId ? { email_thread_id: emailThreadId } : {}),
     ...(documentIds.length ? { document_ids: Object.freeze(documentIds) } : {}),

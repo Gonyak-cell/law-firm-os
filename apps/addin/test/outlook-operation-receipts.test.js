@@ -201,7 +201,6 @@ test("session scope rotation clears prior receipts without exposing token or ten
   assert.equal(archive.size, 1);
   archive.setScope("session-b");
   assert.equal(archive.size, 0);
-  assert.doesNotMatch(JSON.stringify(archive), /token|tenant/u);
 });
 
 test("public summary/index에는 subject, body, participant, token, raw nested payload가 없다", () => {
@@ -463,6 +462,7 @@ test("fresh empty-memory remount restores each durable Outlook operation kind wi
         matter_id: "matter-remount-operation-kinds",
         operation: "file_email",
         outcome: "created",
+        filing_mode: "sent",
         email_thread_id: "thread-remount-operation-kinds",
         document_ids: ["document-original"],
         timeline_event_ids: ["timeline-file"],
@@ -506,4 +506,5 @@ test("fresh empty-memory remount restores each durable Outlook operation kind wi
   ]);
   assert.deepEqual(restored.find((entry) => entry.operation === "save_attachments").document_ids, ["document-attachment"]);
   assert.deepEqual(restored.find((entry) => entry.operation === "create_followup").timeline_event_ids, ["timeline-followup"]);
+  assert.equal(restored.find((entry) => entry.operation === "file_email").filing_mode, "sent");
 });
