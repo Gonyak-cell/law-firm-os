@@ -28,7 +28,7 @@ test("OUTM-34 HTTP webhook fails closed when a same-account locator returns anot
   const state = runtime.repository.loadState();
   const requestA = state.requests[0];
   const requestB = { ...requestA, request_id: "request-api-other", envelope_id: "envelope-api-other", idempotency_key: "send-api-other", payload_sha256: "d".repeat(64), provider_correlation_ref: "docusign-correlation:request-api-other", event_hashes: [] };
-  runtime.repository.replaceState({ ...state, requests: [requestA, requestB] });
+  await runtime.repository.replaceState({ ...state, requests: [requestA, requestB] });
   located = runtime.repository.loadState().requests[1];
   const before = runtime.repository.loadState();
   await withServer(runtime, async (baseUrl) => {

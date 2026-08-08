@@ -15,6 +15,16 @@ const ACTIVE_RECONCILIATION_STATES = Object.freeze([
   "failed",
   "expired",
 ]);
+const COMPLETION_AUTHORITY_REJECTION_CODES = new Set([
+  "DOCUSIGN_PERMISSION_AUTHORITY_CHANGED",
+  "DOCUSIGN_AUDIT_LINEAGE_CHANGED",
+  "DOCUSIGN_COMPLETION_FENCE_LOST",
+  "DOCUSIGN_COMPLETION_BINDING_INVALID",
+  "DOCUSIGN_APPROVED_SOURCE_MISMATCH",
+  "DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED",
+  "DOCUSIGN_REQUEST_NOT_FOUND",
+]);
+const COMPLETION_AUTHORITY_QUARANTINE_SCHEMA = "law-firm-os.dms-completion-authority-quarantine.v1";
 const MAX_UPLOAD_INTENT_GENERATIONS = 32;
 const UPLOAD_INTENT_RETIREMENT_EVENT = "dms.upload_intent.retired";
 const UPLOAD_INTENT_FAMILY_OBJECT = "DmsUploadIntentFamily";
@@ -147,6 +157,11 @@ function safeErrorCode(error, fallback) {
   return typeof code === "string" && /^[A-Z0-9_]+$/u.test(code) ? code : fallback;
 }
 
+function isCompletionAuthorityRejection(error) {
+  return error?.completion_authority_rejection === true
+    || COMPLETION_AUTHORITY_REJECTION_CODES.has(safeErrorCode(error, ""));
+}
+
 function classifyMetadataCommitError(error, stage) {
   const hasSafeErrorCode = typeof error?.safe_error_code === "string"
     && /^[A-Z0-9_]+$/u.test(error.safe_error_code);
@@ -274,6 +289,89 @@ export function createPostgresDmsUploadRuntime({
     { ...transactionOptions, ...options, tenant_id: tenantId },
     callback,
   );
+
+  async function quarantineCompletionAuthorityUpload(session, error) {
+    const quarantinedAt = timestamp(clock);
+    const safeCode = safeErrorCode(error, "DMS_COMPLETION_AUTHORITY_REJECTED");
+    const initialReceipt = {
+      schema_version: COMPLETION_AUTHORITY_QUARANTINE_SCHEMA,
+      kind: "completion_authority_rejection",
+      session_id: session.session_id,
+      object_id: session.object_id,
+      expected_sha256: session.expected_sha256,
+      safe_error_code: safeCode,
+      quarantined_at: quarantinedAt,
+      cleanup_state: "pending",
+    };
+    let terminal;
+    try {
+      terminal = await transact(session.tenant_id, async (client) => {
+        const locked = await selectSession(client, session.tenant_id, session.session_id, { lock: true });
+        if (locked.state === "finalized") return locked;
+        if (locked.state === "failed_terminal" && locked.dead_letter_receipt?.schema_version === COMPLETION_AUTHORITY_QUARANTINE_SCHEMA) return locked;
+        const result = await client.query(
+          `UPDATE lawos_dms.upload_sessions
+              SET state = 'failed_terminal', retryable = false,
+                  provider_finalize_owner = NULL, provider_finalize_token = NULL,
+                  provider_finalize_lease_expires_at = NULL,
+                  stage_lease_owner = NULL, stage_lease_token = NULL,
+                  stage_lease_expires_at = NULL,
+                  reconcile_owner = NULL, reconcile_lease_expires_at = NULL,
+                  next_attempt_at = $3::timestamptz, last_error_code = $4,
+                  failed_terminal_at = $3::timestamptz,
+                  dead_letter_receipt = $5::jsonb, updated_at = $3::timestamptz
+            WHERE tenant_id = $1 AND session_id = $2
+            RETURNING *`,
+          [session.tenant_id, session.session_id, quarantinedAt, safeCode, JSON.stringify(initialReceipt)],
+        );
+        return rowToSession(result.rows[0]);
+      });
+    } catch (quarantineError) {
+      error.quarantine_error_code = safeErrorCode(quarantineError, "DMS_COMPLETION_AUTHORITY_QUARANTINE_FAILED");
+      return null;
+    }
+    if (!terminal || terminal.state === "finalized") return terminal;
+
+    let cleanupState = "deleted";
+    let cleanupErrorCode = null;
+    let committedObjectDeleted = false;
+    let stagedObjectDeleted = false;
+    try {
+      const committed = await storage.statObject({ tenant_id: terminal.tenant_id, object_id: terminal.object_id });
+      if (committed) {
+        const deletion = await storage.deleteCommittedObject({ tenant_id: terminal.tenant_id, object_id: terminal.object_id, expected_sha256: terminal.expected_sha256 });
+        if (!deletion?.deleted && !deletion?.already_absent) throw codedError("quarantined DMS object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
+        committedObjectDeleted = deletion.deleted === true;
+      }
+      const staged = await storage.statStagedObject({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
+      if (staged) {
+        const deletion = await storage.deleteOrphan({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
+        if (deletion?.committed_object_deleted) throw codedError("storage adapter violated quarantine cleanup boundary", "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION", 500);
+        stagedObjectDeleted = deletion?.deleted === true;
+      }
+    } catch (cleanupError) {
+      cleanupState = "pending";
+      cleanupErrorCode = safeErrorCode(cleanupError, "DMS_COMPLETION_AUTHORITY_CLEANUP_FAILED");
+    }
+    const finalReceipt = {
+      ...initialReceipt,
+      cleanup_state: cleanupState,
+      cleanup_error_code: cleanupErrorCode,
+      committed_object_deleted: committedObjectDeleted,
+      staged_object_deleted: stagedObjectDeleted,
+    };
+    try {
+      await transact(terminal.tenant_id, (client) => client.query(
+        `UPDATE lawos_dms.upload_sessions
+            SET dead_letter_receipt = $3::jsonb, updated_at = $4::timestamptz
+          WHERE tenant_id = $1 AND session_id = $2 AND state = 'failed_terminal'`,
+        [terminal.tenant_id, terminal.session_id, JSON.stringify(finalReceipt), quarantinedAt],
+      ));
+    } catch (quarantineError) {
+      error.quarantine_error_code = safeErrorCode(quarantineError, "DMS_COMPLETION_AUTHORITY_QUARANTINE_FAILED");
+    }
+    return Object.freeze({ ...terminal, dead_letter_receipt: finalReceipt });
+  }
 
   async function getUploadSession({ tenant_id, session_id } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
@@ -1269,50 +1367,55 @@ export function createPostgresDmsUploadRuntime({
       actor_id: actorId,
       expires_at: expires_at ?? nextUploadExpiry(),
     });
-    await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer, beforePersist });
-    const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id, beforePersist });
-    const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
-    if (!state) throw codedError("DMS document metadata was not published", "DMS_DOCUMENT_NOT_FOUND", 404);
-    const version = state.versions.find((item) => item.version_id === versionId);
-    const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
-    if (!version || !fileObject) throw codedError("DMS committed version is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
-    const { storage_pointer_ref: _storagePointerRef, ...safeFileObject } = fileObject;
-    const storageReceipt = Object.freeze({
-      adapter_id: finalized.receipt.adapter_id,
-      tenant_id: finalized.receipt.tenant_id,
-      object_id: finalized.receipt.object_id,
-      sha256: finalized.receipt.sha256,
-      byte_size: Number(finalized.receipt.byte_size),
-      mime_type: finalized.receipt.mime_type,
-      raw_path_exposed: false,
-      storage_pointer_ref_included: false,
-    });
-    return Object.freeze({
-      outcome: created.replayed || finalized.replayed ? "idempotent_replay" : "created",
-      document: Object.freeze({
-        ...document,
-        ...state.document,
-        current_version_id: versionId,
-        latest_sha256: version.sha256,
-        owner_user_id: document.owner_user_id ?? actorId,
-      }),
-      version,
-      file_object: Object.freeze({
-        ...safeFileObject,
-        mime_type: safeFileObject.content_type,
+    try {
+      await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer, beforePersist });
+      const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id, beforePersist });
+      const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
+      if (!state) throw codedError("DMS document metadata was not published", "DMS_DOCUMENT_NOT_FOUND", 404);
+      const version = state.versions.find((item) => item.version_id === versionId);
+      const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
+      if (!version || !fileObject) throw codedError("DMS committed version is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
+      const { storage_pointer_ref: _storagePointerRef, ...safeFileObject } = fileObject;
+      const storageReceipt = Object.freeze({
+        adapter_id: finalized.receipt.adapter_id,
+        tenant_id: finalized.receipt.tenant_id,
+        object_id: finalized.receipt.object_id,
+        sha256: finalized.receipt.sha256,
+        byte_size: Number(finalized.receipt.byte_size),
+        mime_type: finalized.receipt.mime_type,
         raw_path_exposed: false,
         storage_pointer_ref_included: false,
-      }),
-      storage_receipt: storageReceipt,
-      audit_event: Object.freeze({
-        event_id: `audit:${created.session.session_id}:finalized`,
-        raw_payload_included: false,
-      }),
-      idempotent_replay: created.replayed || finalized.replayed === true,
-      upload_session_id: created.session.session_id,
-      provider_finalize_before_metadata: true,
-      independent_digest_readback: true,
-    });
+      });
+      return Object.freeze({
+        outcome: created.replayed || finalized.replayed ? "idempotent_replay" : "created",
+        document: Object.freeze({
+          ...document,
+          ...state.document,
+          current_version_id: versionId,
+          latest_sha256: version.sha256,
+          owner_user_id: document.owner_user_id ?? actorId,
+        }),
+        version,
+        file_object: Object.freeze({
+          ...safeFileObject,
+          mime_type: safeFileObject.content_type,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+        }),
+        storage_receipt: storageReceipt,
+        audit_event: Object.freeze({
+          event_id: `audit:${created.session.session_id}:finalized`,
+          raw_payload_included: false,
+        }),
+        idempotent_replay: created.replayed || finalized.replayed === true,
+        upload_session_id: created.session.session_id,
+        provider_finalize_before_metadata: true,
+        independent_digest_readback: true,
+      });
+    } catch (error) {
+      if (isCompletionAuthorityRejection(error)) await quarantineCompletionAuthorityUpload(created.session, error);
+      throw error;
+    }
   }
 
   async function assertOrphanCleanupAllowed(client, session, now) {

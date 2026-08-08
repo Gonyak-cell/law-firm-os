@@ -53,7 +53,7 @@ test("OUTM-34 rejects a same-account cross-envelope locator before receipt, proj
     const state = runtime.repository.loadState();
     const requestA = state.requests[0];
     const requestB = { ...requestA, request_id: "esign-request-002", envelope_id: "envelope-002", idempotency_key: "esign-send-002", payload_sha256: "c".repeat(64), provider_correlation_ref: "docusign-correlation:esign-request-002", event_hashes: [] };
-    runtime.repository.replaceState({ ...state, requests: [requestA, requestB] });
+    await runtime.repository.replaceState({ ...state, requests: [requestA, requestB] });
     const resolver = async () => runtime.repository.loadState().requests[1];
     const events = createDocusignEnvelopeEventService({ repository: runtime.repository, connectionResolver: async () => CONNECTION, webhookRequestResolver: resolver, resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null, adapter: runtime.adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, approvedDocumentResolver: async () => approvedSource(), clock: () => runtime.now.value });
     const before = runtime.repository.loadState();

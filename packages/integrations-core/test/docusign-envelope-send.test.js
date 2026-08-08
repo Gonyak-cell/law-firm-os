@@ -53,7 +53,7 @@ test("OUTM-33 restart never blindly sends a draft persisted before process loss"
   await service.queueApprovedRequest(approvedInput());
   const state = repository.loadState();
   state.requests[0] = { ...state.requests[0], state: "provider_pending", attempt_phase: "draft_persisted", envelope_id: "envelope-persisted-before-loss" };
-  repository.replaceState(state);
+  await repository.replaceState(state);
   await service.sendApprovedRequest({ principal: { tenant_id: TENANT, actor_id: "actor-owner" }, request_id: "esign-request-001", explicit_human_action: true });
   assert.equal(repository.loadState().requests[0].state, "reconciliation_required");
   assert.equal(sendCalls, 0);

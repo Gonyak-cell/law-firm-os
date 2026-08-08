@@ -1,3 +1,5 @@
+import { basename, dirname, resolve } from "node:path";
+import { realpathSync } from "node:fs";
 import { createDurableJsonStateController, isDurableStoreConflict } from "../../persistence/src/durable-file.js";
 import { cloneDocusignValue, docusignInfrastructureFailure, normalizeDocusignOutboxState } from "./docusign-envelope-model.js";
 import { assertCompletionAuthority } from "./docusign-completion-authority.js";
@@ -5,6 +7,12 @@ import { assertCompletionAuthority } from "./docusign-completion-authority.js";
 const MAX_CAS_ATTEMPTS = 12;
 const EMPTY_STATE = Object.freeze({ requests: Object.freeze([]), webhook_receipts: Object.freeze([]) });
 const DURABLE_COMPLETION_LOCKS = new Map();
+
+function canonicalFilePath(filePath) {
+  const absolute = resolve(String(filePath));
+  try { return realpathSync.native(absolute); } catch {}
+  try { return resolve(realpathSync.native(dirname(absolute)), basename(absolute)); } catch { return absolute; }
+}
 
 function completionLock(scope = null) {
   const locks = scope == null ? new Map() : DURABLE_COMPLETION_LOCKS.get(scope) ?? new Map();
@@ -27,15 +35,16 @@ function completionLock(scope = null) {
 }
 
 export function createDocusignEnvelopeRepository({ filePath, state } = {}) {
+  const durableFilePath = filePath == null ? undefined : canonicalFilePath(filePath);
   const controller = createDurableJsonStateController({
-    filePath,
+    filePath: durableFilePath,
     defaultValue: state ?? EMPTY_STATE,
     normalizeValue: normalizeDocusignOutboxState,
   });
-  const locks = completionLock(filePath == null ? null : `docusign:${String(filePath)}`);
-  const snapshot = () => cloneDocusignValue(filePath ? controller.reload().value : controller.value);
+  const locks = completionLock(durableFilePath == null ? null : `docusign:${durableFilePath}`);
+  const snapshot = () => cloneDocusignValue(durableFilePath ? controller.reload().value : controller.value);
   const runWithLock = (tenantId, callback) => {
-    const key = String(tenantId ?? "");
+    const key = "__docusign_state__";
     const pending = locks.acquire(key);
     const runAsync = async (result) => {
       try { return await result; }
@@ -57,11 +66,14 @@ export function createDocusignEnvelopeRepository({ filePath, state } = {}) {
   };
   const currentRequest = (tenantId, requestId) => snapshot().requests.find((item) => item.tenant_id === tenantId && item.request_id === requestId);
   return Object.freeze({
-    durable: Boolean(filePath),
+    durable: Boolean(durableFilePath),
     loadState: snapshot,
     replaceState(nextState) {
-      controller.commit(normalizeDocusignOutboxState(nextState));
-      return cloneDocusignValue(controller.value);
+      const normalized = normalizeDocusignOutboxState(nextState);
+      return runWithLock(null, () => {
+        controller.commit(normalized);
+        return cloneDocusignValue(controller.value);
+      });
     },
     transact({ tenant_id } = {}, mutate) {
       if (typeof mutate !== "function") throw new TypeError("DocuSign transaction callback is required");
