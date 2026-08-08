@@ -76,6 +76,8 @@ export const OUTLOOK_ADDIN_MAX_MIME_BYTES = 3 * 1024 * 1024;
 export const OUTLOOK_ADDIN_MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 
 const DEFAULT_LIMIT = 12;
+const MAX_OUTLOOK_MATTER_SEARCH_LIMIT = 50;
+const MAX_OUTLOOK_MATTER_SEARCH_QUERY_LENGTH = 120;
 const MATTER_FOLDER_NAMES = Object.freeze([
   "00_Email",
   "10_Pleadings",
@@ -99,6 +101,26 @@ function requiredString(value, field) {
 function optionalString(value, fallback = null) {
   const text = typeof value === "string" ? value.trim() : "";
   return text || fallback;
+}
+
+function boundedMatterSearchQuery(value) {
+  const query = String(value ?? "")
+    .normalize("NFKC")
+    .replace(/[\u0000-\u001f\u007f]/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+  if (query.length > MAX_OUTLOOK_MATTER_SEARCH_QUERY_LENGTH) {
+    throw new TypeError("matter search query is too long");
+  }
+  return query;
+}
+
+function boundedMatterSearchLimit(value) {
+  const limit = Number(value ?? DEFAULT_LIMIT);
+  if (!Number.isSafeInteger(limit) || limit < 1) {
+    throw new TypeError("matter search limit must be a positive integer");
+  }
+  return Math.min(limit, MAX_OUTLOOK_MATTER_SEARCH_LIMIT);
 }
 
 function safeId(value, fallback = "outlook") {
@@ -934,11 +956,11 @@ function searchMatters({ repository, tenant_id, query = "", context } = {}) {
     .filter((matter) => ["open", "opening", "paused"].includes(matter.status))
     .filter((matter) => {
       if (!needle) return true;
-      return [matter.matter_id, matter.matter_code, matter.title, matter.matter_name, matter.client_display_name]
+      return [matter.matter_code, matter.title, matter.matter_name, matter.client_display_name]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle));
     });
-  const { allowed, omittedCount } = trimItemsByPermission({
+  const { allowed } = trimItemsByPermission({
     context,
     items: records.map((record) => ({ ...record, resource_id: record.matter_id })),
     action: "outlook:matter:read",
@@ -946,7 +968,6 @@ function searchMatters({ repository, tenant_id, query = "", context } = {}) {
   });
   return Object.freeze({
     items: Object.freeze(allowed.map(matterSummary)),
-    omitted_count: omittedCount,
     count_leak_prevented: true,
   });
 }
@@ -2129,13 +2150,19 @@ function handleMatterSearch({ query, context, requestId, runtime }) {
     action: "outlook:matter:search",
   });
   if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
-  const search = searchMatters({ repository: runtime.matterRuntime.repository, tenant_id: tenantId, query: query.q ?? query.query, context });
+  const searchQuery = boundedMatterSearchQuery(query.q ?? query.query);
+  const limit = boundedMatterSearchLimit(query.limit);
+  const search = searchMatters({
+    repository: runtime.matterRuntime.repository,
+    tenant_id: tenantId,
+    query: searchQuery,
+    context,
+  });
   return success(200, {
     request_id: requestId,
     outcome: "passed",
-    items: search.items.slice(0, Number(query.limit ?? DEFAULT_LIMIT)),
-    omitted_count: search.omitted_count,
-    page_info: { limit: Number(query.limit ?? DEFAULT_LIMIT), has_more: false },
+    items: search.items.slice(0, limit),
+    page_info: { limit, has_more: search.items.length > limit },
     count_leak_prevented: true,
   });
 }

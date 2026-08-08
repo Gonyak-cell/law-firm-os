@@ -360,24 +360,33 @@ function outlookSessionAuth() {
     role_ids: Object.freeze(["outlook_addin_user"]),
     scopes: Object.freeze(["matter.read", "matter.write"]),
   });
-  const context = Object.freeze({
+  const contextFor = (filteredSearch = false) => Object.freeze({
     principal,
     rules: Object.freeze([Object.freeze({
       id: "outlook-addin-test-allow",
       effect: "allow",
       action: "*",
     })]),
-    object_acl: Object.freeze([]),
+    object_acl: filteredSearch
+      ? Object.freeze([Object.freeze({
+        id: "outlook-addin-test-deny-separate-matter",
+        effect: "deny",
+        principal_id: ACTOR,
+        resource_id: OTHER_MATTER,
+        action: "outlook:matter:read",
+      })])
+      : Object.freeze([]),
   });
   return Object.freeze({
     async resolvePermissionContextFromHeaders(headers) {
-      if (headers.authorization !== "Bearer outlook-provenance-session") {
+      const filteredSearch = headers.authorization === "Bearer outlook-search-filter-session";
+      if (headers.authorization !== "Bearer outlook-provenance-session" && !filteredSearch) {
         return Object.freeze({ ok: false, status: 401 });
       }
       return Object.freeze({
         ok: true,
         principal,
-        context,
+        context: contextFor(filteredSearch),
         token_payload: Object.freeze({ surface: "outlook_addin" }),
       });
     },
@@ -1355,9 +1364,58 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     assert.equal(bootstrap.item.taskpane_loaded, true);
     assert.equal(bootstrap.item.external_receipt_boundary.entra_admin_consent_receipt_present, false);
 
-    const matters = await json(`/api/outlook/matters?tenant_id=${TENANT}&q=OUTLOOK`);
-    assert.equal(matters.items.length, 1);
-    assert.equal(matters.items[0].matter_id, MATTER);
+    for (const [query, expectedMatterIds] of [
+      ["OUTLOOK/LIT/CIV", [MATTER]],
+      ["Add-in filing test", [MATTER]],
+      ["오피스 애드인 테스트 고객", [MATTER, OTHER_MATTER]],
+    ]) {
+      const matters = await json(
+        `/api/outlook/matters?tenant_id=${TENANT}&q=${encodeURIComponent(query)}`,
+      );
+      assert.deepEqual(
+        matters.items.map((entry) => entry.matter_id),
+        expectedMatterIds,
+      );
+    }
+
+    const foreignTenant = await fetch(
+      `${baseUrl}/api/outlook/matters?tenant_id=tenant_foreign&q=OUTLOOK`,
+      { headers: sessionHeaders },
+    );
+    const foreignTenantBody = await foreignTenant.json();
+    assert.equal(foreignTenant.status, 403);
+    assert.deepEqual(foreignTenantBody.safe_error_codes, ["OUTLOOK_ADDIN_PERMISSION_DENIED"]);
+    assert.equal(foreignTenantBody.item, null);
+    assert.equal("omitted_count" in foreignTenantBody, false);
+
+    const filteredMatters = await jsonFetch(
+      baseUrl,
+      `/api/outlook/matters?q=${encodeURIComponent("오피스")}&limit=9999`,
+      {},
+      { authorization: "Bearer outlook-search-filter-session" },
+    );
+    assert.deepEqual(filteredMatters.items.map((entry) => entry.matter_id), [MATTER]);
+    assert.equal(filteredMatters.page_info.limit <= 50, true);
+    assert.equal("omitted_count" in filteredMatters, false);
+    assert.equal("denied_count" in filteredMatters, false);
+    assert.equal(
+      JSON.stringify(filteredMatters).includes(OTHER_MATTER),
+      false,
+    );
+    for (const entry of filteredMatters.items) {
+      for (const forbidden of ["bytes", "content", "document_bytes", "storage_pointer", "storage_pointer_ref"]) {
+        assert.equal(forbidden in entry, false);
+      }
+    }
+
+    const oversizedQuery = await fetch(
+      `${baseUrl}/api/outlook/matters?q=${"x".repeat(121)}`,
+      { headers: sessionHeaders },
+    );
+    const oversizedQueryBody = await oversizedQuery.json();
+    assert.equal(oversizedQuery.status, 400);
+    assert.deepEqual(oversizedQueryBody.safe_error_codes, ["OUTLOOK_ADDIN_VALIDATION_ERROR"]);
+    assert.equal(JSON.stringify(oversizedQueryBody).includes("x".repeat(121)), false);
 
     await t.test("provider message identity mismatch fails before thread or object storage", async () => {
       const identityMismatch = await fetch(`${baseUrl}/api/outlook/email/file`, {
