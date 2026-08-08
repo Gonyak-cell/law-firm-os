@@ -2395,7 +2395,7 @@ function buildOutlookOperationReceiptSummary({ item, canonicalGraphMessageId, ma
 
 async function handleOutlookOperationReceiptReadback({ body, context, requestId, runtime }) {
   const matterId = requiredString(body.matter_id, "matter_id");
-  const item = body.item;
+  const item = body.current_item;
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     return emptyOutlookOperationReceiptReadback({ requestId });
   }
@@ -3555,45 +3555,22 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
       if (
         !hasOnlyBodyFields(body, [
           "audit_hint_ref",
+          "current_item",
+          "matter_id",
+        ])
+        || !hasOnlyBodyFields(body.current_item, [
           "conversation_id",
           "canonical_graph_message_id",
           "internet_message_id",
-          "item",
-          "current_item",
-          "matter_id",
           "mode",
           "provenance",
           "rest_message_id",
         ])
-        || (body.item && !hasOnlyBodyFields(body.item, [
-          "conversation_id",
-          "canonical_graph_message_id",
-          "internet_message_id",
-          "mode",
-          "provenance",
-          "rest_message_id",
-        ]))
-        || (body.current_item && !hasOnlyBodyFields(body.current_item, [
-          "conversation_id",
-          "canonical_graph_message_id",
-          "internet_message_id",
-          "mode",
-          "provenance",
-          "rest_message_id",
-        ]))
       ) {
         return emptyOutlookOperationReceiptReadback({ requestId });
       }
-      const item = body.item ?? body.current_item ?? {
-        conversation_id: body.conversation_id,
-        canonical_graph_message_id: body.canonical_graph_message_id,
-        internet_message_id: body.internet_message_id,
-        mode: body.mode,
-        provenance: body.provenance,
-        rest_message_id: body.rest_message_id,
-      };
       return await handleOutlookOperationReceiptReadback({
-        body: { ...body, item },
+        body,
         context,
         requestId,
         runtime,

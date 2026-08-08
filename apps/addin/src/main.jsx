@@ -63,11 +63,8 @@ import {
   createOutlookOperationSnapshot,
   isOutlookOperationSnapshotContextCurrent,
   isSameOutlookItem,
-  outlookItemContextKey,
   outlookItemChangeDisposition,
   outlookItemIdentityKey,
-  outlookOperationReceiptCanonicalGraphMessageId,
-  reconcileOutlookOperationResult,
   subscribeToOutlookItemChanges,
 } from "./outlook-item-events.js";
 import {
@@ -77,11 +74,7 @@ import {
   outlookMatterSelectionForContext,
   revalidateOutlookMatterSelection,
 } from "./outlook-matter-search.js";
-import {
-  createOutlookOperationItemContextRef,
-  createOutlookOperationReceiptArchive,
-} from "./outlook-operation-receipts.js";
-import { sanitizeOutlookOperationReceiptSummary } from "./outlook-operation-receipt-readback.js";
+import { createOutlookOperationReceiptController } from "./outlook-operation-receipt-controller.js";
 import {
   DEFAULT_ADDIN_API_TIMEOUT_MS,
   fetchAddinApi,
@@ -609,10 +602,11 @@ function App() {
   const canonicalIdentityRef = useRef(null);
   const operationEpochRef = useRef(0);
   const activeOperationStartKeyRef = useRef("");
-  const completedOperationReceiptsRef = useRef(null);
-  if (!completedOperationReceiptsRef.current) {
-    completedOperationReceiptsRef.current = createOutlookOperationReceiptArchive();
+  const receiptControllerRef = useRef(null);
+  if (!receiptControllerRef.current) {
+    receiptControllerRef.current = createOutlookOperationReceiptController({ requestJson });
   }
+  const receiptController = receiptControllerRef.current;
   const itemContextRef = useRef(null);
   const [item, setItem] = useState(() => officeItemSnapshot());
   const [officeReadyEpoch, setOfficeReadyEpoch] = useState(0);
@@ -648,7 +642,7 @@ function App() {
   }, []);
 
   useEffect(() => () => {
-    completedOperationReceiptsRef.current.clear();
+    receiptController.clear({ rotateScope: false });
   }, []);
 
   function resetItemActionResults() {
@@ -660,7 +654,7 @@ function App() {
   }
 
   function clearCompletedReceiptArchive() {
-    completedOperationReceiptsRef.current.clear();
+    receiptController.clear();
     setReceiptRecovery(null);
   }
 
@@ -720,32 +714,13 @@ function App() {
       });
       setItem(pinnedItem);
     }
-    const itemContextRef = operationItemContextRef(pinnedItem);
-    const readback = await requestJson("/api/outlook/operation-receipts/readback", {
-      method: "POST",
-      body: {
-        matter_id: matterId,
-        item: {
-          rest_message_id: pinnedItem.rest_message_id,
-          canonical_graph_message_id: pinnedItem.canonical_graph_message_id,
-          internet_message_id: pinnedItem.internet_message_id,
-          conversation_id: pinnedItem.conversation_id,
-          mode: pinnedItem.mode,
-          provenance: pinnedItem.provenance,
-        },
-      },
+    const receipts = await receiptController.restore({
+      matterId,
+      currentItem: pinnedItem,
+      isCurrent: () => isSameOutlookItem(pinnedItem, officeItemSnapshot()),
     });
     if (!isSameOutlookItem(pinnedItem, officeItemSnapshot())) return;
-    if (itemContextRef && Array.isArray(readback.items)) {
-      for (const summary of readback.items) {
-        const sanitized = sanitizeOutlookOperationReceiptSummary(summary);
-        if (
-          sanitized
-          && sanitized.item_context_ref === itemContextRef
-          && sanitized.matter_id === matterId
-        ) completedOperationReceiptsRef.current.recordSummary(sanitized);
-      }
-    }
+    setReceiptRecovery(receipts[0] ?? null);
     await refreshMatter(matterId, { receiptReadbackItem: pinnedItem });
   }
 
@@ -1019,6 +994,7 @@ function App() {
     try {
       const session = await acquireLawosSession({ interactive: true, force: true });
       if (!session?.authenticated) throw createAddinAuthError("AUTH_SESSION_REQUIRED", "AMIC OS 로그인을 확인해 주세요.");
+      clearCompletedReceiptArchive();
       setAuthState(AUTH_STATE.authenticated);
       try {
         await refreshGraphConnection();
@@ -1183,33 +1159,17 @@ function App() {
     });
   }
 
-  function operationItemContextRef(currentItem) {
-    return createOutlookOperationItemContextRef({
-      itemContextKey: outlookItemContextKey(outlookItemContext(currentItem)),
-      canonicalGraphMessageId: currentItem?.canonical_graph_message_id,
-    });
-  }
-
   function syncCompletedReceiptRecovery({
     currentItem = currentOfficeItemSnapshot(),
     matterId = selectedMatterForItem(currentItem)?.matter_id,
     timeline,
     documents,
   } = {}) {
-    const itemContextRef = operationItemContextRef(currentItem);
-    if (!itemContextRef || !matterId) {
+    if (!currentItem || !matterId) {
       setReceiptRecovery(null);
       return Object.freeze([]);
     }
-    const archive = completedOperationReceiptsRef.current;
-    const receipts = Array.isArray(timeline) || Array.isArray(documents)
-      ? archive.reconcileReadback({
-        itemContextRef,
-        matterId,
-        timeline,
-        documents,
-      })
-      : archive.listForContext({ itemContextRef, matterId });
+    const receipts = receiptController.sync({ currentItem, matterId, timeline, documents });
     setReceiptRecovery(receipts[0] ?? null);
     return receipts;
   }
@@ -1231,26 +1191,15 @@ function App() {
   }
 
   function reconcileOperationReceipt(operationSnapshot, receipt, operation = "operation") {
-    const stored = completedOperationReceiptsRef.current.record({
+    const reconciliation = receiptController.recordCompletion({
       operationSnapshot,
       receipt,
       operation,
-    });
-    const currentItem = currentOfficeItemSnapshot();
-    const currentMatter = selectedMatterForItem(currentItem);
-    const result = reconcileOutlookOperationResult({
-      snapshot: operationSnapshot,
-      currentItem,
-      currentMode: currentItem?.mode,
-      currentProvenance: currentItem?.provenance,
-      currentMatterId: currentMatter?.matter_id,
+      currentItem: currentOfficeItemSnapshot(),
+      currentMatterId: selectedMatterForItem(currentOfficeItemSnapshot())?.matter_id,
       currentOperationStartKey: activeOperationStartKeyRef.current,
-      currentCanonicalGraphMessageId:
-        currentItem?.canonical_graph_message_id,
-      actualCanonicalGraphMessageId:
-        outlookOperationReceiptCanonicalGraphMessageId(receipt),
-      receipt,
     });
+    const { stored, result } = reconciliation;
     if (!result.apply_to_current_view) {
       setReceiptRecovery(null);
       throw Object.assign(actionContextChangedError(), {
@@ -1422,11 +1371,7 @@ function App() {
       errorMessage: outlookActionErrorMessage,
       assertOperationCurrent: () =>
         assertOperationContextCurrent(operationSnapshot),
-      onReceipt: (receipt) => {
-        // The two-argument form remains the stable controller contract.
-        // reconcileOperationReceipt(operationSnapshot, receipt)
-        return reconcileOperationReceipt(operationSnapshot, receipt, "save_attachments");
-      },
+      onReceipt: (receipt) => reconcileOperationReceipt(operationSnapshot, receipt, "save_attachments"),
     });
     reconcileOperationReceipt(operationSnapshot, result, "save_attachments");
     setAttachmentResult(result);

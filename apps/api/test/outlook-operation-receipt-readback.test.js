@@ -142,7 +142,7 @@ function runtimeFixture() {
 function readbackBody(overrides = {}) {
   return {
     matter_id: MATTER,
-    item: {
+    current_item: {
       rest_message_id: REST_ID,
       canonical_graph_message_id: CANONICAL_ID,
       internet_message_id: INTERNET_ID,
@@ -186,20 +186,26 @@ test("operation receipt readback revalidates identity, returns only durable safe
   assert.equal(fixture.dmsRepository.list({ model_type: "DmsEmailThread" }).length, beforeIdempotency);
 });
 
-test("operation receipt readback also accepts a flat captured-item assertion without exposing it", async () => {
+test("operation receipt readback rejects flat, alias, mixed, and unknown input schemas", async () => {
   const fixture = runtimeFixture();
-  const item = readbackBody().item;
-  const response = await handleOutlookAddinApiRequest({
-    pathname: "/api/outlook/operation-receipts/readback",
-    method: "POST",
-    body: { matter_id: MATTER, ...item },
-    requestId: "request:readback-flat",
-    context: fixture.context,
-    runtime: fixture.runtime,
-  });
-  assert.equal(response.status, 200);
-  assert.equal(response.body.items.length, 1);
-  assert.equal(JSON.stringify(response.body).includes(REST_ID), false);
+  for (const body of [
+    { matter_id: MATTER, ...readbackBody().current_item },
+    { ...readbackBody(), item: readbackBody().current_item },
+    { ...readbackBody(), current_item: readbackBody().current_item, rest_message_id: REST_ID },
+    { ...readbackBody(), unknown: "reject" },
+  ]) {
+    const response = await handleOutlookAddinApiRequest({
+      pathname: "/api/outlook/operation-receipts/readback",
+      method: "POST",
+      body,
+      requestId: "request:readback-schema",
+      context: fixture.context,
+      runtime: fixture.runtime,
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.body.outcome, "empty");
+    assert.deepEqual(response.body.items, []);
+  }
 });
 
 test("operation receipt readback returns safe empty for provider identity mismatch and permission denial", async () => {

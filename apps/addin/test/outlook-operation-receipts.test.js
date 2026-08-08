@@ -7,6 +7,7 @@ import {
   sanitizeOutlookOperationReceipt,
 } from "../src/outlook-operation-receipts.js";
 import { sanitizeOutlookOperationReceiptSummary } from "../src/outlook-operation-receipt-readback.js";
+import { createOutlookOperationReceiptController } from "../src/outlook-operation-receipt-controller.js";
 import {
   createOutlookOperationSnapshot,
   outlookItemContextKey,
@@ -20,6 +21,8 @@ function item(suffix) {
     canonical_graph_message_id: `immutable-${suffix}`,
     internet_message_id: `<message-${suffix}@example.invalid>`,
     conversation_id: `conversation-${suffix}`,
+    mode: "read",
+    provenance: "received",
   };
 }
 
@@ -167,6 +170,40 @@ test("archive는 count와 TTL을 모두 사용해 deterministic eviction한다",
   assert.equal(archive.size, 0);
 });
 
+test("rehydrated old completed_at gets a fresh cached TTL while provenance stays immutable", () => {
+  let now = 10_000;
+  const archive = createOutlookOperationReceiptArchive({ ttlMs: 10, now: () => now });
+  const operationSnapshot = snapshot("old-readback");
+  const summary = sanitizeOutlookOperationReceiptSummary({
+    item_context_ref: contextRef(operationSnapshot),
+    matter_id: operationSnapshot.matter_id,
+    operation: "file_email",
+    outcome: "created",
+    email_thread_id: "thread-old-readback",
+    completed_at: "1970-01-01T00:00:00.000Z",
+  });
+  archive.recordSummary(summary);
+  assert.equal(archive.listForContext({ itemContextRef: contextRef(operationSnapshot), matterId: operationSnapshot.matter_id })[0].completed_at, "1970-01-01T00:00:00.000Z");
+  now += 9;
+  assert.equal(archive.size, 1);
+  now += 1;
+  assert.equal(archive.size, 0);
+});
+
+test("session scope rotation clears prior receipts without exposing token or tenant", () => {
+  const archive = createOutlookOperationReceiptArchive({ scopeRef: "session-a" });
+  const operationSnapshot = snapshot("session-scope");
+  archive.record({
+    operationSnapshot,
+    operation: "file_email",
+    receipt: { outcome: "created", email_thread_id: "thread-session" },
+  });
+  assert.equal(archive.size, 1);
+  archive.setScope("session-b");
+  assert.equal(archive.size, 0);
+  assert.doesNotMatch(JSON.stringify(archive), /token|tenant/u);
+});
+
 test("public summary/index에는 subject, body, participant, token, raw nested payload가 없다", () => {
   const operationSnapshot = snapshot("safe");
   const summary = sanitizeOutlookOperationReceipt({
@@ -240,4 +277,71 @@ test("server readback restores only an exact sanitized summary into the bounded 
     ...restored,
     subject: "PII must be rejected",
   }), null);
+});
+
+test("controller quarantines A completion from B and restores it only after fresh remount readback", async () => {
+  const original = item("controller-a");
+  const other = item("controller-b");
+  const originalSnapshot = snapshot("controller-a", "matter-controller-a", "operation-controller-a");
+  const archive = createOutlookOperationReceiptArchive({ scopeRef: "session-a" });
+  const requests = [];
+  const controller = createOutlookOperationReceiptController({
+    archive,
+    requestJson: async (_path, options) => {
+      requests.push(options);
+      return { items: [] };
+    },
+  });
+  const stale = controller.recordCompletion({
+    operationSnapshot: originalSnapshot,
+    receipt: {
+      outcome: "created",
+      request_id: "request-controller-a",
+      email_thread: { email_thread_id: "thread-controller-a" },
+      document_id: "document-controller-a",
+      timeline_event_id: "timeline-controller-a",
+    },
+    operation: "file_email",
+    currentItem: other,
+    currentMatterId: "matter-controller-b",
+    currentOperationStartKey: "operation-controller-b",
+  });
+  assert.equal(stale.result.apply_to_current_view, false);
+  assert.equal(stale.result.rollback_requested, false);
+  assert.deepEqual(controller.sync({ currentItem: other, matterId: "matter-controller-b" }), []);
+  assert.deepEqual(controller.sync({
+    currentItem: original,
+    matterId: "matter-controller-a",
+    timeline: [{ event_id: "unrelated" }],
+    documents: [],
+  }), []);
+
+  const freshArchive = createOutlookOperationReceiptArchive({ scopeRef: "session-b" });
+  const freshController = createOutlookOperationReceiptController({
+    archive: freshArchive,
+    requestJson: async (_path, options) => {
+      requests.push(options);
+      return {
+        items: [{
+          item_context_ref: controller.itemContextRef(original),
+          matter_id: "matter-controller-a",
+          operation: "file_email",
+          outcome: "created",
+          email_thread_id: "thread-controller-a",
+          document_ids: ["document-controller-a"],
+          timeline_event_ids: ["timeline-controller-a"],
+          completed_at: "2026-08-08T00:00:00.000Z",
+        }],
+      };
+    },
+  });
+  assert.equal(freshController.archive.size, 0);
+  const recovered = await freshController.restore({
+    matterId: "matter-controller-a",
+    currentItem: original,
+  });
+  assert.equal(recovered.length, 1);
+  assert.equal(recovered[0].email_thread_id, "thread-controller-a");
+  assert.equal(requests.at(-1).body.current_item.rest_message_id, original.rest_message_id);
+  assert.equal("item" in requests.at(-1).body, false);
 });

@@ -25,12 +25,10 @@ function safeOperation(value) {
   return /^[a-z][a-z0-9_:-]{0,63}$/u.test(next) ? next : "operation";
 }
 function boundedNumber(value, fallback, minimum) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= minimum ? Math.floor(parsed) : fallback;
+  const parsed = Number(value); return Number.isFinite(parsed) && parsed >= minimum ? Math.floor(parsed) : fallback;
 }
 function timestamp(value, fallbackMs) {
-  const parsed = typeof value === "number" ? value : Date.parse(value);
-  return Number.isFinite(parsed) ? parsed : fallbackMs;
+  const parsed = typeof value === "number" ? value : Date.parse(value); return Number.isFinite(parsed) ? parsed : fallbackMs;
 }
 function fnv1a64(value) {
   let hash = 0xcbf29ce484222325n;
@@ -56,11 +54,7 @@ export function createOutlookOperationItemContextRef({
     : "";
 }
 function firstRef(values) {
-  for (const value of values) {
-    const next = safeRef(value);
-    if (next) return next;
-  }
-  return "";
+  for (const value of values) { const next = safeRef(value); if (next) return next; } return "";
 }
 function refs(values) {
   const result = [];
@@ -165,16 +159,17 @@ export function createOutlookOperationReceiptArchive({
   maxEntries = DEFAULT_MAX_ENTRIES,
   ttlMs = DEFAULT_TTL_MS,
   now = () => Date.now(),
+  scopeRef = "initial",
 } = {}) {
   const limit = Math.max(1, boundedNumber(maxEntries, DEFAULT_MAX_ENTRIES, 1));
   const ttl = Math.max(1, boundedNumber(ttlMs, DEFAULT_TTL_MS, 1));
   const entries = new Map();
   let sequence = 0;
+  let scopeHash = fnv1a64(text(scopeRef, 256) || "initial");
   function nowMs() { const value = Number(now()); return Number.isFinite(value) ? value : Date.now(); }
-
   function prune(referenceMs = nowMs()) {
     for (const [key, entry] of entries) {
-      if (referenceMs - entry.completedAtMs >= ttl) entries.delete(key);
+      if (referenceMs - entry.cachedAtMs >= ttl) entries.delete(key);
     }
     if (entries.size <= limit) return;
     const oldest = [...entries.entries()]
@@ -206,6 +201,8 @@ export function createOutlookOperationReceiptArchive({
     entries.set(key, Object.freeze({
       summary,
       completedAtMs: timestamp(summary.completed_at, referenceMs),
+      cachedAtMs: referenceMs,
+      verifiedAtMs: referenceMs,
       sequence: sequence++,
     }));
     prune(referenceMs);
@@ -232,6 +229,7 @@ export function createOutlookOperationReceiptArchive({
       .filter((summary) => [...summaryRefs(summary)].some((value) => readback.has(value))));
   }
   function clear() { entries.clear(); }
+  function setScope(nextScope) { const nextScopeHash = fnv1a64(text(nextScope, 256) || "initial"); if (nextScopeHash === scopeHash) return false; entries.clear(); scopeHash = nextScopeHash; return true; }
 
   return Object.freeze({
     record,
@@ -239,6 +237,7 @@ export function createOutlookOperationReceiptArchive({
     listForContext,
     reconcileReadback,
     clear,
+    setScope,
     get size() {
       prune();
       return entries.size;

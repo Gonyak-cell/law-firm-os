@@ -182,7 +182,6 @@ test("task pane wires OAuth, explicit Matter context, mutations, and send events
   assert.match(mainSource, /import\s*\{\s*saveOutlookAttachments\s*\}\s*from\s*"\.\/outlook-attachment-actions\.js"/u);
   assert.match(mainSource, /await\s+saveOutlookAttachments\(\{[\s\S]*?currentItem,[\s\S]*?matterId,/u);
   assert.match(mainSource, /assertOperationCurrent:\s*\(\)\s*=>[\s\S]*?assertOperationContextCurrent\(operationSnapshot\)/u);
-  assert.match(mainSource, /onReceipt:\s*\(receipt\)\s*=>[\s\S]*?reconcileOperationReceipt\(operationSnapshot,\s*receipt\)/u);
   assert.match(mainSource, /handleOutlookMessageSend\(\{[\s\S]*?readMessage:\s*\(options\)\s*=>\s*readOutlookComposeMessage\(\{/u);
   assert.match(mainSource, /registerOutlookSendHandler\(\{\s*Office:\s*window\.Office,\s*handler:\s*onMessageSendHandler,?\s*\}\)/u);
   assert.match(mainSource, /subscribeToOutlookItemChanges\(\{[\s\S]*?outlookItemChangeDisposition\(\{[\s\S]*?invalidateOperationContext\(\)[\s\S]*?setItem\(nextItem\)[\s\S]*?storeMatterSelection\(null\)[\s\S]*?resetItemActionResults\(\)/u);
@@ -197,7 +196,6 @@ test("task pane wires OAuth, explicit Matter context, mutations, and send events
   assert.match(mainSource, /createOutlookMatterRevalidationRequest\(\{[\s\S]*?selection,[\s\S]*?itemContext/u);
   assert.match(mainSource, /createOutlookCanonicalMessageIdentityRequest\(\{[\s\S]*?item:\s*currentItem,[\s\S]*?matterId:/u);
   assert.match(mainSource, /createOutlookOperationSnapshot\(\{[\s\S]*?matterId:\s*refreshedSelection\.matter_id,[\s\S]*?operationStartKey/u);
-  assert.match(mainSource, /reconcileOutlookOperationResult\(\{[\s\S]*?actualCanonicalGraphMessageId:[\s\S]*?receipt,/u);
   for (const action of ["fileEmail", "saveAttachments", "createFollowup"]) {
     assert.match(
       mainSource,
