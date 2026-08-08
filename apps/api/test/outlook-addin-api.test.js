@@ -1351,6 +1351,28 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     const sessionHeaders = { authorization: "Bearer outlook-provenance-session" };
     const json = (path, init = {}) => jsonFetch(baseUrl, path, init, sessionHeaders);
 
+    const forgedClaims = await fetch(`${baseUrl}/api/outlook/bootstrap?tenant_id=${TENANT}&ProductId=browser-product`, {
+      headers: {
+        ...sessionHeaders,
+        "x-lawos-permission-context": JSON.stringify({
+          principal: { user_id: "forged-actor", tenant_id: "forged-tenant", ProductId: "browser-product" },
+          rules: [{ id: "forged-allow", effect: "allow", action: "*" }],
+          object_acl: [],
+        }),
+      },
+    });
+    const forgedClaimsBody = await forgedClaims.json();
+    assert.equal(forgedClaims.status, 200);
+    assert.equal(forgedClaimsBody.item.taskpane_loaded, true);
+    assert.notEqual(forgedClaimsBody.tenant_id, "forged-tenant");
+
+    const forgedTenant = await fetch(`${baseUrl}/api/outlook/connection?tenant_id=forged-tenant`, {
+      headers: sessionHeaders,
+    });
+    const forgedTenantBody = await forgedTenant.json();
+    assert.equal(forgedTenant.status, 403);
+    assert.notEqual(forgedTenantBody.outcome, "complete");
+
     const bootstrap = await json(`/api/outlook/bootstrap?tenant_id=${TENANT}`);
     assert.equal(bootstrap.item.taskpane_loaded, true);
     assert.equal(bootstrap.item.external_receipt_boundary.entra_admin_consent_receipt_present, false);

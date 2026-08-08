@@ -25,6 +25,7 @@ import { createMatterActivityCalendarChannelService } from "../../../packages/ma
 import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timeline-read-model.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import { assertOutlookOperationEvidenceSafe } from "./outlook-operation-response.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -75,6 +76,22 @@ export const OUTLOOK_ADDIN_ERROR_CODES = Object.freeze({
 export const OUTLOOK_ADDIN_MAX_MIME_BYTES = 3 * 1024 * 1024;
 export const OUTLOOK_ADDIN_MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 
+const SAFE_VALIDATION_MESSAGES = new Set([
+  "internet_message_id is required",
+  "conversation_id is required",
+  "attachment.content_base64 must be valid base64",
+  "attachment bytes are required",
+  "attachment bytes must not exceed 2 MiB",
+  "attachment_id is not present on the filed Outlook email",
+  "exactly one attachment is required per request",
+  "exactly one selected attachment is required per request",
+]);
+const SAFE_ERROR_MESSAGES = Object.freeze({
+  OUTLOOK_ADDIN_VALIDATION_ERROR: "요청 형식을 확인해 주세요.",
+  OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH: "Outlook 첨부 출처를 확인할 수 없습니다.",
+  M365_CONNECTION_VALIDATION_ERROR: "Outlook 연결 설정을 확인해 주세요.",
+});
+
 const DEFAULT_LIMIT = 12;
 const MATTER_FOLDER_NAMES = Object.freeze([
   "00_Email",
@@ -99,6 +116,14 @@ function requiredString(value, field) {
 function optionalString(value, fallback = null) {
   const text = typeof value === "string" ? value.trim() : "";
   return text || fallback;
+}
+
+function safeValidationMessage(error, safeCode) {
+  const message = typeof error?.safe_validation_message === "string"
+    ? error.safe_validation_message.trim()
+    : typeof error?.message === "string" ? error.message.trim() : "";
+  if (safeCode === OUTLOOK_ADDIN_ERROR_CODES.validation_error && SAFE_VALIDATION_MESSAGES.has(message)) return message;
+  return SAFE_ERROR_MESSAGES[safeCode] ?? SAFE_ERROR_MESSAGES[OUTLOOK_ADDIN_ERROR_CODES.validation_error];
 }
 
 function safeId(value, fallback = "outlook") {
@@ -660,17 +685,19 @@ function success(status, body) {
 }
 
 function errorResponse(status, requestId, codes, extra = {}) {
+  const responseBody = {
+    request_id: requestId,
+    outcome: "blocked",
+    item: null,
+    safe_error_codes: codes,
+    count_leak_prevented: true,
+    production_ready_claim: false,
+    ...extra,
+  };
+  assertOutlookOperationEvidenceSafe(responseBody);
   return {
     status,
-    body: {
-      request_id: requestId,
-      outcome: "blocked",
-      item: null,
-      safe_error_codes: codes,
-      count_leak_prevented: true,
-      production_ready_claim: false,
-      ...extra,
-    },
+    body: responseBody,
   };
 }
 
@@ -830,6 +857,7 @@ function m365ErrorResponse(error, requestId, auditHintRef) {
     audit_hint_ref: auditHintRef,
     ui_state: "blocked",
     credential_material_included: false,
+    message: safeValidationMessage(error, safeCode),
   });
 }
 
@@ -1496,7 +1524,7 @@ function handleBootstrap({ query, context, requestId }) {
     action: "outlook:addin:bootstrap",
   });
   if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
-  return success(200, {
+  const response = success(200, {
     request_id: requestId,
     outcome: "passed",
     item: {
@@ -1519,6 +1547,8 @@ function handleBootstrap({ query, context, requestId }) {
       production_ready_claim: false,
     },
   });
+  assertOutlookOperationEvidenceSafe(response.body);
+  return response;
 }
 
 function handleM365ConnectionStatus({
@@ -3107,7 +3137,8 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     const safeCode = error?.safe_error_code === OUTLOOK_ADDIN_ERROR_CODES.attachment_provenance_mismatch
       ? error.safe_error_code
       : OUTLOOK_ADDIN_ERROR_CODES.validation_error;
-    return errorResponse(error?.status ?? 400, requestId, [safeCode], { message: error.message });
+    const message = safeValidationMessage(error, safeCode);
+    return errorResponse(error?.status ?? 400, requestId, [safeCode], { message });
   }
 }
 
