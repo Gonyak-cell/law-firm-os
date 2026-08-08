@@ -8,6 +8,7 @@ import {
   readdirSync,
   rmSync,
   symlinkSync,
+  utimesSync,
   unlinkSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -100,11 +101,21 @@ test("DMS authority binding prevents shared-root rebinds and tolerates same-bind
     const peerRoot = join(root, "peer-objects");
     createFileStorageAdapter({ adapter_id: "authority-concurrency", rootPath: objectRoot, quarantineRootPath: authorityRoot });
     assert.throws(() => createFileStorageAdapter({ adapter_id: "authority-concurrency", rootPath: peerRoot, quarantineRootPath: authorityRoot }), (error) => error?.code === "DMS_QUARANTINE_AUTHORITY_BINDING_MISMATCH");
-    const opened = Array.from({ length: 8 }, () => createFileStorageAdapter({ adapter_id: "authority-concurrency", rootPath: objectRoot, quarantineRootPath: authorityRoot }));
-    assert.equal(opened.length, 8);
+    const freshObjectRoot = join(root, "fresh-objects");
+    const freshAuthorityRoot = join(root, "fresh-authority");
+    mkdirSync(freshObjectRoot);
+    mkdirSync(freshAuthorityRoot);
+    const bindingLockPath = join(freshObjectRoot, ".quarantine-authority-binding.json.lock");
+    const crashSource = "import { constants, openSync, closeSync } from 'node:fs'; const fd = openSync(process.argv[1], constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY, 0o600); process.stdout.write('ready\\n'); await new Promise(() => {}); closeSync(fd);";
+    const crash = spawn(process.execPath, ["--input-type=module", "-e", crashSource, bindingLockPath], { stdio: ["ignore", "pipe", "ignore"] });
+    await new Promise((resolve, reject) => { crash.stdout.once("data", resolve); crash.once("error", reject); });
+    assert.equal(crash.kill("SIGKILL"), true);
+    await new Promise((resolve) => crash.once("close", resolve));
+    const staleAt = new Date(Date.now() - 120_000);
+    utimesSync(bindingLockPath, staleAt, staleAt);
     const source = "import { createFileStorageAdapter } from './packages/dms/src/storage/file-storage-adapter.js'; createFileStorageAdapter({ adapter_id: 'authority-process-concurrency', rootPath: process.argv[1], quarantineRootPath: process.argv[2] });";
     const children = Array.from({ length: 8 }, () => new Promise((resolve) => {
-      const child = spawn(process.execPath, ["--input-type=module", "-e", source, objectRoot, authorityRoot], { cwd: process.cwd(), stdio: ["ignore", "ignore", "pipe"] });
+      const child = spawn(process.execPath, ["--input-type=module", "-e", source, freshObjectRoot, freshAuthorityRoot], { cwd: process.cwd(), stdio: ["ignore", "ignore", "pipe"] });
       let stderr = "";
       child.stderr.on("data", (chunk) => { stderr += chunk; });
       child.on("close", (code) => resolve({ code, stderr }));

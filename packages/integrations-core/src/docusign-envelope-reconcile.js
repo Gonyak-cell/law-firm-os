@@ -30,6 +30,21 @@ function nextGeneration(request) {
   return Number.isSafeInteger(generation) && generation >= 0 ? generation + 1 : 1;
 }
 
+function actionKey(input) {
+  return input.action_idempotency_key == null
+    ? null
+    : docusignRequiredText(input.action_idempotency_key, "action_idempotency_key");
+}
+
+function updateAction(request, action, key, patch) {
+  return {
+    ...request,
+    action_idempotency: (request.action_idempotency ?? []).map((entry) => (
+      entry.action === action && entry.key === key ? { ...entry, ...patch } : entry
+    )),
+  };
+}
+
 // The official callback SDK does not expose a transport abort. Bound the
 // caller and recover any remote completion by its durable correlation ref.
 async function callWithCallerDeadline(operation, lease, clock) {
@@ -64,7 +79,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
       return state.requests[index];
     });
   }
-  async function claim(principal, requestId) {
+  async function claim(principal, requestId, actionIdempotencyKey) {
     const token = randomUUID();
     const now = docusignNow(clock);
     return mutate(principal.tenant_id, (state) => {
@@ -72,11 +87,26 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
       if (index < 0) throw docusignFailure("DOCUSIGN_REQUEST_NOT_FOUND", "DocuSign request was not found", 404);
       const request = state.requests[index];
       if (request.requested_by_actor_id !== principal.actor_id) throw docusignFailure("DOCUSIGN_SEND_ACTOR_MISMATCH", "Only the approving actor may reconcile this request", 403);
+      const conflicting = state.requests
+        .flatMap((item) => item.action_idempotency ?? [])
+        .find((entry) => actionIdempotencyKey && entry.key === actionIdempotencyKey
+          && (entry.action !== "reconcile" || entry.actor_id !== principal.actor_id || entry.request_id !== requestId));
+      if (conflicting) throw docusignFailure("DOCUSIGN_ACTION_IDEMPOTENCY_CONFLICT", "Action idempotency key is bound to a different actor, request, or action", 409);
+      const replay = actionIdempotencyKey
+        ? (request.action_idempotency ?? []).find((entry) => entry.action === "reconcile" && entry.key === actionIdempotencyKey)
+        : null;
+      if (replay) return { claimed: false, request, replayed: true };
       if (!RECONCILABLE_STATES.has(request.state)) return { claimed: false, request };
       if (request.operation_lease && Date.parse(request.operation_lease.expires_at) > Date.parse(now)) return { claimed: false, request };
       const generation = nextGeneration(request);
       state.requests[index] = {
         ...request,
+        action_idempotency: actionIdempotencyKey
+          ? [...(request.action_idempotency ?? []), {
+            action: "reconcile", key: actionIdempotencyKey, actor_id: principal.actor_id, request_id: requestId,
+            status: "in_progress", safe_error_code: null, created_at: now, updated_at: now,
+          }]
+          : request.action_idempotency ?? [],
         attempt_phase: "reconciling",
         operation_lease: { kind: "reconcile", token, fencing_generation: generation, acquired_at: now, expires_at: new Date(Date.parse(now) + RECONCILIATION_LEASE_MS).toISOString() },
         last_safe_error_code: null,
@@ -91,7 +121,8 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
     if (input.explicit_human_action !== true) throw docusignFailure("DOCUSIGN_EXPLICIT_RECONCILE_REQUIRED", "Explicit human reconciliation action is required", 400);
     if (typeof adapter?.findByCorrelation !== "function") throw docusignInfrastructureFailure("DOCUSIGN_RECONCILIATION_UNAVAILABLE");
     const requestId = docusignRequiredText(input.request_id, "request_id");
-    const claimed = await claim(principal, requestId);
+    const actionIdempotencyKey = actionKey(input);
+    const claimed = await claim(principal, requestId, actionIdempotencyKey);
     if (!claimed.claimed) {
       const outcome = claimed.request.state === "reconciliation_required" ? "in_progress" : "already_converged";
       return Object.freeze({ outcome, request: projectDocusignRequestSafe(claimed.request) });
@@ -138,7 +169,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
           ? normalizeDocusignAuditLineage([...(fresh.audit_lineage ?? []), { event: `provider_reconciled:${status}`, audit_trace_id: fresh.document.audit_trace_id, actor_id: fresh.requested_by_actor_id, occurred_at: docusignNow(clock) }])
           : fresh.audit_lineage;
         return {
-          ...next,
+          ...updateAction(next, "reconcile", actionIdempotencyKey, { status: "succeeded", safe_error_code: null, updated_at: docusignNow(clock) }),
           envelope_id: envelopeId,
           attempt_phase: next.state === "draft_created" ? "ready_to_send" : next.attempt_phase,
           last_safe_error_code: null,
@@ -153,7 +184,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
     } catch (error) {
       try {
         request = await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({
-          ...fresh,
+          ...updateAction(fresh, "reconcile", actionIdempotencyKey, { status: "unknown", safe_error_code: error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS", updated_at: docusignNow(clock) }),
           operation_lease: null,
           provider_operation: fresh.provider_operation ? { ...fresh.provider_operation, status: "unknown" } : null,
           attempt_phase: "reconciliation_failed",

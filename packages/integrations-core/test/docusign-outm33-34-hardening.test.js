@@ -147,6 +147,25 @@ test("OUTM-33 permission and audit authority mismatch fail before any request ro
   assert.deepEqual([providerCalls, repository.loadState().requests.length], [0, 0]);
 });
 
+test("OUTM-33 action idempotency is durably bound to actor, request, and action", async () => {
+  const repository = createDocusignEnvelopeRepository();
+  let createCalls = 0;
+  let sendCalls = 0;
+  const service = makeService(repository, {
+    async createDraft() { createCalls += 1; return { envelope_id: "envelope-action-idempotency" }; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
+    async findByCorrelation() { return { envelope_id: "envelope-action-idempotency", provider_correlation_ref: "unused", account_id: CONNECTION.account_id, status: "sent" }; },
+  });
+  await queue(service, "request-action-idempotency");
+  const input = { ...sendInput("request-action-idempotency"), action_idempotency_key: "action-key-1" };
+  const first = await service.sendApprovedRequest(input);
+  const replay = await service.sendApprovedRequest(input);
+  assert.deepEqual([first.outcome, replay.outcome, createCalls, sendCalls], ["sent", "replayed", 1, 1]);
+  const record = repository.loadState().requests[0].action_idempotency.find((entry) => entry.key === "action-key-1");
+  assert.deepEqual([record.action, record.actor_id, record.request_id, record.status], ["send", "actor-hardening", "request-action-idempotency", "succeeded"]);
+  await assert.rejects(service.reconcileRequest({ ...input, explicit_human_action: true }), (error) => error?.safe_error_code === "DOCUSIGN_ACTION_IDEMPOTENCY_CONFLICT");
+});
+
 test("OUTM-34 completion rejects a DMS readback whose permission or audit lineage changed", async () => {
   const repository = createDocusignEnvelopeRepository();
   const adapter = { createDraft: async () => ({ envelope_id: "envelope-completion" }), send: async () => ({ status: "sent" }), downloadDocument: async () => Buffer.from("signed-pdf") };

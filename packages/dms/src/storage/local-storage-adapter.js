@@ -129,7 +129,7 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault", quaranti
     const existing = quarantineRecords.get(key);
     if (existing) {
       assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
-      if (existing.state === "quarantined") throw hashMismatch("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+      if (existing.state === "quarantined") return Object.freeze({ ...existing, already_armed: true, durable_quarantine: true });
       return Object.freeze({ ...existing, armed: true, already_armed: true, durable_quarantine: true });
     }
     const record = createQuarantineRecord({ adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason: "DMS_UPLOAD_DENY_INTENT", audit_trace_id, permission_envelope_id, state: "armed" });

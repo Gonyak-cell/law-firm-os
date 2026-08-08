@@ -157,6 +157,31 @@ function normalizeProviderCursor(input) {
   });
 }
 
+function normalizeActionIdempotency(input = []) {
+  if (!Array.isArray(input)) throw new TypeError("request.action_idempotency must be an array");
+  const seen = new Set();
+  return Object.freeze(input.map((entry) => {
+    const action = docusignRequiredText(entry?.action, "action_idempotency.action");
+    if (!["send", "reconcile"].includes(action)) throw new TypeError("action_idempotency.action is invalid");
+    const key = docusignRequiredText(entry?.key, "action_idempotency.key");
+    const identity = `${action}\0${key}`;
+    if (seen.has(identity)) throw new TypeError("request.action_idempotency contains a duplicate action key");
+    seen.add(identity);
+    const status = docusignRequiredText(entry?.status ?? "in_progress", "action_idempotency.status");
+    if (!["in_progress", "succeeded", "failed", "unknown"].includes(status)) throw new TypeError("action_idempotency.status is invalid");
+    return Object.freeze({
+      action,
+      key,
+      actor_id: docusignRequiredText(entry?.actor_id, "action_idempotency.actor_id"),
+      request_id: docusignRequiredText(entry?.request_id, "action_idempotency.request_id"),
+      status,
+      safe_error_code: entry?.safe_error_code == null ? null : docusignRequiredText(entry.safe_error_code, "action_idempotency.safe_error_code"),
+      created_at: docusignTimestamp(entry?.created_at, "action_idempotency.created_at"),
+      updated_at: docusignTimestamp(entry?.updated_at ?? entry?.created_at, "action_idempotency.updated_at"),
+    });
+  }));
+}
+
 export function normalizeDocusignAuditLineage(input = []) {
   if (!Array.isArray(input)) throw new TypeError("request.audit_lineage must be an array");
   return Object.freeze(input.map((entry) => Object.freeze({
@@ -214,6 +239,7 @@ export function normalizeDocusignRequest(input = {}) {
     provider_cursor: normalizeProviderCursor(input.provider_cursor),
     operation_lease: normalizeLease(input.operation_lease),
     provider_operation: normalizeProviderOperation(input.provider_operation),
+    action_idempotency: normalizeActionIdempotency(input.action_idempotency),
     completion_operation: normalizeCompletionOperation(input.completion_operation),
     completion_artifacts: artifacts,
     audit_lineage: auditLineage,

@@ -457,7 +457,19 @@ function defaultIsProcessAlive(pid) {
 
 function inspectLock({ lockPath, host, staleAfterMs, isProcessAlive, now }) {
   const parsed = parseLockOwner(lockPath);
-  if (!parsed.valid) return { state: "unknown", owner: null, recoverable: false };
+  if (!parsed.valid) {
+    let ageMs = 0;
+    try {
+      ageMs = Math.max(0, currentDate(now).getTime() - statSync(lockPath).mtimeMs);
+    } catch {
+      return { state: "unknown", owner: null, recoverable: false };
+    }
+    return {
+      state: ageMs >= staleAfterMs ? "unknown_stale" : "unknown",
+      owner: null,
+      recoverable: ageMs >= staleAfterMs,
+    };
+  }
   const { owner } = parsed;
   if (owner.host !== host) return { state: "remote", owner, recoverable: false };
   if (isProcessAlive(owner.pid)) return { state: "live", owner, recoverable: false };
@@ -499,7 +511,8 @@ function recoverStaleLock({
     if (!existsSync(lockPath)) return false;
     const inspection = inspectLock({ lockPath, host, staleAfterMs, isProcessAlive, now });
     if (!inspection.recoverable) return false;
-    const quarantinePath = `${lockPath}.${inspection.owner.token}.${tokenFactory()}.stale`;
+    const ownerToken = inspection.owner?.token ?? "malformed";
+    const quarantinePath = `${lockPath}.${ownerToken}.${tokenFactory()}.stale`;
     renameSync(lockPath, quarantinePath);
     fsyncDirectory(dirname(lockPath));
     unlinkSync(quarantinePath);

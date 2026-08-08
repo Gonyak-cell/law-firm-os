@@ -207,7 +207,7 @@ export function createFileQuarantineAuthority({ adapter_id, rootPath, quarantine
     const existing = readRecord(tenantId, safeObjectId);
     if (existing) {
       assertQuarantineRecord(existing, { adapter_id: adapterId, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
-      if (existing.state === "quarantined") throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+      if (existing.state === "quarantined") return Object.freeze({ ...existing, already_armed: true, durable_quarantine: true });
       return Object.freeze({ ...existing, armed: true, already_armed: true, durable_quarantine: true });
     }
     const record = writeRecord({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason: "DMS_UPLOAD_DENY_INTENT", audit_trace_id, permission_envelope_id, state: "armed" });

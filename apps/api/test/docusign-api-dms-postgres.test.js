@@ -129,7 +129,7 @@ test("OUTM-34 PostgreSQL authority quarantine survives provider cleanup failure 
   const baseStorage = createLocalStorageAdapter({ adapter_id: "docusign-pg-quarantine" });
   const storage = Object.freeze({
     ...baseStorage,
-    deleteCommittedObject() {
+    quarantineCommittedObject() {
       throw Object.assign(new Error("provider cleanup unavailable"), { safe_error_code: "DMS_TEST_PROVIDER_CLEANUP_UNAVAILABLE" });
     },
   });
@@ -153,10 +153,12 @@ test("OUTM-34 PostgreSQL authority quarantine survives provider cleanup failure 
   assert.equal(sessionRows.rows.length, 1);
   const sessionId = sessionRows.rows[0].session_id;
   const quarantined = await uploadRuntime.getUploadSession({ tenant_id: TENANT, session_id: sessionId });
-  assert.deepEqual([quarantined.state, quarantined.retryable, quarantined.dead_letter_receipt?.cleanup_state, quarantined.dead_letter_receipt?.cleanup_error_code], ["failed_terminal", false, "pending", "DMS_TEST_PROVIDER_CLEANUP_UNAVAILABLE"]);
-  assert.ok(baseStorage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }));
-  const restarted = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date("2026-08-08T02:00:00.000Z") });
-  assert.deepEqual(await restarted.reconcileUploadSessions({ tenant_id: TENANT }), []);
+  assert.deepEqual([quarantined.state, quarantined.retryable, quarantined.dead_letter_receipt?.cleanup_state, quarantined.dead_letter_receipt?.cleanup_error_code], ["failed_terminal", true, "pending", "DMS_TEST_PROVIDER_CLEANUP_UNAVAILABLE"]);
+  assert.equal(baseStorage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }), null);
+  const restarted = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: baseStorage, clock: () => new Date("2026-08-08T02:01:00.000Z") });
+  const outcome = await restarted.reconcileUploadSessions({ tenant_id: TENANT });
+  assert.deepEqual(outcome.map((row) => [row.action, row.state]), [["authority_quarantined", "failed_terminal"]]);
+  assert.equal(baseStorage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }), null);
   await assert.rejects(restarted.finalizeUpload({ tenant_id: TENANT, session_id: sessionId }), (error) => error?.safe_error_code === "DMS_UPLOAD_SESSION_EXPIRED");
   assert.equal(await restarted.getDocumentState({ tenant_id: TENANT, document_id: `docusign-completion:${requestId}:${kind}` }), null);
   const rows = await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, (client) => client.query("SELECT (SELECT count(*) FROM lawos_dms.documents WHERE tenant_id = $1)::int AS documents, (SELECT count(*) FROM lawos_dms.document_versions WHERE tenant_id = $1)::int AS versions, (SELECT count(*) FROM lawos_dms.file_objects WHERE tenant_id = $1)::int AS files, (SELECT count(*) FROM lawos_dms.audit_events WHERE tenant_id = $1 AND object_id = $2)::int AS audits", [TENANT, `docusign-completion:${requestId}:${kind}`]));
@@ -202,7 +204,7 @@ test("OUTM-34 quarantine persistence outage leaves a durable authority fence for
   const sessionId = sessionRows.rows[0].session_id;
   const beforeRestart = await uploadRuntime.getUploadSession({ tenant_id: TENANT, session_id: sessionId });
   assert.deepEqual([beforeRestart.state, beforeRestart.retryable, beforeRestart.dead_letter_receipt, beforeRestart.provider_receipt?.completion_authority?.schema_version], ["provider_finalized", true, null, "law-firm-os.dms-completion-authority-contract.v1"]);
-  assert.ok(storage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }));
+  assert.equal(storage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }), null);
   const restarted = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date("2026-08-08T02:00:00.000Z") });
   const outcome = await restarted.reconcileUploadSessions({ tenant_id: TENANT });
   assert.deepEqual(outcome.map((row) => [row.action, row.state]), [["authority_quarantined", "failed_terminal"]]);

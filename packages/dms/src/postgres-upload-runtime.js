@@ -12,6 +12,7 @@ const ACTIVE_RECONCILIATION_STATES = Object.freeze([
   "bytes_stored",
   "provider_finalizing",
   "provider_finalized",
+  "failed_terminal",
   "failed",
   "expired",
 ]);
@@ -325,6 +326,27 @@ export function createPostgresDmsUploadRuntime({
   async function quarantineCompletionAuthorityUpload(session, error) {
     const quarantinedAt = timestamp(clock);
     const safeCode = safeErrorCode(error, "DMS_COMPLETION_AUTHORITY_REJECTED");
+    const deny = storage.armCommittedObjectQuarantine;
+    if (typeof deny !== "function") {
+      error.quarantine_error_code = "DMS_COMPLETION_AUTHORITY_DENY_UNSUPPORTED";
+      return null;
+    }
+    let denyReceipt;
+    try {
+      denyReceipt = await deny({
+        tenant_id: session.tenant_id,
+        object_id: session.object_id,
+        expected_sha256: session.expected_sha256,
+        audit_trace_id: session.audit_trace_id,
+        permission_envelope_id: session.permission_envelope_id,
+      });
+      if (!denyReceipt || !["armed", "quarantined"].includes(denyReceipt.state) || denyReceipt.durable_quarantine !== true) {
+        throw codedError("DMS completion object deny marker was not confirmed", "DMS_COMPLETION_AUTHORITY_DENY_UNCONFIRMED", 503);
+      }
+    } catch (denyError) {
+      error.quarantine_error_code = safeErrorCode(denyError, "DMS_COMPLETION_AUTHORITY_DENY_FAILED");
+      return null;
+    }
     const initialReceipt = {
       schema_version: COMPLETION_AUTHORITY_QUARANTINE_SCHEMA,
       kind: "completion_authority_rejection",
@@ -334,6 +356,8 @@ export function createPostgresDmsUploadRuntime({
       safe_error_code: safeCode,
       quarantined_at: quarantinedAt,
       cleanup_state: "pending",
+      cleanup_retryable: true,
+      storage_deny_record_ref: denyReceipt.record_ref,
     };
     let terminal;
     try {
@@ -343,7 +367,7 @@ export function createPostgresDmsUploadRuntime({
         if (locked.state === "failed_terminal" && locked.dead_letter_receipt?.schema_version === COMPLETION_AUTHORITY_QUARANTINE_SCHEMA) return locked;
         const result = await client.query(
           `UPDATE lawos_dms.upload_sessions
-              SET state = 'failed_terminal', retryable = false,
+              SET state = 'failed_terminal', retryable = true,
                   provider_finalize_owner = NULL, provider_finalize_token = NULL,
                   provider_finalize_lease_expires_at = NULL,
                   stage_lease_owner = NULL, stage_lease_token = NULL,
@@ -369,18 +393,24 @@ export function createPostgresDmsUploadRuntime({
     let committedObjectDeleted = false;
     let stagedObjectDeleted = false;
     try {
-      const committed = await storage.statObject({ tenant_id: terminal.tenant_id, object_id: terminal.object_id });
-      if (committed) {
-        const deletion = await storage.deleteCommittedObject({ tenant_id: terminal.tenant_id, object_id: terminal.object_id, expected_sha256: terminal.expected_sha256 });
-        if (!deletion?.deleted && !deletion?.already_absent) throw codedError("quarantined DMS object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
-        committedObjectDeleted = deletion.deleted === true;
+      if (typeof storage.quarantineCommittedObject !== "function") {
+        throw codedError("DMS completion object quarantine cleanup is unsupported", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNSUPPORTED", 503);
       }
-      const staged = await storage.statStagedObject({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
-      if (staged) {
-        const deletion = await storage.deleteOrphan({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
-        if (deletion?.committed_object_deleted) throw codedError("storage adapter violated quarantine cleanup boundary", "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION", 500);
-        stagedObjectDeleted = deletion?.deleted === true;
+      const quarantine = await storage.quarantineCommittedObject({
+        tenant_id: terminal.tenant_id,
+        object_id: terminal.object_id,
+        expected_sha256: terminal.expected_sha256,
+        reason: "DMS_COMPLETION_AUTHORITY_REJECTION",
+        audit_trace_id: terminal.audit_trace_id,
+        permission_envelope_id: terminal.permission_envelope_id,
+      });
+      if (!quarantine?.quarantined && !quarantine?.already_absent) {
+        throw codedError("quarantined DMS object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
       }
+      committedObjectDeleted = quarantine.quarantined === true;
+      const deletion = await storage.deleteOrphan({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
+      if (deletion?.committed_object_deleted) throw codedError("storage adapter violated quarantine cleanup boundary", "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION", 500);
+      stagedObjectDeleted = deletion?.deleted === true;
     } catch (cleanupError) {
       cleanupState = "pending";
       cleanupErrorCode = safeErrorCode(cleanupError, "DMS_COMPLETION_AUTHORITY_CLEANUP_FAILED");
@@ -388,6 +418,7 @@ export function createPostgresDmsUploadRuntime({
     const finalReceipt = {
       ...initialReceipt,
       cleanup_state: cleanupState,
+      cleanup_retryable: cleanupState === "pending",
       cleanup_error_code: cleanupErrorCode,
       committed_object_deleted: committedObjectDeleted,
       staged_object_deleted: stagedObjectDeleted,
@@ -395,9 +426,14 @@ export function createPostgresDmsUploadRuntime({
     try {
       await transact(terminal.tenant_id, (client) => client.query(
         `UPDATE lawos_dms.upload_sessions
-            SET dead_letter_receipt = $3::jsonb, updated_at = $4::timestamptz
+            SET dead_letter_receipt = $3::jsonb,
+                retryable = $4::boolean,
+                next_attempt_at = $5::timestamptz,
+                updated_at = $5::timestamptz
           WHERE tenant_id = $1 AND session_id = $2 AND state = 'failed_terminal'`,
-        [terminal.tenant_id, terminal.session_id, JSON.stringify(finalReceipt), quarantinedAt],
+        [terminal.tenant_id, terminal.session_id, JSON.stringify(finalReceipt), cleanupState === "pending", cleanupState === "pending"
+          ? new Date(Date.parse(quarantinedAt) + reconciliationBackoffMillis).toISOString()
+          : quarantinedAt],
       ));
     } catch (quarantineError) {
       error.quarantine_error_code = safeErrorCode(quarantineError, "DMS_COMPLETION_AUTHORITY_QUARANTINE_FAILED");
@@ -1544,24 +1580,27 @@ export function createPostgresDmsUploadRuntime({
       const result = await client.query(
         `WITH candidates AS (
            SELECT tenant_id, session_id
-             FROM lawos_dms.upload_sessions
+            FROM lawos_dms.upload_sessions
             WHERE tenant_id = $1
               AND state = ANY($2::text[])
-              AND next_attempt_at <= $3::timestamptz
-              AND (reconcile_lease_expires_at IS NULL OR reconcile_lease_expires_at <= $3::timestamptz)
+              AND (state <> 'failed_terminal'
+                   OR (dead_letter_receipt->>'schema_version' = $3
+                       AND dead_letter_receipt->>'cleanup_state' = 'pending'))
+              AND next_attempt_at <= $4::timestamptz
+              AND (reconcile_lease_expires_at IS NULL OR reconcile_lease_expires_at <= $4::timestamptz)
               AND (state <> 'expired' OR orphan_deleted_at IS NULL)
             ORDER BY next_attempt_at, created_at, session_id
             FOR UPDATE SKIP LOCKED
-            LIMIT $4
+            LIMIT $5
          )
          UPDATE lawos_dms.upload_sessions target
-            SET reconcile_owner = $5, reconcile_lease_expires_at = $6::timestamptz,
-                updated_at = $3::timestamptz
+            SET reconcile_owner = $6, reconcile_lease_expires_at = $7::timestamptz,
+                updated_at = $4::timestamptz
            FROM candidates
           WHERE target.tenant_id = candidates.tenant_id
             AND target.session_id = candidates.session_id
          RETURNING target.*`,
-        [tenantId, ACTIVE_RECONCILIATION_STATES, now, boundedLimit, runtimeWorkerId, leaseExpiresAt],
+        [tenantId, ACTIVE_RECONCILIATION_STATES, COMPLETION_AUTHORITY_QUARANTINE_SCHEMA, now, boundedLimit, runtimeWorkerId, leaseExpiresAt],
       );
       return result.rows.map(rowToSession);
     });
