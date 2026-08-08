@@ -1,5 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
+ALTER TABLE lawos_dms.documents
+  ADD COLUMN privileged boolean NOT NULL DEFAULT false;
+
 CREATE TABLE lawos_dms.precedent_sources (
   tenant_id text NOT NULL,
   source_id text NOT NULL,
@@ -14,14 +17,22 @@ CREATE TABLE lawos_dms.precedent_sources (
   decision_date date,
   source_url text,
   source_reference text,
-  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled')),
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled', 'unapproved')),
   source_revision bigint NOT NULL DEFAULT 1 CHECK (source_revision >= 1),
+  approval_id text NOT NULL,
+  approval_batch_id text NOT NULL,
+  approval_decision_id text NOT NULL,
+  approval_authority text NOT NULL CHECK (approval_authority = 'vault-approved-precedent-corpus-v1'),
+  approved_by text NOT NULL,
+  approved_at timestamptz NOT NULL,
   registered_by text NOT NULL,
   registered_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   updated_by text NOT NULL,
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   disabled_by text,
   disabled_at timestamptz,
+  unapproved_by text,
+  unapproved_at timestamptz,
   PRIMARY KEY (tenant_id, source_id),
   FOREIGN KEY (tenant_id, document_id)
     REFERENCES lawos_dms.documents (tenant_id, document_id)
@@ -40,14 +51,43 @@ CREATE TABLE lawos_dms.precedent_sources (
     )
   ),
   CHECK (
-    (status = 'active' AND disabled_by IS NULL AND disabled_at IS NULL)
-    OR (status = 'disabled' AND disabled_by IS NOT NULL AND disabled_at IS NOT NULL)
+    (status = 'active' AND disabled_by IS NULL AND disabled_at IS NULL
+      AND unapproved_by IS NULL AND unapproved_at IS NULL)
+    OR (status = 'disabled' AND disabled_by IS NOT NULL AND disabled_at IS NOT NULL
+      AND unapproved_by IS NULL AND unapproved_at IS NULL)
+    OR (status = 'unapproved' AND unapproved_by IS NOT NULL AND unapproved_at IS NOT NULL)
   )
 );
 
 CREATE UNIQUE INDEX dms_precedent_active_document_index
   ON lawos_dms.precedent_sources (tenant_id, document_id)
   WHERE status = 'active';
+CREATE INDEX dms_precedent_source_status_index
+  ON lawos_dms.precedent_sources (tenant_id, status, source_id);
+
+CREATE TABLE lawos_dms.precedent_extraction_receipts (
+  tenant_id text NOT NULL,
+  receipt_id text NOT NULL,
+  source_id text NOT NULL,
+  document_id text NOT NULL,
+  version_id text NOT NULL,
+  content_sha256 text NOT NULL CHECK (content_sha256 ~ '^[a-f0-9]{64}$'),
+  extractor_id text NOT NULL,
+  text_sha256 text NOT NULL CHECK (text_sha256 ~ '^[a-f0-9]{64}$'),
+  character_count integer NOT NULL CHECK (character_count >= 0 AND character_count <= 1004000),
+  issued_by text NOT NULL,
+  issued_at timestamptz NOT NULL,
+  authority text NOT NULL CHECK (authority = 'dms-immutable-version-extractor-v1'),
+  receipt_signature text NOT NULL CHECK (receipt_signature ~ '^[a-f0-9]{64}$'),
+  PRIMARY KEY (tenant_id, receipt_id),
+  FOREIGN KEY (tenant_id, source_id)
+    REFERENCES lawos_dms.precedent_sources (tenant_id, source_id)
+    ON DELETE RESTRICT,
+  UNIQUE (
+    tenant_id, receipt_id, source_id, document_id, version_id,
+    content_sha256, extractor_id, text_sha256
+  )
+);
 
 CREATE TABLE lawos_dms.precedent_search_index (
   tenant_id text NOT NULL,
@@ -56,6 +96,9 @@ CREATE TABLE lawos_dms.precedent_search_index (
   document_id text NOT NULL,
   version_id text NOT NULL,
   content_sha256 text NOT NULL CHECK (content_sha256 ~ '^[a-f0-9]{64}$'),
+  extraction_receipt_id text NOT NULL,
+  extractor_id text NOT NULL,
+  text_sha256 text NOT NULL CHECK (text_sha256 ~ '^[a-f0-9]{64}$'),
   index_version text NOT NULL,
   index_hash text NOT NULL CHECK (index_hash ~ '^[a-f0-9]{64}$'),
   title_text text NOT NULL CHECK (char_length(title_text) BETWEEN 1 AND 300),
@@ -80,13 +123,21 @@ CREATE TABLE lawos_dms.precedent_search_index (
   PRIMARY KEY (tenant_id, source_id),
   FOREIGN KEY (tenant_id, source_id)
     REFERENCES lawos_dms.precedent_sources (tenant_id, source_id)
-    ON DELETE RESTRICT
+    ON DELETE RESTRICT,
+  FOREIGN KEY (
+    tenant_id, extraction_receipt_id, source_id, document_id, version_id,
+    content_sha256, extractor_id, text_sha256
+  ) REFERENCES lawos_dms.precedent_extraction_receipts (
+    tenant_id, receipt_id, source_id, document_id, version_id,
+    content_sha256, extractor_id, text_sha256
+  ) ON DELETE RESTRICT
 );
 
 CREATE INDEX dms_precedent_search_vector_gin
   ON lawos_dms.precedent_search_index USING gin (search_vector);
 CREATE INDEX dms_precedent_search_korean_fallback_gin
   ON lawos_dms.precedent_search_index USING gin (normalized_text public.gin_trgm_ops);
+
 CREATE FUNCTION lawos_dms.validate_precedent_source_update()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -109,16 +160,33 @@ BEGIN
 END;
 $$;
 
+CREATE FUNCTION lawos_dms.reject_precedent_extraction_receipt_change()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'Precedent extraction receipts are immutable' USING ERRCODE = '55000';
+END;
+$$;
+
 CREATE TRIGGER dms_precedent_source_guard
 BEFORE UPDATE OR DELETE ON lawos_dms.precedent_sources
 FOR EACH ROW EXECUTE FUNCTION lawos_dms.validate_precedent_source_update();
+CREATE TRIGGER dms_precedent_extraction_receipt_guard
+BEFORE UPDATE OR DELETE ON lawos_dms.precedent_extraction_receipts
+FOR EACH ROW EXECUTE FUNCTION lawos_dms.reject_precedent_extraction_receipt_change();
 
 ALTER TABLE lawos_dms.precedent_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_sources FORCE ROW LEVEL SECURITY;
+ALTER TABLE lawos_dms.precedent_extraction_receipts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_dms.precedent_extraction_receipts FORCE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_search_index ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_search_index FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY dms_precedent_sources_tenant_policy ON lawos_dms.precedent_sources
+  USING (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''))
+  WITH CHECK (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''));
+CREATE POLICY dms_precedent_extraction_receipts_tenant_policy ON lawos_dms.precedent_extraction_receipts
   USING (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''))
   WITH CHECK (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''));
 CREATE POLICY dms_precedent_search_index_tenant_policy ON lawos_dms.precedent_search_index

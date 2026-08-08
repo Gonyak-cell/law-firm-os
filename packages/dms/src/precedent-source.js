@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export const PRECEDENT_SOURCE_KINDS = Object.freeze([
   "internal_matter_document",
   "case_law_document",
@@ -107,7 +109,9 @@ function assertAllowed(decision) {
 }
 
 export function createPrecedentCorpusService({ repository, authorize } = {}) {
-  if (!repository || typeof repository.registerSource !== "function" || typeof repository.disableSource !== "function") {
+  if (!repository || typeof repository.registerSource !== "function"
+      || typeof repository.disableSource !== "function"
+      || typeof repository.unapproveSource !== "function") {
     throw new TypeError("precedent repository is required");
   }
   if (typeof authorize !== "function") throw new TypeError("precedent corpus authorization callback is required");
@@ -138,10 +142,23 @@ export function createPrecedentCorpusService({ repository, authorize } = {}) {
       }));
       return repository.disableSource({ ...input, tenant_id: tenantId, source_id: sourceId });
     },
+    async unapprove(input = {}) {
+      const tenantId = requiredId(input.tenant_id, "tenant_id");
+      const sourceId = requiredId(input.source_id, "source_id");
+      assertAllowed(await authorize({
+        action: "dms:precedent:source:unapprove",
+        resource: {
+          tenant_id: tenantId,
+          resource_type: "precedent_source",
+          resource_id: sourceId,
+        },
+      }));
+      return repository.unapproveSource({ ...input, tenant_id: tenantId, source_id: sourceId });
+    },
   });
 }
 
-export async function importApprovedPrecedentSources({ service, sources, batch_id } = {}) {
+export async function importApprovedPrecedentSources({ service, sources, batch_id, approval = {} } = {}) {
   if (!service || typeof service.register !== "function") throw new TypeError("precedent corpus service is required");
   if (!Array.isArray(sources) || sources.length < 1 || sources.length > 500) {
     throw new TypeError("approved precedent import must contain between 1 and 500 sources");
@@ -164,6 +181,14 @@ export async function importApprovedPrecedentSources({ service, sources, batch_i
     results.push(await service.register({
       ...source,
       actor_id: inputBySourceId.get(source.source_id)?.actor_id,
+      approval_id: inputBySourceId.get(source.source_id)?.approval_id ?? approval.approval_id,
+      approval_batch_id: batchId,
+      approval_decision_id: inputBySourceId.get(source.source_id)?.approval_decision_id
+        ?? approval.approval_decision_id,
+      approval_authority: inputBySourceId.get(source.source_id)?.approval_authority
+        ?? approval.approval_authority,
+      approved_by: inputBySourceId.get(source.source_id)?.approved_by ?? approval.approved_by,
+      approved_at: inputBySourceId.get(source.source_id)?.approved_at ?? approval.approved_at,
       idempotency_key: `precedent-import:${idempotencyDigest}`,
     }));
   }
@@ -174,4 +199,3 @@ export async function importApprovedPrecedentSources({ service, sources, batch_i
     production_ready_claim: false,
   });
 }
-import { createHash } from "node:crypto";
