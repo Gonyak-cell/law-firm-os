@@ -2526,6 +2526,7 @@ export async function startApiServer({
           resolvedClientOperationsV2Enabled,
         clientOperationsSchemaPool: postgresPool,
         precedentSearchPool: postgresPool,
+        precedentAuthoritySecret: resolvedSessionSecret,
         identityRepository,
       });
       const server = createApiServer({

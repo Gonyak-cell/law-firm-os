@@ -25,7 +25,10 @@ import { createMatterActivityCalendarChannelService } from "../../../packages/ma
 import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timeline-read-model.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
-import { handleOutlookPrecedentSearch } from "./outlook-precedent-runtime-context.js";
+import {
+  handleOutlookPrecedentReadiness,
+  handleOutlookPrecedentSearch,
+} from "./outlook-precedent-runtime-context.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -43,6 +46,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/outlook/inquiries/evidence/:evidence_id/content",
     "GET /api/outlook/matters",
     "GET /api/outlook/precedents",
+    "GET /api/outlook/precedents/readiness",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
     "POST /api/outlook/email/file",
@@ -3044,6 +3048,14 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/matters" && method === "GET") {
       return handleMatterSearch({ query, context, requestId, runtime });
+    }
+    if (pathname === "/api/outlook/precedents/readiness" && method === "GET") {
+      return await handleOutlookPrecedentReadiness({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
     }
     if (pathname === "/api/outlook/precedents" && method === "GET") {
       return await handleOutlookPrecedentSearch({

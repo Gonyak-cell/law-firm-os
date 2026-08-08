@@ -4,13 +4,17 @@ import {
   OUTLOOK_ADDIN_BOUNDED_CONTEXT,
   handleOutlookAddinApiRequest,
 } from "../src/outlook-addin-runtime-context.js";
-import { createPostgresPrecedentRepository } from "../../../packages/dms/src/search/postgres-precedent-repository.js";
+import {
+  createPostgresPrecedentRepository,
+  extractedTextSha256,
+} from "../../../packages/dms/src/search/postgres-precedent-repository.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 
 const TENANT = "tenant_outlook_precedent";
 const ACTOR = "user_outlook_precedent";
 const CURRENT_MATTER = "matter_current";
+const AUTHORITY_SECRET = "outlook-precedent-api-authority-secret-20260808";
 
 function digest(character) {
   return character.repeat(64);
@@ -85,7 +89,35 @@ function source({
     } : {}),
     actor_id: ACTOR,
     idempotency_key: `register:${source_id}`,
+    approval_id: `approval:${source_id}`,
+    approval_batch_id: "batch:outlook-precedent-api",
+    approval_decision_id: `decision:${source_id}`,
+    approval_authority: "vault-approved-precedent-corpus-v1",
+    approved_by: ACTOR,
+    approved_at: "2026-08-08T00:00:00.000Z",
   };
+}
+
+async function indexSource(repository, entry) {
+  const textSha256 = extractedTextSha256({ metadata_text: entry.metadata, body_text: entry.body });
+  const receipt = repository.issueExtractionReceipt({
+    receipt_id: `extract:${entry.source.source_id}`,
+    tenant_id: TENANT,
+    source_id: entry.source.source_id,
+    document_id: entry.source.document_id,
+    version_id: entry.source.version_id,
+    content_sha256: entry.source.content_sha256,
+    extractor_id: "dms-text-v1",
+    text_sha256: textSha256,
+    character_count: entry.metadata.length + entry.body.length,
+    issued_by: ACTOR,
+    issued_at: "2026-08-08T00:00:00.000Z",
+    authority: "dms-immutable-version-extractor-v1",
+  });
+  return repository.indexSource({ tenant_id: TENANT,
+    source_id: entry.source.source_id, actor_id: ACTOR,
+    metadata_text: entry.metadata, body_text: entry.body,
+    extraction_receipt: receipt });
 }
 
 function permissionContext({ denyMatter = false } = {}) {
@@ -135,8 +167,6 @@ async function request({ repository, context = permissionContext(), query = {}, 
     query: {
       q: "damages",
       matter_id: CURRENT_MATTER,
-      permission_ref: "permission_outlook_precedent",
-      audit_hint_ref: "audit_outlook_precedent",
       ...query,
     },
     context,
@@ -150,9 +180,13 @@ async function request({ repository, context = permissionContext(), query = {}, 
 
 test("Outlook precedent route filters ACL and Ethical Wall sources before cited pagination", async (t) => {
   assert.ok(OUTLOOK_ADDIN_BOUNDED_CONTEXT.endpoints.includes("GET /api/outlook/precedents"));
+  assert.ok(OUTLOOK_ADDIN_BOUNDED_CONTEXT.endpoints.includes("GET /api/outlook/precedents/readiness"));
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
-  const repository = createPostgresPrecedentRepository({ pool: fixture.appPool });
+  const repository = createPostgresPrecedentRepository({
+    pool: fixture.appPool,
+    authoritySecret: AUTHORITY_SECRET,
+  });
   const fixtures = [
     {
       source: source({
@@ -213,17 +247,11 @@ test("Outlook precedent route filters ACL and Ethical Wall sources before cited 
       title: entry.source.title,
     });
     await repository.registerSource(entry.source);
-    await repository.indexSource({
-      tenant_id: TENANT,
-      source_id: entry.source.source_id,
-      actor_id: ACTOR,
-      metadata_text: entry.metadata,
-      body_text: entry.body,
-    });
+    await indexSource(repository, entry);
   }
 
   const first = await request({ repository, query: { limit: "1" }, requestId: "req_precedent_page_1" });
-  assert.equal(first.status, 200);
+  assert.equal(first.status, 200, JSON.stringify(first.body));
   assert.equal(first.body.items.length, 1);
   assert.equal(first.body.page_info.returned_count, 1);
   assert.equal(first.body.page_info.has_more, true);
@@ -249,6 +277,20 @@ test("Outlook precedent route filters ACL and Ethical Wall sources before cited 
   assert.equal(first.body.count_leak_prevented, true);
   assert.equal(first.body.raw_body_included, false);
   assert.equal(first.body.storage_pointer_ref_included, false);
+  assert.equal(first.body.authoritative, true);
+
+  const readiness = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/precedents/readiness",
+    method: "GET",
+    query: { matter_id: CURRENT_MATTER },
+    context: permissionContext(),
+    requestId: "req_precedent_readiness",
+    runtime: { matterRuntime: { repository: matterRepository() },
+      precedentSearchRuntime: { repository } },
+  });
+  assert.equal(readiness.status, 200);
+  assert.equal(readiness.body.authoritative, true);
+  assert.equal(readiness.body.runtime_ready, true);
 
   const korean = await request({
     repository,
@@ -257,6 +299,19 @@ test("Outlook precedent route filters ACL and Ethical Wall sources before cited 
   });
   assert.equal(korean.status, 200);
   assert.deepEqual(korean.body.items.map((item) => item.source_id), ["precedent_allowed_internal"]);
+
+  const clientPermissionRefIsIgnored = await request({ repository,
+    query: { permission_ref: "client-forged-decision", audit_hint_ref: "client-forged-audit" },
+    requestId: "req_precedent_untrusted_client_refs" });
+  assert.equal(clientPermissionRefIsIgnored.status, 200);
+  const audit = await withPostgresTransaction(fixture.appPool,
+    { tenant_id: TENANT, readOnly: true }, (client) => client.query(
+      `SELECT payload FROM lawos_dms.audit_events WHERE tenant_id=$1
+        AND event_type='dms.precedent_source.searched'
+        AND payload->>'request_occurrence_id'=$2`,
+      [TENANT, "req_precedent_untrusted_client_refs"]));
+  assert.equal(audit.rowCount, 1);
+  assert.equal(JSON.stringify(audit.rows[0].payload).includes("client-forged"), false);
 
   const invalidLimit = await request({ repository, query: { limit: "21" }, requestId: "req_precedent_limit" });
   assert.equal(invalidLimit.status, 400);

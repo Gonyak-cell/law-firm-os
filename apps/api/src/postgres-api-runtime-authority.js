@@ -261,6 +261,17 @@ export async function runPostgresReadWithBaselineRetry({
   }
 }
 
+export function createPostgresPrecedentSearchRuntime({ pool, authoritySecret } = {}) {
+  if (!pool?.connect || !pool?.query) throw new TypeError("Precedent search requires a PostgreSQL pool");
+  if (!(typeof authoritySecret === "string" || Buffer.isBuffer(authoritySecret))
+      || Buffer.byteLength(authoritySecret) < 32) {
+    throw new TypeError("Precedent search requires server-held authority secret material");
+  }
+  return Object.freeze({ authority: "postgres-v2",
+    repository: createPostgresPrecedentRepository({ pool, authoritySecret }),
+    production_ready_claim: false });
+}
+
 function createHrxDomainParticipant(requestContext, projectionReader) {
   const projectionRead =
     ["GET", "HEAD"].includes(
@@ -400,6 +411,7 @@ function createRequestRuntimes({
     }),
     authority: "postgres-v2",
     upload_runtime: dmsUploadRuntime,
+    precedent_search_runtime: precedentSearchRuntime,
   });
   const emailDmsRuntime = Object.freeze({
     authority: "postgres-v2",
@@ -510,6 +522,7 @@ export function createPostgresApiRuntimeAuthority({
   clientOperationsV2Enabled = false,
   clientOperationsSchemaPool = null,
   precedentSearchPool = null,
+  precedentAuthoritySecret = null,
   identityRepository = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
@@ -560,6 +573,11 @@ export function createPostgresApiRuntimeAuthority({
         || typeof precedentSearchPool.connect !== "function")) {
     throw new TypeError("Precedent search requires a PostgreSQL pool");
   }
+  if (precedentSearchPool != null
+      && (!(typeof precedentAuthoritySecret === "string" || Buffer.isBuffer(precedentAuthoritySecret))
+        || Buffer.byteLength(precedentAuthoritySecret) < 32)) {
+    throw new TypeError("Precedent search requires server-held authority secret material");
+  }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
       || hrxRelationalProjectionReader.fallback_authority
@@ -579,11 +597,11 @@ export function createPostgresApiRuntimeAuthority({
       ledger,
       workflow: "client-outlook",
     });
-  const precedentSearchRuntime = precedentSearchPool == null ? null : Object.freeze({
-    authority: "postgres-v2",
-    repository: createPostgresPrecedentRepository({ pool: precedentSearchPool }),
-    production_ready_claim: false,
-  });
+  const precedentSearchRuntime = precedentSearchPool == null ? null
+    : createPostgresPrecedentSearchRuntime({
+      pool: precedentSearchPool,
+      authoritySecret: precedentAuthoritySecret,
+    });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");

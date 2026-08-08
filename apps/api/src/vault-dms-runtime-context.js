@@ -17,6 +17,7 @@ import {
   registeredAccountPublicRef,
   resolveRegisteredAccount,
 } from "./matter-vault-account-registry.js";
+import { handleVaultPrecedentApiRequest } from "./vault-precedent-runtime-context.js";
 
 const DEFAULT_VAULT_ACCOUNT = registeredAccountPublicRef(highestPrivilegeRegisteredAccount());
 
@@ -36,6 +37,10 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/vault/search/preferences",
     "POST /api/vault/search/preferences",
     "GET /api/vault/audit",
+    "POST /api/vault/precedent-sources",
+    "POST /api/vault/precedent-sources/:source_id/disable",
+    "POST /api/vault/precedent-sources/:source_id/unapprove",
+    "GET /api/vault/precedents/readiness",
   ]),
   data_source: "vault_dms_runtime_repository",
   runtime_persistence: "file_backed_repository",
@@ -1333,6 +1338,12 @@ export async function handleVaultDmsApiRequest({
   requestId,
   runtime = DEFAULT_RUNTIME,
 } = {}) {
+  if (pathname.startsWith("/api/vault/precedent")) {
+    const precedent = await handleVaultPrecedentApiRequest({
+      pathname, method, query, body, context, requestId, runtime,
+    });
+    if (precedent) return precedent;
+  }
   const downloadMatch = pathname.match(/^\/api\/vault\/documents\/([^/]+)\/download$/);
   if (downloadMatch && method === "GET") {
     return handleVaultDocumentDownload({
