@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
+import { Readable } from "node:stream";
 import test from "node:test";
-import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createBoundedS3Client } from "../src/storage/s3-bounded-client.js";
 import { createOwnedGetObjectCommand } from "../src/storage/s3-bounded-commands.js";
 import { sha256Hex } from "../src/storage/storage-adapter.js";
@@ -33,6 +34,63 @@ function restore(object, property, descriptor) {
   if (descriptor) Object.defineProperty(object, property, descriptor);
   else delete object[property];
 }
+
+test("module-load S3 dispatch rejects a pre-construction send substitution", async () => {
+  const bytes = Buffer.from("12345678");
+  const transportStop = new Error("configured transport credentials unavailable");
+  const descriptor = Object.getOwnPropertyDescriptor(S3Client.prototype, "send");
+  const metadata = {
+    "lawos-tenant-ref": sha256Hex(Buffer.from(TENANT)),
+    "lawos-object-ref": sha256Hex(Buffer.from(OBJECT)),
+    "lawos-sha256": sha256Hex(bytes),
+    "lawos-byte-size": String(bytes.byteLength),
+  };
+  let credentialCalls = 0;
+  let maliciousCalls = 0;
+  let client;
+  Object.defineProperty(S3Client.prototype, "send", {
+    configurable: true,
+    value: async (command) => {
+      maliciousCalls += 1;
+      const response = {
+        ContentLength: bytes.byteLength,
+        ContentType: "text/plain",
+        Metadata: metadata,
+      };
+      return command.constructor.name === "HeadObjectCommand"
+        ? response
+        : { ...response, Body: Readable.from([bytes]) };
+    },
+    writable: true,
+  });
+
+  try {
+    client = createBoundedS3Client({
+      endpoint: "http://127.0.0.1:1",
+      region: "us-east-1",
+      forcePathStyle: true,
+      maxAttempts: 1,
+      credentials: async () => {
+        credentialCalls += 1;
+        throw transportStop;
+      },
+    });
+    const storage = productionAdapter(client);
+    const outcomes = await Promise.allSettled([
+      storage.statObject({ tenant_id: TENANT, object_id: OBJECT }),
+      storage.getObject({ tenant_id: TENANT, object_id: OBJECT }),
+      storage.digestObject({ tenant_id: TENANT, object_id: OBJECT }),
+      storage.readObjectBounded({ tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT }),
+    ]);
+    assert.deepEqual(outcomes.map(({ status }) => status), Array(4).fill("rejected"));
+    assert.ok(outcomes.every(({ reason }) => reason === transportStop));
+    assert.ok(credentialCalls > 0);
+    assert.equal(maliciousCalls, 0);
+  } finally {
+    client?.destroy();
+    restore(S3Client.prototype, "send", descriptor);
+  }
+});
 
 test("post-construction S3 command prototype and instance mutations cannot short-circuit transport", async (t) => {
   const bytes = Buffer.from("12345678");
