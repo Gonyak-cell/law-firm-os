@@ -19,6 +19,7 @@ const THREAD = "thread-outm25";
 function fixture(filePath, { dynamicSeed = false } = {}) {
   const repository = createConversationSyncRepository({ filePath });
   let matterAllowed = true;
+  let connectionExpiresAt = "2027-08-08T00:00:00.000Z";
   const graphCalls = [];
   const service = createConversationPolicyService({
     repository,
@@ -30,6 +31,7 @@ function fixture(filePath, { dynamicSeed = false } = {}) {
       account_ref: CONNECTION,
       mailbox_ref: "mailbox-hash-outm25",
       status: "active",
+      filing_receipt_ref: dynamicSeed ? input.seed_filing_receipt_ref : "receipt-outm25",
       filed_document_ids: ["document-original-mime-outm25"],
     }),
     connection_lookup: () => ({
@@ -38,15 +40,20 @@ function fixture(filePath, { dynamicSeed = false } = {}) {
       user_id: USER,
       mailbox_address_hash: "a".repeat(64),
       granted_scopes: ["Mail.Read", "Calendars.ReadWrite", "offline_access"],
+      expires_at: connectionExpiresAt,
       revoked_at: null,
+      connection_authority: "delegated",
+      mailbox_scope: "me",
     }),
     matter_access: () => matterAllowed,
+    clock: () => new Date("2026-08-08T00:00:00.000Z"),
   });
   return {
     repository,
     service,
     graphCalls,
     denyMatter() { matterAllowed = false; },
+    expireConnection() { connectionExpiresAt = "2026-08-07T23:59:59.000Z"; },
   };
 }
 
@@ -150,6 +157,15 @@ test("OUTM-25 pauses an active policy when current Matter permission changes", (
   assert.equal(reconciled.policy.status, "paused");
   assert.equal(reconciled.policy.pause_reason, "matter_access_changed");
   assert.equal(reconciled.policy.version, 2);
+});
+
+test("OUTM-25 pauses an active policy when its delegated connection expires", () => {
+  const runtime = fixture();
+  const enabled = runtime.service.enable(enableInput());
+  runtime.expireConnection();
+  const reconciled = runtime.service.reconcile({ tenant_id: TENANT, policy_id: enabled.policy.policy_id, actor_id: "conversation-policy-reconciler" });
+  assert.equal(reconciled.policy.status, "paused");
+  assert.equal(reconciled.policy.pause_reason, "connection_invalid");
 });
 
 test("OUTM-25 requires revoke before moving one conversation to another Matter", () => {

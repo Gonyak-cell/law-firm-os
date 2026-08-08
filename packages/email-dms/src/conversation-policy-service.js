@@ -18,16 +18,18 @@ function requireVersion(value) {
   return value;
 }
 
-function assertConnection(connection, input) {
+function assertConnection(connection, input, now) {
   if (
     !connection
     || connection.tenant_id !== input.tenant_id
     || connection.m365_connection_id !== input.m365_connection_id
     || connection.user_id !== input.user_id
     || connection.revoked_at
+    || !Number.isFinite(Date.parse(connection.expires_at))
+    || Date.parse(connection.expires_at) <= now.getTime()
     || !connection.granted_scopes?.includes("Mail.Read")
-    || (connection.connection_authority && connection.connection_authority !== "delegated")
-    || (connection.mailbox_scope && connection.mailbox_scope !== "me")
+    || connection.connection_authority !== "delegated"
+    || connection.mailbox_scope !== "me"
   ) {
     throw new Error("active delegated me-only Mail.Read connection is required");
   }
@@ -39,6 +41,7 @@ function assertSeed(seed, input) {
     || seed.tenant_id !== input.tenant_id
     || seed.matter_id !== input.matter_id
     || seed.email_thread_id !== input.seed_email_thread_id
+    || seed.filing_receipt_ref !== input.seed_filing_receipt_ref
     || seed.conversation_id !== input.conversation_id
     || seed.account_ref !== input.m365_connection_id
     || seed.status !== "active"
@@ -103,7 +106,7 @@ export function createConversationPolicyService({
       const replay = replayOrConflict(state, input, "enabled");
       if (replay) return replay;
       const connection = connection_lookup(input);
-      assertConnection(connection, input);
+      assertConnection(connection, input, clock());
       if (!matter_access(input)) throw new Error("Matter access is required");
       const seed = seed_filing_lookup(input);
       assertSeed(seed, input);
@@ -179,7 +182,7 @@ export function createConversationPolicyService({
       if (existing.status !== "active") return { outcome: "unchanged", policy: existing };
       const lookup = { ...existing, actor_id: input.actor_id };
       let reason = null;
-      try { assertConnection(connection_lookup(lookup), lookup); } catch { reason = "connection_invalid"; }
+      try { assertConnection(connection_lookup(lookup), lookup, clock()); } catch { reason = "connection_invalid"; }
       if (!reason && !matter_access(lookup)) reason = "matter_access_changed";
       if (!reason) return { outcome: "unchanged", policy: existing };
       const now = clock().toISOString();
