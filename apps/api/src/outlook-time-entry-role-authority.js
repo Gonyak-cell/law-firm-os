@@ -1,3 +1,5 @@
+import { resolveUniqueEmployeeUserLink } from "../../../packages/hrx/src/identity-link.js";
+
 const INACTIVE_EMPLOYEE_STATUSES = new Set(["inactive", "terminated"]);
 
 function authorityError(code, message, status = 422) {
@@ -20,12 +22,14 @@ function canonicalEmployee({ employeeRepository, tenantId, actorId, workDate, co
     .every((method) => typeof employeeRepository?.[method] === "function")) {
     throw authorityError(codes.runtime_unavailable, "employee authority is unavailable", 503);
   }
-  const link = unique(
-    employeeRepository.listEmployeeUserLinks({ tenant_id: tenantId, user_id: actorId }),
-    codes.employee_required,
-    "signed user must have one active employee link",
-    403,
-  );
+  const link = resolveUniqueEmployeeUserLink({
+    tenant_id: tenantId,
+    user_id: actorId,
+    links: employeeRepository.listEmployeeUserLinks({ tenant_id: tenantId }),
+  });
+  if (link.state !== "resolved") {
+    throw authorityError(codes.employee_required, "signed user must have one active employee link", 403);
+  }
   const employee = employeeRepository.getEmployee({
     tenant_id: tenantId,
     employee_id: link.employee_id,

@@ -130,3 +130,65 @@ test("signed user needs one active HRX identity and unambiguous active Finance r
   assert.equal(missingIdentity.status, 403);
   assert.deepEqual(missingIdentity.body.safe_error_codes, [CODES.employee_required]);
 });
+
+test("HRX link and profile authority rejects every non-resolved identity without finance writes", async (t) => {
+  const state = fixture();
+  t.after(() => state.close());
+  const base = createEmployeeFixture();
+  const validLink = {
+    tenant_id: TENANT,
+    link_id: "link_outlook_time_entry_test",
+    employee_id: EMPLOYEE,
+    user_id: ACTOR,
+    purpose: "login_mapping",
+  };
+  const linkCases = [
+    [{ ...validLink, active: false }],
+    [{ ...validLink, revoked: true }],
+    [{ ...validLink, revoked_at: "2026-08-08T00:00:00.000Z" }],
+    [{ ...validLink, status: "inactive" }],
+    [{ ...validLink, state: "revoked" }],
+    [{ ...validLink, purpose: "calendar_mapping" }],
+    [{ ...validLink, tenant_id: "tenant_wrong" }],
+    [{ ...validLink, user_id: "user_wrong" }],
+    [validLink, { ...validLink, link_id: "link_outlook_time_entry_duplicate" }],
+  ];
+  for (const links of linkCases) {
+    const result = await invoke({
+      runtime: runtime({
+        finance: state.finance,
+        matters: state.matters,
+        employees: [],
+        employeeRepository: {
+          ...base,
+          listEmployeeUserLinks: () => links,
+        },
+      }),
+    });
+    assert.equal(result.status, 403, JSON.stringify(links));
+    assert.deepEqual(result.body.safe_error_codes, [CODES.employee_required]);
+  }
+
+  const activeProfiles = base.listEmploymentProfiles({ tenant_id: TENANT, employee_id: EMPLOYEE });
+  for (const profiles of [
+    [],
+    [{ ...activeProfiles[0], status: "terminated" }],
+    [activeProfiles[0], { ...activeProfiles[0], profile_id: "profile_outlook_time_entry_duplicate" }],
+  ]) {
+    const result = await invoke({
+      runtime: runtime({
+        finance: state.finance,
+        matters: state.matters,
+        employees: [],
+        employeeRepository: {
+          ...base,
+          listEmploymentProfiles: () => profiles,
+        },
+      }),
+    });
+    assert.equal(result.status, 403, JSON.stringify(profiles));
+    assert.deepEqual(result.body.safe_error_codes, [CODES.employee_required]);
+  }
+  assert.equal(state.finance.list({ tenant_id: TENANT, model_type: "TimeEntry" }).length, 0);
+  assert.equal(state.finance.listAudit({ tenant_id: TENANT }).length, 0);
+});
