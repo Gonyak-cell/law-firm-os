@@ -10,7 +10,6 @@ const DIGEST = /^[a-f0-9]{64}$/u;
 const FOLLOWUP_TYPES = new Set(["task", "deadline"]);
 const FILING_MODES = new Set(["manual", "sent"]);
 const FILING_OUTCOMES = new Set(["created", "idempotent_replay"]);
-
 function safeRef(value) {
   if (typeof value !== "string") return "";
   const next = value.normalize("NFKC").trim();
@@ -18,7 +17,6 @@ function safeRef(value) {
     ? next
     : "";
 }
-
 function opaqueRef(value) {
   return `request-ref:${createHash("sha256").update(String(value)).digest("hex").slice(0, 32)}`;
 }
@@ -85,14 +83,17 @@ function filingReceiptEntry({ thread, dmsRepository, tenantId, digest }) {
 async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument }) {
   if (thread.status !== "active" || !Array.isArray(thread.filed_document_ids) || thread.filed_document_ids.length === 0) return null;
   if (!FILING_MODES.has(thread.filing_mode)) return null;
+  if (thread.filed_document_ids.length !== 1) return null;
+  const documentRef = thread.filed_document_ids[0];
+  const digest = documentRef.slice(documentRef.lastIndexOf(":") + 1);
+  if (!DIGEST.test(digest)) return null;
   const documents = [];
   for (const documentId of thread.filed_document_ids) {
     if (!await canReadDocument(documentId)) return null;
-    const verified = await resolveVerifiedDocument({ repository: dmsRepository, authority: dmsAuthority, tenantId, matterId, documentId, threadId: thread.email_thread_id });
+    const verified = await resolveVerifiedDocument({ repository: dmsRepository, authority: dmsAuthority, tenantId, matterId, documentId, threadId: thread.email_thread_id, originalMimeSha256: digest });
     if (!verified) return null;
     documents.push(verified);
   }
-  const digest = documents[0].version.sha256;
   const documentAudits = documents.every((entry) => hasAudit(
     entry.auditEvents.length ? entry.auditEvents : auditList(dmsRepository, tenantId, entry.document.document_id),
     { action: "dms.document.upload", objectType: "DmsDocument", objectId: entry.document.document_id },

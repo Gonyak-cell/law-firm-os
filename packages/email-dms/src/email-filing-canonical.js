@@ -1,17 +1,14 @@
 import { createHash } from "node:crypto";
-
 export const OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION = "outlook_email_file";
 const FILING_MODES = new Set(["manual", "sent"]);
 const FILING_OUTCOMES = new Set(["created", "idempotent_replay"]);
 const ORIGINAL_MIME_DOCUMENT = /^doc:(.+):original-mime:([a-f0-9]{64})$/u;
-
 function canonicalText(value, field) {
   if (typeof value !== "string" || value.trim() === "") {
     throw new Error(`email filing ${field} is required for canonical replay binding`);
   }
   return value.normalize("NFKC").trim();
 }
-
 function canonicalDocumentIds(thread) {
   if (!Array.isArray(thread?.filed_document_ids) || thread.filed_document_ids.length === 0) {
     throw new Error("email filing requires canonical filed document links");
@@ -20,7 +17,6 @@ function canonicalDocumentIds(thread) {
   if (new Set(ids).size !== ids.length) throw new Error("email filing document links must be unique");
   return ids;
 }
-
 function canonicalMimeSha256(thread, documentIds = canonicalDocumentIds(thread)) {
   if (documentIds.length !== 1) {
     throw new Error("email filing requires one canonical original MIME document");
@@ -31,7 +27,6 @@ function canonicalMimeSha256(thread, documentIds = canonicalDocumentIds(thread))
   }
   return match[2];
 }
-
 function canonicalBinding(thread = {}) {
   const filingMode = canonicalText(thread.filing_mode ?? "manual", "filing_mode").toLowerCase();
   if (!FILING_MODES.has(filingMode)) throw new Error("email filing mode is not canonical");
@@ -48,14 +43,12 @@ function canonicalBinding(thread = {}) {
     mime_sha256: canonicalMimeSha256(thread, filedDocumentIds),
   });
 }
-
 function sameDocumentIds(left, right) {
   return Array.isArray(left)
     && Array.isArray(right)
     && left.length === right.length
     && left.every((value, index) => value === right[index]);
 }
-
 function durableMimeState(authority, binding) {
   if (!authority || typeof authority.getDocumentState !== "function") {
     throw new Error("email filing requires a live durable original MIME document authority");
@@ -66,26 +59,31 @@ function durableMimeState(authority, binding) {
   });
 }
 
-async function durableMimeBinding(binding, authority) {
-  const durableDocumentState = await durableMimeState(authority, binding);
+export function assertDurableOriginalMimeState(state, {
+  tenant_id: tenantId,
+  matter_id: matterId,
+  email_thread_id: emailThreadId,
+  document_id: documentId,
+  mime_sha256: mimeSha256,
+} = {}) {
+  const durableDocumentState = state;
   const document = durableDocumentState?.document;
   const version = durableDocumentState?.versions?.find((item) => item.version_id === document?.current_version_id)
     ?? durableDocumentState?.version;
   const fileObject = durableDocumentState?.file_objects?.find((item) => item.file_object_id === version?.file_object_id)
     ?? durableDocumentState?.file_object;
-  const documentId = binding.filed_document_ids[0];
   const documentMime = document?.mime_type ?? document?.content_type;
   const fileMime = fileObject?.mime_type ?? fileObject?.content_type;
   const durableSha = document?.latest_sha256 ?? version?.sha256 ?? fileObject?.sha256;
   if (
     !document
     || document.document_id !== documentId
-    || document.tenant_id !== binding.tenant_id
-    || document.matter_id !== binding.matter_id
+    || document.tenant_id !== tenantId
+    || document.matter_id !== matterId
     || document.status !== "active"
-    || (document.source_email_thread_id !== undefined && document.source_email_thread_id !== binding.email_thread_id)
-    || durableSha !== binding.mime_sha256
-    || (document.latest_sha256 !== undefined && document.latest_sha256 !== binding.mime_sha256)
+    || (document.source_email_thread_id !== undefined && document.source_email_thread_id !== emailThreadId)
+    || durableSha !== mimeSha256
+    || (document.latest_sha256 !== undefined && document.latest_sha256 !== mimeSha256)
     || (documentMime !== undefined && documentMime !== "message/rfc822")
     || typeof document.current_version_id !== "string"
   ) throw new Error("email filing original MIME document authority conflicts with the canonical binding");
@@ -93,8 +91,8 @@ async function durableMimeBinding(binding, authority) {
     !version
     || version.version_id !== document.current_version_id
     || version.document_id !== documentId
-    || version.tenant_id !== binding.tenant_id
-    || version.sha256 !== binding.mime_sha256
+    || version.tenant_id !== tenantId
+    || version.sha256 !== mimeSha256
     || version.persisted === false
     || (version.status !== undefined && !["active", "current"].includes(version.status))
     || typeof version.file_object_id !== "string"
@@ -102,13 +100,25 @@ async function durableMimeBinding(binding, authority) {
   if (
     !fileObject
     || fileObject.file_object_id !== version.file_object_id
-    || fileObject.tenant_id !== binding.tenant_id
+    || fileObject.tenant_id !== tenantId
     || (fileObject.status !== undefined && !["active", "committed"].includes(fileObject.status))
-    || fileObject.sha256 !== binding.mime_sha256
+    || fileObject.sha256 !== mimeSha256
     || fileMime !== "message/rfc822"
-    || typeof fileObject.byte_size !== "number"
+    || !Number.isSafeInteger(fileObject.byte_size)
     || fileObject.byte_size < 0
   ) throw new Error("email filing original MIME file authority conflicts with the canonical binding");
+  return Object.freeze({ document, version, fileObject });
+}
+
+async function durableMimeBinding(binding, authority) {
+  const durableDocumentState = await durableMimeState(authority, binding);
+  assertDurableOriginalMimeState(durableDocumentState, {
+    tenant_id: binding.tenant_id,
+    matter_id: binding.matter_id,
+    email_thread_id: binding.email_thread_id,
+    document_id: binding.filed_document_ids[0],
+    mime_sha256: binding.mime_sha256,
+  });
 }
 
 export async function assertCanonicalIdempotencyKey(key, thread, authority) {

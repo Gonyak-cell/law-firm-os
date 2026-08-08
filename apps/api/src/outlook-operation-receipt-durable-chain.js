@@ -1,3 +1,4 @@
+import { assertDurableOriginalMimeState } from "../../../packages/email-dms/src/email-filing-canonical.js";
 const DIGEST = /^[a-f0-9]{64}$/u;
 
 export function auditList(repository, tenantId, objectId) {
@@ -45,12 +46,25 @@ async function authorityDocumentState({ repository, authority, tenantId, documen
   return { document, versions: version ? [version] : [], file_objects: fileObject ? [fileObject] : [], audit_events: auditList(repository, tenantId, documentId) };
 }
 
-export async function resolveVerifiedDocument({ repository, authority, tenantId, matterId, documentId, threadId, attachmentId } = {}) {
+export async function resolveVerifiedDocument({ repository, authority, tenantId, matterId, documentId, threadId, attachmentId, originalMimeSha256 } = {}) {
   const state = await authorityDocumentState({ repository, authority, tenantId, documentId });
   const document = state?.document;
   const version = state?.versions?.find((entry) => entry.version_id === document?.current_version_id);
   const fileObject = state?.file_objects?.find((entry) => entry.file_object_id === version?.file_object_id);
   const digest = document?.latest_sha256 ?? version?.sha256;
+  if (originalMimeSha256) {
+    try {
+      assertDurableOriginalMimeState(state, {
+        tenant_id: tenantId,
+        matter_id: matterId,
+        email_thread_id: threadId,
+        document_id: documentId,
+        mime_sha256: originalMimeSha256,
+      });
+    } catch {
+      return null;
+    }
+  }
   if (
     !document
     || document.tenant_id !== tenantId
