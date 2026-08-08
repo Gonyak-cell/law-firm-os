@@ -186,6 +186,22 @@ test("operation receipt readback revalidates identity, returns only durable safe
   assert.equal(fixture.dmsRepository.list({ model_type: "DmsEmailThread" }).length, beforeIdempotency);
 });
 
+test("operation receipt readback also accepts a flat captured-item assertion without exposing it", async () => {
+  const fixture = runtimeFixture();
+  const item = readbackBody().item;
+  const response = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/operation-receipts/readback",
+    method: "POST",
+    body: { matter_id: MATTER, ...item },
+    requestId: "request:readback-flat",
+    context: fixture.context,
+    runtime: fixture.runtime,
+  });
+  assert.equal(response.status, 200);
+  assert.equal(response.body.items.length, 1);
+  assert.equal(JSON.stringify(response.body).includes(REST_ID), false);
+});
+
 test("operation receipt readback returns safe empty for provider identity mismatch and permission denial", async () => {
   const fixture = runtimeFixture();
   const mismatch = await handleOutlookAddinApiRequest({

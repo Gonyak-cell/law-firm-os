@@ -3553,20 +3553,47 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/operation-receipts/readback" && method === "POST") {
       if (
-        !hasOnlyBodyFields(body, ["audit_hint_ref", "matter_id", "item"])
-        || !hasOnlyBodyFields(body?.item, [
+        !hasOnlyBodyFields(body, [
+          "audit_hint_ref",
+          "conversation_id",
+          "canonical_graph_message_id",
+          "internet_message_id",
+          "item",
+          "current_item",
+          "matter_id",
+          "mode",
+          "provenance",
+          "rest_message_id",
+        ])
+        || (body.item && !hasOnlyBodyFields(body.item, [
           "conversation_id",
           "canonical_graph_message_id",
           "internet_message_id",
           "mode",
           "provenance",
           "rest_message_id",
-        ])
+        ]))
+        || (body.current_item && !hasOnlyBodyFields(body.current_item, [
+          "conversation_id",
+          "canonical_graph_message_id",
+          "internet_message_id",
+          "mode",
+          "provenance",
+          "rest_message_id",
+        ]))
       ) {
         return emptyOutlookOperationReceiptReadback({ requestId });
       }
+      const item = body.item ?? body.current_item ?? {
+        conversation_id: body.conversation_id,
+        canonical_graph_message_id: body.canonical_graph_message_id,
+        internet_message_id: body.internet_message_id,
+        mode: body.mode,
+        provenance: body.provenance,
+        rest_message_id: body.rest_message_id,
+      };
       return await handleOutlookOperationReceiptReadback({
-        body,
+        body: { ...body, item },
         context,
         requestId,
         runtime,
