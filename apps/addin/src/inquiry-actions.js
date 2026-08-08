@@ -139,6 +139,16 @@ export function outlookActionErrorMessage(error) {
       "이 작업을 할 권한이 없습니다.",
     OUTLOOK_ADDIN_REVIEW_REQUIRED:
       "관리자 확인이 필요한 작업입니다.",
+    OUTLOOK_ADDIN_MATTER_INACTIVE:
+      "이 Matter는 현재 보관 작업을 받을 수 없습니다. 상태를 확인해 주세요.",
+    OUTLOOK_CANONICAL_IDENTITY_MISMATCH:
+      "메일 식별 정보가 바뀌었습니다. 현재 메일을 다시 확인해 주세요.",
+    OUTLOOK_MATTER_SELECTION_REQUIRED:
+      "현재 메일에서 Matter를 다시 선택해 주세요.",
+    OUTLOOK_MATTER_SELECTION_STALE:
+      "Matter 권한 또는 상태가 바뀌었습니다. 다시 선택해 주세요.",
+    OUTLOOK_OPERATION_KEY_UNAVAILABLE:
+      "안전한 처리 키를 만들 수 없습니다. Outlook을 다시 시작해 주세요.",
     AUTH_SESSION_REQUIRED:
       "로그인이 만료되었습니다. 다시 로그인해 주세요.",
     API_RESPONSE_INVALID:

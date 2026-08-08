@@ -6,6 +6,7 @@ export const MAX_OUTLOOK_MATTER_SEARCH_DEBOUNCE_MS = 1_000;
 const DEFAULT_SEARCH_LIMIT = 12;
 const MAX_SEARCH_LIMIT = 20;
 const DEFAULT_DEBOUNCE_MS = 250;
+const MAX_CURSOR_LENGTH = 4_096;
 const ACTIVE_MATTER_STATUSES = new Set(["open", "opening", "paused"]);
 const UUID_ONLY = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/iu;
 
@@ -29,6 +30,15 @@ function canonicalMatterId(value) {
     && value.length <= 512
     && value === value.trim()
     && !/[\u0000-\u001f\u007f]/u.test(value)
+    ? value
+    : "";
+}
+
+function safeCursor(value) {
+  return typeof value === "string"
+    && value.length > 0
+    && value.length <= MAX_CURSOR_LENGTH
+    && /^[A-Za-z0-9_-]+$/u.test(value)
     ? value
     : "";
 }
@@ -65,16 +75,26 @@ function safeMatterResult(value) {
 export function createOutlookMatterSearchRequest({
   opened = false,
   query,
+  matterId,
+  cursor,
   limit,
 } = {}) {
   if (opened !== true) return null;
+  const canonicalId = canonicalMatterId(matterId);
   const normalizedQuery = safeText(query, MAX_OUTLOOK_MATTER_QUERY_LENGTH);
-  if (!normalizedQuery || UUID_ONLY.test(normalizedQuery)) return null;
-  const bounded = boundedLimit(limit);
+  if (!canonicalId && (!normalizedQuery || UUID_ONLY.test(normalizedQuery))) return null;
+  if (canonicalId && normalizedQuery) return null;
+  const bounded = canonicalId ? 1 : boundedLimit(limit);
+  const nextCursor = safeCursor(cursor);
+  if (cursor != null && !nextCursor) return null;
+  const searchParameter = canonicalId
+    ? `matter_id=${encodeURIComponent(canonicalId)}`
+    : `q=${encodeURIComponent(normalizedQuery)}`;
   return Object.freeze({
-    path: `/api/outlook/matters?q=${encodeURIComponent(normalizedQuery)}&limit=${bounded}`,
+    path: `/api/outlook/matters?${searchParameter}&limit=${bounded}${nextCursor ? `&cursor=${encodeURIComponent(nextCursor)}` : ""}`,
     method: "GET",
-    query: normalizedQuery,
+    ...(canonicalId ? { matter_id: canonicalId } : { query: normalizedQuery }),
+    ...(nextCursor ? { cursor: nextCursor } : {}),
     limit: bounded,
   });
 }
@@ -89,9 +109,20 @@ export function sanitizeOutlookMatterSearchResponse(body) {
     items.push(item);
   }
   const requestId = safeText(body?.request_id);
+  const pageLimit = Number(body?.page_info?.limit);
+  const nextCursor = safeCursor(body?.page_info?.next_cursor);
+  const hasMore = body?.page_info?.has_more === true && Boolean(nextCursor);
+  const pageInfo = Number.isSafeInteger(pageLimit) && pageLimit >= 1 && pageLimit <= 50
+    ? Object.freeze({
+      limit: pageLimit,
+      has_more: hasMore,
+      next_cursor: hasMore ? nextCursor : null,
+    })
+    : null;
   return Object.freeze({
     ...(requestId ? { request_id: requestId } : {}),
     items: Object.freeze(items),
+    ...(pageInfo ? { page_info: pageInfo } : {}),
   });
 }
 
@@ -125,11 +156,10 @@ export function createOutlookMatterRevalidationRequest({
   itemContext,
 } = {}) {
   const current = outlookMatterSelectionForContext({ selection, itemContext });
-  const query = current?.matter_code || current?.title || current?.client_display_name;
   const request = createOutlookMatterSearchRequest({
     opened: Boolean(current),
-    query,
-    limit: MAX_SEARCH_LIMIT,
+    matterId: current?.matter_id,
+    limit: 1,
   });
   if (!request) {
     throw matterSearchError(

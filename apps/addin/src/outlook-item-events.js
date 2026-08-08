@@ -32,6 +32,14 @@ function requiredText(value, field, maxLength = 2048) {
   return next;
 }
 
+function requiredExactText(value, field, maxLength = 2048) {
+  const next = requiredText(value, field, maxLength);
+  if (next !== value || /[\u0000-\u001f\u007f]/u.test(next)) {
+    throw new TypeError(`${field} must be exact`);
+  }
+  return next;
+}
+
 export function createOutlookOperationSnapshot({
   item,
   mode,
@@ -41,8 +49,8 @@ export function createOutlookOperationSnapshot({
 } = {}) {
   const itemContextKey = outlookItemContextKey({ item, mode, provenance });
   if (!itemContextKey) throw new TypeError("stable Outlook item context is required");
-  const nextMatterId = requiredText(matterId, "matter_id", 512);
-  const nextOperationStartKey = requiredText(
+  const nextMatterId = requiredExactText(matterId, "matter_id", 512);
+  const nextOperationStartKey = requiredExactText(
     operationStartKey,
     "operation_start_key",
     512,
@@ -51,15 +59,16 @@ export function createOutlookOperationSnapshot({
     item?.rest_message_id ?? item?.graph_message_id,
     "rest_message_id",
   );
-  const canonicalGraphMessageId = text(item?.canonical_graph_message_id);
+  const canonicalGraphMessageId = requiredExactText(
+    item?.canonical_graph_message_id,
+    "canonical Graph identity",
+  );
   const itemIdentity = Object.freeze({
     rest_message_id: restMessageId,
     internet_message_id: requiredText(item?.internet_message_id, "internet_message_id"),
     conversation_id: requiredText(item?.conversation_id, "conversation_id"),
     immutable_item_key: outlookItemIdentityKey(item),
-    ...(canonicalGraphMessageId
-      ? { canonical_graph_message_id: canonicalGraphMessageId }
-      : {}),
+    canonical_graph_message_id: canonicalGraphMessageId,
   });
   return Object.freeze({
     item_identity: itemIdentity,
@@ -70,13 +79,14 @@ export function createOutlookOperationSnapshot({
     operation_start_key: nextOperationStartKey,
     operation_context_key: [
       itemContextKey,
+      canonicalGraphMessageId,
       nextMatterId,
       nextOperationStartKey,
     ].join("\u001d"),
   });
 }
 
-export function isOutlookOperationSnapshotCurrent({
+export function isOutlookOperationSnapshotContextCurrent({
   snapshot,
   currentItem,
   currentMode,
@@ -102,11 +112,40 @@ export function isOutlookOperationSnapshotCurrent({
     currentCanonicalGraphMessageId
       ?? currentItem?.canonical_graph_message_id,
   );
-  return !expectedCanonical || expectedCanonical === currentCanonical;
+  return Boolean(expectedCanonical)
+    && Boolean(currentCanonical)
+    && expectedCanonical === currentCanonical;
+}
+
+export function isOutlookOperationSnapshotCurrent({
+  actualCanonicalGraphMessageId,
+  ...input
+} = {}) {
+  if (!isOutlookOperationSnapshotContextCurrent(input)) return false;
+  const expectedCanonical = text(
+    input.snapshot?.item_identity?.canonical_graph_message_id,
+  );
+  const actualCanonical = text(actualCanonicalGraphMessageId);
+  return Boolean(actualCanonical) && expectedCanonical === actualCanonical;
+}
+
+export function outlookOperationReceiptCanonicalGraphMessageId(receipt) {
+  const identities = [
+    receipt?.source_identity?.canonical_graph_message_id,
+    receipt?.email_thread?.graph_message_id,
+    receipt?.item?.graph_message_id,
+  ].map(text).filter(Boolean);
+  const unique = new Set(identities);
+  return unique.size === 1 ? identities[0] : "";
 }
 
 export function reconcileOutlookOperationResult(input = {}) {
-  const current = isOutlookOperationSnapshotCurrent(input);
+  const actualCanonicalGraphMessageId = text(input.actualCanonicalGraphMessageId)
+    || outlookOperationReceiptCanonicalGraphMessageId(input.receipt);
+  const current = isOutlookOperationSnapshotCurrent({
+    ...input,
+    actualCanonicalGraphMessageId,
+  });
   const matterChanged = input?.snapshot?.matter_id !== text(input.currentMatterId);
   return Object.freeze({
     state: current ? "complete" : "stale_item",

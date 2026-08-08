@@ -16,6 +16,7 @@ import {
 
 const email = {
   graph_message_id: "graph-message-001",
+  canonical_graph_message_id: "immutable-message-001",
   internet_message_id: "<message-001@example.invalid>",
   conversation_id: "conversation-001",
 };
@@ -70,6 +71,7 @@ test("완료된 filing receipt는 요청 당시 item/Matter snapshot에 고정�
     currentProvenance: "received",
     currentMatterId: "matter-001",
     currentOperationStartKey: "file-start-001",
+    actualCanonicalGraphMessageId: "immutable-message-001",
     receipt,
   });
 

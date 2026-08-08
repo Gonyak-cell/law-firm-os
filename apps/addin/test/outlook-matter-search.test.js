@@ -66,6 +66,12 @@ test("Matter search projects only safe active result fields and never denied cou
     omitted_count: 41,
     denied_count: 41,
     storage_pointer: "s3://must-not-return",
+    page_info: {
+      limit: 12,
+      has_more: true,
+      next_cursor: "safe-cursor-001",
+      denied_count: 41,
+    },
     items: [
       {
         ...matter,
@@ -80,6 +86,11 @@ test("Matter search projects only safe active result fields and never denied cou
   assert.deepEqual(result, {
     request_id: "request-matter-search-001",
     items: [matter],
+    page_info: {
+      limit: 12,
+      has_more: true,
+      next_cursor: "safe-cursor-001",
+    },
   });
   assert.equal(Object.isFrozen(result), true);
   assert.equal(Object.isFrozen(result.items), true);
@@ -137,8 +148,11 @@ test("Every write revalidation requires the same item key and an exact fresh can
     itemContext: context(),
   });
   assert.equal(request.method, "GET");
-  assert.match(request.path, /^\/api\/outlook\/matters\?q=/u);
-  assert.equal(request.path.includes(encodeURIComponent(matter.matter_code)), true);
+  assert.equal(
+    request.path,
+    `/api/outlook/matters?matter_id=${encodeURIComponent(matter.matter_id)}&limit=1`,
+  );
+  assert.equal(request.path.includes(encodeURIComponent(matter.matter_code)), false);
 
   const refreshed = revalidateOutlookMatterSelection({
     selection,
@@ -162,6 +176,24 @@ test("Every write revalidation requires the same item key and an exact fresh can
       (error) => error.safe_error_code === "OUTLOOK_MATTER_SELECTION_STALE",
     );
   }
+});
+
+test("display text changes do not make an exact canonical Matter revalidation stale", () => {
+  const selection = createOutlookMatterSelection({ itemContext: context(), matter });
+  const refreshed = revalidateOutlookMatterSelection({
+    selection,
+    itemContext: context(),
+    searchResponse: {
+      items: [{
+        ...matter,
+        matter_code: "RENAMED/CODE/001",
+        title: "Renamed by the server",
+        client_display_name: "Renamed client",
+      }],
+    },
+  });
+  assert.equal(refreshed.matter_id, selection.matter_id);
+  assert.equal(refreshed.title, "Renamed by the server");
 });
 
 test("Dependency-free debounce runs only the latest bounded search and quarantines stale results", async () => {

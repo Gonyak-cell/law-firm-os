@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   OUTLOOK_ITEM_ID_ERROR_CODES,
+  applyOutlookCanonicalMessageIdentity,
+  createOutlookCanonicalMessageIdentityRequest,
   resolveCurrentOutlookRestMessageId,
 } from "../src/outlook-item-id.js";
 
@@ -36,6 +38,59 @@ test("CL-P3-W01-T02 Office.js read item ID를 REST v2.0 ID로 변환하고 EWS I
   assert.equal(
     JSON.stringify(result).includes("ews-item-id-must-not-return"),
     false,
+  );
+});
+
+test("provider canonical identity는 exact REST/internet/conversation tuple에만 결합한다", () => {
+  const item = Object.freeze({
+    rest_message_id: "rest-v2-message-id",
+    graph_message_id: "rest-v2-message-id",
+    internet_message_id: "<message@example.invalid>",
+    conversation_id: "conversation-001",
+  });
+  const request = createOutlookCanonicalMessageIdentityRequest({
+    item,
+    matterId: "matter-001",
+  });
+  assert.deepEqual(request, {
+    path: "/api/outlook/messages/identity",
+    method: "POST",
+    body: {
+      matter_id: "matter-001",
+      rest_message_id: "rest-v2-message-id",
+      internet_message_id: "<message@example.invalid>",
+      conversation_id: "conversation-001",
+    },
+  });
+
+  const resolved = applyOutlookCanonicalMessageIdentity({
+    item,
+    response: {
+      item: {
+        rest_message_id: "rest-v2-message-id",
+        internet_message_id: "<message@example.invalid>",
+        conversation_id: "conversation-001",
+        canonical_graph_message_id: "immutable-message-001",
+      },
+    },
+  });
+  assert.equal(resolved.canonical_graph_message_id, "immutable-message-001");
+  assert.equal(Object.isFrozen(resolved), true);
+  assert.throws(
+    () => applyOutlookCanonicalMessageIdentity({
+      item,
+      response: {
+        item: {
+          ...resolved,
+          conversation_id: "conversation-other",
+        },
+      },
+    }),
+    /canonical Outlook identity does not match/u,
+  );
+  assert.throws(
+    () => applyOutlookCanonicalMessageIdentity({ item, response: { item: {} } }),
+    /canonical_graph_message_id is required/u,
   );
 });
 

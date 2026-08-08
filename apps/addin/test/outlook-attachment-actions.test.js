@@ -19,6 +19,7 @@ function attachment(id, name = `${id}.pdf`) {
 function item(overrides = {}) {
   return {
     conversation_id: "conversation-001",
+    canonical_graph_message_id: "immutable-001",
     attachments: [attachment("att-001"), attachment("att-002")],
     unsupported: [],
     ...overrides,
@@ -43,12 +44,14 @@ test("지원되는 첨부마다 한 번씩 POST하고 선택 ID와 Matter/스레
     {
       matter_id: "matter-001",
       email_thread_id: "thread-from-filed-email",
+      canonical_graph_message_id: "immutable-001",
       selected_attachment_ids: ["att-001"],
       attachments: [attachment("att-001")],
     },
     {
       matter_id: "matter-001",
       email_thread_id: "thread-from-filed-email",
+      canonical_graph_message_id: "immutable-001",
       selected_attachment_ids: ["att-002"],
       attachments: [attachment("att-002")],
     },
@@ -56,6 +59,49 @@ test("지원되는 첨부마다 한 번씩 POST하고 선택 ID와 Matter/스레
   assert.equal(result.result.request_count, 2);
   assert.equal(result.result.saved_attachments.length, 2);
   assert.deepEqual(result.notices, []);
+});
+
+test("item context가 첫 receipt 뒤 stale이면 receipt를 남기고 다음 write를 보내지 않는다", async () => {
+  let current = true;
+  const calls = [];
+  const receipts = [];
+  await assert.rejects(
+    saveOutlookAttachments({
+      currentItem: item(),
+      matterId: "matter-stale",
+      emailThreadId: "thread-stale",
+      assertOperationCurrent() {
+        if (!current) throw new Error("OUTLOOK_ACTION_CONTEXT_CHANGED");
+      },
+      onReceipt(receipt) {
+        receipts.push(receipt);
+        current = false;
+      },
+      requestJson: async (_path, options) => {
+        calls.push(options.body.selected_attachment_ids[0]);
+        return { outcome: "attachments_saved", source_identity: { canonical_graph_message_id: "immutable-001" } };
+      },
+    }),
+    /OUTLOOK_ACTION_CONTEXT_CHANGED/u,
+  );
+  assert.deepEqual(calls, ["att-001"]);
+  assert.equal(receipts.length, 1);
+});
+
+test("canonical Graph identity가 없으면 attachment write를 보내지 않는다", async () => {
+  let requestCount = 0;
+  await assert.rejects(
+    saveOutlookAttachments({
+      currentItem: item({ canonical_graph_message_id: "" }),
+      matterId: "matter-missing-identity",
+      requestJson: async () => {
+        requestCount += 1;
+        return {};
+      },
+    }),
+    /canonical_graph_message_id is required/u,
+  );
+  assert.equal(requestCount, 0);
 });
 
 test("필드 이메일 스레드가 없으면 실제 conversation_id를 fallback thread ID로 사용한다", async () => {

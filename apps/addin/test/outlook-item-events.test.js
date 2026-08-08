@@ -4,11 +4,13 @@ import {
   createOutlookOperationSnapshot,
   isFiledEmailContextCurrent,
   isOutlookActionContextCurrent,
+  isOutlookOperationSnapshotContextCurrent,
   isOutlookOperationSnapshotCurrent,
   isSameOutlookItem,
   outlookItemChangeDisposition,
   outlookItemContextKey,
   outlookItemIdentityKey,
+  outlookOperationReceiptCanonicalGraphMessageId,
   reconcileOutlookOperationResult,
   subscribeToOutlookItemChanges,
 } from "../src/outlook-item-events.js";
@@ -16,6 +18,7 @@ import {
 function item(suffix) {
   return {
     graph_message_id: `graph-${suffix}`,
+    canonical_graph_message_id: `immutable-${suffix}`,
     internet_message_id: `<internet-${suffix}@example.invalid>`,
     conversation_id: `conversation-${suffix}`,
   };
@@ -147,6 +150,7 @@ test("item·mode·Matter·canonical Graph identity 변경은 결과를 현재 �
     currentMatterId: "matter-001",
     currentOperationStartKey: "operation-start-001",
     currentCanonicalGraphMessageId: "immutable-001",
+    actualCanonicalGraphMessageId: "immutable-001",
   };
   assert.equal(isOutlookOperationSnapshotCurrent(current), true);
   for (const changed of [
@@ -156,9 +160,85 @@ test("item·mode·Matter·canonical Graph identity 변경은 결과를 현재 �
     { currentMatterId: "matter-002" },
     { currentOperationStartKey: "operation-start-002" },
     { currentCanonicalGraphMessageId: "immutable-002" },
+    { actualCanonicalGraphMessageId: "immutable-002" },
   ]) {
     assert.equal(isOutlookOperationSnapshotCurrent({ ...current, ...changed }), false);
   }
+});
+
+test("canonical Graph expected/current/actual identity가 하나라도 없으면 fail closed한다", () => {
+  assert.throws(
+    () => createOutlookOperationSnapshot({
+      item: {
+        graph_message_id: "graph-missing-canonical",
+        internet_message_id: "<missing@example.invalid>",
+        conversation_id: "conversation-missing",
+      },
+      mode: "read",
+      provenance: "received",
+      matterId: "matter-001",
+      operationStartKey: "operation-start-missing",
+    }),
+    /canonical Graph identity is required/u,
+  );
+
+  const snapshot = createOutlookOperationSnapshot({
+    item: item("001"),
+    mode: "read",
+    provenance: "received",
+    matterId: "matter-001",
+    operationStartKey: "operation-start-001",
+  });
+  const current = {
+    snapshot,
+    currentItem: item("001"),
+    currentMode: "read",
+    currentProvenance: "received",
+    currentMatterId: "matter-001",
+    currentOperationStartKey: "operation-start-001",
+    currentCanonicalGraphMessageId: "immutable-001",
+    actualCanonicalGraphMessageId: "immutable-001",
+  };
+  assert.equal(isOutlookOperationSnapshotCurrent(current), true);
+  for (const missing of [
+    { currentItem: { ...item("001"), canonical_graph_message_id: "" }, currentCanonicalGraphMessageId: "" },
+    { actualCanonicalGraphMessageId: "" },
+  ]) {
+    assert.equal(isOutlookOperationSnapshotCurrent({ ...current, ...missing }), false);
+  }
+  assert.equal(isOutlookOperationSnapshotContextCurrent({
+    ...current,
+    actualCanonicalGraphMessageId: undefined,
+  }), true);
+});
+
+test("A→B→A 전환은 같은 item key로 돌아와도 operation generation을 재사용하지 않는다", () => {
+  const snapshot = createOutlookOperationSnapshot({
+    item: item("001"),
+    mode: "read",
+    provenance: "received",
+    matterId: "matter-001",
+    operationStartKey: "generation-before-item-change",
+  });
+  assert.equal(isOutlookOperationSnapshotContextCurrent({
+    snapshot,
+    currentItem: item("001"),
+    currentMode: "read",
+    currentProvenance: "received",
+    currentMatterId: "matter-001",
+    currentOperationStartKey: "generation-after-item-change",
+    currentCanonicalGraphMessageId: "immutable-001",
+  }), false);
+});
+
+test("production receipts expose one canonical Graph identity or fail closed", () => {
+  assert.equal(outlookOperationReceiptCanonicalGraphMessageId({
+    email_thread: { graph_message_id: "immutable-file-001" },
+  }), "immutable-file-001");
+  assert.equal(outlookOperationReceiptCanonicalGraphMessageId({
+    source_identity: { canonical_graph_message_id: "immutable-source-001" },
+  }), "immutable-source-001");
+  assert.equal(outlookOperationReceiptCanonicalGraphMessageId({}), "");
 });
 
 test("서버 완료 receipt는 원래 context에 남고 stale 화면에는 적용하거나 rollback하지 않는다", () => {
@@ -178,6 +258,7 @@ test("서버 완료 receipt는 원래 context에 남고 stale 화면에는 적�
     currentProvenance: "received",
     currentMatterId: "matter-002",
     currentOperationStartKey: "operation-start-001",
+    actualCanonicalGraphMessageId: "immutable-001",
     receipt,
   });
 
@@ -196,6 +277,7 @@ test("서버 완료 receipt는 원래 context에 남고 stale 화면에는 적�
     currentProvenance: "received",
     currentMatterId: "matter-001",
     currentOperationStartKey: "operation-start-001",
+    actualCanonicalGraphMessageId: "immutable-001",
     receipt,
   });
   assert.equal(complete.state, "complete");
