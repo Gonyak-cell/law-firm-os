@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "captured_at_utc": "2026-08-08T05:01:31Z",
+  "source_sha": "3b00fcc050ce3f64bf53d68de878467e5a76dec6",
+  "provenance": "Exact 1.0.1.1 source manifest artifacts were fetched from immutable SHA-addressed HTTPS URLs by Microsoft 365, accepted as central updates for the two existing ProductIds, and read back at version 1.0.1.1 with the pre-update assignment counts, fixed deployment mode, and enabled state unchanged.",
+  "profiles": [
+    {
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "version": "1.0.1.1",
+      "manifest_sha256": "f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271",
+      "assignment_count": 1,
+      "assignment_fingerprint_sha256": "99b7e267775e6ad68f33eb8b1be3006e71747cdd71a7afa99bfd5c9204c2f40e"
+    },
+    {
+      "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "version": "1.0.1.1",
+      "manifest_sha256": "a3664e40361f585ef405e3ed5cf03b2576251a44403366d21dea8a26f324cc66",
+      "assignment_count": 2,
+      "assignment_fingerprint_sha256": "ef09284c95e57df1d37eb5072d4ad8e65ff58bf127454cdfff67f1e0c6e3521d"
+    }
+  ],
+  "raw_assignment_pii_included": false,
+  "secret_material_included": false,
+  "allowed_claim": "The two exact 1.0.1.1 production manifest byte sequences are the authoritative Microsoft 365 central-deployment baseline for their existing ProductIds. Their assignment counts, fixed deployment mode, enabled state, permissions, host/event contracts, and profile separation did not change during the updates.",
+  "blocked_claim": "This receipt is not evidence that release candidate 1.1.0.0, any new task-pane runtime, or tenant-wide Outlook cache propagation was deployed."
+}
