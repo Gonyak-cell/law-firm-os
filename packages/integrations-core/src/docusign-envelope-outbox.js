@@ -77,6 +77,7 @@ function normalizeDocumentSnapshot(input = {}) {
     throw failure("DOCUSIGN_DOCX_REQUIRED", "DocuSign source document must be DOCX", 400);
   }
   return Object.freeze({
+    artifact_id: requiredText(input.artifact_id, "document.artifact_id"),
     document_id: requiredText(input.document_id, "document.document_id"),
     version_id: requiredText(input.version_id, "document.version_id"),
     sha256: requiredSha256(input.sha256, "document.sha256"),
@@ -87,6 +88,7 @@ function normalizeDocumentSnapshot(input = {}) {
     audit_trace_id: requiredText(input.audit_trace_id, "document.audit_trace_id"),
     template_version: requiredText(input.template_version, "document.template_version"),
     template_sha256: requiredSha256(input.template_sha256, "document.template_sha256"),
+    input_sha256: requiredSha256(input.input_sha256, "document.input_sha256"),
     approval_receipt_ref: requiredText(input.approval_receipt_ref, "document.approval_receipt_ref"),
     immutable: true,
     finalized: true,
@@ -295,6 +297,7 @@ function publicRequest(request) {
 export function createDocusignEnvelopeService({
   repository,
   connectionResolver,
+  approvedDocumentResolver,
   artifactReader,
   recipientResolver,
   adapter,
@@ -304,6 +307,7 @@ export function createDocusignEnvelopeService({
     throw new TypeError("DocuSign repository is required");
   }
   if (typeof connectionResolver !== "function") throw new TypeError("connectionResolver is required");
+  if (typeof approvedDocumentResolver !== "function") throw new TypeError("approvedDocumentResolver is required");
   if (typeof artifactReader !== "function") throw new TypeError("artifactReader is required");
   if (typeof recipientResolver !== "function") throw new TypeError("recipientResolver is required");
   if (!adapter || typeof adapter.createDraft !== "function" || typeof adapter.send !== "function") {
@@ -343,12 +347,20 @@ export function createDocusignEnvelopeService({
       if (principal.tenant_id !== tenantId) throw failure("DOCUSIGN_TENANT_MISMATCH", "Tenant does not match server principal", 403);
       const matterId = requiredText(input.matter_id, "matter_id");
       const connectionId = requiredText(input.connection_id, "connection_id");
-      const document = normalizeDocumentSnapshot(input.document);
-      const recipients = Object.freeze((input.recipients ?? []).map(normalizeRecipientSnapshot));
+      if (input.document !== undefined || input.recipients !== undefined || input.anchor_manifest !== undefined) {
+        throw failure("DOCUSIGN_AUTHORITATIVE_SOURCE_REQUIRED", "Document, recipients, and anchors must come from the approved server source", 400);
+      }
+      const approvedSource = await approvedDocumentResolver({
+        tenant_id: tenantId,
+        matter_id: matterId,
+        artifact_id: requiredText(input.approved_artifact_id, "approved_artifact_id"),
+      });
+      const document = normalizeDocumentSnapshot(approvedSource?.document);
+      const recipients = Object.freeze((approvedSource?.recipients ?? []).map(normalizeRecipientSnapshot));
       if (recipients.length === 0) throw new TypeError("recipients are required");
       const roles = new Set(recipients.map((recipient) => recipient.role));
       if (roles.size !== recipients.length) throw new TypeError("recipient roles must be unique");
-      const anchorManifest = normalizeAnchorManifest(input.anchor_manifest);
+      const anchorManifest = normalizeAnchorManifest(approvedSource?.anchor_manifest);
       for (const role of roles) {
         if (!anchorManifest.anchors.some((anchor) => anchor.role === role)) throw new TypeError(`signature anchor is required for role ${role}`);
       }

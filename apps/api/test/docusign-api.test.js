@@ -26,6 +26,7 @@ const ACTOR = "actor-api";
 const HMAC_SECRET = "test-only-docusign-connect-secret";
 const DOCUMENT_BYTES = Buffer.from("approved-docusign-source");
 const DOCUMENT_SHA = createHash("sha256").update(DOCUMENT_BYTES).digest("hex");
+const APPROVED_ARTIFACT_ID = "builder-artifact-api";
 const CONNECTION = Object.freeze({
   tenant_id: TENANT,
   connection_id: "docusign-primary",
@@ -66,6 +67,28 @@ async function docusignRuntime({ authorizeMatter = async () => true } = {}) {
   const envelopeService = createDocusignEnvelopeService({
     repository,
     connectionResolver,
+    approvedDocumentResolver: async () => ({
+      document: {
+        artifact_id: APPROVED_ARTIFACT_ID,
+        document_id: "document-api",
+        version_id: "version-api",
+        sha256: DOCUMENT_SHA,
+        filename: "agreement.docx",
+        mime_type: DOCX_MIME_TYPE,
+        workspace_id: "workspace-api",
+        permission_envelope_id: "permission-api",
+        audit_trace_id: "audit-api",
+        template_version: "template-v1",
+        template_sha256: "b".repeat(64),
+        input_sha256: "c".repeat(64),
+        approval_receipt_ref: "approval-api",
+        immutable: true,
+        finalized: true,
+        owner_approved: true,
+      },
+      recipients: [{ recipient_ref: "contact-api", role: "client", routing_order: 1 }],
+      anchor_manifest: { anchors: [{ role: "client", anchor: "/client-signature/" }] },
+    }),
     artifactReader: async () => ({ bytes: DOCUMENT_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "signer@example.test" }),
     adapter,
@@ -78,24 +101,7 @@ async function docusignRuntime({ authorizeMatter = async () => true } = {}) {
     matter_id: MATTER,
     connection_id: CONNECTION.connection_id,
     idempotency_key: "send-api",
-    document: {
-      document_id: "document-api",
-      version_id: "version-api",
-      sha256: DOCUMENT_SHA,
-      filename: "agreement.docx",
-      mime_type: DOCX_MIME_TYPE,
-      workspace_id: "workspace-api",
-      permission_envelope_id: "permission-api",
-      audit_trace_id: "audit-api",
-      template_version: "template-v1",
-      template_sha256: "b".repeat(64),
-      approval_receipt_ref: "approval-api",
-      immutable: true,
-      finalized: true,
-      owner_approved: true,
-    },
-    recipients: [{ recipient_ref: "contact-api", role: "client", routing_order: 1 }],
-    anchor_manifest: { anchors: [{ role: "client", anchor: "/client-signature/" }] },
+    approved_artifact_id: APPROVED_ARTIFACT_ID,
   });
   await envelopeService.sendApprovedRequest({
     principal: { tenant_id: TENANT, actor_id: ACTOR },

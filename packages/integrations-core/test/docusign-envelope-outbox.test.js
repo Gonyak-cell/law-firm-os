@@ -15,6 +15,7 @@ const TENANT = "tenant-amic";
 const MATTER = "matter-approved";
 const DOCX_BYTES = Buffer.from("approved-docx-fixture");
 const DOCX_SHA = createHash("sha256").update(DOCX_BYTES).digest("hex");
+const APPROVED_ARTIFACT_ID = "builder-artifact-approved-001";
 const CONNECTION = Object.freeze({
   tenant_id: TENANT,
   connection_id: "docusign-primary",
@@ -28,6 +29,29 @@ const CONNECTION = Object.freeze({
   hmac_secret_ref: "secret://docusign/connect-hmac",
 });
 
+const APPROVED_SOURCE = Object.freeze({
+  document: Object.freeze({
+    artifact_id: APPROVED_ARTIFACT_ID,
+    document_id: "doc-approved-001",
+    version_id: "version-approved-001",
+    sha256: DOCX_SHA,
+    filename: "agreement.docx",
+    mime_type: DOCX_MIME_TYPE,
+    workspace_id: "workspace-matter-approved",
+    permission_envelope_id: "perm-approved-001",
+    audit_trace_id: "audit-approved-001",
+    template_version: "template-v3",
+    template_sha256: "a".repeat(64),
+    input_sha256: "b".repeat(64),
+    approval_receipt_ref: "approval:owner:001",
+    immutable: true,
+    finalized: true,
+    owner_approved: true,
+  }),
+  recipients: Object.freeze([{ recipient_ref: "contact:signer-001", role: "client", routing_order: 1 }]),
+  anchor_manifest: Object.freeze({ anchors: Object.freeze([{ role: "client", anchor: "/sig-client/" }]) }),
+});
+
 function approvedInput(overrides = {}) {
   return {
     principal: { tenant_id: TENANT, actor_id: "actor-owner" },
@@ -36,32 +60,16 @@ function approvedInput(overrides = {}) {
     matter_id: MATTER,
     connection_id: CONNECTION.connection_id,
     idempotency_key: "esign-send-001",
-    document: {
-      document_id: "doc-approved-001",
-      version_id: "version-approved-001",
-      sha256: DOCX_SHA,
-      filename: "agreement.docx",
-      mime_type: DOCX_MIME_TYPE,
-      workspace_id: "workspace-matter-approved",
-      permission_envelope_id: "perm-approved-001",
-      audit_trace_id: "audit-approved-001",
-      template_version: "template-v3",
-      template_sha256: "a".repeat(64),
-      approval_receipt_ref: "approval:owner:001",
-      immutable: true,
-      finalized: true,
-      owner_approved: true,
-    },
-    recipients: [{ recipient_ref: "contact:signer-001", role: "client", routing_order: 1 }],
-    anchor_manifest: { anchors: [{ role: "client", anchor: "/sig-client/" }] },
+    approved_artifact_id: APPROVED_ARTIFACT_ID,
     ...overrides,
   };
 }
 
-function runtime({ repository, adapter, connection = CONNECTION, clock } = {}) {
+function runtime({ repository, adapter, connection = CONNECTION, approvedSource = APPROVED_SOURCE, clock } = {}) {
   return createDocusignEnvelopeService({
     repository,
     connectionResolver: async () => connection,
+    approvedDocumentResolver: async () => approvedSource,
     artifactReader: async () => ({ bytes: DOCX_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({
       tenant_id,
@@ -144,10 +152,12 @@ test("OUTM-33 idempotency and payload fingerprint prevent duplicate active envel
 test("OUTM-33 binds server principal, tenant, account, approved hash, role, and anchor", async () => {
   const repository = createDocusignEnvelopeRepository();
   let connection = CONNECTION;
+  let approvedSource = APPROVED_SOURCE;
   const adapter = { createDraft: async () => ({ envelope_id: "envelope" }), send: async () => ({ status: "sent" }) };
   const service = createDocusignEnvelopeService({
     repository,
     connectionResolver: async () => connection,
+    approvedDocumentResolver: async () => approvedSource,
     artifactReader: async () => ({ bytes: DOCX_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "s@example.test" }),
     adapter,
@@ -158,13 +168,26 @@ test("OUTM-33 binds server principal, tenant, account, approved hash, role, and 
     (error) => error?.safe_error_code === "DOCUSIGN_TENANT_MISMATCH",
   );
   await assert.rejects(
-    service.queueApprovedRequest(approvedInput({ document: { ...approvedInput().document, owner_approved: false } })),
+    service.queueApprovedRequest(approvedInput({ document: APPROVED_SOURCE.document })),
+    (error) => error?.safe_error_code === "DOCUSIGN_AUTHORITATIVE_SOURCE_REQUIRED",
+  );
+  approvedSource = {
+    ...APPROVED_SOURCE,
+    document: { ...APPROVED_SOURCE.document, owner_approved: false },
+  };
+  await assert.rejects(
+    service.queueApprovedRequest(approvedInput()),
     (error) => error?.safe_error_code === "DOCUSIGN_APPROVED_IMMUTABLE_DOCUMENT_REQUIRED",
   );
+  approvedSource = {
+    ...APPROVED_SOURCE,
+    anchor_manifest: { anchors: [{ role: "other", anchor: "/sig/" }] },
+  };
   await assert.rejects(
-    service.queueApprovedRequest(approvedInput({ anchor_manifest: { anchors: [{ role: "other", anchor: "/sig/" }] } })),
+    service.queueApprovedRequest(approvedInput()),
     /signature anchor is required for role client/u,
   );
+  approvedSource = APPROVED_SOURCE;
   await service.queueApprovedRequest(approvedInput());
   await assert.rejects(
     service.sendApprovedRequest({
