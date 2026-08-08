@@ -294,7 +294,7 @@ export function parseExchangeResponse(payload = {}, status = 200) {
   if (status === 401 || status === 403) {
     throw createAddinAuthError(
       AUTH_ERROR_CODES.sessionExchangeInvalid,
-      "LawOS 로그인을 확인해 주세요.",
+      "AMIC OS 로그인을 확인해 주세요.",
       { status, api_code: firstText(payload.safe_error_code, payload.safe_error_codes?.[0], payload.reason) },
     );
   }
@@ -310,7 +310,7 @@ export function parseExchangeResponse(payload = {}, status = 200) {
   if (!isLawosSessionToken(token)) {
     throw createAddinAuthError(
       AUTH_ERROR_CODES.sessionExchangeInvalid,
-      "LawOS 세션을 발급받지 못했습니다.",
+      "AMIC OS 세션을 발급받지 못했습니다.",
       { status, token_material_returned: false },
     );
   }
@@ -598,7 +598,7 @@ export function createSessionStore({
     },
     async set(token) {
       if (!isLawosSessionToken(token)) {
-        throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "LawOS 세션만 저장할 수 있습니다.");
+        throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "AMIC OS 세션만 저장할 수 있습니다.");
       }
       const value = text(token);
       try { await officeStorage?.setItem?.(key, value); } catch { /* Storage is optional in command contexts. */ }

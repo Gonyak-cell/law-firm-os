@@ -291,7 +291,7 @@ async function acquireLawosSession({ interactive = false, force = false } = {}) 
         result = await bridge.instance.acquireTokenSilent(silentRequest);
       } catch (error) {
         if (!interactive) {
-          throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "로그인을 눌러 LawOS에 로그인해 주세요.", { cause: error });
+          throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "로그인을 눌러 AMIC OS에 로그인해 주세요.", { cause: error });
         }
         result = await bridge.instance.acquireTokenPopup({
           scopes: bridge.config.scopes,
@@ -582,10 +582,10 @@ function App() {
   function actionErrorMessage(error) {
     if (error?.user_message) return error.user_message;
     if (error?.safe_error_code === "LAWOS_INTERACTION_REQUIRED" || error?.safe_error_code === "AUTH_SESSION_REQUIRED") {
-      return "LawOS에 로그인한 뒤 다시 시도해 주세요.";
+      return "AMIC OS에 로그인한 뒤 다시 시도해 주세요.";
     }
     if (error?.safe_error_code === "ADDIN_API_REQUEST_TIMEOUT") {
-      return "LawOS 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+      return "AMIC OS 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
     }
     if (error?.safe_error_code === "OUTLOOK_OAUTH_PROVIDER_ERROR") {
       return "Microsoft 연결을 완료하지 않았습니다. 다시 시도해 주세요.";
@@ -774,7 +774,7 @@ function App() {
     setError("");
     try {
       const session = await acquireLawosSession({ interactive: true, force: true });
-      if (!session?.authenticated) throw createAddinAuthError("AUTH_SESSION_REQUIRED", "LawOS 로그인을 확인해 주세요.");
+      if (!session?.authenticated) throw createAddinAuthError("AUTH_SESSION_REQUIRED", "AMIC OS 로그인을 확인해 주세요.");
       setAuthState(AUTH_STATE.authenticated);
       try {
         await refreshGraphConnection();
@@ -896,7 +896,7 @@ function App() {
 
   async function runAction(name, fn) {
     if (!readyForBusiness) {
-      setError(authenticated ? "Outlook 연결 후 사용할 수 있습니다." : "LawOS 로그인 후 사용할 수 있습니다.");
+      setError(authenticated ? "Outlook 연결 후 사용할 수 있습니다." : "AMIC OS 로그인 후 사용할 수 있습니다.");
       return;
     }
     if (!itemAvailable) {
@@ -1093,7 +1093,7 @@ function App() {
       <section className="status-stack" aria-label="연결 상태" aria-live="polite" data-testid="connection-status">
         <StatusLine
           icon={ShieldCheck}
-          label="LawOS 로그인"
+          label="AMIC OS 로그인"
           value={authState === AUTH_STATE.authenticated ? "로그인됨" : authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring ? "확인 중" : authState === AUTH_STATE.unavailable ? "사용 불가" : "로그인 필요"}
           tone={authState === AUTH_STATE.authenticated ? "good" : authState === AUTH_STATE.unavailable ? "warn" : "neutral"}
         />
@@ -1112,15 +1112,15 @@ function App() {
           <h2 id="auth-title">연결 설정</h2>
         </div>
         {authState === AUTH_STATE.authenticated ? (
-          <p className="safe-copy">LawOS에 로그인되어 있습니다.</p>
+          <p className="safe-copy">AMIC OS에 로그인되어 있습니다.</p>
         ) : authState === AUTH_STATE.unavailable ? (
           <p className="error" role="alert">{authError || "이 Outlook 환경에서는 보안 로그인을 사용할 수 없습니다."}</p>
         ) : (
           <>
-            <p className="safe-copy">Client·Matter 기능을 쓰려면 LawOS 로그인이 필요합니다.</p>
+            <p className="safe-copy">Client·Matter 기능을 쓰려면 AMIC OS 로그인이 필요합니다.</p>
             <button type="button" onClick={signIn} disabled={busy !== "" || authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring} data-testid="lawos-login-button">
               <ShieldCheck size={15} />
-              {authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring ? "로그인 확인 중" : "LawOS 로그인"}
+              {authState === AUTH_STATE.loading || authState === AUTH_STATE.acquiring ? "로그인 확인 중" : "AMIC OS 로그인"}
             </button>
             {authError ? <p className="field-note" role="status">{authError}</p> : null}
           </>
@@ -1176,7 +1176,7 @@ function App() {
 
       {!readyForBusiness ? (
         <p className="notice" role="status" aria-live="polite" data-testid="business-gate">
-          {authenticated ? "Outlook 연결을 완료하면 Client·Matter 기능을 사용할 수 있습니다." : "LawOS 로그인 후 Client·Matter 기능이 열립니다."}
+          {authenticated ? "Outlook 연결을 완료하면 Client·Matter 기능을 사용할 수 있습니다." : "AMIC OS 로그인 후 Client·Matter 기능이 열립니다."}
         </p>
       ) : null}
 

@@ -40,6 +40,18 @@ function assertNestedLaunchRuntime(manifest, name) {
   );
 }
 
+function assertOfficialBrand(manifest, name) {
+  assert.match(manifest, /<Version>1\.0\.1\.0<\/Version>/u, `${name} must increment the manifest version`);
+  assert.match(manifest, /<ProviderName>AMIC OS<\/ProviderName>/u, `${name} must use the official provider name`);
+  assert.match(manifest, /<DisplayName\s+DefaultValue="AMIC OS"\s*\/>/u, `${name} must use the official app name`);
+  assert.equal(
+    manifest.match(/<bt:String\s+id="Group\.Label"\s+DefaultValue="AMIC OS"\s*\/>/gu)?.length,
+    2,
+    `${name} must use the official ribbon group name in both overrides`,
+  );
+  assert.doesNotMatch(manifest, /Law Firm OS|LawOS/u, `${name} must not expose a legacy product name`);
+}
+
 test("Client Add-in manifests keep ReadItem-only permissions and the nested event runtime", async () => {
   const [production, local] = await Promise.all([
     read("apps/addin/manifest.production.xml"),
@@ -50,6 +62,39 @@ test("Client Add-in manifests keep ReadItem-only permissions and the nested even
   assertLeastPrivilege(local, "local manifest");
   assertNestedLaunchRuntime(production, "production manifest");
   assertNestedLaunchRuntime(local, "local manifest");
+  assertOfficialBrand(production, "production manifest");
+  assertOfficialBrand(local, "local manifest");
+});
+
+test("Outlook task-pane documents and copy use the official AMIC OS name", async () => {
+  const [taskPaneHtml, eventRuntimeHtml, mainSource, authSource, httpSource] = await Promise.all([
+    read("apps/addin/index.html"),
+    read("apps/addin/public/event-runtime.html"),
+    read("apps/addin/src/main.jsx"),
+    read("apps/addin/src/addin-auth.js"),
+    read("apps/addin/src/addin-http.js"),
+  ]);
+
+  assert.match(taskPaneHtml, /<title>AMIC OS<\/title>/u);
+  assert.match(eventRuntimeHtml, /<title>AMIC OS<\/title>/u);
+  assert.match(mainSource, /label="AMIC OS 로그인"/u);
+  assert.match(mainSource, /AMIC OS에 로그인되어 있습니다\./u);
+  assert.match(authSource, /AMIC OS 세션만 저장할 수 있습니다\./u);
+  assert.match(httpSource, /AMIC OS API request timed out/u);
+
+  for (const [name, source] of [
+    ["task pane HTML", taskPaneHtml],
+    ["event runtime HTML", eventRuntimeHtml],
+    ["task pane copy", mainSource],
+    ["authentication copy", authSource],
+    ["HTTP copy", httpSource],
+  ]) {
+    assert.doesNotMatch(
+      source,
+      /Law Firm OS|LawOS 메일 보관|LawOS 로그인|LawOS에 로그인|LawOS 응답|LawOS 세션|LawOS API request/u,
+      `${name} must not expose a legacy product name`,
+    );
+  }
 });
 
 test("production manifest points Taskpane, Commands, and WebView runtime at the /addin bundle", async () => {

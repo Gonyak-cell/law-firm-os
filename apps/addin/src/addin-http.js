@@ -35,7 +35,7 @@ export async function fetchAddinApi({
     if (controller.signal?.aborted === true) {
       throw createAddinHttpError(
         "ADDIN_API_REQUEST_TIMEOUT",
-        "LawOS API request timed out",
+        "AMIC OS API request timed out",
         { timeout_ms: timeoutMs },
       );
     }
