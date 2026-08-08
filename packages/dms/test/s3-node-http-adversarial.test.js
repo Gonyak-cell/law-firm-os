@@ -10,7 +10,7 @@ import {
   LIMIT,
   OBJECT,
   TENANT,
-  adapter,
+  productionAdapter as adapter,
 } from "./s3-bounded-test-helpers.js";
 
 const HEAD_BYTES = Buffer.from("12345678");
@@ -52,6 +52,12 @@ function rawResponse(mode) {
       Buffer.from("87654321"),
     ]);
   }
+  if (mode === "short") {
+    return Buffer.concat([
+      responseHead(["HTTP/1.1 206 Partial Content", `Content-Length: ${HEAD_BYTES.byteLength}`, "Content-Range: bytes 0-7/8", ...metadataHeaders()]),
+      Buffer.from("1234567"),
+    ]);
+  }
   return Buffer.concat([
     responseHead(["HTTP/1.1 206 Partial Content", `Content-Length: ${HEAD_BYTES.byteLength}`, "Content-Range: bytes 0-7/8", ...metadataHeaders()]),
     FLOOD_BYTES,
@@ -81,7 +87,9 @@ async function fixture(t, mode) {
         ]));
         return;
       }
-      providerAttemptedBytes = mode === "wrong" ? HEAD_BYTES.byteLength : FLOOD_BYTES.byteLength;
+      providerAttemptedBytes = mode === "short"
+        ? HEAD_BYTES.byteLength - 1
+        : mode === "wrong" ? HEAD_BYTES.byteLength : FLOOD_BYTES.byteLength;
       socket.end(rawResponse(mode));
     });
   });
@@ -166,4 +174,25 @@ test("valid HTTP framing caps a 1 MiB body flood at the exact object length", as
   assert.ok(evidence.peak_buffered_byte_size <= LIMIT + 1);
   assert.equal(providerAttemptedBytes(), FLOOD_BYTES.byteLength);
   assert.deepEqual(requests, [{ method: "GET", range: EXPECTED_RANGE }]);
+});
+
+test("premature Content-Length close preserves admitted bytes and cleanup evidence", async (t) => {
+  const { client, requests, providerAttemptedBytes } = await fixture(t, "short");
+  await assert.rejects(adapter(client).readObjectBounded({
+    tenant_id: TENANT,
+    object_id: OBJECT,
+    max_bytes: LIMIT,
+  }), (error) => error.code === "ECONNRESET"
+    && error.application_consumed_byte_size === HEAD_BYTES.byteLength - 1
+    && error.transport_observed_byte_size === HEAD_BYTES.byteLength - 1
+    && error.observed_byte_size === HEAD_BYTES.byteLength - 1
+    && error.transport_peak_buffered_byte_size <= LIMIT + 1
+    && error.residual_buffered_byte_size === 0
+    && error.storage_cleanup_complete === true
+    && error.transport_cleanup_complete === true);
+  assert.equal(providerAttemptedBytes(), HEAD_BYTES.byteLength - 1);
+  assert.deepEqual(requests, [
+    { method: "HEAD", range: null },
+    { method: "GET", range: EXPECTED_RANGE },
+  ]);
 });

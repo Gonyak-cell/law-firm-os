@@ -1,7 +1,4 @@
-import {
-  GetObjectCommand,
-  HeadObjectCommand,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import {
   DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
   assertTenantId,
@@ -16,29 +13,24 @@ import { createS3ObjectGovernance } from "./s3-object-governance.js";
 import { isS3NotFound, readS3ResponseBody } from "./s3-provider-response.js";
 import { createS3StagedObjectLifecycle } from "./s3-staged-object-lifecycle.js";
 export { createS3StorageAdapterPlaceholder } from "./s3-storage-adapter-placeholder.js";
-
 const SECRET_FIELD = /(access.?key|authorization|client.?secret|credential(?!_ref)|password|secret.?key|session.?token)/iu;
-
 function codedError(message, code) {
   const error = new Error(message);
   error.code = code;
   return error;
 }
-
 function requireString(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
   const normalized = value.trim();
   if (normalized.length > 1024 || /[\u0000-\u001f\u007f]/u.test(normalized)) throw new TypeError(`${field} is invalid`);
   return normalized;
 }
-
 function safePrefix(value = "lawos-dms") {
   const prefix = requireString(value, "prefix").replace(/^\/+|\/+$/gu, "");
   if (prefix.split("/").includes("..")) throw new TypeError("prefix is invalid");
   return prefix;
 }
-
-export function createS3StorageAdapter(config = {}) {
+function createS3StorageAdapterInternal(config = {}, allowTestClient = false) {
   for (const field of Object.keys(config)) {
     if (field !== "credential_ref" && SECRET_FIELD.test(field)) {
       throw new TypeError(`S3 adapter accepts credential_ref only, not ${field}`);
@@ -49,9 +41,10 @@ export function createS3StorageAdapter(config = {}) {
   const expectedBucketOwner = requireString(config.expected_bucket_owner, "expected_bucket_owner");
   const adapter_id = config.adapter_id ?? "s3-vault";
   const prefix = safePrefix(config.prefix);
-  const client = assertBoundedS3Client(config.client ?? createBoundedS3Client({
+  const configuredClient = config.client ?? createBoundedS3Client({
     region: requireString(config.region, "region"),
-  }));
+  });
+  const client = allowTestClient ? configuredClient : assertBoundedS3Client(configuredClient);
   const objectLockEnabled = config.object_lock_enabled === true;
   const defaultRetentionDays = config.default_retention_days == null ? null : Number(config.default_retention_days);
   if (defaultRetentionDays != null && (!objectLockEnabled || !Number.isInteger(defaultRetentionDays) || defaultRetentionDays < 1 || defaultRetentionDays > 36_500)) {
@@ -66,12 +59,10 @@ export function createS3StorageAdapter(config = {}) {
     conditional_delete: true,
     default_committed_retention: defaultRetentionDays != null,
   });
-
   const common = Object.freeze({ Bucket: bucket, ExpectedBucketOwner: expectedBucketOwner });
   const encryption = config.kms_key_id
     ? Object.freeze({ ServerSideEncryption: "aws:kms", SSEKMSKeyId: requireString(config.kms_key_id, "kms_key_id"), BucketKeyEnabled: true })
     : Object.freeze({ ServerSideEncryption: "AES256" });
-
   function keyFor({ tenant_id, session_id, object_id }) {
     const opaque = createOpaqueStorageKey({ tenant_id, session_id, object_id });
     return `${prefix}/${session_id === undefined ? "objects" : "staged"}/${opaque}`;
@@ -246,4 +237,13 @@ export function createS3StorageAdapter(config = {}) {
     setObjectRetention,
     getObjectRetention,
   });
+}
+export function createS3StorageAdapter(config) {
+  return createS3StorageAdapterInternal(config);
+}
+
+export function createS3StorageAdapterForTest(config) {
+  if (!process.env.NODE_TEST_CONTEXT) throw new TypeError("test S3 adapter requires node:test");
+  if (!config?.client) throw new TypeError("test S3 adapter requires an explicit client");
+  return createS3StorageAdapterInternal(config, true);
 }

@@ -1,6 +1,6 @@
-import { Agent as HttpAgent, request as httpRequest } from "node:http";
-import { Agent as HttpsAgent, request as httpsRequest } from "node:https";
-import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { BoundedS3HttpRuntime } from "./s3-bounded-http-runtime.js";
 
 const boundedResponses = new WeakMap();
 
@@ -97,6 +97,20 @@ async function rejectFramedResponse(response, error) {
   return error;
 }
 
+async function closedRequestError(request, error) {
+  const socket = request.socket;
+  await Promise.all([
+    waitForClose(request),
+    waitForClose(socket, "destroyed"),
+  ]);
+  error.observed_byte_size ??= 0;
+  error.transport_observed_byte_size ??= 0;
+  error.residual_buffered_byte_size = 0;
+  error.transport_cleanup_complete = request.closed === true
+    && (!socket || socket.destroyed === true);
+  return error;
+}
+
 function responseHeaders(headers) {
   return Object.fromEntries(Object.entries(headers).map(([name, value]) => [
     name,
@@ -109,23 +123,30 @@ export function boundedS3ResponseEvidence(body) {
 }
 
 export class BoundedS3NodeHttpHandler {
+  #runtime;
+
   metadata = { handlerProtocol: "http/1.1" };
 
-  constructor() {
-    this.delegate = new NodeHttpHandler();
-    this.httpAgent = new HttpAgent({ keepAlive: true, maxSockets: 50 });
-    this.httpsAgent = new HttpsAgent({ keepAlive: true, maxSockets: 50 });
+  constructor(options) {
+    this.#runtime = new BoundedS3HttpRuntime(options);
   }
 
   destroy() {
-    this.delegate.destroy();
-    this.httpAgent.destroy();
-    this.httpsAgent.destroy();
+    this.#runtime.destroy();
+  }
+
+  updateHttpClientConfig(key, value) {
+    this.#runtime.updateHttpClientConfig(key, value);
+  }
+
+  httpHandlerConfigs() {
+    return this.#runtime.httpHandlerConfigs();
   }
 
   async handle(request, options = {}) {
+    const state = await this.#runtime.resolve();
     const bound = rangeCeiling(request);
-    if (!bound) return this.delegate.handle(request, options);
+    if (!bound) return state.delegate.handle(request, options);
     if (request.body !== undefined && request.body !== null) {
       throw new TypeError("bounded S3 GET must not have a request body");
     }
@@ -137,8 +158,9 @@ export class BoundedS3NodeHttpHandler {
       let responseRejection = null;
       const isTls = request.protocol === "https:";
       const send = isTls ? httpsRequest : httpRequest;
+      const requestAgent = isTls ? state.config.httpsAgent : state.config.httpAgent;
       const outgoing = send({
-        agent: isTls ? this.httpsAgent : this.httpAgent,
+        agent: requestAgent,
         auth: request.username == null ? undefined : `${request.username}:${request.password ?? ""}`,
         headers: request.headers,
         host: String(request.hostname).replace(/^\[|\]$/gu, ""),
@@ -146,6 +168,7 @@ export class BoundedS3NodeHttpHandler {
         path: requestPath(request),
         port: request.port,
       }, (incoming) => {
+        clearRequestControls();
         const error = framingError(incoming, bound);
         if (error) {
           rejectingResponse = true;
@@ -190,9 +213,15 @@ export class BoundedS3NodeHttpHandler {
           body: incoming,
         } });
       });
+      const clearRequestControls = this.#runtime.arm(outgoing, {
+        agent: requestAgent,
+        config: state.config,
+        isTls,
+        requestTimeout: options.requestTimeout,
+      });
       outgoing.once("error", (error) => {
         if (!rejectingResponse) {
-          reject(error);
+          closedRequestError(outgoing, error).then(reject);
           return;
         }
         responseRejection.transport_close_error = Object.freeze({
@@ -200,11 +229,6 @@ export class BoundedS3NodeHttpHandler {
           code: error?.code ?? null,
         });
       });
-      if (Number(options.requestTimeout) > 0) {
-        outgoing.setTimeout(Number(options.requestTimeout), () => {
-          outgoing.destroy(Object.assign(new Error("bounded S3 request timed out"), { name: "TimeoutError" }));
-        });
-      }
       const abort = () => outgoing.destroy(Object.assign(new Error("Request aborted"), { name: "AbortError" }));
       options.abortSignal?.addEventListener?.("abort", abort, { once: true });
       outgoing.once("close", () => options.abortSignal?.removeEventListener?.("abort", abort));

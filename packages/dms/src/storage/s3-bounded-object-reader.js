@@ -6,6 +6,7 @@ import {
   storageReadLimit,
 } from "./bounded-storage-read.js";
 import { assertS3ProviderBody } from "./s3-provider-body.js";
+import { boundedS3ResponseEvidence } from "./s3-bounded-http-handler.js";
 
 function codedError(message, code) {
   return Object.assign(new Error(message), { code });
@@ -37,6 +38,24 @@ function sizeEvidence(error, { declared, providerDeclared, observed = 0 } = {}) 
   if (Number.isSafeInteger(declared)) error.declared_byte_size = declared;
   if (Number.isSafeInteger(providerDeclared)) error.provider_declared_byte_size = providerDeclared;
   if (Number.isSafeInteger(observed)) error.observed_byte_size = observed;
+  return error;
+}
+
+function transportFailureEvidence(error, body) {
+  const evidence = boundedS3ResponseEvidence(body);
+  if (!evidence) return error;
+  const transportObserved = Number(evidence.observed_byte_size);
+  const priorObserved = Number(error.observed_byte_size);
+  error.transport_observed_byte_size = transportObserved;
+  error.transport_peak_buffered_byte_size = Number(evidence.peak_buffered_byte_size);
+  error.observed_byte_size = Number.isSafeInteger(priorObserved)
+    ? Math.max(priorObserved, transportObserved)
+    : transportObserved;
+  if (!Number.isSafeInteger(error.provider_discarded_byte_size)) error.provider_discarded_byte_size = 0;
+  error.residual_buffered_byte_size = Number(body.readableLength ?? 0);
+  error.transport_cleanup_complete = body.closed === true
+    && (!body.socket || body.socket.destroyed === true)
+    && error.residual_buffered_byte_size === 0;
   return error;
 }
 
@@ -158,7 +177,9 @@ export async function readS3CommittedObjectBounded({
       limit,
     });
   } catch (error) {
+    transportFailureEvidence(error, response.Body);
     await abortStorageBody(response.Body, abortController, error);
+    transportFailureEvidence(error, response.Body);
     throw error;
   }
   let observed;
@@ -172,11 +193,13 @@ export async function readS3CommittedObjectBounded({
       max_bytes: limit,
     });
   } catch (error) {
+    transportFailureEvidence(error, response.Body);
     sizeEvidence(error, {
       declared: declared.byte_size,
       observed: Number.isSafeInteger(error?.observed_byte_size) ? error.observed_byte_size : 0,
     });
     await abortStorageBody(response.Body, abortController, error);
+    transportFailureEvidence(error, response.Body);
     throw error;
   }
   if (observed.byte_size !== declared.byte_size || observed.sha256 !== declared.sha256) {
@@ -184,8 +207,11 @@ export async function readS3CommittedObjectBounded({
       "S3 committed object metadata does not match observed bytes",
       "DMS_COMMITTED_DIGEST_MISMATCH",
     );
+    error.application_consumed_byte_size = observed.byte_size;
     sizeEvidence(error, { declared: declared.byte_size, observed: observed.byte_size });
+    transportFailureEvidence(error, response.Body);
     await abortStorageBody(response.Body, abortController, error);
+    transportFailureEvidence(error, response.Body);
     throw error;
   }
   return Object.freeze({

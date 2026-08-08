@@ -11,7 +11,10 @@ export * from "./storage/storage-adapter.js";
 export * from "./storage/local-storage-adapter.js";
 export * from "./storage/file-storage-adapter.js";
 export * from "./storage/download-service.js";
-export * from "./storage/s3-storage-adapter.js";
+export {
+  createS3StorageAdapter,
+  createS3StorageAdapterPlaceholder,
+} from "./storage/s3-storage-adapter.js";
 export * from "./storage/sharepoint-storage-adapter.js";
 export * from "./postgres-upload-runtime.js";
 export * from "./json-postgres-dms-migration.js";

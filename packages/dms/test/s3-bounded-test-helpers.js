@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { createS3StorageAdapter } from "../src/storage/s3-storage-adapter.js";
+import {
+  createS3StorageAdapter,
+  createS3StorageAdapterForTest,
+} from "../src/storage/s3-storage-adapter.js";
 import { sha256Hex } from "../src/storage/storage-adapter.js";
 
 export const TENANT = "tenant-bounded-read";
@@ -91,6 +94,17 @@ export function fakeClient({
 }
 
 export function adapter(client) {
+  return createS3StorageAdapterForTest({
+    adapter_id: "s3-bounded-test",
+    bucket: "bounded-test",
+    prefix: "bounded",
+    expected_bucket_owner: "770880870480",
+    credential_ref: "aws-role:bounded-test",
+    client,
+  });
+}
+
+export function productionAdapter(client) {
   return createS3StorageAdapter({
     adapter_id: "s3-bounded-test",
     bucket: "bounded-test",

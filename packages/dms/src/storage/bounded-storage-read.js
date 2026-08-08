@@ -149,6 +149,17 @@ function waitForReadable(body) {
   });
 }
 
+async function waitForReadableAtSize(body, byteSize) {
+  try {
+    return await waitForReadable(body);
+  } catch (error) {
+    error.application_consumed_byte_size = byteSize;
+    const observed = Number(error.observed_byte_size);
+    error.observed_byte_size = Number.isSafeInteger(observed) ? Math.max(observed, byteSize) : byteSize;
+    throw error;
+  }
+}
+
 function assertConcreteByteStream(body) {
   if (body && typeof body.read === "function" && typeof body.once === "function"
       && typeof body.removeListener === "function" && body.readableObjectMode !== true) return body;
@@ -203,7 +214,7 @@ export async function readStorageBodyBounded(body, { max_bytes } = {}) {
       : remaining;
     const chunk = stream.read(requested);
     if (chunk === null) {
-      if (bodyEnded(stream) || await waitForReadable(stream) === "end") break;
+      if (bodyEnded(stream) || await waitForReadableAtSize(stream, byteSize) === "end") break;
       continue;
     }
     const view = typeof chunk === "string" ? Buffer.from(chunk) : byteView(chunk);
@@ -214,7 +225,7 @@ export async function readStorageBodyBounded(body, { max_bytes } = {}) {
       });
     }
     if (view.byteLength === 0) {
-      if (bodyEnded(stream) || await waitForReadable(stream) === "end") break;
+      if (bodyEnded(stream) || await waitForReadableAtSize(stream, byteSize) === "end") break;
       continue;
     }
     if (view.byteLength > remaining) {
