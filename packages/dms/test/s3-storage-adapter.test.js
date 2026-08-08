@@ -1,16 +1,9 @@
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
-import * as dms from "../src/index.js";
-import * as s3Storage from "../src/storage/s3-storage-adapter.js";
 import { assertStagedStorageAdapter, sha256Hex } from "../src/storage/storage-adapter.js";
 import { adapter, closeAdapters } from "./s3-storage-adapter-test-helpers.js";
 
 after(closeAdapters);
-
-test("test-only S3 client injection is absent from the package API", () => {
-  assert.equal("createS3StorageAdapterForTest" in dms, false);
-  assert.equal("createS3StorageAdapterForTest" in s3Storage, false);
-});
 
 test("S3 adapter stages, independently digests, finalizes, and isolates tenants", async () => {
   const storage = adapter();

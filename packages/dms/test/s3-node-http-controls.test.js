@@ -6,8 +6,8 @@ import { createServer as createTcpServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { createBoundedS3Client } from "../src/storage/s3-bounded-client.js";
+import { createOwnedGetObjectCommand } from "../src/storage/s3-bounded-commands.js";
 import { sha256Hex } from "../src/storage/storage-adapter.js";
 import {
   EXPECTED_RANGE,
@@ -44,7 +44,7 @@ function client(endpoint, requestHandlerOptions) {
 }
 
 function get(clientInstance, options) {
-  return clientInstance.send(new GetObjectCommand({
+  return clientInstance.send(createOwnedGetObjectCommand({
     Bucket: "bounded-test",
     Key: "bounded/objects/controls",
     Range: EXPECTED_RANGE,

@@ -1,11 +1,13 @@
 import { S3Client } from "@aws-sdk/client-s3";
+import { takeOwnedS3Command } from "./s3-bounded-commands.js";
 import { BoundedS3NodeHttpHandler } from "./s3-bounded-http-handler.js";
 
 const boundedClients = new WeakMap();
 
 function boundedFacade(client, handler) {
   const handle = handler.handle;
-  const send = client.send.bind(client);
+  const dispatch = client.send.bind(client);
+  const send = (command, ...args) => dispatch(takeOwnedS3Command(command), ...args);
   const destroy = client.destroy.bind(client);
   Object.freeze(handler);
   const config = Object.freeze({ requestHandler: handler });

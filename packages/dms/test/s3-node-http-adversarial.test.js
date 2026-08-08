@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:net";
 import test from "node:test";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { createBoundedS3Client } from "../src/storage/s3-bounded-client.js";
+import { createOwnedGetObjectCommand } from "../src/storage/s3-bounded-commands.js";
 import { boundedS3ResponseEvidence } from "../src/storage/s3-bounded-http-handler.js";
 import { sha256Hex } from "../src/storage/storage-adapter.js";
 import {
@@ -163,7 +163,7 @@ for (const mode of ["chunked", "oversized"]) {
 
 test("valid HTTP framing caps a 1 MiB body flood at the exact object length", async (t) => {
   const { client, requests, providerAttemptedBytes } = await fixture(t, "flood");
-  const response = await client.send(new GetObjectCommand({
+  const response = await client.send(createOwnedGetObjectCommand({
     Bucket: "bounded-test",
     Key: "bounded/objects/flood",
     Range: EXPECTED_RANGE,

@@ -1,5 +1,8 @@
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { assertTenantId, sha256Hex } from "./storage-adapter.js";
+import {
+  createOwnedDeleteObjectCommand,
+  createOwnedPutObjectCommand,
+} from "./s3-bounded-commands.js";
 
 function codedError(message, code) {
   return Object.assign(new Error(message), { code });
@@ -54,7 +57,7 @@ export function createS3StagedObjectLifecycle({
       return statStagedObject({ tenant_id: tenantId, session_id: sessionId, object_id: objectId });
     }
     try {
-      await client.send(new PutObjectCommand({
+      await client.send(createOwnedPutObjectCommand({
         ...common,
         ...encryption,
         Key: key,
@@ -96,7 +99,7 @@ export function createS3StagedObjectLifecycle({
     let committed = current;
     if (!committed) {
       try {
-        await client.send(new PutObjectCommand({
+        await client.send(createOwnedPutObjectCommand({
           ...common,
           ...encryption,
           Key: committedKey,
@@ -121,12 +124,12 @@ export function createS3StagedObjectLifecycle({
     const stagedCleanupDeferred = objectLockEnabled
       && await activeRetention(stagedKey, staged.response.VersionId);
     if (!stagedCleanupDeferred) {
-      await client.send(new DeleteObjectCommand({
+      await client.send(createOwnedDeleteObjectCommand({
         ...common,
         Key: stagedKey,
         VersionId: staged.response.VersionId,
       }));
-      await client.send(new DeleteObjectCommand({ ...common, Key: stagedKey }));
+      await client.send(createOwnedDeleteObjectCommand({ ...common, Key: stagedKey }));
     }
     const receipt = await statObject({ tenant_id: tenantId, object_id: objectId });
     return Object.freeze({
@@ -143,8 +146,8 @@ export function createS3StagedObjectLifecycle({
     const key = keyFor({ tenant_id: tenantId, session_id: sessionId, object_id: objectId });
     const current = await head(key);
     if (!current) return Object.freeze({ deleted: false, committed_object_deleted: false });
-    await client.send(new DeleteObjectCommand({ ...common, Key: key, VersionId: current.VersionId }));
-    await client.send(new DeleteObjectCommand({ ...common, Key: key }));
+    await client.send(createOwnedDeleteObjectCommand({ ...common, Key: key, VersionId: current.VersionId }));
+    await client.send(createOwnedDeleteObjectCommand({ ...common, Key: key }));
     return Object.freeze({ deleted: true, committed_object_deleted: false });
   }
 
@@ -158,12 +161,12 @@ export function createS3StagedObjectLifecycle({
     if (current.sha256 !== expected) {
       throw codedError("committed object digest changed before delete", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
     }
-    await client.send(new DeleteObjectCommand({
+    await client.send(createOwnedDeleteObjectCommand({
       ...common,
       Key: key,
       VersionId: current.response.VersionId,
     }));
-    await client.send(new DeleteObjectCommand({ ...common, Key: key }));
+    await client.send(createOwnedDeleteObjectCommand({ ...common, Key: key }));
     return Object.freeze({ deleted: true, already_absent: false, provider_delete_replayed: false, sha256: current.sha256 });
   }
 

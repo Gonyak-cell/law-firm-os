@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  DMS_STORAGE_BODY_UNBOUNDED,
   DMS_STORAGE_OBJECT_TOO_LARGE,
   assertBoundedStorageReader,
   sha256Hex,
@@ -14,7 +15,7 @@ import {
   fakeClient,
 } from "./s3-bounded-test-helpers.js";
 
-test("bounded S3 reader test harness exposes the committed-object contract", () => {
+test("bounded S3 reader implements the required storage methods", () => {
   const client = fakeClient({ headBytes: Buffer.from("12345678") });
   const storage = adapter(client);
   assert.equal(assertBoundedStorageReader(storage), storage);
@@ -34,16 +35,14 @@ test("authoritative oversized S3 HEAD prevents every provider GET/body read", as
   assert.equal(client.calls.sourceYieldedBytes, 0);
 });
 
-test("exact-limit measured S3 Body uses one GET and a single digest pass", async () => {
+test("direct Buffer cannot substitute for bounded S3 transport evidence", async () => {
   const bytes = Buffer.from("12345678");
   const client = fakeClient({ headBytes: bytes });
-  const result = await adapter(client).readObjectBounded({
+  await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
-  });
-  assert.equal(result.bytes.toString(), bytes.toString());
-  assert.equal(result.byte_size, LIMIT);
-  assert.equal(result.sha256, sha256Hex(bytes));
-  assert.equal(result.declared_sha256, result.sha256);
+  }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
+    && error.declared_byte_size === LIMIT
+    && error.observed_byte_size === 0);
   assert.equal(client.calls.get, 1);
   assert.deepEqual(client.calls.ranges, [EXPECTED_RANGE]);
   assert.equal(client.calls.sourcePulls, 0);

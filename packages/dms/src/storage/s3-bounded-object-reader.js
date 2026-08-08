@@ -1,10 +1,10 @@
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import {
   abortStorageBody,
   readStorageBodyBounded,
   storageObjectTooLargeError,
   storageReadLimit,
 } from "./bounded-storage-read.js";
+import { createOwnedGetObjectCommand } from "./s3-bounded-commands.js";
 import { assertS3ProviderBody } from "./s3-provider-body.js";
 import { boundedS3ResponseEvidence } from "./s3-bounded-http-handler.js";
 
@@ -157,7 +157,7 @@ export async function readS3CommittedObjectBounded({
   const abortController = new AbortController();
   let response;
   try {
-    response = await client.send(new GetObjectCommand({
+    response = await client.send(createOwnedGetObjectCommand({
       ...common,
       Key: key,
       ChecksumMode: "ENABLED",
@@ -185,7 +185,6 @@ export async function readS3CommittedObjectBounded({
   let observed;
   try {
     const body = assertS3ProviderBody(response, {
-      max_bytes: limit,
       declared_byte_size: declared.byte_size,
       content_length: ranged.content_length,
     });

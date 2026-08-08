@@ -3,7 +3,6 @@ import { PassThrough, Readable } from "node:stream";
 import test from "node:test";
 import {
   DMS_STORAGE_BODY_UNBOUNDED,
-  DMS_STORAGE_OBJECT_TOO_LARGE,
   sha256Hex,
 } from "../src/storage/storage-adapter.js";
 import {
@@ -187,14 +186,14 @@ test("provider headers beyond requested sentinel reject before Body consumption"
   assert.equal(client.calls.sourceYieldedBytes, 0);
 });
 
-test("direct hostile Body reports its actual size instead of a clamped sentinel", async () => {
+test("direct hostile Body is rejected without accepting synthetic provider bytes", async () => {
   const hugeSource = Buffer.alloc(1024 * 1024, 0x64);
   const client = fakeClient(lyingHeaders({ getBytes: hugeSource }));
   await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
-  }), (error) => error.code === DMS_STORAGE_OBJECT_TOO_LARGE
+  }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
     && error.declared_byte_size === LIMIT
-    && error.observed_byte_size === hugeSource.byteLength);
+    && error.observed_byte_size === 0);
   assert.equal(client.calls.sourceOfferedBytes, hugeSource.byteLength);
   assert.equal(client.calls.sourcePulls, 0);
   assert.equal(client.calls.sourceYieldedBytes, 0);

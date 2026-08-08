@@ -1,10 +1,10 @@
-import {
-  GetObjectLegalHoldCommand,
-  GetObjectRetentionCommand,
-  PutObjectLegalHoldCommand,
-  PutObjectRetentionCommand,
-} from "@aws-sdk/client-s3";
 import { assertTenantId } from "./storage-adapter.js";
+import {
+  createOwnedGetObjectLegalHoldCommand,
+  createOwnedGetObjectRetentionCommand,
+  createOwnedPutObjectLegalHoldCommand,
+  createOwnedPutObjectRetentionCommand,
+} from "./s3-bounded-commands.js";
 
 function codedError(message, code) {
   return Object.assign(new Error(message), { code });
@@ -34,7 +34,7 @@ export function createS3ObjectGovernance({
     if (defaultRetentionDays == null) return false;
     let retention = null;
     try {
-      retention = await client.send(new GetObjectRetentionCommand({
+      retention = await client.send(createOwnedGetObjectRetentionCommand({
         ...common,
         Key: key,
         VersionId: versionId ?? undefined,
@@ -46,7 +46,7 @@ export function createS3ObjectGovernance({
     const now = new Date(clock());
     if (!Number.isFinite(now.getTime())) throw new TypeError("S3 adapter clock returned an invalid timestamp");
     const retainUntil = new Date(now.getTime() + defaultRetentionDays * 24 * 60 * 60 * 1000);
-    await client.send(new PutObjectRetentionCommand({
+    await client.send(createOwnedPutObjectRetentionCommand({
       ...common,
       Key: key,
       VersionId: versionId ?? undefined,
@@ -58,7 +58,7 @@ export function createS3ObjectGovernance({
   async function activeRetention(key, versionId) {
     let retention = null;
     try {
-      retention = await client.send(new GetObjectRetentionCommand({
+      retention = await client.send(createOwnedGetObjectRetentionCommand({
         ...common,
         Key: key,
         VersionId: versionId ?? undefined,
@@ -95,7 +95,7 @@ export function createS3ObjectGovernance({
     const legalHoldStatus = String(status).toUpperCase();
     if (!["ON", "OFF"].includes(legalHoldStatus)) throw new TypeError("legal hold status must be ON or OFF");
     const current = await currentVersion({ tenant_id: tenantId, object_id: objectId });
-    await client.send(new PutObjectLegalHoldCommand({
+    await client.send(createOwnedPutObjectLegalHoldCommand({
       ...common,
       Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
       VersionId: current.version_id ?? undefined,
@@ -111,7 +111,7 @@ export function createS3ObjectGovernance({
     const current = await currentVersion({ tenant_id: tenantId, object_id: objectId });
     let response = null;
     try {
-      response = await client.send(new GetObjectLegalHoldCommand({
+      response = await client.send(createOwnedGetObjectLegalHoldCommand({
         ...common,
         Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
         VersionId: current.version_id ?? undefined,
@@ -131,7 +131,7 @@ export function createS3ObjectGovernance({
     if (!Number.isFinite(retainUntil.getTime())) throw new TypeError("retain_until is invalid");
     if (!["GOVERNANCE", "COMPLIANCE"].includes(retentionMode)) throw new TypeError("retention mode is invalid");
     const current = await currentVersion({ tenant_id: tenantId, object_id: objectId });
-    await client.send(new PutObjectRetentionCommand({
+    await client.send(createOwnedPutObjectRetentionCommand({
       ...common,
       Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
       VersionId: current.version_id ?? undefined,
@@ -147,7 +147,7 @@ export function createS3ObjectGovernance({
     const current = await currentVersion({ tenant_id: tenantId, object_id: objectId });
     let response = null;
     try {
-      response = await client.send(new GetObjectRetentionCommand({
+      response = await client.send(createOwnedGetObjectRetentionCommand({
         ...common,
         Key: keyFor({ tenant_id: tenantId, object_id: objectId }),
         VersionId: current.version_id ?? undefined,

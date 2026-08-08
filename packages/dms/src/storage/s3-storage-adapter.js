@@ -1,4 +1,3 @@
-import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import {
   DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
   assertTenantId,
@@ -7,6 +6,10 @@ import {
   createStoragePointerRef,
   sha256Hex,
 } from "./storage-adapter.js";
+import {
+  createOwnedGetObjectCommand,
+  createOwnedHeadObjectCommand,
+} from "./s3-bounded-commands.js";
 import { readS3CommittedObjectBounded } from "./s3-bounded-object-reader.js";
 import { assertBoundedS3Client, createBoundedS3Client } from "./s3-bounded-client.js";
 import { createS3ObjectGovernance } from "./s3-object-governance.js";
@@ -70,7 +73,7 @@ function createS3StorageAdapterInternal(config = {}) {
 
   async function head(key) {
     try {
-      return await client.send(new HeadObjectCommand({ ...common, Key: key, ChecksumMode: "ENABLED" }));
+      return await client.send(createOwnedHeadObjectCommand({ ...common, Key: key, ChecksumMode: "ENABLED" }));
     } catch (error) {
       if (isS3NotFound(error)) return null;
       throw error;
@@ -79,7 +82,7 @@ function createS3StorageAdapterInternal(config = {}) {
 
   async function read(key) {
     try {
-      const response = await client.send(new GetObjectCommand({ ...common, Key: key, ChecksumMode: "ENABLED" }));
+      const response = await client.send(createOwnedGetObjectCommand({ ...common, Key: key, ChecksumMode: "ENABLED" }));
       const bytes = await readS3ResponseBody(response.Body);
       return Object.freeze({ response, bytes, sha256: sha256Hex(bytes) });
     } catch (error) {
