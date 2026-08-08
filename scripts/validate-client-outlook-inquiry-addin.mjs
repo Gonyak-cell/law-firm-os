@@ -118,8 +118,8 @@ try {
     {
       id: "outm36-compound-hidden-shadow-fixture",
       label: "compound hidden-outline shadow fixture",
-      cssText: "outline: none; border: 1px solid transparent; box-shadow: 0 0 0 3px rgb(143, 194, 238); background: rgb(23, 33, 43);",
-      focusCssText: "#outm36-compound-hidden-shadow-fixture:focus-visible { border-color: rgb(0, 0, 0) !important; outline-color: rgb(0, 0, 0) !important; box-shadow: 0 0 0 3px rgb(143, 194, 238) !important; }",
+      cssText: "outline: none; border: 1px solid transparent; box-shadow: 0 0 0 3px rgb(143, 194, 238), inset 0 0 0 1px rgba(0, 0, 0, 0.35); background: rgb(23, 33, 43);",
+      focusCssText: "#outm36-compound-hidden-shadow-fixture:focus-visible { border-color: rgb(0, 0, 0) !important; outline-color: rgb(0, 0, 0) !important; box-shadow: 0 0 0 3px rgb(143, 194, 238), inset 0 0 0 1px rgba(0, 0, 0, 0.35) !important; }",
     },
   );
   await assertNegativeFocusFixture(
