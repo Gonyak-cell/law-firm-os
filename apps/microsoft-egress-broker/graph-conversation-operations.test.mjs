@@ -99,7 +99,11 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
   });
 
   // When
-  const listed = await handler(envelope("graph.messageSubscription.list", { access_token: "token" }));
+  const listed = await handler(envelope("graph.messageSubscription.list", {
+    access_token: "token",
+    entra_tenant_id: "entra-tenant-outm26",
+    account_id: "account-outm26",
+  }));
   const renewed = await handler(envelope("graph.messageSubscription.renew", {
     access_token: "token",
     provider_subscription_id: "provider-subscription-outm26",
@@ -113,6 +117,8 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
   // Then
   assert.equal(listed.ok && renewed.ok && deleted.ok, true);
   assert.equal(listed.result[0].notification_url, CALLBACK);
+  assert.equal(listed.result[0].entra_tenant_id, "entra-tenant-outm26");
+  assert.equal(listed.result[0].account_id, "account-outm26");
   assert.equal(renewed.result.notification_url, CALLBACK);
   assert.equal(JSON.stringify(listed).includes("opaque-client-state-outm26"), false);
   assert.deepEqual(calls.map(({ options }) => options.method), ["GET", "PATCH", "DELETE"]);

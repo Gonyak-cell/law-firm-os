@@ -1,5 +1,5 @@
-import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
-import { assertNoDmsPersistedSecrets } from "../../dms/src/persistence-guard.js";
+import { assertNoDmsPersistedSecrets } from "../../../dms/src/persistence-guard.js";
+import { createDurableJsonStateController } from "../../../persistence/src/durable-file.js";
 
 // Deterministic test double only. Operational composition uses PostgreSQL stores.
 

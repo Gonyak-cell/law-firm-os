@@ -46,6 +46,6 @@ export async function handleOutlookConversationMaintenanceEvent(
   return runOutlookConversationMaintenanceInvocation({
     runtime: await runtime_factory(),
     tenant_id: env.LAWOS_IDENTITY_TENANT_ID,
-    limit: 10,
+    limit: 1,
   });
 }

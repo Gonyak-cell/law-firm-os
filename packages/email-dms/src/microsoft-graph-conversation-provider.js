@@ -40,9 +40,20 @@ export function createMicrosoftGraphConversationProvider({ microsoft_egress_tran
     },
     async listOwnMessageSubscriptions(input = {}) {
       if (input.mailbox_scope !== "me") throw new TypeError("mailbox_scope must be me");
-      return bindOwner(await microsoft_egress_transport.graphMessageSubscriptionList({
+      const binding = {
+        entra_tenant_id: requiredSyncString(input, "entra_tenant_id"),
+        account_id: requiredSyncString(input, "entra_subject_id"),
+      };
+      const subscriptions = await microsoft_egress_transport.graphMessageSubscriptionList({
         access_token: accessToken(input.credential),
-      }), input);
+        ...binding,
+      });
+      if (!Array.isArray(subscriptions) || subscriptions.some((entry) =>
+        entry?.entra_tenant_id !== binding.entra_tenant_id
+        || entry?.account_id !== binding.account_id)) {
+        throw new Error("Graph subscription account binding does not match");
+      }
+      return subscriptions;
     },
     async deleteOwnMessageSubscription(input = {}) {
       if (input.mailbox_scope !== "me") throw new TypeError("mailbox_scope must be me");

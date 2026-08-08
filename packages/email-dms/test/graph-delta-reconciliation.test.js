@@ -5,8 +5,8 @@ import {
   createGraphCursorCodec,
   createGraphDeltaReconciliationService,
 } from "../src/index.js";
-import { createConversationSyncRepository } from "../src/conversation-sync-repository.js";
-import { createGraphNotificationQueue } from "../src/graph-notification-queue.js";
+import { createConversationSyncRepository } from "./support/conversation-sync-repository.js";
+import { createGraphNotificationQueue } from "./support/graph-notification-queue.js";
 
 const RESOURCE = "me/mailFolders('inbox')/messages";
 const PRINCIPAL = Object.freeze({ tenant_id: "tenant-outm27", user_id: "user-outm27", entra_subject_id: "subject-outm27", m365_connection_id: "connection-outm27" });

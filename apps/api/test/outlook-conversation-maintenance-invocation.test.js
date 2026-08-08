@@ -59,4 +59,26 @@ test("OUTM-26~28 Lambda routes only the dedicated direct-invoke maintenance acti
   }, options);
   assert.equal(result.worker, LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION);
   assert.equal(runtimeCalls, 1);
+  assert.equal(result.message_jobs.claimed, 0);
+});
+
+test("OUTM-26~28 scheduled maintenance bounds every production queue drain to one job", async () => {
+  const calls = [];
+  await handleOutlookConversationMaintenanceEvent({
+    maintenance_action: LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
+  }, {
+    env: { LAWOS_IDENTITY_TENANT_ID: "tenant" },
+    runtime_factory: async () => ({
+      outlookConversationRuntime: {
+        maintenance_worker: {
+          async runOnce(input) {
+            calls.push(input);
+            return { message_jobs: { claimed: 0 } };
+          },
+        },
+      },
+    }),
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].limit, 1);
 });

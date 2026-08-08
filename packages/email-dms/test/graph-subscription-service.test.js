@@ -7,9 +7,9 @@ import test from "node:test";
 import {
   GRAPH_MESSAGE_RESOURCES,
 } from "../src/index.js";
-import { createConversationPolicyService } from "../src/conversation-policy-service.js";
-import { createConversationSyncRepository } from "../src/conversation-sync-repository.js";
-import { createGraphSubscriptionService } from "../src/graph-subscription-service.js";
+import { createConversationPolicyService } from "./support/conversation-policy-service.js";
+import { createConversationSyncRepository } from "./support/conversation-sync-repository.js";
+import { createGraphSubscriptionService } from "./support/graph-subscription-service.js";
 
 const TENANT = "tenant-outm26";
 const USER = "user-outm26";

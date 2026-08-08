@@ -7,6 +7,7 @@ const RESOURCES = new Set([
   "me/mailFolders('sentitems')/messages",
 ]);
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
+const MAX_SUBSCRIPTION_PAGES = 10;
 
 export class GraphConversationOperationError extends Error {
   constructor(code, status = 400, details = {}) {
@@ -75,7 +76,7 @@ function headers(token) {
   return { authorization: `Bearer ${text(token, 32 * 1024)}`, accept: "application/json", "content-type": "application/json", Prefer: 'IdType="ImmutableId"' };
 }
 
-function subscription(value, notificationUrl) {
+function subscription(value, notificationUrl, binding = null) {
   object(value);
   const normalizedResource = resource(value.resource);
   if (value.changeType !== "created" || value.notificationUrl !== notificationUrl
@@ -89,7 +90,24 @@ function subscription(value, notificationUrl) {
     client_state_hash: clientStateHash(value.clientState),
     notification_url: notificationUrl,
     expires_at: instant(value.expirationDateTime),
+    ...(binding ?? {}),
   };
+}
+
+function subscriptionNextLink(value) {
+  if (value === undefined) return null;
+  let url;
+  try { url = new URL(text(value, 16 * 1024)); } catch {
+    throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
+  const keys = [...url.searchParams.keys()];
+  if (url.origin !== GRAPH_ORIGIN || url.pathname !== "/v1.0/subscriptions"
+    || url.username || url.password || url.hash
+    || keys.some((key) => !new Set(["$skiptoken", "$top"]).has(key))
+    || new Set(keys).size !== keys.length) {
+    throw new GraphConversationOperationError("TARGET_POLICY_VIOLATION", 500);
+  }
+  return url.toString();
 }
 
 export function createGraphConversationOperations({ graph_notification_url } = {}) {
@@ -118,13 +136,42 @@ export function createGraphConversationOperations({ graph_notification_url } = {
       return subscription(await json(response), callback);
     },
     "graph.messageSubscription.list": async (fetchImpl, request) => {
-      exact(request, ["access_token"]);
+      exact(request, ["access_token", "entra_tenant_id", "account_id"]);
       const callback = requireConfiguration();
-      const response = await graphFetch(fetchImpl, `${GRAPH_ORIGIN}/v1.0/subscriptions`, { method: "GET", headers: headers(request.access_token) });
-      if (response.status !== 200) upstream(response);
-      const body = await json(response);
-      if (!Array.isArray(body.value) || body.value.length > 100) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
-      return body.value.filter((entry) => entry?.notificationUrl === callback && entry?.lifecycleNotificationUrl === callback && RESOURCES.has(entry?.resource)).map((entry) => subscription(entry, callback));
+      const binding = {
+        entra_tenant_id: text(request.entra_tenant_id, 512),
+        account_id: text(request.account_id, 512),
+      };
+      const listed = [];
+      const visited = new Set();
+      let url = `${GRAPH_ORIGIN}/v1.0/subscriptions`;
+      for (let page = 0; page < MAX_SUBSCRIPTION_PAGES; page += 1) {
+        if (visited.has(url)) {
+          throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+        }
+        visited.add(url);
+        const response = await graphFetch(fetchImpl, url, {
+          method: "GET",
+          headers: headers(request.access_token),
+        });
+        if (response.status !== 200) upstream(response);
+        const body = await json(response);
+        if (!Array.isArray(body.value) || body.value.length > 100) {
+          throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+        }
+        listed.push(...body.value.filter((entry) =>
+          entry?.notificationUrl === callback
+          && entry?.lifecycleNotificationUrl === callback
+          && RESOURCES.has(entry?.resource))
+          .map((entry) => subscription(entry, callback, binding)));
+        const next = subscriptionNextLink(body["@odata.nextLink"]);
+        if (!next) return listed;
+        url = next;
+      }
+      throw new GraphConversationOperationError(
+        "SUBSCRIPTION_PAGE_BUDGET_EXHAUSTED",
+        502,
+      );
     },
     "graph.messageSubscription.delete": async (fetchImpl, request) => {
       exact(request, ["access_token", "provider_subscription_id"]);

@@ -5,7 +5,7 @@ import {
   normalizeGraphSubscription,
   requiredSyncString,
   syncDigest,
-} from "./conversation-sync-model.js";
+} from "../../src/conversation-sync-model.js";
 
 // Deterministic test double only. Operational reconciliation is PostgreSQL.
 

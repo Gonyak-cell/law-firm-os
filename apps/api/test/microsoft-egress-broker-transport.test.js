@@ -183,7 +183,11 @@ test("OUTM-26..27 transport exposes only fixed me-message subscription and delta
   // When
   await transport.graphMessageSubscriptionCreate({ access_token: accessToken, resource, change_type: "created", client_state: "client-state-outm26", expiration_datetime: "2026-08-08T01:00:00.000Z" });
   await transport.graphMessageSubscriptionRenew({ access_token: accessToken, provider_subscription_id: "provider-outm26", expiration_datetime: "2026-08-08T02:00:00.000Z" });
-  await transport.graphMessageSubscriptionList({ access_token: accessToken });
+  await transport.graphMessageSubscriptionList({
+    access_token: accessToken,
+    entra_tenant_id: TENANT_ID,
+    account_id: "entra-account-outm26",
+  });
   await transport.graphMessageSubscriptionDelete({ access_token: accessToken, provider_subscription_id: "provider-outm26" });
   await transport.graphMessageDeltaList({ access_token: accessToken, resource, delta_link: null, start_at: "2026-08-08T00:00:00.000Z" });
 

@@ -586,6 +586,24 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     clone(outlookConfigSecretArn),
     clone(outlookCredentialSecretArn),
   );
+  const apiLogWrite = statement(apiRole, "WriteExactApiLogGroup");
+  apiLogWrite.Resource = [
+    apiLogWrite.Resource,
+    {
+      "Fn::Sub":
+        "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lawos-production-outlook-conversation-worker:*",
+    },
+  ];
+  const apiNetworkDeny = statement(apiRole, "DenyFunctionCodeEc2Networking");
+  const apiSourceFunction =
+    apiNetworkDeny.Condition.ArnEquals["lambda:SourceFunctionArn"];
+  apiNetworkDeny.Condition.ArnEquals["lambda:SourceFunctionArn"] = [
+    apiSourceFunction,
+    {
+      "Fn::Sub":
+        "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-outlook-conversation-worker",
+    },
+  ];
   apiRole.Properties.Policies.find((policy) => policy.PolicyDocument)
     .PolicyDocument.Statement.push({
       Sid: "InvokeExactMicrosoftEgressBroker",
@@ -593,6 +611,15 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       Action: "lambda:InvokeFunction",
       Resource: {
         "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+      },
+    });
+  apiRole.Properties.Policies.find((policy) => policy.PolicyDocument)
+    .PolicyDocument.Statement.push({
+      Sid: "SendOnlyOutlookConversationWorkerFailuresToExactDeadLetterQueue",
+      Effect: "Allow",
+      Action: "sqs:SendMessage",
+      Resource: {
+        "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
       },
     });
   const apiEmail = statement(apiRole, "SendSyntheticPasswordSetupEmail");
@@ -1201,6 +1228,154 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.OutlookConversationWorkerSchedule.Properties.State = {
     "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"],
   };
+  resources.OutlookConversationWorkerLogGroup = clone(resources.ApiLogGroup);
+  resources.OutlookConversationWorkerLogGroup.Properties.LogGroupName =
+    "/aws/lambda/lawos-production-outlook-conversation-worker";
+  resources.OutlookConversationWorkerFunction = clone(resources.ApiFunction);
+  resources.OutlookConversationWorkerFunction.DependsOn = [
+    "OutlookConversationWorkerLogGroup",
+  ];
+  resources.OutlookConversationWorkerFunction.Properties.Description =
+    "Bounded production Outlook conversation maintenance worker";
+  resources.OutlookConversationWorkerFunction.Properties.FunctionName =
+    "lawos-production-outlook-conversation-worker";
+  resources.OutlookConversationWorkerFunction.Properties.ReservedConcurrentExecutions = 1;
+  resources.OutlookConversationWorkerFunction.Properties.Timeout = 900;
+  resources.OutlookConversationWorkerDeadLetterQueue = {
+    Type: "AWS::SQS::Queue",
+    Properties: {
+      MessageRetentionPeriod: 1_209_600,
+      QueueName: "lawos-production-outlook-conversation-worker-dead-letter",
+      SqsManagedSseEnabled: true,
+      Tags: clone(resources.ApiLogGroup.Properties.Tags),
+    },
+  };
+  const outlookTarget =
+    resources.OutlookConversationWorkerSchedule.Properties.Targets[0];
+  outlookTarget.Arn = {
+    "Fn::GetAtt": ["OutlookConversationWorkerFunction", "Arn"],
+  };
+  outlookTarget.Id = "lawos-production-outlook-conversation-worker";
+  outlookTarget.RetryPolicy = {
+    MaximumEventAgeInSeconds: 900,
+    MaximumRetryAttempts: 2,
+  };
+  outlookTarget.DeadLetterConfig = {
+    Arn: {
+      "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
+    },
+  };
+  resources.OutlookConversationWorkerDeadLetterQueuePolicy = {
+    Type: "AWS::SQS::QueuePolicy",
+    Properties: {
+      PolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [{
+          Sid: "AllowExactOutlookConversationWorkerScheduleFailures",
+          Effect: "Allow",
+          Principal: { Service: "events.amazonaws.com" },
+          Action: "sqs:SendMessage",
+          Resource: {
+            "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
+          },
+          Condition: {
+            ArnEquals: {
+              "aws:SourceArn": {
+                "Fn::GetAtt": ["OutlookConversationWorkerSchedule", "Arn"],
+              },
+            },
+            StringEquals: {
+              "aws:SourceAccount": { Ref: "AWS::AccountId" },
+            },
+          },
+        }],
+      },
+      Queues: [{ Ref: "OutlookConversationWorkerDeadLetterQueue" }],
+    },
+  };
+  resources.OutlookConversationWorkerEventInvokeConfig = {
+    Type: "AWS::Lambda::EventInvokeConfig",
+    Properties: {
+      DestinationConfig: {
+        OnFailure: {
+          Destination: {
+            "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
+          },
+        },
+      },
+      FunctionName: { Ref: "OutlookConversationWorkerFunction" },
+      MaximumEventAgeInSeconds: 900,
+      MaximumRetryAttempts: 2,
+      Qualifier: "$LATEST",
+    },
+  };
+  resources.OutlookConversationWorkerInvokePermission.Properties.FunctionName = {
+    Ref: "OutlookConversationWorkerFunction",
+  };
+  const outlookAlarmTags = clone(resources.ApiErrorAlarm.Properties.Tags);
+  resources.OutlookConversationWorkerErrorAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription: "AMIC OS Outlook conversation worker errors",
+      AlarmName: "lawos-production-outlook-conversation-worker-errors",
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      Dimensions: [{
+        Name: "FunctionName",
+        Value: { Ref: "OutlookConversationWorkerFunction" },
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "Errors",
+      Namespace: "AWS/Lambda",
+      Period: 300,
+      Statistic: "Sum",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+      Tags: outlookAlarmTags,
+    },
+  };
+  resources.OutlookConversationWorkerDeliveryFailureAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription: "AMIC OS Outlook worker EventBridge delivery failures",
+      AlarmName:
+        "lawos-production-outlook-conversation-worker-delivery-failures",
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      Dimensions: [{
+        Name: "RuleName",
+        Value: { Ref: "OutlookConversationWorkerSchedule" },
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "FailedInvocations",
+      Namespace: "AWS/Events",
+      Period: 300,
+      Statistic: "Sum",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+      Tags: clone(outlookAlarmTags),
+    },
+  };
+  resources.OutlookConversationWorkerDeadLetterAlarm = {
+    Type: "AWS::CloudWatch::Alarm",
+    Properties: {
+      AlarmDescription: "AMIC OS Outlook worker dead-letter queue is non-empty",
+      AlarmName: "lawos-production-outlook-conversation-worker-dead-letter",
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      Dimensions: [{
+        Name: "QueueName",
+        Value: {
+          "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "QueueName"],
+        },
+      }],
+      EvaluationPeriods: 1,
+      MetricName: "ApproximateNumberOfMessagesVisible",
+      Namespace: "AWS/SQS",
+      Period: 300,
+      Statistic: "Maximum",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+      Tags: clone(outlookAlarmTags),
+    },
+  };
   resources.HttpApi.Properties.Description = "LawOS production API; disabled until signed go-live activation";
   resources.HttpApi.Properties.DisableExecuteApiEndpoint = {
     "Fn::If": ["ProductionTrafficEnabled", false, true],
@@ -1243,6 +1418,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.AdminLogGroup.Properties.RetentionInDays = 365;
   resources.ProjectionAuditorLogGroup.Properties.RetentionInDays = 365;
   resources.ProjectionWorkerLogGroup.Properties.RetentionInDays = 365;
+  resources.OutlookConversationWorkerLogGroup.Properties.RetentionInDays = 365;
   resources.MonthlyCostBudget.Properties.Budget.BudgetLimit.Amount = JSON_POSTGRES_PRODUCTION_BUDGET_USD;
   resources.MonthlyCostBudget.Properties.Budget.BudgetName = "lawos-production-monthly";
   resources.MonthlyCostBudget.Properties.Budget.CostFilters.TagKeyValue = ["user:environment$lawos-production"];
@@ -1274,6 +1450,14 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Outputs.ProjectionWorkerDeadLetterQueueArn = {
     Value: {
       "Fn::GetAtt": ["ProjectionWorkerDeadLetterQueue", "Arn"],
+    },
+  };
+  template.Outputs.OutlookConversationWorkerFunctionName = {
+    Value: { Ref: "OutlookConversationWorkerFunction" },
+  };
+  template.Outputs.OutlookConversationWorkerDeadLetterQueueArn = {
+    Value: {
+      "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
     },
   };
   template.Outputs.DatabaseIdentifier = { Value: { Ref: "Database" } };
@@ -1532,15 +1716,40 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.Targets?.[0]?.Input ?? "null")?.maintenance_action
       !== "lawos_outlook_conversation_worker"
     || resources.OutlookConversationWorkerSchedule?.Properties?.Targets?.[0]
-      ?.RetryPolicy?.MaximumEventAgeInSeconds !== 300
+      ?.RetryPolicy?.MaximumEventAgeInSeconds !== 900
     || resources.OutlookConversationWorkerSchedule?.Properties?.Targets?.[0]
       ?.RetryPolicy?.MaximumRetryAttempts !== 2
+    || resources.OutlookConversationWorkerSchedule?.Properties?.Targets?.[0]
+      ?.Arn?.["Fn::GetAtt"]?.[0] !== "OutlookConversationWorkerFunction"
+    || resources.OutlookConversationWorkerSchedule?.Properties?.Targets?.[0]
+      ?.DeadLetterConfig?.Arn?.["Fn::GetAtt"]?.[0]
+      !== "OutlookConversationWorkerDeadLetterQueue"
+    || resources.OutlookConversationWorkerFunction?.Properties?.Handler
+      !== resources.ApiFunction?.Properties?.Handler
+    || resources.OutlookConversationWorkerFunction?.Properties?.Timeout !== 900
+    || resources.OutlookConversationWorkerFunction?.Properties
+      ?.ReservedConcurrentExecutions !== 1
     || resources.OutlookConversationWorkerInvokePermission?.Properties?.Principal
       !== "events.amazonaws.com"
     || resources.OutlookConversationWorkerInvokePermission?.Properties?.FunctionName?.Ref
-      !== "ApiFunction"
+      !== "OutlookConversationWorkerFunction"
     || resources.OutlookConversationWorkerInvokePermission?.Properties?.SourceArn
       ?.["Fn::GetAtt"]?.[0] !== "OutlookConversationWorkerSchedule"
+    || resources.OutlookConversationWorkerEventInvokeConfig?.Properties
+      ?.FunctionName?.Ref !== "OutlookConversationWorkerFunction"
+    || resources.OutlookConversationWorkerEventInvokeConfig?.Properties
+      ?.Qualifier !== "$LATEST"
+    || resources.OutlookConversationWorkerEventInvokeConfig?.Properties
+      ?.MaximumEventAgeInSeconds !== 900
+    || resources.OutlookConversationWorkerEventInvokeConfig?.Properties
+      ?.MaximumRetryAttempts !== 2
+    || resources.OutlookConversationWorkerEventInvokeConfig?.Properties
+      ?.DestinationConfig?.OnFailure?.Destination?.["Fn::GetAtt"]?.[0]
+      !== "OutlookConversationWorkerDeadLetterQueue"
+    || resources.OutlookConversationWorkerDeadLetterQueue?.Properties
+      ?.SqsManagedSseEnabled !== true
+    || resources.OutlookConversationWorkerDeadLetterQueue?.Properties
+      ?.MessageRetentionPeriod !== 1_209_600
     || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED
       ?.["Fn::If"]?.[2] !== "false"
@@ -1605,6 +1814,46 @@ export function validateJsonPostgresProductionTemplate(template) {
     || resources.ProjectionWorkerInvokePermission?.Properties?.SourceArn
       ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerSchedule") {
     fail("production traffic must default disabled");
+  }
+  const outlookDeadLetterPolicy = resources
+    .OutlookConversationWorkerDeadLetterQueuePolicy?.Properties;
+  const outlookDeadLetterStatement = outlookDeadLetterPolicy
+    ?.PolicyDocument?.Statement?.[0];
+  const outlookFailureWrite = policyStatements(resources.ApiExecutionRole)
+    .find((item) => item.Sid
+      === "SendOnlyOutlookConversationWorkerFailuresToExactDeadLetterQueue");
+  const outlookAlarms = [
+    [resources.OutlookConversationWorkerErrorAlarm, "AWS/Lambda", "Errors",
+      "FunctionName", "OutlookConversationWorkerFunction"],
+    [resources.OutlookConversationWorkerDeliveryFailureAlarm, "AWS/Events",
+      "FailedInvocations", "RuleName", "OutlookConversationWorkerSchedule"],
+  ];
+  if (JSON.stringify(outlookDeadLetterPolicy?.Queues)
+      !== JSON.stringify([{ Ref: "OutlookConversationWorkerDeadLetterQueue" }])
+    || outlookDeadLetterStatement?.Principal?.Service !== "events.amazonaws.com"
+    || outlookDeadLetterStatement?.Action !== "sqs:SendMessage"
+    || outlookDeadLetterStatement?.Resource?.["Fn::GetAtt"]?.[0]
+      !== "OutlookConversationWorkerDeadLetterQueue"
+    || outlookDeadLetterStatement?.Condition?.ArnEquals?.["aws:SourceArn"]
+      ?.["Fn::GetAtt"]?.[0] !== "OutlookConversationWorkerSchedule"
+    || outlookDeadLetterStatement?.Condition?.StringEquals
+      ?.["aws:SourceAccount"]?.Ref !== "AWS::AccountId"
+    || outlookFailureWrite?.Action !== "sqs:SendMessage"
+    || outlookFailureWrite?.Resource?.["Fn::GetAtt"]?.[0]
+      !== "OutlookConversationWorkerDeadLetterQueue"
+    || resources.OutlookConversationWorkerDeadLetterAlarm?.Properties
+      ?.Namespace !== "AWS/SQS"
+    || resources.OutlookConversationWorkerDeadLetterAlarm?.Properties
+      ?.MetricName !== "ApproximateNumberOfMessagesVisible"
+    || resources.OutlookConversationWorkerDeadLetterAlarm?.Properties
+      ?.Dimensions?.[0]?.Value?.["Fn::GetAtt"]?.[0]
+      !== "OutlookConversationWorkerDeadLetterQueue"
+    || outlookAlarms.some(([alarm, namespace, metric, dimension, logicalId]) =>
+      alarm?.Properties?.Namespace !== namespace
+      || alarm?.Properties?.MetricName !== metric
+      || alarm?.Properties?.Dimensions?.[0]?.Name !== dimension
+      || alarm?.Properties?.Dimensions?.[0]?.Value?.Ref !== logicalId)) {
+    fail("production Outlook worker failure telemetry drifted");
   }
   const apiProjectionRead = statement(
     resources.ApiExecutionRole,

@@ -192,7 +192,8 @@ function responseEnvelope(payload, operation) {
     || body.status > 299
     || !body.result
     || typeof body.result !== "object"
-    || Array.isArray(body.result)
+    || (Array.isArray(body.result)
+      && operation !== "graph.messageSubscription.list")
   ) {
     throw brokerError(
       "MICROSOFT_EGRESS_RESPONSE_INVALID",
@@ -443,9 +444,19 @@ export function createMicrosoftEgressBrokerTransport({
     },
 
     async graphMessageSubscriptionList(input = {}) {
-      exactInput(input, ["access_token"], "graph.messageSubscription.list");
+      exactInput(input, [
+        "access_token",
+        "entra_tenant_id",
+        "account_id",
+      ], "graph.messageSubscription.list");
       return invoke("graph.messageSubscription.list", {
         access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+        entra_tenant_id: requiredText(
+          input.entra_tenant_id,
+          "entra_tenant_id",
+          512,
+        ),
+        account_id: requiredText(input.account_id, "account_id", 512),
       });
     },
 

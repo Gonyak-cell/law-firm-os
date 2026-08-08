@@ -9,7 +9,10 @@ import { createPostgresGraphSubscriptionService } from "../../../packages/email-
 import { requiredSyncString } from "../../../packages/email-dms/src/conversation-sync-model.js";
 import { createOutlookGraphWebhookHandler } from "./outlook-graph-webhook.js";
 import { verifyClientOperationsPostgresMigrations } from "./client-operations-schema.js";
-import { createPostgresM365ConversationPort } from "./postgres-m365-conversation-port.js";
+import {
+  createPostgresM365ConversationCleanupPort,
+  createPostgresM365ConversationPort,
+} from "./postgres-m365-conversation-port.js";
 import { createPostgresM365MailPort } from "./postgres-m365-mail-port.js";
 import { createOutlookConversationRecoveryWorker } from "./outlook-conversation-recovery-worker.js";
 import { createOutlookConversationSubscriptionWorker } from "./outlook-conversation-subscription-worker.js";
@@ -20,6 +23,7 @@ import { createOutlookConversationMaintenanceWorker } from "./outlook-conversati
 import { verifyConversationWorkerAuthority } from "./outlook-conversation-current-authority.js";
 
 const REQUIRED_MIGRATION = "303_client_outlook_conversation_sync";
+const WORKER_LEASE_MS = 15 * 60_000;
 export const LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV =
   "LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED";
 
@@ -56,7 +60,11 @@ export async function createPostgresOutlookConversationRuntime({
   if (!migration) throw new Error("Outlook conversation PostgreSQL migration is not ready");
   const codec = createGraphCursorCodec({ key: cursorKey(cursor_key_material) });
   const store = createPostgresConversationSyncStore({ pool, tenant_id: tenantId, cursor_codec: codec, clock });
-  const queue = createPostgresGraphNotificationQueue({ pool, clock });
+  const queue = createPostgresGraphNotificationQueue({
+    pool,
+    clock,
+    lease_ms: WORKER_LEASE_MS,
+  });
   const policyService = createPostgresConversationPolicyService({ pool, tenant_id: tenantId, clock });
   const maintenanceStore = createPostgresConversationMaintenanceStore({ pool, tenant_id: tenantId, clock });
   const conversationPort = createPostgresM365ConversationPort({
@@ -65,6 +73,14 @@ export async function createPostgresOutlookConversationRuntime({
     credential_vault,
     conversation_provider,
     clock,
+  });
+  const subscriptionCleanupPort = createPostgresM365ConversationCleanupPort({
+    pool,
+    ledger: domain_ledger,
+    tenant_id: tenantId,
+    entra_tenant_id: entraTenantId,
+    credential_vault,
+    conversation_provider,
   });
   const mailPort = createPostgresM365MailPort({
     ledger: domain_ledger,
@@ -80,6 +96,7 @@ export async function createPostgresOutlookConversationRuntime({
     notification_url,
     state_lookup: store.readConnectionState,
     provider: conversationPort,
+    cleanup_provider: subscriptionCleanupPort,
     clock,
   });
   const webhook = createOutlookGraphWebhookHandler({
@@ -171,6 +188,7 @@ export async function createPostgresOutlookConversationRuntime({
     policy_service: policyService,
     subscription_service: subscriptionService,
     conversation_port: conversationPort,
+    subscription_cleanup_port: subscriptionCleanupPort,
     mail_port: mailPort,
     recovery_worker: recoveryWorker,
     subscription_worker: subscriptionWorker,

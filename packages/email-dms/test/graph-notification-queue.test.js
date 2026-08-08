@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createConversationSyncRepository } from "../src/conversation-sync-repository.js";
-import { createGraphNotificationQueue } from "../src/graph-notification-queue.js";
+import { createConversationSyncRepository } from "./support/conversation-sync-repository.js";
+import { createGraphNotificationQueue } from "./support/graph-notification-queue.js";
 
 function notification(messageId = "message-outm27") {
   return {

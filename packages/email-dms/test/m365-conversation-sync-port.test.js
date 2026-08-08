@@ -72,15 +72,26 @@ test("OUTM-26 credential port resolves Mail.Read server-side and exposes only th
   });
 
   // When
-  const listed = await port.listOwnMessageSubscriptions(PRINCIPAL);
+  const listed = await port.listOwnMessageSubscriptions({
+    ...PRINCIPAL,
+    entra_tenant_id: PRINCIPAL.tenant_id,
+  });
 
   // Then
   assert.deepEqual(listed, []);
-  assert.deepEqual(calls, [{ access_token: "synthetic-access-token-outm26" }]);
+  assert.deepEqual(calls, [{
+    access_token: "synthetic-access-token-outm26",
+    entra_tenant_id: PRINCIPAL.tenant_id,
+    account_id: PRINCIPAL.entra_subject_id,
+  }]);
   assert.equal(port.mailbox_scope, "me");
   assert.equal(port.shared_mailbox_enabled, false);
   await assert.rejects(
-    port.listOwnMessageSubscriptions({ ...PRINCIPAL, mailbox: "shared@example.invalid" }),
+    port.listOwnMessageSubscriptions({
+      ...PRINCIPAL,
+      entra_tenant_id: PRINCIPAL.tenant_id,
+      mailbox: "shared@example.invalid",
+    }),
     (error) => error.safe_error_code === "M365_MAILBOX_OVERRIDE_BLOCKED",
   );
   assert.equal(calls.length, 1);

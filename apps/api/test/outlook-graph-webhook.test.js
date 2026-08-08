@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { createConversationSyncRepository } from "../../../packages/email-dms/src/conversation-sync-repository.js";
-import { createGraphNotificationQueue } from "../../../packages/email-dms/src/graph-notification-queue.js";
+import { createConversationSyncRepository } from "../../../packages/email-dms/test/support/conversation-sync-repository.js";
+import { createGraphNotificationQueue } from "../../../packages/email-dms/test/support/graph-notification-queue.js";
 import { createOutlookGraphWebhookHandler } from "../src/outlook-graph-webhook.js";
 
 const CLIENT_STATE = "client-state-outm27-never-persist";

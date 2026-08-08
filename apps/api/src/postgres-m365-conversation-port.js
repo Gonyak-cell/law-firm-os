@@ -2,7 +2,12 @@ import { EMAIL_DMS_DOMAIN_DESCRIPTOR } from "../../../packages/email-dms/src/cen
 import { createM365ConversationSyncPort } from "../../../packages/email-dms/src/m365-conversation-sync-port.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { requiredSyncString } from "../../../packages/email-dms/src/conversation-sync-model.js";
+import {
+  hashMailboxAddress,
+  normalizeM365Connection,
+} from "../../../packages/email-dms/src/m365-connection-model.js";
 import { runRecordRepositoryDomainCommand } from "../../../packages/persistence/src/record-domain-adapter.js";
+import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 
 const METHODS = Object.freeze([
   "createOwnMessageSubscription",
@@ -49,4 +54,103 @@ export function createPostgresM365ConversationPort({
     method,
     (input = {}) => execute(method, input),
   ])));
+}
+
+export function createPostgresM365ConversationCleanupPort({
+  pool,
+  ledger,
+  tenant_id,
+  entra_tenant_id,
+  credential_vault,
+  conversation_provider,
+} = {}) {
+  if (!pool?.connect || typeof ledger?.transaction !== "function") {
+    throw new TypeError("PostgreSQL cleanup authority is required");
+  }
+  if (typeof credential_vault?.resolveDelegatedCredential !== "function"
+    || typeof conversation_provider?.deleteOwnMessageSubscription !== "function") {
+    throw new TypeError("Microsoft Graph subscription cleanup dependencies are required");
+  }
+  const tenantId = requiredSyncString({ tenant_id }, "tenant_id");
+  const entraTenantId = requiredSyncString({ entra_tenant_id }, "entra_tenant_id");
+
+  async function remove(input = {}) {
+    const fields = [
+      "tenant_id",
+      "user_id",
+      "entra_subject_id",
+      "m365_connection_id",
+      "mailbox_ref",
+      "provider_subscription_id",
+      "entra_tenant_id",
+    ];
+    for (const field of fields) requiredSyncString(input, field);
+    if (input.tenant_id !== tenantId || input.entra_tenant_id !== entraTenantId) {
+      throw new Error("Microsoft Graph cleanup tenant authority does not match");
+    }
+    const owned = await withPostgresTransaction(
+      pool,
+      { tenant_id: tenantId, readOnly: true },
+      async (client) => (await client.query(
+        `SELECT subscription_id FROM lawos_email_dms.graph_subscriptions
+          WHERE tenant_id=$1 AND user_id=$2 AND entra_subject_id=$3
+            AND entra_tenant_id=$4 AND m365_connection_id=$5
+            AND mailbox_ref=$6 AND provider_subscription_id=$7
+            AND status='cleanup_pending'`,
+        [tenantId, input.user_id, input.entra_subject_id, entraTenantId,
+          input.m365_connection_id, input.mailbox_ref,
+          input.provider_subscription_id],
+      )).rows,
+    );
+    if (owned.length !== 1) {
+      throw new Error("Microsoft Graph cleanup provider ownership does not match");
+    }
+    const result = await runRecordRepositoryDomainCommand({
+      ledger,
+      descriptor: EMAIL_DMS_DOMAIN_DESCRIPTOR,
+      tenant_id: tenantId,
+      create_repository: createEmailDmsRepository,
+      command: async (repository) => {
+        const matches = repository.list({
+          tenant_id: tenantId,
+          model_type: "M365Connection",
+        }).filter((record) =>
+          record.m365_connection_id === input.m365_connection_id
+          && record.user_id === input.user_id
+          && record.entra_subject_id === input.entra_subject_id);
+        if (matches.length !== 1) {
+          throw new Error("Microsoft Graph cleanup connection ownership does not match");
+        }
+        const connection = normalizeM365Connection(matches[0]);
+        if (connection.mailbox_address_hash !== input.mailbox_ref) {
+          throw new Error("Microsoft Graph cleanup mailbox ownership does not match");
+        }
+        const credential = await credential_vault.resolveDelegatedCredential({
+          credential_ref: connection.credential_ref,
+        });
+        if (requiredSyncString(credential, "entra_subject_id")
+          !== connection.entra_subject_id
+          || hashMailboxAddress(requiredSyncString(credential, "mailbox_address"))
+            !== connection.mailbox_address_hash) {
+          throw new Error("Microsoft Graph cleanup credential ownership does not match");
+        }
+        return conversation_provider.deleteOwnMessageSubscription({
+          tenant_id: tenantId,
+          entra_tenant_id: entraTenantId,
+          user_id: connection.user_id,
+          entra_subject_id: connection.entra_subject_id,
+          m365_connection_id: connection.m365_connection_id,
+          mailbox_scope: "me",
+          provider_subscription_id: input.provider_subscription_id,
+          credential,
+        });
+      },
+    });
+    return result.result;
+  }
+
+  return Object.freeze({
+    authority: "postgres-m365-subscription-delete-only",
+    deleteLocallyOwnedMessageSubscription: remove,
+  });
 }

@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { stableJsonStringify } from "../../persistence/src/durable-file.js";
+import { stableJsonStringify } from "../../../persistence/src/durable-file.js";
 import {
   conversationPolicyId,
   normalizeConversationPolicy,
   requiredSyncString,
   syncDigest,
-} from "./conversation-sync-model.js";
+} from "../../src/conversation-sync-model.js";
 
 // Deterministic test double only. Operational policy authority is PostgreSQL.
 

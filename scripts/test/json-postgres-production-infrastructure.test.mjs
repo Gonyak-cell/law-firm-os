@@ -265,11 +265,51 @@ test("production template derives the proven private topology without synthetic 
   );
   assert.deepEqual(
     template.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].RetryPolicy,
-    { MaximumEventAgeInSeconds: 300, MaximumRetryAttempts: 2 },
+    { MaximumEventAgeInSeconds: 900, MaximumRetryAttempts: 2 },
+  );
+  assert.equal(
+    template.Resources.OutlookConversationWorkerFunction.Properties.Timeout,
+    900,
+  );
+  assert.equal(
+    template.Resources.OutlookConversationWorkerFunction.Properties.ReservedConcurrentExecutions,
+    1,
+  );
+  assert.deepEqual(
+    template.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].Arn,
+    { "Fn::GetAtt": ["OutlookConversationWorkerFunction", "Arn"] },
+  );
+  assert.deepEqual(
+    template.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].DeadLetterConfig,
+    { Arn: { "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"] } },
   );
   assert.deepEqual(
     template.Resources.OutlookConversationWorkerInvokePermission.Properties.SourceArn,
     { "Fn::GetAtt": ["OutlookConversationWorkerSchedule", "Arn"] },
+  );
+  assert.deepEqual(
+    template.Resources.OutlookConversationWorkerInvokePermission.Properties.FunctionName,
+    { Ref: "OutlookConversationWorkerFunction" },
+  );
+  assert.equal(
+    template.Resources.OutlookConversationWorkerDeadLetterQueue.Properties.MessageRetentionPeriod,
+    1_209_600,
+  );
+  assert.deepEqual(
+    template.Resources.OutlookConversationWorkerEventInvokeConfig.Properties.DestinationConfig,
+    { OnFailure: { Destination: { "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"] } } },
+  );
+  assert.equal(
+    template.Resources.OutlookConversationWorkerErrorAlarm.Properties.MetricName,
+    "Errors",
+  );
+  assert.equal(
+    template.Resources.OutlookConversationWorkerDeliveryFailureAlarm.Properties.MetricName,
+    "FailedInvocations",
+  );
+  assert.equal(
+    template.Resources.OutlookConversationWorkerDeadLetterAlarm.Properties.MetricName,
+    "ApproximateNumberOfMessagesVisible",
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
@@ -478,6 +518,21 @@ test("production template fails closed on public RDS, synthetic content, wildcar
     },
     (value) => {
       value.Resources.ProjectionWorkerLagAlarm.Properties.Threshold = 60_000;
+    },
+    (value) => {
+      value.Resources.OutlookConversationWorkerFunction.Properties.Timeout = 5;
+    },
+    (value) => {
+      value.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0]
+        .Arn = { "Fn::GetAtt": ["ApiFunction", "Arn"] };
+    },
+    (value) => {
+      value.Resources.OutlookConversationWorkerDeadLetterQueuePolicy.Properties
+        .PolicyDocument.Statement[0].Principal = "*";
+    },
+    (value) => {
+      value.Resources.OutlookConversationWorkerDeadLetterAlarm.Properties
+        .MetricName = "NumberOfMessagesSent";
     },
     (value) => {
       value.Resources.ApiExecutionRole.Properties.Policies[0]

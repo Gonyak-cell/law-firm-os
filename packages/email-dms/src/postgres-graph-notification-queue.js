@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { requiredSyncString, syncDigest } from "./conversation-sync-model.js";
-import { graphNotificationIdentity, graphNotificationPayloadHash, normalizeGraphNotification } from "./graph-notification-queue.js";
+import { graphNotificationIdentity, graphNotificationPayloadHash, normalizeGraphNotification } from "./graph-notification-model.js";
 
 function integer(value, field, maximum = Number.MAX_SAFE_INTEGER) {
   if (!Number.isSafeInteger(value) || value < 1 || value > maximum) throw new TypeError(`${field} must be a positive integer`);
@@ -140,11 +140,29 @@ export function createPostgresGraphNotificationQueue({
     }
     const at = timestamp();
     return tx(tenantId, async (client) => {
+      const exhausted = await client.query(
+        `UPDATE lawos_email_dms.graph_notification_jobs
+            SET status='dead_letter',lease_owner=NULL,lease_expires_at=NULL,
+                last_error_code='GRAPH_LEASE_EXPIRED_MAX_ATTEMPTS',updated_at=$2
+          WHERE tenant_id=$1 AND status='leased' AND lease_expires_at <= $2
+            AND attempt_count >= $3
+            AND ($4::text[] IS NULL OR job_kind = ANY($4::text[]))
+        RETURNING *`,
+        [tenantId, at.toISOString(), max_attempts, job_kinds],
+      );
+      for (const job of exhausted.rows) {
+        await audit(client, job, "dead_lettered", at.toISOString(), {
+          attempt_count: job.attempt_count,
+          safe_error_code: job.last_error_code,
+          lease_expired: true,
+        });
+      }
       const result = await client.query(
         `WITH candidates AS (
            SELECT job_id FROM lawos_email_dms.graph_notification_jobs
             WHERE tenant_id = $1 AND available_at <= $2
               AND ($6::text[] IS NULL OR job_kind = ANY($6::text[]))
+              AND attempt_count < $7
               AND (status IN ('pending','retry')
                 OR (status = 'leased' AND lease_expires_at <= $2))
             ORDER BY created_at, job_id FOR UPDATE SKIP LOCKED LIMIT $3
@@ -155,7 +173,8 @@ export function createPostgresGraphNotificationQueue({
            FROM candidates WHERE job.tenant_id=$1 AND job.job_id=candidates.job_id
          RETURNING job.*`,
         [tenantId, at.toISOString(), limit, workerId,
-          new Date(at.getTime() + lease_ms).toISOString(), job_kinds],
+          new Date(at.getTime() + lease_ms).toISOString(), job_kinds,
+          max_attempts],
       );
       for (const job of result.rows) await audit(client, job, "leased", at.toISOString(), { attempt_count: job.attempt_count });
       return result.rows;
@@ -195,5 +214,14 @@ export function createPostgresGraphNotificationQueue({
     return { ...job, status: dead ? "dead_letter" : "retry", available_at: dead ? job.available_at : new Date(at.getTime() + Math.min(15 * 60_000, base_delay_ms * (2 ** (job.attempt_count - 1)))).toISOString(), lease_owner: null, lease_expires_at: null, last_error_code: requiredSyncString(input, "error_code", 100) };
   });
 
-  return Object.freeze({ authority: "postgres-outlook-graph-queue", durable: true, enqueue, claim, extendLease, complete, fail });
+  return Object.freeze({
+    authority: "postgres-outlook-graph-queue",
+    durable: true,
+    lease_duration_ms: lease_ms,
+    enqueue,
+    claim,
+    extendLease,
+    complete,
+    fail,
+  });
 }
