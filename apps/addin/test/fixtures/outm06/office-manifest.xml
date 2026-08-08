@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1">
+  <Id>8f3cc90d-56dd-4c1c-b9c2-0a1100500101</Id>
+  <DisplayName DefaultValue="AMIC OS"/>
+  <Description DefaultValue="AMIC OS Outlook integration"/>
+  <IconUrl DefaultValue="https://addin.example.test/icon.png" title="required Office metadata"/>
+</OfficeApp>
