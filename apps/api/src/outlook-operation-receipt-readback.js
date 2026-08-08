@@ -5,7 +5,7 @@ import {
   idempotency,
   resolveVerifiedDocument,
 } from "./outlook-operation-receipt-durable-chain.js";
-import { validateOutlookEmailFileIdempotency } from "../../../packages/email-dms/src/email-filing-service.js";
+import { canonicalFilingAudit, validateOutlookEmailFileIdempotency } from "../../../packages/email-dms/src/email-filing-service.js";
 const DIGEST = /^[a-f0-9]{64}$/u;
 const FOLLOWUP_TYPES = new Set(["task", "deadline"]);
 const FILING_MODES = new Set(["manual", "sent"]);
@@ -93,7 +93,6 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
     documents.push(verified);
   }
   const digest = documents[0].version.sha256;
-  const dmsAudits = auditList(dmsRepository, tenantId, thread.email_thread_id);
   const documentAudits = documents.every((entry) => hasAudit(
     entry.auditEvents.length ? entry.auditEvents : auditList(dmsRepository, tenantId, entry.document.document_id),
     { action: "dms.document.upload", objectType: "DmsDocument", objectId: entry.document.document_id },
@@ -101,7 +100,7 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
   const filingEntry = filingReceiptEntry({ thread, dmsRepository, tenantId, digest });
   if (
     !documentAudits
-    || !hasAudit(dmsAudits, { action: "dms.email.thread.file", objectType: "DmsEmailThread", objectId: thread.email_thread_id })
+    || !canonicalFilingAudit(dmsRepository, thread)
     || !filingEntry
   ) return null;
   const type = thread.filing_mode === "sent" ? "outlook.email.sent_filed" : "outlook.email.filed";

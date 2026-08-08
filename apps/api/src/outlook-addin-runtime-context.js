@@ -2808,6 +2808,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     actor_id: actorId,
     require_original_mime_document: true,
     idempotency_key: `${filingIdempotencyKey}:dms`,
+    authoritative_mime_sha256: canonical.mime_sha256,
     audit: {
       append: (event, writer = runtime.dmsRuntime.repository) =>
         appendDmsAudit(writer, {

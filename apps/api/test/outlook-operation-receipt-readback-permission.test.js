@@ -97,7 +97,10 @@ test("document permission denial blocks the documents route and receipt identifi
   assert.equal(response.status, 200);
   assert.equal(response.body.outcome, "empty");
   assert.deepEqual(response.body.items, []);
-  assert.doesNotMatch(JSON.stringify(response.body), /document:readback-a|thread:readback-a|timeline:readback-a/u);
+  const bodyJson = JSON.stringify(response.body);
+  assert.equal(bodyJson.includes(DOCUMENT_ID), false);
+  assert.equal(bodyJson.includes("thread:readback-a"), false);
+  assert.equal(bodyJson.includes("timeline:readback-a"), false);
 });
 
 test("document object ACL trims only the denied attachment receipt", async () => {

@@ -100,3 +100,22 @@ test("fresh controller stays empty when the API rejects a wrong durable receipt 
     assert.equal(controller.archive.size, 0);
   }
 });
+
+test("fresh controller stays empty for a foreign digest or legacy receipt without canonical audit", async () => {
+  const currentItem = { rest_message_id: REST_ID, canonical_graph_message_id: CANONICAL_ID, internet_message_id: INTERNET_ID, conversation_id: CONVERSATION_ID, mode: "read", provenance: "received" };
+  for (const mode of ["foreign-digest", "missing-audit"]) {
+    const fixture = runtimeFixture();
+    const key = `${FILE_KEY}:dms`;
+    const existing = fixture.dmsRepository.getIdempotency({ tenant_id: TENANT, idempotency_key: key });
+    if (mode === "foreign-digest") {
+      fixture.dmsRepository.recordIdempotency({ ...existing, operation: "foreign_operation" });
+      fixture.dmsRepository.recordIdempotency({ ...existing, idempotency_key: `outlook-email-file:${THREAD_ID}:${"f".repeat(64)}:dms` });
+    } else {
+      fixture.dmsRepository.recordIdempotency({ ...existing, request_fingerprint: null });
+      fixture.dmsRepository.appendAudit({ event_id: `outlook.email.file:${TENANT}:${THREAD_ID}`, tenant_id: TENANT, actor_id: "foreign-audit-actor", action: "dms.email.thread.file", object_type: "DmsEmailThread", object_id: THREAD_ID, decision: "allow", reason: "email_thread_filed_to_matter" });
+    }
+    const controller = createOutlookOperationReceiptController({ archive: createOutlookOperationReceiptArchive({ scopeRef: `adversarial-${mode}` }), requestJson: async (_path, options) => (await handleOutlookAddinApiRequest({ pathname: "/api/outlook/operation-receipts/readback", method: "POST", body: options.body, requestId: `request:fresh-controller-${mode}`, context: fixture.context, runtime: fixture.runtime })).body });
+    assert.deepEqual(await controller.restore({ matterId: MATTER, currentItem }), []);
+    assert.equal(controller.archive.size, 0);
+  }
+});

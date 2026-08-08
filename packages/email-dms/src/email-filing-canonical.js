@@ -1,0 +1,202 @@
+import { createHash } from "node:crypto";
+
+export const OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION = "outlook_email_file";
+const FILING_MODES = new Set(["manual", "sent"]);
+const FILING_OUTCOMES = new Set(["created", "idempotent_replay"]);
+const ORIGINAL_MIME_DOCUMENT = /^doc:(.+):original-mime:([a-f0-9]{64})$/u;
+
+function canonicalText(value, field) {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`email filing ${field} is required for canonical replay binding`);
+  }
+  return value.normalize("NFKC").trim();
+}
+
+function canonicalDocumentIds(thread) {
+  if (!Array.isArray(thread?.filed_document_ids) || thread.filed_document_ids.length === 0) {
+    throw new Error("email filing requires canonical filed document links");
+  }
+  const ids = thread.filed_document_ids.map((value) => canonicalText(value, "filed_document_ids"));
+  if (new Set(ids).size !== ids.length) throw new Error("email filing document links must be unique");
+  return ids;
+}
+
+function canonicalMimeSha256(thread, documentIds = canonicalDocumentIds(thread)) {
+  if (documentIds.length !== 1) {
+    throw new Error("email filing requires one canonical original MIME document");
+  }
+  const match = ORIGINAL_MIME_DOCUMENT.exec(documentIds[0]);
+  if (!match || match[1] !== canonicalText(thread.email_thread_id, "email_thread_id")) {
+    throw new Error("email filing original MIME document link is not canonical");
+  }
+  return match[2];
+}
+
+function canonicalBinding(thread = {}) {
+  const filingMode = canonicalText(thread.filing_mode ?? "manual", "filing_mode").toLowerCase();
+  if (!FILING_MODES.has(filingMode)) throw new Error("email filing mode is not canonical");
+  const filedDocumentIds = canonicalDocumentIds(thread);
+  return Object.freeze({
+    tenant_id: canonicalText(thread.tenant_id, "tenant_id"),
+    matter_id: canonicalText(thread.matter_id, "matter_id"),
+    email_thread_id: canonicalText(thread.email_thread_id, "email_thread_id"),
+    graph_message_id: canonicalText(thread.graph_message_id, "graph_message_id"),
+    internet_message_id: canonicalText(thread.internet_message_id, "internet_message_id").toLowerCase(),
+    conversation_id: canonicalText(thread.conversation_id, "conversation_id"),
+    filing_mode: filingMode,
+    filed_document_ids: Object.freeze(filedDocumentIds),
+    mime_sha256: canonicalMimeSha256(thread, filedDocumentIds),
+  });
+}
+
+function sameDocumentIds(left, right) {
+  return Array.isArray(left)
+    && Array.isArray(right)
+    && left.length === right.length
+    && left.every((value, index) => value === right[index]);
+}
+
+function durableMimeBinding(repository, binding, authoritativeMimeSha256) {
+  if (authoritativeMimeSha256 === binding.mime_sha256) return;
+  if (!repository || typeof repository.get !== "function") {
+    throw new Error("email filing requires a durable original MIME document authority");
+  }
+  const documentId = binding.filed_document_ids[0];
+  const document = repository.get({ tenant_id: binding.tenant_id, model_type: "DmsDocument", document_id: documentId });
+  if (
+    !document
+    || document.document_id !== documentId
+    || document.tenant_id !== binding.tenant_id
+    || document.matter_id !== binding.matter_id
+    || document.source_email_thread_id !== binding.email_thread_id
+    || document.latest_sha256 !== binding.mime_sha256
+    || typeof document.current_version_id !== "string"
+  ) throw new Error("email filing original MIME document authority conflicts with the canonical binding");
+  const version = repository.get({ tenant_id: binding.tenant_id, model_type: "DmsDocumentVersion", version_id: document.current_version_id });
+  if (
+    !version
+    || version.document_id !== documentId
+    || version.tenant_id !== binding.tenant_id
+    || version.matter_id !== binding.matter_id
+    || version.sha256 !== binding.mime_sha256
+    || version.persisted !== true
+    || version.status !== "current"
+    || typeof version.file_object_id !== "string"
+  ) throw new Error("email filing original MIME version authority conflicts with the canonical binding");
+  const fileObject = repository.get({ tenant_id: binding.tenant_id, model_type: "DmsFileObject", file_object_id: version.file_object_id });
+  if (
+    !fileObject
+    || fileObject.file_object_id !== version.file_object_id
+    || fileObject.tenant_id !== binding.tenant_id
+    || fileObject.matter_id !== binding.matter_id
+    || fileObject.sha256 !== binding.mime_sha256
+    || typeof fileObject.storage_pointer_ref !== "string"
+    || typeof fileObject.byte_size !== "number"
+    || fileObject.byte_size < 0
+  ) throw new Error("email filing original MIME file authority conflicts with the canonical binding");
+}
+
+export function assertCanonicalIdempotencyKey(key, thread, repository, authoritativeMimeSha256) {
+  const value = canonicalText(key, "idempotency_key");
+  const binding = canonicalBinding(thread);
+  durableMimeBinding(repository, binding, authoritativeMimeSha256);
+  if (value !== `outlook-email-file:${binding.email_thread_id}:${binding.mime_sha256}:dms`) {
+    throw new Error("email filing idempotency key is not canonical");
+  }
+  return value;
+}
+
+function canonicalFilingAuditMetadata(thread) {
+  const binding = canonicalBinding(thread);
+  const actorId = canonicalText(thread.filing_user, "filing_user");
+  return {
+    tenant_id: binding.tenant_id,
+    matter_id: binding.matter_id,
+    email_thread_id: binding.email_thread_id,
+    graph_message_id: binding.graph_message_id,
+    internet_message_id: binding.internet_message_id,
+    conversation_id: binding.conversation_id,
+    filing_mode: binding.filing_mode,
+    filed_document_ids: [...binding.filed_document_ids],
+    actor_id: actorId,
+  };
+}
+
+export function canonicalFilingAudit(repository, thread) {
+  let binding;
+  let actorId;
+  try {
+    binding = canonicalBinding(thread);
+    actorId = canonicalText(thread.filing_user, "filing_user");
+  } catch {
+    return null;
+  }
+  const events = repository.listAudit({ tenant_id: binding.tenant_id, object_id: binding.email_thread_id })
+    .filter((event) => event.action === "dms.email.thread.file");
+  if (events.length !== 1) return null;
+  const event = events[0];
+  const metadata = event.metadata;
+  if (
+    event.tenant_id !== binding.tenant_id
+    || event.actor_id !== actorId
+    || event.object_type !== "DmsEmailThread"
+    || event.object_id !== binding.email_thread_id
+    || event.decision !== "allow"
+    || event.reason !== "email_thread_filed_to_matter"
+    || event.occurred_at !== thread.filing_time
+    || !metadata || typeof metadata !== "object" || Array.isArray(metadata)
+    || metadata.tenant_id !== binding.tenant_id
+    || metadata.matter_id !== binding.matter_id
+    || metadata.email_thread_id !== binding.email_thread_id
+    || metadata.graph_message_id !== binding.graph_message_id
+    || metadata.internet_message_id !== binding.internet_message_id
+    || metadata.conversation_id !== binding.conversation_id
+    || metadata.filing_mode !== binding.filing_mode
+    || metadata.actor_id !== actorId
+    || !sameDocumentIds(metadata.filed_document_ids, binding.filed_document_ids)
+  ) return null;
+  return event;
+}
+
+export function filingAuditMetadata(thread) {
+  return canonicalFilingAuditMetadata(thread);
+}
+
+export function outlookEmailFileRequestFingerprint(thread = {}) {
+  const binding = canonicalBinding(thread);
+  return createHash("sha256")
+    .update(JSON.stringify({ schema: "outlook-email-file:v1", operation: OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION, ...binding }))
+    .digest("hex");
+}
+
+export function validateOutlookEmailFileIdempotency({ entry, thread } = {}) {
+  let binding;
+  try {
+    binding = canonicalBinding(thread);
+  } catch {
+    return Object.freeze({ valid: false });
+  }
+  const response = entry?.response;
+  const allowedResponseFields = new Set(["outcome", "email_thread_id", "matter_id", "filed_document_ids"]);
+  if (
+    entry?.operation !== OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION
+    || !response || typeof response !== "object" || Array.isArray(response)
+    || Object.keys(response).some((field) => !allowedResponseFields.has(field))
+    || response.email_thread_id !== binding.email_thread_id
+    || response.matter_id !== binding.matter_id
+    || !sameDocumentIds(response.filed_document_ids, binding.filed_document_ids)
+    || !FILING_OUTCOMES.has(response.outcome)
+  ) return Object.freeze({ valid: false });
+  const expected = outlookEmailFileRequestFingerprint(thread);
+  if (entry.request_fingerprint !== null && entry.request_fingerprint !== undefined) {
+    if (typeof entry.request_fingerprint !== "string" || entry.request_fingerprint !== expected) {
+      return Object.freeze({ valid: false });
+    }
+  }
+  return Object.freeze({
+    valid: true,
+    legacy: entry.request_fingerprint == null,
+    request_fingerprint: expected,
+    binding,
+  });
+}

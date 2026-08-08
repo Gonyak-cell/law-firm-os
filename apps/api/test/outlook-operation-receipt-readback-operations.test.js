@@ -6,6 +6,7 @@ import {
   ATTACH_TIMELINE_ID,
   CONVERSATION_ID,
   CANONICAL_ID,
+  DOCUMENT_ID,
   INTERNET_ID,
   MATTER,
   REST_ID,
@@ -61,7 +62,7 @@ test("readback uses the production DMS authority adapter and fails safe on Matte
   const fixture = runtimeFixture();
   seedOperationSpecificReceipts(fixture);
   const authorityStates = new Map(
-    ["document:readback-a", ATTACH_DOCUMENT_ID].map((documentId) => {
+    [DOCUMENT_ID, ATTACH_DOCUMENT_ID].map((documentId) => {
       const localDocument = fixture.dmsRepository.get({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: documentId });
       const localVersion = fixture.dmsRepository.get({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocumentVersion", version_id: localDocument.current_version_id });
       const localFileObject = fixture.dmsRepository.get({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsFileObject", file_object_id: localVersion.file_object_id });
@@ -81,7 +82,7 @@ test("readback uses the production DMS authority adapter and fails safe on Matte
       return tenantId === fixture.context.principal.tenant_id ? authorityStates.get(documentId) ?? null : null;
     },
   };
-  for (const documentId of ["document:readback-a", ATTACH_DOCUMENT_ID]) {
+  for (const documentId of [DOCUMENT_ID, ATTACH_DOCUMENT_ID]) {
     fixture.dmsRepository.update(
       { tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: documentId },
       { status: "archived", source_email_thread_id: "thread:untrusted-local-copy" },
@@ -94,9 +95,9 @@ test("readback uses the production DMS authority adapter and fails safe on Matte
     "save_attachments",
     "create_followup",
   ]);
-  authorityStates.set("document:readback-a", {
-    ...authorityStates.get("document:readback-a"),
-    document: { ...authorityStates.get("document:readback-a").document, matter_id: "matter:other" },
+  authorityStates.set(DOCUMENT_ID, {
+    ...authorityStates.get(DOCUMENT_ID),
+    document: { ...authorityStates.get(DOCUMENT_ID).document, matter_id: "matter:other" },
   });
   const mismatched = await readback(fixture, "request:readback-authority-mismatch");
   assert.equal(mismatched.body.outcome, "empty");
@@ -105,10 +106,10 @@ test("readback uses the production DMS authority adapter and fails safe on Matte
 
 test("readback omits incomplete document, SHA, and timeline chains", async () => {
   for (const mutate of [
-    (fixture) => fixture.dmsRepository.delete({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: "document:readback-a" }),
+    (fixture) => fixture.dmsRepository.delete({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: DOCUMENT_ID }),
     (fixture) => fixture.matterRepository.delete({ tenant_id: fixture.context.principal.tenant_id, model_type: "MatterTimelineEvent", resource_id: "timeline:readback-a" }),
-    (fixture) => fixture.dmsRepository.update({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: "document:readback-a" }, { source_email_thread_id: "thread:other" }),
-    (fixture) => fixture.dmsRepository.update({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: "document:readback-a" }, { latest_sha256: "c".repeat(64) }),
+    (fixture) => fixture.dmsRepository.update({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: DOCUMENT_ID }, { source_email_thread_id: "thread:other" }),
+    (fixture) => fixture.dmsRepository.update({ tenant_id: fixture.context.principal.tenant_id, model_type: "DmsDocument", document_id: DOCUMENT_ID }, { latest_sha256: "c".repeat(64) }),
     (fixture) => fixture.matterRepository.update({ tenant_id: fixture.context.principal.tenant_id, model_type: "MatterTimelineEvent", resource_id: "timeline:readback-a" }, { source_ref: "thread:other", source_object_id: "thread:other" }),
   ]) {
     const fixture = runtimeFixture();

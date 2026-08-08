@@ -1,95 +1,14 @@
-import { createHash } from "node:crypto";
 import { createEmailThread } from "./email-model.js";
+import {
+  OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
+  assertCanonicalIdempotencyKey,
+  canonicalFilingAudit,
+  filingAuditMetadata,
+  outlookEmailFileRequestFingerprint,
+  validateOutlookEmailFileIdempotency,
+} from "./email-filing-canonical.js";
 
-export const OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION = "outlook_email_file";
-const FILING_MODES = new Set(["manual", "sent"]);
-const FILING_OUTCOMES = new Set(["created", "idempotent_replay"]);
-
-function canonicalText(value, field) {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`email filing ${field} is required for canonical replay binding`);
-  }
-  return value.normalize("NFKC").trim();
-}
-
-function canonicalDocumentIds(thread) {
-  if (!Array.isArray(thread?.filed_document_ids) || thread.filed_document_ids.length === 0) {
-    throw new Error("email filing requires canonical filed document links");
-  }
-  const ids = thread.filed_document_ids.map((value) => canonicalText(value, "filed_document_ids"));
-  if (new Set(ids).size !== ids.length) throw new Error("email filing document links must be unique");
-  return ids;
-}
-
-function canonicalBinding(thread = {}) {
-  const filingMode = canonicalText(thread.filing_mode ?? "manual", "filing_mode").toLowerCase();
-  if (!FILING_MODES.has(filingMode)) throw new Error("email filing mode is not canonical");
-  return Object.freeze({
-    tenant_id: canonicalText(thread.tenant_id, "tenant_id"),
-    matter_id: canonicalText(thread.matter_id, "matter_id"),
-    email_thread_id: canonicalText(thread.email_thread_id, "email_thread_id"),
-    graph_message_id: canonicalText(thread.graph_message_id, "graph_message_id"),
-    internet_message_id: canonicalText(thread.internet_message_id, "internet_message_id").toLowerCase(),
-    conversation_id: canonicalText(thread.conversation_id, "conversation_id"),
-    filing_mode: filingMode,
-    filed_document_ids: Object.freeze(canonicalDocumentIds(thread)),
-  });
-}
-
-export function outlookEmailFileRequestFingerprint(thread = {}) {
-  const binding = canonicalBinding(thread);
-  return createHash("sha256")
-    .update(JSON.stringify({ schema: "outlook-email-file:v1", operation: OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION, ...binding }))
-    .digest("hex");
-}
-
-function sameDocumentIds(left, right) {
-  return Array.isArray(left)
-    && Array.isArray(right)
-    && left.length === right.length
-    && left.every((value, index) => value === right[index]);
-}
-
-function assertCanonicalIdempotencyKey(key, thread) {
-  const value = canonicalText(key, "idempotency_key");
-  const prefix = `outlook-email-file:${canonicalText(thread.email_thread_id, "email_thread_id")}:`;
-  if (!value.startsWith(prefix) || !value.endsWith(":dms")) {
-    throw new Error("email filing idempotency key is not canonical");
-  }
-  return value;
-}
-
-export function validateOutlookEmailFileIdempotency({ entry, thread } = {}) {
-  let binding;
-  try {
-    binding = canonicalBinding(thread);
-  } catch {
-    return Object.freeze({ valid: false });
-  }
-  const response = entry?.response;
-  const allowedResponseFields = new Set(["outcome", "email_thread_id", "matter_id", "filed_document_ids"]);
-  if (
-    entry?.operation !== OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION
-    || !response || typeof response !== "object" || Array.isArray(response)
-    || Object.keys(response).some((field) => !allowedResponseFields.has(field))
-    || response.email_thread_id !== binding.email_thread_id
-    || response.matter_id !== binding.matter_id
-    || !sameDocumentIds(response.filed_document_ids, binding.filed_document_ids)
-    || !FILING_OUTCOMES.has(response.outcome)
-  ) return Object.freeze({ valid: false });
-  const expected = outlookEmailFileRequestFingerprint(thread);
-  if (entry.request_fingerprint !== null && entry.request_fingerprint !== undefined) {
-    if (typeof entry.request_fingerprint !== "string" || entry.request_fingerprint !== expected) {
-      return Object.freeze({ valid: false });
-    }
-  }
-  return Object.freeze({
-    valid: true,
-    legacy: entry.request_fingerprint == null,
-    request_fingerprint: expected,
-    binding,
-  });
-}
+export { OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION, canonicalFilingAudit, outlookEmailFileRequestFingerprint, validateOutlookEmailFileIdempotency } from "./email-filing-canonical.js";
 
 export function fileEmailThreadToMatter({
   repository,
@@ -98,6 +17,7 @@ export function fileEmailThreadToMatter({
   audit,
   require_original_mime_document = false,
   idempotency_key,
+  authoritative_mime_sha256,
 } = {}) {
   const existing = repository.get({
     tenant_id: thread.tenant_id,
@@ -124,7 +44,7 @@ export function fileEmailThreadToMatter({
   if (typeof idempotency_key !== "string" || idempotency_key.trim() === "") {
     throw new TypeError("original MIME email filing requires idempotency_key");
   }
-  assertCanonicalIdempotencyKey(idempotency_key, thread);
+  assertCanonicalIdempotencyKey(idempotency_key, existing ?? thread, repository, authoritative_mime_sha256);
   const replay = repository.getIdempotency({
     tenant_id: thread.tenant_id,
     idempotency_key,
@@ -145,6 +65,9 @@ export function fileEmailThreadToMatter({
     }
     const binding = validateOutlookEmailFileIdempotency({ entry: replay, thread: existing });
     if (!binding.valid) throw new Error("email filing idempotency receipt is not canonically bound");
+    if (binding.legacy && !canonicalFilingAudit(repository, existing)) {
+      throw new Error("email filing legacy receipt lacks canonical filing audit");
+    }
     repository.recordIdempotency({
       tenant_id: thread.tenant_id,
       idempotency_key,
@@ -179,6 +102,7 @@ export function fileEmailThreadToMatter({
       object_id: pending.email_thread_id,
       decision: "allow",
       reason: "email_thread_filed_to_matter",
+      metadata: filingAuditMetadata(pending),
     }, writer);
   };
   if (typeof repository.transaction !== "function") {
@@ -199,26 +123,7 @@ export function fileEmailThreadToMatter({
   });
   if (pending.status === "active") {
     repository.transaction((tx) => {
-      const existingAudits = tx.listAudit({
-        tenant_id: pending.tenant_id,
-        object_id: pending.email_thread_id,
-      }).filter((event) => event.action === "dms.email.thread.file");
-      if (existingAudits.length > 1) {
-        throw new Error("active email filing has conflicting audit records");
-      }
-      const existingAudit = existingAudits[0];
-      if (!existingAudit) {
-        throw new Error("active email filing is missing its immutable audit record");
-      }
-      if (
-        existingAudit.actor_id !== pending.filing_user
-        || existingAudit.occurred_at !== pending.filing_time
-        || existingAudit.object_type !== "DmsEmailThread"
-        || existingAudit.decision !== "allow"
-        || existingAudit.reason !== "email_thread_filed_to_matter"
-      ) {
-        throw new Error("active email filing audit conflicts with the persisted thread");
-      }
+      if (!canonicalFilingAudit(tx, pending)) throw new Error("active email filing audit conflicts with the persisted thread");
       persistIdempotency(tx, pending, "idempotent_replay");
     });
     return Object.freeze({ outcome: "idempotent_replay", thread: pending });

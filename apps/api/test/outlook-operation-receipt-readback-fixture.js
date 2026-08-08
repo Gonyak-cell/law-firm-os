@@ -18,10 +18,10 @@ export const CANONICAL_ID = "immutable:readback-a";
 export const INTERNET_ID = "<readback-a@amic.law>";
 export const CONVERSATION_ID = "conversation-readback-a";
 export const THREAD_ID = "thread:readback-a";
-export const DOCUMENT_ID = "document:readback-a";
+export const MIME_SHA256 = "a".repeat(64);
+export const DOCUMENT_ID = `doc:${THREAD_ID}:original-mime:${MIME_SHA256}`;
 const VERSION_ID = "version:readback-a";
 const FILE_OBJECT_ID = "file:readback-a";
-export const MIME_SHA256 = "a".repeat(64);
 export const TIMELINE_ID = "timeline:readback-a";
 export const FILE_KEY = `outlook-email-file:${THREAD_ID}:${MIME_SHA256}`;
 export const ATTACHMENT_ID = "attachment:readback-a";
@@ -72,6 +72,7 @@ export function runtimeFixture() {
     conversation_id: CONVERSATION_ID,
     status: "active",
     filing_time: "2026-08-08T00:00:00.000Z",
+    filing_user: ACTOR,
     filed_document_ids: [DOCUMENT_ID],
     filing_mode: "manual",
     permission_envelope_id: "permission:readback",
@@ -199,6 +200,18 @@ export function runtimeFixture() {
     object_id: THREAD_ID,
     decision: "allow",
     reason: "email_thread_filed_to_matter",
+    occurred_at: "2026-08-08T00:00:00.000Z",
+    metadata: {
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      email_thread_id: THREAD_ID,
+      graph_message_id: CANONICAL_ID,
+      internet_message_id: INTERNET_ID.toLowerCase(),
+      conversation_id: CONVERSATION_ID,
+      filing_mode: "manual",
+      filed_document_ids: [DOCUMENT_ID],
+      actor_id: ACTOR,
+    },
   });
   dmsRepository.recordIdempotency({
     tenant_id: TENANT,

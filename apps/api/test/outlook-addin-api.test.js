@@ -20,10 +20,6 @@ import {
   m365ConnectionId,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
-import {
-  fileEmailThreadToMatter,
-  outlookEmailFileRequestFingerprint,
-} from "../../../packages/email-dms/src/email-filing-service.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { createMatterRuntimeContext } from "../src/matter-runtime-context.js";
 
@@ -39,127 +35,6 @@ const ATTACHMENT_RECOVERY_BYTES = Buffer.from("attachment domain recovery bytes"
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 const MIME_BOUNDARY = "lawos-outlook-attachment-boundary";
 const SPLIT_ENCODED_ATTACHMENT_NAME = "=?UTF-8?B?Y2xpZW50LQ==?= =?UTF-8?B?Y29udHJhY3QuZG9jeA==?=";
-
-test("legacy filing replay backfills idempotency without overwriting its original audit actor", () => {
-  const repository = createDmsRepository();
-  const emailThreadId = "thread:legacy-filing-audit";
-  const eventId = `outlook.email.file:${TENANT}:${emailThreadId}`;
-  const thread = repository.create({
-    model_type: "DmsEmailThread",
-    tenant_id: TENANT,
-    matter_id: MATTER,
-    email_thread_id: emailThreadId,
-    graph_message_id: "immutable:legacy-filing",
-    internet_message_id: "<legacy-filing@amic.law>",
-    conversation_id: "conversation:legacy-filing",
-    subject: "Legacy filing",
-    status: "active",
-    filing_mode: "manual",
-    filing_user: "original-actor",
-    filed_document_ids: ["doc:legacy-original-mime"],
-    filing_time: "2026-08-06T00:00:00.000Z",
-    permission_envelope_id: "perm:legacy-filing-audit",
-    audit_trace_id: "audit:legacy-filing-audit",
-  });
-  repository.appendAudit({
-    event_id: eventId,
-    tenant_id: TENANT,
-    actor_id: "original-actor",
-    action: "dms.email.thread.file",
-    object_type: "DmsEmailThread",
-    object_id: emailThreadId,
-    decision: "allow",
-    reason: "email_thread_filed_to_matter",
-    occurred_at: thread.filing_time,
-  });
-
-  const result = fileEmailThreadToMatter({
-    repository,
-    thread,
-    actor_id: "replay-actor",
-    require_original_mime_document: true,
-    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
-    audit: {
-      append: (event, writer = repository) => writer.appendAudit({ ...event, event_id: eventId }),
-    },
-  });
-
-  assert.equal(result.outcome, "idempotent_replay");
-  assert.equal(repository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })[0].actor_id, "original-actor");
-  assert.equal(repository.getIdempotency({
-    tenant_id: TENANT,
-    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
-  }).response.email_thread_id, emailThreadId);
-  assert.equal(repository.getIdempotency({
-    tenant_id: TENANT,
-    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
-  }).response.outcome, "idempotent_replay");
-  assert.equal(repository.getIdempotency({
-    tenant_id: TENANT,
-    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
-  }).request_fingerprint, outlookEmailFileRequestFingerprint(thread));
-});
-
-test("legacy filing backfill fails closed when immutable audit provenance is missing or mismatched", () => {
-  for (const auditFixture of [
-    null,
-    { actor_id: "wrong-actor", occurred_at: "2026-08-06T00:00:00.000Z" },
-    { actor_id: "original-actor", occurred_at: "1999-01-01T00:00:00.000Z" },
-  ]) {
-    const repository = createDmsRepository();
-    const emailThreadId = `thread:legacy-filing-${auditFixture?.actor_id ?? "missing"}-${auditFixture?.occurred_at ?? "none"}`;
-    const idempotencyKey = `outlook-email-file:${emailThreadId}:legacy:dms`;
-    const thread = repository.create({
-      model_type: "DmsEmailThread",
-      tenant_id: TENANT,
-      matter_id: MATTER,
-      email_thread_id: emailThreadId,
-      graph_message_id: "immutable:legacy-filing",
-      internet_message_id: "<legacy-filing@amic.law>",
-      conversation_id: "conversation:legacy-filing",
-      subject: "Legacy filing",
-      status: "active",
-      filing_mode: "manual",
-      filing_user: "original-actor",
-      filed_document_ids: ["doc:legacy-original-mime"],
-      filing_time: "2026-08-06T00:00:00.000Z",
-      permission_envelope_id: "perm:legacy-filing-audit",
-      audit_trace_id: "audit:legacy-filing-audit",
-    });
-    if (auditFixture) {
-      repository.appendAudit({
-        event_id: `outlook.email.file:${TENANT}:${emailThreadId}`,
-        tenant_id: TENANT,
-        actor_id: auditFixture.actor_id,
-        action: "dms.email.thread.file",
-        object_type: "DmsEmailThread",
-        object_id: emailThreadId,
-        decision: "allow",
-        reason: "email_thread_filed_to_matter",
-        occurred_at: auditFixture.occurred_at,
-      });
-    }
-
-    assert.throws(() => fileEmailThreadToMatter({
-      repository,
-      thread,
-      actor_id: "replay-actor",
-      require_original_mime_document: true,
-      idempotency_key: idempotencyKey,
-      audit: {
-        append: (event, writer = repository) => writer.appendAudit({
-          ...event,
-          event_id: `outlook.email.file:${TENANT}:${emailThreadId}`,
-        }),
-      },
-    }), /audit/u);
-    assert.equal(repository.getIdempotency({ tenant_id: TENANT, idempotency_key: idempotencyKey }), undefined);
-    assert.equal(
-      repository.listAudit({ tenant_id: TENANT, object_id: emailThreadId })[0]?.actor_id,
-      auditFixture?.actor_id,
-    );
-  }
-});
 
 function messageMime({
   attachmentBytes = ATTACHMENT_BYTES,
