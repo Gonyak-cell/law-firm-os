@@ -6,6 +6,9 @@
   "exports": {
     ".": "./src/index.js"
   },
+  "dependencies": {
+    "docx": "9.7.1"
+  },
   "scripts": {
     "test": "node --test test/*.test.js"
   }

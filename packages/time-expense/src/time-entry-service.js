@@ -12,7 +12,7 @@ function positiveNumber(value, field) {
   return parsed;
 }
 
-export function createTimeEntry({ repository, time_entry, actor_id, idempotency_key } = {}) {
+export function createTimeEntry({ repository, time_entry, actor_id, idempotency_key, request_fingerprint = null } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   requiredString(time_entry, "tenant_id");
@@ -23,7 +23,21 @@ export function createTimeEntry({ repository, time_entry, actor_id, idempotency_
   const durationMinutes = positiveNumber(time_entry.duration_minutes, "duration_minutes");
   if (typeof time_entry.billable !== "boolean") throw new TypeError("billable is required");
   const replay = repository.getIdempotency({ tenant_id: time_entry.tenant_id, idempotency_key });
-  if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
+  if (replay) {
+    if (
+      request_fingerprint !== null
+      && (
+        replay.operation !== "time_entry_create"
+        || replay.request_fingerprint !== request_fingerprint
+      )
+    ) {
+      throw Object.assign(
+        new Error("idempotency_key is already bound to another time-entry request"),
+        { safe_error_code: "FINANCE_IDEMPOTENCY_CONFLICT", status: 409 },
+      );
+    }
+    return Object.freeze({ ...replay.response, idempotent_replay: true });
+  }
 
   return repository.transaction((tx) => {
     const record = tx.create({
@@ -46,7 +60,13 @@ export function createTimeEntry({ repository, time_entry, actor_id, idempotency_
       },
     });
     const response = Object.freeze({ outcome: "created", time_entry: record, audit_event: auditEvent, idempotent_replay: false });
-    tx.recordIdempotency({ tenant_id: record.tenant_id, idempotency_key, operation: "time_entry_create", response });
+    tx.recordIdempotency({
+      tenant_id: record.tenant_id,
+      idempotency_key,
+      operation: "time_entry_create",
+      request_fingerprint,
+      response,
+    });
     return response;
   });
 }

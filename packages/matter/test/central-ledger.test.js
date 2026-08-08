@@ -36,6 +36,39 @@ test("Matter central-ledger inventory fixes model, relationship, uniqueness and 
   }
 });
 
+test("OUTM-21 correction projections are append-only and retain both Matter authorities", () => {
+  for (const model_type of ["EmailFilingPlacementEvent", "EmailFilingPlacementReference"]) {
+    const record = {
+      model_type,
+      matter_id: "matter-target",
+      source_matter_id: "matter-source",
+      target_matter_id: "matter-target",
+    };
+    assert.equal(MATTER_DOMAIN_DESCRIPTOR.append_only(record), true);
+    assert.deepEqual(
+      MATTER_DOMAIN_DESCRIPTOR.references(record)
+        .filter((reference) => reference.reference_name.endsWith("_matter"))
+        .map((reference) => ({
+          reference_name: reference.reference_name,
+          target_record_id: reference.target_record_id,
+          required: reference.required,
+        })),
+      [
+        {
+          reference_name: "source_matter",
+          target_record_id: "matter-source",
+          required: true,
+        },
+        {
+          reference_name: "target_matter",
+          target_record_id: "matter-target",
+          required: true,
+        },
+      ],
+    );
+  }
+});
+
 test("Matter PostgreSQL import, idempotency, audit and async update rehearsal preserve exact readback", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;

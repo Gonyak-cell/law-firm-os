@@ -11,6 +11,7 @@ import {
 import { createDmsRepository, createFileStorageAdapter } from "../../../packages/dms/src/index.js";
 import {
   createDmsDocument,
+  createDmsEmailThread,
   createDmsFolder,
   createDmsWorkspace,
 } from "../../../packages/dms/src/model.js";
@@ -23,6 +24,11 @@ import { createEmailDmsRepository } from "../../../packages/email-dms/src/reposi
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { createMatterRuntimeContext } from "../src/matter-runtime-context.js";
 import { createOutlookAttachmentReceiptAuthority } from "../src/outlook-attachment-receipt-authority.js";
+import { createApiSessionAuth } from "../src/session-auth.js";
+import {
+  MATTER_VAULT_USER_REGISTRATION_SEED,
+  findRegisteredAccountByEmail,
+} from "../src/matter-vault-account-registry.js";
 
 const TENANT = "tenant_outlook_addin_test";
 const MATTER = "matter_outlook_addin_test";
@@ -305,6 +311,78 @@ function outlookSessionAuth() {
       });
     },
   });
+}
+
+async function scopeDerivedOutlookSessions() {
+  const registered = ["wsjo@amic.kr", "sypark@amic.kr", "yjlee@amic.kr"]
+    .map((email) => findRegisteredAccountByEmail(email));
+  assert.equal(registered.every(Boolean), true);
+  const accounts = registered
+    .map((account) => ({
+      ...account,
+      tenant_memberships: [{ ...(account?.tenant_memberships?.[0] ?? {}), tenant_id: TENANT, status: "active" }],
+    }));
+  const [writer, reader, aclUser] = accounts;
+  let deniedTaskId = null;
+  const actions = ["outlook:task:create", "outlook:task:update"];
+  const sessionAuth = createApiSessionAuth({
+    profile: "local-dev",
+    secret: "outlook-task-scope-derived-session-secret",
+    trustedTenantId: TENANT,
+    seed: { ...MATTER_VAULT_USER_REGISTRATION_SEED, tenant_id: TENANT, users: accounts },
+    objectAclResolver({ user_id }) {
+      const object_acl = user_id === aclUser.user_id ? [
+        {
+          id: "outlook-task-allow-selected-matter",
+          tenant_id: TENANT,
+          principal_id: aclUser.user_id,
+          effect: "allow",
+          actions,
+          resource_type: "Matter",
+          resource_id: MATTER,
+        },
+        {
+          id: "outlook-task-deny-other-matter",
+          tenant_id: TENANT,
+          principal_id: aclUser.user_id,
+          effect: "deny",
+          actions,
+          resource_type: "Matter",
+          resource_id: OTHER_MATTER,
+        },
+        {
+          id: "outlook-task-deny-unrelated-task",
+          tenant_id: TENANT,
+          principal_id: aclUser.user_id,
+          effect: "deny",
+          action: "outlook:task:update",
+          resource_type: "MatterTask",
+          resource_id: deniedTaskId ?? "outlook-task-unrelated",
+        },
+      ] : [];
+      return { authoritative: true, source_ref: "outlook-task-test-acl", object_acl };
+    },
+  });
+  const tokenFor = async (account) => {
+    const result = await sessionAuth.login({
+      email: account.email,
+      password: account.local_dev.synthetic_token,
+    }, { requestId: `outlook-task-login-${account.user_id}` });
+    assert.equal(result.status, 200);
+    return result.body.session_token;
+  };
+  return {
+    sessionAuth,
+    writer,
+    reader,
+    aclUser,
+    writerToken: await tokenFor(writer),
+    readerToken: await tokenFor(reader),
+    aclToken: await tokenFor(aclUser),
+    denyTask(taskId) {
+      deniedTaskId = taskId;
+    },
+  };
 }
 
 function outlookEmailDmsRepository() {
@@ -1067,6 +1145,285 @@ test("existing nested Matter folders remain valid when their ancestry reaches th
     }).parent_folder_id, clientFolderId);
   } finally {
     await server.close();
+  }
+});
+
+test("Outlook editable task routes use signed scopes and resource-scoped ACLs", async () => {
+  const sourceEmailThreadId = "thread:outlook-task-scope-test";
+  const matterRepository = seedMatterRepository();
+  const dmsRepository = createDmsRepository({
+    seedRecords: [createDmsEmailThread({
+      email_thread_id: sourceEmailThreadId,
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      subject: "Task source",
+      status: "active",
+      permission_envelope_id: "perm:outlook-task-source",
+      audit_trace_id: "audit:outlook-task-source",
+    })],
+  });
+  const dmsRuntime = createDefaultDmsRuntime({
+    repository: dmsRepository,
+    storage: createFileStorageAdapter({
+      adapter_id: "outlook-task-scope-test-storage",
+      rootPath: join(mkdtempSync(join(tmpdir(), "outlook-task-scope-")), "objects"),
+    }),
+  });
+  const matterRuntime = createMatterRuntimeContext({
+    repository: matterRepository,
+    dmsRuntime,
+    ...seedPeopleDirectories(),
+    clock: () => "2026-08-08T00:00:00.000Z",
+  });
+  const sessions = await scopeDerivedOutlookSessions();
+  const started = await startApiServer({
+    port: 0,
+    matterRuntime,
+    dmsRuntime,
+    sessionAuth: sessions.sessionAuth,
+  });
+  const baseUrl = `http://${started.host}:${started.port}`;
+  const request = (token, path, method, body) => fetch(`${baseUrl}${path}`, {
+    method,
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  const createBody = (overrides = {}) => ({
+    tenant_id: TENANT,
+    actor_id: "forged-browser-actor",
+    matter_id: MATTER,
+    idempotency_key: "outlook-task-scope-create",
+    source_email_thread_id: sourceEmailThreadId,
+    task: { title: "서면 검토", due_at: "2026-08-12T09:30:00+09:00", status: "todo" },
+    ...overrides,
+  });
+
+  try {
+    const forgedTenant = await request(
+      sessions.writerToken,
+      "/api/outlook/tasks",
+      "POST",
+      createBody({ tenant_id: "tenant_forged", idempotency_key: "outlook-task-forged-tenant" }),
+    );
+    assert.equal(forgedTenant.status, 400);
+
+    const scopeDeniedCreate = await request(
+      sessions.readerToken,
+      "/api/outlook/tasks",
+      "POST",
+      createBody({ idempotency_key: "outlook-task-reader-denied-create", source_email_thread_id: undefined }),
+    );
+    assert.equal(scopeDeniedCreate.status, 403);
+
+    const aclCreatedResponse = await request(
+      sessions.aclToken,
+      "/api/outlook/tasks",
+      "POST",
+      createBody({ idempotency_key: "outlook-task-acl-create", source_email_thread_id: undefined }),
+    );
+    const aclCreated = await aclCreatedResponse.json();
+    assert.equal(aclCreatedResponse.status, 201, JSON.stringify(aclCreated));
+    const crossMatterAclCreate = await request(
+      sessions.aclToken,
+      "/api/outlook/tasks",
+      "POST",
+      createBody({
+        matter_id: OTHER_MATTER,
+        idempotency_key: "outlook-task-acl-cross-matter",
+        source_email_thread_id: undefined,
+      }),
+    );
+    assert.equal(crossMatterAclCreate.status, 403);
+
+    const aclUpdatedResponse = await request(
+      sessions.aclToken,
+      `/api/outlook/tasks/${encodeURIComponent(aclCreated.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: "outlook-task-acl-update",
+        expected_version: 1,
+        patch: { status: "in_progress" },
+      },
+    );
+    const aclUpdated = await aclUpdatedResponse.json();
+    assert.equal(aclUpdatedResponse.status, 200, JSON.stringify(aclUpdated));
+    sessions.denyTask(aclCreated.item.activity_id);
+    const taskAclDeniedUpdate = await request(
+      sessions.aclToken,
+      `/api/outlook/tasks/${encodeURIComponent(aclCreated.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: "outlook-task-acl-task-denied",
+        expected_version: 2,
+        patch: { title: "차단되어야 하는 변경" },
+      },
+    );
+    assert.equal(taskAclDeniedUpdate.status, 403);
+
+    const createdResponse = await request(
+      sessions.writerToken,
+      "/api/outlook/tasks",
+      "POST",
+      createBody(),
+    );
+    const created = await createdResponse.json();
+    assert.equal(createdResponse.status, 201, JSON.stringify(created));
+    assert.equal(created.item.assigned_to_user_id, null);
+    assert.equal(created.item.due_at, "2026-08-12T00:30:00.000Z");
+    assert.equal(matterRepository.get({
+      tenant_id: TENANT,
+      model_type: "MatterTask",
+      task_id: created.item.activity_id,
+    }).created_by, sessions.writer.user_id);
+
+    const replayResponse = await request(sessions.writerToken, "/api/outlook/tasks", "POST", createBody());
+    assert.equal(replayResponse.status, 200);
+    assert.equal((await replayResponse.json()).outcome, "idempotent_replay");
+
+    const crossActorCreateCounts = {
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    };
+    const crossActorCreateResponse = await request(sessions.aclToken, "/api/outlook/tasks", "POST", createBody());
+    const crossActorCreate = await crossActorCreateResponse.json();
+    assert.equal(crossActorCreateResponse.status, 409, JSON.stringify(crossActorCreate));
+    assert.deepEqual(crossActorCreate.safe_error_codes, ["OUTLOOK_TASK_IDEMPOTENCY_CONFLICT"]);
+    assert.equal(crossActorCreate.item, null);
+    assert.equal(crossActorCreate.audit_event, undefined);
+    assert.equal(crossActorCreate.timeline_event, undefined);
+    assert.equal(JSON.stringify(crossActorCreate).includes(sessions.writer.user_id), false);
+    assert.deepEqual({
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    }, crossActorCreateCounts);
+
+    const nullStatusKey = "outlook-task-null-status-route";
+    const taskRef = {
+      tenant_id: TENANT,
+      model_type: "MatterTask",
+      task_id: created.item.activity_id,
+    };
+    const beforeNullStatus = matterRepository.get(taskRef);
+    const auditCountBeforeNullStatus = matterRepository.listAudit({ tenant_id: TENANT }).length;
+    const timelineCountBeforeNullStatus = matterRepository.list({
+      tenant_id: TENANT,
+      model_type: "MatterTimelineEvent",
+      matter_id: MATTER,
+    }).length;
+    const nullStatusResponse = await request(
+      sessions.writerToken,
+      `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: nullStatusKey,
+        expected_version: 1,
+        patch: { status: null },
+      },
+    );
+    assert.equal(nullStatusResponse.status, 400);
+    assert.deepEqual(matterRepository.get(taskRef), beforeNullStatus);
+    assert.equal(matterRepository.listAudit({ tenant_id: TENANT }).length, auditCountBeforeNullStatus);
+    assert.equal(matterRepository.list({
+      tenant_id: TENANT,
+      model_type: "MatterTimelineEvent",
+      matter_id: MATTER,
+    }).length, timelineCountBeforeNullStatus);
+    assert.equal(matterRepository.getIdempotency({
+      tenant_id: TENANT,
+      idempotency_key: nullStatusKey,
+    }), undefined);
+
+    const scopeDeniedUpdate = await request(
+      sessions.readerToken,
+      `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: "outlook-task-reader-denied-update",
+        expected_version: 1,
+        patch: { status: "in_progress" },
+      },
+    );
+    assert.equal(scopeDeniedUpdate.status, 403);
+
+    const updatedResponse = await request(
+      sessions.writerToken,
+      `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: "outlook-task-scope-update",
+        expected_version: 1,
+        patch: { due_at: "2026-08-13", estimated_minutes: 30, status: "in_progress" },
+      },
+    );
+    const updated = await updatedResponse.json();
+    assert.equal(updatedResponse.status, 200, JSON.stringify(updated));
+    assert.equal(updated.item.due_at, "2026-08-13");
+    assert.equal(updated.item.version, 2);
+
+    const crossActorUpdateCounts = {
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    };
+    const crossActorUpdateResponse = await request(
+      sessions.aclToken,
+      `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        actor_id: "forged-browser-actor",
+        idempotency_key: "outlook-task-scope-update",
+        expected_version: 1,
+        patch: { due_at: "2026-08-13", estimated_minutes: 30, status: "in_progress" },
+      },
+    );
+    const crossActorUpdate = await crossActorUpdateResponse.json();
+    assert.equal(crossActorUpdateResponse.status, 409, JSON.stringify(crossActorUpdate));
+    assert.deepEqual(crossActorUpdate.safe_error_codes, ["OUTLOOK_TASK_IDEMPOTENCY_CONFLICT"]);
+    assert.equal(crossActorUpdate.item, null);
+    assert.equal(crossActorUpdate.audit_event, undefined);
+    assert.equal(crossActorUpdate.timeline_event, undefined);
+    assert.equal(JSON.stringify(crossActorUpdate).includes(sessions.writer.user_id), false);
+    assert.deepEqual({
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    }, crossActorUpdateCounts);
+  } finally {
+    await new Promise((resolve) => started.server.close(resolve));
   }
 });
 

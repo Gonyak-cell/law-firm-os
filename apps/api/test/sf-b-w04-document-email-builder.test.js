@@ -66,6 +66,7 @@ test("SF-B-W04R document templates and builder draft routes are safe and idempot
         draft: {
           draft_id: "builder_draft_sf_b_w04",
           template_id: "matter_engagement_letter",
+          template_version: "synthetic-1.0.0",
           title: "Engagement letter draft",
           body: "client-secret-value full legal clause should not be returned in the response",
         },
@@ -86,7 +87,9 @@ test("SF-B-W04R document templates and builder draft routes are safe and idempot
         draft: {
           draft_id: "builder_draft_sf_b_w04",
           template_id: "matter_engagement_letter",
+          template_version: "synthetic-1.0.0",
           title: "Engagement letter draft",
+          body: "client-secret-value full legal clause should not be returned in the response",
         },
       }),
     });
@@ -123,6 +126,7 @@ test("SF-B-W04R approval and publish expose owner-blocked states without fake Va
         draft: {
           draft_id: "builder_draft_sf_b_w04_approval",
           template_id: "matter_engagement_letter",
+          template_version: "synthetic-1.0.0",
           title: "Owner approval draft",
         },
       }),

@@ -1144,7 +1144,10 @@ function requestBodyTooLargeError() {
   return error;
 }
 
-export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIMIT_BYTES } = {}) {
+export async function readRequestBody(req, {
+  maxBytes = DEFAULT_REQUEST_BODY_LIMIT_BYTES,
+  injectAuthenticatedActor = true,
+} = {}) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new TypeError("maxBytes must be a positive safe integer");
   if (req.lawosRequestBodyParsed === true) return req.lawosParsedRequestBody;
   const declaredLength = Number(Array.isArray(req.headers?.["content-length"])
@@ -1170,7 +1173,7 @@ export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIM
     if (text) body = JSON.parse(text);
   }
   const authenticatedActorId = String(req.lawosAuthenticatedActorId ?? "").trim();
-  if (authenticatedActorId && body && typeof body === "object" && !Array.isArray(body)) {
+  if (injectAuthenticatedActor && authenticatedActorId && body && typeof body === "object" && !Array.isArray(body)) {
     body = { ...body, actor_id: authenticatedActorId };
   }
   req.lawosRequestBodyHash = hashDomainValue(body);
@@ -1988,7 +1991,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isOutlookPath) {
     const context = requestPermissionContext();
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method)
+      ? await readRequestBody(req, {
+          injectAuthenticatedActor: pathname !== "/api/outlook/time-entry-drafts",
+        })
+      : {};
     const result = await handleOutlookAddinApiRequest({
       pathname,
       method: req.method,
@@ -2002,6 +2009,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         dmsRuntime,
         emailDmsRuntime,
         crmIntakeRuntime,
+        financeRuntime,
         m365GraphConfig,
         sessionAuth,
         attachmentReceiptAuthority: outlookAttachmentReceiptAuthority,

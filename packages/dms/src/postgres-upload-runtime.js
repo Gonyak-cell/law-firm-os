@@ -1341,13 +1341,15 @@ export function createPostgresDmsUploadRuntime({
     const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
     if (!version || !fileObject) throw codedError("DMS committed version is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
     const { storage_pointer_ref: _storagePointerRef, ...safeFileObject } = fileObject;
+    const finalizedReceipt = finalized.receipt ?? finalized.session.provider_receipt;
+    if (!finalizedReceipt) throw codedError("DMS finalized upload receipt is unavailable", "DMS_FINALIZED_RECEIPT_NOT_FOUND", 500);
     const storageReceipt = Object.freeze({
-      adapter_id: finalized.receipt.adapter_id,
-      tenant_id: finalized.receipt.tenant_id,
-      object_id: finalized.receipt.object_id,
-      sha256: finalized.receipt.sha256,
-      byte_size: Number(finalized.receipt.byte_size),
-      mime_type: finalized.receipt.mime_type,
+      adapter_id: finalizedReceipt.adapter_id,
+      tenant_id: finalizedReceipt.tenant_id,
+      object_id: finalizedReceipt.object_id,
+      sha256: finalizedReceipt.sha256,
+      byte_size: Number(finalizedReceipt.byte_size),
+      mime_type: finalizedReceipt.mime_type,
       raw_path_exposed: false,
       storage_pointer_ref_included: false,
     });

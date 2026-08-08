@@ -150,18 +150,21 @@ function isPeopleOutlookDisconnect(method, pathname) {
       .test(String(pathname ?? ""));
 }
 
+const OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH = "/api/outlook/email/corrections";
 const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
   "/api/outlook/email/file",
   "/api/outlook/sent/file",
   "/api/outlook/attachments/save",
   "/api/outlook/followups",
+  "/api/outlook/time-entry-drafts",
 ]);
 
-function isOutlookIdempotentMutation(method, pathname) {
-  return String(method ?? "").toUpperCase() === "POST"
-    && OUTLOOK_IDEMPOTENT_MUTATION_PATHS.has(
-      String(pathname ?? "").replace(/\/+$/u, "") || "/",
-    );
+export function isOutlookIdempotentMutation(method, pathname) {
+  const requestPath = String(pathname ?? "");
+  return String(method ?? "").toUpperCase() === "POST" && (
+    requestPath === OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH
+    || OUTLOOK_IDEMPOTENT_MUTATION_PATHS.has(requestPath.replace(/\/+$/u, "") || "/")
+  );
 }
 
 export function isRetryablePostgresReadConflict(error, method, {
