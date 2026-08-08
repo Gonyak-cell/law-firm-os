@@ -3,7 +3,6 @@ import test from "node:test";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
   ATTACH_DOCUMENT_ID,
-  ATTACH_TIMELINE_ID,
   CANONICAL_ID,
   CONVERSATION_ID,
   DOCUMENT_ID,
@@ -11,6 +10,7 @@ import {
   MATTER,
   REST_ID,
   TENANT,
+  THREAD_ID,
   runtimeFixture,
 } from "./outlook-operation-receipt-readback-fixture.js";
 import { seedOperationSpecificReceipts } from "./outlook-operation-receipt-readback-operations.js";
@@ -103,18 +103,60 @@ test("document permission denial blocks the documents route and receipt identifi
   assert.equal(bodyJson.includes("timeline:readback-a"), false);
 });
 
-test("document object ACL trims only the denied attachment receipt", async () => {
+test("document authorization precedes provider integrity and remounts only allowed attachments", async () => {
   const fixture = runtimeFixture();
   seedOperationSpecificReceipts(fixture);
+  const deniedDocumentId = "document:readback-denied";
+  const unknownDocumentId = "document:readback-unknown";
+  for (const [attachmentId, documentId] of [
+    ["attachment:readback-denied", deniedDocumentId],
+    ["attachment:readback-unknown", unknownDocumentId],
+  ]) {
+    fixture.dmsRepository.create({
+      model_type: "DmsEmailAttachmentMapping",
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      resource_id: `email-attachment:${attachmentId}`,
+      mapping_id: `email-attachment:${attachmentId}`,
+      email_thread_id: THREAD_ID,
+      attachment_id: attachmentId,
+      name: `${attachmentId}.pdf`,
+      document_id: documentId,
+      version_id: `version:${attachmentId}`,
+      attachment_outcome: "created",
+      sha256: "c".repeat(64),
+      source_byte_size: 3,
+      source_message_ref: `message-ref:${attachmentId}`,
+      source_provenance_authority: "microsoft_graph_mime",
+      raw_bytes_included: false,
+      storage_pointer_ref_included: false,
+    });
+  }
+  const integrityReads = [];
+  const integrityAuthority = fixture.runtime.dmsRuntime.upload_runtime;
+  fixture.runtime.dmsRuntime.upload_runtime = {
+    ...integrityAuthority,
+    async getDocumentIntegrityState(input) {
+      integrityReads.push(input.document_id);
+      return integrityAuthority.getDocumentIntegrityState(input);
+    },
+  };
   const context = {
     ...fixture.context,
-    object_acl: [{
+    rules: [{ id: "matter-read", effect: "allow", action: "outlook:matter:read" }],
+    object_acl: [MATTER, DOCUMENT_ID, ATTACH_DOCUMENT_ID].map((resourceId) => ({
+      id: `allow-${resourceId}`,
+      effect: "allow",
+      principal_id: fixture.context.principal.user_id,
+      resource_id: resourceId,
+      action: "outlook:document:read",
+    })).concat({
       id: "deny-attachment-document",
       effect: "deny",
       principal_id: fixture.context.principal.user_id,
-      resource_id: ATTACH_DOCUMENT_ID,
+      resource_id: deniedDocumentId,
       action: "outlook:document:read",
-    }],
+    }),
   };
   const documents = await handleOutlookAddinApiRequest({
     pathname: `/api/outlook/matters/${MATTER}/documents`,
@@ -125,10 +167,15 @@ test("document object ACL trims only the denied attachment receipt", async () =>
     runtime: fixture.runtime,
   });
   assert.equal(documents.status, 200);
-  assert.deepEqual(documents.body.items.map((entry) => entry.document_id), [DOCUMENT_ID]);
+  assert.deepEqual(documents.body.items.map((entry) => entry.document_id), [DOCUMENT_ID, ATTACH_DOCUMENT_ID]);
   const response = await readback({ ...fixture, context }, readbackBody(), "request:readback-mixed");
   assert.equal(response.status, 200);
-  assert.deepEqual(response.body.items.map((entry) => entry.operation), ["file_email", "create_followup"]);
-  assert.doesNotMatch(JSON.stringify(response.body), new RegExp(`${ATTACH_DOCUMENT_ID}|${ATTACH_TIMELINE_ID}`, "u"));
+  assert.deepEqual(response.body.items.map((entry) => entry.operation), ["file_email", "save_attachments", "create_followup"]);
+  assert.deepEqual(
+    response.body.items.find((entry) => entry.operation === "save_attachments").document_ids,
+    [ATTACH_DOCUMENT_ID],
+  );
+  assert.deepEqual(integrityReads, [DOCUMENT_ID, ATTACH_DOCUMENT_ID]);
+  assert.doesNotMatch(JSON.stringify(response.body), new RegExp(`${deniedDocumentId}|${unknownDocumentId}`, "u"));
   assert.equal("denied_count" in response.body, false);
 });

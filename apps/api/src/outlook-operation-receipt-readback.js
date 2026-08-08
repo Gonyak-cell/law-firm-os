@@ -151,24 +151,34 @@ async function attachmentReceipts({
   canReadDocument,
 }) {
   if (!fileSummary) return [];
-  let state;
-  try {
-    state = await readOutlookAttachmentReceiptState({
-      dmsRuntime,
-      matterRuntime,
-      authority: attachmentReceiptAuthority,
-      thread,
-      tenantId,
-      matterId,
-      sourceIdentity,
-    });
-  } catch {
-    return [];
-  }
   const dmsRepository = dmsRuntime.repository;
   const matterRepository = matterRuntime.repository;
-  return Promise.all(state.receipts.map(async (receipt) => {
-    if (!await canReadDocument(receipt.document_id)) return null;
+  const mappings = dmsRepository
+    .list({ tenant_id: tenantId, model_type: "DmsEmailAttachmentMapping", matter_id: matterId })
+    .filter((mapping) => mapping.email_thread_id === thread.email_thread_id);
+  const receipts = [];
+  for (const attachmentId of new Set(mappings.map((mapping) => mapping.attachment_id))) {
+    const documentIds = new Set(mappings
+      .filter((mapping) => mapping.attachment_id === attachmentId)
+      .map((mapping) => mapping.document_id));
+    if ((await Promise.all([...documentIds].map(canReadDocument))).some((allowed) => !allowed)) continue;
+    try {
+      const state = await readOutlookAttachmentReceiptState({
+        dmsRuntime,
+        matterRuntime,
+        authority: attachmentReceiptAuthority,
+        thread,
+        tenantId,
+        matterId,
+        sourceIdentity,
+        attachmentId,
+      });
+      receipts.push(...state.receipts);
+    } catch {
+      return [];
+    }
+  }
+  return Promise.all(receipts.map(async (receipt) => {
     const operationKey = `outlook-attachment:${thread.email_thread_id}:${receipt.attachment_id}:${receipt.sha256}`;
     const eventReplay = matterRepository.getIdempotency({
       tenant_id: tenantId,
