@@ -30,7 +30,10 @@ import {
   paginateOutlookMatters,
   parseOutlookMatterSearchInput,
 } from "./outlook-matter-search-contract.js";
-import { revalidateOutlookMatterWrite } from "./outlook-matter-write-guard.js";
+import {
+  OUTLOOK_WRITABLE_MATTER_STATUSES,
+  revalidateOutlookMatterWrite,
+} from "./outlook-matter-write-guard.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -50,6 +53,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
     "POST /api/outlook/messages/identity",
+    "POST /api/outlook/operation-receipts/readback",
     "POST /api/outlook/email/file",
     "POST /api/outlook/sent/file",
     "POST /api/outlook/attachments/save",
@@ -213,6 +217,34 @@ function canonicalEmailThreadId({ tenantId, immutableMessageId, internetMessageI
     normalizedOpaqueIdentity(immutableMessageId, "provider.immutable_message_id"),
     normalizedMessageIdentity(internetMessageId, "provider.internet_message_id"),
   ]))}`;
+}
+
+function fnv1a64(value) {
+  let hash = 0xcbf29ce484222325n;
+  for (const character of value) {
+    hash ^= BigInt(character.codePointAt(0));
+    hash = BigInt.asUintN(64, hash * 0x100000001b3n);
+  }
+  return hash.toString(16).padStart(16, "0");
+}
+
+function operationReceiptItemContextRef({ item, canonicalGraphMessageId }) {
+  const identity = [
+    optionalString(item?.rest_message_id ?? item?.graph_message_id),
+    optionalString(item?.internet_message_id),
+    optionalString(item?.conversation_id),
+  ];
+  const mode = optionalString(item?.mode);
+  const provenance = optionalString(item?.provenance);
+  if (
+    identity.some((value) => !value)
+    || !["read", "compose"].includes(mode)
+    || !["received", "sent", "draft"].includes(provenance)
+  ) return "";
+  const canonical = optionalString(canonicalGraphMessageId);
+  if (!canonical) return "";
+  const contextKey = `${identity.join("\u001f")}\u001e${mode}\u001e${provenance}`;
+  return `item-context:${fnv1a64(`${contextKey}\u001f${canonical}`)}`;
 }
 
 function safeStorageReceipt(receipt = {}) {
@@ -2204,6 +2236,56 @@ function handleMatterSearch({ query, context, requestId, runtime }) {
   });
 }
 
+async function resolveOutlookCanonicalItemIdentity({ body, context, runtime, tenantId } = {}) {
+  const canonicalTenantId = requiredString(
+    tenantId ?? body?.tenant_id ?? context?.principal?.tenant_id,
+    "tenant_id",
+  );
+  const restMessageId = requiredString(body?.rest_message_id, "rest_message_id");
+  const internetMessageId = requiredString(body?.internet_message_id, "internet_message_id");
+  const conversationId = requiredString(body?.conversation_id, "conversation_id");
+  const result = await m365MailPort(runtime).getOwnMessageMime({
+    ...m365Principal(context, canonicalTenantId),
+    rest_message_id: restMessageId,
+  });
+  const metadata = result.message_metadata ?? {};
+  const canonicalInternetMessageId = requiredString(
+    result.internet_message_id ?? metadata.internet_message_id,
+    "provider.internet_message_id",
+  );
+  const canonicalConversationId = requiredString(
+    metadata.conversation_id,
+    "provider.conversation_id",
+  );
+  if (
+    normalizedMessageIdentity(canonicalInternetMessageId, "provider.internet_message_id")
+      !== normalizedMessageIdentity(internetMessageId, "internet_message_id")
+    || normalizedOpaqueIdentity(canonicalConversationId, "provider.conversation_id")
+      !== normalizedOpaqueIdentity(conversationId, "conversation_id")
+  ) {
+    throw attachmentProvenanceError("Microsoft Graph identity does not match the current Outlook item");
+  }
+  const canonicalGraphMessageId = requiredString(
+    result.immutable_message_id,
+    "provider.immutable_message_id",
+  );
+  return Object.freeze({
+    tenant_id: canonicalTenantId,
+    result,
+    item: Object.freeze({
+      rest_message_id: restMessageId,
+      canonical_graph_message_id: canonicalGraphMessageId,
+      internet_message_id: canonicalInternetMessageId,
+      conversation_id: canonicalConversationId,
+      source_id_type: result.source_id_type,
+      target_id_type: result.target_id_type,
+      raw_mime_included: false,
+      credential_material_included: false,
+      production_ready_claim: false,
+    }),
+  });
+}
+
 async function handleOutlookMessageIdentity({ body, context, requestId, runtime }) {
   const tenantId = requiredString(
     body.tenant_id ?? context?.principal?.tenant_id,
@@ -2230,53 +2312,184 @@ async function handleOutlookMessageIdentity({ body, context, requestId, runtime 
   const beforeProvider = gate();
   if (beforeProvider.response) return beforeProvider.response;
   try {
-    const result = await m365MailPort(runtime).getOwnMessageMime({
-      ...m365Principal(context, tenantId),
-      rest_message_id: restMessageId,
+    const canonical = await resolveOutlookCanonicalItemIdentity({
+      body,
+      context,
+      runtime,
+      tenantId,
     });
-    const metadata = result.message_metadata ?? {};
-    const canonicalInternetMessageId = requiredString(
-      result.internet_message_id ?? metadata.internet_message_id,
-      "provider.internet_message_id",
-    );
-    const canonicalConversationId = requiredString(
-      metadata.conversation_id,
-      "provider.conversation_id",
-    );
-    if (
-      normalizedMessageIdentity(canonicalInternetMessageId, "provider.internet_message_id")
-        !== normalizedMessageIdentity(internetMessageId, "internet_message_id")
-      || normalizedOpaqueIdentity(canonicalConversationId, "provider.conversation_id")
-        !== normalizedOpaqueIdentity(conversationId, "conversation_id")
-    ) {
-      throw attachmentProvenanceError(
-        "Microsoft Graph identity does not match the current Outlook item",
-      );
-    }
     const afterProvider = gate();
     if (afterProvider.response) return afterProvider.response;
     return success(200, {
       request_id: requestId,
       outcome: "identity_resolved",
-      item: Object.freeze({
-        rest_message_id: restMessageId,
-        canonical_graph_message_id: requiredString(
-          result.immutable_message_id,
-          "provider.immutable_message_id",
-        ),
-        internet_message_id: canonicalInternetMessageId,
-        conversation_id: canonicalConversationId,
-        source_id_type: result.source_id_type,
-        target_id_type: result.target_id_type,
-        raw_mime_included: false,
-        credential_material_included: false,
-        production_ready_claim: false,
-      }),
+      item: canonical.item,
       credential_material_included: false,
     });
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
+}
+
+function emptyOutlookOperationReceiptReadback({ requestId } = {}) {
+  return success(200, {
+    request_id: requestId,
+    outcome: "empty",
+    items: Object.freeze([]),
+    count_leak_prevented: true,
+  });
+}
+
+function safeReceiptRef(value) {
+  const next = optionalString(value, "");
+  return next
+    && next.length <= 256
+    && !/[\s@]|:\/\/|[\u0000-\u001f\u007f]/u.test(next)
+    ? next
+    : "";
+}
+
+function safeReceiptRefs(values = []) {
+  return [...new Set(values.map(safeReceiptRef).filter(Boolean))].sort();
+}
+
+function receiptCompletedAt(values = []) {
+  for (const value of values) {
+    const parsed = Date.parse(value ?? "");
+    if (Number.isFinite(parsed)) return new Date(parsed).toISOString();
+  }
+  return new Date().toISOString();
+}
+
+function buildOutlookOperationReceiptSummary({ item, canonicalGraphMessageId, matterId, thread, documents, timeline }) {
+  const threadId = safeReceiptRef(thread?.email_thread_id);
+  if (!threadId) return null;
+  const documentIds = safeReceiptRefs([
+    ...(Array.isArray(thread?.filed_document_ids) ? thread.filed_document_ids : []),
+    ...documents
+      .filter((document) => document.source_email_thread_id === threadId)
+      .map((document) => document.document_id),
+  ]);
+  const timelineEventIds = safeReceiptRefs(
+    timeline
+      .filter((entry) => entry.source_ref === threadId)
+      .map((entry) => entry.event_id),
+  );
+  const completedAt = receiptCompletedAt([
+    thread?.filing_time,
+    ...timeline
+      .filter((entry) => timelineEventIds.includes(entry.event_id))
+      .map((entry) => entry.occurred_at),
+  ]);
+  return Object.freeze({
+    item_context_ref: operationReceiptItemContextRef({ item, canonicalGraphMessageId }),
+    matter_id: matterId,
+    operation: "file_email",
+    outcome: thread.status === "active" ? "created" : "pending",
+    email_thread_id: threadId,
+    ...(documentIds.length ? { document_ids: Object.freeze(documentIds) } : {}),
+    ...(timelineEventIds.length ? { timeline_event_ids: Object.freeze(timelineEventIds) } : {}),
+    completed_at: completedAt,
+  });
+}
+
+async function handleOutlookOperationReceiptReadback({ body, context, requestId, runtime }) {
+  const matterId = requiredString(body.matter_id, "matter_id");
+  const item = body.item;
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return emptyOutlookOperationReceiptReadback({ requestId });
+  }
+  const tenantId = m365Principal(context).tenant_id;
+  const permission = evaluateOutlookPermission({
+    context,
+    tenant_id: tenantId,
+    matter_id: matterId,
+    resource_type: "matter",
+    resource_id: matterId,
+    action: "outlook:matter:read",
+  });
+  if (permission.effect !== "allow") {
+    return permissionDeniedResponse({
+      requestId,
+      decision: permission,
+      auditHintRef: body.audit_hint_ref,
+    });
+  }
+  const matter = findMatter({
+    repository: runtime.matterRuntime.repository,
+    tenant_id: tenantId,
+    matter_id: matterId,
+  });
+  if (!matter || !OUTLOOK_WRITABLE_MATTER_STATUSES.includes(matter.status)) {
+    return emptyOutlookOperationReceiptReadback({ requestId });
+  }
+  let canonical;
+  try {
+    canonical = await resolveOutlookCanonicalItemIdentity({
+      body: item,
+      context,
+      runtime,
+      tenantId,
+    });
+    if (
+      normalizedOpaqueIdentity(item.canonical_graph_message_id, "canonical_graph_message_id")
+        !== normalizedOpaqueIdentity(canonical.item.canonical_graph_message_id, "provider.immutable_message_id")
+    ) return emptyOutlookOperationReceiptReadback({ requestId });
+  } catch {
+    return emptyOutlookOperationReceiptReadback({ requestId });
+  }
+  const itemContextRef = operationReceiptItemContextRef({
+    item,
+    canonicalGraphMessageId: canonical.item.canonical_graph_message_id,
+  });
+  if (!itemContextRef) return emptyOutlookOperationReceiptReadback({ requestId });
+  const threads = runtime.dmsRuntime.repository
+    .list({ tenant_id: tenantId, model_type: "DmsEmailThread", matter_id: matterId })
+    .filter((thread) => {
+      try {
+        return (
+          normalizedOpaqueIdentity(thread.graph_message_id, "stored.graph_message_id")
+            === normalizedOpaqueIdentity(canonical.item.canonical_graph_message_id, "provider.immutable_message_id")
+          && normalizedMessageIdentity(thread.internet_message_id, "stored.internet_message_id")
+            === normalizedMessageIdentity(canonical.item.internet_message_id, "provider.internet_message_id")
+          && normalizedOpaqueIdentity(thread.conversation_id, "stored.conversation_id")
+            === normalizedOpaqueIdentity(canonical.item.conversation_id, "provider.conversation_id")
+        );
+      } catch {
+        return false;
+      }
+    });
+  if (threads.length === 0) return emptyOutlookOperationReceiptReadback({ requestId });
+  const documents = listMatterDocuments({
+    repository: runtime.dmsRuntime.repository,
+    tenant_id: tenantId,
+    matter_id: matterId,
+  });
+  const timeline = listMatterTimeline({
+    repository: runtime.matterRuntime.repository,
+    tenant_id: tenantId,
+    matter_id: matterId,
+    actor: context?.principal,
+  }).visible_entries;
+  const items = threads
+    .filter((thread) => thread.status === "active")
+    .map((thread) => buildOutlookOperationReceiptSummary({
+      item,
+      canonicalGraphMessageId: canonical.item.canonical_graph_message_id,
+      matterId,
+      thread,
+      documents,
+      timeline,
+    }))
+    .filter((summary) => summary?.item_context_ref === itemContextRef);
+  return items.length
+    ? success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      items: Object.freeze(items),
+      count_leak_prevented: true,
+    })
+    : emptyOutlookOperationReceiptReadback({ requestId });
 }
 
 async function fileEmail({ body, context, requestId, runtime, mode = "manual" }) {
@@ -3332,6 +3545,27 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/messages/identity" && method === "POST") {
       return await handleOutlookMessageIdentity({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (pathname === "/api/outlook/operation-receipts/readback" && method === "POST") {
+      if (
+        !hasOnlyBodyFields(body, ["audit_hint_ref", "matter_id", "item"])
+        || !hasOnlyBodyFields(body?.item, [
+          "conversation_id",
+          "canonical_graph_message_id",
+          "internet_message_id",
+          "mode",
+          "provenance",
+          "rest_message_id",
+        ])
+      ) {
+        return emptyOutlookOperationReceiptReadback({ requestId });
+      }
+      return await handleOutlookOperationReceiptReadback({
         body,
         context,
         requestId,
