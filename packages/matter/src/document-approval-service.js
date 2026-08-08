@@ -66,12 +66,36 @@ export function createDocumentApprovalService({ repository, readTemplate, clock 
     const now = occurred_at ?? clock();
     const current = repository.get({ tenant_id: tenantId, model_type: "MatterBuilderDraft", resource_id: draftId });
     if (!current || current.matter_id !== matterId) throw new Error("builder draft not found");
-    const fingerprint = hashValue({ operation: REQUEST_OPERATION, tenant_id: tenantId, matter_id: matterId, draft_id: draftId, actor_id: actorId, input_fingerprint: current.input_fingerprint, template_hash: current.template_hash });
+    const fingerprint = hashValue({
+      operation: REQUEST_OPERATION,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      draft_id: draftId,
+      actor_id: actorId,
+      input_fingerprint: current.input_fingerprint,
+      template_id: current.template_id,
+      template_version: current.template_version,
+      template_hash: current.template_hash,
+    });
     const replayId = `builder_approval_replay_${hashValue({ tenantId, key }).slice(0, 32)}`;
     const replay = repository.get({ tenant_id: tenantId, model_type: "MatterBuilderApprovalReplay", resource_id: replayId });
     if (replay) {
-      if (replay.operation !== REQUEST_OPERATION || replay.request_fingerprint !== fingerprint) throw idempotencyConflict();
-      return Object.freeze({ ...replay.stored_response, outcome: "idempotent_replay" });
+      if (replay.operation !== REQUEST_OPERATION || replay.actor_id !== actorId || replay.request_fingerprint !== fingerprint
+        || current.approval_request_id !== replay.approval_request_id) throw idempotencyConflict();
+      const authoritativeRequest = repository.get({
+        tenant_id: tenantId,
+        model_type: "MatterBuilderApprovalRequest",
+        resource_id: replay.approval_request_id,
+      });
+      if (!authoritativeRequest || authoritativeRequest.draft_id !== draftId) throw idempotencyConflict();
+      return Object.freeze({
+        outcome: "idempotent_replay",
+        ui_state: current.publish_state,
+        item: safeDraft(current),
+        approval_request: safeApproval(authoritativeRequest),
+        approval_receipt: safeApprovalReceipt(current.approval_receipt),
+        audit_event: replay.stored_response.audit_event,
+      });
     }
     if (current.immutable || current.approval_state === "approved") throw new Error("approved builder draft cannot request approval again");
     const approvalId = safeId(`builder_approval_${draftId}_${current.input_fingerprint.slice(0, 16)}`);
@@ -79,7 +103,8 @@ export function createDocumentApprovalService({ repository, readTemplate, clock 
       const request = tx.create({
         model_type: "MatterBuilderApprovalRequest", resource_id: approvalId, approval_request_id: approvalId,
         tenant_id: tenantId, matter_id: matterId, draft_id: draftId, status: "pending_owner_approval",
-        reviewer_role: "owner", input_fingerprint: current.input_fingerprint, template_hash: current.template_hash,
+        reviewer_role: "owner", input_fingerprint: current.input_fingerprint,
+        template_id: current.template_id, template_version: current.template_version, template_hash: current.template_hash,
         approval_receipt: null, created_by: actorId, created_at: now,
         raw_body_included: false, raw_contact_values_included: false,
       });
@@ -98,6 +123,7 @@ export function createDocumentApprovalService({ repository, readTemplate, clock 
       tx.create({
         model_type: "MatterBuilderApprovalReplay", resource_id: replayId, replay_id: replayId,
         tenant_id: tenantId, matter_id: matterId, draft_id: draftId, operation: REQUEST_OPERATION,
+        approval_request_id: approvalId, actor_id: actorId,
         idempotency_key_hash: hashValue(key), request_fingerprint: fingerprint, stored_response: response,
         created_at: now, raw_body_included: false, raw_contact_values_included: false,
       });
@@ -128,14 +154,30 @@ export function createDocumentApprovalService({ repository, readTemplate, clock 
     if (!request || request.matter_id !== matterId) throw new Error("builder approval request not found");
     const current = repository.get({ tenant_id: tenantId, model_type: "MatterBuilderDraft", resource_id: request.draft_id });
     if (!current || current.matter_id !== matterId) throw new Error("builder draft not found");
-    const fingerprint = hashValue({ operation: DECISION_OPERATION, tenant_id: tenantId, matter_id: matterId, approval_id: approvalId, actor_id: actorId, decision, input_fingerprint: current.input_fingerprint, template_hash: current.template_hash });
+    const fingerprint = hashValue({
+      operation: DECISION_OPERATION,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      approval_id: approvalId,
+      actor_id: actorId,
+      decision,
+      input_fingerprint: current.input_fingerprint,
+      template_id: current.template_id,
+      template_version: current.template_version,
+      template_hash: current.template_hash,
+    });
     const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: key });
     if (replay) {
       if (replay.operation !== DECISION_OPERATION || replay.request_fingerprint !== fingerprint) throw idempotencyConflict("idempotency key cannot be reused for a changed approval decision");
       return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
     }
     if (request.status !== "pending_owner_approval") throw new Error("builder approval request is already decided");
-    if (current.input_fingerprint !== request.input_fingerprint || current.template_hash !== request.template_hash) throw new Error("approval request is stale for the current builder draft");
+    if (current.input_fingerprint !== request.input_fingerprint
+      || current.template_id !== request.template_id
+      || current.template_version !== request.template_version
+      || current.template_hash !== request.template_hash) {
+      throw new Error("approval request is stale for the current builder draft");
+    }
     const template = readTemplate({ tenant_id: tenantId, template_id: current.template_id, template_version: current.template_version });
     const canonical = decision === "approved" ? approvalInput(current, template, now) : null;
     const receipt = canonical ? builderReceipt({

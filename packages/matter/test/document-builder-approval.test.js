@@ -110,7 +110,13 @@ test("OUTM-32 approval replay never rolls approved state back and binds the orig
     idempotency_key: "approve-replay-001", occurred_at: FIXED_TIME,
   });
   const approvedSnapshot = fixture.repository.snapshot();
-  assert.equal(service.requestBuilderApproval(requestInput).outcome, "idempotent_replay");
+  const authoritativeReplay = service.requestBuilderApproval(requestInput);
+  assert.equal(authoritativeReplay.outcome, "idempotent_replay");
+  assert.equal(authoritativeReplay.ui_state, "approved_unpublished");
+  assert.equal(authoritativeReplay.item.approval_state, "approved");
+  assert.equal(authoritativeReplay.approval_request.status, "approved");
+  assert.equal(authoritativeReplay.approval_request.template_version, "1.0.0-test");
+  assert.equal(authoritativeReplay.approval_receipt.receipt_id, authoritativeReplay.approval_request.approval_receipt.receipt_id);
   assert.deepEqual(fixture.repository.snapshot(), approvedSnapshot);
   assert.throws(() => service.requestBuilderApproval({ ...requestInput, idempotency_key: "request-replay-after-approval" }), /approved builder draft/i);
   assert.deepEqual(fixture.repository.snapshot(), approvedSnapshot);

@@ -2,16 +2,73 @@ import { appendBuilderAudit, appendBuilderTimeline } from "./document-builder-ev
 import { canonicalValue, DOCX_GENERATOR_VERSION, hashValue, idempotencyConflict } from "./document-builder-values.js";
 import { safeApprovalReceipt, safeArtifact, safeDraft, safeOutbox } from "./document-builder-safe-projection.js";
 
-export function publicationIdentity({ tenantId, draft, rendered, actorId, idempotencyKey }) {
-  const fingerprint = hashValue({
-    operation: "matter_builder_docx_publish",
+export const PUBLICATION_OPERATION = "matter_builder_docx_publish";
+
+export function publicationRequestFingerprint({ tenantId, matterId, draft, actorId }) {
+  return hashValue({
+    operation: PUBLICATION_OPERATION,
     tenant_id: tenantId,
+    matter_id: matterId,
     actor_id: actorId,
     draft_id: draft.draft_id,
-    input_hash: rendered.input_hash,
-    template_hash: rendered.template_hash,
-    approval_receipt_id: draft.approval_receipt.receipt_id,
+    input_fingerprint: draft.input_fingerprint,
+    template_id: draft.template_id,
+    template_version: draft.template_version,
+    template_hash: draft.template_hash,
+    approval_state: draft.approval_state,
+    approval_request_id: draft.approval_request_id ?? null,
+    approval_receipt_id: draft.approval_receipt?.receipt_id ?? null,
+    approval_receipt_hash: draft.approval_receipt?.receipt_hash ?? null,
+    approved_input_hash: draft.approval_receipt?.input_hash ?? null,
   });
+}
+
+function replayResponse(replay, actorId, fingerprint) {
+  if (replay.operation !== PUBLICATION_OPERATION
+    || replay.actor_id !== actorId
+    || replay.request_fingerprint !== fingerprint) {
+    throw idempotencyConflict("idempotency key cannot be reused for changed builder content or actor");
+  }
+  return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
+}
+
+export function readPublicationReplay(repository, { tenantId, actorId, idempotencyKey, fingerprint }) {
+  const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey });
+  return replay ? replayResponse(replay, actorId, fingerprint) : null;
+}
+
+export function claimPublicationKey(repository, {
+  tenantId,
+  matterId,
+  draft,
+  actorId,
+  idempotencyKey,
+  fingerprint,
+  now,
+}) {
+  const claimId = `builder_publish_claim_${hashValue({ tenantId, idempotencyKey }).slice(0, 32)}`;
+  return repository.transaction((tx) => {
+    const replay = readPublicationReplay(tx, { tenantId, actorId, idempotencyKey, fingerprint });
+    if (replay) return replay;
+    const claim = tx.get({ tenant_id: tenantId, model_type: "MatterBuilderPublishKeyClaim", resource_id: claimId });
+    if (claim && (claim.operation !== PUBLICATION_OPERATION
+      || claim.actor_id !== actorId
+      || claim.request_fingerprint !== fingerprint
+      || claim.idempotency_key_hash !== hashValue(idempotencyKey))) {
+      throw idempotencyConflict("idempotency key cannot be reused for changed builder content or actor");
+    }
+    if (!claim) tx.create({
+      model_type: "MatterBuilderPublishKeyClaim", resource_id: claimId, claim_id: claimId,
+      tenant_id: tenantId, matter_id: matterId, draft_id: draft.draft_id,
+      operation: PUBLICATION_OPERATION, actor_id: actorId,
+      idempotency_key_hash: hashValue(idempotencyKey), request_fingerprint: fingerprint,
+      created_at: now, raw_payload_included: false,
+    });
+    return null;
+  });
+}
+
+export function publicationIdentity({ tenantId, draft, rendered, idempotencyKey, fingerprint }) {
   const ref = hashValue({ tenantId, draftId: draft.draft_id, inputHash: rendered.input_hash }).slice(0, 32);
   const artifactId = `builder_artifact_${ref}`;
   const documentId = `document:builder:${ref}`;
@@ -133,7 +190,7 @@ export function finalizeMatterPublication(repository, context, upload) {
       publish_state: Object.freeze({ status: "complete", owner_approval_ref_included: false, vault_document_created: true, immutable_document_version_created: true, document_bytes_included: false, raw_storage_path_included: false, production_ready_claim: false }),
       audit_event: audit, timeline_event: timeline,
     });
-    tx.recordIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey, operation: "matter_builder_docx_publish", object_type: "MatterBuilderArtifact", object_id: identity.artifact_id, actor_id: actorId, request_fingerprint: identity.fingerprint, response, created_at: now });
+    tx.recordIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey, operation: PUBLICATION_OPERATION, object_type: "MatterBuilderArtifact", object_id: identity.artifact_id, actor_id: actorId, request_fingerprint: identity.fingerprint, response, created_at: now });
     tx.update({ tenant_id: tenantId, model_type: "MatterBuilderPublicationReconciliation", resource_id: identity.reconciliation_id }, { status: "complete", completed_at: now, updated_at: now });
     return response;
   });

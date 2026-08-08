@@ -171,7 +171,7 @@ test("OUTM-32 API denies an approval decision without an owner role", async () =
   assert.equal(denied.body.ui_state, "owner_blocked");
 });
 
-test("OUTM-32 API binds every generic replay key to operation, Matter, template, draft and canonical input", async () => {
+test("OUTM-32 builder-draft replay key binds operation, Matter, template, draft and canonical input", async () => {
   const matterRuntime = runtime();
   const base = body({
     idempotency_key: "outm32-api-generic-replay",
@@ -211,7 +211,7 @@ test("OUTM-32 API binds every generic replay key to operation, Matter, template,
   assert.deepEqual(operationConflict.body.safe_error_codes, ["MATTER_IDEMPOTENCY_CONFLICT"]);
 });
 
-test("OUTM-32 API exact generic replay survives repository restart without mutation", async () => {
+test("OUTM-32 builder-draft replay survives repository restart without mutation", async () => {
   const root = mkdtempSync(join(tmpdir(), "outm32-api-restart-"));
   const filePath = join(root, "matter.json");
   const firstRepository = createMatterRepository({ filePath });

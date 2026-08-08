@@ -3,24 +3,49 @@ import { canonicalizeAgreementInput } from "./agreement-input.js";
 import { renderAgreementDocx } from "./agreement-docx-renderer.js";
 import { validateBuilderApprovalReceipt } from "./document-approval-service.js";
 import { appendBuilderAudit } from "./document-builder-events.js";
-import { hashValue, idempotencyConflict, requiredString } from "./document-builder-values.js";
+import { idempotencyConflict, requiredString } from "./document-builder-values.js";
 import { OWNER_BLOCKED_PUBLISH_STATE, safeDraft } from "./document-builder-safe-projection.js";
 import {
+  claimPublicationKey,
   ensurePublicationIntent,
   finalizeMatterPublication,
   markReconciliationRequired,
+  PUBLICATION_OPERATION,
   publicationIdentity,
+  publicationRequestFingerprint,
+  readPublicationReplay,
 } from "./document-publication-reconciliation.js";
 import { getMatterVaultLink } from "./matter-vault-link-repository.js";
 
-function blockedPublish({ repository, current, actorId, now, reason }) {
-  const audit = appendBuilderAudit(repository, {
-    event_id: `matter.builder.publish.blocked:${current.tenant_id}:${current.matter_id}:${current.draft_id}:${now}`,
-    tenant_id: current.tenant_id, actor_id: actorId, action: "matter.builder.publish.blocked",
-    object_type: "MatterBuilderDraft", object_id: current.draft_id, decision: "blocked",
-    reason, occurred_at: now, metadata: { owner_approval_ref_included: false, vault_document_created: false },
+function blockedPublish({ repository, current, actorId, idempotencyKey, fingerprint, now, reason }) {
+  return repository.transaction((tx) => {
+    const replay = tx.getIdempotency({ tenant_id: current.tenant_id, idempotency_key: idempotencyKey });
+    if (replay) {
+      if (replay.operation !== PUBLICATION_OPERATION
+        || replay.actor_id !== actorId
+        || replay.request_fingerprint !== fingerprint) throw idempotencyConflict();
+      return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
+    }
+    const audit = appendBuilderAudit(tx, {
+      event_id: `matter.builder.publish.blocked:${current.tenant_id}:${current.matter_id}:${current.draft_id}:${fingerprint.slice(0, 24)}`,
+      tenant_id: current.tenant_id, actor_id: actorId, action: "matter.builder.publish.blocked",
+      object_type: "MatterBuilderDraft", object_id: current.draft_id, decision: "blocked",
+      reason, occurred_at: now, metadata: { owner_approval_ref_included: false, vault_document_created: false },
+    });
+    const response = Object.freeze({ outcome: "owner_blocked", ui_state: "owner_blocked", item: safeDraft(current), publish_state: OWNER_BLOCKED_PUBLISH_STATE, audit_event: audit });
+    tx.recordIdempotency({
+      tenant_id: current.tenant_id,
+      idempotency_key: idempotencyKey,
+      operation: PUBLICATION_OPERATION,
+      object_type: "MatterBuilderDraft",
+      object_id: current.draft_id,
+      actor_id: actorId,
+      request_fingerprint: fingerprint,
+      response,
+      created_at: now,
+    });
+    return response;
   });
-  return Object.freeze({ outcome: "owner_blocked", ui_state: "owner_blocked", item: safeDraft(current), publish_state: OWNER_BLOCKED_PUBLISH_STATE, audit_event: audit });
 }
 
 function uploader(dmsRuntime) {
@@ -47,6 +72,9 @@ export function createDocumentPublicationService({ repository, dmsRuntime, readT
     const now = input.occurred_at ?? clock();
     const current = repository.get({ tenant_id: tenantId, model_type: "MatterBuilderDraft", resource_id: draftId });
     if (!current || current.matter_id !== matterId) throw new Error("builder draft not found");
+    const fingerprint = publicationRequestFingerprint({ tenantId, matterId, draft: current, actorId });
+    const replay = readPublicationReplay(repository, { tenantId, actorId, idempotencyKey, fingerprint });
+    if (replay) return replay;
     let template;
     try {
       template = readTemplate({ tenant_id: tenantId, template_id: current.template_id, template_version: current.template_version });
@@ -64,7 +92,14 @@ export function createDocumentPublicationService({ repository, dmsRuntime, readT
       || approval.input_fingerprint !== current.input_fingerprint
       || approval.template_hash !== current.template_hash
       || template?.template_hash !== current.template_hash || !vaultLink || !upload) {
-      return blockedPublish({ repository, current, actorId, now, reason: !template ? "approved_template_version_required" : !vaultLink || !upload ? "vault_runtime_required" : "owner_approval_receipt_required" });
+      const claimedReplay = claimPublicationKey(repository, {
+        tenantId, matterId, draft: current, actorId, idempotencyKey, fingerprint, now,
+      });
+      if (claimedReplay) return claimedReplay;
+      return blockedPublish({
+        repository, current, actorId, idempotencyKey, fingerprint, now,
+        reason: !template ? "approved_template_version_required" : !vaultLink || !upload ? "vault_runtime_required" : "owner_approval_receipt_required",
+      });
     }
     const canonical = canonicalizeAgreementInput({
       tenant_id: tenantId, matter_id: matterId, draft_id: draftId, title: current.title,
@@ -83,27 +118,19 @@ export function createDocumentPublicationService({ repository, dmsRuntime, readT
     validateBuilderApprovalReceipt(current.approval_receipt, expectedReceipt);
     validateBuilderApprovalReceipt(approval.approval_receipt, expectedReceipt);
     const rendered = await renderAgreementDocx({ ...canonical, template });
-    const identity = publicationIdentity({ tenantId, draft: current, rendered, actorId, idempotencyKey });
-    const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: idempotencyKey });
-    if (replay) {
-      if (replay.operation !== "matter_builder_docx_publish" || replay.request_fingerprint !== identity.fingerprint) throw idempotencyConflict("idempotency key cannot be reused for changed builder content");
-      return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
-    }
+    const identity = publicationIdentity({ tenantId, draft: current, rendered, idempotencyKey, fingerprint });
     const context = { tenantId, matterId, draft: current, template, rendered, identity, actorId, now, idempotencyKey };
-    const claimId = `builder_publish_claim_${hashValue({ tenantId, idempotencyKey }).slice(0, 32)}`;
-    repository.transaction((tx) => {
-      const claim = tx.get({ tenant_id: tenantId, model_type: "MatterBuilderPublishKeyClaim", resource_id: claimId });
-      if (claim && claim.request_fingerprint !== identity.fingerprint) throw idempotencyConflict("idempotency key cannot be reused for changed builder content");
-      if (!claim) tx.create({
-        model_type: "MatterBuilderPublishKeyClaim", resource_id: claimId, claim_id: claimId,
-        tenant_id: tenantId, matter_id: matterId, draft_id: draftId,
-        idempotency_key_hash: hashValue(idempotencyKey), request_fingerprint: identity.fingerprint,
-        created_at: now, raw_payload_included: false,
+    const preparedReplay = repository.transaction((tx) => {
+      const claimedReplay = claimPublicationKey(tx, {
+        tenantId, matterId, draft: current, actorId, idempotencyKey, fingerprint, now,
       });
+      if (claimedReplay) return claimedReplay;
       const attempt = tx.get({ tenant_id: tenantId, model_type: "MatterBuilderPublishAttempt", resource_id: identity.attempt_id });
       if (attempt && attempt.request_fingerprint !== identity.fingerprint) throw idempotencyConflict("idempotency key cannot be reused for changed builder content");
       ensurePublicationIntent(tx, context);
+      return null;
     });
+    if (preparedReplay) return preparedReplay;
     let uploaded;
     try {
       uploaded = await upload({
