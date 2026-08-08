@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import {
   chmodSync,
   existsSync,
@@ -91,7 +92,7 @@ test("DMS file authority rejects symlink roots, canonical cross-root nesting, an
   assert.equal(existsSync(join(external, `${TENANT}.bin`)), false);
 });
 
-test("DMS authority binding prevents shared-root rebinds and tolerates same-binding concurrent opens", () => {
+test("DMS authority binding prevents shared-root rebinds and tolerates same-binding concurrent opens", async () => {
   const root = mkdtempSync(join(tmpdir(), "dms-quarantine-authority-concurrency-"));
   try {
     const authorityRoot = join(root, "authority");
@@ -101,6 +102,16 @@ test("DMS authority binding prevents shared-root rebinds and tolerates same-bind
     assert.throws(() => createFileStorageAdapter({ adapter_id: "authority-concurrency", rootPath: peerRoot, quarantineRootPath: authorityRoot }), (error) => error?.code === "DMS_QUARANTINE_AUTHORITY_BINDING_MISMATCH");
     const opened = Array.from({ length: 8 }, () => createFileStorageAdapter({ adapter_id: "authority-concurrency", rootPath: objectRoot, quarantineRootPath: authorityRoot }));
     assert.equal(opened.length, 8);
+    const source = "import { createFileStorageAdapter } from './packages/dms/src/storage/file-storage-adapter.js'; createFileStorageAdapter({ adapter_id: 'authority-process-concurrency', rootPath: process.argv[1], quarantineRootPath: process.argv[2] });";
+    const children = Array.from({ length: 8 }, () => new Promise((resolve) => {
+      const child = spawn(process.execPath, ["--input-type=module", "-e", source, objectRoot, authorityRoot], { cwd: process.cwd(), stdio: ["ignore", "ignore", "pipe"] });
+      let stderr = "";
+      child.stderr.on("data", (chunk) => { stderr += chunk; });
+      child.on("close", (code) => resolve({ code, stderr }));
+    }));
+    const results = await Promise.all(children);
+    assert.deepEqual(results.filter(({ code }) => code === 0).length, 8);
+    assert.deepEqual(results.filter(({ code }) => code !== 0).map(({ stderr }) => stderr), []);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

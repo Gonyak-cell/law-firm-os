@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { fsyncDirectory } from "../../../persistence/src/durable-file.js";
+import { acquireExclusiveFileLock, fsyncDirectory, releaseExclusiveFileLock } from "../../../persistence/src/durable-file.js";
 import { sha256Hex } from "./storage-adapter.js";
 
 const BINDING_SCHEMA = "law-firm-os.dms-quarantine-authority-binding.v1";
@@ -81,13 +81,22 @@ export function createFileRootBinding({ resolvedRootPath, resolvedQuarantineRoot
   const expected = expectedBinding(objectRootRealpath, quarantineRootRealpath);
   const objectBindingPath = path.join(resolvedRootPath, OBJECT_BINDING_FILE);
   const authorityBindingPath = path.join(resolvedQuarantineRootPath, AUTHORITY_BINDING_FILE);
-  const objectBinding = readBinding(objectBindingPath, expected, "storage root binding", callbacks);
-  const authorityBinding = readBinding(authorityBindingPath, expected, "quarantine authority binding", callbacks);
-  if (objectBinding === null && authorityBinding === null) {
-    createBindingIfAbsent(objectBindingPath, expected, "storage root binding", callbacks);
-    createBindingIfAbsent(authorityBindingPath, expected, "quarantine authority binding", callbacks);
-  } else if (objectBinding === null || authorityBinding === null) {
-    throw codedError("storage root and quarantine authority binding are incomplete", "DMS_QUARANTINE_AUTHORITY_BINDING_MISMATCH");
+  const lock = acquireExclusiveFileLock({
+    resourcePath: objectBindingPath,
+    lockPath: `${objectBindingPath}.lock`,
+    waitTimeoutMs: 10_000,
+  });
+  try {
+    const objectBinding = readBinding(objectBindingPath, expected, "storage root binding", callbacks);
+    const authorityBinding = readBinding(authorityBindingPath, expected, "quarantine authority binding", callbacks);
+    if (objectBinding === null && authorityBinding === null) {
+      createBindingIfAbsent(objectBindingPath, expected, "storage root binding", callbacks);
+      createBindingIfAbsent(authorityBindingPath, expected, "quarantine authority binding", callbacks);
+    } else if (objectBinding === null || authorityBinding === null) {
+      throw codedError("storage root and quarantine authority binding are incomplete", "DMS_QUARANTINE_AUTHORITY_BINDING_MISMATCH");
+    }
+  } finally {
+    releaseExclusiveFileLock(lock);
   }
 
   function assertBound() {
