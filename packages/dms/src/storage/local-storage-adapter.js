@@ -4,6 +4,7 @@ import {
   createOpaqueStorageKey,
   createStagingReceipt,
   createStorageReceipt,
+  readStorageBodyBounded,
   sha256Hex,
 } from "./storage-adapter.js";
 
@@ -134,6 +135,21 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
         object_id: safeObjectId,
         bytes: Buffer.from(entry.buffer),
         sha256: entry.receipt.sha256,
+      });
+    },
+    async readObjectBounded({ tenant_id, object_id, max_bytes } = {}) {
+      const tenantId = assertTenantId(tenant_id);
+      const safeObjectId = required(object_id, "object_id");
+      const entry = objects.get(objectKey(tenantId, safeObjectId));
+      if (!entry) throw new Error(`object not found: ${safeObjectId}`);
+      const observed = await readStorageBodyBounded(entry.buffer, { max_bytes });
+      return Object.freeze({
+        adapter_id,
+        tenant_id: tenantId,
+        object_id: safeObjectId,
+        ...observed,
+        declared_sha256: entry.receipt.sha256,
+        mime_type: entry.receipt.mime_type,
       });
     },
     statObject({ tenant_id, object_id } = {}) {

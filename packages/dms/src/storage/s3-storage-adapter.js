@@ -15,7 +15,10 @@ import {
   createOpaqueStorageKey,
   createStagingPointerRef,
   createStoragePointerRef,
+  readStorageBodyBounded,
   sha256Hex,
+  storageObjectTooLargeError,
+  storageReadLimit,
 } from "./storage-adapter.js";
 
 const SECRET_FIELD = /(access.?key|authorization|client.?secret|credential(?!_ref)|password|secret.?key|session.?token)/iu;
@@ -68,6 +71,15 @@ async function bodyToBuffer(body) {
   const chunks = [];
   for await (const chunk of body) chunks.push(Buffer.from(chunk));
   return Buffer.concat(chunks);
+}
+
+function abortBody(body, controller) {
+  controller.abort();
+  try { body?.destroy?.(); } catch {}
+  try {
+    const cancellation = body?.cancel?.();
+    if (typeof cancellation?.catch === "function") void cancellation.catch(() => {});
+  } catch {}
 }
 
 export function createS3StorageAdapter(config = {}) {
@@ -179,6 +191,10 @@ export function createS3StorageAdapter(config = {}) {
     if (!Number.isSafeInteger(byteSize) || byteSize < 0 || Number(response.Metadata?.["lawos-byte-size"]) !== byteSize) {
       throw codedError("S3 object byte-size metadata is invalid", "DMS_S3_METADATA_INVALID");
     }
+    if (response.Metadata?.["lawos-tenant-ref"] !== sha256Hex(Buffer.from(tenantId))
+        || response.Metadata?.["lawos-object-ref"] !== sha256Hex(Buffer.from(objectId))) {
+      throw codedError("S3 object identity metadata is invalid", "DMS_S3_METADATA_INVALID");
+    }
     return Object.freeze({
       adapter_id,
       tenant_id: tenantId,
@@ -213,6 +229,56 @@ export function createS3StorageAdapter(config = {}) {
     const objectId = requireString(object_id, "object_id");
     const response = await head(keyFor({ tenant_id: tenantId, object_id: objectId }));
     return response ? receiptFromHead({ tenantId, objectId, response }) : null;
+  }
+
+  async function readObjectBounded({ tenant_id, object_id, max_bytes } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const objectId = requireString(object_id, "object_id");
+    const limit = storageReadLimit(max_bytes);
+    const key = keyFor({ tenant_id: tenantId, object_id: objectId });
+    const headResponse = await head(key);
+    if (!headResponse) throw codedError(`object not found: ${objectId}`, "DMS_COMMITTED_OBJECT_NOT_FOUND");
+    const declared = receiptFromHead({ tenantId, objectId, response: headResponse });
+    if (declared.byte_size > limit) throw storageObjectTooLargeError();
+    const abortController = new AbortController();
+    let response;
+    try {
+      response = await client.send(new GetObjectCommand({ ...common, Key: key, ChecksumMode: "ENABLED" }), {
+        abortSignal: abortController.signal,
+      });
+    } catch (error) {
+      if (isNotFound(error)) throw codedError(`object not found: ${objectId}`, "DMS_COMMITTED_OBJECT_NOT_FOUND");
+      throw error;
+    }
+    let responseReceipt;
+    try {
+      responseReceipt = receiptFromHead({ tenantId, objectId, response });
+    } catch (error) {
+      abortBody(response.Body, abortController);
+      throw error;
+    }
+    if (responseReceipt.byte_size > limit) {
+      abortBody(response.Body, abortController);
+      throw storageObjectTooLargeError();
+    }
+    const observed = await readStorageBodyBounded(response.Body ?? Buffer.alloc(0), {
+      max_bytes: limit,
+      onOverflow: () => abortBody(response.Body, abortController),
+    });
+    if (declared.byte_size !== responseReceipt.byte_size
+        || observed.byte_size !== declared.byte_size
+        || declared.sha256 !== responseReceipt.sha256
+        || observed.sha256 !== declared.sha256) {
+      throw codedError("S3 committed object metadata does not match observed bytes", "DMS_COMMITTED_DIGEST_MISMATCH");
+    }
+    return Object.freeze({
+      adapter_id,
+      tenant_id: tenantId,
+      object_id: objectId,
+      ...observed,
+      declared_sha256: declared.sha256,
+      mime_type: responseReceipt.mime_type,
+    });
   }
 
   async function stageObject({ tenant_id, session_id, object_id, bytes, content_type, expected_sha256 } = {}) {
@@ -471,6 +537,7 @@ export function createS3StorageAdapter(config = {}) {
         mime_type: object.response.ContentType ?? "application/octet-stream",
       });
     },
+    readObjectBounded,
     statObject,
     setObjectLegalHold,
     getObjectLegalHold,
@@ -504,6 +571,7 @@ export function createS3StorageAdapterPlaceholder(config = {}) {
     deleteCommittedObject: notConfigured,
     putObject: notConfigured,
     getObject: notConfigured,
+    readObjectBounded: notConfigured,
     statObject: notConfigured,
   });
 }

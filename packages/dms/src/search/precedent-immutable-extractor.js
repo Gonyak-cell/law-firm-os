@@ -1,4 +1,7 @@
-import { sha256Hex } from "../storage/storage-adapter.js";
+import {
+  DMS_STORAGE_OBJECT_TOO_LARGE,
+  assertBoundedStorageReader,
+} from "../storage/storage-adapter.js";
 import { normalizePrecedentText } from "../precedent-source.js";
 import { withPostgresTransaction } from "../../../persistence/src/postgres/transaction.js";
 import {
@@ -17,6 +20,10 @@ const NATIVE_TEXT_TYPES = new Set([
   "text/plain",
 ]);
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
+
+function sourceTooLarge() {
+  return codedError("immutable source exceeds extraction byte limit", "PRECEDENT_EXTRACTOR_SOURCE_TOO_LARGE", 413);
+}
 
 function nativeTextExtractor({ bytes, content_type } = {}) {
   const contentType = String(content_type ?? "").split(";", 1)[0].trim().toLowerCase();
@@ -56,16 +63,22 @@ async function descriptor(pool, tenantId, sourceId) {
   });
 }
 
-function assertImmutableBytes(row, object) {
-  const bytes = Buffer.isBuffer(object?.bytes) ? Buffer.from(object.bytes) : Buffer.from(object?.bytes ?? "");
-  if (bytes.byteLength > MAX_SOURCE_BYTES) {
-    throw codedError("immutable source exceeds extraction byte limit", "PRECEDENT_EXTRACTOR_SOURCE_TOO_LARGE", 413);
+function assertDescriptorSize(row) {
+  const size = Number(row.byte_size);
+  if (!Number.isSafeInteger(size) || size < 0) {
+    throw codedError("immutable object descriptor is invalid", "PRECEDENT_EXTRACTION_CONTENT_MISMATCH", 409);
   }
-  const observedSha = sha256Hex(bytes);
-  const observedSize = object?.byte_size == null ? bytes.byteLength : Number(object.byte_size);
-  if (object?.object_id !== row.object_id || observedSize !== bytes.byteLength
-      || bytes.byteLength !== Number(row.byte_size) || object?.sha256 !== row.content_sha256
-      || observedSha !== row.content_sha256 || row.file_status !== "committed") {
+  if (size > MAX_SOURCE_BYTES) throw sourceTooLarge();
+  return size;
+}
+
+function assertImmutableBytes(row, object, descriptorSize) {
+  const bytes = object?.bytes;
+  if (!Buffer.isBuffer(bytes)
+      || object?.adapter_id !== row.adapter_id || object?.tenant_id !== row.tenant_id
+      || object?.object_id !== row.object_id || Number(object?.byte_size) !== bytes.byteLength
+      || bytes.byteLength !== descriptorSize || object?.sha256 !== row.content_sha256
+      || object?.declared_sha256 !== row.content_sha256 || row.file_status !== "committed") {
     throw codedError("immutable object bytes do not match DMS version metadata", "PRECEDENT_EXTRACTION_CONTENT_MISMATCH", 409);
   }
   return bytes;
@@ -78,7 +91,7 @@ export function createImmutablePrecedentExtractionAuthority({
   textExtractor = nativeTextExtractor,
 } = {}) {
   if (!pool?.connect) throw new TypeError("PostgreSQL pool is required");
-  if (typeof storage?.getObject !== "function") throw new TypeError("committed DMS object reader is required");
+  const committedStorage = assertBoundedStorageReader(storage);
   if (typeof textExtractor !== "function") throw new TypeError("trusted text extractor is required");
   const receiptAuthority = createPrecedentExtractionReceiptAuthority({ secret: receiptSecret });
 
@@ -87,18 +100,22 @@ export function createImmutablePrecedentExtractionAuthority({
     const sourceId = requiredId(source_id, "source_id");
     const actorId = requiredId(actor_id, "actor_id");
     const row = await descriptor(pool, tenantId, sourceId);
-    if (storage.adapter_id && storage.adapter_id !== row.adapter_id) {
+    const descriptorSize = assertDescriptorSize(row);
+    if (committedStorage.adapter_id && committedStorage.adapter_id !== row.adapter_id) {
       throw codedError("DMS object adapter does not match extraction authority", "PRECEDENT_EXTRACTOR_ADAPTER_MISMATCH", 409);
     }
-    const object = await storage.getObject({ tenant_id: tenantId, object_id: row.object_id });
-    const bytes = assertImmutableBytes(row, object);
-    if (typeof storage.digestObject === "function") {
-      const independent = await storage.digestObject({ tenant_id: tenantId, object_id: row.object_id });
-      if (independent?.sha256 !== row.content_sha256
-          || Number(independent?.byte_size) !== bytes.byteLength) {
-        throw codedError("independent DMS digest does not match immutable version", "PRECEDENT_EXTRACTION_CONTENT_MISMATCH", 409);
-      }
+    let object;
+    try {
+      object = await committedStorage.readObjectBounded({
+        tenant_id: tenantId,
+        object_id: row.object_id,
+        max_bytes: MAX_SOURCE_BYTES,
+      });
+    } catch (error) {
+      if (error?.code === DMS_STORAGE_OBJECT_TOO_LARGE) throw sourceTooLarge();
+      throw error;
     }
+    const bytes = assertImmutableBytes(row, object, descriptorSize);
     const metadata = metadataText(row);
     const body = normalizePrecedentText(await textExtractor({ bytes,
       content_type: row.content_type, document_id: row.document_id,

@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, readFileSync, unlinkSync } from "node:fs";
+import { createReadStream, existsSync, lstatSync, readFileSync, statSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { fsyncDirectory, writeBinaryFileDurably } from "../../../persistence/src/durable-file.js";
 import {
@@ -7,7 +7,10 @@ import {
   createOpaqueStorageKey,
   createStagingReceipt,
   createStorageReceipt,
+  readStorageBodyBounded,
   sha256Hex,
+  storageObjectTooLargeError,
+  storageReadLimit,
 } from "./storage-adapter.js";
 
 function requireString(value, field) {
@@ -204,6 +207,32 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       sha256: object.sha256,
     });
   }
+  async function readObjectBounded({ tenant_id, object_id, max_bytes } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = requireString(object_id, "object_id");
+    const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
+    assertSafePaths(paths);
+    if (!existsSync(paths.bytesPath)) throw new Error(`object not found: ${safeObjectId}`);
+    const limit = storageReadLimit(max_bytes);
+    const declaredSize = statSync(paths.bytesPath).size;
+    if (declaredSize > limit) throw storageObjectTooLargeError();
+    const observed = await readStorageBodyBounded(createReadStream(paths.bytesPath), { max_bytes: limit });
+    const metadata = existsSync(paths.metadataPath)
+      ? JSON.parse(readFileSync(paths.metadataPath, "utf8"))
+      : {};
+    const declaredSha = metadata.receipt?.sha256 ?? observed.sha256;
+    if (observed.byte_size !== declaredSize || observed.sha256 !== declaredSha) {
+      throw codedError(`object hash mismatch: ${safeObjectId}`, "DMS_COMMITTED_DIGEST_MISMATCH");
+    }
+    return Object.freeze({
+      adapter_id,
+      tenant_id: tenantId,
+      object_id: safeObjectId,
+      ...observed,
+      declared_sha256: declaredSha,
+      mime_type: metadata.receipt?.mime_type ?? "application/octet-stream",
+    });
+  }
   return Object.freeze({
     adapter_id,
     contract_version: DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
@@ -248,6 +277,7 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       const safeObjectId = requireString(object_id, "object_id");
       return readObject(tenantId, safeObjectId);
     },
+    readObjectBounded,
     statObject,
   });
 }

@@ -66,7 +66,6 @@ export function normalizeAllowedDocumentIds(values) {
 export function normalizeQuery(value) {
   const query = normalizePrecedentText(value, { maxLength: 200, lowercase: true });
   if (query.length < 2) throw new TypeError("precedent query must contain between 2 and 200 characters");
-  if (/;|--|\/\*|\*\//u.test(query)) throw new TypeError("precedent query contains unsupported SQL control text");
   return query;
 }
 
