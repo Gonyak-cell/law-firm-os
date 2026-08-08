@@ -31,11 +31,35 @@ const UPLOAD_INTENT_CANONICAL_ENVELOPE_FIELDS = Object.freeze([
   "permission_envelope_id",
   "audit_trace_id",
   "actor_id",
+  "source_email_thread_id",
+  "source_attachment_id",
 ]);
 
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
   return value.trim();
+}
+
+function exactDmsSourceIdentity(input = {}) {
+  const exactOptional = (value, field) => {
+    if (value == null) return null;
+    if (typeof value !== "string"
+      || value.length < 1
+      || value.length > 512
+      || value !== value.trim()
+      || /[\u0000-\u001f\u007f]/u.test(value)) {
+      throw new TypeError(`${field} must be an exact canonical source identifier`);
+    }
+    return value;
+  };
+  const source = Object.freeze({
+    source_email_thread_id: exactOptional(input.source_email_thread_id, "source_email_thread_id"),
+    source_attachment_id: exactOptional(input.source_attachment_id, "source_attachment_id"),
+  });
+  if (source.source_attachment_id !== null && source.source_email_thread_id === null) {
+    throw new TypeError("source_email_thread_id is required with source_attachment_id");
+  }
+  return source;
 }
 
 function requiredSha256(value, field) {
@@ -101,6 +125,7 @@ function uploadIntentRetirementEventId(familyId, generation) {
 }
 
 function unsignedUploadIntentRetirementPayload(payload = {}) {
+  const sourceIdentity = exactDmsSourceIdentity(payload);
   return Object.freeze({
     schema_version: payload.schema_version,
     family_id: payload.family_id,
@@ -113,6 +138,7 @@ function unsignedUploadIntentRetirementPayload(payload = {}) {
     permission_envelope_id: payload.permission_envelope_id,
     audit_trace_id: payload.audit_trace_id,
     actor_id: payload.actor_id,
+    ...(sourceIdentity.source_email_thread_id === null ? {} : sourceIdentity),
     generation: Number(payload.generation),
     next_generation: Number(payload.next_generation),
     prior_session_id: payload.prior_session_id,
@@ -339,7 +365,9 @@ export function createPostgresDmsUploadRuntime({
       || Number(receipt.expected_byte_size) !== session.expected_byte_size
       || receipt.permission_envelope_id !== session.permission_envelope_id
       || receipt.audit_trace_id !== session.audit_trace_id
-      || receipt.actor_id !== session.actor_id) {
+      || receipt.actor_id !== session.actor_id
+      || (receipt.source_email_thread_id ?? null) !== session.source_email_thread_id
+      || (receipt.source_attachment_id ?? null) !== session.source_attachment_id) {
       throw codedError(
         "DMS upload intent retirement receipt does not match its retained expired session",
         "DMS_UPLOAD_INTENT_RETIREMENT_CONFLICT",
@@ -404,7 +432,16 @@ export function createPostgresDmsUploadRuntime({
     ].every((value) => typeof value === "string" && value.trim() !== "")
       && /^[a-f0-9]{64}$/u.test(receipt.expected_sha256 ?? "")
       && Number.isSafeInteger(Number(receipt.expected_byte_size))
-      && Number(receipt.expected_byte_size) >= 0;
+      && Number(receipt.expected_byte_size) >= 0
+      && (() => {
+        try {
+          const source = exactDmsSourceIdentity(receipt);
+          return source.source_email_thread_id === (receipt.source_email_thread_id ?? null)
+            && source.source_attachment_id === (receipt.source_attachment_id ?? null);
+        } catch {
+          return false;
+        }
+      })();
     if (
       receipt.schema_version !== UPLOAD_INTENT_RETIREMENT_SCHEMA
       || receipt.family_id !== familyId
@@ -513,6 +550,13 @@ export function createPostgresDmsUploadRuntime({
     if (adapterId !== storage.adapter_id) {
       throw codedError("upload session adapter does not match runtime adapter", "DMS_STORAGE_ADAPTER_MISMATCH", 400);
     }
+    const sourceIdentity = exactDmsSourceIdentity(input);
+    const contentType = requiredText(input.content_type, "content_type");
+    if (sourceIdentity.source_email_thread_id !== null
+      && sourceIdentity.source_attachment_id === null
+      && contentType !== "message/rfc822") {
+      throw new TypeError("source_attachment_id is required for non-MIME Outlook documents");
+    }
     return Object.freeze({
       tenant_id: requiredText(input.tenant_id, "tenant_id"),
       idempotency_key: requiredText(input.idempotency_key, "idempotency_key"),
@@ -524,13 +568,14 @@ export function createPostgresDmsUploadRuntime({
       object_id: requiredText(input.object_id, "object_id"),
       adapter_id: adapterId,
       title: requiredText(input.title, "title"),
-      content_type: requiredText(input.content_type, "content_type"),
+      content_type: contentType,
       expected_sha256: requiredSha256(input.expected_sha256, "expected_sha256"),
       expected_byte_size: requiredByteSize(input.expected_byte_size),
       permission_envelope_id: requiredText(input.permission_envelope_id, "permission_envelope_id"),
       audit_trace_id: requiredText(input.audit_trace_id, "audit_trace_id"),
       actor_id: requiredText(input.actor_id, "actor_id"),
       expires_at: requiredTimestamp(input.expires_at, "expires_at"),
+      ...(sourceIdentity.source_email_thread_id === null ? {} : sourceIdentity),
     });
   }
 
@@ -553,9 +598,11 @@ export function createPostgresDmsUploadRuntime({
            (tenant_id, session_id, idempotency_key, request_hash, matter_id, workspace_id,
             document_id, version_id, version_number, object_id, adapter_id, title, content_type,
             expected_sha256, expected_byte_size, permission_envelope_id, audit_trace_id, actor_id,
-            state, expires_at, next_attempt_at, created_at, updated_at)
+            source_email_thread_id, source_attachment_id, state, expires_at, next_attempt_at,
+            created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-                 $16, $17, $18, 'pending', $19::timestamptz, $20::timestamptz, $21::timestamptz, $21::timestamptz)
+                 $16, $17, $18, $19, $20, 'pending', $21::timestamptz, $22::timestamptz,
+                 $23::timestamptz, $23::timestamptz)
          ON CONFLICT DO NOTHING
          RETURNING *`,
         [
@@ -577,6 +624,8 @@ export function createPostgresDmsUploadRuntime({
           normalized.permission_envelope_id,
           normalized.audit_trace_id,
           normalized.actor_id,
+          normalized.source_email_thread_id ?? null,
+          normalized.source_attachment_id ?? null,
           normalized.expires_at,
           initialNextAttemptAt,
           createdAt,
@@ -615,6 +664,7 @@ export function createPostgresDmsUploadRuntime({
   }
 
   function assertUploadIntentRolloverIdentity(session, expected) {
+    const sourceIdentity = exactDmsSourceIdentity(expected);
     if (
       session.matter_id !== requiredText(expected.matter_id, "matter_id")
       || session.workspace_id !== requiredText(expected.workspace_id, "workspace_id")
@@ -626,6 +676,8 @@ export function createPostgresDmsUploadRuntime({
       || session.permission_envelope_id !== requiredText(expected.permission_envelope_id, "permission_envelope_id")
       || session.audit_trace_id !== requiredText(expected.audit_trace_id, "audit_trace_id")
       || session.actor_id !== requiredText(expected.actor_id, "actor_id")
+      || session.source_email_thread_id !== sourceIdentity.source_email_thread_id
+      || session.source_attachment_id !== sourceIdentity.source_attachment_id
     ) {
       throw codedError(
         "DMS upload intent rollover identity conflicts with the prior generation",
@@ -756,6 +808,8 @@ export function createPostgresDmsUploadRuntime({
         permission_envelope_id: locked.permission_envelope_id,
         audit_trace_id: locked.audit_trace_id,
         actor_id: locked.actor_id,
+        source_email_thread_id: locked.source_email_thread_id,
+        source_attachment_id: locked.source_attachment_id,
         generation,
         next_generation: nextGeneration,
         prior_session_id: locked.session_id,
@@ -963,8 +1017,10 @@ export function createPostgresDmsUploadRuntime({
       await client.query(
         `INSERT INTO lawos_dms.documents
            (tenant_id, document_id, matter_id, workspace_id, title, status,
-            permission_envelope_id, audit_trace_id, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, 'active', $6, $7, $8::timestamptz, $8::timestamptz)
+            permission_envelope_id, audit_trace_id, source_email_thread_id,
+            source_attachment_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, 'active', $6, $7, $8, $9,
+                 $10::timestamptz, $10::timestamptz)
          ON CONFLICT (tenant_id, document_id) DO NOTHING`,
         [
           locked.tenant_id,
@@ -974,12 +1030,15 @@ export function createPostgresDmsUploadRuntime({
           locked.title,
           locked.permission_envelope_id,
           locked.audit_trace_id,
+          locked.source_email_thread_id,
+          locked.source_attachment_id,
           committedAt,
         ],
       );
       stage = "DOCUMENT_READ";
       const document = await client.query(
         `SELECT d.matter_id, d.workspace_id, d.permission_envelope_id,
+                d.source_email_thread_id, d.source_attachment_id,
                 current_version.version_number AS current_version_number
            FROM lawos_dms.documents d
            LEFT JOIN lawos_dms.document_versions current_version
@@ -1001,6 +1060,8 @@ export function createPostgresDmsUploadRuntime({
         existingDocument.matter_id !== locked.matter_id
         || existingDocument.workspace_id !== locked.workspace_id
         || existingDocument.permission_envelope_id !== locked.permission_envelope_id
+        || existingDocument.source_email_thread_id !== locked.source_email_thread_id
+        || existingDocument.source_attachment_id !== locked.source_attachment_id
       ) {
         throw codedError("DMS document authority envelope does not match existing document", "DMS_DOCUMENT_AUTHORITY_CONFLICT");
       }
@@ -1194,7 +1255,13 @@ export function createPostgresDmsUploadRuntime({
 
   async function finalizeUpload({ tenant_id, session_id } = {}) {
     let session = await getUploadSession({ tenant_id, session_id });
-    if (session.state === "finalized") return Object.freeze({ session, replayed: true });
+    if (session.state === "finalized") {
+      return Object.freeze({
+        session,
+        receipt: safeProviderReceipt(session.provider_receipt, session),
+        replayed: true,
+      });
+    }
     if (["expired", "failed_terminal"].includes(session.state)) throw codedError("DMS upload session is expired", "DMS_UPLOAD_SESSION_EXPIRED");
     session = await ensureBytesStored(session);
     let receipt;
@@ -1261,6 +1328,8 @@ export function createPostgresDmsUploadRuntime({
       expected_byte_size: buffer.byteLength,
       permission_envelope_id: requiredText(document.permission_envelope_id, "document.permission_envelope_id"),
       audit_trace_id: requiredText(document.audit_trace_id, "document.audit_trace_id"),
+      source_email_thread_id: document.source_email_thread_id ?? null,
+      source_attachment_id: document.source_attachment_id ?? null,
       actor_id: actorId,
       expires_at: expires_at ?? nextUploadExpiry(),
     });
@@ -2151,9 +2220,19 @@ export function createPostgresDmsUploadRuntime({
         `SELECT * FROM lawos_dms.outbox_events WHERE tenant_id = $1 AND aggregate_id = $2 ORDER BY created_at, event_id`,
         [tenantId, documentId],
       );
+      const currentVersion = versions.rows.find(
+        (row) => row.version_id === document.rows[0].current_version_id,
+      );
       return Object.freeze({
-        document: Object.freeze({ ...document.rows[0] }),
-        versions: Object.freeze(versions.rows.map((row) => Object.freeze({ ...row, version_number: Number(row.version_number) }))),
+        document: Object.freeze({
+          ...document.rows[0],
+          latest_sha256: currentVersion?.sha256 ?? null,
+        }),
+        versions: Object.freeze(versions.rows.map((row) => Object.freeze({
+          ...row,
+          matter_id: document.rows[0].matter_id,
+          version_number: Number(row.version_number),
+        }))),
         file_objects: Object.freeze(objects.rows.map((row) => Object.freeze({ ...row, byte_size: Number(row.byte_size) }))),
         audit_events: Object.freeze(audit.rows.map((row) => Object.freeze({ ...row }))),
         outbox_events: Object.freeze(outbox.rows.map((row) => Object.freeze({ ...row }))),
@@ -2169,6 +2248,7 @@ export function createPostgresDmsUploadRuntime({
       const result = await client.query(
         `SELECT d.tenant_id, d.document_id, d.matter_id, d.workspace_id, d.title, d.status,
                 d.current_version_id, d.permission_envelope_id, d.audit_trace_id,
+                d.source_email_thread_id, d.source_attachment_id,
                 d.legal_hold_status, d.created_at, d.updated_at,
                 v.version_number, v.file_object_id, v.sha256 AS version_sha256,
                 v.created_by, v.created_at AS version_created_at,
@@ -2194,6 +2274,8 @@ export function createPostgresDmsUploadRuntime({
           current_version_id: row.current_version_id,
           permission_envelope_id: row.permission_envelope_id,
           audit_trace_id: row.audit_trace_id,
+          source_email_thread_id: row.source_email_thread_id,
+          source_attachment_id: row.source_attachment_id,
           legal_hold_status: row.legal_hold_status,
           created_at: new Date(row.created_at).toISOString(),
           updated_at: new Date(row.updated_at).toISOString(),

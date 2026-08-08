@@ -173,22 +173,29 @@ test("classic Outlook runtime URLs are explicitly allowed at each host root", as
   });
 });
 
-test("task pane delegates OAuth, attachment, and send-event orchestration to the tested runtime helpers", async () => {
+test("task pane delegates OAuth, filing, activity, and send-event orchestration to the tested runtime helpers", async () => {
   const mainSource = await read("apps/addin/src/main.jsx");
 
   assert.match(mainSource, /import\s*\{[\s\S]*?openOfficeOAuthDialog[\s\S]*?\}\s*from\s*"\.\/addin-auth\.js"/u);
   assert.match(mainSource, /await\s+openOfficeOAuthDialog\(\{[\s\S]*?onComplete:/u);
   assert.match(mainSource, /buildInquiryRegistrationRequest\(\{\s*action,\s*rest_message_id:/u);
-  assert.match(mainSource, /import\s*\{\s*saveOutlookAttachments\s*\}\s*from\s*"\.\/outlook-attachment-actions\.js"/u);
-  assert.match(mainSource, /await\s+saveOutlookAttachments\(\{[\s\S]*?currentItem,[\s\S]*?matterId,/u);
+  assert.match(mainSource, /import\s*\{[\s\S]*?fileOutlookEmailWithAttachments[\s\S]*?\}\s*from\s*"\.\/outlook-filing-orchestration\.js"/u);
+  assert.match(mainSource, /import\s*\{[\s\S]*?fileOutlookEmail[\s\S]*?\}\s*from\s*"\.\/outlook-filing\.js"/u);
+  assert.match(mainSource, /import\s*\{[\s\S]*?loadOutlookMatterActivity[\s\S]*?\}\s*from\s*"\.\/outlook-matter-activity\.js"/u);
+  assert.match(mainSource, /await\s+fileOutlookEmailWithAttachments\(\{[\s\S]*?previousReceipt:[\s\S]*?readAttachments:/u);
+  assert.match(mainSource, /readAttachments:\s*async[\s\S]*?isOutlookActionContextCurrent\(\{[\s\S]*?sourceItem:\s*currentItem[\s\S]*?readOutlookAttachments\(\{\s*item:\s*sourceOfficeItem/u);
+  assert.match(mainSource, /await\s+fileOutlookEmail\(\{[\s\S]*?mode:\s*"sent"/u);
+  assert.match(mainSource, /loadOutlookMatterActivity\(\{\s*matterId,\s*requestJson\s*\}\)/u);
+  assert.doesNotMatch(mainSource, /await\s+refreshMatter\(nextMatterId\)/u);
   assert.match(mainSource, /handleOutlookMessageSend\(\{[\s\S]*?readMessage:\s*\(options\)\s*=>\s*readOutlookComposeMessage\(\{/u);
   assert.match(mainSource, /registerOutlookSendHandler\(\{\s*Office:\s*window\.Office,\s*handler:\s*onMessageSendHandler,?\s*\}\)/u);
   assert.match(mainSource, /subscribeToOutlookItemChanges\(\{[\s\S]*?setItem\(officeItemSnapshot\(\)\)[\s\S]*?resetItemActionResults\(\)/u);
+  assert.match(mainSource, /resetItemActionResults\(\)[\s\S]*?setAttachmentResult\(null\)/u);
   assert.match(mainSource, /readCurrentOutlookItem\(\{\s*includeTimestamps:\s*true,\s*requireStableIdentity:\s*true\s*\}\)/u);
   assert.equal(mainSource.includes("dateTimeModified"), false);
   assert.equal(mainSource.includes("currentItem ?? item"), false);
   assert.match(mainSource, /isOutlookActionContextCurrent\(\{[\s\S]*?sourceMatterId:\s*matterId,[\s\S]*?currentMatterId:\s*selectedMatterIdRef\.current/u);
-  assert.match(mainSource, /isFiledEmailContextCurrent\(\{\s*emailResult,\s*currentItem,\s*matterId\s*\}\)/u);
+  assert.doesNotMatch(mainSource, /saveOutlookAttachments\(/u);
   assert.match(mainSource, /fetchAddinApi\(\{[\s\S]*?timeoutMs,[\s\S]*?fetchImpl:\s*window\.fetch\.bind\(window\)/u);
   assert.match(mainSource, /icon:\s*"Icon\.16x16"/u);
   assert.match(mainSource, /startOfficeTaskPane\(\{/u);

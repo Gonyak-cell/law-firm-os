@@ -113,6 +113,42 @@ test("DMS-04 repository projects known record schemas instead of preserving arbi
   repository.close();
 });
 
+test("DMS-04 permits only the three-part exact Outlook item_key control separator", () => {
+  const repository = createDmsRepository();
+  const thread = {
+    model_type: "DmsEmailThread",
+    tenant_id: TENANT_A,
+    matter_id: "matter-security",
+    email_thread_id: "thread-security-item-key",
+    subject: "Exact Outlook identity",
+    status: "active",
+    permission_envelope_id: "permission-security",
+    audit_trace_id: "trace-security",
+  };
+  const stored = repository.create({
+    ...thread,
+    item_key: ["rest-id", "<message@amic.law>", "conversation-id"].join("\u001f"),
+  });
+  assert.equal(stored.item_key, "rest-id\u001f<message@amic.law>\u001fconversation-id");
+  assert.throws(
+    () => repository.create({
+      ...thread,
+      email_thread_id: "thread-security-invalid-item-key",
+      item_key: "rest-id\u001fconversation-id",
+    }),
+    (error) => error?.safe_error_code === "DMS_PERSISTED_SECRET_REJECTED",
+  );
+  assert.throws(
+    () => repository.create({
+      ...thread,
+      email_thread_id: "thread-security-invalid-subject",
+      subject: "unsafe\u001fsubject\u001fvalue",
+    }),
+    (error) => error?.safe_error_code === "DMS_PERSISTED_SECRET_REJECTED",
+  );
+  repository.close();
+});
+
 test("DMS-04 repository rejects unknown record types instead of bypassing the model allowlist", () => {
   const repository = createDmsRepository();
   assert.throws(

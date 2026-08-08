@@ -1,4 +1,5 @@
 import { createEmailThread } from "./email-model.js";
+import { parseExactDmsDocumentIdSingleton } from "./exact-document-id.js";
 
 export function fileEmailThreadToMatter({
   repository,
@@ -30,6 +31,7 @@ export function fileEmailThreadToMatter({
     });
     return Object.freeze({ outcome: "created", thread: persisted });
   }
+  parseExactDmsDocumentIdSingleton(thread?.filed_document_ids);
   if (typeof idempotency_key !== "string" || idempotency_key.trim() === "") {
     throw new TypeError("original MIME email filing requires idempotency_key");
   }
@@ -52,9 +54,7 @@ export function fileEmailThreadToMatter({
     ...createEmailThread({ ...thread, status: "draft" }),
     model_type: "DmsEmailThread",
   });
-  if (!Array.isArray(pending.filed_document_ids) || pending.filed_document_ids.length === 0) {
-    throw new Error("pending email thread requires an original MIME document link");
-  }
+  parseExactDmsDocumentIdSingleton(pending.filed_document_ids);
   const appendAudit = (writer) => {
     if (typeof audit?.append !== "function") {
       throw new Error("original MIME email filing requires an audit writer");

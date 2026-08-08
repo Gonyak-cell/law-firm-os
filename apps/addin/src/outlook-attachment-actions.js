@@ -40,6 +40,64 @@ function saveFailedError({ skipped, failed } = {}) {
   });
 }
 
+function boundaryError(code, message, attachment = {}) {
+  return Object.assign(new Error(message), {
+    safe_error_code: code,
+    user_message: message,
+    attachment_id: attachment.attachment_id ?? null,
+  });
+}
+
+function payloadByteLength(attachment = {}) {
+  if (typeof attachment.content_base64 === "string") {
+    const encoded = attachment.content_base64.replace(/\s+/gu, "");
+    if (!encoded || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/u.test(encoded)) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_invalid_base64,
+        "첨부 데이터 형식이 올바르지 않아 저장하지 않았습니다.",
+        attachment,
+      );
+    }
+    const padding = encoded.endsWith("==") ? 2 : encoded.endsWith("=") ? 1 : 0;
+    return Math.floor((encoded.length * 3) / 4) - padding;
+  }
+  if (typeof attachment.content_text === "string") {
+    return new TextEncoder().encode(attachment.content_text).byteLength;
+  }
+  return 0;
+}
+
+function assertAttachmentBoundary(attachments, maxAttachmentBytes) {
+  const ids = new Set();
+  for (const attachment of attachments) {
+    const id = typeof attachment?.attachment_id === "string"
+      ? attachment.attachment_id.trim()
+      : "";
+    if (!id) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_missing_id,
+        "첨부 식별자가 없어 저장하지 않았습니다.",
+        attachment,
+      );
+    }
+    if (ids.has(id)) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_duplicate_id,
+        "중복된 첨부 식별자가 있어 저장하지 않았습니다.",
+        attachment,
+      );
+    }
+    ids.add(id);
+    if (payloadByteLength(attachment) > maxAttachmentBytes) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_too_large,
+        "첨부 파일이 2MiB를 초과해 저장할 수 없습니다.",
+        attachment,
+      );
+    }
+  }
+}
+
 /**
  * Save the bounded attachment payloads read from an Outlook item.
  *
@@ -56,12 +114,16 @@ export async function saveOutlookAttachments({
   requestJson,
   errorMessage = outlookActionErrorMessage,
   maxAttachmentBytes = MAX_OUTLOOK_ATTACHMENT_BYTES,
+  allowAllFailedResult = false,
 } = {}) {
   if (typeof requestJson !== "function") {
     throw new TypeError("requestJson is required");
   }
 
   const item = currentItem && typeof currentItem === "object" ? currentItem : {};
+  const attachmentLimit = Number.isSafeInteger(maxAttachmentBytes) && maxAttachmentBytes > 0
+    ? Math.min(maxAttachmentBytes, MAX_OUTLOOK_ATTACHMENT_BYTES)
+    : MAX_OUTLOOK_ATTACHMENT_BYTES;
   const attachments = asArray(item.attachments);
   const unsupported = asArray(item.unsupported);
   const threadId = emailThreadId
@@ -74,6 +136,7 @@ export async function saveOutlookAttachments({
   if (attachments.length === 0) {
     throw missingAttachmentError();
   }
+  assertAttachmentBoundary(attachments, attachmentLimit);
 
   const saved = [];
   const failed = [];
@@ -106,7 +169,7 @@ export async function saveOutlookAttachments({
     }
   }
 
-  if (saved.length === 0 && failed.length > 0) {
+  if (!allowAllFailedResult && saved.length === 0 && failed.length > 0) {
     throw saveFailedError({ skipped: unsupported, failed });
   }
 
@@ -117,7 +180,7 @@ export async function saveOutlookAttachments({
     failed_attachments: failed,
     skipped_attachments: unsupported,
     request_count: saved.length + failed.length,
-    max_attachment_bytes: maxAttachmentBytes,
+    max_attachment_bytes: attachmentLimit,
   };
   const notices = [
     ...unsupported.map((entry) => messageText(entry?.message)),

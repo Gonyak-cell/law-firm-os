@@ -14,4 +14,5 @@ export * from "./email-filing-correction-postgres-repository.js";
 export * from "./email-filing-correction-service.js";
 export * from "./repository.js";
 export * from "./central-ledger.js";
+export * from "./exact-document-id.js";
 export * from "./migrations/index.js";
