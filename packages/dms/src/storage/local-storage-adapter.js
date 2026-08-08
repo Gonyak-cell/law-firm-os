@@ -90,6 +90,18 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
     const key = stagedKey(assertTenantId(tenant_id), session_id, object_id);
     return Object.freeze({ deleted: stagedObjects.delete(key), committed_object_deleted: false });
   }
+  function quarantineCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = required(object_id, "object_id");
+    const key = objectKey(tenantId, safeObjectId);
+    const current = objects.get(key);
+    if (!current) return Object.freeze({ quarantined: false, already_absent: true, provider_delete_replayed: true });
+    if (required(expected_sha256, "expected_sha256") !== current.receipt.sha256) {
+      throw hashMismatch("committed object digest changed before quarantine", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+    }
+    objects.delete(key);
+    return Object.freeze({ quarantined: true, already_absent: false, provider_delete_replayed: false, sha256: current.receipt.sha256 });
+  }
   function deleteCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
     const tenantId = assertTenantId(tenant_id);
     const safeObjectId = required(object_id, "object_id");
@@ -110,6 +122,7 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
     statStagedObject,
     finalizeObject,
     deleteOrphan,
+    quarantineCommittedObject,
     deleteCommittedObject,
     digestObject({ tenant_id, session_id, object_id } = {}) {
       const tenantId = assertTenantId(tenant_id);

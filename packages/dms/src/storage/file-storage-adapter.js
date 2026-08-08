@@ -216,6 +216,19 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       assertSafePaths(paths);
       return Object.freeze({ deleted: removeFiles(paths), committed_object_deleted: false });
     },
+    quarantineCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
+      const tenantId = assertTenantId(tenant_id);
+      const safeObjectId = requireString(object_id, "object_id");
+      const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
+      assertSafePaths(paths);
+      if (!existsSync(paths.bytesPath)) return Object.freeze({ quarantined: false, already_absent: true, provider_delete_replayed: true });
+      const current = statObject({ tenant_id: tenantId, object_id: safeObjectId });
+      if (requireString(expected_sha256, "expected_sha256") !== current.sha256) {
+        throw codedError("committed object digest changed before quarantine", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+      }
+      removeFiles(paths);
+      return Object.freeze({ quarantined: true, already_absent: false, provider_delete_replayed: false, sha256: current.sha256 });
+    },
     deleteCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
       const tenantId = assertTenantId(tenant_id);
       const safeObjectId = requireString(object_id, "object_id");

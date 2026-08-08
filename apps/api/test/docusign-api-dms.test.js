@@ -160,3 +160,44 @@ test("OUTM-34 shared file barrier inside storage.putObject fails closed with zer
   const drifted = authority.authorityRepository.loadState().requests[0];
   assert.deepEqual([drifted.document.permission_envelope_id, drifted.document.audit_trace_id, drifted.completion_operation?.fencing_generation], ["permission-storage-drift", "audit-storage-drift", 2]);
 });
+
+test("OUTM-34 local authority rejection quarantines a committed object when delete fails", async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "outm34-local-quarantine-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const authorityPath = join(dir, "docusign-outbox.json");
+  const authorityAlias = join(dir, "docusign-outbox-alias.json");
+  const bytes = Buffer.from("local-quarantine-completion-pdf");
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  const authority = await authorityFixture("request-local-quarantine", "signed_pdf", digest, {}, authorityPath);
+  symlinkSync(authorityPath, authorityAlias);
+  const peer = createDocusignEnvelopeRepository({ filePath: authorityAlias });
+  const dmsRepository = createDmsRepository();
+  const baseStorage = createFileStorageAdapter({ rootPath: join(dir, "objects") });
+  const childRepositoryModule = fileURLToPath(new URL("../../../packages/integrations-core/src/docusign-envelope-repository.js", import.meta.url));
+  const childMutation = `import { createDocusignEnvelopeRepository } from ${JSON.stringify(childRepositoryModule)}; const repository = createDocusignEnvelopeRepository({ filePath: process.argv[1] }); const state = repository.loadState(); const current = state.requests[0]; await repository.replaceState({ requests: [{ ...current, document: { ...current.document, permission_envelope_id: "permission-local-quarantine-drift", audit_trace_id: "audit-local-quarantine-drift" }, completion_operation: { ...current.completion_operation, fencing_generation: 2 } }], webhook_receipts: [] });`;
+  const storage = Object.freeze({
+    ...baseStorage,
+    putObject(input) {
+      const receipt = baseStorage.putObject(input);
+      const child = spawnSync(process.execPath, ["--input-type=module", "-e", childMutation, authorityAlias], { encoding: "utf8" });
+      assert.equal(child.status, 0, child.stderr);
+      assert.equal(peer.loadState().requests[0].document.permission_envelope_id, "permission-local-quarantine-drift");
+      return receipt;
+    },
+    deleteCommittedObject() {
+      throw Object.assign(new Error("committed delete unavailable"), { safe_error_code: "DMS_TEST_COMMITTED_DELETE_UNAVAILABLE" });
+    },
+  });
+  const artifactStore = createDocusignCompletionArtifactStore({ dmsRuntime: { repository: dmsRepository, storage }, authorityRepository: authority.authorityRepository, approvedDocumentResolver: async () => authority.source });
+  const input = completionInput("request-local-quarantine", digest, bytes);
+  await assert.rejects(artifactStore.ingest(input, { expected_authority: authority.expected }), (error) => error?.safe_error_code === "DOCUSIGN_PERMISSION_AUTHORITY_CHANGED"
+    && error?.cleanup_state === "quarantined"
+    && error?.cleanup_error_code === "DMS_TEST_COMMITTED_DELETE_UNAVAILABLE");
+  assert.equal(storage.statObject({ tenant_id: TENANT, object_id: `vault:${TENANT}:${MATTER}:docusign-completion:${input.request_id}:${input.kind}:version:docusign-completion:${input.request_id}:${input.kind}:1` }), null);
+  assert.deepEqual([
+    dmsRepository.list({ tenant_id: TENANT, model_type: "DmsFileObject" }).length,
+    dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length,
+    dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocumentVersion" }).length,
+    dmsRepository.listAudit({ tenant_id: TENANT }).length,
+  ], [0, 0, 0, 0]);
+});

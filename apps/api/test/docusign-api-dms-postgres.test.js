@@ -6,6 +6,7 @@ import { createPostgresDocusignEnvelopeRepository } from "../../../packages/inte
 import { normalizeDocusignOutboxState } from "../../../packages/integrations-core/src/docusign-envelope-model.js";
 import { createPostgresDmsUploadRuntime, createLocalStorageAdapter } from "../../../packages/dms/src/index.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
+import { POSTGRES_TENANT_CONTEXT_SECRET } from "../../../packages/persistence/src/postgres/pool.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 
 const TENANT = "tenant-docusign-completion-pg";
@@ -21,6 +22,23 @@ function authorityRequest(requestId, kind, digest) {
     recipient_snapshot: APPROVED_SOURCE.recipients, anchor_manifest: APPROVED_SOURCE.anchor_manifest, idempotency_key: `queue:${requestId}`, payload_sha256: "d".repeat(64), provider_correlation_ref: `docusign-request:${requestId}`, requested_by_actor_id: ACTOR,
     state: "completed_artifacts_pending", attempt_phase: "completion_ingesting", envelope_id: "envelope-pg", completion_operation: { kind: `ingest:${kind}`, permission_envelope_id: SOURCE_DOCUMENT.permission_envelope_id, audit_trace_id: SOURCE_DOCUMENT.audit_trace_id, fencing_generation: 1, started_at: "2026-08-08T02:00:00.000Z", lease_expires_at: "2026-08-08T04:00:00.000Z", idempotency_key: `docusign-completion:${requestId}:${kind}:${digest}`, object_id: `object:version:docusign-completion:${requestId}:${kind}:1`, sha256: digest, status: "pending" },
     completion_artifacts: { signed_pdf: null, certificate: null }, audit_lineage: [], event_hashes: [], created_at: "2026-08-08T02:00:00.000Z", updated_at: "2026-08-08T02:00:00.000Z",
+  };
+}
+
+function interceptPoolQuery(pool, intercept) {
+  return {
+    [POSTGRES_TENANT_CONTEXT_SECRET]: pool[POSTGRES_TENANT_CONTEXT_SECRET],
+    async connect() {
+      const client = await pool.connect();
+      return {
+        query(...args) {
+          return intercept({ args, query: (...forwarded) => client.query(...forwarded) });
+        },
+        release(error) {
+          client.release(error);
+        },
+      };
+    },
   };
 }
 
@@ -141,6 +159,57 @@ test("OUTM-34 PostgreSQL authority quarantine survives provider cleanup failure 
   assert.deepEqual(await restarted.reconcileUploadSessions({ tenant_id: TENANT }), []);
   await assert.rejects(restarted.finalizeUpload({ tenant_id: TENANT, session_id: sessionId }), (error) => error?.safe_error_code === "DMS_UPLOAD_SESSION_EXPIRED");
   assert.equal(await restarted.getDocumentState({ tenant_id: TENANT, document_id: `docusign-completion:${requestId}:${kind}` }), null);
+  const rows = await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, (client) => client.query("SELECT (SELECT count(*) FROM lawos_dms.documents WHERE tenant_id = $1)::int AS documents, (SELECT count(*) FROM lawos_dms.document_versions WHERE tenant_id = $1)::int AS versions, (SELECT count(*) FROM lawos_dms.file_objects WHERE tenant_id = $1)::int AS files, (SELECT count(*) FROM lawos_dms.audit_events WHERE tenant_id = $1 AND object_id = $2)::int AS audits", [TENANT, `docusign-completion:${requestId}:${kind}`]));
+  assert.deepEqual(rows.rows[0], { documents: 0, versions: 0, files: 0, audits: 0 });
+});
+
+test("OUTM-34 quarantine persistence outage leaves a durable authority fence for restart reconciliation", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const authorityRepository = createPostgresDocusignEnvelopeRepository({ pool: fixture.appPool });
+  const bytes = Buffer.from("postgres-quarantine-persistence-outage-pdf");
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  const requestId = "request-pg-quarantine-persistence-outage";
+  const kind = "signed_pdf";
+  await authorityRepository.transact({ tenant_id: TENANT }, (state) => { state.requests.push(authorityRequest(requestId, kind, digest)); });
+  const storage = createLocalStorageAdapter({ adapter_id: "docusign-pg-quarantine-outage" });
+  let quarantineUpdateFailed = false;
+  const faultPool = interceptPoolQuery(fixture.appPool, ({ args, query }) => {
+    if (!quarantineUpdateFailed && typeof args[0] === "string" && args[0].includes("SET state = 'failed_terminal'") && args[0].includes("dead_letter_receipt = $5::jsonb")) {
+      quarantineUpdateFailed = true;
+      throw Object.assign(new Error("quarantine persistence unavailable"), { safe_error_code: "DMS_TEST_QUARANTINE_PERSISTENCE_UNAVAILABLE" });
+    }
+    return query(...args);
+  });
+  const uploadRuntime = createPostgresDmsUploadRuntime({ pool: faultPool, storage, clock: () => new Date("2026-08-08T02:00:00.000Z") });
+  let drifted = false;
+  const approvedDocumentResolver = async ({ phase } = {}) => {
+    if (phase === "before_metadata" && !drifted) {
+      drifted = true;
+      await authorityRepository.transact({ tenant_id: TENANT }, (state) => {
+        const current = state.requests[0];
+        state.requests[0] = { ...current, document: { ...current.document, permission_envelope_id: "permission-pg-persistence-outage-drift", audit_trace_id: "audit-pg-persistence-outage-drift" } };
+      });
+    }
+    return APPROVED_SOURCE;
+  };
+  const artifactStore = createDocusignCompletionArtifactStore({ dmsRuntime: { upload_runtime: uploadRuntime }, authorityRepository, approvedDocumentResolver });
+  const input = { tenant_id: TENANT, matter_id: MATTER, workspace_id: "workspace-pg", artifact_id: SOURCE_DOCUMENT.artifact_id, document_id: SOURCE_DOCUMENT.document_id, version_id: SOURCE_DOCUMENT.version_id, approval_receipt_ref: SOURCE_DOCUMENT.approval_receipt_ref, permission_envelope_id: "permission-pg", audit_trace_id: "audit-pg", requested_by_actor_id: ACTOR, request_id: requestId, envelope_id: "envelope-pg", kind, title: "agreement - signed.pdf", mime_type: "application/pdf", bytes, sha256: digest };
+  const expected = { tenant_id: TENANT, matter_id: MATTER, workspace_id: "workspace-pg", request_id: requestId, kind, sha256: digest, permission_envelope_id: "permission-pg", audit_trace_id: "audit-pg", fencing_generation: 1, idempotency_key: `docusign-completion:${requestId}:${kind}:${digest}`, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` };
+  await assert.rejects(artifactStore.ingest(input, { expected_authority: expected }), (error) => error?.safe_error_code === "DOCUSIGN_PERMISSION_AUTHORITY_CHANGED");
+  assert.equal(quarantineUpdateFailed, true);
+  const sessionRows = await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, (client) => client.query("SELECT session_id FROM lawos_dms.upload_sessions WHERE tenant_id = $1 AND document_id = $2", [TENANT, `docusign-completion:${requestId}:${kind}`]));
+  const sessionId = sessionRows.rows[0].session_id;
+  const beforeRestart = await uploadRuntime.getUploadSession({ tenant_id: TENANT, session_id: sessionId });
+  assert.deepEqual([beforeRestart.state, beforeRestart.retryable, beforeRestart.dead_letter_receipt, beforeRestart.provider_receipt?.completion_authority?.schema_version], ["provider_finalized", true, null, "law-firm-os.dms-completion-authority-contract.v1"]);
+  assert.ok(storage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }));
+  const restarted = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, clock: () => new Date("2026-08-08T02:00:00.000Z") });
+  const outcome = await restarted.reconcileUploadSessions({ tenant_id: TENANT });
+  assert.deepEqual(outcome.map((row) => [row.action, row.state]), [["authority_quarantined", "failed_terminal"]]);
+  await assert.rejects(restarted.finalizeUpload({ tenant_id: TENANT, session_id: sessionId }), (error) => error?.safe_error_code === "DMS_UPLOAD_SESSION_EXPIRED");
+  const afterRestart = await restarted.getUploadSession({ tenant_id: TENANT, session_id: sessionId });
+  assert.deepEqual([afterRestart.state, afterRestart.retryable, afterRestart.dead_letter_receipt?.schema_version, afterRestart.dead_letter_receipt?.cleanup_state], ["failed_terminal", false, "law-firm-os.dms-completion-authority-quarantine.v1", "deleted"]);
+  assert.equal(storage.statObject({ tenant_id: TENANT, object_id: `object:version:docusign-completion:${requestId}:${kind}:1` }), null);
   const rows = await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, (client) => client.query("SELECT (SELECT count(*) FROM lawos_dms.documents WHERE tenant_id = $1)::int AS documents, (SELECT count(*) FROM lawos_dms.document_versions WHERE tenant_id = $1)::int AS versions, (SELECT count(*) FROM lawos_dms.file_objects WHERE tenant_id = $1)::int AS files, (SELECT count(*) FROM lawos_dms.audit_events WHERE tenant_id = $1 AND object_id = $2)::int AS audits", [TENANT, `docusign-completion:${requestId}:${kind}`]));
   assert.deepEqual(rows.rows[0], { documents: 0, versions: 0, files: 0, audits: 0 });
 });

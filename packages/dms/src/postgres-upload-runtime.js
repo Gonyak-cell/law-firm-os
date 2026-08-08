@@ -25,6 +25,7 @@ const COMPLETION_AUTHORITY_REJECTION_CODES = new Set([
   "DOCUSIGN_REQUEST_NOT_FOUND",
 ]);
 const COMPLETION_AUTHORITY_QUARANTINE_SCHEMA = "law-firm-os.dms-completion-authority-quarantine.v1";
+const COMPLETION_AUTHORITY_CONTRACT_SCHEMA = "law-firm-os.dms-completion-authority-contract.v1";
 const MAX_UPLOAD_INTENT_GENERATIONS = 32;
 const UPLOAD_INTENT_RETIREMENT_EVENT = "dms.upload_intent.retired";
 const UPLOAD_INTENT_FAMILY_OBJECT = "DmsUploadIntentFamily";
@@ -155,6 +156,37 @@ function codedError(message, code, status = 409, details = {}) {
 function safeErrorCode(error, fallback) {
   const code = error?.safe_error_code ?? error?.code;
   return typeof code === "string" && /^[A-Z0-9_]+$/u.test(code) ? code : fallback;
+}
+
+function normalizeCompletionAuthorityContract(input) {
+  if (input == null) return null;
+  if (typeof input !== "object" || Array.isArray(input)) throw new TypeError("completion_authority must be an object");
+  const contract = {
+    schema_version: input.schema_version,
+    provider: input.provider,
+    tenant_id: input.tenant_id,
+    matter_id: input.matter_id,
+    workspace_id: input.workspace_id,
+    request_id: input.request_id,
+    envelope_id: input.envelope_id,
+    kind: input.kind,
+    sha256: input.sha256,
+    object_id: input.object_id,
+    idempotency_key: input.idempotency_key,
+    permission_envelope_id: input.permission_envelope_id,
+    audit_trace_id: input.audit_trace_id,
+    fencing_generation: Number(input.fencing_generation),
+  };
+  if (contract.schema_version !== COMPLETION_AUTHORITY_CONTRACT_SCHEMA || contract.provider !== "docusign") throw new TypeError("completion_authority schema is invalid");
+  for (const field of ["tenant_id", "matter_id", "workspace_id", "request_id", "envelope_id", "kind", "object_id", "idempotency_key", "permission_envelope_id", "audit_trace_id"]) contract[field] = requiredText(contract[field], `completion_authority.${field}`);
+  contract.sha256 = requiredSha256(contract.sha256, "completion_authority.sha256");
+  if (!Number.isSafeInteger(contract.fencing_generation) || contract.fencing_generation < 1) throw new TypeError("completion_authority.fencing_generation must be positive");
+  return Object.freeze(contract);
+}
+
+function completionAuthorityContract(session) {
+  const contract = session?.provider_receipt?.completion_authority;
+  return contract?.schema_version === COMPLETION_AUTHORITY_CONTRACT_SCHEMA ? contract : null;
 }
 
 function isCompletionAuthorityRejection(error) {
@@ -628,6 +660,7 @@ export function createPostgresDmsUploadRuntime({
       permission_envelope_id: requiredText(input.permission_envelope_id, "permission_envelope_id"),
       audit_trace_id: requiredText(input.audit_trace_id, "audit_trace_id"),
       actor_id: requiredText(input.actor_id, "actor_id"),
+      completion_authority: normalizeCompletionAuthorityContract(input.completion_authority),
       expires_at: requiredTimestamp(input.expires_at, "expires_at"),
     });
   }
@@ -651,9 +684,9 @@ export function createPostgresDmsUploadRuntime({
            (tenant_id, session_id, idempotency_key, request_hash, matter_id, workspace_id,
             document_id, version_id, version_number, object_id, adapter_id, title, content_type,
             expected_sha256, expected_byte_size, permission_envelope_id, audit_trace_id, actor_id,
-            state, expires_at, next_attempt_at, created_at, updated_at)
+            state, expires_at, next_attempt_at, created_at, updated_at, provider_receipt)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-                 $16, $17, $18, 'pending', $19::timestamptz, $20::timestamptz, $21::timestamptz, $21::timestamptz)
+                 $16, $17, $18, 'pending', $19::timestamptz, $20::timestamptz, $21::timestamptz, $21::timestamptz, $22::jsonb)
          ON CONFLICT DO NOTHING
          RETURNING *`,
         [
@@ -678,6 +711,7 @@ export function createPostgresDmsUploadRuntime({
           normalized.expires_at,
           initialNextAttemptAt,
           createdAt,
+          normalized.completion_authority ? JSON.stringify({ completion_authority: normalized.completion_authority }) : null,
         ],
       );
       if (inserted.rowCount === 0) {
@@ -1212,6 +1246,7 @@ export function createPostgresDmsUploadRuntime({
   }
 
   function safeProviderReceipt(receipt, session) {
+    const contract = completionAuthorityContract(session);
     return Object.freeze({
       adapter_id: session.adapter_id,
       tenant_id: session.tenant_id,
@@ -1223,6 +1258,7 @@ export function createPostgresDmsUploadRuntime({
       staged_cleanup_deferred: receipt?.staged_cleanup_deferred === true,
       raw_path_exposed: false,
       bytes_exposed: false,
+      ...(contract ? { completion_authority: contract } : {}),
     });
   }
 
@@ -1297,6 +1333,12 @@ export function createPostgresDmsUploadRuntime({
     let session = await getUploadSession({ tenant_id, session_id });
     if (session.state === "finalized") return Object.freeze({ session, replayed: true });
     if (["expired", "failed_terminal"].includes(session.state)) throw codedError("DMS upload session is expired", "DMS_UPLOAD_SESSION_EXPIRED");
+    // Completion sessions carry a durable contract marker. A restart worker has
+    // no approved-Document resolver, so it must never publish their metadata
+    // through the callback-free reconciliation path.
+    if (completionAuthorityContract(session) && typeof beforePersist !== "function") {
+      throw codedError("DMS completion authority must be revalidated before metadata publication", "DMS_COMPLETION_AUTHORITY_REVALIDATION_REQUIRED");
+    }
     session = await ensureBytesStored(session);
     let receipt;
     let replayed = session.state === "provider_finalized";
@@ -1335,6 +1377,7 @@ export function createPostgresDmsUploadRuntime({
     object_id,
     session_id,
     version_number,
+    completion_authority,
     expires_at,
     beforePersist,
   } = {}) {
@@ -1365,6 +1408,7 @@ export function createPostgresDmsUploadRuntime({
       permission_envelope_id: requiredText(document.permission_envelope_id, "document.permission_envelope_id"),
       audit_trace_id: requiredText(document.audit_trace_id, "document.audit_trace_id"),
       actor_id: actorId,
+      completion_authority,
       expires_at: expires_at ?? nextUploadExpiry(),
     });
     try {
@@ -1622,6 +1666,17 @@ export function createPostgresDmsUploadRuntime({
             continue;
           }
           await markBytesStored(session, staged, { eventActor: "dms-reconciler" });
+        }
+        if (completionAuthorityContract(session)) {
+          const authorityFence = codedError(
+            "DMS completion authority requires an approved resolver before reconciliation",
+            "DMS_COMPLETION_AUTHORITY_REVALIDATION_REQUIRED",
+          );
+          const quarantined = await quarantineCompletionAuthorityUpload(session, authorityFence);
+          if (!quarantined || quarantined.state !== "failed_terminal") throw authorityFence;
+          outcomes.push(Object.freeze({ session_id: session.session_id, action: "authority_quarantined", state: quarantined.state }));
+          await releaseReconciliationClaim(tenantId, session.session_id);
+          continue;
         }
         const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: session.session_id });
         outcomes.push(Object.freeze({ session_id: session.session_id, action: "finalized", state: finalized.session.state }));

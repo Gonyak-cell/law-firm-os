@@ -3,6 +3,8 @@ import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { bindApprovedDocusignSource, normalizeDocusignAuthorityBinding } from "../../../packages/integrations-core/src/docusign-envelope-authority.js";
 import { normalizeCompletionAuthorityExpectation } from "../../../packages/integrations-core/src/docusign-completion-authority.js";
 
+const DOCUSIGN_COMPLETION_AUTHORITY_CONTRACT_SCHEMA = "law-firm-os.dms-completion-authority-contract.v1";
+
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
   return value.trim();
@@ -102,11 +104,27 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime, approvedDocu
         await authority.validateCompletionAuthority({ expected, client });
       };
       const validateAuthoritySync = () => authority.validateCompletionAuthority({ expected });
+      const completionAuthority = Object.freeze({
+        schema_version: DOCUSIGN_COMPLETION_AUTHORITY_CONTRACT_SCHEMA,
+        provider: "docusign",
+        tenant_id: expected.tenant_id,
+        matter_id: expected.matter_id,
+        workspace_id: expected.workspace_id,
+        request_id: expected.request_id,
+        envelope_id: input.envelope_id,
+        kind: expected.kind,
+        sha256: expected.sha256,
+        object_id: expected.object_id ?? `object:${versionId}`,
+        idempotency_key: expected.idempotency_key ?? idempotencyKey,
+        permission_envelope_id: expected.permission_envelope_id,
+        audit_trace_id: expected.audit_trace_id,
+        fencing_generation: expected.fencing_generation,
+      });
       const document = { document_id: documentId, tenant_id: binding.tenant_id, matter_id: binding.matter_id, workspace_id: binding.workspace_id, title: requiredText(input.title, "title"), status: "active", current_version_id: versionId, permission_envelope_id: binding.permission_envelope_id, audit_trace_id: binding.audit_trace_id, mime_type: "application/pdf", source_provider: "docusign", source_request_ref: `docusign-request:${requestId}`, source_artifact_kind: kind };
       const persist = async () => {
         await validateAuthority({});
         const uploaded = typeof postgresUpload === "function"
-          ? await postgresUpload.call(dmsRuntime.upload_runtime, { document, bytes, actor_id: actorId, idempotency_key: idempotencyKey, object_id: `object:${versionId}`, session_id: `dms-upload:${requestId}:${kind}:${digest}`, version_number: 1, beforePersist: async ({ phase, ...context } = {}) => validateAuthority({ phase, ...context }) })
+          ? await postgresUpload.call(dmsRuntime.upload_runtime, { document, bytes, actor_id: actorId, idempotency_key: idempotencyKey, object_id: `object:${versionId}`, session_id: `dms-upload:${requestId}:${kind}:${digest}`, version_number: 1, completion_authority: completionAuthority, beforePersist: async ({ phase, ...context } = {}) => validateAuthority({ phase, ...context }) })
           : uploadDocument({ repository: dmsRuntime.repository, storage: dmsRuntime.storage, document, bytes, actor_id: actorId, idempotency_key: idempotencyKey, beforePersist: ({ phase } = {}) => { validateAuthoritySync({ phase }); } });
         const persistedSha = uploaded?.version?.sha256 ?? uploaded?.storage_receipt?.sha256;
         return assertReceipt({ document_id: uploaded?.version?.document_id ?? uploaded?.document?.document_id, version_id: uploaded?.version?.version_id, sha256: persistedSha, immutable: true, tenant_id: binding.tenant_id, matter_id: binding.matter_id, workspace_id: binding.workspace_id, permission_envelope_id: binding.permission_envelope_id, audit_trace_id: binding.audit_trace_id, request_id: requestId, envelope_id: input.envelope_id }, input, digest, documentId, versionId);

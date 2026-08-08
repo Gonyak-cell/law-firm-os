@@ -10,6 +10,25 @@ function requiredString(input, field) {
   return value.trim();
 }
 
+function errorCode(error, fallback) {
+  const code = error?.safe_error_code ?? error?.code;
+  return typeof code === "string" && /^[A-Z0-9_]+$/u.test(code) ? code : fallback;
+}
+
+function annotateError(error, fields) {
+  try {
+    Object.assign(error, fields);
+    return error;
+  } catch {
+    return Object.assign(new Error(error?.message ?? "DMS upload failed"), {
+      code: error?.code,
+      safe_error_code: error?.safe_error_code,
+      status: error?.status,
+      ...fields,
+    });
+  }
+}
+
 export function uploadDocument({
   repository,
   storage,
@@ -22,6 +41,9 @@ export function uploadDocument({
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   assertStorageAdapter(storage);
+  if (typeof beforePersist === "function" && typeof storage.quarantineCommittedObject !== "function") {
+    throw new TypeError("storage adapter missing quarantineCommittedObject for guarded upload");
+  }
   const replay = repository.getIdempotency({ tenant_id: document?.tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
 
@@ -128,12 +150,30 @@ export function uploadDocument({
       });
       return response;
     } catch (error) {
-      if (receipt && typeof storage.deleteCommittedObject === "function") {
+      if (!receipt) throw error;
+      let cleanupState = "pending";
+      let cleanupErrorCode = null;
+      try {
+        const deletion = typeof storage.deleteCommittedObject === "function"
+          ? storage.deleteCommittedObject({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256 })
+          : null;
+        if (deletion && typeof deletion.then === "function") throw new TypeError("storage cleanup must be synchronous");
+        if (deletion?.deleted === true || deletion?.already_absent === true) cleanupState = "deleted";
+        else throw Object.assign(new Error("committed object cleanup was not confirmed"), { safe_error_code: "DMS_COMMITTED_DELETE_UNCONFIRMED" });
+      } catch (deleteError) {
+        cleanupErrorCode = errorCode(deleteError, "DMS_COMMITTED_DELETE_FAILED");
+        // A failed delete cannot be treated as harmless: move the object out
+        // of the readable namespace before returning the authority error.
         try {
-          storage.deleteCommittedObject({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256 });
-        } catch {}
+          const quarantine = storage.quarantineCommittedObject({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256, reason: cleanupErrorCode });
+          if (quarantine && typeof quarantine.then === "function") throw new TypeError("storage quarantine must be synchronous");
+          if (quarantine?.quarantined === true || quarantine?.already_absent === true) cleanupState = "quarantined";
+          else throw Object.assign(new Error("committed object quarantine was not confirmed"), { safe_error_code: "DMS_COMMITTED_QUARANTINE_UNCONFIRMED" });
+        } catch (quarantineError) {
+          cleanupErrorCode = errorCode(quarantineError, cleanupErrorCode ?? "DMS_COMMITTED_QUARANTINE_FAILED");
+        }
       }
-      throw error;
+      throw annotateError(error, { cleanup_state: cleanupState, cleanup_error_code: cleanupErrorCode });
     }
   });
 }
