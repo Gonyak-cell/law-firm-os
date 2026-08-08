@@ -15,11 +15,9 @@ import {
   createOpaqueStorageKey,
   createStagingPointerRef,
   createStoragePointerRef,
-  readStorageBodyBounded,
   sha256Hex,
-  storageObjectTooLargeError,
-  storageReadLimit,
 } from "./storage-adapter.js";
+import { readS3CommittedObjectBounded } from "./s3-bounded-object-reader.js";
 
 const SECRET_FIELD = /(access.?key|authorization|client.?secret|credential(?!_ref)|password|secret.?key|session.?token)/iu;
 
@@ -71,15 +69,6 @@ async function bodyToBuffer(body) {
   const chunks = [];
   for await (const chunk of body) chunks.push(Buffer.from(chunk));
   return Buffer.concat(chunks);
-}
-
-function abortBody(body, controller) {
-  controller.abort();
-  try { body?.destroy?.(); } catch {}
-  try {
-    const cancellation = body?.cancel?.();
-    if (typeof cancellation?.catch === "function") void cancellation.catch(() => {});
-  } catch {}
 }
 
 export function createS3StorageAdapter(config = {}) {
@@ -234,50 +223,21 @@ export function createS3StorageAdapter(config = {}) {
   async function readObjectBounded({ tenant_id, object_id, max_bytes } = {}) {
     const tenantId = assertTenantId(tenant_id);
     const objectId = requireString(object_id, "object_id");
-    const limit = storageReadLimit(max_bytes);
     const key = keyFor({ tenant_id: tenantId, object_id: objectId });
     const headResponse = await head(key);
     if (!headResponse) throw codedError(`object not found: ${objectId}`, "DMS_COMMITTED_OBJECT_NOT_FOUND");
     const declared = receiptFromHead({ tenantId, objectId, response: headResponse });
-    if (declared.byte_size > limit) throw storageObjectTooLargeError();
-    const abortController = new AbortController();
-    let response;
-    try {
-      response = await client.send(new GetObjectCommand({ ...common, Key: key, ChecksumMode: "ENABLED" }), {
-        abortSignal: abortController.signal,
-      });
-    } catch (error) {
-      if (isNotFound(error)) throw codedError(`object not found: ${objectId}`, "DMS_COMMITTED_OBJECT_NOT_FOUND");
-      throw error;
-    }
-    let responseReceipt;
-    try {
-      responseReceipt = receiptFromHead({ tenantId, objectId, response });
-    } catch (error) {
-      abortBody(response.Body, abortController);
-      throw error;
-    }
-    if (responseReceipt.byte_size > limit) {
-      abortBody(response.Body, abortController);
-      throw storageObjectTooLargeError();
-    }
-    const observed = await readStorageBodyBounded(response.Body ?? Buffer.alloc(0), {
-      max_bytes: limit,
-      onOverflow: () => abortBody(response.Body, abortController),
-    });
-    if (declared.byte_size !== responseReceipt.byte_size
-        || observed.byte_size !== declared.byte_size
-        || declared.sha256 !== responseReceipt.sha256
-        || observed.sha256 !== declared.sha256) {
-      throw codedError("S3 committed object metadata does not match observed bytes", "DMS_COMMITTED_DIGEST_MISMATCH");
-    }
-    return Object.freeze({
+    return readS3CommittedObjectBounded({
       adapter_id,
+      client,
+      common,
+      key,
       tenant_id: tenantId,
       object_id: objectId,
-      ...observed,
-      declared_sha256: declared.sha256,
-      mime_type: responseReceipt.mime_type,
+      max_bytes,
+      declared,
+      declared_metadata: headResponse.Metadata,
+      is_not_found: isNotFound,
     });
   }
 
