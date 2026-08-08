@@ -154,3 +154,28 @@ test("resolver rejects symlink escapes and profile-root symlink escapes", () => 
     rmSync(tempRoot, { recursive: true, force: true });
   }
 });
+
+test("static server rejects non-loopback bindings", async () => {
+  for (const host of ["0.0.0.0", "::", "192.0.2.1", "example.invalid"]) {
+    await assert.rejects(
+      startOutlookAddinStaticServer({ distRoot: DIST_ROOT, host }),
+      /OUTLOOK_ADDIN_STATIC_SERVER_LOOPBACK_HOST_REQUIRED/u,
+      host,
+    );
+  }
+
+  for (const host of ["127.0.0.1", "::1", "localhost"]) {
+    const web = await startOutlookAddinStaticServer({
+      distRoot: DIST_ROOT,
+      host,
+    });
+    try {
+      const address = web.server.address();
+      assert.equal(typeof address, "object");
+      assert.ok(["127.0.0.1", "::1"].includes(address.address));
+      assert.equal(new URL(web.origin).protocol, "http:");
+    } finally {
+      await new Promise((resolvePromise) => web.server.close(resolvePromise));
+    }
+  }
+});

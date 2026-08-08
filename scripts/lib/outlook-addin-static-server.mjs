@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import {
   readFileSync,
@@ -33,6 +35,39 @@ const MIME_TYPES = Object.freeze({
   ".png": "image/png",
   ".svg": "image/svg+xml",
 });
+
+const LOOPBACK_HOSTS = Object.freeze(new Set([
+  "127.0.0.1",
+  "::1",
+  "localhost",
+]));
+
+function isLoopbackAddress(address) {
+  const normalized = String(address ?? "").toLowerCase().split("%", 1)[0];
+  if (isIP(normalized) === 4) {
+    return normalized.split(".", 1)[0] === "127";
+  }
+  return normalized === "::1";
+}
+
+async function assertLoopbackHost(host) {
+  const normalizedHost = typeof host === "string" ? host.toLowerCase() : "";
+  if (!LOOPBACK_HOSTS.has(normalizedHost)) {
+    throw new Error("OUTLOOK_ADDIN_STATIC_SERVER_LOOPBACK_HOST_REQUIRED");
+  }
+  if (normalizedHost === "localhost") {
+    let addresses;
+    try {
+      addresses = await lookup(normalizedHost, { all: true, verbatim: true });
+    } catch {
+      throw new Error("OUTLOOK_ADDIN_STATIC_SERVER_LOOPBACK_HOST_REQUIRED");
+    }
+    if (!addresses.length || addresses.some(({ address }) => !isLoopbackAddress(address))) {
+      throw new Error("OUTLOOK_ADDIN_STATIC_SERVER_LOOPBACK_HOST_REQUIRED");
+    }
+  }
+  return normalizedHost;
+}
 
 function isWithinRoot(rootPath, candidatePath) {
   const child = relative(rootPath, candidatePath);
@@ -181,6 +216,7 @@ export async function startOutlookAddinStaticServer({
   host = "127.0.0.1",
   port = 0,
 } = {}) {
+  const bindHost = await assertLoopbackHost(host);
   const server = createServer((request, response) => {
     if (request.method !== "GET" && request.method !== "HEAD") {
       response.writeHead(405, {
@@ -212,16 +248,20 @@ export async function startOutlookAddinStaticServer({
 
   return new Promise((resolvePromise, reject) => {
     server.once("error", reject);
-    server.listen(port, host, () => {
+    server.listen(port, bindHost, () => {
       const address = server.address();
-      if (!address || typeof address === "string") {
+      if (
+        !address
+        || typeof address === "string"
+        || !isLoopbackAddress(address.address)
+      ) {
         server.close();
-        reject(new Error("OUTLOOK_ADDIN_STATIC_SERVER_ADDRESS_UNAVAILABLE"));
+        reject(new Error("OUTLOOK_ADDIN_STATIC_SERVER_LOOPBACK_ADDRESS_UNAVAILABLE"));
         return;
       }
       resolvePromise({
         server,
-        origin: `http://${host}:${address.port}`,
+        origin: `http://${bindHost.includes(":") ? `[${bindHost}]` : bindHost}:${address.port}`,
       });
     });
   });
