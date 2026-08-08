@@ -44,6 +44,7 @@ export function createDmsRepositoryMimeAuthority(repository, { provider } = {}) 
         || stat.object_id !== fileObject?.object_id
         || stat.sha256 !== fileObject?.sha256
         || Number(stat.byte_size) !== Number(fileObject?.byte_size)
+        || (digest.object_id !== undefined && digest.object_id !== fileObject?.object_id)
         || digest.sha256 !== fileObject?.sha256
         || Number(digest.byte_size) !== Number(fileObject?.byte_size)
         || (providerMime(stat) !== undefined && providerMime(stat) !== expectedMime)
