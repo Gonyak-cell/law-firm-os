@@ -58,6 +58,10 @@ async function main() {
   }
   const currentInventory = await collectBuildInventory(path.join(repoRoot, contract.build.root), contract);
   validateBuildInventories(releaseReceipt.inventory, currentInventory, contract);
+  const manifestHashesByPath = {};
+  for (const manifest of contract.manifests) {
+    manifestHashesByPath[manifest] = sha256(await readFile(path.join(repoRoot, manifest)));
+  }
   const sourceLocations = {};
   for (const profile of contract.profiles) {
     const xml = await readFile(path.join(repoRoot, profile.production_manifest), "utf8");
@@ -74,6 +78,7 @@ async function main() {
       rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
       surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
     },
+    existingPaths: new Set(git("ls-files", "-z").split("\0").filter(Boolean)),
     expectedSourceIdentity: {
       source_sha: sourceSha,
       source_tree: sourceTree,
@@ -81,6 +86,7 @@ async function main() {
     },
     packageLock: JSON.parse(packageLockBytes),
     packageLockBytes,
+    manifestHashesByPath,
     rollback: JSON.parse(rollbackBytes),
     surface: JSON.parse(surfaceBytes),
   };

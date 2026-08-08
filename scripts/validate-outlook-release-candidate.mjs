@@ -182,6 +182,7 @@ async function main() {
   validateReleaseCandidateReceipt(receipt, contract, {
     baseline,
     contractArtifacts,
+    existingPaths: trackedPaths,
     expectedSourceIdentity: {
       source_sha: sourceSha,
       source_tree: sourceTree,
@@ -189,6 +190,7 @@ async function main() {
     },
     packageLock,
     packageLockBytes,
+    manifestHashesByPath: Object.fromEntries(manifests.map(({ path: manifest, sha256: digest }) => [manifest, digest])),
     rollback,
     surface,
   });

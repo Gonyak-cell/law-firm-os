@@ -109,7 +109,12 @@ const contractArtifacts = {
 const releaseContext = {
   baseline,
   contractArtifacts,
+  existingPaths: new Set([...contract.required_release_paths, ...contract.required_test_paths]),
   expectedSourceIdentity: sourceIdentity,
+  manifestHashesByPath: Object.fromEntries(contract.manifests.map((manifest) => {
+    const profile = contract.profiles.find(({ production_manifest }) => production_manifest === manifest);
+    return [manifest, profile ? (profile.profile === "matter-full" ? hex("1") : hex("2")) : sha256(manifest)];
+  })),
   packageLock: fixturePackageLock,
   packageLockBytes: fixturePackageLockBytes,
   rollback,

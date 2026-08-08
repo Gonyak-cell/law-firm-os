@@ -67,6 +67,10 @@ async function main() {
     source_tree: sourceTree,
     package_lock_sha256: sha256(packageLockBytes),
   };
+  const manifestHashesByPath = {};
+  for (const manifest of contract.manifests) {
+    manifestHashesByPath[manifest] = sha256(await readFile(path.join(repoRoot, manifest)));
+  }
   const releaseContext = {
     baseline,
     contractArtifacts: {
@@ -75,7 +79,9 @@ async function main() {
       rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
       surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
     },
+    existingPaths: new Set(git("ls-files", "-z").split("\0").filter(Boolean)),
     expectedSourceIdentity,
+    manifestHashesByPath,
     packageLock: JSON.parse(packageLockBytes),
     packageLockBytes,
     rollback,

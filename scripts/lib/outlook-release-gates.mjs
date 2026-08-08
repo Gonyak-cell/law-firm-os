@@ -449,7 +449,9 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     || !context.baseline
     || !context.rollback
     || !context.surface
-    || !context.contractArtifacts) {
+    || !context.contractArtifacts
+    || !context.existingPaths
+    || !context.manifestHashesByPath) {
     throw new Error("release candidate validation requires the exact lockfile and frozen proof contracts");
   }
   if (receipt.package_lock_sha256 !== sha256(context.packageLockBytes)) {
@@ -521,7 +523,8 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     assertExactKeys(manifest, ["path", "sha256"], "manifest validation entry");
     if (!contract.manifests.includes(manifest.path)
       || manifestByPath.has(manifest.path)
-      || !SHA256.test(manifest.sha256 ?? "")) {
+      || !SHA256.test(manifest.sha256 ?? "")
+      || manifest.sha256 !== context.manifestHashesByPath[manifest.path]) {
       throw new Error(`release candidate manifest receipt is invalid: ${manifest.path}`);
     }
     manifestByPath.set(manifest.path, manifest);
@@ -549,9 +552,7 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     }
   }
   assertExactKeys(receipt.coverage, ["required_path_count"], "release candidate coverage");
-  assertEqual(receipt.coverage, {
-    required_path_count: contract.required_release_paths.length + contract.required_test_paths.length,
-  }, "release candidate coverage");
+  assertEqual(receipt.coverage, validateCoveragePaths(context.existingPaths, contract), "release candidate coverage");
   assertEqual(canonical(receipt.licenses), canonical(validateDependencyLicenses(context.packageLock, contract)), "release candidate licenses");
   assertEqual(receipt.rollback, validateRollbackContract(context.rollback, context.baseline, contract), "release candidate rollback proof");
   assertEqual(receipt.surface, validateSurfaceSeparation(context.surface, context.baseline, contract), "release candidate surface proof");
