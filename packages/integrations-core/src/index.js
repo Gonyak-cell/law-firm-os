@@ -11,3 +11,4 @@ export * from "./people-outlook-connection.js";
 export * from "./people-outlook-calendar-source.js";
 export * from "./docusign-envelope-adapter.js";
 export * from "./docusign-envelope-outbox.js";
+export * from "./docusign-envelope-events.js";

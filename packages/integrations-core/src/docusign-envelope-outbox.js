@@ -119,11 +119,12 @@ function normalizeAnchorManifest(input = {}) {
 
 function normalizeArtifactRef(input) {
   if (input == null) return null;
+  if (input.immutable !== true) throw new TypeError("completion artifact must be immutable");
   return Object.freeze({
     document_id: requiredText(input.document_id, "artifact.document_id"),
     version_id: requiredText(input.version_id, "artifact.version_id"),
     sha256: requiredSha256(input.sha256, "artifact.sha256"),
-    immutable: input.immutable === true,
+    immutable: true,
   });
 }
 
@@ -133,6 +134,13 @@ function normalizeRequest(input = {}) {
   const recipientSnapshot = (input.recipient_snapshot ?? []).map(normalizeRecipientSnapshot);
   if (recipientSnapshot.length === 0) throw new TypeError("request.recipient_snapshot is required");
   const eventHashes = [...new Set((input.event_hashes ?? []).map((value) => requiredSha256(value, "event_hash")))];
+  const completionArtifacts = Object.freeze({
+    signed_pdf: normalizeArtifactRef(input.completion_artifacts?.signed_pdf),
+    certificate: normalizeArtifactRef(input.completion_artifacts?.certificate),
+  });
+  if (state === "completed" && (!completionArtifacts.signed_pdf || !completionArtifacts.certificate)) {
+    throw new TypeError("completed request requires both immutable completion artifacts");
+  }
   return Object.freeze({
     request_id: requiredText(input.request_id, "request.request_id"),
     tenant_id: requiredText(input.tenant_id, "request.tenant_id"),
@@ -152,10 +160,7 @@ function normalizeRequest(input = {}) {
     last_provider_status: input.last_provider_status == null ? null : requiredText(input.last_provider_status, "request.last_provider_status"),
     last_safe_error_code: input.last_safe_error_code == null ? null : requiredText(input.last_safe_error_code, "request.last_safe_error_code"),
     last_poll_at: input.last_poll_at == null ? null : requiredTimestamp(input.last_poll_at, "request.last_poll_at"),
-    completion_artifacts: Object.freeze({
-      signed_pdf: normalizeArtifactRef(input.completion_artifacts?.signed_pdf),
-      certificate: normalizeArtifactRef(input.completion_artifacts?.certificate),
-    }),
+    completion_artifacts: completionArtifacts,
     event_hashes: Object.freeze(eventHashes),
     created_at: requiredTimestamp(input.created_at, "request.created_at"),
     updated_at: requiredTimestamp(input.updated_at, "request.updated_at"),
@@ -188,6 +193,7 @@ export function normalizeDocusignOutboxState(input) {
   const requestIds = new Set();
   const idempotencyKeys = new Set();
   const envelopeIds = new Set();
+  const receiptHashes = new Set();
   for (const request of state.requests) {
     const requestKey = `${request.tenant_id}\0${request.request_id}`;
     const idempotencyKey = `${request.tenant_id}\0${request.idempotency_key}`;
@@ -200,6 +206,12 @@ export function normalizeDocusignOutboxState(input) {
       if (envelopeIds.has(request.envelope_id)) throw failure("DOCUSIGN_ENVELOPE_DUPLICATE", "Envelope ID must be unique");
       envelopeIds.add(request.envelope_id);
     }
+  }
+  for (const receipt of state.webhook_receipts) {
+    if (receiptHashes.has(receipt.receipt_hash)) {
+      throw failure("DOCUSIGN_WEBHOOK_RECEIPT_DUPLICATE", "Webhook receipt hash must be unique");
+    }
+    receiptHashes.add(receipt.receipt_hash);
   }
   return state;
 }
@@ -301,7 +313,7 @@ export function createDocusignEnvelopeService({
   const recovered = repository.loadState();
   let recoveryChanged = false;
   recovered.requests = recovered.requests.map((request) => {
-    if (request.state === "provider_pending" && ["creating", "sending"].includes(request.attempt_phase)) {
+    if (request.state === "provider_pending" && ["creating", "draft_persisted", "sending"].includes(request.attempt_phase)) {
       recoveryChanged = true;
       return { ...request, state: "reconciliation_required", last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: nowIso(clock) };
     }
@@ -398,6 +410,9 @@ export function createDocusignEnvelopeService({
       const index = requestIndex(state, principal.tenant_id, requiredText(input.request_id, "request_id"));
       if (index === -1) throw failure("DOCUSIGN_REQUEST_NOT_FOUND", "DocuSign request was not found", 404);
       let request = state.requests[index];
+      if (request.requested_by_actor_id !== principal.actor_id) {
+        throw failure("DOCUSIGN_SEND_ACTOR_MISMATCH", "Only the approving actor may send this request", 403);
+      }
       if (TERMINAL_OR_EXTERNAL_STATES.has(request.state)) {
         return Object.freeze({ outcome: "replayed", request: publicRequest(request) });
       }

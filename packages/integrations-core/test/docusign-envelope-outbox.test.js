@@ -166,6 +166,14 @@ test("OUTM-33 binds server principal, tenant, account, approved hash, role, and 
     /signature anchor is required for role client/u,
   );
   await service.queueApprovedRequest(approvedInput());
+  await assert.rejects(
+    service.sendApprovedRequest({
+      principal: { tenant_id: TENANT, actor_id: "actor-other" },
+      request_id: "esign-request-001",
+      explicit_human_action: true,
+    }),
+    (error) => error?.safe_error_code === "DOCUSIGN_SEND_ACTOR_MISMATCH" && error?.status === 403,
+  );
   connection = { ...CONNECTION, account_id: "account-changed" };
   await assert.rejects(
     service.sendApprovedRequest({
@@ -270,6 +278,33 @@ test("OUTM-33 persistence failure after provider create never sends and restart 
   assert.equal(sendCalls, 0);
   runtime({ repository: baseRepository, adapter });
   assert.equal(baseRepository.loadState().requests[0].state, "reconciliation_required");
+});
+
+test("OUTM-33 restart never blindly sends a draft persisted before process loss", async () => {
+  const repository = createDocusignEnvelopeRepository();
+  let sendCalls = 0;
+  const adapter = {
+    createDraft: async () => ({ envelope_id: "unused" }),
+    send: async () => { sendCalls += 1; },
+  };
+  const service = runtime({ repository, adapter });
+  await service.queueApprovedRequest(approvedInput());
+  const state = repository.loadState();
+  state.requests[0] = {
+    ...state.requests[0],
+    state: "provider_pending",
+    attempt_phase: "draft_persisted",
+    envelope_id: "envelope-persisted-before-loss",
+  };
+  repository.replaceState(state);
+  runtime({ repository, adapter });
+  assert.equal(repository.loadState().requests[0].state, "reconciliation_required");
+  await service.sendApprovedRequest({
+    principal: { tenant_id: TENANT, actor_id: "actor-owner" },
+    request_id: "esign-request-001",
+    explicit_human_action: true,
+  });
+  assert.equal(sendCalls, 0);
 });
 
 test("OUTM-33 official SDK adapter creates status=created before a separate send transition", async () => {

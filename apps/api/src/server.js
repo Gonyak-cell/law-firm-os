@@ -191,6 +191,12 @@ import {
   isClientOutlookOAuthState,
   parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
+import {
+  handleDocusignOutlookRead,
+  handleDocusignWebhook,
+  isDocusignOutlookRead,
+  isDocusignWebhook,
+} from "./docusign-api.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -1360,7 +1366,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1985,6 +1991,18 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
+    if (isDocusignOutlookRead(req.method, pathname)) {
+      const result = await handleDocusignOutlookRead({
+        method: req.method,
+        pathname,
+        query,
+        principal: sessionContext.principal,
+        requestId,
+        runtime: docusignRuntime,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     const context = requestPermissionContext();
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleOutlookAddinApiRequest({
@@ -2074,6 +2092,7 @@ export function createApiServer({
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
+  docusignRuntime = null,
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({
     dmsRuntime,
     emailDmsRepository: emailDmsRuntime?.repository,
@@ -2151,6 +2170,7 @@ export function createApiServer({
           matterRuntime: matterRuntimeWithClearanceLedger,
           dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
           emailDmsRuntime: resolvedEmailDmsRuntime,
+          docusignRuntime: requestRuntimes.docusignRuntime ?? docusignRuntime,
           crmIntakeRuntime: resolvedCrmIntakeRuntime,
           financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
           financeRuntimeUnavailable,
@@ -2174,6 +2194,31 @@ export function createApiServer({
       };
 
       const requestPathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+      if (isDocusignWebhook(req.method, requestPathname)) {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        try {
+          await readRequestBody(req, { maxBytes: 256 * 1024 });
+        } catch (error) {
+          const result = await handleDocusignWebhook({
+            headers: req.headers,
+            rawBody: req.lawosRawRequestBody ?? Buffer.alloc(0),
+            requestId,
+            runtime: docusignRuntime,
+            preflightError: error,
+          });
+          sendJson(req, res, result.status, result.body);
+          return;
+        }
+        const result = await handleDocusignWebhook({
+          headers: req.headers,
+          rawBody: req.lawosRawRequestBody,
+          requestId,
+          runtime: docusignRuntime,
+        });
+        sendJson(req, res, result.status, result.body);
+        return;
+      }
       if (isPayrollStatementProviderCallback(req.method, requestPathname)) {
         const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
         req.lawosRequestId = requestId;
@@ -2296,6 +2341,7 @@ export async function startApiServer({
   dmsStorage,
   emailDmsRuntime,
   emailDmsRepository,
+  docusignRuntime,
   dmsVerifyPermanentDeleteApproval,
   payrollArtifactSecret,
   payrollProviders,
@@ -2530,6 +2576,7 @@ export async function startApiServer({
         matterRuntime: null,
         dmsRuntime: null,
         emailDmsRuntime: null,
+        docusignRuntime,
         crmIntakeRuntime: null,
         financeRuntime: null,
         analyticsRuntime: null,
@@ -2793,6 +2840,7 @@ export async function startApiServer({
     matterRuntime: matterRuntimeContext,
     dmsRuntime: dmsRuntimeContext,
     emailDmsRuntime: emailDmsRuntimeContext,
+    docusignRuntime,
     crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
     financeRuntimeUnavailable,
