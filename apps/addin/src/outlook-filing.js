@@ -1,3 +1,6 @@
+import { assertStableOutlookItemIdentity } from "./outlook-item-content.js";
+import { outlookItemIdentityKey } from "./outlook-item-events.js";
+
 export const OUTLOOK_EMAIL_FILING_PATH = "/api/outlook/email/file";
 export const OUTLOOK_SENT_FILING_PATH = "/api/outlook/sent/file";
 
@@ -30,5 +33,48 @@ export function createOutlookFilingRequest({
     method: "POST",
     body: Object.freeze(body),
     mode,
+  });
+}
+
+export async function fileOutlookEmail({
+  matterId,
+  email,
+  mode = "manual",
+  requestJson,
+} = {}) {
+  if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
+  assertStableOutlookItemIdentity(email);
+  const request = createOutlookFilingRequest({ matterId, email, mode });
+  const body = await requestJson(request.path, {
+    method: request.method,
+    body: request.body,
+  });
+  const thread = body?.email_thread ?? body?.item;
+  const outcome = body?.outcome;
+  const documentIds = Array.isArray(thread?.filed_document_ids)
+    ? thread.filed_document_ids.filter((value) => typeof value === "string" && value.trim())
+    : [];
+  if (
+    !["created", "idempotent_replay"].includes(outcome)
+    || thread?.status !== "active"
+    || thread?.matter_id !== request.body.matter_id
+    || typeof thread?.email_thread_id !== "string"
+    || documentIds.length !== 1
+  ) {
+    throw new TypeError("Outlook filing response is incomplete or mismatched");
+  }
+  return Object.freeze({
+    request_id: typeof body.request_id === "string" ? body.request_id : null,
+    outcome,
+    duplicate: outcome === "idempotent_replay" || body.idempotent_replay === true,
+    mode,
+    matter_id: request.body.matter_id,
+    item_key: outlookItemIdentityKey(email),
+    email_thread_id: thread.email_thread_id,
+    document_ids: Object.freeze([...documentIds]),
+    timeline_event_id: body.timeline_event?.event_id ?? null,
+    timeline_event_type: body.timeline_event?.type ?? null,
+    filing_actor_id: thread.filing_user ?? null,
+    filed_at: thread.filing_time ?? null,
   });
 }
