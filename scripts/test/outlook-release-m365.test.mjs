@@ -54,6 +54,60 @@ test("executed packet verifies actual protected prerequisite, control, central, 
   assert.equal(validateM365ReleaseReceipt(fixture.receipt, fixture.options).go_live_approved, true);
 });
 
+test("central/static-only authorization cannot complete API, migration, or provider config mutations", async (t) => {
+  const fixture = await completedM365Fixture({
+    authorizedActions: ["m365_central_manifest_update", "static_dual_namespace_publish"],
+  });
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /does not exactly authorize every executed mutation class/,
+  );
+});
+
+test("mutation proofs reject mismatched authorization identity and out-of-window execution", async (t) => {
+  const wrongRef = await completedM365Fixture();
+  t.after(() => rm(wrongRef.root, { recursive: true, force: true }));
+  const migrationBinding = wrongRef.receipt.prerequisites.additive_migrations;
+  const migrationPath = path.join(wrongRef.root, migrationBinding.evidence_ref);
+  const migration = JSON.parse(await readFile(migrationPath, "utf8"));
+  migration.authorization_ref = "change-ref:different-migration-window";
+  const changedMigration = await writeProtectedJson(wrongRef.root, migrationBinding.evidence_ref, migration);
+  migrationBinding.evidence_sha256 = changedMigration.evidence_sha256;
+  assert.throws(
+    () => validateM365ReleaseReceipt(wrongRef.receipt, wrongRef.options),
+    /mutation authorization binding drifted/,
+  );
+
+  const late = await completedM365Fixture();
+  t.after(() => rm(late.root, { recursive: true, force: true }));
+  const apiBinding = late.receipt.prerequisites.api_release;
+  const apiPath = path.join(late.root, apiBinding.evidence_ref);
+  const api = JSON.parse(await readFile(apiPath, "utf8"));
+  api.observed_at_utc = "2026-08-08T04:00:01Z";
+  const changedApi = await writeProtectedJson(late.root, apiBinding.evidence_ref, api);
+  apiBinding.evidence_sha256 = changedApi.evidence_sha256;
+  assert.throws(
+    () => validateM365ReleaseReceipt(late.receipt, late.options),
+    /outside its authorized window/,
+  );
+});
+
+test("rollback rehearsal readback rejects any bundle restoration drift", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  const binding = fixture.receipt.execution_control.rollback_rehearsal_evidence;
+  const proofPath = path.join(fixture.root, binding.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  proof.profiles[0].entry_bundle_sha256 = hex("f");
+  const changed = await writeProtectedJson(fixture.root, binding.evidence_ref, proof);
+  binding.evidence_sha256 = changed.evidence_sha256;
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /did not restore the exact protected bundle/,
+  );
+});
+
 test("executed claims reject stale, nonexistent, tampered, or wrong-class protected proofs", async (t) => {
   const stale = await completedM365Fixture();
   t.after(() => rm(stale.root, { recursive: true, force: true }));
@@ -109,6 +163,12 @@ test("executed packet rejects control drift, unknown ProductId, and dual-prefix 
   const traversal = clone(fixture.receipt);
   traversal.prerequisites.api_release.evidence_ref = "../api.json";
   assert.throws(() => validateM365ReleaseReceipt(traversal, fixture.options), /unsafe/);
+  const rollbackSwap = clone(fixture.options.rollback);
+  rollbackSwap.profiles[0].entry_bundle = clone(rollbackSwap.profiles[1].entry_bundle);
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, { ...fixture.options, rollback: rollbackSwap }),
+    /M365 rollback context mismatch/,
+  );
 });
 
 test("host and propagation claims require protected evidence matching each receipt row", async (t) => {

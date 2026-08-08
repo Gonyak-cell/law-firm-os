@@ -1,9 +1,12 @@
-import { SHA256 } from "./constants.mjs";
+import { MUTATION_ACTIONS, SHA256 } from "./constants.mjs";
 import {
   assertEqual, assertExactKeys, assertSha256, canonical, concreteText, profileMap, sha256, sorted,
 } from "./primitives.mjs";
 import { assertConcreteList, assertObservedAt, assertProofBase } from "./proof-common.mjs";
 import { readProtectedJsonDocument, readProtectedJsonProof } from "./protected-evidence.mjs";
+import {
+  MUTATION_AUTHORIZATION_FIELDS, validateMutationAuthorization,
+} from "./mutation-authorization.mjs";
 import { staticReleaseProjection, validateStaticDryRunPlan } from "./static-plan.mjs";
 
 function assertArtifact(proof, prerequisite, name) {
@@ -13,9 +16,9 @@ function assertArtifact(proof, prerequisite, name) {
 
 function validateApi(proof, prerequisite, context) {
   assertProofBase(proof, "amic-os.api-deployment-proof.v1", "api_release", context.identity, [
-    "artifact_sha256", "authorization_evidence_sha256", "aws_account_id", "deployed_artifact_sha256",
+    "artifact_sha256", "aws_account_id", "deployed_artifact_sha256",
     "environment_after", "environment_before", "environment_preserved", "function_name", "mutation_count",
-    "observed_at_utc", "region", "status",
+    "observed_at_utc", "region", "status", ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
   assertArtifact(proof, prerequisite, "api_release");
   for (const [name, projection] of [["before", proof.environment_before], ["after", proof.environment_after]]) {
@@ -26,32 +29,33 @@ function validateApi(proof, prerequisite, context) {
   }
   if (proof.function_name !== context.contract.api.function_name
     || proof.aws_account_id !== context.contract.api.aws_account_id || proof.region !== context.contract.api.region
-    || proof.authorization_evidence_sha256 !== context.authorizationHash
     || proof.deployed_artifact_sha256 !== proof.artifact_sha256
     || JSON.stringify(proof.environment_before) !== JSON.stringify(proof.environment_after)
     || proof.environment_preserved !== true || proof.mutation_count !== 1
     || proof.status !== "deployed_readback_verified") throw new Error("API deployment/environment proof is incomplete");
-  assertObservedAt(proof.observed_at_utc, "API deployment observation");
+  validateMutationAuthorization(proof, MUTATION_ACTIONS.api_release, context, "api_release");
 }
 
 function validateMigrations(proof, prerequisite, context) {
   assertProofBase(proof, "amic-os.migration-readback-proof.v1", "additive_migrations", context.identity, [
     "applied_migrations_sha256", "artifact_sha256", "destructive_migrations", "migration_ids",
-    "observed_at_utc", "rollback_compatible", "status", "transaction_verified",
+    "mutation_count", "observed_at_utc", "rollback_compatible", "status", "transaction_verified",
+    ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
   assertArtifact(proof, prerequisite, "additive_migrations");
   assertConcreteList(proof.migration_ids, "migration IDs");
   if (proof.applied_migrations_sha256 !== sha256(JSON.stringify(sorted(proof.migration_ids)))
     || proof.artifact_sha256 !== proof.applied_migrations_sha256 || proof.destructive_migrations !== false
-    || proof.rollback_compatible !== true || proof.transaction_verified !== true
+    || proof.rollback_compatible !== true || proof.transaction_verified !== true || proof.mutation_count !== 1
     || proof.status !== "applied_readback_verified") throw new Error("additive migration proof is incomplete");
-  assertObservedAt(proof.observed_at_utc, "migration observation");
+  validateMutationAuthorization(proof, MUTATION_ACTIONS.additive_migrations, context, "additive_migrations");
 }
 
 function validateGraph(proof, prerequisite, context) {
   assertProofBase(proof, "amic-os.graph-runtime-proof.v1", "graph_endpoint_and_secret_reference", context.identity, [
     "artifact_sha256", "delegated_scopes", "delegated_scopes_sha256", "endpoint_origin",
-    "observed_at_utc", "provider_readback", "secret_reference", "status",
+    "mutation_count", "observed_at_utc", "provider_readback", "secret_reference", "status",
+    ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
   assertArtifact(proof, prerequisite, "graph_endpoint_and_secret_reference");
   const scopes = sorted(context.contract.client_outlook_graph_connection_scopes);
@@ -60,14 +64,16 @@ function validateGraph(proof, prerequisite, context) {
   if (proof.endpoint_origin !== projection.endpoint_origin || !concreteText(proof.secret_reference, "Graph secret reference").startsWith("secretsmanager://")
     || proof.delegated_scopes_sha256 !== sha256(JSON.stringify(scopes))
     || proof.artifact_sha256 !== sha256(JSON.stringify(canonical(projection)))
-    || proof.provider_readback !== true || proof.status !== "verified") throw new Error("Graph runtime proof is incomplete");
-  assertObservedAt(proof.observed_at_utc, "Graph runtime observation");
+    || proof.mutation_count !== 1 || proof.provider_readback !== true || proof.status !== "verified") {
+    throw new Error("Graph runtime proof is incomplete");
+  }
+  validateMutationAuthorization(proof, MUTATION_ACTIONS.graph_endpoint_and_secret_reference, context, "Graph config/secret");
 }
 
 function validateDocuSign(proof, prerequisite, context) {
   assertProofBase(proof, "amic-os.docusign-runtime-proof.v1", "docusign_endpoint_and_secret_reference", context.identity, [
     "artifact_sha256", "endpoint_origin", "integration_key_fingerprint_sha256", "observed_at_utc",
-    "provider_readback", "secret_reference", "status",
+    "mutation_count", "provider_readback", "secret_reference", "status", ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
   assertArtifact(proof, prerequisite, "docusign_endpoint_and_secret_reference");
   const endpoints = new Set(["https://demo.docusign.net/restapi", "https://www.docusign.net/restapi"]);
@@ -76,8 +82,10 @@ function validateDocuSign(proof, prerequisite, context) {
   if (!endpoints.has(proof.endpoint_origin) || !secretRef.startsWith("secretsmanager://")
     || !SHA256.test(proof.integration_key_fingerprint_sha256 ?? "")
     || proof.artifact_sha256 !== sha256(JSON.stringify(canonical(projection)))
-    || proof.provider_readback !== true || proof.status !== "verified") throw new Error("DocuSign runtime proof is incomplete");
-  assertObservedAt(proof.observed_at_utc, "DocuSign runtime observation");
+    || proof.mutation_count !== 1 || proof.provider_readback !== true || proof.status !== "verified") {
+    throw new Error("DocuSign runtime proof is incomplete");
+  }
+  validateMutationAuthorization(proof, MUTATION_ACTIONS.docusign_endpoint_and_secret_reference, context, "DocuSign config/secret");
 }
 
 function validateRuntime(proof, prerequisite, context, kind) {
@@ -96,8 +104,8 @@ function validateRuntime(proof, prerequisite, context, kind) {
 
 function validateStatic(proof, prerequisite, context) {
   assertProofBase(proof, "amic-os.static-deployment-proof.v1", "static_release", context.identity, [
-    "artifact_sha256", "authorization_evidence_sha256", "mutation_count", "observed_at_utc",
-    "plan_evidence", "profiles", "status",
+    "artifact_sha256", "mutation_count", "observed_at_utc", "plan_evidence", "profiles", "status",
+    ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
   assertArtifact(proof, prerequisite, "static_release");
   const loaded = readProtectedJsonDocument(context.store, proof.plan_evidence, "static release plan");
@@ -117,9 +125,9 @@ function validateStatic(proof, prerequisite, context) {
     }
   }
   if (proof.artifact_sha256 !== context.releaseCandidate.inventory_sha256
-    || proof.authorization_evidence_sha256 !== context.authorizationHash || proof.mutation_count !== 2
+    || proof.mutation_count !== 2
     || proof.status !== "deployed_readback_verified") throw new Error("static deployment proof is incomplete");
-  assertObservedAt(proof.observed_at_utc, "static deployment observation");
+  validateMutationAuthorization(proof, MUTATION_ACTIONS.static_release, context, "static_release");
   return { plan, planSha256: loaded.evidence_sha256, projection: expectedProjection };
 }
 

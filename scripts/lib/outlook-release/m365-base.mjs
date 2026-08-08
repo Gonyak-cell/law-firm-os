@@ -1,7 +1,7 @@
 import { GIT_OID, SHA256 } from "./constants.mjs";
 import { validateReleaseCandidateReceipt } from "./candidate.mjs";
 import {
-  assertEqual, assertExactKeys, assertNoSensitiveMaterial, assertSafeRelativePath, profileMap, sorted,
+  assertEqual, assertExactKeys, assertNoSensitiveMaterial, assertSafeRelativePath, canonical, profileMap, sorted,
 } from "./primitives.mjs";
 
 const RECEIPT_KEYS = [
@@ -79,6 +79,8 @@ function validatePrerequisitePackets(receipt, contract) {
 
 export function validateM365Envelope(receipt, options) {
   const { contract, releaseCandidate, releaseContext, expectedSourceIdentity } = options;
+  assertEqual(canonical(options.baseline), canonical(releaseContext?.baseline), "M365 baseline context");
+  assertEqual(canonical(options.rollback), canonical(releaseContext?.rollback), "M365 rollback context");
   assertNoSensitiveMaterial(receipt, "M365 release receipt");
   assertExactKeys(receipt, RECEIPT_KEYS, "M365 release receipt");
   if (receipt.schema_version !== "amic-os.outlook-m365-release.v1" || !GIT_OID.test(receipt.source_sha ?? "")

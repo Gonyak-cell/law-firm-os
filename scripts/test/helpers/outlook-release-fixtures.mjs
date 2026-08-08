@@ -45,28 +45,44 @@ export const fixturePackageLockBytes = Buffer.from(JSON.stringify(fixturePackage
 export const sourceIdentity = {
   source_sha: oid("a"), source_tree: oid("b"), package_lock_sha256: sha256(fixturePackageLockBytes),
 };
-export const contractArtifacts = {
-  baseline: { ref: contract.baseline_receipt, sha256: sha256(baselineBytes) },
-  release_gate: { ref: contractRef, sha256: sha256(contractBytes) },
-  rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
-  surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
-};
-export const releaseContext = {
-  baseline,
-  contractArtifacts,
-  existingPaths: new Set([...contract.required_release_paths, ...contract.required_test_paths]),
-  expectedSourceIdentity: sourceIdentity,
-  manifestHashesByPath: Object.fromEntries(contract.manifests.map((manifest) => {
-    const profile = contract.profiles.find(({ production_manifest }) => production_manifest === manifest);
-    return [manifest, profile ? (profile.profile === "matter-full" ? hex("1") : hex("2")) : sha256(manifest)];
-  })),
-  packageLock: fixturePackageLock,
-  packageLockBytes: fixturePackageLockBytes,
-  rollback,
-  surface,
-};
+function artifactsFor(baselineArtifactBytes = baselineBytes, rollbackArtifactBytes = rollbackBytes) {
+  return {
+    baseline: { ref: contract.baseline_receipt, sha256: sha256(baselineArtifactBytes) },
+    release_gate: { ref: contractRef, sha256: sha256(contractBytes) },
+    rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackArtifactBytes) },
+    surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
+  };
+}
 
-export function releaseCandidate(candidateManifestHashes = { "matter-full": hex("1"), "inquiry-only": hex("2") }) {
+export function releaseContextFor({
+  baseline: baselineValue = baseline,
+  rollback: rollbackValue = rollback,
+  baselineArtifactBytes = baselineBytes,
+  rollbackArtifactBytes = rollbackBytes,
+} = {}) {
+  return {
+    baseline: baselineValue,
+    contractArtifacts: artifactsFor(baselineArtifactBytes, rollbackArtifactBytes),
+    existingPaths: new Set([...contract.required_release_paths, ...contract.required_test_paths]),
+    expectedSourceIdentity: sourceIdentity,
+    manifestHashesByPath: Object.fromEntries(contract.manifests.map((manifest) => {
+      const profile = contract.profiles.find(({ production_manifest }) => production_manifest === manifest);
+      return [manifest, profile ? (profile.profile === "matter-full" ? hex("1") : hex("2")) : sha256(manifest)];
+    })),
+    packageLock: fixturePackageLock,
+    packageLockBytes: fixturePackageLockBytes,
+    rollback: rollbackValue,
+    surface,
+  };
+}
+
+export const contractArtifacts = artifactsFor();
+export const releaseContext = releaseContextFor();
+
+export function releaseCandidate(
+  candidateManifestHashes = { "matter-full": hex("1"), "inquiry-only": hex("2") },
+  context = releaseContext,
+) {
   const build = validateBuildInventories(inventory(), inventory(), contract);
   const graphScopes = [...contract.client_outlook_graph_connection_scopes].sort();
   const oauthScopes = [...contract.client_outlook_oauth_scopes].sort();
@@ -103,13 +119,13 @@ export function releaseCandidate(candidateManifestHashes = { "matter-full": hex(
     })),
     coverage: { required_path_count: contract.required_release_paths.length + contract.required_test_paths.length },
     licenses: validateDependencyLicenses(fixturePackageLock, contract),
-    rollback: validateRollbackContract(rollback, baseline, contract),
-    surface: validateSurfaceSeparation(surface, baseline, contract),
+    rollback: validateRollbackContract(context.rollback, context.baseline, contract),
+    surface: validateSurfaceSeparation(surface, context.baseline, contract),
     graph_scopes: {
       graph_connection_scopes: graphScopes, oauth_scopes: oauthScopes,
       fingerprint_sha256: sha256(JSON.stringify({ graphScopes, oauthScopes })), diff: "none",
     },
-    contract_artifacts: contractArtifacts,
+    contract_artifacts: context.contractArtifacts,
     runtime_provider_calls: 0,
     external_mutations: 0,
     allowed_claim: "Exact source, deterministic local build, four official manifest validations, frozen profile drift, rollback metadata, and dependency licenses passed.",
@@ -124,10 +140,13 @@ export function candidateManifestProjections() {
   };
 }
 
-export function staticPlanFor(hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") }) {
+export function staticPlanFor(
+  hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") },
+  context = releaseContext,
+) {
   return buildStaticDryRunPlan({
-    releaseReceipt: releaseCandidate(hashes),
-    releaseContext,
+    releaseReceipt: releaseCandidate(hashes, context),
+    releaseContext: context,
     sourceLocations: Object.fromEntries(Object.entries(candidateManifestProjections()).map(([profile, value]) => [
       profile, value.form_source_locations,
     ])),
@@ -136,7 +155,10 @@ export function staticPlanFor(hashes = { "matter-full": hex("1"), "inquiry-only"
   });
 }
 
-export function awaitingM365Receipt(hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") }) {
+export function awaitingM365Receipt(
+  hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") },
+  { baseline: baselineValue = baseline, rollback: rollbackValue = rollback } = {},
+) {
   return {
     schema_version: "amic-os.outlook-m365-release.v1", status: "awaiting_authorized_deployment",
     ...sourceIdentity, version: contract.release_version, permission_event_assignment_diff: "none",
@@ -147,8 +169,8 @@ export function awaitingM365Receipt(hashes = { "matter-full": hex("1"), "inquiry
     }])),
     authorization_ref: null, go_live_approval_ref: null, mutation_count: 0,
     profiles: contract.profiles.map((profile, index) => {
-      const deployed = baseline.profiles.find(({ product_id }) => product_id === profile.product_id);
-      const fallback = rollback.profiles.find(({ product_id }) => product_id === profile.product_id);
+      const deployed = baselineValue.profiles.find(({ product_id }) => product_id === profile.product_id);
+      const fallback = rollbackValue.profiles.find(({ product_id }) => product_id === profile.product_id);
       return {
         profile: profile.profile, product_id: profile.product_id, permission: profile.permission,
         deployment_mode: "fixed", source_locations: candidateManifestProjections()[profile.profile].form_source_locations,
@@ -169,9 +191,13 @@ export function awaitingM365Receipt(hashes = { "matter-full": hex("1"), "inquiry
   };
 }
 
-export function m365Options(hashes, protectedEvidence) {
+export function m365Options(hashes, protectedEvidence, values = {}) {
+  const context = values.releaseContext ?? releaseContext;
+  const baselineValue = values.baseline ?? context.baseline;
+  const rollbackValue = values.rollback ?? context.rollback;
   return {
-    contract, baseline, rollback, releaseCandidate: releaseCandidate(hashes), releaseContext,
+    contract, baseline: baselineValue, rollback: rollbackValue,
+    releaseCandidate: values.releaseCandidate ?? releaseCandidate(hashes, context), releaseContext: context,
     candidateManifestHashes: hashes, candidateManifestProjections: candidateManifestProjections(),
     expectedSourceIdentity: sourceIdentity, protectedEvidence,
   };

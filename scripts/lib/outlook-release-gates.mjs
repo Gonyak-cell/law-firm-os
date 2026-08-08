@@ -1,13 +1,17 @@
 export { validateApiArtifactEntries, validateApiArtifactRelease } from "./outlook-release/api-artifact.mjs";
 export { collectBuildInventory, validateBuildInventories } from "./outlook-release/build.mjs";
 export {
-  validateCoveragePaths, validateRollbackContract, validateSurfaceSeparation,
+  validateCoveragePaths, validateSurfaceSeparation,
 } from "./outlook-release/candidate-proofs.mjs";
 export { validateReleaseCandidateReceipt } from "./outlook-release/candidate.mjs";
 export { validateReleaseContract } from "./outlook-release/contract.mjs";
+export { validateRollbackContract } from "./outlook-release/rollback-contract.mjs";
+export { validateProtectedRollbackEvidence } from "./outlook-release/rollback-evidence.mjs";
 export { validateDependencyLicenses } from "./outlook-release/license.mjs";
 export { validateM365ReleaseReceipt } from "./outlook-release/m365.mjs";
-export { openProtectedEvidenceRoot, readProtectedJsonDocument, readProtectedJsonProof } from "./outlook-release/protected-evidence.mjs";
+export {
+  openProtectedEvidenceRoot, readProtectedArtifact, readProtectedJsonDocument, readProtectedJsonProof,
+} from "./outlook-release/protected-evidence.mjs";
 export { assertNoSensitiveMaterial, sha256 } from "./outlook-release/primitives.mjs";
 export {
   buildStaticDryRunPlan, staticReleaseProjection, validateStaticDryRunPlan,

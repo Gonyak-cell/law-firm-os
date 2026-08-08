@@ -28,7 +28,7 @@ The candidate validator:
 2. binds `package-lock.json` and the Git tree;
 3. requires the named correction, task, time, Graph, precedent, DOCX, and DocuSign source/test paths;
 4. checks every non-link lockfile dependency against the license allowlist and requires `docx` and `docusign-esign` under their reviewed MIT licenses;
-5. validates the two fixed ProductIds, `ReadItem`, assignments, host/event separation, and independent immutable rollback references;
+5. validates the two fixed ProductIds, `ReadItem`, assignments, host/event separation, and independent immutable rollback manifest/task-pane/bundle/inventory references;
 6. builds twice and compares every output path, byte count, and SHA-256;
 7. rejects source maps, private-key formats, local source paths, secret-like values, and raw MIME in the static output;
 8. runs the official `office-addin-manifest@2.1.6` validator against all four local/production manifests; and
@@ -107,7 +107,7 @@ An executed receipt uses the same command. It does not accept an untrusted plan 
 
 The executed `execution_control` must also be complete and evidence-bound:
 
-- a protected authorization proof with the exact `authorization_ref`, `operator_ref`, `owner_ref`, authorized actions, and UTC change-window start/end;
+- a protected authorization proof with the exact `authorization_ref`, `operator_ref`, `owner_ref`, UTC change-window start/end, and all six executed actions: API/Lambda code deployment, additive migrations, Graph endpoint/secret configuration, DocuSign endpoint/secret configuration, dual-namespace static publication, and Microsoft 365 central manifest update;
 - a protected pilot-assignment proof with opaque group references, both ProductIds, per-product assignment counts/fingerprints, and an aggregate assignment fingerprint;
 - non-empty monitoring criteria and abort criteria copied exactly from a protected monitoring-plan proof owned by `owner_ref`;
 - a protected rollback rehearsal for both ProductIds and the exact `rollback_readback_owner_ref`; and
@@ -123,7 +123,7 @@ node scripts/validate-outlook-m365-release-receipt.mjs \
   --receipt <protected-m365-receipt.json>
 ```
 
-It is invalid while any prerequisite remains pending. `static_release` binds the protected plan SHA-256 and both profile inventory/manifest/task-pane/bundle hashes, exact target prefixes, and true SourceLocation coverage; its prerequisite binds the same plan and complete candidate inventory. After separately authorized API/migration/static work and a pilot central update, the receipt contains exact task-pane HTML, entry-bundle, per-prefix inventory, and HTTP readbacks for both SourceLocations, two independent central-update operation references, and two central readbacks. Each central readback matches the exact ProductId, candidate manifest SHA-256, version, fixed deployment mode, SourceLocations, enabled state, assignment count, and sanitized assignment fingerprint. Deleting/re-registering either app or reusing one app's rollback for the other is invalid.
+It is invalid while any prerequisite remains pending. Each mutating prerequisite copies the protected authorization ref/hash, operator, owner, and exact start/end window and must record its observation inside that window. A central/static-only authorization cannot validate an API, migration, Graph, or DocuSign configuration mutation. `static_release` binds the protected plan SHA-256 and both profile inventory/manifest/task-pane/bundle hashes, exact target prefixes, and true SourceLocation coverage; its prerequisite binds the same plan and complete candidate inventory. After separately authorized API/migration/static work and a pilot central update, the receipt contains exact task-pane HTML, entry-bundle, per-prefix inventory, and HTTP readbacks for both SourceLocations, two independent central-update operation references, and two central readbacks. Each central readback matches the exact ProductId, candidate manifest SHA-256, version, fixed deployment mode, SourceLocations, enabled state, assignment count, and sanitized assignment fingerprint. Deleting/re-registering either app or reusing one app's rollback for the other is invalid.
 
 Propagation is a separate claim. Every row has its own protected proof file and byte SHA-256. It becomes true only when both ProductIds have exact protected readback observations at T+0, T+24, T+48, and T+72. The 72-hour window is an observation schedule, not an SLA or automatic pass.
 
@@ -140,4 +140,4 @@ Matter/full evidence covers read, compose, and `OnMessageSend`; inquiry-only cov
 
 ## Rollback
 
-The two `1.0.1.1` rollback records in `contracts/outlook-addin-rollback.json` are independent and identity/hash-bound. A rollback operation must use the matching ProductId's protected manifest and immutable URL, then repeat version, enabled-state, permission/event, assignment, and SourceLocation readback. Rolling back one app does not authorize or imply rollback of the other.
+The two `1.0.1.1` rollback records in `contracts/outlook-addin-rollback.json` are independent and identity/hash-bound. Each record binds the historical source SHA, ProductId, version, SourceLocations, protected manifest, task-pane HTML, entry bundle, complete protected static-inventory proof, and (Matter only) event runtime. The validator reads every referenced regular-file byte from the trusted root, verifies each SHA-256 and byte count, requires all profile static paths, and rejects missing, shared, swapped, stale, or hash-mismatched artifacts. A rollback rehearsal must read back the exact manifest, task pane, entry, complete inventory, event runtime, permission/events, assignments, and SourceLocations and bind their canonical readback hash. Rolling back one app does not authorize or imply rollback of the other.

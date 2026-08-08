@@ -2,7 +2,7 @@ import {
   APPROVED_LICENSES, CLIENT_GRAPH_SCOPES, CLIENT_OAUTH_SCOPES, FORBIDDEN_BUILD_SUFFIXES,
   FORBIDDEN_BUILD_TEXT, MANIFEST_PATHS, PRODUCT_IDS, PROFILE_CONTRACTS, PROFILE_NAMES,
   REQUIRED_COMMON_HOST_SCENARIOS, REQUIRED_HOSTS, REQUIRED_PREREQUISITES,
-  REQUIRED_PROOF_CLASSES, REQUIRED_RELEASE_PATHS, REQUIRED_STATIC_PATHS, REQUIRED_TEST_PATHS,
+  REQUIRED_MUTATION_ACTIONS, REQUIRED_PROOF_CLASSES, REQUIRED_RELEASE_PATHS, REQUIRED_STATIC_PATHS, REQUIRED_TEST_PATHS,
   STATIC_NAMESPACES,
 } from "./constants.mjs";
 import { assertEqual, canonical, sorted } from "./primitives.mjs";
@@ -55,6 +55,7 @@ export function validateReleaseContract(contract) {
   assertEqual(sorted(contract.m365?.required_host_evidence ?? []), sorted(REQUIRED_HOSTS), "M365 Outlook hosts");
   assertEqual(sorted(contract.m365?.required_common_host_scenarios ?? []), sorted(REQUIRED_COMMON_HOST_SCENARIOS), "M365 common host scenarios");
   assertEqual(sorted(contract.m365?.required_prerequisites ?? []), sorted(REQUIRED_PREREQUISITES), "M365 prerequisites");
+  assertEqual(sorted(contract.m365?.required_mutation_actions ?? []), sorted(REQUIRED_MUTATION_ACTIONS), "M365 mutation actions");
   assertEqual(contract.m365?.required_profile_scenarios, {
     "matter-full": ["read", "compose", "on-message-send"],
     "inquiry-only": ["read"],

@@ -1,4 +1,4 @@
-import { PRODUCT_IDS } from "./constants.mjs";
+import { PRODUCT_IDS, REQUIRED_MUTATION_ACTIONS } from "./constants.mjs";
 import {
   assertEqual, assertExactKeys, assertSha256, canonical, concreteText, profileMap, sha256,
   sorted, utcMillis,
@@ -7,6 +7,7 @@ import {
   assertConcreteList, assertEvidenceBinding, assertObservedAt, assertProofBase,
 } from "./proof-common.mjs";
 import { readProtectedJsonProof } from "./protected-evidence.mjs";
+import { validateProtectedRollbackEvidence } from "./rollback-evidence.mjs";
 
 const CONTROL_KEYS = [
   "abort_criteria", "authorization_evidence", "central_deployment_evidence", "go_live_evidence",
@@ -33,11 +34,11 @@ function validateAuthorization(control, context) {
     "window_end_utc", "window_start_utc",
   ]);
   assertConcreteList(proof.authorized_actions, "authorized actions");
-  const requiredActions = ["m365_central_manifest_update", "static_dual_namespace_publish"];
-  if (proof.approved !== true || sorted(proof.authorized_actions).join("|") !== sorted(requiredActions).join("|")
+  if (proof.approved !== true
+    || sorted(proof.authorized_actions).join("|") !== sorted(REQUIRED_MUTATION_ACTIONS).join("|")
     || proof.operator_ref !== control.operator_ref || proof.owner_ref !== control.owner_ref
     || proof.window_start_utc !== control.window_start_utc || proof.window_end_utc !== control.window_end_utc) {
-    throw new Error("M365 authorization proof is not bound to the execution controls");
+    throw new Error("M365 authorization proof does not exactly authorize every executed mutation class");
   }
   concreteText(proof.authorization_ref, "M365 authorization_ref");
   assertObservedAt(proof.approved_at_utc, "M365 authorization approval");
@@ -94,19 +95,22 @@ function validateMonitoring(control, context) {
 }
 
 function validateRollback(control, context) {
+  const restored = validateProtectedRollbackEvidence(
+    context.rollback, context.baseline, context.contract, context.store,
+  );
   const loaded = readProtectedJsonProof(context.store, assertEvidenceBinding(control.rollback_rehearsal_evidence, "rollback rehearsal evidence"), "rollback_rehearsal");
   const proof = loaded.proof;
   assertProofBase(proof, "amic-os.m365-rollback-rehearsal-proof.v1", "rollback_rehearsal", context.identity, [
     "owner_ref", "profiles", "rehearsed_at_utc", "result",
   ]);
   const profiles = profileMap(proof.profiles, "rollback rehearsal proof");
-  const rollbacks = profileMap(context.rollback.profiles, "rollback contract");
-  for (const productId of PRODUCT_IDS) {
-    const profile = profiles.get(productId);
-    assertExactKeys(profile, ["product_id", "readback_sha256", "result", "rollback_manifest_sha256"], "rollback rehearsal profile");
-    if (profile.rollback_manifest_sha256 !== rollbacks.get(productId).rollback_manifest_sha256
-      || !/^([a-f0-9]{64})$/u.test(profile.readback_sha256 ?? "") || profile.result !== "pass") {
-      throw new Error(`rollback rehearsal is incomplete for ${productId}`);
+  for (const expected of restored.profiles) {
+    const profile = profiles.get(expected.product_id);
+    assertExactKeys(profile, [...Object.keys(expected), "readback_sha256", "result"], "rollback rehearsal profile");
+    const projection = Object.fromEntries(Object.keys(expected).map((key) => [key, profile[key]]));
+    if (JSON.stringify(canonical(projection)) !== JSON.stringify(canonical(expected))
+      || profile.readback_sha256 !== sha256(JSON.stringify(canonical(expected))) || profile.result !== "pass") {
+      throw new Error(`rollback rehearsal did not restore the exact protected bundle for ${expected.product_id}`);
     }
   }
   if (proof.owner_ref !== control.rollback_readback_owner_ref || proof.result !== "pass") {

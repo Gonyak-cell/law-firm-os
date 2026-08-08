@@ -23,6 +23,9 @@ test("release contract binds dual ProductIds, four manifests, and protected proo
   const untrusted = clone(contract);
   untrusted.m365.protected_evidence.reject_symlinks = false;
   assert.throws(() => validateReleaseContract(untrusted), /trust boundary/);
+  const unauthorizedClass = clone(contract);
+  unauthorizedClass.m365.required_mutation_actions.pop();
+  assert.throws(() => validateReleaseContract(unauthorizedClass), /M365 mutation actions mismatch/);
 });
 
 test("surface and rollback preserve ProductId-specific events and immutable assignments", () => {
@@ -35,7 +38,7 @@ test("surface and rollback preserve ProductId-specific events and immutable assi
   assert.throws(() => validateSurfaceSeparation(eventLeak, baseline, contract), /leaked/);
   const sharedRollback = clone(rollback);
   sharedRollback.profiles[1].protected_manifest_ref = sharedRollback.profiles[0].protected_manifest_ref;
-  assert.throws(() => validateRollbackContract(sharedRollback, baseline, contract), /not independent/);
+  assert.throws(() => validateRollbackContract(sharedRollback, baseline, contract), /shared across rollback profiles/);
   const unknown = clone(surface);
   unknown.profiles.push({ ...unknown.profiles[0], product_id: "00000000-0000-0000-0000-000000000000" });
   assert.throws(() => validateSurfaceSeparation(unknown, baseline, contract), /ProductIds/);

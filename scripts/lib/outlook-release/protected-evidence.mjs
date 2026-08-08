@@ -57,12 +57,18 @@ function readRegularFile(store, evidenceRef) {
   }
 }
 
-export function readProtectedJsonDocument(store, binding, name) {
+export function readProtectedArtifact(store, binding, name) {
   assertExactKeys(binding, ["evidence_ref", "evidence_sha256"], `${name} evidence binding`);
   const expectedHash = assertSha256(binding.evidence_sha256, `${name} evidence`);
   const bytes = readRegularFile(store, binding.evidence_ref);
   const actualHash = sha256(bytes);
   if (actualHash !== expectedHash) throw new Error(`${name} protected evidence SHA-256 mismatch`);
+  return Object.freeze({ bytes, evidence_ref: binding.evidence_ref, evidence_sha256: actualHash });
+}
+
+export function readProtectedJsonDocument(store, binding, name) {
+  const loaded = readProtectedArtifact(store, binding, name);
+  const { bytes } = loaded;
   let document;
   try {
     document = JSON.parse(bytes.toString("utf8"));
@@ -70,7 +76,7 @@ export function readProtectedJsonDocument(store, binding, name) {
     throw new Error(`${name} protected evidence is not valid JSON`);
   }
   assertNoSensitiveMaterial(document, `${name} protected evidence`);
-  return Object.freeze({ bytes, evidence_ref: binding.evidence_ref, evidence_sha256: actualHash, document });
+  return Object.freeze({ ...loaded, document });
 }
 
 export function readProtectedJsonProof(store, binding, expectedProofClass) {

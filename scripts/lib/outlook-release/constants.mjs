@@ -41,6 +41,15 @@ export const REQUIRED_PREREQUISITES = [
   "precedent_index_runtime",
   "static_release",
 ];
+export const MUTATION_ACTIONS = Object.freeze({
+  additive_migrations: "additive_migration_apply",
+  api_release: "api_lambda_code_deploy",
+  central_deployment: "m365_central_manifest_update",
+  docusign_endpoint_and_secret_reference: "docusign_endpoint_secret_config",
+  graph_endpoint_and_secret_reference: "graph_endpoint_secret_config",
+  static_release: "static_dual_namespace_publish",
+});
+export const REQUIRED_MUTATION_ACTIONS = Object.freeze(Object.values(MUTATION_ACTIONS));
 export const REQUIRED_PROOF_CLASSES = [
   ...REQUIRED_PREREQUISITES,
   "authorization",
@@ -51,6 +60,7 @@ export const REQUIRED_PROOF_CLASSES = [
   "propagation_observation",
   "real_outlook_host",
   "rollback_rehearsal",
+  "rollback_static_inventory",
 ];
 export const REQUIRED_RELEASE_PATHS = [
   "apps/addin/src/inquiry-entry.jsx",

@@ -162,6 +162,14 @@
       "approved_template_runtime",
       "precedent_index_runtime"
     ],
+    "required_mutation_actions": [
+      "api_lambda_code_deploy",
+      "additive_migration_apply",
+      "graph_endpoint_secret_config",
+      "docusign_endpoint_secret_config",
+      "static_dual_namespace_publish",
+      "m365_central_manifest_update"
+    ],
     "required_profile_scenarios": {
       "matter-full": ["read", "compose", "on-message-send"],
       "inquiry-only": ["read"]
@@ -182,6 +190,7 @@
         "pilot_assignment",
         "monitoring_plan",
         "rollback_rehearsal",
+        "rollback_static_inventory",
         "central_deployment",
         "propagation_observation",
         "real_outlook_host",

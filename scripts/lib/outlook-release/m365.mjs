@@ -29,6 +29,8 @@ export function validateM365ReleaseReceipt(receipt, options) {
     store: options.protectedEvidence,
     identity: options.expectedSourceIdentity,
     receipt,
+    baseline: options.baseline,
+    contract: options.contract,
     rollback: options.rollback,
   });
   if (receipt.authorization_ref !== controlProofs.authorization.proof.authorization_ref) {
@@ -45,7 +47,7 @@ export function validateM365ReleaseReceipt(receipt, options) {
     releaseCandidate: options.releaseCandidate,
     releaseContext: options.releaseContext,
     sourceLocations,
-    authorizationHash: controlProofs.authorization.loaded.evidence_sha256,
+    authorization: controlProofs.authorization,
   };
   const prerequisiteProofs = Object.fromEntries(Object.entries(envelope.prerequisites).map(([name, packet]) => [
     name,
@@ -54,6 +56,7 @@ export function validateM365ReleaseReceipt(receipt, options) {
   const staticProof = prerequisiteProofs.static_release;
   validateM365CentralDeployment(receipt, options, {
     ...receipt.execution_control,
+    authorization: controlProofs.authorization,
     authorization_evidence: receipt.execution_control.authorization_evidence,
   }, staticProof);
   validateM365Runtime(receipt, options, receipt.execution_control);

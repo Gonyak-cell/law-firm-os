@@ -1,8 +1,9 @@
 import { CANDIDATE_ALLOWED_CLAIM, CANDIDATE_BLOCKED_CLAIM, GIT_OID, SHA256 } from "./constants.mjs";
 import { validateBuildInventories } from "./build.mjs";
 import {
-  validateCoveragePaths, validateRollbackContract, validateSurfaceSeparation,
+  validateCoveragePaths, validateSurfaceSeparation,
 } from "./candidate-proofs.mjs";
+import { validateRollbackContract } from "./rollback-contract.mjs";
 import { validateReleaseContract } from "./contract.mjs";
 import { validateDependencyLicenses } from "./license.mjs";
 import {

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "candidate_version": "1.1.0.0",
   "rollback_version": "1.0.1.1",
   "authoritative_baseline_receipt": "contracts/outlook-addin-deployment-baseline.json",
@@ -7,18 +7,66 @@
     {
       "profile": "matter-full",
       "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "source_sha": "3b00fcc050ce3f64bf53d68de878467e5a76dec6",
+      "rollback_version": "1.0.1.1",
       "rollback_manifest_sha256": "f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271",
       "rollback_manifest_url": "https://d2mthcc8vp3cr2.cloudfront.net/addin/manifests/8f3cc90d-56dd-4c1c-b9c2-0a1100500101/1.0.1.1/manifest-f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271.xml",
       "protected_manifest_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/manifest.matter-full.1.0.1.1.xml",
+      "source_locations": ["https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"],
+      "permission": "ReadItem",
+      "launch_events": ["OnMessageSend:onMessageSendHandler:PromptUser"],
+      "taskpane_html": {
+        "path": "index.html",
+        "sha256": "02a0e8b8890db856a652a572f5b063ba711d5aea975a23402ee2882fe71f42fd",
+        "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/matter-full/index.html"
+      },
+      "entry_bundle": {
+        "path": "assets/index-DCg0lieT.js",
+        "sha256": "d304831048d70641d91e3a62833e51472bbc98f3f80e64a36798ba588f944cb7",
+        "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/matter-full/assets/index-DCg0lieT.js"
+      },
+      "static_inventory": {
+        "artifact_count": 11,
+        "inventory_sha256": "8350257a719692d994e7a2d8937643781a75800c9986a3f7e162799b617ae3c1",
+        "protected_inventory_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/matter-full/static-inventory.json",
+        "protected_inventory_sha256": "94449173fec6a040d858ec8d6ad1e29b9d5bbb3560a8aa643f7ca4ead2ff0014"
+      },
+      "event_runtime": {
+        "path": "event-runtime.js",
+        "sha256": "37efd3791469ff9171d726c70f075339064d2b42102b1847aeef7640949d68f0",
+        "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/matter-full/event-runtime.js"
+      },
       "assignment_count": 1,
       "sanitized_assignment_fingerprint_sha256": "99b7e267775e6ad68f33eb8b1be3006e71747cdd71a7afa99bfd5c9204c2f40e"
     },
     {
       "profile": "inquiry-only",
       "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "source_sha": "3b00fcc050ce3f64bf53d68de878467e5a76dec6",
+      "rollback_version": "1.0.1.1",
       "rollback_manifest_sha256": "a3664e40361f585ef405e3ed5cf03b2576251a44403366d21dea8a26f324cc66",
       "rollback_manifest_url": "https://d2mthcc8vp3cr2.cloudfront.net/addin/manifests/952431be-51b8-42a2-9bf6-769a15934e85/1.0.1.1/manifest-a3664e40361f585ef405e3ed5cf03b2576251a44403366d21dea8a26f324cc66.xml",
       "protected_manifest_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/manifest.inquiry-only.1.0.1.1.xml",
+      "source_locations": ["https://d2mthcc8vp3cr2.cloudfront.net/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&clientInquiryOnly=1"],
+      "permission": "ReadItem",
+      "launch_events": [],
+      "taskpane_html": {
+        "path": "outlook-addin/index.html",
+        "sha256": "858a069d51be223c488ea22bd4913d3b45094a85e58fe49472baf11d2af3d37f",
+        "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/inquiry-only/outlook-addin/index.html"
+      },
+      "entry_bundle": {
+        "path": "outlook-addin/assets/index-B7_AtpXg.js",
+        "sha256": "aad43bea39a51aef7e4adc666020eb4675870aea604a2451ea37430ee5588164",
+        "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/inquiry-only/outlook-addin/assets/index-B7_AtpXg.js"
+      },
+      "static_inventory": {
+        "artifact_count": 3,
+        "inventory_sha256": "45c767ff2a604b4347b53d1645aeb76d29c471a08e2ec9878e54b78928bab2eb",
+        "protected_inventory_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/inquiry-only/static-inventory.json",
+        "protected_inventory_sha256": "d024de630b3e3909b2b7e429c5ff64da51efc42836c552f6cb67ae3653d2367f"
+      },
+      "event_runtime": null,
       "assignment_count": 2,
       "sanitized_assignment_fingerprint_sha256": "ef09284c95e57df1d37eb5072d4ad8e65ff58bf127454cdfff67f1e0c6e3521d"
     }

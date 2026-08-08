@@ -1,7 +1,11 @@
 import {
-  assertEqual, assertExactKeys, canonical, profileMap, requiredText, utcMillis,
+  assertEqual, assertExactKeys, canonical, profileMap, requiredText,
 } from "./primitives.mjs";
-import { assertObservedAt, assertProofBase } from "./proof-common.mjs";
+import { MUTATION_ACTIONS } from "./constants.mjs";
+import {
+  MUTATION_AUTHORIZATION_FIELDS, validateMutationAuthorization,
+} from "./mutation-authorization.mjs";
+import { assertProofBase } from "./proof-common.mjs";
 import { readProtectedJsonProof } from "./protected-evidence.mjs";
 
 function validateStaticReceipt(receipt, staticResult) {
@@ -65,36 +69,25 @@ function validateCentralProof(receipt, options, controls, staticProof) {
   const loaded = readProtectedJsonProof(options.protectedEvidence, binding, "central_deployment");
   const proof = loaded.proof;
   assertProofBase(proof, "amic-os.m365-central-deployment-proof.v1", "central_deployment", options.expectedSourceIdentity, [
-    "authorization_evidence_sha256", "mutation_count", "observed_at_utc", "operations", "operator_ref",
-    "owner_ref", "pilot_assignment_fingerprint_sha256", "result", "static_proof_sha256", "static_readbacks",
-    "readbacks", "window_end_utc", "window_start_utc",
+    "mutation_count", "observed_at_utc", "operations", "pilot_assignment_fingerprint_sha256", "result",
+    "static_proof_sha256", "static_readbacks", "readbacks", ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
-  if (proof.authorization_evidence_sha256 !== controls.authorization_evidence.evidence_sha256
-    || proof.static_proof_sha256 !== staticProof.loaded.evidence_sha256
+  if (proof.static_proof_sha256 !== staticProof.loaded.evidence_sha256
     || proof.pilot_assignment_fingerprint_sha256 !== controls.pilot_assignment.fingerprint_sha256
-    || proof.operator_ref !== controls.operator_ref || proof.owner_ref !== controls.owner_ref
-    || proof.window_start_utc !== controls.window_start_utc || proof.window_end_utc !== controls.window_end_utc
     || proof.mutation_count !== receipt.mutation_count || proof.result !== "verified") {
     throw new Error("central deployment proof is not bound to the authorized execution controls");
   }
   assertEqual(canonical(proof.operations), canonical(receipt.operations), "central deployment operations evidence");
   assertEqual(canonical(proof.static_readbacks), canonical(receipt.static_readbacks), "central static readback evidence");
   assertEqual(canonical(proof.readbacks), canonical(receipt.readbacks), "central M365 readback evidence");
-  const observed = utcMillis(assertObservedAt(proof.observed_at_utc, "central deployment observation"));
-  if (observed < controls.window_start_utc_ms || observed > controls.window_end_utc_ms) {
-    throw new Error("central deployment proof is outside the authorized change window");
-  }
+  validateMutationAuthorization(proof, MUTATION_ACTIONS.central_deployment, controls, "central_deployment");
   return { loaded, proof };
 }
 
 export function validateM365CentralDeployment(receipt, options, controls, staticProof) {
   validateStaticReceipt(receipt, staticProof.result);
   validateProfileOperations(receipt, options, staticProof.result);
-  const proof = validateCentralProof(receipt, options, {
-    ...controls,
-    window_start_utc_ms: utcMillis(controls.window_start_utc, "M365 change window start"),
-    window_end_utc_ms: utcMillis(controls.window_end_utc, "M365 change window end"),
-  }, staticProof);
+  const proof = validateCentralProof(receipt, options, controls, staticProof);
   if (receipt.claims.central_deployment_verified !== true) throw new Error("central deployment readback claim is missing");
   return proof;
 }
