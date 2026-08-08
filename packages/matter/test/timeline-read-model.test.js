@@ -87,6 +87,36 @@ test("키셋 커서는 첫 페이지 뒤에 새 이벤트가 들어와도 다음
   assert.equal(second.visible_entries.some(({ event_id }) => event_id === "event-006"), false);
 });
 
+test("같은 시각의 event_id 정렬과 커서는 같은 이진 순서를 사용한다", () => {
+  // Given
+  const entries = [
+    entry("event-Z", "2026-08-08T03:00:00.000Z"),
+    entry("event-a", "2026-08-08T03:00:00.000Z"),
+    entry("event-0", "2026-08-08T03:00:00.000Z"),
+  ];
+  const first = buildMatterTimelineReadModel({
+    entries,
+    actor: {},
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    limit: 1,
+  });
+
+  // When
+  const second = buildMatterTimelineReadModel({
+    entries,
+    actor: {},
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    limit: 1,
+    cursor: first.page_info.next_cursor,
+  });
+
+  // Then
+  assert.deepEqual(first.visible_entries.map(({ event_id }) => event_id), ["event-a"]);
+  assert.deepEqual(second.visible_entries.map(({ event_id }) => event_id), ["event-Z"]);
+});
+
 test("권한과 tenant/Matter 필터는 페이지 계산 전에 적용되고 거부 건수는 반환하지 않는다", () => {
   // Given
   const entries = [

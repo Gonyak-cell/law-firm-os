@@ -91,6 +91,11 @@ function afterCursor(entry, cursor) {
     || (entry.occurred_at === cursor.occurred_at && entry.event_id < cursor.event_id);
 }
 
+function descendingText(left, right) {
+  if (left === right) return 0;
+  return left > right ? -1 : 1;
+}
+
 export function buildMatterTimelineReadModel({
   entries = [],
   actor = {},
@@ -107,8 +112,8 @@ export function buildMatterTimelineReadModel({
     .map(safeEntry)
     .filter(Boolean)
     .sort((left, right) => (
-      right.occurred_at.localeCompare(left.occurred_at)
-      || right.event_id.localeCompare(left.event_id)
+      descendingText(left.occurred_at, right.occurred_at)
+      || descendingText(left.event_id, right.event_id)
     ))
     .filter((entry) => afterCursor(entry, pageCursor));
   const hasMore = visible_entries.length > pageLimit;
