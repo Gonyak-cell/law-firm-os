@@ -12,6 +12,7 @@ import { createEmailFilingCorrectionService } from "../src/email-filing-correcti
 import { listEmailDmsPostgresMigrations } from "../src/migrations/index.js";
 import {
   MATTER_A,
+  MATTER_B,
   MATTER_C,
   SESSION,
   TENANT_ID,
@@ -149,5 +150,81 @@ test("OUTM-20 PostgreSQL service persists a reversible chain and atomically roll
   assert.deepEqual(dmsRepository.snapshot(), dmsSnapshot);
   assert.equal(dmsRepository.list({ tenant_id: TENANT_ID, model_type: "DmsDocument" }).length, 1);
   assert.equal(dmsRepository.list({ tenant_id: TENANT_ID, model_type: "DmsDocumentVersion" }).length, 1);
+  dmsRepository.close();
+});
+
+test("OUTM-20 PostgreSQL service normalizes concurrent same-prior correction to stale placement", async (t) => {
+  // Given: two service calls share one original placement in the real PostgreSQL adapter.
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  await prepareSchema(fixture);
+  const dmsRepository = createDmsRepository();
+  seedOriginalFiling(dmsRepository);
+  let sequence = 0;
+  const serviceFor = (repository) => createEmailFilingCorrectionService({
+    repository,
+    original_filing_resolver: createEmailFilingOriginalResolver({ repository: dmsRepository }),
+    id_factory: () => `postgres-concurrent-${sequence += 1}`,
+    clock: () => new Date(`2026-08-08T0${sequence + 1}:30:00.000Z`),
+    ...serviceDependencies(),
+  });
+  let repository = createPostgresEmailFilingCorrectionRepository({ pool: fixture.appPool });
+  let service = serviceFor(repository);
+  const prior = await service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
+
+  // When: A-to-B and A-to-C execute concurrently from the same prior placement.
+  const outcomes = await Promise.all([
+    correctionInput({ prior_placement_id: prior.placement_id }),
+    correctionInput({
+      target_matter_id: MATTER_C,
+      reason: "PostgreSQL 동시 정정 C",
+      idempotency_key: "outm20-postgres-concurrent-a-to-c",
+      prior_placement_id: prior.placement_id,
+    }),
+  ].map((command) => service.correct(command).then(
+    (value) => ({ kind: value.outcome, value }),
+    (error) => ({ kind: error?.code, error }),
+  )));
+
+  // Then: exactly one transaction commits and the other exposes the domain conflict.
+  assert.deepEqual(outcomes.map(({ kind }) => kind).sort(), [
+    "EMAIL_FILING_CORRECTION_STALE_PLACEMENT",
+    "created",
+  ]);
+  const winner = outcomes.find(({ kind }) => kind === "created");
+  assert.ok([MATTER_B, MATTER_C].includes(winner.value.current_placement.matter_id));
+  const persisted = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT_ID },
+    async (client) => ({
+      placements: Number((await client.query(
+        "SELECT count(*) AS count FROM lawos_email_dms.email_filing_placements",
+      )).rows[0].count),
+      audits: Number((await client.query(
+        "SELECT count(*) AS count FROM lawos_email_dms.email_filing_correction_audit_events",
+      )).rows[0].count),
+      leaves: (await client.query(
+        "SELECT placement_id, target_matter_id FROM lawos_email_dms.email_filing_current_placements",
+      )).rows,
+    }),
+    { readOnly: true },
+  );
+  assert.deepEqual(persisted, {
+    placements: 2,
+    audits: 1,
+    leaves: [{
+      placement_id: winner.value.current_placement.placement_id,
+      target_matter_id: winner.value.current_placement.matter_id,
+    }],
+  });
+
+  // And: a fresh adapter derives the identical leaf and two-event history.
+  repository = createPostgresEmailFilingCorrectionRepository({ pool: fixture.appPool });
+  service = serviceFor(repository);
+  const current = await service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
+  const history = await service.history({ session: SESSION, email_thread_id: THREAD_ID });
+  assert.equal(current.placement_id, winner.value.current_placement.placement_id);
+  assert.equal(current.matter_id, winner.value.current_placement.matter_id);
+  assert.equal(history.length, 2);
   dmsRepository.close();
 });

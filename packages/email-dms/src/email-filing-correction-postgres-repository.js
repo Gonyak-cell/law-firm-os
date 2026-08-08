@@ -1,6 +1,7 @@
 import { assertNoDmsPersistedSecrets } from "../../dms/src/persistence-guard.js";
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { normalizeEmailFilingPlacementEvent } from "./email-filing-correction-model.js";
+import { correctionTrustError } from "./email-filing-correction-trust-boundary.js";
 
 const PLACEMENT_COLUMNS = Object.freeze([
   "tenant_id", "placement_id", "event_kind", "correction_id", "email_thread_id",
@@ -49,7 +50,17 @@ function idempotencyFromEvent(event) {
   });
 }
 
-function transactionRepository(client, tenantId) {
+const DOMAIN_ERROR_MARKER = "LAWOS_EMAIL_FILING_CORRECTION_DOMAIN_ERROR";
+
+function stalePlacementError() {
+  return correctionTrustError(
+    "EMAIL_FILING_CORRECTION_STALE_PLACEMENT",
+    "expected placement is no longer current",
+  );
+}
+
+function transactionRepository(client, tenantId, readOnly) {
+  const lockedThreads = new Set();
   return Object.freeze({
     async appendPlacement(input = {}) {
       assertNoDmsPersistedSecrets(input, "email_filing_placement");
@@ -65,10 +76,18 @@ function transactionRepository(client, tenantId) {
     },
     async listPlacements(query = {}) {
       assertTenant(query.tenant_id, tenantId);
+      if (!readOnly && !lockedThreads.has(query.email_thread_id)) {
+        await client.query(
+          "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+          [`${tenantId}\u001f${query.email_thread_id}`],
+        );
+        lockedThreads.add(query.email_thread_id);
+      }
       const result = await client.query(
         `SELECT ${PLACEMENT_COLUMNS.join(", ")}
            FROM lawos_email_dms.email_filing_placements
-          WHERE tenant_id = $1 AND email_thread_id = $2`,
+          WHERE tenant_id = $1 AND email_thread_id = $2
+          ORDER BY occurred_at, placement_id${readOnly ? "" : " FOR UPDATE"}`,
         [tenantId, query.email_thread_id],
       );
       return Object.freeze(result.rows.map(eventFromRow));
@@ -137,15 +156,41 @@ export function createPostgresEmailFilingCorrectionRepository({ pool } = {}) {
     async transaction(options = {}, fn) {
       if (typeof fn !== "function") throw new TypeError("transaction callback is required");
       const tenantId = requireTenant(options.tenant_id);
-      return withPostgresTransaction(
-        pool,
-        {
-          tenant_id: tenantId,
-          isolationLevel: "serializable",
-          readOnly: options.read_only === true,
-        },
-        (client) => fn(transactionRepository(client, tenantId)),
-      );
+      const readOnly = options.read_only === true;
+      try {
+        return await withPostgresTransaction(
+          pool,
+          {
+            tenant_id: tenantId,
+            isolationLevel: "serializable",
+            readOnly,
+          },
+          async (client) => {
+            try {
+              return await fn(transactionRepository(client, tenantId, readOnly));
+            } catch (error) {
+              if (error?.code?.startsWith?.("EMAIL_FILING_CORRECTION_")) {
+                throw Object.assign(new Error(error.message), {
+                  code: DOMAIN_ERROR_MARKER,
+                  safe_error_code: error.safe_error_code,
+                  status: error.status,
+                  domain_error: error,
+                });
+              }
+              throw error;
+            }
+          },
+        );
+      } catch (error) {
+        if (error?.code === DOMAIN_ERROR_MARKER) throw error.domain_error;
+        if (
+          error?.code === "LAWOS_POSTGRES_CONFLICT"
+          || error?.code === "LAWOS_POSTGRES_RETRY_EXHAUSTED"
+        ) {
+          throw stalePlacementError();
+        }
+        throw error;
+      }
     },
   });
 }

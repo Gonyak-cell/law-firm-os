@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 import { assertNoDmsPersistedSecrets } from "../../dms/src/persistence-guard.js";
 import { normalizeEmailFilingPlacementEvent } from "./email-filing-correction-model.js";
@@ -28,6 +29,9 @@ export function createEmailFilingCorrectionRepository({
 } = {}) {
   let closed = false;
   let transactionDepth = 0;
+  let transactionTail = Promise.resolve();
+  const transactionContext = new AsyncLocalStorage();
+  const transactionOwner = Symbol("email-filing-correction-transaction");
   const controller = createDurableJsonStateController({
     filePath,
     defaultValue: EMPTY_STATE,
@@ -79,6 +83,33 @@ export function createEmailFilingCorrectionRepository({
   }
 
   hydrate(state);
+
+  function validateTransaction(options, fn) {
+    assertOpen();
+    if (typeof options?.tenant_id !== "string" || options.tenant_id.trim() === "") {
+      throw new TypeError("transaction tenant_id is required");
+    }
+    if (typeof fn !== "function") throw new TypeError("transaction callback is required");
+  }
+
+  async function runTransaction(options, fn, repository) {
+    validateTransaction(options, fn);
+    const before = normalizeState(currentState());
+    const entryDepth = transactionDepth;
+    transactionDepth += 1;
+    try {
+      const result = await fn(repository);
+      transactionDepth = entryDepth;
+      if (options.read_only !== true) persist();
+      return result;
+    } catch (error) {
+      if (!error?.durable_store_reloaded) hydrate(before);
+      transactionDepth = entryDepth;
+      throw error;
+    } finally {
+      transactionDepth = entryDepth;
+    }
+  }
 
   const repository = {
     durable: Boolean(filePath),
@@ -145,26 +176,23 @@ export function createEmailFilingCorrectionRepository({
         .map((event) => Object.freeze(clone(event))));
     },
     async transaction(options, fn) {
-      assertOpen();
-      if (typeof options?.tenant_id !== "string" || options.tenant_id.trim() === "") {
-        throw new TypeError("transaction tenant_id is required");
+      validateTransaction(options, fn);
+      const context = transactionContext.getStore();
+      if (context?.owner === transactionOwner && context.active) {
+        return runTransaction(options, fn, repository);
       }
-      if (typeof fn !== "function") throw new TypeError("transaction callback is required");
-      const before = normalizeState(currentState());
-      const entryDepth = transactionDepth;
-      transactionDepth += 1;
-      try {
-        const result = await fn(repository);
-        transactionDepth = entryDepth;
-        if (options.read_only !== true) persist();
-        return result;
-      } catch (error) {
-        if (!error?.durable_store_reloaded) hydrate(before);
-        transactionDepth = entryDepth;
-        throw error;
-      } finally {
-        transactionDepth = entryDepth;
-      }
+      const run = transactionTail.then(() => {
+        const ownerContext = { owner: transactionOwner, active: true };
+        return transactionContext.run(ownerContext, async () => {
+          try {
+            return await runTransaction(options, fn, repository);
+          } finally {
+            ownerContext.active = false;
+          }
+        });
+      });
+      transactionTail = run.then(() => undefined, () => undefined);
+      return run;
     },
     snapshot() {
       assertOpen();

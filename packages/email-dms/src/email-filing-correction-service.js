@@ -109,12 +109,18 @@ export function createEmailFilingCorrectionService({
           idempotency_key: idempotencyKey,
         });
         const sourceMatterId = existing?.source_matter_id ?? before.current.matter_id;
-        assertCorrectionClaim(input.source_matter_id, sourceMatterId);
         await requireCorrectionMatterAuthorization(authorizeMatter, {
           ...principal,
           matter_id: sourceMatterId,
           action: "email_filing_correction.source",
         });
+        if (!existing && input.prior_placement_id !== before.current.placement_id) {
+          throw correctionTrustError(
+            "EMAIL_FILING_CORRECTION_STALE_PLACEMENT",
+            "expected placement is no longer current",
+          );
+        }
+        assertCorrectionClaim(input.source_matter_id, sourceMatterId);
         await requireCorrectionMatterAuthorization(authorizeMatter, {
           ...principal,
           matter_id: targetMatterId,
@@ -148,12 +154,6 @@ export function createEmailFilingCorrectionService({
             );
           }
           return result("idempotent_replay", correction, before);
-        }
-        if (input.prior_placement_id !== before.current.placement_id) {
-          throw correctionTrustError(
-            "EMAIL_FILING_CORRECTION_STALE_PLACEMENT",
-            "expected placement is no longer current",
-          );
         }
         if (existingRecords.length === 0) {
           await tx.appendPlacement(createOriginalEmailFilingPlacement(original));
