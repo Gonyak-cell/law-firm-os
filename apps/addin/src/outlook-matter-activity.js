@@ -30,13 +30,40 @@ function boundedLimit(value) {
   return value;
 }
 
+function isExactIsoInstant(value) {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString() === value;
+}
+
+function cursorText(value) {
+  if (value === undefined || value === null || value === "") return "";
+  if (
+    typeof value !== "string"
+    || value.length > 8_192
+    || /[\s\u0000-\u001f\u007f]/u.test(value)
+  ) {
+    throw new TypeError("Outlook Matter activity cursor is invalid");
+  }
+  return value;
+}
+
 function safeRow(entry) {
+  if (entry?.source_ref !== null && entry?.source_ref !== undefined) {
+    if (
+      typeof entry.source_ref !== "string"
+      || !entry.source_ref
+      || entry.source_ref.length > 2048
+      || /[\u0000-\u001f\u007f]/u.test(entry.source_ref)
+    ) {
+      throw new TypeError("Outlook Matter activity source_ref is invalid");
+    }
+  }
   return Object.freeze({
     event_id: oneLine(entry?.event_id, 256),
     occurred_at: oneLine(entry?.occurred_at, 64),
     type: oneLine(entry?.type, 128),
     title: oneLine(entry?.title, 240),
-    source_ref: oneLine(entry?.source_ref, 2048) || null,
+    source_ref: entry?.source_ref ?? null,
   });
 }
 
@@ -58,26 +85,53 @@ export async function loadOutlookMatterActivity({
   }
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
   const nextLimit = boundedLimit(limit);
-  const nextCursor = text(cursor);
+  const nextCursor = cursorText(cursor);
   const params = new URLSearchParams({ limit: String(nextLimit) });
   if (nextCursor) params.set("cursor", nextCursor);
   const body = await requestJson(
     `/api/outlook/matters/${encodeURIComponent(nextMatterId)}/timeline?${params}`,
   );
-  const rows = (Array.isArray(body?.item?.visible_entries)
-    ? body.item.visible_entries
-    : [])
-    .map(safeRow)
-    .filter((row) => row.event_id && row.occurred_at && row.title);
+  if (
+    !text(body?.request_id)
+    || body?.outcome !== "passed"
+    || body?.item?.matter_id !== nextMatterId
+  ) {
+    throw new TypeError("Outlook Matter activity response is incomplete or mismatched");
+  }
+  if (!Array.isArray(body.item.visible_entries)) {
+    throw new TypeError("Outlook Matter activity entries are incomplete");
+  }
+  const entries = body.item.visible_entries;
+  if (entries.some((entry) => entry?.matter_id !== nextMatterId)) {
+    throw new TypeError("Outlook Matter activity row is mismatched");
+  }
+  const rows = entries
+    .map(safeRow);
+  if (rows.some((row) => (
+    !row.event_id
+    || !row.type
+    || !row.title
+    || !isExactIsoInstant(row.occurred_at)
+  ))) {
+    throw new TypeError("Outlook Matter activity row is incomplete or mismatched");
+  }
   const pageInfo = body?.item?.page_info ?? {};
+  if (
+    pageInfo.limit !== nextLimit
+    || typeof pageInfo.has_more !== "boolean"
+    || (pageInfo.has_more && !cursorText(pageInfo.next_cursor))
+    || (!pageInfo.has_more && pageInfo.next_cursor !== null)
+  ) {
+    throw new TypeError("Outlook Matter activity page receipt is incomplete or mismatched");
+  }
   return {
     status: rows.length > 0 ? "ready" : "empty",
     matter_id: nextMatterId,
     rows,
     page_info: {
-      limit: Number.isSafeInteger(pageInfo.limit) ? pageInfo.limit : nextLimit,
-      has_more: pageInfo.has_more === true,
-      next_cursor: text(pageInfo.next_cursor) || null,
+      limit: pageInfo.limit,
+      has_more: pageInfo.has_more,
+      next_cursor: pageInfo.next_cursor,
     },
     requested: true,
   };

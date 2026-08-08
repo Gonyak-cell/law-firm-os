@@ -2220,12 +2220,24 @@ export function handleMatterTimeline({ matterId, query, context, requestId, runt
   });
   if (gated) return gated;
   const entries = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "MatterTimelineEvent", matter_id: matterId });
-  const timeline = buildMatterTimelineReadModel({
-    entries,
-    actor: context.principal,
-    tenant_id: query.tenant_id,
-    matter_id: matterId,
-  });
+  let timeline;
+  try {
+    timeline = buildMatterTimelineReadModel({
+      entries,
+      actor: context.principal,
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      limit: query.limit,
+      cursor: query.cursor,
+      cursorAuthority: runtime.timelineCursorAuthority,
+    });
+  } catch (error) {
+    return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "blocked",
+      message: error.message,
+    });
+  }
   appendAudit(runtime, {
     event_id: `matter.timeline.viewed:${query.tenant_id}:${matterId}:${requestId}`,
     tenant_id: query.tenant_id,

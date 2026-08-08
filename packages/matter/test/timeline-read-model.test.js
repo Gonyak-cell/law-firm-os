@@ -7,9 +7,12 @@ import { createMatterRepository } from "../src/repository.js";
 import {
   buildMatterTimelineReadModel,
 } from "../src/timeline-read-model.js";
+import { createMatterTimelineCursorAuthority } from "../src/timeline-cursor-authority.js";
 
 const TENANT = "tenant-001";
 const MATTER = "matter-001";
+const CURSOR_SECRET = "timeline-test-secret-that-is-at-least-32-bytes";
+const cursorAuthority = createMatterTimelineCursorAuthority({ secret: CURSOR_SECRET });
 
 function entry(eventId, occurredAt, overrides = {}) {
   return {
@@ -37,6 +40,7 @@ test("최근 활동은 occurred_at과 event_id 내림차순으로 최대 제한�
     tenant_id: TENANT,
     matter_id: MATTER,
     limit: 99,
+    cursorAuthority,
   });
 
   // Then
@@ -69,6 +73,7 @@ test("키셋 커서는 첫 페이지 뒤에 새 이벤트가 들어와도 다음
     tenant_id: TENANT,
     matter_id: MATTER,
     limit: 2,
+    cursorAuthority,
   });
 
   // When
@@ -79,6 +84,7 @@ test("키셋 커서는 첫 페이지 뒤에 새 이벤트가 들어와도 다음
     matter_id: MATTER,
     limit: 2,
     cursor: first.page_info.next_cursor,
+    cursorAuthority,
   });
 
   // Then
@@ -100,6 +106,7 @@ test("같은 시각의 event_id 정렬과 커서는 같은 이진 순서를 사�
     tenant_id: TENANT,
     matter_id: MATTER,
     limit: 1,
+    cursorAuthority,
   });
 
   // When
@@ -110,6 +117,7 @@ test("같은 시각의 event_id 정렬과 커서는 같은 이진 순서를 사�
     matter_id: MATTER,
     limit: 1,
     cursor: first.page_info.next_cursor,
+    cursorAuthority,
   });
 
   // Then
@@ -154,6 +162,7 @@ test("다른 Matter의 커서는 현재 활동 페이지에 사용할 수 없다
     tenant_id: TENANT,
     matter_id: MATTER,
     limit: 1,
+    cursorAuthority,
   });
 
   // When / Then
@@ -164,6 +173,7 @@ test("다른 Matter의 커서는 현재 활동 페이지에 사용할 수 없다
     matter_id: "matter-002",
     limit: 1,
     cursor: first.page_info.next_cursor,
+    cursorAuthority,
   }), /cursor/u);
 });
 
@@ -183,7 +193,8 @@ test("지속 저장소를 다시 열어도 같은 활동 순서와 커서를 읽
     actor: {},
     tenant_id: TENANT,
     matter_id: MATTER,
-    limit: 2,
+    limit: 1,
+    cursorAuthority,
   });
 
   // When
@@ -193,9 +204,12 @@ test("지속 저장소를 다시 열어도 같은 활동 순서와 커서를 읽
     actor: {},
     tenant_id: TENANT,
     matter_id: MATTER,
-    limit: 2,
+    limit: 1,
+    cursor: beforeRestart.page_info.next_cursor,
+    cursorAuthority: createMatterTimelineCursorAuthority({ secret: CURSOR_SECRET }),
   });
 
   // Then
-  assert.deepEqual(afterRestart, beforeRestart);
+  assert.deepEqual(beforeRestart.visible_entries.map(({ event_id }) => event_id), ["event-003"]);
+  assert.deepEqual(afterRestart.visible_entries.map(({ event_id }) => event_id), ["event-002"]);
 });

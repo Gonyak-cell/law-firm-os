@@ -25,6 +25,10 @@ import { createMatterActivityCalendarChannelService } from "../../../packages/ma
 import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timeline-read-model.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
+import {
+  readOutlookAttachmentReceiptState,
+  verifySuppliedOutlookAttachmentReceipts,
+} from "./outlook-attachment-receipt-readback.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -67,6 +71,7 @@ export const OUTLOOK_ADDIN_ERROR_CODES = Object.freeze({
   permission_required: "OUTLOOK_ADDIN_PERMISSION_REQUIRED",
   validation_error: "OUTLOOK_ADDIN_VALIDATION_ERROR",
   attachment_provenance_mismatch: "OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH",
+  attachment_receipt_invalid: "OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID",
   email_identity_conflict: "OUTLOOK_ADDIN_EMAIL_IDENTITY_CONFLICT",
   sent_message_provenance_mismatch: "OUTLOOK_ADDIN_SENT_MESSAGE_PROVENANCE_MISMATCH",
   matter_not_found: "OUTLOOK_ADDIN_MATTER_NOT_FOUND",
@@ -1144,6 +1149,9 @@ function persistOutlookAttachmentMapping({
       "source_byte_size",
       "source_message_ref",
       "source_provenance_authority",
+      "name",
+      "version_id",
+      "attachment_outcome",
     ];
     if (invariantFields.some((field) => existing[field] !== mapping[field])) {
       throw new Error("Outlook attachment mapping conflicts with the persisted mapping");
@@ -1446,9 +1454,9 @@ function ensureMatterFolders({ repository, matter, actor_id } = {}) {
   });
 }
 
-function listMatterTimeline({ repository, tenant_id, matter_id, actor, limit, cursor } = {}) {
+function listMatterTimeline({ repository, tenant_id, matter_id, actor, limit, cursor, cursorAuthority } = {}) {
   const entries = repository.list({ tenant_id, model_type: "MatterTimelineEvent", matter_id });
-  return buildMatterTimelineReadModel({ entries, actor, tenant_id, matter_id, limit, cursor });
+  return buildMatterTimelineReadModel({ entries, actor, tenant_id, matter_id, limit, cursor, cursorAuthority });
 }
 
 function safeMatterDocument(document = {}) {
@@ -2157,12 +2165,18 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   if (!matter) return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.matter_not_found]);
   const requestedThread = normalizeEmailThread({ input: body, tenant_id: tenantId, matter_id: matterId, actor_id: actorId, mode });
   let canonical;
+  let verifiedAttachmentReceipts;
   try {
     canonical = await resolveCanonicalMessage({
       thread: requestedThread,
       context,
       runtime,
     });
+    if (mode === "manual" && canonical.is_in_sent_items === true) {
+      throw sentMessageProvenanceError(
+        "Microsoft Graph Sent Items messages require the explicit sent filing route",
+      );
+    }
     if (mode === "sent") {
       if (!canonical.sender_address) {
         throw sentMessageProvenanceError(
@@ -2181,6 +2195,13 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
         );
       }
     }
+    verifiedAttachmentReceipts = verifySuppliedOutlookAttachmentReceipts({
+      receipts: body.attachment_receipts,
+      authority: runtime.attachmentReceiptAuthority,
+      tenantId,
+      matterId,
+      emailThreadId: canonical.thread.email_thread_id,
+    });
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
@@ -2470,12 +2491,22 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     },
   });
   const filedThread = result.thread;
+  const operationName = mode === "sent" ? "sent" : "manual";
+  const operationTimelineKey = mode === "sent"
+    ? `${filingIdempotencyKey}:matter:${matterId}:sent`
+    : `${filingIdempotencyKey}:matter:${matterId}`;
+  const operationReplay = runtime.matterRuntime.repository.getIdempotency({
+    tenant_id: tenantId,
+    idempotency_key: operationTimelineKey,
+  });
   const timelineEvent = appendMatterTimeline({
     repository: runtime.matterRuntime.repository,
     actorId,
-    idempotencyKey: `${filingIdempotencyKey}:matter:${matterId}`,
+    idempotencyKey: operationTimelineKey,
     event: {
-      event_id: `outlook.email.filed:${tenantId}:${matterId}:${filedThread.email_thread_id}`,
+      event_id: mode === "sent"
+        ? `outlook.email.sent_filed:${tenantId}:${matterId}:${filedThread.email_thread_id}`
+        : `outlook.email.filed:${tenantId}:${matterId}:${filedThread.email_thread_id}`,
       tenant_id: tenantId,
       matter_id: matterId,
       occurred_at: filedThread.filing_time,
@@ -2498,9 +2529,25 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       },
     },
   });
-  return success(result.outcome === "created" ? 201 : 200, {
+  let attachmentState;
+  try {
+    attachmentState = await readOutlookAttachmentReceiptState({
+      dmsRuntime: runtime.dmsRuntime,
+      matterRuntime: runtime.matterRuntime,
+      authority: runtime.attachmentReceiptAuthority,
+      thread: filedThread,
+      tenantId,
+      matterId,
+      supplied: verifiedAttachmentReceipts,
+    });
+  } catch (error) {
+    return m365ErrorResponse(error, requestId, body.audit_hint_ref);
+  }
+  const operationOutcome = operationReplay ? "idempotent_replay" : "created";
+  return success(operationOutcome === "created" ? 201 : 200, {
     request_id: requestId,
-    outcome: result.outcome,
+    outcome: operationOutcome,
+    filing_operation: operationName,
     item: result.thread,
     email_thread: result.thread,
     timeline_event: timelineEvent,
@@ -2509,8 +2556,10 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       tenant_id: tenantId,
       matter_id: matterId,
       actor: context?.principal,
+      cursorAuthority: runtime.matterRuntime.timelineCursorAuthority,
     }),
-    idempotent_replay: result.outcome === "idempotent_replay",
+    attachment_state: attachmentState,
+    idempotent_replay: operationOutcome === "idempotent_replay",
     external_send_state: mode === "sent" ? "provider_gated_no_external_send_claim" : "not_applicable",
     email_object_field_contract: OUTLOOK_EMAIL_OBJECT_FIELDS,
   });
@@ -2566,6 +2615,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     : [...runtime.dmsRuntime.repository.list({ tenant_id: tenantId, model_type: "DmsDocument", matter_id: matterId })];
   const saved = [];
   const duplicates = [];
+  let responseMapping = null;
   for (const attachment of attachments) {
     const bytes = verifiedBytes;
     const sha256 = verifiedSha256;
@@ -2576,11 +2626,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     }
     const duplicate = canonicalDocument
       ?? knownDocuments.find((document) => document.latest_sha256 === sha256);
-    if (duplicate && duplicate.document_id !== documentId) {
-      duplicates.push(Object.freeze({ attachment_id: attachmentId, duplicate_document_id: duplicate.document_id, sha256 }));
-      continue;
-    }
-    if (duplicate && (
+    if (duplicate?.document_id === documentId && (
       duplicate.matter_id !== matterId
       || duplicate.source_email_thread_id !== emailThreadId
       || duplicate.source_attachment_id !== attachmentId
@@ -2629,7 +2675,15 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     const persistedDocument = uploaded?.document ?? duplicate;
     if (uploaded) knownDocuments.push(uploaded.document);
     const mappingId = `email-attachment:${emailThreadId}:${attachmentId}`;
-    persistOutlookAttachmentMapping({
+    const existingMapping = runtime.dmsRuntime.repository.get({
+      tenant_id: tenantId,
+      model_type: "DmsEmailAttachmentMapping",
+      resource_id: mappingId,
+    });
+    const persistedVersionId = existingMapping?.version_id
+      ?? uploaded?.version?.version_id
+      ?? persistedDocument.current_version_id;
+    responseMapping = persistOutlookAttachmentMapping({
       repository: runtime.dmsRuntime.repository,
       actorId,
       idempotencyKey: `${attachmentOperationKey}:dms-mapping`,
@@ -2642,7 +2696,10 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         matter_id: matterId,
         email_thread_id: emailThreadId,
         attachment_id: attachmentId,
+        name: requiredString(sourceAttachment.name, "source_attachment.name"),
         document_id: persistedDocument.document_id,
+        version_id: persistedVersionId,
+        attachment_outcome: existingMapping?.attachment_outcome ?? (uploaded ? "created" : "duplicate"),
         sha256,
         source_byte_size: sourceAttachment.source_provenance.byte_size,
         source_message_ref: sourceAttachment.source_provenance.message_ref,
@@ -2677,6 +2734,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         attachment_id: attachmentId,
         duplicate_document_id: duplicate.document_id,
         sha256,
+        version_id: persistedVersionId,
       }));
       continue;
     }
@@ -2697,6 +2755,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     items: saved,
     duplicate_attachments: Object.freeze(duplicates),
     duplicate_count: duplicates.length,
+    attachment_receipt: runtime.attachmentReceiptAuthority.issue(responseMapping),
     folder_structure: MATTER_FOLDER_NAMES,
     documents: postgresDms
       ? Object.freeze(knownDocuments.map(safeMatterDocument))
@@ -3066,6 +3125,7 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
           actor: context?.principal,
           limit: query.limit,
           cursor: query.cursor,
+          cursorAuthority: runtime.matterRuntime.timelineCursorAuthority,
         }),
       });
     }
@@ -3117,7 +3177,12 @@ export function outlookAddinProofSnapshot({ runtime, tenant_id, matter_id } = {}
   return Object.freeze({
     email_threads: runtime.dmsRuntime.repository.list({ tenant_id, model_type: "DmsEmailThread", matter_id }).map(safeEmailThreadSnapshot),
     documents: listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id, matter_id }).map(clone),
-    timeline: listMatterTimeline({ repository: runtime.matterRuntime.repository, tenant_id, matter_id }).visible_entries.map(clone),
+    timeline: listMatterTimeline({
+      repository: runtime.matterRuntime.repository,
+      tenant_id,
+      matter_id,
+      cursorAuthority: runtime.matterRuntime.timelineCursorAuthority,
+    }).visible_entries.map(clone),
     folder_structure: MATTER_FOLDER_NAMES,
     email_object_field_contract: OUTLOOK_EMAIL_OBJECT_FIELDS,
   });

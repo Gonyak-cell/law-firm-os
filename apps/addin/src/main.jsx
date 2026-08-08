@@ -32,8 +32,9 @@ import {
   readOutlookItemClassification,
   readOutlookItemTimestamps,
 } from "./outlook-item-content.js";
-import { saveOutlookAttachments } from "./outlook-attachment-actions.js";
-import { createOutlookFilingRequest } from "./outlook-filing.js";
+import { fileOutlookEmail } from "./outlook-filing.js";
+import { fileOutlookEmailWithAttachments } from "./outlook-filing-orchestration.js";
+import { loadOutlookMatterActivity } from "./outlook-matter-activity.js";
 import {
   AUTH_ERROR_CODES,
   AUTH_STATE,
@@ -515,6 +516,7 @@ function outcomeLabel(value, fallback) {
     created: "보관 완료",
     attachments_saved: "첨부 저장 완료",
     idempotent_replay: "이미 처리됨",
+    partial: "일부 첨부 재시도 필요",
   }[value] ?? fallback;
 }
 
@@ -626,7 +628,6 @@ function App() {
     selectMatter(nextMatterId);
     setInquiries(nextInquiries);
     setSelectedLeadId(nextInquiries[0]?.lead_id ?? "");
-    await refreshMatter(nextMatterId);
   }
 
   async function loadInquiries() {
@@ -646,12 +647,22 @@ function App() {
       setDocuments([]);
       return;
     }
-    const [timelineBody, documentBody] = await Promise.all([
-      requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/timeline`),
+    const [activity, documentBody] = await Promise.all([
+      loadOutlookMatterActivity({ matterId, requestJson }),
       requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/documents`),
     ]);
-    setTimeline(timelineBody.item?.visible_entries ?? []);
+    setTimeline(activity.rows);
     setDocuments(documentBody.items ?? []);
+  }
+
+  async function selectMatterAndRefresh(matterId) {
+    selectMatter(matterId);
+    setError("");
+    try {
+      await refreshMatter(matterId);
+    } catch (nextError) {
+      setError(actionErrorMessage(nextError));
+    }
   }
 
   async function refreshGraphConnection({ loadBusinessData = true } = {}) {
@@ -942,9 +953,10 @@ function App() {
     await loadInquiries();
   }
 
-  async function fileEmail({ mode = "manual" } = {}) {
+  async function archiveEmailWithAttachments({ previousReceipt = null } = {}) {
     const matterId = selectedMatterId;
     const currentItem = await readCurrentOutlookItem({ includeTimestamps: true, requireStableIdentity: true });
+    const sourceOfficeItem = window.Office?.context?.mailbox?.item;
     const sourceItemKey = outlookItemIdentityKey(currentItem);
     if (!isOutlookActionContextCurrent({
       sourceItem: currentItem,
@@ -954,58 +966,27 @@ function App() {
     })) {
       throw actionContextChangedError();
     }
-    const filingRequest = createOutlookFilingRequest({
-      matterId,
-      email: currentItem,
-      mode,
-    });
-    const body = await requestJson(filingRequest.path, {
-      method: filingRequest.method,
-      body: filingRequest.body,
-    });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      await refreshMatter(matterId);
-      throw actionContextChangedError();
-    }
-    setEmailResult({
-      ...body,
-      filing_mode: mode,
-      local_outlook_item_key: sourceItemKey,
-      local_matter_id: matterId,
-    });
-    setAttachmentResult(null);
-    setFollowupResult(null);
-    await refreshMatter(matterId);
-  }
-
-  async function fileSentEmail() {
-    return fileEmail({ mode: "sent" });
-  }
-
-  async function saveAttachments() {
-    const matterId = selectedMatterId;
-    const currentItem = await readCurrentOutlookItem({ includeAttachments: true, requireStableIdentity: true });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      throw actionContextChangedError();
-    }
-    if (!isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
+    if (previousReceipt && !isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
       throw filedEmailDoesNotMatchError();
     }
-    const { result, notices } = await saveOutlookAttachments({
-      currentItem,
+    const receipt = await fileOutlookEmailWithAttachments({
       matterId,
-      emailResult,
+      email: currentItem,
+      previousReceipt: previousReceipt,
       requestJson,
+      readAttachments: async ({ attachmentIds }) => {
+        if (!isOutlookActionContextCurrent({
+          sourceItem: currentItem,
+          currentItem: officeItemSnapshot(),
+          sourceMatterId: matterId,
+          currentMatterId: selectedMatterIdRef.current,
+        })) {
+          throw actionContextChangedError();
+        }
+        const selected = (Array.isArray(sourceOfficeItem?.attachments) ? sourceOfficeItem.attachments : [])
+          .filter((attachment) => attachmentIds.includes(attachment.id));
+        return readOutlookAttachments({ item: sourceOfficeItem, attachments: selected, Office: window.Office });
+      },
       errorMessage: outlookActionErrorMessage,
     });
     if (!isOutlookActionContextCurrent({
@@ -1017,9 +998,63 @@ function App() {
       await refreshMatter(matterId);
       throw actionContextChangedError();
     }
-    setAttachmentResult(result);
-    if (notices.length > 0) setError(`저장하지 않은 첨부: ${notices.join(", ")}`);
+    setEmailResult({
+      ...receipt.email,
+      filing_mode: "manual",
+      local_outlook_item_key: sourceItemKey,
+      local_matter_id: matterId,
+    });
+    setAttachmentResult(receipt);
+    setFollowupResult(null);
+    if (receipt.status === "partial") {
+      setError(`다시 저장할 첨부가 ${receipt.retry_attachment_ids.length}개 있습니다.`);
+    }
     await refreshMatter(matterId);
+  }
+
+  async function fileEmail() {
+    return archiveEmailWithAttachments();
+  }
+
+  async function fileSentEmail() {
+    const matterId = selectedMatterId;
+    const currentItem = await readCurrentOutlookItem({ includeTimestamps: true, requireStableIdentity: true });
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      throw actionContextChangedError();
+    }
+    const receipt = await fileOutlookEmail({
+      matterId,
+      email: currentItem,
+      mode: "sent",
+      requestJson,
+    });
+    if (!isOutlookActionContextCurrent({
+      sourceItem: currentItem,
+      currentItem: officeItemSnapshot(),
+      sourceMatterId: matterId,
+      currentMatterId: selectedMatterIdRef.current,
+    })) {
+      await refreshMatter(matterId);
+      throw actionContextChangedError();
+    }
+    setEmailResult({
+      ...receipt,
+      filing_mode: "sent",
+      local_outlook_item_key: outlookItemIdentityKey(currentItem),
+      local_matter_id: matterId,
+    });
+    setAttachmentResult(null);
+    setFollowupResult(null);
+    await refreshMatter(matterId);
+  }
+
+  async function saveAttachments() {
+    return archiveEmailWithAttachments({ previousReceipt: attachmentResult });
   }
 
   async function createFollowup() {
@@ -1036,7 +1071,9 @@ function App() {
     if (!isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
       throw filedEmailDoesNotMatchError();
     }
-    const threadId = emailResult?.email_thread?.email_thread_id ?? `thread:${currentItem.conversation_id}`;
+    const threadId = emailResult?.email_thread_id
+      ?? emailResult?.email_thread?.email_thread_id
+      ?? `thread:${currentItem.conversation_id}`;
     const dueAt = new Date(Date.now() + (24 * 60 * 60 * 1000))
       .toISOString();
     const body = await requestJson("/api/outlook/followups", {
@@ -1260,7 +1297,7 @@ function App() {
             <select
               id="matter-select"
               value={selectedMatterId}
-              onChange={(event) => selectMatter(event.target.value)}
+              onChange={(event) => { void selectMatterAndRefresh(event.target.value); }}
               disabled={!readyForBusiness || matters.length === 0 || busy !== ""}
               data-testid="matter-select"
             >

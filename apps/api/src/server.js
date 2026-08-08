@@ -18,6 +18,8 @@ import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.j
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { createMatterTimelineCursorAuthority } from "../../../packages/matter/src/timeline-cursor-authority.js";
+import { createOutlookAttachmentReceiptAuthority } from "./outlook-attachment-receipt-authority.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
@@ -1360,7 +1362,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -2002,6 +2004,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         crmIntakeRuntime,
         m365GraphConfig,
         sessionAuth,
+        attachmentReceiptAuthority: outlookAttachmentReceiptAuthority,
       },
     });
     sendJson(req, res, result.status, result.body, result.headers);
@@ -2104,6 +2107,8 @@ export function createApiServer({
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
   sessionAuth,
+  timelineCursorAuthority = createMatterTimelineCursorAuthority(),
+  outlookAttachmentReceiptAuthority = createOutlookAttachmentReceiptAuthority(),
   sessionObjectAclResolver = null,
   requestRuntimeAuthority = null,
   payrollStatementProviderVerifier = null,
@@ -2140,10 +2145,15 @@ export function createApiServer({
                   ?? null,
               });
         const baseMatterRuntime = requestRuntimes.matterRuntime ?? matterRuntime;
-        const matterRuntimeWithClearanceLedger =
-          baseMatterRuntime?.clearanceRepository || !resolvedCrmIntakeRuntime?.intakeRepository
-            ? baseMatterRuntime
-            : Object.freeze({ ...baseMatterRuntime, clearanceRepository: resolvedCrmIntakeRuntime.intakeRepository });
+        const matterRuntimeWithClearanceLedger = baseMatterRuntime
+          ? Object.freeze({
+              ...baseMatterRuntime,
+              ...(!baseMatterRuntime.clearanceRepository && resolvedCrmIntakeRuntime?.intakeRepository
+                ? { clearanceRepository: resolvedCrmIntakeRuntime.intakeRepository }
+                : {}),
+              timelineCursorAuthority,
+            })
+          : baseMatterRuntime;
         return dispatchApiHandler(handle, req, targetResponse, {
           hrxRuntime: requestRuntimes.hrxRuntime ?? hrxRuntime,
           hrxRuntimeUnavailable,
@@ -2170,6 +2180,7 @@ export function createApiServer({
           persistenceAuthority,
           persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
           dataScope,
+          outlookAttachmentReceiptAuthority,
         });
       };
 
@@ -2408,6 +2419,12 @@ export async function startApiServer({
     createClientFixedReportSnapshotTokenAuthority({
       secret: resolvedSessionSecret,
     });
+  const resolvedTimelineCursorAuthority = createMatterTimelineCursorAuthority({
+    secret: resolvedSessionSecret,
+  });
+  const resolvedOutlookAttachmentReceiptAuthority = createOutlookAttachmentReceiptAuthority({
+    secret: resolvedSessionSecret,
+  });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
@@ -2541,6 +2558,8 @@ export async function startApiServer({
         m365GraphConfig,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
+        timelineCursorAuthority: resolvedTimelineCursorAuthority,
+        outlookAttachmentReceiptAuthority: resolvedOutlookAttachmentReceiptAuthority,
         requestRuntimeAuthority,
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
@@ -2805,6 +2824,8 @@ export async function startApiServer({
     m365GraphConfig,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
+    timelineCursorAuthority: resolvedTimelineCursorAuthority,
+    outlookAttachmentReceiptAuthority: resolvedOutlookAttachmentReceiptAuthority,
     runtimeProfile: resolvedRuntimeProfile,
     persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,

@@ -17,6 +17,33 @@ const email = {
   conversation_id: "conversation-001",
 };
 
+function filingResponse({ mode = "manual", outcome = "created", overrides = {} } = {}) {
+  const sent = mode === "sent";
+  return {
+    request_id: `request-${mode}-001`,
+    outcome,
+    filing_operation: mode,
+    idempotent_replay: outcome === "idempotent_replay",
+    external_send_state: sent ? "provider_gated_no_external_send_claim" : "not_applicable",
+    email_thread: {
+      email_thread_id: `thread-${mode}-001`,
+      matter_id: "matter-001",
+      status: "active",
+      filing_user: "actor-001",
+      filing_time: "2026-08-08T01:00:00.000Z",
+      filed_document_ids: [`document-${mode}-001`],
+    },
+    timeline_event: {
+      event_id: `timeline-${mode}-001`,
+      type: sent ? "outlook.email.sent_filed" : "outlook.email.filed",
+      matter_id: "matter-001",
+      source_ref: `thread-${mode}-001`,
+    },
+    attachment_state: { receipts: [], retry_attachment_ids: [] },
+    ...overrides,
+  };
+}
+
 test("일반 Matter 보관과 명시적 보낸 메일 보관은 서로 다른 API 경로를 사용한다", () => {
   const ordinary = createOutlookFilingRequest({ matterId: "matter-001", email });
   const sent = createOutlookFilingRequest({
@@ -57,20 +84,14 @@ test("명시적 받은 메일 보관은 불변 문서 상세과 현재 item key�
     email,
     requestJson: async (path, options) => {
       calls.push({ path, options });
-      return {
-        request_id: "request-001",
-        outcome: "created",
-        idempotent_replay: false,
-        email_thread: {
-          email_thread_id: "thread-001",
-          matter_id: "matter-001",
-          status: "active",
-          filing_user: "actor-001",
-          filing_time: "2026-08-08T01:00:00.000Z",
-          filed_document_ids: ["document-original-mime-001"],
+      return filingResponse({
+        overrides: {
+          email_thread: {
+            ...filingResponse().email_thread,
+            filed_document_ids: ["document-original-mime-001"],
+          },
         },
-        timeline_event: { event_id: "timeline-001" },
-      };
+      });
     },
   });
 
@@ -86,20 +107,16 @@ test("명시적 받은 메일 보관은 불변 문서 상세과 현재 item key�
 
 test("서버 idempotent replay는 받은 메일을 다시 만들지 않은 중복 영수증으로 정규화한다", async () => {
   // Given
-  const response = {
-    request_id: "request-replay-001",
+  const response = filingResponse({
     outcome: "idempotent_replay",
-    idempotent_replay: true,
-    email_thread: {
-      email_thread_id: "thread-001",
-      matter_id: "matter-001",
-      status: "active",
-      filing_user: "original-actor",
-      filing_time: "2026-08-08T01:00:00.000Z",
-      filed_document_ids: ["document-original-mime-001"],
+    overrides: {
+      email_thread: {
+        ...filingResponse().email_thread,
+        filing_user: "original-actor",
+        filed_document_ids: ["document-original-mime-001"],
+      },
     },
-    timeline_event: { event_id: "timeline-001" },
-  };
+  });
 
   // When
   const receipt = await fileOutlookEmail({
@@ -126,20 +143,7 @@ test("보낸 메일은 사용자 명시 동작에서만 sent endpoint를 사용�
     mode: "sent",
     requestJson: async (path) => {
       paths.push(path);
-      return {
-        request_id: "request-sent-001",
-        outcome: "created",
-        idempotent_replay: false,
-        email_thread: {
-          email_thread_id: "thread-sent-001",
-          matter_id: "matter-001",
-          status: "active",
-          filing_user: "actor-001",
-          filing_time: "2026-08-08T01:00:00.000Z",
-          filed_document_ids: ["document-sent-original-mime-001"],
-        },
-        timeline_event: { event_id: "timeline-sent-001", type: "outlook.email.sent_filed" },
-      };
+      return filingResponse({ mode: "sent" });
     },
   });
 
@@ -147,4 +151,57 @@ test("보낸 메일은 사용자 명시 동작에서만 sent endpoint를 사용�
   assert.deepEqual(paths, [OUTLOOK_SENT_FILING_PATH]);
   assert.equal(receipt.mode, "sent");
   assert.equal(receipt.timeline_event_type, "outlook.email.sent_filed");
+});
+
+test("불완전하거나 작업 종류가 다른 서버 영수증은 성공으로 적용하지 않는다", async () => {
+  const attachmentReceipt = {
+    attachment_id: "attachment-001",
+    name: "contract.pdf",
+    outcome: "created",
+    matter_id: "matter-001",
+    email_thread_id: "thread-manual-001",
+    document_id: "document-attachment-001",
+    version_id: "version-attachment-001",
+    sha256: "a".repeat(64),
+    receipt_ref: "receipt-attachment-001",
+    receipt_token: "token-attachment-001",
+  };
+  for (const response of [
+    filingResponse({ overrides: { request_id: null } }),
+    filingResponse({ overrides: { timeline_event: null } }),
+    filingResponse({ overrides: { timeline_event: { ...filingResponse().timeline_event, matter_id: "matter-other" } } }),
+    filingResponse({ overrides: { timeline_event: { ...filingResponse().timeline_event, source_ref: "thread-other" } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, filing_user: null } } }),
+    filingResponse({ mode: "sent", overrides: { filing_operation: "manual" } }),
+    filingResponse({ mode: "sent", overrides: { timeline_event: { event_id: "timeline", type: "outlook.email.filed" } } }),
+    filingResponse({ overrides: { attachment_state: { receipts: [{}], retry_attachment_ids: [] } } }),
+    filingResponse({ overrides: { attachment_state: { receipts: [{ ...attachmentReceipt, matter_id: "matter-other" }], retry_attachment_ids: [] } } }),
+    filingResponse({ overrides: { attachment_state: { receipts: [{ ...attachmentReceipt, email_thread_id: "thread-other" }], retry_attachment_ids: [] } } }),
+  ]) {
+    await assert.rejects(
+      fileOutlookEmail({
+        matterId: "matter-001",
+        email,
+        mode: response.external_send_state === "provider_gated_no_external_send_claim" ? "sent" : "manual",
+        requestJson: async () => response,
+      }),
+      /required|incomplete|mismatched/u,
+    );
+  }
+});
+
+test("이전 첨부 영수증은 서버 재검증을 위해 받은 메일 요청에만 전달한다", async () => {
+  let request;
+  await fileOutlookEmail({
+    matterId: "matter-001",
+    email,
+    priorAttachmentReceipts: [{ receipt_ref: "receipt-001", receipt_token: "token-001" }],
+    requestJson: async (_path, options) => {
+      request = options.body;
+      return filingResponse();
+    },
+  });
+  assert.deepEqual(request.attachment_receipts, [
+    { receipt_ref: "receipt-001", receipt_token: "token-001" },
+  ]);
 });

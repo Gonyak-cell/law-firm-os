@@ -1159,6 +1159,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
   const emailDmsRepository = outlookEmailDmsRepository();
   let providerCallCount = 0;
   let invalidateFiledSentMessage = false;
+  let sentAfterManual = false;
   const m365GraphConfig = {
     feature_enabled: true,
     inquiry_feature_enabled: true,
@@ -1198,9 +1199,11 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         const attachmentAtLimit = input.rest_message_id === "graph-attachment-at-limit";
         const attachmentOverLimit = input.rest_message_id === "graph-attachment-over-limit";
         const participantSpoof = input.rest_message_id === "graph-participant-spoof";
-        const sent = ["graph-outlook-sent-001", "graph-sent-after-manual"].includes(input.rest_message_id);
+        const sent = input.rest_message_id === "graph-outlook-sent-001"
+          || (input.rest_message_id === "graph-sent-after-manual" && sentAfterManual);
         const divergentSenderFrom = input.rest_message_id === "graph-divergent-sender-from";
         const sentDraft = input.rest_message_id === "graph-outlook-sent-draft-001";
+        const authoredByMailbox = sent || sentDraft || input.rest_message_id === "graph-sent-after-manual";
         const sameConversationSecond = input.rest_message_id === "graph-outlook-addin-test-002";
         const attachmentFree = [
           "graph-attachment-free",
@@ -1253,7 +1256,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
             })[input.rest_message_id] ?? "conversation-outlook-addin-test";
         const senderAddress = divergentSenderFrom
           ? "delegate@example.com"
-          : sent || sentDraft
+          : authoredByMailbox
             ? MAILBOX
             : "opposing@example.com";
         const fromAddress = participantSpoof
@@ -1294,7 +1297,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
             conversation_id: conversationId,
             internet_message_id: internetMessageId,
             subject: "Outlook filing regression",
-            sender: { display_name: sent || sentDraft ? "AMIC 변호사" : "상대방", address: senderAddress },
+            sender: { display_name: authoredByMailbox ? "AMIC 변호사" : "상대방", address: senderAddress },
             from: { display_name: participantSpoof ? "Canonical Author" : divergentSenderFrom ? "AMIC 변호사" : "작성자", address: fromAddress },
             recipients: participantSpoof
               ? [
@@ -1418,6 +1421,11 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         has_more: true,
         next_cursor: second.item.page_info.next_cursor,
       });
+      const tampered = await fetch(
+        `${baseUrl}/api/outlook/matters/${OTHER_MATTER}/timeline?limit=2&cursor=${encodeURIComponent(`${first.item.page_info.next_cursor}A`)}`,
+        { headers: sessionHeaders },
+      );
+      assert.equal(tampered.status, 400);
     });
 
     await t.test("provider message identity mismatch fails before thread or object storage", async () => {
@@ -2252,6 +2260,9 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.doesNotMatch(JSON.stringify(attachmentBody), /"storage_pointer_ref":/u);
       assert.equal(attachmentBody.items[0].document.title, "contract.txt");
       assert.equal(attachmentBody.items[0].document.mime_type, "text/plain");
+      assert.equal(attachmentBody.attachment_receipt.attachment_id, "att-contract");
+      assert.equal(typeof attachmentBody.attachment_receipt.receipt_token, "string");
+      assert.equal(typeof attachmentBody.attachment_receipt.receipt_ref, "string");
       assert.equal(attachmentBody.folder_structure[0], "00_Email");
       assert.equal(attachmentBody.folder_structure.at(-1), "99_Archive");
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
@@ -2293,7 +2304,81 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         }),
       });
       assert.equal(duplicateBody.duplicate_count, 1);
+      assert.equal(
+        duplicateBody.attachment_receipt.receipt_token,
+        attachmentBody.attachment_receipt.receipt_token,
+      );
       assert.equal(storageWriteCount, beforeStorageWrites);
+    });
+
+    await t.test("email replay verifies a signed attachment receipt and rejects forgery", async () => {
+      const receipt = attachmentBody.attachment_receipt;
+      const verified = await json("/api/outlook/email/file", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: emailFixture(),
+          attachment_receipts: [{ receipt_ref: receipt.receipt_ref, receipt_token: receipt.receipt_token }],
+        }),
+      });
+      assert.deepEqual(verified.attachment_state.retry_attachment_ids, []);
+      assert.equal(verified.attachment_state.receipts[0].attachment_id, "att-contract");
+
+      const forged = await fetch(`${baseUrl}/api/outlook/email/file`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: emailFixture(),
+          attachment_receipts: [{ receipt_ref: receipt.receipt_ref, receipt_token: `${receipt.receipt_token}A` }],
+        }),
+      });
+      const forgedBody = await forged.json();
+      assert.equal(forged.status, 409);
+      assert.deepEqual(forgedBody.safe_error_codes, ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"]);
+
+      const wrongRef = await fetch(`${baseUrl}/api/outlook/email/file`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: emailFixture(),
+          attachment_receipts: [{ receipt_ref: `${receipt.receipt_ref}:forged`, receipt_token: receipt.receipt_token }],
+        }),
+      });
+      assert.equal(wrongRef.status, 409);
+      assert.deepEqual((await wrongRef.json()).safe_error_codes, ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"]);
+
+      const persistedMapping = dmsRepository.get({
+        tenant_id: TENANT,
+        model_type: "DmsEmailAttachmentMapping",
+        resource_id: receipt.receipt_ref,
+      });
+      dmsRepository.delete({
+        tenant_id: TENANT,
+        model_type: "DmsEmailAttachmentMapping",
+        resource_id: receipt.receipt_ref,
+      });
+      let missingReadback;
+      try {
+        missingReadback = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({
+            tenant_id: TENANT,
+            matter_id: MATTER,
+            email: emailFixture(),
+            attachment_receipts: [{ receipt_ref: receipt.receipt_ref, receipt_token: receipt.receipt_token }],
+          }),
+        });
+      } finally {
+        dmsRepository.upsert(persistedMapping);
+      }
+      assert.equal(missingReadback.status, 409);
+      assert.deepEqual((await missingReadback.json()).safe_error_codes, ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"]);
     });
 
     await t.test("attachment retry repairs mapping and timeline after the upload already committed", async () => {
@@ -2569,6 +2654,19 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
       assert.equal(sent.email_thread.filed_document_ids.length, 1);
 
+      const receivedRoute = await fetch(`${baseUrl}/api/outlook/email/file`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: { ...emailFixture(), graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" },
+        }),
+      });
+      const receivedRouteBody = await receivedRoute.json();
+      assert.equal(receivedRoute.status, 409);
+      assert.deepEqual(receivedRouteBody.safe_error_codes, ["OUTLOOK_ADDIN_SENT_MESSAGE_PROVENANCE_MISMATCH"]);
+
       invalidateFiledSentMessage = true;
       const beforeRejectedReplayStorageWrites = storageWriteCount;
       const rejectedReplay = await fetch(`${baseUrl}/api/outlook/sent/file`, {
@@ -2586,7 +2684,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.deepEqual(rejectedReplayBody.safe_error_codes, [
         "OUTLOOK_ADDIN_SENT_MESSAGE_PROVENANCE_MISMATCH",
       ]);
-      assert.equal(providerCallCount, beforeProviderCalls + 2);
+      assert.equal(providerCallCount, beforeProviderCalls + 3);
       assert.equal(storageWriteCount, beforeRejectedReplayStorageWrites);
       assert.equal(
         dmsRepository.get({
@@ -2615,6 +2713,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         method: "POST",
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
       });
+      sentAfterManual = true;
       const sent = await json("/api/outlook/sent/file", {
         method: "POST",
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
@@ -2623,14 +2722,20 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         method: "POST",
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
       });
-      const repeatedManual = await json("/api/outlook/email/file", {
+      const repeatedManual = await fetch(`${baseUrl}/api/outlook/email/file`, {
         method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
       });
-      assert.equal(sent.outcome, "idempotent_replay");
+      const repeatedManualBody = await repeatedManual.json();
+      assert.equal(sent.outcome, "created");
+      assert.equal(sent.filing_operation, "sent");
+      assert.equal(sent.timeline_event.type, "outlook.email.sent_filed");
       assert.equal(sent.email_thread.email_thread_id, manual.email_thread.email_thread_id);
+      assert.equal(repeatedSent.outcome, "idempotent_replay");
       assert.equal(repeatedSent.email_thread.email_thread_id, manual.email_thread.email_thread_id);
-      assert.equal(repeatedManual.email_thread.email_thread_id, manual.email_thread.email_thread_id);
+      assert.equal(repeatedManual.status, 409);
+      assert.deepEqual(repeatedManualBody.safe_error_codes, ["OUTLOOK_ADDIN_SENT_MESSAGE_PROVENANCE_MISMATCH"]);
       invalidateFiledSentMessage = true;
       const invalidated = await fetch(`${baseUrl}/api/outlook/sent/file`, {
         method: "POST",
@@ -2668,8 +2773,9 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
           model_type: "MatterTimelineEvent",
           matter_id: MATTER,
         }).length,
-        beforeTimelineCount + 1,
+        beforeTimelineCount + 2,
       );
+      sentAfterManual = false;
     });
 
     for (const rejectedSent of [

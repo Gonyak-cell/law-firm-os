@@ -1,5 +1,3 @@
-import { Buffer } from "node:buffer";
-
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 20;
 
@@ -49,46 +47,17 @@ function boundedLimit(value) {
   return Math.min(parsed, MAX_LIMIT);
 }
 
-function encodeCursor({ tenant_id, matter_id, entry }) {
-  return Buffer.from(JSON.stringify({
-    version: 1,
-    tenant_id,
-    matter_id,
-    occurred_at: entry.occurred_at,
-    event_id: entry.event_id,
-  })).toString("base64url");
-}
-
-function decodeCursor(value, { tenant_id, matter_id }) {
+function decodeCursor(value, { tenant_id, matter_id, limit, cursorAuthority }) {
   if (value === undefined || value === null || value === "") return null;
-  if (typeof value !== "string" || value.length > 2048 || !/^[A-Za-z0-9_-]+$/u.test(value)) {
-    throw new TypeError("Matter timeline cursor is invalid");
-  }
-  try {
-    const parsed = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
-    if (
-      parsed?.version !== 1
-      || parsed.tenant_id !== tenant_id
-      || parsed.matter_id !== matter_id
-      || !occurredAt(parsed.occurred_at)
-      || !oneLine(parsed.event_id, 256)
-    ) {
-      throw new TypeError("Matter timeline cursor is invalid");
-    }
-    return Object.freeze({
-      occurred_at: occurredAt(parsed.occurred_at),
-      event_id: oneLine(parsed.event_id, 256),
-    });
-  } catch (error) {
-    if (error instanceof TypeError && error.message === "Matter timeline cursor is invalid") throw error;
-    throw new TypeError("Matter timeline cursor is invalid");
-  }
+  if (typeof cursorAuthority?.verify !== "function") throw new TypeError("Matter timeline cursor authority is required");
+  return cursorAuthority.verify(value, { tenant_id, matter_id, page_limit: limit });
 }
 
-function afterCursor(entry, cursor) {
-  if (!cursor) return true;
-  return entry.occurred_at < cursor.occurred_at
-    || (entry.occurred_at === cursor.occurred_at && entry.event_id < cursor.event_id);
+function noNewerThan(entry, key, { inclusive = false } = {}) {
+  if (!key) return true;
+  return entry.occurred_at < key.occurred_at
+    || (entry.occurred_at === key.occurred_at
+      && (inclusive ? entry.event_id <= key.event_id : entry.event_id < key.event_id));
 }
 
 function descendingText(left, right) {
@@ -103,10 +72,11 @@ export function buildMatterTimelineReadModel({
   matter_id,
   limit,
   cursor,
+  cursorAuthority,
 } = {}) {
   const pageLimit = boundedLimit(limit);
-  const pageCursor = decodeCursor(cursor, { tenant_id, matter_id });
-  const visible_entries = entries
+  const pageCursor = decodeCursor(cursor, { tenant_id, matter_id, limit: pageLimit, cursorAuthority });
+  const sorted = entries
     .filter((entry) => (!tenant_id || entry.tenant_id === tenant_id) && (!matter_id || entry.matter_id === matter_id))
     .filter((entry) => visibleToActor(entry, actor))
     .map(safeEntry)
@@ -114,10 +84,26 @@ export function buildMatterTimelineReadModel({
     .sort((left, right) => (
       descendingText(left.occurred_at, right.occurred_at)
       || descendingText(left.event_id, right.event_id)
-    ))
-    .filter((entry) => afterCursor(entry, pageCursor));
+    ));
+  const snapshot = pageCursor?.snapshot ?? sorted[0] ?? null;
+  const visible_entries = sorted
+    .filter((entry) => noNewerThan(entry, snapshot, { inclusive: true }))
+    .filter((entry) => noNewerThan(entry, pageCursor?.position));
   const hasMore = visible_entries.length > pageLimit;
   const page = visible_entries.slice(0, pageLimit);
+  let nextCursor = null;
+  if (hasMore) {
+    if (typeof cursorAuthority?.issue !== "function") {
+      throw new TypeError("Matter timeline cursor authority is required");
+    }
+    nextCursor = cursorAuthority.issue({
+      tenant_id,
+      matter_id,
+      page_limit: pageLimit,
+      snapshot,
+      position: page.at(-1),
+    });
+  }
   return Object.freeze({
     tenant_id,
     matter_id,
@@ -125,9 +111,7 @@ export function buildMatterTimelineReadModel({
     page_info: Object.freeze({
       limit: pageLimit,
       has_more: hasMore,
-      next_cursor: hasMore
-        ? encodeCursor({ tenant_id, matter_id, entry: page.at(-1) })
-        : null,
+      next_cursor: nextCursor,
     }),
     omitted_entry_count: null,
     count_leak_prevented: true,

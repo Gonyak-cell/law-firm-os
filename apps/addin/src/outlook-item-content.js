@@ -12,6 +12,7 @@ export const OUTLOOK_ITEM_CONTENT_ERROR_CODES = Object.freeze({
   item_identity_required: "OUTLOOK_ITEM_IDENTITY_REQUIRED",
   attachment_not_found: "OUTLOOK_ATTACHMENT_NOT_FOUND",
   attachment_too_large: "OUTLOOK_ATTACHMENT_TOO_LARGE",
+  attachment_duplicate_id: "OUTLOOK_ATTACHMENT_DUPLICATE_ID",
 });
 
 export const MAX_OUTLOOK_ATTACHMENT_BYTES = 2 * 1024 * 1024;

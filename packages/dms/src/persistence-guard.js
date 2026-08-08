@@ -40,7 +40,7 @@ const DMS_RECORD_FIELDS = Object.freeze({
   DmsExtractedText: fields("extracted_text_id", "version_id", "source_policy", "status", "text_pointer_ref", "raw_text_exposed"),
   DmsOcrResult: fields("ocr_result_id", "version_id", "source_policy", "status", "ocr_runtime_executed"),
   DmsEmailThread: fields("email_thread_id", "email_id", "graph_message_id", "internet_message_id", "conversation_id", "subject", "from", "to", "cc", "bcc", "body_ref", "body_preview", "sent_at", "received_at", "mailbox_ref", "account_ref", "attachment_metadata", "filing_user", "filing_time", "filing_mode", "confidentiality", "privilege", "ai_processed", "raw_body_included", "provider_payload_included", "field_contract", "field_contract_count", "status", "message_ids", "filed_document_ids", "credential_material_included", "email_runtime_executed", "reserved_for_rp08"),
-  DmsEmailAttachmentMapping: fields("mapping_id", "email_thread_id", "attachment_id", "document_id", "sha256", "raw_bytes_included", "storage_pointer_ref_included"),
+  DmsEmailAttachmentMapping: fields("mapping_id", "email_thread_id", "attachment_id", "name", "document_id", "version_id", "attachment_outcome", "sha256", "source_byte_size", "source_message_ref", "source_provenance_authority", "raw_bytes_included", "storage_pointer_ref_included"),
   DmsDocumentRelation: fields("relation_id", "source_document_id", "target_document_id", "relation_type", "status"),
   DmsLock: fields("lock_id", "document_id", "actor_id", "status", "checked_out_at"),
   DmsPrivilegeLabel: fields("label_id", "document_id", "privilege_class", "confidentiality", "applied_by"),

@@ -4,116 +4,88 @@ import { fileOutlookEmail } from "./outlook-filing.js";
 import { assertStableOutlookItemIdentity } from "./outlook-item-content.js";
 import { outlookItemIdentityKey } from "./outlook-item-events.js";
 
-function asArray(value) {
+function array(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function attachmentId(value) {
+function id(value) {
   return typeof value?.attachment_id === "string" ? value.attachment_id.trim() : "";
 }
 
-function uniqueByAttachmentId(items) {
-  const byId = new Map();
+function unique(items, label) {
+  const ids = new Set();
   for (const item of items) {
-    const id = attachmentId(item);
-    if (id) byId.set(id, item);
+    const itemId = id(item);
+    if (!itemId || ids.has(itemId)) throw new TypeError(`${label} contains an invalid or duplicate attachment_id`);
+    ids.add(itemId);
   }
-  return [...byId.values()];
+  return items;
 }
 
-function attachmentReceipt(saved) {
-  const created = saved?.body?.items?.[0];
-  const duplicate = saved?.body?.duplicate_attachments?.[0];
-  if (created?.document?.document_id) {
-    return Object.freeze({
-      attachment_id: saved.attachment_id,
-      name: saved.name,
-      outcome: "created",
-      document_id: created.document.document_id,
-      version_id: created.version?.version_id ?? null,
-      sha256: created.version?.sha256 ?? null,
-    });
-  }
-  if (duplicate?.duplicate_document_id) {
-    return Object.freeze({
-      attachment_id: saved.attachment_id,
-      name: saved.name,
-      outcome: "duplicate",
-      document_id: duplicate.duplicate_document_id,
-      version_id: null,
-      sha256: duplicate.sha256 ?? null,
-    });
-  }
-  throw new TypeError("Outlook attachment response has no document receipt");
+function priorTokens(previousReceipt) {
+  const receipts = previousReceipt?.attachments?.receipts;
+  if (receipts === undefined) return [];
+  if (!Array.isArray(receipts)) throw new TypeError("Previous attachment receipts are invalid");
+  return receipts.map((receipt) => {
+    const receipt_ref = typeof receipt?.receipt_ref === "string" ? receipt.receipt_ref.trim() : "";
+    const receipt_token = typeof receipt?.receipt_token === "string" ? receipt.receipt_token.trim() : "";
+    if (!receipt_ref || !receipt_token) throw new TypeError("Previous attachment receipt is incomplete");
+    return Object.freeze({ receipt_ref, receipt_token });
+  });
 }
 
-function retryableFailure(value) {
+function issuedReceipt(saved) {
+  const receipt = saved?.body?.attachment_receipt;
+  if (
+    !receipt
+    || id(receipt) !== saved.attachment_id
+    || !["created", "duplicate"].includes(receipt.outcome)
+    || typeof receipt.document_id !== "string"
+    || typeof receipt.version_id !== "string"
+    || !/^[a-f0-9]{64}$/u.test(receipt.sha256 ?? "")
+    || typeof receipt.receipt_ref !== "string"
+    || typeof receipt.receipt_token !== "string"
+  ) {
+    throw new TypeError("Outlook attachment response has no authoritative receipt");
+  }
+  return receipt;
+}
+
+function failure(value, fallback = "attachment content is unavailable") {
   return Object.freeze({
-    attachment_id: attachmentId(value),
-    name: value?.name ?? "attachment",
-    message: value?.message ?? "attachment filing failed",
+    attachment_id: id(value),
+    name: (value?.name ?? id(value)) || "attachment",
+    message: value?.message ?? fallback,
+    safe_error_code: value?.safe_error_code ?? null,
     retryable: true,
   });
 }
 
-function skippedFailure(value) {
+function operationReceipt({ matterId, itemKey, email, failures, skipped, requestCount }) {
+  const receipts = email.attachment_state.receipts;
+  const retryIds = email.attachment_state.retry_attachment_ids;
+  const failureById = new Map([...failures, ...skipped].map((item) => [id(item), item]));
+  const authoritativeFailures = retryIds.map((attachmentId) => (
+    failureById.get(attachmentId) ?? failure({ attachment_id: attachmentId, name: attachmentId })
+  ));
+  const status = retryIds.length > 0 ? "partial" : "complete";
   return Object.freeze({
-    attachment_id: attachmentId(value),
-    name: value?.name ?? "attachment",
-    message: value?.message ?? "attachment is unsupported",
-    safe_error_code: value?.safe_error_code ?? null,
-    retryable: false,
-  });
-}
-
-function operationReceipt({
-  matterId,
-  itemKey,
-  email,
-  previousReceipt,
-  nextReceipts,
-  nextFailures,
-  nextSkipped,
-  requestCount,
-}) {
-  const receipts = uniqueByAttachmentId([
-    ...asArray(previousReceipt?.attachments?.receipts),
-    ...nextReceipts,
-  ]);
-  const attemptedIds = new Set([
-    ...nextReceipts.map(attachmentId),
-    ...nextFailures.map(attachmentId),
-    ...nextSkipped.map(attachmentId),
-  ]);
-  const failed = uniqueByAttachmentId([
-    ...asArray(previousReceipt?.attachments?.failed)
-      .filter((entry) => !attemptedIds.has(attachmentId(entry))),
-    ...nextFailures,
-  ]);
-  const skipped = uniqueByAttachmentId([
-    ...asArray(previousReceipt?.attachments?.skipped),
-    ...nextSkipped,
-  ]);
-  const retryAttachmentIds = failed
-    .filter((entry) => entry.retryable === true)
-    .map(attachmentId);
-  const failedCount = failed.length + skipped.length;
-  return Object.freeze({
-    status: failedCount > 0 ? "partial" : "complete",
+    status,
+    outcome: status === "complete" ? "attachments_saved" : "partial",
     matter_id: matterId,
     item_key: itemKey,
     email,
     attachments: Object.freeze({
-      created_count: receipts.filter((entry) => entry.outcome === "created").length,
-      duplicate_count: receipts.filter((entry) => entry.outcome === "duplicate").length,
-      failed_count: failedCount,
+      created_count: receipts.filter(({ outcome }) => outcome === "created").length,
+      duplicate_count: receipts.filter(({ outcome }) => outcome === "duplicate").length,
+      failed_count: authoritativeFailures.length,
       skipped_count: skipped.length,
-      receipts: Object.freeze(receipts),
-      failed: Object.freeze(failed),
+      receipts,
+      failed: Object.freeze(authoritativeFailures),
       skipped: Object.freeze(skipped),
-      request_count: (previousReceipt?.attachments?.request_count ?? 0) + requestCount,
+      request_count: requestCount,
     }),
-    retry_attachment_ids: Object.freeze(retryAttachmentIds),
+    retry_attachment_ids: retryIds,
   });
 }
 
@@ -128,26 +100,23 @@ export async function fileOutlookEmailWithAttachments({
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
   if (typeof readAttachments !== "function") throw new TypeError("readAttachments is required");
   assertStableOutlookItemIdentity(email);
-  const itemKey = outlookItemIdentityKey(email);
   const nextMatterId = typeof matterId === "string" ? matterId.trim() : "";
-  let emailReceipt;
-  let retryIds = null;
-  if (previousReceipt) {
-    if (
-      previousReceipt.matter_id !== nextMatterId
-      || previousReceipt.item_key !== itemKey
-      || previousReceipt.email?.matter_id !== nextMatterId
-    ) {
-      throw new TypeError("Previous filing receipt does not match the current Outlook item context");
-    }
-    emailReceipt = previousReceipt.email;
-    retryIds = [...asArray(previousReceipt.retry_attachment_ids)];
-    if (retryIds.length === 0) return previousReceipt;
-  } else {
-    emailReceipt = await fileOutlookEmail({
+  const itemKey = outlookItemIdentityKey(email);
+  let emailReceipt = await fileOutlookEmail({
+    matterId: nextMatterId,
+    email,
+    requestJson,
+    priorAttachmentReceipts: priorTokens(previousReceipt),
+  });
+  const retryIds = [...emailReceipt.attachment_state.retry_attachment_ids];
+  if (retryIds.length === 0) {
+    return operationReceipt({
       matterId: nextMatterId,
-      email,
-      requestJson,
+      itemKey,
+      email: emailReceipt,
+      failures: [],
+      skipped: [],
+      requestCount: 0,
     });
   }
 
@@ -156,33 +125,20 @@ export async function fileOutlookEmailWithAttachments({
     matterId: nextMatterId,
     emailThreadId: emailReceipt.email_thread_id,
   });
-  const retrySet = retryIds ? new Set(retryIds) : null;
-  const attachments = uniqueByAttachmentId(asArray(loaded?.attachments))
-    .filter((entry) => !retrySet || retrySet.has(attachmentId(entry)));
-  const unsupported = uniqueByAttachmentId(asArray(loaded?.unsupported))
-    .filter((entry) => !retrySet || retrySet.has(attachmentId(entry)));
-  const representedIds = new Set([
-    ...attachments.map(attachmentId),
-    ...unsupported.map(attachmentId),
-  ]);
-  const missingFailures = retryIds
-    ? retryIds
-      .filter((id) => !representedIds.has(id))
-      .map((id) => retryableFailure({
-        attachment_id: id,
-        name: id,
-        message: "attachment content is unavailable",
-      }))
-    : [];
-
+  const attachments = unique(array(loaded?.attachments), "Loaded attachments");
+  const unsupported = unique(array(loaded?.unsupported), "Unsupported attachments");
+  unique([...attachments, ...unsupported], "Loaded attachment result");
+  const represented = new Set([...attachments, ...unsupported].map(id));
+  if ([...represented].some((attachmentId) => !retryIds.includes(attachmentId))) {
+    throw new TypeError("Loaded attachment does not match the authoritative retry set");
+  }
+  const missing = retryIds
+    .filter((attachmentId) => !represented.has(attachmentId))
+    .map((attachmentId) => failure({ attachment_id: attachmentId, name: attachmentId }));
   let saved = { result: { saved_attachments: [], failed_attachments: [], request_count: 0 } };
   if (attachments.length > 0) {
     saved = await saveOutlookAttachments({
-      currentItem: {
-        conversation_id: email.conversation_id,
-        attachments,
-        unsupported: [],
-      },
+      currentItem: { conversation_id: email.conversation_id, attachments, unsupported: [] },
       matterId: nextMatterId,
       emailThreadId: emailReceipt.email_thread_id,
       requestJson,
@@ -190,17 +146,24 @@ export async function fileOutlookEmailWithAttachments({
       allowAllFailedResult: true,
     });
   }
+  const successfulTokens = array(saved.result?.saved_attachments)
+    .map(issuedReceipt)
+    .map(({ receipt_ref, receipt_token }) => ({ receipt_ref, receipt_token }));
+  emailReceipt = await fileOutlookEmail({
+    matterId: nextMatterId,
+    email,
+    requestJson,
+    priorAttachmentReceipts: [
+      ...emailReceipt.attachment_state.receipts.map(({ receipt_ref, receipt_token }) => ({ receipt_ref, receipt_token })),
+      ...successfulTokens,
+    ],
+  });
   return operationReceipt({
     matterId: nextMatterId,
     itemKey,
     email: emailReceipt,
-    previousReceipt,
-    nextReceipts: asArray(saved.result?.saved_attachments).map(attachmentReceipt),
-    nextFailures: [
-      ...asArray(saved.result?.failed_attachments).map(retryableFailure),
-      ...missingFailures,
-    ],
-    nextSkipped: unsupported.map(skippedFailure),
+    failures: [...array(saved.result?.failed_attachments).map(failure), ...missing],
+    skipped: unsupported.map(failure),
     requestCount: saved.result?.request_count ?? 0,
   });
 }

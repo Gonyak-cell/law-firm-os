@@ -10,6 +10,10 @@ function requiredText(value, field) {
   return text;
 }
 
+function hasText(value) {
+  return typeof value === "string" && Boolean(value.trim());
+}
+
 /**
  * Build the request for an explicit filing action.
  *
@@ -22,12 +26,27 @@ export function createOutlookFilingRequest({
   matterId,
   email,
   mode = "manual",
+  priorAttachmentReceipts,
 } = {}) {
   const nextMatterId = requiredText(matterId, "matter_id");
   if (!email || typeof email !== "object") throw new TypeError("email is required");
   if (mode !== "manual" && mode !== "sent") throw new TypeError("mode must be manual or sent");
   const sent = mode === "sent";
-  const body = { matter_id: nextMatterId, email };
+  let attachmentReceipts;
+  if (priorAttachmentReceipts !== undefined) {
+    if (!Array.isArray(priorAttachmentReceipts)) {
+      throw new TypeError("attachment_receipts must be an array");
+    }
+    attachmentReceipts = priorAttachmentReceipts.map((receipt) => Object.freeze({
+      receipt_ref: requiredText(receipt?.receipt_ref, "receipt_ref"),
+      receipt_token: requiredText(receipt?.receipt_token, "receipt_token"),
+    }));
+  }
+  const body = {
+    matter_id: nextMatterId,
+    email,
+    ...(attachmentReceipts ? { attachment_receipts: Object.freeze(attachmentReceipts) } : {}),
+  };
   return Object.freeze({
     path: sent ? OUTLOOK_SENT_FILING_PATH : OUTLOOK_EMAIL_FILING_PATH,
     method: "POST",
@@ -40,11 +59,12 @@ export async function fileOutlookEmail({
   matterId,
   email,
   mode = "manual",
+  priorAttachmentReceipts,
   requestJson,
 } = {}) {
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
   assertStableOutlookItemIdentity(email);
-  const request = createOutlookFilingRequest({ matterId, email, mode });
+  const request = createOutlookFilingRequest({ matterId, email, mode, priorAttachmentReceipts });
   const body = await requestJson(request.path, {
     method: request.method,
     body: request.body,
@@ -54,17 +74,67 @@ export async function fileOutlookEmail({
   const documentIds = Array.isArray(thread?.filed_document_ids)
     ? thread.filed_document_ids.filter((value) => typeof value === "string" && value.trim())
     : [];
+  const expectedTimelineType = mode === "sent"
+    ? "outlook.email.sent_filed"
+    : "outlook.email.filed";
+  const filedAt = Date.parse(thread?.filing_time);
+  const attachmentState = body?.attachment_state;
+  const attachmentReceipts = Array.isArray(attachmentState?.receipts)
+    ? attachmentState.receipts
+    : null;
+  const retryAttachmentIds = Array.isArray(attachmentState?.retry_attachment_ids)
+    ? attachmentState.retry_attachment_ids
+    : null;
+  const normalizedReceipts = attachmentReceipts?.map((receipt) => {
+    const normalized = {
+      attachment_id: requiredText(receipt?.attachment_id, "attachment_id"),
+      name: requiredText(receipt?.name, "attachment.name"),
+      outcome: receipt?.outcome,
+      matter_id: requiredText(receipt?.matter_id, "attachment.matter_id"),
+      email_thread_id: requiredText(receipt?.email_thread_id, "attachment.email_thread_id"),
+      document_id: requiredText(receipt?.document_id, "document_id"),
+      version_id: requiredText(receipt?.version_id, "version_id"),
+      sha256: requiredText(receipt?.sha256, "sha256"),
+      receipt_ref: requiredText(receipt?.receipt_ref, "receipt_ref"),
+      receipt_token: requiredText(receipt?.receipt_token, "receipt_token"),
+    };
+    if (!["created", "duplicate"].includes(normalized.outcome) || !/^[a-f0-9]{64}$/u.test(normalized.sha256)) {
+      throw new TypeError("Outlook attachment receipt is incomplete or mismatched");
+    }
+    return Object.freeze(normalized);
+  });
+  const normalizedRetryIds = retryAttachmentIds?.map((value) => requiredText(value, "retry_attachment_id"));
+  const receiptIds = new Set(normalizedReceipts?.map(({ attachment_id }) => attachment_id));
+  const retryIds = new Set(normalizedRetryIds);
   if (
     !["created", "idempotent_replay"].includes(outcome)
+    || !hasText(body?.request_id)
+    || body?.filing_operation !== mode
+    || body?.timeline_event?.type !== expectedTimelineType
+    || !hasText(body?.timeline_event?.event_id)
+    || body?.timeline_event?.matter_id !== request.body.matter_id
+    || body?.timeline_event?.source_ref !== thread?.email_thread_id
+    || body?.external_send_state !== (mode === "sent" ? "provider_gated_no_external_send_claim" : "not_applicable")
     || thread?.status !== "active"
     || thread?.matter_id !== request.body.matter_id
-    || typeof thread?.email_thread_id !== "string"
+    || !hasText(thread?.email_thread_id)
     || documentIds.length !== 1
+    || !hasText(thread?.filing_user)
+    || !Number.isFinite(filedAt)
+    || !normalizedReceipts
+    || !normalizedRetryIds
+    || receiptIds.size !== normalizedReceipts.length
+    || retryIds.size !== normalizedRetryIds.length
+    || normalizedRetryIds.some((id) => receiptIds.has(id))
+    || normalizedReceipts.some((receipt) => (
+      receipt.matter_id !== request.body.matter_id
+      || receipt.email_thread_id !== thread.email_thread_id
+    ))
   ) {
     throw new TypeError("Outlook filing response is incomplete or mismatched");
   }
   return Object.freeze({
-    request_id: typeof body.request_id === "string" ? body.request_id : null,
+    request_id: body.request_id,
     outcome,
     duplicate: outcome === "idempotent_replay" || body.idempotent_replay === true,
     mode,
@@ -76,5 +146,9 @@ export async function fileOutlookEmail({
     timeline_event_type: body.timeline_event?.type ?? null,
     filing_actor_id: thread.filing_user ?? null,
     filed_at: thread.filing_time ?? null,
+    attachment_state: Object.freeze({
+      receipts: Object.freeze(normalizedReceipts),
+      retry_attachment_ids: Object.freeze(normalizedRetryIds),
+    }),
   });
 }
