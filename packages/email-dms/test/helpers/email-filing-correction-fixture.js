@@ -109,6 +109,18 @@ export function seedOriginalFiling(repository, overrides = {}) {
         mime_sha256: original.mime_sha256,
       },
     });
+    tx.recordIdempotency({
+      tenant_id: original.tenant_id,
+      idempotency_key:
+        `outlook-email-file:${original.email_thread_id}:${original.mime_sha256}:dms`,
+      operation: "outlook_email_file",
+      response: {
+        email_thread_id: original.email_thread_id,
+        matter_id: original.matter_id,
+        filed_document_ids: [original.document_id],
+      },
+      created_at: original.occurred_at,
+    });
   });
   return original;
 }
