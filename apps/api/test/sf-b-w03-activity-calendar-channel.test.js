@@ -86,6 +86,7 @@ test("SF-B-W03R activity workspace creates, patches, replays, and feeds safe tim
           activity_type: "task",
           title: "Prepare witness outline",
           status: "todo",
+          due_at: "2026-07-01T02:00:00.000Z",
         },
       }),
     });

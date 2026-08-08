@@ -41,6 +41,8 @@ export * from "./timeline-repository.js";
 export * from "./activity-calendar-channel-service.js";
 export * from "./outlook-task-adapter.js";
 export * from "./document-email-builder-service.js";
+export * from "./agreement-docx.js";
+export * from "./approved-document-builder-service.js";
 export * from "./amic-matter-code-candidates.js";
 export * from "./matter-party-service.js";
 export * from "./matter-profile-service.js";
