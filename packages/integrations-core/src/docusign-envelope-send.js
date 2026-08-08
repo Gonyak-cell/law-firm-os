@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { normalizeDocusignConnection } from "./docusign-envelope-adapter.js";
+import { docusignActionResult, projectDocusignActionResult } from "./docusign-action-result.js";
 import {
   DOCUSIGN_STABLE_STATES,
   docusignAccountBindingRef,
@@ -67,6 +68,14 @@ function updateAction(request, action, key, patch) {
 }
 
 function replayActionResult(action, request) {
+  if (action?.status === "succeeded") return null;
+  const projected = projectDocusignActionResult({
+    action,
+    request,
+    projectRequest: projectDocusignRequestSafe,
+    createError: (code, status, retryable) => docusignFailure(code, "DocuSign action result replay", status, retryable),
+  });
+  if (projected) return projected;
   if (action?.status === "failed") {
     return Object.freeze({
       outcome: action.outcome ?? "blocked",
@@ -137,6 +146,13 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
         status: classified.state === "reconciliation_required" ? "unknown" : "failed",
         outcome: classified.state === "reconciliation_required" ? "retryable" : "blocked",
         safe_error_code: classified.safe_error_code,
+        result: docusignActionResult({
+          kind: classified.state === "reconciliation_required" ? "error" : "return",
+          outcome: classified.state === "reconciliation_required" ? "retryable" : "blocked",
+          http_status: classified.state === "reconciliation_required" ? 503 : 200,
+          retryable: classified.state === "reconciliation_required",
+          safe_error_code: classified.safe_error_code,
+        }),
         updated_at: docusignNow(clock),
       });
       return {
@@ -169,20 +185,20 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
         : null;
       if (replay) {
         if (replay.status === "in_progress" && (!request.operation_lease || Date.parse(request.operation_lease.expires_at) <= Date.parse(now))) {
-          const recovered = updateAction({ ...request, state: "reconciliation_required", operation_lease: null, last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "send", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now });
+          const recovered = updateAction({ ...request, state: "reconciliation_required", operation_lease: null, last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "send", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", result: docusignActionResult({ kind: "error", outcome: "retryable", http_status: 503, retryable: true, safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT" }), updated_at: now });
           state.requests[index] = recovered;
           return { claimed: false, request: recovered, replayed: true, action: recovered.action_idempotency.find((entry) => entry.action === "send" && entry.key === actionIdempotencyKey) };
         }
         if (request.state === "provider_pending"
           && (!request.operation_lease || Date.parse(request.operation_lease.expires_at) <= Date.parse(now))) {
-          const recovered = updateAction({ ...request, state: "reconciliation_required", operation_lease: null, last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "send", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now });
+          const recovered = updateAction({ ...request, state: "reconciliation_required", operation_lease: null, last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "send", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", result: docusignActionResult({ kind: "error", outcome: "retryable", http_status: 503, retryable: true, safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT" }), updated_at: now });
           state.requests[index] = recovered;
           return { claimed: false, request: recovered, replayed: true, action: recovered.action_idempotency.find((entry) => entry.action === "send" && entry.key === actionIdempotencyKey) };
         }
         if (request.state === "draft_created" && ["unknown", "failed"].includes(replay.status)) {
           const generation = nextGeneration(request);
           state.requests[index] = {
-            ...updateAction(request, "send", actionIdempotencyKey, { status: "in_progress", safe_error_code: null, updated_at: now }),
+            ...updateAction(request, "send", actionIdempotencyKey, { status: "in_progress", safe_error_code: null, result: null, updated_at: now }),
             state: "provider_pending",
             attempt_phase: "sending",
             last_safe_error_code: null,
@@ -262,13 +278,14 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
         }
       }
     } catch (error) {
+      const publicError = dependencyError(error, error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
       try {
-        await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({ ...updateAction(fresh, "send", actionIdempotencyKey, { status: "failed", outcome: "blocked", safe_error_code: error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }), state: "approved", attempt_phase: null, operation_lease: null, provider_operation: null, last_safe_error_code: error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }));
+        await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({ ...updateAction(fresh, "send", actionIdempotencyKey, { status: "failed", outcome: "blocked", safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", result: docusignActionResult({ kind: "error", outcome: "blocked", http_status: publicError.status ?? 503, retryable: publicError.retryable === true, safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE" }), updated_at: docusignNow(clock) }), state: "approved", attempt_phase: null, operation_lease: null, provider_operation: null, last_safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }));
       } catch (leaseError) {
         if (leaseError?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST") throw leaseError;
         throw dependencyError(leaseError, "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
       }
-      throw dependencyError(error, error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
+      throw publicError;
     }
     let envelope;
     if (!claimed.existingDraft) {
@@ -315,7 +332,7 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
       }
       return Object.freeze({ outcome: "blocked", request: projectDocusignRequestSafe(request), safe_error_code: classified.safe_error_code });
     }
-    request = await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({ ...updateAction(fresh, "send", actionIdempotencyKey, { status: "succeeded", outcome: "sent", safe_error_code: null, updated_at: docusignNow(clock) }), state: "sent", attempt_phase: "sent", operation_lease: null, provider_operation: null, last_provider_status: "sent", updated_at: docusignNow(clock) }));
+    request = await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({ ...updateAction(fresh, "send", actionIdempotencyKey, { status: "succeeded", outcome: "sent", safe_error_code: null, result: docusignActionResult({ kind: "return", outcome: "sent", http_status: 200, retryable: false, safe_error_code: null }), updated_at: docusignNow(clock) }), state: "sent", attempt_phase: "sent", operation_lease: null, provider_operation: null, last_provider_status: "sent", updated_at: docusignNow(clock) }));
     return Object.freeze({ outcome: "sent", request: projectDocusignRequestSafe(request) });
   };
 }

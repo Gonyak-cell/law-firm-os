@@ -28,12 +28,12 @@ function independentPool(fixture, applicationName) {
   return createPostgresPool({ connectionString: url.toString(), sslMode: "disable", allowInsecureLocal: true, applicationName, tenantContextSecret: fixture.tenantContextSecret });
 }
 
-function service(repository, adapter) {
+function service(repository, adapter, connectionResolver = async () => CONNECTION) {
   return createDocusignEnvelopeService({
     repository,
     adapter,
     clock: () => "2026-08-08T09:00:00.000Z",
-    connectionResolver: async () => CONNECTION,
+    connectionResolver,
     approvedDocumentResolver: async () => SOURCE,
     artifactReader: async (binding) => ({ ...binding, bytes: BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "signer@example.test" }),
@@ -121,4 +121,58 @@ test("OUTM-33 PostgreSQL unknown reconcile action is retryable after restart wit
   await restartPool.end();
   await poolA.end();
   await poolB.end();
+});
+
+test("OUTM-33 PostgreSQL send trust-boundary 403 replay preserves status after restart", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const pool = independentPool(fixture, "docusign-action-result-403");
+  let providerCalls = 0;
+  const adapter = {
+    async createDraft() { providerCalls += 1; throw new Error("provider must not run"); },
+    async send() { providerCalls += 1; },
+  };
+  const repository = createPostgresDocusignEnvelopeRepository({ pool });
+  const requestId = "request-action-result-403-pg";
+  const key = "send-result-403-pg";
+  await queueApproved(service(repository, adapter), requestId);
+  const badResolver = async () => ({ ...CONNECTION, tenant_id: "tenant-other" });
+  const input = { principal: { tenant_id: TENANT, actor_id: "actor-action-pg" }, request_id: requestId, explicit_human_action: true, action_idempotency_key: key };
+  await assert.rejects(service(repository, adapter, badResolver).sendApprovedRequest(input), (error) => error?.status === 403 && error?.retryable === false && error?.safe_error_code === "DOCUSIGN_CONNECTION_SCOPE_INVALID");
+  const restartPool = independentPool(fixture, "docusign-action-result-403-restart");
+  const restarted = service(createPostgresDocusignEnvelopeRepository({ pool: restartPool }), adapter, badResolver);
+  await assert.rejects(restarted.sendApprovedRequest(input), (error) => error?.status === 403 && error?.retryable === false && error?.safe_error_code === "DOCUSIGN_CONNECTION_SCOPE_INVALID");
+  const state = await restarted.repository.readState({ tenant_id: TENANT });
+  const result = state.requests[0].action_idempotency.find((entry) => entry.key === key).result;
+  assert.deepEqual([result.kind, result.outcome, result.http_status, result.retryable, result.safe_error_code, providerCalls], ["error", "blocked", 403, false, "DOCUSIGN_CONNECTION_SCOPE_INVALID", 0]);
+  await restartPool.end();
+  await pool.end();
+});
+
+test("OUTM-33 PostgreSQL reconcile binding 409 replay preserves status after restart", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const pool = independentPool(fixture, "docusign-action-result-409");
+  let findCalls = 0;
+  const adapter = {
+    async createDraft() { throw new Error("create must not run"); },
+    async send() { throw new Error("send must not run"); },
+    async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "wrong-account-envelope", provider_correlation_ref, account_id: "account-other", status: "created" }; },
+  };
+  const repository = createPostgresDocusignEnvelopeRepository({ pool });
+  const requestId = "request-action-result-409-pg";
+  const key = "reconcile-result-409-pg";
+  const queued = service(repository, adapter);
+  await queueApproved(queued, requestId);
+  await repository.transact({ tenant_id: TENANT }, (state) => { state.requests[0] = { ...state.requests[0], state: "reconciliation_required", operation_lease: null, attempt_phase: "create_failed" }; });
+  const input = { principal: { tenant_id: TENANT, actor_id: "actor-action-pg" }, request_id: requestId, explicit_human_action: true, action_idempotency_key: key };
+  await assert.rejects(queued.reconcileRequest(input), (error) => error?.status === 409 && error?.retryable === false && error?.safe_error_code === "DOCUSIGN_RECONCILIATION_BINDING_INVALID");
+  const restartPool = independentPool(fixture, "docusign-action-result-409-restart");
+  const restarted = service(createPostgresDocusignEnvelopeRepository({ pool: restartPool }), adapter);
+  await assert.rejects(restarted.reconcileRequest(input), (error) => error?.status === 409 && error?.retryable === false && error?.safe_error_code === "DOCUSIGN_RECONCILIATION_BINDING_INVALID");
+  const state = await restarted.repository.readState({ tenant_id: TENANT });
+  const result = state.requests[0].action_idempotency.find((entry) => entry.key === key).result;
+  assert.deepEqual([result.kind, result.outcome, result.http_status, result.retryable, result.safe_error_code, findCalls], ["error", "blocked", 409, false, "DOCUSIGN_RECONCILIATION_BINDING_INVALID", 1]);
+  await restartPool.end();
+  await pool.end();
 });

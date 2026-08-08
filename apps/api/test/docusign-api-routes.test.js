@@ -96,6 +96,69 @@ test("OUTM-33 HTTP unknown-reconcile replay stays retryable after restart and ne
   assert.equal((await restarted.repository.readState?.({ tenant_id: TENANT }) ?? restarted.repository.loadState()).requests[0].operation_lease, null);
 });
 
+test("OUTM-33 HTTP send trust-boundary 403 replay keeps original status after restart", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "docusign-api-action-result-403-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const filePath = join(root, "outbox.json");
+  let providerCalls = 0;
+  const adapter = {
+    async createDraft() { providerCalls += 1; throw new Error("provider must not run"); },
+    async send() { providerCalls += 1; },
+    async getStatus() { return { status: "delivered" }; },
+    async downloadDocument() { return Buffer.from("unused"); },
+  };
+  const repository = createDocusignEnvelopeRepository({ filePath });
+  const queued = await docusignRuntime({ prepare: false, repository, adapter });
+  await queued.envelope_service.queueApprovedRequest({ principal: { tenant_id: TENANT, actor_id: "actor-api" }, request_id: "request-api-result-403", tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id, idempotency_key: "queue-api-result-403", approved_artifact_id: APPROVED_ARTIFACT_ID, explicit_human_action: true, authority_binding: AUTHORITY_BINDING });
+  const badResolver = async () => ({ ...CONNECTION, tenant_id: "tenant-other" });
+  const body = { matter_id: MATTER, idempotency_key: "send-api-result-403", explicit_human_action: true };
+  const firstRuntime = await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter, connectionResolver: badResolver });
+  await withServer(firstRuntime, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-403/send`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes], [403, "blocked", ["DOCUSIGN_CONNECTION_SCOPE_INVALID"]]);
+  });
+  const restarted = await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter, connectionResolver: badResolver });
+  await withServer(restarted, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-403/send`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes], [403, "blocked", ["DOCUSIGN_CONNECTION_SCOPE_INVALID"]]);
+  });
+  assert.equal(providerCalls, 0);
+});
+
+test("OUTM-33 HTTP reconcile binding 409 replay keeps original status after restart", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "docusign-api-action-result-409-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const filePath = join(root, "outbox.json");
+  let findCalls = 0;
+  const adapter = {
+    async createDraft() { throw new Error("create must not run"); },
+    async send() { throw new Error("send must not run"); },
+    async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "wrong-account-envelope", provider_correlation_ref, account_id: "account-other", status: "created" }; },
+    async getStatus() { return { status: "delivered" }; },
+    async downloadDocument() { return Buffer.from("unused"); },
+  };
+  const repository = createDocusignEnvelopeRepository({ filePath });
+  const queued = await docusignRuntime({ prepare: false, repository, adapter });
+  await queued.envelope_service.queueApprovedRequest({ principal: { tenant_id: TENANT, actor_id: "actor-api" }, request_id: "request-api-result-409", tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id, idempotency_key: "queue-api-result-409", approved_artifact_id: APPROVED_ARTIFACT_ID, explicit_human_action: true, authority_binding: AUTHORITY_BINDING });
+  repository.transact({ tenant_id: TENANT }, (state) => { state.requests[0] = { ...state.requests[0], state: "reconciliation_required", operation_lease: null, attempt_phase: "create_failed" }; });
+  const body = { matter_id: MATTER, idempotency_key: "reconcile-api-result-409", explicit_human_action: true };
+  const firstRuntime = await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter });
+  await withServer(firstRuntime, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-409/reconcile`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes], [409, "blocked", ["DOCUSIGN_RECONCILIATION_BINDING_INVALID"]]);
+  });
+  const restarted = await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter });
+  await withServer(restarted, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-409/reconcile`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes], [409, "blocked", ["DOCUSIGN_RECONCILIATION_BINDING_INVALID"]]);
+  });
+  assert.equal(findCalls, 1);
+});
+
 test("OUTM-33 server default fail-closed authority reaches the live route with zero outbox rows", async () => {
   const runtime = createDocusignFailClosedRuntime({ authorizeMatter: async () => ({ allowed: true, authority_binding: AUTHORITY_BINDING }) });
   await withServer(runtime, async (baseUrl) => {

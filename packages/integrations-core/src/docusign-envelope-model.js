@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { stableJsonStringify } from "../../persistence/src/durable-file.js";
 import { DOCX_MIME_TYPE, normalizeDocusignConnection } from "./docusign-envelope-adapter.js";
+import { normalizeDocusignActionResult } from "./docusign-action-result.js";
 
 export const DOCUSIGN_OUTBOX_SCHEMA_VERSION = "amic-os.docusign-envelope-outbox.v2";
 export const DOCUSIGN_REQUEST_STATES = Object.freeze([
@@ -177,6 +178,7 @@ function normalizeActionIdempotency(input = []) {
       status,
       outcome: entry?.outcome == null ? null : docusignRequiredText(entry.outcome, "action_idempotency.outcome"),
       safe_error_code: entry?.safe_error_code == null ? null : docusignRequiredText(entry.safe_error_code, "action_idempotency.safe_error_code"),
+      result: normalizeDocusignActionResult(entry?.result),
       created_at: docusignTimestamp(entry?.created_at, "action_idempotency.created_at"),
       updated_at: docusignTimestamp(entry?.updated_at ?? entry?.created_at, "action_idempotency.updated_at"),
     });

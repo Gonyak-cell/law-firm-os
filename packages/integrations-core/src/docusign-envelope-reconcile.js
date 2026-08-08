@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { normalizeDocusignConnection } from "./docusign-envelope-adapter.js";
+import { docusignActionResult, projectDocusignActionResult } from "./docusign-action-result.js";
 import {
   DOCUSIGN_PROVIDER_STATUS_STATES,
   projectDocusignProviderEvent,
@@ -46,6 +47,14 @@ function updateAction(request, action, key, patch) {
 }
 
 function replayActionResult(action, request) {
+  if (action?.status === "succeeded") return null;
+  const projected = projectDocusignActionResult({
+    action,
+    request,
+    projectRequest: projectDocusignRequestSafe,
+    createError: (code, status, retryable) => docusignFailure(code, "DocuSign action result replay", status, retryable),
+  });
+  if (projected) return projected;
   if (action?.status === "unknown") {
     const error = docusignInfrastructureFailure(action.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS");
     error.request = projectDocusignRequestSafe(request);
@@ -113,7 +122,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
         : null;
       if (replay) {
         if (replay.status === "in_progress" && (!request.operation_lease || Date.parse(request.operation_lease.expires_at) <= Date.parse(now))) {
-          const recovered = updateAction({ ...request, operation_lease: null, attempt_phase: "reconciliation_failed", last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "reconcile", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now });
+          const recovered = updateAction({ ...request, operation_lease: null, attempt_phase: "reconciliation_failed", last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "reconcile", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", result: docusignActionResult({ kind: "error", outcome: "retryable", http_status: 503, retryable: true, safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT" }), updated_at: now });
           state.requests[index] = recovered;
           return { claimed: false, request: recovered, replayed: true, action: recovered.action_idempotency.find((entry) => entry.action === "reconcile" && entry.key === actionIdempotencyKey) };
         }
@@ -194,7 +203,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
           ? normalizeDocusignAuditLineage([...(fresh.audit_lineage ?? []), { event: `provider_reconciled:${status}`, audit_trace_id: fresh.document.audit_trace_id, actor_id: fresh.requested_by_actor_id, occurred_at: docusignNow(clock) }])
           : fresh.audit_lineage;
         return {
-          ...updateAction(next, "reconcile", actionIdempotencyKey, { status: "succeeded", outcome: wasConverged ? "already_converged" : "reconciled", safe_error_code: null, updated_at: docusignNow(clock) }),
+          ...updateAction(next, "reconcile", actionIdempotencyKey, { status: "succeeded", outcome: wasConverged ? "already_converged" : "reconciled", safe_error_code: null, result: docusignActionResult({ kind: "return", outcome: wasConverged ? "already_converged" : "reconciled", http_status: 200, retryable: false, safe_error_code: null }), updated_at: docusignNow(clock) }),
           envelope_id: envelopeId,
           attempt_phase: next.state === "draft_created" ? "ready_to_send" : next.attempt_phase,
           last_safe_error_code: null,
@@ -207,21 +216,31 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
       const localState = projectDocusignRequestSafe(request);
       return Object.freeze({ outcome: wasConverged ? "already_converged" : "reconciled", request: localState });
     } catch (error) {
+      const deterministic = [400, 401, 403, 404, 409].includes(error?.status);
+      const publicStatus = deterministic ? Number(error.status) : 503;
+      const publicRetryable = deterministic ? error?.retryable === true : true;
+      const publicCode = error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS";
       try {
         request = await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({
-          ...updateAction(fresh, "reconcile", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS", updated_at: docusignNow(clock) }),
+          ...updateAction(fresh, "reconcile", actionIdempotencyKey, {
+            status: deterministic ? "failed" : "unknown",
+            outcome: deterministic ? "blocked" : "retryable",
+            safe_error_code: publicCode,
+            result: docusignActionResult({ kind: "error", outcome: deterministic ? "blocked" : "retryable", http_status: publicStatus, retryable: publicRetryable, safe_error_code: publicCode }),
+            updated_at: docusignNow(clock),
+          }),
           operation_lease: null,
           provider_operation: fresh.provider_operation ? { ...fresh.provider_operation, status: "unknown" } : null,
           attempt_phase: "reconciliation_failed",
-          last_safe_error_code: error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS",
+          last_safe_error_code: publicCode,
           updated_at: docusignNow(clock),
         }));
       } catch (leaseError) {
         if (leaseError?.safe_error_code === "DOCUSIGN_RECONCILIATION_LEASE_LOST") throw leaseError;
         throw docusignInfrastructureFailure("DOCUSIGN_RECONCILIATION_UNAVAILABLE");
       }
-      if ([400, 401, 403, 404, 409].includes(error?.status)) throw error;
-      const unavailable = docusignInfrastructureFailure(error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS");
+      if (deterministic) throw error;
+      const unavailable = docusignInfrastructureFailure(publicCode);
       unavailable.request = projectDocusignRequestSafe(request);
       throw unavailable;
     }
