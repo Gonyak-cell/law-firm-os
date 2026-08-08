@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { createApprovedDocumentBuilderService } from "./approved-document-builder-service.js";
 
 const TEMPLATE_REGISTRY = Object.freeze([
   Object.freeze({
@@ -186,8 +187,19 @@ function safePreview(record, template) {
   });
 }
 
-export function createMatterDocumentEmailBuilderService({ repository } = {}) {
+export function createMatterDocumentEmailBuilderService({
+  repository,
+  dmsRuntime = null,
+  templateVersions = [],
+  clock = () => new Date().toISOString(),
+} = {}) {
   if (!repository) throw new TypeError("repository is required");
+  const approvedDocumentBuilder = createApprovedDocumentBuilderService({
+    repository,
+    dmsRuntime,
+    templateVersions,
+    clock,
+  });
 
   function listDocumentTemplates() {
     return Object.freeze(TEMPLATE_REGISTRY.map(safeTemplate));
@@ -496,13 +508,14 @@ export function createMatterDocumentEmailBuilderService({ repository } = {}) {
   }
 
   return Object.freeze({
-    listDocumentTemplates,
-    createBuilderDraft,
-    patchBuilderDraft,
-    previewBuilderDraft,
-    requestBuilderApproval,
-    listBuilderApprovalRequests,
-    publishBuilderDraftToVault,
+    listDocumentTemplates: approvedDocumentBuilder.listDocumentTemplates,
+    createBuilderDraft: approvedDocumentBuilder.createBuilderDraft,
+    patchBuilderDraft: approvedDocumentBuilder.patchBuilderDraft,
+    previewBuilderDraft: approvedDocumentBuilder.previewBuilderDraft,
+    requestBuilderApproval: approvedDocumentBuilder.requestBuilderApproval,
+    listBuilderApprovalRequests: approvedDocumentBuilder.listBuilderApprovalRequests,
+    decideBuilderApproval: approvedDocumentBuilder.decideBuilderApproval,
+    publishBuilderDraftToVault: approvedDocumentBuilder.publishBuilderDraftToVault,
     createEmailDraft,
     patchEmailDraft,
     sendEmailDraftBlocked,

@@ -117,6 +117,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/matters/:matter_id/builder-drafts/:draft_id/preview",
     "POST /api/matters/:matter_id/builder-drafts/:draft_id/approval-requests",
     "GET /api/matters/:matter_id/builder-approval-requests",
+    "POST /api/matters/:matter_id/builder-approval-requests/:approval_request_id/decision",
     "POST /api/matters/:matter_id/builder-drafts/:draft_id/publish-to-vault",
     "POST /api/matters/:matter_id/email-drafts",
     "PATCH /api/matters/:matter_id/email-drafts/:draft_id",
@@ -588,6 +589,7 @@ export function createMatterRuntimeContext({
   onboardingGate = hrxRuntime ? createHrxOnboardingGate(hrxRuntime) : null,
   dms = createSideEffectAdapter("matter_dms"),
   dmsRuntime = null,
+  documentTemplateVersions = [],
   billing = createSideEffectAdapter("matter_billing"),
   clearanceRepository = null,
 } = {}) {
@@ -600,6 +602,7 @@ export function createMatterRuntimeContext({
     onboardingGate,
     dms,
     dmsRuntime,
+    documentTemplateVersions,
     billing,
     clearanceRepository,
     seed_ref: MATTER_RUNTIME_SEED.fixture_id,
@@ -1403,7 +1406,12 @@ function matterActivityService(runtime) {
 }
 
 function matterDocumentEmailBuilderService(runtime) {
-  return createMatterDocumentEmailBuilderService({ repository: runtime.repository });
+  return createMatterDocumentEmailBuilderService({
+    repository: runtime.repository,
+    dmsRuntime: runtime.dmsRuntime,
+    templateVersions: runtime.documentTemplateVersions,
+    clock: runtime.clock,
+  });
 }
 
 function matterRuntimeReplay(repository, query, idempotencyKey, requestId) {
@@ -1461,11 +1469,14 @@ function activityItemResponse({ result, requestId, query, outcome = "created" })
     confirmation: result.confirmation ?? null,
     provider_state: result.provider_state ?? null,
     approval_request: result.approval_request ?? null,
+    approval_receipt: result.approval_receipt ?? null,
+    artifact: result.artifact ?? null,
+    outbox_event: result.outbox_event ?? null,
     publish_state: result.publish_state ?? null,
     safe_error_codes: [],
     audit_hint_ref: query.audit_hint_ref,
     state_idempotent: true,
-    idempotent_replay: false,
+    idempotent_replay: result.idempotent_replay === true,
     count_leak_prevented: true,
     production_ready_claim: false,
   };
@@ -2710,7 +2721,69 @@ export function handleMatterBuilderApprovalList({ matterId, query, context, requ
   });
 }
 
-export function handleMatterBuilderPublishToVault({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+const MATTER_BUILDER_OWNER_ROLES = Object.freeze(new Set([
+  "tenant_owner",
+  "managing_partner",
+  "system_super_admin",
+  "lawos_partner",
+  "partner",
+]));
+
+function isMatterBuilderOwner(context) {
+  return Array.isArray(context?.principal?.role_ids)
+    && context.principal.role_ids.some((role) => MATTER_BUILDER_OWNER_ROLES.has(role));
+}
+
+export function handleMatterBuilderApprovalDecision({ matterId, approvalRequestId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const query = queryFromBody(body);
+  const gated = routeGate({
+    context,
+    query,
+    requestId,
+    action: "matter:builder:approval:decide",
+    resource: { resource_type: "matter_builder_approval", resource_id: approvalRequestId, matter_id: matterId },
+  });
+  if (gated) return gated;
+  if (!isMatterBuilderOwner(context)) {
+    return errorResponse(403, requestId, [MATTER_API_ERROR_CODES.approval_required], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: "owner_blocked",
+      safe_message: "Matter document approval requires an owner role.",
+    });
+  }
+  try {
+    const result = matterDocumentEmailBuilderService(runtime).decideBuilderApproval({
+      tenant_id: query.tenant_id,
+      matter_id: matterId,
+      approval_request_id: approvalRequestId,
+      decision: body?.decision,
+      actor_id: context.principal.user_id,
+      authorized_owner: true,
+      idempotency_key: body?.idempotency_key,
+      occurred_at: body?.occurred_at,
+    });
+    return {
+      status: 200,
+      body: activityItemResponse({ result, requestId, query, outcome: result.outcome }),
+    };
+  } catch (error) {
+    const notFound = /not found/.test(error.message);
+    const conflict = /idempotency|stale/.test(error.message);
+    return errorResponse(notFound ? 404 : conflict ? 409 : 400, requestId, [
+      conflict ? "MATTER_BUILDER_APPROVAL_CONFLICT" : MATTER_API_ERROR_CODES.validation_error,
+    ], {
+      audit_hint_ref: query.audit_hint_ref,
+      ui_state: notFound ? "empty" : "blocked",
+      safe_message: notFound
+        ? "Matter document approval request was not found."
+        : conflict
+          ? "Matter document approval no longer matches the requested draft."
+          : "Matter document approval validation failed.",
+    });
+  }
+}
+
+export async function handleMatterBuilderPublishToVault({ matterId, draftId, body, context, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
   const query = queryFromBody(body);
   const gated = routeGate({
     context,
@@ -2721,22 +2794,31 @@ export function handleMatterBuilderPublishToVault({ matterId, draftId, body, con
   });
   if (gated) return gated;
   try {
-    const result = matterDocumentEmailBuilderService(runtime).publishBuilderDraftToVault({
+    const result = await matterDocumentEmailBuilderService(runtime).publishBuilderDraftToVault({
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft_id: draftId,
       actor_id: context.principal.user_id,
+      idempotency_key: body?.idempotency_key,
       occurred_at: body?.occurred_at,
     });
     return {
       status: 200,
-      body: activityItemResponse({ result, requestId, query, outcome: "owner_blocked" }),
+      body: activityItemResponse({ result, requestId, query, outcome: result.outcome }),
     };
   } catch (error) {
-    return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
+    const notFound = error.message === "builder draft not found";
+    const conflict = /idempotency|does not match/.test(error.message);
+    return errorResponse(notFound ? 404 : conflict ? 409 : 400, requestId, [
+      conflict ? "MATTER_BUILDER_PUBLISH_CONFLICT" : MATTER_API_ERROR_CODES.validation_error,
+    ], {
       audit_hint_ref: query.audit_hint_ref,
-      ui_state: error.message === "builder draft not found" ? "empty" : "blocked",
-      message: error.message,
+      ui_state: notFound ? "empty" : "blocked",
+      safe_message: notFound
+        ? "Matter document draft was not found."
+        : conflict
+          ? "Matter document publish no longer matches the approved draft."
+          : "Matter document publish validation failed.",
     });
   }
 }
@@ -4212,6 +4294,17 @@ export async function handleMatterApiRequest({
     return handleMatterBuilderApprovalList({
       matterId: decodeURIComponent(builderApprovalListMatch[1]),
       query,
+      context,
+      requestId,
+      runtime,
+    });
+  }
+  const builderApprovalDecisionMatch = pathname.match(/^\/api\/matters\/([^/]+)\/builder-approval-requests\/([^/]+)\/decision$/);
+  if (builderApprovalDecisionMatch && method === "POST") {
+    return handleMatterBuilderApprovalDecision({
+      matterId: decodeURIComponent(builderApprovalDecisionMatch[1]),
+      approvalRequestId: decodeURIComponent(builderApprovalDecisionMatch[2]),
+      body,
       context,
       requestId,
       runtime,
