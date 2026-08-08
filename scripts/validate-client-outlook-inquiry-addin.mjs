@@ -26,99 +26,57 @@ function json(route, body, status = 200) {
   });
 }
 
-function parseCssColor(value) {
-  const match = String(value ?? "").trim().match(/^rgba?\(([^)]+)\)$/iu);
-  if (!match) return null;
-  const parts = match[1].trim().split(/[,\s/]+/u).filter(Boolean);
-  if (parts.length < 3) return null;
-  const channels = parts.slice(0, 3).map(Number);
-  if (channels.some((channel) => !Number.isFinite(channel))) return null;
-  const alpha = parts[3] === undefined ? 1 : Number(parts[3]);
-  if (!Number.isFinite(alpha)) return null;
-  return {
-    r: Math.max(0, Math.min(255, channels[0])),
-    g: Math.max(0, Math.min(255, channels[1])),
-    b: Math.max(0, Math.min(255, channels[2])),
-    a: Math.max(0, Math.min(1, alpha)),
+function readFocusSnapshot(element) {
+  const style = getComputedStyle(element);
+  const parseColor = (value) => {
+    const parts = String(value ?? "").match(/^rgba?\(([^)]+)\)$/iu)?.[1]
+      ?.trim().split(/[,\s/]+/u).filter(Boolean) ?? [];
+    const channels = parts.slice(0, 3).map(Number);
+    const alpha = Number(parts[3] ?? 1);
+    return channels.length === 3
+      && channels.every(Number.isFinite)
+      && Number.isFinite(alpha)
+      ? [...channels, alpha]
+      : null;
   };
-}
-
-function relativeLuminance({ r, g, b }) {
-  const linearize = (channel) => {
+  const luminance = ([r, g, b]) => [r, g, b].map((channel) => {
     const normalized = channel / 255;
     return normalized <= 0.03928
       ? normalized / 12.92
       : ((normalized + 0.055) / 1.055) ** 2.4;
+  }).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+  const contrast = (foreground, background) => {
+    if (!foreground || !background || foreground[3] === 0) return 0;
+    const blended = foreground.slice(0, 3).map((channel, index) => (
+      channel * foreground[3] + background[index] * (1 - foreground[3])
+    ));
+    const values = [luminance(blended), luminance(background)];
+    return (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
   };
-  return (0.2126 * linearize(r))
-    + (0.7152 * linearize(g))
-    + (0.0722 * linearize(b));
-}
-
-function blendColor(foreground, background) {
-  const alpha = foreground.a;
-  return {
-    r: (foreground.r * alpha) + (background.r * (1 - alpha)),
-    g: (foreground.g * alpha) + (background.g * (1 - alpha)),
-    b: (foreground.b * alpha) + (background.b * (1 - alpha)),
-  };
-}
-
-function contrastRatio(foreground, background) {
-  if (!foreground || !background || foreground.a === 0) return 0;
-  const foregroundLuminance = relativeLuminance(blendColor(foreground, background));
-  const backgroundLuminance = relativeLuminance(background);
-  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
-    / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
-}
-
-function extractBoxShadowColor(value) {
-  const match = String(value ?? "").match(/rgba?\([^)]*\)/iu);
-  return match ? parseCssColor(match[0]) : null;
-}
-
-function focusRingEvidence(snapshot) {
-  const background = parseCssColor(snapshot.backgroundColor);
+  const background = parseColor(style.backgroundColor);
   const candidates = [
-    {
-      kind: "outline",
-      style: snapshot.outlineStyle,
-      width: Number.parseFloat(snapshot.outlineWidth),
-      color: parseCssColor(snapshot.outlineColor),
-    },
-    {
-      kind: "border",
-      style: snapshot.borderStyle,
-      width: Number.parseFloat(snapshot.borderWidth),
-      color: parseCssColor(snapshot.borderColor),
-    },
+    [style.outlineStyle, Number.parseFloat(style.outlineWidth), parseColor(style.outlineColor)],
+    [style.borderStyle, Number.parseFloat(style.borderWidth), parseColor(style.borderColor)],
   ];
-  if (snapshot.boxShadow && snapshot.boxShadow !== "none") {
-    const shadowLengths = (snapshot.boxShadow.match(/-?\d+(?:\.\d+)?px/giu) ?? [])
+  if (style.boxShadow !== "none") {
+    const lengths = (style.boxShadow.match(/-?\d+(?:\.\d+)?px/giu) ?? [])
       .map((value) => Math.abs(Number.parseFloat(value)));
-    candidates.push({
-      kind: "box-shadow",
-      style: "solid",
-      width: Math.max(...shadowLengths, 0),
-      color: extractBoxShadowColor(snapshot.boxShadow),
-    });
+    candidates.push([
+      "solid",
+      Math.max(...lengths, 0),
+      parseColor(style.boxShadow.match(/rgba?\([^)]*\)/iu)?.[0]),
+    ]);
   }
-
-  const visibleRings = candidates
-    .filter(({ style, width, color }) => (
-      !["none", "hidden"].includes(String(style ?? "").toLowerCase())
+  const ring = candidates.map(([ringStyle, width, color]) => ({
+    width,
+    contrast: contrast(color, background),
+    visible: !["none", "hidden"].includes(String(ringStyle).toLowerCase())
       && Number.isFinite(width)
-      && width >= 2
-      && color?.a > 0
-    ))
-    .map((ring) => ({
-      ...ring,
-      contrast: contrastRatio(ring.color, background),
-    }));
-  const ring = visibleRings.find(({ contrast }) => contrast >= 3) ?? null;
+      && width >= 2,
+  })).find(({ visible, contrast: ratio }) => visible && ratio >= 3);
   return {
-    ...snapshot,
-    ring,
+    active: document.activeElement === element,
+    focusVisible: element.matches(":focus-visible"),
     ringWidth: ring?.width ?? 0,
     ringContrast: ring?.contrast ?? 0,
   };
@@ -377,52 +335,26 @@ try {
   // checking that a native button happens to be focusable.
   await page.keyboard.press("Tab");
   await page.keyboard.press("Shift+Tab");
-  const focusSnapshot = await newInquiry.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return {
-      active: document.activeElement === element,
-      focusVisible: element.matches(":focus-visible"),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-      outlineColor: style.outlineColor,
-      borderStyle: style.borderStyle,
-      borderWidth: style.borderWidth,
-      borderColor: style.borderColor,
-      boxShadow: style.boxShadow,
-      backgroundColor: style.backgroundColor,
-    };
-  });
-  const positiveFocusEvidence = focusRingEvidence(focusSnapshot);
-  assertVisibleFocusRing(positiveFocusEvidence, "문의 등록 버튼");
+  const focusSnapshot = await newInquiry.evaluate(readFocusSnapshot);
+  assertVisibleFocusRing(focusSnapshot, "문의 등록 버튼");
 
-  const negativeFocusSnapshot = await page.evaluate(() => {
+  await page.evaluate(() => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = "focus fixture";
+    button.id = "outm36-negative-focus-fixture";
     button.style.cssText = "outline: none; border: 1px solid transparent; box-shadow: none;";
     document.body.append(button);
     button.focus();
-    const style = getComputedStyle(button);
-    const snapshot = {
-      active: document.activeElement === button,
-      focusVisible: button.matches(":focus-visible"),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-      outlineColor: style.outlineColor,
-      borderStyle: style.borderStyle,
-      borderWidth: style.borderWidth,
-      borderColor: style.borderColor,
-      boxShadow: style.boxShadow,
-      backgroundColor: style.backgroundColor,
-    };
-    button.remove();
-    return snapshot;
+  });
+  const negativeFocusSnapshot = await page.locator(
+    "#outm36-negative-focus-fixture",
+  ).evaluate(readFocusSnapshot);
+  await page.evaluate(() => {
+    document.getElementById("outm36-negative-focus-fixture")?.remove();
   });
   assert.throws(
-    () => assertVisibleFocusRing(
-      focusRingEvidence(negativeFocusSnapshot),
-      "negative focus fixture",
-    ),
+    () => assertVisibleFocusRing(negativeFocusSnapshot, "negative focus fixture"),
     /focus ring|:focus-visible/u,
     "a focusable button without focus styling must fail the proof",
   );
