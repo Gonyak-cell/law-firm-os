@@ -1986,7 +1986,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isOutlookPath) {
     const context = requestPermissionContext();
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
     const result = await handleOutlookAddinApiRequest({
       pathname,
       method: req.method,

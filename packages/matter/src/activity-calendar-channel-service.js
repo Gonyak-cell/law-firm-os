@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { changeMatterDeadline } from "./calendar-service.js";
 import { confirmCriticalDeadlineChange } from "./deadline-dual-control.js";
 import { createMatterCalendarEvent, createMatterTask } from "./model.js";
-import { transitionMatterTask } from "./task-service.js";
+import { MATTER_TASK_STATUSES } from "./registry.js";
+import { nextMatterTaskVersion, transitionMatterTask } from "./task-service.js";
 
 const ACTIVITY_TYPES = Object.freeze(["task", "note", "email_log", "call"]);
 const ACTIVITY_STATUSES = Object.freeze(["todo", "in_progress", "done", "cancelled"]);
@@ -35,10 +36,26 @@ function safeText(value, field, { min = 2, max = 160 } = {}) {
   return text;
 }
 
+function isIsoDate(value) {
+  const parsed = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
+}
+
 function parseIso(value, field) {
   const text = requiredString(value, field);
-  if (Number.isNaN(Date.parse(text))) throw new TypeError(`${field} must be ISO date`);
-  return text;
+  const date = /^(\d{4}-\d{2}-\d{2})$/u.exec(text);
+  if (date && isIsoDate(date[1])) return date[1];
+  const dateTime = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-](\d{2}):(\d{2}))$/u.exec(text);
+  const validDateTime = dateTime
+    && isIsoDate(dateTime[1])
+    && Number(dateTime[2]) < 24
+    && Number(dateTime[3]) < 60
+    && Number(dateTime[4]) < 60
+    && (dateTime[6] === "Z" || (Number(dateTime[7]) < 24 && Number(dateTime[8]) < 60));
+  if (!validDateTime || Number.isNaN(Date.parse(text))) {
+    throw new TypeError(`${field} must be ISO date or date-time`);
+  }
+  return new Date(text).toISOString();
 }
 
 function bodyExcerpt(value) {
@@ -110,6 +127,7 @@ function safeActivity(record) {
     assigned_to_user_id: record.model_type === "MatterTask" ? record.assigned_to_user_id ?? null : null,
     assigned_to_label: record.assigned_to_user_id || record.assigned_to ? "지정됨" : "미지정",
     source_ref: record.source_ref ?? null,
+    version: record.model_type === "MatterTask" ? record.version ?? 1 : null,
     safe_excerpt: record.safe_excerpt ?? null,
     raw_body_included: false,
     provider_event_id_included: false,
@@ -239,7 +257,7 @@ export function createMatterActivityCalendarChannelService({
         tenant_id: tenantId,
         matter_id: matterId,
         title,
-        status: activity?.status && ACTIVITY_STATUSES.includes(activity.status) ? activity.status : "todo",
+        status: activity?.status && MATTER_TASK_STATUSES.includes(activity.status) ? activity.status : "todo",
         created_by: actorId,
         assigned_to_user_id: assignedToUserId,
         starts_at: activity?.starts_at ?? null,
@@ -298,7 +316,7 @@ export function createMatterActivityCalendarChannelService({
     return Object.freeze({ item: safe, audit_event: audit, timeline_event: timeline });
   }
 
-  function patchActivity({ tenant_id, matter_id, activity_id, patch, actor_id, occurred_at } = {}) {
+  function patchActivity({ tenant_id, matter_id, activity_id, patch, actor_id, occurred_at, expected_version } = {}) {
     const tenantId = requiredString(tenant_id, "tenant_id");
     const matterId = requiredString(matter_id, "matter_id");
     const activityId = requiredString(activity_id, "activity_id");
@@ -308,8 +326,20 @@ export function createMatterActivityCalendarChannelService({
     let current = repository.get({ tenant_id: tenantId, model_type: "MatterTask", task_id: activityId });
     let record;
     if (current) {
+      const currentVersion = current.version ?? 1;
+      if (expected_version !== undefined) {
+        if (!Number.isInteger(expected_version) || expected_version < 1) {
+          throw new TypeError("expected_version must be a positive integer");
+        }
+        if (expected_version !== currentVersion) {
+          throw Object.assign(new Error("Matter task version changed"), {
+            safe_error_code: "OUTLOOK_TASK_VERSION_CONFLICT",
+            status: 409,
+          });
+        }
+      }
       if (patch?.assigned_to != null) throw new TypeError("new task writer requires assigned_to_user_id");
-      const toStatus = patch?.status && ACTIVITY_STATUSES.includes(patch.status) ? patch.status : null;
+      const toStatus = patch?.status && MATTER_TASK_STATUSES.includes(patch.status) ? patch.status : null;
       const hasFieldPatch = ["title", "due_at", "assigned_to_user_id", "starts_at", "ends_at", "estimated_minutes"]
         .some((field) => patch?.[field] !== undefined);
       let validatedFieldPatch = null;
@@ -324,7 +354,11 @@ export function createMatterActivityCalendarChannelService({
           : current.assigned_to_user_id;
         validatedFieldPatch = {
           title: patch?.title ? safeText(patch.title, "title") : current.title,
-          due_at: patch?.due_at ? parseIso(patch.due_at, "due_at") : current.due_at,
+          due_at: patch?.due_at === null || patch?.due_at === ""
+            ? null
+            : patch?.due_at !== undefined
+              ? parseIso(patch.due_at, "due_at")
+              : current.due_at,
           assigned_to_user_id: assignedToUserId,
           starts_at: patch?.starts_at !== undefined ? patch.starts_at : current.starts_at,
           ends_at: patch?.ends_at !== undefined ? patch.ends_at : current.ends_at,
@@ -340,23 +374,20 @@ export function createMatterActivityCalendarChannelService({
         });
       }
       const mutateTask = () => {
-        let next = current;
         if (toStatus && toStatus !== current.status) {
-          next = transitionMatterTask({
+          transitionMatterTask({
             repository,
             task: current,
             to_status: toStatus,
             actor_id: actorId,
             reason: "activity_status_updated",
-            audit: { append: (event) => repository.appendAudit({ ...event, event_id: `matter.task.transition:${tenantId}:${matterId}:${activityId}:${now}` }) },
+            audit: { append: (event) => repository.appendAudit(event) },
           });
         }
-        return validatedFieldPatch
-          ? repository.update(
-              { tenant_id: tenantId, model_type: "MatterTask", task_id: activityId },
-              validatedFieldPatch,
-            )
-          : next;
+        return repository.update(
+          { tenant_id: tenantId, model_type: "MatterTask", task_id: activityId },
+          { ...(validatedFieldPatch ?? {}), version: nextMatterTaskVersion(current) },
+        );
       };
       record = typeof repository.transaction === "function"
         ? repository.transaction(mutateTask)
@@ -378,8 +409,9 @@ export function createMatterActivityCalendarChannelService({
       );
     }
     const safe = safeActivity(record);
+    const mutationId = record.model_type === "MatterTask" ? `v${safe.version}` : now;
     const audit = appendAudit(repository, {
-      event_id: `matter.activity.patched:${tenantId}:${matterId}:${activityId}:${now}`,
+      event_id: `matter.activity.patched:${tenantId}:${matterId}:${activityId}:${mutationId}`,
       tenant_id: tenantId,
       actor_id: actorId,
       action: "matter.activity.patched",
@@ -390,7 +422,7 @@ export function createMatterActivityCalendarChannelService({
       metadata: { changed_fields: Object.keys(patch ?? {}) },
     });
     const timeline = appendTimeline(repository, {
-      event_id: `matter.timeline.activity_patched:${tenantId}:${matterId}:${activityId}:${now}`,
+      event_id: `matter.timeline.activity_patched:${tenantId}:${matterId}:${activityId}:${mutationId}`,
       tenant_id: tenantId,
       matter_id: matterId,
       occurred_at: now,

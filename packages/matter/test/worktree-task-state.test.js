@@ -28,6 +28,7 @@ test("WT-01-09 completes todo directly through MatterTask.status", async () => {
 
   // Then
   assert.equal(completed.status, "done");
+  assert.equal(completed.version, 2);
   assert.equal(Object.hasOwn(completed, "completed"), false);
   assert.equal(events.length, 1);
   assert.equal(events[0].metadata.to_status, "done");
@@ -73,6 +74,7 @@ test("WT-01-09 persists a reasoned reopen to in_progress", async () => {
 
   // Then
   assert.equal(reopened.status, "in_progress");
+  assert.equal(reopened.version, 2);
   assert.equal(events[0].reason, "후속 검토 필요");
 });
 
@@ -87,4 +89,35 @@ test("WT-01-09 unblocks blocked tasks only with a reason", async () => {
 
   // Then
   assert.equal(unblocked.status, "in_progress");
+  assert.equal(unblocked.version, 2);
+});
+
+test("canonical MatterTask transitions emit version-bound durable audit ids", async () => {
+  const { transitionMatterTask } = await import("../src/task-service.js");
+  const repository = createMatterRepository({ seedRecords: [taskInput] });
+  const audit = { append: (event) => repository.appendAudit(event) };
+
+  const started = transitionMatterTask({
+    repository,
+    task: taskInput,
+    to_status: "in_progress",
+    actor_id: "user_wt_01_09",
+    reason: "started",
+    audit,
+  });
+  const completed = transitionMatterTask({
+    repository,
+    task: started,
+    to_status: "done",
+    actor_id: "user_wt_01_09",
+    reason: "completed",
+    audit,
+  });
+
+  const events = repository.listAudit({ tenant_id: taskInput.tenant_id });
+  assert.equal(completed.version, 3);
+  assert.deepEqual(events.map(({ event_id }) => event_id), [
+    `matter.task.transition:${taskInput.tenant_id}:${taskInput.matter_id}:${taskInput.task_id}:v2`,
+    `matter.task.transition:${taskInput.tenant_id}:${taskInput.matter_id}:${taskInput.task_id}:v3`,
+  ]);
 });

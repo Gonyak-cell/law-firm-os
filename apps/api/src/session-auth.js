@@ -175,7 +175,9 @@ function permissionRulesFromScopes(scopes = []) {
   }
   if (granted.has("matter.write")) {
     rules.push(allowRule("matter-write", { action_prefixes: ["matter:", "matter."] }));
-    rules.push(allowRule("matter-outlook-write", { actions: ["outlook:followup:create"] }));
+    rules.push(allowRule("matter-outlook-write", {
+      actions: ["outlook:followup:create", "outlook:task:create", "outlook:task:update"],
+    }));
   }
   if (granted.has("vault.read")) {
     rules.push(allowRule("vault-read", {
