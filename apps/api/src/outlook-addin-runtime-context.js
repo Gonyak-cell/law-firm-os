@@ -2722,9 +2722,13 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         source_object_id: persistedDocument.document_id,
         safe_summary: {
           email_thread_id: emailThreadId,
+          attachment_id: responseMapping.attachment_id,
+          document_id: responseMapping.document_id,
+          version_id: responseMapping.version_id,
           sha256,
           byte_size: bytes.byteLength,
           folder: "00_Email",
+          source_message_ref: responseMapping.source_message_ref,
           source_provenance_authority: sourceAttachment.source_provenance.authority,
         },
       },

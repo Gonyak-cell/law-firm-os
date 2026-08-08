@@ -10,8 +10,35 @@ function requiredText(value, field) {
   return text;
 }
 
+function requiredExactText(value, field) {
+  const text = requiredText(value, field);
+  if (text !== value) throw new TypeError(`${field} is malformed`);
+  return text;
+}
+
 function hasText(value) {
   return typeof value === "string" && Boolean(value.trim());
+}
+
+function normalizedIdentity(value, { caseFold = false } = {}) {
+  const text = typeof value === "string" ? value.trim().normalize("NFKC") : "";
+  return caseFold ? text.toLowerCase() : text;
+}
+
+function matchesOutlookSourceIdentity(email, thread) {
+  const itemKey = outlookItemIdentityKey(email);
+  const requestImmutableId = normalizedIdentity(
+    email?.graph_immutable_message_id ?? email?.immutable_message_id,
+  );
+  const responseRestId = normalizedIdentity(thread?.rest_message_id);
+  const responseItemKey = thread?.outlook_item_key ?? thread?.local_outlook_item_key;
+  return hasText(thread?.graph_message_id)
+    && normalizedIdentity(thread?.internet_message_id, { caseFold: true })
+      === normalizedIdentity(email?.internet_message_id, { caseFold: true })
+    && normalizedIdentity(thread?.conversation_id) === normalizedIdentity(email?.conversation_id)
+    && (!requestImmutableId || normalizedIdentity(thread?.graph_message_id) === requestImmutableId)
+    && (!responseRestId || responseRestId === normalizedIdentity(email?.graph_message_id))
+    && (responseItemKey === undefined || responseItemKey === itemKey);
 }
 
 /**
@@ -72,8 +99,8 @@ export async function fileOutlookEmail({
   const thread = body?.email_thread ?? body?.item;
   const outcome = body?.outcome;
   const documentIds = Array.isArray(thread?.filed_document_ids)
-    ? thread.filed_document_ids.filter((value) => typeof value === "string" && value.trim())
-    : [];
+    ? thread.filed_document_ids.map((value) => requiredExactText(value, "filed_document_id"))
+    : null;
   const expectedTimelineType = mode === "sent"
     ? "outlook.email.sent_filed"
     : "outlook.email.filed";
@@ -118,7 +145,10 @@ export async function fileOutlookEmail({
     || thread?.status !== "active"
     || thread?.matter_id !== request.body.matter_id
     || !hasText(thread?.email_thread_id)
+    || !matchesOutlookSourceIdentity(email, thread)
+    || !documentIds
     || documentIds.length !== 1
+    || new Set(documentIds).size !== documentIds.length
     || !hasText(thread?.filing_user)
     || !Number.isFinite(filedAt)
     || !normalizedReceipts

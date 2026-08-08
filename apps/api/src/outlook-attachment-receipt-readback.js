@@ -108,8 +108,11 @@ export async function readOutlookAttachmentReceiptState({
       || mapping.source_message_ref !== source.source_provenance?.message_ref
       || mapping.source_provenance_authority !== source.source_provenance?.authority
       || state?.document?.document_id !== mapping.document_id
+      || state.document.tenant_id !== tenantId
       || state.document.matter_id !== matterId
       || version?.version_id !== mapping.version_id
+      || version.document_id !== mapping.document_id
+      || version.tenant_id !== tenantId
       || version.sha256 !== mapping.sha256
     ) {
       throw outlookAttachmentReceiptError("Outlook attachment mapping readback is incomplete or mismatched");
@@ -126,10 +129,19 @@ export async function readOutlookAttachmentReceiptState({
     });
     if (
       !timelineEvent
+      || timelineEvent.tenant_id !== tenantId
       || timelineEvent.matter_id !== matterId
       || timelineEvent.type !== "outlook.attachment.saved"
       || timelineEvent.source_ref !== mapping.document_id
       || timelineEvent.source_object_id !== mapping.document_id
+      || timelineEvent.safe_summary?.email_thread_id !== mapping.email_thread_id
+      || timelineEvent.safe_summary?.attachment_id !== mapping.attachment_id
+      || timelineEvent.safe_summary?.document_id !== mapping.document_id
+      || timelineEvent.safe_summary?.version_id !== mapping.version_id
+      || timelineEvent.safe_summary?.sha256 !== mapping.sha256
+      || timelineEvent.safe_summary?.byte_size !== mapping.source_byte_size
+      || timelineEvent.safe_summary?.source_message_ref !== mapping.source_message_ref
+      || timelineEvent.safe_summary?.source_provenance_authority !== mapping.source_provenance_authority
     ) continue;
     mappedIds.add(mapping.attachment_id);
     receipts.push(authority.issue(mapping));

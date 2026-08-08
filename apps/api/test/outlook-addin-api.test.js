@@ -620,6 +620,7 @@ function phasedUploadRuntimeFixture({
       }
       failPlainOnce("finalize", "23505");
       const version = Object.freeze({
+        tenant_id: session.tenant_id,
         version_id: session.version_id,
         document_id: session.document_id,
         version_number: 1,
@@ -2263,6 +2264,17 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(attachmentBody.attachment_receipt.attachment_id, "att-contract");
       assert.equal(typeof attachmentBody.attachment_receipt.receipt_token, "string");
       assert.equal(typeof attachmentBody.attachment_receipt.receipt_ref, "string");
+      assert.deepEqual(attachmentBody.items[0].timeline_event.safe_summary, {
+        email_thread_id: fileBody.email_thread.email_thread_id,
+        attachment_id: "att-contract",
+        document_id: attachmentBody.items[0].document.document_id,
+        version_id: attachmentBody.items[0].version.version_id,
+        sha256: attachmentBody.items[0].version.sha256,
+        byte_size: ATTACHMENT_BYTES.byteLength,
+        folder: "00_Email",
+        source_message_ref: fileBody.email_thread.attachment_metadata[0].source_provenance.message_ref,
+        source_provenance_authority: "microsoft_graph_mime",
+      });
       assert.equal(attachmentBody.folder_structure[0], "00_Email");
       assert.equal(attachmentBody.folder_structure.at(-1), "99_Archive");
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
@@ -2379,6 +2391,64 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       }
       assert.equal(missingReadback.status, 409);
       assert.deepEqual((await missingReadback.json()).safe_error_codes, ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"]);
+
+      const persistedVersion = dmsRepository.get({
+        tenant_id: TENANT,
+        model_type: "DmsDocumentVersion",
+        version_id: receipt.version_id,
+      });
+      let crossDocumentReadback;
+      try {
+        dmsRepository.upsert({ ...persistedVersion, document_id: "doc:cross-document-corruption" });
+        crossDocumentReadback = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
+        });
+      } finally {
+        dmsRepository.upsert(persistedVersion);
+      }
+      assert.equal(crossDocumentReadback.status, 409);
+      assert.deepEqual(
+        (await crossDocumentReadback.json()).safe_error_codes,
+        ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"],
+      );
+
+      const persistedTimeline = matterRepository.get({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        resource_id: attachmentBody.items[0].timeline_event.event_id,
+      });
+      let mismatchedTimelineReadback;
+      try {
+        matterRepository.upsert({
+          ...persistedTimeline,
+          safe_summary: { ...persistedTimeline.safe_summary, version_id: "version:other" },
+        });
+        mismatchedTimelineReadback = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
+        });
+      } finally {
+        matterRepository.upsert(persistedTimeline);
+      }
+      const mismatchedTimelineBody = await mismatchedTimelineReadback.json();
+      assert.equal(mismatchedTimelineReadback.status, 200, JSON.stringify(mismatchedTimelineBody));
+      assert.deepEqual(mismatchedTimelineBody.attachment_state.receipts, []);
+      assert.deepEqual(mismatchedTimelineBody.attachment_state.retry_attachment_ids, ["att-contract"]);
+
+      const cleanReplay = await json("/api/outlook/email/file", {
+        method: "POST",
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: emailFixture(),
+          attachment_receipts: [{ receipt_ref: receipt.receipt_ref, receipt_token: receipt.receipt_token }],
+        }),
+      });
+      assert.deepEqual(cleanReplay.attachment_state.retry_attachment_ids, []);
+      assert.equal(cleanReplay.attachment_state.receipts[0].receipt_ref, receipt.receipt_ref);
     });
 
     await t.test("attachment retry repairs mapping and timeline after the upload already committed", async () => {

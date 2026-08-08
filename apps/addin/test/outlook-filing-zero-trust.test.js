@@ -35,6 +35,9 @@ function emailResponse({ receipts = [], retry = [] } = {}) {
     email_thread: {
       email_thread_id: "thread-zero-trust",
       matter_id: "matter-001",
+      graph_message_id: "immutable:graph-zero-trust",
+      internet_message_id: EMAIL.internet_message_id,
+      conversation_id: EMAIL.conversation_id,
       status: "active",
       filing_user: "actor-001",
       filing_time: "2026-08-08T01:00:00.000Z",

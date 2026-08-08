@@ -28,6 +28,9 @@ function filingResponse({ mode = "manual", outcome = "created", overrides = {} }
     email_thread: {
       email_thread_id: `thread-${mode}-001`,
       matter_id: "matter-001",
+      graph_message_id: "immutable:graph-message-001",
+      internet_message_id: email.internet_message_id,
+      conversation_id: email.conversation_id,
       status: "active",
       filing_user: "actor-001",
       filing_time: "2026-08-08T01:00:00.000Z",
@@ -185,9 +188,47 @@ test("불완전하거나 작업 종류가 다른 서버 영수증은 성공으�
         mode: response.external_send_state === "provider_gated_no_external_send_claim" ? "sent" : "manual",
         requestJson: async () => response,
       }),
-      /required|incomplete|mismatched/u,
+      /required|malformed|incomplete|mismatched/u,
     );
   }
+});
+
+test("다른 Outlook 항목의 source identity나 불완전한 문서 집합은 성공 영수증이 될 수 없다", async () => {
+  const wrongItemKey = [
+    "graph-other",
+    email.internet_message_id,
+    email.conversation_id,
+  ].join("\u001f");
+  const responses = [
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, internet_message_id: "<other@example.invalid>" } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, conversation_id: "conversation-other" } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, rest_message_id: "graph-other" } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, outlook_item_key: wrongItemKey } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, filed_document_ids: null } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, filed_document_ids: ["document-valid", null] } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, filed_document_ids: ["document-valid", "document-extra"] } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, filed_document_ids: [" "] } } }),
+    filingResponse({ overrides: { email_thread: { ...filingResponse().email_thread, filed_document_ids: [" document-valid "] } } }),
+  ];
+  for (const response of responses) {
+    await assert.rejects(
+      fileOutlookEmail({
+        matterId: "matter-001",
+        email,
+        requestJson: async () => response,
+      }),
+      /required|malformed|incomplete|mismatched/u,
+    );
+  }
+
+  await assert.rejects(
+    fileOutlookEmail({
+      matterId: "matter-001",
+      email: { ...email, graph_immutable_message_id: "immutable:graph-current" },
+      requestJson: async () => filingResponse(),
+    }),
+    /incomplete|mismatched/u,
+  );
 });
 
 test("이전 첨부 영수증은 서버 재검증을 위해 받은 메일 요청에만 전달한다", async () => {
