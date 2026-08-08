@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { Readable } from "node:stream";
 
 export const DMS_STORAGE_OBJECT_TOO_LARGE = "DMS_STORAGE_OBJECT_TOO_LARGE";
 export const DMS_STORAGE_BODY_UNBOUNDED = "DMS_STORAGE_BODY_UNBOUNDED";
@@ -46,17 +47,66 @@ async function runCleanupActions(actions, primaryError) {
   primaryError.cleanup_failures = Object.freeze(failures.map(cleanupFailureMetadata));
 }
 
+function recordBufferedBytes(body, primaryError) {
+  const buffered = body?.readableObjectMode === true ? null : Number(body?.readableLength);
+  if (!primaryError || !Number.isSafeInteger(buffered) || buffered < 0) return;
+  const prior = Number(primaryError.observed_byte_size);
+  primaryError.observed_byte_size = Number.isSafeInteger(prior) ? Math.max(prior, buffered) : buffered;
+}
+
+function drainReadableBuffer(body) {
+  while (Number(body.readableLength) > 0 && body.read(Number(body.readableLength)) !== null) {
+    // Draining bytes already admitted before the abort makes cleanup completion observable.
+  }
+}
+
+async function destroyStorageBody(body, primaryError) {
+  if (typeof body?.destroy !== "function") return;
+  recordBufferedBytes(body, primaryError);
+  if (!(body instanceof Readable)) {
+    await body.destroy();
+    return;
+  }
+  drainReadableBuffer(body);
+  let closeError = null;
+  const onError = (error) => { closeError = error; };
+  const closed = body.closed === true ? Promise.resolve() : new Promise((resolve) => {
+    body.once("error", onError);
+    body.once("close", resolve);
+  });
+  body.destroy();
+  await closed;
+  body.removeListener("error", onError);
+  recordBufferedBytes(body, primaryError);
+  drainReadableBuffer(body);
+  const writableLength = Number(body.writableLength);
+  if (primaryError) {
+    primaryError.residual_buffered_byte_size = Number(body.readableLength ?? 0);
+    primaryError.storage_cleanup_complete = body.closed === true
+      && primaryError.residual_buffered_byte_size === 0
+      && (!Number.isSafeInteger(writableLength) || writableLength === 0);
+  }
+  if (Number(body.readableLength) !== 0
+      || (Number.isSafeInteger(writableLength) && writableLength !== 0)) {
+    throw Object.assign(new Error("storage body retained buffered bytes after close"), {
+      code: "DMS_STORAGE_CLEANUP_INCOMPLETE",
+    });
+  }
+  if (closeError && closeError !== primaryError && closeError.cause !== primaryError) throw closeError;
+}
+
 export function cleanupStorageBody(body, primaryError) {
   return runCleanupActions([
-    typeof body?.destroy === "function" ? () => body.destroy() : null,
+    typeof body?.destroy === "function" ? () => destroyStorageBody(body, primaryError) : null,
     typeof body?.cancel === "function" ? () => body.cancel() : null,
   ], primaryError);
 }
 
 export function abortStorageBody(body, controller, primaryError) {
+  recordBufferedBytes(body, primaryError);
   return runCleanupActions([
+    typeof body?.destroy === "function" ? () => destroyStorageBody(body, primaryError) : null,
     controller && !controller.signal?.aborted ? () => controller.abort(primaryError) : null,
-    typeof body?.destroy === "function" ? () => body.destroy() : null,
     typeof body?.cancel === "function" ? () => body.cancel() : null,
   ], primaryError);
 }

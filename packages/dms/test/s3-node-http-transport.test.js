@@ -1,15 +1,10 @@
 import assert from "node:assert/strict";
-import { IncomingMessage, createServer as createHttpServer } from "node:http";
-import { createServer as createNetServer } from "node:net";
+import { createServer as createHttpServer } from "node:http";
 import test from "node:test";
 import { S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@smithy/node-http-handler";
-import {
-  DMS_STORAGE_OBJECT_TOO_LARGE,
-  readStorageBodyBounded,
-  sha256Hex,
-} from "../src/storage/storage-adapter.js";
-import { assertS3ProviderBody } from "../src/storage/s3-provider-body.js";
+import { createBoundedS3Client } from "../src/storage/s3-bounded-client.js";
+import { BoundedS3NodeHttpHandler } from "../src/storage/s3-bounded-http-handler.js";
+import { sha256Hex } from "../src/storage/storage-adapter.js";
 import {
   EXPECTED_RANGE,
   LIMIT,
@@ -45,7 +40,7 @@ function objectMetadataHeaders(bytes) {
   };
 }
 
-test("installed AWS SDK NodeHttpHandler retains a framed IncomingMessage Body", async (t) => {
+test("production adapter uses the installed SDK with the bounded Node HTTP handler", async (t) => {
   const bytes = Buffer.from("12345678");
   const requests = [];
   const server = createHttpServer((request, response) => {
@@ -68,23 +63,11 @@ test("installed AWS SDK NodeHttpHandler retains a framed IncomingMessage Body", 
     response.end(bytes);
   });
   const port = await listen(server);
-  const bodies = [];
-  const delegate = new NodeHttpHandler();
-  const requestHandler = {
-    metadata: delegate.metadata,
-    async handle(...args) {
-      const result = await delegate.handle(...args);
-      bodies.push(result.response.body);
-      return result;
-    },
-    destroy() { delegate.destroy(); },
-  };
-  const client = new S3Client({
+  const client = createBoundedS3Client({
     endpoint: `http://127.0.0.1:${port}`,
     region: "us-east-1",
     forcePathStyle: true,
     credentials: { accessKeyId: "local-test", secretAccessKey: "local-test" },
-    requestHandler,
   });
   t.after(async () => {
     client.destroy();
@@ -96,11 +79,7 @@ test("installed AWS SDK NodeHttpHandler retains a framed IncomingMessage Body", 
     object_id: OBJECT,
     max_bytes: LIMIT,
   });
-  const getBody = bodies.find((body) => body?.statusCode === 206);
-  assert.ok(getBody instanceof IncomingMessage);
-  assert.equal(Object.getPrototypeOf(getBody).constructor, IncomingMessage);
-  assert.equal(typeof getBody.transformToByteArray, "function");
-  assert.equal(getBody.headers["content-length"], String(LIMIT));
+  assert.ok(client.config.requestHandler instanceof BoundedS3NodeHttpHandler);
   assert.deepEqual(requests, [
     { method: "HEAD", range: null },
     { method: "GET", range: EXPECTED_RANGE },
@@ -109,60 +88,11 @@ test("installed AWS SDK NodeHttpHandler retains a framed IncomingMessage Body", 
   assert.equal(result.sha256, sha256Hex(bytes));
 });
 
-test("Node HTTP framing exposes at most max plus one bytes from an excessive response", async (t) => {
-  const providerBytes = Buffer.alloc(1024 * 1024, 0x61);
-  const socketErrors = [];
-  let providerAttemptedBytes = 0;
-  let rawRequest = "";
-  const server = createNetServer((socket) => {
-    socket.on("error", (error) => socketErrors.push(error.code ?? error.name));
-    socket.once("data", (requestBytes) => {
-      rawRequest = requestBytes.toString("latin1");
-      const headers = Buffer.from([
-        "HTTP/1.1 206 Partial Content",
-        `Content-Length: ${LIMIT + 1}`,
-        `Content-Range: bytes 0-${LIMIT}/${providerBytes.byteLength}`,
-        "Connection: close",
-        "",
-        "",
-      ].join("\r\n"));
-      providerAttemptedBytes = providerBytes.byteLength;
-      socket.end(Buffer.concat([headers, providerBytes]));
-    });
+test("production adapter rejects a real S3Client without the bounded transport", (t) => {
+  const client = new S3Client({
+    region: "us-east-1",
+    credentials: { accessKeyId: "local-test", secretAccessKey: "local-test" },
   });
-  const port = await listen(server);
-  const handler = new NodeHttpHandler();
-  t.after(async () => {
-    handler.destroy();
-    await close(server);
-  });
-
-  const { response } = await handler.handle({
-    protocol: "http:",
-    hostname: "127.0.0.1",
-    port,
-    method: "GET",
-    path: "/bounded",
-    headers: { range: EXPECTED_RANGE },
-  });
-  const body = assertS3ProviderBody({
-    Body: response.body,
-    ContentRange: response.headers["content-range"],
-  }, {
-    max_bytes: LIMIT,
-    declared_byte_size: LIMIT,
-    content_length: LIMIT + 1,
-  });
-  let applicationObservedBytes = 0;
-  await assert.rejects(readStorageBodyBounded(body, { max_bytes: LIMIT }), (error) => {
-    applicationObservedBytes = error.observed_byte_size;
-    return error.code === DMS_STORAGE_OBJECT_TOO_LARGE;
-  });
-  assert.match(rawRequest.toLowerCase(), /range: bytes=0-8/u);
-  assert.equal(providerAttemptedBytes, providerBytes.byteLength);
-  assert.ok(providerAttemptedBytes > LIMIT + 1);
-  assert.equal(applicationObservedBytes, LIMIT + 1);
-  assert.ok(applicationObservedBytes <= LIMIT + 1);
-  assert.equal(body.readableLength, 0);
-  assert.ok(socketErrors.every((code) => ["ECONNRESET", "EPIPE"].includes(code)));
+  t.after(() => client.destroy());
+  assert.throws(() => adapter(client), /must be created by createBoundedS3Client/u);
 });

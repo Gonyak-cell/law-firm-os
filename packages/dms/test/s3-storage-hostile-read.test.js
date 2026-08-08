@@ -50,7 +50,9 @@ test("ordinary malicious Readable is rejected before pull, push, or buffering", 
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
   }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
     && error.declared_byte_size === LIMIT
-    && error.observed_byte_size === 0);
+    && error.observed_byte_size === 0
+    && error.residual_buffered_byte_size === 0
+    && error.storage_cleanup_complete === true);
   assert.equal(client.calls.sourceOfferedBytes, hugeSource.byteLength);
   assert.deepEqual(client.calls.ranges, [EXPECTED_RANGE]);
   assert.equal(client.calls.sourcePulls, 0);
@@ -61,21 +63,29 @@ test("ordinary malicious Readable is rejected before pull, push, or buffering", 
   assert.equal(body.destroyed, true);
 });
 
-test("ordinary PassThrough is rejected before it can buffer provider bytes", async () => {
+test("preloaded PassThrough is rejected and fully drained before return", async () => {
+  const hugeSource = Buffer.alloc(1024 * 1024, 0x66);
   let body;
   const client = fakeClient(lyingHeaders({
-    bodyFactory() {
+    getBytes: hugeSource,
+    bodyFactory(bytes, calls) {
       body = new PassThrough();
+      body.end(bytes);
+      calls.sourcePushedBytes += bytes.byteLength;
       return body;
     },
   }));
   await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
   }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
-    && error.observed_byte_size === 0);
+    && error.observed_byte_size === hugeSource.byteLength
+    && error.residual_buffered_byte_size === 0
+    && error.storage_cleanup_complete === true);
+  assert.equal(client.calls.sourcePushedBytes, hugeSource.byteLength);
   assert.equal(body.readableLength, 0);
   assert.equal(body.writableLength, 0);
   assert.equal(body.destroyed, true);
+  assert.equal(body.closed, true);
 });
 
 test("nonconforming read(size) object is rejected before its hostile read", async () => {

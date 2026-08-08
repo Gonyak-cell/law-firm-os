@@ -1,7 +1,6 @@
 import {
   GetObjectCommand,
   HeadObjectCommand,
-  S3Client,
 } from "@aws-sdk/client-s3";
 import {
   DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
@@ -12,6 +11,7 @@ import {
   sha256Hex,
 } from "./storage-adapter.js";
 import { readS3CommittedObjectBounded } from "./s3-bounded-object-reader.js";
+import { assertBoundedS3Client, createBoundedS3Client } from "./s3-bounded-client.js";
 import { createS3ObjectGovernance } from "./s3-object-governance.js";
 import { isS3NotFound, readS3ResponseBody } from "./s3-provider-response.js";
 import { createS3StagedObjectLifecycle } from "./s3-staged-object-lifecycle.js";
@@ -49,7 +49,9 @@ export function createS3StorageAdapter(config = {}) {
   const expectedBucketOwner = requireString(config.expected_bucket_owner, "expected_bucket_owner");
   const adapter_id = config.adapter_id ?? "s3-vault";
   const prefix = safePrefix(config.prefix);
-  const client = config.client ?? new S3Client({ region: requireString(config.region, "region") });
+  const client = assertBoundedS3Client(config.client ?? createBoundedS3Client({
+    region: requireString(config.region, "region"),
+  }));
   const objectLockEnabled = config.object_lock_enabled === true;
   const defaultRetentionDays = config.default_retention_days == null ? null : Number(config.default_retention_days);
   if (defaultRetentionDays != null && (!objectLockEnabled || !Number.isInteger(defaultRetentionDays) || defaultRetentionDays < 1 || defaultRetentionDays > 36_500)) {
