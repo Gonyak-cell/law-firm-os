@@ -6,6 +6,9 @@ on:
     paths:
       - ".github/workflows/outlook-addin-validation.yml"
       - "apps/addin/**"
+      - "contracts/outlook-addin-*.json"
+      - "scripts/validate-outlook-addin-surfaces.mjs"
+      - "scripts/lib/outlook-manifest-projection.mjs"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
       - "apps/microsoft-egress-broker/**"
       - "apps/api/src/client-outlook-*.js"
@@ -40,6 +43,9 @@ on:
     paths:
       - ".github/workflows/outlook-addin-validation.yml"
       - "apps/addin/**"
+      - "contracts/outlook-addin-*.json"
+      - "scripts/validate-outlook-addin-surfaces.mjs"
+      - "scripts/lib/outlook-manifest-projection.mjs"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
       - "apps/microsoft-egress-broker/**"
       - "apps/api/src/client-outlook-*.js"
@@ -139,7 +145,15 @@ jobs:
       - name: Office SSO identity binding persistence
         run: node --test packages/runtime-auth/test/postgres-identity-directory.test.js
 
-      - name: Validate local and production manifests
+      - name: Validate both deployment profiles against the frozen baseline
+        run: >-
+          node scripts/validate-outlook-addin-surfaces.mjs
+          --mode baseline
+          --baseline contracts/outlook-addin-deployment-baseline.json
+
+      - name: Validate all local and production manifests
         run: |
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.production.xml
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.xml
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.production.xml
