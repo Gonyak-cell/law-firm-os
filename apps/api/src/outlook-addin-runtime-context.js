@@ -32,6 +32,7 @@ import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import { assertOutlookOperationEvidenceSafe } from "./outlook-operation-response.js";
 import { handleOutlookEmailFilingCorrection } from "./outlook-email-filing-correction.js";
+import { createOutlookTimeEntryDraft } from "./outlook-time-entry-draft-adapter.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -58,10 +59,11 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/tasks",
     "PATCH /api/outlook/tasks/:task_id",
     "POST /api/outlook/followups",
+    "POST /api/outlook/time-entry-drafts",
     "POST /api/outlook/smart-alerts/evaluate",
   ]),
   data_source:
-    "matter_runtime_repository+dms_runtime_repository+email_dms_runtime_repository",
+    "matter_runtime_repository+dms_runtime_repository+email_dms_runtime_repository+finance_runtime_repository",
   runtime_persistence: "file_or_postgres_domain_repositories",
   runtime_write_ready: true,
   m365_provider_runtime_enabled: false,
@@ -3318,6 +3320,9 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/followups" && method === "POST") {
       return createFollowup({ body, context, requestId, runtime });
+    }
+    if (pathname === "/api/outlook/time-entry-drafts" && method === "POST") {
+      return createOutlookTimeEntryDraft({ body, context, requestId, runtime });
     }
     if (pathname === "/api/outlook/smart-alerts/evaluate" && method === "POST") {
       return evaluateSmartAlerts({ body, context, requestId });
