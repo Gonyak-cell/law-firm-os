@@ -7,8 +7,8 @@ on:
       - ".github/workflows/outlook-addin-validation.yml"
       - "apps/addin/**"
       - "contracts/outlook-addin-*.json"
-      - "scripts/validate-outlook-addin-surfaces.mjs"
-      - "scripts/lib/outlook-manifest-projection.mjs"
+      - "docs/runbooks/outlook-addin-release-gates.md"
+      - "scripts/**"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
       - "apps/microsoft-egress-broker/**"
       - "apps/api/src/client-outlook-*.js"
@@ -36,6 +36,13 @@ on:
       - "packages/runtime-auth/src/postgres-identity-ledger.js"
       - "packages/runtime-auth/test/postgres-identity-directory.test.js"
       - "apps/api/test/sf-b-w03-activity-calendar-channel.test.js"
+      - "apps/api/src/**"
+      - "apps/api/test/**"
+      - "packages/integrations-core/**"
+      - "packages/matter/**"
+      - "packages/time-expense/**"
+      - "packages/search/**"
+      - "packages/persistence/**"
       - "package.json"
       - "package-lock.json"
   push:
@@ -44,8 +51,8 @@ on:
       - ".github/workflows/outlook-addin-validation.yml"
       - "apps/addin/**"
       - "contracts/outlook-addin-*.json"
-      - "scripts/validate-outlook-addin-surfaces.mjs"
-      - "scripts/lib/outlook-manifest-projection.mjs"
+      - "docs/runbooks/outlook-addin-release-gates.md"
+      - "scripts/**"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
       - "apps/microsoft-egress-broker/**"
       - "apps/api/src/client-outlook-*.js"
@@ -73,6 +80,13 @@ on:
       - "packages/runtime-auth/src/postgres-identity-ledger.js"
       - "packages/runtime-auth/test/postgres-identity-directory.test.js"
       - "apps/api/test/sf-b-w03-activity-calendar-channel.test.js"
+      - "apps/api/src/**"
+      - "apps/api/test/**"
+      - "packages/integrations-core/**"
+      - "packages/matter/**"
+      - "packages/time-expense/**"
+      - "packages/search/**"
+      - "packages/persistence/**"
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
@@ -89,6 +103,7 @@ jobs:
       - name: Checkout exact source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          fetch-depth: 2
           persist-credentials: false
 
       - name: Setup Node 22
@@ -110,8 +125,11 @@ jobs:
       - name: Add-in tests
         run: npm --workspace apps/addin test
 
-      - name: Add-in production build
-        run: npm --workspace apps/addin run build
+      - name: Release gate unit tests
+        run: node --test scripts/test/outlook-release-gates.test.mjs
+
+      - name: Exact-SHA deterministic Add-in release candidate
+        run: node scripts/validate-outlook-release-candidate.mjs --source-sha "$GITHUB_SHA"
 
       - name: Client Outlook API tests
         run: >-
@@ -132,6 +150,18 @@ jobs:
 
       - name: Microsoft egress broker tests
         run: node --test apps/microsoft-egress-broker/index.test.mjs
+
+      - name: Outlook task, time, precedent, document, and DocuSign tests
+        run: >-
+          node --test
+          --test-concurrency=1
+          apps/api/test/outlook-time-entry-draft-postgres.test.js
+          apps/api/test/outlook-graph-webhook.test.js
+          packages/matter/test/outlook-task-adapter.test.js
+          packages/matter/test/document-builder-docx.test.js
+          packages/dms/test/postgres-precedent-search.test.js
+          packages/integrations-core/test/docusign-concurrency.test.js
+          packages/integrations-core/test/docusign-postgres-concurrency.test.js
 
       - name: Email DMS provider and filing tests
         run: node --test packages/email-dms/test/*.test.js
@@ -157,3 +187,6 @@ jobs:
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.production.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.production.xml
+
+      - name: Reject whitespace errors
+        run: git diff --check "$GITHUB_SHA^" "$GITHUB_SHA"
