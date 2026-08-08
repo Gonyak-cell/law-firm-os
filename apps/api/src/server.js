@@ -2000,6 +2000,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         dmsRuntime,
         emailDmsRuntime,
         crmIntakeRuntime,
+        financeRuntime,
         m365GraphConfig,
         sessionAuth,
       },
