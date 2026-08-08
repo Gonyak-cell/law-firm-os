@@ -109,7 +109,21 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
       };
       const actorId = requiredText(input.requested_by_actor_id, "requested_by_actor_id");
       const idempotencyKey = `docusign-completion:${requestId}:${kind}:${digest}`;
-      const expectedAuthority = options.expected_authority ?? null;
+      const expectedAuthority = options.expected_authority ?? (options.expected_permission_envelope_id || options.expected_audit_trace_id || options.expected_fencing_generation != null
+        ? {
+            tenant_id: input.tenant_id,
+            matter_id: input.matter_id,
+            workspace_id: input.workspace_id,
+            permission_envelope_id: options.expected_permission_envelope_id ?? options.permission_envelope_id,
+            audit_trace_id: options.expected_audit_trace_id ?? options.audit_trace_id,
+            request_id: input.request_id,
+            kind: input.kind,
+            sha256: input.sha256,
+            fencing_generation: options.expected_fencing_generation ?? options.fencing_generation,
+            idempotency_key: options.idempotency_key,
+            object_id: options.object_id,
+          }
+        : null);
       const validateAuthority = options.validateAuthority;
       const validateAuthoritySync = options.validateAuthoritySync;
       if (expectedAuthority && (expectedAuthority.tenant_id !== document.tenant_id

@@ -173,7 +173,14 @@ export async function completeDocusignArtifacts({ repository, request, connectio
       const stored = validateArtifact(await artifactStore.ingest({
         ...assertCompletionBinding(current), requested_by_actor_id: current.requested_by_actor_id, kind: descriptor.key,
         title: `${current.document.filename} - ${descriptor.title_suffix}.pdf`, mime_type: "application/pdf", bytes, sha256: digest,
-      }, { expected_authority: expectedAuthority, validateAuthority, validateAuthoritySync }), digest, binding);
+      }, {
+        expected_authority: expectedAuthority,
+        expected_permission_envelope_id: expectedAuthority.permission_envelope_id,
+        expected_audit_trace_id: expectedAuthority.audit_trace_id,
+        expected_fencing_generation: expectedAuthority.fencing_generation,
+        validateAuthority,
+        validateAuthoritySync,
+      }), digest, binding);
       current = await updateRequest(repository, current, (fresh) => {
         if (fresh.state !== "completed_artifacts_pending") return fresh;
         const lineage = normalizeDocusignAuditLineage([...(fresh.audit_lineage ?? []), { event: `completion_artifact_recorded:${descriptor.key}`, audit_trace_id: fresh.document.audit_trace_id, actor_id: fresh.requested_by_actor_id, occurred_at: docusignNow(clock) }]);

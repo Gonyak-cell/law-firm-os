@@ -1,4 +1,4 @@
-import { docusignFailure, docusignNow, normalizeDocusignAuditLineage } from "./docusign-envelope-model.js";
+import { docusignFailure, docusignInfrastructureFailure, docusignNow, normalizeDocusignAuditLineage } from "./docusign-envelope-model.js";
 
 export const COMPLETION_LEASE_MS = 2 * 60 * 1000;
 
@@ -64,7 +64,7 @@ export async function markCompletionUnknown(repository, request, operation, cloc
       return state.requests[index];
     });
   } catch {
-    return request;
+    throw docusignInfrastructureFailure("DOCUSIGN_COMPLETION_RECONCILIATION_REQUIRED");
   }
 }
 
