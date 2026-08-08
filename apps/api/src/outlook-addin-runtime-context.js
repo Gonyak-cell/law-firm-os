@@ -32,6 +32,7 @@ import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timel
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import {
+  outlookAttachmentReceiptError,
   readOutlookAttachmentReceiptState,
   verifySuppliedOutlookAttachmentReceipts,
 } from "./outlook-attachment-receipt-readback.js";
@@ -1056,6 +1057,23 @@ function normalizeEmailThread({
   });
 }
 
+const OUTLOOK_TIMELINE_INVARIANT_FIELDS = Object.freeze([
+  "event_id",
+  "tenant_id",
+  "matter_id",
+  "type",
+  "title",
+  "source_ref",
+  "source_object_id",
+  "safe_summary",
+]);
+
+function outlookTimelineFingerprint(event = {}) {
+  return hashDomainValue(Object.fromEntries(
+    OUTLOOK_TIMELINE_INVARIANT_FIELDS.map((field) => [field, event[field] ?? null]),
+  ));
+}
+
 function appendMatterTimeline({ repository, event, actorId, idempotencyKey } = {}) {
   const existing = repository.get({
     tenant_id: event.tenant_id,
@@ -1067,22 +1085,19 @@ function appendMatterTimeline({ repository, event, actorId, idempotencyKey } = {
     idempotency_key: idempotencyKey,
   });
   if (replay) {
-    if (!existing || replay.response?.timeline_event_id !== existing.event_id) {
-      throw new Error("Outlook timeline idempotency entry conflicts with the persisted event");
+    const existingFingerprint = outlookTimelineFingerprint(existing);
+    if (
+      !existing
+      || replay.response?.timeline_event_id !== existing.event_id
+      || replay.response?.timeline_event_hash !== existingFingerprint
+      || existingFingerprint !== outlookTimelineFingerprint(event)
+    ) {
+      throw outlookAttachmentReceiptError("Outlook timeline replay conflicts with persisted state");
     }
     return existing;
   }
-  if (existing) {
-    if (
-      existing.matter_id !== event.matter_id
-      || existing.type !== event.type
-      || existing.title !== event.title
-      || existing.source_ref !== (event.source_ref ?? null)
-      || existing.source_object_id !== (event.source_object_id ?? null)
-      || hashDomainValue(existing.safe_summary ?? {}) !== hashDomainValue(event.safe_summary ?? {})
-    ) {
-      throw new Error("Outlook timeline event conflicts with the persisted event");
-    }
+  if (existing && outlookTimelineFingerprint(existing) !== outlookTimelineFingerprint(event)) {
+    throw outlookAttachmentReceiptError("Outlook timeline event conflicts with persisted state");
   }
   if (typeof repository.transaction !== "function") {
     throw new Error("Outlook timeline append requires an atomic repository transaction");
@@ -1134,6 +1149,7 @@ function appendMatterTimeline({ repository, event, actorId, idempotencyKey } = {
       actor_id: actorId,
       response: {
         timeline_event_id: persisted.event_id,
+        timeline_event_hash: outlookTimelineFingerprint(persisted),
         matter_id: persisted.matter_id,
         audit_event_id: auditEvent.event_id,
       },
@@ -1162,6 +1178,32 @@ function appendDmsAudit(repository, event) {
   });
 }
 
+const OUTLOOK_ATTACHMENT_MAPPING_INVARIANT_FIELDS = Object.freeze([
+  "model_type",
+  "resource_id",
+  "mapping_id",
+  "tenant_id",
+  "matter_id",
+  "email_thread_id",
+  "attachment_id",
+  "name",
+  "document_id",
+  "version_id",
+  "attachment_outcome",
+  "sha256",
+  "source_byte_size",
+  "source_message_ref",
+  "source_provenance_authority",
+  "raw_bytes_included",
+  "storage_pointer_ref_included",
+]);
+
+function outlookAttachmentMappingFingerprint(mapping = {}) {
+  return hashDomainValue(Object.fromEntries(
+    OUTLOOK_ATTACHMENT_MAPPING_INVARIANT_FIELDS.map((field) => [field, mapping[field] ?? null]),
+  ));
+}
+
 function persistOutlookAttachmentMapping({
   repository,
   mapping,
@@ -1179,33 +1221,22 @@ function persistOutlookAttachmentMapping({
     idempotency_key: idempotencyKey,
   });
   if (replay) {
+    const existingFingerprint = outlookAttachmentMappingFingerprint(existing);
     if (
       !existing
       || replay.response?.mapping_id !== existing.mapping_id
       || replay.response?.document_id !== existing.document_id
       || replay.response?.sha256 !== existing.sha256
+      || replay.response?.mapping_hash !== existingFingerprint
+      || existingFingerprint !== outlookAttachmentMappingFingerprint(mapping)
     ) {
-      throw new Error("Outlook attachment mapping idempotency entry conflicts with the persisted mapping");
+      throw outlookAttachmentReceiptError("Outlook attachment mapping replay conflicts with persisted state");
     }
     return existing;
   }
   if (existing) {
-    const invariantFields = [
-      "mapping_id",
-      "matter_id",
-      "email_thread_id",
-      "attachment_id",
-      "document_id",
-      "sha256",
-      "source_byte_size",
-      "source_message_ref",
-      "source_provenance_authority",
-      "name",
-      "version_id",
-      "attachment_outcome",
-    ];
-    if (invariantFields.some((field) => existing[field] !== mapping[field])) {
-      throw new Error("Outlook attachment mapping conflicts with the persisted mapping");
+    if (outlookAttachmentMappingFingerprint(existing) !== outlookAttachmentMappingFingerprint(mapping)) {
+      throw outlookAttachmentReceiptError("Outlook attachment mapping conflicts with persisted state");
     }
   }
   if (typeof repository.transaction !== "function") {
@@ -1243,6 +1274,7 @@ function persistOutlookAttachmentMapping({
         mapping_id: mapping.mapping_id,
         document_id: mapping.document_id,
         sha256: mapping.sha256,
+        mapping_hash: outlookAttachmentMappingFingerprint(persisted),
         audit_event_id: auditEvent.event_id,
       },
       created_at: occurredAt ?? new Date().toISOString(),
@@ -1518,12 +1550,19 @@ function safeMatterDocument(document = {}) {
     folder_id: document.folder_id ?? null,
     current_version_id: document.current_version_id,
     latest_sha256: document.latest_sha256 ?? null,
-    source_email_thread_id: document.source_email_thread_id ?? null,
-    source_attachment_id: document.source_attachment_id ?? null,
     document_bytes_included: false,
     storage_pointer_ref_included: false,
     production_ready_claim: false,
   });
+}
+
+function safeAttachmentDocument(document = {}) {
+  const {
+    source_email_thread_id: _sourceEmailThreadId,
+    source_attachment_id: _sourceAttachmentId,
+    ...safe
+  } = document;
+  return Object.freeze(safe);
 }
 
 function listMatterDocuments({ repository, tenant_id, matter_id } = {}) {
@@ -2780,8 +2819,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
       model_type: "DmsEmailAttachmentMapping",
       resource_id: mappingId,
     });
-    const persistedVersionId = existingMapping?.version_id
-      ?? uploaded?.version?.version_id
+    const persistedVersionId = uploaded?.version?.version_id
       ?? persistedDocument.current_version_id;
     responseMapping = persistOutlookAttachmentMapping({
       repository: runtime.dmsRuntime.repository,
@@ -2845,7 +2883,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     }
     saved.push(
       Object.freeze({
-        document: uploaded.document,
+        document: safeAttachmentDocument(uploaded.document),
         version: uploaded.version,
         file_object: serializeFileObjectSafe(uploaded.file_object),
         storage_receipt: safeStorageReceipt(uploaded.storage_receipt),
@@ -2854,16 +2892,39 @@ async function saveAttachments({ body, context, requestId, runtime }) {
       }),
     );
   }
+  let attachmentState;
+  try {
+    attachmentState = await readOutlookAttachmentReceiptState({
+      dmsRuntime: runtime.dmsRuntime,
+      matterRuntime: runtime.matterRuntime,
+      authority: runtime.attachmentReceiptAuthority,
+      thread,
+      tenantId,
+      matterId,
+      attachmentId,
+    });
+  } catch (error) {
+    return m365ErrorResponse(error, requestId, body.audit_hint_ref);
+  }
+  const attachmentReceipt = attachmentState.receipts[0];
+  if (
+    attachmentState.receipts.length !== 1
+    || attachmentReceipt?.attachment_id !== attachmentId
+    || attachmentState.retry_attachment_ids.length !== 0
+  ) {
+    return m365ErrorResponse(
+      outlookAttachmentReceiptError("Outlook attachment receipt persisted readback is incomplete"),
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
   return success(201, {
     request_id: requestId,
     outcome: "attachments_saved",
     items: saved,
     duplicate_attachments: Object.freeze(duplicates),
     duplicate_count: duplicates.length,
-    attachment_receipt: runtime.attachmentReceiptAuthority.issue({
-      ...responseMapping,
-      ...threadSourceIdentity,
-    }),
+    attachment_receipt: attachmentReceipt,
     folder_structure: MATTER_FOLDER_NAMES,
     documents: postgresDms
       ? Object.freeze(knownDocuments.map(safeMatterDocument))
@@ -3274,7 +3335,10 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     return errorResponse(404, requestId, ["OUTLOOK_ADDIN_NOT_FOUND"]);
   } catch (error) {
-    const safeCode = error?.safe_error_code === OUTLOOK_ADDIN_ERROR_CODES.attachment_provenance_mismatch
+    const safeCode = [
+      OUTLOOK_ADDIN_ERROR_CODES.attachment_provenance_mismatch,
+      OUTLOOK_ADDIN_ERROR_CODES.attachment_receipt_invalid,
+    ].includes(error?.safe_error_code)
       ? error.safe_error_code
       : OUTLOOK_ADDIN_ERROR_CODES.validation_error;
     return errorResponse(error?.status ?? 400, requestId, [safeCode], { message: error.message });

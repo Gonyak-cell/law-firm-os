@@ -86,6 +86,7 @@ export async function readOutlookAttachmentReceiptState({
   tenantId,
   matterId,
   supplied = [],
+  attachmentId,
 } = {}) {
   let threadSourceIdentity;
   try {
@@ -109,11 +110,18 @@ export async function readOutlookAttachmentReceiptState({
   }
   const sourceById = new Map();
   for (const source of thread.attachment_metadata) {
-    const attachmentId = requiredText(source.attachment_id ?? source.id, "source_attachment.attachment_id");
-    if (sourceById.has(attachmentId)) throw outlookAttachmentReceiptError("Filed Outlook attachment identity is duplicated");
-    sourceById.set(attachmentId, source);
+    const sourceAttachmentId = requiredText(source.attachment_id ?? source.id, "source_attachment.attachment_id");
+    if (sourceById.has(sourceAttachmentId)) throw outlookAttachmentReceiptError("Filed Outlook attachment identity is duplicated");
+    sourceById.set(sourceAttachmentId, source);
   }
-  if (sourceById.size === 0 && supplied.length === 0) {
+  const scopedAttachmentId = attachmentId === undefined
+    ? null
+    : requiredText(attachmentId, "attachment_id");
+  if (scopedAttachmentId !== null && !sourceById.has(scopedAttachmentId)) {
+    throw outlookAttachmentReceiptError("Filed Outlook attachment identity is missing");
+  }
+  const requestedIds = scopedAttachmentId === null ? [...sourceById.keys()] : [scopedAttachmentId];
+  if (requestedIds.length === 0 && supplied.length === 0) {
     return Object.freeze({ receipts: Object.freeze([]), retry_attachment_ids: Object.freeze([]) });
   }
   if (typeof authority?.issue !== "function") {
@@ -122,6 +130,7 @@ export async function readOutlookAttachmentReceiptState({
   const mappings = dmsRuntime.repository
     .list({ tenant_id: tenantId, model_type: "DmsEmailAttachmentMapping", matter_id: matterId })
     .filter((mapping) => mapping.email_thread_id === thread.email_thread_id)
+    .filter((mapping) => scopedAttachmentId === null || mapping.attachment_id === scopedAttachmentId)
     .sort((left, right) => left.attachment_id.localeCompare(right.attachment_id, "en"));
   const validatedMappings = [];
   const mappedIds = new Set();
@@ -228,6 +237,6 @@ export async function readOutlookAttachmentReceiptState({
   const receipts = validatedMappings.map((mapping) => authority.issue(mapping));
   return Object.freeze({
     receipts: Object.freeze(receipts),
-    retry_attachment_ids: Object.freeze([...sourceById.keys()].filter((attachmentId) => !mappedIds.has(attachmentId))),
+    retry_attachment_ids: Object.freeze(requestedIds.filter((requestedId) => !mappedIds.has(requestedId))),
   });
 }

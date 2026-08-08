@@ -161,12 +161,15 @@ function signedReceipt(state, overrides = {}) {
   });
 }
 
-async function read(state, issueCount, { supplied = [] } = {}) {
+async function read(state, issueCount, {
+  supplied = [],
+  repository = state.dmsRepository,
+} = {}) {
   const receiptAuthority = createOutlookAttachmentReceiptAuthority({
     secret: RECEIPT_SECRET,
   });
   return readOutlookAttachmentReceiptState({
-    dmsRuntime: { repository: state.dmsRepository },
+    dmsRuntime: { repository },
     matterRuntime: { repository: state.matterRepository },
     authority: {
       verify: receiptAuthority.verify,
@@ -360,7 +363,7 @@ test("persisted document from another source attachment produces zero attachment
   assert.equal(issues.value, 0);
 });
 
-test("NUL-bearing mapping document ID is rejected before persistence or receipt issuance", () => {
+test("NUL-bearing mapping document ID is rejected before persistence or receipt issuance", async () => {
   const state = fixture();
   const issues = { value: 0 };
   assert.throws(
@@ -372,6 +375,18 @@ test("NUL-bearing mapping document ID is rejected before persistence or receipt 
     model_type: "DmsEmailAttachmentMapping",
     resource_id: state.mapping.resource_id,
   }).document_id, DOCUMENT);
+  const corruptReadRepository = {
+    get: (query) => state.dmsRepository.get(query),
+    list: (query) => state.dmsRepository.list(query).map((record) => (
+      record.resource_id === state.mapping.resource_id
+        ? { ...record, document_id: "document\u0000forged" }
+        : record
+    )),
+  };
+  await assert.rejects(
+    read(state, issues, { repository: corruptReadRepository }),
+    /incomplete or mismatched/u,
+  );
   assert.equal(issues.value, 0);
 });
 

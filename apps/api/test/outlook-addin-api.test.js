@@ -2407,6 +2407,10 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(attachmentBody.attachment_receipt.attachment_id, "att-contract");
       assert.equal(typeof attachmentBody.attachment_receipt.receipt_token, "string");
       assert.equal(typeof attachmentBody.attachment_receipt.receipt_ref, "string");
+      assert.doesNotMatch(
+        JSON.stringify(attachmentBody),
+        /"source_(?:email_thread|attachment)_id":/u,
+      );
       assert.deepEqual(attachmentBody.items[0].timeline_event.safe_summary, {
         email_thread_id: fileBody.email_thread.email_thread_id,
         canonical_graph_message_id: fileBody.source_identity.canonical_graph_message_id,
@@ -2469,6 +2473,173 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         attachmentBody.attachment_receipt.receipt_token,
       );
       assert.equal(storageWriteCount, beforeStorageWrites);
+    });
+
+    const assertAttachmentSaveTamperRejected = async ({
+      repository,
+      query,
+      mutate,
+    }) => {
+      const persisted = repository.get(query);
+      const beforeIssues = attachmentReceiptIssueCount;
+      let response;
+      try {
+        repository.upsert(mutate(persisted));
+        response = await fetch(`${baseUrl}/api/outlook/attachments/save`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({
+            tenant_id: TENANT,
+            matter_id: MATTER,
+            email_thread_id: fileBody.email_thread.email_thread_id,
+            selected_attachment_ids: ["att-contract"],
+            attachments: [attachmentPayload()],
+          }),
+        });
+      } finally {
+        repository.upsert(persisted);
+      }
+      const responseBody = await response.json();
+      assert.equal(response.status, 409, JSON.stringify(responseBody));
+      assert.deepEqual(
+        responseBody.safe_error_codes,
+        ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"],
+      );
+      assert.equal(responseBody.attachment_receipt, undefined);
+      assert.equal(attachmentReceiptIssueCount, beforeIssues);
+    };
+
+    const attachmentMappingQuery = {
+      tenant_id: TENANT,
+      model_type: "DmsEmailAttachmentMapping",
+      resource_id: attachmentBody.attachment_receipt.receipt_ref,
+    };
+    const attachmentTimelineQuery = {
+      tenant_id: TENANT,
+      model_type: "MatterTimelineEvent",
+      resource_id: attachmentBody.items[0].timeline_event.event_id,
+    };
+
+    await t.test("attachment-save replay rejects persisted timeline version tamper before signing", async () => {
+      await assertAttachmentSaveTamperRejected({
+        repository: matterRepository,
+        query: attachmentTimelineQuery,
+        mutate: (event) => ({
+          ...event,
+          safe_summary: { ...event.safe_summary, version_id: "version-tampered" },
+        }),
+      });
+    });
+
+    await t.test("attachment-save replay rejects persisted mapping version tamper before signing", async () => {
+      await assertAttachmentSaveTamperRejected({
+        repository: dmsRepository,
+        query: attachmentMappingQuery,
+        mutate: (mapping) => ({ ...mapping, version_id: "version-tampered" }),
+      });
+    });
+
+    await t.test("attachment-save replay rejects persisted mapping source tamper before signing", async () => {
+      await assertAttachmentSaveTamperRejected({
+        repository: dmsRepository,
+        query: attachmentMappingQuery,
+        mutate: (mapping) => ({ ...mapping, email_thread_id: "thread-tampered" }),
+      });
+    });
+
+    await t.test("attachment-save replay rejects persisted mapping provenance tamper before signing", async () => {
+      await assertAttachmentSaveTamperRejected({
+        repository: dmsRepository,
+        query: attachmentMappingQuery,
+        mutate: (mapping) => ({
+          ...mapping,
+          source_provenance_authority: "tampered-authority",
+        }),
+      });
+    });
+
+    const attachmentOperationKey = `outlook-attachment:${fileBody.email_thread.email_thread_id}:att-contract:${attachmentBody.items[0].version.sha256}`;
+    const assertLegacyIdempotencyHashRejected = async ({
+      repository,
+      idempotencyKey,
+      hashField,
+    }) => {
+      const originalIdempotency = repository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: idempotencyKey,
+      });
+      const legacyResponse = { ...originalIdempotency.response };
+      delete legacyResponse[hashField];
+      const legacyIdempotency = repository.recordIdempotency({
+        ...originalIdempotency,
+        response: legacyResponse,
+      });
+      const beforeIssues = attachmentReceiptIssueCount;
+      const beforeStorageWrites = storageWriteCount;
+      const beforeMapping = dmsRepository.get(attachmentMappingQuery);
+      const beforeTimeline = matterRepository.get(attachmentTimelineQuery);
+      const beforeMappingAudit = dmsRepository.listAudit({
+        tenant_id: TENANT,
+        object_id: beforeMapping.mapping_id,
+      });
+      const beforeTimelineAudit = matterRepository.listAudit({
+        tenant_id: TENANT,
+        object_id: beforeTimeline.event_id,
+      });
+      try {
+        const response = await fetch(`${baseUrl}/api/outlook/attachments/save`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({
+            tenant_id: TENANT,
+            matter_id: MATTER,
+            email_thread_id: fileBody.email_thread.email_thread_id,
+            selected_attachment_ids: ["att-contract"],
+            attachments: [attachmentPayload()],
+          }),
+        });
+        const responseBody = await response.json();
+        assert.equal(response.status, 409, JSON.stringify(responseBody));
+        assert.deepEqual(
+          responseBody.safe_error_codes,
+          ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"],
+        );
+        assert.equal(responseBody.attachment_receipt, undefined);
+        assert.equal(attachmentReceiptIssueCount, beforeIssues);
+        assert.equal(storageWriteCount, beforeStorageWrites);
+        assert.deepEqual(repository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: idempotencyKey,
+        }), legacyIdempotency);
+        assert.deepEqual(dmsRepository.get(attachmentMappingQuery), beforeMapping);
+        assert.deepEqual(matterRepository.get(attachmentTimelineQuery), beforeTimeline);
+        assert.deepEqual(dmsRepository.listAudit({
+          tenant_id: TENANT,
+          object_id: beforeMapping.mapping_id,
+        }), beforeMappingAudit);
+        assert.deepEqual(matterRepository.listAudit({
+          tenant_id: TENANT,
+          object_id: beforeTimeline.event_id,
+        }), beforeTimelineAudit);
+      } finally {
+        repository.recordIdempotency(originalIdempotency);
+      }
+    };
+
+    await t.test("attachment-save replay rejects a legacy mapping idempotency receipt before signing or mutation", async () => {
+      await assertLegacyIdempotencyHashRejected({
+        repository: dmsRepository,
+        idempotencyKey: `${attachmentOperationKey}:dms-mapping`,
+        hashField: "mapping_hash",
+      });
+    });
+
+    await t.test("attachment-save replay rejects a legacy timeline idempotency receipt before signing or mutation", async () => {
+      await assertLegacyIdempotencyHashRejected({
+        repository: matterRepository,
+        idempotencyKey: `${attachmentOperationKey}:matter:${MATTER}`,
+        hashField: "timeline_event_hash",
+      });
     });
 
     await t.test("email replay verifies a signed attachment receipt and rejects forgery", async () => {
