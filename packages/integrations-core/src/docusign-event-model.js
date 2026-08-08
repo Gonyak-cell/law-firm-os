@@ -6,10 +6,10 @@ export const DOCUSIGN_CONNECT_SIGNATURE_HEADER = "x-docusign-signature-1";
 export const DOCUSIGN_MIN_POLL_INTERVAL_MS = 15 * 60 * 1000;
 
 const STATUS_STATE = Object.freeze({
-  created: "provider_pending", sent: "sent", delivered: "delivered",
+  created: "draft_created", sent: "sent", delivered: "delivered",
   completed: "completed_artifacts_pending", declined: "declined", voided: "voided",
 });
-const RANK = Object.freeze({ approved: 1, provider_pending: 2, reconciliation_required: 2, sent: 3, delivered: 4, completed_artifacts_pending: 5, completed: 6 });
+const RANK = Object.freeze({ approved: 1, provider_pending: 2, reconciliation_required: 2, draft_created: 3, sent: 4, delivered: 5, completed_artifacts_pending: 6, completed: 7 });
 const TERMINAL = new Set(["completed_artifacts_pending", "completed", "declined", "voided", "provider_blocked"]);
 
 export function docusignRawBytes(value) {

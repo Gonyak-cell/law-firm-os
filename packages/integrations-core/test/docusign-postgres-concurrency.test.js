@@ -68,14 +68,24 @@ test("OUTM-33/34 PostgreSQL advisory CAS serializes independent runtimes and sur
   const poolB = independentPool(fixture, "docusign-process-b");
   const repositoryA = createPostgresDocusignEnvelopeRepository({ pool: poolA });
   const repositoryB = createPostgresDocusignEnvelopeRepository({ pool: poolB });
+  let resolveSecondClaim;
+  const secondClaim = new Promise((resolve) => { resolveSecondClaim = resolve; });
+  const observedRepositoryB = {
+    ...repositoryB,
+    async transact(options, mutate) { const result = await repositoryB.transact(options, mutate); resolveSecondClaim(); return result; },
+  };
   let createCalls = 0;
   let sendCalls = 0;
+  let resolveCreateEntered;
+  const createEntered = new Promise((resolve) => { resolveCreateEntered = resolve; });
+  let releaseCreate;
+  const createRelease = new Promise((resolve) => { releaseCreate = resolve; });
   const provider = {
-    async createDraft() { createCalls += 1; await new Promise((resolve) => setTimeout(resolve, 30)); return { envelope_id: "envelope-pg" }; },
-    async send() { sendCalls += 1; await new Promise((resolve) => setTimeout(resolve, 20)); return { status: "sent" }; },
+    async createDraft() { createCalls += 1; resolveCreateEntered(); await createRelease; return { envelope_id: "envelope-pg" }; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
   };
   const serviceA = outbox(repositoryA, provider, () => "2026-08-08T05:00:00.000Z");
-  const serviceB = outbox(repositoryB, provider, () => "2026-08-08T05:00:00.000Z");
+  const serviceB = outbox(observedRepositoryB, provider, () => "2026-08-08T05:00:00.000Z");
   await serviceA.queueApprovedRequest({
     principal: { tenant_id: TENANT, actor_id: "actor-pg" }, request_id: "request-pg",
     tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id,
@@ -83,13 +93,22 @@ test("OUTM-33/34 PostgreSQL advisory CAS serializes independent runtimes and sur
     explicit_human_action: true, authority_binding: AUTHORITY,
   });
   const sendInput = { principal: { tenant_id: TENANT, actor_id: "actor-pg" }, request_id: "request-pg", explicit_human_action: true };
-  const sent = await Promise.all([serviceA.sendApprovedRequest(sendInput), serviceB.sendApprovedRequest(sendInput)]);
+  const firstSend = serviceA.sendApprovedRequest(sendInput);
+  await createEntered;
+  const secondSend = serviceB.sendApprovedRequest(sendInput);
+  await secondClaim;
+  releaseCreate();
+  const sent = await Promise.all([firstSend, secondSend]);
   assert.deepEqual(sent.map((item) => item.outcome).sort(), ["in_progress", "sent"]);
   assert.deepEqual([createCalls, sendCalls], [1, 1]);
 
   let polls = 0;
+  let resolvePollEntered;
+  const pollEntered = new Promise((resolve) => { resolvePollEntered = resolve; });
+  let releasePoll;
+  const pollRelease = new Promise((resolve) => { releasePoll = resolve; });
   const statusProvider = {
-    async getStatus() { polls += 1; await new Promise((resolve) => setTimeout(resolve, 30)); return { status: "delivered", occurred_at: "2026-08-08T05:05:00.000Z", sequence: 5 }; },
+    async getStatus() { polls += 1; resolvePollEntered(); await pollRelease; return { status: "delivered", occurred_at: "2026-08-08T05:05:00.000Z", sequence: 5 }; },
     downloadDocument: async () => Buffer.from("unused"),
   };
   const events = (repository) => createDocusignEnvelopeEventService({
@@ -97,10 +116,18 @@ test("OUTM-33/34 PostgreSQL advisory CAS serializes independent runtimes and sur
     receiptStore: { put: async () => ({}) }, artifactStore: { ingest: async () => ({}) },
     clock: () => "2026-08-08T05:05:00.000Z",
   });
-  const polled = await Promise.all([
-    events(repositoryA).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-a" }, request_id: "request-pg" }),
-    events(repositoryB).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-b" }, request_id: "request-pg" }),
-  ]);
+  const firstPoll = events(repositoryA).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-a" }, request_id: "request-pg" });
+  await pollEntered;
+  let resolveSecondPoll;
+  const secondPollClaim = new Promise((resolve) => { resolveSecondPoll = resolve; });
+  const observedPollRepositoryB = {
+    ...repositoryB,
+    async transact(options, mutate) { const result = await repositoryB.transact(options, mutate); resolveSecondPoll(); return result; },
+  };
+  const secondPoll = events(observedPollRepositoryB).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-b" }, request_id: "request-pg" });
+  await secondPollClaim;
+  releasePoll();
+  const polled = await Promise.all([firstPoll, secondPoll]);
   assert.deepEqual(polled.map((item) => item.outcome).sort(), ["deferred", "processed"]);
   assert.equal(polls, 1);
 
@@ -112,6 +139,65 @@ test("OUTM-33/34 PostgreSQL advisory CAS serializes independent runtimes and sur
   assert.equal(deferred.outcome, "deferred");
   assert.equal(polls, 1);
   await poolAfterRestart.end();
+  await poolA.end();
+  await poolB.end();
+});
+
+test("OUTM-33 PostgreSQL in-flight create survives lease takeover through correlation recovery", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const poolA = independentPool(fixture, "docusign-inflight-create-a");
+  const poolB = independentPool(fixture, "docusign-inflight-create-b");
+  const repositoryA = createPostgresDocusignEnvelopeRepository({ pool: poolA });
+  const repositoryB = createPostgresDocusignEnvelopeRepository({ pool: poolB });
+  const now = { value: "2026-08-08T07:00:00.000Z" };
+  let resolveEntered;
+  const entered = new Promise((resolve) => { resolveEntered = resolve; });
+  let release;
+  const releasePromise = new Promise((resolve) => { release = resolve; });
+  let resolveSendEntered;
+  const sendEntered = new Promise((resolve) => { resolveSendEntered = resolve; });
+  let releaseSend;
+  const sendRelease = new Promise((resolve) => { releaseSend = resolve; });
+  let createCalls = 0;
+  let findStatus = "created";
+  const provider = {
+    async createDraft() { createCalls += 1; resolveEntered(); await releasePromise; return { envelope_id: "envelope-pg-inflight" }; },
+    async send() { resolveSendEntered(); await sendRelease; return { status: "sent" }; },
+    async findByCorrelation({ provider_correlation_ref }) { return { envelope_id: "envelope-pg-inflight", provider_correlation_ref, account_id: CONNECTION.account_id, status: findStatus }; },
+  };
+  const serviceA = outbox(repositoryA, provider, () => now.value);
+  const serviceB = outbox(repositoryB, provider, () => now.value);
+  await serviceA.queueApprovedRequest({
+    principal: { tenant_id: TENANT, actor_id: "actor-pg" }, request_id: "request-pg-inflight",
+    tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id,
+    approved_artifact_id: SOURCE.document.artifact_id, idempotency_key: "queue-pg-inflight",
+    explicit_human_action: true, authority_binding: AUTHORITY,
+  });
+  const sendInput = { principal: { tenant_id: TENANT, actor_id: "actor-pg" }, request_id: "request-pg-inflight", explicit_human_action: true };
+  const oldOwner = serviceA.sendApprovedRequest(sendInput);
+  await entered;
+  now.value = "2026-08-08T07:05:00.001Z";
+  const takeover = await serviceB.sendApprovedRequest(sendInput);
+  assert.equal(takeover.outcome, "replayed");
+  assert.equal((await repositoryB.readState({ tenant_id: TENANT })).requests.find((item) => item.request_id === "request-pg-inflight")?.state, "reconciliation_required");
+  release();
+  await assert.rejects(oldOwner, (error) => error?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST");
+  const restartPool = independentPool(fixture, "docusign-inflight-create-restart");
+  const restarted = outbox(createPostgresDocusignEnvelopeRepository({ pool: restartPool }), provider, () => now.value);
+  const recovered = await restarted.reconcileRequest({ ...sendInput, explicit_human_action: true });
+  assert.deepEqual([recovered.outcome, recovered.request.state, recovered.request.can_send, createCalls], ["reconciled", "draft_created", true, 1]);
+  now.value = "2026-08-08T07:05:00.000Z";
+  const oldSend = serviceA.sendApprovedRequest(sendInput);
+  await sendEntered;
+  now.value = "2026-08-08T07:10:00.001Z";
+  assert.equal((await serviceB.sendApprovedRequest(sendInput)).outcome, "replayed");
+  findStatus = "sent";
+  releaseSend();
+  await assert.rejects(oldSend, (error) => error?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST");
+  const sentAfterRestart = await restarted.reconcileRequest({ ...sendInput, explicit_human_action: true });
+  assert.deepEqual([sentAfterRestart.outcome, sentAfterRestart.request.state, createCalls], ["reconciled", "sent", 1]);
+  await restartPool.end();
   await poolA.end();
   await poolB.end();
 });

@@ -4,13 +4,10 @@ import { DOCX_MIME_TYPE, normalizeDocusignConnection } from "./docusign-envelope
 
 export const DOCUSIGN_OUTBOX_SCHEMA_VERSION = "amic-os.docusign-envelope-outbox.v2";
 export const DOCUSIGN_REQUEST_STATES = Object.freeze([
-  "draft", "review_required", "approved", "provider_pending", "sent", "delivered",
-  "completed_artifacts_pending", "completed", "declined", "voided",
-  "reconciliation_required", "provider_blocked",
+  "draft", "review_required", "approved", "provider_pending", "draft_created", "sent", "delivered", "completed_artifacts_pending", "completed", "declined", "voided", "reconciliation_required", "provider_blocked",
 ]);
 export const DOCUSIGN_STABLE_STATES = new Set([
-  "sent", "delivered", "completed_artifacts_pending", "completed", "declined", "voided",
-  "reconciliation_required", "provider_blocked",
+  "sent", "delivered", "completed_artifacts_pending", "completed", "declined", "voided", "provider_blocked",
 ]);
 export const DOCUSIGN_INACTIVE_STATES = new Set(["completed", "declined", "voided", "provider_blocked"]);
 
@@ -115,12 +112,27 @@ function normalizeArtifact(input) {
 
 function normalizeLease(input) {
   if (input == null) return null;
-  return Object.freeze({
-    kind: docusignRequiredText(input.kind, "operation_lease.kind"),
-    token: docusignRequiredText(input.token, "operation_lease.token"),
-    acquired_at: docusignTimestamp(input.acquired_at, "operation_lease.acquired_at"),
-    expires_at: docusignTimestamp(input.expires_at, "operation_lease.expires_at"),
-  });
+  const generation = input.fencing_generation == null ? 0 : Number(input.fencing_generation);
+  if (!Number.isSafeInteger(generation) || generation < 0) throw new TypeError("operation_lease.fencing_generation is invalid");
+  return Object.freeze({ kind: docusignRequiredText(input.kind, "operation_lease.kind"), token: docusignRequiredText(input.token, "operation_lease.token"), fencing_generation: generation, acquired_at: docusignTimestamp(input.acquired_at, "operation_lease.acquired_at"), expires_at: docusignTimestamp(input.expires_at, "operation_lease.expires_at") });
+}
+
+function normalizeProviderOperation(input) {
+  if (input == null) return null;
+  const fencingGeneration = Number(input.fencing_generation);
+  if (!Number.isSafeInteger(fencingGeneration) || fencingGeneration < 1) throw new TypeError("provider_operation.fencing_generation is invalid");
+  const status = input.status == null ? "pending" : docusignRequiredText(input.status, "provider_operation.status").toLowerCase();
+  if (!["pending", "unknown", "returned", "succeeded", "failed"].includes(status)) throw new TypeError("provider_operation.status is invalid");
+  return Object.freeze({ kind: docusignRequiredText(input.kind, "provider_operation.kind"), correlation_ref: docusignRequiredText(input.correlation_ref, "provider_operation.correlation_ref"), fencing_generation: fencingGeneration, started_at: docusignTimestamp(input.started_at, "provider_operation.started_at"), deadline_at: docusignTimestamp(input.deadline_at, "provider_operation.deadline_at"), status });
+}
+
+function normalizeCompletionOperation(input) {
+  if (input == null) return null;
+  const generation = Number(input.fencing_generation);
+  if (!Number.isSafeInteger(generation) || generation < 1) throw new TypeError("completion_operation.fencing_generation is invalid");
+  const status = input.status == null ? "pending" : docusignRequiredText(input.status, "completion_operation.status").toLowerCase();
+  if (!["pending", "unknown"].includes(status)) throw new TypeError("completion_operation.status is invalid");
+  return Object.freeze({ kind: docusignRequiredText(input.kind, "completion_operation.kind"), permission_envelope_id: docusignRequiredText(input.permission_envelope_id, "completion_operation.permission_envelope_id"), audit_trace_id: docusignRequiredText(input.audit_trace_id, "completion_operation.audit_trace_id"), fencing_generation: generation, started_at: docusignTimestamp(input.started_at, "completion_operation.started_at"), status });
 }
 
 function normalizeProviderCursor(input) {
@@ -148,7 +160,7 @@ export function normalizeDocusignRequest(input = {}) {
   const state = docusignRequiredText(input.state, "request.state");
   if (!DOCUSIGN_REQUEST_STATES.includes(state)) throw new TypeError("request.state is invalid");
   const envelopeId = input.envelope_id == null ? null : docusignRequiredText(input.envelope_id, "request.envelope_id");
-  if (["sent", "delivered", "completed_artifacts_pending", "completed", "declined", "voided"].includes(state) && !envelopeId) {
+  if (["draft_created", "sent", "delivered", "completed_artifacts_pending", "completed", "declined", "voided"].includes(state) && !envelopeId) {
     throw new TypeError(`${state} request requires a provider envelope`);
   }
   if (state === "approved" && envelopeId) throw new TypeError("approved request cannot already have a provider envelope");
@@ -190,6 +202,8 @@ export function normalizeDocusignRequest(input = {}) {
     last_poll_at: input.last_poll_at == null ? null : docusignTimestamp(input.last_poll_at, "request.last_poll_at"),
     provider_cursor: normalizeProviderCursor(input.provider_cursor),
     operation_lease: normalizeLease(input.operation_lease),
+    provider_operation: normalizeProviderOperation(input.provider_operation),
+    completion_operation: normalizeCompletionOperation(input.completion_operation),
     completion_artifacts: artifacts,
     audit_lineage: auditLineage,
     event_hashes: Object.freeze([...new Set((input.event_hashes ?? []).map((value) => docusignRequiredSha256(value, "event_hash")))]),
@@ -241,7 +255,7 @@ export function projectDocusignRequestSafe(input) {
     recipients: Object.freeze(request.recipient_snapshot.map(({ recipient_ref, role, routing_order }) => Object.freeze({ recipient_ref, role, routing_order }))),
     state: request.state,
     canonical_document_ref: `matter://${request.matter_id}/documents/${request.document.document_id}/versions/${request.document.version_id}`,
-    can_send: request.state === "approved", can_reconcile: request.state === "reconciliation_required" && Boolean(request.envelope_id),
+    can_send: request.state === "approved" || request.state === "draft_created", can_reconcile: ["reconciliation_required", "draft_created", "sent", "delivered", "completed_artifacts_pending"].includes(request.state),
     completion_artifacts: request.completion_artifacts, production_ready_claim: false,
   });
 }

@@ -33,7 +33,7 @@ export function createDocusignRuntime({
   const protectedReceipts = receiptStore ?? Object.freeze({ put: unavailable("DOCUSIGN_WEBHOOK_RECEIPT_STORAGE_UNAVAILABLE") });
   const immutableArtifacts = artifactStore ?? Object.freeze({ ingest: unavailable("DOCUSIGN_ARTIFACT_STORAGE_UNAVAILABLE") });
   const envelopeService = createDocusignEnvelopeService({ repository, approvedDocumentResolver, connectionResolver, artifactReader, recipientResolver, adapter: provider, clock });
-  const eventService = createDocusignEnvelopeEventService({ repository, connectionResolver, webhookRequestResolver, resolveSecret, adapter: provider, receiptStore: protectedReceipts, artifactStore: immutableArtifacts, clock });
+  const eventService = createDocusignEnvelopeEventService({ repository, connectionResolver, webhookRequestResolver, approvedDocumentResolver, resolveSecret, adapter: provider, receiptStore: protectedReceipts, artifactStore: immutableArtifacts, clock });
   const readiness = () => Object.freeze({
     status: authorityState === "ready" ? "ready" : "blocked",
     authority_state: authorityState,

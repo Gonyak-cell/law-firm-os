@@ -76,14 +76,22 @@ test("OUTM-33 durable CAS lease lets Promise.all create and send exactly one pro
   const repositoryB = createDocusignEnvelopeRepository({ filePath });
   let createCalls = 0;
   let sendCalls = 0;
+  let resolveCreateEntered;
+  const createEntered = new Promise((resolve) => { resolveCreateEntered = resolve; });
+  let releaseCreate;
+  const createRelease = new Promise((resolve) => { releaseCreate = resolve; });
   const adapter = {
-    async createDraft() { createCalls += 1; await new Promise((resolve) => setTimeout(resolve, 25)); return { envelope_id: "envelope-concurrency" }; },
-    async send() { sendCalls += 1; await new Promise((resolve) => setTimeout(resolve, 10)); return { status: "sent" }; },
+    async createDraft() { createCalls += 1; resolveCreateEntered(); await createRelease; return { envelope_id: "envelope-concurrency" }; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
   };
   const first = service(repositoryA, adapter);
   const second = service(repositoryB, adapter);
   await queue(first);
-  const outcomes = await Promise.all([first.sendApprovedRequest(sendInput), second.sendApprovedRequest(sendInput)]);
+  const firstSend = first.sendApprovedRequest(sendInput);
+  await createEntered;
+  const secondSend = second.sendApprovedRequest(sendInput);
+  releaseCreate();
+  const outcomes = await Promise.all([firstSend, secondSend]);
   assert.deepEqual(outcomes.map((item) => item.outcome).sort(), ["in_progress", "sent"]);
   assert.deepEqual([createCalls, sendCalls], [1, 1]);
   assert.equal(createDocusignEnvelopeRepository({ filePath }).loadState().requests[0].state, "sent");
@@ -98,8 +106,12 @@ test("OUTM-34 durable CAS poll slot lets Promise.all call provider once per 15 m
   await queue(service(repositoryA, sendAdapter));
   await service(repositoryA, sendAdapter).sendApprovedRequest(sendInput);
   let polls = 0;
+  let resolvePollEntered;
+  const pollEntered = new Promise((resolve) => { resolvePollEntered = resolve; });
+  let releasePoll;
+  const pollRelease = new Promise((resolve) => { releasePoll = resolve; });
   const adapter = {
-    getStatus: async () => { polls += 1; await new Promise((resolve) => setTimeout(resolve, 25)); return { status: "delivered", occurred_at: "2026-08-08T04:05:00.000Z", sequence: 2 }; },
+    getStatus: async () => { polls += 1; resolvePollEntered(); await pollRelease; return { status: "delivered", occurred_at: "2026-08-08T04:05:00.000Z", sequence: 2 }; },
     downloadDocument: async () => Buffer.from("unused"),
   };
   const makeEvents = (repository) => createDocusignEnvelopeEventService({
@@ -107,10 +119,11 @@ test("OUTM-34 durable CAS poll slot lets Promise.all call provider once per 15 m
     receiptStore: { put: async () => ({}) }, artifactStore: { ingest: async () => ({}) },
     clock: () => "2026-08-08T04:05:00.000Z",
   });
-  const results = await Promise.all([
-    makeEvents(repositoryA).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-a" }, request_id: "request-concurrency" }),
-    makeEvents(createDocusignEnvelopeRepository({ filePath })).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-b" }, request_id: "request-concurrency" }),
-  ]);
+  const firstPoll = makeEvents(repositoryA).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-a" }, request_id: "request-concurrency" });
+  await pollEntered;
+  const secondPoll = makeEvents(createDocusignEnvelopeRepository({ filePath })).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-b" }, request_id: "request-concurrency" });
+  releasePoll();
+  const results = await Promise.all([firstPoll, secondPoll]);
   assert.equal(polls, 1);
   assert.deepEqual(results.map((item) => item.outcome).sort(), ["deferred", "processed"]);
   assert.equal(createDocusignEnvelopeRepository({ filePath }).loadState().requests[0].state, "delivered");

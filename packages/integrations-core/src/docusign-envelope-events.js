@@ -94,7 +94,7 @@ async function updateRequest(repository, tenantId, requestId, mutate) {
 }
 
 export function createDocusignEnvelopeEventService({
-  repository, connectionResolver, webhookRequestResolver, resolveSecret, adapter,
+  repository, connectionResolver, webhookRequestResolver, resolveSecret, adapter, approvedDocumentResolver,
   receiptStore, artifactStore, clock = () => new Date(),
 } = {}) {
   requireDocusignRepository(repository);
@@ -144,7 +144,7 @@ export function createDocusignEnvelopeEventService({
         if (!state.webhook_receipts.some((item) => item.receipt_hash === receiptHash)) state.webhook_receipts.push({ receipt_hash: receiptHash, receipt_ref: docusignRequiredText(receipt.receipt_ref, "receipt_ref"), event_hash: event.event_hash, request_id: current.request_id, tenant_id: current.tenant_id, provider_status: event.status, occurred_at: event.occurred_at });
         return { duplicate, transition, request: state.requests[index] };
       });
-      if (event.status === "completed" && projected.request.state === "completed_artifacts_pending") return completeDocusignArtifacts({ repository, request: projected.request, connection, adapter, artifactStore, clock });
+      if (event.status === "completed" && projected.request.state === "completed_artifacts_pending") return completeDocusignArtifacts({ repository, request: projected.request, connection, adapter, artifactStore, approvedDocumentResolver, clock });
       return Object.freeze({ outcome: projected.duplicate ? "replayed" : projected.transition.changed ? "processed" : "ignored", request: projectDocusignRequestSafe(projected.request) });
     },
 
@@ -168,7 +168,7 @@ export function createDocusignEnvelopeEventService({
       });
       if (claim.outcome === "stable" || claim.outcome === "deferred") return Object.freeze({ outcome: claim.outcome, ...(claim.next_poll_at ? { next_poll_at: claim.next_poll_at } : {}), request: projectDocusignRequestSafe(claim.request) });
       const connection = await boundConnection(claim.request, connectionResolver);
-      if (claim.outcome === "artifacts") return completeDocusignArtifacts({ repository, request: claim.request, connection, adapter, artifactStore, clock });
+      if (claim.outcome === "artifacts") return completeDocusignArtifacts({ repository, request: claim.request, connection, adapter, artifactStore, approvedDocumentResolver, clock });
       let provider;
       try { provider = await adapter.getStatus({ connection, envelope_id: claim.request.envelope_id }); }
       catch {
@@ -189,7 +189,7 @@ export function createDocusignEnvelopeEventService({
         const transition = projectDocusignProviderEvent(fresh, event, docusignNow(clock));
         return { ...transition.request, operation_lease: null };
       });
-      if (request.state === "completed_artifacts_pending") return completeDocusignArtifacts({ repository, request, connection, adapter, artifactStore, clock });
+      if (request.state === "completed_artifacts_pending") return completeDocusignArtifacts({ repository, request, connection, adapter, artifactStore, approvedDocumentResolver, clock });
       return Object.freeze({ outcome: "processed", request: projectDocusignRequestSafe(request) });
     },
   });

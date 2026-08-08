@@ -43,7 +43,7 @@ async function queue(service, requestId = "request-hardening") {
 
 const sendInput = (request_id = "request-hardening") => ({ principal: { tenant_id: TENANT, actor_id: "actor-hardening" }, request_id, explicit_human_action: true });
 
-test("OUTM-33 expired send owner is fenced before provider create and remains fenced after restart", async (t) => {
+test("OUTM-33 in-flight provider create is fenced, correlated, and recovered after takeover", async (t) => {
   const root = mkdtempSync(join(tmpdir(), "outm33-fence-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const filePath = join(root, "outbox.json");
@@ -55,21 +55,30 @@ test("OUTM-33 expired send owner is fenced before provider create and remains fe
   let release;
   const releasePromise = new Promise((resolve) => { release = resolve; });
   let createCalls = 0;
-  const adapter = { async createDraft() { createCalls += 1; return { envelope_id: "must-not-create" }; }, async send() { throw new Error("must-not-send"); } };
-  const delayed = makeService(repositoryA, adapter, () => now.value, async (binding) => { entered(); await releasePromise; return { ...binding, bytes: BYTES }; });
+  let sendCalls = 0;
+  const adapter = {
+    async createDraft() { createCalls += 1; entered(); await releasePromise; return { envelope_id: "envelope-inflight" }; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
+    async findByCorrelation({ provider_correlation_ref }) { return { envelope_id: "envelope-inflight", provider_correlation_ref, account_id: CONNECTION.account_id, status: "created" }; },
+  };
+  const delayed = makeService(repositoryA, adapter, () => now.value);
   await queue(delayed);
   const oldOwner = delayed.sendApprovedRequest(sendInput());
   await enteredPromise;
+  const intent = repositoryA.loadState().requests[0].provider_operation;
+  assert.deepEqual([intent.kind, intent.correlation_ref, intent.fencing_generation >= 1, intent.status], ["create_draft", repositoryA.loadState().requests[0].provider_correlation_ref, true, "pending"]);
   now.value = "2026-08-08T01:05:00.001Z";
   const reconciler = makeService(repositoryB, adapter, () => now.value);
   assert.equal((await reconciler.sendApprovedRequest(sendInput())).outcome, "replayed");
   assert.equal(repositoryB.loadState().requests[0].state, "reconciliation_required");
   release();
   await assert.rejects(oldOwner, (error) => error?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST");
-  assert.equal(createCalls, 0);
+  assert.equal(createCalls, 1);
   const restarted = makeService(createDocusignEnvelopeRepository({ filePath }), adapter, () => now.value);
-  assert.equal((await restarted.sendApprovedRequest(sendInput())).outcome, "replayed");
-  assert.equal(createDocusignEnvelopeRepository({ filePath }).loadState().requests[0].state, "reconciliation_required");
+  const recovered = await restarted.reconcileRequest({ ...sendInput(), explicit_human_action: true });
+  assert.deepEqual([recovered.outcome, recovered.request.state, recovered.request.can_send, recovered.request.document.document_id], ["reconciled", "draft_created", true, "document-hardening"]);
+  const resumed = await restarted.sendApprovedRequest(sendInput());
+  assert.deepEqual([resumed.outcome, resumed.request.state, createCalls, sendCalls], ["sent", "sent", 1, 1]);
 });
 
 test("OUTM-33 reconciliation recovers an ambiguous create by exact provider correlation without create or send", async () => {
@@ -79,19 +88,54 @@ test("OUTM-33 reconciliation recovers an ambiguous create by exact provider corr
   let findCalls = 0;
   const adapter = {
     async createDraft() { createCalls += 1; throw new Error("provider timeout after unknown create"); },
-    async send() { sendCalls += 1; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
     async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "recovered-envelope", provider_correlation_ref, account_id: CONNECTION.account_id, status: "created" }; },
   };
   const service = makeService(repository, adapter);
   await queue(service);
   await assert.rejects(service.sendApprovedRequest(sendInput()), (error) => error?.safe_error_code === "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS");
   const recovered = await service.reconcileRequest({ ...sendInput(), explicit_human_action: true });
-  assert.deepEqual([recovered.outcome, recovered.request.state, recovered.request.can_reconcile], ["reconciled", "reconciliation_required", true]);
+  assert.deepEqual([recovered.outcome, recovered.request.state, recovered.request.can_send, recovered.request.can_reconcile], ["reconciled", "draft_created", true, true]);
   assert.deepEqual([createCalls, sendCalls, findCalls], [1, 0, 1]);
   const restarted = makeService(createDocusignEnvelopeRepository({ state: repository.loadState() }), adapter);
   const replay = await restarted.reconcileRequest({ ...sendInput(), explicit_human_action: true });
-  assert.equal(replay.request.document.document_id, "document-hardening");
+  assert.deepEqual([replay.outcome, replay.request.state], ["already_converged", "draft_created"]);
+  await restarted.sendApprovedRequest(sendInput());
   assert.equal(findCalls, 2);
+  assert.equal(sendCalls, 1);
+});
+
+test("OUTM-33 provider calls receive an abort signal and a timeout bounded by the fencing lease", async () => {
+  const repository = createDocusignEnvelopeRepository();
+  const calls = [];
+  const adapter = {
+    async createDraft(options) { calls.push(options); return { envelope_id: "envelope-timeout-budget" }; },
+    async send(options) { calls.push(options); return { status: "sent" }; },
+  };
+  const service = makeService(repository, adapter);
+  await queue(service);
+  await service.sendApprovedRequest(sendInput());
+  assert.equal(calls.length, 2);
+  assert.ok(calls.every((call) => call.signal && typeof call.timeout_ms === "number" && call.timeout_ms > 0 && call.timeout_ms < 5 * 60 * 1000));
+});
+
+test("OUTM-33 ambiguous send is recovered to sent after restart without a second create", async () => {
+  const repository = createDocusignEnvelopeRepository();
+  let createCalls = 0;
+  let sendCalls = 0;
+  let findCalls = 0;
+  const adapter = {
+    async createDraft() { createCalls += 1; return { envelope_id: "envelope-ambiguous-send" }; },
+    async send() { sendCalls += 1; throw Object.assign(new Error("send response lost"), { provider_status: 408 }); },
+    async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "envelope-ambiguous-send", provider_correlation_ref, account_id: CONNECTION.account_id, status: "sent" }; },
+  };
+  const service = makeService(repository, adapter);
+  await queue(service);
+  await assert.rejects(service.sendApprovedRequest(sendInput()), (error) => error?.safe_error_code === "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS");
+  const restarted = makeService(createDocusignEnvelopeRepository({ state: repository.loadState() }), adapter);
+  const recovered = await restarted.reconcileRequest({ ...sendInput(), explicit_human_action: true });
+  const replay = await restarted.reconcileRequest({ ...sendInput(), explicit_human_action: true });
+  assert.deepEqual([recovered.outcome, recovered.request.state, replay.outcome, createCalls, sendCalls, findCalls], ["reconciled", "sent", "already_converged", 1, 1, 2]);
 });
 
 test("OUTM-33 permission and audit authority mismatch fail before any request row", async () => {
@@ -123,4 +167,37 @@ test("OUTM-34 completion rejects a DMS readback whose permission or audit lineag
   assert.equal(ingestCalls, 1);
   assert.equal(repository.loadState().requests[0].completion_artifacts.signed_pdf, null);
   assert.equal(repository.loadState().requests[0].state, "completed_artifacts_pending");
+});
+
+test("OUTM-34 authority drift after provider download causes zero DMS writes", async () => {
+  const repository = createDocusignEnvelopeRepository();
+  let resolveDownloadEntered;
+  const downloadEntered = new Promise((resolve) => { resolveDownloadEntered = resolve; });
+  let releaseDownload;
+  const releasePromise = new Promise((resolve) => { releaseDownload = resolve; });
+  const adapter = { createDraft: async () => ({ envelope_id: "envelope-authority-barrier" }), send: async () => ({ status: "sent" }), downloadDocument: async () => { resolveDownloadEntered(); await releasePromise; return Buffer.from("signed-pdf"); } };
+  const service = makeService(repository, adapter);
+  await queue(service);
+  await service.sendApprovedRequest(sendInput());
+  repository.transact({ tenant_id: TENANT }, (state) => {
+    const current = state.requests[0];
+    state.requests[0] = { ...current, state: "completed_artifacts_pending", attempt_phase: "completed_pending", operation_lease: null };
+  });
+  let ingestCalls = 0;
+  const completion = completeDocusignArtifacts({
+    repository,
+    request: repository.loadState().requests[0],
+    connection: CONNECTION,
+    adapter,
+    artifactStore: { async ingest() { ingestCalls += 1; return {}; } },
+  });
+  await downloadEntered;
+  repository.transact({ tenant_id: TENANT }, (state) => {
+    const current = state.requests[0];
+    const document = { ...current.document, permission_envelope_id: "permission-rebound", audit_trace_id: "audit-rebound" };
+    state.requests[0] = { ...current, document, audit_lineage: (current.audit_lineage ?? []).map((entry) => ({ ...entry, audit_trace_id: "audit-rebound" })) };
+  });
+  releaseDownload();
+  await assert.rejects(completion, (error) => error?.safe_error_code === "DOCUSIGN_COMPLETION_ARTIFACT_PENDING");
+  assert.equal(ingestCalls, 0);
 });

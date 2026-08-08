@@ -88,7 +88,7 @@ export function createPostgresDocusignEnvelopeRepository({ pool, transactionOpti
           return cloneDocusignValue(result);
         });
       } catch (error) {
-        if ([400, 401, 403, 404, 409].includes(error?.status)) throw error;
+        if ([400, 401, 403, 404, 409].includes(error?.status) || ["DOCUSIGN_SEND_LEASE_LOST", "DOCUSIGN_RECONCILIATION_LEASE_LOST", "DOCUSIGN_COMPLETION_FENCE_LOST"].includes(error?.safe_error_code)) throw error;
         throw docusignInfrastructureFailure("DOCUSIGN_REPOSITORY_UNAVAILABLE");
       }
     },

@@ -27,7 +27,7 @@ test("OUTM-33 HTTP reconcile route recovers by provider correlation without a se
     const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api/reconcile`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify({ matter_id: MATTER, idempotency_key: "reconcile-api", explicit_human_action: true }) });
     const body = await response.json();
     assert.equal(response.status, 200, JSON.stringify(body));
-    assert.deepEqual([body.outcome, body.item.state, body.item.can_reconcile], ["reconciled", "reconciliation_required", true]);
+    assert.deepEqual([body.outcome, body.item.state, body.item.can_send, body.item.can_reconcile], ["reconciled", "draft_created", true, true]);
     assert.equal(runtime.repository.loadState().requests[0].envelope_id, "envelope-api-recovered");
   });
 });
