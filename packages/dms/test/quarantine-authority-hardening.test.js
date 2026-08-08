@@ -10,6 +10,7 @@ import {
   symlinkSync,
   utimesSync,
   unlinkSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -126,4 +127,58 @@ test("DMS authority binding prevents shared-root rebinds and tolerates same-bind
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("DMS binding recovery sentinel survives a child crash and converges on restart", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "dms-quarantine-authority-recovery-sentinel-"));
+  const objectRoot = join(root, "objects");
+  const authorityRoot = join(root, "authority");
+  mkdirSync(objectRoot);
+  mkdirSync(authorityRoot);
+  const bindingPath = join(objectRoot, ".quarantine-authority-binding.json");
+  const lockPath = `${bindingPath}.lock`;
+  const recoveryPath = `${lockPath}.recovery`;
+  const childSource = `
+    import { hostname } from "node:os";
+    import { writeFileSync } from "node:fs";
+    import { acquireExclusiveFileLock } from "./packages/persistence/src/durable-file.js";
+    const lockPath = process.argv[1];
+    writeFileSync(lockPath, JSON.stringify({ schema_version: "law-firm-os.durable-lock.v0.1", pid: 99999999, host: hostname(), token: "stale-primary", acquired_at: "2026-01-01T00:00:00.000Z" }) + "\\n");
+    acquireExclusiveFileLock({ resourcePath: lockPath.slice(0, -5), lockPath, staleAfterMs: 0, waitTimeoutMs: 1000, isProcessAlive: () => false, onRecoveryMarkerCreated() { process.stdout.write("recovery-created\\n"); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 60000); } });
+  `;
+  const child = spawn(process.execPath, ["--input-type=module", "-e", childSource, lockPath], { cwd: process.cwd(), stdio: ["ignore", "pipe", "ignore"] });
+  t.after(() => {
+    if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+    rmSync(root, { recursive: true, force: true });
+  });
+  await new Promise((resolve, reject) => {
+    child.stdout.once("data", (chunk) => chunk.toString().includes("recovery-created") ? resolve() : reject(new Error("recovery marker was not created")));
+    child.once("error", reject);
+  });
+  assert.equal(existsSync(recoveryPath), true);
+  assert.equal(child.kill("SIGKILL"), true);
+  await new Promise((resolve) => child.once("close", resolve));
+  const staleAt = new Date(Date.now() - 120_000);
+  utimesSync(recoveryPath, staleAt, staleAt);
+  const storage = createFileStorageAdapter({ adapter_id: "authority-recovery-sentinel", rootPath: objectRoot, quarantineRootPath: authorityRoot });
+  assert.equal(storage.validateQuarantineAuthority().durable, true);
+  assert.equal(existsSync(recoveryPath), false);
+  assert.equal(existsSync(join(objectRoot, ".quarantine-authority-binding.json")), true);
+  assert.equal(existsSync(join(authorityRoot, ".object-root-binding.json")), true);
+});
+
+test("DMS binding removes a stale malformed recovery sentinel before initialization", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "dms-quarantine-authority-malformed-recovery-"));
+  const objectRoot = join(root, "objects");
+  const authorityRoot = join(root, "authority");
+  mkdirSync(objectRoot);
+  mkdirSync(authorityRoot);
+  const recoveryPath = join(objectRoot, ".quarantine-authority-binding.json.lock.recovery");
+  writeFileSync(recoveryPath, "{}\n", { mode: 0o600 });
+  const staleAt = new Date(Date.now() - 120_000);
+  utimesSync(recoveryPath, staleAt, staleAt);
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const storage = createFileStorageAdapter({ adapter_id: "authority-malformed-recovery", rootPath: objectRoot, quarantineRootPath: authorityRoot });
+  assert.equal(storage.validateQuarantineAuthority().independent, true);
+  assert.equal(existsSync(recoveryPath), false);
 });

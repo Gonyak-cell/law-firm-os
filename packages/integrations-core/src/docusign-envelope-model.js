@@ -175,6 +175,7 @@ function normalizeActionIdempotency(input = []) {
       actor_id: docusignRequiredText(entry?.actor_id, "action_idempotency.actor_id"),
       request_id: docusignRequiredText(entry?.request_id, "action_idempotency.request_id"),
       status,
+      outcome: entry?.outcome == null ? null : docusignRequiredText(entry.outcome, "action_idempotency.outcome"),
       safe_error_code: entry?.safe_error_code == null ? null : docusignRequiredText(entry.safe_error_code, "action_idempotency.safe_error_code"),
       created_at: docusignTimestamp(entry?.created_at, "action_idempotency.created_at"),
       updated_at: docusignTimestamp(entry?.updated_at ?? entry?.created_at, "action_idempotency.updated_at"),

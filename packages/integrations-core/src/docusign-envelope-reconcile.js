@@ -45,6 +45,22 @@ function updateAction(request, action, key, patch) {
   };
 }
 
+function replayActionResult(action, request) {
+  if (action?.status === "unknown") {
+    const error = docusignInfrastructureFailure(action.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS");
+    error.request = projectDocusignRequestSafe(request);
+    throw error;
+  }
+  if (action?.status === "failed") {
+    return Object.freeze({
+      outcome: action.outcome ?? "blocked",
+      request: projectDocusignRequestSafe(request),
+      safe_error_code: action.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS",
+    });
+  }
+  return null;
+}
+
 // The official callback SDK does not expose a transport abort. Bound the
 // caller and recover any remote completion by its durable correlation ref.
 async function callWithCallerDeadline(operation, lease, clock) {
@@ -95,7 +111,14 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
       const replay = actionIdempotencyKey
         ? (request.action_idempotency ?? []).find((entry) => entry.action === "reconcile" && entry.key === actionIdempotencyKey)
         : null;
-      if (replay) return { claimed: false, request, replayed: true };
+      if (replay) {
+        if (replay.status === "in_progress" && (!request.operation_lease || Date.parse(request.operation_lease.expires_at) <= Date.parse(now))) {
+          const recovered = updateAction({ ...request, operation_lease: null, attempt_phase: "reconciliation_failed", last_safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now }, "reconcile", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: "DOCUSIGN_INTERRUPTED_ATTEMPT", updated_at: now });
+          state.requests[index] = recovered;
+          return { claimed: false, request: recovered, replayed: true, action: recovered.action_idempotency.find((entry) => entry.action === "reconcile" && entry.key === actionIdempotencyKey) };
+        }
+        return { claimed: false, request, replayed: true, action: replay };
+      }
       if (!RECONCILABLE_STATES.has(request.state)) return { claimed: false, request };
       if (request.operation_lease && Date.parse(request.operation_lease.expires_at) > Date.parse(now)) return { claimed: false, request };
       const generation = nextGeneration(request);
@@ -124,6 +147,8 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
     const actionIdempotencyKey = actionKey(input);
     const claimed = await claim(principal, requestId, actionIdempotencyKey);
     if (!claimed.claimed) {
+      const replay = replayActionResult(claimed.action, claimed.request);
+      if (replay) return replay;
       const outcome = claimed.request.state === "reconciliation_required" ? "in_progress" : "already_converged";
       return Object.freeze({ outcome, request: projectDocusignRequestSafe(claimed.request) });
     }
@@ -169,7 +194,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
           ? normalizeDocusignAuditLineage([...(fresh.audit_lineage ?? []), { event: `provider_reconciled:${status}`, audit_trace_id: fresh.document.audit_trace_id, actor_id: fresh.requested_by_actor_id, occurred_at: docusignNow(clock) }])
           : fresh.audit_lineage;
         return {
-          ...updateAction(next, "reconcile", actionIdempotencyKey, { status: "succeeded", safe_error_code: null, updated_at: docusignNow(clock) }),
+          ...updateAction(next, "reconcile", actionIdempotencyKey, { status: "succeeded", outcome: wasConverged ? "already_converged" : "reconciled", safe_error_code: null, updated_at: docusignNow(clock) }),
           envelope_id: envelopeId,
           attempt_phase: next.state === "draft_created" ? "ready_to_send" : next.attempt_phase,
           last_safe_error_code: null,
@@ -184,7 +209,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
     } catch (error) {
       try {
         request = await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({
-          ...updateAction(fresh, "reconcile", actionIdempotencyKey, { status: "unknown", safe_error_code: error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS", updated_at: docusignNow(clock) }),
+          ...updateAction(fresh, "reconcile", actionIdempotencyKey, { status: "unknown", outcome: "retryable", safe_error_code: error?.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS", updated_at: docusignNow(clock) }),
           operation_lease: null,
           provider_operation: fresh.provider_operation ? { ...fresh.provider_operation, status: "unknown" } : null,
           attempt_phase: "reconciliation_failed",

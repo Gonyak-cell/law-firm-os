@@ -166,6 +166,86 @@ test("OUTM-33 action idempotency is durably bound to actor, request, and action"
   await assert.rejects(service.reconcileRequest({ ...input, explicit_human_action: true }), (error) => error?.safe_error_code === "DOCUSIGN_ACTION_IDEMPOTENCY_CONFLICT");
 });
 
+test("OUTM-33 rejected send action replay preserves the stored failure after restart and concurrency", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "outm33-action-failed-replay-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const filePath = join(root, "outbox.json");
+  const repositoryA = createDocusignEnvelopeRepository({ filePath });
+  const repositoryB = createDocusignEnvelopeRepository({ filePath });
+  let entered;
+  const enteredPromise = new Promise((resolve) => { entered = resolve; });
+  let release;
+  const releasePromise = new Promise((resolve) => { release = resolve; });
+  let createCalls = 0;
+  const adapter = {
+    async createDraft() {
+      createCalls += 1;
+      entered();
+      await releasePromise;
+      throw Object.assign(new Error("provider rejected"), { provider_status: 400 });
+    },
+    async send() { throw new Error("send must not run"); },
+  };
+  const serviceA = makeService(repositoryA, adapter);
+  const serviceB = makeService(repositoryB, adapter);
+  await queue(serviceA, "request-action-failed-replay");
+  const input = { ...sendInput("request-action-failed-replay"), action_idempotency_key: "failed-send-key" };
+  const first = serviceA.sendApprovedRequest(input);
+  await enteredPromise;
+  const concurrent = await serviceB.sendApprovedRequest(input);
+  assert.equal(concurrent.outcome, "in_progress");
+  release();
+  const rejected = await first;
+  assert.deepEqual([rejected.outcome, rejected.safe_error_code, createCalls], ["blocked", "DOCUSIGN_PROVIDER_REJECTED", 1]);
+  const restarted = makeService(createDocusignEnvelopeRepository({ filePath }), adapter);
+  const replay = await restarted.sendApprovedRequest(input);
+  assert.deepEqual([replay.outcome, replay.safe_error_code, createCalls], ["blocked", "DOCUSIGN_PROVIDER_REJECTED", 1]);
+  const record = restarted.repository.loadState().requests[0].action_idempotency.find((entry) => entry.key === input.action_idempotency_key);
+  assert.deepEqual([record.status, record.outcome, record.safe_error_code, restarted.repository.loadState().requests[0].operation_lease], ["failed", "blocked", "DOCUSIGN_PROVIDER_REJECTED", null]);
+});
+
+test("OUTM-33 unknown reconcile action replay preserves retryable error after restart without a lease", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "outm33-action-unknown-replay-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const filePath = join(root, "outbox.json");
+  const repositoryA = createDocusignEnvelopeRepository({ filePath });
+  const repositoryB = createDocusignEnvelopeRepository({ filePath });
+  let entered;
+  const enteredPromise = new Promise((resolve) => { entered = resolve; });
+  let release;
+  const releasePromise = new Promise((resolve) => { release = resolve; });
+  let findCalls = 0;
+  const adapter = {
+    async createDraft() { return { envelope_id: "unused" }; },
+    async send() { return { status: "sent" }; },
+    async findByCorrelation() {
+      findCalls += 1;
+      entered();
+      await releasePromise;
+      throw Object.assign(new Error("provider lookup ambiguous"), { provider_status: 503 });
+    },
+  };
+  const serviceA = makeService(repositoryA, adapter);
+  const serviceB = makeService(repositoryB, adapter);
+  await queue(serviceA, "request-action-unknown-replay");
+  repositoryA.transact({ tenant_id: TENANT }, (state) => {
+    state.requests[0] = { ...state.requests[0], state: "reconciliation_required", attempt_phase: "create_failed", operation_lease: null };
+  });
+  const input = { ...sendInput("request-action-unknown-replay"), explicit_human_action: true, action_idempotency_key: "unknown-reconcile-key" };
+  const first = serviceA.reconcileRequest(input);
+  await enteredPromise;
+  const concurrent = await serviceB.reconcileRequest(input);
+  assert.equal(concurrent.outcome, "in_progress");
+  release();
+  await assert.rejects(first, (error) => error?.safe_error_code === "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS" && error?.status === 503 && error?.retryable === true);
+  const restarted = makeService(createDocusignEnvelopeRepository({ filePath }), adapter);
+  await assert.rejects(restarted.reconcileRequest(input), (error) => error?.safe_error_code === "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS" && error?.status === 503 && error?.retryable === true);
+  assert.equal(findCalls, 1);
+  const request = restarted.repository.loadState().requests[0];
+  const record = request.action_idempotency.find((entry) => entry.key === input.action_idempotency_key);
+  assert.deepEqual([record.status, record.outcome, record.safe_error_code, request.operation_lease], ["unknown", "retryable", "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS", null]);
+});
+
 test("OUTM-34 completion rejects a DMS readback whose permission or audit lineage changed", async () => {
   const repository = createDocusignEnvelopeRepository();
   const adapter = { createDraft: async () => ({ envelope_id: "envelope-completion" }), send: async () => ({ status: "sent" }), downloadDocument: async () => Buffer.from("signed-pdf") };

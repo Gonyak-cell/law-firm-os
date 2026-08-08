@@ -6,6 +6,7 @@ import {
   existsSync,
   fchmodSync,
   fsyncSync,
+  linkSync,
   mkdirSync,
   openSync,
   readdirSync,
@@ -457,13 +458,12 @@ function defaultIsProcessAlive(pid) {
 
 function inspectLock({ lockPath, host, staleAfterMs, isProcessAlive, now }) {
   const parsed = parseLockOwner(lockPath);
+  const fileAgeMs = () => {
+    try { return Math.max(0, currentDate(now).getTime() - statSync(lockPath).mtimeMs); } catch { return null; }
+  };
   if (!parsed.valid) {
-    let ageMs = 0;
-    try {
-      ageMs = Math.max(0, currentDate(now).getTime() - statSync(lockPath).mtimeMs);
-    } catch {
-      return { state: "unknown", owner: null, recoverable: false };
-    }
+    const ageMs = fileAgeMs();
+    if (ageMs == null) return { state: "unknown", owner: null, recoverable: false };
     return {
       state: ageMs >= staleAfterMs ? "unknown_stale" : "unknown",
       owner: null,
@@ -473,7 +473,7 @@ function inspectLock({ lockPath, host, staleAfterMs, isProcessAlive, now }) {
   const { owner } = parsed;
   if (owner.host !== host) return { state: "remote", owner, recoverable: false };
   if (isProcessAlive(owner.pid)) return { state: "live", owner, recoverable: false };
-  const ageMs = Math.max(0, currentDate(now).getTime() - Date.parse(owner.acquired_at));
+  const ageMs = Math.max(0, currentDate(now).getTime() - Date.parse(owner.acquired_at), fileAgeMs() ?? 0);
   if (ageMs < staleAfterMs) return { state: "dead_recent", owner, recoverable: false };
   return { state: "dead_same_host_stale", owner, recoverable: true };
 }
@@ -484,6 +484,50 @@ function createLockFile({ lockPath, owner }) {
   return owner;
 }
 
+function createAtomicLockFile({ lockPath, owner }) {
+  const dirPath = dirname(lockPath);
+  ensurePrivateDirectory(dirPath);
+  const tempPath = join(dirPath, `.${basename(lockPath)}.${process.pid}.${randomUUID()}.tmp`);
+  let fd = null;
+  try {
+    fd = openSync(tempPath, "wx", 0o600);
+    fchmodSync(fd, 0o600);
+    writeFileSync(fd, `${JSON.stringify(owner)}\n`);
+    fsyncSync(fd);
+    closeSync(fd);
+    fd = null;
+    linkSync(tempPath, lockPath);
+    fsyncDirectory(dirPath);
+  } finally {
+    if (fd !== null) closeSync(fd);
+    if (existsSync(tempPath)) unlinkSync(tempPath);
+  }
+  return owner;
+}
+
+function removeStaleRecoveryMarker({ recoveryPath, inspection, tokenFactory }) {
+  if (inspection.owner) {
+    const current = parseLockOwner(recoveryPath);
+    if (!current.valid
+      || current.owner.token !== inspection.owner.token
+      || current.owner.pid !== inspection.owner.pid
+      || current.owner.host !== inspection.owner.host) return false;
+  }
+  const ownerToken = inspection.owner?.token ?? "malformed";
+  const quarantinePath = `${recoveryPath}.${ownerToken}.${tokenFactory()}.stale`;
+  try {
+    renameSync(recoveryPath, quarantinePath);
+  } catch (error) {
+    if (error?.code === "ENOENT") return true;
+    if (error?.code === "EEXIST") return false;
+    throw error;
+  }
+  fsyncDirectory(dirname(recoveryPath));
+  unlinkSync(quarantinePath);
+  fsyncDirectory(dirname(recoveryPath));
+  return true;
+}
+
 function recoverStaleLock({
   lockPath,
   host,
@@ -491,6 +535,7 @@ function recoverStaleLock({
   isProcessAlive,
   now,
   tokenFactory,
+  onRecoveryMarkerCreated,
 }) {
   const recoveryPath = `${lockPath}.recovery`;
   const recoveryOwner = {
@@ -501,13 +546,14 @@ function recoverStaleLock({
     acquired_at: currentDate(now).toISOString(),
   };
   try {
-    createLockFile({ lockPath: recoveryPath, owner: recoveryOwner });
+    createAtomicLockFile({ lockPath: recoveryPath, owner: recoveryOwner });
   } catch (error) {
     if (error?.code === "EEXIST") return false;
     throw error;
   }
   let recovered = false;
   try {
+    onRecoveryMarkerCreated?.({ lockPath, recoveryPath, owner: recoveryOwner });
     if (!existsSync(lockPath)) return false;
     const inspection = inspectLock({ lockPath, host, staleAfterMs, isProcessAlive, now });
     if (!inspection.recoverable) return false;
@@ -540,6 +586,7 @@ export function acquireExclusiveFileLock({
   now = () => new Date(),
   isProcessAlive = defaultIsProcessAlive,
   sleep = sleepSync,
+  onRecoveryMarkerCreated,
 } = {}) {
   if (!resourcePath || !lockPath) throw new TypeError("exclusive lock resourcePath is required");
   if (!Number.isFinite(waitTimeoutMs) || waitTimeoutMs < 0) throw new TypeError("lock waitTimeoutMs must be non-negative");
@@ -566,11 +613,13 @@ export function acquireExclusiveFileLock({
       }
       lastInspection = inspectLock({ lockPath, host, staleAfterMs, isProcessAlive, now });
       if (lastInspection.recoverable) {
-        const recovered = recoverStaleLock({ lockPath, host, staleAfterMs, isProcessAlive, now, tokenFactory });
+        const recovered = recoverStaleLock({ lockPath, host, staleAfterMs, isProcessAlive, now, tokenFactory, onRecoveryMarkerCreated });
         if (recovered) continue;
       }
     } else {
-      lastInspection = { state: "recovery_in_progress", owner: null };
+      const recoveryInspection = inspectLock({ lockPath: recoveryPath, host, staleAfterMs, isProcessAlive, now });
+      if (recoveryInspection.recoverable && removeStaleRecoveryMarker({ recoveryPath, inspection: recoveryInspection, tokenFactory })) continue;
+      lastInspection = { state: `recovery_${recoveryInspection.state}`, owner: recoveryInspection.owner };
     }
     if (Date.now() >= deadline) {
       throw codedError("exclusive durable store lock wait timed out", "LAWOS_STORE_LOCK_TIMEOUT", {
