@@ -26,6 +26,7 @@ import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timel
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import { assertOutlookOperationEvidenceSafe } from "./outlook-operation-response.js";
+import { handleOutlookEmailFilingCorrection } from "./outlook-email-filing-correction.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -45,6 +46,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
     "POST /api/outlook/email/file",
+    "POST /api/outlook/email/corrections",
+    "GET /api/outlook/email/corrections/current",
     "POST /api/outlook/sent/file",
     "POST /api/outlook/attachments/save",
     "POST /api/outlook/followups",
@@ -3119,6 +3122,19 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/email/file" && method === "POST") {
       return await fileEmail({ body, context, requestId, runtime, mode: "manual" });
+    }
+    if (
+      (pathname === "/api/outlook/email/corrections" && method === "POST")
+      || (pathname === "/api/outlook/email/corrections/current" && method === "GET")
+    ) {
+      return await handleOutlookEmailFilingCorrection({
+        method,
+        query,
+        body,
+        context,
+        requestId,
+        runtime,
+      });
     }
     if (pathname === "/api/outlook/sent/file" && method === "POST") {
       return await fileEmail({ body, context, requestId, runtime, mode: "sent" });
