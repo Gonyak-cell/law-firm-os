@@ -1,5 +1,8 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
+import {
+  createDmsRepositoryMimeAuthority,
+  fileEmailThreadToMatter,
+} from "../../../packages/email-dms/src/email-filing-service.js";
 import {
   createEmailThread,
   OUTLOOK_EMAIL_OBJECT_FIELDS,
@@ -2816,13 +2819,14 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   writeGate = gate();
   if (writeGate.response) return writeGate.response;
   matter = writeGate.matter;
-  const result = fileEmailThreadToMatter({
+  const result = await fileEmailThreadToMatter({
     repository: runtime.dmsRuntime.repository,
     thread: existingThread,
     actor_id: actorId,
     require_original_mime_document: true,
     idempotency_key: `${filingIdempotencyKey}:dms`,
-    durable_mime_document: documentState,
+    durable_mime_authority: runtime.dmsRuntime.upload_runtime
+      ?? createDmsRepositoryMimeAuthority(runtime.dmsRuntime.repository),
     audit: {
       append: (event, writer = runtime.dmsRuntime.repository) =>
         appendDmsAudit(writer, {

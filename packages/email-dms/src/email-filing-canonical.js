@@ -56,29 +56,23 @@ function sameDocumentIds(left, right) {
     && left.every((value, index) => value === right[index]);
 }
 
-function durableMimeBinding(repository, binding, durableDocumentState) {
-  let document;
-  let version;
-  let fileObject;
-  if (durableDocumentState !== undefined && durableDocumentState !== null) {
-    document = durableDocumentState?.document;
-    version = durableDocumentState?.versions?.find((item) => item.version_id === document?.current_version_id)
-      ?? durableDocumentState?.version;
-    fileObject = durableDocumentState?.file_objects?.find((item) => item.file_object_id === version?.file_object_id)
-      ?? durableDocumentState?.file_object;
-  } else {
-    if (!repository || typeof repository.get !== "function") {
-      throw new Error("email filing requires a durable original MIME document authority");
-    }
-    const documentId = binding.filed_document_ids[0];
-    document = repository.get({ tenant_id: binding.tenant_id, model_type: "DmsDocument", document_id: documentId });
-    version = document?.current_version_id
-      ? repository.get({ tenant_id: binding.tenant_id, model_type: "DmsDocumentVersion", version_id: document.current_version_id })
-      : null;
-    fileObject = version?.file_object_id
-      ? repository.get({ tenant_id: binding.tenant_id, model_type: "DmsFileObject", file_object_id: version.file_object_id })
-      : null;
+function durableMimeState(authority, binding) {
+  if (!authority || typeof authority.getDocumentState !== "function") {
+    throw new Error("email filing requires a live durable original MIME document authority");
   }
+  return authority.getDocumentState({
+    tenant_id: binding.tenant_id,
+    document_id: binding.filed_document_ids[0],
+  });
+}
+
+async function durableMimeBinding(binding, authority) {
+  const durableDocumentState = await durableMimeState(authority, binding);
+  const document = durableDocumentState?.document;
+  const version = durableDocumentState?.versions?.find((item) => item.version_id === document?.current_version_id)
+    ?? durableDocumentState?.version;
+  const fileObject = durableDocumentState?.file_objects?.find((item) => item.file_object_id === version?.file_object_id)
+    ?? durableDocumentState?.file_object;
   const documentId = binding.filed_document_ids[0];
   const documentMime = document?.mime_type ?? document?.content_type;
   const fileMime = fileObject?.mime_type ?? fileObject?.content_type;
@@ -119,14 +113,32 @@ function durableMimeBinding(repository, binding, durableDocumentState) {
   ) throw new Error("email filing original MIME file authority conflicts with the canonical binding");
 }
 
-export function assertCanonicalIdempotencyKey(key, thread, repository, durableDocumentState) {
+export async function assertCanonicalIdempotencyKey(key, thread, authority) {
   const value = canonicalText(key, "idempotency_key");
   const binding = canonicalBinding(thread);
-  durableMimeBinding(repository, binding, durableDocumentState);
+  await durableMimeBinding(binding, authority);
   if (value !== `outlook-email-file:${binding.email_thread_id}:${binding.mime_sha256}:dms`) {
     throw new Error("email filing idempotency key is not canonical");
   }
   return value;
+}
+
+export function createDmsRepositoryMimeAuthority(repository) {
+  if (!repository || typeof repository.get !== "function") {
+    throw new TypeError("email filing requires a DMS repository authority");
+  }
+  return Object.freeze({
+    getDocumentState({ tenant_id: tenantId, document_id: documentId }) {
+      const document = repository.get({ tenant_id: tenantId, model_type: "DmsDocument", document_id: documentId });
+      const version = document?.current_version_id
+        ? repository.get({ tenant_id: tenantId, model_type: "DmsDocumentVersion", version_id: document.current_version_id })
+        : null;
+      const fileObject = version?.file_object_id
+        ? repository.get({ tenant_id: tenantId, model_type: "DmsFileObject", file_object_id: version.file_object_id })
+        : null;
+      return { document, versions: version ? [version] : [], file_objects: fileObject ? [fileObject] : [] };
+    },
+  });
 }
 
 function canonicalFilingAuditMetadata(thread) {

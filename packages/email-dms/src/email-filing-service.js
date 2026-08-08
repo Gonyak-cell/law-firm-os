@@ -3,20 +3,28 @@ import {
   OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
   assertCanonicalIdempotencyKey,
   canonicalFilingAudit,
+  createDmsRepositoryMimeAuthority,
   filingAuditMetadata,
   outlookEmailFileRequestFingerprint,
   validateOutlookEmailFileIdempotency,
 } from "./email-filing-canonical.js";
 
-export { OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION, canonicalFilingAudit, outlookEmailFileRequestFingerprint, validateOutlookEmailFileIdempotency } from "./email-filing-canonical.js";
+export {
+  OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
+  canonicalFilingAudit,
+  createDmsRepositoryMimeAuthority,
+  outlookEmailFileRequestFingerprint,
+  validateOutlookEmailFileIdempotency,
+} from "./email-filing-canonical.js";
 
-export function fileEmailThreadToMatter({
+export async function fileEmailThreadToMatter({
   repository,
   thread,
   actor_id,
   audit,
   require_original_mime_document = false,
   idempotency_key,
+  durable_mime_authority,
   durable_mime_document,
 } = {}) {
   const existing = repository.get({
@@ -44,7 +52,10 @@ export function fileEmailThreadToMatter({
   if (typeof idempotency_key !== "string" || idempotency_key.trim() === "") {
     throw new TypeError("original MIME email filing requires idempotency_key");
   }
-  assertCanonicalIdempotencyKey(idempotency_key, existing ?? thread, repository, durable_mime_document);
+  if (durable_mime_document !== undefined) {
+    throw new TypeError("raw durable MIME document snapshots are not accepted");
+  }
+  await assertCanonicalIdempotencyKey(idempotency_key, existing ?? thread, durable_mime_authority);
   const replay = repository.getIdempotency({
     tenant_id: thread.tenant_id,
     idempotency_key,

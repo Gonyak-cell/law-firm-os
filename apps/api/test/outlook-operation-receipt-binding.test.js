@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createDmsRepository } from "../../../packages/dms/src/index.js";
-import {
-  fileEmailThreadToMatter,
-  outlookEmailFileRequestFingerprint,
-} from "../../../packages/email-dms/src/email-filing-service.js";
+import { createDmsRepositoryMimeAuthority, fileEmailThreadToMatter, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
   CANONICAL_ID,
@@ -71,7 +68,7 @@ function serviceFixture() {
     },
   });
   seedMimeAuthority(repository, thread);
-  return { repository, thread, idempotency_key: `${FILE_KEY}:dms` };
+  return { repository, thread, authority: createDmsRepositoryMimeAuthority(repository), idempotency_key: `${FILE_KEY}:dms` };
 }
 function validEntry(fixture, overrides = {}) {
   return {
@@ -88,7 +85,7 @@ function validEntry(fixture, overrides = {}) {
     ...overrides,
   };
 }
-test("canonical filing replay rejects wrong operation, documents, fingerprint, and source identity without mutation", () => {
+test("canonical filing replay rejects wrong operation, documents, fingerprint, and source identity without mutation", async () => {
   for (const overrides of [
     { operation: "different_operation" },
     { response: { email_thread_id: THREAD_ID, matter_id: MATTER, filed_document_ids: ["document:other"], outcome: "created" } },
@@ -98,24 +95,26 @@ test("canonical filing replay rejects wrong operation, documents, fingerprint, a
     fixture.repository.recordIdempotency(validEntry(fixture, overrides));
     const beforeReceipt = fixture.repository.getIdempotency({ tenant_id: TENANT, idempotency_key: fixture.idempotency_key });
     const beforeAudits = fixture.repository.listAudit({ tenant_id: TENANT, object_id: THREAD_ID });
-    assert.throws(() => fileEmailThreadToMatter({
+    await assert.rejects(fileEmailThreadToMatter({
       repository: fixture.repository,
       thread: fixture.thread,
       actor_id: "replay-actor",
       require_original_mime_document: true,
       idempotency_key: fixture.idempotency_key,
+      durable_mime_authority: fixture.authority,
     }), /idempotency/u);
     assert.deepEqual(fixture.repository.getIdempotency({ tenant_id: TENANT, idempotency_key: fixture.idempotency_key }), beforeReceipt);
     assert.deepEqual(fixture.repository.listAudit({ tenant_id: TENANT, object_id: THREAD_ID }), beforeAudits);
   }
   const fixture = serviceFixture();
   fixture.repository.recordIdempotency(validEntry(fixture, { request_fingerprint: null }));
-  const replay = fileEmailThreadToMatter({
+  const replay = await fileEmailThreadToMatter({
     repository: fixture.repository,
     thread: fixture.thread,
     actor_id: "replay-actor",
     require_original_mime_document: true,
     idempotency_key: fixture.idempotency_key,
+    durable_mime_authority: fixture.authority,
   });
   assert.equal(replay.outcome, "idempotent_replay");
   assert.equal(
@@ -125,28 +124,30 @@ test("canonical filing replay rejects wrong operation, documents, fingerprint, a
   const sourceMismatch = serviceFixture();
   sourceMismatch.repository.recordIdempotency(validEntry(sourceMismatch));
   const beforeSource = sourceMismatch.repository.getIdempotency({ tenant_id: TENANT, idempotency_key: sourceMismatch.idempotency_key });
-  assert.throws(() => fileEmailThreadToMatter({
+  await assert.rejects(fileEmailThreadToMatter({
     repository: sourceMismatch.repository,
     thread: { ...sourceMismatch.thread, graph_message_id: "immutable:spoofed" },
     actor_id: "replay-actor",
     require_original_mime_document: true,
     idempotency_key: sourceMismatch.idempotency_key,
+    durable_mime_authority: sourceMismatch.authority,
   }), /idempotency/u);
   assert.deepEqual(sourceMismatch.repository.getIdempotency({ tenant_id: TENANT, idempotency_key: sourceMismatch.idempotency_key }), beforeSource);
 });
-test("canonical filing rejects a foreign digest key before lookup or mutation", () => {
+test("canonical filing rejects a foreign digest key before lookup or mutation", async () => {
   const fixture = serviceFixture();
   fixture.repository.recordIdempotency(validEntry(fixture));
   const before = JSON.stringify(fixture.repository.snapshot());
   const foreignThread = { ...fixture.thread, filed_document_ids: [`doc:${THREAD_ID}:original-mime:${"f".repeat(64)}`] };
   const foreignKey = `outlook-email-file:${THREAD_ID}:${"f".repeat(64)}:dms`;
-  assert.throws(() => fileEmailThreadToMatter({
+  await assert.rejects(fileEmailThreadToMatter({
     repository: fixture.repository,
     thread: foreignThread,
     actor_id: "replay-actor",
     require_original_mime_document: true,
     idempotency_key: foreignKey,
-  }), /canonical/u);
+    durable_mime_authority: fixture.authority,
+  }), /canonical|authority/u);
   assertSnapshotUnchanged(fixture.repository, before);
 });
 function readbackBody() {
@@ -219,7 +220,6 @@ test("API ignores a foreign digest receipt key and preserves the repository byte
   assert.deepEqual(response.body.items, []);
   assertSnapshotUnchanged(fixture.dmsRepository, before);
 });
-
 test("API fails closed for a missing or foreign canonical filing audit without mutation", async () => {
   for (const metadata of [null, { matter_id: "matter:foreign" }]) {
     const fixture = runtimeFixture();
