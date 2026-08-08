@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "candidate_version": "1.1.0.0",
+  "rollback_version": "1.0.1.1",
+  "authoritative_baseline_receipt": "contracts/outlook-addin-deployment-baseline.json",
+  "profiles": [
+    {
+      "profile": "matter-full",
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "rollback_manifest_sha256": "f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271",
+      "rollback_manifest_url": "https://d2mthcc8vp3cr2.cloudfront.net/addin/manifests/8f3cc90d-56dd-4c1c-b9c2-0a1100500101/1.0.1.1/manifest-f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271.xml",
+      "protected_manifest_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/manifest.matter-full.1.0.1.1.xml",
+      "assignment_count": 1,
+      "sanitized_assignment_fingerprint_sha256": "99b7e267775e6ad68f33eb8b1be3006e71747cdd71a7afa99bfd5c9204c2f40e"
+    },
+    {
+      "profile": "inquiry-only",
+      "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "rollback_manifest_sha256": "a3664e40361f585ef405e3ed5cf03b2576251a44403366d21dea8a26f324cc66",
+      "rollback_manifest_url": "https://d2mthcc8vp3cr2.cloudfront.net/addin/manifests/952431be-51b8-42a2-9bf6-769a15934e85/1.0.1.1/manifest-a3664e40361f585ef405e3ed5cf03b2576251a44403366d21dea8a26f324cc66.xml",
+      "protected_manifest_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/manifest.inquiry-only.1.0.1.1.xml",
+      "assignment_count": 2,
+      "sanitized_assignment_fingerprint_sha256": "ef09284c95e57df1d37eb5072d4ad8e65ff58bf127454cdfff67f1e0c6e3521d"
+    }
+  ],
+  "permission_event_assignment_diff": "none",
+  "assignment_fingerprints_sanitized": true,
+  "raw_assignment_pii_included": false,
+  "secret_material_included": false,
+  "raw_manifest_xml_included": false
+}
