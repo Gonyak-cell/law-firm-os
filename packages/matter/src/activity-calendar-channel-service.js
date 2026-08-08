@@ -381,7 +381,7 @@ export function createMatterActivityCalendarChannelService({
             to_status: toStatus,
             actor_id: actorId,
             reason: "activity_status_updated",
-            audit: { append: (event) => repository.appendAudit({ ...event, event_id: `matter.task.transition:${tenantId}:${matterId}:${activityId}:${now}` }) },
+            audit: { append: (event) => repository.appendAudit(event) },
           });
         }
         return repository.update(
@@ -409,8 +409,9 @@ export function createMatterActivityCalendarChannelService({
       );
     }
     const safe = safeActivity(record);
+    const mutationId = record.model_type === "MatterTask" ? `v${safe.version}` : now;
     const audit = appendAudit(repository, {
-      event_id: `matter.activity.patched:${tenantId}:${matterId}:${activityId}:${now}`,
+      event_id: `matter.activity.patched:${tenantId}:${matterId}:${activityId}:${mutationId}`,
       tenant_id: tenantId,
       actor_id: actorId,
       action: "matter.activity.patched",
@@ -421,7 +422,7 @@ export function createMatterActivityCalendarChannelService({
       metadata: { changed_fields: Object.keys(patch ?? {}) },
     });
     const timeline = appendTimeline(repository, {
-      event_id: `matter.timeline.activity_patched:${tenantId}:${matterId}:${activityId}:${now}`,
+      event_id: `matter.timeline.activity_patched:${tenantId}:${matterId}:${activityId}:${mutationId}`,
       tenant_id: tenantId,
       matter_id: matterId,
       occurred_at: now,

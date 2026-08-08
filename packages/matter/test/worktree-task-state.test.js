@@ -91,3 +91,33 @@ test("WT-01-09 unblocks blocked tasks only with a reason", async () => {
   assert.equal(unblocked.status, "in_progress");
   assert.equal(unblocked.version, 2);
 });
+
+test("canonical MatterTask transitions emit version-bound durable audit ids", async () => {
+  const { transitionMatterTask } = await import("../src/task-service.js");
+  const repository = createMatterRepository({ seedRecords: [taskInput] });
+  const audit = { append: (event) => repository.appendAudit(event) };
+
+  const started = transitionMatterTask({
+    repository,
+    task: taskInput,
+    to_status: "in_progress",
+    actor_id: "user_wt_01_09",
+    reason: "started",
+    audit,
+  });
+  const completed = transitionMatterTask({
+    repository,
+    task: started,
+    to_status: "done",
+    actor_id: "user_wt_01_09",
+    reason: "completed",
+    audit,
+  });
+
+  const events = repository.listAudit({ tenant_id: taskInput.tenant_id });
+  assert.equal(completed.version, 3);
+  assert.deepEqual(events.map(({ event_id }) => event_id), [
+    `matter.task.transition:${taskInput.tenant_id}:${taskInput.matter_id}:${taskInput.task_id}:v2`,
+    `matter.task.transition:${taskInput.tenant_id}:${taskInput.matter_id}:${taskInput.task_id}:v3`,
+  ]);
+});

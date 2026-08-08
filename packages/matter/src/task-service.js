@@ -23,6 +23,7 @@ export function transitionMatterTask({ repository, task, to_status, actor_id, re
     next,
   );
   audit?.append?.({
+    event_id: `matter.task.transition:${persisted.tenant_id}:${persisted.matter_id}:${persisted.task_id}:v${persisted.version}`,
     tenant_id: persisted.tenant_id,
     actor_id,
     action: "matter.task.transition",
@@ -30,7 +31,7 @@ export function transitionMatterTask({ repository, task, to_status, actor_id, re
     object_id: persisted.task_id,
     decision: "allow",
     reason,
-    metadata: { from_status: fromStatus, to_status },
+    metadata: { from_status: fromStatus, to_status, task_version: persisted.version },
   });
   return persisted;
 }

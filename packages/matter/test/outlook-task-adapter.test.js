@@ -36,7 +36,11 @@ function fixture() {
         : { state: "unresolved", reason: "not_an_active_matter_member" };
     },
   };
-  return { repository, peopleAssignmentAuthority };
+  return {
+    repository,
+    peopleAssignmentAuthority,
+    clock: () => "2026-08-08T12:00:00.000Z",
+  };
 }
 
 test("Outlook task adapter creates once without auto-assigning and replays the receipt", () => {
@@ -154,7 +158,7 @@ test("Outlook task adapter edits task fields with optimistic version and authori
     task_id: created.item.activity_id,
   }).status, "in_progress");
 
-  const completed = updateOutlookMatterTask({
+  const completedInput = {
     ...runtime,
     tenant_id: TENANT,
     matter_id: MATTER,
@@ -163,8 +167,49 @@ test("Outlook task adapter edits task fields with optimistic version and authori
     idempotency_key: "outlook-task-update-done",
     expected_version: 2,
     patch: { status: "done" },
-  });
+  };
+  const completed = updateOutlookMatterTask(completedInput);
   assert.equal(completed.item.version, 3);
+  assert.notEqual(completed.audit_event.event_id, updated.audit_event.event_id);
+  assert.notEqual(completed.timeline_event.event_id, updated.timeline_event.event_id);
+
+  const auditEvents = runtime.repository.listAudit({
+    tenant_id: TENANT,
+    object_id: created.item.activity_id,
+  });
+  const timelineEvents = runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  });
+  assert.deepEqual(auditEvents.map(({ action }) => action), [
+    "matter.activity.created",
+    "matter.task.transition",
+    "matter.activity.patched",
+    "matter.task.transition",
+    "matter.activity.patched",
+  ]);
+  assert.deepEqual(timelineEvents.map(({ type }) => type), [
+    "matter.activity.task",
+    "matter.activity.updated",
+    "matter.activity.updated",
+  ]);
+  assert.equal(new Set(auditEvents.map(({ event_id }) => event_id)).size, auditEvents.length);
+  assert.equal(new Set(timelineEvents.map(({ event_id }) => event_id)).size, timelineEvents.length);
+  for (const idempotency_key of ["outlook-task-update-2", "outlook-task-update-done"]) {
+    assert.ok(runtime.repository.getIdempotency({ tenant_id: TENANT, idempotency_key }));
+  }
+
+  const completedReplay = updateOutlookMatterTask(completedInput);
+  assert.equal(completedReplay.outcome, "idempotent_replay");
+  assert.equal(completedReplay.audit_event.event_id, completed.audit_event.event_id);
+  assert.equal(completedReplay.timeline_event.event_id, completed.timeline_event.event_id);
+  assert.equal(runtime.repository.listAudit({ tenant_id: TENANT }).length, auditEvents.length);
+  assert.equal(runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  }).length, timelineEvents.length);
   assert.throws(() => updateOutlookMatterTask({
     ...runtime,
     tenant_id: TENANT,
