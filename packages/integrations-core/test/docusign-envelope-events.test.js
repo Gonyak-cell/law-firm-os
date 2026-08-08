@@ -90,14 +90,14 @@ function approvedSource() {
   };
 }
 
-function connectBody({ status, account_id = CONNECTION.account_id, occurred_at = "2026-08-08T01:05:00.000Z", sequence = null } = {}) {
+function connectBody({ status, account_id = CONNECTION.account_id, envelope_id = "envelope-001", occurred_at = "2026-08-08T01:05:00.000Z", sequence = null } = {}) {
   return Buffer.from(JSON.stringify({
     event: `envelope-${status}`,
     generatedDateTime: occurred_at,
     ...(sequence == null ? {} : { sequence }),
     data: {
       accountId: account_id,
-      envelopeId: "envelope-001",
+      envelopeId: envelope_id,
       envelopeSummary: { status, statusChangedDateTime: occurred_at },
     },
   }));
@@ -262,6 +262,69 @@ test("OUTM-34 rejects a signed event from a different DocuSign account before re
   );
   assert.equal(runtime.receipts.length, 0);
   assert.equal(runtime.repository.loadState().requests[0].state, "sent");
+});
+
+test("OUTM-34 rejects a same-account cross-envelope locator before receipt, projection, or artifact writes and after restart", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "outm34-cross-envelope-"));
+  try {
+    const filePath = join(dir, "outbox.json");
+    const runtime = await preparedRuntime({ filePath });
+    const before = runtime.repository.loadState();
+    const requestA = before.requests[0];
+    const requestB = {
+      ...requestA,
+      request_id: "esign-request-002",
+      envelope_id: "envelope-002",
+      idempotency_key: "esign-send-002",
+      payload_sha256: "c".repeat(64),
+      provider_correlation_ref: "docusign-correlation:request-002",
+      event_hashes: [],
+    };
+    runtime.repository.replaceState({ ...before, requests: [requestA, requestB] });
+    const locatedB = runtime.repository.loadState().requests[1];
+    const baseline = runtime.repository.loadState();
+    const resolver = async () => locatedB;
+    const eventService = createDocusignEnvelopeEventService({
+      repository: runtime.repository,
+      connectionResolver: async () => CONNECTION,
+      webhookRequestResolver: resolver,
+      resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null,
+      adapter: runtime.adapter,
+      receiptStore: runtime.receiptStore,
+      artifactStore: runtime.artifactStore,
+      clock: () => runtime.now.value,
+    });
+    const body = connectBody({ status: "completed", envelope_id: requestA.envelope_id });
+    await assert.rejects(
+      webhook(eventService, body),
+      (error) => error?.safe_error_code === "DOCUSIGN_WEBHOOK_REJECTED" && error?.status === 401,
+    );
+    const after = runtime.repository.loadState();
+    assert.deepEqual(after, baseline);
+    assert.equal(runtime.receipts.length, 0);
+    assert.equal(runtime.ingested.length, 0);
+
+    const reopenedRepository = createDocusignEnvelopeRepository({ filePath });
+    const reopened = createDocusignEnvelopeEventService({
+      repository: reopenedRepository,
+      connectionResolver: async () => CONNECTION,
+      webhookRequestResolver: resolver,
+      resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null,
+      adapter: runtime.adapter,
+      receiptStore: runtime.receiptStore,
+      artifactStore: runtime.artifactStore,
+      clock: () => runtime.now.value,
+    });
+    await assert.rejects(
+      webhook(reopened, body),
+      (error) => error?.safe_error_code === "DOCUSIGN_WEBHOOK_REJECTED" && error?.status === 401,
+    );
+    assert.deepEqual(reopenedRepository.loadState(), after);
+    assert.equal(runtime.receipts.length, 0);
+    assert.equal(runtime.ingested.length, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("OUTM-34 completes only after combined PDF and certificate are separately immutable in DMS", async () => {

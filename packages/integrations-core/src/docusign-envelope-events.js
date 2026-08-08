@@ -37,6 +37,37 @@ function dependencyFailure(error, code) {
   return docusignInfrastructureFailure(code);
 }
 
+function webhookRejected() {
+  return docusignFailure("DOCUSIGN_WEBHOOK_REJECTED", "DocuSign webhook was rejected", 401);
+}
+
+function assertWebhookBinding(event, located, current = located) {
+  const expected = [
+    [located?.tenant_id, current?.tenant_id],
+    [located?.request_id, current?.request_id],
+    [located?.envelope_id, event?.envelope_id],
+    [current?.envelope_id, event?.envelope_id],
+    [located?.connection_id, current?.connection_id],
+    [located?.account_binding_ref, current?.account_binding_ref],
+  ];
+  if (expected.some(([left, right]) => typeof left !== "string" || left === "" || left !== right)) throw webhookRejected();
+  for (const field of ["provider_envelope_id", "account_id"]) {
+    if (located?.[field] != null && located[field] !== (field === "account_id" ? event.account_id : event.envelope_id)) throw webhookRejected();
+  }
+}
+
+async function readWebhookRequest(repository, located) {
+  if (typeof repository.readState !== "function" && typeof repository.loadState !== "function") return undefined;
+  try {
+    const state = typeof repository.readState === "function"
+      ? await repository.readState({ tenant_id: located.tenant_id })
+      : typeof repository.loadState === "function" ? repository.loadState() : null;
+    return state?.requests?.find((request) => request.tenant_id === located.tenant_id && request.request_id === located.request_id) ?? null;
+  } catch (error) {
+    throw dependencyFailure(error, "DOCUSIGN_REPOSITORY_UNAVAILABLE");
+  }
+}
+
 async function boundConnection(request, connectionResolver, webhook = false) {
   let connection;
   try { connection = normalizeDocusignConnection(await connectionResolver({ tenant_id: request.tenant_id, connection_id: request.connection_id })); }
@@ -80,9 +111,14 @@ export function createDocusignEnvelopeEventService({
       let located;
       try { located = await locateWebhookRequest(repository, webhookRequestResolver, event); }
       catch (error) { throw dependencyFailure(error, "DOCUSIGN_REPOSITORY_UNAVAILABLE"); }
-      if (!located) throw docusignFailure("DOCUSIGN_WEBHOOK_REJECTED", "DocuSign webhook was rejected", 401);
+      if (!located) throw webhookRejected();
+      const stored = await readWebhookRequest(repository, located);
+      if (stored !== undefined) {
+        if (!stored) throw webhookRejected();
+        assertWebhookBinding(event, located, stored);
+      }
       const connection = await boundConnection(located, connectionResolver, true);
-      if (connection.account_id !== event.account_id || !connection.hmac_secret_ref) throw docusignFailure("DOCUSIGN_WEBHOOK_REJECTED", "DocuSign webhook was rejected", 401);
+      if (connection.account_id !== event.account_id || (located.account_id != null && located.account_id !== connection.account_id) || !connection.hmac_secret_ref) throw webhookRejected();
       let secret;
       try { secret = await resolveSecret({ tenant_id: located.tenant_id, ref: connection.hmac_secret_ref, purpose: "docusign_connect_hmac" }); }
       catch { throw docusignInfrastructureFailure("DOCUSIGN_SECRET_UNAVAILABLE"); }
@@ -99,8 +135,9 @@ export function createDocusignEnvelopeEventService({
       if (receipt?.immutable !== true || receipt?.sha256 !== receiptHash) throw docusignInfrastructureFailure("DOCUSIGN_WEBHOOK_RECEIPT_NOT_IMMUTABLE");
       const projected = await repository.transact({ tenant_id: located.tenant_id }, (state) => {
         const index = indexOf(state, located.tenant_id, located.request_id);
-        if (index < 0) throw docusignFailure("DOCUSIGN_WEBHOOK_REJECTED", "DocuSign webhook was rejected", 401);
+        if (index < 0) throw webhookRejected();
         const current = state.requests[index];
+        assertWebhookBinding(event, located, current);
         const duplicate = current.event_hashes.includes(event.event_hash);
         const transition = duplicate ? { request: current, changed: false, accepted: false } : projectDocusignProviderEvent(current, event, docusignNow(clock));
         state.requests[index] = { ...transition.request, event_hashes: duplicate ? current.event_hashes : [...current.event_hashes, event.event_hash] };

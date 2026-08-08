@@ -61,7 +61,7 @@ function sessionAuth() {
   });
 }
 
-async function docusignRuntime({ authorizeMatter = async () => ({ allowed: true, authority_binding: AUTHORITY_BINDING }), prepare = true } = {}) {
+async function docusignRuntime({ authorizeMatter = async () => ({ allowed: true, authority_binding: AUTHORITY_BINDING }), prepare = true, webhookRequestResolver } = {}) {
   const repository = createDocusignEnvelopeRepository();
   const adapter = {
     createDraft: async () => ({ envelope_id: "envelope-api" }),
@@ -120,6 +120,7 @@ async function docusignRuntime({ authorizeMatter = async () => ({ allowed: true,
   const eventService = createDocusignEnvelopeEventService({
     repository,
     connectionResolver,
+    webhookRequestResolver,
     resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? HMAC_SECRET : null,
     adapter,
     receiptStore: {
@@ -205,6 +206,39 @@ test("OUTM-34 HTTP webhook preserves raw bytes for HMAC and rejects an altered s
     assert.deepEqual([acceptedBody.outcome, acceptedBody.state], ["processed", "delivered"]);
     assert.equal(acceptedBody.provider_payload_returned, false);
   });
+});
+
+test("OUTM-34 HTTP webhook fails closed when a same-account locator returns another envelope", async () => {
+  let located;
+  const runtime = await docusignRuntime({ webhookRequestResolver: async () => located });
+  const state = runtime.repository.loadState();
+  const requestA = state.requests[0];
+  const requestB = {
+    ...requestA,
+    request_id: "request-api-other",
+    envelope_id: "envelope-api-other",
+    idempotency_key: "send-api-other",
+    payload_sha256: "d".repeat(64),
+    provider_correlation_ref: "docusign-correlation:request-api-other",
+    event_hashes: [],
+  };
+  runtime.repository.replaceState({ ...state, requests: [requestA, requestB] });
+  located = runtime.repository.loadState().requests[1];
+  const before = runtime.repository.loadState();
+  await withServer(runtime, async (baseUrl) => {
+    const body = connectBody("delivered");
+    const signature = createHmac("sha256", HMAC_SECRET).update(body).digest("base64");
+    const response = await fetch(`${baseUrl}${DOCUSIGN_WEBHOOK_PATH}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", [DOCUSIGN_CONNECT_SIGNATURE_HEADER]: signature },
+      body,
+    });
+    const responseBody = await response.json();
+    assert.equal(response.status, 401, JSON.stringify(responseBody));
+    assert.deepEqual(responseBody.safe_error_codes, ["DOCUSIGN_WEBHOOK_REJECTED"]);
+    assert.equal(responseBody.provider_payload_returned, undefined);
+  });
+  assert.deepEqual(runtime.repository.loadState(), before);
 });
 
 test("OUTM-34 Outlook read route requires Matter authorization and returns no provider identifiers", async () => {
