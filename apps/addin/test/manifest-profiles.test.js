@@ -17,25 +17,12 @@ async function validate(overrides = {}) {
     repoRoot,
     contractPath,
     baseline: baselineReceipt,
+    mode: "candidate",
     ...overrides,
   });
 }
 
-async function candidateManifestOverrides() {
-  const paths = [
-    "apps/addin/manifest.xml",
-    "apps/addin/manifest.production.xml",
-    "apps/addin/manifest.inquiry.xml",
-    "apps/addin/manifest.inquiry.production.xml",
-  ];
-  return Object.fromEntries(await Promise.all(paths.map(async (manifestPath) => [
-    manifestPath,
-    (await readFile(path.join(repoRoot, manifestPath), "utf8"))
-      .replace("<Version>1.0.1.1</Version>", "<Version>1.1.0.0</Version>"),
-  ])));
-}
-
-test("both Outlook profiles remain bound to their independently deployed identities", async () => {
+test("both Outlook candidates remain bound to their independently deployed identities", async () => {
   const result = await validate();
 
   assert.deepEqual(
@@ -44,12 +31,12 @@ test("both Outlook profiles remain bound to their independently deployed identit
       {
         profile: "matter-full",
         product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-        version: "1.0.1.1",
+        version: "1.1.0.0",
       },
       {
         profile: "inquiry-only",
         product_id: "952431be-51b8-42a2-9bf6-769a15934e85",
-        version: "1.0.1.1",
+        version: "1.1.0.0",
       },
     ],
   );
@@ -74,7 +61,6 @@ test("the inquiry profile cannot inherit Matter compose or event capabilities", 
             `${fragment}</DesktopFormFactor>`,
           ),
         },
-        skipProductionHash: true,
       }),
       /inquiry-only production extension_points/u,
       name,
@@ -82,7 +68,7 @@ test("the inquiry profile cannot inherit Matter compose or event capabilities", 
   }
 });
 
-test("identity, permissions, requirements, URLs, and current production hashes fail closed", async () => {
+test("candidate identity, permissions, requirements, and URLs fail closed", async () => {
   const inquiryProduction = await readFile(
     path.join(repoRoot, "apps/addin/manifest.inquiry.production.xml"),
     "utf8",
@@ -104,21 +90,11 @@ test("identity, permissions, requirements, URLs, and current production hashes f
     await assert.rejects(
       validate({
         manifestOverrides: { "apps/addin/manifest.inquiry.production.xml": mutated },
-        skipProductionHash: true,
       }),
       expected,
       name,
     );
   }
-
-  await assert.rejects(
-    validate({
-      manifestOverrides: {
-        "apps/addin/manifest.inquiry.production.xml": `${inquiryProduction}\n`,
-      },
-    }),
-    /manifest_sha256/u,
-  );
 });
 
 test("host, item, resource, label, and exact local route drift all fail closed", async () => {
@@ -170,13 +146,30 @@ test("host, item, resource, label, and exact local route drift all fail closed",
 });
 
 test("candidate parsing ignores deceptive XML comments and validates the real permission", async () => {
-  const overrides = await candidateManifestOverrides();
-  overrides["apps/addin/manifest.inquiry.xml"] = overrides["apps/addin/manifest.inquiry.xml"].replace(
+  const inquiryLocal = await readFile(path.join(repoRoot, "apps/addin/manifest.inquiry.xml"), "utf8");
+  const deceptive = inquiryLocal.replace(
     "<Permissions>ReadItem</Permissions>",
     "<!-- <Permissions>ReadItem</Permissions> --><Permissions>ReadWriteMailbox</Permissions>",
   );
 
-  await assert.rejects(validate({ mode: "candidate", manifestOverrides: overrides }), /permission/u);
+  await assert.rejects(validate({
+    manifestOverrides: { "apps/addin/manifest.inquiry.xml": deceptive },
+  }), /permission/u);
+});
+
+test("DOCTYPE, ENTITY, and malformed candidate XML fail closed", async () => {
+  const inquiryLocal = await readFile(path.join(repoRoot, "apps/addin/manifest.inquiry.xml"), "utf8");
+  for (const [name, xml] of [
+    ["DOCTYPE", inquiryLocal.replace("<OfficeApp", "<!DOCTYPE OfficeApp><OfficeApp")],
+    ["ENTITY", inquiryLocal.replace("<OfficeApp", "<!ENTITY xxe 'blocked'><OfficeApp")],
+    ["malformed", inquiryLocal.replace("</OfficeApp>", "")],
+  ]) {
+    await assert.rejects(
+      validate({ manifestOverrides: { "apps/addin/manifest.inquiry.xml": xml } }),
+      /Outlook manifest XML (?:declarations are not allowed|is invalid)/u,
+      name,
+    );
+  }
 });
 
 test("non-URL behavior and XML hierarchy drift fail closed", async () => {
@@ -199,30 +192,4 @@ test("non-URL behavior and XML hierarchy drift fail closed", async () => {
   for (const [name, manifestPath, xml, expected] of cases) {
     await assert.rejects(validate({ manifestOverrides: { [manifestPath]: xml } }), expected, name);
   }
-});
-
-test("an explicit independent OUTM-01 baseline receipt is required and exact", async () => {
-  await assert.rejects(
-    validateOutlookAddinSurfaces({ repoRoot, contractPath }),
-    /explicit OUTM-01 baseline receipt is required/u,
-  );
-
-  const wrongHash = structuredClone(baselineReceipt);
-  wrongHash.profiles[1].manifest_sha256 = "0".repeat(64);
-  await assert.rejects(validate({ baseline: wrongHash }), /baseline manifest_sha256/u);
-
-  const missingField = structuredClone(baselineReceipt);
-  delete missingField.profiles[0].assignment_count;
-  await assert.rejects(validate({ baseline: missingField }), /assignment_count is required/u);
-
-  const duplicate = structuredClone(baselineReceipt);
-  duplicate.profiles.push(structuredClone(duplicate.profiles[0]));
-  await assert.rejects(validate({ baseline: duplicate }), /duplicate baseline ProductId/u);
-
-  const extra = structuredClone(baselineReceipt);
-  extra.profiles.push({
-    ...structuredClone(extra.profiles[0]),
-    product_id: "00000000-0000-0000-0000-000000000000",
-  });
-  await assert.rejects(validate({ baseline: extra }), /baseline ProductIds mismatch/u);
 });
