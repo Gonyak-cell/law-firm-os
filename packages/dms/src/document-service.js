@@ -44,6 +44,9 @@ export function uploadDocument({
   if (typeof beforePersist === "function" && typeof storage.quarantineCommittedObject !== "function") {
     throw new TypeError("storage adapter missing quarantineCommittedObject for guarded upload");
   }
+  if (typeof beforePersist === "function" && typeof storage.recordCommittedObjectQuarantine !== "function") {
+    throw new TypeError("storage adapter missing durable quarantine record for guarded upload");
+  }
   const replay = repository.getIdempotency({ tenant_id: document?.tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
 
@@ -153,6 +156,7 @@ export function uploadDocument({
       if (!receipt) throw error;
       let cleanupState = "pending";
       let cleanupErrorCode = null;
+      let cleanupRecordRef = null;
       try {
         const deletion = typeof storage.deleteCommittedObject === "function"
           ? storage.deleteCommittedObject({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256 })
@@ -167,13 +171,34 @@ export function uploadDocument({
         try {
           const quarantine = storage.quarantineCommittedObject({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256, reason: cleanupErrorCode });
           if (quarantine && typeof quarantine.then === "function") throw new TypeError("storage quarantine must be synchronous");
-          if (quarantine?.quarantined === true || quarantine?.already_absent === true) cleanupState = "quarantined";
+          if (quarantine?.quarantined === true || quarantine?.already_absent === true) {
+            cleanupState = "quarantined";
+            cleanupRecordRef = quarantine?.record_ref ?? null;
+          }
           else throw Object.assign(new Error("committed object quarantine was not confirmed"), { safe_error_code: "DMS_COMMITTED_QUARANTINE_UNCONFIRMED" });
         } catch (quarantineError) {
           cleanupErrorCode = errorCode(quarantineError, cleanupErrorCode ?? "DMS_COMMITTED_QUARANTINE_FAILED");
+          try {
+            const durable = storage.recordCommittedObjectQuarantine({
+              tenant_id: document.tenant_id,
+              object_id: receipt.object_id,
+              expected_sha256: receipt.sha256,
+              reason: cleanupErrorCode,
+              permission_envelope_id: document.permission_envelope_id,
+              audit_trace_id: document.audit_trace_id,
+            });
+            if (durable?.durable_quarantine === true && typeof durable.record_ref === "string") {
+              cleanupState = "durably_quarantined";
+              cleanupRecordRef = durable.record_ref;
+            } else {
+              throw Object.assign(new Error("durable committed object quarantine was not confirmed"), { safe_error_code: "DMS_COMMITTED_QUARANTINE_RECORD_UNCONFIRMED" });
+            }
+          } catch (durableError) {
+            cleanupErrorCode = errorCode(durableError, cleanupErrorCode ?? "DMS_COMMITTED_QUARANTINE_RECORD_FAILED");
+          }
         }
       }
-      throw annotateError(error, { cleanup_state: cleanupState, cleanup_error_code: cleanupErrorCode });
+      throw annotateError(error, { cleanup_state: cleanupState, cleanup_error_code: cleanupErrorCode, cleanup_record_ref: cleanupRecordRef });
     }
   });
 }

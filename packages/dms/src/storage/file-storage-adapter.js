@@ -9,6 +9,11 @@ import {
   createStorageReceipt,
   sha256Hex,
 } from "./storage-adapter.js";
+import {
+  assertQuarantineRecord,
+  createQuarantineRecord,
+  DMS_OBJECT_QUARANTINE_SCHEMA,
+} from "./quarantine-record.js";
 
 function requireString(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -30,6 +35,11 @@ function stagedFilesFor(rootPath, tenant_id, session_id, object_id) {
     bytesPath: path.join(stagingRoot, `${key}.bin`),
     metadataPath: path.join(stagingRoot, `${key}.json`),
   };
+}
+
+function quarantineFileFor(rootPath, tenant_id, object_id) {
+  const key = createOpaqueStorageKey({ tenant_id, object_id });
+  return path.join(rootPath, ".quarantine", `${key}.json`);
 }
 
 function removeFiles(paths) {
@@ -91,12 +101,58 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     });
   }
   function readObject(tenantId, safeObjectId) {
+    const quarantine = readQuarantineRecord(tenantId, safeObjectId);
+    if (quarantine) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     return readObjectFromPaths(tenantId, safeObjectId, filesFor(resolvedRootPath, tenantId, safeObjectId));
+  }
+  function readQuarantineRecord(tenantId, safeObjectId) {
+    const recordPath = quarantineFileFor(resolvedRootPath, tenantId, safeObjectId);
+    assertNotSymlink(path.join(resolvedRootPath, ".quarantine"), "storage quarantine root");
+    assertNotSymlink(recordPath, "storage quarantine record");
+    if (!existsSync(recordPath)) return null;
+    let record;
+    try {
+      record = JSON.parse(readFileSync(recordPath, "utf8"));
+    } catch (error) {
+      throw codedError("committed object quarantine record cannot be read", "DMS_COMMITTED_QUARANTINE_INVALID");
+    }
+    if (record?.schema_version !== DMS_OBJECT_QUARANTINE_SCHEMA) {
+      throw codedError("committed object quarantine record is invalid", "DMS_COMMITTED_QUARANTINE_INVALID");
+    }
+    return assertQuarantineRecord(record, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256: record.expected_sha256 });
+  }
+  function writeQuarantineRecord(input) {
+    const record = createQuarantineRecord({ adapter_id, ...input });
+    const recordPath = quarantineFileFor(resolvedRootPath, record.tenant_id, record.object_id);
+    assertNotSymlink(path.join(resolvedRootPath, ".quarantine"), "storage quarantine root");
+    assertNotSymlink(recordPath, "storage quarantine record");
+    writeBinaryFileDurably({ filePath: recordPath, bytes: `${JSON.stringify(record)}\n` });
+    return record;
+  }
+  function recordCommittedObjectQuarantine({ tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = requireString(object_id, "object_id");
+    const existing = readQuarantineRecord(tenantId, safeObjectId);
+    if (existing) {
+      assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
+      return Object.freeze({ ...existing, recorded: false, already_recorded: true, durable_quarantine: true });
+    }
+    const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
+    assertSafePaths(paths);
+    if (existsSync(paths.bytesPath)) {
+      const current = readObjectFromPaths(tenantId, safeObjectId, paths);
+      if (requireString(expected_sha256, "expected_sha256") !== current.sha256) {
+        throw codedError("committed object digest changed before quarantine record", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+      }
+    }
+    const record = writeQuarantineRecord({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
+    return Object.freeze({ ...record, recorded: true, already_recorded: false, durable_quarantine: true });
   }
   function stageObject({ tenant_id, session_id, object_id, bytes, content_type, expected_sha256 } = {}) {
     const tenantId = assertTenantId(tenant_id);
     const safeSessionId = requireString(session_id, "session_id");
     const safeObjectId = requireString(object_id, "object_id");
+    if (readQuarantineRecord(tenantId, safeObjectId)) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(String(bytes ?? ""));
     const receipt = createStagingReceipt({
       adapter_id,
@@ -150,6 +206,7 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     const tenantId = assertTenantId(tenant_id);
     const safeSessionId = requireString(session_id, "session_id");
     const safeObjectId = requireString(object_id, "object_id");
+    if (readQuarantineRecord(tenantId, safeObjectId)) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const stagedPaths = stagedFilesFor(resolvedRootPath, tenantId, safeSessionId, safeObjectId);
     const finalPaths = filesFor(resolvedRootPath, tenantId, safeObjectId);
     assertSafePaths(stagedPaths);
@@ -190,6 +247,7 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
   function statObject({ tenant_id, object_id } = {}) {
     const tenantId = assertTenantId(tenant_id);
     const safeObjectId = requireString(object_id, "object_id");
+    if (readQuarantineRecord(tenantId, safeObjectId)) return null;
     const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
     if (!existsSync(paths.bytesPath)) return null;
     const object = readObject(tenantId, safeObjectId);
@@ -216,18 +274,27 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       assertSafePaths(paths);
       return Object.freeze({ deleted: removeFiles(paths), committed_object_deleted: false });
     },
-    quarantineCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
+    recordCommittedObjectQuarantine,
+    getCommittedObjectQuarantine({ tenant_id, object_id } = {}) {
+      const tenantId = assertTenantId(tenant_id);
+      const safeObjectId = requireString(object_id, "object_id");
+      return readQuarantineRecord(tenantId, safeObjectId);
+    },
+    quarantineCommittedObject({ tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id } = {}) {
       const tenantId = assertTenantId(tenant_id);
       const safeObjectId = requireString(object_id, "object_id");
       const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
       assertSafePaths(paths);
-      if (!existsSync(paths.bytesPath)) return Object.freeze({ quarantined: false, already_absent: true, provider_delete_replayed: true });
-      const current = statObject({ tenant_id: tenantId, object_id: safeObjectId });
-      if (requireString(expected_sha256, "expected_sha256") !== current.sha256) {
+      const existing = readQuarantineRecord(tenantId, safeObjectId);
+      const current = existsSync(paths.bytesPath) ? readObjectFromPaths(tenantId, safeObjectId, paths) : null;
+      if (current && requireString(expected_sha256, "expected_sha256") !== current.sha256) {
         throw codedError("committed object digest changed before quarantine", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
       }
-      removeFiles(paths);
-      return Object.freeze({ quarantined: true, already_absent: false, provider_delete_replayed: false, sha256: current.sha256 });
+      const record = existing
+        ? assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 })
+        : recordCommittedObjectQuarantine({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
+      const removed = current ? removeFiles(paths) : false;
+      return Object.freeze({ ...record, quarantined: removed, already_absent: !removed, provider_delete_replayed: !removed, sha256: record.expected_sha256 });
     },
     deleteCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
       const tenantId = assertTenantId(tenant_id);

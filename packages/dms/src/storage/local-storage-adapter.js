@@ -6,6 +6,10 @@ import {
   createStorageReceipt,
   sha256Hex,
 } from "./storage-adapter.js";
+import {
+  assertQuarantineRecord,
+  createQuarantineRecord,
+} from "./quarantine-record.js";
 
 function required(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -33,6 +37,7 @@ function hashMismatch(message, code) {
 export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
   const objects = new Map();
   const stagedObjects = new Map();
+  const quarantineRecords = new Map();
   const capabilities = Object.freeze({
     staged_uploads: true,
     digest_verification: true,
@@ -42,6 +47,8 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
   });
   function stageObject({ tenant_id, session_id, object_id, bytes, content_type, expected_sha256 } = {}) {
     const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = required(object_id, "object_id");
+    if (quarantineRecords.has(objectKey(tenantId, safeObjectId))) throw hashMismatch("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const key = stagedKey(tenantId, session_id, object_id);
     const buffer = bufferFrom(bytes);
     const actualSha256 = sha256Hex(buffer);
@@ -66,6 +73,7 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
     const safeObjectId = required(object_id, "object_id");
     const key = stagedKey(tenantId, session_id, safeObjectId);
     const committedKey = objectKey(tenantId, safeObjectId);
+    if (quarantineRecords.has(committedKey)) throw hashMismatch("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const staged = stagedObjects.get(key);
     const current = objects.get(committedKey);
     if (!staged) {
@@ -90,17 +98,34 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
     const key = stagedKey(assertTenantId(tenant_id), session_id, object_id);
     return Object.freeze({ deleted: stagedObjects.delete(key), committed_object_deleted: false });
   }
-  function quarantineCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
+  function recordCommittedObjectQuarantine({ tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = required(object_id, "object_id");
+    const key = objectKey(tenantId, safeObjectId);
+    const existing = quarantineRecords.get(key);
+    if (existing) {
+      assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
+      return Object.freeze({ ...existing, recorded: false, already_recorded: true, durable_quarantine: true });
+    }
+    const current = objects.get(key);
+    if (current && required(expected_sha256, "expected_sha256") !== current.receipt.sha256) {
+      throw hashMismatch("committed object digest changed before quarantine record", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+    }
+    const record = createQuarantineRecord({ adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
+    quarantineRecords.set(key, record);
+    return Object.freeze({ ...record, recorded: true, already_recorded: false, durable_quarantine: true });
+  }
+  function quarantineCommittedObject({ tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id } = {}) {
     const tenantId = assertTenantId(tenant_id);
     const safeObjectId = required(object_id, "object_id");
     const key = objectKey(tenantId, safeObjectId);
     const current = objects.get(key);
-    if (!current) return Object.freeze({ quarantined: false, already_absent: true, provider_delete_replayed: true });
-    if (required(expected_sha256, "expected_sha256") !== current.receipt.sha256) {
+    if (current && required(expected_sha256, "expected_sha256") !== current.receipt.sha256) {
       throw hashMismatch("committed object digest changed before quarantine", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
     }
-    objects.delete(key);
-    return Object.freeze({ quarantined: true, already_absent: false, provider_delete_replayed: false, sha256: current.receipt.sha256 });
+    const record = recordCommittedObjectQuarantine({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
+    const removed = objects.delete(key);
+    return Object.freeze({ ...record, quarantined: removed, already_absent: !removed, provider_delete_replayed: !removed, sha256: record.expected_sha256 });
   }
   function deleteCommittedObject({ tenant_id, object_id, expected_sha256 } = {}) {
     const tenantId = assertTenantId(tenant_id);
@@ -122,13 +147,21 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
     statStagedObject,
     finalizeObject,
     deleteOrphan,
+    recordCommittedObjectQuarantine,
+    getCommittedObjectQuarantine({ tenant_id, object_id } = {}) {
+      const tenantId = assertTenantId(tenant_id);
+      const safeObjectId = required(object_id, "object_id");
+      return quarantineRecords.get(objectKey(tenantId, safeObjectId)) ?? null;
+    },
     quarantineCommittedObject,
     deleteCommittedObject,
     digestObject({ tenant_id, session_id, object_id } = {}) {
       const tenantId = assertTenantId(tenant_id);
       const entry = session_id
         ? stagedObjects.get(stagedKey(tenantId, session_id, object_id))
-        : objects.get(objectKey(tenantId, required(object_id, "object_id")));
+        : quarantineRecords.has(objectKey(tenantId, required(object_id, "object_id")))
+          ? null
+          : objects.get(objectKey(tenantId, required(object_id, "object_id")));
       return entry ? Object.freeze({ sha256: sha256Hex(entry.buffer), byte_size: entry.buffer.byteLength }) : null;
     },
     putObject({ tenant_id, object_id, bytes, content_type } = {}) {
@@ -141,7 +174,9 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
     getObject({ tenant_id, object_id } = {}) {
       const tenantId = assertTenantId(tenant_id);
       const safeObjectId = required(object_id, "object_id");
-      const entry = objects.get(objectKey(tenantId, safeObjectId));
+      const key = objectKey(tenantId, safeObjectId);
+      if (quarantineRecords.has(key)) throw hashMismatch("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+      const entry = objects.get(key);
       if (!entry) throw new Error(`object not found: ${safeObjectId}`);
       return Object.freeze({
         object_id: safeObjectId,
@@ -150,7 +185,9 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault" } = {}) {
       });
     },
     statObject({ tenant_id, object_id } = {}) {
-      const entry = objects.get(objectKey(assertTenantId(tenant_id), required(object_id, "object_id")));
+      const key = objectKey(assertTenantId(tenant_id), required(object_id, "object_id"));
+      if (quarantineRecords.has(key)) return null;
+      const entry = objects.get(key);
       if (!entry) return null;
       return Object.freeze({ ...entry.receipt });
     },
