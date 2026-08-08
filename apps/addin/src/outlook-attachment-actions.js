@@ -56,6 +56,7 @@ export async function saveOutlookAttachments({
   requestJson,
   errorMessage = outlookActionErrorMessage,
   maxAttachmentBytes = MAX_OUTLOOK_ATTACHMENT_BYTES,
+  allowAllFailedResult = false,
 } = {}) {
   if (typeof requestJson !== "function") {
     throw new TypeError("requestJson is required");
@@ -106,7 +107,7 @@ export async function saveOutlookAttachments({
     }
   }
 
-  if (saved.length === 0 && failed.length > 0) {
+  if (!allowAllFailedResult && saved.length === 0 && failed.length > 0) {
     throw saveFailedError({ skipped: unsupported, failed });
   }
 
