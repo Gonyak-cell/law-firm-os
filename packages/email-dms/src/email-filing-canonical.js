@@ -94,7 +94,6 @@ async function durableMimeBinding(binding, authority) {
     || version.version_id !== document.current_version_id
     || version.document_id !== documentId
     || version.tenant_id !== binding.tenant_id
-    || version.matter_id !== binding.matter_id
     || version.sha256 !== binding.mime_sha256
     || version.persisted === false
     || (version.status !== undefined && !["active", "current"].includes(version.status))
@@ -104,7 +103,6 @@ async function durableMimeBinding(binding, authority) {
     !fileObject
     || fileObject.file_object_id !== version.file_object_id
     || fileObject.tenant_id !== binding.tenant_id
-    || fileObject.matter_id !== binding.matter_id
     || (fileObject.status !== undefined && !["active", "committed"].includes(fileObject.status))
     || fileObject.sha256 !== binding.mime_sha256
     || fileMime !== "message/rfc822"
