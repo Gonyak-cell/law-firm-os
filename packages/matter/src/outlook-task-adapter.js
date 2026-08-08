@@ -66,14 +66,15 @@ function assertMatter(repository, tenantId, matterId) {
   if (!matter) throw taskError("Matter task not found", OUTLOOK_TASK_ERROR_CODES.not_found, 404);
 }
 
-function replayFor(repository, { tenantId, idempotencyKey, operation, fingerprint }) {
+function replayFor(repository, { tenantId, actorId, idempotencyKey, operation, fingerprint }) {
   const replay = repository.getIdempotency({
     tenant_id: tenantId,
     idempotency_key: idempotencyKey,
   });
   if (!replay) return null;
   if (
-    replay.operation !== operation
+    replay.actor_id !== actorId
+    || replay.operation !== operation
     || replay.request_fingerprint !== fingerprint
     || !replay.response?.item
     || !replay.response?.audit_event
@@ -121,12 +122,12 @@ export function createOutlookMatterTask({
   };
   const fingerprint = hashDomainValue({
     tenant_id: tenantId,
-    matter_id: matterId,
+    matter_id: matterId, actor_id: actorId,
     source_email_thread_id: sourceEmailThreadId,
     task: normalizedTask,
   });
   const replay = replayFor(repository, {
-    tenantId,
+    tenantId, actorId,
     idempotencyKey,
     operation: "outlook_task_create",
     fingerprint,
@@ -207,13 +208,13 @@ export function updateOutlookMatterTask({
   assertMatter(repository, tenantId, matterId);
   const fingerprint = hashDomainValue({
     tenant_id: tenantId,
-    matter_id: matterId,
+    matter_id: matterId, actor_id: actorId,
     task_id: resolvedTaskId,
     expected_version: expectedVersion,
     patch: normalizedPatch,
   });
   const replay = replayFor(repository, {
-    tenantId,
+    tenantId, actorId,
     idempotencyKey,
     operation: "outlook_task_update",
     fingerprint,

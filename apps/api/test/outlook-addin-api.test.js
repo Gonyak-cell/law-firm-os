@@ -1311,6 +1311,35 @@ test("Outlook editable task routes use signed scopes and resource-scoped ACLs", 
     assert.equal(replayResponse.status, 200);
     assert.equal((await replayResponse.json()).outcome, "idempotent_replay");
 
+    const crossActorCreateCounts = {
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    };
+    const crossActorCreateResponse = await request(sessions.aclToken, "/api/outlook/tasks", "POST", createBody());
+    const crossActorCreate = await crossActorCreateResponse.json();
+    assert.equal(crossActorCreateResponse.status, 409, JSON.stringify(crossActorCreate));
+    assert.deepEqual(crossActorCreate.safe_error_codes, ["OUTLOOK_TASK_IDEMPOTENCY_CONFLICT"]);
+    assert.equal(crossActorCreate.item, null);
+    assert.equal(crossActorCreate.audit_event, undefined);
+    assert.equal(crossActorCreate.timeline_event, undefined);
+    assert.equal(JSON.stringify(crossActorCreate).includes(sessions.writer.user_id), false);
+    assert.deepEqual({
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    }, crossActorCreateCounts);
+
     const nullStatusKey = "outlook-task-null-status-route";
     const taskRef = {
       tenant_id: TENANT,
@@ -1379,6 +1408,47 @@ test("Outlook editable task routes use signed scopes and resource-scoped ACLs", 
     assert.equal(updatedResponse.status, 200, JSON.stringify(updated));
     assert.equal(updated.item.due_at, "2026-08-13");
     assert.equal(updated.item.version, 2);
+
+    const crossActorUpdateCounts = {
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    };
+    const crossActorUpdateResponse = await request(
+      sessions.aclToken,
+      `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        actor_id: "forged-browser-actor",
+        idempotency_key: "outlook-task-scope-update",
+        expected_version: 1,
+        patch: { due_at: "2026-08-13", estimated_minutes: 30, status: "in_progress" },
+      },
+    );
+    const crossActorUpdate = await crossActorUpdateResponse.json();
+    assert.equal(crossActorUpdateResponse.status, 409, JSON.stringify(crossActorUpdate));
+    assert.deepEqual(crossActorUpdate.safe_error_codes, ["OUTLOOK_TASK_IDEMPOTENCY_CONFLICT"]);
+    assert.equal(crossActorUpdate.item, null);
+    assert.equal(crossActorUpdate.audit_event, undefined);
+    assert.equal(crossActorUpdate.timeline_event, undefined);
+    assert.equal(JSON.stringify(crossActorUpdate).includes(sessions.writer.user_id), false);
+    assert.deepEqual({
+      tasks: matterRepository.list({ tenant_id: TENANT, model_type: "MatterTask" }).length,
+      audits: matterRepository.listAudit({ tenant_id: TENANT }).length,
+      timeline: matterRepository.list({
+        tenant_id: TENANT,
+        model_type: "MatterTimelineEvent",
+        matter_id: MATTER,
+      }).length,
+      idempotency: matterRepository.snapshot().idempotency.length,
+    }, crossActorUpdateCounts);
   } finally {
     await new Promise((resolve) => started.server.close(resolve));
   }
