@@ -2,7 +2,7 @@ import { createDurableJsonStateController } from "../../persistence/src/durable-
 import { assertNoDmsPersistedSecrets } from "../../dms/src/persistence-guard.js";
 import { normalizeEmailFilingPlacementEvent } from "./email-filing-correction-model.js";
 
-const EMPTY_STATE = Object.freeze({ placements: [], idempotency: [], audit_events: [] });
+const EMPTY_STATE = Object.freeze({ placements: [], audit_events: [] });
 
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
@@ -13,17 +13,6 @@ function normalizeState(input = EMPTY_STATE) {
     placements: (input.placements ?? []).map((event) => {
       assertNoDmsPersistedSecrets(event, "email_filing_placement");
       return normalizeEmailFilingPlacementEvent(event);
-    }),
-    idempotency: (input.idempotency ?? []).map((entry) => {
-      assertNoDmsPersistedSecrets(entry, "email_filing_correction_idempotency");
-      return Object.freeze({
-        tenant_id: String(entry.tenant_id),
-        idempotency_key: String(entry.idempotency_key),
-        request_fingerprint: String(entry.request_fingerprint),
-        correction_id: String(entry.correction_id),
-        placement_id: String(entry.placement_id),
-        created_at: String(entry.created_at),
-      });
     }),
     audit_events: (input.audit_events ?? []).map((event) => {
       assertNoDmsPersistedSecrets(event, "email_filing_correction_audit");
@@ -48,7 +37,6 @@ export function createEmailFilingCorrectionRepository({
   });
   let state = controller.value;
   const placements = new Map();
-  const idempotency = new Map();
   const audits = new Map();
 
   function assertOpen() {
@@ -57,13 +45,9 @@ export function createEmailFilingCorrectionRepository({
 
   function hydrate(next) {
     placements.clear();
-    idempotency.clear();
     audits.clear();
     for (const event of next.placements) {
       placements.set(`${event.tenant_id}:${event.placement_id}`, clone(event));
-    }
-    for (const entry of next.idempotency) {
-      idempotency.set(`${entry.tenant_id}:${entry.idempotency_key}`, clone(entry));
     }
     for (const event of next.audit_events) {
       audits.set(`${event.tenant_id}:${event.event_id}`, clone(event));
@@ -73,7 +57,6 @@ export function createEmailFilingCorrectionRepository({
   function currentState() {
     return {
       placements: [...placements.values()],
-      idempotency: [...idempotency.values()],
       audit_events: [...audits.values()],
     };
   }
@@ -129,24 +112,20 @@ export function createEmailFilingCorrectionRepository({
     },
     getIdempotency(ref = {}) {
       assertOpen();
-      return Object.freeze(clone(idempotency.get(`${ref.tenant_id}:${ref.idempotency_key}`)));
-    },
-    recordIdempotency(input = {}) {
-      assertOpen();
-      assertNoDmsPersistedSecrets(input, "email_filing_correction_idempotency");
-      const key = `${input.tenant_id}:${input.idempotency_key}`;
-      if (idempotency.has(key)) throw new Error("idempotency key already exists");
-      const entry = Object.freeze({
-        tenant_id: input.tenant_id,
-        idempotency_key: input.idempotency_key,
-        request_fingerprint: input.request_fingerprint,
-        correction_id: input.correction_id,
-        placement_id: input.placement_id,
-        created_at: input.created_at,
-      });
-      idempotency.set(key, clone(entry));
-      persist();
-      return entry;
+      const correction = [...placements.values()].find((event) => (
+        event.event_kind === "correction"
+        && event.tenant_id === ref.tenant_id
+        && event.idempotency_key === ref.idempotency_key
+      ));
+      return correction ? Object.freeze({
+        tenant_id: correction.tenant_id,
+        idempotency_key: correction.idempotency_key,
+        request_fingerprint: correction.payload_fingerprint,
+        correction_id: correction.correction_id,
+        placement_id: correction.placement_id,
+        source_matter_id: correction.source_matter_id,
+        created_at: correction.occurred_at,
+      }) : undefined;
     },
     appendAudit(input = {}) {
       assertOpen();
@@ -165,19 +144,19 @@ export function createEmailFilingCorrectionRepository({
         .filter((event) => !query.object_id || event.object_id === query.object_id)
         .map((event) => Object.freeze(clone(event))));
     },
-    transaction(fn) {
+    async transaction(options, fn) {
       assertOpen();
+      if (typeof options?.tenant_id !== "string" || options.tenant_id.trim() === "") {
+        throw new TypeError("transaction tenant_id is required");
+      }
       if (typeof fn !== "function") throw new TypeError("transaction callback is required");
       const before = normalizeState(currentState());
       const entryDepth = transactionDepth;
       transactionDepth += 1;
       try {
-        const result = fn(repository);
-        if (result && typeof result.then === "function") {
-          throw new TypeError("Email filing correction transactions must be synchronous");
-        }
+        const result = await fn(repository);
         transactionDepth = entryDepth;
-        persist();
+        if (options.read_only !== true) persist();
         return result;
       } catch (error) {
         if (!error?.durable_store_reloaded) hydrate(before);

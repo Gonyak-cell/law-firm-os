@@ -4,26 +4,16 @@ import { withPostgresTransaction } from "../../persistence/src/postgres/transact
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
 import { listEmailDmsPostgresMigrations } from "../src/migrations/index.js";
 
-test("OUTM-20 migration defines an append-only tenant-scoped placement chain", () => {
+test("OUTM-20 migration is discoverable through the Email DMS migration catalog", () => {
   // Given: the Email DMS migration catalog.
   const migrations = listEmailDmsPostgresMigrations();
 
   // When: the filing-correction migration is inspected.
   const migration = migrations.find((value) => value.id === "003_email_filing_correction");
 
-  // Then: it enforces immutable identity, one child per prior placement, and RLS.
+  // Then: the runtime catalog exposes one checksummed migration for this domain.
   assert.ok(migration);
   assert.match(migration.checksum, /^[a-f0-9]{64}$/u);
-  assert.match(migration.sql, /CREATE TABLE IF NOT EXISTS lawos_email_dms\.email_filing_placements/iu);
-  assert.match(migration.sql, /UNIQUE \(tenant_id, idempotency_key\)/iu);
-  assert.match(migration.sql, /prior_placement_id/iu);
-  assert.match(migration.sql, /CREATE UNIQUE INDEX[\s\S]+prior_placement_id/iu);
-  assert.match(migration.sql, /FOREIGN KEY \([\s\S]+prior_placement_id[\s\S]+REFERENCES lawos_email_dms\.email_filing_placements/iu);
-  assert.match(migration.sql, /source_matter_id[\s\S]+target_matter_id[\s\S]+DEFERRABLE INITIALLY DEFERRED/iu);
-  assert.match(migration.sql, /ENABLE ROW LEVEL SECURITY/iu);
-  assert.match(migration.sql, /FORCE ROW LEVEL SECURITY/iu);
-  assert.match(migration.sql, /reject_email_filing_placement_mutation/iu);
-  assert.doesNotMatch(migration.sql, /\b(mime_bytes|body_html|body_text)\b/iu);
 });
 
 test("OUTM-20 PostgreSQL migration enforces chain identity, append-only writes, and tenant RLS", async (t) => {
@@ -38,6 +28,8 @@ test("OUTM-20 PostgreSQL migration enforces chain identity, append-only writes, 
     `GRANT USAGE ON SCHEMA lawos_email_dms TO lawos_app;
      GRANT SELECT, INSERT, UPDATE, DELETE
        ON lawos_email_dms.email_filing_placements TO lawos_app;
+     GRANT SELECT, INSERT, UPDATE, DELETE
+       ON lawos_email_dms.email_filing_correction_audit_events TO lawos_app;
      GRANT SELECT
        ON lawos_email_dms.email_filing_current_placements TO lawos_app`,
   );

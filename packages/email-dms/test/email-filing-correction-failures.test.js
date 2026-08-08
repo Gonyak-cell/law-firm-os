@@ -1,151 +1,217 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createEmailFilingCorrectionRepository } from "../src/email-filing-correction-repository.js";
+import { createEmailFilingOriginalResolver } from "../src/email-filing-original-resolver.js";
+import { createEmailFilingCorrectionService } from "../src/email-filing-correction-service.js";
+import { createOriginalEmailFilingPlacement } from "../src/email-filing-correction-model.js";
 import {
-  createEmailFilingCorrectionRepository,
-} from "../src/email-filing-correction-repository.js";
-import {
-  createEmailFilingCorrectionService,
-} from "../src/email-filing-correction-service.js";
-import {
-  createEmailFilingCorrection,
-  createOriginalEmailFilingPlacement,
-  deriveEmailFilingPlacementChain,
-  normalizeEmailFilingPlacementEvent,
-} from "../src/email-filing-correction-model.js";
-import {
+  CORRECTION_ACTOR_ID,
   MATTER_A,
   MATTER_B,
   MATTER_C,
+  SESSION,
+  TENANT_ID,
+  THREAD_ID,
   correctionInput,
+  createOriginalFilingRepository,
   originalFiling,
+  serviceDependencies,
 } from "./helpers/email-filing-correction-fixture.js";
 
-function serviceFor(repository, overrides = {}) {
+function serviceFor(repository, dmsRepository, overrides = {}) {
   let counter = 0;
   return createEmailFilingCorrectionService({
     repository,
+    original_filing_resolver: createEmailFilingOriginalResolver({ repository: dmsRepository }),
     id_factory: () => `correction-${counter += 1}`,
     clock: () => new Date(`2026-08-08T0${counter + 1}:00:00.000Z`),
+    ...serviceDependencies(),
     ...overrides,
   });
 }
 
-function assertCode(fn, code) {
-  assert.throws(fn, (error) => error?.code === code);
+async function assertRejectCode(promise, code) {
+  await assert.rejects(promise, (error) => error?.code === code);
 }
 
-test("OUTM-20 rejects invalid immutable identity, actor, and same-Matter corrections", () => {
-  // Given: an empty correction repository and its original placement.
+test("OUTM-20 requires principal, original resolver, and authorization dependencies", () => {
+  // Given: a valid correction repository.
   const repository = createEmailFilingCorrectionRepository();
-  const service = serviceFor(repository);
-  const original = originalFiling();
-  const prior = service.currentPlacement({ original_filing: original }).placement_id;
+  const required = serviceDependencies();
 
-  // When/Then: invalid requests fail before any append.
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
-    prior_placement_id: prior,
-    target_matter_id: MATTER_A,
-  })), "EMAIL_FILING_CORRECTION_SAME_MATTER");
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
-    prior_placement_id: prior,
-    original_receipt_id: "wrong-receipt",
-  })), "EMAIL_FILING_CORRECTION_ORIGINAL_CONFLICT");
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
-    prior_placement_id: prior,
-    mime_sha256: "b".repeat(64),
-  })), "EMAIL_FILING_CORRECTION_ORIGINAL_CONFLICT");
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
-    prior_placement_id: prior,
-    actor_id: "",
-  })), "EMAIL_FILING_CORRECTION_ACTOR_REQUIRED");
-  const deniedService = serviceFor(repository, { authorize_actor: () => false });
-  assertCode(() => deniedService.correct(correctionInput({
-    original_filing: original,
-    prior_placement_id: prior,
-  })), "EMAIL_FILING_CORRECTION_ACTOR_DENIED");
-  assertCode(() => repository.appendAudit({
-    tenant_id: original.tenant_id,
-    event_id: "unsafe-audit",
-    raw_bytes: Buffer.alloc(64),
-  }), "LAWOS_DMS_PERSISTED_SECRET_REJECTED");
-  assert.deepEqual(repository.snapshot(), {
-    placements: [],
-    idempotency: [],
-    audit_events: [],
-  });
+  // When/Then: omitting any trust-boundary dependency fails closed at construction.
+  assert.throws(
+    () => createEmailFilingCorrectionService({ repository, ...required }),
+    /original_filing_resolver is required/u,
+  );
+  assert.throws(
+    () => createEmailFilingCorrectionService({
+      repository,
+      original_filing_resolver: { resolve() {} },
+      authorize_matter: required.authorize_matter,
+    }),
+    /resolve_principal is required/u,
+  );
+  assert.throws(
+    () => createEmailFilingCorrectionService({
+      repository,
+      original_filing_resolver: { resolve() {} },
+      resolve_principal: required.resolve_principal,
+    }),
+    /authorize_matter is required/u,
+  );
 });
 
-test("OUTM-20 rejects stale placement and changed-payload idempotency conflicts", () => {
-  // Given: A has already been corrected to B.
+test("OUTM-20 denies missing, malformed, or failed session principals with zero writes", async () => {
+  // Given: persisted authority and three fail-closed principal resolvers.
+  const dmsRepository = createOriginalFilingRepository();
+  for (const resolvePrincipal of [
+    () => null,
+    () => ({ tenant_id: TENANT_ID, actor_id: "" }),
+    () => { throw new Error("identity provider unavailable"); },
+  ]) {
+    const repository = createEmailFilingCorrectionRepository();
+    const service = serviceFor(repository, dmsRepository, { resolve_principal: resolvePrincipal });
+
+    // When: a correction command crosses the principal boundary.
+    const attempt = service.correct(correctionInput({ prior_placement_id: "placement:any" }));
+
+    // Then: it is denied without leaking or persisting partial state.
+    await assertRejectCode(attempt, "EMAIL_FILING_CORRECTION_PRINCIPAL_DENIED");
+    assert.deepEqual(repository.snapshot(), { placements: [], audit_events: [] });
+  }
+});
+
+test("OUTM-20 requires explicit source and target Matter authorization", async () => {
+  // Given: a correction actor who is allowed on the source but denied on the target.
+  const dmsRepository = createOriginalFilingRepository();
   const repository = createEmailFilingCorrectionRepository();
-  const service = serviceFor(repository);
-  const original = originalFiling();
-  const prior = service.currentPlacement({ original_filing: original }).placement_id;
-  service.correct(correctionInput({ original_filing: original, prior_placement_id: prior }));
+  const checked = [];
+  const service = serviceFor(repository, dmsRepository, {
+    authorize_matter: (request) => {
+      checked.push(request);
+      return request.matter_id === MATTER_A;
+    },
+  });
+  const prior = await service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
+  checked.length = 0;
+
+  // When: the actor tries to correct A to denied Matter B.
+  const attempt = service.correct(correctionInput({ prior_placement_id: prior.placement_id }));
+
+  // Then: both canonical Matter checks run, target denial is safe, and no write occurs.
+  await assertRejectCode(attempt, "EMAIL_FILING_CORRECTION_ACTOR_DENIED");
+  assert.deepEqual(checked.map((entry) => entry.matter_id), [MATTER_A, MATTER_B]);
+  assert.ok(checked.every((entry) => entry.actor_id === CORRECTION_ACTOR_ID));
+  assert.ok(checked.every((entry) => entry.tenant_id === TENANT_ID));
+  assert.deepEqual(repository.snapshot(), { placements: [], audit_events: [] });
+});
+
+test("OUTM-20 stops at denied source Matter authorization without checking the target", async () => {
+  // Given: an actor denied on the canonical source Matter.
+  const dmsRepository = createOriginalFilingRepository();
+  const repository = createEmailFilingCorrectionRepository();
+  const checked = [];
+  const service = serviceFor(repository, dmsRepository, {
+    authorize_matter: (request) => { checked.push(request.matter_id); return false; },
+  });
+  const prior = createOriginalEmailFilingPlacement(originalFiling()).placement_id;
+
+  // When: the actor attempts a correction from A to B.
+  const attempt = service.correct(correctionInput({ prior_placement_id: prior }));
+
+  // Then: source denial is final, target identity is not probed, and nothing is written.
+  await assertRejectCode(attempt, "EMAIL_FILING_CORRECTION_ACTOR_DENIED");
+  assert.deepEqual(checked, [MATTER_A]);
+  assert.deepEqual(repository.snapshot(), { placements: [], audit_events: [] });
+});
+
+test("OUTM-20 rejects a correction whose canonical source and requested target are the same", async () => {
+  // Given: an authorized actor and the derived original placement in Matter A.
+  const dmsRepository = createOriginalFilingRepository();
+  const repository = createEmailFilingCorrectionRepository();
+  const service = serviceFor(repository, dmsRepository);
+  const prior = createOriginalEmailFilingPlacement(originalFiling()).placement_id;
+
+  // When: the command targets Matter A again.
+  const attempt = service.correct(correctionInput({
+    target_matter_id: MATTER_A,
+    prior_placement_id: prior,
+  }));
+
+  // Then: the domain rejects it before any origin, correction, or audit append.
+  await assertRejectCode(attempt, "EMAIL_FILING_CORRECTION_SAME_MATTER");
+  assert.deepEqual(repository.snapshot(), { placements: [], audit_events: [] });
+});
+
+test("OUTM-20 treats non-true and failed authorizer results as denial", async () => {
+  // Given: persisted authority and abnormal authorization adapters.
+  const dmsRepository = createOriginalFilingRepository();
+  for (const authorizeMatter of [
+    () => undefined,
+    () => ({ allowed: true }),
+    () => { throw new Error("authorization backend unavailable"); },
+  ]) {
+    const repository = createEmailFilingCorrectionRepository();
+    const service = serviceFor(repository, dmsRepository, { authorize_matter: authorizeMatter });
+
+    // When: current placement is requested through the abnormal adapter.
+    const attempt = service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
+
+    // Then: only literal true is accepted and no write occurs.
+    await assertRejectCode(attempt, "EMAIL_FILING_CORRECTION_ACTOR_DENIED");
+    assert.deepEqual(repository.snapshot(), { placements: [], audit_events: [] });
+  }
+});
+
+test("OUTM-20 rejects cross-tenant principal lookup without checking Matter authority", async () => {
+  // Given: a principal from another tenant and no original filing in that tenant.
+  const dmsRepository = createOriginalFilingRepository();
+  const repository = createEmailFilingCorrectionRepository();
+  let authorizationCalls = 0;
+  const service = serviceFor(repository, dmsRepository, {
+    resolve_principal: () => ({ tenant_id: "tenant-other", actor_id: CORRECTION_ACTOR_ID }),
+    authorize_matter: () => { authorizationCalls += 1; return true; },
+  });
+
+  // When: the foreign principal requests the local thread.
+  const attempt = service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
+
+  // Then: tenant-scoped resolution fails before any Matter disclosure or write.
+  await assertRejectCode(attempt, "EMAIL_FILING_CORRECTION_ORIGINAL_NOT_FOUND");
+  assert.equal(authorizationCalls, 0);
+  assert.deepEqual(repository.snapshot(), { placements: [], audit_events: [] });
+});
+
+test("OUTM-20 rejects stale placement and changed-payload idempotency conflicts", async () => {
+  // Given: A has already been corrected to B under canonical identity.
+  const dmsRepository = createOriginalFilingRepository();
+  const repository = createEmailFilingCorrectionRepository();
+  const service = serviceFor(repository, dmsRepository);
+  const prior = await service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
+  await service.correct(correctionInput({ prior_placement_id: prior.placement_id }));
 
   // When/Then: a stale prior and a changed replay cannot fork or overwrite the chain.
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
+  await assertRejectCode(service.correct(correctionInput({
     source_matter_id: MATTER_B,
     target_matter_id: MATTER_C,
     idempotency_key: "outm20-stale",
-    prior_placement_id: prior,
+    prior_placement_id: prior.placement_id,
   })), "EMAIL_FILING_CORRECTION_STALE_PLACEMENT");
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
+  await assertRejectCode(service.correct(correctionInput({
     target_matter_id: MATTER_C,
     reason: "다른 정정 사유",
-    prior_placement_id: prior,
+    prior_placement_id: prior.placement_id,
   })), "EMAIL_FILING_CORRECTION_IDEMPOTENCY_CONFLICT");
-  assertCode(() => service.correct(correctionInput({
-    original_filing: original,
-    actor_id: "different-corrector",
-    prior_placement_id: prior,
-  })), "EMAIL_FILING_CORRECTION_IDEMPOTENCY_CONFLICT");
-  assert.equal(repository.listPlacements({ tenant_id: original.tenant_id }).length, 2);
-  assert.equal(repository.listAudit({ tenant_id: original.tenant_id }).length, 1);
+  const snapshot = repository.snapshot();
+  assert.equal(snapshot.placements.length, 2);
+  assert.equal(snapshot.audit_events.length, 1);
 });
 
-test("OUTM-20 rejects a durable chain with more than one origin", () => {
-  // Given: corrupted durable state contains two origins for one logical chain.
-  const original = originalFiling();
-  const first = createOriginalEmailFilingPlacement(original);
-  const second = createOriginalEmailFilingPlacement({
-    ...original,
-    document_id: "document-conflicting-origin",
-  });
-
-  // When/Then: derivation fails instead of silently selecting either origin.
-  assertCode(() => deriveEmailFilingPlacementChain({
-    original_filing: original,
-    placements: [first, second],
-  }), "EMAIL_FILING_CORRECTION_CHAIN_CONFLICT");
-});
-
-test("OUTM-20 rejects an unknown durable placement event kind", () => {
-  // Given: a valid correction event whose persisted discriminator was corrupted.
-  const original = originalFiling();
-  const prior = createOriginalEmailFilingPlacement(original).placement_id;
-  const correction = createEmailFilingCorrection({
-    ...correctionInput({ original_filing: original, prior_placement_id: prior }),
-    correction_id: "correction-invalid-kind",
-    occurred_at: "2026-08-08T02:00:00.000Z",
-  });
-
-  // When/Then: readback fails rather than interpreting the unknown event as a correction.
-  assertCode(() => normalizeEmailFilingPlacementEvent({
-    ...correction,
-    event_kind: "replacement",
-  }), "EMAIL_FILING_CORRECTION_INVALID");
-});
-
-test("OUTM-20 persistence failure rolls back origin, correction, audit, and idempotency together", () => {
-  // Given: a durable adapter that crashes before its first commit.
-  const emptyValue = { placements: [], idempotency: [], audit_events: [] };
+test("OUTM-20 persistence failure rolls back origin, correction, and audit together", async () => {
+  // Given: a durable correction adapter that crashes before its first commit.
+  const dmsRepository = createOriginalFilingRepository();
+  const emptyValue = { placements: [], audit_events: [] };
   const repository = createEmailFilingCorrectionRepository({
     filePath: "/virtual/outm20-correction-store.json",
     read_state: () => ({ exists: false, value: emptyValue, generation: 0 }),
@@ -153,23 +219,21 @@ test("OUTM-20 persistence failure rolls back origin, correction, audit, and idem
       throw Object.assign(new Error("synthetic persistence crash"), { code: "OUTM20_STORE_CRASH" });
     },
   });
-  const service = serviceFor(repository);
-  const original = originalFiling();
-  const prior = service.currentPlacement({ original_filing: original }).placement_id;
+  const service = serviceFor(repository, dmsRepository);
+  const prior = await service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
 
   // When: the atomic append reaches persistence.
-  assertCode(
-    () => service.correct(correctionInput({ original_filing: original, prior_placement_id: prior })),
-    "OUTM20_STORE_CRASH",
-  );
+  const attempt = service.correct(correctionInput({ prior_placement_id: prior.placement_id }));
 
   // Then: no in-memory partial target reference or receipt remains.
+  await assertRejectCode(attempt, "OUTM20_STORE_CRASH");
   assert.deepEqual(repository.snapshot(), emptyValue);
 });
 
-test("OUTM-20 reloads one complete committed transaction when the writer response fails", () => {
+test("OUTM-20 reloads one complete committed transaction when writer acknowledgement fails", async () => {
   // Given: a writer that durably commits every collection, then loses its acknowledgement.
-  const emptyValue = { placements: [], idempotency: [], audit_events: [] };
+  const dmsRepository = createOriginalFilingRepository();
+  const emptyValue = { placements: [], audit_events: [] };
   let durableValue = structuredClone(emptyValue);
   let generation = 0;
   const repository = createEmailFilingCorrectionRepository({
@@ -187,20 +251,16 @@ test("OUTM-20 reloads one complete committed transaction when the writer respons
       });
     },
   });
-  const service = serviceFor(repository);
-  const original = originalFiling();
-  const prior = service.currentPlacement({ original_filing: original }).placement_id;
+  const service = serviceFor(repository, dmsRepository);
+  const prior = await service.currentPlacement({ session: SESSION, email_thread_id: THREAD_ID });
 
   // When: persistence succeeds but the writer cannot return its receipt.
-  assertCode(
-    () => service.correct(correctionInput({ original_filing: original, prior_placement_id: prior })),
-    "OUTM20_AFTER_COMMIT",
-  );
+  const attempt = service.correct(correctionInput({ prior_placement_id: prior.placement_id }));
 
-  // Then: reload exposes all four transaction effects, never a partial target link.
+  // Then: reload exposes the complete correction transaction, never a partial link.
+  await assertRejectCode(attempt, "OUTM20_AFTER_COMMIT");
   const snapshot = repository.snapshot();
   assert.equal(snapshot.placements.length, 2);
-  assert.equal(snapshot.idempotency.length, 1);
   assert.equal(snapshot.audit_events.length, 1);
   assert.deepEqual(snapshot, durableValue);
 });

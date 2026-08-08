@@ -94,6 +94,49 @@ CREATE POLICY tenant_isolation
   USING (tenant_id = lawos_security.current_tenant_id())
   WITH CHECK (tenant_id = lawos_security.current_tenant_id());
 
+CREATE TABLE IF NOT EXISTS lawos_email_dms.email_filing_correction_audit_events (
+  tenant_id text NOT NULL,
+  event_id text NOT NULL,
+  actor_id text NOT NULL,
+  action text NOT NULL CHECK (action = 'dms.email.filing.correct'),
+  object_type text NOT NULL CHECK (object_type = 'EmailFilingCorrection'),
+  object_id text NOT NULL,
+  decision text NOT NULL CHECK (decision = 'allow'),
+  reason text NOT NULL CHECK (reason = 'email_filing_placement_corrected'),
+  occurred_at timestamptz NOT NULL,
+  metadata jsonb NOT NULL,
+  PRIMARY KEY (tenant_id, event_id),
+  FOREIGN KEY (tenant_id, object_id)
+    REFERENCES lawos_email_dms.email_filing_placements (tenant_id, correction_id)
+    DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE OR REPLACE FUNCTION lawos_email_dms.reject_email_filing_correction_audit_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'email filing correction audits are append-only';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS email_filing_correction_audits_append_only
+  ON lawos_email_dms.email_filing_correction_audit_events;
+CREATE TRIGGER email_filing_correction_audits_append_only
+  BEFORE UPDATE OR DELETE ON lawos_email_dms.email_filing_correction_audit_events
+  FOR EACH ROW
+  EXECUTE FUNCTION lawos_email_dms.reject_email_filing_correction_audit_mutation();
+
+ALTER TABLE lawos_email_dms.email_filing_correction_audit_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_email_dms.email_filing_correction_audit_events FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tenant_isolation
+  ON lawos_email_dms.email_filing_correction_audit_events;
+CREATE POLICY tenant_isolation
+  ON lawos_email_dms.email_filing_correction_audit_events
+  USING (tenant_id = lawos_security.current_tenant_id())
+  WITH CHECK (tenant_id = lawos_security.current_tenant_id());
+
 CREATE OR REPLACE VIEW lawos_email_dms.email_filing_current_placements
 WITH (security_invoker = true)
 AS
