@@ -57,6 +57,8 @@ test("OUTM-33 fail-closes the document authority seam until the corrected OUTM-3
         version_id: "version-blocked",
         sha256: "a".repeat(64),
         approval_receipt_ref: "approval-blocked",
+        permission_envelope_id: "permission-blocked",
+        audit_trace_id: "audit-blocked",
       },
     }),
     (error) => error?.safe_error_code === DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED

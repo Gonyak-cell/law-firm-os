@@ -17,6 +17,8 @@ export function normalizeDocusignAuthorityBinding(input = {}) {
     version_id: docusignRequiredText(input.version_id, "authority_binding.version_id"),
     sha256: docusignRequiredSha256(input.sha256, "authority_binding.sha256"),
     approval_receipt_ref: docusignRequiredText(input.approval_receipt_ref, "authority_binding.approval_receipt_ref"),
+    permission_envelope_id: docusignRequiredText(input.permission_envelope_id, "authority_binding.permission_envelope_id"),
+    audit_trace_id: docusignRequiredText(input.audit_trace_id, "authority_binding.audit_trace_id"),
   });
 }
 
@@ -30,6 +32,8 @@ export function bindApprovedDocusignSource({ binding, source } = {}) {
     sha256: document.sha256,
     workspace_id: document.workspace_id,
     approval_receipt_ref: document.approval_receipt_ref,
+    permission_envelope_id: document.permission_envelope_id,
+    audit_trace_id: document.audit_trace_id,
   };
   for (const [field, actual] of Object.entries(compared)) {
     if (actual !== authority[field]) {
@@ -37,7 +41,7 @@ export function bindApprovedDocusignSource({ binding, source } = {}) {
     }
   }
   const sourceAuthority = normalizeDocusignAuthorityBinding(source?.authority);
-  for (const field of ["tenant_id", "matter_id", "workspace_id", "artifact_id", "document_id", "version_id", "sha256", "approval_receipt_ref"]) {
+  for (const field of ["tenant_id", "matter_id", "workspace_id", "artifact_id", "document_id", "version_id", "sha256", "approval_receipt_ref", "permission_envelope_id", "audit_trace_id"]) {
     if (sourceAuthority[field] !== authority[field]) {
       throw docusignFailure("DOCUSIGN_APPROVED_SOURCE_MISMATCH", "Approved source authority did not match", 409);
     }

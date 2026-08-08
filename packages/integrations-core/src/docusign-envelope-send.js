@@ -33,14 +33,31 @@ function dependencyError(error, code) {
 
 export function createDocusignSendExecutor({ repository, connectionResolver, artifactReader, recipientResolver, adapter, clock }) {
   const mutate = (tenantId, fn) => repository.transact({ tenant_id: tenantId }, fn);
+  function assertLease(current, token) {
+    if (
+      current.state !== "provider_pending"
+      || current.operation_lease?.kind !== "send"
+      || current.operation_lease?.token !== token
+      || Date.parse(current.operation_lease.expires_at) <= Date.parse(docusignNow(clock))
+    ) throw docusignInfrastructureFailure("DOCUSIGN_SEND_LEASE_LOST");
+  }
   async function updateLease(tenantId, requestId, token, update) {
     return mutate(tenantId, (state) => {
       const index = indexOf(state, tenantId, requestId);
       if (index < 0) throw docusignFailure("DOCUSIGN_REQUEST_NOT_FOUND", "DocuSign request was not found", 404);
       const current = state.requests[index];
-      if (current.operation_lease?.token !== token) throw docusignInfrastructureFailure("DOCUSIGN_SEND_LEASE_LOST");
+      assertLease(current, token);
       state.requests[index] = update(current);
       return state.requests[index];
+    });
+  }
+  async function assertLeaseActive(tenantId, requestId, token) {
+    return mutate(tenantId, (state) => {
+      const index = indexOf(state, tenantId, requestId);
+      if (index < 0) throw docusignFailure("DOCUSIGN_REQUEST_NOT_FOUND", "DocuSign request was not found", 404);
+      const current = state.requests[index];
+      assertLease(current, token);
+      return current;
     });
   }
 
@@ -86,6 +103,8 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
         artifact_id: request.document.artifact_id, document_id: request.document.document_id,
         version_id: request.document.version_id, sha256: request.document.sha256,
         approval_receipt_ref: request.document.approval_receipt_ref,
+        permission_envelope_id: request.document.permission_envelope_id,
+        audit_trace_id: request.document.audit_trace_id,
       };
       const artifact = await artifactReader(artifactBinding);
       for (const [field, expected] of Object.entries(artifactBinding)) {
@@ -99,12 +118,18 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
         signers.push({ ...recipient, name: resolved.name, email: resolved.email });
       }
     } catch (error) {
-      await updateLease(principal.tenant_id, requestId, claimed.token, (fresh) => ({ ...fresh, state: "approved", attempt_phase: null, operation_lease: null, last_safe_error_code: error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }));
+      try {
+        await updateLease(principal.tenant_id, requestId, claimed.token, (fresh) => ({ ...fresh, state: "approved", attempt_phase: null, operation_lease: null, last_safe_error_code: error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }));
+      } catch (leaseError) {
+        if (leaseError?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST") throw leaseError;
+        throw dependencyError(leaseError, "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
+      }
       throw dependencyError(error, error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
     }
     let envelope;
     try {
-      envelope = await adapter.createDraft({ connection, document: { ...request.document, bytes: artifactBytes }, signers, anchor_manifest: request.anchor_manifest });
+      request = await assertLeaseActive(principal.tenant_id, requestId, claimed.token);
+      envelope = await adapter.createDraft({ connection, document: { ...request.document, bytes: artifactBytes }, signers, anchor_manifest: request.anchor_manifest, provider_correlation_ref: request.provider_correlation_ref });
     } catch (error) {
       const classified = providerFailure(error);
       request = await updateLease(principal.tenant_id, requestId, claimed.token, (fresh) => ({ ...fresh, state: classified.state, attempt_phase: "create_failed", operation_lease: null, last_safe_error_code: classified.safe_error_code, updated_at: docusignNow(clock) }));
@@ -117,7 +142,8 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
     }
     try {
       request = await updateLease(principal.tenant_id, requestId, claimed.token, (fresh) => ({ ...fresh, envelope_id: docusignRequiredText(envelope?.envelope_id, "provider envelope_id"), attempt_phase: "draft_persisted", updated_at: docusignNow(clock) }));
-    } catch {
+    } catch (error) {
+      if (error?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST") throw error;
       throw docusignInfrastructureFailure("DOCUSIGN_CREATE_PERSIST_FAILED");
     }
     request = await updateLease(principal.tenant_id, requestId, claimed.token, (fresh) => ({ ...fresh, attempt_phase: "sending", updated_at: docusignNow(clock) }));

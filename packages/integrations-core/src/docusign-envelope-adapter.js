@@ -4,10 +4,17 @@ import { isOpaqueCredentialReference } from "../../persistence/src/credential-re
 
 export const DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 export const DOCUSIGN_SDK_VERSION = "10.0.0";
+export const DOCUSIGN_PROVIDER_CORRELATION_FIELD = "AMIC_OS_PROVIDER_CORRELATION_REF";
 
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
   return value.trim();
+}
+
+function requiredCorrelationRef(value) {
+  const ref = requiredText(value, "provider_correlation_ref");
+  if (ref.length > 100) throw new TypeError("provider_correlation_ref exceeds DocuSign custom-field limit");
+  return ref;
 }
 
 function requiredRef(value, field) {
@@ -137,14 +144,16 @@ export function createDocusignEnvelopeAdapter({
   return Object.freeze({
     provider: "docusign",
     sdk_version: DOCUSIGN_SDK_VERSION,
-    async createDraft({ connection, document, signers, anchor_manifest } = {}) {
+    async createDraft({ connection, document, signers, anchor_manifest, provider_correlation_ref } = {}) {
       const source = normalizeDocument(document);
       const normalizedSigners = (signers ?? []).map(normalizeSigner);
       if (normalizedSigners.length === 0) throw new TypeError("at least one signer is required");
+      const correlationRef = requiredCorrelationRef(provider_correlation_ref);
       const { connection: normalizedConnection, envelopesApi } = await envelopesApiFor(connection);
       const envelopeDefinition = {
         emailSubject: "AMIC OS 서명 요청",
         status: "created",
+        customFields: { textCustomFields: [{ name: DOCUSIGN_PROVIDER_CORRELATION_FIELD, value: correlationRef, show: "false" }] },
         documents: [{
           documentBase64: source.bytes.toString("base64"),
           documentId: "1",
@@ -166,6 +175,27 @@ export function createDocusignEnvelopeAdapter({
         envelopeDefinition,
       });
       return Object.freeze({ envelope_id: requiredText(result.data?.envelopeId, "provider envelope_id") });
+    },
+    async findByCorrelation({ connection, provider_correlation_ref } = {}) {
+      const correlationRef = requiredCorrelationRef(provider_correlation_ref);
+      const { connection: normalizedConnection, envelopesApi } = await envelopesApiFor(connection);
+      const result = await sdkCall(envelopesApi, "listStatusChanges", normalizedConnection.account_id, {
+        customField: `${DOCUSIGN_PROVIDER_CORRELATION_FIELD}=${correlationRef}`,
+        fromDate: new Date(Date.now() - (31 * 24 * 60 * 60 * 1000)).toISOString(),
+      });
+      const matches = (result.data?.envelopes ?? []).filter((item) => typeof item?.envelopeId === "string" && item.envelopeId !== "");
+      if (matches.length !== 1) {
+        const error = new Error("DocuSign provider correlation was not unique");
+        error.provider_status = matches.length === 0 ? 404 : 409;
+        throw error;
+      }
+      const match = matches[0];
+      return Object.freeze({
+        envelope_id: requiredText(match.envelopeId, "provider envelope_id"),
+        provider_correlation_ref: correlationRef,
+        account_id: normalizedConnection.account_id,
+        status: typeof match.status === "string" ? match.status.toLowerCase() : null,
+      });
     },
     async send({ connection, envelope_id } = {}) {
       const { connection: normalizedConnection, envelopesApi } = await envelopesApiFor(connection);

@@ -107,6 +107,8 @@ function normalizeArtifact(input) {
     document_id: docusignRequiredText(input.document_id, "artifact.document_id"),
     version_id: docusignRequiredText(input.version_id, "artifact.version_id"),
     sha256: docusignRequiredSha256(input.sha256, "artifact.sha256"),
+    permission_envelope_id: input.permission_envelope_id == null ? null : docusignRequiredText(input.permission_envelope_id, "artifact.permission_envelope_id"),
+    audit_trace_id: input.audit_trace_id == null ? null : docusignRequiredText(input.audit_trace_id, "artifact.audit_trace_id"),
     immutable: true,
   });
 }
@@ -132,6 +134,16 @@ function normalizeProviderCursor(input) {
   });
 }
 
+export function normalizeDocusignAuditLineage(input = []) {
+  if (!Array.isArray(input)) throw new TypeError("request.audit_lineage must be an array");
+  return Object.freeze(input.map((entry) => Object.freeze({
+    event: docusignRequiredText(entry?.event, "audit_lineage.event"),
+    audit_trace_id: docusignRequiredText(entry?.audit_trace_id, "audit_lineage.audit_trace_id"),
+    actor_id: docusignRequiredText(entry?.actor_id, "audit_lineage.actor_id"),
+    occurred_at: docusignTimestamp(entry?.occurred_at, "audit_lineage.occurred_at"),
+  })));
+}
+
 export function normalizeDocusignRequest(input = {}) {
   const state = docusignRequiredText(input.state, "request.state");
   if (!DOCUSIGN_REQUEST_STATES.includes(state)) throw new TypeError("request.state is invalid");
@@ -142,11 +154,19 @@ export function normalizeDocusignRequest(input = {}) {
   if (state === "approved" && envelopeId) throw new TypeError("approved request cannot already have a provider envelope");
   const recipients = (input.recipient_snapshot ?? []).map(normalizeDocusignRecipient);
   if (recipients.length === 0) throw new TypeError("request.recipient_snapshot is required");
+  const document = normalizeDocusignDocument(input.document);
+  const auditLineage = normalizeDocusignAuditLineage(input.audit_lineage);
+  if (auditLineage.some((entry) => entry.audit_trace_id !== document.audit_trace_id)) throw new TypeError("request.audit_lineage authority does not match document");
   const artifacts = Object.freeze({
     signed_pdf: normalizeArtifact(input.completion_artifacts?.signed_pdf),
     certificate: normalizeArtifact(input.completion_artifacts?.certificate),
   });
   if (state === "completed" && (!artifacts.signed_pdf || !artifacts.certificate)) throw new TypeError("completed request requires both immutable completion artifacts");
+  for (const artifact of Object.values(artifacts)) {
+    if (artifact && (artifact.permission_envelope_id !== input.document?.permission_envelope_id || artifact.audit_trace_id !== input.document?.audit_trace_id)) {
+      throw new TypeError("completion artifact authority binding does not match request document");
+    }
+  }
   const payloadSha256 = docusignRequiredSha256(input.payload_sha256, "request.payload_sha256");
   return Object.freeze({
     request_id: docusignRequiredText(input.request_id, "request.request_id"),
@@ -154,7 +174,7 @@ export function normalizeDocusignRequest(input = {}) {
     matter_id: docusignRequiredText(input.matter_id, "request.matter_id"),
     connection_id: docusignRequiredText(input.connection_id, "request.connection_id"),
     account_binding_ref: docusignRequiredText(input.account_binding_ref, "request.account_binding_ref"),
-    document: normalizeDocusignDocument(input.document),
+    document,
     recipient_snapshot: Object.freeze(recipients),
     anchor_manifest: normalizeDocusignAnchors(input.anchor_manifest),
     idempotency_key: docusignRequiredText(input.idempotency_key, "request.idempotency_key"),
@@ -171,6 +191,7 @@ export function normalizeDocusignRequest(input = {}) {
     provider_cursor: normalizeProviderCursor(input.provider_cursor),
     operation_lease: normalizeLease(input.operation_lease),
     completion_artifacts: artifacts,
+    audit_lineage: auditLineage,
     event_hashes: Object.freeze([...new Set((input.event_hashes ?? []).map((value) => docusignRequiredSha256(value, "event_hash")))]),
     created_at: docusignTimestamp(input.created_at, "request.created_at"),
     updated_at: docusignTimestamp(input.updated_at, "request.updated_at"),

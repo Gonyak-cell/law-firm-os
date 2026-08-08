@@ -4,6 +4,7 @@ import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 export const DOCUSIGN_WEBHOOK_PATH = "/api/integrations/docusign/webhook";
 export const DOCUSIGN_OUTLOOK_REQUESTS_PATH = "/api/outlook/esign-requests";
 const DOCUSIGN_SEND_PATH = /^\/api\/outlook\/esign-requests\/([^/]+)\/send$/u;
+const DOCUSIGN_RECONCILE_PATH = /^\/api\/outlook\/esign-requests\/([^/]+)\/reconcile$/u;
 
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -35,7 +36,7 @@ export function isDocusignOutlookRead(method, pathname) {
 export function isDocusignOutlookRoute(method, pathname) {
   const verb = String(method ?? "").toUpperCase();
   return (pathname === DOCUSIGN_OUTLOOK_REQUESTS_PATH && ["GET", "POST"].includes(verb))
-    || (verb === "POST" && DOCUSIGN_SEND_PATH.test(pathname));
+    || (verb === "POST" && (DOCUSIGN_SEND_PATH.test(pathname) || DOCUSIGN_RECONCILE_PATH.test(pathname)));
 }
 
 export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
@@ -100,6 +101,13 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
         document_id: documentId,
         version_id: versionId,
         sha256: digest,
+        tenant_id: document.tenant_id,
+        matter_id: document.matter_id,
+        workspace_id: document.workspace_id,
+        permission_envelope_id: document.permission_envelope_id,
+        audit_trace_id: document.audit_trace_id,
+        request_id: requestId,
+        envelope_id: requiredText(input.envelope_id, "envelope_id"),
         immutable: true,
       });
     },
@@ -186,7 +194,8 @@ export async function handleDocusignOutlookRequest({ method, pathname, query = {
   const service = runtime?.envelope_service ?? runtime?.outbox;
   if (!service) return blocked(503, requestId, "DOCUSIGN_RUNTIME_UNAVAILABLE");
   const sendMatch = pathname.match(DOCUSIGN_SEND_PATH);
-  if (!sendMatch && runtime?.readiness?.().authority_state === "blocked") {
+  const reconcileMatch = pathname.match(DOCUSIGN_RECONCILE_PATH);
+  if (!sendMatch && !reconcileMatch && runtime?.readiness?.().authority_state === "blocked") {
     return blocked(503, requestId, "DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED");
   }
   try {
@@ -206,6 +215,16 @@ export async function handleDocusignOutlookRequest({ method, pathname, query = {
         throw Object.assign(new Error("DocuSign request was not found"), { status: 404, safe_error_code: "DOCUSIGN_REQUEST_NOT_FOUND" });
       }
       const result = await service.sendApprovedRequest({ principal: serverPrincipal, request_id: requestIdValue, explicit_human_action: true, action_idempotency_key: body.idempotency_key });
+      return response(result.outcome === "in_progress" ? 202 : 200, { request_id: requestId, outcome: result.outcome, item: result.request, safe_error_codes: result.safe_error_code ? [result.safe_error_code] : [], production_ready_claim: false });
+    }
+    if (reconcileMatch) {
+      const requestIdValue = decodeURIComponent(reconcileMatch[1]);
+      const matterId = requiredText(body.matter_id, "matter_id");
+      await authorize(runtime, serverPrincipal, matterId, "docusign:request:reconcile");
+      if (typeof service.listRequests !== "function" || typeof service.reconcileRequest !== "function") throw Object.assign(new Error("DocuSign reconciliation is unavailable"), { status: 503, safe_error_code: "DOCUSIGN_RECONCILIATION_UNAVAILABLE" });
+      const authorizedRequests = await service.listRequests({ principal: serverPrincipal, matter_id: matterId });
+      if (!authorizedRequests.some((item) => item.request_id === requestIdValue)) throw Object.assign(new Error("DocuSign request was not found"), { status: 404, safe_error_code: "DOCUSIGN_REQUEST_NOT_FOUND" });
+      const result = await service.reconcileRequest({ principal: serverPrincipal, request_id: requestIdValue, explicit_human_action: true, action_idempotency_key: body.idempotency_key });
       return response(result.outcome === "in_progress" ? 202 : 200, { request_id: requestId, outcome: result.outcome, item: result.request, safe_error_codes: result.safe_error_code ? [result.safe_error_code] : [], production_ready_claim: false });
     }
     const matterId = requiredText(body.matter_id, "matter_id");

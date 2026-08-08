@@ -25,7 +25,7 @@ const SOURCE = Object.freeze({
   authority: {
     tenant_id: TENANT, matter_id: MATTER, workspace_id: "workspace-concurrency",
     artifact_id: "artifact-concurrency", document_id: "document-concurrency", version_id: "version-concurrency",
-    sha256: SHA, approval_receipt_ref: "approval-concurrency",
+    sha256: SHA, approval_receipt_ref: "approval-concurrency", permission_envelope_id: "permission-concurrency", audit_trace_id: "audit-concurrency",
   },
   document: {
     artifact_id: "artifact-concurrency", document_id: "document-concurrency", version_id: "version-concurrency",
@@ -41,6 +41,7 @@ const AUTHORITY = Object.freeze({
   tenant_id: TENANT, matter_id: MATTER, workspace_id: SOURCE.document.workspace_id,
   artifact_id: SOURCE.document.artifact_id, document_id: SOURCE.document.document_id,
   version_id: SOURCE.document.version_id, sha256: SHA, approval_receipt_ref: SOURCE.document.approval_receipt_ref,
+  permission_envelope_id: SOURCE.document.permission_envelope_id, audit_trace_id: SOURCE.document.audit_trace_id,
 });
 
 function service(repository, adapter, clock = () => "2026-08-08T04:00:00.000Z") {

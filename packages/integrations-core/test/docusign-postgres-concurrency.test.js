@@ -23,7 +23,7 @@ const SOURCE = Object.freeze({
   authority: {
     tenant_id: TENANT, matter_id: MATTER, workspace_id: "workspace-pg",
     artifact_id: "artifact-pg", document_id: "document-pg", version_id: "version-pg",
-    sha256: SHA, approval_receipt_ref: "approval-pg",
+    sha256: SHA, approval_receipt_ref: "approval-pg", permission_envelope_id: "permission-pg", audit_trace_id: "audit-pg",
   },
   document: {
     artifact_id: "artifact-pg", document_id: "document-pg", version_id: "version-pg", sha256: SHA,
@@ -39,6 +39,7 @@ const AUTHORITY = Object.freeze({
   tenant_id: TENANT, matter_id: MATTER, workspace_id: SOURCE.document.workspace_id,
   artifact_id: SOURCE.document.artifact_id, document_id: SOURCE.document.document_id,
   version_id: SOURCE.document.version_id, sha256: SHA, approval_receipt_ref: SOURCE.document.approval_receipt_ref,
+  permission_envelope_id: SOURCE.document.permission_envelope_id, audit_trace_id: SOURCE.document.audit_trace_id,
 });
 
 function outbox(repository, adapter, clock) {
@@ -113,4 +114,39 @@ test("OUTM-33/34 PostgreSQL advisory CAS serializes independent runtimes and sur
   await poolAfterRestart.end();
   await poolA.end();
   await poolB.end();
+});
+
+test("OUTM-33 PostgreSQL expired send lease fences provider calls and survives restart", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const pool = independentPool(fixture, "docusign-expired-send-owner");
+  const repository = createPostgresDocusignEnvelopeRepository({ pool });
+  let createCalls = 0;
+  let sendCalls = 0;
+  const service = outbox(repository, {
+    async createDraft() { createCalls += 1; return { envelope_id: "must-not-create" }; },
+    async send() { sendCalls += 1; },
+  }, () => "2026-08-08T06:00:00.000Z");
+  await service.queueApprovedRequest({
+    principal: { tenant_id: TENANT, actor_id: "actor-pg" }, request_id: "request-pg-expired",
+    tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id,
+    approved_artifact_id: SOURCE.document.artifact_id, idempotency_key: "queue-pg-expired",
+    explicit_human_action: true, authority_binding: AUTHORITY,
+  });
+  await repository.transact({ tenant_id: TENANT }, (state) => {
+    const request = state.requests.find((item) => item.request_id === "request-pg-expired");
+    Object.assign(request, {
+      state: "provider_pending", attempt_phase: "creating", operation_lease: {
+        kind: "send", token: "expired-owner", acquired_at: "2026-08-08T05:00:00.000Z", expires_at: "2026-08-08T05:01:00.000Z",
+      }, updated_at: "2026-08-08T05:00:00.000Z",
+    });
+  });
+  const result = await service.sendApprovedRequest({ principal: { tenant_id: TENANT, actor_id: "actor-pg" }, request_id: "request-pg-expired", explicit_human_action: true });
+  assert.deepEqual([result.outcome, createCalls, sendCalls], ["replayed", 0, 0]);
+  const restartedPool = independentPool(fixture, "docusign-expired-send-restart");
+  const restarted = createPostgresDocusignEnvelopeRepository({ pool: restartedPool });
+  const state = await restarted.readState({ tenant_id: TENANT });
+  assert.equal(state.requests.find((item) => item.request_id === "request-pg-expired")?.state, "reconciliation_required");
+  await restartedPool.end();
+  await pool.end();
 });

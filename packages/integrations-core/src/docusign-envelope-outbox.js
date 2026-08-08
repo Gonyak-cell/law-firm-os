@@ -12,6 +12,7 @@ import {
 } from "./docusign-envelope-model.js";
 import { createDocusignEnvelopeRepository, readDocusignState, requireDocusignRepository } from "./docusign-envelope-repository.js";
 import { createDocusignSendExecutor } from "./docusign-envelope-send.js";
+import { createDocusignReconciliationExecutor } from "./docusign-envelope-reconcile.js";
 
 export { DOCUSIGN_OUTBOX_SCHEMA_VERSION, DOCUSIGN_REQUEST_STATES, docusignAccountBindingRef, normalizeDocusignOutboxState, projectDocusignRequestSafe } from "./docusign-envelope-model.js";
 export { createDocusignEnvelopeRepository } from "./docusign-envelope-repository.js";
@@ -37,6 +38,7 @@ export function createDocusignEnvelopeService({
   if (!adapter || typeof adapter.createDraft !== "function" || typeof adapter.send !== "function") throw new TypeError("DocuSign envelope adapter is required");
 
   const sendApprovedRequest = createDocusignSendExecutor({ repository, connectionResolver, artifactReader, recipientResolver, adapter, clock });
+  const reconcileRequest = createDocusignReconciliationExecutor({ repository, connectionResolver, adapter, clock });
   return Object.freeze({
     repository,
     async queueApprovedRequest(input = {}) {
@@ -81,12 +83,14 @@ export function createDocusignEnvelopeService({
           idempotency_key: idempotencyKey, payload_sha256: payloadSha256,
           provider_correlation_ref: `docusign-correlation:${docusignHash({ request_id: requestId, payload_sha256: payloadSha256 })}`,
           requested_by_actor_id: principal.actor_id, state: "approved", completion_artifacts: {}, event_hashes: [], created_at: createdAt, updated_at: createdAt,
+          audit_lineage: [{ event: "approved_document_bound", audit_trace_id: source.document.audit_trace_id, actor_id: principal.actor_id, occurred_at: createdAt }],
         });
         state.requests.push(request);
         return Object.freeze({ outcome: "created", request: projectDocusignRequestSafe(request) });
       });
     },
     sendApprovedRequest,
+    reconcileRequest,
     async listRequests({ principal, matter_id } = {}) {
       const serverPrincipal = normalizeDocusignPrincipal(principal);
       const matterId = matter_id == null ? null : docusignRequiredText(matter_id, "matter_id");
