@@ -18,6 +18,13 @@ function option(name) {
   return value;
 }
 
+function optionalOption(name) {
+  const index = process.argv.indexOf(name);
+  const value = index >= 0 ? process.argv[index + 1] : null;
+  if (index >= 0 && (!value || value.startsWith("--"))) throw new TypeError(`${name} requires a value`);
+  return value;
+}
+
 function git(...args) {
   return execFileSync("git", args, {
     cwd: repoRoot,
@@ -34,19 +41,48 @@ async function main() {
   const expectedSourceSha = option("--source-sha");
   const receipt = await readJson(path.resolve(option("--receipt")));
   const releaseCandidate = await readJson(path.resolve(option("--release-receipt")));
+  const staticPlanRef = optionalOption("--static-plan");
   const sourceSha = git("rev-parse", "HEAD");
   const sourceTree = git("rev-parse", "HEAD^{tree}");
   if (sourceSha !== expectedSourceSha) throw new Error(`exact source SHA mismatch: expected ${expectedSourceSha}, got ${sourceSha}`);
   if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("worktree changes make exact-SHA validation impossible");
 
-  const contract = await readJson(path.join(repoRoot, "contracts/outlook-addin-release-gates.json"));
+  const contractRef = "contracts/outlook-addin-release-gates.json";
+  const contractBytes = await readFile(path.join(repoRoot, contractRef));
+  const contract = JSON.parse(contractBytes);
   const packageLockBytes = await readFile(path.join(repoRoot, "package-lock.json"));
-  if (releaseCandidate.source_tree !== sourceTree
+  if (releaseCandidate.source_sha !== sourceSha
+    || releaseCandidate.source_tree !== sourceTree
     || releaseCandidate.package_lock_sha256 !== sha256(packageLockBytes)) {
-    throw new Error("release candidate source tree/lock does not match HEAD");
+    throw new Error("release candidate source SHA/tree/lock does not match HEAD");
   }
-  const baseline = await readJson(path.join(repoRoot, contract.baseline_receipt));
-  const rollback = await readJson(path.join(repoRoot, contract.rollback_contract));
+  const baselineBytes = await readFile(path.join(repoRoot, contract.baseline_receipt));
+  const rollbackBytes = await readFile(path.join(repoRoot, contract.rollback_contract));
+  const surfaceBytes = await readFile(path.join(repoRoot, contract.surface_contract));
+  const baseline = JSON.parse(baselineBytes);
+  const rollback = JSON.parse(rollbackBytes);
+  const surface = JSON.parse(surfaceBytes);
+  const expectedSourceIdentity = {
+    source_sha: sourceSha,
+    source_tree: sourceTree,
+    package_lock_sha256: sha256(packageLockBytes),
+  };
+  const releaseContext = {
+    baseline,
+    contractArtifacts: {
+      baseline: { ref: contract.baseline_receipt, sha256: sha256(baselineBytes) },
+      release_gate: { ref: contractRef, sha256: sha256(contractBytes) },
+      rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
+      surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
+    },
+    expectedSourceIdentity,
+    packageLock: JSON.parse(packageLockBytes),
+    packageLockBytes,
+    rollback,
+    surface,
+  };
+  const staticPlanBytes = staticPlanRef ? await readFile(path.resolve(staticPlanRef)) : null;
+  const staticPlan = staticPlanBytes ? JSON.parse(staticPlanBytes) : null;
   const candidateManifestHashes = {};
   const candidateManifestProjections = {};
   for (const profile of contract.profiles) {
@@ -59,8 +95,12 @@ async function main() {
     baseline,
     rollback,
     releaseCandidate,
+    releaseContext,
     candidateManifestHashes,
     candidateManifestProjections,
+    expectedSourceIdentity,
+    staticPlan,
+    staticPlanSha256: staticPlanBytes ? sha256(staticPlanBytes) : null,
   });
   process.stdout.write(`${JSON.stringify({
     verdict: "PASS",

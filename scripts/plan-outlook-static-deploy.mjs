@@ -46,7 +46,9 @@ async function main() {
   if (sourceSha !== expectedSourceSha) throw new Error(`exact source SHA mismatch: expected ${expectedSourceSha}, got ${sourceSha}`);
   if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("worktree changes make exact-SHA planning impossible");
 
-  const contract = await readJson(path.join(repoRoot, "contracts/outlook-addin-release-gates.json"));
+  const contractRef = "contracts/outlook-addin-release-gates.json";
+  const contractBytes = await readFile(path.join(repoRoot, contractRef));
+  const contract = JSON.parse(contractBytes);
   const releaseReceipt = await readJson(receiptPath);
   const packageLockBytes = await readFile(path.join(repoRoot, "package-lock.json"));
   if (releaseReceipt.source_sha !== sourceSha
@@ -61,8 +63,29 @@ async function main() {
     const xml = await readFile(path.join(repoRoot, profile.production_manifest), "utf8");
     sourceLocations[profile.profile] = parseOutlookManifest(xml).form_source_locations;
   }
-  const plan = buildStaticDryRunPlan({ releaseReceipt, sourceLocations, contract, bucketRef });
-  validateStaticDryRunPlan(plan, contract);
+  const baselineBytes = await readFile(path.join(repoRoot, contract.baseline_receipt));
+  const rollbackBytes = await readFile(path.join(repoRoot, contract.rollback_contract));
+  const surfaceBytes = await readFile(path.join(repoRoot, contract.surface_contract));
+  const releaseContext = {
+    baseline: JSON.parse(baselineBytes),
+    contractArtifacts: {
+      baseline: { ref: contract.baseline_receipt, sha256: sha256(baselineBytes) },
+      release_gate: { ref: contractRef, sha256: sha256(contractBytes) },
+      rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
+      surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
+    },
+    expectedSourceIdentity: {
+      source_sha: sourceSha,
+      source_tree: sourceTree,
+      package_lock_sha256: sha256(packageLockBytes),
+    },
+    packageLock: JSON.parse(packageLockBytes),
+    packageLockBytes,
+    rollback: JSON.parse(rollbackBytes),
+    surface: JSON.parse(surfaceBytes),
+  };
+  const plan = buildStaticDryRunPlan({ releaseReceipt, releaseContext, sourceLocations, contract, bucketRef });
+  validateStaticDryRunPlan(plan, { contract, releaseReceipt, releaseContext, sourceLocations });
   process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
 }
 

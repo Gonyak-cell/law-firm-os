@@ -11,6 +11,7 @@ import {
   validateBuildInventories,
   validateCoveragePaths,
   validateDependencyLicenses,
+  validateReleaseCandidateReceipt,
   validateReleaseContract,
   validateRollbackContract,
   validateSurfaceSeparation,
@@ -47,10 +48,6 @@ function run(command, args) {
     const output = `${error.stdout ?? ""}\n${error.stderr ?? ""}`.trim().slice(-4_000);
     throw new Error(`${command} ${args.join(" ")} failed${output ? `: ${output}` : ""}`);
   }
-}
-
-async function readJson(relativePath) {
-  return JSON.parse(await readFile(path.join(repoRoot, relativePath), "utf8"));
 }
 
 export async function profileArtifacts(contract, inventory) {
@@ -97,10 +94,15 @@ export async function graphScopeFingerprint(contract) {
 
 async function main() {
   const expectedSourceSha = option("--source-sha");
-  const contract = await readJson("contracts/outlook-addin-release-gates.json");
-  const baseline = await readJson(contract.baseline_receipt);
-  const surface = await readJson(contract.surface_contract);
-  const rollback = await readJson(contract.rollback_contract);
+  const contractRef = "contracts/outlook-addin-release-gates.json";
+  const contractBytes = await readFile(path.join(repoRoot, contractRef));
+  const contract = JSON.parse(contractBytes);
+  const baselineBytes = await readFile(path.join(repoRoot, contract.baseline_receipt));
+  const surfaceBytes = await readFile(path.join(repoRoot, contract.surface_contract));
+  const rollbackBytes = await readFile(path.join(repoRoot, contract.rollback_contract));
+  const baseline = JSON.parse(baselineBytes);
+  const surface = JSON.parse(surfaceBytes);
+  const rollback = JSON.parse(rollbackBytes);
   const packageLockBytes = await readFile(path.join(repoRoot, "package-lock.json"));
   const packageLock = JSON.parse(packageLockBytes);
 
@@ -141,7 +143,13 @@ async function main() {
     throw new Error("release validation changed or drifted from the exact source tree");
   }
 
-  process.stdout.write(`${JSON.stringify({
+  const contractArtifacts = {
+    baseline: { ref: contract.baseline_receipt, sha256: sha256(baselineBytes) },
+    release_gate: { ref: contractRef, sha256: sha256(contractBytes) },
+    rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
+    surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
+  };
+  const receipt = {
     schema_version: "amic-os.outlook-release-candidate.v1",
     verdict: "PASS",
     source_sha: sourceSha,
@@ -165,11 +173,26 @@ async function main() {
     rollback: rollbackResult,
     surface: surfaceResult,
     graph_scopes: graphScopes,
+    contract_artifacts: contractArtifacts,
     runtime_provider_calls: 0,
     external_mutations: 0,
     allowed_claim: "Exact source, deterministic local build, four official manifest validations, frozen profile drift, rollback metadata, and dependency licenses passed.",
     blocked_claim: "This receipt is not API/static/M365 deployment, propagation, real Outlook host, Graph delivery, DocuSign sandbox, or go-live evidence.",
-  }, null, 2)}\n`);
+  };
+  validateReleaseCandidateReceipt(receipt, contract, {
+    baseline,
+    contractArtifacts,
+    expectedSourceIdentity: {
+      source_sha: sourceSha,
+      source_tree: sourceTree,
+      package_lock_sha256: sha256(packageLockBytes),
+    },
+    packageLock,
+    packageLockBytes,
+    rollback,
+    surface,
+  });
+  process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === scriptPath) {

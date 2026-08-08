@@ -63,7 +63,7 @@ After a separately authorized code-only deployment, use `mode: "post-deploy-read
 
 ## 3. AWS static dry-run
 
-Generate an additive `/addin` object plan from the passing candidate receipt:
+Generate one additive, exact-inventory plan for both production namespaces from the passing candidate receipt:
 
 ```bash
 node scripts/plan-outlook-static-deploy.mjs \
@@ -72,9 +72,12 @@ node scripts/plan-outlook-static-deploy.mjs \
   --bucket-ref OUTLOOK_ADDIN_STATIC_BUCKET > <protected-static-plan.json>
 ```
 
-`--bucket-ref` is a symbolic configuration reference, not a bucket name or credential. The planner invokes no AWS command. It emits zero mutations, never uses delete, limits target keys and invalidation to `addin/` and `/addin/*`, rejects XML/manifest objects, and preserves `addin/manifests/**`.
+`--bucket-ref` is a symbolic configuration reference, not a bucket name or credential. The planner invokes no AWS command. It emits zero mutations, never uses delete, and permits objects only below the two exact targets:
 
-The plan also compares production SourceLocations to its allowed prefix. The current inquiry-only SourceLocation is under `/outlook-addin`, so a `/addin`-only plan reports `source_location_coverage.inquiry-only: false`. That is intentional: this dry-run cannot be used to claim that the inquiry bundle was hosted. A separately reviewed plan and authorization for its exact existing prefix is required before central update of that profile.
+- Matter/full: `addin/`, invalidation `/addin/*`;
+- inquiry-only: `outlook-addin/`, invalidation `/outlook-addin/*`.
+
+The candidate build inventory is partitioned exactly once: `outlook-addin/**` belongs only to inquiry, and the remaining build output belongs only to Matter. Each profile records its complete inventory hash, task-pane HTML hash, bundle hash, production manifest hash/reference, SourceLocations, and a true prefix-coverage result. A missing/false coverage result, cross-profile fallback, path traversal, root object, delete, XML operation, or write below protected `addin/manifests/**` fails closed. Production manifests remain Microsoft 365 central-deployment inputs (`m365_central_deployment_only`); this AWS dry-run neither overwrites nor publishes them.
 
 ## 4. Microsoft 365 receipt, readback, propagation, and real Outlook QA
 
@@ -87,9 +90,19 @@ node scripts/validate-outlook-m365-release-receipt.mjs \
   --receipt <protected-m365-receipt.json>
 ```
 
-Before authorization the only valid status is `awaiting_authorized_deployment`. It requires null authorization, zero mutations, no operations/readbacks/observations/host evidence, and all completion claims false. API, static hosting, additive migrations, Graph endpoint/secret reference, DocuSign endpoint/secret reference, approved-template runtime, and precedent-index runtime are each recorded as `pending` or as a hash-bound protected `verified` receipt. That packet is structurally valid, not deployed.
+Before authorization the only valid status is `awaiting_authorized_deployment`. It requires null authorization, null `static_release`, zero mutations, no operations/readbacks/observations/host evidence, and all completion claims false. API, static hosting, additive migrations, Graph endpoint/secret reference, DocuSign endpoint/secret reference, approved-template runtime, and precedent-index runtime are each recorded as `pending` or as a SHA/tree/lock/artifact/hash-bound protected `verified` receipt. Unknown top-level or nested fields are rejected, including free-floating deployment/provider/go-live booleans. That packet is structurally valid, not deployed.
 
-An executed central-update receipt is invalid while any prerequisite remains pending. After separately authorized API/migration/static work and a pilot central update, the receipt must contain exact task-pane HTML and entry-bundle hash/HTTP readbacks for both SourceLocations, two independent central-update operation references, and two central readbacks. Each central readback must match the exact ProductId, candidate manifest SHA-256, version, fixed deployment mode, SourceLocations, enabled state, assignment count, and sanitized assignment fingerprint. Deleting/re-registering either app or reusing one app's rollback for the other is invalid.
+An executed receipt also requires the exact dry-run plan bytes:
+
+```bash
+node scripts/validate-outlook-m365-release-receipt.mjs \
+  --source-sha <exact-40-character-HEAD> \
+  --release-receipt <protected-release-receipt.json> \
+  --static-plan <protected-static-plan.json> \
+  --receipt <protected-m365-receipt.json>
+```
+
+It is invalid while any prerequisite remains pending. `static_release` must bind the plan SHA-256 and both profile inventory/manifest/task-pane/bundle hashes, exact target prefixes, and true SourceLocation coverage; its prerequisite binds the same plan and complete candidate inventory. After separately authorized API/migration/static work and a pilot central update, the receipt must contain exact task-pane HTML, entry-bundle, per-prefix inventory, and HTTP readbacks for both SourceLocations, two independent central-update operation references, and two central readbacks. Each central readback must match the exact ProductId, candidate manifest SHA-256, version, fixed deployment mode, SourceLocations, enabled state, assignment count, and sanitized assignment fingerprint. Deleting/re-registering either app or reusing one app's rollback for the other is invalid.
 
 Propagation is a separate claim. It becomes true only when both ProductIds have exact readback observations at T+0, T+24, T+48, and T+72. The 72-hour window is an observation schedule, not an SLA or automatic pass.
 

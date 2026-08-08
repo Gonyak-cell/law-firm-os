@@ -14,6 +14,7 @@ import {
   validateCoveragePaths,
   validateDependencyLicenses,
   validateM365ReleaseReceipt,
+  validateReleaseCandidateReceipt,
   validateReleaseContract,
   validateRollbackContract,
   validateStaticDryRunPlan,
@@ -21,17 +22,57 @@ import {
 } from "../lib/outlook-release-gates.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const readJson = async (relative) => JSON.parse(await readFile(path.join(repoRoot, relative), "utf8"));
-const contract = await readJson("contracts/outlook-addin-release-gates.json");
-const baseline = await readJson(contract.baseline_receipt);
-const rollback = await readJson(contract.rollback_contract);
-const surface = await readJson(contract.surface_contract);
+const readBytes = async (relative) => readFile(path.join(repoRoot, relative));
+const readJson = async (relative) => JSON.parse(await readBytes(relative));
+const contractRef = "contracts/outlook-addin-release-gates.json";
+const contractBytes = await readBytes(contractRef);
+const contract = JSON.parse(contractBytes);
+const baselineBytes = await readBytes(contract.baseline_receipt);
+const rollbackBytes = await readBytes(contract.rollback_contract);
+const surfaceBytes = await readBytes(contract.surface_contract);
+const baseline = JSON.parse(baselineBytes);
+const rollback = JSON.parse(rollbackBytes);
+const surface = JSON.parse(surfaceBytes);
 const packageLock = await readJson("package-lock.json");
 const hex = (character) => character.repeat(64);
 const oid = (character) => character.repeat(40);
 
 function clone(value) {
   return structuredClone(value);
+}
+
+function workflowEventPaths(source, eventName) {
+  const lines = source.split(/\r?\n/u);
+  const start = lines.findIndex((line) => line === `  ${eventName}:`);
+  if (start < 0) throw new Error(`workflow event is missing: ${eventName}`);
+  const end = lines.findIndex((line, index) => index > start && /^  [a-z_]+:/u.test(line));
+  const section = lines.slice(start, end < 0 ? undefined : end);
+  const paths = section.findIndex((line) => line === "    paths:");
+  if (paths < 0) throw new Error(`workflow paths are missing: ${eventName}`);
+  return section.slice(paths + 1)
+    .map((line) => line.match(/^      - "([^"]+)"$/u)?.[1])
+    .filter(Boolean);
+}
+
+function workflowPathMatches(pattern, candidate) {
+  let expression = "^";
+  for (let index = 0; index < pattern.length; index += 1) {
+    if (pattern[index] === "*" && pattern[index + 1] === "*") {
+      expression += ".*";
+      index += 1;
+    } else if (pattern[index] === "*") {
+      expression += "[^/]*";
+    } else {
+      expression += pattern[index].replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    }
+  }
+  return new RegExp(`${expression}$`, "u").test(candidate);
+}
+
+function workflowSingleLineRuns(source) {
+  return source.split(/\r?\n/u)
+    .map((line) => line.match(/^        run: (.+)$/u)?.[1])
+    .filter(Boolean);
 }
 
 function lockWithReleaseDependencies() {
@@ -52,14 +93,35 @@ function inventory() {
   ]);
 }
 
+const fixturePackageLock = lockWithReleaseDependencies();
+const fixturePackageLockBytes = Buffer.from(JSON.stringify(fixturePackageLock));
+const sourceIdentity = {
+  source_sha: oid("a"),
+  source_tree: oid("b"),
+  package_lock_sha256: sha256(fixturePackageLockBytes),
+};
+const contractArtifacts = {
+  baseline: { ref: contract.baseline_receipt, sha256: sha256(baselineBytes) },
+  release_gate: { ref: contractRef, sha256: sha256(contractBytes) },
+  rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
+  surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
+};
+const releaseContext = {
+  baseline,
+  contractArtifacts,
+  expectedSourceIdentity: sourceIdentity,
+  packageLock: fixturePackageLock,
+  packageLockBytes: fixturePackageLockBytes,
+  rollback,
+  surface,
+};
+
 function releaseCandidate(candidateManifestHashes) {
   const build = validateBuildInventories(inventory(), inventory(), contract);
   return {
     schema_version: "amic-os.outlook-release-candidate.v1",
     verdict: "PASS",
-    source_sha: oid("a"),
-    source_tree: oid("b"),
-    package_lock_sha256: hex("c"),
+    ...sourceIdentity,
     exact_sha_bound: true,
     builds_identical: true,
     artifact_count: build.artifact_count,
@@ -82,8 +144,32 @@ function releaseCandidate(candidateManifestHashes) {
         return { path: manifest, sha256: profile ? candidateManifestHashes[profile.profile] : sha256(manifest) };
       }),
     },
+    profiles: contract.profiles.map((profile) => ({
+      profile: profile.profile,
+      product_id: profile.product_id,
+      version: contract.release_version,
+      permission: profile.permission,
+      mailbox_min_version: profile.mailbox_min_version,
+      manifest_sha256: candidateManifestHashes[profile.profile],
+    })),
+    coverage: { required_path_count: contract.required_release_paths.length + contract.required_test_paths.length },
+    licenses: validateDependencyLicenses(fixturePackageLock, contract),
+    rollback: validateRollbackContract(rollback, baseline, contract),
+    surface: validateSurfaceSeparation(surface, baseline, contract),
+    graph_scopes: {
+      graph_connection_scopes: [...contract.client_outlook_graph_connection_scopes].sort(),
+      oauth_scopes: [...contract.client_outlook_oauth_scopes].sort(),
+      fingerprint_sha256: sha256(JSON.stringify({
+        graphScopes: [...contract.client_outlook_graph_connection_scopes].sort(),
+        oauthScopes: [...contract.client_outlook_oauth_scopes].sort(),
+      })),
+      diff: "none",
+    },
+    contract_artifacts: contractArtifacts,
     runtime_provider_calls: 0,
     external_mutations: 0,
+    allowed_claim: "Exact source, deterministic local build, four official manifest validations, frozen profile drift, rollback metadata, and dependency licenses passed.",
+    blocked_claim: "This receipt is not API/static/M365 deployment, propagation, real Outlook host, Graph delivery, DocuSign sandbox, or go-live evidence.",
   };
 }
 
@@ -98,19 +184,22 @@ function awaitingM365Receipt(candidateManifestHashes) {
   return {
     schema_version: "amic-os.outlook-m365-release.v1",
     status: "awaiting_authorized_deployment",
-    source_sha: oid("a"),
-    source_tree: oid("b"),
-    package_lock_sha256: hex("c"),
+    ...sourceIdentity,
     version: contract.release_version,
     permission_event_assignment_diff: "none",
     graph_delegated_scope_diff: "none",
     propagation_window_is_sla: false,
     prerequisites: Object.fromEntries(contract.m365.required_prerequisites.map((name) => [name, {
       status: "pending",
+      artifact_sha256: null,
       evidence_sha256: null,
       evidence_ref: null,
+      source_sha: null,
+      source_tree: null,
+      package_lock_sha256: null,
     }])),
     authorization_ref: null,
+    go_live_approval_ref: null,
     mutation_count: 0,
     profiles: contract.profiles.map((profile, index) => {
       const deployed = baseline.profiles.find(({ product_id }) => product_id === profile.product_id);
@@ -130,6 +219,7 @@ function awaitingM365Receipt(candidateManifestHashes) {
       };
     }),
     operations: [],
+    static_release: null,
     static_readbacks: [],
     readbacks: [],
     propagation_observations: [],
@@ -143,14 +233,31 @@ function awaitingM365Receipt(candidateManifestHashes) {
   };
 }
 
-function completedM365Receipt(candidateManifestHashes) {
+function staticPlanFor(candidateManifestHashes) {
+  return buildStaticDryRunPlan({
+    releaseReceipt: releaseCandidate(candidateManifestHashes),
+    releaseContext,
+    sourceLocations: Object.fromEntries(Object.entries(candidateManifestProjections()).map(([profile, projection]) => [
+      profile,
+      projection.form_source_locations,
+    ])),
+    contract,
+    bucketRef: "OUTLOOK_STATIC_BUCKET",
+  });
+}
+
+function completedM365Fixture(candidateManifestHashes) {
   const receipt = awaitingM365Receipt(candidateManifestHashes);
   const candidate = releaseCandidate(candidateManifestHashes);
+  const staticPlan = staticPlanFor(candidateManifestHashes);
+  const staticPlanSha256 = sha256(Buffer.from(`${JSON.stringify(staticPlan, null, 2)}\n`));
   receipt.status = "deployment_verified";
   receipt.prerequisites = Object.fromEntries(contract.m365.required_prerequisites.map((name) => [name, {
     status: "verified",
-    evidence_sha256: sha256(name),
-    evidence_ref: `protected/prerequisites/${name}.json`,
+    artifact_sha256: name === "static_release" ? candidate.inventory_sha256 : sha256(`${name}:artifact`),
+    evidence_sha256: name === "static_release" ? staticPlanSha256 : sha256(name),
+    evidence_ref: name === "static_release" ? "protected/prerequisites/static-release-plan.json" : `protected/prerequisites/${name}.json`,
+    ...sourceIdentity,
   }]));
   receipt.authorization_ref = "approved-change-window-20260808";
   receipt.mutation_count = 2;
@@ -160,7 +267,23 @@ function completedM365Receipt(candidateManifestHashes) {
     operation_ref: `operation-${profile.product_id}`,
     result: "success",
   }));
+  receipt.static_release = {
+    plan_sha256: staticPlanSha256,
+    ...sourceIdentity,
+    target_namespaces: staticPlan.profiles.map(({ target_prefix }) => target_prefix),
+    profiles: staticPlan.profiles.map((profile) => ({
+      profile: profile.profile,
+      product_id: profile.product_id,
+      target_prefix: profile.target_prefix,
+      inventory_sha256: profile.inventory_sha256,
+      manifest_sha256: profile.manifest_sha256,
+      taskpane_html_sha256: profile.taskpane_html_sha256,
+      bundle_sha256: profile.bundle_sha256,
+      source_location_coverage: profile.source_location_coverage,
+    })),
+  };
   receipt.static_readbacks = receipt.profiles.map((profile) => ({
+    ...staticPlan.profiles.find(({ product_id }) => product_id === profile.product_id),
     product_id: profile.product_id,
     result: "exact_hash",
     http_status: 200,
@@ -168,6 +291,15 @@ function completedM365Receipt(candidateManifestHashes) {
       .profile_artifacts.find(({ product_id }) => product_id === profile.product_id).taskpane_html_sha256,
     bundle_sha256: profile.bundle_sha256,
     source_locations: profile.source_locations,
+  })).map(({ product_id, result, http_status, target_prefix, inventory_sha256, taskpane_html_sha256, bundle_sha256, source_locations }) => ({
+    product_id,
+    result,
+    http_status,
+    target_prefix,
+    inventory_sha256,
+    taskpane_html_sha256,
+    bundle_sha256,
+    source_locations,
   }));
   receipt.readbacks = receipt.profiles.map((profile) => ({
     product_id: profile.product_id,
@@ -216,7 +348,23 @@ function completedM365Receipt(candidateManifestHashes) {
     real_outlook_verified: true,
     go_live_approved: false,
   };
-  return receipt;
+  return { candidate, receipt, staticPlan, staticPlanSha256 };
+}
+
+function m365Options(candidateManifestHashes, overrides = {}) {
+  return {
+    contract,
+    baseline,
+    rollback,
+    releaseCandidate: releaseCandidate(candidateManifestHashes),
+    releaseContext,
+    candidateManifestHashes,
+    candidateManifestProjections: candidateManifestProjections(),
+    expectedSourceIdentity: sourceIdentity,
+    staticPlan: null,
+    staticPlanSha256: null,
+    ...overrides,
+  };
 }
 
 test("release contract binds two identities, four manifests, and additive dry-run scope", () => {
@@ -230,7 +378,7 @@ test("release contract binds two identities, four manifests, and additive dry-ru
   assert.throws(() => validateReleaseContract(drifted), /ProductIds/);
   drifted.profiles = clone(contract.profiles);
   drifted.static_deploy.delete = true;
-  assert.throws(() => validateReleaseContract(drifted), /additive \/addin dry-run/);
+  assert.throws(() => validateReleaseContract(drifted), /additive \/addin and \/outlook-addin dry-run/);
 });
 
 test("surface and rollback contracts preserve ProductId-specific events and assignments", () => {
@@ -279,6 +427,25 @@ test("coverage and deterministic inventory gates name missing or changed artifac
   changed.at(-1).sha256 = hex("f");
   assert.throws(() => validateBuildInventories(first, changed, contract), /deterministic double-build/);
   assert.throws(() => validateBuildInventories(first, first.concat({ path: "bundle.js.map", byte_size: 1, sha256: hex("f") }), contract), /forbidden build artifact/);
+});
+
+test("release candidate receipt requires every exact proof section and contract hash", () => {
+  const receipt = releaseCandidate({ "matter-full": hex("1"), "inquiry-only": hex("2") });
+  assert.equal(validateReleaseCandidateReceipt(receipt, contract, releaseContext).inventory_sha256, receipt.inventory_sha256);
+  for (const field of ["coverage", "licenses", "rollback", "surface", "graph_scopes", "profiles", "contract_artifacts"]) {
+    const missing = clone(receipt);
+    delete missing[field];
+    assert.throws(() => validateReleaseCandidateReceipt(missing, contract, releaseContext), /fields mismatch/);
+  }
+  const staleContract = clone(receipt);
+  staleContract.contract_artifacts.surface.sha256 = hex("f");
+  assert.throws(() => validateReleaseCandidateReceipt(staleContract, contract, releaseContext), /contract artifact bindings/);
+  const unknownProduct = clone(receipt);
+  unknownProduct.profiles[0].product_id = "00000000-0000-0000-0000-000000000000";
+  assert.throws(() => validateReleaseCandidateReceipt(unknownProduct, contract, releaseContext), /ProductIds/);
+  const overclaim = clone(receipt);
+  overclaim.deployment_verified = true;
+  assert.throws(() => validateReleaseCandidateReceipt(overclaim, contract, releaseContext), /fields mismatch/);
 });
 
 test("API artifact verifier binds embedded source and preserves environment without exposing values", () => {
@@ -354,82 +521,99 @@ test("API artifact verifier binds embedded source and preserves environment with
   assert.throws(() => validateApiArtifactEntries(["../deployment-manifest.json"], "deployment-manifest.json"), /unsafe/);
 });
 
-test("static deployment planner performs zero mutations and preserves immutable manifest keys", () => {
-  const releaseReceipt = releaseCandidate({ "matter-full": hex("1"), "inquiry-only": hex("2") });
-  const plan = buildStaticDryRunPlan({
-    releaseReceipt,
-    sourceLocations: {
-      "matter-full": ["https://static.example/addin/index.html"],
-      "inquiry-only": ["https://static.example/outlook-addin/index.html"],
-    },
-    contract,
-    bucketRef: "OUTLOOK_STATIC_BUCKET",
-  });
-  assert.deepEqual(plan.source_location_coverage, { "matter-full": true, "inquiry-only": false });
-  assert.deepEqual(validateStaticDryRunPlan(plan, contract), {
+test("static deployment planner exactly partitions both namespaces without fallback or root clobber", () => {
+  const manifestHashes = { "matter-full": hex("1"), "inquiry-only": hex("2") };
+  const releaseReceipt = releaseCandidate(manifestHashes);
+  const sourceLocations = Object.fromEntries(Object.entries(candidateManifestProjections()).map(([profile, projection]) => [
+    profile,
+    projection.form_source_locations,
+  ]));
+  const plan = staticPlanFor(manifestHashes);
+  assert.deepEqual(plan.profiles.map(({ target_prefix }) => target_prefix), ["addin/", "outlook-addin/"]);
+  assert.ok(plan.profiles.every(({ source_location_coverage }) => source_location_coverage === true));
+  assert.ok(plan.profiles.every(({ manifest_publish_mode }) => manifest_publish_mode === "m365_central_deployment_only"));
+  assert.deepEqual(validateStaticDryRunPlan(plan, { contract, releaseReceipt, releaseContext, sourceLocations }), {
     operation_count: inventory().length,
     mutation_count: 0,
     execution_performed: false,
   });
   const destructive = clone(plan);
   destructive.delete = true;
-  assert.throws(() => validateStaticDryRunPlan(destructive, contract), /escaped/);
-  const manifestOverwrite = clone(releaseReceipt);
-  manifestOverwrite.inventory.push({ path: "manifests/current.xml", byte_size: 1, sha256: hex("f") });
-  const manifestBuild = validateBuildInventories(manifestOverwrite.inventory, manifestOverwrite.inventory, contract);
-  manifestOverwrite.inventory = manifestBuild.inventory;
-  manifestOverwrite.artifact_count = manifestBuild.artifact_count;
-  manifestOverwrite.inventory_sha256 = manifestBuild.inventory_sha256;
-  assert.throws(() => buildStaticDryRunPlan({ releaseReceipt: manifestOverwrite, sourceLocations: {}, contract, bucketRef: "OUTLOOK_STATIC_BUCKET" }), /overwrite a manifest/);
+  assert.throws(() => validateStaticDryRunPlan(destructive, { contract, releaseReceipt, releaseContext, sourceLocations }), /escaped/);
 
   const sourceDrift = clone(plan);
-  sourceDrift.operations[0].source_path = "apps/addin/dist/wrong.js";
-  assert.throws(() => validateStaticDryRunPlan(sourceDrift, contract), /source\/target mapping drifted/);
+  sourceDrift.profiles[0].operations[0].source_path = "apps/addin/dist/wrong.js";
+  assert.throws(() => validateStaticDryRunPlan(sourceDrift, { contract, releaseReceipt, releaseContext, sourceLocations }), /source\/target mapping drifted/);
 
-  const hashDrift = clone(plan);
-  hashDrift.operations[0].sha256 = "not-a-sha";
-  assert.throws(() => validateStaticDryRunPlan(hashDrift, contract), /invalid build artifact metadata/);
+  const traversal = clone(plan);
+  traversal.profiles[1].operations[0].target_key = "outlook-addin/../escape.js";
+  assert.throws(() => validateStaticDryRunPlan(traversal, { contract, releaseReceipt, releaseContext, sourceLocations }), /source\/target mapping drifted|unsafe/);
+
+  const protectedManifest = clone(plan);
+  protectedManifest.profiles[0].operations[0].target_key = "addin/manifests/current.xml";
+  assert.throws(() => validateStaticDryRunPlan(protectedManifest, { contract, releaseReceipt, releaseContext, sourceLocations }), /source\/target mapping drifted/);
+
+  const falseCoverage = clone(plan);
+  falseCoverage.profiles[1].source_location_coverage = false;
+  assert.throws(() => validateStaticDryRunPlan(falseCoverage, { contract, releaseReceipt, releaseContext, sourceLocations }), /namespace binding drifted/);
+
+  const unknownProduct = clone(plan);
+  unknownProduct.profiles[1].product_id = "00000000-0000-0000-0000-000000000000";
+  assert.throws(() => validateStaticDryRunPlan(unknownProduct, { contract, releaseReceipt, releaseContext, sourceLocations }), /ProductIds/);
+
+  assert.throws(() => buildStaticDryRunPlan({
+    releaseReceipt,
+    releaseContext,
+    sourceLocations: { ...sourceLocations, "inquiry-only": ["https://static.example/addin/index.html"] },
+    contract,
+    bucketRef: "OUTLOOK_STATIC_BUCKET",
+  }), /escaped \/outlook-addin\//);
 });
 
 test("M365 awaiting packet cannot claim central update, propagation, host QA, or go-live", () => {
   const manifestHashes = { "matter-full": hex("1"), "inquiry-only": hex("2") };
   const release = releaseCandidate(manifestHashes);
   const awaiting = awaitingM365Receipt(manifestHashes);
-  assert.deepEqual(validateM365ReleaseReceipt(awaiting, {
-    contract,
-    baseline,
-    rollback,
-    releaseCandidate: release,
-    candidateManifestHashes: manifestHashes,
-    candidateManifestProjections: candidateManifestProjections(),
-  }), {
+  const options = m365Options(manifestHashes, { releaseCandidate: release });
+  assert.deepEqual(validateM365ReleaseReceipt(awaiting, options), {
     status: "awaiting_authorized_deployment",
     external_mutation_performed: false,
     blocked_external: true,
   });
-  awaiting.claims.central_deployment_verified = true;
-  assert.throws(() => validateM365ReleaseReceipt(awaiting, {
-    contract,
-    baseline,
-    rollback,
-    releaseCandidate: release,
-    candidateManifestHashes: manifestHashes,
-    candidateManifestProjections: candidateManifestProjections(),
-  }), /overclaims/);
+  const claimed = clone(awaiting);
+  claimed.claims.central_deployment_verified = true;
+  assert.throws(() => validateM365ReleaseReceipt(claimed, options), /overclaims/);
+
+  for (const field of ["deployment_verified", "external_provider_proof", "go_live"]) {
+    const overclaim = clone(awaiting);
+    overclaim[field] = true;
+    assert.throws(() => validateM365ReleaseReceipt(overclaim, options), /fields mismatch/);
+  }
+  const nestedOverclaim = clone(awaiting);
+  nestedOverclaim.profiles[0].external_provider_proof = true;
+  assert.throws(() => validateM365ReleaseReceipt(nestedOverclaim, options), /fields mismatch/);
+
+  const staleReceipt = clone(awaiting);
+  staleReceipt.source_sha = oid("f");
+  assert.throws(() => validateM365ReleaseReceipt(staleReceipt, options), /stale for the exact current source/);
+
+  const staleCandidate = clone(release);
+  staleCandidate.source_sha = oid("f");
+  assert.throws(() => validateM365ReleaseReceipt(awaiting, { ...options, releaseCandidate: staleCandidate }), /stale for the exact current source/);
+
+  const unknownProduct = clone(awaiting);
+  unknownProduct.profiles[0].product_id = "00000000-0000-0000-0000-000000000000";
+  assert.throws(() => validateM365ReleaseReceipt(unknownProduct, options), /ProductIds/);
 });
 
 test("M365 executed receipt requires dual readback, four propagation times, and real hosts", () => {
   const manifestHashes = { "matter-full": hex("1"), "inquiry-only": hex("2") };
-  const release = releaseCandidate(manifestHashes);
-  const completed = completedM365Receipt(manifestHashes);
-  const options = {
-    contract,
-    baseline,
-    rollback,
+  const { candidate: release, receipt: completed, staticPlan, staticPlanSha256 } = completedM365Fixture(manifestHashes);
+  const options = m365Options(manifestHashes, {
     releaseCandidate: release,
-    candidateManifestHashes: manifestHashes,
-    candidateManifestProjections: candidateManifestProjections(),
-  };
+    staticPlan,
+    staticPlanSha256,
+  });
   const result = validateM365ReleaseReceipt(completed, options);
   assert.equal(result.central_deployment_verified, true);
   assert.equal(result.propagation_verified, true);
@@ -452,7 +636,15 @@ test("M365 executed receipt requires dual readback, four propagation times, and 
   assert.throws(() => validateM365ReleaseReceipt(unknownObservation, options), /invalid or duplicated/);
 
   const pendingPrerequisite = clone(completed);
-  pendingPrerequisite.prerequisites.api_release = { status: "pending", evidence_sha256: null, evidence_ref: null };
+  pendingPrerequisite.prerequisites.api_release = {
+    status: "pending",
+    artifact_sha256: null,
+    evidence_sha256: null,
+    evidence_ref: null,
+    source_sha: null,
+    source_tree: null,
+    package_lock_sha256: null,
+  };
   assert.throws(() => validateM365ReleaseReceipt(pendingPrerequisite, options), /pending prerequisites/);
 
   const sharedOperation = clone(completed);
@@ -471,6 +663,18 @@ test("M365 executed receipt requires dual readback, four propagation times, and 
   assignmentDrift.profiles[0].assignment_count += 1;
   assert.throws(() => validateM365ReleaseReceipt(assignmentDrift, options), /binding drifted/);
 
+  const staticInventoryDrift = clone(completed);
+  staticInventoryDrift.static_release.profiles[1].inventory_sha256 = hex("f");
+  assert.throws(() => validateM365ReleaseReceipt(staticInventoryDrift, options), /static release exact inventory binding/);
+
+  const staticCoverageOverclaim = clone(completed);
+  staticCoverageOverclaim.static_release.profiles[1].source_location_coverage = false;
+  assert.throws(() => validateM365ReleaseReceipt(staticCoverageOverclaim, options), /static release exact inventory binding/);
+
+  const staticPlanDrift = clone(completed);
+  staticPlanDrift.static_release.plan_sha256 = hex("f");
+  assert.throws(() => validateM365ReleaseReceipt(staticPlanDrift, options), /static release exact inventory binding/);
+
   const prematureGoLive = clone(completed);
   prematureGoLive.claims.go_live_approved = true;
   assert.throws(() => validateM365ReleaseReceipt(prematureGoLive, options), /advance together/);
@@ -488,23 +692,41 @@ test("release receipts reject raw secrets and content fields", () => {
 
 test("CI triggers and commands cover every release lane and all four official manifests", async () => {
   const workflow = await readFile(path.join(repoRoot, ".github/workflows/outlook-addin-validation.yml"), "utf8");
-  for (const marker of [
-    "apps/addin/**",
-    "apps/api/src/**",
-    "apps/api/test/**",
-    "packages/email-dms/**",
-    "packages/matter/**",
-    "packages/time-expense/**",
-    "packages/dms/src/postgres-upload-runtime.js",
-    "packages/integrations-core/**",
-    "packages/persistence/**",
-    "contracts/outlook-addin-*.json",
-    "scripts/**",
-    "validate-outlook-release-candidate.mjs --source-sha",
+  const requiredTriggeredPaths = [
+    ...contract.required_release_paths,
+    ...contract.required_test_paths,
+    ...contract.manifests,
+    contractRef,
+    contract.baseline_receipt,
+    contract.rollback_contract,
+    contract.surface_contract,
+    ".github/workflows/outlook-addin-validation.yml",
+    "contracts/migration-platform-contract.json",
+    "package-lock.json",
+    "packages/dms/src/migrations/001_dms_vault_runtime.sql",
+    "packages/email-dms/src/migrations/003_email_filing_correction.sql",
+    "packages/matter/src/migrations/005_people_task_fields.sql",
+    "packages/migration/src/import-plan.js",
+    "packages/persistence/src/postgres/migrations/004_dms_upload_runtime.sql",
+    "packages/platform/migrations/001_matter_vault_core.sql",
+    "scripts/lib/outlook-release-gates.mjs",
+    "scripts/plan-outlook-static-deploy.mjs",
     "scripts/test/outlook-release-gates.test.mjs",
-  ]) {
-    assert.match(workflow, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")));
+    "scripts/validate-outlook-m365-release-receipt.mjs",
+    "scripts/validate-outlook-release-candidate.mjs",
+    "scripts/validate-upl-c09-c12-outlook-addin.mjs",
+    "scripts/verify-outlook-api-release-artifact.mjs",
+  ];
+  for (const eventName of ["pull_request", "push"]) {
+    const patterns = workflowEventPaths(workflow, eventName);
+    for (const requiredPath of requiredTriggeredPaths) {
+      assert.ok(patterns.some((pattern) => workflowPathMatches(pattern, requiredPath)), `${eventName} does not select ${requiredPath}`);
+    }
   }
+  const runs = workflowSingleLineRuns(workflow);
+  assert.ok(runs.includes("node scripts/validate-upl-c09-c12-outlook-addin.mjs"));
+  assert.ok(runs.includes("node --test scripts/test/outlook-release-gates.test.mjs"));
+  assert.ok(runs.some((run) => run.startsWith("node scripts/validate-outlook-release-candidate.mjs --source-sha")));
   for (const manifest of contract.manifests) {
     assert.match(workflow, new RegExp(`office-addin-manifest@2\\.1\\.6 validate ${manifest.replaceAll(".", "\\.")}`));
   }

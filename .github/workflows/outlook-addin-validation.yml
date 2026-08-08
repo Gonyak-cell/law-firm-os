@@ -31,8 +31,9 @@ on:
       - "apps/api/test/session-auth-api.test.js"
       - "packages/matter/src/activity-calendar-channel-service.js"
       - "packages/email-dms/**"
-      - "packages/dms/src/postgres-upload-runtime.js"
-      - "packages/dms/test/upload-reconciliation.test.js"
+      - "packages/dms/**"
+      - "packages/migration/**"
+      - "packages/platform/migrations/**"
       - "packages/runtime-auth/src/postgres-identity-ledger.js"
       - "packages/runtime-auth/test/postgres-identity-directory.test.js"
       - "apps/api/test/sf-b-w03-activity-calendar-channel.test.js"
@@ -43,6 +44,7 @@ on:
       - "packages/time-expense/**"
       - "packages/search/**"
       - "packages/persistence/**"
+      - "contracts/migration-platform-contract.json"
       - "package.json"
       - "package-lock.json"
   push:
@@ -75,8 +77,9 @@ on:
       - "apps/api/test/session-auth-api.test.js"
       - "packages/matter/src/activity-calendar-channel-service.js"
       - "packages/email-dms/**"
-      - "packages/dms/src/postgres-upload-runtime.js"
-      - "packages/dms/test/upload-reconciliation.test.js"
+      - "packages/dms/**"
+      - "packages/migration/**"
+      - "packages/platform/migrations/**"
       - "packages/runtime-auth/src/postgres-identity-ledger.js"
       - "packages/runtime-auth/test/postgres-identity-directory.test.js"
       - "apps/api/test/sf-b-w03-activity-calendar-channel.test.js"
@@ -87,6 +90,7 @@ on:
       - "packages/time-expense/**"
       - "packages/search/**"
       - "packages/persistence/**"
+      - "contracts/migration-platform-contract.json"
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
@@ -180,6 +184,9 @@ jobs:
           node scripts/validate-outlook-addin-surfaces.mjs
           --mode baseline
           --baseline contracts/outlook-addin-deployment-baseline.json
+
+      - name: Validate Outlook add-in route and authorization contracts
+        run: node scripts/validate-upl-c09-c12-outlook-addin.mjs
 
       - name: Validate all local and production manifests
         run: |
