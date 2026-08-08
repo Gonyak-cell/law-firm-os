@@ -52,7 +52,7 @@ function assertNoSymlinkAncestors(filePath, label) {
     const stat = strictLstat(current, label);
     if (!stat) continue;
     if (stat.isSymbolicLink()) {
-      if (!["/tmp", "/var"].includes(current)) throw codedError(`${label} must not be a symlink`, "DMS_STORAGE_SYMLINK_REJECTED");
+      if (current === absolute || !["/tmp", "/var"].includes(current)) throw codedError(`${label} must not be a symlink`, "DMS_STORAGE_SYMLINK_REJECTED");
       continue;
     }
     if (current !== absolute && !stat.isDirectory()) throw unavailable(`${label} parent`, { code: "ENOTDIR" });
