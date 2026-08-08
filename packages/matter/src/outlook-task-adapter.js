@@ -8,21 +8,8 @@ export const OUTLOOK_TASK_ERROR_CODES = Object.freeze({
   version_conflict: "OUTLOOK_TASK_VERSION_CONFLICT",
 });
 
-const CREATE_FIELDS = Object.freeze([
-  "assigned_to_user_id",
-  "due_at",
-  "estimated_minutes",
-  "status",
-  "task_id",
-  "title",
-]);
-const PATCH_FIELDS = Object.freeze([
-  "assigned_to_user_id",
-  "due_at",
-  "estimated_minutes",
-  "status",
-  "title",
-]);
+const CREATE_FIELDS = Object.freeze(["assigned_to_user_id", "due_at", "estimated_minutes", "status", "title"]);
+const PATCH_FIELDS = Object.freeze(["assigned_to_user_id", "due_at", "estimated_minutes", "status", "title"]);
 
 function requiredString(value, field) {
   const text = String(value ?? "").trim();
@@ -67,10 +54,7 @@ function taskId(value) {
 }
 
 function taskError(message, safeErrorCode, status = 409) {
-  return Object.assign(new Error(message), {
-    safe_error_code: safeErrorCode,
-    status,
-  });
+  return Object.assign(new Error(message), { safe_error_code: safeErrorCode, status });
 }
 
 function assertMatter(repository, tenantId, matterId) {
@@ -103,14 +87,6 @@ function replayFor(repository, { tenantId, idempotencyKey, operation, fingerprin
   return Object.freeze({ ...replay.response, outcome: "idempotent_replay", idempotent_replay: true });
 }
 
-function taskService({ repository, peopleAssignmentAuthority, clock }) {
-  return createMatterActivityCalendarChannelService({
-    repository,
-    peopleAssignmentAuthority,
-    clock,
-  });
-}
-
 export function createOutlookMatterTask({
   repository,
   peopleAssignmentAuthority = null,
@@ -134,9 +110,7 @@ export function createOutlookMatterTask({
     throw new TypeError("status is invalid");
   }
   assertMatter(repository, tenantId, matterId);
-  const resolvedTaskId = taskId(
-    input.task_id ?? `outlook_task_${hashDomainValue({ tenantId, matterId, idempotencyKey }).slice(0, 24)}`,
-  );
+  const resolvedTaskId = taskId(`outlook_task_${hashDomainValue({ tenantId, matterId, idempotencyKey }).slice(0, 24)}`);
   const normalizedTask = {
     task_id: resolvedTaskId,
     title,
@@ -166,7 +140,11 @@ export function createOutlookMatterTask({
   }
 
   return repository.transaction((transaction) => {
-    const result = taskService({ repository: transaction, peopleAssignmentAuthority, clock }).createActivity({
+    const result = createMatterActivityCalendarChannelService({
+      repository: transaction,
+      peopleAssignmentAuthority,
+      clock,
+    }).createActivity({
       tenant_id: tenantId,
       matter_id: matterId,
       actor_id: actorId,
@@ -250,7 +228,11 @@ export function updateOutlookMatterTask({
   }
 
   return repository.transaction((transaction) => {
-    const result = taskService({ repository: transaction, peopleAssignmentAuthority, clock }).patchActivity({
+    const result = createMatterActivityCalendarChannelService({
+      repository: transaction,
+      peopleAssignmentAuthority,
+      clock,
+    }).patchActivity({
       tenant_id: tenantId,
       matter_id: matterId,
       activity_id: resolvedTaskId,

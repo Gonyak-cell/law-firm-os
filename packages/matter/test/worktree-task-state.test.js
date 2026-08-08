@@ -28,6 +28,7 @@ test("WT-01-09 completes todo directly through MatterTask.status", async () => {
 
   // Then
   assert.equal(completed.status, "done");
+  assert.equal(completed.version, 2);
   assert.equal(Object.hasOwn(completed, "completed"), false);
   assert.equal(events.length, 1);
   assert.equal(events[0].metadata.to_status, "done");
@@ -73,6 +74,7 @@ test("WT-01-09 persists a reasoned reopen to in_progress", async () => {
 
   // Then
   assert.equal(reopened.status, "in_progress");
+  assert.equal(reopened.version, 2);
   assert.equal(events[0].reason, "후속 검토 필요");
 });
 
@@ -87,4 +89,5 @@ test("WT-01-09 unblocks blocked tasks only with a reason", async () => {
 
   // Then
   assert.equal(unblocked.status, "in_progress");
+  assert.equal(unblocked.version, 2);
 });

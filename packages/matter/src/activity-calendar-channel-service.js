@@ -3,7 +3,7 @@ import { changeMatterDeadline } from "./calendar-service.js";
 import { confirmCriticalDeadlineChange } from "./deadline-dual-control.js";
 import { createMatterCalendarEvent, createMatterTask } from "./model.js";
 import { MATTER_TASK_STATUSES } from "./registry.js";
-import { transitionMatterTask } from "./task-service.js";
+import { nextMatterTaskVersion, transitionMatterTask } from "./task-service.js";
 
 const ACTIVITY_TYPES = Object.freeze(["task", "note", "email_log", "call"]);
 const ACTIVITY_STATUSES = Object.freeze(["todo", "in_progress", "done", "cancelled"]);
@@ -36,10 +36,26 @@ function safeText(value, field, { min = 2, max = 160 } = {}) {
   return text;
 }
 
+function isIsoDate(value) {
+  const parsed = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
+}
+
 function parseIso(value, field) {
   const text = requiredString(value, field);
-  if (Number.isNaN(Date.parse(text))) throw new TypeError(`${field} must be ISO date`);
-  return text;
+  const date = /^(\d{4}-\d{2}-\d{2})$/u.exec(text);
+  if (date && isIsoDate(date[1])) return date[1];
+  const dateTime = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-](\d{2}):(\d{2}))$/u.exec(text);
+  const validDateTime = dateTime
+    && isIsoDate(dateTime[1])
+    && Number(dateTime[2]) < 24
+    && Number(dateTime[3]) < 60
+    && Number(dateTime[4]) < 60
+    && (dateTime[6] === "Z" || (Number(dateTime[7]) < 24 && Number(dateTime[8]) < 60));
+  if (!validDateTime || Number.isNaN(Date.parse(text))) {
+    throw new TypeError(`${field} must be ISO date or date-time`);
+  }
+  return new Date(text).toISOString();
 }
 
 function bodyExcerpt(value) {
@@ -370,7 +386,7 @@ export function createMatterActivityCalendarChannelService({
         }
         return repository.update(
           { tenant_id: tenantId, model_type: "MatterTask", task_id: activityId },
-          { ...(validatedFieldPatch ?? {}), version: currentVersion + 1 },
+          { ...(validatedFieldPatch ?? {}), version: nextMatterTaskVersion(current) },
         );
       };
       record = typeof repository.transaction === "function"

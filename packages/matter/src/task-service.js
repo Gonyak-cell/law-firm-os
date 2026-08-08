@@ -9,13 +9,15 @@ export const MATTER_TASK_TRANSITIONS = Object.freeze({
   cancelled: Object.freeze([]),
 });
 
+export const nextMatterTaskVersion = (task) => (task?.version ?? 1) + 1;
+
 export function transitionMatterTask({ repository, task, to_status, actor_id, reason, audit } = {}) {
   const fromStatus = task?.status;
   const allowed = MATTER_TASK_TRANSITIONS[fromStatus] ?? [];
   if (!allowed.includes(to_status)) throw new Error(`MatterTask cannot transition from ${fromStatus} to ${to_status}`);
   if (!actor_id) throw new TypeError("actor_id is required");
   if (!reason) throw new TypeError("reason is required");
-  const next = createMatterTask({ ...task, status: to_status });
+  const next = createMatterTask({ ...task, status: to_status, version: nextMatterTaskVersion(task) });
   const persisted = repository.update(
     { tenant_id: next.tenant_id, model_type: "MatterTask", task_id: next.task_id },
     next,

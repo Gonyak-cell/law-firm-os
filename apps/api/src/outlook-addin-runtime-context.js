@@ -708,12 +708,19 @@ function evaluateOutlookPermission({ context, tenant_id, matter_id = null, resou
   });
 }
 
-function permissionContextForResource(context, resourceId) {
+function permissionContextForResource(context, resource) {
+  const resources = (Array.isArray(resource) ? resource : [resource]).map((value) => (
+    typeof value === "string" ? { resource_id: value } : value
+  ));
   return {
     ...context,
     object_acl: (context?.object_acl ?? []).filter((entry) => (
-      entry.resource_id === undefined
-      || (resourceId !== null && entry.resource_id === resourceId)
+      resources.some((candidate) => (
+        (entry.resource_id === undefined || entry.resource_id === candidate?.resource_id)
+        && (entry.resource_type === undefined
+          || candidate?.resource_type === undefined
+          || entry.resource_type === candidate.resource_type)
+      ))
     )),
   };
 }
@@ -2920,10 +2927,13 @@ function createEditableOutlookTask({ body, context, requestId, runtime }) {
     const tenantId = trustedOutlookTaskTenant(body, context);
     const matterId = requiredString(body.matter_id, "matter_id");
     const decision = evaluateOutlookPermission({
-      context,
+      context: permissionContextForResource(context, {
+        resource_type: "Matter",
+        resource_id: matterId,
+      }),
       tenant_id: tenantId,
       matter_id: matterId,
-      resource_type: "matter_task",
+      resource_type: "Matter",
       resource_id: matterId,
       action: "outlook:task:create",
     });
@@ -2976,10 +2986,13 @@ function updateEditableOutlookTask({ taskId, body, context, requestId, runtime }
     const tenantId = trustedOutlookTaskTenant(body, context);
     const matterId = requiredString(body.matter_id, "matter_id");
     const decision = evaluateOutlookPermission({
-      context,
+      context: permissionContextForResource(context, [
+        { resource_type: "Matter", resource_id: matterId },
+        { resource_type: "MatterTask", resource_id: taskId },
+      ]),
       tenant_id: tenantId,
       matter_id: matterId,
-      resource_type: "matter_task",
+      resource_type: "MatterTask",
       resource_id: taskId,
       action: "outlook:task:update",
     });

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   createMatterRepository,
   createOutlookMatterTask,
+  transitionMatterTask,
   updateOutlookMatterTask,
 } from "../src/index.js";
 
@@ -87,7 +88,7 @@ test("Outlook task adapter edits task fields with optimistic version and authori
     task: { title: "증거 목록 검토" },
   });
 
-  const updated = updateOutlookMatterTask({
+  const updateInput = {
     ...runtime,
     tenant_id: TENANT,
     matter_id: MATTER,
@@ -102,13 +103,40 @@ test("Outlook task adapter edits task fields with optimistic version and authori
       estimated_minutes: 30,
       status: "in_progress",
     },
-  });
+  };
+  const updated = updateOutlookMatterTask(updateInput);
 
   assert.equal(updated.outcome, "task_updated");
   assert.equal(updated.item.version, 2);
   assert.equal(updated.item.assigned_to_user_id, ASSIGNEE);
   assert.equal(updated.item.due_at, "2026-08-11T08:30:00.000Z");
   assert.equal(updated.item.status, "in_progress");
+
+  const auditCount = runtime.repository.listAudit({ tenant_id: TENANT }).length;
+  const timelineCount = runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  }).length;
+  const replay = updateOutlookMatterTask(updateInput);
+  assert.equal(replay.outcome, "idempotent_replay");
+  assert.equal(replay.item.version, 2);
+  assert.equal(runtime.repository.listAudit({ tenant_id: TENANT }).length, auditCount);
+  assert.equal(runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  }).length, timelineCount);
+  assert.throws(() => updateOutlookMatterTask({
+    ...updateInput,
+    patch: { ...updateInput.patch, title: "같은 키의 다른 수정" },
+  }), (error) => error.status === 409 && error.safe_error_code === "OUTLOOK_TASK_IDEMPOTENCY_CONFLICT");
+  assert.equal(runtime.repository.listAudit({ tenant_id: TENANT }).length, auditCount);
+  assert.equal(runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  }).length, timelineCount);
 
   assert.throws(() => updateOutlookMatterTask({
     ...runtime,
@@ -152,6 +180,111 @@ test("Outlook task adapter edits task fields with optimistic version and authori
     model_type: "MatterTask",
     task_id: created.item.activity_id,
   }).version, 3);
+});
+
+test("Outlook task adapter rejects a stale version after a canonical task transition", () => {
+  const runtime = fixture();
+  const created = createOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-intervening-create",
+    task: { title: "공유 writer 버전 검증" },
+  });
+  const current = runtime.repository.get({
+    tenant_id: TENANT,
+    model_type: "MatterTask",
+    task_id: created.item.activity_id,
+  });
+  const transitioned = transitionMatterTask({
+    repository: runtime.repository,
+    task: current,
+    to_status: "in_progress",
+    actor_id: ASSIGNEE,
+    reason: "intervening_writer",
+  });
+  assert.equal(transitioned.version, 2);
+  assert.throws(() => updateOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    task_id: created.item.activity_id,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-intervening-stale",
+    expected_version: 1,
+    patch: { title: "stale overwrite" },
+  }), (error) => error.status === 409 && error.safe_error_code === "OUTLOOK_TASK_VERSION_CONFLICT");
+  assert.equal(runtime.repository.get({
+    tenant_id: TENANT,
+    model_type: "MatterTask",
+    task_id: created.item.activity_id,
+  }).title, "공유 writer 버전 검증");
+});
+
+test("Outlook task adapter canonicalizes supported due values and rejects ambiguous dates", () => {
+  const runtime = fixture();
+  const dateOnly = createOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-date-only",
+    task: { title: "날짜 업무", due_at: "2026-08-12" },
+  });
+  const dateTime = createOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-date-time",
+    task: { title: "일시 업무", due_at: "2026-08-12T09:30:00+09:00" },
+  });
+  assert.equal(dateOnly.item.due_at, "2026-08-12");
+  assert.equal(dateTime.item.due_at, "2026-08-12T00:30:00.000Z");
+
+  for (const [idempotency_key, due_at] of [
+    ["outlook-task-locale-date", "March 4, 2027 09:30"],
+    ["outlook-task-impossible-date", "2027-02-30"],
+    ["outlook-task-impossible-time", "2027-02-28T25:00:00Z"],
+  ]) {
+    assert.throws(() => createOutlookMatterTask({
+      ...runtime,
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      actor_id: ACTOR,
+      idempotency_key,
+      task: { title: "잘못된 마감", due_at },
+    }), /must be ISO date or date-time/u);
+  }
+
+  const cleared = updateOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    task_id: dateTime.item.activity_id,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-clear-due",
+    expected_version: 1,
+    patch: { due_at: null },
+  });
+  assert.equal(cleared.item.due_at, null);
+  assert.equal(cleared.item.version, 2);
+  assert.throws(() => updateOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    task_id: dateOnly.item.activity_id,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-invalid-patch-date",
+    expected_version: 1,
+    patch: { due_at: "tomorrow morning" },
+  }), /must be ISO date or date-time/u);
+  assert.equal(runtime.repository.get({
+    tenant_id: TENANT,
+    model_type: "MatterTask",
+    task_id: dateOnly.item.activity_id,
+  }).due_at, "2026-08-12");
 });
 
 test("Outlook task adapter rejects invalid input and rolls back failed assignment", () => {
