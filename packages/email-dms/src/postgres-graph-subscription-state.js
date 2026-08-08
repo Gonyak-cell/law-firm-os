@@ -32,7 +32,7 @@ export function createPostgresGraphSubscriptionState({
     audit,
     tenant_id: tenantId,
   });
-  async function acquire(input, resource, existing, operation, at) {
+  async function acquire(input, resource, existing, operation, at, intendedExpiresAt) {
     const secret = operation === "create" ? client_state_factory() : null;
     if (secret !== null && (typeof secret !== "string"
       || secret.length < 16 || secret.length > 128)) {
@@ -79,19 +79,21 @@ export function createPostgresGraphSubscriptionState({
           provisioning_operation=CASE WHEN $4::text='create' THEN 'create' ELSE provisioning_operation END,
           provisioning_correlation_id=CASE WHEN $4::text='create' THEN $5::uuid ELSE provisioning_correlation_id END,
           provisioning_started_at=CASE WHEN $4::text='create' THEN $6 ELSE provisioning_started_at END,
+          provider_expires_at=CASE WHEN $4::text='create' THEN $9 ELSE provider_expires_at END,
           status=CASE WHEN $4::text='create' THEN 'pending' ELSE status END,
           lease_owner=$7,lease_expires_at=$8,updated_at=$6
          WHERE tenant_id=$1 AND subscription_id=$2 RETURNING *`,
         [tenantId, subscriptionId,
           secret ? hashGraphSubscriptionSecret(secret) : null, operation,
           correlationId, at.toISOString(), leaseOwner,
-          new Date(at.getTime() + lease_ms).toISOString()],
+          new Date(at.getTime() + lease_ms).toISOString(), intendedExpiresAt],
       )).rows[0];
       if (operation === "create") {
         await audit(client, "create_intent", result, at, {
           correlation_id: result.provisioning_correlation_id,
           resource,
           client_state_hash: result.client_state_hash,
+          intended_expires_at: result.provider_expires_at,
         });
       }
       return { row: result, lease_owner: leaseOwner, client_state: secret };
@@ -110,6 +112,9 @@ export function createPostgresGraphSubscriptionState({
         || providerResult.change_type !== "created"
         || providerResult.client_state_hash !== row.client_state_hash
         || !providerResult.provider_subscription_id
+        || (row.provisioning_operation === "create"
+          && new Date(providerResult.expires_at).getTime()
+            !== new Date(row.provider_expires_at).getTime())
         || Date.parse(providerResult.expires_at) <= at.getTime()) {
         throw new Error("Graph subscription provider response is invalid");
       }
@@ -209,6 +214,8 @@ export function createPostgresGraphSubscriptionState({
       if (remote.resource !== row.resource || remote.change_type !== "created"
         || remote.client_state_hash !== row.client_state_hash
         || !remote.provider_subscription_id
+        || new Date(remote.expires_at).getTime()
+          !== new Date(row.provider_expires_at).getTime()
         || Date.parse(remote.expires_at) <= at.getTime()) {
         throw new Error("Graph subscription adoption binding does not match");
       }

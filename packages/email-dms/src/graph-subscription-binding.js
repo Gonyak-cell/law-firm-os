@@ -34,11 +34,20 @@ export function matchesGraphSubscriptionIntent(local, remote, binding) {
   try { remoteUrl = exactGraphNotificationUrl(remote.notification_url); } catch {
     return false;
   }
-  return remote.resource === local.resource
+  const result = remote.resource === local.resource
     && remote.change_type === "created"
+    && (!local.provider_subscription_id
+      || remote.provider_subscription_id === local.provider_subscription_id)
+    && (local.provider_subscription_id
+      || (local.provisioning_operation === "create"
+        && typeof local.provisioning_correlation_id === "string"
+        && Number.isFinite(Date.parse(remote.expires_at))
+        && new Date(remote.expires_at).getTime()
+          === new Date(local.provider_expires_at).getTime()))
     && remote.client_state_hash === local.client_state_hash
     && remote.entra_tenant_id === binding.entra_tenant_id
     && remote.account_id === binding.entra_subject_id
     && createHash("sha256").update(remoteUrl).digest("hex")
       === local.notification_url_hash;
+  return result;
 }

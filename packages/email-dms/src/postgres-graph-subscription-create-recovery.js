@@ -32,7 +32,8 @@ export function createPostgresGraphSubscriptionCreateRecovery({
           last_error_code=$3,updated_at=$5,
           provisioning_operation=CASE WHEN $7 THEN provisioning_operation ELSE NULL END,
           provisioning_correlation_id=CASE WHEN $7 THEN provisioning_correlation_id ELSE NULL END,
-          provisioning_started_at=CASE WHEN $7 THEN provisioning_started_at ELSE NULL END
+          provisioning_started_at=CASE WHEN $7 THEN provisioning_started_at ELSE NULL END,
+          provider_expires_at=CASE WHEN $7 THEN provider_expires_at ELSE NULL END
          WHERE tenant_id=$1 AND subscription_id=$2 AND lease_owner=$6 RETURNING *`,
         [tenantId, lease.row.subscription_id, graphSubscriptionSafeCode(error),
           new Date(at.getTime() + Math.min(300_000,
@@ -56,6 +57,7 @@ export function createPostgresGraphSubscriptionCreateRecovery({
         `UPDATE lawos_email_dms.graph_subscriptions SET
           provisioning_operation=NULL,provisioning_correlation_id=NULL,
           provisioning_started_at=NULL,lease_owner=NULL,lease_expires_at=NULL,
+          provider_expires_at=NULL,
           status='pending',next_attempt_at=$4,
           last_error_code='GRAPH_CREATE_ADOPTION_WINDOW_EXHAUSTED',updated_at=$5
          WHERE tenant_id=$1 AND subscription_id=$2

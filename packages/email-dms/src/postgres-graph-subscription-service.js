@@ -19,19 +19,19 @@ export function createPostgresGraphSubscriptionService({
   renewal_window_ms = 10 * 60_000,
   expiration_factory = ({ now }) => new Date(now.getTime() + 60 * 60_000).toISOString(),
   client_state_factory,
+  pause_connection_policies = null,
 } = {}) {
-  if (!pool?.connect || typeof state_lookup !== "function") {
-    throw new TypeError("PostgreSQL Graph subscription state is required");
-  }
+  if (!pool?.connect || typeof state_lookup !== "function") throw new TypeError("PostgreSQL Graph subscription state is required");
   for (const method of ["createOwnMessageSubscription", "renewOwnMessageSubscription",
     "listOwnMessageSubscriptions", "deleteOwnMessageSubscription"]) {
-    if (typeof provider?.[method] !== "function") {
-      throw new TypeError("Microsoft Graph subscription provider is required");
-    }
+    if (typeof provider?.[method] !== "function") throw new TypeError("Microsoft Graph subscription provider is required");
   }
   const deleteOwnedSubscription = (cleanup_provider === null
     ? provider.deleteOwnMessageSubscription : cleanup_provider.deleteLocallyOwnedMessageSubscription)?.bind(cleanup_provider ?? provider);
   if (typeof deleteOwnedSubscription !== "function") throw new TypeError("Microsoft Graph subscription cleanup provider is required");
+  if (pause_connection_policies !== null && typeof pause_connection_policies !== "function") {
+    throw new TypeError("conversation policy pause authority is invalid");
+  }
   const deleteBeforeConnectionRevoke = cleanup_provider
     ?.deleteLocallyOwnedMessageSubscriptionBeforeRevoke?.bind(cleanup_provider);
   const tenantId = requiredSyncString({ tenant_id }, "tenant_id");
@@ -78,27 +78,17 @@ export function createPostgresGraphSubscriptionService({
       && Date.parse(existing.provider_expires_at) - startedAt.getTime()
         > renewal_window_ms) return existing;
     const operation = renewable ? "renew" : "create";
-    const lease = await persistence.acquire(
-      input,
-      resource,
-      existing,
-      operation,
-      startedAt,
+    const expiresAt = expiration_factory({ input, operation, existing, now: startedAt });
+    if (!Number.isFinite(Date.parse(expiresAt))
+      || Date.parse(expiresAt) <= startedAt.getTime()) {
+      throw Object.assign(new TypeError("expiration_factory must return a future instant"),
+        { remote_commit_state: "not_created" });
+    }
+    const lease = await persistence.acquire(input, resource, existing, operation, startedAt,
+      operation === "create" ? new Date(expiresAt).toISOString() : null,
     );
     if (!lease) return existing;
     try {
-      const expiresAt = expiration_factory({
-        input,
-        operation,
-        existing,
-        now: startedAt,
-      });
-      if (!Number.isFinite(Date.parse(expiresAt))
-        || Date.parse(expiresAt) <= startedAt.getTime()) {
-        throw Object.assign(new TypeError(
-          "expiration_factory must return a future instant",
-        ), { remote_commit_state: "not_created" });
-      }
       const result = operation === "renew"
         ? await provider.renewOwnMessageSubscription({
           ...input,
@@ -117,9 +107,7 @@ export function createPostgresGraphSubscriptionService({
           provisioning_correlation_id: lease.row.provisioning_correlation_id,
           expiration_datetime: expiresAt,
         });
-      if (!matchesGraphSubscriptionIntent(lease.row, result, input)) {
-        throw new Error("Graph subscription provider response binding does not match");
-      }
+      if (!matchesGraphSubscriptionIntent(lease.row, result, input)) throw new Error("Graph subscription provider response binding does not match");
       return await persistence.complete(lease, result, now());
     } catch (error) {
       const createFailureState = operation === "create"
@@ -175,18 +163,11 @@ export function createPostgresGraphSubscriptionService({
       throw new Error("Graph subscription service authority does not match");
     }
     const state = await state_lookup(input);
-    if (!state) {
-      throw new Error("Microsoft connection is not owned by the requested principal");
-    }
-    const bound = {
-      ...input,
-      mailbox_ref: state.connection.mailbox_address_hash,
-      entra_tenant_id: entraTenantId,
-    };
+    if (!state) throw new Error("Microsoft connection is not owned by the requested principal");
+    const bound = { ...input, mailbox_ref: state.connection.mailbox_address_hash,
+      entra_tenant_id: entraTenantId };
     const expiresAt = Date.parse(state.connection.expires_at);
-    if (!Number.isFinite(expiresAt)) {
-      throw new Error("active delegated me-only Mail.Read connection is required");
-    }
+    if (!Number.isFinite(expiresAt)) throw new Error("active delegated me-only Mail.Read connection is required");
     const inactiveOutcome = state.connection.revoked_at
       ? "revoked_connection"
       : expiresAt <= now().getTime()
@@ -195,6 +176,20 @@ export function createPostgresGraphSubscriptionService({
           ? "scope_lost_connection"
           : null;
     if (inactiveOutcome) {
+      if (pause_connection_policies) {
+        await pause_connection_policies({
+          tenant_id: tenantId,
+          user_id: input.user_id,
+          entra_subject_id: input.entra_subject_id,
+          m365_connection_id: input.m365_connection_id,
+          actor_id: "outlook-conversation-sync-service",
+          reason: {
+            revoked_connection: "connection_revoked",
+            expired_connection: "connection_expired",
+            scope_lost_connection: "mail_read_scope_lost",
+          }[inactiveOutcome],
+        });
+      }
       return cleanup.revokeLocals(bound, state.subscriptions, inactiveOutcome);
     }
     if (!isActiveOwnedConnection(state.connection, input, now())) {
@@ -227,11 +222,8 @@ export function createPostgresGraphSubscriptionService({
     await releaseExpiredCreateIntents(state.subscriptions, now());
     const subscriptions = [];
     for (const resource of GRAPH_MESSAGE_RESOURCES) {
-      subscriptions.push(await provision(
-        bound,
-        resource,
-        state.subscriptions.find((entry) => entry.resource === resource),
-      ));
+      subscriptions.push(await provision(bound, resource,
+        state.subscriptions.find((entry) => entry.resource === resource)));
     }
     return {
       outcome: subscriptions.every((entry) => entry?.status === "active")

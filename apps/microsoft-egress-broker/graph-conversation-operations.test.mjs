@@ -76,15 +76,19 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
     graph_notification_url: CALLBACK,
     fetch_impl: async (url, options) => {
       calls.push({ url, options });
-      if (options.method === "GET") return json({ value: [{
-        id: "provider-subscription-outm26",
-        resource: RESOURCE,
-        changeType: "created",
-        clientState: "opaque-client-state-outm26",
-        expirationDateTime: "2026-08-08T01:00:00.000Z",
-        notificationUrl: CALLBACK,
-        lifecycleNotificationUrl: CALLBACK,
-      }] });
+      if (options.method === "GET") {
+        const subscription = {
+          id: "provider-subscription-outm26",
+          resource: RESOURCE,
+          changeType: "created",
+          expirationDateTime: "2026-08-08T01:00:00.000Z",
+          notificationUrl: CALLBACK,
+          lifecycleNotificationUrl: CALLBACK,
+        };
+        return new URL(url).pathname === "/v1.0/subscriptions"
+          ? json({ value: [{ ...subscription, clientState: null }] })
+          : json({ ...subscription, clientState: "opaque-client-state-outm26" });
+      }
       if (options.method === "PATCH") return json({
         id: "provider-subscription-outm26",
         resource: RESOURCE,
@@ -121,7 +125,9 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
   assert.equal(listed.result[0].account_id, "account-outm26");
   assert.equal(renewed.result.notification_url, CALLBACK);
   assert.equal(JSON.stringify(listed).includes("opaque-client-state-outm26"), false);
-  assert.deepEqual(calls.map(({ options }) => options.method), ["GET", "PATCH", "DELETE"]);
+  assert.deepEqual(calls.map(({ options }) => options.method), [
+    "GET", "GET", "PATCH", "DELETE",
+  ]);
   assert.ok(calls.every(({ url }) => new URL(url).origin === "https://graph.microsoft.com"));
 });
 

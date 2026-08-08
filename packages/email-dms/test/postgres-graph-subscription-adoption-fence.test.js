@@ -94,10 +94,17 @@ test("OUTM-26 an incomplete remote list never overwrites an uncommitted create i
     fixture.appPool,
     { tenant_id: TENANT, readOnly: true },
     async (client) => (await client.query(
-      `SELECT resource,provisioning_correlation_id,client_state_hash
+      `SELECT resource,provisioning_correlation_id,client_state_hash,
+              provider_expires_at
          FROM lawos_email_dms.graph_subscriptions`,
     )).rows[0],
   );
+  assert.equal(before.provider_expires_at.toISOString(), remote[0].expires_at);
+  remote.unshift({
+    ...remote[0],
+    provider_subscription_id: "provider-unknown-wrong-expiry",
+    expires_at: "2026-08-08T01:00:00.001Z",
+  });
 
   hideRemote = true;
   now = new Date("2026-08-08T00:00:05.000Z");
@@ -122,5 +129,7 @@ test("OUTM-26 an incomplete remote list never overwrites an uncommitted create i
   const adopted = await service().reconcile(graphSubscriptionInput());
   assert.equal(adopted.outcome, "active");
   assert.equal(createCalls.filter((resource) => resource === before.resource).length, 1);
-  assert.equal(remote.length, 2);
+  assert.equal(remote.length, 3);
+  assert.equal(remote.some(({ provider_subscription_id: id }) =>
+    id === "provider-unknown-wrong-expiry"), true);
 });

@@ -39,6 +39,14 @@ export function createPostgresConversationMaintenanceStore({
          ), state AS (
            SELECT principal.*,
              connection.payload->>'revoked_at' AS connection_revoked_at,
+             (connection.payload->>'expires_at' IS NULL
+               OR connection.payload->>'expires_at' !~
+                 '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$'
+               OR connection.payload->>'expires_at' <= $5)
+               AS connection_expired,
+             NOT COALESCE(jsonb_typeof(connection.payload->'granted_scopes')='array'
+               AND connection.payload->'granted_scopes' ? 'Mail.Read', false)
+               AS connection_scope_lost,
              EXISTS (
                SELECT 1 FROM lawos_email_dms.conversation_policies policy
                 WHERE policy.tenant_id=$1 AND policy.status='active'
@@ -72,10 +80,13 @@ export function createPostgresConversationMaintenanceStore({
            FROM state
           WHERE (connection_revoked_at IS NOT NULL AND resource_count > 0 AND cleanup_due)
              OR (NOT has_policy AND resource_count > 0 AND cleanup_due)
-             OR (has_policy AND (resource_count < 2 OR renewal_due OR retry_due))
+             OR (has_policy AND (connection_revoked_at IS NOT NULL
+               OR connection_expired OR connection_scope_lost
+               OR resource_count < 2 OR renewal_due OR retry_due))
           ORDER BY m365_connection_id
           LIMIT $4`,
-        [tenantId, at.toISOString(), renewalBefore, boundedLimit(limit)],
+        [tenantId, at.toISOString(), renewalBefore, boundedLimit(limit),
+          at.toISOString()],
       );
       return Object.freeze(result.rows.map((row) => Object.freeze({
         tenant_id: tenantId,

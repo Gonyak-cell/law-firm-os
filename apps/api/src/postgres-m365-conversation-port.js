@@ -6,7 +6,6 @@ import {
   hashMailboxAddress,
   normalizeM365Connection,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
-import { acquireActiveM365Credential } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { runRecordRepositoryDomainCommand } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 
@@ -128,28 +127,40 @@ export function createPostgresM365ConversationCleanupPort({
           throw new Error("Microsoft Graph cleanup mailbox ownership does not match");
         }
         let credential = suppliedCredential;
-        if (!credential && !connection.revoked_at) {
-          const acquired = await acquireActiveM365Credential({
-            repository,
-            credential_vault,
-            provider: conversation_provider,
-            tenant_id: tenantId,
-            user_id: connection.user_id,
-            entra_subject_id: connection.entra_subject_id,
-            required_scope: null,
-            clock,
-          });
-          connection = acquired.connection;
-          credential = acquired.credential;
-        }
         credential ??= await credential_vault.resolveDelegatedCredential({
           credential_ref: connection.credential_ref,
         });
-        if (requiredSyncString(credential, "entra_subject_id")
-          !== connection.entra_subject_id
-          || hashMailboxAddress(requiredSyncString(credential, "mailbox_address"))
-            !== connection.mailbox_address_hash) {
+        const credentialOwned = (value) =>
+          requiredSyncString(value, "entra_subject_id") === connection.entra_subject_id
+          && hashMailboxAddress(requiredSyncString(value, "mailbox_address"))
+            === connection.mailbox_address_hash;
+        if (!credentialOwned(credential)) {
           throw new Error("Microsoft Graph cleanup credential ownership does not match");
+        }
+        const at = clock();
+        if (!(at instanceof Date) || !Number.isFinite(at.getTime())) {
+          throw new TypeError("clock must return a valid Date");
+        }
+        const credentialExpiresAt = Date.parse(credential.expires_at);
+        if (!Number.isFinite(credentialExpiresAt)) {
+          throw new Error("Microsoft Graph cleanup credential expiry is invalid");
+        }
+        if (!suppliedCredential && credentialExpiresAt <= at.getTime()) {
+          if (typeof conversation_provider.refreshDelegatedCredential !== "function") {
+            throw new Error("Microsoft Graph cleanup credential refresh is unavailable");
+          }
+          const refreshed = (await conversation_provider.refreshDelegatedCredential({
+            credential,
+            entra_subject_id: connection.entra_subject_id,
+            mailbox_scope: "me",
+          }))?.token_bundle;
+          if (!refreshed || !credentialOwned(refreshed)
+            || !Number.isFinite(Date.parse(refreshed.expires_at))
+            || Date.parse(refreshed.expires_at) <= at.getTime()) {
+            throw new Error("Microsoft Graph cleanup refreshed credential is invalid");
+          }
+          requiredSyncString(refreshed, "access_token", 32 * 1024);
+          credential = refreshed;
         }
         return conversation_provider.deleteOwnMessageSubscription({
           tenant_id: tenantId,

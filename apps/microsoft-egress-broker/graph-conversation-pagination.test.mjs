@@ -33,15 +33,17 @@ test("OUTM-26 broker exhausts a bounded exact-host subscription continuation bef
           "@odata.nextLink": "https://graph.microsoft.com/v1.0/subscriptions?$skiptoken=page-2",
         });
       }
-      return json({ value: [{
+      const subscription = {
         id: "provider-subscription-page-2",
         resource: RESOURCE,
         changeType: "created",
-        clientState: "opaque-client-state-page-2",
         expirationDateTime: "2026-08-08T01:00:00.000Z",
         notificationUrl: CALLBACK,
         lifecycleNotificationUrl: CALLBACK,
-      }] });
+      };
+      return calls.length === 2
+        ? json({ value: [{ ...subscription, clientState: null }] })
+        : json({ ...subscription, clientState: "opaque-client-state-page-2" });
     },
   });
   const result = await handler(envelope({
@@ -50,8 +52,10 @@ test("OUTM-26 broker exhausts a bounded exact-host subscription continuation bef
     account_id: "account-page-2",
   }));
   assert.equal(result.ok, true);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
   assert.equal(new URL(calls[1]).searchParams.get("$skiptoken"), "page-2");
+  assert.equal(new URL(calls[2]).pathname,
+    "/v1.0/subscriptions/provider-subscription-page-2");
   assert.deepEqual(result.result.map(({ provider_subscription_id: id }) => id), [
     "provider-subscription-page-2",
   ]);
@@ -59,7 +63,7 @@ test("OUTM-26 broker exhausts a bounded exact-host subscription continuation bef
 });
 
 test("OUTM-26 broker rejects cross-host, cyclic, and over-budget subscription pages", async () => {
-  for (const scenario of ["cross-host", "cycle", "over-budget"]) {
+  for (const scenario of ["cross-host", "cycle", "over-budget", "candidate-budget"]) {
     let calls = 0;
     const handler = createHandler({
       graph_notification_url: CALLBACK,
@@ -70,6 +74,17 @@ test("OUTM-26 broker rejects cross-host, cyclic, and over-budget subscription pa
         }
         if (scenario === "cycle") {
           return json({ value: [], "@odata.nextLink": url });
+        }
+        if (scenario === "candidate-budget") {
+          return json({ value: Array.from({ length: 21 }, (_, index) => ({
+            id: `provider-candidate-${index}`,
+            resource: RESOURCE,
+            changeType: "created",
+            clientState: null,
+            expirationDateTime: "2026-08-08T01:00:00.000Z",
+            notificationUrl: CALLBACK,
+            lifecycleNotificationUrl: CALLBACK,
+          })) });
         }
         return json({
           value: [],
@@ -88,6 +103,37 @@ test("OUTM-26 broker rejects cross-host, cyclic, and over-budget subscription pa
       "TARGET_POLICY_VIOLATION",
       "UPSTREAM_RESPONSE_INVALID",
       "SUBSCRIPTION_PAGE_BUDGET_EXHAUSTED",
+      "SUBSCRIPTION_CANDIDATE_BUDGET_EXHAUSTED",
     ].includes(result.error.code), scenario);
   }
+});
+
+test("OUTM-26 broker rejects a detail response that changed after bounded discovery", async () => {
+  let calls = 0;
+  const subscription = {
+    id: "provider-binding-changed",
+    resource: RESOURCE,
+    changeType: "created",
+    expirationDateTime: "2026-08-08T01:00:00.000Z",
+    notificationUrl: CALLBACK,
+    lifecycleNotificationUrl: CALLBACK,
+  };
+  const handler = createHandler({
+    graph_notification_url: CALLBACK,
+    fetch_impl: async () => {
+      calls += 1;
+      return calls === 1
+        ? json({ value: [{ ...subscription, clientState: null }] })
+        : json({ ...subscription, clientState: "opaque-client-state-changed",
+          expirationDateTime: "2026-08-08T01:00:01.000Z" });
+    },
+  });
+  const result = await handler(envelope({
+    access_token: "token",
+    entra_tenant_id: "entra-tenant-binding-changed",
+    account_id: "account-binding-changed",
+  }));
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "UPSTREAM_RESPONSE_INVALID");
+  assert.equal(calls, 2);
 });

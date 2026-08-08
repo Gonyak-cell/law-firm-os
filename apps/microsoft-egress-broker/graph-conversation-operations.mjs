@@ -8,6 +8,7 @@ const RESOURCES = new Set([
 ]);
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
 const MAX_SUBSCRIPTION_PAGES = 10;
+const MAX_SUBSCRIPTION_CANDIDATES = 20;
 
 export class GraphConversationOperationError extends Error {
   constructor(code, status = 400, details = {}) {
@@ -76,7 +77,7 @@ function headers(token) {
   return { authorization: `Bearer ${text(token, 32 * 1024)}`, accept: "application/json", "content-type": "application/json", Prefer: 'IdType="ImmutableId"' };
 }
 
-function subscription(value, notificationUrl, binding = null) {
+function subscriptionBinding(value, notificationUrl, binding = null) {
   object(value);
   const normalizedResource = resource(value.resource);
   if (value.changeType !== "created" || value.notificationUrl !== notificationUrl
@@ -87,11 +88,14 @@ function subscription(value, notificationUrl, binding = null) {
     provider_subscription_id: subscriptionId(value.id),
     resource: normalizedResource,
     change_type: "created",
-    client_state_hash: clientStateHash(value.clientState),
     notification_url: notificationUrl,
     expires_at: instant(value.expirationDateTime),
     ...(binding ?? {}),
   };
+}
+
+function subscription(value, notificationUrl, binding = null) {
+  return { ...subscriptionBinding(value, notificationUrl, binding), client_state_hash: clientStateHash(value.clientState) };
 }
 
 function subscriptionNextLink(value) {
@@ -146,9 +150,7 @@ export function createGraphConversationOperations({ graph_notification_url } = {
       const visited = new Set();
       let url = `${GRAPH_ORIGIN}/v1.0/subscriptions`;
       for (let page = 0; page < MAX_SUBSCRIPTION_PAGES; page += 1) {
-        if (visited.has(url)) {
-          throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
-        }
+        if (visited.has(url)) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
         visited.add(url);
         const response = await graphFetch(fetchImpl, url, {
           method: "GET",
@@ -163,15 +165,28 @@ export function createGraphConversationOperations({ graph_notification_url } = {
           entry?.notificationUrl === callback
           && entry?.lifecycleNotificationUrl === callback
           && RESOURCES.has(entry?.resource))
-          .map((entry) => subscription(entry, callback, binding)));
+          .map((entry) => subscriptionBinding(entry, callback, binding)));
+        if (listed.length > MAX_SUBSCRIPTION_CANDIDATES) throw new GraphConversationOperationError("SUBSCRIPTION_CANDIDATE_BUDGET_EXHAUSTED", 502);
         const next = subscriptionNextLink(body["@odata.nextLink"]);
-        if (!next) return listed;
+        if (!next) {
+          return Promise.all(listed.map(async (candidate) => {
+            const id = encodeURIComponent(candidate.provider_subscription_id);
+            const response = await graphFetch(fetchImpl, `${GRAPH_ORIGIN}/v1.0/subscriptions/${id}`, {
+              method: "GET", headers: headers(request.access_token),
+            });
+            if (response.status !== 200) upstream(response);
+            const detail = subscription(await json(response), callback, binding);
+            if (["provider_subscription_id", "resource", "change_type",
+              "notification_url", "expires_at", "entra_tenant_id", "account_id"]
+              .some((field) => detail[field] !== candidate[field])) {
+              throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+            }
+            return detail;
+          }));
+        }
         url = next;
       }
-      throw new GraphConversationOperationError(
-        "SUBSCRIPTION_PAGE_BUDGET_EXHAUSTED",
-        502,
-      );
+      throw new GraphConversationOperationError("SUBSCRIPTION_PAGE_BUDGET_EXHAUSTED", 502);
     },
     "graph.messageSubscription.delete": async (fetchImpl, request) => {
       exact(request, ["access_token", "provider_subscription_id"]);

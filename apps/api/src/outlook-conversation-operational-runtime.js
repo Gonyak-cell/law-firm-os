@@ -98,6 +98,7 @@ export async function createPostgresOutlookConversationRuntime({
     state_lookup: store.readConnectionState,
     provider: conversationPort,
     cleanup_provider: subscriptionCleanupPort,
+    pause_connection_policies: policyService.pauseConnectionPolicies,
     clock,
   });
   const webhook = createOutlookGraphWebhookHandler({

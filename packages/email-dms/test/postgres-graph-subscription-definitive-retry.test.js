@@ -91,6 +91,18 @@ test("OUTM-26 definitive create rejection clears the fence and retries Inbox and
   };
 
   await assert.rejects(service().reconcile(graphSubscriptionInput()), /definite/u);
+  const cleared = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT, readOnly: true },
+    async (client) => (await client.query(
+      `SELECT provisioning_correlation_id,provider_expires_at
+         FROM lawos_email_dms.graph_subscriptions`,
+    )).rows[0],
+  );
+  assert.deepEqual(cleared, {
+    provisioning_correlation_id: null,
+    provider_expires_at: null,
+  });
   await advancePastRetry();
   await assert.rejects(service().reconcile(graphSubscriptionInput()), /definite/u);
   await advancePastRetry();

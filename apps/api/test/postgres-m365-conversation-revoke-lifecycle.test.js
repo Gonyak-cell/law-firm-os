@@ -76,8 +76,12 @@ test("OUTM-26 scheduled expiry cleanup refreshes a rejected token before exact d
     .map(([event, providerId, accessToken]) => [event, providerId, accessToken]), [
     ["refresh", "expired-access", undefined],
     ["subscription_delete", "provider-revoke-0", "refreshed-access"],
+    ["refresh", "expired-access", undefined],
     ["subscription_delete", "provider-revoke-1", "refreshed-access"],
   ]);
-  assert.equal((await value.state()).subscriptions.every(({ status }) =>
-    status === "revoked"), true);
+  const state = await value.state();
+  assert.equal(state.subscriptions.every(({ status }) => status === "revoked"), true);
+  assert.equal(state.connection.expires_at, "2026-08-08T00:05:00.000Z");
+  assert.equal(state.connection.state_version, 1);
+  assert.equal(value.events.some(([event]) => event === "vault_store"), false);
 });
