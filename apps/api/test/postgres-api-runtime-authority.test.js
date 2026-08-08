@@ -26,6 +26,7 @@ import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../../packages/master-data/src
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import {
   createPostgresApiRuntimeAuthority,
+  isOutlookIdempotentMutation,
   runPostgresReadWithBaselineRetry,
   runWithRequestFailureCompensation,
 } from "../src/postgres-api-runtime-authority.js";
@@ -517,6 +518,19 @@ test("PostgreSQL request failure runs registered external compensation once", as
     throw new Error("domain flush failed");
   }), /domain flush failed/u);
   assert.deepEqual(calls, ["credential:deleted"]);
+});
+
+test("OUTM-21 retries only the exact idempotent correction mutation path", () => {
+  assert.equal(
+    isOutlookIdempotentMutation("POST", "/api/outlook/email/corrections"),
+    true,
+  );
+  for (const [method, pathname] of [
+    ["GET", "/api/outlook/email/corrections"],
+    ["POST", "/api/outlook/email/corrections/"],
+    ["POST", "/api/outlook/email/corrections/current"],
+    ["POST", "/api/outlook/email/corrections/other"],
+  ]) assert.equal(isOutlookIdempotentMutation(method, pathname), false);
 });
 
 test("PostgreSQL request success runs post-commit cleanup but never failure compensation", async () => {

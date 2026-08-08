@@ -2,6 +2,8 @@ import { createRecordDomainDescriptor } from "../../persistence/src/record-domai
 import { primaryIdOf } from "./repository-record.js";
 
 const APPEND_ONLY_TYPES = new Set([
+  "EmailFilingPlacementEvent",
+  "EmailFilingPlacementReference",
   "MatterStatusHistory",
   "MatterTimelineEvent",
   "MatterAuditEvent",
@@ -14,6 +16,10 @@ function references(record) {
     if (target_record_id) values.push({ reference_name, target_record_type, target_record_id, required });
   };
   if (record.model_type !== "Matter") add("matter", "Matter", record.matter_id, true);
+  if (["EmailFilingPlacementEvent", "EmailFilingPlacementReference"].includes(record.model_type)) {
+    add("source_matter", "Matter", record.source_matter_id, true);
+    add("target_matter", "Matter", record.target_matter_id, true);
+  }
   add("client", "MatterClient", record.client_id);
   add("worktree", "MatterWorktree", record.worktree_id);
   add("template", "MatterWorktreeTemplate", record.template_id);
