@@ -40,7 +40,18 @@ export async function appendPrecedentAudit(client, input) {
 export const ELIGIBLE_DOCUMENT_SQL = `
   d.status = 'active'
   AND d.current_version_id = s.version_id
-  AND d.privileged = false
+  AND d.privilege_status = 'cleared'
+  AND d.current_privilege_label_id IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM lawos_dms.document_privilege_labels p
+     WHERE p.tenant_id = s.tenant_id
+       AND p.label_id = d.current_privilege_label_id
+       AND p.document_id = s.document_id
+       AND p.version_id = s.version_id
+       AND p.classification = 'not_privileged'
+       AND p.search_disposition = 'eligible'
+       AND p.authority = 'dms-privilege-review-v1'
+  )
   AND d.legal_hold_status <> 'active'
   AND v.sha256 = s.content_sha256
   AND f.status = 'committed'

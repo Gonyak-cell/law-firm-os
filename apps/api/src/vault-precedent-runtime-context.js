@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import {
   PRECEDENT_APPROVAL_AUTHORITY,
+  PRECEDENT_PRIVILEGE_AUTHORITY,
+  hashValue,
 } from "../../../packages/dms/src/search/precedent-common.js";
 import { evaluateRouteDecision } from "./permission-gate.js";
 
@@ -24,17 +26,19 @@ function actualDecisionId(decision, requestId, resourceId) {
     matched_rule_id: decision.matched_rule_id ?? null })).digest("hex")}`;
 }
 
-function authorized({ context, action, tenantId, matterId = null, resourceId }) {
+function authorized({ context, action, tenantId, matterId = null,
+  resourceId, resourceType = "precedent_source" }) {
   const decision = evaluateRouteDecision({ context, action,
     resource: { tenant_id: tenantId, matter_id: matterId,
-      resource_type: "precedent_source", resource_id: resourceId } });
+      resource_type: resourceType, resource_id: resourceId } });
   return decision.effect === "allow" ? decision : null;
 }
 
 function runtimeRepository(runtime) {
   const repository = runtime?.precedent_search_runtime?.repository;
   return repository?.registerSource && repository?.disableSource
-    && repository?.unapproveSource && repository?.readiness ? repository : null;
+    && repository?.unapproveSource && repository?.classifyDocumentPrivilege
+    && repository?.readiness ? repository : null;
 }
 
 export async function handleVaultPrecedentApiRequest({
@@ -51,6 +55,23 @@ export async function handleVaultPrecedentApiRequest({
     }
     const actorId = requiredId(context.principal.user_id ?? context.principal.actor_id,
       "principal.user_id");
+    const privilege = pathname.match(/^\/api\/vault\/documents\/([^/]+)\/privilege-label$/u);
+    if (privilege && method === "POST") {
+      const documentId = requiredId(decodeURIComponent(privilege[1]), "document_id");
+      const decision = authorized({ context, action: "dms:document:privilege:classify",
+        tenantId, resourceId: documentId, resourceType: "dms_document" });
+      if (!decision) return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
+      const decisionId = actualDecisionId(decision, requestId, documentId);
+      const result = await repository.classifyDocumentPrivilege({ tenant_id: tenantId,
+        document_id: documentId, classification: body.classification,
+        label_id: `privilege:${hashValue({ request_id: requestId, document_id: documentId })}`,
+        authority: PRECEDENT_PRIVILEGE_AUTHORITY, decision_id: decisionId,
+        provenance_sha256: hashValue({ request_id: requestId, document_id: documentId,
+          classification: body.classification, decision_id: decisionId }),
+        applied_by: actorId, applied_at: new Date().toISOString() });
+      return { status: 200, body: { request_id: requestId, outcome: "passed",
+        item: result, safe_error_codes: [], production_ready_claim: false } };
+    }
     if (pathname === "/api/vault/precedent-sources" && method === "POST") {
       const sourceId = requiredId(body.source_id, "source_id");
       const matterId = requiredId(body.matter_id, "matter_id");

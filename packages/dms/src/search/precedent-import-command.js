@@ -1,4 +1,3 @@
-import { normalizePrecedentText } from "../precedent-source.js";
 import {
   PRECEDENT_APPROVAL_AUTHORITY,
   hashValue,
@@ -6,7 +5,6 @@ import {
   requiredText,
   requiredTimestamp,
 } from "./precedent-common.js";
-import { extractedTextSha256 } from "./precedent-extraction-receipt.js";
 
 const SCHEMA_VERSION = "amic-os.precedent-import.v1";
 
@@ -27,6 +25,10 @@ function validateManifest(input = {}) {
   }
   const ids = new Set();
   const sources = input.sources.map((entry) => {
+    if (Object.hasOwn(entry, "metadata_text") || Object.hasOwn(entry, "body_text")
+        || Object.hasOwn(entry, "extraction_receipt")) {
+      throw new TypeError("precedent import source text and extraction receipts are server-derived only");
+    }
     const sourceId = requiredId(entry.source_id, "source_id");
     if (ids.has(sourceId)) throw new TypeError(`precedent import contains duplicate source_id ${sourceId}`);
     ids.add(sourceId);
@@ -36,16 +38,15 @@ function validateManifest(input = {}) {
     approval: normalizedApproval, sources: Object.freeze(sources) });
 }
 
-export async function executeApprovedPrecedentImport({ repository, manifest, actor_id } = {}) {
-  if (!repository?.registerSource || !repository?.indexSource || !repository?.issueExtractionReceipt) {
+export async function executeApprovedPrecedentImport({ repository, extractor, manifest, actor_id } = {}) {
+  if (!repository?.registerSource || !repository?.indexSource) {
     throw new TypeError("active precedent repository is required");
   }
+  if (!extractor?.extractSource) throw new TypeError("immutable precedent extraction authority is required");
   const actorId = requiredId(actor_id, "actor_id");
   const approved = validateManifest(manifest);
   const results = [];
   for (const entry of approved.sources) {
-    const metadataText = normalizePrecedentText(entry.metadata_text, { maxLength: 4_000 });
-    const bodyText = normalizePrecedentText(entry.body_text, { maxLength: 1_000_000 });
     const sourceHash = hashValue({ tenant_id: approved.tenant_id,
       batch_id: approved.batch_id, source_id: entry.source_id,
       version_id: entry.version_id, content_sha256: entry.content_sha256 });
@@ -58,20 +59,12 @@ export async function executeApprovedPrecedentImport({ repository, manifest, act
       approved_by: approved.approval.approved_by,
       approved_at: approved.approval.approved_at,
       idempotency_key: `precedent-import:${sourceHash}` });
-    const receipt = repository.issueExtractionReceipt({
-      receipt_id: `extract:${sourceHash}`,
-      tenant_id: approved.tenant_id, source_id: entry.source_id,
-      document_id: entry.document_id, version_id: entry.version_id,
-      content_sha256: entry.content_sha256,
-      extractor_id: requiredId(entry.extractor_id, "extractor_id"),
-      text_sha256: extractedTextSha256({ metadata_text: metadataText, body_text: bodyText }),
-      character_count: metadataText.length + bodyText.length,
-      issued_by: actorId, issued_at: approved.approval.approved_at,
-      authority: "dms-immutable-version-extractor-v1",
-    });
+    const extracted = await extractor.extractSource({ tenant_id: approved.tenant_id,
+      source_id: entry.source_id, actor_id: actorId });
     const indexed = await repository.indexSource({ tenant_id: approved.tenant_id,
-      source_id: entry.source_id, actor_id: actorId, metadata_text: metadataText,
-      body_text: bodyText, extraction_receipt: receipt });
+      source_id: entry.source_id, actor_id: actorId,
+      metadata_text: extracted.metadata_text, body_text: extracted.body_text,
+      extraction_receipt: extracted.extraction_receipt });
     results.push(Object.freeze({ source_id: entry.source_id,
       source_revision: registered.source.source_revision,
       index_hash: indexed.index_hash, replayed: registered.replayed && indexed.replayed }));

@@ -164,10 +164,7 @@ export function createPrecedentRegistryRepository({ pool } = {}) {
       const result = await client.query(
         `SELECT s.source_id,s.source_kind,s.matter_id,s.document_id,s.version_id
            FROM lawos_dms.precedent_sources s
-           JOIN lawos_dms.documents d ON d.tenant_id=s.tenant_id AND d.document_id=s.document_id
-           JOIN lawos_dms.document_versions v ON v.tenant_id=s.tenant_id AND v.version_id=s.version_id
-           JOIN lawos_dms.file_objects f ON f.tenant_id=v.tenant_id AND f.file_object_id=v.file_object_id
-          WHERE s.tenant_id=$1 AND s.status='active' AND ${ELIGIBLE_DOCUMENT_SQL}
+          WHERE s.tenant_id=$1 AND s.status='active'
           ORDER BY s.source_id`, [tenantId]);
       return Object.freeze(result.rows.map((row) => Object.freeze({ ...row, tenant_id: tenantId, resource_id: row.document_id })));
     });

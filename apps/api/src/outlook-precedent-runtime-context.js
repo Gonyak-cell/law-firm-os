@@ -69,7 +69,9 @@ async function authorize({ query, context, requestId, runtime }) {
   const descriptors = await repository.listSourceDescriptors({ tenant_id: user.tenant_id });
   const decisions = descriptors.map((descriptor) => ({ descriptor,
     decision: sourceDecision(context, descriptor) }));
-  const allowed = decisions.filter(({ decision }) => decision.effect === "allow")
+  const allowed = decisions.filter(({ descriptor, decision }) => (
+    decision.effect === "allow" && descriptor.matter_id !== matterId
+  ))
     .map(({ descriptor }) => descriptor);
   return { user, matterId, repository, allowed,
     authorization_decision_sha256: digest({ matter: decisionRecord(matterDecision, matterId),

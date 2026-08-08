@@ -1043,7 +1043,9 @@ export function createPostgresDmsUploadRuntime({
         stage = "DOCUMENT_UPDATE";
         await client.query(
           `UPDATE lawos_dms.documents
-              SET title = $3, current_version_id = $4, updated_at = $5::timestamptz
+              SET title = $3, current_version_id = $4,
+                  privilege_status = 'unknown', current_privilege_label_id = NULL,
+                  updated_at = $5::timestamptz
             WHERE tenant_id = $1 AND document_id = $2`,
           [locked.tenant_id, locked.document_id, locked.title, locked.version_id, committedAt],
         );

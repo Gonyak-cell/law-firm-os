@@ -1,7 +1,44 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 ALTER TABLE lawos_dms.documents
-  ADD COLUMN privileged boolean NOT NULL DEFAULT false;
+  ADD COLUMN privilege_status text NOT NULL DEFAULT 'unknown'
+    CHECK (privilege_status IN ('unknown', 'cleared', 'protected')),
+  ADD COLUMN current_privilege_label_id text;
+
+CREATE TABLE lawos_dms.document_privilege_labels (
+  tenant_id text NOT NULL,
+  label_id text NOT NULL,
+  document_id text NOT NULL,
+  version_id text NOT NULL,
+  classification text NOT NULL CHECK (classification IN (
+    'not_privileged', 'attorney_client', 'work_product', 'confidential', 'privileged'
+  )),
+  search_disposition text NOT NULL CHECK (search_disposition IN ('eligible', 'excluded')),
+  authority text NOT NULL CHECK (authority = 'dms-privilege-review-v1'),
+  decision_id text NOT NULL,
+  provenance_sha256 text NOT NULL CHECK (provenance_sha256 ~ '^[a-f0-9]{64}$'),
+  applied_by text NOT NULL,
+  applied_at timestamptz NOT NULL,
+  PRIMARY KEY (tenant_id, label_id),
+  FOREIGN KEY (tenant_id, document_id)
+    REFERENCES lawos_dms.documents (tenant_id, document_id)
+    ON DELETE RESTRICT,
+  FOREIGN KEY (tenant_id, version_id)
+    REFERENCES lawos_dms.document_versions (tenant_id, version_id)
+    ON DELETE RESTRICT,
+  CHECK (
+    (classification = 'not_privileged' AND search_disposition = 'eligible')
+    OR (classification <> 'not_privileged' AND search_disposition = 'excluded')
+  )
+);
+
+ALTER TABLE lawos_dms.documents
+  ADD FOREIGN KEY (tenant_id, current_privilege_label_id)
+    REFERENCES lawos_dms.document_privilege_labels (tenant_id, label_id)
+    ON DELETE RESTRICT;
+
+CREATE INDEX dms_document_privilege_version_index
+  ON lawos_dms.document_privilege_labels (tenant_id, document_id, version_id, applied_at DESC);
 
 CREATE TABLE lawos_dms.precedent_sources (
   tenant_id text NOT NULL,
@@ -169,13 +206,27 @@ BEGIN
 END;
 $$;
 
+CREATE FUNCTION lawos_dms.reject_document_privilege_label_change()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'Document privilege labels are immutable' USING ERRCODE = '55000';
+END;
+$$;
+
 CREATE TRIGGER dms_precedent_source_guard
 BEFORE UPDATE OR DELETE ON lawos_dms.precedent_sources
 FOR EACH ROW EXECUTE FUNCTION lawos_dms.validate_precedent_source_update();
 CREATE TRIGGER dms_precedent_extraction_receipt_guard
 BEFORE UPDATE OR DELETE ON lawos_dms.precedent_extraction_receipts
 FOR EACH ROW EXECUTE FUNCTION lawos_dms.reject_precedent_extraction_receipt_change();
+CREATE TRIGGER dms_document_privilege_label_guard
+BEFORE UPDATE OR DELETE ON lawos_dms.document_privilege_labels
+FOR EACH ROW EXECUTE FUNCTION lawos_dms.reject_document_privilege_label_change();
 
+ALTER TABLE lawos_dms.document_privilege_labels ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lawos_dms.document_privilege_labels FORCE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_sources FORCE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_extraction_receipts ENABLE ROW LEVEL SECURITY;
@@ -183,6 +234,9 @@ ALTER TABLE lawos_dms.precedent_extraction_receipts FORCE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_search_index ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lawos_dms.precedent_search_index FORCE ROW LEVEL SECURITY;
 
+CREATE POLICY dms_document_privilege_labels_tenant_policy ON lawos_dms.document_privilege_labels
+  USING (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''))
+  WITH CHECK (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''));
 CREATE POLICY dms_precedent_sources_tenant_policy ON lawos_dms.precedent_sources
   USING (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''))
   WITH CHECK (tenant_id = nullif(current_setting('app.current_tenant_id', true), ''));

@@ -69,7 +69,10 @@ import {
   createPostgresEmailDmsCompletionCheckpoint,
   createPostgresPeopleOutlookCompletionCheckpoint,
 } from "./people-outlook-completion-checkpoint.js";
-import { createPostgresPrecedentRepository } from "../../../packages/dms/src/search/postgres-precedent-repository.js";
+import {
+  createPostgresPrecedentRepository,
+  derivePrecedentAuthorityKeys,
+} from "../../../packages/dms/src/search/postgres-precedent-repository.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -267,8 +270,10 @@ export function createPostgresPrecedentSearchRuntime({ pool, authoritySecret } =
       || Buffer.byteLength(authoritySecret) < 32) {
     throw new TypeError("Precedent search requires server-held authority secret material");
   }
+  const keys = derivePrecedentAuthorityKeys(authoritySecret);
   return Object.freeze({ authority: "postgres-v2",
-    repository: createPostgresPrecedentRepository({ pool, authoritySecret }),
+    repository: createPostgresPrecedentRepository({ pool,
+      cursorSecret: keys.cursor, extractionReceiptSecret: keys.extraction_receipt }),
     production_ready_claim: false });
 }
 

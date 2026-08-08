@@ -2,6 +2,7 @@ import { withPostgresTransaction } from "../../../persistence/src/postgres/trans
 import { normalizePrecedentText } from "../precedent-source.js";
 import {
   PRECEDENT_INDEX_VERSION,
+  buildVaultDocumentNavigationHref,
   hashValue,
   normalizeAllowedDocumentIds,
   normalizeLimit,
@@ -78,7 +79,7 @@ function serialize(row) {
       decision_date: new Date(row.decision_date).toISOString().slice(0, 10) }) : null,
     source_reference: row.source_reference ?? null,
     source_url: row.source_kind === "case_law_document" ? row.source_url
-      : `/vault/documents/${encodeURIComponent(row.document_id)}?matter_id=${encodeURIComponent(row.matter_id)}&version_id=${encodeURIComponent(row.version_id)}`,
+      : buildVaultDocumentNavigationHref(row.document_id),
     search_rank: Number(row.rank_key),
     match_fields: Object.freeze([row.title_match ? "title" : null,
       row.metadata_match ? "metadata" : null, row.body_match ? "body" : null].filter(Boolean)),

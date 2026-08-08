@@ -29,6 +29,7 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/vault/documents",
     "POST /api/vault/documents",
     "GET /api/vault/documents/:document_id/download",
+    "POST /api/vault/documents/:document_id/privilege-label",
     "POST /api/vault/documents/:document_id/legal-holds",
     "POST /api/vault/documents/:document_id/retention-policies",
     "POST /api/vault/documents/:document_id/delete-check",
@@ -1338,7 +1339,8 @@ export async function handleVaultDmsApiRequest({
   requestId,
   runtime = DEFAULT_RUNTIME,
 } = {}) {
-  if (pathname.startsWith("/api/vault/precedent")) {
+  if (pathname.startsWith("/api/vault/precedent")
+      || /^\/api\/vault\/documents\/[^/]+\/privilege-label$/u.test(pathname)) {
     const precedent = await handleVaultPrecedentApiRequest({
       pathname, method, query, body, context, requestId, runtime,
     });

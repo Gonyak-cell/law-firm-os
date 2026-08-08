@@ -13,7 +13,9 @@ test("precedent runtime injection requires server-held authority and exposes onl
   assert.equal(runtime.authority, "postgres-v2");
   assert.equal(runtime.production_ready_claim, false);
   assert.equal(typeof runtime.repository.registerSource, "function");
+  assert.equal(typeof runtime.repository.classifyDocumentPrivilege, "function");
   assert.equal(typeof runtime.repository.indexSource, "function");
   assert.equal(typeof runtime.repository.readiness, "function");
   assert.equal(typeof runtime.repository.search, "function");
+  assert.equal(runtime.repository.issueExtractionReceipt, undefined);
 });

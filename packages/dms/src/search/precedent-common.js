@@ -1,14 +1,24 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { stableJsonStringify } from "../../../persistence/src/durable-file.js";
 import { normalizePrecedentText } from "../precedent-source.js";
 
 export const PRECEDENT_INDEX_VERSION = "lawos-precedent-fts-v2";
 export const PRECEDENT_APPROVAL_AUTHORITY = "vault-approved-precedent-corpus-v1";
 export const PRECEDENT_EXTRACTION_AUTHORITY = "dms-immutable-version-extractor-v1";
+export const PRECEDENT_PRIVILEGE_AUTHORITY = "dms-privilege-review-v1";
 export const MAX_ALLOWED_DOCUMENTS = 2_000;
 
 export function hashValue(value) {
   return createHash("sha256").update(stableJsonStringify(value)).digest("hex");
+}
+
+export function derivePrecedentAuthorityKeys(secret) {
+  const root = Buffer.isBuffer(secret) ? Buffer.from(secret) : Buffer.from(String(secret ?? ""), "utf8");
+  if (root.byteLength < 32) throw new TypeError("precedent authority root secret must contain at least 32 bytes");
+  const derive = (purpose) => createHmac("sha256", root)
+    .update(`amic-os-precedent-key\x1f${purpose}\x1fv1`)
+    .digest();
+  return Object.freeze({ cursor: derive("cursor"), extraction_receipt: derive("extraction-receipt") });
 }
 
 export function requiredText(value, field, maxLength = 500) {
@@ -100,6 +110,14 @@ export function sourceSnapshot(row) {
     registered_at: new Date(row.registered_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString(),
   });
+}
+
+export function buildVaultDocumentNavigationHref(documentId) {
+  const params = new URLSearchParams({
+    view: "vault",
+    document_id: requiredId(documentId, "document_id"),
+  });
+  return `?${params.toString()}#vault-search-documents`;
 }
 
 export function safeAuditPayload(value = {}) {

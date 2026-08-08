@@ -19,6 +19,7 @@ function runtime(calls) {
     async registerSource(input) { calls.push(["register", input]); return { source: { ...input, source_revision: 1 } }; },
     async disableSource(input) { calls.push(["disable", input]); return { source: { ...input, status: "disabled" } }; },
     async unapproveSource(input) { calls.push(["unapprove", input]); return { source: { ...input, status: "unapproved" } }; },
+    async classifyDocumentPrivilege(input) { calls.push(["privilege", input]); return { ...input }; },
     async readiness(input) { calls.push(["readiness", input]); return { runtime_ready: true,
       authoritative: true, index_version: "lawos-precedent-fts-v2", safe_error_code: null }; },
   } } };
@@ -26,6 +27,7 @@ function runtime(calls) {
 
 test("Vault precedent register, disable, unapprove, and readiness are permission-gated", async () => {
   for (const endpoint of ["POST /api/vault/precedent-sources",
+    "POST /api/vault/documents/:document_id/privilege-label",
     "POST /api/vault/precedent-sources/:source_id/disable",
     "POST /api/vault/precedent-sources/:source_id/unapprove",
     "GET /api/vault/precedents/readiness"]) {
@@ -55,6 +57,23 @@ test("Vault precedent register, disable, unapprove, and readiness are permission
   assert.equal(input.approved_by, ACTOR);
   assert.match(input.approval_decision_id, /^decision:[a-f0-9]{64}$/u);
   assert.notEqual(input.approved_at, "2020-01-01T00:00:00.000Z");
+
+  const classified = await handleVaultDmsApiRequest({
+    pathname: "/api/vault/documents/document-1/privilege-label",
+    method: "POST", query: {}, body: { classification: "not_privileged",
+      authority: "client-forged", decision_id: "client-forged",
+      provenance_sha256: "b".repeat(64), applied_by: "client-forged" },
+    context: context(["dms:document:privilege:classify"]),
+    requestId: "request-privilege", runtime: runtime(calls) });
+  assert.equal(classified.status, 200);
+  const privilegeInput = calls.find(([operation]) => operation === "privilege")[1];
+  assert.equal(privilegeInput.authority, "dms-privilege-review-v1");
+  assert.equal(privilegeInput.applied_by, ACTOR);
+  assert.match(privilegeInput.label_id, /^privilege:[a-f0-9]{64}$/u);
+  assert.match(privilegeInput.decision_id, /^decision:[a-f0-9]{64}$/u);
+  assert.match(privilegeInput.provenance_sha256, /^[a-f0-9]{64}$/u);
+  assert.notEqual(privilegeInput.decision_id, "client-forged");
+  assert.notEqual(privilegeInput.provenance_sha256, "b".repeat(64));
 
   for (const operation of ["disable", "unapprove"]) {
     const response = await handleVaultDmsApiRequest({

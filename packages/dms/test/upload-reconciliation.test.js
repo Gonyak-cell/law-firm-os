@@ -233,12 +233,16 @@ test("RS-DMS PostgreSQL schema forces tenant RLS across every upload runtime tab
   assert.deepEqual(catalog.rows.map((row) => row.relname), [
     "audit_events",
     "delete_intents",
+    "document_privilege_labels",
     "document_versions",
     "documents",
     "file_objects",
     "idempotency_keys",
     "legal_holds",
     "outbox_events",
+    "precedent_extraction_receipts",
+    "precedent_search_index",
+    "precedent_sources",
     "retention_policies",
     "upload_sessions",
   ]);

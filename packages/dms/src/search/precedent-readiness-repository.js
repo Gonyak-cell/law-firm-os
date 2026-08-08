@@ -16,11 +16,13 @@ const REQUIRED_GIN_INDEXES = Object.freeze([
   "dms_precedent_search_korean_fallback_gin",
 ]);
 const REQUIRED_RLS_TABLES = Object.freeze([
+  "document_privilege_labels",
   "precedent_sources",
   "precedent_extraction_receipts",
   "precedent_search_index",
 ]);
 const REQUIRED_TRIGGERS = Object.freeze([
+  "dms_document_privilege_label_guard",
   "dms_precedent_source_guard",
   "dms_precedent_extraction_receipt_guard",
 ]);
@@ -41,7 +43,8 @@ async function catalogAuthority(client) {
     WHERE relnamespace='lawos_dms'::regnamespace AND relname=ANY($1::text[])`, [REQUIRED_RLS_TABLES]);
   const triggers = await client.query(`SELECT tgname,tgenabled FROM pg_trigger
     WHERE tgrelid IN ('lawos_dms.precedent_sources'::regclass,
-      'lawos_dms.precedent_extraction_receipts'::regclass)
+      'lawos_dms.precedent_extraction_receipts'::regclass,
+      'lawos_dms.document_privilege_labels'::regclass)
       AND NOT tgisinternal AND tgname=ANY($1::text[])`, [REQUIRED_TRIGGERS]);
   const privileges = await client.query(`SELECT
     has_table_privilege(current_user,'lawos_dms.precedent_sources','SELECT') AS registry_select,
@@ -52,7 +55,12 @@ async function catalogAuthority(client) {
     has_table_privilege(current_user,'lawos_dms.precedent_search_index','SELECT') AS indexer_select,
     has_table_privilege(current_user,'lawos_dms.precedent_search_index','INSERT') AS indexer_insert,
     has_table_privilege(current_user,'lawos_dms.precedent_search_index','UPDATE') AS indexer_update,
-    has_table_privilege(current_user,'lawos_dms.precedent_search_index','DELETE') AS indexer_delete`);
+    has_table_privilege(current_user,'lawos_dms.precedent_search_index','DELETE') AS indexer_delete,
+    has_table_privilege(current_user,'lawos_dms.document_privilege_labels','SELECT') AS privilege_select,
+    has_table_privilege(current_user,'lawos_dms.document_privilege_labels','INSERT') AS privilege_insert,
+    NOT has_table_privilege(current_user,'lawos_dms.document_privilege_labels','UPDATE') AS privilege_no_update,
+    NOT has_table_privilege(current_user,'lawos_dms.document_privilege_labels','DELETE') AS privilege_no_delete,
+    NOT has_table_privilege(current_user,'lawos_dms.document_privilege_labels','TRUNCATE') AS privilege_no_truncate`);
   const indexMap = new Map(indexes.rows.map((row) => [row.indexname, row.indexdef]));
   return migration.rows[0]?.checksum === MIGRATION.checksum
     && extension.rows[0]?.schema === "public"
@@ -78,7 +86,9 @@ export function createPrecedentReadinessRepository({ pool } = {}) {
              count(*) FILTER (WHERE s.approval_authority <> $3
                OR s.approval_id='' OR s.approval_batch_id=''
                OR s.approval_decision_id='')::integer AS invalid_approval_count,
-             count(*) FILTER (WHERE d.privileged=true OR d.legal_hold_status='active'
+             count(*) FILTER (WHERE d.privilege_status<>'cleared'
+               OR d.current_privilege_label_id IS NULL
+               OR d.legal_hold_status='active'
                OR EXISTS (SELECT 1 FROM lawos_dms.legal_holds h
                  WHERE h.tenant_id=s.tenant_id AND h.document_id=s.document_id
                    AND h.status='active'))::integer AS protected_count,
@@ -95,7 +105,7 @@ export function createPrecedentReadinessRepository({ pool } = {}) {
            LEFT JOIN lawos_dms.precedent_extraction_receipts r
              ON r.tenant_id=i.tenant_id AND r.receipt_id=i.extraction_receipt_id
           WHERE s.tenant_id=$1 AND s.status='active'
-            AND ($2::text[] IS NULL OR cardinality($2::text[])>=0)`,
+            AND ($2::text[] IS NULL OR s.document_id=ANY($2::text[]))`,
           [tenantId, allowed, PRECEDENT_APPROVAL_AUTHORITY, PRECEDENT_INDEX_VERSION]);
         const row = state.rows[0] ?? {};
         if (Number(row.invalid_approval_count) > 0 || Number(row.protected_count) > 0) return unavailable();
