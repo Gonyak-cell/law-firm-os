@@ -5,6 +5,7 @@ const boundedClients = new WeakMap();
 
 function lockBoundedTransport(client, handler) {
   const config = client.config;
+  const handle = handler.handle;
   const send = client.send.bind(client);
   Object.freeze(handler);
   Object.defineProperty(config, "requestHandler", {
@@ -24,7 +25,7 @@ function lockBoundedTransport(client, handler) {
     value: send,
     writable: false,
   });
-  boundedClients.set(client, Object.freeze({ config, handler, send }));
+  boundedClients.set(client, Object.freeze({ config, handle, handler, send }));
 }
 
 export function createBoundedS3Client(options = {}, requestHandlerOptions) {
@@ -42,6 +43,7 @@ export function assertBoundedS3Client(client) {
   if (!capability
       || client?.config !== capability.config
       || capability.config.requestHandler !== capability.handler
+      || capability.handler.handle !== capability.handle
       || client.send !== capability.send) {
     throw new TypeError("S3Client must be created by createBoundedS3Client");
   }

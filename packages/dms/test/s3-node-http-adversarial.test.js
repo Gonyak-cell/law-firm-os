@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:net";
 import test from "node:test";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { createBoundedS3Client } from "../src/storage/s3-bounded-client.js";
 import { boundedS3ResponseEvidence } from "../src/storage/s3-bounded-http-handler.js";
 import { sha256Hex } from "../src/storage/storage-adapter.js";
@@ -191,6 +192,43 @@ test("premature Content-Length close preserves admitted bytes and cleanup eviden
     && error.storage_cleanup_complete === true
     && error.transport_cleanup_complete === true);
   assert.equal(providerAttemptedBytes(), HEAD_BYTES.byteLength - 1);
+  assert.deepEqual(requests, [
+    { method: "HEAD", range: null },
+    { method: "GET", range: EXPECTED_RANGE },
+  ]);
+});
+
+test("prototype dispatch mutation cannot bypass the pre-admission framing gate", async (t) => {
+  const { client, requests, providerAttemptedBytes } = await fixture(t, "chunked");
+  const storage = adapter(client);
+  const handlerPrototype = Object.getPrototypeOf(client.config.requestHandler);
+  const originalHandle = Object.getOwnPropertyDescriptor(handlerPrototype, "handle");
+  const ordinary = new NodeHttpHandler();
+  let prototypeCalls = 0;
+  Object.defineProperty(handlerPrototype, "handle", {
+    configurable: true,
+    value: (...args) => {
+      prototypeCalls += 1;
+      return ordinary.handle(...args);
+    },
+    writable: true,
+  });
+  try {
+    await assert.rejects(storage.readObjectBounded({
+      tenant_id: TENANT,
+      object_id: OBJECT,
+      max_bytes: LIMIT,
+    }), (error) => error.code === "DMS_S3_RANGE_INVALID"
+      && error.observed_byte_size <= LIMIT + 1
+      && error.residual_buffered_byte_size === 0
+      && error.transport_cleanup_complete === true);
+  } finally {
+    if (originalHandle) Object.defineProperty(handlerPrototype, "handle", originalHandle);
+    else delete handlerPrototype.handle;
+    ordinary.destroy();
+  }
+  assert.equal(prototypeCalls, 0);
+  assert.equal(providerAttemptedBytes(), FLOOD_BYTES.byteLength);
   assert.deepEqual(requests, [
     { method: "HEAD", range: null },
     { method: "GET", range: EXPECTED_RANGE },

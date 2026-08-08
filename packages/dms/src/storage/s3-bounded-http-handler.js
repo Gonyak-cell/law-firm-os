@@ -129,6 +129,11 @@ export class BoundedS3NodeHttpHandler {
 
   constructor(options) {
     this.#runtime = new BoundedS3HttpRuntime(options);
+    Object.defineProperty(this, "handle", {
+      configurable: false,
+      value: (request, handleOptions) => this.#handle(request, handleOptions),
+      writable: false,
+    });
   }
 
   destroy() {
@@ -143,7 +148,7 @@ export class BoundedS3NodeHttpHandler {
     return this.#runtime.httpHandlerConfigs();
   }
 
-  async handle(request, options = {}) {
+  async #handle(request, options = {}) {
     const state = await this.#runtime.resolve();
     const bound = rangeCeiling(request);
     if (!bound) return state.delegate.handle(request, options);

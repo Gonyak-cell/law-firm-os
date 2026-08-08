@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { Agent, createServer as createHttpServer } from "node:http";
 import test from "node:test";
+import { runInNewContext } from "node:vm";
 import { S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { createBoundedS3Client } from "../src/storage/s3-bounded-client.js";
@@ -41,8 +42,9 @@ function objectMetadataHeaders(bytes) {
   };
 }
 
-test("production adapter keeps its exact bounded handler after replacement attempts", async (t) => {
+test("production adapter keeps exact dispatch across prototype, subclass, proxy, realm, and concurrent attacks", async (t) => {
   const bytes = Buffer.from("12345678");
+  let providerBytes = 0;
   const requests = [];
   const warnings = [];
   const logger = { warn: (message) => warnings.push(message) };
@@ -67,6 +69,7 @@ test("production adapter keeps its exact bounded handler after replacement attem
       ...common,
       "content-range": `bytes 0-${bytes.byteLength - 1}/${bytes.byteLength}`,
     });
+    providerBytes += bytes.byteLength;
     response.end(bytes);
   });
   const port = await listen(server);
@@ -86,7 +89,13 @@ test("production adapter keeps its exact bounded handler after replacement attem
     throwOnRequestTimeout: true,
   });
   const handler = client.config.requestHandler;
+  const dispatch = Object.getOwnPropertyDescriptor(handler, "handle");
+  assert.deepEqual(
+    { configurable: dispatch.configurable, writable: dispatch.writable },
+    { configurable: false, writable: false },
+  );
   const ordinary = new NodeHttpHandler();
+  const derived = new (class extends NodeHttpHandler {})();
   const storage = adapter(client);
   assert.throws(() => {
     client.config.requestHandler = ordinary;
@@ -98,25 +107,59 @@ test("production adapter keeps its exact bounded handler after replacement attem
   assert.throws(() => {
     handler.handle = ordinary.handle.bind(ordinary);
   }, TypeError);
+  const foreignHandler = runInNewContext("({ handle() { throw new Error('foreign handler used'); } })");
+  for (const replacement of [derived, new Proxy(ordinary, {}), foreignHandler]) {
+    assert.throws(() => {
+      client.config.requestHandler = replacement;
+    }, TypeError);
+    assert.equal(Reflect.defineProperty(client.config, "requestHandler", { value: replacement }), false);
+  }
+  assert.throws(() => Object.setPrototypeOf(handler, foreignHandler), TypeError);
+  assert.equal(Reflect.setPrototypeOf(handler, foreignHandler), false);
   t.after(async () => {
     client.destroy();
+    derived.destroy();
     ordinary.destroy();
     await close(server);
   });
 
-  const result = await storage.readObjectBounded({
-    tenant_id: TENANT,
-    object_id: OBJECT,
-    max_bytes: LIMIT,
+  const handlerPrototype = Object.getPrototypeOf(handler);
+  const originalHandle = Object.getOwnPropertyDescriptor(handlerPrototype, "handle");
+  const originalParent = Object.getPrototypeOf(handlerPrototype);
+  let prototypeCalls = 0;
+  Object.defineProperty(handlerPrototype, "handle", {
+    configurable: true,
+    value: (...args) => {
+      prototypeCalls += 1;
+      return ordinary.handle(...args);
+    },
+    writable: true,
   });
+  assert.equal(Reflect.setPrototypeOf(handlerPrototype, foreignHandler), true);
+  let results;
+  try {
+    results = await Promise.all(Array.from({ length: 3 }, () => storage.readObjectBounded({
+      tenant_id: TENANT,
+      object_id: OBJECT,
+      max_bytes: LIMIT,
+    })));
+  } finally {
+    Reflect.setPrototypeOf(handlerPrototype, originalParent);
+    if (originalHandle) Object.defineProperty(handlerPrototype, "handle", originalHandle);
+    else delete handlerPrototype.handle;
+  }
   assert.ok(handler instanceof BoundedS3NodeHttpHandler);
   assert.equal(client.config.requestHandler, handler);
-  assert.deepEqual(requests, [
-    { method: "HEAD", range: null, remotePort: requests[0].remotePort },
-    { method: "GET", range: EXPECTED_RANGE, remotePort: requests[0].remotePort },
-  ]);
-  assert.equal(result.byte_size, LIMIT);
-  assert.equal(result.sha256, sha256Hex(bytes));
+  assert.equal(prototypeCalls, 0);
+  assert.equal(requests.length, results.length * 2);
+  assert.equal(requests.filter(({ method }) => method === "HEAD").length, results.length);
+  assert.equal(requests.filter(({ method, range }) => method === "GET" && range === EXPECTED_RANGE).length, results.length);
+  assert.ok(requests.every(({ remotePort }) => remotePort === requests[0].remotePort));
+  assert.equal(providerBytes, results.length * LIMIT);
+  for (const result of results) {
+    assert.equal(result.byte_size, LIMIT);
+    assert.equal(result.sha256, sha256Hex(bytes));
+  }
   assert.deepEqual(warnings, []);
   const configs = client.config.requestHandler.httpHandlerConfigs();
   assert.equal(configs.connectionTimeout, 500);
