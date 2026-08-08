@@ -160,7 +160,7 @@ test("OUTM-33 action idempotency is durably bound to actor, request, and action"
   const input = { ...sendInput("request-action-idempotency"), action_idempotency_key: "action-key-1" };
   const first = await service.sendApprovedRequest(input);
   const replay = await service.sendApprovedRequest(input);
-  assert.deepEqual([first.outcome, replay.outcome, createCalls, sendCalls], ["sent", "replayed", 1, 1]);
+  assert.deepEqual([first.outcome, replay.outcome, createCalls, sendCalls], ["sent", "sent", 1, 1]);
   const record = repository.loadState().requests[0].action_idempotency.find((entry) => entry.key === "action-key-1");
   assert.deepEqual([record.action, record.actor_id, record.request_id, record.status], ["send", "actor-hardening", "request-action-idempotency", "succeeded"]);
   await assert.rejects(service.reconcileRequest({ ...input, explicit_human_action: true }), (error) => error?.safe_error_code === "DOCUSIGN_ACTION_IDEMPOTENCY_CONFLICT");

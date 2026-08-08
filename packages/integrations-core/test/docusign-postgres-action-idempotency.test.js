@@ -176,3 +176,63 @@ test("OUTM-33 PostgreSQL reconcile binding 409 replay preserves status after res
   await restartPool.end();
   await pool.end();
 });
+
+test("OUTM-33 PostgreSQL typed successful send replay preserves sent result after restart", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const pool = independentPool(fixture, "docusign-action-result-success-send");
+  let createCalls = 0;
+  let sendCalls = 0;
+  const adapter = {
+    async createDraft() { createCalls += 1; return { envelope_id: "envelope-action-result-success-pg" }; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
+    async findByCorrelation() { throw new Error("reconcile must not run"); },
+  };
+  const repository = createPostgresDocusignEnvelopeRepository({ pool });
+  const requestId = "request-action-result-success-send-pg";
+  const key = "send-result-success-pg";
+  const firstService = service(repository, adapter);
+  await queueApproved(firstService, requestId);
+  const input = { principal: { tenant_id: TENANT, actor_id: "actor-action-pg" }, request_id: requestId, explicit_human_action: true, action_idempotency_key: key };
+  const first = await firstService.sendApprovedRequest(input);
+  const restartPool = independentPool(fixture, "docusign-action-result-success-send-restart");
+  const restarted = service(createPostgresDocusignEnvelopeRepository({ pool: restartPool }), adapter);
+  const replay = await restarted.sendApprovedRequest(input);
+  assert.deepEqual([first.outcome, replay.outcome, createCalls, sendCalls], ["sent", "sent", 1, 1]);
+  const state = await restarted.repository.readState({ tenant_id: TENANT });
+  const result = state.requests[0].action_idempotency.find((entry) => entry.key === key).result;
+  assert.deepEqual([result.outcome, result.http_status, result.retryable, result.safe_error_code], ["sent", 200, false, null]);
+  await assert.rejects(restarted.reconcileRequest(input), (error) => error?.status === 409 && error?.safe_error_code === "DOCUSIGN_ACTION_IDEMPOTENCY_CONFLICT");
+  assert.deepEqual([createCalls, sendCalls], [1, 1]);
+  await restartPool.end();
+  await pool.end();
+});
+
+test("OUTM-33 PostgreSQL typed successful reconcile replay preserves reconciled result after restart", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const pool = independentPool(fixture, "docusign-action-result-success-reconcile");
+  let findCalls = 0;
+  const adapter = {
+    async createDraft() { throw new Error("create must not run"); },
+    async send() { throw new Error("send must not run"); },
+    async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "envelope-action-result-reconcile-pg", provider_correlation_ref, account_id: CONNECTION.account_id, status: "created" }; },
+  };
+  const repository = createPostgresDocusignEnvelopeRepository({ pool });
+  const requestId = "request-action-result-success-reconcile-pg";
+  const key = "reconcile-result-success-pg";
+  const firstService = service(repository, adapter);
+  await queueApproved(firstService, requestId);
+  await repository.transact({ tenant_id: TENANT }, (state) => { state.requests[0] = { ...state.requests[0], state: "reconciliation_required", operation_lease: null, attempt_phase: "create_failed" }; });
+  const input = { principal: { tenant_id: TENANT, actor_id: "actor-action-pg" }, request_id: requestId, explicit_human_action: true, action_idempotency_key: key };
+  const first = await firstService.reconcileRequest(input);
+  const restartPool = independentPool(fixture, "docusign-action-result-success-reconcile-restart");
+  const restarted = service(createPostgresDocusignEnvelopeRepository({ pool: restartPool }), adapter);
+  const replay = await restarted.reconcileRequest(input);
+  assert.deepEqual([first.outcome, replay.outcome, first.request.state, replay.request.state, findCalls], ["reconciled", "reconciled", "draft_created", "draft_created", 1]);
+  const state = await restarted.repository.readState({ tenant_id: TENANT });
+  const result = state.requests[0].action_idempotency.find((entry) => entry.key === key).result;
+  assert.deepEqual([result.outcome, result.http_status, result.retryable, result.safe_error_code], ["reconciled", 200, false, null]);
+  await restartPool.end();
+  await pool.end();
+});

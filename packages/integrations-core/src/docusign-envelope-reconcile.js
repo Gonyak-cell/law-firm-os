@@ -47,7 +47,6 @@ function updateAction(request, action, key, patch) {
 }
 
 function replayActionResult(action, request) {
-  if (action?.status === "succeeded") return null;
   const projected = projectDocusignActionResult({
     action,
     request,
@@ -55,6 +54,7 @@ function replayActionResult(action, request) {
     createError: (code, status, retryable) => docusignFailure(code, "DocuSign action result replay", status, retryable),
   });
   if (projected) return projected;
+  if (action?.status === "succeeded") return null;
   if (action?.status === "unknown") {
     const error = docusignInfrastructureFailure(action.safe_error_code ?? "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS");
     error.request = projectDocusignRequestSafe(request);

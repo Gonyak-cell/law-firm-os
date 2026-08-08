@@ -1,6 +1,15 @@
-const ACTION_RESULT_KINDS = new Set(["return", "error"]);
-const ACTION_RESULT_OUTCOMES = new Set(["blocked", "retryable", "sent", "reconciled", "already_converged", "in_progress"]);
-const ACTION_RESULT_STATUSES = new Set([200, 400, 401, 403, 404, 409, 503]);
+const ACTION_RESULT_VARIANTS = Object.freeze([
+  Object.freeze({ kind: "return", outcome: "sent", http_status: 200, retryable: false, safe_error_code: false }),
+  Object.freeze({ kind: "return", outcome: "reconciled", http_status: 200, retryable: false, safe_error_code: false }),
+  Object.freeze({ kind: "return", outcome: "already_converged", http_status: 200, retryable: false, safe_error_code: false }),
+  Object.freeze({ kind: "return", outcome: "blocked", http_status: 200, retryable: false, safe_error_code: true }),
+  Object.freeze({ kind: "error", outcome: "blocked", http_status: 400, retryable: false, safe_error_code: true }),
+  Object.freeze({ kind: "error", outcome: "blocked", http_status: 401, retryable: false, safe_error_code: true }),
+  Object.freeze({ kind: "error", outcome: "blocked", http_status: 403, retryable: false, safe_error_code: true }),
+  Object.freeze({ kind: "error", outcome: "blocked", http_status: 404, retryable: false, safe_error_code: true }),
+  Object.freeze({ kind: "error", outcome: "blocked", http_status: 409, retryable: false, safe_error_code: true }),
+  Object.freeze({ kind: "error", outcome: "retryable", http_status: 503, retryable: true, safe_error_code: true }),
+]);
 
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -23,17 +32,15 @@ export function normalizeDocusignActionResult(input) {
   if (input == null) return null;
   if (typeof input !== "object" || Array.isArray(input)) throw new TypeError("action_idempotency.result must be an object");
   const kind = requiredText(input.kind, "action_idempotency.result.kind");
-  if (!ACTION_RESULT_KINDS.has(kind)) throw new TypeError("action_idempotency.result.kind is invalid");
   const outcome = requiredText(input.outcome, "action_idempotency.result.outcome");
-  if (!ACTION_RESULT_OUTCOMES.has(outcome)) throw new TypeError("action_idempotency.result.outcome is invalid");
   const httpStatus = Number(input.http_status);
-  if (!Number.isInteger(httpStatus) || !ACTION_RESULT_STATUSES.has(httpStatus)) throw new TypeError("action_idempotency.result.http_status is invalid");
   if (typeof input.retryable !== "boolean") throw new TypeError("action_idempotency.result.retryable is required");
   const code = safeErrorCode(input.safe_error_code);
-  if (kind === "return" && httpStatus !== 200) throw new TypeError("normal action result must have HTTP 200");
-  if (kind === "error" && httpStatus === 200) throw new TypeError("action error result must have an HTTP error status");
-  if (kind === "error" && code == null) throw new TypeError("action error result requires a safe error code");
-  if (outcome === "retryable" && input.retryable !== true) throw new TypeError("retryable action result must be retryable");
+  const variant = ACTION_RESULT_VARIANTS.find((candidate) => candidate.kind === kind
+    && candidate.outcome === outcome
+    && candidate.http_status === httpStatus
+    && candidate.retryable === input.retryable);
+  if (!variant || (variant.safe_error_code ? code == null : code != null)) throw new TypeError("action_idempotency.result variant is invalid");
   return Object.freeze({ kind, outcome, http_status: httpStatus, retryable: input.retryable, safe_error_code: code });
 }
 

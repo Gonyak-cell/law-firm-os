@@ -127,6 +127,41 @@ test("OUTM-33 HTTP send trust-boundary 403 replay keeps original status after re
   assert.equal(providerCalls, 0);
 });
 
+test("OUTM-33 HTTP typed successful send replay preserves sent outcome after restart", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "docusign-api-action-result-success-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const filePath = join(root, "outbox.json");
+  let createCalls = 0;
+  let sendCalls = 0;
+  const adapter = {
+    async createDraft() { createCalls += 1; return { envelope_id: "envelope-api-result-success" }; },
+    async send() { sendCalls += 1; return { status: "sent" }; },
+    async findByCorrelation() { throw new Error("reconcile must not run"); },
+    async getStatus() { return { status: "delivered" }; },
+    async downloadDocument() { return Buffer.from("unused"); },
+  };
+  const repository = createDocusignEnvelopeRepository({ filePath });
+  const queued = await docusignRuntime({ prepare: false, repository, adapter });
+  await queued.envelope_service.queueApprovedRequest({ principal: { tenant_id: TENANT, actor_id: "actor-api" }, request_id: "request-api-result-success", tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id, idempotency_key: "queue-api-result-success", approved_artifact_id: APPROVED_ARTIFACT_ID, explicit_human_action: true, authority_binding: AUTHORITY_BINDING });
+  const body = { matter_id: MATTER, idempotency_key: "send-api-result-success", explicit_human_action: true };
+  const firstRuntime = await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter });
+  await withServer(firstRuntime, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-success/send`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes, responseBody.item.state], [200, "sent", [], "sent"]);
+  });
+  const restarted = await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter });
+  await withServer(restarted, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-success/send`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes, responseBody.item.state], [200, "sent", [], "sent"]);
+    const conflict = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-success/reconcile`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const conflictBody = await conflict.json();
+    assert.deepEqual([conflict.status, conflictBody.outcome, conflictBody.safe_error_codes], [409, "blocked", ["DOCUSIGN_ACTION_IDEMPOTENCY_CONFLICT"]]);
+  });
+  assert.deepEqual([createCalls, sendCalls], [1, 1]);
+});
+
 test("OUTM-33 HTTP reconcile binding 409 replay keeps original status after restart", async (t) => {
   const root = mkdtempSync(join(tmpdir(), "docusign-api-action-result-409-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -155,6 +190,25 @@ test("OUTM-33 HTTP reconcile binding 409 replay keeps original status after rest
     const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-409/reconcile`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
     const responseBody = await response.json();
     assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes], [409, "blocked", ["DOCUSIGN_RECONCILIATION_BINDING_INVALID"]]);
+  });
+  assert.equal(findCalls, 1);
+});
+
+test("OUTM-33 HTTP typed successful reconcile replay preserves reconciled result after restart", async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "docusign-api-action-result-reconcile-success-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const filePath = join(root, "outbox.json");
+  let findCalls = 0;
+  const adapter = { async createDraft() { throw new Error("create must not run"); }, async send() { throw new Error("send must not run"); }, async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "envelope-api-reconcile-success", provider_correlation_ref, account_id: CONNECTION.account_id, status: "created" }; }, async getStatus() { return { status: "delivered" }; }, async downloadDocument() { return Buffer.from("unused"); } };
+  const repository = createDocusignEnvelopeRepository({ filePath });
+  const queued = await docusignRuntime({ prepare: false, repository, adapter });
+  await queued.envelope_service.queueApprovedRequest({ principal: { tenant_id: TENANT, actor_id: "actor-api" }, request_id: "request-api-result-reconcile-success", tenant_id: TENANT, matter_id: MATTER, connection_id: CONNECTION.connection_id, idempotency_key: "queue-api-result-reconcile-success", approved_artifact_id: APPROVED_ARTIFACT_ID, explicit_human_action: true, authority_binding: AUTHORITY_BINDING });
+  repository.transact({ tenant_id: TENANT }, (state) => { state.requests[0] = { ...state.requests[0], state: "reconciliation_required", operation_lease: null, attempt_phase: "create_failed" }; });
+  const body = { matter_id: MATTER, idempotency_key: "reconcile-api-result-success", explicit_human_action: true };
+  for (const runtime of [await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter }), await docusignRuntime({ prepare: false, repository: createDocusignEnvelopeRepository({ filePath }), adapter })]) await withServer(runtime, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-result-reconcile-success/reconcile`, { method: "POST", headers: { authorization: "Bearer outlook-session", "content-type": "application/json" }, body: JSON.stringify(body) });
+    const responseBody = await response.json();
+    assert.deepEqual([response.status, responseBody.outcome, responseBody.safe_error_codes, responseBody.item.state], [200, "reconciled", [], "draft_created"]);
   });
   assert.equal(findCalls, 1);
 });

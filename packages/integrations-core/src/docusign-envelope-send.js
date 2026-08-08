@@ -68,7 +68,6 @@ function updateAction(request, action, key, patch) {
 }
 
 function replayActionResult(action, request) {
-  if (action?.status === "succeeded") return null;
   const projected = projectDocusignActionResult({
     action,
     request,
@@ -76,6 +75,7 @@ function replayActionResult(action, request) {
     createError: (code, status, retryable) => docusignFailure(code, "DocuSign action result replay", status, retryable),
   });
   if (projected) return projected;
+  if (action?.status === "succeeded") return null;
   if (action?.status === "failed") {
     return Object.freeze({
       outcome: action.outcome ?? "blocked",
@@ -279,8 +279,9 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
       }
     } catch (error) {
       const publicError = dependencyError(error, error?.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
+      const retryable = publicError.status === 503 && publicError.retryable === true;
       try {
-        await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({ ...updateAction(fresh, "send", actionIdempotencyKey, { status: "failed", outcome: "blocked", safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", result: docusignActionResult({ kind: "error", outcome: "blocked", http_status: publicError.status ?? 503, retryable: publicError.retryable === true, safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE" }), updated_at: docusignNow(clock) }), state: "approved", attempt_phase: null, operation_lease: null, provider_operation: null, last_safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }));
+        await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => ({ ...updateAction(fresh, "send", actionIdempotencyKey, { status: retryable ? "unknown" : "failed", outcome: retryable ? "retryable" : "blocked", safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", result: docusignActionResult({ kind: "error", outcome: retryable ? "retryable" : "blocked", http_status: retryable ? 503 : publicError.status, retryable, safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE" }), updated_at: docusignNow(clock) }), state: "approved", attempt_phase: null, operation_lease: null, provider_operation: null, last_safe_error_code: publicError.safe_error_code ?? "DOCUSIGN_DEPENDENCY_UNAVAILABLE", updated_at: docusignNow(clock) }));
       } catch (leaseError) {
         if (leaseError?.safe_error_code === "DOCUSIGN_SEND_LEASE_LOST") throw leaseError;
         throw dependencyError(leaseError, "DOCUSIGN_DEPENDENCY_UNAVAILABLE");
