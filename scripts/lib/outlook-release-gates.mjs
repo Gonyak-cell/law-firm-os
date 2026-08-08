@@ -451,16 +451,16 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     || !context.surface
     || !context.contractArtifacts
     || !context.existingPaths
+    || !context.expectedSourceIdentity
     || !context.manifestHashesByPath) {
     throw new Error("release candidate validation requires the exact lockfile and frozen proof contracts");
   }
   if (receipt.package_lock_sha256 !== sha256(context.packageLockBytes)) {
     throw new Error("release candidate package lock binding drifted");
   }
-  if (context.expectedSourceIdentity
-    && (receipt.source_sha !== context.expectedSourceIdentity.source_sha
-      || receipt.source_tree !== context.expectedSourceIdentity.source_tree
-      || receipt.package_lock_sha256 !== context.expectedSourceIdentity.package_lock_sha256)) {
+  if (receipt.source_sha !== context.expectedSourceIdentity.source_sha
+    || receipt.source_tree !== context.expectedSourceIdentity.source_tree
+    || receipt.package_lock_sha256 !== context.expectedSourceIdentity.package_lock_sha256) {
     throw new Error("release candidate is stale for the exact current source SHA/tree/lock");
   }
   const artifactRefs = {

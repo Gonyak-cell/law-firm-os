@@ -451,6 +451,10 @@ test("release candidate receipt requires every exact proof section and contract 
   const overclaim = clone(receipt);
   overclaim.deployment_verified = true;
   assert.throws(() => validateReleaseCandidateReceipt(overclaim, contract, releaseContext), /fields mismatch/);
+  assert.throws(() => validateReleaseCandidateReceipt(receipt, contract, {
+    ...releaseContext,
+    expectedSourceIdentity: null,
+  }), /exact lockfile and frozen proof contracts/);
 });
 
 test("API artifact verifier binds embedded source and preserves environment without exposing values", () => {
