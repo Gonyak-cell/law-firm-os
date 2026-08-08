@@ -3,6 +3,10 @@ import {
   createHmac,
   timingSafeEqual,
 } from "node:crypto";
+import {
+  GraphConversationOperationError,
+  createGraphConversationOperations,
+} from "./graph-conversation-operations.mjs";
 
 export const CONTRACT_VERSION = "lawos.microsoft-egress.v1";
 export const OPERATION_NAMES = Object.freeze([
@@ -13,6 +17,10 @@ export const OPERATION_NAMES = Object.freeze([
   "graph.calendarView.list",
   "graph.calendarEvent.create",
   "graph.mailMessage.export",
+  "graph.messageSubscription.create",
+  "graph.messageSubscription.renew",
+  "graph.messageSubscription.list",
+  "graph.messageSubscription.delete",
 ]);
 
 const LOGIN_ORIGIN = "https://login.microsoftonline.com";
@@ -996,6 +1004,7 @@ const OPERATIONS = Object.freeze({
 
 export function createHandler({
   fetch_impl = globalThis.fetch,
+  graph_notification_url = process.env.LAWOS_GRAPH_NOTIFICATION_URL,
   refresh_profile_proof_keyring,
   refresh_profile_proof_keyring_from_environment,
 } = {}) {
@@ -1025,6 +1034,10 @@ export function createHandler({
       throw new BrokerError("BROKER_CONFIG_UNAVAILABLE", 503);
     }
   };
+  const operations = Object.freeze({
+    ...OPERATIONS,
+    ...createGraphConversationOperations({ graph_notification_url }),
+  });
   return async function microsoftEgressBroker(event) {
     const operation =
       typeof event?.operation === "string" && event.operation.length <= 80
@@ -1035,7 +1048,7 @@ export function createHandler({
         required: ["contract_version", "operation", "request"],
       });
       if (event.contract_version !== CONTRACT_VERSION) invalid();
-      const execute = OPERATIONS[event.operation];
+      const execute = operations[event.operation];
       if (!execute) {
         throw new BrokerError("UNSUPPORTED_OPERATION", 400);
       }
@@ -1052,7 +1065,7 @@ export function createHandler({
         result,
       };
     } catch (error) {
-      const safe = error instanceof BrokerError
+      const safe = error instanceof BrokerError || error instanceof GraphConversationOperationError
         ? error
         : new BrokerError("BROKER_INTERNAL_ERROR", 500);
       return {

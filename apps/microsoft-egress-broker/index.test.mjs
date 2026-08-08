@@ -67,7 +67,7 @@ function json(body, status = 200, headers = {}) {
   });
 }
 
-test("exports only the seven fixed operations", () => {
+test("exports only the fixed allowlisted operations", () => {
   assert.deepEqual(OPERATION_NAMES, [
     "oauth.jwks.get",
     "oauth.token.exchange",
@@ -76,6 +76,10 @@ test("exports only the seven fixed operations", () => {
     "graph.calendarView.list",
     "graph.calendarEvent.create",
     "graph.mailMessage.export",
+    "graph.messageSubscription.create",
+    "graph.messageSubscription.renew",
+    "graph.messageSubscription.list",
+    "graph.messageSubscription.delete",
   ]);
 });
 

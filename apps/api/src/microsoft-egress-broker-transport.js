@@ -36,6 +36,10 @@ const SCOPE_PROFILES = Object.freeze({
 });
 const REDIRECT_PROFILES = new Set(Object.keys(SCOPE_PROFILES));
 const REFRESH_PROFILE_PROOF_PATTERN = /^[A-Za-z0-9_-]{43}$/u;
+const GRAPH_MESSAGE_RESOURCES = new Set([
+  "me/mailFolders('inbox')/messages",
+  "me/mailFolders('sentitems')/messages",
+]);
 
 function requiredText(value, name, maxLength = 4096) {
   const text = String(value ?? "").trim();
@@ -83,6 +87,14 @@ function requiredRefreshProfileProof(value) {
     throw new TypeError("refresh_profile_proof is invalid");
   }
   return value;
+}
+
+function requiredGraphMessageResource(value) {
+  const resource = requiredText(value, "resource");
+  if (!GRAPH_MESSAGE_RESOURCES.has(resource)) {
+    throw new TypeError("resource must be the signed-in user's Inbox or Sent Items messages");
+  }
+  return resource;
 }
 
 function exactInput(input, fields, name) {
@@ -395,6 +407,57 @@ export function createMicrosoftEgressBrokerTransport({
         );
       }
       return result;
+    },
+
+    async graphMessageSubscriptionCreate(input = {}) {
+      exactInput(input, [
+        "access_token",
+        "resource",
+        "change_type",
+        "client_state",
+        "expiration_datetime",
+      ], "graph.messageSubscription.create");
+      if (input.change_type !== "created") {
+        throw new TypeError("change_type must be created");
+      }
+      return invoke("graph.messageSubscription.create", {
+        access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+        resource: requiredGraphMessageResource(input.resource),
+        change_type: "created",
+        client_state: requiredText(input.client_state, "client_state", 128),
+        expiration_datetime: requiredText(input.expiration_datetime, "expiration_datetime", 64),
+      });
+    },
+
+    async graphMessageSubscriptionRenew(input = {}) {
+      exactInput(input, [
+        "access_token",
+        "provider_subscription_id",
+        "expiration_datetime",
+      ], "graph.messageSubscription.renew");
+      return invoke("graph.messageSubscription.renew", {
+        access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+        provider_subscription_id: requiredText(input.provider_subscription_id, "provider_subscription_id", 512),
+        expiration_datetime: requiredText(input.expiration_datetime, "expiration_datetime", 64),
+      });
+    },
+
+    async graphMessageSubscriptionList(input = {}) {
+      exactInput(input, ["access_token"], "graph.messageSubscription.list");
+      return invoke("graph.messageSubscription.list", {
+        access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+      });
+    },
+
+    async graphMessageSubscriptionDelete(input = {}) {
+      exactInput(input, [
+        "access_token",
+        "provider_subscription_id",
+      ], "graph.messageSubscription.delete");
+      return invoke("graph.messageSubscription.delete", {
+        access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+        provider_subscription_id: requiredText(input.provider_subscription_id, "provider_subscription_id", 512),
+      });
     },
   });
 }

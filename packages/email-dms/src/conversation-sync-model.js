@@ -66,3 +66,48 @@ export function normalizeConversationPolicy(input = {}) {
     revoked_at: input.revoked_at ?? null,
   });
 }
+
+export function graphSubscriptionId(input = {}) {
+  const resource = requiredSyncString(input, "resource");
+  if (!GRAPH_MESSAGE_RESOURCES.includes(resource)) {
+    throw new TypeError("Graph subscription resource must be Inbox or Sent Items messages");
+  }
+  return syncDigest("graph_subscription", {
+    tenant_id: requiredSyncString(input, "tenant_id"),
+    m365_connection_id: requiredSyncString(input, "m365_connection_id"),
+    resource,
+  });
+}
+
+export function normalizeGraphSubscription(input = {}) {
+  const resource = requiredSyncString(input, "resource");
+  if (!GRAPH_MESSAGE_RESOURCES.includes(resource)) {
+    throw new TypeError("Graph subscription resource must be Inbox or Sent Items messages");
+  }
+  const hash = requiredSyncString(input, "client_state_hash");
+  if (!/^[a-f0-9]{64}$/u.test(hash)) {
+    throw new TypeError("client_state_hash must be a lowercase SHA-256 digest");
+  }
+  const status = requiredSyncString(input, "status");
+  if (!["pending", "active", "expired", "revoked"].includes(status)) {
+    throw new TypeError("Graph subscription status is invalid");
+  }
+  return Object.freeze({
+    subscription_id: requiredSyncString(input, "subscription_id"),
+    tenant_id: requiredSyncString(input, "tenant_id"),
+    m365_connection_id: requiredSyncString(input, "m365_connection_id"),
+    resource,
+    change_type: "created",
+    client_state_hash: hash,
+    provider_subscription_id: input.provider_subscription_id ?? null,
+    provider_expires_at: input.provider_expires_at ?? null,
+    status,
+    lease_owner: input.lease_owner ?? null,
+    lease_expires_at: input.lease_expires_at ?? null,
+    attempt_count: input.attempt_count ?? 0,
+    next_attempt_at: input.next_attempt_at ?? null,
+    last_error_code: input.last_error_code ?? null,
+    created_at: requiredSyncString(input, "created_at"),
+    updated_at: requiredSyncString(input, "updated_at"),
+  });
+}
