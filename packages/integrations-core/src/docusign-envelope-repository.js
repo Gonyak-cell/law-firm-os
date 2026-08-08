@@ -4,9 +4,11 @@ import { assertCompletionAuthority } from "./docusign-completion-authority.js";
 
 const MAX_CAS_ATTEMPTS = 12;
 const EMPTY_STATE = Object.freeze({ requests: Object.freeze([]), webhook_receipts: Object.freeze([]) });
+const DURABLE_COMPLETION_LOCKS = new Map();
 
-function completionLock() {
-  const locks = new Map();
+function completionLock(scope = null) {
+  const locks = scope == null ? new Map() : DURABLE_COMPLETION_LOCKS.get(scope) ?? new Map();
+  if (scope != null) DURABLE_COMPLETION_LOCKS.set(scope, locks);
   function acquire(key) {
     const queue = locks.get(key);
     if (!queue) {
@@ -30,7 +32,7 @@ export function createDocusignEnvelopeRepository({ filePath, state } = {}) {
     defaultValue: state ?? EMPTY_STATE,
     normalizeValue: normalizeDocusignOutboxState,
   });
-  const locks = completionLock();
+  const locks = completionLock(filePath == null ? null : `docusign:${String(filePath)}`);
   const snapshot = () => cloneDocusignValue(filePath ? controller.reload().value : controller.value);
   const runWithLock = (tenantId, callback) => {
     const key = String(tenantId ?? "");
