@@ -1,3 +1,8 @@
+import {
+  OUTLOOK_SOURCE_IDENTITY_FIELDS,
+  parseExactOutlookSourceIdentity,
+} from "../../../packages/email-dms/src/outlook-source-identity.js";
+
 export function outlookAttachmentReceiptError(message) {
   return Object.assign(new Error(message), {
     safe_error_code: "OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID",
@@ -7,7 +12,9 @@ export function outlookAttachmentReceiptError(message) {
 
 function requiredText(value, field) {
   const text = typeof value === "string" ? value.trim() : "";
-  if (!text) throw outlookAttachmentReceiptError(`${field} is required`);
+  if (!text || text !== value) {
+    throw outlookAttachmentReceiptError(`${field} is required and exact`);
+  }
   return text;
 }
 
@@ -74,6 +81,25 @@ export async function readOutlookAttachmentReceiptState({
   matterId,
   supplied = [],
 } = {}) {
+  let threadSourceIdentity;
+  try {
+    threadSourceIdentity = parseExactOutlookSourceIdentity(thread);
+  } catch {
+    throw outlookAttachmentReceiptError("Filed Outlook thread source identity is incomplete or mismatched");
+  }
+  if (
+    thread?.tenant_id !== tenantId
+    || thread?.matter_id !== matterId
+    || thread?.status !== "active"
+    || thread?.revoked === true
+    || thread?.revoked_at != null
+  ) {
+    throw outlookAttachmentReceiptError("Filed Outlook thread context is incomplete or mismatched");
+  }
+  requiredText(thread.email_thread_id, "email_thread_id");
+  if (!Array.isArray(thread.attachment_metadata)) {
+    throw outlookAttachmentReceiptError("Filed Outlook attachment metadata is incomplete");
+  }
   const sourceById = new Map();
   for (const source of thread.attachment_metadata) {
     const attachmentId = requiredText(source.attachment_id ?? source.id, "source_attachment.attachment_id");
@@ -90,7 +116,7 @@ export async function readOutlookAttachmentReceiptState({
     .list({ tenant_id: tenantId, model_type: "DmsEmailAttachmentMapping", matter_id: matterId })
     .filter((mapping) => mapping.email_thread_id === thread.email_thread_id)
     .sort((left, right) => left.attachment_id.localeCompare(right.attachment_id, "en"));
-  const receipts = [];
+  const validatedMappings = [];
   const mappedIds = new Set();
   for (const mapping of mappings) {
     const source = sourceById.get(mapping.attachment_id);
@@ -102,6 +128,7 @@ export async function readOutlookAttachmentReceiptState({
       || mappedIds.has(mapping.attachment_id)
       || mapping.tenant_id !== tenantId
       || mapping.matter_id !== matterId
+      || mapping.email_thread_id !== thread.email_thread_id
       || mapping.name !== source.name
       || mapping.sha256 !== source.source_provenance?.sha256
       || mapping.source_byte_size !== source.source_provenance?.byte_size
@@ -110,9 +137,13 @@ export async function readOutlookAttachmentReceiptState({
       || state?.document?.document_id !== mapping.document_id
       || state.document.tenant_id !== tenantId
       || state.document.matter_id !== matterId
+      || state.document.status !== "active"
+      || state.document.current_version_id !== mapping.version_id
+      || state.document.latest_sha256 !== mapping.sha256
       || version?.version_id !== mapping.version_id
       || version.document_id !== mapping.document_id
       || version.tenant_id !== tenantId
+      || version.matter_id !== matterId
       || version.sha256 !== mapping.sha256
     ) {
       throw outlookAttachmentReceiptError("Outlook attachment mapping readback is incomplete or mismatched");
@@ -142,10 +173,14 @@ export async function readOutlookAttachmentReceiptState({
       || timelineEvent.safe_summary?.byte_size !== mapping.source_byte_size
       || timelineEvent.safe_summary?.source_message_ref !== mapping.source_message_ref
       || timelineEvent.safe_summary?.source_provenance_authority !== mapping.source_provenance_authority
+      || OUTLOOK_SOURCE_IDENTITY_FIELDS.some(
+        (field) => timelineEvent.safe_summary?.[field] !== threadSourceIdentity[field],
+      )
     ) continue;
     mappedIds.add(mapping.attachment_id);
-    receipts.push(authority.issue(mapping));
+    validatedMappings.push(mapping);
   }
+  const receipts = validatedMappings.map((mapping) => authority.issue(mapping));
   for (const verified of supplied) {
     const readback = receipts.find(({ attachment_id }) => attachment_id === verified.attachment_id);
     if (!readback || readback.receipt_ref !== verified.receipt_ref || readback.receipt_token !== authority.issue(verified).receipt_token) {

@@ -14,6 +14,17 @@ const VERSION = "version-receipt-readback";
 const SHA256 = "a".repeat(64);
 const MESSAGE_REF = "message-ref-receipt-readback";
 const AUTHORITY = "microsoft_graph_mime";
+const SOURCE_IDENTITY = Object.freeze({
+  canonical_graph_message_id: "immutable:receipt-readback",
+  rest_message_id: "rest:receipt-readback",
+  internet_message_id: "<receipt-readback@amic.law>",
+  conversation_id: "conversation-receipt-readback",
+  item_key: [
+    "rest:receipt-readback",
+    "<receipt-readback@amic.law>",
+    "conversation-receipt-readback",
+  ].join("\u001f"),
+});
 
 function fixture() {
   const dmsRepository = createDmsRepository();
@@ -46,6 +57,9 @@ function fixture() {
     title: "contract.pdf",
     status: "active",
     current_version_id: VERSION,
+    latest_sha256: SHA256,
+    source_email_thread_id: THREAD,
+    source_attachment_id: ATTACHMENT,
     permission_envelope_id: "permission-receipt-readback",
     audit_trace_id: "audit-receipt-readback",
   });
@@ -75,6 +89,7 @@ function fixture() {
     source_object_id: DOCUMENT,
     safe_summary: {
       email_thread_id: THREAD,
+      ...SOURCE_IDENTITY,
       attachment_id: ATTACHMENT,
       document_id: DOCUMENT,
       version_id: VERSION,
@@ -90,6 +105,27 @@ function fixture() {
     operation: "outlook_matter_timeline_append",
     response: { timeline_event_id: timelineEvent.event_id },
   });
+  const thread = dmsRepository.create({
+    model_type: "DmsEmailThread",
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    email_thread_id: THREAD,
+    subject: "Receipt readback",
+    status: "active",
+    permission_envelope_id: "permission-receipt-readback",
+    audit_trace_id: "audit-receipt-readback",
+    ...SOURCE_IDENTITY,
+    attachment_metadata: [{
+      attachment_id: ATTACHMENT,
+      name: "contract.pdf",
+      source_provenance: {
+        sha256: SHA256,
+        byte_size: 42,
+        message_ref: MESSAGE_REF,
+        authority: AUTHORITY,
+      },
+    }],
+  });
   return {
     dmsRepository,
     matterRepository,
@@ -97,20 +133,17 @@ function fixture() {
     document,
     version,
     timelineEvent,
-    thread: {
-      email_thread_id: THREAD,
-      attachment_metadata: [{
-        attachment_id: ATTACHMENT,
-        name: "contract.pdf",
-        source_provenance: {
-          sha256: SHA256,
-          byte_size: 42,
-          message_ref: MESSAGE_REF,
-          authority: AUTHORITY,
-        },
-      }],
-    },
+    thread,
   };
+}
+
+function mutatePersistedThread(state, overrides) {
+  state.dmsRepository.delete({
+    tenant_id: state.thread.tenant_id,
+    model_type: "DmsEmailThread",
+    email_thread_id: state.thread.email_thread_id,
+  });
+  state.thread = state.dmsRepository.create({ ...state.thread, ...overrides });
 }
 
 async function read(state, issueCount) {
@@ -133,14 +166,16 @@ async function read(state, issueCount) {
   });
 }
 
-test("authoritative attachment receipt requires exact persisted version and timeline provenance", async () => {
+test("authoritative attachment readback signs one fully bound persisted receipt", async () => {
   const valid = fixture();
   const validIssues = { value: 0 };
   const accepted = await read(valid, validIssues);
   assert.equal(validIssues.value, 1);
   assert.equal(accepted.receipts.length, 1);
   assert.deepEqual(accepted.retry_attachment_ids, []);
+});
 
+test("cross-document persisted version produces zero attachment receipts", async () => {
   const crossDocument = fixture();
   crossDocument.dmsRepository.upsert({
     ...crossDocument.version,
@@ -149,7 +184,99 @@ test("authoritative attachment receipt requires exact persisted version and time
   const crossDocumentIssues = { value: 0 };
   await assert.rejects(read(crossDocument, crossDocumentIssues), /incomplete or mismatched/u);
   assert.equal(crossDocumentIssues.value, 0);
+});
 
+test("a later corrupt mapping prevents signing an earlier valid mapping", async () => {
+  const partial = fixture();
+  partial.dmsRepository.create({
+    model_type: "DmsEmailAttachmentMapping",
+    resource_id: `email-attachment:${THREAD}:zz-corrupt`,
+    mapping_id: `email-attachment:${THREAD}:zz-corrupt`,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    email_thread_id: THREAD,
+    attachment_id: "zz-corrupt",
+    name: "corrupt.pdf",
+    document_id: "document-missing",
+    version_id: "version-missing",
+    attachment_outcome: "created",
+    sha256: SHA256,
+    source_byte_size: 42,
+    source_message_ref: MESSAGE_REF,
+    source_provenance_authority: AUTHORITY,
+  });
+  mutatePersistedThread(partial, {
+    attachment_metadata: [
+      ...partial.thread.attachment_metadata,
+      {
+        attachment_id: "zz-corrupt",
+        name: "corrupt.pdf",
+        source_provenance: {
+          sha256: SHA256,
+          byte_size: 42,
+          message_ref: MESSAGE_REF,
+          authority: AUTHORITY,
+        },
+      },
+    ],
+  });
+  const issues = { value: 0 };
+  await assert.rejects(read(partial, issues), /incomplete or mismatched/u);
+  assert.equal(issues.value, 0);
+});
+
+test("persisted version from another Matter produces zero attachment receipts", async () => {
+  const wrongMatter = fixture();
+  wrongMatter.dmsRepository.upsert({ ...wrongMatter.version, matter_id: "matter-other" });
+  const issues = { value: 0 };
+  await assert.rejects(read(wrongMatter, issues), /incomplete or mismatched/u);
+  assert.equal(issues.value, 0);
+});
+
+test("persisted document SHA different from its mapping and version produces zero receipts", async () => {
+  const wrongSha = fixture();
+  wrongSha.dmsRepository.upsert({ ...wrongSha.document, latest_sha256: "b".repeat(64) });
+  const issues = { value: 0 };
+  await assert.rejects(read(wrongSha, issues), /incomplete or mismatched/u);
+  assert.equal(issues.value, 0);
+});
+
+test("thread from another tenant produces zero attachment receipts", async () => {
+  const wrongTenant = fixture();
+  mutatePersistedThread(wrongTenant, { tenant_id: "tenant-other" });
+  const issues = { value: 0 };
+  await assert.rejects(read(wrongTenant, issues), /thread context/u);
+  assert.equal(issues.value, 0);
+});
+
+test("thread from another Matter produces zero attachment receipts", async () => {
+  const wrongMatter = fixture();
+  mutatePersistedThread(wrongMatter, { matter_id: "matter-other" });
+  const issues = { value: 0 };
+  await assert.rejects(read(wrongMatter, issues), /thread context/u);
+  assert.equal(issues.value, 0);
+});
+
+test("inactive thread produces zero attachment receipts", async () => {
+  const inactive = fixture();
+  mutatePersistedThread(inactive, { status: "draft" });
+  const issues = { value: 0 };
+  await assert.rejects(read(inactive, issues), /thread context/u);
+  assert.equal(issues.value, 0);
+});
+
+test("revoked thread produces zero attachment receipts", async () => {
+  const revoked = fixture();
+  revoked.thread = {
+    ...revoked.thread,
+    revoked_at: "2026-08-08T00:00:00.000Z",
+  };
+  const issues = { value: 0 };
+  await assert.rejects(read(revoked, issues), /thread context/u);
+  assert.equal(issues.value, 0);
+});
+
+test("timeline with a different version binding returns retry and zero receipts", async () => {
   const wrongTimeline = fixture();
   wrongTimeline.matterRepository.upsert({
     ...wrongTimeline.timelineEvent,
@@ -158,6 +285,22 @@ test("authoritative attachment receipt requires exact persisted version and time
   const wrongTimelineIssues = { value: 0 };
   const rejected = await read(wrongTimeline, wrongTimelineIssues);
   assert.equal(wrongTimelineIssues.value, 0);
+  assert.deepEqual(rejected.receipts, []);
+  assert.deepEqual(rejected.retry_attachment_ids, [ATTACHMENT]);
+});
+
+test("timeline with a different exact Outlook source tuple returns retry and zero receipts", async () => {
+  const wrongTimeline = fixture();
+  wrongTimeline.matterRepository.upsert({
+    ...wrongTimeline.timelineEvent,
+    safe_summary: {
+      ...wrongTimeline.timelineEvent.safe_summary,
+      canonical_graph_message_id: "immutable:other",
+    },
+  });
+  const issues = { value: 0 };
+  const rejected = await read(wrongTimeline, issues);
+  assert.equal(issues.value, 0);
   assert.deepEqual(rejected.receipts, []);
   assert.deepEqual(rejected.retry_attachment_ids, [ATTACHMENT]);
 });

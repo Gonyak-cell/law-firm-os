@@ -1,5 +1,8 @@
-import { assertStableOutlookItemIdentity } from "./outlook-item-content.js";
-import { outlookItemIdentityKey } from "./outlook-item-events.js";
+import {
+  assertExactOutlookSourceIdentity,
+  parseCapturedOutlookSourceIdentity,
+  parseExactOutlookSourceIdentity,
+} from "../../../packages/email-dms/src/outlook-source-identity.js";
 
 export const OUTLOOK_EMAIL_FILING_PATH = "/api/outlook/email/file";
 export const OUTLOOK_SENT_FILING_PATH = "/api/outlook/sent/file";
@@ -20,27 +23,6 @@ function hasText(value) {
   return typeof value === "string" && Boolean(value.trim());
 }
 
-function normalizedIdentity(value, { caseFold = false } = {}) {
-  const text = typeof value === "string" ? value.trim().normalize("NFKC") : "";
-  return caseFold ? text.toLowerCase() : text;
-}
-
-function matchesOutlookSourceIdentity(email, thread) {
-  const itemKey = outlookItemIdentityKey(email);
-  const requestImmutableId = normalizedIdentity(
-    email?.graph_immutable_message_id ?? email?.immutable_message_id,
-  );
-  const responseRestId = normalizedIdentity(thread?.rest_message_id);
-  const responseItemKey = thread?.outlook_item_key ?? thread?.local_outlook_item_key;
-  return hasText(thread?.graph_message_id)
-    && normalizedIdentity(thread?.internet_message_id, { caseFold: true })
-      === normalizedIdentity(email?.internet_message_id, { caseFold: true })
-    && normalizedIdentity(thread?.conversation_id) === normalizedIdentity(email?.conversation_id)
-    && (!requestImmutableId || normalizedIdentity(thread?.graph_message_id) === requestImmutableId)
-    && (!responseRestId || responseRestId === normalizedIdentity(email?.graph_message_id))
-    && (responseItemKey === undefined || responseItemKey === itemKey);
-}
-
 /**
  * Build the request for an explicit filing action.
  *
@@ -57,6 +39,7 @@ export function createOutlookFilingRequest({
 } = {}) {
   const nextMatterId = requiredText(matterId, "matter_id");
   if (!email || typeof email !== "object") throw new TypeError("email is required");
+  parseCapturedOutlookSourceIdentity(email);
   if (mode !== "manual" && mode !== "sent") throw new TypeError("mode must be manual or sent");
   const sent = mode === "sent";
   let attachmentReceipts;
@@ -90,13 +73,21 @@ export async function fileOutlookEmail({
   requestJson,
 } = {}) {
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
-  assertStableOutlookItemIdentity(email);
   const request = createOutlookFilingRequest({ matterId, email, mode, priorAttachmentReceipts });
   const body = await requestJson(request.path, {
     method: request.method,
     body: request.body,
   });
   const thread = body?.email_thread ?? body?.item;
+  const requestSourceIdentity = parseCapturedOutlookSourceIdentity(email);
+  const responseSourceIdentity = assertExactOutlookSourceIdentity(
+    requestSourceIdentity,
+    body?.source_identity,
+    { exactShape: true },
+  );
+  const responseThreadSourceIdentity = parseCapturedOutlookSourceIdentity(thread);
+  assertExactOutlookSourceIdentity(requestSourceIdentity, responseThreadSourceIdentity);
+  assertExactOutlookSourceIdentity(responseSourceIdentity, responseThreadSourceIdentity);
   const outcome = body?.outcome;
   const documentIds = Array.isArray(thread?.filed_document_ids)
     ? thread.filed_document_ids.map((value) => requiredExactText(value, "filed_document_id"))
@@ -145,7 +136,6 @@ export async function fileOutlookEmail({
     || thread?.status !== "active"
     || thread?.matter_id !== request.body.matter_id
     || !hasText(thread?.email_thread_id)
-    || !matchesOutlookSourceIdentity(email, thread)
     || !documentIds
     || documentIds.length !== 1
     || new Set(documentIds).size !== documentIds.length
@@ -169,7 +159,7 @@ export async function fileOutlookEmail({
     duplicate: outcome === "idempotent_replay" || body.idempotent_replay === true,
     mode,
     matter_id: request.body.matter_id,
-    item_key: outlookItemIdentityKey(email),
+    item_key: requestSourceIdentity.item_key,
     email_thread_id: thread.email_thread_id,
     document_ids: Object.freeze([...documentIds]),
     timeline_event_id: body.timeline_event?.event_id ?? null,

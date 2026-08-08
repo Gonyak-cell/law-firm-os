@@ -1,8 +1,6 @@
 import { saveOutlookAttachments } from "./outlook-attachment-actions.js";
 import { outlookActionErrorMessage } from "./inquiry-actions.js";
 import { fileOutlookEmail } from "./outlook-filing.js";
-import { assertStableOutlookItemIdentity } from "./outlook-item-content.js";
-import { outlookItemIdentityKey } from "./outlook-item-events.js";
 
 function array(value) {
   return Array.isArray(value) ? value : [];
@@ -99,15 +97,14 @@ export async function fileOutlookEmailWithAttachments({
 } = {}) {
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
   if (typeof readAttachments !== "function") throw new TypeError("readAttachments is required");
-  assertStableOutlookItemIdentity(email);
   const nextMatterId = typeof matterId === "string" ? matterId.trim() : "";
-  const itemKey = outlookItemIdentityKey(email);
   let emailReceipt = await fileOutlookEmail({
     matterId: nextMatterId,
     email,
     requestJson,
     priorAttachmentReceipts: priorTokens(previousReceipt),
   });
+  const itemKey = emailReceipt.item_key;
   const retryIds = [...emailReceipt.attachment_state.retry_attachment_ids];
   if (retryIds.length === 0) {
     return operationReceipt({

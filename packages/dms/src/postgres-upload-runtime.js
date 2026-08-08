@@ -2151,9 +2151,19 @@ export function createPostgresDmsUploadRuntime({
         `SELECT * FROM lawos_dms.outbox_events WHERE tenant_id = $1 AND aggregate_id = $2 ORDER BY created_at, event_id`,
         [tenantId, documentId],
       );
+      const currentVersion = versions.rows.find(
+        (row) => row.version_id === document.rows[0].current_version_id,
+      );
       return Object.freeze({
-        document: Object.freeze({ ...document.rows[0] }),
-        versions: Object.freeze(versions.rows.map((row) => Object.freeze({ ...row, version_number: Number(row.version_number) }))),
+        document: Object.freeze({
+          ...document.rows[0],
+          latest_sha256: currentVersion?.sha256 ?? null,
+        }),
+        versions: Object.freeze(versions.rows.map((row) => Object.freeze({
+          ...row,
+          matter_id: document.rows[0].matter_id,
+          version_number: Number(row.version_number),
+        }))),
         file_objects: Object.freeze(objects.rows.map((row) => Object.freeze({ ...row, byte_size: Number(row.byte_size) }))),
         audit_events: Object.freeze(audit.rows.map((row) => Object.freeze({ ...row }))),
         outbox_events: Object.freeze(outbox.rows.map((row) => Object.freeze({ ...row }))),

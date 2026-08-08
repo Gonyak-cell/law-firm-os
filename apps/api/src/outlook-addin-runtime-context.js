@@ -5,6 +5,12 @@ import {
   OUTLOOK_EMAIL_OBJECT_FIELDS,
 } from "../../../packages/email-dms/src/email-model.js";
 import {
+  assertExactOutlookSourceIdentity,
+  outlookSourceItemKey,
+  parseCapturedOutlookSourceIdentity,
+  parseExactOutlookSourceIdentity,
+} from "../../../packages/email-dms/src/outlook-source-identity.js";
+import {
   M365_GRAPH_CALLBACK_MODES,
   M365_GRAPH_ERROR_CODES,
   createM365GraphConnectionService,
@@ -199,6 +205,33 @@ function normalizedOpaqueIdentity(value, field) {
   return requiredString(value, field).normalize("NFKC");
 }
 
+function exactProviderIdentity(value, field) {
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || value !== value.trim()
+    || /[\u0000-\u001f\u007f]/u.test(value)
+  ) {
+    throw attachmentProvenanceError(`${field} is not an exact provider identity`);
+  }
+  return value;
+}
+
+function hasExactOutlookSourceIdentity(expected, actual) {
+  try {
+    assertExactOutlookSourceIdentity(expected, actual);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function outlookFilingResponseThread(thread) {
+  const response = { ...thread };
+  delete response.graph_message_id;
+  return Object.freeze(response);
+}
+
 function digestMatches(expected, actual) {
   if (!/^[a-f0-9]{64}$/u.test(expected) || !/^[a-f0-9]{64}$/u.test(actual)) return false;
   return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(actual, "hex"));
@@ -207,8 +240,8 @@ function digestMatches(expected, actual) {
 function canonicalEmailThreadId({ tenantId, immutableMessageId, internetMessageId }) {
   return `thread:${sha256Hex(JSON.stringify([
     tenantId,
-    normalizedOpaqueIdentity(immutableMessageId, "provider.immutable_message_id"),
-    normalizedMessageIdentity(internetMessageId, "provider.internet_message_id"),
+    immutableMessageId,
+    internetMessageId,
   ]))}`;
 }
 
@@ -253,13 +286,17 @@ async function resolveCanonicalMessage({ thread, context, runtime }) {
   ) {
     throw attachmentProvenanceError("Microsoft Graph message identity does not match the filed Outlook email");
   }
-  const canonicalInternetMessageId = requiredString(
+  const canonicalInternetMessageId = exactProviderIdentity(
     result.internet_message_id ?? metadata.internet_message_id,
     "provider.internet_message_id",
   );
-  const immutableMessageId = requiredString(
+  const immutableMessageId = exactProviderIdentity(
     result.immutable_message_id,
     "provider.immutable_message_id",
+  );
+  const canonicalConversationId = exactProviderIdentity(
+    metadata.conversation_id,
+    "provider.conversation_id",
   );
   const canonicalAttachments = createSafeInquiryDisplayCopy({
     mime_bytes: mimeBytes,
@@ -354,7 +391,7 @@ async function resolveCanonicalMessage({ thread, context, runtime }) {
       email_id: `email:${safeId(immutableMessageId)}`,
       graph_message_id: immutableMessageId,
       internet_message_id: canonicalInternetMessageId,
-      conversation_id: requiredString(metadata.conversation_id, "provider.conversation_id"),
+      conversation_id: canonicalConversationId,
       message_ids: Object.freeze([immutableMessageId, canonicalInternetMessageId]),
       from: metadata.from
         ? safePerson(metadata.from, { internalEmailDomain })
@@ -464,10 +501,11 @@ async function ensureOriginalMimeUploadIntent({
   const mimeSha256 = sha256Hex(bytes);
   const familyId = `outlook-mime:${sha256Hex(JSON.stringify([
     document.tenant_id,
-    requiredString(sourceIdentity?.graph_message_id, "sourceIdentity.graph_message_id"),
-    requiredString(sourceIdentity?.internet_message_id, "sourceIdentity.internet_message_id")
-      .normalize("NFKC")
-      .toLowerCase(),
+    requiredString(
+      sourceIdentity?.canonical_graph_message_id,
+      "sourceIdentity.canonical_graph_message_id",
+    ),
+    requiredString(sourceIdentity?.internet_message_id, "sourceIdentity.internet_message_id"),
     mimeSha256,
   ]))}`;
   const identityHash = sha256Hex(JSON.stringify([
@@ -475,13 +513,12 @@ async function ensureOriginalMimeUploadIntent({
     document.matter_id,
     document.workspace_id,
     document.document_id,
-    requiredString(sourceIdentity?.graph_message_id, "sourceIdentity.graph_message_id")
-      .normalize("NFKC"),
-    requiredString(sourceIdentity?.internet_message_id, "sourceIdentity.internet_message_id")
-      .normalize("NFKC")
-      .toLowerCase(),
-    requiredString(sourceIdentity?.conversation_id, "sourceIdentity.conversation_id")
-      .normalize("NFKC"),
+    requiredString(
+      sourceIdentity?.canonical_graph_message_id,
+      "sourceIdentity.canonical_graph_message_id",
+    ),
+    requiredString(sourceIdentity?.internet_message_id, "sourceIdentity.internet_message_id"),
+    requiredString(sourceIdentity?.conversation_id, "sourceIdentity.conversation_id"),
     mimeSha256,
     bytes.byteLength,
     document.title,
@@ -960,15 +997,22 @@ function findMatter({ repository, tenant_id, matter_id } = {}) {
   return repository.get({ tenant_id, model_type: "Matter", matter_id });
 }
 
-function normalizeEmailThread({ input = {}, tenant_id, matter_id, actor_id, mode = "manual" } = {}) {
+function normalizeEmailThread({
+  input = {},
+  sourceIdentity,
+  tenant_id,
+  matter_id,
+  actor_id,
+  mode = "manual",
+} = {}) {
   const email = input.email ?? input.thread ?? input;
-  const graphMessageId = requiredString(email.graph_message_id ?? email.graphMessageId ?? email.message_id, "graph_message_id");
-  const internetMessageId = requiredString(email.internet_message_id ?? email.internetMessageId, "internet_message_id");
-  const conversationId = requiredString(email.conversation_id ?? email.conversationId, "conversation_id");
+  const graphMessageId = sourceIdentity.rest_message_id;
+  const internetMessageId = sourceIdentity.internet_message_id;
+  const conversationId = sourceIdentity.conversation_id;
   const emailThreadId = `thread:${sha256Hex(JSON.stringify([
     tenant_id,
-    graphMessageId.normalize("NFKC"),
-    internetMessageId.normalize("NFKC").toLowerCase(),
+    graphMessageId,
+    internetMessageId,
   ]))}`;
   const bodyPreview = optionalString(email.body_preview ?? email.preview, "");
   const filingTime = new Date().toISOString();
@@ -2152,19 +2196,36 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
   const actorId = actorFrom(context);
+  let requestedSourceIdentity;
+  try {
+    requestedSourceIdentity = parseCapturedOutlookSourceIdentity(body.email);
+  } catch (error) {
+    return m365ErrorResponse(Object.assign(error, {
+      safe_error_code: OUTLOOK_ADDIN_ERROR_CODES.validation_error,
+      status: 400,
+    }), requestId, body.audit_hint_ref);
+  }
   const decision = evaluateOutlookPermission({
     context,
     tenant_id: tenantId,
     matter_id: matterId,
     resource_type: "email_thread",
-    resource_id: body.email?.graph_message_id ?? body.email_thread_id ?? "email_thread",
+    resource_id: requestedSourceIdentity.rest_message_id,
     action: "outlook:email:file",
   });
   if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
   const matter = findMatter({ repository: runtime.matterRuntime.repository, tenant_id: tenantId, matter_id: matterId });
   if (!matter) return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.matter_not_found]);
-  const requestedThread = normalizeEmailThread({ input: body, tenant_id: tenantId, matter_id: matterId, actor_id: actorId, mode });
+  const requestedThread = normalizeEmailThread({
+    input: body,
+    sourceIdentity: requestedSourceIdentity,
+    tenant_id: tenantId,
+    matter_id: matterId,
+    actor_id: actorId,
+    mode,
+  });
   let canonical;
+  let canonicalSourceIdentity;
   let verifiedAttachmentReceipts;
   try {
     canonical = await resolveCanonicalMessage({
@@ -2172,6 +2233,24 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       context,
       runtime,
     });
+    canonicalSourceIdentity = parseExactOutlookSourceIdentity({
+      canonical_graph_message_id: canonical.thread.graph_message_id,
+      rest_message_id: requestedSourceIdentity.rest_message_id,
+      internet_message_id: canonical.thread.internet_message_id,
+      conversation_id: canonical.thread.conversation_id,
+      item_key: outlookSourceItemKey({
+        rest_message_id: requestedSourceIdentity.rest_message_id,
+        internet_message_id: canonical.thread.internet_message_id,
+        conversation_id: canonical.thread.conversation_id,
+      }),
+    });
+    try {
+      assertExactOutlookSourceIdentity(requestedSourceIdentity, canonicalSourceIdentity);
+    } catch {
+      throw attachmentProvenanceError(
+        "Microsoft Graph source identity does not exactly match the captured Outlook item",
+      );
+    }
     if (mode === "manual" && canonical.is_in_sent_items === true) {
       throw sentMessageProvenanceError(
         "Microsoft Graph Sent Items messages require the explicit sent filing route",
@@ -2205,7 +2284,10 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
-  const canonicalThread = canonical.thread;
+  const canonicalThread = Object.freeze({
+    ...canonical.thread,
+    ...canonicalSourceIdentity,
+  });
   let existingThread = runtime.dmsRuntime.repository.get({
     tenant_id: tenantId,
     model_type: "DmsEmailThread",
@@ -2215,12 +2297,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     existingThread
     && (
       existingThread.matter_id !== matterId
-      || normalizedOpaqueIdentity(existingThread.graph_message_id, "stored.graph_message_id")
-        !== normalizedOpaqueIdentity(canonicalThread.graph_message_id, "provider.immutable_message_id")
-      || normalizedMessageIdentity(existingThread.internet_message_id, "stored.internet_message_id")
-        !== normalizedMessageIdentity(canonicalThread.internet_message_id, "provider.internet_message_id")
-      || normalizedOpaqueIdentity(existingThread.conversation_id, "stored.conversation_id")
-        !== normalizedOpaqueIdentity(canonicalThread.conversation_id, "provider.conversation_id")
+      || !hasExactOutlookSourceIdentity(canonicalSourceIdentity, existingThread)
     )
   ) {
     return m365ErrorResponse(
@@ -2311,9 +2388,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
         bytes: canonical.mime_bytes,
         actorId,
         sourceIdentity: {
-          graph_message_id: canonicalThread.graph_message_id,
-          internet_message_id: canonicalThread.internet_message_id,
-          conversation_id: canonicalThread.conversation_id,
+          ...canonicalSourceIdentity,
         },
         now: typeof runtime?.m365GraphConfig?.clock === "function"
           ? runtime.m365GraphConfig.clock()
@@ -2516,7 +2591,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       source_object_id: filedThread.email_thread_id,
       safe_summary: {
         graph_message_id: filedThread.graph_message_id,
-        internet_message_id: filedThread.internet_message_id,
+        ...canonicalSourceIdentity,
         filed_document_ids: filedThread.filed_document_ids,
         original_mime_document_id: filedThread.filed_document_ids[0] ?? null,
         attachment_count: filedThread.attachment_metadata.length,
@@ -2544,12 +2619,14 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
   const operationOutcome = operationReplay ? "idempotent_replay" : "created";
+  const responseThread = outlookFilingResponseThread(filedThread);
   return success(operationOutcome === "created" ? 201 : 200, {
     request_id: requestId,
     outcome: operationOutcome,
     filing_operation: operationName,
-    item: result.thread,
-    email_thread: result.thread,
+    item: responseThread,
+    email_thread: responseThread,
+    source_identity: canonicalSourceIdentity,
     timeline_event: timelineEvent,
     matter_timeline: listMatterTimeline({
       repository: runtime.matterRuntime.repository,
@@ -2584,6 +2661,16 @@ async function saveAttachments({ body, context, requestId, runtime }) {
   const thread = runtime.dmsRuntime.repository.get({ tenant_id: tenantId, model_type: "DmsEmailThread", email_thread_id: emailThreadId });
   if (!thread || thread.matter_id !== matterId || thread.status !== "active") {
     return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.email_not_found]);
+  }
+  let threadSourceIdentity;
+  try {
+    threadSourceIdentity = parseExactOutlookSourceIdentity(thread);
+  } catch {
+    return m365ErrorResponse(
+      attachmentProvenanceError("Filed Outlook thread source identity is incomplete"),
+      requestId,
+      body.audit_hint_ref,
+    );
   }
   const attachments = Array.isArray(body.attachments) ? body.attachments : [];
   if (attachments.length !== 1) {
@@ -2722,6 +2809,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         source_object_id: persistedDocument.document_id,
         safe_summary: {
           email_thread_id: emailThreadId,
+          ...threadSourceIdentity,
           attachment_id: responseMapping.attachment_id,
           document_id: responseMapping.document_id,
           version_id: responseMapping.version_id,

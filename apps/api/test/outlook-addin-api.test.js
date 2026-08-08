@@ -311,8 +311,11 @@ function attachmentPayload(bytes = ATTACHMENT_BYTES) {
 }
 
 function emailFixture(overrides = {}) {
-  return {
-    graph_message_id: "graph-outlook-addin-test-001",
+  const {
+    graph_message_id: legacyRestMessageId = "graph-outlook-addin-test-001",
+    ...exactOverrides
+  } = overrides;
+  const email = {
     internet_message_id: "<outlook-addin-test-001@amic.law>",
     conversation_id: "conversation-outlook-addin-test",
     from: { name: "상대방", email: "opposing@example.com" },
@@ -335,15 +338,31 @@ function emailFixture(overrides = {}) {
         confidentiality: "confidential",
       },
     ],
-    ...overrides,
+    ...exactOverrides,
+  };
+  const restMessageId = Object.hasOwn(overrides, "rest_message_id")
+    ? overrides.rest_message_id
+    : legacyRestMessageId;
+  const immutableMessageId = Object.hasOwn(overrides, "canonical_graph_message_id")
+    ? overrides.canonical_graph_message_id
+    : ["graph-alias-a", "graph-alias-b"].includes(restMessageId)
+      ? "immutable:graph-alias-target"
+      : `immutable:${restMessageId}`;
+  return {
+    ...email,
+    canonical_graph_message_id: immutableMessageId,
+    rest_message_id: restMessageId,
+    item_key: Object.hasOwn(overrides, "item_key")
+      ? overrides.item_key
+      : [restMessageId, email.internet_message_id, email.conversation_id].join("\u001f"),
   };
 }
 
 function expectedEmailThreadId(email) {
   return `thread:${createHash("sha256").update(JSON.stringify([
     TENANT,
-    `immutable:${email.graph_message_id}`.normalize("NFKC"),
-    email.internet_message_id.normalize("NFKC").toLowerCase(),
+    email.canonical_graph_message_id,
+    email.internet_message_id,
   ])).digest("hex")}`;
 }
 
@@ -827,8 +846,8 @@ function phasedAuthorityDocumentId() {
   const email = phasedAuthorityEmail();
   const emailThreadId = `thread:${createHash("sha256").update(JSON.stringify([
     TENANT,
-    `immutable:${email.graph_message_id}`.normalize("NFKC"),
-    email.internet_message_id.normalize("NFKC").toLowerCase(),
+    email.canonical_graph_message_id,
+    email.internet_message_id,
   ])).digest("hex")}`;
   const mimeSha256 = createHash("sha256").update(messageMime({
     hasAttachment: false,
@@ -1436,11 +1455,10 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: {
-            ...emailFixture(),
+          email: emailFixture({
             graph_message_id: "graph-identity-mismatch",
             conversation_id: "conversation-identity-mismatch",
-          },
+          }),
         }),
       });
       const identityMismatchBody = await identityMismatch.json();
@@ -1464,11 +1482,10 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: {
-            ...emailFixture(),
+          email: emailFixture({
             graph_message_id: "graph-ambiguous-attachments",
             conversation_id: "conversation-ambiguous-attachments",
-          },
+          }),
         }),
       });
       const ambiguousAttachmentBody = await ambiguousAttachment.json();
@@ -1486,15 +1503,14 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: {
-            ...emailFixture(),
+          email: emailFixture({
             graph_message_id: "graph-ambiguous-attachments",
             conversation_id: "conversation-ambiguous-attachments",
             attachments: [
               { ...source, attachment_id: "att-duplicate-1" },
               { ...source, attachment_id: "att-duplicate-2" },
             ],
-          },
+          }),
         }),
       });
       assert.equal(complete.outcome, "created");
@@ -1904,9 +1920,27 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
       });
       assert.equal(fileBody.outcome, "created");
-      assert.equal(fileBody.email_thread.field_contract_count, 18);
+      assert.equal(
+        fileBody.email_thread.field_contract_count,
+        fileBody.email_object_field_contract.length,
+      );
       assert.equal(fileBody.email_thread.raw_body_included, false);
-      assert.equal(fileBody.email_thread.graph_message_id, "immutable:graph-outlook-addin-test-001");
+      assert.equal(fileBody.email_thread.canonical_graph_message_id, "immutable:graph-outlook-addin-test-001");
+      assert.equal(Object.hasOwn(fileBody.email_thread, "graph_message_id"), false);
+      assert.deepEqual(fileBody.source_identity, {
+        canonical_graph_message_id: "immutable:graph-outlook-addin-test-001",
+        rest_message_id: "graph-outlook-addin-test-001",
+        internet_message_id: "<outlook-addin-test-001@amic.law>",
+        conversation_id: "conversation-outlook-addin-test",
+        item_key: [
+          "graph-outlook-addin-test-001",
+          "<outlook-addin-test-001@amic.law>",
+          "conversation-outlook-addin-test",
+        ].join("\u001f"),
+      });
+      for (const [field, value] of Object.entries(fileBody.source_identity)) {
+        assert.equal(fileBody.email_thread[field], value);
+      }
       assert.equal(
         JSON.stringify(fileBody).includes('"graph_message_id":"graph-outlook-addin-test-001"'),
         false,
@@ -1976,8 +2010,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         source_module: "outlook-addin",
         source_object_id: emailThreadId,
         safe_summary: {
-          graph_message_id: `immutable:${email.graph_message_id}`,
+          graph_message_id: email.canonical_graph_message_id,
+          canonical_graph_message_id: email.canonical_graph_message_id,
+          rest_message_id: email.rest_message_id,
           internet_message_id: email.internet_message_id,
+          conversation_id: email.conversation_id,
+          item_key: email.item_key,
           filed_document_ids: [documentId],
           original_mime_document_id: documentId,
           attachment_count: 1,
@@ -2061,11 +2099,10 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: {
-            ...emailFixture(),
+          email: emailFixture({
             graph_message_id: "graph-outlook-addin-test-002",
             internet_message_id: "<outlook-addin-test-002@amic.law>",
-          },
+          }),
         }),
       });
       assert.equal(secondMessage.outcome, "created");
@@ -2098,12 +2135,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
           email: emailFixture({ graph_message_id: "GRAPH-case-sensitive" }),
         }),
       });
-      assert.equal(lower.email_thread.graph_message_id, "immutable:graph-case-sensitive");
-      assert.equal(upper.email_thread.graph_message_id, "immutable:GRAPH-case-sensitive");
+      assert.equal(lower.email_thread.canonical_graph_message_id, "immutable:graph-case-sensitive");
+      assert.equal(upper.email_thread.canonical_graph_message_id, "immutable:GRAPH-case-sensitive");
       assert.notEqual(lower.email_thread.email_thread_id, upper.email_thread.email_thread_id);
     });
 
-    await t.test("REST ID aliases converge on the canonical immutable identity and cannot cross Matter", async () => {
+    await t.test("a different REST alias for one canonical immutable ID is rejected exactly", async () => {
       const aliasEmail = (graphMessageId) => emailFixture({
         graph_message_id: graphMessageId,
         internet_message_id: "<outlook-alias-target@amic.law>",
@@ -2114,13 +2151,15 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         method: "POST",
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: aliasEmail("graph-alias-a") }),
       });
-      const replay = await json("/api/outlook/email/file", {
+      const replay = await fetch(`${baseUrl}/api/outlook/email/file`, {
         method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: aliasEmail("graph-alias-b") }),
       });
-      assert.equal(replay.outcome, "idempotent_replay");
-      assert.equal(replay.email_thread.email_thread_id, first.email_thread.email_thread_id);
-      assert.equal(replay.email_thread.graph_message_id, "immutable:graph-alias-target");
+      const replayBody = await replay.json();
+      assert.equal(first.email_thread.rest_message_id, "graph-alias-a");
+      assert.equal(replay.status, 409);
+      assert.deepEqual(replayBody.safe_error_codes, ["OUTLOOK_ADDIN_EMAIL_IDENTITY_CONFLICT"]);
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
 
       const crossMatter = await fetch(`${baseUrl}/api/outlook/email/file`, {
@@ -2176,7 +2215,9 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(storageWriteCount, beforeStorageWrites);
     });
 
-    for (const requiredIdentity of ["internet_message_id", "conversation_id"]) {
+    const missingSourceIdentity = async (requiredIdentity) => {
+      const beforeProviderCalls = providerCallCount;
+      const beforeStorageWrites = storageWriteCount;
       const incompleteEmail = { ...emailFixture() };
       delete incompleteEmail[requiredIdentity];
       const rejected = await fetch(`${baseUrl}/api/outlook/email/file`, {
@@ -2187,8 +2228,89 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       const rejectedBody = await rejected.json();
       assert.equal(rejected.status, 400);
       assert.deepEqual(rejectedBody.safe_error_codes, ["OUTLOOK_ADDIN_VALIDATION_ERROR"]);
-      assert.match(rejectedBody.message, new RegExp(`${requiredIdentity} is required`, "u"));
-    }
+      assert.equal(providerCallCount, beforeProviderCalls);
+      assert.equal(storageWriteCount, beforeStorageWrites);
+    };
+
+    await t.test("missing REST source ID is rejected before filing mutation", async () => {
+      await missingSourceIdentity("rest_message_id");
+    });
+
+    await t.test("missing canonical Graph source ID is rejected before filing mutation", async () => {
+      await missingSourceIdentity("canonical_graph_message_id");
+    });
+
+    await t.test("missing item_key is rejected before filing mutation", async () => {
+      await missingSourceIdentity("item_key");
+    });
+
+    await t.test("missing Internet Message-ID is rejected before filing mutation", async () => {
+      await missingSourceIdentity("internet_message_id");
+    });
+
+    await t.test("missing conversation ID is rejected before filing mutation", async () => {
+      await missingSourceIdentity("conversation_id");
+    });
+
+    await t.test("extra legacy graph_message_id alias is rejected before Graph preflight", async () => {
+      const beforeProviderCalls = providerCallCount;
+      const exact = emailFixture();
+      const rejected = await fetch(`${baseUrl}/api/outlook/email/file`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: { ...exact, graph_message_id: exact.rest_message_id },
+        }),
+      });
+      assert.equal(rejected.status, 400);
+      assert.deepEqual((await rejected.json()).safe_error_codes, [
+        "OUTLOOK_ADDIN_VALIDATION_ERROR",
+      ]);
+      assert.equal(providerCallCount, beforeProviderCalls);
+    });
+
+    const mismatchedSourceIdentity = async (overrides) => {
+      const rejected = await fetch(`${baseUrl}/api/outlook/email/file`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: emailFixture(overrides),
+        }),
+      });
+      const rejectedBody = await rejected.json();
+      assert.equal(rejected.status, 409);
+      assert.deepEqual(rejectedBody.safe_error_codes, [
+        "OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH",
+      ]);
+    };
+
+    await t.test("wrong canonical immutable ID is rejected after Graph preflight", async () => {
+      await mismatchedSourceIdentity({
+        canonical_graph_message_id: "immutable:wrong-canonical",
+      });
+    });
+
+    await t.test("case-only Internet Message-ID difference is rejected after Graph preflight", async () => {
+      await mismatchedSourceIdentity({
+        internet_message_id: "<OUTLOOK-ADDIN-TEST-001@amic.law>",
+      });
+    });
+
+    await t.test("whitespace-only Internet Message-ID difference is rejected after Graph preflight", async () => {
+      await mismatchedSourceIdentity({
+        internet_message_id: "<outlook-addin-test-001 @amic.law>",
+      });
+    });
+
+    await t.test("NFKC-only conversation ID difference is rejected after Graph preflight", async () => {
+      await mismatchedSourceIdentity({
+        conversation_id: "conversation-outlook-addin-tes\uff54",
+      });
+    });
 
     const beforeReplayProviderCalls = providerCallCount;
     const beforeReplayStorageWrites = storageWriteCount;
@@ -2266,6 +2388,11 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(typeof attachmentBody.attachment_receipt.receipt_ref, "string");
       assert.deepEqual(attachmentBody.items[0].timeline_event.safe_summary, {
         email_thread_id: fileBody.email_thread.email_thread_id,
+        canonical_graph_message_id: fileBody.source_identity.canonical_graph_message_id,
+        rest_message_id: fileBody.source_identity.rest_message_id,
+        internet_message_id: fileBody.source_identity.internet_message_id,
+        conversation_id: fileBody.source_identity.conversation_id,
+        item_key: fileBody.source_identity.item_key,
         attachment_id: "att-contract",
         document_id: attachmentBody.items[0].document.document_id,
         version_id: attachmentBody.items[0].version.version_id,
@@ -2412,6 +2539,62 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.deepEqual(
         (await crossDocumentReadback.json()).safe_error_codes,
         ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"],
+      );
+
+      let crossMatterVersionReadback;
+      try {
+        dmsRepository.upsert({ ...persistedVersion, matter_id: OTHER_MATTER });
+        crossMatterVersionReadback = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
+        });
+      } finally {
+        dmsRepository.upsert(persistedVersion);
+      }
+      assert.equal(crossMatterVersionReadback.status, 409);
+      assert.deepEqual(
+        (await crossMatterVersionReadback.json()).safe_error_codes,
+        ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"],
+      );
+
+      const persistedThread = dmsRepository.get({
+        tenant_id: TENANT,
+        model_type: "DmsEmailThread",
+        email_thread_id: fileBody.email_thread.email_thread_id,
+      });
+      let crossMatterThreadReadback;
+      try {
+        dmsRepository.upsert({ ...persistedThread, matter_id: OTHER_MATTER });
+        crossMatterThreadReadback = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
+        });
+      } finally {
+        dmsRepository.upsert(persistedThread);
+      }
+      assert.equal(crossMatterThreadReadback.status, 409);
+      assert.deepEqual(
+        (await crossMatterThreadReadback.json()).safe_error_codes,
+        ["OUTLOOK_ADDIN_EMAIL_IDENTITY_CONFLICT"],
+      );
+
+      let inactiveThreadReadback;
+      try {
+        dmsRepository.upsert({ ...persistedThread, status: "archived" });
+        inactiveThreadReadback = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
+        });
+      } finally {
+        dmsRepository.upsert(persistedThread);
+      }
+      assert.equal(inactiveThreadReadback.status, 409);
+      assert.deepEqual(
+        (await inactiveThreadReadback.json()).safe_error_codes,
+        ["OUTLOOK_ADDIN_EMAIL_IDENTITY_CONFLICT"],
       );
 
       const persistedTimeline = matterRepository.get({
@@ -2715,7 +2898,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: { ...emailFixture(), graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" },
+          email: emailFixture({ graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" }),
         }),
       });
       assert.equal(sent.external_send_state, "provider_gated_no_external_send_claim");
@@ -2730,7 +2913,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: { ...emailFixture(), graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" },
+          email: emailFixture({ graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" }),
         }),
       });
       const receivedRouteBody = await receivedRoute.json();
@@ -2745,7 +2928,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         body: JSON.stringify({
           tenant_id: TENANT,
           matter_id: MATTER,
-          email: { ...emailFixture(), graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" },
+          email: emailFixture({ graph_message_id: "graph-outlook-sent-001", conversation_id: "conversation-outlook-sent" }),
         }),
       });
       const rejectedReplayBody = await rejectedReplay.json();

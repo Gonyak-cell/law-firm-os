@@ -4,11 +4,19 @@ import { OUTLOOK_ATTACHMENT_SAVE_PATH } from "../src/outlook-attachment-actions.
 import { fileOutlookEmailWithAttachments } from "../src/outlook-filing-orchestration.js";
 import { OUTLOOK_EMAIL_FILING_PATH } from "../src/outlook-filing.js";
 
-const EMAIL = Object.freeze({
-  graph_message_id: "graph-zero-trust",
+const SOURCE_IDENTITY = Object.freeze({
+  canonical_graph_message_id: "immutable:graph-zero-trust",
+  rest_message_id: "graph-zero-trust",
   internet_message_id: "<zero-trust@example.invalid>",
   conversation_id: "conversation-zero-trust",
+  item_key: [
+    "graph-zero-trust",
+    "<zero-trust@example.invalid>",
+    "conversation-zero-trust",
+  ].join("\u001f"),
 });
+
+const EMAIL = SOURCE_IDENTITY;
 
 function serverReceipt(id, outcome = "created") {
   return {
@@ -32,12 +40,11 @@ function emailResponse({ receipts = [], retry = [] } = {}) {
     filing_operation: "manual",
     idempotent_replay: true,
     external_send_state: "not_applicable",
+    source_identity: SOURCE_IDENTITY,
     email_thread: {
       email_thread_id: "thread-zero-trust",
       matter_id: "matter-001",
-      graph_message_id: "immutable:graph-zero-trust",
-      internet_message_id: EMAIL.internet_message_id,
-      conversation_id: EMAIL.conversation_id,
+      ...SOURCE_IDENTITY,
       status: "active",
       filing_user: "actor-001",
       filing_time: "2026-08-08T01:00:00.000Z",

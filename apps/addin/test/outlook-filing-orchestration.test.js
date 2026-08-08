@@ -4,11 +4,19 @@ import { OUTLOOK_ATTACHMENT_SAVE_PATH } from "../src/outlook-attachment-actions.
 import { fileOutlookEmailWithAttachments } from "../src/outlook-filing-orchestration.js";
 import { OUTLOOK_EMAIL_FILING_PATH } from "../src/outlook-filing.js";
 
-const EMAIL = Object.freeze({
-  graph_message_id: "graph-message-001",
+const SOURCE_IDENTITY = Object.freeze({
+  canonical_graph_message_id: "immutable:graph-message-001",
+  rest_message_id: "graph-message-001",
   internet_message_id: "<message-001@example.invalid>",
   conversation_id: "conversation-001",
+  item_key: [
+    "graph-message-001",
+    "<message-001@example.invalid>",
+    "conversation-001",
+  ].join("\u001f"),
 });
+
+const EMAIL = SOURCE_IDENTITY;
 
 function attachment(id) {
   return {
@@ -41,12 +49,11 @@ function emailResponse({ saved, ids, emailCalls }) {
     filing_operation: "manual",
     idempotent_replay: emailCalls !== 1,
     external_send_state: "not_applicable",
+    source_identity: SOURCE_IDENTITY,
     email_thread: {
       email_thread_id: "thread-001",
       matter_id: "matter-001",
-      graph_message_id: "immutable:graph-message-001",
-      internet_message_id: EMAIL.internet_message_id,
-      conversation_id: EMAIL.conversation_id,
+      ...SOURCE_IDENTITY,
       status: "active",
       filing_user: "user-001",
       filing_time: "2026-08-08T01:00:00.000Z",
