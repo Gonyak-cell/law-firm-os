@@ -5,7 +5,7 @@ import {
   idempotency,
   resolveVerifiedDocument,
 } from "./outlook-operation-receipt-durable-chain.js";
-
+import { validateOutlookEmailFileIdempotency } from "../../../packages/email-dms/src/email-filing-service.js";
 const DIGEST = /^[a-f0-9]{64}$/u;
 const FOLLOWUP_TYPES = new Set(["task", "deadline"]);
 const FILING_MODES = new Set(["manual", "sent"]);
@@ -66,17 +66,20 @@ function summary({ itemContextRef, matterId, operation, outcome, requestId, thre
   return Object.freeze(result);
 }
 
-function durableFilingOutcome({ thread, dmsRepository, tenantId, matterId, digest }) {
+function durableFilingOutcome(entry) {
+  const candidate = entry?.response?.outcome
+    ?? (entry?.response?.idempotent_replay === true ? "idempotent_replay" : null);
+  return FILING_OUTCOMES.has(candidate) ? candidate : "created";
+}
+
+function filingReceiptEntry({ thread, dmsRepository, tenantId, digest }) {
   const entry = typeof dmsRepository.getIdempotency === "function"
     ? dmsRepository.getIdempotency({
       tenant_id: tenantId,
       idempotency_key: `outlook-email-file:${thread.email_thread_id}:${digest}:dms`,
     })
     : null;
-  const candidate = entry?.response?.outcome
-    ?? (entry?.response?.idempotent_replay === true ? "idempotent_replay" : null)
-    ?? thread.filing_outcome;
-  return FILING_OUTCOMES.has(candidate) ? candidate : "created";
+  return validateOutlookEmailFileIdempotency({ entry, thread }).valid ? entry : null;
 }
 
 async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepository, dmsAuthority, matterRepository, timeline, canReadDocument }) {
@@ -95,10 +98,11 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
     entry.auditEvents.length ? entry.auditEvents : auditList(dmsRepository, tenantId, entry.document.document_id),
     { action: "dms.document.upload", objectType: "DmsDocument", objectId: entry.document.document_id },
   ));
+  const filingEntry = filingReceiptEntry({ thread, dmsRepository, tenantId, digest });
   if (
     !documentAudits
     || !hasAudit(dmsAudits, { action: "dms.email.thread.file", objectType: "DmsEmailThread", objectId: thread.email_thread_id })
-    || !idempotency(dmsRepository, tenantId, `outlook-email-file:${thread.email_thread_id}:${digest}:dms`, (entry) => entry.response?.email_thread_id === thread.email_thread_id && entry.response?.matter_id === matterId)
+    || !filingEntry
   ) return null;
   const type = thread.filing_mode === "sent" ? "outlook.email.sent_filed" : "outlook.email.filed";
   const event = timelineFor({
@@ -118,7 +122,7 @@ async function fileReceipt({ thread, itemContextRef, matterId, tenantId, dmsRepo
     itemContextRef,
     matterId,
     operation: "file_email",
-    outcome: durableFilingOutcome({ thread, dmsRepository, tenantId, matterId, digest }),
+    outcome: durableFilingOutcome(filingEntry),
     filingMode: thread.filing_mode,
     requestId: opaqueRef(`outlook-email-file:${thread.email_thread_id}:${digest}`),
     threadId: thread.email_thread_id,

@@ -20,7 +20,10 @@ import {
   m365ConnectionId,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
-import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
+import {
+  fileEmailThreadToMatter,
+  outlookEmailFileRequestFingerprint,
+} from "../../../packages/email-dms/src/email-filing-service.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { createMatterRuntimeContext } from "../src/matter-runtime-context.js";
 
@@ -46,8 +49,12 @@ test("legacy filing replay backfills idempotency without overwriting its origina
     tenant_id: TENANT,
     matter_id: MATTER,
     email_thread_id: emailThreadId,
+    graph_message_id: "immutable:legacy-filing",
+    internet_message_id: "<legacy-filing@amic.law>",
+    conversation_id: "conversation:legacy-filing",
     subject: "Legacy filing",
     status: "active",
+    filing_mode: "manual",
     filing_user: "original-actor",
     filed_document_ids: ["doc:legacy-original-mime"],
     filing_time: "2026-08-06T00:00:00.000Z",
@@ -87,6 +94,10 @@ test("legacy filing replay backfills idempotency without overwriting its origina
     tenant_id: TENANT,
     idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
   }).response.outcome, "idempotent_replay");
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
+  }).request_fingerprint, outlookEmailFileRequestFingerprint(thread));
 });
 
 test("legacy filing backfill fails closed when immutable audit provenance is missing or mismatched", () => {
@@ -103,8 +114,12 @@ test("legacy filing backfill fails closed when immutable audit provenance is mis
       tenant_id: TENANT,
       matter_id: MATTER,
       email_thread_id: emailThreadId,
+      graph_message_id: "immutable:legacy-filing",
+      internet_message_id: "<legacy-filing@amic.law>",
+      conversation_id: "conversation:legacy-filing",
       subject: "Legacy filing",
       status: "active",
+      filing_mode: "manual",
       filing_user: "original-actor",
       filed_document_ids: ["doc:legacy-original-mime"],
       filing_time: "2026-08-06T00:00:00.000Z",

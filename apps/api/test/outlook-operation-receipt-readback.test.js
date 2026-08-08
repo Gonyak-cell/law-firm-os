@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
   CANONICAL_ID,
@@ -84,7 +85,22 @@ test("readback preserves sent filing mode and durable replay outcome", async () 
     tenant_id: fixture.context.principal.tenant_id,
     idempotency_key: `${FILE_KEY}:dms`,
     operation: "outlook_email_file",
-    response: { email_thread_id: THREAD_ID, matter_id: MATTER, outcome: "idempotent_replay" },
+    request_fingerprint: outlookEmailFileRequestFingerprint({
+      tenant_id: fixture.context.principal.tenant_id,
+      matter_id: MATTER,
+      email_thread_id: THREAD_ID,
+      graph_message_id: CANONICAL_ID,
+      internet_message_id: INTERNET_ID,
+      conversation_id: CONVERSATION_ID,
+      filing_mode: "sent",
+      filed_document_ids: [DOCUMENT_ID],
+    }),
+    response: {
+      email_thread_id: THREAD_ID,
+      matter_id: MATTER,
+      filed_document_ids: [DOCUMENT_ID],
+      outcome: "idempotent_replay",
+    },
   });
   const response = await readback(fixture, readbackBody({ mode: "read", provenance: "sent" }), "request:readback-sent");
   assert.equal(response.status, 200);

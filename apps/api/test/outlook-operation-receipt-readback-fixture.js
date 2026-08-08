@@ -6,6 +6,7 @@ import {
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/index.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
+import { outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 
 export const TENANT = "tenant_receipt_readback_test";
 export const MATTER = "matter_receipt_readback_test";
@@ -209,7 +210,22 @@ export function runtimeFixture() {
     tenant_id: TENANT,
     idempotency_key: `${FILE_KEY}:dms`,
     operation: "outlook_email_file",
-    response: { email_thread_id: THREAD_ID, matter_id: MATTER },
+    request_fingerprint: outlookEmailFileRequestFingerprint({
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      email_thread_id: THREAD_ID,
+      graph_message_id: CANONICAL_ID,
+      internet_message_id: INTERNET_ID,
+      conversation_id: CONVERSATION_ID,
+      filing_mode: "manual",
+      filed_document_ids: [DOCUMENT_ID],
+    }),
+    response: {
+      email_thread_id: THREAD_ID,
+      matter_id: MATTER,
+      filed_document_ids: [DOCUMENT_ID],
+      outcome: "created",
+    },
   });
   fixtureMatterTimelineAuthority(matterRepository);
   return { context, runtime, matterRepository, dmsRepository };

@@ -217,6 +217,7 @@ export function createDmsRepository({ filePath, seedRecords = [], preserveSeedRe
         tenant_id: entry.tenant_id,
         idempotency_key: entry.idempotency_key,
         operation: entry.operation ?? "dms_operation",
+        request_fingerprint: entry.request_fingerprint ?? null,
         response: clone(entry.response ?? {}),
         created_at: entry.created_at ?? new Date().toISOString(),
       });
