@@ -47,3 +47,5 @@ export * from "./retention-policy-service.js";
 export * from "./legal-hold-guard.js";
 export * from "./vault-projection.js";
 export * from "./search/index-repository.js";
+export * from "./precedent-source.js";
+export * from "./search/postgres-precedent-repository.js";
