@@ -119,3 +119,41 @@ test("fresh controller stays empty for a foreign digest or legacy receipt withou
     assert.equal(controller.archive.size, 0);
   }
 });
+
+test("fresh controller stays empty when DMS FileObject is deleted or filing audit is absent", async () => {
+  const currentItem = { rest_message_id: REST_ID, canonical_graph_message_id: CANONICAL_ID, internet_message_id: INTERNET_ID, conversation_id: CONVERSATION_ID, mode: "read", provenance: "received" };
+  for (const mode of ["deleted-file-object", "missing-filing-audit"]) {
+    const fixture = runtimeFixture();
+    const key = `${FILE_KEY}:dms`;
+    if (mode === "deleted-file-object") {
+      const version = fixture.dmsRepository.get({ tenant_id: TENANT, model_type: "DmsDocumentVersion", version_id: "version:readback-a" });
+      fixture.dmsRepository.delete({ tenant_id: TENANT, model_type: "DmsFileObject", file_object_id: version.file_object_id });
+    } else {
+      fixture.dmsRepository.appendAudit({
+        event_id: `outlook.email.file:${TENANT}:${THREAD_ID}`,
+        tenant_id: TENANT,
+        actor_id: "foreign-audit",
+        action: "dms.email.thread.file",
+        object_type: "DmsEmailThread",
+        object_id: THREAD_ID,
+        decision: "allow",
+        reason: "email_thread_filed_to_matter",
+        occurred_at: "2026-08-08T00:00:00.000Z",
+      });
+    }
+    const controller = createOutlookOperationReceiptController({
+      archive: createOutlookOperationReceiptArchive({ scopeRef: `deleted-authority-${mode}` }),
+      requestJson: async (_path, options) => (await handleOutlookAddinApiRequest({
+        pathname: "/api/outlook/operation-receipts/readback",
+        method: "POST",
+        body: options.body,
+        requestId: `request:deleted-authority-${mode}`,
+        context: fixture.context,
+        runtime: fixture.runtime,
+      })).body,
+    });
+    assert.deepEqual(await controller.restore({ matterId: MATTER, currentItem }), []);
+    assert.equal(controller.archive.size, 0);
+    assert.equal(fixture.dmsRepository.getIdempotency({ tenant_id: TENANT, idempotency_key: key }).request_fingerprint.length, 64);
+  }
+});

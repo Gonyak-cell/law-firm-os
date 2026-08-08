@@ -428,7 +428,19 @@ async function originalMimeDocumentState({ runtime, tenantId, documentId }) {
     model_type: "DmsDocumentVersion",
     version_id: document.current_version_id,
   });
-  return Object.freeze({ document, versions: Object.freeze(version ? [version] : []) });
+  const fileObject = version?.file_object_id
+    ? runtime.dmsRuntime.repository.get({
+      tenant_id: tenantId,
+      model_type: "DmsFileObject",
+      file_object_id: version.file_object_id,
+    })
+    : null;
+  return Object.freeze({
+    document,
+    versions: Object.freeze(version ? [version] : []),
+    file_object: fileObject,
+    file_objects: Object.freeze(fileObject ? [fileObject] : []),
+  });
 }
 
 const OUTLOOK_ORIGINAL_MIME_INTENT_WINDOW_MS = 60 * 60 * 1_000;
@@ -2778,11 +2790,13 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
             repository: runtime.dmsRuntime.repository,
             storage: runtime.dmsRuntime.storage,
             ...uploadInput,
-          });
+        });
         documentState = Object.freeze({
           document: uploaded.document,
           version: uploaded.version,
           versions: Object.freeze([uploaded.version]),
+          file_object: uploaded.file_object,
+          file_objects: Object.freeze([uploaded.file_object]),
         });
       }
     }
@@ -2808,7 +2822,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     actor_id: actorId,
     require_original_mime_document: true,
     idempotency_key: `${filingIdempotencyKey}:dms`,
-    authoritative_mime_sha256: canonical.mime_sha256,
+    durable_mime_document: documentState,
     audit: {
       append: (event, writer = runtime.dmsRuntime.repository) =>
         appendDmsAudit(writer, {

@@ -531,25 +531,46 @@ function phasedUploadRuntimeFixture({
       const version = Object.freeze({
         version_id: session.version_id,
         document_id: session.document_id,
+        tenant_id: session.tenant_id,
+        matter_id: session.matter_id,
         version_number: 1,
+        status: "current",
+        file_object_id: `file:${session.version_id}`,
         sha256: session.expected_sha256,
+        persisted: true,
       });
       const document = Object.freeze({
         tenant_id: session.tenant_id,
         document_id: session.document_id,
         matter_id: session.matter_id,
         workspace_id: session.workspace_id,
+        folder_id: `folder:${session.matter_id}:00_Email`,
         title: session.title,
+        mime_type: session.content_type,
         status: "active",
         current_version_id: session.version_id,
         permission_envelope_id: session.permission_envelope_id,
         audit_trace_id: session.audit_trace_id,
         latest_sha256: session.expected_sha256,
+        source_email_thread_id: session.document_id.slice(4, session.document_id.lastIndexOf(":original-mime:")),
+      });
+      const fileObject = Object.freeze({
+        file_object_id: version.file_object_id,
+        tenant_id: session.tenant_id,
+        matter_id: session.matter_id,
+        storage_pointer_ref: `object:${session.object_id}`,
+        sha256: session.expected_sha256,
+        byte_size: Number(session.expected_byte_size),
+        content_type: session.content_type,
+        mime_type: session.content_type,
+        status: "committed",
       });
       documentStates.set(session.document_id, Object.freeze({
         document,
         version,
         versions: Object.freeze([version]),
+        file_object: fileObject,
+        file_objects: Object.freeze([fileObject]),
       }));
       return Object.freeze({
         session: persistSession({ ...session, state: "finalized" }),

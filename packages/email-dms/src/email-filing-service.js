@@ -17,7 +17,7 @@ export function fileEmailThreadToMatter({
   audit,
   require_original_mime_document = false,
   idempotency_key,
-  authoritative_mime_sha256,
+  durable_mime_document,
 } = {}) {
   const existing = repository.get({
     tenant_id: thread.tenant_id,
@@ -44,7 +44,7 @@ export function fileEmailThreadToMatter({
   if (typeof idempotency_key !== "string" || idempotency_key.trim() === "") {
     throw new TypeError("original MIME email filing requires idempotency_key");
   }
-  assertCanonicalIdempotencyKey(idempotency_key, existing ?? thread, repository, authoritative_mime_sha256);
+  assertCanonicalIdempotencyKey(idempotency_key, existing ?? thread, repository, durable_mime_document);
   const replay = repository.getIdempotency({
     tenant_id: thread.tenant_id,
     idempotency_key,
@@ -65,9 +65,7 @@ export function fileEmailThreadToMatter({
     }
     const binding = validateOutlookEmailFileIdempotency({ entry: replay, thread: existing });
     if (!binding.valid) throw new Error("email filing idempotency receipt is not canonically bound");
-    if (binding.legacy && !canonicalFilingAudit(repository, existing)) {
-      throw new Error("email filing legacy receipt lacks canonical filing audit");
-    }
+    if (!canonicalFilingAudit(repository, existing)) throw new Error("email filing receipt lacks canonical filing audit");
     repository.recordIdempotency({
       tenant_id: thread.tenant_id,
       idempotency_key,

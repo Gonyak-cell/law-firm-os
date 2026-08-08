@@ -17,7 +17,6 @@ import {
   TENANT,
   runtimeFixture,
 } from "./outlook-operation-receipt-readback-fixture.js";
-
 function seedMimeAuthority(repository, thread) {
   const documentId = thread.filed_document_ids[0];
   const sha256 = documentId.slice(documentId.lastIndexOf(":") + 1);
@@ -59,6 +58,7 @@ function serviceFixture() {
     reason: "email_thread_filed_to_matter",
     occurred_at: thread.filing_time,
     metadata: {
+      operation: "outlook_email_file",
       tenant_id: TENANT,
       matter_id: MATTER,
       email_thread_id: THREAD_ID,

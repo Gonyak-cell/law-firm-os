@@ -202,6 +202,7 @@ export function runtimeFixture() {
     reason: "email_thread_filed_to_matter",
     occurred_at: "2026-08-08T00:00:00.000Z",
     metadata: {
+      operation: "outlook_email_file",
       tenant_id: TENANT,
       matter_id: MATTER,
       email_thread_id: THREAD_ID,
