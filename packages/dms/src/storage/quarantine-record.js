@@ -22,14 +22,15 @@ export function quarantineRecordRef({ adapter_id, tenant_id, object_id } = {}) {
   return `quarantine://${required(adapter_id, "adapter_id")}/${createOpaqueStorageKey({ tenant_id, object_id })}`;
 }
 
-export function createQuarantineRecord({ adapter_id, tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id } = {}) {
+export function createQuarantineRecord({ adapter_id, tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id, state = "quarantined" } = {}) {
   const digest = required(expected_sha256, "expected_sha256").toLowerCase();
   if (!/^[a-f0-9]{64}$/u.test(digest)) throw new TypeError("expected_sha256 is invalid");
   const tenantId = required(tenant_id, "tenant_id");
   const objectId = required(object_id, "object_id");
+  if (!new Set(["armed", "quarantined"]).has(state)) throw new TypeError("quarantine state is invalid");
   return Object.freeze({
     schema_version: DMS_OBJECT_QUARANTINE_SCHEMA,
-    state: "quarantined",
+    state,
     record_ref: quarantineRecordRef({ adapter_id, tenant_id: tenantId, object_id: objectId }),
     adapter_id: required(adapter_id, "adapter_id"),
     tenant_id: tenantId,
@@ -43,7 +44,7 @@ export function createQuarantineRecord({ adapter_id, tenant_id, object_id, expec
 }
 
 export function assertQuarantineRecord(record, { adapter_id, tenant_id, object_id, expected_sha256 } = {}) {
-  if (!record || record.schema_version !== DMS_OBJECT_QUARANTINE_SCHEMA || record.state !== "quarantined") {
+  if (!record || record.schema_version !== DMS_OBJECT_QUARANTINE_SCHEMA || !new Set(["armed", "quarantined"]).has(record.state)) {
     throw Object.assign(new Error("committed object quarantine record is invalid"), { code: "DMS_COMMITTED_QUARANTINE_INVALID" });
   }
   const expectedRef = quarantineRecordRef({ adapter_id, tenant_id, object_id });

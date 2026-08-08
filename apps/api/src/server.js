@@ -494,6 +494,7 @@ export function createDefaultDmsRuntime({
   storePath = process.env.LAWOS_DMS_STORE_PATH,
   storage,
   storageRootPath = process.env.LAWOS_DMS_OBJECT_STORE_PATH,
+  quarantineRootPath = process.env.LAWOS_DMS_QUARANTINE_STORE_PATH,
 } = {}) {
   const resolvedStorePath = storePath || createEphemeralDmsStorePath();
   const dmsRepository =
@@ -507,6 +508,7 @@ export function createDefaultDmsRuntime({
     createFileStorageAdapter({
       adapter_id: "vault-api-file",
       rootPath: storageRootPath || `${resolvedStorePath}.objects`,
+      quarantineRootPath: quarantineRootPath || `${resolvedStorePath}.quarantine-authority`,
     });
   return createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
 }

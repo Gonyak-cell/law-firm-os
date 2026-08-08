@@ -1,6 +1,7 @@
-import { existsSync, lstatSync, readFileSync, unlinkSync } from "node:fs";
+import { accessSync, constants, existsSync, lstatSync, readFileSync, unlinkSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { fsyncDirectory, writeBinaryFileDurably } from "../../../persistence/src/durable-file.js";
+import { ensurePrivateDirectory, fsyncDirectory, writeBinaryFileDurably } from "../../../persistence/src/durable-file.js";
 import {
   DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
   assertTenantId,
@@ -42,6 +43,12 @@ function quarantineFileFor(rootPath, tenant_id, object_id) {
   return path.join(rootPath, ".quarantine", `${key}.json`);
 }
 
+function defaultQuarantineRootPath(objectRootPath) {
+  const parent = path.dirname(objectRootPath);
+  const name = path.basename(objectRootPath) || "objects";
+  return path.join(parent, `.${name}-quarantine-authority`);
+}
+
 function removeFiles(paths) {
   let deleted = false;
   for (const filePath of [paths.bytesPath, paths.metadataPath]) {
@@ -70,9 +77,16 @@ function codedError(message, code) {
   return error;
 }
 
-export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, faultInjector } = {}) {
+export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, quarantineRootPath, faultInjector } = {}) {
   const resolvedRootPath = path.resolve(requireString(rootPath, "rootPath"));
+  const resolvedQuarantineRootPath = path.resolve(quarantineRootPath || defaultQuarantineRootPath(resolvedRootPath));
   assertNotSymlink(resolvedRootPath, "storage root");
+  const relativeAuthorityPath = path.relative(resolvedRootPath, resolvedQuarantineRootPath);
+  if (relativeAuthorityPath === "" || (!relativeAuthorityPath.startsWith(`..${path.sep}`) && relativeAuthorityPath !== "..")) {
+    throw codedError("quarantine authority must be outside the object store", "DMS_QUARANTINE_AUTHORITY_NOT_INDEPENDENT");
+  }
+  if (existsSync(resolvedQuarantineRootPath)) assertNotSymlink(resolvedQuarantineRootPath, "quarantine authority root");
+  else ensurePrivateDirectory(resolvedQuarantineRootPath);
   const capabilities = Object.freeze({
     staged_uploads: true,
     digest_verification: true,
@@ -106,8 +120,9 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     return readObjectFromPaths(tenantId, safeObjectId, filesFor(resolvedRootPath, tenantId, safeObjectId));
   }
   function readQuarantineRecord(tenantId, safeObjectId) {
-    const recordPath = quarantineFileFor(resolvedRootPath, tenantId, safeObjectId);
-    assertNotSymlink(path.join(resolvedRootPath, ".quarantine"), "storage quarantine root");
+    const recordPath = quarantineFileFor(resolvedQuarantineRootPath, tenantId, safeObjectId);
+    assertNotSymlink(resolvedQuarantineRootPath, "quarantine authority root");
+    assertNotSymlink(path.join(resolvedQuarantineRootPath, ".quarantine"), "storage quarantine root");
     assertNotSymlink(recordPath, "storage quarantine record");
     if (!existsSync(recordPath)) return null;
     let record;
@@ -123,11 +138,21 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
   }
   function writeQuarantineRecord(input) {
     const record = createQuarantineRecord({ adapter_id, ...input });
-    const recordPath = quarantineFileFor(resolvedRootPath, record.tenant_id, record.object_id);
-    assertNotSymlink(path.join(resolvedRootPath, ".quarantine"), "storage quarantine root");
+    const recordPath = quarantineFileFor(resolvedQuarantineRootPath, record.tenant_id, record.object_id);
+    assertNotSymlink(resolvedQuarantineRootPath, "quarantine authority root");
+    assertNotSymlink(path.join(resolvedQuarantineRootPath, ".quarantine"), "storage quarantine root");
     assertNotSymlink(recordPath, "storage quarantine record");
     writeBinaryFileDurably({ filePath: recordPath, bytes: `${JSON.stringify(record)}\n` });
     return record;
+  }
+  function validateQuarantineAuthority() {
+    assertNotSymlink(resolvedQuarantineRootPath, "quarantine authority root");
+    accessSync(resolvedQuarantineRootPath, constants.W_OK);
+    const probePath = path.join(resolvedQuarantineRootPath, `.probe-${process.pid}-${randomUUID()}.json`);
+    writeBinaryFileDurably({ filePath: probePath, bytes: "quarantine-authority-probe\n" });
+    unlinkSync(probePath);
+    fsyncDirectory(resolvedQuarantineRootPath);
+    return Object.freeze({ available: true, independent: true, durable: true });
   }
   function recordCommittedObjectQuarantine({ tenant_id, object_id, expected_sha256, reason, audit_trace_id, permission_envelope_id } = {}) {
     const tenantId = assertTenantId(tenant_id);
@@ -135,7 +160,9 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     const existing = readQuarantineRecord(tenantId, safeObjectId);
     if (existing) {
       assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
-      return Object.freeze({ ...existing, recorded: false, already_recorded: true, durable_quarantine: true });
+      if (existing.state === "quarantined") return Object.freeze({ ...existing, recorded: false, already_recorded: true, durable_quarantine: true });
+      const record = writeQuarantineRecord({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id: audit_trace_id ?? existing.audit_trace_id, permission_envelope_id: permission_envelope_id ?? existing.permission_envelope_id, state: "quarantined" });
+      return Object.freeze({ ...record, recorded: true, already_recorded: false, durable_quarantine: true });
     }
     const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
     assertSafePaths(paths);
@@ -148,11 +175,41 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     const record = writeQuarantineRecord({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
     return Object.freeze({ ...record, recorded: true, already_recorded: false, durable_quarantine: true });
   }
-  function stageObject({ tenant_id, session_id, object_id, bytes, content_type, expected_sha256 } = {}) {
+  function armCommittedObjectQuarantine({ tenant_id, object_id, expected_sha256, audit_trace_id, permission_envelope_id } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = requireString(object_id, "object_id");
+    const existing = readQuarantineRecord(tenantId, safeObjectId);
+    if (existing) {
+      assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
+      if (existing.state === "quarantined") throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+      return Object.freeze({ ...existing, armed: true, already_armed: true, durable_quarantine: true });
+    }
+    const record = writeQuarantineRecord({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason: "DMS_UPLOAD_DENY_INTENT", audit_trace_id, permission_envelope_id, state: "armed" });
+    return Object.freeze({ ...record, armed: true, already_armed: false, durable_quarantine: true });
+  }
+  function clearCommittedObjectQuarantine({ tenant_id, object_id, expected_sha256 } = {}) {
+    const tenantId = assertTenantId(tenant_id);
+    const safeObjectId = requireString(object_id, "object_id");
+    const record = readQuarantineRecord(tenantId, safeObjectId);
+    if (!record) throw codedError("committed object deny intent is missing", "DMS_COMMITTED_QUARANTINE_CLEAR_UNCONFIRMED");
+    assertQuarantineRecord(record, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 });
+    if (record.state !== "armed") throw codedError("committed object quarantine cannot be cleared", "DMS_COMMITTED_QUARANTINE_CLEAR_BLOCKED");
+    const current = readObjectFromPaths(tenantId, safeObjectId, filesFor(resolvedRootPath, tenantId, safeObjectId));
+    if (current.sha256 !== record.expected_sha256) throw codedError("committed object digest changed before deny clear", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
+    const recordPath = quarantineFileFor(resolvedQuarantineRootPath, tenantId, safeObjectId);
+    unlinkSync(recordPath);
+    fsyncDirectory(resolvedQuarantineRootPath);
+    return Object.freeze({ cleared: true, record_ref: record.record_ref, durable_quarantine: false });
+  }
+  function stageObject(input = {}) {
+    return stageObjectInternal(input, false);
+  }
+  function stageObjectInternal({ tenant_id, session_id, object_id, bytes, content_type, expected_sha256 } = {}, allowArmed) {
     const tenantId = assertTenantId(tenant_id);
     const safeSessionId = requireString(session_id, "session_id");
     const safeObjectId = requireString(object_id, "object_id");
-    if (readQuarantineRecord(tenantId, safeObjectId)) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+    const quarantine = readQuarantineRecord(tenantId, safeObjectId);
+    if (quarantine && (!allowArmed || quarantine.state !== "armed")) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(String(bytes ?? ""));
     const receipt = createStagingReceipt({
       adapter_id,
@@ -190,6 +247,7 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     const tenantId = assertTenantId(tenant_id);
     const safeSessionId = requireString(session_id, "session_id");
     const safeObjectId = requireString(object_id, "object_id");
+    if (readQuarantineRecord(tenantId, safeObjectId)) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const paths = stagedFilesFor(resolvedRootPath, tenantId, safeSessionId, safeObjectId);
     if (!existsSync(paths.bytesPath)) return null;
     const object = readObjectFromPaths(tenantId, safeObjectId, paths);
@@ -202,22 +260,29 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       content_type: object.mime_type,
     });
   }
-  function finalizeObject({ tenant_id, session_id, object_id } = {}) {
+  function finalizeObject(input = {}) {
+    return finalizeObjectInternal(input, false);
+  }
+  function finalizeObjectInternal({ tenant_id, session_id, object_id } = {}, allowArmed) {
     const tenantId = assertTenantId(tenant_id);
     const safeSessionId = requireString(session_id, "session_id");
     const safeObjectId = requireString(object_id, "object_id");
-    if (readQuarantineRecord(tenantId, safeObjectId)) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+    const quarantine = readQuarantineRecord(tenantId, safeObjectId);
+    if (quarantine && (!allowArmed || quarantine.state !== "armed")) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
     const stagedPaths = stagedFilesFor(resolvedRootPath, tenantId, safeSessionId, safeObjectId);
     const finalPaths = filesFor(resolvedRootPath, tenantId, safeObjectId);
     assertSafePaths(stagedPaths);
     assertSafePaths(finalPaths);
     if (!existsSync(stagedPaths.bytesPath)) {
-      if (existsSync(finalPaths.bytesPath)) return statObject({ tenant_id: tenantId, object_id: safeObjectId });
+      if (existsSync(finalPaths.bytesPath)) {
+        const existing = readObjectFromPaths(tenantId, safeObjectId, finalPaths);
+        return createStorageReceipt({ adapter_id, tenant_id: tenantId, object_id: safeObjectId, bytes: existing.bytes, content_type: existing.mime_type });
+      }
       throw new Error(`staged object not found: ${safeObjectId}`);
     }
     const staged = readObjectFromPaths(tenantId, safeObjectId, stagedPaths);
     if (existsSync(finalPaths.bytesPath)) {
-      const current = readObject(tenantId, safeObjectId);
+      const current = readObjectFromPaths(tenantId, safeObjectId, finalPaths);
       if (current.sha256 !== staged.sha256) {
         throw codedError("committed object has a different digest", "DMS_FINALIZE_CONFLICT");
       }
@@ -242,7 +307,8 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     }
     faultInjector?.("after_finalize_write_before_staged_cleanup", { object_id: safeObjectId });
     removeFiles(stagedPaths);
-    return statObject({ tenant_id: tenantId, object_id: safeObjectId });
+    const committed = readObjectFromPaths(tenantId, safeObjectId, finalPaths);
+    return createStorageReceipt({ adapter_id, tenant_id: tenantId, object_id: safeObjectId, bytes: committed.bytes, content_type: committed.mime_type });
   }
   function statObject({ tenant_id, object_id } = {}) {
     const tenantId = assertTenantId(tenant_id);
@@ -266,6 +332,7 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
     adapter_id,
     contract_version: DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
     capabilities,
+    validateQuarantineAuthority,
     stageObject,
     statStagedObject,
     finalizeObject,
@@ -275,6 +342,8 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       return Object.freeze({ deleted: removeFiles(paths), committed_object_deleted: false });
     },
     recordCommittedObjectQuarantine,
+    armCommittedObjectQuarantine,
+    clearCommittedObjectQuarantine,
     getCommittedObjectQuarantine({ tenant_id, object_id } = {}) {
       const tenantId = assertTenantId(tenant_id);
       const safeObjectId = requireString(object_id, "object_id");
@@ -285,14 +354,11 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       const safeObjectId = requireString(object_id, "object_id");
       const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
       assertSafePaths(paths);
-      const existing = readQuarantineRecord(tenantId, safeObjectId);
       const current = existsSync(paths.bytesPath) ? readObjectFromPaths(tenantId, safeObjectId, paths) : null;
       if (current && requireString(expected_sha256, "expected_sha256") !== current.sha256) {
         throw codedError("committed object digest changed before quarantine", "DMS_COMMITTED_DELETE_CONDITION_FAILED");
       }
-      const record = existing
-        ? assertQuarantineRecord(existing, { adapter_id, tenant_id: tenantId, object_id: safeObjectId, expected_sha256 })
-        : recordCommittedObjectQuarantine({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
+      const record = recordCommittedObjectQuarantine({ tenant_id: tenantId, object_id: safeObjectId, expected_sha256, reason, audit_trace_id, permission_envelope_id });
       const removed = current ? removeFiles(paths) : false;
       return Object.freeze({ ...record, quarantined: removed, already_absent: !removed, provider_delete_replayed: !removed, sha256: record.expected_sha256 });
     },
@@ -301,6 +367,7 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       const safeObjectId = requireString(object_id, "object_id");
       const paths = filesFor(resolvedRootPath, tenantId, safeObjectId);
       assertSafePaths(paths);
+      if (readQuarantineRecord(tenantId, safeObjectId)) throw codedError("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
       if (!existsSync(paths.bytesPath)) return Object.freeze({ deleted: false, already_absent: true, provider_delete_replayed: true });
       const current = statObject({ tenant_id: tenantId, object_id: safeObjectId });
       if (requireString(expected_sha256, "expected_sha256") !== current.sha256) {
@@ -320,8 +387,8 @@ export function createFileStorageAdapter({ adapter_id = "file-vault", rootPath, 
       const tenantId = assertTenantId(tenant_id);
       const safeObjectId = requireString(object_id, "object_id");
       const sessionId = `legacy:${safeObjectId}`;
-      stageObject({ tenant_id: tenantId, session_id: sessionId, object_id: safeObjectId, bytes, content_type });
-      return finalizeObject({ tenant_id: tenantId, session_id: sessionId, object_id: safeObjectId });
+      stageObjectInternal({ tenant_id: tenantId, session_id: sessionId, object_id: safeObjectId, bytes, content_type }, true);
+      return finalizeObjectInternal({ tenant_id: tenantId, session_id: sessionId, object_id: safeObjectId }, true);
     },
     getObject({ tenant_id, object_id } = {}) {
       const tenantId = assertTenantId(tenant_id);

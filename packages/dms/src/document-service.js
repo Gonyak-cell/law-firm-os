@@ -1,6 +1,6 @@
 import { createDmsDocument, createDmsDocumentVersion } from "./model.js";
 import { appendDmsAuditEvent } from "./audit.js";
-import { assertStorageAdapter } from "./storage/storage-adapter.js";
+import { assertStorageAdapter, sha256Hex } from "./storage/storage-adapter.js";
 import { createFileObjectRecord } from "./file-object-service.js";
 import { createVaultObjectId } from "./vault-object.js";
 
@@ -47,10 +47,46 @@ export function uploadDocument({
   if (typeof beforePersist === "function" && typeof storage.recordCommittedObjectQuarantine !== "function") {
     throw new TypeError("storage adapter missing durable quarantine record for guarded upload");
   }
+  if (typeof beforePersist === "function" && typeof storage.armCommittedObjectQuarantine !== "function") {
+    throw new TypeError("storage adapter missing pre-commit deny intent for guarded upload");
+  }
+  if (typeof beforePersist === "function" && typeof storage.clearCommittedObjectQuarantine !== "function") {
+    throw new TypeError("storage adapter missing post-commit deny clear for guarded upload");
+  }
+  if (typeof beforePersist === "function" && typeof storage.getCommittedObjectQuarantine !== "function") {
+    throw new TypeError("storage adapter missing quarantine readback for guarded upload");
+  }
+  if (typeof beforePersist === "function" && typeof storage.validateQuarantineAuthority !== "function") {
+    throw new TypeError("storage adapter missing independent quarantine authority for guarded upload");
+  }
+  if (typeof beforePersist === "function") {
+    try {
+      const authorityReady = storage.validateQuarantineAuthority();
+      if (authorityReady && typeof authorityReady.then === "function") throw new TypeError("storage quarantine authority validation must be synchronous");
+      if (authorityReady?.available !== true || authorityReady?.independent !== true || authorityReady?.durable !== true) throw new Error("independent quarantine authority is unavailable");
+    } catch (error) {
+      throw annotateError(error, { safe_error_code: "DMS_QUARANTINE_AUTHORITY_UNAVAILABLE" });
+    }
+  }
   const replay = repository.getIdempotency({ tenant_id: document?.tenant_id, idempotency_key });
-  if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
+  if (replay) {
+    if (typeof beforePersist === "function") {
+      const receipt = replay.response?.storage_receipt;
+      const deny = receipt && storage.getCommittedObjectQuarantine?.({ tenant_id: document.tenant_id, object_id: receipt.object_id });
+      if (deny) {
+        try {
+          const cleared = storage.clearCommittedObjectQuarantine({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256 });
+          if (cleared && typeof cleared.then === "function") throw new TypeError("storage quarantine clear must be synchronous");
+          if (cleared?.cleared !== true || typeof cleared.record_ref !== "string") throw new Error("committed object deny intent was not cleared");
+        } catch (error) {
+          throw annotateError(error, { safe_error_code: "DMS_COMMITTED_QUARANTINE_CLEAR_FAILED", cleanup_record_ref: deny.record_ref, metadata_state: "committed" });
+        }
+      }
+    }
+    return Object.freeze({ ...replay.response, idempotent_replay: true });
+  }
 
-  return repository.transaction((tx) => {
+  const response = repository.transaction((tx) => {
     let receipt;
     try {
       if (typeof beforePersist === "function") {
@@ -64,6 +100,17 @@ export function uploadDocument({
         document_id: document.document_id,
         version_id,
       });
+      if (typeof beforePersist === "function") {
+        const armed = storage.armCommittedObjectQuarantine({
+          tenant_id: document.tenant_id,
+          object_id,
+          expected_sha256: sha256Hex(Buffer.isBuffer(bytes) ? bytes : Buffer.from(String(bytes ?? ""))),
+          permission_envelope_id: document.permission_envelope_id,
+          audit_trace_id: document.audit_trace_id,
+        });
+        if (armed && typeof armed.then === "function") throw new TypeError("storage quarantine arm must be synchronous");
+        if (armed?.state !== "armed" || armed?.durable_quarantine !== true || typeof armed.record_ref !== "string") throw Object.assign(new Error("committed object deny intent was not confirmed"), { safe_error_code: "DMS_COMMITTED_QUARANTINE_ARM_UNCONFIRMED" });
+      }
       receipt = storage.putObject({
         tenant_id: document.tenant_id,
         object_id,
@@ -201,4 +248,16 @@ export function uploadDocument({
       throw annotateError(error, { cleanup_state: cleanupState, cleanup_error_code: cleanupErrorCode, cleanup_record_ref: cleanupRecordRef });
     }
   });
+  if (typeof beforePersist === "function") {
+    const receipt = response.storage_receipt;
+    const intent = storage.getCommittedObjectQuarantine?.({ tenant_id: document.tenant_id, object_id: receipt.object_id });
+    try {
+      const cleared = storage.clearCommittedObjectQuarantine({ tenant_id: document.tenant_id, object_id: receipt.object_id, expected_sha256: receipt.sha256 });
+      if (cleared && typeof cleared.then === "function") throw new TypeError("storage quarantine clear must be synchronous");
+      if (cleared?.cleared !== true || typeof cleared.record_ref !== "string") throw new Error("committed object deny intent was not cleared");
+    } catch (error) {
+      throw annotateError(error, { safe_error_code: "DMS_COMMITTED_QUARANTINE_CLEAR_FAILED", cleanup_record_ref: intent?.record_ref ?? null, metadata_state: "committed" });
+    }
+  }
+  return response;
 }
