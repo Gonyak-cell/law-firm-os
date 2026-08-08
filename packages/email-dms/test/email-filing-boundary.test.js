@@ -12,10 +12,10 @@ function thread(documentId) {
   };
 }
 
-function rejectsWithoutMutation(documentId) {
+async function rejectsWithoutMutation(documentId) {
   const repository = createDmsRepository();
   let auditWrites = 0;
-  assert.throws(() => fileEmailThreadToMatter({
+  await assert.rejects(fileEmailThreadToMatter({
     repository,
     thread: thread(documentId),
     actor_id: "actor-email-filing-boundary",
@@ -34,26 +34,26 @@ function rejectsWithoutMutation(documentId) {
   assert.equal(auditWrites, 0);
 }
 
-test("NUL-bearing original MIME document ID fails before filing mutation", () => {
-  rejectsWithoutMutation("document\u0000forged");
+test("NUL-bearing original MIME document ID fails before filing mutation", async () => {
+  await rejectsWithoutMutation("document\u0000forged");
 });
 
-test("newline-bearing original MIME document ID fails before filing mutation", () => {
-  rejectsWithoutMutation("document\nforged");
+test("newline-bearing original MIME document ID fails before filing mutation", async () => {
+  await rejectsWithoutMutation("document\nforged");
 });
 
-test("DEL-bearing original MIME document ID fails before filing mutation", () => {
-  rejectsWithoutMutation("document\u007fforged");
+test("DEL-bearing original MIME document ID fails before filing mutation", async () => {
+  await rejectsWithoutMutation("document\u007fforged");
 });
 
-test("C1 control-bearing original MIME document ID fails before filing mutation", () => {
-  rejectsWithoutMutation("document\u0085forged");
+test("C1 control-bearing original MIME document ID fails before filing mutation", async () => {
+  await rejectsWithoutMutation("document\u0085forged");
 });
 
-test("padded original MIME document ID fails before filing mutation", () => {
-  rejectsWithoutMutation(" document-padded ");
+test("padded original MIME document ID fails before filing mutation", async () => {
+  await rejectsWithoutMutation(" document-padded ");
 });
 
-test("over-budget original MIME document ID fails before filing mutation", () => {
-  rejectsWithoutMutation("d".repeat(513));
+test("over-budget original MIME document ID fails before filing mutation", async () => {
+  await rejectsWithoutMutation("d".repeat(513));
 });

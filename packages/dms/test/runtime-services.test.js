@@ -215,7 +215,7 @@ test("G5 document guards enforce lineage, locks, privilege, legal hold, retentio
   assert.equal(validateSecureLinkAccess({ link, mfa_satisfied: true, now: "2026-06-20T00:00:00.000Z" }).watermark_required, true);
 });
 
-test("G5 search, RAG, email, and HR document vault flows are permission and source safe", () => {
+test("G5 search, RAG, email, and HR document vault flows are permission and source safe", async () => {
   const repository = createDmsRepository();
   const storage = createLocalStorageAdapter();
   const uploaded = uploadDocument({
@@ -244,14 +244,14 @@ test("G5 search, RAG, email, and HR document vault flows are permission and sour
   assert.equal(ledger.citation_source_validation, true);
 
   const emailAudit = [];
-  const filed = fileEmailThreadToMatter({
+  const filed = await fileEmailThreadToMatter({
     repository,
     thread: { tenant_id: TENANT, matter_id: MATTER, email_thread_id: "thread-1", subject: "Matter filing" },
     actor_id: "user-dms",
     audit: { append: (event) => emailAudit.push(event) },
   });
   assert.equal(filed.outcome, "created");
-  assert.equal(fileEmailThreadToMatter({ repository, thread: filed.thread }).outcome, "idempotent_replay");
+  assert.equal((await fileEmailThreadToMatter({ repository, thread: filed.thread })).outcome, "idempotent_replay");
   assert.equal(emailAudit[0].action, "dms.email.thread.file");
 
   assert.equal(createVaultObjectId({ tenant_id: TENANT, matter_id: MATTER, document_id: "doc", version_id: "v1" }).startsWith("vault:"), true);

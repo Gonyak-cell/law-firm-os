@@ -35,7 +35,7 @@ const DMS_RECORD_FIELDS = Object.freeze({
   DmsFolder: fields("folder_id", "workspace_id", "parent_folder_id", "name", "status"),
   DmsDocument: fields("document_id", "workspace_id", "folder_id", "title", "status", "current_version_id", "retention_label_id", "legal_hold_id", "source_policy", "version_safe_dms", "matter_first_trace_required", "client_visible_candidate", "owner_user_id", "registered_account_email", "registered_account", "account_linkage", "privilege_label_id", "privileged", "confidentiality", "latest_sha256", "mime_type", "filename", "source_email_thread_id", "source_attachment_id"),
   DmsDocumentVersion: fields("version_id", "document_id", "version_number", "status", "file_object_id", "created_by", "hash_algorithm", "sha256", "persisted", "registered_account"),
-  DmsFileObject: fields("file_object_id", "storage_pointer_ref", "sha256", "byte_size", "mime_type", "object_storage_runtime_executed", "document_bytes_loaded", "vault_object_id", "owner_user_id", "filename", "raw_path_exposed", "bytes_included"),
+  DmsFileObject: fields("file_object_id", "object_id", "storage_pointer_ref", "sha256", "byte_size", "mime_type", "object_storage_runtime_executed", "document_bytes_loaded", "vault_object_id", "owner_user_id", "filename", "raw_path_exposed", "bytes_included"),
   DmsRendition: fields("rendition_id", "version_id", "rendition_type", "status", "file_object_id"),
   DmsExtractedText: fields("extracted_text_id", "version_id", "source_policy", "status", "text_pointer_ref", "raw_text_exposed"),
   DmsOcrResult: fields("ocr_result_id", "version_id", "source_policy", "status", "ocr_runtime_executed"),

@@ -1,13 +1,32 @@
 import { createEmailThread } from "./email-model.js";
 import { parseExactDmsDocumentIdSingleton } from "./exact-document-id.js";
+import {
+  OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
+  assertCanonicalIdempotencyKey,
+  canonicalFilingAudit,
+  createDmsRepositoryMimeAuthority,
+  filingAuditMetadata,
+  outlookEmailFileRequestFingerprint,
+  validateOutlookEmailFileIdempotency,
+} from "./email-filing-canonical.js";
 
-export function fileEmailThreadToMatter({
+export {
+  OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
+  canonicalFilingAudit,
+  createDmsRepositoryMimeAuthority,
+  outlookEmailFileRequestFingerprint,
+  validateOutlookEmailFileIdempotency,
+} from "./email-filing-canonical.js";
+
+export async function fileEmailThreadToMatter({
   repository,
   thread,
   actor_id,
   audit,
   require_original_mime_document = false,
   idempotency_key,
+  durable_mime_authority,
+  durable_mime_document,
 } = {}) {
   const existing = repository.get({
     tenant_id: thread.tenant_id,
@@ -35,6 +54,10 @@ export function fileEmailThreadToMatter({
   if (typeof idempotency_key !== "string" || idempotency_key.trim() === "") {
     throw new TypeError("original MIME email filing requires idempotency_key");
   }
+  if (durable_mime_document !== undefined) {
+    throw new TypeError("raw durable MIME document snapshots are not accepted");
+  }
+  await assertCanonicalIdempotencyKey(idempotency_key, existing ?? thread, durable_mime_authority);
   const replay = repository.getIdempotency({
     tenant_id: thread.tenant_id,
     idempotency_key,
@@ -43,11 +66,32 @@ export function fileEmailThreadToMatter({
     if (
       !existing
       || existing.status !== "active"
-      || replay.response?.email_thread_id !== existing.email_thread_id
-      || replay.response?.matter_id !== existing.matter_id
+      || (() => {
+        try {
+          return outlookEmailFileRequestFingerprint(thread) !== outlookEmailFileRequestFingerprint(existing);
+        } catch {
+          return true;
+        }
+      })()
     ) {
       throw new Error("email filing idempotency entry conflicts with the persisted thread");
     }
+    const binding = validateOutlookEmailFileIdempotency({ entry: replay, thread: existing });
+    if (!binding.valid) throw new Error("email filing idempotency receipt is not canonically bound");
+    if (!canonicalFilingAudit(repository, existing)) throw new Error("email filing receipt lacks canonical filing audit");
+    repository.recordIdempotency({
+      tenant_id: thread.tenant_id,
+      idempotency_key,
+      operation: OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
+      request_fingerprint: binding.request_fingerprint,
+      response: {
+        outcome: "idempotent_replay",
+        email_thread_id: existing.email_thread_id,
+        matter_id: existing.matter_id,
+        filed_document_ids: existing.filed_document_ids,
+      },
+      created_at: replay.created_at,
+    });
     return Object.freeze({ outcome: "idempotent_replay", thread: existing });
   }
   const pending = existing ?? repository.create({
@@ -67,16 +111,19 @@ export function fileEmailThreadToMatter({
       object_id: pending.email_thread_id,
       decision: "allow",
       reason: "email_thread_filed_to_matter",
+      metadata: filingAuditMetadata(pending),
     }, writer);
   };
   if (typeof repository.transaction !== "function") {
     throw new Error("original MIME email filing requires an atomic repository transaction");
   }
-  const persistIdempotency = (tx, persisted) => tx.recordIdempotency({
+  const persistIdempotency = (tx, persisted, outcome) => tx.recordIdempotency({
     tenant_id: persisted.tenant_id,
     idempotency_key,
-    operation: "outlook_email_file",
+    operation: OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
+    request_fingerprint: outlookEmailFileRequestFingerprint(persisted),
     response: {
+      outcome,
       email_thread_id: persisted.email_thread_id,
       matter_id: persisted.matter_id,
       filed_document_ids: persisted.filed_document_ids,
@@ -85,27 +132,8 @@ export function fileEmailThreadToMatter({
   });
   if (pending.status === "active") {
     repository.transaction((tx) => {
-      const existingAudits = tx.listAudit({
-        tenant_id: pending.tenant_id,
-        object_id: pending.email_thread_id,
-      }).filter((event) => event.action === "dms.email.thread.file");
-      if (existingAudits.length > 1) {
-        throw new Error("active email filing has conflicting audit records");
-      }
-      const existingAudit = existingAudits[0];
-      if (!existingAudit) {
-        throw new Error("active email filing is missing its immutable audit record");
-      }
-      if (
-        existingAudit.actor_id !== pending.filing_user
-        || existingAudit.occurred_at !== pending.filing_time
-        || existingAudit.object_type !== "DmsEmailThread"
-        || existingAudit.decision !== "allow"
-        || existingAudit.reason !== "email_thread_filed_to_matter"
-      ) {
-        throw new Error("active email filing audit conflicts with the persisted thread");
-      }
-      persistIdempotency(tx, pending);
+      if (!canonicalFilingAudit(tx, pending)) throw new Error("active email filing audit conflicts with the persisted thread");
+      persistIdempotency(tx, pending, "idempotent_replay");
     });
     return Object.freeze({ outcome: "idempotent_replay", thread: pending });
   }
@@ -117,7 +145,7 @@ export function fileEmailThreadToMatter({
       email_thread_id: pending.email_thread_id,
     }, { status: "active" });
     appendAudit(tx);
-    persistIdempotency(tx, persisted);
+    persistIdempotency(tx, persisted, "created");
     return persisted;
   };
   const persisted = repository.transaction(finalize);

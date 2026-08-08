@@ -167,7 +167,7 @@ export async function readOutlookAttachmentReceiptState({
       || version?.version_id !== mapping.version_id
       || version.document_id !== mapping.document_id
       || version.tenant_id !== tenantId
-      || version.matter_id !== matterId
+      || (version.matter_id !== undefined && version.matter_id !== matterId)
       || version.sha256 !== mapping.sha256
     ) {
       throw outlookAttachmentReceiptError("Outlook attachment mapping readback is incomplete or mismatched");

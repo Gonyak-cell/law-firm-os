@@ -7,6 +7,10 @@ import {
   fileOutlookEmail,
 } from "../src/outlook-filing.js";
 import {
+  createOutlookOperationSnapshot,
+  reconcileOutlookOperationResult,
+} from "../src/outlook-item-events.js";
+import {
   handleOutlookMessageSend,
   OUTLOOK_SMART_ALERTS_PATH,
 } from "../src/outlook-send-events.js";
@@ -425,4 +429,35 @@ test("이전 첨부 영수증은 서버 재검증을 위해 받은 메일 요청
   assert.deepEqual(request.attachment_receipts, [
     { receipt_ref: "receipt-001", receipt_token: "token-001" },
   ]);
+});
+
+test("완료된 filing receipt는 요청 당시 item/Matter snapshot에 고정된다", () => {
+  const snapshot = createOutlookOperationSnapshot({
+    item: email,
+    mode: "read",
+    provenance: "received",
+    matterId: "matter-001",
+    operationStartKey: "file-start-001",
+  });
+  const filing = createOutlookFilingRequest({
+    matterId: snapshot.matter_id,
+    email,
+  });
+  const receipt = Object.freeze({ request_id: "request-file-001", outcome: "created" });
+  const settled = reconcileOutlookOperationResult({
+    snapshot,
+    currentItem: { ...email, rest_message_id: "graph-message-002" },
+    currentMode: "read",
+    currentProvenance: "received",
+    currentMatterId: "matter-001",
+    currentOperationStartKey: "file-start-001",
+    actualCanonicalGraphMessageId: "immutable-message-001",
+    receipt,
+  });
+
+  assert.equal(filing.body.matter_id, snapshot.matter_id);
+  assert.equal(settled.state, "stale_item");
+  assert.equal(settled.receipt, receipt);
+  assert.equal(settled.apply_to_current_view, false);
+  assert.equal(settled.rollback_requested, false);
 });

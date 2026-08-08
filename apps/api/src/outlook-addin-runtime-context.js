@@ -1,5 +1,8 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
+import {
+  createDmsRepositoryMimeAuthority,
+  fileEmailThreadToMatter,
+} from "../../../packages/email-dms/src/email-filing-service.js";
 import {
   createEmailThread,
   OUTLOOK_EMAIL_OBJECT_FIELDS,
@@ -37,6 +40,16 @@ import {
   readOutlookAttachmentReceiptState,
   verifySuppliedOutlookAttachmentReceipts,
 } from "./outlook-attachment-receipt-readback.js";
+import {
+  filterOutlookMatterCandidates,
+  paginateOutlookMatters,
+  parseOutlookMatterSearchInput,
+} from "./outlook-matter-search-contract.js";
+import {
+  OUTLOOK_WRITABLE_MATTER_STATUSES,
+  revalidateOutlookMatterWrite,
+} from "./outlook-matter-write-guard.js";
+import { reconstructOutlookOperationReceiptSummaries } from "./outlook-operation-receipt-readback.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -55,6 +68,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/outlook/matters",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
+    "POST /api/outlook/messages/identity",
+    "POST /api/outlook/operation-receipts/readback",
     "POST /api/outlook/email/file",
     "POST /api/outlook/sent/file",
     "POST /api/outlook/attachments/save",
@@ -83,6 +98,7 @@ export const OUTLOOK_ADDIN_ERROR_CODES = Object.freeze({
   email_identity_conflict: "OUTLOOK_ADDIN_EMAIL_IDENTITY_CONFLICT",
   sent_message_provenance_mismatch: "OUTLOOK_ADDIN_SENT_MESSAGE_PROVENANCE_MISMATCH",
   matter_not_found: "OUTLOOK_ADDIN_MATTER_NOT_FOUND",
+  matter_inactive: "OUTLOOK_ADDIN_MATTER_INACTIVE",
   email_not_found: "OUTLOOK_ADDIN_EMAIL_NOT_FOUND",
 });
 export const OUTLOOK_ADDIN_MAX_MIME_BYTES = 3 * 1024 * 1024;
@@ -271,6 +287,34 @@ function canonicalEmailThreadId({ tenantId, immutableMessageId, internetMessageI
   ]))}`;
 }
 
+function fnv1a64(value) {
+  let hash = 0xcbf29ce484222325n;
+  for (const character of value) {
+    hash ^= BigInt(character.codePointAt(0));
+    hash = BigInt.asUintN(64, hash * 0x100000001b3n);
+  }
+  return hash.toString(16).padStart(16, "0");
+}
+
+function operationReceiptItemContextRef({ item, canonicalGraphMessageId }) {
+  const identity = [
+    optionalString(item?.rest_message_id ?? item?.graph_message_id),
+    optionalString(item?.internet_message_id),
+    optionalString(item?.conversation_id),
+  ];
+  const mode = optionalString(item?.mode);
+  const provenance = optionalString(item?.provenance);
+  if (
+    identity.some((value) => !value)
+    || !["read", "compose"].includes(mode)
+    || !["received", "sent", "draft"].includes(provenance)
+  ) return "";
+  const canonical = optionalString(canonicalGraphMessageId);
+  if (!canonical) return "";
+  const contextKey = `${identity.join("\u001f")}\u001e${mode}\u001e${provenance}`;
+  return `item-context:${fnv1a64(`${contextKey}\u001f${canonical}`)}`;
+}
+
 function safeStorageReceipt(receipt = {}) {
   const {
     storage_pointer_ref: _storagePointerRef,
@@ -455,7 +499,19 @@ async function originalMimeDocumentState({ runtime, tenantId, documentId }) {
     model_type: "DmsDocumentVersion",
     version_id: document.current_version_id,
   });
-  return Object.freeze({ document, versions: Object.freeze(version ? [version] : []) });
+  const fileObject = version?.file_object_id
+    ? runtime.dmsRuntime.repository.get({
+      tenant_id: tenantId,
+      model_type: "DmsFileObject",
+      file_object_id: version.file_object_id,
+    })
+    : null;
+  return Object.freeze({
+    document,
+    versions: Object.freeze(version ? [version] : []),
+    file_object: fileObject,
+    file_objects: Object.freeze(fileObject ? [fileObject] : []),
+  });
 }
 
 const OUTLOOK_ORIGINAL_MIME_INTENT_WINDOW_MS = 60 * 60 * 1_000;
@@ -788,6 +844,17 @@ function permissionContextForResource(context, resourceId) {
   };
 }
 
+function outlookDocumentReadDecision({ context, tenantId, matterId, documentId }) {
+  return evaluateOutlookPermission({
+    context: permissionContextForResource(context, documentId),
+    tenant_id: tenantId,
+    matter_id: matterId,
+    resource_type: "dms_document",
+    resource_id: documentId,
+    action: "outlook:document:read",
+  });
+}
+
 function inquiryEvidenceNotFoundResponse({ requestId, auditHintRef }) {
   return errorResponse(
     404,
@@ -938,15 +1005,11 @@ function actorFrom(context, fallback = "outlook_addin_user") {
 
 function matterSummary(record = {}) {
   return Object.freeze({
-    tenant_id: record.tenant_id,
     matter_id: record.matter_id,
     matter_code: record.matter_code ?? null,
     title: record.title ?? record.matter_name ?? record.matter_id,
     client_display_name: record.client_display_name ?? null,
     status: record.status,
-    lookup_label: record.matter_code ?? record.title ?? record.matter_id,
-    selected_ref: `matter:${record.matter_id}`,
-    production_ready_claim: false,
   });
 }
 
@@ -1005,32 +1068,82 @@ function searchLinkableInquiries({
   });
 }
 
-function searchMatters({ repository, tenant_id, query = "", context } = {}) {
-  const needle = String(query ?? "").trim().toLowerCase();
-  const records = repository
-    .list({ tenant_id, model_type: "Matter" })
-    .filter((matter) => ["open", "opening", "paused"].includes(matter.status))
-    .filter((matter) => {
-      if (!needle) return true;
-      return [matter.matter_id, matter.matter_code, matter.title, matter.matter_name, matter.client_display_name]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(needle));
-    });
-  const { allowed, omittedCount } = trimItemsByPermission({
+function searchMatters({ repository, tenant_id, input, context } = {}) {
+  const records = filterOutlookMatterCandidates({
+    items: repository.list({ tenant_id, model_type: "Matter" }),
+    input,
+  });
+  const { allowed } = trimItemsByPermission({
     context,
     items: records.map((record) => ({ ...record, resource_id: record.matter_id })),
     action: "outlook:matter:read",
     resourceType: "matter",
   });
+  const page = paginateOutlookMatters({ items: allowed, input });
   return Object.freeze({
-    items: Object.freeze(allowed.map(matterSummary)),
-    omitted_count: omittedCount,
+    items: Object.freeze(page.items.map(matterSummary)),
+    page_info: page.page_info,
     count_leak_prevented: true,
   });
 }
 
 function findMatter({ repository, tenant_id, matter_id } = {}) {
   return repository.get({ tenant_id, model_type: "Matter", matter_id });
+}
+
+function matterWriteGate({
+  runtime,
+  context,
+  requestId,
+  auditHintRef,
+  tenantId,
+  matterId,
+  resourceType,
+  resourceId,
+  action,
+} = {}) {
+  const validation = revalidateOutlookMatterWrite({
+    tenantId,
+    matterId,
+    getMatter: () => findMatter({
+      repository: runtime.matterRuntime.repository,
+      tenant_id: tenantId,
+      matter_id: matterId,
+    }),
+    authorize: () => evaluateOutlookPermission({
+      context,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      resource_type: resourceType,
+      resource_id: resourceId,
+      action,
+    }),
+  });
+  if (validation.outcome === "allowed") {
+    return Object.freeze({ matter: validation.matter, response: null });
+  }
+  if (validation.outcome === "permission_changed") {
+    return Object.freeze({
+      matter: null,
+      response: permissionDeniedResponse({
+        requestId,
+        decision: validation.decision,
+        auditHintRef,
+      }),
+    });
+  }
+  const inactive = validation.outcome === "matter_inactive";
+  return Object.freeze({
+    matter: null,
+    response: errorResponse(
+      inactive ? 409 : 404,
+      requestId,
+      [inactive
+        ? OUTLOOK_ADDIN_ERROR_CODES.matter_inactive
+        : OUTLOOK_ADDIN_ERROR_CODES.matter_not_found],
+      { audit_hint_ref: auditHintRef, ui_state: "blocked" },
+    ),
+  });
 }
 
 function normalizeEmailThread({
@@ -2257,20 +2370,223 @@ function handleMatterSearch({ query, context, requestId, runtime }) {
     action: "outlook:matter:search",
   });
   if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
-  const search = searchMatters({ repository: runtime.matterRuntime.repository, tenant_id: tenantId, query: query.q ?? query.query, context });
+  const input = parseOutlookMatterSearchInput({
+    q: query.q ?? query.query,
+    matter_id: query.matter_id,
+    limit: query.limit,
+    cursor: query.cursor,
+  });
+  const search = searchMatters({
+    repository: runtime.matterRuntime.repository,
+    tenant_id: tenantId,
+    input,
+    context,
+  });
   return success(200, {
     request_id: requestId,
     outcome: "passed",
-    items: search.items.slice(0, Number(query.limit ?? DEFAULT_LIMIT)),
-    omitted_count: search.omitted_count,
-    page_info: { limit: Number(query.limit ?? DEFAULT_LIMIT), has_more: false },
+    items: search.items,
+    page_info: search.page_info,
     count_leak_prevented: true,
   });
+}
+
+async function resolveOutlookCanonicalItemIdentity({ body, context, runtime, tenantId } = {}) {
+  const canonicalTenantId = requiredString(
+    tenantId ?? body?.tenant_id ?? context?.principal?.tenant_id,
+    "tenant_id",
+  );
+  const restMessageId = requiredString(body?.rest_message_id, "rest_message_id");
+  const internetMessageId = requiredString(body?.internet_message_id, "internet_message_id");
+  const conversationId = requiredString(body?.conversation_id, "conversation_id");
+  const result = await m365MailPort(runtime).getOwnMessageMime({
+    ...m365Principal(context, canonicalTenantId),
+    rest_message_id: restMessageId,
+  });
+  const metadata = result.message_metadata ?? {};
+  const canonicalInternetMessageId = requiredString(
+    result.internet_message_id ?? metadata.internet_message_id,
+    "provider.internet_message_id",
+  );
+  const canonicalConversationId = requiredString(
+    metadata.conversation_id,
+    "provider.conversation_id",
+  );
+  if (
+    normalizedMessageIdentity(canonicalInternetMessageId, "provider.internet_message_id")
+      !== normalizedMessageIdentity(internetMessageId, "internet_message_id")
+    || normalizedOpaqueIdentity(canonicalConversationId, "provider.conversation_id")
+      !== normalizedOpaqueIdentity(conversationId, "conversation_id")
+  ) {
+    throw attachmentProvenanceError("Microsoft Graph identity does not match the current Outlook item");
+  }
+  const canonicalGraphMessageId = requiredString(
+    result.immutable_message_id,
+    "provider.immutable_message_id",
+  );
+  return Object.freeze({
+    tenant_id: canonicalTenantId,
+    result,
+    item: Object.freeze({
+      rest_message_id: restMessageId,
+      canonical_graph_message_id: canonicalGraphMessageId,
+      internet_message_id: canonicalInternetMessageId,
+      conversation_id: canonicalConversationId,
+      source_id_type: result.source_id_type,
+      target_id_type: result.target_id_type,
+      raw_mime_included: false,
+      credential_material_included: false,
+      production_ready_claim: false,
+    }),
+  });
+}
+
+async function handleOutlookMessageIdentity({ body, context, requestId, runtime }) {
+  const tenantId = requiredString(
+    body.tenant_id ?? context?.principal?.tenant_id,
+    "tenant_id",
+  );
+  const matterId = requiredString(body.matter_id, "matter_id");
+  const restMessageId = requiredString(body.rest_message_id, "rest_message_id");
+  const internetMessageId = requiredString(
+    body.internet_message_id,
+    "internet_message_id",
+  );
+  const conversationId = requiredString(body.conversation_id, "conversation_id");
+  const gate = () => matterWriteGate({
+    runtime,
+    context,
+    requestId,
+    auditHintRef: body.audit_hint_ref,
+    tenantId,
+    matterId,
+    resourceType: "email_thread",
+    resourceId: restMessageId,
+    action: "outlook:email:file",
+  });
+  const beforeProvider = gate();
+  if (beforeProvider.response) return beforeProvider.response;
+  try {
+    const canonical = await resolveOutlookCanonicalItemIdentity({
+      body,
+      context,
+      runtime,
+      tenantId,
+    });
+    const afterProvider = gate();
+    if (afterProvider.response) return afterProvider.response;
+    return success(200, {
+      request_id: requestId,
+      outcome: "identity_resolved",
+      item: canonical.item,
+      credential_material_included: false,
+    });
+  } catch (error) {
+    return m365ErrorResponse(error, requestId, body.audit_hint_ref);
+  }
+}
+
+function emptyOutlookOperationReceiptReadback({ requestId } = {}) {
+  return success(200, {
+    request_id: requestId,
+    outcome: "empty",
+    items: Object.freeze([]),
+    count_leak_prevented: true,
+  });
+}
+
+async function handleOutlookOperationReceiptReadback({ body, context, requestId, runtime }) {
+  const matterId = requiredString(body.matter_id, "matter_id");
+  const item = body.current_item;
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return emptyOutlookOperationReceiptReadback({ requestId });
+  }
+  const tenantId = m365Principal(context).tenant_id;
+  const permission = evaluateOutlookPermission({
+    context,
+    tenant_id: tenantId,
+    matter_id: matterId,
+    resource_type: "matter",
+    resource_id: matterId,
+    action: "outlook:matter:read",
+  });
+  if (permission.effect !== "allow") {
+    return permissionDeniedResponse({
+      requestId,
+      decision: permission,
+      auditHintRef: body.audit_hint_ref,
+    });
+  }
+  const matter = findMatter({
+    repository: runtime.matterRuntime.repository,
+    tenant_id: tenantId,
+    matter_id: matterId,
+  });
+  if (!matter || !OUTLOOK_WRITABLE_MATTER_STATUSES.includes(matter.status)) {
+    return emptyOutlookOperationReceiptReadback({ requestId });
+  }
+  let canonical;
+  try {
+    canonical = await resolveOutlookCanonicalItemIdentity({
+      body: item,
+      context,
+      runtime,
+      tenantId,
+    });
+    if (
+      normalizedOpaqueIdentity(item.canonical_graph_message_id, "canonical_graph_message_id")
+        !== normalizedOpaqueIdentity(canonical.item.canonical_graph_message_id, "provider.immutable_message_id")
+    ) return emptyOutlookOperationReceiptReadback({ requestId });
+  } catch {
+    return emptyOutlookOperationReceiptReadback({ requestId });
+  }
+  const itemContextRef = operationReceiptItemContextRef({
+    item,
+    canonicalGraphMessageId: canonical.item.canonical_graph_message_id,
+  });
+  if (!itemContextRef) return emptyOutlookOperationReceiptReadback({ requestId });
+  const items = await reconstructOutlookOperationReceiptSummaries({
+    itemContextRef,
+    matterId,
+    tenantId,
+    canonicalItem: canonical.item,
+    dmsRepository: runtime.dmsRuntime.repository,
+    dmsAuthority: runtime.dmsRuntime.upload_runtime,
+    matterRepository: runtime.matterRuntime.repository,
+    actor: context?.principal,
+    canReadDocument: async (documentId) => {
+      const collectionDecision = outlookDocumentReadDecision({
+        context,
+        tenantId,
+        matterId,
+        documentId: matterId,
+      });
+      if (collectionDecision.effect !== "allow") return false;
+      return outlookDocumentReadDecision({
+        context,
+        tenantId,
+        matterId,
+        documentId,
+      }).effect === "allow";
+    },
+  });
+  return items.length
+    ? success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      items: Object.freeze(items),
+      count_leak_prevented: true,
+    })
+    : emptyOutlookOperationReceiptReadback({ requestId });
 }
 
 async function fileEmail({ body, context, requestId, runtime, mode = "manual" }) {
   const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
+  const expectedCanonicalGraphMessageId = requiredString(
+    body.email?.canonical_graph_message_id,
+    "email.canonical_graph_message_id",
+  );
   const actorId = actorFrom(context);
   let requestedSourceIdentity;
   try {
@@ -2281,17 +2597,20 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       status: 400,
     }), requestId, body.audit_hint_ref);
   }
-  const decision = evaluateOutlookPermission({
+  const gate = () => matterWriteGate({
+    runtime,
     context,
-    tenant_id: tenantId,
-    matter_id: matterId,
-    resource_type: "email_thread",
-    resource_id: requestedSourceIdentity.rest_message_id,
+    requestId,
+    auditHintRef: body.audit_hint_ref,
+    tenantId,
+    matterId,
+    resourceType: "email_thread",
+    resourceId: requestedSourceIdentity.rest_message_id,
     action: "outlook:email:file",
   });
-  if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
-  const matter = findMatter({ repository: runtime.matterRuntime.repository, tenant_id: tenantId, matter_id: matterId });
-  if (!matter) return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.matter_not_found]);
+  let writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  let matter = writeGate.matter;
   const requestedThread = normalizeEmailThread({
     input: body,
     sourceIdentity: requestedSourceIdentity,
@@ -2309,6 +2628,19 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       context,
       runtime,
     });
+    if (
+      normalizedOpaqueIdentity(
+        expectedCanonicalGraphMessageId,
+        "email.canonical_graph_message_id",
+      ) !== normalizedOpaqueIdentity(
+        canonical.thread.graph_message_id,
+        "provider.immutable_message_id",
+      )
+    ) {
+      throw emailIdentityConflictError(
+        "Current Outlook canonical Graph identity changed before filing",
+      );
+    }
     canonicalSourceIdentity = parseExactOutlookSourceIdentity({
       canonical_graph_message_id: canonical.thread.graph_message_id,
       rest_message_id: requestedSourceIdentity.rest_message_id,
@@ -2360,6 +2692,9 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
+  writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  matter = writeGate.matter;
   const canonicalThread = Object.freeze({
     ...canonical.thread,
     ...canonicalSourceIdentity,
@@ -2460,6 +2795,9 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
         sourceEmailThreadId: canonicalThread.email_thread_id,
       });
     } else if (phasedUploadRuntime) {
+      writeGate = gate();
+      if (writeGate.response) return writeGate.response;
+      matter = writeGate.matter;
       uploadIntent = await ensureOriginalMimeUploadIntent({
         uploadRuntime: phasedUploadRuntime,
         document,
@@ -2476,6 +2814,9 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
+  writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  matter = writeGate.matter;
   let folderState;
   try {
     folderState = ensureMatterFolders({
@@ -2498,6 +2839,9 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     );
   }
   if (!existingThread || existingThread.status === "draft") {
+    writeGate = gate();
+    if (writeGate.response) return writeGate.response;
+    matter = writeGate.matter;
     try {
       existingThread = runtime.dmsRuntime.repository.transaction((tx) => {
         const pendingIdempotencyKey = `${filingIdempotencyKey}:dms-pending`;
@@ -2578,12 +2922,18 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   try {
     if (!documentState) {
       if (phasedUploadRuntime) {
+        writeGate = gate();
+        if (writeGate.response) return writeGate.response;
+        matter = writeGate.matter;
         await phasedUploadRuntime.stageUpload({
           tenant_id: tenantId,
           session_id: uploadIntent.session.session_id,
           bytes: canonical.mime_bytes,
         });
         try {
+          writeGate = gate();
+          if (writeGate.response) return writeGate.response;
+          matter = writeGate.matter;
           await phasedUploadRuntime.finalizeUpload({
             tenant_id: tenantId,
             session_id: uploadIntent.session.session_id,
@@ -2603,15 +2953,20 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
           );
         }
       } else {
+        writeGate = gate();
+        if (writeGate.response) return writeGate.response;
+        matter = writeGate.matter;
         const uploaded = uploadDocument({
             repository: runtime.dmsRuntime.repository,
             storage: runtime.dmsRuntime.storage,
             ...uploadInput,
-          });
+        });
         documentState = Object.freeze({
           document: uploaded.document,
           version: uploaded.version,
           versions: Object.freeze([uploaded.version]),
+          file_object: uploaded.file_object,
+          file_objects: Object.freeze([uploaded.file_object]),
         });
       }
     }
@@ -2629,12 +2984,19 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
   }
-  const result = fileEmailThreadToMatter({
+  writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  matter = writeGate.matter;
+  const result = await fileEmailThreadToMatter({
     repository: runtime.dmsRuntime.repository,
     thread: existingThread,
     actor_id: actorId,
     require_original_mime_document: true,
     idempotency_key: `${filingIdempotencyKey}:dms`,
+    durable_mime_authority: runtime.dmsRuntime.upload_runtime
+      ?? createDmsRepositoryMimeAuthority(runtime.dmsRuntime.repository, {
+        provider: runtime.dmsRuntime.storage,
+      }),
     audit: {
       append: (event, writer = runtime.dmsRuntime.repository) =>
         appendDmsAudit(writer, {
@@ -2653,6 +3015,9 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     tenant_id: tenantId,
     idempotency_key: operationTimelineKey,
   });
+  writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  matter = writeGate.matter;
   const timelineEvent = appendMatterTimeline({
     repository: runtime.matterRuntime.repository,
     actorId,
@@ -2716,6 +3081,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     }),
     attachment_state: attachmentState,
     idempotent_replay: operationOutcome === "idempotent_replay",
+    filing_mode: mode,
     external_send_state: mode === "sent" ? "provider_gated_no_external_send_claim" : "not_applicable",
     email_object_field_contract: OUTLOOK_EMAIL_OBJECT_FIELDS,
   });
@@ -2725,18 +3091,24 @@ async function saveAttachments({ body, context, requestId, runtime }) {
   const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
   const actorId = actorFrom(context);
-  const decision = evaluateOutlookPermission({
+  const emailThreadId = requiredString(
+    body.email_thread_id ?? body.emailThreadId,
+    "email_thread_id",
+  );
+  const gate = () => matterWriteGate({
+    runtime,
     context,
-    tenant_id: tenantId,
-    matter_id: matterId,
-    resource_type: "email_attachment",
-    resource_id: body.email_thread_id ?? "attachment_batch",
+    requestId,
+    auditHintRef: body.audit_hint_ref,
+    tenantId,
+    matterId,
+    resourceType: "email_attachment",
+    resourceId: emailThreadId,
     action: "outlook:attachment:save",
   });
-  if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
-  const matter = findMatter({ repository: runtime.matterRuntime.repository, tenant_id: tenantId, matter_id: matterId });
-  if (!matter) return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.matter_not_found]);
-  const emailThreadId = requiredString(body.email_thread_id ?? body.emailThreadId, "email_thread_id");
+  let writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  let matter = writeGate.matter;
   const thread = runtime.dmsRuntime.repository.get({ tenant_id: tenantId, model_type: "DmsEmailThread", email_thread_id: emailThreadId });
   if (!thread || thread.matter_id !== matterId || thread.status !== "active") {
     return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.email_not_found]);
@@ -2747,6 +3119,27 @@ async function saveAttachments({ body, context, requestId, runtime }) {
   } catch {
     return m365ErrorResponse(
       attachmentProvenanceError("Filed Outlook thread source identity is incomplete"),
+      requestId,
+      body.audit_hint_ref,
+    );
+  }
+  const expectedCanonicalGraphMessageId = requiredString(
+    body.canonical_graph_message_id,
+    "canonical_graph_message_id",
+  );
+  if (
+    normalizedOpaqueIdentity(
+      expectedCanonicalGraphMessageId,
+      "canonical_graph_message_id",
+    ) !== normalizedOpaqueIdentity(
+      threadSourceIdentity.canonical_graph_message_id,
+      "thread.graph_message_id",
+    )
+  ) {
+    return m365ErrorResponse(
+      emailIdentityConflictError(
+        "Current Outlook canonical Graph identity changed before attachment filing",
+      ),
       requestId,
       body.audit_hint_ref,
     );
@@ -2771,6 +3164,9 @@ async function saveAttachments({ body, context, requestId, runtime }) {
   }
   const verifiedBytes = bytesForAttachment(attachment);
   const verifiedSha256 = verifySourceAttachmentBytes(sourceAttachment, verifiedBytes);
+  writeGate = gate();
+  if (writeGate.response) return writeGate.response;
+  matter = writeGate.matter;
   const folderState = ensureMatterFolders({ repository: runtime.dmsRuntime.repository, matter, actor_id: actorId });
   const emailFolder = folderState.folders.find((folder) => folder.name === "00_Email");
   const postgresDms = typeof runtime.dmsRuntime.upload_runtime?.uploadDocument === "function";
@@ -2824,6 +3220,9 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         source_provenance_authority: sourceAttachment.source_provenance.authority,
     };
     const attachmentOperationKey = `outlook-attachment:${emailThreadId}:${attachmentId}:${sha256}`;
+    writeGate = gate();
+    if (writeGate.response) return writeGate.response;
+    matter = writeGate.matter;
     const uploaded = duplicate
       ? null
       : postgresDms
@@ -2843,6 +3242,8 @@ async function saveAttachments({ body, context, requestId, runtime }) {
           });
     const persistedDocument = uploaded?.document ?? duplicate;
     if (uploaded) knownDocuments.push(uploaded.document);
+    writeGate = gate();
+    if (writeGate.response) return writeGate.response;
     const mappingId = `email-attachment:${emailThreadId}:${attachmentId}`;
     const existingMapping = runtime.dmsRuntime.repository.get({
       tenant_id: tenantId,
@@ -2876,6 +3277,8 @@ async function saveAttachments({ body, context, requestId, runtime }) {
         storage_pointer_ref_included: false,
       },
     });
+    writeGate = gate();
+    if (writeGate.response) return writeGate.response;
     const timelineEvent = appendMatterTimeline({
       repository: runtime.matterRuntime.repository,
       actorId,
@@ -2955,6 +3358,7 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     duplicate_attachments: Object.freeze(duplicates),
     duplicate_count: duplicates.length,
     attachment_receipt: attachmentReceipt,
+    source_identity: threadSourceIdentity,
     folder_structure: MATTER_FOLDER_NAMES,
     documents: postgresDms
       ? Object.freeze(knownDocuments.map(safeMatterDocument))
@@ -2969,15 +3373,19 @@ function createFollowup({ body, context, requestId, runtime }) {
   const actorId = actorFrom(context);
   const kind = body.kind === "deadline" ? "deadline" : "task";
   const sourceEmailThreadId = requiredString(body.source_email_thread_id, "source_email_thread_id");
-  const decision = evaluateOutlookPermission({
+  const gate = () => matterWriteGate({
+    runtime,
     context,
-    tenant_id: tenantId,
-    matter_id: matterId,
-    resource_type: kind === "deadline" ? "matter_deadline" : "matter_task",
-    resource_id: sourceEmailThreadId,
+    requestId,
+    auditHintRef: body.audit_hint_ref,
+    tenantId,
+    matterId,
+    resourceType: kind === "deadline" ? "matter_deadline" : "matter_task",
+    resourceId: sourceEmailThreadId,
     action: "outlook:followup:create",
   });
-  if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
+  let writeGate = gate();
+  if (writeGate.response) return writeGate.response;
   const sourceThread = runtime.dmsRuntime.repository.get({
     tenant_id: tenantId,
     model_type: "DmsEmailThread",
@@ -2985,6 +3393,41 @@ function createFollowup({ body, context, requestId, runtime }) {
   });
   if (!sourceThread || sourceThread.matter_id !== matterId || sourceThread.status !== "active") {
     return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.email_not_found]);
+  }
+  const sourceIdentity = Object.freeze({
+    canonical_graph_message_id: requiredString(
+      sourceThread.graph_message_id,
+      "sourceThread.graph_message_id",
+    ),
+    internet_message_id: requiredString(
+      sourceThread.internet_message_id,
+      "sourceThread.internet_message_id",
+    ),
+    conversation_id: requiredString(
+      sourceThread.conversation_id,
+      "sourceThread.conversation_id",
+    ),
+  });
+  const expectedCanonicalGraphMessageId = requiredString(
+    body.canonical_graph_message_id,
+    "canonical_graph_message_id",
+  );
+  if (
+    normalizedOpaqueIdentity(
+      expectedCanonicalGraphMessageId,
+      "canonical_graph_message_id",
+    ) !== normalizedOpaqueIdentity(
+      sourceIdentity.canonical_graph_message_id,
+      "sourceThread.graph_message_id",
+    )
+  ) {
+    return m365ErrorResponse(
+      emailIdentityConflictError(
+        "Current Outlook canonical Graph identity changed before follow-up creation",
+      ),
+      requestId,
+      body.audit_hint_ref,
+    );
   }
   const followupId = (kind === "deadline"
     ? optionalString(body.event_id, `deadline_${safeId(sourceEmailThreadId)}`)
@@ -3034,6 +3477,7 @@ function createFollowup({ body, context, requestId, runtime }) {
       request_id: requestId,
       outcome: "idempotent_replay",
       ...replay.response,
+      source_identity: sourceIdentity,
       idempotent_replay: true,
       auto_created_without_lawyer_approval: false,
     });
@@ -3050,6 +3494,8 @@ function createFollowup({ body, context, requestId, runtime }) {
   if (typeof runtime.matterRuntime.repository.transaction !== "function") {
     throw new Error("Outlook follow-up creation requires an atomic repository transaction");
   }
+  writeGate = gate();
+  if (writeGate.response) return writeGate.response;
   const replayResponse = runtime.matterRuntime.repository.transaction((tx) => {
     const service = createMatterActivityCalendarChannelService({
       repository: tx,
@@ -3091,6 +3537,7 @@ function createFollowup({ body, context, requestId, runtime }) {
       item: result.item,
       audit_event: result.audit_event,
       timeline_event: result.timeline_event,
+      source_identity: sourceIdentity,
     };
     tx.recordIdempotency({
       tenant_id: tenantId,
@@ -3301,6 +3748,39 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     if (pathname === "/api/outlook/matters" && method === "GET") {
       return handleMatterSearch({ query, context, requestId, runtime });
     }
+    if (pathname === "/api/outlook/messages/identity" && method === "POST") {
+      return await handleOutlookMessageIdentity({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (pathname === "/api/outlook/operation-receipts/readback" && method === "POST") {
+      if (
+        !hasOnlyBodyFields(body, [
+          "audit_hint_ref",
+          "current_item",
+          "matter_id",
+        ])
+        || !hasOnlyBodyFields(body.current_item, [
+          "conversation_id",
+          "canonical_graph_message_id",
+          "internet_message_id",
+          "mode",
+          "provenance",
+          "rest_message_id",
+        ])
+      ) {
+        return emptyOutlookOperationReceiptReadback({ requestId });
+      }
+      return await handleOutlookOperationReceiptReadback({
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
     const timelineMatch = routeMatch(pathname, /^\/api\/outlook\/matters\/([^/]+)\/timeline$/);
     if (timelineMatch && method === "GET") {
       const matterId = decodeURIComponent(timelineMatch[1]);
@@ -3332,19 +3812,24 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     if (documentsMatch && method === "GET") {
       const matterId = decodeURIComponent(documentsMatch[1]);
       const tenantId = requiredString(query.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
-      const decision = evaluateOutlookPermission({
+      const decision = outlookDocumentReadDecision({
         context,
-        tenant_id: tenantId,
-        matter_id: matterId,
-        resource_type: "dms_document",
-        resource_id: matterId,
-        action: "outlook:document:read",
+        tenantId,
+        matterId,
+        documentId: matterId,
       });
       if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
+      const items = listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId })
+        .filter((document) => outlookDocumentReadDecision({
+          context,
+          tenantId,
+          matterId,
+          documentId: document.document_id,
+        }).effect === "allow");
       return success(200, {
         request_id: requestId,
         outcome: "passed",
-        items: listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId }),
+        items,
         document_bytes_included: false,
       });
     }

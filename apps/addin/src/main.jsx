@@ -21,6 +21,8 @@ import {
   outlookActionErrorMessage,
 } from "./inquiry-actions.js";
 import {
+  applyOutlookCanonicalMessageIdentity,
+  createOutlookCanonicalMessageIdentityRequest,
   resolveCurrentOutlookRestMessageId,
 } from "./outlook-item-id.js";
 import {
@@ -60,10 +62,21 @@ import {
 import {
   isFiledEmailContextCurrent,
   isOutlookActionContextCurrent,
+  createOutlookOperationSnapshot,
+  isOutlookOperationSnapshotContextCurrent,
   isSameOutlookItem,
+  outlookItemChangeDisposition,
   outlookItemIdentityKey,
   subscribeToOutlookItemChanges,
 } from "./outlook-item-events.js";
+import {
+  createOutlookMatterRevalidationRequest,
+  createOutlookMatterSearchDebouncer,
+  createOutlookMatterSelection,
+  outlookMatterSelectionForContext,
+  revalidateOutlookMatterSelection,
+} from "./outlook-matter-search.js";
+import { createOutlookOperationReceiptController } from "./outlook-operation-receipt-controller.js";
 import {
   DEFAULT_ADDIN_API_TIMEOUT_MS,
   fetchAddinApi,
@@ -341,20 +354,36 @@ function completeSendEvent(event, payload = {}) {
   return completion;
 }
 
-function officeItemSnapshot() {
+function normalizedMailboxAddress(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function officeItemSnapshot(canonicalIdentity = null) {
   const item = window.Office?.context?.mailbox?.item;
   if (!item) return null;
-  let graphMessageId = null;
+  let restMessageId = null;
   try {
-    graphMessageId = resolveCurrentOutlookRestMessageId({ Office: window.Office }).rest_message_id;
+    restMessageId = resolveCurrentOutlookRestMessageId({ Office: window.Office }).rest_message_id;
   } catch {
     // Smart-alert metadata can still be inspected, but filing must fail
     // closed when Office cannot provide a REST-stable message identity.
   }
-  return {
-    graph_message_id: graphMessageId,
+  const mailboxAddress = normalizedMailboxAddress(
+    window.Office?.context?.mailbox?.userProfile?.emailAddress,
+  );
+  const senderAddress = normalizedMailboxAddress(item.from?.emailAddress);
+  const compose = typeof item.subject?.getAsync === "function";
+  const snapshot = {
+    rest_message_id: restMessageId,
+    graph_message_id: restMessageId,
     internet_message_id: typeof item.internetMessageId === "string" && item.internetMessageId.trim() ? item.internetMessageId : null,
     conversation_id: typeof item.conversationId === "string" && item.conversationId.trim() ? item.conversationId : null,
+    mode: compose ? "compose" : "read",
+    provenance: compose
+      ? "draft"
+      : senderAddress && mailboxAddress && senderAddress === mailboxAddress
+        ? "sent"
+        : "received",
     from: item.from ? { name: item.from.displayName, email: item.from.emailAddress } : { name: null, email: null },
     to: Array.isArray(item.to) ? item.to.map((recipient) => ({ name: recipient.displayName, email: recipient.emailAddress })) : [],
     cc: Array.isArray(item.cc) ? item.cc.map((recipient) => ({ name: recipient.displayName, email: recipient.emailAddress })) : [],
@@ -372,10 +401,19 @@ function officeItemSnapshot() {
         }))
       : [],
   };
+  if (!canonicalIdentity) return snapshot;
+  try {
+    return applyOutlookCanonicalMessageIdentity({
+      item: snapshot,
+      response: { item: canonicalIdentity },
+    });
+  } catch {
+    return snapshot;
+  }
 }
 
-async function readCurrentOutlookItem({ includeAttachments = false, includeTimestamps = false, requireStableIdentity = false, allowBodyReadFailure = false } = {}) {
-  const snapshot = officeItemSnapshot();
+async function readCurrentOutlookItem({ includeAttachments = false, includeTimestamps = false, requireStableIdentity = false, allowBodyReadFailure = false, canonicalIdentity = null } = {}) {
+  const snapshot = officeItemSnapshot(canonicalIdentity);
   if (!snapshot) return null;
   if (requireStableIdentity) assertStableOutlookItemIdentity(snapshot);
   const officeItem = window.Office?.context?.mailbox?.item;
@@ -398,7 +436,7 @@ async function readCurrentOutlookItem({ includeAttachments = false, includeTimes
     body_preview: bodyText.slice(0, 500),
   };
   if (!includeAttachments) {
-    if (requireStableIdentity && !isSameOutlookItem(snapshot, officeItemSnapshot())) {
+    if (requireStableIdentity && !isSameOutlookItem(snapshot, officeItemSnapshot(canonicalIdentity))) {
       throw itemChangedDuringActionError();
     }
     return next;
@@ -408,7 +446,7 @@ async function readCurrentOutlookItem({ includeAttachments = false, includeTimes
     attachments: Array.isArray(officeItem?.attachments) ? officeItem.attachments : [],
     Office: window.Office,
   });
-  if (requireStableIdentity && !isSameOutlookItem(snapshot, officeItemSnapshot())) {
+  if (requireStableIdentity && !isSameOutlookItem(snapshot, officeItemSnapshot(canonicalIdentity))) {
     throw itemChangedDuringActionError();
   }
   return { ...next, ...attachments };
@@ -532,6 +570,14 @@ function busyLabel(value) {
   }[value] ?? "처리하고 있습니다.";
 }
 
+function outlookItemContext(item) {
+  return {
+    item,
+    mode: item?.mode,
+    provenance: item?.provenance,
+  };
+}
+
 function App() {
   const [bootstrap, setBootstrap] = useState(null);
   const [authState, setAuthState] = useState(AUTH_STATE.loading);
@@ -539,9 +585,13 @@ function App() {
   const [graphConnection, setGraphConnection] = useState({ state: GRAPH_STATE.loading, status: "loading", stateVersion: 0, missingScopes: [] });
   const [disconnectConfirmationOpen, setDisconnectConfirmationOpen] = useState(false);
   const [matters, setMatters] = useState([]);
-  const [inquiries, setInquiries] = useState([]);
-  const [selectedMatterId, setSelectedMatterId] = useState("");
+  const [matterSearchOpen, setMatterSearchOpen] = useState(false);
+  const [matterSearchQuery, setMatterSearchQuery] = useState("");
+  const matterSearchDebouncerRef = useRef(null);
+  const [matterSelection, setMatterSelection] = useState(null);
+  const matterSelectionRef = useRef(null);
   const selectedMatterIdRef = useRef("");
+  const [inquiries, setInquiries] = useState([]);
   const [selectedLeadId, setSelectedLeadId] = useState("");
   const [inquiryResult, setInquiryResult] = useState(null);
   const [emailResult, setEmailResult] = useState(null);
@@ -552,6 +602,16 @@ function App() {
   const [documents, setDocuments] = useState([]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [receiptRecovery, setReceiptRecovery] = useState(null);
+  const canonicalIdentityRef = useRef(null);
+  const operationEpochRef = useRef(0);
+  const activeOperationStartKeyRef = useRef("");
+  const receiptControllerRef = useRef(null);
+  if (!receiptControllerRef.current) {
+    receiptControllerRef.current = createOutlookOperationReceiptController({ requestJson });
+  }
+  const receiptController = receiptControllerRef.current;
+  const itemContextRef = useRef(null);
   const [item, setItem] = useState(() => officeItemSnapshot());
   const [officeReadyEpoch, setOfficeReadyEpoch] = useState(0);
   const itemAvailable = item !== null;
@@ -560,10 +620,34 @@ function App() {
   const credentialCleanupPending = graphConnection.status === "revoked"
     && graphConnection.credentialCleanupPending === true;
   const readyForBusiness = authenticated && graphConnected;
+  const selectedMatter = outlookMatterSelectionForContext({
+    selection: matterSelection,
+    itemContext: outlookItemContext(item),
+  });
+  const selectedMatterId = selectedMatter?.matter_id ?? "";
+
+  function currentOfficeItemSnapshot() {
+    return officeItemSnapshot(canonicalIdentityRef.current);
+  }
 
   useEffect(() => {
     if (!graphConnected) setDisconnectConfirmationOpen(false);
   }, [graphConnected]);
+
+  useEffect(() => {
+    const debouncer = createOutlookMatterSearchDebouncer({ requestJson });
+    matterSearchDebouncerRef.current = debouncer;
+    return () => {
+      debouncer.cancel();
+      if (matterSearchDebouncerRef.current === debouncer) {
+        matterSearchDebouncerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => () => {
+    receiptController.dispose();
+  }, []);
 
   function resetItemActionResults() {
     setInquiryResult(null);
@@ -573,12 +657,108 @@ function App() {
     setAlertResult(null);
   }
 
+  function clearCompletedReceiptArchive() {
+    receiptController.clear();
+    setReceiptRecovery(null);
+  }
+
+  function invalidateOperationContext() {
+    operationEpochRef.current += 1;
+    activeOperationStartKeyRef.current =
+      `invalidated:${operationEpochRef.current}`;
+  }
+
+  function storeMatterSelection(selection, { invalidate = false } = {}) {
+    if (invalidate) invalidateOperationContext();
+    matterSelectionRef.current = selection;
+    selectedMatterIdRef.current = selection?.matter_id ?? "";
+    setMatterSelection(selection);
+  }
+
   function selectMatter(matterId) {
-    selectedMatterIdRef.current = matterId;
-    setSelectedMatterId(matterId);
+    receiptController.invalidateContext();
+    if (!matterId) {
+      storeMatterSelection(null, { invalidate: true });
+      resetItemActionResults();
+      setReceiptRecovery(null);
+      return;
+    }
+    const nextMatter = matters.find((entry) => entry.matter_id === matterId);
+    const currentItem = officeItemSnapshot(canonicalIdentityRef.current);
+    const selection = createOutlookMatterSelection({
+      itemContext: outlookItemContext(currentItem),
+      matter: nextMatter,
+    });
+    storeMatterSelection(selection, { invalidate: true });
     setEmailResult(null);
     setAttachmentResult(null);
     setFollowupResult(null);
+    setReceiptRecovery(null);
+    void restoreSelectedMatterReceiptContext({
+      matterId: nextMatter.matter_id,
+      sourceItem: currentItem,
+    }).catch((nextError) => setError(actionErrorMessage(nextError)));
+  }
+
+  async function restoreSelectedMatterReceiptContext({ matterId, sourceItem } = {}) {
+    if (!matterId || !sourceItem) return;
+    let pinnedItem = sourceItem;
+    if (!pinnedItem.canonical_graph_message_id) {
+      const identityRequest = createOutlookCanonicalMessageIdentityRequest({
+        item: sourceItem,
+        matterId,
+      });
+      const identityResponse = await requestJson(identityRequest.path, {
+        method: identityRequest.method,
+        body: identityRequest.body,
+      });
+      if (!isSameOutlookItem(sourceItem, officeItemSnapshot())) return;
+      canonicalIdentityRef.current = identityResponse.item;
+      pinnedItem = applyOutlookCanonicalMessageIdentity({
+        item: sourceItem,
+        response: identityResponse,
+      });
+      setItem(pinnedItem);
+    }
+    const receipts = await receiptController.restore({
+      matterId,
+      currentItem: pinnedItem,
+      isCurrent: () => {
+        const currentItem = officeItemSnapshot();
+        return isSameOutlookItem(pinnedItem, currentItem)
+          && selectedMatterForItem(currentItem)?.matter_id === matterId;
+      },
+    });
+    const currentItem = officeItemSnapshot();
+    if (
+      !isSameOutlookItem(pinnedItem, currentItem)
+      || selectedMatterForItem(currentItem)?.matter_id !== matterId
+    ) return;
+    setReceiptRecovery(receipts[0] ?? null);
+    await refreshMatter(matterId, { receiptReadbackItem: pinnedItem });
+  }
+
+  function closeMatterSearch() {
+    matterSearchDebouncerRef.current?.cancel();
+    setMatterSearchOpen(false);
+    setMatterSearchQuery("");
+    setMatters([]);
+  }
+
+  function handleMatterSearchQueryChange(event) {
+    const query = event.target.value;
+    setMatterSearchQuery(query);
+    setMatters([]);
+    const request = matterSearchDebouncerRef.current?.search({
+      opened: matterSearchOpen,
+      query,
+      onResults: (result) => setMatters(result.items),
+      onError: (nextError) => {
+        setMatters([]);
+        setError(actionErrorMessage(nextError));
+      },
+    });
+    if (!request) matterSearchDebouncerRef.current?.cancel();
   }
 
   function actionErrorMessage(error) {
@@ -615,17 +795,12 @@ function App() {
 
   async function loadBase() {
     setError("");
-    const [boot, matterBody, inquiryBody] = await Promise.all([
+    const [boot, inquiryBody] = await Promise.all([
       requestJson("/api/outlook/bootstrap"),
-      requestJson("/api/outlook/matters?limit=50"),
       requestJson("/api/outlook/inquiries?limit=50"),
     ]);
-    const nextMatters = matterBody.items ?? [];
-    const nextMatterId = nextMatters[0]?.matter_id ?? "";
     const nextInquiries = inquiryBody.items ?? [];
     setBootstrap(boot.item);
-    setMatters(nextMatters);
-    selectMatter(nextMatterId);
     setInquiries(nextInquiries);
     setSelectedLeadId(nextInquiries[0]?.lead_id ?? "");
   }
@@ -641,27 +816,39 @@ function App() {
     ));
   }
 
-  async function refreshMatter(matterId = selectedMatterId) {
+  async function refreshMatter(
+    matterId = selectedMatterId,
+    { operationSnapshot = null, receiptReadbackItem = null } = {},
+  ) {
     if (!matterId) {
       setTimeline([]);
       setDocuments([]);
+      setReceiptRecovery(null);
       return;
     }
     const [activity, documentBody] = await Promise.all([
       loadOutlookMatterActivity({ matterId, requestJson }),
       requestJson(`/api/outlook/matters/${encodeURIComponent(matterId)}/documents`),
     ]);
+    if (operationSnapshot) {
+      assertOperationContextCurrent(operationSnapshot);
+    }
+    if (
+      receiptReadbackItem
+      && (
+        !isSameOutlookItem(receiptReadbackItem, currentOfficeItemSnapshot())
+        || selectedMatterForItem(currentOfficeItemSnapshot())?.matter_id !== matterId
+      )
+    ) return;
     setTimeline(activity.rows);
     setDocuments(documentBody.items ?? []);
-  }
-
-  async function selectMatterAndRefresh(matterId) {
-    selectMatter(matterId);
-    setError("");
-    try {
-      await refreshMatter(matterId);
-    } catch (nextError) {
-      setError(actionErrorMessage(nextError));
+    if (receiptReadbackItem) {
+      syncCompletedReceiptRecovery({
+        currentItem: receiptReadbackItem,
+        matterId,
+        timeline: activity.rows,
+        documents: documentBody.items,
+      });
     }
   }
 
@@ -679,12 +866,15 @@ function App() {
         throw error;
       }
     } else if (next.state !== GRAPH_STATE.connected) {
+      canonicalIdentityRef.current = null;
+      storeMatterSelection(null, { invalidate: true });
+      closeMatterSearch();
       setBootstrap(null);
-      setMatters([]);
       setInquiries([]);
       setTimeline([]);
       setDocuments([]);
       resetItemActionResults();
+      clearCompletedReceiptArchive();
     }
     return next;
   }
@@ -700,13 +890,42 @@ function App() {
     let unsubscribe = () => {};
     void ensureOfficeReady().then(() => {
       if (cancelled) return;
-      setItem(officeItemSnapshot());
+      const initialItem = currentOfficeItemSnapshot();
+      itemContextRef.current = outlookItemContext(initialItem);
+      setItem(initialItem);
       unsubscribe = subscribeToOutlookItemChanges({
         Office: window.Office,
         onChange: () => {
+          const previousContext = itemContextRef.current;
+          canonicalIdentityRef.current = null;
+          const nextItem = officeItemSnapshot();
+          const currentContext = outlookItemContext(nextItem);
+          const disposition = outlookItemChangeDisposition({
+            previousContext,
+            currentContext,
+            openerId: "matter-search-toggle",
+          });
+          itemContextRef.current = currentContext;
+          invalidateOperationContext();
+          receiptController.invalidateContext();
+          matterSearchDebouncerRef.current?.cancel();
           setItem(officeItemSnapshot());
+          if (disposition.close_overlay) {
+            setMatterSearchOpen(false);
+            setMatterSearchQuery("");
+            setMatters([]);
+          }
+          if (disposition.clear_matter_selection) {
+            storeMatterSelection(null);
+          }
           resetItemActionResults();
+          setReceiptRecovery(null);
           setError("");
+          if (disposition.restore_focus_to) {
+            queueMicrotask(() => {
+              document.getElementById(disposition.restore_focus_to)?.focus();
+            });
+          }
         },
       });
     });
@@ -723,14 +942,18 @@ function App() {
       setAuthState(AUTH_STATE.loginRequired);
       setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
       setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+      canonicalIdentityRef.current = null;
+      storeMatterSelection(null, { invalidate: true });
+      closeMatterSearch();
       setBootstrap(null);
-      setMatters([]);
       setInquiries([]);
       setTimeline([]);
       setDocuments([]);
+      clearCompletedReceiptArchive();
     };
     sessionRecoveredHandler = () => {
       if (cancelled) return;
+      clearCompletedReceiptArchive();
       setAuthState(AUTH_STATE.authenticated);
       setAuthError("");
       refreshGraphConnection().catch((nextError) => setError(actionErrorMessage(nextError)));
@@ -786,6 +1009,7 @@ function App() {
     try {
       const session = await acquireLawosSession({ interactive: true, force: true });
       if (!session?.authenticated) throw createAddinAuthError("AUTH_SESSION_REQUIRED", "AMIC OS 로그인을 확인해 주세요.");
+      clearCompletedReceiptArchive();
       setAuthState(AUTH_STATE.authenticated);
       try {
         await refreshGraphConnection();
@@ -888,12 +1112,15 @@ function App() {
       });
       setGraphConnection(result.connection);
       if (isOutlookConnectionDisconnected(result.connection)) {
+        canonicalIdentityRef.current = null;
+        storeMatterSelection(null, { invalidate: true });
+        closeMatterSearch();
         setBootstrap(null);
-        setMatters([]);
         setInquiries([]);
         setTimeline([]);
         setDocuments([]);
         resetItemActionResults();
+        clearCompletedReceiptArchive();
       }
     } catch (nextError) {
       setGraphConnection(
@@ -925,8 +1152,146 @@ function App() {
     }
   }
 
+  function beginOperation() {
+    const randomId = globalThis.crypto?.randomUUID?.();
+    if (!randomId) {
+      throw Object.assign(new Error("OUTLOOK_OPERATION_KEY_UNAVAILABLE"), {
+        safe_error_code: "OUTLOOK_OPERATION_KEY_UNAVAILABLE",
+        user_message: "안전한 처리 키를 만들 수 없습니다. Outlook을 다시 시작해 주세요.",
+      });
+    }
+    operationEpochRef.current += 1;
+    const operationStartKey =
+      `outlook-operation:${operationEpochRef.current}:${randomId}`;
+    activeOperationStartKeyRef.current = operationStartKey;
+    return operationStartKey;
+  }
+
+  function selectedMatterForItem(currentItem = currentOfficeItemSnapshot()) {
+    return outlookMatterSelectionForContext({
+      selection: matterSelectionRef.current,
+      itemContext: outlookItemContext(currentItem),
+    });
+  }
+
+  function syncCompletedReceiptRecovery({
+    currentItem = currentOfficeItemSnapshot(),
+    matterId = selectedMatterForItem(currentItem)?.matter_id,
+    timeline,
+    documents,
+  } = {}) {
+    if (!currentItem || !matterId) {
+      setReceiptRecovery(null);
+      return Object.freeze([]);
+    }
+    const receipts = receiptController.sync({ currentItem, matterId, timeline, documents });
+    setReceiptRecovery(receipts[0] ?? null);
+    return receipts;
+  }
+
+  function assertOperationContextCurrent(operationSnapshot) {
+    const currentItem = currentOfficeItemSnapshot();
+    const currentMatter = selectedMatterForItem(currentItem);
+    if (!isOutlookOperationSnapshotContextCurrent({
+      snapshot: operationSnapshot,
+      currentItem,
+      currentMode: currentItem?.mode,
+      currentProvenance: currentItem?.provenance,
+      currentMatterId: currentMatter?.matter_id,
+      currentOperationStartKey: activeOperationStartKeyRef.current,
+      currentCanonicalGraphMessageId:
+        currentItem?.canonical_graph_message_id,
+    })) throw actionContextChangedError();
+    return currentItem;
+  }
+
+  function reconcileOperationReceipt(operationSnapshot, receipt, operation = "operation") {
+    const reconciliation = receiptController.recordCompletion({
+      operationSnapshot,
+      receipt,
+      operation,
+      currentItem: currentOfficeItemSnapshot(),
+      currentMatterId: selectedMatterForItem(currentOfficeItemSnapshot())?.matter_id,
+      currentOperationStartKey: activeOperationStartKeyRef.current,
+    });
+    const { stored, result } = reconciliation;
+    if (!result.apply_to_current_view) {
+      setReceiptRecovery(null);
+      throw Object.assign(actionContextChangedError(), {
+        completed_receipt: stored,
+        recovery_action: result.recovery_action,
+      });
+    }
+    setReceiptRecovery(stored);
+    return result;
+  }
+
+  async function prepareMatterMutation({
+    currentItem,
+    operationStartKey,
+    resolveCanonicalIdentity = false,
+  } = {}) {
+    const itemContext = outlookItemContext(currentItem);
+    const selection = outlookMatterSelectionForContext({
+      selection: matterSelectionRef.current,
+      itemContext,
+    });
+    const revalidationRequest = createOutlookMatterRevalidationRequest({
+      selection,
+      itemContext,
+    });
+    const matterBody = await requestJson(revalidationRequest.path);
+    const refreshedSelection = revalidateOutlookMatterSelection({
+      selection,
+      itemContext,
+      searchResponse: matterBody,
+    });
+    const currentSelection = selectedMatterForItem(
+      officeItemSnapshot(canonicalIdentityRef.current),
+    );
+    if (
+      activeOperationStartKeyRef.current !== operationStartKey
+      || currentSelection?.matter_id !== refreshedSelection.matter_id
+    ) throw actionContextChangedError();
+    storeMatterSelection(refreshedSelection);
+
+    let pinnedItem = currentItem;
+    if (resolveCanonicalIdentity) {
+      const identityRequest = createOutlookCanonicalMessageIdentityRequest({
+        item: currentItem,
+        matterId: refreshedSelection.matter_id,
+      });
+      const identityResponse = await requestJson(identityRequest.path, {
+        method: identityRequest.method,
+        body: identityRequest.body,
+      });
+      pinnedItem = applyOutlookCanonicalMessageIdentity({
+        item: currentItem,
+        response: identityResponse,
+      });
+      if (!isSameOutlookItem(currentItem, officeItemSnapshot())) {
+        throw actionContextChangedError();
+      }
+      canonicalIdentityRef.current = identityResponse.item;
+    }
+    const operationSnapshot = createOutlookOperationSnapshot({
+      item: pinnedItem,
+      mode: pinnedItem.mode,
+      provenance: pinnedItem.provenance,
+      matterId: refreshedSelection.matter_id,
+      operationStartKey,
+    });
+    assertOperationContextCurrent(operationSnapshot);
+    if (resolveCanonicalIdentity) setItem(pinnedItem);
+    return Object.freeze({
+      currentItem: pinnedItem,
+      matterId: refreshedSelection.matter_id,
+      operationSnapshot,
+    });
+  }
+
   async function registerInquiry(action) {
-    const currentItem = officeItemSnapshot();
+    const currentItem = currentOfficeItemSnapshot();
     assertStableOutlookItemIdentity(currentItem);
     const identity = resolveCurrentOutlookRestMessageId({
       Office: window.Office,
@@ -942,7 +1307,7 @@ function App() {
       method: "POST",
       body: request,
     });
-    if (!isSameOutlookItem(currentItem, officeItemSnapshot())) {
+    if (!isSameOutlookItem(currentItem, currentOfficeItemSnapshot())) {
       throw itemChangedDuringActionError();
     }
     setInquiryResult({
@@ -954,18 +1319,22 @@ function App() {
   }
 
   async function archiveEmailWithAttachments({ previousReceipt = null } = {}) {
-    const matterId = selectedMatterId;
-    const currentItem = await readCurrentOutlookItem({ includeTimestamps: true, requireStableIdentity: true });
+    const operationStartKey = beginOperation();
+    const sourceItem = await readCurrentOutlookItem({
+      includeTimestamps: true,
+      requireStableIdentity: true
+    });
+    const {
+      currentItem,
+      matterId,
+      operationSnapshot,
+    } = await prepareMatterMutation({
+      currentItem: sourceItem,
+      operationStartKey,
+      resolveCanonicalIdentity: true,
+    });
     const sourceOfficeItem = window.Office?.context?.mailbox?.item;
     const sourceItemKey = outlookItemIdentityKey(currentItem);
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      throw actionContextChangedError();
-    }
     if (previousReceipt && !isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
       throw filedEmailDoesNotMatchError();
     }
@@ -988,16 +1357,15 @@ function App() {
         return readOutlookAttachments({ item: sourceOfficeItem, attachments: selected, Office: window.Office });
       },
       errorMessage: outlookActionErrorMessage,
+      assertOperationCurrent: () =>
+        assertOperationContextCurrent(operationSnapshot),
+      onReceipt: (serverReceipt) => reconcileOperationReceipt(
+        operationSnapshot,
+        serverReceipt,
+        serverReceipt?.filing_operation ? "file_email" : "save_attachments",
+      ),
     });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      await refreshMatter(matterId);
-      throw actionContextChangedError();
-    }
+    assertOperationContextCurrent(operationSnapshot);
     setEmailResult({
       ...receipt.email,
       filing_mode: "manual",
@@ -1009,7 +1377,7 @@ function App() {
     if (receipt.status === "partial") {
       setError(`다시 저장할 첨부가 ${receipt.retry_attachment_ids.length}개 있습니다.`);
     }
-    await refreshMatter(matterId);
+    await refreshMatter(matterId, { operationSnapshot });
   }
 
   async function fileEmail() {
@@ -1017,31 +1385,33 @@ function App() {
   }
 
   async function fileSentEmail() {
-    const matterId = selectedMatterId;
-    const currentItem = await readCurrentOutlookItem({ includeTimestamps: true, requireStableIdentity: true });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      throw actionContextChangedError();
-    }
+    const operationStartKey = beginOperation();
+    const sourceItem = await readCurrentOutlookItem({
+      includeTimestamps: true,
+      requireStableIdentity: true,
+    });
+    const {
+      currentItem,
+      matterId,
+      operationSnapshot,
+    } = await prepareMatterMutation({
+      currentItem: sourceItem,
+      operationStartKey,
+      resolveCanonicalIdentity: true,
+    });
     const receipt = await fileOutlookEmail({
       matterId,
       email: currentItem,
       mode: "sent",
       requestJson,
+      assertOperationCurrent: () => assertOperationContextCurrent(operationSnapshot),
+      onReceipt: (serverReceipt) => reconcileOperationReceipt(
+        operationSnapshot,
+        serverReceipt,
+        "file_email",
+      ),
     });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      await refreshMatter(matterId);
-      throw actionContextChangedError();
-    }
+    assertOperationContextCurrent(operationSnapshot);
     setEmailResult({
       ...receipt,
       filing_mode: "sent",
@@ -1050,7 +1420,7 @@ function App() {
     });
     setAttachmentResult(null);
     setFollowupResult(null);
-    await refreshMatter(matterId);
+    await refreshMatter(matterId, { operationSnapshot });
   }
 
   async function saveAttachments() {
@@ -1058,16 +1428,19 @@ function App() {
   }
 
   async function createFollowup() {
-    const matterId = selectedMatterId;
-    const currentItem = await readCurrentOutlookItem({ requireStableIdentity: true });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      throw actionContextChangedError();
-    }
+    const operationStartKey = beginOperation();
+    const sourceItem = await readCurrentOutlookItem({
+      requireStableIdentity: true,
+      canonicalIdentity: canonicalIdentityRef.current,
+    });
+    const {
+      currentItem,
+      matterId,
+      operationSnapshot,
+    } = await prepareMatterMutation({
+      currentItem: sourceItem,
+      operationStartKey,
+    });
     if (!isFiledEmailContextCurrent({ emailResult, currentItem, matterId })) {
       throw filedEmailDoesNotMatchError();
     }
@@ -1076,6 +1449,7 @@ function App() {
       ?? `thread:${currentItem.conversation_id}`;
     const dueAt = new Date(Date.now() + (24 * 60 * 60 * 1000))
       .toISOString();
+    assertOperationContextCurrent(operationSnapshot);
     const body = await requestJson("/api/outlook/followups", {
       method: "POST",
       body: {
@@ -1084,19 +1458,13 @@ function App() {
         title: "메일 검토 후 후속 조치",
         due_at: dueAt,
         source_email_thread_id: threadId,
+        canonical_graph_message_id:
+          currentItem.canonical_graph_message_id,
       },
     });
-    if (!isOutlookActionContextCurrent({
-      sourceItem: currentItem,
-      currentItem: officeItemSnapshot(),
-      sourceMatterId: matterId,
-      currentMatterId: selectedMatterIdRef.current,
-    })) {
-      await refreshMatter(matterId);
-      throw actionContextChangedError();
-    }
+    reconcileOperationReceipt(operationSnapshot, body, "create_followup");
     setFollowupResult(body);
-    await refreshMatter(matterId);
+    await refreshMatter(matterId, { operationSnapshot });
   }
 
   async function evaluateAlerts() {
@@ -1106,13 +1474,12 @@ function App() {
       method: "POST",
       body: { message: currentItem },
     });
-    if (!isSameOutlookItem(currentItem, officeItemSnapshot())) {
+    if (!isSameOutlookItem(currentItem, currentOfficeItemSnapshot())) {
       throw itemChangedDuringActionError();
     }
     setAlertResult(body);
   }
 
-  const selectedMatter = matters.find((matter) => matter.matter_id === selectedMatterId) ?? matters[0];
   const inquiryCopy = inquiryResult
     ? inquiryResultCopy(inquiryResult)
     : null;
@@ -1293,24 +1660,64 @@ function App() {
               <strong>Matter에 보관</strong>
               <span>선택한 Matter의 메일 기록에 보관합니다.</span>
             </div>
-            <label htmlFor="matter-select">보관할 Matter</label>
-            <select
-              id="matter-select"
-              value={selectedMatterId}
-              onChange={(event) => { void selectMatterAndRefresh(event.target.value); }}
-              disabled={!readyForBusiness || matters.length === 0 || busy !== ""}
-              data-testid="matter-select"
+            <button
+              id="matter-search-toggle"
+              className="secondary-button"
+              type="button"
+              onClick={() => {
+                if (matterSearchOpen) {
+                  closeMatterSearch();
+                } else {
+                  setMatterSearchOpen(true);
+                  setMatterSearchQuery("");
+                  setMatters([]);
+                }
+              }}
+              disabled={!readyForBusiness || !itemAvailable || busy !== ""}
+              aria-expanded={matterSearchOpen}
+              aria-controls="matter-search-controls"
+              data-testid="matter-search-toggle"
             >
-              {matters.length === 0
-                ? <option value="">선택할 Matter가 없습니다</option>
-                : matters.map((matter) => (
+              {matterSearchOpen ? "Matter 찾기 닫기" : "Matter 찾기"}
+            </button>
+            {matterSearchOpen ? (
+              <div id="matter-search-controls">
+                <label htmlFor="matter-search-input">Matter 검색</label>
+                <input
+                  id="matter-search-input"
+                  type="search"
+                  value={matterSearchQuery}
+                  onChange={handleMatterSearchQueryChange}
+                  placeholder="Matter 번호, 제목 또는 고객명"
+                  autoComplete="off"
+                  disabled={!readyForBusiness || busy !== ""}
+                  data-testid="matter-search-input"
+                />
+                <label htmlFor="matter-select">보관할 Matter</label>
+                <select
+                  id="matter-select"
+                  value={selectedMatterId}
+                  onChange={(event) => selectMatter(event.target.value)}
+                  disabled={!readyForBusiness || matters.length === 0 || busy !== ""}
+                  data-testid="matter-select"
+                >
+                  <option value="">Matter를 선택해 주세요</option>
+                  {matters.map((matter) => (
                   <option key={matter.matter_id} value={matter.matter_id}>
-                    {matter.lookup_label}
+                    {matter.matter_code
+                      ? `${matter.matter_code} — ${matter.title}`
+                      : matter.title}
                   </option>
-                ))}
-            </select>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <p className="field-note">
-              {selectedMatter?.client_display_name ?? "고객 정보 없음"}
+              {selectedMatter
+                ? [selectedMatter.matter_code, selectedMatter.title, selectedMatter.client_display_name]
+                    .filter(Boolean)
+                    .join(" · ")
+                : "선택한 Matter 없음"}
             </p>
             <button
               className="secondary-button"
@@ -1368,9 +1775,31 @@ function App() {
                   ? "보낸 메일을 Matter에 보관했습니다."
                   : "Matter에 보관했습니다."}
             </strong>
-            <span>{selectedMatter?.lookup_label ?? selectedMatterId}</span>
+            <span>{selectedMatter
+              ? [selectedMatter.matter_code, selectedMatter.title]
+                  .filter(Boolean)
+                  .join(" · ")
+              : selectedMatterId}</span>
           </div>
         </section>
+      ) : null}
+
+      {receiptRecovery ? (
+        <p
+          className="notice"
+          role="status"
+          aria-live="polite"
+          data-testid="outlook-receipt-recovery"
+          data-receipt-operation={receiptRecovery.operation}
+        >
+          {receiptRecovery.filing_mode === "sent"
+            ? receiptRecovery.outcome === "idempotent_replay"
+              ? "이미 보낸 메일을 Matter에 보관했습니다."
+              : "보낸 메일을 Matter에 보관했습니다."
+            : receiptRecovery.outcome === "idempotent_replay"
+              ? "이 Matter에 이미 처리된 기록이 있습니다."
+              : "이 Matter의 완료된 기록을 확인했습니다."}
+        </p>
       ) : null}
 
       <section className="pane-section">

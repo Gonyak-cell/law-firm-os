@@ -120,6 +120,7 @@ export function createDmsFileObject(input) {
   return freezeRecord({
     ...baseRecord("DmsFileObject", input),
     file_object_id: input.file_object_id,
+    ...(input.object_id ? { object_id: input.object_id } : {}),
     storage_pointer_ref: input.storage_pointer_ref,
     sha256: input.sha256,
     byte_size: input.byte_size,

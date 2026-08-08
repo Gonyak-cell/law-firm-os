@@ -10,6 +10,17 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function canonicalGraphMessageId(value) {
+  if (
+    typeof value !== "string"
+    || !value
+    || value !== value.trim()
+    || value.length > 2_048
+    || /[\u0000-\u001f\u007f]/u.test(value)
+  ) throw new TypeError("canonical_graph_message_id is required");
+  return value;
+}
+
 function messageText(value) {
   return typeof value === "string" && value.trim() ? value.trim() : "저장하지 못했습니다.";
 }
@@ -115,15 +126,24 @@ export async function saveOutlookAttachments({
   errorMessage = outlookActionErrorMessage,
   maxAttachmentBytes = MAX_OUTLOOK_ATTACHMENT_BYTES,
   allowAllFailedResult = false,
+  assertOperationCurrent = () => {},
+  onReceipt = () => {},
 } = {}) {
   if (typeof requestJson !== "function") {
     throw new TypeError("requestJson is required");
   }
+  if (
+    typeof assertOperationCurrent !== "function"
+    || typeof onReceipt !== "function"
+  ) throw new TypeError("operation callbacks are required");
 
   const item = currentItem && typeof currentItem === "object" ? currentItem : {};
   const attachmentLimit = Number.isSafeInteger(maxAttachmentBytes) && maxAttachmentBytes > 0
     ? Math.min(maxAttachmentBytes, MAX_OUTLOOK_ATTACHMENT_BYTES)
     : MAX_OUTLOOK_ATTACHMENT_BYTES;
+  const canonicalMessageId = canonicalGraphMessageId(
+    item.canonical_graph_message_id,
+  );
   const attachments = asArray(item.attachments);
   const unsupported = asArray(item.unsupported);
   const threadId = emailThreadId
@@ -143,21 +163,18 @@ export async function saveOutlookAttachments({
   // Keep every Lambda request below the existing broker envelope: one
   // attachment and at most 2 MiB of raw content per POST.
   for (const attachment of attachments) {
+    assertOperationCurrent();
+    let body;
     try {
-      const body = await requestJson(OUTLOOK_ATTACHMENT_SAVE_PATH, {
+      body = await requestJson(OUTLOOK_ATTACHMENT_SAVE_PATH, {
         method: "POST",
         body: {
           matter_id: matterId,
           email_thread_id: threadId,
+          canonical_graph_message_id: canonicalMessageId,
           selected_attachment_ids: [attachment.attachment_id],
           attachments: [attachment],
         },
-      });
-      saved.push({
-        attachment_id: attachment.attachment_id,
-        name: attachment.name,
-        outcome: body.outcome,
-        body,
       });
     } catch (nextError) {
       failed.push({
@@ -166,7 +183,15 @@ export async function saveOutlookAttachments({
         message: nextError?.user_message
           ?? errorMessage(nextError),
       });
+      continue;
     }
+    onReceipt(body);
+    saved.push({
+      attachment_id: attachment.attachment_id,
+      name: attachment.name,
+      outcome: body.outcome,
+      body,
+    });
   }
 
   if (!allowAllFailedResult && saved.length === 0 && failed.length > 0) {

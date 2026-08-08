@@ -94,15 +94,23 @@ export async function fileOutlookEmailWithAttachments({
   readAttachments,
   previousReceipt = null,
   errorMessage = outlookActionErrorMessage,
+  assertOperationCurrent = () => {},
+  onReceipt = () => {},
 } = {}) {
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
   if (typeof readAttachments !== "function") throw new TypeError("readAttachments is required");
+  if (
+    typeof assertOperationCurrent !== "function"
+    || typeof onReceipt !== "function"
+  ) throw new TypeError("operation callbacks are required");
   const nextMatterId = typeof matterId === "string" ? matterId.trim() : "";
   let emailReceipt = await fileOutlookEmail({
     matterId: nextMatterId,
     email,
     requestJson,
     priorAttachmentReceipts: priorTokens(previousReceipt),
+    assertOperationCurrent,
+    onReceipt,
   });
   const itemKey = emailReceipt.item_key;
   const retryIds = [...emailReceipt.attachment_state.retry_attachment_ids];
@@ -135,12 +143,19 @@ export async function fileOutlookEmailWithAttachments({
   let saved = { result: { saved_attachments: [], failed_attachments: [], request_count: 0 } };
   if (attachments.length > 0) {
     saved = await saveOutlookAttachments({
-      currentItem: { conversation_id: email.conversation_id, attachments, unsupported: [] },
+      currentItem: {
+        conversation_id: email.conversation_id,
+        canonical_graph_message_id: email.canonical_graph_message_id,
+        attachments,
+        unsupported: [],
+      },
       matterId: nextMatterId,
       emailThreadId: emailReceipt.email_thread_id,
       requestJson,
       errorMessage,
       allowAllFailedResult: true,
+      assertOperationCurrent,
+      onReceipt,
     });
   }
   const successfulTokens = array(saved.result?.saved_attachments)
@@ -154,6 +169,8 @@ export async function fileOutlookEmailWithAttachments({
       ...emailReceipt.attachment_state.receipts.map(({ receipt_ref, receipt_token }) => ({ receipt_ref, receipt_token })),
       ...successfulTokens,
     ],
+    assertOperationCurrent,
+    onReceipt,
   });
   return operationReceipt({
     matterId: nextMatterId,

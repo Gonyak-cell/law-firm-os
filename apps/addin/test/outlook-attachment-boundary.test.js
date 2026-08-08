@@ -8,7 +8,12 @@ import {
 
 function input(attachments) {
   return {
-    currentItem: { conversation_id: "conversation-001", attachments, unsupported: [] },
+    currentItem: {
+      conversation_id: "conversation-001",
+      canonical_graph_message_id: "immutable:conversation-001",
+      attachments,
+      unsupported: [],
+    },
     matterId: "matter-001",
     emailThreadId: "thread-001",
   };

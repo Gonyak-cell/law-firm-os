@@ -69,9 +69,16 @@ export async function fileOutlookEmail({
   mode = "manual",
   priorAttachmentReceipts,
   requestJson,
+  assertOperationCurrent = () => {},
+  onReceipt = () => {},
 } = {}) {
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
+  if (
+    typeof assertOperationCurrent !== "function"
+    || typeof onReceipt !== "function"
+  ) throw new TypeError("operation callbacks are required");
   const request = createOutlookFilingRequest({ matterId, email, mode, priorAttachmentReceipts });
+  assertOperationCurrent();
   const body = await requestJson(request.path, {
     method: request.method,
     body: request.body,
@@ -146,6 +153,7 @@ export async function fileOutlookEmail({
   ) {
     throw new TypeError("Outlook filing response is incomplete or mismatched");
   }
+  onReceipt(body);
   return Object.freeze({
     request_id: body.request_id,
     outcome,
