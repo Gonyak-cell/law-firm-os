@@ -24,7 +24,7 @@ export async function preparedRuntime({ filePath, connection = CONNECTION, adapt
   const ingested = [];
   const receipts = [];
   const adapter = adapterOverride ?? { createDraft: async () => ({ envelope_id: "envelope-001" }), send: async () => ({ status: "sent" }), getStatus: async () => ({ status: "delivered" }), async downloadDocument({ document_id }) { downloads.push(document_id); return Buffer.from(`provider-${document_id}-pdf`); } };
-  const artifactStore = artifactStoreOverride ?? { async readback() { return null; }, async ingest(input, options = {}) { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); ingested.push(input); return { document_id: `dms:${input.request_id}:${input.kind}`, version_id: `version:${input.request_id}:${input.kind}:1`, sha256: input.sha256, ...input, immutable: true }; } };
+  const artifactStore = artifactStoreOverride ?? { async readback() { return null; }, async ingest(input) { ingested.push(input); return { document_id: `dms:${input.request_id}:${input.kind}`, version_id: `version:${input.request_id}:${input.kind}:1`, sha256: input.sha256, ...input, immutable: true }; } };
   const receiptStore = receiptStoreOverride ?? { async put(input) { receipts.push(input); return { receipt_ref: `receipt:${input.sha256}`, sha256: input.sha256, immutable: true }; } };
   const connectionResolver = async () => connection;
   const outbox = createDocusignEnvelopeService({ repository, connectionResolver, approvedDocumentResolver: async () => approvedSource(), artifactReader: async (binding) => ({ ...binding, bytes: DOCUMENT_BYTES }), recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Test Signer", email: "signer@example.test" }), adapter, clock: () => now.value });

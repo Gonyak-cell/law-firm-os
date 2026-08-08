@@ -27,7 +27,7 @@ export function uploadDocument({
 
   return repository.transaction((tx) => {
     if (typeof beforePersist === "function") {
-      const result = beforePersist({ document, bytes, actor_id, idempotency_key });
+      const result = beforePersist({ phase: "before_storage", document, bytes, actor_id, idempotency_key });
       if (result && typeof result.then === "function") throw new TypeError("DMS beforePersist callback must be synchronous");
     }
     const version_id = document.current_version_id ?? `version:${document.document_id}:1`;

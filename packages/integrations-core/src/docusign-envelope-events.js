@@ -99,6 +99,7 @@ export function createDocusignEnvelopeEventService({
 } = {}) {
   requireDocusignRepository(repository);
   if (typeof connectionResolver !== "function") throw new TypeError("connectionResolver is required");
+  if (typeof approvedDocumentResolver !== "function") throw new TypeError("approvedDocumentResolver is required");
   if (typeof resolveSecret !== "function") throw new TypeError("resolveSecret is required");
   if (!adapter || typeof adapter.getStatus !== "function" || typeof adapter.downloadDocument !== "function") throw new TypeError("DocuSign status adapter is required");
   if (!receiptStore || typeof receiptStore.put !== "function") throw new TypeError("protected receiptStore is required");

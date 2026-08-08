@@ -163,7 +163,7 @@ test("OUTM-34 completion rejects a DMS readback whose permission or audit lineag
     connection: CONNECTION,
     adapter,
     approvedDocumentResolver: async () => SOURCE,
-    artifactStore: { async ingest(input, options = {}) { ingestCalls += 1; await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); return { ...input, document_id: "dms:forged", version_id: "version:forged", permission_envelope_id: "permission-forged", immutable: true }; } },
+    artifactStore: { async ingest(input) { ingestCalls += 1; return { ...input, document_id: "dms:forged", version_id: "version:forged", permission_envelope_id: "permission-forged", immutable: true }; } },
   }), (error) => error?.safe_error_code === "DOCUSIGN_COMPLETION_ARTIFACT_PENDING");
   assert.equal(ingestCalls, 1);
   assert.equal(repository.loadState().requests[0].completion_artifacts.signed_pdf, null);
@@ -191,7 +191,7 @@ test("OUTM-34 authority drift after provider download causes zero DMS writes", a
     connection: CONNECTION,
     adapter,
     approvedDocumentResolver: async () => SOURCE,
-    artifactStore: { async ingest(input, options = {}) { ingestCalls += 1; await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); return { ...input }; } },
+    artifactStore: { async ingest(input) { ingestCalls += 1; return { ...input }; } },
   });
   await downloadEntered;
   repository.transact({ tenant_id: TENANT }, (state) => {

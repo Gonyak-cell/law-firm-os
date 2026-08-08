@@ -83,7 +83,7 @@ async function readCurrentRequest(repository, request) {
 
 async function assertApprovedAuthority(current, approvedDocumentResolver) {
   const binding = authorityBinding(current);
-  if (typeof approvedDocumentResolver !== "function") return binding;
+  if (typeof approvedDocumentResolver !== "function") throw docusignFailure("DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED", "Approved document authority resolver is required", 503, true);
   const approvedSource = await approvedDocumentResolver({ ...binding });
   const bound = bindApprovedDocusignSource({ binding, source: approvedSource });
   if (bound.authority.permission_envelope_id !== binding.permission_envelope_id || bound.authority.audit_trace_id !== binding.audit_trace_id) throw docusignFailure("DOCUSIGN_APPROVED_SOURCE_MISMATCH", "Approved authority changed", 409);

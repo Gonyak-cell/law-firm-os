@@ -960,7 +960,7 @@ export function createPostgresDmsUploadRuntime({
       if (locked.staged_sha256 !== locked.expected_sha256 || locked.staged_byte_size !== locked.expected_byte_size) {
         throw codedError("DMS staged receipt changed before metadata commit", "DMS_STAGED_DIGEST_MISMATCH");
       }
-      if (typeof beforePersist === "function") await beforePersist({ phase: "before_metadata", session: locked });
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_metadata", session: locked, client });
       faultInjector?.("before_metadata_commit", { session_id: locked.session_id });
       stage = "DOCUMENT_UPSERT";
       await client.query(

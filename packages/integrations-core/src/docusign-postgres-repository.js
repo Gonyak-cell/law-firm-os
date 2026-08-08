@@ -5,6 +5,7 @@ import {
   docusignRequiredText,
   normalizeDocusignOutboxState,
 } from "./docusign-envelope-model.js";
+import { assertCompletionAuthority } from "./docusign-completion-authority.js";
 
 const REQUEST_SELECT = `SELECT request_data
   FROM lawos_integrations.docusign_requests
@@ -55,6 +56,19 @@ async function persistState(client, tenantId, state) {
   }
 }
 
+async function readCompletionAuthority(client, expected, lock = false) {
+  const tenantId = docusignRequiredText(expected?.tenant_id, "completion_authority.tenant_id");
+  const requestId = docusignRequiredText(expected?.request_id, "completion_authority.request_id");
+  const result = await client.query(
+    `SELECT request_data
+       FROM lawos_integrations.docusign_requests
+      WHERE tenant_id = $1 AND request_id = $2
+      ${lock ? "FOR UPDATE" : ""}`,
+    [tenantId, requestId],
+  );
+  return assertCompletionAuthority(expected, result.rows[0]?.request_data);
+}
+
 export function createPostgresDocusignEnvelopeRepository({ pool, transactionOptions = {} } = {}) {
   if (!pool || typeof pool.connect !== "function") throw new TypeError("PostgreSQL pool is required");
   const transaction = (tenantId, options, callback) => withPostgresTransaction(
@@ -91,6 +105,34 @@ export function createPostgresDocusignEnvelopeRepository({ pool, transactionOpti
         if ([400, 401, 403, 404, 409].includes(error?.status) || ["DOCUSIGN_SEND_LEASE_LOST", "DOCUSIGN_RECONCILIATION_LEASE_LOST", "DOCUSIGN_COMPLETION_FENCE_LOST"].includes(error?.safe_error_code)) throw error;
         throw docusignInfrastructureFailure("DOCUSIGN_REPOSITORY_UNAVAILABLE");
       }
+    },
+    async validateCompletionAuthority({ expected, client } = {}) {
+      const tenantId = docusignRequiredText(expected?.tenant_id, "completion_authority.tenant_id");
+      try {
+        if (client) return await readCompletionAuthority(client, expected, true);
+        return await transaction(tenantId, { isolationLevel: "serializable" }, (transactionClient) => readCompletionAuthority(transactionClient, expected, true));
+      } catch (error) {
+        if ([400, 401, 403, 404, 409].includes(error?.status)) throw error;
+        throw docusignInfrastructureFailure("DOCUSIGN_REPOSITORY_UNAVAILABLE");
+      }
+    },
+    async readCompletionAuthority({ expected, client } = {}) {
+      const tenantId = docusignRequiredText(expected?.tenant_id, "completion_authority.tenant_id");
+      try {
+        if (client) return await readCompletionAuthority(client, expected, false);
+        return await transaction(tenantId, { readOnly: true }, (transactionClient) => readCompletionAuthority(transactionClient, expected, false));
+      } catch (error) {
+        if ([400, 401, 403, 404, 409].includes(error?.status)) throw error;
+        throw docusignInfrastructureFailure("DOCUSIGN_REPOSITORY_UNAVAILABLE");
+      }
+    },
+    async withCompletionAuthority({ expected } = {}, callback) {
+      if (typeof callback !== "function") throw new TypeError("completion authority callback is required");
+      const tenantId = docusignRequiredText(expected?.tenant_id, "completion_authority.tenant_id");
+      return transaction(tenantId, { isolationLevel: "serializable" }, async (client) => {
+        const request = await readCompletionAuthority(client, expected, true);
+        return callback(Object.freeze({ request, client }));
+      });
     },
   });
 }

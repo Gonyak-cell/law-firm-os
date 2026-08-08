@@ -47,7 +47,7 @@ test("OUTM-34 declined and voided states are terminal against later delivery or 
 
 test("OUTM-34 provider time and sequence reject older terminal events without overwriting completion-pending", async () => {
   let rejectCertificate = true;
-  const runtime = await preparedRuntime({ artifactStore: { async readback() { return null; }, async ingest(input, options = {}) { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); if (input.kind === "certificate" && rejectCertificate) throw new Error("synthetic DMS outage"); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}`, sha256: input.sha256, ...input, immutable: true }; } } });
+  const runtime = await preparedRuntime({ artifactStore: { async readback() { return null; }, async ingest(input) { if (input.kind === "certificate" && rejectCertificate) throw new Error("synthetic DMS outage"); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}`, sha256: input.sha256, ...input, immutable: true }; } } });
   await webhook(runtime.events, connectBody({ status: "delivered", occurred_at: "2026-08-08T01:08:00.000Z", sequence: 8 }));
   await assert.rejects(webhook(runtime.events, connectBody({ status: "completed", occurred_at: "2026-08-08T01:10:00.000Z", sequence: 10 })), (error) => error?.safe_error_code === "DOCUSIGN_COMPLETION_ARTIFACT_PENDING");
   assert.equal(runtime.repository.loadState().requests[0].state, "completed_artifacts_pending");

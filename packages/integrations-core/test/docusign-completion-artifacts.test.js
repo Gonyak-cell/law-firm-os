@@ -17,7 +17,7 @@ test("OUTM-34 completes only after combined PDF and certificate are separately i
 test("OUTM-34 remains artifacts-pending on partial DMS failure and retries only the missing artifact", async () => {
   let failCertificate = true;
   const ingested = [];
-  const artifactStore = { async readback() { return null; }, async ingest(input, options = {}) { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); ingested.push(input.kind); if (input.kind === "certificate" && failCertificate) throw new Error("simulated DMS outage"); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}:1`, sha256: input.sha256, ...input, immutable: true }; } };
+  const artifactStore = { async readback() { return null; }, async ingest(input) { ingested.push(input.kind); if (input.kind === "certificate" && failCertificate) throw new Error("simulated DMS outage"); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}:1`, sha256: input.sha256, ...input, immutable: true }; } };
   const runtime = await preparedRuntime({ artifactStore });
   const body = connectBody({ status: "completed" });
   await assert.rejects(webhook(runtime.events, body), (error) => error?.status === 503 && error?.safe_error_code === "DOCUSIGN_COMPLETION_ARTIFACT_PENDING" && error?.request?.state === "completed_artifacts_pending");
@@ -47,8 +47,7 @@ test("OUTM-34 concurrent completion polls have one durable ingest winner per req
   const ingested = [];
   let first = true;
   const artifactStore = {
-    async ingest(input, options = {}) {
-      await options.validateAuthority?.({ phase: "fixture_dms_ingest" });
+    async ingest(input) {
       ingested.push(input.kind);
       if (first) { first = false; entered(); await releasePromise; }
       return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}:1`, sha256: input.sha256, ...input, immutable: true };
@@ -78,7 +77,7 @@ test("OUTM-34 expired completion takeover reads deterministic DMS correlation be
       const documentId = `docusign-completion:${input.request_id}:signed_pdf`;
       return { document_id: documentId, version_id: `version:${documentId}:1`, sha256: signedSha, tenant_id: input.tenant_id, matter_id: input.matter_id, workspace_id: input.workspace_id, permission_envelope_id: input.permission_envelope_id, audit_trace_id: input.audit_trace_id, request_id: input.request_id, envelope_id: input.envelope_id, immutable: true };
     },
-    async ingest(input, options = {}) { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); ingested.push(input.kind); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}`, sha256: input.sha256, ...input, immutable: true }; },
+    async ingest(input) { ingested.push(input.kind); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}`, sha256: input.sha256, ...input, immutable: true }; },
   };
   const runtime = await preparedRuntime({ artifactStore });
   runtime.repository.transact({ tenant_id: "tenant-amic" }, (state) => {

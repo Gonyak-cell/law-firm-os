@@ -14,4 +14,5 @@ export * from "./docusign-approved-matter-source.js";
 export * from "./docusign-envelope-outbox.js";
 export * from "./docusign-envelope-events.js";
 export * from "./docusign-envelope-authority.js";
+export * from "./docusign-completion-authority.js";
 export * from "./docusign-postgres-repository.js";
