@@ -1,5 +1,6 @@
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import {
+  cleanupStorageBody,
   readStorageBodyBounded,
   storageObjectTooLargeError,
   storageReadLimit,
@@ -24,7 +25,14 @@ export async function readFileCommittedObjectBounded({
   if (declaredSize > limit) {
     throw storageObjectTooLargeError({ max_bytes: limit, observed_byte_size: declaredSize });
   }
-  const observed = await readStorageBodyBounded(createReadStream(paths.bytesPath), { max_bytes: limit });
+  const body = createReadStream(paths.bytesPath);
+  let observed;
+  try {
+    observed = await readStorageBodyBounded(body, { max_bytes: limit });
+  } catch (error) {
+    await cleanupStorageBody(body, error);
+    throw error;
+  }
   const metadata = existsSync(paths.metadataPath)
     ? JSON.parse(readFileSync(paths.metadataPath, "utf8"))
     : {};

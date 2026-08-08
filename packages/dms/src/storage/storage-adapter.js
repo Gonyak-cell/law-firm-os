@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 
 export {
   DMS_STORAGE_OBJECT_TOO_LARGE,
+  DMS_STORAGE_BODY_UNBOUNDED,
   abortStorageBody,
   cleanupStorageBody,
   readStorageBodyBounded,
-  safelyRunStorageCleanup,
   storageObjectTooLargeError,
   storageReadLimit,
 } from "./bounded-storage-read.js";

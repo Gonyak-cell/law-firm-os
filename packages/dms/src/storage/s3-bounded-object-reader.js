@@ -2,7 +2,6 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import {
   abortStorageBody,
   readStorageBodyBounded,
-  safelyRunStorageCleanup,
   storageObjectTooLargeError,
   storageReadLimit,
 } from "./bounded-storage-read.js";
@@ -33,34 +32,64 @@ function responseLength(response) {
   return byteSize;
 }
 
+function sizeEvidence(error, { declared, providerDeclared, observed = 0 } = {}) {
+  if (Number.isSafeInteger(declared)) error.declared_byte_size = declared;
+  if (Number.isSafeInteger(providerDeclared)) error.provider_declared_byte_size = providerDeclared;
+  if (Number.isSafeInteger(observed)) error.observed_byte_size = observed;
+  return error;
+}
+
 function validateRangedResponse(response, { declared, declaredMetadata, limit }) {
   const range = parseContentRange(response.ContentRange);
   const contentLength = responseLength(response);
-  if (range.start !== 0 || range.end > limit || (contentLength !== null && contentLength > limit + 1)) {
-    throw codedError("S3 provider exceeded the requested byte range", "DMS_S3_RANGE_INVALID");
+  if (contentLength === null) {
+    throw sizeEvidence(
+      codedError("S3 ranged response must declare ContentLength", "DMS_S3_RANGE_INVALID"),
+      { declared: declared.byte_size },
+    );
   }
-  if (contentLength !== null && contentLength !== range.byte_size) {
-    throw codedError("S3 ranged response length does not match ContentRange", "DMS_S3_RANGE_INVALID");
+  if (range.start !== 0 || range.end > limit || contentLength > limit + 1) {
+    throw sizeEvidence(
+      codedError("S3 provider exceeded the requested byte range", "DMS_S3_RANGE_INVALID"),
+      { declared: declared.byte_size, providerDeclared: Math.max(range.byte_size, contentLength) },
+    );
+  }
+  if (contentLength !== range.byte_size) {
+    throw sizeEvidence(
+      codedError("S3 ranged response length does not match ContentRange", "DMS_S3_RANGE_INVALID"),
+      { declared: declared.byte_size, providerDeclared: contentLength },
+    );
   }
   const responseMetadata = response.Metadata ?? {};
   const metadataSize = Number(responseMetadata["lawos-byte-size"]);
-  const impliedSizes = [range.byte_size, contentLength, range.total, metadataSize]
-    .filter((value) => value !== null && value !== undefined && Number.isSafeInteger(value));
-  if (impliedSizes.some((value) => value > limit)) {
-    throw storageObjectTooLargeError({ max_bytes: limit, observed_byte_size: limit + 1 });
-  }
   if (!Number.isSafeInteger(metadataSize) || metadataSize < 0) {
     throw codedError("S3 object byte-size metadata is invalid", "DMS_S3_METADATA_INVALID");
   }
+  const impliedSizes = [range.byte_size, contentLength, range.total, metadataSize]
+    .filter((value) => value !== null && value !== undefined);
+  const providerDeclared = Math.max(...impliedSizes);
+  if (providerDeclared > limit) {
+    throw storageObjectTooLargeError({
+      max_bytes: limit,
+      declared_byte_size: providerDeclared,
+      observed_byte_size: 0,
+    });
+  }
   for (const field of ["lawos-tenant-ref", "lawos-object-ref", "lawos-sha256"]) {
     if (responseMetadata[field] !== declaredMetadata?.[field]) {
-      throw codedError("S3 committed object metadata changed during bounded read", "DMS_COMMITTED_DIGEST_MISMATCH");
+      throw sizeEvidence(
+        codedError("S3 committed object metadata changed during bounded read", "DMS_COMMITTED_DIGEST_MISMATCH"),
+        { declared: declared.byte_size, providerDeclared },
+      );
     }
   }
   if (metadataSize !== declared.byte_size
       || range.byte_size !== declared.byte_size
       || (range.total !== null && range.total !== declared.byte_size)) {
-    throw codedError("S3 committed object size changed during bounded read", "DMS_COMMITTED_DIGEST_MISMATCH");
+    throw sizeEvidence(
+      codedError("S3 committed object size changed during bounded read", "DMS_COMMITTED_DIGEST_MISMATCH"),
+      { declared: declared.byte_size, providerDeclared },
+    );
   }
   return Object.freeze({ mime_type: response.ContentType ?? declared.mime_type });
 }
@@ -79,7 +108,28 @@ export async function readS3CommittedObjectBounded({
 } = {}) {
   const limit = storageReadLimit(max_bytes);
   if (declared.byte_size > limit) {
-    throw storageObjectTooLargeError({ max_bytes: limit, observed_byte_size: declared.byte_size });
+    throw storageObjectTooLargeError({
+      max_bytes: limit,
+      declared_byte_size: declared.byte_size,
+      observed_byte_size: 0,
+    });
+  }
+  if (declared.byte_size === 0) {
+    const observed = await readStorageBodyBounded(Buffer.alloc(0), { max_bytes: 0 });
+    if (observed.sha256 !== declared.sha256) {
+      throw sizeEvidence(
+        codedError("S3 empty object metadata has an invalid digest", "DMS_COMMITTED_DIGEST_MISMATCH"),
+        { declared: 0, observed: 0 },
+      );
+    }
+    return Object.freeze({
+      adapter_id,
+      tenant_id,
+      object_id,
+      ...observed,
+      declared_sha256: declared.sha256,
+      mime_type: declared.mime_type,
+    });
   }
   const abortController = new AbortController();
   let response;
@@ -104,17 +154,20 @@ export async function readS3CommittedObjectBounded({
       limit,
     });
   } catch (error) {
-    abortStorageBody(response.Body, abortController, error);
+    await abortStorageBody(response.Body, abortController, error);
     throw error;
   }
   let observed;
   try {
     observed = await readStorageBodyBounded(response.Body ?? Buffer.alloc(0), {
       max_bytes: limit,
-      onOverflow: (error) => safelyRunStorageCleanup(() => abortController.abort(error)),
     });
   } catch (error) {
-    abortStorageBody(response.Body, abortController, error);
+    sizeEvidence(error, {
+      declared: declared.byte_size,
+      observed: Number.isSafeInteger(error?.observed_byte_size) ? error.observed_byte_size : 0,
+    });
+    await abortStorageBody(response.Body, abortController, error);
     throw error;
   }
   if (observed.byte_size !== declared.byte_size || observed.sha256 !== declared.sha256) {
@@ -122,7 +175,8 @@ export async function readS3CommittedObjectBounded({
       "S3 committed object metadata does not match observed bytes",
       "DMS_COMMITTED_DIGEST_MISMATCH",
     );
-    abortStorageBody(response.Body, abortController, error);
+    sizeEvidence(error, { declared: declared.byte_size, observed: observed.byte_size });
+    await abortStorageBody(response.Body, abortController, error);
     throw error;
   }
   return Object.freeze({

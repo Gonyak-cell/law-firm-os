@@ -1,58 +1,25 @@
-import { existsSync, lstatSync, readFileSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { fsyncDirectory, writeBinaryFileDurably } from "../../../persistence/src/durable-file.js";
+import { writeBinaryFileDurably } from "../../../persistence/src/durable-file.js";
 import {
   DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
   assertTenantId,
-  createOpaqueStorageKey,
   createStagingReceipt,
   createStorageReceipt,
   sha256Hex,
 } from "./storage-adapter.js";
 import { readFileCommittedObjectBounded } from "./file-bounded-object-reader.js";
+import {
+  assertNotSymlink,
+  assertSafePaths,
+  filesFor,
+  removeFiles,
+  stagedFilesFor,
+} from "./file-storage-paths.js";
 
 function requireString(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
   return value.trim();
-}
-
-function filesFor(rootPath, tenant_id, object_id) {
-  const key = createOpaqueStorageKey({ tenant_id, object_id });
-  return {
-    bytesPath: path.join(rootPath, `${key}.bin`),
-    metadataPath: path.join(rootPath, `${key}.json`),
-  };
-}
-
-function stagedFilesFor(rootPath, tenant_id, session_id, object_id) {
-  const key = createOpaqueStorageKey({ tenant_id, session_id, object_id });
-  const stagingRoot = path.join(rootPath, ".staging");
-  return {
-    bytesPath: path.join(stagingRoot, `${key}.bin`),
-    metadataPath: path.join(stagingRoot, `${key}.json`),
-  };
-}
-
-function removeFiles(paths) {
-  let deleted = false;
-  for (const filePath of [paths.bytesPath, paths.metadataPath]) {
-    if (!existsSync(filePath)) continue;
-    unlinkSync(filePath);
-    fsyncDirectory(path.dirname(filePath));
-    deleted = true;
-  }
-  return deleted;
-}
-
-function assertNotSymlink(filePath, label) {
-  if (existsSync(filePath) && lstatSync(filePath).isSymbolicLink()) {
-    throw codedError(`${label} must not be a symlink`, "DMS_STORAGE_SYMLINK_REJECTED");
-  }
-}
-
-function assertSafePaths(paths) {
-  assertNotSymlink(paths.bytesPath, "storage bytes path");
-  assertNotSymlink(paths.metadataPath, "storage metadata path");
 }
 
 function codedError(message, code) {
