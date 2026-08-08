@@ -1,11 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { normalizeDocusignConnection } from "./docusign-envelope-adapter.js";
 import {
+  DOCUSIGN_PROVIDER_STATUS_STATES,
+  projectDocusignProviderEvent,
+} from "./docusign-event-model.js";
+import {
   docusignAccountBindingRef,
   docusignFailure,
   docusignInfrastructureFailure,
   docusignNow,
   docusignRequiredText,
+  docusignTimestamp,
   normalizeDocusignAuditLineage,
   normalizeDocusignPrincipal,
   projectDocusignRequestSafe,
@@ -15,8 +20,6 @@ const RECONCILIATION_LEASE_MS = 2 * 60 * 1000;
 const RECONCILIATION_TIMEOUT_MS = 30 * 1000;
 const RECONCILIATION_TIMEOUT_MARGIN_MS = 1 * 1000;
 const RECONCILABLE_STATES = new Set(["reconciliation_required", "draft_created", "sent", "delivered", "completed_artifacts_pending"]);
-const STATE_RANK = Object.freeze({ approved: 1, provider_pending: 2, reconciliation_required: 2, draft_created: 3, sent: 4, delivered: 5, completed_artifacts_pending: 6, completed: 7, declined: 8, voided: 8, provider_blocked: 9 });
-const PROVIDER_STATE = Object.freeze({ created: "draft_created", draft: "draft_created", draft_created: "draft_created", sent: "sent", delivered: "delivered", completed: "completed_artifacts_pending", declined: "declined", voided: "voided" });
 
 function indexOf(state, tenantId, requestId) {
   return state.requests.findIndex((request) => request.tenant_id === tenantId && request.request_id === requestId);
@@ -27,22 +30,16 @@ function nextGeneration(request) {
   return Number.isSafeInteger(generation) && generation >= 0 ? generation + 1 : 1;
 }
 
-function providerState(found) {
-  const status = docusignRequiredText(found?.status ?? "created", "provider status").toLowerCase();
-  const state = PROVIDER_STATE[status];
-  if (!state) throw docusignFailure("DOCUSIGN_PROVIDER_STATUS_UNSUPPORTED", "Provider status cannot be reconciled", 409);
-  return { status, state };
-}
-
-async function callWithDeadline(operation, lease, clock) {
+// The official callback SDK does not expose a transport abort. Bound the
+// caller and recover any remote completion by its durable correlation ref.
+async function callWithCallerDeadline(operation, lease, clock) {
   const remaining = Date.parse(lease.expires_at) - Date.parse(docusignNow(clock)) - RECONCILIATION_TIMEOUT_MARGIN_MS;
   const timeoutMs = Math.max(1, Math.min(RECONCILIATION_TIMEOUT_MS, remaining));
-  const controller = typeof AbortController === "function" ? new AbortController() : null;
   let timer;
-  const providerPromise = Promise.resolve().then(() => operation({ signal: controller?.signal, timeout_ms: timeoutMs }));
+  const providerPromise = Promise.resolve().then(() => operation({ caller_timeout_ms: timeoutMs }));
   providerPromise.catch(() => {});
   const timeoutPromise = new Promise((_, reject) => {
-    timer = setTimeout(() => { controller?.abort(); reject(Object.assign(new Error("DocuSign reconciliation deadline exceeded"), { provider_status: 408 })); }, timeoutMs);
+    timer = setTimeout(() => { reject(Object.assign(new Error("DocuSign reconciliation caller deadline exceeded; correlation recovery is required"), { provider_status: 408, caller_timeout: true })); }, timeoutMs);
   });
   try { return await Promise.race([providerPromise, timeoutPromise]); } finally { clearTimeout(timer); }
 }
@@ -104,32 +101,46 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
       const connection = normalizeDocusignConnection(await connectionResolver({ tenant_id: request.tenant_id, connection_id: request.connection_id }));
       if (connection.tenant_id !== request.tenant_id || connection.connection_id !== request.connection_id || docusignAccountBindingRef(connection) !== request.account_binding_ref) throw docusignFailure("DOCUSIGN_ACCOUNT_BINDING_CHANGED", "DocuSign account binding changed", 409);
       const correlationRef = request.provider_operation?.correlation_ref ?? request.provider_correlation_ref;
-      const found = await callWithDeadline((options) => adapter.findByCorrelation({ connection, provider_correlation_ref: correlationRef, ...options }), request.operation_lease, clock);
+      const found = await callWithCallerDeadline((options) => adapter.findByCorrelation({ connection, provider_correlation_ref: correlationRef, ...options }), request.operation_lease, clock);
       const envelopeId = docusignRequiredText(found?.envelope_id, "provider envelope_id");
       if (found?.provider_correlation_ref !== correlationRef || found?.account_id !== connection.account_id || (found?.tenant_id != null && found.tenant_id !== connection.tenant_id) || (request.envelope_id != null && request.envelope_id !== envelopeId)) {
         throw docusignFailure("DOCUSIGN_RECONCILIATION_BINDING_INVALID", "Provider correlation did not match the request", 409);
       }
-      const { status, state: providerTarget } = providerState(found);
-      const currentRank = STATE_RANK[request.state] ?? -1;
-      const targetRank = STATE_RANK[providerTarget] ?? -1;
-      const effectiveState = targetRank < currentRank ? request.state : providerTarget;
-      const effectiveStatus = targetRank < currentRank ? (request.last_provider_status ?? status) : status;
-      const wasConverged = request.state === effectiveState && request.envelope_id === envelopeId && request.last_provider_status === effectiveStatus;
+      const status = docusignRequiredText(found?.status ?? "created", "provider status").toLowerCase();
+      if (!DOCUSIGN_PROVIDER_STATUS_STATES[status]) throw docusignFailure("DOCUSIGN_PROVIDER_STATUS_UNSUPPORTED", "Provider status cannot be reconciled", 409);
+      const occurredAt = found?.occurred_at ? docusignTimestamp(found.occurred_at, "provider occurred_at") : request.provider_cursor?.occurred_at ?? docusignNow(clock);
+      const observedSequence = found?.sequence ?? ((request.provider_cursor?.sequence ?? -1) + 1);
+      const projected = projectDocusignProviderEvent(
+        { ...request, envelope_id: envelopeId },
+        {
+          status,
+          envelope_id: envelopeId,
+          occurred_at: occurredAt,
+          sequence: observedSequence,
+        },
+        docusignNow(clock),
+      );
+      const wasConverged = !projected.changed && request.envelope_id === envelopeId;
       request = await updateLease(principal.tenant_id, requestId, claimed.token, claimed.generation, (fresh) => {
-        const currentRank = STATE_RANK[fresh.state] ?? -1;
-        const targetRank = STATE_RANK[providerTarget] ?? -1;
-        const nextState = targetRank < currentRank ? fresh.state : providerTarget;
-        const nextStatus = targetRank < currentRank ? (fresh.last_provider_status ?? status) : status;
-        const moved = nextState !== fresh.state || fresh.envelope_id !== envelopeId || fresh.last_provider_status !== nextStatus;
+        const nextProjected = projectDocusignProviderEvent(
+          { ...fresh, envelope_id: envelopeId },
+          {
+            status,
+            envelope_id: envelopeId,
+            occurred_at: found?.occurred_at ? occurredAt : fresh.provider_cursor?.occurred_at ?? docusignNow(clock),
+            sequence: found?.sequence ?? ((fresh.provider_cursor?.sequence ?? -1) + 1),
+          },
+          docusignNow(clock),
+        );
+        const next = nextProjected.request;
+        const moved = nextProjected.changed || fresh.envelope_id !== envelopeId;
         const lineage = moved
           ? normalizeDocusignAuditLineage([...(fresh.audit_lineage ?? []), { event: `provider_reconciled:${status}`, audit_trace_id: fresh.document.audit_trace_id, actor_id: fresh.requested_by_actor_id, occurred_at: docusignNow(clock) }])
           : fresh.audit_lineage;
         return {
-          ...fresh,
-          state: nextState,
+          ...next,
           envelope_id: envelopeId,
-          attempt_phase: nextState === "draft_created" ? "ready_to_send" : nextState,
-          last_provider_status: nextStatus,
+          attempt_phase: next.state === "draft_created" ? "ready_to_send" : next.attempt_phase,
           last_safe_error_code: null,
           operation_lease: null,
           provider_operation: null,

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { DOCUSIGN_CONNECT_SIGNATURE_HEADER, createDocusignEnvelopeEventService, createDocusignEnvelopeRepository } from "../src/index.js";
-import { connectBody, CONNECTION, preparedRuntime, SECRET, signature, webhook } from "./docusign-events-fixtures.js";
+import { approvedSource, connectBody, CONNECTION, preparedRuntime, SECRET, signature, webhook } from "./docusign-events-fixtures.js";
 
 test("OUTM-34 verifies HMAC against exact raw bytes before receipt or projection mutation", async () => {
   const runtime = await preparedRuntime();
@@ -55,13 +55,13 @@ test("OUTM-34 rejects a same-account cross-envelope locator before receipt, proj
     const requestB = { ...requestA, request_id: "esign-request-002", envelope_id: "envelope-002", idempotency_key: "esign-send-002", payload_sha256: "c".repeat(64), provider_correlation_ref: "docusign-correlation:esign-request-002", event_hashes: [] };
     runtime.repository.replaceState({ ...state, requests: [requestA, requestB] });
     const resolver = async () => runtime.repository.loadState().requests[1];
-    const events = createDocusignEnvelopeEventService({ repository: runtime.repository, connectionResolver: async () => CONNECTION, webhookRequestResolver: resolver, resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null, adapter: runtime.adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, clock: () => runtime.now.value });
+    const events = createDocusignEnvelopeEventService({ repository: runtime.repository, connectionResolver: async () => CONNECTION, webhookRequestResolver: resolver, resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null, adapter: runtime.adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, approvedDocumentResolver: async () => approvedSource(), clock: () => runtime.now.value });
     const before = runtime.repository.loadState();
     await assert.rejects(webhook(events, connectBody({ status: "delivered", envelope_id: "envelope-001" })), (error) => error?.safe_error_code === "DOCUSIGN_WEBHOOK_REJECTED" && error?.status === 401);
     assert.deepEqual(runtime.repository.loadState(), before);
     assert.equal(runtime.receipts.length, 0);
     const reopened = createDocusignEnvelopeRepository({ filePath });
-    const restarted = createDocusignEnvelopeEventService({ repository: reopened, connectionResolver: async () => CONNECTION, webhookRequestResolver: resolver, resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null, adapter: runtime.adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, clock: () => runtime.now.value });
+    const restarted = createDocusignEnvelopeEventService({ repository: reopened, connectionResolver: async () => CONNECTION, webhookRequestResolver: resolver, resolveSecret: async ({ ref }) => ref === CONNECTION.hmac_secret_ref ? SECRET : null, adapter: runtime.adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, approvedDocumentResolver: async () => approvedSource(), clock: () => runtime.now.value });
     await assert.rejects(webhook(restarted, connectBody({ status: "delivered", envelope_id: "envelope-001" })), (error) => error?.safe_error_code === "DOCUSIGN_WEBHOOK_REJECTED" && error?.status === 401);
     assert.deepEqual(reopened.loadState(), before);
   } finally { rmSync(dir, { recursive: true, force: true }); }

@@ -116,7 +116,7 @@ test("OUTM-34 durable CAS poll slot lets Promise.all call provider once per 15 m
   };
   const makeEvents = (repository) => createDocusignEnvelopeEventService({
     repository, adapter, connectionResolver: async () => CONNECTION, resolveSecret: async () => "unused",
-    receiptStore: { put: async () => ({}) }, artifactStore: { ingest: async () => ({}) },
+    receiptStore: { put: async () => ({}) }, artifactStore: { ingest: async (input, options = {}) => { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); return { ...input }; } }, approvedDocumentResolver: async () => SOURCE,
     clock: () => "2026-08-08T04:05:00.000Z",
   });
   const firstPoll = makeEvents(repositoryA).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-a" }, request_id: "request-concurrency" });

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { DOCUSIGN_MIN_POLL_INTERVAL_MS, createDocusignEnvelopeEventService, createDocusignEnvelopeRepository, createDocusignWebhookReceiptStore } from "../src/index.js";
-import { connectBody, CONNECTION, preparedRuntime, SECRET, TENANT, webhook } from "./docusign-events-fixtures.js";
+import { approvedSource, connectBody, CONNECTION, preparedRuntime, SECRET, TENANT, webhook } from "./docusign-events-fixtures.js";
 
 test("OUTM-34 poll guard survives repository restart and never polls more often than 15 minutes", async () => {
   const dir = mkdtempSync(join(tmpdir(), "outm34-poll-"));
@@ -21,7 +21,7 @@ test("OUTM-34 poll guard survives repository restart and never polls more often 
     assert.equal(calls, 1);
     now.value = new Date(Date.parse("2026-08-08T01:00:00.000Z") + DOCUSIGN_MIN_POLL_INTERVAL_MS).toISOString();
     const reopenedRepository = createDocusignEnvelopeRepository({ filePath });
-    runtime = { ...runtime, events: createDocusignEnvelopeEventService({ repository: reopenedRepository, connectionResolver: async () => CONNECTION, resolveSecret: async () => SECRET, adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, clock: () => now.value }) };
+    runtime = { ...runtime, events: createDocusignEnvelopeEventService({ repository: reopenedRepository, connectionResolver: async () => CONNECTION, resolveSecret: async () => SECRET, adapter, receiptStore: runtime.receiptStore, artifactStore: runtime.artifactStore, approvedDocumentResolver: async () => approvedSource(), clock: () => now.value }) };
     const afterRestart = await runtime.events.pollRequest({ principal: { tenant_id: TENANT, actor_id: "scheduler" }, request_id: "esign-request-001" });
     assert.deepEqual([calls, afterRestart.request.state], [2, "delivered"]);
   } finally { rmSync(dir, { recursive: true, force: true }); }
@@ -47,7 +47,7 @@ test("OUTM-34 declined and voided states are terminal against later delivery or 
 
 test("OUTM-34 provider time and sequence reject older terminal events without overwriting completion-pending", async () => {
   let rejectCertificate = true;
-  const runtime = await preparedRuntime({ artifactStore: { async ingest(input) { if (input.kind === "certificate" && rejectCertificate) throw new Error("synthetic DMS outage"); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}`, sha256: input.sha256, ...input, immutable: true }; } } });
+  const runtime = await preparedRuntime({ artifactStore: { async readback() { return null; }, async ingest(input, options = {}) { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); if (input.kind === "certificate" && rejectCertificate) throw new Error("synthetic DMS outage"); return { document_id: `dms:${input.kind}`, version_id: `version:${input.kind}`, sha256: input.sha256, ...input, immutable: true }; } } });
   await webhook(runtime.events, connectBody({ status: "delivered", occurred_at: "2026-08-08T01:08:00.000Z", sequence: 8 }));
   await assert.rejects(webhook(runtime.events, connectBody({ status: "completed", occurred_at: "2026-08-08T01:10:00.000Z", sequence: 10 })), (error) => error?.safe_error_code === "DOCUSIGN_COMPLETION_ARTIFACT_PENDING");
   assert.equal(runtime.repository.loadState().requests[0].state, "completed_artifacts_pending");
@@ -64,6 +64,34 @@ test("OUTM-34 a valid newer terminal may end only a non-terminal request; first 
   assert.equal((await webhook(runtime.events, connectBody({ status: "delivered", occurred_at: "2026-08-08T01:05:00.000Z", sequence: 5 }))).request.state, "delivered");
   assert.equal((await webhook(runtime.events, connectBody({ status: "declined", occurred_at: "2026-08-08T01:06:00.000Z", sequence: 6 }))).request.state, "declined");
   assert.equal((await webhook(runtime.events, connectBody({ status: "voided", occurred_at: "2026-08-08T01:07:00.000Z", sequence: 7 }))).request.state, "declined");
+});
+
+test("OUTM-34 reconciliation uses the webhook first-terminal lattice for every terminal pair", async () => {
+  const providerStatuses = ["declined", "voided", "created", "sent", "delivered", "completed"];
+  for (const localState of ["completed_artifacts_pending", "completed", "declined", "voided"]) {
+    for (const providerStatus of providerStatuses) {
+      let findCalls = 0;
+      const adapter = {
+        createDraft: async () => ({ envelope_id: "envelope-001" }),
+        send: async () => ({ status: "sent" }),
+        getStatus: async () => ({ status: "delivered" }),
+        downloadDocument: async () => Buffer.from("unused"),
+        async findByCorrelation({ provider_correlation_ref }) { findCalls += 1; return { envelope_id: "envelope-001", provider_correlation_ref, account_id: CONNECTION.account_id, status: providerStatus, occurred_at: "2026-08-08T03:00:00.000Z", sequence: 20 }; },
+      };
+      const runtime = await preparedRuntime({ adapter });
+      runtime.repository.transact({ tenant_id: TENANT }, (state) => {
+        const request = state.requests[0];
+        const artifacts = localState === "completed"
+          ? { signed_pdf: { document_id: "dms:signed", version_id: "version:signed", sha256: "a".repeat(64), permission_envelope_id: request.document.permission_envelope_id, audit_trace_id: request.document.audit_trace_id, immutable: true }, certificate: { document_id: "dms:certificate", version_id: "version:certificate", sha256: "b".repeat(64), permission_envelope_id: request.document.permission_envelope_id, audit_trace_id: request.document.audit_trace_id, immutable: true } }
+          : { signed_pdf: null, certificate: null };
+        state.requests[0] = { ...request, state: localState, attempt_phase: localState === "completed_artifacts_pending" ? "completed_pending" : localState, completion_artifacts: artifacts, operation_lease: null, provider_operation: null };
+      });
+      const result = await runtime.outbox.reconcileRequest({ principal: { tenant_id: TENANT, actor_id: "actor-owner" }, request_id: "esign-request-001", explicit_human_action: true });
+      assert.equal(result.request.state, localState);
+      if (localState === "completed_artifacts_pending") assert.equal(findCalls, 1);
+      else assert.equal(findCalls, 0);
+    }
+  }
 });
 
 test("OUTM-34 protected receipt store is content-addressed and rejects a storage hash mismatch", async () => {

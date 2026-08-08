@@ -5,12 +5,13 @@ import { docusignFailure, docusignRequiredText, docusignTimestamp } from "./docu
 export const DOCUSIGN_CONNECT_SIGNATURE_HEADER = "x-docusign-signature-1";
 export const DOCUSIGN_MIN_POLL_INTERVAL_MS = 15 * 60 * 1000;
 
-const STATUS_STATE = Object.freeze({
-  created: "draft_created", sent: "sent", delivered: "delivered",
-  completed: "completed_artifacts_pending", declined: "declined", voided: "voided",
+export const DOCUSIGN_PROVIDER_STATUS_STATES = Object.freeze({
+  created: "draft_created", draft: "draft_created", draft_created: "draft_created",
+  sent: "sent", delivered: "delivered", completed: "completed_artifacts_pending",
+  declined: "declined", voided: "voided",
 });
-const RANK = Object.freeze({ approved: 1, provider_pending: 2, reconciliation_required: 2, draft_created: 3, sent: 4, delivered: 5, completed_artifacts_pending: 6, completed: 7 });
-const TERMINAL = new Set(["completed_artifacts_pending", "completed", "declined", "voided", "provider_blocked"]);
+export const DOCUSIGN_PROVIDER_STATE_RANK = Object.freeze({ approved: 1, provider_pending: 2, reconciliation_required: 2, draft_created: 3, sent: 4, delivered: 5, completed_artifacts_pending: 6, completed: 7 });
+export const DOCUSIGN_PROVIDER_TERMINAL_STATES = new Set(["completed_artifacts_pending", "completed", "declined", "voided", "provider_blocked"]);
 
 export function docusignRawBytes(value) {
   const bytes = Buffer.isBuffer(value) ? Buffer.from(value) : Buffer.from(value ?? []);
@@ -71,18 +72,21 @@ function compareCursor(current, event) {
 // Terminal policy: the first accepted terminal state is immutable. A newer terminal is
 // valid only while the local state is non-terminal; provider time/sequence must also be newer.
 export function projectDocusignProviderEvent(request, event, localTimestamp) {
-  const target = STATUS_STATE[event.status];
+  const target = DOCUSIGN_PROVIDER_STATUS_STATES[event.status];
   if (!target) return Object.freeze({ request, changed: false, accepted: false });
   const order = compareCursor(request.provider_cursor, event);
   if (order < 0 || (order === 0 && request.provider_cursor?.status !== event.status)) return Object.freeze({ request, changed: false, accepted: false });
-  if (TERMINAL.has(request.state)) return Object.freeze({ request, changed: false, accepted: false });
+  if (DOCUSIGN_PROVIDER_TERMINAL_STATES.has(request.state)) return Object.freeze({ request, changed: false, accepted: false });
   const cursor = { occurred_at: event.occurred_at, sequence: event.sequence ?? null, status: event.status };
   if (["declined", "voided"].includes(target)) {
     return Object.freeze({ accepted: true, changed: true, request: { ...request, state: target, attempt_phase: target, provider_cursor: cursor, last_provider_status: event.status, last_safe_error_code: null, updated_at: localTimestamp } });
   }
-  const currentRank = RANK[request.state] ?? -1;
-  const targetRank = RANK[target] ?? -1;
-  if (targetRank < currentRank) return Object.freeze({ accepted: true, changed: false, request: { ...request, provider_cursor: cursor, updated_at: localTimestamp } });
+  const currentRank = DOCUSIGN_PROVIDER_STATE_RANK[request.state] ?? -1;
+  const targetRank = DOCUSIGN_PROVIDER_STATE_RANK[target] ?? -1;
+  // A newer provider observation cannot move the local request backwards. Keep
+  // the durable cursor unchanged too, so reconciliation and webhook delivery
+  // share one monotonic/first-terminal lattice.
+  if (targetRank < currentRank) return Object.freeze({ accepted: true, changed: false, request });
   return Object.freeze({
     accepted: true,
     changed: target !== request.state || request.last_provider_status !== event.status,

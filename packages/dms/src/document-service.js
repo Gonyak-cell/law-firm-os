@@ -17,6 +17,7 @@ export function uploadDocument({
   bytes,
   actor_id,
   idempotency_key,
+  beforePersist,
 } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
@@ -25,6 +26,10 @@ export function uploadDocument({
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
 
   return repository.transaction((tx) => {
+    if (typeof beforePersist === "function") {
+      const result = beforePersist({ document, bytes, actor_id, idempotency_key });
+      if (result && typeof result.then === "function") throw new TypeError("DMS beforePersist callback must be synchronous");
+    }
     const version_id = document.current_version_id ?? `version:${document.document_id}:1`;
     const object_id = createVaultObjectId({
       tenant_id: document.tenant_id,

@@ -867,7 +867,7 @@ export function createPostgresDmsUploadRuntime({
     ));
   }
 
-  async function stageUpload({ tenant_id, session_id, bytes } = {}) {
+  async function stageUpload({ tenant_id, session_id, bytes, beforePersist } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const sessionId = requiredText(session_id, "session_id");
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? []);
@@ -886,6 +886,7 @@ export function createPostgresDmsUploadRuntime({
       if (locked.stage_lease_expires_at && Date.parse(locked.stage_lease_expires_at) > Date.parse(stageStartedAt)) {
         throw codedError("DMS upload stage lease is already active", "DMS_UPLOAD_STAGE_LEASE_ACTIVE");
       }
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_stage", session: locked, bytes: buffer });
       const result = await client.query(
         `UPDATE lawos_dms.upload_sessions
             SET stage_lease_owner = $3, stage_lease_token = $4,
@@ -905,6 +906,7 @@ export function createPostgresDmsUploadRuntime({
     let receipt;
     let replayed = false;
     try {
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_storage", session });
       receipt = await storage.statStagedObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
       if (!receipt) {
         receipt = await storage.stageObject({
@@ -940,7 +942,7 @@ export function createPostgresDmsUploadRuntime({
     return markBytesStored(session, receipt, { eventActor: "dms-reconciler" });
   }
 
-  async function commitMetadata(session) {
+  async function commitMetadata(session, beforePersist) {
     let stage = "CLOCK";
     let committedAt;
     try {
@@ -958,6 +960,7 @@ export function createPostgresDmsUploadRuntime({
       if (locked.staged_sha256 !== locked.expected_sha256 || locked.staged_byte_size !== locked.expected_byte_size) {
         throw codedError("DMS staged receipt changed before metadata commit", "DMS_STAGED_DIGEST_MISMATCH");
       }
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_metadata", session: locked });
       faultInjector?.("before_metadata_commit", { session_id: locked.session_id });
       stage = "DOCUMENT_UPSERT";
       await client.query(
@@ -1192,7 +1195,7 @@ export function createPostgresDmsUploadRuntime({
     });
   }
 
-  async function finalizeUpload({ tenant_id, session_id } = {}) {
+  async function finalizeUpload({ tenant_id, session_id, beforePersist } = {}) {
     let session = await getUploadSession({ tenant_id, session_id });
     if (session.state === "finalized") return Object.freeze({ session, replayed: true });
     if (["expired", "failed_terminal"].includes(session.state)) throw codedError("DMS upload session is expired", "DMS_UPLOAD_SESSION_EXPIRED");
@@ -1222,7 +1225,7 @@ export function createPostgresDmsUploadRuntime({
       }
     }
     faultInjector?.("after_storage_finalize_before_session_finalized", { session_id: session.session_id });
-    const finalized = await commitMetadata(session);
+    const finalized = await commitMetadata(session, beforePersist);
     return Object.freeze({ session: finalized, receipt: safeProviderReceipt(receipt ?? session.provider_receipt, session), replayed });
   }
 
@@ -1235,6 +1238,7 @@ export function createPostgresDmsUploadRuntime({
     session_id,
     version_number,
     expires_at,
+    beforePersist,
   } = {}) {
     const tenantId = requiredText(document.tenant_id, "document.tenant_id");
     const documentId = requiredText(document.document_id, "document.document_id");
@@ -1244,6 +1248,7 @@ export function createPostgresDmsUploadRuntime({
     );
     const actorId = requiredText(actor_id, "actor_id");
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? []);
+    if (typeof beforePersist === "function") await beforePersist({ phase: "before_session", document, bytes: buffer, actor_id: actorId, idempotency_key });
     const created = await createUploadSession({
       tenant_id: tenantId,
       session_id: session_id ?? `dms-upload:${idFactory()}`,
@@ -1264,8 +1269,8 @@ export function createPostgresDmsUploadRuntime({
       actor_id: actorId,
       expires_at: expires_at ?? nextUploadExpiry(),
     });
-    await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer });
-    const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id });
+    await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer, beforePersist });
+    const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id, beforePersist });
     const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
     if (!state) throw codedError("DMS document metadata was not published", "DMS_DOCUMENT_NOT_FOUND", 404);
     const version = state.versions.find((item) => item.version_id === versionId);

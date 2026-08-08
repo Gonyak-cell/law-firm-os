@@ -5,6 +5,8 @@ import { isOpaqueCredentialReference } from "../../persistence/src/credential-re
 export const DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 export const DOCUSIGN_SDK_VERSION = "10.0.0";
 export const DOCUSIGN_PROVIDER_CORRELATION_FIELD = "AMIC_OS_PROVIDER_CORRELATION_REF";
+export const DOCUSIGN_SDK_SUPPORTS_ABORT = false;
+export const DOCUSIGN_SDK_TIMEOUT_MODE = "caller_deadline_correlation_recovery";
 
 function requiredText(value, field) {
   if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
@@ -144,6 +146,8 @@ export function createDocusignEnvelopeAdapter({
   return Object.freeze({
     provider: "docusign",
     sdk_version: DOCUSIGN_SDK_VERSION,
+    supports_abort: DOCUSIGN_SDK_SUPPORTS_ABORT,
+    timeout_mode: DOCUSIGN_SDK_TIMEOUT_MODE,
     async createDraft({ connection, document, signers, anchor_manifest, provider_correlation_ref } = {}) {
       const source = normalizeDocument(document);
       const normalizedSigners = (signers ?? []).map(normalizeSigner);

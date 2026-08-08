@@ -113,7 +113,7 @@ test("OUTM-33/34 PostgreSQL advisory CAS serializes independent runtimes and sur
   };
   const events = (repository) => createDocusignEnvelopeEventService({
     repository, adapter: statusProvider, connectionResolver: async () => CONNECTION, resolveSecret: async () => "unused",
-    receiptStore: { put: async () => ({}) }, artifactStore: { ingest: async () => ({}) },
+    receiptStore: { put: async () => ({}) }, artifactStore: { ingest: async (input, options = {}) => { await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); return { ...input }; } }, approvedDocumentResolver: async () => SOURCE,
     clock: () => "2026-08-08T05:05:00.000Z",
   });
   const firstPoll = events(repositoryA).pollRequest({ principal: { tenant_id: TENANT, actor_id: "worker-a" }, request_id: "request-pg" });

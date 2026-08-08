@@ -132,7 +132,18 @@ function normalizeCompletionOperation(input) {
   if (!Number.isSafeInteger(generation) || generation < 1) throw new TypeError("completion_operation.fencing_generation is invalid");
   const status = input.status == null ? "pending" : docusignRequiredText(input.status, "completion_operation.status").toLowerCase();
   if (!["pending", "unknown"].includes(status)) throw new TypeError("completion_operation.status is invalid");
-  return Object.freeze({ kind: docusignRequiredText(input.kind, "completion_operation.kind"), permission_envelope_id: docusignRequiredText(input.permission_envelope_id, "completion_operation.permission_envelope_id"), audit_trace_id: docusignRequiredText(input.audit_trace_id, "completion_operation.audit_trace_id"), fencing_generation: generation, started_at: docusignTimestamp(input.started_at, "completion_operation.started_at"), status });
+  return Object.freeze({
+    kind: docusignRequiredText(input.kind, "completion_operation.kind"),
+    permission_envelope_id: docusignRequiredText(input.permission_envelope_id, "completion_operation.permission_envelope_id"),
+    audit_trace_id: docusignRequiredText(input.audit_trace_id, "completion_operation.audit_trace_id"),
+    fencing_generation: generation,
+    started_at: docusignTimestamp(input.started_at, "completion_operation.started_at"),
+    lease_expires_at: input.lease_expires_at == null ? null : docusignTimestamp(input.lease_expires_at, "completion_operation.lease_expires_at"),
+    idempotency_key: input.idempotency_key == null ? null : docusignRequiredText(input.idempotency_key, "completion_operation.idempotency_key"),
+    object_id: input.object_id == null ? null : docusignRequiredText(input.object_id, "completion_operation.object_id"),
+    sha256: input.sha256 == null ? null : docusignRequiredSha256(input.sha256, "completion_operation.sha256"),
+    status,
+  });
 }
 
 function normalizeProviderCursor(input) {

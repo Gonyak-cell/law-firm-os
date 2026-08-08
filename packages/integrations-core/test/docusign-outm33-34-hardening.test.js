@@ -105,7 +105,7 @@ test("OUTM-33 reconciliation recovers an ambiguous create by exact provider corr
   assert.equal(sendCalls, 1);
 });
 
-test("OUTM-33 provider calls receive an abort signal and a timeout bounded by the fencing lease", async () => {
+test("OUTM-33 provider calls receive a caller deadline for correlation recovery", async () => {
   const repository = createDocusignEnvelopeRepository();
   const calls = [];
   const adapter = {
@@ -116,7 +116,7 @@ test("OUTM-33 provider calls receive an abort signal and a timeout bounded by th
   await queue(service);
   await service.sendApprovedRequest(sendInput());
   assert.equal(calls.length, 2);
-  assert.ok(calls.every((call) => call.signal && typeof call.timeout_ms === "number" && call.timeout_ms > 0 && call.timeout_ms < 5 * 60 * 1000));
+  assert.ok(calls.every((call) => !call.signal && typeof call.caller_timeout_ms === "number" && call.caller_timeout_ms > 0 && call.caller_timeout_ms < 5 * 60 * 1000));
 });
 
 test("OUTM-33 ambiguous send is recovered to sent after restart without a second create", async () => {
@@ -162,7 +162,8 @@ test("OUTM-34 completion rejects a DMS readback whose permission or audit lineag
     request: repository.loadState().requests[0],
     connection: CONNECTION,
     adapter,
-    artifactStore: { async ingest(input) { ingestCalls += 1; return { ...input, document_id: "dms:forged", version_id: "version:forged", permission_envelope_id: "permission-forged", immutable: true }; } },
+    approvedDocumentResolver: async () => SOURCE,
+    artifactStore: { async ingest(input, options = {}) { ingestCalls += 1; await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); return { ...input, document_id: "dms:forged", version_id: "version:forged", permission_envelope_id: "permission-forged", immutable: true }; } },
   }), (error) => error?.safe_error_code === "DOCUSIGN_COMPLETION_ARTIFACT_PENDING");
   assert.equal(ingestCalls, 1);
   assert.equal(repository.loadState().requests[0].completion_artifacts.signed_pdf, null);
@@ -189,7 +190,8 @@ test("OUTM-34 authority drift after provider download causes zero DMS writes", a
     request: repository.loadState().requests[0],
     connection: CONNECTION,
     adapter,
-    artifactStore: { async ingest() { ingestCalls += 1; return {}; } },
+    approvedDocumentResolver: async () => SOURCE,
+    artifactStore: { async ingest(input, options = {}) { ingestCalls += 1; await options.validateAuthority?.({ phase: "fixture_dms_ingest" }); return { ...input }; } },
   });
   await downloadEntered;
   repository.transact({ tenant_id: TENANT }, (state) => {

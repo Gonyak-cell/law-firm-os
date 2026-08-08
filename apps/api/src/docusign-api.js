@@ -45,8 +45,42 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
   if (typeof postgresUpload !== "function" && !localUpload) {
     throw new TypeError("DMS upload runtime is required for DocuSign completion artifacts");
   }
+  const readback = async (input = {}) => {
+    const tenantId = requiredText(input.tenant_id, "tenant_id");
+    const requestId = requiredText(input.request_id, "request_id");
+    const kind = requiredText(input.kind, "kind");
+    const digest = requiredText(input.sha256, "sha256").toLowerCase();
+    const documentId = `docusign-completion:${requestId}:${kind}`;
+    const versionId = `version:${documentId}:1`;
+    if (typeof dmsRuntime?.upload_runtime?.getDocumentState === "function") {
+      const state = await dmsRuntime.upload_runtime.getDocumentState({ tenant_id: tenantId, document_id: documentId });
+      const version = state?.versions?.find((item) => item.version_id === versionId);
+      const document = state?.document;
+      if (!document || !version || document.tenant_id !== tenantId || document.matter_id !== input.matter_id || document.workspace_id !== input.workspace_id || document.current_version_id !== versionId || (document.latest_sha256 ?? version.sha256) !== digest || version.sha256 !== digest
+        || document.permission_envelope_id !== input.permission_envelope_id || document.audit_trace_id !== input.audit_trace_id) return null;
+    } else if (typeof dmsRuntime?.repository?.list === "function") {
+      const document = dmsRuntime.repository.list({ tenant_id: tenantId, model_type: "DmsDocument", document_id: documentId })[0];
+      const version = dmsRuntime.repository.list({ tenant_id: tenantId, model_type: "DmsDocumentVersion", document_id: documentId }).find((item) => item.version_id === versionId);
+      if (!document || !version || document.tenant_id !== tenantId || document.matter_id !== input.matter_id || document.workspace_id !== input.workspace_id || document.current_version_id !== versionId || document.latest_sha256 !== digest || version.sha256 !== digest
+        || document.permission_envelope_id !== input.permission_envelope_id || document.audit_trace_id !== input.audit_trace_id) return null;
+    } else return null;
+    return Object.freeze({
+      document_id: documentId,
+      version_id: versionId,
+      sha256: digest,
+      tenant_id: tenantId,
+      matter_id: requiredText(input.matter_id, "matter_id"),
+      workspace_id: requiredText(input.workspace_id, "workspace_id"),
+      permission_envelope_id: requiredText(input.permission_envelope_id, "permission_envelope_id"),
+      audit_trace_id: requiredText(input.audit_trace_id, "audit_trace_id"),
+      request_id: requestId,
+      envelope_id: requiredText(input.envelope_id, "envelope_id"),
+      immutable: true,
+    });
+  };
   return Object.freeze({
-    async ingest(input = {}) {
+    readback,
+    async ingest(input = {}, options = {}) {
       const bytes = Buffer.isBuffer(input.bytes) ? Buffer.from(input.bytes) : Buffer.from(input.bytes ?? []);
       const digest = createHash("sha256").update(bytes).digest("hex");
       if (bytes.length === 0 || digest !== requiredText(input.sha256, "sha256").toLowerCase()) {
@@ -75,6 +109,28 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
       };
       const actorId = requiredText(input.requested_by_actor_id, "requested_by_actor_id");
       const idempotencyKey = `docusign-completion:${requestId}:${kind}:${digest}`;
+      const expectedAuthority = options.expected_authority ?? null;
+      const validateAuthority = options.validateAuthority;
+      const validateAuthoritySync = options.validateAuthoritySync;
+      if (expectedAuthority && (expectedAuthority.tenant_id !== document.tenant_id
+        || expectedAuthority.matter_id !== document.matter_id
+        || expectedAuthority.workspace_id !== document.workspace_id
+        || expectedAuthority.permission_envelope_id !== document.permission_envelope_id
+        || expectedAuthority.audit_trace_id !== document.audit_trace_id
+        || expectedAuthority.request_id !== requestId
+        || expectedAuthority.kind !== kind
+        || expectedAuthority.sha256 !== digest
+        || (expectedAuthority.idempotency_key != null && expectedAuthority.idempotency_key !== idempotencyKey)
+        || (expectedAuthority.object_id != null && expectedAuthority.object_id !== `object:${versionId}`)
+        || !Number.isSafeInteger(Number(expectedAuthority.fencing_generation)) || Number(expectedAuthority.fencing_generation) < 1)) {
+        throw new Error("DocuSign completion authority expectation does not match DMS input");
+      }
+      if (typeof validateAuthority === "function") await validateAuthority({ phase: "before_dms_ingest", expected_authority: expectedAuthority });
+      const beforePersist = ({ phase, ...context } = {}) => {
+        const guard = typeof validateAuthoritySync === "function" ? validateAuthoritySync : validateAuthority;
+        if (typeof guard === "function") return guard({ phase: `inside_dms_${phase}`, expected_authority: expectedAuthority, ...context });
+        return true;
+      };
       const uploaded = typeof postgresUpload === "function"
         ? await postgresUpload.call(dmsRuntime.upload_runtime, {
             document,
@@ -84,6 +140,9 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
             object_id: `object:${versionId}`,
             session_id: `dms-upload:${requestId}:${kind}:${digest}`,
             version_number: 1,
+            beforePersist: async ({ phase, ...context } = {}) => {
+              if (typeof validateAuthority === "function") await validateAuthority({ phase: `inside_dms_${phase}`, expected_authority: expectedAuthority, ...context });
+            },
           })
         : uploadDocument({
             repository: dmsRuntime.repository,
@@ -92,6 +151,7 @@ export function createDocusignCompletionArtifactStore({ dmsRuntime } = {}) {
             bytes,
             actor_id: actorId,
             idempotency_key: idempotencyKey,
+            beforePersist,
           });
       const persistedSha = uploaded?.version?.sha256 ?? uploaded?.storage_receipt?.sha256;
       if (persistedSha !== digest || uploaded?.document?.document_id !== documentId || uploaded?.version?.version_id !== versionId) {

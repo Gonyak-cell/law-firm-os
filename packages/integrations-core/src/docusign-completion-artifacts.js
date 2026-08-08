@@ -1,6 +1,15 @@
 import { docusignFailure, docusignInfrastructureFailure, docusignNow, docusignRequiredText, normalizeDocusignAuditLineage, projectDocusignRequestSafe } from "./docusign-envelope-model.js";
 import { docusignRawBytes, docusignSha256 } from "./docusign-event-model.js";
 import { bindApprovedDocusignSource, normalizeDocusignAuthorityBinding } from "./docusign-envelope-authority.js";
+import {
+  beginCompletionOperation,
+  completionKind,
+  markCompletionUnknown,
+  operationDescriptor,
+  operationLeaseActive,
+  persistRecoveredArtifact,
+  readbackCompletionArtifact,
+} from "./docusign-completion-operation.js";
 
 function authorityBinding(current) {
   return normalizeDocusignAuthorityBinding({
@@ -48,6 +57,7 @@ function assertCompletionBinding(current) {
 }
 
 function assertSameAuthority(expected, current) {
+  if (expected.request_id !== current.request_id || expected.envelope_id !== current.envelope_id) throw docusignFailure("DOCUSIGN_COMPLETION_BINDING_INVALID", "DocuSign completion binding changed", 409);
   const expectedBinding = authorityBinding(expected);
   const currentBinding = authorityBinding(current);
   for (const field of Object.keys(expectedBinding)) {
@@ -78,25 +88,6 @@ async function assertApprovedAuthority(current, approvedDocumentResolver) {
   const bound = bindApprovedDocusignSource({ binding, source: approvedSource });
   if (bound.authority.permission_envelope_id !== binding.permission_envelope_id || bound.authority.audit_trace_id !== binding.audit_trace_id) throw docusignFailure("DOCUSIGN_APPROVED_SOURCE_MISMATCH", "Approved authority changed", 409);
   return binding;
-}
-
-async function beginCompletionOperation(repository, expected, descriptor, clock) {
-  return repository.transact({ tenant_id: expected.tenant_id }, (state) => {
-    const index = state.requests.findIndex((item) => item.tenant_id === expected.tenant_id && item.request_id === expected.request_id);
-    if (index < 0) throw docusignFailure("DOCUSIGN_REQUEST_NOT_FOUND", "DocuSign request was not found", 404);
-    const current = state.requests[index];
-    assertSameAuthority(expected, current);
-    if (current.state !== "completed_artifacts_pending") return current;
-    if (current.completion_artifacts?.[descriptor.key]) return current;
-    const generation = Number(current.completion_operation?.fencing_generation ?? 0) + 1;
-    const now = docusignNow(clock);
-    state.requests[index] = {
-      ...current,
-      completion_operation: { kind: `ingest:${descriptor.key}`, permission_envelope_id: current.document.permission_envelope_id, audit_trace_id: current.document.audit_trace_id, fencing_generation: generation, started_at: now, status: "pending" },
-      updated_at: now,
-    };
-    return state.requests[index];
-  });
 }
 
 async function updateRequest(repository, request, mutate, expectedOperation = null) {
@@ -131,20 +122,63 @@ export async function completeDocusignArtifacts({ repository, request, connectio
       assertSameAuthority(request, current);
       await assertApprovedAuthority(current, approvedDocumentResolver);
       const binding = assertCompletionBinding(current);
-      current = await beginCompletionOperation(repository, current, descriptor, clock);
+      const existingOperation = current.completion_operation;
+      if (existingOperation && !operationLeaseActive(existingOperation, clock)) {
+        if (typeof artifactStore?.readback !== "function") throw docusignInfrastructureFailure("DOCUSIGN_COMPLETION_RECONCILIATION_REQUIRED");
+        const existingDescriptor = operationDescriptor(existingOperation, descriptors);
+        const existingDigest = existingOperation.sha256 ?? (existingDescriptor?.key === descriptor.key ? digest : null);
+        if (!existingDescriptor || !existingDigest) throw docusignInfrastructureFailure("DOCUSIGN_COMPLETION_RECONCILIATION_REQUIRED");
+        const recovered = await readbackCompletionArtifact({ artifactStore, descriptor: existingDescriptor, digest: existingDigest, binding, operation: existingOperation, validateArtifact });
+        if (!recovered) {
+          if (existingDescriptor.key !== descriptor.key) throw docusignInfrastructureFailure("DOCUSIGN_COMPLETION_RECONCILIATION_REQUIRED");
+        } else {
+          current = await readCurrentRequest(repository, current);
+          assertSameAuthority(request, current);
+          await assertApprovedAuthority(current, approvedDocumentResolver);
+          current = await persistRecoveredArtifact(repository, current, existingDescriptor, recovered, existingOperation, clock, updateRequest);
+          if (existingDescriptor.key !== descriptor.key) continue;
+          if (current.completion_artifacts?.[descriptor.key]) continue;
+        }
+      }
+      const claim = await beginCompletionOperation(repository, current, descriptor, digest, clock, assertSameAuthority);
+      if (!claim.claimed) {
+        current = claim.request;
+        if (claim.reason === "already") continue;
+        if (claim.reason === "in_progress") return Object.freeze({ outcome: "in_progress", request: projectDocusignRequestSafe(current) });
+        return Object.freeze({ outcome: "ignored", request: projectDocusignRequestSafe(current) });
+      }
+      current = claim.request;
       current = await readCurrentRequest(repository, current);
       assertSameAuthority(request, current);
       await assertApprovedAuthority(current, approvedDocumentResolver);
-      if (current.completion_operation?.kind !== `ingest:${descriptor.key}`) throw docusignFailure("DOCUSIGN_COMPLETION_FENCE_LOST", "DocuSign completion fence was lost", 409);
+      const operation = current.completion_operation;
+      if (operation?.kind !== completionKind(descriptor)) throw docusignFailure("DOCUSIGN_COMPLETION_FENCE_LOST", "DocuSign completion fence was lost", 409);
+      const expectedAuthority = Object.freeze({ ...assertCompletionBinding(current), kind: descriptor.key, sha256: digest, fencing_generation: operation.fencing_generation, idempotency_key: operation.idempotency_key, object_id: operation.object_id });
+      const validateAuthority = async () => {
+        const fresh = await readCurrentRequest(repository, current);
+        assertSameAuthority(request, fresh);
+        if (fresh.completion_operation?.kind !== operation.kind || fresh.completion_operation?.fencing_generation !== operation.fencing_generation) throw docusignFailure("DOCUSIGN_COMPLETION_FENCE_LOST", "DocuSign completion fence was lost", 409);
+        await assertApprovedAuthority(fresh, approvedDocumentResolver);
+        return true;
+      };
+      const validateAuthoritySync = () => {
+        if (typeof repository.loadState !== "function") return true;
+        const fresh = repository.loadState().requests?.find((item) => item.tenant_id === current.tenant_id && item.request_id === current.request_id);
+        if (!fresh) throw docusignFailure("DOCUSIGN_REQUEST_NOT_FOUND", "DocuSign request was not found", 404);
+        assertSameAuthority(request, fresh);
+        if (fresh.completion_operation?.kind !== operation.kind || fresh.completion_operation?.fencing_generation !== operation.fencing_generation) throw docusignFailure("DOCUSIGN_COMPLETION_FENCE_LOST", "DocuSign completion fence was lost", 409);
+        return true;
+      };
+      await validateAuthority();
       const stored = validateArtifact(await artifactStore.ingest({
         ...assertCompletionBinding(current), requested_by_actor_id: current.requested_by_actor_id, kind: descriptor.key,
         title: `${current.document.filename} - ${descriptor.title_suffix}.pdf`, mime_type: "application/pdf", bytes, sha256: digest,
-      }), digest, binding);
+      }, { expected_authority: expectedAuthority, validateAuthority, validateAuthoritySync }), digest, binding);
       current = await updateRequest(repository, current, (fresh) => {
         if (fresh.state !== "completed_artifacts_pending") return fresh;
         const lineage = normalizeDocusignAuditLineage([...(fresh.audit_lineage ?? []), { event: `completion_artifact_recorded:${descriptor.key}`, audit_trace_id: fresh.document.audit_trace_id, actor_id: fresh.requested_by_actor_id, occurred_at: docusignNow(clock) }]);
         return { ...fresh, completion_artifacts: { ...fresh.completion_artifacts, [descriptor.key]: stored }, completion_operation: null, audit_lineage: lineage, last_safe_error_code: null, updated_at: docusignNow(clock) };
-      }, current.completion_operation);
+      }, operation);
     }
     current = await updateRequest(repository, current, (fresh) => {
       if (fresh.state !== "completed_artifacts_pending" || !fresh.completion_artifacts?.signed_pdf || !fresh.completion_artifacts?.certificate) return fresh;
@@ -153,14 +187,7 @@ export async function completeDocusignArtifacts({ repository, request, connectio
     });
     return Object.freeze({ outcome: current.state === "completed" ? "completed" : "ignored", request: projectDocusignRequestSafe(current) });
   } catch (error) {
-    try {
-      current = await updateRequest(repository, current, (fresh) => fresh.state === "completed_artifacts_pending"
-        ? { ...fresh, completion_operation: fresh.completion_operation ? { ...fresh.completion_operation, status: "unknown" } : null, last_safe_error_code: "DOCUSIGN_COMPLETION_ARTIFACT_PENDING", updated_at: docusignNow(clock) }
-        : fresh);
-    } catch {
-      // Keep a current-authority mutation fail-closed; a later reconciliation can
-      // inspect the durable completion operation without writing the DMS artifact.
-    }
+    current = await markCompletionUnknown(repository, current, current.completion_operation, clock);
     const safe = docusignInfrastructureFailure("DOCUSIGN_COMPLETION_ARTIFACT_PENDING");
     safe.request = projectDocusignRequestSafe(current);
     throw safe;

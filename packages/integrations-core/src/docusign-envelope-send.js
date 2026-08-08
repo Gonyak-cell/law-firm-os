@@ -51,19 +51,19 @@ function operationIntent(request, kind, generation, now) {
   };
 }
 
-async function callWithDeadline(operation, intent, clock) {
+// DocuSign's callback SDK has no transport AbortSignal contract. This is a
+// caller deadline only; a remote completion is recovered by correlation.
+async function callWithCallerDeadline(operation, intent, clock) {
   const remaining = Date.parse(intent.deadline_at) - Date.parse(docusignNow(clock));
   const timeoutMs = Math.max(1, Math.min(PROVIDER_TIMEOUT_MS, remaining));
-  const controller = typeof AbortController === "function" ? new AbortController() : null;
   let timer;
-  const providerPromise = Promise.resolve().then(() => operation({ signal: controller?.signal, timeout_ms: timeoutMs }));
+  const providerPromise = Promise.resolve().then(() => operation({ caller_timeout_ms: timeoutMs }));
   // The provider may complete remotely after the local timeout. Its durable correlation
   // intent is intentionally retained for reconciliation; consume late rejections.
   providerPromise.catch(() => {});
   const timeoutPromise = new Promise((_, reject) => {
     timer = setTimeout(() => {
-      controller?.abort();
-      reject(Object.assign(new Error("DocuSign provider deadline exceeded"), { provider_status: 408, provider_timeout: true }));
+      reject(Object.assign(new Error("DocuSign caller deadline exceeded; provider correlation recovery is required"), { provider_status: 408, provider_timeout: true, caller_timeout: true }));
     }, timeoutMs);
   });
   try {
@@ -190,7 +190,7 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
     if (!claimed.existingDraft) {
       try {
         request = await beginProviderOperation(principal.tenant_id, requestId, claimed.token, claimed.generation, "create_draft");
-        envelope = await callWithDeadline((options) => adapter.createDraft({ connection, document: { ...request.document, bytes: artifactBytes }, signers, anchor_manifest: request.anchor_manifest, provider_correlation_ref: request.provider_correlation_ref, ...options }), request.provider_operation, clock);
+        envelope = await callWithCallerDeadline((options) => adapter.createDraft({ connection, document: { ...request.document, bytes: artifactBytes }, signers, anchor_manifest: request.anchor_manifest, provider_correlation_ref: request.provider_correlation_ref, ...options }), request.provider_operation, clock);
       } catch (error) {
         const classified = providerFailure(error);
         try {
@@ -215,7 +215,7 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
     }
     try {
       request = await beginProviderOperation(principal.tenant_id, requestId, claimed.token, claimed.generation, "send");
-      await callWithDeadline((options) => adapter.send({ connection, envelope_id: request.envelope_id, ...options }), request.provider_operation, clock);
+      await callWithCallerDeadline((options) => adapter.send({ connection, envelope_id: request.envelope_id, ...options }), request.provider_operation, clock);
     } catch (error) {
       const classified = providerFailure(error);
       try {
