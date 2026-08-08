@@ -274,7 +274,10 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
     offlineReconnectResponse: OFFLINE_RECONNECT_RESPONSE,
     focusTarget: "precedent-search-input",
     mutation: false,
-    implementationState: "active",
+    implementationState: "blocked",
+    integrationDependency: "OUTM-08-12-shared-shell",
+    runtimeReadinessKey: "precedent_search",
+    readinessEndpoint: "/api/outlook/precedents/readiness",
   },
   {
     id: "document.create-and-sign-status",
@@ -406,6 +409,13 @@ function matchesSurface(feature, { form, surface, event }) {
   return feature.opener !== "event" && feature.availability[form] === true;
 }
 
+export function isOutlookFeatureRuntimeAvailable(feature, runtimeReadiness = {}) {
+  if (feature?.implementationState !== "active") return false;
+  if (!feature.runtimeReadinessKey) return true;
+  const receipt = runtimeReadiness?.[feature.runtimeReadinessKey];
+  return receipt?.authoritative === true && receipt?.runtime_ready === true;
+}
+
 export function evaluateOutlookFeatureCatalog(context = {}) {
   const {
     profile,
@@ -418,6 +428,7 @@ export function evaluateOutlookFeatureCatalog(context = {}) {
     matterId,
     connection,
     online,
+    runtimeReadiness,
   } = context;
   if (
     !PROFILE_KEYS.has(profile)
@@ -435,16 +446,20 @@ export function evaluateOutlookFeatureCatalog(context = {}) {
   return Object.freeze(OUTLOOK_FEATURE_CATALOG
     .filter((feature) => feature.profile === profile && matchesSurface(feature, context))
     .map((feature) => {
+      const implementationReady = isOutlookFeatureRuntimeAvailable(feature, runtimeReadiness);
       const itemReady = currentItem
         && hasRequiredItemFields(item, feature.requiredItemFields)
         && matchesItemConstraints(item, feature.itemConstraints);
-      const visible = feature.opener !== "event" && itemReady;
+      const visible = feature.opener !== "event" && itemReady && implementationReady;
       const matterReady = !feature.matterPrerequisite
         || (typeof matterId === "string" && matterId.trim() === matterId && matterId.length > 0);
       const connectionReady = !feature.connectionPrerequisite || connected;
-      const actionable = itemReady && matterReady && connectionReady && online === true;
+      const actionable = itemReady && matterReady && connectionReady
+        && online === true && implementationReady;
       let response = null;
-      if (!currentItem) response = feature.staleItemResponse;
+      if (feature.implementationState !== "active") response = "공통 Outlook 화면 통합 후 제공됩니다.";
+      else if (!implementationReady) response = "선례 검색 준비 상태를 확인해 주세요.";
+      else if (!currentItem) response = feature.staleItemResponse;
       else if (!itemReady) response = "현재 메일 정보를 다시 불러와 주세요.";
       else if (online !== true) response = feature.offlineReconnectResponse.offline;
       else if (!connectionReady) response = feature.offlineReconnectResponse.reconnect;

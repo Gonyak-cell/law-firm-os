@@ -5,6 +5,7 @@ import {
   OUTLOOK_FEATURE_CATALOG,
   evaluateOutlookFeatureCatalog,
   getOutlookFeatureById,
+  isOutlookFeatureRuntimeAvailable,
 } from "../src/outlook-feature-catalog.js";
 
 const ITEM = Object.freeze({
@@ -104,11 +105,13 @@ test("catalog has only the retained stable feature IDs and complete active contr
     "mutation",
     "implementationState",
   ];
-  const allowedKeys = new Set([...requiredKeys, "id", "label", "itemConstraints"]);
+  const allowedKeys = new Set([...requiredKeys, "id", "label", "itemConstraints",
+    "integrationDependency", "runtimeReadinessKey", "readinessEndpoint"]);
   for (const feature of OUTLOOK_FEATURE_CATALOG) {
     assert.deepEqual(requiredKeys.filter((key) => !Object.hasOwn(feature, key)), []);
     assert.deepEqual(Object.keys(feature).filter((key) => !allowedKeys.has(key)), []);
-    assert.equal(feature.implementationState, "active");
+    assert.equal(feature.implementationState,
+      feature.id === "precedent.search" ? "blocked" : "active");
     assert.ok(["rail icon", "all-functions row", "inquiry icon", "event"].includes(feature.opener));
     assert.ok(feature.endpoint.length > 0);
     assert.ok(feature.domainService.length > 0);
@@ -120,6 +123,25 @@ test("catalog has only the retained stable feature IDs and complete active contr
     assert.ok(feature.focusTarget.length > 0);
   }
 
+});
+
+test("precedent UI stays blocked until shared-shell integration and then requires authoritative API readiness", () => {
+  const feature = getOutlookFeatureById("precedent.search");
+  assert.equal(feature.integrationDependency, "OUTM-08-12-shared-shell");
+  assert.equal(feature.readinessEndpoint, "/api/outlook/precedents/readiness");
+  assert.equal(isOutlookFeatureRuntimeAvailable(feature, {
+    precedent_search: { authoritative: true, runtime_ready: true },
+  }), false);
+  const integrated = { ...feature, implementationState: "active" };
+  assert.equal(isOutlookFeatureRuntimeAvailable(integrated, {
+    precedent_search: { authoritative: false, runtime_ready: true },
+  }), false);
+  assert.equal(isOutlookFeatureRuntimeAvailable(integrated, {
+    precedent_search: { authoritative: true, runtime_ready: false },
+  }), false);
+  assert.equal(isOutlookFeatureRuntimeAvailable(integrated, {
+    precedent_search: { authoritative: true, runtime_ready: true },
+  }), true);
 });
 
 test("required current-item and Matter prerequisites match the retained contract", () => {

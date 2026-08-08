@@ -51,7 +51,6 @@ test("matter task pane exposes the exact read and compose actions", () => {
     "task.create",
     "time-entry.draft",
     "activity.recent",
-    "precedent.search",
     "document.create-and-sign-status",
   ]);
   assert.deepEqual(ids(read, "actionable"), ids(read, "visible"));
@@ -61,7 +60,6 @@ test("matter task pane exposes the exact read and compose actions", () => {
     "matter.search",
     "time-entry.draft",
     "activity.recent",
-    "precedent.search",
     "document.create-and-sign-status",
   ]);
   assert.deepEqual(ids(compose, "actionable"), ids(compose, "visible"));
@@ -112,7 +110,8 @@ test("no item and stale item discard current-item actions", () => {
     .filter(({ feature }) => feature.requiredItemFields.includes("itemContextKey"))
     .every(({ visible, actionable }) => !visible && !actionable));
   const stale = evaluateOutlookFeatureCatalog(context({ itemFresh: false }));
-  assert.ok(stale.every(({ feature, visible, actionable, response }) => (
+  assert.ok(stale.filter(({ feature }) => feature.implementationState === "active")
+    .every(({ feature, visible, actionable, response }) => (
     !visible && !actionable && response === feature.staleItemResponse
   )));
 });
@@ -121,7 +120,7 @@ test("Matter, disconnected, and offline prerequisites gate only dependent rows",
   const withoutMatter = evaluateOutlookFeatureCatalog(context({ matterId: undefined }));
   assert.deepEqual(ids(withoutMatter, "actionable"), ["matter.search"]);
   assert.ok(withoutMatter
-    .filter(({ feature }) => feature.matterPrerequisite)
+    .filter(({ feature }) => feature.matterPrerequisite && feature.implementationState === "active")
     .every(({ visible, actionable, response }) => visible && !actionable && /Matter/u.test(response)));
   assert.deepEqual(ids(evaluateOutlookFeatureCatalog(context({ matterId: "   " })), "actionable"), ["matter.search"]);
 
@@ -132,7 +131,6 @@ test("Matter, disconnected, and offline prerequisites gate only dependent rows",
     "task.create",
     "time-entry.draft",
     "activity.recent",
-    "precedent.search",
     "document.create-and-sign-status",
   ]);
   assert.ok(disconnected
@@ -142,7 +140,19 @@ test("Matter, disconnected, and offline prerequisites gate only dependent rows",
   const offline = evaluateOutlookFeatureCatalog(context({ online: false }));
   assert.deepEqual(ids(offline, "visible"), ids(evaluateOutlookFeatureCatalog(context()), "visible"));
   assert.deepEqual(ids(offline, "actionable"), []);
-  assert.ok(offline.every(({ feature, response }) => response === feature.offlineReconnectResponse.offline));
+  assert.ok(offline.filter(({ feature }) => feature.implementationState === "active")
+    .every(({ feature, response }) => response === feature.offlineReconnectResponse.offline));
+});
+
+test("precedent row is absent at 320, 360, and 480 shells until separate OUTM-08-12 UI integration", () => {
+  for (const viewportWidth of [320, 360, 480]) {
+    const evaluated = evaluateOutlookFeatureCatalog(context({ viewportWidth,
+      runtimeReadiness: { precedent_search: { authoritative: true, runtime_ready: true } } }));
+    const precedent = evaluated.find(({ feature }) => feature.id === "precedent.search");
+    assert.equal(precedent.visible, false, `${viewportWidth}px`);
+    assert.equal(precedent.actionable, false, `${viewportWidth}px`);
+    assert.match(precedent.response, /공통 Outlook 화면 통합/u);
+  }
 });
 
 test("unknown context fails closed and lookup is exact", () => {
