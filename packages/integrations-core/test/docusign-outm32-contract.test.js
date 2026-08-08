@@ -47,6 +47,17 @@ test("OUTM-33 fail-closes the document authority seam until the corrected OUTM-3
       connection_id: "docusign-blocked",
       idempotency_key: "send-blocked",
       approved_artifact_id: "builder-artifact-blocked",
+      explicit_human_action: true,
+      authority_binding: {
+        tenant_id: "tenant-blocked",
+        matter_id: "matter-blocked",
+        workspace_id: "workspace-blocked",
+        artifact_id: "builder-artifact-blocked",
+        document_id: "document-blocked",
+        version_id: "version-blocked",
+        sha256: "a".repeat(64),
+        approval_receipt_ref: "approval-blocked",
+      },
     }),
     (error) => error?.safe_error_code === DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED
       && error?.status === 503

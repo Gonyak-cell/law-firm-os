@@ -30,6 +30,16 @@ const CONNECTION = Object.freeze({
 });
 
 const APPROVED_SOURCE = Object.freeze({
+  authority: Object.freeze({
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    workspace_id: "workspace-matter-approved",
+    artifact_id: APPROVED_ARTIFACT_ID,
+    document_id: "doc-approved-001",
+    version_id: "version-approved-001",
+    sha256: DOCX_SHA,
+    approval_receipt_ref: "approval:owner:001",
+  }),
   document: Object.freeze({
     artifact_id: APPROVED_ARTIFACT_ID,
     document_id: "doc-approved-001",
@@ -61,6 +71,17 @@ function approvedInput(overrides = {}) {
     connection_id: CONNECTION.connection_id,
     idempotency_key: "esign-send-001",
     approved_artifact_id: APPROVED_ARTIFACT_ID,
+    explicit_human_action: true,
+    authority_binding: {
+      tenant_id: TENANT,
+      matter_id: MATTER,
+      workspace_id: APPROVED_SOURCE.document.workspace_id,
+      artifact_id: APPROVED_ARTIFACT_ID,
+      document_id: APPROVED_SOURCE.document.document_id,
+      version_id: APPROVED_SOURCE.document.version_id,
+      sha256: DOCX_SHA,
+      approval_receipt_ref: APPROVED_SOURCE.document.approval_receipt_ref,
+    },
     ...overrides,
   };
 }
@@ -144,7 +165,7 @@ test("OUTM-33 idempotency and payload fingerprint prevent duplicate active envel
   assert.deepEqual([first.outcome, replay.outcome, fingerprintReplay.outcome], ["created", "replayed", "replayed"]);
   await assert.rejects(
     service.queueApprovedRequest(approvedInput({ matter_id: "matter-changed" })),
-    (error) => error?.safe_error_code === "DOCUSIGN_IDEMPOTENCY_CONFLICT",
+    (error) => error?.safe_error_code === "DOCUSIGN_APPROVED_SOURCE_MISMATCH",
   );
   assert.equal(repository.loadState().requests.length, 1);
 });
@@ -230,16 +251,17 @@ test("OUTM-33 ambiguous create/send results require reconciliation and are never
     };
     const service = runtime({ repository, adapter });
     await service.queueApprovedRequest(approvedInput());
-    const failed = await service.sendApprovedRequest({
-      principal: { tenant_id: TENANT, actor_id: "actor-owner" },
-      request_id: "esign-request-001",
-      explicit_human_action: true,
-    });
-    assert.deepEqual([failed.outcome, failed.request.state, failed.safe_error_code], [
-      "blocked",
-      "reconciliation_required",
-      "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS",
-    ]);
+    await assert.rejects(
+      service.sendApprovedRequest({
+        principal: { tenant_id: TENANT, actor_id: "actor-owner" },
+        request_id: "esign-request-001",
+        explicit_human_action: true,
+      }),
+      (error) => error?.status === 503
+        && error?.retryable === true
+        && error?.safe_error_code === "DOCUSIGN_PROVIDER_RESULT_AMBIGUOUS"
+        && error?.request?.state === "reconciliation_required",
+    );
     await service.sendApprovedRequest({
       principal: { tenant_id: TENANT, actor_id: "actor-owner" },
       request_id: "esign-request-001",
@@ -275,12 +297,15 @@ test("OUTM-33 persistence failure after provider create never sends and restart 
   let rejectEnvelopePersist = true;
   const failingRepository = {
     loadState: () => baseRepository.loadState(),
-    replaceState(nextState) {
-      if (rejectEnvelopePersist && nextState.requests.some((request) => request.envelope_id)) {
-        rejectEnvelopePersist = false;
-        throw new Error("simulated durable store failure");
-      }
-      return baseRepository.replaceState(nextState);
+    transact(options, mutate) {
+      return baseRepository.transact(options, (state, context) => {
+        const result = mutate(state, context);
+        if (rejectEnvelopePersist && state.requests.some((request) => request.envelope_id)) {
+          rejectEnvelopePersist = false;
+          throw new Error("simulated durable store failure");
+        }
+        return result;
+      });
     },
   };
   let sendCalls = 0;
@@ -299,7 +324,12 @@ test("OUTM-33 persistence failure after provider create never sends and restart 
     (error) => error?.safe_error_code === "DOCUSIGN_CREATE_PERSIST_FAILED",
   );
   assert.equal(sendCalls, 0);
-  runtime({ repository: baseRepository, adapter });
+  const restarted = runtime({ repository: baseRepository, adapter, clock: () => "2026-08-08T01:06:00.000Z" });
+  await restarted.sendApprovedRequest({
+    principal: { tenant_id: TENANT, actor_id: "actor-owner" },
+    request_id: "esign-request-001",
+    explicit_human_action: true,
+  });
   assert.equal(baseRepository.loadState().requests[0].state, "reconciliation_required");
 });
 
@@ -320,13 +350,12 @@ test("OUTM-33 restart never blindly sends a draft persisted before process loss"
     envelope_id: "envelope-persisted-before-loss",
   };
   repository.replaceState(state);
-  runtime({ repository, adapter });
-  assert.equal(repository.loadState().requests[0].state, "reconciliation_required");
   await service.sendApprovedRequest({
     principal: { tenant_id: TENANT, actor_id: "actor-owner" },
     request_id: "esign-request-001",
     explicit_human_action: true,
   });
+  assert.equal(repository.loadState().requests[0].state, "reconciliation_required");
   assert.equal(sendCalls, 0);
 });
 
