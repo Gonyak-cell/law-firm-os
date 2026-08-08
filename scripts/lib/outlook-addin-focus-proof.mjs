@@ -91,11 +91,11 @@ export function assertVisibleFocusRing(snapshot, label) {
 }
 
 function outlineChanged(before, after) {
-  if (!before?.qualifying) return true;
-  return before.style !== after.style
-    || before.width !== after.width
-    || before.offset !== after.offset
-    || JSON.stringify(before.color) !== JSON.stringify(after.color);
+  return before?.visible !== after.visible
+    || before?.style !== after.style
+    || (before?.width ?? 0) !== after.width
+    || before?.offset !== after.offset
+    || JSON.stringify(before?.color ?? null) !== JSON.stringify(after.color);
 }
 
 export function assertFocusStateDelta(before, after, label) {
@@ -139,7 +139,6 @@ export async function assertPositiveFocusFixture(
     const fixture = page.locator(`#${id}`);
     const before = await fixture.evaluate(readFocusSnapshot);
     await fixture.focus();
-    await fixture.focus();
     await page.keyboard.press("Tab");
     await page.keyboard.press("Shift+Tab");
     const after = await fixture.evaluate(readFocusSnapshot);
@@ -163,7 +162,6 @@ export async function assertNegativeFocusFixture(
   try {
     const fixture = page.locator(`#${id}`);
     const before = await fixture.evaluate(readFocusSnapshot);
-    await fixture.focus();
     await fixture.focus();
     await page.keyboard.press("Tab");
     await page.keyboard.press("Shift+Tab");

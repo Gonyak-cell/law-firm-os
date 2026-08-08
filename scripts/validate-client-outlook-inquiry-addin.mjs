@@ -10,22 +10,18 @@ import {
 } from "./lib/outlook-addin-focus-proof.mjs";
 import { setupOutlookInquiryProofPage } from "./lib/outlook-addin-browser-proof-fixture.mjs";
 import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
-
 const ROOT = process.cwd();
 const SCREENSHOT_PATH = process.env.LAWOS_OUTLOOK_ADDIN_SCREENSHOT
   ?? "/tmp/lawos-client-outlook-addin-t05.png";
-
 async function serveDist() {
   return startOutlookAddinStaticServer({
     distRoot: resolve(ROOT, "apps/addin/dist"),
   });
 }
-
 const web = await serveDist();
 const browser = await chromium.launch({ headless: true });
 const writes = [];
 const inquiryResults = new Map();
-
 try {
   const page = await browser.newPage({
     viewport: { width: 390, height: 980 },
@@ -36,7 +32,6 @@ try {
     writes,
     inquiryResults,
   });
-
   await page.goto(
     `${web.origin}/?tenantId=tenant-t05&matterId=matter-t05`,
     { waitUntil: "domcontentloaded" },
@@ -44,7 +39,6 @@ try {
   await page.waitForSelector(
     "[data-outlook-addin-taskpane='true']",
   );
-
   assert.equal(
     writes.length,
     0,
@@ -74,7 +68,6 @@ try {
   await page.getByLabel("보관할 Matter").selectOption(
     "matter-t05",
   );
-
   const newInquiry = page.getByRole("button", {
     name: "새 문의 등록",
   });
@@ -85,8 +78,8 @@ try {
   const focusSnapshot = await newInquiry.evaluate(readFocusSnapshot);
   assertFocusStateDelta(unfocusedSnapshot, focusSnapshot, "문의 등록 버튼");
   assert.deepEqual(focusSnapshot.outline.color, [11, 101, 229, 1]);
+  assert.equal(focusSnapshot.outline.width, 3);
   assert.ok(focusSnapshot.outline.contrast >= 4.8);
-
   const matterSelect = page.getByLabel("보관할 Matter");
   const unfocusedSelectSnapshot = await matterSelect.evaluate(readFocusSnapshot);
   await matterSelect.focus();
@@ -99,8 +92,8 @@ try {
     "Matter 선택 필드",
   );
   assert.deepEqual(focusedSelectSnapshot.outline.color, [11, 101, 229, 1]);
+  assert.equal(focusedSelectSnapshot.outline.width, 3);
   assert.ok(focusedSelectSnapshot.outline.contrast >= 4.8);
-
   await assertPositiveFocusFixture(
     page,
     {
@@ -119,6 +112,15 @@ try {
       label: "legacy low-contrast focus outline",
       cssText: "outline: 3px solid rgb(143, 194, 238); outline-offset: 2px; border: 0; background: transparent;",
       focusCssText: "#outm36-low-contrast-legacy-color:focus-visible { outline: 3px solid rgb(143, 194, 238) !important; outline-offset: 2px; }",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-background-only-outline-decoy",
+      label: "background-only outline decoy",
+      cssText: "outline: 3px solid rgb(143, 194, 238); outline-offset: 2px; border: 0; background: transparent;",
+      focusCssText: "body:has(#outm36-background-only-outline-decoy:focus-visible) { background: rgb(0, 0, 0) !important; }",
     },
   );
   await assertNegativeFocusFixture(
@@ -182,7 +184,6 @@ try {
       .getAttribute("data-lead-id"),
     firstLeadId,
   );
-
   const linkInquiry = page.getByRole("button", {
     name: "기존 문의에 연결",
   });
@@ -202,7 +203,6 @@ try {
     document.querySelector("[data-testid='email-status']")
       ?.getAttribute("data-outcome") === "created"
   ));
-
   const inquiryWrites = writes.filter(
     (entry) => entry.pathname === "/api/outlook/inquiries",
   );
