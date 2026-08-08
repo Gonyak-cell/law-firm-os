@@ -360,7 +360,7 @@ test("sessionStorage와 OfficeRuntime storage에는 같은 LawOS 세션만 기�
     sessionStorage: { getItem: (key) => session.get(key) ?? null, setItem: (key, value) => session.set(key, value), removeItem: (key) => session.delete(key) },
     officeStorage: { async getItem(key) { return office.get(key) ?? null; }, async setItem(key, value) { office.set(key, value); }, async removeItem(key) { office.delete(key); } },
   });
-  await assert.rejects(store.set("graph_access_token"), /LawOS 세션만 저장/);
+  await assert.rejects(store.set("graph_access_token"), /AMIC OS 세션만 저장/);
   await store.set("lawos_session_v1.header.payload");
   assert.equal(await store.get(), "lawos_session_v1.header.payload");
   await store.clear();
