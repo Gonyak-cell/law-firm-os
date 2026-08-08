@@ -135,6 +135,11 @@ function normalizeProviderCursor(input) {
 export function normalizeDocusignRequest(input = {}) {
   const state = docusignRequiredText(input.state, "request.state");
   if (!DOCUSIGN_REQUEST_STATES.includes(state)) throw new TypeError("request.state is invalid");
+  const envelopeId = input.envelope_id == null ? null : docusignRequiredText(input.envelope_id, "request.envelope_id");
+  if (["sent", "delivered", "completed_artifacts_pending", "completed", "declined", "voided"].includes(state) && !envelopeId) {
+    throw new TypeError(`${state} request requires a provider envelope`);
+  }
+  if (state === "approved" && envelopeId) throw new TypeError("approved request cannot already have a provider envelope");
   const recipients = (input.recipient_snapshot ?? []).map(normalizeDocusignRecipient);
   if (recipients.length === 0) throw new TypeError("request.recipient_snapshot is required");
   const artifacts = Object.freeze({
@@ -159,7 +164,7 @@ export function normalizeDocusignRequest(input = {}) {
     requested_by_actor_id: docusignRequiredText(input.requested_by_actor_id, "request.requested_by_actor_id"),
     state,
     attempt_phase: input.attempt_phase == null ? null : docusignRequiredText(input.attempt_phase, "request.attempt_phase"),
-    envelope_id: input.envelope_id == null ? null : docusignRequiredText(input.envelope_id, "request.envelope_id"),
+    envelope_id: envelopeId,
     last_provider_status: input.last_provider_status == null ? null : docusignRequiredText(input.last_provider_status, "request.last_provider_status"),
     last_safe_error_code: input.last_safe_error_code == null ? null : docusignRequiredText(input.last_safe_error_code, "request.last_safe_error_code"),
     last_poll_at: input.last_poll_at == null ? null : docusignTimestamp(input.last_poll_at, "request.last_poll_at"),
@@ -186,6 +191,9 @@ export function normalizeDocusignReceipt(input = {}) {
 
 export function normalizeDocusignOutboxState(input) {
   const value = input && typeof input === "object" ? input : {};
+  if (value.schema_version != null && value.schema_version !== DOCUSIGN_OUTBOX_SCHEMA_VERSION) {
+    throw docusignInfrastructureFailure("DOCUSIGN_OUTBOX_SCHEMA_UNSUPPORTED");
+  }
   const state = { schema_version: DOCUSIGN_OUTBOX_SCHEMA_VERSION, requests: (value.requests ?? []).map(normalizeDocusignRequest), webhook_receipts: (value.webhook_receipts ?? []).map(normalizeDocusignReceipt) };
   const unique = (items, key, code) => {
     const seen = new Set();

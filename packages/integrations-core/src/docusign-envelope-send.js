@@ -81,7 +81,16 @@ export function createDocusignSendExecutor({ repository, connectionResolver, art
       connection = normalizeDocusignConnection(await connectionResolver({ tenant_id: request.tenant_id, connection_id: request.connection_id }));
       if (connection.tenant_id !== request.tenant_id || connection.connection_id !== request.connection_id) throw docusignFailure("DOCUSIGN_CONNECTION_SCOPE_INVALID", "DocuSign connection scope does not match request", 403);
       if (docusignAccountBindingRef(connection) !== request.account_binding_ref) throw docusignFailure("DOCUSIGN_ACCOUNT_BINDING_CHANGED", "DocuSign account binding changed", 409);
-      const artifact = await artifactReader({ tenant_id: request.tenant_id, matter_id: request.matter_id, document_id: request.document.document_id, version_id: request.document.version_id });
+      const artifactBinding = {
+        tenant_id: request.tenant_id, matter_id: request.matter_id, workspace_id: request.document.workspace_id,
+        artifact_id: request.document.artifact_id, document_id: request.document.document_id,
+        version_id: request.document.version_id, sha256: request.document.sha256,
+        approval_receipt_ref: request.document.approval_receipt_ref,
+      };
+      const artifact = await artifactReader(artifactBinding);
+      for (const [field, expected] of Object.entries(artifactBinding)) {
+        if (artifact?.[field] !== expected) throw docusignFailure("DOCUSIGN_ARTIFACT_SCOPE_INVALID", "Approved artifact scope does not match request", 403);
+      }
       artifactBytes = Buffer.isBuffer(artifact?.bytes) ? Buffer.from(artifact.bytes) : Buffer.from(artifact?.bytes ?? []);
       if (createHash("sha256").update(artifactBytes).digest("hex") !== request.document.sha256) throw docusignFailure("DOCUSIGN_DOCUMENT_HASH_CHANGED", "Approved document hash changed", 409);
       for (const recipient of request.recipient_snapshot) {

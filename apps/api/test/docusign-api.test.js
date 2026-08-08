@@ -39,11 +39,11 @@ const CONNECTION = Object.freeze({
   account_id: "account-api",
   base_uri: "https://demo.docusign.net",
   credential_refs: {
-    integration_key: "secret://docusign/integration-key",
-    service_user_id: "secret://docusign/service-user",
-    private_key: "secret://docusign/private-key",
+    integration_key: "aws-secrets-manager:/lawos/docusign/integration-key",
+    service_user_id: "aws-secrets-manager:/lawos/docusign/service-user",
+    private_key: "aws-secrets-manager:/lawos/docusign/private-key",
   },
-  hmac_secret_ref: "secret://docusign/connect-hmac",
+  hmac_secret_ref: "aws-secrets-manager:/lawos/docusign/connect-hmac",
 });
 
 function sessionAuth() {
@@ -96,7 +96,7 @@ async function docusignRuntime({ authorizeMatter = async () => ({ allowed: true,
       recipients: [{ recipient_ref: "contact-api", role: "client", routing_order: 1 }],
       anchor_manifest: { anchors: [{ role: "client", anchor: "/client-signature/" }] },
     }),
-    artifactReader: async () => ({ bytes: DOCUMENT_BYTES }),
+    artifactReader: async (binding) => ({ ...binding, bytes: DOCUMENT_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "signer@example.test" }),
     adapter,
     clock: () => "2026-08-08T02:00:00.000Z",
@@ -217,7 +217,7 @@ test("OUTM-34 Outlook read route requires Matter authorization and returns no pr
     assert.equal(response.status, 200, JSON.stringify(body));
     assert.equal(body.items.length, 1);
     assert.equal(body.items[0].state, "sent");
-    assert.doesNotMatch(JSON.stringify(body), /account-api|demo\.docusign|envelope-api|secret:\/\/|tenant-api/u);
+    assert.doesNotMatch(JSON.stringify(body), /account-api|demo\.docusign|envelope-api|aws-secrets-manager|tenant-api/u);
   });
 
   const deniedRuntime = await docusignRuntime({ authorizeMatter: async () => false });
@@ -270,7 +270,7 @@ test("OUTM-33 HTTP queue and send routes require authz, idempotency and explicit
     const sentBody = await sent.json();
     assert.equal(sent.status, 200, JSON.stringify(sentBody));
     assert.equal(sentBody.item.state, "sent");
-    assert.doesNotMatch(JSON.stringify(sentBody), /account-api|demo\.docusign|secret:\/\//u);
+    assert.doesNotMatch(JSON.stringify(sentBody), /account-api|demo\.docusign|aws-secrets-manager/u);
   });
 });
 

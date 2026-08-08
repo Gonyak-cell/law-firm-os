@@ -64,7 +64,9 @@ export async function completeDocusignArtifacts({ repository, request, connectio
 }
 
 export function createDocusignWebhookReceiptStore({ storage } = {}) {
-  if (!storage || typeof storage.putObject !== "function" || typeof storage.statObject !== "function") throw new TypeError("protected receipt storage is required");
+  if (!storage || storage.protected !== true || storage.immutable !== true || storage.content_addressed !== true || typeof storage.putObject !== "function" || typeof storage.statObject !== "function") {
+    throw new TypeError("protected immutable content-addressed receipt storage is required");
+  }
   return Object.freeze({
     async put({ tenant_id, request_id, bytes, sha256: expectedSha256 } = {}) {
       const buffer = docusignRawBytes(bytes);
@@ -75,7 +77,9 @@ export function createDocusignWebhookReceiptStore({ storage } = {}) {
       try {
         receipt = await storage.statObject({ tenant_id, object_id: objectId }) ?? await storage.putObject({ tenant_id, object_id: objectId, bytes: buffer, content_type: "application/json" });
       } catch { throw docusignInfrastructureFailure("DOCUSIGN_WEBHOOK_RECEIPT_STORAGE_UNAVAILABLE"); }
-      if (receipt?.sha256 !== digest) throw docusignInfrastructureFailure("DOCUSIGN_WEBHOOK_RECEIPT_HASH_MISMATCH");
+      if (receipt?.sha256 !== digest || receipt?.immutable !== true || receipt?.tenant_id !== tenant_id || receipt?.object_id !== objectId || receipt?.content_type !== "application/json") {
+        throw docusignInfrastructureFailure("DOCUSIGN_WEBHOOK_RECEIPT_HASH_MISMATCH");
+      }
       return Object.freeze({ receipt_ref: `docusign-connect-receipt:${digest}`, sha256: digest, immutable: true });
     },
   });

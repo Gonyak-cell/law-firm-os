@@ -16,8 +16,8 @@ const BYTES = Buffer.from("postgres-approved-docx");
 const SHA = createHash("sha256").update(BYTES).digest("hex");
 const CONNECTION = Object.freeze({
   tenant_id: TENANT, connection_id: "docusign-pg", account_id: "account-pg", base_uri: "https://demo.docusign.net",
-  credential_refs: { integration_key: "secret://docusign/key", service_user_id: "secret://docusign/user", private_key: "secret://docusign/private" },
-  hmac_secret_ref: "secret://docusign/hmac",
+  credential_refs: { integration_key: "aws-secrets-manager:/lawos/docusign/key", service_user_id: "aws-secrets-manager:/lawos/docusign/user", private_key: "aws-secrets-manager:/lawos/docusign/private" },
+  hmac_secret_ref: "aws-secrets-manager:/lawos/docusign/hmac",
 });
 const SOURCE = Object.freeze({
   authority: {
@@ -46,7 +46,7 @@ function outbox(repository, adapter, clock) {
     repository, adapter, clock,
     connectionResolver: async () => CONNECTION,
     approvedDocumentResolver: async () => SOURCE,
-    artifactReader: async () => ({ bytes: BYTES }),
+    artifactReader: async (binding) => ({ ...binding, bytes: BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "signer@example.test" }),
   });
 }

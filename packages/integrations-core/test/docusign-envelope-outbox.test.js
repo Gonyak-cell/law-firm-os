@@ -9,6 +9,8 @@ import {
   createDocusignEnvelopeAdapter,
   createDocusignEnvelopeRepository,
   createDocusignEnvelopeService,
+  normalizeDocusignConnection,
+  normalizeDocusignOutboxState,
 } from "../src/index.js";
 
 const TENANT = "tenant-amic";
@@ -22,11 +24,11 @@ const CONNECTION = Object.freeze({
   account_id: "account-001",
   base_uri: "https://demo.docusign.net",
   credential_refs: {
-    integration_key: "secret://docusign/integration-key",
-    service_user_id: "secret://docusign/service-user",
-    private_key: "secret://docusign/private-key",
+    integration_key: "aws-secrets-manager:/lawos/docusign/integration-key",
+    service_user_id: "aws-secrets-manager:/lawos/docusign/service-user",
+    private_key: "aws-secrets-manager:/lawos/docusign/private-key",
   },
-  hmac_secret_ref: "secret://docusign/connect-hmac",
+  hmac_secret_ref: "aws-secrets-manager:/lawos/docusign/connect-hmac",
 });
 
 const APPROVED_SOURCE = Object.freeze({
@@ -91,7 +93,7 @@ function runtime({ repository, adapter, connection = CONNECTION, approvedSource 
     repository,
     connectionResolver: async () => connection,
     approvedDocumentResolver: async () => approvedSource,
-    artifactReader: async () => ({ bytes: DOCX_BYTES }),
+    artifactReader: async (binding) => ({ ...binding, bytes: DOCX_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({
       tenant_id,
       recipient_ref,
@@ -147,7 +149,7 @@ test("OUTM-33 creates a draft, persists envelope identity, then sends exactly on
   assert.equal(calls.length, 2);
 
   const rawStore = readFileSync(filePath, "utf8");
-  assert.doesNotMatch(rawStore, /signer@example|Test Signer|documentBase64|approved-docx-fixture|BEGIN PRIVATE KEY|access_token/u);
+  assert.doesNotMatch(rawStore, /signer@example|Test Signer|documentBase64|approved-docx-fixture|BEGIN PRIVATE KEY|access_token|aws-secrets-manager/u);
   const reopened = createDocusignEnvelopeRepository({ filePath });
   assert.equal(reopened.loadState().requests[0].state, "sent");
 });
@@ -168,18 +170,33 @@ test("OUTM-33 idempotency and payload fingerprint prevent duplicate active envel
     (error) => error?.safe_error_code === "DOCUSIGN_APPROVED_SOURCE_MISMATCH",
   );
   assert.equal(repository.loadState().requests.length, 1);
+  const durableState = repository.loadState();
+  assert.throws(
+    () => normalizeDocusignOutboxState({ ...durableState, schema_version: "amic-os.docusign-envelope-outbox.v999" }),
+    (error) => error?.safe_error_code === "DOCUSIGN_OUTBOX_SCHEMA_UNSUPPORTED" && error?.status === 503,
+  );
+  assert.throws(
+    () => normalizeDocusignOutboxState({ ...durableState, requests: [{ ...durableState.requests[0], state: "sent", envelope_id: null }] }),
+    /sent request requires a provider envelope/u,
+  );
 });
 
 test("OUTM-33 binds server principal, tenant, account, approved hash, role, and anchor", async () => {
+  assert.throws(
+    () => normalizeDocusignConnection({ ...CONNECTION, credential_refs: { ...CONNECTION.credential_refs, integration_key: "00000000-0000-0000-0000-000000000000" } }),
+    /opaque AWS Secrets Manager reference/u,
+  );
   const repository = createDocusignEnvelopeRepository();
   let connection = CONNECTION;
   let approvedSource = APPROVED_SOURCE;
-  const adapter = { createDraft: async () => ({ envelope_id: "envelope" }), send: async () => ({ status: "sent" }) };
+  let artifactScopeOverride = {};
+  let providerCalls = 0;
+  const adapter = { createDraft: async () => { providerCalls += 1; return { envelope_id: "envelope" }; }, send: async () => { providerCalls += 1; return { status: "sent" }; } };
   const service = createDocusignEnvelopeService({
     repository,
     connectionResolver: async () => connection,
     approvedDocumentResolver: async () => approvedSource,
-    artifactReader: async () => ({ bytes: DOCX_BYTES }),
+    artifactReader: async (binding) => ({ ...binding, ...artifactScopeOverride, bytes: DOCX_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "s@example.test" }),
     adapter,
     clock: () => "2026-08-08T01:00:00.000Z",
@@ -218,6 +235,17 @@ test("OUTM-33 binds server principal, tenant, account, approved hash, role, and 
     }),
     (error) => error?.safe_error_code === "DOCUSIGN_SEND_ACTOR_MISMATCH" && error?.status === 403,
   );
+  artifactScopeOverride = { matter_id: "matter-other" };
+  await assert.rejects(
+    service.sendApprovedRequest({
+      principal: { tenant_id: TENANT, actor_id: "actor-owner" },
+      request_id: "esign-request-001",
+      explicit_human_action: true,
+    }),
+    (error) => error?.safe_error_code === "DOCUSIGN_ARTIFACT_SCOPE_INVALID" && error?.status === 403,
+  );
+  assert.equal(providerCalls, 0);
+  artifactScopeOverride = {};
   connection = { ...CONNECTION, account_id: "account-changed" };
   await assert.rejects(
     service.sendApprovedRequest({

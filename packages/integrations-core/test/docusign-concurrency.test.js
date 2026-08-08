@@ -18,8 +18,8 @@ const SHA = createHash("sha256").update(BYTES).digest("hex");
 const CONNECTION = Object.freeze({
   tenant_id: TENANT, connection_id: "docusign-concurrency", account_id: "account-concurrency",
   base_uri: "https://demo.docusign.net",
-  credential_refs: { integration_key: "secret://docusign/key", service_user_id: "secret://docusign/user", private_key: "secret://docusign/private" },
-  hmac_secret_ref: "secret://docusign/hmac",
+  credential_refs: { integration_key: "aws-secrets-manager:/lawos/docusign/key", service_user_id: "aws-secrets-manager:/lawos/docusign/user", private_key: "aws-secrets-manager:/lawos/docusign/private" },
+  hmac_secret_ref: "aws-secrets-manager:/lawos/docusign/hmac",
 });
 const SOURCE = Object.freeze({
   authority: {
@@ -48,7 +48,7 @@ function service(repository, adapter, clock = () => "2026-08-08T04:00:00.000Z") 
     repository, adapter, clock,
     connectionResolver: async () => CONNECTION,
     approvedDocumentResolver: async () => SOURCE,
-    artifactReader: async () => ({ bytes: BYTES }),
+    artifactReader: async (binding) => ({ ...binding, bytes: BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({ tenant_id, recipient_ref, name: "Signer", email: "signer@example.test" }),
   });
 }
@@ -123,7 +123,7 @@ test("OUTM-33 authority mismatch makes zero repository rows and zero provider ca
     repository,
     approvedDocumentResolver: async () => ({ ...SOURCE, authority: { ...SOURCE.authority, tenant_id: "tenant-forged" } }),
     connectionResolver: async () => { connectionCalls += 1; return CONNECTION; },
-    artifactReader: async () => ({ bytes: BYTES }),
+    artifactReader: async (binding) => ({ ...binding, bytes: BYTES }),
     recipientResolver: async () => ({}),
     adapter: { createDraft: async () => { providerCalls += 1; }, send: async () => { providerCalls += 1; } },
   });

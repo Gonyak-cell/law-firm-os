@@ -25,11 +25,11 @@ const CONNECTION = Object.freeze({
   account_id: "account-001",
   base_uri: "https://demo.docusign.net",
   credential_refs: {
-    integration_key: "secret://docusign/integration-key",
-    service_user_id: "secret://docusign/service-user",
-    private_key: "secret://docusign/private-key",
+    integration_key: "aws-secrets-manager:/lawos/docusign/integration-key",
+    service_user_id: "aws-secrets-manager:/lawos/docusign/service-user",
+    private_key: "aws-secrets-manager:/lawos/docusign/private-key",
   },
-  hmac_secret_ref: "secret://docusign/connect-hmac",
+  hmac_secret_ref: "aws-secrets-manager:/lawos/docusign/connect-hmac",
 });
 
 function approvedInput() {
@@ -151,7 +151,7 @@ async function preparedRuntime({
     repository,
     connectionResolver,
     approvedDocumentResolver: async () => approvedSource(),
-    artifactReader: async () => ({ bytes: DOCUMENT_BYTES }),
+    artifactReader: async (binding) => ({ ...binding, bytes: DOCUMENT_BYTES }),
     recipientResolver: async ({ tenant_id, recipient_ref }) => ({
       tenant_id,
       recipient_ref,
@@ -429,13 +429,20 @@ test("OUTM-34 a valid newer terminal may end only a non-terminal request; first 
 test("OUTM-34 protected receipt store is content-addressed and rejects a storage hash mismatch", async () => {
   const objects = new Map();
   const storage = {
+    protected: true,
+    immutable: true,
+    content_addressed: true,
     async statObject({ object_id }) { return objects.get(object_id) ?? null; },
-    async putObject({ object_id, bytes }) {
-      const receipt = { sha256: createHash("sha256").update(bytes).digest("hex") };
+    async putObject({ tenant_id, object_id, bytes, content_type }) {
+      const receipt = { tenant_id, object_id, content_type, immutable: true, sha256: createHash("sha256").update(bytes).digest("hex") };
       objects.set(object_id, receipt);
       return receipt;
     },
   };
+  assert.throws(
+    () => createDocusignWebhookReceiptStore({ storage: { ...storage, immutable: false } }),
+    /protected immutable content-addressed/u,
+  );
   const store = createDocusignWebhookReceiptStore({ storage });
   const bytes = Buffer.from("raw-connect-json");
   const digest = createHash("sha256").update(bytes).digest("hex");

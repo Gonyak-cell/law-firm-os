@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import docusign from "docusign-esign";
+import { isOpaqueCredentialReference } from "../../persistence/src/credential-reference.js";
 
 export const DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 export const DOCUSIGN_SDK_VERSION = "10.0.0";
@@ -11,7 +12,7 @@ function requiredText(value, field) {
 
 function requiredRef(value, field) {
   const ref = requiredText(value, field);
-  if (!/^[A-Za-z0-9._:/-]{1,300}$/u.test(ref)) throw new TypeError(`${field} must be an opaque secret reference`);
+  if (!isOpaqueCredentialReference(ref)) throw new TypeError(`${field} must use an opaque AWS Secrets Manager reference`);
   return ref;
 }
 
