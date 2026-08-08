@@ -1446,9 +1446,9 @@ function ensureMatterFolders({ repository, matter, actor_id } = {}) {
   });
 }
 
-function listMatterTimeline({ repository, tenant_id, matter_id, actor } = {}) {
+function listMatterTimeline({ repository, tenant_id, matter_id, actor, limit, cursor } = {}) {
   const entries = repository.list({ tenant_id, model_type: "MatterTimelineEvent", matter_id });
-  return buildMatterTimelineReadModel({ entries, actor, tenant_id, matter_id });
+  return buildMatterTimelineReadModel({ entries, actor, tenant_id, matter_id, limit, cursor });
 }
 
 function safeMatterDocument(document = {}) {
@@ -3064,6 +3064,8 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
           tenant_id: tenantId,
           matter_id: matterId,
           actor: context?.principal,
+          limit: query.limit,
+          cursor: query.cursor,
         }),
       });
     }

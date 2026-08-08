@@ -1359,6 +1359,67 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     assert.equal(matters.items.length, 1);
     assert.equal(matters.items[0].matter_id, MATTER);
 
+    await t.test("Matter timeline uses a bounded stable cursor without denied counts", async () => {
+      // Given
+      for (const [eventId, occurredAt, requiredScope] of [
+        ["timeline-visible-005", "2026-08-08T05:00:00.000Z", null],
+        ["timeline-visible-004", "2026-08-08T04:00:00.000Z", null],
+        ["timeline-visible-003", "2026-08-08T03:00:00.000Z", null],
+        ["timeline-visible-002", "2026-08-08T02:00:00.000Z", null],
+        ["timeline-visible-001", "2026-08-08T01:00:00.000Z", null],
+        ["timeline-denied-999", "2026-08-08T09:00:00.000Z", "matter:secret"],
+      ]) {
+        matterRepository.upsert({
+          model_type: "MatterTimelineEvent",
+          resource_id: eventId,
+          event_id: eventId,
+          tenant_id: TENANT,
+          matter_id: OTHER_MATTER,
+          occurred_at: occurredAt,
+          type: "matter.test",
+          title: `${eventId}\n한 줄`,
+          source_ref: `source:${eventId}`,
+          ...(requiredScope ? { required_scope: requiredScope } : {}),
+        });
+      }
+      const first = await json(`/api/outlook/matters/${OTHER_MATTER}/timeline?limit=2`);
+      matterRepository.upsert({
+        model_type: "MatterTimelineEvent",
+        resource_id: "timeline-visible-006",
+        event_id: "timeline-visible-006",
+        tenant_id: TENANT,
+        matter_id: OTHER_MATTER,
+        occurred_at: "2026-08-08T06:00:00.000Z",
+        type: "matter.test",
+        title: "inserted after page one",
+        source_ref: "source:timeline-visible-006",
+      });
+
+      // When
+      const second = await json(
+        `/api/outlook/matters/${OTHER_MATTER}/timeline?limit=2&cursor=${encodeURIComponent(first.item.page_info.next_cursor)}`,
+      );
+
+      // Then
+      assert.deepEqual(first.item.visible_entries.map(({ event_id }) => event_id), [
+        "timeline-visible-005",
+        "timeline-visible-004",
+      ]);
+      assert.deepEqual(second.item.visible_entries.map(({ event_id }) => event_id), [
+        "timeline-visible-003",
+        "timeline-visible-002",
+      ]);
+      assert.equal(first.item.visible_entries[0].title, "timeline-visible-005 한 줄");
+      assert.equal(first.item.omitted_entry_count, null);
+      assert.equal("denied_count" in first.item, false);
+      assert.equal("total_count" in first.item, false);
+      assert.deepEqual(second.item.page_info, {
+        limit: 2,
+        has_more: true,
+        next_cursor: second.item.page_info.next_cursor,
+      });
+    });
+
     await t.test("provider message identity mismatch fails before thread or object storage", async () => {
       const identityMismatch = await fetch(`${baseUrl}/api/outlook/email/file`, {
         method: "POST",
@@ -1688,10 +1749,13 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       const versionId = `version:${documentId}:1`;
       const beforeProviderCalls = providerCallCount;
       const beforeStorageWrites = storageWriteCount;
-      const filed = await json("/api/outlook/email/file", {
+      const filedResponse = await fetch(`${baseUrl}/api/outlook/email/file`, {
         method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
       });
+      const filed = await filedResponse.json();
+      assert.equal(filedResponse.status, 201, JSON.stringify(filed));
       assert.equal(filed.outcome, "created");
       assert.equal(providerCallCount, beforeProviderCalls + 1);
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
@@ -1725,10 +1789,13 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       const beforeReplayProviderCalls = providerCallCount;
       const beforeReplayStorageWrites = storageWriteCount;
       const beforeReplayDocumentCount = dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length;
-      const replay = await json("/api/outlook/email/file", {
+      const replayResponse = await fetch(`${baseUrl}/api/outlook/email/file`, {
         method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
         body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email }),
       });
+      const replay = await replayResponse.json();
+      assert.equal(replayResponse.status, 200, JSON.stringify(replay));
       assert.equal(replay.outcome, "idempotent_replay");
       assert.equal(replay.idempotent_replay, true);
       assert.equal(providerCallCount, beforeReplayProviderCalls + 1);
@@ -2497,6 +2564,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
         }),
       });
       assert.equal(sent.external_send_state, "provider_gated_no_external_send_claim");
+      assert.equal(sent.timeline_event.type, "outlook.email.sent_filed");
       assert.equal(providerCallCount, beforeProviderCalls + 1);
       assert.equal(storageWriteCount, beforeStorageWrites + 1);
       assert.equal(sent.email_thread.filed_document_ids.length, 1);
