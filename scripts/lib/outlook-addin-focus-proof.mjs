@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
 /**
- * Read focus state in the browser.  This function is passed to Playwright's
- * locator.evaluate(), so every helper it uses must remain self-contained.
+ * Read the product's keyboard focus contract in the browser.  This function
+ * is passed to Playwright's locator.evaluate(), so its helpers are local.
  */
 export function readFocusSnapshot(element) {
   const style = getComputedStyle(element);
@@ -48,57 +48,30 @@ export function readFocusSnapshot(element) {
   }
   if (!background || background[3] < 1) background = [255, 255, 255, 1];
 
-  const normalizeCandidate = ({ candidateStyle, width, color, geometry }) => {
-    const normalizedStyle = String(candidateStyle ?? "none").toLowerCase();
-    const normalizedWidth = Number.isFinite(width) ? width : 0;
-    const visible = !["none", "hidden"].includes(normalizedStyle)
-      && normalizedWidth > 0
-      && Boolean(color)
-      && color[3] > 0;
-    const ratio = visible ? contrast(color, background) : 0;
-    return {
-      visible,
-      width: normalizedWidth,
-      contrast: ratio,
-      style: normalizedStyle,
-      color,
-      geometry,
-      qualifying: visible && normalizedWidth >= 2 && ratio >= 3,
-    };
+  const styleName = String(style.outlineStyle ?? "none").toLowerCase();
+  const width = Number.parseFloat(style.outlineWidth);
+  const color = parseColor(style.outlineColor);
+  const visible = !["none", "hidden"].includes(styleName)
+    && Number.isFinite(width)
+    && width > 0
+    && Boolean(color)
+    && color[3] > 0;
+  const ratio = visible ? contrast(color, background) : 0;
+  const outline = {
+    visible,
+    width: Number.isFinite(width) ? width : 0,
+    contrast: ratio,
+    style: styleName,
+    color,
+    offset: style.outlineOffset,
+    qualifying: visible && width >= 2 && ratio >= 3,
   };
-
-  const outline = normalizeCandidate({
-    candidateStyle: style.outlineStyle,
-    width: Number.parseFloat(style.outlineWidth),
-    color: parseColor(style.outlineColor),
-    geometry: { offset: style.outlineOffset },
-  });
-  const border = normalizeCandidate({
-    candidateStyle: style.borderStyle,
-    width: Number.parseFloat(style.borderWidth),
-    color: parseColor(style.borderColor),
-    geometry: { radius: style.borderRadius },
-  });
-  const shadowValue = style.boxShadow;
-  const shadowLengths = (shadowValue.match(/-?\d+(?:\.\d+)?px/giu) ?? [])
-    .map((value) => Math.abs(Number.parseFloat(value)));
-  const shadow = normalizeCandidate({
-    candidateStyle: shadowValue === "none" ? "none" : "solid",
-    width: shadowValue === "none" ? 0 : Math.max(...shadowLengths, 0),
-    color: parseColor(shadowValue.match(/rgba?\([^)]*\)/iu)?.[0]),
-    geometry: { value: shadowValue, lengths: shadowLengths },
-  });
-  const candidates = { outline, border, shadow };
-  const ringKind = ["outline", "border", "shadow"]
-    .find((kind) => candidates[kind].qualifying) ?? null;
-  const ring = ringKind ? candidates[ringKind] : null;
   return {
     active: document.activeElement === element,
     focusVisible: element.matches(":focus-visible"),
-    candidates,
-    ringKind,
-    ringWidth: ring?.width ?? 0,
-    ringContrast: ring?.contrast ?? 0,
+    outline,
+    ringWidth: outline.qualifying ? outline.width : 0,
+    ringContrast: outline.qualifying ? outline.contrast : 0,
   };
 }
 
@@ -106,40 +79,24 @@ export function assertVisibleFocusRing(snapshot, label) {
   assert.equal(snapshot.active, true, `${label} must receive focus`);
   assert.equal(snapshot.focusVisible, true, `${label} must match :focus-visible`);
   assert.ok(
-    snapshot.ringWidth >= 2,
-    `${label} must expose a visible focus ring at least 2px wide`,
-  );
-  assert.ok(
-    snapshot.ringContrast >= 3,
-    `${label} focus ring must have at least 3:1 contrast`,
+    snapshot.outline?.qualifying,
+    `${label} must expose a visible focus outline at least 2px wide with 3:1 contrast`,
   );
 }
 
-function candidateChanged(beforeCandidate, afterCandidate) {
-  if (!beforeCandidate?.qualifying) return true;
-  if (beforeCandidate.width !== afterCandidate.width) return true;
-  if (beforeCandidate.style !== afterCandidate.style) return true;
-  if (JSON.stringify(beforeCandidate.geometry) !== JSON.stringify(afterCandidate.geometry)) return true;
-  if (beforeCandidate.contrast !== afterCandidate.contrast) return true;
-  const visibleStyle = (candidate) => candidate.visible
-    && candidate.width >= 2
-    && !["none", "hidden"].includes(candidate.style);
-  if (visibleStyle(beforeCandidate) && visibleStyle(afterCandidate)) {
-    return JSON.stringify(beforeCandidate.color) !== JSON.stringify(afterCandidate.color);
-  }
-  return false;
+function outlineChanged(before, after) {
+  if (!before?.qualifying) return true;
+  return before.style !== after.style
+    || before.width !== after.width
+    || before.offset !== after.offset
+    || JSON.stringify(before.color) !== JSON.stringify(after.color);
 }
 
 export function assertFocusStateDelta(before, after, label) {
   assertVisibleFocusRing(after, label);
-  const attributed = ["outline", "border", "shadow"].some((kind) => {
-    const afterCandidate = after.candidates?.[kind];
-    return afterCandidate?.qualifying
-      && candidateChanged(before.candidates?.[kind], afterCandidate);
-  });
   assert.ok(
-    attributed,
-    `${label} must change the qualifying computed focus indicator when focused`,
+    outlineChanged(before.outline, after.outline),
+    `${label} must change the qualifying focus outline when focused`,
   );
 }
 
@@ -172,8 +129,8 @@ export async function assertNegativeFocusFixture(
     const after = await fixture.evaluate(readFocusSnapshot);
     assert.throws(
       () => assertFocusStateDelta(before, after, label),
-      /focus indicator|focus ring|:focus-visible/u,
-      `${label} must fail without a qualifying focus-state change`,
+      /focus indicator|focus ring|focus outline|:focus-visible/u,
+      `${label} must fail without a qualifying focus-outline change`,
     );
   } finally {
     await page.evaluate((fixtureId) => {
