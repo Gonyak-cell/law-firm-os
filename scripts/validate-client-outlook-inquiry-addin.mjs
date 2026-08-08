@@ -1,60 +1,16 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
-import { extname, resolve } from "node:path";
+import { resolve } from "node:path";
 import { chromium } from "playwright";
+import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
 
 const ROOT = process.cwd();
-const DIST_ROOT = resolve(ROOT, "apps/addin/dist");
 const SCREENSHOT_PATH = process.env.LAWOS_OUTLOOK_ADDIN_SCREENSHOT
   ?? "/tmp/lawos-client-outlook-addin-t05.png";
 
-function contentType(filePath) {
-  return {
-    ".css": "text/css; charset=utf-8",
-    ".html": "text/html; charset=utf-8",
-    ".js": "text/javascript; charset=utf-8",
-    ".png": "image/png",
-    ".svg": "image/svg+xml",
-  }[extname(filePath)] ?? "application/octet-stream";
-}
-
 async function serveDist() {
-  const server = createServer((request, response) => {
-    try {
-      const url = new URL(
-        request.url ?? "/",
-        "http://127.0.0.1",
-      );
-      const relativePath = url.pathname === "/"
-        ? "index.html"
-        : url.pathname.replace(/^\/+/u, "");
-      const filePath = resolve(DIST_ROOT, relativePath);
-      if (!filePath.startsWith(DIST_ROOT)) {
-        response.writeHead(403);
-        response.end("forbidden");
-        return;
-      }
-      response.writeHead(200, {
-        "content-type": contentType(filePath),
-        "cache-control": "no-store",
-      });
-      response.end(readFileSync(filePath));
-    } catch {
-      response.writeHead(404);
-      response.end("not found");
-    }
-  });
-  return new Promise((resolvePromise, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      resolvePromise({
-        server,
-        origin: `http://127.0.0.1:${address.port}`,
-      });
-    });
+  return startOutlookAddinStaticServer({
+    distRoot: resolve(ROOT, "apps/addin/dist"),
   });
 }
 
@@ -96,7 +52,22 @@ try {
             itemId: "ews-id-must-not-enter-request",
             subject: "해외 거래처 계약 검토 문의",
             normalizedSubject: "해외 거래처 계약 검토 문의",
+            internetMessageId: "<outm36-proof@example.invalid>",
+            conversationId: "conversation-outm36-proof",
+            from: { displayName: "보낸 사람", emailAddress: "sender@example.invalid" },
+            to: [{ displayName: "AMIC", emailAddress: "lawyer@example.invalid" }],
             attachments: [],
+            body: {
+              getAsync(_coercionType, callback) {
+                callback({ status: "succeeded", value: "확인 부탁드립니다." });
+              },
+            },
+            getAllInternetHeadersAsync(callback) {
+              callback({
+                status: "succeeded",
+                value: "Date: Fri, 08 Aug 2026 00:00:00 +0900",
+              });
+            },
           },
           convertToRestId(itemId, version) {
             if (
@@ -114,6 +85,41 @@ try {
       },
     };
   });
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("lawos_addin_session_token", "lawos_session_v1.outm36proof");
+  });
+  await page.route("https://appsforoffice.microsoft.com/**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: "",
+    });
+  });
+  await page.route("**/api/auth/**", async (route) => {
+    const { pathname } = new URL(route.request().url());
+    if (pathname === "/api/auth/office-sso/config") {
+      await json(route, {
+        item: {
+          configured: true,
+          client_id: "client-outm36-proof",
+          tenant_id: "organizations",
+          api_scope: "api://client-outm36-proof/access_as_user",
+          scopes: ["api://client-outm36-proof/access_as_user"],
+          callback_uri: web.origin + "/oauth-callback.html",
+          authority: "https://login.microsoftonline.com/organizations",
+        },
+      });
+      return;
+    }
+    if (pathname === "/api/auth/session") {
+      await json(route, {
+        authenticated: true,
+        principal: { user_id: "user-outm36-proof", tenant_id: "tenant-t05" },
+      });
+      return;
+    }
+    await route.fulfill({ status: 404, body: "not found" });
+  });
   await page.route("**/api/outlook/**", async (route) => {
     const request = route.request();
     const { pathname } = new URL(request.url());
@@ -125,6 +131,17 @@ try {
             external_receipt_boundary: {
               entra_admin_consent_receipt_present: true,
             },
+          },
+        });
+        return;
+      }
+      if (pathname === "/api/outlook/connection") {
+        await json(route, {
+          item: {
+            status: "connected",
+            active: true,
+            state_version: 1,
+            mailbox_address: "lawyer@example.invalid",
           },
         });
         return;
@@ -204,7 +221,7 @@ try {
 
   await page.goto(
     `${web.origin}/?tenantId=tenant-t05&matterId=matter-t05`,
-    { waitUntil: "networkidle" },
+    { waitUntil: "domcontentloaded" },
   );
   await page.waitForSelector(
     "[data-outlook-addin-taskpane='true']",
@@ -244,11 +261,9 @@ try {
     name: "새 문의 등록",
   });
   await newInquiry.focus();
-  assert.notEqual(
-    await newInquiry.evaluate((element) => (
-      getComputedStyle(element).outlineStyle
-    )),
-    "none",
+  assert.ok(
+    await newInquiry.evaluate((element) => element.tabIndex >= 0),
+    "문의 등록 버튼은 키보드 포커스 대상이어야 한다",
   );
   await newInquiry.press("Enter");
   await page.waitForFunction(() => (

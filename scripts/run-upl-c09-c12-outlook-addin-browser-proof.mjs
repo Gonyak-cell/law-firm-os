@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { createServer } from "node:http";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { extname, join, resolve } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,6 +16,7 @@ import { createDmsRepository, createFileStorageAdapter } from "../packages/dms/s
 import { createMatterRepository } from "../packages/matter/src/index.js";
 import { outlookAddinProofSnapshot } from "../apps/api/src/outlook-addin-runtime-context.js";
 import { apiLogin } from "../apps/api/test/helpers/session.js";
+import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
@@ -67,43 +67,9 @@ function seedMatterRepository() {
   });
 }
 
-function contentType(filePath) {
-  return {
-    ".html": "text/html; charset=utf-8",
-    ".js": "text/javascript; charset=utf-8",
-    ".css": "text/css; charset=utf-8",
-    ".svg": "image/svg+xml",
-    ".png": "image/png",
-  }[extname(filePath)] ?? "application/octet-stream";
-}
-
 async function serveDist() {
-  const distRoot = resolve(ROOT, "apps/addin/dist");
-  const server = createServer((req, res) => {
-    try {
-      const url = new URL(req.url ?? "/", "http://127.0.0.1");
-      const path = url.pathname === "/" ? "/index.html" : url.pathname;
-      const safePath = path.replace(/^\/+/, "");
-      const filePath = resolve(distRoot, safePath);
-      if (!filePath.startsWith(distRoot)) {
-        res.writeHead(403);
-        res.end("forbidden");
-        return;
-      }
-      const bytes = readFileSync(filePath);
-      res.writeHead(200, { "content-type": contentType(filePath), "cache-control": "no-store" });
-      res.end(bytes);
-    } catch {
-      res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
-      res.end("not found");
-    }
-  });
-  return new Promise((resolvePromise, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      resolvePromise({ server, origin: `http://127.0.0.1:${address.port}` });
-    });
+  return startOutlookAddinStaticServer({
+    distRoot: resolve(ROOT, "apps/addin/dist"),
   });
 }
 
@@ -144,6 +110,32 @@ async function signedJsonFetch(baseUrl, path, { sessionToken, body } = {}) {
   return { status: response.status, payload, request_hash: sha256Text(serialized), response_hash: sha256Text(JSON.stringify(payload)) };
 }
 
+async function proxyApiRequests(page, apiBase) {
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const targetUrl = new URL(request.url());
+    const headers = { ...request.headers() };
+    delete headers.host;
+    delete headers.origin;
+    delete headers.referer;
+    const response = await fetch(
+      apiBase + targetUrl.pathname + targetUrl.search,
+      {
+        method: request.method(),
+        headers,
+        body: ["GET", "HEAD"].includes(request.method())
+          ? undefined
+          : request.postDataBuffer(),
+      },
+    );
+    await route.fulfill({
+      status: response.status,
+      headers: Object.fromEntries(response.headers),
+      body: Buffer.from(await response.arrayBuffer()),
+    });
+  });
+}
+
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 mkdirSync(SCREENSHOT_DIR, { recursive: true });
 mkdirSync(MANUAL_ARTIFACT_DIR, { recursive: true });
@@ -169,6 +161,7 @@ try {
   const apiBase = `http://${api.host}:${api.port}`;
   const signedSession = await apiLogin(apiBase);
   const page = await browser.newPage({ viewport: { width: 390, height: 860 } });
+  await proxyApiRequests(page, apiBase);
   const smartAlertRequests = [];
   let handlerProbe = null;
   let msalBridgeProbe = null;
@@ -194,11 +187,54 @@ try {
         },
       },
       MailboxEnums: {
+        RestVersion: { v2_0: "v2.0" },
+        CoercionType: { Text: "text" },
         ItemNotificationMessageType: {
           InformationalMessage: "informationalMessage",
         },
       },
+      context: {
+        mailbox: {
+          item: {
+            itemId: "ews-id-upl-c09-c12-proof",
+            subject: "Outlook C09-C12 브라우저 증명",
+            normalizedSubject: "Outlook C09-C12 브라우저 증명",
+            internetMessageId: "<upl-c09-c12-proof@example.invalid>",
+            conversationId: "upl-c09-c12-conversation",
+            from: { displayName: "증명 발신자", emailAddress: "sender@example.invalid" },
+            to: [{ displayName: "AMIC", emailAddress: "lawyer@example.invalid" }],
+            attachments: [],
+            body: {
+              getAsync(_coercionType, callback) {
+                callback({ status: "succeeded", value: "브라우저 증명 본문" });
+              },
+            },
+            getAllInternetHeadersAsync(callback) {
+              callback({
+                status: "succeeded",
+                value: "Date: Fri, 08 Aug 2026 00:00:00 +0900",
+              });
+            },
+          },
+          convertToRestId(itemId, version) {
+            if (itemId !== "ews-id-upl-c09-c12-proof" || version !== "v2.0") {
+              throw new Error("unexpected Office.js conversion");
+            }
+            return "rest-upl-c09-c12-proof";
+          },
+          userProfile: {
+            emailAddress: "lawyer@example.invalid",
+          },
+        },
+      },
     };
+  });
+  await page.route("https://appsforoffice.microsoft.com/**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: "",
+    });
   });
   await page.addInitScript((token) => {
     window.sessionStorage.setItem("lawos_addin_session_token", token);
@@ -212,7 +248,7 @@ try {
     msalScope: "User.Read",
   }).toString()}&msalScope=${encodeURIComponent("Mail.Read")}`;
   await page.goto(taskpaneUrl, {
-    waitUntil: "networkidle",
+    waitUntil: "domcontentloaded",
   });
   await page.waitForSelector("[data-outlook-addin-taskpane='true']");
   msalBridgeProbe = await page.evaluate(async () => {
