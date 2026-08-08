@@ -2428,6 +2428,139 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     assert.equal(replayedFollowup.item.activity_id, followup.item.activity_id);
     assert.equal(replayedFollowup.timeline_event.event_id, followup.timeline_event.event_id);
 
+    const outlookTaskResponse = await fetch(`${baseUrl}/api/outlook/tasks`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...sessionHeaders },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        actor_id: "forged-browser-actor",
+        matter_id: MATTER,
+        idempotency_key: "outlook-editable-task-create",
+        source_email_thread_id: fileBody.email_thread.email_thread_id,
+        task: {
+          title: "상대방 서면 검토",
+          due_at: "2026-07-12T09:00:00.000Z",
+          estimated_minutes: 40,
+          status: "todo",
+        },
+      }),
+    });
+    const outlookTask = await outlookTaskResponse.json();
+    assert.equal(outlookTaskResponse.status, 201);
+    assert.equal(outlookTask.outcome, "task_created");
+    assert.equal(outlookTask.item.assigned_to_user_id, null);
+    assert.equal(outlookTask.item.version, 1);
+    assert.equal(
+      outlookTask.item.source_ref,
+      `DmsEmailThread:${fileBody.email_thread.email_thread_id}`,
+    );
+    const storedOutlookTask = matterRepository.get({
+      tenant_id: TENANT,
+      model_type: "MatterTask",
+      task_id: outlookTask.item.activity_id,
+    });
+    assert.equal(storedOutlookTask.created_by, ACTOR);
+
+    const forgedTenantTask = await fetch(`${baseUrl}/api/outlook/tasks`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...sessionHeaders },
+      body: JSON.stringify({
+        tenant_id: "tenant_forged",
+        matter_id: MATTER,
+        idempotency_key: "outlook-editable-task-forged-tenant",
+        task: { title: "위조 테넌트 업무" },
+      }),
+    });
+    assert.equal(forgedTenantTask.status, 400);
+
+    const foreignAssigneeTask = await fetch(`${baseUrl}/api/outlook/tasks`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...sessionHeaders },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: "outlook-editable-task-foreign-assignee",
+        task: {
+          title: "권한 없는 담당자 업무",
+          assigned_to_user_id: "user_foreign",
+        },
+      }),
+    });
+    assert.equal(foreignAssigneeTask.status, 400);
+    assert.equal(matterRepository.getIdempotency({
+      tenant_id: TENANT,
+      idempotency_key: "outlook-editable-task-foreign-assignee",
+    }), undefined);
+
+    const replayedOutlookTaskResponse = await fetch(`${baseUrl}/api/outlook/tasks`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...sessionHeaders },
+      body: JSON.stringify({
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: "outlook-editable-task-create",
+        source_email_thread_id: fileBody.email_thread.email_thread_id,
+        task: {
+          title: "상대방 서면 검토",
+          due_at: "2026-07-12T09:00:00.000Z",
+          estimated_minutes: 40,
+          status: "todo",
+        },
+      }),
+    });
+    assert.equal(replayedOutlookTaskResponse.status, 200);
+    assert.equal((await replayedOutlookTaskResponse.json()).outcome, "idempotent_replay");
+
+    const updatedOutlookTaskResponse = await fetch(
+      `${baseUrl}/api/outlook/tasks/${encodeURIComponent(outlookTask.item.activity_id)}`,
+      {
+        method: "PATCH",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          idempotency_key: "outlook-editable-task-update",
+          expected_version: 1,
+          patch: {
+            title: "상대방 서면 검토 완료",
+            assigned_to_user_id: ACTOR,
+            due_at: "2026-07-13T09:00:00.000Z",
+            estimated_minutes: 20,
+            status: "in_progress",
+          },
+        }),
+      },
+    );
+    const updatedOutlookTask = await updatedOutlookTaskResponse.json();
+    assert.equal(updatedOutlookTaskResponse.status, 200, JSON.stringify(updatedOutlookTask));
+    assert.equal(updatedOutlookTask.outcome, "task_updated");
+    assert.equal(updatedOutlookTask.item.version, 2);
+    assert.equal(updatedOutlookTask.item.assigned_to_user_id, ACTOR);
+    assert.equal(updatedOutlookTask.item.status, "in_progress");
+
+    const staleOutlookTaskResponse = await fetch(
+      `${baseUrl}/api/outlook/tasks/${encodeURIComponent(outlookTask.item.activity_id)}`,
+      {
+        method: "PATCH",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          idempotency_key: "outlook-editable-task-stale",
+          expected_version: 1,
+          patch: { status: "done" },
+        }),
+      },
+    );
+    const staleOutlookTask = await staleOutlookTaskResponse.json();
+    assert.equal(staleOutlookTaskResponse.status, 409);
+    assert.deepEqual(staleOutlookTask.safe_error_codes, ["OUTLOOK_TASK_VERSION_CONFLICT"]);
+    assert.equal(matterRepository.get({
+      tenant_id: TENANT,
+      model_type: "MatterTask",
+      task_id: outlookTask.item.activity_id,
+    }).status, "in_progress");
+
     const conflictingFollowup = await fetch(`${baseUrl}/api/outlook/followups`, {
       method: "POST",
       headers: { "content-type": "application/json", ...sessionHeaders },

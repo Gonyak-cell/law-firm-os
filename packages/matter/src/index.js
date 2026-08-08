@@ -39,6 +39,7 @@ export * from "./timeline-projection.js";
 export * from "./matter-opening-service.js";
 export * from "./timeline-repository.js";
 export * from "./activity-calendar-channel-service.js";
+export * from "./outlook-task-adapter.js";
 export * from "./document-email-builder-service.js";
 export * from "./amic-matter-code-candidates.js";
 export * from "./matter-party-service.js";

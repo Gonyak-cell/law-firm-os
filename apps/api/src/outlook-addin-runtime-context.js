@@ -21,7 +21,12 @@ import {
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
-import { createMatterActivityCalendarChannelService } from "../../../packages/matter/src/index.js";
+import {
+  OUTLOOK_TASK_ERROR_CODES,
+  createMatterActivityCalendarChannelService,
+  createOutlookMatterTask,
+  updateOutlookMatterTask,
+} from "../../../packages/matter/src/index.js";
 import { buildMatterTimelineReadModel } from "../../../packages/matter/src/timeline-read-model.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
@@ -46,6 +51,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/email/file",
     "POST /api/outlook/sent/file",
     "POST /api/outlook/attachments/save",
+    "POST /api/outlook/tasks",
+    "PATCH /api/outlook/tasks/:task_id",
     "POST /api/outlook/followups",
     "POST /api/outlook/smart-alerts/evaluate",
   ]),
@@ -2856,6 +2863,147 @@ function createFollowup({ body, context, requestId, runtime }) {
   });
 }
 
+function outlookTaskErrorResponse(error, requestId, auditHintRef) {
+  const safeCode = Object.values(OUTLOOK_TASK_ERROR_CODES).includes(error?.safe_error_code)
+    ? error.safe_error_code
+    : OUTLOOK_ADDIN_ERROR_CODES.validation_error;
+  const safeMessage = safeCode === OUTLOOK_TASK_ERROR_CODES.version_conflict
+    ? "Matter task changed; refresh before retrying"
+    : safeCode === OUTLOOK_TASK_ERROR_CODES.not_found
+      ? "Matter task was not found"
+      : safeCode === OUTLOOK_TASK_ERROR_CODES.idempotency_conflict
+        ? "Outlook task request conflicts with an earlier request"
+        : "Outlook task request is invalid";
+  return errorResponse(error?.status ?? 400, requestId, [safeCode], {
+    audit_hint_ref: auditHintRef,
+    ui_state: safeCode === OUTLOOK_TASK_ERROR_CODES.version_conflict ? "stale_item" : "blocked",
+    message: safeMessage,
+  });
+}
+
+function trustedOutlookTaskTenant(body, context) {
+  const tenantId = requiredString(context?.principal?.tenant_id, "principal.tenant_id");
+  if (body?.tenant_id != null && requiredString(body.tenant_id, "tenant_id") !== tenantId) {
+    throw new TypeError("tenant_id does not match the authenticated session");
+  }
+  return tenantId;
+}
+
+function validateOutlookTaskSource({ tenantId, matterId, sourceEmailThreadId, runtime }) {
+  if (!sourceEmailThreadId) return null;
+  const threadId = requiredString(sourceEmailThreadId, "source_email_thread_id");
+  const thread = runtime.dmsRuntime?.repository?.get?.({
+    tenant_id: tenantId,
+    model_type: "DmsEmailThread",
+    email_thread_id: threadId,
+  });
+  if (!thread || thread.matter_id !== matterId || thread.status !== "active") {
+    throw Object.assign(new Error("Outlook source email was not found for the Matter"), {
+      safe_error_code: OUTLOOK_ADDIN_ERROR_CODES.email_not_found,
+      status: 404,
+    });
+  }
+  return threadId;
+}
+
+function createEditableOutlookTask({ body, context, requestId, runtime }) {
+  try {
+    if (!hasOnlyBodyFields(body, [
+      "actor_id",
+      "audit_hint_ref",
+      "idempotency_key",
+      "matter_id",
+      "source_email_thread_id",
+      "task",
+      "tenant_id",
+    ])) throw new TypeError("Outlook task creation contains unsupported fields");
+    const tenantId = trustedOutlookTaskTenant(body, context);
+    const matterId = requiredString(body.matter_id, "matter_id");
+    const decision = evaluateOutlookPermission({
+      context,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      resource_type: "matter_task",
+      resource_id: matterId,
+      action: "outlook:task:create",
+    });
+    if (decision.effect !== "allow") {
+      return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
+    }
+    const sourceEmailThreadId = validateOutlookTaskSource({
+      tenantId,
+      matterId,
+      sourceEmailThreadId: body.source_email_thread_id,
+      runtime,
+    });
+    const result = createOutlookMatterTask({
+      repository: runtime.matterRuntime.repository,
+      peopleAssignmentAuthority: runtime.matterRuntime.peopleAssignmentAuthority,
+      clock: runtime.matterRuntime.clock,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      actor_id: requiredString(context?.principal?.user_id, "principal.user_id"),
+      idempotency_key: body.idempotency_key,
+      source_email_thread_id: sourceEmailThreadId,
+      task: body.task,
+    });
+    return success(result.idempotent_replay ? 200 : 201, {
+      request_id: requestId,
+      ...result,
+      auto_assigned: false,
+    });
+  } catch (error) {
+    if (error?.safe_error_code === OUTLOOK_ADDIN_ERROR_CODES.email_not_found) {
+      return errorResponse(404, requestId, [OUTLOOK_ADDIN_ERROR_CODES.email_not_found], {
+        audit_hint_ref: body?.audit_hint_ref,
+      });
+    }
+    return outlookTaskErrorResponse(error, requestId, body?.audit_hint_ref);
+  }
+}
+
+function updateEditableOutlookTask({ taskId, body, context, requestId, runtime }) {
+  try {
+    if (!hasOnlyBodyFields(body, [
+      "actor_id",
+      "audit_hint_ref",
+      "expected_version",
+      "idempotency_key",
+      "matter_id",
+      "patch",
+      "tenant_id",
+    ])) throw new TypeError("Outlook task update contains unsupported fields");
+    const tenantId = trustedOutlookTaskTenant(body, context);
+    const matterId = requiredString(body.matter_id, "matter_id");
+    const decision = evaluateOutlookPermission({
+      context,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      resource_type: "matter_task",
+      resource_id: taskId,
+      action: "outlook:task:update",
+    });
+    if (decision.effect !== "allow") {
+      return permissionDeniedResponse({ requestId, decision, auditHintRef: body.audit_hint_ref });
+    }
+    const result = updateOutlookMatterTask({
+      repository: runtime.matterRuntime.repository,
+      peopleAssignmentAuthority: runtime.matterRuntime.peopleAssignmentAuthority,
+      clock: runtime.matterRuntime.clock,
+      tenant_id: tenantId,
+      matter_id: matterId,
+      task_id: taskId,
+      actor_id: requiredString(context?.principal?.user_id, "principal.user_id"),
+      idempotency_key: body.idempotency_key,
+      expected_version: body.expected_version,
+      patch: body.patch,
+    });
+    return success(200, { request_id: requestId, ...result });
+  } catch (error) {
+    return outlookTaskErrorResponse(error, requestId, body?.audit_hint_ref);
+  }
+}
+
 function evaluateSmartAlerts({ body, context, requestId }) {
   const message = body.message ?? body.email ?? body;
   const recipients = safeRecipients(message.to, {
@@ -3095,6 +3243,19 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/attachments/save" && method === "POST") {
       return await saveAttachments({ body, context, requestId, runtime });
+    }
+    if (pathname === "/api/outlook/tasks" && method === "POST") {
+      return createEditableOutlookTask({ body, context, requestId, runtime });
+    }
+    const taskMatch = routeMatch(pathname, /^\/api\/outlook\/tasks\/([^/]+)$/u);
+    if (taskMatch && method === "PATCH") {
+      return updateEditableOutlookTask({
+        taskId: decodeURIComponent(taskMatch[1]),
+        body,
+        context,
+        requestId,
+        runtime,
+      });
     }
     if (pathname === "/api/outlook/followups" && method === "POST") {
       return createFollowup({ body, context, requestId, runtime });
