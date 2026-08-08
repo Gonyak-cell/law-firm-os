@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { sha256, validateM365ReleaseReceipt } from "./lib/outlook-release-gates.mjs";
+import {
+  openProtectedEvidenceRoot, sha256, validateM365ReleaseReceipt,
+} from "./lib/outlook-release-gates.mjs";
+import { createCommandRunner, exactGitIdentity, trackedGitPaths } from "./lib/outlook-release/cli-runtime.mjs";
 import { parseOutlookManifest } from "./lib/outlook-manifest-projection.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -18,21 +20,6 @@ function option(name) {
   return value;
 }
 
-function optionalOption(name) {
-  const index = process.argv.indexOf(name);
-  const value = index >= 0 ? process.argv[index + 1] : null;
-  if (index >= 0 && (!value || value.startsWith("--"))) throw new TypeError(`${name} requires a value`);
-  return value;
-}
-
-function git(...args) {
-  return execFileSync("git", args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-  }).trim();
-}
-
 async function readJson(file) {
   return JSON.parse(await readFile(file, "utf8"));
 }
@@ -41,11 +28,9 @@ async function main() {
   const expectedSourceSha = option("--source-sha");
   const receipt = await readJson(path.resolve(option("--receipt")));
   const releaseCandidate = await readJson(path.resolve(option("--release-receipt")));
-  const staticPlanRef = optionalOption("--static-plan");
-  const sourceSha = git("rev-parse", "HEAD");
-  const sourceTree = git("rev-parse", "HEAD^{tree}");
-  if (sourceSha !== expectedSourceSha) throw new Error(`exact source SHA mismatch: expected ${expectedSourceSha}, got ${sourceSha}`);
-  if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("worktree changes make exact-SHA validation impossible");
+  const protectedEvidence = openProtectedEvidenceRoot(path.resolve(option("--protected-root")));
+  const runCommand = createCommandRunner({ cwd: repoRoot, allowedCommands: ["git"] });
+  const { sourceSha, sourceTree } = exactGitIdentity({ expectedSourceSha, runCommand });
 
   const contractRef = "contracts/outlook-addin-release-gates.json";
   const contractBytes = await readFile(path.join(repoRoot, contractRef));
@@ -79,7 +64,7 @@ async function main() {
       rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
       surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
     },
-    existingPaths: new Set(git("ls-files", "-z").split("\0").filter(Boolean)),
+    existingPaths: trackedGitPaths(runCommand),
     expectedSourceIdentity,
     manifestHashesByPath,
     packageLock: JSON.parse(packageLockBytes),
@@ -87,8 +72,6 @@ async function main() {
     rollback,
     surface,
   };
-  const staticPlanBytes = staticPlanRef ? await readFile(path.resolve(staticPlanRef)) : null;
-  const staticPlan = staticPlanBytes ? JSON.parse(staticPlanBytes) : null;
   const candidateManifestHashes = {};
   const candidateManifestProjections = {};
   for (const profile of contract.profiles) {
@@ -105,8 +88,7 @@ async function main() {
     candidateManifestHashes,
     candidateManifestProjections,
     expectedSourceIdentity,
-    staticPlan,
-    staticPlanSha256: staticPlanBytes ? sha256(staticPlanBytes) : null,
+    protectedEvidence,
   });
   process.stdout.write(`${JSON.stringify({
     verdict: "PASS",

@@ -165,6 +165,28 @@
     "required_profile_scenarios": {
       "matter-full": ["read", "compose", "on-message-send"],
       "inquiry-only": ["read"]
+    },
+    "protected_evidence": {
+      "root_mode": "read-only",
+      "reject_symlinks": true,
+      "hash_algorithm": "sha256",
+      "required_proof_classes": [
+        "api_release",
+        "static_release",
+        "additive_migrations",
+        "graph_endpoint_and_secret_reference",
+        "docusign_endpoint_and_secret_reference",
+        "approved_template_runtime",
+        "precedent_index_runtime",
+        "authorization",
+        "pilot_assignment",
+        "monitoring_plan",
+        "rollback_rehearsal",
+        "central_deployment",
+        "propagation_observation",
+        "real_outlook_host",
+        "go_live_approval"
+      ]
     }
   }
 }

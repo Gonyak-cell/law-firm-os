@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -16,6 +15,7 @@ import {
   validateRollbackContract,
   validateSurfaceSeparation,
 } from "./lib/outlook-release-gates.mjs";
+import { createCommandRunner, exactGitIdentity, trackedGitPaths } from "./lib/outlook-release/cli-runtime.mjs";
 import { validateOutlookAddinSurfaces } from "./validate-outlook-addin-surfaces.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -28,18 +28,9 @@ function option(name) {
   return value;
 }
 
-function git(...args) {
-  return execFileSync("git", args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-  }).trim();
-}
-
-function run(command, args) {
+function run(runCommand, command, args) {
   try {
-    return execFileSync(command, args, {
-      cwd: repoRoot,
+    return runCommand(command, args, {
       encoding: "utf8",
       env: { ...process.env, CI: "1" },
       maxBuffer: 16 * 1024 * 1024,
@@ -107,12 +98,10 @@ async function main() {
   const packageLock = JSON.parse(packageLockBytes);
 
   validateReleaseContract(contract);
-  const sourceSha = git("rev-parse", "HEAD");
-  const sourceTree = git("rev-parse", "HEAD^{tree}");
-  if (sourceSha !== expectedSourceSha) throw new Error(`exact source SHA mismatch: expected ${expectedSourceSha}, got ${sourceSha}`);
-  if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("worktree changes make exact-SHA validation impossible");
+  const runCommand = createCommandRunner({ cwd: repoRoot, allowedCommands: ["git", "npm", "npx"] });
+  const { sourceSha, sourceTree } = exactGitIdentity({ expectedSourceSha, runCommand });
 
-  const trackedPaths = new Set(git("ls-files", "-z").split("\0").filter(Boolean));
+  const trackedPaths = trackedGitPaths(runCommand);
   const coverage = validateCoveragePaths(trackedPaths, contract);
   const licenses = validateDependencyLicenses(packageLock, contract);
   const rollbackResult = validateRollbackContract(rollback, baseline, contract);
@@ -122,24 +111,23 @@ async function main() {
   if (candidateResult.permission_event_assignment_diff !== "none") throw new Error("candidate manifest drifted from frozen identity contract");
 
   const [buildCommand, ...buildArgs] = contract.build.command;
-  run(buildCommand, buildArgs);
+  run(runCommand, buildCommand, buildArgs);
   const first = await collectBuildInventory(path.join(repoRoot, contract.build.root), contract);
-  run(buildCommand, buildArgs);
+  run(runCommand, buildCommand, buildArgs);
   const second = await collectBuildInventory(path.join(repoRoot, contract.build.root), contract);
   const build = validateBuildInventories(first, second, contract);
 
   const manifests = [];
   for (const manifest of contract.manifests) {
-    run("npx", ["--yes", "office-addin-manifest@2.1.6", "validate", manifest]);
+    run(runCommand, "npx", ["--yes", "office-addin-manifest@2.1.6", "validate", manifest]);
     const bytes = await readFile(path.join(repoRoot, manifest));
     manifests.push({ path: manifest, sha256: sha256(bytes) });
   }
   const artifacts = await profileArtifacts(contract, build.inventory);
   const eventRuntime = build.inventory.find(({ path: file }) => file === "event-runtime.js");
   if (!eventRuntime) throw new Error("event runtime is missing from the release inventory");
-  if (git("rev-parse", "HEAD") !== sourceSha
-    || git("rev-parse", "HEAD^{tree}") !== sourceTree
-    || git("status", "--porcelain=v1", "--untracked-files=all")) {
+  const finalIdentity = exactGitIdentity({ expectedSourceSha: sourceSha, runCommand });
+  if (finalIdentity.sourceTree !== sourceTree) {
     throw new Error("release validation changed or drifted from the exact source tree");
   }
 

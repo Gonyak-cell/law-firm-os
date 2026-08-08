@@ -87,35 +87,56 @@ Validate a sanitized packet with:
 node scripts/validate-outlook-m365-release-receipt.mjs \
   --source-sha <exact-40-character-HEAD> \
   --release-receipt <protected-release-receipt.json> \
+  --protected-root <trusted-protected-evidence-directory> \
   --receipt <protected-m365-receipt.json>
 ```
 
-Before authorization the only valid status is `awaiting_authorized_deployment`. It requires null authorization, null `static_release`, zero mutations, no operations/readbacks/observations/host evidence, and all completion claims false. API, static hosting, additive migrations, Graph endpoint/secret reference, DocuSign endpoint/secret reference, approved-template runtime, and precedent-index runtime are each recorded as `pending` or as a SHA/tree/lock/artifact/hash-bound protected `verified` receipt. Unknown top-level or nested fields are rejected, including free-floating deployment/provider/go-live booleans. That packet is structurally valid, not deployed.
+The protected root is a local release-controller trust boundary outside the packet. The validator resolves it before reading evidence, rejects a symlinked or group/world-writable root, rejects symlinks and traversal below it, opens only regular non-writable files, reads their actual bytes, and compares each receipt SHA-256 to those bytes before parsing JSON. A missing file, arbitrary digest, placeholder reference/value, wrong proof class, stale source SHA/tree/lock, extra field, or malformed schema fails closed. The tool does not call AWS, Microsoft 365, Graph, DocuSign, or any other provider.
 
-An executed receipt also requires the exact dry-run plan bytes:
+Before authorization the only valid status is `awaiting_authorized_deployment`. It requires null authorization, null `static_release`, zero mutations, no operations/readbacks/observations/host evidence, all completion claims false, and all prerequisites `pending` with null identity/artifact/evidence fields. Its exact `execution_control` contains null authorization, central deployment, pilot assignment, operator, owner, change-window, monitoring, rollback-rehearsal, rollback-readback-owner, and go-live evidence; monitoring and abort criteria are empty. Unknown top-level or nested fields are rejected, including standalone deployment/provider/go-live booleans. That packet is structurally valid, not deployed.
+
+An executed receipt uses the same command. It does not accept an untrusted plan object or a separate `--static-plan` bypass. Every verified prerequisite is a protected-root file with an exact proof-class schema:
+
+- `api_release`: deployed artifact readback plus equal before/after environment fingerprints, exact Lambda target, one authorized code mutation, and environment preservation;
+- `static_release`: an authorized two-prefix deployment/readback proof which itself references the protected exact dry-run plan bytes;
+- `additive_migrations`: applied migration IDs/inventory, transaction readback, no destructive migration, and rollback compatibility;
+- `graph_endpoint_and_secret_reference`: exact Microsoft Graph origin, reviewed delegated scopes, opaque secret reference, and provider readback;
+- `docusign_endpoint_and_secret_reference`: reviewed DocuSign REST origin, opaque secret reference, integration-key fingerprint, and provider readback;
+- `approved_template_runtime`: protected template inventory and runtime-readback hashes; and
+- `precedent_index_runtime`: protected index inventory and runtime-readback hashes.
+
+The executed `execution_control` must also be complete and evidence-bound:
+
+- a protected authorization proof with the exact `authorization_ref`, `operator_ref`, `owner_ref`, authorized actions, and UTC change-window start/end;
+- a protected pilot-assignment proof with opaque group references, both ProductIds, per-product assignment counts/fingerprints, and an aggregate assignment fingerprint;
+- non-empty monitoring criteria and abort criteria copied exactly from a protected monitoring-plan proof owned by `owner_ref`;
+- a protected rollback rehearsal for both ProductIds and the exact `rollback_readback_owner_ref`; and
+- a protected central-deployment proof whose recorded operations and static/M365 readbacks match the packet byte-for-byte and whose observation falls within the authorized change window.
+
+For example:
 
 ```bash
 node scripts/validate-outlook-m365-release-receipt.mjs \
   --source-sha <exact-40-character-HEAD> \
   --release-receipt <protected-release-receipt.json> \
-  --static-plan <protected-static-plan.json> \
+  --protected-root <trusted-protected-evidence-directory> \
   --receipt <protected-m365-receipt.json>
 ```
 
-It is invalid while any prerequisite remains pending. `static_release` must bind the plan SHA-256 and both profile inventory/manifest/task-pane/bundle hashes, exact target prefixes, and true SourceLocation coverage; its prerequisite binds the same plan and complete candidate inventory. After separately authorized API/migration/static work and a pilot central update, the receipt must contain exact task-pane HTML, entry-bundle, per-prefix inventory, and HTTP readbacks for both SourceLocations, two independent central-update operation references, and two central readbacks. Each central readback must match the exact ProductId, candidate manifest SHA-256, version, fixed deployment mode, SourceLocations, enabled state, assignment count, and sanitized assignment fingerprint. Deleting/re-registering either app or reusing one app's rollback for the other is invalid.
+It is invalid while any prerequisite remains pending. `static_release` binds the protected plan SHA-256 and both profile inventory/manifest/task-pane/bundle hashes, exact target prefixes, and true SourceLocation coverage; its prerequisite binds the same plan and complete candidate inventory. After separately authorized API/migration/static work and a pilot central update, the receipt contains exact task-pane HTML, entry-bundle, per-prefix inventory, and HTTP readbacks for both SourceLocations, two independent central-update operation references, and two central readbacks. Each central readback matches the exact ProductId, candidate manifest SHA-256, version, fixed deployment mode, SourceLocations, enabled state, assignment count, and sanitized assignment fingerprint. Deleting/re-registering either app or reusing one app's rollback for the other is invalid.
 
-Propagation is a separate claim. It becomes true only when both ProductIds have exact readback observations at T+0, T+24, T+48, and T+72. The 72-hour window is an observation schedule, not an SLA or automatic pass.
+Propagation is a separate claim. Every row has its own protected proof file and byte SHA-256. It becomes true only when both ProductIds have exact protected readback observations at T+0, T+24, T+48, and T+72. The 72-hour window is an observation schedule, not an SLA or automatic pass.
 
-Real Outlook is another separate claim. For each ProductId, each recorded host must be an actually exercised `real_outlook_host`, not a browser harness or screenshot-only assertion. Complete host proof requires:
+Real Outlook is another separate claim. For each ProductId, each recorded host must be an actually exercised `real_outlook_host`, not a browser-only execution or screenshot-only assertion. Complete host proof requires:
 
 - OWA;
 - new Outlook for Windows;
 - classic Outlook for Windows where supported; and
 - Outlook for macOS.
 
-Matter/full evidence covers read, compose, and `OnMessageSend`; inquiry-only covers its exported read matrix. Both cover auth/reconnect, item switching, and offline recovery. Every host row binds the exact manifest and task-pane bundle hashes, scenarios, result, host version, UTC, accessibility check, no-host-DOM-manipulation result, and protected evidence reference. Unavailable Windows/tenant authority stays `blocked_external`; it is not converted to a pass.
+Matter/full evidence covers read, compose, and `OnMessageSend`; inquiry-only covers its exported read matrix. Both cover auth/reconnect, item switching, and offline recovery. Every host row binds the actual protected proof bytes and their SHA-256 to the exact source identity, ProductId, manifest and task-pane bundle hashes, scenarios, result, concrete host version, UTC, accessibility check, and no-host-DOM-manipulation result. Screenshot-only, browser-only, nonexistent, placeholder, or hash-only rows fail. Unavailable Windows/tenant authority stays `blocked_external`; it is not converted to a pass.
 
-`deployment_verified` requires both propagation and real Outlook evidence. `go_live_approved` additionally requires its own approval reference. Graph/DocuSign endpoints, secret references, provider sandbox proof, API/static deployment, central operations, assignment readback, propagation, and go-live remain separate receipts.
+`deployment_verified` requires both propagation and real Outlook evidence. `go_live_approved` additionally requires a protected approval proof bound to the central-deployment, monitoring, rollback-rehearsal, complete propagation set, and complete host-evidence set hashes. Graph/DocuSign endpoints, secret references, provider runtime proof, API/static deployment, central operations, assignment readback, propagation, and go-live remain separate receipts.
 
 ## Rollback
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
 import { lstat, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { validateApiArtifactEntries, validateApiArtifactRelease } from "./lib/outlook-release-gates.mjs";
+import { createCommandRunner, exactGitIdentity } from "./lib/outlook-release/cli-runtime.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(scriptPath), "..");
@@ -15,14 +15,6 @@ function option(name, { optional = false } = {}) {
   const value = index >= 0 ? process.argv[index + 1] : null;
   if ((!value || value.startsWith("--")) && !optional) throw new TypeError(`${name} is required`);
   return value && !value.startsWith("--") ? path.resolve(value) : null;
-}
-
-function git(...args) {
-  return execFileSync("git", args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-  }).trim();
 }
 
 async function readJson(file) {
@@ -39,10 +31,8 @@ async function main() {
   if (!expectedSourceSha || expectedSourceSha.startsWith("--")) throw new TypeError("--source-sha is required");
   if ((await lstat(artifactPath)).isSymbolicLink()) throw new Error("API artifact must not be a symlink");
 
-  const sourceSha = git("rev-parse", "HEAD");
-  const sourceTree = git("rev-parse", "HEAD^{tree}");
-  if (sourceSha !== expectedSourceSha) throw new Error(`exact source SHA mismatch: expected ${expectedSourceSha}, got ${sourceSha}`);
-  if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("worktree changes make exact-SHA verification impossible");
+  const runCommand = createCommandRunner({ cwd: repoRoot, allowedCommands: ["git", "unzip"] });
+  const { sourceSha, sourceTree } = exactGitIdentity({ expectedSourceSha, runCommand });
 
   const contract = await readJson(path.join(repoRoot, "contracts/outlook-addin-release-gates.json"));
   const artifactBytes = await readFile(artifactPath);
@@ -50,12 +40,12 @@ async function main() {
   const receipt = await readJson(receiptPath);
   const beforeConfiguration = await readJson(beforePath);
   const afterConfiguration = afterPath ? await readJson(afterPath) : undefined;
-  const archiveEntries = execFileSync("unzip", ["-Z1", artifactPath], {
+  const archiveEntries = runCommand("unzip", ["-Z1", artifactPath], {
     encoding: "utf8",
     maxBuffer: 4 * 1024 * 1024,
   }).split(/\r?\n/u).filter(Boolean);
   validateApiArtifactEntries(archiveEntries, contract.api.embedded_manifest_path);
-  const embeddedManifest = JSON.parse(execFileSync("unzip", [
+  const embeddedManifest = JSON.parse(runCommand("unzip", [
     "-p",
     artifactPath,
     contract.api.embedded_manifest_path,

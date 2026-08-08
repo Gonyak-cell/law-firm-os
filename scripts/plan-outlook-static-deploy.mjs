@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +11,7 @@ import {
   validateBuildInventories,
   validateStaticDryRunPlan,
 } from "./lib/outlook-release-gates.mjs";
+import { createCommandRunner, exactGitIdentity, trackedGitPaths } from "./lib/outlook-release/cli-runtime.mjs";
 import { parseOutlookManifest } from "./lib/outlook-manifest-projection.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -24,14 +24,6 @@ function option(name) {
   return value;
 }
 
-function git(...args) {
-  return execFileSync("git", args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-  }).trim();
-}
-
 async function readJson(file) {
   return JSON.parse(await readFile(file, "utf8"));
 }
@@ -41,10 +33,8 @@ async function main() {
   const receiptPath = path.resolve(option("--release-receipt"));
   const bucketRef = option("--bucket-ref");
   if (!/^[A-Z][A-Z0-9_]{2,63}$/u.test(bucketRef)) throw new Error("--bucket-ref must be a symbolic environment/config reference, not a bucket value");
-  const sourceSha = git("rev-parse", "HEAD");
-  const sourceTree = git("rev-parse", "HEAD^{tree}");
-  if (sourceSha !== expectedSourceSha) throw new Error(`exact source SHA mismatch: expected ${expectedSourceSha}, got ${sourceSha}`);
-  if (git("status", "--porcelain=v1", "--untracked-files=all")) throw new Error("worktree changes make exact-SHA planning impossible");
+  const runCommand = createCommandRunner({ cwd: repoRoot, allowedCommands: ["git"] });
+  const { sourceSha, sourceTree } = exactGitIdentity({ expectedSourceSha, runCommand });
 
   const contractRef = "contracts/outlook-addin-release-gates.json";
   const contractBytes = await readFile(path.join(repoRoot, contractRef));
@@ -78,7 +68,7 @@ async function main() {
       rollback: { ref: contract.rollback_contract, sha256: sha256(rollbackBytes) },
       surface: { ref: contract.surface_contract, sha256: sha256(surfaceBytes) },
     },
-    existingPaths: new Set(git("ls-files", "-z").split("\0").filter(Boolean)),
+    existingPaths: trackedGitPaths(runCommand),
     expectedSourceIdentity: {
       source_sha: sourceSha,
       source_tree: sourceTree,
