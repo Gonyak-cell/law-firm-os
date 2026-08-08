@@ -45,6 +45,7 @@ export function createMicrosoftGraphConversationProvider({ microsoft_egress_tran
         access_token: accessToken(input.credential),
         resource: input.resource,
         delta_link: input.delta_link ?? null,
+        start_at: input.start_at ?? null,
       });
     },
   });

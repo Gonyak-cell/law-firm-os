@@ -459,5 +459,24 @@ export function createMicrosoftEgressBrokerTransport({
         provider_subscription_id: requiredText(input.provider_subscription_id, "provider_subscription_id", 512),
       });
     },
+
+    async graphMessageDeltaList(input = {}) {
+      exactInput(input, [
+        "access_token",
+        "resource",
+        "delta_link",
+        "start_at",
+      ], "graph.messageDelta.list");
+      return invoke("graph.messageDelta.list", {
+        access_token: requiredText(input.access_token, "access_token", 32 * 1024),
+        resource: requiredGraphMessageResource(input.resource),
+        delta_link: input.delta_link === null
+          ? null
+          : requiredText(input.delta_link, "delta_link", 16 * 1024),
+        start_at: input.start_at === null
+          ? null
+          : requiredText(input.start_at, "start_at", 64),
+      });
+    },
   });
 }

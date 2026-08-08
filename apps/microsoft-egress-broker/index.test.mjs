@@ -80,6 +80,7 @@ test("exports only the fixed allowlisted operations", () => {
     "graph.messageSubscription.renew",
     "graph.messageSubscription.list",
     "graph.messageSubscription.delete",
+    "graph.messageDelta.list",
   ]);
 });
 

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 const GRAPH_ORIGIN = "https://graph.microsoft.com";
+const NOTIFICATION_PATH = "/api/outlook/graph/notifications";
 const RESOURCES = new Set([
   "me/mailFolders('inbox')/messages",
   "me/mailFolders('sentitems')/messages",
@@ -28,13 +29,19 @@ function text(value, maximum = 4096) {
 }
 function resource(value) { const result = text(value); if (!RESOURCES.has(result)) invalid(); return result; }
 function instant(value) { const result = text(value, 64); if (!Number.isFinite(Date.parse(result))) invalid(); return new Date(result).toISOString(); }
+function receivedDateFilter(value) { return `receivedDateTime ge ${instant(value)}`; }
+function validReceivedDateFilter(value) {
+  const prefix = "receivedDateTime ge ";
+  if (typeof value !== "string" || !value.startsWith(prefix)) return false;
+  try { return receivedDateFilter(value.slice(prefix.length)) === value; } catch { return false; }
+}
 function subscriptionId(value) { return text(value, 512); }
 function clientStateHash(value) { return createHash("sha256").update(text(value, 128)).digest("hex"); }
 
 function configuredUrl(value) {
   if (typeof value !== "string" || !value) return null;
   const url = new URL(value);
-  if (url.protocol !== "https:" || url.username || url.password || url.hash) throw new TypeError("graph_notification_url must be HTTPS");
+  if (url.protocol !== "https:" || url.username || url.password || url.hash || url.search || url.pathname.replace(/\/+$/u, "") !== NOTIFICATION_PATH) throw new TypeError("graph_notification_url must be the exact HTTPS Graph webhook URL");
   return url.toString();
 }
 
@@ -58,6 +65,7 @@ async function json(response) {
 }
 
 function upstream(response) {
+  if (response.status === 410) throw new GraphConversationOperationError("DELTA_CURSOR_EXPIRED", 409);
   if (response.status === 429) throw new GraphConversationOperationError("UPSTREAM_THROTTLED", 429);
   if (response.status === 401 || response.status === 403) throw new GraphConversationOperationError("UPSTREAM_AUTHORIZATION_FAILED", response.status);
   throw new GraphConversationOperationError("UPSTREAM_REJECTED", [400, 404, 409].includes(response.status) ? response.status : 502);
@@ -119,8 +127,54 @@ export function createGraphConversationOperations({ graph_notification_url } = {
       requireConfiguration();
       const id = encodeURIComponent(subscriptionId(request.provider_subscription_id));
       const response = await graphFetch(fetchImpl, `${GRAPH_ORIGIN}/v1.0/subscriptions/${id}`, { method: "DELETE", headers: headers(request.access_token) });
+      if (response.status === 404) return { deleted: true, provider_subscription_id: request.provider_subscription_id, already_missing: true };
       if (response.status !== 204) upstream(response);
       return { deleted: true, provider_subscription_id: request.provider_subscription_id };
+    },
+    "graph.messageDelta.list": async (fetchImpl, request) => {
+      exact(request, ["access_token", "resource", "delta_link", "start_at"]);
+      const targetResource = resource(request.resource);
+      const pathname = `/v1.0/${targetResource}/delta`;
+      let url;
+      if (request.delta_link === null) {
+        url = new URL(pathname, GRAPH_ORIGIN);
+        url.searchParams.set("$select", "id");
+        url.searchParams.set("$filter", receivedDateFilter(request.start_at));
+        url.searchParams.set("changeType", "created");
+        url.searchParams.set("$top", "100");
+      } else {
+        if (request.start_at !== null) invalid();
+        url = new URL(text(request.delta_link, 16 * 1024));
+        const allowed = new Set(["$select", "$filter", "$top", "$skiptoken", "$deltatoken", "changeType"]);
+        if (url.origin !== GRAPH_ORIGIN || url.pathname !== pathname || [...url.searchParams.keys()].some((key) => !allowed.has(key))) {
+          throw new GraphConversationOperationError("TARGET_POLICY_VIOLATION", 500);
+        }
+        if ((url.searchParams.has("$select") && url.searchParams.get("$select") !== "id")
+          || (url.searchParams.has("$filter") && !validReceivedDateFilter(url.searchParams.get("$filter")))
+          || (url.searchParams.has("$top") && url.searchParams.get("$top") !== "100")
+          || (url.searchParams.has("changeType") && url.searchParams.get("changeType") !== "created")) {
+          throw new GraphConversationOperationError("TARGET_POLICY_VIOLATION", 500);
+        }
+      }
+      const response = await graphFetch(fetchImpl, url, { method: "GET", headers: headers(request.access_token) });
+      if (response.status !== 200) upstream(response);
+      const body = await json(response);
+      if (!Array.isArray(body.value) || body.value.length > 1000) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+      const messages = body.value.map((entry) => {
+        object(entry);
+        return { message_id: text(entry.id), removed: entry["@removed"] !== undefined };
+      });
+      const continuation = (field) => {
+        const value = body[field];
+        if (value === undefined) return null;
+        const candidate = new URL(text(value, 16 * 1024));
+        if (candidate.origin !== GRAPH_ORIGIN || candidate.pathname !== pathname) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+        return candidate.toString();
+      };
+      const nextLink = continuation("@odata.nextLink");
+      const deltaLink = continuation("@odata.deltaLink");
+      if ((nextLink === null) === (deltaLink === null)) throw new GraphConversationOperationError("UPSTREAM_RESPONSE_INVALID", 502);
+      return { messages, next_link: nextLink, delta_link: deltaLink };
     },
   });
 }

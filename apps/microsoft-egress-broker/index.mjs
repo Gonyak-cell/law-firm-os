@@ -21,6 +21,7 @@ export const OPERATION_NAMES = Object.freeze([
   "graph.messageSubscription.renew",
   "graph.messageSubscription.list",
   "graph.messageSubscription.delete",
+  "graph.messageDelta.list",
 ]);
 
 const LOGIN_ORIGIN = "https://login.microsoftonline.com";

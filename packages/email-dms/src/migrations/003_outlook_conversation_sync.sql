@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_notification_jobs (
   lease_expires_at timestamptz,
   attempt_count integer NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
   last_error_code text,
+  result_code text,
   created_at timestamptz NOT NULL,
   updated_at timestamptz NOT NULL,
   PRIMARY KEY (tenant_id, job_id),
@@ -76,9 +77,11 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_notification_receipts (
   tenant_id text NOT NULL,
   receipt_id text NOT NULL,
   subscription_id text NOT NULL,
+  provider_subscription_id text NOT NULL,
+  source text NOT NULL CHECK (source IN ('webhook', 'delta_reconciliation')),
   resource text NOT NULL,
   message_id text NOT NULL,
-  change_type text NOT NULL,
+  change_type text NOT NULL CHECK (change_type = 'created'),
   received_at timestamptz NOT NULL,
   payload_sha256 text NOT NULL CHECK (payload_sha256 ~ '^[a-f0-9]{64}$'),
   PRIMARY KEY (tenant_id, receipt_id),
@@ -105,6 +108,27 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_sync_idempotency (
   created_at timestamptz NOT NULL,
   PRIMARY KEY (tenant_id, idempotency_key)
 );
+
+CREATE OR REPLACE FUNCTION lawos_email_dms.reject_graph_sync_immutable_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION 'graph sync receipt and audit rows are immutable';
+END
+$$;
+
+DROP TRIGGER IF EXISTS graph_notification_receipts_immutable
+  ON lawos_email_dms.graph_notification_receipts;
+CREATE TRIGGER graph_notification_receipts_immutable
+  BEFORE UPDATE OR DELETE ON lawos_email_dms.graph_notification_receipts
+  FOR EACH ROW EXECUTE FUNCTION lawos_email_dms.reject_graph_sync_immutable_mutation();
+
+DROP TRIGGER IF EXISTS graph_sync_audit_events_immutable
+  ON lawos_email_dms.graph_sync_audit_events;
+CREATE TRIGGER graph_sync_audit_events_immutable
+  BEFORE UPDATE OR DELETE ON lawos_email_dms.graph_sync_audit_events
+  FOR EACH ROW EXECUTE FUNCTION lawos_email_dms.reject_graph_sync_immutable_mutation();
 
 ALTER TABLE lawos_email_dms.conversation_policies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lawos_email_dms.graph_subscriptions ENABLE ROW LEVEL SECURITY;

@@ -11,6 +11,8 @@ export * from "./conversation-policy-service.js";
 export * from "./graph-subscription-service.js";
 export * from "./microsoft-graph-conversation-provider.js";
 export * from "./m365-conversation-sync-port.js";
+export * from "./graph-notification-queue.js";
+export * from "./graph-delta-reconciliation-service.js";
 export * from "./inquiry-evidence-model.js";
 export * from "./inquiry-evidence-storage-service.js";
 export * from "./repository.js";

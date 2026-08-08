@@ -191,6 +191,7 @@ import {
   isClientOutlookOAuthState,
   parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
+import { OUTLOOK_GRAPH_WEBHOOK_PATH } from "./outlook-graph-webhook.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -2100,6 +2101,7 @@ export function createApiServer({
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
   m365GraphConfig = null,
+  outlookGraphWebhook = emailDmsRuntime?.outlook_graph_webhook ?? null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
@@ -2174,6 +2176,38 @@ export function createApiServer({
       };
 
       const requestPathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+      if (requestPathname === OUTLOOK_GRAPH_WEBHOOK_PATH) {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        if (typeof outlookGraphWebhook?.handle !== "function") {
+          sendJson(req, res, 503, { request_id: requestId, outcome: "blocked", safe_error_codes: ["OUTLOOK_GRAPH_WEBHOOK_UNAVAILABLE"] });
+          return;
+        }
+        const requestUrl = new URL(req.url || "/", `http://${HOST}`);
+        let body = null;
+        if (req.method === "POST" && !requestUrl.searchParams.has("validationToken") && /^application\/json(?:\s*;|$)/iu.test(String(req.headers["content-type"] ?? ""))) {
+          try {
+            body = await readRequestBody(req, { maxBytes: 256 * 1024 });
+          } catch (error) {
+            sendJson(req, res, error?.status === 413 ? 413 : 400, { request_id: requestId, outcome: "blocked", safe_error_codes: ["OUTLOOK_GRAPH_NOTIFICATION_INVALID"] });
+            return;
+          }
+        }
+        const result = outlookGraphWebhook.handle({
+          method: req.method,
+          query: Object.fromEntries(requestUrl.searchParams),
+          headers: req.headers,
+          body,
+          request_id: requestId,
+        });
+        if (result.headers?.["content-type"]?.startsWith("text/plain")) {
+          res.writeHead(result.status, result.headers);
+          res.end(result.body);
+        } else {
+          sendJson(req, res, result.status, result.body, result.headers);
+        }
+        return;
+      }
       if (isPayrollStatementProviderCallback(req.method, requestPathname)) {
         const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
         req.lawosRequestId = requestId;
@@ -2353,6 +2387,7 @@ export async function startApiServer({
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
   m365GraphConfig,
+  outlookGraphWebhook,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
   authCredentialStorePath,
@@ -2539,6 +2574,7 @@ export async function startApiServer({
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
         m365GraphConfig,
+        outlookGraphWebhook,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
         requestRuntimeAuthority,
@@ -2803,6 +2839,7 @@ export async function startApiServer({
     homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
     m365GraphConfig,
+    outlookGraphWebhook,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     runtimeProfile: resolvedRuntimeProfile,
