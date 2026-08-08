@@ -267,6 +267,53 @@ test("Outlook task adapter rejects a stale version after a canonical task transi
   }).title, "공유 writer 버전 검증");
 });
 
+test("Outlook task adapter rejects null status without any durable side effect", () => {
+  const runtime = fixture();
+  const created = createOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    actor_id: ACTOR,
+    idempotency_key: "outlook-task-null-status-create",
+    task: { title: "상태 검증 업무" },
+  });
+  const ref = {
+    tenant_id: TENANT,
+    model_type: "MatterTask",
+    task_id: created.item.activity_id,
+  };
+  const before = runtime.repository.get(ref);
+  const auditCount = runtime.repository.listAudit({ tenant_id: TENANT }).length;
+  const timelineCount = runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  }).length;
+  const idempotencyKey = "outlook-task-null-status-update";
+
+  assert.throws(() => updateOutlookMatterTask({
+    ...runtime,
+    tenant_id: TENANT,
+    matter_id: MATTER,
+    task_id: created.item.activity_id,
+    actor_id: ACTOR,
+    idempotency_key: idempotencyKey,
+    expected_version: 1,
+    patch: { status: null },
+  }), /status is invalid/u);
+  assert.deepEqual(runtime.repository.get(ref), before);
+  assert.equal(runtime.repository.listAudit({ tenant_id: TENANT }).length, auditCount);
+  assert.equal(runtime.repository.list({
+    tenant_id: TENANT,
+    model_type: "MatterTimelineEvent",
+    matter_id: MATTER,
+  }).length, timelineCount);
+  assert.equal(runtime.repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: idempotencyKey,
+  }), undefined);
+});
+
 test("Outlook task adapter canonicalizes supported due values and rejects ambiguous dates", () => {
   const runtime = fixture();
   const dateOnly = createOutlookMatterTask({

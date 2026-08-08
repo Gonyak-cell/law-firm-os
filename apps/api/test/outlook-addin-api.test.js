@@ -1311,6 +1311,44 @@ test("Outlook editable task routes use signed scopes and resource-scoped ACLs", 
     assert.equal(replayResponse.status, 200);
     assert.equal((await replayResponse.json()).outcome, "idempotent_replay");
 
+    const nullStatusKey = "outlook-task-null-status-route";
+    const taskRef = {
+      tenant_id: TENANT,
+      model_type: "MatterTask",
+      task_id: created.item.activity_id,
+    };
+    const beforeNullStatus = matterRepository.get(taskRef);
+    const auditCountBeforeNullStatus = matterRepository.listAudit({ tenant_id: TENANT }).length;
+    const timelineCountBeforeNullStatus = matterRepository.list({
+      tenant_id: TENANT,
+      model_type: "MatterTimelineEvent",
+      matter_id: MATTER,
+    }).length;
+    const nullStatusResponse = await request(
+      sessions.writerToken,
+      `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,
+      "PATCH",
+      {
+        tenant_id: TENANT,
+        matter_id: MATTER,
+        idempotency_key: nullStatusKey,
+        expected_version: 1,
+        patch: { status: null },
+      },
+    );
+    assert.equal(nullStatusResponse.status, 400);
+    assert.deepEqual(matterRepository.get(taskRef), beforeNullStatus);
+    assert.equal(matterRepository.listAudit({ tenant_id: TENANT }).length, auditCountBeforeNullStatus);
+    assert.equal(matterRepository.list({
+      tenant_id: TENANT,
+      model_type: "MatterTimelineEvent",
+      matter_id: MATTER,
+    }).length, timelineCountBeforeNullStatus);
+    assert.equal(matterRepository.getIdempotency({
+      tenant_id: TENANT,
+      idempotency_key: nullStatusKey,
+    }), undefined);
+
     const scopeDeniedUpdate = await request(
       sessions.readerToken,
       `/api/outlook/tasks/${encodeURIComponent(created.item.activity_id)}`,

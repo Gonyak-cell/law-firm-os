@@ -200,7 +200,7 @@ export function updateOutlookMatterTask({
   const expectedVersion = positiveVersion(expected_version);
   const normalizedPatch = { ...onlyFields(patch, PATCH_FIELDS, "patch") };
   if (Object.hasOwn(normalizedPatch, "title")) normalizedPatch.title = oneLineTitle(normalizedPatch.title);
-  if (normalizedPatch.status != null && !MATTER_TASK_STATUSES.includes(normalizedPatch.status)) {
+  if (Object.hasOwn(normalizedPatch, "status") && !MATTER_TASK_STATUSES.includes(normalizedPatch.status)) {
     throw new TypeError("status is invalid");
   }
   if (Object.keys(normalizedPatch).length === 0) throw new TypeError("patch must change at least one field");
