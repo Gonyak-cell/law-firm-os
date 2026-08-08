@@ -5,7 +5,7 @@
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
   <Id>952431be-51b8-42a2-9bf6-769a15934e85</Id>
-  <Version>1.0.1.1</Version>
+  <Version>1.1.0.0</Version>
   <ProviderName>AMIC OS</ProviderName>
   <DefaultLocale>ko-KR</DefaultLocale>
   <DisplayName DefaultValue="AMIC OS" />
