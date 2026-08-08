@@ -14,7 +14,10 @@ export function createDmsRepositoryMimeAuthority(repository, { provider } = {}) 
       ? repository.get({ tenant_id: tenantId, model_type: "DmsFileObject", file_object_id: version.file_object_id })
       : null;
     const { matter_id: _versionMatter, ...versionState } = version ?? {};
-    const { matter_id: _fileMatter, ...fileObjectState } = fileObject ?? {};
+    const { matter_id: _fileMatter, ...fileObjectRecord } = fileObject ?? {};
+    const fileObjectState = fileObjectRecord && !fileObjectRecord.object_id && fileObjectRecord.vault_object_id
+      ? { ...fileObjectRecord, object_id: fileObjectRecord.vault_object_id }
+      : fileObjectRecord;
     return {
       document,
       versions: version ? [versionState] : [],

@@ -584,7 +584,9 @@ function phasedUploadRuntimeFixture({
     async getDocumentIntegrityState({ tenant_id, document_id }) {
       const state = documentStates.get(document_id);
       if (!state || state.document.tenant_id !== tenant_id) return null;
-      const session = [...sessionsById.values()].find((entry) => entry.document_id === document_id);
+      const session = [...sessionsById.values()].find((entry) =>
+        entry.document_id === document_id && entry.object_id === state.file_object.object_id
+      );
       const bytes = session ? stagedBytes.get(session.session_id) : null;
       if (!bytes) throw codedError("synthetic provider object is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND");
       const sha256 = createHash("sha256").update(bytes).digest("hex");
