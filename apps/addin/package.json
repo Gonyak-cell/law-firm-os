@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build && vite build --config vite.event.config.js && node --test test/outlook-event-build-artifact.mjs",
+    "build": "vite build && vite build --config vite.event.config.js && node --test test/outlook-event-build-artifact.mjs && node ../../scripts/verify-outm32-addin-build-boundary.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --test test/*.test.js"
   },

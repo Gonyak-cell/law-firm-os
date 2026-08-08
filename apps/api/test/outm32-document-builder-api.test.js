@@ -170,3 +170,69 @@ test("OUTM-32 API denies an approval decision without an owner role", async () =
   assert.deepEqual(denied.body.safe_error_codes, ["MATTER_APPROVAL_REQUIRED"]);
   assert.equal(denied.body.ui_state, "owner_blocked");
 });
+
+test("OUTM-32 API binds every generic replay key to operation, Matter, template, draft and canonical input", async () => {
+  const matterRuntime = runtime();
+  const base = body({
+    idempotency_key: "outm32-api-generic-replay",
+    draft: {
+      draft_id: "builder_draft_generic_replay",
+      template_id: "matter_engagement_letter",
+      template_version: "api-1.0.0",
+      title: "재생 고정",
+      merge_data: { client_name: "의뢰인", matter_title: "Matter" },
+      signer_role_refs: [{ role_id: "client", party_ref: "party:generic-replay" }],
+    },
+  });
+  const create = (matterId, requestBody, requestId) => handleMatterApiRequest({
+    pathname: `/api/matters/${matterId}/builder-drafts`, method: "POST",
+    body: requestBody, context, requestId, runtime: matterRuntime,
+  });
+  assert.equal((await create(MATTER, base, "generic-create")).status, 201);
+  const exact = await create(MATTER, base, "generic-exact-replay");
+  assert.equal(exact.status, 200);
+  assert.equal(exact.body.outcome, "idempotent_replay");
+  for (const [label, matterId, changed] of [
+    ["input", MATTER, { ...base, draft: { ...base.draft, title: "변경됨" } }],
+    ["matter", "matter_outm32_other", base],
+    ["template", MATTER, { ...base, draft: { ...base.draft, template_version: "api-2.0.0" } }],
+    ["draft", MATTER, { ...base, draft: { ...base.draft, draft_id: "builder_draft_other" } }],
+  ]) {
+    const conflict = await create(matterId, changed, `generic-${label}-conflict`);
+    assert.equal(conflict.status, 409, label);
+    assert.deepEqual(conflict.body.safe_error_codes, ["MATTER_IDEMPOTENCY_CONFLICT"], label);
+  }
+  const operationConflict = await handleMatterApiRequest({
+    pathname: `/api/matters/${MATTER}/builder-drafts/builder_draft_generic_replay`, method: "PATCH",
+    body: body({ idempotency_key: "outm32-api-generic-replay", patch: { title: "다른 연산" } }),
+    context, requestId: "generic-operation-conflict", runtime: matterRuntime,
+  });
+  assert.equal(operationConflict.status, 409);
+  assert.deepEqual(operationConflict.body.safe_error_codes, ["MATTER_IDEMPOTENCY_CONFLICT"]);
+});
+
+test("OUTM-32 API exact generic replay survives repository restart without mutation", async () => {
+  const root = mkdtempSync(join(tmpdir(), "outm32-api-restart-"));
+  const filePath = join(root, "matter.json");
+  const firstRepository = createMatterRepository({ filePath });
+  const first = createMatterRuntimeContext({ repository: firstRepository, documentTemplateVersions: [template()], clock: () => AT });
+  const requestBody = body({
+    idempotency_key: "outm32-api-restart-key",
+    draft: {
+      draft_id: "builder_draft_api_restart", template_id: "matter_engagement_letter",
+      template_version: "api-1.0.0", title: "재시작 재생",
+      merge_data: { client_name: "의뢰인", matter_title: "Matter" },
+      signer_role_refs: [{ role_id: "client", party_ref: "party:restart" }],
+    },
+  });
+  const initial = await handleMatterApiRequest({ pathname: `/api/matters/${MATTER}/builder-drafts`, method: "POST", body: requestBody, context, requestId: "restart-initial", runtime: first });
+  assert.equal(initial.status, 201);
+  firstRepository.close();
+  const reopenedRepository = createMatterRepository({ filePath });
+  const restarted = createMatterRuntimeContext({ repository: reopenedRepository, clock: () => AT });
+  const before = reopenedRepository.snapshot();
+  const replay = await handleMatterApiRequest({ pathname: `/api/matters/${MATTER}/builder-drafts`, method: "POST", body: requestBody, context, requestId: "restart-replay", runtime: restarted });
+  assert.equal(replay.status, 200);
+  assert.equal(replay.body.outcome, "idempotent_replay");
+  assert.deepEqual(reopenedRepository.snapshot(), before);
+});

@@ -516,6 +516,7 @@ export function createMatterDocumentEmailBuilderService({
     listBuilderApprovalRequests: approvedDocumentBuilder.listBuilderApprovalRequests,
     decideBuilderApproval: approvedDocumentBuilder.decideBuilderApproval,
     publishBuilderDraftToVault: approvedDocumentBuilder.publishBuilderDraftToVault,
+    reconcileBuilderPublication: approvedDocumentBuilder.reconcileBuilderPublication,
     createEmailDraft,
     patchEmailDraft,
     sendEmailDraftBlocked,

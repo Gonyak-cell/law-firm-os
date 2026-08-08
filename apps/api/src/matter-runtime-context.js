@@ -38,6 +38,7 @@ import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.
 import { handleMatterWorktreeRead, handleMatterWorktreeTemplateList } from "./matter-worktree-read-api.js";
 import { handleMatterWorktreeCreate, handleMatterWorktreeNodeArchive, handleMatterWorktreeNodeCreate, handleMatterWorktreeNodePatch, handleMatterWorktreeTemplateApply } from "./matter-worktree-write-api.js";
 import { handleMatterWorktreeTaskComplete, handleMatterWorktreeTaskReopen, handleMatterWorktreeTaskUnblock } from "./matter-worktree-task-api.js";
+import { matterRuntimeReplay, recordMatterRuntimeReplay } from "./matter-runtime-replay.js";
 import {
   MATTER_VAULT_REGISTERED_TENANT_ID,
   listRegisteredAccounts,
@@ -1414,32 +1415,6 @@ function matterDocumentEmailBuilderService(runtime) {
   });
 }
 
-function matterRuntimeReplay(repository, query, idempotencyKey, requestId) {
-  const replay = repository?.getIdempotency?.({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
-  if (!replay?.response) return null;
-  return {
-    status: 200,
-    body: {
-      ...replay.response,
-      request_id: requestId,
-      outcome: "idempotent_replay",
-      idempotent_replay: true,
-      state_idempotent: true,
-      production_ready_claim: false,
-    },
-  };
-}
-
-function recordMatterRuntimeReplay(repository, query, idempotencyKey, operation, response) {
-  repository?.recordIdempotency?.({
-    tenant_id: query.tenant_id,
-    idempotency_key: idempotencyKey,
-    operation,
-    response,
-    created_at: new Date().toISOString(),
-  });
-}
-
 function activityCollectionResponse({ items, requestId, query }) {
   return {
     status: 200,
@@ -1806,8 +1781,11 @@ export function handleMatterProfilePatch({ matterId, body, context, requestId, r
     });
   }
   const idempotencyKey = `matter-profile:${matterId}:${actorId}:${body?.idempotency_key ?? "default"}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_profile_patch", {
+    matter_id: matterId,
+    profile: body?.profile ?? {},
+  });
+  if (replay.response) return replay.response;
   try {
     const item = updateMatterProfile({
       repository: runtime.repository,
@@ -1836,7 +1814,7 @@ export function handleMatterProfilePatch({ matterId, body, context, requestId, r
       count_leak_prevented: true,
       production_ready_claim: false,
     };
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_profile_patch", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_profile_patch", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -1894,8 +1872,11 @@ export function handleMatterStakeholderRegister({ matterId, body, context, reque
     });
   }
   const idempotencyKey = `matter-stakeholder:${matterId}:${actorId}:${body?.idempotency_key ?? body?.stakeholder?.display_name ?? "stakeholder"}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_stakeholder_register", {
+    matter_id: matterId,
+    stakeholder: body?.stakeholder ?? {},
+  });
+  if (replay.response) return replay.response;
   try {
     const item = registerMatterStakeholder({
       repository: runtime.repository,
@@ -1925,7 +1906,7 @@ export function handleMatterStakeholderRegister({ matterId, body, context, reque
       count_leak_prevented: true,
       production_ready_claim: false,
     };
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_stakeholder_register", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_stakeholder_register", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2289,8 +2270,8 @@ export function handleMatterActivityCreate({ matterId, body, context, requestId,
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.activity.create:${matterId}:${body?.activity?.activity_id ?? body?.activity?.title ?? requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_activity_create", { matter_id: matterId, activity: body?.activity });
+  if (replay.response) return replay.response;
   try {
     const result = matterActivityService(runtime).createActivity({
       tenant_id: query.tenant_id,
@@ -2300,7 +2281,7 @@ export function handleMatterActivityCreate({ matterId, body, context, requestId,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_activity_create", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_activity_create", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2322,8 +2303,8 @@ export function handleMatterActivityPatch({ matterId, activityId, body, context,
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.activity.patch:${matterId}:${activityId}:${requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_activity_patch", { matter_id: matterId, activity_id: activityId, patch: body?.patch });
+  if (replay.response) return replay.response;
   try {
     const result = matterActivityService(runtime).patchActivity({
       tenant_id: query.tenant_id,
@@ -2334,7 +2315,7 @@ export function handleMatterActivityPatch({ matterId, activityId, body, context,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_activity_patch", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_activity_patch", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(error.message === "activity not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2372,8 +2353,8 @@ export function handleMatterCalendarCreate({ matterId, body, context, requestId,
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.calendar.create:${matterId}:${body?.event?.event_id ?? body?.event?.title ?? requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_calendar_create", { matter_id: matterId, event: body?.event });
+  if (replay.response) return replay.response;
   try {
     const result = matterActivityService(runtime).createCalendarEvent({
       tenant_id: query.tenant_id,
@@ -2383,7 +2364,7 @@ export function handleMatterCalendarCreate({ matterId, body, context, requestId,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_calendar_create", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_calendar_create", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2405,8 +2386,8 @@ export function handleMatterCalendarPatch({ matterId, eventId, body, context, re
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.calendar.patch:${matterId}:${eventId}:${requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_calendar_patch", { matter_id: matterId, event_id: eventId, patch: body?.patch });
+  if (replay.response) return replay.response;
   try {
     const result = matterActivityService(runtime).patchCalendarEvent({
       tenant_id: query.tenant_id,
@@ -2417,7 +2398,7 @@ export function handleMatterCalendarPatch({ matterId, eventId, body, context, re
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_calendar_patch", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_calendar_patch", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(error.message === "calendar event not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2456,8 +2437,8 @@ export function handleMatterDeadlineConfirm({ matterId, deadlineId, body, contex
   if (gated) return gated;
   const confirmerUserId = context.principal.user_id;
   const idempotencyKey = body?.idempotency_key ?? `matter.deadline.confirm:${matterId}:${deadlineId}:${confirmerUserId}:${requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_deadline_confirm", { matter_id: matterId, deadline_id: deadlineId, confirmer_user_id: confirmerUserId });
+  if (replay.response) return replay.response;
   try {
     const result = matterActivityService(runtime).confirmDeadlineChange({
       tenant_id: query.tenant_id,
@@ -2467,7 +2448,7 @@ export function handleMatterDeadlineConfirm({ matterId, deadlineId, body, contex
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "confirmed" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_deadline_confirm", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_deadline_confirm", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2514,8 +2495,8 @@ export function handleMatterChannelMessageCreate({ matterId, body, context, requ
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.channel.message:${matterId}:${body?.message?.message_id ?? requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_channel_message_create", { matter_id: matterId, message: body?.message });
+  if (replay.response) return replay.response;
   try {
     const result = matterActivityService(runtime).createChannelMessage({
       tenant_id: query.tenant_id,
@@ -2525,7 +2506,7 @@ export function handleMatterChannelMessageCreate({ matterId, body, context, requ
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_channel_message_create", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_channel_message_create", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2585,8 +2566,8 @@ export function handleMatterBuilderDraftCreate({ matterId, body, context, reques
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.builder.draft.create:${matterId}:${body?.draft?.draft_id ?? body?.draft?.title ?? requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_builder_draft_create", { matter_id: matterId, actor_id: context.principal.user_id, draft: body?.draft });
+  if (replay.response) return replay.response;
   try {
     const result = matterDocumentEmailBuilderService(runtime).createBuilderDraft({
       tenant_id: query.tenant_id,
@@ -2596,7 +2577,7 @@ export function handleMatterBuilderDraftCreate({ matterId, body, context, reques
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_draft_create", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_draft_create", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2618,8 +2599,8 @@ export function handleMatterBuilderDraftPatch({ matterId, draftId, body, context
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.builder.draft.patch:${matterId}:${draftId}:${requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_builder_draft_patch", { matter_id: matterId, draft_id: draftId, actor_id: context.principal.user_id, patch: body?.patch });
+  if (replay.response) return replay.response;
   try {
     const result = matterDocumentEmailBuilderService(runtime).patchBuilderDraft({
       tenant_id: query.tenant_id,
@@ -2630,7 +2611,7 @@ export function handleMatterBuilderDraftPatch({ matterId, draftId, body, context
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_draft_patch", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_draft_patch", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2683,18 +2664,19 @@ export function handleMatterBuilderApprovalRequest({ matterId, draftId, body, co
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.builder.approval:${matterId}:${draftId}:${requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_builder_approval_request", { matter_id: matterId, draft_id: draftId, actor_id: context.principal.user_id });
+  if (replay.response) return replay.response;
   try {
     const result = matterDocumentEmailBuilderService(runtime).requestBuilderApproval({
       tenant_id: query.tenant_id,
       matter_id: matterId,
       draft_id: draftId,
       actor_id: context.principal.user_id,
+      idempotency_key: idempotencyKey,
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "approval_required" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_approval_request", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_builder_approval_request", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(error.message === "builder draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2809,15 +2791,22 @@ export async function handleMatterBuilderPublishToVault({ matterId, draftId, bod
   } catch (error) {
     const notFound = error.message === "builder draft not found";
     const conflict = /idempotency|does not match/.test(error.message);
-    return errorResponse(notFound ? 404 : conflict ? 409 : 400, requestId, [
-      conflict ? "MATTER_BUILDER_PUBLISH_CONFLICT" : MATTER_API_ERROR_CODES.validation_error,
+    const reconciliationRequired = error?.code === "MATTER_PUBLICATION_RECONCILIATION_REQUIRED";
+    return errorResponse(notFound ? 404 : conflict ? 409 : reconciliationRequired ? 503 : 400, requestId, [
+      conflict
+        ? "MATTER_BUILDER_PUBLISH_CONFLICT"
+        : reconciliationRequired
+          ? "MATTER_PUBLICATION_RECONCILIATION_REQUIRED"
+          : MATTER_API_ERROR_CODES.validation_error,
     ], {
       audit_hint_ref: query.audit_hint_ref,
-      ui_state: notFound ? "empty" : "blocked",
+      ui_state: notFound ? "empty" : reconciliationRequired ? "reconciliation_required" : "blocked",
       safe_message: notFound
         ? "Matter document draft was not found."
         : conflict
           ? "Matter document publish no longer matches the approved draft."
+          : reconciliationRequired
+            ? "The document is stored in DMS and Matter finalization must be reconciled."
           : "Matter document publish validation failed.",
     });
   }
@@ -2834,8 +2823,8 @@ export function handleMatterEmailDraftCreate({ matterId, body, context, requestI
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.email.draft.create:${matterId}:${body?.draft?.draft_id ?? body?.draft?.subject ?? requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_email_draft_create", { matter_id: matterId, draft: body?.draft });
+  if (replay.response) return replay.response;
   try {
     const result = matterDocumentEmailBuilderService(runtime).createEmailDraft({
       tenant_id: query.tenant_id,
@@ -2845,7 +2834,7 @@ export function handleMatterEmailDraftCreate({ matterId, body, context, requestI
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "created" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_email_draft_create", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_email_draft_create", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -2867,8 +2856,8 @@ export function handleMatterEmailDraftPatch({ matterId, draftId, body, context, 
   });
   if (gated) return gated;
   const idempotencyKey = body?.idempotency_key ?? `matter.email.draft.patch:${matterId}:${draftId}:${requestId}`;
-  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId);
-  if (replay) return replay;
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_email_draft_patch", { matter_id: matterId, draft_id: draftId, patch: body?.patch });
+  if (replay.response) return replay.response;
   try {
     const result = matterDocumentEmailBuilderService(runtime).patchEmailDraft({
       tenant_id: query.tenant_id,
@@ -2879,7 +2868,7 @@ export function handleMatterEmailDraftPatch({ matterId, draftId, body, context, 
       occurred_at: body?.occurred_at,
     });
     const response = activityItemResponse({ result, requestId, query, outcome: "updated" });
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_email_draft_patch", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_email_draft_patch", replay.requestFingerprint, response);
     return { status: 200, body: response };
   } catch (error) {
     return errorResponse(error.message === "email draft not found" ? 404 : 400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
@@ -3145,20 +3134,8 @@ export function handleMatterPartyRegister({ matterId, body, context, requestId, 
     });
   }
   const idempotencyKey = body?.idempotency_key ?? party?.idempotency_key ?? `matter-party:${matterId}:${party?.display_name ?? party?.name ?? "party"}`;
-  const replay = runtime.repository.getIdempotency({ tenant_id: query.tenant_id, idempotency_key: idempotencyKey });
-  if (replay?.response) {
-    return {
-      status: 200,
-      body: {
-        ...replay.response,
-        request_id: requestId,
-        outcome: "idempotent_replay",
-        idempotent_replay: true,
-        audit_hint_ref: query.audit_hint_ref,
-        production_ready_claim: false,
-      },
-    };
-  }
+  const replay = matterRuntimeReplay(runtime.repository, query, idempotencyKey, requestId, "matter_party_register", { matter_id: matterId, party });
+  if (replay.response) return replay.response;
   try {
     let auditEvent = null;
     const audit = {
@@ -3197,7 +3174,7 @@ export function handleMatterPartyRegister({ matterId, body, context, requestId, 
       count_leak_prevented: true,
       production_ready_claim: false,
     };
-    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_party_register", response);
+    recordMatterRuntimeReplay(runtime.repository, query, idempotencyKey, "matter_party_register", replay.requestFingerprint, response);
     return { status: 201, body: response };
   } catch (error) {
     return errorResponse(400, requestId, [MATTER_API_ERROR_CODES.validation_error], {
