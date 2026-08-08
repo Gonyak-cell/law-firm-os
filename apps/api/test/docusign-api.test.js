@@ -18,6 +18,7 @@ import {
   DOCUSIGN_WEBHOOK_PATH,
   createDocusignCompletionArtifactStore,
 } from "../src/docusign-api.js";
+import { createDocusignFailClosedRuntime } from "../src/docusign-runtime.js";
 import { createApiServer } from "../src/server.js";
 
 const TENANT = "tenant-api";
@@ -27,6 +28,11 @@ const HMAC_SECRET = "test-only-docusign-connect-secret";
 const DOCUMENT_BYTES = Buffer.from("approved-docusign-source");
 const DOCUMENT_SHA = createHash("sha256").update(DOCUMENT_BYTES).digest("hex");
 const APPROVED_ARTIFACT_ID = "builder-artifact-api";
+const AUTHORITY_BINDING = Object.freeze({
+  tenant_id: TENANT, matter_id: MATTER, workspace_id: "workspace-api",
+  artifact_id: APPROVED_ARTIFACT_ID, document_id: "document-api", version_id: "version-api",
+  sha256: DOCUMENT_SHA, approval_receipt_ref: "approval-api",
+});
 const CONNECTION = Object.freeze({
   tenant_id: TENANT,
   connection_id: "docusign-primary",
@@ -55,7 +61,7 @@ function sessionAuth() {
   });
 }
 
-async function docusignRuntime({ authorizeMatter = async () => true } = {}) {
+async function docusignRuntime({ authorizeMatter = async () => ({ allowed: true, authority_binding: AUTHORITY_BINDING }), prepare = true } = {}) {
   const repository = createDocusignEnvelopeRepository();
   const adapter = {
     createDraft: async () => ({ envelope_id: "envelope-api" }),
@@ -68,6 +74,7 @@ async function docusignRuntime({ authorizeMatter = async () => true } = {}) {
     repository,
     connectionResolver,
     approvedDocumentResolver: async () => ({
+      authority: AUTHORITY_BINDING,
       document: {
         artifact_id: APPROVED_ARTIFACT_ID,
         document_id: "document-api",
@@ -94,7 +101,7 @@ async function docusignRuntime({ authorizeMatter = async () => true } = {}) {
     adapter,
     clock: () => "2026-08-08T02:00:00.000Z",
   });
-  await envelopeService.queueApprovedRequest({
+  if (prepare) await envelopeService.queueApprovedRequest({
     principal: { tenant_id: TENANT, actor_id: ACTOR },
     request_id: "request-api",
     tenant_id: TENANT,
@@ -102,8 +109,10 @@ async function docusignRuntime({ authorizeMatter = async () => true } = {}) {
     connection_id: CONNECTION.connection_id,
     idempotency_key: "send-api",
     approved_artifact_id: APPROVED_ARTIFACT_ID,
+    explicit_human_action: true,
+    authority_binding: AUTHORITY_BINDING,
   });
-  await envelopeService.sendApprovedRequest({
+  if (prepare) await envelopeService.sendApprovedRequest({
     principal: { tenant_id: TENANT, actor_id: ACTOR },
     request_id: "request-api",
     explicit_human_action: true,
@@ -218,6 +227,88 @@ test("OUTM-34 Outlook read route requires Matter authorization and returns no pr
     });
     assert.equal(response.status, 403);
     assert.deepEqual((await response.json()).safe_error_codes, ["DOCUSIGN_MATTER_ACCESS_DENIED"]);
+  });
+});
+
+test("OUTM-33 HTTP queue and send routes require authz, idempotency and explicit human action", async () => {
+  const runtime = await docusignRuntime({ prepare: false });
+  await withServer(runtime, async (baseUrl) => {
+    const denied = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}`, {
+      method: "POST",
+      headers: { authorization: "Bearer outlook-session", "content-type": "application/json" },
+      body: JSON.stringify({ matter_id: MATTER }),
+    });
+    assert.equal(denied.status, 400);
+    assert.equal((await denied.json()).detail_exposed, false);
+
+    const queued = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}`, {
+      method: "POST",
+      headers: { authorization: "Bearer outlook-session", "content-type": "application/json" },
+      body: JSON.stringify({
+        request_id: "request-api-http", matter_id: MATTER, connection_id: CONNECTION.connection_id,
+        approved_artifact_id: APPROVED_ARTIFACT_ID, idempotency_key: "queue-api-http", explicit_human_action: true,
+      }),
+    });
+    const queuedBody = await queued.json();
+    assert.equal(queued.status, 201, JSON.stringify(queuedBody));
+    assert.equal(queuedBody.item.state, "approved");
+
+    const crossMatter = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-http/send`, {
+      method: "POST",
+      headers: { authorization: "Bearer outlook-session", "content-type": "application/json" },
+      body: JSON.stringify({ matter_id: "matter-other", idempotency_key: "send-cross-matter", explicit_human_action: true }),
+    });
+    const crossMatterBody = await crossMatter.json();
+    assert.equal(crossMatter.status, 404);
+    assert.deepEqual(crossMatterBody.safe_error_codes, ["DOCUSIGN_REQUEST_NOT_FOUND"]);
+
+    const sent = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}/request-api-http/send`, {
+      method: "POST",
+      headers: { authorization: "Bearer outlook-session", "content-type": "application/json" },
+      body: JSON.stringify({ matter_id: MATTER, idempotency_key: "send-api-http", explicit_human_action: true }),
+    });
+    const sentBody = await sent.json();
+    assert.equal(sent.status, 200, JSON.stringify(sentBody));
+    assert.equal(sentBody.item.state, "sent");
+    assert.doesNotMatch(JSON.stringify(sentBody), /account-api|demo\.docusign|secret:\/\//u);
+  });
+});
+
+test("OUTM-33 server default fail-closed authority reaches the live route with zero outbox rows", async () => {
+  const runtime = createDocusignFailClosedRuntime({
+    authorizeMatter: async () => ({ allowed: true, authority_binding: AUTHORITY_BINDING }),
+  });
+  await withServer(runtime, async (baseUrl) => {
+    const health = await fetch(`${baseUrl}/api/health`);
+    const healthBody = await health.json();
+    assert.deepEqual([health.status, healthBody.docusign.status, healthBody.docusign.worker_injected], [200, "blocked", true]);
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}`, {
+      method: "POST",
+      headers: { authorization: "Bearer outlook-session", "content-type": "application/json" },
+      body: JSON.stringify({
+        request_id: "request-blocked-http", matter_id: MATTER, connection_id: CONNECTION.connection_id,
+        approved_artifact_id: APPROVED_ARTIFACT_ID, idempotency_key: "queue-blocked-http", explicit_human_action: true,
+      }),
+    });
+    const body = await response.json();
+    assert.equal(response.status, 503);
+    assert.deepEqual(body.safe_error_codes, ["DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED"]);
+    assert.equal(body.detail_exposed, false);
+    assert.equal(runtime.repository.loadState().requests.length, 0);
+  });
+});
+
+test("OUTM-34 repository and secret outages are retryable redacted 503 responses", async () => {
+  const readRuntime = {
+    envelope_service: { listRequests: async () => { throw new Error("postgresql://user:raw-password@host/db"); } },
+    authorizeMatter: async () => true,
+  };
+  await withServer(readRuntime, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${DOCUSIGN_OUTLOOK_REQUESTS_PATH}?matter_id=${MATTER}`, { headers: { authorization: "Bearer outlook-session" } });
+    const body = await response.json();
+    assert.equal(response.status, 503);
+    assert.equal(body.detail_exposed, false);
+    assert.doesNotMatch(JSON.stringify(body), /raw-password|postgresql/u);
   });
 });
 

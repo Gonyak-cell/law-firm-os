@@ -192,11 +192,13 @@ import {
   parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
 import {
-  handleDocusignOutlookRead,
+  handleDocusignOutlookRequest,
   handleDocusignWebhook,
-  isDocusignOutlookRead,
+  isDocusignOutlookRoute,
   isDocusignWebhook,
 } from "./docusign-api.js";
+import { createDocusignFailClosedRuntime } from "./docusign-runtime.js";
+import { createPostgresDocusignEnvelopeRepository } from "../../../packages/integrations-core/src/docusign-postgres-repository.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -1457,6 +1459,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
       auth_authority: sessionAuth.capabilities ?? null,
       runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
+      docusign: docusignRuntime?.readiness?.() ?? { status: "blocked", production_ready_claim: false },
       ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
     return;
@@ -1991,11 +1994,13 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
-    if (isDocusignOutlookRead(req.method, pathname)) {
-      const result = await handleDocusignOutlookRead({
+    if (isDocusignOutlookRoute(req.method, pathname)) {
+      const body = req.method === "POST" ? await readRequestBody(req) : {};
+      const result = await handleDocusignOutlookRequest({
         method: req.method,
         pathname,
         query,
+        body,
         principal: sessionContext.principal,
         requestId,
         runtime: docusignRuntime,
@@ -2092,7 +2097,7 @@ export function createApiServer({
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
-  docusignRuntime = null,
+  docusignRuntime = createDocusignFailClosedRuntime(),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({
     dmsRuntime,
     emailDmsRepository: emailDmsRuntime?.repository,
@@ -2570,13 +2575,16 @@ export async function startApiServer({
         clientOperationsSchemaPool: postgresPool,
         identityRepository,
       });
+      const resolvedDocusignRuntime = docusignRuntime ?? createDocusignFailClosedRuntime({
+        repository: createPostgresDocusignEnvelopeRepository({ pool: postgresPool }),
+      });
       const server = createApiServer({
         hrxRuntime: null,
         masterDataRuntime: null,
         matterRuntime: null,
         dmsRuntime: null,
         emailDmsRuntime: null,
-        docusignRuntime,
+        docusignRuntime: resolvedDocusignRuntime,
         crmIntakeRuntime: null,
         financeRuntime: null,
         analyticsRuntime: null,
