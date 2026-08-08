@@ -16,7 +16,12 @@ import { createRecordRepositoryDomainSnapshot } from "../../../packages/persiste
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { runClientOperationsPostgresMigrations } from "../src/client-operations-schema.js";
+import { createPostgresOutlookConversationRuntime } from "../src/outlook-conversation-operational-runtime.js";
 import { startApiServer } from "../src/server.js";
+import {
+  handleOutlookConversationMaintenanceEvent,
+  LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
+} from "../src/outlook-conversation-maintenance-invocation.js";
 
 const TENANT = "tenant-outm27-operational";
 const ENTRA_TENANT = "entra-tenant-outm27-operational";
@@ -114,12 +119,13 @@ async function seed(fixture) {
       `INSERT INTO lawos_email_dms.graph_subscriptions
        (tenant_id,subscription_id,user_id,entra_subject_id,entra_tenant_id,
         m365_connection_id,mailbox_ref,resource,change_type,client_state_hash,
-        client_state_ref,provider_subscription_id,provider_expires_at,status,
+        client_state_ref,notification_url_hash,provider_subscription_id,provider_expires_at,status,
         created_at,updated_at)
-     VALUES ($1,$2,'user-outm27-operational',$3,$4,$5,$6,$7,'created',$8,$9,$10,$11,
+     VALUES ($1,$2,'user-outm27-operational',$3,$4,$5,$6,$7,'created',$8,$9,$10,$11,$12,
              'active','2026-08-08T00:00:00.000Z','2026-08-08T00:00:00.000Z')`,
       [TENANT, SUBSCRIPTION, SUBJECT, ENTRA_TENANT, CONNECTION, MAILBOX_HASH, RESOURCE,
         createHash("sha256").update(CLIENT_STATE).digest("hex"), `client_state_ref_${"c".repeat(32)}`,
+        createHash("sha256").update(new URL(NOTIFICATION_URL).toString()).digest("hex"),
         PROVIDER_SUBSCRIPTION, EXPIRES_AT],
     );
   });
@@ -136,11 +142,17 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
     end: async () => { closed = true; },
   };
   const providerCalls = [];
+  const clientStatesByProvider = new Map([
+    [PROVIDER_SUBSCRIPTION, CLIENT_STATE],
+  ]);
   const remoteSubscriptions = [{
     provider_subscription_id: PROVIDER_SUBSCRIPTION,
     resource: RESOURCE,
     change_type: "created",
     client_state_hash: createHash("sha256").update(CLIENT_STATE).digest("hex"),
+    notification_url: NOTIFICATION_URL,
+    entra_tenant_id: ENTRA_TENANT,
+    account_id: SUBJECT,
     expires_at: EXPIRES_AT,
   }];
   const conversationProvider = Object.fromEntries([
@@ -158,9 +170,13 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
         resource: input.resource,
         change_type: "created",
         client_state_hash: input.client_state_hash,
+        notification_url: NOTIFICATION_URL,
+        entra_tenant_id: ENTRA_TENANT,
+        account_id: SUBJECT,
         expires_at: input.expiration_datetime,
       };
       remoteSubscriptions.push(created);
+      clientStatesByProvider.set(created.provider_subscription_id, input.client_state);
       return structuredClone(created);
     }
     if (method === "renewOwnMessageSubscription") {
@@ -180,8 +196,42 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
     }
     return {};
   }]));
+  const sentMime = Buffer.from(
+    "From: outm27-operational@example.test\r\n"
+    + "To: recipient@example.test\r\n"
+    + "Cc: cc@example.test\r\n"
+    + "Bcc: bcc@example.test\r\n"
+    + "Subject: Operational sent message\r\n"
+    + "Message-ID: <message-outm27-sent@example.test>\r\n\r\nsent body",
+  );
   conversationProvider.getMeMessageMime = async (input) => {
     providerCalls.push({ method: "getMeMessageMime", input });
+    if (input.rest_message_id === "message-outm27-sent") {
+      return {
+        mime_bytes: sentMime,
+        immutable_message_id: "message-outm27-sent",
+        internet_message_id: "<message-outm27-sent@example.test>",
+        provider_request_id: "provider-request-outm27-sent",
+        message_metadata: {
+          conversation_id: "conversation-outm27-sent",
+          internet_message_id: "<message-outm27-sent@example.test>",
+          subject: "Operational sent message",
+          sender: { address: MAILBOX },
+          from: { address: MAILBOX },
+          recipients: [
+            { recipient_type: "to", address: "recipient@example.test" },
+            { recipient_type: "cc", address: "cc@example.test" },
+            { recipient_type: "bcc", address: "bcc@example.test" },
+          ],
+          received_at: "2026-08-08T00:10:02.000Z",
+          sent_at: "2026-08-08T00:10:01.000Z",
+          folder_kind: "sentitems",
+          is_in_sent_items: true,
+          is_draft: false,
+          has_attachments: false,
+        },
+      };
+    }
     return {
       mime_bytes: Buffer.from("From: sender@example.test\r\nTo: outm27-operational@example.test\r\nSubject: Operational message\r\nMessage-ID: <message-outm27-operational@example.test>\r\n\r\nbody"),
       immutable_message_id: "message-outm27-operational",
@@ -203,6 +253,24 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
       },
     };
   };
+  let credentialResolveCount = 0;
+  const credentialVault = {
+    async resolveDelegatedCredential() {
+      credentialResolveCount += 1;
+      return {
+        access_token: "outm27-operational-access-token",
+        refresh_token: "outm27-operational-refresh-token",
+        refresh_profile: "client",
+        refresh_profile_proof: "d".repeat(43),
+        mailbox_address: MAILBOX,
+        expires_at: "2027-08-08T00:00:00.000Z",
+        granted_scopes: ["Mail.Read"],
+      };
+    },
+  };
+  const dmsStorage = createLocalStorageAdapter({
+    adapter_id: "outm27-operational-test",
+  });
   const started = await startApiServer({
     port: 0,
     runtimeProfile: "operational",
@@ -216,6 +284,7 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
       LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID: "lawos/test/outm27-operational-payroll",
       LAWOS_IDENTITY_TENANT_ID: TENANT,
       LAWOS_GRAPH_NOTIFICATION_URL: NOTIFICATION_URL,
+      LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED: "true",
       LAWOS_DATA_SCOPE: "synthetic-only",
       AWS_REGION: "ap-northeast-2",
     },
@@ -223,25 +292,13 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
       ? fixture.tenantContextSecret
       : fixture.instance.connection_string,
     persistenceConnectPostgres: async () => pool,
-    dmsStorage: createLocalStorageAdapter({ adapter_id: "outm27-operational-test" }),
+    dmsStorage,
     payrollResolveArtifactSecret: async () => "outm27-operational-payroll-artifact-secret-material",
     m365GraphConfig: {
       feature_enabled: true,
       provider_runtime_enabled: true,
       entra_tenant_id: ENTRA_TENANT,
-      credential_vault: {
-        async resolveDelegatedCredential() {
-          return {
-            access_token: "outm27-operational-access-token",
-            refresh_token: "outm27-operational-refresh-token",
-            refresh_profile: "client",
-            refresh_profile_proof: "d".repeat(43),
-            mailbox_address: MAILBOX,
-            expires_at: "2027-08-08T00:00:00.000Z",
-            granted_scopes: ["Mail.Read"],
-          };
-        },
-      },
+      credential_vault: credentialVault,
       provider: conversationProvider,
     },
   });
@@ -254,7 +311,7 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
   assert.deepEqual(health.outlook_graph_sync, {
     status: "ready",
     persistence: "postgres-v2",
-    migration_id: "302_client_outlook_conversation_sync",
+    migration_id: "303_client_outlook_conversation_sync",
     migration_checksum: health.outlook_graph_sync.migration_checksum,
     webhook_route_ready: true,
     durable_queue_ready: true,
@@ -265,6 +322,7 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
     subscription_reconciler_ready: true,
     message_auto_filing_ready: true,
     maintenance_worker_ready: true,
+    worker_schedule_ready: true,
     auto_filing_enabled: true,
   });
   assert.match(health.outlook_graph_sync.migration_checksum, /^[a-f0-9]{64}$/u);
@@ -306,11 +364,13 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
     }] }),
   });
   assert.equal(lifecycle.status, 202, await lifecycle.text());
-  const maintenance = await started.outlookConversationRuntime.maintenance_worker.runOnce({
-    tenant_id: TENANT,
-    worker_id: "worker-outm27-operational",
-    limit: 10,
+  const maintenance = await handleOutlookConversationMaintenanceEvent({
+    maintenance_action: LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
+  }, {
+    runtime_factory: async () => started,
+    env: { LAWOS_IDENTITY_TENANT_ID: TENANT },
   });
+  assert.equal(maintenance.worker, LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION);
   assert.deepEqual(maintenance.subscription_reconciliation, { attempted: 1, succeeded: 1, failed: 0 });
   assert.equal(maintenance.subscription_jobs.claimed, 0);
   assert.equal(maintenance.recovery_jobs.claimed, 1);
@@ -350,6 +410,204 @@ test("OUTM-27 operational server composes the migrated PostgreSQL webhook and re
   assert.equal(filed.thread.filing_user, "outlook-conversation-sync-service");
   assert.equal(filed.thread.sent_at, "2026-08-08T00:00:01.000Z");
   assert.deepEqual(filed.thread.to.map(({ address }) => address), [MAILBOX]);
+
+  const sentRemote = remoteSubscriptions.find(({ resource }) => resource === "me/mailFolders('sentitems')/messages");
+  assert.ok(sentRemote);
+  const sentClientState = clientStatesByProvider.get(sentRemote.provider_subscription_id);
+  assert.equal(typeof sentClientState, "string");
+  await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, (client) => client.query(
+    `INSERT INTO lawos_email_dms.conversation_policies
+       (tenant_id,policy_id,user_id,entra_subject_id,m365_connection_id,mailbox_ref,
+        conversation_id,matter_id,seed_email_thread_id,seed_filing_receipt_ref,
+        enabling_actor_id,status,version,created_at,updated_at)
+     VALUES ($1,'policy-outm27-sent','user-outm27-operational',$2,$3,$4,
+             'conversation-outm27-sent','matter-outm27-operational',
+             'thread-outm27-sent','receipt-outm27-sent',
+             'user-outm27-operational','active',1,
+             '2026-08-08T00:10:00.000Z','2026-08-08T00:10:00.000Z')`,
+    [TENANT, SUBJECT, CONNECTION, MAILBOX_HASH],
+  ));
+  const sentNotification = {
+    subscriptionId: sentRemote.provider_subscription_id,
+    tenantId: ENTRA_TENANT,
+    clientState: sentClientState,
+    subscriptionExpirationDateTime: sentRemote.expires_at,
+    changeType: "created",
+    resource: `Users/${SUBJECT}/Messages/message-outm27-sent`,
+    resourceData: { id: "message-outm27-sent", "@odata.type": "#Microsoft.Graph.Message" },
+  };
+  const sentWebhook = await fetch(`${base}/api/outlook/graph/notifications`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ value: [sentNotification] }),
+  });
+  assert.equal(sentWebhook.status, 202, await sentWebhook.text());
+  const sentMaintenance = await handleOutlookConversationMaintenanceEvent({
+    maintenance_action: LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
+  }, {
+    runtime_factory: async () => started,
+    env: { LAWOS_IDENTITY_TENANT_ID: TENANT },
+  });
+  const sentJobAfterMaintenance = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT, readOnly: true },
+    async (client) => (await client.query(
+      `SELECT status,result_code,last_error_code FROM lawos_email_dms.graph_notification_jobs
+        WHERE message_id='message-outm27-sent'`,
+    )).rows[0],
+  );
+  assert.deepEqual(sentMaintenance.message_jobs, {
+    claimed: 1,
+    filed: 1,
+    ignored: 0,
+    paused: 0,
+    retried: 0,
+    dead_lettered: 0,
+  }, JSON.stringify(sentJobAfterMaintenance));
+  const sentSha256 = createHash("sha256").update(sentMime).digest("hex");
+  const sentFiled = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT, readOnly: true },
+    async (client) => ({
+      job: (await client.query(
+        `SELECT status,result_code FROM lawos_email_dms.graph_notification_jobs
+          WHERE message_id='message-outm27-sent'`,
+      )).rows[0],
+      thread: (await client.query(
+        `SELECT payload FROM lawos_domain.records
+          WHERE domain_id='dms-auxiliary' AND record_type='DmsEmailThread'
+            AND payload->>'conversation_id'='conversation-outm27-sent'`,
+      )).rows[0]?.payload,
+      file: (await client.query(
+        `SELECT object_id,sha256,byte_size,content_type,status
+           FROM lawos_dms.file_objects WHERE sha256=$1`,
+        [sentSha256],
+      )).rows[0],
+    }),
+  );
+  assert.deepEqual(sentFiled.job, { status: "completed", result_code: "filed" });
+  assert.equal(sentFiled.thread.conversation_id, "conversation-outm27-sent");
+  assert.equal(sentFiled.thread.matter_id, "matter-outm27-operational");
+  assert.equal(sentFiled.thread.filing_user, "outlook-conversation-sync-service");
+  assert.equal(sentFiled.thread.sent_at, "2026-08-08T00:10:01.000Z");
+  assert.equal(sentFiled.thread.received_at, "2026-08-08T00:10:02.000Z");
+  assert.deepEqual(sentFiled.thread.to.map(({ address }) => address), ["recipient@example.test"]);
+  assert.deepEqual(sentFiled.thread.cc.map(({ address }) => address), ["cc@example.test"]);
+  assert.deepEqual(sentFiled.thread.bcc.map(({ address }) => address), ["bcc@example.test"]);
+  assert.deepEqual(sentFiled.file, {
+    object_id: sentFiled.file.object_id,
+    sha256: sentSha256,
+    byte_size: String(sentMime.byteLength),
+    content_type: "message/rfc822",
+    status: "committed",
+  });
+  const storedSent = dmsStorage.getObject({ tenant_id: TENANT, object_id: sentFiled.file.object_id });
+  assert.equal(storedSent.sha256, sentSha256);
+  assert.deepEqual(storedSent.bytes, sentMime);
+
+  const restarted = await createPostgresOutlookConversationRuntime({
+    pool: fixture.appPool,
+    domain_ledger: createPostgresDomainLedger({ pool: fixture.appPool }),
+    tenant_id: TENANT,
+    entra_tenant_id: ENTRA_TENANT,
+    notification_url: NOTIFICATION_URL,
+    cursor_key_material: "outm27-operational-session-secret-material",
+    credential_vault: credentialVault,
+    conversation_provider: conversationProvider,
+    request_runtime_authority: started.requestRuntimeAuthority,
+  });
+  assert.equal(restarted.readiness.durable_queue_ready, true);
+  assert.equal(restarted.readiness.maintenance_worker_ready, true);
+  assert.equal(restarted.readiness.worker_schedule_ready, false);
+  assert.equal(restarted.readiness.auto_filing_enabled, false);
+  const replayedSent = await restarted.webhook.handle({
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ value: [sentNotification] }),
+  });
+  assert.equal(replayedSent.status, 202);
+  assert.deepEqual(replayedSent.body, { outcome: "accepted", enqueued: 0, duplicates: 1 });
+  const replayWorker = await restarted.message_worker.runOnce({
+    tenant_id: TENANT,
+    worker_id: "worker-outm27-sent-replay",
+    limit: 1,
+  });
+  assert.equal(replayWorker.claimed, 0);
+  const sentCounts = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT, readOnly: true },
+    async (client) => ({
+      threads: Number((await client.query(
+        `SELECT count(*)::int AS count FROM lawos_domain.records
+          WHERE domain_id='dms-auxiliary' AND record_type='DmsEmailThread'
+            AND payload->>'conversation_id'='conversation-outm27-sent'`,
+      )).rows[0].count),
+      files: Number((await client.query(
+        "SELECT count(*)::int AS count FROM lawos_dms.file_objects WHERE sha256=$1",
+        [sentSha256],
+      )).rows[0].count),
+    }),
+  );
+  assert.deepEqual(sentCounts, { threads: 1, files: 1 });
+
+  await started.outlookConversationRuntime.queue.enqueue({
+    tenant_id: TENANT,
+    subscription_id: SUBSCRIPTION,
+    provider_subscription_id: PROVIDER_SUBSCRIPTION,
+    resource: RESOURCE,
+    message_id: "message-outm27-connection-lost",
+    change_type: "created",
+    source: "webhook",
+    received_at: "2026-08-08T00:20:00.000Z",
+    subscription_expiration_at: EXPIRES_AT,
+  });
+  await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, (client) =>
+    client.query(
+      `UPDATE lawos_domain.records
+          SET payload=jsonb_set(payload,'{revoked_at}',to_jsonb($2::text),true)
+        WHERE tenant_id=$1 AND domain_id='email-dms'
+          AND record_type='M365Connection' AND record_id=$3`,
+      [TENANT, "2026-08-08T00:19:00.000Z", CONNECTION],
+    ));
+  const credentialCountBeforeLoss = credentialResolveCount;
+  const connectionLoss = await started.outlookConversationRuntime.message_worker.runOnce({
+    tenant_id: TENANT,
+    worker_id: "worker-outm27-connection-lost",
+    limit: 1,
+  });
+  assert.equal(connectionLoss.paused, 1);
+  assert.equal(credentialResolveCount, credentialCountBeforeLoss);
+  const paused = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT, readOnly: true },
+    async (client) => ({
+      policy: (await client.query(
+        "SELECT status,pause_reason FROM lawos_email_dms.conversation_policies",
+      )).rows[0],
+      job: (await client.query(
+        `SELECT status,result_code FROM lawos_email_dms.graph_notification_jobs
+          WHERE message_id='message-outm27-connection-lost'`,
+      )).rows[0],
+      audit: (await client.query(
+        `SELECT actor_id,details->>'reason' AS reason
+           FROM lawos_email_dms.graph_sync_audit_events
+          WHERE event_type='conversation_policy.paused'
+          ORDER BY occurred_at DESC LIMIT 1`,
+      )).rows[0],
+    }),
+  );
+  assert.deepEqual(paused.policy, {
+    status: "paused",
+    pause_reason: "connection_revoked",
+  });
+  assert.deepEqual(paused.job, {
+    status: "completed",
+    result_code: "policies_paused_connection_revoked",
+  });
+  assert.deepEqual(paused.audit, {
+    actor_id: "outlook-conversation-sync-service",
+    reason: "connection_revoked",
+  });
   await new Promise((resolve) => started.server.close(resolve));
   assert.equal(closed, true);
 });

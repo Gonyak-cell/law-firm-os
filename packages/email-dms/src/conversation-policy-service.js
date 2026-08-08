@@ -7,6 +7,8 @@ import {
   syncDigest,
 } from "./conversation-sync-model.js";
 
+// Deterministic test double only. Operational policy authority is PostgreSQL.
+
 function fingerprint(input) {
   return syncDigest("request", stableJsonStringify(input));
 }

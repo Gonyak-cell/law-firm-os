@@ -17,7 +17,8 @@ import {
 export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "001_m365_connection": "300_client_m365_connection",
   "002_inquiry_evidence": "301_client_inquiry_evidence",
-  "003_outlook_conversation_sync": "302_client_outlook_conversation_sync",
+  "003_email_filing_correction": "302_client_email_filing_correction",
+  "004_outlook_conversation_sync": "303_client_outlook_conversation_sync",
 });
 
 function clientSchemaMigrations() {

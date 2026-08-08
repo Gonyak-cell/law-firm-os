@@ -87,6 +87,7 @@ function subscription(value, notificationUrl) {
     resource: normalizedResource,
     change_type: "created",
     client_state_hash: clientStateHash(value.clientState),
+    notification_url: notificationUrl,
     expires_at: instant(value.expirationDateTime),
   };
 }

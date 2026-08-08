@@ -4,10 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import {
-  createConversationPolicyService,
-  createConversationSyncRepository,
-} from "../src/index.js";
+import { createConversationPolicyService } from "../src/conversation-policy-service.js";
+import { createConversationSyncRepository } from "../src/conversation-sync-repository.js";
 
 const TENANT = "tenant-outm25";
 const USER = "user-outm25";

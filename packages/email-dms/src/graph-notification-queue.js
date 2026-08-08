@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { GRAPH_LIFECYCLE_EVENTS, GRAPH_MESSAGE_RESOURCES, requiredSyncString, syncDigest } from "./conversation-sync-model.js";
 
+// Deterministic test double only. Operational queue authority is PostgreSQL.
+
 function positiveInteger(value, field) {
   if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`${field} must be positive`);
   return value;

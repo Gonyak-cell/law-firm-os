@@ -42,9 +42,18 @@ export function createPostgresConversationSyncStore({
       const connection = normalizeM365Connection(row.connection_payload);
       const subscription = { ...row };
       delete subscription.connection_payload;
+      const policies = (await client.query(
+        `SELECT * FROM lawos_email_dms.conversation_policies
+          WHERE tenant_id=$1 AND user_id=$2 AND entra_subject_id=$3
+            AND m365_connection_id=$4 AND status='active'
+          ORDER BY policy_id`,
+        [tenantId, subscription.user_id, subscription.entra_subject_id,
+          subscription.m365_connection_id],
+      )).rows;
       return Object.freeze({
         subscription: Object.freeze(subscription),
         connection,
+        policies: Object.freeze(policies.map(Object.freeze)),
       });
     }, { readOnly: true });
   }

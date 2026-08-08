@@ -7,6 +7,8 @@ import {
   syncDigest,
 } from "./conversation-sync-model.js";
 
+// Deterministic test double only. Operational reconciliation is PostgreSQL.
+
 function hashClientState(value) {
   return createHash("sha256").update(value).digest("hex");
 }

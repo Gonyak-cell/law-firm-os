@@ -52,6 +52,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/attachments/save",
     "POST /api/outlook/followups",
     "POST /api/outlook/smart-alerts/evaluate",
+    "POST /api/outlook/conversation-policies",
+    "POST /api/outlook/conversation-policies/:policy_id/revoke",
   ]),
   data_source:
     "matter_runtime_repository+dms_runtime_repository+email_dms_runtime_repository",

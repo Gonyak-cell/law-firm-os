@@ -3,14 +3,30 @@ import test from "node:test";
 
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
+import * as emailDms from "../src/index.js";
 import { listEmailDmsPostgresMigrations } from "../src/migrations/index.js";
+
+test("OUTM-25..28 public runtime surface exposes only PostgreSQL conversation authorities", () => {
+  for (const testDouble of [
+    "createConversationSyncRepository",
+    "createConversationPolicyService",
+    "createGraphSubscriptionService",
+    "createGraphNotificationQueue",
+  ]) assert.equal(Object.hasOwn(emailDms, testDouble), false);
+  for (const operational of [
+    "createPostgresConversationSyncStore",
+    "createPostgresConversationPolicyService",
+    "createPostgresGraphSubscriptionService",
+    "createPostgresGraphNotificationQueue",
+  ]) assert.equal(typeof emailDms[operational], "function");
+});
 
 test("OUTM-25..27 migration defines tenant-isolated policy, subscription, cursor, queue, receipt, audit, and idempotency tables", () => {
   // Given
   const migrations = listEmailDmsPostgresMigrations();
 
   // When
-  const migration = migrations.find(({ id }) => id === "003_outlook_conversation_sync");
+  const migration = migrations.find(({ id }) => id === "004_outlook_conversation_sync");
 
   // Then
   assert.ok(migration);
@@ -27,6 +43,9 @@ test("OUTM-25..27 migration defines tenant-isolated policy, subscription, cursor
   }
   assert.doesNotMatch(migration.sql, /\b(access_token|refresh_token|client_secret|client_state text|delta_link)\b/iu);
   assert.match(migration.sql, /client_state_hash text NOT NULL/u);
+  assert.match(migration.sql, /notification_url_hash text NOT NULL/u);
+  assert.match(migration.sql, /provisioning_correlation_id uuid/u);
+  assert.match(migration.sql, /'cleanup_pending'/u);
   assert.match(migration.sql, /UNIQUE \(tenant_id, m365_connection_id, resource\)/u);
   assert.match(migration.sql, /UNIQUE \(tenant_id, dedupe_key\)/u);
   assert.match(migration.sql, /provider_subscription_id text NOT NULL/u);
@@ -42,7 +61,7 @@ test("OUTM-27 PostgreSQL receipts and audit rows are tenant-isolated and immutab
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   await fixture.adminPool.query(migrations[0].sql);
-  await fixture.adminPool.query(migrations[2].sql);
+  await fixture.adminPool.query(migrations[3].sql);
   const triggers = await fixture.adminPool.query(
     `SELECT trigger.tgname
        FROM pg_trigger AS trigger

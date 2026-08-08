@@ -6,7 +6,15 @@ import { listEmailDmsPostgresMigrations } from "../src/migrations/index.js";
 
 test("CL-P3-W00-T01 M365Connection migration은 token 열 없이 사용자 고유성과 tenant RLS를 강제한다", async (t) => {
   const migrations = listEmailDmsPostgresMigrations();
-  assert.equal(migrations.length, 3);
+  assert.deepEqual(
+    migrations.map(({ id }) => id),
+    [
+      "001_m365_connection",
+      "002_inquiry_evidence",
+      "003_email_filing_correction",
+      "004_outlook_conversation_sync",
+    ],
+  );
   assert.equal(migrations[0].id, "001_m365_connection");
   assert.match(migrations[0].checksum, /^[a-f0-9]{64}$/u);
   assert.doesNotMatch(

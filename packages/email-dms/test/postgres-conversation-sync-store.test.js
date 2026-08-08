@@ -22,7 +22,7 @@ async function runtime(t) {
   if (!fixture) return null;
   const migrations = listEmailDmsPostgresMigrations();
   await fixture.adminPool.query(migrations[0].sql);
-  await fixture.adminPool.query(migrations[2].sql);
+  await fixture.adminPool.query(migrations[3].sql);
   const repository = createEmailDmsRepository({ seedRecords: [{
     model_type: "M365Connection",
     tenant_id: TENANT,
@@ -61,13 +61,14 @@ async function runtime(t) {
       `INSERT INTO lawos_email_dms.graph_subscriptions
          (tenant_id,subscription_id,user_id,entra_subject_id,entra_tenant_id,
           m365_connection_id,mailbox_ref,resource,change_type,client_state_hash,
-          client_state_ref,provider_subscription_id,provider_expires_at,status,
+          client_state_ref,notification_url_hash,provider_subscription_id,provider_expires_at,status,
           created_at,updated_at)
        VALUES ($1,'subscription-outm27-store','user-outm27-store','subject-outm27-store',
-               'entra-tenant-outm27-store',$2,$3,$4,'created',$5,$6,
-               'provider-outm27-store','2026-08-08T02:00:00.000Z','active',$7,$7)`,
+               'entra-tenant-outm27-store',$2,$3,$4,'created',$5,$6,$7,
+               'provider-outm27-store','2026-08-08T02:00:00.000Z','active',$8,$8)`,
       [TENANT, CONNECTION, "a".repeat(64), RESOURCE, "b".repeat(64),
-        `client_state_ref_${"c".repeat(32)}`, "2026-08-08T00:00:00.000Z"],
+        `client_state_ref_${"c".repeat(32)}`, "d".repeat(64),
+        "2026-08-08T00:00:00.000Z"],
     );
   });
   return fixture;

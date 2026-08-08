@@ -26,32 +26,35 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   });
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count,
-    68,
+    69,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.client_schema_migration_count,
-    3,
+    4,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "44597483e599ea7024bd0dc4a3f169388908831a520b11b51c3572c0d691da57",
+    "20e001bcf93fe5aba29aee84bc16bc61a5c0f950bd10c0a520eca796ef020d3e",
   );
   assert.deepEqual(
-    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-3).map(
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-4).map(
       ({ id }) => id,
     ),
     [
       "300_client_m365_connection",
       "301_client_inquiry_evidence",
-      "302_client_outlook_conversation_sync",
+      "302_client_email_filing_correction",
+      "303_client_outlook_conversation_sync",
     ],
   );
   assert.deepEqual(CLIENT_OPERATIONS_MIGRATION_ID_MAP, {
     "001_m365_connection": "300_client_m365_connection",
     "002_inquiry_evidence":
       "301_client_inquiry_evidence",
-    "003_outlook_conversation_sync":
-      "302_client_outlook_conversation_sync",
+    "003_email_filing_correction":
+      "302_client_email_filing_correction",
+    "004_outlook_conversation_sync":
+      "303_client_outlook_conversation_sync",
   });
   assert.equal(
     CLIENT_OPERATIONS_MODEL_REGISTRY.entries.find(

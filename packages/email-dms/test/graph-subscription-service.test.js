@@ -6,10 +6,10 @@ import test from "node:test";
 
 import {
   GRAPH_MESSAGE_RESOURCES,
-  createConversationPolicyService,
-  createConversationSyncRepository,
-  createGraphSubscriptionService,
 } from "../src/index.js";
+import { createConversationPolicyService } from "../src/conversation-policy-service.js";
+import { createConversationSyncRepository } from "../src/conversation-sync-repository.js";
+import { createGraphSubscriptionService } from "../src/graph-subscription-service.js";
 
 const TENANT = "tenant-outm26";
 const USER = "user-outm26";

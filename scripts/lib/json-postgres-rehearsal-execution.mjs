@@ -28,6 +28,7 @@ const SHA256 = /^[0-9a-f]{64}$/u;
 const LEGACY_ENVIRONMENT_KEY =
   /(?:JSON|STORE_PATH|FILE_CURRENT|DUAL_WRITE|OFFLINE|MEMORY_FALLBACK)/u;
 const SAFE_CONDITIONAL_REPLACEMENT = new Set([
+  "OutlookConversationWorkerInvokePermission",
   "PasswordResetWorkerInvokePermission",
 ]);
 const W12_ARTIFACT_STORE_RESOURCES = new Set([
@@ -50,6 +51,8 @@ const W12_ADDITIONS = new Set([
 ]);
 const W12_INITIAL_MODIFICATIONS = new Set([
   "HttpApiIntegration",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerSchedule",
   "PasswordResetWorkerInvokePermission",
   "PasswordResetWorkerSchedule",
   "S3GatewayEndpoint",
@@ -77,6 +80,20 @@ const W12_DYNAMIC_DEPENDENCIES = Object.freeze({
     causing_entity: "ApiFunction.Arn",
     replacement: "False",
   }),
+  OutlookConversationWorkerInvokePermission: Object.freeze({
+    resource_type: "AWS::Lambda::Permission",
+    property: "SourceArn",
+    requires_recreation: "Always",
+    causing_entity: "OutlookConversationWorkerSchedule.Arn",
+    replacement: "Conditional",
+  }),
+  OutlookConversationWorkerSchedule: Object.freeze({
+    resource_type: "AWS::Events::Rule",
+    property: "Targets",
+    requires_recreation: "Never",
+    causing_entity: "ApiFunction.Arn",
+    replacement: "False",
+  }),
 });
 const W12_BOOTSTRAP_REMOVAL_MODIFICATIONS = new Set([
   "RehearsalAdminExecutionRole",
@@ -88,6 +105,8 @@ const EXISTING_LAMBDA_BOOTSTRAP_MODIFICATIONS = new Set([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerSchedule",
   "PasswordResetWorkerInvokePermission",
   "PasswordResetWorkerSchedule",
 ]);

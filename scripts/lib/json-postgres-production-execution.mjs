@@ -24,8 +24,13 @@ const SAFE_CONDITIONAL_REPLACEMENT = new Set([
   "HttpApiInvokePermission",
   "PasswordResetWorkerInvokePermission",
   "PasswordResetWorkerSchedule",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerSchedule",
 ]);
 export const JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES = Object.freeze([
+  "MicrosoftEgressBrokerLambdaEndpoint",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerSchedule",
   "ProjectionAuditorDatabaseSecret",
   "ProjectionAuditorExecutionRole",
   "ProjectionAuditorFunction",
@@ -50,6 +55,9 @@ export const JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES = Object.freeze([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
+  "MicrosoftEgressBrokerLambdaEndpoint",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerSchedule",
   "PasswordResetWorkerInvokePermission",
   "PasswordResetWorkerSchedule",
   "ProductionKey",

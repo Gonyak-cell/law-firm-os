@@ -9,28 +9,40 @@ function assertMe(input) {
 export function createMicrosoftGraphConversationProvider({ microsoft_egress_transport } = {}) {
   if (!microsoft_egress_transport) throw new TypeError("microsoft_egress_transport is required");
   const accessToken = (credential) => requiredSyncString(credential, "access_token", 32 * 1024);
+  const bindOwner = (result, input) => {
+    if (!input.entra_tenant_id || !input.entra_subject_id) return result;
+    const binding = {
+      entra_tenant_id: requiredSyncString(input, "entra_tenant_id"),
+      account_id: requiredSyncString(input, "entra_subject_id"),
+    };
+    return Array.isArray(result)
+      ? result.map((entry) => ({ ...entry, ...binding }))
+      : { ...result, ...binding };
+  };
   return Object.freeze({
     async createOwnMessageSubscription(input = {}) {
       assertMe(input);
-      return microsoft_egress_transport.graphMessageSubscriptionCreate({
+      return bindOwner(await microsoft_egress_transport.graphMessageSubscriptionCreate({
         access_token: accessToken(input.credential),
         resource: input.resource,
         change_type: "created",
         client_state: requiredSyncString(input, "client_state", 128),
         expiration_datetime: requiredSyncString(input, "expiration_datetime", 64),
-      });
+      }), input);
     },
     async renewOwnMessageSubscription(input = {}) {
       assertMe(input);
-      return microsoft_egress_transport.graphMessageSubscriptionRenew({
+      return bindOwner(await microsoft_egress_transport.graphMessageSubscriptionRenew({
         access_token: accessToken(input.credential),
         provider_subscription_id: requiredSyncString(input, "provider_subscription_id"),
         expiration_datetime: requiredSyncString(input, "expiration_datetime", 64),
-      });
+      }), input);
     },
     async listOwnMessageSubscriptions(input = {}) {
       if (input.mailbox_scope !== "me") throw new TypeError("mailbox_scope must be me");
-      return microsoft_egress_transport.graphMessageSubscriptionList({ access_token: accessToken(input.credential) });
+      return bindOwner(await microsoft_egress_transport.graphMessageSubscriptionList({
+        access_token: accessToken(input.credential),
+      }), input);
     },
     async deleteOwnMessageSubscription(input = {}) {
       if (input.mailbox_scope !== "me") throw new TypeError("mailbox_scope must be me");

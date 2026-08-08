@@ -377,6 +377,18 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Type: "String",
     AllowedPattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
   };
+  template.Parameters.ClientOutlookM365ConfigSecretName = {
+    Type: "String",
+    Default: "/lawos/disabled/outlook/config",
+    AllowedPattern: "^/lawos/[A-Za-z0-9/_+=.@-]{1,240}$",
+    Description: "Same-account Secrets Manager name for the Client Outlook provider configuration",
+  };
+  template.Parameters.ClientOutlookCredentialSecretPrefix = {
+    Type: "String",
+    Default: "/lawos/disabled/outlook/credentials/",
+    AllowedPattern: "^/lawos/[A-Za-z0-9/_+=.@-]{1,230}/$",
+    Description: "Same-account Secrets Manager name prefix for owner-bound delegated credentials",
+  };
   template.Parameters.RuntimeGeneration = {
     Type: "Number",
     Default: 1,
@@ -429,6 +441,25 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Conditions.ProjectionWorkerEnabled = {
     "Fn::Equals": [{ Ref: "EnableProjectionWorker" }, "true"],
   };
+  template.Conditions.OutlookConversationWorkerConfigured = {
+    "Fn::And": [
+      { "Fn::Not": [{ "Fn::Equals": [
+        { Ref: "ClientOutlookM365ConfigSecretName" },
+        "/lawos/disabled/outlook/config",
+      ] }] },
+      { "Fn::Not": [{ "Fn::Equals": [
+        { Ref: "ClientOutlookCredentialSecretPrefix" },
+        "/lawos/disabled/outlook/credentials/",
+      ] }] },
+    ],
+  };
+  template.Conditions.OutlookConversationWorkerEnabled = {
+    "Fn::And": [
+      { Condition: "ProductionTrafficEnabled" },
+      { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
+      { Condition: "OutlookConversationWorkerConfigured" },
+    ],
+  };
   template.Mappings.Network.Cidrs = {
     Vpc: "10.97.0.0/16",
     AppA: "10.97.10.0/24",
@@ -454,15 +485,45 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.ProjectionAuditorDatabaseSecret.Properties.Name = "/lawos/production/postgres/hrx-projection-auditor";
   template.Parameters.PasswordResetSesIdentityArn.Description = "Verified SES identity allowed to send individual production password setup messages";
   resources.PayrollArtifactSecret.Properties.Description = "Production payroll artifact key";
+  const outlookConfigSecretArn = {
+    "Fn::Sub": "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookM365ConfigSecretName}-*",
+  };
+  const outlookCredentialSecretArn = {
+    "Fn::Sub": "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookCredentialSecretPrefix}*",
+  };
   for (const item of resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement) {
     if (Array.isArray(item.Resource)) {
       item.Resource = item.Resource.filter((resource) => resource?.Ref !== "SyntheticManifestSecret");
+      if (item.Sid === "ApiReadsExactRuntimeSecrets") {
+        item.Resource.push(clone(outlookConfigSecretArn));
+        item.Resource.push(clone(outlookCredentialSecretArn));
+      }
       if (item.Sid === "AdminBootstrapsExactSecrets") {
         item.Resource.push({ Ref: "ProjectionDatabaseSecret" });
         item.Resource.push({ Ref: "ProjectionAuditorDatabaseSecret" });
       }
     }
   }
+  resources.MicrosoftEgressBrokerLambdaEndpoint = clone(
+    resources.SecretsManagerEndpoint,
+  );
+  resources.MicrosoftEgressBrokerLambdaEndpoint.Properties.ServiceName = {
+    "Fn::Sub": "com.amazonaws.${AWS::Region}.lambda",
+  };
+  resources.MicrosoftEgressBrokerLambdaEndpoint.Properties.PolicyDocument = {
+    Version: "2012-10-17",
+    Statement: [{
+      Sid: "InvokeExactMicrosoftEgressBroker",
+      Effect: "Allow",
+      Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+      Action: "lambda:InvokeFunction",
+      Resource: {
+        "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+      },
+    }],
+  };
+  resources.MicrosoftEgressBrokerLambdaEndpoint.Properties.Tags[0].Value =
+    "lawos-production-microsoft-egress-lambda";
   resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
     Sid: "ProjectionAuditorReadsExactSecrets",
     Effect: "Allow",
@@ -521,6 +582,19 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.ProgramInputBucketPolicy = programInputBucketPolicy();
 
   const apiRole = resources.ApiExecutionRole;
+  statement(apiRole, "ReadExactRuntimeSecrets").Resource.push(
+    clone(outlookConfigSecretArn),
+    clone(outlookCredentialSecretArn),
+  );
+  apiRole.Properties.Policies.find((policy) => policy.PolicyDocument)
+    .PolicyDocument.Statement.push({
+      Sid: "InvokeExactMicrosoftEgressBroker",
+      Effect: "Allow",
+      Action: "lambda:InvokeFunction",
+      Resource: {
+        "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+      },
+    });
   const apiEmail = statement(apiRole, "SendSyntheticPasswordSetupEmail");
   apiEmail.Sid = "SendIndividualRegisteredPasswordSetupEmail";
   apiEmail.Action = "ses:SendEmail";
@@ -1099,6 +1173,19 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiEnv.LAWOS_DATA_SCOPE = "approved-real-manifest";
   apiEnv.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS = "365";
   apiEnv.LAWOS_IDENTITY_TENANT_ID = { Ref: "PrimaryTenantId" };
+  apiEnv.LAWOS_GRAPH_NOTIFICATION_URL = {
+    "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications",
+  };
+  apiEnv.LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID = {
+    Ref: "ClientOutlookM365ConfigSecretName",
+  };
+  apiEnv.LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED = {
+    "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+  };
+  apiEnv.LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED = {
+    "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+  };
+  apiEnv.LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED = "false";
   apiEnv.LAWOS_AUTH_PASSWORD_RESET_TTL_MS = "900000";
   delete apiEnv.LAWOS_OWNER_INSTRUCTION_SHA256;
   delete apiEnv.LAWOS_SYNTHETIC_MANIFEST_SECRET_ID;
@@ -1106,6 +1193,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression = "rate(1 minute)";
   resources.PasswordResetWorkerSchedule.Properties.State = {
     "Fn::If": ["ProductionTrafficEnabled", "ENABLED", "DISABLED"],
+  };
+  resources.OutlookConversationWorkerSchedule.Properties.Description =
+    "Drains durable production Outlook conversation jobs after explicit provider enablement";
+  resources.OutlookConversationWorkerSchedule.Properties.ScheduleExpression =
+    "rate(1 minute)";
+  resources.OutlookConversationWorkerSchedule.Properties.State = {
+    "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"],
   };
   resources.HttpApi.Properties.Description = "LawOS production API; disabled until signed go-live activation";
   resources.HttpApi.Properties.DisableExecuteApiEndpoint = {
@@ -1370,9 +1464,98 @@ export function validateJsonPostgresProductionTemplate(template) {
   if (temporaryEniAllowCount !== 4 || sourceFunctionDenyCount !== 4) {
     fail("production ENI bootstrap or explicit Deny contract is incomplete");
   }
+  const brokerArn =
+    "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod";
+  const brokerInvoke = policyStatements(resources.ApiExecutionRole)
+    .find(({ Sid }) => Sid === "InvokeExactMicrosoftEgressBroker");
+  const runtimeSecrets = policyStatements(resources.ApiExecutionRole)
+    .find(({ Sid }) => Sid === "ReadExactRuntimeSecrets")?.Resource ?? [];
+  const endpointRuntimeSecrets = resources.SecretsManagerEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find(
+      ({ Sid }) => Sid === "ApiReadsExactRuntimeSecrets",
+    )?.Resource ?? [];
+  const expectedOutlookSecretArns = [
+    "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookM365ConfigSecretName}-*",
+    "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookCredentialSecretPrefix}*",
+  ];
+  const brokerEndpoint = resources.MicrosoftEgressBrokerLambdaEndpoint
+    ?.Properties;
+  const brokerEndpointStatement = brokerEndpoint?.PolicyDocument
+    ?.Statement?.[0];
+  if (brokerInvoke?.Action !== "lambda:InvokeFunction"
+    || brokerInvoke.Resource?.["Fn::Sub"] !== brokerArn
+    || !expectedOutlookSecretArns.every((arn) => runtimeSecrets.some(
+      (resource) => resource?.["Fn::Sub"] === arn,
+    ))
+    || !expectedOutlookSecretArns.every((arn) => endpointRuntimeSecrets.some(
+      (resource) => resource?.["Fn::Sub"] === arn,
+    ))
+    || brokerEndpoint?.ServiceName?.["Fn::Sub"]
+      !== "com.amazonaws.${AWS::Region}.lambda"
+    || brokerEndpoint?.VpcEndpointType !== "Interface"
+    || brokerEndpointStatement?.Principal?.AWS?.["Fn::GetAtt"]?.[0]
+      !== "ApiExecutionRole"
+    || brokerEndpointStatement?.Action !== "lambda:InvokeFunction"
+    || brokerEndpointStatement?.Resource?.["Fn::Sub"] !== brokerArn) {
+    fail("production Outlook provider composition drifted");
+  }
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
     || resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression !== "rate(1 minute)"
     || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
+    || template.Parameters?.EnableOutlookConversationWorker?.Default !== "false"
+    || JSON.stringify(template.Conditions?.OutlookConversationWorkerEnabled)
+      !== JSON.stringify({
+        "Fn::And": [
+          { Condition: "ProductionTrafficEnabled" },
+          { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
+          { Condition: "OutlookConversationWorkerConfigured" },
+        ],
+      })
+    || JSON.stringify(template.Conditions?.OutlookConversationWorkerConfigured)
+      !== JSON.stringify({
+        "Fn::And": [
+          { "Fn::Not": [{ "Fn::Equals": [
+            { Ref: "ClientOutlookM365ConfigSecretName" },
+            "/lawos/disabled/outlook/config",
+          ] }] },
+          { "Fn::Not": [{ "Fn::Equals": [
+            { Ref: "ClientOutlookCredentialSecretPrefix" },
+            "/lawos/disabled/outlook/credentials/",
+          ] }] },
+        ],
+      })
+    || resources.OutlookConversationWorkerSchedule?.Properties?.ScheduleExpression
+      !== "rate(1 minute)"
+    || resources.OutlookConversationWorkerSchedule?.Properties?.State
+      ?.["Fn::If"]?.[2] !== "DISABLED"
+    || JSON.parse(resources.OutlookConversationWorkerSchedule?.Properties
+      ?.Targets?.[0]?.Input ?? "null")?.maintenance_action
+      !== "lawos_outlook_conversation_worker"
+    || resources.OutlookConversationWorkerSchedule?.Properties?.Targets?.[0]
+      ?.RetryPolicy?.MaximumEventAgeInSeconds !== 300
+    || resources.OutlookConversationWorkerSchedule?.Properties?.Targets?.[0]
+      ?.RetryPolicy?.MaximumRetryAttempts !== 2
+    || resources.OutlookConversationWorkerInvokePermission?.Properties?.Principal
+      !== "events.amazonaws.com"
+    || resources.OutlookConversationWorkerInvokePermission?.Properties?.FunctionName?.Ref
+      !== "ApiFunction"
+    || resources.OutlookConversationWorkerInvokePermission?.Properties?.SourceArn
+      ?.["Fn::GetAtt"]?.[0] !== "OutlookConversationWorkerSchedule"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED
+      ?.["Fn::If"]?.[2] !== "false"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED
+      ?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED
+      ?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID?.Ref
+      !== "ClientOutlookM365ConfigSecretName"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_GRAPH_NOTIFICATION_URL?.["Fn::Sub"]
+      !== "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications"
     || template.Parameters?.EnableProjectionWorker?.Default !== "false"
     || template.Parameters?.ProjectionWorkerEventJson?.MaxLength !== 640
     || template.Parameters?.HrxProjectionMappingObjectKey?.Default

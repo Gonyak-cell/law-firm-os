@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
 import { listEmailDmsPostgresMigrations } from "../src/migrations/index.js";
 import { createPostgresConversationPolicyService } from "../src/postgres-conversation-policy-service.js";
@@ -30,7 +31,7 @@ async function runtime(t) {
   if (!fixture) return null;
   const migrations = listEmailDmsPostgresMigrations();
   await fixture.adminPool.query(migrations[0].sql);
-  await fixture.adminPool.query(migrations[2].sql);
+  await fixture.adminPool.query(migrations[3].sql);
   return { fixture, service: createPostgresConversationPolicyService({
     pool: fixture.appPool,
     tenant_id: TENANT,
@@ -99,4 +100,60 @@ test("OUTM-28 service pause records the service actor and is version-bound", asy
     reason: "again",
     actor_id: "outlook-conversation-sync-service",
   }), /version conflict/u);
+});
+
+test("OUTM-28 PostgreSQL connection authority loss pauses the exact owned policy and audits safe reasons atomically", async (t) => {
+  const value = await runtime(t);
+  if (!value) return;
+  const { fixture, service } = value;
+  let current = (await service.enable(enableInput(), { authorize: async () => true })).policy;
+  for (const [index, reason] of [
+    "connection_revoked",
+    "connection_expired",
+    "mail_read_scope_lost",
+  ].entries()) {
+    const paused = await service.pauseConnectionPolicies({
+      tenant_id: TENANT,
+      user_id: "user-owner",
+      entra_subject_id: "subject-owner",
+      m365_connection_id: "connection-owner",
+      reason,
+      actor_id: "outlook-conversation-sync-service",
+    });
+    assert.equal(paused.outcome, "paused");
+    assert.equal(paused.policies[0].status, "paused");
+    assert.equal(paused.policies[0].pause_reason, reason);
+    current = paused.policies[0];
+    if (index < 2) {
+      current = (await service.enable(enableInput({
+        expected_version: current.version,
+        idempotency_key: `reenable-owner-${index}`,
+      }), { authorize: async () => true })).policy;
+    }
+  }
+  assert.equal((await service.pauseConnectionPolicies({
+    tenant_id: TENANT,
+    user_id: "different-owner",
+    entra_subject_id: "subject-owner",
+    m365_connection_id: "connection-owner",
+    reason: "connection_revoked",
+    actor_id: "outlook-conversation-sync-service",
+  })).outcome, "already_inactive");
+  const audits = await withPostgresTransaction(
+    fixture.appPool,
+    { tenant_id: TENANT, readOnly: true },
+    (client) => client.query(
+      `SELECT actor_id,details->>'reason' AS reason
+         FROM lawos_email_dms.graph_sync_audit_events
+        WHERE event_type='conversation_policy.paused'
+        ORDER BY occurred_at,event_id`,
+    ),
+  );
+  assert.deepEqual(new Set(audits.rows.map(({ reason }) => reason)), new Set([
+    "connection_revoked",
+    "connection_expired",
+    "mail_read_scope_lost",
+  ]));
+  assert.equal(audits.rows.every(({ actor_id }) => actor_id === "outlook-conversation-sync-service"), true);
+  assert.equal(current.status, "paused");
 });

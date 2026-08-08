@@ -192,7 +192,10 @@ import {
   parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
 import { OUTLOOK_GRAPH_WEBHOOK_PATH } from "./outlook-graph-webhook.js";
-import { createPostgresOutlookConversationRuntime } from "./outlook-conversation-operational-runtime.js";
+import {
+  createPostgresOutlookConversationRuntime,
+  LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV,
+} from "./outlook-conversation-operational-runtime.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -2577,6 +2580,10 @@ export async function startApiServer({
               credential_vault: m365GraphConfig.credential_vault,
               conversation_provider: m365GraphConfig.provider,
               request_runtime_authority: requestRuntimeAuthority,
+              worker_schedule_enabled:
+                resolvedPersistenceAuthorityEnv[
+                  LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV
+                ] === "true",
             })
           : null;
       const server = createApiServer({

@@ -8,6 +8,12 @@ import {
 } from "./conversation-sync-model.js";
 
 const SERVICE_ACTOR = "outlook-conversation-sync-service";
+const CONNECTION_PAUSE_REASONS = new Set([
+  "connection_authority_changed",
+  "connection_expired",
+  "connection_revoked",
+  "mail_read_scope_lost",
+]);
 
 function version(value) {
   if (!Number.isSafeInteger(value) || value < 0) throw new TypeError("expected_version must be a non-negative integer");
@@ -191,5 +197,46 @@ export function createPostgresConversationPolicyService({ pool, tenant_id, clock
     });
   }
 
-  return Object.freeze({ authority: "postgres-conversation-policy", durable: true, enable, revoke, pause });
+  async function pauseConnectionPolicies(input = {}) {
+    for (const field of ["tenant_id", "user_id", "entra_subject_id", "m365_connection_id", "reason", "actor_id"]) requiredSyncString(input, field);
+    if (input.tenant_id !== tenantId || input.actor_id !== SERVICE_ACTOR
+      || !CONNECTION_PAUSE_REASONS.has(input.reason)) {
+      throw new Error("conversation policy connection pause authority does not match");
+    }
+    return tx(async (client) => {
+      const at = now();
+      const rows = (await client.query(
+        `UPDATE lawos_email_dms.conversation_policies SET
+           status='paused',pause_reason=$5,version=version+1,updated_at=$6
+         WHERE tenant_id=$1 AND user_id=$2 AND entra_subject_id=$3
+           AND m365_connection_id=$4 AND status='active'
+         RETURNING *`,
+        [tenantId, input.user_id, input.entra_subject_id,
+          input.m365_connection_id, input.reason, at],
+      )).rows.map(policyRow);
+      for (const policy of rows) {
+        await client.query(
+          `INSERT INTO lawos_email_dms.graph_sync_audit_events
+            (tenant_id,event_id,event_type,object_id,actor_id,details,occurred_at)
+           VALUES ($1,$2,'conversation_policy.paused',$3,$4,$5::jsonb,$6)`,
+          [tenantId, randomUUID(), policy.policy_id, SERVICE_ACTOR,
+            JSON.stringify({ version: policy.version, reason: input.reason,
+              m365_connection_id: input.m365_connection_id }), at],
+        );
+      }
+      return Object.freeze({
+        outcome: rows.length ? "paused" : "already_inactive",
+        policies: Object.freeze(rows),
+      });
+    });
+  }
+
+  return Object.freeze({
+    authority: "postgres-conversation-policy",
+    durable: true,
+    enable,
+    revoke,
+    pause,
+    pauseConnectionPolicies,
+  });
 }

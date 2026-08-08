@@ -43,7 +43,7 @@ test("OUTM-25 HTTP policy route derives the owner from the signed session and re
   if (!fixture) return;
   const migrations = listEmailDmsPostgresMigrations();
   await fixture.adminPool.query(migrations[0].sql);
-  await fixture.adminPool.query(migrations[2].sql);
+  await fixture.adminPool.query(migrations[3].sql);
   const emailDmsRepository = createEmailDmsRepository({ seedRecords: [{
     model_type: "M365Connection",
     tenant_id: TENANT,

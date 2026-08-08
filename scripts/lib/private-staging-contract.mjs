@@ -45,6 +45,7 @@ const EXACT_ARTIFACT_BUCKET_POLICY_SHA256 = "080473c4a6175765a0c5b8240584779ac6c
 const EXACT_LAMBDA_PERMISSION_SHA256 = Object.freeze({
   HttpApiInvokePermission: "91b58aac2a5d78774ef523f7ef8116eb131522b7ba39a392ed4487a371d21360",
   PasswordResetWorkerInvokePermission: "2047607b7917b9429030004797f5617468e952b5b0ec5824232246935f27a2af",
+  OutlookConversationWorkerInvokePermission: "14363d512329c21e79cc39f32f20fc5c67c1c757ed8dbd4f9c75c64b6a4ba29b",
 });
 const EXACT_SNS_TOPIC_POLICY_SHA256 = Object.freeze({
   CostAlertTopicPolicy: "792c5c428873525a9074b89b962facf01d8b040d023f803d01db7a09429817b8",
@@ -519,6 +520,23 @@ function validateCostControls(resources) {
     && passwordResetInput?.maintenance_action === "lawos_password_reset_worker"
     && Object.keys(passwordResetInput).length === 1,
   "password-reset worker event must use the Lambda maintenance-action envelope");
+  const outlookWorker = resources.OutlookConversationWorkerSchedule?.Properties;
+  const outlookTargets = outlookWorker?.Targets ?? [];
+  const outlookInput = JSON.parse(outlookTargets[0]?.Input ?? "null");
+  assert(outlookWorker?.ScheduleExpression === "rate(1 minute)",
+    "Outlook conversation worker cadence must remain bounded");
+  assert(JSON.stringify(outlookWorker?.State)
+    === JSON.stringify({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"],
+    }), "Outlook conversation worker must remain disabled-safe");
+  assert(outlookTargets.length === 1
+    && outlookInput?.maintenance_action
+      === "lawos_outlook_conversation_worker"
+    && Object.keys(outlookInput).length === 1,
+  "Outlook conversation worker event must use the exact maintenance-action envelope");
+  assert(outlookTargets[0]?.RetryPolicy?.MaximumEventAgeInSeconds === 300
+    && outlookTargets[0]?.RetryPolicy?.MaximumRetryAttempts === 2,
+  "Outlook conversation worker retry policy drifted");
 }
 
 function validateDms(resources) {
@@ -577,6 +595,12 @@ export function validatePrivateStagingTemplate(template) {
   const resources = template.Resources ?? {};
   assert(Object.keys(resources).length > 0, "CloudFormation resources are required");
   assert(template.Parameters?.EnableLambdaEniBootstrap?.Default === "false", "ENI bootstrap must default off");
+  assert(template.Parameters?.EnableOutlookConversationWorker?.Default === "false",
+    "Outlook conversation worker must default off");
+  assert(JSON.stringify(template.Conditions?.OutlookConversationWorkerEnabled)
+    === JSON.stringify({
+      "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"],
+    }), "Outlook conversation worker condition drifted");
   assert(template.Parameters?.ArtifactVersion?.Default == null, "immutable artifact version must be supplied explicitly");
   assert(template.Parameters?.OwnerTrustRegistrySha256?.Default == null, "owner trust registry digest must be supplied explicitly");
   for (const parameter of ["BootstrapApprovalId", "Cut005ApprovalId", "Cut006ApprovalId", "Cut007ApprovalId"]) {

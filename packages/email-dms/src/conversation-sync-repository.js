@@ -1,6 +1,8 @@
 import { createDurableJsonStateController } from "../../persistence/src/durable-file.js";
 import { assertNoDmsPersistedSecrets } from "../../dms/src/persistence-guard.js";
 
+// Deterministic test double only. Operational composition uses PostgreSQL stores.
+
 const COLLECTIONS = Object.freeze([
   "policies",
   "subscriptions",

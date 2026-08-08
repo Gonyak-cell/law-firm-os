@@ -131,7 +131,10 @@ export function createGraphDeltaReconciliationService({
       await cursors.write(input, resource, link);
       if (!result.next_link) return enqueued;
     }
-    return enqueued;
+    throw Object.assign(
+      new Error("Graph delta reconciliation page budget was exhausted"),
+      { safe_error_code: "GRAPH_DELTA_PAGE_BUDGET_EXHAUSTED" },
+    );
   }
 
   async function reconcile(input = {}) {

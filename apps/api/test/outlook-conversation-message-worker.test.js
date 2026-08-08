@@ -36,6 +36,7 @@ function authority(overrides = {}) {
       connection_authority: "delegated",
       mailbox_scope: "me",
     },
+    policies: [policy()],
     ...overrides,
   };
 }
@@ -71,8 +72,14 @@ function fixture({ canonicalValue = canonical(), policyValue = policy(), current
   const queueEvents = [];
   const filed = [];
   const paused = [];
+  let claimed = false;
   const queue = {
-    async claim(input) { queueEvents.push(["claim", input]); return [job()]; },
+    async claim(input) {
+      queueEvents.push(["claim", input]);
+      if (claimed) return [];
+      claimed = true;
+      return [job()];
+    },
     async extendLease(input) { queueEvents.push(["extend", input]); return {}; },
     async complete(input) { queueEvents.push(["complete", input]); return { status: "completed" }; },
     async fail(input) { queueEvents.push(["fail", input]); return { status: "retry" }; },
@@ -84,6 +91,7 @@ function fixture({ canonicalValue = canonical(), policyValue = policy(), current
     policy_lookup: async () => policyValue,
     current_authority: async () => ({ allowed: currentAllowed, reason: currentAllowed ? null : "matter_access_changed" }),
     pause_policy: async (input) => { paused.push(input); return { status: "paused" }; },
+    pause_connection_policies: async (input) => { paused.push(input); return { outcome: "paused" }; },
     filing_adapter: { async fileCanonicalMessage(input) { filed.push(input); return { outcome: "created" }; } },
   });
   return { filed, paused, queueEvents, worker };
@@ -136,9 +144,82 @@ test("OUTM-28 worker rejects a subscription binding drift before Graph fetch", a
     policy_lookup: async () => policy(),
     current_authority: async () => ({ allowed: true }),
     pause_policy: async () => ({}),
+    pause_connection_policies: async () => ({}),
     filing_adapter: { async fileCanonicalMessage() {} },
   });
   const result = await worker.runOnce({ tenant_id: "tenant-outm28", worker_id: "worker-outm28", limit: 1 });
   assert.equal(result.dead_lettered, 1);
   assert.equal(fetched, false);
+});
+
+test("OUTM-28 worker pauses revoked, expired, and scope-lost connection policies before Graph credential access", async () => {
+  for (const [connection, expectedReason] of [
+    [{ revoked_at: "2026-08-08T00:00:00.000Z" }, "connection_revoked"],
+    [{ expires_at: "2026-08-07T23:59:59.000Z" }, "connection_expired"],
+    [{ granted_scopes: ["User.Read"] }, "mail_read_scope_lost"],
+  ]) {
+    const events = [];
+    let claimed = false;
+    const worker = createOutlookConversationMessageWorker({
+      queue: {
+        async claim() { if (claimed) return []; claimed = true; return [job()]; },
+        async extendLease() { throw new Error("must not bind credentials"); },
+        async complete(input) { events.push(["complete", input]); return { status: "completed" }; },
+        async fail() { throw new Error("must not fail"); },
+      },
+      authority_lookup: async () => authority({
+        connection: { ...authority().connection, ...connection },
+      }),
+      canonical_message_source: { async getOwnMessage() { throw new Error("must not bind credentials"); } },
+      policy_lookup: async () => policy(),
+      current_authority: async () => ({ allowed: true }),
+      pause_policy: async () => ({}),
+      pause_connection_policies: async (input) => { events.push(["pause", input]); return { outcome: "paused" }; },
+      filing_adapter: { async fileCanonicalMessage() { throw new Error("must not file"); } },
+      clock: () => new Date("2026-08-08T00:00:00.000Z"),
+    });
+
+    const result = await worker.runOnce({ tenant_id: "tenant-outm28", worker_id: "worker-outm28", limit: 1 });
+
+    assert.equal(result.paused, 1);
+    assert.equal(events[0][0], "pause");
+    assert.equal(events[0][1].reason, expectedReason);
+    assert.equal(events[1][1].result_code, `policies_paused_${expectedReason}`);
+  }
+});
+
+test("OUTM-28 worker leases one job at a time before Graph fetch and a lost lease does not abort the next job", async () => {
+  const pending = [job({ job_id: "job-lost" }), job({ job_id: "job-next", message_id: "message-next" })];
+  const fetched = [];
+  const completed = [];
+  const worker = createOutlookConversationMessageWorker({
+    queue: {
+      async claim(input) {
+        assert.equal(input.limit, 1);
+        return pending.length ? [pending.shift()] : [];
+      },
+      async extendLease({ job_id }) {
+        if (job_id === "job-lost") throw new Error("Graph notification job lease was lost");
+        return {};
+      },
+      async complete(input) { completed.push(input); return { status: "completed" }; },
+      async fail({ job_id }) {
+        if (job_id === "job-lost") throw new Error("Graph notification job lease was lost");
+        return { status: "retry" };
+      },
+    },
+    authority_lookup: async () => authority(),
+    canonical_message_source: { async getOwnMessage(input) { fetched.push(input.message_id); return canonical(); } },
+    policy_lookup: async () => policy(),
+    current_authority: async () => ({ allowed: true }),
+    pause_policy: async () => ({}),
+    pause_connection_policies: async () => ({}),
+    filing_adapter: { async fileCanonicalMessage() { return { outcome: "created" }; } },
+  });
+
+  const result = await worker.runOnce({ tenant_id: "tenant-outm28", worker_id: "worker-outm28", limit: 2 });
+
+  assert.deepEqual(result, { claimed: 2, filed: 1, ignored: 0, paused: 0, retried: 1, dead_lettered: 0 });
+  assert.deepEqual(fetched, ["message-next"]);
+  assert.deepEqual(completed.map(({ job_id }) => job_id), ["job-next"]);
 });

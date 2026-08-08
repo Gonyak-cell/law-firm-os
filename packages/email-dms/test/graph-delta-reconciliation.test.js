@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  createConversationSyncRepository,
   createGraphCursorCodec,
   createGraphDeltaReconciliationService,
-  createGraphNotificationQueue,
 } from "../src/index.js";
+import { createConversationSyncRepository } from "../src/conversation-sync-repository.js";
+import { createGraphNotificationQueue } from "../src/graph-notification-queue.js";
 
 const RESOURCE = "me/mailFolders('inbox')/messages";
 const PRINCIPAL = Object.freeze({ tenant_id: "tenant-outm27", user_id: "user-outm27", entra_subject_id: "subject-outm27", m365_connection_id: "connection-outm27" });
@@ -111,4 +111,51 @@ test("OUTM-27 clears an expired delta cursor and performs one bounded full recon
   assert.equal(JSON.stringify(repository.snapshot()).includes("$deltatoken=recovered"), false);
   assert.equal(repository.snapshot().audit_events.some(({ event_type: type }) => type === "graph_delta.cursor_reset"), true);
   assert.equal(repository.snapshot().jobs.length, 1);
+});
+
+test("OUTM-27 stops at the page budget and resumes from the sealed continuation", async () => {
+  const repository = createConversationSyncRepository();
+  stateFixture(repository);
+  const queue = createGraphNotificationQueue({ repository });
+  const calls = [];
+  const provider = {
+    async listOwnMessageDelta(input) {
+      calls.push(input.delta_link);
+      const page = calls.length;
+      return page < 3
+        ? {
+          messages: [{ message_id: `message-page-${page}` }],
+          next_link: `https://graph.microsoft.com/v1.0/me/mailFolders('inbox')/messages/delta?$skiptoken=page-${page + 1}`,
+          delta_link: null,
+        }
+        : {
+          messages: [{ message_id: "message-page-3" }],
+          next_link: null,
+          delta_link: "https://graph.microsoft.com/v1.0/me/mailFolders('inbox')/messages/delta?$deltatoken=done",
+        };
+    },
+  };
+  const service = createGraphDeltaReconciliationService({
+    repository,
+    cursor_codec: CURSOR_CODEC,
+    queue,
+    provider,
+    clock: () => new Date("2026-08-08T00:00:00.000Z"),
+    recovery_window_ms: 60 * 60 * 1000,
+    max_pages: 2,
+  });
+
+  await assert.rejects(service.reconcile({ ...PRINCIPAL, resources: [RESOURCE] }),
+    (error) => error.safe_error_code === "GRAPH_DELTA_PAGE_BUDGET_EXHAUSTED");
+  assert.equal(calls.length, 2);
+  assert.equal(repository.snapshot().jobs.length, 2);
+  assert.match(repository.snapshot().cursors[0].cursor_ref, /^sealed:v1:/u);
+  assert.equal(JSON.stringify(repository.snapshot()).includes("$skiptoken=page-3"), false);
+
+  assert.deepEqual(await service.reconcile({ ...PRINCIPAL, resources: [RESOURCE] }), {
+    outcome: "reconciled",
+    enqueued: 1,
+  });
+  assert.equal(calls[2].includes("$skiptoken=page-3"), true);
+  assert.equal(repository.snapshot().jobs.length, 3);
 });

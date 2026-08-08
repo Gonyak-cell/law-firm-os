@@ -14,19 +14,20 @@ async function runtime(t) {
   if (!fixture) return null;
   const migrations = listEmailDmsPostgresMigrations();
   await fixture.adminPool.query(migrations[0].sql);
-  await fixture.adminPool.query(migrations[2].sql);
+  await fixture.adminPool.query(migrations[3].sql);
   await withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, async (client) => {
     await client.query(
       `INSERT INTO lawos_email_dms.graph_subscriptions
          (tenant_id,subscription_id,user_id,entra_subject_id,entra_tenant_id,
           m365_connection_id,mailbox_ref,resource,change_type,client_state_hash,
-          client_state_ref,provider_subscription_id,provider_expires_at,status,
+          client_state_ref,notification_url_hash,provider_subscription_id,provider_expires_at,status,
           created_at,updated_at)
        VALUES ($1,'subscription-outm27','user-outm27','subject-outm27',
-               'entra-tenant-outm27','connection-outm27',$2,$3,'created',$4,$5,
+               'entra-tenant-outm27','connection-outm27',$2,$3,'created',$4,$5,$6,
                'provider-outm27','2026-08-08T02:00:00.000Z','active',
                '2026-08-08T00:00:00.000Z','2026-08-08T00:00:00.000Z')`,
-      [TENANT, "a".repeat(64), RESOURCE, "b".repeat(64), `client_state_ref_${"c".repeat(32)}`],
+      [TENANT, "a".repeat(64), RESOURCE, "b".repeat(64),
+        `client_state_ref_${"c".repeat(32)}`, "d".repeat(64)],
     );
   });
   return fixture;

@@ -548,6 +548,8 @@ const W15_WORKER_TOGGLE_CHANGE_IDS = new Set([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerSchedule",
   "PasswordResetWorkerInvokePermission",
   "PasswordResetWorkerSchedule",
   "ProjectionWorkerSchedule",
@@ -1812,6 +1814,8 @@ if (operation === "preflight"
     "ApiFunction",
     "AdminFunction",
     "HttpApiIntegration",
+    "OutlookConversationWorkerSchedule",
+    "OutlookConversationWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
   ]), "runtime restart");
@@ -1845,6 +1849,8 @@ if (operation === "preflight"
     "ApiFunction",
     "AdminFunction",
     "HttpApiIntegration",
+    "OutlookConversationWorkerSchedule",
+    "OutlookConversationWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
   ]), "runtime restart");
@@ -1925,6 +1931,8 @@ if (operation === "preflight"
     "HttpApiIntegration",
     "HttpApiInvokePermission",
     "HttpApiStage",
+    "OutlookConversationWorkerSchedule",
+    "OutlookConversationWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
   ]), "go-live traffic");
@@ -1972,6 +1980,8 @@ if (operation === "preflight"
     "HttpApiIntegration",
     "HttpApiInvokePermission",
     "HttpApiStage",
+    "OutlookConversationWorkerSchedule",
+    "OutlookConversationWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
   ]), "go-live traffic");

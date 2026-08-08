@@ -39,9 +39,13 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_subscriptions (
   change_type text NOT NULL CHECK (change_type = 'created'),
   client_state_hash text NOT NULL CHECK (client_state_hash ~ '^[a-f0-9]{64}$'),
   client_state_ref text NOT NULL CHECK (client_state_ref ~ '^client_state_ref_[a-f0-9]{32}$'),
+  notification_url_hash text NOT NULL CHECK (notification_url_hash ~ '^[a-f0-9]{64}$'),
   provider_subscription_id text,
   provider_expires_at timestamptz,
-  status text NOT NULL CHECK (status IN ('pending', 'active', 'reauthorization_required', 'expired', 'revoked')),
+  status text NOT NULL CHECK (status IN ('pending', 'active', 'reauthorization_required', 'cleanup_pending', 'expired', 'revoked')),
+  provisioning_operation text CHECK (provisioning_operation IS NULL OR provisioning_operation = 'create'),
+  provisioning_correlation_id uuid,
+  provisioning_started_at timestamptz,
   lease_owner text,
   lease_expires_at timestamptz,
   attempt_count integer NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
@@ -51,7 +55,13 @@ CREATE TABLE IF NOT EXISTS lawos_email_dms.graph_subscriptions (
   updated_at timestamptz NOT NULL,
   PRIMARY KEY (tenant_id, subscription_id),
   UNIQUE (tenant_id, m365_connection_id, resource),
-  UNIQUE (tenant_id, client_state_ref)
+  UNIQUE (tenant_id, client_state_ref),
+  CHECK ((provisioning_operation IS NULL
+      AND provisioning_correlation_id IS NULL
+      AND provisioning_started_at IS NULL)
+    OR (provisioning_operation = 'create'
+      AND provisioning_correlation_id IS NOT NULL
+      AND provisioning_started_at IS NOT NULL))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS graph_subscription_provider_id_uq

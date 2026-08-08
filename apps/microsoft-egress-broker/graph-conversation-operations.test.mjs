@@ -65,6 +65,7 @@ test("OUTM-26 broker creates a basic me-only subscription without rich resource 
   assert.equal(body.resource, RESOURCE);
   assert.equal(Object.hasOwn(body, "includeResourceData"), false);
   assert.equal(result.result.client_state_hash, createHash("sha256").update("opaque-client-state-outm26").digest("hex"));
+  assert.equal(result.result.notification_url, CALLBACK);
   assert.equal(JSON.stringify(result).includes("opaque-client-state-outm26"), false);
 });
 
@@ -111,6 +112,8 @@ test("OUTM-26 broker lists, renews, and deletes only fixed Graph subscription ta
 
   // Then
   assert.equal(listed.ok && renewed.ok && deleted.ok, true);
+  assert.equal(listed.result[0].notification_url, CALLBACK);
+  assert.equal(renewed.result.notification_url, CALLBACK);
   assert.equal(JSON.stringify(listed).includes("opaque-client-state-outm26"), false);
   assert.deepEqual(calls.map(({ options }) => options.method), ["GET", "PATCH", "DELETE"]);
   assert.ok(calls.every(({ url }) => new URL(url).origin === "https://graph.microsoft.com"));

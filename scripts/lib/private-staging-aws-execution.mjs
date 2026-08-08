@@ -118,6 +118,8 @@ export function buildPrivateStagingColdGenerationPhases({ currentGeneration, nex
     "ApiExecutionRole",
     "ApiFunction",
     "HttpApiIntegration",
+    "OutlookConversationWorkerInvokePermission",
+    "OutlookConversationWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
     "SecretsManagerEndpoint",
@@ -127,6 +129,8 @@ export function buildPrivateStagingColdGenerationPhases({ currentGeneration, nex
     "AdminFunction",
     "ApiFunction",
     "HttpApiIntegration",
+    "OutlookConversationWorkerInvokePermission",
+    "OutlookConversationWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
   ]);
@@ -135,7 +139,10 @@ export function buildPrivateStagingColdGenerationPhases({ currentGeneration, nex
     eni_bootstrap: eniBootstrap,
     runtime_generation: runtimeGeneration,
     allowed_modified_logical_ids: allowedModifiedLogicalIds,
-    allowed_conditional_replacement_logical_ids: Object.freeze(["PasswordResetWorkerInvokePermission"]),
+    allowed_conditional_replacement_logical_ids: Object.freeze([
+      "OutlookConversationWorkerInvokePermission",
+      "PasswordResetWorkerInvokePermission",
+    ]),
   });
   return Object.freeze([
     phase("enable-eni-bootstrap", true, current, toggleTargets),
@@ -163,6 +170,12 @@ export function assertPrivateStagingChangeSet(changeSet, {
     if (resource.Replacement === "True") fail(`CloudFormation replacement is forbidden: ${logicalId}`);
     if (resource.Replacement === "Conditional") {
       const details = resource.Details ?? [];
+      const scheduleCausingEntity = {
+        OutlookConversationWorkerInvokePermission:
+          "OutlookConversationWorkerSchedule.Arn",
+        PasswordResetWorkerInvokePermission:
+          "PasswordResetWorkerSchedule.Arn",
+      }[logicalId];
       const exactScheduleDependency = resource.Action === "Modify"
         && resource.ResourceType === "AWS::Lambda::Permission"
         && details.length === 1
@@ -171,7 +184,7 @@ export function assertPrivateStagingChangeSet(changeSet, {
         && details[0]?.Target?.RequiresRecreation === "Always"
         && details[0]?.Evaluation === "Dynamic"
         && details[0]?.ChangeSource === "ResourceAttribute"
-        && details[0]?.CausingEntity === "PasswordResetWorkerSchedule.Arn";
+        && details[0]?.CausingEntity === scheduleCausingEntity;
       if (!allowedConditional.has(logicalId) || !exactScheduleDependency) fail(`CloudFormation replacement is forbidden: ${logicalId}`);
     }
     if (mode === "create" && resource.Action !== "Add") fail(`initial stack change must only add resources: ${logicalId}`);

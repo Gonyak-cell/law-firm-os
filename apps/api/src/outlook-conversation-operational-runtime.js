@@ -19,7 +19,9 @@ import { createOutlookConversationFilingRuntime } from "./outlook-conversation-f
 import { createOutlookConversationMaintenanceWorker } from "./outlook-conversation-maintenance-worker.js";
 import { verifyConversationWorkerAuthority } from "./outlook-conversation-current-authority.js";
 
-const REQUIRED_MIGRATION = "302_client_outlook_conversation_sync";
+const REQUIRED_MIGRATION = "303_client_outlook_conversation_sync";
+export const LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV =
+  "LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED";
 
 function cursorKey(material) {
   const bytes = Buffer.isBuffer(material) ? material : Buffer.from(String(material ?? ""), "utf8");
@@ -37,12 +39,16 @@ export async function createPostgresOutlookConversationRuntime({
   credential_vault,
   conversation_provider,
   request_runtime_authority,
+  worker_schedule_enabled = false,
   clock = () => new Date(),
   verify_migrations = verifyClientOperationsPostgresMigrations,
 } = {}) {
   if (!pool?.connect || typeof domain_ledger?.transaction !== "function"
     || typeof request_runtime_authority?.run !== "function"
     || typeof verify_migrations !== "function") throw new TypeError("PostgreSQL Outlook conversation runtime dependencies are required");
+  if (typeof worker_schedule_enabled !== "boolean") {
+    throw new TypeError("worker_schedule_enabled must be boolean");
+  }
   const tenantId = requiredSyncString({ tenant_id }, "tenant_id");
   const entraTenantId = requiredSyncString({ entra_tenant_id }, "entra_tenant_id");
   const migrations = await verify_migrations(pool);
@@ -71,6 +77,7 @@ export async function createPostgresOutlookConversationRuntime({
     pool,
     tenant_id: tenantId,
     entra_tenant_id: entraTenantId,
+    notification_url,
     state_lookup: store.readConnectionState,
     provider: conversationPort,
     clock,
@@ -122,6 +129,7 @@ export async function createPostgresOutlookConversationRuntime({
       command: (runtimes) => verifyConversationWorkerAuthority({ runtimes, policy, connection, clock }),
     }),
     pause_policy: policyService.pause,
+    pause_connection_policies: policyService.pauseConnectionPolicies,
     filing_adapter: filingRuntime,
     clock,
   });
@@ -132,21 +140,27 @@ export async function createPostgresOutlookConversationRuntime({
     recovery_worker: recoveryWorker,
     message_worker: messageWorker,
   });
+  const durableQueueReady = queue.durable === true;
+  const maintenanceWorkerReady =
+    typeof maintenanceWorker.runOnce === "function";
   const readiness = Object.freeze({
     status: "ready",
     persistence: "postgres-v2",
     migration_id: REQUIRED_MIGRATION,
     migration_checksum: migration.checksum,
     webhook_route_ready: true,
-    durable_queue_ready: true,
+    durable_queue_ready: durableQueueReady,
     encrypted_cursor_ready: true,
     conversation_provider_ready: true,
     missed_notification_recovery_ready: true,
     policy_runtime_ready: true,
     subscription_reconciler_ready: true,
     message_auto_filing_ready: true,
-    maintenance_worker_ready: true,
-    auto_filing_enabled: true,
+    maintenance_worker_ready: maintenanceWorkerReady,
+    worker_schedule_ready: worker_schedule_enabled,
+    auto_filing_enabled: durableQueueReady
+      && maintenanceWorkerReady
+      && worker_schedule_enabled,
   });
   return Object.freeze({
     authority: "postgres-outlook-conversation-sync",

@@ -17,7 +17,16 @@ test("OUTM-26..27 Graph conversation provider forwards only own-mailbox subscrip
   });
 
   // When
-  await provider.createOwnMessageSubscription({ mailbox_scope: "me", resource: RESOURCE, credential: CREDENTIAL, change_type: "created", client_state: "client-state-outm26", expiration_datetime: "2026-08-08T01:00:00.000Z" });
+  const created = await provider.createOwnMessageSubscription({
+    mailbox_scope: "me",
+    resource: RESOURCE,
+    credential: CREDENTIAL,
+    change_type: "created",
+    client_state: "client-state-outm26",
+    expiration_datetime: "2026-08-08T01:00:00.000Z",
+    entra_tenant_id: "entra-tenant-outm26",
+    entra_subject_id: "subject-outm26",
+  });
   await provider.listOwnMessageDelta({ mailbox_scope: "me", resource: RESOURCE, credential: CREDENTIAL, delta_link: null, start_at: "2026-08-08T00:00:00.000Z" });
 
   // Then
@@ -25,6 +34,8 @@ test("OUTM-26..27 Graph conversation provider forwards only own-mailbox subscrip
     { operation: "create", input: { access_token: CREDENTIAL.access_token, resource: RESOURCE, change_type: "created", client_state: "client-state-outm26", expiration_datetime: "2026-08-08T01:00:00.000Z" } },
     { operation: "delta", input: { access_token: CREDENTIAL.access_token, resource: RESOURCE, delta_link: null, start_at: "2026-08-08T00:00:00.000Z" } },
   ]);
+  assert.equal(created.entra_tenant_id, "entra-tenant-outm26");
+  assert.equal(created.account_id, "subject-outm26");
   await assert.rejects(
     provider.listOwnMessageDelta({ mailbox_scope: "shared", resource: RESOURCE, credential: CREDENTIAL, delta_link: null, start_at: "2026-08-08T00:00:00.000Z" }),
     /signed-in user's Inbox and Sent Items/u,
