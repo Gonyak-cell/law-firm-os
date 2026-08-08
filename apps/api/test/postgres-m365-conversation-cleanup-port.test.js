@@ -81,6 +81,21 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
   let now = new Date("2026-08-08T00:10:01.000Z");
   let failDelete = true;
   const calls = [];
+  const currentCredentialRef = "aws-secrets-manager:synthetic/cleanup-port";
+  const allScopes = ["Calendars.ReadWrite", "Mail.Read", "offline_access"];
+  const credential = (expiresAt, accessToken) => ({
+    access_token: accessToken,
+    refresh_token: `${accessToken}-refresh`,
+    refresh_profile: "client",
+    refresh_profile_proof: "p".repeat(43),
+    entra_subject_id: SUBJECT,
+    mailbox_address: MAILBOX,
+    consented_at: "2026-08-08T00:00:00.000Z",
+    expires_at: expiresAt,
+    granted_scopes: allScopes,
+  });
+  const credentials = new Map([[currentCredentialRef,
+    credential("2026-08-08T00:30:00.000Z", "cleanup-access-token")]]);
   const provider = Object.fromEntries([
     "createOwnMessageSubscription",
     "renewOwnMessageSubscription",
@@ -91,22 +106,43 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
     calls.push([method, input]);
     if (method === "deleteOwnMessageSubscription") {
       if (failDelete) throw new Error("synthetic cleanup outage");
+      if (Date.parse(input.credential.expires_at) <= now.getTime()) {
+        throw Object.assign(new Error("expired cleanup token rejected"), {
+          status: 401,
+        });
+      }
       return { deleted: true, provider_subscription_id: input.provider_subscription_id };
     }
     throw new Error("cleanup must not use non-delete Graph operations");
   }]));
+  provider.refreshDelegatedCredential = async () => ({
+    expires_at: "2026-08-08T01:30:00.000Z",
+    token_bundle: credential(
+      "2026-08-08T01:30:00.000Z",
+      "cleanup-refreshed-token",
+    ),
+  });
   const credentialVault = {
-    async resolveDelegatedCredential() {
-      return {
-        access_token: "cleanup-access-token",
-        refresh_token: "cleanup-refresh-token",
-        refresh_profile: "client",
-        refresh_profile_proof: "p".repeat(43),
-        entra_subject_id: SUBJECT,
-        mailbox_address: MAILBOX,
-        expires_at: "2026-08-08T00:30:00.000Z",
-        granted_scopes: ["Calendars.ReadWrite"],
-      };
+    referenceForGeneration({ credential_generation: generation }) {
+      return `aws-secrets-manager:synthetic/cleanup-port/${generation}`;
+    },
+    async resolveDelegatedCredential({ credential_ref: credentialRef }) {
+      if (!credentials.has(credentialRef)) {
+        throw Object.assign(new Error("credential not found"), {
+          name: "ResourceNotFoundException",
+        });
+      }
+      return structuredClone(credentials.get(credentialRef));
+    },
+    async storeDelegatedCredential({ credential_generation, token_bundle }) {
+      credentials.set(
+        this.referenceForGeneration({ credential_generation }),
+        structuredClone(token_bundle),
+      );
+    },
+    async deleteDelegatedCredential({ credential_ref: credentialRef }) {
+      credentials.delete(credentialRef);
+      return { deleted: true };
     },
   };
   const activePort = createPostgresM365ConversationPort({
@@ -132,10 +168,12 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
     entra_tenant_id: ENTRA_TENANT,
     credential_vault: credentialVault,
     conversation_provider: provider,
+    clock: () => now,
   });
   assert.deepEqual(Object.keys(cleanupPort).sort(), [
     "authority",
     "deleteLocallyOwnedMessageSubscription",
+    "deleteLocallyOwnedMessageSubscriptionBeforeRevoke",
   ]);
   const store = createPostgresConversationSyncStore({
     pool: fixture.appPool,
@@ -167,6 +205,23 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
   assert.equal(state.subscription.status, "cleanup_pending");
   assert.equal(state.subscription.provider_subscription_id, PROVIDER_ID);
   assert.equal(state.retries, 1);
+  await assert.rejects(
+    cleanupPort.deleteLocallyOwnedMessageSubscriptionBeforeRevoke({
+      tenant_id: TENANT,
+      user_id: USER,
+      entra_subject_id: SUBJECT,
+      m365_connection_id: CONNECTION,
+      mailbox_ref: MAILBOX_HASH,
+      provider_subscription_id: PROVIDER_ID,
+      entra_tenant_id: ENTRA_TENANT,
+      credential: {
+        ...credential("2026-08-08T00:30:00.000Z", "wrong-owner-token"),
+        entra_subject_id: "wrong-subject",
+      },
+    }),
+    /credential ownership/u,
+  );
+  assert.equal(calls.length, 1);
 
   failDelete = false;
   now = new Date(Date.parse(state.subscription.next_attempt_at) + 1);
@@ -217,15 +272,16 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
 
   await resetConnectionAndSubscription({
     providerId: "provider-outm26-expired",
-    scopes: ["Mail.Read"],
+    scopes: allScopes,
     expiresAt: "2026-08-08T00:09:00.000Z",
   });
+  credentials.set(currentCredentialRef,
+    credential("2026-08-08T00:09:00.000Z", "cleanup-expired-token"));
   const expired = await service.reconcile(input);
   assert.equal(expired.outcome, "expired_connection");
-  assert.deepEqual(calls.map(([method, value]) => [
-    method,
-    value.provider_subscription_id,
-  ]), [
+  assert.deepEqual(calls
+    .filter(([method]) => method === "deleteOwnMessageSubscription")
+    .map(([method, value]) => [method, value.provider_subscription_id]), [
     ["deleteOwnMessageSubscription", PROVIDER_ID],
     ["deleteOwnMessageSubscription", PROVIDER_ID],
     ["deleteOwnMessageSubscription", "provider-outm26-scope-lost"],

@@ -1,15 +1,19 @@
 import { createHash } from "node:crypto";
 
-export function isActiveOwnedConnection(connection, input, now) {
+export function isOwnedDelegatedConnection(connection, input) {
   return connection && connection.tenant_id === input.tenant_id
     && connection.user_id === input.user_id
     && connection.entra_subject_id === input.entra_subject_id
     && connection.m365_connection_id === input.m365_connection_id
-    && !connection.revoked_at && Date.parse(connection.expires_at) > now.getTime()
     && connection.connection_authority === "delegated"
     && connection.mailbox_scope === "me"
-    && connection.granted_scopes?.includes("Mail.Read")
     && /^[a-f0-9]{64}$/u.test(connection.mailbox_address_hash ?? "");
+}
+
+export function isActiveOwnedConnection(connection, input, now) {
+  return isOwnedDelegatedConnection(connection, input)
+    && !connection.revoked_at && Date.parse(connection.expires_at) > now.getTime()
+    && connection.granted_scopes?.includes("Mail.Read");
 }
 
 export function exactGraphNotificationUrl(value) {

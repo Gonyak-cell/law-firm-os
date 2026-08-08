@@ -6,6 +6,7 @@ import {
   graphSubscriptionSafeCode,
   hashGraphSubscriptionSecret,
 } from "./postgres-graph-subscription-state-support.js";
+import { createPostgresGraphSubscriptionCreateRecovery } from "./postgres-graph-subscription-create-recovery.js";
 export function createPostgresGraphSubscriptionState({
   pool,
   tenant_id,
@@ -26,6 +27,11 @@ export function createPostgresGraphSubscriptionState({
     isolationLevel: "serializable",
   }, callback);
   const audit = createGraphSubscriptionAuditor(tenantId);
+  const createRecovery = createPostgresGraphSubscriptionCreateRecovery({
+    tx,
+    audit,
+    tenant_id: tenantId,
+  });
   async function acquire(input, resource, existing, operation, at) {
     const secret = operation === "create" ? client_state_factory() : null;
     if (secret !== null && (typeof secret !== "string"
@@ -121,27 +127,6 @@ export function createPostgresGraphSubscriptionState({
         correlation_id: active.provisioning_correlation_id,
       });
       return active;
-    });
-  }
-
-  async function fail(lease, error, at) {
-    return tx(async (client) => {
-      const row = (await client.query(
-        `UPDATE lawos_email_dms.graph_subscriptions SET
-          status='pending',lease_owner=NULL,lease_expires_at=NULL,
-          attempt_count=attempt_count+1,next_attempt_at=$4,
-          last_error_code=$3,updated_at=$5
-         WHERE tenant_id=$1 AND subscription_id=$2 AND lease_owner=$6 RETURNING *`,
-        [tenantId, lease.row.subscription_id, graphSubscriptionSafeCode(error),
-          new Date(at.getTime() + Math.min(300_000,
-            1000 * (2 ** (Number(lease.row.attempt_count) + 1)))).toISOString(),
-          at.toISOString(), lease.lease_owner],
-      )).rows[0];
-      if (row) await audit(client, "retry_scheduled", row, at, {
-        safe_error_code: row.last_error_code,
-        attempt_count: row.attempt_count,
-      });
-      return row;
     });
   }
 
@@ -244,6 +229,7 @@ export function createPostgresGraphSubscriptionState({
     });
   }
 
-  return Object.freeze({ acquire, complete, fail, beginCleanup,
+  return Object.freeze({ acquire, complete, fail: createRecovery.fail,
+    releaseCreateIntent: createRecovery.releaseCreateIntent, beginCleanup,
     scheduleDeleteRetry, finishCleanup, adopt });
 }

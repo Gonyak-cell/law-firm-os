@@ -6,6 +6,7 @@ import {
   hashMailboxAddress,
   normalizeM365Connection,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
+import { acquireActiveM365Credential } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { runRecordRepositoryDomainCommand } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 
@@ -63,6 +64,7 @@ export function createPostgresM365ConversationCleanupPort({
   entra_tenant_id,
   credential_vault,
   conversation_provider,
+  clock = () => new Date(),
 } = {}) {
   if (!pool?.connect || typeof ledger?.transaction !== "function") {
     throw new TypeError("PostgreSQL cleanup authority is required");
@@ -74,7 +76,7 @@ export function createPostgresM365ConversationCleanupPort({
   const tenantId = requiredSyncString({ tenant_id }, "tenant_id");
   const entraTenantId = requiredSyncString({ entra_tenant_id }, "entra_tenant_id");
 
-  async function remove(input = {}) {
+  async function remove(input = {}, suppliedCredential = null) {
     const fields = [
       "tenant_id",
       "user_id",
@@ -121,11 +123,26 @@ export function createPostgresM365ConversationCleanupPort({
         if (matches.length !== 1) {
           throw new Error("Microsoft Graph cleanup connection ownership does not match");
         }
-        const connection = normalizeM365Connection(matches[0]);
+        let connection = normalizeM365Connection(matches[0]);
         if (connection.mailbox_address_hash !== input.mailbox_ref) {
           throw new Error("Microsoft Graph cleanup mailbox ownership does not match");
         }
-        const credential = await credential_vault.resolveDelegatedCredential({
+        let credential = suppliedCredential;
+        if (!credential && !connection.revoked_at) {
+          const acquired = await acquireActiveM365Credential({
+            repository,
+            credential_vault,
+            provider: conversation_provider,
+            tenant_id: tenantId,
+            user_id: connection.user_id,
+            entra_subject_id: connection.entra_subject_id,
+            required_scope: null,
+            clock,
+          });
+          connection = acquired.connection;
+          credential = acquired.credential;
+        }
+        credential ??= await credential_vault.resolveDelegatedCredential({
           credential_ref: connection.credential_ref,
         });
         if (requiredSyncString(credential, "entra_subject_id")
@@ -152,5 +169,11 @@ export function createPostgresM365ConversationCleanupPort({
   return Object.freeze({
     authority: "postgres-m365-subscription-delete-only",
     deleteLocallyOwnedMessageSubscription: remove,
+    deleteLocallyOwnedMessageSubscriptionBeforeRevoke(input = {}) {
+      if (!input.credential || typeof input.credential !== "object") {
+        throw new TypeError("Microsoft Graph pre-revoke delete credential is required");
+      }
+      return remove(input, input.credential);
+    },
   });
 }

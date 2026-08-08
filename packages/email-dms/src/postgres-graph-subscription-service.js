@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { GRAPH_MESSAGE_RESOURCES, requiredSyncString } from "./conversation-sync-model.js";
 import { exactGraphNotificationUrl, isActiveOwnedConnection, matchesGraphSubscriptionIntent } from "./graph-subscription-binding.js";
+import { createPostgresGraphSubscriptionCleanup } from "./postgres-graph-subscription-cleanup.js";
+import { graphSubscriptionCreateFailureState } from "./postgres-graph-subscription-create-recovery.js";
 import { createPostgresGraphSubscriptionState } from "./postgres-graph-subscription-state.js";
 const ACTOR = "graph-subscription-reconciler";
 export function createPostgresGraphSubscriptionService({
@@ -13,9 +15,9 @@ export function createPostgresGraphSubscriptionService({
   notification_url,
   clock = () => new Date(),
   lease_ms = 30_000,
+  adoption_window_ms = 5 * 60_000,
   renewal_window_ms = 10 * 60_000,
-  expiration_factory = ({ now }) =>
-    new Date(now.getTime() + 60 * 60_000).toISOString(),
+  expiration_factory = ({ now }) => new Date(now.getTime() + 60 * 60_000).toISOString(),
   client_state_factory,
 } = {}) {
   if (!pool?.connect || typeof state_lookup !== "function") {
@@ -30,11 +32,16 @@ export function createPostgresGraphSubscriptionService({
   const deleteOwnedSubscription = (cleanup_provider === null
     ? provider.deleteOwnMessageSubscription : cleanup_provider.deleteLocallyOwnedMessageSubscription)?.bind(cleanup_provider ?? provider);
   if (typeof deleteOwnedSubscription !== "function") throw new TypeError("Microsoft Graph subscription cleanup provider is required");
+  const deleteBeforeConnectionRevoke = cleanup_provider
+    ?.deleteLocallyOwnedMessageSubscriptionBeforeRevoke?.bind(cleanup_provider);
   const tenantId = requiredSyncString({ tenant_id }, "tenant_id");
   const entraTenantId = requiredSyncString({ entra_tenant_id }, "entra_tenant_id");
   const notificationUrl = exactGraphNotificationUrl(notification_url);
-  const notificationUrlHash = createHash("sha256")
-    .update(notificationUrl).digest("hex");
+  if (!Number.isSafeInteger(adoption_window_ms)
+    || adoption_window_ms < 1_000 || adoption_window_ms > 24 * 60 * 60_000) {
+    throw new TypeError("adoption_window_ms must be between 1000 and 86400000");
+  }
+  const notificationUrlHash = createHash("sha256").update(notificationUrl).digest("hex");
   const persistence = createPostgresGraphSubscriptionState({
     pool,
     tenant_id: tenantId,
@@ -45,11 +52,19 @@ export function createPostgresGraphSubscriptionService({
   });
   const now = () => {
     const value = clock();
-    if (!(value instanceof Date) || !Number.isFinite(value.getTime())) {
-      throw new TypeError("clock must return a valid Date");
-    }
+    if (!(value instanceof Date) || !Number.isFinite(value.getTime())) throw new TypeError("clock must return a valid Date");
     return value;
   };
+  const cleanup = createPostgresGraphSubscriptionCleanup({
+    persistence,
+    state_lookup,
+    delete_owned_subscription: deleteOwnedSubscription,
+    delete_before_connection_revoke: deleteBeforeConnectionRevoke,
+    tenant_id: tenantId,
+    entra_tenant_id: entraTenantId,
+    actor_id: ACTOR,
+    now,
+  });
   async function provision(input, resource, existing) {
     const startedAt = now();
     if (existing?.next_attempt_at
@@ -80,7 +95,9 @@ export function createPostgresGraphSubscriptionService({
       });
       if (!Number.isFinite(Date.parse(expiresAt))
         || Date.parse(expiresAt) <= startedAt.getTime()) {
-        throw new TypeError("expiration_factory must return a future instant");
+        throw Object.assign(new TypeError(
+          "expiration_factory must return a future instant",
+        ), { remote_commit_state: "not_created" });
       }
       const result = operation === "renew"
         ? await provider.renewOwnMessageSubscription({
@@ -97,8 +114,7 @@ export function createPostgresGraphSubscriptionService({
           change_type: "created",
           client_state: lease.client_state,
           client_state_hash: lease.row.client_state_hash,
-          provisioning_correlation_id:
-            lease.row.provisioning_correlation_id,
+          provisioning_correlation_id: lease.row.provisioning_correlation_id,
           expiration_datetime: expiresAt,
         });
       if (!matchesGraphSubscriptionIntent(lease.row, result, input)) {
@@ -106,49 +122,14 @@ export function createPostgresGraphSubscriptionService({
       }
       return await persistence.complete(lease, result, now());
     } catch (error) {
-      await persistence.fail(lease, error, now());
+      const createFailureState = operation === "create"
+        ? graphSubscriptionCreateFailureState(error) : "unknown";
+      await persistence.fail(lease, error, now(), {
+        retain_create_intent:
+          operation !== "create" || createFailureState === "unknown",
+      });
       throw error;
     }
-  }
-  async function cleanupLocal(input, local, targetStatus) {
-    const startedAt = now();
-    if (local.next_attempt_at
-      && Date.parse(local.next_attempt_at) > startedAt.getTime()) {
-      return { deferred: true, row: local };
-    }
-    let owned = local;
-    if (local.provider_subscription_id) {
-      owned = await persistence.beginCleanup(local, startedAt);
-      try {
-        const deleted = await deleteOwnedSubscription({
-          ...input,
-          provider_subscription_id: owned.provider_subscription_id,
-        });
-        if (deleted?.deleted !== true) {
-          throw new Error("Graph subscription provider delete was not confirmed");
-        }
-      } catch (error) {
-        await persistence.scheduleDeleteRetry(owned, error, now());
-        throw error;
-      }
-    }
-    return {
-      deferred: false,
-      row: await persistence.finishCleanup(owned, targetStatus, now()),
-    };
-  }
-  async function revokeLocals(input, locals, outcome) {
-    const subscriptions = [];
-    let deferred = false;
-    for (const local of locals) {
-      const cleaned = await cleanupLocal(input, local, "revoked");
-      deferred ||= cleaned.deferred;
-      if (cleaned.deferred) subscriptions.push(cleaned.row);
-    }
-    return {
-      outcome: deferred ? "retry_scheduled" : outcome,
-      subscriptions,
-    };
   }
   async function adoptExactIntents(locals, remote) {
     for (const local of locals) {
@@ -166,6 +147,20 @@ export function createPostgresGraphSubscriptionService({
         const adopted = await persistence.adopt(local, matches[0], now());
         if (adopted) Object.assign(local, adopted);
       }
+    }
+  }
+  async function releaseExpiredCreateIntents(locals, at) {
+    for (const local of locals) {
+      if (local.provider_subscription_id
+        || local.provisioning_operation !== "create"
+        || !local.provisioning_correlation_id) continue;
+      const startedAt = Date.parse(local.provisioning_started_at);
+      if (!Number.isFinite(startedAt)) {
+        throw new Error("Graph subscription create intent time is invalid");
+      }
+      if ((local.lease_expires_at && Date.parse(local.lease_expires_at) > at.getTime())
+        || at.getTime() - startedAt < adoption_window_ms) continue;
+      Object.assign(local, await persistence.releaseCreateIntent(local, at));
     }
   }
   async function reconcile(input = {}) {
@@ -200,13 +195,13 @@ export function createPostgresGraphSubscriptionService({
           ? "scope_lost_connection"
           : null;
     if (inactiveOutcome) {
-      return revokeLocals(bound, state.subscriptions, inactiveOutcome);
+      return cleanup.revokeLocals(bound, state.subscriptions, inactiveOutcome);
     }
     if (!isActiveOwnedConnection(state.connection, input, now())) {
       throw new Error("active delegated me-only Mail.Read connection is required");
     }
     if (state.policies.length === 0) {
-      return revokeLocals(
+      return cleanup.revokeLocals(
         bound,
         state.subscriptions,
         state.subscriptions.length
@@ -224,11 +219,12 @@ export function createPostgresGraphSubscriptionService({
       }
       if (!match || local.status === "reauthorization_required"
         || local.status === "cleanup_pending") {
-        const cleaned = await cleanupLocal(bound, local, "pending");
+        const cleaned = await cleanup.cleanupLocal(bound, local, "pending");
         Object.assign(local, cleaned.row);
       }
     }
     await adoptExactIntents(state.subscriptions, remote);
+    await releaseExpiredCreateIntents(state.subscriptions, now());
     const subscriptions = [];
     for (const resource of GRAPH_MESSAGE_RESOURCES) {
       subscriptions.push(await provision(
@@ -244,5 +240,9 @@ export function createPostgresGraphSubscriptionService({
       subscriptions,
     };
   }
-  return Object.freeze({ authority: "postgres-graph-subscription-reconciler", reconcile });
+  return Object.freeze({
+    authority: "postgres-graph-subscription-reconciler",
+    reconcile,
+    cleanupBeforeConnectionRevoke: cleanup.beforeConnectionRevoke,
+  });
 }

@@ -2586,6 +2586,13 @@ export async function startApiServer({
                 ] === "true",
             })
           : null;
+      const operationalM365GraphConfig = outlookConversationRuntime
+        ? Object.freeze({
+            ...m365GraphConfig,
+            before_revoke_connection:
+              outlookConversationRuntime.before_connection_revoke,
+          })
+        : m365GraphConfig;
       const server = createApiServer({
         hrxRuntime: null,
         masterDataRuntime: null,
@@ -2600,7 +2607,7 @@ export async function startApiServer({
         uiReadinessRuntime: null,
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
-        m365GraphConfig,
+        m365GraphConfig: operationalM365GraphConfig,
         outlookGraphWebhook: outlookGraphWebhook ?? outlookConversationRuntime?.webhook,
         outlookConversationRuntime,
         outlookGraphSyncReadiness: outlookConversationRuntime?.readiness ?? null,

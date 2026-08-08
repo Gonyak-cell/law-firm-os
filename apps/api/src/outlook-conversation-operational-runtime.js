@@ -81,6 +81,7 @@ export async function createPostgresOutlookConversationRuntime({
     entra_tenant_id: entraTenantId,
     credential_vault,
     conversation_provider,
+    clock,
   });
   const mailPort = createPostgresM365MailPort({
     ledger: domain_ledger,
@@ -194,6 +195,8 @@ export async function createPostgresOutlookConversationRuntime({
     subscription_worker: subscriptionWorker,
     message_worker: messageWorker,
     maintenance_worker: maintenanceWorker,
+    before_connection_revoke:
+      subscriptionService.cleanupBeforeConnectionRevoke,
     readiness,
   });
 }

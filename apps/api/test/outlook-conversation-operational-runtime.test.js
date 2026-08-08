@@ -24,6 +24,7 @@ test("OUTM-27 operational server composes PostgreSQL webhook, recovery, and Inbo
   const { base, fixture, providerCalls, started } = context;
   assert.equal(started.outlookConversationRuntime.authority, "postgres-outlook-conversation-sync");
   assert.equal(started.outlookConversationRuntime.queue.lease_duration_ms, 15 * 60_000);
+  assert.equal(typeof started.outlookConversationRuntime.before_connection_revoke, "function");
   const health = await fetch(`${base}/api/health`).then((response) => response.json());
   assert.deepEqual(health.outlook_graph_sync, {
     status: "ready",
