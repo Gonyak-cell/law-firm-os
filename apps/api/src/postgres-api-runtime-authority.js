@@ -69,6 +69,7 @@ import {
   createPostgresEmailDmsCompletionCheckpoint,
   createPostgresPeopleOutlookCompletionCheckpoint,
 } from "./people-outlook-completion-checkpoint.js";
+import { createPostgresPrecedentRepository } from "../../../packages/dms/src/search/postgres-precedent-repository.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -318,6 +319,7 @@ function createRequestRuntimes({
   clientFixedReportTokenAuthority,
   clientOperationsReadPathSelector,
   clientOperationsV2ReadProvider,
+  precedentSearchRuntime,
   bankReconciliationCheckpoint,
   peopleOutlookCompletionCheckpoint,
   clientOutlookCompletionCheckpoint,
@@ -473,6 +475,7 @@ function createRequestRuntimes({
     uiReadinessRuntime,
     homeDashboardRuntime,
     enterpriseReadinessRuntime,
+    precedentSearchRuntime,
   });
 }
 
@@ -506,6 +509,7 @@ export function createPostgresApiRuntimeAuthority({
   clientFixedReportTokenAuthority = null,
   clientOperationsV2Enabled = false,
   clientOperationsSchemaPool = null,
+  precedentSearchPool = null,
   identityRepository = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
@@ -551,6 +555,11 @@ export function createPostgresApiRuntimeAuthority({
       "Client operations v2 requires the verified PostgreSQL schema pool",
     );
   }
+  if (precedentSearchPool != null
+      && (typeof precedentSearchPool.query !== "function"
+        || typeof precedentSearchPool.connect !== "function")) {
+    throw new TypeError("Precedent search requires a PostgreSQL pool");
+  }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
       || hrxRelationalProjectionReader.fallback_authority
@@ -570,6 +579,11 @@ export function createPostgresApiRuntimeAuthority({
       ledger,
       workflow: "client-outlook",
     });
+  const precedentSearchRuntime = precedentSearchPool == null ? null : Object.freeze({
+    authority: "postgres-v2",
+    repository: createPostgresPrecedentRepository({ pool: precedentSearchPool }),
+    production_ready_claim: false,
+  });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
@@ -641,6 +655,7 @@ export function createPostgresApiRuntimeAuthority({
               bankImportPreviewTokens,
               clientFixedReportTokenAuthority,
               clientOperationsV2ReadProvider,
+              precedentSearchRuntime,
               clientOperationsReadPathSelector: ({ tenant_id }) =>
                 selectClientOperationsReadPath({
                   enabled: clientOperationsV2Enabled,

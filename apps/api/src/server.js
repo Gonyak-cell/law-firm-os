@@ -1360,7 +1360,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -2000,6 +2000,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         dmsRuntime,
         emailDmsRuntime,
         crmIntakeRuntime,
+        precedentSearchRuntime,
         m365GraphConfig,
         sessionAuth,
       },
@@ -2099,6 +2100,7 @@ export function createApiServer({
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
+  precedentSearchRuntime = null,
   m365GraphConfig = null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
@@ -2160,6 +2162,7 @@ export function createApiServer({
           uiReadinessRuntime: requestRuntimes.uiReadinessRuntime ?? uiReadinessRuntime,
           homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
           enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
+          precedentSearchRuntime: requestRuntimes.precedentSearchRuntime ?? precedentSearchRuntime,
           m365GraphConfig,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
@@ -2522,6 +2525,7 @@ export async function startApiServer({
         clientOperationsV2Enabled:
           resolvedClientOperationsV2Enabled,
         clientOperationsSchemaPool: postgresPool,
+        precedentSearchPool: postgresPool,
         identityRepository,
       });
       const server = createApiServer({
