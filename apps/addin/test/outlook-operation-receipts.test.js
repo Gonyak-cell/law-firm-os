@@ -345,3 +345,165 @@ test("controller quarantines A completion from B and restores it only after fres
   assert.equal(requests.at(-1).body.current_item.rest_message_id, original.rest_message_id);
   assert.equal("item" in requests.at(-1).body, false);
 });
+
+test("pending readback from an old session cannot repopulate after clear or dispose", async () => {
+  const current = item("owner-barrier");
+  const archive = createOutlookOperationReceiptArchive({ scopeRef: "owner-a" });
+  let resolveReadback;
+  let displayed = null;
+  const controller = createOutlookOperationReceiptController({
+    archive,
+    requestJson: async () => new Promise((resolve) => { resolveReadback = resolve; }),
+  });
+  const pending = controller.restore({
+    matterId: "matter-owner-barrier",
+    currentItem: current,
+  }).then((receipts) => {
+    displayed = receipts[0] ?? null;
+    return receipts;
+  });
+  controller.clear();
+  resolveReadback({ items: [{
+    item_context_ref: controller.itemContextRef(current),
+    matter_id: "matter-owner-barrier",
+    operation: "file_email",
+    outcome: "created",
+    email_thread_id: "thread-owner-barrier",
+    completed_at: "2026-08-08T00:00:00.000Z",
+  }] });
+  assert.deepEqual(await pending, []);
+  assert.equal(displayed, null);
+  assert.equal(archive.size, 0);
+  let resolveDisposed;
+  const disposedPending = controller.restore({
+    matterId: "matter-disposed",
+    currentItem: item("disposed"),
+  });
+  resolveDisposed = resolveReadback;
+  controller.dispose();
+  resolveDisposed({ items: [{
+    item_context_ref: controller.itemContextRef(item("disposed")),
+    matter_id: "matter-disposed",
+    operation: "file_email",
+    outcome: "created",
+    email_thread_id: "thread-disposed",
+    completed_at: "2026-08-08T00:00:00.000Z",
+  }] });
+  assert.deepEqual(await disposedPending, []);
+  assert.equal(archive.size, 0);
+});
+
+test("matter restore generation fences A response after B selection and permits only fresh A readback", async () => {
+  const original = item("matter-race-a");
+  const other = item("matter-race-b");
+  let currentMatter = "matter-race-a";
+  let resolveFirstA;
+  let resolveSecondA;
+  const aResponses = [
+    new Promise((resolve) => { resolveFirstA = resolve; }),
+    new Promise((resolve) => { resolveSecondA = resolve; }),
+  ];
+  const archive = createOutlookOperationReceiptArchive({ scopeRef: "matter-race" });
+  const controller = createOutlookOperationReceiptController({
+    archive,
+    requestJson: async (_path, options) => {
+      if (options.body.current_item.rest_message_id === original.rest_message_id) return aResponses.shift();
+      throw new Error("matter B readback unavailable");
+    },
+  });
+  let displayed = null;
+  const applyRestore = (matterId, currentItem) => controller.restore({
+    matterId,
+    currentItem,
+    isCurrent: () => currentMatter === matterId,
+  }).then((receipts) => {
+    if (receipts[0]) displayed = receipts[0];
+  }).catch(() => {});
+
+  const firstA = applyRestore("matter-race-a", original);
+  currentMatter = "matter-race-b";
+  const b = applyRestore("matter-race-b", other);
+  currentMatter = "matter-race-a";
+  const secondA = applyRestore("matter-race-a", original);
+  resolveFirstA({ items: [{
+    item_context_ref: controller.itemContextRef(original),
+    matter_id: "matter-race-a",
+    operation: "file_email",
+    outcome: "created",
+    email_thread_id: "thread-old-a",
+    completed_at: "2026-08-08T00:00:00.000Z",
+  }] });
+  await Promise.all([firstA, b]);
+  assert.equal(displayed, null);
+  assert.equal(archive.size, 0);
+  resolveSecondA({ items: [{
+    item_context_ref: controller.itemContextRef(original),
+    matter_id: "matter-race-a",
+    operation: "file_email",
+    outcome: "created",
+    email_thread_id: "thread-fresh-a",
+    completed_at: "2026-08-08T00:01:00.000Z",
+  }] });
+  await secondA;
+  assert.equal(displayed.email_thread_id, "thread-fresh-a");
+  assert.equal(archive.size, 1);
+});
+
+test("fresh empty-memory remount restores each durable Outlook operation kind without relabeling", async () => {
+  const current = item("remount-operation-kinds");
+  const archive = createOutlookOperationReceiptArchive({ scopeRef: "remount-operation-kinds" });
+  const controller = createOutlookOperationReceiptController({
+    archive,
+    requestJson: async () => ({ items: [
+      {
+        item_context_ref: createOutlookOperationItemContextRef({
+          itemContextKey: outlookItemContextKey({ item: current, mode: current.mode, provenance: current.provenance }),
+          canonicalGraphMessageId: current.canonical_graph_message_id,
+        }),
+        matter_id: "matter-remount-operation-kinds",
+        operation: "file_email",
+        outcome: "created",
+        email_thread_id: "thread-remount-operation-kinds",
+        document_ids: ["document-original"],
+        timeline_event_ids: ["timeline-file"],
+        completed_at: "2026-08-08T00:00:00.000Z",
+      },
+      {
+        item_context_ref: createOutlookOperationItemContextRef({
+          itemContextKey: outlookItemContextKey({ item: current, mode: current.mode, provenance: current.provenance }),
+          canonicalGraphMessageId: current.canonical_graph_message_id,
+        }),
+        matter_id: "matter-remount-operation-kinds",
+        operation: "save_attachments",
+        outcome: "attachments_saved",
+        email_thread_id: "thread-remount-operation-kinds",
+        document_ids: ["document-attachment"],
+        timeline_event_ids: ["timeline-attachment"],
+        completed_at: "2026-08-08T00:01:00.000Z",
+      },
+      {
+        item_context_ref: createOutlookOperationItemContextRef({
+          itemContextKey: outlookItemContextKey({ item: current, mode: current.mode, provenance: current.provenance }),
+          canonicalGraphMessageId: current.canonical_graph_message_id,
+        }),
+        matter_id: "matter-remount-operation-kinds",
+        operation: "create_followup",
+        outcome: "created",
+        email_thread_id: "thread-remount-operation-kinds",
+        timeline_event_ids: ["timeline-followup"],
+        completed_at: "2026-08-08T00:02:00.000Z",
+      },
+    ]}),
+  });
+  const restored = await controller.restore({
+    matterId: "matter-remount-operation-kinds",
+    currentItem: current,
+  });
+  assert.deepEqual(restored.map((entry) => entry.operation), [
+    "create_followup",
+    "save_attachments",
+    "file_email",
+  ]);
+  assert.deepEqual(restored.find((entry) => entry.operation === "save_attachments").document_ids, ["document-attachment"]);
+  assert.deepEqual(restored.find((entry) => entry.operation === "create_followup").timeline_event_ids, ["timeline-followup"]);
+});

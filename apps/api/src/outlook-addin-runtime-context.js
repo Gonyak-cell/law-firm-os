@@ -34,6 +34,7 @@ import {
   OUTLOOK_WRITABLE_MATTER_STATUSES,
   revalidateOutlookMatterWrite,
 } from "./outlook-matter-write-guard.js";
+import { reconstructOutlookOperationReceiptSummaries } from "./outlook-operation-receipt-readback.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -2340,59 +2341,6 @@ function emptyOutlookOperationReceiptReadback({ requestId } = {}) {
   });
 }
 
-function safeReceiptRef(value) {
-  const next = optionalString(value, "");
-  return next
-    && next.length <= 256
-    && !/[\s@]|:\/\/|[\u0000-\u001f\u007f]/u.test(next)
-    ? next
-    : "";
-}
-
-function safeReceiptRefs(values = []) {
-  return [...new Set(values.map(safeReceiptRef).filter(Boolean))].sort();
-}
-
-function receiptCompletedAt(values = []) {
-  for (const value of values) {
-    const parsed = Date.parse(value ?? "");
-    if (Number.isFinite(parsed)) return new Date(parsed).toISOString();
-  }
-  return new Date().toISOString();
-}
-
-function buildOutlookOperationReceiptSummary({ item, canonicalGraphMessageId, matterId, thread, documents, timeline }) {
-  const threadId = safeReceiptRef(thread?.email_thread_id);
-  if (!threadId) return null;
-  const documentIds = safeReceiptRefs([
-    ...(Array.isArray(thread?.filed_document_ids) ? thread.filed_document_ids : []),
-    ...documents
-      .filter((document) => document.source_email_thread_id === threadId)
-      .map((document) => document.document_id),
-  ]);
-  const timelineEventIds = safeReceiptRefs(
-    timeline
-      .filter((entry) => entry.source_ref === threadId)
-      .map((entry) => entry.event_id),
-  );
-  const completedAt = receiptCompletedAt([
-    thread?.filing_time,
-    ...timeline
-      .filter((entry) => timelineEventIds.includes(entry.event_id))
-      .map((entry) => entry.occurred_at),
-  ]);
-  return Object.freeze({
-    item_context_ref: operationReceiptItemContextRef({ item, canonicalGraphMessageId }),
-    matter_id: matterId,
-    operation: "file_email",
-    outcome: thread.status === "active" ? "created" : "pending",
-    email_thread_id: threadId,
-    ...(documentIds.length ? { document_ids: Object.freeze(documentIds) } : {}),
-    ...(timelineEventIds.length ? { timeline_event_ids: Object.freeze(timelineEventIds) } : {}),
-    completed_at: completedAt,
-  });
-}
-
 async function handleOutlookOperationReceiptReadback({ body, context, requestId, runtime }) {
   const matterId = requiredString(body.matter_id, "matter_id");
   const item = body.current_item;
@@ -2443,45 +2391,16 @@ async function handleOutlookOperationReceiptReadback({ body, context, requestId,
     canonicalGraphMessageId: canonical.item.canonical_graph_message_id,
   });
   if (!itemContextRef) return emptyOutlookOperationReceiptReadback({ requestId });
-  const threads = runtime.dmsRuntime.repository
-    .list({ tenant_id: tenantId, model_type: "DmsEmailThread", matter_id: matterId })
-    .filter((thread) => {
-      try {
-        return (
-          normalizedOpaqueIdentity(thread.graph_message_id, "stored.graph_message_id")
-            === normalizedOpaqueIdentity(canonical.item.canonical_graph_message_id, "provider.immutable_message_id")
-          && normalizedMessageIdentity(thread.internet_message_id, "stored.internet_message_id")
-            === normalizedMessageIdentity(canonical.item.internet_message_id, "provider.internet_message_id")
-          && normalizedOpaqueIdentity(thread.conversation_id, "stored.conversation_id")
-            === normalizedOpaqueIdentity(canonical.item.conversation_id, "provider.conversation_id")
-        );
-      } catch {
-        return false;
-      }
-    });
-  if (threads.length === 0) return emptyOutlookOperationReceiptReadback({ requestId });
-  const documents = listMatterDocuments({
-    repository: runtime.dmsRuntime.repository,
-    tenant_id: tenantId,
-    matter_id: matterId,
-  });
-  const timeline = listMatterTimeline({
-    repository: runtime.matterRuntime.repository,
-    tenant_id: tenantId,
-    matter_id: matterId,
+  const items = await reconstructOutlookOperationReceiptSummaries({
+    itemContextRef,
+    matterId,
+    tenantId,
+    canonicalItem: canonical.item,
+    dmsRepository: runtime.dmsRuntime.repository,
+    dmsAuthority: runtime.dmsRuntime.upload_runtime,
+    matterRepository: runtime.matterRuntime.repository,
     actor: context?.principal,
-  }).visible_entries;
-  const items = threads
-    .filter((thread) => thread.status === "active")
-    .map((thread) => buildOutlookOperationReceiptSummary({
-      item,
-      canonicalGraphMessageId: canonical.item.canonical_graph_message_id,
-      matterId,
-      thread,
-      documents,
-      timeline,
-    }))
-    .filter((summary) => summary?.item_context_ref === itemContextRef);
+  });
   return items.length
     ? success(200, {
       request_id: requestId,

@@ -44,13 +44,59 @@ export function createOutlookOperationReceiptController({
 } = {}) {
   if (typeof requestJson !== "function") throw new TypeError("requestJson is required");
 
+  let ownerGeneration = 0;
+  let contextGeneration = 0;
+  let scopeGeneration = nextScope();
+  let contextKey = "";
+  let disposed = false;
+
+  function rotateOwnerScope() {
+    scopeGeneration = nextScope();
+    archive.setScope(scopeGeneration);
+  }
+
+  function contextSignature({ currentItem, matterId } = {}) {
+    return `${itemContextRef(currentItem)}\u001f${matterId ?? ""}`;
+  }
+
+  function captureContext({ currentItem, matterId } = {}) {
+    const nextKey = contextSignature({ currentItem, matterId });
+    if (nextKey !== contextKey) {
+      contextKey = nextKey;
+      contextGeneration += 1;
+    }
+    return Object.freeze({
+      key: nextKey,
+      generation: contextGeneration,
+    });
+  }
+
+  function currentContext({ key, generation } = {}) {
+    return !disposed
+      && key === contextKey
+      && generation === contextGeneration;
+  }
+
   function clear({ rotateScope = true } = {}) {
     archive.clear();
-    if (rotateScope) archive.setScope(nextScope());
+    ownerGeneration += 1;
+    if (rotateScope) rotateOwnerScope();
   }
 
   function setSessionScope() {
-    archive.setScope(nextScope());
+    clear();
+  }
+
+  function invalidateContext() {
+    contextKey = "";
+    contextGeneration += 1;
+  }
+
+  function dispose() {
+    if (disposed) return;
+    clear({ rotateScope: false });
+    invalidateContext();
+    disposed = true;
   }
 
   function recordCompletion({
@@ -88,17 +134,41 @@ export function createOutlookOperationReceiptController({
   async function restore({ matterId, currentItem, isCurrent = () => true } = {}) {
     const ref = itemContextRef(currentItem);
     if (!ref || !matterId) return Object.freeze([]);
+    const owner = Object.freeze({
+      generation: ownerGeneration,
+      scope: scopeGeneration,
+    });
+    const context = captureContext({ currentItem, matterId });
     const body = await requestJson("/api/outlook/operation-receipts/readback", {
       method: "POST",
       body: { matter_id: matterId, current_item: currentItemFields(currentItem) },
     });
-    if (!isCurrent()) return Object.freeze([]);
+    if (
+      disposed
+      || owner.generation !== ownerGeneration
+      || owner.scope !== scopeGeneration
+      || !currentContext(context)
+      || !isCurrent()
+    ) return Object.freeze([]);
     for (const summary of Array.isArray(body?.items) ? body.items : []) {
       const sanitized = sanitizeOutlookOperationReceiptSummary(summary);
-      if (sanitized?.item_context_ref === ref && sanitized.matter_id === matterId) {
+      if (
+        sanitized?.item_context_ref === ref
+        && sanitized.matter_id === matterId
+        && owner.generation === ownerGeneration
+        && owner.scope === scopeGeneration
+        && currentContext(context)
+      ) {
         archive.recordSummary(sanitized);
       }
     }
+    if (
+      disposed
+      || owner.generation !== ownerGeneration
+      || owner.scope !== scopeGeneration
+      || !currentContext(context)
+      || !isCurrent()
+    ) return Object.freeze([]);
     return archive.listForContext({ itemContextRef: ref, matterId });
   }
 
@@ -106,6 +176,8 @@ export function createOutlookOperationReceiptController({
     archive,
     clear,
     setSessionScope,
+    invalidateContext,
+    dispose,
     recordCompletion,
     sync,
     restore,

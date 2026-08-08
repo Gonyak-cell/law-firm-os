@@ -642,7 +642,7 @@ function App() {
   }, []);
 
   useEffect(() => () => {
-    receiptController.clear({ rotateScope: false });
+    receiptController.dispose();
   }, []);
 
   function resetItemActionResults() {
@@ -671,6 +671,7 @@ function App() {
   }
 
   function selectMatter(matterId) {
+    receiptController.invalidateContext();
     if (!matterId) {
       storeMatterSelection(null, { invalidate: true });
       resetItemActionResults();
@@ -717,9 +718,17 @@ function App() {
     const receipts = await receiptController.restore({
       matterId,
       currentItem: pinnedItem,
-      isCurrent: () => isSameOutlookItem(pinnedItem, officeItemSnapshot()),
+      isCurrent: () => {
+        const currentItem = officeItemSnapshot();
+        return isSameOutlookItem(pinnedItem, currentItem)
+          && selectedMatterForItem(currentItem)?.matter_id === matterId;
+      },
     });
-    if (!isSameOutlookItem(pinnedItem, officeItemSnapshot())) return;
+    const currentItem = officeItemSnapshot();
+    if (
+      !isSameOutlookItem(pinnedItem, currentItem)
+      || selectedMatterForItem(currentItem)?.matter_id !== matterId
+    ) return;
     setReceiptRecovery(receipts[0] ?? null);
     await refreshMatter(matterId, { receiptReadbackItem: pinnedItem });
   }
@@ -893,6 +902,7 @@ function App() {
           });
           itemContextRef.current = currentContext;
           invalidateOperationContext();
+          receiptController.invalidateContext();
           matterSearchDebouncerRef.current?.cancel();
           setItem(nextItem);
           if (disposition.close_overlay) {

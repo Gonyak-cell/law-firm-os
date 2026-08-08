@@ -1,24 +1,48 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
+import {
+  createOutlookMatterRevalidationRequest,
+  createOutlookMatterSearchRequest,
+  createOutlookMatterSelection,
+  outlookMatterSelectionForContext,
+  revalidateOutlookMatterSelection,
+} from "../src/outlook-matter-search.js";
 
-const MAIN_PATH = new URL("../src/main.jsx", import.meta.url);
+function itemContext(suffix = "a") {
+  return {
+    item: {
+      rest_message_id: `rest-${suffix}`,
+      internet_message_id: `<message-${suffix}@example.invalid>`,
+      conversation_id: `conversation-${suffix}`,
+    },
+    mode: "read",
+    provenance: "received",
+  };
+}
 
-test("production task pane uses explicit Matter search and never bootstraps a default Matter", async () => {
-  const source = await readFile(MAIN_PATH, "utf8");
+const matter = {
+  matter_id: "matter-main-wiring",
+  matter_code: "OUTLOOK/MAIN/001",
+  title: "Main wiring Matter",
+  client_display_name: "AMIC Client",
+  status: "open",
+};
 
-  assert.equal(source.includes("/api/outlook/matters?limit=50"), false);
-  assert.equal(source.includes("matters[0]"), false);
-  for (const expected of [
-    "createOutlookMatterSearchDebouncer",
-    "createOutlookMatterSelection",
-    "createOutlookMatterRevalidationRequest",
-    "revalidateOutlookMatterSelection",
-    'data-testid="matter-search-toggle"',
-    'data-testid="matter-search-input"',
-    "onChange={handleMatterSearchQueryChange}",
-  ]) {
-    assert.equal(source.includes(expected), true, `main.jsx must include ${expected}`);
-  }
-  assert.equal(/opened:\s*matterSearchOpen/u.test(source), true);
+test("Matter remains an explicit, item-bound search and revalidation flow", () => {
+  assert.equal(createOutlookMatterSearchRequest({ opened: false, query: "Matter" }), null);
+  const search = createOutlookMatterSearchRequest({ opened: true, query: "Matter", limit: 50 });
+  assert.equal(search.path, "/api/outlook/matters?q=Matter&limit=20");
+
+  const selected = createOutlookMatterSelection({ itemContext: itemContext(), matter });
+  assert.strictEqual(outlookMatterSelectionForContext({ selection: selected, itemContext: itemContext() }), selected);
+  assert.equal(outlookMatterSelectionForContext({ selection: selected, itemContext: itemContext("b") }), null);
+  assert.equal(createOutlookMatterRevalidationRequest({ selection: selected, itemContext: itemContext() }).path,
+    "/api/outlook/matters?matter_id=matter-main-wiring&limit=1");
+  const refreshed = revalidateOutlookMatterSelection({
+    selection: selected,
+    itemContext: itemContext(),
+    searchResponse: { items: [{ ...matter, title: "Fresh title" }] },
+  });
+  assert.equal(refreshed.matter_id, matter.matter_id);
+  assert.equal(refreshed.title, "Fresh title");
 });
