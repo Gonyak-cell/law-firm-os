@@ -16,6 +16,7 @@ function migration(id, fileName) {
 export const EMAIL_DMS_POSTGRES_MIGRATIONS = Object.freeze([
   migration("001_m365_connection", "./001_m365_connection.sql"),
   migration("002_inquiry_evidence", "./002_inquiry_evidence.sql"),
+  migration("003_email_filing_correction", "./003_email_filing_correction.sql"),
 ]);
 
 export function listEmailDmsPostgresMigrations() {
