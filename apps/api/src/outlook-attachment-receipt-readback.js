@@ -2,6 +2,11 @@ import {
   OUTLOOK_SOURCE_IDENTITY_FIELDS,
   parseExactOutlookSourceIdentity,
 } from "../../../packages/email-dms/src/outlook-source-identity.js";
+import { parseExactDmsDocumentId } from "../../../packages/email-dms/src/exact-document-id.js";
+import {
+  OUTLOOK_ATTACHMENT_RECEIPT_CLAIM_FIELDS,
+  outlookAttachmentReceiptClaims,
+} from "./outlook-attachment-receipt-authority.js";
 
 export function outlookAttachmentReceiptError(message) {
   return Object.assign(new Error(message), {
@@ -41,11 +46,12 @@ export function verifySuppliedOutlookAttachmentReceipts({
     }
     refs.add(receipt.receipt_ref);
     try {
-      return authority.verify(receipt, {
+      const verified = authority.verify(receipt, {
         tenant_id: tenantId,
         matter_id: matterId,
         email_thread_id: emailThreadId,
       });
+      return Object.freeze({ ...verified, receipt_token: receipt.receipt_token });
     } catch {
       throw outlookAttachmentReceiptError("Outlook attachment receipt signature or context is invalid");
     }
@@ -88,7 +94,8 @@ export async function readOutlookAttachmentReceiptState({
     throw outlookAttachmentReceiptError("Filed Outlook thread source identity is incomplete or mismatched");
   }
   if (
-    thread?.tenant_id !== tenantId
+    !Array.isArray(supplied)
+    || thread?.tenant_id !== tenantId
     || thread?.matter_id !== matterId
     || thread?.status !== "active"
     || thread?.revoked === true
@@ -120,7 +127,13 @@ export async function readOutlookAttachmentReceiptState({
   const mappedIds = new Set();
   for (const mapping of mappings) {
     const source = sourceById.get(mapping.attachment_id);
-    const state = await documentState({ dmsRuntime, tenantId, documentId: mapping.document_id });
+    let mappingDocumentId;
+    try {
+      mappingDocumentId = parseExactDmsDocumentId(mapping.document_id, "mapping.document_id");
+    } catch {
+      throw outlookAttachmentReceiptError("Outlook attachment mapping readback is incomplete or mismatched");
+    }
+    const state = await documentState({ dmsRuntime, tenantId, documentId: mappingDocumentId });
     const version = state?.versions?.find((entry) => entry.version_id === mapping.version_id)
       ?? state?.version;
     if (
@@ -140,6 +153,8 @@ export async function readOutlookAttachmentReceiptState({
       || state.document.status !== "active"
       || state.document.current_version_id !== mapping.version_id
       || state.document.latest_sha256 !== mapping.sha256
+      || state.document.source_email_thread_id !== thread.email_thread_id
+      || state.document.source_attachment_id !== mapping.attachment_id
       || version?.version_id !== mapping.version_id
       || version.document_id !== mapping.document_id
       || version.tenant_id !== tenantId
@@ -178,15 +193,39 @@ export async function readOutlookAttachmentReceiptState({
       )
     ) continue;
     mappedIds.add(mapping.attachment_id);
-    validatedMappings.push(mapping);
+    validatedMappings.push(outlookAttachmentReceiptClaims({
+      ...mapping,
+      ...threadSourceIdentity,
+    }));
   }
-  const receipts = validatedMappings.map((mapping) => authority.issue(mapping));
-  for (const verified of supplied) {
-    const readback = receipts.find(({ attachment_id }) => attachment_id === verified.attachment_id);
-    if (!readback || readback.receipt_ref !== verified.receipt_ref || readback.receipt_token !== authority.issue(verified).receipt_token) {
+  if (supplied.length > 0 && typeof authority.verify !== "function") {
+    throw outlookAttachmentReceiptError("Outlook attachment receipt authority is unavailable");
+  }
+  for (const receipt of supplied) {
+    let verified;
+    try {
+      verified = authority.verify(receipt, {
+        tenant_id: tenantId,
+        matter_id: matterId,
+        email_thread_id: thread.email_thread_id,
+        ...threadSourceIdentity,
+      });
+    } catch {
+      throw outlookAttachmentReceiptError("Outlook attachment receipt signature or context is invalid");
+    }
+    const readback = validatedMappings.find(
+      ({ attachment_id }) => attachment_id === verified.attachment_id,
+    );
+    if (
+      !readback
+      || OUTLOOK_ATTACHMENT_RECEIPT_CLAIM_FIELDS.some(
+        (field) => readback[field] !== verified[field],
+      )
+    ) {
       throw outlookAttachmentReceiptError("Outlook attachment receipt has no matching persisted readback");
     }
   }
+  const receipts = validatedMappings.map((mapping) => authority.issue(mapping));
   return Object.freeze({
     receipts: Object.freeze(receipts),
     retry_attachment_ids: Object.freeze([...sourceById.keys()].filter((attachmentId) => !mappedIds.has(attachmentId))),

@@ -2291,6 +2291,7 @@ export async function startApiServer({
   persistenceSecretsClient,
   persistenceResolvePostgresSecret,
   sessionSecret,
+  outlookAttachmentReceiptAuthority,
   hrxRuntime,
   hrxStore,
   hrxStorePath,
@@ -2422,9 +2423,8 @@ export async function startApiServer({
   const resolvedTimelineCursorAuthority = createMatterTimelineCursorAuthority({
     secret: resolvedSessionSecret,
   });
-  const resolvedOutlookAttachmentReceiptAuthority = createOutlookAttachmentReceiptAuthority({
-    secret: resolvedSessionSecret,
-  });
+  const resolvedOutlookAttachmentReceiptAuthority = outlookAttachmentReceiptAuthority
+    ?? createOutlookAttachmentReceiptAuthority({ secret: resolvedSessionSecret });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");

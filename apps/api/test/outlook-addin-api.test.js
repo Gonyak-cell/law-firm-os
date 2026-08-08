@@ -23,6 +23,7 @@ import { createEmailDmsRepository } from "../../../packages/email-dms/src/reposi
 import { fileEmailThreadToMatter } from "../../../packages/email-dms/src/email-filing-service.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
 import { createMatterRuntimeContext } from "../src/matter-runtime-context.js";
+import { createOutlookAttachmentReceiptAuthority } from "../src/outlook-attachment-receipt-authority.js";
 
 const TENANT = "tenant_outlook_addin_test";
 const MATTER = "matter_outlook_addin_test";
@@ -465,6 +466,8 @@ function phasedUploadRuntimeFixture({
     permission_envelope_id: input.permission_envelope_id,
     audit_trace_id: input.audit_trace_id,
     actor_id: input.actor_id,
+    source_email_thread_id: input.source_email_thread_id,
+    source_attachment_id: input.source_attachment_id,
     expires_at: input.expires_at,
   })).digest("hex");
   const persistSession = (session) => {
@@ -546,6 +549,8 @@ function phasedUploadRuntimeFixture({
         || session.permission_envelope_id !== expected.permission_envelope_id
         || session.audit_trace_id !== expected.audit_trace_id
         || session.actor_id !== expected.actor_id
+        || session.source_email_thread_id !== expected.source_email_thread_id
+        || session.source_attachment_id !== expected.source_attachment_id
         || (latest && latest.identity_hash !== identity_hash)
       ) {
         throw codedError(
@@ -569,6 +574,8 @@ function phasedUploadRuntimeFixture({
         next_idempotency_key: next.idempotency_key,
         next_version_id: next.version_id,
         next_object_id: next.object_id,
+        source_email_thread_id: session.source_email_thread_id,
+        source_attachment_id: session.source_attachment_id,
         receipt_hash: createHash("sha256").update(JSON.stringify([
           family_id,
           identity_hash,
@@ -656,6 +663,8 @@ function phasedUploadRuntimeFixture({
         permission_envelope_id: session.permission_envelope_id,
         audit_trace_id: session.audit_trace_id,
         latest_sha256: session.expected_sha256,
+        source_email_thread_id: session.source_email_thread_id,
+        source_attachment_id: session.source_attachment_id,
       });
       documentStates.set(session.document_id, Object.freeze({
         document,
@@ -1345,6 +1354,17 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     ...seedPeopleDirectories(),
     clock: () => "2026-07-03T02:00:00.000Z",
   });
+  const baseAttachmentReceiptAuthority = createOutlookAttachmentReceiptAuthority({
+    secret: "outlook-attachment-api-issue-counter-secret-v1",
+  });
+  let attachmentReceiptIssueCount = 0;
+  const attachmentReceiptAuthority = {
+    verify: baseAttachmentReceiptAuthority.verify,
+    issue(input) {
+      attachmentReceiptIssueCount += 1;
+      return baseAttachmentReceiptAuthority.issue(input);
+    },
+  };
   const started = await startApiServer({
     port: 0,
     matterRuntime,
@@ -1352,6 +1372,7 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
     emailDmsRuntime: { repository: emailDmsRepository },
     m365GraphConfig,
     sessionAuth: outlookSessionAuth(),
+    outlookAttachmentReceiptAuthority: attachmentReceiptAuthority,
   });
   const baseUrl = `http://${started.host}:${started.port}`;
   try {
@@ -2632,6 +2653,67 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       });
       assert.deepEqual(cleanReplay.attachment_state.retry_attachment_ids, []);
       assert.equal(cleanReplay.attachment_state.receipts[0].receipt_ref, receipt.receipt_ref);
+    });
+
+    const assertDocumentSourceTamperRejected = async (overrides) => {
+      const documentId = attachmentBody.items[0].document.document_id;
+      const persistedDocument = dmsRepository.get({
+        tenant_id: TENANT,
+        model_type: "DmsDocument",
+        document_id: documentId,
+      });
+      const beforeIssues = attachmentReceiptIssueCount;
+      let response;
+      try {
+        dmsRepository.upsert({ ...persistedDocument, ...overrides });
+        response = await fetch(`${baseUrl}/api/outlook/email/file`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...sessionHeaders },
+          body: JSON.stringify({ tenant_id: TENANT, matter_id: MATTER, email: emailFixture() }),
+        });
+      } finally {
+        dmsRepository.upsert(persistedDocument);
+      }
+      const responseBody = await response.json();
+      assert.equal(response.status, 409, JSON.stringify(responseBody));
+      assert.deepEqual(responseBody.safe_error_codes, ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"]);
+      assert.equal(responseBody.attachment_state, undefined);
+      assert.equal(attachmentReceiptIssueCount, beforeIssues);
+    };
+
+    await t.test("persisted attachment document from another source thread issues zero receipts", async () => {
+      await assertDocumentSourceTamperRejected({ source_email_thread_id: "thread-other" });
+    });
+
+    await t.test("persisted attachment document from another source attachment issues zero receipts", async () => {
+      await assertDocumentSourceTamperRejected({ source_attachment_id: "attachment-other" });
+    });
+
+    await t.test("same-context stale valid receipt is rejected before the API signer is invoked", async () => {
+      const current = attachmentBody.attachment_receipt;
+      const stale = baseAttachmentReceiptAuthority.issue({
+        ...current,
+        version_id: "version-stale-but-valid",
+      });
+      const beforeIssues = attachmentReceiptIssueCount;
+      const response = await fetch(`${baseUrl}/api/outlook/email/file`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...sessionHeaders },
+        body: JSON.stringify({
+          tenant_id: TENANT,
+          matter_id: MATTER,
+          email: emailFixture(),
+          attachment_receipts: [{
+            receipt_ref: stale.receipt_ref,
+            receipt_token: stale.receipt_token,
+          }],
+        }),
+      });
+      const responseBody = await response.json();
+      assert.equal(response.status, 409, JSON.stringify(responseBody));
+      assert.deepEqual(responseBody.safe_error_codes, ["OUTLOOK_ADDIN_ATTACHMENT_RECEIPT_INVALID"]);
+      assert.equal(responseBody.attachment_state, undefined);
+      assert.equal(attachmentReceiptIssueCount, beforeIssues);
     });
 
     await t.test("attachment retry repairs mapping and timeline after the upload already committed", async () => {

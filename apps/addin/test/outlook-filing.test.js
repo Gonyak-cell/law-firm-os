@@ -321,7 +321,7 @@ test("filed_document_ids가 없으면 영수증을 만들지 않는다", async (
   response.email_thread.filed_document_ids = null;
   await assert.rejects(fileOutlookEmail({
     matterId: "matter-001", email, requestJson: async () => response,
-  }), /incomplete or mismatched/u);
+  }), /filed_document_ids/u);
 });
 
 test("filed_document_ids 원배열에 null이 있으면 필터링하지 않고 거부한다", async () => {
@@ -337,7 +337,7 @@ test("filed_document_ids가 둘이면 완전한 문자열이어도 거부한다"
   response.email_thread.filed_document_ids = ["document-valid", "document-extra"];
   await assert.rejects(fileOutlookEmail({
     matterId: "matter-001", email, requestJson: async () => response,
-  }), /incomplete or mismatched/u);
+  }), /filed_document_ids/u);
 });
 
 test("filed_document_ids의 공백 보정은 허용하지 않는다", async () => {
@@ -345,7 +345,47 @@ test("filed_document_ids의 공백 보정은 허용하지 않는다", async () =
   response.email_thread.filed_document_ids = [" document-valid "];
   await assert.rejects(fileOutlookEmail({
     matterId: "matter-001", email, requestJson: async () => response,
-  }), /malformed/u);
+  }), /invalid/u);
+});
+
+test("filed_document_ids의 NUL 문자는 성공 영수증에 적용하지 않는다", async () => {
+  const response = filingResponse();
+  response.email_thread.filed_document_ids = ["document\u0000forged"];
+  await assert.rejects(fileOutlookEmail({
+    matterId: "matter-001", email, requestJson: async () => response,
+  }), /filed_document_ids\[0\] is invalid/u);
+});
+
+test("filed_document_ids의 줄바꿈 문자는 성공 영수증에 적용하지 않는다", async () => {
+  const response = filingResponse();
+  response.email_thread.filed_document_ids = ["document\nforged"];
+  await assert.rejects(fileOutlookEmail({
+    matterId: "matter-001", email, requestJson: async () => response,
+  }), /filed_document_ids\[0\] is invalid/u);
+});
+
+test("filed_document_ids의 DEL 문자는 성공 영수증에 적용하지 않는다", async () => {
+  const response = filingResponse();
+  response.email_thread.filed_document_ids = ["document\u007fforged"];
+  await assert.rejects(fileOutlookEmail({
+    matterId: "matter-001", email, requestJson: async () => response,
+  }), /filed_document_ids\[0\] is invalid/u);
+});
+
+test("filed_document_ids의 C1 제어 문자는 성공 영수증에 적용하지 않는다", async () => {
+  const response = filingResponse();
+  response.email_thread.filed_document_ids = ["document\u0085forged"];
+  await assert.rejects(fileOutlookEmail({
+    matterId: "matter-001", email, requestJson: async () => response,
+  }), /filed_document_ids\[0\] is invalid/u);
+});
+
+test("512자를 넘는 filed_document_ids 값은 성공 영수증에 적용하지 않는다", async () => {
+  const response = filingResponse();
+  response.email_thread.filed_document_ids = ["d".repeat(513)];
+  await assert.rejects(fileOutlookEmail({
+    matterId: "matter-001", email, requestJson: async () => response,
+  }), /filed_document_ids\[0\] is invalid/u);
 });
 
 test("OUTM13 exact item_identity shape은 alias fallback 없이 filing 계약으로 전달된다", () => {

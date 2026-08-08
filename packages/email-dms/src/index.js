@@ -9,4 +9,5 @@ export * from "./inquiry-evidence-model.js";
 export * from "./inquiry-evidence-storage-service.js";
 export * from "./repository.js";
 export * from "./central-ledger.js";
+export * from "./exact-document-id.js";
 export * from "./migrations/index.js";

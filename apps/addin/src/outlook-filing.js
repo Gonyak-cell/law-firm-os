@@ -3,6 +3,10 @@ import {
   parseCapturedOutlookSourceIdentity,
   parseExactOutlookSourceIdentity,
 } from "../../../packages/email-dms/src/outlook-source-identity.js";
+import {
+  parseExactDmsDocumentId,
+  parseExactDmsDocumentIdSingleton,
+} from "../../../packages/email-dms/src/exact-document-id.js";
 
 export const OUTLOOK_EMAIL_FILING_PATH = "/api/outlook/email/file";
 export const OUTLOOK_SENT_FILING_PATH = "/api/outlook/sent/file";
@@ -10,12 +14,6 @@ export const OUTLOOK_SENT_FILING_PATH = "/api/outlook/sent/file";
 function requiredText(value, field) {
   const text = typeof value === "string" ? value.trim() : "";
   if (!text) throw new TypeError(`${field} is required`);
-  return text;
-}
-
-function requiredExactText(value, field) {
-  const text = requiredText(value, field);
-  if (text !== value) throw new TypeError(`${field} is malformed`);
   return text;
 }
 
@@ -89,9 +87,7 @@ export async function fileOutlookEmail({
   assertExactOutlookSourceIdentity(requestSourceIdentity, responseThreadSourceIdentity);
   assertExactOutlookSourceIdentity(responseSourceIdentity, responseThreadSourceIdentity);
   const outcome = body?.outcome;
-  const documentIds = Array.isArray(thread?.filed_document_ids)
-    ? thread.filed_document_ids.map((value) => requiredExactText(value, "filed_document_id"))
-    : null;
+  const documentIds = parseExactDmsDocumentIdSingleton(thread?.filed_document_ids);
   const expectedTimelineType = mode === "sent"
     ? "outlook.email.sent_filed"
     : "outlook.email.filed";
@@ -110,7 +106,7 @@ export async function fileOutlookEmail({
       outcome: receipt?.outcome,
       matter_id: requiredText(receipt?.matter_id, "attachment.matter_id"),
       email_thread_id: requiredText(receipt?.email_thread_id, "attachment.email_thread_id"),
-      document_id: requiredText(receipt?.document_id, "document_id"),
+      document_id: parseExactDmsDocumentId(receipt?.document_id),
       version_id: requiredText(receipt?.version_id, "version_id"),
       sha256: requiredText(receipt?.sha256, "sha256"),
       receipt_ref: requiredText(receipt?.receipt_ref, "receipt_ref"),
@@ -136,9 +132,6 @@ export async function fileOutlookEmail({
     || thread?.status !== "active"
     || thread?.matter_id !== request.body.matter_id
     || !hasText(thread?.email_thread_id)
-    || !documentIds
-    || documentIds.length !== 1
-    || new Set(documentIds).size !== documentIds.length
     || !hasText(thread?.filing_user)
     || !Number.isFinite(filedAt)
     || !normalizedReceipts

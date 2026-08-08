@@ -474,6 +474,8 @@ function assertOriginalMimeUploadIntent(session, expected) {
     || session?.permission_envelope_id !== expected.permission_envelope_id
     || session?.audit_trace_id !== expected.audit_trace_id
     || session?.actor_id !== expected.actor_id
+    || session?.source_email_thread_id !== expected.source_email_thread_id
+    || session?.source_attachment_id !== null
     || (expected.expires_at && session?.expires_at !== expected.expires_at)
     || !Number.isFinite(expiresAt)
   ) {
@@ -547,6 +549,8 @@ async function ensureOriginalMimeUploadIntent({
     permission_envelope_id: document.permission_envelope_id,
     audit_trace_id: document.audit_trace_id,
     actor_id: actorId,
+    source_email_thread_id: document.source_email_thread_id,
+    source_attachment_id: null,
   });
   let expected = expectedForGeneration(generation);
   let session;
@@ -637,6 +641,7 @@ function assertOriginalMimeDocument(state, {
   permissionEnvelopeId,
   auditTraceId,
   mimeSha256,
+  sourceEmailThreadId,
 }) {
   const document = state?.document;
   const version = state?.versions?.find((item) => item.version_id === document?.current_version_id)
@@ -649,6 +654,8 @@ function assertOriginalMimeDocument(state, {
     || document?.document_id !== documentId
     || (permissionEnvelopeId && document?.permission_envelope_id !== permissionEnvelopeId)
     || (auditTraceId && document?.audit_trace_id !== auditTraceId)
+    || document?.source_email_thread_id !== sourceEmailThreadId
+    || document?.source_attachment_id !== null
     || (document.latest_sha256 ?? version?.sha256) !== mimeSha256
   ) {
     throw emailIdentityConflictError("Stored original Outlook MIME does not match the canonical message");
@@ -2325,6 +2332,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     audit_trace_id: matter.audit_trace_id ?? "audit:outlook:dms",
     mime_type: "message/rfc822",
     source_email_thread_id: canonicalThread.email_thread_id,
+    source_attachment_id: null,
     source_policy: "source_required",
   };
   let dmsAuthority;
@@ -2380,6 +2388,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
         permissionEnvelopeId: dmsAuthority.expected.permission_envelope_id,
         auditTraceId: dmsAuthority.expected.audit_trace_id,
         mimeSha256: canonical.mime_sha256,
+        sourceEmailThreadId: canonicalThread.email_thread_id,
       });
     } else if (phasedUploadRuntime) {
       uploadIntent = await ensureOriginalMimeUploadIntent({
@@ -2546,6 +2555,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
       permissionEnvelopeId: dmsAuthority.expected.permission_envelope_id,
       auditTraceId: dmsAuthority.expected.audit_trace_id,
       mimeSha256: canonical.mime_sha256,
+      sourceEmailThreadId: canonicalThread.email_thread_id,
     });
   } catch (error) {
     return m365ErrorResponse(error, requestId, body.audit_hint_ref);
@@ -2712,7 +2722,10 @@ async function saveAttachments({ body, context, requestId, runtime }) {
       throw new Error("Outlook attachment document conflicts with the canonical content hash");
     }
     const duplicate = canonicalDocument
-      ?? knownDocuments.find((document) => document.latest_sha256 === sha256);
+      ?? knownDocuments.find((document) => document.latest_sha256 === sha256
+        && document.matter_id === matterId
+        && document.source_email_thread_id === emailThreadId
+        && document.source_attachment_id === attachmentId);
     if (duplicate?.document_id === documentId && (
       duplicate.matter_id !== matterId
       || duplicate.source_email_thread_id !== emailThreadId
@@ -2847,7 +2860,10 @@ async function saveAttachments({ body, context, requestId, runtime }) {
     items: saved,
     duplicate_attachments: Object.freeze(duplicates),
     duplicate_count: duplicates.length,
-    attachment_receipt: runtime.attachmentReceiptAuthority.issue(responseMapping),
+    attachment_receipt: runtime.attachmentReceiptAuthority.issue({
+      ...responseMapping,
+      ...threadSourceIdentity,
+    }),
     folder_structure: MATTER_FOLDER_NAMES,
     documents: postgresDms
       ? Object.freeze(knownDocuments.map(safeMatterDocument))
