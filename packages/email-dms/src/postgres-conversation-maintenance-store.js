@@ -39,11 +39,27 @@ export function createPostgresConversationMaintenanceStore({
          ), state AS (
            SELECT principal.*,
              connection.payload->>'revoked_at' AS connection_revoked_at,
-             (connection.payload->>'expires_at' IS NULL
-               OR connection.payload->>'expires_at' !~
-                 '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$'
-               OR connection.payload->>'expires_at' <= $5)
-               AS connection_expired,
+             CASE
+               WHEN connection.payload->>'expires_at' IS NULL THEN true
+               WHEN connection.payload->>'expires_at' !~
+                 '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9][.][0-9]{3}Z$'
+                 THEN true
+               WHEN substring(connection.payload->>'expires_at',6,2)
+                 IN ('04','06','09','11')
+                 AND substring(connection.payload->>'expires_at',9,2)='31'
+                 THEN true
+               WHEN substring(connection.payload->>'expires_at',6,2)='02'
+                 AND substring(connection.payload->>'expires_at',9,2) IN ('30','31')
+                 THEN true
+               WHEN substring(connection.payload->>'expires_at',6,2)='02'
+                 AND substring(connection.payload->>'expires_at',9,2)='29'
+                 THEN NOT (
+                   substring(connection.payload->>'expires_at',1,4)::integer % 400=0
+                   OR (substring(connection.payload->>'expires_at',1,4)::integer % 4=0
+                     AND substring(connection.payload->>'expires_at',1,4)::integer % 100<>0)
+                 )
+               ELSE connection.payload->>'expires_at' <= $5
+             END AS connection_expired,
              NOT COALESCE(jsonb_typeof(connection.payload->'granted_scopes')='array'
                AND connection.payload->'granted_scopes' ? 'Mail.Read', false)
                AS connection_scope_lost,

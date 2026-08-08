@@ -4,11 +4,13 @@ import { exactGraphNotificationUrl, isActiveOwnedConnection, matchesGraphSubscri
 import { createPostgresGraphSubscriptionCleanup } from "./postgres-graph-subscription-cleanup.js";
 import { graphSubscriptionCreateFailureState } from "./postgres-graph-subscription-create-recovery.js";
 import { createPostgresGraphSubscriptionState } from "./postgres-graph-subscription-state.js";
+import { classifyMaintenanceConnection } from "./postgres-conversation-maintenance-authority.js";
 const ACTOR = "graph-subscription-reconciler";
 export function createPostgresGraphSubscriptionService({
   pool,
   tenant_id,
   state_lookup,
+  maintenance_state_lookup = null,
   provider,
   cleanup_provider = null,
   entra_tenant_id,
@@ -22,6 +24,7 @@ export function createPostgresGraphSubscriptionService({
   pause_connection_policies = null,
 } = {}) {
   if (!pool?.connect || typeof state_lookup !== "function") throw new TypeError("PostgreSQL Graph subscription state is required");
+  if (maintenance_state_lookup !== null && typeof maintenance_state_lookup !== "function") throw new TypeError("Graph maintenance state authority is invalid");
   for (const method of ["createOwnMessageSubscription", "renewOwnMessageSubscription",
     "listOwnMessageSubscriptions", "deleteOwnMessageSubscription"]) {
     if (typeof provider?.[method] !== "function") throw new TypeError("Microsoft Graph subscription provider is required");
@@ -34,6 +37,7 @@ export function createPostgresGraphSubscriptionService({
   }
   const deleteBeforeConnectionRevoke = cleanup_provider
     ?.deleteLocallyOwnedMessageSubscriptionBeforeRevoke?.bind(cleanup_provider);
+  const createDeleteSession = cleanup_provider?.createLocallyOwnedMessageSubscriptionDeleteSession?.bind(cleanup_provider);
   const tenantId = requiredSyncString({ tenant_id }, "tenant_id");
   const entraTenantId = requiredSyncString({ entra_tenant_id }, "entra_tenant_id");
   const notificationUrl = exactGraphNotificationUrl(notification_url);
@@ -59,6 +63,7 @@ export function createPostgresGraphSubscriptionService({
     persistence,
     state_lookup,
     delete_owned_subscription: deleteOwnedSubscription,
+    create_delete_session: createDeleteSession,
     delete_before_connection_revoke: deleteBeforeConnectionRevoke,
     tenant_id: tenantId,
     entra_tenant_id: entraTenantId,
@@ -162,19 +167,11 @@ export function createPostgresGraphSubscriptionService({
     if (input.tenant_id !== tenantId || input.actor_id !== ACTOR) {
       throw new Error("Graph subscription service authority does not match");
     }
-    const state = await state_lookup(input);
-    if (!state) throw new Error("Microsoft connection is not owned by the requested principal");
-    const bound = { ...input, mailbox_ref: state.connection.mailbox_address_hash,
+    const maintenanceState = await (maintenance_state_lookup ?? state_lookup)(input);
+    if (!maintenanceState) throw new Error("Microsoft connection is not owned by the requested principal");
+    const bound = { ...input, mailbox_ref: maintenanceState.connection.mailbox_address_hash,
       entra_tenant_id: entraTenantId };
-    const expiresAt = Date.parse(state.connection.expires_at);
-    if (!Number.isFinite(expiresAt)) throw new Error("active delegated me-only Mail.Read connection is required");
-    const inactiveOutcome = state.connection.revoked_at
-      ? "revoked_connection"
-      : expiresAt <= now().getTime()
-        ? "expired_connection"
-        : !state.connection.granted_scopes?.includes("Mail.Read")
-          ? "scope_lost_connection"
-          : null;
+    const inactiveOutcome = classifyMaintenanceConnection(maintenanceState.connection, input, now());
     if (inactiveOutcome) {
       if (pause_connection_policies) {
         await pause_connection_policies({
@@ -190,8 +187,10 @@ export function createPostgresGraphSubscriptionService({
           }[inactiveOutcome],
         });
       }
-      return cleanup.revokeLocals(bound, state.subscriptions, inactiveOutcome);
+      return cleanup.revokeLocals(bound, maintenanceState.subscriptions, inactiveOutcome);
     }
+    const state = maintenance_state_lookup ? await state_lookup(input) : maintenanceState;
+    if (!state) throw new Error("Microsoft connection is not owned by the requested principal");
     if (!isActiveOwnedConnection(state.connection, input, now())) {
       throw new Error("active delegated me-only Mail.Read connection is required");
     }

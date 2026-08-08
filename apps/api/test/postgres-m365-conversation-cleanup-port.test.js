@@ -6,6 +6,7 @@ import { EMAIL_DMS_DOMAIN_DESCRIPTOR } from "../../../packages/email-dms/src/cen
 import { createGraphCursorCodec } from "../../../packages/email-dms/src/graph-cursor-codec.js";
 import { m365ConnectionId } from "../../../packages/email-dms/src/m365-connection-model.js";
 import { listEmailDmsPostgresMigrations } from "../../../packages/email-dms/src/migrations/index.js";
+import { createPostgresConversationMaintenanceAuthorityLookup } from "../../../packages/email-dms/src/postgres-conversation-maintenance-authority.js";
 import { createPostgresConversationSyncStore } from "../../../packages/email-dms/src/postgres-conversation-sync-store.js";
 import { createPostgresGraphSubscriptionService } from "../../../packages/email-dms/src/postgres-graph-subscription-service.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
@@ -172,6 +173,7 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
   });
   assert.deepEqual(Object.keys(cleanupPort).sort(), [
     "authority",
+    "createLocallyOwnedMessageSubscriptionDeleteSession",
     "deleteLocallyOwnedMessageSubscription",
     "deleteLocallyOwnedMessageSubscriptionBeforeRevoke",
   ]);
@@ -184,6 +186,10 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
     pool: fixture.appPool,
     tenant_id: TENANT,
     state_lookup: store.readConnectionState,
+    maintenance_state_lookup: createPostgresConversationMaintenanceAuthorityLookup({
+      pool: fixture.appPool,
+      tenant_id: TENANT,
+    }),
     provider: activePort,
     cleanup_provider: cleanupPort,
     entra_tenant_id: ENTRA_TENANT,
@@ -292,7 +298,8 @@ test("OUTM-26 revoked cleanup uses only the owner-bound production delete capabi
     scopes: ["Mail.Read"],
     expiresAt: "not-an-instant",
   });
-  await assert.rejects(service.reconcile(input), /expires_at/u);
+  const malformed = await service.reconcile(input);
+  assert.equal(malformed.outcome, "expired_connection");
   assert.equal(calls.some(([, value]) =>
-    value.provider_subscription_id === "provider-outm26-malformed-expiry"), false);
+    value.provider_subscription_id === "provider-outm26-malformed-expiry"), true);
 });

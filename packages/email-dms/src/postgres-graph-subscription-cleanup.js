@@ -5,6 +5,7 @@ export function createPostgresGraphSubscriptionCleanup({
   persistence,
   state_lookup,
   delete_owned_subscription,
+  create_delete_session,
   delete_before_connection_revoke,
   tenant_id: tenantId,
   entra_tenant_id: entraTenantId,
@@ -50,6 +51,10 @@ export function createPostgresGraphSubscriptionCleanup({
     outcome,
     deleteSubscription = delete_owned_subscription,
   ) {
+    if (deleteSubscription === delete_owned_subscription
+      && typeof create_delete_session === "function") {
+      return revokeLocalsWithSession(input, locals, outcome);
+    }
     const subscriptions = [];
     let deferred = false;
     for (const local of locals) {
@@ -66,6 +71,57 @@ export function createPostgresGraphSubscriptionCleanup({
       outcome: deferred ? "retry_scheduled" : outcome,
       subscriptions,
     };
+  }
+
+  async function revokeLocalsWithSession(input, locals, outcome) {
+    const subscriptions = [];
+    const owned = [];
+    let deferred = false;
+    const startedAt = now();
+    for (const local of locals) {
+      if (local.next_attempt_at
+        && Date.parse(local.next_attempt_at) > startedAt.getTime()) {
+        deferred = true;
+        subscriptions.push(local);
+      } else if (local.provider_subscription_id) {
+        owned.push(await persistence.beginCleanup(local, startedAt));
+      } else {
+        await persistence.finishCleanup(local, "revoked", now());
+      }
+    }
+    if (owned.length === 0) {
+      return { outcome: deferred ? "retry_scheduled" : outcome, subscriptions };
+    }
+    let session;
+    try {
+      session = await create_delete_session({
+        ...input,
+        provider_subscription_ids: owned.map((local) =>
+          local.provider_subscription_id),
+      });
+    } catch (error) {
+      for (const local of owned) {
+        await persistence.scheduleDeleteRetry(local, error, now());
+      }
+      throw error;
+    }
+    let firstError = null;
+    for (const local of owned) {
+      try {
+        const deleted = await session.deleteOwnMessageSubscription({
+          provider_subscription_id: local.provider_subscription_id,
+        });
+        if (deleted?.deleted !== true) {
+          throw new Error("Graph subscription provider delete was not confirmed");
+        }
+        await persistence.finishCleanup(local, "revoked", now());
+      } catch (error) {
+        await persistence.scheduleDeleteRetry(local, error, now());
+        firstError ??= error;
+      }
+    }
+    if (firstError) throw firstError;
+    return { outcome: deferred ? "retry_scheduled" : outcome, subscriptions };
   }
 
   async function beforeConnectionRevoke(input = {}) {

@@ -5,6 +5,7 @@ import { createPostgresConversationSyncStore } from "../../../packages/email-dms
 import { createPostgresGraphNotificationQueue } from "../../../packages/email-dms/src/postgres-graph-notification-queue.js";
 import { createPostgresConversationPolicyService } from "../../../packages/email-dms/src/postgres-conversation-policy-service.js";
 import { createPostgresConversationMaintenanceStore } from "../../../packages/email-dms/src/postgres-conversation-maintenance-store.js";
+import { createPostgresConversationMaintenanceAuthorityLookup } from "../../../packages/email-dms/src/postgres-conversation-maintenance-authority.js";
 import { createPostgresGraphSubscriptionService } from "../../../packages/email-dms/src/postgres-graph-subscription-service.js";
 import { requiredSyncString } from "../../../packages/email-dms/src/conversation-sync-model.js";
 import { createOutlookGraphWebhookHandler } from "./outlook-graph-webhook.js";
@@ -67,6 +68,10 @@ export async function createPostgresOutlookConversationRuntime({
   });
   const policyService = createPostgresConversationPolicyService({ pool, tenant_id: tenantId, clock });
   const maintenanceStore = createPostgresConversationMaintenanceStore({ pool, tenant_id: tenantId, clock });
+  const maintenanceStateLookup = createPostgresConversationMaintenanceAuthorityLookup({
+    pool,
+    tenant_id: tenantId,
+  });
   const conversationPort = createPostgresM365ConversationPort({
     ledger: domain_ledger,
     tenant_id: tenantId,
@@ -96,6 +101,7 @@ export async function createPostgresOutlookConversationRuntime({
     entra_tenant_id: entraTenantId,
     notification_url,
     state_lookup: store.readConnectionState,
+    maintenance_state_lookup: maintenanceStateLookup,
     provider: conversationPort,
     cleanup_provider: subscriptionCleanupPort,
     pause_connection_policies: policyService.pauseConnectionPolicies,

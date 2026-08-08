@@ -71,14 +71,15 @@ test("OUTM-26 scheduled expiry cleanup refreshes a rejected token before exact d
   const result = await value.cleanupExpired();
   assert.equal(result.outcome, "expired_connection");
   assert.equal(value.remote.size, 0);
-  assert.deepEqual(value.events
-    .filter(([event]) => ["refresh", "subscription_delete"].includes(event))
-    .map(([event, providerId, accessToken]) => [event, providerId, accessToken]), [
-    ["refresh", "expired-access", undefined],
-    ["subscription_delete", "provider-revoke-0", "refreshed-access"],
-    ["refresh", "expired-access", undefined],
-    ["subscription_delete", "provider-revoke-1", "refreshed-access"],
+  const refreshes = value.events.filter(([event]) => event === "refresh");
+  const deletes = value.events.filter(([event]) => event === "subscription_delete");
+  assert.deepEqual(refreshes, [["refresh", "expired-access"]]);
+  assert.deepEqual(deletes.map(([, providerId]) => providerId).sort(), [
+    "provider-revoke-0",
+    "provider-revoke-1",
   ]);
+  assert.equal(deletes.every(([, , accessToken]) =>
+    accessToken === "refreshed-access"), true);
   const state = await value.state();
   assert.equal(state.subscriptions.every(({ status }) => status === "revoked"), true);
   assert.equal(state.connection.expires_at, "2026-08-08T00:05:00.000Z");
