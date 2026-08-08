@@ -37,9 +37,21 @@ export function createDocusignEnvelopeRepository({ filePath, state } = {}) {
   const runWithLock = (tenantId, callback) => {
     const key = String(tenantId ?? "");
     const pending = locks.acquire(key);
-    const run = () => {
-      try { return callback(); }
+    const runAsync = async (result) => {
+      try { return await result; }
       finally { locks.release(key); }
+    };
+    const run = () => {
+      let result;
+      try {
+        result = callback();
+      } catch (error) {
+        locks.release(key);
+        throw error;
+      }
+      if (result && typeof result.then === "function") return runAsync(result);
+      locks.release(key);
+      return result;
     };
     return pending ? pending.then(run) : run();
   };
