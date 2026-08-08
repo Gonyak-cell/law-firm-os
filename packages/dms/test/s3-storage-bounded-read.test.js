@@ -34,9 +34,9 @@ test("authoritative oversized S3 HEAD prevents every provider GET/body read", as
   assert.equal(client.calls.sourceYieldedBytes, 0);
 });
 
-test("exact-limit concrete S3 Body uses controlled reads and a single digest pass", async () => {
+test("exact-limit measured S3 Body uses one GET and a single digest pass", async () => {
   const bytes = Buffer.from("12345678");
-  const client = fakeClient({ headBytes: bytes, concreteBody: true });
+  const client = fakeClient({ headBytes: bytes });
   const result = await adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
   });
@@ -46,8 +46,7 @@ test("exact-limit concrete S3 Body uses controlled reads and a single digest pas
   assert.equal(result.declared_sha256, result.sha256);
   assert.equal(client.calls.get, 1);
   assert.deepEqual(client.calls.ranges, [EXPECTED_RANGE]);
-  assert.ok(client.calls.readRequests.every((size) => size <= LIMIT + 1));
-  assert.equal(client.calls.sourceYieldedBytes, LIMIT);
+  assert.equal(client.calls.sourcePulls, 0);
 });
 
 test("authoritative zero-byte HEAD and empty SHA complete without an unsatisfiable GET", async () => {
@@ -79,7 +78,6 @@ test("false-small HEAD rejects honest max-plus-one headers before Body read", as
   const client = fakeClient({
     headBytes: Buffer.from("12345678"),
     getBytes: Buffer.from("123456789"),
-    concreteBody: true,
   });
   await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
@@ -90,6 +88,4 @@ test("false-small HEAD rejects honest max-plus-one headers before Body read", as
   assert.equal(client.calls.sourcePulls, 0);
   assert.equal(client.calls.sourceYieldedBytes, 0);
   assert.equal(client.calls.getSignal.aborted, true);
-  assert.equal(client.calls.bodyDestroyed, true);
-  assert.equal(client.calls.bodyCancelled, true);
 });

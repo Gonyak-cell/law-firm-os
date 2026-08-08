@@ -16,32 +16,6 @@ function responseMetadata({ byteSize, sha256 }) {
   };
 }
 
-export function controlledBody(bytes, calls) {
-  let offset = 0;
-  return {
-    readableEnded: false,
-    readableObjectMode: false,
-    destroyed: false,
-    read(size) {
-      calls.sourcePulls += 1;
-      calls.readRequests.push(size);
-      if (offset >= bytes.byteLength) {
-        this.readableEnded = true;
-        return null;
-      }
-      const chunk = bytes.subarray(offset, Math.min(offset + size, bytes.byteLength));
-      offset += chunk.byteLength;
-      calls.sourceYieldedBytes += chunk.byteLength;
-      if (offset >= bytes.byteLength) this.readableEnded = true;
-      return chunk;
-    },
-    once() { return this; },
-    removeListener() { return this; },
-    destroy() { this.destroyed = true; calls.bodyDestroyed = true; },
-    cancel() { calls.bodyCancelled = true; },
-  };
-}
-
 export function hostileAsyncBody(bytes, calls) {
   return {
     destroy() { calls.bodyDestroyed = true; },
@@ -64,7 +38,6 @@ export function fakeClient({
   contentRange,
   contentLength,
   omitContentLength = false,
-  concreteBody = false,
   bodyFactory,
 } = {}) {
   const calls = {
@@ -74,8 +47,9 @@ export function fakeClient({
     getSignal: null,
     sourceOfferedBytes: 0,
     sourcePulls: 0,
+    sourcePushedBytes: 0,
+    sourceReturnedBytes: 0,
     sourceYieldedBytes: 0,
-    readRequests: [],
     bodyDestroyed: false,
     bodyCancelled: false,
   };
@@ -108,8 +82,7 @@ export function fakeClient({
         Metadata: responseMetadata({ byteSize: metadataByteSize, sha256: metadataSha }),
         ETag: "get-etag",
         VersionId: "get-version",
-        Body: bodyFactory?.(getBytes, calls)
-          ?? (concreteBody ? controlledBody(getBytes, calls) : Buffer.from(getBytes)),
+        Body: bodyFactory?.(getBytes, calls) ?? Buffer.from(getBytes),
       };
       if (!omitContentLength) response.ContentLength = contentLength ?? rangeByteSize;
       return response;

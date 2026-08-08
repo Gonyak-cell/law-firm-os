@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { PassThrough, Readable } from "node:stream";
 import test from "node:test";
 import {
   DMS_STORAGE_BODY_UNBOUNDED,
@@ -11,7 +12,6 @@ import {
   OBJECT,
   TENANT,
   adapter,
-  controlledBody,
   fakeClient,
   hostileAsyncBody,
 } from "./s3-bounded-test-helpers.js";
@@ -29,25 +29,85 @@ function lyingHeaders(overrides = {}) {
   };
 }
 
-test("hostile 1 MiB concrete Body is pulled only through max plus one", async () => {
+test("ordinary malicious Readable is rejected before pull, push, or buffering", async () => {
   const hugeSource = Buffer.alloc(1024 * 1024, 0x61);
+  let body;
   const client = fakeClient(lyingHeaders({
     getBytes: hugeSource,
-    bodyFactory: controlledBody,
+    bodyFactory(bytes, calls) {
+      body = new Readable({
+        read() {
+          calls.sourcePulls += 1;
+          calls.sourceYieldedBytes += bytes.byteLength;
+          this.push(bytes);
+          calls.sourcePushedBytes += bytes.byteLength;
+        },
+      });
+      return body;
+    },
   }));
   await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
-  }), (error) => error.code === DMS_STORAGE_OBJECT_TOO_LARGE
+  }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
     && error.declared_byte_size === LIMIT
-    && error.observed_byte_size === LIMIT + 1);
+    && error.observed_byte_size === 0);
   assert.equal(client.calls.sourceOfferedBytes, hugeSource.byteLength);
   assert.deepEqual(client.calls.ranges, [EXPECTED_RANGE]);
-  assert.ok(client.calls.readRequests.every((size) => size <= LIMIT + 1));
-  assert.equal(client.calls.sourcePulls, 1);
-  assert.equal(client.calls.sourceYieldedBytes, LIMIT + 1);
+  assert.equal(client.calls.sourcePulls, 0);
+  assert.equal(client.calls.sourcePushedBytes, 0);
+  assert.equal(client.calls.sourceYieldedBytes, 0);
+  assert.equal(body.readableLength, 0);
   assert.equal(client.calls.getSignal.aborted, true);
+  assert.equal(body.destroyed, true);
+});
+
+test("ordinary PassThrough is rejected before it can buffer provider bytes", async () => {
+  let body;
+  const client = fakeClient(lyingHeaders({
+    bodyFactory() {
+      body = new PassThrough();
+      return body;
+    },
+  }));
+  await assert.rejects(adapter(client).readObjectBounded({
+    tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
+  }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
+    && error.observed_byte_size === 0);
+  assert.equal(body.readableLength, 0);
+  assert.equal(body.writableLength, 0);
+  assert.equal(body.destroyed, true);
+});
+
+test("nonconforming read(size) object is rejected before its hostile read", async () => {
+  const hugeSource = Buffer.alloc(1024 * 1024, 0x65);
+  let body;
+  const client = fakeClient(lyingHeaders({
+    getBytes: hugeSource,
+    bodyFactory(bytes, calls) {
+      body = {
+        readableLength: 0,
+        read() {
+          calls.sourcePulls += 1;
+          calls.sourceYieldedBytes += bytes.byteLength;
+          calls.sourceReturnedBytes += bytes.byteLength;
+          return bytes;
+        },
+        once() { return this; },
+        removeListener() { return this; },
+        destroy() { calls.bodyDestroyed = true; },
+      };
+      return body;
+    },
+  }));
+  await assert.rejects(adapter(client).readObjectBounded({
+    tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
+  }), (error) => error.code === DMS_STORAGE_BODY_UNBOUNDED
+    && error.observed_byte_size === 0);
+  assert.equal(client.calls.sourcePulls, 0);
+  assert.equal(client.calls.sourceReturnedBytes, 0);
+  assert.equal(client.calls.sourceYieldedBytes, 0);
+  assert.equal(body.readableLength, 0);
   assert.equal(client.calls.bodyDestroyed, true);
-  assert.equal(client.calls.bodyCancelled, true);
 });
 
 test("unknown-length hostile async Body is rejected before its first 1 MiB yield", async () => {
@@ -89,7 +149,6 @@ test("HEAD and ranged GET descriptor mismatch aborts before Body consumption", a
   const client = fakeClient({
     headBytes: HEAD_BYTES,
     getBytes: Buffer.from("1234567"),
-    concreteBody: true,
   });
   await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,
@@ -107,7 +166,6 @@ test("provider headers beyond requested sentinel reject before Body consumption"
     getBytes: Buffer.from("123456789"),
     contentRange: "bytes 0-9/10",
     contentLength: 10,
-    concreteBody: true,
   });
   await assert.rejects(adapter(client).readObjectBounded({
     tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT,

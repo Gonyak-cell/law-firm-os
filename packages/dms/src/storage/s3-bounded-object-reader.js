@@ -5,6 +5,7 @@ import {
   storageObjectTooLargeError,
   storageReadLimit,
 } from "./bounded-storage-read.js";
+import { assertS3ProviderBody } from "./s3-provider-body.js";
 
 function codedError(message, code) {
   return Object.assign(new Error(message), { code });
@@ -91,7 +92,10 @@ function validateRangedResponse(response, { declared, declaredMetadata, limit })
       { declared: declared.byte_size, providerDeclared },
     );
   }
-  return Object.freeze({ mime_type: response.ContentType ?? declared.mime_type });
+  return Object.freeze({
+    content_length: contentLength,
+    mime_type: response.ContentType ?? declared.mime_type,
+  });
 }
 
 export async function readS3CommittedObjectBounded({
@@ -159,7 +163,12 @@ export async function readS3CommittedObjectBounded({
   }
   let observed;
   try {
-    observed = await readStorageBodyBounded(response.Body ?? Buffer.alloc(0), {
+    const body = assertS3ProviderBody(response, {
+      max_bytes: limit,
+      declared_byte_size: declared.byte_size,
+      content_length: ranged.content_length,
+    });
+    observed = await readStorageBodyBounded(body, {
       max_bytes: limit,
     });
   } catch (error) {
