@@ -83,6 +83,10 @@ test("legacy filing replay backfills idempotency without overwriting its origina
     tenant_id: TENANT,
     idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
   }).response.email_thread_id, emailThreadId);
+  assert.equal(repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: `outlook-email-file:${emailThreadId}:legacy:dms`,
+  }).response.outcome, "idempotent_replay");
 });
 
 test("legacy filing backfill fails closed when immutable audit provenance is missing or mismatched", () => {
@@ -1926,6 +1930,14 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       });
       assert.equal(replay.outcome, "idempotent_replay");
       assert.equal(replay.idempotent_replay, true);
+      const replayMimeSha256 = replay.email_thread.filed_document_ids[0].split(":").at(-1);
+      assert.equal(
+        dmsRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `outlook-email-file:${replay.email_thread.email_thread_id}:${replayMimeSha256}:dms`,
+        })?.response?.outcome,
+        "idempotent_replay",
+      );
       assert.equal(providerCallCount, beforeReplayProviderCalls + 1);
       assert.equal(storageWriteCount, beforeReplayStorageWrites);
       assert.equal(dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length, beforeReplayDocumentCount);
@@ -2052,6 +2064,13 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
           idempotency_key: `${filingKey}:dms`,
         })?.response?.email_thread_id,
         fileBody.email_thread.email_thread_id,
+      );
+      assert.equal(
+        dmsRepository.getIdempotency({
+          tenant_id: TENANT,
+          idempotency_key: `${filingKey}:dms`,
+        })?.response?.outcome,
+        "created",
       );
       const timelineEvent = matterRepository.list({
         tenant_id: TENANT,

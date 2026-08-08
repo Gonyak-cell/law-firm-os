@@ -2817,11 +2817,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
         }),
     },
   });
-  const filedThread = runtime.dmsRuntime.repository.update({
-    tenant_id: tenantId,
-    model_type: "DmsEmailThread",
-    email_thread_id: result.thread.email_thread_id,
-  }, { filing_outcome: result.outcome });
+  const filedThread = result.thread;
   writeGate = gate();
   if (writeGate.response) return writeGate.response;
   const timelineEvent = appendMatterTimeline({

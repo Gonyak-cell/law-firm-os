@@ -46,6 +46,13 @@ export function fileEmailThreadToMatter({
     ) {
       throw new Error("email filing idempotency entry conflicts with the persisted thread");
     }
+    repository.recordIdempotency({
+      tenant_id: thread.tenant_id,
+      idempotency_key,
+      operation: replay.operation,
+      response: { ...replay.response, outcome: "idempotent_replay" },
+      created_at: replay.created_at,
+    });
     return Object.freeze({ outcome: "idempotent_replay", thread: existing });
   }
   const pending = existing ?? repository.create({
@@ -72,11 +79,12 @@ export function fileEmailThreadToMatter({
   if (typeof repository.transaction !== "function") {
     throw new Error("original MIME email filing requires an atomic repository transaction");
   }
-  const persistIdempotency = (tx, persisted) => tx.recordIdempotency({
+  const persistIdempotency = (tx, persisted, outcome) => tx.recordIdempotency({
     tenant_id: persisted.tenant_id,
     idempotency_key,
     operation: "outlook_email_file",
     response: {
+      outcome,
       email_thread_id: persisted.email_thread_id,
       matter_id: persisted.matter_id,
       filed_document_ids: persisted.filed_document_ids,
@@ -105,7 +113,7 @@ export function fileEmailThreadToMatter({
       ) {
         throw new Error("active email filing audit conflicts with the persisted thread");
       }
-      persistIdempotency(tx, pending);
+      persistIdempotency(tx, pending, "idempotent_replay");
     });
     return Object.freeze({ outcome: "idempotent_replay", thread: pending });
   }
@@ -117,7 +125,7 @@ export function fileEmailThreadToMatter({
       email_thread_id: pending.email_thread_id,
     }, { status: "active" });
     appendAudit(tx);
-    persistIdempotency(tx, persisted);
+    persistIdempotency(tx, persisted, "created");
     return persisted;
   };
   const persisted = repository.transaction(finalize);
