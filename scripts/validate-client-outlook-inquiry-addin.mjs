@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { chromium } from "playwright";
 import {
   assertFocusStateDelta,
+  assertPositiveFocusFixture,
   assertNegativeFocusFixture,
   readFocusSnapshot,
 } from "./lib/outlook-addin-focus-proof.mjs";
@@ -79,14 +80,47 @@ try {
   });
   const unfocusedSnapshot = await newInquiry.evaluate(readFocusSnapshot);
   await newInquiry.focus();
-  // Move focus through the keyboard so Chromium applies :focus-visible to the
-  // actual action target, then inspect the computed ring instead of merely
-  // checking that a native button happens to be focusable.
   await page.keyboard.press("Tab");
   await page.keyboard.press("Shift+Tab");
   const focusSnapshot = await newInquiry.evaluate(readFocusSnapshot);
   assertFocusStateDelta(unfocusedSnapshot, focusSnapshot, "문의 등록 버튼");
+  assert.deepEqual(focusSnapshot.outline.color, [11, 101, 229, 1]);
+  assert.ok(focusSnapshot.outline.contrast >= 4.8);
 
+  const matterSelect = page.getByLabel("보관할 Matter");
+  const unfocusedSelectSnapshot = await matterSelect.evaluate(readFocusSnapshot);
+  await matterSelect.focus();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  const focusedSelectSnapshot = await matterSelect.evaluate(readFocusSnapshot);
+  assertFocusStateDelta(
+    unfocusedSelectSnapshot,
+    focusedSelectSnapshot,
+    "Matter 선택 필드",
+  );
+  assert.deepEqual(focusedSelectSnapshot.outline.color, [11, 101, 229, 1]);
+  assert.ok(focusedSelectSnapshot.outline.contrast >= 4.8);
+
+  await assertPositiveFocusFixture(
+    page,
+    {
+      id: "outm36-product-color-gray-surface",
+      label: "product focus outline on gray surface",
+      cssText: "outline: none; border: 0; background: transparent;",
+      focusCssText: "#outm36-product-color-gray-surface:focus-visible { outline: 3px solid rgb(11, 101, 229) !important; outline-offset: 2px; }",
+      expectedColor: [11, 101, 229, 1],
+      minimumContrast: 4.8,
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-low-contrast-legacy-color",
+      label: "legacy low-contrast focus outline",
+      cssText: "outline: 3px solid rgb(143, 194, 238); outline-offset: 2px; border: 0; background: transparent;",
+      focusCssText: "#outm36-low-contrast-legacy-color:focus-visible { outline: 3px solid rgb(143, 194, 238) !important; outline-offset: 2px; }",
+    },
+  );
   await assertNegativeFocusFixture(
     page,
     {
@@ -188,7 +222,6 @@ try {
     ).length,
     1,
   );
-
   const visibleText = await page.locator("body").innerText();
   assert.doesNotMatch(
     visibleText,

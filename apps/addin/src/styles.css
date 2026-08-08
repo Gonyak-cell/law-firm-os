@@ -264,7 +264,7 @@ button.secondary-button:hover:not(:disabled) {
 
 button:focus-visible,
 select:focus-visible {
-  outline: 3px solid #8fc2ee;
+  outline: 3px solid #0b65e5;
   outline-offset: 2px;
 }
 

@@ -39,14 +39,20 @@ export function readFocusSnapshot(element) {
     const values = [luminance(blended), luminance(background)];
     return (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
   };
-  let background = parseColor(style.backgroundColor);
-  let ancestor = element;
-  while ((!background || background[3] < 1) && ancestor.parentElement) {
-    ancestor = ancestor.parentElement;
+  // An outline with an offset is painted outside the element border.  Contrast
+  // it with the nearest opaque outside surface, never the focused element's
+  // own fill (which can hide a low-contrast ring in a computed-style check).
+  let background = null;
+  let ancestor = element.parentElement;
+  while (ancestor) {
     const ancestorColor = parseColor(getComputedStyle(ancestor).backgroundColor);
-    if (ancestorColor?.[3] === 1) background = ancestorColor;
+    if (ancestorColor?.[3] === 1) {
+      background = ancestorColor;
+      break;
+    }
+    ancestor = ancestor.parentElement;
   }
-  if (!background || background[3] < 1) background = [255, 255, 255, 1];
+  if (!background) background = [255, 255, 255, 1];
 
   const styleName = String(style.outlineStyle ?? "none").toLowerCase();
   const width = Number.parseFloat(style.outlineWidth);
@@ -100,11 +106,7 @@ export function assertFocusStateDelta(before, after, label) {
   );
 }
 
-/** Exercise a deliberately invalid focus fixture and require proof rejection. */
-export async function assertNegativeFocusFixture(
-  page,
-  { id, label, cssText, focusCssText = "" },
-) {
+async function mountFocusFixture(page, { id, cssText, focusCssText = "" }) {
   await page.evaluate(({ fixtureId, fixtureCss, fixtureFocusCss }) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -119,6 +121,45 @@ export async function assertNegativeFocusFixture(
       document.head.append(style);
     }
   }, { fixtureId: id, fixtureCss: cssText, fixtureFocusCss: focusCssText });
+}
+
+async function removeFocusFixture(page, id) {
+  await page.evaluate((fixtureId) => {
+    document.getElementById(fixtureId)?.remove();
+    document.querySelector(`style[data-outm36-focus-fixture="${fixtureId}"]`)?.remove();
+  }, id);
+}
+
+export async function assertPositiveFocusFixture(
+  page,
+  { id, label, cssText, focusCssText = "", expectedColor, minimumContrast = 3 },
+) {
+  await mountFocusFixture(page, { id, cssText, focusCssText });
+  try {
+    const fixture = page.locator(`#${id}`);
+    const before = await fixture.evaluate(readFocusSnapshot);
+    await fixture.focus();
+    await fixture.focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    const after = await fixture.evaluate(readFocusSnapshot);
+    assertFocusStateDelta(before, after, label);
+    assert.ok(
+      after.outline.contrast >= minimumContrast,
+      `${label} focus outline must meet the expected contrast`,
+    );
+    if (expectedColor) assert.deepEqual(after.outline.color, expectedColor);
+  } finally {
+    await removeFocusFixture(page, id);
+  }
+}
+
+/** Exercise a deliberately invalid focus fixture and require proof rejection. */
+export async function assertNegativeFocusFixture(
+  page,
+  { id, label, cssText, focusCssText = "" },
+) {
+  await mountFocusFixture(page, { id, cssText, focusCssText });
   try {
     const fixture = page.locator(`#${id}`);
     const before = await fixture.evaluate(readFocusSnapshot);
@@ -133,9 +174,6 @@ export async function assertNegativeFocusFixture(
       `${label} must fail without a qualifying focus-outline change`,
     );
   } finally {
-    await page.evaluate((fixtureId) => {
-      document.getElementById(fixtureId)?.remove();
-      document.querySelector(`style[data-outm36-focus-fixture="${fixtureId}"]`)?.remove();
-    }, id);
+    await removeFocusFixture(page, id);
   }
 }
