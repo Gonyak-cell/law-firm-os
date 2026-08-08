@@ -53,7 +53,14 @@ function readFocusSnapshot(element) {
     const values = [luminance(blended), luminance(background)];
     return (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
   };
-  const background = parseColor(style.backgroundColor);
+  let background = parseColor(style.backgroundColor);
+  let ancestor = element;
+  while ((!background || background[3] < 1) && ancestor.parentElement) {
+    ancestor = ancestor.parentElement;
+    const ancestorColor = parseColor(getComputedStyle(ancestor).backgroundColor);
+    if (ancestorColor?.[3] === 1) background = ancestorColor;
+  }
+  if (!background || background[3] < 1) background = [255, 255, 255, 1];
   const candidates = [
     [style.outlineStyle, Number.parseFloat(style.outlineWidth), parseColor(style.outlineColor)],
     [style.borderStyle, Number.parseFloat(style.borderWidth), parseColor(style.borderColor)],
@@ -79,6 +86,15 @@ function readFocusSnapshot(element) {
     focusVisible: element.matches(":focus-visible"),
     ringWidth: ring?.width ?? 0,
     ringContrast: ring?.contrast ?? 0,
+    ringStyle: {
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+      outlineColor: style.outlineColor,
+      borderStyle: style.borderStyle,
+      borderWidth: style.borderWidth,
+      borderColor: style.borderColor,
+      boxShadow: style.boxShadow,
+    },
   };
 }
 
@@ -92,6 +108,17 @@ function assertVisibleFocusRing(snapshot, label) {
   assert.ok(
     snapshot.ringContrast >= 3,
     `${label} focus ring must have at least 3:1 contrast`,
+  );
+}
+
+function assertFocusStateDelta(before, after, label) {
+  assertVisibleFocusRing(after, label);
+  const styleChanged = Object.keys(after.ringStyle).some((key) => (
+    before.ringStyle[key] !== after.ringStyle[key]
+  ));
+  assert.ok(
+    styleChanged,
+    `${label} must change its computed focus indicator when focused`,
   );
 }
 
@@ -329,6 +356,7 @@ try {
   const newInquiry = page.getByRole("button", {
     name: "새 문의 등록",
   });
+  const unfocusedSnapshot = await newInquiry.evaluate(readFocusSnapshot);
   await newInquiry.focus();
   // Move focus through the keyboard so Chromium applies :focus-visible to the
   // actual action target, then inspect the computed ring instead of merely
@@ -336,27 +364,46 @@ try {
   await page.keyboard.press("Tab");
   await page.keyboard.press("Shift+Tab");
   const focusSnapshot = await newInquiry.evaluate(readFocusSnapshot);
-  assertVisibleFocusRing(focusSnapshot, "문의 등록 버튼");
+  assertFocusStateDelta(unfocusedSnapshot, focusSnapshot, "문의 등록 버튼");
 
-  await page.evaluate(() => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = "focus fixture";
-    button.id = "outm36-negative-focus-fixture";
-    button.style.cssText = "outline: none; border: 1px solid transparent; box-shadow: none;";
-    document.body.append(button);
-    button.focus();
-  });
-  const negativeFocusSnapshot = await page.locator(
-    "#outm36-negative-focus-fixture",
-  ).evaluate(readFocusSnapshot);
-  await page.evaluate(() => {
-    document.getElementById("outm36-negative-focus-fixture")?.remove();
-  });
-  assert.throws(
-    () => assertVisibleFocusRing(negativeFocusSnapshot, "negative focus fixture"),
-    /focus ring|:focus-visible/u,
-    "a focusable button without focus styling must fail the proof",
+  const assertNegativeFocusFixture = async (id, label, cssText) => {
+    await page.evaluate(({ fixtureId, fixtureCss }) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "focus fixture";
+      button.id = fixtureId;
+      button.style.cssText = fixtureCss;
+      document.body.append(button);
+    }, { fixtureId: id, fixtureCss: cssText });
+    const fixture = page.locator(`#${id}`);
+    const before = await fixture.evaluate(readFocusSnapshot);
+    await fixture.focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    const after = await fixture.evaluate(readFocusSnapshot);
+    await page.evaluate((fixtureId) => {
+      document.getElementById(fixtureId)?.remove();
+    }, id);
+    assert.throws(
+      () => assertFocusStateDelta(before, after, label),
+      /focus indicator|focus ring|:focus-visible/u,
+      `${label} must fail without a focus-state style change`,
+    );
+  };
+  await assertNegativeFocusFixture(
+    "outm36-negative-focus-fixture",
+    "negative focus fixture",
+    "outline: none; border: 1px solid transparent; box-shadow: none;",
+  );
+  await assertNegativeFocusFixture(
+    "outm36-static-border-fixture",
+    "always-on border fixture",
+    "outline: none; border: 3px solid rgb(143, 194, 238); box-shadow: none; background: rgb(23, 33, 43);",
+  );
+  await assertNegativeFocusFixture(
+    "outm36-static-shadow-fixture",
+    "always-on shadow fixture",
+    "outline: none; border: 1px solid transparent; box-shadow: 0 0 0 3px rgb(143, 194, 238); background: rgb(23, 33, 43);",
   );
   await newInquiry.press("Enter");
   await page.waitForFunction(() => (

@@ -131,6 +131,14 @@ test("resolver rejects symlink escapes and profile-root symlink escapes", () => 
     writeFileSync(join(distRoot, "outlook-addin", "index.html"), "inquiry");
     writeFileSync(join(outsideRoot, "escaped.js"), "escaped");
     symlinkSync(join(outsideRoot, "escaped.js"), join(distRoot, "escaped.js"));
+    symlinkSync(
+      join(distRoot, "outlook-addin", "index.html"),
+      join(distRoot, "inquiry-file-alias.html"),
+    );
+    symlinkSync(
+      join(distRoot, "outlook-addin"),
+      join(distRoot, "inquiry-directory-alias"),
+    );
 
     assert.equal(
       resolveOutlookAddinStaticPath("/addin/escaped.js", { distRoot }),
@@ -139,6 +147,14 @@ test("resolver rejects symlink escapes and profile-root symlink escapes", () => 
     assert.equal(
       resolveOutlookAddinStaticPath("/addin/index.html", { distRoot })?.profile,
       "matter-full",
+    );
+    assert.equal(
+      resolveOutlookAddinStaticPath("/addin/inquiry-file-alias.html", { distRoot }),
+      null,
+    );
+    assert.equal(
+      resolveOutlookAddinStaticPath("/addin/inquiry-directory-alias/index.html", { distRoot }),
+      null,
     );
 
     const externalInquiryRoot = join(tempRoot, "external-inquiry");

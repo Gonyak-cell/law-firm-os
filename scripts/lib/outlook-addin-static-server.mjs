@@ -78,6 +78,10 @@ function isWithinRoot(rootPath, candidatePath) {
     && !isAbsolute(child);
 }
 
+function isAtOrWithinRoot(rootPath, candidatePath) {
+  return rootPath === candidatePath || isWithinRoot(rootPath, candidatePath);
+}
+
 function rejectUnsafePath(pathname) {
   if (typeof pathname !== "string" || pathname.length === 0) return true;
   // request.url is a path, not an absolute URL.  Reject protocol-relative and
@@ -189,6 +193,17 @@ export function resolveOutlookAddinStaticPath(
   try {
     resolvedFilePath = realpathSync(candidatePath);
     if (!isWithinRoot(rootPath, resolvedFilePath)) return null;
+    if (profile.id === "matter-full") {
+      let inquiryRootPath;
+      try {
+        inquiryRootPath = realpathSync(resolve(distPath, "outlook-addin"));
+      } catch {
+        inquiryRootPath = null;
+      }
+      if (inquiryRootPath && isAtOrWithinRoot(inquiryRootPath, resolvedFilePath)) {
+        return null;
+      }
+    }
     if (!statSync(resolvedFilePath).isFile()) return null;
   } catch {
     return null;
