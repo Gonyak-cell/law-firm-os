@@ -203,25 +203,25 @@ try {
       ?.getAttribute("data-outcome") === "created"
   ));
 
-  const inquiryWrites = writes.filter(
-    (entry) => entry.pathname === "/api/outlook/inquiries",
+  const expectedWrites = [
+    "POST /api/outlook/messages/identity",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/messages/identity",
+    "POST /api/outlook/email/file",
+  ];
+  assert.deepEqual(
+    writes.map(({ method, pathname }) => `${method} ${pathname}`),
+    expectedWrites,
+    "쓰기 요청은 허용된 완전한 순서와 일치해야 한다",
   );
-  assert.equal(inquiryWrites.length, 3);
+  const inquiryWrites = writes.filter((entry) => entry.pathname === "/api/outlook/inquiries");
   assert.equal(
     inquiryWrites[0].body.idempotency_key,
     inquiryWrites[1].body.idempotency_key,
   );
-  assert.equal(
-    JSON.stringify(inquiryWrites)
-      .includes("ews-id-must-not-enter-request"),
-    false,
-  );
-  assert.equal(
-    writes.filter(
-      (entry) => entry.pathname === "/api/outlook/email/file",
-    ).length,
-    1,
-  );
+  assert.equal(JSON.stringify(writes).includes("ews-id-must-not-enter-request"), false);
   const visibleText = await page.locator("body").innerText();
   assert.doesNotMatch(
     visibleText,
