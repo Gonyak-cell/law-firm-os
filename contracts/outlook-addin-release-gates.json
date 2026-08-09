@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "release_version": "1.1.0.0",
+  "rollback_version": "1.0.1.1",
+  "baseline_receipt": "contracts/outlook-addin-deployment-baseline.json",
+  "surface_contract": "contracts/outlook-addin-surfaces.json",
+  "rollback_contract": "contracts/outlook-addin-rollback.json",
+  "manifests": [
+    "apps/addin/manifest.xml",
+    "apps/addin/manifest.production.xml",
+    "apps/addin/manifest.inquiry.xml",
+    "apps/addin/manifest.inquiry.production.xml"
+  ],
+  "profiles": [
+    {
+      "profile": "matter-full",
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "permission": "ReadItem",
+      "mailbox_min_version": "1.14",
+      "production_manifest": "apps/addin/manifest.production.xml",
+      "taskpane_html": "index.html",
+      "required_static_paths": ["index.html", "event-runtime.html", "event-runtime.js"]
+    },
+    {
+      "profile": "inquiry-only",
+      "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "permission": "ReadItem",
+      "mailbox_min_version": "1.3",
+      "production_manifest": "apps/addin/manifest.inquiry.production.xml",
+      "taskpane_html": "outlook-addin/index.html",
+      "required_static_paths": ["outlook-addin/index.html"]
+    }
+  ],
+  "build": {
+    "root": "apps/addin/dist",
+    "command": ["npm", "--workspace", "apps/addin", "run", "build"],
+    "required_static_paths": [
+      "amic-law-icon.png",
+      "event-runtime.html",
+      "event-runtime.js",
+      "index.html",
+      "oauth-callback.html",
+      "oauth-callback.js",
+      "oauth-start.html",
+      "oauth-start.js",
+      "outlook-addin/index.html"
+    ],
+    "forbidden_path_suffixes": [".map", ".pem", ".key", ".p12", ".pfx"],
+    "forbidden_text_patterns": [
+      "-----BEGIN PRIVATE KEY-----",
+      "-----BEGIN RSA PRIVATE KEY-----",
+      "sourcesContent\"",
+      "/Users/",
+      "/home/runner/work/"
+    ]
+  },
+  "required_release_paths": [
+    "apps/addin/src/matter-entry.js",
+    "apps/addin/src/inquiry-entry.jsx",
+    "packages/email-dms/src/email-filing-correction-service.js",
+    "packages/matter/src/outlook-task-adapter.js",
+    "apps/api/src/outlook-time-entry-draft-adapter.js",
+    "packages/email-dms/src/graph-subscription-service.js",
+    "packages/email-dms/src/m365-connection-model.js",
+    "apps/api/src/microsoft-delegated-oauth-client.js",
+    "apps/api/src/outlook-graph-webhook.js",
+    "packages/dms/src/search/postgres-precedent-repository.js",
+    "packages/matter/src/approved-document-builder-service.js",
+    "packages/integrations-core/src/docusign-envelope-adapter.js",
+    "packages/integrations-core/src/docusign-postgres-repository.js"
+  ],
+  "required_test_paths": [
+    "apps/addin/test/outlook-profile-build-artifact.mjs",
+    "packages/email-dms/test/email-filing-correction-concurrency.test.js",
+    "packages/matter/test/outlook-task-adapter.test.js",
+    "apps/api/test/outlook-time-entry-draft-postgres.test.js",
+    "packages/email-dms/test/graph-notification-queue.test.js",
+    "apps/api/test/microsoft-delegated-oauth-client.test.js",
+    "apps/api/test/outlook-graph-webhook.test.js",
+    "packages/dms/test/postgres-precedent-search.test.js",
+    "packages/matter/test/document-builder-docx.test.js",
+    "packages/integrations-core/test/docusign-concurrency.test.js",
+    "packages/integrations-core/test/docusign-postgres-concurrency.test.js"
+  ],
+  "required_dependencies": {
+    "docx": "MIT",
+    "docusign-esign": "MIT"
+  },
+  "allowed_dependency_licenses": [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BlueOak-1.0.0",
+    "CC-BY-4.0",
+    "ISC",
+    "MIT",
+    "(MIT AND Zlib)",
+    "(MIT OR GPL-3.0-or-later)"
+  ],
+  "license_metadata_overrides": {
+    "node_modules/passport-strategy": {
+      "name": "passport-strategy",
+      "version": "1.0.0",
+      "integrity": "sha512-CB97UUvDKJde2V0KDWWB3lyf6PC3FaZP7YxZ2G8OAtn9p4HI9j9JLP9qjOGZFvyl8uwNT8qM+hGnz/n16NI7oA==",
+      "resolved": "https://registry.npmjs.org/passport-strategy/-/passport-strategy-1.0.0.tgz",
+      "license": "MIT"
+    }
+  },
+  "client_outlook_oauth_scopes": [
+    "Calendars.ReadWrite",
+    "Mail.Read",
+    "email",
+    "offline_access",
+    "openid",
+    "profile"
+  ],
+  "client_outlook_graph_connection_scopes": [
+    "Calendars.ReadWrite",
+    "Mail.Read",
+    "offline_access"
+  ],
+  "api": {
+    "function_name": "matter-lawos-api-prod",
+    "aws_account_id": "770880870480",
+    "region": "ap-northeast-2",
+    "embedded_manifest_path": "deployment-manifest.json"
+  },
+  "static_deploy": {
+    "namespaces": [
+      {
+        "profile": "matter-full",
+        "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+        "source_prefix": "",
+        "excluded_source_prefixes": ["outlook-addin/"],
+        "target_prefix": "addin/",
+        "invalidation_path": "/addin/*"
+      },
+      {
+        "profile": "inquiry-only",
+        "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+        "source_prefix": "outlook-addin/",
+        "excluded_source_prefixes": [],
+        "target_prefix": "outlook-addin/",
+        "invalidation_path": "/outlook-addin/*"
+      }
+    ],
+    "protected_prefixes": ["addin/manifests/"],
+    "delete": false,
+    "default_mode": "dry-run"
+  },
+  "m365": {
+    "default_status": "awaiting_authorized_deployment",
+    "propagation_observation_hours": [0, 24, 48, 72],
+    "propagation_window_is_sla": false,
+    "required_host_evidence": [
+      "owa",
+      "new-outlook-windows",
+      "classic-outlook-windows",
+      "outlook-macos"
+    ],
+    "required_common_host_scenarios": [
+      "auth-reconnect",
+      "item-switch",
+      "offline-recovery"
+    ],
+    "required_prerequisites": [
+      "api_release",
+      "static_release",
+      "additive_migrations",
+      "graph_endpoint_and_secret_reference",
+      "docusign_endpoint_and_secret_reference",
+      "approved_template_runtime",
+      "precedent_index_runtime"
+    ],
+    "required_mutation_actions": [
+      "api_lambda_code_deploy",
+      "additive_migration_apply",
+      "graph_endpoint_secret_config",
+      "docusign_endpoint_secret_config",
+      "static_dual_namespace_publish",
+      "m365_central_manifest_update"
+    ],
+    "required_profile_scenarios": {
+      "matter-full": ["read", "compose", "on-message-send"],
+      "inquiry-only": ["read"]
+    },
+    "protected_evidence": {
+      "root_mode": "read-only",
+      "reject_symlinks": true,
+      "hash_algorithm": "sha256",
+      "required_proof_classes": [
+        "api_release",
+        "static_release",
+        "additive_migrations",
+        "graph_endpoint_and_secret_reference",
+        "docusign_endpoint_and_secret_reference",
+        "approved_template_runtime",
+        "precedent_index_runtime",
+        "authorization",
+        "pilot_assignment",
+        "monitoring_plan",
+        "rollback_rehearsal",
+        "rollback_static_inventory",
+        "central_deployment",
+        "propagation_observation",
+        "real_outlook_host",
+        "go_live_approval"
+      ]
+    }
+  }
+}
