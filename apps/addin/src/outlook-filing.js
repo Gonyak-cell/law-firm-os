@@ -1,5 +1,6 @@
 import {
   assertExactOutlookSourceIdentity,
+  outlookSourceItemKey,
   parseCapturedOutlookSourceIdentity,
   parseExactOutlookSourceIdentity,
 } from "../../../packages/email-dms/src/outlook-source-identity.js";
@@ -19,6 +20,29 @@ function requiredText(value, field) {
 
 function hasText(value) {
   return typeof value === "string" && Boolean(value.trim());
+}
+
+function projectOutlookFilingEmail(email) {
+  if (!email || typeof email !== "object" || Array.isArray(email)) {
+    parseCapturedOutlookSourceIdentity(email);
+  }
+  const projected = { ...email };
+  if (Object.hasOwn(projected, "graph_message_id")) {
+    if (
+      typeof projected.graph_message_id !== "string"
+      || projected.graph_message_id !== projected.rest_message_id
+    ) {
+      throw new TypeError("Outlook source identity graph_message_id conflicts with rest_message_id");
+    }
+    delete projected.graph_message_id;
+  }
+  const itemKey = outlookSourceItemKey(projected);
+  if (Object.hasOwn(projected, "item_key") && projected.item_key !== itemKey) {
+    throw new TypeError("Outlook source identity item_key is mismatched");
+  }
+  projected.item_key = itemKey;
+  parseCapturedOutlookSourceIdentity(projected);
+  return Object.freeze(projected);
 }
 
 /**
@@ -77,14 +101,20 @@ export async function fileOutlookEmail({
     typeof assertOperationCurrent !== "function"
     || typeof onReceipt !== "function"
   ) throw new TypeError("operation callbacks are required");
-  const request = createOutlookFilingRequest({ matterId, email, mode, priorAttachmentReceipts });
+  const filingEmail = projectOutlookFilingEmail(email);
+  const request = createOutlookFilingRequest({
+    matterId,
+    email: filingEmail,
+    mode,
+    priorAttachmentReceipts,
+  });
   assertOperationCurrent();
   const body = await requestJson(request.path, {
     method: request.method,
     body: request.body,
   });
   const thread = body?.email_thread ?? body?.item;
-  const requestSourceIdentity = parseCapturedOutlookSourceIdentity(email);
+  const requestSourceIdentity = parseCapturedOutlookSourceIdentity(filingEmail);
   const responseSourceIdentity = assertExactOutlookSourceIdentity(
     requestSourceIdentity,
     body?.source_identity,

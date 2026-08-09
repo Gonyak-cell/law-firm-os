@@ -280,7 +280,6 @@ test("conversation ID의 NFKC 표현만 다른 영수증도 거부한다", async
 for (const [field, label] of [
   ["canonical_graph_message_id", "canonical Graph ID"],
   ["rest_message_id", "REST ID"],
-  ["item_key", "item_key"],
 ]) {
   test(`현재 Outlook snapshot에 ${label}가 없으면 네트워크 전에 막는다`, async () => {
     const incomplete = { ...email };
@@ -295,14 +294,71 @@ for (const [field, label] of [
   });
 }
 
-test("legacy graph_message_id 별칭은 exact REST ID와 같아도 네트워크 전에 거부한다", async () => {
-  let requests = 0;
-  await assert.rejects(fileOutlookEmail({
+test("현재 Outlook snapshot에 item_key가 없어도 filing 투영에서 exact key를 만든다", async () => {
+  const incomplete = { ...email };
+  delete incomplete.item_key;
+  let requestEmail;
+  await fileOutlookEmail({
+    matterId: "matter-001",
+    email: incomplete,
+    requestJson: async (_path, options) => {
+      requestEmail = options.body.email;
+      return filingResponse();
+    },
+  });
+  assert.equal(requestEmail.item_key, email.item_key);
+});
+
+test("직접 createOutlookFilingRequest는 legacy graph_message_id 별칭을 계속 거부한다", () => {
+  assert.throws(() => createOutlookFilingRequest({
     matterId: "matter-001",
     email: { ...email, graph_message_id: email.rest_message_id },
-    requestJson: async () => { requests += 1; },
   }), /unsupported alias/u);
-  assert.equal(requests, 0);
+});
+
+test("전체 받은·보낸 메일 보관은 일치하는 legacy 별칭을 제거하고 item_key를 투영한다", async () => {
+  const { item_key: _unusedItemKey, ...identityWithoutItemKey } = email;
+  const legacyEmail = {
+    ...identityWithoutItemKey,
+    graph_message_id: email.rest_message_id,
+    subject: "보존할 제목",
+    body_preview: "보존할 미리보기",
+    metadata: { source: "outlook" },
+  };
+  for (const mode of ["manual", "sent"]) {
+    let request;
+    await fileOutlookEmail({
+      matterId: "matter-001",
+      email: legacyEmail,
+      mode,
+      requestJson: async (path, options) => {
+        request = { path, options };
+        return filingResponse({ mode });
+      },
+    });
+    assert.equal(request.path, mode === "sent" ? OUTLOOK_SENT_FILING_PATH : OUTLOOK_EMAIL_FILING_PATH);
+    assert.equal(Object.hasOwn(request.options.body.email, "graph_message_id"), false);
+    assert.equal(request.options.body.email.item_key, email.item_key);
+    assert.equal(request.options.body.email.subject, legacyEmail.subject);
+    assert.equal(request.options.body.email.body_preview, legacyEmail.body_preview);
+    assert.deepEqual(request.options.body.email.metadata, legacyEmail.metadata);
+  }
+});
+
+test("전체 메일 보관은 legacy 별칭 또는 item_key 충돌을 네트워크 전에 거부한다", async () => {
+  for (const conflict of [
+    { graph_message_id: "rest-message-other" },
+    { graph_message_id: email.rest_message_id, item_key: "forged-item-key" },
+  ]) {
+    let requests = 0;
+    await assert.rejects(fileOutlookEmail({
+      matterId: "matter-001",
+      email: { ...email, ...conflict },
+      mode: "sent",
+      requestJson: async () => { requests += 1; },
+    }), /conflicts|mismatched/u);
+    assert.equal(requests, 0);
+  }
 });
 
 test("응답 thread의 legacy graph_message_id 별칭도 성공 영수증에 허용하지 않는다", async () => {

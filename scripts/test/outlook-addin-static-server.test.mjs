@@ -4,12 +4,13 @@ import {
   mkdirSync,
   mkdtempSync,
   readdirSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import {
@@ -47,7 +48,6 @@ function assetPath(html, extension, prefix) {
   const escapedPrefix = prefix.replace("/", "\\/");
   const match = html.match(new RegExp(`(?:src|href)="(${escapedPrefix}/assets/[^"]+${escapedExtension})"`));
   assert.ok(match?.[1], `built ${prefix} HTML should reference a ${extension} asset`);
-  assert.match(match[1], new RegExp(`${escapedPrefix}/assets/[^/]+-${basename(match[1]).split("-").at(-1)}`));
   return match[1];
 }
 
@@ -120,25 +120,43 @@ test("built full and inquiry bundles are served only from their own prefixes", a
   }
 });
 
-test("resolver rejects symlink escapes and profile-root symlink escapes", () => {
+async function assertDeniedRoute(distRoot, pathname) {
+  const web = await startOutlookAddinStaticServer({ distRoot });
+  try {
+    const response = await fetchRoute(web.origin, pathname);
+    assert.equal(response.status, 404, pathname);
+    assert.equal(response.body, "not found", pathname);
+  } finally {
+    await new Promise((resolvePromise) => web.server.close(resolvePromise));
+  }
+}
+
+test("resolver rejects symlink escapes and profile-root symlink escapes", async () => {
   const tempRoot = mkdtempSync(join(tmpdir(), "lawos-outlook-addin-static-"));
   try {
     const distRoot = join(tempRoot, "dist");
     const outsideRoot = join(tempRoot, "outside");
-    mkdirSync(join(distRoot, "outlook-addin"), { recursive: true });
+    const inquiryRoot = join(distRoot, "outlook-addin");
+    const matterRoot = join(distRoot, "matter-owned");
+    mkdirSync(inquiryRoot, { recursive: true });
+    mkdirSync(matterRoot, { recursive: true });
     mkdirSync(outsideRoot, { recursive: true });
     writeFileSync(join(distRoot, "index.html"), "main");
-    writeFileSync(join(distRoot, "outlook-addin", "index.html"), "inquiry");
+    writeFileSync(join(inquiryRoot, "index.html"), "inquiry");
+    writeFileSync(join(matterRoot, "index.html"), "matter-owned");
     writeFileSync(join(outsideRoot, "escaped.js"), "escaped");
     symlinkSync(join(outsideRoot, "escaped.js"), join(distRoot, "escaped.js"));
     symlinkSync(
-      join(distRoot, "outlook-addin", "index.html"),
+      join(inquiryRoot, "index.html"),
       join(distRoot, "inquiry-file-alias.html"),
     );
     symlinkSync(
-      join(distRoot, "outlook-addin"),
+      inquiryRoot,
       join(distRoot, "inquiry-directory-alias"),
     );
+    symlinkSync(join(distRoot, "index.html"), join(inquiryRoot, "matter-file-alias.html"));
+    symlinkSync(matterRoot, join(inquiryRoot, "matter-directory-alias"));
+    symlinkSync(join(outsideRoot, "escaped.js"), join(inquiryRoot, "external-file-alias.js"));
 
     assert.equal(
       resolveOutlookAddinStaticPath("/addin/escaped.js", { distRoot }),
@@ -156,16 +174,48 @@ test("resolver rejects symlink escapes and profile-root symlink escapes", () => 
       resolveOutlookAddinStaticPath("/addin/inquiry-directory-alias/index.html", { distRoot }),
       null,
     );
+    assert.equal(
+      resolveOutlookAddinStaticPath("/outlook-addin/index.html", { distRoot })?.profile,
+      "inquiry-only",
+    );
+    assert.equal(
+      resolveOutlookAddinStaticPath("/outlook-addin/index.html", { distRoot })?.filePath,
+      realpathSync(join(inquiryRoot, "index.html")),
+    );
+    for (const path of [
+      "/outlook-addin/matter-file-alias.html",
+      "/outlook-addin/matter-directory-alias/index.html",
+      "/outlook-addin/external-file-alias.js",
+    ]) {
+      assert.equal(resolveOutlookAddinStaticPath(path, { distRoot }), null, path);
+    }
 
     const externalInquiryRoot = join(tempRoot, "external-inquiry");
     mkdirSync(externalInquiryRoot);
     writeFileSync(join(externalInquiryRoot, "index.html"), "external");
-    rmSync(join(distRoot, "outlook-addin"), { recursive: true, force: true });
-    symlinkSync(externalInquiryRoot, join(distRoot, "outlook-addin"));
+    rmSync(inquiryRoot, { recursive: true, force: true });
+    symlinkSync(externalInquiryRoot, inquiryRoot);
     assert.equal(
       resolveOutlookAddinStaticPath("/outlook-addin/index.html", { distRoot }),
       null,
     );
+    await assertDeniedRoute(distRoot, "/outlook-addin/index.html");
+
+    rmSync(inquiryRoot, { recursive: true, force: true });
+    symlinkSync(".", inquiryRoot);
+    assert.equal(
+      resolveOutlookAddinStaticPath("/outlook-addin/index.html", { distRoot }),
+      null,
+    );
+    await assertDeniedRoute(distRoot, "/outlook-addin/index.html");
+
+    rmSync(inquiryRoot, { recursive: true, force: true });
+    symlinkSync(matterRoot, inquiryRoot);
+    assert.equal(
+      resolveOutlookAddinStaticPath("/outlook-addin/index.html", { distRoot }),
+      null,
+    );
+    await assertDeniedRoute(distRoot, "/outlook-addin/index.html");
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }

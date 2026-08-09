@@ -108,6 +108,10 @@ export function resolveOutlookAddinStaticPath(requestPath, { distRoot } = {}) {
   } catch {
     return null;
   }
+  if (
+    profile.id === "inquiry-only"
+    && rootPath !== resolve(distPath, "outlook-addin")
+  ) return null;
   if (rootPath !== distPath && !isWithinRoot(distPath, rootPath)) return null;
   const candidatePath = resolve(rootPath, relativeRequestPath);
   if (!isWithinRoot(rootPath, candidatePath)) return null;

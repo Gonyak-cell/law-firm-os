@@ -151,8 +151,15 @@ export async function setupOutlookInquiryProofPage({
         return;
       }
       if (pathname.endsWith("/timeline")) {
+        const matterId = decodeURIComponent(pathname.split("/").at(-2));
         await json(route, {
-          item: { visible_entries: [] },
+          request_id: "request-outm36-timeline",
+          outcome: "passed",
+          item: {
+            matter_id: matterId,
+            visible_entries: [],
+            page_info: { limit: 8, has_more: false, next_cursor: null },
+          },
         });
         return;
       }
@@ -164,6 +171,18 @@ export async function setupOutlookInquiryProofPage({
 
     const body = request.postDataJSON();
     writes.push({ pathname, body });
+    if (pathname === "/api/outlook/messages/identity") {
+      await json(route, {
+        outcome: "resolved",
+        item: {
+          canonical_graph_message_id: "canonical-rest-message-t05",
+          rest_message_id: body.rest_message_id,
+          internet_message_id: body.internet_message_id,
+          conversation_id: body.conversation_id,
+        },
+      });
+      return;
+    }
     if (pathname === "/api/outlook/inquiries") {
       const resultKey = body.idempotency_key;
       const prior = inquiryResults.get(resultKey);
@@ -190,10 +209,40 @@ export async function setupOutlookInquiryProofPage({
       return;
     }
     if (pathname === "/api/outlook/email/file") {
+      const source = body.email;
+      const sourceIdentity = {
+        canonical_graph_message_id: source.canonical_graph_message_id,
+        rest_message_id: source.rest_message_id,
+        internet_message_id: source.internet_message_id,
+        conversation_id: source.conversation_id,
+        item_key: source.item_key,
+      };
+      const emailThread = {
+        email_thread_id: "thread-t05",
+        matter_id: body.matter_id,
+        ...sourceIdentity,
+        status: "active",
+        filing_user: "user-outm36-proof",
+        filing_time: "2026-08-09T00:00:00.000Z",
+        filed_document_ids: ["document-outm36-proof"],
+      };
       await json(route, {
+        request_id: "request-outm36-proof",
         outcome: "created",
-        email_thread: {
-          email_thread_id: "thread-t05",
+        filing_operation: "manual",
+        idempotent_replay: false,
+        external_send_state: "not_applicable",
+        source_identity: sourceIdentity,
+        email_thread: emailThread,
+        timeline_event: {
+          event_id: "timeline-outm36-proof",
+          type: "outlook.email.filed",
+          matter_id: body.matter_id,
+          source_ref: emailThread.email_thread_id,
+        },
+        attachment_state: {
+          receipts: [],
+          retry_attachment_ids: [],
         },
       }, 201);
       return;
