@@ -43,8 +43,10 @@ test("OUTM-18 PostgreSQL source identity survives fresh migration, runtime resta
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const migrations = listPostgresFoundationMigrations();
-  assert.deepEqual(migrations.at(-1)?.id, "012_outlook_document_source_identity");
-  assert.match(migrations.at(-1)?.checksum ?? "", /^[a-f0-9]{64}$/u);
+  const sourceIdentityMigration = migrations.find(
+    ({ id }) => id === "012_outlook_document_source_identity",
+  );
+  assert.match(sourceIdentityMigration?.checksum ?? "", /^[a-f0-9]{64}$/u);
   const restart = await runPostgresMigrations(fixture.adminPool, { appliedBy: "outlook-source-restart" });
   assert.equal(restart.every((entry) => entry.applied === false), true);
 

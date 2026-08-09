@@ -16,6 +16,7 @@ import {
 import { addPeopleVisibleMatterTeamMember } from "../../../packages/matter/src/staffing-service.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { MATTER_DOMAIN_DESCRIPTOR } from "../../../packages/matter/src/central-ledger.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -71,6 +72,7 @@ import {
 import {
   createEmailDmsRepository,
 } from "../../../packages/email-dms/src/repository.js";
+import { outlookEmailFilingAuditEvent } from "../../../packages/email-dms/src/email-filing-service.js";
 import {
   EMAIL_DMS_DOMAIN_DESCRIPTOR,
 } from "../../../packages/email-dms/src/central-ledger.js";
@@ -3667,10 +3669,18 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
     "postgres-outlook-file-rotated-refresh-token-never-persist",
   ];
   const email = {
-    graph_message_id: "rest:postgres-outlook-file-refresh",
+    rest_message_id: "rest:postgres-outlook-file-refresh",
+    canonical_graph_message_id: "immutable:postgres-outlook-file-refresh",
     internet_message_id: "<postgres-outlook-file-refresh@example.test>",
     conversation_id: "conversation-postgres-outlook-file-refresh",
+    item_key: [
+      "rest:postgres-outlook-file-refresh",
+      "<postgres-outlook-file-refresh@example.test>",
+      "conversation-postgres-outlook-file-refresh",
+    ].join("\u001f"),
     subject: "PostgreSQL Outlook refresh filing regression",
+    sent_at: "2026-08-07T00:00:01.000Z",
+    received_at: "2026-08-07T00:00:01.000Z",
     attachments: [],
   };
   const mime_bytes = Buffer.from(
@@ -3755,7 +3765,7 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
         };
       },
       async getMeMessageMime({ credential, rest_message_id }) {
-        graphCount += 1; assert.equal(rest_message_id, email.graph_message_id); assert.equal(credential.access_token, newAccess);
+        graphCount += 1; assert.equal(rest_message_id, email.rest_message_id); assert.equal(credential.access_token, newAccess);
         return {
           mime_bytes, immutable_message_id: "immutable:postgres-outlook-file-refresh",
           internet_message_id: email.internet_message_id, provider_request_id: "provider:postgres-outlook-file-refresh",
@@ -3781,6 +3791,7 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
       model_type: "M365Connection", m365_connection_id: connection_id, tenant_id, user_id, entra_subject_id,
       mailbox_address_hash: hashMailboxAddress(mailbox), credential_ref, granted_scopes: [...M365_GRAPH_REQUIRED_SCOPES],
       consented_at: "2026-08-06T00:00:00.000Z", expires_at, revoked_at: null, state_version: 1,
+      connection_authority: "delegated", mailbox_scope: "me",
     }] }), "email-dms"],
   ];
   for (const [descriptor, repository, source_id] of sources) {
@@ -3829,8 +3840,20 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
     value.matter.idempotency.filter(({ key }) => key.startsWith("outlook-email-file:")).length,
     value.matter.audit.filter(({ event_type }) => event_type === "matter.timeline.outlook.file").length,
   ];
+  const settleWithin = async (promise, phase) => {
+    let timer;
+    try {
+      return await Promise.race([promise, new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${phase} timed out: ${JSON.stringify({
+          refreshCount, storeCount, deleteCount, graphCount,
+        })}`)), 5_000);
+      })]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
   const firstRequest = run("request-postgres-outlook-file-refresh-first");
-  await firstRefreshStarted;
+  await settleWithin(firstRefreshStarted, "first refresh start");
   const winningRequest = firstRequest.then((result) => {
     winnerCommittedResolve();
     return result;
@@ -3839,11 +3862,25 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
     throw error;
   });
   const concurrentRequest = run("request-postgres-outlook-file-refresh-concurrent");
-  const [first, replay] = await Promise.all([winningRequest, concurrentRequest]);
+  const [first, replay] = await settleWithin(
+    Promise.all([winningRequest, concurrentRequest]),
+    "concurrent filings",
+  );
+  const firstState = await state();
   assert.equal(first.status, 201, JSON.stringify(first.body));
   assert.equal(first.body.outcome, "created");
   assert.equal(first.body.safe_error_codes.includes("DOMAIN_IDEMPOTENCY_REQUIRED"), false);
-  assert.equal(replay.status, 200, JSON.stringify(replay.body));
+  assert.equal(replay.status, 200, JSON.stringify({
+    first: first.body,
+    body: replay.body,
+    counters: { refreshCount, storeCount, deleteCount, graphCount },
+    connection: firstState.email.records.find(
+      ({ record_type }) => record_type === "M365Connection",
+    )?.payload,
+    thread: firstState.dms.records.find(
+      ({ record_type }) => record_type === "DmsEmailThread",
+    )?.payload,
+  }));
   assert.equal(replay.body.outcome, "idempotent_replay");
   assert.equal(replay.body.idempotent_replay, true);
   assert.deepEqual(
@@ -3856,12 +3893,30 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
   const documentId = first.body.email_thread.filed_document_ids[0];
   const firstDocument = await dmsUploadRuntime.getDocumentState({ tenant_id, document_id: documentId });
   assert.equal(firstDocument.versions.length, 1);
-  const firstState = await state();
   const connection = firstState.email.records.find(({ record_type }) => record_type === "M365Connection").payload;
   assert.equal(connection.credential_ref, refreshed_credential_ref);
   assert.deepEqual(connection.pending_vault_cleanup_refs, []);
   assert.deepEqual([connection.state_version, connection.expires_at], [2, rotated_expires_at]);
   assert.deepEqual(counts(firstState), [1, 1, 1, 2, 1, 1, 1, 1]);
+  const persistedThread = firstState.dms.records.find(
+    ({ record_type }) => record_type === "DmsEmailThread",
+  ).payload;
+  const filingReceipt = firstState.dms.idempotency.find(
+    ({ key }) => key.endsWith(":dms"),
+  );
+  const filingAudit = firstState.dms.audit.find(
+    ({ event_type }) => event_type === "dms.email.thread.file",
+  );
+  assert.equal(filingReceipt.response.outcome, "created");
+  assert.deepEqual(Object.keys(filingAudit.payload).sort(), [
+    "imported_event_hash",
+    "source_payload_included",
+  ]);
+  assert.equal(filingAudit.payload.source_payload_included, false);
+  assert.equal(
+    filingAudit.payload.imported_event_hash,
+    hashDomainValue(outlookEmailFilingAuditEvent(persistedThread)),
+  );
   assert.equal(
     firstState.dms.idempotency.some(({ key }) => (
       key === `outlook-matter-folders:${tenant_id}:${matter_id}:v1`
@@ -3873,9 +3928,43 @@ test("PostgreSQL Outlook filing keeps the winning refreshed credential when a co
   assert.equal(replayDocument.document.current_version_id, firstDocument.document.current_version_id);
   const replayState = await state();
   assert.deepEqual(counts(replayState), counts(firstState));
+  assert.deepEqual(
+    replayState.dms.idempotency.find(({ key }) => key === filingReceipt.key),
+    filingReceipt,
+  );
   assert.equal(replayState.dms.records.find(({ record_type }) => record_type === "DmsEmailThread").payload.status, "active");
   assert.equal(replayState.matter.records.find(({ record_type }) => record_type === "MatterTimelineEvent").payload.source_object_id, first.body.email_thread.email_thread_id);
-  const durableText = JSON.stringify({ first: first.body, replay: replay.body, durable: replayState, document: replayDocument });
+  const beforeRestartReplay = JSON.stringify({
+    domains: replayState,
+    document: replayDocument,
+  });
+  const restartReplay = await settleWithin(
+    run("request-postgres-outlook-file-refresh-restart-replay"),
+    "restart replay",
+  );
+  assert.equal(restartReplay.status, 200, JSON.stringify(restartReplay.body));
+  assert.equal(restartReplay.body.outcome, "idempotent_replay");
+  const restartState = await state();
+  const restartDocument = await dmsUploadRuntime.getDocumentState({
+    tenant_id,
+    document_id: documentId,
+  });
+  const afterRestartReplay = JSON.stringify({
+    domains: restartState,
+    document: restartDocument,
+  });
+  assert.equal(afterRestartReplay, beforeRestartReplay);
+  assert.equal(Buffer.byteLength(afterRestartReplay), Buffer.byteLength(beforeRestartReplay));
+  assert.deepEqual(counts(restartState), counts(replayState));
+  assert.equal(restartState.dms.idempotency.length, replayState.dms.idempotency.length);
+  assert.deepEqual([refreshCount, storeCount, deleteCount, graphCount], [2, 1, 2, 3]);
+  const durableText = JSON.stringify({
+    first: first.body,
+    replay: replay.body,
+    restart_replay: restartReplay.body,
+    durable: restartState,
+    document: restartDocument,
+  });
   for (const secret of [oldAccess, oldRefresh, newAccess, newRefresh]) assert.equal(durableText.includes(secret), false);
   assert.doesNotMatch(durableText, /(?:access_token|refresh_token|client_secret)/u);
 });

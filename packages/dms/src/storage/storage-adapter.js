@@ -1,5 +1,15 @@
 import { createHash } from "node:crypto";
 
+export {
+  DMS_STORAGE_OBJECT_TOO_LARGE,
+  DMS_STORAGE_BODY_UNBOUNDED,
+  abortStorageBody,
+  cleanupStorageBody,
+  readStorageBodyBounded,
+  storageObjectTooLargeError,
+  storageReadLimit,
+} from "./bounded-storage-read.js";
+
 export const DMS_STORAGE_ADAPTER_CONTRACT_VERSION = "law-firm-os.dms-storage.v3";
 export const DMS_STAGED_STORAGE_METHODS = Object.freeze([
   "stageObject",
@@ -50,6 +60,14 @@ export function createOpaqueStorageKey({ tenant_id, object_id, session_id } = {}
 export function assertStorageAdapter(adapter) {
   for (const method of ["putObject", "getObject", "statObject"]) {
     if (typeof adapter?.[method] !== "function") throw new TypeError(`storage adapter missing ${method}`);
+  }
+  return adapter;
+}
+
+export function assertBoundedStorageReader(adapter) {
+  assertStorageAdapter(adapter);
+  if (typeof adapter?.readObjectBounded !== "function") {
+    throw new TypeError("storage adapter missing readObjectBounded");
   }
   return adapter;
 }

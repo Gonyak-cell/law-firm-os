@@ -113,6 +113,7 @@ test("canonical filing replay rejects wrong operation, documents, fingerprint, a
   }
   const fixture = serviceFixture();
   fixture.repository.recordIdempotency(validEntry(fixture, { request_fingerprint: null }));
+  const beforeLegacyReplay = JSON.stringify(fixture.repository.snapshot());
   const replay = await fileEmailThreadToMatter({
     repository: fixture.repository,
     thread: fixture.thread,
@@ -122,10 +123,11 @@ test("canonical filing replay rejects wrong operation, documents, fingerprint, a
     durable_mime_authority: fixture.authority,
   });
   assert.equal(replay.outcome, "idempotent_replay");
-  assert.equal(
-    fixture.repository.getIdempotency({ tenant_id: TENANT, idempotency_key: fixture.idempotency_key }).request_fingerprint,
-    outlookEmailFileRequestFingerprint(fixture.thread),
-  );
+  assertSnapshotUnchanged(fixture.repository, beforeLegacyReplay);
+  assert.equal(fixture.repository.getIdempotency({
+    tenant_id: TENANT,
+    idempotency_key: fixture.idempotency_key,
+  }).request_fingerprint, null);
   const sourceMismatch = serviceFixture();
   sourceMismatch.repository.recordIdempotency(validEntry(sourceMismatch));
   const beforeSource = sourceMismatch.repository.getIdempotency({ tenant_id: TENANT, idempotency_key: sourceMismatch.idempotency_key });

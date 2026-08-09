@@ -35,12 +35,17 @@ function fixture({ audit = "match", fingerprint = null } = {}) {
   return { repository, thread, authority: createDmsRepositoryMimeAuthority(repository, { provider }), key };
 }
 
-test("legacy null-fingerprint replay backfills only after matching durable audit", async () => {
+test("legacy null-fingerprint replay remains immutable after matching durable audit", async () => {
   const { repository, thread, authority, key } = fixture();
+  const before = JSON.stringify(repository.snapshot());
   const result = await fileEmailThreadToMatter({ repository, thread, actor_id: "replay-actor", require_original_mime_document: true, idempotency_key: key, durable_mime_authority: authority });
   assert.equal(result.outcome, "idempotent_replay");
   assert.equal(repository.listAudit({ tenant_id: TENANT, object_id: thread.email_thread_id })[0].actor_id, "original-actor");
-  assert.equal(repository.getIdempotency({ tenant_id: TENANT, idempotency_key: key }).request_fingerprint, outlookEmailFileRequestFingerprint(thread));
+  assert.equal(repository.getIdempotency({ tenant_id: TENANT, idempotency_key: key }).request_fingerprint, null);
+  const after = JSON.stringify(repository.snapshot());
+  assert.equal(after, before);
+  assert.equal(Buffer.byteLength(after), Buffer.byteLength(before));
+  assert.equal(JSON.parse(after).idempotency.length, JSON.parse(before).idempotency.length);
 });
 
 test("legacy null-fingerprint replay rejects missing, stale, or foreign audit without mutation", async () => {

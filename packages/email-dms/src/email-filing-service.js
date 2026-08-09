@@ -14,6 +14,7 @@ export {
   OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
   canonicalFilingAudit,
   createDmsRepositoryMimeAuthority,
+  outlookEmailFilingAuditEvent,
   outlookEmailFileRequestFingerprint,
   validateOutlookEmailFileIdempotency,
 } from "./email-filing-canonical.js";
@@ -79,19 +80,6 @@ export async function fileEmailThreadToMatter({
     const binding = validateOutlookEmailFileIdempotency({ entry: replay, thread: existing });
     if (!binding.valid) throw new Error("email filing idempotency receipt is not canonically bound");
     if (!canonicalFilingAudit(repository, existing)) throw new Error("email filing receipt lacks canonical filing audit");
-    repository.recordIdempotency({
-      tenant_id: thread.tenant_id,
-      idempotency_key,
-      operation: OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION,
-      request_fingerprint: binding.request_fingerprint,
-      response: {
-        outcome: "idempotent_replay",
-        email_thread_id: existing.email_thread_id,
-        matter_id: existing.matter_id,
-        filed_document_ids: existing.filed_document_ids,
-      },
-      created_at: replay.created_at,
-    });
     return Object.freeze({ outcome: "idempotent_replay", thread: existing });
   }
   const pending = existing ?? repository.create({

@@ -69,6 +69,10 @@ import {
   createPostgresEmailDmsCompletionCheckpoint,
   createPostgresPeopleOutlookCompletionCheckpoint,
 } from "./people-outlook-completion-checkpoint.js";
+import {
+  createPostgresPrecedentRepository,
+  derivePrecedentAuthorityKeys,
+} from "../../../packages/dms/src/search/postgres-precedent-repository.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -263,6 +267,19 @@ export async function runPostgresReadWithBaselineRetry({
   }
 }
 
+export function createPostgresPrecedentSearchRuntime({ pool, authoritySecret } = {}) {
+  if (!pool?.connect || !pool?.query) throw new TypeError("Precedent search requires a PostgreSQL pool");
+  if (!(typeof authoritySecret === "string" || Buffer.isBuffer(authoritySecret))
+      || Buffer.byteLength(authoritySecret) < 32) {
+    throw new TypeError("Precedent search requires server-held authority secret material");
+  }
+  const keys = derivePrecedentAuthorityKeys(authoritySecret);
+  return Object.freeze({ authority: "postgres-v2",
+    repository: createPostgresPrecedentRepository({ pool,
+      cursorSecret: keys.cursor, extractionReceiptSecret: keys.extraction_receipt }),
+    production_ready_claim: false });
+}
+
 function createHrxDomainParticipant(requestContext, projectionReader) {
   const projectionRead =
     ["GET", "HEAD"].includes(
@@ -321,6 +338,7 @@ function createRequestRuntimes({
   clientFixedReportTokenAuthority,
   clientOperationsReadPathSelector,
   clientOperationsV2ReadProvider,
+  precedentSearchRuntime,
   bankReconciliationCheckpoint,
   peopleOutlookCompletionCheckpoint,
   clientOutlookCompletionCheckpoint,
@@ -401,6 +419,7 @@ function createRequestRuntimes({
     }),
     authority: "postgres-v2",
     upload_runtime: dmsUploadRuntime,
+    precedent_search_runtime: precedentSearchRuntime,
   });
   const emailDmsRuntime = Object.freeze({
     authority: "postgres-v2",
@@ -476,6 +495,7 @@ function createRequestRuntimes({
     uiReadinessRuntime,
     homeDashboardRuntime,
     enterpriseReadinessRuntime,
+    precedentSearchRuntime,
   });
 }
 
@@ -509,6 +529,8 @@ export function createPostgresApiRuntimeAuthority({
   clientFixedReportTokenAuthority = null,
   clientOperationsV2Enabled = false,
   clientOperationsSchemaPool = null,
+  precedentSearchPool = null,
+  precedentAuthoritySecret = null,
   identityRepository = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
@@ -554,6 +576,16 @@ export function createPostgresApiRuntimeAuthority({
       "Client operations v2 requires the verified PostgreSQL schema pool",
     );
   }
+  if (precedentSearchPool != null
+      && (typeof precedentSearchPool.query !== "function"
+        || typeof precedentSearchPool.connect !== "function")) {
+    throw new TypeError("Precedent search requires a PostgreSQL pool");
+  }
+  if (precedentSearchPool != null
+      && (!(typeof precedentAuthoritySecret === "string" || Buffer.isBuffer(precedentAuthoritySecret))
+        || Buffer.byteLength(precedentAuthoritySecret) < 32)) {
+    throw new TypeError("Precedent search requires server-held authority secret material");
+  }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
       || hrxRelationalProjectionReader.fallback_authority
@@ -572,6 +604,11 @@ export function createPostgresApiRuntimeAuthority({
     createPostgresEmailDmsCompletionCheckpoint({
       ledger,
       workflow: "client-outlook",
+    });
+  const precedentSearchRuntime = precedentSearchPool == null ? null
+    : createPostgresPrecedentSearchRuntime({
+      pool: precedentSearchPool,
+      authoritySecret: precedentAuthoritySecret,
     });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
@@ -644,6 +681,7 @@ export function createPostgresApiRuntimeAuthority({
               bankImportPreviewTokens,
               clientFixedReportTokenAuthority,
               clientOperationsV2ReadProvider,
+              precedentSearchRuntime,
               clientOperationsReadPathSelector: ({ tenant_id }) =>
                 selectClientOperationsReadPath({
                   enabled: clientOperationsV2Enabled,

@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import {
   createDmsRepositoryMimeAuthority,
   fileEmailThreadToMatter,
+  outlookEmailFilingAuditEvent,
 } from "../../../packages/email-dms/src/email-filing-service.js";
 import {
   createEmailThread,
@@ -61,6 +62,10 @@ import {
   handleOutlookConversationPolicyApiRequest,
   isOutlookConversationPolicyPath,
 } from "./outlook-conversation-policy-api.js";
+import {
+  handleOutlookPrecedentReadiness,
+  handleOutlookPrecedentSearch,
+} from "./outlook-precedent-runtime-context.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -77,6 +82,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/inquiries/message/resolve",
     "GET /api/outlook/inquiries/evidence/:evidence_id/content",
     "GET /api/outlook/matters",
+    "GET /api/outlook/precedents",
+    "GET /api/outlook/precedents/readiness",
     "GET /api/outlook/matters/:matter_id/timeline",
     "GET /api/outlook/matters/:matter_id/documents",
     "POST /api/outlook/messages/identity",
@@ -3023,12 +3030,8 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual", r
         provider: runtime.dmsRuntime.storage,
       }),
     audit: {
-      append: (event, writer = runtime.dmsRuntime.repository) =>
-        appendDmsAudit(writer, {
-          ...event,
-          event_id: `outlook.email.file:${tenantId}:${canonicalThread.email_thread_id}`,
-          occurred_at: existingThread.filing_time,
-        }),
+      append: (_event, writer = runtime.dmsRuntime.repository) =>
+        appendDmsAudit(writer, outlookEmailFilingAuditEvent(existingThread)),
     },
   });
   const filedThread = result.thread;
@@ -3945,6 +3948,14 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
         runtime,
       });
     }
+    if (pathname === "/api/outlook/precedents/readiness" && method === "GET") {
+      return await handleOutlookPrecedentReadiness({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
     if (pathname === "/api/outlook/operation-receipts/readback" && method === "POST") {
       if (
         !hasOnlyBodyFields(body, [
@@ -3965,6 +3976,14 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
       }
       return await handleOutlookOperationReceiptReadback({
         body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (pathname === "/api/outlook/precedents" && method === "GET") {
+      return await handleOutlookPrecedentSearch({
+        query,
         context,
         requestId,
         runtime,

@@ -48,6 +48,10 @@ const GRANTS = Object.freeze([
   "GRANT SELECT, INSERT, UPDATE ON lawos_dms.legal_holds TO lawos_app",
   "GRANT SELECT, INSERT, UPDATE ON lawos_dms.retention_policies TO lawos_app",
   "GRANT SELECT, INSERT, UPDATE ON lawos_dms.delete_intents TO lawos_app",
+  "GRANT SELECT, INSERT, UPDATE ON lawos_dms.precedent_sources TO lawos_app",
+  "GRANT SELECT, INSERT ON lawos_dms.precedent_extraction_receipts TO lawos_app",
+  "GRANT SELECT, INSERT, UPDATE, DELETE ON lawos_dms.precedent_search_index TO lawos_app",
+  "GRANT SELECT, INSERT ON lawos_dms.document_privilege_labels TO lawos_app",
 ]);
 
 function roleGrantStatements(roleName) {

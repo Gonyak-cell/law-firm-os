@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { hashDomainValue } from "../../persistence/src/domain-ledger.js";
 import { assertProviderIntegrityState } from "./durable-mime-authority.js";
 export { createDmsRepositoryMimeAuthority } from "./repository-mime-authority.js";
 export const OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION = "outlook_email_file";
@@ -146,6 +147,42 @@ function canonicalFilingAuditMetadata(thread) {
   };
 }
 
+export function outlookEmailFilingAuditEvent(thread) {
+  const metadata = canonicalFilingAuditMetadata(thread);
+  return Object.freeze({
+    event_id: `outlook.email.file:${metadata.tenant_id}:${metadata.email_thread_id}`,
+    tenant_id: metadata.tenant_id,
+    actor_id: metadata.actor_id,
+    action: "dms.email.thread.file",
+    object_type: "DmsEmailThread",
+    object_id: metadata.email_thread_id,
+    decision: "allow",
+    reason: "email_thread_filed_to_matter",
+    occurred_at: canonicalText(thread.filing_time, "filing_time"),
+    metadata: Object.freeze({
+      ...metadata,
+      raw_provider_payload_included: false,
+      credential_material_included: false,
+    }),
+  });
+}
+
+function importedCanonicalFilingAudit(event, thread) {
+  const payload = event?.payload;
+  if (
+    payload?.source_payload_included !== false
+    || !/^[a-f0-9]{64}$/u.test(payload?.imported_event_hash ?? "")
+    || !Number.isFinite(Date.parse(event?.created_at))
+    || Object.keys(payload).some((field) => ![
+      "imported_event_hash",
+      "source_payload_included",
+    ].includes(field))
+  ) return false;
+  const expected = outlookEmailFilingAuditEvent(thread);
+  return event.event_id === expected.event_id
+    && payload.imported_event_hash === hashDomainValue(expected);
+}
+
 export function canonicalFilingAudit(repository, thread) {
   let binding;
   let actorId;
@@ -165,7 +202,10 @@ export function canonicalFilingAudit(repository, thread) {
     || event.actor_id !== actorId
     || event.object_type !== "DmsEmailThread"
     || event.object_id !== binding.email_thread_id
-    || event.decision !== "allow"
+  ) return null;
+  if (importedCanonicalFilingAudit(event, thread)) return event;
+  if (
+    event.decision !== "allow"
     || event.reason !== "email_thread_filed_to_matter"
     || event.occurred_at !== thread.filing_time
     || !metadata || typeof metadata !== "object" || Array.isArray(metadata)
