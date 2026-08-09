@@ -385,6 +385,7 @@ export function createCrmIntakeRuntimeContext({
   emailDmsRepository = null,
   matterRepository = null,
   dmsRuntime = null,
+  engagementApprovalCheckpoint = null,
 } = {}) {
   seedMasterDataRepository(masterDataRepository, CRM_MASTER_DATA_SEED);
   return Object.freeze({
@@ -394,6 +395,7 @@ export function createCrmIntakeRuntimeContext({
     emailDmsRepository,
     matterRepository,
     dmsRuntime,
+    engagementApprovalCheckpoint,
     seed_ref: "cmp-g6-crm-intake-synthetic",
     masterDataServices: Object.freeze({
       organizationService: createOrganizationService({ repository: masterDataRepository }),
@@ -4353,6 +4355,7 @@ export async function handleEngagementApprove({ body, context, requestId, runtim
       dms_repository: runtime.dmsRuntime?.repository,
       dms_storage: runtime.dmsRuntime?.storage,
       dms_upload_runtime: runtime.dmsRuntime?.upload_runtime,
+      engagement_approval_checkpoint: runtime.engagementApprovalCheckpoint,
     });
     return itemResponse({
       requestId,
@@ -4378,8 +4381,17 @@ export async function handleEngagementApprove({ body, context, requestId, runtim
         idempotent_replay: result.idempotent_replay,
       },
     });
-  } catch {
-    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  } catch (error) {
+    const mapped = errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [error?.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+    return {
+      ...mapped,
+      body: { ...mapped.body, retryable: error?.retryable === true },
+    };
   }
 }
 

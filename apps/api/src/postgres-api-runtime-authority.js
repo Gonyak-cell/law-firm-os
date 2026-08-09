@@ -71,6 +71,9 @@ import {
   createPostgresPeopleOutlookCompletionCheckpoint,
 } from "./people-outlook-completion-checkpoint.js";
 import {
+  createPostgresIntakeEngagementCompletionCheckpoint,
+} from "./intake-engagement-completion-checkpoint.js";
+import {
   createPostgresPrecedentRepository,
   derivePrecedentAuthorityKeys,
 } from "../../../packages/dms/src/search/postgres-precedent-repository.js";
@@ -95,6 +98,7 @@ const PEOPLE_OUTLOOK_SELF_COMPLETION_PATH =
   "/api/hrx/people/me/outlook-connection/complete";
 const CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH =
   "/api/outlook/connection/callback";
+const INTAKE_ENGAGEMENT_APPROVAL_PATH = "/api/intake/engagements";
 const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
   "DOMAIN_BASELINE_CONFLICT",
   "DOMAIN_SHADOW_DIFFERENCE",
@@ -154,6 +158,11 @@ function isPeopleOutlookDisconnect(method, pathname) {
   return String(method ?? "").toUpperCase() === "DELETE"
     && /^\/api\/hrx\/people\/members\/[^/]+\/outlook-connection\/?$/u
       .test(String(pathname ?? ""));
+}
+
+function isIntakeEngagementApproval(method, pathname) {
+  return String(method ?? "").toUpperCase() === "POST"
+    && String(pathname ?? "").replace(/\/+$/u, "") === INTAKE_ENGAGEMENT_APPROVAL_PATH;
 }
 
 const OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH = "/api/outlook/email/corrections";
@@ -346,6 +355,7 @@ function createRequestRuntimes({
   bankReconciliationCheckpoint,
   peopleOutlookCompletionCheckpoint,
   clientOutlookCompletionCheckpoint,
+  intakeEngagementCompletionCheckpoint,
   requestFailureCompensator,
   leaveIntegrationProviders,
   leaveIntegrationProviderEnabled,
@@ -446,6 +456,7 @@ function createRequestRuntimes({
     emailDmsRepository: repositories.emailDmsRepository,
     matterRepository: repositories.matterRepository,
     dmsRuntime,
+    engagementApprovalCheckpoint: intakeEngagementCompletionCheckpoint,
   });
   const matterRuntime = createMatterRuntimeContext({
     repository: repositories.matterRepository,
@@ -624,6 +635,8 @@ export function createPostgresApiRuntimeAuthority({
       ledger,
       workflow: "client-outlook",
     });
+  const intakeEngagementCompletionCheckpoint =
+    createPostgresIntakeEngagementCompletionCheckpoint({ ledger });
   const precedentSearchRuntime = precedentSearchPool == null ? null
     : createPostgresPrecedentSearchRuntime({
       pool: precedentSearchPool,
@@ -643,9 +656,14 @@ export function createPostgresApiRuntimeAuthority({
         === CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH;
     const emailDmsSelfCompletion = peopleOutlookSelfCompletion
       || clientOutlookSelfCompletion;
+    const intakeEngagementSelfCompletion = isIntakeEngagementApproval(
+      method,
+      request_context?.pathname,
+    );
     const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
       || isPayrollReconciliationMutation(method, request_context?.pathname)
       || peopleOutlookSelfCompletion
+      || intakeEngagementSelfCompletion
       || isPeopleOutlookDisconnect(method, request_context?.pathname)
       || isOutlookIdempotentMutation(method, request_context?.pathname);
     return runPostgresReadWithBaselineRetry({
@@ -667,15 +685,22 @@ export function createPostgresApiRuntimeAuthority({
               create_repository: createEmailDmsRepository,
             })
           : null;
+        const detachedIntakeRepository = intakeEngagementSelfCompletion
+          ? await materializeRecordRepositoryFromDomainLedger({
+              ledger,
+              descriptor: INTAKE_DOMAIN_DESCRIPTOR,
+              tenant_id: tenantId,
+              create_repository: createIntakeRuntimeRepository,
+            })
+          : null;
         try {
           const productCommand = await runRecordRepositoryMultiDomainCommand({
             ledger,
             tenant_id: tenantId,
-            domains: emailDmsSelfCompletion
-              ? PRODUCT_DOMAINS.filter(
-                  ({ key }) => key !== "emailDmsRepository",
-                )
-              : PRODUCT_DOMAINS,
+            domains: PRODUCT_DOMAINS.filter(({ key }) => (
+              (!emailDmsSelfCompletion || key !== "emailDmsRepository")
+              && (!intakeEngagementSelfCompletion || key !== "intakeRepository")
+            )),
             additional_domains: [
               createHrxDomainParticipant(
                 request_context,
@@ -683,12 +708,15 @@ export function createPostgresApiRuntimeAuthority({
               ),
             ],
             command: (repositories) => command(createRequestRuntimes({
-              repositories: detachedEmailDmsRepository
-                ? Object.freeze({
-                    ...repositories,
-                    emailDmsRepository: detachedEmailDmsRepository,
-                  })
-                : repositories,
+              repositories: Object.freeze({
+                ...repositories,
+                ...(detachedEmailDmsRepository
+                  ? { emailDmsRepository: detachedEmailDmsRepository }
+                  : {}),
+                ...(detachedIntakeRepository
+                  ? { intakeRepository: detachedIntakeRepository }
+                  : {}),
+              }),
               hrxStore: repositories.hrxStore,
               ...(identityRepository?.listDirectoryUsers
                 ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
@@ -713,6 +741,7 @@ export function createPostgresApiRuntimeAuthority({
               bankReconciliationCheckpoint,
               peopleOutlookCompletionCheckpoint,
               clientOutlookCompletionCheckpoint,
+              intakeEngagementCompletionCheckpoint,
               requestFailureCompensator,
               leaveIntegrationProviders,
               leaveIntegrationProviderEnabled,
@@ -738,6 +767,7 @@ export function createPostgresApiRuntimeAuthority({
           return productCommand.result;
         } finally {
           detachedEmailDmsRepository?.close();
+          detachedIntakeRepository?.close();
         }
       }),
     });

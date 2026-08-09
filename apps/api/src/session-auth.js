@@ -2646,6 +2646,7 @@ export function createApiSessionAuth({
   }
 
   return Object.freeze({
+    trusted_tenant_id: trustedTenantId,
     capabilities: Object.freeze({
       provider: federatedStaffAuthEnabled ? staffOidcProvider.provider_id : syntheticLoginEnabled ? "local-dev-synthetic-provider" : LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
       staff_auth_authority: federatedStaffAuthEnabled ? "entra-oidc" : syntheticLoginEnabled ? "local-dev-synthetic" : "internal-password",

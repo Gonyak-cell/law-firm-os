@@ -2585,10 +2585,13 @@ export async function startApiServer({
               ledger: domainLedger,
             })
           : sessionObjectAclResolver;
+      const configuredIdentityTenantId = String(
+        resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID ?? "",
+      ).trim() || null;
       const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
         profile: resolvedRuntimeProfile,
         secret: resolvedSessionSecret,
-        trustedTenantId: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
+        trustedTenantId: configuredIdentityTenantId ?? undefined,
         passwordResetEmailDelivery,
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,
@@ -2596,12 +2599,28 @@ export async function startApiServer({
         identityRepository,
         objectAclResolver: resolvedSessionObjectAclResolver,
       });
+      const sessionAuthorityTenantId = String(
+        sessionAuth == null ? "" : resolvedSessionAuth.trusted_tenant_id ?? "",
+      ).trim() || null;
+      if (configuredIdentityTenantId && sessionAuthorityTenantId
+          && configuredIdentityTenantId !== sessionAuthorityTenantId) {
+        throw runtimePreflightError(
+          "LAWOS_IDENTITY_TENANT_ID must match sessionAuth.trusted_tenant_id",
+        );
+      }
+      const startupAuthorityTenantId = configuredIdentityTenantId
+        ?? sessionAuthorityTenantId;
+      if (!startupAuthorityTenantId) {
+        throw runtimePreflightError(
+          "postgres-v2 startup requires LAWOS_IDENTITY_TENANT_ID or sessionAuth.trusted_tenant_id",
+        );
+      }
       const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
       const dmsConsumerReadAuthority = createPostgresDmsConsumerReadAuthority({
         pool: postgresPool,
       });
       await dmsConsumerReadAuthority.probe({
-        tenant_id: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
+        tenant_id: startupAuthorityTenantId,
         adapter_id: resolvedDmsStorage.adapter_id,
       });
       const dmsConsumerStorage = createPostgresDmsConsumerStorage({
@@ -2676,7 +2695,7 @@ export async function startApiServer({
           ? await outlookConversationRuntimeFactory({
               pool: postgresPool,
               domain_ledger: domainLedger,
-              tenant_id: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
+              tenant_id: startupAuthorityTenantId,
               entra_tenant_id: m365GraphConfig.entra_tenant_id,
               notification_url: resolvedPersistenceAuthorityEnv.LAWOS_GRAPH_NOTIFICATION_URL,
               cursor_key_material: resolvedSessionSecret,

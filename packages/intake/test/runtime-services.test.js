@@ -224,7 +224,7 @@ test("G6 CRM services block Matter shortcuts and enforce permission/idempotency 
   );
 });
 
-test("G6 opportunity handoff and conflict workflow produce a valid clearance token without creating Matter", () => {
+test("G6 opportunity handoff and conflict workflow produce a valid clearance token without creating Matter", async () => {
   const crm = crmRepo();
   const intake = intakeRepo();
   createOpportunity({ repository: crm, opportunity: opportunityFixture(), actor_id: ACTOR, idempotency_key: "opp-1" });
@@ -366,7 +366,7 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
       }),
     /Clearance requires approved engagement ledger proof/,
   );
-  const engagement = approveEngagement({
+  const engagement = await approveEngagement({
     repository: intake,
     engagement: {
       engagement_id: "engagement-cmp-g6-001",
@@ -537,43 +537,42 @@ test("G6 conflict search derives hits from normalized adverse parties and ignore
   );
 });
 
-test("G6 engagement signed document bytes are stored in DMS with server hash verification", () => {
+test("G6 engagement signed document bytes are stored in DMS with server hash verification", async () => {
   const intake = intakeRepo();
   const dms = createDmsRepository();
   const storage = createLocalStorageAdapter({ adapter_id: "intake-test-vault" });
   const bytes = Buffer.from("%PDF-1.4\nsigned engagement\n%%EOF\n");
   const serverHash = sha256Hex(bytes);
 
-  assert.throws(
-    () =>
-      approveEngagement({
-        repository: intake,
-        dms_repository: dms,
-        dms_storage: storage,
-        engagement: {
-          engagement_id: "engagement-cmp-g6-hash-mismatch",
-          tenant_id: TENANT,
-          intake_request_id: "intake-cmp-g6-001",
+  await assert.rejects(
+    approveEngagement({
+      repository: intake,
+      dms_repository: dms,
+      dms_storage: storage,
+      engagement: {
+        engagement_id: "engagement-cmp-g6-hash-mismatch",
+        tenant_id: TENANT,
+        intake_request_id: "intake-cmp-g6-001",
+        signed_document_id: "doc-engagement-hash-mismatch",
+        signature_ref: "signature:doc-engagement-hash-mismatch",
+        signed_document_upload: {
+          signed_document_upload_id: "signed-upload-hash-mismatch",
+          document_id: "doc-engagement-hash-mismatch",
           signed_document_id: "doc-engagement-hash-mismatch",
           signature_ref: "signature:doc-engagement-hash-mismatch",
-          signed_document_upload: {
-            signed_document_upload_id: "signed-upload-hash-mismatch",
-            document_id: "doc-engagement-hash-mismatch",
-            signed_document_id: "doc-engagement-hash-mismatch",
-            signature_ref: "signature:doc-engagement-hash-mismatch",
-            content_sha256: "sha256:not-the-server-hash",
-            bytes_base64: bytes.toString("base64"),
-            byte_size: 1,
-            mime_type: "application/pdf",
-          },
+          content_sha256: "sha256:not-the-server-hash",
+          bytes_base64: bytes.toString("base64"),
+          byte_size: 1,
+          mime_type: "application/pdf",
         },
-        actor_id: ACTOR,
-        idempotency_key: "engagement-hash-mismatch",
-      }),
+      },
+      actor_id: ACTOR,
+      idempotency_key: "engagement-hash-mismatch",
+    }),
     /signed document hash mismatch/,
   );
 
-  const engagement = approveEngagement({
+  const engagement = await approveEngagement({
     repository: intake,
     dms_repository: dms,
     dms_storage: storage,

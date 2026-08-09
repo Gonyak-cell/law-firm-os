@@ -1,260 +1,176 @@
-import { appendIntakeAuditEvent } from "./audit.js";
 import { uploadDocument } from "../../dms/src/document-service.js";
-import { sha256Hex } from "../../dms/src/storage/storage-adapter.js";
+import {
+  engagementApprovalError,
+  intakeMetadataGuard,
+  prepareEngagementApproval,
+} from "./engagement-approval-command.js";
+import {
+  engagementApprovalReplay,
+  persistEngagementApproval,
+} from "./engagement-approval-persistence.js";
 
-function requiredString(input, field) {
-  const value = input?.[field];
-  if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${field} is required`);
-  return value.trim();
+const repositoryFlights = new WeakMap();
+const DEFAULT_FOLLOWER_WAIT_MILLIS = 2_000;
+const FOLLOWER_CODES = new Set([
+  "DMS_UPLOAD_STAGE_LEASE_ACTIVE",
+  "DMS_UPLOAD_FINALIZE_LEASE_ACTIVE",
+]);
+
+function flightsFor(repository) {
+  let flights = repositoryFlights.get(repository);
+  if (!flights) {
+    flights = new Map();
+    repositoryFlights.set(repository, flights);
+  }
+  return flights;
 }
 
-function positiveNumber(input, field) {
-  const value = Number(input?.[field]);
-  if (!Number.isFinite(value) || value <= 0) throw new TypeError(`${field} must be positive`);
-  return value;
+async function boundedLocalFollower(flight, waitMillis) {
+  let timer;
+  try {
+    const result = await Promise.race([
+      flight.promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(engagementApprovalError(
+          "INTAKE_ENGAGEMENT_APPROVAL_PENDING",
+          "engagement approval remains in progress",
+          { retryable: true },
+        )), waitMillis);
+        timer.unref?.();
+      }),
+    ]);
+    return Object.freeze({ ...result, idempotent_replay: true });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-function normalizeSha256(value) {
-  if (typeof value !== "string" || value.trim() === "") return null;
-  return value.trim().replace(/^sha256:/, "");
+function assertDmsUpload(prepared, result) {
+  if (result?.document?.document_id !== prepared.dms.document.document_id
+      || result?.version?.version_id !== prepared.dms.version_id
+      || typeof result?.file_object?.file_object_id !== "string"
+      || result.version?.file_object_id !== result.file_object.file_object_id
+      || result?.storage_receipt?.sha256 !== prepared.dms.expected_sha256
+      || Number(result?.storage_receipt?.byte_size) !== prepared.dms.expected_byte_size) {
+    throw engagementApprovalError(
+      "INTAKE_ENGAGEMENT_DMS_AUTHORITY_MISMATCH",
+      "DMS upload receipt does not match the engagement approval",
+    );
+  }
+  return result;
 }
 
-function signedDocumentBytesFor(engagement) {
-  const upload = engagement.signed_document_upload ?? {};
-  const bytesBase64 = upload.bytes_base64 ?? upload.content_base64 ?? engagement.signed_document_bytes_base64;
-  if (typeof bytesBase64 === "string" && bytesBase64.trim() !== "") return Buffer.from(bytesBase64, "base64");
-  if (typeof upload.content_text === "string" && upload.content_text !== "") return Buffer.from(upload.content_text);
-  return null;
-}
-
-function templateDocumentFor(engagement) {
-  const template = engagement.template_document ?? {};
-  return Object.freeze({
-    ...template,
-    model_type: "EngagementTemplateDocument",
-    template_document_id: template.template_document_id ?? engagement.template_document_id ?? `template_document:${engagement.engagement_id}`,
-    tenant_id: engagement.tenant_id,
-    intake_request_id: engagement.intake_request_id,
-    engagement_id: engagement.engagement_id,
-    template_id: engagement.template_id ?? template.template_id ?? "matter_engagement_letter",
-    document_title: template.document_title ?? "위임계약서",
-    generation_state: "generated",
-    generated_at: template.generated_at ?? engagement.approved_at ?? new Date().toISOString(),
-    merge_field_count: Number(template.merge_field_count ?? 3),
-    document_payload_included: false,
-    template_payload_included: false,
-    production_ready_claim: false,
-  });
-}
-
-function dmsDocumentForSignedUpload(engagement, templateDocument) {
-  const upload = engagement.signed_document_upload ?? {};
-  const documentId = upload.document_id ?? upload.signed_document_id ?? engagement.signed_document_id;
-  return Object.freeze({
-    tenant_id: engagement.tenant_id,
-    matter_id: upload.matter_id ?? engagement.matter_id ?? `intake:${engagement.intake_request_id}`,
-    workspace_id: upload.workspace_id ?? `workspace:intake:${engagement.intake_request_id}`,
-    folder_id: upload.folder_id ?? null,
-    document_id: documentId,
-    title: upload.title ?? templateDocument.document_title ?? "Signed engagement letter",
-    status: "active",
-    current_version_id: upload.version_id ?? `version:${documentId}:1`,
-    permission_envelope_id: upload.permission_envelope_id ?? `perm:${engagement.tenant_id}:${documentId}`,
-    audit_trace_id: upload.audit_trace_id ?? `audit:${engagement.tenant_id}:${documentId}`,
-    mime_type: upload.mime_type ?? "application/pdf",
-  });
-}
-
-function signedUploadFor(engagement, templateDocument, dmsUpload = null) {
-  const upload = engagement.signed_document_upload ?? {};
-  const {
-    bytes_base64,
-    content_base64,
-    content_text,
-    document_bytes_base64,
-    signed_document_bytes_base64,
-    ...safeUpload
-  } = upload;
-  void bytes_base64;
-  void content_base64;
-  void content_text;
-  void document_bytes_base64;
-  void signed_document_bytes_base64;
-  const receipt = dmsUpload?.storage_receipt ?? null;
-  const documentId = upload.document_id ?? upload.signed_document_id ?? engagement.signed_document_id;
-  const signatureRef = upload.signature_ref ?? engagement.signature_ref;
-  const callerContentSha256 = upload.content_sha256 ?? upload.sha256;
-  const callerSha256 = normalizeSha256(callerContentSha256);
-  const contentSha256 = receipt?.sha256 ?? callerContentSha256;
-  requiredString({ document_id: documentId }, "document_id");
-  requiredString({ signature_ref: signatureRef }, "signature_ref");
-  requiredString({ content_sha256: contentSha256 }, "content_sha256");
-  if (documentId !== engagement.signed_document_id) throw new Error("signed document upload mismatch");
-  if (signatureRef !== engagement.signature_ref) throw new Error("signed document signature mismatch");
-  if (!signatureRef.startsWith("signature:")) throw new Error("signature_ref must be a signature receipt");
-  if (receipt && callerSha256 && callerSha256 !== receipt.sha256) throw new Error("signed document hash mismatch");
-  return Object.freeze({
-    ...safeUpload,
-    model_type: "EngagementSignedDocumentUpload",
-    signed_document_upload_id: upload.signed_document_upload_id ?? engagement.signed_document_upload_id ?? `signed_upload:${engagement.engagement_id}`,
-    tenant_id: engagement.tenant_id,
-    intake_request_id: engagement.intake_request_id,
-    engagement_id: engagement.engagement_id,
-    template_document_id: templateDocument.template_document_id,
-    document_id: documentId,
-    signed_document_id: documentId,
-    signature_ref: signatureRef,
-    content_sha256: contentSha256,
-    byte_size: receipt?.byte_size ?? positiveNumber(upload, "byte_size"),
-    mime_type: upload.mime_type ?? "application/pdf",
-    upload_state: "uploaded",
-    lx_registry_ref: upload.lx_registry_ref ?? "LX-06",
-    dms_document_id: dmsUpload?.document?.document_id ?? null,
-    dms_version_id: dmsUpload?.version?.version_id ?? null,
-    dms_file_object_id: dmsUpload?.file_object?.file_object_id ?? null,
-    server_hash_recomputed: Boolean(receipt),
-    bytes_included: false,
-    storage_pointer_ref_included: false,
-    production_ready_claim: false,
-  });
-}
-
-function uploadSignedDocumentBytes({ dms_repository, dms_storage, dms_upload_runtime, engagement, templateDocument, actor_id, idempotency_key } = {}) {
-  const bytes = signedDocumentBytesFor(engagement);
-  if (!bytes) return null;
-  if (!dms_upload_runtime && (!dms_repository || !dms_storage)) throw new Error("signed document bytes require a DMS upload authority");
-  const upload = engagement.signed_document_upload ?? {};
-  const callerSha256 = normalizeSha256(upload.content_sha256 ?? upload.sha256);
-  const serverSha256 = sha256Hex(bytes);
-  if (callerSha256 && callerSha256 !== serverSha256) throw new Error("signed document hash mismatch");
+async function executeApproval({
+  repository,
+  prepared,
+  dms_repository,
+  dms_storage,
+  dms_upload_runtime,
+  engagement_approval_checkpoint: checkpoint,
+  clock,
+} = {}) {
+  const occurredAt = () => new Date(typeof clock === "function" ? clock() : Date.now()).toISOString();
+  if (!prepared.bytes) {
+    return checkpoint
+      ? checkpoint.finalize_without_dms({ prepared })
+      : persistEngagementApproval({ repository, prepared, occurred_at: occurredAt() });
+  }
+  if (!dms_upload_runtime && (!dms_repository || !dms_storage)) {
+    throw new Error("signed document bytes require a DMS upload authority");
+  }
+  let checkpointResponse = null;
+  const beforePersist = checkpoint
+    ? async (input) => {
+        if (input.phase !== "before_metadata") return;
+        checkpointResponse = await checkpoint.before_metadata({ ...input, prepared });
+      }
+    : undefined;
   const input = {
-    document: dmsDocumentForSignedUpload(engagement, templateDocument),
-    bytes,
-    actor_id,
-    idempotency_key: `engagement-signed-document:${idempotency_key}`,
+    document: prepared.dms.document,
+    bytes: prepared.bytes,
+    actor_id: prepared.actor_id,
+    idempotency_key: prepared.dms.idempotency_key,
+    session_id: prepared.dms.session_id,
+    object_id: prepared.dms.object_id,
+    completion_authority: checkpoint ? intakeMetadataGuard(prepared) : undefined,
+    beforePersist,
   };
-  return dms_upload_runtime
-    ? dms_upload_runtime.uploadDocument(input)
-    : uploadDocument({ repository: dms_repository, storage: dms_storage, ...input });
+  try {
+    const dmsUpload = dms_upload_runtime
+      ? await dms_upload_runtime.uploadDocument(input)
+      : uploadDocument({ repository: dms_repository, storage: dms_storage, ...input });
+    if (!checkpoint) {
+      return persistEngagementApproval({
+        repository,
+        prepared,
+        dms_upload: assertDmsUpload(prepared, dmsUpload),
+        occurred_at: occurredAt(),
+      });
+    }
+    if (checkpointResponse) return checkpointResponse;
+    const replay = await checkpoint.read({ prepared });
+    if (replay) return replay;
+    throw engagementApprovalError(
+      "INTAKE_ENGAGEMENT_REPAIR_REQUIRED",
+      "DMS metadata exists without the canonical Intake approval receipt",
+    );
+  } catch (error) {
+    const code = error?.safe_error_code ?? error?.code?.replace(/^LAWOS_/u, "");
+    if (checkpoint && FOLLOWER_CODES.has(code)) return checkpoint.wait({ prepared });
+    if (["DMS_IDEMPOTENCY_CONFLICT", "DMS_UPLOAD_SESSION_IDENTITY_CONFLICT"].includes(code)) {
+      throw engagementApprovalError(
+        "IDEMPOTENCY_KEY_REUSED",
+        "engagement approval idempotency key was reused",
+      );
+    }
+    throw error;
+  }
 }
 
-export function approveEngagement({ repository, engagement, actor_id, idempotency_key, dms_repository, dms_storage, dms_upload_runtime } = {}) {
-  requiredString({ actor_id }, "actor_id");
-  requiredString({ idempotency_key }, "idempotency_key");
-  requiredString(engagement, "tenant_id");
-  requiredString(engagement, "engagement_id");
-  requiredString(engagement, "intake_request_id");
-  requiredString(engagement, "signed_document_id");
-  requiredString(engagement, "signature_ref");
-  const replay = repository.getIdempotency({ tenant_id: engagement.tenant_id, idempotency_key });
-  if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
-  const templateDocumentInput = templateDocumentFor(engagement);
-  const persist = (dmsUpload) => repository.transaction((tx) => {
-    const templateDocument = tx.create(templateDocumentInput);
-    const signedUpload = tx.create(signedUploadFor(engagement, templateDocument, dmsUpload));
-    const { template_document, signed_document_upload, signed_document_bytes_base64, ...engagementRecordInput } = engagement;
-    void signed_document_bytes_base64;
-    const record = tx.create({
-      ...engagementRecordInput,
-      model_type: "Engagement",
-      template_id: templateDocument.template_id,
-      template_document_id: templateDocument.template_document_id,
-      signed_document_upload_id: signedUpload.signed_document_upload_id,
-      signed_document_sha256: signedUpload.content_sha256,
-      signed_upload_verified: true,
-      template_document_generated: true,
-      lx06_upload_verified: true,
-      status: "approved",
-      approved_at: engagement.approved_at ?? new Date().toISOString(),
+export async function approveEngagement({
+  repository,
+  engagement,
+  actor_id,
+  idempotency_key,
+  dms_repository,
+  dms_storage,
+  dms_upload_runtime,
+  engagement_approval_checkpoint,
+  clock,
+  follower_wait_millis = DEFAULT_FOLLOWER_WAIT_MILLIS,
+} = {}) {
+  const prepared = prepareEngagementApproval({ engagement, actor_id, idempotency_key });
+  const localReplay = engagementApprovalReplay(repository, prepared);
+  if (localReplay) return localReplay;
+  if (engagement_approval_checkpoint) {
+    const durableReplay = await engagement_approval_checkpoint.read({ prepared });
+    if (durableReplay) return durableReplay;
+    return executeApproval({
+      repository, prepared, dms_repository, dms_storage, dms_upload_runtime,
+      engagement_approval_checkpoint, clock,
     });
-    const templateAuditEvent = appendIntakeAuditEvent({
-      repository: tx,
-      event: {
-        tenant_id: record.tenant_id,
-        actor_id,
-        action: "engagement.template.generated",
-        object_type: "EngagementTemplateDocument",
-        object_id: templateDocument.template_document_id,
-        idempotency_key,
-        metadata: {
-          intake_request_id: record.intake_request_id,
-          engagement_id: record.engagement_id,
-          template_id: record.template_id,
-        },
-      },
-    });
-    const signedUploadAuditEvent = appendIntakeAuditEvent({
-      repository: tx,
-      event: {
-        tenant_id: record.tenant_id,
-        actor_id,
-        action: "engagement.signed_document.uploaded",
-        object_type: "EngagementSignedDocumentUpload",
-        object_id: signedUpload.signed_document_upload_id,
-        idempotency_key,
-        metadata: {
-          intake_request_id: record.intake_request_id,
-          engagement_id: record.engagement_id,
-          signed_document_id: signedUpload.signed_document_id,
-          signature_ref: signedUpload.signature_ref,
-          content_sha256: signedUpload.content_sha256,
-          lx_registry_ref: signedUpload.lx_registry_ref,
-          dms_document_id: signedUpload.dms_document_id,
-          dms_version_id: signedUpload.dms_version_id,
-          dms_file_object_id: signedUpload.dms_file_object_id,
-          server_hash_recomputed: signedUpload.server_hash_recomputed,
-          document_bytes_included: false,
-          storage_pointer_ref_included: false,
-        },
-      },
-    });
-    const auditEvent = appendIntakeAuditEvent({
-      repository: tx,
-      event: {
-        tenant_id: record.tenant_id,
-        actor_id,
-        action: "engagement.approved",
-        object_type: "Engagement",
-        object_id: record.engagement_id,
-        idempotency_key,
-        metadata: {
-          intake_request_id: record.intake_request_id,
-          signed_document_id: record.signed_document_id,
-          signature_ref: record.signature_ref,
-          template_id: record.template_id,
-          template_document_id: record.template_document_id,
-          signed_document_upload_id: record.signed_document_upload_id,
-          signed_document_sha256: record.signed_document_sha256,
-          dms_file_object_id: signedUpload.dms_file_object_id,
-          server_hash_recomputed: signedUpload.server_hash_recomputed,
-          document_bytes_included: false,
-        },
-      },
-    });
-    const response = Object.freeze({
-      outcome: "approved",
-      engagement: record,
-      template_document: templateDocument,
-      signed_document_upload: signedUpload,
-      dms_upload: dmsUpload,
-      template_audit_event: templateAuditEvent,
-      signed_upload_audit_event: signedUploadAuditEvent,
-      audit_event: auditEvent,
-      idempotent_replay: false,
-    });
-    tx.recordIdempotency({ tenant_id: record.tenant_id, idempotency_key, operation: "engagement_approve", response });
-    return response;
+  }
+  const flights = flightsFor(repository);
+  const flightKey = `${prepared.tenant_id}\x1f${prepared.idempotency_key}`;
+  const flight = flights.get(flightKey);
+  if (flight) {
+    if (flight.request_fingerprint !== prepared.request_fingerprint) {
+      throw engagementApprovalError("IDEMPOTENCY_KEY_REUSED", "engagement approval idempotency key was reused");
+    }
+    return boundedLocalFollower(flight, follower_wait_millis);
+  }
+  const promise = executeApproval({
+    repository, prepared, dms_repository, dms_storage, dms_upload_runtime, clock,
   });
-  const dmsUpload = uploadSignedDocumentBytes({
-    dms_repository,
-    dms_storage,
-    dms_upload_runtime,
-    engagement,
-    templateDocument: templateDocumentInput,
-    actor_id,
-    idempotency_key,
-  });
-  return typeof dmsUpload?.then === "function"
-    ? dmsUpload.then(persist)
-    : persist(dmsUpload);
+  flights.set(flightKey, Object.freeze({
+    request_fingerprint: prepared.request_fingerprint,
+    promise,
+  }));
+  try {
+    return await promise;
+  } finally {
+    if (flights.get(flightKey)?.promise === promise) {
+      flights.delete(flightKey);
+    }
+  }
 }
