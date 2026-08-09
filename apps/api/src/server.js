@@ -193,6 +193,11 @@ import {
   isClientOutlookOAuthState,
   parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
+import { OUTLOOK_GRAPH_WEBHOOK_PATH } from "./outlook-graph-webhook.js";
+import {
+  createPostgresOutlookConversationRuntime,
+  LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV,
+} from "./outlook-conversation-operational-runtime.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -1365,7 +1370,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1455,6 +1460,9 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       persistence_authority: persistenceAuthority,
       runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
       auth_authority: sessionAuth.capabilities ?? null,
+      ...(outlookGraphSyncReadiness
+        ? { outlook_graph_sync: outlookGraphSyncReadiness }
+        : {}),
       runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
       ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
@@ -2011,6 +2019,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         crmIntakeRuntime,
         financeRuntime,
         m365GraphConfig,
+        conversationRuntime: outlookConversationRuntime,
         sessionAuth,
         attachmentReceiptAuthority: outlookAttachmentReceiptAuthority,
       },
@@ -2111,6 +2120,9 @@ export function createApiServer({
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
   m365GraphConfig = null,
+  outlookGraphWebhook = emailDmsRuntime?.outlook_graph_webhook ?? null,
+  outlookConversationRuntime = null,
+  outlookGraphSyncReadiness = emailDmsRuntime?.outlook_graph_sync_readiness ?? null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
@@ -2179,6 +2191,8 @@ export function createApiServer({
           homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
           enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
           m365GraphConfig,
+          outlookConversationRuntime,
+          outlookGraphSyncReadiness,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
           payrollStatementProviderVerifier,
@@ -2193,6 +2207,34 @@ export function createApiServer({
       };
 
       const requestPathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+      if (requestPathname === OUTLOOK_GRAPH_WEBHOOK_PATH && typeof outlookGraphWebhook?.handle === "function") {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        const requestUrl = new URL(req.url || "/", `http://${HOST}`);
+        let body = null;
+        if (req.method === "POST" && !requestUrl.searchParams.has("validationToken") && /^application\/json(?:\s*;|$)/iu.test(String(req.headers["content-type"] ?? ""))) {
+          try {
+            body = await readRequestBody(req, { maxBytes: 256 * 1024 });
+          } catch (error) {
+            sendJson(req, res, error?.status === 413 ? 413 : 400, { request_id: requestId, outcome: "blocked", safe_error_codes: ["OUTLOOK_GRAPH_NOTIFICATION_INVALID"] });
+            return;
+          }
+        }
+        const result = await outlookGraphWebhook.handle({
+          method: req.method,
+          query: Object.fromEntries(requestUrl.searchParams),
+          headers: req.headers,
+          body,
+          request_id: requestId,
+        });
+        if (result.headers?.["content-type"]?.startsWith("text/plain")) {
+          res.writeHead(result.status, result.headers);
+          res.end(result.body);
+        } else {
+          sendJson(req, res, result.status, result.body, result.headers);
+        }
+        return;
+      }
       if (isPayrollStatementProviderCallback(req.method, requestPathname)) {
         const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
         req.lawosRequestId = requestId;
@@ -2373,6 +2415,8 @@ export async function startApiServer({
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
   m365GraphConfig,
+  outlookGraphWebhook,
+  outlookConversationRuntimeFactory = createPostgresOutlookConversationRuntime,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
   authCredentialStorePath,
@@ -2549,6 +2593,31 @@ export async function startApiServer({
         clientOperationsSchemaPool: postgresPool,
         identityRepository,
       });
+      const outlookConversationRuntime =
+        m365GraphConfig?.provider_runtime_enabled === true
+          ? await outlookConversationRuntimeFactory({
+              pool: postgresPool,
+              domain_ledger: domainLedger,
+              tenant_id: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
+              entra_tenant_id: m365GraphConfig.entra_tenant_id,
+              notification_url: resolvedPersistenceAuthorityEnv.LAWOS_GRAPH_NOTIFICATION_URL,
+              cursor_key_material: resolvedSessionSecret,
+              credential_vault: m365GraphConfig.credential_vault,
+              conversation_provider: m365GraphConfig.provider,
+              request_runtime_authority: requestRuntimeAuthority,
+              worker_schedule_enabled:
+                resolvedPersistenceAuthorityEnv[
+                  LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV
+                ] === "true",
+            })
+          : null;
+      const operationalM365GraphConfig = outlookConversationRuntime
+        ? Object.freeze({
+            ...m365GraphConfig,
+            before_revoke_connection:
+              outlookConversationRuntime.before_connection_revoke,
+          })
+        : m365GraphConfig;
       const server = createApiServer({
         hrxRuntime: null,
         masterDataRuntime: null,
@@ -2563,7 +2632,10 @@ export async function startApiServer({
         uiReadinessRuntime: null,
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
-        m365GraphConfig,
+        m365GraphConfig: operationalM365GraphConfig,
+        outlookGraphWebhook: outlookGraphWebhook ?? outlookConversationRuntime?.webhook,
+        outlookConversationRuntime,
+        outlookGraphSyncReadiness: outlookConversationRuntime?.readiness ?? null,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
         timelineCursorAuthority: resolvedTimelineCursorAuthority,
@@ -2592,6 +2664,7 @@ export async function startApiServer({
             sessionAuth: resolvedSessionAuth,
             persistence_authority: requestRuntimeAuthority.capabilities,
             requestRuntimeAuthority,
+            outlookConversationRuntime,
           });
         });
       });
@@ -2830,6 +2903,8 @@ export async function startApiServer({
     homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
     m365GraphConfig,
+    outlookGraphWebhook,
+    outlookGraphSyncReadiness: null,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     timelineCursorAuthority: resolvedTimelineCursorAuthority,

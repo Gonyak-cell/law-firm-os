@@ -134,7 +134,7 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
     offlineReconnectResponse: OFFLINE_RECONNECT_RESPONSE,
     focusTarget: "conversation-auto-save-toggle",
     mutation: true,
-    implementationState: "active",
+    implementationState: "blocked_until_shell",
   },
   {
     id: "mail.save-sent",

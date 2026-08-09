@@ -26,24 +26,25 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   });
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count,
-    69,
+    70,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.client_schema_migration_count,
-    3,
+    4,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "dc77548cd59692bb61882e7a1811cd20b91479cbb9bac37cb0b721ad9a2f24c1",
+    "ff9cd0db71461fdce21f2c70ce94b263696921abd370ee177f6bf8e8bea75125",
   );
   assert.deepEqual(
-    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-3).map(
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-4).map(
       ({ id }) => id,
     ),
     [
       "300_client_m365_connection",
       "301_client_inquiry_evidence",
       "302_client_email_filing_correction",
+      "303_client_outlook_conversation_sync",
     ],
   );
   assert.deepEqual(CLIENT_OPERATIONS_MIGRATION_ID_MAP, {
@@ -52,6 +53,8 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
       "301_client_inquiry_evidence",
     "003_email_filing_correction":
       "302_client_email_filing_correction",
+    "004_outlook_conversation_sync":
+      "303_client_outlook_conversation_sync",
   });
   assert.equal(
     CLIENT_OPERATIONS_MODEL_REGISTRY.entries.find(

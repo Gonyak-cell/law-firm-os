@@ -69,6 +69,12 @@ import {
 import {
   createMicrosoftEgressBrokerTransport,
 } from "./microsoft-egress-broker-transport.js";
+import {
+  handleOutlookConversationMaintenanceEvent,
+  LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
+} from "./outlook-conversation-maintenance-invocation.js";
+
+export { LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION };
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
@@ -4650,6 +4656,11 @@ export function createLambdaHttpHandler({
 const defaultLambdaHttpHandler = createLambdaHttpHandler({ runtimeCache: apiRuntimeCache });
 
 export async function handler(event = {}) {
+  const outlookConversationMaintenance = await handleOutlookConversationMaintenanceEvent(
+    event,
+    { runtime_factory: apiRuntime, env: process.env },
+  );
+  if (outlookConversationMaintenance) return outlookConversationMaintenance;
   if (maintenanceAction(event) === LAWOS_PASSWORD_RESET_WORKER_ACTION) {
     const tenantId = String(process.env.LAWOS_IDENTITY_TENANT_ID ?? "").trim();
     if (!tenantId) throw new Error("LAWOS_IDENTITY_TENANT_ID is required for the password reset worker");

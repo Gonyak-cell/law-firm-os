@@ -13,6 +13,9 @@ import {
   M365_GRAPH_CALLBACK_MODES,
 } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import {
+  createMicrosoftGraphConversationProvider,
+} from "../../../packages/email-dms/src/microsoft-graph-conversation-provider.js";
+import {
   createMicrosoftGraphMailProvider,
 } from "../../../packages/email-dms/src/microsoft-graph-mail-provider.js";
 import {
@@ -535,6 +538,9 @@ export function createClientOutlookM365GraphConfig({
   const graph = graph_provider ?? createMicrosoftGraphMailProvider({
     microsoft_egress_transport,
   });
+  const conversation = createMicrosoftGraphConversationProvider({
+    microsoft_egress_transport,
+  });
   const officeSsoProvider = createMicrosoftOfficeSsoProvider({
     config: {
       tenant_id: normalized.tenant_id,
@@ -548,12 +554,14 @@ export function createClientOutlookM365GraphConfig({
     feature_enabled: flags?.feature_enabled === true,
     inquiry_feature_enabled: flags?.inquiry_feature_enabled === true,
     provider_runtime_enabled: flags?.provider_runtime_enabled === true,
+    entra_tenant_id: normalized.tenant_id,
     allowed_redirect_uris: normalized.redirect_uris,
     external_readiness: Object.freeze({}),
     credential_vault,
     office_sso_provider: officeSsoProvider,
     provider: Object.freeze({
       ...graph,
+      ...conversation,
       ...delegated,
       provider: "microsoft-graph-delegated",
     }),

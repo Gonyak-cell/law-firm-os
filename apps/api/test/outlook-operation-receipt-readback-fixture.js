@@ -173,6 +173,7 @@ export function runtimeFixture() {
       feature_enabled: true,
       inquiry_feature_enabled: true,
       provider_runtime_enabled: true,
+      clock: () => new Date("2026-08-08T01:00:00.000Z"),
       credential_vault: {
         async resolveDelegatedCredential() {
           return {

@@ -67,7 +67,7 @@ function json(body, status = 200, headers = {}) {
   });
 }
 
-test("exports only the seven fixed operations", () => {
+test("exports only the fixed allowlisted operations", () => {
   assert.deepEqual(OPERATION_NAMES, [
     "oauth.jwks.get",
     "oauth.token.exchange",
@@ -76,6 +76,11 @@ test("exports only the seven fixed operations", () => {
     "graph.calendarView.list",
     "graph.calendarEvent.create",
     "graph.mailMessage.export",
+    "graph.messageSubscription.create",
+    "graph.messageSubscription.renew",
+    "graph.messageSubscription.list",
+    "graph.messageSubscription.delete",
+    "graph.messageDelta.list",
   ]);
 });
 
@@ -755,9 +760,10 @@ test("calendar create fixes private and busy Graph fields", async () => {
   });
 });
 
-test("mail export proves Sent Items from fixed Graph paths without exposing folder IDs", async () => {
+test("mail export proves exact Sent Items provenance from fixed Graph paths without exposing folder IDs", async () => {
   const calls = [];
   const immutable = "immutable-1";
+  const inboxId = "inbox-folder-1";
   const sentItemsId = "sent-items-folder-1";
   const handler = createHandler({
     fetch_impl: async (url, options) => {
@@ -766,14 +772,21 @@ test("mail export proves Sent Items from fixed Graph paths without exposing fold
         return json({
           id: immutable,
           internetMessageId: "<message@example.test>",
-          toRecipients: [],
-          ccRecipients: [],
-          bccRecipients: [],
+          conversationId: "conversation-1",
+          subject: "Sent subject",
+          toRecipients: [{ emailAddress: { name: "To", address: "to@example.test" } }],
+          ccRecipients: [{ emailAddress: { name: "Cc", address: "cc@example.test" } }],
+          bccRecipients: [{ emailAddress: { name: "Bcc", address: "bcc@example.test" } }],
+          receivedDateTime: "2026-08-08T01:00:00Z",
+          sentDateTime: "2026-08-08T00:59:00Z",
           parentFolderId: sentItemsId,
           isDraft: false,
         });
       }
       if (calls.length === 2) {
+        return json({ id: inboxId });
+      }
+      if (calls.length === 3) {
         return json({ id: sentItemsId });
       }
       return new Response(
@@ -798,9 +811,15 @@ test("mail export proves Sent Items from fixed Graph paths without exposing fold
     true,
   );
   assert.equal(result.result.message_metadata.is_in_sent_items, true);
+  assert.equal(result.result.message_metadata.folder_kind, "sentitems");
+  assert.equal(result.result.message_metadata.sent_at, "2026-08-08T00:59:00.000Z");
+  assert.deepEqual(result.result.message_metadata.to_recipients, [{ name: "To", address: "to@example.test" }]);
+  assert.deepEqual(result.result.message_metadata.cc_recipients, [{ name: "Cc", address: "cc@example.test" }]);
+  assert.deepEqual(result.result.message_metadata.bcc_recipients, [{ name: "Bcc", address: "bcc@example.test" }]);
   assert.equal(result.result.message_metadata.is_draft, false);
   assert.equal(JSON.stringify(result.result).includes(sentItemsId), false);
-  assert.equal(calls.length, 3);
+  assert.equal(JSON.stringify(result.result).includes(inboxId), false);
+  assert.equal(calls.length, 4);
   assert.ok(calls.every(({ url }) => (
     url.startsWith("https://graph.microsoft.com/v1.0/me/")
   )));
@@ -819,11 +838,16 @@ test("mail export proves Sent Items from fixed Graph paths without exposing fold
   );
   assert.equal(
     new URL(calls[1].url).pathname,
-    "/v1.0/me/mailFolders/sentitems",
+    "/v1.0/me/mailFolders/inbox",
   );
   assert.equal(new URL(calls[1].url).searchParams.get("$select"), "id");
   assert.equal(
     new URL(calls[2].url).pathname,
+    "/v1.0/me/mailFolders/sentitems",
+  );
+  assert.equal(new URL(calls[2].url).searchParams.get("$select"), "id");
+  assert.equal(
+    new URL(calls[3].url).pathname,
     "/v1.0/me/messages/immutable-1/$value",
   );
 });
@@ -851,11 +875,14 @@ test("mail export preserves divergent Graph sender and from provenance without s
           toRecipients: [],
           ccRecipients: [],
           bccRecipients: [],
+          receivedDateTime: "2026-08-08T01:00:00Z",
+          sentDateTime: "2026-08-08T00:59:00Z",
           parentFolderId: "inbox-divergent",
           isDraft: false,
         });
       }
-      if (calls === 2) return json({ id: "sent-items-divergent" });
+      if (calls === 2) return json({ id: "inbox-divergent" });
+      if (calls === 3) return json({ id: "sent-items-divergent" });
       return new Response(
         "From: mailbox.principal@example.test\r\n\r\nbody",
         { status: 200 },
@@ -910,10 +937,11 @@ test("mail export rejects a metadata response without an immutable message ID", 
   );
 });
 
-test("mail export distinguishes non-Sent and draft messages and rejects malformed proof", async () => {
+test("mail export classifies Inbox, Sent Items, and other folders without inference", async () => {
   const immutable = "immutable-1";
+  const inboxId = "inbox-folder-1";
   const sentItemsId = "sent-items-folder-1";
-  const run = async ({ parentFolderId, isDraft, folder = { id: sentItemsId } }) => {
+  const run = async ({ parentFolderId, isDraft, inbox = { id: inboxId }, sent = { id: sentItemsId } }) => {
     let calls = 0;
     const handler = createHandler({
       fetch_impl: async () => {
@@ -923,12 +951,15 @@ test("mail export distinguishes non-Sent and draft messages and rejects malforme
             id: immutable,
             parentFolderId,
             isDraft,
+            receivedDateTime: "2026-08-08T01:00:00Z",
+            sentDateTime: "2026-08-08T00:59:00Z",
             toRecipients: [],
             ccRecipients: [],
             bccRecipients: [],
           });
         }
-        if (calls === 2) return json(folder);
+        if (calls === 2) return json(inbox);
+        if (calls === 3) return json(sent);
         return new Response(
           "From: sender@example.test\r\nTo: receiver@example.test\r\n\r\nbody",
           { status: 200 },
@@ -942,11 +973,12 @@ test("mail export distinguishes non-Sent and draft messages and rejects malforme
   };
 
   const nonSent = await run({
-    parentFolderId: "inbox-folder-1",
+    parentFolderId: inboxId,
     isDraft: false,
   });
   assert.equal(nonSent.ok, true);
   assert.equal(nonSent.result.message_metadata.is_in_sent_items, false);
+  assert.equal(nonSent.result.message_metadata.folder_kind, "inbox");
   assert.equal(nonSent.result.message_metadata.is_draft, false);
 
   const draft = await run({
@@ -955,12 +987,18 @@ test("mail export distinguishes non-Sent and draft messages and rejects malforme
   });
   assert.equal(draft.ok, true);
   assert.equal(draft.result.message_metadata.is_in_sent_items, true);
+  assert.equal(draft.result.message_metadata.folder_kind, "sentitems");
   assert.equal(draft.result.message_metadata.is_draft, true);
+
+  const other = await run({ parentFolderId: "archive-folder-1", isDraft: false });
+  assert.equal(other.ok, true);
+  assert.equal(other.result.message_metadata.folder_kind, "other");
 
   for (const invalid of [
     { parentFolderId: null, isDraft: false },
     { parentFolderId: sentItemsId, isDraft: "false" },
-    { parentFolderId: sentItemsId, isDraft: false, folder: {} },
+    { parentFolderId: sentItemsId, isDraft: false, inbox: {} },
+    { parentFolderId: sentItemsId, isDraft: false, sent: {} },
   ]) {
     const result = await run(invalid);
     assert.equal(result.ok, false);
@@ -979,12 +1017,17 @@ test("mail export rejects MIME larger than synchronous invoke limit", async () =
           id: immutable,
           parentFolderId: "sent-items-folder-1",
           isDraft: false,
+          receivedDateTime: "2026-08-08T01:00:00Z",
+          sentDateTime: "2026-08-08T00:59:00Z",
           toRecipients: [],
           ccRecipients: [],
           bccRecipients: [],
         });
       }
       if (calls === 2) {
+        return json({ id: "inbox-folder-1" });
+      }
+      if (calls === 3) {
         return json({ id: "sent-items-folder-1" });
       }
       return new Response(Buffer.alloc(MAX_MIME_BYTES + 1, 65), {

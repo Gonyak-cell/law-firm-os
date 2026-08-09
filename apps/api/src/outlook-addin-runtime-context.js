@@ -57,6 +57,10 @@ import {
 import { reconstructOutlookOperationReceiptSummaries } from "./outlook-operation-receipt-readback.js";
 import { handleOutlookEmailFilingCorrection } from "./outlook-email-filing-correction.js";
 import { createOutlookTimeEntryDraft } from "./outlook-time-entry-draft-adapter.js";
+import {
+  handleOutlookConversationPolicyApiRequest,
+  isOutlookConversationPolicyPath,
+} from "./outlook-conversation-policy-api.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -87,6 +91,8 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/followups",
     "POST /api/outlook/time-entry-drafts",
     "POST /api/outlook/smart-alerts/evaluate",
+    "POST /api/outlook/conversation-policies",
+    "POST /api/outlook/conversation-policies/:policy_id/revoke",
   ]),
   data_source:
     "matter_runtime_repository+dms_runtime_repository+email_dms_runtime_repository+finance_runtime_repository",
@@ -2599,14 +2605,14 @@ async function handleOutlookOperationReceiptReadback({ body, context, requestId,
     : emptyOutlookOperationReceiptReadback({ requestId });
 }
 
-async function fileEmail({ body, context, requestId, runtime, mode = "manual" }) {
+async function fileEmail({ body, context, requestId, runtime, mode = "manual", resolvedCanonical = null, filingActorId = null }) {
   const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
   const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
   const expectedCanonicalGraphMessageId = requiredString(
     body.email?.canonical_graph_message_id,
     "email.canonical_graph_message_id",
   );
-  const actorId = actorFrom(context);
+  const actorId = filingActorId ?? actorFrom(context);
   let requestedSourceIdentity;
   try {
     requestedSourceIdentity = parseCapturedOutlookSourceIdentity(body.email);
@@ -2642,7 +2648,7 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
   let canonicalSourceIdentity;
   let verifiedAttachmentReceipts;
   try {
-    canonical = await resolveCanonicalMessage({
+    canonical = resolvedCanonical ?? await resolveCanonicalMessage({
       thread: requestedThread,
       context,
       runtime,
@@ -3104,6 +3110,13 @@ async function fileEmail({ body, context, requestId, runtime, mode = "manual" })
     external_send_state: mode === "sent" ? "provider_gated_no_external_send_claim" : "not_applicable",
     email_object_field_contract: OUTLOOK_EMAIL_OBJECT_FIELDS,
   });
+}
+
+export async function fileResolvedCanonicalOutlookEmail({ body, context, requestId, runtime, mode, resolvedCanonical, filingActorId } = {}) {
+  if (!resolvedCanonical || filingActorId !== "outlook-conversation-sync-service") {
+    throw new TypeError("resolved Outlook conversation filing authority is required");
+  }
+  return fileEmail({ body, context, requestId, runtime, mode, resolvedCanonical, filingActorId });
 }
 
 async function saveAttachments({ body, context, requestId, runtime }) {
@@ -3795,6 +3808,16 @@ function hasOnlyBodyFields(body, allowedFields) {
 
 export async function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, headers = {}, context, requestId, runtime } = {}) {
   try {
+    if (isOutlookConversationPolicyPath(pathname)) {
+      return await handleOutlookConversationPolicyApiRequest({
+        pathname,
+        method,
+        body,
+        context,
+        requestId,
+        runtime,
+      });
+    }
     if (pathname === "/api/outlook/bootstrap" && method === "GET") {
       return handleBootstrap({ query, context, requestId });
     }

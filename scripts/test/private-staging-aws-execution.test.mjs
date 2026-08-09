@@ -101,6 +101,8 @@ test("cold generation grants ENI bootstrap only around the VPC Lambda refresh", 
     "AdminFunction",
     "ApiFunction",
     "HttpApiIntegration",
+    "OutlookConversationWorkerInvokePermission",
+    "OutlookConversationWorkerSchedule",
     "PasswordResetWorkerInvokePermission",
     "PasswordResetWorkerSchedule",
   ]);

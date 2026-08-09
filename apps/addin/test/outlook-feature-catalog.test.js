@@ -108,7 +108,12 @@ test("catalog has only the retained stable feature IDs and complete active contr
   for (const feature of OUTLOOK_FEATURE_CATALOG) {
     assert.deepEqual(requiredKeys.filter((key) => !Object.hasOwn(feature, key)), []);
     assert.deepEqual(Object.keys(feature).filter((key) => !allowedKeys.has(key)), []);
-    assert.equal(feature.implementationState, "active");
+    assert.equal(
+      feature.implementationState,
+      feature.id === "conversation.auto-save"
+        ? "blocked_until_shell"
+        : "active",
+    );
     assert.ok(["rail icon", "all-functions row", "inquiry icon", "event"].includes(feature.opener));
     assert.ok(feature.endpoint.length > 0);
     assert.ok(feature.domainService.length > 0);
