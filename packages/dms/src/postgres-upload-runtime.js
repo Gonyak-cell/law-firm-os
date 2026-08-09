@@ -6,6 +6,7 @@ import {
   createStoragePointerRef,
   sha256Hex,
 } from "./storage/storage-adapter.js";
+import { POSTGRES_DMS_CONSUMER_READ_AUTHORITY } from "./postgres-consumer-storage.js";
 
 const ACTIVE_RECONCILIATION_STATES = Object.freeze([
   "pending",
@@ -308,6 +309,8 @@ function assertReceiptMatchesSession(receipt, session) {
 export function createPostgresDmsUploadRuntime({
   pool,
   storage,
+  committedStorage = storage,
+  completionDenyAuthority = null,
   sourceOnly = true,
   clock = () => new Date(),
   idFactory = randomUUID,
@@ -327,6 +330,20 @@ export function createPostgresDmsUploadRuntime({
   for (const capability of ["staged_uploads", "digest_verification", "orphan_cleanup"]) {
     if (storage.capabilities[capability] !== true) {
       throw new TypeError(`DMS upload runtime requires storage capability ${capability}`);
+    }
+  }
+  for (const method of ["getObject", "statObject", "digestObject"]) {
+    if (typeof committedStorage?.[method] !== "function") {
+      throw new TypeError(`DMS committed storage missing ${method}`);
+    }
+  }
+  if (completionDenyAuthority != null) {
+    const contract = completionDenyAuthority.validate?.();
+    if (contract?.authority !== POSTGRES_DMS_CONSUMER_READ_AUTHORITY
+        || contract.durable !== true
+        || contract.deny_before_provider_io !== true
+        || typeof completionDenyAuthority.assertDenied !== "function") {
+      throw new TypeError("PostgreSQL DMS completion deny authority is invalid");
     }
   }
   if (!Number.isSafeInteger(stageLeaseMillis) || stageLeaseMillis < 1_000) {
@@ -353,25 +370,23 @@ export function createPostgresDmsUploadRuntime({
     const quarantinedAt = timestamp(clock);
     const safeCode = safeErrorCode(error, "DMS_COMPLETION_AUTHORITY_REJECTED");
     const deny = storage.armCommittedObjectQuarantine;
-    if (typeof deny !== "function") {
-      error.quarantine_error_code = "DMS_COMPLETION_AUTHORITY_DENY_UNSUPPORTED";
-      return null;
-    }
-    let denyReceipt;
-    try {
-      denyReceipt = await deny({
-        tenant_id: session.tenant_id,
-        object_id: session.object_id,
-        expected_sha256: session.expected_sha256,
-        audit_trace_id: session.audit_trace_id,
-        permission_envelope_id: session.permission_envelope_id,
-      });
-      if (!denyReceipt || !["armed", "quarantined"].includes(denyReceipt.state) || denyReceipt.durable_quarantine !== true) {
-        throw codedError("DMS completion object deny marker was not confirmed", "DMS_COMPLETION_AUTHORITY_DENY_UNCONFIRMED", 503);
+    let denyReceipt = null;
+    if (typeof deny === "function") {
+      try {
+        denyReceipt = await deny({
+          tenant_id: session.tenant_id,
+          object_id: session.object_id,
+          expected_sha256: session.expected_sha256,
+          audit_trace_id: session.audit_trace_id,
+          permission_envelope_id: session.permission_envelope_id,
+        });
+        if (!denyReceipt || !["armed", "quarantined"].includes(denyReceipt.state) || denyReceipt.durable_quarantine !== true) {
+          throw codedError("DMS completion object deny marker was not confirmed", "DMS_COMPLETION_AUTHORITY_DENY_UNCONFIRMED", 503);
+        }
+      } catch (denyError) {
+        error.quarantine_error_code = safeErrorCode(denyError, "DMS_COMPLETION_AUTHORITY_DENY_FAILED");
+        denyReceipt = null;
       }
-    } catch (denyError) {
-      error.quarantine_error_code = safeErrorCode(denyError, "DMS_COMPLETION_AUTHORITY_DENY_FAILED");
-      return null;
     }
     const initialReceipt = {
       schema_version: COMPLETION_AUTHORITY_QUARANTINE_SCHEMA,
@@ -383,7 +398,8 @@ export function createPostgresDmsUploadRuntime({
       quarantined_at: quarantinedAt,
       cleanup_state: "pending",
       cleanup_retryable: true,
-      storage_deny_record_ref: denyReceipt.record_ref,
+      storage_deny_record_ref: denyReceipt?.record_ref ?? null,
+      postgres_consumer_deny_authority: completionDenyAuthority?.authority ?? null,
     };
     let terminal;
     try {
@@ -414,32 +430,81 @@ export function createPostgresDmsUploadRuntime({
     }
     if (!terminal || terminal.state === "finalized") return terminal;
 
+    if (completionDenyAuthority) {
+      try {
+        await completionDenyAuthority.assertDenied({
+          tenant_id: terminal.tenant_id,
+          object_id: terminal.object_id,
+          adapter_id: storage.adapter_id,
+        });
+      } catch (denyError) {
+        error.quarantine_error_code = safeErrorCode(denyError, "DMS_COMPLETION_AUTHORITY_DENY_UNCONFIRMED");
+        return null;
+      }
+    } else if (!denyReceipt) {
+      error.quarantine_error_code ??= "DMS_COMPLETION_AUTHORITY_DENY_UNSUPPORTED";
+      return null;
+    }
+
     let cleanupState = "deleted";
     let cleanupErrorCode = null;
     let committedObjectDeleted = false;
     let stagedObjectDeleted = false;
+    let providerObjectRetained = false;
+    let stagedObjectRetained = false;
+    let stagedCleanupErrorCode = null;
     try {
-      if (typeof storage.quarantineCommittedObject !== "function") {
-        throw codedError("DMS completion object quarantine cleanup is unsupported", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNSUPPORTED", 503);
+      if (typeof storage.quarantineCommittedObject === "function") {
+        const quarantine = await storage.quarantineCommittedObject({
+          tenant_id: terminal.tenant_id,
+          object_id: terminal.object_id,
+          expected_sha256: terminal.expected_sha256,
+          reason: "DMS_COMPLETION_AUTHORITY_REJECTION",
+          audit_trace_id: terminal.audit_trace_id,
+          permission_envelope_id: terminal.permission_envelope_id,
+        });
+        if (!quarantine?.quarantined && !quarantine?.already_absent) {
+          throw codedError("quarantined DMS object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
+        }
+        committedObjectDeleted = quarantine.quarantined === true;
+      } else if (terminal.provider_finalized_at && completionDenyAuthority) {
+        cleanupState = "logically_denied";
+        providerObjectRetained = true;
+      } else if (terminal.provider_finalized_at) {
+        if (typeof storage.deleteCommittedObject !== "function") {
+          throw codedError("DMS completion object cleanup is unsupported", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNSUPPORTED", 503);
+        }
+        const deletion = await storage.deleteCommittedObject({
+          tenant_id: terminal.tenant_id,
+          object_id: terminal.object_id,
+          expected_sha256: terminal.expected_sha256,
+        });
+        if (!deletion?.deleted && !deletion?.already_absent) {
+          throw codedError("DMS completion object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
+        }
+        committedObjectDeleted = deletion.deleted === true;
       }
-      const quarantine = await storage.quarantineCommittedObject({
-        tenant_id: terminal.tenant_id,
-        object_id: terminal.object_id,
-        expected_sha256: terminal.expected_sha256,
-        reason: "DMS_COMPLETION_AUTHORITY_REJECTION",
-        audit_trace_id: terminal.audit_trace_id,
-        permission_envelope_id: terminal.permission_envelope_id,
-      });
-      if (!quarantine?.quarantined && !quarantine?.already_absent) {
-        throw codedError("quarantined DMS object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
-      }
-      committedObjectDeleted = quarantine.quarantined === true;
-      const deletion = await storage.deleteOrphan({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
-      if (deletion?.committed_object_deleted) throw codedError("storage adapter violated quarantine cleanup boundary", "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION", 500);
-      stagedObjectDeleted = deletion?.deleted === true;
     } catch (cleanupError) {
       cleanupState = "pending";
       cleanupErrorCode = safeErrorCode(cleanupError, "DMS_COMPLETION_AUTHORITY_CLEANUP_FAILED");
+    }
+    if (cleanupState !== "pending") {
+      try {
+        const deletion = await storage.deleteOrphan({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
+        if (deletion?.committed_object_deleted) throw codedError("storage adapter violated quarantine cleanup boundary", "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION", 500);
+        stagedObjectDeleted = deletion?.deleted === true;
+      } catch (cleanupError) {
+        const safeCleanupCode = safeErrorCode(cleanupError, "DMS_COMPLETION_AUTHORITY_CLEANUP_FAILED");
+        if ((cleanupState === "logically_denied" || completionDenyAuthority)
+            && safeCleanupCode !== "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION") {
+          cleanupState = "logically_denied";
+          stagedObjectRetained = true;
+          stagedCleanupErrorCode = safeCleanupCode;
+        } else {
+          cleanupState = "pending";
+          cleanupErrorCode = safeCleanupCode;
+        }
+      }
     }
     const finalReceipt = {
       ...initialReceipt,
@@ -448,6 +513,9 @@ export function createPostgresDmsUploadRuntime({
       cleanup_error_code: cleanupErrorCode,
       committed_object_deleted: committedObjectDeleted,
       staged_object_deleted: stagedObjectDeleted,
+      provider_object_retained: providerObjectRetained,
+      staged_object_retained: stagedObjectRetained,
+      staged_cleanup_error_code: stagedCleanupErrorCode,
     };
     try {
       await transact(terminal.tenant_id, (client) => client.query(
@@ -1448,6 +1516,16 @@ export function createPostgresDmsUploadRuntime({
     let receipt;
     let replayed = session.state === "provider_finalized";
     if (session.state !== "provider_finalized") {
+      if (completionAuthorityContract(session)) {
+        if (completionDenyAuthority) {
+          await completionDenyAuthority.assertDenied({
+            tenant_id: session.tenant_id,
+            object_id: session.object_id,
+            adapter_id: storage.adapter_id,
+          });
+        }
+        await beforePersist({ phase: "before_provider_finalize", session });
+      }
       const claim = await claimProviderFinalize(session);
       session = claim.session;
       if (session.state !== "provider_finalized" && session.state !== "finalized") {
@@ -1685,8 +1763,11 @@ export function createPostgresDmsUploadRuntime({
       const locked = await selectSession(client, tenantId, sessionId, { lock: true });
       if (locked.reconcile_owner !== runtimeWorkerId) return locked;
       if (!error) {
+        const preserveCompletionCleanupBackoff = locked.state === "failed_terminal"
+          && locked.dead_letter_receipt?.schema_version === COMPLETION_AUTHORITY_QUARANTINE_SCHEMA
+          && locked.dead_letter_receipt.cleanup_state === "pending";
         const nextAttemptAt = next_attempt_at == null
-          ? releasedAt
+          ? (preserveCompletionCleanupBackoff ? locked.next_attempt_at : releasedAt)
           : requiredTimestamp(next_attempt_at, "next_attempt_at");
         const result = await client.query(
           `UPDATE lawos_dms.upload_sessions
@@ -2455,8 +2536,8 @@ export function createPostgresDmsUploadRuntime({
     let stat;
     let digest;
     try {
-      stat = await storage.statObject({ tenant_id: tenantId, object_id: fileObject.object_id });
-      digest = await storage.digestObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+      stat = await committedStorage.statObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+      digest = await committedStorage.digestObject({ tenant_id: tenantId, object_id: fileObject.object_id });
     } catch {
       throw codedError("DMS provider integrity authority readback failed", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
     }
@@ -2580,12 +2661,12 @@ export function createPostgresDmsUploadRuntime({
       throw codedError("DMS current object is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
     }
     await verifyCommittedProviderObject({ tenant_id: tenantId, file_object: fileObject });
-    const object = await storage.getObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+    const object = await committedStorage.getObject({ tenant_id: tenantId, object_id: fileObject.object_id });
     const objectByteSize = object.byte_size == null ? Buffer.byteLength(object.bytes) : Number(object.byte_size);
     if (object.sha256 !== fileObject.sha256 || objectByteSize !== Number(fileObject.byte_size)) {
       throw codedError("DMS provider readback does not match PostgreSQL metadata", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
     }
-    const independentDigest = await storage.digestObject({ tenant_id: tenantId, object_id: fileObject.object_id });
+    const independentDigest = await committedStorage.digestObject({ tenant_id: tenantId, object_id: fileObject.object_id });
     if (independentDigest?.sha256 !== fileObject.sha256 || Number(independentDigest?.byte_size) !== Number(fileObject.byte_size)) {
       throw codedError("DMS independent provider digest does not match PostgreSQL metadata", "DMS_COMMITTED_DIGEST_MISMATCH", 409);
     }

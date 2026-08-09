@@ -227,7 +227,9 @@ export function createLocalStorageAdapter({ adapter_id = "local-vault", quaranti
     async readObjectBounded({ tenant_id, object_id, max_bytes } = {}) {
       const tenantId = assertTenantId(tenant_id);
       const safeObjectId = required(object_id, "object_id");
-      const entry = objects.get(objectKey(tenantId, safeObjectId));
+      const key = objectKey(tenantId, safeObjectId);
+      if (quarantineRecords.has(key)) throw hashMismatch("committed object is quarantined", "DMS_COMMITTED_OBJECT_QUARANTINED");
+      const entry = objects.get(key);
       if (!entry) throw new Error(`object not found: ${safeObjectId}`);
       const observed = await readStorageBodyBounded(entry.buffer, { max_bytes });
       return Object.freeze({

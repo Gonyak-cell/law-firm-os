@@ -227,6 +227,10 @@ import {
   resolveClientOperationsV2Enabled,
 } from "./client-operations-config.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
+import {
+  createPostgresDmsConsumerReadAuthority,
+  createPostgresDmsConsumerStorage,
+} from "../../../packages/dms/src/postgres-consumer-storage.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
 import {
@@ -2593,6 +2597,17 @@ export async function startApiServer({
         objectAclResolver: resolvedSessionObjectAclResolver,
       });
       const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
+      const dmsConsumerReadAuthority = createPostgresDmsConsumerReadAuthority({
+        pool: postgresPool,
+      });
+      await dmsConsumerReadAuthority.probe({
+        tenant_id: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
+        adapter_id: resolvedDmsStorage.adapter_id,
+      });
+      const dmsConsumerStorage = createPostgresDmsConsumerStorage({
+        storage: resolvedDmsStorage,
+        authority: dmsConsumerReadAuthority,
+      });
       const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
         env: resolvedPersistenceAuthorityEnv,
         explicitSecret: payrollArtifactSecret,
@@ -2602,6 +2617,8 @@ export async function startApiServer({
       const activeDmsUploadRuntime = createPostgresDmsUploadRuntime({
         pool: postgresPool,
         storage: resolvedDmsStorage,
+        committedStorage: dmsConsumerStorage,
+        completionDenyAuthority: dmsConsumerReadAuthority,
         sourceOnly: false,
         verifyPermanentDeleteApproval: dmsVerifyPermanentDeleteApproval,
       });
@@ -2617,7 +2634,9 @@ export async function startApiServer({
             });
       const requestRuntimeAuthority = createPostgresApiRuntimeAuthority({
         ledger: domainLedger,
-        dmsStorage: resolvedDmsStorage,
+        dmsStorage: dmsConsumerStorage,
+        payrollArtifactStorage: resolvedDmsStorage,
+        inquiryEvidenceStorage: resolvedDmsStorage,
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
         payrollProviders,
@@ -2650,6 +2669,7 @@ export async function startApiServer({
         precedentSearchPool: postgresPool,
         precedentAuthoritySecret: resolvedSessionSecret,
         identityRepository,
+        requireDmsConsumerReadAuthority: true,
       });
       const outlookConversationRuntime =
         m365GraphConfig?.provider_runtime_enabled === true

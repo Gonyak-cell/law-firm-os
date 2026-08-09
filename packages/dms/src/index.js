@@ -17,6 +17,7 @@ export {
 } from "./storage/s3-storage-adapter.js";
 export * from "./storage/sharepoint-storage-adapter.js";
 export * from "./postgres-upload-runtime.js";
+export * from "./postgres-consumer-storage.js";
 export * from "./json-postgres-dms-migration.js";
 export * from "./vault-object.js";
 export * from "./vault-permission-service.js";

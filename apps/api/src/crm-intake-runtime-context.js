@@ -4339,19 +4339,20 @@ export function handleWaiverApprove({ body, context, requestId, runtime = DEFAUL
   }
 }
 
-export function handleEngagementApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+export async function handleEngagementApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const engagement = engagementPayload({ body, context });
   const query = { tenant_id: engagement.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
   try {
-    const result = approveEngagement({
+    const result = await approveEngagement({
       repository: runtime.intakeRepository,
       engagement,
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
       dms_repository: runtime.dmsRuntime?.repository,
       dms_storage: runtime.dmsRuntime?.storage,
+      dms_upload_runtime: runtime.dmsRuntime?.upload_runtime,
     });
     return itemResponse({
       requestId,

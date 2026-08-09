@@ -18,6 +18,7 @@ import {
 import {
   EMAIL_DMS_DOMAIN_DESCRIPTOR,
 } from "../../../packages/email-dms/src/central-ledger.js";
+import { createInquiryEvidenceStorageService } from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
 import {
   createEmailDmsRepository,
 } from "../../../packages/email-dms/src/repository.js";
@@ -73,6 +74,7 @@ import {
   createPostgresPrecedentRepository,
   derivePrecedentAuthorityKeys,
 } from "../../../packages/dms/src/search/postgres-precedent-repository.js";
+import { POSTGRES_DMS_CONSUMER_READ_AUTHORITY } from "../../../packages/dms/src/postgres-consumer-storage.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -331,6 +333,8 @@ function createRequestRuntimes({
   hrxStore,
   identityUserDirectory,
   dmsStorage,
+  payrollArtifactStorage,
+  inquiryEvidenceStorage,
   dmsUploadRuntime,
   payrollArtifactSecret,
   payrollProviders,
@@ -373,7 +377,7 @@ function createRequestRuntimes({
       : null;
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
-    payrollArtifactStorage: dmsStorage,
+    payrollArtifactStorage,
     payrollArtifactSecret,
     compensationKeyMaterial: payrollArtifactSecret,
     leaveIntegrationProviders,
@@ -425,6 +429,10 @@ function createRequestRuntimes({
     authority: "postgres-v2",
     repository: repositories.emailDmsRepository,
     storage: dmsStorage,
+    evidence_storage_service: createInquiryEvidenceStorageService({
+      repository: repositories.emailDmsRepository,
+      storage: inquiryEvidenceStorage,
+    }),
     upload_runtime: dmsUploadRuntime,
     request_failure_compensator: requestFailureCompensator,
     client_outlook_completion_checkpoint:
@@ -502,6 +510,8 @@ function createRequestRuntimes({
 export function createPostgresApiRuntimeAuthority({
   ledger,
   dmsStorage,
+  payrollArtifactStorage = dmsStorage,
+  inquiryEvidenceStorage = dmsStorage,
   dmsUploadRuntime,
   payrollArtifactSecret,
   payrollProviders = Object.freeze({}),
@@ -532,12 +542,21 @@ export function createPostgresApiRuntimeAuthority({
   precedentSearchPool = null,
   precedentAuthoritySecret = null,
   identityRepository = null,
+  requireDmsConsumerReadAuthority = false,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
   }
   if (!dmsStorage || typeof dmsStorage.stageObject !== "function") {
     throw new TypeError("DMS provider storage is required for PostgreSQL API authority");
+  }
+  const consumerReadContract = dmsStorage?.validateConsumerReadAuthority?.();
+  if ((requireDmsConsumerReadAuthority === true || dmsStorage?.provider === "s3")
+      && (consumerReadContract?.authority !== POSTGRES_DMS_CONSUMER_READ_AUTHORITY
+        || consumerReadContract.durable !== true
+        || consumerReadContract.deny_before_provider_io !== true
+        || consumerReadContract.probe_completed !== true)) {
+    throw new TypeError("PostgreSQL API authority requires guarded DMS consumer reads");
   }
   if (dmsUploadRuntime?.source_only !== false || typeof dmsUploadRuntime?.finalizeUpload !== "function") {
     throw new TypeError("active PostgreSQL DMS upload runtime is required for PostgreSQL API authority");
@@ -675,6 +694,8 @@ export function createPostgresApiRuntimeAuthority({
                 ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
                 : {}),
               dmsStorage,
+              payrollArtifactStorage,
+              inquiryEvidenceStorage,
               dmsUploadRuntime,
               payrollArtifactSecret,
               payrollProviders,

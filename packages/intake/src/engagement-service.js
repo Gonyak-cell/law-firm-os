@@ -119,25 +119,26 @@ function signedUploadFor(engagement, templateDocument, dmsUpload = null) {
   });
 }
 
-function uploadSignedDocumentBytes({ dms_repository, dms_storage, engagement, templateDocument, actor_id, idempotency_key } = {}) {
+function uploadSignedDocumentBytes({ dms_repository, dms_storage, dms_upload_runtime, engagement, templateDocument, actor_id, idempotency_key } = {}) {
   const bytes = signedDocumentBytesFor(engagement);
   if (!bytes) return null;
-  if (!dms_repository || !dms_storage) throw new Error("signed document bytes require DMS repository and storage");
+  if (!dms_upload_runtime && (!dms_repository || !dms_storage)) throw new Error("signed document bytes require a DMS upload authority");
   const upload = engagement.signed_document_upload ?? {};
   const callerSha256 = normalizeSha256(upload.content_sha256 ?? upload.sha256);
   const serverSha256 = sha256Hex(bytes);
   if (callerSha256 && callerSha256 !== serverSha256) throw new Error("signed document hash mismatch");
-  return uploadDocument({
-    repository: dms_repository,
-    storage: dms_storage,
+  const input = {
     document: dmsDocumentForSignedUpload(engagement, templateDocument),
     bytes,
     actor_id,
     idempotency_key: `engagement-signed-document:${idempotency_key}`,
-  });
+  };
+  return dms_upload_runtime
+    ? dms_upload_runtime.uploadDocument(input)
+    : uploadDocument({ repository: dms_repository, storage: dms_storage, ...input });
 }
 
-export function approveEngagement({ repository, engagement, actor_id, idempotency_key, dms_repository, dms_storage } = {}) {
+export function approveEngagement({ repository, engagement, actor_id, idempotency_key, dms_repository, dms_storage, dms_upload_runtime } = {}) {
   requiredString({ actor_id }, "actor_id");
   requiredString({ idempotency_key }, "idempotency_key");
   requiredString(engagement, "tenant_id");
@@ -147,17 +148,9 @@ export function approveEngagement({ repository, engagement, actor_id, idempotenc
   requiredString(engagement, "signature_ref");
   const replay = repository.getIdempotency({ tenant_id: engagement.tenant_id, idempotency_key });
   if (replay) return Object.freeze({ ...replay.response, idempotent_replay: true });
-
-  return repository.transaction((tx) => {
-    const templateDocument = tx.create(templateDocumentFor(engagement));
-    const dmsUpload = uploadSignedDocumentBytes({
-      dms_repository,
-      dms_storage,
-      engagement,
-      templateDocument,
-      actor_id,
-      idempotency_key,
-    });
+  const templateDocumentInput = templateDocumentFor(engagement);
+  const persist = (dmsUpload) => repository.transaction((tx) => {
+    const templateDocument = tx.create(templateDocumentInput);
     const signedUpload = tx.create(signedUploadFor(engagement, templateDocument, dmsUpload));
     const { template_document, signed_document_upload, signed_document_bytes_base64, ...engagementRecordInput } = engagement;
     void signed_document_bytes_base64;
@@ -252,4 +245,16 @@ export function approveEngagement({ repository, engagement, actor_id, idempotenc
     tx.recordIdempotency({ tenant_id: record.tenant_id, idempotency_key, operation: "engagement_approve", response });
     return response;
   });
+  const dmsUpload = uploadSignedDocumentBytes({
+    dms_repository,
+    dms_storage,
+    dms_upload_runtime,
+    engagement,
+    templateDocument: templateDocumentInput,
+    actor_id,
+    idempotency_key,
+  });
+  return typeof dmsUpload?.then === "function"
+    ? dmsUpload.then(persist)
+    : persist(dmsUpload);
 }

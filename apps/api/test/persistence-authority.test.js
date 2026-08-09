@@ -443,6 +443,7 @@ test("API startup activates the transaction-capable PostgreSQL authority without
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/disposable",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/disposable-tenant-context",
       LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID: "lawos/test/payroll-artifact-key",
+      LAWOS_IDENTITY_TENANT_ID: "tenant_postgres_authority_test",
       LAWOS_DATA_SCOPE: "synthetic-only",
       AWS_REGION: "ap-northeast-2",
     },

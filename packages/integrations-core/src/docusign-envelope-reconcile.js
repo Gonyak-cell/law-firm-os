@@ -113,6 +113,7 @@ export function createDocusignReconciliationExecutor({ repository, connectionRes
       const request = state.requests[index];
       if (request.requested_by_actor_id !== principal.actor_id) throw docusignFailure("DOCUSIGN_SEND_ACTOR_MISMATCH", "Only the approving actor may reconcile this request", 403);
       const conflicting = state.requests
+        .filter((item) => item.tenant_id === principal.tenant_id)
         .flatMap((item) => item.action_idempotency ?? [])
         .find((entry) => actionIdempotencyKey && entry.key === actionIdempotencyKey
           && (entry.action !== "reconcile" || entry.actor_id !== principal.actor_id || entry.request_id !== requestId));
