@@ -12,9 +12,21 @@ const ACTIVE_RECONCILIATION_STATES = Object.freeze([
   "bytes_stored",
   "provider_finalizing",
   "provider_finalized",
+  "failed_terminal",
   "failed",
   "expired",
 ]);
+const COMPLETION_AUTHORITY_REJECTION_CODES = new Set([
+  "DOCUSIGN_PERMISSION_AUTHORITY_CHANGED",
+  "DOCUSIGN_AUDIT_LINEAGE_CHANGED",
+  "DOCUSIGN_COMPLETION_FENCE_LOST",
+  "DOCUSIGN_COMPLETION_BINDING_INVALID",
+  "DOCUSIGN_APPROVED_SOURCE_MISMATCH",
+  "DOCUSIGN_APPROVED_DOCUMENT_AUTHORITY_BLOCKED",
+  "DOCUSIGN_REQUEST_NOT_FOUND",
+]);
+const COMPLETION_AUTHORITY_QUARANTINE_SCHEMA = "law-firm-os.dms-completion-authority-quarantine.v1";
+const COMPLETION_AUTHORITY_CONTRACT_SCHEMA = "law-firm-os.dms-completion-authority-contract.v1";
 const MAX_UPLOAD_INTENT_GENERATIONS = 32;
 const UPLOAD_INTENT_RETIREMENT_EVENT = "dms.upload_intent.retired";
 const UPLOAD_INTENT_FAMILY_OBJECT = "DmsUploadIntentFamily";
@@ -173,6 +185,42 @@ function safeErrorCode(error, fallback) {
   return typeof code === "string" && /^[A-Z0-9_]+$/u.test(code) ? code : fallback;
 }
 
+function normalizeCompletionAuthorityContract(input) {
+  if (input == null) return null;
+  if (typeof input !== "object" || Array.isArray(input)) throw new TypeError("completion_authority must be an object");
+  const contract = {
+    schema_version: input.schema_version,
+    provider: input.provider,
+    tenant_id: input.tenant_id,
+    matter_id: input.matter_id,
+    workspace_id: input.workspace_id,
+    request_id: input.request_id,
+    envelope_id: input.envelope_id,
+    kind: input.kind,
+    sha256: input.sha256,
+    object_id: input.object_id,
+    idempotency_key: input.idempotency_key,
+    permission_envelope_id: input.permission_envelope_id,
+    audit_trace_id: input.audit_trace_id,
+    fencing_generation: Number(input.fencing_generation),
+  };
+  if (contract.schema_version !== COMPLETION_AUTHORITY_CONTRACT_SCHEMA || contract.provider !== "docusign") throw new TypeError("completion_authority schema is invalid");
+  for (const field of ["tenant_id", "matter_id", "workspace_id", "request_id", "envelope_id", "kind", "object_id", "idempotency_key", "permission_envelope_id", "audit_trace_id"]) contract[field] = requiredText(contract[field], `completion_authority.${field}`);
+  contract.sha256 = requiredSha256(contract.sha256, "completion_authority.sha256");
+  if (!Number.isSafeInteger(contract.fencing_generation) || contract.fencing_generation < 1) throw new TypeError("completion_authority.fencing_generation must be positive");
+  return Object.freeze(contract);
+}
+
+function completionAuthorityContract(session) {
+  const contract = session?.provider_receipt?.completion_authority;
+  return contract?.schema_version === COMPLETION_AUTHORITY_CONTRACT_SCHEMA ? contract : null;
+}
+
+function isCompletionAuthorityRejection(error) {
+  return error?.completion_authority_rejection === true
+    || COMPLETION_AUTHORITY_REJECTION_CODES.has(safeErrorCode(error, ""));
+}
+
 function classifyMetadataCommitError(error, stage) {
   const hasSafeErrorCode = typeof error?.safe_error_code === "string"
     && /^[A-Z0-9_]+$/u.test(error.safe_error_code);
@@ -300,6 +348,124 @@ export function createPostgresDmsUploadRuntime({
     { ...transactionOptions, ...options, tenant_id: tenantId },
     callback,
   );
+
+  async function quarantineCompletionAuthorityUpload(session, error) {
+    const quarantinedAt = timestamp(clock);
+    const safeCode = safeErrorCode(error, "DMS_COMPLETION_AUTHORITY_REJECTED");
+    const deny = storage.armCommittedObjectQuarantine;
+    if (typeof deny !== "function") {
+      error.quarantine_error_code = "DMS_COMPLETION_AUTHORITY_DENY_UNSUPPORTED";
+      return null;
+    }
+    let denyReceipt;
+    try {
+      denyReceipt = await deny({
+        tenant_id: session.tenant_id,
+        object_id: session.object_id,
+        expected_sha256: session.expected_sha256,
+        audit_trace_id: session.audit_trace_id,
+        permission_envelope_id: session.permission_envelope_id,
+      });
+      if (!denyReceipt || !["armed", "quarantined"].includes(denyReceipt.state) || denyReceipt.durable_quarantine !== true) {
+        throw codedError("DMS completion object deny marker was not confirmed", "DMS_COMPLETION_AUTHORITY_DENY_UNCONFIRMED", 503);
+      }
+    } catch (denyError) {
+      error.quarantine_error_code = safeErrorCode(denyError, "DMS_COMPLETION_AUTHORITY_DENY_FAILED");
+      return null;
+    }
+    const initialReceipt = {
+      schema_version: COMPLETION_AUTHORITY_QUARANTINE_SCHEMA,
+      kind: "completion_authority_rejection",
+      session_id: session.session_id,
+      object_id: session.object_id,
+      expected_sha256: session.expected_sha256,
+      safe_error_code: safeCode,
+      quarantined_at: quarantinedAt,
+      cleanup_state: "pending",
+      cleanup_retryable: true,
+      storage_deny_record_ref: denyReceipt.record_ref,
+    };
+    let terminal;
+    try {
+      terminal = await transact(session.tenant_id, async (client) => {
+        const locked = await selectSession(client, session.tenant_id, session.session_id, { lock: true });
+        if (locked.state === "finalized") return locked;
+        if (locked.state === "failed_terminal" && locked.dead_letter_receipt?.schema_version === COMPLETION_AUTHORITY_QUARANTINE_SCHEMA) return locked;
+        const result = await client.query(
+          `UPDATE lawos_dms.upload_sessions
+              SET state = 'failed_terminal', retryable = true,
+                  provider_finalize_owner = NULL, provider_finalize_token = NULL,
+                  provider_finalize_lease_expires_at = NULL,
+                  stage_lease_owner = NULL, stage_lease_token = NULL,
+                  stage_lease_expires_at = NULL,
+                  reconcile_owner = NULL, reconcile_lease_expires_at = NULL,
+                  next_attempt_at = $3::timestamptz, last_error_code = $4,
+                  failed_terminal_at = $3::timestamptz,
+                  dead_letter_receipt = $5::jsonb, updated_at = $3::timestamptz
+            WHERE tenant_id = $1 AND session_id = $2
+            RETURNING *`,
+          [session.tenant_id, session.session_id, quarantinedAt, safeCode, JSON.stringify(initialReceipt)],
+        );
+        return rowToSession(result.rows[0]);
+      });
+    } catch (quarantineError) {
+      error.quarantine_error_code = safeErrorCode(quarantineError, "DMS_COMPLETION_AUTHORITY_QUARANTINE_FAILED");
+      return null;
+    }
+    if (!terminal || terminal.state === "finalized") return terminal;
+
+    let cleanupState = "deleted";
+    let cleanupErrorCode = null;
+    let committedObjectDeleted = false;
+    let stagedObjectDeleted = false;
+    try {
+      if (typeof storage.quarantineCommittedObject !== "function") {
+        throw codedError("DMS completion object quarantine cleanup is unsupported", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNSUPPORTED", 503);
+      }
+      const quarantine = await storage.quarantineCommittedObject({
+        tenant_id: terminal.tenant_id,
+        object_id: terminal.object_id,
+        expected_sha256: terminal.expected_sha256,
+        reason: "DMS_COMPLETION_AUTHORITY_REJECTION",
+        audit_trace_id: terminal.audit_trace_id,
+        permission_envelope_id: terminal.permission_envelope_id,
+      });
+      if (!quarantine?.quarantined && !quarantine?.already_absent) {
+        throw codedError("quarantined DMS object deletion was not confirmed", "DMS_COMPLETION_AUTHORITY_CLEANUP_UNCONFIRMED", 503);
+      }
+      committedObjectDeleted = quarantine.quarantined === true;
+      const deletion = await storage.deleteOrphan({ tenant_id: terminal.tenant_id, session_id: terminal.session_id, object_id: terminal.object_id });
+      if (deletion?.committed_object_deleted) throw codedError("storage adapter violated quarantine cleanup boundary", "DMS_STORAGE_DELETE_BOUNDARY_VIOLATION", 500);
+      stagedObjectDeleted = deletion?.deleted === true;
+    } catch (cleanupError) {
+      cleanupState = "pending";
+      cleanupErrorCode = safeErrorCode(cleanupError, "DMS_COMPLETION_AUTHORITY_CLEANUP_FAILED");
+    }
+    const finalReceipt = {
+      ...initialReceipt,
+      cleanup_state: cleanupState,
+      cleanup_retryable: cleanupState === "pending",
+      cleanup_error_code: cleanupErrorCode,
+      committed_object_deleted: committedObjectDeleted,
+      staged_object_deleted: stagedObjectDeleted,
+    };
+    try {
+      await transact(terminal.tenant_id, (client) => client.query(
+        `UPDATE lawos_dms.upload_sessions
+            SET dead_letter_receipt = $3::jsonb,
+                retryable = $4::boolean,
+                next_attempt_at = $5::timestamptz,
+                updated_at = $5::timestamptz
+          WHERE tenant_id = $1 AND session_id = $2 AND state = 'failed_terminal'`,
+        [terminal.tenant_id, terminal.session_id, JSON.stringify(finalReceipt), cleanupState === "pending", cleanupState === "pending"
+          ? new Date(Date.parse(quarantinedAt) + reconciliationBackoffMillis).toISOString()
+          : quarantinedAt],
+      ));
+    } catch (quarantineError) {
+      error.quarantine_error_code = safeErrorCode(quarantineError, "DMS_COMPLETION_AUTHORITY_QUARANTINE_FAILED");
+    }
+    return Object.freeze({ ...terminal, dead_letter_receipt: finalReceipt });
+  }
 
   async function getUploadSession({ tenant_id, session_id } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
@@ -574,6 +740,7 @@ export function createPostgresDmsUploadRuntime({
       permission_envelope_id: requiredText(input.permission_envelope_id, "permission_envelope_id"),
       audit_trace_id: requiredText(input.audit_trace_id, "audit_trace_id"),
       actor_id: requiredText(input.actor_id, "actor_id"),
+      completion_authority: normalizeCompletionAuthorityContract(input.completion_authority),
       expires_at: requiredTimestamp(input.expires_at, "expires_at"),
       ...(sourceIdentity.source_email_thread_id === null ? {} : sourceIdentity),
     });
@@ -599,10 +766,10 @@ export function createPostgresDmsUploadRuntime({
             document_id, version_id, version_number, object_id, adapter_id, title, content_type,
             expected_sha256, expected_byte_size, permission_envelope_id, audit_trace_id, actor_id,
             source_email_thread_id, source_attachment_id, state, expires_at, next_attempt_at,
-            created_at, updated_at)
+            created_at, updated_at, provider_receipt)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
                  $16, $17, $18, $19, $20, 'pending', $21::timestamptz, $22::timestamptz,
-                 $23::timestamptz, $23::timestamptz)
+                 $23::timestamptz, $23::timestamptz, $24::jsonb)
          ON CONFLICT DO NOTHING
          RETURNING *`,
         [
@@ -629,6 +796,7 @@ export function createPostgresDmsUploadRuntime({
           normalized.expires_at,
           initialNextAttemptAt,
           createdAt,
+          normalized.completion_authority ? JSON.stringify({ completion_authority: normalized.completion_authority }) : null,
         ],
       );
       if (inserted.rowCount === 0) {
@@ -921,7 +1089,7 @@ export function createPostgresDmsUploadRuntime({
     ));
   }
 
-  async function stageUpload({ tenant_id, session_id, bytes } = {}) {
+  async function stageUpload({ tenant_id, session_id, bytes, beforePersist } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const sessionId = requiredText(session_id, "session_id");
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? []);
@@ -940,6 +1108,7 @@ export function createPostgresDmsUploadRuntime({
       if (locked.stage_lease_expires_at && Date.parse(locked.stage_lease_expires_at) > Date.parse(stageStartedAt)) {
         throw codedError("DMS upload stage lease is already active", "DMS_UPLOAD_STAGE_LEASE_ACTIVE");
       }
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_stage", session: locked, bytes: buffer });
       const result = await client.query(
         `UPDATE lawos_dms.upload_sessions
             SET stage_lease_owner = $3, stage_lease_token = $4,
@@ -959,6 +1128,7 @@ export function createPostgresDmsUploadRuntime({
     let receipt;
     let replayed = false;
     try {
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_storage", session });
       receipt = await storage.statStagedObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
       if (!receipt) {
         receipt = await storage.stageObject({
@@ -994,7 +1164,7 @@ export function createPostgresDmsUploadRuntime({
     return markBytesStored(session, receipt, { eventActor: "dms-reconciler" });
   }
 
-  async function commitMetadata(session) {
+  async function commitMetadata(session, beforePersist) {
     let stage = "CLOCK";
     let committedAt;
     try {
@@ -1012,6 +1182,7 @@ export function createPostgresDmsUploadRuntime({
       if (locked.staged_sha256 !== locked.expected_sha256 || locked.staged_byte_size !== locked.expected_byte_size) {
         throw codedError("DMS staged receipt changed before metadata commit", "DMS_STAGED_DIGEST_MISMATCH");
       }
+      if (typeof beforePersist === "function") await beforePersist({ phase: "before_metadata", session: locked, client });
       faultInjector?.("before_metadata_commit", { session_id: locked.session_id });
       stage = "DOCUMENT_UPSERT";
       await client.query(
@@ -1174,6 +1345,7 @@ export function createPostgresDmsUploadRuntime({
   }
 
   function safeProviderReceipt(receipt, session) {
+    const contract = completionAuthorityContract(session);
     return Object.freeze({
       adapter_id: session.adapter_id,
       tenant_id: session.tenant_id,
@@ -1185,6 +1357,7 @@ export function createPostgresDmsUploadRuntime({
       staged_cleanup_deferred: receipt?.staged_cleanup_deferred === true,
       raw_path_exposed: false,
       bytes_exposed: false,
+      ...(contract ? { completion_authority: contract } : {}),
     });
   }
 
@@ -1255,7 +1428,7 @@ export function createPostgresDmsUploadRuntime({
     });
   }
 
-  async function finalizeUpload({ tenant_id, session_id } = {}) {
+  async function finalizeUpload({ tenant_id, session_id, beforePersist } = {}) {
     let session = await getUploadSession({ tenant_id, session_id });
     if (session.state === "finalized") {
       return Object.freeze({
@@ -1265,6 +1438,12 @@ export function createPostgresDmsUploadRuntime({
       });
     }
     if (["expired", "failed_terminal"].includes(session.state)) throw codedError("DMS upload session is expired", "DMS_UPLOAD_SESSION_EXPIRED");
+    // Completion sessions carry a durable contract marker. A restart worker has
+    // no approved-Document resolver, so it must never publish their metadata
+    // through the callback-free reconciliation path.
+    if (completionAuthorityContract(session) && typeof beforePersist !== "function") {
+      throw codedError("DMS completion authority must be revalidated before metadata publication", "DMS_COMPLETION_AUTHORITY_REVALIDATION_REQUIRED");
+    }
     session = await ensureBytesStored(session);
     let receipt;
     let replayed = session.state === "provider_finalized";
@@ -1291,7 +1470,7 @@ export function createPostgresDmsUploadRuntime({
       }
     }
     faultInjector?.("after_storage_finalize_before_session_finalized", { session_id: session.session_id });
-    const finalized = await commitMetadata(session);
+    const finalized = await commitMetadata(session, beforePersist);
     return Object.freeze({ session: finalized, receipt: safeProviderReceipt(receipt ?? session.provider_receipt, session), replayed });
   }
 
@@ -1303,7 +1482,9 @@ export function createPostgresDmsUploadRuntime({
     object_id,
     session_id,
     version_number,
+    completion_authority,
     expires_at,
+    beforePersist,
   } = {}) {
     const tenantId = requiredText(document.tenant_id, "document.tenant_id");
     const documentId = requiredText(document.document_id, "document.document_id");
@@ -1313,6 +1494,7 @@ export function createPostgresDmsUploadRuntime({
     );
     const actorId = requiredText(actor_id, "actor_id");
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? []);
+    if (typeof beforePersist === "function") await beforePersist({ phase: "before_session", document, bytes: buffer, actor_id: actorId, idempotency_key });
     const created = await createUploadSession({
       tenant_id: tenantId,
       session_id: session_id ?? `dms-upload:${idFactory()}`,
@@ -1333,54 +1515,60 @@ export function createPostgresDmsUploadRuntime({
       source_email_thread_id: document.source_email_thread_id ?? null,
       source_attachment_id: document.source_attachment_id ?? null,
       actor_id: actorId,
+      completion_authority,
       expires_at: expires_at ?? nextUploadExpiry(),
     });
-    await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer });
-    const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id });
-    const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
-    if (!state) throw codedError("DMS document metadata was not published", "DMS_DOCUMENT_NOT_FOUND", 404);
-    const version = state.versions.find((item) => item.version_id === versionId);
-    const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
-    if (!version || !fileObject) throw codedError("DMS committed version is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
-    const { storage_pointer_ref: _storagePointerRef, ...safeFileObject } = fileObject;
-    const finalizedReceipt = finalized.receipt ?? finalized.session.provider_receipt;
-    if (!finalizedReceipt) throw codedError("DMS finalized upload receipt is unavailable", "DMS_FINALIZED_RECEIPT_NOT_FOUND", 500);
-    const storageReceipt = Object.freeze({
-      adapter_id: finalizedReceipt.adapter_id,
-      tenant_id: finalizedReceipt.tenant_id,
-      object_id: finalizedReceipt.object_id,
-      sha256: finalizedReceipt.sha256,
-      byte_size: Number(finalizedReceipt.byte_size),
-      mime_type: finalizedReceipt.mime_type,
-      raw_path_exposed: false,
-      storage_pointer_ref_included: false,
-    });
-    return Object.freeze({
-      outcome: created.replayed || finalized.replayed ? "idempotent_replay" : "created",
-      document: Object.freeze({
-        ...document,
-        ...state.document,
-        current_version_id: versionId,
-        latest_sha256: version.sha256,
-        owner_user_id: document.owner_user_id ?? actorId,
-      }),
-      version,
-      file_object: Object.freeze({
-        ...safeFileObject,
-        mime_type: safeFileObject.content_type,
+    try {
+      await stageUpload({ tenant_id: tenantId, session_id: created.session.session_id, bytes: buffer, beforePersist });
+      const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: created.session.session_id, beforePersist });
+      const state = await getDocumentState({ tenant_id: tenantId, document_id: documentId });
+      if (!state) throw codedError("DMS document metadata was not published", "DMS_DOCUMENT_NOT_FOUND", 404);
+      const version = state.versions.find((item) => item.version_id === versionId);
+      const fileObject = state.file_objects.find((item) => item.file_object_id === version?.file_object_id);
+      if (!version || !fileObject) throw codedError("DMS committed version is unavailable", "DMS_COMMITTED_OBJECT_NOT_FOUND", 404);
+      const { storage_pointer_ref: _storagePointerRef, ...safeFileObject } = fileObject;
+      const finalizedReceipt = finalized.receipt ?? finalized.session.provider_receipt;
+      if (!finalizedReceipt) throw codedError("DMS finalized upload receipt is unavailable", "DMS_FINALIZED_RECEIPT_NOT_FOUND", 500);
+      const storageReceipt = Object.freeze({
+        adapter_id: finalizedReceipt.adapter_id,
+        tenant_id: finalizedReceipt.tenant_id,
+        object_id: finalizedReceipt.object_id,
+        sha256: finalizedReceipt.sha256,
+        byte_size: Number(finalizedReceipt.byte_size),
+        mime_type: finalizedReceipt.mime_type,
         raw_path_exposed: false,
         storage_pointer_ref_included: false,
-      }),
-      storage_receipt: storageReceipt,
-      audit_event: Object.freeze({
-        event_id: `audit:${created.session.session_id}:finalized`,
-        raw_payload_included: false,
-      }),
-      idempotent_replay: created.replayed || finalized.replayed === true,
-      upload_session_id: created.session.session_id,
-      provider_finalize_before_metadata: true,
-      independent_digest_readback: true,
-    });
+      });
+      return Object.freeze({
+        outcome: created.replayed || finalized.replayed ? "idempotent_replay" : "created",
+        document: Object.freeze({
+          ...document,
+          ...state.document,
+          current_version_id: versionId,
+          latest_sha256: version.sha256,
+          owner_user_id: document.owner_user_id ?? actorId,
+        }),
+        version,
+        file_object: Object.freeze({
+          ...safeFileObject,
+          mime_type: safeFileObject.content_type,
+          raw_path_exposed: false,
+          storage_pointer_ref_included: false,
+        }),
+        storage_receipt: storageReceipt,
+        audit_event: Object.freeze({
+          event_id: `audit:${created.session.session_id}:finalized`,
+          raw_payload_included: false,
+        }),
+        idempotent_replay: created.replayed || finalized.replayed === true,
+        upload_session_id: created.session.session_id,
+        provider_finalize_before_metadata: true,
+        independent_digest_readback: true,
+      });
+    } catch (error) {
+      if (isCompletionAuthorityRejection(error)) await quarantineCompletionAuthorityUpload(created.session, error);
+      throw error;
+    }
   }
 
   async function assertOrphanCleanupAllowed(client, session, now) {
@@ -1465,24 +1653,27 @@ export function createPostgresDmsUploadRuntime({
       const result = await client.query(
         `WITH candidates AS (
            SELECT tenant_id, session_id
-             FROM lawos_dms.upload_sessions
+            FROM lawos_dms.upload_sessions
             WHERE tenant_id = $1
               AND state = ANY($2::text[])
-              AND next_attempt_at <= $3::timestamptz
-              AND (reconcile_lease_expires_at IS NULL OR reconcile_lease_expires_at <= $3::timestamptz)
+              AND (state <> 'failed_terminal'
+                   OR (dead_letter_receipt->>'schema_version' = $3
+                       AND dead_letter_receipt->>'cleanup_state' = 'pending'))
+              AND next_attempt_at <= $4::timestamptz
+              AND (reconcile_lease_expires_at IS NULL OR reconcile_lease_expires_at <= $4::timestamptz)
               AND (state <> 'expired' OR orphan_deleted_at IS NULL)
             ORDER BY next_attempt_at, created_at, session_id
             FOR UPDATE SKIP LOCKED
-            LIMIT $4
+            LIMIT $5
          )
          UPDATE lawos_dms.upload_sessions target
-            SET reconcile_owner = $5, reconcile_lease_expires_at = $6::timestamptz,
-                updated_at = $3::timestamptz
+            SET reconcile_owner = $6, reconcile_lease_expires_at = $7::timestamptz,
+                updated_at = $4::timestamptz
            FROM candidates
           WHERE target.tenant_id = candidates.tenant_id
             AND target.session_id = candidates.session_id
          RETURNING target.*`,
-        [tenantId, ACTIVE_RECONCILIATION_STATES, now, boundedLimit, runtimeWorkerId, leaseExpiresAt],
+        [tenantId, ACTIVE_RECONCILIATION_STATES, COMPLETION_AUTHORITY_QUARANTINE_SCHEMA, now, boundedLimit, runtimeWorkerId, leaseExpiresAt],
       );
       return result.rows.map(rowToSession);
     });
@@ -1587,6 +1778,17 @@ export function createPostgresDmsUploadRuntime({
             continue;
           }
           await markBytesStored(session, staged, { eventActor: "dms-reconciler" });
+        }
+        if (completionAuthorityContract(session)) {
+          const authorityFence = codedError(
+            "DMS completion authority requires an approved resolver before reconciliation",
+            "DMS_COMPLETION_AUTHORITY_REVALIDATION_REQUIRED",
+          );
+          const quarantined = await quarantineCompletionAuthorityUpload(session, authorityFence);
+          if (!quarantined || quarantined.state !== "failed_terminal") throw authorityFence;
+          outcomes.push(Object.freeze({ session_id: session.session_id, action: "authority_quarantined", state: quarantined.state }));
+          await releaseReconciliationClaim(tenantId, session.session_id);
+          continue;
         }
         const finalized = await finalizeUpload({ tenant_id: tenantId, session_id: session.session_id });
         outcomes.push(Object.freeze({ session_id: session.session_id, action: "finalized", state: finalized.session.state }));

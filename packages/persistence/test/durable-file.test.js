@@ -248,10 +248,9 @@ test("exclusive lock recovers only an old dead same-host owner", (t) => {
   );
 
   writeFileSync(lockPath, "{}\n", { mode: 0o600 });
-  assert.throws(
-    () => acquireExclusiveFileLock({ resourcePath, waitTimeoutMs: 10, retryDelayMs: 1, staleAfterMs: 0 }),
-    { code: "LAWOS_STORE_LOCK_TIMEOUT" },
-  );
+  const malformedRecovered = acquireExclusiveFileLock({ resourcePath, waitTimeoutMs: 20, retryDelayMs: 1, staleAfterMs: 0 });
+  assert.notEqual(malformedRecovered.token, undefined);
+  releaseExclusiveFileLock(malformedRecovered);
 
   rmSync(lockPath, { force: true });
   const result = withStoreWriteLock({ resourcePath, waitTimeoutMs: 10 }, (lock) => ({

@@ -2341,6 +2341,12 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       const beforeReplayProviderCalls = providerCallCount;
       const beforeReplayStorageWrites = storageWriteCount;
       const beforeReplayDocumentCount = dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length;
+      const filingReceiptKey = `outlook-email-file:${emailThreadId}:${mimeSha256}:dms`;
+      const beforeReplayFilingReceipt = dmsRepository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: filingReceiptKey,
+      });
+      const beforeReplayDmsSnapshot = JSON.stringify(dmsRepository.snapshot());
       const replayResponse = await fetch(`${baseUrl}/api/outlook/email/file`, {
         method: "POST",
         headers: { "content-type": "application/json", ...sessionHeaders },
@@ -2351,13 +2357,15 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       assert.equal(replay.outcome, "idempotent_replay");
       assert.equal(replay.idempotent_replay, true);
       const replayMimeSha256 = replay.email_thread.filed_document_ids[0].split(":").at(-1);
-      assert.equal(
-        dmsRepository.getIdempotency({
-          tenant_id: TENANT,
-          idempotency_key: `outlook-email-file:${replay.email_thread.email_thread_id}:${replayMimeSha256}:dms`,
-        })?.response?.outcome,
-        "idempotent_replay",
-      );
+      assert.equal(replayMimeSha256, mimeSha256);
+      const afterReplayFilingReceipt = dmsRepository.getIdempotency({
+        tenant_id: TENANT,
+        idempotency_key: filingReceiptKey,
+      });
+      assert.equal(afterReplayFilingReceipt?.response?.outcome, "created");
+      assert.deepEqual(afterReplayFilingReceipt, beforeReplayFilingReceipt);
+      const afterReplayDmsSnapshot = JSON.stringify(dmsRepository.snapshot());
+      assert.equal(afterReplayDmsSnapshot, beforeReplayDmsSnapshot);
       assert.equal(providerCallCount, beforeReplayProviderCalls + 1);
       assert.equal(storageWriteCount, beforeReplayStorageWrites);
       assert.equal(dmsRepository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length, beforeReplayDocumentCount);

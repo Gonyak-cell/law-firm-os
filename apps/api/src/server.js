@@ -198,6 +198,14 @@ import {
   createPostgresOutlookConversationRuntime,
   LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV,
 } from "./outlook-conversation-operational-runtime.js";
+import {
+  handleDocusignOutlookRequest,
+  handleDocusignWebhook,
+  isDocusignOutlookRoute,
+  isDocusignWebhook,
+} from "./docusign-api.js";
+import { createDocusignFailClosedRuntime } from "./docusign-runtime.js";
+import { createPostgresDocusignEnvelopeRepository } from "../../../packages/integrations-core/src/docusign-postgres-repository.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -493,6 +501,7 @@ export function createDefaultDmsRuntime({
   storePath = process.env.LAWOS_DMS_STORE_PATH,
   storage,
   storageRootPath = process.env.LAWOS_DMS_OBJECT_STORE_PATH,
+  quarantineRootPath = process.env.LAWOS_DMS_QUARANTINE_STORE_PATH,
 } = {}) {
   const resolvedStorePath = storePath || createEphemeralDmsStorePath();
   const dmsRepository =
@@ -506,6 +515,7 @@ export function createDefaultDmsRuntime({
     createFileStorageAdapter({
       adapter_id: "vault-api-file",
       rootPath: storageRootPath || `${resolvedStorePath}.objects`,
+      quarantineRootPath: quarantineRootPath || `${resolvedStorePath}.quarantine-authority`,
     });
   return createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
 }
@@ -1370,7 +1380,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1464,6 +1474,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         ? { outlook_graph_sync: outlookGraphSyncReadiness }
         : {}),
       runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
+      docusign: docusignRuntime?.readiness?.() ?? { status: "blocked", production_ready_claim: false },
       ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
     return;
@@ -1998,6 +2009,20 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
+    if (isDocusignOutlookRoute(req.method, pathname)) {
+      const body = req.method === "POST" ? await readRequestBody(req) : {};
+      const result = await handleDocusignOutlookRequest({
+        method: req.method,
+        pathname,
+        query,
+        body,
+        principal: sessionContext.principal,
+        requestId,
+        runtime: docusignRuntime,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method)
       ? await readRequestBody(req, {
@@ -2095,6 +2120,7 @@ export function createApiServer({
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
+  docusignRuntime = createDocusignFailClosedRuntime(),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({
     dmsRuntime,
     emailDmsRepository: emailDmsRuntime?.repository,
@@ -2183,6 +2209,7 @@ export function createApiServer({
           matterRuntime: matterRuntimeWithClearanceLedger,
           dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
           emailDmsRuntime: resolvedEmailDmsRuntime,
+          docusignRuntime: requestRuntimes.docusignRuntime ?? docusignRuntime,
           crmIntakeRuntime: resolvedCrmIntakeRuntime,
           financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
           financeRuntimeUnavailable,
@@ -2236,6 +2263,31 @@ export function createApiServer({
         } else {
           sendJson(req, res, result.status, result.body, result.headers);
         }
+        return;
+      }
+      if (isDocusignWebhook(req.method, requestPathname)) {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        try {
+          await readRequestBody(req, { maxBytes: 256 * 1024 });
+        } catch (error) {
+          const result = await handleDocusignWebhook({
+            headers: req.headers,
+            rawBody: req.lawosRawRequestBody ?? Buffer.alloc(0),
+            requestId,
+            runtime: docusignRuntime,
+            preflightError: error,
+          });
+          sendJson(req, res, result.status, result.body);
+          return;
+        }
+        const result = await handleDocusignWebhook({
+          headers: req.headers,
+          rawBody: req.lawosRawRequestBody,
+          requestId,
+          runtime: docusignRuntime,
+        });
+        sendJson(req, res, result.status, result.body);
         return;
       }
       if (isPayrollStatementProviderCallback(req.method, requestPathname)) {
@@ -2361,6 +2413,7 @@ export async function startApiServer({
   dmsStorage,
   emailDmsRuntime,
   emailDmsRepository,
+  docusignRuntime,
   dmsVerifyPermanentDeleteApproval,
   payrollArtifactSecret,
   payrollProviders,
@@ -2623,12 +2676,16 @@ export async function startApiServer({
               outlookConversationRuntime.before_connection_revoke,
           })
         : m365GraphConfig;
+      const resolvedDocusignRuntime = docusignRuntime ?? createDocusignFailClosedRuntime({
+        repository: createPostgresDocusignEnvelopeRepository({ pool: postgresPool }),
+      });
       const server = createApiServer({
         hrxRuntime: null,
         masterDataRuntime: null,
         matterRuntime: null,
         dmsRuntime: null,
         emailDmsRuntime: null,
+        docusignRuntime: resolvedDocusignRuntime,
         crmIntakeRuntime: null,
         financeRuntime: null,
         analyticsRuntime: null,
@@ -2898,6 +2955,7 @@ export async function startApiServer({
     matterRuntime: matterRuntimeContext,
     dmsRuntime: dmsRuntimeContext,
     emailDmsRuntime: emailDmsRuntimeContext,
+    docusignRuntime,
     crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
     financeRuntimeUnavailable,
