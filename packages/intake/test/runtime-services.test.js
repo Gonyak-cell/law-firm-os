@@ -387,7 +387,7 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
         signed_document_id: "doc-engagement-001",
         template_document_id: "template-doc-engagement-001",
         signature_ref: "signature:doc-engagement-001",
-        content_sha256: "sha256:doc-engagement-001",
+        content_sha256: "a".repeat(64),
         byte_size: 2048,
         mime_type: "application/pdf",
         upload_state: "uploaded",
@@ -399,7 +399,7 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
   });
   assert.equal(engagement.engagement.template_document_id, "template-doc-engagement-001");
   assert.equal(engagement.engagement.signed_document_upload_id, "signed-upload-engagement-001");
-  assert.equal(engagement.signed_document_upload.content_sha256, "sha256:doc-engagement-001");
+  assert.equal(engagement.signed_document_upload.content_sha256, "a".repeat(64));
   approveFeeTerms({
     repository: intake,
     fee_terms: {
@@ -445,7 +445,7 @@ test("G6 opportunity handoff and conflict workflow produce a valid clearance tok
   assert.equal(token.clearance_token.conflict_review_satisfied, true);
   assert.equal(token.clearance_token.engagement_review_satisfied, true);
   assert.equal(token.clearance_token.engagement_signed_document_upload_id, "signed-upload-engagement-001");
-  assert.equal(token.clearance_token.engagement_signed_document_sha256, "sha256:doc-engagement-001");
+  assert.equal(token.clearance_token.engagement_signed_document_sha256, "a".repeat(64));
   assert.equal(
     validateClearanceToken({ ...token.clearance_token, snapshot_stale: true }, { now: "2026-06-20T00:00:00.000Z" }).token_state,
     "stale",

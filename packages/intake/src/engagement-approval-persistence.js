@@ -1,8 +1,22 @@
 import { appendIntakeAuditEvent } from "./audit.js";
 import {
+  canonicalEngagementApprovalFingerprintBinding,
+  engagementApprovalRequestFingerprint,
   ENGAGEMENT_APPROVAL_OPERATION,
-  engagementApprovalError,
-} from "./engagement-approval-command.js";
+} from "./engagement-approval-binding.js";
+import { engagementApprovalError } from "./engagement-approval-command.js";
+import {
+  classifyEngagementApprovalIdempotency,
+  hasParentEngagementApprovalCore,
+} from "./engagement-legacy-idempotency-readiness.js";
+import {
+  canonicalEngagementApprovalResponse,
+  canonicalEngagementDmsUploadResult,
+  decodeStoredEngagementApprovalResponse,
+  ENGAGEMENT_APPROVAL_BINDING_FIELD,
+  engagementApprovalReplayAuthorityDigest,
+  storedEngagementApprovalResponse,
+} from "./engagement-approval-response.js";
 
 function positiveNumber(value, field) {
   const number = Number(value);
@@ -17,19 +31,6 @@ function normalizeSha256(value) {
 
 function signedUploadFor(prepared, templateDocument, dmsUpload) {
   const upload = prepared.engagement.signed_document_upload ?? {};
-  const {
-    bytes_base64,
-    content_base64,
-    content_text,
-    document_bytes_base64,
-    signed_document_bytes_base64,
-    ...safeUpload
-  } = upload;
-  void bytes_base64;
-  void content_base64;
-  void content_text;
-  void document_bytes_base64;
-  void signed_document_bytes_base64;
   const receipt = dmsUpload?.storage_receipt ?? null;
   const documentId = upload.document_id ?? upload.signed_document_id
     ?? prepared.engagement.signed_document_id;
@@ -42,7 +43,7 @@ function signedUploadFor(prepared, templateDocument, dmsUpload) {
   if (typeof contentSha !== "string" || !contentSha.trim()) throw new TypeError("content_sha256 is required");
   if (receipt && callerSha && callerSha !== receipt.sha256) throw new Error("signed document hash mismatch");
   return Object.freeze({
-    ...safeUpload,
+    ...upload,
     model_type: "EngagementSignedDocumentUpload",
     signed_document_upload_id: upload.signed_document_upload_id
       ?? prepared.engagement.signed_document_upload_id
@@ -75,23 +76,71 @@ export function engagementApprovalReplay(repository, prepared) {
     idempotency_key: prepared.idempotency_key,
   });
   if (!replay) return null;
+  if (classifyEngagementApprovalIdempotency(replay) === "legacy_unresolved") {
+    throw engagementApprovalError(
+      "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_MANUAL_REVIEW",
+      "engagement approval requires legacy idempotency authority review",
+    );
+  }
   if (replay.operation !== ENGAGEMENT_APPROVAL_OPERATION
       || replay.actor_id !== prepared.actor_id
       || replay.object_type !== "Engagement"
-      || replay.object_id !== prepared.engagement_id
-      || replay.request_fingerprint !== prepared.request_fingerprint) {
+      || replay.object_id !== prepared.engagement_id) {
     throw engagementApprovalError(
       "IDEMPOTENCY_KEY_REUSED",
       "engagement approval idempotency key was reused",
     );
   }
-  return Object.freeze({ ...replay.response, idempotent_replay: true });
+  const decoded = decodeStoredEngagementApprovalResponse(replay.response, {
+    actor_id: replay.actor_id,
+  });
+  if (decoded.state !== "valid") {
+    throw engagementApprovalError(
+      "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_MANUAL_REVIEW",
+      "engagement approval requires legacy idempotency authority review",
+    );
+  }
+  const response = decoded.response;
+  if (!hasParentEngagementApprovalCore({
+    idempotency_key: prepared.idempotency_key,
+    response,
+  })
+      || response.engagement.tenant_id !== prepared.tenant_id
+      || response.engagement.engagement_id !== replay.object_id
+      || response.audit_event.actor_id !== replay.actor_id) {
+    throw engagementApprovalError(
+      "INTAKE_ENGAGEMENT_REPLAY_AUTHORITY_INVALID",
+      "engagement approval replay authority requires manual review",
+    );
+  }
+  if (decoded.replay_authority_digest !== replay.request_fingerprint) {
+    throw engagementApprovalError(
+      "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_MANUAL_REVIEW",
+      "engagement approval requires legacy idempotency authority review",
+    );
+  }
+  if (decoded.request_fingerprint !== prepared.request_fingerprint) {
+    throw engagementApprovalError(
+      "IDEMPOTENCY_KEY_REUSED",
+      "engagement approval idempotency key was reused",
+    );
+  }
+  return Object.freeze({ ...response, idempotent_replay: true });
 }
 
 export function persistEngagementApproval({ repository, prepared, dms_upload = null, occurred_at } = {}) {
   const occurredAt = new Date(occurred_at).toISOString();
+  const canonicalPrepared = Object.freeze({
+    ...prepared,
+    engagement: canonicalEngagementApprovalFingerprintBinding({
+      engagement: prepared.engagement,
+      actor_id: prepared.actor_id,
+      bytes: prepared.bytes,
+    }),
+  });
+  const canonicalDmsUpload = canonicalEngagementDmsUploadResult(dms_upload);
   return repository.transaction((tx) => {
-    const replay = engagementApprovalReplay(tx, prepared);
+    const replay = engagementApprovalReplay(tx, canonicalPrepared);
     if (replay) return replay;
     const templateDocument = tx.create({
       ...prepared.template_document,
@@ -100,14 +149,13 @@ export function persistEngagementApproval({ repository, prepared, dms_upload = n
       updated_at: occurredAt,
     });
     const signedUpload = tx.create({
-      ...signedUploadFor(prepared, templateDocument, dms_upload),
+      ...signedUploadFor(canonicalPrepared, templateDocument, canonicalDmsUpload),
       created_at: occurredAt,
       updated_at: occurredAt,
     });
-    const { template_document, signed_document_upload, signed_document_bytes_base64, ...safeEngagement } = prepared.engagement;
+    const { template_document, signed_document_upload, ...safeEngagement } = canonicalPrepared.engagement;
     void template_document;
     void signed_document_upload;
-    void signed_document_bytes_base64;
     const record = tx.create({
       ...safeEngagement,
       model_type: "Engagement",
@@ -118,8 +166,10 @@ export function persistEngagementApproval({ repository, prepared, dms_upload = n
       signed_upload_verified: true,
       template_document_generated: true,
       lx06_upload_verified: true,
+      approver_id: prepared.actor_id,
+      approval_state: "approved",
       status: "approved",
-      approved_at: prepared.engagement.approved_at ?? occurredAt,
+      approved_at: occurredAt,
       created_at: occurredAt,
       updated_at: occurredAt,
     });
@@ -158,11 +208,23 @@ export function persistEngagementApproval({ repository, prepared, dms_upload = n
       server_hash_recomputed: signedUpload.server_hash_recomputed,
       document_bytes_included: false,
     });
-    const response = Object.freeze({
+    const response = canonicalEngagementApprovalResponse({
       outcome: "approved", engagement: record, template_document: templateDocument,
-      signed_document_upload: signedUpload, dms_upload, template_audit_event: templateAuditEvent,
+      signed_document_upload: signedUpload, dms_upload: canonicalDmsUpload, template_audit_event: templateAuditEvent,
       signed_upload_audit_event: signedUploadAuditEvent, audit_event: auditEvent, idempotent_replay: false,
     });
+    const storedResponse = storedEngagementApprovalResponse({
+      response,
+      binding: canonicalPrepared.engagement,
+      actor_id: prepared.actor_id,
+    });
+    const storedRequestFingerprint = engagementApprovalRequestFingerprint({
+      engagement: storedResponse[ENGAGEMENT_APPROVAL_BINDING_FIELD].request_binding,
+      actor_id: prepared.actor_id,
+    });
+    if (storedRequestFingerprint !== prepared.request_fingerprint) {
+      throw new TypeError("engagement approval request binding changed before persistence");
+    }
     tx.recordIdempotency({
       tenant_id: prepared.tenant_id,
       idempotency_key: prepared.idempotency_key,
@@ -170,8 +232,11 @@ export function persistEngagementApproval({ repository, prepared, dms_upload = n
       object_type: "Engagement",
       object_id: prepared.engagement_id,
       actor_id: prepared.actor_id,
-      request_fingerprint: prepared.request_fingerprint,
-      response,
+      request_fingerprint: engagementApprovalReplayAuthorityDigest({
+        request_fingerprint: storedRequestFingerprint,
+        response_sha256: storedResponse[ENGAGEMENT_APPROVAL_BINDING_FIELD].response_sha256,
+      }),
+      response: storedResponse,
       created_at: occurredAt,
     });
     return response;

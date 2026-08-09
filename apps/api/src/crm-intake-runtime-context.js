@@ -610,7 +610,7 @@ function engagementPayload({ body, context } = {}) {
     template_id: input.template_id ?? body?.template_id ?? "matter_engagement_letter",
     template_document: input.template_document ?? body?.template_document,
     signed_document_upload: input.signed_document_upload ?? body?.signed_document_upload,
-    approver_id: input.approver_id ?? body?.approver_id ?? context?.principal?.user_id,
+    approver_id: context?.principal?.user_id,
   };
 }
 

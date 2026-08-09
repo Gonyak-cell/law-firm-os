@@ -1,7 +1,14 @@
 import { hashDomainValue } from "../../persistence/src/domain-ledger.js";
 import { sha256Hex } from "../../dms/src/storage/storage-adapter.js";
+import {
+  canonicalEngagementApprovalFingerprintBinding,
+  engagementApprovalRequestFingerprint,
+  engagementDmsDocument,
+  engagementTemplateDocument,
+  ENGAGEMENT_APPROVAL_OPERATION,
+} from "./engagement-approval-binding.js";
 
-export const ENGAGEMENT_APPROVAL_OPERATION = "engagement_approve";
+export { ENGAGEMENT_APPROVAL_OPERATION } from "./engagement-approval-binding.js";
 
 function requiredText(value, field) {
   const text = String(value ?? "").trim();
@@ -18,72 +25,6 @@ function exactBytes(engagement) {
     return Buffer.from(upload.content_text);
   }
   return null;
-}
-
-function safeEngagementBinding(engagement, bytes) {
-  const upload = engagement.signed_document_upload ?? {};
-  const {
-    bytes_base64,
-    content_base64,
-    content_text,
-    document_bytes_base64,
-    signed_document_bytes_base64,
-    ...safeUpload
-  } = upload;
-  void bytes_base64;
-  void content_base64;
-  void content_text;
-  void document_bytes_base64;
-  void signed_document_bytes_base64;
-  return {
-    ...engagement,
-    signed_document_bytes_base64: undefined,
-    signed_document_upload: {
-      ...safeUpload,
-      content_sha256: bytes ? sha256Hex(bytes) : safeUpload.content_sha256 ?? safeUpload.sha256 ?? null,
-      byte_size: bytes?.byteLength ?? safeUpload.byte_size ?? null,
-    },
-  };
-}
-
-function templateDocument(engagement) {
-  const template = engagement.template_document ?? {};
-  return Object.freeze({
-    ...template,
-    model_type: "EngagementTemplateDocument",
-    template_document_id: template.template_document_id
-      ?? engagement.template_document_id
-      ?? `template_document:${engagement.engagement_id}`,
-    tenant_id: engagement.tenant_id,
-    intake_request_id: engagement.intake_request_id,
-    engagement_id: engagement.engagement_id,
-    template_id: engagement.template_id ?? template.template_id ?? "matter_engagement_letter",
-    document_title: template.document_title ?? "위임계약서",
-    generation_state: "generated",
-    merge_field_count: Number(template.merge_field_count ?? 3),
-    document_payload_included: false,
-    template_payload_included: false,
-    production_ready_claim: false,
-  });
-}
-
-function dmsDocument(engagement, template) {
-  const upload = engagement.signed_document_upload ?? {};
-  const documentId = upload.document_id ?? upload.signed_document_id ?? engagement.signed_document_id;
-  const versionId = upload.version_id ?? `version:${documentId}:1`;
-  return Object.freeze({
-    tenant_id: engagement.tenant_id,
-    matter_id: upload.matter_id ?? engagement.matter_id ?? `intake:${engagement.intake_request_id}`,
-    workspace_id: upload.workspace_id ?? `workspace:intake:${engagement.intake_request_id}`,
-    folder_id: upload.folder_id ?? null,
-    document_id: documentId,
-    title: upload.title ?? template.document_title ?? "Signed engagement letter",
-    status: "active",
-    current_version_id: versionId,
-    permission_envelope_id: upload.permission_envelope_id ?? `perm:${engagement.tenant_id}:${documentId}`,
-    audit_trace_id: upload.audit_trace_id ?? `audit:${engagement.tenant_id}:${documentId}`,
-    mime_type: upload.mime_type ?? "application/pdf",
-  });
 }
 
 export function engagementApprovalError(code, message, { retryable = false, status = 409 } = {}) {
@@ -104,13 +45,22 @@ export function prepareEngagementApproval({ engagement, actor_id, idempotency_ke
   const actorId = requiredText(actor_id, "actor_id");
   const idempotencyKey = requiredText(idempotency_key, "idempotency_key");
   const bytes = exactBytes(engagement);
-  const template = templateDocument(engagement);
-  const document = dmsDocument(engagement, template);
+  const callerSha = String(
+    engagement.signed_document_upload?.content_sha256
+      ?? engagement.signed_document_upload?.sha256
+      ?? "",
+  ).trim().replace(/^sha256:/u, "");
+  if (bytes && callerSha && callerSha !== sha256Hex(bytes)) {
+    throw new Error("signed document hash mismatch");
+  }
+  const canonicalEngagement = canonicalEngagementApprovalFingerprintBinding({
+    engagement, actor_id: actorId, bytes,
+  });
+  const template = engagementTemplateDocument(canonicalEngagement);
+  const document = engagementDmsDocument(canonicalEngagement, template);
   const keyHash = hashDomainValue({ tenant_id: tenantId, idempotency_key: idempotencyKey });
-  const requestFingerprint = hashDomainValue({
-    operation: ENGAGEMENT_APPROVAL_OPERATION,
-    actor_id: actorId,
-    engagement: safeEngagementBinding(engagement, bytes),
+  const requestFingerprint = engagementApprovalRequestFingerprint({
+    engagement: canonicalEngagement, actor_id: actorId,
   });
   const sessionId = `dms-upload:engagement:${keyHash}`;
   const objectId = `object:${document.current_version_id}`;
@@ -121,7 +71,7 @@ export function prepareEngagementApproval({ engagement, actor_id, idempotency_ke
     idempotency_key: idempotencyKey,
     request_fingerprint: requestFingerprint,
     claim_id: hashDomainValue({ operation: ENGAGEMENT_APPROVAL_OPERATION, tenant_id: tenantId, key_hash: keyHash }),
-    engagement,
+    engagement: canonicalEngagement,
     template_document: template,
     bytes,
     dms: Object.freeze({

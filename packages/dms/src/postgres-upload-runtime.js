@@ -2112,6 +2112,87 @@ export function createPostgresDmsUploadRuntime({
     });
   }
 
+  async function advanceExpiredIntakeGuardCheckpoint(session, guard, recoveredAt) {
+    return transact(session.tenant_id, async (client) => {
+      const locked = await selectSession(client, session.tenant_id, session.session_id, { lock: true });
+      const currentGuard = intakeMetadataGuardContract(locked);
+      assertIntakeMetadataGuardMatchesSession(currentGuard, locked);
+      if (locked.reconcile_owner !== runtimeWorkerId
+          || locked.state !== "provider_finalized"
+          || locked.metadata_committed_at !== null
+          || Date.parse(locked.expires_at) > Date.parse(recoveredAt)
+          || currentGuard.request_fingerprint !== guard.request_fingerprint
+          || currentGuard.claim_id !== guard.claim_id) {
+        throw codedError(
+          "Expired Intake checkpoint authority changed before recovery",
+          "DMS_EXTERNAL_METADATA_GUARD_MISMATCH",
+        );
+      }
+      const attemptCount = locked.reconciliation_attempt_count + 1;
+      const terminal = attemptCount >= maxReconciliationAttempts;
+      const delay = Math.min(
+        reconciliationBackoffMillis * (2 ** Math.max(0, attemptCount - 1)),
+        60 * 60 * 1_000,
+      );
+      const nextAttemptAt = terminal
+        ? recoveredAt
+        : new Date(Date.parse(recoveredAt) + delay).toISOString();
+      const receipt = terminal ? Object.freeze({
+        schema_version: EXTERNAL_METADATA_RECOVERY_SCHEMA,
+        kind: "external_metadata_checkpoint_expired",
+        session_id: locked.session_id,
+        recovery_state: "manual_recovery_required",
+        safe_error_code: "DMS_EXTERNAL_METADATA_CHECKPOINT_EXPIRED",
+        provider_bytes_committed: true,
+        attempt_count: attemptCount,
+        max_attempts: maxReconciliationAttempts,
+        recovered_at: recoveredAt,
+        terminal_at: recoveredAt,
+      }) : null;
+      const updated = await client.query(
+        `UPDATE lawos_dms.upload_sessions
+            SET state = CASE WHEN $4::boolean THEN 'failed_terminal' ELSE state END,
+                retryable = NOT $4::boolean,
+                reconciliation_attempt_count = $3,
+                stage_lease_owner = CASE WHEN $4::boolean THEN NULL ELSE stage_lease_owner END,
+                stage_lease_token = CASE WHEN $4::boolean THEN NULL ELSE stage_lease_token END,
+                stage_lease_expires_at = CASE WHEN $4::boolean THEN NULL ELSE stage_lease_expires_at END,
+                provider_finalize_owner = NULL, provider_finalize_token = NULL,
+                provider_finalize_lease_expires_at = NULL,
+                reconcile_owner = NULL, reconcile_lease_expires_at = NULL,
+                next_attempt_at = $5::timestamptz,
+                last_error_code = 'DMS_EXTERNAL_METADATA_CHECKPOINT_EXPIRED',
+                failed_terminal_at = CASE WHEN $4::boolean THEN $6::timestamptz ELSE failed_terminal_at END,
+                dead_letter_receipt = CASE WHEN $4::boolean THEN $7::jsonb ELSE dead_letter_receipt END,
+                updated_at = $6::timestamptz
+          WHERE tenant_id = $1 AND session_id = $2 AND reconcile_owner = $8
+          RETURNING *`,
+        [locked.tenant_id, locked.session_id, attemptCount, terminal, nextAttemptAt,
+          recoveredAt, JSON.stringify(receipt), runtimeWorkerId],
+      );
+      if (!updated.rows[0]) {
+        throw codedError("DMS reconciliation lease was lost", "DMS_RECONCILIATION_LEASE_LOST");
+      }
+      if (terminal) {
+        await appendAudit(client, {
+          tenant_id: locked.tenant_id,
+          event_id: `audit:${locked.session_id}:external-metadata-manual-recovery`,
+          event_type: "dms.upload_session.external_metadata_manual_recovery",
+          actor_id: "dms-reconciler",
+          object_type: "DmsUploadSession",
+          object_id: locked.session_id,
+          payload: {
+            state: "failed_terminal",
+            provider_bytes_committed: true,
+            attempt_count: attemptCount,
+          },
+          created_at: recoveredAt,
+        });
+      }
+      return rowToSession(updated.rows[0]);
+    });
+  }
+
   async function reconcileUploadSessions({ tenant_id, limit = 100 } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const boundedLimit = Number(limit);
@@ -2128,6 +2209,21 @@ export function createPostgresDmsUploadRuntime({
         if (intakeMetadataGuard) {
           assertIntakeMetadataGuardMatchesSession(intakeMetadataGuard, session);
           const preProviderState = ["pending", "failed", "bytes_stored", "expired"].includes(session.state);
+          if (sessionExpired && session.state === "provider_finalized") {
+            const advanced = await advanceExpiredIntakeGuardCheckpoint(
+              session,
+              intakeMetadataGuard,
+              now,
+            );
+            outcomes.push(Object.freeze({
+              session_id: session.session_id,
+              action: advanced.state === "failed_terminal"
+                ? "external_checkpoint_manual_recovery"
+                : "awaiting_external_checkpoint",
+              state: advanced.state,
+            }));
+            continue;
+          }
           if (sessionExpired && preProviderState) {
             const terminal = await markIntakeGuardManualRecovery(session, intakeMetadataGuard, now);
             outcomes.push(Object.freeze({

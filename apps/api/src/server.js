@@ -27,6 +27,7 @@ import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
+import { inspectPostgresEngagementLegacyIdempotency } from "../../../packages/intake/src/engagement-legacy-idempotency-readiness.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import {
@@ -2614,6 +2615,27 @@ export async function startApiServer({
         throw runtimePreflightError(
           "postgres-v2 startup requires LAWOS_IDENTITY_TENANT_ID or sessionAuth.trusted_tenant_id",
         );
+      }
+      let engagementLegacyReadiness;
+      try {
+        engagementLegacyReadiness = await inspectPostgresEngagementLegacyIdempotency({
+          ledger: domainLedger,
+          tenant_id: startupAuthorityTenantId,
+        });
+      } catch {
+        const error = runtimePreflightError(
+          "Intake engagement legacy idempotency inventory scan failed",
+        );
+        error.safe_error_code = "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_INVENTORY_SCAN_FAILED";
+        throw error;
+      }
+      if (!engagementLegacyReadiness.ready) {
+        const error = runtimePreflightError(
+          "Intake engagement legacy idempotency inventory requires manual review",
+        );
+        error.safe_error_code = "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_INVENTORY_NONZERO";
+        error.readiness_receipt = engagementLegacyReadiness;
+        throw error;
       }
       const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
       const dmsConsumerReadAuthority = createPostgresDmsConsumerReadAuthority({

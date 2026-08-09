@@ -16,6 +16,7 @@ import {
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { createMigratedPostgresFixture } from "../../persistence/test/helpers/disposable-postgres.js";
 import { INTAKE_DOMAIN_DESCRIPTOR } from "../src/central-ledger.js";
+import { prepareEngagementApproval } from "../src/engagement-approval-command.js";
 import { approveEngagement } from "../src/engagement-service.js";
 import { createIntakeRuntimeRepository } from "../src/runtime-repository.js";
 
@@ -160,6 +161,12 @@ test("engagement callback and DMS metadata commit roll back together, then resta
   assert.ok(sessionRow);
   assert.equal(sessionRow.state, "provider_finalized");
   assert.equal(sessionRow.metadata_committed_at, null);
+  assert.equal(
+    sessionRow.provider_receipt.completion_authority.request_fingerprint,
+    prepareEngagementApproval({
+      engagement: ENGAGEMENT, actor_id: ACTOR, idempotency_key: KEY,
+    }).request_fingerprint,
+  );
   assert.equal(calls.finalize, 1);
   assert.deepEqual(await domainCounts(postgres.adminPool), { records: 0, idempotency: 0, audit: 0, outbox: 0 });
   assert.equal((await postgres.adminPool.query(
