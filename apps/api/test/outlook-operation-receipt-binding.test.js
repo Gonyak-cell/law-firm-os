@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createDmsRepository } from "../../../packages/dms/src/index.js";
-import { createDmsRepositoryMimeAuthority, fileEmailThreadToMatter, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
+import { createDmsRepositoryMimeAuthority, fileEmailThreadToMatter, outlookEmailFilingAuditEvent, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
   CANONICAL_ID,
@@ -44,29 +44,7 @@ function serviceFixture() {
     permission_envelope_id: "permission:service-fixture",
     audit_trace_id: "audit:service-fixture",
   });
-  repository.appendAudit({
-    event_id: `outlook.email.file:${TENANT}:${THREAD_ID}`,
-    tenant_id: TENANT,
-    actor_id: "service-actor",
-    action: "dms.email.thread.file",
-    object_type: "DmsEmailThread",
-    object_id: THREAD_ID,
-    decision: "allow",
-    reason: "email_thread_filed_to_matter",
-    occurred_at: thread.filing_time,
-    metadata: {
-      operation: "outlook_email_file",
-      tenant_id: TENANT,
-      matter_id: MATTER,
-      email_thread_id: THREAD_ID,
-      graph_message_id: CANONICAL_ID,
-      internet_message_id: INTERNET_ID.toLowerCase(),
-      conversation_id: CONVERSATION_ID,
-      filing_mode: "manual",
-      filed_document_ids: [DOCUMENT_ID],
-      actor_id: "service-actor",
-    },
-  });
+  repository.appendAudit(outlookEmailFilingAuditEvent(thread));
   seedMimeAuthority(repository, thread);
   const objectId = `object:${thread.email_thread_id}`;
   const provider = {

@@ -10,6 +10,7 @@ import {
   queryTerms,
   requiredId,
   requiredSha256,
+  safeAuditPayload,
 } from "./precedent-common.js";
 import { ELIGIBLE_DOCUMENT_SQL, appendPrecedentAudit } from "./precedent-persistence.js";
 
@@ -124,17 +125,19 @@ export function createPrecedentSearchRepository({ pool, cursorAuthority } = {}) 
       const last = rows.at(-1);
       const nextCursor = hasMore && last ? cursorAuthority.issue({ fingerprint,
         snapshot_at: snapshotAt, rank: last.rank_key, source_id: last.source_id }) : null;
-      await appendPrecedentAudit(client, { tenant_id: tenantId,
-        event_id: `audit:precedent-search:${hashValue({ request_occurrence_id: requestOccurrenceId })}`,
+      const audit = { tenant_id: tenantId,
         event_type: "dms.precedent_source.searched", actor_id: actorId,
-        object_id: matterId, payload: { request_occurrence_id: requestOccurrenceId,
+        object_type: "PrecedentSource", object_id: matterId,
+        payload: safeAuditPayload({ request_occurrence_id: requestOccurrenceId,
           authorization_decision_sha256: authorizationDecisionSha256,
           authorized_source_set_sha256: authorizedSourceSetSha256,
           query_sha256: hashValue(query), page_fingerprint_sha256: fingerprint,
           input_cursor_sha256: input.cursor ? hashValue(input.cursor) : null,
           output_cursor_sha256: nextCursor ? hashValue(nextCursor) : null,
           page_limit: limit, returned_source_set_sha256: hashValue(items.map(({ source_id }) => source_id)),
-          returned_count: items.length } });
+          returned_count: items.length }) };
+      await appendPrecedentAudit(client, { ...audit,
+        event_id: `audit:precedent-search:${hashValue(audit)}` });
       return Object.freeze({ items, next_cursor: nextCursor,
         index_version: PRECEDENT_INDEX_VERSION, index_stale: false,
         count_leak_prevented: true, production_ready_claim: false });

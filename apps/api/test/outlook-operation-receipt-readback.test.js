@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
+import { outlookEmailFilingAuditEvent, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
   CANONICAL_ID,
@@ -81,29 +81,11 @@ test("readback preserves sent filing mode and durable replay outcome", async () 
     { tenant_id: fixture.context.principal.tenant_id, model_type: "MatterTimelineEvent", resource_id: TIMELINE_ID },
     { type: "outlook.email.sent_filed" },
   );
-  fixture.dmsRepository.appendAudit({
-    event_id: `outlook.email.file:${fixture.context.principal.tenant_id}:${THREAD_ID}`,
+  fixture.dmsRepository.appendAudit(outlookEmailFilingAuditEvent(fixture.dmsRepository.get({
     tenant_id: fixture.context.principal.tenant_id,
-    actor_id: fixture.context.principal.actor_id,
-    action: "dms.email.thread.file",
-    object_type: "DmsEmailThread",
-    object_id: THREAD_ID,
-    decision: "allow",
-    reason: "email_thread_filed_to_matter",
-    occurred_at: "2026-08-08T00:00:00.000Z",
-    metadata: {
-      operation: "outlook_email_file",
-      tenant_id: fixture.context.principal.tenant_id,
-      matter_id: MATTER,
-      email_thread_id: THREAD_ID,
-      graph_message_id: CANONICAL_ID,
-      internet_message_id: INTERNET_ID.toLowerCase(),
-      conversation_id: CONVERSATION_ID,
-      filing_mode: "sent",
-      filed_document_ids: [DOCUMENT_ID],
-      actor_id: fixture.context.principal.actor_id,
-    },
-  });
+    model_type: "DmsEmailThread",
+    email_thread_id: THREAD_ID,
+  })));
   fixture.dmsRepository.recordIdempotency({
     tenant_id: fixture.context.principal.tenant_id,
     idempotency_key: `${FILE_KEY}:dms`,

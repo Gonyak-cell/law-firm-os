@@ -2,10 +2,7 @@ import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/loc
 import { sha256Hex } from "../../../packages/dms/src/storage/storage-adapter.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
-import {
-  filingAuditMetadata,
-} from "../../../packages/email-dms/src/email-filing-canonical.js";
-import { outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
+import { outlookEmailFilingAuditEvent, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
   ACTOR,
@@ -142,18 +139,7 @@ export async function createPgReceiptFixture(t) {
     permission_envelope_id: "permission:readback",
     audit_trace_id: "audit:readback",
   });
-  repository.appendAudit({
-    event_id: `outlook.email.file:${TENANT}:${THREAD_ID}`,
-    tenant_id: TENANT,
-    actor_id: ACTOR,
-    action: "dms.email.thread.file",
-    object_type: "DmsEmailThread",
-    object_id: THREAD_ID,
-    decision: "allow",
-    reason: "email_thread_filed_to_matter",
-    occurred_at: thread.filing_time,
-    metadata: filingAuditMetadata(thread),
-  });
+  repository.appendAudit(outlookEmailFilingAuditEvent(thread));
   const key = `outlook-email-file:${THREAD_ID}:${digest}:dms`;
   repository.recordIdempotency({
     tenant_id: TENANT,

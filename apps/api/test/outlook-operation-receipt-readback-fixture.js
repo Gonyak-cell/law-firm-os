@@ -6,7 +6,7 @@ import {
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { createDmsRepository } from "../../../packages/dms/src/index.js";
 import { createMatterRepository } from "../../../packages/matter/src/index.js";
-import { createDmsRepositoryMimeAuthority, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
+import { createDmsRepositoryMimeAuthority, outlookEmailFilingAuditEvent, outlookEmailFileRequestFingerprint } from "../../../packages/email-dms/src/email-filing-service.js";
 import { createOutlookAttachmentReceiptAuthority } from "../src/outlook-attachment-receipt-authority.js";
 
 export const TENANT = "tenant_receipt_readback_test";
@@ -214,29 +214,11 @@ export function runtimeFixture() {
     object_id: DOCUMENT_ID,
     decision: "allow",
   });
-  dmsRepository.appendAudit({
-    event_id: `outlook.email.file:${TENANT}:${THREAD_ID}`,
+  dmsRepository.appendAudit(outlookEmailFilingAuditEvent(dmsRepository.get({
     tenant_id: TENANT,
-    actor_id: ACTOR,
-    action: "dms.email.thread.file",
-    object_type: "DmsEmailThread",
-    object_id: THREAD_ID,
-    decision: "allow",
-    reason: "email_thread_filed_to_matter",
-    occurred_at: "2026-08-08T00:00:00.000Z",
-    metadata: {
-      operation: "outlook_email_file",
-      tenant_id: TENANT,
-      matter_id: MATTER,
-      email_thread_id: THREAD_ID,
-      graph_message_id: CANONICAL_ID,
-      internet_message_id: INTERNET_ID.toLowerCase(),
-      conversation_id: CONVERSATION_ID,
-      filing_mode: "manual",
-      filed_document_ids: [DOCUMENT_ID],
-      actor_id: ACTOR,
-    },
-  });
+    model_type: "DmsEmailThread",
+    email_thread_id: THREAD_ID,
+  })));
   dmsRepository.recordIdempotency({
     tenant_id: TENANT,
     idempotency_key: `outlook-original-mime:${THREAD_ID}:${MIME_SHA256}`,

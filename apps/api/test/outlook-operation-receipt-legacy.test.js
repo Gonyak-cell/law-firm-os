@@ -4,6 +4,7 @@ import { createDmsRepository } from "../../../packages/dms/src/index.js";
 import {
   createDmsRepositoryMimeAuthority,
   fileEmailThreadToMatter,
+  outlookEmailFilingAuditEvent,
   outlookEmailFileRequestFingerprint,
 } from "../../../packages/email-dms/src/email-filing-service.js";
 
@@ -25,7 +26,12 @@ function fixture({ audit = "match", fingerprint = null } = {}) {
   repository.create({ model_type: "DmsFileObject", tenant_id: TENANT, matter_id: MATTER, file_object_id: fileObjectId, object_id: objectId, storage_pointer_ref: objectId, sha256: mimeSha256, byte_size: 1, mime_type: "message/rfc822", ...authority });
   const key = `outlook-email-file:${emailThreadId}:${mimeSha256}:dms`;
   if (audit !== "missing") {
-    repository.appendAudit({ event_id: `outlook.email.file:${TENANT}:${emailThreadId}`, tenant_id: TENANT, actor_id: audit === "foreign" ? "foreign-actor" : "original-actor", action: "dms.email.thread.file", object_type: "DmsEmailThread", object_id: emailThreadId, decision: "allow", reason: "email_thread_filed_to_matter", occurred_at: audit === "stale" ? "1999-01-01T00:00:00.000Z" : thread.filing_time, metadata: audit === "foreign" ? { operation: "outlook_email_file", tenant_id: TENANT, matter_id: "matter:foreign", email_thread_id: emailThreadId, graph_message_id: thread.graph_message_id, internet_message_id: thread.internet_message_id, conversation_id: thread.conversation_id, filing_mode: "manual", filed_document_ids: [documentId], actor_id: "foreign-actor" } : { operation: "outlook_email_file", tenant_id: TENANT, matter_id: MATTER, email_thread_id: emailThreadId, graph_message_id: thread.graph_message_id, internet_message_id: thread.internet_message_id, conversation_id: thread.conversation_id, filing_mode: "manual", filed_document_ids: [documentId], actor_id: "original-actor" } });
+    const filingAudit = outlookEmailFilingAuditEvent(thread);
+    repository.appendAudit(audit === "stale"
+      ? { ...filingAudit, occurred_at: "1999-01-01T00:00:00.000Z" }
+      : audit === "foreign"
+        ? { ...filingAudit, actor_id: "foreign-actor", metadata: { ...filingAudit.metadata, matter_id: "matter:foreign", actor_id: "foreign-actor" } }
+        : filingAudit);
   }
   repository.recordIdempotency({ tenant_id: TENANT, idempotency_key: key, operation: "outlook_email_file", request_fingerprint: fingerprint, response: { outcome: "created", email_thread_id: emailThreadId, matter_id: MATTER, filed_document_ids: [documentId] } });
   const provider = {

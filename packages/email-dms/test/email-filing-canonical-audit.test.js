@@ -41,6 +41,14 @@ function redactedEvent(overrides = {}) {
   };
 }
 
+function repositoryWith(event) {
+  const events = event ? [structuredClone(event)] : [];
+  return {
+    listAudit: () => structuredClone(events),
+    snapshot: () => structuredClone(events),
+  };
+}
+
 function verifyWithoutMutation(repository, thread = THREAD) {
   const before = JSON.stringify(repository.snapshot());
   const result = canonicalFilingAudit(repository, thread);
@@ -52,11 +60,20 @@ test("canonical filing audit accepts the exact raw and redacted event hash witho
   const raw = outlookEmailFilingAuditEvent(THREAD);
   const rawRepository = createDmsRepository();
   rawRepository.appendAudit(raw);
+  assert.deepEqual(Object.keys(rawRepository.listAudit()[0]).sort(), [
+    "action", "actor_id", "decision", "event_id", "metadata", "object_id",
+    "object_type", "occurred_at", "reason", "tenant_id",
+  ]);
+  assert.equal(Object.keys(raw.metadata).length, 12);
   assert.equal(verifyWithoutMutation(rawRepository)?.event_id, raw.event_id);
 
   const redactedRepository = createDmsRepository();
   const redacted = redactedEvent();
   redactedRepository.appendAudit(redacted);
+  assert.deepEqual(Object.keys(redactedRepository.listAudit()[0]).sort(), [
+    "action", "actor_id", "created_at", "event_id", "object_id", "object_type",
+    "payload", "tenant_id",
+  ]);
   assert.equal(redacted.payload.imported_event_hash, hashDomainValue(raw));
   assert.equal(
     verifyWithoutMutation(redactedRepository)?.payload.imported_event_hash,
@@ -64,7 +81,29 @@ test("canonical filing audit accepts the exact raw and redacted event hash witho
   );
 });
 
-test("canonical filing audit rejects tampered, foreign, missing, and tuple-drift receipts without mutation", () => {
+test("canonical filing audit rejects noncanonical raw shape and authority flags without mutation", () => {
+  const raw = outlookEmailFilingAuditEvent(THREAD);
+  const { raw_provider_payload_included: _raw, ...missingRawFlag } = raw.metadata;
+  const { credential_material_included: _credential, ...missingCredentialFlag } = raw.metadata;
+  const cases = [
+    ["wrong event", { ...raw, event_id: "outlook.email.file:foreign" }],
+    ["wrong action", { ...raw, action: "dms.email.thread.foreign" }],
+    ["wrong actor", { ...raw, actor_id: "actor-foreign" }],
+    ["wrong object", { ...raw, object_id: "thread-foreign" }],
+    ["wrong time", { ...raw, occurred_at: "2026-08-07T00:00:02.000Z" }],
+    ["extra metadata", { ...raw, metadata: { ...raw.metadata, untrusted: true } }],
+    ["raw provider flag true", { ...raw, metadata: { ...raw.metadata, raw_provider_payload_included: true } }],
+    ["credential flag true", { ...raw, metadata: { ...raw.metadata, credential_material_included: true } }],
+    ["raw provider flag missing", { ...raw, metadata: missingRawFlag }],
+    ["credential flag missing", { ...raw, metadata: missingCredentialFlag }],
+    ["extra top-level", { ...raw, untrusted: true }],
+  ];
+  for (const [name, event] of cases) {
+    assert.equal(verifyWithoutMutation(repositoryWith(event)), null, name);
+  }
+});
+
+test("canonical filing audit rejects noncanonical imported shape, hash, and tuple without mutation", () => {
   const tampered = redactedEvent({
     payload: {
       imported_event_hash: "b".repeat(64),
@@ -73,16 +112,21 @@ test("canonical filing audit rejects tampered, foreign, missing, and tuple-drift
   });
   const foreign = redactedEvent({ actor_id: "actor-foreign" });
   const invalidCreatedAt = redactedEvent({ created_at: "not-a-timestamp" });
+  const wrongEvent = redactedEvent({ event_id: "outlook.email.file:foreign" });
+  const wrongAction = redactedEvent({ action: "dms.email.thread.foreign" });
+  const wrongObject = redactedEvent({ object_id: "thread-foreign" });
   const extraPayload = redactedEvent({
     payload: {
       ...redactedEvent().payload,
       untrusted: true,
     },
   });
-  for (const event of [tampered, foreign, invalidCreatedAt, extraPayload]) {
-    const repository = createDmsRepository();
-    repository.appendAudit(event);
-    assert.equal(verifyWithoutMutation(repository), null);
+  const extraTopLevel = { ...redactedEvent(), production_ready_claim: false };
+  const missingCreatedAt = redactedEvent();
+  delete missingCreatedAt.created_at;
+  for (const event of [extraTopLevel, tampered, foreign, invalidCreatedAt,
+    wrongEvent, wrongAction, wrongObject, extraPayload, missingCreatedAt]) {
+    assert.equal(verifyWithoutMutation(repositoryWith(event)), null);
   }
 
   const missing = createDmsRepository();

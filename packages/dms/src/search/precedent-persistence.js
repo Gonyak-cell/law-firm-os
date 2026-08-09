@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import { codedError, safeAuditPayload } from "./precedent-common.js";
 
 export async function findIdempotency(client, tenantId, key, operation, requestHash) {
@@ -26,15 +27,34 @@ export async function recordIdempotency(client, input) {
 }
 
 export async function appendPrecedentAudit(client, input) {
-  await client.query(
+  const expected = {
+    tenant_id: input.tenant_id,
+    event_id: input.event_id,
+    event_type: input.event_type,
+    actor_id: input.actor_id,
+    object_type: input.object_type ?? "PrecedentSource",
+    object_id: input.object_id,
+    payload: safeAuditPayload(input.payload),
+  };
+  const inserted = await client.query(
     `INSERT INTO lawos_dms.audit_events
        (tenant_id, event_id, event_type, actor_id, object_type, object_id, payload)
      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
-     ON CONFLICT (tenant_id, event_id) DO NOTHING`,
-    [input.tenant_id, input.event_id, input.event_type, input.actor_id,
-      input.object_type ?? "PrecedentSource", input.object_id,
-      JSON.stringify(safeAuditPayload(input.payload))],
+     ON CONFLICT (tenant_id, event_id) DO NOTHING
+     RETURNING tenant_id,event_id,event_type,actor_id,object_type,object_id,payload`,
+    [expected.tenant_id, expected.event_id, expected.event_type, expected.actor_id,
+      expected.object_type, expected.object_id, JSON.stringify(expected.payload)],
   );
+  if (inserted.rowCount === 1) return inserted.rows[0];
+  const existing = (await client.query(
+    `SELECT tenant_id,event_id,event_type,actor_id,object_type,object_id,payload
+       FROM lawos_dms.audit_events WHERE tenant_id=$1 AND event_id=$2`,
+    [expected.tenant_id, expected.event_id],
+  )).rows[0];
+  if (!isDeepStrictEqual(existing, expected)) {
+    throw codedError("precedent audit event identity conflicts with stored evidence", "PRECEDENT_AUDIT_COLLISION", 409);
+  }
+  return existing;
 }
 
 export const ELIGIBLE_DOCUMENT_SQL = `

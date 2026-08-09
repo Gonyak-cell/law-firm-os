@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { hashDomainValue } from "../../persistence/src/domain-ledger.js";
 import { assertProviderIntegrityState } from "./durable-mime-authority.js";
 export { createDmsRepositoryMimeAuthority } from "./repository-mime-authority.js";
@@ -167,60 +168,36 @@ export function outlookEmailFilingAuditEvent(thread) {
   });
 }
 
-function importedCanonicalFilingAudit(event, thread) {
-  const payload = event?.payload;
-  if (
-    payload?.source_payload_included !== false
-    || !/^[a-f0-9]{64}$/u.test(payload?.imported_event_hash ?? "")
-    || !Number.isFinite(Date.parse(event?.created_at))
-    || Object.keys(payload).some((field) => ![
-      "imported_event_hash",
-      "source_payload_included",
-    ].includes(field))
-  ) return false;
-  const expected = outlookEmailFilingAuditEvent(thread);
-  return event.event_id === expected.event_id
-    && payload.imported_event_hash === hashDomainValue(expected);
+function importedCanonicalFilingAudit(event, expected) {
+  if (!Number.isFinite(Date.parse(event?.created_at))) return false;
+  return isDeepStrictEqual(event, {
+    tenant_id: expected.tenant_id,
+    event_id: expected.event_id,
+    action: expected.action,
+    actor_id: expected.actor_id,
+    object_type: expected.object_type,
+    object_id: expected.object_id,
+    payload: {
+      imported_event_hash: hashDomainValue(expected),
+      source_payload_included: false,
+    },
+    created_at: event.created_at,
+  });
 }
 
 export function canonicalFilingAudit(repository, thread) {
-  let binding;
-  let actorId;
+  let expected;
   try {
-    binding = canonicalBinding(thread);
-    actorId = canonicalText(thread.filing_user, "filing_user");
+    expected = outlookEmailFilingAuditEvent(thread);
   } catch {
     return null;
   }
-  const events = repository.listAudit({ tenant_id: binding.tenant_id, object_id: binding.email_thread_id })
-    .filter((event) => event.action === "dms.email.thread.file");
+  const events = repository.listAudit({ tenant_id: expected.tenant_id, object_id: expected.object_id })
+    .filter((event) => event.action === expected.action);
   if (events.length !== 1) return null;
   const event = events[0];
-  const metadata = event.metadata;
-  if (
-    event.tenant_id !== binding.tenant_id
-    || event.actor_id !== actorId
-    || event.object_type !== "DmsEmailThread"
-    || event.object_id !== binding.email_thread_id
-  ) return null;
-  if (importedCanonicalFilingAudit(event, thread)) return event;
-  if (
-    event.decision !== "allow"
-    || event.reason !== "email_thread_filed_to_matter"
-    || event.occurred_at !== thread.filing_time
-    || !metadata || typeof metadata !== "object" || Array.isArray(metadata)
-    || metadata.tenant_id !== binding.tenant_id
-    || metadata.operation !== OUTLOOK_EMAIL_FILE_IDEMPOTENCY_OPERATION
-    || metadata.matter_id !== binding.matter_id
-    || metadata.email_thread_id !== binding.email_thread_id
-    || metadata.graph_message_id !== binding.graph_message_id
-    || metadata.internet_message_id !== binding.internet_message_id
-    || metadata.conversation_id !== binding.conversation_id
-    || metadata.filing_mode !== binding.filing_mode
-    || metadata.actor_id !== actorId
-    || !sameDocumentIds(metadata.filed_document_ids, binding.filed_document_ids)
-  ) return null;
-  return event;
+  if (importedCanonicalFilingAudit(event, expected)) return event;
+  return isDeepStrictEqual(event, expected) ? event : null;
 }
 
 export function filingAuditMetadata(thread) {
