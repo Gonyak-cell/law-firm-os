@@ -128,7 +128,7 @@ test("PostgreSQL API never reflects unsafe fields from a bound engagement replay
   const resealedReplay = await request();
   assert.equal(resealedReplay.status, 409);
   assert.deepEqual(resealedReplay.body.safe_error_codes, [
-    "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_MANUAL_REVIEW",
+    "DOMAIN_IDEMPOTENCY_AUTHORITY_MISMATCH",
   ]);
   assert.equal(JSON.stringify(resealedReplay.body).includes("attacker-resealed"), false);
   assert.equal(await stateHash(postgres.adminPool), beforeResealedReplay);

@@ -24,6 +24,18 @@ const IDEMPOTENCY_AUTHORITY_KEYS = Object.freeze([
   "actor_id", "object_id", "object_type", "operation", "request_fingerprint",
 ]);
 
+function assertIdempotencyAuthorityMatchesDurableHash(authorityFingerprint, durableRequestHash) {
+  if (authorityFingerprint === durableRequestHash) return;
+  throw Object.assign(
+    new Error("idempotency authority does not match durable request hash"),
+    {
+      code: "LAWOS_DOMAIN_IDEMPOTENCY_AUTHORITY_MISMATCH",
+      safe_error_code: "DOMAIN_IDEMPOTENCY_AUTHORITY_MISMATCH",
+      status: 409,
+    },
+  );
+}
+
 function responseWithIdempotencyAuthority(entry) {
   const response = clone(entry.response ?? null);
   const requestFingerprint = String(entry.request_fingerprint ?? "").trim();
@@ -357,6 +369,13 @@ export function createRecordRepositoryDomainSnapshot({
   for (const source of sourceStates) {
     for (const entry of source.idempotency) {
       const key = requiredText(entry.idempotency_key ?? entry.key, "idempotency key");
+      const authorityFingerprint = String(entry.request_fingerprint ?? "").trim();
+      if (authorityFingerprint && entry.request_hash != null) {
+        assertIdempotencyAuthorityMatchesDurableHash(
+          authorityFingerprint,
+          entry.request_hash,
+        );
+      }
       const normalized = {
         tenant_id: tenantId,
         domain_id: descriptor.domain_id,
@@ -482,6 +501,12 @@ export async function materializeRecordRepositoryFromDomainLedger({
   });
   for (const entry of idempotency) {
     const decoded = decodeRecordDomainIdempotencyResponse(entry.response);
+    if (decoded.authority) {
+      assertIdempotencyAuthorityMatchesDurableHash(
+        decoded.authority.request_fingerprint,
+        entry.request_hash,
+      );
+    }
     repository.recordIdempotency?.({
       tenant_id,
       idempotency_key: entry.key,
