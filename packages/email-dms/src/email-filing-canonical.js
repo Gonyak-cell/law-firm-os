@@ -169,7 +169,9 @@ export function outlookEmailFilingAuditEvent(thread) {
 }
 
 function importedCanonicalFilingAudit(event, expected) {
-  if (!Number.isFinite(Date.parse(event?.created_at))) return false;
+  if (typeof event?.created_at !== "string") return false;
+  const milliseconds = Date.parse(event.created_at);
+  if (!Number.isFinite(milliseconds) || new Date(milliseconds).toISOString() !== event.created_at) return false;
   return isDeepStrictEqual(event, {
     tenant_id: expected.tenant_id,
     event_id: expected.event_id,

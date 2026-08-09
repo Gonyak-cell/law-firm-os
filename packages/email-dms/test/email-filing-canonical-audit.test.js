@@ -51,8 +51,12 @@ function repositoryWith(event) {
 
 function verifyWithoutMutation(repository, thread = THREAD) {
   const before = JSON.stringify(repository.snapshot());
+  const beforeCount = repository.listAudit().length;
   const result = canonicalFilingAudit(repository, thread);
-  assert.equal(JSON.stringify(repository.snapshot()), before);
+  const after = JSON.stringify(repository.snapshot());
+  assert.equal(after, before);
+  assert.equal(Buffer.byteLength(after), Buffer.byteLength(before));
+  assert.equal(repository.listAudit().length, beforeCount);
   return result;
 }
 
@@ -124,8 +128,19 @@ test("canonical filing audit rejects noncanonical imported shape, hash, and tupl
   const extraTopLevel = { ...redactedEvent(), production_ready_claim: false };
   const missingCreatedAt = redactedEvent();
   delete missingCreatedAt.created_at;
+  const noncanonicalInstants = [
+    0,
+    "0",
+    "01/01/2026",
+    "2026-02-30T00:00:00.000Z",
+    "2026-08-07T09:00:02.000+09:00",
+    "2026-08-07T00:00:02Z",
+    "2026-08-07T00:00:02.00Z",
+    "2026-08-07 00:00:02.000Z",
+  ].map((created_at) => redactedEvent({ created_at }));
   for (const event of [extraTopLevel, tampered, foreign, invalidCreatedAt,
-    wrongEvent, wrongAction, wrongObject, extraPayload, missingCreatedAt]) {
+    wrongEvent, wrongAction, wrongObject, extraPayload, missingCreatedAt,
+    ...noncanonicalInstants]) {
     assert.equal(verifyWithoutMutation(repositoryWith(event)), null);
   }
 

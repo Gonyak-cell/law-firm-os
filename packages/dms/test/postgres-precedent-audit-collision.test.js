@@ -9,6 +9,9 @@ import {
   OTHER_TENANT,
   TENANT,
   commitDocument,
+  digest,
+  extractor,
+  index,
   repository,
   searchInput,
   source,
@@ -47,22 +50,51 @@ test("search audit binds occurrence, tenant, actor, matter, query, authority, cu
   if (!fixture) return;
   const occurrence = "request:audit-complete-binding";
   const repo = repository(fixture.appPool);
+  const storage = createLocalStorageAdapter({ adapter_id: "precedent-audit-search" });
+  const extraction = extractor(fixture.appPool, storage);
+  const entries = ["a", "b"].map((suffix) => source({
+    source_id: `source-audit-search-${suffix}`,
+    matter_id: `matter-audit-search-${suffix}`,
+    document_id: `document-audit-search-${suffix}`,
+    version_id: `version-audit-search-${suffix}`,
+    title: `손해 fiduciary ${suffix}`,
+    body: `손해 fiduciary immutable result ${suffix}`,
+  }));
+  for (const entry of entries) {
+    await commitDocument(fixture.appPool, storage, entry);
+    await repo.registerSource(entry);
+    await index(repo, extraction, entry);
+  }
   const firstInput = searchInput({ request_occurrence_id: occurrence,
-    allowed_document_ids: [], query: "손해 fiduciary" });
-  await repo.search(firstInput);
-  await repo.search(firstInput);
+    allowed_document_ids: entries.map(({ document_id }) => document_id),
+    query: "손해 fiduciary", limit: 1 });
+  const first = await repo.search(firstInput);
+  assert.equal(first.items.length, 1);
+  assert.ok(first.next_cursor);
+  const secondInput = { ...firstInput, cursor: first.next_cursor };
+  const second = await repo.search(secondInput);
+  assert.equal(second.items.length, 1);
+  assert.equal(second.next_cursor, null);
+  await repo.search(secondInput);
+  await repo.search({ ...firstInput, authorization_decision_sha256: digest("f") });
+  await repo.search({ ...firstInput, authorized_source_set_sha256: digest("a") });
   await repo.search(searchInput({ request_occurrence_id: occurrence,
-    allowed_document_ids: [], actor_id: "actor-precedent-other",
+    allowed_document_ids: entries.map(({ document_id }) => document_id),
+    actor_id: "actor-precedent-other",
     matter_id: "matter-precedent-other", query: "계약 책임" }));
   await repo.search(searchInput({ tenant_id: OTHER_TENANT,
     request_occurrence_id: occurrence, allowed_document_ids: [], query: "손해 fiduciary" }));
 
   const tenantRows = await auditRows(fixture.appPool, TENANT, occurrence);
   const otherTenantRows = await auditRows(fixture.appPool, OTHER_TENANT, occurrence);
-  assert.equal(tenantRows.length, 2);
-  assert.equal(new Set(tenantRows.map(({ event_id }) => event_id)).size, 2);
-  assert.deepEqual(tenantRows.map(({ actor_id }) => actor_id).sort(),
-    [ACTOR, "actor-precedent-other"].sort());
+  assert.equal(tenantRows.length, 5);
+  assert.equal(new Set(tenantRows.map(({ event_id }) => event_id)).size, 5);
+  assert.equal(new Set(tenantRows.map(({ payload }) => payload.authorization_decision_sha256)).size, 2);
+  assert.equal(new Set(tenantRows.map(({ payload }) => payload.authorized_source_set_sha256)).size, 2);
+  assert.equal(tenantRows.filter(({ payload }) => payload.input_cursor_sha256).length, 1);
+  assert.equal(tenantRows.filter(({ payload }) => payload.output_cursor_sha256).length, 3);
+  assert.equal(new Set(tenantRows.map(({ payload }) => payload.returned_source_set_sha256)).size, 3);
+  assert.deepEqual([...new Set(tenantRows.map(({ payload }) => payload.returned_count))].sort(), [0, 1]);
   assert.equal(otherTenantRows.length, 1);
   for (const row of [...tenantRows, ...otherTenantRows]) {
     assert.equal(row.object_type, "PrecedentSource");
@@ -73,8 +105,8 @@ test("search audit binds occurrence, tenant, actor, matter, query, authority, cu
     assert.equal(JSON.stringify(row.payload).includes("계약 책임"), false);
   }
 
-  await repository(fixture.appPool).search(firstInput);
-  assert.equal((await auditRows(fixture.appPool, TENANT, occurrence)).length, 2);
+  await repository(fixture.appPool).search(secondInput);
+  assert.equal((await auditRows(fixture.appPool, TENANT, occurrence)).length, 5);
 });
 
 test("register audit collision fails closed and rolls back source and idempotency writes", async (t) => {
