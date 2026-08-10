@@ -51,6 +51,10 @@ import {
   runPostgresMigrations,
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
+import {
+  runClientOperationsPostgresMigrations,
+  verifyClientOperationsPostgresMigrations,
+} from "./client-operations-schema.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 import {
@@ -614,8 +618,8 @@ export async function bootstrapJsonPostgresProductionDatabase({
   resolveSecret = resolveAwsJsonSecret,
   putSecret,
   createPool = createPostgresPool,
-  runMigrations = runPostgresMigrations,
-  verifyMigrations = verifyPostgresMigrationState,
+  runMigrations = runClientOperationsPostgresMigrations,
+  verifyMigrations = verifyClientOperationsPostgresMigrations,
   configureRole = configureLawosProductionApplicationRole,
 } = {}) {
   if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION || event.mode !== "preflight") {
