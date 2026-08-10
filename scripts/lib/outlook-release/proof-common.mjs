@@ -24,9 +24,10 @@ export function assertEvidenceBinding(value, name) {
   return value;
 }
 
-export function assertConcreteList(value, name) {
-  if (!Array.isArray(value) || value.length === 0 || new Set(value).size !== value.length) {
-    throw new Error(`${name} must be a non-empty unique list`);
+export function assertConcreteList(value, name, { allowEmpty = false } = {}) {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0)
+    || new Set(value).size !== value.length) {
+    throw new Error(`${name} must be a ${allowEmpty ? "unique" : "non-empty unique"} list`);
   }
   for (const [index, entry] of value.entries()) concreteText(entry, `${name}[${index}]`);
   return value;

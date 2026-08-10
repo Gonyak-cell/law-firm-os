@@ -115,7 +115,7 @@ function validateAssignmentTransition(proof, receipt, controls, centralObservedA
       readback_sha256: null,
     },
     {
-      action: "verify_exact_nine_readback", product_id: PRODUCT_IDS[0],
+      action: "verify_exact_roster_readback", product_id: PRODUCT_IDS[0],
       operation_ref: matterOperation.operation_ref, result: "exact_readback",
       assignment_fingerprint_sha256: matterReadback.assignment_fingerprint_sha256,
       principal_fingerprint_sha256: controls.pilot_assignment.eligible_principal_fingerprint_sha256,

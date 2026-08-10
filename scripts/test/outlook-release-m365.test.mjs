@@ -113,14 +113,14 @@ test("retained inquiry ProductId stays registered but cannot regain assignment o
   );
 });
 
-test("pilot proof binds the nine-user allowlist, explicit exclusion, and zero inquiry groups", async (t) => {
+test("pilot proof binds the ten-user allowlist, empty exclusion, and zero inquiry groups", async (t) => {
   const fixture = await completedM365Fixture();
   t.after(() => rm(fixture.root, { recursive: true, force: true }));
   const control = fixture.receipt.execution_control.pilot_assignment;
   const proofPath = path.join(fixture.root, control.evidence_ref);
   const proof = JSON.parse(await readFile(proofPath, "utf8"));
   proof.assignments.find(({ product_id }) => product_id === "952431be-51b8-42a2-9bf6-769a15934e85")
-    .group_refs = ["group-ref:outlook-pilot-nine"];
+    .group_refs = ["group-ref:outlook-roster-ten"];
   const changed = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
   control.evidence_sha256 = changed.evidence_sha256;
   assert.throws(
@@ -137,22 +137,35 @@ test("pilot proof binds the nine-user allowlist, explicit exclusion, and zero in
   );
 });
 
-test("pilot proof rejects eligible and excluded principal overlap without leaking principal refs", async (t) => {
+test("pilot and authorization proofs bind the exact source roster fingerprints", async (t) => {
   const fixture = await completedM365Fixture();
   t.after(() => rm(fixture.root, { recursive: true, force: true }));
   const control = fixture.receipt.execution_control.pilot_assignment;
   const proofPath = path.join(fixture.root, control.evidence_ref);
   const proof = JSON.parse(await readFile(proofPath, "utf8"));
-  const excludedRef = proof.excluded_principal_refs[0];
-  assert.equal(proof.eligible_principal_refs.length, 9);
-  assert.equal(proof.excluded_principal_refs.length, 1);
+  proof.roster_file_sha256 = hex("f");
+  const changed = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
+  control.evidence_sha256 = changed.evidence_sha256;
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /fingerprint\/groups are not evidence-bound/,
+  );
+});
+
+test("pilot proof accepts no exclusions and rejects an injected eligible/excluded overlap without leaking principal refs", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  const control = fixture.receipt.execution_control.pilot_assignment;
+  const proofPath = path.join(fixture.root, control.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  assert.equal(proof.eligible_principal_refs.length, 10);
+  assert.equal(proof.excluded_principal_refs.length, 0);
   const visibleOutput = JSON.stringify({
     receipt: fixture.receipt,
     result: validateM365ReleaseReceipt(fixture.receipt, fixture.options),
   });
   assert.equal(visibleOutput.includes("eligible_principal_refs"), false);
   assert.equal(visibleOutput.includes("excluded_principal_refs"), false);
-  assert.equal(visibleOutput.includes(excludedRef), false);
 
   proof.eligible_principal_refs.reverse();
   const reordered = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
@@ -162,9 +175,9 @@ test("pilot proof rejects eligible and excluded principal overlap without leakin
     /assignment safety correction\/rollback prerequisite is incomplete/,
   );
 
-  proof.eligible_principal_refs[0] = excludedRef;
-  proof.eligible_principal_fingerprint_sha256 = sha256(
-    JSON.stringify(sorted(proof.eligible_principal_refs)),
+  proof.excluded_principal_refs = [proof.eligible_principal_refs[0]];
+  proof.excluded_principal_fingerprint_sha256 = sha256(
+    JSON.stringify(sorted(proof.excluded_principal_refs)),
   );
   const changed = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
   control.evidence_sha256 = changed.evidence_sha256;
@@ -235,7 +248,12 @@ test("pilot principals require exact Entra direct-membership readback with zero 
   const excludedPath = path.join(excluded.root, excludedControl.evidence_ref);
   const excludedProof = JSON.parse(await readFile(excludedPath, "utf8"));
   const excludedReadback = excludedProof.direct_membership_readbacks[0];
-  excludedReadback.direct_member_principal_refs.push(excludedProof.excluded_principal_refs[0]);
+  const forbiddenRef = "entra-object-ref:forbidden-not-target";
+  excludedProof.excluded_principal_refs = [forbiddenRef];
+  excludedProof.excluded_principal_fingerprint_sha256 = sha256(
+    JSON.stringify(sorted(excludedProof.excluded_principal_refs)),
+  );
+  excludedReadback.direct_member_principal_refs.push(forbiddenRef);
   excludedReadback.direct_member_fingerprint_sha256 = sha256(
     JSON.stringify(sorted(excludedReadback.direct_member_principal_refs)),
   );
@@ -337,7 +355,7 @@ test("central deployment proof hash-binds the pilot provider and assignment-safe
   }
 });
 
-test("central assignment transition proves inquiry zero readback before Matter exact-nine assignment", async (t) => {
+test("central assignment transition proves inquiry zero readback before Matter exact-roster assignment", async (t) => {
   const fixture = await completedM365Fixture({
     currentAssignmentOverrides: {
       "8f3cc90d-56dd-4c1c-b9c2-0a1100500101": { group_refs: ["group-ref:wrong-matter-cohort"] },
@@ -360,7 +378,7 @@ test("central assignment transition proves inquiry zero readback before Matter e
     "952431be-51b8-42a2-9bf6-769a15934e85:replace_group_assignments",
     "952431be-51b8-42a2-9bf6-769a15934e85:verify_zero_assignment_readback",
     "8f3cc90d-56dd-4c1c-b9c2-0a1100500101:replace_group_assignments",
-    "8f3cc90d-56dd-4c1c-b9c2-0a1100500101:verify_exact_nine_readback",
+    "8f3cc90d-56dd-4c1c-b9c2-0a1100500101:verify_exact_roster_readback",
   ]);
 
   const matterFirst = await completedM365Fixture();

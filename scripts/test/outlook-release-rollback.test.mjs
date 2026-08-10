@@ -12,10 +12,10 @@ import {
   baseline, clone, contract, oid, rollback,
 } from "./helpers/outlook-release-fixtures.mjs";
 
-async function fixture(t) {
+async function fixture(t, options) {
   const root = await createProtectedFixtureRoot();
   t.after(() => rm(root, { recursive: true, force: true }));
-  const values = await createRollbackEvidenceFixture(root, baseline, rollback);
+  const values = await createRollbackEvidenceFixture(root, baseline, rollback, options);
   return { root, store: openProtectedEvidenceRoot(root), ...values };
 }
 
@@ -28,6 +28,28 @@ test("rollback reads each manifest, inventory, and artifact byte before acceptin
     { profile: "matter-full", static_artifact_count: 4 },
     { profile: "inquiry-only", static_artifact_count: 2 },
   ]);
+});
+
+test("protected inquiry rollback rejects a Matter-namespace module dependency", async (t) => {
+  const crossed = await fixture(t, { inquiryAssetPrefix: "/addin" });
+  assert.throws(
+    () => validateProtectedRollbackEvidence(crossed.rollback, crossed.baseline, contract, crossed.store),
+    /taskpane is not bound to its profile namespace/,
+  );
+
+  const crossedStylesheet = await fixture(t, { inquiryStylesheetPrefix: "/addin" });
+  assert.throws(
+    () => validateProtectedRollbackEvidence(
+      crossedStylesheet.rollback, crossedStylesheet.baseline, contract, crossedStylesheet.store,
+    ),
+    /taskpane is not bound to its profile namespace/,
+  );
+
+  const absolute = await fixture(t, { inquiryAssetPrefix: "https://rollback.invalid/outlook-addin" });
+  assert.throws(
+    () => validateProtectedRollbackEvidence(absolute.rollback, absolute.baseline, contract, absolute.store),
+    /taskpane is not bound to its profile namespace/,
+  );
 });
 
 test("rollback contract rejects missing, shared, swapped, or stale profile artifacts", () => {

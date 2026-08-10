@@ -306,8 +306,8 @@
       "m365_central_single_visible_transition"
     ],
     "production_distribution": {
-      "eligible_user_count": 9,
-      "excluded_user_count": 1,
+      "eligible_user_count": 10,
+      "excluded_user_count": 0,
       "assignment_authority": "entra_object_id_allowlist",
       "nested_groups_allowed": false,
       "tenant_wide_assignment_allowed": false,

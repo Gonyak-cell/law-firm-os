@@ -33,10 +33,11 @@ export function validateAwaitingControls(control) {
 function validateAuthorization(control, context) {
   const loaded = readProtectedJsonProof(context.store, assertEvidenceBinding(control.authorization_evidence, "authorization evidence"), "authorization");
   const proof = loaded.proof;
-  assertProofBase(proof, "amic-os.m365-authorization-proof.v2", "authorization", context.identity, [
+  assertProofBase(proof, "amic-os.m365-authorization-proof.v3", "authorization", context.identity, [
     "approved", "approved_at_utc", "authorization_ref", "authorized_actions",
     "eligible_principal_fingerprint_sha256", "excluded_principal_fingerprint_sha256",
-    "operator_ref", "owner_ref", "pilot_group_fingerprint_sha256", "window_end_utc", "window_start_utc",
+    "operator_ref", "owner_ref", "pilot_group_fingerprint_sha256",
+    "roster_email_fingerprint_sha256", "roster_file_sha256", "window_end_utc", "window_start_utc",
   ]);
   assertConcreteList(proof.authorized_actions, "authorized actions");
   if (proof.approved !== true
@@ -45,6 +46,8 @@ function validateAuthorization(control, context) {
       !== control.pilot_assignment.eligible_principal_fingerprint_sha256
     || proof.excluded_principal_fingerprint_sha256
       !== control.pilot_assignment.excluded_principal_fingerprint_sha256
+    || proof.roster_file_sha256 !== control.pilot_assignment.roster_file_sha256
+    || proof.roster_email_fingerprint_sha256 !== control.pilot_assignment.roster_email_fingerprint_sha256
     || proof.pilot_group_fingerprint_sha256
       !== sha256(JSON.stringify(sorted(control.pilot_assignment.groups)))
     || proof.operator_ref !== control.operator_ref || proof.owner_ref !== control.owner_ref
@@ -60,26 +63,30 @@ function validatePilot(control, context) {
   assertExactKeys(control.pilot_assignment, [
     "eligible_principal_fingerprint_sha256", "evidence_ref", "evidence_sha256",
     "excluded_principal_fingerprint_sha256", "fingerprint_sha256", "groups",
+    "roster_email_fingerprint_sha256", "roster_file_sha256",
   ], "pilot assignment control");
   assertConcreteList(control.pilot_assignment.groups, "pilot assignment groups");
   assertSha256(control.pilot_assignment.fingerprint_sha256, "pilot assignment fingerprint");
   assertSha256(control.pilot_assignment.eligible_principal_fingerprint_sha256, "eligible principal fingerprint");
   assertSha256(control.pilot_assignment.excluded_principal_fingerprint_sha256, "excluded principal fingerprint");
+  assertSha256(control.pilot_assignment.roster_file_sha256, "source roster file fingerprint");
+  assertSha256(control.pilot_assignment.roster_email_fingerprint_sha256, "source roster email fingerprint");
   const loaded = readProtectedJsonProof(context.store, {
     evidence_ref: control.pilot_assignment.evidence_ref,
     evidence_sha256: control.pilot_assignment.evidence_sha256,
   }, "pilot_assignment");
   const proof = loaded.proof;
-  assertProofBase(proof, "amic-os.m365-pilot-assignment-proof.v3", "pilot_assignment", context.identity, [
+  assertProofBase(proof, "amic-os.m365-pilot-assignment-proof.v4", "pilot_assignment", context.identity, [
     "assign_to_everyone", "assignment_fingerprint_sha256", "assignment_overlap_count", "assignments",
     "direct_membership_readbacks",
     "eligible_principal_fingerprint_sha256", "eligible_principal_refs", "eligible_user_count",
     "excluded_principal_fingerprint_sha256", "excluded_principal_refs", "excluded_user_count", "groups",
-    "max_visible_addins_per_user", "observed_at_utc", "status",
+    "max_visible_addins_per_user", "observed_at_utc", "roster_email_fingerprint_sha256",
+    "roster_file_sha256", "status",
   ]);
   assertConcreteList(proof.groups, "protected pilot assignment groups");
   assertConcreteList(proof.eligible_principal_refs, "eligible principal refs");
-  assertConcreteList(proof.excluded_principal_refs, "excluded principal refs");
+  assertConcreteList(proof.excluded_principal_refs, "excluded principal refs", { allowEmpty: true });
   const excludedPrincipalRefs = new Set(proof.excluded_principal_refs);
   if (proof.eligible_principal_refs.some((ref) => excludedPrincipalRefs.has(ref))) {
     throw new Error("pilot eligible and excluded principals must be disjoint");
@@ -161,6 +168,8 @@ function validatePilot(control, context) {
     || proof.eligible_principal_fingerprint_sha256 !== control.pilot_assignment.eligible_principal_fingerprint_sha256
     || proof.excluded_principal_fingerprint_sha256 !== excludedPrincipalFingerprint
     || proof.excluded_principal_fingerprint_sha256 !== control.pilot_assignment.excluded_principal_fingerprint_sha256
+    || proof.roster_file_sha256 !== control.pilot_assignment.roster_file_sha256
+    || proof.roster_email_fingerprint_sha256 !== control.pilot_assignment.roster_email_fingerprint_sha256
     || proof.eligible_user_count !== proof.eligible_principal_refs.length
     || proof.eligible_user_count !== distribution.eligible_user_count
     || proof.excluded_user_count !== proof.excluded_principal_refs.length
