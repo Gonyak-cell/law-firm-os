@@ -83,6 +83,7 @@ export async function validateOutlookAddinSurfaces({
 } = {}) {
   if (!new Set(["baseline", "candidate"]).has(mode)) throw new Error(`unsupported mode: ${mode}`);
   const contract = JSON.parse(await readFile(contractPath, "utf8"));
+  if (contract?.schema_version !== 3) throw new Error("Outlook surface schema_version must be 3");
   const baselineById = normalizedBaselineProfiles(baseline);
   const contractIds = contract.profiles.map((profile) => profile.product_id);
   if (new Set(contractIds).size !== contractIds.length) throw new Error("duplicate ProductId across Outlook profiles");
@@ -90,7 +91,7 @@ export async function validateOutlookAddinSurfaces({
 
   for (const profile of contract.profiles) {
     const baselineProfile = baselineById.get(profile.product_id);
-    for (const field of ["version", "manifest_sha256", "assignment_count", "assignment_fingerprint_sha256"]) {
+    for (const field of ["version", "manifest_sha256"]) {
       const expected = field === "version"
         ? contract.deployed_baseline_version
         : profile[field === "manifest_sha256" ? "baseline_manifest_sha256" : field];
@@ -109,7 +110,7 @@ export async function validateOutlookAddinSurfaces({
         mailbox_min_version: profile.mailbox_min_version,
         manifest_sha256: profile.baseline_manifest_sha256,
       })),
-      permission_event_assignment_diff: "none",
+      permission_event_diff: "none",
     };
   }
 
@@ -139,7 +140,7 @@ export async function validateOutlookAddinSurfaces({
       ),
     });
   }
-  return { mode, profiles: results, permission_event_assignment_diff: "none" };
+  return { mode, profiles: results, permission_event_diff: "none" };
 }
 
 async function main() {

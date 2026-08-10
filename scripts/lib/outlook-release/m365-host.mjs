@@ -1,5 +1,5 @@
-import { PRODUCT_IDS } from "./constants.mjs";
 import { m365CompletionMillis } from "./m365-base.mjs";
+import { expectedDistributionProfile, productionVisibleProductIds } from "./m365-distribution.mjs";
 import { assertEqual, assertExactKeys, canonical, concreteText, profileMap, sorted } from "./primitives.mjs";
 import { assertProofBase } from "./proof-common.mjs";
 import { readProtectedJsonProof } from "./protected-evidence.mjs";
@@ -21,12 +21,14 @@ function validateProof(evidence, receipt, options, temporal) {
   ].includes(key)));
   assertEqual(canonical(proofProjection), canonical(receiptProjection), "real Outlook protected evidence");
   const expected = options.contract.profiles.find(({ product_id }) => product_id === evidence.product_id);
+  const distribution = expectedDistributionProfile(options.contract, evidence.product_id);
   const profile = profileMap(receipt.profiles, "M365 receipt profiles").get(evidence.product_id);
   const scenarios = expected ? [
     ...options.contract.m365.required_common_host_scenarios,
     ...options.contract.m365.required_profile_scenarios[expected.profile],
   ] : [];
-  if (!expected || !options.contract.m365.required_host_evidence.includes(evidence.host)
+  if (!expected || distribution?.real_host_evidence_required !== true
+    || !options.contract.m365.required_host_evidence.includes(evidence.host)
     || evidence.evidence_kind !== "real_outlook_host" || evidence.executed !== true || evidence.result !== "pass"
     || evidence.manifest_sha256 !== profile.candidate_manifest_sha256 || evidence.bundle_sha256 !== profile.bundle_sha256
     || JSON.stringify(sorted(evidence.scenarios ?? [])) !== JSON.stringify(sorted(scenarios))
@@ -59,7 +61,7 @@ export function validateM365Hosts(receipt, options, temporal) {
     loaded.push(validateProof(evidence, receipt, options, temporal));
   }
   if (receipt.claims.real_outlook_verified === true) {
-    for (const productId of PRODUCT_IDS) {
+    for (const productId of productionVisibleProductIds(options.contract)) {
       for (const host of options.contract.m365.required_host_evidence) {
         if (!keys.has(`${productId}:${host}`)) throw new Error(`real Outlook evidence is incomplete for ${productId}:${host}`);
       }

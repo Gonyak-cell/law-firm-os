@@ -4,7 +4,9 @@ import path from "node:path";
 import test from "node:test";
 
 import { validateM365ReleaseReceipt } from "../lib/outlook-release-gates.mjs";
+import { sha256, sorted } from "../lib/outlook-release/primitives.mjs";
 import { approveGoLive, completedM365Fixture } from "./helpers/outlook-m365-fixture.mjs";
+import { hostProof } from "./helpers/m365-proof-values.mjs";
 import {
   awaitingM365Receipt, clone, hex, m365Options, oid, releaseCandidate,
 } from "./helpers/outlook-release-fixtures.mjs";
@@ -50,13 +52,133 @@ test("executed packet verifies actual protected prerequisite, control, central, 
     central_deployment_verified: true, propagation_verified: true,
     real_outlook_verified: true, go_live_approved: false,
   });
+  assert.equal(fixture.receipt.host_evidence.length, fixture.options.contract.m365.required_host_evidence.length);
+  assert.ok(fixture.receipt.host_evidence.every(({ product_id }) => product_id
+    === "8f3cc90d-56dd-4c1c-b9c2-0a1100500101"));
   await approveGoLive(fixture);
   assert.equal(validateM365ReleaseReceipt(fixture.receipt, fixture.options).go_live_approved, true);
 });
 
+test("retained inquiry ProductId stays registered but cannot regain assignment or host visibility", async (t) => {
+  const root = await createProtectedFixtureRoot();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") };
+  const receipt = awaitingM365Receipt(hashes);
+  const options = m365Options(hashes, trustedRoot(root));
+  const inquiry = receipt.profiles.find(({ profile }) => profile === "inquiry-only");
+  assert.equal(inquiry.assignment_count, 0);
+  assert.equal(inquiry.assignment_state, "unassigned");
+  assert.equal(inquiry.production_user_visible, false);
+
+  const assigned = clone(receipt);
+  const assignedInquiry = assigned.profiles.find(({ profile }) => profile === "inquiry-only");
+  assignedInquiry.assignment_count = 1;
+  assignedInquiry.assignment_fingerprint_sha256 = hex("f");
+  assert.throws(() => validateM365ReleaseReceipt(assigned, options), /must remain unassigned/);
+
+  const everyone = clone(receipt);
+  everyone.profiles.find(({ profile }) => profile === "inquiry-only").assign_to_everyone = true;
+  assert.throws(() => validateM365ReleaseReceipt(everyone, options), /production distribution drifted/);
+
+  const overlap = clone(receipt);
+  overlap.production_distribution.assignment_overlap_count = 1;
+  assert.throws(() => validateM365ReleaseReceipt(overlap, options), /production distribution mismatch/);
+
+  const executed = await completedM365Fixture();
+  t.after(() => rm(executed.root, { recursive: true, force: true }));
+  const retained = executed.receipt.profiles.find(({ profile }) => profile === "inquiry-only");
+  const base = executed.receipt.host_evidence[0];
+  const forbiddenHost = {
+    product_id: retained.product_id, host: base.host, executed: true, result: "pass",
+    manifest_sha256: retained.candidate_manifest_sha256, bundle_sha256: retained.bundle_sha256,
+    scenarios: [
+      ...executed.options.contract.m365.required_common_host_scenarios,
+      ...executed.options.contract.m365.required_profile_scenarios[retained.profile],
+    ],
+    host_version: base.host_version, observed_at_utc: base.observed_at_utc,
+    accessibility_check: "pass", host_dom_manipulation: false,
+  };
+  const binding = await writeProtectedJson(
+    executed.root,
+    "runtime/hosts/retained-inquiry-forbidden.json",
+    hostProof(forbiddenHost),
+  );
+  executed.receipt.host_evidence.push({
+    ...forbiddenHost, evidence_kind: "real_outlook_host",
+    evidence_ref: binding.evidence_ref, evidence_sha256: binding.evidence_sha256,
+  });
+  assert.throws(
+    () => validateM365ReleaseReceipt(executed.receipt, executed.options),
+    /real Outlook evidence is incomplete/,
+  );
+});
+
+test("pilot proof binds the nine-user allowlist, explicit exclusion, and zero inquiry groups", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  const control = fixture.receipt.execution_control.pilot_assignment;
+  const proofPath = path.join(fixture.root, control.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  proof.assignments.find(({ product_id }) => product_id === "952431be-51b8-42a2-9bf6-769a15934e85")
+    .group_refs = ["group-ref:outlook-pilot-nine"];
+  const changed = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
+  control.evidence_sha256 = changed.evidence_sha256;
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /pilot group assignment drifted/,
+  );
+
+  const excluded = await completedM365Fixture();
+  t.after(() => rm(excluded.root, { recursive: true, force: true }));
+  excluded.receipt.execution_control.pilot_assignment.excluded_principal_fingerprint_sha256 = hex("f");
+  assert.throws(
+    () => validateM365ReleaseReceipt(excluded.receipt, excluded.options),
+    /fingerprint\/groups are not evidence-bound/,
+  );
+});
+
+test("pilot proof rejects eligible and excluded principal overlap without leaking principal refs", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  const control = fixture.receipt.execution_control.pilot_assignment;
+  const proofPath = path.join(fixture.root, control.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  const excludedRef = proof.excluded_principal_refs[0];
+  assert.equal(proof.eligible_principal_refs.length, 9);
+  assert.equal(proof.excluded_principal_refs.length, 1);
+  const visibleOutput = JSON.stringify({
+    receipt: fixture.receipt,
+    result: validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+  });
+  assert.equal(visibleOutput.includes("eligible_principal_refs"), false);
+  assert.equal(visibleOutput.includes("excluded_principal_refs"), false);
+  assert.equal(visibleOutput.includes(excludedRef), false);
+
+  proof.eligible_principal_refs.reverse();
+  const reordered = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
+  control.evidence_sha256 = reordered.evidence_sha256;
+  assert.equal(
+    validateM365ReleaseReceipt(fixture.receipt, fixture.options).status,
+    "deployment_verified",
+  );
+
+  proof.eligible_principal_refs[0] = excludedRef;
+  proof.eligible_principal_fingerprint_sha256 = sha256(
+    JSON.stringify(sorted(proof.eligible_principal_refs)),
+  );
+  control.eligible_principal_fingerprint_sha256 = proof.eligible_principal_fingerprint_sha256;
+  const changed = await writeProtectedJson(fixture.root, control.evidence_ref, proof);
+  control.evidence_sha256 = changed.evidence_sha256;
+
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /eligible and excluded principals must be disjoint/,
+  );
+});
+
 test("central/static-only authorization cannot complete API, migration, or provider config mutations", async (t) => {
   const fixture = await completedM365Fixture({
-    authorizedActions: ["m365_central_manifest_update", "static_dual_namespace_publish"],
+    authorizedActions: ["m365_central_single_visible_transition", "static_dual_namespace_publish"],
   });
   t.after(() => rm(fixture.root, { recursive: true, force: true }));
   assert.throws(

@@ -21,6 +21,37 @@ export const PROFILE_CONTRACTS = {
     required_static_paths: ["outlook-addin/index.html"],
   },
 };
+export const EMPTY_ASSIGNMENT_FINGERPRINT_SHA256 = "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945";
+export const PRODUCTION_DISTRIBUTION = Object.freeze({
+  eligible_user_count: 9,
+  excluded_user_count: 1,
+  assignment_authority: "entra_object_id_allowlist",
+  nested_groups_allowed: false,
+  tenant_wide_assignment_allowed: false,
+  assign_to_everyone: false,
+  max_visible_addins_per_user: 1,
+  assignment_overlap_count: 0,
+  profiles: Object.freeze([
+    Object.freeze({
+      profile: "matter-full",
+      product_id: PRODUCT_IDS[0],
+      distribution_role: "production_visible",
+      assignment_state: "assigned",
+      production_user_visible: true,
+      real_host_evidence_required: true,
+      central_operation_type: "central_manifest_update",
+    }),
+    Object.freeze({
+      profile: "inquiry-only",
+      product_id: PRODUCT_IDS[1],
+      distribution_role: "retained_unassigned",
+      assignment_state: "unassigned",
+      production_user_visible: false,
+      real_host_evidence_required: false,
+      central_operation_type: "central_manifest_update_and_unassign",
+    }),
+  ]),
+});
 export const MANIFEST_PATHS = [
   "apps/addin/manifest.inquiry.production.xml",
   "apps/addin/manifest.inquiry.xml",
@@ -62,7 +93,7 @@ export const REQUIRED_PREREQUISITES = [
 export const MUTATION_ACTIONS = Object.freeze({
   additive_migrations: "additive_migration_apply",
   api_release: "api_lambda_code_deploy",
-  central_deployment: "m365_central_manifest_update",
+  central_deployment: "m365_central_single_visible_transition",
   docusign_endpoint_and_secret_reference: "docusign_endpoint_secret_config",
   graph_endpoint_and_secret_reference: "graph_endpoint_secret_config",
   static_release: "static_dual_namespace_publish",
@@ -144,6 +175,7 @@ export const REQUIRED_RELEASE_PATHS = [
   "packages/matter/src/document-publication-service.js",
   "packages/matter/src/outlook-task-adapter.js",
   "scripts/lib/upl-proof-runner.mjs",
+  "scripts/lib/outlook-release/m365-distribution.mjs",
   "scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs",
   "scripts/validate-upl-c09-c12-outlook-addin.mjs",
 ];

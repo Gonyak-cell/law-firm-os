@@ -12,9 +12,11 @@ import {
   releaseContext, rollback, surface,
 } from "./helpers/outlook-release-fixtures.mjs";
 
-test("release contract binds dual ProductIds, four manifests, and protected proof classes", () => {
+test("release contract binds two source ProductIds but exactly one production-visible ProductId", () => {
   assert.deepEqual(validateReleaseContract(contract), {
     profile_count: 2, manifest_count: 4, release_version: "1.1.0.0",
+    source_product_id_count: 2, production_visible_product_id_count: 1,
+    retained_unassigned_product_id_count: 1,
   });
   const duplicate = clone(contract);
   duplicate.profiles[1].product_id = duplicate.profiles[0].product_id;
@@ -28,6 +30,15 @@ test("release contract binds dual ProductIds, four manifests, and protected proo
   const unauthorizedClass = clone(contract);
   unauthorizedClass.m365.required_mutation_actions.pop();
   assert.throws(() => validateReleaseContract(unauthorizedClass), /M365 mutation actions mismatch/);
+  const bothVisible = clone(contract);
+  bothVisible.m365.production_distribution.profiles[1].production_user_visible = true;
+  assert.throws(() => validateReleaseContract(bothVisible), /production distribution contract mismatch/);
+  const tenantWide = clone(contract);
+  tenantWide.m365.production_distribution.tenant_wide_assignment_allowed = true;
+  assert.throws(() => validateReleaseContract(tenantWide), /production distribution contract mismatch/);
+  const wrongCohort = clone(contract);
+  wrongCohort.m365.production_distribution.eligible_user_count = 10;
+  assert.throws(() => validateReleaseContract(wrongCohort), /production distribution contract mismatch/);
   const unreviewedOverride = clone(contract);
   unreviewedOverride.license_metadata_overrides = {
     ...(unreviewedOverride.license_metadata_overrides ?? {}),
@@ -78,9 +89,18 @@ test("OAuth scope release proof binds the runtime byte order while Graph remains
 
 });
 
-test("surface and rollback preserve ProductId-specific events and immutable assignments", () => {
-  assert.equal(validateSurfaceSeparation(surface, baseline, contract).permission_event_assignment_diff, "none");
-  assert.equal(validateRollbackContract(rollback, baseline, contract).rollback_profile_count, 2);
+test("surface preserves ProductId-specific events while distribution and rollback own assignments", () => {
+  assert.equal(validateSurfaceSeparation(surface, baseline, contract).permission_event_diff, "none");
+  assert.ok(surface.profiles.every((profile) => !("assignment_count" in profile)
+    && !("assignment_fingerprint_sha256" in profile)));
+  const legacySurface = clone(surface);
+  legacySurface.schema_version = 2;
+  assert.throws(() => validateSurfaceSeparation(legacySurface, baseline, contract), /schema_version/);
+  const rollbackResult = validateRollbackContract(rollback, baseline, contract);
+  assert.equal(rollbackResult.rollback_profile_count, 2);
+  assert.equal(rollbackResult.assignment_restore_policy, "preserve_current_single_visible_distribution");
+  assert.ok(rollbackResult.profiles.every((profile) => !("assignment_count" in profile)
+    && !("assignment_fingerprint_sha256" in profile)));
   const eventLeak = clone(surface);
   eventLeak.profiles.find(({ profile }) => profile === "inquiry-only").manifest_fingerprint.launch_events = [
     "OnMessageSend:onMessageSendHandler:PromptUser",

@@ -5,10 +5,11 @@ import {
   REQUIRED_MUTATION_ACTIONS, REQUIRED_PROOF_CLASSES, REQUIRED_RELEASE_PATHS, REQUIRED_STATIC_PATHS, REQUIRED_TEST_PATHS,
   STATIC_NAMESPACES,
 } from "./constants.mjs";
+import { validateProductionDistributionContract } from "./m365-distribution.mjs";
 import { assertEqual, canonical, sorted } from "./primitives.mjs";
 
 export function validateReleaseContract(contract) {
-  if (contract?.schema_version !== 1) throw new Error("Outlook release gate schema_version must be 1");
+  if (contract?.schema_version !== 2) throw new Error("Outlook release gate schema_version must be 2");
   if (contract.release_version !== "1.1.0.0" || contract.rollback_version !== "1.0.1.1") {
     throw new Error("Outlook release and rollback versions drifted");
   }
@@ -61,6 +62,7 @@ export function validateReleaseContract(contract) {
   assertEqual(sorted(contract.m365?.required_common_host_scenarios ?? []), sorted(REQUIRED_COMMON_HOST_SCENARIOS), "M365 common host scenarios");
   assertEqual(sorted(contract.m365?.required_prerequisites ?? []), sorted(REQUIRED_PREREQUISITES), "M365 prerequisites");
   assertEqual(sorted(contract.m365?.required_mutation_actions ?? []), sorted(REQUIRED_MUTATION_ACTIONS), "M365 mutation actions");
+  const distribution = validateProductionDistributionContract(contract.m365?.production_distribution);
   assertEqual(contract.m365?.required_profile_scenarios, {
     "matter-full": ["read", "compose", "on-message-send"],
     "inquiry-only": ["read"],
@@ -71,5 +73,5 @@ export function validateReleaseContract(contract) {
     throw new Error("M365 protected evidence trust boundary drifted");
   }
   assertEqual(sorted(evidence?.required_proof_classes ?? []), sorted(REQUIRED_PROOF_CLASSES), "M365 proof classes");
-  return { profile_count: 2, manifest_count: 4, release_version: contract.release_version };
+  return { profile_count: 2, manifest_count: 4, release_version: contract.release_version, ...distribution };
 }

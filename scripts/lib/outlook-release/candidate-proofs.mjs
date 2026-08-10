@@ -4,6 +4,7 @@ import {
 } from "./primitives.mjs";
 
 export function validateSurfaceSeparation(surface, baseline, contract) {
+  if (surface?.schema_version !== 3) throw new Error("Outlook surface schema_version must be 3");
   const baselineById = profileMap(baseline?.profiles, "deployment baseline");
   const profiles = profileMap(surface?.profiles, "surface contract");
   if (surface.release_candidate_version !== contract.release_version) throw new Error("surface release version drifted");
@@ -14,10 +15,6 @@ export function validateSurfaceSeparation(surface, baseline, contract) {
     if (profile.profile !== expected.profile || profile.permission !== expected.permission) {
       throw new Error(`${expected.profile} identity or permission drifted`);
     }
-    if (profile.assignment_count !== baselineProfile.assignment_count
-      || profile.assignment_fingerprint_sha256 !== baselineProfile.assignment_fingerprint_sha256) {
-      throw new Error(`${expected.profile} assignment drifted`);
-    }
   }
   const matter = profiles.get(PRODUCT_IDS[0])?.manifest_fingerprint;
   const inquiry = profiles.get(PRODUCT_IDS[1])?.manifest_fingerprint;
@@ -27,7 +24,7 @@ export function validateSurfaceSeparation(surface, baseline, contract) {
     || inquiry.rule_fingerprints?.some((rule) => rule.endsWith(":Edit"))) {
     throw new Error("Matter and inquiry host/event profiles leaked across ProductIds");
   }
-  return { permission_event_assignment_diff: "none", profile_count: 2 };
+  return { permission_event_diff: "none", profile_count: 2 };
 }
 
 export function validateCoveragePaths(existingPaths, contract) {

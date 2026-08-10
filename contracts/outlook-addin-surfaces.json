@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "deployed_baseline_version": "1.0.1.1",
   "release_candidate_version": "1.1.0.0",
   "profiles": [
@@ -11,8 +11,6 @@
         "production": "apps/addin/manifest.production.xml"
       },
       "baseline_manifest_sha256": "f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271",
-      "assignment_count": 1,
-      "assignment_fingerprint_sha256": "99b7e267775e6ad68f33eb8b1be3006e71747cdd71a7afa99bfd5c9204c2f40e",
       "provider_name": "AMIC OS",
       "display_name": "AMIC OS",
       "permission": "ReadItem",
@@ -177,8 +175,6 @@
         "production": "apps/addin/manifest.inquiry.production.xml"
       },
       "baseline_manifest_sha256": "a3664e40361f585ef405e3ed5cf03b2576251a44403366d21dea8a26f324cc66",
-      "assignment_count": 2,
-      "assignment_fingerprint_sha256": "ef09284c95e57df1d37eb5072d4ad8e65ff58bf127454cdfff67f1e0c6e3521d",
       "provider_name": "AMIC OS",
       "display_name": "AMIC OS",
       "permission": "ReadItem",

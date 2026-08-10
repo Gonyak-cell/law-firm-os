@@ -1,5 +1,6 @@
 import { PRODUCT_IDS, REQUIRED_MUTATION_ACTIONS } from "./constants.mjs";
 import { m365CompletionMillis } from "./m365-base.mjs";
+import { expectedDistributionProfile, validateProfileDistribution } from "./m365-distribution.mjs";
 import {
   assertEqual, assertExactKeys, assertSha256, canonical, concreteText, profileMap, sha256,
   sorted, utcMillis,
@@ -47,34 +48,82 @@ function validateAuthorization(control, context) {
 }
 
 function validatePilot(control, context) {
-  assertExactKeys(control.pilot_assignment, ["evidence_ref", "evidence_sha256", "fingerprint_sha256", "groups"], "pilot assignment control");
+  assertExactKeys(control.pilot_assignment, [
+    "eligible_principal_fingerprint_sha256", "evidence_ref", "evidence_sha256",
+    "excluded_principal_fingerprint_sha256", "fingerprint_sha256", "groups",
+  ], "pilot assignment control");
   assertConcreteList(control.pilot_assignment.groups, "pilot assignment groups");
   assertSha256(control.pilot_assignment.fingerprint_sha256, "pilot assignment fingerprint");
+  assertSha256(control.pilot_assignment.eligible_principal_fingerprint_sha256, "eligible principal fingerprint");
+  assertSha256(control.pilot_assignment.excluded_principal_fingerprint_sha256, "excluded principal fingerprint");
   const loaded = readProtectedJsonProof(context.store, {
     evidence_ref: control.pilot_assignment.evidence_ref,
     evidence_sha256: control.pilot_assignment.evidence_sha256,
   }, "pilot_assignment");
   const proof = loaded.proof;
-  assertProofBase(proof, "amic-os.m365-pilot-assignment-proof.v1", "pilot_assignment", context.identity, [
-    "assignment_fingerprint_sha256", "assignments", "groups", "observed_at_utc", "status",
+  assertProofBase(proof, "amic-os.m365-pilot-assignment-proof.v2", "pilot_assignment", context.identity, [
+    "assign_to_everyone", "assignment_fingerprint_sha256", "assignment_overlap_count", "assignments",
+    "eligible_principal_fingerprint_sha256", "eligible_principal_refs", "eligible_user_count",
+    "excluded_principal_fingerprint_sha256", "excluded_principal_refs", "excluded_user_count", "groups",
+    "max_visible_addins_per_user", "observed_at_utc", "status",
   ]);
   assertConcreteList(proof.groups, "protected pilot assignment groups");
+  assertConcreteList(proof.eligible_principal_refs, "eligible principal refs");
+  assertConcreteList(proof.excluded_principal_refs, "excluded principal refs");
+  const excludedPrincipalRefs = new Set(proof.excluded_principal_refs);
+  if (proof.eligible_principal_refs.some((ref) => excludedPrincipalRefs.has(ref))) {
+    throw new Error("pilot eligible and excluded principals must be disjoint");
+  }
+  const eligiblePrincipalFingerprint = sha256(JSON.stringify(sorted(proof.eligible_principal_refs)));
+  const excludedPrincipalFingerprint = sha256(JSON.stringify(sorted(proof.excluded_principal_refs)));
   const receiptProfiles = profileMap(context.receipt.profiles, "M365 receipt profiles");
   const assignments = profileMap(proof.assignments, "pilot assignment proof");
+  const usedGroups = new Set();
   for (const productId of PRODUCT_IDS) {
     const assignment = assignments.get(productId);
     const receiptProfile = receiptProfiles.get(productId);
-    assertExactKeys(assignment, ["assignment_count", "assignment_fingerprint_sha256", "group_refs", "product_id"], "pilot product assignment");
-    assertConcreteList(assignment.group_refs, "pilot product group refs");
-    if (assignment.assignment_count !== receiptProfile.assignment_count
+    assertExactKeys(assignment, [
+      "assign_to_everyone", "assignment_count", "assignment_fingerprint_sha256", "assignment_state",
+      "distribution_role", "group_refs", "product_id", "production_user_visible",
+    ], "pilot product assignment");
+    const expected = expectedDistributionProfile(context.contract, productId);
+    validateProfileDistribution(assignment, expected, `${expected.profile} pilot assignment`);
+    if (!Array.isArray(assignment.group_refs) || new Set(assignment.group_refs).size !== assignment.group_refs.length
+      || assignment.group_refs.some((ref) => !concreteText(ref, "pilot product group ref"))
+      || (expected.production_user_visible && assignment.group_refs.length < 1)
+      || (!expected.production_user_visible && assignment.group_refs.length !== 0)) {
+      throw new Error(`pilot group assignment drifted for ${productId}`);
+    }
+    assignment.group_refs.forEach((ref) => usedGroups.add(ref));
+    const assignmentFingerprint = sha256(JSON.stringify(canonical(assignment.group_refs)));
+    if (assignment.assignment_count !== assignment.group_refs.length
+      || assignment.assignment_fingerprint_sha256 !== assignmentFingerprint
+      || assignment.assignment_count !== receiptProfile.assignment_count
       || assignment.assignment_fingerprint_sha256 !== receiptProfile.assignment_fingerprint_sha256
+      || assignment.assignment_state !== receiptProfile.assignment_state
+      || assignment.distribution_role !== receiptProfile.distribution_role
+      || assignment.production_user_visible !== receiptProfile.production_user_visible
+      || assignment.assign_to_everyone !== receiptProfile.assign_to_everyone
       || assignment.group_refs.some((ref) => !proof.groups.includes(ref))) {
       throw new Error(`pilot assignment proof drifted for ${productId}`);
     }
   }
   const fingerprint = sha256(JSON.stringify(canonical(proof.assignments)));
+  const distribution = context.contract.m365.production_distribution;
   if (proof.assignment_fingerprint_sha256 !== fingerprint || control.pilot_assignment.fingerprint_sha256 !== fingerprint
     || JSON.stringify(sorted(proof.groups)) !== JSON.stringify(sorted(control.pilot_assignment.groups))
+    || JSON.stringify(sorted(proof.groups)) !== JSON.stringify(sorted([...usedGroups]))
+    || proof.eligible_principal_fingerprint_sha256 !== eligiblePrincipalFingerprint
+    || proof.eligible_principal_fingerprint_sha256 !== control.pilot_assignment.eligible_principal_fingerprint_sha256
+    || proof.excluded_principal_fingerprint_sha256 !== excludedPrincipalFingerprint
+    || proof.excluded_principal_fingerprint_sha256 !== control.pilot_assignment.excluded_principal_fingerprint_sha256
+    || proof.eligible_user_count !== proof.eligible_principal_refs.length
+    || proof.eligible_user_count !== distribution.eligible_user_count
+    || proof.excluded_user_count !== proof.excluded_principal_refs.length
+    || proof.excluded_user_count !== distribution.excluded_user_count
+    || proof.assignment_overlap_count !== distribution.assignment_overlap_count
+    || proof.max_visible_addins_per_user !== distribution.max_visible_addins_per_user
+    || proof.assign_to_everyone !== distribution.assign_to_everyone
     || proof.status !== "verified") throw new Error("pilot assignment fingerprint/groups are not evidence-bound");
   const completedAt = m365CompletionMillis(proof.observed_at_utc, "pilot assignment observation", context.validationCutoff);
   return { completedAt, loaded, proof };

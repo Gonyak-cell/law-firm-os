@@ -31,13 +31,32 @@ function authorizationFields(control, authorizationHash) {
 export function pilotProof(receipt, groups) {
   const assignments = receipt.profiles.map((profile) => ({
     product_id: profile.product_id,
-    group_refs: groups,
+    group_refs: profile.production_user_visible ? groups : [],
+    distribution_role: profile.distribution_role,
+    assignment_state: profile.assignment_state,
+    production_user_visible: profile.production_user_visible,
+    assign_to_everyone: profile.assign_to_everyone,
     assignment_count: profile.assignment_count,
     assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,
   }));
-  return proof("amic-os.m365-pilot-assignment-proof.v1", "pilot_assignment", {
+  const distribution = contract.m365.production_distribution;
+  const eligiblePrincipalRefs = Array.from(
+    { length: distribution.eligible_user_count },
+    (_, index) => `entra-object-ref:${String(index + 1).padStart(2, "0")}`,
+  );
+  const excludedPrincipalRefs = ["entra-object-ref:explicitly-excluded"];
+  return proof("amic-os.m365-pilot-assignment-proof.v2", "pilot_assignment", {
     groups,
     assignments,
+    eligible_principal_refs: eligiblePrincipalRefs,
+    excluded_principal_refs: excludedPrincipalRefs,
+    eligible_user_count: distribution.eligible_user_count,
+    excluded_user_count: distribution.excluded_user_count,
+    assign_to_everyone: distribution.assign_to_everyone,
+    max_visible_addins_per_user: distribution.max_visible_addins_per_user,
+    assignment_overlap_count: distribution.assignment_overlap_count,
+    eligible_principal_fingerprint_sha256: sha256(JSON.stringify(sorted(eligiblePrincipalRefs))),
+    excluded_principal_fingerprint_sha256: sha256(JSON.stringify(sorted(excludedPrincipalRefs))),
     assignment_fingerprint_sha256: sha256(JSON.stringify(canonical(assignments))),
     observed_at_utc: "2026-08-08T00:30:00Z",
     status: "verified",

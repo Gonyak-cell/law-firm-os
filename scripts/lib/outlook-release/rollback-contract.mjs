@@ -4,14 +4,14 @@ import {
 } from "./primitives.mjs";
 
 const TOP_KEYS = [
-  "assignment_fingerprints_sanitized", "authoritative_baseline_receipt", "candidate_version",
-  "permission_event_assignment_diff", "profiles", "raw_assignment_pii_included",
+  "assignment_restore_policy", "authoritative_baseline_receipt", "candidate_version",
+  "permission_event_diff", "profiles", "raw_assignment_pii_included",
   "raw_manifest_xml_included", "rollback_version", "schema_version", "secret_material_included",
 ];
 const PROFILE_KEYS = [
-  "assignment_count", "entry_bundle", "event_runtime", "launch_events", "permission", "product_id",
+  "entry_bundle", "event_runtime", "launch_events", "permission", "product_id",
   "profile", "protected_manifest_ref", "rollback_manifest_sha256", "rollback_manifest_url",
-  "rollback_version", "sanitized_assignment_fingerprint_sha256", "source_locations", "source_sha",
+  "rollback_version", "source_locations", "source_sha",
   "static_inventory", "taskpane_html",
 ];
 const EXPECTED_EVENTS = {
@@ -64,14 +64,15 @@ function sourceLocations(value, expected) {
 
 export function validateRollbackContract(rollback, baseline, contract) {
   assertExactKeys(rollback, TOP_KEYS, "rollback contract");
-  if (rollback.schema_version !== 2 || rollback.candidate_version !== contract.release_version
+  if (rollback.schema_version !== 3 || rollback.candidate_version !== contract.release_version
     || rollback.rollback_version !== contract.rollback_version
     || rollback.authoritative_baseline_receipt !== contract.baseline_receipt
-    || rollback.permission_event_assignment_diff !== "none") {
-    throw new Error("rollback version or permission/event/assignment contract drifted");
+    || rollback.permission_event_diff !== "none"
+    || rollback.assignment_restore_policy !== "preserve_current_single_visible_distribution") {
+    throw new Error("rollback version, permission/event, or assignment restore policy drifted");
   }
   if (rollback.raw_assignment_pii_included !== false || rollback.secret_material_included !== false
-    || rollback.raw_manifest_xml_included !== false || rollback.assignment_fingerprints_sanitized !== true) {
+    || rollback.raw_manifest_xml_included !== false) {
     throw new Error("rollback contract contains protected material");
   }
   const baselineById = profileMap(baseline?.profiles, "deployment baseline");
@@ -92,8 +93,6 @@ export function validateRollbackContract(rollback, baseline, contract) {
     if (profile.profile !== expected.profile || profile.rollback_version !== contract.rollback_version
       || profile.source_sha !== baseline.source_sha || !GIT_OID.test(profile.source_sha ?? "")
       || profile.rollback_manifest_sha256 !== deployed.manifest_sha256
-      || profile.assignment_count !== deployed.assignment_count
-      || profile.sanitized_assignment_fingerprint_sha256 !== deployed.assignment_fingerprint_sha256
       || profile.permission !== expected.permission
       || JSON.stringify(profile.launch_events) !== JSON.stringify(EXPECTED_EVENTS[expected.profile])) {
       throw new Error(`${expected.profile} rollback identity/baseline drifted`);
@@ -134,13 +133,16 @@ export function validateRollbackContract(rollback, baseline, contract) {
       product_id: expected.product_id, profile: expected.profile, version: profile.rollback_version,
       source_sha: profile.source_sha, manifest_sha256: profile.rollback_manifest_sha256,
       source_locations: locations, permission: profile.permission, launch_events: profile.launch_events,
-      assignment_count: profile.assignment_count,
-      assignment_fingerprint_sha256: profile.sanitized_assignment_fingerprint_sha256,
       taskpane_html_sha256: taskpane.sha256, entry_bundle_sha256: entry.sha256,
       static_inventory_sha256: profile.static_inventory.inventory_sha256,
       event_runtime_sha256: event?.sha256 ?? null,
     });
   }
   assertEqual(profiles.map(({ product_id }) => product_id).sort(), contract.profiles.map(({ product_id }) => product_id).sort(), "rollback ProductIds");
-  return { rollback_profile_count: 2, permission_event_assignment_diff: "none", profiles };
+  return {
+    rollback_profile_count: 2,
+    permission_event_diff: "none",
+    assignment_restore_policy: rollback.assignment_restore_policy,
+    profiles,
+  };
 }

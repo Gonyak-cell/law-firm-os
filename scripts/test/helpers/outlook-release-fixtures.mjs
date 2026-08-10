@@ -158,25 +158,31 @@ export function staticPlanFor(
 
 export function awaitingM365Receipt(
   hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") },
-  { baseline: baselineValue = baseline, rollback: rollbackValue = rollback } = {},
+  { rollback: rollbackValue = rollback } = {},
 ) {
+  const assignedGroupRefs = ["group-ref:outlook-pilot-nine"];
   return {
-    schema_version: "amic-os.outlook-m365-release.v1", status: "awaiting_authorized_deployment",
-    ...sourceIdentity, version: contract.release_version, permission_event_assignment_diff: "none",
+    schema_version: "amic-os.outlook-m365-release.v2", status: "awaiting_authorized_deployment",
+    ...sourceIdentity, version: contract.release_version, permission_event_diff: "none",
     graph_delegated_scope_diff: "none", propagation_window_is_sla: false,
+    production_distribution: clone(contract.m365.production_distribution),
     prerequisites: Object.fromEntries(contract.m365.required_prerequisites.map((name) => [name, {
       status: "pending", artifact_sha256: null, evidence_sha256: null, evidence_ref: null,
       source_sha: null, source_tree: null, package_lock_sha256: null,
     }])),
     authorization_ref: null, go_live_approval_ref: null, mutation_count: 0,
     profiles: contract.profiles.map((profile, index) => {
-      const deployed = baselineValue.profiles.find(({ product_id }) => product_id === profile.product_id);
       const fallback = rollbackValue.profiles.find(({ product_id }) => product_id === profile.product_id);
+      const distribution = contract.m365.production_distribution.profiles
+        .find(({ product_id }) => product_id === profile.product_id);
+      const groupRefs = distribution.production_user_visible ? assignedGroupRefs : [];
       return {
         profile: profile.profile, product_id: profile.product_id, permission: profile.permission,
         deployment_mode: "fixed", source_locations: candidateManifestProjections()[profile.profile].form_source_locations,
         candidate_manifest_sha256: hashes[profile.profile], bundle_sha256: index ? hex("e") : hex("d"),
-        assignment_count: deployed.assignment_count, assignment_fingerprint_sha256: deployed.assignment_fingerprint_sha256,
+        distribution_role: distribution.distribution_role, assignment_state: distribution.assignment_state,
+        production_user_visible: distribution.production_user_visible, assign_to_everyone: false,
+        assignment_count: groupRefs.length, assignment_fingerprint_sha256: sha256(JSON.stringify(groupRefs)),
         rollback_manifest_sha256: fallback.rollback_manifest_sha256, rollback_manifest_ref: fallback.protected_manifest_ref,
       };
     }),

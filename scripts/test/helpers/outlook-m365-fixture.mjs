@@ -15,10 +15,14 @@ import { createRollbackEvidenceFixture } from "./rollback-evidence-fixture.mjs";
 const evidence = (binding) => ({ evidence_ref: binding.evidence_ref, evidence_sha256: binding.evidence_sha256 });
 
 function populateReadbacks(receipt, candidate, plan) {
-  receipt.operations = receipt.profiles.map((profile) => ({
-    product_id: profile.product_id, operation_type: "central_manifest_update",
-    operation_ref: `operation-ref:${profile.profile}-20260808`, result: "success",
-  }));
+  receipt.operations = receipt.profiles.map((profile) => {
+    const distribution = contract.m365.production_distribution.profiles
+      .find(({ product_id }) => product_id === profile.product_id);
+    return {
+      product_id: profile.product_id, operation_type: distribution.central_operation_type,
+      operation_ref: `operation-ref:${profile.profile}-20260808`, result: "success",
+    };
+  });
   receipt.static_readbacks = receipt.profiles.map((profile) => {
     const staticProfile = plan.profiles.find(({ product_id }) => product_id === profile.product_id);
     const artifact = candidate.profile_artifacts.find(({ product_id }) => product_id === profile.product_id);
@@ -33,7 +37,10 @@ function populateReadbacks(receipt, candidate, plan) {
     product_id: profile.product_id, version: contract.release_version,
     manifest_sha256: profile.candidate_manifest_sha256, deployment_mode: "fixed",
     source_locations: profile.source_locations, assignment_count: profile.assignment_count,
-    assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256, enabled: true,
+    assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,
+    distribution_role: profile.distribution_role, assignment_state: profile.assignment_state,
+    production_user_visible: profile.production_user_visible, assign_to_everyone: profile.assign_to_everyone,
+    enabled: true,
   }));
 }
 
@@ -43,11 +50,11 @@ async function writeControls(root, receipt, restored, authorizedActions) {
   control.owner_ref = "owner-ref:outlook-release-01";
   control.window_start_utc = "2026-08-08T00:00:00Z";
   control.window_end_utc = "2026-08-08T04:00:00Z";
-  control.monitoring_criteria = ["two-product-readback-exact", "provider-error-rate-below-threshold"];
+  control.monitoring_criteria = ["two-source-one-visible-readback-exact", "provider-error-rate-below-threshold"];
   control.abort_criteria = ["manifest-readback-drift", "provider-error-rate-threshold-breached"];
   control.rollback_readback_owner_ref = "owner-ref:rollback-readback-01";
   const authorization = await writeProtectedJson(root, "controls/authorization.json", authorizationProof(control, authorizedActions));
-  const groups = ["group-ref:outlook-pilot-a", "group-ref:outlook-pilot-b"];
+  const groups = ["group-ref:outlook-pilot-nine"];
   const pilotValue = pilotProof(receipt, groups);
   const pilot = await writeProtectedJson(root, "controls/pilot-assignment.json", pilotValue);
   const monitoring = await writeProtectedJson(root, "controls/monitoring-plan.json", monitoringProof(control));
@@ -55,6 +62,8 @@ async function writeControls(root, receipt, restored, authorizedActions) {
   control.authorization_evidence = evidence(authorization);
   control.pilot_assignment = {
     ...evidence(pilot), groups, fingerprint_sha256: pilotValue.assignment_fingerprint_sha256,
+    eligible_principal_fingerprint_sha256: pilotValue.eligible_principal_fingerprint_sha256,
+    excluded_principal_fingerprint_sha256: pilotValue.excluded_principal_fingerprint_sha256,
   };
   control.monitoring_evidence = evidence(monitoring);
   control.rollback_rehearsal_evidence = evidence(rehearsal);
@@ -85,7 +94,10 @@ async function writePropagation(root, receipt) {
       const entry = {
         product_id: profile.product_id, hour, result: "exact_readback", version: contract.release_version,
         manifest_sha256: profile.candidate_manifest_sha256,
+        assignment_count: profile.assignment_count, assignment_state: profile.assignment_state,
         assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,
+        distribution_role: profile.distribution_role, production_user_visible: profile.production_user_visible,
+        assign_to_everyone: profile.assign_to_everyone,
         observed_at_utc: observed,
       };
       const binding = await writeProtectedJson(root, `runtime/propagation/${profile.profile}-${hour}.json`, propagationProof(entry));
@@ -99,7 +111,7 @@ async function writeHosts(root, receipt) {
     "classic-outlook-windows": "16.0.19328.20158", "new-outlook-windows": "20260801001.12",
     "outlook-macos": "16.101.2", owa: "Exchange-Online-2026.08",
   };
-  for (const profile of receipt.profiles) {
+  for (const profile of receipt.profiles.filter(({ production_user_visible }) => production_user_visible)) {
     for (const host of contract.m365.required_host_evidence) {
       const entry = {
         product_id: profile.product_id, host, executed: true, result: "pass",

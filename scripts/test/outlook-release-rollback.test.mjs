@@ -22,6 +22,8 @@ async function fixture(t) {
 test("rollback reads each manifest, inventory, and artifact byte before accepting exact restoration", async (t) => {
   const current = await fixture(t);
   const result = validateProtectedRollbackEvidence(current.rollback, current.baseline, contract, current.store);
+  assert.ok(result.profiles.every((profile) => !("assignment_count" in profile)
+    && !("assignment_fingerprint_sha256" in profile)));
   assert.deepEqual(result.profiles.map(({ profile, static_artifact_count }) => ({ profile, static_artifact_count })), [
     { profile: "matter-full", static_artifact_count: 4 },
     { profile: "inquiry-only", static_artifact_count: 2 },

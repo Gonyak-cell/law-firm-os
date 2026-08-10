@@ -161,7 +161,7 @@ async function main() {
   const surfaceResult = validateSurfaceSeparation(surface, baseline, contract);
   const graphScopes = await graphScopeFingerprint(contract);
   const candidateResult = await validateOutlookAddinSurfaces({ repoRoot, baseline, mode: "candidate" });
-  if (candidateResult.permission_event_assignment_diff !== "none") throw new Error("candidate manifest drifted from frozen identity contract");
+  if (candidateResult.permission_event_diff !== "none") throw new Error("candidate manifest drifted from frozen identity contract");
 
   const [buildCommand, ...buildArgs] = contract.build.command;
   run(runCommand, buildCommand, buildArgs);

@@ -1,5 +1,6 @@
 import { PRODUCT_IDS } from "./constants.mjs";
 import { m365CompletionMillis } from "./m365-base.mjs";
+import { expectedDistributionProfile, validateProfileDistribution } from "./m365-distribution.mjs";
 import { assertEqual, assertExactKeys, canonical, profileMap, utcMillis } from "./primitives.mjs";
 import { assertProofBase } from "./proof-common.mjs";
 import { readProtectedJsonProof } from "./protected-evidence.mjs";
@@ -10,7 +11,9 @@ function validateProof(entry, receipt, options, temporal) {
   }, "propagation_observation");
   const proof = loaded.proof;
   assertProofBase(proof, "amic-os.m365-propagation-proof.v1", "propagation_observation", options.expectedSourceIdentity, [
-    "assignment_fingerprint_sha256", "hour", "manifest_sha256", "observed_at_utc", "product_id", "result", "version",
+    "assign_to_everyone", "assignment_count", "assignment_fingerprint_sha256", "assignment_state",
+    "distribution_role", "hour", "manifest_sha256", "observed_at_utc", "product_id",
+    "production_user_visible", "result", "version",
   ]);
   const receiptProjection = Object.fromEntries(Object.entries(entry).filter(([key]) => !key.startsWith("evidence_")));
   const proofProjection = Object.fromEntries(Object.entries(proof).filter(([key]) => ![
@@ -18,10 +21,16 @@ function validateProof(entry, receipt, options, temporal) {
   ].includes(key)));
   assertEqual(canonical(proofProjection), canonical(receiptProjection), "M365 propagation protected evidence");
   const profile = profileMap(receipt.profiles, "M365 receipt profiles").get(entry.product_id);
+  validateProfileDistribution(entry, expectedDistributionProfile(options.contract, entry.product_id), `${entry.product_id} propagation`);
   if (!profile || !options.contract.m365.propagation_observation_hours.includes(entry.hour)
     || entry.result !== "exact_readback" || entry.version !== options.contract.release_version
     || entry.manifest_sha256 !== profile.candidate_manifest_sha256
-    || entry.assignment_fingerprint_sha256 !== profile.assignment_fingerprint_sha256) {
+    || entry.assignment_count !== profile.assignment_count
+    || entry.assignment_fingerprint_sha256 !== profile.assignment_fingerprint_sha256
+    || entry.assignment_state !== profile.assignment_state
+    || entry.distribution_role !== profile.distribution_role
+    || entry.production_user_visible !== profile.production_user_visible
+    || entry.assign_to_everyone !== profile.assign_to_everyone) {
     throw new Error(`M365 propagation observation is invalid: ${entry.product_id}:${entry.hour}`);
   }
   const completedAt = m365CompletionMillis(
@@ -38,8 +47,9 @@ export function validateM365Propagation(receipt, options, temporal) {
   const loaded = [];
   for (const entry of receipt.propagation_observations ?? []) {
     assertExactKeys(entry, [
-      "assignment_fingerprint_sha256", "evidence_ref", "evidence_sha256", "hour", "manifest_sha256",
-      "observed_at_utc", "product_id", "result", "version",
+      "assign_to_everyone", "assignment_count", "assignment_fingerprint_sha256", "assignment_state",
+      "distribution_role", "evidence_ref", "evidence_sha256", "hour", "manifest_sha256",
+      "observed_at_utc", "product_id", "production_user_visible", "result", "version",
     ], "M365 propagation observation");
     const key = `${entry.product_id}:${entry.hour}`;
     if (keys.has(key)) throw new Error(`M365 propagation observation is duplicated: ${key}`);

@@ -2,6 +2,7 @@ import {
   assertEqual, assertExactKeys, canonical, profileMap, requiredText,
 } from "./primitives.mjs";
 import { MUTATION_ACTIONS } from "./constants.mjs";
+import { expectedDistributionProfile, validateProfileDistribution } from "./m365-distribution.mjs";
 import { m365CompletionMillis } from "./m365-base.mjs";
 import {
   MUTATION_AUTHORIZATION_FIELDS, validateMutationAuthorization,
@@ -42,11 +43,14 @@ function validateProfileOperations(receipt, options, staticResult) {
       "target_prefix", "taskpane_html_sha256",
     ], `${expected.profile} static readback`);
     assertExactKeys(readback, [
-      "assignment_count", "assignment_fingerprint_sha256", "deployment_mode", "enabled", "manifest_sha256",
-      "product_id", "source_locations", "version",
+      "assign_to_everyone", "assignment_count", "assignment_fingerprint_sha256", "assignment_state",
+      "deployment_mode", "distribution_role", "enabled", "manifest_sha256", "product_id",
+      "production_user_visible", "source_locations", "version",
     ], `${expected.profile} M365 readback`);
+    const distribution = expectedDistributionProfile(contract, expected.product_id);
+    validateProfileDistribution(readback, distribution, `${expected.profile} readback`);
     const operationRef = requiredText(operation.operation_ref, "M365 operation_ref");
-    if (operation.operation_type !== "central_manifest_update" || operation.result !== "success"
+    if (operation.operation_type !== distribution.central_operation_type || operation.result !== "success"
       || operationRefs.has(operationRef)) throw new Error(`${expected.profile} central update operation is incomplete`);
     operationRefs.add(operationRef);
     if (staticReadback.result !== "exact_hash" || staticReadback.http_status !== 200
@@ -61,6 +65,10 @@ function validateProfileOperations(receipt, options, staticResult) {
       || readback.deployment_mode !== "fixed" || JSON.stringify(readback.source_locations) !== JSON.stringify(profile.source_locations)
       || readback.assignment_count !== profile.assignment_count
       || readback.assignment_fingerprint_sha256 !== profile.assignment_fingerprint_sha256
+      || readback.assignment_state !== profile.assignment_state
+      || readback.distribution_role !== profile.distribution_role
+      || readback.production_user_visible !== profile.production_user_visible
+      || readback.assign_to_everyone !== profile.assign_to_everyone
       || readback.enabled !== true) throw new Error(`${expected.profile} central deployment readback drifted`);
   }
 }
