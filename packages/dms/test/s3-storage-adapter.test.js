@@ -1,166 +1,9 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-import { createS3StorageAdapter } from "../src/storage/s3-storage-adapter.js";
+import test, { after } from "node:test";
 import { assertStagedStorageAdapter, sha256Hex } from "../src/storage/storage-adapter.js";
+import { adapter, closeAdapters } from "./s3-storage-adapter-test-helpers.js";
 
-function notFound() {
-  const error = new Error("not found");
-  error.name = "NotFound";
-  error.$metadata = { httpStatusCode: 404 };
-  return error;
-}
-
-function objectGovernanceUnset() {
-  const error = new Error("The specified object does not have an Object Lock configuration");
-  error.name = "NoSuchObjectLockConfiguration";
-  error.$metadata = { httpStatusCode: 404 };
-  return error;
-}
-
-function fakeS3Client({
-  defaultRetentionUntil = null,
-  failDeleteOnce = false,
-  failRetentionOnce = false,
-  now = () => Date.now(),
-} = {}) {
-  const objects = new Map();
-  let version = 0;
-  let deleteFailurePending = failDeleteOnce;
-  let retentionFailurePending = failRetentionOnce;
-  const etag = (body) => `\"${sha256Hex(body).slice(0, 32)}\"`;
-  return Object.freeze({
-    objects,
-    async send(command) {
-      const { input } = command;
-      const name = command.constructor.name;
-      if (name === "PutObjectCommand") {
-        if (input.IfNoneMatch === "*" && objects.has(input.Key)) {
-          const error = new Error("precondition failed");
-          error.name = "PreconditionFailed";
-          error.$metadata = { httpStatusCode: 412 };
-          throw error;
-        }
-        const body = Buffer.from(input.Body);
-        const object = {
-          body,
-          contentType: input.ContentType,
-          metadata: { ...input.Metadata },
-          etag: etag(body),
-          versionId: `v${++version}`,
-          legalHold: "OFF",
-          retention: defaultRetentionUntil
-            ? { Mode: "GOVERNANCE", RetainUntilDate: new Date(defaultRetentionUntil) }
-            : null,
-        };
-        objects.set(input.Key, object);
-        return { ETag: object.etag, VersionId: object.versionId };
-      }
-      if (name === "HeadObjectCommand") {
-        const object = objects.get(input.Key);
-        if (!object) throw notFound();
-        return {
-          ContentLength: object.body.byteLength,
-          ContentType: object.contentType,
-          Metadata: { ...object.metadata },
-          ETag: object.etag,
-          VersionId: object.versionId,
-        };
-      }
-      if (name === "GetObjectCommand") {
-        const object = objects.get(input.Key);
-        if (!object) throw notFound();
-        return {
-          Body: { transformToByteArray: async () => Uint8Array.from(object.body) },
-          ContentLength: object.body.byteLength,
-          ContentType: object.contentType,
-          Metadata: { ...object.metadata },
-          ETag: object.etag,
-          VersionId: object.versionId,
-        };
-      }
-      if (name === "CopyObjectCommand") {
-        const sourceKey = decodeURIComponent(input.CopySource.slice(input.CopySource.indexOf("/") + 1));
-        const source = objects.get(sourceKey);
-        if (!source) throw notFound();
-        if (input.CopySourceIfMatch && input.CopySourceIfMatch !== source.etag) throw new Error("copy condition failed");
-        const copied = { ...source, body: Buffer.from(source.body), metadata: { ...source.metadata }, versionId: `v${++version}` };
-        objects.set(input.Key, copied);
-        return { CopyObjectResult: { ETag: copied.etag }, VersionId: copied.versionId };
-      }
-      if (name === "DeleteObjectCommand") {
-        const object = objects.get(input.Key);
-        if (deleteFailurePending) {
-          deleteFailurePending = false;
-          const error = new Error("synthetic delete denial");
-          error.name = "AccessDenied";
-          error.$metadata = { httpStatusCode: 403 };
-          throw error;
-        }
-        if (object?.retention?.RetainUntilDate
-          && new Date(object.retention.RetainUntilDate).getTime() > new Date(now()).getTime()
-          && input.BypassGovernanceRetention !== true) {
-          const error = new Error("governance retention blocks delete");
-          error.name = "AccessDenied";
-          error.$metadata = { httpStatusCode: 403 };
-          throw error;
-        }
-        if (object && input.IfMatch && input.IfMatch !== object.etag) throw new Error("delete condition failed");
-        objects.delete(input.Key);
-        return {};
-      }
-      if (name === "PutObjectLegalHoldCommand") {
-        const object = objects.get(input.Key);
-        if (!object) throw notFound();
-        object.legalHold = input.LegalHold.Status;
-        return {};
-      }
-      if (name === "GetObjectLegalHoldCommand") {
-        const object = objects.get(input.Key);
-        if (!object) throw notFound();
-        if (object.legalHold === "OFF") throw objectGovernanceUnset();
-        return { LegalHold: { Status: object.legalHold } };
-      }
-      if (name === "PutObjectRetentionCommand") {
-        if (retentionFailurePending) {
-          retentionFailurePending = false;
-          throw new Error("synthetic retention failure");
-        }
-        const object = objects.get(input.Key);
-        if (!object) throw notFound();
-        if (object.retention
-          && new Date(input.Retention.RetainUntilDate).getTime() < new Date(object.retention.RetainUntilDate).getTime()
-          && input.BypassGovernanceRetention !== true) {
-          const error = new Error("governance retention cannot be shortened without bypass authority");
-          error.name = "AccessDenied";
-          error.$metadata = { httpStatusCode: 403 };
-          throw error;
-        }
-        object.retention = { ...input.Retention };
-        return {};
-      }
-      if (name === "GetObjectRetentionCommand") {
-        const object = objects.get(input.Key);
-        if (!object) throw notFound();
-        if (!object.retention) throw objectGovernanceUnset();
-        return { Retention: object.retention };
-      }
-      throw new Error(`unsupported fake S3 command: ${name}`);
-    },
-  });
-}
-
-function adapter(overrides = {}) {
-  return createS3StorageAdapter({
-    adapter_id: "s3-test",
-    bucket: "lawos-dms-test",
-    prefix: "synthetic/provider-test",
-    expected_bucket_owner: "770880870480",
-    credential_ref: "aws-role:test",
-    object_lock_enabled: true,
-    client: fakeS3Client(),
-    ...overrides,
-  });
-}
+after(closeAdapters);
 
 test("S3 adapter stages, independently digests, finalizes, and isolates tenants", async () => {
   const storage = adapter();
@@ -219,15 +62,15 @@ test("S3 adapter never overwrites a concurrent finalize from another session", a
 test("S3 adapter round-trips provider legal hold and retention without accepting secrets", async () => {
   assert.throws(() => adapter({ access_key_id: "must-not-be-accepted" }), /credential_ref only/);
   const storage = adapter();
-  await storage.putObject({ tenant_id: "tenant-a", object_id: "held-object", bytes: "held" });
+  const committed = await storage.putObject({ tenant_id: "tenant-a", object_id: "held-object", bytes: "held" });
   assert.deepEqual(await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" }), {
     status: "OFF",
-    version_id: "v2",
+    version_id: committed.version_id,
   });
   assert.deepEqual(await storage.getObjectRetention({ tenant_id: "tenant-a", object_id: "held-object" }), {
     mode: null,
     retain_until: null,
-    version_id: "v2",
+    version_id: committed.version_id,
   });
   assert.equal((await storage.setObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
   assert.equal((await storage.getObjectLegalHold({ tenant_id: "tenant-a", object_id: "held-object" })).status, "ON");
@@ -236,7 +79,7 @@ test("S3 adapter round-trips provider legal hold and retention without accepting
   assert.deepEqual(await storage.getObjectRetention({ tenant_id: "tenant-a", object_id: "held-object" }), {
     mode: "GOVERNANCE",
     retain_until: retainUntil,
-    version_id: "v2",
+    version_id: committed.version_id,
   });
 });
 
@@ -265,12 +108,11 @@ test("S3 adapter applies default retention only after commit so staged cleanup r
 
 test("S3 adapter defers staged cleanup when bucket-default retention protects the staged copy", async () => {
   let now = new Date("2026-07-20T00:00:00.000Z");
-  const client = fakeS3Client({
-    defaultRetentionUntil: "2027-07-20T00:00:00.000Z",
-    now: () => now,
-  });
   const storage = adapter({
-    client,
+    provider: {
+      defaultRetentionUntil: "2027-07-20T00:00:00.000Z",
+      now: () => now,
+    },
     default_retention_days: 7,
     clock: () => now,
   });
@@ -292,7 +134,7 @@ test("S3 adapter defers staged cleanup when bucket-default retention protects th
 });
 
 test("S3 adapter does not hide an unrelated staged delete denial", async () => {
-  const storage = adapter({ client: fakeS3Client({ failDeleteOnce: true }) });
+  const storage = adapter({ provider: { failDeleteOnce: true } });
   const input = {
     tenant_id: "tenant-a",
     session_id: "session-delete-denied",
@@ -304,9 +146,8 @@ test("S3 adapter does not hide an unrelated staged delete denial", async () => {
 });
 
 test("S3 adapter repairs retention before staged cleanup after a partial finalize failure", async () => {
-  const client = fakeS3Client({ failRetentionOnce: true });
   const storage = adapter({
-    client,
+    provider: { failRetentionOnce: true },
     default_retention_days: 7,
     clock: () => new Date("2026-07-20T00:00:00.000Z"),
   });
@@ -325,9 +166,8 @@ test("S3 adapter repairs retention before staged cleanup after a partial finaliz
 });
 
 test("S3 adapter repairs missing retention even when staged cleanup already occurred", async () => {
-  const client = fakeS3Client({ failRetentionOnce: true });
   const storage = adapter({
-    client,
+    provider: { failRetentionOnce: true },
     default_retention_days: 7,
     clock: () => new Date("2026-07-20T00:00:00.000Z"),
   });

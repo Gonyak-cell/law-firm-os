@@ -188,6 +188,8 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   assert.equal(config.credential_vault.provider, "aws-secrets-manager");
   assert.equal(typeof config.provider.getMeMessageMime, "function");
   assert.equal(typeof config.provider.createMeCalendarEvent, "function");
+  assert.equal(typeof config.provider.createOwnMessageSubscription, "function");
+  assert.equal(typeof config.provider.listOwnMessageDelta, "function");
   assert.equal(typeof config.provider.beginDelegatedAuthorization, "function");
   assert.equal(typeof config.provider.completeDelegatedAuthorization, "function");
   assert.equal(typeof config.provider.revokeDelegatedCredential, "function");

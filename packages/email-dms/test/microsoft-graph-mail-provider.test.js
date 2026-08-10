@@ -50,8 +50,10 @@ function mailResult(overrides = {}) {
       ccRecipients: [],
       bccRecipients: [],
       receivedDateTime: "2026-07-30T08:00:00.000Z",
+      sentDateTime: "2026-07-30T07:59:00.000Z",
       hasAttachments: false,
       is_in_sent_items: true,
+      folder_kind: "sentitems",
       is_draft: false,
     },
     mime_base64: MIME.toString("base64"),
@@ -126,16 +128,49 @@ test("CL-P3-W01-T02 Graph provider는 broker의 고정 mail export만 호출해 
   });
   assert.equal(result.mime_bytes.equals(MIME), true);
   assert.equal(result.message_metadata.is_in_sent_items, true);
+  assert.equal(result.message_metadata.folder_kind, "sentitems");
+  assert.equal(result.message_metadata.sent_at, "2026-07-30T07:59:00.000Z");
   assert.equal(result.message_metadata.is_draft, false);
   assert.equal(Object.hasOwn(result.message_metadata, "parent_folder_id"), false);
   assert.equal(result.provider_request_id, "request-mime-synthetic");
   assert.equal(JSON.stringify({ ...result, mime_bytes: null }).includes(ACCESS_TOKEN), false);
 });
 
+test("OUTM-28 Graph provider normalizes broker snake-case recipients without losing recipient kind", async () => {
+  const fixture = providerFixture({
+    exportResult: mailResult({
+      message_metadata: {
+        ...mailResult().message_metadata,
+        toRecipients: undefined,
+        ccRecipients: undefined,
+        bccRecipients: undefined,
+        to_recipients: [{ name: "To Person", address: "TO@example.invalid" }],
+        cc_recipients: [{ name: "Cc Person", address: "CC@example.invalid" }],
+        bcc_recipients: [{ name: "Bcc Person", address: "BCC@example.invalid" }],
+      },
+    }),
+  });
+  const result = await fixture.provider.getMeMessageMime({
+    credential: { access_token: ACCESS_TOKEN },
+    rest_message_id: REST_ID,
+    mailbox_scope: "me",
+    prefer_immutable_id: true,
+    source_id_type: "restId",
+    target_id_type: "restImmutableEntryId",
+  });
+  assert.deepEqual(result.message_metadata.recipients, [
+    { display_name: "To Person", address: "to@example.invalid", recipient_type: "to" },
+    { display_name: "Cc Person", address: "cc@example.invalid", recipient_type: "cc" },
+    { display_name: "Bcc Person", address: "bcc@example.invalid", recipient_type: "bcc" },
+  ]);
+});
+
 test("Graph provider는 Sent Items·draft 불리언을 엄격히 검증하고 폴더 ID를 노출하지 않는다", async () => {
   for (const messageMetadata of [
     { ...mailResult().message_metadata, is_in_sent_items: "true" },
     { ...mailResult().message_metadata, is_draft: null },
+    { ...mailResult().message_metadata, folder_kind: "inbox", is_in_sent_items: true },
+    { ...mailResult().message_metadata, folder_kind: undefined },
   ]) {
     const fixture = providerFixture({
       exportResult: mailResult({ message_metadata: messageMetadata }),
@@ -161,6 +196,7 @@ test("Graph provider는 Sent Items·draft 불리언을 엄격히 검증하고 �
       message_metadata: {
         ...mailResult().message_metadata,
         is_in_sent_items: false,
+        folder_kind: "other",
         is_draft: true,
         parentFolderId: "unsafe-folder-id",
       },

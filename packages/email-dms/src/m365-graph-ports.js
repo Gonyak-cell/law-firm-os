@@ -51,6 +51,7 @@ function safeMessageMetadata(value) {
     return null;
   }
   const receivedAt = Date.parse(value.received_at);
+  const sentAt = Date.parse(value.sent_at);
   return Object.freeze({
     conversation_id: optionalString(value.conversation_id, 512),
     internet_message_id:
@@ -80,8 +81,15 @@ function safeMessageMetadata(value) {
       Number.isFinite(receivedAt)
         ? new Date(receivedAt).toISOString()
         : null,
+    sent_at:
+      Number.isFinite(sentAt)
+        ? new Date(sentAt).toISOString()
+        : null,
     has_attachments: value.has_attachments === true,
     is_in_sent_items: value.is_in_sent_items === true,
+    folder_kind: ["inbox", "sentitems", "other"].includes(value.folder_kind)
+      ? value.folder_kind
+      : null,
     is_draft: value.is_draft === true,
   });
 }

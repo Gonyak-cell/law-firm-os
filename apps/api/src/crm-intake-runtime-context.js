@@ -385,6 +385,7 @@ export function createCrmIntakeRuntimeContext({
   emailDmsRepository = null,
   matterRepository = null,
   dmsRuntime = null,
+  engagementApprovalCheckpoint = null,
 } = {}) {
   seedMasterDataRepository(masterDataRepository, CRM_MASTER_DATA_SEED);
   return Object.freeze({
@@ -394,6 +395,7 @@ export function createCrmIntakeRuntimeContext({
     emailDmsRepository,
     matterRepository,
     dmsRuntime,
+    engagementApprovalCheckpoint,
     seed_ref: "cmp-g6-crm-intake-synthetic",
     masterDataServices: Object.freeze({
       organizationService: createOrganizationService({ repository: masterDataRepository }),
@@ -608,7 +610,7 @@ function engagementPayload({ body, context } = {}) {
     template_id: input.template_id ?? body?.template_id ?? "matter_engagement_letter",
     template_document: input.template_document ?? body?.template_document,
     signed_document_upload: input.signed_document_upload ?? body?.signed_document_upload,
-    approver_id: input.approver_id ?? body?.approver_id ?? context?.principal?.user_id,
+    approver_id: context?.principal?.user_id,
   };
 }
 
@@ -4339,19 +4341,21 @@ export function handleWaiverApprove({ body, context, requestId, runtime = DEFAUL
   }
 }
 
-export function handleEngagementApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
+export async function handleEngagementApprove({ body, context, requestId, runtime = DEFAULT_RUNTIME, policy } = {}) {
   const engagement = engagementPayload({ body, context });
   const query = { tenant_id: engagement.tenant_id, permission_ref: body?.permission_ref, audit_hint_ref: body?.audit_hint_ref };
   const gated = routeGate({ context, query, requestId, policy });
   if (gated) return gated;
   try {
-    const result = approveEngagement({
+    const result = await approveEngagement({
       repository: runtime.intakeRepository,
       engagement,
       actor_id: context.principal.user_id,
       idempotency_key: body.idempotency_key,
       dms_repository: runtime.dmsRuntime?.repository,
       dms_storage: runtime.dmsRuntime?.storage,
+      dms_upload_runtime: runtime.dmsRuntime?.upload_runtime,
+      engagement_approval_checkpoint: runtime.engagementApprovalCheckpoint,
     });
     return itemResponse({
       requestId,
@@ -4377,8 +4381,17 @@ export function handleEngagementApprove({ body, context, requestId, runtime = DE
         idempotent_replay: result.idempotent_replay,
       },
     });
-  } catch {
-    return errorResponse(400, requestId, [CRM_INTAKE_API_ERROR_CODES.validation_error], { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" });
+  } catch (error) {
+    const mapped = errorResponse(
+      Number.isInteger(error?.status) ? error.status : 400,
+      requestId,
+      [error?.safe_error_code ?? CRM_INTAKE_API_ERROR_CODES.validation_error],
+      { audit_hint_ref: query.audit_hint_ref, ui_state: "blocked" },
+    );
+    return {
+      ...mapped,
+      body: { ...mapped.body, retryable: error?.retryable === true },
+    };
   }
 }
 

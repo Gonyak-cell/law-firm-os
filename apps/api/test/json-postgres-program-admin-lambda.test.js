@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
+import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import {
   bootstrapJsonPostgresRehearsalDatabase,
   bootstrapJsonPostgresProductionDatabase,
@@ -24,6 +26,9 @@ import {
   JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
   resolveJsonPostgresScheduledProgramEvent,
 } from "../src/json-postgres-program-inputs.js";
+import {
+  listClientOperationsPostgresMigrations,
+} from "../src/client-operations-schema.js";
 
 const SOURCE_SHA = "a".repeat(40);
 const SOURCE_TREE = "b".repeat(40);
@@ -152,6 +157,66 @@ test("production bootstrap configures only approved tenants and returns no secre
   assert.equal(result.secret_material_returned, false);
   assert.equal(JSON.stringify(result).includes("application-value"), false);
   assert.equal(writtenSecret.configuration_state, "ready");
+});
+
+test("production bootstrap defaults apply the complete client operations migration catalog", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const { instance } = fixture;
+  const localEnv = {
+    ...env(),
+    LAWOS_DATABASE_HOST: "127.0.0.1",
+    LAWOS_DATABASE_PORT: String(instance.port),
+    LAWOS_DATABASE_NAME: "postgres",
+  };
+  const before = await fixture.adminPool.query(
+    "SELECT migration_id FROM lawos_meta.schema_migrations ORDER BY migration_id",
+  );
+  const result = await bootstrapJsonPostgresProductionDatabase({
+    event: {
+      action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+      mode: "preflight",
+    },
+    env: localEnv,
+    authorize: async () => authorization(),
+    claim: async () => ({
+      approval_receipt_sha256: "f".repeat(64),
+      claim_sha256: "3".repeat(64),
+    }),
+    resolveSecret: async ({ secretId }) => {
+      if (secretId === "lawos/master") {
+        return { username: instance.username, password: "local-trust-password" };
+      }
+      if (secretId === "lawos/application") {
+        return { username: "lawos_app", password: "application-value" };
+      }
+      return { tenant_context_secret: "tenant-context-value-at-least-32-bytes" };
+    },
+    putSecret: async () => {},
+    createPool: ({ connectionString }) => createPostgresPool({
+      connectionString,
+      sslMode: "disable",
+      allowInsecureLocal: true,
+      applicationName: "lawos-production-bootstrap-client-catalog-test",
+      max: 1,
+    }),
+    configureRole: async () => ({
+      grant_statement_count: 41,
+      tenant_authority_count: 1,
+      synthetic_wildcard_count: 0,
+    }),
+  });
+  const expectedIds = listClientOperationsPostgresMigrations().map(({ id }) => id);
+  const readback = await fixture.adminPool.query(
+    "SELECT migration_id FROM lawos_meta.schema_migrations ORDER BY migration_id",
+  );
+  assert.equal(result.migration_count, expectedIds.length);
+  assert.equal(result.migration_applied_count, expectedIds.length - before.rowCount);
+  assert.deepEqual(readback.rows.map(({ migration_id }) => migration_id), expectedIds);
+  assert.deepEqual(expectedIds.slice(-2), [
+    "302_client_email_filing_correction",
+    "303_client_outlook_conversation_sync",
+  ]);
 });
 
 test("W15 inventory bootstrap separates schema authority from aggregate inventory", async () => {

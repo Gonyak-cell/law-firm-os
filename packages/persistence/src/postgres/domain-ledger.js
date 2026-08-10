@@ -547,6 +547,30 @@ function createScopedDomainLedger(client, tenantId, domainId, clock) {
   });
 }
 
+export async function createAuthenticatedTransactionBoundDomainLedger({
+  client,
+  tenant_id,
+  domain_id,
+  clock = () => new Date(),
+} = {}) {
+  if (!client || typeof client.query !== "function") {
+    throw new TypeError("transaction-bound PostgreSQL client is required");
+  }
+  const tenantId = requiredText(tenant_id, "tenant_id");
+  const domainId = requireDomainId(domain_id);
+  const authenticated = await client.query(
+    "SELECT lawos_security.current_tenant_id() AS tenant_id",
+  );
+  if (authenticated.rows[0]?.tenant_id !== tenantId) {
+    throw Object.assign(new Error("transaction-bound tenant authority mismatch"), {
+      code: "LAWOS_POSTGRES_TENANT_CONTEXT_MISMATCH",
+      safe_error_code: "POSTGRES_TENANT_CONTEXT_MISMATCH",
+      status: 403,
+    });
+  }
+  return createScopedDomainLedger(client, tenantId, domainId, clock);
+}
+
 export function createPostgresDomainLedger({ pool, clock = () => new Date(), transactionOptions = {} } = {}) {
   if (!pool || typeof pool.connect !== "function") throw new TypeError("PostgreSQL pool is required");
 

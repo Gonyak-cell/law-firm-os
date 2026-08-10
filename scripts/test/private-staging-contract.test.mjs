@@ -67,6 +67,23 @@ test("private staging password-reset schedule uses the Lambda maintenance-action
   assert.throws(() => validatePrivateStagingTemplate(wrongEnvelope), /maintenance-action envelope/u);
 });
 
+test("private staging Outlook schedule is disabled-safe and uses the exact worker action", () => {
+  const template = fixture("template.json");
+  assert.equal(template.Parameters.EnableOutlookConversationWorker.Default, "false");
+  assert.deepEqual(template.Resources.OutlookConversationWorkerSchedule.Properties.State, {
+    "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"],
+  });
+  assert.deepEqual(
+    JSON.parse(template.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].Input),
+    { maintenance_action: "lawos_outlook_conversation_worker" },
+  );
+  const wrongEnvelope = fixture("template.json");
+  wrongEnvelope.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].Input =
+    JSON.stringify({ action: "lawos_outlook_conversation_worker" });
+  assert.throws(() => validatePrivateStagingTemplate(wrongEnvelope),
+    /exact maintenance-action envelope/u);
+});
+
 test("Lambda ENI bootstrap is an embedded true-only role policy with resolvable dependencies", () => {
   const template = fixture("template.json");
   assert.equal(template.Resources.LambdaVpcEniBootstrapPolicy, undefined);

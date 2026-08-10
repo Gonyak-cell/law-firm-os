@@ -3,11 +3,27 @@ import {
   MAX_OUTLOOK_ATTACHMENT_BYTES,
   OUTLOOK_ITEM_CONTENT_ERROR_CODES,
 } from "./outlook-item-content.js";
+import {
+  assertExactOutlookSourceIdentity,
+  parseCapturedOutlookSourceIdentity,
+} from "../../../packages/email-dms/src/outlook-source-identity.js";
+import { parseExactDmsDocumentId } from "../../../packages/email-dms/src/exact-document-id.js";
 
 export const OUTLOOK_ATTACHMENT_SAVE_PATH = "/api/outlook/attachments/save";
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function canonicalGraphMessageId(value) {
+  if (
+    typeof value !== "string"
+    || !value
+    || value !== value.trim()
+    || value.length > 2_048
+    || /[\u0000-\u001f\u007f]/u.test(value)
+  ) throw new TypeError("canonical_graph_message_id is required");
+  return value;
 }
 
 function messageText(value) {
@@ -40,6 +56,137 @@ function saveFailedError({ skipped, failed } = {}) {
   });
 }
 
+function boundaryError(code, message, attachment = {}) {
+  return Object.assign(new Error(message), {
+    safe_error_code: code,
+    user_message: message,
+    attachment_id: attachment.attachment_id ?? null,
+  });
+}
+
+function payloadByteLength(attachment = {}) {
+  if (typeof attachment.content_base64 === "string") {
+    const encoded = attachment.content_base64.replace(/\s+/gu, "");
+    if (!encoded || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/u.test(encoded)) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_invalid_base64,
+        "첨부 데이터 형식이 올바르지 않아 저장하지 않았습니다.",
+        attachment,
+      );
+    }
+    const padding = encoded.endsWith("==") ? 2 : encoded.endsWith("=") ? 1 : 0;
+    return Math.floor((encoded.length * 3) / 4) - padding;
+  }
+  if (typeof attachment.content_text === "string") {
+    return new TextEncoder().encode(attachment.content_text).byteLength;
+  }
+  return 0;
+}
+
+function exactText(value, maxLength = 2_048) {
+  return typeof value === "string"
+    && value.length > 0
+    && value.length <= maxLength
+    && value === value.trim()
+    && !/[\u0000-\u001f\u007f]/u.test(value)
+    ? value
+    : "";
+}
+
+export function issuedOutlookAttachmentReceipt({
+  response,
+  attachment,
+  matterId,
+  emailThreadId,
+  sourceIdentity,
+} = {}) {
+  const receipt = response?.attachment_receipt;
+  let documentId;
+  try {
+    assertExactOutlookSourceIdentity(sourceIdentity, receipt);
+    documentId = parseExactDmsDocumentId(receipt?.document_id);
+  } catch {
+    throw new TypeError("Outlook attachment response has no authoritative receipt");
+  }
+  const created = receipt?.outcome === "created";
+  const duplicate = receipt?.outcome === "duplicate";
+  const createdItem = response?.items?.[0];
+  const duplicateItem = response?.duplicate_attachments?.[0];
+  if (
+    response?.outcome !== "attachments_saved"
+    || !exactText(response?.request_id)
+    || Object.hasOwn(response, "filing_operation")
+    || !Array.isArray(response?.items)
+    || !Array.isArray(response?.duplicate_attachments)
+    || !receipt
+    || receipt.version !== 1
+    || !exactText(receipt.tenant_id)
+    || receipt.matter_id !== matterId
+    || receipt.email_thread_id !== emailThreadId
+    || receipt.attachment_id !== attachment?.attachment_id
+    || receipt.name !== attachment?.name
+    || (!created && !duplicate)
+    || !exactText(receipt.version_id)
+    || !/^[a-f0-9]{64}$/u.test(receipt.sha256 ?? "")
+    || !exactText(receipt.receipt_ref)
+    || !exactText(receipt.receipt_token, 16_384)
+    || receipt.source_byte_size !== payloadByteLength(attachment)
+    || !exactText(receipt.source_message_ref)
+    || receipt.source_provenance_authority !== "microsoft_graph_mime"
+    || (created && (
+      response.items.length !== 1
+      || response.duplicate_attachments.length !== 0
+      || response.duplicate_count !== 0
+      || createdItem?.document?.document_id !== documentId
+      || createdItem?.version?.version_id !== receipt.version_id
+      || createdItem?.version?.sha256 !== receipt.sha256
+    ))
+    || (duplicate && (
+      response.items.length !== 0
+      || response.duplicate_attachments.length !== 1
+      || response.duplicate_count !== 1
+      || duplicateItem?.attachment_id !== receipt.attachment_id
+      || duplicateItem?.duplicate_document_id !== documentId
+      || duplicateItem?.version_id !== receipt.version_id
+      || duplicateItem?.sha256 !== receipt.sha256
+    ))
+  ) {
+    throw new TypeError("Outlook attachment response has no authoritative receipt");
+  }
+  return receipt;
+}
+
+function assertAttachmentBoundary(attachments, maxAttachmentBytes) {
+  const ids = new Set();
+  for (const attachment of attachments) {
+    const id = typeof attachment?.attachment_id === "string"
+      ? attachment.attachment_id.trim()
+      : "";
+    if (!id) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_missing_id,
+        "첨부 식별자가 없어 저장하지 않았습니다.",
+        attachment,
+      );
+    }
+    if (ids.has(id)) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_duplicate_id,
+        "중복된 첨부 식별자가 있어 저장하지 않았습니다.",
+        attachment,
+      );
+    }
+    ids.add(id);
+    if (payloadByteLength(attachment) > maxAttachmentBytes) {
+      throw boundaryError(
+        OUTLOOK_ITEM_CONTENT_ERROR_CODES.attachment_too_large,
+        "첨부 파일이 2MiB를 초과해 저장할 수 없습니다.",
+        attachment,
+      );
+    }
+  }
+}
+
 /**
  * Save the bounded attachment payloads read from an Outlook item.
  *
@@ -56,12 +203,26 @@ export async function saveOutlookAttachments({
   requestJson,
   errorMessage = outlookActionErrorMessage,
   maxAttachmentBytes = MAX_OUTLOOK_ATTACHMENT_BYTES,
+  allowAllFailedResult = false,
+  assertOperationCurrent = () => {},
+  onReceipt = () => {},
 } = {}) {
   if (typeof requestJson !== "function") {
     throw new TypeError("requestJson is required");
   }
+  if (
+    typeof assertOperationCurrent !== "function"
+    || typeof onReceipt !== "function"
+  ) throw new TypeError("operation callbacks are required");
 
   const item = currentItem && typeof currentItem === "object" ? currentItem : {};
+  const sourceIdentity = parseCapturedOutlookSourceIdentity(item);
+  const attachmentLimit = Number.isSafeInteger(maxAttachmentBytes) && maxAttachmentBytes > 0
+    ? Math.min(maxAttachmentBytes, MAX_OUTLOOK_ATTACHMENT_BYTES)
+    : MAX_OUTLOOK_ATTACHMENT_BYTES;
+  const canonicalMessageId = canonicalGraphMessageId(
+    item.canonical_graph_message_id,
+  );
   const attachments = asArray(item.attachments);
   const unsupported = asArray(item.unsupported);
   const threadId = emailThreadId
@@ -74,27 +235,25 @@ export async function saveOutlookAttachments({
   if (attachments.length === 0) {
     throw missingAttachmentError();
   }
+  assertAttachmentBoundary(attachments, attachmentLimit);
 
   const saved = [];
   const failed = [];
   // Keep every Lambda request below the existing broker envelope: one
   // attachment and at most 2 MiB of raw content per POST.
   for (const attachment of attachments) {
+    assertOperationCurrent();
+    let body;
     try {
-      const body = await requestJson(OUTLOOK_ATTACHMENT_SAVE_PATH, {
+      body = await requestJson(OUTLOOK_ATTACHMENT_SAVE_PATH, {
         method: "POST",
         body: {
           matter_id: matterId,
           email_thread_id: threadId,
+          canonical_graph_message_id: canonicalMessageId,
           selected_attachment_ids: [attachment.attachment_id],
           attachments: [attachment],
         },
-      });
-      saved.push({
-        attachment_id: attachment.attachment_id,
-        name: attachment.name,
-        outcome: body.outcome,
-        body,
       });
     } catch (nextError) {
       failed.push({
@@ -103,10 +262,26 @@ export async function saveOutlookAttachments({
         message: nextError?.user_message
           ?? errorMessage(nextError),
       });
+      continue;
     }
+    const attachmentReceipt = issuedOutlookAttachmentReceipt({
+      response: body,
+      attachment,
+      matterId,
+      emailThreadId: threadId,
+      sourceIdentity,
+    });
+    onReceipt(body);
+    saved.push({
+      attachment_id: attachment.attachment_id,
+      name: attachment.name,
+      outcome: body.outcome,
+      attachment_receipt: attachmentReceipt,
+      body,
+    });
   }
 
-  if (saved.length === 0 && failed.length > 0) {
+  if (!allowAllFailedResult && saved.length === 0 && failed.length > 0) {
     throw saveFailedError({ skipped: unsupported, failed });
   }
 
@@ -117,7 +292,7 @@ export async function saveOutlookAttachments({
     failed_attachments: failed,
     skipped_attachments: unsupported,
     request_count: saved.length + failed.length,
-    max_attachment_bytes: maxAttachmentBytes,
+    max_attachment_bytes: attachmentLimit,
   };
   const notices = [
     ...unsupported.map((entry) => messageText(entry?.message)),

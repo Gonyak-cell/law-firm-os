@@ -28,6 +28,7 @@ export const M365_GRAPH_ERROR_CODES = Object.freeze({
   reauthorization_required: "M365_REAUTHORIZATION_REQUIRED",
   scope_insufficient: "M365_SCOPE_INSUFFICIENT",
   state_version_conflict: "M365_CONNECTION_VERSION_CONFLICT",
+  subscription_cleanup_pending: "M365_SUBSCRIPTION_CLEANUP_PENDING",
   subject_mismatch: "M365_ENTRA_SUBJECT_MISMATCH",
 });
 
@@ -1192,6 +1193,7 @@ export function createM365GraphConnectionService({
   clock = () => new Date(),
   request_failure_compensator = null,
   completion_checkpoint: completionCheckpoint = null,
+  before_revoke_connection: beforeRevokeConnection = null,
 } = {}) {
   assertRepository(repository);
   if (
@@ -1213,6 +1215,10 @@ export function createM365GraphConnectionService({
     )
   ) {
     throw new TypeError("Microsoft completion checkpoint is invalid");
+  }
+  if (beforeRevokeConnection != null
+    && typeof beforeRevokeConnection !== "function") {
+    throw new TypeError("Microsoft pre-revoke cleanup hook is invalid");
   }
   const readiness = assessM365ExternalReadiness(external_readiness);
 
@@ -2011,6 +2017,58 @@ export function createM365GraphConnectionService({
       );
     }
     assertCredentialVault(credential_vault);
+    assertProviderRuntime({
+      feature_enabled: true,
+      provider_runtime_enabled,
+      provider,
+      credentialVault: credential_vault,
+    });
+    if (
+      typeof provider.revokeDelegatedCredential !== "function"
+    ) {
+      throw commandError(
+        M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
+        "Microsoft revocation provider is unavailable",
+        503,
+      );
+    }
+    const reason = requiredString(input, "reason");
+    let credential;
+    if (beforeRevokeConnection) {
+      const acquired = await acquireActiveM365Credential({
+        repository,
+        credential_vault,
+        provider,
+        request_failure_compensator,
+        ...principal,
+        required_scope: null,
+        clock,
+      });
+      current = acquired.connection;
+      credential = acquired.credential;
+      const cleanup = await beforeRevokeConnection({
+        ...principal,
+        m365_connection_id: current.m365_connection_id,
+        mailbox_ref: current.mailbox_address_hash,
+        credential,
+      });
+      if (cleanup?.subscriptions_deleted !== true) {
+        throw commandError(
+          M365_GRAPH_ERROR_CODES.subscription_cleanup_pending,
+          "Microsoft subscription cleanup must finish before disconnect",
+          503,
+        );
+      }
+    } else {
+      credential = await credential_vault.resolveDelegatedCredential({
+        credential_ref: current.credential_ref,
+      });
+    }
+    await provider.revokeDelegatedCredential({
+      credential,
+      entra_subject_id: principal.entra_subject_id,
+      mailbox_scope: "me",
+    });
     const occurredAt = timestamp(clock);
     const stagedRef = stagedCredentialReference(
       credential_vault,
@@ -2028,30 +2086,6 @@ export function createM365GraphConnectionService({
       pending_vault_cleanup_refs: cleanupRefs,
       state_version: current.state_version + 1,
     });
-    assertProviderRuntime({
-      feature_enabled: true,
-      provider_runtime_enabled,
-      provider,
-      credentialVault: credential_vault,
-    });
-    if (
-      typeof provider.revokeDelegatedCredential !== "function"
-    ) {
-      throw commandError(
-        M365_GRAPH_ERROR_CODES.provider_runtime_disabled,
-        "Microsoft revocation provider is unavailable",
-        503,
-      );
-    }
-    const credential = await credential_vault.resolveDelegatedCredential({
-      credential_ref: current.credential_ref,
-    });
-    await provider.revokeDelegatedCredential({
-      credential,
-      entra_subject_id: principal.entra_subject_id,
-      mailbox_scope: "me",
-    });
-    const reason = requiredString(input, "reason");
     const persisted = repository.transaction
       ? repository.transaction((tx) => {
         const saved = tx.update(connectionRef(principal), revoked);
@@ -2062,6 +2096,8 @@ export function createM365GraphConnectionService({
           occurred_at: occurredAt,
           payload: {
             provider_revoked_first: true,
+            subscriptions_deleted_before_provider_revoke:
+              Boolean(beforeRevokeConnection),
             credential_cleanup_requested: true,
             credential_cleanup_requested_count:
               cleanupRefs.length,

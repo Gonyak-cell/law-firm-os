@@ -311,6 +311,23 @@ test("Signed-session permission rules enforce verified scopes without a universa
   assert.equal(decide("matter:status:transition").effect, "deny");
   assert.equal(decide("dms:document:write").effect, "deny");
   assert.equal(decide("analytics:finance:read").effect, "deny");
+  assert.equal(decide("outlook:task:create").effect, "deny");
+  assert.equal(decide("outlook:task:update").effect, "deny");
+
+  const writer = userByEmail("wsjo@amic.kr");
+  const writerSigned = await auth.login({
+    email: writer.email,
+    password: writer.local_dev.synthetic_token,
+  }, { requestId: "req_scope_writer_login" });
+  const writerVerified = await auth.verifyToken(writerSigned.body.session_token, { requestId: "req_scope_writer_verify" });
+  assert.equal(writerVerified.ok, true);
+  for (const action of ["outlook:task:create", "outlook:task:update"]) {
+    assert.equal(evaluateRouteDecision({
+      context: writerVerified.context,
+      resource: { tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID, resource_type: "MatterTask" },
+      action,
+    }).effect, "allow");
+  }
 
   const password = "scope-bound-operational-password";
   const operational = createApiSessionAuth({

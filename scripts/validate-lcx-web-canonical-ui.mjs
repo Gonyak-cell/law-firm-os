@@ -79,14 +79,14 @@ assert.doesNotMatch(homeSource, /mockData|from "\.\.\/data\/mockData/);
 const navSource = read("apps/web/src/data/nav.js");
 const shellSource = read("apps/web/src/components/Shell.jsx");
 for (const id of requiredCapabilityIds) assert.match(navSource, new RegExp(`id: "${id === "client" ? "clients" : id === "matter" ? "matters" : id}"`));
-for (const removedRoute of ["portal", "readiness", "ops", "intake", "finance", "profiles", "analytics", "dashboards", "ask", "experiments", "admin", "dark"]) {
+assert.match(navSource, /id: "portal"/);
+assert.match(appSource, /view === "portal"/);
+for (const removedRoute of ["readiness", "ops", "intake", "finance", "profiles", "analytics", "dashboards", "ask", "experiments", "admin", "dark"]) {
   assert.doesNotMatch(navSource, new RegExp(`id: "${removedRoute}"`));
   assert.doesNotMatch(appSource, new RegExp(`view === "${removedRoute}"`));
 }
-assert.match(shellSource, /Client/);
-assert.match(shellSource, /Matter/);
-assert.match(shellSource, /구성원/);
-assert.match(shellSource, /Vault/);
+assert.match(shellSource, /navItems\.map/);
+for (const label of ["Client", "Matter", "People", "Search", "Portal"]) assert.match(navSource, new RegExp(`label: "${label}"`));
 
 const offline = read("apps/desktop/src/renderer/offline.html");
 assert.match(offline, /productUiTarget/);

@@ -175,6 +175,10 @@ export function createMatterTask(input) {
   if (estimatedMinutes != null && (!Number.isInteger(estimatedMinutes) || estimatedMinutes <= 0)) {
     throw new TypeError("MatterTask estimated_minutes must be a positive integer");
   }
+  const version = input.version ?? 1;
+  if (!Number.isInteger(version) || version < 1) {
+    throw new TypeError("MatterTask version must be a positive integer");
+  }
   return freezeRecord({
     ...baseRecord("MatterTask", input),
     task_id: input.task_id,
@@ -190,6 +194,7 @@ export function createMatterTask(input) {
     source_record_hash: input.source_record_hash ?? null,
     due_at: input.due_at ?? null,
     source_ref: input.source_ref ?? null,
+    version,
   });
 }
 

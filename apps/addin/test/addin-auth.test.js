@@ -367,6 +367,41 @@ test("sessionStorage와 OfficeRuntime storage에는 같은 LawOS 세션만 기�
   assert.equal(await store.get(), "");
 });
 
+test("지연된 A 세션 삭제는 직렬화된 B 세션 저장을 삭제하지 않는다", async () => {
+  const session = new Map([[LAWOS_SESSION_STORAGE_KEY, "lawos_session_v1.owner-a"]]);
+  const office = new Map([[LAWOS_SESSION_STORAGE_KEY, "lawos_session_v1.owner-a"]]);
+  let removeStarted = false;
+  let releaseRemove;
+  const removeGate = new Promise((resolve) => { releaseRemove = resolve; });
+  const store = createSessionStore({
+    key: LAWOS_SESSION_STORAGE_KEY,
+    sessionStorage: {
+      getItem: (key) => session.get(key) ?? null,
+      setItem: (key, value) => session.set(key, value),
+      removeItem: (key) => session.delete(key),
+    },
+    officeStorage: {
+      async getItem(key) { return office.get(key) ?? null; },
+      async setItem(key, value) { office.set(key, value); },
+      async removeItem(key) {
+        removeStarted = true;
+        await removeGate;
+        office.delete(key);
+      },
+    },
+  });
+
+  const clearA = store.clearIfCurrent("lawos_session_v1.owner-a");
+  while (!removeStarted) await new Promise((resolve) => setImmediate(resolve));
+  const setB = store.set("lawos_session_v1.owner-b");
+  assert.equal(office.get(LAWOS_SESSION_STORAGE_KEY), "lawos_session_v1.owner-a");
+  releaseRemove();
+  await Promise.all([clearA, setB]);
+  assert.equal(await store.get(), "lawos_session_v1.owner-b");
+  assert.equal(office.get(LAWOS_SESSION_STORAGE_KEY), "lawos_session_v1.owner-b");
+  assert.equal(session.get(LAWOS_SESSION_STORAGE_KEY), "lawos_session_v1.owner-b");
+});
+
 test("session endpoint의 401은 인증되지 않은 상태로 파싱한다", () => {
   assert.deepEqual(parseSessionValidation({ safe_error_codes: ["AUTH_SESSION_INVALID"] }, 401), {
     authenticated: false,

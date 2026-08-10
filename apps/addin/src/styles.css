@@ -1,400 +1,376 @@
+/* The add-in owns a small AMIC token subset; it does not import the web shell. */
 :root {
-  color: #17212b;
-  background: #f5f6f8;
+  --am-canvas: #f5f7fa;
+  --am-surface: #ffffff;
+  --am-surface-subtle: #f8fafc;
+  --am-border: #d8dee8;
+  --am-border-soft: #e7ebf1;
+  --am-text: #202428;
+  --am-text-muted: #64707d;
+  --am-text-faint: #8a96a4;
+  --am-blue: #0b65e5;
+  --am-blue-soft: #e8f1ff;
+  --am-focus-ring: rgba(11, 101, 229, 0.45);
+  --am-danger: #d93025;
+  --am-success: #147d55;
+  --am-warning: #8b5b00;
+  --am-radius-sm: 4px;
+  --am-space-1: 4px;
+  --am-space-2: 8px;
+  --am-space-3: 12px;
+  --am-space-4: 16px;
+  --outlook-rail-width: 44px;
+  --outlook-control-height: 36px;
+  --outlook-overlay-width: 360px;
+  color: var(--am-text);
+  background: var(--am-canvas);
   font-family: "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, sans-serif;
   font-size: 14px;
-  letter-spacing: 0;
+  line-height: 1.4;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+}
+
+html,
+body {
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
-  background: #f5f6f8;
+  overflow: hidden;
+  background: var(--am-canvas);
 }
 
 button,
-select {
+input,
+select,
+textarea {
   font: inherit;
 }
 
-.addin-shell {
-  width: 100%;
-  min-height: 100vh;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.pane-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 2px 0 10px;
-  border-bottom: 1px solid #d9dee7;
-}
-
-.eyebrow {
-  margin: 0 0 3px;
-  color: #637083;
-  font-size: 12px;
-}
-
-h1,
-h2,
-p {
-  margin: 0;
-}
-
-h1 {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 750;
-}
-
-h2 {
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 720;
-}
-
-.mode-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 3px 8px;
-  border: 1px solid #b8c5d3;
-  border-radius: 4px;
-  color: #34465a;
-  background: #ffffff;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.status-stack,
-.pane-section {
-  background: #ffffff;
-  border: 1px solid #d9dee7;
-  border-radius: 7px;
-}
-
-.status-stack {
-  display: grid;
-  overflow: hidden;
-}
-
-.status-line {
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: 18px 1fr auto;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-bottom: 1px solid #edf0f4;
-  color: #4b5565;
-}
-
-.status-line:last-child {
-  border-bottom: 0;
-}
-
-.status-line strong {
-  color: #17212b;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.status-line.good svg {
-  color: #1f7a4d;
-}
-
-.status-line.warn svg {
-  color: #9a6100;
-}
-
-.status-line.neutral svg {
-  color: #627086;
-}
-
-.auth-section {
-  display: grid;
-  gap: 8px;
-}
-
-.auth-section .section-title {
-  margin-bottom: 0;
-}
-
-.connection-controls {
-  display: grid;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #edf0f4;
-}
-
-.pane-section {
-  padding: 11px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 9px;
-  color: #2c3b4f;
-}
-
-.subject {
-  display: block;
-  line-height: 20px;
-  overflow-wrap: anywhere;
-}
-
-.safe-copy,
-.field-note {
-  color: #657386;
-  line-height: 19px;
-  overflow-wrap: anywhere;
-}
-
-.safe-copy {
-  margin-top: 7px;
-}
-
-.field-note {
-  margin-top: -2px;
-  font-size: 12px;
-}
-
-.action-section {
-  padding-bottom: 0;
-}
-
-.action-list {
-  display: grid;
-}
-
-.action-item {
-  display: grid;
-  gap: 8px;
-  padding: 12px 0;
-  border-top: 1px solid #e5e9ef;
-}
-
-.action-item:first-child {
-  padding-top: 3px;
-  border-top: 0;
-}
-
-.action-copy {
-  display: grid;
-  gap: 2px;
-}
-
-.action-copy strong {
-  line-height: 20px;
-}
-
-.action-copy span {
-  color: #657386;
-  font-size: 12px;
-  line-height: 18px;
-}
-
-label {
-  color: #45566a;
-  font-size: 12px;
-  font-weight: 650;
-}
-
-select {
-  width: 100%;
-  min-height: 36px;
-  border: 1px solid #bbc6d3;
-  border-radius: 5px;
-  background: #ffffff;
-  color: #17212b;
-  padding: 0 9px;
-}
-
-.button-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
 button {
-  width: 100%;
-  min-height: 36px;
-  border: 1px solid #253245;
-  border-radius: 5px;
-  background: #17212b;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 7px 10px;
+  border: 0;
   cursor: pointer;
 }
 
-button.secondary-button {
-  border-color: #aebaca;
-  background: #ffffff;
-  color: #243448;
-}
-
-button.full-width {
-  grid-column: 1 / -1;
-}
-
-button:hover:not(:disabled) {
-  background: #253b55;
-}
-
-button.secondary-button:hover:not(:disabled) {
-  border-color: #687b92;
-  background: #f2f5f8;
-}
-
-button:focus-visible,
-select:focus-visible {
-  outline: 3px solid #8fc2ee;
-  outline-offset: 2px;
-}
-
 button:disabled,
-button.secondary-button:disabled,
-select:disabled {
-  border-color: #cdd5e0;
-  background: #e9edf3;
-  color: #7b8797;
+select:disabled,
+input:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.action-result {
+.outlook-compact-shell {
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
   display: grid;
-  grid-template-columns: 20px 1fr;
-  gap: 8px;
-  align-items: start;
-  padding: 10px 11px;
-  border: 1px solid #b9d6c5;
-  border-radius: 6px;
-  background: #f0f8f3;
-  color: #185c3b;
+  grid-template-columns: var(--outlook-rail-width) minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--am-canvas);
 }
 
-.action-result div {
-  display: grid;
-  gap: 2px;
+.outlook-icon-rail {
+  width: var(--outlook-rail-width);
+  min-width: var(--outlook-rail-width);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--am-space-1);
+  padding: var(--am-space-2) 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--am-border);
+  background: var(--am-surface);
 }
 
-.action-result strong {
-  line-height: 19px;
-}
-
-.action-result span {
-  color: #46705b;
-  font-size: 12px;
-  line-height: 18px;
-  overflow-wrap: anywhere;
-}
-
-.operation-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid #d9dee7;
-  border-bottom: 1px solid #d9dee7;
-  background: #ffffff;
-}
-
-.operation-summary span {
-  padding: 8px 9px;
-  border-right: 1px solid #edf0f4;
-  border-bottom: 1px solid #edf0f4;
-  color: #526175;
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-
-.operation-summary span:nth-child(2n) {
-  border-right: 0;
-}
-
-.operation-summary span:nth-last-child(-n + 2) {
-  border-bottom: 0;
-}
-
-.two-col {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.compact-list {
-  list-style: none;
+.outlook-icon-button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
   padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--am-radius-sm);
+  background: transparent;
+  color: var(--am-text-muted);
 }
 
-.compact-list li {
-  min-height: 28px;
+.outlook-icon-rail .outlook-icon-button {
+  width: var(--outlook-rail-width);
+  min-width: var(--outlook-rail-width);
+  height: var(--outlook-rail-width);
+  min-height: var(--outlook-rail-width);
+  border-radius: 0;
+}
+
+/* Keep the 44px keyboard target visible inside the rail's clipped scrollport. */
+.outlook-icon-rail .outlook-icon-button:focus-visible {
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 3px var(--am-focus-ring);
+}
+
+.outlook-icon-button:hover:not(:disabled),
+.outlook-icon-button[aria-pressed="true"] {
+  background: var(--am-blue-soft);
+  color: var(--am-blue);
+}
+
+.outlook-icon-button[aria-pressed="true"] {
+  border-right: 2px solid var(--am-blue);
+}
+
+.outlook-compact-content {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--am-canvas);
+}
+
+.outlook-flat-action-row {
+  min-width: 0;
+  min-height: var(--outlook-control-height);
   display: flex;
   align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid #edf0f4;
-  color: #3d4a5c;
-  font-size: 12px;
-  overflow-wrap: anywhere;
+  gap: var(--am-space-2);
+  padding: var(--am-space-2) 0;
+  border-bottom: 1px solid var(--am-border-soft);
 }
 
-.compact-list li:last-child {
-  border-bottom: 0;
+.outlook-flat-action-label,
+.outlook-one-line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.compact-list li.empty-item {
-  color: #7b8797;
+.outlook-flat-action-label {
+  flex: 1 1 auto;
+  color: var(--am-text);
 }
 
-.notice,
-.error {
-  padding: 9px 10px;
-  border-radius: 5px;
-  line-height: 19px;
+.outlook-flat-action-button {
+  min-width: 0;
+  min-height: 32px;
+  flex: 0 0 auto;
+  max-width: 100%;
+  padding: 0 var(--am-space-2);
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.notice {
-  border: 1px solid #b9d1eb;
-  background: #eef5ff;
-  color: #244e87;
+.outlook-one-line-field {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--outlook-control-height);
+  padding: 0 var(--am-space-2);
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.error {
-  border: 1px solid #efc2c2;
-  background: #fff1f1;
-  color: #8a1f1f;
+.outlook-critical-value-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--am-space-1);
 }
 
-@media (max-width: 360px) {
-  .button-row,
-  .two-col,
-  .operation-summary {
-    grid-template-columns: 1fr;
-  }
+.outlook-critical-value {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--am-space-1) 0;
+  color: var(--am-text);
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
 
-  .operation-summary span {
-    border-right: 0;
-    border-bottom: 1px solid #edf0f4;
-  }
+.outlook-critical-copy {
+  flex: 0 0 auto;
+}
 
-  .operation-summary span:nth-last-child(2) {
-    border-bottom: 1px solid #edf0f4;
+.outlook-inline-operation-state {
+  min-width: 0;
+  display: block;
+  margin: 0;
+  padding: var(--am-space-1) 0;
+  color: var(--am-text-muted);
+}
+
+.outlook-inline-operation-state-created,
+.outlook-inline-operation-state-complete,
+.outlook-inline-operation-state-duplicate {
+  color: var(--am-success);
+}
+
+.outlook-inline-operation-state-partial,
+.outlook-inline-operation-state-permission_changed,
+.outlook-inline-operation-state-failed,
+.outlook-inline-operation-state-stale_item {
+  color: var(--am-danger);
+}
+
+.outlook-inline-operation-state-working,
+.outlook-inline-operation-state-offline,
+.outlook-inline-operation-state-reconnect_required,
+.outlook-inline-operation-state-provider_blocked {
+  color: var(--am-warning);
+}
+
+.outlook-overlay-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.outlook-overlay-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.42);
+  pointer-events: auto;
+  cursor: default;
+}
+
+.outlook-overlay-panel {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(var(--outlook-overlay-width), calc(100vw - var(--outlook-rail-width)));
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: var(--am-space-3);
+  border-left: 1px solid var(--am-border);
+  background: var(--am-surface);
+  box-shadow: -16px 0 36px rgba(15, 23, 42, 0.18);
+  pointer-events: auto;
+  animation: outlook-overlay-enter 160ms ease-out both;
+}
+
+.outlook-overlay-close {
+  justify-self: end;
+}
+
+.outlook-overlay-content {
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.outlook-overlay-content .outlook-flat-action-row {
+  flex-wrap: wrap;
+}
+
+.outlook-overlay-content .outlook-flat-action-row > .outlook-flat-action-label {
+  flex: 1 1 100%;
+}
+
+.outlook-overlay-content .outlook-flat-action-row > .outlook-one-line-field {
+  width: auto;
+  flex: 1 1 10rem;
+}
+
+/* Precedent results stay a single compact command row, even in the narrow
+ * overlay where ordinary form rows intentionally stack. The rail owns the
+ * 44px target; this result row keeps the existing 32/36px non-rail rhythm. */
+.outlook-overlay-content .outlook-flat-action-row.outlook-precedent-result-row {
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--am-border-soft);
+  background: transparent;
+  color: var(--am-text);
+  font: inherit;
+  text-align: start;
+}
+
+.outlook-overlay-content .outlook-flat-action-row.outlook-precedent-result-row:hover,
+.outlook-overlay-content .outlook-flat-action-row.outlook-precedent-result-row[aria-pressed="true"] {
+  background: var(--am-blue-soft);
+  color: var(--am-blue);
+}
+
+.outlook-overlay-content .outlook-precedent-result-row > .outlook-precedent-source-kind {
+  flex: 0 0 auto;
+}
+
+.outlook-overlay-content .outlook-precedent-result-row > .outlook-one-line {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outlook-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+:where(button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--am-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--am-focus-ring);
+}
+
+@keyframes outlook-overlay-enter {
+  from { opacity: 0.72; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outlook-overlay-panel {
+    animation: none;
+    transform: none;
   }
 }

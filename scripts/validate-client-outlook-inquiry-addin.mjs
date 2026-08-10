@@ -1,254 +1,170 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
-import { extname, resolve } from "node:path";
+import { resolve } from "node:path";
 import { chromium } from "playwright";
-
+import {
+  assertFocusStateDelta,
+  assertPositiveFocusFixture,
+  assertNegativeFocusFixture,
+  readFocusSnapshot,
+} from "./lib/outlook-addin-focus-proof.mjs";
+import { setupOutlookInquiryProofPage } from "./lib/outlook-addin-browser-proof-fixture.mjs";
+import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
 const ROOT = process.cwd();
-const DIST_ROOT = resolve(ROOT, "apps/addin/dist");
 const SCREENSHOT_PATH = process.env.LAWOS_OUTLOOK_ADDIN_SCREENSHOT
   ?? "/tmp/lawos-client-outlook-addin-t05.png";
-
-function contentType(filePath) {
-  return {
-    ".css": "text/css; charset=utf-8",
-    ".html": "text/html; charset=utf-8",
-    ".js": "text/javascript; charset=utf-8",
-    ".png": "image/png",
-    ".svg": "image/svg+xml",
-  }[extname(filePath)] ?? "application/octet-stream";
-}
-
 async function serveDist() {
-  const server = createServer((request, response) => {
-    try {
-      const url = new URL(
-        request.url ?? "/",
-        "http://127.0.0.1",
-      );
-      const relativePath = url.pathname === "/"
-        ? "index.html"
-        : url.pathname.replace(/^\/+/u, "");
-      const filePath = resolve(DIST_ROOT, relativePath);
-      if (!filePath.startsWith(DIST_ROOT)) {
-        response.writeHead(403);
-        response.end("forbidden");
-        return;
-      }
-      response.writeHead(200, {
-        "content-type": contentType(filePath),
-        "cache-control": "no-store",
-      });
-      response.end(readFileSync(filePath));
-    } catch {
-      response.writeHead(404);
-      response.end("not found");
-    }
-  });
-  return new Promise((resolvePromise, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      resolvePromise({
-        server,
-        origin: `http://127.0.0.1:${address.port}`,
-      });
-    });
+  return startOutlookAddinStaticServer({
+    distRoot: resolve(ROOT, "apps/addin/dist"),
   });
 }
-
-function json(route, body, status = 200) {
-  return route.fulfill({
-    status,
-    contentType: "application/json; charset=utf-8",
-    body: JSON.stringify({
-      safe_error_codes: [],
-      production_ready_claim: false,
-      ...body,
-    }),
-  });
-}
-
 const web = await serveDist();
 const browser = await chromium.launch({ headless: true });
 const writes = [];
 const inquiryResults = new Map();
-
 try {
   const page = await browser.newPage({
     viewport: { width: 390, height: 980 },
   });
-  await page.addInitScript(() => {
-    window.Office = {
-      actions: {
-        associate() {},
-      },
-      MailboxEnums: {
-        RestVersion: { v2_0: "v2.0" },
-        ItemNotificationMessageType: {
-          InformationalMessage: "informationalMessage",
-        },
-      },
-      context: {
-        mailbox: {
-          item: {
-            itemId: "ews-id-must-not-enter-request",
-            subject: "해외 거래처 계약 검토 문의",
-            normalizedSubject: "해외 거래처 계약 검토 문의",
-            attachments: [],
-          },
-          convertToRestId(itemId, version) {
-            if (
-              itemId !== "ews-id-must-not-enter-request"
-              || version !== "v2.0"
-            ) {
-              throw new Error("unexpected Office.js conversion");
-            }
-            return "rest-message-t05";
-          },
-          userProfile: {
-            emailAddress: "lawyer@example.invalid",
-          },
-        },
-      },
-    };
+  await setupOutlookInquiryProofPage({
+    page,
+    web,
+    writes,
+    inquiryResults,
   });
-  await page.route("**/api/outlook/**", async (route) => {
-    const request = route.request();
-    const { pathname } = new URL(request.url());
-    if (request.method() === "GET") {
-      if (pathname === "/api/outlook/bootstrap") {
-        await json(route, {
-          item: {
-            auth_shell: { signed_session_supported: true },
-            external_receipt_boundary: {
-              entra_admin_consent_receipt_present: true,
-            },
-          },
-        });
-        return;
-      }
-      if (pathname === "/api/outlook/matters") {
-        await json(route, {
-          items: [{
-            matter_id: "matter-t05",
-            lookup_label: "A-2026-014 계약 검토",
-            client_display_name: "가나다 주식회사",
-            status: "open",
-          }],
-        });
-        return;
-      }
-      if (pathname === "/api/outlook/inquiries") {
-        await json(route, {
-          items: [{
-            lead_id: "lead-existing-t05",
-            party_id: "party-existing-t05",
-            display_name: "가나다 주식회사 계약 문의",
-            status: "active",
-          }],
-        });
-        return;
-      }
-      if (pathname.endsWith("/timeline")) {
-        await json(route, {
-          item: { visible_entries: [] },
-        });
-        return;
-      }
-      if (pathname.endsWith("/documents")) {
-        await json(route, { items: [] });
-        return;
-      }
-    }
-
-    const body = request.postDataJSON();
-    writes.push({ pathname, body });
-    if (pathname === "/api/outlook/inquiries") {
-      const resultKey = body.idempotency_key;
-      const prior = inquiryResults.get(resultKey);
-      const item = prior ?? {
-        action: body.action,
-        lead_id: body.action === "new"
-          ? "lead-new-t05"
-          : body.existing_lead_id,
-        party_id: body.action === "new"
-          ? "party-new-t05"
-          : "party-existing-t05",
-        inquiry_email_evidence_id:
-          `evidence-${body.action}`,
-        idempotent_replay: false,
-      };
-      inquiryResults.set(resultKey, item);
-      await json(route, {
-        outcome: "registered",
-        item: {
-          ...item,
-          idempotent_replay: Boolean(prior),
-        },
-      }, prior ? 200 : 201);
-      return;
-    }
-    if (pathname === "/api/outlook/email/file") {
-      await json(route, {
-        outcome: "created",
-        email_thread: {
-          email_thread_id: "thread-t05",
-        },
-      }, 201);
-      return;
-    }
-    await json(route, { outcome: "created", item: {} }, 201);
-  });
-
   await page.goto(
-    `${web.origin}/?tenantId=tenant-t05&matterId=matter-t05`,
-    { waitUntil: "networkidle" },
+    `${web.origin}/addin/index.html?tenantId=tenant-t05&matterId=matter-t05`,
+    { waitUntil: "domcontentloaded" },
   );
   await page.waitForSelector(
     "[data-outlook-addin-taskpane='true']",
   );
-
+  const fullProfile = await page.evaluate(() => window.__LAWOS_OUTLOOK_SURFACE_PROFILE);
+  assert.deepEqual(fullProfile, { key: "matter-full", productId: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101", profile: { key: "matter-full", productId: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101" }, productionSourceLocation: "/addin/index.html", productionBase: "/addin/" });
   assert.equal(
     writes.length,
     0,
     "화면을 열기만 해서는 쓰기 요청이 없어야 한다",
   );
-  assert.equal(
-    await page.getByRole("button", {
-      name: "새 문의 등록",
-    }).count(),
-    1,
-  );
-  assert.equal(
-    await page.getByRole("button", {
-      name: "기존 문의에 연결",
-    }).count(),
-    1,
-  );
-  assert.equal(
-    await page.getByRole("button", {
-      name: "Matter에 보관",
-    }).count(),
-    1,
+  assert.deepEqual(
+    await Promise.all(["새 문의 등록", "기존 문의에 연결", "Matter에 보관"]
+      .map((name) => page.getByRole("button", { name }).count())),
+    [1, 1, 1],
   );
   await page.getByLabel("연결할 문의").selectOption(
     "lead-existing-t05",
   );
-  await page.getByLabel("보관할 Matter").selectOption(
+  await page.getByRole("button", {
+    name: "Matter 찾기",
+  }).click();
+  const matterSearch = page.getByLabel("Matter 검색");
+  await matterSearch.fill("A-2026-014");
+  const matterSelect = page.getByLabel("보관할 Matter");
+  await page.waitForFunction(() => (
+    document.querySelector("#matter-select option[value='matter-t05']")
+  ));
+  const matterResponses = Promise.all(["/timeline", "/documents"].map((suffix) => page.waitForResponse((response) => response.request().method() === "GET" && response.status() === 200 && new URL(response.url()).pathname.endsWith(suffix))));
+  await matterSelect.selectOption(
     "matter-t05",
   );
-
+  await matterResponses;
+  assert.equal(await page.locator("[data-testid='error-state']").count(), 0);
   const newInquiry = page.getByRole("button", {
     name: "새 문의 등록",
   });
+  const unfocusedSnapshot = await newInquiry.evaluate(readFocusSnapshot);
   await newInquiry.focus();
-  assert.notEqual(
-    await newInquiry.evaluate((element) => (
-      getComputedStyle(element).outlineStyle
-    )),
-    "none",
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  const focusSnapshot = await newInquiry.evaluate(readFocusSnapshot);
+  assertFocusStateDelta(unfocusedSnapshot, focusSnapshot, "문의 등록 버튼");
+  assert.deepEqual(focusSnapshot.outline.color, [11, 101, 229, 1]);
+  assert.equal(focusSnapshot.outline.width, 3);
+  assert.ok(focusSnapshot.outline.contrast >= 4.8);
+  const unfocusedSelectSnapshot = await matterSelect.evaluate(readFocusSnapshot);
+  await matterSelect.focus();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  const focusedSelectSnapshot = await matterSelect.evaluate(readFocusSnapshot);
+  assertFocusStateDelta(
+    unfocusedSelectSnapshot,
+    focusedSelectSnapshot,
+    "Matter 선택 필드",
+  );
+  assert.deepEqual(focusedSelectSnapshot.outline.color, [11, 101, 229, 1]);
+  assert.equal(focusedSelectSnapshot.outline.width, 3);
+  assert.ok(focusedSelectSnapshot.outline.contrast >= 4.8);
+  await assertPositiveFocusFixture(
+    page,
+    {
+      id: "outm36-product-color-gray-surface",
+      label: "product focus outline on gray surface",
+      cssText: "outline: none; border: 0; background: transparent;",
+      focusCssText: "#outm36-product-color-gray-surface:focus-visible { outline: 3px solid rgb(11, 101, 229) !important; outline-offset: 2px; }",
+      expectedColor: [11, 101, 229, 1],
+      minimumContrast: 4.8,
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-low-contrast-legacy-color",
+      label: "legacy low-contrast focus outline",
+      cssText: "outline: 3px solid rgb(143, 194, 238); outline-offset: 2px; border: 0; background: transparent;",
+      focusCssText: "#outm36-low-contrast-legacy-color:focus-visible { outline: 3px solid rgb(143, 194, 238) !important; outline-offset: 2px; }",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-background-only-outline-decoy",
+      label: "background-only outline decoy",
+      cssText: "outline: 3px solid rgb(143, 194, 238); outline-offset: 2px; border: 0; background: transparent;",
+      focusCssText: "body:has(#outm36-background-only-outline-decoy:focus-visible) { background: rgb(0, 0, 0) !important; }",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-negative-focus-fixture",
+      label: "negative focus fixture",
+      cssText: "outline: none; border: 1px solid transparent; box-shadow: none;",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-permanent-shadow-border-change",
+      label: "permanent shadow with 1px focus border fixture",
+      cssText: "outline: none; border: 1px solid transparent; box-shadow: 0 0 0 3px rgb(143, 194, 238); background: rgb(23, 33, 43);",
+      focusCssText: "#outm36-permanent-shadow-border-change:focus-visible { border-color: rgb(0, 0, 0) !important; }",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-permanent-border-outline-color",
+      label: "permanent border with hidden outline-color fixture",
+      cssText: "outline: none; border: 3px solid rgb(143, 194, 238); box-shadow: none; background: rgb(23, 33, 43);",
+      focusCssText: "#outm36-permanent-border-outline-color:focus-visible { outline-color: rgb(0, 0, 0) !important; }",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-compound-hidden-shadow-fixture",
+      label: "compound hidden-outline shadow fixture",
+      cssText: "outline: none; border: 1px solid transparent; box-shadow: 0 0 0 3px rgb(143, 194, 238), inset 0 0 0 1px rgba(0, 0, 0, 0.35); background: rgb(23, 33, 43);",
+      focusCssText: "#outm36-compound-hidden-shadow-fixture:focus-visible { border-color: rgb(0, 0, 0) !important; outline-color: rgb(0, 0, 0) !important; box-shadow: 0 0 0 3px rgb(143, 194, 238), inset 0 0 0 1px rgba(0, 0, 0, 0.35) !important; }",
+    },
+  );
+  await assertNegativeFocusFixture(
+    page,
+    {
+      id: "outm36-pixel-identical-focus-fixture",
+      label: "pixel-identical focus fixture",
+      cssText: "outline: none; border: 3px solid rgb(143, 194, 238); box-shadow: none; background: rgb(23, 33, 43);",
+    },
   );
   await newInquiry.press("Enter");
   await page.waitForFunction(() => (
@@ -268,7 +184,6 @@ try {
       .getAttribute("data-lead-id"),
     firstLeadId,
   );
-
   const linkInquiry = page.getByRole("button", {
     name: "기존 문의에 연결",
   });
@@ -278,7 +193,6 @@ try {
     document.querySelector("[data-testid='inquiry-status']")
       ?.getAttribute("data-action") === "link_existing"
   ));
-
   const fileMatter = page.getByRole("button", {
     name: "Matter에 보관",
   });
@@ -289,31 +203,31 @@ try {
       ?.getAttribute("data-outcome") === "created"
   ));
 
-  const inquiryWrites = writes.filter(
-    (entry) => entry.pathname === "/api/outlook/inquiries",
+  const expectedWrites = [
+    "POST /api/outlook/messages/identity",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/inquiries",
+    "POST /api/outlook/messages/identity",
+    "POST /api/outlook/email/file",
+  ];
+  assert.deepEqual(
+    writes.map(({ method, pathname }) => `${method} ${pathname}`),
+    expectedWrites,
+    "쓰기 요청은 허용된 완전한 순서와 일치해야 한다",
   );
-  assert.equal(inquiryWrites.length, 3);
+  const inquiryWrites = writes.filter((entry) => entry.pathname === "/api/outlook/inquiries");
   assert.equal(
     inquiryWrites[0].body.idempotency_key,
     inquiryWrites[1].body.idempotency_key,
   );
-  assert.equal(
-    JSON.stringify(inquiryWrites)
-      .includes("ews-id-must-not-enter-request"),
-    false,
-  );
-  assert.equal(
-    writes.filter(
-      (entry) => entry.pathname === "/api/outlook/email/file",
-    ).length,
-    1,
-  );
-
+  assert.equal(JSON.stringify(writes).includes("ews-id-must-not-enter-request"), false);
   const visibleText = await page.locator("body").innerText();
   assert.doesNotMatch(
     visibleText,
     /filing|provider-gated|timeline|warning|matter 연결/iu,
   );
+  assert.equal(await page.locator("[data-testid='error-state']").count(), 0);
   await page.screenshot({
     path: SCREENSHOT_PATH,
     fullPage: true,

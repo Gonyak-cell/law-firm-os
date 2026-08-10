@@ -730,7 +730,7 @@ test("Matter 업무 생성에서 저장된 assigned_to_user_id를 People 오늘 
     task_id: "task-assigned-from-matter",
   });
   assert.equal(unchangedAfterInvalidPatch.title, "오늘 준비서면");
-  assert.equal(unchangedAfterInvalidPatch.due_at, "2026-07-31T09:00:00+09:00");
+  assert.equal(unchangedAfterInvalidPatch.due_at, "2026-07-31T00:00:00.000Z");
   assert.equal(unchangedAfterInvalidPatch.starts_at, null);
   assert.equal(unchangedAfterInvalidPatch.ends_at, null);
   assert.equal(unchangedAfterInvalidPatch.estimated_minutes, null);

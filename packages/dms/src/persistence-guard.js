@@ -35,12 +35,12 @@ const DMS_RECORD_FIELDS = Object.freeze({
   DmsFolder: fields("folder_id", "workspace_id", "parent_folder_id", "name", "status"),
   DmsDocument: fields("document_id", "workspace_id", "folder_id", "title", "status", "current_version_id", "retention_label_id", "legal_hold_id", "source_policy", "version_safe_dms", "matter_first_trace_required", "client_visible_candidate", "owner_user_id", "registered_account_email", "registered_account", "account_linkage", "privilege_label_id", "privileged", "confidentiality", "latest_sha256", "mime_type", "filename", "source_email_thread_id", "source_attachment_id"),
   DmsDocumentVersion: fields("version_id", "document_id", "version_number", "status", "file_object_id", "created_by", "hash_algorithm", "sha256", "persisted", "registered_account"),
-  DmsFileObject: fields("file_object_id", "storage_pointer_ref", "sha256", "byte_size", "mime_type", "object_storage_runtime_executed", "document_bytes_loaded", "vault_object_id", "owner_user_id", "filename", "raw_path_exposed", "bytes_included"),
+  DmsFileObject: fields("file_object_id", "object_id", "storage_pointer_ref", "sha256", "byte_size", "mime_type", "object_storage_runtime_executed", "document_bytes_loaded", "vault_object_id", "owner_user_id", "filename", "raw_path_exposed", "bytes_included"),
   DmsRendition: fields("rendition_id", "version_id", "rendition_type", "status", "file_object_id"),
   DmsExtractedText: fields("extracted_text_id", "version_id", "source_policy", "status", "text_pointer_ref", "raw_text_exposed"),
   DmsOcrResult: fields("ocr_result_id", "version_id", "source_policy", "status", "ocr_runtime_executed"),
-  DmsEmailThread: fields("email_thread_id", "email_id", "graph_message_id", "internet_message_id", "conversation_id", "subject", "from", "to", "cc", "bcc", "body_ref", "body_preview", "sent_at", "received_at", "mailbox_ref", "account_ref", "attachment_metadata", "filing_user", "filing_time", "filing_mode", "confidentiality", "privilege", "ai_processed", "raw_body_included", "provider_payload_included", "field_contract", "field_contract_count", "status", "message_ids", "filed_document_ids", "credential_material_included", "email_runtime_executed", "reserved_for_rp08"),
-  DmsEmailAttachmentMapping: fields("mapping_id", "email_thread_id", "attachment_id", "document_id", "sha256", "raw_bytes_included", "storage_pointer_ref_included"),
+  DmsEmailThread: fields("email_thread_id", "email_id", "graph_message_id", "canonical_graph_message_id", "rest_message_id", "internet_message_id", "conversation_id", "item_key", "subject", "from", "to", "cc", "bcc", "body_ref", "body_preview", "sent_at", "received_at", "mailbox_ref", "account_ref", "attachment_metadata", "filing_user", "filing_time", "filing_mode", "confidentiality", "privilege", "ai_processed", "raw_body_included", "provider_payload_included", "field_contract", "field_contract_count", "status", "message_ids", "filed_document_ids", "credential_material_included", "email_runtime_executed", "reserved_for_rp08"),
+  DmsEmailAttachmentMapping: fields("mapping_id", "email_thread_id", "attachment_id", "name", "document_id", "version_id", "attachment_outcome", "sha256", "source_byte_size", "source_message_ref", "source_provenance_authority", "raw_bytes_included", "storage_pointer_ref_included"),
   DmsDocumentRelation: fields("relation_id", "source_document_id", "target_document_id", "relation_type", "status"),
   DmsLock: fields("lock_id", "document_id", "actor_id", "status", "checked_out_at"),
   DmsPrivilegeLabel: fields("label_id", "document_id", "privilege_class", "confidentiality", "applied_by"),
@@ -79,11 +79,23 @@ function isBinaryLikeString(value) {
   }
 }
 
+function isExactOutlookItemKey(value, path) {
+  if (!path.endsWith(".item_key")) return false;
+  const parts = value.split("\u001f");
+  return parts.length === 3 && parts.every((part) => (
+    part.length > 0 && !/[\u0000-\u001f\u007f]/u.test(part)
+  ));
+}
+
 export function assertNoDmsPersistedSecrets(value, path = "record", seen = new WeakSet()) {
   if (value === null || value === undefined) return;
   if (Buffer.isBuffer(value) || ArrayBuffer.isView(value) || value instanceof ArrayBuffer) throw rejection(path);
   if (typeof value === "string") {
-    if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value) || isBinaryLikeString(value)) throw rejection(path);
+    if (
+      (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value)
+        && !isExactOutlookItemKey(value, path))
+      || isBinaryLikeString(value)
+    ) throw rejection(path);
     return;
   }
   if (typeof value !== "object") return;

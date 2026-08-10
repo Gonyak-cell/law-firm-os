@@ -3,7 +3,12 @@ export const OUTLOOK_ITEM_ID_ERROR_CODES = Object.freeze({
   read_item_required: "OUTLOOK_READ_ITEM_REQUIRED",
   conversion_unavailable: "OUTLOOK_ITEM_ID_CONVERSION_UNAVAILABLE",
   conversion_failed: "OUTLOOK_ITEM_ID_CONVERSION_FAILED",
+  canonical_identity_mismatch: "OUTLOOK_CANONICAL_IDENTITY_MISMATCH",
+  identity_required: "OUTLOOK_ITEM_IDENTITY_REQUIRED",
 });
+
+export const OUTLOOK_CANONICAL_MESSAGE_IDENTITY_PATH =
+  "/api/outlook/messages/identity";
 
 function itemIdError(code, message) {
   return Object.assign(new Error(message), {
@@ -11,10 +16,98 @@ function itemIdError(code, message) {
   });
 }
 
+export function assertStableOutlookItemIdentity(snapshot) {
+  const fields = ["graph_message_id", "internet_message_id", "conversation_id"];
+  const missing = fields.filter((field) => (
+    typeof snapshot?.[field] !== "string" || snapshot[field].trim() === ""
+  ));
+  if (missing.length > 0) {
+    throw Object.assign(
+      itemIdError(
+        OUTLOOK_ITEM_ID_ERROR_CODES.identity_required,
+        "실제 Outlook 메일 식별자를 확인할 수 없어 이 메일을 저장하지 않았습니다. Outlook에서 받은 메일을 다시 열어 주세요.",
+      ),
+      { user_message: "실제 Outlook 메일 식별자를 확인할 수 없어 이 메일을 저장하지 않았습니다. Outlook에서 받은 메일을 다시 열어 주세요.", missing_fields: missing },
+    );
+  }
+  return snapshot;
+}
+
 function requiredId(value, code, message) {
   const id = typeof value === "string" ? value.trim() : "";
   if (!id || id.length > 2048) throw itemIdError(code, message);
   return id;
+}
+
+function exactId(value, field) {
+  if (
+    typeof value !== "string"
+    || !value
+    || value !== value.trim()
+    || value.length > 2_048
+    || /[\u0000-\u001f\u007f]/u.test(value)
+  ) throw new TypeError(`${field} is required`);
+  return value;
+}
+
+function itemIdentity(item = {}) {
+  return Object.freeze({
+    rest_message_id: exactId(
+      item.rest_message_id ?? item.graph_message_id,
+      "rest_message_id",
+    ),
+    internet_message_id: exactId(
+      item.internet_message_id,
+      "internet_message_id",
+    ),
+    conversation_id: exactId(item.conversation_id, "conversation_id"),
+  });
+}
+
+export function createOutlookCanonicalMessageIdentityRequest({
+  item,
+  matterId,
+} = {}) {
+  const identity = itemIdentity(item);
+  const canonicalMatterId = exactId(matterId, "matter_id");
+  return Object.freeze({
+    path: OUTLOOK_CANONICAL_MESSAGE_IDENTITY_PATH,
+    method: "POST",
+    body: Object.freeze({
+      matter_id: canonicalMatterId,
+      ...identity,
+    }),
+  });
+}
+
+export function applyOutlookCanonicalMessageIdentity({
+  item,
+  response,
+} = {}) {
+  const expected = itemIdentity(item);
+  const canonicalGraphMessageId = exactId(
+    response?.item?.canonical_graph_message_id,
+    "canonical_graph_message_id",
+  );
+  const actual = itemIdentity(response?.item);
+  if (
+    expected.rest_message_id !== actual.rest_message_id
+    || expected.internet_message_id.normalize("NFKC").toLowerCase()
+      !== actual.internet_message_id.normalize("NFKC").toLowerCase()
+    || expected.conversation_id.normalize("NFKC")
+      !== actual.conversation_id.normalize("NFKC")
+  ) {
+    throw itemIdError(
+      OUTLOOK_ITEM_ID_ERROR_CODES.canonical_identity_mismatch,
+      "canonical Outlook identity does not match the current item",
+    );
+  }
+  return Object.freeze({
+    ...item,
+    rest_message_id: expected.rest_message_id,
+    graph_message_id: expected.rest_message_id,
+    canonical_graph_message_id: canonicalGraphMessageId,
+  });
 }
 
 export function resolveCurrentOutlookRestMessageId({

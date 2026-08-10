@@ -50,8 +50,10 @@ function actionKeyPart(value) {
 function stableCommandKey(cache, fingerprint, prefix) {
   const prior = cache.get(fingerprint);
   if (prior) return prior;
-  const uuid = globalThis.crypto?.randomUUID?.().replaceAll("-", "")
-    ?? `${Date.now()}${Math.random().toString(16).slice(2)}`;
+  if (typeof globalThis.crypto?.randomUUID !== "function") {
+    throw new Error("Secure random UUID is unavailable");
+  }
+  const uuid = globalThis.crypto.randomUUID().replaceAll("-", "");
   const key = `${prefix}:${actionKeyPart(fingerprint)}:${uuid}`.slice(0, 128);
   cache.set(fingerprint, key);
   if (cache.size > 80) cache.delete(cache.keys().next().value);

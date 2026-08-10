@@ -18,6 +18,7 @@ import {
 import {
   EMAIL_DMS_DOMAIN_DESCRIPTOR,
 } from "../../../packages/email-dms/src/central-ledger.js";
+import { createInquiryEvidenceStorageService } from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
 import {
   createEmailDmsRepository,
 } from "../../../packages/email-dms/src/repository.js";
@@ -69,6 +70,14 @@ import {
   createPostgresEmailDmsCompletionCheckpoint,
   createPostgresPeopleOutlookCompletionCheckpoint,
 } from "./people-outlook-completion-checkpoint.js";
+import {
+  createPostgresIntakeEngagementCompletionCheckpoint,
+} from "./intake-engagement-completion-checkpoint.js";
+import {
+  createPostgresPrecedentRepository,
+  derivePrecedentAuthorityKeys,
+} from "../../../packages/dms/src/search/postgres-precedent-repository.js";
+import { POSTGRES_DMS_CONSUMER_READ_AUTHORITY } from "../../../packages/dms/src/postgres-consumer-storage.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -89,6 +98,7 @@ const PEOPLE_OUTLOOK_SELF_COMPLETION_PATH =
   "/api/hrx/people/me/outlook-connection/complete";
 const CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH =
   "/api/outlook/connection/callback";
+const INTAKE_ENGAGEMENT_APPROVAL_PATH = "/api/intake/engagements";
 const POSTGRES_READ_RETRYABLE_CONFLICTS = new Set([
   "DOMAIN_BASELINE_CONFLICT",
   "DOMAIN_SHADOW_DIFFERENCE",
@@ -150,18 +160,26 @@ function isPeopleOutlookDisconnect(method, pathname) {
       .test(String(pathname ?? ""));
 }
 
+function isIntakeEngagementApproval(method, pathname) {
+  return String(method ?? "").toUpperCase() === "POST"
+    && String(pathname ?? "").replace(/\/+$/u, "") === INTAKE_ENGAGEMENT_APPROVAL_PATH;
+}
+
+const OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH = "/api/outlook/email/corrections";
 const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
   "/api/outlook/email/file",
   "/api/outlook/sent/file",
   "/api/outlook/attachments/save",
   "/api/outlook/followups",
+  "/api/outlook/time-entry-drafts",
 ]);
 
-function isOutlookIdempotentMutation(method, pathname) {
-  return String(method ?? "").toUpperCase() === "POST"
-    && OUTLOOK_IDEMPOTENT_MUTATION_PATHS.has(
-      String(pathname ?? "").replace(/\/+$/u, "") || "/",
-    );
+export function isOutlookIdempotentMutation(method, pathname) {
+  const requestPath = String(pathname ?? "");
+  return String(method ?? "").toUpperCase() === "POST" && (
+    requestPath === OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH
+    || OUTLOOK_IDEMPOTENT_MUTATION_PATHS.has(requestPath.replace(/\/+$/u, "") || "/")
+  );
 }
 
 export function isRetryablePostgresReadConflict(error, method, {
@@ -260,6 +278,19 @@ export async function runPostgresReadWithBaselineRetry({
   }
 }
 
+export function createPostgresPrecedentSearchRuntime({ pool, authoritySecret } = {}) {
+  if (!pool?.connect || !pool?.query) throw new TypeError("Precedent search requires a PostgreSQL pool");
+  if (!(typeof authoritySecret === "string" || Buffer.isBuffer(authoritySecret))
+      || Buffer.byteLength(authoritySecret) < 32) {
+    throw new TypeError("Precedent search requires server-held authority secret material");
+  }
+  const keys = derivePrecedentAuthorityKeys(authoritySecret);
+  return Object.freeze({ authority: "postgres-v2",
+    repository: createPostgresPrecedentRepository({ pool,
+      cursorSecret: keys.cursor, extractionReceiptSecret: keys.extraction_receipt }),
+    production_ready_claim: false });
+}
+
 function createHrxDomainParticipant(requestContext, projectionReader) {
   const projectionRead =
     ["GET", "HEAD"].includes(
@@ -311,6 +342,8 @@ function createRequestRuntimes({
   hrxStore,
   identityUserDirectory,
   dmsStorage,
+  payrollArtifactStorage,
+  inquiryEvidenceStorage,
   dmsUploadRuntime,
   payrollArtifactSecret,
   payrollProviders,
@@ -318,9 +351,11 @@ function createRequestRuntimes({
   clientFixedReportTokenAuthority,
   clientOperationsReadPathSelector,
   clientOperationsV2ReadProvider,
+  precedentSearchRuntime,
   bankReconciliationCheckpoint,
   peopleOutlookCompletionCheckpoint,
   clientOutlookCompletionCheckpoint,
+  intakeEngagementCompletionCheckpoint,
   requestFailureCompensator,
   leaveIntegrationProviders,
   leaveIntegrationProviderEnabled,
@@ -352,7 +387,7 @@ function createRequestRuntimes({
       : null;
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
-    payrollArtifactStorage: dmsStorage,
+    payrollArtifactStorage,
     payrollArtifactSecret,
     compensationKeyMaterial: payrollArtifactSecret,
     leaveIntegrationProviders,
@@ -398,11 +433,16 @@ function createRequestRuntimes({
     }),
     authority: "postgres-v2",
     upload_runtime: dmsUploadRuntime,
+    precedent_search_runtime: precedentSearchRuntime,
   });
   const emailDmsRuntime = Object.freeze({
     authority: "postgres-v2",
     repository: repositories.emailDmsRepository,
     storage: dmsStorage,
+    evidence_storage_service: createInquiryEvidenceStorageService({
+      repository: repositories.emailDmsRepository,
+      storage: inquiryEvidenceStorage,
+    }),
     upload_runtime: dmsUploadRuntime,
     request_failure_compensator: requestFailureCompensator,
     client_outlook_completion_checkpoint:
@@ -416,6 +456,7 @@ function createRequestRuntimes({
     emailDmsRepository: repositories.emailDmsRepository,
     matterRepository: repositories.matterRepository,
     dmsRuntime,
+    engagementApprovalCheckpoint: intakeEngagementCompletionCheckpoint,
   });
   const matterRuntime = createMatterRuntimeContext({
     repository: repositories.matterRepository,
@@ -473,12 +514,15 @@ function createRequestRuntimes({
     uiReadinessRuntime,
     homeDashboardRuntime,
     enterpriseReadinessRuntime,
+    precedentSearchRuntime,
   });
 }
 
 export function createPostgresApiRuntimeAuthority({
   ledger,
   dmsStorage,
+  payrollArtifactStorage = dmsStorage,
+  inquiryEvidenceStorage = dmsStorage,
   dmsUploadRuntime,
   payrollArtifactSecret,
   payrollProviders = Object.freeze({}),
@@ -506,13 +550,24 @@ export function createPostgresApiRuntimeAuthority({
   clientFixedReportTokenAuthority = null,
   clientOperationsV2Enabled = false,
   clientOperationsSchemaPool = null,
+  precedentSearchPool = null,
+  precedentAuthoritySecret = null,
   identityRepository = null,
+  requireDmsConsumerReadAuthority = false,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
   }
   if (!dmsStorage || typeof dmsStorage.stageObject !== "function") {
     throw new TypeError("DMS provider storage is required for PostgreSQL API authority");
+  }
+  const consumerReadContract = dmsStorage?.validateConsumerReadAuthority?.();
+  if ((requireDmsConsumerReadAuthority === true || dmsStorage?.provider === "s3")
+      && (consumerReadContract?.authority !== POSTGRES_DMS_CONSUMER_READ_AUTHORITY
+        || consumerReadContract.durable !== true
+        || consumerReadContract.deny_before_provider_io !== true
+        || consumerReadContract.probe_completed !== true)) {
+    throw new TypeError("PostgreSQL API authority requires guarded DMS consumer reads");
   }
   if (dmsUploadRuntime?.source_only !== false || typeof dmsUploadRuntime?.finalizeUpload !== "function") {
     throw new TypeError("active PostgreSQL DMS upload runtime is required for PostgreSQL API authority");
@@ -551,6 +606,16 @@ export function createPostgresApiRuntimeAuthority({
       "Client operations v2 requires the verified PostgreSQL schema pool",
     );
   }
+  if (precedentSearchPool != null
+      && (typeof precedentSearchPool.query !== "function"
+        || typeof precedentSearchPool.connect !== "function")) {
+    throw new TypeError("Precedent search requires a PostgreSQL pool");
+  }
+  if (precedentSearchPool != null
+      && (!(typeof precedentAuthoritySecret === "string" || Buffer.isBuffer(precedentAuthoritySecret))
+        || Buffer.byteLength(precedentAuthoritySecret) < 32)) {
+    throw new TypeError("Precedent search requires server-held authority secret material");
+  }
   if (hrxRelationalProjectionReader != null
     && (hrxRelationalProjectionReader.authority !== "read-model-only"
       || hrxRelationalProjectionReader.fallback_authority
@@ -570,6 +635,13 @@ export function createPostgresApiRuntimeAuthority({
       ledger,
       workflow: "client-outlook",
     });
+  const intakeEngagementCompletionCheckpoint =
+    createPostgresIntakeEngagementCompletionCheckpoint({ ledger });
+  const precedentSearchRuntime = precedentSearchPool == null ? null
+    : createPostgresPrecedentSearchRuntime({
+      pool: precedentSearchPool,
+      authoritySecret: precedentAuthoritySecret,
+    });
 
   async function run({ tenant_id, command, request_context = null } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
@@ -584,9 +656,14 @@ export function createPostgresApiRuntimeAuthority({
         === CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH;
     const emailDmsSelfCompletion = peopleOutlookSelfCompletion
       || clientOutlookSelfCompletion;
+    const intakeEngagementSelfCompletion = isIntakeEngagementApproval(
+      method,
+      request_context?.pathname,
+    );
     const allowIdempotentWriteRetry = request_context?.retry_idempotent_conflict === true
       || isPayrollReconciliationMutation(method, request_context?.pathname)
       || peopleOutlookSelfCompletion
+      || intakeEngagementSelfCompletion
       || isPeopleOutlookDisconnect(method, request_context?.pathname)
       || isOutlookIdempotentMutation(method, request_context?.pathname);
     return runPostgresReadWithBaselineRetry({
@@ -608,15 +685,22 @@ export function createPostgresApiRuntimeAuthority({
               create_repository: createEmailDmsRepository,
             })
           : null;
+        const detachedIntakeRepository = intakeEngagementSelfCompletion
+          ? await materializeRecordRepositoryFromDomainLedger({
+              ledger,
+              descriptor: INTAKE_DOMAIN_DESCRIPTOR,
+              tenant_id: tenantId,
+              create_repository: createIntakeRuntimeRepository,
+            })
+          : null;
         try {
           const productCommand = await runRecordRepositoryMultiDomainCommand({
             ledger,
             tenant_id: tenantId,
-            domains: emailDmsSelfCompletion
-              ? PRODUCT_DOMAINS.filter(
-                  ({ key }) => key !== "emailDmsRepository",
-                )
-              : PRODUCT_DOMAINS,
+            domains: PRODUCT_DOMAINS.filter(({ key }) => (
+              (!emailDmsSelfCompletion || key !== "emailDmsRepository")
+              && (!intakeEngagementSelfCompletion || key !== "intakeRepository")
+            )),
             additional_domains: [
               createHrxDomainParticipant(
                 request_context,
@@ -624,23 +708,29 @@ export function createPostgresApiRuntimeAuthority({
               ),
             ],
             command: (repositories) => command(createRequestRuntimes({
-              repositories: detachedEmailDmsRepository
-                ? Object.freeze({
-                    ...repositories,
-                    emailDmsRepository: detachedEmailDmsRepository,
-                  })
-                : repositories,
+              repositories: Object.freeze({
+                ...repositories,
+                ...(detachedEmailDmsRepository
+                  ? { emailDmsRepository: detachedEmailDmsRepository }
+                  : {}),
+                ...(detachedIntakeRepository
+                  ? { intakeRepository: detachedIntakeRepository }
+                  : {}),
+              }),
               hrxStore: repositories.hrxStore,
               ...(identityRepository?.listDirectoryUsers
                 ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
                 : {}),
               dmsStorage,
+              payrollArtifactStorage,
+              inquiryEvidenceStorage,
               dmsUploadRuntime,
               payrollArtifactSecret,
               payrollProviders,
               bankImportPreviewTokens,
               clientFixedReportTokenAuthority,
               clientOperationsV2ReadProvider,
+              precedentSearchRuntime,
               clientOperationsReadPathSelector: ({ tenant_id }) =>
                 selectClientOperationsReadPath({
                   enabled: clientOperationsV2Enabled,
@@ -651,6 +741,7 @@ export function createPostgresApiRuntimeAuthority({
               bankReconciliationCheckpoint,
               peopleOutlookCompletionCheckpoint,
               clientOutlookCompletionCheckpoint,
+              intakeEngagementCompletionCheckpoint,
               requestFailureCompensator,
               leaveIntegrationProviders,
               leaveIntegrationProviderEnabled,
@@ -676,6 +767,7 @@ export function createPostgresApiRuntimeAuthority({
           return productCommand.result;
         } finally {
           detachedEmailDmsRepository?.close();
+          detachedIntakeRepository?.close();
         }
       }),
     });

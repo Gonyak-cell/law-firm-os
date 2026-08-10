@@ -89,6 +89,12 @@
       "AllowedValues": ["true", "false"],
       "Description": "Requires a separate narrow owner approval. Set true only while VPC ENIs are initially attached; update to false immediately afterward."
     },
+    "EnableOutlookConversationWorker": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": ["true", "false"],
+      "Description": "Enables the bounded durable Outlook conversation worker only after Graph provider composition is configured."
+    },
     "RuntimeGeneration": {
       "Type": "String",
       "Default": "initial-source",
@@ -99,6 +105,9 @@
   "Conditions": {
     "LambdaEniBootstrapEnabled": {
       "Fn::Equals": [{ "Ref": "EnableLambdaEniBootstrap" }, "true"]
+    },
+    "OutlookConversationWorkerEnabled": {
+      "Fn::Equals": [{ "Ref": "EnableOutlookConversationWorker" }, "true"]
     }
   },
   "Mappings": {
@@ -1157,6 +1166,9 @@
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_REGION": { "Ref": "AWS::Region" },
             "LAWOS_AUTH_PASSWORD_RESET_OPEN_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/open" },
             "LAWOS_AUTH_PASSWORD_RESET_TTL_MS": "60000",
+            "LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED": {
+              "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"]
+            },
             "LAWOS_IDENTITY_TENANT_ID": "tenant_lawos_staging_cut007_a",
             "LAWOS_API_LOGIN_LOCK_MS": "60000",
             "LAWOS_API_MAX_FAILED_LOGINS": "5",
@@ -1217,6 +1229,37 @@
         "FunctionName": { "Ref": "ApiFunction" },
         "Principal": "events.amazonaws.com",
         "SourceArn": { "Fn::GetAtt": ["PasswordResetWorkerSchedule", "Arn"] }
+      }
+    },
+    "OutlookConversationWorkerSchedule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Drains the durable Outlook conversation queue only when its provider runtime is enabled",
+        "Name": "lawos-private-staging-outlook-conversation-worker",
+        "ScheduleExpression": "rate(1 minute)",
+        "State": {
+          "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"]
+        },
+        "Targets": [
+          {
+            "Arn": { "Fn::GetAtt": ["ApiFunction", "Arn"] },
+            "Id": "lawos-private-staging-api-outlook-conversation-worker",
+            "Input": "{\"maintenance_action\":\"lawos_outlook_conversation_worker\"}",
+            "RetryPolicy": {
+              "MaximumEventAgeInSeconds": 300,
+              "MaximumRetryAttempts": 2
+            }
+          }
+        ]
+      }
+    },
+    "OutlookConversationWorkerInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": { "Ref": "ApiFunction" },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": { "Fn::GetAtt": ["OutlookConversationWorkerSchedule", "Arn"] }
       }
     },
     "AdminFunction": {

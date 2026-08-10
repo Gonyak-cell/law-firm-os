@@ -1302,9 +1302,10 @@ function clientCommandIdempotencyKey(ref, scope, fingerprint) {
   const normalized = `${scope}:${fingerprint}`;
   const existing = ref.current.get(normalized);
   if (existing) return existing;
-  const random = typeof globalThis.crypto?.randomUUID === "function"
-    ? globalThis.crypto.randomUUID().replace(/-/gu, "")
-    : `${Date.now()}${Math.random().toString(36).slice(2)}`;
+  if (typeof globalThis.crypto?.randomUUID !== "function") {
+    throw new Error("Secure random UUID is unavailable");
+  }
+  const random = globalThis.crypto.randomUUID().replace(/-/gu, "");
   const next = `ui_${scope}_${random}`.slice(0, 190);
   ref.current.set(normalized, next);
   return next;

@@ -20,6 +20,21 @@ const materializedReadOnlyShadows = new WeakMap();
 const materializedCanonicalAuditEvents = new WeakMap();
 const IDEMPOTENCY_AUTHORITY_FIELD = "__lawos_idempotency_authority_v1";
 const IDEMPOTENCY_RESPONSE_FIELD = "__lawos_idempotency_response_v1";
+const IDEMPOTENCY_AUTHORITY_KEYS = Object.freeze([
+  "actor_id", "object_id", "object_type", "operation", "request_fingerprint",
+]);
+
+function assertIdempotencyAuthorityMatchesDurableHash(authorityFingerprint, durableRequestHash) {
+  if (authorityFingerprint === durableRequestHash) return;
+  throw Object.assign(
+    new Error("idempotency authority does not match durable request hash"),
+    {
+      code: "LAWOS_DOMAIN_IDEMPOTENCY_AUTHORITY_MISMATCH",
+      safe_error_code: "DOMAIN_IDEMPOTENCY_AUTHORITY_MISMATCH",
+      status: 409,
+    },
+  );
+}
 
 function responseWithIdempotencyAuthority(entry) {
   const response = clone(entry.response ?? null);
@@ -44,23 +59,66 @@ function responseWithIdempotencyAuthority(entry) {
   };
 }
 
-function responseFromIdempotencyAuthority(value) {
+function exactKeys(value, expected) {
+  return JSON.stringify(Object.keys(value).sort()) === JSON.stringify(expected);
+}
+
+function exactIdempotencyAuthority(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)
+      || !exactKeys(value, IDEMPOTENCY_AUTHORITY_KEYS)
+      || typeof value.operation !== "string" || !value.operation.trim()
+      || typeof value.request_fingerprint !== "string" || !value.request_fingerprint.trim()) {
+    return false;
+  }
+  return ["actor_id", "object_type", "object_id"].every((field) => (
+    value[field] === null || (typeof value[field] === "string" && value[field].trim())
+  ));
+}
+
+function idempotencyAuthorityState(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "malformed";
+  const keys = Object.keys(value).sort();
+  if (keys.some((key) => !IDEMPOTENCY_AUTHORITY_KEYS.includes(key))) return "malformed";
+  if (keys.length < IDEMPOTENCY_AUTHORITY_KEYS.length) return "partial";
+  return exactIdempotencyAuthority(value) ? "valid" : "malformed";
+}
+
+export function decodeRecordDomainIdempotencyResponse(value, { inspection = false } = {}) {
   const response = clone(value ?? null);
   if (!response || typeof response !== "object" || Array.isArray(response)) {
-    return Object.freeze({ authority: null, response });
+    return Object.freeze({ authority: null, authority_state: "absent", response });
+  }
+  if (!Object.hasOwn(response, IDEMPOTENCY_AUTHORITY_FIELD)) {
+    return Object.freeze({ authority: null, authority_state: "absent", response });
   }
   const authority = response[IDEMPOTENCY_AUTHORITY_FIELD];
-  if (!authority || typeof authority !== "object" || Array.isArray(authority)) {
-    return Object.freeze({ authority: null, response });
-  }
+  const authorityState = idempotencyAuthorityState(authority);
+  const authorityOperationHint = inspection
+    && typeof authority?.operation === "string"
+    && authority.operation.trim()
+    ? authority.operation.trim()
+    : null;
   delete response[IDEMPOTENCY_AUTHORITY_FIELD];
   if (Object.hasOwn(response, IDEMPOTENCY_RESPONSE_FIELD)) {
     const unwrapped = clone(response[IDEMPOTENCY_RESPONSE_FIELD]);
     delete response[IDEMPOTENCY_RESPONSE_FIELD];
-    if (Object.keys(response).length > 0) throw new TypeError("idempotency response envelope contains unexpected fields");
-    return Object.freeze({ authority: clone(authority), response: unwrapped });
+    if (Object.keys(response).length > 0 && !inspection) {
+      throw new TypeError("idempotency response envelope contains unexpected fields");
+    }
+    return Object.freeze({
+      authority: authorityState === "valid" && Object.keys(response).length === 0
+        ? clone(authority) : null,
+      authority_state: Object.keys(response).length === 0 ? authorityState : "malformed",
+      ...(inspection ? { authority_operation_hint: authorityOperationHint } : {}),
+      response: unwrapped,
+    });
   }
-  return Object.freeze({ authority: clone(authority), response });
+  return Object.freeze({
+    authority: authorityState === "valid" ? clone(authority) : null,
+    authority_state: authorityState,
+    ...(inspection ? { authority_operation_hint: authorityOperationHint } : {}),
+    response,
+  });
 }
 
 function recordIdentity(domainId, recordType, recordId) {
@@ -311,6 +369,13 @@ export function createRecordRepositoryDomainSnapshot({
   for (const source of sourceStates) {
     for (const entry of source.idempotency) {
       const key = requiredText(entry.idempotency_key ?? entry.key, "idempotency key");
+      const authorityFingerprint = String(entry.request_fingerprint ?? "").trim();
+      if (authorityFingerprint && entry.request_hash != null) {
+        assertIdempotencyAuthorityMatchesDurableHash(
+          authorityFingerprint,
+          entry.request_hash,
+        );
+      }
       const normalized = {
         tenant_id: tenantId,
         domain_id: descriptor.domain_id,
@@ -435,7 +500,13 @@ export async function materializeRecordRepositoryFromDomainLedger({
     preserveSeedRecords: true,
   });
   for (const entry of idempotency) {
-    const decoded = responseFromIdempotencyAuthority(entry.response);
+    const decoded = decodeRecordDomainIdempotencyResponse(entry.response);
+    if (decoded.authority) {
+      assertIdempotencyAuthorityMatchesDurableHash(
+        decoded.authority.request_fingerprint,
+        entry.request_hash,
+      );
+    }
     repository.recordIdempotency?.({
       tenant_id,
       idempotency_key: entry.key,
@@ -443,7 +514,7 @@ export async function materializeRecordRepositoryFromDomainLedger({
       object_type: decoded.authority?.object_type ?? null,
       object_id: decoded.authority?.object_id ?? null,
       actor_id: decoded.authority?.actor_id ?? null,
-      request_fingerprint: decoded.authority?.request_fingerprint ?? null,
+      request_fingerprint: decoded.authority ? entry.request_hash : null,
       response: decoded.response,
       created_at: entry.created_at,
     });

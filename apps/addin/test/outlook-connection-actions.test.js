@@ -7,6 +7,8 @@ import {
   parseOutlookConnectionRecord,
 } from "../src/outlook-connection-actions.js";
 
+const CONNECTION_ID = "m365_connection_test";
+
 function connection(
   stateVersion,
   state = GRAPH_STATE.connected,
@@ -42,6 +44,7 @@ test("connection response parser accepts only an explicit not_connected absence"
   });
   assert.equal(parsed.state, GRAPH_STATE.notConnected);
   assert.equal(parsed.status, "not_connected");
+  assert.equal(parsed.m365ConnectionId, null);
   assert.equal(parsed.credentialCleanupPending, false);
   assert.equal(isOutlookConnectionDisconnected(parsed), true);
 });
@@ -52,6 +55,7 @@ test("connection response parser exposes only the credential cleanup boolean", (
       connection: {
         status: "revoked",
         active: false,
+        connection_id: CONNECTION_ID,
         state_version: 2,
         credential_cleanup_pending: true,
       },
@@ -65,6 +69,7 @@ test("connection response parser exposes only the credential cleanup boolean", (
         connection: {
           status: "revoked",
           active: false,
+          connection_id: CONNECTION_ID,
           state_version: 2,
           credential_cleanup_pending: "true",
         },
@@ -89,6 +94,7 @@ test("connection response parser rejects contradictory terminal activity", () =>
         connection: {
           status,
           active: false,
+          ...(status === "revoked" ? { connection_id: CONNECTION_ID } : {}),
           state_version: status === "not_connected" ? 0 : 2,
         },
       },
@@ -107,10 +113,113 @@ test("connection response parser requires active true for connected status", () 
     );
   }
   const parsed = parseOutlookConnectionRecord({
-    item: { connection: { status: "connected", active: true, state_version: 2 } },
+    item: {
+      connection: {
+        status: "connected",
+        active: true,
+        connection_id: CONNECTION_ID,
+        state_version: 2,
+      },
+    },
   });
   assert.equal(parsed.state, GRAPH_STATE.connected);
+  assert.equal(parsed.m365ConnectionId, CONNECTION_ID);
   assert.equal(isOutlookConnectionDisconnected(parsed), false);
+});
+
+test("connection response parser retains only the canonical wrapped connection_id", () => {
+  const parsed = parseOutlookConnectionRecord({
+    request_id: "connection-readback",
+    item: {
+      connection: {
+        status: "reauthorization_required",
+        active: false,
+        connection_id: CONNECTION_ID,
+        state_version: 3,
+      },
+    },
+  });
+  assert.equal(parsed.state, GRAPH_STATE.reconnectRequired);
+  assert.equal(parsed.m365ConnectionId, CONNECTION_ID);
+  assert.equal(Object.hasOwn(parsed, "connection_id"), false);
+  assert.equal(Object.hasOwn(parsed, "m365_connection_id"), false);
+});
+
+test("connection response parser requires a canonical id for every existing connection", () => {
+  for (const status of ["connected", "expired", "scope_insufficient", "reauthorization_required", "revoked"]) {
+    assert.throws(
+      () => parseOutlookConnectionRecord({
+        item: {
+          connection: {
+            status,
+            active: status === "connected",
+            state_version: 2,
+          },
+        },
+      }),
+      (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+    );
+  }
+});
+
+test("connection response parser rejects malformed or drifting connection id aliases", () => {
+  const connected = {
+    status: "connected",
+    active: true,
+    connection_id: CONNECTION_ID,
+    state_version: 2,
+  };
+  for (const connectionRecord of [
+    { ...connected, connection_id: "" },
+    { ...connected, connection_id: 42 },
+    { ...connected, connection_id: null },
+    { status: "connected", active: true, m365_connection_id: CONNECTION_ID, state_version: 2 },
+    { ...connected, m365_connection_id: "m365_connection_drift" },
+    { ...connected, connectionId: CONNECTION_ID },
+  ]) {
+    assert.throws(
+      () => parseOutlookConnectionRecord({ item: { connection: connectionRecord } }),
+      (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+    );
+  }
+  assert.throws(
+    () => parseOutlookConnectionRecord({
+      item: {
+        connection_id: "outer-connection",
+        connection: connected,
+      },
+    }),
+    (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+  );
+});
+
+test("connection response parser returns null only for canonical disconnected absence", () => {
+  for (const status of ["not_connected", "unavailable"]) {
+    const parsed = parseOutlookConnectionRecord({
+      item: {
+        connection: {
+          status,
+          active: false,
+          connection_id: null,
+          state_version: status === "not_connected" ? 0 : 1,
+        },
+      },
+    });
+    assert.equal(parsed.m365ConnectionId, null);
+  }
+  assert.throws(
+    () => parseOutlookConnectionRecord({
+      item: {
+        connection: {
+          status: "not_connected",
+          active: false,
+          connection_id: "unexpected-id",
+          state_version: 0,
+        },
+      },
+    }),
+    (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+  );
 });
 
 test("connection response parser requires a valid version for every existing connection", () => {
@@ -122,7 +231,14 @@ test("connection response parser requires a valid version for every existing con
     for (const stateVersion of [undefined, 0, -1, 1.5, true, "1", [1]]) {
       assert.throws(
         () => parseOutlookConnectionRecord({
-          item: { connection: { status, active, state_version: stateVersion } },
+          item: {
+            connection: {
+              status,
+              active,
+              ...(status !== "not_connected" ? { connection_id: CONNECTION_ID } : {}),
+              state_version: stateVersion,
+            },
+          },
         }),
         (error) => error.safe_error_code === "API_RESPONSE_INVALID",
       );

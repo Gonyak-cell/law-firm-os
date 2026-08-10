@@ -165,6 +165,47 @@ test("Microsoft egress transport rejects URL injection before Lambda Invoke", as
   assert.equal(invokeCount, 0);
 });
 
+test("OUTM-26..27 transport exposes only fixed me-message subscription and delta operations", async () => {
+  // Given
+  const calls = [];
+  const transport = createMicrosoftEgressBrokerTransport({
+    lambda_client: {
+      async send(command) {
+        const envelope = JSON.parse(Buffer.from(command.input.Payload).toString("utf8"));
+        calls.push(envelope);
+        return success(envelope.operation);
+      },
+    },
+  });
+  const accessToken = "mail-access-token-never-log";
+  const resource = "me/mailFolders('inbox')/messages";
+
+  // When
+  await transport.graphMessageSubscriptionCreate({ access_token: accessToken, resource, change_type: "created", client_state: "client-state-outm26", expiration_datetime: "2026-08-08T01:00:00.000Z" });
+  await transport.graphMessageSubscriptionRenew({ access_token: accessToken, provider_subscription_id: "provider-outm26", expiration_datetime: "2026-08-08T02:00:00.000Z" });
+  await transport.graphMessageSubscriptionList({
+    access_token: accessToken,
+    entra_tenant_id: TENANT_ID,
+    account_id: "entra-account-outm26",
+  });
+  await transport.graphMessageSubscriptionDelete({ access_token: accessToken, provider_subscription_id: "provider-outm26" });
+  await transport.graphMessageDeltaList({ access_token: accessToken, resource, delta_link: null, start_at: "2026-08-08T00:00:00.000Z" });
+
+  // Then
+  assert.deepEqual(calls.map(({ operation }) => operation), [
+    "graph.messageSubscription.create",
+    "graph.messageSubscription.renew",
+    "graph.messageSubscription.list",
+    "graph.messageSubscription.delete",
+    "graph.messageDelta.list",
+  ]);
+  assert.ok(calls.every(({ request }) => !Object.hasOwn(request, "url") && !Object.hasOwn(request, "headers")));
+  await assert.rejects(
+    transport.graphMessageDeltaList({ access_token: accessToken, resource: "users/shared/messages", delta_link: null, start_at: "2026-08-08T00:00:00.000Z" }),
+    /Inbox or Sent Items/u,
+  );
+});
+
 test("Microsoft egress transport rejects missing, cross-profile, and injected refresh profiles before Lambda Invoke", async () => {
   let invokeCount = 0;
   const transport = createMicrosoftEgressBrokerTransport({

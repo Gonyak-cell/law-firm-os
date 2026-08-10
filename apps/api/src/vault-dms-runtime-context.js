@@ -17,6 +17,7 @@ import {
   registeredAccountPublicRef,
   resolveRegisteredAccount,
 } from "./matter-vault-account-registry.js";
+import { handleVaultPrecedentApiRequest } from "./vault-precedent-runtime-context.js";
 
 const DEFAULT_VAULT_ACCOUNT = registeredAccountPublicRef(highestPrivilegeRegisteredAccount());
 
@@ -28,6 +29,7 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/vault/documents",
     "POST /api/vault/documents",
     "GET /api/vault/documents/:document_id/download",
+    "POST /api/vault/documents/:document_id/privilege-label",
     "POST /api/vault/documents/:document_id/legal-holds",
     "POST /api/vault/documents/:document_id/retention-policies",
     "POST /api/vault/documents/:document_id/delete-check",
@@ -36,6 +38,10 @@ export const VAULT_DMS_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/vault/search/preferences",
     "POST /api/vault/search/preferences",
     "GET /api/vault/audit",
+    "POST /api/vault/precedent-sources",
+    "POST /api/vault/precedent-sources/:source_id/disable",
+    "POST /api/vault/precedent-sources/:source_id/unapprove",
+    "GET /api/vault/precedents/readiness",
   ]),
   data_source: "vault_dms_runtime_repository",
   runtime_persistence: "file_backed_repository",
@@ -292,6 +298,7 @@ function serializeDocument(record) {
     title: record.title,
     status: record.status,
     current_version_id: record.current_version_id,
+    latest_sha256: record.latest_sha256 ?? null,
     privilege_label_id: record.privilege_label_id ?? null,
     legal_hold_id: record.legal_hold_id ?? null,
     owner_user_id: record.owner_user_id ?? account?.user_id ?? null,
@@ -322,6 +329,7 @@ function serializePostgresDocument(entry = {}) {
     title: document.title,
     status: document.status,
     current_version_id: document.current_version_id,
+    latest_sha256: document.latest_sha256 ?? entry.version?.sha256 ?? null,
     privilege_label_id: null,
     legal_hold_id: document.legal_hold_status === "active" ? "active" : null,
     legal_hold_status: document.legal_hold_status ?? "none",
@@ -1333,6 +1341,13 @@ export async function handleVaultDmsApiRequest({
   requestId,
   runtime = DEFAULT_RUNTIME,
 } = {}) {
+  if (pathname.startsWith("/api/vault/precedent")
+      || /^\/api\/vault\/documents\/[^/]+\/privilege-label$/u.test(pathname)) {
+    const precedent = await handleVaultPrecedentApiRequest({
+      pathname, method, query, body, context, requestId, runtime,
+    });
+    if (precedent) return precedent;
+  }
   const downloadMatch = pathname.match(/^\/api\/vault\/documents\/([^/]+)\/download$/);
   if (downloadMatch && method === "GET") {
     return handleVaultDocumentDownload({

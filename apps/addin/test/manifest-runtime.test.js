@@ -41,7 +41,7 @@ function assertNestedLaunchRuntime(manifest, name) {
 }
 
 function assertOfficialBrand(manifest, name) {
-  assert.match(manifest, /<Version>1\.0\.1\.0<\/Version>/u, `${name} must increment the manifest version`);
+  assert.match(manifest, /<Version>1\.1\.0\.0<\/Version>/u, `${name} must use the release candidate version`);
   assert.match(manifest, /<ProviderName>AMIC OS<\/ProviderName>/u, `${name} must use the official provider name`);
   assert.match(manifest, /<DisplayName\s+DefaultValue="AMIC OS"\s*\/>/u, `${name} must use the official app name`);
   assert.equal(
@@ -77,8 +77,9 @@ test("Outlook task-pane documents and copy use the official AMIC OS name", async
 
   assert.match(taskPaneHtml, /<title>AMIC OS<\/title>/u);
   assert.match(eventRuntimeHtml, /<title>AMIC OS<\/title>/u);
-  assert.match(mainSource, /label="AMIC OS 로그인"/u);
-  assert.match(mainSource, /AMIC OS에 로그인되어 있습니다\./u);
+  assert.match(mainSource, /actionLabel:\s*"AMIC OS 로그인"/u);
+  assert.match(mainSource, /AMIC OS 로그인이 필요합니다\./u);
+  assert.doesNotMatch(mainSource, /AMIC OS에 로그인되어 있습니다\./u);
   assert.match(authSource, /AMIC OS 세션만 저장할 수 있습니다\./u);
   assert.match(httpSource, /AMIC OS API request timed out/u);
 
@@ -95,6 +96,21 @@ test("Outlook task-pane documents and copy use the official AMIC OS name", async
       `${name} must not expose a legacy product name`,
     );
   }
+});
+
+test("inquiry registration helpers stay in the inquiry-only entry point", async () => {
+  const [mainSource, inquirySource] = await Promise.all([
+    read("apps/addin/src/main.jsx"),
+    read("apps/addin/src/inquiry-entry.jsx"),
+  ]);
+
+  assert.match(inquirySource, /buildInquiryRegistrationRequest\(/u);
+  assert.match(inquirySource, /from\s+"\.\/inquiry-actions\.js"/u);
+  assert.doesNotMatch(
+    mainSource,
+    /buildInquiryRegistrationRequest|inquiryResultCopy|registerInquiryAction|inquiry-actions\.js/u,
+    "matter-full must not import or invoke inquiry-only helpers",
+  );
 });
 
 test("production manifest points Taskpane, Commands, and WebView runtime at the /addin bundle", async () => {
@@ -173,31 +189,42 @@ test("classic Outlook runtime URLs are explicitly allowed at each host root", as
   });
 });
 
-test("task pane delegates OAuth, attachment, and send-event orchestration to the tested runtime helpers", async () => {
+test("task pane delegates OAuth, filing, activity, and send-event orchestration to the tested runtime helpers", async () => {
   const mainSource = await read("apps/addin/src/main.jsx");
 
   assert.match(mainSource, /import\s*\{[\s\S]*?openOfficeOAuthDialog[\s\S]*?\}\s*from\s*"\.\/addin-auth\.js"/u);
   assert.match(mainSource, /await\s+openOfficeOAuthDialog\(\{[\s\S]*?onComplete:/u);
-  assert.match(mainSource, /buildInquiryRegistrationRequest\(\{\s*action,\s*rest_message_id:/u);
-  assert.match(mainSource, /import\s*\{\s*saveOutlookAttachments\s*\}\s*from\s*"\.\/outlook-attachment-actions\.js"/u);
-  assert.match(mainSource, /await\s+saveOutlookAttachments\(\{[\s\S]*?currentItem,[\s\S]*?matterId,/u);
+  assert.match(mainSource, /import\s*\{[\s\S]*?fileOutlookEmailWithAttachments[\s\S]*?\}\s*from\s*"\.\/outlook-filing-orchestration\.js"/u);
+  assert.match(mainSource, /import\s*\{[\s\S]*?fileOutlookEmail[\s\S]*?\}\s*from\s*"\.\/outlook-filing\.js"/u);
+  assert.match(mainSource, /import\s*\{[\s\S]*?loadOutlookMatterActivity[\s\S]*?\}\s*from\s*"\.\/outlook-matter-activity\.js"/u);
+  assert.match(mainSource, /await\s+fileOutlookEmailWithAttachments\(\{[\s\S]*?previousReceipt:[\s\S]*?readAttachments:/u);
+  assert.match(mainSource, /readAttachments:\s*async[\s\S]*?isOutlookActionContextCurrent\(\{[\s\S]*?sourceItem:\s*currentItem[\s\S]*?readOutlookAttachments\(\{\s*item:\s*sourceOfficeItem/u);
+  assert.match(mainSource, /await\s+fileOutlookEmail\(\{[\s\S]*?mode:\s*"sent"/u);
+  assert.match(mainSource, /loadOutlookMatterActivity\(\{\s*matterId,\s*requestJson\s*\}\)/u);
+  assert.doesNotMatch(mainSource, /await\s+refreshMatter\(nextMatterId\)/u);
   assert.match(mainSource, /handleOutlookMessageSend\(\{[\s\S]*?readMessage:\s*\(options\)\s*=>\s*readOutlookComposeMessage\(\{/u);
   assert.match(mainSource, /registerOutlookSendHandler\(\{\s*Office:\s*window\.Office,\s*handler:\s*onMessageSendHandler,?\s*\}\)/u);
-  assert.match(mainSource, /subscribeToOutlookItemChanges\(\{[\s\S]*?setItem\(officeItemSnapshot\(\)\)[\s\S]*?resetItemActionResults\(\)/u);
+  assert.match(mainSource, /const initialItem = currentOfficeItemSnapshot\(\);[\s\S]*?setItem\(initialItem\);[\s\S]*?subscribeToOutlookItemChanges\(\{/u);
+  assert.match(mainSource, /subscribeToOutlookItemChanges\(\{[\s\S]*?setItem\(nextItem\)[\s\S]*?resetItemActionResults\(\)/u);
+  assert.match(mainSource, /resetItemActionResults\(\)[\s\S]*?setAttachmentResult\(null\)/u);
   assert.match(mainSource, /readCurrentOutlookItem\(\{\s*includeTimestamps:\s*true,\s*requireStableIdentity:\s*true\s*\}\)/u);
   assert.equal(mainSource.includes("dateTimeModified"), false);
   assert.equal(mainSource.includes("currentItem ?? item"), false);
   assert.match(mainSource, /isOutlookActionContextCurrent\(\{[\s\S]*?sourceMatterId:\s*matterId,[\s\S]*?currentMatterId:\s*selectedMatterIdRef\.current/u);
-  assert.match(mainSource, /isFiledEmailContextCurrent\(\{\s*emailResult,\s*currentItem,\s*matterId\s*\}\)/u);
+  assert.doesNotMatch(mainSource, /saveOutlookAttachments\(/u);
   assert.match(mainSource, /fetchAddinApi\(\{[\s\S]*?timeoutMs,[\s\S]*?fetchImpl:\s*window\.fetch\.bind\(window\)/u);
   assert.match(mainSource, /icon:\s*"Icon\.16x16"/u);
   assert.match(mainSource, /startOfficeTaskPane\(\{/u);
   assert.doesNotMatch(mainSource, /window\.confirm/u);
-  assert.match(mainSource, /data-testid="outlook-disconnect-confirmation"/u);
-  assert.match(mainSource, /data-testid="outlook-disconnect-confirm-button"/u);
-  assert.match(mainSource, /data-testid="outlook-cleanup-retry-button"/u);
+  assert.doesNotMatch(mainSource, /data-testid="outlook-disconnect-confirmation"/u);
+  assert.doesNotMatch(mainSource, /data-testid="outlook-disconnect-confirm-button"/u);
+  assert.doesNotMatch(mainSource, /window\.confirm\s*\(/u);
+  assert.doesNotMatch(mainSource, /data-testid="(?:outlook-)?connection-settings"/u);
+  assert.match(mainSource, /async\s+function\s+disconnectOutlook\(\)/u);
+  assert.match(mainSource, /action:\s*disconnectOutlook,[\s\S]*?actionTestId:\s*"outlook-cleanup-retry-button"/u);
+  assert.match(mainSource, /data-testid=\{intervention\.actionTestId\}/u);
   assert.match(mainSource, /if \(!graphConnected && !credentialCleanupPending\) return;/u);
-  assert.match(mainSource, /credentialCleanupPending \? "연결 정보 정리 필요"/u);
+  assert.match(mainSource, /credentialCleanupPending \? "Outlook 연결 정보 정리가 필요합니다\."/u);
   assert.ok(mainSource.includes('render: () => createRoot(document.getElementById("root")).render(<App />)'), "task pane must delegate the first render");
   assert.match(mainSource, /waitForReady:\s*ensureOfficeReady,[\s\S]*?register:\s*registerOutlookEventHandlersOnce/u);
   assert.doesNotMatch(mainSource, /async\s+function\s+mount\s*\([^)]*\)\s*\{[\s\S]*?await\s+(?:window\.Office\.onReady|ensureOfficeReady)/u);

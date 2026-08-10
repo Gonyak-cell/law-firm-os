@@ -36,7 +36,7 @@ function check(id, passed, evidence) {
 
 const auditEvents = [];
 const repository = createRepository();
-const filed = fileEmailThreadToMatter({
+const filed = await fileEmailThreadToMatter({
   repository,
   actor_id: "email-filing-user",
   audit: { append: (event) => auditEvents.push(Object.freeze({ ...event })) },

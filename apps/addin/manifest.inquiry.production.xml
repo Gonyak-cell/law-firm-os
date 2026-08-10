@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+  <Id>952431be-51b8-42a2-9bf6-769a15934e85</Id>
+  <Version>1.1.0.0</Version>
+  <ProviderName>AMIC OS</ProviderName>
+  <DefaultLocale>ko-KR</DefaultLocale>
+  <DisplayName DefaultValue="AMIC OS" />
+  <Description DefaultValue="선택한 메일을 확인한 뒤 Client 새 문의의 근거로 등록합니다." />
+  <IconUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/amic-law-icon.png" />
+  <HighResolutionIconUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/amic-law-icon.png" />
+  <SupportUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/" />
+  <AppDomains>
+    <AppDomain>https://d2mthcc8vp3cr2.cloudfront.net</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.3" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&amp;clientInquiryOnly=1" />
+        <RequestedHeight>450</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.3">
+        <bt:Set Name="Mailbox" />
+      </bt:Sets>
+    </Requirements>
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <FunctionFile resid="Commands.Url" />
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            <OfficeTab id="TabDefault">
+              <Group id="clientInquiryGroup">
+                <Label resid="Group.Label" />
+                <Control xsi:type="Button" id="clientInquiryOpenPaneButton">
+                  <Label resid="TaskpaneButton.Label" />
+                  <Supertip>
+                    <Title resid="TaskpaneButton.Label" />
+                    <Description resid="TaskpaneButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/amic-law-icon.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/amic-law-icon.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/amic-law-icon.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&amp;clientInquiryOnly=1" />
+        <bt:Url id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&amp;clientInquiryOnly=1" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Group.Label" DefaultValue="Client" />
+        <bt:String id="TaskpaneButton.Label" DefaultValue="새 문의로 등록" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="선택한 메일을 확인한 뒤 Client 새 문의의 근거로 등록합니다." />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

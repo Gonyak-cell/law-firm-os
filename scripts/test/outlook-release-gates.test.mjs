@@ -1,0 +1,10 @@
+import "./outlook-release-api-artifact-orchestration.test.mjs";
+import "./outlook-release-api-artifact-provenance.test.mjs";
+import "./outlook-release-api-static.test.mjs";
+import "./outlook-release-candidate.test.mjs";
+import "./outlook-release-cli-workflow.test.mjs";
+import "./outlook-release-m365-temporal.test.mjs";
+import "./outlook-release-m365.test.mjs";
+import "./outlook-release-profile-artifacts.test.mjs";
+import "./outlook-release-protected-evidence.test.mjs";
+import "./outlook-release-rollback.test.mjs";

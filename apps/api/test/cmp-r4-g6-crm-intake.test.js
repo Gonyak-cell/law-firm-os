@@ -1131,7 +1131,7 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
             signed_document_id: "signed_doc_cmp_g6_api_001",
             template_document_id: "template_doc_cmp_g6_api_001",
             signature_ref: "signature:signed_doc_cmp_g6_api_001",
-            content_sha256: "sha256:signed_doc_cmp_g6_api_001",
+            content_sha256: "a".repeat(64),
             byte_size: 2048,
             mime_type: "application/pdf",
             upload_state: "uploaded",
@@ -1176,7 +1176,7 @@ test("G6 conflict check, clearance token, and audit routes stay safe and tenant 
     assert.equal(token.body.item.engagement_review_satisfied, true);
     assert.equal(token.body.item.engagement_id, "engagement_cmp_g6_api_001");
     assert.equal(token.body.item.engagement_signed_document_upload_id, "signed_upload_cmp_g6_api_001");
-    assert.equal(token.body.item.engagement_signed_document_sha256, "sha256:signed_doc_cmp_g6_api_001");
+    assert.equal(token.body.item.engagement_signed_document_sha256, "a".repeat(64));
     assert.equal(token.body.production_ready_claim, false);
 
     const tokenList = await json(baseUrl, `/api/intake/clearance-tokens?${BASE_QUERY}`);

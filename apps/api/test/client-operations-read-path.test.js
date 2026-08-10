@@ -169,6 +169,8 @@ test("operational Client providers preserve parity, drift safety, and rollback d
   });
   async function start({
     featureValue,
+    identityTenantId,
+    sessionAuthValue = sessionAuth,
     untrustedVerifier,
   } = {}) {
     const started = await startApiServer({
@@ -176,7 +178,7 @@ test("operational Client providers preserve parity, drift safety, and rollback d
       runtimeProfile: "operational",
       sessionSecret: SESSION_SECRET,
       staffAuthAuthority: "internal-password",
-      sessionAuth,
+      sessionAuth: sessionAuthValue,
       stepUpAuthority: Object.freeze({}),
       persistenceAuthority: "postgres-v2",
       persistenceAuthorityEnv: {
@@ -188,6 +190,9 @@ test("operational Client providers preserve parity, drift safety, and rollback d
           "lawos/test/client-migration-t03-payroll-key",
         LAWOS_DATA_SCOPE: "synthetic-only",
         AWS_REGION: "ap-northeast-2",
+        ...(identityTenantId === undefined
+          ? {}
+          : { LAWOS_IDENTITY_TENANT_ID: identityTenantId }),
         ...(featureValue === undefined
           ? {}
           : {
@@ -283,8 +288,21 @@ test("operational Client providers preserve parity, drift safety, and rollback d
   });
   assert.equal(migrated.readback.verified, true);
   const migratedStorageDigest = await storageDigest();
+  await assert.rejects(
+    start({ identityTenantId: "tenant-client-migration-mismatch" }),
+    /LAWOS_IDENTITY_TENANT_ID must match sessionAuth\.trusted_tenant_id/u,
+  );
+  await assert.rejects(
+    start({ sessionAuthValue: Object.freeze({}) }),
+    /requires LAWOS_IDENTITY_TENANT_ID or sessionAuth\.trusted_tenant_id/u,
+  );
+  await assert.rejects(
+    start({ sessionAuthValue: null }),
+    /requires LAWOS_IDENTITY_TENANT_ID or sessionAuth\.trusted_tenant_id/u,
+  );
 
   const defaultOff = await start();
+  assert.equal(sessionAuth.trusted_tenant_id, CLIENT_MIGRATION_TENANT);
   assert.equal(
     defaultOff.persistence_authority
       .client_operations_v2_enabled,

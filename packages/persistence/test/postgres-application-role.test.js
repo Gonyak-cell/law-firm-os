@@ -6,6 +6,7 @@ import {
   configureLawosApplicationRole,
   configureLawosProductionApplicationRole,
   configureLawosRehearsalApplicationRole,
+  lawosApplicationRoleGrantStatements,
 } from "../src/postgres/application-role.js";
 import { createPostgresPool } from "../src/postgres/pool.js";
 import { runPostgresMigrations } from "../src/postgres/migration-runner.js";
@@ -64,6 +65,9 @@ test("private staging application role is least privilege and tenant-explicit", 
   );
   assert.equal(grants.rows[0].domain_rw, true);
   assert.equal(grants.rows[0].authority_read, false);
+  const roleGrants = lawosApplicationRoleGrantStatements();
+  assert.equal(roleGrants.includes("GRANT SELECT, INSERT, UPDATE ON lawos_integrations.docusign_requests TO lawos_app"), true);
+  assert.equal(roleGrants.includes("GRANT SELECT, INSERT ON lawos_integrations.docusign_webhook_receipts TO lawos_app"), true);
 });
 
 test("private staging application role rejects wildcard and non-LawOS tenants", async () => {

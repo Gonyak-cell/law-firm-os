@@ -110,6 +110,18 @@ test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures s
   assert.match(packageQaSource, /home_finance_charts_horizontal_order/);
 });
 
+test("client command keys fail closed without secure randomness", async () => {
+  const panelSource = await readWebFile("src/components/ClientDepositOperationsPanel.jsx");
+  const clientsSource = await readWebFile("src/components/ClientsSurface.jsx");
+
+  assert.match(panelSource, /typeof globalThis\.crypto\?\.randomUUID !== "function"/);
+  assert.match(panelSource, /globalThis\.crypto\.randomUUID\(\)\.replaceAll\("-", ""\)/);
+  assert.doesNotMatch(panelSource, /Math\.random/);
+  assert.match(clientsSource, /function clientCommandIdempotencyKey[\s\S]*?typeof globalThis\.crypto\?\.randomUUID !== "function"/);
+  assert.match(clientsSource, /const random = globalThis\.crypto\.randomUUID\(\)\.replace\(\/-\/gu, ""\)/);
+  assert.doesNotMatch(clientsSource.match(/function clientCommandIdempotencyKey[\s\S]*?function clientCommandTimestamp/u)?.[0] ?? "", /Math\.random/);
+});
+
 test("compact record rows keep low-value metadata on the primary line across product surfaces", async () => {
   const stylesSource = await readWebFile("src/styles.css");
   const sources = await Promise.all([
@@ -1968,6 +1980,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/vault\/audit/);
   assert.match(apiClientSource, /path:\s*"\/api\/finance\/time-entries"/);
   assert.match(apiClientSource, /const timeEntryId = uiRuntimeId\("time_ui"\)/);
+  assert.match(apiClientSource, /globalThis\.crypto\.randomUUID\(\)/);
+  assert.doesNotMatch(apiClientSource, /function uiRuntimeId[\s\S]*?Math\.random/);
   assert.match(apiClientSource, /idempotency_key: timeEntryId/);
   assert.match(apiClientSource, /billable/);
   assert.doesNotMatch(apiClientSource, /idempotency_key:\s*`ui-time:\$\{matterId\}`/);

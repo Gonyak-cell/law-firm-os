@@ -175,7 +175,9 @@ function permissionRulesFromScopes(scopes = []) {
   }
   if (granted.has("matter.write")) {
     rules.push(allowRule("matter-write", { action_prefixes: ["matter:", "matter."] }));
-    rules.push(allowRule("matter-outlook-write", { actions: ["outlook:followup:create"] }));
+    rules.push(allowRule("matter-outlook-write", {
+      actions: ["outlook:followup:create", "outlook:task:create", "outlook:task:update"],
+    }));
   }
   if (granted.has("vault.read")) {
     rules.push(allowRule("vault-read", {
@@ -2644,6 +2646,7 @@ export function createApiSessionAuth({
   }
 
   return Object.freeze({
+    trusted_tenant_id: trustedTenantId,
     capabilities: Object.freeze({
       provider: federatedStaffAuthEnabled ? staffOidcProvider.provider_id : syntheticLoginEnabled ? "local-dev-synthetic-provider" : LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
       staff_auth_authority: federatedStaffAuthEnabled ? "entra-oidc" : syntheticLoginEnabled ? "local-dev-synthetic" : "internal-password",

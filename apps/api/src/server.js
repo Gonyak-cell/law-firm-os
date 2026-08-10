@@ -18,6 +18,8 @@ import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.j
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { createMatterTimelineCursorAuthority } from "../../../packages/matter/src/timeline-cursor-authority.js";
+import { createOutlookAttachmentReceiptAuthority } from "./outlook-attachment-receipt-authority.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
@@ -25,6 +27,7 @@ import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
+import { inspectPostgresEngagementLegacyIdempotency } from "../../../packages/intake/src/engagement-legacy-idempotency-readiness.js";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
 import { createAnalyticsRepository } from "../../../packages/analytics/src/runtime-repository.js";
 import {
@@ -191,6 +194,23 @@ import {
   isClientOutlookOAuthState,
   parseClientOutlookAuthorizationCallback,
 } from "./client-outlook-oauth-callback.js";
+import { OUTLOOK_GRAPH_WEBHOOK_PATH } from "./outlook-graph-webhook.js";
+import {
+  createPostgresOutlookConversationRuntime,
+  LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV,
+} from "./outlook-conversation-operational-runtime.js";
+import {
+  handleDocusignOutlookRequest,
+  handleDocusignWebhook,
+  isDocusignOutlookRoute,
+  isDocusignWebhook,
+} from "./docusign-api.js";
+import {
+  handleOutlookDocumentApiRequest,
+  isOutlookDocumentApiPath,
+} from "./outlook-document-api.js";
+import { createDocusignFailClosedRuntime } from "./docusign-runtime.js";
+import { createPostgresDocusignEnvelopeRepository } from "../../../packages/integrations-core/src/docusign-postgres-repository.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
 import {
   LAWOS_PERSISTENCE_AUTHORITIES,
@@ -212,6 +232,10 @@ import {
   resolveClientOperationsV2Enabled,
 } from "./client-operations-config.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
+import {
+  createPostgresDmsConsumerReadAuthority,
+  createPostgresDmsConsumerStorage,
+} from "../../../packages/dms/src/postgres-consumer-storage.js";
 import { createEntraOidcProviderFromSecretReference } from "./entra-oidc-provider.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
 import {
@@ -486,6 +510,7 @@ export function createDefaultDmsRuntime({
   storePath = process.env.LAWOS_DMS_STORE_PATH,
   storage,
   storageRootPath = process.env.LAWOS_DMS_OBJECT_STORE_PATH,
+  quarantineRootPath = process.env.LAWOS_DMS_QUARANTINE_STORE_PATH,
 } = {}) {
   const resolvedStorePath = storePath || createEphemeralDmsStorePath();
   const dmsRepository =
@@ -499,6 +524,7 @@ export function createDefaultDmsRuntime({
     createFileStorageAdapter({
       adapter_id: "vault-api-file",
       rootPath: storageRootPath || `${resolvedStorePath}.objects`,
+      quarantineRootPath: quarantineRootPath || `${resolvedStorePath}.quarantine-authority`,
     });
   return createVaultDmsRuntimeContext({ repository: dmsRepository, storage: dmsStorage });
 }
@@ -1142,7 +1168,10 @@ function requestBodyTooLargeError() {
   return error;
 }
 
-export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIMIT_BYTES } = {}) {
+export async function readRequestBody(req, {
+  maxBytes = DEFAULT_REQUEST_BODY_LIMIT_BYTES,
+  injectAuthenticatedActor = true,
+} = {}) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new TypeError("maxBytes must be a positive safe integer");
   if (req.lawosRequestBodyParsed === true) return req.lawosParsedRequestBody;
   const declaredLength = Number(Array.isArray(req.headers?.["content-length"])
@@ -1168,7 +1197,7 @@ export async function readRequestBody(req, { maxBytes = DEFAULT_REQUEST_BODY_LIM
     if (text) body = JSON.parse(text);
   }
   const authenticatedActorId = String(req.lawosAuthenticatedActorId ?? "").trim();
-  if (authenticatedActorId && body && typeof body === "object" && !Array.isArray(body)) {
+  if (injectAuthenticatedActor && authenticatedActorId && body && typeof body === "object" && !Array.isArray(body)) {
     body = { ...body, actor_id: authenticatedActorId };
   }
   req.lawosRequestBodyHash = hashDomainValue(body);
@@ -1360,7 +1389,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, m365GraphConfig = null, sessionAuth, stepUpAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1450,7 +1479,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       persistence_authority: persistenceAuthority,
       runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
       auth_authority: sessionAuth.capabilities ?? null,
+      ...(outlookGraphSyncReadiness
+        ? { outlook_graph_sync: outlookGraphSyncReadiness }
+        : {}),
       runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
+      docusign: docusignRuntime?.readiness?.() ?? { status: "blocked", production_ready_claim: false },
       ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
     return;
@@ -1985,8 +2018,51 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
+    if (isOutlookDocumentApiPath(pathname)) {
+      const declaredLength = Number(Array.isArray(req.headers["content-length"])
+        ? req.headers["content-length"][0]
+        : req.headers["content-length"]);
+      const hasBody = hasJsonRequestBody(req.method)
+        || (Number.isFinite(declaredLength) && declaredLength > 0)
+        || req.headers["transfer-encoding"] !== undefined;
+      const body = hasBody
+        ? await readRequestBody(req, { maxBytes: 128 * 1024, injectAuthenticatedActor: false })
+        : {};
+      const result = await handleOutlookDocumentApiRequest({
+        pathname,
+        method: req.method,
+        query,
+        queryPairs: [...url.searchParams.entries()],
+        body,
+        context: requestPermissionContext(),
+        principal: sessionContext.principal,
+        requestId,
+        matterRuntime,
+        docusignRuntime,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
+    if (isDocusignOutlookRoute(req.method, pathname)) {
+      const body = req.method === "POST" ? await readRequestBody(req) : {};
+      const result = await handleDocusignOutlookRequest({
+        method: req.method,
+        pathname,
+        query,
+        body,
+        principal: sessionContext.principal,
+        requestId,
+        runtime: docusignRuntime,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     const context = requestPermissionContext();
-    const body = req.method === "POST" ? await readRequestBody(req) : {};
+    const body = hasJsonRequestBody(req.method)
+      ? await readRequestBody(req, {
+          injectAuthenticatedActor: pathname !== "/api/outlook/time-entry-drafts",
+        })
+      : {};
     const result = await handleOutlookAddinApiRequest({
       pathname,
       method: req.method,
@@ -2000,8 +2076,12 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         dmsRuntime,
         emailDmsRuntime,
         crmIntakeRuntime,
+        financeRuntime,
+        precedentSearchRuntime,
         m365GraphConfig,
+        conversationRuntime: outlookConversationRuntime,
         sessionAuth,
+        attachmentReceiptAuthority: outlookAttachmentReceiptAuthority,
       },
     });
     sendJson(req, res, result.status, result.body, result.headers);
@@ -2074,6 +2154,7 @@ export function createApiServer({
   matterRuntime = createDefaultMatterRuntime({ hrxRuntime }),
   dmsRuntime = createDefaultDmsRuntime(),
   emailDmsRuntime = createDefaultEmailDmsRuntime({ dmsRuntime }),
+  docusignRuntime = createDocusignFailClosedRuntime(),
   crmIntakeRuntime = createDefaultCrmIntakeRuntime({
     dmsRuntime,
     emailDmsRepository: emailDmsRuntime?.repository,
@@ -2099,11 +2180,17 @@ export function createApiServer({
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
+  precedentSearchRuntime = null,
   m365GraphConfig = null,
+  outlookGraphWebhook = emailDmsRuntime?.outlook_graph_webhook ?? null,
+  outlookConversationRuntime = null,
+  outlookGraphSyncReadiness = emailDmsRuntime?.outlook_graph_sync_readiness ?? null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
   sessionAuth,
+  timelineCursorAuthority = createMatterTimelineCursorAuthority(),
+  outlookAttachmentReceiptAuthority = createOutlookAttachmentReceiptAuthority(),
   sessionObjectAclResolver = null,
   requestRuntimeAuthority = null,
   payrollStatementProviderVerifier = null,
@@ -2140,10 +2227,15 @@ export function createApiServer({
                   ?? null,
               });
         const baseMatterRuntime = requestRuntimes.matterRuntime ?? matterRuntime;
-        const matterRuntimeWithClearanceLedger =
-          baseMatterRuntime?.clearanceRepository || !resolvedCrmIntakeRuntime?.intakeRepository
-            ? baseMatterRuntime
-            : Object.freeze({ ...baseMatterRuntime, clearanceRepository: resolvedCrmIntakeRuntime.intakeRepository });
+        const matterRuntimeWithClearanceLedger = baseMatterRuntime
+          ? Object.freeze({
+              ...baseMatterRuntime,
+              ...(!baseMatterRuntime.clearanceRepository && resolvedCrmIntakeRuntime?.intakeRepository
+                ? { clearanceRepository: resolvedCrmIntakeRuntime.intakeRepository }
+                : {}),
+              timelineCursorAuthority,
+            })
+          : baseMatterRuntime;
         return dispatchApiHandler(handle, req, targetResponse, {
           hrxRuntime: requestRuntimes.hrxRuntime ?? hrxRuntime,
           hrxRuntimeUnavailable,
@@ -2151,6 +2243,7 @@ export function createApiServer({
           matterRuntime: matterRuntimeWithClearanceLedger,
           dmsRuntime: requestRuntimes.dmsRuntime ?? dmsRuntime,
           emailDmsRuntime: resolvedEmailDmsRuntime,
+          docusignRuntime: requestRuntimes.docusignRuntime ?? docusignRuntime,
           crmIntakeRuntime: resolvedCrmIntakeRuntime,
           financeRuntime: requestRuntimes.financeRuntime ?? financeRuntime,
           financeRuntimeUnavailable,
@@ -2160,7 +2253,10 @@ export function createApiServer({
           uiReadinessRuntime: requestRuntimes.uiReadinessRuntime ?? uiReadinessRuntime,
           homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
           enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
+          precedentSearchRuntime: requestRuntimes.precedentSearchRuntime ?? precedentSearchRuntime,
           m365GraphConfig,
+          outlookConversationRuntime,
+          outlookGraphSyncReadiness,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
           payrollStatementProviderVerifier,
@@ -2170,10 +2266,64 @@ export function createApiServer({
           persistenceAuthority,
           persistenceCapabilities: requestRuntimeAuthority?.capabilities ?? null,
           dataScope,
+          outlookAttachmentReceiptAuthority,
         });
       };
 
       const requestPathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
+      if (requestPathname === OUTLOOK_GRAPH_WEBHOOK_PATH && typeof outlookGraphWebhook?.handle === "function") {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        const requestUrl = new URL(req.url || "/", `http://${HOST}`);
+        let body = null;
+        if (req.method === "POST" && !requestUrl.searchParams.has("validationToken") && /^application\/json(?:\s*;|$)/iu.test(String(req.headers["content-type"] ?? ""))) {
+          try {
+            body = await readRequestBody(req, { maxBytes: 256 * 1024 });
+          } catch (error) {
+            sendJson(req, res, error?.status === 413 ? 413 : 400, { request_id: requestId, outcome: "blocked", safe_error_codes: ["OUTLOOK_GRAPH_NOTIFICATION_INVALID"] });
+            return;
+          }
+        }
+        const result = await outlookGraphWebhook.handle({
+          method: req.method,
+          query: Object.fromEntries(requestUrl.searchParams),
+          headers: req.headers,
+          body,
+          request_id: requestId,
+        });
+        if (result.headers?.["content-type"]?.startsWith("text/plain")) {
+          res.writeHead(result.status, result.headers);
+          res.end(result.body);
+        } else {
+          sendJson(req, res, result.status, result.body, result.headers);
+        }
+        return;
+      }
+      if (isDocusignWebhook(req.method, requestPathname)) {
+        const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
+        req.lawosRequestId = requestId;
+        try {
+          await readRequestBody(req, { maxBytes: 256 * 1024 });
+        } catch (error) {
+          const result = await handleDocusignWebhook({
+            headers: req.headers,
+            rawBody: req.lawosRawRequestBody ?? Buffer.alloc(0),
+            requestId,
+            runtime: docusignRuntime,
+            preflightError: error,
+          });
+          sendJson(req, res, result.status, result.body);
+          return;
+        }
+        const result = await handleDocusignWebhook({
+          headers: req.headers,
+          rawBody: req.lawosRawRequestBody,
+          requestId,
+          runtime: docusignRuntime,
+        });
+        sendJson(req, res, result.status, result.body);
+        return;
+      }
       if (isPayrollStatementProviderCallback(req.method, requestPathname)) {
         const requestId = String(req.headers["x-request-id"] ?? "").trim() || `req_${randomUUID()}`;
         req.lawosRequestId = requestId;
@@ -2280,6 +2430,7 @@ export async function startApiServer({
   persistenceSecretsClient,
   persistenceResolvePostgresSecret,
   sessionSecret,
+  outlookAttachmentReceiptAuthority,
   hrxRuntime,
   hrxStore,
   hrxStorePath,
@@ -2296,6 +2447,7 @@ export async function startApiServer({
   dmsStorage,
   emailDmsRuntime,
   emailDmsRepository,
+  docusignRuntime,
   dmsVerifyPermanentDeleteApproval,
   payrollArtifactSecret,
   payrollProviders,
@@ -2353,6 +2505,8 @@ export async function startApiServer({
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
   m365GraphConfig,
+  outlookGraphWebhook,
+  outlookConversationRuntimeFactory = createPostgresOutlookConversationRuntime,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
   authCredentialStorePath,
@@ -2408,6 +2562,11 @@ export async function startApiServer({
     createClientFixedReportSnapshotTokenAuthority({
       secret: resolvedSessionSecret,
     });
+  const resolvedTimelineCursorAuthority = createMatterTimelineCursorAuthority({
+    secret: resolvedSessionSecret,
+  });
+  const resolvedOutlookAttachmentReceiptAuthority = outlookAttachmentReceiptAuthority
+    ?? createOutlookAttachmentReceiptAuthority({ secret: resolvedSessionSecret });
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
@@ -2456,10 +2615,13 @@ export async function startApiServer({
               ledger: domainLedger,
             })
           : sessionObjectAclResolver;
+      const configuredIdentityTenantId = String(
+        resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID ?? "",
+      ).trim() || null;
       const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
         profile: resolvedRuntimeProfile,
         secret: resolvedSessionSecret,
-        trustedTenantId: resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID,
+        trustedTenantId: configuredIdentityTenantId ?? undefined,
         passwordResetEmailDelivery,
         stepUpAuthority: resolvedStepUpAuthority,
         staffOidcProvider: resolvedStaffOidcProvider,
@@ -2467,7 +2629,55 @@ export async function startApiServer({
         identityRepository,
         objectAclResolver: resolvedSessionObjectAclResolver,
       });
+      const sessionAuthorityTenantId = String(
+        sessionAuth == null ? "" : resolvedSessionAuth.trusted_tenant_id ?? "",
+      ).trim() || null;
+      if (configuredIdentityTenantId && sessionAuthorityTenantId
+          && configuredIdentityTenantId !== sessionAuthorityTenantId) {
+        throw runtimePreflightError(
+          "LAWOS_IDENTITY_TENANT_ID must match sessionAuth.trusted_tenant_id",
+        );
+      }
+      const startupAuthorityTenantId = configuredIdentityTenantId
+        ?? sessionAuthorityTenantId;
+      if (!startupAuthorityTenantId) {
+        throw runtimePreflightError(
+          "postgres-v2 startup requires LAWOS_IDENTITY_TENANT_ID or sessionAuth.trusted_tenant_id",
+        );
+      }
+      let engagementLegacyReadiness;
+      try {
+        engagementLegacyReadiness = await inspectPostgresEngagementLegacyIdempotency({
+          ledger: domainLedger,
+          tenant_id: startupAuthorityTenantId,
+        });
+      } catch {
+        const error = runtimePreflightError(
+          "Intake engagement legacy idempotency inventory scan failed",
+        );
+        error.safe_error_code = "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_INVENTORY_SCAN_FAILED";
+        throw error;
+      }
+      if (!engagementLegacyReadiness.ready) {
+        const error = runtimePreflightError(
+          "Intake engagement legacy idempotency inventory requires manual review",
+        );
+        error.safe_error_code = "INTAKE_ENGAGEMENT_LEGACY_IDEMPOTENCY_INVENTORY_NONZERO";
+        error.readiness_receipt = engagementLegacyReadiness;
+        throw error;
+      }
       const resolvedDmsStorage = dmsStorage ?? createPostgresDmsStorageFromEnv(resolvedPersistenceAuthorityEnv);
+      const dmsConsumerReadAuthority = createPostgresDmsConsumerReadAuthority({
+        pool: postgresPool,
+      });
+      await dmsConsumerReadAuthority.probe({
+        tenant_id: startupAuthorityTenantId,
+        adapter_id: resolvedDmsStorage.adapter_id,
+      });
+      const dmsConsumerStorage = createPostgresDmsConsumerStorage({
+        storage: resolvedDmsStorage,
+        authority: dmsConsumerReadAuthority,
+      });
       const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
         env: resolvedPersistenceAuthorityEnv,
         explicitSecret: payrollArtifactSecret,
@@ -2477,6 +2687,8 @@ export async function startApiServer({
       const activeDmsUploadRuntime = createPostgresDmsUploadRuntime({
         pool: postgresPool,
         storage: resolvedDmsStorage,
+        committedStorage: dmsConsumerStorage,
+        completionDenyAuthority: dmsConsumerReadAuthority,
         sourceOnly: false,
         verifyPermanentDeleteApproval: dmsVerifyPermanentDeleteApproval,
       });
@@ -2492,7 +2704,9 @@ export async function startApiServer({
             });
       const requestRuntimeAuthority = createPostgresApiRuntimeAuthority({
         ledger: domainLedger,
-        dmsStorage: resolvedDmsStorage,
+        dmsStorage: dmsConsumerStorage,
+        payrollArtifactStorage: resolvedDmsStorage,
+        inquiryEvidenceStorage: resolvedDmsStorage,
         dmsUploadRuntime: activeDmsUploadRuntime,
         payrollArtifactSecret: resolvedPayrollArtifactSecret,
         payrollProviders,
@@ -2522,7 +2736,38 @@ export async function startApiServer({
         clientOperationsV2Enabled:
           resolvedClientOperationsV2Enabled,
         clientOperationsSchemaPool: postgresPool,
+        precedentSearchPool: postgresPool,
+        precedentAuthoritySecret: resolvedSessionSecret,
         identityRepository,
+        requireDmsConsumerReadAuthority: true,
+      });
+      const outlookConversationRuntime =
+        m365GraphConfig?.provider_runtime_enabled === true
+          ? await outlookConversationRuntimeFactory({
+              pool: postgresPool,
+              domain_ledger: domainLedger,
+              tenant_id: startupAuthorityTenantId,
+              entra_tenant_id: m365GraphConfig.entra_tenant_id,
+              notification_url: resolvedPersistenceAuthorityEnv.LAWOS_GRAPH_NOTIFICATION_URL,
+              cursor_key_material: resolvedSessionSecret,
+              credential_vault: m365GraphConfig.credential_vault,
+              conversation_provider: m365GraphConfig.provider,
+              request_runtime_authority: requestRuntimeAuthority,
+              worker_schedule_enabled:
+                resolvedPersistenceAuthorityEnv[
+                  LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED_ENV
+                ] === "true",
+            })
+          : null;
+      const operationalM365GraphConfig = outlookConversationRuntime
+        ? Object.freeze({
+            ...m365GraphConfig,
+            before_revoke_connection:
+              outlookConversationRuntime.before_connection_revoke,
+          })
+        : m365GraphConfig;
+      const resolvedDocusignRuntime = docusignRuntime ?? createDocusignFailClosedRuntime({
+        repository: createPostgresDocusignEnvelopeRepository({ pool: postgresPool }),
       });
       const server = createApiServer({
         hrxRuntime: null,
@@ -2530,6 +2775,7 @@ export async function startApiServer({
         matterRuntime: null,
         dmsRuntime: null,
         emailDmsRuntime: null,
+        docusignRuntime: resolvedDocusignRuntime,
         crmIntakeRuntime: null,
         financeRuntime: null,
         analyticsRuntime: null,
@@ -2538,9 +2784,14 @@ export async function startApiServer({
         uiReadinessRuntime: null,
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
-        m365GraphConfig,
+        m365GraphConfig: operationalM365GraphConfig,
+        outlookGraphWebhook: outlookGraphWebhook ?? outlookConversationRuntime?.webhook,
+        outlookConversationRuntime,
+        outlookGraphSyncReadiness: outlookConversationRuntime?.readiness ?? null,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
+        timelineCursorAuthority: resolvedTimelineCursorAuthority,
+        outlookAttachmentReceiptAuthority: resolvedOutlookAttachmentReceiptAuthority,
         requestRuntimeAuthority,
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
@@ -2565,6 +2816,7 @@ export async function startApiServer({
             sessionAuth: resolvedSessionAuth,
             persistence_authority: requestRuntimeAuthority.capabilities,
             requestRuntimeAuthority,
+            outlookConversationRuntime,
           });
         });
       });
@@ -2793,6 +3045,7 @@ export async function startApiServer({
     matterRuntime: matterRuntimeContext,
     dmsRuntime: dmsRuntimeContext,
     emailDmsRuntime: emailDmsRuntimeContext,
+    docusignRuntime,
     crmIntakeRuntime,
     financeRuntime: financeRuntimeContext,
     financeRuntimeUnavailable,
@@ -2803,8 +3056,12 @@ export async function startApiServer({
     homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
     m365GraphConfig,
+    outlookGraphWebhook,
+    outlookGraphSyncReadiness: null,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
+    timelineCursorAuthority: resolvedTimelineCursorAuthority,
+    outlookAttachmentReceiptAuthority: resolvedOutlookAttachmentReceiptAuthority,
     runtimeProfile: resolvedRuntimeProfile,
     persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,
