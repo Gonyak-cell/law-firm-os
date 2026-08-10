@@ -179,8 +179,10 @@ async function switchItem(page, key) {
 test("8f3 editable task/time actions preserve idempotent intent across hostile Office item changes", async () => {
   const web = await startOutlookAddinStaticServer({ distRoot: DIST_ROOT });
   const browser = await chromium.launch({ headless: true });
-  const { page, state } = await openFixture(browser, web);
+  let page;
+  let state;
   try {
+    ({ page, state } = await openFixture(browser, web));
     await chooseMatter(page, MATTER); await page.locator("[data-feature-id='mail.save-with-attachments']").click();
     await page.locator("[data-testid='file-email-button']").click();
     await page.getByTestId("operation-result").waitFor({ state: "visible" });
@@ -258,7 +260,7 @@ test("8f3 editable task/time actions preserve idempotent intent across hostile O
     const times = state.requests.filter(({ path, method }) => path === "/api/outlook/time-entry-drafts" && method === "POST");
     assert.equal(state.durableTimeCreates, 1); assert.equal(times.length, 2); assert.deepEqual(times[0].body, times[1].body); assert.ok(times[0].body.idempotency_key.startsWith("outlook-time-entry-draft:"));
   } finally {
-    await page.close();
+    await page?.close();
     await browser.close();
     await new Promise((resolve) => web.server.close(resolve));
   }

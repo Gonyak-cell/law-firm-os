@@ -106,7 +106,7 @@ jobs:
   validate:
     name: Add-in and OAuth validation
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout exact source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -134,7 +134,7 @@ jobs:
           echo "$pg_bin" >> "$GITHUB_PATH"
 
       - name: Add-in tests
-        run: node --test --test-concurrency=1 apps/addin/test/*.test.js
+        run: npm --workspace apps/addin run build && node --test --test-concurrency=1 apps/addin/test/*.test.js
 
       - name: Release gate unit tests
         run: node --test scripts/test/outlook-release-*.test.mjs
