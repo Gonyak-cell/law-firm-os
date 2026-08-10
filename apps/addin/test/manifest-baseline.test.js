@@ -59,7 +59,7 @@ test("rollback contract reconstructs the authoritative 1.0.1.1 bytes without his
   assert.equal(rollback.candidate_version, "1.1.0.0");
   assert.equal(rollback.rollback_version, "1.0.1.1");
   assert.equal(rollback.authoritative_baseline_receipt, "contracts/outlook-addin-deployment-baseline.json");
-  assert.equal(rollback.assignment_restore_policy, "preserve_current_single_visible_distribution");
+  assert.equal(rollback.assignment_restore_policy, "reconcile_to_validated_single_visible_distribution");
   assert.equal(rollback.raw_assignment_pii_included, false);
   assert.equal(rollback.secret_material_included, false);
   assert.equal(rollback.raw_manifest_xml_included, false);

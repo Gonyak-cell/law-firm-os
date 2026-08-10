@@ -352,6 +352,7 @@
         "approved_template_runtime",
         "precedent_index_runtime",
         "authorization",
+        "assignment_safety",
         "pilot_assignment",
         "monitoring_plan",
         "rollback_rehearsal",

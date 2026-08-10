@@ -22,6 +22,7 @@ export const PROFILE_CONTRACTS = {
   },
 };
 export const EMPTY_ASSIGNMENT_FINGERPRINT_SHA256 = "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945";
+export const ROLLBACK_ASSIGNMENT_RESTORE_POLICY = "reconcile_to_validated_single_visible_distribution";
 export const PRODUCTION_DISTRIBUTION = Object.freeze({
   eligible_user_count: 9,
   excluded_user_count: 1,
@@ -102,6 +103,7 @@ export const REQUIRED_MUTATION_ACTIONS = Object.freeze(Object.values(MUTATION_AC
 export const REQUIRED_PROOF_CLASSES = [
   ...REQUIRED_PREREQUISITES,
   "authorization",
+  "assignment_safety",
   "central_deployment",
   "go_live_approval",
   "monitoring_plan",

@@ -1,4 +1,4 @@
-import { GIT_OID } from "./constants.mjs";
+import { GIT_OID, ROLLBACK_ASSIGNMENT_RESTORE_POLICY } from "./constants.mjs";
 import {
   assertEqual, assertExactKeys, assertSafeRelativePath, assertSha256, profileMap, requiredText,
 } from "./primitives.mjs";
@@ -68,7 +68,7 @@ export function validateRollbackContract(rollback, baseline, contract) {
     || rollback.rollback_version !== contract.rollback_version
     || rollback.authoritative_baseline_receipt !== contract.baseline_receipt
     || rollback.permission_event_diff !== "none"
-    || rollback.assignment_restore_policy !== "preserve_current_single_visible_distribution") {
+    || rollback.assignment_restore_policy !== ROLLBACK_ASSIGNMENT_RESTORE_POLICY) {
     throw new Error("rollback version, permission/event, or assignment restore policy drifted");
   }
   if (rollback.raw_assignment_pii_included !== false || rollback.secret_material_included !== false

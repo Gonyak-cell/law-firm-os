@@ -2,7 +2,7 @@ import {
   staticReleaseProjection, validateProtectedRollbackEvidence,
 } from "../../lib/outlook-release-gates.mjs";
 import {
-  authorizationProof, centralProof, goLiveProof, hostProof, monitoringProof, pilotProof,
+  assignmentSafetyProof, authorizationProof, centralProof, goLiveProof, hostProof, monitoringProof, pilotProof,
   prerequisiteProofs, propagationProof, rollbackProof,
 } from "./m365-proof-values.mjs";
 import {
@@ -15,7 +15,11 @@ import { createRollbackEvidenceFixture } from "./rollback-evidence-fixture.mjs";
 const evidence = (binding) => ({ evidence_ref: binding.evidence_ref, evidence_sha256: binding.evidence_sha256 });
 
 function populateReadbacks(receipt, candidate, plan) {
-  receipt.operations = receipt.profiles.map((profile) => {
+  const riskOrderedProfiles = [
+    ...receipt.profiles.filter(({ production_user_visible }) => !production_user_visible),
+    ...receipt.profiles.filter(({ production_user_visible }) => production_user_visible),
+  ];
+  receipt.operations = riskOrderedProfiles.map((profile) => {
     const distribution = contract.m365.production_distribution.profiles
       .find(({ product_id }) => product_id === profile.product_id);
     return {
@@ -33,7 +37,7 @@ function populateReadbacks(receipt, candidate, plan) {
       source_locations: profile.source_locations,
     };
   });
-  receipt.readbacks = receipt.profiles.map((profile) => ({
+  receipt.readbacks = riskOrderedProfiles.map((profile) => ({
     product_id: profile.product_id, version: contract.release_version,
     manifest_sha256: profile.candidate_manifest_sha256, deployment_mode: "fixed",
     source_locations: profile.source_locations, assignment_count: profile.assignment_count,
@@ -44,7 +48,9 @@ function populateReadbacks(receipt, candidate, plan) {
   }));
 }
 
-async function writeControls(root, receipt, restored, authorizedActions) {
+async function writeControls(root, receipt, restored, {
+  assignmentSafetyObservedAtUtc, authorizedActions, currentAssignmentOverrides, pilotObservedAtUtc,
+}) {
   const control = receipt.execution_control;
   control.operator_ref = "operator-ref:release-engineer-01";
   control.owner_ref = "owner-ref:outlook-release-01";
@@ -53,21 +59,32 @@ async function writeControls(root, receipt, restored, authorizedActions) {
   control.monitoring_criteria = ["two-source-one-visible-readback-exact", "provider-error-rate-below-threshold"];
   control.abort_criteria = ["manifest-readback-drift", "provider-error-rate-threshold-breached"];
   control.rollback_readback_owner_ref = "owner-ref:rollback-readback-01";
-  const authorization = await writeProtectedJson(root, "controls/authorization.json", authorizationProof(control, authorizedActions));
   const groups = ["group-ref:outlook-pilot-nine"];
-  const pilotValue = pilotProof(receipt, groups);
+  const pilotValue = pilotProof(receipt, groups, pilotObservedAtUtc);
   const pilot = await writeProtectedJson(root, "controls/pilot-assignment.json", pilotValue);
-  const monitoring = await writeProtectedJson(root, "controls/monitoring-plan.json", monitoringProof(control));
-  const rehearsal = await writeProtectedJson(root, "controls/rollback-rehearsal.json", rollbackProof(control, restored));
-  control.authorization_evidence = evidence(authorization);
   control.pilot_assignment = {
     ...evidence(pilot), groups, fingerprint_sha256: pilotValue.assignment_fingerprint_sha256,
     eligible_principal_fingerprint_sha256: pilotValue.eligible_principal_fingerprint_sha256,
     excluded_principal_fingerprint_sha256: pilotValue.excluded_principal_fingerprint_sha256,
   };
+  const authorization = await writeProtectedJson(
+    root, "controls/authorization.json", authorizationProof(control, authorizedActions),
+  );
+  const assignmentSafetyValue = assignmentSafetyProof(
+    pilotValue, pilot.evidence_sha256, currentAssignmentOverrides, assignmentSafetyObservedAtUtc,
+  );
+  const assignmentSafety = await writeProtectedJson(
+    root, "controls/assignment-safety.json", assignmentSafetyValue,
+  );
+  const monitoring = await writeProtectedJson(root, "controls/monitoring-plan.json", monitoringProof(control));
+  const rehearsal = await writeProtectedJson(root, "controls/rollback-rehearsal.json", rollbackProof(
+    control, restored, assignmentSafety.evidence_sha256, pilotValue.assignments,
+  ));
+  control.authorization_evidence = evidence(authorization);
+  control.assignment_safety_evidence = evidence(assignmentSafety);
   control.monitoring_evidence = evidence(monitoring);
   control.rollback_rehearsal_evidence = evidence(rehearsal);
-  return { authorization, pilot, monitoring, rehearsal };
+  return { assignmentSafety, authorization, pilot, monitoring, rehearsal };
 }
 
 async function writePrerequisites(root, receipt, candidate, plan, planBinding, controls) {
@@ -126,7 +143,9 @@ async function writeHosts(root, receipt) {
   }
 }
 
-export async function completedM365Fixture({ authorizedActions } = {}) {
+export async function completedM365Fixture({
+  assignmentSafetyObservedAtUtc, authorizedActions, currentAssignmentOverrides, pilotObservedAtUtc,
+} = {}) {
   const hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") };
   const root = await createProtectedFixtureRoot();
   const rollbackFixture = await createRollbackEvidenceFixture(root, baseline, rollback);
@@ -142,7 +161,9 @@ export async function completedM365Fixture({ authorizedActions } = {}) {
   receipt.status = "deployment_verified";
   receipt.authorization_ref = "change-ref:outlook-20260808-001";
   receipt.mutation_count = 2;
-  const controls = await writeControls(root, receipt, restored, authorizedActions);
+  const controls = await writeControls(root, receipt, restored, {
+    assignmentSafetyObservedAtUtc, authorizedActions, currentAssignmentOverrides, pilotObservedAtUtc,
+  });
   await writePrerequisites(root, receipt, candidate, plan, planBinding, controls);
   receipt.static_release = staticReleaseProjection(plan, planBinding.evidence_sha256);
   populateReadbacks(receipt, candidate, plan);

@@ -98,7 +98,7 @@ test("surface preserves ProductId-specific events while distribution and rollbac
   assert.throws(() => validateSurfaceSeparation(legacySurface, baseline, contract), /schema_version/);
   const rollbackResult = validateRollbackContract(rollback, baseline, contract);
   assert.equal(rollbackResult.rollback_profile_count, 2);
-  assert.equal(rollbackResult.assignment_restore_policy, "preserve_current_single_visible_distribution");
+  assert.equal(rollbackResult.assignment_restore_policy, "reconcile_to_validated_single_visible_distribution");
   assert.ok(rollbackResult.profiles.every((profile) => !("assignment_count" in profile)
     && !("assignment_fingerprint_sha256" in profile)));
   const eventLeak = clone(surface);
@@ -109,6 +109,12 @@ test("surface preserves ProductId-specific events while distribution and rollbac
   const sharedRollback = clone(rollback);
   sharedRollback.profiles[1].protected_manifest_ref = sharedRollback.profiles[0].protected_manifest_ref;
   assert.throws(() => validateRollbackContract(sharedRollback, baseline, contract), /shared across rollback profiles/);
+  const preserveUnsafeAssignments = clone(rollback);
+  preserveUnsafeAssignments.assignment_restore_policy = "preserve_current_single_visible_distribution";
+  assert.throws(
+    () => validateRollbackContract(preserveUnsafeAssignments, baseline, contract),
+    /assignment restore policy drifted/,
+  );
   const unknown = clone(surface);
   unknown.profiles.push({ ...unknown.profiles[0], product_id: "00000000-0000-0000-0000-000000000000" });
   assert.throws(() => validateSurfaceSeparation(unknown, baseline, contract), /ProductIds/);
