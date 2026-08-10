@@ -24,8 +24,8 @@ export const PROFILE_CONTRACTS = {
 export const EMPTY_ASSIGNMENT_FINGERPRINT_SHA256 = "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945";
 export const ROLLBACK_ASSIGNMENT_RESTORE_POLICY = "reconcile_to_validated_single_visible_distribution";
 export const PRODUCTION_DISTRIBUTION = Object.freeze({
-  eligible_user_count: 9,
-  excluded_user_count: 1,
+  eligible_user_count: 10,
+  excluded_user_count: 0,
   assignment_authority: "entra_object_id_allowlist",
   nested_groups_allowed: false,
   tenant_wide_assignment_allowed: false,

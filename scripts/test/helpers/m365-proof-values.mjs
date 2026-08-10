@@ -7,7 +7,7 @@ import { contract, hex, sourceIdentity } from "./outlook-release-fixtures.mjs";
 const proof = (schema_version, proof_class, fields) => ({ schema_version, proof_class, ...sourceIdentity, ...fields });
 
 export function authorizationProof(control, authorizedActions = REQUIRED_MUTATION_ACTIONS) {
-  return proof("amic-os.m365-authorization-proof.v2", "authorization", {
+  return proof("amic-os.m365-authorization-proof.v3", "authorization", {
     authorization_ref: "change-ref:outlook-20260808-001",
     operator_ref: control.operator_ref,
     owner_ref: control.owner_ref,
@@ -17,6 +17,8 @@ export function authorizationProof(control, authorizedActions = REQUIRED_MUTATIO
     pilot_group_fingerprint_sha256: sha256(JSON.stringify(sorted(control.pilot_assignment.groups))),
     eligible_principal_fingerprint_sha256: control.pilot_assignment.eligible_principal_fingerprint_sha256,
     excluded_principal_fingerprint_sha256: control.pilot_assignment.excluded_principal_fingerprint_sha256,
+    roster_file_sha256: control.pilot_assignment.roster_file_sha256,
+    roster_email_fingerprint_sha256: control.pilot_assignment.roster_email_fingerprint_sha256,
     approved: true,
     approved_at_utc: "2026-08-08T00:15:00Z",
   });
@@ -33,7 +35,9 @@ function authorizationFields(control, authorizationHash) {
   };
 }
 
-export function pilotProof(receipt, groups, observedAtUtc = "2026-08-08T00:30:00Z") {
+export function pilotProof(receipt, groups, observedAtUtc = "2026-08-08T00:30:00Z", roster = {
+  file_sha256: hex("a"), email_fingerprint_sha256: hex("b"),
+}) {
   const assignments = receipt.profiles.map((profile) => ({
     product_id: profile.product_id,
     group_refs: profile.production_user_visible ? groups : [],
@@ -49,8 +53,11 @@ export function pilotProof(receipt, groups, observedAtUtc = "2026-08-08T00:30:00
     { length: distribution.eligible_user_count },
     (_, index) => `entra-object-ref:${String(index + 1).padStart(2, "0")}`,
   );
-  const excludedPrincipalRefs = ["entra-object-ref:explicitly-excluded"];
-  return proof("amic-os.m365-pilot-assignment-proof.v3", "pilot_assignment", {
+  const excludedPrincipalRefs = Array.from(
+    { length: distribution.excluded_user_count },
+    (_, index) => `entra-object-ref:excluded-${String(index + 1).padStart(2, "0")}`,
+  );
+  return proof("amic-os.m365-pilot-assignment-proof.v4", "pilot_assignment", {
     groups,
     assignments,
     direct_membership_readbacks: groups.map((groupRef) => ({
@@ -66,6 +73,8 @@ export function pilotProof(receipt, groups, observedAtUtc = "2026-08-08T00:30:00
     excluded_principal_refs: excludedPrincipalRefs,
     eligible_user_count: distribution.eligible_user_count,
     excluded_user_count: distribution.excluded_user_count,
+    roster_file_sha256: roster.file_sha256,
+    roster_email_fingerprint_sha256: roster.email_fingerprint_sha256,
     assign_to_everyone: distribution.assign_to_everyone,
     max_visible_addins_per_user: distribution.max_visible_addins_per_user,
     assignment_overlap_count: distribution.assignment_overlap_count,
@@ -249,7 +258,7 @@ export function centralProof(receipt, control, authorizationHash, staticHash) {
       readback_sha256: null,
     },
     {
-      action: "verify_exact_nine_readback", product_id: PRODUCT_IDS[0],
+      action: "verify_exact_roster_readback", product_id: PRODUCT_IDS[0],
       operation_ref: matterOperation.operation_ref, result: "exact_readback",
       assignment_fingerprint_sha256: matterReadback.assignment_fingerprint_sha256,
       principal_fingerprint_sha256: control.pilot_assignment.eligible_principal_fingerprint_sha256,

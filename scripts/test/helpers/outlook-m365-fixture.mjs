@@ -59,13 +59,15 @@ async function writeControls(root, receipt, restored, {
   control.monitoring_criteria = ["two-source-one-visible-readback-exact", "provider-error-rate-below-threshold"];
   control.abort_criteria = ["manifest-readback-drift", "provider-error-rate-threshold-breached"];
   control.rollback_readback_owner_ref = "owner-ref:rollback-readback-01";
-  const groups = ["group-ref:outlook-pilot-nine"];
+  const groups = ["group-ref:outlook-roster-ten"];
   const pilotValue = pilotProof(receipt, groups, pilotObservedAtUtc);
   const pilot = await writeProtectedJson(root, "controls/pilot-assignment.json", pilotValue);
   control.pilot_assignment = {
     ...evidence(pilot), groups, fingerprint_sha256: pilotValue.assignment_fingerprint_sha256,
     eligible_principal_fingerprint_sha256: pilotValue.eligible_principal_fingerprint_sha256,
     excluded_principal_fingerprint_sha256: pilotValue.excluded_principal_fingerprint_sha256,
+    roster_file_sha256: pilotValue.roster_file_sha256,
+    roster_email_fingerprint_sha256: pilotValue.roster_email_fingerprint_sha256,
   };
   const authorization = await writeProtectedJson(
     root, "controls/authorization.json", authorizationProof(control, authorizedActions),

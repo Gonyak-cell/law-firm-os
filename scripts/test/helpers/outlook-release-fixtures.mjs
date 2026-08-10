@@ -160,7 +160,7 @@ export function awaitingM365Receipt(
   hashes = { "matter-full": hex("1"), "inquiry-only": hex("2") },
   { rollback: rollbackValue = rollback } = {},
 ) {
-  const assignedGroupRefs = ["group-ref:outlook-pilot-nine"];
+  const assignedGroupRefs = ["group-ref:outlook-roster-ten"];
   return {
     schema_version: "amic-os.outlook-m365-release.v2", status: "awaiting_authorized_deployment",
     ...sourceIdentity, version: contract.release_version, permission_event_diff: "none",

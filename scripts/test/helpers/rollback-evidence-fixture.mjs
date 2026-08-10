@@ -22,14 +22,22 @@ function manifestBytes(profile) {
   ].filter((line) => line !== "").join("\n"));
 }
 
-function assetDefinitions(profile) {
+function assetDefinitions(profile, {
+  inquiryAssetPrefix = "/outlook-addin", inquiryStylesheetPrefix = null,
+} = {}) {
   const matter = profile.profile === "matter-full";
   const entryPath = matter ? "assets/rollback-matter.js" : "outlook-addin/assets/rollback-inquiry.js";
-  const taskpaneSrc = matter ? `/addin/${entryPath}` : `/${entryPath}`;
+  const taskpaneSrc = matter ? `/addin/${entryPath}` : `${inquiryAssetPrefix}/assets/rollback-inquiry.js`;
+  const stylesheet = !matter && inquiryStylesheetPrefix
+    ? `<link rel="stylesheet" href="${inquiryStylesheetPrefix}/assets/rollback-inquiry.css">`
+    : "";
   const entries = [
-    [profile.taskpane_html.path, Buffer.from(`<html><body data-profile="${profile.profile}"><script type="module" src="${taskpaneSrc}"></script></body></html>\n`)],
+    [profile.taskpane_html.path, Buffer.from(`<html><body data-profile="${profile.profile}">${stylesheet}<script type="module" src="${taskpaneSrc}"></script></body></html>\n`)],
     [entryPath, Buffer.from(`export const rollbackProductId = ${JSON.stringify(profile.product_id)};\n`)],
   ];
+  if (!matter && inquiryStylesheetPrefix) {
+    entries.push(["outlook-addin/assets/rollback-inquiry.css", Buffer.from("body { color: #111; }\n")]);
+  }
   if (matter) {
     entries.push(
       ["event-runtime.html", Buffer.from('<html><script src="./event-runtime.js"></script></html>\n')],
@@ -43,7 +51,7 @@ function artifactRef(profile, file) {
   return `.omo/evidence/fixture/rollback/${profile.profile}/${file}`;
 }
 
-async function writeProfile(root, profile, baselineProfile) {
+async function writeProfile(root, profile, baselineProfile, options) {
   const manifest = manifestBytes(profile);
   profile.rollback_manifest_sha256 = sha256(manifest);
   baselineProfile.manifest_sha256 = profile.rollback_manifest_sha256;
@@ -54,7 +62,7 @@ async function writeProfile(root, profile, baselineProfile) {
   await writeProtectedBytes(root, profile.protected_manifest_ref, manifest);
 
   const artifacts = [];
-  for (const [file, bytes] of assetDefinitions(profile)) {
+  for (const [file, bytes] of assetDefinitions(profile, options)) {
     const ref = artifactRef(profile, file);
     await writeProtectedBytes(root, ref, bytes);
     artifacts.push({ path: file, byte_size: bytes.byteLength, sha256: sha256(bytes), protected_artifact_ref: ref });
@@ -85,12 +93,12 @@ async function writeProfile(root, profile, baselineProfile) {
   };
 }
 
-export async function createRollbackEvidenceFixture(root, baseline, rollback) {
+export async function createRollbackEvidenceFixture(root, baseline, rollback, options = {}) {
   const baselineValue = clone(baseline);
   const rollbackValue = clone(rollback);
   for (const profile of rollbackValue.profiles) {
     const baselineProfile = baselineValue.profiles.find(({ product_id }) => product_id === profile.product_id);
-    await writeProfile(root, profile, baselineProfile);
+    await writeProfile(root, profile, baselineProfile, options);
   }
   const baselineArtifactBytes = serialized(baselineValue);
   const rollbackArtifactBytes = serialized(rollbackValue);

@@ -50,7 +50,7 @@
       "launch_events": [],
       "taskpane_html": {
         "path": "outlook-addin/index.html",
-        "sha256": "858a069d51be223c488ea22bd4913d3b45094a85e58fe49472baf11d2af3d37f",
+        "sha256": "158aa1dd9730c72c743208110820165028f1e972dba6f1ad1ca9552f14c0e124",
         "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/inquiry-only/outlook-addin/index.html"
       },
       "entry_bundle": {
@@ -60,9 +60,9 @@
       },
       "static_inventory": {
         "artifact_count": 3,
-        "inventory_sha256": "45c767ff2a604b4347b53d1645aeb76d29c471a08e2ec9878e54b78928bab2eb",
+        "inventory_sha256": "048f39720170ded4961dc2677301dc09497adedbd211709fcc9842e4fa31a55a",
         "protected_inventory_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/inquiry-only/static-inventory.json",
-        "protected_inventory_sha256": "d024de630b3e3909b2b7e429c5ff64da51efc42836c552f6cb67ae3653d2367f"
+        "protected_inventory_sha256": "a4cbdea63ee6dfb8972e5c4824c6fa555a74db29b01acd91a07ac9c7a85af2c1"
       },
       "event_runtime": null
     }

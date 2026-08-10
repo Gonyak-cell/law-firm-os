@@ -37,7 +37,7 @@ test("release contract binds two source ProductIds but exactly one production-vi
   tenantWide.m365.production_distribution.tenant_wide_assignment_allowed = true;
   assert.throws(() => validateReleaseContract(tenantWide), /production distribution contract mismatch/);
   const wrongCohort = clone(contract);
-  wrongCohort.m365.production_distribution.eligible_user_count = 10;
+  wrongCohort.m365.production_distribution.eligible_user_count = 9;
   assert.throws(() => validateReleaseContract(wrongCohort), /production distribution contract mismatch/);
   const unreviewedOverride = clone(contract);
   unreviewedOverride.license_metadata_overrides = {

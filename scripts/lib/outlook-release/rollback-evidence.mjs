@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import { GIT_OID } from "./constants.mjs";
 import {
   assertEqual, assertExactKeys, assertSafeRelativePath, assertSha256, inventorySha256, profileMap,
@@ -85,6 +83,20 @@ function matchContractArtifact(contractArtifact, loaded, profile, name) {
   return actual;
 }
 
+function validateTaskpaneAssetUrl(value, expectedPath, profile) {
+  let url;
+  try {
+    url = new URL(value, "https://rollback.invalid/");
+  } catch {
+    throw new Error(`${profile.profile} rollback taskpane is not bound to its profile namespace`);
+  }
+  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")
+    || url.origin !== "https://rollback.invalid" || url.pathname !== expectedPath
+    || url.search || url.hash) {
+    throw new Error(`${profile.profile} rollback taskpane is not bound to its profile namespace`);
+  }
+}
+
 function validateInventory(profile, baseline, contractProfile, store, globalRefs) {
   const inventoryContract = profile.static_inventory;
   if (globalRefs.has(inventoryContract.protected_inventory_ref)) {
@@ -116,8 +128,23 @@ function validateInventory(profile, baseline, contractProfile, store, globalRefs
   const entry = matchContractArtifact(profile.entry_bundle, artifacts.loaded, profile, "entry bundle");
   const source = taskpane.bytes.toString("utf8");
   const modulePath = source.match(/<script\b(?=[^>]*\btype=["']module["'])[^>]*\bsrc=["']([^"']+\.js)["']/iu)?.[1];
-  if (!modulePath || path.posix.basename(new URL(modulePath, "https://rollback.invalid/").pathname) !== path.posix.basename(entry.path)) {
-    throw new Error(`${profile.profile} rollback taskpane is not bound to its entry bundle`);
+  const profilePrefix = profile.profile === "matter-full" ? "/addin/" : "/outlook-addin/";
+  if (!modulePath) throw new Error(`${profile.profile} rollback taskpane is not bound to its profile namespace`);
+  const moduleInventoryPath = profile.profile === "matter-full" ? entry.path : entry.path.slice("outlook-addin/".length);
+  validateTaskpaneAssetUrl(modulePath, `${profilePrefix}${moduleInventoryPath}`, profile);
+  for (const stylesheetPath of [...source.matchAll(
+    /<link\b(?=[^>]*\brel=["']stylesheet["'])[^>]*\bhref=["']([^"']+\.css)["']/giu,
+  )].map((match) => match[1])) {
+    const parsed = new URL(stylesheetPath, "https://rollback.invalid/");
+    if (!parsed.pathname.startsWith(profilePrefix)) {
+      throw new Error(`${profile.profile} rollback taskpane is not bound to its profile namespace`);
+    }
+    const relativePath = parsed.pathname.slice(profilePrefix.length);
+    const inventoryPath = profile.profile === "matter-full" ? relativePath : `outlook-addin/${relativePath}`;
+    validateTaskpaneAssetUrl(stylesheetPath, `${profilePrefix}${relativePath}`, profile);
+    if (!artifacts.loaded.has(inventoryPath)) {
+      throw new Error(`${profile.profile} rollback taskpane stylesheet is not inventory-bound`);
+    }
   }
   const event = profile.event_runtime == null
     ? null : matchContractArtifact(profile.event_runtime, artifacts.loaded, profile, "event runtime");
