@@ -40,7 +40,7 @@ test("both Outlook candidates remain bound to their independently deployed ident
       },
     ],
   );
-  assert.equal(result.permission_event_assignment_diff, "none");
+  assert.equal(result.permission_event_diff, "none");
 });
 
 test("the inquiry profile cannot inherit Matter compose or event capabilities", async () => {
