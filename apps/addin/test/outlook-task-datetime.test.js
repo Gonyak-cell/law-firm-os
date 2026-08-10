@@ -36,8 +36,22 @@ test("local task due datetime rejects invalid civil, control, and noncanonical v
 });
 
 test("server offset and Z values render in the host local timezone", () => {
-  assert.equal(isoToLocalDateTime("2026-08-12T09:30:00+09:00"), "2026-08-12T09:30");
-  assert.equal(isoToLocalDateTime("2026-08-12T00:30:00.000Z"), "2026-08-12T09:30");
+  const moduleUrl = JSON.stringify(new URL("../src/outlook-task-datetime.js", import.meta.url).href);
+  for (const [timezone, expected] of [
+    ["UTC", "2026-08-12T00:30"],
+    ["Asia/Seoul", "2026-08-12T09:30"],
+  ]) {
+    const source = `
+      import assert from "node:assert/strict";
+      import { isoToLocalDateTime } from ${moduleUrl};
+      assert.equal(isoToLocalDateTime("2026-08-12T09:30:00+09:00"), ${JSON.stringify(expected)});
+      assert.equal(isoToLocalDateTime("2026-08-12T00:30:00.000Z"), ${JSON.stringify(expected)});
+    `;
+    execFileSync(process.execPath, ["--input-type=module", "--eval", source], {
+      env: { ...process.env, TZ: timezone },
+      stdio: "pipe",
+    });
+  }
 });
 
 test("invalid server values fail closed", () => {
