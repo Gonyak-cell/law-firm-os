@@ -110,6 +110,14 @@ test("Windows packaged dashboard QA verifies tabbed Client and Matter fixtures s
   assert.match(packageQaSource, /home_finance_charts_horizontal_order/);
 });
 
+test("client deposit command keys fail closed without secure randomness", async () => {
+  const panelSource = await readWebFile("src/components/ClientDepositOperationsPanel.jsx");
+
+  assert.match(panelSource, /typeof globalThis\.crypto\?\.randomUUID !== "function"/);
+  assert.match(panelSource, /globalThis\.crypto\.randomUUID\(\)\.replaceAll\("-", ""\)/);
+  assert.doesNotMatch(panelSource, /Math\.random/);
+});
+
 test("compact record rows keep low-value metadata on the primary line across product surfaces", async () => {
   const stylesSource = await readWebFile("src/styles.css");
   const sources = await Promise.all([
