@@ -49,3 +49,32 @@ test("Search preference transforms support clear and delete without browser stor
     assert.equal(removeSavedSearch(preferences, preferences.saved[0].id).saved.length, 0);
   });
 });
+
+test("Vault immutable document targets bind Matter, version, and content hash", async () => {
+  await withSearchPreferences(async ({ matchesVaultDocumentTarget }) => {
+    const document = {
+      matter_id: "matter-prior-001",
+      document_id: "document-prior-001",
+      current_version_id: "version-prior-001",
+      latest_sha256: "a".repeat(64),
+    };
+    assert.equal(matchesVaultDocumentTarget(document, {
+      documentId: document.document_id,
+      matterId: document.matter_id,
+      versionId: document.current_version_id,
+      sha256: document.latest_sha256,
+    }), true);
+    assert.equal(matchesVaultDocumentTarget(document, {
+      documentId: document.document_id,
+      matterId: document.matter_id,
+      versionId: "version-prior-002",
+      sha256: "b".repeat(64),
+    }), false);
+    assert.equal(matchesVaultDocumentTarget(document, {
+      documentId: document.document_id,
+      matterId: document.matter_id,
+      versionId: document.current_version_id,
+    }), false);
+    assert.equal(matchesVaultDocumentTarget(document, { documentId: document.document_id }), true);
+  });
+});

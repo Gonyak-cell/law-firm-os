@@ -36,29 +36,36 @@ function context(overrides = {}) {
   };
 }
 
+const READY_RUNTIME = Object.freeze({
+  precedent_search: Object.freeze({ authoritative: true, runtime_ready: true }),
+});
+
 function ids(result, field) {
   return result.filter((entry) => field == null || entry[field]).map(({ feature }) => feature.id);
 }
 
 test("matter task pane exposes the exact read and compose actions", () => {
-  const read = evaluateOutlookFeatureCatalog(context());
+  const read = evaluateOutlookFeatureCatalog(context({ runtimeReadiness: READY_RUNTIME }));
   assert.deepEqual(ids(read, "visible"), [
     "matter.search",
     "mail.save-with-attachments",
     "filing.correct-placement",
+    "conversation.auto-save",
     "mail.save-sent",
     "task.create",
     "time-entry.draft",
     "activity.recent",
+    "precedent.search",
     "document.create-and-sign-status",
   ]);
   assert.deepEqual(ids(read, "actionable"), ids(read, "visible"));
 
-  const compose = evaluateOutlookFeatureCatalog(context({ form: "compose" }));
+  const compose = evaluateOutlookFeatureCatalog(context({ form: "compose", runtimeReadiness: READY_RUNTIME }));
   assert.deepEqual(ids(compose, "visible"), [
     "matter.search",
     "time-entry.draft",
     "activity.recent",
+    "precedent.search",
     "document.create-and-sign-status",
   ]);
   assert.deepEqual(ids(compose, "actionable"), ids(compose, "visible"));
@@ -108,7 +115,7 @@ test("no item and stale item discard current-item actions", () => {
   assert.ok(blankKey
     .filter(({ feature }) => feature.requiredItemFields.includes("itemContextKey"))
     .every(({ visible, actionable }) => !visible && !actionable));
-  const stale = evaluateOutlookFeatureCatalog(context({ itemFresh: false }));
+  const stale = evaluateOutlookFeatureCatalog(context({ itemFresh: false, runtimeReadiness: READY_RUNTIME }));
   assert.ok(stale.filter(({ feature }) => feature.implementationState === "active")
     .every(({ feature, visible, actionable, response }) => (
     !visible && !actionable && response === feature.staleItemResponse
@@ -116,20 +123,21 @@ test("no item and stale item discard current-item actions", () => {
 });
 
 test("Matter, disconnected, and offline prerequisites gate only dependent rows", () => {
-  const withoutMatter = evaluateOutlookFeatureCatalog(context({ matterId: undefined }));
+  const withoutMatter = evaluateOutlookFeatureCatalog(context({ matterId: undefined, runtimeReadiness: READY_RUNTIME }));
   assert.deepEqual(ids(withoutMatter, "actionable"), ["matter.search"]);
   assert.ok(withoutMatter
     .filter(({ feature }) => feature.matterPrerequisite && feature.implementationState === "active")
     .every(({ visible, actionable, response }) => visible && !actionable && /Matter/u.test(response)));
-  assert.deepEqual(ids(evaluateOutlookFeatureCatalog(context({ matterId: "   " })), "actionable"), ["matter.search"]);
+  assert.deepEqual(ids(evaluateOutlookFeatureCatalog(context({ matterId: "   ", runtimeReadiness: READY_RUNTIME })), "actionable"), ["matter.search"]);
 
-  const disconnected = evaluateOutlookFeatureCatalog(context({ connection: "disconnected" }));
+  const disconnected = evaluateOutlookFeatureCatalog(context({ connection: "disconnected", runtimeReadiness: READY_RUNTIME }));
   assert.deepEqual(ids(disconnected, "actionable"), [
     "matter.search",
     "filing.correct-placement",
     "task.create",
     "time-entry.draft",
     "activity.recent",
+    "precedent.search",
     "document.create-and-sign-status",
   ]);
   assert.ok(disconnected
@@ -137,22 +145,50 @@ test("Matter, disconnected, and offline prerequisites gate only dependent rows",
       && feature.implementationState === "active")
     .every(({ feature, response }) => response === feature.offlineReconnectResponse.reconnect));
 
-  const offline = evaluateOutlookFeatureCatalog(context({ online: false }));
-  assert.deepEqual(ids(offline, "visible"), ids(evaluateOutlookFeatureCatalog(context()), "visible"));
+  const offline = evaluateOutlookFeatureCatalog(context({ online: false, runtimeReadiness: READY_RUNTIME }));
+  assert.deepEqual(ids(offline, "visible"), ids(evaluateOutlookFeatureCatalog(context({ runtimeReadiness: READY_RUNTIME })), "visible"));
   assert.deepEqual(ids(offline, "actionable"), []);
   assert.ok(offline.filter(({ feature }) => feature.implementationState === "active")
     .every(({ feature, response }) => response === feature.offlineReconnectResponse.offline));
 });
 
-test("precedent row is absent at 320, 360, and 480 shells until separate OUTM-08-12 UI integration", () => {
-  for (const viewportWidth of [320, 360, 480]) {
-    const evaluated = evaluateOutlookFeatureCatalog(context({ viewportWidth,
-      runtimeReadiness: { precedent_search: { authoritative: true, runtime_ready: true } } }));
-    const precedent = evaluated.find(({ feature }) => feature.id === "precedent.search");
-    assert.equal(precedent.visible, false, `${viewportWidth}px`);
-    assert.equal(precedent.actionable, false, `${viewportWidth}px`);
-    assert.match(precedent.response, /공통 Outlook 화면 통합/u);
+test("precedent requires ready runtime, remains usable across Graph disconnect, and fails closed offline or stale", () => {
+  const ready = evaluateOutlookFeatureCatalog(context({ runtimeReadiness: READY_RUNTIME }));
+  const precedent = ready.find(({ feature }) => feature.id === "precedent.search");
+  assert.equal(precedent.visible, true);
+  assert.equal(precedent.actionable, true);
+  assert.equal(precedent.response, null);
+
+  for (const runtimeReadiness of [
+    undefined,
+    { precedent_search: { authoritative: false, runtime_ready: true } },
+    { precedent_search: { authoritative: true, runtime_ready: false } },
+  ]) {
+    const row = evaluateOutlookFeatureCatalog(context({ runtimeReadiness }))
+      .find(({ feature }) => feature.id === "precedent.search");
+    assert.equal(row.visible, false);
+    assert.equal(row.actionable, false);
+    assert.equal(row.response, "선례 검색 준비 상태를 확인해 주세요.");
   }
+
+  const disconnected = evaluateOutlookFeatureCatalog(context({
+    connection: "disconnected",
+    runtimeReadiness: READY_RUNTIME,
+  })).find(({ feature }) => feature.id === "precedent.search");
+  assert.equal(disconnected.visible, true);
+  assert.equal(disconnected.actionable, true);
+
+  const offline = evaluateOutlookFeatureCatalog(context({ online: false, runtimeReadiness: READY_RUNTIME }))
+    .find(({ feature }) => feature.id === "precedent.search");
+  assert.equal(offline.visible, true);
+  assert.equal(offline.actionable, false);
+  assert.equal(offline.response, offline.feature.offlineReconnectResponse.offline);
+
+  const stale = evaluateOutlookFeatureCatalog(context({ itemFresh: false, runtimeReadiness: READY_RUNTIME }))
+    .find(({ feature }) => feature.id === "precedent.search");
+  assert.equal(stale.visible, false);
+  assert.equal(stale.actionable, false);
+  assert.equal(stale.response, stale.feature.staleItemResponse);
 });
 
 test("unknown context fails closed and lookup is exact", () => {

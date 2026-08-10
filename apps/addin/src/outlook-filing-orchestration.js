@@ -131,7 +131,7 @@ export async function fileOutlookEmailWithAttachments({
         rest_message_id: email.rest_message_id,
         internet_message_id: email.internet_message_id,
         conversation_id: email.conversation_id,
-        item_key: email.item_key,
+        item_key: itemKey,
         attachments,
         unsupported: [],
       },

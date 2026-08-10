@@ -15,6 +15,8 @@ const VAULT_PERMISSION_REF = "ui_cmp_g5_vault_live";
 const VAULT_AUDIT_HINT_REF = "ui_cmp_g5_vault_probe";
 const SEARCH_QUERY_LIMIT = 200;
 const SEARCH_RECENT_LIMIT = 20;
+const SAFE_DOCUMENT_TARGET_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
+const SAFE_DOCUMENT_TARGET_SHA256 = /^[a-f0-9]{64}$/u;
 const EMPTY_SEARCH_PREFERENCES = Object.freeze({ recent: [], saved: [] });
 const SEARCH_SECTIONS = new Set([
   "vault-search-home",
@@ -26,6 +28,24 @@ const SEARCH_SECTIONS = new Set([
 
 function searchLabel(labels, key, fallback) {
   return labels?.[key] ?? fallback;
+}
+
+export function matchesVaultDocumentTarget(document, {
+  documentId = "",
+  matterId = "",
+  versionId = "",
+  sha256 = "",
+} = {}) {
+  if (!document || !SAFE_DOCUMENT_TARGET_ID.test(documentId)
+      || document.document_id !== documentId) return false;
+  const immutableTarget = Boolean(matterId || versionId || sha256);
+  if (!immutableTarget) return true;
+  if (!SAFE_DOCUMENT_TARGET_ID.test(matterId)
+      || !SAFE_DOCUMENT_TARGET_ID.test(versionId)
+      || !SAFE_DOCUMENT_TARGET_SHA256.test(sha256)) return false;
+  return document.matter_id === matterId
+    && (document.current_version_id ?? document.version_id) === versionId
+    && (document.latest_sha256 ?? document.content_sha256) === sha256;
 }
 
 function normalizeSearchFilters(value = {}) {
@@ -202,7 +222,7 @@ function SearchHistoryRows({ items, labels, onRun, onDelete, deleteDisabled = fa
   );
 }
 
-export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "vault-search-home", initialQuery = "", initialDocumentId = "", initialDateFrom = "", initialDateTo = "", refreshSignal = 0, onNavigateSection = () => {} }) {
+export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "vault-search-home", initialQuery = "", initialDocumentMatterId = "", initialDocumentId = "", initialDocumentVersionId = "", initialDocumentSha256 = "", initialDateFrom = "", initialDateTo = "", refreshSignal = 0, onNavigateSection = () => {} }) {
   const [documentsResult, setDocumentsResult] = useState(null);
   const [query, setQuery] = useState(initialQuery);
   const [submittedQuery, setSubmittedQuery] = useState(() => initialQuery.trim());
@@ -247,6 +267,7 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
     setDocumentsResult(null);
     fetchVaultDocuments({
       ctx: liveCtx,
+      matterId: SAFE_DOCUMENT_TARGET_ID.test(initialDocumentMatterId) ? initialDocumentMatterId : "",
       permissionRef: VAULT_PERMISSION_REF,
       auditHintRef: VAULT_AUDIT_HINT_REF
     }).then((next) => {
@@ -255,7 +276,7 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
     return () => {
       cancelled = true;
     };
-  }, [liveCtx, refreshToken]);
+  }, [liveCtx, initialDocumentMatterId, refreshToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -328,9 +349,14 @@ export function VaultSurface({ labels = {}, liveCtx = "allow", activeSection = "
       return;
     }
     const document = [...(documentsReadable ? documentsResult.items : []), ...searchItems]
-      .find((item) => item.document_id === initialDocumentId);
+      .find((item) => matchesVaultDocumentTarget(item, {
+        documentId: initialDocumentId,
+        matterId: initialDocumentMatterId,
+        versionId: initialDocumentVersionId,
+        sha256: initialDocumentSha256,
+      }));
     setSelectedDocument(document ?? null);
-  }, [initialDocumentId, searchResult, documentsResult]);
+  }, [initialDocumentMatterId, initialDocumentId, initialDocumentVersionId, initialDocumentSha256, searchResult, documentsResult]);
 
   function commitSearchPreferences(next, operation, payload = {}, previous = preferences) {
     const revision = preferenceRevisionRef.current + 1;

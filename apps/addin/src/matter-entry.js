@@ -4,11 +4,16 @@ import { bootstrapOutlookSurface } from "./outlook-profile-bootstrap.js";
 // starts. The full pane remains the existing application; this thin wrapper
 // only establishes its identity-bound profile.
 export function mountMatterSurface({
+  buildProfile,
   loadMain = () => import("./main.jsx"),
   location = globalThis.location,
   globalObject = globalThis,
 } = {}) {
-  bootstrapOutlookSurface("matter-full", { location, globalObject });
+  bootstrapOutlookSurface("matter-full", {
+    ...(buildProfile ? { buildProfile } : {}),
+    location,
+    globalObject,
+  });
   return loadMain();
 }
 

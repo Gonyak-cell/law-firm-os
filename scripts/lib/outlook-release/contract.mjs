@@ -27,8 +27,12 @@ export function validateReleaseContract(contract) {
     assertEqual(sorted(profile.required_static_paths ?? []), sorted(expected.required_static_paths), `${profile.profile} required static paths`);
   }
   assertEqual(sorted(contract.manifests ?? []), sorted(MANIFEST_PATHS), "release manifests");
+  // Graph connection scope persistence canonicalizes the granted set before
+  // storage, so its release contract remains set/order insensitive. OAuth
+  // scopes are serialized into the authorization/token requests and must stay
+  // in the exact runtime order.
   assertEqual(sorted(contract.client_outlook_graph_connection_scopes ?? []), sorted(CLIENT_GRAPH_SCOPES), "Client Outlook Graph scopes");
-  assertEqual(sorted(contract.client_outlook_oauth_scopes ?? []), sorted(CLIENT_OAUTH_SCOPES), "Client Outlook OAuth scopes");
+  assertEqual(contract.client_outlook_oauth_scopes ?? [], CLIENT_OAUTH_SCOPES, "Client Outlook OAuth scopes");
   assertEqual(sorted(contract.allowed_dependency_licenses ?? []), sorted(APPROVED_LICENSES), "dependency license allowlist");
   assertEqual(canonical(contract.license_metadata_overrides ?? {}), canonical(LICENSE_METADATA_OVERRIDES), "dependency license metadata overrides");
   assertEqual(contract.required_dependencies, { docx: "MIT", "docusign-esign": "MIT" }, "required release dependencies");

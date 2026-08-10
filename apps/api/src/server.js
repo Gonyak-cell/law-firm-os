@@ -205,6 +205,10 @@ import {
   isDocusignOutlookRoute,
   isDocusignWebhook,
 } from "./docusign-api.js";
+import {
+  handleOutlookDocumentApiRequest,
+  isOutlookDocumentApiPath,
+} from "./outlook-document-api.js";
 import { createDocusignFailClosedRuntime } from "./docusign-runtime.js";
 import { createPostgresDocusignEnvelopeRepository } from "../../../packages/integrations-core/src/docusign-postgres-repository.js";
 import { dispatchApiHandler, mapApiHandlerError } from "./api-handler-dispatcher.js";
@@ -2014,6 +2018,31 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
+    if (isOutlookDocumentApiPath(pathname)) {
+      const declaredLength = Number(Array.isArray(req.headers["content-length"])
+        ? req.headers["content-length"][0]
+        : req.headers["content-length"]);
+      const hasBody = hasJsonRequestBody(req.method)
+        || (Number.isFinite(declaredLength) && declaredLength > 0)
+        || req.headers["transfer-encoding"] !== undefined;
+      const body = hasBody
+        ? await readRequestBody(req, { maxBytes: 128 * 1024, injectAuthenticatedActor: false })
+        : {};
+      const result = await handleOutlookDocumentApiRequest({
+        pathname,
+        method: req.method,
+        query,
+        queryPairs: [...url.searchParams.entries()],
+        body,
+        context: requestPermissionContext(),
+        principal: sessionContext.principal,
+        requestId,
+        matterRuntime,
+        docusignRuntime,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     if (isDocusignOutlookRoute(req.method, pathname)) {
       const body = req.method === "POST" ? await readRequestBody(req) : {};
       const result = await handleDocusignOutlookRequest({

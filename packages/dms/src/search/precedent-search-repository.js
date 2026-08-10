@@ -80,7 +80,12 @@ function serialize(row) {
       decision_date: new Date(row.decision_date).toISOString().slice(0, 10) }) : null,
     source_reference: row.source_reference ?? null,
     source_url: row.source_kind === "case_law_document" ? row.source_url
-      : buildVaultDocumentNavigationHref(row.document_id),
+      : buildVaultDocumentNavigationHref({
+        matter_id: row.matter_id,
+        document_id: row.document_id,
+        version_id: row.version_id,
+        content_sha256: row.content_sha256,
+      }),
     search_rank: Number(row.rank_key),
     match_fields: Object.freeze([row.title_match ? "title" : null,
       row.metadata_match ? "metadata" : null, row.body_match ? "body" : null].filter(Boolean)),

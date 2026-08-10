@@ -3712,6 +3712,7 @@ export async function fetchMatterAudit({
 
 export async function fetchVaultDocuments({
   ctx = "allow",
+  matterId = "",
   permissionRef = DEFAULT_VAULT_PERMISSION_REF,
   auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
 } = {}) {

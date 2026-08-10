@@ -17,6 +17,7 @@ const SOURCE_IDENTITY = Object.freeze({
 });
 
 const EMAIL = SOURCE_IDENTITY;
+const { item_key: _ignoredItemKey, ...EMAIL_WITHOUT_ITEM_KEY } = SOURCE_IDENTITY;
 
 function attachment(id) {
   return {
@@ -141,6 +142,38 @@ test("메일 먼저, 첨부당 한 요청, 서버 readback 순서로 완료한�
   assert.equal(result.status, "complete");
   assert.equal(result.attachments.created_count, 1);
   assert.equal(result.attachments.duplicate_count, 1);
+});
+
+test("입력 item_key 없이도 첫 filing 영수증의 canonical key로 첨부 저장과 replay를 완료한다", async () => {
+  const run = filingServer(["attachment-001"]);
+  const result = await fileOutlookEmailWithAttachments({
+    matterId: "matter-001",
+    email: EMAIL_WITHOUT_ITEM_KEY,
+    requestJson: run.requestJson,
+    readAttachments: async ({ attachmentIds }) => ({
+      attachments: attachmentIds.map(attachment),
+      unsupported: [],
+    }),
+  });
+
+  assert.deepEqual(run.calls.map(({ path }) => path), [
+    OUTLOOK_EMAIL_FILING_PATH,
+    OUTLOOK_ATTACHMENT_SAVE_PATH,
+    OUTLOOK_EMAIL_FILING_PATH,
+  ]);
+  assert.equal(result.item_key, SOURCE_IDENTITY.item_key);
+  assert.equal(result.status, "complete");
+});
+
+test("입력 item_key가 canonical key와 다르면 첨부 저장 전에 fail closed 한다", async () => {
+  const run = filingServer(["attachment-001"]);
+  await assert.rejects(fileOutlookEmailWithAttachments({
+    matterId: "matter-001",
+    email: { ...EMAIL_WITHOUT_ITEM_KEY, item_key: "forged-item-key" },
+    requestJson: run.requestJson,
+    readAttachments: async () => { throw new Error("attachments must not be read"); },
+  }), /item_key is mismatched/u);
+  assert.deepEqual(run.calls, []);
 });
 
 test("부분 영수증 뒤에는 서버가 지정한 실패 첨부만 읽고 재시도한다", async () => {

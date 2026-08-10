@@ -24,7 +24,7 @@ function blockedPublish({ repository, current, actorId, idempotencyKey, fingerpr
       if (replay.operation !== PUBLICATION_OPERATION
         || replay.actor_id !== actorId
         || replay.request_fingerprint !== fingerprint) throw idempotencyConflict();
-      return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
+      return Object.freeze({ ...replay.response, outcome: "idempotent_replay", idempotent_replay: true });
     }
     const audit = appendBuilderAudit(tx, {
       event_id: `matter.builder.publish.blocked:${current.tenant_id}:${current.matter_id}:${current.draft_id}:${fingerprint.slice(0, 24)}`,

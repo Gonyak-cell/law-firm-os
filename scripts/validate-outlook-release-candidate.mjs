@@ -119,9 +119,13 @@ export async function graphScopeFingerprint(contract) {
   const graphModel = await import(pathToFileURL(path.join(repoRoot, "packages/email-dms/src/m365-connection-model.js")));
   const oauthClient = await import(pathToFileURL(path.join(repoRoot, "apps/api/src/microsoft-delegated-oauth-client.js")));
   const graphScopes = [...graphModel.M365_GRAPH_REQUIRED_SCOPES].sort();
-  const oauthScopes = [...oauthClient.CLIENT_OUTLOOK_OAUTH_SCOPES].sort();
+  // The Graph connection model canonicalizes granted scopes as a sorted set,
+  // so the Graph release field intentionally remains order-insensitive. The
+  // delegated OAuth client serializes its scope array directly into the
+  // provider request; preserve and compare those bytes without sorting.
+  const oauthScopes = [...oauthClient.CLIENT_OUTLOOK_OAUTH_SCOPES];
   if (JSON.stringify(graphScopes) !== JSON.stringify([...contract.client_outlook_graph_connection_scopes].sort())
-    || JSON.stringify(oauthScopes) !== JSON.stringify([...contract.client_outlook_oauth_scopes].sort())) {
+    || JSON.stringify(oauthScopes) !== JSON.stringify(contract.client_outlook_oauth_scopes)) {
     throw new Error("Client Outlook delegated OAuth/Graph scope drifted");
   }
   return { graph_connection_scopes: graphScopes, oauth_scopes: oauthScopes, fingerprint_sha256: sha256(JSON.stringify({ graphScopes, oauthScopes })), diff: "none" };

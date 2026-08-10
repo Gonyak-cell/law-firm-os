@@ -90,6 +90,7 @@ export function createDocumentApprovalService({ repository, readTemplate, clock 
       if (!authoritativeRequest || authoritativeRequest.draft_id !== draftId) throw idempotencyConflict();
       return Object.freeze({
         outcome: "idempotent_replay",
+        idempotent_replay: true,
         ui_state: current.publish_state,
         item: safeDraft(current),
         approval_request: safeApproval(authoritativeRequest),
@@ -169,7 +170,7 @@ export function createDocumentApprovalService({ repository, readTemplate, clock 
     const replay = repository.getIdempotency({ tenant_id: tenantId, idempotency_key: key });
     if (replay) {
       if (replay.operation !== DECISION_OPERATION || replay.request_fingerprint !== fingerprint) throw idempotencyConflict("idempotency key cannot be reused for a changed approval decision");
-      return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
+      return Object.freeze({ ...replay.response, outcome: "idempotent_replay", idempotent_replay: true });
     }
     if (request.status !== "pending_owner_approval") throw new Error("builder approval request is already decided");
     if (current.input_fingerprint !== request.input_fingerprint

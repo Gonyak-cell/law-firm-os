@@ -134,7 +134,7 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
     offlineReconnectResponse: OFFLINE_RECONNECT_RESPONSE,
     focusTarget: "conversation-auto-save-toggle",
     mutation: true,
-    implementationState: "blocked_until_shell",
+    implementationState: "active",
   },
   {
     id: "mail.save-sent",
@@ -274,7 +274,7 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
     offlineReconnectResponse: OFFLINE_RECONNECT_RESPONSE,
     focusTarget: "precedent-search-input",
     mutation: false,
-    implementationState: "blocked",
+    implementationState: "active",
     integrationDependency: "OUTM-08-12-shared-shell",
     runtimeReadinessKey: "precedent_search",
     readinessEndpoint: "/api/outlook/precedents/readiness",

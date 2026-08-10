@@ -201,6 +201,8 @@ export function App() {
   const requestedConsultationId = locationParams.get("consultation_id") ?? "";
   const requestedConsultationQuery = locationParams.get("consultation_query") ?? "";
   const requestedDocumentId = locationParams.get("document_id") ?? "";
+  const requestedDocumentVersionId = locationParams.get("document_version_id") ?? "";
+  const requestedDocumentSha256 = locationParams.get("document_sha256") ?? "";
   const requestedDateFrom = locationParams.get("date_from") ?? "";
   const requestedDateTo = locationParams.get("date_to") ?? "";
 
@@ -239,7 +241,10 @@ export function App() {
       opportunityQuery: params.get("opportunity_query") ?? "",
       consultationId: params.get("consultation_id") ?? "",
       consultationQuery: params.get("consultation_query") ?? "",
+      matterId: params.get("matter_id") ?? "",
       documentId: params.get("document_id") ?? "",
+      documentVersionId: params.get("document_version_id") ?? "",
+      documentSha256: params.get("document_sha256") ?? "",
       currentVersionOnly: true,
       dateFrom: params.get("date_from") ?? "",
       dateTo: params.get("date_to") ?? ""
@@ -313,6 +318,18 @@ export function App() {
       else params.delete("document_id");
     } else {
       params.delete("document_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "documentVersionId")) {
+      if (routeContext.documentVersionId) params.set("document_version_id", routeContext.documentVersionId);
+      else params.delete("document_version_id");
+    } else {
+      params.delete("document_version_id");
+    }
+    if (Object.prototype.hasOwnProperty.call(routeContext, "documentSha256")) {
+      if (routeContext.documentSha256) params.set("document_sha256", routeContext.documentSha256);
+      else params.delete("document_sha256");
+    } else {
+      params.delete("document_sha256");
     }
     if (Object.prototype.hasOwnProperty.call(routeContext, "currentVersionOnly")) {
       params.set("current_version", "current");
@@ -586,7 +603,10 @@ export function App() {
       opportunityQuery: initialParams.get("opportunity_query") ?? "",
       consultationId: initialParams.get("consultation_id") ?? "",
       consultationQuery: initialParams.get("consultation_query") ?? "",
+      matterId: initialParams.get("matter_id") ?? "",
       documentId: initialParams.get("document_id") ?? "",
+      documentVersionId: initialParams.get("document_version_id") ?? "",
+      documentSha256: initialParams.get("document_sha256") ?? "",
       currentVersionOnly: true,
       dateFrom: initialParams.get("date_from") ?? "",
       dateTo: initialParams.get("date_to") ?? ""
@@ -784,7 +804,10 @@ export function App() {
                 liveCtx={liveCtx}
                 activeSection={activeSection}
                 initialQuery={query}
+                initialDocumentMatterId={requestedMatterId}
                 initialDocumentId={requestedDocumentId}
+                initialDocumentVersionId={requestedDocumentVersionId}
+                initialDocumentSha256={requestedDocumentSha256}
                 initialDateFrom={requestedDateFrom}
                 initialDateTo={requestedDateTo}
                 refreshSignal={globalRefreshSignal}

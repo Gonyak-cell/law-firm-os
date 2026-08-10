@@ -5,6 +5,7 @@ import {
   assertNoSensitiveMaterial, validateBuildInventories, validateCoveragePaths, validateDependencyLicenses,
   validateReleaseCandidateReceipt, validateReleaseContract, validateRollbackContract, validateSurfaceSeparation,
 } from "../lib/outlook-release-gates.mjs";
+import { graphScopeFingerprint } from "../validate-outlook-release-candidate.mjs";
 import {
   baseline, clone, contract, hex, inventory, lockWithReleaseDependencies, releaseCandidate,
   releaseContext, rollback, surface,
@@ -35,6 +36,44 @@ test("release contract binds dual ProductIds, four manifests, and protected proo
     },
   };
   assert.throws(() => validateReleaseContract(unreviewedOverride), /license metadata overrides/);
+});
+
+test("OAuth scope release proof binds the runtime byte order while Graph remains set-canonical", async () => {
+  const runtime = await import("../../apps/api/src/microsoft-delegated-oauth-client.js");
+  const expectedOAuthScopes = [...runtime.CLIENT_OUTLOOK_OAUTH_SCOPES];
+  assert.deepEqual(contract.client_outlook_oauth_scopes, expectedOAuthScopes);
+
+  const exact = await graphScopeFingerprint(contract);
+  assert.deepEqual(exact.oauth_scopes, expectedOAuthScopes);
+  assert.deepEqual(exact.graph_connection_scopes, [...contract.client_outlook_graph_connection_scopes].sort());
+
+  const graphReorderedContract = clone(contract);
+  graphReorderedContract.client_outlook_graph_connection_scopes.reverse();
+  assert.doesNotThrow(() => validateReleaseContract(graphReorderedContract));
+  const graphReordered = await graphScopeFingerprint(graphReorderedContract);
+  assert.deepEqual(graphReordered.graph_connection_scopes, exact.graph_connection_scopes);
+
+  const reorderedContract = clone(contract);
+  [reorderedContract.client_outlook_oauth_scopes[0], reorderedContract.client_outlook_oauth_scopes[1]] = [
+    reorderedContract.client_outlook_oauth_scopes[1],
+    reorderedContract.client_outlook_oauth_scopes[0],
+  ];
+  assert.throws(() => validateReleaseContract(reorderedContract), /Client Outlook OAuth scopes mismatch/);
+  await assert.rejects(
+    () => graphScopeFingerprint(reorderedContract),
+    /Client Outlook delegated OAuth\/Graph scope drifted/,
+  );
+
+  const reorderedReceipt = releaseCandidate();
+  [reorderedReceipt.graph_scopes.oauth_scopes[0], reorderedReceipt.graph_scopes.oauth_scopes[1]] = [
+    reorderedReceipt.graph_scopes.oauth_scopes[1],
+    reorderedReceipt.graph_scopes.oauth_scopes[0],
+  ];
+  assert.throws(
+    () => validateReleaseCandidateReceipt(reorderedReceipt, contract, releaseContext),
+    /release candidate Graph scope proof mismatch/,
+  );
+
 });
 
 test("surface and rollback preserve ProductId-specific events and immutable assignments", () => {

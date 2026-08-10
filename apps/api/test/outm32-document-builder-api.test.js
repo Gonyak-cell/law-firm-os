@@ -106,6 +106,8 @@ test("OUTM-32 API owner approval finalizes one redacted immutable DOCX artifact"
     runtime: matterRuntime,
   });
   assert.equal(created.status, 201);
+  assert.equal(created.body.outcome, "created");
+  assert.equal(created.body.idempotent_replay, false);
 
   const requested = await handleMatterApiRequest({
     pathname: `/api/matters/${MATTER}/builder-drafts/builder_draft_outm32_api/approval-requests`,
@@ -116,6 +118,20 @@ test("OUTM-32 API owner approval finalizes one redacted immutable DOCX artifact"
     runtime: matterRuntime,
   });
   assert.equal(requested.status, 200);
+  assert.equal(requested.body.outcome, "approval_required");
+  assert.equal(requested.body.idempotent_replay, false);
+
+  const requestedReplay = await handleMatterApiRequest({
+    pathname: `/api/matters/${MATTER}/builder-drafts/builder_draft_outm32_api/approval-requests`,
+    method: "POST",
+    body: body({ idempotency_key: "outm32-api-request" }),
+    context,
+    requestId: "outm32-request-replay",
+    runtime: matterRuntime,
+  });
+  assert.equal(requestedReplay.status, 200);
+  assert.equal(requestedReplay.body.outcome, "idempotent_replay");
+  assert.equal(requestedReplay.body.idempotent_replay, true);
 
   const approvalId = requested.body.approval_request.approval_request_id;
   const decided = await handleMatterApiRequest({
@@ -128,7 +144,20 @@ test("OUTM-32 API owner approval finalizes one redacted immutable DOCX artifact"
   });
   assert.equal(decided.status, 200);
   assert.equal(decided.body.outcome, "approved");
+  assert.equal(decided.body.idempotent_replay, false);
   assert.equal(decided.body.approval_receipt.approved_by_ref_included, false);
+
+  const decisionReplay = await handleMatterApiRequest({
+    pathname: `/api/matters/${MATTER}/builder-approval-requests/${approvalId}/decision`,
+    method: "POST",
+    body: body({ decision: "approved", idempotency_key: "outm32-api-approve" }),
+    context,
+    requestId: "outm32-approve-replay",
+    runtime: matterRuntime,
+  });
+  assert.equal(decisionReplay.status, 200);
+  assert.equal(decisionReplay.body.outcome, "idempotent_replay");
+  assert.equal(decisionReplay.body.idempotent_replay, true);
 
   const published = await handleMatterApiRequest({
     pathname: `/api/matters/${MATTER}/builder-drafts/builder_draft_outm32_api/publish-to-vault`,
@@ -140,6 +169,7 @@ test("OUTM-32 API owner approval finalizes one redacted immutable DOCX artifact"
   });
   assert.equal(published.status, 200);
   assert.equal(published.body.outcome, "created");
+  assert.equal(published.body.idempotent_replay, false);
   assert.equal(published.body.artifact.immutable, true);
   assert.equal(published.body.artifact.document_bytes_included, false);
   assert.equal(published.body.outbox_event.status, "complete");
@@ -151,6 +181,18 @@ test("OUTM-32 API owner approval finalizes one redacted immutable DOCX artifact"
   assert.equal(matterRuntime.dmsRuntime.repository.list({ tenant_id: TENANT, model_type: "DmsDocument" }).length, 1);
   assert.equal(matterRuntime.dmsRuntime.repository.list({ tenant_id: TENANT, model_type: "DmsDocumentVersion" }).length, 1);
   assert.equal(matterRuntime.dmsRuntime.repository.list({ tenant_id: TENANT, model_type: "DmsFileObject" }).length, 1);
+
+  const publishedReplay = await handleMatterApiRequest({
+    pathname: `/api/matters/${MATTER}/builder-drafts/builder_draft_outm32_api/publish-to-vault`,
+    method: "POST",
+    body: body({ idempotency_key: "outm32-api-publish" }),
+    context,
+    requestId: "outm32-publish-replay",
+    runtime: matterRuntime,
+  });
+  assert.equal(publishedReplay.status, 200);
+  assert.equal(publishedReplay.body.outcome, "idempotent_replay");
+  assert.equal(publishedReplay.body.idempotent_replay, true);
 });
 
 test("OUTM-32 API denies an approval decision without an owner role", async () => {
@@ -234,5 +276,6 @@ test("OUTM-32 builder-draft replay survives repository restart without mutation"
   const replay = await handleMatterApiRequest({ pathname: `/api/matters/${MATTER}/builder-drafts`, method: "POST", body: requestBody, context, requestId: "restart-replay", runtime: restarted });
   assert.equal(replay.status, 200);
   assert.equal(replay.body.outcome, "idempotent_replay");
+  assert.equal(replay.body.idempotent_replay, true);
   assert.deepEqual(reopenedRepository.snapshot(), before);
 });

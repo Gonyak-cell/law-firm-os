@@ -111,6 +111,29 @@ export function createPostgresConversationSyncStore({
     }, { readOnly: true });
   }
 
+  async function findConversationPolicy(input = {}) {
+    for (const field of ["tenant_id", "user_id", "entra_subject_id", "m365_connection_id", "matter_id", "conversation_id"]) requiredSyncString(input, field);
+    if (input.tenant_id !== tenantId) throw new Error("conversation policy tenant authority does not match");
+    return tx(async (client) => {
+      const result = await client.query(
+        `SELECT policy_id,matter_id,conversation_id,status,pause_reason,version,created_at,updated_at,revoked_at
+           FROM lawos_email_dms.conversation_policies
+          WHERE tenant_id=$1 AND user_id=$2 AND entra_subject_id=$3
+            AND m365_connection_id=$4 AND matter_id=$5 AND conversation_id=$6`,
+        [tenantId, input.user_id, input.entra_subject_id, input.m365_connection_id, input.matter_id, input.conversation_id],
+      );
+      if (result.rowCount > 1) throw new Error("conversation has conflicting policies");
+      const row = result.rows[0];
+      if (!row) return null;
+      const instant = (value) => value instanceof Date ? value.toISOString() : value;
+      return Object.freeze({
+        policy_id: row.policy_id, matter_id: row.matter_id, conversation_id: row.conversation_id,
+        status: row.status, pause_reason: row.pause_reason ?? null, version: Number(row.version),
+        created_at: instant(row.created_at), updated_at: instant(row.updated_at), revoked_at: row.revoked_at ? instant(row.revoked_at) : null,
+      });
+    }, { readOnly: true });
+  }
+
   async function readReconciliationState(input = {}) {
     for (const field of ["tenant_id", "user_id", "entra_subject_id", "m365_connection_id"]) requiredSyncString(input, field);
     if (input.tenant_id !== tenantId) throw new Error("Graph reconciliation tenant authority does not match");
@@ -221,6 +244,7 @@ export function createPostgresConversationSyncStore({
     findSubscriptionAuthority,
     readConnectionState,
     findActivePolicy,
+    findConversationPolicy,
     readReconciliationState,
     cursor_store: Object.freeze({ read: readCursor, write: writeCursor, reset: resetCursor }),
   });

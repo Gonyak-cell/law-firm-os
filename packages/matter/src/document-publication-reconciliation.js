@@ -29,7 +29,7 @@ function replayResponse(replay, actorId, fingerprint) {
     || replay.request_fingerprint !== fingerprint) {
     throw idempotencyConflict("idempotency key cannot be reused for changed builder content or actor");
   }
-  return Object.freeze({ ...replay.response, outcome: "idempotent_replay" });
+  return Object.freeze({ ...replay.response, outcome: "idempotent_replay", idempotent_replay: true });
 }
 
 export function readPublicationReplay(repository, { tenantId, actorId, idempotencyKey, fingerprint }) {
@@ -184,7 +184,7 @@ export function finalizeMatterPublication(repository, context, upload) {
     const audit = appendBuilderAudit(tx, { event_id: `matter.builder.docx.finalized:${tenantId}:${matterId}:${identity.artifact_id}`, tenant_id: tenantId, actor_id: actorId, action: "matter.builder.docx.finalized", object_type: "MatterBuilderArtifact", object_id: identity.artifact_id, reason: "approved_builder_docx_uploaded_to_vault", occurred_at: now, metadata: { document_id: identity.document_id, version_id: identity.version_id, file_object_id: identity.file_object_id, upload_session_id: identity.upload_session_id, sha256: rendered.sha256, template_hash: template.template_hash, input_hash: rendered.input_hash, approval_receipt_id: draft.approval_receipt.receipt_id } });
     const timeline = appendBuilderTimeline(tx, { event_id: `matter.timeline.builder_docx_finalized:${tenantId}:${matterId}:${identity.artifact_id}`, tenant_id: tenantId, matter_id: matterId, occurred_at: now, type: "matter.builder.docx.finalized", title: "승인 문서 DMS 확정", source_ref: identity.artifact_id, source_object_id: identity.document_id, safe_summary: { artifact_id: identity.artifact_id, document_id: identity.document_id, version_id: identity.version_id, sha256: rendered.sha256, approval_receipt_id: draft.approval_receipt.receipt_id } });
     const response = Object.freeze({
-      outcome: upload.idempotent_replay ? "idempotent_replay" : "created", ui_state: "complete",
+      outcome: upload.idempotent_replay === true ? "idempotent_replay" : "created", idempotent_replay: upload.idempotent_replay === true, ui_state: "complete",
       item: safeDraft(finalizedDraft), approval_receipt: safeApprovalReceipt(draft.approval_receipt),
       artifact: safeArtifact(artifact), outbox_event: safeOutbox(outbox),
       publish_state: Object.freeze({ status: "complete", owner_approval_ref_included: false, vault_document_created: true, immutable_document_version_created: true, document_bytes_included: false, raw_storage_path_included: false, production_ready_claim: false }),

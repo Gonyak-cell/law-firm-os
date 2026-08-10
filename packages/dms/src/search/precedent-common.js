@@ -111,10 +111,13 @@ export function sourceSnapshot(row) {
   });
 }
 
-export function buildVaultDocumentNavigationHref(documentId) {
+export function buildVaultDocumentNavigationHref(value = {}) {
   const params = new URLSearchParams({
     view: "vault",
-    document_id: requiredId(documentId, "document_id"),
+    matter_id: requiredId(value.matter_id, "matter_id"),
+    document_id: requiredId(value.document_id, "document_id"),
+    document_version_id: requiredId(value.version_id, "version_id"),
+    document_sha256: requiredSha256(value.content_sha256, "content_sha256"),
   });
   return `?${params.toString()}#vault-search-documents`;
 }

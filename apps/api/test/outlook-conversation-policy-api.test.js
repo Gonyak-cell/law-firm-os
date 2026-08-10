@@ -3,6 +3,10 @@ import test from "node:test";
 
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createEmailThread } from "../../../packages/email-dms/src/email-model.js";
+import {
+  createDmsRepositoryMimeAuthority,
+  outlookEmailFileRequestFingerprint,
+} from "../../../packages/email-dms/src/email-filing-service.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
 import { listEmailDmsPostgresMigrations } from "../../../packages/email-dms/src/migrations/index.js";
 import { createPostgresConversationPolicyService } from "../../../packages/email-dms/src/postgres-conversation-policy-service.js";
@@ -16,7 +20,8 @@ const SUBJECT = "subject-outm25-http";
 const CONNECTION = "connection-outm25-http";
 const MATTER = "matter-outm25-http";
 const THREAD = "thread-outm25-http";
-const RECEIPT = "receipt-outm25-http";
+const MIME_SHA256 = "b".repeat(64);
+const RECEIPT = `outlook-email-file:${THREAD}:${MIME_SHA256}:dms`;
 
 function sessionAuth() {
   return {
@@ -73,29 +78,58 @@ test("OUTM-25 HTTP policy route derives the owner from the signed session and re
       subject: "Seed filing",
       account_ref: CONNECTION,
       mailbox_ref: "a".repeat(64),
-      filed_document_ids: ["document-outm25-http"],
+      filed_document_ids: [`doc:${THREAD}:original-mime:${MIME_SHA256}`],
       filing_user: OWNER,
       filing_time: "2026-08-08T00:00:00.000Z",
     }),
     model_type: "DmsEmailThread",
   });
+  const documentId = thread.filed_document_ids[0];
+  const versionId = `version:${THREAD}:original-mime`;
+  const fileObjectId = `file:${THREAD}:original-mime`;
+  const objectId = `object:${THREAD}:original-mime`;
+  const dmsAuthority = { permission_envelope_id: "perm-outm25-http", audit_trace_id: "audit-outm25-http" };
+  dmsRepository.create({ model_type: "DmsDocument", tenant_id: TENANT, matter_id: MATTER,
+    document_id: documentId, workspace_id: `workspace:${MATTER}`, folder_id: `folder:${MATTER}:00_Email`,
+    title: "Seed filing.eml", status: "active", current_version_id: versionId,
+    latest_sha256: MIME_SHA256, source_email_thread_id: THREAD, ...dmsAuthority });
+  dmsRepository.create({ model_type: "DmsDocumentVersion", tenant_id: TENANT, matter_id: MATTER,
+    version_id: versionId, document_id: documentId, version_number: 1, status: "current",
+    file_object_id: fileObjectId, sha256: MIME_SHA256, persisted: true, ...dmsAuthority });
+  dmsRepository.create({ model_type: "DmsFileObject", tenant_id: TENANT, matter_id: MATTER,
+    file_object_id: fileObjectId, object_id: objectId, storage_pointer_ref: objectId,
+    sha256: MIME_SHA256, byte_size: 586, mime_type: "message/rfc822", status: "committed",
+    ...dmsAuthority });
   dmsRepository.recordIdempotency({
     tenant_id: TENANT,
     idempotency_key: RECEIPT,
     operation: "outlook_email_file",
-    response: { email_thread_id: THREAD, matter_id: MATTER, filed_document_ids: thread.filed_document_ids },
+    request_fingerprint: outlookEmailFileRequestFingerprint(thread),
+    response: { outcome: "created", email_thread_id: THREAD, matter_id: MATTER, filed_document_ids: thread.filed_document_ids },
     created_at: "2026-08-08T00:00:00.000Z",
   });
   const subscriptionCalls = [];
+  const uploadRuntime = createDmsRepositoryMimeAuthority(dmsRepository, { provider: {
+    statObject: () => ({ object_id: objectId, sha256: MIME_SHA256, byte_size: 586, mime_type: "message/rfc822" }),
+    digestObject: () => ({ object_id: objectId, sha256: MIME_SHA256, byte_size: 586 }),
+  } });
   const policyService = createPostgresConversationPolicyService({ pool: fixture.appPool, tenant_id: TENANT, clock: () => new Date("2026-08-08T00:00:00.000Z") });
   const conversationRuntime = {
     clock: () => new Date("2026-08-08T00:00:00.000Z"),
+    readiness: {
+      policy_runtime_ready: true,
+      subscription_reconciler_ready: true,
+      message_auto_filing_ready: true,
+      maintenance_worker_ready: true,
+      worker_schedule_ready: true,
+      auto_filing_enabled: true,
+    },
     policy_service: policyService,
     subscription_service: { async reconcile(input) { subscriptionCalls.push(input); return { outcome: "active" }; } },
   };
   const server = createApiServer({
     matterRuntime: { repository: matterRepository },
-    dmsRuntime: { repository: dmsRepository },
+    dmsRuntime: { repository: dmsRepository, upload_runtime: uploadRuntime },
     emailDmsRuntime: { repository: emailDmsRepository },
     outlookConversationRuntime: conversationRuntime,
     sessionAuth: sessionAuth(),
@@ -111,7 +145,16 @@ test("OUTM-25 HTTP policy route derives the owner from the signed session and re
   });
   const enabled = await enable.json();
   assert.equal(enable.status, 201, JSON.stringify(enabled));
-  assert.equal(enabled.item.user_id, OWNER);
+  assert.deepEqual(Object.keys(enabled.item).sort(), [
+    "conversation_id", "created_at", "matter_id", "pause_reason", "policy_id",
+    "revoked_at", "status", "updated_at", "version",
+  ]);
+  assert.equal(Object.hasOwn(enabled.item, "user_id"), false);
+  assert.equal(Object.hasOwn(enabled.item, "entra_subject_id"), false);
+  assert.equal(Object.hasOwn(enabled.item, "mailbox_ref"), false);
+  assert.equal(Object.hasOwn(enabled.item, "seed_email_thread_id"), false);
+  assert.equal(Object.hasOwn(enabled.item, "enabling_actor_id"), false);
+  assert.equal(Object.hasOwn(enabled.item, "production_ready_claim"), false);
   assert.equal(enabled.subscription_sync, "synchronized");
   assert.equal(subscriptionCalls[0].user_id, OWNER);
 

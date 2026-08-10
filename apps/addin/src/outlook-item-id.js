@@ -4,6 +4,7 @@ export const OUTLOOK_ITEM_ID_ERROR_CODES = Object.freeze({
   conversion_unavailable: "OUTLOOK_ITEM_ID_CONVERSION_UNAVAILABLE",
   conversion_failed: "OUTLOOK_ITEM_ID_CONVERSION_FAILED",
   canonical_identity_mismatch: "OUTLOOK_CANONICAL_IDENTITY_MISMATCH",
+  identity_required: "OUTLOOK_ITEM_IDENTITY_REQUIRED",
 });
 
 export const OUTLOOK_CANONICAL_MESSAGE_IDENTITY_PATH =
@@ -13,6 +14,23 @@ function itemIdError(code, message) {
   return Object.assign(new Error(message), {
     safe_error_code: code,
   });
+}
+
+export function assertStableOutlookItemIdentity(snapshot) {
+  const fields = ["graph_message_id", "internet_message_id", "conversation_id"];
+  const missing = fields.filter((field) => (
+    typeof snapshot?.[field] !== "string" || snapshot[field].trim() === ""
+  ));
+  if (missing.length > 0) {
+    throw Object.assign(
+      itemIdError(
+        OUTLOOK_ITEM_ID_ERROR_CODES.identity_required,
+        "실제 Outlook 메일 식별자를 확인할 수 없어 이 메일을 저장하지 않았습니다. Outlook에서 받은 메일을 다시 열어 주세요.",
+      ),
+      { user_message: "실제 Outlook 메일 식별자를 확인할 수 없어 이 메일을 저장하지 않았습니다. Outlook에서 받은 메일을 다시 열어 주세요.", missing_fields: missing },
+    );
+  }
+  return snapshot;
 }
 
 function requiredId(value, code, message) {

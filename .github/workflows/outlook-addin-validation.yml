@@ -10,6 +10,8 @@ on:
       - "docs/runbooks/outlook-addin-release-gates.md"
       - "scripts/**"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
+      - "apps/web/src/**"
+      - "apps/web/test/**"
       - "apps/microsoft-egress-broker/**"
       - "apps/api/src/client-outlook-*.js"
       - "apps/api/src/microsoft-egress-broker-transport.js"
@@ -56,6 +58,8 @@ on:
       - "docs/runbooks/outlook-addin-release-gates.md"
       - "scripts/**"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
+      - "apps/web/src/**"
+      - "apps/web/test/**"
       - "apps/microsoft-egress-broker/**"
       - "apps/api/src/client-outlook-*.js"
       - "apps/api/src/microsoft-egress-broker-transport.js"
@@ -119,6 +123,9 @@ jobs:
       - name: Install without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      - name: Install Playwright Chromium runtime
+        run: npx --no-install playwright install --with-deps chromium
+
       - name: Require PostgreSQL test binaries
         run: |
           pg_bin="$(find /usr/lib/postgresql -type f -name initdb -perm -111 -print | sort -V | tail -1 | xargs dirname)"
@@ -130,7 +137,7 @@ jobs:
         run: npm --workspace apps/addin test
 
       - name: Release gate unit tests
-        run: node --test scripts/test/outlook-release-gates.test.mjs
+        run: node --test scripts/test/outlook-release-*.test.mjs
 
       - name: Exact-SHA deterministic Add-in release candidate
         run: node scripts/validate-outlook-release-candidate.mjs --source-sha "$GITHUB_SHA"
@@ -166,6 +173,35 @@ jobs:
           packages/dms/test/postgres-precedent-search.test.js
           packages/integrations-core/test/docusign-concurrency.test.js
           packages/integrations-core/test/docusign-postgres-concurrency.test.js
+
+      - name: Vault immutable precedent target tests
+        run: >-
+          node --test
+          --test-concurrency=1
+          apps/api/test/cmp-r4-g5-vault.test.js
+          apps/api/test/outlook-precedent-api.test.js
+          apps/web/test/search-preferences.test.mjs
+          packages/dms/test/postgres-precedent-lifecycle.test.js
+
+      - name: Web production build
+        run: npm --workspace apps/web run build
+
+      - name: Final Outlook API, Matter replay, and DocuSign hardening tests
+        run: >-
+          node --test
+          --test-concurrency=1
+          apps/api/test/outlook-conversation-policy-api.test.js
+          apps/api/test/outlook-conversation-policy-status-api.test.js
+          apps/api/test/outlook-document-api.test.js
+          apps/api/test/outlook-email-filing-correction-response-binding.test.js
+          apps/api/test/outlook-inquiry-registration-service.test.js
+          apps/api/test/outm32-approval-publication-replay-api.test.js
+          apps/api/test/outm32-document-builder-api.test.js
+          apps/api/test/outm32-generic-actor-replay-api.test.js
+          packages/matter/test/document-builder-approval.test.js
+          packages/matter/test/document-builder-postgres-reconciliation.test.js
+          packages/matter/test/document-builder-publication.test.js
+          packages/integrations-core/test/docusign-outm33-34-hardening.test.js
 
       - name: Email DMS provider and filing tests
         run: node --test packages/email-dms/test/*.test.js

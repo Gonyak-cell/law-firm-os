@@ -5,56 +5,30 @@ function deepFreeze(value) {
   return Object.freeze(value);
 }
 
-const OUTLOOK_PRODUCT_IDS = deepFreeze({
-  matterFull: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-  inquiryOnly: "952431be-51b8-42a2-9bf6-769a15934e85",
-});
-
-// Keep the inquiry bundle's identity metadata self-contained. Importing the
-// all-surface catalog here would pull the full event capability fingerprint
-// into the 952 artifact even though the entrypoint cannot execute it.
-const FIXED_PROFILES = deepFreeze({
-  "matter-full": {
-    key: "matter-full",
-    productId: OUTLOOK_PRODUCT_IDS.matterFull,
-  },
-  "inquiry-only": {
-    key: "inquiry-only",
-    productId: OUTLOOK_PRODUCT_IDS.inquiryOnly,
-    itemModes: ["read"],
-    actions: ["inquiry.create", "inquiry.link"],
-  },
-});
-
-/**
- * These bindings are compile-time entrypoint decisions.  URL query values are
- * intentionally absent from the product/profile lookup so an Outlook launch
- * cannot turn the inquiry surface into the Matter surface (or vice versa).
- */
-export const OUTLOOK_ENTRYPOINTS = deepFreeze({
-  matterFull: {
-    key: "matter-full",
-    productId: OUTLOOK_PRODUCT_IDS.matterFull,
-    productionSourceLocation: "/addin/index.html",
-    productionBase: "/addin/",
-  },
-  inquiryOnly: {
-    key: "inquiry-only",
-    productId: OUTLOOK_PRODUCT_IDS.inquiryOnly,
-    productionSourceLocation:
-      "/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&clientInquiryOnly=1",
-    productionBase: "/outlook-addin/",
-  },
-});
-
-function entrypointDescriptor(entrypoint) {
-  if (entrypoint === "matter-full" || entrypoint === "matterFull") {
-    return OUTLOOK_ENTRYPOINTS.matterFull;
+function injectedBuildProfile() {
+  if (typeof __LAWOS_OUTLOOK_BUILD_PROFILE__ === "undefined") {
+    throw new RangeError("Outlook build profile is unavailable");
   }
-  if (entrypoint === "inquiry-only" || entrypoint === "inquiryOnly") {
-    return OUTLOOK_ENTRYPOINTS.inquiryOnly;
+  return __LAWOS_OUTLOOK_BUILD_PROFILE__;
+}
+
+function entrypointDescriptor(entrypoint, buildProfile) {
+  if (
+    !buildProfile
+    || typeof buildProfile !== "object"
+    || Array.isArray(buildProfile)
+    || entrypoint !== buildProfile.key
+  ) {
+    throw new RangeError("Unknown Outlook entrypoint");
   }
-  throw new RangeError("Unknown Outlook entrypoint");
+  return deepFreeze({
+    key: buildProfile.key,
+    productId: buildProfile.productId,
+    productionSourceLocation: buildProfile.productionSourceLocation,
+    productionBase: buildProfile.productionBase,
+    ...(Array.isArray(buildProfile.itemModes) ? { itemModes: [...buildProfile.itemModes] } : {}),
+    ...(Array.isArray(buildProfile.actions) ? { actions: [...buildProfile.actions] } : {}),
+  });
 }
 
 /**
@@ -65,12 +39,18 @@ function entrypointDescriptor(entrypoint) {
 export function bootstrapOutlookSurface(
   entrypoint,
   {
+    buildProfile = injectedBuildProfile(),
     location = globalThis.location,
     globalObject = globalThis,
   } = {},
 ) {
-  const descriptor = entrypointDescriptor(entrypoint);
-  const profile = FIXED_PROFILES[descriptor.key];
+  const descriptor = entrypointDescriptor(entrypoint, buildProfile);
+  const profile = deepFreeze({
+    key: descriptor.key,
+    productId: descriptor.productId,
+    ...(descriptor.itemModes ? { itemModes: descriptor.itemModes } : {}),
+    ...(descriptor.actions ? { actions: descriptor.actions } : {}),
+  });
   const binding = Object.freeze({
     key: descriptor.key,
     productId: descriptor.productId,

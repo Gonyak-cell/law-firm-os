@@ -2,6 +2,9 @@ export const LAWOS_SESSION_STORAGE_KEY = "lawos_addin_session_token";
 export const NESTED_APP_AUTH_REQUIREMENT_SET = "NestedAppAuth";
 export const NESTED_APP_AUTH_MIN_VERSION = "1.1";
 export const DEFAULT_OAUTH_START_PATH = "/addin/oauth-start.html";
+const DEFAULT_NAA_REDIRECT_PATH = typeof __LAWOS_OUTLOOK_NAA_REDIRECT_PATH__ === "string"
+  ? __LAWOS_OUTLOOK_NAA_REDIRECT_PATH__
+  : "/addin/index.html";
 export const OAUTH_DIALOG_MESSAGE_TYPE = "lawos-outlook-oauth";
 export const OUTLOOK_OAUTH_DIALOG_TIMEOUT_MS = 9 * 60 * 1000;
 const OUTLOOK_OAUTH_ATTEMPT_POLL_INTERVAL_MS = 1_000;
@@ -194,7 +197,7 @@ export function parseRuntimeConfig(input = {}, { origin = "" } = {}) {
   }
   const authority = authorityUrl.href.replace(/\/+$/u, "");
   const oauthStartPath = firstText(input.oauth_start_path, input.oauthStartPath, DEFAULT_OAUTH_START_PATH);
-  const naaRedirectUri = new URL("/addin/index.html", apiBaseUrl.href).href;
+  const naaRedirectUri = new URL(DEFAULT_NAA_REDIRECT_PATH, apiBaseUrl.href).href;
 
   return Object.freeze({
     apiBase: apiBaseUrl.href.replace(/\/+$/u, ""),
@@ -576,6 +579,14 @@ export function createSessionStore({
   officeStorage = globalThis.OfficeRuntime?.storage,
   key = LAWOS_SESSION_STORAGE_KEY,
 } = {}) {
+  let mutationTail = Promise.resolve();
+
+  function enqueueMutation(operation) {
+    const run = mutationTail.then(operation, operation);
+    mutationTail = run.catch(() => undefined);
+    return run;
+  }
+
   async function readSessionStorage() {
     try { return text(sessionStorage?.getItem?.(key)); } catch { return ""; }
   }
@@ -584,15 +595,20 @@ export function createSessionStore({
   }
   return Object.freeze({
     async get() {
+      await mutationTail;
       const sessionToken = await readSessionStorage();
       if (isLawosSessionToken(sessionToken)) return sessionToken;
       if (sessionToken) {
-        try { sessionStorage?.removeItem?.(key); } catch { /* best effort */ }
+        await enqueueMutation(async () => {
+          try { sessionStorage?.removeItem?.(key); } catch { /* best effort */ }
+        });
       }
       const officeToken = await readOfficeStorage();
       if (isLawosSessionToken(officeToken)) return officeToken;
       if (officeToken) {
-        try { await officeStorage?.removeItem?.(key); } catch { /* best effort */ }
+        await enqueueMutation(async () => {
+          try { await officeStorage?.removeItem?.(key); } catch { /* best effort */ }
+        });
       }
       return "";
     },
@@ -601,13 +617,37 @@ export function createSessionStore({
         throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "AMIC OS 세션만 저장할 수 있습니다.");
       }
       const value = text(token);
-      try { await officeStorage?.setItem?.(key, value); } catch { /* Storage is optional in command contexts. */ }
-      try { sessionStorage?.setItem?.(key, value); } catch { /* Storage is optional in command contexts. */ }
+      await enqueueMutation(async () => {
+        try { await officeStorage?.setItem?.(key, value); } catch { /* Storage is optional in command contexts. */ }
+        try { sessionStorage?.setItem?.(key, value); } catch { /* Storage is optional in command contexts. */ }
+      });
       return value;
     },
     async clear() {
-      try { await officeStorage?.removeItem?.(key); } catch { /* best effort */ }
-      try { sessionStorage?.removeItem?.(key); } catch { /* best effort */ }
+      await enqueueMutation(async () => {
+        try { await officeStorage?.removeItem?.(key); } catch { /* best effort */ }
+        try { sessionStorage?.removeItem?.(key); } catch { /* best effort */ }
+      });
+    },
+    async clearIfCurrent(expectedToken) {
+      const expected = text(expectedToken);
+      if (!isLawosSessionToken(expected)) return false;
+      return enqueueMutation(async () => {
+        const sessionToken = await readSessionStorage();
+        const officeToken = await readOfficeStorage();
+        let removed = false;
+        const sessionMatches = sessionToken === expected;
+        const officeMatches = officeToken === expected;
+        if (sessionMatches) {
+          try { sessionStorage?.removeItem?.(key); } catch { /* best effort */ }
+          removed = true;
+        }
+        if (officeMatches || (sessionMatches && !officeToken)) {
+          try { await officeStorage?.removeItem?.(key); } catch { /* best effort */ }
+          removed = true;
+        }
+        return removed;
+      });
     },
   });
 }

@@ -25,6 +25,7 @@ test("OUTM-32 owner approval finalizes one redacted immutable Vault artifact acr
   assert.equal(decided.outcome, "approved");
   assert.equal(decided.approval_receipt.input_hash, published.artifact.input_hash);
   assert.equal(published.outcome, "created");
+  assert.equal(published.idempotent_replay, false);
   assert.equal(published.publish_state.status, "complete");
   assert.equal(published.artifact.mime_type, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
   assert.match(published.artifact.filename, /\.docx$/);
@@ -53,6 +54,7 @@ test("OUTM-32 owner approval finalizes one redacted immutable Vault artifact acr
     occurred_at: FIXED_TIME,
   });
   assert.equal(replay.outcome, "idempotent_replay");
+  assert.equal(replay.idempotent_replay, true);
   for (const type of ["DmsDocument", "DmsDocumentVersion", "DmsFileObject"]) {
     assert.equal(reopened.dmsRuntime.repository.list({ tenant_id: TENANT, model_type: type }).length, 1, type);
   }

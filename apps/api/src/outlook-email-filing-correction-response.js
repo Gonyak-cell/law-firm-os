@@ -39,6 +39,20 @@ export function safeCorrectionPlacement(value) {
   });
 }
 
+export function safeCorrectionRequestBinding(value) {
+  return Object.freeze({
+    email_thread_id: value.email_thread_id,
+    original_receipt_id: value.original_receipt_id,
+    document_id: value.document_id,
+    mime_sha256: value.mime_sha256,
+    source_matter_id: value.source_matter_id,
+    target_matter_id: value.target_matter_id,
+    expected_placement_id: value.prior_placement_id,
+    reason_sha256: value.reason_hash,
+    idempotency_key: value.idempotency_key,
+  });
+}
+
 export function safeCorrectionTimelines(events = []) {
   return Object.freeze(events.map((event) => Object.freeze({
     event_id: event.event_id,

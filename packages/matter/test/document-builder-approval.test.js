@@ -35,6 +35,12 @@ test("OUTM-32 keeps publish owner-blocked without approval, exact template, owne
   });
   assert.equal(blocked.outcome, "owner_blocked");
   assert.equal(blocked.publish_state.vault_document_created, false);
+  const blockedReplay = await service.publishBuilderDraftToVault({
+    tenant_id: TENANT, matter_id: MATTER_ID, draft_id: "builder_draft_blocked",
+    actor_id: ACTOR_ID, idempotency_key: "publish-blocked-001", occurred_at: FIXED_TIME,
+  });
+  assert.equal(blockedReplay.outcome, "idempotent_replay");
+  assert.equal(blockedReplay.idempotent_replay, true);
 
   const requested = service.requestBuilderApproval({
     tenant_id: TENANT, matter_id: MATTER_ID, draft_id: "builder_draft_blocked",
@@ -99,19 +105,27 @@ test("OUTM-32 approval replay never rolls approved state back and binds the orig
   };
   const first = service.requestBuilderApproval(requestInput);
   const beforeReplay = fixture.repository.snapshot();
-  assert.equal(service.requestBuilderApproval(requestInput).outcome, "idempotent_replay");
+  const requestReplay = service.requestBuilderApproval(requestInput);
+  assert.equal(requestReplay.outcome, "idempotent_replay");
+  assert.equal(requestReplay.idempotent_replay, true);
   assert.deepEqual(fixture.repository.snapshot(), beforeReplay);
   assert.throws(() => service.requestBuilderApproval({ ...requestInput, actor_id: "different-owner" }), /idempotency/i);
   assert.deepEqual(fixture.repository.snapshot(), beforeReplay);
 
-  service.decideBuilderApproval({
+  const decisionInput = {
     tenant_id: TENANT, matter_id: MATTER_ID, approval_request_id: first.approval_request.approval_request_id,
     decision: "approved", actor_id: ACTOR_ID, authorized_owner: true,
     idempotency_key: "approve-replay-001", occurred_at: FIXED_TIME,
-  });
+  };
+  const decided = service.decideBuilderApproval(decisionInput);
+  assert.equal(decided.outcome, "approved");
+  const decisionReplay = service.decideBuilderApproval(decisionInput);
+  assert.equal(decisionReplay.outcome, "idempotent_replay");
+  assert.equal(decisionReplay.idempotent_replay, true);
   const approvedSnapshot = fixture.repository.snapshot();
   const authoritativeReplay = service.requestBuilderApproval(requestInput);
   assert.equal(authoritativeReplay.outcome, "idempotent_replay");
+  assert.equal(authoritativeReplay.idempotent_replay, true);
   assert.equal(authoritativeReplay.ui_state, "approved_unpublished");
   assert.equal(authoritativeReplay.item.approval_state, "approved");
   assert.equal(authoritativeReplay.approval_request.status, "approved");
@@ -125,7 +139,9 @@ test("OUTM-32 approval replay never rolls approved state back and binds the orig
   const reopened = fixture.reopen();
   const restarted = createMatterDocumentEmailBuilderService({ repository: reopened.repository, dmsRuntime: reopened.dmsRuntime, clock: () => FIXED_TIME });
   const restartSnapshot = reopened.repository.snapshot();
-  assert.equal(restarted.requestBuilderApproval(requestInput).outcome, "idempotent_replay");
+  const restartedReplay = restarted.requestBuilderApproval(requestInput);
+  assert.equal(restartedReplay.outcome, "idempotent_replay");
+  assert.equal(restartedReplay.idempotent_replay, true);
   assert.deepEqual(reopened.repository.snapshot(), restartSnapshot);
   assert.equal(reopened.repository.get({ tenant_id: TENANT, model_type: "MatterBuilderDraft", resource_id: "builder_draft_replay" }).approval_state, "approved");
 });

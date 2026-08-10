@@ -14,25 +14,42 @@ const MATTER_PRODUCT_ID = "8f3cc90d-56dd-4c1c-b9c2-0a1100500101";
 const INQUIRY_PRODUCT_ID = "952431be-51b8-42a2-9bf6-769a15934e85";
 const MATTER_SOURCE_URL = "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html";
 const INQUIRY_SOURCE_URL = "https://d2mthcc8vp3cr2.cloudfront.net/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&clientInquiryOnly=1";
+const MATTER_BUILD_PROFILE = Object.freeze({
+  key: "matter-full",
+  productId: MATTER_PRODUCT_ID,
+  productionSourceLocation: "/addin/index.html",
+  productionBase: "/addin/",
+});
+const INQUIRY_BUILD_PROFILE = Object.freeze({
+  key: "inquiry-only",
+  productId: INQUIRY_PRODUCT_ID,
+  productionSourceLocation:
+    "/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&clientInquiryOnly=1",
+  productionBase: "/outlook-addin/",
+  itemModes: ["read"],
+  actions: ["inquiry.create", "inquiry.link"],
+});
 
 test("manifest source locations bind each exact production URL to its fixed entrypoint", async () => {
   const cases = [
-    ["matter-full", "manifest.production.xml", MATTER_PRODUCT_ID, MATTER_SOURCE_URL],
-    ["inquiry-only", "manifest.inquiry.production.xml", INQUIRY_PRODUCT_ID, INQUIRY_SOURCE_URL],
+    [MATTER_BUILD_PROFILE, "manifest.production.xml", MATTER_SOURCE_URL],
+    [INQUIRY_BUILD_PROFILE, "manifest.inquiry.production.xml", INQUIRY_SOURCE_URL],
   ];
-  for (const [entrypoint, manifestName, productId, sourceUrl] of cases) {
+  for (const [buildProfile, manifestName, sourceUrl] of cases) {
     const manifest = parseOutlookManifest(
       await readFile(path.join(addinRoot, manifestName), "utf8"),
     );
     assert.deepEqual(manifest.form_source_locations, [sourceUrl]);
     const globalObject = {};
-    const result = bootstrapOutlookSurface(entrypoint, {
+    const result = bootstrapOutlookSurface(buildProfile.key, {
+      buildProfile,
       location: { search: "?clientInquiryOnly=1&tenantId=attacker" },
       globalObject,
     });
-    assert.equal(result.binding.key, entrypoint);
-    assert.equal(result.binding.productId, productId);
-    assert.equal(globalObject.__LAWOS_OUTLOOK_SURFACE_PROFILE.productId, productId);
+    assert.equal(result.binding.key, buildProfile.key);
+    assert.equal(result.binding.productId, buildProfile.productId);
+    assert.equal(result.binding.productionSourceLocation, buildProfile.productionSourceLocation);
+    assert.equal(globalObject.__LAWOS_OUTLOOK_SURFACE_PROFILE.productId, buildProfile.productId);
   }
 });
 
@@ -46,6 +63,7 @@ test("query tampering cannot promote the 952 entrypoint or demote the 8f3 entryp
   for (const search of queries) {
     const inquiryGlobal = {};
     const inquiry = bootstrapOutlookSurface("inquiry-only", {
+      buildProfile: INQUIRY_BUILD_PROFILE,
       location: { search },
       globalObject: inquiryGlobal,
     });
@@ -54,6 +72,7 @@ test("query tampering cannot promote the 952 entrypoint or demote the 8f3 entryp
 
     const matterGlobal = {};
     const matter = bootstrapOutlookSurface("matter-full", {
+      buildProfile: MATTER_BUILD_PROFILE,
       location: { search },
       globalObject: matterGlobal,
     });
@@ -66,6 +85,7 @@ test("fixed profile is established before the launch query is read", () => {
   const globalObject = {};
   let profileWasBoundBeforeQuery = false;
   const result = bootstrapOutlookSurface("inquiry-only", {
+    buildProfile: INQUIRY_BUILD_PROFILE,
     globalObject,
     location: {
       get search() {
@@ -84,6 +104,7 @@ test("the full entry mounts the existing Matter surface after binding 8f3", asyn
   const globalObject = {};
   let mounted = false;
   const result = await mountMatterSurface({
+    buildProfile: MATTER_BUILD_PROFILE,
     globalObject,
     location: { search: "?clientInquiryOnly=1" },
     loadMain: async () => {

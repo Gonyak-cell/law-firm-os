@@ -30,7 +30,23 @@ export function exactGitIdentity({ expectedSourceSha, runCommand }) {
 }
 
 export function trackedGitPaths(runCommand) {
-  return new Set(String(runCommand("git", ["ls-files", "-z"], { encoding: "utf8" })).split("\0").filter(Boolean));
+  const regular = new Set();
+  const entries = String(runCommand("git", ["ls-files", "-s", "-z"], { encoding: "utf8" }))
+    .split("\0").filter(Boolean);
+  for (const entry of entries) {
+    const separator = entry.indexOf("\t");
+    const metadata = separator > 0 ? entry.slice(0, separator).split(" ") : [];
+    const trackedPath = separator > 0 ? entry.slice(separator + 1) : "";
+    if (metadata.length !== 3
+      || !/^[0-7]{6}$/u.test(metadata[0])
+      || !/^[a-f0-9]{40,64}$/u.test(metadata[1])
+      || metadata[2] !== "0"
+      || trackedPath === "") {
+      throw new Error("tracked Git index metadata is invalid or unmerged");
+    }
+    if (metadata[0] === "100644" || metadata[0] === "100755") regular.add(trackedPath);
+  }
+  return regular;
 }
 
 export function assertRecordedCommands(calls, allowedCommands) {

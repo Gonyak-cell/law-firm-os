@@ -138,6 +138,7 @@ test("OUTM-32 PostgreSQL upload receipt survives Matter commit failure and resta
   const restarted = createMatterDocumentEmailBuilderService({ repository: reopened, dmsRuntime: { upload_runtime: uploadRuntime }, clock: () => AT });
   const recovered = await restarted.reconcileBuilderPublication(publishInput);
   assert.equal(recovered.outcome, "idempotent_replay");
+  assert.equal(recovered.idempotent_replay, true);
   assert.equal(recovered.artifact.document_id, reconciliation.document_id);
   assert.equal(reopened.list({ tenant_id: TENANT, model_type: "MatterBuilderArtifact" }).length, 1);
   assert.equal(reopened.list({ tenant_id: TENANT, model_type: "MatterBuilderPublishOutbox" }).length, 1);

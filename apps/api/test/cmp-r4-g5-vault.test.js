@@ -183,7 +183,8 @@ test("G5 Vault upload persists metadata, replays idempotently, and survives rest
 
   await withServer(async (baseUrl) => {
     const list = await json(baseUrl, `/api/vault/documents?${BASE_QUERY}`);
-    assert.ok(list.body.items.some((item) => item.document_id === "doc_api_upload_001"));
+    const listed = list.body.items.find((item) => item.document_id === "doc_api_upload_001");
+    assert.equal(listed?.latest_sha256, uploadedSha256);
     const downloaded = await json(baseUrl, `/api/vault/documents/doc_api_upload_001/download?${BASE_QUERY}`);
     assert.equal(downloaded.status, 200);
     assert.equal(downloaded.body.download.content_sha256, uploadedSha256);

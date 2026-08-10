@@ -25,12 +25,20 @@ import {
 } from "./precedent-test-helpers.js";
 
 test("internal precedent citations navigate through the canonical Vault document route", () => {
-  const href = buildVaultDocumentNavigationHref("document:precedent-1");
-  assert.equal(href, "?view=vault&document_id=document%3Aprecedent-1#vault-search-documents");
+  const href = buildVaultDocumentNavigationHref({
+    matter_id: "matter:precedent-1",
+    document_id: "document:precedent-1",
+    version_id: "version:precedent-1",
+    content_sha256: "a".repeat(64),
+  });
+  assert.equal(href, `?view=vault&matter_id=matter%3Aprecedent-1&document_id=document%3Aprecedent-1&document_version_id=version%3Aprecedent-1&document_sha256=${"a".repeat(64)}#vault-search-documents`);
   const navigated = new URL(href, "https://amic-os.example/app");
   assert.equal(navigated.pathname, "/app");
   assert.equal(navigated.searchParams.get("view"), "vault");
+  assert.equal(navigated.searchParams.get("matter_id"), "matter:precedent-1");
   assert.equal(navigated.searchParams.get("document_id"), "document:precedent-1");
+  assert.equal(navigated.searchParams.get("document_version_id"), "version:precedent-1");
+  assert.equal(navigated.searchParams.get("document_sha256"), "a".repeat(64));
   assert.equal(navigated.hash, "#vault-search-documents");
 });
 

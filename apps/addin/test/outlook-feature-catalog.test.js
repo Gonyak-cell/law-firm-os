@@ -110,14 +110,7 @@ test("catalog has only the retained stable feature IDs and complete active contr
   for (const feature of OUTLOOK_FEATURE_CATALOG) {
     assert.deepEqual(requiredKeys.filter((key) => !Object.hasOwn(feature, key)), []);
     assert.deepEqual(Object.keys(feature).filter((key) => !allowedKeys.has(key)), []);
-    assert.equal(
-      feature.implementationState,
-      feature.id === "conversation.auto-save"
-        ? "blocked_until_shell"
-        : feature.id === "precedent.search"
-          ? "blocked"
-          : "active",
-    );
+    assert.equal(feature.implementationState, "active");
     assert.ok(["rail icon", "all-functions row", "inquiry icon", "event"].includes(feature.opener));
     assert.ok(feature.endpoint.length > 0);
     assert.ok(feature.domainService.length > 0);
@@ -131,23 +124,51 @@ test("catalog has only the retained stable feature IDs and complete active contr
 
 });
 
-test("precedent UI stays blocked until shared-shell integration and then requires authoritative API readiness", () => {
+test("precedent is active only with an authoritative runtime-ready receipt", () => {
   const feature = getOutlookFeatureById("precedent.search");
+  assert.equal(feature.implementationState, "active");
+  assert.equal(feature.connectionPrerequisite, false);
   assert.equal(feature.integrationDependency, "OUTM-08-12-shared-shell");
   assert.equal(feature.readinessEndpoint, "/api/outlook/precedents/readiness");
+  for (const runtimeReadiness of [
+    {},
+    { precedent_search: { authoritative: false, runtime_ready: true } },
+    { precedent_search: { authoritative: true, runtime_ready: false } },
+    { precedent_search: { authoritative: "true", runtime_ready: true } },
+    { precedent_search: { authoritative: true, runtime_ready: "true" } },
+  ]) assert.equal(isOutlookFeatureRuntimeAvailable(feature, runtimeReadiness), false);
   assert.equal(isOutlookFeatureRuntimeAvailable(feature, {
     precedent_search: { authoritative: true, runtime_ready: true },
-  }), false);
-  const integrated = { ...feature, implementationState: "active" };
-  assert.equal(isOutlookFeatureRuntimeAvailable(integrated, {
-    precedent_search: { authoritative: false, runtime_ready: true },
-  }), false);
-  assert.equal(isOutlookFeatureRuntimeAvailable(integrated, {
-    precedent_search: { authoritative: true, runtime_ready: false },
-  }), false);
-  assert.equal(isOutlookFeatureRuntimeAvailable(integrated, {
-    precedent_search: { authoritative: true, runtime_ready: true },
   }), true);
+});
+
+test("conversation and document rows are active in a ready Matter context", () => {
+  const evaluated = evaluateOutlookFeatureCatalog(context());
+  for (const id of ["conversation.auto-save", "document.create-and-sign-status"]) {
+    const row = evaluated.find(({ feature }) => feature.id === id);
+    assert.ok(row, id);
+    assert.equal(row.visible, true, id);
+    assert.equal(row.actionable, true, id);
+  }
+});
+
+test("document row is Matter-only and does not depend on Graph or runtime readiness", () => {
+  const feature = getOutlookFeatureById("document.create-and-sign-status");
+  assert.equal(feature.implementationState, "active");
+  assert.equal(feature.connectionPrerequisite, false);
+  assert.equal(isOutlookFeatureRuntimeAvailable(feature, {
+    documents: { authoritative: true, runtime_ready: true },
+    document_generation: { authoritative: true, runtime_ready: true },
+  }), true);
+  const row = evaluateOutlookFeatureCatalog(context({
+    connection: "disconnected",
+    runtimeReadiness: {
+      documents: { authoritative: true, runtime_ready: true },
+      document_generation: { authoritative: true, runtime_ready: true },
+    },
+  })).find(({ feature: evaluatedFeature }) => evaluatedFeature.id === feature.id);
+  assert.equal(row.visible, true);
+  assert.equal(row.actionable, true);
 });
 
 test("required current-item and Matter prerequisites match the retained contract", () => {

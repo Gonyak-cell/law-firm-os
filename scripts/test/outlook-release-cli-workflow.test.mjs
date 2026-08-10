@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { appendFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { appendFile, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
 import {
-  assertRecordedCommands, createCommandRunner, exactGitIdentity,
+  assertRecordedCommands, createCommandRunner, exactGitIdentity, trackedGitPaths,
 } from "../lib/outlook-release/cli-runtime.mjs";
 import { contract, contractRef, repoRoot } from "./helpers/outlook-release-fixtures.mjs";
 
@@ -54,6 +54,34 @@ test("exact Git identity behavior rejects tracked and untracked dirt in a real t
   await rm(path.join(root, "untracked.txt"));
   await appendFile(path.join(root, "tracked.txt"), "changed\n");
   assert.throws(() => exactGitIdentity({ expectedSourceSha: head, runCommand: run }), /worktree changes/);
+});
+
+test("release coverage accepts only regular tracked Git files", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "amic-outlook-git-mode-"));
+  const externalRoot = await mkdtemp(path.join(os.tmpdir(), "amic-outlook-git-external-"));
+  t.after(() => Promise.all([
+    rm(root, { recursive: true, force: true }),
+    rm(externalRoot, { recursive: true, force: true }),
+  ]));
+  const run = createCommandRunner({ cwd: root, allowedCommands: ["git"] });
+  run("git", ["init", "-q"]);
+  run("git", ["config", "user.email", "release-gate@amic.internal"]);
+  run("git", ["config", "user.name", "AMIC Release Gate"]);
+  await writeFile(path.join(root, "regular.txt"), "regular\n");
+  const externalPath = path.join(externalRoot, "external.js");
+  await writeFile(externalPath, "export const value = 'one';\n");
+  await symlink(externalPath, path.join(root, "required.js"));
+  run("git", ["add", "regular.txt", "required.js"]);
+  run("git", ["commit", "-qm", "fixture"]);
+  const head = String(run("git", ["rev-parse", "HEAD"])).trim();
+  const tree = exactGitIdentity({ expectedSourceSha: head, runCommand: run }).sourceTree;
+  assert.deepEqual([...trackedGitPaths(run)].sort(), ["regular.txt"]);
+  await writeFile(externalPath, "export const value = 'two';\n");
+  assert.deepEqual(exactGitIdentity({ expectedSourceSha: head, runCommand: run }), {
+    sourceSha: head,
+    sourceTree: tree,
+  });
+  assert.deepEqual([...trackedGitPaths(run)].sort(), ["regular.txt"]);
 });
 
 test("recording command runner observes only fail-closed Git reads", () => {
@@ -144,10 +172,45 @@ test("CI selects every release lane and explicitly executes UPL and focused test
   const runs = workflowRuns(workflow);
   assert.deepEqual(
     runs.filter((run) => /^node --test .*outlook-release/u.test(run)),
-    ["node --test scripts/test/outlook-release-gates.test.mjs"],
+    ["node --test scripts/test/outlook-release-*.test.mjs"],
   );
+  const focusedStart = workflow.indexOf("      - name: Final Outlook API, Matter replay, and DocuSign hardening tests");
+  const focusedEnd = workflow.indexOf("      - name: Email DMS provider and filing tests", focusedStart);
+  assert.ok(focusedStart >= 0 && focusedEnd > focusedStart, "final focused API/Matter/DocuSign step is required");
+  const focusedStep = workflow.slice(focusedStart, focusedEnd);
+  assert.match(focusedStep, /--test-concurrency=1/u);
+  for (const focusedPath of [
+    "apps/api/test/outlook-conversation-policy-api.test.js",
+    "apps/api/test/outlook-conversation-policy-status-api.test.js",
+    "apps/api/test/outlook-document-api.test.js",
+    "apps/api/test/outlook-email-filing-correction-response-binding.test.js",
+    "apps/api/test/outlook-inquiry-registration-service.test.js",
+    "apps/api/test/outm32-approval-publication-replay-api.test.js",
+    "apps/api/test/outm32-document-builder-api.test.js",
+    "apps/api/test/outm32-generic-actor-replay-api.test.js",
+    "packages/matter/test/document-builder-approval.test.js",
+    "packages/matter/test/document-builder-postgres-reconciliation.test.js",
+    "packages/matter/test/document-builder-publication.test.js",
+    "packages/integrations-core/test/docusign-outm33-34-hardening.test.js",
+  ]) {
+    assert.match(focusedStep, new RegExp(`\\n          ${focusedPath.replaceAll(".", "\\.")}\\n`, "u"), `${focusedPath} must run in the serialized focused step`);
+  }
+  const vaultStart = workflow.indexOf("      - name: Vault immutable precedent target tests");
+  const vaultEnd = workflow.indexOf("      - name: Web production build", vaultStart);
+  assert.ok(vaultStart >= 0 && vaultEnd > vaultStart, "Vault immutable precedent target step is required");
+  const vaultStep = workflow.slice(vaultStart, vaultEnd);
+  for (const vaultPath of [
+    "apps/api/test/cmp-r4-g5-vault.test.js",
+    "apps/api/test/outlook-precedent-api.test.js",
+    "apps/web/test/search-preferences.test.mjs",
+    "packages/dms/test/postgres-precedent-lifecycle.test.js",
+  ]) {
+    assert.match(vaultStep, new RegExp(`\\n          ${vaultPath.replaceAll(".", "\\.")}\\n`, "u"), `${vaultPath} must run in the serialized Vault step`);
+  }
+  assert.ok(runs.includes("npm --workspace apps/web run build"), "CI must build the immutable Vault receiver");
+  assert.ok(runs.includes("npx --no-install playwright install --with-deps chromium"), "CI must install Chromium after npm ci --ignore-scripts");
   assert.ok(runs.includes("node scripts/validate-upl-c09-c12-outlook-addin.mjs"));
-  assert.ok(runs.includes("node --test scripts/test/outlook-release-gates.test.mjs"));
+  assert.ok(runs.includes("node --test scripts/test/outlook-release-*.test.mjs"));
   assert.ok(runs.some((run) => run.startsWith("node scripts/validate-outlook-release-candidate.mjs --source-sha")));
   for (const manifest of contract.manifests) {
     assert.match(workflow, new RegExp(`office-addin-manifest@2\\.1\\.6 validate ${manifest.replaceAll(".", "\\.")}`));

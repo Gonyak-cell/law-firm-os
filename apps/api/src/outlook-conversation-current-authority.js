@@ -1,3 +1,8 @@
+import { validateOutlookEmailFileIdempotency } from "../../../packages/email-dms/src/email-filing-service.js";
+import { assertCanonicalIdempotencyKey } from "../../../packages/email-dms/src/email-filing-canonical.js";
+
+const ORIGINAL_MIME_DOCUMENT = /^doc:(.+):original-mime:([a-f0-9]{64})$/u;
+
 function activeMember(member, at) {
   return member?.status === "active"
     && (!member.valid_from || Date.parse(member.valid_from) <= at)
@@ -34,27 +39,46 @@ function matterAccess(repository, principal, matterId, at) {
   return members.length === 1 ? { matter, member: members[0] } : null;
 }
 
-function seedFiling(repository, input) {
+export async function resolveConversationPolicySeed({
+  repository,
+  durable_mime_authority,
+  tenant_id,
+  matter_id,
+  conversation_id,
+  m365_connection_id,
+  seed_email_thread_id,
+  seed_filing_receipt_ref,
+} = {}) {
   const thread = repository?.get?.({
-    tenant_id: input.tenant_id,
+    tenant_id,
     model_type: "DmsEmailThread",
-    email_thread_id: input.seed_email_thread_id,
+    email_thread_id: seed_email_thread_id,
   });
+  if (!thread || thread.status !== "active"
+    || thread.tenant_id !== tenant_id
+    || thread.matter_id !== matter_id
+    || thread.conversation_id !== conversation_id
+    || thread.account_ref !== m365_connection_id
+    || !Array.isArray(thread.filed_document_ids)
+    || thread.filed_document_ids.length !== 1) return null;
+  const match = ORIGINAL_MIME_DOCUMENT.exec(thread.filed_document_ids[0]);
+  if (!match || match[1] !== thread.email_thread_id) return null;
+  const seedFilingReceiptRef = `outlook-email-file:${thread.email_thread_id}:${match[2]}:dms`;
+  if (seed_filing_receipt_ref !== undefined && seed_filing_receipt_ref !== seedFilingReceiptRef) return null;
   const receipt = repository?.getIdempotency?.({
-    tenant_id: input.tenant_id,
-    idempotency_key: input.seed_filing_receipt_ref,
+    tenant_id,
+    idempotency_key: seedFilingReceiptRef,
   });
-  if (!thread || thread.status !== "active" || thread.matter_id !== input.matter_id
-    || thread.conversation_id !== input.conversation_id
-    || thread.account_ref !== input.m365_connection_id
-    || !Array.isArray(thread.filed_document_ids) || thread.filed_document_ids.length < 1
-    || receipt?.response?.email_thread_id !== thread.email_thread_id
-    || receipt.response.matter_id !== thread.matter_id
-    || JSON.stringify(receipt.response.filed_document_ids) !== JSON.stringify(thread.filed_document_ids)) return null;
-  return thread;
+  if (!validateOutlookEmailFileIdempotency({ entry: receipt, thread }).valid) return null;
+  try {
+    await assertCanonicalIdempotencyKey(seedFilingReceiptRef, thread, durable_mime_authority);
+  } catch {
+    return null;
+  }
+  return Object.freeze({ seed_filing_receipt_ref: seedFilingReceiptRef });
 }
 
-export function verifyConversationPolicyAuthority({ runtimes, principal, input, require_seed = false, clock = () => new Date() } = {}) {
+export function verifyConversationPolicyAuthority({ runtimes, principal, input, clock = () => new Date() } = {}) {
   const current = clock();
   const at = current instanceof Date ? current.getTime() : NaN;
   if (!Number.isFinite(at) || !principal || principal.tenant_id !== input.tenant_id
@@ -64,9 +88,6 @@ export function verifyConversationPolicyAuthority({ runtimes, principal, input, 
   if (!connection) return Object.freeze({ allowed: false, reason: "connection_invalid" });
   const matter = matterAccess(runtimes?.matterRuntime?.repository, principal, input.matter_id, at);
   if (!matter) return Object.freeze({ allowed: false, reason: "matter_access_changed" });
-  if (require_seed && !seedFiling(runtimes?.dmsRuntime?.repository, input)) {
-    return Object.freeze({ allowed: false, reason: "seed_filing_invalid" });
-  }
   return Object.freeze({ allowed: true, connection, ...matter });
 }
 

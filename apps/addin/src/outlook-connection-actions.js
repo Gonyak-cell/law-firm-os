@@ -4,6 +4,12 @@ const VERSION_CONFLICT = "M365_CONNECTION_VERSION_CONFLICT";
 const CREDENTIAL_CLEANUP_PENDING =
   "M365_CONNECTION_CREDENTIAL_CLEANUP_PENDING";
 const RESPONSE_INVALID = "API_RESPONSE_INVALID";
+const CONNECTION_ID_ALIASES = Object.freeze([
+  "id",
+  "m365ConnectionId",
+  "m365_connection_id",
+  "connectionId",
+]);
 
 function invalidResponse() {
   return Object.assign(new Error(RESPONSE_INVALID), {
@@ -33,6 +39,42 @@ export function outlookConnectionPayload(body) {
       ?? body;
 }
 
+function connectionIdRecords(body, item, connection) {
+  const records = [];
+  const seen = new Set();
+  for (const record of [body, item, connection]) {
+    if (
+      !record
+      || typeof record !== "object"
+      || Array.isArray(record)
+      || seen.has(record)
+    ) continue;
+    seen.add(record);
+    records.push(record);
+  }
+  return records;
+}
+
+function parseCanonicalConnectionId({ body, item, connection, status }) {
+  const records = connectionIdRecords(body, item, connection);
+  if (records.some((record) => CONNECTION_ID_ALIASES.some((field) => Object.hasOwn(record, field)))) {
+    throw invalidResponse();
+  }
+  const canonicalRecords = records.filter((record) => Object.hasOwn(record, "connection_id"));
+  if (canonicalRecords.length > 1) throw invalidResponse();
+  if (canonicalRecords.length === 0) {
+    if (["not_connected", "unavailable"].includes(status)) return null;
+    throw invalidResponse();
+  }
+  const rawId = canonicalRecords[0].connection_id;
+  if (["not_connected", "unavailable"].includes(status)) {
+    if (rawId === null) return null;
+    throw invalidResponse();
+  }
+  if (typeof rawId !== "string" || rawId.trim() === "") throw invalidResponse();
+  return rawId.trim();
+}
+
 export function parseOutlookConnectionRecord(body) {
   const item = outlookConnectionPayload(body);
   const connection = item?.connection ?? item;
@@ -51,6 +93,12 @@ export function parseOutlookConnectionRecord(body) {
   ) {
     throw invalidResponse();
   }
+  const m365ConnectionId = parseCanonicalConnectionId({
+    body,
+    item,
+    connection,
+    status,
+  });
   const rawStateVersion = connection && Object.hasOwn(connection, "state_version")
     ? connection.state_version
     : item?.state_version;
@@ -82,6 +130,7 @@ export function parseOutlookConnectionRecord(body) {
     state,
     status,
     stateVersion,
+    m365ConnectionId,
     missingScopes: Array.isArray(connection?.missing_scopes) ? connection.missing_scopes : [],
     mailboxAddress: connection?.mailbox_address ?? item?.mailbox_address ?? null,
     authorizationUrl: item?.authorization_url ?? body?.authorization_url ?? null,

@@ -99,7 +99,7 @@ test("Outlook precedent route filters ACL and Ethical Wall sources before cited 
   assert.match(caseLaw.source_url, /^https:\/\//u);
   const internal = combined.find((item) => item.source_kind === "internal_matter_document");
   assert.equal(internal.source_url,
-    "?view=vault&document_id=document_allowed_internal#vault-search-documents");
+    `?view=vault&matter_id=matter_allowed_internal&document_id=document_allowed_internal&document_version_id=version_allowed_internal_1&document_sha256=${internal.content_sha256}#vault-search-documents`);
   const serialized = JSON.stringify([first.body, second.body]);
   assert.doesNotMatch(serialized, /precedent_denied|precedent_current|denied raw body|opaque:/u);
   assert.doesNotMatch(serialized, /denied_count|omitted_count|total_count|body_text|storage_pointer_ref"/u);

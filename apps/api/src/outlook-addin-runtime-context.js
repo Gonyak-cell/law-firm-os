@@ -98,6 +98,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/followups",
     "POST /api/outlook/time-entry-drafts",
     "POST /api/outlook/smart-alerts/evaluate",
+    "GET /api/outlook/conversation-policies",
     "POST /api/outlook/conversation-policies",
     "POST /api/outlook/conversation-policies/:policy_id/revoke",
   ]),
@@ -3815,6 +3816,7 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
       return await handleOutlookConversationPolicyApiRequest({
         pathname,
         method,
+        query,
         body,
         context,
         requestId,

@@ -85,7 +85,7 @@ export function releaseCandidate(
 ) {
   const build = validateBuildInventories(inventory(), inventory(), contract);
   const graphScopes = [...contract.client_outlook_graph_connection_scopes].sort();
-  const oauthScopes = [...contract.client_outlook_oauth_scopes].sort();
+  const oauthScopes = [...contract.client_outlook_oauth_scopes];
   return {
     schema_version: "amic-os.outlook-release-candidate.v1",
     verdict: "PASS",

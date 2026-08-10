@@ -121,7 +121,9 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
   assertEqual(receipt.rollback, validateRollbackContract(context.rollback, context.baseline, contract), "release candidate rollback proof");
   assertEqual(receipt.surface, validateSurfaceSeparation(context.surface, context.baseline, contract), "release candidate surface proof");
   const graphScopes = [...contract.client_outlook_graph_connection_scopes].sort();
-  const oauthScopes = [...contract.client_outlook_oauth_scopes].sort();
+  // OAuth scope bytes are serialized in the delegated client request. Do not
+  // sort this receipt field: a reordered set must fail exact release binding.
+  const oauthScopes = [...contract.client_outlook_oauth_scopes];
   assertExactKeys(receipt.graph_scopes, ["diff", "fingerprint_sha256", "graph_connection_scopes", "oauth_scopes"], "release candidate graph scopes");
   assertEqual(receipt.graph_scopes, {
     graph_connection_scopes: graphScopes,

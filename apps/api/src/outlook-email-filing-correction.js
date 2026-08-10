@@ -19,6 +19,7 @@ import {
   correctionResponse,
   mapCorrectionError,
   safeCorrectionPlacement,
+  safeCorrectionRequestBinding,
   safeCorrectionTimelines,
 } from "./outlook-email-filing-correction-response.js";
 
@@ -146,6 +147,9 @@ async function correctPlacement({ body, context, principal, session, runtime, re
     request_id: requestId,
     outcome: result.outcome,
     item: safeCorrectionPlacement(result.current_placement),
+    ...(result.outcome === "created" || result.outcome === "idempotent_replay"
+      ? { request_binding: safeCorrectionRequestBinding(result.correction) }
+      : {}),
     timeline_events: safeCorrectionTimelines(projection.timeline_events),
     idempotency_fingerprint: result.correction.payload_fingerprint,
     idempotent_replay: result.outcome === "idempotent_replay",
