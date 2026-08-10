@@ -78,6 +78,46 @@ function OutlookIconRail({
   );
 }
 
+function OutlookTextNavigation({
+  profile,
+  railItems,
+  activeFeature = "",
+  disabledFeatures,
+  onActivate,
+}) {
+  const items = Array.isArray(railItems) ? railItems : [];
+  return (
+    <nav
+      className="outlook-icon-rail outlook-text-navigation"
+      aria-label="다른 작업"
+      data-outlook-rail={profile}
+      data-testid="outlook-icon-rail"
+    >
+      {items.map((item, index) => {
+        const featureId = item.featureId ?? item.id ?? `filing-action-${index}`;
+        const label = item.label ?? item.ariaLabel ?? featureId;
+        const disabled = hasFeature(disabledFeatures, featureId);
+        return (
+          <button
+            key={featureId}
+            type="button"
+            className="outlook-icon-button outlook-text-action"
+            id={outlookRailButtonId(featureId)}
+            data-feature-id={featureId}
+            data-testid={`outlook-rail-${featureId}`}
+            data-feature-view={item.view ?? "feature"}
+            aria-pressed={activeFeature === featureId}
+            disabled={disabled}
+            onClick={() => onActivate?.({ featureId, view: item.view ?? "feature" })}
+          >
+            <span>{label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function OutlookFlatActionRow({
   label,
   actionId,
@@ -369,8 +409,38 @@ export function OutlookCompactShell({
   children,
   overlay,
   status,
+  layout = "compact",
+  footer,
 }) {
   if (!profile || !Array.isArray(railItems)) return null;
+  const filingLayout = layout === "filing";
+  if (filingLayout) {
+    return (
+      <main
+        className="outlook-compact-shell outlook-filing-shell"
+        data-ui-shell="outm-06"
+        data-outlook-profile={profile}
+        data-outlook-layout="filing"
+        tabIndex={-1}
+      >
+        <header className="outlook-filing-header"><img src="./amic-law-logo.svg" alt="AMIC Law" width="175" height="28" /></header>
+        <div className="outlook-filing-tab" aria-current="page">메일 저장</div>
+        <section className="outlook-compact-content">
+          {children}
+          {status}
+          <OutlookTextNavigation
+            profile={profile}
+            railItems={railItems}
+            activeFeature={activeFeature}
+            disabledFeatures={disabledFeatures}
+            onActivate={onFeatureSelect}
+          />
+        </section>
+        {footer ? <footer className="outlook-filing-footer">{footer}</footer> : null}
+        {overlay}
+      </main>
+    );
+  }
   return (
     <main className="outlook-compact-shell" data-ui-shell="outm-06" data-outlook-profile={profile} tabIndex={-1}>
       <OutlookIconRail

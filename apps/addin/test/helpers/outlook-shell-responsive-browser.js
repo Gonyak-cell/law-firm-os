@@ -21,11 +21,11 @@ export async function installOfficeAndApiMocks(page) {
         mailbox: {
           item: {
             itemId: "responsive-qa-item",
-            subject: "반응형 Outlook 검증 메일",
+            subject: "계약서 검토 요청",
             internetMessageId: "<responsive-qa@example.invalid>",
             conversationId: "responsive-qa-conversation",
             attachments: [],
-            body: { getAsync(_coercionType, callback) { callback({ status: "succeeded", value: "검증 본문" }); } },
+            body: { getAsync(_coercionType, callback) { callback({ status: "succeeded", value: "공급계약 검토 요청드립니다." }); } },
             getAllInternetHeadersAsync(callback) { callback({ status: "succeeded", value: "Date: Mon, 10 Aug 2026 00:00:00 +0900" }); },
           },
           userProfile: { emailAddress: "qa@example.invalid" },
@@ -84,12 +84,50 @@ export async function installOfficeAndApiMocks(page) {
         body: JSON.stringify({
           items: [{
             matter_id: "matter-responsive",
-            matter_code: "M-RESP",
-            title: "반응형 검증 Matter",
-            client_display_name: "QA Client",
+            matter_code: "M-2026-014",
+            title: "공급계약 검토",
+            client_display_name: "예시 고객",
             status: "open",
           }],
         }),
+      });
+    }
+    if (requestUrl.pathname === "/api/outlook/messages/identity") {
+      const request = route.request().postDataJSON();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          item: {
+            rest_message_id: request.rest_message_id,
+            internet_message_id: request.internet_message_id,
+            conversation_id: request.conversation_id,
+            canonical_graph_message_id: "graph-responsive-qa",
+          },
+        }),
+      });
+    }
+    if (/^\/api\/outlook\/matters\/[^/]+\/timeline$/u.test(requestUrl.pathname)) {
+      const matterId = decodeURIComponent(requestUrl.pathname.split("/")[4]);
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          request_id: "request-responsive-timeline",
+          outcome: "passed",
+          item: {
+            matter_id: matterId,
+            visible_entries: [],
+            page_info: { limit: 8, has_more: false, next_cursor: null },
+          },
+        }),
+      });
+    }
+    if (/^\/api\/outlook\/matters\/[^/]+\/documents$/u.test(requestUrl.pathname)) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({ items: [] }),
       });
     }
     if (requestUrl.pathname === "/api/outlook/precedents/readiness") {
@@ -119,8 +157,8 @@ export async function installOfficeAndApiMocks(page) {
           items: [{
             source_id: "precedent-qa-001",
             source_kind: "internal_matter_document",
-            title: "반응형 검증을 위한 매우 긴 선례 문서 제목 — 160px과 320px에서 말줄임을 확인하는 고정 결과",
-            snippet: "반응형 결과 행의 한 줄 렌더링을 검증합니다.",
+            title: "공급계약 검토를 위한 매우 긴 선례 문서 제목 — 160px과 320px에서 말줄임을 확인하는 고정 결과",
+            snippet: "공급계약 검토 결과를 한 줄로 확인합니다.",
             source_matter_id: "matter-source-other",
             document_id: documentId,
             version_id: "version-precedent-qa",
@@ -149,8 +187,8 @@ export async function installOfficeAndApiMocks(page) {
   });
 }
 
-export async function openProfile(browser, web, profile, width, reducedMotion) {
-  const page = await browser.newPage({ viewport: { width, height: 720 } });
+export async function openProfile(browser, web, profile, width, reducedMotion, height = 720) {
+  const page = await browser.newPage({ viewport: { width, height } });
   await page.emulateMedia({ reducedMotion: reducedMotion ? "reduce" : "no-preference" });
   await installOfficeAndApiMocks(page);
   await page.goto(`${web.origin}${profile.path}`, { waitUntil: "domcontentloaded" });

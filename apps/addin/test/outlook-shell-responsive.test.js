@@ -39,7 +39,7 @@ const PROFILES = Object.freeze([
   }),
 ]);
 const NARROW_WIDTHS = Object.freeze([160, 180, 240]);
-const NORMAL_WIDTHS = Object.freeze([320, 360, 480]);
+const NORMAL_WIDTHS = Object.freeze([320, 360, 390]);
 
 async function assertPrecedentResultGeometry(page, width) {
   const matterSearch = page.locator("[data-feature-id='matter.search']");
@@ -137,8 +137,13 @@ async function assertResponsivePage(page, profile, {
   assert.equal(before.shell.scrollWidth, before.shell.clientWidth, `${profile.id} shell overflows before overlay: ${JSON.stringify(before)}`);
   assert.deepEqual(before.visibleLineFailures, [], `${profile.id} has a wrapped/clipped visible command before overlay: ${JSON.stringify(before)}`);
   assert.equal(before.shell.minWidth, "0px", `${profile.id} shell retains a global minimum width`);
-  assert.equal(before.rail?.width, 44, `${profile.id} rail must remain 44 CSS px`);
-  assert.equal(before.railButton?.width, 44, `${profile.id} rail target must remain 44 CSS px`);
+  if (profile.id === "matter-full") {
+    assert.ok(before.rail?.width > 44, `${profile.id} text navigation must use the pane width`);
+    assert.ok(before.railButton?.height >= 44, `${profile.id} text action target must remain at least 44 CSS px`);
+  } else {
+    assert.equal(before.rail?.width, 44, `${profile.id} rail must remain 44 CSS px`);
+    assert.equal(before.railButton?.width, 44, `${profile.id} rail target must remain 44 CSS px`);
+  }
   if (!overlay) return before;
 
   let focused = before;
@@ -257,4 +262,67 @@ test("OUTM-12 actual built profiles reflow at 200% effective widths and keep the
     await new Promise((resolve) => web.server.close(resolve));
   }
   assert.equal(evidence.length, PROFILES.length * (NARROW_WIDTHS.length + NORMAL_WIDTHS.length + NORMAL_WIDTHS.length));
+});
+
+test("matter filing home keeps its fixed action reachable in a short Outlook pane", async () => {
+  await assertBuiltDist(DIST_ROOT);
+  await mkdir(SCREENSHOT_DIR, { recursive: true });
+  const web = await startOutlookAddinStaticServer({ distRoot: DIST_ROOT });
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const profile = PROFILES[0];
+    const page = await openProfile(browser, web, profile, 390, true, 480);
+    try {
+      const metrics = await measureShell(page, profile);
+      assert.equal(metrics.document.scrollWidth, metrics.document.clientWidth);
+      assert.equal(metrics.shell.scrollWidth, metrics.shell.clientWidth);
+      const footer = page.locator(".outlook-filing-footer");
+      const button = page.locator("[data-testid='outlook-primary-filing-button']");
+      await footer.waitFor({ state: "visible" });
+      await button.waitFor({ state: "visible" });
+      assert.equal(await page.locator("[data-outlook-layout='filing']").count(), 1);
+      assert.equal(await page.locator(".outlook-filing-header img").getAttribute("alt"), "AMIC Law");
+      assert.equal(await page.locator(".outlook-filing-tab").innerText(), "메일 저장");
+      assert.equal(await page.locator("[data-testid='outlook-filing-overview']").count(), 1);
+      assert.deepEqual(
+        await page.locator("[data-testid='outlook-icon-rail'] button").evaluateAll((buttons) => (
+          buttons.map((entry) => entry.textContent.trim())
+        )),
+        ["저장 옵션", "저장 위치 선택", "관련 작업 만들기", "시간 기록 초안", "추가 작업"],
+      );
+      assert.equal(await page.locator("[data-testid='outlook-icon-rail'] svg").count(), 0);
+      assert.deepEqual(await page.evaluate(() => {
+        const header = getComputedStyle(document.querySelector(".outlook-filing-header"));
+        const action = getComputedStyle(document.querySelector(".outlook-primary-action"));
+        return {
+          header: header.backgroundColor,
+          action: action.backgroundColor,
+          actionText: action.color,
+        };
+      }), {
+        header: "rgb(15, 58, 50)",
+        action: "rgb(38, 194, 96)",
+        actionText: "rgb(255, 255, 255)",
+      });
+      await page.locator("[data-feature-id='matter.search']").click();
+      await page.locator("#matter-search-input").fill("responsive");
+      await page.waitForFunction(() => Boolean(document.querySelector("#matter-select option[value='matter-responsive']")));
+      await page.locator("#matter-select").selectOption("matter-responsive");
+      await page.keyboard.press("Escape");
+      await page.waitForSelector(".outlook-overlay-panel", { state: "detached" });
+      await page.waitForFunction(() => document.querySelector(".outlook-selected-matter")?.textContent.includes("M-2026-014"));
+      assert.equal(await button.isEnabled(), true);
+      const geometry = await footer.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        return { top: box.top, bottom: box.bottom, viewport: window.innerHeight };
+      });
+      assert.equal(geometry.bottom <= geometry.viewport && geometry.top >= 0, true, JSON.stringify(geometry));
+      await page.screenshot({ path: path.join(SCREENSHOT_DIR, "matter-full-390-short.png"), fullPage: true });
+    } finally {
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+    await new Promise((resolve) => web.server.close(resolve));
+  }
 });

@@ -27,13 +27,13 @@ function waitable() {
 function officeItem(key) {
   return {
     itemId: `office-${key}`,
-    subject: `통합 검증 메일 ${key}`,
+    subject: `계약서 검토 요청 ${key}`,
     internetMessageId: `<main-${key}@example.invalid>`,
     conversationId: `conversation-main-${key}`,
     from: { displayName: "상대방", emailAddress: "sender@example.invalid" },
     to: [],
     attachments: [],
-    body: { getAsync(_type, callback) { callback({ status: "succeeded", value: `본문 ${key}` }); } },
+    body: { getAsync(_type, callback) { callback({ status: "succeeded", value: `공급계약 검토 요청 ${key}` }); } },
     getAllInternetHeadersAsync(callback) { callback({ status: "succeeded", value: "Date: Mon, 10 Aug 2026 00:00:00 +0000" }); },
   };
 }
@@ -200,8 +200,8 @@ async function openFixture(browser, web, state, width = 320) {
     if (url.pathname === "/api/outlook/messages/identity") return fulfill({ item: { canonical_graph_message_id: `canonical-${body.rest_message_id}`, rest_message_id: body.rest_message_id, internet_message_id: body.internet_message_id, conversation_id: body.conversation_id } });
     if (url.pathname === "/api/outlook/operation-receipts/readback") return fulfill({ items: [receiptSummary(body.current_item, body.matter_id)] });
     if (url.pathname === "/api/outlook/matters") return fulfill({ items: [
-      { matter_id: MATTER_A, matter_code: "MAIN/A", title: "통합 검증 Matter A", client_display_name: "QA Client", status: "open" },
-      { matter_id: MATTER_B, matter_code: "MAIN/B", title: "통합 검증 Matter B", client_display_name: "QA Client", status: "open" },
+      { matter_id: MATTER_A, matter_code: "MAIN/A", title: "공급계약 검토 A", client_display_name: "예시 고객", status: "open" },
+      { matter_id: MATTER_B, matter_code: "MAIN/B", title: "공급계약 검토 B", client_display_name: "예시 고객", status: "open" },
     ] });
     if (/\/timeline$/u.test(url.pathname)) {
       const matterId = url.pathname.split("/").at(-2);
@@ -309,7 +309,7 @@ test("OUTM28/OUTM34 built main shell fences context and keeps compact command UI
     await openAllFunctions(page);
     assert.equal(await page.locator("[data-action-row='conversation.auto-save']").count(), 1);
     assert.equal(await page.locator("[data-action-row='document.create-and-sign-status']").count(), 1);
-    assert.equal(await page.locator(".outlook-overlay-panel h2").textContent(), "전체 기능");
+    assert.equal(await page.locator(".outlook-overlay-panel h2").textContent(), "추가 작업");
 
     await page.setViewportSize({ width: 160, height: 760 });
     evidence.metrics.width160 = await shellMetrics(page);

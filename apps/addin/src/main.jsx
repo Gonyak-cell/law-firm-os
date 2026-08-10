@@ -25,6 +25,7 @@ import {
   parseOutlookFilingCorrectionResponse,
 } from "./outlook-filing-correction.js";
 import { OutlookFilingCorrectionPanel } from "./outlook-filing-correction-panel.jsx";
+import { OutlookFilingOverview } from "./outlook-filing-overview.jsx";
 import { OutlookConversationPolicyFeature } from "./outlook-conversation-policy-feature.jsx";
 import { OutlookDocumentSigningFeature } from "./outlook-document-signing-feature.jsx";
 import { OutlookPrecedentPanel } from "./outlook-precedent-panel.jsx";
@@ -223,7 +224,7 @@ async function initializeMsalBridge() {
       if (!support.supported) {
         throw createAddinAuthError(
           support.reason ?? AUTH_ERROR_CODES.nestedAppAuthUnavailable,
-          "이 Outlook 환경에서는 Nested App Auth 1.1을 사용할 수 없습니다.",
+          "이 Outlook 환경에서는 보안 로그인을 사용할 수 없습니다.",
           { nested_app_auth: support },
         );
       }
@@ -469,7 +470,7 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
     }
     const entraAccessToken = typeof result?.accessToken === "string" ? result.accessToken : "";
     if (!entraAccessToken) {
-      throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "Microsoft 로그인 토큰을 받지 못했습니다.");
+      throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "Microsoft 로그인을 완료하지 못했습니다.");
     }
     const exchange = await rawRequestJson("/api/auth/office-sso/exchange", {
       method: "POST",
@@ -718,7 +719,7 @@ function actionContextChangedError() {
 function filedEmailDoesNotMatchError() {
   return Object.assign(new Error("OUTLOOK_FILED_EMAIL_MISMATCH"), {
     safe_error_code: "OUTLOOK_FILED_EMAIL_MISMATCH",
-    user_message: "선택한 메일을 먼저 Matter에 보관한 뒤 다시 시도해 주세요.",
+    user_message: "선택한 메일을 먼저 Matter에 저장한 뒤 다시 시도해 주세요.",
   });
 }
 
@@ -727,11 +728,11 @@ function busyLabel(value) {
     login: "AMIC OS 로그인을 확인하고 있습니다.",
     connect: "Outlook 연결을 확인하고 있습니다.",
     disconnect: "Outlook 연결을 해제하고 있습니다.",
-    file: "Matter에 메일을 보관하고 있습니다.",
-    sent_file: "보낸 메일을 Matter에 보관하고 있습니다.",
+    file: "Matter에 메일을 저장하고 있습니다.",
+    sent_file: "보낸 메일을 Matter에 저장하고 있습니다.",
     attachments: "첨부 파일을 저장하고 있습니다.",
     task: "업무를 저장하고 있습니다.",
-    time_draft: "시간기록 초안을 저장하고 있습니다.",
+    time_draft: "시간 기록 초안을 저장하고 있습니다.",
     readbacks: "Matter 활동과 문서를 불러오고 있습니다.",
     alerts: "스마트 경고를 점검하고 있습니다.",
     correction: "저장 위치를 바꾸고 있습니다.",
@@ -820,7 +821,7 @@ function actionResultNotice(name, result) {
   if (name === "file") {
     return {
       status: partial ? OUTLOOK_OPERATION_STATES.partial : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
-      visibleMessage: partial ? "메일은 저장됐고 일부 첨부는 다시 시도해야 합니다." : replay ? "이미 저장된 메일입니다." : "메일과 첨부를 저장했습니다.",
+      visibleMessage: partial ? "메일은 저장됐고 일부 첨부는 다시 시도해야 합니다." : replay ? "이미 저장된 메일입니다." : "메일 및 첨부 파일을 저장했습니다.",
       fullMessage: partial
         ? `메일 저장은 완료됐습니다. 다시 시도할 첨부 ${result?.retry_attachment_ids?.length ?? 0}개가 남았습니다.`
         : replay ? "같은 Matter의 기존 메일 저장 기록을 확인했습니다." : "선택한 Matter에 메일 원본과 확인된 첨부를 저장했습니다.",
@@ -856,8 +857,8 @@ function actionResultNotice(name, result) {
     const version = result?.item?.version ?? "";
     return {
       status: readbackPending ? OUTLOOK_OPERATION_STATES.partial : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
-      visibleMessage: readbackPending ? "시간기록 초안은 저장됐지만 목록은 새로 불러오지 못했습니다." : replay ? "같은 시간기록 초안을 확인했습니다." : "시간기록 초안을 만들었습니다.",
-      fullMessage: readbackPending ? `초안 ${draftRef}, 버전 ${version} 저장은 완료됐습니다. Matter 활동과 문서만 다시 불러와 주세요.` : draftRef ? `초안 ${draftRef}, 버전 ${version}을 저장했습니다. 제출 또는 승인은 수행하지 않았습니다.` : "시간기록 초안 저장 결과를 확인했습니다.",
+      visibleMessage: readbackPending ? "시간 기록 초안은 저장됐지만 목록은 새로 불러오지 못했습니다." : replay ? "같은 시간 기록 초안을 확인했습니다." : "시간 기록 초안을 만들었습니다.",
+      fullMessage: readbackPending ? `초안 ${draftRef}, 버전 ${version} 저장은 완료됐습니다. Matter 활동과 문서만 다시 불러와 주세요.` : draftRef ? `초안 ${draftRef}, 버전 ${version}을 저장했습니다. 제출 또는 승인은 수행하지 않았습니다.` : "시간 기록 초안 저장 결과를 확인했습니다.",
     };
   }
   if (name === "alerts") {
@@ -1498,7 +1499,7 @@ function App() {
       }
     }
     if (!expected) {
-      const message = "선택한 메일을 현재 Matter에 보관한 뒤 다시 시도해 주세요.";
+      const message = "선택한 메일을 현재 Matter에 저장한 뒤 다시 시도해 주세요.";
       setFilingCorrection((current) => ({
         ...current,
         notice: { status: OUTLOOK_OPERATION_STATES.staleItem, visibleMessage: message, fullMessage: message, testId: "filing-correction-state" },
@@ -2522,7 +2523,7 @@ function App() {
     if (!randomId) {
       throw Object.assign(new Error("OUTLOOK_OPERATION_KEY_UNAVAILABLE"), {
         safe_error_code: "OUTLOOK_OPERATION_KEY_UNAVAILABLE",
-        user_message: "안전한 처리 키를 만들 수 없습니다. Outlook을 다시 시작해 주세요.",
+        user_message: "작업을 시작할 수 없습니다. Outlook을 다시 시작해 주세요.",
       });
     }
     operationEpochRef.current += 1;
@@ -2992,7 +2993,7 @@ function App() {
       operationStartKey,
     });
     if (!body?.item?.draft_ref || !Number.isSafeInteger(body.item.version)) {
-      throw new TypeError("시간기록 초안 응답을 확인할 수 없습니다.");
+      throw new TypeError("시간 기록 초안 응답을 확인할 수 없습니다.");
     }
     timeDraftResultRef.current = body;
     setTimeDraftResult(body);
@@ -3073,7 +3074,7 @@ function App() {
         visibleMessage: receiptRecovery.filing_mode === "sent"
           ? "저장된 보낸 메일 기록을 확인했습니다."
           : "저장된 메일 기록을 확인했습니다.",
-        fullMessage: "선택한 Matter의 완료 영수증과 읽기 결과를 대조했습니다.",
+        fullMessage: "저장 기록을 확인했습니다.",
       }
     : null;
 
@@ -3177,6 +3178,24 @@ function App() {
         (entry) => entry.featureId === overlayState.featureId,
       )?.label ?? "Outlook 기능";
 
+  const primaryAction = item?.mode === "compose"
+    ? {
+        label: "보내기 전 확인",
+        disabled: !authenticated || !graphConnected || !itemAvailable || busy !== "",
+        run: () => runAction("alerts", evaluateAlerts),
+      }
+    : item?.provenance === "sent"
+      ? {
+          label: "보낸 메일 저장",
+          disabled: !authenticated || !graphConnected || !selectedMatterId || busy !== "",
+          run: () => runAction("sent_file", fileSentEmail),
+        }
+      : {
+          label: "메일 및 첨부 파일 저장",
+          disabled: !authenticated || !graphConnected || !selectedMatterId || item?.provenance !== "received" || busy !== "",
+          run: () => runAction("file", fileEmail),
+        };
+
   return (
     <OutlookMatterCompactShell
       profile="matter-full"
@@ -3190,6 +3209,17 @@ function App() {
       )}
       onFeatureSelect={openFeatureOverlay}
       status={overlayState.open ? null : <CompactIntervention intervention={intervention} />}
+      footer={(
+        <button
+          type="button"
+          className="outlook-primary-action"
+          disabled={primaryAction.disabled}
+          onClick={() => void primaryAction.run()}
+          data-testid="outlook-primary-filing-button"
+        >
+          {primaryAction.label}
+        </button>
+      )}
       overlay={(
         <OutlookOverlay
           state={overlayState}
@@ -3205,10 +3235,10 @@ function App() {
                   onCopy={copyCriticalValue}
                 />
               ) : (
-                <p className="outlook-one-line">Matter를 먼저 선택해 주세요.</p>
+                <p className="outlook-one-line">저장할 Matter를 선택해 주세요.</p>
               )}
               <div className="outlook-flat-action-row">
-                <span className="outlook-flat-action-label">받은 메일과 첨부 저장</span>
+                <span className="outlook-flat-action-label">메일 및 첨부 파일 저장</span>
                 <button
                   type="button"
                   className="outlook-flat-action-button"
@@ -3273,7 +3303,7 @@ function App() {
                 autoComplete="off"
                 data-testid="matter-select"
               >
-                <option value="">Matter를 선택해 주세요</option>
+                <option value="">저장할 Matter를 선택해 주세요</option>
                 {matters.map((matter) => (
                   <option key={matter.matter_id} value={matter.matter_id}>
                     {matter.matter_code ? `${matter.matter_code} — ${matter.title}` : matter.title}
@@ -3374,7 +3404,7 @@ function App() {
               ) : null}
               <div className="outlook-flat-action-row">
                 <span className="outlook-flat-action-label">
-                  {taskResult?.item?.activity_id ? "업무 수정" : "업무 만들기"}
+                  {taskResult?.item?.activity_id ? "관련 작업 수정" : "관련 작업 만들기"}
                 </span>
                 <button
                   type="submit"
@@ -3445,19 +3475,19 @@ function App() {
               {timeDraftResult?.item?.draft_ref ? (
                 <>
                   <OutlookCriticalValueRow
-                    label="시간기록 초안 ID"
+                    label="시간 기록 초안 ID"
                     value={timeDraftResult.item.draft_ref}
                     onCopy={copyCriticalValue}
                   />
                   <OutlookCriticalValueRow
-                    label="시간기록 초안 버전"
+                    label="시간 기록 초안 버전"
                     value={timeDraftResult.item.version}
                     onCopy={copyCriticalValue}
                   />
                 </>
               ) : null}
               <div className="outlook-flat-action-row">
-                <span className="outlook-flat-action-label">시간기록 초안 만들기</span>
+                <span className="outlook-flat-action-label">시간 기록 초안 만들기</span>
                 <button
                   type="submit"
                   className="outlook-flat-action-button"
@@ -3777,7 +3807,14 @@ function App() {
             : null}
         </OutlookOverlay>
       )}
-    />
+    >
+      <OutlookFilingOverview
+        item={item}
+        selectedMatterDisplay={selectedMatterDisplay}
+        busy={busy}
+        filed={Boolean(emailResult || receiptRecovery)}
+      />
+    </OutlookMatterCompactShell>
   );
 }
 

@@ -24,7 +24,7 @@ function receipt(type, success, duplicate, partial, failure) {
 export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
   {
     id: "matter.search",
-    label: "Matter 찾기",
+    label: "저장 위치 선택",
     profile: "matter-full",
     availability: { read: true, compose: true, event: [] },
     requiredItemFields: ["itemContextKey"],
@@ -50,7 +50,7 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
   },
   {
     id: "mail.save-with-attachments",
-    label: "메일과 첨부 저장",
+    label: "메일 및 첨부 파일 저장",
     profile: "matter-full",
     availability: { read: true, compose: false, event: [] },
     requiredItemFields: [
@@ -174,7 +174,7 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
   },
   {
     id: "task.create",
-    label: "업무 만들기",
+    label: "관련 작업 만들기",
     profile: "matter-full",
     availability: { read: true, compose: false, event: [] },
     requiredItemFields: ["itemContextKey", "subject"],
@@ -200,7 +200,7 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
   },
   {
     id: "time-entry.draft",
-    label: "시간기록 초안",
+    label: "시간 기록 초안",
     profile: "matter-full",
     availability: { read: true, compose: true, event: [] },
     requiredItemFields: ["itemContextKey"],
@@ -458,7 +458,7 @@ export function evaluateOutlookFeatureCatalog(context = {}) {
         && online === true && implementationReady;
       let response = null;
       if (feature.implementationState !== "active") response = "공통 Outlook 화면 통합 후 제공됩니다.";
-      else if (!implementationReady) response = "선례 검색 준비 상태를 확인해 주세요.";
+      else if (!implementationReady) response = "검색 준비 중입니다.";
       else if (!currentItem) response = feature.staleItemResponse;
       else if (!itemReady) response = "현재 메일 정보를 다시 불러와 주세요.";
       else if (online !== true) response = feature.offlineReconnectResponse.offline;

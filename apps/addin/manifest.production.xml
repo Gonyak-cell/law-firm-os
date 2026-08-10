@@ -9,7 +9,7 @@
   <ProviderName>AMIC OS</ProviderName>
   <DefaultLocale>ko-KR</DefaultLocale>
   <DisplayName DefaultValue="AMIC OS" />
-  <Description DefaultValue="Outlook 메일과 첨부 파일을 Matter에 보관하고 후속 업무를 만듭니다." />
+  <Description DefaultValue="Outlook 메일과 첨부 파일을 Matter에 저장하고 후속 업무를 만듭니다." />
   <IconUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/amic-law-icon.png" />
   <HighResolutionIconUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/amic-law-icon.png" />
   <SupportUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/" />
@@ -107,10 +107,10 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="AMIC OS" />
-        <bt:String id="TaskpaneButton.Label" DefaultValue="메일 처리" />
+        <bt:String id="TaskpaneButton.Label" DefaultValue="작업창 열기" />
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="현재 메일을 Matter에 보관하고 첨부 파일과 후속 업무를 연결합니다." />
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="AMIC OS 우측 패널을 엽니다." />
       </bt:LongStrings>
     </Resources>
     <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
@@ -195,10 +195,10 @@
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="Group.Label" DefaultValue="AMIC OS" />
-          <bt:String id="TaskpaneButton.Label" DefaultValue="메일 처리" />
+          <bt:String id="TaskpaneButton.Label" DefaultValue="작업창 열기" />
         </bt:ShortStrings>
         <bt:LongStrings>
-          <bt:String id="TaskpaneButton.Tooltip" DefaultValue="현재 메일을 Matter에 보관하고 첨부 파일과 후속 업무를 연결합니다." />
+          <bt:String id="TaskpaneButton.Tooltip" DefaultValue="AMIC OS 우측 패널을 엽니다." />
         </bt:LongStrings>
       </Resources>
     </VersionOverrides>

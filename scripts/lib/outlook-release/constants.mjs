@@ -145,6 +145,7 @@ export const REQUIRED_RELEASE_PATHS = [
   "apps/addin/src/outlook-surface-profile.js",
   "apps/addin/src/outlook-task-datetime.js",
   "apps/addin/src/styles.css",
+  "apps/addin/public/amic-law-logo.svg",
   "apps/api/src/json-postgres-program-admin-lambda.js",
   "apps/api/src/outlook-addin-runtime-context.js",
   "apps/api/src/matter-runtime-context.js",
@@ -266,7 +267,7 @@ export const REQUIRED_TEST_PATHS = [
   "scripts/test/outlook-release-profile-artifacts.test.mjs",
 ];
 export const REQUIRED_STATIC_PATHS = [
-  "amic-law-icon.png", "event-runtime.html", "event-runtime.js", "index.html",
+  "amic-law-icon.png", "amic-law-logo.svg", "event-runtime.html", "event-runtime.js", "index.html",
   "oauth-callback.html", "oauth-callback.js", "oauth-start.html", "oauth-start.js",
   "outlook-addin/index.html",
 ];

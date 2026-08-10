@@ -23,7 +23,7 @@ async function fixturePage(browser, file, width) {
 
 test("OUTM-06 browser contract runs in the normal add-in Node test path", async () => {
   assert.deepEqual(OUTLOOK_UI_CONTRACT.profiles, ["matter-full", "inquiry-only"]);
-  assert.deepEqual(OUTLOOK_UI_CONTRACT.viewportWidths, [320, 360, 480]);
+  assert.deepEqual(OUTLOOK_UI_CONTRACT.viewportWidths, [320, 360, 390]);
   assert.equal(OUTLOOK_UI_CONTRACT.requirements.criticalScrollerOnlySemanticMarker, true);
   assert.equal(OUTLOOK_UI_CONTRACT.requirements.officeManifestMetadataExempt, true);
 

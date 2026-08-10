@@ -66,6 +66,19 @@ test("Client Add-in manifests keep ReadItem-only permissions and the nested even
   assertOfficialBrand(local, "local manifest");
 });
 
+test("Matter command surfaces use one neutral task-pane opener", async () => {
+  const manifests = await Promise.all([
+    read("apps/addin/manifest.production.xml"),
+    read("apps/addin/manifest.xml"),
+  ]);
+  for (const manifest of manifests) {
+    assert.equal((manifest.match(/<Action xsi:type="ShowTaskpane">/gu) ?? []).length, 4);
+    assert.equal((manifest.match(/TaskpaneButton\.Label" DefaultValue="작업창 열기"/gu) ?? []).length, 2);
+    assert.equal((manifest.match(/TaskpaneButton\.Tooltip" DefaultValue="AMIC OS 우측 패널을 엽니다\."/gu) ?? []).length, 2);
+    assert.doesNotMatch(manifest, /ExecuteFunction/u);
+  }
+});
+
 test("Outlook task-pane documents and copy use the official AMIC OS name", async () => {
   const [taskPaneHtml, eventRuntimeHtml, mainSource, authSource, httpSource] = await Promise.all([
     read("apps/addin/index.html"),
@@ -168,11 +181,21 @@ test("production build and runtime-config entry points are present", async () =>
     "apps/addin/public/event-runtime.html",
     "apps/addin/public/event-runtime.js",
     "apps/addin/public/amic-law-icon.png",
+    "apps/addin/public/amic-law-logo.svg",
     "apps/addin/public/.well-known/microsoft-officeaddins-allowed.json",
     "apps/web/public/.well-known/microsoft-officeaddins-allowed.json",
   ]) {
     await access(path.join(repoRoot, relativePath), constants.R_OK);
   }
+});
+
+test("Matter filing header ships the canonical AMIC Law wordmark byte-for-byte", async () => {
+  const [canonical, addinLogo] = await Promise.all([
+    readFile(path.join(repoRoot, "apps/web/src/assets/amic-law.svg")),
+    readFile(path.join(repoRoot, "apps/addin/public/amic-law-logo.svg")),
+  ]);
+
+  assert.deepEqual(addinLogo, canonical);
 });
 
 test("classic Outlook runtime URLs are explicitly allowed at each host root", async () => {

@@ -116,7 +116,7 @@ test("inquiry errors allowlist safe copy and fail closed for foreign Matter code
   assert.equal(
     outlookInquiryActionErrorMessage({
       safe_error_code: "OUTLOOK_ADDIN_MATTER_INACTIVE",
-      user_message: "이 Matter는 현재 보관 작업을 받을 수 없습니다. 상태를 확인해 주세요.",
+      user_message: "이 Matter는 현재 저장 작업을 받을 수 없습니다. 상태를 확인해 주세요.",
     }),
     generic,
   );

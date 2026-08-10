@@ -98,7 +98,7 @@ test("OUTM28 SSR panel is compact, Korean, fail-closed, and connection-safe", ()
   assert.match(render({ policy: null }), />켜기</u);
   const filingBlocked = render({ policy: null, filingRequired: true });
   assert.match(filingBlocked, /자동 저장 끔/u);
-  assert.match(filingBlocked, /Matter에 메일을 먼저 보관해 주세요\./u);
+  assert.match(filingBlocked, /Matter에 메일을 먼저 저장해 주세요\./u);
   assert.match(filingBlocked, /data-testid="outlook-conversation-policy-action"[^>]*disabled/u);
   assert.match(render({ policy: ACTIVE }), /자동 저장 켬/u);
   const activeSyncPending = render({ policy: ACTIVE, syncPending: true });
@@ -114,12 +114,12 @@ test("OUTM28 SSR panel is compact, Korean, fail-closed, and connection-safe", ()
   assert.match(activeUnready, /동기화 필요/u);
   assert.doesNotMatch(activeUnready, /data-testid="outlook-conversation-policy-action"[^>]*disabled/u);
   const revokedFilingBlocked = render({ policy: { ...ACTIVE, status: "revoked", pause_reason: "disabled", version: 2, updated_at: "2026-08-08T00:01:00.000Z", revoked_at: "2026-08-08T00:01:00.000Z" }, filingRequired: true });
-  assert.match(revokedFilingBlocked, /Matter에 메일을 먼저 보관해 주세요\./u);
+  assert.match(revokedFilingBlocked, /Matter에 메일을 먼저 저장해 주세요\./u);
   assert.match(revokedFilingBlocked, /data-testid="outlook-conversation-policy-action"[^>]*disabled/u);
   const activeFilingIgnored = render({ policy: ACTIVE, filingRequired: true });
   assert.match(activeFilingIgnored, /자동 저장 켬/u);
   assert.match(activeFilingIgnored, />끄기</u);
-  assert.doesNotMatch(activeFilingIgnored, /Matter에 메일을 먼저 보관해 주세요\./u);
+  assert.doesNotMatch(activeFilingIgnored, /Matter에 메일을 먼저 저장해 주세요\./u);
   const blocked = render({ policy: ACTIVE, connectionRequired: true });
   assert.match(blocked, />다시 연결</u);
   assert.match(blocked, /disabled/u);
@@ -151,7 +151,7 @@ test("OUTM28 rendered button performs one action and stays disabled while busy",
     assert.deepEqual(await page.evaluate(() => window.__calls), ["enable", "revoke", "revoke"]);
     await page.evaluate(() => window.__render({ policy: null, readiness: { authoritative: true, runtime_ready: true, auto_filing_enabled: true }, filingRequired: true }));
     await page.waitForFunction(() => document.querySelector("[data-testid='outlook-conversation-policy-action']")?.disabled === true);
-    assert.equal(await page.locator("[data-testid='outlook-conversation-policy-status']").textContent(), "Matter에 메일을 먼저 보관해 주세요.");
+    assert.equal(await page.locator("[data-testid='outlook-conversation-policy-status']").textContent(), "Matter에 메일을 먼저 저장해 주세요.");
     await page.locator("[data-testid='outlook-conversation-policy-action']").click({ force: true });
     assert.deepEqual(await page.evaluate(() => window.__calls), ["enable", "revoke", "revoke"]);
     await page.evaluate((policy) => window.__render({ policy, readiness: { authoritative: true, runtime_ready: true, auto_filing_enabled: true }, busy: true }), ACTIVE);

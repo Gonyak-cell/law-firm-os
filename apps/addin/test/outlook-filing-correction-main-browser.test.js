@@ -37,7 +37,7 @@ function item(key) {
   return {
     itemId: `office-${key}`, subject: `OUTM22 ${key}`, internetMessageId: `<outm22-${key}@example.invalid>`, conversationId: `outm22-${key}`,
     from: { displayName: "상대방", emailAddress: "sender@example.invalid" }, to: [], attachments: [],
-    body: { getAsync(_type, callback) { callback({ status: "succeeded", value: "검증 본문" }); } },
+    body: { getAsync(_type, callback) { callback({ status: "succeeded", value: "공급계약 검토 요청드립니다." }); } },
     getAllInternetHeadersAsync(callback) { callback({ status: "succeeded", value: "Date: Mon, 10 Aug 2026 00:00:00 +0000" }); },
   };
 }
@@ -245,7 +245,7 @@ test("OUTM22 graph-disconnected correction surface remains reachable but fail-cl
     await page.locator("[data-testid='filing-correction-open']").click();
     assert.equal(await page.locator("[data-testid='filing-correction-open']").count(), 0);
     await page.waitForSelector("[data-testid='filing-correction-state']");
-    assert.match(await page.locator("[data-testid='filing-correction-state']").innerText(), /보관한 뒤/u);
+    assert.match(await page.locator("[data-testid='filing-correction-state']").innerText(), /저장한 뒤/u);
     assert.equal(state.requests.filter((request) => request.path === "/api/outlook/email/corrections/current").length, 0);
   } finally {
     await browser.close(); await fixture.close(); await new Promise((resolve) => web.server.close(resolve)); await rm(root, { recursive: true, force: true });

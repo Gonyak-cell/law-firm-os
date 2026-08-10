@@ -89,7 +89,7 @@ test("current readback renders none, active, paused, and revoked", async () => {
 test("filing, connection, context key, and context callback prerequisites fail closed", async () => {
   const page = await openFeature({ ...BASE, seedEmailThreadId: "" });
   await waitRequests(page, 1); await resolve(page, 0, current(null)); await waitIdle(page);
-  assert.equal(await page.getByTestId("outlook-conversation-policy-action").isDisabled(), true); assert.equal(await page.getByTestId("outlook-conversation-policy-status").textContent(), "Matter에 메일을 먼저 보관해 주세요.");
+  assert.equal(await page.getByTestId("outlook-conversation-policy-action").isDisabled(), true); assert.equal(await page.getByTestId("outlook-conversation-policy-status").textContent(), "Matter에 메일을 먼저 저장해 주세요.");
   await render(page, { ...BASE, contextKey: "context-revoked-no-seed", seedEmailThreadId: "" });
   await waitRequests(page, 2); await resolve(page, 1, current(policy("revoked"))); await waitIdle(page);
   assert.equal(await page.getByTestId("outlook-conversation-policy-action").isDisabled(), true);
