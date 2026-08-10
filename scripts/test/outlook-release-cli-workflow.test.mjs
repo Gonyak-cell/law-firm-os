@@ -170,6 +170,10 @@ test("CI selects every release lane and explicitly executes UPL and focused test
     }
   }
   const runs = workflowRuns(workflow);
+  assert.ok(
+    runs.includes("node --test --test-concurrency=1 apps/addin/test/*.test.js"),
+    "CI must serialize Add-in browser tests to prevent shared build/server races",
+  );
   assert.deepEqual(
     runs.filter((run) => /^node --test .*outlook-release/u.test(run)),
     ["node --test scripts/test/outlook-release-*.test.mjs"],
