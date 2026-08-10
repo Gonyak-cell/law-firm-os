@@ -21,11 +21,11 @@ export async function installOfficeAndApiMocks(page) {
         mailbox: {
           item: {
             itemId: "responsive-qa-item",
-            subject: "반응형 Outlook 검증 메일",
+            subject: "계약서 검토 요청",
             internetMessageId: "<responsive-qa@example.invalid>",
             conversationId: "responsive-qa-conversation",
             attachments: [],
-            body: { getAsync(_coercionType, callback) { callback({ status: "succeeded", value: "검증 본문" }); } },
+            body: { getAsync(_coercionType, callback) { callback({ status: "succeeded", value: "공급계약 검토 요청드립니다." }); } },
             getAllInternetHeadersAsync(callback) { callback({ status: "succeeded", value: "Date: Mon, 10 Aug 2026 00:00:00 +0900" }); },
           },
           userProfile: { emailAddress: "qa@example.invalid" },
@@ -84,9 +84,9 @@ export async function installOfficeAndApiMocks(page) {
         body: JSON.stringify({
           items: [{
             matter_id: "matter-responsive",
-            matter_code: "M-RESP",
-            title: "반응형 검증 Matter",
-            client_display_name: "QA Client",
+            matter_code: "M-2026-014",
+            title: "공급계약 검토",
+            client_display_name: "예시 고객",
             status: "open",
           }],
         }),
@@ -157,8 +157,8 @@ export async function installOfficeAndApiMocks(page) {
           items: [{
             source_id: "precedent-qa-001",
             source_kind: "internal_matter_document",
-            title: "반응형 검증을 위한 매우 긴 선례 문서 제목 — 160px과 320px에서 말줄임을 확인하는 고정 결과",
-            snippet: "반응형 결과 행의 한 줄 렌더링을 검증합니다.",
+            title: "공급계약 검토를 위한 매우 긴 선례 문서 제목 — 160px과 320px에서 말줄임을 확인하는 고정 결과",
+            snippet: "공급계약 검토 결과를 한 줄로 확인합니다.",
             source_matter_id: "matter-source-other",
             document_id: documentId,
             version_id: "version-precedent-qa",

@@ -423,8 +423,8 @@ export function OutlookCompactShell({
         data-outlook-layout="filing"
         tabIndex={-1}
       >
-        <header className="outlook-filing-header"><strong>AMIC OS</strong></header>
-        <div className="outlook-filing-tab" aria-current="page">메일 보관</div>
+        <header className="outlook-filing-header"><img src="./amic-law-logo.svg" alt="AMIC Law" width="175" height="28" /></header>
+        <div className="outlook-filing-tab" aria-current="page">메일 저장</div>
         <section className="outlook-compact-content">
           {children}
           {status}

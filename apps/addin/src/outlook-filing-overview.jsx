@@ -3,12 +3,12 @@ import React from "react";
 function filingState({ item, busy, filed }) {
   if (item?.mode === "compose") return "작성 중";
   if (["file", "sent_file", "attachments"].includes(busy)) return "저장 중";
-  return filed ? "보관 완료" : "미보관";
+  return filed ? "저장됨" : "저장되지 않음";
 }
 
 function senderCopy(item) {
   if (item?.mode === "compose") return "작성 중인 메일";
-  return item?.from?.name || item?.from?.email || "보낸 사람 정보 없음";
+  return item?.from?.name || item?.from?.email || "보낸 사람을 확인할 수 없습니다.";
 }
 
 export function OutlookFilingOverview({
@@ -31,9 +31,9 @@ export function OutlookFilingOverview({
       </section>
 
       <section className="outlook-filing-location" aria-labelledby="outlook-filing-location-title">
-        <h2 id="outlook-filing-location-title">보관 위치</h2>
+        <h2 id="outlook-filing-location-title">저장 위치</h2>
         <p className={selectedMatterDisplay ? "outlook-selected-matter" : "outlook-matter-empty"}>
-          {selectedMatterDisplay || "Matter를 선택해 주세요."}
+          {selectedMatterDisplay || "저장할 Matter를 선택해 주세요."}
         </p>
       </section>
     </div>

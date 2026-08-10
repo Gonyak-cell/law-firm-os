@@ -47,7 +47,7 @@ try {
     "화면을 열기만 해서는 쓰기 요청이 없어야 한다",
   );
   assert.deepEqual(
-    await Promise.all(["새 문의 등록", "기존 문의에 연결", "Matter에 보관"]
+    await Promise.all(["새 문의 등록", "기존 문의에 연결", "Matter에 저장"]
       .map((name) => page.getByRole("button", { name }).count())),
     [1, 1, 1],
   );
@@ -55,11 +55,11 @@ try {
     "lead-existing-t05",
   );
   await page.getByRole("button", {
-    name: "Matter 찾기",
+    name: "저장 위치 선택",
   }).click();
   const matterSearch = page.getByLabel("Matter 검색");
   await matterSearch.fill("A-2026-014");
-  const matterSelect = page.getByLabel("보관할 Matter");
+  const matterSelect = page.getByLabel("저장할 Matter");
   await page.waitForFunction(() => (
     document.querySelector("#matter-select option[value='matter-t05']")
   ));
@@ -194,7 +194,7 @@ try {
       ?.getAttribute("data-action") === "link_existing"
   ));
   const fileMatter = page.getByRole("button", {
-    name: "Matter에 보관",
+    name: "Matter에 저장",
   });
   await fileMatter.focus();
   await fileMatter.press("Enter");

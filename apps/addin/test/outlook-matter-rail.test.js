@@ -8,11 +8,11 @@ const INQUIRY_SOURCE = readFileSync(new URL("../src/outlook-inquiry-shell.jsx", 
 // This is intentionally authored from OUTM-09 rather than copied from the
 // implementation. The profile leaf must earn this exact order and vocabulary.
 const EXPECTED_RAIL = [
-  ["mail.save-with-attachments", "보관 옵션"],
-  ["matter.search", "Matter 선택 또는 변경"],
-  ["task.create", "업무 만들기"],
-  ["time-entry.draft", "시간기록 초안"],
-  ["all-functions", "전체 기능"],
+  ["mail.save-with-attachments", "저장 옵션"],
+  ["matter.search", "저장 위치 선택"],
+  ["task.create", "관련 작업 만들기"],
+  ["time-entry.draft", "시간 기록 초안"],
+  ["all-functions", "추가 작업"],
 ];
 
 test("OUTM-09 matter profile leaf owns exactly five ordered text actions", () => {

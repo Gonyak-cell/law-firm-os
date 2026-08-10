@@ -168,7 +168,7 @@ test("precedent requires ready runtime, remains usable across Graph disconnect, 
       .find(({ feature }) => feature.id === "precedent.search");
     assert.equal(row.visible, false);
     assert.equal(row.actionable, false);
-    assert.equal(row.response, "선례 검색 준비 상태를 확인해 주세요.");
+    assert.equal(row.response, "검색 준비 중입니다.");
   }
 
   const disconnected = evaluateOutlookFeatureCatalog(context({

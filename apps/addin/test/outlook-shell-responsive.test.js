@@ -281,14 +281,14 @@ test("matter filing home keeps its fixed action reachable in a short Outlook pan
       await footer.waitFor({ state: "visible" });
       await button.waitFor({ state: "visible" });
       assert.equal(await page.locator("[data-outlook-layout='filing']").count(), 1);
-      assert.equal(await page.locator(".outlook-filing-header").innerText(), "AMIC OS");
-      assert.equal(await page.locator(".outlook-filing-tab").innerText(), "메일 보관");
+      assert.equal(await page.locator(".outlook-filing-header img").getAttribute("alt"), "AMIC Law");
+      assert.equal(await page.locator(".outlook-filing-tab").innerText(), "메일 저장");
       assert.equal(await page.locator("[data-testid='outlook-filing-overview']").count(), 1);
       assert.deepEqual(
         await page.locator("[data-testid='outlook-icon-rail'] button").evaluateAll((buttons) => (
           buttons.map((entry) => entry.textContent.trim())
         )),
-        ["보관 옵션", "Matter 선택 또는 변경", "업무 만들기", "시간기록 초안", "전체 기능"],
+        ["저장 옵션", "저장 위치 선택", "관련 작업 만들기", "시간 기록 초안", "추가 작업"],
       );
       assert.equal(await page.locator("[data-testid='outlook-icon-rail'] svg").count(), 0);
       assert.deepEqual(await page.evaluate(() => {
@@ -310,7 +310,7 @@ test("matter filing home keeps its fixed action reachable in a short Outlook pan
       await page.locator("#matter-select").selectOption("matter-responsive");
       await page.keyboard.press("Escape");
       await page.waitForSelector(".outlook-overlay-panel", { state: "detached" });
-      await page.waitForFunction(() => document.querySelector(".outlook-selected-matter")?.textContent.includes("M-RESP"));
+      await page.waitForFunction(() => document.querySelector(".outlook-selected-matter")?.textContent.includes("M-2026-014"));
       assert.equal(await button.isEnabled(), true);
       const geometry = await footer.evaluate((element) => {
         const box = element.getBoundingClientRect();

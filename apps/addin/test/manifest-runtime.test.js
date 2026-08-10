@@ -181,11 +181,21 @@ test("production build and runtime-config entry points are present", async () =>
     "apps/addin/public/event-runtime.html",
     "apps/addin/public/event-runtime.js",
     "apps/addin/public/amic-law-icon.png",
+    "apps/addin/public/amic-law-logo.svg",
     "apps/addin/public/.well-known/microsoft-officeaddins-allowed.json",
     "apps/web/public/.well-known/microsoft-officeaddins-allowed.json",
   ]) {
     await access(path.join(repoRoot, relativePath), constants.R_OK);
   }
+});
+
+test("Matter filing header ships the canonical AMIC Law wordmark byte-for-byte", async () => {
+  const [canonical, addinLogo] = await Promise.all([
+    readFile(path.join(repoRoot, "apps/web/src/assets/amic-law.svg")),
+    readFile(path.join(repoRoot, "apps/addin/public/amic-law-logo.svg")),
+  ]);
+
+  assert.deepEqual(addinLogo, canonical);
 });
 
 test("classic Outlook runtime URLs are explicitly allowed at each host root", async () => {

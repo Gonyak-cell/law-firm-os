@@ -331,7 +331,7 @@ function InquiryApp({ runtime }) {
                 testId: "stale-state",
                 status: OUTLOOK_OPERATION_STATES.staleItem,
                 visibleMessage: "처리 결과가 다른 메일에 남아 있습니다.",
-                fullMessage: "완료된 문의 결과는 원래 메일에 보관했습니다. 원래 메일을 다시 열고 같은 요청을 다시 실행해 기존 결과를 확인해 주세요.",
+                fullMessage: "완료된 문의 결과는 원래 메일에 저장했습니다. 원래 메일을 다시 열고 같은 요청을 다시 실행해 기존 결과를 확인해 주세요.",
               }
             : operationMessage
               ? {

@@ -256,7 +256,7 @@ test("8f3 editable task/time actions preserve idempotent intent across hostile O
     await page.locator("[data-feature-id='time-entry.draft']").click();
     await page.locator("#time-entry-narrative").fill("TIME-A"); await page.locator("#time-entry-duration").fill("45");
     await page.locator("[data-testid='create-time-entry-draft-button']").click();
-    await page.getByText("시간기록 초안은 저장됐지만 목록은 새로 불러오지 못했습니다.", { exact: true }).waitFor({ state: "visible" });
+    await page.getByText("시간 기록 초안은 저장됐지만 목록은 새로 불러오지 못했습니다.", { exact: true }).waitFor({ state: "visible" });
     const times = state.requests.filter(({ path, method }) => path === "/api/outlook/time-entry-drafts" && method === "POST");
     assert.equal(state.durableTimeCreates, 1); assert.equal(times.length, 2); assert.deepEqual(times[0].body, times[1].body); assert.ok(times[0].body.idempotency_key.startsWith("outlook-time-entry-draft:"));
   } finally {

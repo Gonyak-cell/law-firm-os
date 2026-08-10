@@ -36,6 +36,7 @@
     "command": ["npm", "--workspace", "apps/addin", "run", "build"],
     "required_static_paths": [
       "amic-law-icon.png",
+      "amic-law-logo.svg",
       "event-runtime.html",
       "event-runtime.js",
       "index.html",
@@ -86,6 +87,7 @@
     "apps/addin/src/outlook-surface-profile.js",
     "apps/addin/src/outlook-task-datetime.js",
     "apps/addin/src/styles.css",
+    "apps/addin/public/amic-law-logo.svg",
     "apps/api/src/json-postgres-program-admin-lambda.js",
     "apps/api/src/outlook-addin-runtime-context.js",
     "apps/api/src/matter-runtime-context.js",

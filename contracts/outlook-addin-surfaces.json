@@ -41,7 +41,7 @@
         "string_resources"
       ],
       "manifest_fingerprint": {
-        "description": "Outlook 메일과 첨부 파일을 Matter에 보관하고 후속 업무를 만듭니다.",
+        "description": "Outlook 메일과 첨부 파일을 Matter에 저장하고 후속 업무를 만듭니다.",
         "mailbox_versions": ["1.14", "1.14", "1.14"],
         "top_level_hosts": ["Mailbox"],
         "override_host_types": ["MailHost", "MailHost"],
@@ -118,7 +118,7 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "ba26061fa123ecfbb253469f8216a5163aa708046b68d9cfd4e0b2b535b01a98",
+          "semantic_manifest_sha256": "03a9ba5f92fda3a03b08705ba3d8e01e431d03324591680efb809fa1972da522",
           "url_resources": [
             "Commands.Url=https://localhost:5186/index.html?commands=1",
             "Commands.Url=https://localhost:5186/index.html?commands=1",
@@ -142,7 +142,7 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "5e459bcb39cb61be592bc90552bb8efd7463e955481b42863de05f48db16235f",
+          "semantic_manifest_sha256": "5e5ef0fad03c89db802cfb2c4af47916526528dea3896850d79ea7f886b674b0",
           "url_resources": [
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",

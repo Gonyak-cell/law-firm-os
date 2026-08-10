@@ -9,7 +9,7 @@
   <ProviderName>AMIC OS</ProviderName>
   <DefaultLocale>ko-KR</DefaultLocale>
   <DisplayName DefaultValue="AMIC OS" />
-  <Description DefaultValue="Outlook 메일과 첨부 파일을 Matter에 보관하고 후속 업무를 만듭니다." />
+  <Description DefaultValue="Outlook 메일과 첨부 파일을 Matter에 저장하고 후속 업무를 만듭니다." />
   <IconUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/amic-law-icon.png" />
   <HighResolutionIconUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/amic-law-icon.png" />
   <SupportUrl DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/" />

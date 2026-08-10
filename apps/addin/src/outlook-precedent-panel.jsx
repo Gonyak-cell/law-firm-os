@@ -121,7 +121,7 @@ function SelectedDetail({ item, onCopy, onOpenDeepLink }) {
             onClick={() => onOpenDeepLink(deepLink)}
           >
             <ExternalLink size={14} aria-hidden="true" />
-            <span>Law Firm OS에서 열기</span>
+            <span>Matter에서 열기</span>
           </button>
         </div>
       ) : null}
@@ -181,10 +181,10 @@ export function OutlookPrecedentPanel({
           aria-live="polite"
           aria-atomic="true"
           tabIndex={-1}
-        >{isBusy ? "검색 준비 상태 확인 중" : "색인 갱신 필요"}</p>
+        >{isBusy ? "검색 준비 중" : "검색 자료 업데이트 필요"}</p>
         {typeof onRetry === "function" && !isBusy ? (
           <div className="outlook-flat-action-row">
-            <span className="outlook-flat-action-label">색인</span>
+            <span className="outlook-flat-action-label">검색 자료</span>
             <button type="button" className="outlook-flat-action-button" data-testid="outlook-precedent-retry" onClick={onRetry} disabled={isBusy}>
               <RotateCw size={14} aria-hidden="true" />
               <span>다시 시도</span>

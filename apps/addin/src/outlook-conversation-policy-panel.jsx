@@ -56,7 +56,7 @@ export function OutlookConversationPolicyPanel({
   const filingBlocked = !active && !reconnect && filingRequired === true;
   const disabled = Boolean(busy) || typeof action !== "function" || filingBlocked || (!active && !ready && !reconnect);
   const visibleError = failureCopy(error);
-  const liveMessage = busy ? "처리 중" : visibleError || (filingBlocked ? "Matter에 메일을 먼저 보관해 주세요." : needsSync ? "동기화 필요" : "");
+  const liveMessage = busy ? "처리 중" : visibleError || (filingBlocked ? "Matter에 메일을 먼저 저장해 주세요." : needsSync ? "동기화 필요" : "");
   return (
     <section
       className="outlook-conversation-policy-panel"

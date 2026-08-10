@@ -38,13 +38,13 @@ function context(overrides = {}) {
 }
 
 const EXPECTED_ROWS = [
-  ["matter.search", "Matter 찾기", "matter-full", true, true, []],
-  ["mail.save-with-attachments", "메일과 첨부 저장", "matter-full", true, false, []],
+  ["matter.search", "저장 위치 선택", "matter-full", true, true, []],
+  ["mail.save-with-attachments", "메일 및 첨부 파일 저장", "matter-full", true, false, []],
   ["filing.correct-placement", "저장 위치 바꾸기", "matter-full", true, false, []],
   ["conversation.auto-save", "대화 자동 저장", "matter-full", true, false, []],
   ["mail.save-sent", "보낸 메일 저장", "matter-full", true, false, []],
-  ["task.create", "업무 만들기", "matter-full", true, false, []],
-  ["time-entry.draft", "시간기록 초안", "matter-full", true, true, []],
+  ["task.create", "관련 작업 만들기", "matter-full", true, false, []],
+  ["time-entry.draft", "시간 기록 초안", "matter-full", true, true, []],
   ["activity.recent", "최근 활동 보기", "matter-full", true, true, []],
   ["precedent.search", "유사 사건·선례 찾기", "matter-full", true, true, []],
   ["document.create-and-sign-status", "문서 만들기·서명 상태", "matter-full", true, true, []],

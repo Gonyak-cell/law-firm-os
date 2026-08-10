@@ -92,15 +92,15 @@ const CASE_ITEM = Object.freeze({
 test("unready authority fails closed without search controls", () => {
   const markup = render({ authoritative: false, runtimeReady: false, authoritativeReady: false });
   assert.match(markup, /data-ready="false"/u);
-  assert.match(markup, /색인 갱신 필요/u);
+  assert.match(markup, /검색 자료 업데이트 필요/u);
   assert.doesNotMatch(markup, /precedent-search-input|outlook-precedent-search-submit|검색어/iu);
   assert.doesNotMatch(markup, /<form/u);
   assert.doesNotMatch(render({ authoritative: true, runtimeReady: true, authoritativeReady: false }), /outlook-precedent-result|outlook-precedent-detail|outlook-precedent-critical|outlook-precedent-open/iu);
   assert.doesNotMatch(render({ authoritative: undefined, runtimeReady: undefined, authoritativeReady: true }), /data-ready="true"/u);
   assert.match(render({ authoritative: false, runtimeReady: false, authoritativeReady: true }), /data-ready="false"/u);
   const loadingMarkup = render({ authoritative: null, runtimeReady: null, busy: true, onRetry() {} });
-  assert.match(loadingMarkup, /data-testid="outlook-precedent-index-stale"[^>]*>검색 준비 상태 확인 중</u);
-  assert.doesNotMatch(loadingMarkup, /색인 갱신 필요|outlook-precedent-retry|outlook-precedent-search-input|<form/u);
+  assert.match(loadingMarkup, /data-testid="outlook-precedent-index-stale"[^>]*>검색 준비 중</u);
+  assert.doesNotMatch(loadingMarkup, /검색 자료 업데이트 필요|outlook-precedent-retry|outlook-precedent-search-input|<form/u);
 });
 
 test("populated stale or vetoed readiness removes old results and exposes a live blocked status", () => {
@@ -127,7 +127,7 @@ test("ready panel renders explicit search, flat case-law result, and complete cr
     "2025다54321 판결", "https://glaw.scourt.go.kr/precedent/2025da54321",
     "a".repeat(64), "lawos-precedent-fts-v2",
   ]) assert.match(markup, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
-  assert.equal((markup.match(/Law Firm OS에서 열기/gu) ?? []).length, 1);
+  assert.equal((markup.match(/Matter에서 열기/gu) ?? []).length, 1);
   assert.doesNotMatch(markup, /href=/u);
   assert.doesNotMatch(markup, /\b(?:rank|score|confidence|generated|AI)\b/iu);
 });

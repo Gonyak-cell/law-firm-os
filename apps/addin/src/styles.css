@@ -169,11 +169,13 @@ input:disabled {
   color: #ffffff;
 }
 
-.outlook-filing-header strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 650;
+.outlook-filing-header img {
+  display: block;
+  width: 175px;
+  max-width: 100%;
+  height: auto;
+  flex: 0 1 auto;
+  object-fit: contain;
 }
 
 .outlook-filing-tab {
