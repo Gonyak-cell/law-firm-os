@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "release_version": "1.1.0.0",
   "rollback_version": "1.0.1.1",
   "baseline_receipt": "contracts/outlook-addin-deployment-baseline.json",
@@ -118,6 +118,7 @@
     "packages/matter/src/document-publication-service.js",
     "packages/matter/src/outlook-task-adapter.js",
     "scripts/lib/upl-proof-runner.mjs",
+    "scripts/lib/outlook-release/m365-distribution.mjs",
     "scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs",
     "scripts/validate-upl-c09-c12-outlook-addin.mjs"
   ],
@@ -302,8 +303,38 @@
       "graph_endpoint_secret_config",
       "docusign_endpoint_secret_config",
       "static_dual_namespace_publish",
-      "m365_central_manifest_update"
+      "m365_central_single_visible_transition"
     ],
+    "production_distribution": {
+      "eligible_user_count": 9,
+      "excluded_user_count": 1,
+      "assignment_authority": "entra_object_id_allowlist",
+      "nested_groups_allowed": false,
+      "tenant_wide_assignment_allowed": false,
+      "assign_to_everyone": false,
+      "max_visible_addins_per_user": 1,
+      "assignment_overlap_count": 0,
+      "profiles": [
+        {
+          "profile": "matter-full",
+          "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+          "distribution_role": "production_visible",
+          "assignment_state": "assigned",
+          "production_user_visible": true,
+          "real_host_evidence_required": true,
+          "central_operation_type": "central_manifest_update"
+        },
+        {
+          "profile": "inquiry-only",
+          "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+          "distribution_role": "retained_unassigned",
+          "assignment_state": "unassigned",
+          "production_user_visible": false,
+          "real_host_evidence_required": false,
+          "central_operation_type": "central_manifest_update_and_unassign"
+        }
+      ]
+    },
     "required_profile_scenarios": {
       "matter-full": ["read", "compose", "on-message-send"],
       "inquiry-only": ["read"]
@@ -321,6 +352,7 @@
         "approved_template_runtime",
         "precedent_index_runtime",
         "authorization",
+        "assignment_safety",
         "pilot_assignment",
         "monitoring_plan",
         "rollback_rehearsal",

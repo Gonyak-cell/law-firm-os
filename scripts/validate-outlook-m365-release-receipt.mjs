@@ -97,7 +97,7 @@ async function main() {
     source_sha: sourceSha,
     ...result,
     allowed_claim: result.status === "awaiting_authorized_deployment"
-      ? "The dual-ProductId packet is structurally valid and awaits separate deployment authorization."
+      ? "The two-source, single-visible ProductId packet is structurally valid and awaits separate deployment authorization."
       : "Only the operations, readbacks, propagation observations, and real-host scenarios present in this receipt are verified.",
     blocked_claim: result.status === "awaiting_authorized_deployment"
       ? "No Microsoft 365 update, assignment change, propagation, real Outlook QA, or go-live occurred."

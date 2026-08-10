@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "candidate_version": "1.1.0.0",
   "rollback_version": "1.0.1.1",
   "authoritative_baseline_receipt": "contracts/outlook-addin-deployment-baseline.json",
@@ -35,9 +35,7 @@
         "path": "event-runtime.js",
         "sha256": "37efd3791469ff9171d726c70f075339064d2b42102b1847aeef7640949d68f0",
         "protected_artifact_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/matter-full/event-runtime.js"
-      },
-      "assignment_count": 1,
-      "sanitized_assignment_fingerprint_sha256": "99b7e267775e6ad68f33eb8b1be3006e71747cdd71a7afa99bfd5c9204c2f40e"
+      }
     },
     {
       "profile": "inquiry-only",
@@ -66,13 +64,11 @@
         "protected_inventory_ref": ".omo/evidence/outlook-minimal-main-3b00fcc-tuw-20260808/protected/rollback/inquiry-only/static-inventory.json",
         "protected_inventory_sha256": "d024de630b3e3909b2b7e429c5ff64da51efc42836c552f6cb67ae3653d2367f"
       },
-      "event_runtime": null,
-      "assignment_count": 2,
-      "sanitized_assignment_fingerprint_sha256": "ef09284c95e57df1d37eb5072d4ad8e65ff58bf127454cdfff67f1e0c6e3521d"
+      "event_runtime": null
     }
   ],
-  "permission_event_assignment_diff": "none",
-  "assignment_fingerprints_sanitized": true,
+  "permission_event_diff": "none",
+  "assignment_restore_policy": "reconcile_to_validated_single_visible_distribution",
   "raw_assignment_pii_included": false,
   "secret_material_included": false,
   "raw_manifest_xml_included": false

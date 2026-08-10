@@ -1,17 +1,22 @@
 import { canonical, sha256, sorted } from "../../lib/outlook-release/primitives.mjs";
-import { REQUIRED_MUTATION_ACTIONS } from "../../lib/outlook-release/constants.mjs";
+import {
+  PRODUCT_IDS, REQUIRED_MUTATION_ACTIONS, ROLLBACK_ASSIGNMENT_RESTORE_POLICY,
+} from "../../lib/outlook-release/constants.mjs";
 import { contract, hex, sourceIdentity } from "./outlook-release-fixtures.mjs";
 
 const proof = (schema_version, proof_class, fields) => ({ schema_version, proof_class, ...sourceIdentity, ...fields });
 
 export function authorizationProof(control, authorizedActions = REQUIRED_MUTATION_ACTIONS) {
-  return proof("amic-os.m365-authorization-proof.v1", "authorization", {
+  return proof("amic-os.m365-authorization-proof.v2", "authorization", {
     authorization_ref: "change-ref:outlook-20260808-001",
     operator_ref: control.operator_ref,
     owner_ref: control.owner_ref,
     window_start_utc: control.window_start_utc,
     window_end_utc: control.window_end_utc,
     authorized_actions: [...authorizedActions],
+    pilot_group_fingerprint_sha256: sha256(JSON.stringify(sorted(control.pilot_assignment.groups))),
+    eligible_principal_fingerprint_sha256: control.pilot_assignment.eligible_principal_fingerprint_sha256,
+    excluded_principal_fingerprint_sha256: control.pilot_assignment.excluded_principal_fingerprint_sha256,
     approved: true,
     approved_at_utc: "2026-08-08T00:15:00Z",
   });
@@ -28,18 +33,94 @@ function authorizationFields(control, authorizationHash) {
   };
 }
 
-export function pilotProof(receipt, groups) {
+export function pilotProof(receipt, groups, observedAtUtc = "2026-08-08T00:30:00Z") {
   const assignments = receipt.profiles.map((profile) => ({
     product_id: profile.product_id,
-    group_refs: groups,
+    group_refs: profile.production_user_visible ? groups : [],
+    distribution_role: profile.distribution_role,
+    assignment_state: profile.assignment_state,
+    production_user_visible: profile.production_user_visible,
+    assign_to_everyone: profile.assign_to_everyone,
     assignment_count: profile.assignment_count,
     assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,
   }));
-  return proof("amic-os.m365-pilot-assignment-proof.v1", "pilot_assignment", {
+  const distribution = contract.m365.production_distribution;
+  const eligiblePrincipalRefs = Array.from(
+    { length: distribution.eligible_user_count },
+    (_, index) => `entra-object-ref:${String(index + 1).padStart(2, "0")}`,
+  );
+  const excludedPrincipalRefs = ["entra-object-ref:explicitly-excluded"];
+  return proof("amic-os.m365-pilot-assignment-proof.v3", "pilot_assignment", {
     groups,
     assignments,
+    direct_membership_readbacks: groups.map((groupRef) => ({
+      group_ref: groupRef,
+      provider: "microsoft_entra",
+      membership_scope: "direct_members_only",
+      direct_member_principal_refs: eligiblePrincipalRefs,
+      direct_member_fingerprint_sha256: sha256(JSON.stringify(sorted(eligiblePrincipalRefs))),
+      nested_group_count: 0,
+      result: "exact_provider_readback",
+    })),
+    eligible_principal_refs: eligiblePrincipalRefs,
+    excluded_principal_refs: excludedPrincipalRefs,
+    eligible_user_count: distribution.eligible_user_count,
+    excluded_user_count: distribution.excluded_user_count,
+    assign_to_everyone: distribution.assign_to_everyone,
+    max_visible_addins_per_user: distribution.max_visible_addins_per_user,
+    assignment_overlap_count: distribution.assignment_overlap_count,
+    eligible_principal_fingerprint_sha256: sha256(JSON.stringify(sorted(eligiblePrincipalRefs))),
+    excluded_principal_fingerprint_sha256: sha256(JSON.stringify(sorted(excludedPrincipalRefs))),
     assignment_fingerprint_sha256: sha256(JSON.stringify(canonical(assignments))),
-    observed_at_utc: "2026-08-08T00:30:00Z",
+    observed_at_utc: observedAtUtc,
+    status: "verified",
+  });
+}
+
+export function assignmentSafetyProof(
+  pilot, pilotEvidenceSha256, currentAssignmentOverrides = {},
+  observedAtUtc = "2026-08-08T00:31:00Z",
+) {
+  const currentAssignments = pilot.assignments.map((target) => {
+    const override = currentAssignmentOverrides[target.product_id] ?? {};
+    const groupRefs = override.group_refs ?? target.group_refs;
+    return {
+      product_id: target.product_id,
+      group_refs: groupRefs,
+      assignment_count: groupRefs.length,
+      assignment_fingerprint_sha256: sha256(JSON.stringify(canonical(groupRefs))),
+      assign_to_everyone: override.assign_to_everyone ?? target.assign_to_everyone,
+    };
+  });
+  const targets = new Map(pilot.assignments.map((assignment) => [assignment.product_id, assignment]));
+  const requiredCorrectionActions = [];
+  const currentByProductId = new Map(currentAssignments.map((assignment) => [assignment.product_id, assignment]));
+  for (const productId of [PRODUCT_IDS[1], PRODUCT_IDS[0]]) {
+    const current = currentByProductId.get(productId);
+    const target = targets.get(productId);
+    if (current.assign_to_everyone !== target.assign_to_everyone) {
+      requiredCorrectionActions.push({
+        action: "disable_assign_to_everyone", product_id: current.product_id,
+        target_assignment_fingerprint_sha256: target.assignment_fingerprint_sha256,
+      });
+    }
+    if (JSON.stringify(sorted(current.group_refs)) !== JSON.stringify(sorted(target.group_refs))) {
+      requiredCorrectionActions.push({
+        action: "replace_group_assignments", product_id: current.product_id,
+        target_assignment_fingerprint_sha256: target.assignment_fingerprint_sha256,
+      });
+    }
+  }
+  return proof("amic-os.m365-assignment-safety-proof.v1", "assignment_safety", {
+    pilot_assignment_evidence_sha256: pilotEvidenceSha256,
+    provider_readback: true,
+    current_assignments: currentAssignments,
+    target_assignments: pilot.assignments,
+    correction_required: requiredCorrectionActions.length > 0,
+    required_correction_actions: requiredCorrectionActions,
+    rollback_assignment_policy: ROLLBACK_ASSIGNMENT_RESTORE_POLICY,
+    unsafe_assignment_preservation_allowed: false,
+    observed_at_utc: observedAtUtc,
     status: "verified",
   });
 }
@@ -54,10 +135,14 @@ export function monitoringProof(control) {
   });
 }
 
-export function rollbackProof(control, restored) {
-  return proof("amic-os.m365-rollback-rehearsal-proof.v1", "rollback_rehearsal", {
+export function rollbackProof(control, restored, assignmentSafetyHash, targetAssignments) {
+  return proof("amic-os.m365-rollback-rehearsal-proof.v2", "rollback_rehearsal", {
     owner_ref: control.rollback_readback_owner_ref,
-    rehearsed_at_utc: "2026-08-08T00:25:00Z",
+    assignment_safety_evidence_sha256: assignmentSafetyHash,
+    assignment_restore_policy: ROLLBACK_ASSIGNMENT_RESTORE_POLICY,
+    target_assignments: targetAssignments,
+    unsafe_assignment_preservation_allowed: false,
+    rehearsed_at_utc: "2026-08-08T00:32:00Z",
     profiles: restored.profiles.map((profile) => ({
       ...profile,
       readback_sha256: sha256(JSON.stringify(canonical(profile))),
@@ -131,15 +216,60 @@ export function prerequisiteProofs({ authorizationHash, candidate, control, plan
 }
 
 export function centralProof(receipt, control, authorizationHash, staticHash) {
-  return proof("amic-os.m365-central-deployment-proof.v1", "central_deployment", {
+  const operations = new Map(receipt.operations.map((operation) => [operation.product_id, operation]));
+  const readbacks = new Map(receipt.readbacks.map((readback) => [readback.product_id, readback]));
+  const inquiryOperation = operations.get(PRODUCT_IDS[1]);
+  const matterOperation = operations.get(PRODUCT_IDS[0]);
+  const inquiryReadback = readbacks.get(PRODUCT_IDS[1]);
+  const matterReadback = readbacks.get(PRODUCT_IDS[0]);
+  const transition = [
+    {
+      action: "disable_assign_to_everyone", product_id: PRODUCT_IDS[1],
+      operation_ref: inquiryOperation.operation_ref, result: "success",
+      assignment_fingerprint_sha256: null, principal_fingerprint_sha256: null, readback_sha256: null,
+    },
+    {
+      action: "replace_group_assignments", product_id: PRODUCT_IDS[1],
+      operation_ref: inquiryOperation.operation_ref, result: "success",
+      assignment_fingerprint_sha256: inquiryReadback.assignment_fingerprint_sha256,
+      principal_fingerprint_sha256: null, readback_sha256: null,
+    },
+    {
+      action: "verify_zero_assignment_readback", product_id: PRODUCT_IDS[1],
+      operation_ref: inquiryOperation.operation_ref, result: "exact_readback",
+      assignment_fingerprint_sha256: inquiryReadback.assignment_fingerprint_sha256,
+      principal_fingerprint_sha256: null,
+      readback_sha256: sha256(JSON.stringify(canonical(inquiryReadback))),
+    },
+    {
+      action: "replace_group_assignments", product_id: PRODUCT_IDS[0],
+      operation_ref: matterOperation.operation_ref, result: "success",
+      assignment_fingerprint_sha256: matterReadback.assignment_fingerprint_sha256,
+      principal_fingerprint_sha256: control.pilot_assignment.eligible_principal_fingerprint_sha256,
+      readback_sha256: null,
+    },
+    {
+      action: "verify_exact_nine_readback", product_id: PRODUCT_IDS[0],
+      operation_ref: matterOperation.operation_ref, result: "exact_readback",
+      assignment_fingerprint_sha256: matterReadback.assignment_fingerprint_sha256,
+      principal_fingerprint_sha256: control.pilot_assignment.eligible_principal_fingerprint_sha256,
+      readback_sha256: sha256(JSON.stringify(canonical(matterReadback))),
+    },
+  ].map((step, index) => ({
+    ...step, sequence: index + 1, observed_at_utc: `2026-08-08T00:${55 + index}:00Z`,
+  }));
+  return proof("amic-os.m365-central-deployment-proof.v3", "central_deployment", {
     ...authorizationFields(control, authorizationHash),
     static_proof_sha256: staticHash,
+    pilot_assignment_evidence_sha256: control.pilot_assignment.evidence_sha256,
     pilot_assignment_fingerprint_sha256: control.pilot_assignment.fingerprint_sha256,
+    assignment_safety_evidence_sha256: control.assignment_safety_evidence.evidence_sha256,
     operator_ref: control.operator_ref,
     owner_ref: control.owner_ref,
     window_start_utc: control.window_start_utc,
     window_end_utc: control.window_end_utc,
     mutation_count: receipt.mutation_count,
+    assignment_transition: transition,
     operations: receipt.operations,
     static_readbacks: receipt.static_readbacks,
     readbacks: receipt.readbacks,

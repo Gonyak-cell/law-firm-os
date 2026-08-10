@@ -1,13 +1,16 @@
 import { GIT_OID, SHA256 } from "./constants.mjs";
 import { validateReleaseCandidateReceipt } from "./candidate.mjs";
 import {
+  expectedDistributionProfile, validateProfileDistribution, validateReceiptDistribution,
+} from "./m365-distribution.mjs";
+import {
   assertEqual, assertExactKeys, assertNoSensitiveMaterial, assertSafeRelativePath, canonical, profileMap, sorted, utcMillis,
 } from "./primitives.mjs";
 
 const RECEIPT_KEYS = [
   "authorization_ref", "claims", "execution_control", "go_live_approval_ref", "graph_delegated_scope_diff",
-  "host_evidence", "mutation_count", "operations", "package_lock_sha256", "permission_event_assignment_diff",
-  "prerequisites", "profiles", "propagation_observations", "propagation_window_is_sla", "readbacks",
+  "host_evidence", "mutation_count", "operations", "package_lock_sha256", "permission_event_diff",
+  "prerequisites", "production_distribution", "profiles", "propagation_observations", "propagation_window_is_sla", "readbacks",
   "schema_version", "source_sha", "source_tree", "static_readbacks", "static_release", "status", "version",
 ];
 
@@ -32,19 +35,20 @@ function validateReceiptProfiles(receipt, options) {
       ?.find(({ path }) => path === expected.production_manifest);
     const candidateManifestSha = candidateManifestHashes?.[expected.profile];
     const projection = candidateManifestProjections?.[expected.profile];
+    if (!current || !deployed || !fallback) throw new Error(`${expected.profile} release profile is missing`);
     assertExactKeys(current, [
-      "assignment_count", "assignment_fingerprint_sha256", "bundle_sha256", "candidate_manifest_sha256",
-      "deployment_mode", "permission", "product_id", "profile", "rollback_manifest_ref",
-      "rollback_manifest_sha256", "source_locations",
+      "assign_to_everyone", "assignment_count", "assignment_fingerprint_sha256", "assignment_state",
+      "bundle_sha256", "candidate_manifest_sha256", "deployment_mode", "distribution_role", "permission",
+      "product_id", "production_user_visible", "profile", "rollback_manifest_ref", "rollback_manifest_sha256",
+      "source_locations",
     ], `${expected.profile} M365 profile`);
+    validateProfileDistribution(current, expectedDistributionProfile(contract, expected.product_id), expected.profile);
     if (current.profile !== expected.profile || current.permission !== expected.permission
       || current.deployment_mode !== "fixed" || !SHA256.test(current.candidate_manifest_sha256 ?? "")
       || !SHA256.test(current.bundle_sha256 ?? "") || current.candidate_manifest_sha256 !== candidateManifestSha
       || manifestReceipt?.sha256 !== candidateManifestSha || current.bundle_sha256 !== artifact?.bundle_sha256
       || current.candidate_manifest_sha256 === fallback.rollback_manifest_sha256
       || JSON.stringify(current.source_locations) !== JSON.stringify(projection?.form_source_locations)
-      || current.assignment_count !== deployed.assignment_count
-      || current.assignment_fingerprint_sha256 !== deployed.assignment_fingerprint_sha256
       || current.rollback_manifest_sha256 !== fallback.rollback_manifest_sha256
       || current.rollback_manifest_ref !== fallback.protected_manifest_ref) {
       throw new Error(`${expected.profile} M365 candidate/assignment/rollback binding drifted`);
@@ -90,9 +94,9 @@ export function validateM365Envelope(receipt, options) {
   assertEqual(canonical(options.rollback), canonical(releaseContext?.rollback), "M365 rollback context");
   assertNoSensitiveMaterial(receipt, "M365 release receipt");
   assertExactKeys(receipt, RECEIPT_KEYS, "M365 release receipt");
-  if (receipt.schema_version !== "amic-os.outlook-m365-release.v1" || !GIT_OID.test(receipt.source_sha ?? "")
+  if (receipt.schema_version !== "amic-os.outlook-m365-release.v2" || !GIT_OID.test(receipt.source_sha ?? "")
     || !GIT_OID.test(receipt.source_tree ?? "") || !SHA256.test(receipt.package_lock_sha256 ?? "")
-    || receipt.version !== contract.release_version || receipt.permission_event_assignment_diff !== "none"
+    || receipt.version !== contract.release_version || receipt.permission_event_diff !== "none"
     || receipt.graph_delegated_scope_diff !== "none" || receipt.propagation_window_is_sla !== false) {
     throw new Error("M365 release receipt identity, source, scope, or propagation contract drifted");
   }
@@ -101,6 +105,7 @@ export function validateM365Envelope(receipt, options) {
     || receipt.package_lock_sha256 !== expectedSourceIdentity.package_lock_sha256) {
     throw new Error("M365 release receipt is stale for the exact current source SHA/tree/lock");
   }
+  validateReceiptDistribution(receipt, contract);
   validateReleaseCandidateReceipt(releaseCandidate, contract, releaseContext);
   if (releaseCandidate.source_sha !== receipt.source_sha || releaseCandidate.source_tree !== receipt.source_tree
     || releaseCandidate.package_lock_sha256 !== receipt.package_lock_sha256

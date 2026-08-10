@@ -54,24 +54,24 @@ test("an explicit independent OUTM-01 baseline receipt is required and exact", a
   })));
 });
 
-test("rollback contract reconstructs the sanitized authoritative 1.0.1.1 bytes", async () => {
+test("rollback contract reconstructs the authoritative 1.0.1.1 bytes without historical assignments", async () => {
   const rollback = JSON.parse(await readFile(rollbackPath, "utf8"));
   assert.equal(rollback.candidate_version, "1.1.0.0");
   assert.equal(rollback.rollback_version, "1.0.1.1");
   assert.equal(rollback.authoritative_baseline_receipt, "contracts/outlook-addin-deployment-baseline.json");
-  assert.equal(rollback.assignment_fingerprints_sanitized, true);
+  assert.equal(rollback.assignment_restore_policy, "reconcile_to_validated_single_visible_distribution");
   assert.equal(rollback.raw_assignment_pii_included, false);
   assert.equal(rollback.secret_material_included, false);
   assert.equal(rollback.raw_manifest_xml_included, false);
-  assert.equal(rollback.permission_event_assignment_diff, "none");
+  assert.equal(rollback.permission_event_diff, "none");
 
   for (const [index, manifestName] of ["manifest.production.xml", "manifest.inquiry.production.xml"].entries()) {
     const profile = rollback.profiles[index];
     const baseline = baselineReceipt.profiles[index];
     assert.equal(profile.product_id, baseline.product_id);
     assert.equal(profile.rollback_manifest_sha256, baseline.manifest_sha256);
-    assert.equal(profile.assignment_count, baseline.assignment_count);
-    assert.equal(profile.sanitized_assignment_fingerprint_sha256, baseline.assignment_fingerprint_sha256);
+    assert.equal("assignment_count" in profile, false);
+    assert.equal("sanitized_assignment_fingerprint_sha256" in profile, false);
     assert.equal(
       profile.rollback_manifest_url,
       `https://d2mthcc8vp3cr2.cloudfront.net/addin/manifests/${baseline.product_id}/1.0.1.1/manifest-${baseline.manifest_sha256}.xml`,
