@@ -54,7 +54,7 @@ test("an explicit independent OUTM-01 baseline receipt is required and exact", a
   })));
 });
 
-test("rollback contract reconstructs the authoritative 1.0.1.1 bytes without historical assignments", async () => {
+test("rollback contract keeps authoritative 1.0.1.1 bytes independent from the current candidate", async () => {
   const rollback = JSON.parse(await readFile(rollbackPath, "utf8"));
   assert.equal(rollback.candidate_version, "1.1.0.0");
   assert.equal(rollback.rollback_version, "1.0.1.1");
@@ -81,7 +81,16 @@ test("rollback contract reconstructs the authoritative 1.0.1.1 bytes without his
     const candidate = await readFile(path.join(addinRoot, manifestName), "utf8");
     const rollbackBytes = candidate.replace("<Version>1.1.0.0</Version>", "<Version>1.0.1.1</Version>");
     assert.notEqual(rollbackBytes, candidate, `${manifestName} must contain the synchronized candidate version`);
-    assert.equal(createHash("sha256").update(rollbackBytes).digest("hex"), profile.rollback_manifest_sha256);
+    const versionOnlyRollbackHash = createHash("sha256").update(rollbackBytes).digest("hex");
+    if (profile.profile === "matter-full") {
+      assert.notEqual(
+        versionOnlyRollbackHash,
+        profile.rollback_manifest_sha256,
+        "the neutral candidate command copy must not replace the protected historical rollback bytes",
+      );
+    } else {
+      assert.equal(versionOnlyRollbackHash, profile.rollback_manifest_sha256);
+    }
   }
   assert.doesNotMatch(JSON.stringify(rollback), /<OfficeApp|@|bearer|secret["']?\s*:/iu);
 });

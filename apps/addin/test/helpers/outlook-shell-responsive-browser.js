@@ -92,6 +92,44 @@ export async function installOfficeAndApiMocks(page) {
         }),
       });
     }
+    if (requestUrl.pathname === "/api/outlook/messages/identity") {
+      const request = route.request().postDataJSON();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          item: {
+            rest_message_id: request.rest_message_id,
+            internet_message_id: request.internet_message_id,
+            conversation_id: request.conversation_id,
+            canonical_graph_message_id: "graph-responsive-qa",
+          },
+        }),
+      });
+    }
+    if (/^\/api\/outlook\/matters\/[^/]+\/timeline$/u.test(requestUrl.pathname)) {
+      const matterId = decodeURIComponent(requestUrl.pathname.split("/")[4]);
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          request_id: "request-responsive-timeline",
+          outcome: "passed",
+          item: {
+            matter_id: matterId,
+            visible_entries: [],
+            page_info: { limit: 8, has_more: false, next_cursor: null },
+          },
+        }),
+      });
+    }
+    if (/^\/api\/outlook\/matters\/[^/]+\/documents$/u.test(requestUrl.pathname)) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({ items: [] }),
+      });
+    }
     if (requestUrl.pathname === "/api/outlook/precedents/readiness") {
       return route.fulfill({
         status: 200,
@@ -149,8 +187,8 @@ export async function installOfficeAndApiMocks(page) {
   });
 }
 
-export async function openProfile(browser, web, profile, width, reducedMotion) {
-  const page = await browser.newPage({ viewport: { width, height: 720 } });
+export async function openProfile(browser, web, profile, width, reducedMotion, height = 720) {
+  const page = await browser.newPage({ viewport: { width, height } });
   await page.emulateMedia({ reducedMotion: reducedMotion ? "reduce" : "no-preference" });
   await installOfficeAndApiMocks(page);
   await page.goto(`${web.origin}${profile.path}`, { waitUntil: "domcontentloaded" });

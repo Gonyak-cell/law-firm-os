@@ -1,16 +1,19 @@
 /* The add-in owns a small AMIC token subset; it does not import the web shell. */
 :root {
-  --am-canvas: #f5f7fa;
+  --am-canvas: #f7f8fa;
   --am-surface: #ffffff;
   --am-surface-subtle: #f8fafc;
-  --am-border: #d8dee8;
-  --am-border-soft: #e7ebf1;
-  --am-text: #202428;
-  --am-text-muted: #64707d;
+  --am-border: #dfe5e2;
+  --am-border-soft: #e8ecea;
+  --am-text: #17201d;
+  --am-text-muted: #5e6a65;
   --am-text-faint: #8a96a4;
-  --am-blue: #0b65e5;
-  --am-blue-soft: #e8f1ff;
-  --am-focus-ring: rgba(11, 101, 229, 0.45);
+  --am-forest: #0f3a32;
+  --am-accent: #26c260;
+  --am-accent-hover: #1faa52;
+  --am-blue: var(--am-forest);
+  --am-blue-soft: #e8f8ed;
+  --am-focus-ring: rgba(38, 194, 96, 0.42);
   --am-danger: #d93025;
   --am-success: #147d55;
   --am-warning: #8b5b00;
@@ -149,6 +152,192 @@ input:disabled {
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--am-canvas);
+}
+
+.outlook-filing-shell {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 48px 42px minmax(0, 1fr) 64px;
+  background: var(--am-surface);
+}
+
+.outlook-filing-header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--am-space-4);
+  background: var(--am-forest);
+  color: #ffffff;
+}
+
+.outlook-filing-header strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 650;
+}
+
+.outlook-filing-tab {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--am-space-4);
+  border-bottom: 1px solid var(--am-border-soft);
+  box-shadow: inset 0 -3px 0 var(--am-accent);
+  color: var(--am-forest);
+  font-weight: 650;
+}
+
+.outlook-filing-shell .outlook-compact-content {
+  background: var(--am-surface);
+  overscroll-behavior: contain;
+}
+
+.outlook-filing-overview {
+  min-width: 0;
+}
+
+.outlook-message-context {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--am-space-3);
+  padding: var(--am-space-3) var(--am-space-4);
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.outlook-message-copy {
+  min-width: 0;
+}
+
+.outlook-message-copy h1,
+.outlook-message-copy p,
+.outlook-filing-location h2,
+.outlook-filing-location p {
+  margin: 0;
+}
+
+.outlook-message-copy h1,
+.outlook-message-copy p,
+.outlook-selected-matter,
+.outlook-matter-empty {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outlook-message-copy h1 {
+  font-size: 15px;
+  line-height: 21px;
+  font-weight: 650;
+}
+
+.outlook-message-copy p,
+.outlook-filing-state,
+.outlook-matter-empty {
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.outlook-filing-state {
+  white-space: nowrap;
+  font-weight: 650;
+}
+
+.outlook-filing-location {
+  min-width: 0;
+  padding: var(--am-space-3) var(--am-space-4);
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.outlook-filing-location h2 {
+  margin-bottom: var(--am-space-2);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.outlook-selected-matter {
+  color: var(--am-forest);
+  font-weight: 600;
+}
+
+.outlook-text-navigation {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0;
+  padding: 0 var(--am-space-4) var(--am-space-3);
+  overflow: visible;
+  border: 0;
+  background: var(--am-surface);
+}
+
+.outlook-text-navigation .outlook-text-action {
+  width: auto;
+  min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 var(--am-space-2);
+  border: 0;
+  border-bottom: 1px solid var(--am-border-soft);
+  border-radius: 0;
+  background: transparent;
+  color: var(--am-text);
+  text-align: start;
+}
+
+.outlook-text-navigation .outlook-text-action span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outlook-text-navigation .outlook-text-action:hover:not(:disabled),
+.outlook-text-navigation .outlook-text-action[aria-pressed="true"] {
+  background: var(--am-blue-soft);
+  color: var(--am-forest);
+}
+
+.outlook-text-navigation .outlook-text-action[aria-pressed="true"] {
+  border-right: 0;
+  box-shadow: inset 3px 0 0 var(--am-accent);
+}
+
+.outlook-filing-footer {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 10px var(--am-space-4);
+  border-top: 1px solid var(--am-border-soft);
+  background: var(--am-surface);
+}
+
+.outlook-primary-action {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--am-space-3);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-accent);
+  color: #ffffff;
+  font-weight: 650;
+}
+
+.outlook-primary-action:hover:not(:disabled) {
+  background: var(--am-accent-hover);
+}
+
+.outlook-filing-shell .outlook-overlay-panel {
+  width: min(var(--outlook-overlay-width), 100vw);
+}
+
+.outlook-filing-shell .outlook-flat-action-row[data-testid] {
+  margin: 0 var(--am-space-4);
 }
 
 .outlook-flat-action-row {

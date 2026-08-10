@@ -25,6 +25,7 @@ import {
   parseOutlookFilingCorrectionResponse,
 } from "./outlook-filing-correction.js";
 import { OutlookFilingCorrectionPanel } from "./outlook-filing-correction-panel.jsx";
+import { OutlookFilingOverview } from "./outlook-filing-overview.jsx";
 import { OutlookConversationPolicyFeature } from "./outlook-conversation-policy-feature.jsx";
 import { OutlookDocumentSigningFeature } from "./outlook-document-signing-feature.jsx";
 import { OutlookPrecedentPanel } from "./outlook-precedent-panel.jsx";
@@ -3177,6 +3178,24 @@ function App() {
         (entry) => entry.featureId === overlayState.featureId,
       )?.label ?? "Outlook 기능";
 
+  const primaryAction = item?.mode === "compose"
+    ? {
+        label: "발송 전 확인",
+        disabled: !authenticated || !graphConnected || !itemAvailable || busy !== "",
+        run: () => runAction("alerts", evaluateAlerts),
+      }
+    : item?.provenance === "sent"
+      ? {
+          label: "보낸 메일 보관",
+          disabled: !authenticated || !graphConnected || !selectedMatterId || busy !== "",
+          run: () => runAction("sent_file", fileSentEmail),
+        }
+      : {
+          label: "메일과 첨부 보관",
+          disabled: !authenticated || !graphConnected || !selectedMatterId || item?.provenance !== "received" || busy !== "",
+          run: () => runAction("file", fileEmail),
+        };
+
   return (
     <OutlookMatterCompactShell
       profile="matter-full"
@@ -3190,6 +3209,17 @@ function App() {
       )}
       onFeatureSelect={openFeatureOverlay}
       status={overlayState.open ? null : <CompactIntervention intervention={intervention} />}
+      footer={(
+        <button
+          type="button"
+          className="outlook-primary-action"
+          disabled={primaryAction.disabled}
+          onClick={() => void primaryAction.run()}
+          data-testid="outlook-primary-filing-button"
+        >
+          {primaryAction.label}
+        </button>
+      )}
       overlay={(
         <OutlookOverlay
           state={overlayState}
@@ -3777,7 +3807,14 @@ function App() {
             : null}
         </OutlookOverlay>
       )}
-    />
+    >
+      <OutlookFilingOverview
+        item={item}
+        selectedMatterDisplay={selectedMatterDisplay}
+        busy={busy}
+        filed={Boolean(emailResult || receiptRecovery)}
+      />
+    </OutlookMatterCompactShell>
   );
 }
 

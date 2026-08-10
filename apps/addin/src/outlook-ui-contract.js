@@ -6,7 +6,7 @@
  */
 
 const PROFILE_KEYS = Object.freeze(["matter-full", "inquiry-only"]);
-const VIEWPORT_WIDTHS = Object.freeze([320, 360, 480]);
+const VIEWPORT_WIDTHS = Object.freeze([320, 360, 390]);
 const LEGACY_SURFACE_SELECTORS = Object.freeze([
   ".eyebrow",
   ".mode-badge",
@@ -31,49 +31,42 @@ const LEGACY_VISIBLE_STRINGS = Object.freeze([
   "이 메일 처리",
   "추가 작업",
   "최근 기록",
-  "발송 전 확인",
-  "보낸 메일 보관",
   "연결 정보 정리 다시 시도",
 ]);
 
 const MATTER_RAIL_ACTIONS = Object.freeze([
   Object.freeze({
     id: "mail.save-with-attachments",
-    icon: "Archive",
-    accessibleName: "메일과 첨부 저장",
-    visibleLabel: false,
+    accessibleName: "보관 옵션",
+    visibleLabel: true,
     tooltip: false,
     badge: false,
   }),
   Object.freeze({
     id: "matter.search",
-    icon: "Search",
-    accessibleName: "Matter 찾기",
-    visibleLabel: false,
+    accessibleName: "Matter 선택 또는 변경",
+    visibleLabel: true,
     tooltip: false,
     badge: false,
   }),
   Object.freeze({
     id: "task.create",
-    icon: "ListTodo",
     accessibleName: "업무 만들기",
-    visibleLabel: false,
+    visibleLabel: true,
     tooltip: false,
     badge: false,
   }),
   Object.freeze({
     id: "time-entry.draft",
-    icon: "TimerReset",
     accessibleName: "시간기록 초안",
-    visibleLabel: false,
+    visibleLabel: true,
     tooltip: false,
     badge: false,
   }),
   Object.freeze({
     id: "all-functions",
-    icon: "Menu",
     accessibleName: "전체 기능",
-    visibleLabel: false,
+    visibleLabel: true,
     tooltip: false,
     badge: false,
   }),
@@ -100,8 +93,6 @@ const FORBIDDEN_VISIBLE_COPY = Object.freeze({
     "이 메일 처리",
     "추가 작업",
     "최근 기록",
-    "발송 전 확인",
-    "보낸 메일 보관",
     "연결 정보 정리 다시 시도",
   ]),
   selectors: Object.freeze([
@@ -123,13 +114,14 @@ const FORBIDDEN_VISIBLE_COPY = Object.freeze({
 
 export const OUTLOOK_UI_CONTRACT = Object.freeze({
   id: "OUTM-06",
-  version: "outm-06.v2",
+  version: "outm-06.v3",
   status: "implemented_local_proof",
   profiles: PROFILE_KEYS,
   viewportWidths: VIEWPORT_WIDTHS,
   shellSelector: '[data-ui-shell="outm-06"]',
   matterRailProfile: "matter-full",
   matterRailActions: MATTER_RAIL_ACTIONS,
+  matterNavigation: "filing_text_actions",
   hostDomAccess: false,
   inquiryEntry: INQUIRY_ENTRY,
   forbiddenVisibleCopy: FORBIDDEN_VISIBLE_COPY,
@@ -137,7 +129,7 @@ export const OUTLOOK_UI_CONTRACT = Object.freeze({
   legacySurfaceSelectors: LEGACY_SURFACE_SELECTORS,
   legacyVisibleStrings: LEGACY_VISIBLE_STRINGS,
   requirements: Object.freeze({
-    railLabels: false,
+    railLabels: "matter_text_actions_only",
     railTooltips: false,
     visibleTextLines: 1,
     titleAttributes: false,
