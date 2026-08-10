@@ -4,7 +4,16 @@ import test from "node:test";
 
 import {
   buildApiArtifactProvenance,
+  parseApiArtifactFileEntries,
 } from "../verify-outlook-api-release-artifact.mjs";
+
+test("API artifact inventory excludes ZIP directory entries", () => {
+  assert.deepEqual(
+    parseApiArtifactFileEntries("apps/\r\napps/api/\r\napps/api/lambda.js\r\ndeployment-manifest.json\r\n"),
+    ["apps/api/lambda.js", "deployment-manifest.json"],
+  );
+  assert.throws(() => parseApiArtifactFileEntries(null), /inventory output is invalid/u);
+});
 
 test("API provenance orchestration runs the exact builder twice and ignores builder-claimed paths", async () => {
   const sourceSha = "a".repeat(40);

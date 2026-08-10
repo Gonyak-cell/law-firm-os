@@ -55,6 +55,11 @@ function parseJson(bytes, name) {
   }
 }
 
+export function parseApiArtifactFileEntries(output) {
+  if (typeof output !== "string") throw new TypeError("API artifact inventory output is invalid");
+  return output.split(/\r?\n/u).filter((entry) => entry && !entry.endsWith("/"));
+}
+
 export async function buildApiArtifactProvenance({
   sourceSha, sourceTree, verifierRoot, caCopyPath, runCommand,
   readOutput = readProtectedRegularFile,
@@ -150,10 +155,10 @@ async function main() {
       sourceSha, sourceTree, verifierRoot, caCopyPath, runCommand,
     });
 
-    const archiveEntries = runCommand("unzip", ["-Z1", candidateCopyPath], {
+    const archiveEntries = parseApiArtifactFileEntries(runCommand("unzip", ["-Z1", candidateCopyPath], {
       encoding: "utf8",
       maxBuffer: 4 * 1024 * 1024,
-    }).split(/\r?\n/u).filter(Boolean);
+    }));
     const embeddedManifest = parseJson(Buffer.from(runCommand("unzip", [
       "-p",
       candidateCopyPath,
