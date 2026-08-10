@@ -462,7 +462,7 @@
   "devDependencies": {
     "@xmldom/xmldom": "^0.9.10",
     "playwright": "^1.60.0",
-    "postcss": "8.5.23"
+    "postcss": "8.5.26"
   },
   "dependencies": {
     "pg": "^8.22.0",
