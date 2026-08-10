@@ -1968,6 +1968,8 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /\/api\/vault\/audit/);
   assert.match(apiClientSource, /path:\s*"\/api\/finance\/time-entries"/);
   assert.match(apiClientSource, /const timeEntryId = uiRuntimeId\("time_ui"\)/);
+  assert.match(apiClientSource, /globalThis\.crypto\.randomUUID\(\)/);
+  assert.doesNotMatch(apiClientSource, /function uiRuntimeId[\s\S]*?Math\.random/);
   assert.match(apiClientSource, /idempotency_key: timeEntryId/);
   assert.match(apiClientSource, /billable/);
   assert.doesNotMatch(apiClientSource, /idempotency_key:\s*`ui-time:\$\{matterId\}`/);

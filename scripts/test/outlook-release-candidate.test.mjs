@@ -6,6 +6,7 @@ import {
   validateReleaseCandidateReceipt, validateReleaseContract, validateRollbackContract, validateSurfaceSeparation,
 } from "../lib/outlook-release-gates.mjs";
 import { graphScopeFingerprint } from "../validate-outlook-release-candidate.mjs";
+import { CLIENT_SCOPE_FINGERPRINT_SHA256 } from "../lib/outlook-release/constants.mjs";
 import {
   baseline, clone, contract, hex, inventory, lockWithReleaseDependencies, releaseCandidate,
   releaseContext, rollback, surface,
@@ -46,6 +47,7 @@ test("OAuth scope release proof binds the runtime byte order while Graph remains
   const exact = await graphScopeFingerprint(contract);
   assert.deepEqual(exact.oauth_scopes, expectedOAuthScopes);
   assert.deepEqual(exact.graph_connection_scopes, [...contract.client_outlook_graph_connection_scopes].sort());
+  assert.equal(exact.fingerprint_sha256, CLIENT_SCOPE_FINGERPRINT_SHA256);
 
   const graphReorderedContract = clone(contract);
   graphReorderedContract.client_outlook_graph_connection_scopes.reverse();

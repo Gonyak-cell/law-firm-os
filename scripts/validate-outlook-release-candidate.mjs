@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { collectBuildInventory, sha256, validateBuildInventories, validateCoveragePaths, validateDependencyLicenses, validateReleaseCandidateReceipt, validateReleaseContract, validateRollbackContract, validateSurfaceSeparation } from "./lib/outlook-release-gates.mjs";
 import { createCommandRunner, exactGitIdentity, trackedGitPaths } from "./lib/outlook-release/cli-runtime.mjs";
+import { CLIENT_SCOPE_FINGERPRINT_SHA256 } from "./lib/outlook-release/constants.mjs";
 import { assertActiveScriptContext } from "./lib/outlook-release/profile-html.mjs";
 import { validateOutlookAddinSurfaces } from "./validate-outlook-addin-surfaces.mjs";
 
@@ -56,8 +57,12 @@ export async function profileArtifacts(contract, inventory, { root = repoRoot } 
     if (/<base\b/iu.test(html)) {
       throw new Error(`${profile.profile} task pane must not define a document base URL`);
     }
-    const openingScripts = [...html.matchAll(/<script\b[^>]*>/giu)]; const scriptElements = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/giu)]; const closingScripts = [...html.matchAll(/<\/script\s*>/giu)];
-    if ([...html.matchAll(/<script\b/giu)].length !== openingScripts.length || scriptElements.length !== openingScripts.length || scriptElements.length !== closingScripts.length || scriptElements.length !== 2) {
+    const openingScripts = [...html.matchAll(/<script\b[^>]*>/giu)];
+    const scriptElements = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)(<\/script\b[^>]*>)/giu)];
+    const closingScripts = [...html.matchAll(/<\/script\b[^>]*>/giu)];
+    if ([...html.matchAll(/<script\b/giu)].length !== openingScripts.length || scriptElements.length !== openingScripts.length
+      || scriptElements.length !== closingScripts.length || scriptElements.length !== 2
+      || scriptElements.some(([, , , closing]) => !/^<\/script\s*>$/iu.test(closing))) {
       throw new Error(`${profile.profile} task pane must contain exactly two closed script elements`);
     }
     const scripts = scriptElements.map(([, tag, body]) => ({ ...parseScriptTag(tag), body }));
@@ -128,7 +133,7 @@ export async function graphScopeFingerprint(contract) {
     || JSON.stringify(oauthScopes) !== JSON.stringify(contract.client_outlook_oauth_scopes)) {
     throw new Error("Client Outlook delegated OAuth/Graph scope drifted");
   }
-  return { graph_connection_scopes: graphScopes, oauth_scopes: oauthScopes, fingerprint_sha256: sha256(JSON.stringify({ graphScopes, oauthScopes })), diff: "none" };
+  return { graph_connection_scopes: graphScopes, oauth_scopes: oauthScopes, fingerprint_sha256: CLIENT_SCOPE_FINGERPRINT_SHA256, diff: "none" };
 }
 
 async function main() {

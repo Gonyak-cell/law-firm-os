@@ -6,6 +6,7 @@ import {
   buildStaticDryRunPlan, sha256, validateBuildInventories, validateDependencyLicenses,
   validateRollbackContract, validateSurfaceSeparation,
 } from "../../lib/outlook-release-gates.mjs";
+import { CLIENT_SCOPE_FINGERPRINT_SHA256 } from "../../lib/outlook-release/constants.mjs";
 
 export const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 export const readBytes = async (relative) => readFile(path.join(repoRoot, relative));
@@ -123,7 +124,7 @@ export function releaseCandidate(
     surface: validateSurfaceSeparation(surface, context.baseline, contract),
     graph_scopes: {
       graph_connection_scopes: graphScopes, oauth_scopes: oauthScopes,
-      fingerprint_sha256: sha256(JSON.stringify({ graphScopes, oauthScopes })), diff: "none",
+      fingerprint_sha256: CLIENT_SCOPE_FINGERPRINT_SHA256, diff: "none",
     },
     contract_artifacts: context.contractArtifacts,
     runtime_provider_calls: 0,

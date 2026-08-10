@@ -67,12 +67,12 @@ test("profileArtifacts rejects unrelated scripts and document base overrides", a
 test("profileArtifacts rejects inert-context and malformed-context script text", async () => {
   const fakeOffice = '<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>';
   const contexts = [
-    `<!-- ${fakeOffice} -->`, `<template>${fakeOffice}</template>`, `<noscript>${fakeOffice}</noscript>`,
+    `<!-- ${fakeOffice} -->`, `<!-- ${fakeOffice} --!>`, `<template>${fakeOffice}</template>`, `<noscript>${fakeOffice}</noscript>`,
     `<textarea>${fakeOffice}</textarea>`, `<title>${fakeOffice}</title>`, `<xmp>${fakeOffice}</xmp>`,
     `<iframe>${fakeOffice}</iframe>`, `<noembed>${fakeOffice}</noembed>`, `<noframes>${fakeOffice}</noframes>`, `<svg>${fakeOffice}</svg>`, `<math>${fakeOffice}</math>`, `<listing>${fakeOffice}</listing>`,
     `<plaintext>${fakeOffice}`, `<!-- ${fakeOffice}`, `<template>${fakeOffice}`, `<title>${fakeOffice}`, "<script",
     `<div data-x="prefix ${fakeOffice}></div>`, `<div data-x=prefix${fakeOffice}></div>`,
-    `<![CDATA[${fakeOffice}]]>`, `<!foo ${fakeOffice}>`, `<?foo ${fakeOffice}>`,
+    `<![CDATA[${fakeOffice}]]>`, `<!foo ${fakeOffice}>`, `<?foo ${fakeOffice}>`, `<\/script\t\n data-extra>`,
   ];
   for (const headMarkup of contexts) {
     await assert.rejects(() => withPages({ officeScript: false, headMarkup }));

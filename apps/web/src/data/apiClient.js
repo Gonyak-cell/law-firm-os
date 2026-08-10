@@ -4291,7 +4291,10 @@ async function fetchCrmIntakeCollection({
 }
 
 function uiRuntimeId(prefix) {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  if (typeof globalThis.crypto?.randomUUID !== "function") {
+    throw new Error("Secure UUID generation is unavailable");
+  }
+  return `${prefix}_${globalThis.crypto.randomUUID()}`;
 }
 
 function uiStableId(prefix, value) {

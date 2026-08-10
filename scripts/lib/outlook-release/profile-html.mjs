@@ -1,4 +1,5 @@
-const INERT_CONTEXT_TAG = /<!--|-->|<\/?(?:template|noscript|textarea|xmp|iframe|noembed|noframes|plaintext|listing|style|svg|math)\b/iu;
+const INERT_CONTEXT_TAG = /<\/?(?:template|noscript|textarea|xmp|iframe|noembed|noframes|plaintext|listing|style|svg|math)\b/iu;
+const HTML_COMMENT_TOKENS = ["<!--", "-->", "--!>"];
 
 function assertCanonicalMarkup(html, profile) {
   let insideTag = false;
@@ -36,7 +37,9 @@ function assertCanonicalMarkup(html, profile) {
 
 export function assertActiveScriptContext(html, profile) {
   assertCanonicalMarkup(html, profile);
-  if (INERT_CONTEXT_TAG.test(html)) throw new Error(`${profile} task pane contains an inert or unsupported HTML context`);
+  if (HTML_COMMENT_TOKENS.some((token) => html.includes(token)) || INERT_CONTEXT_TAG.test(html)) {
+    throw new Error(`${profile} task pane contains an inert or unsupported HTML context`);
+  }
   const titles = [...html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/giu)];
   const titleOpenings = [...html.matchAll(/<title\b[^>]*>/giu)];
   const titleClosings = [...html.matchAll(/<\/title\s*>/giu)];

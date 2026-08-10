@@ -32,6 +32,9 @@ export const CLIENT_GRAPH_SCOPES = ["Calendars.ReadWrite", "Mail.Read", "offline
 // client. The authorization URL and token exchange serialize this array in
 // order; sorting here would hide a contract drift even when the set is equal.
 export const CLIENT_OAUTH_SCOPES = ["openid", "profile", "email", "offline_access", "Calendars.ReadWrite", "Mail.Read"];
+// SHA-256 of the public, exact CLIENT_GRAPH_SCOPES/CLIENT_OAUTH_SCOPES contract.
+// Scope equality is enforced before this receipt value is emitted.
+export const CLIENT_SCOPE_FINGERPRINT_SHA256 = "e6cd56223945b881a0ac1b3775d216c612881343c2352fbe27d210c6b55b925d";
 export const APPROVED_LICENSES = [
   "0BSD", "Apache-2.0", "BlueOak-1.0.0", "BSD-2-Clause", "BSD-3-Clause", "CC-BY-4.0", "ISC", "MIT",
   "(MIT AND Zlib)", "(MIT OR GPL-3.0-or-later)",

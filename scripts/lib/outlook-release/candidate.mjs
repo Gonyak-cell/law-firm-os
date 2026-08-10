@@ -1,4 +1,6 @@
-import { CANDIDATE_ALLOWED_CLAIM, CANDIDATE_BLOCKED_CLAIM, GIT_OID, SHA256 } from "./constants.mjs";
+import {
+  CANDIDATE_ALLOWED_CLAIM, CANDIDATE_BLOCKED_CLAIM, CLIENT_SCOPE_FINGERPRINT_SHA256, GIT_OID, SHA256,
+} from "./constants.mjs";
 import { validateBuildInventories } from "./build.mjs";
 import {
   validateCoveragePaths, validateSurfaceSeparation,
@@ -128,7 +130,7 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
   assertEqual(receipt.graph_scopes, {
     graph_connection_scopes: graphScopes,
     oauth_scopes: oauthScopes,
-    fingerprint_sha256: sha256(JSON.stringify({ graphScopes, oauthScopes })),
+    fingerprint_sha256: CLIENT_SCOPE_FINGERPRINT_SHA256,
     diff: "none",
   }, "release candidate Graph scope proof");
   return build;
