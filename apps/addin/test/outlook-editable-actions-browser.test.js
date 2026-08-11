@@ -7,6 +7,7 @@ import { chromium } from "playwright";
 
 import { startOutlookAddinStaticServer } from "../../../scripts/lib/outlook-addin-static-server.mjs";
 import { localDateTimeToIso } from "../src/outlook-task-datetime.js";
+import { readyOutlookReadinessResponse } from "./helpers/outlook-readiness-fixture.js";
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TEST_DIR, "../../..");
@@ -90,6 +91,7 @@ async function openFixture(browser, web) {
     }
     if (url.pathname === "/api/auth/session") return fulfill({ authenticated: true, principal: { user_id: "browser-user", tenant_id: "browser-tenant" } });
     if (url.pathname === "/api/outlook/connection") return fulfill({ item: { status: "connected", active: true, connection_id: "m365_connection_editable_qa", state_version: 1, mailbox_address: "qa@example.invalid" } });
+    if (url.pathname === "/api/outlook/readiness") return fulfill(readyOutlookReadinessResponse());
     if (["/api/outlook/bootstrap", "/api/outlook/operation-receipts/readback"].includes(url.pathname)) return fulfill(url.pathname.endsWith("readback") ? { items: [] } : { item: { ready: true } });
     if (url.pathname === "/api/outlook/matters") {
       const id = url.searchParams.get("matter_id");

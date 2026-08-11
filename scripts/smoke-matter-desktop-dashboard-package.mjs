@@ -424,21 +424,53 @@ function productUrl(baseHref, view, section) {
   return url.href;
 }
 
-const app = await electron.launch({
-  executablePath,
-  env: {
-    ...process.env,
-    MATTER_DESKTOP_USER_DATA_PATH: userDataPath,
-    MATTER_DESKTOP_LOCAL_API_DISABLED: "1",
-    MATTER_DESKTOP_ENV_FILE: path.join(userDataPath, "fixture-only.env"),
-    MATTER_DESKTOP_RUNTIME_BASE_URL: baseUrl,
-    MATTER_DESKTOP_OPERATOR_TOKEN: "",
-    MATTER_VAULT_R4_OPERATOR_TOKEN: "",
-    MATTER_R4_OPERATOR_TOKEN: "",
-    MATTER_OPERATOR_TOKEN: ""
-  },
-  timeout: 30_000
-});
+const launchArgs = platform === "win32" ? ["--disable-gpu"] : [];
+const launchTimeoutMs = platform === "win32" ? 45_000 : 30_000;
+let app;
+try {
+  app = await electron.launch({
+    executablePath,
+    args: launchArgs,
+    env: {
+      ...process.env,
+      MATTER_DESKTOP_USER_DATA_PATH: userDataPath,
+      MATTER_DESKTOP_LOCAL_API_DISABLED: "1",
+      MATTER_DESKTOP_ENV_FILE: path.join(userDataPath, "fixture-only.env"),
+      MATTER_DESKTOP_RUNTIME_BASE_URL: baseUrl,
+      MATTER_DESKTOP_OPERATOR_TOKEN: "",
+      MATTER_VAULT_R4_OPERATOR_TOKEN: "",
+      MATTER_R4_OPERATOR_TOKEN: "",
+      MATTER_OPERATOR_TOKEN: ""
+    },
+    timeout: launchTimeoutMs
+  });
+} catch (error) {
+  const message = String(error?.message ?? error)
+    .replace(/ws:\/\/[^\s]+/gu, "ws://redacted")
+    .slice(0, 8_000);
+  const launchFailure = {
+    schema_version: "law-firm-os.dashboard-package-launch-failure.v0.1",
+    generated_at: new Date().toISOString(),
+    status: "launch_failed",
+    platform,
+    executable: path.relative(repoRoot, executablePath),
+    launch_args: launchArgs,
+    launch_timeout_ms: launchTimeoutMs,
+    debugger_observed: /Debugger (?:listening|attached)|ws connected/iu.test(message),
+    error_name: error?.name ?? "Error",
+    fixture_only: true,
+    real_client_data_used: false,
+    credential_material_used: false,
+    public_release: false,
+    production_go_live: false,
+  };
+  writeFileSync(
+    path.join(artifactDir, `dashboard-package-launch-failure-${platform}.json`),
+    `${JSON.stringify(launchFailure, null, 2)}\n`,
+  );
+  await new Promise((resolveClose) => server.close(resolveClose));
+  throw error;
+}
 
 const expected = {
   home: ["monthly-revenue", "monthly-payroll", "monthly-processed-cost", "monthly-revenue-chart", "payroll-categories", "nonpayroll-categories", "cashflow", "client-summary", "people-summary", "matter-summary", "calendar"],

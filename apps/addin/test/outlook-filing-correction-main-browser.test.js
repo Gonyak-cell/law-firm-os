@@ -8,6 +8,7 @@ import test from "node:test";
 import { chromium } from "playwright";
 
 import { startOutlookAddinStaticServer } from "../../../scripts/lib/outlook-addin-static-server.mjs";
+import { readyOutlookReadinessResponse } from "./helpers/outlook-readiness-fixture.js";
 import {
   correctionApiRequest,
   currentCorrectionPath,
@@ -84,6 +85,7 @@ async function openFixture(browser, fixture, state) {
     if (url.pathname === "/api/auth/office-sso/config") return fulfill({ item: { configured: true, client_id: "browser-client", tenant_id: "organizations", api_scope: "api://browser-client/access_as_user", scopes: ["api://browser-client/access_as_user"], callback_uri: `${url.origin}/addin/oauth-callback.html`, authority: "https://login.microsoftonline.com/organizations" } });
     if (url.pathname === "/api/auth/session") return fulfill({ authenticated: true, principal: { user_id: "outm22-user", tenant_id: "tenant-outm20" } });
     if (url.pathname === "/api/outlook/connection") return fulfill({ item: { status: state.connectionState, active: state.connectionState === "connected", ...(state.connectionState === "connected" ? { connection_id: "m365_connection_correction_qa" } : {}), state_version: state.connectionState === "connected" ? 1 : 0, mailbox_address: "qa@example.invalid" } });
+    if (url.pathname === "/api/outlook/readiness") return fulfill(readyOutlookReadinessResponse());
     if (url.pathname === "/api/outlook/bootstrap") return fulfill({ item: { ready: true } });
     if (url.pathname === "/api/outlook/messages/identity") return fulfill({ item: { canonical_graph_message_id: `canonical-${body.rest_message_id ?? "A"}`, rest_message_id: body.rest_message_id, internet_message_id: body.internet_message_id, conversation_id: body.conversation_id } });
     if (url.pathname === "/api/outlook/email/file") {
