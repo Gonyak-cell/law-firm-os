@@ -14,6 +14,7 @@ import {
   executeJsonPostgresRetirementSmoke,
   handler,
   loadApprovedDmsSourceObject,
+  readJsonPostgresProductionSchemaLedger,
   safeJsonPostgresProgramErrorCode,
   writeJsonPostgresProgramEvidence,
 } from "../src/json-postgres-program-admin-lambda.js";
@@ -27,6 +28,7 @@ import {
   resolveJsonPostgresScheduledProgramEvent,
 } from "../src/json-postgres-program-inputs.js";
 import {
+  CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   listClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
 
@@ -44,6 +46,8 @@ function packet() {
     packet_sha256: PACKET_SHA,
     bindings: {
       artifact_sha256: ARTIFACT_SHA,
+      migration_catalog_sha256:
+        "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14",
       dms_object_manifest_sha256: "e".repeat(64),
     },
     target: {
@@ -140,8 +144,10 @@ test("production bootstrap configures only approved tenants and returns no secre
     },
     putSecret: async (value) => { writtenSecret = JSON.parse(value.secretString); },
     createPool: () => pool,
-    runMigrations: async () => [{ id: "001", applied: true }],
-    verifyMigrations: async () => [],
+    runMigrations: async () => [{ id: "001", applied: false }],
+    verifyMigrations: async () => CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.map(
+      ({ id, checksum }) => ({ id, checksum, applied: true }),
+    ),
     configureRole: async (_client, input) => {
       assert.deepEqual(input.approvedTenantIds, ["tenant_amic"]);
       return {
@@ -152,6 +158,26 @@ test("production bootstrap configures only approved tenants and returns no secre
     },
   });
   assert.equal(result.outcome, "PASS");
+  assert.equal(result.migration_applied_count, 0);
+  assert.equal(result.migration_catalog_count, 73);
+  assert.equal(
+    result.migration_catalog_sha256,
+    "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14",
+  );
+  assert.equal(result.final_migration_id, "304_client_outlook_desktop_installation");
+  assert.equal(
+    result.final_migration_checksum,
+    "97d8c167352cb6e42e07de9c72b11f1e1aace99401797c65df6b8c38a811debd",
+  );
+  for (const key of [
+    "production_write_count",
+    "external_email_send_count",
+    "real_data_count",
+    "legacy_authority_counter_total",
+  ]) assert.equal(result[key], 0);
+  for (const key of ["raw_pii_returned", "raw_secret_returned"]) {
+    assert.equal(result[key], false);
+  }
   assert.equal(result.approved_tenant_count, 1);
   assert.equal(result.production_data_write_count, 0);
   assert.equal(result.secret_material_returned, false);
@@ -217,6 +243,89 @@ test("production bootstrap defaults apply the complete client operations migrati
     "303_client_outlook_conversation_sync",
     "304_client_outlook_desktop_installation",
   ]);
+});
+
+test("production schema ledger readback is SELECT-only and authoritative", async () => {
+  const queries = [];
+  const secretReads = [];
+  const pool = {
+    async query(statement) {
+      queries.push(String(statement));
+      assert.match(String(statement), /^\s*SELECT\b/iu);
+      return {
+        rows: CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.map(
+          ({ id, checksum }) => ({ migration_id: id, checksum }),
+        ),
+      };
+    },
+    async end() {},
+  };
+  const result = await readJsonPostgresProductionSchemaLedger({
+    event: {
+      action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+      mode: "readback",
+    },
+    env: env(),
+    authorize: async () => authorization(),
+    resolveSecret: async ({ secretId }) => {
+      secretReads.push(secretId);
+      return { username: "master", password: "master-value" };
+    },
+    createPool: () => pool,
+  });
+  assert.deepEqual(secretReads, ["lawos/master"]);
+  assert.equal(queries.length, 1);
+  assert.equal(result.migration_count, 73);
+  assert.equal(result.migration_applied_count, 0);
+  assert.equal(result.migration_catalog_count, 73);
+  assert.equal(
+    result.migration_catalog_sha256,
+    "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14",
+  );
+  assert.equal(result.final_migration_id, "304_client_outlook_desktop_installation");
+  assert.equal(
+    result.final_migration_checksum,
+    "97d8c167352cb6e42e07de9c72b11f1e1aace99401797c65df6b8c38a811debd",
+  );
+  for (const key of [
+    "production_data_write_count",
+    "production_write_count",
+    "external_email_send_count",
+    "real_data_count",
+    "legacy_authority_counter_total",
+  ]) assert.equal(result[key], 0);
+  for (const key of [
+    "raw_value_returned",
+    "raw_pii_returned",
+    "raw_secret_returned",
+    "pii_returned",
+    "secret_material_returned",
+  ]) assert.equal(result[key], false);
+});
+
+test("production schema ledger readback rejects a catalog mismatch before any write", async () => {
+  let poolEnded = false;
+  await assert.rejects(
+    readJsonPostgresProductionSchemaLedger({
+      event: {
+        action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+        mode: "readback",
+      },
+      env: env(),
+      authorize: async () => authorization(),
+      resolveSecret: async () => ({ username: "master", password: "master-value" }),
+      createPool: () => ({
+        async query() { return { rows: [] }; },
+        async end() { poolEnded = true; },
+      }),
+      verifyMigrations: async () => [{
+        id: "001_repository_port_v2",
+        checksum: "0".repeat(64),
+      }],
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_MIGRATION_CATALOG",
+  );
+  assert.equal(poolEnded, true);
 });
 
 test("W15 inventory bootstrap separates schema authority from aggregate inventory", async () => {

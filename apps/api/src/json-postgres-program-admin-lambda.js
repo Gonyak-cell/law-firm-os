@@ -52,6 +52,7 @@ import {
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import {
+  CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   runClientOperationsPostgresMigrations,
   verifyClientOperationsPostgresMigrations,
 } from "./client-operations-schema.js";
@@ -610,6 +611,156 @@ export async function writeJsonPostgresProgramEvidence({
   return Object.freeze({ sha256, byte_size: body.byteLength });
 }
 
+function authoritativeClientOperationsCatalog(verified, { packet } = {}) {
+  const suppliedEntries = Array.isArray(verified)
+    ? verified
+    : verified?.entries;
+  if (!Array.isArray(suppliedEntries)) {
+    fail(
+      "LAWOS_PROGRAM_MIGRATION_CATALOG",
+      "verified Client operations migration catalog is missing",
+    );
+  }
+  const entries = suppliedEntries;
+  const expected = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries;
+  if (entries.length !== expected.length) {
+    fail(
+      "LAWOS_PROGRAM_MIGRATION_CATALOG",
+      "verified Client operations migration catalog count drifted",
+    );
+  }
+  const normalized = entries.map((entry, index) => {
+    const id = entry?.id ?? entry?.migration_id;
+    const checksum = entry?.checksum;
+    if (typeof id !== "string"
+      || typeof checksum !== "string"
+      || id !== expected[index].id
+      || checksum !== expected[index].checksum) {
+      fail(
+        "LAWOS_PROGRAM_MIGRATION_CATALOG",
+        "verified Client operations migration catalog drifted",
+      );
+    }
+    return Object.freeze({ id, checksum });
+  });
+  const computedSha256 = hashDomainValue(normalized);
+  if (verified?.schema_sha256 != null
+    && verified.schema_sha256 !== computedSha256) {
+    fail(
+      "LAWOS_PROGRAM_MIGRATION_CATALOG",
+      "verified Client operations migration catalog digest drifted",
+    );
+  }
+  const packetSha256 = packet?.bindings?.migration_catalog_sha256;
+  if (!SHA256.test(String(packetSha256))
+    || computedSha256 !== CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256) {
+    fail(
+      "LAWOS_PROGRAM_MIGRATION_CATALOG",
+      "Client operations migration catalog is not bound to the exact packet",
+    );
+  }
+  const final = normalized.at(-1);
+  return Object.freeze({
+    migration_catalog_count: normalized.length,
+    migration_catalog_sha256: packetSha256,
+    final_migration_id: final.id,
+    final_migration_checksum: final.checksum,
+  });
+}
+
+export async function readJsonPostgresProductionSchemaLedger({
+  event,
+  env = process.env,
+  authorize = loadJsonPostgresProgramAuthorization,
+  resolveSecret = resolveAwsJsonSecret,
+  createPool = createPostgresPool,
+  verifyMigrations = verifyClientOperationsPostgresMigrations,
+} = {}) {
+  if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION
+    || event.mode !== "readback") {
+    fail(
+      "LAWOS_PROGRAM_ACTION",
+      "production schema ledger readback requires the direct readback mode",
+    );
+  }
+  const authorization = await withAwsAccessDeniedCode(
+    "LAWOS_PROGRAM_AUTHORIZATION_READ_ACCESS_DENIED",
+    () => authorize({ event, env }),
+  );
+  if (authorization.packet.phase !== "w13-production-cutover") {
+    fail(
+      "LAWOS_PROGRAM_PHASE",
+      "production schema ledger readback requires a W13 packet",
+    );
+  }
+  const region = requiredText(
+    env.AWS_REGION ?? env.AWS_DEFAULT_REGION,
+    "AWS region",
+  );
+  const master = await withAwsAccessDeniedCode(
+    "LAWOS_PROGRAM_MASTER_SECRET_READ_ACCESS_DENIED",
+    () => resolveSecret({
+      secretId: requiredText(
+        env.LAWOS_MASTER_DATABASE_SECRET_ID,
+        "LAWOS_MASTER_DATABASE_SECRET_ID",
+      ),
+      region,
+    }),
+  );
+  const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
+    ...master,
+    host: env.LAWOS_DATABASE_HOST,
+    port: env.LAWOS_DATABASE_PORT,
+    dbname: env.LAWOS_DATABASE_NAME,
+  }));
+  const pool = createPool({
+    connectionString: masterConnectionString,
+    sslMode: "verify-full",
+    applicationName: "lawos-production-schema-ledger-readback",
+    connectionTimeoutMillis: 10_000,
+    statementTimeoutMillis: 120_000,
+    max: 1,
+  });
+  let verified;
+  try {
+    verified = await verifyMigrations(pool);
+  } finally {
+    await pool.end();
+  }
+  const catalog = authoritativeClientOperationsCatalog(verified, {
+    packet: authorization.packet,
+  });
+  return Object.freeze({
+    outcome: "PASS",
+    action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+    phase: authorization.packet.phase,
+    mode: event.mode,
+    source_sha: authorization.exact.sourceSha,
+    source_tree: authorization.exact.sourceTree,
+    packet_sha256: authorization.packet.packet_sha256,
+    migration_count: catalog.migration_catalog_count,
+    migration_applied_count: 0,
+    ...catalog,
+    json_fallback_count: 0,
+    json_writer_count: 0,
+    dual_write_count: 0,
+    file_current_authority_count: 0,
+    offline_mutation_count: 0,
+    memory_fallback_count: 0,
+    production_data_write_count: 0,
+    production_write_count: 0,
+    external_email_send_count: 0,
+    real_data_count: 0,
+    legacy_authority_counter_total: 0,
+    raw_value_returned: false,
+    raw_pii_returned: false,
+    raw_secret_returned: false,
+    pii_returned: false,
+    secret_material_returned: false,
+    approval_receipt_sha256: authorization.approval.receipt_sha256,
+  });
+}
+
 export async function bootstrapJsonPostgresProductionDatabase({
   event,
   env = process.env,
@@ -622,8 +773,19 @@ export async function bootstrapJsonPostgresProductionDatabase({
   verifyMigrations = verifyClientOperationsPostgresMigrations,
   configureRole = configureLawosProductionApplicationRole,
 } = {}) {
-  if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION || event.mode !== "preflight") {
-    fail("LAWOS_PROGRAM_ACTION", "production bootstrap requires its direct preflight action");
+  if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION
+    || !["preflight", "readback"].includes(event.mode)) {
+    fail("LAWOS_PROGRAM_ACTION", "production bootstrap requires its direct preflight or readback action");
+  }
+  if (event.mode === "readback") {
+    return readJsonPostgresProductionSchemaLedger({
+      event,
+      env,
+      authorize,
+      resolveSecret,
+      createPool,
+      verifyMigrations,
+    });
   }
   const authorization = await withAwsAccessDeniedCode(
     "LAWOS_PROGRAM_AUTHORIZATION_READ_ACCESS_DENIED",
@@ -670,9 +832,15 @@ export async function bootstrapJsonPostgresProductionDatabase({
     max: 1,
   });
   let migrations;
+  let verifiedMigrations;
+  let catalog;
   let role;
   try {
     migrations = await runMigrations(pool, { appliedBy: `lawos-production:${authorization.exact.sourceSha}` });
+    verifiedMigrations = await verifyMigrations(pool);
+    catalog = authoritativeClientOperationsCatalog(verifiedMigrations, {
+      packet: authorization.packet,
+    });
     const client = await pool.connect();
     try {
       role = await configureRole(client, {
@@ -683,7 +851,6 @@ export async function bootstrapJsonPostgresProductionDatabase({
     } finally {
       client.release();
     }
-    await verifyMigrations(pool);
     const writer = putSecret ?? (async ({ secretId, secretString }) => {
       const client = new SecretsManagerClient({ region });
       try {
@@ -709,8 +876,9 @@ export async function bootstrapJsonPostgresProductionDatabase({
     source_sha: authorization.exact.sourceSha,
     source_tree: authorization.exact.sourceTree,
     packet_sha256: authorization.packet.packet_sha256,
-    migration_count: migrations.length,
+    migration_count: catalog.migration_catalog_count,
     migration_applied_count: migrations.filter((item) => item.applied).length,
+    ...catalog,
     application_role_grant_count: role.grant_statement_count,
     approved_tenant_count: role.tenant_authority_count,
     synthetic_wildcard_count: role.synthetic_wildcard_count,
@@ -721,7 +889,13 @@ export async function bootstrapJsonPostgresProductionDatabase({
     offline_mutation_count: 0,
     memory_fallback_count: 0,
     production_data_write_count: 0,
+    production_write_count: 0,
+    external_email_send_count: 0,
+    real_data_count: 0,
+    legacy_authority_counter_total: 0,
     raw_value_returned: false,
+    raw_pii_returned: false,
+    raw_secret_returned: false,
     pii_returned: false,
     secret_material_returned: false,
     approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
