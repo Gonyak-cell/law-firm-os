@@ -188,7 +188,10 @@ async function activateStepUp(page) {
   }, { purposeValue: purpose, totpCode: totp });
   assert.equal(response.status, 200);
   assert.match(response.token, /^lawos_hrx_step_up_v1\./);
-  await page.evaluate((token) => window.sessionStorage.setItem("lawos_hrx_step_up_token", token), response.token);
+  await page.evaluate(({ purposeValue, token }) => {
+    window.sessionStorage.setItem("lawos_hrx_step_up_token", token);
+    window.sessionStorage.setItem(`lawos_hrx_step_up_token:${purposeValue}`, token);
+  }, { purposeValue: purpose, token: response.token });
 }
 
 async function screenshot(page, name, selector) {
