@@ -93,6 +93,16 @@ export function parseOutlookDesktopAutoconnectRoster(input) {
     return normalized;
   });
 
+  if (new Set(entries.map((entry) => entry.tenant_id)).size !== 1) {
+    throw invalidRoster("tenant_count_invalid");
+  }
+  if (new Set(entries.map((entry) => entry.user_id)).size !== REQUIRED_ROSTER_SIZE) {
+    throw invalidRoster("user_id_unique_count_invalid");
+  }
+  if (new Set(entries.map((entry) => entry.entra_subject_id)).size !== REQUIRED_ROSTER_SIZE) {
+    throw invalidRoster("entra_subject_id_unique_count_invalid");
+  }
+
   return Object.freeze({
     schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
     roster_version: rosterVersion,

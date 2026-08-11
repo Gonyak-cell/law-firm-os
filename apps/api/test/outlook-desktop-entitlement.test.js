@@ -55,12 +55,27 @@ test("exact-ten composite roster approves a matching server principal", () => {
 });
 
 test("roster parser fails closed unless there are exactly ten unique complete tuples", () => {
-  const duplicate = syntheticEntries();
+  const entries = syntheticEntries();
+  const duplicate = [...entries];
   duplicate[9] = { ...duplicate[0] };
+  const duplicateUsers = entries.map((entry, index) => (
+    index === 9 ? { ...entry, user_id: entries[0].user_id } : entry
+  ));
+  const duplicateSubjects = entries.map((entry, index) => (
+    index === 9
+      ? { ...entry, entra_subject_id: entries[0].entra_subject_id }
+      : entry
+  ));
+  const mixedTenants = entries.map((entry, index) => (
+    index === 9 ? { ...entry, tenant_id: "tenant-synthetic-b" } : entry
+  ));
   const invalidRosters = [
     syntheticRoster(syntheticEntries(9)),
     syntheticRoster(syntheticEntries(11)),
     syntheticRoster(duplicate),
+    syntheticRoster(duplicateUsers),
+    syntheticRoster(duplicateSubjects),
+    syntheticRoster(mixedTenants),
     syntheticRoster(syntheticEntries().map((entry, index) => (
       index === 0 ? { ...entry, entra_subject_id: "" } : entry
     ))),

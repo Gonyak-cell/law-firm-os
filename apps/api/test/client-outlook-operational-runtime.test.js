@@ -10,6 +10,9 @@ import {
   resolveLambdaClientOutlookM365GraphConfig,
 } from "../src/client-outlook-operational-runtime.js";
 import {
+  OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+} from "../src/outlook-desktop-entitlement.js";
+import {
   M365_GRAPH_REQUIRED_SCOPES,
 } from "../../../packages/email-dms/src/m365-connection-model.js";
 import {
@@ -33,6 +36,16 @@ const SECRET_CONFIG = Object.freeze({
     state_encryption_key: Buffer.alloc(32, 7).toString("base64"),
     credential_secret_prefix: "/lawos/test/client-outlook/delegated",
   }),
+});
+const SECRET_ROSTER = Object.freeze({
+  schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+  roster_version: "secret-roster-v1",
+  entries: Object.freeze(Array.from({ length: 10 }, (_, index) => ({
+    tenant_id: "tenant-secret-roster",
+    user_id: `user-secret-roster-${String(index + 1).padStart(2, "0")}`,
+    entra_subject_id: `subject-secret-roster-${String(index + 1).padStart(2, "0")}`,
+    enabled: true,
+  }))),
 });
 const BROKER_TRANSPORT = Object.freeze({
   async oauthJwksGet() {},
@@ -115,7 +128,12 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
       secretCalls.push(command);
       assert.equal(command.constructor.name, "GetSecretValueCommand");
       assert.deepEqual(command.input, { SecretId: SECRET_ID });
-      return { SecretString: JSON.stringify(SECRET_CONFIG) };
+      return {
+        SecretString: JSON.stringify({
+          ...SECRET_CONFIG,
+          outlook_desktop_autoconnect_roster: SECRET_ROSTER,
+        }),
+      };
     },
   };
   const oauthClientFactory = (options) => {
@@ -184,6 +202,26 @@ test("Client Outlook Lambda config resolves its independent app secret and wires
   assert.equal(config.feature_enabled, true);
   assert.equal(config.inquiry_feature_enabled, true);
   assert.equal(config.provider_runtime_enabled, true);
+  assert.equal(
+    config.outlook_desktop_autoconnect_roster.roster_version,
+    SECRET_ROSTER.roster_version,
+  );
+  assert.equal(
+    Object.isFrozen(config.outlook_desktop_autoconnect_roster),
+    true,
+  );
+  assert.equal(
+    Object.isFrozen(config.outlook_desktop_autoconnect_roster.entries),
+    true,
+  );
+  assert.equal(
+    Object.keys(config).includes("outlook_desktop_autoconnect_roster"),
+    false,
+  );
+  assert.doesNotMatch(
+    JSON.stringify(config),
+    /user-secret-roster|subject-secret-roster/u,
+  );
   assert.deepEqual(config.allowed_redirect_uris, [REDIRECT_URI]);
   assert.equal(config.credential_vault.provider, "aws-secrets-manager");
   assert.equal(typeof config.provider.getMeMessageMime, "function");
@@ -336,6 +374,41 @@ test("Client Outlook Lambda config falls back to the shared M365 JSON Secret", a
   assert.equal(config.feature_enabled, true);
   assert.equal(config.inquiry_feature_enabled, true);
   assert.equal(config.provider_runtime_enabled, true);
+});
+
+test("Client Outlook autoconnect roster is optional and fails closed without projection", async () => {
+  for (const roster of [
+    undefined,
+    { schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION, entries: [] },
+    {
+      ...SECRET_ROSTER,
+      entries: SECRET_ROSTER.entries.map((entry, index) => (
+        index === 9 ? { ...entry, user_id: SECRET_ROSTER.entries[0].user_id } : entry
+      )),
+    },
+  ]) {
+    const secret = {
+      ...SECRET_CONFIG,
+      ...(roster === undefined
+        ? {}
+        : { outlook_desktop_autoconnect_roster: roster }),
+    };
+    const config = await resolveLambdaClientOutlookM365GraphConfig({
+      env: enabledEnv(),
+      secrets_client: {
+        async send() {
+          return { SecretString: JSON.stringify(secret) };
+        },
+      },
+      microsoft_egress_transport: BROKER_TRANSPORT,
+    });
+
+    assert.equal(config.outlook_desktop_autoconnect_roster, null);
+    assert.doesNotMatch(
+      JSON.stringify(config),
+      /user-secret-roster|subject-secret-roster/u,
+    );
+  }
 });
 
 test("Client Outlook provider refuses the separate People calendar secret shape", async () => {
