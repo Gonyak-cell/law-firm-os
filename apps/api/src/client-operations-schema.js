@@ -76,6 +76,11 @@ export function runClientOperationsPostgresMigrations(
   return runPostgresMigrations(pool, {
     migrations: OPERATIONAL_MIGRATIONS,
     appliedBy,
+    allowedHistoricalGapIds: [
+      "012_outlook_document_source_identity",
+      "013_dms_precedent_search",
+      "014_docusign_outbox",
+    ],
   });
 }
 

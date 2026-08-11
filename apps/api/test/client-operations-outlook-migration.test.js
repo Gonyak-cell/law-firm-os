@@ -1,8 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { listHrxPostgresMigrations } from "../../../packages/hrx/src/postgres-migrations.js";
+import {
+  checksumPostgresMigration,
+  listPostgresFoundationMigrations,
+} from "../../../packages/persistence/src/postgres/migration-catalog.js";
+import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
 import { runPostgresMigrations } from "../../../packages/persistence/src/postgres/migration-runner.js";
-import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import {
+  createMigratedPostgresFixture,
+  startDisposablePostgres,
+} from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import {
   listClientOperationsPostgresMigrations,
   runClientOperationsPostgresMigrations,
@@ -12,6 +21,17 @@ import {
 const CORRECTION = "302_client_email_filing_correction";
 const OUTLOOK = "303_client_outlook_conversation_sync";
 const DESKTOP = "304_client_outlook_desktop_installation";
+
+function poolWithMigrationHistory(rows) {
+  const client = {
+    async query(sql) {
+      if (String(sql).includes("FROM lawos_meta.schema_migrations")) return { rows };
+      return { rows: [] };
+    },
+    release() {},
+  };
+  return { connect: async () => client };
+}
 
 async function tableExists(pool, name) {
   const result = await pool.query(
@@ -63,4 +83,91 @@ test("combined client catalog upgrades a database already at filing correction 3
   assert.equal(await tableExists(fixture.adminPool, "conversation_policies"), true);
   assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_installations"), true);
   assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, DESKTOP);
+});
+
+test("combined client catalog reconciles verified foundation 001-011 plus HRX history and replays idempotently", async (t) => {
+  const instance = await startDisposablePostgres(t);
+  if (!instance) return;
+  const pool = createPostgresPool({
+    connectionString: instance.connection_string,
+    sslMode: "disable",
+    allowInsecureLocal: true,
+    applicationName: "client-operations-subset-reconciliation-test",
+  });
+  t.after(async () => {
+    await pool.end();
+    await instance.stop();
+  });
+  const foundation = listPostgresFoundationMigrations();
+  const oldProductionCatalog = [
+    ...foundation.slice(0, 11),
+    ...listHrxPostgresMigrations(),
+  ];
+  const catalog = listClientOperationsPostgresMigrations();
+  const oldProductionIds = new Set(oldProductionCatalog.map(({ id }) => id));
+  const missingIds = catalog
+    .filter(({ id }) => !oldProductionIds.has(id))
+    .map(({ id }) => id);
+
+  assert.equal(oldProductionCatalog[10].id, "011_identity_session_membership_authority");
+  await runPostgresMigrations(pool, {
+    migrations: oldProductionCatalog,
+    appliedBy: "synthetic-old-production-test",
+  });
+  await pool.query("CREATE ROLE lawos_app LOGIN");
+  await assert.rejects(
+    runPostgresMigrations(pool, {
+      migrations: catalog,
+      appliedBy: "strict-prefix-negative-test",
+    }),
+    (error) => error?.code === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED"
+      && error?.migration_id === "100_hrx_schema"
+      && error?.expected_migration_id === "012_outlook_document_source_identity",
+  );
+
+  const reconciled = await runClientOperationsPostgresMigrations(pool, {
+    appliedBy: "verified-subset-reconciliation-test",
+  });
+  assert.deepEqual(
+    reconciled.filter(({ applied }) => applied).map(({ id }) => id),
+    missingIds,
+  );
+  assert.deepEqual(
+    (await verifyClientOperationsPostgresMigrations(pool)).map(({ id }) => id),
+    catalog.map(({ id }) => id),
+  );
+
+  const replay = await runClientOperationsPostgresMigrations(pool, {
+    appliedBy: "verified-subset-replay-test",
+  });
+  assert.equal(replay.every(({ applied }) => !applied), true);
+});
+
+test("client migration wrapper rejects holes outside exact foundation 012-014 allowlist", async (t) => {
+  const catalog = listClientOperationsPostgresMigrations();
+  const clientStart = catalog.findIndex(({ id }) => id === "300_client_m365_connection");
+  const row = ({ id, sql }) => ({
+    migration_id: id,
+    checksum: checksumPostgresMigration(sql),
+  });
+  const foundation001To011 = catalog.slice(0, 11);
+  const hrx = catalog.slice(14, clientStart);
+  const scenarios = [
+    {
+      name: "foundation 011 hole",
+      rows: [...foundation001To011.slice(0, -1), ...hrx].map(row),
+    },
+    {
+      name: "client 300 hole",
+      rows: [...foundation001To011, ...hrx, catalog[clientStart + 1]].map(row),
+    },
+  ];
+  for (const scenario of scenarios) {
+    await t.test(scenario.name, async () => {
+      await assert.rejects(
+        runClientOperationsPostgresMigrations(poolWithMigrationHistory(scenario.rows)),
+        (error) => error?.code === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+      );
+    });
+  }
 });

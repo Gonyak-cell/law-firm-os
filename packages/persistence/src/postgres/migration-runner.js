@@ -23,11 +23,21 @@ function normalizeMigration(migration) {
 export async function runPostgresMigrations(pool, {
   migrations = listPostgresFoundationMigrations(),
   appliedBy = "law-firm-os",
+  allowedHistoricalGapIds = [],
 } = {}) {
   if (!pool || typeof pool.connect !== "function") throw new TypeError("PostgreSQL pool is required");
   const ordered = migrations.map(normalizeMigration);
   for (let index = 1; index < ordered.length; index += 1) {
     if (ordered[index - 1].id >= ordered[index].id) throw new Error("PostgreSQL migrations must be strictly forward ordered");
+  }
+  if (!Array.isArray(allowedHistoricalGapIds)) throw new TypeError("PostgreSQL historical migration gap ids must be an array");
+  const catalogIds = new Set(ordered.map(({ id }) => id));
+  const historicalGapIds = new Set();
+  for (const value of allowedHistoricalGapIds) {
+    if (typeof value !== "string" || !catalogIds.has(value) || historicalGapIds.has(value)) {
+      throw new TypeError("PostgreSQL historical migration gap ids must be unique source catalog ids");
+    }
+    historicalGapIds.add(value);
   }
   let client;
   let lockHeld = false;
@@ -47,9 +57,13 @@ export async function runPostgresMigrations(pool, {
     const historyResult = await client.query(
       "SELECT migration_id, checksum, applied_at, applied_by FROM lawos_meta.schema_migrations ORDER BY migration_id",
     );
+    const appliedIds = new Set(historyResult.rows.map(({ migration_id: id }) => id));
+    const expectedHistoryCatalog = historicalGapIds.size === 0
+      ? ordered
+      : ordered.filter(({ id }) => !historicalGapIds.has(id) || appliedIds.has(id));
     for (let index = 0; index < historyResult.rows.length; index += 1) {
       const applied = historyResult.rows[index];
-      const expected = ordered[index];
+      const expected = expectedHistoryCatalog[index];
       if (!expected || applied.migration_id !== expected.id) {
         throw migrationHistoryError("PostgreSQL migration history is not a prefix of the source catalog", {
           migration_id: applied.migration_id,
