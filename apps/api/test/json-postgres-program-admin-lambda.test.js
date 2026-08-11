@@ -28,6 +28,7 @@ import {
   resolveJsonPostgresScheduledProgramEvent,
 } from "../src/json-postgres-program-inputs.js";
 import {
+  CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   listClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
@@ -37,6 +38,13 @@ const SOURCE_TREE = "b".repeat(40);
 const PACKET_SHA = "c".repeat(64);
 const ARTIFACT_SHA = "d".repeat(64);
 const KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
+const OFFICIAL_MIGRATION_CATALOG_SHA256 =
+  "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14";
+
+assert.equal(
+  CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+  OFFICIAL_MIGRATION_CATALOG_SHA256,
+);
 
 function packet() {
   return {
@@ -47,7 +55,7 @@ function packet() {
     bindings: {
       artifact_sha256: ARTIFACT_SHA,
       migration_catalog_sha256:
-        "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14",
+        OFFICIAL_MIGRATION_CATALOG_SHA256,
       dms_object_manifest_sha256: "e".repeat(64),
     },
     target: {
@@ -162,7 +170,7 @@ test("production bootstrap configures only approved tenants and returns no secre
   assert.equal(result.migration_catalog_count, 73);
   assert.equal(
     result.migration_catalog_sha256,
-    "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14",
+    OFFICIAL_MIGRATION_CATALOG_SHA256,
   );
   assert.equal(result.final_migration_id, "304_client_outlook_desktop_installation");
   assert.equal(
@@ -280,7 +288,7 @@ test("production schema ledger readback is SELECT-only and authoritative", async
   assert.equal(result.migration_catalog_count, 73);
   assert.equal(
     result.migration_catalog_sha256,
-    "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14",
+    OFFICIAL_MIGRATION_CATALOG_SHA256,
   );
   assert.equal(result.final_migration_id, "304_client_outlook_desktop_installation");
   assert.equal(
@@ -326,6 +334,88 @@ test("production schema ledger readback rejects a catalog mismatch before any wr
     (error) => error?.code === "LAWOS_PROGRAM_MIGRATION_CATALOG",
   );
   assert.equal(poolEnded, true);
+});
+
+test("W13 packet catalog binding rejects a valid wrong digest before readback secrets or database access", async () => {
+  const wrongCatalogDigest = "0".repeat(64);
+  const invalidAuthorization = authorization();
+  invalidAuthorization.packet = {
+    ...invalidAuthorization.packet,
+    bindings: {
+      ...invalidAuthorization.packet.bindings,
+      migration_catalog_sha256: wrongCatalogDigest,
+    },
+  };
+  let secretReads = 0;
+  let poolCreated = 0;
+  await assert.rejects(
+    readJsonPostgresProductionSchemaLedger({
+      event: {
+        action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+        mode: "readback",
+      },
+      env: env(),
+      authorize: async () => invalidAuthorization,
+      resolveSecret: async () => {
+        secretReads += 1;
+        return { username: "master", password: "master-value" };
+      },
+      createPool: () => {
+        poolCreated += 1;
+        return { async end() {} };
+      },
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_MIGRATION_CATALOG",
+  );
+  assert.equal(secretReads, 0);
+  assert.equal(poolCreated, 0);
+});
+
+test("W13 packet catalog binding rejects a valid wrong digest before preflight role or secret writes", async () => {
+  const wrongCatalogDigest = "1".repeat(64);
+  const invalidAuthorization = authorization();
+  invalidAuthorization.packet = {
+    ...invalidAuthorization.packet,
+    bindings: {
+      ...invalidAuthorization.packet.bindings,
+      migration_catalog_sha256: wrongCatalogDigest,
+    },
+  };
+  let claims = 0;
+  let secretReads = 0;
+  let roleCalls = 0;
+  let secretWrites = 0;
+  await assert.rejects(
+    bootstrapJsonPostgresProductionDatabase({
+      event: {
+        action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+        mode: "preflight",
+      },
+      env: env(),
+      authorize: async () => invalidAuthorization,
+      claim: async () => {
+        claims += 1;
+        return { approval_receipt_sha256: "f".repeat(64), claim_sha256: "3".repeat(64) };
+      },
+      resolveSecret: async () => {
+        secretReads += 1;
+        return { username: "master", password: "master-value" };
+      },
+      putSecret: async () => {
+        secretWrites += 1;
+      },
+      createPool: () => ({ async end() {} }),
+      configureRole: async () => {
+        roleCalls += 1;
+        return {};
+      },
+    }),
+    (error) => error?.code === "LAWOS_PROGRAM_MIGRATION_CATALOG",
+  );
+  assert.equal(claims, 0);
+  assert.equal(secretReads, 0);
+  assert.equal(roleCalls, 0);
+  assert.equal(secretWrites, 0);
 });
 
 test("W15 inventory bootstrap separates schema authority from aggregate inventory", async () => {

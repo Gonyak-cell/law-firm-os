@@ -52,6 +52,7 @@ import {
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import {
+  CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   runClientOperationsPostgresMigrations,
   verifyClientOperationsPostgresMigrations,
@@ -223,6 +224,19 @@ async function bodyToBuffer(body, expectedByteSize) {
 function isPreconditionFailed(error) {
   return error?.name === "PreconditionFailed"
     || error?.$metadata?.httpStatusCode === 412;
+}
+
+function assertClientOperationsPacketCatalogBinding(packet) {
+  const packetSha256 = packet?.bindings?.migration_catalog_sha256;
+  if (typeof packetSha256 !== "string"
+    || !SHA256.test(packetSha256)
+    || packetSha256 !== CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256) {
+    fail(
+      "LAWOS_PROGRAM_MIGRATION_CATALOG",
+      "Client operations migration catalog is not bound to the exact packet",
+    );
+  }
+  return packetSha256;
 }
 
 async function evidenceBodyToBuffer(body, expectedByteSize) {
@@ -651,12 +665,11 @@ function authoritativeClientOperationsCatalog(verified, { packet } = {}) {
       "verified Client operations migration catalog digest drifted",
     );
   }
-  const packetSha256 = packet?.bindings?.migration_catalog_sha256;
-  if (!SHA256.test(String(packetSha256))
-    || computedSha256 !== CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256) {
+  const packetSha256 = assertClientOperationsPacketCatalogBinding(packet);
+  if (computedSha256 !== CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256) {
     fail(
       "LAWOS_PROGRAM_MIGRATION_CATALOG",
-      "Client operations migration catalog is not bound to the exact packet",
+      "verified Client operations migration catalog is not bound to the schema manifest",
     );
   }
   const final = normalized.at(-1);
@@ -693,6 +706,7 @@ export async function readJsonPostgresProductionSchemaLedger({
       "production schema ledger readback requires a W13 packet",
     );
   }
+  assertClientOperationsPacketCatalogBinding(authorization.packet);
   const region = requiredText(
     env.AWS_REGION ?? env.AWS_DEFAULT_REGION,
     "AWS region",
@@ -792,6 +806,7 @@ export async function bootstrapJsonPostgresProductionDatabase({
     () => authorize({ event, env }),
   );
   if (authorization.packet.phase !== "w13-production-cutover") fail("LAWOS_PROGRAM_PHASE", "production bootstrap requires a W13 packet");
+  assertClientOperationsPacketCatalogBinding(authorization.packet);
   const claimEvidence = await withAwsAccessDeniedCode(
     "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_ACCESS_DENIED",
     () => claim({ event, authorization, env }),
