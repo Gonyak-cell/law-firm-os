@@ -12,6 +12,11 @@ import { installMatterAppProtocol, matterAppRendererUrl, registerMatterAppScheme
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards, isApprovedRendererUrl } from "./origin-policy.js";
+import {
+  createOutlookInstallationIdentityStore,
+  createOutlookInstallationLifecycleCoordinator,
+  readOutlookDesktopBuildIdentity,
+} from "./outlook-installation.js";
 import { registerSessionIpcHandlers } from "./session-ipc.js";
 import { createMainWindow } from "./window.js";
 
@@ -461,6 +466,13 @@ export function createDesktopInstanceCoordinator({
         return;
       }
       const result = classifyOutlookConnectionResponse(response);
+      if (result.payload.status === "connected") {
+        try {
+          await getAuthCoordinator()?.refreshOutlookLifecycle?.();
+        } catch {
+          // The connection result remains authoritative; lifecycle status fails closed separately.
+        }
+      }
       traceAuthCallback(result.payload.status, entry.stateFingerprint);
       sendOutlookResult(result.payload);
       if (result.terminal) {
@@ -629,6 +641,7 @@ export async function startElectronApp() {
   if (!acquireDesktopSingleInstance(app)) return { primaryInstance: false };
   registerMatterAppScheme(protocol);
   let coordinator = null;
+  let outlookLifecycle = null;
   const instanceCoordinator = createDesktopInstanceCoordinator({
     app,
     argv: process.argv,
@@ -648,7 +661,10 @@ export async function startElectronApp() {
     process.env.MATTER_DESKTOP_API_BASE_URL = localApi.baseUrl;
     process.env.MATTER_DESKTOP_RUNTIME_BASE_URL = localApi.baseUrl;
   }
-  app.on("before-quit", () => stopDesktopLocalApiServer(localApi));
+  app.on("before-quit", () => {
+    outlookLifecycle?.stop?.({ reason: "quit" });
+    stopDesktopLocalApiServer(localApi);
+  });
   const runtimeClient = runtimeClientFromEnv();
   const secureStore = desktopSecureStoreForRuntime({
     runtimeClient,
@@ -656,7 +672,29 @@ export async function startElectronApp() {
     safeStorage,
     formalRelease
   });
-  coordinator = new MainProcessAuthCoordinator({ runtimeClient, secureStore });
+  const outlookIdentityStore = createOutlookInstallationIdentityStore({
+    filePath: join(userDataPath, "outlook-installation-identity.json"),
+    safeStorage,
+    platform: process.platform,
+  });
+  const outlookBuildIdentity = await readOutlookDesktopBuildIdentity({
+    manifestPath: join(process.resourcesPath ?? "", "matter-build-manifest.json"),
+    platform: process.platform,
+    appVersion: app.getVersion?.(),
+  });
+  outlookLifecycle = createOutlookInstallationLifecycleCoordinator({
+    identityStore: outlookIdentityStore,
+    buildIdentity: outlookBuildIdentity,
+    requestApi: async (input) => runtimeClient.api({
+      ...input,
+      sessionToken: await secureStore.get("session_token"),
+    }),
+  });
+  coordinator = new MainProcessAuthCoordinator({
+    runtimeClient,
+    secureStore,
+    outlookLifecycle,
+  });
   await coordinator.restoreSession();
   const shell = await startDesktopShell({
     BrowserWindowConstructor: BrowserWindow,

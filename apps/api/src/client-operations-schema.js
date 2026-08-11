@@ -19,6 +19,8 @@ export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "002_inquiry_evidence": "301_client_inquiry_evidence",
   "003_email_filing_correction": "302_client_email_filing_correction",
   "004_outlook_conversation_sync": "303_client_outlook_conversation_sync",
+  "005_outlook_desktop_installation":
+    "304_client_outlook_desktop_installation",
 });
 
 function clientSchemaMigrations() {

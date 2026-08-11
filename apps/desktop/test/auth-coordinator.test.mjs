@@ -439,3 +439,72 @@ test("auth coordinator drops persisted session on terminal authentication failur
   assert.deepEqual(session, { state: "signed_out", reason: "auth_session_invalid" });
   assert.equal(await secureStore.get("session_token"), undefined);
 });
+
+test("verified desktop principal reaches only the lifecycle hook and logout only stops it", async () => {
+  const secureStore = memorySecureStore();
+  const events = [];
+  const principalRef =
+    "odpr_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    outlookLifecycle: {
+      async sessionAvailable(session) {
+        events.push({ type: "session", session });
+        return { state: "ready" };
+      },
+      stop(input) {
+        events.push({ type: "stop", input });
+      },
+      async refresh() {
+        events.push({ type: "refresh" });
+        return {
+          state: "ready",
+          next_action: "none",
+          browser_required: false,
+          safe_error_codes: [],
+          token_material_returned: false,
+          private_key_material_returned: false,
+          production_ready_claim: false,
+        };
+      },
+    },
+    runtimeClient: {
+      async login() {
+        return {
+          ok: true,
+          session_token: "lawos_session_v1.lifecycle-secret",
+          session: {
+            state: "signed_in",
+            email: "lifecycle-user@example.invalid",
+            tenant_id: "tenant-lifecycle",
+            user_id: "user-lifecycle",
+            outlook_desktop_principal_ref: principalRef,
+          },
+        };
+      },
+      async logout() {
+        return { ok: true, http_status: 200 };
+      },
+    },
+  });
+
+  const login = await coordinator.login({
+    email: "lifecycle-user@example.invalid",
+    password: "not-rendered",
+  });
+  assert.equal(events.length, 1);
+  assert.equal(events[0].session.outlook_desktop_principal_ref, principalRef);
+  assert.equal(
+    JSON.stringify(login).includes("outlook_desktop_principal_ref"),
+    false,
+  );
+  assert.equal(JSON.stringify(login).includes(principalRef), false);
+  assert.equal((await coordinator.refreshOutlookLifecycle()).state, "ready");
+  await coordinator.logout();
+  assert.deepEqual(events.map(({ type }) => type), [
+    "session",
+    "refresh",
+    "stop",
+  ]);
+  assert.deepEqual(events[2].input, { reason: "logout" });
+});

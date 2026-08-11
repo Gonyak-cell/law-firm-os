@@ -5,12 +5,34 @@ import { createEmailDmsRepository } from "../../../packages/email-dms/src/reposi
 import { M365_GRAPH_REQUIRED_SCOPES } from "../../../packages/email-dms/src/m365-connection-model.js";
 import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
+import {
+  OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+  OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE,
+  parseOutlookDesktopAutoconnectRoster,
+} from "../src/outlook-desktop-entitlement.js";
+import { MATTER_OUTLOOK_PRODUCT_ID } from "../src/outlook-readiness.js";
 
 const TENANT = "tenant_outlook_connection_api";
 const USER = "user_outlook_connection_api";
 const SUBJECT = "entra_subject_outlook_connection_api";
 const REDIRECT_URI =
   "https://app.example.invalid/api/outlook/connection/callback";
+const INSTALLATION_ID = "odi_outlook_connection_000001";
+
+function desktopRoster() {
+  return parseOutlookDesktopAutoconnectRoster({
+    schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+    roster_version: "synthetic-outlook-connection-v1",
+    entries: Array.from({ length: 10 }, (_, index) => ({
+      tenant_id: TENANT,
+      user_id: index === 0 ? USER : `user-outlook-connection-${index + 1}`,
+      entra_subject_id: index === 0
+        ? SUBJECT
+        : `subject-outlook-connection-${index + 1}`,
+      enabled: true,
+    })),
+  });
+}
 
 function permissionContext({ allowed = true, subject = SUBJECT } = {}) {
   return {
@@ -22,6 +44,7 @@ function permissionContext({ allowed = true, subject = SUBJECT } = {}) {
       user_id: USER,
       entra_subject_id: subject,
       role_ids: ["lawos_staff"],
+      scopes: [OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE],
     },
     rules: allowed
       ? [{
@@ -157,6 +180,40 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   const runtime = {
     emailDmsRuntime: { repository },
     m365GraphConfig: graph.config,
+    outlookDesktopRuntime: {
+      entitlement_roster: desktopRoster(),
+      readiness_evidence: {
+        enterprise_app_assignment: {
+          state: "assigned",
+          source: "synthetic_assignment_readback",
+          observed_at: "2026-07-30T05:55:00.000Z",
+        },
+        central_deployment: {
+          state: "targeted",
+          product_id: MATTER_OUTLOOK_PRODUCT_ID,
+          manifest_version: "1.0.1.0",
+          source: "synthetic_deployment_readback",
+          observed_at: "2026-07-30T05:56:00.000Z",
+        },
+        client_propagation: {
+          state: "observed",
+          source: "synthetic_outlook_host_receipt",
+          observed_at: "2026-07-30T05:57:00.000Z",
+        },
+      },
+      snapshot_clock: () => new Date("2026-07-30T06:00:00.000Z"),
+      installation_service: {
+        async read() {
+          return {
+            installation_id: INSTALLATION_ID,
+            status: "active",
+            state_version: 1,
+            lease_expires_at: "2026-08-06T06:00:00.000Z",
+            retired_at: null,
+          };
+        },
+      },
+    },
   };
 
   const before = await request({
@@ -224,6 +281,27 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
   assert.equal(callbackText.includes("api-test-access-token"), false);
   assert.equal(callbackText.includes("api-test-refresh-token"), false);
   assert.equal(callbackText.includes("credential_ref"), false);
+
+  const authoritativeConnection = await request({
+    pathname: "/api/outlook/connection",
+    method: "GET",
+    runtime,
+  });
+  const authoritativeReadiness = await request({
+    pathname: "/api/outlook/readiness",
+    method: "GET",
+    query: { installation_id: INSTALLATION_ID },
+    runtime,
+  });
+  assert.equal(authoritativeConnection.body.item.connection.status, "connected");
+  assert.equal(authoritativeReadiness.status, 200);
+  assert.equal(
+    authoritativeReadiness.body.item.delegated_connection.state,
+    "connected",
+  );
+  assert.equal(authoritativeReadiness.body.item.next_action, "none");
+  assert.equal(graph.completion_count, 1);
+  assert.deepEqual(graph.calls, []);
 
   const callbackReplay = await request({
     pathname: "/api/outlook/connection/complete",

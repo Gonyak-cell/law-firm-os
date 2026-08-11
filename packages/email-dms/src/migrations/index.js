@@ -18,6 +18,7 @@ export const EMAIL_DMS_POSTGRES_MIGRATIONS = Object.freeze([
   migration("002_inquiry_evidence", "./002_inquiry_evidence.sql"),
   migration("003_email_filing_correction", "./003_email_filing_correction.sql"),
   migration("004_outlook_conversation_sync", "./004_outlook_conversation_sync.sql"),
+  migration("005_outlook_desktop_installation", "./005_outlook_desktop_installation.sql"),
 ]);
 
 export function listEmailDmsPostgresMigrations() {

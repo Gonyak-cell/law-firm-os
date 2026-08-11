@@ -66,6 +66,14 @@ import {
   handleOutlookPrecedentReadiness,
   handleOutlookPrecedentSearch,
 } from "./outlook-precedent-runtime-context.js";
+import {
+  evaluateOutlookDesktopEntitlement,
+} from "./outlook-desktop-entitlement.js";
+import {
+  isOutlookDesktopInstallationId,
+  resolveOutlookDesktopInstallationService,
+} from "./outlook-desktop-installation-runtime-context.js";
+import { deriveOutlookReadiness } from "./outlook-readiness.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -74,6 +82,7 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   endpoints: Object.freeze([
     "GET /api/outlook/bootstrap",
     "GET /api/outlook/connection",
+    "GET /api/outlook/readiness",
     "POST /api/outlook/connection/authorize",
     "POST /api/outlook/connection/complete",
     "DELETE /api/outlook/connection",
@@ -1837,6 +1846,160 @@ function handleM365ConnectionStatus({
       requestId,
       query.audit_hint_ref,
     );
+  }
+}
+
+async function handleOutlookReadiness({
+  query,
+  context,
+  requestId,
+  runtime,
+}) {
+  try {
+    if (
+      !query
+      || typeof query !== "object"
+      || Array.isArray(query)
+      || Object.keys(query).some((field) => field !== "installation_id")
+    ) {
+      throw Object.assign(
+        new Error("Outlook readiness query is invalid"),
+        {
+          safe_error_code: "OUTLOOK_READINESS_REQUEST_INVALID",
+          status: 400,
+        },
+      );
+    }
+    const sessionPrincipal = context?.principal ?? {};
+    const principal = Object.freeze({
+      tenant_id: requiredString(
+        sessionPrincipal.tenant_id,
+        "principal.tenant_id",
+      ),
+      user_id: requiredString(
+        sessionPrincipal.user_id,
+        "principal.user_id",
+      ),
+      entra_subject_id: sessionPrincipal.entra_subject_id,
+      scopes: Array.isArray(sessionPrincipal.scopes)
+        ? Object.freeze([...sessionPrincipal.scopes])
+        : Object.freeze([]),
+    });
+    const gated = m365RouteGate({
+      context,
+      principal,
+      requestId,
+      action: "outlook:connection:read",
+      auditHintRef: null,
+    });
+    if (gated) return gated;
+
+    const entitlement = evaluateOutlookDesktopEntitlement({
+      principal,
+      roster: runtime?.outlookDesktopRuntime?.entitlement_roster,
+    });
+    const identityComplete = [
+      principal.tenant_id,
+      principal.user_id,
+      principal.entra_subject_id,
+    ].every((value) => typeof value === "string" && value.length > 0);
+    const installationId = query.installation_id;
+    if (
+      installationId !== undefined
+      && !isOutlookDesktopInstallationId(installationId)
+    ) {
+      throw Object.assign(
+        new Error("Outlook readiness installation id is invalid"),
+        {
+          safe_error_code: "OUTLOOK_READINESS_REQUEST_INVALID",
+          status: 400,
+        },
+      );
+    }
+
+    let installation;
+    let installationBinding = "verified";
+    let delegatedConnection;
+    if (entitlement.eligible && identityComplete) {
+      const service = await resolveOutlookDesktopInstallationService(
+        runtime?.outlookDesktopRuntime,
+        principal.tenant_id,
+      );
+      const readInstallation = installationId === undefined
+        ? service?.readCurrent
+        : service?.read;
+      if (typeof readInstallation !== "function") {
+        throw Object.assign(
+          new Error("Outlook desktop installation runtime unavailable"),
+          {
+            safe_error_code:
+              "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+            status: 503,
+          },
+        );
+      }
+      try {
+        installation = await readInstallation.call(service, {
+          principal: {
+            tenant_id: principal.tenant_id,
+            user_id: principal.user_id,
+            entra_subject_id: principal.entra_subject_id,
+          },
+          ...(installationId === undefined
+            ? {}
+            : { installation_id: installationId }),
+        }, {
+          authorize: async () => true,
+        });
+      } catch (error) {
+        if (
+          error?.safe_error_code
+          === "OUTLOOK_DESKTOP_INSTALLATION_BINDING_MISMATCH"
+        ) {
+          installationBinding = "mismatch";
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    if (
+      entitlement.eligible
+      && identityComplete
+      && installationBinding === "verified"
+    ) {
+      const connectionResult = handleM365ConnectionStatus({
+        query: {},
+        context,
+        requestId,
+        runtime,
+      });
+      if (connectionResult.status !== 200) return connectionResult;
+      delegatedConnection = connectionResult.body.item.connection;
+    }
+    const snapshotClock = runtime?.outlookDesktopRuntime?.snapshot_clock;
+    const snapshotAt = (typeof snapshotClock === "function"
+      ? snapshotClock()
+      : new Date()).toISOString();
+    const item = deriveOutlookReadiness({
+      principal,
+      roster: runtime?.outlookDesktopRuntime?.entitlement_roster,
+      installation,
+      installation_binding: installationBinding,
+      delegated_connection: delegatedConnection,
+      external_evidence:
+        runtime?.outlookDesktopRuntime?.readiness_evidence,
+      snapshot_at: snapshotAt,
+    });
+    const result = success(200, {
+      request_id: requestId,
+      outcome: "passed",
+      item,
+      credential_material_included: false,
+    });
+    return result;
+  } catch (error) {
+    return m365ErrorResponse(error, requestId, null);
   }
 }
 
@@ -3828,6 +3991,14 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/connection" && method === "GET") {
       return handleM365ConnectionStatus({
+        query,
+        context,
+        requestId,
+        runtime,
+      });
+    }
+    if (pathname === "/api/outlook/readiness" && method === "GET") {
+      return await handleOutlookReadiness({
         query,
         context,
         requestId,

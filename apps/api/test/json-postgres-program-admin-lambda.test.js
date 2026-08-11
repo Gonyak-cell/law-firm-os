@@ -214,8 +214,8 @@ test("production bootstrap defaults apply the complete client operations migrati
   assert.equal(result.migration_applied_count, expectedIds.length - before.rowCount);
   assert.deepEqual(readback.rows.map(({ migration_id }) => migration_id), expectedIds);
   assert.deepEqual(expectedIds.slice(-2), [
-    "302_client_email_filing_correction",
     "303_client_outlook_conversation_sync",
+    "304_client_outlook_desktop_installation",
   ]);
 });
 

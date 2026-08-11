@@ -10,6 +10,7 @@ const RENDERER_FORBIDDEN_FIELDS = new Set([
   "operatorToken",
   "session_token",
   "sessionToken",
+  "outlook_desktop_principal_ref",
   "reset_token",
   "resetToken",
   "reset_url",
@@ -268,12 +269,31 @@ export class MainProcessAuthCoordinator {
   #cacheStores;
   #now;
   #runtimeClient;
+  #outlookLifecycle;
 
-  constructor({ secureStore = memorySecureStore(), cacheStores = [], now = () => Date.now(), runtimeClient = null } = {}) {
+  constructor({ secureStore = memorySecureStore(), cacheStores = [], now = () => Date.now(), runtimeClient = null, outlookLifecycle = null } = {}) {
     this.#secureStore = secureStore;
     this.#cacheStores = cacheStores;
     this.#now = now;
     this.#runtimeClient = runtimeClient;
+    this.#outlookLifecycle = outlookLifecycle;
+  }
+
+  async #synchronizeOutlookLifecycle(session) {
+    if (typeof this.#outlookLifecycle?.sessionAvailable !== "function") return;
+    try {
+      await this.#outlookLifecycle.sessionAvailable(session);
+    } catch {
+      // Outlook lifecycle failure must not invalidate an otherwise valid LawOS session.
+    }
+  }
+
+  #stopOutlookLifecycle(reason) {
+    try {
+      this.#outlookLifecycle?.stop?.({ reason });
+    } catch {
+      return;
+    }
   }
 
   startLogin({ issuerUrl, clientId, redirectUri, scope = "openid profile email", tenantIdHash = "tenant_pending" }) {
@@ -377,7 +397,9 @@ export class MainProcessAuthCoordinator {
     );
     if (response.ok && response.session) {
       this.#session = sanitizeRendererPayload(response.session);
+      await this.#synchronizeOutlookLifecycle(rawResponse.session);
     } else {
+      this.#stopOutlookLifecycle("login_failed");
       this.#session = {
         state: "signed_out",
         reason: response.reason ?? "login_failed"
@@ -414,6 +436,7 @@ export class MainProcessAuthCoordinator {
       );
       if (response.ok && response.session) {
         this.#session = sanitizeRendererPayload(response.session);
+        await this.#synchronizeOutlookLifecycle(rawResponse.session);
         return this.sessionStatus();
       }
       const terminalFailure = isTerminalSessionRestoreFailure(response);
@@ -425,10 +448,15 @@ export class MainProcessAuthCoordinator {
           terminalFailure ? "session_restore_failed" : "session_restore_deferred"
         )
       };
+      this.#stopOutlookLifecycle("session_restore_failed");
       return this.sessionStatus();
     }
     const sessionSnapshot = await this.#secureStore.get("session_snapshot");
-    if (!sessionSnapshot?.email) return this.sessionStatus();
+    if (!sessionSnapshot?.email) {
+      this.#stopOutlookLifecycle("signed_out");
+      return this.sessionStatus();
+    }
+    this.#stopOutlookLifecycle("unverified_session_snapshot");
     const accounts = await this.accounts();
     if (!accounts.ok) {
       this.#session = {
@@ -539,7 +567,100 @@ export class MainProcessAuthCoordinator {
     );
   }
 
+  async refreshOutlookLifecycle() {
+    if (typeof this.#outlookLifecycle?.refresh !== "function") {
+      return {
+        state: "idle",
+        next_action: null,
+        browser_required: false,
+        safe_error_codes: [],
+        token_material_returned: false,
+        private_key_material_returned: false,
+        production_ready_claim: false
+      };
+    }
+    try {
+      return sanitizeRendererPayload(await this.#outlookLifecycle.refresh());
+    } catch {
+      return {
+        state: "unknown",
+        next_action: "retry",
+        browser_required: false,
+        safe_error_codes: ["OUTLOOK_DESKTOP_LIFECYCLE_UNAVAILABLE"],
+        token_material_returned: false,
+        private_key_material_returned: false,
+        production_ready_claim: false
+      };
+    }
+  }
+
+  outlookLifecycleStatus() {
+    const status = this.#outlookLifecycle?.status?.();
+    return sanitizeRendererPayload(status ?? {
+      state: "idle",
+      next_action: null,
+      browser_required: false,
+      safe_error_codes: [],
+      retry_scheduled: false,
+      token_material_returned: false,
+      private_key_material_returned: false,
+      production_ready_claim: false
+    });
+  }
+
+  retryOutlookLifecycle() {
+    return this.refreshOutlookLifecycle();
+  }
+
+  async confirmOutlookMicrosoft(input = {}, handoff = null) {
+    if (typeof this.#outlookLifecycle?.confirmMicrosoft !== "function") {
+      return {
+        handoff_accepted: false,
+        reason: "microsoft_handoff_unavailable",
+        token_material_returned: false
+      };
+    }
+    try {
+      return sanitizeRendererPayload(await this.#outlookLifecycle.confirmMicrosoft({
+        confirmed: input?.confirmed === true
+      }, handoff));
+    } catch {
+      return {
+        handoff_accepted: false,
+        reason: "microsoft_handoff_failed",
+        token_material_returned: false
+      };
+    }
+  }
+
+  async disconnectOutlookDevice(input = {}) {
+    if (input?.confirmed !== true) {
+      return {
+        retired: false,
+        reason: "explicit_confirmation_required",
+        token_material_returned: false
+      };
+    }
+    if (typeof this.#outlookLifecycle?.disconnectDevice !== "function") {
+      return {
+        retired: false,
+        reason: "device_disconnect_unavailable",
+        token_material_returned: false
+      };
+    }
+    try {
+      return sanitizeRendererPayload(await this.#outlookLifecycle.disconnectDevice());
+    } catch {
+      return {
+        retired: false,
+        reason: "device_disconnect_failed",
+        token_material_returned: false
+      };
+    }
+  }
+
   async logout() {
+    this.#stopOutlookLifecycle("logout");
     let serverRevoke = {
       attempted: false,
       ok: false,

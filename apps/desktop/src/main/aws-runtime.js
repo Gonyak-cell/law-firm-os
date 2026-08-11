@@ -311,6 +311,13 @@ function isDesktopPeopleOutlookCompletionRoute(method, path) {
   return method === "POST" && path === "/api/hrx/people/me/outlook-connection/complete";
 }
 
+function isDesktopOutlookInstallationWriteRoute(method, path) {
+  return method === "POST" && (
+    path === "/api/desktop/installations"
+    || /^\/api\/desktop\/installations\/odi_[A-Za-z0-9_-]{20,128}\/(heartbeat|retire)$/u.test(path)
+  );
+}
+
 function isDesktopPeopleOutlookCompletionBody(body) {
   if (!body || Object.keys(body).sort().join(",") !== "authorization_code,state_ref") return false;
   return typeof body.authorization_code === "string"
@@ -431,6 +438,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxPayrollWriteRoute(safeMethod, normalizedPathname) ||
       allowedPeopleOutlookWrite ||
+      isDesktopOutlookInstallationWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxStepUpRoute(safeMethod, normalizedPathname);
     if (safeMethod !== "GET" && !allowedWrite) {
       return {

@@ -105,6 +105,7 @@ test("second-instance and open-url share the redacted deep-link queue and focus 
 test("OAuth callback completion stays in main, uses the exact route, focuses open-url, and emits only a safe result", async () => {
   const app = fakeApp();
   const calls = [];
+  let lifecycleRefreshes = 0;
   const code = "0.MAIN_ONLY_code-123";
   const state = "outlook-state:main-only-01";
   const coordinator = createDesktopInstanceCoordinator({
@@ -127,6 +128,10 @@ test("OAuth callback completion stays in main, uses the exact route, focuses ope
           },
         };
       },
+      async refreshOutlookLifecycle() {
+        lifecycleRefreshes += 1;
+        return { state: "ready" };
+      },
     }),
     setTimeoutImpl: () => ({ unref() {} }),
   });
@@ -147,6 +152,7 @@ test("OAuth callback completion stays in main, uses the exact route, focuses ope
     method: "POST",
     body: JSON.stringify({ authorization_code: code, state_ref: state }),
   }]);
+  assert.equal(lifecycleRefreshes, 1);
   assert.deepEqual(window.sent, [{
     channel: OUTLOOK_CONNECTION_RESULT_CHANNEL,
     payload: {
@@ -170,6 +176,7 @@ test("OAuth callback completion stays in main, uses the exact route, focuses ope
   ]);
   await coordinator.retryPendingAuthCallbacks();
   assert.equal(calls.length, 1);
+  assert.equal(lifecycleRefreshes, 1);
   assert.equal(window.sent.length, 1);
 
   const snapshot = coordinator.snapshot();

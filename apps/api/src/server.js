@@ -22,6 +22,9 @@ import { createMatterTimelineCursorAuthority } from "../../../packages/matter/sr
 import { createOutlookAttachmentReceiptAuthority } from "./outlook-attachment-receipt-authority.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
+import {
+  createPostgresOutlookDesktopInstallationService,
+} from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-service.js";
 import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
@@ -185,6 +188,16 @@ import {
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
 import {
+  OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT,
+  OUTLOOK_DESKTOP_INSTALLATION_MAX_BODY_BYTES,
+  handleOutlookDesktopInstallationApiRequest,
+  isOutlookDesktopInstallationApiPath,
+  mapOutlookDesktopInstallationRequestBodyError,
+} from "./outlook-desktop-installation-runtime-context.js";
+import {
+  parseOutlookDesktopAutoconnectRoster,
+} from "./outlook-desktop-entitlement.js";
+import {
   createPeopleOutlookDesktopCallbackLocation,
   isPeopleOutlookOAuthState,
 } from "./people-outlook-oauth-callback.js";
@@ -245,6 +258,17 @@ import {
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
+export const LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV =
+  "LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_JSON";
+
+function resolveOutlookDesktopAutoconnectRoster(value) {
+  if (value == null || value === "") return null;
+  try {
+    return parseOutlookDesktopAutoconnectRoster(value);
+  } catch {
+    return null;
+  }
+}
 
 function normalizeRuntimeProfileOption(profile, env = process.env) {
   if (!profile) return resolveRuntimeProfile(env);
@@ -874,7 +898,9 @@ function createBufferedResponse() {
 function requestUsesProductRuntime(req) {
   if (req.method === "OPTIONS") return false;
   const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
-  return !["/api/health", "/health"].includes(pathname) && !pathname.startsWith("/api/auth");
+  return !["/api/health", "/health"].includes(pathname)
+    && !pathname.startsWith("/api/auth")
+    && !isOutlookDesktopInstallationApiPath(pathname);
 }
 
 function clientOutlookCallbackRuntimeTenant(req, m365GraphConfig) {
@@ -1389,7 +1415,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, outlookDesktopRuntime = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1427,6 +1453,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   const isAiPath = pathname.startsWith("/api/ai");
   const isPortalPath = pathname.startsWith("/api/portal") || pathname.startsWith("/api/data-room");
   const isOutlookPath = pathname.startsWith("/api/outlook");
+  const isOutlookDesktopPath = isOutlookDesktopInstallationApiPath(pathname);
   const isUiReadinessPath = pathname.startsWith("/api/ui");
   const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
   const isEnterpriseReadinessPath = pathname.startsWith("/api/enterprise");
@@ -1453,6 +1480,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     isAiPath ||
     isPortalPath ||
     isOutlookPath ||
+    isOutlookDesktopPath ||
     isUiReadinessPath ||
     isHomeDashboardPath ||
     isEnterpriseReadinessPath;
@@ -1465,7 +1493,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
-  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && !isClientGroupRegistrationPath && req.method !== "GET") {
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isOutlookDesktopPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && !isClientGroupRegistrationPath && req.method !== "GET") {
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -1479,6 +1507,8 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       persistence_authority: persistenceAuthority,
       runtime_safety_policy: LAWOS_OFFLINE_REJECTED_POLICY,
       auth_authority: sessionAuth.capabilities ?? null,
+      outlook_desktop_installation:
+        OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT,
       ...(outlookGraphSyncReadiness
         ? { outlook_graph_sync: outlookGraphSyncReadiness }
         : {}),
@@ -1702,6 +1732,36 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       [HRX_SESSION_BOUND_HEADER]: "signed",
     };
   };
+
+  if (isOutlookDesktopPath) {
+    let body = {};
+    if (req.method === "POST") {
+      try {
+        body = await readRequestBody(req, {
+          maxBytes: OUTLOOK_DESKTOP_INSTALLATION_MAX_BODY_BYTES,
+          injectAuthenticatedActor: false,
+        });
+      } catch (error) {
+        const result = mapOutlookDesktopInstallationRequestBodyError(
+          error,
+          requestId,
+        );
+        sendJson(req, res, result.status, result.body);
+        return;
+      }
+    }
+    const result = await handleOutlookDesktopInstallationApiRequest({
+      pathname,
+      method: req.method,
+      body,
+      principal: sessionContext.principal,
+      context: requestPermissionContext(),
+      requestId,
+      runtime: outlookDesktopRuntime,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
 
   if (isHrxPath) {
     if (hrxRuntimeUnavailable) {
@@ -2080,6 +2140,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         precedentSearchRuntime,
         m365GraphConfig,
         conversationRuntime: outlookConversationRuntime,
+        outlookDesktopRuntime,
         sessionAuth,
         attachmentReceiptAuthority: outlookAttachmentReceiptAuthority,
       },
@@ -2185,6 +2246,7 @@ export function createApiServer({
   outlookGraphWebhook = emailDmsRuntime?.outlook_graph_webhook ?? null,
   outlookConversationRuntime = null,
   outlookGraphSyncReadiness = emailDmsRuntime?.outlook_graph_sync_readiness ?? null,
+  outlookDesktopRuntime = null,
   runtimeProfile = resolveRuntimeProfile(),
   persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
   stepUpAuthority,
@@ -2257,6 +2319,7 @@ export function createApiServer({
           m365GraphConfig,
           outlookConversationRuntime,
           outlookGraphSyncReadiness,
+          outlookDesktopRuntime,
           sessionAuth: resolvedSessionAuth,
           stepUpAuthority: resolvedStepUpAuthority,
           payrollStatementProviderVerifier,
@@ -2507,6 +2570,8 @@ export async function startApiServer({
   m365GraphConfig,
   outlookGraphWebhook,
   outlookConversationRuntimeFactory = createPostgresOutlookConversationRuntime,
+  outlookDesktopRuntime,
+  outlookDesktopAutoconnectRoster,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
   authCredentialStorePath,
@@ -2759,6 +2824,20 @@ export async function startApiServer({
                 ] === "true",
             })
           : null;
+      const operationalOutlookDesktopRuntime = outlookDesktopRuntime
+        ?? Object.freeze({
+          entitlement_roster: resolveOutlookDesktopAutoconnectRoster(
+            outlookDesktopAutoconnectRoster
+              ?? resolvedPersistenceAuthorityEnv[
+                LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV
+              ],
+          ),
+          installation_service_factory: ({ tenant_id }) =>
+            createPostgresOutlookDesktopInstallationService({
+              pool: postgresPool,
+              tenant_id,
+            }),
+        });
       const operationalM365GraphConfig = outlookConversationRuntime
         ? Object.freeze({
             ...m365GraphConfig,
@@ -2788,6 +2867,7 @@ export async function startApiServer({
         outlookGraphWebhook: outlookGraphWebhook ?? outlookConversationRuntime?.webhook,
         outlookConversationRuntime,
         outlookGraphSyncReadiness: outlookConversationRuntime?.readiness ?? null,
+        outlookDesktopRuntime: operationalOutlookDesktopRuntime,
         stepUpAuthority: resolvedStepUpAuthority,
         sessionAuth: resolvedSessionAuth,
         timelineCursorAuthority: resolvedTimelineCursorAuthority,
@@ -3058,6 +3138,7 @@ export async function startApiServer({
     m365GraphConfig,
     outlookGraphWebhook,
     outlookGraphSyncReadiness: null,
+    outlookDesktopRuntime,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     timelineCursorAuthority: resolvedTimelineCursorAuthority,
