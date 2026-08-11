@@ -9,6 +9,36 @@ import {
 const defaultRosterSource = HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH;
 const defaultPhotoSource = "apps/api/src/hrx-member-photos";
 const defaultRegistrationSeedSource = "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json";
+const outlookProofSourcePath = "packages/email-dms/src/outlook-desktop-installation-proof.js";
+const outlookProofSourceImport = "../../../../packages/email-dms/src/outlook-desktop-installation-proof.js";
+const outlookProofPackagedImport = "./outlook-desktop-installation-proof.js";
+
+export async function verifyDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot }) {
+  if (!targetAppSourceDir || !repoRoot) throw new Error("targetAppSourceDir and repoRoot are required");
+  const mainDir = join(targetAppSourceDir, "src/main");
+  const installationSource = await readFile(join(mainDir, "outlook-installation.js"), "utf8");
+  if (installationSource.includes(outlookProofSourceImport) || !installationSource.includes(outlookProofPackagedImport)) {
+    throw new Error("packaged desktop Outlook proof import is not self-contained");
+  }
+  const [sourceProof, packagedProof] = await Promise.all([
+    readFile(resolve(repoRoot, outlookProofSourcePath)),
+    readFile(join(mainDir, "outlook-desktop-installation-proof.js")),
+  ]);
+  if (!sourceProof.equals(packagedProof)) throw new Error("packaged desktop Outlook proof bytes differ from canonical source");
+}
+
+export async function stageDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot }) {
+  if (!targetAppSourceDir || !repoRoot) throw new Error("targetAppSourceDir and repoRoot are required");
+  const mainDir = join(targetAppSourceDir, "src/main");
+  const installationPath = join(mainDir, "outlook-installation.js");
+  const installationSource = await readFile(installationPath, "utf8");
+  if (installationSource.split(outlookProofSourceImport).length !== 2) {
+    throw new Error("desktop Outlook proof import must have exactly one canonical source binding");
+  }
+  await copyFile(resolve(repoRoot, outlookProofSourcePath), join(mainDir, "outlook-desktop-installation-proof.js"));
+  await writeFile(installationPath, installationSource.replace(outlookProofSourceImport, outlookProofPackagedImport));
+  await verifyDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot });
+}
 
 function sourcePaths({ repoRoot, env, rosterSourcePath, contactSourcePath, photoSourcePath, registrationSeedSourcePath }) {
   const configuredContact = String(contactSourcePath ?? env.LAWOS_HRX_MEMBER_CONTACT_SOURCE_PATH ?? "").trim();
@@ -31,6 +61,7 @@ export async function copyDesktopLocalApiRuntime({
   registrationSeedSourcePath
 }) {
   if (!targetAppSourceDir || !repoRoot) throw new Error("targetAppSourceDir and repoRoot are required");
+  await stageDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot });
   const runtimeDir = join(targetAppSourceDir, "runtime");
   await rm(runtimeDir, { recursive: true, force: true });
   if (formalRelease) return { included: false, runtimeDir };

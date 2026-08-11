@@ -46,6 +46,7 @@ import { findRegisteredAccountByEmail } from "../apps/api/src/matter-vault-accou
 import { IDENTITY_LEDGER_CONTRACT_VERSION, IDENTITY_LEDGER_METHODS } from "../packages/runtime-auth/src/identity-ledger.js";
 import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
 import { parseOutlookManifest } from "./lib/outlook-manifest-projection.mjs";
+import { readyOutlookReadinessResponse } from "../apps/addin/test/helpers/outlook-readiness-fixture.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
@@ -926,6 +927,14 @@ async function installApiFixture(page, apiBase, state) {
       state.smartAlertRequests.push(requestEntry);
     }
     notifyNodeConditionWaiters();
+
+    if (pathname === "/api/outlook/readiness") {
+      requestEntry.status = 200;
+      requestEntry.server_authorization_token_sha256 = requestEntry.authorization_token_sha256;
+      await route.fulfill(jsonResponse(readyOutlookReadinessResponse()));
+      notifyNodeConditionWaiters();
+      return;
+    }
 
     const hold = (releaseQueue, counterKey) => new Promise((resolvePromise) => {
       requestEntry.held_before_server = true;

@@ -20,6 +20,10 @@ import {
   resolveMatterDesktopAuthenticodeConfiguration,
   validateMatterDesktopAuthenticodeSignatures,
 } from "./lib/matter-desktop-authenticode.mjs";
+import {
+  stageDesktopMainRuntimeDependencies,
+  verifyDesktopMainRuntimeDependencies,
+} from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const npxExecutable = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "npx";
@@ -116,6 +120,7 @@ const stagingUnpackedPath = join(stagingProjectRoot, "dist", "win-unpacked");
 try {
   await mkdir(stagingProjectRoot, { recursive: true });
   await cp(join(desktopRoot, "src"), join(stagingProjectRoot, "src"), { recursive: true });
+  await stageDesktopMainRuntimeDependencies({ targetAppSourceDir: stagingProjectRoot, repoRoot });
   await cp(join(desktopRoot, "build"), join(stagingProjectRoot, "build"), { recursive: true });
   const provenanceRoot = join(stagingProjectRoot, ".release-provenance");
   await mkdir(provenanceRoot, { recursive: true });
@@ -206,6 +211,10 @@ try {
     formalRelease,
     "Windows installer formal marker must match the release channel",
   );
+  await verifyDesktopMainRuntimeDependencies({
+    targetAppSourceDir: join(packagedResources, "app"),
+    repoRoot,
+  });
 
   await mkdir(dirname(installerPath), { recursive: true });
   await cp(stagingInstallerPath, installerPath);
