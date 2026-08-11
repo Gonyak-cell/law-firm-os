@@ -50,6 +50,26 @@ const OPERATIONAL_MIGRATIONS = Object.freeze([
   ...clientSchemaMigrations(),
 ]);
 
+const JSON_POSTGRES_REHEARSAL_MIGRATION_CATALOG_VERSION =
+  "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
+
+function packetMigrationCatalogMaterial(migrations) {
+  return {
+    schema_version: JSON_POSTGRES_REHEARSAL_MIGRATION_CATALOG_VERSION,
+    authority: "postgres-v2",
+    migration_count: migrations.length,
+    migrations: migrations.map((migration) => Object.freeze({
+      id: migration.id,
+      file_name: migration.file_name ?? `${migration.id}.sql`,
+      checksum: migration.checksum ?? checksumPostgresMigration(migration.sql),
+    })),
+  };
+}
+
+export const CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256 = hashDomainValue(
+  packetMigrationCatalogMaterial(OPERATIONAL_MIGRATIONS),
+);
+
 const SCHEMA_ENTRIES = Object.freeze(
   OPERATIONAL_MIGRATIONS.map(({ id, sql }) => Object.freeze({
     id,
