@@ -11,9 +11,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { _electron as electron } from "playwright";
 import { findRegisteredAccountByUserId } from "../apps/api/src/matter-vault-account-registry.js";
+import { matterAppRendererUrl } from "../apps/desktop/src/main/app-protocol.js";
 import { createHrxStepUpAuthority } from "../apps/api/src/hrx-step-up-token.js";
 import { desktopRuntimeStorePaths } from "../apps/desktop/src/main/local-api.js";
 import { directoryDigest, sha256File } from "./lib/matter-desktop-provenance.mjs";
@@ -54,9 +54,8 @@ function sanitizedEnvironment() {
   )));
 }
 
-function packagedUrl(rendererIndex, section, view = "people") {
-  const url = new URL(pathToFileURL(rendererIndex));
-  url.searchParams.set("desktop", "1");
+function packagedUrl(section, view = "people") {
+  const url = new URL(matterAppRendererUrl());
   url.searchParams.set("locale", "ko");
   url.searchParams.set("view", view);
   url.searchParams.set("ctx", "allow");
@@ -123,7 +122,7 @@ async function findProductPage(app) {
   throw new Error("Formal Windows product window did not become ready");
 }
 
-async function launchFormalApp({ executablePath, rendererIndex, baseUrl }) {
+async function launchFormalApp({ executablePath, baseUrl }) {
   const app = await electron.launch({
     executablePath,
     args: ["--disable-gpu"],
@@ -144,7 +143,11 @@ async function launchFormalApp({ executablePath, rendererIndex, baseUrl }) {
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const initialUrl = new URL(page.url());
-  assert.equal(path.resolve(initialUrl.pathname.slice(1)), path.resolve(rendererIndex));
+  const expectedUrl = new URL(matterAppRendererUrl());
+  assert.equal(initialUrl.protocol, expectedUrl.protocol);
+  assert.equal(initialUrl.hostname, expectedUrl.hostname);
+  assert.equal(initialUrl.pathname, expectedUrl.pathname);
+  assert.equal(initialUrl.searchParams.get("desktop"), "1");
   return { app, page };
 }
 
@@ -162,8 +165,8 @@ async function login(page) {
   return session;
 }
 
-async function navigate(page, rendererIndex, section) {
-  await page.evaluate((url) => window.location.assign(url), packagedUrl(rendererIndex, section));
+async function navigate(page, section) {
+  await page.evaluate((url) => window.location.assign(url), packagedUrl(section));
   await page.waitForLoadState("domcontentloaded");
 }
 
@@ -269,7 +272,7 @@ try {
   assert.deepEqual(readJson(installedManifestPath), installerManifest);
   assert.equal(directoryDigest(path.dirname(rendererIndex)).sha256, installerManifest.renderer.sha256);
 
-  ({ app, page } = await launchFormalApp({ executablePath: installed.executablePath, rendererIndex, baseUrl: externalApiBaseUrl }));
+  ({ app, page } = await launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }));
   page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text().slice(0, 500));
@@ -282,14 +285,14 @@ try {
   assert.equal(runtime?.mode, "production-auth-http");
   assert.equal(runtime?.operatorRuntimeConfigured, false);
 
-  await navigate(page, rendererIndex, "people-leave-usage");
+  await navigate(page, "people-leave-usage");
   const leave = page.locator("#people-leave-usage");
   await leave.waitFor({ state: "visible", timeout: 20_000 });
   assert.match(await leave.innerText(), /휴가 사용 내역/);
   screenshots.push(await screenshot(page, "02-windows-formal-leave", "#people-leave-usage"));
 
   await activateStepUp(page);
-  await navigate(page, rendererIndex, "people-payroll");
+  await navigate(page, "people-payroll");
   const payroll = page.locator("#people-payroll");
   await payroll.waitFor({ state: "visible", timeout: 20_000 });
   await payroll.locator(".payroll-summary-strip").waitFor({ state: "visible", timeout: 20_000 });
@@ -299,7 +302,7 @@ try {
 
   await app.close();
   app = null;
-  ({ app, page } = await launchFormalApp({ executablePath: installed.executablePath, rendererIndex, baseUrl: externalApiBaseUrl }));
+  ({ app, page } = await launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }));
   page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text().slice(0, 500));
@@ -310,7 +313,7 @@ try {
   assert.equal(restoredSession?.display_name, "서지원");
   await page.locator("[data-product-axis-nav]").waitFor({ state: "visible", timeout: 20_000 });
   await activateStepUp(page);
-  await navigate(page, rendererIndex, "people-payroll");
+  await navigate(page, "people-payroll");
   await page.locator("#people-payroll .payroll-summary-strip").waitFor({ state: "visible", timeout: 20_000 });
   screenshots.push(await screenshot(page, "04-windows-formal-restart-payroll", "#people-payroll"));
   await app.close();
