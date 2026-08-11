@@ -29,7 +29,10 @@ import {
   MATTER_VAULT_REGISTERED_TENANT_ID,
   findRegisteredAccountByEmail,
 } from "./matter-vault-account-registry.js";
-import { startApiServer } from "./server.js";
+import {
+  LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV,
+  startApiServer,
+} from "./server.js";
 import { reconcileHrxMemberRosterStore } from "./hrx-runtime-context.js";
 import { DERIVED_STORE_PATH_MANIFEST, STORE_PATH_MANIFEST } from "./store-path-manifest.js";
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
@@ -4495,6 +4498,7 @@ export function createRetryablePromiseCache(factory) {
 }
 
 export function createLambdaApiRuntimeCache({
+  env = process.env,
   payrollStatementProviderVerifier = null,
   leaveProviderVerifier = null,
   leaveIntegrationProviders,
@@ -4525,9 +4529,16 @@ export function createLambdaApiRuntimeCache({
       });
     const m365GraphConfig =
       await resolveClientOutlookM365GraphConfigFn({
+        env,
         microsoft_egress_transport: microsoftEgressTransport,
       });
-    return startApiServerFn({
+    const directOutlookDesktopRoster =
+      env[LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV];
+    const explicitOutlookDesktopRoster =
+      directOutlookDesktopRoster == null || directOutlookDesktopRoster === ""
+        ? m365GraphConfig?.outlook_desktop_autoconnect_roster ?? null
+        : undefined;
+    const startupOptions = {
       port: 0,
       sessionSecret: await resolveSessionSecretFn(),
       ...hrxStepUpSecrets,
@@ -4546,12 +4557,19 @@ export function createLambdaApiRuntimeCache({
         : {}),
       ...(m365GraphConfig ? { m365GraphConfig } : {}),
       clientOperationsV2Enabled:
-        process.env[LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV],
+        env[LAWOS_CLIENT_OPERATIONS_V2_ENABLED_ENV],
       payrollStatementProviderVerifier,
       leaveProviderVerifier,
       leaveIntegrationProviders,
       leaveIntegrationProviderEnabled,
+    };
+    Object.defineProperty(startupOptions, "outlookDesktopAutoconnectRoster", {
+      value: explicitOutlookDesktopRoster,
+      enumerable: false,
+      writable: false,
+      configurable: false,
     });
+    return startApiServerFn(startupOptions);
   });
 }
 
@@ -4576,6 +4594,7 @@ async function resetCachedApiServer() {
 }
 
 export function createLambdaHttpHandler({
+  env = process.env,
   runtimeCache,
   payrollStatementProviderVerifier = null,
   leaveProviderVerifier = null,
@@ -4597,6 +4616,7 @@ export function createLambdaHttpHandler({
   logFn = console.warn,
 } = {}) {
   const resolvedRuntimeCache = runtimeCache ?? createLambdaApiRuntimeCache({
+    env,
     payrollStatementProviderVerifier,
     leaveProviderVerifier,
     leaveIntegrationProviders,

@@ -34,6 +34,9 @@ import {
 import {
   createMicrosoftOfficeSsoProvider,
 } from "./microsoft-office-sso-provider.js";
+import {
+  parseOutlookDesktopAutoconnectRoster,
+} from "./outlook-desktop-entitlement.js";
 
 export const LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID_ENV =
   "LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID";
@@ -280,6 +283,18 @@ function disabledProviderConfig(flags) {
   });
 }
 
+function normalizeOutlookDesktopAutoconnectRoster(value) {
+  if (value == null || value === "") return null;
+  try {
+    return parseOutlookDesktopAutoconnectRoster(value);
+  } catch (error) {
+    if (error?.safe_error_code !== "OUTLOOK_DESKTOP_ROSTER_INVALID") {
+      throw error;
+    }
+    return null;
+  }
+}
+
 export function createClientOutlookDelegatedProvider({
   config: rawConfig,
   oauth_client_factory = createMicrosoftDelegatedOAuthClient,
@@ -518,6 +533,7 @@ export function createClientOutlookM365GraphConfig({
   graph_provider = null,
   microsoft_egress_transport,
   clock = () => new Date(),
+  outlook_desktop_autoconnect_roster = null,
 } = {}) {
   for (const method of [
     "storeDelegatedCredential",
@@ -550,7 +566,7 @@ export function createClientOutlookM365GraphConfig({
     microsoft_egress_transport,
     clock,
   });
-  return Object.freeze({
+  const runtimeConfig = {
     feature_enabled: flags?.feature_enabled === true,
     inquiry_feature_enabled: flags?.inquiry_feature_enabled === true,
     provider_runtime_enabled: flags?.provider_runtime_enabled === true,
@@ -566,7 +582,14 @@ export function createClientOutlookM365GraphConfig({
       provider: "microsoft-graph-delegated",
     }),
     clock,
+  };
+  Object.defineProperty(runtimeConfig, "outlook_desktop_autoconnect_roster", {
+    value: outlook_desktop_autoconnect_roster,
+    enumerable: false,
+    writable: false,
+    configurable: false,
   });
+  return Object.freeze(runtimeConfig);
 }
 
 export async function createClientOutlookM365GraphConfigFromSecretReference({
@@ -614,6 +637,10 @@ export async function createClientOutlookM365GraphConfigFromSecretReference({
     graph_provider,
     microsoft_egress_transport: transport,
     clock,
+    outlook_desktop_autoconnect_roster:
+      normalizeOutlookDesktopAutoconnectRoster(
+        secret.outlook_desktop_autoconnect_roster,
+      ),
   });
 }
 

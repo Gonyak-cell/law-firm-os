@@ -37,6 +37,7 @@ import {
   buildHrxRosterReconcileReceipt,
   buildLcxAuthResetRecoveryReceipt,
   classifySesDeliveryFailure,
+  createLambdaApiRuntimeCache,
   createLambdaHttpHandler,
   createRetryablePromiseCache,
   createLambdaPasswordResetEmailDelivery,
@@ -44,6 +45,10 @@ import {
   resolveLambdaHrxStepUpSecrets,
   resolveLambdaSessionSecret,
 } from "../src/lambda.js";
+import {
+  OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+  parseOutlookDesktopAutoconnectRoster,
+} from "../src/outlook-desktop-entitlement.js";
 import { passwordResetEmailHtml } from "../src/password-reset-email-template.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
@@ -54,6 +59,19 @@ const OPERATIONAL_STEP_UP_OPTIONS = Object.freeze({
   hrxStepUpSecret: "lambda-test-operational-step-up-secret-32-bytes",
   hrxStepUpTotpSecret: "lambda-test-operational-step-up-totp-secret-32-bytes",
 });
+
+function testAutoconnectRoster(version = "lambda-roster-v1", tenant = "tenant-lambda-roster") {
+  return parseOutlookDesktopAutoconnectRoster({
+    schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+    roster_version: version,
+    entries: Array.from({ length: 10 }, (_, index) => ({
+      tenant_id: tenant,
+      user_id: `user-lambda-roster-${String(index + 1).padStart(2, "0")}`,
+      entra_subject_id: `subject-lambda-roster-${String(index + 1).padStart(2, "0")}`,
+      enabled: true,
+    })),
+  });
+}
 
 test("Lambda runtime startup cache retries after a rejected initialization", async () => {
   let attempts = 0;
@@ -167,6 +185,77 @@ test("Lambda HTTP bootstrap passes provider verification and leave integration a
   assert.equal(forwardedRequest.options.redirect, "manual");
   assert.equal(forwardedRequest.options.headers["x-provider-signature"], "signed-test-payload");
   assert.equal(result.statusCode, 503);
+});
+
+test("Lambda bootstrap wires the shared-secret roster once and preserves direct JSON precedence", async () => {
+  const secretRoster = testAutoconnectRoster("secret-roster-v1", "tenant-secret-roster");
+  const directRoster = testAutoconnectRoster("direct-roster-v1", "tenant-direct-roster");
+  const m365GraphConfig = {
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: true,
+  };
+  Object.defineProperty(m365GraphConfig, "outlook_desktop_autoconnect_roster", {
+    value: secretRoster,
+    enumerable: false,
+  });
+  Object.freeze(m365GraphConfig);
+  let startupOptions;
+  let resolverCalls = 0;
+  const cache = createLambdaApiRuntimeCache({
+    env: {
+      LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_JSON: JSON.stringify(directRoster),
+    },
+    createMatterRepositoryFn: async () => null,
+    resolveHrxStepUpSecretsFn: async () => ({}),
+    loadHrxRelationalProjectionFn: async () => null,
+    resolveSessionSecretFn: async () => "lambda-roster-session-secret-32-bytes",
+    createPasswordResetEmailDeliveryFn: () => undefined,
+    resolvePeopleOutlookRuntimeFactoryFn: async () => null,
+    resolveClientOutlookM365GraphConfigFn: async () => {
+      resolverCalls += 1;
+      return m365GraphConfig;
+    },
+    startApiServerFn: async (options) => {
+      startupOptions = options;
+      return { port: 32124 };
+    },
+  });
+
+  const runtime = await cache.get();
+  assert.equal(runtime.port, 32124);
+  assert.equal(resolverCalls, 1);
+  assert.equal(startupOptions.outlookDesktopAutoconnectRoster, undefined);
+  assert.equal(
+    JSON.stringify(startupOptions).includes("user-secret-roster"),
+    false,
+  );
+
+  const secretOnlyCache = createLambdaApiRuntimeCache({
+    env: {},
+    createMatterRepositoryFn: async () => null,
+    resolveHrxStepUpSecretsFn: async () => ({}),
+    loadHrxRelationalProjectionFn: async () => null,
+    resolveSessionSecretFn: async () => "lambda-roster-session-secret-32-bytes",
+    createPasswordResetEmailDeliveryFn: () => undefined,
+    resolvePeopleOutlookRuntimeFactoryFn: async () => null,
+    resolveClientOutlookM365GraphConfigFn: async () => m365GraphConfig,
+    startApiServerFn: async (options) => {
+      startupOptions = options;
+      return { port: 32125 };
+    },
+  });
+  await secretOnlyCache.get();
+  assert.equal(startupOptions.outlookDesktopAutoconnectRoster, secretRoster);
+  assert.equal(Object.isFrozen(startupOptions.outlookDesktopAutoconnectRoster), true);
+  assert.equal(
+    Object.keys(startupOptions).includes("outlookDesktopAutoconnectRoster"),
+    false,
+  );
+  assert.doesNotMatch(
+    JSON.stringify(startupOptions),
+    /user-secret-roster|subject-secret-roster/u,
+  );
 });
 
 test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
