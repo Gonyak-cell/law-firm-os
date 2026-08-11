@@ -8,6 +8,10 @@ export const SESSION_CHANNELS = Object.freeze({
   confirmPasswordReset: "session:password-reset:confirm",
   openOutlookAuthorization: "desktop:outlook-authorization:open",
   copyOutlookAuthorization: "desktop:outlook-authorization:copy",
+  outlookLifecycleStatus: "desktop:outlook-lifecycle:status",
+  retryOutlookLifecycle: "desktop:outlook-lifecycle:retry",
+  confirmOutlookMicrosoft: "desktop:outlook-lifecycle:confirm-microsoft",
+  disconnectOutlookDevice: "desktop:outlook-lifecycle:disconnect",
   login: "session:login",
   features: "session:features",
   smoke: "session:smoke",
@@ -117,7 +121,12 @@ export function registerSessionIpcHandlers({
     }
     return response;
   };
-  const api = (payload) => payload?.path === OUTLOOK_CONNECTION_COMPLETE_ROUTE
+  const mainOnlyOutlookPath = (path) => typeof path === "string" && (
+    path === OUTLOOK_CONNECTION_COMPLETE_ROUTE
+    || /^\/api\/desktop\/installations(?:\/|$|\?)/u.test(path)
+    || /^\/api\/outlook\/readiness(?:\?|$)/u.test(path)
+  );
+  const api = (payload) => mainOnlyOutlookPath(payload?.path)
     ? {
       ok: false,
       reason: "desktop_main_only_route",
@@ -125,6 +134,19 @@ export function registerSessionIpcHandlers({
       token_material_returned: false
     }
     : coordinator.api(payload);
+  const confirmOutlookMicrosoft = async (payload) => {
+    if (!isAllowedOutlookAuthorizationUrl(payload?.url)) {
+      return openOutlookAuthorization(payload, openExternal, outlookAuthorizationOpenTimeoutMs);
+    }
+    return coordinator.confirmOutlookMicrosoft(
+      { confirmed: payload?.confirmed === true },
+      () => openOutlookAuthorization(
+        payload,
+        openExternal,
+        outlookAuthorizationOpenTimeoutMs,
+      ),
+    );
+  };
   const routes = [
     [SESSION_CHANNELS.status, () => coordinator.sessionStatus()],
     [SESSION_CHANNELS.claimLogoIntro, async () => {
@@ -139,12 +161,18 @@ export function registerSessionIpcHandlers({
     [SESSION_CHANNELS.openOutlookAuthorization, (payload) => openOutlookAuthorization(
       payload,
       openExternal,
-      outlookAuthorizationOpenTimeoutMs
+      outlookAuthorizationOpenTimeoutMs,
     )],
     [SESSION_CHANNELS.copyOutlookAuthorization, (payload) => copyOutlookAuthorization(
       payload,
       writeClipboard
     )],
+    [SESSION_CHANNELS.outlookLifecycleStatus, () => coordinator.outlookLifecycleStatus()],
+    [SESSION_CHANNELS.retryOutlookLifecycle, () => coordinator.retryOutlookLifecycle()],
+    [SESSION_CHANNELS.confirmOutlookMicrosoft, confirmOutlookMicrosoft],
+    [SESSION_CHANNELS.disconnectOutlookDevice, (payload) => coordinator.disconnectOutlookDevice({
+      confirmed: payload?.confirmed === true
+    })],
     [SESSION_CHANNELS.login, login],
     [SESSION_CHANNELS.features, (payload) => coordinator.features(payload)],
     [SESSION_CHANNELS.smoke, (payload) => coordinator.smoke(payload)],

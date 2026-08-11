@@ -506,6 +506,84 @@ test("desktop runtime permits only the exact People Outlook connection mutations
   assert.equal(bodylessOtherDelete.reason, "desktop_runtime_write_body_invalid");
 });
 
+test("desktop runtime permits exact main-process installation writes, reconciliation read, and readiness read", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, { outcome: "passed" });
+    },
+  });
+  const installationId = "odi_runtime_00000000000000000001";
+  const signedBody = JSON.stringify({
+    idempotency_key: "outlook-desktop-runtime-0001",
+    nonce: "synthetic-nonce",
+    issued_at: "2026-08-11T04:00:00.000Z",
+    expires_at: "2026-08-11T04:02:00.000Z",
+    signature: "synthetic-signature",
+  });
+
+  const responses = await Promise.all([
+    client.api({
+      path: "/api/desktop/installations",
+      method: "POST",
+      body: signedBody,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/desktop/installations/${installationId}/heartbeat`,
+      method: "POST",
+      body: signedBody,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/desktop/installations/${installationId}/retire`,
+      method: "POST",
+      body: signedBody,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/desktop/installations/${installationId}`,
+      method: "GET",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/outlook/readiness?installation_id=${installationId}`,
+      method: "GET",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+  ]);
+  const blocked = await Promise.all([
+    client.api({
+      path: `/api/desktop/installations/${installationId}/other`,
+      method: "POST",
+      body: signedBody,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/desktop/installations/${installationId}/heartbeat`,
+      method: "PATCH",
+      body: signedBody,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+  ]);
+
+  assert.deepEqual(responses.map(({ http_status }) => http_status), [
+    200,
+    200,
+    200,
+    200,
+    200,
+  ]);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405]);
+  assert.equal(calls.length, 5);
+  assert.deepEqual(JSON.parse(calls[0].init.body), JSON.parse(signedBody));
+  assert.equal(calls[3].init.body, undefined);
+  assert.equal(calls[4].init.body, undefined);
+  assert.equal(JSON.stringify(responses).includes("lawos_session_v1.secret"), false);
+});
+
 test("desktop runtime permits only the exact Search preference mutation route", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({

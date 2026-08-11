@@ -7,6 +7,7 @@ import {
   registerSessionIpcHandlers,
   SESSION_CHANNELS
 } from "../src/main/session-ipc.js";
+import { createOutlookInstallationLifecycleCoordinator } from "../src/main/outlook-installation.js";
 
 const trustedSender = (event) => isApprovedRendererUrl(event?.senderFrame?.url ?? event?.sender?.getURL?.());
 
@@ -112,6 +113,125 @@ function fakeRuntimeClient() {
   };
 }
 
+function interactionReadyCoordinator() {
+  return new MainProcessAuthCoordinator({
+    runtimeClient: fakeRuntimeClient(),
+    outlookLifecycle: {
+      status() {
+        return {
+          state: "interaction_required",
+          next_action: "confirm_microsoft",
+          browser_required: true,
+          safe_error_codes: ["M365_INTERACTION_REQUIRED"],
+          retry_scheduled: false,
+          token_material_returned: false,
+          private_key_material_returned: false,
+          production_ready_claim: false,
+        };
+      },
+      async refresh() {
+        return this.status();
+      },
+      async confirmMicrosoft({ confirmed }, handoff) {
+        if (!confirmed) {
+          return {
+            handoff_accepted: false,
+            reason: "explicit_confirmation_required",
+            token_material_returned: false,
+          };
+        }
+        return handoff();
+      },
+      async disconnectDevice(...args) {
+        assert.equal(args.length, 0);
+        return {
+          retired: true,
+          reason: "device_disconnect",
+          token_material_returned: false,
+        };
+      },
+    },
+  });
+}
+
+async function productionReadyCoordinator() {
+  const installationId = "odi_people_oauth_contract_0001";
+  let identity = {
+    state: "candidate",
+    installation_id: null,
+    state_version: null,
+  };
+  const identityStore = {
+    async getOrCreate() {
+      return identity;
+    },
+    async markRegistered(_principal, registered) {
+      identity = {
+        state: "registered",
+        installation_id: registered.installation_id,
+        state_version: registered.state_version,
+      };
+      return identity;
+    },
+    async confirmRetire() {},
+    async signRegistration(_principal, proof) {
+      return proof;
+    },
+    async signHeartbeat(_principal, proof) {
+      return proof;
+    },
+    async signRetire(_principal, proof) {
+      return proof;
+    },
+  };
+  const lifecycle = createOutlookInstallationLifecycleCoordinator({
+    identityStore,
+    buildIdentity: {
+      platform: "darwin",
+      app_version: "0.1.26",
+      source_sha: "2".repeat(40),
+    },
+    now: () => Date.parse("2026-08-11T04:00:00.000Z"),
+    randomBytesFn: (size) => Buffer.alloc(size, 7),
+    setTimeoutImpl: () => ({ unref() {} }),
+    clearTimeoutImpl: () => undefined,
+    requestApi: async ({ method }) => method === "POST"
+      ? {
+        http_status: 201,
+        body: {
+          outcome: "registered",
+          installation: {
+            installation_id: installationId,
+            state_version: 1,
+          },
+        },
+      }
+      : {
+        http_status: 200,
+        body: {
+          outcome: "passed",
+          item: {
+            next_action: "none",
+            browser_required: false,
+            safe_error_codes: [],
+          },
+        },
+      },
+  });
+  await lifecycle.sessionAvailable({
+    state: "signed_in",
+    outlook_desktop_principal_ref:
+      "odpr_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  });
+  return {
+    coordinator: new MainProcessAuthCoordinator({
+      runtimeClient: fakeRuntimeClient(),
+      outlookLifecycle: lifecycle,
+    }),
+    lifecycle,
+  };
+}
+
 test("session IPC exposes account login and smoke without renderer token material", async () => {
   const ipcMain = new FakeIpcMain();
   const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
@@ -169,6 +289,59 @@ test("session IPC exposes account login and smoke without renderer token materia
   });
   assert.equal(JSON.stringify(mainOnlyCompletion).includes("must-not-forward"), false);
 
+  const lifecycleStatus = await ipcMain.invoke(
+    SESSION_CHANNELS.outlookLifecycleStatus,
+  );
+  assert.equal(lifecycleStatus.state, "idle");
+  assert.equal(JSON.stringify(lifecycleStatus).includes("installation_id"), false);
+  assert.equal(JSON.stringify(lifecycleStatus).includes("principal_ref"), false);
+  const lifecycleRetry = await ipcMain.invoke(
+    SESSION_CHANNELS.retryOutlookLifecycle,
+  );
+  assert.equal(lifecycleRetry.state, "idle");
+  const disconnect = await ipcMain.invoke(
+    SESSION_CHANNELS.disconnectOutlookDevice,
+    {
+      confirmed: true,
+      installation_id: "odi_renderer_must_not_choose_0001",
+      body: { retire_reason: "renderer_must_not_choose" },
+      private_key: "renderer_must_not_read",
+    },
+  );
+  assert.deepEqual(disconnect, {
+    retired: false,
+    reason: "device_disconnect_unavailable",
+    token_material_returned: false,
+  });
+  assert.equal(JSON.stringify(disconnect).includes("renderer_must_not"), false);
+
+  for (const path of [
+    "/api/desktop/installations",
+    "/api/desktop/installations/odi_renderer_must_not_choose_0001/heartbeat",
+    "/api/desktop/installations/odi_renderer_must_not_choose_0001/retire",
+    "/api/outlook/readiness?installation_id=odi_renderer_must_not_choose_0001",
+  ]) {
+    assert.deepEqual(await ipcMain.invoke(SESSION_CHANNELS.api, {
+      path,
+      method: "POST",
+      body: JSON.stringify({ signature: "renderer_must_not_sign" }),
+    }), {
+      ok: false,
+      reason: "desktop_main_only_route",
+      http_status: 403,
+      token_material_returned: false,
+    });
+  }
+  assert.deepEqual(await ipcMain.invoke(SESSION_CHANNELS.api, {
+    path: "/api/desktop/installations/odi_renderer_must_not_choose_0001",
+    method: "GET",
+  }), {
+    ok: false,
+    reason: "desktop_main_only_route",
+    http_status: 403,
+    token_material_returned: false,
+  });
+
   registration.dispose();
   assert.equal(ipcMain.handlers.size, 0);
 });
@@ -201,9 +374,9 @@ test("session IPC does not consume the logo intro before the desktop window is s
   registration.dispose();
 });
 
-test("session IPC opens only the Microsoft Outlook authorization endpoint without returning its query", async () => {
+test("session IPC keeps People authorization open separate from lifecycle confirmation", async () => {
   const ipcMain = new FakeIpcMain();
-  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const coordinator = interactionReadyCoordinator();
   const opened = [];
   const registration = registerSessionIpcHandlers({
     ipcMain,
@@ -216,11 +389,30 @@ test("session IPC opens only the Microsoft Outlook authorization endpoint withou
   const allowedUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test&state=outlook-state:01HQ";
 
   assert.equal(isAllowedOutlookAuthorizationUrl(allowedUrl), true);
-  const result = await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl });
+  const result = await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, {
+    url: allowedUrl,
+  });
   assert.deepEqual(result, { opened: true, handoff_accepted: true });
   assert.deepEqual(opened, [allowedUrl]);
   assert.equal(JSON.stringify(result).includes("client_id"), false);
   assert.equal(JSON.stringify(result).includes("outlook-state"), false);
+
+  assert.deepEqual(
+    await ipcMain.invoke(SESSION_CHANNELS.confirmOutlookMicrosoft, { url: allowedUrl }),
+    {
+      handoff_accepted: false,
+      reason: "explicit_confirmation_required",
+      token_material_returned: false,
+    },
+  );
+  assert.deepEqual(
+    await ipcMain.invoke(SESSION_CHANNELS.confirmOutlookMicrosoft, {
+      url: allowedUrl,
+      confirmed: true,
+    }),
+    { opened: true, handoff_accepted: true },
+  );
+  assert.deepEqual(opened, [allowedUrl, allowedUrl]);
 
   const rejected = [
     "http://login.microsoftonline.com/common/oauth2/v2.0/authorize",
@@ -243,10 +435,70 @@ test("session IPC opens only the Microsoft Outlook authorization endpoint withou
       await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url }),
       { opened: false, handoff_accepted: false, reason: "outlook_authorization_url_not_allowed" }
     );
+    assert.deepEqual(
+      await ipcMain.invoke(SESSION_CHANNELS.confirmOutlookMicrosoft, {
+        url,
+        confirmed: true,
+      }),
+      { opened: false, handoff_accepted: false, reason: "outlook_authorization_url_not_allowed" },
+    );
   }
+  assert.deepEqual(opened, [allowedUrl, allowedUrl]);
+
+  const disconnected = await ipcMain.invoke(
+    SESSION_CHANNELS.disconnectOutlookDevice,
+    {
+      confirmed: true,
+      installation_id: "odi_renderer_must_not_choose_0001",
+      retire_reason: "renderer_must_not_choose",
+      private_key: "renderer_must_not_read",
+    },
+  );
+  assert.deepEqual(disconnected, {
+    retired: true,
+    reason: "device_disconnect",
+    token_material_returned: false,
+  });
+  assert.equal(JSON.stringify(disconnected).includes("renderer_must_not"), false);
+
+  registration.dispose();
+});
+
+test("production lifecycle coordinator cannot block the existing People Outlook OAuth channel", async () => {
+  const ipcMain = new FakeIpcMain();
+  const { coordinator, lifecycle } = await productionReadyCoordinator();
+  const opened = [];
+  const registration = registerSessionIpcHandlers({
+    ipcMain,
+    coordinator,
+    isTrustedSender: trustedSender,
+    openExternal: async (url) => {
+      opened.push(url);
+    },
+  });
+  const allowedUrl = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test&state=people-state:01HQ";
+
+  assert.deepEqual(
+    await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, {
+      url: allowedUrl,
+    }),
+    { opened: true, handoff_accepted: true },
+  );
+  assert.deepEqual(
+    await ipcMain.invoke(SESSION_CHANNELS.confirmOutlookMicrosoft, {
+      url: allowedUrl,
+      confirmed: true,
+    }),
+    {
+      handoff_accepted: false,
+      reason: "microsoft_interaction_not_required",
+      token_material_returned: false,
+    },
+  );
   assert.deepEqual(opened, [allowedUrl]);
 
   registration.dispose();
+  lifecycle.stop({ reason: "test_complete" });
 });
 
 test("session IPC copies only an allowed Outlook authorization URL without returning its query", async () => {
@@ -345,7 +597,7 @@ test("session IPC exposes no raw OAuth callback readiness or acknowledgement cha
 
 test("Outlook authorization IPC fails closed for missing opener errors and untrusted renderers", async () => {
   const allowedUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=lawos-test";
-  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const coordinator = interactionReadyCoordinator();
 
   const unavailableIpc = new FakeIpcMain();
   const unavailableRegistration = registerSessionIpcHandlers({
@@ -354,7 +606,7 @@ test("Outlook authorization IPC fails closed for missing opener errors and untru
     isTrustedSender: trustedSender
   });
   assert.deepEqual(
-    await unavailableIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl }),
+    await unavailableIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl, confirmed: true }),
     { opened: false, handoff_accepted: false, reason: "outlook_authorization_opener_unavailable" }
   );
   unavailableRegistration.dispose();
@@ -371,16 +623,24 @@ test("Outlook authorization IPC fails closed for missing opener errors and untru
     }
   });
   assert.deepEqual(
-    await failingIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl }),
+    await failingIpc.invoke(SESSION_CHANNELS.openOutlookAuthorization, { url: allowedUrl, confirmed: true }),
     { opened: false, handoff_accepted: false, reason: "outlook_authorization_open_failed" }
   );
   await assert.rejects(
     () => failingIpc.invoke(
       SESSION_CHANNELS.openOutlookAuthorization,
-      { url: allowedUrl },
+      { url: allowedUrl, confirmed: true },
       { senderFrame: { url: "file:///tmp/untrusted.html" } }
     ),
     (error) => error?.code === "UNTRUSTED_RENDERER_IPC_SENDER"
+  );
+  await assert.rejects(
+    () => failingIpc.invoke(
+      SESSION_CHANNELS.confirmOutlookMicrosoft,
+      { url: allowedUrl, confirmed: true },
+      { senderFrame: { url: "file:///tmp/untrusted.html" } },
+    ),
+    (error) => error?.code === "UNTRUSTED_RENDERER_IPC_SENDER",
   );
   assert.equal(calls, 1);
   failingRegistration.dispose();
@@ -388,7 +648,7 @@ test("Outlook authorization IPC fails closed for missing opener errors and untru
 
 test("Outlook authorization handoff fails closed when the opener never settles", async () => {
   const ipcMain = new FakeIpcMain();
-  const coordinator = new MainProcessAuthCoordinator({ runtimeClient: fakeRuntimeClient() });
+  const coordinator = interactionReadyCoordinator();
   const registration = registerSessionIpcHandlers({
     ipcMain,
     coordinator,
@@ -398,7 +658,8 @@ test("Outlook authorization handoff fails closed when the opener never settles",
   });
 
   const result = await ipcMain.invoke(SESSION_CHANNELS.openOutlookAuthorization, {
-    url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=lawos-test"
+    url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=lawos-test",
+    confirmed: true,
   });
   assert.deepEqual(result, {
     opened: false,

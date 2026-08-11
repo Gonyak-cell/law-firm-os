@@ -11,6 +11,7 @@ import {
 
 const CORRECTION = "302_client_email_filing_correction";
 const OUTLOOK = "303_client_outlook_conversation_sync";
+const DESKTOP = "304_client_outlook_desktop_installation";
 
 async function tableExists(pool, name) {
   const result = await pool.query(
@@ -20,7 +21,7 @@ async function tableExists(pool, name) {
   return result.rows[0].relation !== null;
 }
 
-test("combined client catalog applies filing correction 302 before Outlook sync 303 on a fresh database", async (t) => {
+test("combined client catalog applies filing correction 302, Outlook sync 303, then desktop lifecycle 304", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
 
@@ -28,13 +29,15 @@ test("combined client catalog applies filing correction 302 before Outlook sync 
     appliedBy: "outlook-combined-fresh-test",
   });
 
-  assert.deepEqual(result.slice(-2).map(({ id, applied }) => ({ id, applied })), [
+  assert.deepEqual(result.slice(-3).map(({ id, applied }) => ({ id, applied })), [
     { id: CORRECTION, applied: true },
     { id: OUTLOOK, applied: true },
+    { id: DESKTOP, applied: true },
   ]);
   assert.equal(await tableExists(fixture.adminPool, "email_filing_placements"), true);
   assert.equal(await tableExists(fixture.adminPool, "conversation_policies"), true);
-  assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, OUTLOOK);
+  assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_installations"), true);
+  assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, DESKTOP);
 });
 
 test("combined client catalog upgrades a database already at filing correction 302 without replaying it", async (t) => {
@@ -56,6 +59,8 @@ test("combined client catalog upgrades a database already at filing correction 3
 
   assert.equal(result.find(({ id }) => id === CORRECTION).applied, false);
   assert.equal(result.find(({ id }) => id === OUTLOOK).applied, true);
+  assert.equal(result.find(({ id }) => id === DESKTOP).applied, true);
   assert.equal(await tableExists(fixture.adminPool, "conversation_policies"), true);
-  assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, OUTLOOK);
+  assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_installations"), true);
+  assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, DESKTOP);
 });

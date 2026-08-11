@@ -124,6 +124,10 @@ import {
   normalizeOutlookOperationError,
 } from "./outlook-operation-state.js";
 import {
+  OUTLOOK_READINESS_ACTIONS,
+  presentOutlookReadiness,
+} from "./outlook-readiness-status.js";
+import {
   closeOutlookOverlay,
   createOutlookOverlayState,
   invalidateOutlookOverlayForItemChange,
@@ -920,6 +924,7 @@ function App() {
   const [authState, setAuthState] = useState(AUTH_STATE.loading);
   const [authError, setAuthError] = useState("");
   const [graphConnection, setGraphConnection] = useState({ state: GRAPH_STATE.loading, status: "loading", stateVersion: 0, missingScopes: [] });
+  const [outlookReadiness, setOutlookReadiness] = useState(null);
   const [matters, setMatters] = useState([]);
   const [matterSearchQuery, setMatterSearchQuery] = useState("");
   const matterSearchDebouncerRef = useRef(null);
@@ -1024,6 +1029,7 @@ function App() {
     filingCorrectionReceiptRef.current = null;
     sessionGenerationRef.current += 1;
     sessionAuthenticatedRef.current = authenticatedNext === true;
+    if (authenticatedNext !== true) setOutlookReadiness(null);
     unauthorizedBoundaryHandledRef.current = lifecycleRestart
       ? false
       : authenticatedNext !== true;
@@ -2166,6 +2172,7 @@ function App() {
 
   async function refreshGraphConnection({ loadBusinessData = true } = {}) {
     const readFence = captureBusinessRead();
+    setOutlookReadiness(null);
     let body;
     try {
       body = await requestJson("/api/outlook/connection");
@@ -2176,6 +2183,7 @@ function App() {
     if (!isBusinessReadCurrent(readFence)) return null;
     const next = parseOutlookConnectionRecord(body);
     setGraphConnection(next);
+    await refreshOutlookReadiness({ readFence });
     if (loadBusinessData && next.state === GRAPH_STATE.connected) {
       try {
         await loadBase();
@@ -2191,6 +2199,29 @@ function App() {
       clearBusinessView();
     }
     return next;
+  }
+
+  async function refreshOutlookReadiness({ readFence = captureBusinessRead() } = {}) {
+    try {
+      const body = await requestJson("/api/outlook/readiness");
+      if (!isBusinessReadCurrent(readFence)) return null;
+      const presentation = presentOutlookReadiness(body);
+      setOutlookReadiness(presentation);
+      return presentation;
+    } catch {
+      if (!isBusinessReadCurrent(readFence)) return null;
+      const presentation = presentOutlookReadiness(null);
+      setOutlookReadiness(presentation);
+      return presentation;
+    }
+  }
+
+  function runOutlookReadinessAction() {
+    if (outlookReadiness?.action === OUTLOOK_READINESS_ACTIONS.confirmMicrosoft) {
+      void connectOutlook();
+      return;
+    }
+    void refreshOutlookReadiness();
   }
 
   useEffect(() => {
@@ -3094,21 +3125,44 @@ function App() {
         ? { action: signIn, actionLabel: "AMIC OS 로그인", actionTestId: "lawos-login-button" }
         : {}),
     };
+  } else if (credentialCleanupPending) {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "Outlook 연결 정보 정리가 필요합니다.",
+      fullMessage: "연결 해제 뒤 남은 자격 증명 정리를 다시 시도해 주세요.",
+      testId: "business-gate",
+      action: disconnectOutlook,
+      actionLabel: "연결 정보 정리",
+      actionTestId: "outlook-cleanup-retry-button",
+    };
+  } else if (graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting) {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.working,
+      visibleMessage: "Outlook 연결을 확인하고 있습니다.",
+      fullMessage: "Microsoft 연결 확인이 끝날 때까지 기다려 주세요.",
+      testId: "business-gate",
+    };
+  } else if (
+    outlookReadiness
+    && outlookReadiness.action !== OUTLOOK_READINESS_ACTIONS.none
+  ) {
+    intervention = {
+      ...outlookReadiness,
+      testId: "outlook-readiness-status",
+      action: runOutlookReadinessAction,
+      actionTestId: "outlook-readiness-action",
+    };
   } else if (!graphConnected) {
     const checking = graphConnection.state === GRAPH_STATE.loading || graphConnection.state === GRAPH_STATE.connecting;
     intervention = {
-      status: credentialCleanupPending
-        ? OUTLOOK_OPERATION_STATES.reconnectRequired
-        : checking
-          ? OUTLOOK_OPERATION_STATES.working
-          : OUTLOOK_OPERATION_STATES.reconnectRequired,
-      visibleMessage: credentialCleanupPending ? "Outlook 연결 정보 정리가 필요합니다." : checking ? "Outlook 연결을 확인하고 있습니다." : "Outlook 연결이 필요합니다.",
-      fullMessage: credentialCleanupPending ? "연결 해제 뒤 남은 자격 증명 정리를 다시 시도해 주세요." : checking ? "Microsoft 연결 확인이 끝날 때까지 기다려 주세요." : "Microsoft 연결을 완료한 뒤 Matter 기능을 사용해 주세요.",
+      status: checking
+        ? OUTLOOK_OPERATION_STATES.working
+        : OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: checking ? "Outlook 연결을 확인하고 있습니다." : "Outlook 연결이 필요합니다.",
+      fullMessage: checking ? "Microsoft 연결 확인이 끝날 때까지 기다려 주세요." : "Microsoft 연결을 완료한 뒤 Matter 기능을 사용해 주세요.",
       testId: "business-gate",
       ...(!checking
-        ? credentialCleanupPending
-          ? { action: disconnectOutlook, actionLabel: "연결 정보 정리", actionTestId: "outlook-cleanup-retry-button" }
-          : { action: connectOutlook, actionLabel: "Outlook 연결", actionTestId: "outlook-connect-button" }
+        ? { action: connectOutlook, actionLabel: "Outlook 연결", actionTestId: "outlook-connect-button" }
         : {}),
     };
   } else if (!itemAvailable) {
@@ -3136,6 +3190,11 @@ function App() {
     intervention = {
       ...(lastResult ?? recoveredReceiptNotice),
       testId: receiptRecovery && !lastResult ? "outlook-receipt-recovery" : "operation-result",
+    };
+  } else if (outlookReadiness) {
+    intervention = {
+      ...outlookReadiness,
+      testId: "outlook-readiness-status",
     };
   }
 

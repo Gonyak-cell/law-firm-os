@@ -1,5 +1,7 @@
 import { stat } from "node:fs/promises";
 
+import { readyOutlookReadinessResponse } from "./outlook-readiness-fixture.js";
+
 export async function assertBuiltDist(distRoot) {
   for (const relativePath of ["index.html", "outlook-addin/index.html"]) {
     await stat(`${distRoot}/${relativePath}`);
@@ -75,6 +77,13 @@ export async function installOfficeAndApiMocks(page) {
         status: 200,
         contentType: "application/json; charset=utf-8",
         body: JSON.stringify({ item: { status: "connected", active: true, connection_id: "m365_connection_responsive_qa", state_version: 1, mailbox_address: "qa@example.invalid" } }),
+      });
+    }
+    if (requestUrl.pathname === "/api/outlook/readiness") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify(readyOutlookReadinessResponse()),
       });
     }
     if (requestUrl.pathname === "/api/outlook/matters") {

@@ -165,6 +165,14 @@ test("operational Entra session authority persists only verified federated ident
   assert.equal(session.status, 200);
   assert.equal(session.body.session.email, account.email);
   assert.equal(session.body.session.assurance_level, "phishing-resistant-mfa");
+  assert.match(
+    session.body.session.outlook_desktop_principal_ref,
+    /^odpr_[A-Za-z0-9_-]{43}$/u,
+  );
+  assert.equal(
+    JSON.stringify(session.body.session).includes("entra-subject-test"),
+    false,
+  );
   const verified = await auth.verifyToken(completed.body.session_token, { requestId: "req-entra-verify" });
   assert.equal(verified.ok, true);
   assert.equal(verified.principal.entra_subject_id, "entra-subject-test");

@@ -169,3 +169,40 @@ test("session preload exposes only the narrow Outlook authorization copy command
     payload: { url: authorizeUrl }
   }]);
 });
+
+test("session preload exposes bounded lifecycle intents without ids bodies or signing", async () => {
+  const { exposed, invocations, source } = loadSessionPreload();
+  assert.equal(typeof exposed.api.outlookLifecycleStatus, "function");
+  assert.equal(typeof exposed.api.retryOutlookLifecycle, "function");
+  assert.equal(typeof exposed.api.confirmOutlookMicrosoft, "function");
+  assert.equal(typeof exposed.api.disconnectOutlookDevice, "function");
+  assert.equal(exposed.api.sign, undefined);
+  assert.equal(exposed.api.signOutlookLifecycle, undefined);
+  assert.equal(exposed.api.outlookInstallationIdentity, undefined);
+
+  await exposed.api.outlookLifecycleStatus();
+  await exposed.api.retryOutlookLifecycle();
+  await exposed.api.confirmOutlookMicrosoft(
+    "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test",
+  );
+  await exposed.api.disconnectOutlookDevice();
+  assert.deepEqual(JSON.parse(JSON.stringify(invocations)), [
+    { channel: "desktop:outlook-lifecycle:status" },
+    { channel: "desktop:outlook-lifecycle:retry" },
+    {
+      channel: "desktop:outlook-lifecycle:confirm-microsoft",
+      payload: {
+        url: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?client_id=lawos-test",
+        confirmed: true,
+      },
+    },
+    {
+      channel: "desktop:outlook-lifecycle:disconnect",
+      payload: { confirmed: true },
+    },
+  ]);
+  assert.doesNotMatch(
+    source,
+    /private_key|device_public_key|installation_id|principal_ref|sign\s*:/u,
+  );
+});

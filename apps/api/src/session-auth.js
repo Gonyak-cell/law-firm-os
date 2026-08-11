@@ -299,6 +299,21 @@ function tenantRefsForSession(tenantId) {
   });
 }
 
+export function outlookDesktopPrincipalRef(principal = {}) {
+  const tenantId = String(principal.tenant_id ?? "").trim();
+  const userId = String(principal.user_id ?? "").trim();
+  const subjectId = String(principal.entra_subject_id ?? "").trim();
+  if (!tenantId || !userId || !subjectId) return null;
+  return `odpr_${createHash("sha256")
+    .update(JSON.stringify([
+      "lawos.outlook-desktop-principal-ref.v1",
+      tenantId,
+      userId,
+      subjectId,
+    ]))
+    .digest("base64url")}`;
+}
+
 function bearerToken(headers = {}) {
   const value = headers[AUTHORIZATION_HEADER] ?? headers[AUTHORIZATION_HEADER.toUpperCase()] ?? "";
   const match = /^Bearer\s+(.+)$/i.exec(String(value));
@@ -309,6 +324,7 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
   const account = registeredAccountPublicRef(user);
   const hrxScopes = roleAssignment?.hrx_scopes ?? [];
   const tenantIds = account.tenant_ids.length > 0 ? account.tenant_ids : Object.freeze([principal.tenant_id]);
+  const desktopPrincipalRef = outlookDesktopPrincipalRef(principal);
   return Object.freeze({
     state: "signed_in",
     mode: "api-signed-session",
@@ -335,6 +351,9 @@ function publicSession({ user, principal, expiresAt, roleAssignment }) {
     must_change_password: principal.must_change_password === true,
     session_principal_source: "api_signed_session",
     session_source_ref: user.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
+    ...(desktopPrincipalRef
+      ? { outlook_desktop_principal_ref: desktopPrincipalRef }
+      : {}),
     expires_at: expiresAt,
     token_material_returned: false,
   });

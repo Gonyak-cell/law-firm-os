@@ -247,7 +247,9 @@ test("task pane delegates OAuth, filing, activity, and send-event orchestration 
   assert.match(mainSource, /action:\s*disconnectOutlook,[\s\S]*?actionTestId:\s*"outlook-cleanup-retry-button"/u);
   assert.match(mainSource, /data-testid=\{intervention\.actionTestId\}/u);
   assert.match(mainSource, /if \(!graphConnected && !credentialCleanupPending\) return;/u);
-  assert.match(mainSource, /credentialCleanupPending \? "Outlook 연결 정보 정리가 필요합니다\."/u);
+  assert.match(mainSource, /else if \(credentialCleanupPending\) \{[\s\S]*?visibleMessage: "Outlook 연결 정보 정리가 필요합니다\."/u);
+  assert.match(mainSource, /requestJson\("\/api\/outlook\/readiness"\)/u);
+  assert.match(mainSource, /data-testid=\{intervention\.testId\}/u);
   assert.ok(mainSource.includes('render: () => createRoot(document.getElementById("root")).render(<App />)'), "task pane must delegate the first render");
   assert.match(mainSource, /waitForReady:\s*ensureOfficeReady,[\s\S]*?register:\s*registerOutlookEventHandlersOnce/u);
   assert.doesNotMatch(mainSource, /async\s+function\s+mount\s*\([^)]*\)\s*\{[\s\S]*?await\s+(?:window\.Office\.onReady|ensureOfficeReady)/u);
