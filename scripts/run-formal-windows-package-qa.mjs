@@ -7,7 +7,6 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
-  rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,6 +17,7 @@ import { findRegisteredAccountByUserId } from "../apps/api/src/matter-vault-acco
 import { createHrxStepUpAuthority } from "../apps/api/src/hrx-step-up-token.js";
 import { desktopRuntimeStorePaths } from "../apps/desktop/src/main/local-api.js";
 import { directoryDigest, sha256File } from "./lib/matter-desktop-provenance.mjs";
+import { cleanupTemporaryDirectories } from "./lib/windows-formal-cleanup.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const EXPECTED_SOURCE_SHA = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
@@ -258,6 +258,7 @@ const screenshots = [];
 let initialSession;
 let restoredSession;
 let runtime;
+let qaError = null;
 try {
   installed = installPackage();
   const installedManifestPath = path.join(installed.resourcesPath, "matter-build-manifest.json");
@@ -413,9 +414,14 @@ try {
     authenticode: receipt.authenticode,
     screenshots: screenshots.length,
   }, null, 2)}\n`);
+} catch (error) {
+  qaError = error;
+  throw error;
 } finally {
   if (app) await app.close().catch(() => {});
   await new Promise((resolve) => api.server.close(resolve));
-  rmSync(userDataPath, { recursive: true, force: true });
-  if (uninstallCompleted) rmSync(installDir, { recursive: true, force: true });
+  cleanupTemporaryDirectories([
+    userDataPath,
+    ...(uninstallCompleted ? [installDir] : []),
+  ], { priorError: qaError });
 }
