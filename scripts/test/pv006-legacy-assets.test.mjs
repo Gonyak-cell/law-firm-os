@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -12,6 +12,7 @@ import {
   inspectPackagedRenderer,
   scanLegacyAssetReferences,
 } from "../lib/matter-desktop-legacy-assets.mjs";
+import { matterAppRendererUrl } from "../../apps/desktop/src/main/app-protocol.js";
 
 const SOURCE_SHA = "a".repeat(40);
 
@@ -43,6 +44,17 @@ test("PV-006 policy fixes the retired paths and known legacy asset hashes", () =
   assert.ok(FORBIDDEN_LEGACY_ASSET_HASHES.has("bbcfb3c37d84e78be05dfbed517579dbdf50c69ac669e11b2033bbde9bda9cd3"));
   assert.ok(FORBIDDEN_LEGACY_ASSET_HASHES.has("ba260a37a453bc97f5b00cd3e1c529e87bf17a47ff0cc0b6c73d22ac5c4d7424"));
   assert.equal(APPROVED_DESKTOP_ASSET_HASHES.brochure_cover, "5ff1776144df2fff44977494ea3eecdcf1f2d5c96dfc30deba3411bf320ee3bf");
+});
+
+test("PV-006 source contract uses the hardened matter-app renderer entry", () => {
+  const main = readFileSync(new URL("../../apps/desktop/src/main/main.js", import.meta.url), "utf8");
+  const appProtocol = readFileSync(new URL("../../apps/desktop/src/main/app-protocol.js", import.meta.url), "utf8");
+
+  assert.match(main, /import \{ installMatterAppProtocol, matterAppRendererUrl, registerMatterAppScheme \} from "\.\/app-protocol\.js";/);
+  assert.match(main, /export function packagedRendererUrl\(\) \{\s*return matterAppRendererUrl\(\);\s*\}/);
+  assert.doesNotMatch(main, /join\(moduleDir, "\.\.\/renderer\/web\/index\.html"\)/);
+  assert.match(appProtocol, /MATTER_APP_WEB_ROOT = join\(moduleDir, "\.\.\/renderer\/web"\)/);
+  assert.equal(matterAppRendererUrl(), "matter-app://app/index.html?desktop=1");
 });
 
 test("PV-006 active-tree scan catches renamed legacy bytes and stale branding references", () => withFixture((root) => {

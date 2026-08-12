@@ -57,11 +57,24 @@ if (mode === "--source") {
   }
 
   const main = source("apps/desktop/src/main/main.js");
+  const appProtocol = source("apps/desktop/src/main/app-protocol.js");
   const macBuild = source("scripts/build-matter-desktop-mac.mjs");
   const winBuild = source("scripts/build-matter-desktop-win.mjs");
   const packageJson = JSON.parse(source("package.json"));
-  assert.match(main, /join\(moduleDir, "\.\.\/renderer\/web\/index\.html"\)/, "packaged renderer must be the current web entry");
-  assert.match(main, /url\.searchParams\.set\("desktop", "1"\)/, "packaged renderer must enter desktop mode");
+  assert.match(
+    main,
+    /import \{ installMatterAppProtocol, matterAppRendererUrl, registerMatterAppScheme \} from "\.\/app-protocol\.js";/,
+    "desktop main must use the hardened matter-app protocol",
+  );
+  assert.match(
+    main,
+    /export function packagedRendererUrl\(\) \{\s*return matterAppRendererUrl\(\);\s*\}/,
+    "packaged renderer must resolve through the matter-app protocol",
+  );
+  assert.match(appProtocol, /export const MATTER_APP_ORIGIN = `\$\{MATTER_APP_SCHEME\}:\/\/app`;/, "matter-app origin must be fixed");
+  assert.match(appProtocol, /export const MATTER_APP_WEB_ROOT = join\(moduleDir, "\.\.\/renderer\/web"\);/, "matter-app must serve the current web entry");
+  assert.match(appProtocol, /const url = new URL\(`\$\{MATTER_APP_ORIGIN\}\/index\.html`\);/, "matter-app renderer must use the current web entry");
+  assert.match(appProtocol, /url\.searchParams\.set\("desktop", "1"\);/, "packaged renderer must enter desktop mode");
   assert.match(main, /offline\(\?:\\\.matter\)\?\\\.html\$\/i\.test\(pathname\)\) return packagedRendererUrl\(\)/, "stale offline URL must fail over to the current web entry");
   for (const [relativePath, buildSource] of [
     ["scripts/build-matter-desktop-mac.mjs", macBuild],
@@ -72,6 +85,13 @@ if (mode === "--source") {
 
   const scripts = packageJson.scripts ?? {};
   assert.equal(scripts["matter-desktop:legacy-assets:validate"], "node scripts/validate-pv006-legacy-assets.mjs --source");
+  const formalRelease = scripts["matter-desktop:formal-release"] ?? "";
+  const formalPv006Index = formalRelease.indexOf("npm run matter-desktop:legacy-assets:validate");
+  const formalAwsSmokeIndex = formalRelease.indexOf("npm run matter-desktop:aws-runtime:smoke");
+  const formalMacBuildIndex = formalRelease.indexOf("npm --workspace apps/desktop run build:mac");
+  assert.ok(formalPv006Index >= 0, "formal-release must run the source PV-006 gate");
+  assert.ok(formalPv006Index < formalAwsSmokeIndex, "formal-release must run PV-006 before provider smoke");
+  assert.ok(formalPv006Index < formalMacBuildIndex, "formal-release must run PV-006 before build/notary");
   for (const releaseScript of ["matter-desktop:temporary-release", "matter-desktop:formal-release"]) {
     assert.match(scripts[releaseScript] ?? "", /validate-pv006-legacy-assets\.mjs --bundle/, `${releaseScript} must scan both built bundles`);
   }
@@ -83,7 +103,7 @@ if (mode === "--source") {
     active_files_scanned: scan.files_scanned,
     forbidden_references: scan.violations.length,
     approved_asset_hashes: approvedSourceAssets,
-    packaged_entry: "apps/desktop/src/renderer/web/index.html?desktop=1",
+    packaged_entry: "matter-app://app/index.html?desktop=1",
     offline_entry_packaged: false,
     archived_evidence_scanned: false,
   }, null, 2));
