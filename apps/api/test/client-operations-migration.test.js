@@ -26,7 +26,7 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   });
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count,
-    73,
+    74,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.client_schema_migration_count,
@@ -34,7 +34,7 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "bf5c5b759f55924488ca864b0f2194f2454ed5b3f6ef87d200cf7214c132286d",
+    "2750fb228fba9459d4eb5a7a72b03ac941add3e3cef031352b051c7fb3369867",
   );
   assert.deepEqual(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-5).map(
