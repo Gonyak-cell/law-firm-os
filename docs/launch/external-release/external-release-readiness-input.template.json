@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.external-release-readiness-input.v0.2",
+  "tenant_identity_schema_version": "law-firm-os.external-tenant-identity.v1",
+  "status": "BLOCKED_PENDING_EXTERNAL_INPUTS",
+  "release": {
+    "source_sha": null,
+    "source_tree": null,
+    "version": null,
+    "release_channel": "external_pilot"
+  },
+  "pilot": {
+    "pilot_id": null,
+    "law_firm_name": null,
+    "lawos_tenant_id": null,
+    "entra_tenant_id": null,
+    "environment": "external_pilot"
+  },
+  "runtime_assumptions": {
+    "current_runtime_mode": "single_tenant_env_binding",
+    "tenant_environment_variable": "LAWOS_IDENTITY_TENANT_ID",
+    "database_tenant_environment_variable": "LAWOS_DATABASE_TENANT_ID",
+    "federated_tenant_source": "resolved_oidc_protected_config",
+    "issuer_strategy": "https://login.microsoftonline.com/{entra_tenant_id}/v2.0",
+    "provisioning_receipt_alone_satisfies_runtime_binding": false
+  },
+  "evidence_class_policy": {
+    "technical_proof": "Only receipt bytes, declared hashes, and semantic fields count; file presence alone never counts.",
+    "external_provider_inputs": "M365 Entra confirmation and tenant runtime receipts remain unavailable until supplied by the provider or an independently reviewed receipt.",
+    "human_operations_inputs": "Monitoring, support, and rollback ownership remains unavailable until a named owner receipt is supplied.",
+    "human_legal_inputs": "No legal text is authored here; a real legal-owner approval receipt is required."
+  },
+  "gates": {
+    "api_artifact_deployment": {
+      "receipt_ref": null
+    },
+    "tenant_provisioning": {
+      "provisioning_receipt_ref": null,
+      "runtime_binding_receipt_ref": null
+    },
+    "m365_consent_deployment_visibility": {
+      "receipt_ref": null
+    },
+    "macos_distribution": {
+      "receipt_ref": null
+    },
+    "operations_support_rollback": {
+      "receipt_ref": null
+    },
+    "backup_restore_rehearsal": {
+      "receipt_ref": null
+    },
+    "legal_owner_approval": {
+      "receipt_ref": null
+    }
+  },
+  "boundary": {
+    "legacy_tenant_id_fallback_allowed": false,
+    "trust_root_policy": "production_root_not_configured",
+    "provider_calls_authorized_by_input": false,
+    "external_pilot_distribution_approved_by_input": false,
+    "production_cutover_executed_by_input": false,
+    "go_live_claim_by_input": false
+  }
+}

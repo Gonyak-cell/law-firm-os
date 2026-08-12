@@ -1951,10 +1951,13 @@ export function createApiSessionAuth({
     if (payload.typ !== TOKEN_PREFIX || !Number.isFinite(payload.exp) || payload.exp <= now()) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_EXPIRED", "auth_session_expired") });
     }
+    if (!syntheticLoginEnabled && payload.tenant_id !== trustedTenantId) {
+      return Object.freeze({ ok: false, status: 403, body: errorBody(requestId, "AUTH_SESSION_TENANT_DENIED", "auth_session_tenant_denied") });
+    }
     if (!centralIdentityRepository && revokedSessionJtis.has(payload.jti)) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_REVOKED", "auth_session_revoked") });
     }
-    const user = await directoryUserByUserId(payload.user_id, payload.tenant_id ?? trustedTenantId);
+    const user = await directoryUserByUserId(payload.user_id, syntheticLoginEnabled ? payload.tenant_id ?? trustedTenantId : trustedTenantId);
     if (!user) {
       return Object.freeze({ ok: false, status: 401, body: errorBody(requestId, "AUTH_SESSION_UNKNOWN_USER", "auth_session_unknown_user") });
     }
@@ -2247,9 +2250,30 @@ export function createApiSessionAuth({
       } catch {
         return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
       }
-      const user = await directoryUserByUserId(payload.user_id, payload.tenant_id ?? trustedTenantId);
+      if (
+        !payload
+        || typeof payload !== "object"
+        || Array.isArray(payload)
+        || payload.typ !== TOKEN_PREFIX
+        || typeof payload.user_id !== "string"
+        || !payload.user_id.trim()
+        || typeof payload.tenant_id !== "string"
+        || !payload.tenant_id.trim()
+        || typeof payload.jti !== "string"
+        || !payload.jti.trim()
+      ) {
+        return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
+      }
+      if (!Number.isFinite(payload.exp) || payload.exp <= now()) {
+        return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_EXPIRED", "auth_session_expired") });
+      }
+      if (!syntheticLoginEnabled && payload.tenant_id !== trustedTenantId) {
+        return Object.freeze({ status: 403, body: errorBody(requestId, "AUTH_SESSION_TENANT_DENIED", "auth_session_tenant_denied") });
+      }
+      const lookupTenantId = syntheticLoginEnabled ? payload.tenant_id : trustedTenantId;
+      const user = await directoryUserByUserId(payload.user_id, lookupTenantId);
       const tenantId = user ? homeTenantIdForUser(user, trustedTenantId) : null;
-      if (payload.typ !== TOKEN_PREFIX || !user || payload.tenant_id !== tenantId || !payload.jti) {
+      if (!user || payload.tenant_id !== tenantId) {
         return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_SESSION_INVALID", "auth_session_invalid") });
       }
       let revocation;

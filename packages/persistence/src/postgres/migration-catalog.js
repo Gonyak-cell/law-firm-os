@@ -30,6 +30,7 @@ export const POSTGRES_FOUNDATION_MIGRATIONS = Object.freeze([
   loadMigration("012_outlook_document_source_identity", "012_outlook_document_source_identity.sql"),
   loadMigration("013_dms_precedent_search", "013_dms_precedent_search.sql"),
   loadMigration("014_docusign_outbox", "014_docusign_outbox.sql"),
+  loadMigration("015_external_tenant_provisioning", "015_external_tenant_provisioning.sql"),
 ]);
 
 export function listPostgresFoundationMigrations() {

@@ -100,6 +100,7 @@ export function runClientOperationsPostgresMigrations(
       "012_outlook_document_source_identity",
       "013_dms_precedent_search",
       "014_docusign_outbox",
+      "015_external_tenant_provisioning",
     ],
   });
 }

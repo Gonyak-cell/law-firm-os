@@ -1,0 +1,10 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-tenant-config.v1",
+  "pilot_id": "replace-with-named-pilot-id",
+  "firm_id": "replace-with-firm-id",
+  "lawos_tenant_id": "replace-with-lawos-tenant-id",
+  "entra_tenant_id": "00000000-0000-4000-8000-000000000000",
+  "runtime_endpoint": "https://runtime.example.invalid",
+  "issued_at": "1970-01-01T00:00:00.000Z",
+  "expires_at": "1970-01-01T00:00:00.000Z"
+}

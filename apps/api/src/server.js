@@ -233,6 +233,7 @@ import {
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
+import { createPostgresTenantProvisioningLedger } from "../../../packages/runtime-auth/src/postgres-tenant-provisioning.js";
 import {
   createHrxRelationalProjectionReader,
 } from "../../../packages/hrx/src/relational-projection-reader.js";
@@ -255,6 +256,7 @@ import {
   LAWOS_STAFF_AUTH_AUTHORITIES,
   resolveStaffAuthAuthority,
 } from "./staff-auth-authority.js";
+import { assertTenantPinnedExternalRuntime } from "./external-tenant-provisioning.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -2710,6 +2712,14 @@ export async function startApiServer({
           "postgres-v2 startup requires LAWOS_IDENTITY_TENANT_ID or sessionAuth.trusted_tenant_id",
         );
       }
+      await assertTenantPinnedExternalRuntime({
+        tenantLedger: createPostgresTenantProvisioningLedger({ pool: postgresPool }),
+        identityTenantId: startupAuthorityTenantId,
+        databaseTenantId: String(resolvedPersistenceAuthorityEnv.LAWOS_DATABASE_TENANT_ID ?? "").trim() || null,
+        deploymentMode: String(resolvedPersistenceAuthorityEnv.LAWOS_TENANT_DEPLOYMENT_MODE ?? "").trim() || null,
+        staffAuthAuthority: resolvedStaffAuthAuthority,
+        staffOidcProvider: resolvedStaffOidcProvider,
+      });
       let engagementLegacyReadiness;
       try {
         engagementLegacyReadiness = await inspectPostgresEngagementLegacyIdempotency({

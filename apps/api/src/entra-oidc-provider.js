@@ -275,6 +275,7 @@ export function createEntraOidcProvider({
 
   return Object.freeze({
     provider_id: ENTRA_OIDC_PROVIDER_ID,
+    federated_tenant_id: config.tenant_id,
     capabilities: Object.freeze({
       oidc: true,
       pkce_s256: true,

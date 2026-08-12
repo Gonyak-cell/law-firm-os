@@ -1,0 +1,458 @@
+{
+  "schema_version": "law-firm-os.external-release-readiness-contract.v0.2",
+  "receipt_schema_version": "law-firm-os.external-release-receipt.v0.2",
+  "tenant_identity_schema_version": "law-firm-os.external-tenant-identity.v1",
+  "tenant_identity_namespace": {
+    "lawos_tenant_id": {
+      "namespace": "lawos_identity_and_database",
+      "format": "non_empty_lawos_identifier"
+    },
+    "entra_tenant_id": {
+      "namespace": "microsoft_entra",
+      "format": "uuid"
+    },
+    "legacy_tenant_id_fallback_allowed": false
+  },
+  "receipt_trust": {
+    "registry_schema_version": "law-firm-os.external-release-trust-registry.v1",
+    "signature_algorithm": "Ed25519",
+    "detached_signature_required": true,
+    "registry_path_cli_required": false,
+    "registry_sha256_cli_required": false,
+    "caller_supplied_registry_authority": false,
+    "trust_root_policy_version": "law-firm-os.external-release-trust-root-policy.v1",
+    "production_root_configured": false,
+    "production_root_installation_required": true,
+    "root_public_key_spki_sha256": null,
+    "root_signed_registry_required": true,
+    "test_only_injected_registry_allowed": true,
+    "signed_scope_fields": [
+      "receipt_source",
+      "receipt_type",
+      "key_id",
+      "pilot_id",
+      "lawos_tenant_id",
+      "entra_tenant_id",
+      "source_sha",
+      "source_tree",
+      "version",
+      "artifact_sha256",
+      "binding_sha256",
+      "role",
+      "operation"
+    ],
+    "registry_key_required_scopes": [
+      "allowed_receipt_sources",
+      "allowed_receipt_types",
+      "allowed_pilot_ids",
+      "allowed_lawos_tenant_ids",
+      "allowed_entra_tenant_ids",
+      "allowed_source_shas",
+      "allowed_source_trees",
+      "allowed_versions",
+      "allowed_roles",
+      "allowed_operations",
+      "allowed_artifact_sha256s",
+      "allowed_binding_sha256s"
+    ],
+    "required_receipt_binding_fields": [
+      "source_sha",
+      "source_tree",
+      "version",
+      "pilot_id",
+      "lawos_tenant_id",
+      "entra_tenant_id",
+      "artifact_sha256",
+      "binding_sha256",
+      "role",
+      "operation"
+    ]
+  },
+  "status": "governance_contract",
+  "scope": {
+    "release_track": "named_external_law_firm_pilot",
+    "evidence_only": true,
+    "provider_calls_allowed": false,
+    "source_of_truth_position": "independent_fail_closed_external_release_matrix",
+    "does_not_replace": [
+      "production_ready",
+      "go_live_approval",
+      "provider_deployment",
+      "human_or_legal_approval"
+    ]
+  },
+  "claim_policy": {
+    "external_pilot_distribution_approved_by_validator": false,
+    "production_cutover_executed_by_validator": false,
+    "go_live_claim_by_validator": false,
+    "file_presence_is_evidence": false,
+    "pending_external_inputs_count_as_proof": false
+  },
+  "runtime_admission": {
+    "current_runtime_mode": "single_tenant_env_binding",
+    "tenant_environment_variable": "LAWOS_IDENTITY_TENANT_ID",
+    "database_tenant_environment_variable": "LAWOS_DATABASE_TENANT_ID",
+    "federated_tenant_source": "resolved_oidc_protected_config",
+    "issuer_strategy": "https://login.microsoftonline.com/{entra_tenant_id}/v2.0",
+    "provisioning_receipt_alone_satisfies_runtime_binding": false,
+    "allowed_runtime_receipts": [
+      "tenant_pinned_runtime_binding",
+      "multi_tenant_runtime_review"
+    ],
+    "multi_tenant_review_requirements": [
+      "review_status_APPROVED",
+      "per_request_tenant_and_issuer_validation",
+      "isolation_negative_tests_PASS",
+      "independent_review_reference"
+    ]
+  },
+  "gate_order": [
+    "api_artifact_deployment",
+    "tenant_provisioning",
+    "m365_consent_deployment_visibility",
+    "macos_distribution",
+    "operations_support_rollback",
+    "backup_restore_rehearsal",
+    "legal_owner_approval"
+  ],
+  "execution_order": [
+    "api_artifact_deployment",
+    "internal_provisioning_adapter",
+    "tenant_pinned_runtime_binding_or_multi_tenant_review",
+    "m365_consent_deployment_visibility",
+    "macos_distribution",
+    "operations_support_rollback",
+    "backup_restore_rehearsal",
+    "legal_owner_approval"
+  ],
+  "gates": {
+    "api_artifact_deployment": {
+      "evidence_class": "technical",
+      "input_path": "gates.api_artifact_deployment.receipt_ref",
+      "receipt_type": "api_artifact_deployment",
+      "tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_role": "release_pipeline",
+      "required_operation": "api_artifact_deployment",
+      "accepted_verdicts": ["PASS"],
+      "required_source": "release_pipeline",
+      "required_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "deployment"
+      ],
+      "deployment_required_fields": [
+        "status",
+        "target",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "binding_sha256",
+        "version",
+        "deployed_at",
+        "deployment_receipt_id"
+      ]
+    },
+    "tenant_provisioning": {
+      "evidence_class": "external_provider",
+      "input_paths": {
+        "provisioning": "gates.tenant_provisioning.provisioning_receipt_ref",
+        "runtime_binding": "gates.tenant_provisioning.runtime_binding_receipt_ref"
+      },
+      "provisioning_receipt_type": "tenant_provisioning_adapter",
+      "provisioning_receipt_source": "internal_provisioning_adapter",
+      "accepted_verdicts": ["PASS"],
+      "runtime_accepted_verdicts": ["PASS", "APPROVED"],
+      "provisioning_tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_provisioning_role": "internal_provisioning_adapter",
+      "required_provisioning_operation": "tenant_provisioning_adapter",
+      "required_runtime_roles": ["external_provider", "independent_runtime_review"],
+      "required_runtime_operation": "tenant_runtime_binding",
+      "runtime_receipt_types": [
+        "tenant_pinned_runtime_binding",
+        "multi_tenant_runtime_review"
+      ],
+      "runtime_receipt_sources": [
+        "external_provider",
+        "independent_runtime_review"
+      ],
+      "required_provisioning_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "internal_receipt_ref",
+        "internal_receipt_schema_version",
+        "manifest_ref",
+        "manifest_schema_version",
+        "provisioning"
+      ],
+      "provisioning_required_fields": [
+        "status",
+        "namespace",
+        "provisioned_at",
+        "provisioning_receipt_id"
+      ],
+      "required_runtime_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "runtime"
+      ],
+      "required_tenant_pinned_runtime_fields": [
+        "binding_mode",
+        "identity_tenant_id",
+        "database_tenant_id",
+        "federated_tenant_id",
+        "issuer",
+        "config_ref",
+        "resolved_oidc_config_version",
+        "resolved_oidc_config_sha256",
+        "resolved_oidc_config_protected",
+        "safe_tenant_projection",
+        "deployment_receipt_id",
+        "deployed_at"
+      ],
+      "tenant_pinned_config_required_fields": [
+        "LAWOS_IDENTITY_TENANT_ID",
+        "LAWOS_DATABASE_TENANT_ID",
+        "config_version",
+        "resolved_oidc"
+      ],
+      "safe_tenant_projection_required_fields": [
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "deployment_mode",
+        "staff_auth_authority"
+      ]
+    },
+    "m365_consent_deployment_visibility": {
+      "evidence_class": "external_provider",
+      "input_path": "gates.m365_consent_deployment_visibility.receipt_ref",
+      "receipt_type": "m365_consent_deployment_visibility",
+      "tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_role": "microsoft_365_provider",
+      "required_operation": "m365_consent_deployment_visibility",
+      "accepted_verdicts": ["PASS"],
+      "required_source": "microsoft_365_provider",
+      "required_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "entra_tenant_id",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "source_sha",
+        "product_id",
+        "consent",
+        "deployment",
+        "visibility"
+      ],
+      "required_visibility_fields": [
+        "positive",
+        "negative"
+      ]
+    },
+    "macos_distribution": {
+      "evidence_class": "technical",
+      "input_path": "gates.macos_distribution.receipt_ref",
+      "receipt_type": "macos_distribution_artifacts",
+      "tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_role": "release_pipeline",
+      "required_operation": "macos_distribution_artifacts",
+      "accepted_verdicts": ["PASS"],
+      "required_source": "release_pipeline",
+      "required_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "source_sha",
+        "version",
+        "signing",
+        "artifacts"
+      ],
+      "artifact_ref_names": [
+        "package",
+        "checksums",
+        "sbom"
+      ]
+    },
+    "operations_support_rollback": {
+      "evidence_class": "human_operations",
+      "input_path": "gates.operations_support_rollback.receipt_ref",
+      "receipt_type": "operations_support_rollback",
+      "tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_role": "operations_owner",
+      "required_operation": "operations_support_rollback",
+      "accepted_verdicts": ["PASS"],
+      "required_source": "operations_owner",
+      "required_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "owners",
+        "runbooks",
+        "incident_channel",
+        "observed_at",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation"
+      ],
+      "required_owner_fields": [
+        "monitoring_owner",
+        "support_owner",
+        "rollback_owner"
+      ],
+      "required_runbook_fields": [
+        "monitoring",
+        "support",
+        "rollback"
+      ]
+    },
+    "backup_restore_rehearsal": {
+      "evidence_class": "technical",
+      "input_path": "gates.backup_restore_rehearsal.receipt_ref",
+      "receipt_type": "backup_restore_rehearsal",
+      "tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_role": "release_pipeline",
+      "required_operation": "backup_restore_rehearsal",
+      "accepted_verdicts": ["PASS"],
+      "required_source": "release_pipeline",
+      "required_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "rehearsal"
+      ],
+      "required_rehearsal_fields": [
+        "status",
+        "backup_ref",
+        "expected_state_sha256",
+        "restored_state_sha256",
+        "exact_restore",
+        "rpo_seconds",
+        "rto_seconds",
+        "approved_threshold_ref",
+        "started_at",
+        "finished_at"
+      ]
+    },
+    "legal_owner_approval": {
+      "evidence_class": "human_legal",
+      "input_path": "gates.legal_owner_approval.receipt_ref",
+      "receipt_type": "legal_owner_approval",
+      "tenant_binding_fields": ["lawos_tenant_id", "entra_tenant_id"],
+      "required_role": "legal_owner",
+      "required_operation": "legal_owner_approval",
+      "accepted_verdicts": ["APPROVED"],
+      "required_source": "legal_owner",
+      "required_fields": [
+        "receipt_type",
+        "verdict",
+        "receipt_source",
+        "key_id",
+        "issued_at",
+        "expires_at",
+        "pilot_id",
+        "lawos_tenant_id",
+        "entra_tenant_id",
+        "source_sha",
+        "source_tree",
+        "artifact_sha256",
+        "version",
+        "binding_sha256",
+        "role",
+        "operation",
+        "approval"
+      ],
+      "required_approval_fields": [
+        "decision",
+        "owner",
+        "approval_ref",
+        "scope_ref",
+        "received_at"
+      ]
+    }
+  }
+}
