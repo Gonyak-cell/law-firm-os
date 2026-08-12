@@ -9,7 +9,7 @@ const usage = "usage: node scripts/validate-pv001-desktop-version.mjs [--source|
 const command = process.argv[2] ?? "--source";
 if (command === "--help") {
   console.log(usage);
-  console.log("Checks the 0.1.17 source version owners, then optionally verifies the generated Mac and Windows package metadata and hashes.");
+  console.log("Checks the desktop workspace version owners, then optionally verifies the generated internal Mac and Windows package metadata and hashes.");
   process.exit(0);
 }
 if (!["--source", "--package"].includes(command) || process.argv.length > 3) {
@@ -20,7 +20,6 @@ if (!["--source", "--package"].includes(command) || process.argv.length > 3) {
 const ROOT = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
 if (path.resolve(ROOT) !== path.resolve(process.cwd())) throw new Error(`run from repository root: ${ROOT}`);
 
-const EXPECTED_VERSION = "0.1.17";
 const rootPackagePath = path.join(ROOT, "package.json");
 const lockPath = path.join(ROOT, "package-lock.json");
 const desktopPackagePath = path.join(ROOT, "apps/desktop/package.json");
@@ -75,6 +74,7 @@ function validateSource() {
   const rootPackage = readJson(rootPackagePath);
   const lock = readJson(lockPath);
   const desktopPackage = readJson(desktopPackagePath);
+  const expectedVersion = desktopPackage.version;
   const versions = {
     root_package: rootPackage.version,
     lock_root: lock.version,
@@ -82,8 +82,19 @@ function validateSource() {
     desktop_package: desktopPackage.version,
     lock_desktop_workspace: lock.packages?.["apps/desktop"]?.version,
   };
-  const mismatches = Object.entries(versions).filter(([, version]) => version !== EXPECTED_VERSION);
-  assert.deepEqual(mismatches, [], `source version mismatch: ${JSON.stringify(mismatches)}`);
+  const desktopVersionOwners = {
+    desktop_package: versions.desktop_package,
+    lock_desktop_workspace: versions.lock_desktop_workspace,
+  };
+  const rootVersionOwners = {
+    root_package: versions.root_package,
+    lock_root: versions.lock_root,
+    lock_workspace_root: versions.lock_workspace_root,
+  };
+  const desktopMismatches = Object.entries(desktopVersionOwners).filter(([, version]) => version !== expectedVersion);
+  const rootMismatches = Object.entries(rootVersionOwners).filter(([, version]) => version !== versions.root_package);
+  assert.deepEqual(desktopMismatches, [], `desktop source version mismatch: ${JSON.stringify(desktopMismatches)}`);
+  assert.deepEqual(rootMismatches, [], `root source version mismatch: ${JSON.stringify(rootMismatches)}`);
 
   const electronBuilder = readFileSync(electronBuilderPath, "utf8");
   const macBuild = readFileSync(macBuildPath, "utf8");
@@ -102,9 +113,14 @@ function validateSource() {
   assert.doesNotMatch(updateController, /\b0\.1\.\d+\b/, "update controller must consume metadata.version instead of hard-coding a release version");
 
   return {
-    expected_version: EXPECTED_VERSION,
+    expected_version: expectedVersion,
     versions,
-    version_mismatch_count: mismatches.length,
+    desktop_version_owners: desktopVersionOwners,
+    root_version_owners: rootVersionOwners,
+    root_version_lineage_is_independent: true,
+    desktop_version_mismatch_count: desktopMismatches.length,
+    root_version_mismatch_count: rootMismatches.length,
+    version_mismatch_count: desktopMismatches.length + rootMismatches.length,
     dynamic_build_metadata: true,
     dynamic_update_metadata: true,
   };

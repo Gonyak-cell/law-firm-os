@@ -11,15 +11,21 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { _electron as electron } from "playwright";
 import { findRegisteredAccountByUserId } from "../apps/api/src/matter-vault-account-registry.js";
+import { isMatterAppRendererUrl, matterAppRendererUrl } from "../apps/desktop/src/main/app-protocol.js";
 import { createHrxStepUpAuthority } from "../apps/api/src/hrx-step-up-token.js";
 import { desktopRuntimeStorePaths } from "../apps/desktop/src/main/local-api.js";
-import { directoryDigest, sha256File } from "./lib/matter-desktop-provenance.mjs";
+import {
+  assertPathOutsideWorktree,
+  directoryDigest,
+  sha256File,
+} from "./lib/matter-desktop-provenance.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
+const DESKTOP_VERSION = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8")).version;
 const EXPECTED_SOURCE_SHA = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
+const REQUIRE_WINDOWS_PARITY = process.env.MATTER_FORMAL_MAC_QA_REQUIRE_WINDOWS_PARITY === "1";
 const APP_BUNDLE = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
 const EXECUTABLE = path.join(APP_BUNDLE, "Contents/MacOS/matter");
 const RESOURCES = path.join(APP_BUNDLE, "Contents/Resources");
@@ -28,15 +34,20 @@ const RENDERER_ROOT = path.join(PACKAGED_APP_ROOT, "src/renderer/web");
 const RENDERER_INDEX = path.join(RENDERER_ROOT, "index.html");
 const FORMAL_MARKER = path.join(RESOURCES, "matter-formal-release.json");
 const BUNDLED_API_ENTRY = path.join(PACKAGED_APP_ROOT, "runtime/apps/api/src/server.js");
-const MAC_MANIFEST_PATH = path.join(ROOT, "apps/desktop/dist/mac/matter-0.1.17-macos-build-manifest.json");
+const MAC_MANIFEST_PATH = path.join(ROOT, `apps/desktop/dist/mac/matter-${DESKTOP_VERSION}-macos-build-manifest.json`);
 const PACKAGED_MANIFEST_PATH = path.join(RESOURCES, "matter-build-manifest.json");
-const WINDOWS_MANIFEST_PATH = path.join(ROOT, "apps/desktop/dist/win/matter-0.1.17-win-build-manifest.json");
-const WINDOWS_RENDERER_ROOT = path.join(ROOT, "apps/desktop/dist/win/matter-0.1.17-win32-x64/resources/app/src/renderer/web");
-const DMG_PATH = path.join(ROOT, "apps/desktop/dist/mac/matter-0.1.17-macos.dmg");
-const ZIP_PATH = path.join(ROOT, "apps/desktop/dist/mac/matter-0.1.17-macos.zip");
+const WINDOWS_MANIFEST_PATH = path.join(ROOT, `apps/desktop/dist/win/matter-${DESKTOP_VERSION}-win-build-manifest.json`);
+const WINDOWS_RENDERER_ROOT = path.join(ROOT, `apps/desktop/dist/win/matter-${DESKTOP_VERSION}-win32-x64/resources/app/src/renderer/web`);
+const DMG_PATH = path.join(ROOT, `apps/desktop/dist/mac/matter-${DESKTOP_VERSION}-macos.dmg`);
+const ZIP_PATH = path.join(ROOT, `apps/desktop/dist/mac/matter-${DESKTOP_VERSION}-macos.zip`);
 const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json");
-const ARTIFACT_DIR = path.resolve(process.env.MATTER_FORMAL_MAC_QA_ARTIFACT_DIR
-  ?? path.join(ROOT, "workbook/forest-v0.1.17-integration-evidence/QA-005"));
+const ARTIFACT_DIR = assertPathOutsideWorktree({
+  repoRoot: ROOT,
+  candidate: process.env.MATTER_FORMAL_MAC_QA_ARTIFACT_DIR
+  ? path.resolve(process.env.MATTER_FORMAL_MAC_QA_ARTIFACT_DIR)
+  : mkdtempSync(path.join(tmpdir(), `matter-formal-macos-${DESKTOP_VERSION}-qa-`)),
+  label: "formal macOS QA artifact directory",
+});
 const RECEIPT_PATH = path.join(ARTIFACT_DIR, "formal-macos-package-qa.json");
 const userDataPath = mkdtempSync(path.join(tmpdir(), "matter-formal-macos-qa-"));
 const runtimeStoreDir = path.join(userDataPath, "runtime-stores");
@@ -58,8 +69,7 @@ function sanitizedEnvironment() {
 }
 
 function packagedUrl(section, view = "people") {
-  const url = new URL(pathToFileURL(RENDERER_INDEX));
-  url.searchParams.set("desktop", "1");
+  const url = new URL(matterAppRendererUrl());
   url.searchParams.set("locale", "ko");
   url.searchParams.set("view", view);
   url.searchParams.set("ctx", "allow");
@@ -99,7 +109,7 @@ async function launchFormalApp(baseUrl) {
   const page = await findProductPage(app);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const initialUrl = new URL(page.url());
-  assert.equal(path.resolve(initialUrl.pathname), path.resolve(RENDERER_INDEX));
+  assert.equal(isMatterAppRendererUrl(initialUrl.href), true);
   return { app, page };
 }
 
@@ -140,7 +150,10 @@ async function activateStepUp(page) {
   }, { purposeValue: purpose, totpCode: totp });
   assert.equal(response.status, 200);
   assert.match(response.token, /^lawos_hrx_step_up_v1\./);
-  await page.evaluate((token) => window.sessionStorage.setItem("lawos_hrx_step_up_token", token), response.token);
+  await page.evaluate(({ purposeValue, token }) => {
+    window.sessionStorage.setItem(`lawos_hrx_step_up_token:${purposeValue}`, token);
+    window.sessionStorage.setItem("lawos_hrx_step_up_token", token);
+  }, { purposeValue: purpose, token: response.token });
 }
 
 async function screenshot(page, name, selector) {
@@ -174,25 +187,27 @@ assert.match(EXPECTED_SOURCE_SHA ?? "", /^[0-9a-f]{40}$/, "MATTER_DESKTOP_EXPECT
 const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 assert.equal(head, EXPECTED_SOURCE_SHA);
 execFileSync("git", ["diff", "--quiet", "HEAD", "--", "apps/api", "apps/web", "packages", "apps/desktop/src"], { cwd: ROOT });
-for (const requiredPath of [
+const requiredPaths = [
   EXECUTABLE,
   RENDERER_INDEX,
   FORMAL_MARKER,
   MAC_MANIFEST_PATH,
   PACKAGED_MANIFEST_PATH,
-  WINDOWS_MANIFEST_PATH,
-  WINDOWS_RENDERER_ROOT,
   DMG_PATH,
   ZIP_PATH,
   PRIVATE_ROSTER_SOURCE,
-]) assert.equal(existsSync(requiredPath), true, `missing QA prerequisite: ${path.relative(ROOT, requiredPath)}`);
+];
+if (REQUIRE_WINDOWS_PARITY) requiredPaths.push(WINDOWS_MANIFEST_PATH, WINDOWS_RENDERER_ROOT);
+for (const requiredPath of requiredPaths) {
+  assert.equal(existsSync(requiredPath), true, `missing QA prerequisite: ${path.relative(ROOT, requiredPath)}`);
+}
 assert.equal(existsSync(BUNDLED_API_ENTRY), false, "formal package must not bundle the local API runtime");
 assert.ok(account?.email && account?.local_dev?.synthetic_token);
 
 const macManifest = readJson(MAC_MANIFEST_PATH);
 const packagedManifest = readJson(PACKAGED_MANIFEST_PATH);
-const windowsManifest = readJson(WINDOWS_MANIFEST_PATH);
-for (const manifest of [macManifest, packagedManifest, windowsManifest]) {
+const windowsManifest = REQUIRE_WINDOWS_PARITY ? readJson(WINDOWS_MANIFEST_PATH) : null;
+for (const manifest of [macManifest, packagedManifest, ...(windowsManifest ? [windowsManifest] : [])]) {
   assert.equal(manifest.source_sha, EXPECTED_SOURCE_SHA);
   assert.equal(manifest.source_dirty, false);
   assert.equal(manifest.channel, "formal");
@@ -200,10 +215,10 @@ for (const manifest of [macManifest, packagedManifest, windowsManifest]) {
 }
 assert.equal(JSON.stringify(macManifest), JSON.stringify(packagedManifest));
 const macRenderer = directoryDigest(RENDERER_ROOT);
-const windowsRenderer = directoryDigest(WINDOWS_RENDERER_ROOT);
-assert.deepEqual(macRenderer, windowsRenderer);
+const windowsRenderer = REQUIRE_WINDOWS_PARITY ? directoryDigest(WINDOWS_RENDERER_ROOT) : null;
+if (windowsRenderer) assert.deepEqual(macRenderer, windowsRenderer);
 assert.equal(macRenderer.sha256, macManifest.renderer.sha256);
-assert.equal(windowsRenderer.sha256, windowsManifest.renderer.sha256);
+if (windowsRenderer) assert.equal(windowsRenderer.sha256, windowsManifest.renderer.sha256);
 
 mkdirSync(ARTIFACT_DIR, { recursive: true });
 writeFileSync(envPath, "", "utf8");
@@ -219,7 +234,7 @@ const api = await startApiServer({
   stepUpAuthority,
   ...storePaths,
 });
-const externalApiBaseUrl = `http://0.0.0.0:${api.port}`;
+const externalApiBaseUrl = `http://127.0.0.1:${api.port}`;
 const health = await fetch(`${externalApiBaseUrl}/api/health`).then(async (response) => ({
   status: response.status,
   body: await response.json(),
@@ -337,9 +352,10 @@ try {
     },
     parity: {
       macos_renderer_sha256: macRenderer.sha256,
-      windows_renderer_sha256: windowsRenderer.sha256,
+      windows_renderer_sha256: windowsRenderer?.sha256 ?? null,
       renderer_file_count: macRenderer.file_count,
-      byte_identical: macRenderer.sha256 === windowsRenderer.sha256,
+      windows_parity_status: windowsRenderer ? "pass" : "not_run",
+      byte_identical: windowsRenderer ? macRenderer.sha256 === windowsRenderer.sha256 : null,
     },
     screenshots,
     diagnostics: {

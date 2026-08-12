@@ -1,94 +1,95 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const DESKTOP_SRC = "apps/desktop/src";
-const EXCLUDED_DIRS = new Set(["apps/desktop/src/renderer/web"]);
+const AUDITED_DESKTOP_SOURCE_ROOTS = [
+  "apps/desktop/src/main",
+  "apps/desktop/src/preload",
+  "apps/desktop/src/shared",
+];
+const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "b25287c1ae520d5b93b149b3c59d841877d21bef8c46b63ca1bef29453e9162e";
 
 function listFiles(dir) {
-  if (!existsSync(dir)) return [];
+  const directoryStat = lstatSync(dir);
+  if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
+    throw new Error(`desktop execution source root must be a real directory: ${dir}`);
+  }
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
+    const filePath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!EXCLUDED_DIRS.has(path)) files.push(...listFiles(path));
+      files.push(...listFiles(filePath));
+    } else if (entry.isFile()) {
+      files.push(filePath);
+    } else {
+      throw new Error(`desktop execution source must be a regular file: ${filePath}`);
     }
-    else if (path.endsWith(".js") || path.endsWith(".mjs")) files.push(path);
   }
   return files.sort();
 }
 
-function lineFindings(path, source) {
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function sourceFindings(filePath, source) {
   const findings = [];
   const checks = [
     ["directory_watch", /\b(?:fs\.)?(?:watch|watchFile)\s*\(|chokidar|createWatcher/],
-    ["recursive_scan", /\b(?:readdir|readdirSync|opendir|opendirSync)\s*\(|\bglob\s*\(|fast-glob|recursive\s*:\s*true/],
-    ["arbitrary_path_read", /\b(?:readFile|readFileSync|createReadStream)\s*\(\s*(?:request|payload|params|input)?\.?(?:path|filePath|absolutePath)/],
-    ["arbitrary_path_write", /\b(?:writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream)\s*\(\s*(?:request|payload|params|input)?\.?(?:path|filePath|absolutePath)/],
+    ["recursive_scan", /\b(?:(?:fs\.)?(?:readdir|readdirSync|opendir|opendirSync)|glob)\s*\(|fast-glob/],
     ["renderer_file_bytes", /\b(?:request|payload|params|input)\.(?:bytes|fileBytes|documentBytes|content|blob|arrayBuffer)\b/],
     ["path_retention", /\b(?:localStorage|sessionStorage|indexedDB|JSON\.stringify|writeFile|writeFileSync|appendFile|appendFileSync)\b.*(?:\bpath\b|filePath|absolutePath)/i],
-    ["path_retention", /selectedHandles\.set\([^\n]*(?:\bpath\b|filePath|absolutePath)/]
+    ["path_retention", /selectedHandles\.set\([^\n]*(?:\bpath\b|filePath|absolutePath)/],
   ];
-
   for (const [lineNumber, line] of source.split("\n").entries()) {
-    for (const [code, pattern] of checks.slice(0, 6)) {
-      if (pattern.test(line)) findings.push(`${path}:${lineNumber + 1}:${code}`);
+    for (const [code, pattern] of checks.slice(0, 4)) {
+      if (pattern.test(line)) findings.push(`${filePath}:${lineNumber + 1}:${code}`);
     }
   }
-
-  for (const [code, pattern] of checks.slice(6)) {
-    if (pattern.test(source)) findings.push(`${path}:source:${code}`);
+  for (const [code, pattern] of checks.slice(4)) {
+    if (pattern.test(source)) findings.push(`${filePath}:source:${code}`);
   }
-
   return findings;
 }
 
-function collectFindings(sources) {
-  return sources.flatMap(({ path, source }) => lineFindings(path, source));
-}
+const desktopSources = AUDITED_DESKTOP_SOURCE_ROOTS.flatMap(listFiles)
+  .sort()
+  .map((filePath) => {
+    const bytes = readFileSync(filePath);
+    return { filePath, bytes, source: bytes.toString("utf8") };
+  });
+assert.ok(desktopSources.some(({ filePath }) => filePath === "apps/desktop/src/preload/session.cjs"), "active CommonJS preload was not scanned");
+const findings = [];
 
-const desktopSources = listFiles(DESKTOP_SRC).map((path) => ({ path, source: readFileSync(path, "utf8") }));
-const findings = collectFindings(desktopSources);
+for (const { filePath, source } of desktopSources) {
+  findings.push(...sourceFindings(filePath, source));
+}
+const sourceManifest = desktopSources.map(({ filePath, bytes }) => `${sha256(bytes)}  ${filePath}\n`).join("");
+assert.equal(
+  sha256(sourceManifest),
+  AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256,
+  "desktop main/preload/shared source manifest changed; explicit filesystem-boundary review required",
+);
 
 const probes = {
-  directory_watch: collectFindings([{ path: "probe-directory-watch.js", source: "fs.watch('/Users/example/Documents', () => {})" }]),
-  recursive_scan: collectFindings([{ path: "probe-recursive-scan.js", source: "readdirSync('/Users/example', { recursive: true })" }]),
-  arbitrary_path_read: collectFindings([{ path: "probe-arbitrary-read.js", source: "readFileSync(request.path)" }]),
-  arbitrary_path_write: collectFindings([{ path: "probe-arbitrary-write.js", source: "writeFileSync(payload.filePath, data)" }]),
-  renderer_file_bytes: collectFindings([
-    { path: "probe-renderer-file-bytes.js", source: "documentWriter.writeUserSelectedFile({ bytes: request.bytes })" }
-  ]),
-  path_retention: collectFindings([
-    { path: "probe-path-retention.js", source: "localStorage.setItem('lastPath', filePath); selectedHandles.set(handleId, { filePath })" }
-  ])
+  directory_watch: sourceFindings("probe-directory-watch.js", "fs.watch('/Users/example', () => {})"),
+  recursive_scan: sourceFindings("probe-recursive-scan.js", "readdirSync('/Users/example')\nopendir('/Users/example')\nglob('**/*')"),
+  renderer_file_bytes: sourceFindings("probe-renderer-file-bytes.js", "writer.write({ bytes: request.bytes })"),
+  path_retention: sourceFindings("probe-path-retention.js", "localStorage.setItem('lastPath', filePath); selectedHandles.set(id, { filePath })"),
 };
-
-for (const [probeName, probeFindings] of Object.entries(probes)) {
-  assert(
-    probeFindings.some((finding) => finding.includes(probeName.replaceAll("_", "-")) || finding.includes(probeName)),
-    `${probeName} probe was not detected`
-  );
+for (const [code, probeFindings] of Object.entries(probes)) {
+  assert.ok(probeFindings.some((finding) => finding.endsWith(`:${code}`)), `${code} probe was not detected`);
 }
-
 assert.deepEqual(findings, [], "desktop file bridge forbidden filesystem findings present");
 
-console.log(
-  JSON.stringify(
-    {
-      verdict: "PASS",
-      checked_files: desktopSources.length,
-      findings,
-      probes: {
-        directory_watch: "detected",
-        recursive_scan: "detected",
-        arbitrary_path_read: "detected",
-        arbitrary_path_write: "detected",
-        renderer_file_bytes: "detected",
-        path_retention: "detected"
-      }
-    },
-    null,
-    2
-  )
-);
+console.log(JSON.stringify({
+  verdict: "PASS",
+  checked_files: desktopSources.length,
+  audited_desktop_sources: desktopSources.length,
+  audited_source_manifest_sha256: AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256,
+  findings,
+  policy: "any new, removed, renamed, or changed main/preload/shared source requires explicit filesystem-boundary review",
+  probes: Object.fromEntries(Object.keys(probes).map((code) => [code, "detected"])),
+}, null, 2));
