@@ -1,21 +1,31 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const DESKTOP_SRC = "apps/desktop/src";
-const EXCLUDED_DIRS = new Set(["apps/desktop/src/renderer/web"]);
+const AUDITED_DESKTOP_SOURCE_ROOTS = [
+  "apps/desktop/src/main",
+  "apps/desktop/src/preload",
+  "apps/desktop/src/shared",
+];
 const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "b25287c1ae520d5b93b149b3c59d841877d21bef8c46b63ca1bef29453e9162e";
 
 function listFiles(dir) {
-  if (!existsSync(dir)) return [];
+  const directoryStat = lstatSync(dir);
+  if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
+    throw new Error(`desktop execution source root must be a real directory: ${dir}`);
+  }
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const filePath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!EXCLUDED_DIRS.has(filePath)) files.push(...listFiles(filePath));
-    } else if ([".js", ".mjs", ".cjs"].some((extension) => filePath.endsWith(extension))) files.push(filePath);
+      files.push(...listFiles(filePath));
+    } else if (entry.isFile()) {
+      files.push(filePath);
+    } else {
+      throw new Error(`desktop execution source must be a regular file: ${filePath}`);
+    }
   }
   return files.sort();
 }
@@ -44,14 +54,19 @@ function sourceFindings(filePath, source) {
   return findings;
 }
 
-const desktopSources = listFiles(DESKTOP_SRC).map((filePath) => ({ filePath, source: readFileSync(filePath, "utf8") }));
+const desktopSources = AUDITED_DESKTOP_SOURCE_ROOTS.flatMap(listFiles)
+  .sort()
+  .map((filePath) => {
+    const bytes = readFileSync(filePath);
+    return { filePath, bytes, source: bytes.toString("utf8") };
+  });
 assert.ok(desktopSources.some(({ filePath }) => filePath === "apps/desktop/src/preload/session.cjs"), "active CommonJS preload was not scanned");
 const findings = [];
 
 for (const { filePath, source } of desktopSources) {
   findings.push(...sourceFindings(filePath, source));
 }
-const sourceManifest = desktopSources.map(({ filePath, source }) => `${sha256(source)}  ${filePath}\n`).join("");
+const sourceManifest = desktopSources.map(({ filePath, bytes }) => `${sha256(bytes)}  ${filePath}\n`).join("");
 assert.equal(
   sha256(sourceManifest),
   AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256,

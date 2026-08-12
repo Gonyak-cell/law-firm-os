@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
 import {
   PASSWORD_RESET_DEEP_LINK_CHANNEL,
@@ -527,8 +529,27 @@ test("macOS app bundle uses matter.icns instead of inherited Electron icon metad
   assert.match(macBuildSource, /CFBundleURLTypes/);
   assert.match(macBuildSource, /CFBundleURLSchemes:0 string matter/);
   assert.doesNotMatch(macBuildSource, /packagedIconPath\s*=\s*join\(resourcesDir,\s*"electron\.icns"\)/);
-  assert.match(macBuildSource, /MATTER_DESKTOP_BUILD_RECEIPT !== "0"/);
   assert.match(macBuildSource, /receipt: writeBuildReceipt \? [^:]+ : null/);
+});
+
+test("formal macOS builds reject disabling the external receipt before packaging", () => {
+  const buildScript = fileURLToPath(new URL("../../../scripts/build-matter-desktop-mac.mjs", import.meta.url));
+  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const result = spawnSync(process.execPath, [buildScript], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      MATTER_DESKTOP_BUILD_RECEIPT: "0",
+      MATTER_DESKTOP_RELEASE_CHANNEL: "formal",
+    },
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assert.notEqual(result.status, 0, output);
+  assert.match(output, /formal builds cannot disable the external build receipt/);
+  assert.doesNotMatch(output, /notarytool|Developer ID Application|electron-packager/i);
 });
 
 test("desktop shell blocks unapproved renderer target and remote navigation", async () => {

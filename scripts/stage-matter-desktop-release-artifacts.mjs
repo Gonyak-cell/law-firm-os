@@ -169,6 +169,9 @@ for (const [platform, receipt] of [["macOS", macReceipt], ...(windowsReceipt ? [
   assert.equal(receiptValue(receipt, "Source tree"), sourceIdentity.sourceTree, platform + " receipt source tree mismatch");
   assert.equal(receiptValue(receipt, "Source dirty"), "false", platform + " receipt source dirtiness mismatch");
 }
+assert.equal(receiptValue(macReceipt, "Build manifest SHA-256"), sha256(macManifestBody), "macOS receipt build manifest hash mismatch");
+assert.equal(receiptValue(macReceipt, "ZIP SHA-256"), sha256(await readFile(generic.mac.zip)), "macOS receipt ZIP hash mismatch");
+assert.equal(receiptValue(macReceipt, "DMG SHA-256"), sha256(await readFile(generic.mac.dmg)), "macOS receipt DMG hash mismatch");
 
 const stagedSpecs = [
   ["macos_zip_archive", generic.mac.zip, "mac/" + path.basename(generic.mac.zip), "darwin", "zip_archive"],

@@ -16,6 +16,7 @@ import {
   desktopReleaseChannelConfig,
   directoryDigest,
   readDesktopBuildSourceIdentity,
+  sha256File,
   writeDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
 import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
@@ -23,6 +24,13 @@ import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
 const execFileAsync = promisify(execFile);
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
+const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
+const releaseChannel = channelConfig.channel;
+const formalRelease = channelConfig.formal;
+const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
+if (formalRelease && !writeBuildReceipt) {
+  throw new Error("formal builds cannot disable the external build receipt");
+}
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
 const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
@@ -55,9 +63,6 @@ const packagedIconFile = "matter.icns";
 const packagedIconPath = join(resourcesDir, packagedIconFile);
 const formalReleaseMarkerName = "matter-formal-release.json";
 const formalReleaseMarkerPath = join(resourcesDir, formalReleaseMarkerName);
-const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
-const releaseChannel = channelConfig.channel;
-const formalRelease = channelConfig.formal;
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
@@ -71,8 +76,6 @@ const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-ma
 const receiptPath = process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH
   ? resolve(process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH)
   : join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
-const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
-
 if (formalRelease && writeBuildReceipt) {
   if (!process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH) {
     throw new Error("formal builds require MATTER_DESKTOP_BUILD_RECEIPT_PATH to preserve historical receipts");
@@ -355,6 +358,8 @@ try {
 if (formalRelease && [dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify].some((state) => !["pass", "submitted_and_accepted_by_notarytool"].includes(state))) {
   throw new Error(`Formal DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify })}`);
 }
+const zipSha256 = sha256File(zipPath);
+const dmgSha256 = sha256File(dmgPath);
 
 const receipt = `# macOS ${channelConfig.receiptLabel} Build Receipt
 
@@ -368,6 +373,8 @@ Channel: \`${releaseChannel}\`
 Build manifest: \`apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json\`
 Packaged build manifest: \`apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json\`
 Build manifest SHA-256: \`${buildManifestHash}\`
+ZIP SHA-256: \`${zipSha256}\`
+DMG SHA-256: \`${dmgSha256}\`
 Source SHA: \`${buildManifest.source_sha}\`
 Source tree: \`${buildManifest.source_tree}\`
 Source dirty: \`${buildManifest.source_dirty}\`
