@@ -38,8 +38,9 @@ const SOURCE_TREE = "b".repeat(40);
 const PACKET_SHA = "c".repeat(64);
 const ARTIFACT_SHA = "d".repeat(64);
 const KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
+const OFFICIAL_MIGRATION_CATALOG_COUNT = 74;
 const OFFICIAL_MIGRATION_CATALOG_SHA256 =
-  "e64a50c1339da46fa087721a8260936e8c6babf6d88ff3095691d805c0f7ce14";
+  "656ce534dfcd3d0dbae22b11f419347e2d139401f2116b5ec325e8d103841b77";
 
 assert.equal(
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
@@ -167,7 +168,7 @@ test("production bootstrap configures only approved tenants and returns no secre
   });
   assert.equal(result.outcome, "PASS");
   assert.equal(result.migration_applied_count, 0);
-  assert.equal(result.migration_catalog_count, 73);
+  assert.equal(result.migration_catalog_count, OFFICIAL_MIGRATION_CATALOG_COUNT);
   assert.equal(
     result.migration_catalog_sha256,
     OFFICIAL_MIGRATION_CATALOG_SHA256,
@@ -283,9 +284,9 @@ test("production schema ledger readback is SELECT-only and authoritative", async
   });
   assert.deepEqual(secretReads, ["lawos/master"]);
   assert.equal(queries.length, 1);
-  assert.equal(result.migration_count, 73);
+  assert.equal(result.migration_count, OFFICIAL_MIGRATION_CATALOG_COUNT);
   assert.equal(result.migration_applied_count, 0);
-  assert.equal(result.migration_catalog_count, 73);
+  assert.equal(result.migration_catalog_count, OFFICIAL_MIGRATION_CATALOG_COUNT);
   assert.equal(
     result.migration_catalog_sha256,
     OFFICIAL_MIGRATION_CATALOG_SHA256,

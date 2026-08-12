@@ -6,7 +6,11 @@ import { pathToFileURL } from "node:url";
 
 import { parseOutlookManifest } from "../lib/outlook-manifest-projection.mjs";
 import { validateOutlookAddinSurfaces } from "../validate-outlook-addin-surfaces.mjs";
-import { CLIENT_SCOPE_FINGERPRINT_SHA256 } from "./outlook-release/constants.mjs";
+import {
+  CLIENT_GRAPH_SCOPES,
+  CLIENT_OAUTH_SCOPES,
+  CLIENT_SCOPE_FINGERPRINT_SHA256,
+} from "./outlook-release/constants.mjs";
 
 export const EXTERNAL_M365_ONBOARDING_SCHEMA =
   "amic-os.external-m365-onboarding-bundle.v2";
@@ -213,6 +217,34 @@ function canonical(value) {
 
 function canonicalJson(value) {
   return JSON.stringify(canonical(value));
+}
+
+function bundlePayloadDigestMaterial(payload) {
+  return {
+    schema_version: payload.schema_version,
+    bundle_kind: payload.bundle_kind,
+    private: payload.private,
+    no_provider_calls: payload.no_provider_calls,
+    external_mutations: payload.external_mutations,
+    appsource_claim: payload.appsource_claim,
+    deployment_model: payload.deployment_model,
+    shared_runtime_claim: payload.shared_runtime_claim,
+    tenant_pinned: payload.tenant_pinned,
+    manifest_sha256: payload.manifest_sha256,
+    runtime_config_digest_sha256: payload.runtime_config_digest_sha256,
+    private_admin_metadata: payload.private_admin_metadata,
+    target_runtime: payload.target_runtime,
+    manifest: payload.manifest,
+    auth: {
+      redirect_uris: payload.auth.redirect_uris,
+      expected_redirect_uri: payload.auth.expected_redirect_uri,
+      scope_fingerprint_sha256: payload.auth.scope_fingerprint_sha256,
+      redirect_profile: payload.auth.redirect_profile,
+    },
+    pilot_group: payload.pilot_group,
+    checklist: payload.checklist,
+    rollback: payload.rollback,
+  };
 }
 
 function isRecord(value) {
@@ -547,7 +579,7 @@ function checklist(input, manifest, auth) {
       id: "M365-ADMIN-03",
       phase: "consent",
       status: CHECKLIST_STATUS,
-      requirement: `Reconcile delegated OAuth scopes exactly (${auth.oauth_scopes.join(", ")}) and Graph connection scopes (${auth.graph_connection_scopes.join(", ")}).`,
+      requirement: "Reconcile delegated and Graph connection scopes to the exact approved release-contract fingerprint.",
       evidence_required: "Granted-permission readback and admin-consent record with scope diff equal to none.",
     },
     {
@@ -684,7 +716,7 @@ function buildPayload({ input, manifest, auth, rollback }) {
     checklist: checklist(input, manifest, auth),
     rollback,
   };
-  const payloadDigest = sha256(Buffer.from(canonicalJson(base)));
+  const payloadDigest = sha256(Buffer.from(canonicalJson(bundlePayloadDigestMaterial(base))));
   const withDigest = { ...base, bundle_payload_sha256: payloadDigest };
   return {
     ...withDigest,
@@ -777,7 +809,10 @@ function validateAuth(bundle) {
     || auth.redirect_uris[0] !== auth.expected_redirect_uri
     || !Array.isArray(auth.oauth_scopes)
     || !Array.isArray(auth.graph_connection_scopes)
+    || canonicalJson(auth.oauth_scopes) !== canonicalJson(CLIENT_OAUTH_SCOPES)
+    || canonicalJson(auth.graph_connection_scopes) !== canonicalJson([...CLIENT_GRAPH_SCOPES].sort())
     || !SHA256.test(auth.scope_fingerprint_sha256 ?? "")
+    || auth.scope_fingerprint_sha256 !== CLIENT_SCOPE_FINGERPRINT_SHA256
     || new Set(auth.oauth_scopes).size !== auth.oauth_scopes.length
     || new Set(auth.graph_connection_scopes).size !== auth.graph_connection_scopes.length) {
     throw new Error("redirect/scope expectations are invalid");
@@ -832,7 +867,7 @@ export async function validateExternalM365OnboardingBundle(bundle, {
   const payload = { ...bundle };
   delete payload.bundle_payload_sha256;
   delete payload.public_evidence;
-  if (bundle.bundle_payload_sha256 !== sha256(Buffer.from(canonicalJson(payload)))) {
+  if (bundle.bundle_payload_sha256 !== sha256(Buffer.from(canonicalJson(bundlePayloadDigestMaterial(payload))))) {
     throw new Error("bundle payload digest mismatch");
   }
   assertPublicEvidenceRedacted(bundle);

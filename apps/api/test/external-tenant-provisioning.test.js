@@ -73,7 +73,7 @@ function runtimeBinding() {
   };
 }
 
-function internalPasswordManifest() {
+function internalLocalMemberManifest() {
   return {
     schema_version: EXTERNAL_TENANT_PROVISIONING_SCHEMA_VERSION,
     data_scope: "external-law-firm",
@@ -320,7 +320,7 @@ test("internal-password external tenant members enter the existing reset flow wi
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   await runClientOperationsPostgresMigrations(fixture.adminPool);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
   const receipt = await provisionExternalTenant({
     manifest: input,
     expectedManifestSha256: externalTenantProvisioningManifestSha256(input),
@@ -409,7 +409,7 @@ test("identity collision leaves no exact authority, tenant, request, audit or ap
   if (!fixture) return;
   await runClientOperationsPostgresMigrations(fixture.adminPool);
   await removeSyntheticWildcard(fixture);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
   await fixture.adminPool.query(
     "INSERT INTO lawos_identity.accounts (tenant_id, user_id, email) VALUES ($1, $2, $3)",
     [input.tenant.tenant_id, "preexisting_identity", "collision@example.test"],
@@ -441,7 +441,7 @@ test("tenant id collision preserves only the pre-existing tenant and grants no a
   if (!fixture) return;
   await runClientOperationsPostgresMigrations(fixture.adminPool);
   await removeSyntheticWildcard(fixture);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
   await fixture.adminPool.query(
     `INSERT INTO lawos_identity.tenants
        (tenant_id, display_name, deployment_mode, staff_auth_authority, status)
@@ -475,7 +475,7 @@ test("matching pre-existing tenant without exact request ownership is not adopte
   if (!fixture) return;
   await runClientOperationsPostgresMigrations(fixture.adminPool);
   await removeSyntheticWildcard(fixture);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
   await fixture.adminPool.query(
     `INSERT INTO lawos_identity.tenants
        (tenant_id, display_name, deployment_mode, staff_auth_authority, status)
@@ -559,7 +559,7 @@ test("admin and application database mismatch fails before creating tenant autho
     runClientOperationsPostgresMigrations(appFixture.adminPool),
   ]);
   await Promise.all([removeSyntheticWildcard(adminFixture), removeSyntheticWildcard(appFixture)]);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
 
   await assert.rejects(
     provisionExternalTenant(internalProvisioningOptions(input, adminFixture, {
@@ -588,7 +588,7 @@ test("application context secret mismatch fails before creating tenant authority
   if (!fixture) return;
   await runClientOperationsPostgresMigrations(fixture.adminPool);
   await removeSyntheticWildcard(fixture);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
 
   await assert.rejects(
     provisionExternalTenant(internalProvisioningOptions(input, fixture, {
@@ -683,7 +683,7 @@ test("external tenant provisioning requires admin writes and a read-only applica
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   await runClientOperationsPostgresMigrations(fixture.adminPool);
-  const input = internalPasswordManifest();
+  const input = internalLocalMemberManifest();
   const options = {
     manifest: input,
     expectedManifestSha256: externalTenantProvisioningManifestSha256(input),

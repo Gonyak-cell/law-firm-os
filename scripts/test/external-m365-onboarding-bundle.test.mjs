@@ -285,7 +285,7 @@ test("rejects the legacy inquiry production manifest when it embeds a tenant-spe
 test("validator rejects scope, redirect, closed-schema, payload, and rollback drift", async () => {
   const value = await bundle();
   const cases = [
-    ["scope", (copy) => { copy.auth.oauth_scopes = ["Mail.Read"]; }, /bundle payload digest/u],
+    ["scope", (copy) => { copy.auth.oauth_scopes = ["Mail.Read"]; }, /redirect\/scope expectations/u],
     ["redirect", (copy) => { copy.auth.expected_redirect_uri = "https://attacker.example.test/callback"; }, /redirect\/scope expectations/u],
     ["rollback", (copy) => { copy.rollback.baseline_version = "1.0.0.0"; }, /rollback instructions/u],
     ["payload", (copy) => { copy.pilot_group.expected_member_count = 3; }, /bundle payload digest/u],
