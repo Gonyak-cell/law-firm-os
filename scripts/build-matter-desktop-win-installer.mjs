@@ -10,6 +10,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
+  assertPathOutsideWorktree,
   createDesktopBuildManifest,
   desktopReleaseChannelConfig,
   directoryDigest,
@@ -49,7 +50,15 @@ const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
 const blockmapPath = `${installerPath}.blockmap`;
 const unpackedPath = join(desktopRoot, "dist", "win-unpacked");
-const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
+const receiptPath = process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH
+  ? resolve(process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH)
+  : join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
+if (formalRelease) {
+  if (!process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH) {
+    throw new Error("formal builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH to preserve historical receipts");
+  }
+  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal Windows build receipt" });
+}
 const buildManifestName = "matter-build-manifest.json";
 const formalReleaseMarkerName = "matter-formal-release.json";
 const rendererRoot = join(desktopRoot, "src", "renderer", "web");

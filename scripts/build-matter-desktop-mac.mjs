@@ -11,6 +11,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
+  assertPathOutsideWorktree,
   createDesktopBuildManifest,
   desktopReleaseChannelConfig,
   directoryDigest,
@@ -67,8 +68,17 @@ const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
 const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
-const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
+const receiptPath = process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH
+  ? resolve(process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH)
+  : join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
+
+if (formalRelease && writeBuildReceipt) {
+  if (!process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH) {
+    throw new Error("formal builds require MATTER_DESKTOP_BUILD_RECEIPT_PATH to preserve historical receipts");
+  }
+  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal build receipt" });
+}
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
 const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
 const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
@@ -433,7 +443,7 @@ console.log(
       app_bundle: "apps/desktop/dist/mac/matter.app",
       zip: `apps/desktop/dist/mac/${artifactName}-macos.zip`,
       dmg: `apps/desktop/dist/mac/${artifactName}-macos.dmg`,
-      receipt: writeBuildReceipt ? "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md" : null,
+      receipt: writeBuildReceipt ? receiptPath : null,
       release_channel: releaseChannel,
       app_id: appBundleId,
       build_manifest: `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`,

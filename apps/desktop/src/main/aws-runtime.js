@@ -361,35 +361,48 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     const url = new URL(String(path).replace(/^\/+/, ""), `${baseUrl}/`);
     const headers = { ...jsonHeaders(credential), ...extraHeaders };
     if (actorEmail) headers["x-matter-actor-email"] = actorEmail;
-    const response = await fetchImpl(url, {
-      method,
-      headers,
-      body: body == null ? undefined : JSON.stringify(body),
-      signal: AbortSignal.timeout(requestTimeoutMs)
-    }).catch((error) => ({
-      ok: false,
-      reason: error?.name === "TimeoutError" ? "runtime_request_timeout" : "runtime_request_failed",
-      error_code: error?.name === "TimeoutError" ? "TimeoutError" : error?.code ?? error?.name ?? "fetch_failed",
-      http_status: 0,
-      token_material_returned: false
-    }));
-    if (!response || typeof response.text !== "function") return response;
-    const text = await response.text();
-    let parsed = {};
+    const controller = new AbortController();
+    const timeoutError = Object.assign(new Error("Runtime request deadline exceeded"), { name: "TimeoutError" });
+    const timeout = setTimeout(() => controller.abort(timeoutError), requestTimeoutMs);
+    let result;
     try {
-      parsed = text ? JSON.parse(text) : {};
-    } catch {
-      parsed = {
+      const response = await fetchImpl(url, {
+        method,
+        headers,
+        body: body == null ? undefined : JSON.stringify(body),
+        signal: controller.signal
+      });
+      if (!response || typeof response.text !== "function") return response;
+      const text = await response.text();
+      let parsed = {};
+      try {
+        parsed = text ? JSON.parse(text) : {};
+      } catch {
+        parsed = {
+          ok: false,
+          reason: "runtime_response_not_json",
+          response_body_present: Boolean(text),
+          token_material_returned: false
+        };
+      }
+      result = { response, parsed };
+    } catch (error) {
+      const timedOut = error?.name === "TimeoutError" || controller.signal.reason?.name === "TimeoutError";
+      result = {
         ok: false,
-        reason: "runtime_response_not_json",
-        response_body_present: Boolean(text),
+        reason: timedOut ? "runtime_request_timeout" : "runtime_request_failed",
+        error_code: timedOut ? "TimeoutError" : error?.code ?? error?.name ?? "fetch_failed",
+        http_status: 0,
         token_material_returned: false
       };
+    } finally {
+      clearTimeout(timeout);
     }
-    assertNoRuntimeSecretMaterial(parsed, operatorToken);
+    if (!result.response) return result;
+    assertNoRuntimeSecretMaterial(result.parsed, operatorToken);
     return {
-      ...parsed,
-      http_status: response.status
+      ...result.parsed,
+      http_status: result.response.status
     };
   };
 

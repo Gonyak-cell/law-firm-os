@@ -5,19 +5,26 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { _electron as electron } from "playwright";
+import { isMatterAppRendererUrl } from "../apps/desktop/src/main/app-protocol.js";
+import { assertPathOutsideWorktree } from "./lib/matter-desktop-provenance.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const EXPECTED_VERSION = "0.1.17";
+const EXPECTED_VERSION = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8")).version;
 const appBundle = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
 const executable = path.join(appBundle, "Contents/MacOS/matter");
 const packagedAppRoot = path.join(appBundle, "Contents/Resources/app");
 const packagedDesktopPackage = JSON.parse(readFileSync(path.join(packagedAppRoot, "package.json"), "utf8"));
 const rendererIndex = path.join(packagedAppRoot, "src/renderer/web/index.html");
-const evidenceDir = path.join(ROOT, "workbook/forest-v0.1.17-integration-evidence/PV-001");
+const evidenceDir = assertPathOutsideWorktree({
+  repoRoot: ROOT,
+  candidate: process.env.MATTER_PV001_EVIDENCE_DIR
+  ? path.resolve(process.env.MATTER_PV001_EVIDENCE_DIR)
+  : mkdtempSync(path.join(tmpdir(), `matter-pv001-${EXPECTED_VERSION}-evidence-`)),
+  label: "PV-001 evidence directory",
+});
 const screenshotDir = path.join(evidenceDir, "screenshots");
-const screenshotPath = path.join(screenshotDir, "macos-login-version-0.1.17.png");
+const screenshotPath = path.join(screenshotDir, `macos-login-version-${EXPECTED_VERSION}.png`);
 const receiptPath = path.join(evidenceDir, "packaged-version-smoke.json");
 const userDataPath = mkdtempSync(path.join(tmpdir(), "matter-pv001-version-"));
 const runtimeStoreDir = path.join(userDataPath, "runtime-stores");
@@ -82,7 +89,7 @@ try {
   assert.equal(path.resolve(appMetadata.appPath), path.resolve(packagedAppRoot));
 
   const initialUrl = new URL(page.url());
-  assert.equal(path.resolve(fileURLToPath(initialUrl)), path.resolve(rendererIndex));
+  assert.equal(isMatterAppRendererUrl(initialUrl.href), true);
   const ui = await page.evaluate(() => ({
     heading: document.querySelector("h1")?.textContent?.trim() ?? "",
     skin: document.documentElement.dataset.skin ?? "",

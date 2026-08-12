@@ -352,6 +352,35 @@ test("runtime client ends stalled requests at the configured deadline", async ()
   assert.equal(response.token_material_returned, false);
 });
 
+test("runtime client deadline remains active while reading a stalled response body", async () => {
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    requestTimeoutMs: 5,
+    fetchImpl: async (_url, { signal }) => ({
+      status: 200,
+      text: async () => new Promise((resolve, reject) => {
+        signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+      })
+    })
+  });
+
+  const response = await client.health();
+
+  assert.equal(response.reason, "runtime_request_timeout");
+  assert.equal(response.error_code, "TimeoutError");
+  assert.equal(response.http_status, 0);
+});
+
+test("runtime client still rejects secret-bearing response material", async () => {
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    operatorToken: "runtime-secret",
+    fetchImpl: async () => jsonResponse(200, { operator_token: "runtime-secret" }),
+  });
+
+  await assert.rejects(() => client.accounts(), /forbidden field/);
+});
+
 test("runtime client preserves 403 deny responses for general-account smoke checks", async () => {
   const client = createMatterVaultAwsRuntimeClient({
     baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",

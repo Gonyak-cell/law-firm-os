@@ -11,10 +11,12 @@ import {
   MATTER_APP_ORIGIN,
   MATTER_APP_SCHEME,
   installMatterAppProtocol,
+  isMatterAppRendererUrl,
   matterAppRendererUrl,
   registerMatterAppScheme,
   resolveMatterAppRequestPath,
 } from "../src/main/app-protocol.js";
+import { isApprovedRendererUrl } from "../src/main/origin-policy.js";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
@@ -65,6 +67,8 @@ test("matter-app scheme is registered as standard, secure and fetch-capable befo
   }]]);
   assert.equal(MATTER_APP_ORIGIN, "matter-app://app");
   assert.equal(matterAppRendererUrl(), "matter-app://app/index.html?desktop=1");
+  assert.match(MATTER_APP_CONTENT_SECURITY_POLICY, /connect-src[^;]*http:\/\/127\.0\.0\.1:\*/);
+  assert.doesNotMatch(MATTER_APP_CONTENT_SECURITY_POLICY, /http:\/\/0\.0\.0\.0/);
 
   const source = readFileSync(new URL("../src/main/main.js", import.meta.url), "utf8");
   const registration = source.indexOf("registerMatterAppScheme(protocol)");
@@ -73,6 +77,20 @@ test("matter-app scheme is registered as standard, secure and fetch-capable befo
   assert.ok(registration >= 0);
   assert.ok(ready > registration);
   assert.ok(handler > ready);
+});
+
+test("matter-app renderer navigation keeps section state on the approved packaged origin", () => {
+  const url = new URL(matterAppRendererUrl());
+  url.searchParams.set("locale", "ko");
+  url.searchParams.set("view", "people");
+  url.searchParams.set("ctx", "allow");
+  url.hash = "people-payroll";
+
+  assert.equal(url.href, "matter-app://app/index.html?desktop=1&locale=ko&view=people&ctx=allow#people-payroll");
+  assert.equal(isApprovedRendererUrl(url.href, { allowDevRenderer: false }), true);
+  assert.equal(isMatterAppRendererUrl(url.href), true);
+  assert.equal(isMatterAppRendererUrl("file:///tmp/index.html?desktop=1"), false);
+  assert.equal(isMatterAppRendererUrl("matter-app://evil/index.html?desktop=1"), false);
 });
 
 test("matter-app resolver returns only canonical regular files under the packaged web root", async () => {

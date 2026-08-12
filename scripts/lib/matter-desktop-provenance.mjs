@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -94,6 +94,37 @@ export function desktopReleaseChannelConfig(channel = "internal") {
 
 export function sha256File(filePath) {
   return sha256(readFileSync(filePath));
+}
+
+export function assertPathOutsideWorktree({ repoRoot, candidate, label = "path" }) {
+  assert.equal(typeof candidate, "string", `${label} must be a path`);
+  assert.ok(candidate && !candidate.includes("\0"), `${label} must be a non-empty path`);
+  const worktree = realpathSync(repoRoot);
+  const target = path.resolve(candidate);
+  let existingAncestor = target;
+  let ancestorStat;
+  while (!ancestorStat) {
+    try {
+      ancestorStat = lstatSync(existingAncestor);
+    } catch (error) {
+      if (error?.code !== "ENOENT" && error?.code !== "ENOTDIR") throw error;
+    }
+    if (ancestorStat) break;
+    const parent = path.dirname(existingAncestor);
+    assert.notEqual(parent, existingAncestor, `${label} has no existing ancestor`);
+    existingAncestor = parent;
+  }
+  assert.equal(ancestorStat.isSymbolicLink(), false, `${label} cannot traverse a symlink entry`);
+  const canonicalTarget = path.resolve(
+    realpathSync(existingAncestor),
+    path.relative(existingAncestor, target),
+  );
+  const relativeTarget = path.relative(worktree, canonicalTarget);
+  assert.ok(
+    relativeTarget === ".." || relativeTarget.startsWith(`..${path.sep}`) || path.isAbsolute(relativeTarget),
+    `${label} must remain outside the worktree`,
+  );
+  return target;
 }
 
 export function directoryDigest(directoryPath) {

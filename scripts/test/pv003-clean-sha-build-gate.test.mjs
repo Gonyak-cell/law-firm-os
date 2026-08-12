@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
   assertDesktopFormalBuildProvenance,
+  assertPathOutsideWorktree,
   readDesktopBuildSourceIdentity,
 } from "../lib/matter-desktop-provenance.mjs";
 
@@ -39,6 +40,37 @@ test("PV-003 leaves internal builds outside the formal clean-SHA gate", () => {
 
   assert.equal(result.enforced, false);
   assert.equal(result.verdict, "NOT_APPLICABLE");
+});
+
+test("formal evidence paths reject direct and symlinked worktree destinations", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "matter-formal-output-"));
+  const repo = path.join(root, "repo");
+  const outside = path.join(root, "outside");
+  mkdirSync(path.join(repo, "evidence"), { recursive: true });
+  mkdirSync(outside);
+  try {
+    const safe = path.join(outside, "receipt.json");
+    assert.equal(assertPathOutsideWorktree({ repoRoot: repo, candidate: safe, label: "receipt" }), safe);
+    assert.throws(
+      () => assertPathOutsideWorktree({ repoRoot: repo, candidate: path.join(repo, "evidence/receipt.json"), label: "receipt" }),
+      /must remain outside the worktree/,
+    );
+    const link = path.join(outside, "reentry");
+    symlinkSync(path.join(repo, "evidence"), link);
+    assert.throws(
+      () => assertPathOutsideWorktree({ repoRoot: repo, candidate: path.join(link, "receipt.json"), label: "receipt" }),
+      /cannot traverse a symlink entry|must remain outside the worktree/,
+    );
+    const danglingLink = path.join(outside, "dangling-reentry.json");
+    symlinkSync(path.join(repo, "evidence/dangling.json"), danglingLink);
+    assert.throws(
+      () => assertPathOutsideWorktree({ repoRoot: repo, candidate: danglingLink, label: "receipt" }),
+      /cannot traverse a symlink entry/,
+    );
+    assert.equal(existsSync(path.join(repo, "evidence/dangling.json")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("PV-003 permits clean exact-SHA formal builds only from release-authorized refs", () => {

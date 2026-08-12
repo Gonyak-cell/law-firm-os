@@ -15,6 +15,21 @@ export function matterAppRendererUrl() {
   return url.toString();
 }
 
+export function isMatterAppRendererUrl(candidate) {
+  try {
+    const url = new URL(candidate);
+    return url.protocol === `${MATTER_APP_SCHEME}:`
+      && url.hostname === "app"
+      && !url.port
+      && !url.username
+      && !url.password
+      && url.pathname === "/index.html"
+      && url.searchParams.get("desktop") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function registerMatterAppScheme(protocol) {
   protocol.registerSchemesAsPrivileged([{
     scheme: MATTER_APP_SCHEME,
