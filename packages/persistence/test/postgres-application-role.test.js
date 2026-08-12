@@ -39,6 +39,17 @@ test("private staging application role is least privilege and tenant-explicit", 
     assert.equal(result.synthetic_wildcard_count, 0);
     assert.equal(result.password_returned, false);
     assert.equal(JSON.stringify(result).includes("test-private-staging-role-password"), false);
+    for (const table of ["tenants", "tenant_provisioning_requests"]) {
+      await client.query(
+        `GRANT INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON lawos_identity.${table} TO lawos_app`,
+      );
+    }
+    await configureLawosApplicationRole(client, {
+      databaseName: "postgres",
+      password: "test-private-staging-role-password",
+      tenantContextSecret: "test-private-staging-tenant-context-secret-material",
+      syntheticTenantIds: ["tenant_lawos_staging_a", "tenant_lawos_staging_b"],
+    });
   } finally {
     client.release();
   }
@@ -61,13 +72,66 @@ test("private staging application role is least privilege and tenant-explicit", 
     { tenant_id: "tenant_lawos_staging_b", synthetic_wildcard: false, active: true },
   ]);
   const grants = await pool.query(
-    "SELECT has_table_privilege('lawos_app', 'lawos_domain.records', 'SELECT,INSERT,UPDATE') AS domain_rw, has_table_privilege('lawos_app', 'lawos_security.tenant_context_authorities', 'SELECT') AS authority_read",
+    `SELECT has_table_privilege('lawos_app', 'lawos_domain.records', 'SELECT') AS domain_select,
+            has_table_privilege('lawos_app', 'lawos_domain.records', 'INSERT') AS domain_insert,
+            has_table_privilege('lawos_app', 'lawos_domain.records', 'UPDATE') AS domain_update,
+            has_table_privilege('lawos_app', 'lawos_security.tenant_context_authorities', 'SELECT') AS authority_select,
+            has_table_privilege('lawos_app', 'lawos_security.tenant_context_authorities', 'INSERT') AS authority_insert,
+            has_table_privilege('lawos_app', 'lawos_security.tenant_context_authorities', 'UPDATE') AS authority_update,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'SELECT') AS tenant_registry_select,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'INSERT') AS tenant_registry_insert,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'UPDATE') AS tenant_registry_update,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'DELETE') AS tenant_registry_delete,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'TRUNCATE') AS tenant_registry_truncate,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'REFERENCES') AS tenant_registry_references,
+            has_table_privilege('lawos_app', 'lawos_identity.tenants', 'TRIGGER') AS tenant_registry_trigger,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'SELECT') AS provisioning_select,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'INSERT') AS provisioning_insert,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'UPDATE') AS provisioning_update,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'DELETE') AS provisioning_delete,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'TRUNCATE') AS provisioning_truncate,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'REFERENCES') AS provisioning_references,
+            has_table_privilege('lawos_app', 'lawos_identity.tenant_provisioning_requests', 'TRIGGER') AS provisioning_trigger`,
   );
-  assert.equal(grants.rows[0].domain_rw, true);
-  assert.equal(grants.rows[0].authority_read, false);
+  assert.equal(grants.rows[0].domain_select, true);
+  assert.equal(grants.rows[0].domain_insert, true);
+  assert.equal(grants.rows[0].domain_update, true);
+  assert.equal(grants.rows[0].authority_select, false);
+  assert.equal(grants.rows[0].authority_insert, false);
+  assert.equal(grants.rows[0].authority_update, false);
+  assert.equal(grants.rows[0].tenant_registry_select, true);
+  assert.equal(grants.rows[0].tenant_registry_insert, false);
+  assert.equal(grants.rows[0].tenant_registry_update, false);
+  assert.equal(grants.rows[0].tenant_registry_delete, false);
+  assert.equal(grants.rows[0].tenant_registry_truncate, false);
+  assert.equal(grants.rows[0].tenant_registry_references, false);
+  assert.equal(grants.rows[0].tenant_registry_trigger, false);
+  assert.equal(grants.rows[0].provisioning_select, true);
+  assert.equal(grants.rows[0].provisioning_insert, false);
+  assert.equal(grants.rows[0].provisioning_update, false);
+  assert.equal(grants.rows[0].provisioning_delete, false);
+  assert.equal(grants.rows[0].provisioning_truncate, false);
+  assert.equal(grants.rows[0].provisioning_references, false);
+  assert.equal(grants.rows[0].provisioning_trigger, false);
+  const rowSecurity = await pool.query(
+    `SELECT class.relname, class.relrowsecurity, class.relforcerowsecurity
+       FROM pg_class AS class
+       JOIN pg_namespace AS namespace ON namespace.oid = class.relnamespace
+      WHERE namespace.nspname = 'lawos_identity'
+        AND class.relname IN ('tenants', 'tenant_provisioning_requests')
+      ORDER BY class.relname`,
+  );
+  assert.deepEqual(rowSecurity.rows, [
+    { relname: "tenant_provisioning_requests", relrowsecurity: true, relforcerowsecurity: true },
+    { relname: "tenants", relrowsecurity: true, relforcerowsecurity: true },
+  ]);
   const roleGrants = lawosApplicationRoleGrantStatements();
   assert.equal(roleGrants.includes("GRANT SELECT, INSERT, UPDATE ON lawos_integrations.docusign_requests TO lawos_app"), true);
   assert.equal(roleGrants.includes("GRANT SELECT, INSERT ON lawos_integrations.docusign_webhook_receipts TO lawos_app"), true);
+  assert.equal(roleGrants.includes("GRANT SELECT ON lawos_identity.tenants TO lawos_app"), true);
+  assert.equal(roleGrants.includes("GRANT SELECT ON lawos_identity.tenant_provisioning_requests TO lawos_app"), true);
+  assert.equal(roleGrants.some((statement) => /\b(?:ALL|INSERT|UPDATE|DELETE|TRUNCATE|REFERENCES|TRIGGER)\b/u.test(statement)
+    && /lawos_identity\.(?:tenants|tenant_provisioning_requests)/u.test(statement)), false);
 });
 
 test("private staging application role rejects wildcard and non-LawOS tenants", async () => {

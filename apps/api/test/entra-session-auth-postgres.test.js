@@ -209,4 +209,33 @@ test("operational Entra session authority persists only verified federated ident
   for (const secret of [...states, authorizationCode, codeVerifier, completed.body.session_token]) {
     assert.equal(evidenceText.includes(secret), false);
   }
+
+  const otherTenantRuntime = createApiSessionAuth({
+    profile: "operational",
+    trustedTenantId: "tenant_external_isolated_runtime",
+    secret: "entra-session-test-secret-with-adequate-length",
+    identityRepository: ledger,
+    staffOidcProvider: provider,
+    now: () => now,
+  });
+  const crossTenantSession = await otherTenantRuntime.verifyToken(
+    completed.body.session_token,
+    { requestId: "req-cross-tenant-session" },
+  );
+  assert.equal(crossTenantSession.ok, false);
+  assert.equal(crossTenantSession.status, 403);
+  assert.deepEqual(crossTenantSession.body.safe_error_codes, ["AUTH_SESSION_TENANT_DENIED"]);
+
+  const crossTenantLogout = await otherTenantRuntime.handleAuthApiRequest({
+    pathname: "/api/auth/logout",
+    method: "POST",
+    headers: { authorization: `Bearer ${completed.body.session_token}` },
+    requestId: "req-cross-tenant-logout",
+  });
+  assert.equal(crossTenantLogout.status, 403);
+  assert.deepEqual(crossTenantLogout.body.safe_error_codes, ["AUTH_SESSION_TENANT_DENIED"]);
+  assert.equal(
+    (await auth.verifyToken(completed.body.session_token, { requestId: "req-after-cross-tenant-logout" })).ok,
+    true,
+  );
 });

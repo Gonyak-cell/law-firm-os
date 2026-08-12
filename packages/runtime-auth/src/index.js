@@ -11,4 +11,5 @@ export * from "./runtime-safety-approval-contract.js";
 export * from "./session.js";
 export * from "./identity-ledger.js";
 export * from "./postgres-identity-ledger.js";
+export * from "./postgres-tenant-provisioning.js";
 export * from "./step-up-provider.js";

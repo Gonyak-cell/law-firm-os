@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import {
   assertApprovedRendererUrl,
   installNavigationGuards,
@@ -334,11 +335,23 @@ async function buildRowProofs() {
     missing_runtime_receipt: null
   });
 
-  const updateController = createUpdateController({ currentVersion: "0.1.0" });
-  const updateMetadata = { version: "0.1.1", channel: "internal", keyId: INTERNAL_UPDATE_KEY_ID };
+  const { privateKey: updatePrivateKey, publicKey: updatePublicKey } = generateKeyPairSync("ed25519");
+  const updateController = createUpdateController({
+    currentVersion: "0.1.0",
+    trustedPublicKeys: { [INTERNAL_UPDATE_KEY_ID]: updatePublicKey }
+  });
+  const updateArtifactBytes = Buffer.from("lcx8-update-artifact");
+  const updateMetadata = {
+    version: "0.1.1",
+    channel: "internal",
+    keyId: INTERNAL_UPDATE_KEY_ID,
+    artifactSha256: createHash("sha256").update(updateArtifactBytes).digest("hex"),
+    artifactBytes: updateArtifactBytes.length
+  };
   const updateResult = await updateController.applyUpdate({
     metadata: updateMetadata,
-    signature: signUpdateMetadata(updateMetadata)
+    signature: signUpdateMetadata(updateMetadata, updatePrivateKey),
+    artifactBytes: updateArtifactBytes
   });
   assert(updateResult.state === "updated", "signed internal update should apply in source controller");
   rowProofs.push({
@@ -349,10 +362,18 @@ async function buildRowProofs() {
     missing_runtime_receipt: "packaged updater apply/install receipt"
   });
 
-  const rollbackMetadata = { version: "0.1.0", channel: "internal", keyId: INTERNAL_UPDATE_KEY_ID };
+  const rollbackArtifactBytes = Buffer.from("lcx8-rollback-artifact");
+  const rollbackMetadata = {
+    version: "0.1.0",
+    channel: "internal",
+    keyId: INTERNAL_UPDATE_KEY_ID,
+    artifactSha256: createHash("sha256").update(rollbackArtifactBytes).digest("hex"),
+    artifactBytes: rollbackArtifactBytes.length
+  };
   const rollbackResult = await updateController.rollback({
     metadata: rollbackMetadata,
-    signature: signUpdateMetadata(rollbackMetadata)
+    signature: signUpdateMetadata(rollbackMetadata, updatePrivateKey),
+    artifactBytes: rollbackArtifactBytes
   });
   assert(rollbackResult.state === "rolled_back", "signed rollback should return to previous verified version");
   rowProofs.push({
@@ -363,10 +384,16 @@ async function buildRowProofs() {
     missing_runtime_receipt: "packaged updater rollback receipt"
   });
 
-  const publicMetadata = { version: "0.2.0", channel: "public", keyId: INTERNAL_UPDATE_KEY_ID };
+  const publicMetadata = {
+    version: "0.2.0",
+    channel: "public",
+    keyId: INTERNAL_UPDATE_KEY_ID,
+    artifactSha256: "c".repeat(64),
+    artifactBytes: 1
+  };
   const publicUpdate = await updateController.applyUpdate({
     metadata: publicMetadata,
-    signature: signUpdateMetadata(publicMetadata)
+    signature: "public-channel-denied-before-signature-check"
   });
   assert(publicUpdate.state === "denied" && publicUpdate.reason === "public_channel_disabled", "public update channel should be denied");
   rowProofs.push({

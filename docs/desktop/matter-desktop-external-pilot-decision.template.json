@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-firm-os.matter-desktop-external-pilot-decision.v1",
+  "pilot_id": "replace-with-named-pilot-id",
+  "firm_id": "replace-with-firm-id",
+  "lawos_tenant_id": "replace-with-lawos-tenant-id",
+  "entra_tenant_id": "00000000-0000-4000-8000-000000000000",
+  "distribution_channel": "external-pilot",
+  "app_identity": {
+    "strategy": "reuse-formal-notarized-candidate",
+    "app_id": "com.amic.matter.desktop"
+  },
+  "formal_candidate": {
+    "version": "0.0.0",
+    "source_sha": "0000000000000000000000000000000000000000",
+    "source_tree": "0000000000000000000000000000000000000000",
+    "channel": "formal",
+    "app_id": "com.amic.matter.desktop",
+    "artifact_index_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "macos_zip_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "macos_dmg_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "package_lock_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "desktop_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "tenant_configuration": {
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "signing": {
+    "algorithm": "ed25519",
+    "key_id": "replace-with-release-key-id",
+    "public_key_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "trusted_verifier": {
+    "delivery": "out-of-band-or-preinstalled",
+    "closure": {
+      "schema_version": "law-firm-os.matter-desktop-external-pilot-verification-closure.v1",
+      "launcher_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "node_executable": "/absolute/canonical/non-symlink/path/to/node",
+      "node_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "prepare_cli_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "generator_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "verifier_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "trust_resolver_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "trust_helper_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "updates_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "release_paths_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "provenance_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "approval": {
+    "receipt_ref": {
+      "path": "replace-with-signed-approval-receipt.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "signature_ref": {
+        "path": "replace-with-signed-approval-receipt.sig",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  },
+  "publication": {
+    "approved": false,
+    "destination": null,
+    "audience": "named-pilot-only"
+  }
+}

@@ -143,15 +143,56 @@ test("combined client catalog reconciles verified foundation 001-011 plus HRX hi
   assert.equal(replay.every(({ applied }) => !applied), true);
 });
 
-test("client migration wrapper rejects holes outside exact foundation 012-014 allowlist", async (t) => {
+test("combined client catalog upgrades existing 001-014 plus 100/200/300 history with additive 015 and replays", async (t) => {
+  const instance = await startDisposablePostgres(t);
+  if (!instance) return;
+  const pool = createPostgresPool({
+    connectionString: instance.connection_string,
+    sslMode: "disable",
+    allowInsecureLocal: true,
+    applicationName: "client-operations-015-reconciliation-test",
+  });
+  t.after(async () => {
+    await pool.end();
+    await instance.stop();
+  });
+  await pool.query("CREATE ROLE lawos_app LOGIN");
   const catalog = listClientOperationsPostgresMigrations();
+  const oldProductionCatalog = catalog.filter(({ id }) => id !== "015_external_tenant_provisioning");
+  await runPostgresMigrations(pool, {
+    migrations: oldProductionCatalog,
+    appliedBy: "synthetic-pre-015-production-test",
+  });
+  assert.equal((await pool.query("SELECT to_regclass('lawos_identity.tenants') AS relation")).rows[0].relation, null);
+
+  const upgraded = await runClientOperationsPostgresMigrations(pool, {
+    appliedBy: "verified-015-reconciliation-test",
+  });
+  assert.deepEqual(
+    upgraded.filter(({ applied }) => applied).map(({ id }) => id),
+    ["015_external_tenant_provisioning"],
+  );
+  assert.notEqual((await pool.query("SELECT to_regclass('lawos_identity.tenants') AS relation")).rows[0].relation, null);
+  assert.deepEqual(
+    (await verifyClientOperationsPostgresMigrations(pool)).map(({ id }) => id),
+    catalog.map(({ id }) => id),
+  );
+  const replay = await runClientOperationsPostgresMigrations(pool, {
+    appliedBy: "verified-015-replay-test",
+  });
+  assert.equal(replay.every(({ applied }) => !applied), true);
+});
+
+test("client migration wrapper rejects holes outside exact foundation 012-015 allowlist", async (t) => {
+  const catalog = listClientOperationsPostgresMigrations();
+  const hrxStart = catalog.findIndex(({ id }) => id.startsWith("100_"));
   const clientStart = catalog.findIndex(({ id }) => id === "300_client_m365_connection");
   const row = ({ id, sql }) => ({
     migration_id: id,
     checksum: checksumPostgresMigration(sql),
   });
   const foundation001To011 = catalog.slice(0, 11);
-  const hrx = catalog.slice(14, clientStart);
+  const hrx = catalog.slice(hrxStart, clientStart);
   const scenarios = [
     {
       name: "foundation 011 hole",

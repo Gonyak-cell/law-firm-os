@@ -460,7 +460,21 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     callback,
   );
 
-  async function provisionDirectoryUser(input = {}) {
+  async function assertAuthenticatedClient(client, tenantId) {
+    if (!client || typeof client.query !== "function") {
+      throw new TypeError("authenticated PostgreSQL transaction client is required");
+    }
+    const authenticated = await client.query("SELECT lawos_security.current_tenant_id() AS tenant_id");
+    if (authenticated.rows[0]?.tenant_id !== tenantId) {
+      throw Object.assign(new Error("PostgreSQL tenant context authentication failed"), {
+        code: "LAWOS_POSTGRES_ACCESS_DENIED",
+        safe_error_code: "POSTGRES_ACCESS_DENIED",
+        status: 403,
+      });
+    }
+  }
+
+  async function provisionDirectoryUserOnClient(input = {}, client) {
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     const seed = normalizeAccountSeed({
       ...input.user,
@@ -469,7 +483,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       password_hash: {},
     });
     const membership = normalizeDirectoryMembership(input, tenantId, seed.user_id);
-    return scoped(tenantId, async (client) => {
+    await assertAuthenticatedClient(client, tenantId);
       const idempotency = await claimDirectoryIdempotency(client, tenantId, input, clock);
       if (idempotency?.replayed) {
         const existing = await client.query(
@@ -643,7 +657,11 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
         idempotency_replayed: false,
         outbox,
       });
-    });
+  }
+
+  async function provisionDirectoryUser(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    return scoped(tenantId, (client) => provisionDirectoryUserOnClient(input, client));
   }
 
   async function findDirectoryUserByEmail(input = {}) {
@@ -725,19 +743,23 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     return scoped(tenantId, (client) => ensureAccountRow(client, tenantId, input.user, clock));
   }
 
-  async function getAccount(input = {}) {
+  async function getAccountOnClient(input = {}, client) {
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     const userId = required(input.user_id, "identity user_id");
-    return scoped(tenantId, async (client) => {
-      const result = await client.query(
-        `SELECT tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
-                password_hash, profile, federated_tenant_id, federated_subject_id,
-                failed_login_count, locked_until, created_at, updated_at
-           FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2`,
-        [tenantId, userId],
-      );
-      return mapAccount(result.rows[0]);
-    });
+    await assertAuthenticatedClient(client, tenantId);
+    const result = await client.query(
+      `SELECT tenant_id, user_id, email, account_status, credential_provider, credential_status, credential_rev,
+              password_hash, profile, federated_tenant_id, federated_subject_id,
+              failed_login_count, locked_until, created_at, updated_at
+         FROM lawos_identity.accounts WHERE tenant_id = $1 AND user_id = $2`,
+      [tenantId, userId],
+    );
+    return mapAccount(result.rows[0]);
+  }
+
+  async function getAccount(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    return scoped(tenantId, (client) => getAccountOnClient(input, client));
   }
 
   async function setCredential(input = {}) {
@@ -773,14 +795,14 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     });
   }
 
-  async function ensureFederatedAccount(input = {}) {
+  async function ensureFederatedAccountOnClient(input = {}, client) {
     const tenantId = requireRepositoryTenantId(input.tenant_id);
     const seed = normalizeAccountSeed(input.user);
     const providerId = required(input.provider_id, "federated provider_id");
     const federatedTenantId = required(input.federated_tenant_id, "federated_tenant_id");
     const federatedSubjectId = required(input.federated_subject_id, "federated_subject_id");
     const preservePrimaryCredential = input.preserve_primary_credential === true;
-    return scoped(tenantId, async (client) => {
+    await assertAuthenticatedClient(client, tenantId);
       await ensureAccountRow(client, tenantId, seed, clock);
       const locked = await client.query(
         `SELECT credential_provider, credential_status, credential_rev,
@@ -849,7 +871,11 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
         },
       }, clock);
       return mapAccount(result.rows[0]);
-    });
+  }
+
+  async function ensureFederatedAccount(input = {}) {
+    const tenantId = requireRepositoryTenantId(input.tenant_id);
+    return scoped(tenantId, (client) => ensureFederatedAccountOnClient(input, client));
   }
 
   async function requirePasswordReset(input = {}) {
@@ -1484,6 +1510,7 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
       production_ready_claim: false,
     }),
     provisionDirectoryUser,
+    provisionDirectoryUserOnClient,
     findDirectoryUserByEmail,
     findDirectoryUserByUserId,
     listDirectoryUsers,
@@ -1491,8 +1518,10 @@ export function createPostgresIdentityLedger({ pool, clock = () => Date.now(), t
     listDirectoryIdempotency,
     ensureAccount,
     getAccount,
+    getAccountOnClient,
     setCredential,
     ensureFederatedAccount,
+    ensureFederatedAccountOnClient,
     requirePasswordReset,
     recordLoginFailure,
     completeLogin,

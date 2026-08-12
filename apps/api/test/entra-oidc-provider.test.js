@@ -65,6 +65,7 @@ function createFixture() {
 
 test("Entra OIDC provider requires PKCE, MFA, FIDO2/WebAuthn and Conditional Access context", async () => {
   const fixture = createFixture();
+  assert.equal(fixture.provider.federated_tenant_id, TENANT_ID);
   const authorization = fixture.provider.createAuthorizationRequest({
     redirect_uri: REDIRECT_URI,
     code_challenge: "a".repeat(43),

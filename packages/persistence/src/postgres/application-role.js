@@ -28,6 +28,8 @@ const GRANTS = Object.freeze([
   "GRANT SELECT, INSERT, UPDATE ON lawos_identity.break_glass_requests TO lawos_app",
   "GRANT SELECT, INSERT ON lawos_identity.break_glass_approvals TO lawos_app",
   "GRANT SELECT, INSERT ON lawos_identity.security_audit_events TO lawos_app",
+  "GRANT SELECT ON lawos_identity.tenants TO lawos_app",
+  "GRANT SELECT ON lawos_identity.tenant_provisioning_requests TO lawos_app",
   "GRANT USAGE ON SCHEMA lawos_domain TO lawos_app",
   "GRANT SELECT, INSERT, UPDATE ON lawos_domain.records TO lawos_app",
   "GRANT SELECT, INSERT ON lawos_domain.record_references TO lawos_app",
@@ -57,11 +59,20 @@ const GRANTS = Object.freeze([
   "GRANT SELECT, INSERT ON lawos_integrations.docusign_webhook_receipts TO lawos_app",
 ]);
 
+const REVOKES = Object.freeze([
+  "REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON lawos_identity.tenants FROM lawos_app",
+  "REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON lawos_identity.tenant_provisioning_requests FROM lawos_app",
+]);
+
 function roleGrantStatements(roleName) {
   if (!ALLOWED_ROLE_NAMES.has(roleName)) {
     throw new TypeError("LawOS application role name is not approved");
   }
   return GRANTS.map((statement) => statement.replaceAll(ROLE_NAME, roleName));
+}
+
+function roleRevokeStatements(roleName) {
+  return REVOKES.map((statement) => statement.replaceAll(ROLE_NAME, roleName));
 }
 
 function requiredText(value, name) {
@@ -105,6 +116,7 @@ async function configureApplicationRole(client, {
   const rolePassword = requiredText(password, "application role password");
   const contextSecret = Buffer.from(requiredText(tenantContextSecret, "tenantContextSecret"), "utf8");
   const grants = roleGrantStatements(roleName);
+  const revokes = roleRevokeStatements(roleName);
   if (contextSecret.byteLength < 32) throw new TypeError("tenantContextSecret must contain at least 32 bytes");
   let began = false;
   let connectionLimitMigrated = false;
@@ -152,6 +164,7 @@ async function configureApplicationRole(client, {
     await client.query(`ALTER ROLE ${roleName} SET lock_timeout = '5s'`);
     await client.query(`ALTER ROLE ${roleName} SET idle_in_transaction_session_timeout = '30s'`);
     await client.query(`REVOKE CREATE ON SCHEMA public FROM ${roleName}`);
+    for (const statement of revokes) await client.query(statement);
     for (const statement of grants) await client.query(statement);
     await client.query("DELETE FROM lawos_security.tenant_context_authorities WHERE database_role = $1 AND tenant_id <> ALL($2::text[])", [roleName, tenantIds]);
     for (const tenantId of tenantIds) {
