@@ -18,6 +18,7 @@ import {
 } from "./lib/matter-desktop-provenance.mjs";
 import {
   injectMatterDesktopAuthenticodeConfiguration,
+  matterDesktopAuthenticodePowerShell,
   resolveMatterDesktopAuthenticodeConfiguration,
   validateMatterDesktopAuthenticodeSignatures,
 } from "./lib/matter-desktop-authenticode.mjs";
@@ -98,20 +99,13 @@ async function authenticodeRecord(filePath) {
   if (process.platform !== "win32") {
     throw new Error("Authenticode verification requires a Windows host");
   }
-  const script = [
-    "$signature = Get-AuthenticodeSignature -LiteralPath $args[0]",
-    "[PSCustomObject]@{",
-    "  status = [string]$signature.Status",
-    "  status_message = if ($signature.Status -eq 'Valid') { 'Signature verified.' } else { [string]$signature.StatusMessage }",
-    "  signature_type = [string]$signature.SignatureType",
-    "  time_stamper_certificate_present = ($null -ne $signature.TimeStamperCertificate)",
-    "  signer_thumbprint = [string]$signature.SignerCertificate.Thumbprint",
-    "} | ConvertTo-Json -Compress",
-  ].join("\n");
   const { stdout } = await execFileAsync(
     "powershell.exe",
-    ["-NoProfile", "-NonInteractive", "-Command", script, filePath],
-    { maxBuffer: 1024 * 1024 },
+    ["-NoProfile", "-NonInteractive", "-Command", matterDesktopAuthenticodePowerShell()],
+    {
+      env: { ...process.env, MATTER_AUTHENTICODE_PATH: filePath },
+      maxBuffer: 1024 * 1024,
+    },
   );
   return JSON.parse(stdout);
 }
@@ -249,7 +243,7 @@ const authenticodeResult = authenticodeConfiguration
   ? validateMatterDesktopAuthenticodeSignatures([
       await authenticodeRecord(installerPath),
       await authenticodeRecord(join(unpackedPath, "matter.exe")),
-    ])
+    ], { expectedCertificateSha1: authenticodeConfiguration.certificate_sha1 })
   : null;
 const packagedBuildManifestPath = join(unpackedPath, "resources", buildManifestName);
 const packagedFormalMarkerPath = join(unpackedPath, "resources", formalReleaseMarkerName);
@@ -257,7 +251,7 @@ const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const relativeInstallerPath = "apps/desktop/dist/" + `${artifactName}-win-x64.exe`;
 const relativeBlockmapPath = `${relativeInstallerPath}.blockmap`;
 const priorReceipt = existsSync(receiptPath) ? await readFile(receiptPath, "utf8") : "";
-const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer thumbprint sha256: \`${authenticodeResult ? sha256(Buffer.from(authenticodeResult.signer_thumbprint_sha256_source)) : "not_applicable"}\`\n`;
+const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer certificate SHA-1: \`${authenticodeResult?.signer_certificate_sha1 ?? "not_applicable"}\`\n- Windows Authenticode signer subject: \`${authenticodeResult?.signer.subject ?? "not_applicable"}\`\n- Windows Authenticode signer code-signing EKU verified: ${authenticodeResult?.signer_code_signing_eku_verified === true}\n- Windows Authenticode timestamp EKU verified: ${authenticodeResult?.timestamp_eku_verified === true}\n`;
 
 await mkdir(dirname(receiptPath), { recursive: true });
 await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}`);
@@ -286,6 +280,14 @@ console.log(
       windows_authenticode_timestamp_verified: authenticodeResult?.timestamp_verified === true,
       windows_authenticode_signature_verified:
         authenticodeResult?.signature_count === 2,
+      windows_authenticode_signer_certificate_sha1:
+        authenticodeResult?.signer_certificate_sha1 ?? null,
+      windows_authenticode_signer: authenticodeResult?.signer ?? null,
+      windows_authenticode_timestamps: authenticodeResult?.timestamps ?? [],
+      windows_authenticode_signer_code_signing_eku_verified:
+        authenticodeResult?.signer_code_signing_eku_verified === true,
+      windows_authenticode_timestamp_eku_verified:
+        authenticodeResult?.timestamp_eku_verified === true,
     },
     null,
     2,
