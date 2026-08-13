@@ -17,7 +17,13 @@ import { matterAppRendererUrl } from "../apps/desktop/src/main/app-protocol.js";
 import { createHrxStepUpAuthority } from "../apps/api/src/hrx-step-up-token.js";
 import { desktopRuntimeStorePaths } from "../apps/desktop/src/main/local-api.js";
 import { directoryDigest, sha256File } from "./lib/matter-desktop-provenance.mjs";
+import {
+  matterDesktopAuthenticodePowerShell,
+  resolveMatterDesktopAuthenticodeConfiguration,
+  runAfterMatterDesktopAuthenticodeVerification,
+} from "./lib/matter-desktop-authenticode.mjs";
 import { cleanupTemporaryDirectories } from "./lib/windows-formal-cleanup.mjs";
+import { cleanupFailedWindowsNsisInstallation } from "./lib/windows-formal-native-cleanup.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const EXPECTED_SOURCE_SHA = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
@@ -40,6 +46,9 @@ const envPath = path.join(userDataPath, "empty.env");
 const installDir = mkdtempSync(path.join(process.env.RUNNER_TEMP ?? tmpdir(), "matter-formal-install-"));
 const account = findRegisteredAccountByUserId("user_amic_jwsuh");
 const stepUpAuthority = createHrxStepUpAuthority();
+const authenticodeConfiguration = resolveMatterDesktopAuthenticodeConfiguration({
+  formalRelease: true,
+});
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
@@ -72,6 +81,16 @@ async function waitUntil(predicate, message, timeoutMs = 45_000) {
   throw new Error(message);
 }
 
+function waitUntilSync(predicate, message, timeoutMs = 45_000) {
+  const deadline = Date.now() + timeoutMs;
+  const signal = new Int32Array(new SharedArrayBuffer(4));
+  while (Date.now() < deadline) {
+    if (predicate()) return;
+    Atomics.wait(signal, 0, 0, 250);
+  }
+  throw Object.assign(new Error(message), { code: "EXECUTABLE_RESIDUE" });
+}
+
 function installPackage() {
   execFileSync(INSTALLER_PATH, ["/S", `/D=${installDir}`], {
     stdio: "inherit",
@@ -89,20 +108,11 @@ function installPackage() {
 }
 
 function authenticode(filePath) {
-  const command = [
-    "$signature = Get-AuthenticodeSignature -LiteralPath $env:MATTER_AUTHENTICODE_PATH",
-    "[pscustomobject]@{",
-    "  status = $signature.Status.ToString()",
-    "  status_message = $signature.StatusMessage",
-    "  signer_subject = if ($signature.SignerCertificate) { $signature.SignerCertificate.Subject } else { $null }",
-    "  thumbprint = if ($signature.SignerCertificate) { $signature.SignerCertificate.Thumbprint } else { $null }",
-    "} | ConvertTo-Json -Compress",
-  ].join("\n");
   return JSON.parse(execFileSync("pwsh.exe", [
     "-NoProfile",
     "-NonInteractive",
     "-Command",
-    command,
+    matterDesktopAuthenticodePowerShell(),
   ], {
     encoding: "utf8",
     env: { ...process.env, MATTER_AUTHENTICODE_PATH: filePath },
@@ -265,8 +275,24 @@ let initialSession;
 let restoredSession;
 let runtime;
 let qaError = null;
+let installerAuthenticode;
+let packagedExecutableAuthenticode;
+let installedExecutableAuthenticode;
+let restartExecutableAuthenticode;
+let authenticodeResult;
+let packagedExecutableSha256;
+let installedExecutablePrelaunchParity;
+let installedExecutableRestartPrelaunchParity;
+let failureCleanup = null;
 try {
-  installed = installPackage();
+  installerAuthenticode = authenticode(INSTALLER_PATH);
+  packagedExecutableAuthenticode = authenticode(UNPACKED_EXECUTABLE);
+  packagedExecutableSha256 = sha256File(UNPACKED_EXECUTABLE);
+  ({ verification: authenticodeResult, value: installed } = await runAfterMatterDesktopAuthenticodeVerification({
+    records: [installerAuthenticode, packagedExecutableAuthenticode],
+    expectedCertificateSha1: authenticodeConfiguration?.certificate_sha1,
+    action: async () => installPackage(),
+  }));
   const installedManifestPath = path.join(installed.resourcesPath, "matter-build-manifest.json");
   const installedMarkerPath = path.join(installed.resourcesPath, "matter-formal-release.json");
   const rendererIndex = path.join(installed.resourcesPath, "app", "src", "renderer", "web", "index.html");
@@ -275,7 +301,14 @@ try {
   assert.deepEqual(readJson(installedManifestPath), installerManifest);
   assert.equal(directoryDigest(path.dirname(rendererIndex)).sha256, installerManifest.renderer.sha256);
 
-  ({ app, page } = await launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }));
+  installedExecutableAuthenticode = authenticode(installed.executablePath);
+  ({ executable_parity: installedExecutablePrelaunchParity, value: { app, page } } = await runAfterMatterDesktopAuthenticodeVerification({
+    records: [installerAuthenticode, installedExecutableAuthenticode],
+    expectedCertificateSha1: authenticodeConfiguration.certificate_sha1,
+    expectedExecutableSha256: packagedExecutableSha256,
+    actualExecutableSha256: sha256File(installed.executablePath),
+    action: async () => launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }),
+  }));
   page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text().slice(0, 500));
@@ -305,7 +338,14 @@ try {
 
   await app.close();
   app = null;
-  ({ app, page } = await launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }));
+  restartExecutableAuthenticode = authenticode(installed.executablePath);
+  ({ executable_parity: installedExecutableRestartPrelaunchParity, value: { app, page } } = await runAfterMatterDesktopAuthenticodeVerification({
+    records: [installerAuthenticode, restartExecutableAuthenticode],
+    expectedCertificateSha1: authenticodeConfiguration.certificate_sha1,
+    expectedExecutableSha256: packagedExecutableSha256,
+    actualExecutableSha256: sha256File(installed.executablePath),
+    action: async () => launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }),
+  }));
   page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text().slice(0, 500));
@@ -332,9 +372,7 @@ try {
   const unexpectedConsoleErrors = consoleErrors.filter((message) => !message.includes("WebSocket") && !message.includes("24678"));
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(unexpectedConsoleErrors, []);
-  const installerAuthenticode = authenticode(INSTALLER_PATH);
-  const executableAuthenticode = authenticode(UNPACKED_EXECUTABLE);
-  const authenticodeValid = installerAuthenticode.status === "Valid" && executableAuthenticode.status === "Valid";
+  const authenticodeValid = authenticodeResult?.signature_count === 2;
   const receipt = {
     schema_version: "law-firm-os.formal-windows-package-qa.v1",
     generated_at: new Date().toISOString(),
@@ -392,9 +430,23 @@ try {
     },
     authenticode: {
       installer: installerAuthenticode,
-      unpacked_executable: executableAuthenticode,
+      packaged_executable_preinstall: packagedExecutableAuthenticode,
+      installed_executable_prelaunch: installedExecutableAuthenticode,
+      installed_executable_restart_prelaunch: restartExecutableAuthenticode,
+      executable_byte_parity_prelaunch: installedExecutablePrelaunchParity,
+      executable_byte_parity_restart_prelaunch: installedExecutableRestartPrelaunchParity,
       valid: authenticodeValid,
-      blocker: authenticodeValid ? null : "No approved Authenticode provider or certificate is configured",
+      expected_signer_certificate_sha1:
+        authenticodeConfiguration?.certificate_sha1 ?? null,
+      signer: authenticodeResult?.signer ?? null,
+      timestamps: authenticodeResult?.timestamps ?? [],
+      signer_code_signing_eku_verified:
+        authenticodeResult?.signer_code_signing_eku_verified === true,
+      timestamp_eku_verified:
+        authenticodeResult?.timestamp_eku_verified === true,
+      blocker: authenticodeValid
+        ? null
+        : "No exact expected Authenticode certificate and RFC3161 timestamp validation is configured",
     },
     screenshots,
     diagnostics: {
@@ -426,8 +478,41 @@ try {
 } finally {
   if (app) await app.close().catch(() => {});
   await new Promise((resolve) => api.server.close(resolve));
+  if (!uninstallCompleted) {
+    failureCleanup = cleanupFailedWindowsNsisInstallation({
+      installDir,
+      priorError: qaError,
+      exists: existsSync,
+      list: readdirSync,
+      execute: (filePath, args) => execFileSync(filePath, args, { stdio: "ignore", windowsHide: true }),
+      waitForRemoval: (filePath) => waitUntilSync(
+        () => !existsSync(filePath),
+        `Windows failure cleanup did not remove the executable: ${filePath}`,
+      ),
+      warn: (warning) => process.stderr.write(`${JSON.stringify(warning)}\n`),
+    });
+    try {
+      mkdirSync(ARTIFACT_DIR, { recursive: true });
+      writeFileSync(
+        path.join(ARTIFACT_DIR, "formal-windows-failure-cleanup.json"),
+        `${JSON.stringify({
+          schema_version: "law-firm-os.formal-windows-failure-cleanup.v1",
+          generated_at: new Date().toISOString(),
+          primary_error_preserved: qaError !== null,
+          result: failureCleanup,
+        }, null, 2)}\n`,
+        "utf8",
+      );
+    } catch (cleanupEvidenceError) {
+      if (!qaError) throw cleanupEvidenceError;
+      process.stderr.write(`${JSON.stringify({
+        warning: "windows_nsis_cleanup_evidence_write_failed",
+        error_code: cleanupEvidenceError?.code ?? "UNKNOWN",
+      })}\n`);
+    }
+  }
   cleanupTemporaryDirectories([
     userDataPath,
-    ...(uninstallCompleted ? [installDir] : []),
+    ...(uninstallCompleted || failureCleanup?.residue_present === false ? [installDir] : []),
   ], { priorError: qaError });
 }
