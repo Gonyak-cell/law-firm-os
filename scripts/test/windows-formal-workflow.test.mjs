@@ -435,9 +435,13 @@ test("Windows Authenticode workflow validates public inputs and vendor bytes bef
   assert.match(toolchainStep, /NPM_CONFIG_AUDIT: 'false'/u);
   assert.match(toolchainStep, /NPM_CONFIG_FUND: 'false'/u);
   assert.match(toolchainStep, /npm ci --ignore-scripts --prefix \$toolRoot/u);
-  assert.match(toolchainStep, /electron-v42\.4\.1-win32-x64\.zip/u);
-  assert.match(workflow, /LAWOS_ELECTRON_SHA256: 7e654383cb5794dada5d590b68016d485342212e6a56bcd66c1fc804c57f9c8b/u);
+  assert.match(toolchainStep, /electron-v42\.7\.0-win32-x64\.zip/u);
+  assert.match(workflow, /LAWOS_ELECTRON_VERSION: 42\.7\.0/u);
+  assert.match(workflow, /LAWOS_ELECTRON_SHA256: 56ef74c90fd8d145a5b41a7d3be6e2207fcc838538f8e92a713cecce54a7d667/u);
   assert.match(toolchainStep, /-cne \$env:LAWOS_ELECTRON_SHA256/u);
+  assert.match(workflow, /electron_version = \$env:LAWOS_ELECTRON_VERSION/u);
+  assert.match(workflow, /electron_url = \$env:LAWOS_ELECTRON_URL/u);
+  assert.match(workflow, /electron_sha256 = \$env:LAWOS_ELECTRON_SHA256/u);
   assert.match(toolchainStep, /MATTER_DESKTOP_BUILD_RECEIPT: '0'/u);
   const unsignedRendererPreparation = toolchainStep.indexOf("run prepare:web-renderer");
   const unsignedInstallerBuild = toolchainStep.indexOf("run build:win:installer");

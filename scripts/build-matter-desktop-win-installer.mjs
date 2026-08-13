@@ -223,7 +223,7 @@ try {
     "never",
     `-c.appId=${appId}`,
     `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
-    "-c.electronVersion=42.4.1",
+    "-c.electronVersion=42.7.0",
     ...(explicitElectronDist ? [`-c.electronDist=${explicitElectronDist}`] : []),
   ];
   await execFileAsync(

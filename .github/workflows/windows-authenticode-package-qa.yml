@@ -52,9 +52,9 @@ env:
   LAWOS_CKA_URL: https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip
   LAWOS_CKA_SHA256: 071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13
   LAWOS_TIMESTAMP_URL: http://ts.ssl.com
-  LAWOS_ELECTRON_VERSION: 42.4.1
-  LAWOS_ELECTRON_URL: https://github.com/electron/electron/releases/download/v42.4.1/electron-v42.4.1-win32-x64.zip
-  LAWOS_ELECTRON_SHA256: 7e654383cb5794dada5d590b68016d485342212e6a56bcd66c1fc804c57f9c8b
+  LAWOS_ELECTRON_VERSION: 42.7.0
+  LAWOS_ELECTRON_URL: https://github.com/electron/electron/releases/download/v42.7.0/electron-v42.7.0-win32-x64.zip
+  LAWOS_ELECTRON_SHA256: 56ef74c90fd8d145a5b41a7d3be6e2207fcc838538f8e92a713cecce54a7d667
 
 jobs:
   environment-preflight:
@@ -127,9 +127,9 @@ jobs:
             -or $env:LAWOS_CKA_URL -cne 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip' `
             -or $env:LAWOS_CKA_SHA256 -cne '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13' `
             -or $env:LAWOS_TIMESTAMP_URL -cne 'http://ts.ssl.com' `
-            -or $env:LAWOS_ELECTRON_VERSION -cne '42.4.1' `
-            -or $env:LAWOS_ELECTRON_URL -cne 'https://github.com/electron/electron/releases/download/v42.4.1/electron-v42.4.1-win32-x64.zip' `
-            -or $env:LAWOS_ELECTRON_SHA256 -cne '7e654383cb5794dada5d590b68016d485342212e6a56bcd66c1fc804c57f9c8b') {
+            -or $env:LAWOS_ELECTRON_VERSION -cne '42.7.0' `
+            -or $env:LAWOS_ELECTRON_URL -cne 'https://github.com/electron/electron/releases/download/v42.7.0/electron-v42.7.0-win32-x64.zip' `
+            -or $env:LAWOS_ELECTRON_SHA256 -cne '56ef74c90fd8d145a5b41a7d3be6e2207fcc838538f8e92a713cecce54a7d667') {
             throw 'public signing constants drifted'
           }
 
@@ -460,7 +460,7 @@ jobs:
           MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
           MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\lawos-electron-builder\unsigned-preflight-receipt.md
           MATTER_DESKTOP_ELECTRON_BUILDER_EXECUTABLE: ${{ runner.temp }}\lawos-electron-builder\node_modules\electron-builder\cli.js
-          MATTER_DESKTOP_ELECTRON_DIST: ${{ runner.temp }}\lawos-electron-builder\electron\electron-v42.4.1-win32-x64.zip
+          MATTER_DESKTOP_ELECTRON_DIST: ${{ runner.temp }}\lawos-electron-builder\electron\electron-v42.7.0-win32-x64.zip
           SIGNTOOL_PATH: ${{ runner.temp }}\lawos-electron-builder\signtool\signtool.exe
           MATTER_DESKTOP_SIGNTOOL_SHA256: a36f5e81ce208137acc8fa9c00547c020fa10f044583002ccd23799b7f64078e
           ELECTRON_BUILDER_CACHE: ${{ runner.temp }}\lawos-electron-builder\cache
@@ -508,12 +508,12 @@ jobs:
             throw 'isolated signtool digest mismatch'
           }
           $electronRoot = Join-Path $toolRoot 'electron'
-          $electronZip = Join-Path $electronRoot 'electron-v42.4.1-win32-x64.zip'
+          $electronZip = Join-Path $electronRoot 'electron-v42.7.0-win32-x64.zip'
           New-Item -ItemType Directory -Force -Path $electronRoot | Out-Null
           Invoke-WebRequest -Uri $env:LAWOS_ELECTRON_URL -OutFile $electronZip
           if ((Get-FileHash -LiteralPath $electronZip -Algorithm SHA256).Hash.ToLowerInvariant() `
             -cne $env:LAWOS_ELECTRON_SHA256) {
-            throw 'Electron 42.4.1 Windows x64 archive digest mismatch'
+            throw 'Electron 42.7.0 Windows x64 archive digest mismatch'
           }
           npm --workspace apps/desktop run prepare:web-renderer
           if ($LASTEXITCODE -ne 0) { throw 'unsigned renderer preparation failed' }
@@ -605,7 +605,7 @@ jobs:
           MATTER_DESKTOP_AUTHENTICODE_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
           MATTER_DESKTOP_AUTHENTICODE_TIMESTAMP_URL: http://ts.ssl.com
           MATTER_DESKTOP_ELECTRON_BUILDER_EXECUTABLE: ${{ runner.temp }}\lawos-electron-builder\node_modules\electron-builder\cli.js
-          MATTER_DESKTOP_ELECTRON_DIST: ${{ runner.temp }}\lawos-electron-builder\electron\electron-v42.4.1-win32-x64.zip
+          MATTER_DESKTOP_ELECTRON_DIST: ${{ runner.temp }}\lawos-electron-builder\electron\electron-v42.7.0-win32-x64.zip
           SIGNTOOL_PATH: ${{ runner.temp }}\lawos-electron-builder\signtool\signtool.exe
           MATTER_DESKTOP_SIGNTOOL_SHA256: a36f5e81ce208137acc8fa9c00547c020fa10f044583002ccd23799b7f64078e
           ELECTRON_BUILDER_CACHE: ${{ runner.temp }}\lawos-electron-builder\cache
@@ -728,6 +728,11 @@ jobs:
               cka_url = 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip'
               cka_sha256 = '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13'
               timestamp_url = 'http://ts.ssl.com'
+            }
+            runtime = [ordered]@{
+              electron_version = $env:LAWOS_ELECTRON_VERSION
+              electron_url = $env:LAWOS_ELECTRON_URL
+              electron_sha256 = $env:LAWOS_ELECTRON_SHA256
             }
             package = [ordered]@{
               installer_sha256 = $qa.package.installer.sha256
