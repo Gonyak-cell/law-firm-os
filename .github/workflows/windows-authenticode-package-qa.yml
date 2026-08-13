@@ -1,10 +1,10 @@
-name: Windows Authenticode Package QA Preparation
+name: Windows Authenticode Package QA
 
 on:
   workflow_dispatch:
     inputs:
       source_sha:
-        description: Exact clean source commit to prepare
+        description: Exact clean source commit to build and sign
         required: true
         type: string
       source_tree:
@@ -35,16 +35,234 @@ on:
         description: Exact formal desktop app identifier
         required: true
         type: string
+      certificate_bindings_json:
+        description: Closed JSON object with reviewed CKA signer subject/SHA-1/SHA-256 and product certificate SHA-1
+        required: true
+        type: string
 
 permissions:
   contents: read
 
+concurrency:
+  group: windows-authenticode-pilot
+  cancel-in-progress: false
+
+env:
+  LAWOS_CKA_VERSION: '1.1.2'
+  LAWOS_CKA_URL: https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip
+  LAWOS_CKA_SHA256: 071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13
+  LAWOS_TIMESTAMP_URL: http://ts.ssl.com
+  LAWOS_ELECTRON_VERSION: 42.4.1
+  LAWOS_ELECTRON_URL: https://github.com/electron/electron/releases/download/v42.4.1/electron-v42.4.1-win32-x64.zip
+  LAWOS_ELECTRON_SHA256: 7e654383cb5794dada5d590b68016d485342212e6a56bcd66c1fc804c57f9c8b
+
 jobs:
-  preparation-only:
-    name: Validate protected signing inputs without signing
+  environment-preflight:
+    name: Verify pre-existing protected signing environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      environment_name: ${{ steps.protected-environment.outputs.environment_name }}
+      cka_installer_subject: ${{ steps.protected-environment.outputs.cka_installer_subject }}
+      cka_installer_certificate_sha1: ${{ steps.protected-environment.outputs.cka_installer_certificate_sha1 }}
+      cka_installer_certificate_sha256: ${{ steps.protected-environment.outputs.cka_installer_certificate_sha256 }}
+      signing_certificate_sha1: ${{ steps.protected-environment.outputs.signing_certificate_sha1 }}
+    steps:
+      - name: Verify public dispatch and signing constants before environment read token
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_APPROVAL_ID: ${{ inputs.approval_id }}
+          INPUT_APPROVAL_EXPIRES_AT: ${{ inputs.approval_expires_at }}
+          INPUT_PILOT_ID: ${{ inputs.pilot_id }}
+          INPUT_LAWOS_TENANT_ID: ${{ inputs.lawos_tenant_id }}
+          INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
+          INPUT_APP_ID: ${{ inputs.app_id }}
+          INPUT_CERTIFICATE_BINDINGS_JSON: ${{ inputs.certificate_bindings_json }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os') { throw 'workflow must run in the canonical repository' }
+          if ($env:GITHUB_REF -cne 'refs/heads/main') { throw 'workflow must be dispatched from main' }
+          if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'environment preflight requires a GitHub-hosted runner' }
+          if ($env:INPUT_SOURCE_SHA -notmatch '^[0-9a-f]{40}$' -or $env:INPUT_SOURCE_TREE -notmatch '^[0-9a-f]{40}$') {
+            throw 'source identity format is invalid'
+          }
+          if ($env:INPUT_APPROVAL_ID -notmatch '^[A-Z0-9][A-Z0-9._-]{7,127}$' `
+            -or $env:INPUT_PILOT_ID -notmatch '^[a-z0-9][a-z0-9._-]{7,127}$' `
+            -or $env:INPUT_LAWOS_TENANT_ID -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$' `
+            -or $env:INPUT_ENTRA_TENANT_ID -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$' `
+            -or $env:INPUT_APP_ID -cne 'com.amic.matter.desktop') {
+            throw 'approval, pilot, tenant, or app identity format is invalid'
+          }
+          try { $certificateBindings = $env:INPUT_CERTIFICATE_BINDINGS_JSON | ConvertFrom-Json -AsHashtable }
+          catch { throw 'certificate_bindings_json is not a valid JSON object' }
+          $certificateBindingKeys = @(
+            'cka_installer_subject',
+            'cka_installer_certificate_sha1',
+            'cka_installer_certificate_sha256',
+            'signing_certificate_sha1'
+          )
+          if ($null -eq $certificateBindings `
+            -or $certificateBindings -isnot [Collections.IDictionary] `
+            -or $certificateBindings.Count -ne $certificateBindingKeys.Count `
+            -or @($certificateBindings.Keys | Where-Object { $certificateBindingKeys -cnotcontains $_ }).Count -ne 0 `
+            -or @($certificateBindingKeys | Where-Object { -not $certificateBindings.Contains($_) }).Count -ne 0 `
+            -or [string]$certificateBindings.cka_installer_subject -notmatch '\A[^\p{Cc}]{1,512}\z' `
+            -or [string]$certificateBindings.cka_installer_certificate_sha1 -notmatch '\A[0-9A-F]{40}\z' `
+            -or [string]$certificateBindings.cka_installer_certificate_sha256 -notmatch '\A[0-9A-F]{64}\z' `
+            -or [string]$certificateBindings.signing_certificate_sha1 -notmatch '\A[0-9A-F]{40}\z') {
+            throw 'certificate_bindings_json must contain exactly four valid public certificate identities'
+          }
+          $expiry = [DateTimeOffset]::MinValue
+          $parsed = [DateTimeOffset]::TryParseExact(
+            $env:INPUT_APPROVAL_EXPIRES_AT,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$expiry
+          )
+          if (-not $parsed -or $expiry -le [DateTimeOffset]::UtcNow) { throw 'approval is invalid or expired' }
+          if ($env:LAWOS_CKA_VERSION -cne '1.1.2' `
+            -or $env:LAWOS_CKA_URL -cne 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip' `
+            -or $env:LAWOS_CKA_SHA256 -cne '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13' `
+            -or $env:LAWOS_TIMESTAMP_URL -cne 'http://ts.ssl.com' `
+            -or $env:LAWOS_ELECTRON_VERSION -cne '42.4.1' `
+            -or $env:LAWOS_ELECTRON_URL -cne 'https://github.com/electron/electron/releases/download/v42.4.1/electron-v42.4.1-win32-x64.zip' `
+            -or $env:LAWOS_ELECTRON_SHA256 -cne '7e654383cb5794dada5d590b68016d485342212e6a56bcd66c1fc804c57f9c8b') {
+            throw 'public signing constants drifted'
+          }
+
+      - name: Verify exact protected environment, variables, and secret names through GitHub API
+        id: protected-environment
+        shell: pwsh
+        env:
+          ENVIRONMENT_READ_TOKEN: ${{ secrets.SSL_COM_ESIGNER_ENVIRONMENT_READ_TOKEN }}
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_APPROVAL_ID: ${{ inputs.approval_id }}
+          INPUT_APPROVAL_EXPIRES_AT: ${{ inputs.approval_expires_at }}
+          INPUT_PILOT_ID: ${{ inputs.pilot_id }}
+          INPUT_LAWOS_TENANT_ID: ${{ inputs.lawos_tenant_id }}
+          INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
+          INPUT_APP_ID: ${{ inputs.app_id }}
+          INPUT_CERTIFICATE_BINDINGS_JSON: ${{ inputs.certificate_bindings_json }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os') { throw 'workflow must run in the canonical repository' }
+          if ($env:GITHUB_REF -cne 'refs/heads/main') { throw 'workflow must be dispatched from main' }
+          if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'environment preflight requires a GitHub-hosted runner' }
+          if ([string]::IsNullOrWhiteSpace($env:ENVIRONMENT_READ_TOKEN)) { throw 'least-privilege GitHub environment-read token is missing' }
+          try { $certificateBindings = $env:INPUT_CERTIFICATE_BINDINGS_JSON | ConvertFrom-Json -AsHashtable }
+          catch { throw 'certificate_bindings_json is not a valid JSON object' }
+          $environmentName = 'windows-authenticode-pilot'
+          $baseUri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/environments/$environmentName"
+          $headers = @{
+            Accept = 'application/vnd.github+json'
+            Authorization = "Bearer $env:ENVIRONMENT_READ_TOKEN"
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          try {
+            $environment = Invoke-RestMethod -Method Get -Uri $baseUri -Headers $headers
+            $variables = Invoke-RestMethod -Method Get -Uri "$baseUri/variables?per_page=100" -Headers $headers
+            $secrets = Invoke-RestMethod -Method Get -Uri "$baseUri/secrets?per_page=100" -Headers $headers
+          } catch {
+            throw 'pre-existing signing environment readback failed; it must be created and readable before dispatch'
+          }
+          if ($environment.name -cne $environmentName) { throw 'signing environment identity mismatch' }
+          $reviewerRules = @($environment.protection_rules | Where-Object { $_.type -ceq 'required_reviewers' })
+          if ($reviewerRules.Count -ne 1 -or @($reviewerRules[0].reviewers).Count -lt 1 -or $reviewerRules[0].prevent_self_review -ne $true) {
+            throw 'signing environment must require at least one independent reviewer and prevent self-review'
+          }
+          if ($environment.can_admins_bypass -ne $false) {
+            throw 'signing environment must forbid administrator protection bypass'
+          }
+          if ($null -eq $environment.deployment_branch_policy `
+            -or $environment.deployment_branch_policy.protected_branches -ne $true `
+            -or $environment.deployment_branch_policy.custom_branch_policies -ne $false) {
+            throw 'signing environment must allow protected branches only'
+          }
+          $requiredVariables = @(
+            'SSL_COM_ESIGNER_ENVIRONMENT_GUARD',
+            'SSL_COM_ESIGNER_APPROVED_SOURCE_SHA',
+            'SSL_COM_ESIGNER_APPROVED_SOURCE_TREE',
+            'SSL_COM_ESIGNER_APPROVAL_ID',
+            'SSL_COM_ESIGNER_APPROVAL_EXPIRES_AT',
+            'SSL_COM_ESIGNER_PILOT_ID',
+            'SSL_COM_ESIGNER_LAWOS_TENANT_ID',
+            'SSL_COM_ESIGNER_ENTRA_TENANT_ID',
+            'SSL_COM_ESIGNER_APP_ID',
+            'SSL_COM_ESIGNER_CKA_VERSION',
+            'SSL_COM_ESIGNER_CKA_URL',
+            'SSL_COM_ESIGNER_CKA_SHA256',
+            'SSL_COM_ESIGNER_TIMESTAMP_URL',
+            'SSL_COM_ESIGNER_CKA_INSTALLER_SUBJECT',
+            'SSL_COM_ESIGNER_CKA_INSTALLER_CERTIFICATE_SHA1',
+            'SSL_COM_ESIGNER_CKA_INSTALLER_CERTIFICATE_SHA256',
+            'SSL_COM_ESIGNER_CERTIFICATE_SHA1'
+          )
+          $environmentVariableNames = @($variables.variables | ForEach-Object { [string]$_.name })
+          if (@($requiredVariables | Where-Object { $environmentVariableNames -cnotcontains $_ }).Count -ne 0) {
+            throw 'required environment-scoped signing variables are missing; repository or organization fallback is forbidden'
+          }
+          $environmentVariables = @{}
+          foreach ($variable in @($variables.variables)) {
+            if ($environmentVariables.ContainsKey([string]$variable.name)) { throw 'duplicate environment variable name returned by GitHub' }
+            $environmentVariables[[string]$variable.name] = [string]$variable.value
+          }
+          $expectedVariables = [ordered]@{
+            SSL_COM_ESIGNER_ENVIRONMENT_GUARD = 'law-firm-os.windows-authenticode-pilot.v1'
+            SSL_COM_ESIGNER_APPROVED_SOURCE_SHA = $env:INPUT_SOURCE_SHA
+            SSL_COM_ESIGNER_APPROVED_SOURCE_TREE = $env:INPUT_SOURCE_TREE
+            SSL_COM_ESIGNER_APPROVAL_ID = $env:INPUT_APPROVAL_ID
+            SSL_COM_ESIGNER_APPROVAL_EXPIRES_AT = $env:INPUT_APPROVAL_EXPIRES_AT
+            SSL_COM_ESIGNER_PILOT_ID = $env:INPUT_PILOT_ID
+            SSL_COM_ESIGNER_LAWOS_TENANT_ID = $env:INPUT_LAWOS_TENANT_ID
+            SSL_COM_ESIGNER_ENTRA_TENANT_ID = $env:INPUT_ENTRA_TENANT_ID
+            SSL_COM_ESIGNER_APP_ID = $env:INPUT_APP_ID
+            SSL_COM_ESIGNER_CKA_VERSION = '1.1.2'
+            SSL_COM_ESIGNER_CKA_URL = 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip'
+            SSL_COM_ESIGNER_CKA_SHA256 = '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13'
+            SSL_COM_ESIGNER_TIMESTAMP_URL = 'http://ts.ssl.com'
+            SSL_COM_ESIGNER_CKA_INSTALLER_SUBJECT = [string]$certificateBindings.cka_installer_subject
+            SSL_COM_ESIGNER_CKA_INSTALLER_CERTIFICATE_SHA1 = [string]$certificateBindings.cka_installer_certificate_sha1
+            SSL_COM_ESIGNER_CKA_INSTALLER_CERTIFICATE_SHA256 = [string]$certificateBindings.cka_installer_certificate_sha256
+            SSL_COM_ESIGNER_CERTIFICATE_SHA1 = [string]$certificateBindings.signing_certificate_sha1
+          }
+          foreach ($expectedVariable in $expectedVariables.GetEnumerator()) {
+            if (-not $environmentVariables.ContainsKey($expectedVariable.Key) `
+              -or $environmentVariables[$expectedVariable.Key] -cne $expectedVariable.Value) {
+              throw "environment-scoped $($expectedVariable.Key) is missing or drifted"
+            }
+          }
+          if ($environmentVariables['SSL_COM_ESIGNER_CKA_INSTALLER_SUBJECT'] -notmatch '\A[^\p{Cc}]{1,512}\z' `
+            -or $environmentVariables['SSL_COM_ESIGNER_CKA_INSTALLER_CERTIFICATE_SHA1'] -notmatch '\A[0-9A-F]{40}\z' `
+            -or $environmentVariables['SSL_COM_ESIGNER_CKA_INSTALLER_CERTIFICATE_SHA256'] -notmatch '\A[0-9A-F]{64}\z' `
+            -or $environmentVariables['SSL_COM_ESIGNER_CERTIFICATE_SHA1'] -notmatch '\A[0-9A-F]{40}\z') {
+            throw 'environment-scoped certificate identities are missing or invalid'
+          }
+          $requiredSecrets = @('SSL_COM_ESIGNER_USERNAME', 'SSL_COM_ESIGNER_PASSWORD', 'SSL_COM_ESIGNER_TOTP_SECRET')
+          $environmentSecretNames = @($secrets.secrets | ForEach-Object { [string]$_.name })
+          if (@($requiredSecrets | Where-Object { $environmentSecretNames -cnotcontains $_ }).Count -ne 0) {
+            throw 'required environment-scoped signing secrets are missing; repository or organization fallback is forbidden'
+          }
+          "environment_name=$environmentName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "cka_installer_subject=$([string]$certificateBindings.cka_installer_subject)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "cka_installer_certificate_sha1=$([string]$certificateBindings.cka_installer_certificate_sha1)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "cka_installer_certificate_sha256=$([string]$certificateBindings.cka_installer_certificate_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "signing_certificate_sha1=$([string]$certificateBindings.signing_certificate_sha1)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  sign-and-qa:
+    name: Sign exact formal package and run native QA
+    needs: environment-preflight
     runs-on: windows-latest
-    environment: windows-authenticode-pilot
-    timeout-minutes: 15
+    # The name is emitted only after the no-environment preflight proves that
+    # the exact protected environment and its scoped bindings already exist.
+    environment:
+      name: ${{ needs.environment-preflight.outputs.environment_name }}
+    timeout-minutes: 60
     steps:
       - name: Configure deterministic Git line endings
         shell: pwsh
@@ -57,7 +275,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify exact source, tree, tenant, app, and unexpired approval
+      - name: Verify exact source, tree, approval, pilot, tenant, and app bindings
         shell: pwsh
         env:
           INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
@@ -68,18 +286,45 @@ jobs:
           INPUT_LAWOS_TENANT_ID: ${{ inputs.lawos_tenant_id }}
           INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
           INPUT_APP_ID: ${{ inputs.app_id }}
+          ENVIRONMENT_GUARD: ${{ vars.SSL_COM_ESIGNER_ENVIRONMENT_GUARD }}
+          APPROVED_SOURCE_SHA: ${{ vars.SSL_COM_ESIGNER_APPROVED_SOURCE_SHA }}
+          APPROVED_SOURCE_TREE: ${{ vars.SSL_COM_ESIGNER_APPROVED_SOURCE_TREE }}
+          APPROVED_APPROVAL_ID: ${{ vars.SSL_COM_ESIGNER_APPROVAL_ID }}
+          APPROVED_APPROVAL_EXPIRES_AT: ${{ vars.SSL_COM_ESIGNER_APPROVAL_EXPIRES_AT }}
+          APPROVED_PILOT_ID: ${{ vars.SSL_COM_ESIGNER_PILOT_ID }}
+          APPROVED_LAWOS_TENANT_ID: ${{ vars.SSL_COM_ESIGNER_LAWOS_TENANT_ID }}
+          APPROVED_ENTRA_TENANT_ID: ${{ vars.SSL_COM_ESIGNER_ENTRA_TENANT_ID }}
+          APPROVED_APP_ID: ${{ vars.SSL_COM_ESIGNER_APP_ID }}
         run: |
-          $ErrorActionPreference = "Stop"
-          if ($env:INPUT_SOURCE_SHA -notmatch '^[0-9a-f]{40}$') { throw "source_sha must be a full lowercase Git object ID" }
-          if ($env:INPUT_SOURCE_TREE -notmatch '^[0-9a-f]{40}$') { throw "source_tree must be a full lowercase Git object ID" }
-          if ((git rev-parse HEAD).Trim() -ne $env:INPUT_SOURCE_SHA) { throw "exact source checkout failed" }
-          if ((git rev-parse 'HEAD^{tree}').Trim() -ne $env:INPUT_SOURCE_TREE) { throw "exact source tree verification failed" }
-          if (git status --porcelain) { throw "source checkout is dirty" }
-          if ($env:INPUT_APPROVAL_ID -notmatch '^[A-Z0-9][A-Z0-9._-]{7,127}$') { throw "approval_id format is invalid" }
-          if ($env:INPUT_PILOT_ID -notmatch '^[a-z0-9][a-z0-9._-]{7,127}$') { throw "pilot_id format is invalid" }
-          if ($env:INPUT_LAWOS_TENANT_ID -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$') { throw "lawos_tenant_id format is invalid" }
-          if ($env:INPUT_ENTRA_TENANT_ID -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') { throw "entra_tenant_id is invalid" }
-          if ($env:INPUT_APP_ID -ne 'com.amic.matter.desktop') { throw "app_id must be the formal Matter desktop identity" }
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os') { throw 'workflow must run in the canonical repository' }
+          if ($env:GITHUB_REF -cne 'refs/heads/main') { throw 'workflow must be dispatched from main' }
+          if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'signing requires an ephemeral GitHub-hosted runner' }
+          if ($env:ENVIRONMENT_GUARD -cne 'law-firm-os.windows-authenticode-pilot.v1') { throw 'protected environment is missing or unconfigured' }
+          if ($env:INPUT_SOURCE_SHA -notmatch '^[0-9a-f]{40}$') { throw 'source_sha must be a full lowercase Git object ID' }
+          if ($env:INPUT_SOURCE_TREE -notmatch '^[0-9a-f]{40}$') { throw 'source_tree must be a full lowercase Git object ID' }
+          if ((git rev-parse HEAD).Trim() -cne $env:INPUT_SOURCE_SHA) { throw 'exact source checkout failed' }
+          if ((git rev-parse 'HEAD^{tree}').Trim() -cne $env:INPUT_SOURCE_TREE) { throw 'exact source tree verification failed' }
+          if (git status --porcelain) { throw 'source checkout is dirty' }
+          if ($env:INPUT_APPROVAL_ID -notmatch '^[A-Z0-9][A-Z0-9._-]{7,127}$') { throw 'approval_id format is invalid' }
+          if ($env:INPUT_PILOT_ID -notmatch '^[a-z0-9][a-z0-9._-]{7,127}$') { throw 'pilot_id format is invalid' }
+          if ($env:INPUT_LAWOS_TENANT_ID -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$') { throw 'lawos_tenant_id format is invalid' }
+          if ($env:INPUT_ENTRA_TENANT_ID -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') { throw 'entra_tenant_id is invalid' }
+          if ($env:INPUT_APP_ID -cne 'com.amic.matter.desktop') { throw 'app_id must be the formal Matter desktop identity' }
+          foreach ($binding in @(
+            @('source_sha', $env:INPUT_SOURCE_SHA, $env:APPROVED_SOURCE_SHA),
+            @('source_tree', $env:INPUT_SOURCE_TREE, $env:APPROVED_SOURCE_TREE),
+            @('approval_id', $env:INPUT_APPROVAL_ID, $env:APPROVED_APPROVAL_ID),
+            @('approval_expires_at', $env:INPUT_APPROVAL_EXPIRES_AT, $env:APPROVED_APPROVAL_EXPIRES_AT),
+            @('pilot_id', $env:INPUT_PILOT_ID, $env:APPROVED_PILOT_ID),
+            @('lawos_tenant_id', $env:INPUT_LAWOS_TENANT_ID, $env:APPROVED_LAWOS_TENANT_ID),
+            @('entra_tenant_id', $env:INPUT_ENTRA_TENANT_ID, $env:APPROVED_ENTRA_TENANT_ID),
+            @('app_id', $env:INPUT_APP_ID, $env:APPROVED_APP_ID)
+          )) {
+            if ([string]::IsNullOrWhiteSpace($binding[2]) -or $binding[1] -cne $binding[2]) {
+              throw "dispatch input does not match protected $($binding[0]) binding"
+            }
+          }
           $expiry = [DateTimeOffset]::MinValue
           $parsed = [DateTimeOffset]::TryParseExact(
             $env:INPUT_APPROVAL_EXPIRES_AT,
@@ -88,25 +333,334 @@ jobs:
             [Globalization.DateTimeStyles]::AssumeUniversal,
             [ref]$expiry
           )
-          if (-not $parsed -or $expiry -le [DateTimeOffset]::UtcNow) { throw "approval is invalid or expired" }
+          if (-not $parsed -or $expiry -le [DateTimeOffset]::UtcNow) { throw 'approval is invalid or expired' }
 
-      - name: Verify protected public SSL.com configuration before any secret reference
+      - name: Verify protected public SSL.com configuration before signing credential access
         shell: pwsh
         env:
           CKA_VERSION: ${{ vars.SSL_COM_ESIGNER_CKA_VERSION }}
+          CKA_URL: ${{ vars.SSL_COM_ESIGNER_CKA_URL }}
           CKA_SHA256: ${{ vars.SSL_COM_ESIGNER_CKA_SHA256 }}
-          EXPECTED_CERTIFICATE_SHA1: ${{ vars.SSL_COM_ESIGNER_CERTIFICATE_SHA1 }}
+          TIMESTAMP_URL: ${{ vars.SSL_COM_ESIGNER_TIMESTAMP_URL }}
+          CKA_INSTALLER_SUBJECT: ${{ needs.environment-preflight.outputs.cka_installer_subject }}
+          CKA_INSTALLER_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.cka_installer_certificate_sha1 }}
+          CKA_INSTALLER_CERTIFICATE_SHA256: ${{ needs.environment-preflight.outputs.cka_installer_certificate_sha256 }}
+          EXPECTED_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
         run: |
-          $ErrorActionPreference = "Stop"
-          if ($env:CKA_VERSION -notmatch '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$') { throw "protected CKA version is missing or invalid" }
-          if ($env:CKA_SHA256 -notmatch '^[0-9a-f]{64}$') { throw "protected CKA SHA-256 is missing or invalid" }
-          if ($env:EXPECTED_CERTIFICATE_SHA1 -notmatch '^[0-9A-F]{40}$') { throw "protected expected certificate SHA-1 is missing or invalid" }
-          $timestampUrl = 'http://ts.ssl.com'
-          if ($timestampUrl -cne 'http://ts.ssl.com') { throw "SSL.com RFC3161 endpoint drifted" }
+          $ErrorActionPreference = 'Stop'
+          $expectedCkaVersion = '1.1.2'
+          $expectedCkaUrl = 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip'
+          $expectedCkaSha256 = '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13'
+          if ($env:CKA_VERSION -cne $expectedCkaVersion) { throw 'protected CKA version is missing or drifted' }
+          if ($env:CKA_URL -cne $expectedCkaUrl) { throw 'protected CKA URL is missing or drifted' }
+          if ($env:CKA_SHA256 -cne $expectedCkaSha256) { throw 'protected CKA SHA-256 is missing or drifted' }
+          if ($env:TIMESTAMP_URL -cne 'http://ts.ssl.com') { throw 'protected SSL.com RFC3161 endpoint is missing or drifted' }
+          if ($env:CKA_INSTALLER_SUBJECT -notmatch '\A[^\p{Cc}]{1,512}\z') { throw 'protected CKA installer signer subject is missing or invalid' }
+          if ($env:CKA_INSTALLER_CERTIFICATE_SHA1 -notmatch '\A[0-9A-F]{40}\z') { throw 'protected CKA installer certificate SHA-1 is missing or invalid' }
+          if ($env:CKA_INSTALLER_CERTIFICATE_SHA256 -notmatch '\A[0-9A-F]{64}\z') { throw 'protected CKA installer certificate SHA-256 is missing or invalid' }
+          if ($env:EXPECTED_CERTIFICATE_SHA1 -notmatch '\A[0-9A-F]{40}\z') { throw 'protected expected certificate SHA-1 is missing or invalid' }
 
-      - name: Record preparation-only public evidence
+      - name: Download, validate, and install exact SSL.com eSigner CKA
         shell: pwsh
         env:
+          EXPECTED_CKA_INSTALLER_SUBJECT: ${{ needs.environment-preflight.outputs.cka_installer_subject }}
+          EXPECTED_CKA_INSTALLER_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.cka_installer_certificate_sha1 }}
+          EXPECTED_CKA_INSTALLER_CERTIFICATE_SHA256: ${{ needs.environment-preflight.outputs.cka_installer_certificate_sha256 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          function Get-EkuOids($certificate) {
+            if ($null -eq $certificate) { return @() }
+            $extensions = @($certificate.Extensions | Where-Object { $_.Oid.Value -eq '2.5.29.37' })
+            if ($extensions.Count -ne 1) { return @() }
+            $eku = [Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension]::new($extensions[0].RawData, $extensions[0].Critical)
+            return @($eku.EnhancedKeyUsages | ForEach-Object { $_.Value })
+          }
+          function Get-CertificateSha256($certificate) {
+            if ($null -eq $certificate) { return $null }
+            $hasher = [Security.Cryptography.SHA256]::Create()
+            try { return ([BitConverter]::ToString($hasher.ComputeHash($certificate.RawData))).Replace('-', '') } finally { $hasher.Dispose() }
+          }
+          $expectedCkaUrl = 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip'
+          $expectedCkaSha256 = '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13'
+          $signingRoot = Join-Path $env:RUNNER_TEMP 'lawos-esigner'
+          $zipPath = Join-Path $signingRoot 'SSL.COM-eSigner-CKA_1.1.2.zip'
+          $extractRoot = Join-Path $signingRoot 'extract'
+          $installRoot = Join-Path $signingRoot 'install'
+          New-Item -ItemType Directory -Force -Path $signingRoot, $extractRoot, $installRoot | Out-Null
+          Invoke-WebRequest -Uri $expectedCkaUrl -OutFile $zipPath
+          $actualCkaSha256 = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualCkaSha256 -cne $expectedCkaSha256) { throw 'SSL.com eSigner CKA archive digest mismatch' }
+
+          $archive = [IO.Compression.ZipFile]::OpenRead($zipPath)
+          try {
+            $entries = @($archive.Entries)
+            if ($entries.Count -lt 1 -or $entries.Count -gt 128) { throw 'SSL.com eSigner CKA archive entry count is unsafe' }
+            $totalLength = [long]0
+            foreach ($entry in $entries) {
+              $entryName = $entry.FullName.Replace('\', '/')
+              $totalLength += $entry.Length
+              if ($entryName.StartsWith('/') -or $entryName -match '^[A-Za-z]:' -or $entryName -match '(^|/)\.\.(/|$)' -or $entryName.Contains([char]0)) {
+                throw 'SSL.com eSigner CKA archive contains an unsafe path'
+              }
+              if ($entry.Length -gt 134217728 -or $totalLength -gt 268435456) { throw 'SSL.com eSigner CKA archive expands beyond the safe limit' }
+            }
+            $installerEntries = @($entries | Where-Object { $_.Name -match '(?i)\.exe$' })
+            if ($installerEntries.Count -ne 1) { throw 'SSL.com eSigner CKA archive must contain exactly one installer executable' }
+            $installerRelativePath = $installerEntries[0].FullName
+          } finally {
+            $archive.Dispose()
+          }
+
+          Expand-Archive -LiteralPath $zipPath -DestinationPath $extractRoot
+          if (Get-ChildItem -LiteralPath $extractRoot -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }) {
+            throw 'SSL.com eSigner CKA archive extracted a reparse point'
+          }
+          $extractPrefix = [IO.Path]::GetFullPath($extractRoot + [IO.Path]::DirectorySeparatorChar)
+          $installerPath = [IO.Path]::GetFullPath((Join-Path $extractRoot $installerRelativePath))
+          if (-not $installerPath.StartsWith($extractPrefix, [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
+            throw 'SSL.com eSigner CKA installer path escaped the extraction root'
+          }
+          $vendorSignature = Get-AuthenticodeSignature -LiteralPath $installerPath
+          $vendorEkus = @(Get-EkuOids $vendorSignature.SignerCertificate)
+          $vendorTimestampEkus = @(Get-EkuOids $vendorSignature.TimeStamperCertificate)
+          $vendorCertificateSha256 = Get-CertificateSha256 $vendorSignature.SignerCertificate
+          if ($vendorSignature.Status -ne 'Valid' -or $vendorSignature.SignatureType -ne 'Authenticode' -or $null -eq $vendorSignature.TimeStamperCertificate) {
+            throw 'SSL.com eSigner CKA installer Authenticode validation failed'
+          }
+          if ($vendorEkus -notcontains '1.3.6.1.5.5.7.3.3' -or $vendorTimestampEkus -notcontains '1.3.6.1.5.5.7.3.8') {
+            throw 'SSL.com eSigner CKA installer certificate EKU validation failed'
+          }
+          if ($vendorSignature.SignerCertificate.Subject -cne $env:EXPECTED_CKA_INSTALLER_SUBJECT `
+            -or $vendorSignature.SignerCertificate.Thumbprint.ToUpperInvariant() -cne $env:EXPECTED_CKA_INSTALLER_CERTIFICATE_SHA1 `
+            -or $vendorCertificateSha256 -cne $env:EXPECTED_CKA_INSTALLER_CERTIFICATE_SHA256) {
+            throw 'SSL.com eSigner CKA installer publisher validation failed'
+          }
+
+          & $installerPath /CURRENTUSER /VERYSILENT /SUPPRESSMSGBOXES /NORESTART "/DIR=$installRoot" *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'SSL.com eSigner CKA installer failed' }
+          $toolPath = Join-Path $installRoot 'eSignerCKATool.exe'
+          if (-not (Test-Path -LiteralPath $toolPath -PathType Leaf)) { throw 'eSignerCKATool.exe was not installed at the isolated path' }
+
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install exact dependencies before signing credential access
+        run: npm ci
+
+      - name: Materialize verified local electron-builder before signing credential access
+        shell: pwsh
+        env:
+          MATTER_DESKTOP_RELEASE_CHANNEL: formal
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\lawos-electron-builder\unsigned-preflight-receipt.md
+          MATTER_DESKTOP_ELECTRON_BUILDER_EXECUTABLE: ${{ runner.temp }}\lawos-electron-builder\node_modules\electron-builder\cli.js
+          MATTER_DESKTOP_ELECTRON_DIST: ${{ runner.temp }}\lawos-electron-builder\electron\electron-v42.4.1-win32-x64.zip
+          SIGNTOOL_PATH: ${{ runner.temp }}\lawos-electron-builder\signtool\signtool.exe
+          MATTER_DESKTOP_SIGNTOOL_SHA256: a36f5e81ce208137acc8fa9c00547c020fa10f044583002ccd23799b7f64078e
+          ELECTRON_BUILDER_CACHE: ${{ runner.temp }}\lawos-electron-builder\cache
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          MATTER_DESKTOP_BUILD_RECEIPT: '0'
+          NPM_CONFIG_AUDIT: 'false'
+          NPM_CONFIG_FUND: 'false'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $toolRoot = Join-Path $env:RUNNER_TEMP 'lawos-electron-builder'
+          New-Item -ItemType Directory -Force -Path $toolRoot | Out-Null
+          $lockedToolchainRoot = Join-Path $env:GITHUB_WORKSPACE '.github\toolchains\windows-authenticode-electron-builder'
+          $lockPath = Join-Path $lockedToolchainRoot 'package-lock.json'
+          $lockSha256 = (Get-FileHash -LiteralPath $lockPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($lockSha256 -cne 'd13063e65f5c6f07f78b7319fe562b68a0072fb264a7a207b5cef185350d72f6') {
+            throw 'electron-builder dependency graph drifted from the reviewed lock'
+          }
+          Copy-Item -LiteralPath (Join-Path $lockedToolchainRoot 'package.json') -Destination $toolRoot
+          Copy-Item -LiteralPath $lockPath -Destination $toolRoot
+          npm ci --ignore-scripts --prefix $toolRoot
+          if ($LASTEXITCODE -ne 0) { throw 'electron-builder dependency materialization failed' }
+          $builderPackage = Get-Content -Raw -LiteralPath (Join-Path $toolRoot 'node_modules\electron-builder\package.json') | ConvertFrom-Json
+          $builderCli = Join-Path $toolRoot 'node_modules\electron-builder\cli.js'
+          if ($builderPackage.version -cne '26.15.3' -or -not (Test-Path -LiteralPath $builderCli -PathType Leaf)) {
+            throw 'exact local electron-builder is missing'
+          }
+          $builderWindowsToolset = Join-Path $toolRoot 'node_modules\app-builder-lib\out\toolsets\windows.js'
+          if (-not (Test-Path -LiteralPath $builderWindowsToolset -PathType Leaf) `
+            -or -not (Get-Content -Raw -LiteralPath $builderWindowsToolset).Contains('resolveEnvToolsetPath)("SIGNTOOL_PATH", "file")')) {
+            throw 'electron-builder does not honor the explicit signtool boundary'
+          }
+          $signToolPackage = Get-Content -Raw -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'node_modules\@electron\windows-sign\package.json') | ConvertFrom-Json
+          $lockedSignTool = Join-Path $env:GITHUB_WORKSPACE 'node_modules\@electron\windows-sign\vendor\signtool.exe'
+          if ($signToolPackage.version -cne '2.0.3' -or -not (Test-Path -LiteralPath $lockedSignTool -PathType Leaf)) {
+            throw 'lock-materialized @electron/windows-sign signtool is missing'
+          }
+          if ((Get-FileHash -LiteralPath $lockedSignTool -Algorithm SHA256).Hash.ToLowerInvariant() `
+            -cne $env:MATTER_DESKTOP_SIGNTOOL_SHA256) {
+            throw 'lock-materialized signtool digest mismatch'
+          }
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $env:SIGNTOOL_PATH) | Out-Null
+          Copy-Item -LiteralPath $lockedSignTool -Destination $env:SIGNTOOL_PATH
+          if ((Get-FileHash -LiteralPath $env:SIGNTOOL_PATH -Algorithm SHA256).Hash.ToLowerInvariant() `
+            -cne $env:MATTER_DESKTOP_SIGNTOOL_SHA256) {
+            throw 'isolated signtool digest mismatch'
+          }
+          $electronRoot = Join-Path $toolRoot 'electron'
+          $electronZip = Join-Path $electronRoot 'electron-v42.4.1-win32-x64.zip'
+          New-Item -ItemType Directory -Force -Path $electronRoot | Out-Null
+          Invoke-WebRequest -Uri $env:LAWOS_ELECTRON_URL -OutFile $electronZip
+          if ((Get-FileHash -LiteralPath $electronZip -Algorithm SHA256).Hash.ToLowerInvariant() `
+            -cne $env:LAWOS_ELECTRON_SHA256) {
+            throw 'Electron 42.4.1 Windows x64 archive digest mismatch'
+          }
+          npm --workspace apps/desktop run prepare:web-renderer
+          if ($LASTEXITCODE -ne 0) { throw 'unsigned renderer preparation failed' }
+          npm --workspace apps/desktop run build:win:installer
+          if ($LASTEXITCODE -ne 0) { throw 'unsigned packaging toolchain preflight failed' }
+          Remove-Item -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\dist') -Recurse -Force
+          Remove-Item -LiteralPath $env:MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH -Force
+          foreach ($generatedPath in @(
+            (Join-Path $env:GITHUB_WORKSPACE 'apps\web\dist'),
+            (Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src\renderer\web')
+          )) {
+            Remove-Item -LiteralPath $generatedPath -Recurse -Force
+            if (Test-Path -LiteralPath $generatedPath) { throw 'unsigned renderer preflight residue cleanup failed' }
+          }
+
+      - name: Recheck approval window immediately before signing credential access
+        shell: pwsh
+        env:
+          INPUT_APPROVAL_EXPIRES_AT: ${{ inputs.approval_expires_at }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expiry = [DateTimeOffset]::MinValue
+          $parsed = [DateTimeOffset]::TryParseExact(
+            $env:INPUT_APPROVAL_EXPIRES_AT,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$expiry
+          )
+          if (-not $parsed -or $expiry -le [DateTimeOffset]::UtcNow.AddMinutes(60)) {
+            throw 'approval must remain valid beyond the signing job timeout before secrets are accessed'
+          }
+
+      - name: Configure SSL.com eSigner CKA in product mode and load certificate
+        shell: pwsh
+        env:
+          SSL_COM_ESIGNER_USERNAME: ${{ secrets.SSL_COM_ESIGNER_USERNAME }}
+          SSL_COM_ESIGNER_PASSWORD: ${{ secrets.SSL_COM_ESIGNER_PASSWORD }}
+          SSL_COM_ESIGNER_TOTP_SECRET: ${{ secrets.SSL_COM_ESIGNER_TOTP_SECRET }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($secretValue in @($env:SSL_COM_ESIGNER_USERNAME, $env:SSL_COM_ESIGNER_PASSWORD, $env:SSL_COM_ESIGNER_TOTP_SECRET)) {
+            if ([string]::IsNullOrWhiteSpace($secretValue)) { throw 'required SSL.com eSigner credential is missing' }
+          }
+          $installRoot = Join-Path $env:RUNNER_TEMP 'lawos-esigner\install'
+          $toolPath = Join-Path $installRoot 'eSignerCKATool.exe'
+          $masterKeyPath = Join-Path $installRoot 'master.key'
+          if (-not (Test-Path -LiteralPath $toolPath -PathType Leaf)) { throw 'validated eSignerCKATool.exe is missing' }
+          & $toolPath config -mode product -user $env:SSL_COM_ESIGNER_USERNAME -pass $env:SSL_COM_ESIGNER_PASSWORD -totp $env:SSL_COM_ESIGNER_TOTP_SECRET -key $masterKeyPath -r *> $null
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $masterKeyPath -PathType Leaf)) { throw 'eSigner CKA product configuration failed' }
+          & $toolPath unload *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'eSigner CKA certificate unload failed' }
+          & $toolPath load *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'eSigner CKA certificate load failed' }
+
+      - name: Require exactly one matching CurrentUser code-signing certificate
+        shell: pwsh
+        env:
+          EXPECTED_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $matchingCertificates = @(
+            Get-ChildItem -LiteralPath Cert:\CurrentUser\My -CodeSigningCert |
+              Where-Object { $_.Thumbprint.ToUpperInvariant() -ceq $env:EXPECTED_CERTIFICATE_SHA1 }
+          )
+          if ($matchingCertificates.Count -ne 1) { throw 'exactly one expected CurrentUser code-signing certificate is required' }
+          if ($matchingCertificates[0].HasPrivateKey -ne $true) { throw 'expected CurrentUser code-signing certificate has no private key provider' }
+
+      - name: Block Node network during the signed packaging boundary
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ruleName = "lawos-signing-node-egress-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
+          New-NetFirewallRule -DisplayName $ruleName -Direction Outbound -Program $nodePath -Action Block -Profile Any | Out-Null
+          $rules = @(Get-NetFirewallRule -DisplayName $ruleName -ErrorAction Stop)
+          if ($rules.Count -ne 1 -or $rules[0].Enabled -ne 'True' -or $rules[0].Direction -ne 'Outbound' -or $rules[0].Action -ne 'Block') {
+            throw 'post-secret Node network block could not be established'
+          }
+
+      - name: Build exact-source signed formal Windows package
+        shell: pwsh
+        env:
+          INPUT_APPROVAL_EXPIRES_AT: ${{ inputs.approval_expires_at }}
+          MATTER_DESKTOP_RELEASE_CHANNEL: formal
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\matter-desktop-windows-receipt\windows-build.md
+          MATTER_DESKTOP_AUTHENTICODE: '1'
+          MATTER_DESKTOP_AUTHENTICODE_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
+          MATTER_DESKTOP_AUTHENTICODE_TIMESTAMP_URL: http://ts.ssl.com
+          MATTER_DESKTOP_ELECTRON_BUILDER_EXECUTABLE: ${{ runner.temp }}\lawos-electron-builder\node_modules\electron-builder\cli.js
+          MATTER_DESKTOP_ELECTRON_DIST: ${{ runner.temp }}\lawos-electron-builder\electron\electron-v42.4.1-win32-x64.zip
+          SIGNTOOL_PATH: ${{ runner.temp }}\lawos-electron-builder\signtool\signtool.exe
+          MATTER_DESKTOP_SIGNTOOL_SHA256: a36f5e81ce208137acc8fa9c00547c020fa10f044583002ccd23799b7f64078e
+          ELECTRON_BUILDER_CACHE: ${{ runner.temp }}\lawos-electron-builder\cache
+          NPM_CONFIG_OFFLINE: 'true'
+        run: |
+          $expiry = [DateTimeOffset]::MinValue
+          $parsed = [DateTimeOffset]::TryParseExact(
+            $env:INPUT_APPROVAL_EXPIRES_AT,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$expiry
+          )
+          if (-not $parsed -or $expiry -le [DateTimeOffset]::UtcNow) { throw 'approval expired before signing' }
+          npm --workspace apps/desktop run prepare:web-renderer
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm --workspace apps/desktop run build:win
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm --workspace apps/desktop run build:win:installer
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Unload signing authority and restore Node network before native QA
+        shell: pwsh
+        env:
+          EXPECTED_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $toolPath = Join-Path $env:RUNNER_TEMP 'lawos-esigner\install\eSignerCKATool.exe'
+          if (-not (Test-Path -LiteralPath $toolPath -PathType Leaf)) { throw 'validated eSignerCKATool.exe is missing before unload' }
+          & $toolPath unload *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'eSigner CKA certificate unload failed after signing' }
+          $certificateResidue = @(
+            Get-ChildItem -LiteralPath Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue |
+              Where-Object { $_.Thumbprint.ToUpperInvariant() -ceq $env:EXPECTED_CERTIFICATE_SHA1 }
+          ).Count
+          if ($certificateResidue -ne 0) { throw 'signing certificate remained loaded after signed packaging' }
+          $ruleName = "lawos-signing-node-egress-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction Stop
+          if (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue) { throw 'post-signing Node network block cleanup failed' }
+
+      - name: Run shared native install, login, leave, payroll, restart, and uninstall QA
+        shell: pwsh
+        env:
+          MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_DESKTOP_AUTHENTICODE: '1'
+          MATTER_DESKTOP_AUTHENTICODE_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
+          MATTER_DESKTOP_AUTHENTICODE_TIMESTAMP_URL: http://ts.ssl.com
+          MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ runner.temp }}\matter-desktop-windows-qa
+        run: node scripts/run-formal-windows-package-qa.mjs
+
+      - name: Record sanitized signed PASS or fail closed
+        if: always()
+        shell: pwsh
+        env:
+          PRIOR_JOB_STATUS: ${{ job.status }}
           INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
           INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
           INPUT_APPROVAL_ID: ${{ inputs.approval_id }}
@@ -115,61 +669,157 @@ jobs:
           INPUT_LAWOS_TENANT_ID: ${{ inputs.lawos_tenant_id }}
           INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
           INPUT_APP_ID: ${{ inputs.app_id }}
-          CKA_VERSION: ${{ vars.SSL_COM_ESIGNER_CKA_VERSION }}
-          CKA_SHA256: ${{ vars.SSL_COM_ESIGNER_CKA_SHA256 }}
-          EXPECTED_CERTIFICATE_SHA1: ${{ vars.SSL_COM_ESIGNER_CERTIFICATE_SHA1 }}
+          EXPECTED_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
         run: |
-          $ErrorActionPreference = "Stop"
-          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\lawos-authenticode-preparation-evidence" | Out-Null
-          [ordered]@{
-            schema_version = 'law-firm-os.windows-authenticode-preparation.v1'
+          $ErrorActionPreference = 'Stop'
+          $evidenceRoot = Join-Path $env:RUNNER_TEMP 'lawos-authenticode-public-evidence'
+          $qaReceiptPath = Join-Path $env:RUNNER_TEMP 'matter-desktop-windows-qa\formal-windows-package-qa.json'
+          New-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null
+          $qa = $null
+          if (Test-Path -LiteralPath $qaReceiptPath -PathType Leaf) {
+            try { $qa = Get-Content -Raw -LiteralPath $qaReceiptPath | ConvertFrom-Json } catch { $qa = $null }
+          }
+          $scenarioValues = if ($null -ne $qa) { @($qa.scenarios.PSObject.Properties.Value) } else { @() }
+          $expiry = [DateTimeOffset]::MinValue
+          $approvalCurrent = [DateTimeOffset]::TryParseExact(
+            $env:INPUT_APPROVAL_EXPIRES_AT,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$expiry
+          ) -and $expiry -gt [DateTimeOffset]::UtcNow
+          $signedPass = $env:PRIOR_JOB_STATUS -ceq 'success' `
+            -and $approvalCurrent `
+            -and $null -ne $qa `
+            -and $qa.verdict -ceq 'PASS' `
+            -and $qa.native_verdict -ceq 'PASS' `
+            -and $scenarioValues.Count -gt 0 `
+            -and $scenarioValues -notcontains $false `
+            -and $qa.source.revision -ceq $env:INPUT_SOURCE_SHA `
+            -and $qa.source.source_tree -ceq $env:INPUT_SOURCE_TREE `
+            -and $qa.package.channel -ceq 'formal' `
+            -and $qa.package.app_id -ceq $env:INPUT_APP_ID `
+            -and $qa.authenticode.valid -eq $true `
+            -and $qa.authenticode.expected_signer_certificate_sha1 -ceq $env:EXPECTED_CERTIFICATE_SHA1 `
+            -and $qa.authenticode.signer_code_signing_eku_verified -eq $true `
+            -and $qa.authenticode.timestamp_eku_verified -eq $true
+          $receipt = [ordered]@{
+            schema_version = 'law-firm-os.windows-authenticode-pilot-qa.v1'
             generated_at = [DateTimeOffset]::UtcNow.ToString('o')
-            state = 'PREPARED_NOT_CONFIGURED'
-            source_sha = $env:INPUT_SOURCE_SHA
-            source_tree = $env:INPUT_SOURCE_TREE
-            approval_id = $env:INPUT_APPROVAL_ID
-            approval_expires_at = $env:INPUT_APPROVAL_EXPIRES_AT
-            pilot_id = $env:INPUT_PILOT_ID
-            lawos_tenant_id = $env:INPUT_LAWOS_TENANT_ID
-            entra_tenant_id = $env:INPUT_ENTRA_TENANT_ID
-            app_id = $env:INPUT_APP_ID
-            cka_version = $env:CKA_VERSION
-            cka_sha256 = $env:CKA_SHA256
-            expected_certificate_sha1 = $env:EXPECTED_CERTIFICATE_SHA1
-            timestamp_url = 'http://ts.ssl.com'
-            provider_setup_executed = $false
-            signing_executed = $false
-            package_built = $false
-            qa_executed = $false
-            public_release_claim = $false
-          } | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8NoBOM "$env:RUNNER_TEMP\lawos-authenticode-preparation-evidence\receipt.json"
+            state = if ($signedPass) { 'PENDING_CLEANUP' } else { 'BLOCKED' }
+            qa_state = if ($signedPass) { 'PASS' } else { 'BLOCKED' }
+            source = [ordered]@{
+              sha = $env:INPUT_SOURCE_SHA
+              tree = $env:INPUT_SOURCE_TREE
+              clean = ($qa.source.source_dirty -eq $false)
+            }
+            approval = [ordered]@{
+              id = $env:INPUT_APPROVAL_ID
+              expires_at = $env:INPUT_APPROVAL_EXPIRES_AT
+              pilot_id = $env:INPUT_PILOT_ID
+              lawos_tenant_id = $env:INPUT_LAWOS_TENANT_ID
+              entra_tenant_id = $env:INPUT_ENTRA_TENANT_ID
+              app_id = $env:INPUT_APP_ID
+            }
+            provider = [ordered]@{
+              name = 'SSL.com eSigner CKA'
+              mode = 'product'
+              cka_version = '1.1.2'
+              cka_url = 'https://github.com/SSLcom/eSignerCKA/releases/download/v1.1.2/SSL.COM-eSigner-CKA_1.1.2.zip'
+              cka_sha256 = '071ca52986795e7a00dfbd87cc5818d03af74daac32dfe32afd4171b676c4d13'
+              timestamp_url = 'http://ts.ssl.com'
+            }
+            package = [ordered]@{
+              installer_sha256 = $qa.package.installer.sha256
+              unpacked_executable_sha256 = $qa.package.unpacked_executable.sha256
+              renderer_sha256 = $qa.source.renderer.sha256
+            }
+            authenticode = [ordered]@{
+              expected_certificate_sha1 = $env:EXPECTED_CERTIFICATE_SHA1
+              valid = ($qa.authenticode.valid -eq $true)
+              signer_code_signing_eku_verified = ($qa.authenticode.signer_code_signing_eku_verified -eq $true)
+              timestamp_eku_verified = ($qa.authenticode.timestamp_eku_verified -eq $true)
+            }
+            native_qa = [ordered]@{
+              verdict = if ($null -ne $qa) { $qa.native_verdict } else { 'NOT_COMPLETED' }
+              scenarios = if ($null -ne $qa) { $qa.scenarios } else { [ordered]@{} }
+            }
+            cleanup = [ordered]@{
+              verified = $false
+            }
+            boundaries = [ordered]@{
+              secrets_recorded = $false
+              provider_logs_uploaded = $false
+              vendor_installer_uploaded = $false
+              signed_package_uploaded = $false
+              published = $false
+              public_release_claim = $false
+              external_distribution = $false
+              production_go_live = $false
+            }
+          }
+          $receipt | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8NoBOM -LiteralPath (Join-Path $evidenceRoot 'receipt.json')
+          if (-not $signedPass) { throw 'SIGNED_WINDOWS_QA_BLOCKED' }
 
-      - name: Stop before unimplemented vendor setup or signing
-        shell: pwsh
-        run: throw "NOT_CONFIGURED_VENDOR_SIGNING - provider asset URL/digest installation and signing commands are intentionally absent"
-
-      - name: Disabled SSL.com secret boundary
-        if: ${{ false }}
-        shell: pwsh
-        env:
-          SSL_COM_ESIGNER_USERNAME: ${{ secrets.SSL_COM_ESIGNER_USERNAME }}
-          SSL_COM_ESIGNER_PASSWORD: ${{ secrets.SSL_COM_ESIGNER_PASSWORD }}
-          SSL_COM_ESIGNER_TOTP_SECRET: ${{ secrets.SSL_COM_ESIGNER_TOTP_SECRET }}
-        run: throw "unreachable until a reviewed vendor integration replaces the NOT_CONFIGURED guard"
-
-      - name: Always remove potential signing residue
+      - name: Always remove certificates, credentials, vendor files, and private QA residue
         if: always()
         shell: pwsh
+        env:
+          EXPECTED_CERTIFICATE_SHA1: ${{ needs.environment-preflight.outputs.signing_certificate_sha1 }}
         run: |
-          Remove-Item -LiteralPath "$env:RUNNER_TEMP\lawos-esigner" -Recurse -Force -ErrorAction SilentlyContinue
-          Remove-Item -LiteralPath "$env:APPDATA\eSignerCKA\master.key" -Force -ErrorAction SilentlyContinue
-          Remove-Item -LiteralPath "$env:GITHUB_WORKSPACE\eSigner_CKA_Setup.zip" -Force -ErrorAction SilentlyContinue
+          $ErrorActionPreference = 'Continue'
+          $signingRoot = Join-Path $env:RUNNER_TEMP 'lawos-esigner'
+          $installRoot = Join-Path $signingRoot 'install'
+          $toolPath = Join-Path $installRoot 'eSignerCKATool.exe'
+          $residuePaths = @(
+            $signingRoot,
+            (Join-Path $env:APPDATA 'eSignerCKA'),
+            (Join-Path $env:LOCALAPPDATA 'eSignerCKA'),
+            (Join-Path $env:GITHUB_WORKSPACE 'eSigner_CKA_Setup.zip'),
+            (Join-Path $env:RUNNER_TEMP 'matter-desktop-windows-qa'),
+            (Join-Path $env:RUNNER_TEMP 'matter-desktop-windows-receipt'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-electron-builder'),
+            (Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\dist'),
+            (Join-Path $env:GITHUB_WORKSPACE 'apps\web\dist'),
+            (Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src\renderer\web')
+          )
+          if (Test-Path -LiteralPath $toolPath -PathType Leaf) { & $toolPath unload *> $null }
+          $ruleName = "lawos-signing-node-egress-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+          if ($env:EXPECTED_CERTIFICATE_SHA1 -match '^[0-9A-F]{40}$') {
+            @(
+              Get-ChildItem -LiteralPath Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue |
+                Where-Object { $_.Thumbprint.ToUpperInvariant() -ceq $env:EXPECTED_CERTIFICATE_SHA1 }
+            ) | Remove-Item -Force -ErrorAction SilentlyContinue
+          }
+          if (Test-Path -LiteralPath $installRoot -PathType Container) {
+            @(Get-ChildItem -LiteralPath $installRoot -Filter 'unins*.exe' -File -ErrorAction SilentlyContinue) |
+              ForEach-Object { & $_.FullName /VERYSILENT /SUPPRESSMSGBOXES /NORESTART *> $null }
+          }
+          foreach ($path in $residuePaths) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+          $certificateResidue = if ($env:EXPECTED_CERTIFICATE_SHA1 -match '^[0-9A-F]{40}$') {
+            @(
+              Get-ChildItem -LiteralPath Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue |
+              Where-Object { $_.Thumbprint.ToUpperInvariant() -ceq $env:EXPECTED_CERTIFICATE_SHA1 }
+            ).Count
+          } else { 0 }
+          $pathResidue = @($residuePaths | Where-Object { Test-Path -LiteralPath $_ }).Count
+          $firewallResidue = @(Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue).Count
+          $cleanupVerified = $certificateResidue -eq 0 -and $pathResidue -eq 0 -and $firewallResidue -eq 0
+          $receiptPath = Join-Path $env:RUNNER_TEMP 'lawos-authenticode-public-evidence\receipt.json'
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) { throw 'sanitized signing receipt is missing' }
+          $receipt = Get-Content -Raw -LiteralPath $receiptPath | ConvertFrom-Json
+          $receipt.cleanup.verified = $cleanupVerified
+          $receipt.state = if ($receipt.qa_state -ceq 'PASS' -and $cleanupVerified) { 'PASS' } else { 'BLOCKED' }
+          $receipt | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8NoBOM -LiteralPath $receiptPath
+          if (-not $cleanupVerified) { throw 'signing residue cleanup failed' }
 
-      - name: Upload preparation evidence
+      - name: Upload sanitized public evidence only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: windows-authenticode-preparation-${{ inputs.source_sha }}
-          path: ${{ runner.temp }}/lawos-authenticode-preparation-evidence/
+          name: windows-authenticode-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-authenticode-public-evidence/receipt.json
           if-no-files-found: error
-          include-hidden-files: true
+          retention-days: 14

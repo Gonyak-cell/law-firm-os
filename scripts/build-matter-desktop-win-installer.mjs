@@ -41,6 +41,47 @@ const formalRelease = channelConfig.formal;
 const authenticodeConfiguration = resolveMatterDesktopAuthenticodeConfiguration({
   formalRelease,
 });
+const explicitBuilderExecutable = process.env.MATTER_DESKTOP_ELECTRON_BUILDER_EXECUTABLE?.trim();
+const explicitElectronDist = process.env.MATTER_DESKTOP_ELECTRON_DIST?.trim();
+const explicitSignTool = process.env.SIGNTOOL_PATH?.trim();
+const explicitSignToolSha256 = process.env.MATTER_DESKTOP_SIGNTOOL_SHA256?.trim().toLowerCase();
+if (formalRelease && authenticodeConfiguration && !explicitBuilderExecutable) {
+  throw new Error("formal Authenticode builds require a preinstalled electron-builder executable");
+}
+if (formalRelease && authenticodeConfiguration && !explicitElectronDist) {
+  throw new Error("formal Authenticode builds require a preverified Electron distribution");
+}
+if (formalRelease && authenticodeConfiguration && (!explicitSignTool || !explicitSignToolSha256)) {
+  throw new Error("formal Authenticode builds require a preverified explicit signtool");
+}
+if (explicitBuilderExecutable) {
+  if (!existsSync(explicitBuilderExecutable)) throw new Error("preinstalled electron-builder executable is missing");
+  if (formalRelease) {
+    assertPathOutsideWorktree({
+      repoRoot,
+      candidate: explicitBuilderExecutable,
+      label: "formal electron-builder executable",
+    });
+  }
+}
+if (explicitElectronDist) {
+  if (!existsSync(explicitElectronDist)) throw new Error("preverified Electron distribution is missing");
+  if (formalRelease) {
+    assertPathOutsideWorktree({ repoRoot, candidate: explicitElectronDist, label: "formal Electron distribution" });
+  }
+}
+if (explicitSignTool) {
+  if (!existsSync(explicitSignTool)) throw new Error("preverified signtool is missing");
+  if (formalRelease) {
+    assertPathOutsideWorktree({ repoRoot, candidate: explicitSignTool, label: "formal signtool executable" });
+  }
+  assert.match(explicitSignToolSha256 ?? "", /^[0-9a-f]{64}$/u, "preverified signtool SHA-256 is invalid");
+  assert.equal(
+    createHash("sha256").update(await readFile(explicitSignTool)).digest("hex"),
+    explicitSignToolSha256,
+    "preverified signtool digest mismatch",
+  );
+}
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
@@ -174,9 +215,7 @@ try {
     `${builderConfiguration}${provenanceResources}`,
   );
 
-  const npxArgs = [
-    "-y",
-    "electron-builder@26.15.3",
+  const builderArgs = [
     "--win",
     "nsis",
     "--x64",
@@ -185,10 +224,15 @@ try {
     `-c.appId=${appId}`,
     `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
     "-c.electronVersion=42.4.1",
+    ...(explicitElectronDist ? [`-c.electronDist=${explicitElectronDist}`] : []),
   ];
   await execFileAsync(
-    npxExecutable,
-    process.platform === "win32" ? ["/d", "/s", "/c", "npx", ...npxArgs] : npxArgs,
+    explicitBuilderExecutable ? process.execPath : npxExecutable,
+    explicitBuilderExecutable
+      ? [explicitBuilderExecutable, ...builderArgs]
+      : process.platform === "win32"
+        ? ["/d", "/s", "/c", "npx", "-y", "electron-builder@26.15.3", ...builderArgs]
+        : ["-y", "electron-builder@26.15.3", ...builderArgs],
     {
       cwd: stagingProjectRoot,
       env: process.env,
