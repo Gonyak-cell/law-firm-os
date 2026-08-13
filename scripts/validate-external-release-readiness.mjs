@@ -15,12 +15,11 @@ import {
   PRODUCTION_TRUST_ROOT_POLICY,
   TRUST_REGISTRY_SCHEMA_VERSION,
   assertStrictUtcTimestamp,
+  readTrustedFileSnapshot,
   resolveTrustedRoot,
-  resolveTrustedFile,
   sha256Hex,
   verifyProductionTrustedRegistry,
   verifyDetachedReceipt,
-  verifyTrustedRegistry,
 } from "./lib/external-release-trust.mjs";
 
 const DEFAULT_CONTRACT_PATH = "contracts/external-release-readiness-contract.json";
@@ -58,7 +57,7 @@ const CANONICAL_EXECUTION_ORDER = Object.freeze([
   "legal_owner_approval",
 ]);
 // Replaced with the exact hash after contract bytes are finalized.
-const CANONICAL_CONTRACT_SHA256 = "3c7a65cc19b6e8a5b17b0f1f2c6932e8614dffa615181cfbf480dc1cec060e02";
+const CANONICAL_CONTRACT_SHA256 = "433abbc6c27dc870b78533157962b661ead4689f077218d5cfa5a9d58301878d";
 
 function asText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -122,13 +121,13 @@ function getPathValue(value, dotPath) {
   return String(dotPath ?? "").split(".").filter(Boolean).reduce((current, key) => current == null ? undefined : current[key], value);
 }
 
-function resolveRegularFile(rootDir, candidate, label, findings, details = {}) {
+function readRegularFileSnapshot(rootDir, candidate, label, findings, details = {}) {
   if (typeof candidate !== "string" || candidate.trim() === "") {
     addFinding(findings, "P1", "FILE_REFERENCE_MISSING", `${label} must provide a relative file path.`, details);
     return null;
   }
   try {
-    return resolveTrustedFile(rootDir, candidate);
+    return readTrustedFileSnapshot(rootDir, candidate);
   } catch (error) {
     const codeMap = {
       TRUST_PATH_ESCAPE: "FILE_REFERENCE_ESCAPES_ROOT",
@@ -153,53 +152,58 @@ function inspectFileRef({ rootDir, ref, label, findings, details = {} }) {
     addFinding(findings, "P0", "FILE_REFERENCE_SHA256_INVALID", `${label} SHA-256 is missing or malformed.`, { ...details, path: ref.path });
     return { state: "invalid", path: ref.path ?? null, expected_sha256: expected || null, sha256: null, bytes: 0 };
   }
-  const target = resolveRegularFile(rootDir, ref.path, label, findings, details);
-  if (!target) return { state: "invalid", path: ref.path ?? null, expected_sha256: expected, sha256: null, bytes: 0 };
-  const bytes = readFileSync(target);
-  const actual = sha256(bytes);
+  const snapshot = readRegularFileSnapshot(rootDir, ref.path, label, findings, details);
+  if (!snapshot) return { state: "invalid", path: ref.path ?? null, expected_sha256: expected, sha256: null, bytes: 0 };
+  const actual = sha256(snapshot.bytes);
   if (actual !== expected) {
     addFinding(findings, "P0", "RECEIPT_SHA256_MISMATCH", `${label} bytes do not match the declared SHA-256.`, {
       ...details,
-      path: relativeRef(path.resolve(rootDir), target),
+      path: relativeRef(path.resolve(rootDir), snapshot.target),
       expected_sha256: expected,
       actual_sha256: actual,
     });
-    return { state: "invalid", path: relativeRef(path.resolve(rootDir), target), expected_sha256: expected, sha256: actual, bytes: bytes.length };
+    return { state: "invalid", path: relativeRef(path.resolve(rootDir), snapshot.target), expected_sha256: expected, sha256: actual, bytes: snapshot.bytes.length };
   }
-  return { state: "verified_bytes", path: relativeRef(path.resolve(rootDir), target), expected_sha256: expected, sha256: actual, bytes: bytes.length, target };
+  return { state: "verified_bytes", path: relativeRef(path.resolve(rootDir), snapshot.target), expected_sha256: expected, sha256: actual, bytes: snapshot.bytes.length, target: snapshot.target, snapshot: snapshot.bytes };
 }
 
 function parseJsonRef({ rootDir, ref, label, findings, details = {} }) {
   const file = inspectFileRef({ rootDir, ref, label, findings, details });
   if (!file.target || file.state !== "verified_bytes") return { ...file, value: null };
   try {
-    return { ...file, value: JSON.parse(readFileSync(file.target, "utf8")) };
+    return { ...file, value: JSON.parse(file.snapshot.toString("utf8")) };
   } catch (error) {
     addFinding(findings, "P0", "RECEIPT_JSON_INVALID", `${label} is not valid JSON.`, { ...details, path: file.path, error: error.message });
     return { ...file, state: "invalid", value: null };
   }
 }
 
-function inspectTrustRegistry({ rootDir, registryPath, registrySha256, findings }) {
+function inspectProductionTrustRegistry({ testOnlyPolicy, findings }) {
   try {
-    return verifyTrustedRegistry({ rootDir, registryPath, registrySha256 });
+    const productionTrust = testOnlyPolicy == null
+      ? verifyProductionTrustedRegistry()
+      : verifyProductionTrustedRegistry({ testOnlyPolicy });
+    return productionTrust.registryTrust;
   } catch (error) {
-    addFinding(findings, "P0", error.code ?? "TRUST_REGISTRY_INVALID", error.message, error.details ?? {});
+    addFinding(findings, "P0", error.code ?? "TRUST_ROOT_NOT_CONFIGURED", error.message, {
+      policy_schema_version: PRODUCTION_TRUST_ROOT_POLICY.schema_version,
+      configured: PRODUCTION_TRUST_ROOT_POLICY.configured,
+      registry_installation_path: PRODUCTION_TRUST_ROOT_POLICY.registry_installation_path,
+      ...(error.details ?? {}),
+    });
     return null;
   }
 }
 
-function inspectReceiptTrust({ rootDir, receiptRef, receiptFile, receipt, gate, expected, findings, trustRegistry, context }) {
-  if (!trustRegistry) return false;
+function inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, trustRegistry, context }) {
+  if (!trustRegistry) return null;
   try {
-    verifyDetachedReceipt({
+    return verifyDetachedReceipt({
       rootDir,
       receiptRef,
-      receiptBytes: readFileSync(receiptFile.target),
-      receipt,
       registry: trustRegistry,
-      expectedReceiptType: gate.receipt_type ?? (gate.runtime_receipt_types ?? []).find((type) => type === receipt.receipt_type),
-      expectedReceiptSource: gate.required_source ?? (gate.runtime_receipt_sources ?? []).find((source) => source === receipt.receipt_source),
+      expectedReceiptType: gate.receipt_type ?? gate.runtime_receipt_types,
+      expectedReceiptSource: gate.required_source ?? gate.runtime_receipt_sources,
       expectedPilotId: expected.pilotId,
       expectedLawosTenantId: expected.lawosTenantId,
       expectedEntraTenantId: expected.entraTenantId,
@@ -208,13 +212,11 @@ function inspectReceiptTrust({ rootDir, receiptRef, receiptFile, receipt, gate, 
       expectedVersion: expected.version,
       expectedRole: gate.required_role,
       expectedOperation: gate.required_operation,
-      expectedArtifactSha256: receipt.artifact_sha256,
       expectedBindingSha256: expectedBindingSha256(expected),
     });
-    return true;
   } catch (error) {
     addFinding(findings, "P0", error.code ?? "RECEIPT_TRUST_INVALID", error.message, { ...context, ...(error.details ?? {}) });
-    return false;
+    return null;
   }
 }
 
@@ -301,10 +303,18 @@ function inspectReceipt({ rootDir, receiptRef, gateId, gate, expected, findings,
   if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
     return { state: "invalid", receipt: null, bytes: parsed.bytes, path: parsed.path, sha256: parsed.sha256 ?? null, expected_sha256: parsed.expected_sha256 ?? null };
   }
-  const commonValid = checkCommonReceipt({ receipt: parsed.value, contractGate: gate, expected, findings, context });
-  const trustValid = inspectReceiptTrust({ rootDir, receiptRef, receiptFile: parsed, receipt: parsed.value, gate, expected, findings, trustRegistry, context });
-  const valid = commonValid && trustValid;
-  return { state: valid && parsed.state === "verified_bytes" ? "verified" : "invalid", receipt: parsed.value, bytes: parsed.bytes, path: parsed.path, sha256: parsed.sha256, expected_sha256: parsed.expected_sha256 };
+  const trustVerification = inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, trustRegistry, context });
+  const receipt = trustVerification?.receipt ?? parsed.value;
+  const commonValid = checkCommonReceipt({ receipt, contractGate: gate, expected, findings, context });
+  const valid = commonValid && Boolean(trustVerification);
+  return {
+    state: valid && parsed.state === "verified_bytes" ? "verified" : "invalid",
+    receipt,
+    bytes: trustVerification?.receipt_bytes.length ?? parsed.bytes,
+    path: parsed.path,
+    sha256: trustVerification?.receipt_sha256 ?? parsed.sha256,
+    expected_sha256: parsed.expected_sha256,
+  };
 }
 
 function checkDate(findings, value, code, message, context) {
@@ -405,9 +415,10 @@ function inspectTenantGate({ rootDir, input, gate, expected, findings, gateId, t
   } else if (!runtime?.value || typeof runtime.value !== "object" || Array.isArray(runtime.value)) {
     runtimeResult = { state: "invalid", receipt: null, bytes: runtime?.bytes ?? null, path: runtime?.path ?? null, sha256: runtime?.sha256 ?? null, expected_sha256: runtime?.expected_sha256 ?? null };
   } else {
-    const runtimeReceipt = runtime.value;
+    const trustVerification = inspectReceiptTrust({ rootDir, receiptRef: runtimeRef, gate: { ...gate, required_role: gate.required_runtime_roles, required_operation: gate.required_runtime_operation }, expected, findings, trustRegistry, context: { gate_id: gateId, slot: "runtime_binding" } });
+    const runtimeReceipt = trustVerification?.receipt ?? runtime.value;
     let valid = runtime.state === "verified_bytes";
-    valid = inspectReceiptTrust({ rootDir, receiptRef: runtimeRef, receiptFile: runtime, receipt: runtimeReceipt, gate: { ...gate, required_role: gate.required_runtime_roles, required_operation: gate.required_runtime_operation }, expected, findings, trustRegistry, context: { gate_id: gateId, slot: "runtime_binding" } }) && valid;
+    valid = Boolean(trustVerification) && valid;
     valid = requiredFields(runtimeReceipt, gate.required_runtime_fields, findings, { gate_id: gateId, slot: "runtime_binding" }) && valid;
     valid = checkExact(findings, runtimeReceipt.schema_version, RECEIPT_SCHEMA_VERSION, "RECEIPT_SCHEMA_VERSION", "Runtime binding receipt schema is invalid.", { gate_id: gateId, slot: "runtime_binding" }) && valid;
     valid = gate.runtime_receipt_types.includes(runtimeReceipt.receipt_type) && valid;
@@ -478,7 +489,7 @@ function inspectTenantGate({ rootDir, input, gate, expected, findings, gateId, t
       if (!nonPlaceholder(body.reviewed_by)) addFinding(findings, "P1", "MULTI_TENANT_REVIEWER_MISSING", "Multi-tenant runtime receipt is missing a reviewer identity.", { gate_id: gateId });
       valid = checkDate(findings, body.reviewed_at, "MULTI_TENANT_REVIEW_TIMESTAMP_INVALID", "Multi-tenant runtime receipt must include a UTC review timestamp.", { gate_id: gateId }) && valid;
     }
-    runtimeResult = { state: valid ? "verified" : "invalid", receipt: runtimeReceipt, bytes: runtime.bytes, path: runtime.path, sha256: runtime.sha256, expected_sha256: runtime.expected_sha256 };
+    runtimeResult = { state: valid ? "verified" : "invalid", receipt: runtimeReceipt, bytes: trustVerification?.receipt_bytes.length ?? runtime.bytes, path: runtime.path, sha256: trustVerification?.receipt_sha256 ?? runtime.sha256, expected_sha256: runtime.expected_sha256 };
   }
 
   const state = [provisioning, runtimeResult].some((item) => item.state === "invalid") ? "invalid" : [provisioning, runtimeResult].every((item) => item.state === "verified") ? "verified" : "pending_external";
@@ -525,20 +536,21 @@ function inspectMacReceipt({ rootDir, result, gate, findings, gateId }) {
   const checksumsFile = inspectFileRef({ rootDir, ref: checksumsRef, label: `${gateId} checksums`, findings, details: context });
   const sbomFile = inspectFileRef({ rootDir, ref: sbomRef, label: `${gateId} SBOM`, findings, details: context });
   valid = packageFile.state === "verified_bytes" && checksumsFile.state === "verified_bytes" && sbomFile.state === "verified_bytes" && valid;
+  valid = checkExact(findings, receipt.artifact_sha256, packageFile.sha256, "MAC_RECEIPT_ARTIFACT_SHA256_MISMATCH", "Signed macOS receipt artifact_sha256 does not match the exact DMG package bytes.", context) && valid;
   if (!String(packageRef?.kind ?? "").toLowerCase().includes("dmg") || !String(packageRef?.path ?? "").toLowerCase().endsWith(".dmg")) {
     addFinding(findings, "P0", "MAC_PACKAGE_KIND_INVALID", "macOS distribution receipt must reference a DMG package.", context);
     valid = false;
   }
   if (checksumsFile.target && packageFile.target) {
     const packageName = path.basename(packageFile.target);
-    const checksumText = readFileSync(checksumsFile.target, "utf8");
+    const checksumText = checksumsFile.snapshot.toString("utf8");
     const checksumLine = checksumText.split(/\r?\n/u).find((line) => line.trim().endsWith(`  ${packageName}`) || line.trim().endsWith(` *${packageName}`));
     const checksumHash = checksumLine?.trim().split(/\s+/u)[0]?.toLowerCase();
     valid = checkExact(findings, checksumHash, packageFile.sha256, "MAC_CHECKSUM_PACKAGE_MISMATCH", "checksums.sha256 does not bind the package bytes.", context) && valid;
   }
   if (sbomFile.target) {
     try {
-      const sbom = JSON.parse(readFileSync(sbomFile.target, "utf8"));
+      const sbom = JSON.parse(sbomFile.snapshot.toString("utf8"));
       valid = checkExact(findings, String(sbom.bomFormat ?? "").toLowerCase(), "cyclonedx", "MAC_SBOM_FORMAT_INVALID", "SBOM must be a CycloneDX document.", context) && valid;
       if (!Array.isArray(sbom.components) || sbom.components.length === 0) {
         addFinding(findings, "P0", "MAC_SBOM_COMPONENTS_MISSING", "SBOM must contain at least one component.", context);
@@ -617,7 +629,27 @@ function contractShapeErrors(contract) {
       || contract?.receipt_trust?.caller_supplied_registry_authority !== false
       || contract?.receipt_trust?.production_root_configured !== false
       || contract?.receipt_trust?.production_root_installation_required !== true
+      || contract?.receipt_trust?.registry_sha256 !== null
+      || contract?.receipt_trust?.registry_signature_sha256 !== null
+      || contract?.receipt_trust?.registry_serial !== null
       || contract?.receipt_trust?.root_signed_registry_required !== true
+      || contract?.receipt_trust?.production_installation_paths_import_meta_rooted !== true
+      || contract?.receipt_trust?.production_installation_paths?.root_public_key !== "config/external-release/root-public-key.spki.pem"
+      || contract?.receipt_trust?.production_installation_paths?.registry !== "config/external-release/trust-registry.json"
+      || contract?.receipt_trust?.production_installation_paths?.registry_signature !== "config/external-release/trust-registry.json.sig"
+      || contract?.receipt_trust?.root_public_key_input_format !== "ed25519_public_spki_pem"
+      || contract?.receipt_trust?.root_public_key_digest_basis !== "canonical_spki_der"
+      || contract?.receipt_trust?.registry_sha256_policy_pinned !== true
+      || contract?.receipt_trust?.registry_signature_sha256_policy_pinned !== true
+      || contract?.receipt_trust?.registry_signature_format !== "raw_64_byte_ed25519"
+      || contract?.receipt_trust?.registry_serial_policy_pinned !== true
+      || contract?.receipt_trust?.registry_exact_signed_bytes_parsed !== true
+      || contract?.receipt_trust?.receipt_exact_signed_bytes_parsed !== true
+      || contract?.receipt_trust?.stable_regular_file_snapshots_required !== true
+      || contract?.receipt_trust?.hardlinked_trust_files_forbidden !== true
+      || contract?.receipt_trust?.portable_no_follow_strategy !== "native_o_nofollow_or_lstat_realpath_fd_identity"
+      || contract?.receipt_trust?.root_key_as_receipt_leaf_forbidden !== true
+      || contract?.receipt_trust?.duplicate_leaf_spki_forbidden !== true
       || contract?.receipt_trust?.test_only_injected_registry_allowed !== true
       || contract?.receipt_trust?.root_public_key_spki_sha256 !== null) errors.push("receipt trust boundary is incomplete");
   const signedScopeFields = ["receipt_source", "receipt_type", "key_id", "pilot_id", "lawos_tenant_id", "entra_tenant_id", "source_sha", "source_tree", "version", "artifact_sha256", "binding_sha256", "role", "operation"];
@@ -644,10 +676,10 @@ function contractShapeErrors(contract) {
 }
 
 function readJsonFile(rootDir, candidate, label, findings) {
-  const target = resolveRegularFile(rootDir, candidate, label, findings);
-  if (!target) return null;
+  const snapshot = readRegularFileSnapshot(rootDir, candidate, label, findings);
+  if (!snapshot) return null;
   try {
-    return JSON.parse(readFileSync(target, "utf8"));
+    return JSON.parse(snapshot.bytes.toString("utf8"));
   } catch (error) {
     addFinding(findings, "P0", "INPUT_JSON_INVALID", `${label} is not valid JSON.`, { path: candidate, error: error.message });
     return null;
@@ -662,10 +694,10 @@ export function validateExternalReleaseReadiness({ rootDir = process.cwd(), inpu
     addFinding(findings, "P0", "CONTRACT_PATH_FORBIDDEN", "The external release contract is canonical and cannot be selected by the input bundle.", { requested: requestedContractPath, canonical: DEFAULT_CONTRACT_PATH });
   }
   const canonicalContractPath = DEFAULT_CONTRACT_PATH;
-  const contractTarget = resolveRegularFile(root, canonicalContractPath, "external release contract", findings);
+  const contractSnapshot = readRegularFileSnapshot(root, canonicalContractPath, "external release contract", findings);
   let contract = {};
-  if (contractTarget) {
-    const contractBytes = readFileSync(contractTarget);
+  if (contractSnapshot) {
+    const contractBytes = contractSnapshot.bytes;
     const actualContractSha256 = sha256(contractBytes);
     if (actualContractSha256 !== CANONICAL_CONTRACT_SHA256) {
       addFinding(findings, "P0", "CANONICAL_CONTRACT_HASH_MISMATCH", "The external release contract bytes do not match the built-in canonical contract hash.", { expected: CANONICAL_CONTRACT_SHA256, actual: actualContractSha256 });
@@ -731,21 +763,7 @@ export function validateExternalReleaseReadiness({ rootDir = process.cwd(), inpu
     addFinding(findings, "P0", "RUNTIME_PROVISIONING_ONLY_POLICY_DRIFT", "Provisioning receipt alone must remain insufficient for an external tenant runtime claim.", { actual: runtimeAssumptions.provisioning_receipt_alone_satisfies_runtime_binding });
   }
 
-  let trustRegistry = null;
-  if (testOnlyTrustRoot && process.env.NODE_ENV === "test" && typeof testOnlyTrustRoot === "object" && testOnlyTrustRoot.test_only !== false) {
-    trustRegistry = inspectTrustRegistry({ rootDir: root, registryPath: testOnlyTrustRoot.registryPath, registrySha256: testOnlyTrustRoot.registrySha256, findings });
-  } else {
-    try {
-      verifyProductionTrustedRegistry();
-    } catch (error) {
-      addFinding(findings, "P0", error.code ?? "TRUST_ROOT_NOT_CONFIGURED", "The versioned production trust-root policy has no installed governance root; caller-supplied registry paths and hashes are never production authority.", {
-        policy_schema_version: PRODUCTION_TRUST_ROOT_POLICY.schema_version,
-        configured: PRODUCTION_TRUST_ROOT_POLICY.configured,
-        registry_installation_path: PRODUCTION_TRUST_ROOT_POLICY.registry_installation_path,
-        ...(error.details ?? {}),
-      });
-    }
-  }
+  const trustRegistry = inspectProductionTrustRegistry({ testOnlyPolicy: testOnlyTrustRoot, findings });
 
   const gateReports = {};
   for (const gateId of contract.gate_order ?? []) {

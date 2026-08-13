@@ -685,6 +685,7 @@ export async function prepareExternalPilotBundle({
   outputDir,
   now = Date.now(),
 }) {
+  const trustRegistry = resolveExternalPilotTrustRegistry({ testOnlyTrustRoot, now });
   const root = existingDirectory(worktreeRoot, "worktree root");
   const decisionBytes = await readFile(existingRegularFile(decisionPath, "external-pilot decision"));
   const decision = validateExternalPilotDecision(JSON.parse(decisionBytes), { now });
@@ -702,7 +703,6 @@ export async function prepareExternalPilotBundle({
     decision.trusted_verifier.closure.trust_helper_sha256,
     "shared external-release trust helper does not match the approved out-of-band digest",
   );
-  const trustRegistry = resolveExternalPilotTrustRegistry({ testOnlyTrustRoot, now });
   const approval = verifyPublicationApproval({
     decision,
     evidenceRoot: approvalEvidenceRoot,

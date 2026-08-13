@@ -239,6 +239,7 @@ function fixture(t) {
 
   const { privateKey, publicKey } = generateKeyPairSync("ed25519");
   const ownerKeyPair = generateKeyPairSync("ed25519");
+  const rootKeyPair = generateKeyPairSync("ed25519");
   const privateKeyPath = write(
     root,
     "private/release-key.pem",
@@ -351,6 +352,7 @@ function fixture(t) {
   const decision = { ...decisionBase, approval: { receipt_ref: approvalRef } };
   const trustRegistry = {
     schema_version: "law-firm-os.external-release-trust-registry.v1",
+    registry_serial: 1,
     generated_at: "2026-08-12T01:00:00.000Z",
     keys: [
       {
@@ -395,10 +397,25 @@ function fixture(t) {
       },
     ],
   };
-  const trustRegistryBytes = Buffer.from(`${JSON.stringify(trustRegistry, null, 2)}\n`);
   const trustRegistryPath = "trust/registry.json";
-  write(root, trustRegistryPath, trustRegistryBytes);
-  const trustRegistrySha256 = sha256(trustRegistryBytes);
+  const trustRegistryRef = writeSignedJson(root, trustRegistryPath, trustRegistry, rootKeyPair.privateKey);
+  const trustRegistrySha256 = trustRegistryRef.sha256;
+  const rootPublicKeyPath = "trust/root-public-key.spki.pem";
+  write(root, rootPublicKeyPath, rootKeyPair.publicKey.export({ type: "spki", format: "pem" }));
+  const testOnlyTrustRoot = {
+    schema_version: "law-firm-os.external-release-trust-root-policy.v1",
+    configured: true,
+    installation_root: root,
+    root_public_key_path: rootPublicKeyPath,
+    root_public_key_spki_sha256: sha256(rootKeyPair.publicKey.export({ type: "spki", format: "der" })),
+    registry_installation_path: trustRegistryRef.path,
+    registry_sha256: trustRegistryRef.sha256,
+    registry_signature_installation_path: trustRegistryRef.signature_ref.path,
+    registry_signature_sha256: trustRegistryRef.signature_ref.sha256,
+    registry_serial: trustRegistry.registry_serial,
+    root_signed_registry_required: true,
+    test_only: true,
+  };
   const decisionPath = write(root, "inputs/decision.json", `${JSON.stringify(decision, null, 2)}\n`);
   return {
     root,
@@ -418,6 +435,7 @@ function fixture(t) {
     approvalEvidenceRoot: root,
     trustRegistryPath,
     trustRegistrySha256,
+    testOnlyTrustRoot,
     outputDir: join(root, "output", "firm-a-pilot"),
   };
 }
@@ -430,12 +448,7 @@ function preparationOptions(input) {
     tenantConfigPath: input.tenantConfigPath,
     approvalEvidenceRoot: input.approvalEvidenceRoot,
     verificationClosure: input.verificationClosure,
-    testOnlyTrustRoot: {
-      test_only: true,
-      rootDir: input.approvalEvidenceRoot,
-      registryPath: input.trustRegistryPath,
-      registrySha256: input.trustRegistrySha256,
-    },
+    testOnlyTrustRoot: input.testOnlyTrustRoot,
     privateKeyPath: input.privateKeyPath,
     electronDistPath: input.electronDist,
     unpdfLicensePath: input.unpdfLicense,
@@ -453,12 +466,7 @@ function verificationOptions(input, overrides = {}) {
     bundleDir: input.outputDir,
     expectedKeySha256: input.publicKeySha256,
     verificationClosure: input.verificationClosure,
-    testOnlyTrustRoot: {
-      test_only: true,
-      rootDir: input.approvalEvidenceRoot,
-      registryPath: input.trustRegistryPath,
-      registrySha256: input.trustRegistrySha256,
-    },
+    testOnlyTrustRoot: input.testOnlyTrustRoot,
     now: NOW,
     ...overrides,
   };
@@ -581,11 +589,7 @@ test("prepares and verifies an exact-byte named macOS pilot bundle", async (t) =
   const readiness = validateExternalReleaseReadiness({
     rootDir: input.outputDir,
     inputPath: "synthetic-readiness-input.json",
-    testOnlyTrustRoot: {
-      test_only: true,
-      registryPath: input.trustRegistryPath,
-      registrySha256: input.trustRegistrySha256,
-    },
+    testOnlyTrustRoot: input.testOnlyTrustRoot,
   });
   const macGate = readiness.gates.find((gate) => gate.gate_id === "macos_distribution");
   assert.equal(
@@ -624,6 +628,20 @@ test("prepares and verifies an exact-byte named macOS pilot bundle", async (t) =
 
 test("production paths reject a caller-minted trust root and expose no CLI registry bypass", async (t) => {
   const input = fixture(t);
+  const legacyUnsignedTrustRoot = {
+    test_only: true,
+    rootDir: input.approvalEvidenceRoot,
+    registryPath: input.trustRegistryPath,
+    registrySha256: input.trustRegistrySha256,
+  };
+  await assert.rejects(
+    prepareExternalPilotBundle({ ...preparationOptions(input), testOnlyTrustRoot: legacyUnsignedTrustRoot }),
+    (error) => error?.code === "TEST_TRUST_ROOT_FORBIDDEN",
+  );
+  assert.throws(
+    () => verifyExternalPilotBundle({ ...verificationOptions(input), testOnlyTrustRoot: legacyUnsignedTrustRoot }),
+    (error) => error?.code === "TEST_TRUST_ROOT_FORBIDDEN",
+  );
   await assert.rejects(
     prepareExternalPilotBundle({ ...preparationOptions(input), testOnlyTrustRoot: null }),
     (error) => error?.code === "TRUST_ROOT_NOT_CONFIGURED",
@@ -633,6 +651,16 @@ test("production paths reject a caller-minted trust root and expose no CLI regis
     () => verifyExternalPilotBundle({ ...verificationOptions(input), testOnlyTrustRoot: null }),
     (error) => error?.code === "TRUST_ROOT_NOT_CONFIGURED",
   );
+  for (const now of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -1]) {
+    await assert.rejects(
+      prepareExternalPilotBundle({ ...preparationOptions(input), now }),
+      (error) => error?.code === "TRUST_VALIDATION_CLOCK_INVALID",
+    );
+    assert.throws(
+      () => verifyExternalPilotBundle({ ...verificationOptions(input), now }),
+      (error) => error?.code === "TRUST_VALIDATION_CLOCK_INVALID",
+    );
+  }
 
   const oldNodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = "production";

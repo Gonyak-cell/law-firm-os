@@ -83,10 +83,19 @@ an adjacent detached Ed25519 signature reference:
 ```
 
 The validator consumes only the versioned production trust-root policy exported
-by the shared trust helper. Bundle-provided registry, anchor, or root references
-are never authority and are rejected as input. Until the governance owner
-installs that root policy, normal real-data validation fails with
-`TRUST_ROOT_NOT_CONFIGURED`; a self-minted registry cannot bypass that gate.
+by the shared trust helper. Its root public key, registry, and raw 64-byte
+registry signature have fixed module-rooted installation paths; the policy pins
+the public SPKI DER digest, both file digests, and registry serial. The helper
+opens stable regular non-symlink snapshots with one filesystem link, verifies
+the signature over the exact registry bytes, parses those same bytes, and
+rejects root/leaf or duplicate-leaf key reuse. On platforms without
+`O_NOFOLLOW`, including Windows, pre/post `lstat`, canonical realpaths, and
+opened-descriptor/path identity checks provide the portable fail-closed path.
+Bundle-provided registry, anchor, or root references are never authority
+and are rejected as input. Until the governance owner installs real root,
+registry, signature, digest, and serial policy values, normal real-data
+validation fails with `TRUST_ROOT_NOT_CONFIGURED`; a self-minted registry cannot
+bypass that gate.
 
 The signed receipt JSON must bind the exact `key_id`, scope, pilot ID, distinct
 LawOS and Entra tenant IDs, source commit/tree, version, an API or desktop

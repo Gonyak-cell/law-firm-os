@@ -1,12 +1,17 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, statSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { verifyDetachedReceipt, verifyTrustedRegistry } from "../lib/external-release-trust.mjs";
+import {
+  PRODUCTION_TRUST_ROOT_POLICY,
+  verifyDetachedReceipt,
+  verifyProductionTrustedRegistry,
+  verifyTrustedRegistry,
+} from "../lib/external-release-trust.mjs";
 import { main, validateExternalReleaseReadiness } from "../validate-external-release-readiness.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -67,12 +72,15 @@ function makeCompleteFixture() {
   const root = mkdtempSync(path.join(tmpdir(), "lawos-external-release-"));
   writeBytes(root, "contracts/external-release-readiness-contract.json", contractBytes);
   const keyPair = generateKeyPairSync("ed25519");
+  const rootKeyPair = generateKeyPairSync("ed25519");
   const sourceSha = "a".repeat(40);
   const sourceTree = "d".repeat(40);
   const pilotId = "pilot-law-firm-001";
   const lawosTenantId = "lawos-law-firm-001";
   const entraTenantId = "11111111-2222-4333-8444-555555555555";
   const version = "1.2.3";
+  const packageBytes = Buffer.from("not-a-real-dmg-test-fixture");
+  const packageSha256 = hash(packageBytes);
   const issuer = `https://login.microsoftonline.com/${entraTenantId}/v2.0`;
   const oidcConfigVersion = "oidc-config-v1";
   const allowedReceiptTypes = [
@@ -88,6 +96,7 @@ function makeCompleteFixture() {
   ];
   const registry = {
     schema_version: "law-firm-os.external-release-trust-registry.v1",
+    registry_serial: 1,
     generated_at: "2026-08-12T01:00:00Z",
     keys: [{
       key_id: "release-evidence-key-001",
@@ -106,11 +115,26 @@ function makeCompleteFixture() {
       allowed_versions: [version],
       allowed_roles: ["release_pipeline", "internal_provisioning_adapter", "external_provider", "independent_runtime_review", "microsoft_365_provider", "operations_owner", "legal_owner"],
       allowed_operations: ["api_artifact_deployment", "tenant_provisioning_adapter", "tenant_runtime_binding", "m365_consent_deployment_visibility", "macos_distribution_artifacts", "operations_support_rollback", "backup_restore_rehearsal", "legal_owner_approval"],
-      allowed_artifact_sha256s: ["b".repeat(64)],
+      allowed_artifact_sha256s: ["b".repeat(64), packageSha256],
       allowed_binding_sha256s: [bindingSha256({ pilot_id: pilotId, lawos_tenant_id: lawosTenantId, entra_tenant_id: entraTenantId, source_sha: sourceSha, source_tree: sourceTree, version })],
     }],
   };
-  const registryRef = writeJson(root, "trust/registry.json", registry);
+  const registryRef = writeSignedJson(root, "trust/registry.json", registry, rootKeyPair);
+  const rootPublicKeyRef = writeBytes(root, "trust/root-public-key.spki.pem", rootKeyPair.publicKey.export({ type: "spki", format: "pem" }));
+  const testOnlyTrustRoot = {
+    schema_version: "law-firm-os.external-release-trust-root-policy.v1",
+    configured: true,
+    installation_root: root,
+    root_public_key_path: rootPublicKeyRef.path,
+    root_public_key_spki_sha256: hash(rootKeyPair.publicKey.export({ type: "spki", format: "der" })),
+    registry_installation_path: registryRef.path,
+    registry_sha256: registryRef.sha256,
+    registry_signature_installation_path: registryRef.signature_ref.path,
+    registry_signature_sha256: registryRef.signature_ref.sha256,
+    registry_serial: registry.registry_serial,
+    root_signed_registry_required: true,
+    test_only: true,
+  };
 
   const configRef = writeJson(root, "evidence/tenant-config.json", {
     LAWOS_IDENTITY_TENANT_ID: lawosTenantId,
@@ -211,11 +235,11 @@ function makeCompleteFixture() {
     negative: { status: "NOT_VISIBLE", population: "excluded", principal_ref: "excluded-principal-hash", observed_at: "2026-08-12T01:05:00Z" },
   };
 
-  const packageBytes = Buffer.from("not-a-real-dmg-test-fixture");
   const packageRef = writeBytes(root, "artifacts/matter-pilot.dmg", packageBytes);
   const checksumsRef = writeBytes(root, "artifacts/checksums.sha256", Buffer.from(`${packageRef.sha256}  matter-pilot.dmg\n`));
   const sbomRef = writeJson(root, "artifacts/sbom.cdx.json", { bomFormat: "CycloneDX", specVersion: "1.5", components: [{ type: "library", name: "lawos-fixture", version: "1.0.0" }] });
   const macReceipt = receiptBase({ receipt_type: "macos_distribution_artifacts", receipt_source: "release_pipeline", pilot_id: pilotId, lawos_tenant_id: lawosTenantId, entra_tenant_id: entraTenantId, source_sha: sourceSha, source_tree: sourceTree, version });
+  macReceipt.artifact_sha256 = packageRef.sha256;
   macReceipt.signing = { developer_id: true, notarized: true, stapled: true, gatekeeper_accepted: true, notarization_ticket_ref: "notary-ticket-001" };
   macReceipt.artifacts = { package: { ...packageRef, kind: "dmg" }, checksums: checksumsRef, sbom: sbomRef };
 
@@ -266,7 +290,50 @@ function makeCompleteFixture() {
     },
   };
   const inputRef = writeJson(root, "input.json", input);
-  return { root, input, inputRef, refs, sourceSha, sourceTree, version, pilotId, lawosTenantId, entraTenantId, runtimeReceipt, m365Receipt, keyPair, registryRef };
+  return { root, input, inputRef, refs, sourceSha, sourceTree, version, pilotId, lawosTenantId, entraTenantId, runtimeReceipt, m365Receipt, keyPair, rootKeyPair, registry, registryRef, testOnlyTrustRoot };
+}
+
+function installRootSignedRegistry(fixture, registry, relativePath) {
+  const registryRef = writeSignedJson(fixture.root, relativePath, registry, fixture.rootKeyPair);
+  fixture.registry = registry;
+  fixture.registryRef = registryRef;
+  fixture.testOnlyTrustRoot = {
+    ...fixture.testOnlyTrustRoot,
+    registry_installation_path: registryRef.path,
+    registry_sha256: registryRef.sha256,
+    registry_signature_installation_path: registryRef.signature_ref.path,
+    registry_signature_sha256: registryRef.signature_ref.sha256,
+    registry_serial: registry.registry_serial,
+  };
+  return registryRef;
+}
+
+function installedRegistry(fixture, now = Date.parse("2026-08-12T02:00:00Z")) {
+  return verifyProductionTrustedRegistry({ testOnlyPolicy: fixture.testOnlyTrustRoot, now });
+}
+
+function verifyApiReceipt(fixture, options = {}) {
+  const receiptRef = options.receiptRef ?? fixture.refs.api;
+  return verifyDetachedReceipt({
+    rootDir: fixture.root,
+    receiptRef,
+    ...(options.receiptBytes === undefined ? {} : { receiptBytes: options.receiptBytes }),
+    ...(options.receipt === undefined ? {} : { receipt: options.receipt }),
+    registry: options.registry ?? installedRegistry(fixture).registryTrust,
+    expectedReceiptType: "api_artifact_deployment",
+    expectedReceiptSource: "release_pipeline",
+    expectedPilotId: fixture.pilotId,
+    expectedLawosTenantId: fixture.lawosTenantId,
+    expectedEntraTenantId: fixture.entraTenantId,
+    expectedSourceSha: fixture.sourceSha,
+    expectedSourceTree: fixture.sourceTree,
+    expectedVersion: fixture.version,
+    expectedRole: "release_pipeline",
+    expectedOperation: "api_artifact_deployment",
+    expectedArtifactSha256: "b".repeat(64),
+    expectedBindingSha256: bindingSha256({ pilot_id: fixture.pilotId, lawos_tenant_id: fixture.lawosTenantId, entra_tenant_id: fixture.entraTenantId, source_sha: fixture.sourceSha, source_tree: fixture.sourceTree, version: fixture.version }),
+    now: options.now ?? Date.parse("2026-08-12T02:00:00Z"),
+  });
 }
 
 function validateFixture(fixture, inputPath = fixture.inputRef.path, options = {}) {
@@ -274,7 +341,7 @@ function validateFixture(fixture, inputPath = fixture.inputRef.path, options = {
     rootDir: fixture.root,
     inputPath,
     contractPath: "contracts/external-release-readiness-contract.json",
-    testOnlyTrustRoot: options.testOnlyTrustRoot ?? { test_only: true, registryPath: fixture.registryRef.path, registrySha256: fixture.registryRef.sha256 },
+    testOnlyTrustRoot: options.testOnlyTrustRoot ?? fixture.testOnlyTrustRoot,
   });
 }
 
@@ -290,6 +357,326 @@ test("complete named pilot matrix requires signed exact bytes and distinct LawOS
   assert.equal(report.boundary.detached_receipt_signatures_required, true);
   assert.equal(report.boundary.external_pilot_distribution_approved_by_validator, false);
   assert.equal(report.boundary.provider_calls_made_by_validator, false);
+});
+
+test("signed macOS receipt artifact digest is the exact DMG byte digest", () => {
+  const fixture = makeCompleteFixture();
+  const receipt = JSON.parse(readFileSync(path.join(fixture.root, fixture.refs.mac.path), "utf8"));
+  assert.equal(receipt.artifact_sha256, receipt.artifacts.package.sha256);
+
+  receipt.artifact_sha256 = "b".repeat(64);
+  fixture.refs.mac = writeSignedJson(fixture.root, "receipts/mac-wrong-artifact.json", receipt, fixture.keyPair);
+  fixture.input.gates.macos_distribution.receipt_ref = fixture.refs.mac;
+  writeJson(fixture.root, "input.json", fixture.input);
+  const report = validateFixture(fixture);
+  assert.equal(report.gates.find((gate) => gate.gate_id === "macos_distribution")?.state, "invalid");
+  assert.ok(report.findings.some((finding) => finding.code === "MAC_RECEIPT_ARTIFACT_SHA256_MISMATCH"));
+});
+
+test("production policy stays import.meta-rooted and unconfigured without accepting environment authority", () => {
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.configured, false);
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.root_public_key_spki_sha256, null);
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.registry_sha256, null);
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.registry_signature_sha256, null);
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.registry_serial, null);
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.installation_root, `${path.join(repoRoot, "config/external-release")}${path.sep}`);
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.root_public_key_path, path.join(repoRoot, "config/external-release/root-public-key.spki.pem"));
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.registry_installation_path, path.join(repoRoot, "config/external-release/trust-registry.json"));
+  assert.equal(PRODUCTION_TRUST_ROOT_POLICY.registry_signature_installation_path, path.join(repoRoot, "config/external-release/trust-registry.json.sig"));
+  const previous = process.env.LAWOS_EXTERNAL_RELEASE_TRUST_ROOT;
+  process.env.LAWOS_EXTERNAL_RELEASE_TRUST_ROOT = makeCompleteFixture().root;
+  try {
+    assert.throws(() => verifyProductionTrustedRegistry(), (error) => error?.code === "TRUST_ROOT_NOT_CONFIGURED");
+  } finally {
+    if (previous === undefined) delete process.env.LAWOS_EXTERNAL_RELEASE_TRUST_ROOT;
+    else process.env.LAWOS_EXTERNAL_RELEASE_TRUST_ROOT = previous;
+  }
+});
+
+test("test-only production bootstrap verifies raw signed registry bytes and returns the registry used for receipt scope", () => {
+  const fixture = makeCompleteFixture();
+  const productionTrust = installedRegistry(fixture);
+  assert.equal(productionTrust.registry, productionTrust.registryTrust.registry);
+  assert.equal(productionTrust.sha256, fixture.registryRef.sha256);
+  assert.equal(productionTrust.registrySignatureSha256, fixture.registryRef.signature_ref.sha256);
+  assert.equal(productionTrust.registrySerial, 1);
+  assert.equal(Object.isFrozen(productionTrust.registry), true);
+  assert.equal(Object.isFrozen(productionTrust.registry.keys[0]), true);
+  const verification = verifyApiReceipt(fixture, { registry: productionTrust.registryTrust });
+  assert.equal(verification.valid, true);
+  assert.equal(verification.receipt.receipt_type, "api_artifact_deployment");
+
+  const restrictedRegistry = structuredClone(fixture.registry);
+  restrictedRegistry.keys[0].allowed_operations = ["legal_owner_approval"];
+  installRootSignedRegistry(fixture, restrictedRegistry, "trust/restricted-registry.json");
+  const report = validateFixture(fixture);
+  assert.equal(report.verdict, "FAIL");
+  assert.ok(report.findings.some((finding) => finding.code === "TRUSTED_KEY_SCOPE_MISMATCH"));
+});
+
+test("production bootstrap rejects caller overrides and non-test policy injection", () => {
+  const fixture = makeCompleteFixture();
+  assert.throws(() => verifyProductionTrustedRegistry({
+    rootDir: fixture.root,
+    registryPath: fixture.registryRef.path,
+    registrySha256: fixture.registryRef.sha256,
+  }), (error) => error?.code === "TRUST_ROOT_OVERRIDE_FORBIDDEN");
+  assert.throws(() => verifyProductionTrustedRegistry({
+    testOnlyPolicy: { ...fixture.testOnlyTrustRoot, unexpected: true },
+  }), (error) => error?.code === "TEST_TRUST_ROOT_FORBIDDEN");
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+  try {
+    assert.throws(() => verifyProductionTrustedRegistry({ testOnlyPolicy: fixture.testOnlyTrustRoot }), (error) => error?.code === "TEST_TRUST_ROOT_FORBIDDEN");
+  } finally {
+    process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
+test("production bootstrap rejects registry, signature, root, and serial tampering", () => {
+  const registryTamper = makeCompleteFixture();
+  writeFileSync(path.join(registryTamper.root, registryTamper.registryRef.path), `${readFileSync(path.join(registryTamper.root, registryTamper.registryRef.path), "utf8")} `);
+  assert.throws(() => installedRegistry(registryTamper), (error) => error?.code === "TRUST_REGISTRY_HASH_MISMATCH");
+
+  const signatureTamper = makeCompleteFixture();
+  writeFileSync(path.join(signatureTamper.root, signatureTamper.registryRef.signature_ref.path), Buffer.alloc(64, 7));
+  assert.throws(() => installedRegistry(signatureTamper), (error) => error?.code === "TRUST_REGISTRY_SIGNATURE_HASH_MISMATCH");
+
+  const invalidSignature = makeCompleteFixture();
+  const otherRoot = generateKeyPairSync("ed25519");
+  const registryBytes = readFileSync(path.join(invalidSignature.root, invalidSignature.registryRef.path));
+  const invalidSignatureRef = writeBytes(invalidSignature.root, "trust/invalid-registry.sig", sign(null, registryBytes, otherRoot.privateKey));
+  invalidSignature.testOnlyTrustRoot = {
+    ...invalidSignature.testOnlyTrustRoot,
+    registry_signature_installation_path: invalidSignatureRef.path,
+    registry_signature_sha256: invalidSignatureRef.sha256,
+  };
+  assert.throws(() => installedRegistry(invalidSignature), (error) => error?.code === "TRUST_REGISTRY_SIGNATURE_INVALID");
+
+  const encodedSignature = makeCompleteFixture();
+  const rawSignature = readFileSync(path.join(encodedSignature.root, encodedSignature.registryRef.signature_ref.path));
+  const encodedSignatureRef = writeBytes(encodedSignature.root, "trust/encoded-registry.sig", Buffer.from(rawSignature.toString("base64"), "utf8"));
+  encodedSignature.testOnlyTrustRoot = {
+    ...encodedSignature.testOnlyTrustRoot,
+    registry_signature_installation_path: encodedSignatureRef.path,
+    registry_signature_sha256: encodedSignatureRef.sha256,
+  };
+  assert.throws(() => installedRegistry(encodedSignature), (error) => error?.code === "TRUST_REGISTRY_SIGNATURE_FORMAT");
+
+  const rootSwap = makeCompleteFixture();
+  writeFileSync(path.join(rootSwap.root, rootSwap.testOnlyTrustRoot.root_public_key_path), otherRoot.publicKey.export({ type: "spki", format: "pem" }));
+  assert.throws(() => installedRegistry(rootSwap), (error) => error?.code === "TRUST_ROOT_KEY_DIGEST_MISMATCH");
+
+  const replay = makeCompleteFixture();
+  replay.testOnlyTrustRoot = { ...replay.testOnlyTrustRoot, registry_serial: 2 };
+  assert.throws(() => installedRegistry(replay), (error) => error?.code === "TRUST_REGISTRY_ROLLBACK");
+});
+
+test("production bootstrap rejects symlink installations and private-key PEM inputs", () => {
+  const rootLink = makeCompleteFixture();
+  const linkedRoot = path.join(path.dirname(rootLink.root), `${path.basename(rootLink.root)}-link`);
+  symlinkSync(rootLink.root, linkedRoot);
+  rootLink.testOnlyTrustRoot = {
+    ...rootLink.testOnlyTrustRoot,
+    installation_root: linkedRoot,
+    root_public_key_path: path.join(linkedRoot, "trust/root-public-key.spki.pem"),
+    registry_installation_path: path.join(linkedRoot, "trust/registry.json"),
+    registry_signature_installation_path: path.join(linkedRoot, "trust/registry.json.sig"),
+  };
+  assert.throws(() => installedRegistry(rootLink), (error) => error?.code === "TRUST_ROOT_INVALID");
+
+  const registryLink = makeCompleteFixture();
+  const registryTarget = path.join(registryLink.root, registryLink.registryRef.path);
+  const registryCopy = writeBytes(registryLink.root, "trust/registry-copy.json", readFileSync(registryTarget));
+  unlinkSync(registryTarget);
+  symlinkSync(path.join(registryLink.root, registryCopy.path), registryTarget);
+  assert.throws(() => installedRegistry(registryLink), (error) => error?.code === "TRUST_SYMLINK_FORBIDDEN");
+
+  const signatureLink = makeCompleteFixture();
+  const signatureTarget = path.join(signatureLink.root, signatureLink.registryRef.signature_ref.path);
+  const signatureCopy = writeBytes(signatureLink.root, "trust/registry-signature-copy.sig", readFileSync(signatureTarget));
+  unlinkSync(signatureTarget);
+  symlinkSync(path.join(signatureLink.root, signatureCopy.path), signatureTarget);
+  assert.throws(() => installedRegistry(signatureLink), (error) => error?.code === "TRUST_SYMLINK_FORBIDDEN");
+
+  const rootKeyLink = makeCompleteFixture();
+  const rootKeyTarget = path.join(rootKeyLink.root, rootKeyLink.testOnlyTrustRoot.root_public_key_path);
+  const rootKeyCopy = writeBytes(rootKeyLink.root, "trust/root-public-key-copy.pem", readFileSync(rootKeyTarget));
+  unlinkSync(rootKeyTarget);
+  symlinkSync(path.join(rootKeyLink.root, rootKeyCopy.path), rootKeyTarget);
+  assert.throws(() => installedRegistry(rootKeyLink), (error) => error?.code === "TRUST_SYMLINK_FORBIDDEN");
+
+  const pathEscape = makeCompleteFixture();
+  const outsideRoot = mkdtempSync(path.join(tmpdir(), "lawos-external-release-outside-"));
+  const outsideKey = writeBytes(outsideRoot, "root-public-key.pem", pathEscape.rootKeyPair.publicKey.export({ type: "spki", format: "pem" }));
+  pathEscape.testOnlyTrustRoot = { ...pathEscape.testOnlyTrustRoot, root_public_key_path: path.join(outsideRoot, outsideKey.path) };
+  assert.throws(() => installedRegistry(pathEscape), (error) => error?.code === "TRUST_PATH_ESCAPE");
+
+  const privateRoot = makeCompleteFixture();
+  writeFileSync(path.join(privateRoot.root, privateRoot.testOnlyTrustRoot.root_public_key_path), privateRoot.rootKeyPair.privateKey.export({ type: "pkcs8", format: "pem" }));
+  assert.throws(() => installedRegistry(privateRoot), (error) => error?.code === "TRUST_ROOT_KEY_INVALID");
+
+  const privateLeaf = makeCompleteFixture();
+  const privateLeafRegistry = structuredClone(privateLeaf.registry);
+  privateLeafRegistry.keys[0].public_key_spki_pem = privateLeaf.keyPair.privateKey.export({ type: "pkcs8", format: "pem" });
+  installRootSignedRegistry(privateLeaf, privateLeafRegistry, "trust/private-leaf-registry.json");
+  assert.throws(() => installedRegistry(privateLeaf), (error) => error?.code === "TRUST_REGISTRY_KEY_INVALID");
+});
+
+test("trusted snapshots reject hardlinks and cross-role file identity reuse", () => {
+  const hardlinkedRoot = makeCompleteFixture();
+  const rootKeyTarget = path.join(hardlinkedRoot.root, hardlinkedRoot.testOnlyTrustRoot.root_public_key_path);
+  linkSync(rootKeyTarget, path.join(hardlinkedRoot.root, "trust/root-public-key-hardlink.pem"));
+  assert.throws(() => installedRegistry(hardlinkedRoot), (error) => error?.code === "TRUST_HARDLINK_FORBIDDEN");
+
+  const reusedRootFile = makeCompleteFixture();
+  reusedRootFile.testOnlyTrustRoot = {
+    ...reusedRootFile.testOnlyTrustRoot,
+    registry_installation_path: reusedRootFile.testOnlyTrustRoot.root_public_key_path,
+    registry_signature_installation_path: reusedRootFile.testOnlyTrustRoot.root_public_key_path,
+  };
+  assert.throws(() => installedRegistry(reusedRootFile), (error) => error?.code === "TRUST_ROOT_POLICY_INVALID");
+
+  const reusedReceiptFile = makeCompleteFixture();
+  const receiptRef = {
+    ...reusedReceiptFile.refs.api,
+    signature_ref: {
+      path: reusedReceiptFile.refs.api.path,
+      sha256: reusedReceiptFile.refs.api.sha256,
+    },
+  };
+  assert.throws(() => verifyApiReceipt(reusedReceiptFile, { receiptRef }), (error) => error?.code === "TRUST_RECEIPT_FILE_REUSE");
+
+  const hardlinkedReceipt = makeCompleteFixture();
+  linkSync(
+    path.join(hardlinkedReceipt.root, hardlinkedReceipt.refs.api.path),
+    path.join(hardlinkedReceipt.root, "receipts/api-hardlink.json"),
+  );
+  assert.throws(() => verifyApiReceipt(hardlinkedReceipt), (error) => error?.code === "TRUST_HARDLINK_FORBIDDEN");
+});
+
+test("production bootstrap rejects root-as-leaf and duplicate leaf SPKI reuse", () => {
+  const rootAsLeaf = makeCompleteFixture();
+  const rootAsLeafRegistry = structuredClone(rootAsLeaf.registry);
+  rootAsLeafRegistry.keys[0].public_key_spki_pem = rootAsLeaf.rootKeyPair.publicKey.export({ type: "spki", format: "pem" });
+  installRootSignedRegistry(rootAsLeaf, rootAsLeafRegistry, "trust/root-as-leaf-registry.json");
+  assert.throws(() => installedRegistry(rootAsLeaf), (error) => error?.code === "TRUST_REGISTRY_ROOT_KEY_REUSE");
+
+  const duplicateLeaf = makeCompleteFixture();
+  const duplicateLeafRegistry = structuredClone(duplicateLeaf.registry);
+  duplicateLeafRegistry.keys.push({ ...structuredClone(duplicateLeafRegistry.keys[0]), key_id: "release-evidence-key-002" });
+  installRootSignedRegistry(duplicateLeaf, duplicateLeafRegistry, "trust/duplicate-leaf-registry.json");
+  assert.throws(() => installedRegistry(duplicateLeaf), (error) => error?.code === "TRUST_REGISTRY_DUPLICATE_LEAF_KEY");
+});
+
+test("detached receipt parses and authorizes only its internally read signed byte snapshot", () => {
+  const fixture = makeCompleteFixture();
+  const receiptBytes = readFileSync(path.join(fixture.root, fixture.refs.api.path));
+  const substitutedReceipt = { ...JSON.parse(receiptBytes), pilot_id: "pilot-other-firm-002" };
+  assert.throws(() => verifyApiReceipt(fixture, { receiptBytes, receipt: substitutedReceipt }), (error) => error?.code === "TRUST_RECEIPT_SNAPSHOT_MISMATCH");
+  const substitutedBytes = Buffer.from(`${JSON.stringify(substitutedReceipt, null, 2)}\n`);
+  assert.throws(() => verifyApiReceipt(fixture, { receiptBytes: substitutedBytes }), (error) => error?.code === "TRUST_RECEIPT_SNAPSHOT_MISMATCH");
+  const verified = verifyApiReceipt(fixture);
+  assert.deepEqual(verified.receipt, JSON.parse(receiptBytes));
+  assert.equal(verified.receipt_bytes.equals(receiptBytes), true);
+});
+
+test("detached receipt file races never authorize bytes outside the pinned snapshot", async () => {
+  const fixture = makeCompleteFixture();
+  const receiptPath = path.join(fixture.root, fixture.refs.api.path);
+  const goodBytes = readFileSync(receiptPath);
+  const badReceipt = { ...JSON.parse(goodBytes), pilot_id: "pilot-evil-firm-01" };
+  const goodRef = writeBytes(fixture.root, "race/good.json", goodBytes);
+  const badRef = writeBytes(fixture.root, "race/bad.json", Buffer.from(`${JSON.stringify(badReceipt, null, 2)}\n`));
+  const child = spawn(process.execPath, ["-e", `
+    const fs = require("node:fs");
+    fs.copyFileSync(${JSON.stringify(path.join(fixture.root, badRef.path))}, ${JSON.stringify(receiptPath)});
+    process.send("bad-ready");
+    process.once("message", () => {
+      const end = Date.now() + 500;
+      while (Date.now() < end) {
+        fs.copyFileSync(${JSON.stringify(path.join(fixture.root, goodRef.path))}, ${JSON.stringify(receiptPath)});
+        fs.copyFileSync(${JSON.stringify(path.join(fixture.root, badRef.path))}, ${JSON.stringify(receiptPath)});
+      }
+    });
+  `], { stdio: ["ignore", "ignore", "ignore", "ipc"] });
+  await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("message", resolve);
+  });
+  assert.throws(() => verifyApiReceipt(fixture), (error) => error?.code === "TRUST_RECEIPT_HASH_MISMATCH");
+  child.send("race");
+  let observations = 0;
+  const end = Date.now() + 350;
+  while (Date.now() < end) {
+    try {
+      const verification = verifyApiReceipt(fixture);
+      assert.equal(verification.receipt.pilot_id, fixture.pilotId);
+    } catch (error) {
+      assert.ok(["TRUST_FILE_CHANGED", "TRUST_FILE_INVALID", "TRUST_RECEIPT_HASH_MISMATCH", "TRUST_RECEIPT_JSON_INVALID"].includes(error?.code), error?.code);
+    }
+    observations += 1;
+  }
+  assert.ok(observations > 0);
+  await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", (code) => code === 0 ? resolve() : reject(new Error(`race writer exited ${code}`)));
+  });
+  writeFileSync(receiptPath, goodBytes);
+  assert.equal(verifyApiReceipt(fixture).receipt.pilot_id, fixture.pilotId);
+});
+
+test("macOS checksum and SBOM races never authorize unpinned file bytes", async () => {
+  const fixture = makeCompleteFixture();
+  const macReceipt = JSON.parse(readFileSync(path.join(fixture.root, fixture.refs.mac.path), "utf8"));
+  const checksumsPath = path.join(fixture.root, macReceipt.artifacts.checksums.path);
+  const sbomPath = path.join(fixture.root, macReceipt.artifacts.sbom.path);
+  const goodChecksums = readFileSync(checksumsPath);
+  const goodSbom = readFileSync(sbomPath);
+  const badChecksumsRef = writeBytes(fixture.root, "race/bad-checksums.sha256", Buffer.from(`${"0".repeat(64)}  matter-pilot.dmg\n`));
+  const goodChecksumsRef = writeBytes(fixture.root, "race/good-checksums.sha256", goodChecksums);
+  const badSbomRef = writeJson(fixture.root, "race/bad-sbom.json", { bomFormat: "SPDX", components: [{ type: "library", name: "untrusted" }] });
+  const goodSbomRef = writeBytes(fixture.root, "race/good-sbom.json", goodSbom);
+  const child = spawn(process.execPath, ["-e", `
+    const fs = require("node:fs");
+    fs.copyFileSync(${JSON.stringify(path.join(fixture.root, badChecksumsRef.path))}, ${JSON.stringify(checksumsPath)});
+    fs.copyFileSync(${JSON.stringify(path.join(fixture.root, badSbomRef.path))}, ${JSON.stringify(sbomPath)});
+    process.send("bad-ready");
+    process.once("message", () => {
+      const end = Date.now() + 500;
+      while (Date.now() < end) {
+        fs.copyFileSync(${JSON.stringify(path.join(fixture.root, goodChecksumsRef.path))}, ${JSON.stringify(checksumsPath)});
+        fs.copyFileSync(${JSON.stringify(path.join(fixture.root, goodSbomRef.path))}, ${JSON.stringify(sbomPath)});
+        fs.copyFileSync(${JSON.stringify(path.join(fixture.root, badChecksumsRef.path))}, ${JSON.stringify(checksumsPath)});
+        fs.copyFileSync(${JSON.stringify(path.join(fixture.root, badSbomRef.path))}, ${JSON.stringify(sbomPath)});
+      }
+    });
+  `], { stdio: ["ignore", "ignore", "ignore", "ipc"] });
+  await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("message", resolve);
+  });
+  const badReport = validateFixture(fixture);
+  assert.equal(badReport.gates.find((gate) => gate.gate_id === "macos_distribution")?.state, "invalid");
+  assert.ok(badReport.findings.some((finding) => finding.code === "RECEIPT_SHA256_MISMATCH"));
+  child.send("race");
+  let observations = 0;
+  const end = Date.now() + 350;
+  while (Date.now() < end) {
+    const report = validateFixture(fixture);
+    const macGate = report.gates.find((gate) => gate.gate_id === "macos_distribution");
+    if (macGate?.state === "verified") assert.equal(report.verdict, "PASS");
+    else assert.ok(report.findings.some((finding) => ["TRUST_FILE_CHANGED", "TRUST_FILE_INVALID", "RECEIPT_SHA256_MISMATCH"].includes(finding.code)), JSON.stringify(report.findings));
+    observations += 1;
+  }
+  assert.ok(observations > 0);
+  await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", (code) => code === 0 ? resolve() : reject(new Error(`race writer exited ${code}`)));
+  });
+  writeFileSync(checksumsPath, goodChecksums);
+  writeFileSync(sbomPath, goodSbom);
+  assert.equal(validateFixture(fixture).verdict, "PASS");
 });
 
 test("template remains blocked and distinguishes technical, provider, operations, and legal gaps", () => {
@@ -416,7 +803,7 @@ test("receipt trust root rejects forged source/verdict, changed signature/public
   const otherKey = generateKeyPairSync("ed25519");
   const changedRegistry = JSON.parse(readFileSync(path.join(changedPublicKey.root, changedPublicKey.registryRef.path), "utf8"));
   changedRegistry.keys[0].public_key_spki_pem = otherKey.publicKey.export({ type: "spki", format: "pem" });
-  changedPublicKey.registryRef = writeJson(changedPublicKey.root, "trust/registry-mutated.json", changedRegistry);
+  installRootSignedRegistry(changedPublicKey, changedRegistry, "trust/registry-mutated.json");
   const changedPublicKeyReport = validateFixture(changedPublicKey);
   assert.ok(changedPublicKeyReport.findings.some((finding) => finding.code.startsWith("TRUST_SIGNATURE") || finding.code === "TRUST_REGISTRY_HASH_MISMATCH"));
 
@@ -438,14 +825,14 @@ test("receipt trust root rejects forged source/verdict, changed signature/public
   const keyScope = makeCompleteFixture();
   const keyScopeRegistry = JSON.parse(readFileSync(path.join(keyScope.root, keyScope.registryRef.path), "utf8"));
   keyScopeRegistry.keys[0].allowed_pilot_ids = ["pilot-other-firm-002"];
-  keyScope.registryRef = writeJson(keyScope.root, "trust/registry-scope.json", keyScopeRegistry);
+  installRootSignedRegistry(keyScope, keyScopeRegistry, "trust/registry-scope.json");
   const keyScopeReport = validateFixture(keyScope);
   assert.ok(keyScopeReport.findings.some((finding) => finding.code === "TRUSTED_KEY_SCOPE_MISMATCH"));
 
   const sourceScope = makeCompleteFixture();
   const sourceScopeRegistry = JSON.parse(readFileSync(path.join(sourceScope.root, sourceScope.registryRef.path), "utf8"));
   sourceScopeRegistry.keys[0].allowed_source_trees = ["f".repeat(40)];
-  sourceScope.registryRef = writeJson(sourceScope.root, "trust/registry-source-scope.json", sourceScopeRegistry);
+  installRootSignedRegistry(sourceScope, sourceScopeRegistry, "trust/registry-source-scope.json");
   const sourceScopeReport = validateFixture(sourceScope);
   assert.ok(sourceScopeReport.findings.some((finding) => finding.code === "TRUSTED_KEY_SCOPE_MISMATCH"));
 
@@ -470,7 +857,7 @@ test("signed receipt replay cannot cross the exact LawOS tenant namespace", () =
   replayReceipt.lawos_tenant_id = "lawos-other-002";
   const replayRegistry = JSON.parse(readFileSync(path.join(fixture.root, fixture.registryRef.path), "utf8"));
   replayRegistry.keys[0].allowed_lawos_tenant_ids.push("lawos-other-002");
-  fixture.registryRef = writeJson(fixture.root, "trust/registry-replay-scope.json", replayRegistry);
+  installRootSignedRegistry(fixture, replayRegistry, "trust/registry-replay-scope.json");
   fixture.input.gates.api_artifact_deployment.receipt_ref = writeSignedJson(fixture.root, "receipts/api-cross-tenant-replay.json", replayReceipt, fixture.keyPair);
   writeJson(fixture.root, "input.json", fixture.input);
   const report = validateFixture(fixture);
@@ -506,6 +893,36 @@ test("detached receipt expiry rejects the exact now boundary", () => {
     expectedBindingSha256: receipt.binding_sha256,
     now,
   }), (error) => error?.code === "TRUST_RECEIPT_TIME_INVALID");
+});
+
+test("detached receipt validation rejects invalid clocks before expiry checks", () => {
+  const fixture = makeCompleteFixture();
+  const expiredReceipt = JSON.parse(readFileSync(path.join(fixture.root, fixture.refs.api.path), "utf8"));
+  expiredReceipt.issued_at = "2020-01-02T00:00:00Z";
+  expiredReceipt.expires_at = "2021-01-01T00:00:00Z";
+  const expiredReceiptRef = writeSignedJson(fixture.root, "receipts/api-expired.json", expiredReceipt, fixture.keyPair);
+  for (const now of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -1]) {
+    assert.throws(() => verifyApiReceipt(fixture, { now, receiptRef: expiredReceiptRef }), (error) => error?.code === "TRUST_VALIDATION_CLOCK_INVALID");
+  }
+  assert.equal(verifyApiReceipt(fixture).valid, true);
+  assert.throws(
+    () => verifyApiReceipt(fixture, { now: Date.parse("2026-08-12T02:00:00Z"), receiptRef: expiredReceiptRef }),
+    (error) => error?.code === "TRUST_RECEIPT_TIME_INVALID",
+  );
+});
+
+test("trusted registry validation rejects invalid clocks before registry time checks", () => {
+  const fixture = makeCompleteFixture();
+  for (const now of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -1]) {
+    assert.throws(() => verifyTrustedRegistry({
+      rootDir: fixture.root,
+      registryPath: fixture.registryRef.path,
+      registrySha256: fixture.registryRef.sha256,
+      now,
+    }), (error) => error?.code === "TRUST_VALIDATION_CLOCK_INVALID");
+    assert.throws(() => installedRegistry(fixture, now), (error) => error?.code === "TRUST_VALIDATION_CLOCK_INVALID");
+  }
+  assert.equal(installedRegistry(fixture).registry.registry_serial, 1);
 });
 
 test("trusted registry generated_at cannot be in the future", () => {

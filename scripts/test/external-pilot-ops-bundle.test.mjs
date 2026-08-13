@@ -486,11 +486,12 @@ test("tampering signed receipt bytes or input readiness claims never authorizes 
 
 test("signed receipt verifier rejects wrong key, scope, tenant, and validity dimensions", (t) => {
   const root = fixtureRoot(t);
-  const { bundle } = completeRealDataBundle(root);
+  const { bundle, keyPair } = completeRealDataBundle(root);
   const receiptPath = join(root, bundle.monitoring.receipt.ref);
-  const receiptBytes = readFileSync(receiptPath);
+  let receiptBytes = readFileSync(receiptPath);
   const receipt = JSON.parse(receiptBytes.toString("utf8"));
-  const signatureBytes = readFileSync(join(root, bundle.monitoring.receipt.signature_ref.ref));
+  const signaturePath = join(root, bundle.monitoring.receipt.signature_ref.ref);
+  let signatureBytes = readFileSync(signaturePath);
   const registry = verifyTrustedRegistry({
     rootDir: root,
     registryPath: bundle.trust.trusted_registry_ref,
@@ -505,26 +506,32 @@ test("signed receipt verifier rejects wrong key, scope, tenant, and validity dim
       sha256: sha256(signatureBytes),
     },
   };
-  const verify = (candidate, overrides = {}) => verifyDetachedReceipt({
-    rootDir: root,
-    receiptRef,
-    receiptBytes,
-    receipt: candidate,
-    registry,
-    expectedReceiptType: "monitoring_receipt",
-    expectedReceiptSource: "pilot_operations",
-    expectedPilotId: PILOT_ID,
-    expectedLawosTenantId: overrides.lawosTenantId ?? LAWOS_TENANT_ID,
-    expectedEntraTenantId: overrides.entraTenantId ?? ENTRA_TENANT_ID,
-    expectedSourceSha: overrides.sourceSha ?? SOURCE_SHA,
-    expectedSourceTree: overrides.sourceTree ?? SOURCE_TREE,
-    expectedVersion: overrides.version ?? VERSION,
-    expectedRole: overrides.role ?? receipt.role,
-    expectedOperation: overrides.operation ?? "monitoring_receipt",
-    expectedArtifactSha256: overrides.artifactSha256 ?? [API_SHA, DESKTOP_SHA],
-    expectedBindingSha256: overrides.bindingSha256 ?? BINDING_SHA,
-    now: Date.parse(NOW),
-  });
+  const verify = (candidate, overrides = {}) => {
+    receiptBytes = Buffer.from(`${JSON.stringify(candidate, null, 2)}\n`);
+    signatureBytes = sign(null, receiptBytes, keyPair.privateKey);
+    writeFileSync(receiptPath, receiptBytes);
+    writeFileSync(signaturePath, signatureBytes);
+    receiptRef.sha256 = sha256(receiptBytes);
+    receiptRef.signature_ref.sha256 = sha256(signatureBytes);
+    return verifyDetachedReceipt({
+      rootDir: root,
+      receiptRef,
+      registry,
+      expectedReceiptType: "monitoring_receipt",
+      expectedReceiptSource: "pilot_operations",
+      expectedPilotId: PILOT_ID,
+      expectedLawosTenantId: overrides.lawosTenantId ?? LAWOS_TENANT_ID,
+      expectedEntraTenantId: overrides.entraTenantId ?? ENTRA_TENANT_ID,
+      expectedSourceSha: overrides.sourceSha ?? SOURCE_SHA,
+      expectedSourceTree: overrides.sourceTree ?? SOURCE_TREE,
+      expectedVersion: overrides.version ?? VERSION,
+      expectedRole: overrides.role ?? receipt.role,
+      expectedOperation: overrides.operation ?? "monitoring_receipt",
+      expectedArtifactSha256: overrides.artifactSha256 ?? [API_SHA, DESKTOP_SHA],
+      expectedBindingSha256: overrides.bindingSha256 ?? BINDING_SHA,
+      now: Date.parse(NOW),
+    });
+  };
   assert.doesNotThrow(() => verify(receipt));
   const errorCode = (candidate, overrides) => {
     assert.throws(() => verify(candidate, overrides), (error) => error instanceof ExternalReleaseTrustError);
