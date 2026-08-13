@@ -156,7 +156,7 @@ test("self-selected approval, raw-byte changes, duplicate fields, and artifact d
     ["duplicate field", async (input) => {
       const approval = await verified(input);
       const path = input.input.target.metadata_path;
-      const raw = Buffer.from(input.files.get(path).toString("utf8").replace("{", '{\n  "version": "0.1.17",'));
+      const raw = Buffer.from(`{\n  "version": "0.1.17",${input.files.get(path).toString("utf8").slice(1)}`);
       input.files.set(path, raw);
       input.files.set(input.input.target.signature_path, sign(null, raw, input.keyPair.privateKey));
       return { approval };
