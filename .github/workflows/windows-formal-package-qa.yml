@@ -14,6 +14,7 @@ on:
       - scripts/build-matter-desktop-win.mjs
       - scripts/prepare-matter-desktop-web-renderer.mjs
       - scripts/run-formal-windows-package-qa.mjs
+      - scripts/lib/matter-desktop-authenticode.mjs
       - scripts/lib/matter-desktop-provenance.mjs
   workflow_dispatch:
     inputs:

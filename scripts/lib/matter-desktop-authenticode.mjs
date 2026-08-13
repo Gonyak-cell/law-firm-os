@@ -1,3 +1,5 @@
+import { types } from "node:util";
+
 const THUMBPRINT = /^[0-9A-F]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
 const CERTIFICATE_SHA256 = /^[0-9A-F]{64}$/u;
@@ -5,6 +7,7 @@ const CERTIFICATE_SERIAL = /^[0-9A-F]+$/u;
 const OID = /^\d+(?:\.\d+)+$/u;
 const CODE_SIGNING_EKU_OID = "1.3.6.1.5.5.7.3.3";
 const TIME_STAMPING_EKU_OID = "1.3.6.1.5.5.7.3.8";
+const NOT_SIGNED_STATUS_MESSAGE = /^The file (?:[A-Za-z]:\\|\\\\[^\\\r\n]+\\)[^\r\n]+ is not digitally signed\. You cannot run this script on the current system\. For more information about running scripts and setting execution policy, see about_Execution_Policies at https:\/\/go\.microsoft\.com\/fwlink\/\?LinkID=135170$/u;
 const ALLOWED_TIMESTAMP_URLS = new Set([
   "https://timestamp.digicert.com",
   "https://timestamp.sectigo.com",
@@ -23,6 +26,15 @@ const CERTIFICATE_FIELDS = [
   "signature_algorithm_oid",
   "eku_oids",
 ];
+const UNSIGNED_AUTHENTICODE_FIELDS = new Set([
+  "status",
+  "status_message",
+  "signature_type",
+  "time_stamper_certificate_present",
+  ...["signer", "timestamp"].flatMap((prefix) => (
+    CERTIFICATE_FIELDS.map((field) => `${prefix}_${field}`)
+  )),
+]);
 
 function certificateMetadata(record, prefix, requiredEku) {
   const value = Object.fromEntries(
@@ -47,6 +59,82 @@ function certificateMetadata(record, prefix, requiredEku) {
   return Object.freeze({
     ...value,
     eku_oids: Object.freeze([...value.eku_oids]),
+  });
+}
+
+function isPlainEmptyArray(value) {
+  return !types.isProxy(value)
+    && Array.isArray(value)
+    && Object.getPrototypeOf(value) === Array.prototype
+    && value.length === 0
+    && Reflect.ownKeys(value).length === 1;
+}
+
+function isUnsignedAuthenticodeRecord(record) {
+  if (record === null
+    || typeof record !== "object"
+    || types.isProxy(record)
+    || Array.isArray(record)
+    || Object.getPrototypeOf(record) !== Object.prototype) return false;
+  const keys = Reflect.ownKeys(record);
+  if (keys.length !== UNSIGNED_AUTHENTICODE_FIELDS.size
+    || keys.some((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key))) return false;
+  const descriptors = Object.getOwnPropertyDescriptors(record);
+  for (const field of UNSIGNED_AUTHENTICODE_FIELDS) {
+    const descriptor = descriptors[field];
+    if (!descriptor || !Object.hasOwn(descriptor, "value") || descriptor.enumerable !== true) return false;
+  }
+  if (typeof descriptors.status.value !== "string"
+    || descriptors.status.value !== "NotSigned"
+    || typeof descriptors.status_message.value !== "string"
+    || !NOT_SIGNED_STATUS_MESSAGE.test(descriptors.status_message.value)
+    || typeof descriptors.signature_type.value !== "string"
+    || descriptors.signature_type.value !== "None"
+    || typeof descriptors.time_stamper_certificate_present.value !== "boolean"
+    || descriptors.time_stamper_certificate_present.value !== false) return false;
+  for (const prefix of ["signer", "timestamp"]) {
+    for (const field of CERTIFICATE_FIELDS) {
+      const value = descriptors[`${prefix}_${field}`].value;
+      if (field === "eku_oids" ? !isPlainEmptyArray(value) : value !== null) return false;
+    }
+  }
+  return true;
+}
+
+function assertUnsignedAuthenticodeRecords(records) {
+  if (types.isProxy(records)
+    || !Array.isArray(records)
+    || Object.getPrototypeOf(records) !== Array.prototype
+    || records.length !== 2) {
+    throw new Error("complete unsigned technical-candidate Authenticode records are required");
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(records);
+  const keys = Reflect.ownKeys(records);
+  if (keys.length !== 3
+    || keys.some((key) => !["0", "1", "length"].includes(key))
+    || !descriptors[0]
+    || !Object.hasOwn(descriptors[0], "value")
+    || descriptors[0].enumerable !== true
+    || !descriptors[1]
+    || !Object.hasOwn(descriptors[1], "value")
+    || descriptors[1].enumerable !== true
+    || !isUnsignedAuthenticodeRecord(descriptors[0].value)
+    || !isUnsignedAuthenticodeRecord(descriptors[1].value)) {
+    throw new Error("complete unsigned technical-candidate Authenticode records are required");
+  }
+}
+
+function validateExecutableParity(expectedExecutableSha256, actualExecutableSha256) {
+  if (expectedExecutableSha256 === undefined && actualExecutableSha256 === undefined) return null;
+  if (!SHA256.test(expectedExecutableSha256 ?? "")
+    || !SHA256.test(actualExecutableSha256 ?? "")
+    || actualExecutableSha256 !== expectedExecutableSha256) {
+    throw new Error("installed executable bytes do not match the packaged executable");
+  }
+  return Object.freeze({
+    packaged_executable_sha256: expectedExecutableSha256,
+    installed_executable_sha256: actualExecutableSha256,
+    byte_identical: true,
   });
 }
 
@@ -193,22 +281,24 @@ export async function runAfterMatterDesktopAuthenticodeVerification({
     records,
     { expectedCertificateSha1 },
   );
-  let executableParity = null;
-  if (expectedExecutableSha256 !== undefined || actualExecutableSha256 !== undefined) {
-    if (!SHA256.test(expectedExecutableSha256 ?? "")
-      || !SHA256.test(actualExecutableSha256 ?? "")
-      || actualExecutableSha256 !== expectedExecutableSha256) {
-      throw new Error("installed executable bytes do not match the packaged executable");
-    }
-    executableParity = Object.freeze({
-      packaged_executable_sha256: expectedExecutableSha256,
-      installed_executable_sha256: actualExecutableSha256,
-      byte_identical: true,
-    });
-  }
   return {
     verification,
-    executable_parity: executableParity,
+    executable_parity: validateExecutableParity(expectedExecutableSha256, actualExecutableSha256),
+    value: await action(),
+  };
+}
+
+export async function runAfterUnsignedMatterDesktopTechnicalCandidateInspection({
+  records,
+  expectedExecutableSha256,
+  actualExecutableSha256,
+  action,
+} = {}) {
+  if (typeof action !== "function") throw new TypeError("unsigned technical-candidate action is required");
+  assertUnsignedAuthenticodeRecords(records);
+  return {
+    verification: null,
+    executable_parity: validateExecutableParity(expectedExecutableSha256, actualExecutableSha256),
     value: await action(),
   };
 }

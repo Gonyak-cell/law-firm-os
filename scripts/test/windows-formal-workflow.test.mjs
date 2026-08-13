@@ -56,6 +56,7 @@ test("Windows formal workflow preserves current-version provenance outside the w
   assert.match(workflow, /Copy-Item -LiteralPath \$path -Destination "artifacts\\QA-006\\build\\"/);
   assert.match(workflow, /Copy-Item -LiteralPath \$path -Destination "artifacts\\QA-006\\artifacts\\"/);
   assert.match(workflow, /include-hidden-files: true/);
+  assert.match(workflow, /^\s+- scripts\/lib\/matter-desktop-authenticode\.mjs$/mu);
   assert.doesNotMatch(workflow, /matter-0\.1\.17-win-(?:build|installer)-manifest\.json/);
   assert.doesNotMatch(
     workflow,
@@ -88,6 +89,8 @@ test("Windows Authenticode preparation stays manual, protected, pinned, and fail
 
 test("formal Windows QA structurally gates every NSIS execution and app launch on Authenticode", async () => {
   const source = await readFile(formalQaPath, "utf8");
+  assert.match(source, /authenticodeConfiguration === null\s*\? runAfterUnsignedMatterDesktopTechnicalCandidateInspection\(options\)\s*:\s*runAfterMatterDesktopAuthenticodeVerification/u);
+  assert.equal(source.match(/runAfterFormalWindowsTrustInspection\(\{/gu)?.length, 3);
   const preinstallProbe = source.indexOf("installerAuthenticode = authenticode(INSTALLER_PATH)");
   const installAction = source.indexOf("action: async () => installPackage()");
   const installedProbe = source.indexOf("installedExecutableAuthenticode = authenticode(installed.executablePath)");
