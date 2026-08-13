@@ -1,0 +1,175 @@
+name: Windows Authenticode Package QA Preparation
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact clean source commit to prepare
+        required: true
+        type: string
+      source_tree:
+        description: Exact Git tree for the source commit
+        required: true
+        type: string
+      approval_id:
+        description: Exact supervised named-pilot approval identifier
+        required: true
+        type: string
+      approval_expires_at:
+        description: Canonical UTC approval expiry (YYYY-MM-DDTHH:mm:ss.sssZ)
+        required: true
+        type: string
+      pilot_id:
+        description: Named external pilot identifier
+        required: true
+        type: string
+      lawos_tenant_id:
+        description: Exact LawOS tenant identifier
+        required: true
+        type: string
+      entra_tenant_id:
+        description: Exact Entra tenant UUID
+        required: true
+        type: string
+      app_id:
+        description: Exact formal desktop app identifier
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  preparation-only:
+    name: Validate protected signing inputs without signing
+    runs-on: windows-latest
+    environment: windows-authenticode-pilot
+    timeout-minutes: 15
+    steps:
+      - name: Configure deterministic Git line endings
+        shell: pwsh
+        run: git config --global core.autocrlf false
+
+      - name: Checkout exact source SHA
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify exact source, tree, tenant, app, and unexpired approval
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_APPROVAL_ID: ${{ inputs.approval_id }}
+          INPUT_APPROVAL_EXPIRES_AT: ${{ inputs.approval_expires_at }}
+          INPUT_PILOT_ID: ${{ inputs.pilot_id }}
+          INPUT_LAWOS_TENANT_ID: ${{ inputs.lawos_tenant_id }}
+          INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
+          INPUT_APP_ID: ${{ inputs.app_id }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ($env:INPUT_SOURCE_SHA -notmatch '^[0-9a-f]{40}$') { throw "source_sha must be a full lowercase Git object ID" }
+          if ($env:INPUT_SOURCE_TREE -notmatch '^[0-9a-f]{40}$') { throw "source_tree must be a full lowercase Git object ID" }
+          if ((git rev-parse HEAD).Trim() -ne $env:INPUT_SOURCE_SHA) { throw "exact source checkout failed" }
+          if ((git rev-parse 'HEAD^{tree}').Trim() -ne $env:INPUT_SOURCE_TREE) { throw "exact source tree verification failed" }
+          if (git status --porcelain) { throw "source checkout is dirty" }
+          if ($env:INPUT_APPROVAL_ID -notmatch '^[A-Z0-9][A-Z0-9._-]{7,127}$') { throw "approval_id format is invalid" }
+          if ($env:INPUT_PILOT_ID -notmatch '^[a-z0-9][a-z0-9._-]{7,127}$') { throw "pilot_id format is invalid" }
+          if ($env:INPUT_LAWOS_TENANT_ID -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$') { throw "lawos_tenant_id format is invalid" }
+          if ($env:INPUT_ENTRA_TENANT_ID -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') { throw "entra_tenant_id is invalid" }
+          if ($env:INPUT_APP_ID -ne 'com.amic.matter.desktop') { throw "app_id must be the formal Matter desktop identity" }
+          $expiry = [DateTimeOffset]::MinValue
+          $parsed = [DateTimeOffset]::TryParseExact(
+            $env:INPUT_APPROVAL_EXPIRES_AT,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$expiry
+          )
+          if (-not $parsed -or $expiry -le [DateTimeOffset]::UtcNow) { throw "approval is invalid or expired" }
+
+      - name: Verify protected public SSL.com configuration before any secret reference
+        shell: pwsh
+        env:
+          CKA_VERSION: ${{ vars.SSL_COM_ESIGNER_CKA_VERSION }}
+          CKA_SHA256: ${{ vars.SSL_COM_ESIGNER_CKA_SHA256 }}
+          EXPECTED_CERTIFICATE_SHA1: ${{ vars.SSL_COM_ESIGNER_CERTIFICATE_SHA1 }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ($env:CKA_VERSION -notmatch '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$') { throw "protected CKA version is missing or invalid" }
+          if ($env:CKA_SHA256 -notmatch '^[0-9a-f]{64}$') { throw "protected CKA SHA-256 is missing or invalid" }
+          if ($env:EXPECTED_CERTIFICATE_SHA1 -notmatch '^[0-9A-F]{40}$') { throw "protected expected certificate SHA-1 is missing or invalid" }
+          $timestampUrl = 'http://ts.ssl.com'
+          if ($timestampUrl -cne 'http://ts.ssl.com') { throw "SSL.com RFC3161 endpoint drifted" }
+
+      - name: Record preparation-only public evidence
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_APPROVAL_ID: ${{ inputs.approval_id }}
+          INPUT_APPROVAL_EXPIRES_AT: ${{ inputs.approval_expires_at }}
+          INPUT_PILOT_ID: ${{ inputs.pilot_id }}
+          INPUT_LAWOS_TENANT_ID: ${{ inputs.lawos_tenant_id }}
+          INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
+          INPUT_APP_ID: ${{ inputs.app_id }}
+          CKA_VERSION: ${{ vars.SSL_COM_ESIGNER_CKA_VERSION }}
+          CKA_SHA256: ${{ vars.SSL_COM_ESIGNER_CKA_SHA256 }}
+          EXPECTED_CERTIFICATE_SHA1: ${{ vars.SSL_COM_ESIGNER_CERTIFICATE_SHA1 }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\lawos-authenticode-preparation-evidence" | Out-Null
+          [ordered]@{
+            schema_version = 'law-firm-os.windows-authenticode-preparation.v1'
+            generated_at = [DateTimeOffset]::UtcNow.ToString('o')
+            state = 'PREPARED_NOT_CONFIGURED'
+            source_sha = $env:INPUT_SOURCE_SHA
+            source_tree = $env:INPUT_SOURCE_TREE
+            approval_id = $env:INPUT_APPROVAL_ID
+            approval_expires_at = $env:INPUT_APPROVAL_EXPIRES_AT
+            pilot_id = $env:INPUT_PILOT_ID
+            lawos_tenant_id = $env:INPUT_LAWOS_TENANT_ID
+            entra_tenant_id = $env:INPUT_ENTRA_TENANT_ID
+            app_id = $env:INPUT_APP_ID
+            cka_version = $env:CKA_VERSION
+            cka_sha256 = $env:CKA_SHA256
+            expected_certificate_sha1 = $env:EXPECTED_CERTIFICATE_SHA1
+            timestamp_url = 'http://ts.ssl.com'
+            provider_setup_executed = $false
+            signing_executed = $false
+            package_built = $false
+            qa_executed = $false
+            public_release_claim = $false
+          } | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8NoBOM "$env:RUNNER_TEMP\lawos-authenticode-preparation-evidence\receipt.json"
+
+      - name: Stop before unimplemented vendor setup or signing
+        shell: pwsh
+        run: throw "NOT_CONFIGURED_VENDOR_SIGNING - provider asset URL/digest installation and signing commands are intentionally absent"
+
+      - name: Disabled SSL.com secret boundary
+        if: ${{ false }}
+        shell: pwsh
+        env:
+          SSL_COM_ESIGNER_USERNAME: ${{ secrets.SSL_COM_ESIGNER_USERNAME }}
+          SSL_COM_ESIGNER_PASSWORD: ${{ secrets.SSL_COM_ESIGNER_PASSWORD }}
+          SSL_COM_ESIGNER_TOTP_SECRET: ${{ secrets.SSL_COM_ESIGNER_TOTP_SECRET }}
+        run: throw "unreachable until a reviewed vendor integration replaces the NOT_CONFIGURED guard"
+
+      - name: Always remove potential signing residue
+        if: always()
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\lawos-esigner" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath "$env:APPDATA\eSignerCKA\master.key" -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath "$env:GITHUB_WORKSPACE\eSigner_CKA_Setup.zip" -Force -ErrorAction SilentlyContinue
+
+      - name: Upload preparation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-authenticode-preparation-${{ inputs.source_sha }}
+          path: ${{ runner.temp }}/lawos-authenticode-preparation-evidence/
+          if-no-files-found: error
+          include-hidden-files: true
