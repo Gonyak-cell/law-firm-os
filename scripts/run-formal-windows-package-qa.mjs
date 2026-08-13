@@ -21,6 +21,7 @@ import {
   matterDesktopAuthenticodePowerShell,
   resolveMatterDesktopAuthenticodeConfiguration,
   runAfterMatterDesktopAuthenticodeVerification,
+  runAfterUnsignedMatterDesktopTechnicalCandidateInspection,
 } from "./lib/matter-desktop-authenticode.mjs";
 import { cleanupTemporaryDirectories } from "./lib/windows-formal-cleanup.mjs";
 import { cleanupFailedWindowsNsisInstallation } from "./lib/windows-formal-native-cleanup.mjs";
@@ -118,6 +119,15 @@ function authenticode(filePath) {
     env: { ...process.env, MATTER_AUTHENTICODE_PATH: filePath },
     windowsHide: true,
   }).trim());
+}
+
+function runAfterFormalWindowsTrustInspection(options) {
+  return authenticodeConfiguration === null
+    ? runAfterUnsignedMatterDesktopTechnicalCandidateInspection(options)
+    : runAfterMatterDesktopAuthenticodeVerification({
+        ...options,
+        expectedCertificateSha1: authenticodeConfiguration.certificate_sha1,
+      });
 }
 
 async function findProductPage(app) {
@@ -288,9 +298,8 @@ try {
   installerAuthenticode = authenticode(INSTALLER_PATH);
   packagedExecutableAuthenticode = authenticode(UNPACKED_EXECUTABLE);
   packagedExecutableSha256 = sha256File(UNPACKED_EXECUTABLE);
-  ({ verification: authenticodeResult, value: installed } = await runAfterMatterDesktopAuthenticodeVerification({
+  ({ verification: authenticodeResult, value: installed } = await runAfterFormalWindowsTrustInspection({
     records: [installerAuthenticode, packagedExecutableAuthenticode],
-    expectedCertificateSha1: authenticodeConfiguration?.certificate_sha1,
     action: async () => installPackage(),
   }));
   const installedManifestPath = path.join(installed.resourcesPath, "matter-build-manifest.json");
@@ -302,9 +311,8 @@ try {
   assert.equal(directoryDigest(path.dirname(rendererIndex)).sha256, installerManifest.renderer.sha256);
 
   installedExecutableAuthenticode = authenticode(installed.executablePath);
-  ({ executable_parity: installedExecutablePrelaunchParity, value: { app, page } } = await runAfterMatterDesktopAuthenticodeVerification({
+  ({ executable_parity: installedExecutablePrelaunchParity, value: { app, page } } = await runAfterFormalWindowsTrustInspection({
     records: [installerAuthenticode, installedExecutableAuthenticode],
-    expectedCertificateSha1: authenticodeConfiguration.certificate_sha1,
     expectedExecutableSha256: packagedExecutableSha256,
     actualExecutableSha256: sha256File(installed.executablePath),
     action: async () => launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }),
@@ -339,9 +347,8 @@ try {
   await app.close();
   app = null;
   restartExecutableAuthenticode = authenticode(installed.executablePath);
-  ({ executable_parity: installedExecutableRestartPrelaunchParity, value: { app, page } } = await runAfterMatterDesktopAuthenticodeVerification({
+  ({ executable_parity: installedExecutableRestartPrelaunchParity, value: { app, page } } = await runAfterFormalWindowsTrustInspection({
     records: [installerAuthenticode, restartExecutableAuthenticode],
-    expectedCertificateSha1: authenticodeConfiguration.certificate_sha1,
     expectedExecutableSha256: packagedExecutableSha256,
     actualExecutableSha256: sha256File(installed.executablePath),
     action: async () => launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }),
