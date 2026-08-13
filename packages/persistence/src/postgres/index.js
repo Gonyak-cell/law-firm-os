@@ -25,3 +25,4 @@ export * from "./performance-acceptance.js";
 export * from "./rehearsal-restore-contract.js";
 export * from "./rehearsal-capacity-result.js";
 export * from "./dr-recovery-contract.js";
+export * from "./backup-restore-state-contract.js";
