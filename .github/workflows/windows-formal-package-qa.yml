@@ -65,6 +65,7 @@ jobs:
         env:
           MATTER_DESKTOP_RELEASE_CHANNEL: formal
           MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\matter-desktop-windows-receipt\windows-build.md
         shell: pwsh
         run: |
           npm --workspace apps/desktop run prepare:web-renderer
@@ -93,10 +94,28 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force "artifacts\QA-006\build" | Out-Null
-          Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-build-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
-          Copy-Item "apps\desktop\dist\win\matter-0.1.17-win-installer-manifest.json" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
-          Copy-Item "docs\lazycodex\evidence\matter-desktop\artifacts\windows-build.md" "artifacts\QA-006\build\" -ErrorAction SilentlyContinue
-          Copy-Item "apps\desktop\dist\win-unpacked\resources\app\src\renderer\web" "artifacts\QA-006\build\renderer" -Recurse -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force "artifacts\QA-006\artifacts" | Out-Null
+          $desktopVersion = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
+          $buildEvidence = @(
+            "apps\desktop\dist\win\matter-$desktopVersion-win-build-manifest.json",
+            "apps\desktop\dist\win\matter-$desktopVersion-win-installer-manifest.json",
+            "apps\desktop\dist\win\matter-$desktopVersion-win-installer-manifest.json.sig",
+            "${{ runner.temp }}\matter-desktop-windows-receipt\windows-build.md"
+          )
+          $windowsArtifacts = @(
+            "apps\desktop\dist\matter-$desktopVersion-win-x64.exe",
+            "apps\desktop\dist\matter-$desktopVersion-win-x64.exe.blockmap",
+            "apps\desktop\dist\win\matter-$desktopVersion-win32-x64-unsigned.zip"
+          )
+          foreach ($path in $buildEvidence) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "missing Windows build evidence: $path" }
+            Copy-Item -LiteralPath $path -Destination "artifacts\QA-006\build\"
+          }
+          foreach ($path in $windowsArtifacts) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "missing Windows artifact: $path" }
+            Copy-Item -LiteralPath $path -Destination "artifacts\QA-006\artifacts\"
+          }
+          Copy-Item "apps\desktop\dist\win-unpacked\resources\app\src\renderer\web" "artifacts\QA-006\build\renderer" -Recurse
 
       - name: Upload Windows QA evidence
         if: always()
