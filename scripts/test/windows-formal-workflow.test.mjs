@@ -49,6 +49,7 @@ test("Windows formal workflow preserves current-version provenance outside the w
   );
   assert.match(workflow, /Copy-Item -LiteralPath \$path -Destination "artifacts\\QA-006\\build\\"/);
   assert.match(workflow, /Copy-Item -LiteralPath \$path -Destination "artifacts\\QA-006\\artifacts\\"/);
+  assert.match(workflow, /include-hidden-files: true/);
   assert.doesNotMatch(workflow, /matter-0\.1\.17-win-(?:build|installer)-manifest\.json/);
   assert.doesNotMatch(
     workflow,

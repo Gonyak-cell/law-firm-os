@@ -123,4 +123,5 @@ jobs:
         with:
           name: windows-formal-package-qa-${{ env.QA_SOURCE_SHA }}
           path: artifacts/QA-006/
+          include-hidden-files: true
           if-no-files-found: error
