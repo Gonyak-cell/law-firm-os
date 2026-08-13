@@ -1,0 +1,174 @@
+name: Windows Formal Operator Update And Rollback QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact clean source commit containing the operator runner
+        required: true
+        type: string
+      source_tree:
+        description: Exact Git tree for the runner source commit
+        required: true
+        type: string
+      artifact_root:
+        description: Absolute pre-staged root containing both signed candidates and approval
+        required: true
+        type: string
+      execution_input:
+        description: Relative canonical execution-input JSON path under artifact_root
+        required: true
+        type: string
+      approval_receipt:
+        description: Relative canonical production-root-approved receipt path under artifact_root
+        required: true
+        type: string
+      approval_signature:
+        description: Relative detached receipt signature path under artifact_root
+        required: true
+        type: string
+      confirmation_dir:
+        description: Absolute empty host directory where the operator supplies each requested approval ID
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  deployments: read
+
+jobs:
+  protected-environment-preflight:
+    name: Refuse absent or unprotected operator environment
+    runs-on: windows-latest
+    timeout-minutes: 5
+    outputs:
+      environment_name: ${{ steps.environment.outputs.name }}
+    steps:
+      - name: Verify the environment already has non-bypassable independent reviewers
+        id: environment
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENVIRONMENT_NAME: windows-formal-update-rollback
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headers = @{
+            Accept = 'application/vnd.github+json'
+            Authorization = "Bearer $env:GH_TOKEN"
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $encodedName = [Uri]::EscapeDataString($env:ENVIRONMENT_NAME)
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/environments/$encodedName"
+          $environment = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+          if ($environment.name -cne $env:ENVIRONMENT_NAME) { throw 'protected operator environment is missing' }
+          if ($environment.PSObject.Properties.Name -notcontains 'can_admins_bypass') {
+            throw 'GitHub environment response cannot prove administrator bypass is disabled'
+          }
+          $reviewRules = @($environment.protection_rules | Where-Object { $_.type -eq 'required_reviewers' })
+          if ($reviewRules.Count -ne 1 -or @($reviewRules[0].reviewers).Count -lt 1) {
+            throw 'protected operator environment requires at least one independent reviewer'
+          }
+          if ($reviewRules[0].prevent_self_review -ne $true) {
+            throw 'protected operator environment must prevent self-review'
+          }
+          if ($environment.can_admins_bypass -isnot [bool] -or $environment.can_admins_bypass) {
+            throw 'protected operator environment must disable administrator bypass'
+          }
+          "name=$env:ENVIRONMENT_NAME" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Validate all manual inputs before the protected job exists
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_ARTIFACT_ROOT: ${{ inputs.artifact_root }}
+          INPUT_EXECUTION_INPUT: ${{ inputs.execution_input }}
+          INPUT_APPROVAL_RECEIPT: ${{ inputs.approval_receipt }}
+          INPUT_APPROVAL_SIGNATURE: ${{ inputs.approval_signature }}
+          INPUT_CONFIRMATION_DIR: ${{ inputs.confirmation_dir }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:INPUT_SOURCE_SHA -notmatch '^[0-9a-f]{40}$') { throw 'source_sha must be a full lowercase Git object ID' }
+          if ($env:INPUT_SOURCE_TREE -notmatch '^[0-9a-f]{40}$') { throw 'source_tree must be a full lowercase Git object ID' }
+          if (-not [IO.Path]::IsPathFullyQualified($env:INPUT_ARTIFACT_ROOT)) { throw 'artifact_root must be absolute' }
+          if (-not [IO.Path]::IsPathFullyQualified($env:INPUT_CONFIRMATION_DIR)) { throw 'confirmation_dir must be absolute' }
+          foreach ($value in @($env:INPUT_EXECUTION_INPUT, $env:INPUT_APPROVAL_RECEIPT, $env:INPUT_APPROVAL_SIGNATURE)) {
+            if ([IO.Path]::IsPathFullyQualified($value) -or $value -match '(^|[\\/])\.\.([\\/]|$)') {
+              throw 'artifact references must be relative and cannot traverse parents'
+            }
+          }
+
+  operator-update-rollback:
+    name: Supervised NSIS update and rollback
+    needs: protected-environment-preflight
+    runs-on: [self-hosted, windows, x64, lawos-formal-operator]
+    # The protected environment name is unavailable until the GET-only
+    # preflight proves that it already exists, avoiding implicit creation.
+    environment: ${{ needs.protected-environment-preflight.outputs.environment_name }}
+    timeout-minutes: 30
+    steps:
+      - name: Configure deterministic Git line endings
+        shell: pwsh
+        run: git config --global core.autocrlf false
+
+      - name: Checkout exact runner source without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+          path: lawos-update-runner-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Verify exact runner source and immutable tree
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\lawos-update-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ((git rev-parse HEAD).Trim() -cne $env:INPUT_SOURCE_SHA) { throw 'exact source checkout failed' }
+          if ((git rev-parse 'HEAD^{tree}').Trim() -cne $env:INPUT_SOURCE_TREE) { throw 'exact source tree verification failed' }
+          git diff --quiet HEAD --
+          if ($LASTEXITCODE -ne 0) { throw 'tracked runner source is dirty' }
+          $unexpected = @(git ls-files --others --exclude-standard | Where-Object { $_ -notmatch '^config/external-release/' })
+          if ($unexpected.Count -ne 0) { throw 'unexpected untracked runner source is present' }
+
+      - name: Run independently approved operator sequence
+        id: operator
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\lawos-update-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_RUNNER_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_WINDOWS_UPDATE_RUNNER_SOURCE_TREE: ${{ inputs.source_tree }}
+          MATTER_WINDOWS_UPDATE_ARTIFACT_ROOT: ${{ inputs.artifact_root }}
+          MATTER_WINDOWS_UPDATE_EXECUTION_INPUT: ${{ inputs.execution_input }}
+          MATTER_WINDOWS_UPDATE_APPROVAL_RECEIPT: ${{ inputs.approval_receipt }}
+          MATTER_WINDOWS_UPDATE_APPROVAL_SIGNATURE: ${{ inputs.approval_signature }}
+          MATTER_WINDOWS_UPDATE_CONFIRMATION_DIR: ${{ inputs.confirmation_dir }}
+          MATTER_WINDOWS_UPDATE_INSTALL_DIR: ${{ runner.temp }}\matter-update-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_RECEIPT_PATH: ${{ runner.temp }}\lawos-update-rollback-evidence-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: |
+          node scripts/run-formal-windows-update-rollback-qa.mjs
+          $status = $LASTEXITCODE
+          if ($status -eq 0 -or $status -eq 2) {
+            "receipt_written=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+          if ($status -eq 2) { exit 1 }
+          exit $status
+
+      - name: Upload sanitized operator receipt
+        if: always() && steps.operator.outputs.receipt_written == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-formal-update-rollback-${{ inputs.source_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-update-rollback-evidence-${{ github.run_id }}-${{ github.run_attempt }}.json
+          if-no-files-found: error
+          include-hidden-files: false
