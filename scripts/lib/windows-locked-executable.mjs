@@ -312,10 +312,9 @@ $state = [ordered]@{
 $requestId = $null
 
 function Send-Response($value) {
+  if ($value -isnot [Collections.IDictionary]) { throw 'locked executable response must be an IDictionary' }
   $response = [ordered]@{ id = $requestId }
-  if ($null -ne $value) {
-    foreach ($property in $value.PSObject.Properties) { $response[$property.Name] = $property.Value }
-  }
+  foreach ($entry in $value.GetEnumerator()) { $response[[string]$entry.Key] = $entry.Value }
   [Console]::Out.WriteLine(($response | ConvertTo-Json -Depth 30 -Compress))
   [Console]::Out.Flush()
 }

@@ -14,7 +14,7 @@ import { matterDesktopAuthenticodePowerShell } from "../lib/matter-desktop-authe
 const HASH = "a".repeat(64);
 
 class FakePowerShell extends EventEmitter {
-  constructor({ failLaunch = false, failAbort = false } = {}) {
+  constructor({ failLaunch = false, failAbort = false, projectDictionaryMetadata = false } = {}) {
     super();
     this.stdout = new PassThrough();
     this.stderr = new PassThrough();
@@ -26,6 +26,8 @@ class FakePowerShell extends EventEmitter {
     this.exitCode = null;
     this.failLaunch = failLaunch;
     this.failAbort = failAbort;
+    this.projectDictionaryMetadata = projectDictionaryMetadata;
+    this.responses = [];
     this.stdin.on("data", (chunk) => {
       for (const line of String(chunk).split(/\r?\n/u).filter(Boolean)) {
         const request = JSON.parse(line);
@@ -98,6 +100,16 @@ class FakePowerShell extends EventEmitter {
           code: "LOCKED_EXECUTABLE_OPERATION",
           error: "injected exact child abort failure",
         };
+        if (this.projectDictionaryMetadata) {
+          const { id, ...entries } = response;
+          response = {
+            id,
+            Count: Object.keys(entries).length,
+            Keys: Object.keys(entries),
+            Values: Object.values(entries),
+          };
+        }
+        this.responses.push(response);
         setImmediate(() => {
           this.stdout.write(`${JSON.stringify(response)}\n`);
           if (["release", "abort"].includes(request.operation) && response.ok === true) {
@@ -148,6 +160,8 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "Invoke-Status",
     "Invoke-Stop",
     "Invoke-Abort",
+    "[Collections.IDictionary]",
+    "$value.GetEnumerator()",
     "timeout_ms",
     "cannot release executable lock while the child process is running",
     WINDOWS_LOCKED_EXECUTABLE_PROTOCOL,
@@ -165,6 +179,9 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.match(script, /file_identity = \$state\.identity/u);
   assert.match(script, /Assert-PathMatchesHeldHandle \| Out-Null/u);
   assert.match(script, /response = \[ordered\]@\{ id = \$requestId \}/u);
+  assert.match(script, /\$value -isnot \[Collections\.IDictionary\]/u);
+  assert.match(script, /foreach \(\$entry in \$value\.GetEnumerator\(\)\) \{ \$response\[\[string\]\$entry\.Key\] = \$entry\.Value \}/u);
+  assert.doesNotMatch(script, /\$value\.PSObject\.Properties/u);
   assert.match(script, /\$state\.child\.Kill\(\$true\)/u);
   assert.match(script, /\$state\.child\.WaitForExit\(5000\)/u);
   assert.match(script, /locked executable launch failed \(\$launchError\) and exact child cleanup failed/u);
@@ -206,6 +223,35 @@ test("compressed PowerShell bootstrap reconstructs the exact helper below the Wi
   );
   assert.deepEqual(spawnCall.options.stdio, ["pipe", "pipe", "pipe"]);
   await session.release();
+});
+
+test("dictionary metadata projection cannot satisfy the closed helper protocol", async () => {
+  const child = new FakePowerShell({ projectDictionaryMetadata: true });
+  await assert.rejects(
+    openWindowsLockedExecutable({
+      executablePath: "C:\\runner\\matter.exe",
+      expectedSha256: HASH,
+      platform: "win32",
+      spawnPowerShell: () => child,
+      timeoutMs: 2_000,
+    }),
+    (error) => error instanceof WindowsLockedExecutableError && error.code === "LOCKED_EXECUTABLE_PROTOCOL",
+  );
+  assert.deepEqual(Object.keys(child.responses[0]), ["id", "Count", "Keys", "Values"]);
+  assert.deepEqual(child.responses[0].Keys, [
+    "protocol",
+    "ok",
+    "operation",
+    "path",
+    "final_path",
+    "file_identity",
+    "sha256",
+    "bytes",
+    "lock_mode",
+    "denies_write_delete",
+    "authenticode",
+  ]);
+  assert.equal(child.killed, true);
 });
 
 test("Windows locked executable session keeps the stream across launch, adopt, wait, and release", async () => {
