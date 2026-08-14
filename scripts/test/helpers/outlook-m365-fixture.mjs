@@ -9,10 +9,55 @@ import {
   awaitingM365Receipt, baseline, contract, hex, m365Options, releaseCandidate, releaseContextFor,
   rollback, sourceIdentity, staticPlanFor,
 } from "./outlook-release-fixtures.mjs";
+import {
+  M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
+} from "../../lib/outlook-release/constants.mjs";
 import { createProtectedFixtureRoot, trustedRoot, writeProtectedJson } from "./protected-fixture.mjs";
 import { createRollbackEvidenceFixture } from "./rollback-evidence-fixture.mjs";
 
 const evidence = (binding) => ({ evidence_ref: binding.evidence_ref, evidence_sha256: binding.evidence_sha256 });
+
+function desktopInstallationProof(pilotValue) {
+  const observedAtUtc = "2026-08-08T00:40:00Z";
+  const tenantRef = "tenant-ref:outlook-pilot";
+  const fingerprintCharacters = "0123456789abcdef";
+  const installations = pilotValue.eligible_principal_refs.map((principal, index) => ({
+    app_version: "0.1.27",
+    device_key_fingerprint: hex(fingerprintCharacters[index + 3]),
+    entra_subject_id: principal,
+    installation_id: `odi_outlook_pilot_${String(index + 1).padStart(20, "0")}`,
+    last_seen_at: "2026-08-08T00:39:00Z",
+    lease_expires_at: "2026-08-15T00:39:00Z",
+    platform: index % 2 === 0 ? "darwin" : "win32",
+    registered_at: "2026-08-07T00:39:00Z",
+    retired_at: null,
+    source_sha: sourceIdentity.source_sha,
+    state_version: 1,
+    status: "active",
+    tenant_ref: tenantRef,
+    trusted: true,
+    user_id: `pilot-user-${String(index + 1).padStart(2, "0")}`,
+  }));
+  return {
+    schema_version: M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
+    proof_class: M365_DESKTOP_INSTALLATION_PROOF_CLASS,
+    ...sourceIdentity,
+    eligible_principal_fingerprint_sha256: pilotValue.eligible_principal_fingerprint_sha256,
+    eligible_user_count: pilotValue.eligible_user_count,
+    excluded_principal_fingerprint_sha256: pilotValue.excluded_principal_fingerprint_sha256,
+    excluded_user_count: pilotValue.excluded_user_count,
+    installations,
+    installed_user_count: installations.length,
+    observed_at_utc: observedAtUtc,
+    pilot_assignment_evidence_sha256: null,
+    pilot_assignment_fingerprint_sha256: pilotValue.assignment_fingerprint_sha256,
+    result: "verified",
+    roster_email_fingerprint_sha256: pilotValue.roster_email_fingerprint_sha256,
+    roster_file_sha256: pilotValue.roster_file_sha256,
+    status: "verified",
+    tenant_ref: tenantRef,
+  };
+}
 
 function populateReadbacks(receipt, candidate, plan) {
   const riskOrderedProfiles = [
@@ -69,6 +114,9 @@ async function writeControls(root, receipt, restored, {
     roster_file_sha256: pilotValue.roster_file_sha256,
     roster_email_fingerprint_sha256: pilotValue.roster_email_fingerprint_sha256,
   };
+  const desktopValue = desktopInstallationProof(pilotValue);
+  desktopValue.pilot_assignment_evidence_sha256 = pilot.evidence_sha256;
+  const desktop = await writeProtectedJson(root, "controls/desktop-installation.json", desktopValue);
   const authorization = await writeProtectedJson(
     root, "controls/authorization.json", authorizationProof(control, authorizedActions),
   );
@@ -86,7 +134,8 @@ async function writeControls(root, receipt, restored, {
   control.assignment_safety_evidence = evidence(assignmentSafety);
   control.monitoring_evidence = evidence(monitoring);
   control.rollback_rehearsal_evidence = evidence(rehearsal);
-  return { assignmentSafety, authorization, pilot, monitoring, rehearsal };
+  control.desktop_installation_evidence = evidence(desktop);
+  return { assignmentSafety, authorization, pilot, desktop, monitoring, rehearsal };
 }
 
 async function writePrerequisites(root, receipt, candidate, plan, planBinding, controls) {
@@ -170,9 +219,12 @@ export async function completedM365Fixture({
   receipt.static_release = staticReleaseProjection(plan, planBinding.evidence_sha256);
   populateReadbacks(receipt, candidate, plan);
   const staticBinding = receipt.prerequisites.static_release;
-  const central = await writeProtectedJson(root, "central/deployment.json", centralProof(
+  const centralValue = centralProof(
     receipt, receipt.execution_control, controls.authorization.evidence_sha256, staticBinding.evidence_sha256,
-  ));
+  );
+  centralValue.schema_version = "amic-os.m365-central-deployment-proof.v4";
+  centralValue.desktop_installation_evidence_sha256 = controls.desktop.evidence_sha256;
+  const central = await writeProtectedJson(root, "central/deployment.json", centralValue);
   receipt.execution_control.central_deployment_evidence = evidence(central);
   await writePropagation(root, receipt);
   await writeHosts(root, receipt);

@@ -12,6 +12,25 @@ import {
 } from "./helpers/outlook-release-fixtures.mjs";
 import { createProtectedFixtureRoot, trustedRoot, writeProtectedJson } from "./helpers/protected-fixture.mjs";
 
+async function rewriteDesktopInstallationProof(fixture, mutate) {
+  const binding = fixture.receipt.execution_control.desktop_installation_evidence;
+  const proofPath = path.join(fixture.root, binding.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  mutate(proof);
+  const changed = await writeProtectedJson(fixture.root, binding.evidence_ref, proof);
+  binding.evidence_sha256 = changed.evidence_sha256;
+  return proof;
+}
+
+async function rebindCentralDesktopInstallation(fixture) {
+  const binding = fixture.receipt.execution_control.central_deployment_evidence;
+  const proofPath = path.join(fixture.root, binding.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  proof.desktop_installation_evidence_sha256 = fixture.receipt.execution_control.desktop_installation_evidence.evidence_sha256;
+  const changed = await writeProtectedJson(fixture.root, binding.evidence_ref, proof);
+  binding.evidence_sha256 = changed.evidence_sha256;
+}
+
 test("awaiting packet requires null controls and cannot overclaim any external gate", async (t) => {
   const root = await createProtectedFixtureRoot();
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -57,6 +76,87 @@ test("executed packet verifies actual protected prerequisite, control, central, 
     === "8f3cc90d-56dd-4c1c-b9c2-0a1100500101"));
   await approveGoLive(fixture);
   assert.equal(validateM365ReleaseReceipt(fixture.receipt, fixture.options).go_live_approved, true);
+});
+
+test("desktop installation prerequisite requires the exact active trusted pilot aggregate", async (t) => {
+  const cases = [
+    ["missing", (fixture) => { fixture.receipt.execution_control.desktop_installation_evidence = null; }, /desktop installation evidence/],
+    ["nine of ten", (fixture, proof) => {
+      proof.installations.pop();
+      proof.installed_user_count = proof.installations.length;
+    }, /exact 10\/10/],
+    ["duplicate", (fixture, proof) => {
+      proof.installations[1].installation_id = proof.installations[0].installation_id;
+    }, /duplicate/],
+    ["roster mismatch", (fixture, proof) => {
+      proof.installations[0].entra_subject_id = "entra-object-ref:outside-pilot";
+    }, /roster|mismatched/],
+    ["stale", (fixture, proof) => {
+      proof.installations[0].lease_expires_at = proof.observed_at_utc;
+    }, /current active|stale/],
+    ["retired", (fixture, proof) => {
+      proof.installations[0].retired_at = "2026-08-08T00:39:30Z";
+      proof.installations[0].status = "retired";
+    }, /stale|retired|active/],
+    ["untrusted", (fixture, proof) => { proof.installations[0].trusted = false; }, /untrusted/],
+  ];
+  for (const [name, mutate, expected] of cases) {
+    const fixture = await completedM365Fixture();
+    t.after(() => rm(fixture.root, { recursive: true, force: true }));
+    if (name === "missing") {
+      mutate(fixture);
+    } else {
+      await rewriteDesktopInstallationProof(fixture, (proof) => mutate(fixture, proof));
+    }
+    assert.throws(
+      () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+      expected,
+      name,
+    );
+  }
+});
+
+test("central deployment proof binds the protected desktop installation aggregate", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  const binding = fixture.receipt.execution_control.central_deployment_evidence;
+  const proofPath = path.join(fixture.root, binding.evidence_ref);
+  const proof = JSON.parse(await readFile(proofPath, "utf8"));
+  proof.desktop_installation_evidence_sha256 = hex("f");
+  const changed = await writeProtectedJson(fixture.root, binding.evidence_ref, proof);
+  binding.evidence_sha256 = changed.evidence_sha256;
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /central deployment proof is not bound to desktop installation evidence|authorized execution controls/,
+  );
+});
+
+test("central deployment requires desktop proof before its first transition", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  await rewriteDesktopInstallationProof(fixture, (proof) => {
+    proof.observed_at_utc = "2026-08-08T01:01:00Z";
+  });
+  await rebindCentralDesktopInstallation(fixture);
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /desktop installation aggregate must complete before the first central assignment transition/,
+  );
+});
+
+test("central deployment requires every desktop lease beyond central completion", async (t) => {
+  const fixture = await completedM365Fixture();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+  await rewriteDesktopInstallationProof(fixture, (proof) => {
+    for (const installation of proof.installations) {
+      installation.lease_expires_at = "2026-08-08T00:54:00Z";
+    }
+  });
+  await rebindCentralDesktopInstallation(fixture);
+  assert.throws(
+    () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
+    /desktop installation leases must remain active through central deployment/,
+  );
 });
 
 test("retained inquiry ProductId stays registered but cannot regain assignment or host visibility", async (t) => {
@@ -172,7 +272,7 @@ test("pilot proof accepts no exclusions and rejects an injected eligible/exclude
   control.evidence_sha256 = reordered.evidence_sha256;
   assert.throws(
     () => validateM365ReleaseReceipt(fixture.receipt, fixture.options),
-    /assignment safety correction\/rollback prerequisite is incomplete/,
+    /desktop installation aggregate/,
   );
 
   proof.excluded_principal_refs = [proof.eligible_principal_refs[0]];

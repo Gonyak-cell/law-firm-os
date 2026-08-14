@@ -100,6 +100,9 @@ export const MUTATION_ACTIONS = Object.freeze({
   static_release: "static_dual_namespace_publish",
 });
 export const REQUIRED_MUTATION_ACTIONS = Object.freeze(Object.values(MUTATION_ACTIONS));
+export const M365_DESKTOP_INSTALLATION_PROOF_SCHEMA =
+  "amic-os.m365-desktop-installation-aggregate-proof.v1";
+export const M365_DESKTOP_INSTALLATION_PROOF_CLASS = "desktop_installation";
 export const REQUIRED_PROOF_CLASSES = [
   ...REQUIRED_PREREQUISITES,
   "authorization",
@@ -108,6 +111,7 @@ export const REQUIRED_PROOF_CLASSES = [
   "go_live_approval",
   "monitoring_plan",
   "pilot_assignment",
+  "desktop_installation",
   "propagation_observation",
   "real_outlook_host",
   "rollback_rehearsal",

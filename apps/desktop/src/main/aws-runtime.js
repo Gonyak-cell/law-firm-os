@@ -529,7 +529,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       return publicRuntimeConfig({ baseUrl, operatorToken, ...config });
     },
     health() {
-      return requestJson("/health", { authRequired: false });
+      return requestJson(operatorToken ? "/health" : "/api/health", { authRequired: false });
     },
     accounts() {
       if (!operatorToken) {

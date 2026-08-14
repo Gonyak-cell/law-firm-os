@@ -3,7 +3,7 @@ import {
   FORBIDDEN_BUILD_TEXT, LICENSE_METADATA_OVERRIDES, MANIFEST_PATHS, PRODUCT_IDS, PROFILE_CONTRACTS, PROFILE_NAMES,
   REQUIRED_COMMON_HOST_SCENARIOS, REQUIRED_HOSTS, REQUIRED_PREREQUISITES,
   REQUIRED_MUTATION_ACTIONS, REQUIRED_PROOF_CLASSES, REQUIRED_RELEASE_PATHS, REQUIRED_STATIC_PATHS, REQUIRED_TEST_PATHS,
-  STATIC_NAMESPACES,
+  STATIC_NAMESPACES, M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
 } from "./constants.mjs";
 import { validateProductionDistributionContract } from "./m365-distribution.mjs";
 import { assertEqual, canonical, sorted } from "./primitives.mjs";
@@ -57,6 +57,13 @@ export function validateReleaseContract(contract) {
     || contract.m365?.propagation_window_is_sla !== false) {
     throw new Error("M365 release must default to awaiting authorization and a non-SLA observation window");
   }
+  assertEqual(contract.m365?.desktop_installation, {
+    proof_schema_version: M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
+    proof_class: M365_DESKTOP_INSTALLATION_PROOF_CLASS,
+    required_result: "verified",
+    required_status: "verified",
+    required_installation_status: "active",
+  }, "M365 desktop installation prerequisite contract");
   assertEqual(contract.m365?.propagation_observation_hours, [0, 24, 48, 72], "M365 propagation schedule");
   assertEqual(sorted(contract.m365?.required_host_evidence ?? []), sorted(REQUIRED_HOSTS), "M365 Outlook hosts");
   assertEqual(sorted(contract.m365?.required_common_host_scenarios ?? []), sorted(REQUIRED_COMMON_HOST_SCENARIOS), "M365 common host scenarios");
