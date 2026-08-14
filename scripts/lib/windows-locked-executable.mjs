@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
+import { gzipSync } from "node:zlib";
 import { matterDesktopAuthenticodePowerShell } from "./matter-desktop-authenticode.mjs";
 
 /**
@@ -115,7 +116,22 @@ function validateRelease(response) {
 }
 
 function encodePowerShell(script) {
-  return Buffer.from(script, "utf16le").toString("base64");
+  const compressed = gzipSync(script, { level: 9 }).toString("base64");
+  const bootstrap = String.raw`
+$ErrorActionPreference = 'Stop'
+$gzip = [IO.Compression.GZipStream]::new(
+  [IO.MemoryStream]::new([Convert]::FromBase64String('${compressed}')),
+  [IO.Compression.CompressionMode]::Decompress
+)
+$reader = [IO.StreamReader]::new($gzip, [Text.Encoding]::UTF8)
+try {
+  $source = $reader.ReadToEnd()
+} finally {
+  $reader.Dispose()
+}
+& ([ScriptBlock]::Create($source))
+`;
+  return Buffer.from(bootstrap, "utf16le").toString("base64");
 }
 
 function powershellScript() {

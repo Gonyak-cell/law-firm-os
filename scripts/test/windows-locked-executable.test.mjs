@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
 import test from "node:test";
+import { gunzipSync } from "node:zlib";
 import {
   WINDOWS_LOCKED_EXECUTABLE_PROTOCOL,
   WindowsLockedExecutableError,
@@ -173,6 +174,38 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   const finalizer = script.slice(script.lastIndexOf("} finally {"));
   assert.doesNotMatch(finalizer, /try\s*\{\s*Stop-ChildIfRunning|try\s*\{\s*Release-Lock/u);
   assert.doesNotMatch(script, /\$pid\b/u, "PowerShell's read-only automatic $PID variable must not be shadowed");
+});
+
+test("compressed PowerShell bootstrap reconstructs the exact helper below the Windows command limit", async () => {
+  const child = new FakePowerShell();
+  let spawnCall;
+  const session = await openWindowsLockedExecutable({
+    executablePath: "C:\\runner\\matter.exe",
+    expectedSha256: HASH,
+    platform: "win32",
+    spawnPowerShell(command, args, options) {
+      spawnCall = { command, args, options };
+      return child;
+    },
+    timeoutMs: 2_000,
+  });
+  assert.equal(spawnCall.command, "pwsh.exe");
+  assert.equal(spawnCall.args.at(-2), "-EncodedCommand");
+  const bootstrap = Buffer.from(spawnCall.args.at(-1), "base64").toString("utf16le");
+  const payload = bootstrap.match(/FromBase64String\('([A-Za-z0-9+/=]+)'\)/u)?.[1];
+  assert.equal(typeof payload, "string");
+  assert.equal(
+    gunzipSync(Buffer.from(payload, "base64")).toString("utf8"),
+    windowsLockedExecutablePowerShellScriptForTest(),
+  );
+  assert.match(bootstrap, /\[IO\.Compression\.GZipStream\]::new/u);
+  assert.match(bootstrap, /\[ScriptBlock\]::Create\(\$source\)/u);
+  assert.equal(
+    [spawnCall.command, ...spawnCall.args].reduce((length, arg) => length + arg.length + 3, 0) < 32_767,
+    true,
+  );
+  assert.deepEqual(spawnCall.options.stdio, ["pipe", "pipe", "pipe"]);
+  await session.release();
 });
 
 test("Windows locked executable session keeps the stream across launch, adopt, wait, and release", async () => {
