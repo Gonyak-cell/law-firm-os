@@ -273,17 +273,6 @@ function sriSha512(integrity, label) {
   return digest.toString("hex").toUpperCase();
 }
 
-export function rfc4122UuidV5(namespaceUuid, name) {
-  assert.match(namespaceUuid ?? "", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu, "UUIDv5 namespace is invalid");
-  assert.equal(typeof name, "string", "UUIDv5 name must be a string");
-  const namespaceBytes = Buffer.from(namespaceUuid.replaceAll("-", ""), "hex");
-  const bytes = Buffer.from(createHash("sha1").update(namespaceBytes).update(name, "utf8").digest().subarray(0, 16));
-  bytes[6] = (bytes[6] & 0x0f) | 0x50;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  const body = bytes.toString("hex");
-  return `${body.slice(0, 8)}-${body.slice(8, 12)}-${body.slice(12, 16)}-${body.slice(16, 20)}-${body.slice(20)}`;
-}
-
 export function buildMatterDesktopInstalledTreeSbom({
   packageLock,
   desktopPackage,
@@ -428,13 +417,7 @@ export function buildMatterDesktopInstalledTreeSbom({
     components: [...dependencyComponents, ...fileComponents],
     dependencies: [{ ref: rootRef, dependsOn: dependencyComponents.map((entry) => entry["bom-ref"]) }],
   };
-  return {
-    ...bom,
-    serialNumber: `urn:uuid:${rfc4122UuidV5(
-      "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
-      `${inventory.native.identity_sha256}:${JSON.stringify(bom)}`,
-    )}`,
-  };
+  return bom;
 }
 
 export function readDesktopBuildSourceIdentity(repoRoot) {

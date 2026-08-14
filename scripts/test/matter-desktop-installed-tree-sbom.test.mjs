@@ -17,7 +17,6 @@ import {
   DESKTOP_INSTALLED_TREE_SBOM_SCHEMA,
   buildMatterDesktopInstalledTreeSbom,
   directoryFileInventory,
-  rfc4122UuidV5,
 } from "../lib/matter-desktop-provenance.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
@@ -57,11 +56,6 @@ function withNativeSnapshot(inventory, identitySha256 = "9".repeat(64)) {
 }
 
 test("installed-tree SBOM satisfies the local CycloneDX 1.5 structural boundary and binds exact release identity", () => {
-  assert.equal(
-    rfc4122UuidV5("6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.widgets.com"),
-    "21f7f8de-8051-5b89-8680-0195ef798b6a",
-    "UUIDv5 must match the RFC 4122 DNS namespace vector",
-  );
   assert.deepEqual(
     Object.keys(packageLock.packages).filter((name) => /cyclonedx/iu.test(name)),
     [],
@@ -101,23 +95,6 @@ test("installed-tree SBOM satisfies the local CycloneDX 1.5 structural boundary 
     });
     assert.equal(sbom.bomFormat, "CycloneDX");
     assert.equal(sbom.specVersion, "1.5");
-    assert.match(sbom.serialNumber, /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u);
-    const differentIdentitySbom = buildMatterDesktopInstalledTreeSbom({
-      packageLock,
-      desktopPackage,
-      inventory: withNativeSnapshot(inventory, "8".repeat(64)),
-      sourceSha: "a".repeat(40),
-      sourceTree: "b".repeat(40),
-      installerSha256: "c".repeat(64),
-      packagedExecutableSha256: inventory.files.find(({ path: filePath }) => filePath === "./matter.exe").sha256,
-      installedExecutableSha256: inventory.files.find(({ path: filePath }) => filePath === "./matter.exe").sha256,
-      installedExecutableRelativePath: "./matter.exe",
-      authenticodeValid: true,
-      signerCertificateSha1: "E".repeat(40),
-      timestampCertificateSha1s: ["F".repeat(40)],
-      generatedAt: "2026-08-14T00:00:00.000Z",
-    });
-    assert.notEqual(differentIdentitySbom.serialNumber, sbom.serialNumber, "native identity must bind the BOM serial");
     assert.equal(sbom.components.filter(({ type }) => type === "file").length, 3);
     assert.equal(sbom.components.some(({ name }) => name === "electron"), true);
     assert.equal(sbom.components.some(({ name }) => name === "unpdf"), true);
