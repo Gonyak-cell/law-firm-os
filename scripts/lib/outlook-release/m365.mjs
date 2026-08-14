@@ -59,6 +59,7 @@ export function validateM365ReleaseReceipt(receipt, options) {
   const central = validateM365CentralDeployment(receipt, options, {
     ...receipt.execution_control,
     authorization: controlProofs.authorization,
+    desktopInstallation: controlProofs.desktopInstallation,
     authorization_evidence: receipt.execution_control.authorization_evidence,
     validationCutoff: envelope.validationCutoff,
   }, staticProof);

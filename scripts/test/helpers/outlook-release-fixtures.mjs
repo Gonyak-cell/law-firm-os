@@ -188,6 +188,7 @@ export function awaitingM365Receipt(
     }),
     execution_control: {
       abort_criteria: [], assignment_safety_evidence: null, authorization_evidence: null, central_deployment_evidence: null,
+      desktop_installation_evidence: null,
       go_live_evidence: null, monitoring_criteria: [], monitoring_evidence: null, operator_ref: null,
       owner_ref: null, pilot_assignment: null, rollback_readback_owner_ref: null,
       rollback_rehearsal_evidence: null, window_end_utc: null, window_start_utc: null,

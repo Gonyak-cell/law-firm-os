@@ -1,8 +1,10 @@
 import {
+  M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
   PRODUCT_IDS, REQUIRED_MUTATION_ACTIONS, ROLLBACK_ASSIGNMENT_RESTORE_POLICY,
 } from "./constants.mjs";
 import { m365CompletionMillis } from "./m365-base.mjs";
 import { expectedDistributionProfile, validateProfileDistribution } from "./m365-distribution.mjs";
+import { projectOutlookDesktopInstallation } from "../../../packages/email-dms/src/outlook-desktop-installation-model.js";
 import {
   assertEqual, assertExactKeys, assertSha256, canonical, concreteText, profileMap, sha256,
   sorted, utcMillis,
@@ -15,7 +17,7 @@ import { validateProtectedRollbackEvidence } from "./rollback-evidence.mjs";
 
 const CONTROL_KEYS = [
   "abort_criteria", "assignment_safety_evidence", "authorization_evidence", "central_deployment_evidence", "go_live_evidence",
-  "monitoring_criteria", "monitoring_evidence", "operator_ref", "owner_ref", "pilot_assignment",
+  "desktop_installation_evidence", "monitoring_criteria", "monitoring_evidence", "operator_ref", "owner_ref", "pilot_assignment",
   "rollback_readback_owner_ref", "rollback_rehearsal_evidence", "window_end_utc", "window_start_utc",
 ];
 
@@ -182,6 +184,126 @@ function validatePilot(control, context) {
   return { completedAt, loaded, proof };
 }
 
+function validateDesktopInstallation(control, context, pilot) {
+  const binding = assertEvidenceBinding(
+    control.desktop_installation_evidence,
+    "desktop installation evidence",
+  );
+  const loaded = readProtectedJsonProof(
+    context.store,
+    binding,
+    M365_DESKTOP_INSTALLATION_PROOF_CLASS,
+  );
+  const proof = loaded.proof;
+  assertProofBase(
+    proof,
+    M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
+    M365_DESKTOP_INSTALLATION_PROOF_CLASS,
+    context.identity,
+    [
+      "eligible_principal_fingerprint_sha256", "eligible_user_count",
+      "excluded_principal_fingerprint_sha256", "excluded_user_count",
+      "installations", "installed_user_count", "observed_at_utc",
+      "pilot_assignment_evidence_sha256", "pilot_assignment_fingerprint_sha256",
+      "result", "roster_email_fingerprint_sha256", "roster_file_sha256",
+      "status", "tenant_ref",
+    ],
+  );
+
+  const distribution = context.contract.m365.production_distribution;
+  const expectedCount = pilot.proof.eligible_user_count;
+  if (expectedCount !== distribution.eligible_user_count
+    || pilot.proof.excluded_user_count !== distribution.excluded_user_count
+    || proof.pilot_assignment_evidence_sha256 !== pilot.loaded.evidence_sha256
+    || proof.pilot_assignment_fingerprint_sha256 !== control.pilot_assignment.fingerprint_sha256
+    || proof.eligible_principal_fingerprint_sha256
+      !== pilot.proof.eligible_principal_fingerprint_sha256
+    || proof.excluded_principal_fingerprint_sha256
+      !== pilot.proof.excluded_principal_fingerprint_sha256
+    || proof.roster_file_sha256 !== pilot.proof.roster_file_sha256
+    || proof.roster_email_fingerprint_sha256 !== pilot.proof.roster_email_fingerprint_sha256
+    || proof.eligible_user_count !== expectedCount
+    || proof.excluded_user_count !== pilot.proof.excluded_user_count
+    || proof.result !== (context.contract.m365.desktop_installation?.required_result ?? "verified")
+    || proof.status !== (context.contract.m365.desktop_installation?.required_status ?? "verified")
+    || proof.installed_user_count !== expectedCount
+    || !Array.isArray(proof.installations)
+    || proof.installations.length !== expectedCount) {
+    throw new Error(`desktop installation aggregate is not an exact ${expectedCount}/${expectedCount} pilot receipt`);
+  }
+
+  const observedAt = m365CompletionMillis(
+    proof.observed_at_utc,
+    "desktop installation aggregate observation",
+    context.validationCutoff,
+  );
+  const tenantRef = concreteText(proof.tenant_ref, "desktop installation tenant_ref");
+  const expectedPrincipals = new Set(pilot.proof.eligible_principal_refs);
+  const principals = [];
+  const installationIds = new Set();
+  const deviceFingerprints = new Set();
+  let minimumLeaseExpiresAt = Number.POSITIVE_INFINITY;
+  const rowKeys = [
+    "app_version", "device_key_fingerprint", "entra_subject_id", "installation_id",
+    "last_seen_at", "lease_expires_at", "platform", "registered_at", "retired_at",
+    "source_sha", "state_version", "status", "tenant_ref", "trusted", "user_id",
+  ];
+  for (const row of proof.installations) {
+    assertExactKeys(row, rowKeys, "desktop installation aggregate row");
+    const principal = concreteText(row.entra_subject_id, "desktop installation principal");
+    const installationId = concreteText(row.installation_id, "desktop installation installation_id");
+    concreteText(row.user_id, "desktop installation user_id");
+    concreteText(row.app_version, "desktop installation app_version");
+    concreteText(row.tenant_ref, "desktop installation row tenant_ref");
+    const deviceFingerprint = assertSha256(
+      row.device_key_fingerprint,
+      "desktop installation device key fingerprint",
+    );
+    if (!/^odi_[A-Za-z0-9_-]{20,128}$/u.test(installationId)
+      || expectedPrincipals.has(principal) === false
+      || principals.includes(principal)
+      || installationIds.has(installationId)
+      || deviceFingerprints.has(deviceFingerprint)
+      || row.tenant_ref !== tenantRef
+      || row.source_sha !== context.identity.source_sha
+      || row.trusted !== true
+      || row.status !== (context.contract.m365.desktop_installation?.required_installation_status ?? "active")
+      || row.retired_at !== null
+      || !["darwin", "win32"].includes(row.platform)
+      || !Number.isSafeInteger(row.state_version) || row.state_version < 1) {
+      throw new Error("desktop installation aggregate contains duplicate, untrusted, stale, retired, or roster-mismatched installation");
+    }
+    const registeredAt = utcMillis(row.registered_at, "desktop installation registered_at");
+    const lastSeenAt = utcMillis(row.last_seen_at, "desktop installation last_seen_at");
+    const leaseExpiresAt = utcMillis(row.lease_expires_at, "desktop installation lease_expires_at");
+    if (registeredAt > lastSeenAt || lastSeenAt > observedAt || leaseExpiresAt <= observedAt) {
+      throw new Error("desktop installation aggregate requires current active installations");
+    }
+    minimumLeaseExpiresAt = Math.min(minimumLeaseExpiresAt, leaseExpiresAt);
+    const projected = projectOutlookDesktopInstallation({
+      installation_id: installationId,
+      lease_expires_at: row.lease_expires_at,
+      retired_at: row.retired_at,
+      state_version: row.state_version,
+    }, { now: new Date(observedAt) });
+    if (projected.status !== row.status) {
+      throw new Error("desktop installation aggregate status is stale or retired");
+    }
+    principals.push(principal);
+    installationIds.add(installationId);
+    deviceFingerprints.add(deviceFingerprint);
+  }
+  if (JSON.stringify(sorted(principals))
+      !== JSON.stringify(sorted(pilot.proof.eligible_principal_refs))
+    || sha256(JSON.stringify(sorted(principals)))
+      !== proof.eligible_principal_fingerprint_sha256
+    || principals.length !== expectedCount) {
+    throw new Error("desktop installation aggregate principals do not match the pilot roster");
+  }
+
+  return { completedAt: observedAt, loaded, minimumLeaseExpiresAt, proof };
+}
+
 function assignmentCorrectionActions(currentAssignments, targetAssignments) {
   const current = profileMap(currentAssignments, "assignment safety current readbacks");
   const targets = profileMap(targetAssignments, "assignment safety targets");
@@ -329,10 +451,15 @@ export function validateExecutedControls(control, context) {
   if (control.go_live_evidence != null) assertEvidenceBinding(control.go_live_evidence, "go-live evidence");
   const authorization = validateAuthorization(control, context);
   const pilot = validatePilot(control, context);
+  const desktopInstallation = validateDesktopInstallation(control, context, pilot);
   const assignmentSafety = validateAssignmentSafety(control, context, pilot);
   const monitoring = validateMonitoring(control, context);
   const rollback = validateRollback(control, context, assignmentSafety);
-  for (const [name, proof] of [["pilot assignment", pilot], ["assignment safety", assignmentSafety]]) {
+  for (const [name, proof] of [
+    ["pilot assignment", pilot],
+    ["desktop installation aggregate", desktopInstallation],
+    ["assignment safety", assignmentSafety],
+  ]) {
     if (proof.completedAt < start || proof.completedAt > end) {
       throw new Error(`${name} observation occurred outside the authorized change window`);
     }
@@ -343,5 +470,10 @@ export function validateExecutedControls(control, context) {
   if (rollback.completedAt < assignmentSafety.completedAt) {
     throw new Error("rollback rehearsal predates the protected assignment-safety prerequisite");
   }
-  return { authorization, pilot, assignmentSafety, monitoring, rollback, window: { start, end } };
+  if (desktopInstallation.completedAt < pilot.completedAt) {
+    throw new Error("desktop installation aggregate predates the protected pilot assignment");
+  }
+  return {
+    authorization, pilot, desktopInstallation, assignmentSafety, monitoring, rollback, window: { start, end },
+  };
 }

@@ -277,6 +277,13 @@
   },
   "m365": {
     "default_status": "awaiting_authorized_deployment",
+    "desktop_installation": {
+      "proof_schema_version": "amic-os.m365-desktop-installation-aggregate-proof.v1",
+      "proof_class": "desktop_installation",
+      "required_result": "verified",
+      "required_status": "verified",
+      "required_installation_status": "active"
+    },
     "propagation_observation_hours": [0, 24, 48, 72],
     "propagation_window_is_sla": false,
     "required_host_evidence": [
@@ -356,6 +363,7 @@
         "authorization",
         "assignment_safety",
         "pilot_assignment",
+        "desktop_installation",
         "monitoring_plan",
         "rollback_rehearsal",
         "rollback_static_inventory",

@@ -128,6 +128,7 @@ function validateAssignmentTransition(proof, receipt, controls, centralObservedA
   const start = utcMillis(controls.window_start_utc, "central transition window start");
   const end = utcMillis(controls.window_end_utc, "central transition window end");
   let previousObservedAt = null;
+  let firstObservedAt = null;
   for (const [index, step] of proof.assignment_transition.entries()) {
     assertExactKeys(step, [
       "action", "assignment_fingerprint_sha256", "observed_at_utc", "operation_ref",
@@ -143,16 +144,19 @@ function validateAssignmentTransition(proof, receipt, controls, centralObservedA
       || (previousObservedAt != null && observedAt <= previousObservedAt)) {
       throw new Error("central assignment transition violated inquiry-safe-before-Matter risk order");
     }
+    if (firstObservedAt == null) firstObservedAt = observedAt;
     previousObservedAt = observedAt;
   }
+  return firstObservedAt;
 }
 
 function validateCentralProof(receipt, options, controls, staticProof) {
   const binding = controls.central_deployment_evidence;
   const loaded = readProtectedJsonProof(options.protectedEvidence, binding, "central_deployment");
   const proof = loaded.proof;
-  assertProofBase(proof, "amic-os.m365-central-deployment-proof.v3", "central_deployment", options.expectedSourceIdentity, [
-    "assignment_safety_evidence_sha256", "assignment_transition", "mutation_count", "observed_at_utc", "operations",
+  assertProofBase(proof, "amic-os.m365-central-deployment-proof.v4", "central_deployment", options.expectedSourceIdentity, [
+    "assignment_safety_evidence_sha256", "assignment_transition", "desktop_installation_evidence_sha256",
+    "mutation_count", "observed_at_utc", "operations",
     "pilot_assignment_evidence_sha256", "pilot_assignment_fingerprint_sha256", "result",
     "static_proof_sha256", "static_readbacks", "readbacks", ...MUTATION_AUTHORIZATION_FIELDS,
   ]);
@@ -160,6 +164,8 @@ function validateCentralProof(receipt, options, controls, staticProof) {
     || proof.pilot_assignment_evidence_sha256 !== controls.pilot_assignment.evidence_sha256
     || proof.pilot_assignment_fingerprint_sha256 !== controls.pilot_assignment.fingerprint_sha256
     || proof.assignment_safety_evidence_sha256 !== controls.assignment_safety_evidence.evidence_sha256
+    || proof.desktop_installation_evidence_sha256
+      !== controls.desktopInstallation.loaded.evidence_sha256
     || proof.mutation_count !== receipt.mutation_count || proof.result !== "verified") {
     throw new Error("central deployment proof is not bound to the authorized execution controls");
   }
@@ -168,7 +174,13 @@ function validateCentralProof(receipt, options, controls, staticProof) {
   assertEqual(canonical(proof.readbacks), canonical(receipt.readbacks), "central M365 readback evidence");
   validateMutationAuthorization(proof, MUTATION_ACTIONS.central_deployment, controls, "central_deployment");
   const completedAt = m365CompletionMillis(proof.observed_at_utc, "central deployment observation", controls.validationCutoff);
-  validateAssignmentTransition(proof, receipt, controls, completedAt);
+  const firstTransitionAt = validateAssignmentTransition(proof, receipt, controls, completedAt);
+  if (controls.desktopInstallation.completedAt >= firstTransitionAt) {
+    throw new Error("desktop installation aggregate must complete before the first central assignment transition");
+  }
+  if (controls.desktopInstallation.minimumLeaseExpiresAt <= completedAt) {
+    throw new Error("desktop installation leases must remain active through central deployment");
+  }
   return { completedAt, loaded, proof };
 }
 

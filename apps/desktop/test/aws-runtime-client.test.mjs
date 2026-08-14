@@ -334,6 +334,31 @@ test("runtime client wraps reset confirm transport and non-json failures without
   assert.equal(JSON.stringify(html).includes("reset-token-from-email-link"), false);
 });
 
+test("runtime client selects the health route for each runtime mode", async () => {
+  const requestedUrls = [];
+  const fetchImpl = async (url) => {
+    requestedUrls.push(url.toString());
+    return jsonResponse(200, { ok: true });
+  };
+  const productionClient = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://lawos.example.test",
+    fetchImpl
+  });
+  const temporaryClient = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    operatorToken: "runtime-secret",
+    fetchImpl
+  });
+
+  await productionClient.health();
+  await temporaryClient.health();
+
+  assert.deepEqual(requestedUrls, [
+    "https://lawos.example.test/api/health",
+    "https://example.execute-api.ap-northeast-2.amazonaws.com/staging/health"
+  ]);
+});
+
 test("runtime client ends stalled requests at the configured deadline", async () => {
   const client = createMatterVaultAwsRuntimeClient({
     baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
