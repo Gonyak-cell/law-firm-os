@@ -39,6 +39,10 @@ on:
         description: Closed JSON object with reviewed CKA signer subject/SHA-1/SHA-256 and product certificate SHA-1
         required: true
         type: string
+      handoff_bindings_json:
+        description: Closed JSON object with exact AWS account, region, uploader role, bucket, artifact KMS key, and retention time
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -60,6 +64,8 @@ jobs:
   environment-preflight:
     name: Verify pre-existing protected signing environment
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 5
     outputs:
       environment_name: ${{ steps.protected-environment.outputs.environment_name }}
@@ -67,6 +73,17 @@ jobs:
       cka_installer_certificate_sha1: ${{ steps.protected-environment.outputs.cka_installer_certificate_sha1 }}
       cka_installer_certificate_sha256: ${{ steps.protected-environment.outputs.cka_installer_certificate_sha256 }}
       signing_certificate_sha1: ${{ steps.protected-environment.outputs.signing_certificate_sha1 }}
+      handoff_environment_name: ${{ steps.protected-environment.outputs.handoff_environment_name }}
+      handoff_account_id: ${{ steps.protected-environment.outputs.handoff_account_id }}
+      handoff_region: ${{ steps.protected-environment.outputs.handoff_region }}
+      handoff_uploader_role_arn: ${{ steps.protected-environment.outputs.handoff_uploader_role_arn }}
+      handoff_bucket: ${{ steps.protected-environment.outputs.handoff_bucket }}
+      handoff_artifact_kms_key_arn: ${{ steps.protected-environment.outputs.handoff_artifact_kms_key_arn }}
+      handoff_retain_until: ${{ steps.protected-environment.outputs.handoff_retain_until }}
+      handoff_wrapping_kms_key_arn: ${{ steps.protected-environment.outputs.handoff_wrapping_kms_key_arn }}
+      handoff_wrapping_public_key_spki_b64: ${{ steps.protected-environment.outputs.handoff_wrapping_public_key_spki_b64 }}
+      handoff_wrapping_public_key_sha256: ${{ steps.protected-environment.outputs.handoff_wrapping_public_key_sha256 }}
+      handoff_candidate_role: ${{ steps.protected-environment.outputs.handoff_candidate_role }}
     steps:
       - name: Verify public dispatch and signing constants before environment read token
         shell: pwsh
@@ -80,6 +97,7 @@ jobs:
           INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
           INPUT_APP_ID: ${{ inputs.app_id }}
           INPUT_CERTIFICATE_BINDINGS_JSON: ${{ inputs.certificate_bindings_json }}
+          INPUT_HANDOFF_BINDINGS_JSON: ${{ inputs.handoff_bindings_json }}
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os') { throw 'workflow must run in the canonical repository' }
@@ -114,6 +132,42 @@ jobs:
             -or [string]$certificateBindings.signing_certificate_sha1 -notmatch '\A[0-9A-F]{40}\z') {
             throw 'certificate_bindings_json must contain exactly four valid public certificate identities'
           }
+          try { $handoffBindings = $env:INPUT_HANDOFF_BINDINGS_JSON | ConvertFrom-Json -AsHashtable }
+          catch { throw 'handoff_bindings_json is not a valid JSON object' }
+          $handoffBindingKeys = @(
+            'account_id',
+            'region',
+            'uploader_role_arn',
+            'bucket',
+            'kms_key_arn',
+            'retain_until'
+          )
+          if ($null -eq $handoffBindings `
+            -or $handoffBindings -isnot [Collections.IDictionary] `
+            -or $handoffBindings.Count -ne $handoffBindingKeys.Count `
+            -or @($handoffBindings.Keys | Where-Object { $handoffBindingKeys -cnotcontains $_ }).Count -ne 0 `
+            -or @($handoffBindingKeys | Where-Object { -not $handoffBindings.Contains($_) }).Count -ne 0 `
+            -or [string]$handoffBindings.account_id -cne '770880870480' `
+            -or [string]$handoffBindings.region -cne 'ap-northeast-2' `
+            -or [string]$handoffBindings.uploader_role_arn -notmatch '\Aarn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]{1,512}\z' `
+            -or [string]$handoffBindings.bucket -notmatch '\A[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]\z' `
+            -or [string]$handoffBindings.bucket -match '\.\.|\.-|-\.' `
+            -or [string]$handoffBindings.bucket -match '\A[0-9]+(?:\.[0-9]+){3}\z' `
+            -or [string]$handoffBindings.kms_key_arn -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z') {
+            throw 'handoff_bindings_json must contain exactly six valid private handoff identities'
+          }
+          $retainUntil = [DateTimeOffset]::MinValue
+          $retainParsed = [DateTimeOffset]::TryParseExact(
+            [string]$handoffBindings.retain_until,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$retainUntil
+          )
+          $retention = $retainUntil - [DateTimeOffset]::UtcNow
+          if (-not $retainParsed -or $retention.TotalDays -lt 365 -or $retention.TotalDays -gt 3650) {
+            throw 'handoff retain_until must preserve between 365 days and 10 years'
+          }
           $expiry = [DateTimeOffset]::MinValue
           $parsed = [DateTimeOffset]::TryParseExact(
             $env:INPUT_APPROVAL_EXPIRES_AT,
@@ -147,6 +201,7 @@ jobs:
           INPUT_ENTRA_TENANT_ID: ${{ inputs.entra_tenant_id }}
           INPUT_APP_ID: ${{ inputs.app_id }}
           INPUT_CERTIFICATE_BINDINGS_JSON: ${{ inputs.certificate_bindings_json }}
+          INPUT_HANDOFF_BINDINGS_JSON: ${{ inputs.handoff_bindings_json }}
         run: |
           $ErrorActionPreference = 'Stop'
           $ProgressPreference = 'SilentlyContinue'
@@ -157,8 +212,12 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:ENVIRONMENT_READ_TOKEN)) { throw 'least-privilege GitHub environment-read token is missing' }
           try { $certificateBindings = $env:INPUT_CERTIFICATE_BINDINGS_JSON | ConvertFrom-Json -AsHashtable }
           catch { throw 'certificate_bindings_json is not a valid JSON object' }
+          try { $handoffBindings = $env:INPUT_HANDOFF_BINDINGS_JSON | ConvertFrom-Json -AsHashtable }
+          catch { throw 'handoff_bindings_json is not a valid JSON object' }
           $environmentName = 'windows-authenticode-pilot'
           $baseUri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/environments/$environmentName"
+          $handoffEnvironmentName = 'windows-signed-artifact-handoff'
+          $handoffBaseUri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/environments/$handoffEnvironmentName"
           $headers = @{
             Accept = 'application/vnd.github+json'
             Authorization = "Bearer $env:ENVIRONMENT_READ_TOKEN"
@@ -168,8 +227,11 @@ jobs:
             $environment = Invoke-RestMethod -Method Get -Uri $baseUri -Headers $headers
             $variables = Invoke-RestMethod -Method Get -Uri "$baseUri/variables?per_page=100" -Headers $headers
             $secrets = Invoke-RestMethod -Method Get -Uri "$baseUri/secrets?per_page=100" -Headers $headers
+            $handoffEnvironment = Invoke-RestMethod -Method Get -Uri $handoffBaseUri -Headers $headers
+            $handoffVariables = Invoke-RestMethod -Method Get -Uri "$handoffBaseUri/variables?per_page=100" -Headers $headers
+            $handoffSecrets = Invoke-RestMethod -Method Get -Uri "$handoffBaseUri/secrets?per_page=100" -Headers $headers
           } catch {
-            throw 'pre-existing signing environment readback failed; it must be created and readable before dispatch'
+            throw 'pre-existing signing or handoff environment readback failed; both must be created and readable before dispatch'
           }
           if ($environment.name -cne $environmentName) { throw 'signing environment identity mismatch' }
           $reviewerRules = @($environment.protection_rules | Where-Object { $_.type -ceq 'required_reviewers' })
@@ -183,6 +245,19 @@ jobs:
             -or $environment.deployment_branch_policy.protected_branches -ne $true `
             -or $environment.deployment_branch_policy.custom_branch_policies -ne $false) {
             throw 'signing environment must allow protected branches only'
+          }
+          if ($handoffEnvironment.name -cne $handoffEnvironmentName) { throw 'handoff environment identity mismatch' }
+          $handoffReviewerRules = @($handoffEnvironment.protection_rules | Where-Object { $_.type -ceq 'required_reviewers' })
+          if ($handoffReviewerRules.Count -ne 1 -or @($handoffReviewerRules[0].reviewers).Count -lt 1 -or $handoffReviewerRules[0].prevent_self_review -ne $true) {
+            throw 'handoff environment must require at least one independent reviewer and prevent self-review'
+          }
+          if ($handoffEnvironment.can_admins_bypass -ne $false) {
+            throw 'handoff environment must forbid administrator protection bypass'
+          }
+          if ($null -eq $handoffEnvironment.deployment_branch_policy `
+            -or $handoffEnvironment.deployment_branch_policy.protected_branches -ne $true `
+            -or $handoffEnvironment.deployment_branch_policy.custom_branch_policies -ne $false) {
+            throw 'handoff environment must allow protected branches only'
           }
           $requiredVariables = @(
             'SSL_COM_ESIGNER_ENVIRONMENT_GUARD',
@@ -248,16 +323,108 @@ jobs:
           if (@($requiredSecrets | Where-Object { $environmentSecretNames -cnotcontains $_ }).Count -ne 0) {
             throw 'required environment-scoped signing secrets are missing; repository or organization fallback is forbidden'
           }
+          $requiredHandoffVariables = @(
+            'LAWOS_WINDOWS_HANDOFF_ENVIRONMENT_GUARD',
+            'LAWOS_WINDOWS_HANDOFF_ACCOUNT_ID',
+            'LAWOS_WINDOWS_HANDOFF_REGION',
+            'LAWOS_WINDOWS_HANDOFF_BUCKET',
+            'LAWOS_WINDOWS_HANDOFF_PREFIX',
+            'LAWOS_WINDOWS_HANDOFF_KEY_PATTERN',
+            'LAWOS_WINDOWS_HANDOFF_RETENTION_DAYS',
+            'LAWOS_WINDOWS_HANDOFF_RETAIN_UNTIL',
+            'LAWOS_WINDOWS_HANDOFF_CANDIDATE_ROLE',
+            'LAWOS_WINDOWS_HANDOFF_UPLOADER_ROLE_ARN',
+            'LAWOS_WINDOWS_HANDOFF_ARTIFACT_KMS_KEY_ARN',
+            'LAWOS_WINDOWS_HANDOFF_WRAPPING_KMS_KEY_ARN',
+            'LAWOS_WINDOWS_HANDOFF_WRAPPING_KEY_ID',
+            'LAWOS_WINDOWS_HANDOFF_WRAPPING_ALGORITHM',
+            'LAWOS_WINDOWS_HANDOFF_WRAPPING_PUBLIC_KEY_SPKI_B64',
+            'LAWOS_WINDOWS_HANDOFF_WRAPPING_PUBLIC_KEY_SHA256'
+          )
+          $handoffEnvironmentVariableNames = @($handoffVariables.variables | ForEach-Object { [string]$_.name })
+          if (@($requiredHandoffVariables | Where-Object { $handoffEnvironmentVariableNames -cnotcontains $_ }).Count -ne 0) {
+            throw 'required environment-scoped handoff variables are missing; repository or organization fallback is forbidden'
+          }
+          $handoffEnvironmentVariables = @{}
+          foreach ($variable in @($handoffVariables.variables)) {
+            if ($handoffEnvironmentVariables.ContainsKey([string]$variable.name)) { throw 'duplicate handoff environment variable name returned by GitHub' }
+            $handoffEnvironmentVariables[[string]$variable.name] = [string]$variable.value
+          }
+          $expectedHandoffVariables = [ordered]@{
+            LAWOS_WINDOWS_HANDOFF_ENVIRONMENT_GUARD = 'law-firm-os.windows-signed-artifact-handoff.v1'
+            LAWOS_WINDOWS_HANDOFF_ACCOUNT_ID = [string]$handoffBindings.account_id
+            LAWOS_WINDOWS_HANDOFF_REGION = [string]$handoffBindings.region
+            LAWOS_WINDOWS_HANDOFF_BUCKET = [string]$handoffBindings.bucket
+            LAWOS_WINDOWS_HANDOFF_PREFIX = 'windows/signed/v1/'
+            LAWOS_WINDOWS_HANDOFF_KEY_PATTERN = 'windows/signed/v1/{source_sha}/{version}/{candidate_role}/{artifact_kind}/sha256/{artifact_sha256}/{filename}'
+            LAWOS_WINDOWS_HANDOFF_RETENTION_DAYS = '365'
+            LAWOS_WINDOWS_HANDOFF_RETAIN_UNTIL = [string]$handoffBindings.retain_until
+            LAWOS_WINDOWS_HANDOFF_UPLOADER_ROLE_ARN = [string]$handoffBindings.uploader_role_arn
+            LAWOS_WINDOWS_HANDOFF_ARTIFACT_KMS_KEY_ARN = [string]$handoffBindings.kms_key_arn
+            LAWOS_WINDOWS_HANDOFF_WRAPPING_ALGORITHM = 'RSAES_OAEP_SHA_256'
+          }
+          foreach ($expectedVariable in $expectedHandoffVariables.GetEnumerator()) {
+            if (-not $handoffEnvironmentVariables.ContainsKey($expectedVariable.Key) `
+              -or $handoffEnvironmentVariables[$expectedVariable.Key] -cne $expectedVariable.Value) {
+              throw "environment-scoped $($expectedVariable.Key) is missing or drifted"
+            }
+          }
+          $wrappingKeyArn = $handoffEnvironmentVariables['LAWOS_WINDOWS_HANDOFF_WRAPPING_KMS_KEY_ARN']
+          $wrappingKeyId = $handoffEnvironmentVariables['LAWOS_WINDOWS_HANDOFF_WRAPPING_KEY_ID']
+          $wrappingPublicKey = $handoffEnvironmentVariables['LAWOS_WINDOWS_HANDOFF_WRAPPING_PUBLIC_KEY_SPKI_B64']
+          $wrappingPublicKeySha256 = $handoffEnvironmentVariables['LAWOS_WINDOWS_HANDOFF_WRAPPING_PUBLIC_KEY_SHA256']
+          if ($wrappingKeyArn -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z' `
+            -or $wrappingKeyId -notmatch '\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z' `
+            -or $wrappingKeyArn -cne "arn:aws:kms:ap-northeast-2:770880870480:key/$wrappingKeyId" `
+            -or $wrappingPublicKey -notmatch '\A[A-Za-z0-9+/]{680,800}={0,2}\z' `
+            -or $wrappingPublicKeySha256 -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'handoff wrapping key identities are invalid'
+          }
+          try { $wrappingPublicKeyBytes = [Convert]::FromBase64String($wrappingPublicKey) }
+          catch { throw 'handoff wrapping public key is not canonical base64' }
+          if ([Convert]::ToBase64String($wrappingPublicKeyBytes) -cne $wrappingPublicKey) {
+            throw 'handoff wrapping public key is not canonical base64'
+          }
+          $observedWrappingPublicKeySha256 = [Convert]::ToHexString(
+            [Security.Cryptography.SHA256]::HashData($wrappingPublicKeyBytes)
+          ).ToLowerInvariant()
+          if ($observedWrappingPublicKeySha256 -cne $wrappingPublicKeySha256) {
+            throw 'handoff wrapping public key digest differs'
+          }
+          $handoffCandidateRole = $handoffEnvironmentVariables['LAWOS_WINDOWS_HANDOFF_CANDIDATE_ROLE']
+          if ($handoffCandidateRole -cnotin @('baseline', 'target')) { throw 'handoff candidate role is invalid' }
+          if ([int]$handoffSecrets.total_count -ne 0 -or @($handoffSecrets.secrets).Count -ne 0) {
+            throw 'handoff environment must not contain long-lived secrets'
+          }
           "environment_name=$environmentName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "cka_installer_subject=$([string]$certificateBindings.cka_installer_subject)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "cka_installer_certificate_sha1=$([string]$certificateBindings.cka_installer_certificate_sha1)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "cka_installer_certificate_sha256=$([string]$certificateBindings.cka_installer_certificate_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "signing_certificate_sha1=$([string]$certificateBindings.signing_certificate_sha1)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_environment_name=$handoffEnvironmentName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_account_id=$([string]$handoffBindings.account_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_region=$([string]$handoffBindings.region)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_uploader_role_arn=$([string]$handoffBindings.uploader_role_arn)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_bucket=$([string]$handoffBindings.bucket)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_artifact_kms_key_arn=$([string]$handoffBindings.kms_key_arn)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_retain_until=$([string]$handoffBindings.retain_until)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_wrapping_kms_key_arn=$wrappingKeyArn" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_wrapping_public_key_spki_b64=$wrappingPublicKey" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_wrapping_public_key_sha256=$wrappingPublicKeySha256" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_candidate_role=$handoffCandidateRole" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
   sign-and-qa:
     name: Sign exact formal package and run native QA
     needs: environment-preflight
     runs-on: windows-latest
+    permissions:
+      contents: read
+    outputs:
+      encrypted_bridge_artifact_id: ${{ steps.encrypted-bridge-upload.outputs.artifact-id }}
+      encrypted_bridge_artifact_digest: ${{ steps.encrypted-bridge-upload.outputs.artifact-digest }}
+      encrypted_bridge_envelope_sha256: ${{ steps.encrypt-private-handoff.outputs.envelope_sha256 }}
+      pre_handoff_evidence_artifact_id: ${{ steps.pre-handoff-evidence-upload.outputs.artifact-id }}
+      pre_handoff_evidence_artifact_digest: ${{ steps.pre-handoff-evidence-upload.outputs.artifact-digest }}
     # The name is emitted only after the no-environment preflight proves that
     # the exact protected environment and its scoped bindings already exist.
     environment:
@@ -656,6 +823,59 @@ jobs:
           MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ runner.temp }}\matter-desktop-windows-qa
         run: node scripts/run-formal-windows-package-qa.mjs
 
+      - name: Stage exact private handoff plaintext before signing cleanup
+        id: stage-private-handoff
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          HANDOFF_CANDIDATE_ROLE: ${{ needs.environment-preflight.outputs.handoff_candidate_role }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $desktopVersion = (Get-Content -Raw 'apps\desktop\package.json' | ConvertFrom-Json).version
+          $stageRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-plaintext'
+          node scripts/run-windows-signed-artifact-private-handoff.mjs `
+            --operation stage `
+            --source-sha $env:INPUT_SOURCE_SHA `
+            --source-tree $env:INPUT_SOURCE_TREE `
+            --candidate-role $env:HANDOFF_CANDIDATE_ROLE `
+            --installer (Join-Path $env:GITHUB_WORKSPACE "apps\desktop\dist\matter-$desktopVersion-win-x64.exe") `
+            --build-manifest (Join-Path $env:GITHUB_WORKSPACE "apps\desktop\dist\win\matter-$desktopVersion-win-build-manifest.json") `
+            --native-package-qa (Join-Path $env:RUNNER_TEMP 'matter-desktop-windows-qa\formal-windows-package-qa.json') `
+            --installed-tree-sbom (Join-Path $env:RUNNER_TEMP 'matter-desktop-windows-qa\windows-installed-tree-sbom.cdx.json') `
+            --output-dir $stageRoot
+          if ($LASTEXITCODE -ne 0) { throw 'private handoff plaintext staging failed' }
+
+      - name: Encrypt private handoff with frozen reviewed wrapping key
+        id: encrypt-private-handoff
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          HANDOFF_CANDIDATE_ROLE: ${{ needs.environment-preflight.outputs.handoff_candidate_role }}
+          HANDOFF_WRAPPING_KMS_KEY_ARN: ${{ needs.environment-preflight.outputs.handoff_wrapping_kms_key_arn }}
+          HANDOFF_WRAPPING_PUBLIC_KEY_SPKI_B64: ${{ needs.environment-preflight.outputs.handoff_wrapping_public_key_spki_b64 }}
+          HANDOFF_WRAPPING_PUBLIC_KEY_SHA256: ${{ needs.environment-preflight.outputs.handoff_wrapping_public_key_sha256 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $stageRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-plaintext'
+          $encryptedRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-encrypted'
+          $summary = node scripts/run-windows-signed-artifact-private-handoff.mjs `
+            --operation encrypt `
+            --source-sha $env:INPUT_SOURCE_SHA `
+            --source-tree $env:INPUT_SOURCE_TREE `
+            --candidate-role $env:HANDOFF_CANDIDATE_ROLE `
+            --input-dir $stageRoot `
+            --output-dir $encryptedRoot `
+            --wrapping-key-arn $env:HANDOFF_WRAPPING_KMS_KEY_ARN `
+            --wrapping-public-key-spki-b64 $env:HANDOFF_WRAPPING_PUBLIC_KEY_SPKI_B64 `
+            --wrapping-public-key-sha256 $env:HANDOFF_WRAPPING_PUBLIC_KEY_SHA256 | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $summary.plaintext_uploaded_to_github -ne $false `
+            -or [string]$summary.envelope_sha256 -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'private handoff authenticated encryption failed'
+          }
+          "envelope_sha256=$([string]$summary.envelope_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
       - name: Record sanitized signed PASS or fail closed
         if: always()
         shell: pwsh
@@ -702,7 +922,18 @@ jobs:
             -and $qa.authenticode.valid -eq $true `
             -and $qa.authenticode.expected_signer_certificate_sha1 -ceq $env:EXPECTED_CERTIFICATE_SHA1 `
             -and $qa.authenticode.signer_code_signing_eku_verified -eq $true `
-            -and $qa.authenticode.timestamp_eku_verified -eq $true
+            -and $qa.authenticode.timestamp_eku_verified -eq $true `
+            -and $qa.sbom.schema_version -ceq 'law-firm-os.matter-desktop-installed-tree-sbom.v1' `
+            -and $qa.sbom.format -ceq 'CycloneDX' `
+            -and $qa.sbom.spec_version -ceq '1.5' `
+            -and $qa.sbom.sha256 -cmatch '\A[0-9a-f]{64}\z' `
+            -and $qa.sbom.installed_tree_sha256 -cmatch '\A[0-9a-f]{64}\z' `
+            -and [int64]$qa.sbom.installed_tree_file_count -gt 0 `
+            -and [int64]$qa.sbom.installed_tree_bytes -gt 0 `
+            -and $qa.sbom.installed_binary_complete -eq $true `
+            -and [int]$qa.sbom.reparse_point_count -eq 0 `
+            -and [int]$qa.sbom.alternate_data_stream_count -eq 0 `
+            -and $qa.sbom.authenticode_bound -eq $true
           $receipt = [ordered]@{
             schema_version = 'law-firm-os.windows-authenticode-pilot-qa.v1'
             generated_at = [DateTimeOffset]::UtcNow.ToString('o')
@@ -745,6 +976,19 @@ jobs:
               signer_code_signing_eku_verified = ($qa.authenticode.signer_code_signing_eku_verified -eq $true)
               timestamp_eku_verified = ($qa.authenticode.timestamp_eku_verified -eq $true)
             }
+            sbom = [ordered]@{
+              schema_version = if ($null -ne $qa) { $qa.sbom.schema_version } else { $null }
+              format = if ($null -ne $qa) { $qa.sbom.format } else { $null }
+              spec_version = if ($null -ne $qa) { $qa.sbom.spec_version } else { $null }
+              sha256 = if ($null -ne $qa) { $qa.sbom.sha256 } else { $null }
+              installed_tree_sha256 = if ($null -ne $qa) { $qa.sbom.installed_tree_sha256 } else { $null }
+              installed_tree_file_count = if ($null -ne $qa) { $qa.sbom.installed_tree_file_count } else { 0 }
+              installed_tree_bytes = if ($null -ne $qa) { $qa.sbom.installed_tree_bytes } else { 0 }
+              installed_binary_complete = if ($null -ne $qa) { $qa.sbom.installed_binary_complete } else { $false }
+              reparse_point_count = if ($null -ne $qa) { $qa.sbom.reparse_point_count } else { -1 }
+              alternate_data_stream_count = if ($null -ne $qa) { $qa.sbom.alternate_data_stream_count } else { -1 }
+              authenticode_bound = if ($null -ne $qa) { $qa.sbom.authenticode_bound } else { $false }
+            }
             native_qa = [ordered]@{
               verdict = if ($null -ne $qa) { $qa.native_verdict } else { 'NOT_COMPLETED' }
               scenarios = if ($null -ne $qa) { $qa.scenarios } else { [ordered]@{} }
@@ -757,6 +1001,7 @@ jobs:
               provider_logs_uploaded = $false
               vendor_installer_uploaded = $false
               signed_package_uploaded = $false
+              installed_tree_sbom_uploaded = $false
               published = $false
               public_release_claim = $false
               external_distribution = $false
@@ -788,6 +1033,7 @@ jobs:
             (Join-Path $env:GITHUB_WORKSPACE 'apps\web\dist'),
             (Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src\renderer\web')
           )
+          $plaintextHandoffRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-plaintext'
           if (Test-Path -LiteralPath $toolPath -PathType Leaf) { & $toolPath unload *> $null }
           $ruleName = "lawos-signing-node-egress-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
           Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
@@ -802,13 +1048,14 @@ jobs:
               ForEach-Object { & $_.FullName /VERYSILENT /SUPPRESSMSGBOXES /NORESTART *> $null }
           }
           foreach ($path in $residuePaths) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+          Remove-Item -LiteralPath $plaintextHandoffRoot -Recurse -Force -ErrorAction SilentlyContinue
           $certificateResidue = if ($env:EXPECTED_CERTIFICATE_SHA1 -match '^[0-9A-F]{40}$') {
             @(
               Get-ChildItem -LiteralPath Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue |
               Where-Object { $_.Thumbprint.ToUpperInvariant() -ceq $env:EXPECTED_CERTIFICATE_SHA1 }
             ).Count
           } else { 0 }
-          $pathResidue = @($residuePaths | Where-Object { Test-Path -LiteralPath $_ }).Count
+          $pathResidue = @(@($residuePaths) + @($plaintextHandoffRoot) | Where-Object { Test-Path -LiteralPath $_ }).Count
           $firewallResidue = @(Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue).Count
           $cleanupVerified = $certificateResidue -eq 0 -and $pathResidue -eq 0 -and $firewallResidue -eq 0
           $receiptPath = Join-Path $env:RUNNER_TEMP 'lawos-authenticode-public-evidence\receipt.json'
@@ -820,11 +1067,239 @@ jobs:
           $receipt | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8NoBOM -LiteralPath $receiptPath
           if (-not $cleanupVerified) { throw 'signing residue cleanup failed' }
 
-      - name: Upload sanitized public evidence only
+      - name: Upload authenticated ciphertext bridge only
+        id: encrypted-bridge-upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-signed-ciphertext-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-windows-handoff-encrypted
+          if-no-files-found: error
+          retention-days: 1
+          include-hidden-files: false
+
+      - name: Upload pre-handoff sanitized evidence
+        id: pre-handoff-evidence-upload
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: windows-authenticode-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          name: windows-authenticode-pre-handoff-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lawos-authenticode-public-evidence/receipt.json
           if-no-files-found: error
           retention-days: 14
+          include-hidden-files: false
+
+      - name: Always remove encrypted bridge residue after artifact persistence
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $encryptedRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-encrypted'
+          Remove-Item -LiteralPath $encryptedRoot -Recurse -Force -ErrorAction SilentlyContinue
+          if (Test-Path -LiteralPath $encryptedRoot) { throw 'encrypted bridge runner residue remained after upload' }
+
+  verify-private-handoff-bridge:
+    name: Verify authenticated ciphertext before granting AWS OIDC authority
+    needs:
+      - environment-preflight
+      - sign-and-qa
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    outputs:
+      verified_bundle_artifact_id: ${{ steps.verified-bundle-upload.outputs.artifact-id }}
+      verified_bundle_artifact_digest: ${{ steps.verified-bundle-upload.outputs.artifact-digest }}
+      verified_bundle_manifest_sha256: ${{ steps.verify-handoff-inputs.outputs.verified_bundle_manifest_sha256 }}
+      encrypted_bridge_envelope_sha256: ${{ steps.verify-handoff-inputs.outputs.encrypted_bridge_envelope_sha256 }}
+    steps:
+      - name: Checkout exact source SHA for reviewed handoff code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download exact ciphertext artifact by immutable artifact ID
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.sign-and-qa.outputs.encrypted_bridge_artifact_id }}
+          path: ${{ runner.temp }}/lawos-windows-handoff-verifier-input/encrypted
+          merge-multiple: true
+
+      - name: Download exact pre-handoff evidence by immutable artifact ID
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.sign-and-qa.outputs.pre_handoff_evidence_artifact_id }}
+          path: ${{ runner.temp }}/lawos-windows-handoff-verifier-input/pre-evidence
+          merge-multiple: true
+
+      - name: Verify frozen handoff bindings and every downloaded ciphertext byte without OIDC authority
+        id: verify-handoff-inputs
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          FROZEN_WRAPPING_KMS_KEY_ARN: ${{ needs.environment-preflight.outputs.handoff_wrapping_kms_key_arn }}
+          FROZEN_WRAPPING_PUBLIC_KEY_SHA256: ${{ needs.environment-preflight.outputs.handoff_wrapping_public_key_sha256 }}
+          FROZEN_CANDIDATE_ROLE: ${{ needs.environment-preflight.outputs.handoff_candidate_role }}
+          EXPECTED_ENVELOPE_SHA256: ${{ needs.sign-and-qa.outputs.encrypted_bridge_envelope_sha256 }}
+          EXPECTED_CIPHERTEXT_ARTIFACT_ID: ${{ needs.sign-and-qa.outputs.encrypted_bridge_artifact_id }}
+          EXPECTED_CIPHERTEXT_ARTIFACT_DIGEST: ${{ needs.sign-and-qa.outputs.encrypted_bridge_artifact_digest }}
+          EXPECTED_EVIDENCE_ARTIFACT_ID: ${{ needs.sign-and-qa.outputs.pre_handoff_evidence_artifact_id }}
+          EXPECTED_EVIDENCE_ARTIFACT_DIGEST: ${{ needs.sign-and-qa.outputs.pre_handoff_evidence_artifact_digest }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os' -or $env:GITHUB_REF -cne 'refs/heads/main' `
+            -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'handoff runner identity is invalid' }
+          if ((git rev-parse HEAD).Trim() -cne $env:INPUT_SOURCE_SHA `
+            -or (git rev-parse 'HEAD^{tree}').Trim() -cne $env:INPUT_SOURCE_TREE) { throw 'handoff source checkout differs' }
+          if ($env:EXPECTED_CIPHERTEXT_ARTIFACT_ID -notmatch '\A[1-9][0-9]*\z' `
+            -or $env:EXPECTED_EVIDENCE_ARTIFACT_ID -notmatch '\A[1-9][0-9]*\z' `
+            -or $env:EXPECTED_ENVELOPE_SHA256 -notmatch '\A[0-9a-f]{64}\z' `
+            -or $env:EXPECTED_CIPHERTEXT_ARTIFACT_DIGEST -notmatch '\A[0-9a-f]{64}\z' `
+            -or $env:EXPECTED_EVIDENCE_ARTIFACT_DIGEST -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'handoff artifact digest output is invalid'
+          }
+          $verifierRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verifier-input'
+          $ciphertextRoot = Join-Path $verifierRoot 'encrypted'
+          $evidencePath = Join-Path $verifierRoot 'pre-evidence\receipt.json'
+          $verifySummary = node scripts/run-windows-signed-artifact-private-handoff.mjs `
+            --operation verify-encrypted `
+            --source-sha $env:INPUT_SOURCE_SHA `
+            --source-tree $env:INPUT_SOURCE_TREE `
+            --candidate-role $env:FROZEN_CANDIDATE_ROLE `
+            --encrypted-dir $ciphertextRoot `
+            --wrapping-key-arn $env:FROZEN_WRAPPING_KMS_KEY_ARN `
+            --wrapping-public-key-sha256 $env:FROZEN_WRAPPING_PUBLIC_KEY_SHA256 `
+            --expected-envelope-sha256 $env:EXPECTED_ENVELOPE_SHA256 | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $verifySummary.ciphertext_verified -ne $true `
+            -or $verifySummary.plaintext_materialized -ne $false -or [int]$verifySummary.artifact_count -ne 4) {
+            throw 'downloaded encrypted bridge verification failed'
+          }
+          if (-not (Test-Path -LiteralPath $evidencePath -PathType Leaf)) { throw 'pre-handoff sanitized evidence is missing' }
+          $receipt = Get-Content -Raw -LiteralPath $evidencePath | ConvertFrom-Json
+          if ($receipt.schema_version -cne 'law-firm-os.windows-authenticode-pilot-qa.v1' `
+            -or $receipt.state -cne 'PASS' `
+            -or $receipt.qa_state -cne 'PASS' `
+            -or $receipt.source.sha -cne $env:INPUT_SOURCE_SHA `
+            -or $receipt.source.tree -cne $env:INPUT_SOURCE_TREE `
+            -or $receipt.cleanup.verified -ne $true `
+            -or $receipt.boundaries.signed_package_uploaded -ne $false `
+            -or $receipt.boundaries.installed_tree_sbom_uploaded -ne $false `
+            -or $receipt.boundaries.published -ne $false `
+            -or $receipt.boundaries.external_distribution -ne $false `
+            -or $receipt.boundaries.production_go_live -ne $false) {
+            throw 'pre-handoff sanitized evidence is not exact signed QA PASS evidence'
+          }
+          $expectedRelativePaths = @(
+            'encrypted/envelope.json',
+            'encrypted/payload-01.enc',
+            'encrypted/payload-02.enc',
+            'encrypted/payload-03.enc',
+            'encrypted/payload-04.enc',
+            'pre-evidence/receipt.json'
+          )
+          $topLevelNames = @(
+            Get-ChildItem -LiteralPath $verifierRoot -Force |
+              Sort-Object -Property Name |
+              ForEach-Object { $_.Name }
+          )
+          if (@(Compare-Object -ReferenceObject @('encrypted', 'pre-evidence') -DifferenceObject $topLevelNames).Count -ne 0 `
+            -or -not (Test-Path -LiteralPath $ciphertextRoot -PathType Container) `
+            -or -not (Test-Path -LiteralPath (Join-Path $verifierRoot 'pre-evidence') -PathType Container)) {
+            throw 'verified handoff bundle top-level file set is not closed'
+          }
+          $actualRelativePaths = @(
+            Get-ChildItem -LiteralPath $verifierRoot -File -Recurse -Force |
+              ForEach-Object { [IO.Path]::GetRelativePath($verifierRoot, $_.FullName).Replace('\', '/') } |
+              Sort-Object
+          )
+          if (@(Compare-Object -ReferenceObject $expectedRelativePaths -DifferenceObject $actualRelativePaths).Count -ne 0) {
+            throw 'verified handoff bundle file set is not exact'
+          }
+          $fileRecords = @(
+            foreach ($relativePath in $expectedRelativePaths) {
+              $item = Get-Item -LiteralPath (Join-Path $verifierRoot $relativePath)
+              if (-not $item.PSIsContainer -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 -and $item.Length -gt 0) {
+                [ordered]@{
+                  path = $relativePath
+                  sha256 = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+                  bytes = [int64]$item.Length
+                }
+              } else {
+                throw "verified handoff bundle contains an invalid file: $relativePath"
+              }
+            }
+          )
+          $manifest = [ordered]@{
+            schema_version = 'law-firm-os.windows-signed-artifact-no-oidc-verified-bundle.v1'
+            source_sha = $env:INPUT_SOURCE_SHA
+            source_tree = $env:INPUT_SOURCE_TREE
+            candidate_role = $env:FROZEN_CANDIDATE_ROLE
+            encrypted_bridge_envelope_sha256 = $env:EXPECTED_ENVELOPE_SHA256
+            source_artifacts = [ordered]@{
+              encrypted_bridge_artifact_id = $env:EXPECTED_CIPHERTEXT_ARTIFACT_ID
+              encrypted_bridge_artifact_digest = $env:EXPECTED_CIPHERTEXT_ARTIFACT_DIGEST
+              pre_handoff_evidence_artifact_id = $env:EXPECTED_EVIDENCE_ARTIFACT_ID
+              pre_handoff_evidence_artifact_digest = $env:EXPECTED_EVIDENCE_ARTIFACT_DIGEST
+            }
+            files = $fileRecords
+            boundary = [ordered]@{
+              plaintext_signed_artifact_included = $false
+              secrets_included = $false
+              cross_run_artifact = $false
+              verified_without_oidc = $true
+            }
+          }
+          $manifestPath = Join-Path $verifierRoot 'verified-bundle-manifest.json'
+          $manifest | ConvertTo-Json -Depth 6 | Set-Content -Encoding utf8NoBOM -LiteralPath $manifestPath
+          $manifestSha256 = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "verified_bundle_manifest_sha256=$manifestSha256" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "encrypted_bridge_envelope_sha256=$env:EXPECTED_ENVELOPE_SHA256" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Upload no-OIDC-verified current-run handoff bundle
+        id: verified-bundle-upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-signed-verified-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-windows-handoff-verifier-input
+          if-no-files-found: error
+          retention-days: 1
+          include-hidden-files: false
+
+      - name: Always remove no-OIDC verifier input residue
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $verifierRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verifier-input'
+          Remove-Item -LiteralPath $verifierRoot -Recurse -Force -ErrorAction SilentlyContinue
+          if (Test-Path -LiteralPath $verifierRoot) { throw 'no-OIDC verifier left handoff input residue' }
+
+  private-immutable-handoff:
+    name: Decrypt and upload exact signed package to private immutable storage
+    needs:
+      - environment-preflight
+      - verify-private-handoff-bridge
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/windows-signed-artifact-private-handoff-oidc.yml
+    with:
+      source_sha: ${{ inputs.source_sha }}
+      source_tree: ${{ inputs.source_tree }}
+      account_id: ${{ needs.environment-preflight.outputs.handoff_account_id }}
+      region: ${{ needs.environment-preflight.outputs.handoff_region }}
+      uploader_role_arn: ${{ needs.environment-preflight.outputs.handoff_uploader_role_arn }}
+      bucket: ${{ needs.environment-preflight.outputs.handoff_bucket }}
+      artifact_kms_key_arn: ${{ needs.environment-preflight.outputs.handoff_artifact_kms_key_arn }}
+      retain_until: ${{ needs.environment-preflight.outputs.handoff_retain_until }}
+      wrapping_kms_key_arn: ${{ needs.environment-preflight.outputs.handoff_wrapping_kms_key_arn }}
+      wrapping_public_key_spki_b64: ${{ needs.environment-preflight.outputs.handoff_wrapping_public_key_spki_b64 }}
+      wrapping_public_key_sha256: ${{ needs.environment-preflight.outputs.handoff_wrapping_public_key_sha256 }}
+      candidate_role: ${{ needs.environment-preflight.outputs.handoff_candidate_role }}
+      verified_bundle_artifact_id: ${{ needs.verify-private-handoff-bridge.outputs.verified_bundle_artifact_id }}
+      verified_bundle_artifact_digest: ${{ needs.verify-private-handoff-bridge.outputs.verified_bundle_artifact_digest }}
+      verified_bundle_manifest_sha256: ${{ needs.verify-private-handoff-bridge.outputs.verified_bundle_manifest_sha256 }}
+      encrypted_bridge_envelope_sha256: ${{ needs.verify-private-handoff-bridge.outputs.encrypted_bridge_envelope_sha256 }}

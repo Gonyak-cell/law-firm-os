@@ -229,6 +229,46 @@ export function injectMatterDesktopAuthenticodeConfiguration(source, configurati
   );
 }
 
+function validateMatterDesktopAuthenticodeRecord(record, expectedThumbprint) {
+  if (record?.status !== "Valid"
+    || record?.status_message !== "Signature verified."
+    || record?.signature_type !== "Authenticode"
+    || record?.time_stamper_certificate_present !== true) {
+    throw new Error("Authenticode signature or RFC3161 timestamp validation failed");
+  }
+  const signer = certificateMetadata(record, "signer", CODE_SIGNING_EKU_OID);
+  const timestamp = certificateMetadata(record, "timestamp", TIME_STAMPING_EKU_OID);
+  if (signer.thumbprint !== expectedThumbprint) {
+    throw new Error("Authenticode signer does not match the expected certificate SHA-1 thumbprint");
+  }
+  return Object.freeze({ signer, timestamp });
+}
+
+function expectedAuthenticodeThumbprint(expectedCertificateSha1) {
+  const expectedThumbprint = String(expectedCertificateSha1 ?? "").toUpperCase();
+  if (!THUMBPRINT.test(expectedThumbprint)) {
+    throw new Error("expected Authenticode certificate SHA-1 thumbprint is required");
+  }
+  return expectedThumbprint;
+}
+
+export function validateMatterDesktopAuthenticodeSignature(
+  record,
+  { expectedCertificateSha1 } = {},
+) {
+  const expectedThumbprint = expectedAuthenticodeThumbprint(expectedCertificateSha1);
+  const { signer, timestamp } = validateMatterDesktopAuthenticodeRecord(record, expectedThumbprint);
+  return Object.freeze({
+    signature_count: 1,
+    signer_certificate_sha1: expectedThumbprint,
+    signer,
+    timestamps: Object.freeze([timestamp]),
+    signer_code_signing_eku_verified: true,
+    timestamp_eku_verified: true,
+    timestamp_verified: true,
+  });
+}
+
 export function validateMatterDesktopAuthenticodeSignatures(
   records = [],
   { expectedCertificateSha1 } = {},
@@ -236,24 +276,10 @@ export function validateMatterDesktopAuthenticodeSignatures(
   if (!Array.isArray(records) || records.length !== 2) {
     throw new Error("installer and packaged executable Authenticode records are required");
   }
-  const expectedThumbprint = String(expectedCertificateSha1 ?? "").toUpperCase();
-  if (!THUMBPRINT.test(expectedThumbprint)) {
-    throw new Error("expected Authenticode certificate SHA-1 thumbprint is required");
-  }
+  const expectedThumbprint = expectedAuthenticodeThumbprint(expectedCertificateSha1);
   const validated = [];
   for (const record of records) {
-    if (record?.status !== "Valid"
-      || record?.status_message !== "Signature verified."
-      || record?.signature_type !== "Authenticode"
-      || record?.time_stamper_certificate_present !== true) {
-      throw new Error("Authenticode signature or RFC3161 timestamp validation failed");
-    }
-    const signer = certificateMetadata(record, "signer", CODE_SIGNING_EKU_OID);
-    const timestamp = certificateMetadata(record, "timestamp", TIME_STAMPING_EKU_OID);
-    if (signer.thumbprint !== expectedThumbprint) {
-      throw new Error("Authenticode signer does not match the expected certificate SHA-1 thumbprint");
-    }
-    validated.push({ signer, timestamp });
+    validated.push(validateMatterDesktopAuthenticodeRecord(record, expectedThumbprint));
   }
   if (new Set(validated.map(({ signer }) => JSON.stringify(signer))).size !== 1) {
     throw new Error("installer and packaged executable use different Authenticode signers");

@@ -1,0 +1,538 @@
+name: Windows Signed Artifact Private Handoff OIDC
+
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
+      source_tree:
+        required: true
+        type: string
+      account_id:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+      uploader_role_arn:
+        required: true
+        type: string
+      bucket:
+        required: true
+        type: string
+      artifact_kms_key_arn:
+        required: true
+        type: string
+      retain_until:
+        required: true
+        type: string
+      wrapping_kms_key_arn:
+        required: true
+        type: string
+      wrapping_public_key_spki_b64:
+        required: true
+        type: string
+      wrapping_public_key_sha256:
+        required: true
+        type: string
+      candidate_role:
+        required: true
+        type: string
+      verified_bundle_artifact_id:
+        required: true
+        type: string
+      verified_bundle_artifact_digest:
+        required: true
+        type: string
+      verified_bundle_manifest_sha256:
+        required: true
+        type: string
+      encrypted_bridge_envelope_sha256:
+        required: true
+        type: string
+    outputs:
+      private_receipt_sha256:
+        description: SHA-256 of the immutable private handoff receipt
+        value: ${{ jobs.private-immutable-handoff.outputs.private_receipt_sha256 }}
+      private_locator_artifact_name:
+        description: Public-safe encrypted private locator artifact name
+        value: ${{ jobs.private-immutable-handoff.outputs.private_locator_artifact_name }}
+      private_locator_artifact_id:
+        description: Immutable encrypted private locator artifact ID
+        value: ${{ jobs.private-immutable-handoff.outputs.private_locator_artifact_id }}
+      private_locator_artifact_digest:
+        description: Raw SHA-256 digest of the encrypted private locator artifact archive
+        value: ${{ jobs.private-immutable-handoff.outputs.private_locator_artifact_digest }}
+      private_locator_envelope_sha256:
+        description: SHA-256 of the encrypted private locator envelope
+        value: ${{ jobs.private-immutable-handoff.outputs.private_locator_envelope_sha256 }}
+      public_evidence_artifact_id:
+        description: Immutable sanitized public evidence artifact ID
+        value: ${{ jobs.private-immutable-handoff.outputs.public_evidence_artifact_id }}
+      public_evidence_artifact_digest:
+        description: Raw SHA-256 digest of the sanitized public evidence artifact archive
+        value: ${{ jobs.private-immutable-handoff.outputs.public_evidence_artifact_digest }}
+      cleanup_verified:
+        description: Whether run-owned private data and AWS credential environment were removed
+        value: ${{ jobs.private-immutable-handoff.outputs.cleanup_verified }}
+
+permissions: {}
+
+jobs:
+  private-immutable-handoff:
+    name: Decrypt and upload exact signed package to private immutable storage
+    if: >-
+      ${{
+        github.repository == 'Gonyak-cell/law-firm-os' &&
+        github.workflow_ref == 'Gonyak-cell/law-firm-os/.github/workflows/windows-authenticode-package-qa.yml@refs/heads/main' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'workflow_dispatch'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    environment:
+      name: windows-signed-artifact-handoff
+    timeout-minutes: 15
+    outputs:
+      private_receipt_sha256: ${{ steps.private-handoff.outputs.receipt_sha256 }}
+      private_locator_artifact_name: ${{ steps.encrypt-private-locator.outputs.artifact_name }}
+      private_locator_artifact_id: ${{ steps.private-locator-upload.outputs.artifact-id }}
+      private_locator_artifact_digest: ${{ steps.private-locator-upload.outputs.artifact-digest }}
+      private_locator_envelope_sha256: ${{ steps.encrypt-private-locator.outputs.envelope_sha256 }}
+      public_evidence_artifact_id: ${{ steps.public-evidence-upload.outputs.artifact-id }}
+      public_evidence_artifact_digest: ${{ steps.public-evidence-upload.outputs.artifact-digest }}
+      cleanup_verified: ${{ steps.private-handoff-cleanup.outputs.verified }}
+    steps:
+      - name: Download exact no-OIDC-verified current-run handoff bundle by immutable artifact ID
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ inputs.verified_bundle_artifact_id }}
+          path: ${{ runner.temp }}/lawos-windows-handoff-verified-input
+          merge-multiple: true
+
+      - name: Checkout exact source SHA for protected handoff code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up reviewed Node runtime without dependency installation
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Acquire short-lived AWS credentials from the independently verified current-run bundle gate
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ inputs.uploader_role_arn }}
+          aws-region: ${{ inputs.region }}
+          role-session-name: lawos-windows-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          mask-aws-account-id: true
+
+      - name: Validate and freeze exact private handoff bindings after AWS credential exchange
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          FROZEN_ACCOUNT_ID: ${{ inputs.account_id }}
+          FROZEN_REGION: ${{ inputs.region }}
+          FROZEN_UPLOADER_ROLE_ARN: ${{ inputs.uploader_role_arn }}
+          FROZEN_BUCKET: ${{ inputs.bucket }}
+          FROZEN_ARTIFACT_KMS_KEY_ARN: ${{ inputs.artifact_kms_key_arn }}
+          FROZEN_RETAIN_UNTIL: ${{ inputs.retain_until }}
+          FROZEN_WRAPPING_KMS_KEY_ARN: ${{ inputs.wrapping_kms_key_arn }}
+          FROZEN_WRAPPING_PUBLIC_KEY_SHA256: ${{ inputs.wrapping_public_key_sha256 }}
+          FROZEN_CANDIDATE_ROLE: ${{ inputs.candidate_role }}
+          VERIFIED_BUNDLE_ARTIFACT_ID: ${{ inputs.verified_bundle_artifact_id }}
+          VERIFIED_BUNDLE_ARTIFACT_DIGEST: ${{ inputs.verified_bundle_artifact_digest }}
+          VERIFIED_BUNDLE_MANIFEST_SHA256: ${{ inputs.verified_bundle_manifest_sha256 }}
+          EXPECTED_ENVELOPE_SHA256: ${{ inputs.encrypted_bridge_envelope_sha256 }}
+          GITHUB_ACTIONS_READ_TOKEN: ${{ github.token }}
+          CALLER_WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Assert-ExactKeys {
+            param([object]$Value, [string[]]$Expected, [string]$Label)
+            if ($null -eq $Value -or $Value -isnot [Collections.IDictionary] `
+              -or $Value.Count -ne $Expected.Count `
+              -or @($Value.Keys | Where-Object { $Expected -cnotcontains $_ }).Count -ne 0 `
+              -or @($Expected | Where-Object { -not $Value.Contains($_) }).Count -ne 0) {
+              throw "$Label must use the exact closed schema"
+            }
+          }
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os' -or $env:GITHUB_REF -cne 'refs/heads/main' `
+            -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'handoff runner identity is invalid' }
+          if ((git rev-parse HEAD).Trim() -cne $env:INPUT_SOURCE_SHA `
+            -or (git rev-parse 'HEAD^{tree}').Trim() -cne $env:INPUT_SOURCE_TREE) { throw 'protected handoff source checkout differs' }
+          if ($env:INPUT_SOURCE_SHA -notmatch '\A[0-9a-f]{40}\z' `
+            -or $env:INPUT_SOURCE_TREE -notmatch '\A[0-9a-f]{40}\z' `
+            -or $env:FROZEN_ACCOUNT_ID -cne '770880870480' `
+            -or $env:FROZEN_REGION -cne 'ap-northeast-2' `
+            -or $env:FROZEN_UPLOADER_ROLE_ARN -notmatch '\Aarn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]{1,512}\z' `
+            -or $env:FROZEN_BUCKET -notmatch '\A[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]\z' `
+            -or $env:FROZEN_BUCKET -match '\.\.|\.-|-\.' `
+            -or $env:FROZEN_BUCKET -match '\A[0-9]+(?:\.[0-9]+){3}\z' `
+            -or $env:FROZEN_ARTIFACT_KMS_KEY_ARN -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f-]{36}\z' `
+            -or $env:FROZEN_WRAPPING_KMS_KEY_ARN -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f-]{36}\z' `
+            -or $env:FROZEN_WRAPPING_PUBLIC_KEY_SHA256 -notmatch '\A[0-9a-f]{64}\z' `
+            -or $env:FROZEN_CANDIDATE_ROLE -notmatch '\A(?:baseline|target)\z' `
+            -or $env:VERIFIED_BUNDLE_ARTIFACT_ID -notmatch '\A[1-9][0-9]*\z' `
+            -or $env:VERIFIED_BUNDLE_ARTIFACT_DIGEST -notmatch '\A[0-9a-f]{64}\z' `
+            -or $env:VERIFIED_BUNDLE_MANIFEST_SHA256 -notmatch '\A[0-9a-f]{64}\z' `
+            -or $env:EXPECTED_ENVELOPE_SHA256 -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'frozen private handoff binding is invalid'
+          }
+          $retainUntil = [DateTimeOffset]::MinValue
+          $retainParsed = [DateTimeOffset]::TryParseExact(
+            $env:FROZEN_RETAIN_UNTIL,
+            'yyyy-MM-ddTHH:mm:ss.fffZ',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal,
+            [ref]$retainUntil
+          )
+          $retention = $retainUntil - [DateTimeOffset]::UtcNow
+          if (-not $retainParsed -or $retention.TotalDays -lt 365 -or $retention.TotalDays -gt 3650) {
+            throw 'handoff retain_until must preserve between 365 days and 10 years'
+          }
+          $verifiedRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verified-input'
+          $manifestPath = Join-Path $verifiedRoot 'verified-bundle-manifest.json'
+          $evidencePath = Join-Path $verifiedRoot 'pre-evidence\receipt.json'
+          $expectedRelativePaths = @(
+            'encrypted/envelope.json',
+            'encrypted/payload-01.enc',
+            'encrypted/payload-02.enc',
+            'encrypted/payload-03.enc',
+            'encrypted/payload-04.enc',
+            'pre-evidence/receipt.json'
+          )
+          $topLevelNames = @(
+            Get-ChildItem -LiteralPath $verifiedRoot -Force |
+              Sort-Object -Property Name |
+              ForEach-Object { $_.Name }
+          )
+          if (@(Compare-Object -ReferenceObject @('encrypted', 'pre-evidence', 'verified-bundle-manifest.json') -DifferenceObject $topLevelNames).Count -ne 0 `
+            -or -not (Test-Path -LiteralPath (Join-Path $verifiedRoot 'encrypted') -PathType Container) `
+            -or -not (Test-Path -LiteralPath (Join-Path $verifiedRoot 'pre-evidence') -PathType Container) `
+            -or -not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+            throw 'downloaded verified bundle top-level file set is not closed'
+          }
+          $actualRelativePaths = @(
+            Get-ChildItem -LiteralPath $verifiedRoot -File -Recurse -Force |
+              ForEach-Object { [IO.Path]::GetRelativePath($verifiedRoot, $_.FullName).Replace('\', '/') } |
+              Sort-Object
+          )
+          if (@(Compare-Object -ReferenceObject @($expectedRelativePaths + 'verified-bundle-manifest.json') -DifferenceObject $actualRelativePaths).Count -ne 0) {
+            throw 'downloaded verified bundle file set is not exact'
+          }
+          $manifestSha256 = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($manifestSha256 -cne $env:VERIFIED_BUNDLE_MANIFEST_SHA256) { throw 'verified bundle manifest digest differs' }
+          if ([string]::IsNullOrWhiteSpace($env:GITHUB_ACTIONS_READ_TOKEN)) { throw 'current-run artifact metadata token is missing' }
+          $artifactHeaders = @{
+            Accept = 'application/vnd.github+json'
+            Authorization = "Bearer $env:GITHUB_ACTIONS_READ_TOKEN"
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $artifactUri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$env:VERIFIED_BUNDLE_ARTIFACT_ID"
+          $artifact = Invoke-RestMethod -Method Get -Uri $artifactUri -Headers $artifactHeaders
+          $expectedArtifactName = "windows-signed-verified-handoff-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          if ([string]$artifact.id -cne $env:VERIFIED_BUNDLE_ARTIFACT_ID `
+            -or [string]$artifact.name -cne $expectedArtifactName `
+            -or [string]$artifact.digest -cne "sha256:$env:VERIFIED_BUNDLE_ARTIFACT_DIGEST" `
+            -or $artifact.expired -ne $false `
+            -or [string]$artifact.workflow_run.id -cne $env:GITHUB_RUN_ID `
+            -or [string]$artifact.workflow_run.head_branch -cne 'main' `
+            -or [string]$artifact.workflow_run.head_sha -cne $env:CALLER_WORKFLOW_SHA) {
+            throw 'verified handoff bundle is not the exact current-run immutable artifact'
+          }
+          $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable
+          Assert-ExactKeys $manifest @(
+            'schema_version', 'source_sha', 'source_tree', 'candidate_role',
+            'encrypted_bridge_envelope_sha256', 'source_artifacts', 'files', 'boundary'
+          ) 'verified bundle manifest'
+          Assert-ExactKeys $manifest.source_artifacts @(
+            'encrypted_bridge_artifact_id', 'encrypted_bridge_artifact_digest',
+            'pre_handoff_evidence_artifact_id', 'pre_handoff_evidence_artifact_digest'
+          ) 'verified bundle source artifacts'
+          Assert-ExactKeys $manifest.boundary @(
+            'plaintext_signed_artifact_included', 'secrets_included', 'cross_run_artifact', 'verified_without_oidc'
+          ) 'verified bundle boundary'
+          if ([string]$manifest.schema_version -cne 'law-firm-os.windows-signed-artifact-no-oidc-verified-bundle.v1' `
+            -or [string]$manifest.source_sha -cne $env:INPUT_SOURCE_SHA `
+            -or [string]$manifest.source_tree -cne $env:INPUT_SOURCE_TREE `
+            -or [string]$manifest.candidate_role -cne $env:FROZEN_CANDIDATE_ROLE `
+            -or [string]$manifest.encrypted_bridge_envelope_sha256 -cne $env:EXPECTED_ENVELOPE_SHA256 `
+            -or [string]$manifest.source_artifacts.encrypted_bridge_artifact_id -notmatch '\A[1-9][0-9]*\z' `
+            -or [string]$manifest.source_artifacts.pre_handoff_evidence_artifact_id -notmatch '\A[1-9][0-9]*\z' `
+            -or [string]$manifest.source_artifacts.encrypted_bridge_artifact_digest -notmatch '\A[0-9a-f]{64}\z' `
+            -or [string]$manifest.source_artifacts.pre_handoff_evidence_artifact_digest -notmatch '\A[0-9a-f]{64}\z' `
+            -or $manifest.boundary.plaintext_signed_artifact_included -ne $false `
+            -or $manifest.boundary.secrets_included -ne $false `
+            -or $manifest.boundary.cross_run_artifact -ne $false `
+            -or $manifest.boundary.verified_without_oidc -ne $true `
+            -or @($manifest.files).Count -ne $expectedRelativePaths.Count) {
+            throw 'verified bundle manifest binding differs'
+          }
+          foreach ($relativePath in $expectedRelativePaths) {
+            $records = @($manifest.files | Where-Object { [string]$_.path -ceq $relativePath })
+            if ($records.Count -ne 1) { throw "verified bundle manifest file binding differs: $relativePath" }
+            $record = $records[0]
+            Assert-ExactKeys $record @('path', 'sha256', 'bytes') 'verified bundle file record'
+            $item = Get-Item -LiteralPath (Join-Path $verifiedRoot $relativePath)
+            $actualSha256 = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($item.PSIsContainer `
+              -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 `
+              -or [string]$record.sha256 -cne $actualSha256 `
+              -or [int64]$record.bytes -ne [int64]$item.Length `
+              -or [int64]$record.bytes -le 0) {
+              throw "verified bundle file digest or size differs: $relativePath"
+            }
+          }
+          if (-not (Test-Path -LiteralPath $evidencePath -PathType Leaf)) { throw 'verified pre-handoff evidence is missing' }
+          $receipt = Get-Content -Raw -LiteralPath $evidencePath | ConvertFrom-Json
+          if ($receipt.schema_version -cne 'law-firm-os.windows-authenticode-pilot-qa.v1' `
+            -or $receipt.state -cne 'PASS' `
+            -or $receipt.qa_state -cne 'PASS' `
+            -or $receipt.source.sha -cne $env:INPUT_SOURCE_SHA `
+            -or $receipt.source.tree -cne $env:INPUT_SOURCE_TREE `
+            -or $receipt.cleanup.verified -ne $true `
+            -or $receipt.boundaries.signed_package_uploaded -ne $false `
+            -or $receipt.boundaries.installed_tree_sbom_uploaded -ne $false `
+            -or $receipt.boundaries.published -ne $false `
+            -or $receipt.boundaries.external_distribution -ne $false `
+            -or $receipt.boundaries.production_go_live -ne $false) {
+            throw 'verified pre-handoff evidence no longer matches exact signed QA PASS'
+          }
+          $handoffBindings = [ordered]@{
+            account_id = $env:FROZEN_ACCOUNT_ID
+            region = $env:FROZEN_REGION
+            uploader_role_arn = $env:FROZEN_UPLOADER_ROLE_ARN
+            bucket = $env:FROZEN_BUCKET
+            kms_key_arn = $env:FROZEN_ARTIFACT_KMS_KEY_ARN
+            retain_until = $env:FROZEN_RETAIN_UNTIL
+          }
+          $handoffBindings | ConvertTo-Json -Compress | Set-Content -Encoding utf8NoBOM -LiteralPath (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-bindings.json')
+
+      - name: Decrypt, exact-hash, immutable-upload, and full-readback the signed package
+        id: private-handoff
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          FROZEN_WRAPPING_KMS_KEY_ARN: ${{ inputs.wrapping_kms_key_arn }}
+          FROZEN_WRAPPING_PUBLIC_KEY_SHA256: ${{ inputs.wrapping_public_key_sha256 }}
+          FROZEN_CANDIDATE_ROLE: ${{ inputs.candidate_role }}
+          EXPECTED_ENVELOPE_SHA256: ${{ inputs.encrypted_bridge_envelope_sha256 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $receiptPath = Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-receipt.json'
+          $receiptLocatorPath = Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-locator.json'
+          $summary = node scripts/run-windows-signed-artifact-private-handoff.mjs `
+            --operation decrypt-upload `
+            --source-sha $env:INPUT_SOURCE_SHA `
+            --source-tree $env:INPUT_SOURCE_TREE `
+            --candidate-role $env:FROZEN_CANDIDATE_ROLE `
+            --encrypted-dir (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verified-input\encrypted') `
+            --decrypted-dir (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-decrypted') `
+            --receipt $receiptPath `
+            --receipt-locator $receiptLocatorPath `
+            --handoff-bindings (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-bindings.json') `
+            --wrapping-key-arn $env:FROZEN_WRAPPING_KMS_KEY_ARN `
+            --expected-wrapping-key-arn $env:FROZEN_WRAPPING_KMS_KEY_ARN `
+            --wrapping-public-key-sha256 $env:FROZEN_WRAPPING_PUBLIC_KEY_SHA256 `
+            --expected-envelope-sha256 $env:EXPECTED_ENVELOPE_SHA256 | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $summary.verdict -cne 'PASS' -or $summary.private_immutable_handoff -ne $true `
+            -or [string]$summary.receipt_sha256 -notmatch '\A[0-9a-f]{64}\z' `
+            -or [string]$summary.receipt_locator_sha256 -notmatch '\A[0-9a-f]{64}\z' `
+            -or -not (Test-Path -LiteralPath $receiptLocatorPath -PathType Leaf)) {
+            throw 'private immutable signed artifact handoff failed'
+          }
+          "receipt_sha256=$([string]$summary.receipt_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "receipt_locator_sha256=$([string]$summary.receipt_locator_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version=$([string]$summary.version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Encrypt exact private receipt locator for the protected update operator
+        id: encrypt-private-locator
+        shell: pwsh
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          FROZEN_CANDIDATE_ROLE: ${{ inputs.candidate_role }}
+          FROZEN_WRAPPING_KMS_KEY_ARN: ${{ inputs.wrapping_kms_key_arn }}
+          FROZEN_WRAPPING_PUBLIC_KEY_SPKI_B64: ${{ inputs.wrapping_public_key_spki_b64 }}
+          FROZEN_WRAPPING_PUBLIC_KEY_SHA256: ${{ inputs.wrapping_public_key_sha256 }}
+          HANDOFF_VERSION: ${{ steps.private-handoff.outputs.version }}
+          HANDOFF_RECEIPT_SHA256: ${{ steps.private-handoff.outputs.receipt_sha256 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $locatorRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-private-locator-encrypted'
+          $artifactName = "windows-signed-private-locator-$($env:FROZEN_CANDIDATE_ROLE)-$($env:INPUT_SOURCE_SHA)-$($env:GITHUB_RUN_ID)-$($env:GITHUB_RUN_ATTEMPT)"
+          $summary = node scripts/run-windows-signed-artifact-private-handoff.mjs `
+            --operation encrypt-locator `
+            --source-sha $env:INPUT_SOURCE_SHA `
+            --source-tree $env:INPUT_SOURCE_TREE `
+            --candidate-role $env:FROZEN_CANDIDATE_ROLE `
+            --version $env:HANDOFF_VERSION `
+            --receipt-locator (Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-locator.json') `
+            --private-receipt-sha256 $env:HANDOFF_RECEIPT_SHA256 `
+            --producer-repository $env:GITHUB_REPOSITORY `
+            --producer-workflow-ref $env:GITHUB_WORKFLOW_REF `
+            --producer-job 'private-immutable-handoff' `
+            --producer-run-id $env:GITHUB_RUN_ID `
+            --producer-run-attempt $env:GITHUB_RUN_ATTEMPT `
+            --wrapping-key-arn $env:FROZEN_WRAPPING_KMS_KEY_ARN `
+            --wrapping-public-key-spki-b64 $env:FROZEN_WRAPPING_PUBLIC_KEY_SPKI_B64 `
+            --wrapping-public-key-sha256 $env:FROZEN_WRAPPING_PUBLIC_KEY_SHA256 `
+            --output-dir $locatorRoot | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 `
+            -or [string]$summary.envelope_sha256 -notmatch '\A[0-9a-f]{64}\z' `
+            -or [string]$summary.private_receipt_locator_sha256 -cne '${{ steps.private-handoff.outputs.receipt_locator_sha256 }}' `
+            -or $summary.plaintext_locator_uploaded -ne $false) {
+            throw 'private receipt locator authenticated encryption failed'
+          }
+          "artifact_name=$artifactName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "envelope_sha256=$([string]$summary.envelope_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Remove private plaintext and AWS credentials before locator artifact upload
+        id: private-material-cleanup
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $privatePlaintextPaths = @(
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verified-input\encrypted'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-decrypted'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-bindings.json'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-receipt.json'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-locator.json')
+          )
+          foreach ($path in $privatePlaintextPaths) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+          $ErrorActionPreference = 'Stop'
+          foreach ($name in @('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'AWS_SECURITY_TOKEN', 'AWS_REGION', 'AWS_DEFAULT_REGION')) {
+            "$name=" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
+          }
+          $residue = @($privatePlaintextPaths | Where-Object { Test-Path -LiteralPath $_ }).Count
+          $credentialResidue = @(
+            'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'AWS_SECURITY_TOKEN', 'AWS_REGION', 'AWS_DEFAULT_REGION' |
+              Where-Object {
+                $item = Get-Item -LiteralPath "Env:$_" -ErrorAction SilentlyContinue
+                $null -ne $item -and -not [string]::IsNullOrEmpty([string]$item.Value)
+              }
+          ).Count
+          $cleanupVerified = $residue -eq 0 -and $credentialResidue -eq 0
+          "verified=$($cleanupVerified.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          if (-not $cleanupVerified) { throw 'private plaintext or AWS credential cleanup failed before locator upload' }
+
+      - name: Upload encrypted private receipt locator bridge only
+        id: private-locator-upload
+        if: ${{ success() && steps.private-material-cleanup.outputs.verified == 'true' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.encrypt-private-locator.outputs.artifact_name }}
+          path: ${{ runner.temp }}/lawos-windows-private-locator-encrypted
+          if-no-files-found: error
+          retention-days: 30
+          include-hidden-files: false
+
+      - name: Publish sanitized final evidence without private storage locators
+        shell: pwsh
+        env:
+          HANDOFF_RECEIPT_SHA256: ${{ steps.private-handoff.outputs.receipt_sha256 }}
+          LOCATOR_ARTIFACT_NAME: ${{ steps.encrypt-private-locator.outputs.artifact_name }}
+          LOCATOR_ARTIFACT_ID: ${{ steps.private-locator-upload.outputs.artifact-id }}
+          LOCATOR_ARTIFACT_DIGEST: ${{ steps.private-locator-upload.outputs.artifact-digest }}
+          LOCATOR_ENVELOPE_SHA256: ${{ steps.encrypt-private-locator.outputs.envelope_sha256 }}
+          FROZEN_CANDIDATE_ROLE: ${{ inputs.candidate_role }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidenceRoot = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-public-evidence'
+          $priorPath = Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verified-input\pre-evidence\receipt.json'
+          if (-not (Test-Path -LiteralPath $priorPath -PathType Leaf)) { throw 'pre-handoff sanitized evidence is missing' }
+          $receipt = Get-Content -Raw -LiteralPath $priorPath | ConvertFrom-Json
+          if ($receipt.state -cne 'PASS' -or $receipt.qa_state -cne 'PASS' -or $receipt.cleanup.verified -ne $true) {
+            throw 'pre-handoff signing evidence did not PASS'
+          }
+          if ($env:LOCATOR_ARTIFACT_NAME -notmatch '\Awindows-signed-private-locator-(?:baseline|target)-[0-9a-f]{40}-[1-9][0-9]*-[1-9][0-9]*\z' `
+            -or $env:LOCATOR_ARTIFACT_ID -notmatch '\A[1-9][0-9]*\z' `
+            -or $env:LOCATOR_ARTIFACT_DIGEST -notmatch '\A[0-9a-f]{64}\z' `
+            -or $env:LOCATOR_ENVELOPE_SHA256 -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'encrypted private locator artifact identity is invalid'
+          }
+          $receipt | Add-Member -NotePropertyName handoff -NotePropertyValue ([ordered]@{
+            schema_version = 'law-firm-os.windows-signed-artifact-private-handoff.v1'
+            status = 'PASS'
+            receipt_sha256 = $env:HANDOFF_RECEIPT_SHA256
+            private_locator_bridge = [ordered]@{
+              schema_version = 'law-firm-os.windows-signed-artifact-private-handoff-locator-artifact-ref.v1'
+              producer_repository = $env:GITHUB_REPOSITORY
+              producer_workflow_ref = $env:GITHUB_WORKFLOW_REF
+              producer_job = 'private-immutable-handoff'
+              producer_run_id = $env:GITHUB_RUN_ID
+              producer_run_attempt = $env:GITHUB_RUN_ATTEMPT
+              source_sha = '${{ inputs.source_sha }}'
+              source_tree = '${{ inputs.source_tree }}'
+              candidate_role = $env:FROZEN_CANDIDATE_ROLE
+              private_receipt_sha256 = $env:HANDOFF_RECEIPT_SHA256
+              artifact_name = $env:LOCATOR_ARTIFACT_NAME
+              artifact_id = $env:LOCATOR_ARTIFACT_ID
+              artifact_digest = "sha256:$env:LOCATOR_ARTIFACT_DIGEST"
+              envelope_sha256 = $env:LOCATOR_ENVELOPE_SHA256
+            }
+          })
+          $receipt.boundaries.signed_package_uploaded = $true
+          $receipt.boundaries.installed_tree_sbom_uploaded = $true
+          $receipt.boundaries | Add-Member -NotePropertyName private_immutable_handoff -NotePropertyValue $true
+          $receipt.boundaries.published = $false
+          $receipt.boundaries.public_release_claim = $false
+          $receipt.boundaries.external_distribution = $false
+          $receipt.boundaries.production_go_live = $false
+          New-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null
+          $receipt | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8NoBOM -LiteralPath (Join-Path $evidenceRoot 'receipt.json')
+
+      - name: Always remove private handoff data and explicitly blank AWS credential environment
+        id: private-handoff-cleanup
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $privateRoots = @(
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-verified-input'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-decrypted'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-handoff-bindings.json'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-receipt.json'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-private-handoff-locator.json'),
+            (Join-Path $env:RUNNER_TEMP 'lawos-windows-private-locator-encrypted')
+          )
+          foreach ($path in $privateRoots) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+          $ErrorActionPreference = 'Stop'
+          foreach ($name in @('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'AWS_SECURITY_TOKEN', 'AWS_REGION', 'AWS_DEFAULT_REGION')) {
+            "$name=" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
+          }
+          $residue = @($privateRoots | Where-Object { Test-Path -LiteralPath $_ }).Count
+          $credentialResidue = @(
+            'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'AWS_SECURITY_TOKEN', 'AWS_REGION', 'AWS_DEFAULT_REGION' |
+              Where-Object {
+                $item = Get-Item -LiteralPath "Env:$_" -ErrorAction SilentlyContinue
+                $null -ne $item -and -not [string]::IsNullOrEmpty([string]$item.Value)
+              }
+          ).Count
+          $cleanupVerified = $residue -eq 0 -and $credentialResidue -eq 0
+          "verified=$($cleanupVerified.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          if (-not $cleanupVerified) { throw 'private handoff cleanup left run-owned data or AWS credential residue' }
+
+      - name: Upload sanitized public evidence only
+        id: public-evidence-upload
+        if: ${{ success() && steps.private-handoff-cleanup.outputs.verified == 'true' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-authenticode-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-windows-handoff-public-evidence/receipt.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false

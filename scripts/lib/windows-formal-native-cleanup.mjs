@@ -1,17 +1,17 @@
 import path from "node:path";
 
-export function cleanupFailedWindowsNsisInstallation({
+export async function cleanupFailedWindowsNsisInstallation({
   installDir,
   priorError = null,
   exists,
   list,
-  execute,
+  executeLocked,
   waitForRemoval,
   warn = () => {},
 } = {}) {
   if (typeof exists !== "function" || typeof list !== "function"
-    || typeof execute !== "function" || typeof waitForRemoval !== "function") {
-    throw new TypeError("Windows NSIS cleanup adapters are required");
+    || typeof executeLocked !== "function" || typeof waitForRemoval !== "function") {
+    throw new TypeError("Windows NSIS cleanup adapters with locked execution are required");
   }
   const executablePath = path.join(installDir, "matter.exe");
   if (!exists(executablePath)) {
@@ -20,17 +20,18 @@ export function cleanupFailedWindowsNsisInstallation({
 
   let cleanupError = null;
   let uninstallerPath = null;
+  let uninstallerReceipt = null;
   try {
     const uninstallerName = list(installDir).find((name) => /^uninstall.*\.exe$/iu.test(name));
     if (!uninstallerName) throw Object.assign(new Error("NSIS uninstaller is missing"), { code: "UNINSTALLER_MISSING" });
     uninstallerPath = path.join(installDir, uninstallerName);
-    execute(uninstallerPath, ["/S"]);
-    waitForRemoval(executablePath);
+    uninstallerReceipt = await executeLocked(uninstallerPath, ["/S"]);
+    await waitForRemoval(executablePath);
   } catch (error) {
     cleanupError = error;
   }
   const residuePresent = exists(executablePath);
-  const result = Object.freeze({
+  const resultValue = {
     attempted: true,
     completed: cleanupError === null && !residuePresent,
     residue_present: residuePresent,
@@ -38,7 +39,11 @@ export function cleanupFailedWindowsNsisInstallation({
       ? (typeof cleanupError.code === "string" ? cleanupError.code : "UNKNOWN")
       : (residuePresent ? "EXECUTABLE_RESIDUE" : null),
     uninstaller_found: uninstallerPath !== null,
-  });
+  };
+  if (uninstallerReceipt && typeof uninstallerReceipt === "object") {
+    resultValue.uninstaller = uninstallerReceipt;
+  }
+  const result = Object.freeze(resultValue);
   if (!result.completed) warn({ warning: "windows_nsis_failure_cleanup_incomplete", ...result });
   if (priorError && typeof priorError === "object") {
     Object.defineProperty(priorError, "windows_nsis_cleanup", {

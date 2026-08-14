@@ -14,6 +14,9 @@ const desktopPackagePath = fileURLToPath(
 const authenticodeWorkflowPath = fileURLToPath(
   new URL("../../.github/workflows/windows-authenticode-package-qa.yml", import.meta.url),
 );
+const privateHandoffOidcWorkflowPath = fileURLToPath(
+  new URL("../../.github/workflows/windows-signed-artifact-private-handoff-oidc.yml", import.meta.url),
+);
 const formalQaPath = fileURLToPath(
   new URL("../run-formal-windows-package-qa.mjs", import.meta.url),
 );
@@ -288,8 +291,9 @@ test("Windows Authenticode workflow is manual, environment-bound, exact-input-bo
       "entra_tenant_id",
       "app_id",
       "certificate_bindings_json",
+      "handoff_bindings_json",
     ],
-    "workflow_dispatch must retain its exact closed nine-input schema",
+    "workflow_dispatch must retain its exact closed ten-input schema",
   );
 
   for (const binding of [
@@ -334,10 +338,137 @@ test("Windows Authenticode workflow is manual, environment-bound, exact-input-bo
     "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
   ]) assert.match(workflow, new RegExp(`uses: ${escapeRegExp(action)}`, "u"));
   for (const action of workflow.matchAll(/uses:\s+([^\s]+)/gu)) {
+    if (action[1] === "./.github/workflows/windows-signed-artifact-private-handoff-oidc.yml") continue;
     assert.match(action[1], /@[0-9a-f]{40}$/u);
   }
   assert.doesNotMatch(workflow, /uses:\s+[^\s]+@v\d/iu);
   assert.doesNotMatch(workflow, /continue-on-error:/u);
+});
+
+test("Windows private handoff isolates AWS OIDC authority in an exact same-commit reusable workflow", async () => {
+  const [workflow, privateHandoffOidcWorkflow] = await Promise.all([
+    readFile(authenticodeWorkflowPath, "utf8"),
+    readFile(privateHandoffOidcWorkflowPath, "utf8"),
+  ]);
+  const verifierJob = workflowJob(workflow, "verify-private-handoff-bridge");
+  const callerJob = workflowJob(workflow, "private-immutable-handoff");
+  const oidcJob = workflowJob(privateHandoffOidcWorkflow, "private-immutable-handoff");
+
+  assert.match(privateHandoffOidcWorkflow, /^name: Windows Signed Artifact Private Handoff OIDC$/mu);
+  assert.match(privateHandoffOidcWorkflow, /^  workflow_call:$/mu);
+  assert.doesNotMatch(privateHandoffOidcWorkflow, /^    secrets:/mu);
+  const workflowCallInputs = privateHandoffOidcWorkflow.match(
+    /workflow_call:\n    inputs:\n(?<block>[\s\S]*?)\n    outputs:/u,
+  )?.groups?.block;
+  assert.ok(workflowCallInputs, "private handoff workflow_call inputs are missing");
+  assert.deepEqual(
+    [...workflowCallInputs.matchAll(/^      (?<name>[a-z][a-z0-9_]*):\s*$/gmu)].map((match) => match.groups.name),
+    [
+      "source_sha",
+      "source_tree",
+      "account_id",
+      "region",
+      "uploader_role_arn",
+      "bucket",
+      "artifact_kms_key_arn",
+      "retain_until",
+      "wrapping_kms_key_arn",
+      "wrapping_public_key_spki_b64",
+      "wrapping_public_key_sha256",
+      "candidate_role",
+      "verified_bundle_artifact_id",
+      "verified_bundle_artifact_digest",
+      "verified_bundle_manifest_sha256",
+      "encrypted_bridge_envelope_sha256",
+    ],
+    "private handoff workflow_call must retain its exact closed input schema",
+  );
+  const workflowCallOutputs = privateHandoffOidcWorkflow.match(
+    /    outputs:\n(?<block>[\s\S]*?)\n\npermissions: \{\}/u,
+  )?.groups?.block;
+  assert.ok(workflowCallOutputs, "private handoff workflow_call outputs are missing");
+  const outputNames = [...workflowCallOutputs.matchAll(/^      (?<name>[a-z][a-z0-9_]*):\s*$/gmu)]
+    .map((match) => match.groups.name);
+  assert.deepEqual(outputNames, [
+    "private_receipt_sha256",
+    "private_locator_artifact_name",
+    "private_locator_artifact_id",
+    "private_locator_artifact_digest",
+    "private_locator_envelope_sha256",
+    "public_evidence_artifact_id",
+    "public_evidence_artifact_digest",
+    "cleanup_verified",
+  ]);
+  assert.doesNotMatch(outputNames.join("\n"), /bucket|object_key|version_id|kms/u);
+
+  assert.match(verifierJob, /permissions:\n      contents: read/u);
+  assert.doesNotMatch(verifierJob, /id-token:\s*write/u);
+  assert.match(verifierJob, /law-firm-os\.windows-signed-artifact-no-oidc-verified-bundle\.v1/u);
+  assert.match(verifierJob, /verified_bundle_manifest_sha256=\$manifestSha256/u);
+  assert.match(verifierJob, /plaintext_signed_artifact_included = \$false/u);
+  assert.match(verifierJob, /cross_run_artifact = \$false/u);
+  assert.match(verifierJob, /verified_without_oidc = \$true/u);
+  assert.match(verifierJob, /Compare-Object -ReferenceObject \$expectedRelativePaths -DifferenceObject \$actualRelativePaths/u);
+  const verifiedBundleUpload = workflowStep(workflow, "Upload no-OIDC-verified current-run handoff bundle");
+  assert.match(verifiedBundleUpload, /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/u);
+  assert.match(verifiedBundleUpload, /windows-signed-verified-handoff-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/u);
+  assert.doesNotMatch(verifiedBundleUpload, /github-token|repository:|run-id:/u);
+
+  assert.match(callerJob, /needs:[\s\S]*- verify-private-handoff-bridge/u);
+  assert.match(callerJob, /uses: \.\/\.github\/workflows\/windows-signed-artifact-private-handoff-oidc\.yml/u);
+  assert.match(callerJob, /permissions:\n      actions: read\n      contents: read\n      id-token: write/u);
+  assert.doesNotMatch(callerJob, /\n    (?:runs-on|environment|steps|secrets):/u);
+  for (const verifiedInput of [
+    "verified_bundle_artifact_id",
+    "verified_bundle_artifact_digest",
+    "verified_bundle_manifest_sha256",
+    "encrypted_bridge_envelope_sha256",
+  ]) {
+    assert.match(
+      callerJob,
+      new RegExp(`${verifiedInput}: \\$\\{\\{ needs\\.verify-private-handoff-bridge\\.outputs\\.${verifiedInput} \\}\\}`, "u"),
+    );
+  }
+  assert.doesNotMatch(callerJob, /needs\.sign-and-qa\.outputs\.(?:encrypted_bridge|pre_handoff_evidence)/u);
+  assert.doesNotMatch(callerJob, /secrets:/u);
+
+  assert.match(
+    oidcJob,
+    /github\.workflow_ref == 'Gonyak-cell\/law-firm-os\/\.github\/workflows\/windows-authenticode-package-qa\.yml@refs\/heads\/main'/u,
+  );
+  assert.match(oidcJob, /github\.event_name == 'workflow_dispatch'/u);
+  assert.match(oidcJob, /permissions:\n      actions: read\n      contents: read\n      id-token: write/u);
+  assert.match(oidcJob, /environment:\n      name: windows-signed-artifact-handoff/u);
+  const downloadStart = oidcJob.indexOf("Download exact no-OIDC-verified current-run handoff bundle by immutable artifact ID");
+  const checkoutStart = oidcJob.indexOf("Checkout exact source SHA for protected handoff code");
+  const setupStart = oidcJob.indexOf("Set up reviewed Node runtime without dependency installation");
+  const configureStart = oidcJob.indexOf("Acquire short-lived AWS credentials from the independently verified current-run bundle gate");
+  const firstShell = oidcJob.search(/\n        (?:shell|run):/u);
+  assert.ok(
+    downloadStart >= 0
+      && downloadStart < checkoutStart
+      && checkoutStart < setupStart
+      && setupStart < configureStart
+      && configureStart < firstShell,
+    "only pinned download, checkout, runtime setup, and AWS exchange may precede repository or shell execution",
+  );
+  const verifiedBundleDownload = workflowStep(
+    privateHandoffOidcWorkflow,
+    "Download exact no-OIDC-verified current-run handoff bundle by immutable artifact ID",
+  );
+  assert.match(verifiedBundleDownload, /actions\/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093/u);
+  assert.match(verifiedBundleDownload, /artifact-ids: \$\{\{ inputs\.verified_bundle_artifact_id \}\}/u);
+  assert.doesNotMatch(verifiedBundleDownload, /github-token|repository:|run-id:/u);
+  assert.match(oidcJob, /verified bundle manifest digest differs/u);
+  assert.match(oidcJob, /artifact\.digest -cne "sha256:\$env:VERIFIED_BUNDLE_ARTIFACT_DIGEST"/u);
+  assert.match(oidcJob, /artifact\.workflow_run\.id -cne \$env:GITHUB_RUN_ID/u);
+  assert.match(oidcJob, /downloaded verified bundle file set is not exact/u);
+  assert.match(oidcJob, /VERIFIED_BUNDLE_ARTIFACT_DIGEST -notmatch '\\A\[0-9a-f\]\{64\}\\z'/u);
+  for (const action of privateHandoffOidcWorkflow.matchAll(/uses:\s+([^\s]+)/gu)) {
+    assert.match(action[1], /@[0-9a-f]{40}$/u);
+  }
+  assert.doesNotMatch(privateHandoffOidcWorkflow, /uses:\s+[^\s]+@v\d/iu);
+  assert.doesNotMatch(privateHandoffOidcWorkflow, /\$\{\{\s*secrets\./u);
 });
 
 test("Windows Authenticode workflow validates public inputs and vendor bytes before secrets", async () => {
@@ -464,7 +595,10 @@ test("Windows Authenticode workflow validates public inputs and vendor bytes bef
 });
 
 test("Windows Authenticode credentials are product-only, suppressed, and excluded from evidence", async () => {
-  const workflow = await readFile(authenticodeWorkflowPath, "utf8");
+  const [workflow, privateHandoffOidcWorkflow] = await Promise.all([
+    readFile(authenticodeWorkflowPath, "utf8"),
+    readFile(privateHandoffOidcWorkflowPath, "utf8"),
+  ]);
   const environmentPreflight = workflowStep(
     workflow,
     "Verify exact protected environment, variables, and secret names through GitHub API",
@@ -491,10 +625,15 @@ test("Windows Authenticode credentials are product-only, suppressed, and exclude
   assert.match(evidenceStep, /secrets_recorded = \$false/u);
   assert.match(evidenceStep, /provider_logs_uploaded = \$false/u);
   assert.match(evidenceStep, /signed_package_uploaded = \$false/u);
+  assert.match(evidenceStep, /installed_tree_sbom_uploaded = \$false/u);
 
-  const uploadStep = workflowStep(workflow, "Upload sanitized public evidence only");
-  assert.match(uploadStep, /path: \$\{\{ runner\.temp \}\}\/lawos-authenticode-public-evidence\/receipt\.json/u);
-  assert.doesNotMatch(uploadStep, /apps\/desktop\/dist|eSignerCKA|matter-desktop-windows-qa|\*\*/u);
+  const uploadStep = workflowStep(privateHandoffOidcWorkflow, "Upload sanitized public evidence only");
+  assert.match(uploadStep, /if: \$\{\{ success\(\) && steps\.private-handoff-cleanup\.outputs\.verified == 'true' \}\}/u);
+  assert.match(uploadStep, /path: \$\{\{ runner\.temp \}\}\/lawos-windows-handoff-public-evidence\/receipt\.json/u);
+  assert.doesNotMatch(
+    uploadStep,
+    /apps\/desktop\/dist|eSignerCKA|matter-desktop-windows-qa|lawos-windows-private|lawos-windows-handoff-decrypted|\*\*/u,
+  );
 });
 
 test("Windows Authenticode workflow requires the exact certificate, shared signed QA PASS, and always cleans up", async () => {
@@ -550,6 +689,12 @@ test("Windows Authenticode workflow requires the exact certificate, shared signe
     "qa.authenticode.expected_signer_certificate_sha1 -ceq $env:EXPECTED_CERTIFICATE_SHA1",
     "qa.authenticode.signer_code_signing_eku_verified -eq $true",
     "qa.authenticode.timestamp_eku_verified -eq $true",
+    "qa.sbom.schema_version -ceq 'law-firm-os.matter-desktop-installed-tree-sbom.v1'",
+    "qa.sbom.format -ceq 'CycloneDX'",
+    "qa.sbom.spec_version -ceq '1.5'",
+    "qa.sbom.installed_binary_complete -eq $true",
+    "qa.sbom.alternate_data_stream_count -eq 0",
+    "qa.sbom.authenticode_bound -eq $true",
     "approvalCurrent",
   ]) assert.match(evidenceStep, new RegExp(escapeRegExp(requirement), "u"));
   assert.match(evidenceStep, /state = if \(\$signedPass\) \{ 'PENDING_CLEANUP' \} else \{ 'BLOCKED' \}/u);
@@ -582,22 +727,64 @@ test("Windows Authenticode workflow requires the exact certificate, shared signe
 test("formal Windows QA structurally gates every NSIS execution and app launch on Authenticode", async () => {
   const source = await readFile(formalQaPath, "utf8");
   assert.match(source, /authenticodeConfiguration === null\s*\? runAfterUnsignedMatterDesktopTechnicalCandidateInspection\(options\)\s*:\s*runAfterMatterDesktopAuthenticodeVerification/u);
-  assert.equal(source.match(/runAfterFormalWindowsTrustInspection\(\{/gu)?.length, 3);
-  const preinstallProbe = source.indexOf("installerAuthenticode = authenticode(INSTALLER_PATH)");
-  const installAction = source.indexOf("action: async () => installPackage()");
-  const installedProbe = source.indexOf("installedExecutableAuthenticode = authenticode(installed.executablePath)");
-  const installedHash = source.indexOf("actualExecutableSha256: sha256File(installed.executablePath)");
-  const firstLaunch = source.indexOf("action: async () => launchFormalApp");
-  const restartProbe = source.indexOf("restartExecutableAuthenticode = authenticode(installed.executablePath)");
-  const restartHash = source.indexOf("actualExecutableSha256: sha256File(installed.executablePath)", installedHash + 1);
+  assert.ok((source.match(/runAfterFormalWindowsTrustInspection\(\{/gu)?.length ?? 0) >= 3);
+  const preinstallProbe = source.indexOf("installerLockedSession = await openWindowsLockedExecutable({ executablePath: INSTALLER_PATH })");
+  const installAction = source.indexOf("action: async () => installPackage(installerLockedSession)");
+  const installedProbe = source.indexOf("initialLockedSession = await openWindowsLockedExecutable({ executablePath: installed.executablePath })");
+  const installedHash = source.indexOf("actualExecutableSha256: initialLockedSession.inspection.sha256");
+  const inventory = source.indexOf("installedTreeInventory = captureStableInstalledTreeInventory(installDir)");
+  const sbomWrite = source.indexOf("writeFileSync(INSTALLED_TREE_SBOM_PATH");
+  const firstLaunch = source.indexOf("return launchFormalApp");
+  const restartProbe = source.indexOf("restartLockedSession = await openWindowsLockedExecutable({ executablePath: installed.executablePath })");
+  const restartHash = source.indexOf("actualExecutableSha256: restartLockedSession.inspection.sha256", installedHash + 1);
   const restartLaunch = source.indexOf("action: async () => launchFormalApp", firstLaunch + 1);
   assert.ok(preinstallProbe >= 0 && preinstallProbe < installAction);
   assert.ok(installedProbe > installAction && installedProbe < firstLaunch);
   assert.ok(installedHash > installedProbe && installedHash < firstLaunch);
+  assert.ok(inventory > installedHash && inventory < sbomWrite && sbomWrite < firstLaunch);
   assert.ok(restartProbe > firstLaunch && restartProbe < restartLaunch);
   assert.ok(restartHash > restartProbe && restartHash < restartLaunch);
   assert.match(source, /executable_byte_parity_prelaunch: installedExecutablePrelaunchParity/u);
   assert.match(source, /executable_byte_parity_restart_prelaunch: installedExecutableRestartPrelaunchParity/u);
+  assert.match(source, /captureStableInstalledTreeInventory\(installDir\)/u);
+  assert.match(source, /captureWindowsInstalledTreeNativeSnapshot/u);
+  assert.match(source, /native_fixed_point_sequence: installedTreeInventory\.native\.fixed_point_sequence/u);
+  assert.match(source, /native_fixed_point_exact: installedTreeInventory\.native\.fixed_point_exact/u);
+  assert.match(source, /native_snapshot: \{/u);
+  assert.match(source, /equality_proof: installedTreeInventory\.native\.equality_proof/u);
+  assert.match(source, /phases: installedTreeInventory\.native\.phases/u);
+  assert.match(source, /native_directory_count: installedTreeInventory\.native\.directory_count/u);
+  assert.match(source, /native_identity_sha256: installedTreeInventory\.native\.identity_sha256/u);
+  assert.match(source, /alternate_data_stream_count: installedTreeInventory\.native\.alternate_data_stream_count/u);
+  assert.match(source, /validateMatterDesktopAuthenticodeSignatures\(/u);
+  assert.match(source, /Windows installer changed after trust inspection/u);
+  assert.match(source, /installed_binary_complete: true/u);
+  assert.match(source, /reparse_point_count: installedTreeInventory\.native\.reparse_point_count/u);
+  assert.match(source, /installed tree changed during native QA/u);
+  assert.match(source, /post_runtime_tree_sha256: installedTreePostRuntimeInventory\.sha256/u);
+  assert.match(source, /post_runtime_byte_identical: true/u);
+  assert.match(source, /lockedSession\.launch\(\["\/S", `\/D=\$\{installDir\}`\]/u);
+  assert.match(source, /lockedSession\.waitForProcessExit\(processRecord\.pid\)/u);
+  assert.match(source, /executablePath: lockedSession\.path/u);
+  assert.match(source, /await lockedSession\.adoptProcess\(processPid\)/u);
+  assert.match(source, /await initialLockedSession\.waitForProcessExit\(initialProcessPid\)/u);
+  assert.match(source, /await restartLockedSession\.waitForProcessExit\(restartProcessPid\)/u);
+  assert.doesNotMatch(source, /execFileSync\(INSTALLER_PATH/u);
+  assert.match(
+    source,
+    /uninstallerReceipt = await runLockedUninstaller\(\{\s*installed,\s*inventory: installedTreePostRuntimeInventory,\s*\}\)/u,
+  );
+  assert.match(source, /exactInstalledInventoryEntry\(inventory, installDir, installed\.uninstallerPath\)/u);
+  assert.match(source, /openWindowsLockedExecutable\(\{ executablePath: installed\.uninstallerPath \}\)/u);
+  assert.match(source, /session\.inspection\.sha256,\s*inventoryBinding\.entry\.sha256/u);
+  assert.match(source, /validateMatterDesktopAuthenticodeSignature\(/u);
+  assert.match(source, /processRecord = await session\.launch\(\["\/S"\]/u);
+  assert.match(source, /await session\.waitForProcessExit\(processRecord\.pid\)/u);
+  assert.doesNotMatch(source, /execFileSync\(installed\.uninstallerPath/u);
+  assert.match(source, /executeLocked: async \(filePath, args\)/u);
+  assert.match(source, /uninstaller: uninstallerReceipt/u);
+  assert.match(source, /uninstaller_bytes: session\.inspection\.bytes/u);
+  assert.match(source, /runLockedUninstaller[\s\S]*authenticode_valid: trust\.verification\?\.signature_count === 1/u);
   assert.match(source, /cleanupFailedWindowsNsisInstallation/u);
   assert.match(source, /primary_error_preserved: qaError !== null/u);
 });

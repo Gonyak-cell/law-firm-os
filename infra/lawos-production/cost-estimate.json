@@ -1,6 +1,6 @@
 {
   "schema_version": "law-firm-os.json-postgres-production-cost.v1",
-  "prepared_on": "2026-07-23",
+  "prepared_on": "2026-08-14",
   "aws_account_id": "770880870480",
   "aws_region": "ap-northeast-2",
   "currency": "USD",
@@ -25,23 +25,34 @@
     },
     {
       "service": "AWS Secrets Manager and KMS",
-      "configuration": "explicit production secret references and one customer-managed key",
+      "configuration": "explicit production secret references and one customer-managed symmetric data key",
       "monthly_estimate_usd": 5
+    },
+    {
+      "service": "AWS KMS RSA wrapping key",
+      "configuration": "one retained customer-managed RSA_4096 key for the encrypted Windows private-handoff bridge",
+      "monthly_estimate_usd": 1
     },
     {
       "service": "AWS Lambda, API Gateway, CloudWatch and S3",
       "configuration": "bounded internal production traffic, immutable evidence, worker alarms, and low-volume encrypted SQS dead-letter handling",
       "monthly_estimate_usd": 25
+    },
+    {
+      "service": "Amazon S3 Windows immutable handoff",
+      "configuration": "19 immutable handoff objects per baseline/target pair (two four-artifact signed package sets, two release manifests, four metadata/signature objects, two receipts, and three governance objects), approximately 0.35 GiB-month at 365-day COMPLIANCE Object Lock, with at most 19 PUT plus 48 HEAD and 48 full-GET/checksum readback requests across producer, aggregate sealer, and consumer per handoff",
+      "monthly_estimate_usd": 2
     }
   ],
-  "subtotal_monthly_usd": 171.4,
+  "subtotal_monthly_usd": 174.4,
   "contingency_monthly_usd": 8,
-  "total_monthly_estimate_usd": 179.4,
-  "total_monthly_estimate_krw": 269100,
+  "total_monthly_estimate_usd": 182.4,
+  "total_monthly_estimate_krw": 273600,
   "within_owner_krw_cap": true,
   "assumptions": [
     "No NAT gateway, internet gateway, public RDS, public S3, or public IPv4 address is created.",
     "Production traffic is disabled by default and requires a signed go-live stage.",
+    "The Windows handoff estimate assumes 19 retained baseline/target handoff objects: two four-artifact package sets, two release manifests, four metadata/signature objects, two receipts, and three governance objects; object bytes, VersionId readbacks, checksum validation, and COMPLIANCE retention are included in the bounded S3 allowance.",
     "The execution preflight must refresh the forecast and stop if the KRW 300000 ceiling would be exceeded."
   ]
 }

@@ -1,0 +1,245 @@
+name: Windows Formal Update Private Locator Seal OIDC
+
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
+      source_tree:
+        required: true
+        type: string
+      candidate_refs_json:
+        required: true
+        type: string
+      candidate_bridge_artifact_id:
+        required: true
+        type: string
+      candidate_bridge_artifact_digest:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  seal-private-locator:
+    name: Seal exact 19-object private update locator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    environment:
+      name: windows-formal-update-private-locator-seal
+    steps:
+      - name: Download authenticated current-run candidate bridge by immutable artifact ID
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ inputs.candidate_bridge_artifact_id }}
+          path: ${{ runner.temp }}/candidate-locators
+          merge-multiple: true
+
+      - name: Checkout exact reviewed sealer source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Acquire short-lived exact protected OIDC role
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ vars.WINDOWS_UPDATE_LOCATOR_SEAL_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-session-name: lawos-locator-seal-${{ github.run_id }}-${{ github.run_attempt }}
+          role-duration-seconds: 900
+          allowed-account-ids: "770880870480"
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Validate protected bindings, current-run bridge, and governance inputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          EXPECTED_ARTIFACT_ID: ${{ inputs.candidate_bridge_artifact_id }}
+          EXPECTED_ARTIFACT_DIGEST: ${{ inputs.candidate_bridge_artifact_digest }}
+          ENVIRONMENT_GUARD: ${{ vars.WINDOWS_UPDATE_LOCATOR_SEAL_ENVIRONMENT_GUARD }}
+          HANDOFF_ACCOUNT_ID: ${{ vars.WINDOWS_UPDATE_HANDOFF_ACCOUNT_ID }}
+          HANDOFF_REGION: ${{ vars.WINDOWS_UPDATE_HANDOFF_REGION }}
+          HANDOFF_BUCKET: ${{ vars.WINDOWS_UPDATE_HANDOFF_BUCKET }}
+          HANDOFF_KMS_KEY_ARN: ${{ vars.WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN }}
+          HANDOFF_SIGNED_PREFIX: ${{ vars.WINDOWS_UPDATE_HANDOFF_PREFIX }}
+          HANDOFF_GOVERNANCE_PREFIX: ${{ vars.WINDOWS_UPDATE_GOVERNANCE_PREFIX }}
+          LOCATOR_SEAL_ROLE_ARN: ${{ vars.WINDOWS_UPDATE_LOCATOR_SEAL_ROLE_ARN }}
+          LOCATOR_READER_ROLE_ARN: ${{ vars.WINDOWS_UPDATE_READER_ROLE_ARN }}
+          LOCATOR_WRAPPING_KEY_ARN: ${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN }}
+          LOCATOR_WRAPPING_PUBLIC_KEY_SPKI_B64: ${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_PUBLIC_KEY_SPKI_B64 }}
+          LOCATOR_WRAPPING_PUBLIC_KEY_SHA256: ${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_PUBLIC_KEY_SHA256 }}
+          RETAIN_UNTIL: ${{ vars.WINDOWS_UPDATE_LOCATOR_RETAIN_UNTIL }}
+          BASELINE_RELEASE_MANIFEST_B64: ${{ secrets.WINDOWS_UPDATE_BASELINE_RELEASE_MANIFEST_B64 }}
+          BASELINE_METADATA_B64: ${{ secrets.WINDOWS_UPDATE_BASELINE_METADATA_B64 }}
+          BASELINE_METADATA_SIGNATURE_B64: ${{ secrets.WINDOWS_UPDATE_BASELINE_METADATA_SIGNATURE_B64 }}
+          TARGET_RELEASE_MANIFEST_B64: ${{ secrets.WINDOWS_UPDATE_TARGET_RELEASE_MANIFEST_B64 }}
+          TARGET_METADATA_B64: ${{ secrets.WINDOWS_UPDATE_TARGET_METADATA_B64 }}
+          TARGET_METADATA_SIGNATURE_B64: ${{ secrets.WINDOWS_UPDATE_TARGET_METADATA_SIGNATURE_B64 }}
+          EXECUTION_INPUT_B64: ${{ secrets.WINDOWS_UPDATE_EXECUTION_INPUT_B64 }}
+          APPROVAL_RECEIPT_B64: ${{ secrets.WINDOWS_UPDATE_APPROVAL_RECEIPT_B64 }}
+          APPROVAL_SIGNATURE_B64: ${{ secrets.WINDOWS_UPDATE_APPROVAL_SIGNATURE_B64 }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Gonyak-cell/law-firm-os"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          [[ "$INPUT_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$INPUT_SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$INPUT_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$INPUT_SOURCE_TREE"
+          git diff --quiet HEAD --
+          test -z "$(git ls-files --others --exclude-standard)"
+          [[ "$EXPECTED_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$EXPECTED_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          bridge_metadata="$RUNNER_TEMP/candidate-locators-artifact.json"
+          bridge_archive="$RUNNER_TEMP/candidate-locators.zip"
+          curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 \
+            -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/Gonyak-cell/law-firm-os/actions/artifacts/$EXPECTED_ARTIFACT_ID" > "$bridge_metadata"
+          node -e '
+            const fs=require("fs");const artifact=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));const expectedName=`windows-formal-update-candidate-locators-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`;
+            if(String(artifact.id)!==process.env.EXPECTED_ARTIFACT_ID||artifact.name!==expectedName||artifact.expired!==false||artifact.digest!==`sha256:${process.env.EXPECTED_ARTIFACT_DIGEST}`||String(artifact.workflow_run?.id)!==process.env.GITHUB_RUN_ID||artifact.workflow_run?.head_sha!==process.env.INPUT_SOURCE_SHA)throw new Error("current-run candidate bridge metadata differs");' "$bridge_metadata"
+          curl --fail-with-body --silent --show-error --location --proto '=https' --tlsv1.2 \
+            -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/Gonyak-cell/law-firm-os/actions/artifacts/$EXPECTED_ARTIFACT_ID/zip" --output "$bridge_archive"
+          test "$(shasum -a 256 "$bridge_archive" | awk '{print $1}')" = "$EXPECTED_ARTIFACT_DIGEST"
+          expected_paths=$(printf '%s\n' \
+            baseline-locator \
+            baseline-locator/windows-signed-artifact-private-locator-envelope.json \
+            baseline-locator/windows-signed-artifact-private-locator.enc \
+            target-locator \
+            target-locator/windows-signed-artifact-private-locator-envelope.json \
+            target-locator/windows-signed-artifact-private-locator.enc | LC_ALL=C sort)
+          actual_paths=$(find -P "$RUNNER_TEMP/candidate-locators" -mindepth 1 -printf '%P\n' | LC_ALL=C sort)
+          test "$actual_paths" = "$expected_paths"
+          for role in baseline target; do
+            directory="$RUNNER_TEMP/candidate-locators/$role-locator"
+            test -d "$directory"
+            test ! -L "$directory"
+            for file in windows-signed-artifact-private-locator-envelope.json windows-signed-artifact-private-locator.enc; do
+              test -f "$directory/$file"
+              test ! -L "$directory/$file"
+            done
+          done
+          rm -f -- "$bridge_metadata" "$bridge_archive"
+          unset GH_TOKEN
+          test "$ENVIRONMENT_GUARD" = "law-firm-os.windows-formal-update-private-locator-seal.v1"
+          test "$HANDOFF_ACCOUNT_ID" = "770880870480"
+          test "$HANDOFF_REGION" = "ap-northeast-2"
+          test "$HANDOFF_SIGNED_PREFIX" = "windows/signed/v1/"
+          test "$HANDOFF_GOVERNANCE_PREFIX" = "windows/governance/v1/"
+          for name in HANDOFF_BUCKET HANDOFF_KMS_KEY_ARN LOCATOR_SEAL_ROLE_ARN LOCATOR_READER_ROLE_ARN LOCATOR_WRAPPING_KEY_ARN LOCATOR_WRAPPING_PUBLIC_KEY_SPKI_B64 LOCATOR_WRAPPING_PUBLIC_KEY_SHA256 RETAIN_UNTIL BASELINE_RELEASE_MANIFEST_B64 BASELINE_METADATA_B64 BASELINE_METADATA_SIGNATURE_B64 TARGET_RELEASE_MANIFEST_B64 TARGET_METADATA_B64 TARGET_METADATA_SIGNATURE_B64 EXECUTION_INPUT_B64 APPROVAL_RECEIPT_B64 APPROVAL_SIGNATURE_B64; do
+            test -n "${!name}"
+          done
+          governance="$RUNNER_TEMP/governance-input"
+          install -d -m 700 "$governance/baseline" "$governance/target" "$governance/governance"
+          printf '%s' "$BASELINE_RELEASE_MANIFEST_B64" | base64 --decode > "$governance/baseline/release-manifest.json"
+          printf '%s' "$BASELINE_METADATA_B64" | base64 --decode > "$governance/baseline/update-metadata.json"
+          printf '%s' "$BASELINE_METADATA_SIGNATURE_B64" | base64 --decode > "$governance/baseline/update-metadata.sig"
+          printf '%s' "$TARGET_RELEASE_MANIFEST_B64" | base64 --decode > "$governance/target/release-manifest.json"
+          printf '%s' "$TARGET_METADATA_B64" | base64 --decode > "$governance/target/update-metadata.json"
+          printf '%s' "$TARGET_METADATA_SIGNATURE_B64" | base64 --decode > "$governance/target/update-metadata.sig"
+          printf '%s' "$EXECUTION_INPUT_B64" | base64 --decode > "$governance/governance/execution-input.json"
+          printf '%s' "$APPROVAL_RECEIPT_B64" | base64 --decode > "$governance/governance/approval-receipt.json"
+          printf '%s' "$APPROVAL_SIGNATURE_B64" | base64 --decode > "$governance/governance/approval-receipt.json.sig"
+          chmod 600 "$governance"/*/*
+
+      - name: KMS unwrap candidates, validate exact 19 objects, upload governance, and seal aggregate
+        id: seal
+        shell: bash
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+          MATTER_WINDOWS_UPDATE_CANDIDATE_REFS_JSON: ${{ inputs.candidate_refs_json }}
+          MATTER_WINDOWS_UPDATE_BASELINE_LOCATOR_DIR: ${{ runner.temp }}/candidate-locators/baseline-locator
+          MATTER_WINDOWS_UPDATE_TARGET_LOCATOR_DIR: ${{ runner.temp }}/candidate-locators/target-locator
+          MATTER_WINDOWS_UPDATE_GOVERNANCE_ROOT: ${{ runner.temp }}/governance-input
+          MATTER_WINDOWS_UPDATE_LOCATOR_PRIVATE_ROOT: ${{ runner.temp }}/locator-private
+          MATTER_WINDOWS_UPDATE_LOCATOR_OUTPUT_DIR: ${{ runner.temp }}/locator-output
+          MATTER_WINDOWS_UPDATE_LOCATOR_RECEIPT_PATH: ${{ runner.temp }}/locator-seal-receipt.json
+          MATTER_WINDOWS_UPDATE_SEAL_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_WINDOWS_UPDATE_SEAL_SOURCE_TREE: ${{ inputs.source_tree }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_STORAGE_BINDINGS_JSON: >-
+            {"account_id":"770880870480","region":"ap-northeast-2","bucket":"${{ vars.WINDOWS_UPDATE_HANDOFF_BUCKET }}","kms_key_arn":"${{ vars.WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN }}","role_arn":"${{ vars.WINDOWS_UPDATE_LOCATOR_SEAL_ROLE_ARN }}","reader_role_arn":"${{ vars.WINDOWS_UPDATE_READER_ROLE_ARN }}","retain_until":"${{ vars.WINDOWS_UPDATE_LOCATOR_RETAIN_UNTIL }}","governance_prefix":"windows/governance/v1/","signed_prefix":"windows/signed/v1/","wrapping_key_arn":"${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN }}"}
+          MATTER_WINDOWS_UPDATE_LOCATOR_WRAPPING_BINDING_JSON: >-
+            {"key_arn":"${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN }}","public_key_spki_b64":"${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_PUBLIC_KEY_SPKI_B64 }}","public_key_sha256":"${{ vars.WINDOWS_UPDATE_LOCATOR_WRAPPING_PUBLIC_KEY_SHA256 }}"}
+        run: |
+          set -euo pipefail
+          summary=$(node scripts/run-windows-formal-update-private-locator-sealer.mjs --seal)
+          node -e 'const s=JSON.parse(process.argv[1]);if(s.verdict!=="PASS"||s.state!=="SEALED"||s.object_count!==19||s.governance_upload_count!==9||s.plaintext_locator_uploaded!==false||s.governance_plaintext_uploaded_to_github!==false)throw new Error("aggregate seal did not PASS")' "$summary"
+          node -e 'const s=JSON.parse(process.argv[1]);for(const k of ["private_locator_sha256","envelope_sha256","wrapping_public_key_sha256","receipt_sha256","artifact_name"])process.stdout.write(`${k}=${s[k]}\n`)' "$summary" >> "$GITHUB_OUTPUT"
+
+      - name: Clear AWS and OIDC credentials before publishing ciphertext
+        if: always()
+        shell: bash
+        run: |
+          unset ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN AWS_REGION AWS_DEFAULT_REGION
+          for name in ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN AWS_REGION AWS_DEFAULT_REGION; do printf '%s=\n' "$name" >> "$GITHUB_ENV"; done
+
+      - name: Upload only the hybrid-encrypted aggregate private locator
+        id: aggregate-upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-formal-update-private-locator-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/locator-output
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 30
+
+      - name: Publish sanitized locator reference and seal receipt only
+        if: steps.aggregate-upload.outputs.artifact-id != ''
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.aggregate-upload.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.aggregate-upload.outputs.artifact-digest }}
+          ENVELOPE_SHA256: ${{ steps.seal.outputs.envelope_sha256 }}
+          PRIVATE_LOCATOR_SHA256: ${{ steps.seal.outputs.private_locator_sha256 }}
+          WRAPPING_PUBLIC_KEY_SHA256: ${{ steps.seal.outputs.wrapping_public_key_sha256 }}
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          artifact_digest_hex=${ARTIFACT_DIGEST#sha256:}
+          [[ "$artifact_digest_hex" =~ ^[0-9a-f]{64}$ ]]
+          export ARTIFACT_DIGEST_HEX="$artifact_digest_hex"
+          evidence="$RUNNER_TEMP/locator-public-evidence"
+          install -d -m 700 "$evidence"
+          node -e '
+            const fs=require("fs");const ref={schema_version:"law-firm-os.windows-formal-update-private-locator-artifact-ref.v1",producer_repository:process.env.GITHUB_REPOSITORY,producer_workflow_ref:"Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-locator-seal.yml@refs/heads/main",producer_job:"seal-private-locator",producer_run_id:process.env.GITHUB_RUN_ID,producer_run_attempt:process.env.GITHUB_RUN_ATTEMPT,source_sha:process.env.INPUT_SOURCE_SHA,source_tree:process.env.INPUT_SOURCE_TREE,artifact_name:`windows-formal-update-private-locator-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`,artifact_id:process.env.ARTIFACT_ID,artifact_digest:`sha256:${process.env.ARTIFACT_DIGEST_HEX}`,envelope_sha256:process.env.ENVELOPE_SHA256,private_locator_sha256:process.env.PRIVATE_LOCATOR_SHA256,wrapping_public_key_sha256:process.env.WRAPPING_PUBLIC_KEY_SHA256};fs.writeFileSync(`${process.env.RUNNER_TEMP}/locator-public-evidence/private-locator-ref.json`,`${JSON.stringify(ref,null,2)}\n`,{mode:0o600});'
+
+      - name: Upload sanitized receipt and artifact reference
+        if: steps.aggregate-upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-formal-update-private-locator-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/locator-seal-receipt.json
+            ${{ runner.temp }}/locator-public-evidence/private-locator-ref.json
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 30
+
+      - name: Always remove candidate locators, governance plaintext, aggregate plaintext, ciphertext, and credentials
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/candidate-locators" "$RUNNER_TEMP/governance-input" "$RUNNER_TEMP/locator-private" "$RUNNER_TEMP/locator-output" "$RUNNER_TEMP/locator-public-evidence"
+          rm -f -- "$RUNNER_TEMP/candidate-locators.zip" "$RUNNER_TEMP/candidate-locators-artifact.json" "$RUNNER_TEMP/locator-seal-receipt.json"
+          unset ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN AWS_REGION AWS_DEFAULT_REGION GH_TOKEN

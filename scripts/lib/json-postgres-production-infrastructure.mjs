@@ -1,9 +1,45 @@
 import { createHash } from "node:crypto";
 
 export const JSON_POSTGRES_PRODUCTION_INFRASTRUCTURE_VERSION = "law-firm-os.json-postgres-production-infrastructure.v1";
-export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION = "law-firm-os.json-postgres-production-artifact-store.v1";
+export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION = "law-firm-os.json-postgres-production-artifact-store.v4";
 export const JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW = 300_000;
 export const JSON_POSTGRES_PRODUCTION_BUDGET_USD = 190;
+export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX = "windows/signed/v1/";
+export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_KEY_PATTERN =
+  "windows/signed/v1/{source_sha}/{version}/{candidate_role}/{artifact_kind}/sha256/{artifact_sha256}/{filename}";
+export const JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX =
+  "windows/governance/v1/";
+export const JSON_POSTGRES_WINDOWS_GOVERNANCE_KEY_PATTERN =
+  "windows/governance/v1/{artifact_id}/sha256/{artifact_sha256}/{filename}";
+const WINDOWS_SIGNED_ARTIFACT_ACCOUNT = "770880870480";
+const WINDOWS_SIGNED_ARTIFACT_REGION = "ap-northeast-2";
+const WINDOWS_SIGNED_ARTIFACT_REPOSITORY = "Gonyak-cell/law-firm-os";
+const WINDOWS_SIGNED_ARTIFACT_UPLOADER_ENVIRONMENT =
+  "windows-signed-artifact-handoff";
+const WINDOWS_SIGNED_ARTIFACT_READER_ENVIRONMENT =
+  "windows-formal-update-rollback";
+const WINDOWS_SIGNED_ARTIFACT_UPLOADER_WORKFLOW_REF =
+  "Gonyak-cell/law-firm-os/.github/workflows/windows-authenticode-package-qa.yml@refs/heads/main";
+const WINDOWS_SIGNED_ARTIFACT_UPLOADER_WORKFLOW =
+  "Windows Authenticode Package QA";
+const WINDOWS_SIGNED_ARTIFACT_UPLOADER_JOB_WORKFLOW_REF =
+  "Gonyak-cell/law-firm-os/.github/workflows/windows-signed-artifact-private-handoff-oidc.yml@refs/heads/main";
+const WINDOWS_SIGNED_ARTIFACT_READER_WORKFLOW_REF =
+  "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-rollback-qa.yml@refs/heads/main";
+const WINDOWS_SIGNED_ARTIFACT_READER_WORKFLOW =
+  "Windows Formal Operator Update And Rollback QA";
+const WINDOWS_SIGNED_ARTIFACT_READER_JOB_WORKFLOW_REF =
+  "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-reader-oidc.yml@refs/heads/main";
+const WINDOWS_UPDATE_LOCATOR_SEAL_ENVIRONMENT =
+  "windows-formal-update-private-locator-seal";
+const WINDOWS_UPDATE_LOCATOR_SEAL_WORKFLOW_REF =
+  "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-locator-seal.yml@refs/heads/main";
+const WINDOWS_UPDATE_LOCATOR_SEAL_WORKFLOW =
+  "Windows Formal Update Private Locator Seal";
+const WINDOWS_UPDATE_LOCATOR_SEAL_JOB_WORKFLOW_REF =
+  "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-locator-seal-oidc.yml@refs/heads/main";
+const WINDOWS_UPDATE_LOCATOR_SEAL_JOB = "seal-private-locator";
+const WINDOWS_SIGNED_ARTIFACT_REF = "refs/heads/main";
 export const JSON_POSTGRES_PRODUCTION_ENI_ACTIONS = Object.freeze([
   "ec2:CreateNetworkInterface",
   "ec2:DescribeNetworkInterfaces",
@@ -62,6 +98,852 @@ function tags() {
   ];
 }
 
+function windowsSignedArtifactHandoffMetadata({
+  aggregateLocator = false,
+  jobWorkflowRefs = false,
+} = {}) {
+  const metadata = {
+    schema_version: "law-firm-os.windows-signed-artifact-infrastructure.v1",
+    aws_account_id: WINDOWS_SIGNED_ARTIFACT_ACCOUNT,
+    aws_region: WINDOWS_SIGNED_ARTIFACT_REGION,
+    repository: WINDOWS_SIGNED_ARTIFACT_REPOSITORY,
+    oidc_audience: "sts.amazonaws.com",
+    wrapping_key_spec: "RSA_4096",
+    wrapping_key_usage: "ENCRYPT_DECRYPT",
+    wrapping_encryption_algorithm: "RSAES_OAEP_SHA_256",
+    wrapping_public_key_format: "DER_SPKI_BASE64",
+    wrapping_public_key_fingerprint_algorithm: "SHA-256",
+    object_prefix: JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX,
+    object_key_pattern: JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_KEY_PATTERN,
+    uploader_environment: WINDOWS_SIGNED_ARTIFACT_UPLOADER_ENVIRONMENT,
+    uploader_workflow: WINDOWS_SIGNED_ARTIFACT_UPLOADER_WORKFLOW,
+    uploader_workflow_ref: WINDOWS_SIGNED_ARTIFACT_UPLOADER_WORKFLOW_REF,
+    reader_environment: WINDOWS_SIGNED_ARTIFACT_READER_ENVIRONMENT,
+    reader_workflow: WINDOWS_SIGNED_ARTIFACT_READER_WORKFLOW,
+    reader_workflow_ref: WINDOWS_SIGNED_ARTIFACT_READER_WORKFLOW_REF,
+    git_ref: WINDOWS_SIGNED_ARTIFACT_REF,
+  };
+  const aggregateMetadata = aggregateLocator ? {
+    ...metadata,
+    schema_version: "law-firm-os.windows-signed-artifact-infrastructure.v2",
+    governance_prefix: JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+    governance_key_pattern: JSON_POSTGRES_WINDOWS_GOVERNANCE_KEY_PATTERN,
+    aggregate_locator_object_count: 19,
+    aggregate_locator_signed_object_count: 10,
+    aggregate_locator_governance_object_count: 9,
+    aggregate_sealer_environment: WINDOWS_UPDATE_LOCATOR_SEAL_ENVIRONMENT,
+    aggregate_sealer_workflow: WINDOWS_UPDATE_LOCATOR_SEAL_WORKFLOW,
+    aggregate_sealer_workflow_ref: WINDOWS_UPDATE_LOCATOR_SEAL_WORKFLOW_REF,
+    aggregate_sealer_job: WINDOWS_UPDATE_LOCATOR_SEAL_JOB,
+    locator_wrapping_key_reuse: "WindowsSignedArtifactWrappingKey",
+    locator_wrapping_algorithm: "RSAES_OAEP_SHA_256",
+  } : metadata;
+  return jobWorkflowRefs ? {
+    ...aggregateMetadata,
+    schema_version: "law-firm-os.windows-signed-artifact-infrastructure.v3",
+    uploader_job_workflow_ref:
+      WINDOWS_SIGNED_ARTIFACT_UPLOADER_JOB_WORKFLOW_REF,
+    reader_job_workflow_ref:
+      WINDOWS_SIGNED_ARTIFACT_READER_JOB_WORKFLOW_REF,
+    ...(aggregateLocator ? {
+      aggregate_sealer_job_workflow_ref:
+        WINDOWS_UPDATE_LOCATOR_SEAL_JOB_WORKFLOW_REF,
+    } : {}),
+  } : aggregateMetadata;
+}
+
+function githubOidcTrust({ environment, workflow, jobWorkflowRef, sid }) {
+  return {
+    Version: "2012-10-17",
+    Statement: [{
+      Sid: sid,
+      Effect: "Allow",
+      Principal: {
+        Federated: {
+          "Fn::Sub":
+            `arn:\${AWS::Partition}:iam::${WINDOWS_SIGNED_ARTIFACT_ACCOUNT}:oidc-provider/token.actions.githubusercontent.com`,
+        },
+      },
+      Action: "sts:AssumeRoleWithWebIdentity",
+      Condition: {
+        StringEquals: {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:sub":
+            `repo:${WINDOWS_SIGNED_ARTIFACT_REPOSITORY}:environment:${environment}`,
+          "token.actions.githubusercontent.com:ref":
+            WINDOWS_SIGNED_ARTIFACT_REF,
+          "token.actions.githubusercontent.com:workflow": workflow,
+          ...(jobWorkflowRef ? {
+            "token.actions.githubusercontent.com:job_workflow_ref":
+              jobWorkflowRef,
+          } : {}),
+        },
+      },
+    }],
+  };
+}
+
+function windowsSignedArtifactBucketResource() {
+  return { "Fn::GetAtt": ["ArtifactBucket", "Arn"] };
+}
+
+function windowsObjectResource(prefix = JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX) {
+  return {
+    "Fn::Sub":
+      `\${ArtifactBucket.Arn}/${prefix}*`,
+  };
+}
+
+function windowsSignedArtifactKmsCondition() {
+  return {
+    StringEquals: {
+      "kms:CallerAccount": WINDOWS_SIGNED_ARTIFACT_ACCOUNT,
+      "kms:ViaService": `s3.${WINDOWS_SIGNED_ARTIFACT_REGION}.amazonaws.com`,
+    },
+  };
+}
+
+function windowsSignedArtifactBucketGovernanceStatement() {
+  return {
+    Sid: "ReadWindowsSignedArtifactBucketGovernance",
+    Effect: "Allow",
+    Action: [
+      "s3:GetEncryptionConfiguration",
+      "s3:GetBucketLocation",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetBucketOwnershipControls",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketVersioning",
+    ],
+    Resource: windowsSignedArtifactBucketResource(),
+  };
+}
+
+function windowsVersionReadStatement({
+  sid = "ReadExactVersionedWindowsSignedArtifacts",
+  prefix = JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX,
+} = {}) {
+  return {
+    Sid: sid,
+    Effect: "Allow",
+    Action: ["s3:GetObjectVersion", "s3:GetObjectRetention"],
+    Resource: windowsObjectResource(prefix),
+  };
+}
+
+function windowsWrappingDecryptStatement(sid) {
+  return {
+    Sid: sid,
+    Effect: "Allow",
+    Action: "kms:Decrypt",
+    Resource: { "Fn::GetAtt": ["WindowsSignedArtifactWrappingKey", "Arn"] },
+    Condition: {
+      StringEquals: {
+        "kms:EncryptionAlgorithm": "RSAES_OAEP_SHA_256",
+      },
+    },
+  };
+}
+
+function windowsSignedArtifactRole({
+  roleName,
+  description,
+  environment,
+  workflow,
+  jobWorkflowRef,
+  trustSid,
+  policyName,
+  policyStatements,
+}) {
+  return {
+    Type: "AWS::IAM::Role",
+    Properties: {
+      RoleName: roleName,
+      Description: description,
+      MaxSessionDuration: 3600,
+      AssumeRolePolicyDocument: githubOidcTrust({
+        environment,
+        workflow,
+        jobWorkflowRef,
+        sid: trustSid,
+      }),
+      Policies: [{
+        PolicyName: policyName,
+        PolicyDocument: {
+          Version: "2012-10-17",
+          Statement: policyStatements,
+        },
+      }],
+      Tags: [
+        { Key: "environment", Value: "lawos-production" },
+        { Key: "system", Value: "lawos" },
+        { Key: "purpose", Value: "windows-signed-artifact-handoff" },
+      ],
+    },
+  };
+}
+
+function windowsSignedArtifactUploaderRole({
+  jobWorkflowRef = WINDOWS_SIGNED_ARTIFACT_UPLOADER_JOB_WORKFLOW_REF,
+} = {}) {
+  return windowsSignedArtifactRole({
+    roleName: "lawos-production-windows-signed-uploader",
+    description:
+      "GitHub OIDC producer for immutable content-addressed signed Windows artifacts",
+    environment: WINDOWS_SIGNED_ARTIFACT_UPLOADER_ENVIRONMENT,
+    workflow: WINDOWS_SIGNED_ARTIFACT_UPLOADER_WORKFLOW,
+    jobWorkflowRef,
+    trustSid: "GitHubOidcProtectedWindowsHandoffOnly",
+    policyName: "lawos-production-windows-signed-upload-readback",
+    policyStatements: [
+      windowsSignedArtifactBucketGovernanceStatement(),
+      {
+        Sid: "UploadImmutableContentAddressedWindowsSignedArtifacts",
+        Effect: "Allow",
+        Action: "s3:PutObject",
+        Resource: windowsObjectResource(),
+        Condition: {
+          StringEquals: {
+            "s3:x-amz-server-side-encryption": "aws:kms",
+            "s3:x-amz-server-side-encryption-aws-kms-key-id": {
+              "Fn::GetAtt": ["ArtifactKey", "Arn"],
+            },
+            "s3:object-lock-mode": "COMPLIANCE",
+          },
+          Null: { "s3:object-lock-retain-until-date": "false" },
+          NumericGreaterThanEquals: {
+            "s3:object-lock-remaining-retention-days": 365,
+          },
+          NumericLessThanEquals: {
+            "s3:object-lock-remaining-retention-days": 3650,
+          },
+        },
+      },
+      {
+        Sid: "AuthorizeImmutableWindowsSignedArtifactRetentionHeaders",
+        Effect: "Allow",
+        Action: "s3:PutObjectRetention",
+        Resource: windowsObjectResource(),
+        Condition: {
+          StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+          Null: { "s3:object-lock-retain-until-date": "false" },
+          NumericGreaterThanEquals: {
+            "s3:object-lock-remaining-retention-days": 365,
+          },
+          NumericLessThanEquals: {
+            "s3:object-lock-remaining-retention-days": 3650,
+          },
+        },
+      },
+      windowsVersionReadStatement(),
+      windowsWrappingDecryptStatement(
+        "UnwrapExactWindowsSignedArtifactEnvelope",
+      ),
+      {
+        Sid: "DescribeExactWindowsHandoffKeys",
+        Effect: "Allow",
+        Action: "kms:DescribeKey",
+        Resource: [
+          { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+          { "Fn::GetAtt": ["WindowsSignedArtifactWrappingKey", "Arn"] },
+        ],
+      },
+      {
+        Sid: "UseExactArtifactKeyForWindowsUploadAndReadback",
+        Effect: "Allow",
+        Action: ["kms:Decrypt", "kms:GenerateDataKey"],
+        Resource: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+        Condition: windowsSignedArtifactKmsCondition(),
+      },
+    ],
+  });
+}
+
+function windowsSignedArtifactReaderRole({
+  aggregateLocator = true,
+  jobWorkflowRef = WINDOWS_SIGNED_ARTIFACT_READER_JOB_WORKFLOW_REF,
+} = {}) {
+  const policyStatements = [
+    windowsSignedArtifactBucketGovernanceStatement(),
+    windowsVersionReadStatement(),
+    ...(aggregateLocator ? [
+      windowsVersionReadStatement({
+        sid: "ReadExactVersionedWindowsGovernanceArtifacts",
+        prefix: JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+      }),
+    ] : []),
+    {
+      Sid: "DecryptExactWindowsSignedArtifactVersions",
+      Effect: "Allow",
+      Action: ["kms:Decrypt", "kms:GenerateDataKey"],
+      Resource: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+      Condition: windowsSignedArtifactKmsCondition(),
+    },
+    {
+      Sid: "DescribeExactWindowsArtifactKey",
+      Effect: "Allow",
+      Action: "kms:DescribeKey",
+      Resource: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+    },
+    ...(aggregateLocator ? [
+      windowsWrappingDecryptStatement("UnwrapExactWindowsUpdateLocator"),
+    ] : []),
+  ];
+  return windowsSignedArtifactRole({
+    roleName: "lawos-production-windows-signed-operator-reader",
+    description:
+      "GitHub OIDC operator reader for exact immutable signed Windows artifact versions",
+    environment: WINDOWS_SIGNED_ARTIFACT_READER_ENVIRONMENT,
+    workflow: WINDOWS_SIGNED_ARTIFACT_READER_WORKFLOW,
+    jobWorkflowRef,
+    trustSid: "GitHubOidcProtectedWindowsOperatorOnly",
+    policyName: "lawos-production-windows-signed-version-reader",
+    policyStatements,
+  });
+}
+
+function windowsUpdateLocatorSealerRole({
+  jobWorkflowRef = WINDOWS_UPDATE_LOCATOR_SEAL_JOB_WORKFLOW_REF,
+} = {}) {
+  return windowsSignedArtifactRole({
+    roleName: "lawos-production-windows-update-locator-sealer",
+    description:
+      "GitHub OIDC sealer for exact private Windows update locators and immutable governance objects",
+    environment: WINDOWS_UPDATE_LOCATOR_SEAL_ENVIRONMENT,
+    workflow: WINDOWS_UPDATE_LOCATOR_SEAL_WORKFLOW,
+    jobWorkflowRef,
+    trustSid: "GitHubOidcProtectedWindowsLocatorSealOnly",
+    policyName: "lawos-production-windows-update-locator-seal",
+    policyStatements: [
+      windowsSignedArtifactBucketGovernanceStatement(),
+      windowsVersionReadStatement(),
+      {
+        Sid: "UploadImmutableContentAddressedWindowsGovernance",
+        Effect: "Allow",
+        Action: "s3:PutObject",
+        Resource: windowsObjectResource(
+          JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+        ),
+        Condition: {
+          StringEquals: {
+            "s3:x-amz-server-side-encryption": "aws:kms",
+            "s3:x-amz-server-side-encryption-aws-kms-key-id": {
+              "Fn::GetAtt": ["ArtifactKey", "Arn"],
+            },
+            "s3:object-lock-mode": "COMPLIANCE",
+          },
+          Null: { "s3:object-lock-retain-until-date": "false" },
+          NumericGreaterThanEquals: {
+            "s3:object-lock-remaining-retention-days": 365,
+          },
+          NumericLessThanEquals: {
+            "s3:object-lock-remaining-retention-days": 3650,
+          },
+        },
+      },
+      {
+        Sid: "AuthorizeImmutableWindowsGovernanceRetentionHeaders",
+        Effect: "Allow",
+        Action: "s3:PutObjectRetention",
+        Resource: windowsObjectResource(
+          JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+        ),
+        Condition: {
+          StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+          Null: { "s3:object-lock-retain-until-date": "false" },
+          NumericGreaterThanEquals: {
+            "s3:object-lock-remaining-retention-days": 365,
+          },
+          NumericLessThanEquals: {
+            "s3:object-lock-remaining-retention-days": 3650,
+          },
+        },
+      },
+      windowsVersionReadStatement({
+        sid: "ReadBackExactVersionedWindowsGovernance",
+        prefix: JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+      }),
+      windowsWrappingDecryptStatement("UnwrapExactCandidateLocators"),
+      {
+        Sid: "DescribeExactWindowsLocatorSealKeys",
+        Effect: "Allow",
+        Action: "kms:DescribeKey",
+        Resource: [
+          { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+          { "Fn::GetAtt": ["WindowsSignedArtifactWrappingKey", "Arn"] },
+        ],
+      },
+      {
+        Sid: "UseExactArtifactKeyForGovernanceUploadAndReadback",
+        Effect: "Allow",
+        Action: ["kms:Decrypt", "kms:GenerateDataKey"],
+        Resource: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+        Condition: windowsSignedArtifactKmsCondition(),
+      },
+    ],
+  });
+}
+
+function windowsSignedArtifactWrappingKey() {
+  return {
+    Type: "AWS::KMS::Key",
+    DeletionPolicy: "Retain",
+    UpdateReplacePolicy: "Retain",
+    Properties: {
+      Description:
+        "LawOS signed Windows handoff RSA-OAEP wrapping key",
+      KeySpec: "RSA_4096",
+      KeyUsage: "ENCRYPT_DECRYPT",
+      KeyPolicy: {
+        Version: "2012-10-17",
+        Statement: [{
+          Sid: "EnableAccountIamAuthority",
+          Effect: "Allow",
+          Principal: {
+            AWS: {
+              "Fn::Sub":
+                "arn:${AWS::Partition}:iam::${AWS::AccountId}:root",
+            },
+          },
+          Action: "kms:*",
+          Resource: "*",
+        }],
+      },
+      PendingWindowInDays: 30,
+      Tags: [
+        { Key: "Name", Value: "lawos-production-windows-handoff-wrapping" },
+        { Key: "environment", Value: "lawos-production" },
+        { Key: "system", Value: "lawos" },
+        { Key: "purpose", Value: "windows-signed-artifact-handoff" },
+        { Key: "owner", Value: { Ref: "Owner" } },
+        { Key: "review", Value: { Ref: "ReviewDate" } },
+      ],
+    },
+  };
+}
+
+function productionArtifactStoreOutputs({
+  aggregateLocator = false,
+  jobWorkflowRefs = false,
+} = {}) {
+  const outputs = {
+    ArtifactBucketName: { Value: { Ref: "ArtifactBucket" } },
+    ArtifactBucketArn: { Value: { "Fn::GetAtt": ["ArtifactBucket", "Arn"] } },
+    ArtifactKmsKeyArn: { Value: { "Fn::GetAtt": ["ArtifactKey", "Arn"] } },
+    SourceSha: { Value: { Ref: "SourceSha" } },
+    SourceTree: { Value: { Ref: "SourceTree" } },
+    ExecutionPacketSha256: { Value: { Ref: "ExecutionPacketSha256" } },
+    WindowsSignedArtifactPrefix: {
+      Value: JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX,
+    },
+    WindowsSignedArtifactKeyPattern: {
+      Value: JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_KEY_PATTERN,
+    },
+    WindowsSignedArtifactUploaderRoleArn: {
+      Value: { "Fn::GetAtt": ["WindowsSignedArtifactUploaderRole", "Arn"] },
+    },
+    WindowsSignedArtifactReaderRoleArn: {
+      Value: { "Fn::GetAtt": ["WindowsSignedArtifactReaderRole", "Arn"] },
+    },
+    WindowsSignedArtifactAwsAccountId: {
+      Value: WINDOWS_SIGNED_ARTIFACT_ACCOUNT,
+    },
+    WindowsSignedArtifactAwsRegion: {
+      Value: WINDOWS_SIGNED_ARTIFACT_REGION,
+    },
+    WindowsSignedArtifactDefaultRetentionDays: {
+      Value: 365,
+    },
+    WindowsSignedArtifactUploaderEnvironment: {
+      Value: WINDOWS_SIGNED_ARTIFACT_UPLOADER_ENVIRONMENT,
+    },
+    WindowsSignedArtifactReaderEnvironment: {
+      Value: WINDOWS_SIGNED_ARTIFACT_READER_ENVIRONMENT,
+    },
+    WindowsSignedArtifactUploaderWorkflowRef: {
+      Value: WINDOWS_SIGNED_ARTIFACT_UPLOADER_WORKFLOW_REF,
+    },
+    WindowsSignedArtifactReaderWorkflowRef: {
+      Value: WINDOWS_SIGNED_ARTIFACT_READER_WORKFLOW_REF,
+    },
+    WindowsSignedArtifactWrappingKeyArn: {
+      Value: { "Fn::GetAtt": ["WindowsSignedArtifactWrappingKey", "Arn"] },
+    },
+    WindowsSignedArtifactWrappingKeyId: {
+      Value: { Ref: "WindowsSignedArtifactWrappingKey" },
+    },
+    WindowsSignedArtifactWrappingEncryptionAlgorithm: {
+      Value: "RSAES_OAEP_SHA_256",
+    },
+    WindowsSignedArtifactWrappingPublicKeyFormat: {
+      Value: "DER_SPKI_BASE64",
+    },
+    WindowsSignedArtifactWrappingPublicKeyFingerprintAlgorithm: {
+      Value: "SHA-256",
+    },
+  };
+  if (jobWorkflowRefs) {
+    outputs.WindowsSignedArtifactUploaderJobWorkflowRef = {
+      Value: WINDOWS_SIGNED_ARTIFACT_UPLOADER_JOB_WORKFLOW_REF,
+    };
+    outputs.WindowsSignedArtifactReaderJobWorkflowRef = {
+      Value: WINDOWS_SIGNED_ARTIFACT_READER_JOB_WORKFLOW_REF,
+    };
+  }
+  return aggregateLocator ? {
+    ...outputs,
+    WindowsSignedArtifactGovernancePrefix: {
+      Value: JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+    },
+    WindowsSignedArtifactGovernanceKeyPattern: {
+      Value: JSON_POSTGRES_WINDOWS_GOVERNANCE_KEY_PATTERN,
+    },
+    WindowsSignedArtifactLocatorSealRoleArn: {
+      Value: {
+        "Fn::GetAtt": ["WindowsSignedArtifactLocatorSealerRole", "Arn"],
+      },
+    },
+    WindowsSignedArtifactLocatorSealEnvironment: {
+      Value: WINDOWS_UPDATE_LOCATOR_SEAL_ENVIRONMENT,
+    },
+    WindowsSignedArtifactLocatorSealWorkflowRef: {
+      Value: WINDOWS_UPDATE_LOCATOR_SEAL_WORKFLOW_REF,
+    },
+    ...(jobWorkflowRefs ? {
+      WindowsSignedArtifactLocatorSealJobWorkflowRef: {
+        Value: WINDOWS_UPDATE_LOCATOR_SEAL_JOB_WORKFLOW_REF,
+      },
+    } : {}),
+    WindowsSignedArtifactLocatorSealJob: {
+      Value: WINDOWS_UPDATE_LOCATOR_SEAL_JOB,
+    },
+    WindowsSignedArtifactLocatorUnwrapKmsKeyArn: {
+      Value: { "Fn::GetAtt": ["WindowsSignedArtifactWrappingKey", "Arn"] },
+    },
+  } : outputs;
+}
+
+export function buildJsonPostgresProductionArtifactStoreWindowsHandoffV3Template() {
+  const template = buildJsonPostgresProductionArtifactStoreTemplate();
+  template.Metadata.schema_version =
+    "law-firm-os.json-postgres-production-artifact-store.v3";
+  template.Metadata.windows_signed_artifact_handoff =
+    windowsSignedArtifactHandoffMetadata({ aggregateLocator: true });
+  template.Resources.WindowsSignedArtifactUploaderRole =
+    windowsSignedArtifactUploaderRole({ jobWorkflowRef: null });
+  template.Resources.WindowsSignedArtifactReaderRole =
+    windowsSignedArtifactReaderRole({ jobWorkflowRef: null });
+  template.Resources.WindowsSignedArtifactLocatorSealerRole =
+    windowsUpdateLocatorSealerRole({ jobWorkflowRef: null });
+  template.Outputs = productionArtifactStoreOutputs({
+    aggregateLocator: true,
+  });
+  return template;
+}
+
+export function buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template() {
+  const template =
+    buildJsonPostgresProductionArtifactStoreWindowsHandoffV3Template();
+  template.Metadata.schema_version =
+    "law-firm-os.json-postgres-production-artifact-store.v2";
+  template.Metadata.windows_signed_artifact_handoff =
+    windowsSignedArtifactHandoffMetadata();
+  template.Resources.ArtifactBucketPolicy.Properties.PolicyDocument.Statement =
+    template.Resources.ArtifactBucketPolicy.Properties.PolicyDocument.Statement
+      .filter((item) => !item.Sid.startsWith("DenyWindowsGovernance"));
+  delete template.Resources.WindowsSignedArtifactLocatorSealerRole;
+  template.Resources.WindowsSignedArtifactReaderRole =
+    windowsSignedArtifactReaderRole({
+      aggregateLocator: false,
+      jobWorkflowRef: null,
+    });
+  template.Outputs = productionArtifactStoreOutputs();
+  return template;
+}
+
+export function buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate() {
+  const template =
+    buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template();
+  template.Metadata.schema_version =
+    "law-firm-os.json-postgres-production-artifact-store.v1";
+  delete template.Metadata.windows_signed_artifact_handoff;
+  template.Resources.ArtifactBucketPolicy.Properties.PolicyDocument.Statement =
+    template.Resources.ArtifactBucketPolicy.Properties.PolicyDocument.Statement
+      .filter((item) => !item.Sid.startsWith("DenyWindowsHandoff"));
+  delete template.Resources.WindowsSignedArtifactWrappingKey;
+  delete template.Resources.WindowsSignedArtifactUploaderRole;
+  delete template.Resources.WindowsSignedArtifactReaderRole;
+  for (const output of Object.keys(template.Outputs)) {
+    if (output.startsWith("WindowsSignedArtifact")) {
+      delete template.Outputs[output];
+    }
+  }
+  return template;
+}
+
+export function classifyJsonPostgresProductionArtifactStoreWindowsHandoffTemplate(
+  template,
+) {
+  if (!template || typeof template !== "object" || Array.isArray(template)) {
+    fail("production artifact-store template body is invalid");
+  }
+  const templateSha256 = sha256(template);
+  const states = [
+    [
+      "legacy-v1",
+      sha256(
+        buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate(),
+      ),
+    ],
+    [
+      "windows-handoff-v2",
+      sha256(
+        buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template(),
+      ),
+    ],
+    [
+      "windows-handoff-v3",
+      sha256(
+        buildJsonPostgresProductionArtifactStoreWindowsHandoffV3Template(),
+      ),
+    ],
+    [
+      "windows-handoff-v4",
+      sha256(buildJsonPostgresProductionArtifactStoreTemplate()),
+    ],
+  ];
+  const state = states.find(([, digest]) => digest === templateSha256)?.[0];
+  if (!state) {
+    fail(
+      "production artifact store is not an exact supported Windows handoff template",
+    );
+  }
+  return Object.freeze({ state, template_sha256: templateSha256 });
+}
+
+export function validateJsonPostgresProductionArtifactStoreWindowsHandoffLiveGovernance({
+  template,
+  outputs,
+  artifactKmsKeyRef,
+  location,
+  ownership,
+  bucketPolicy,
+  expectedBucketPolicy,
+  artifactKeyPolicy,
+  expectedArtifactKeyPolicy,
+  artifactKey,
+  artifactKeyAliases,
+  artifactKeyRotation,
+} = {}) {
+  const deployment =
+    classifyJsonPostgresProductionArtifactStoreWindowsHandoffTemplate(template);
+  const expectedAlias =
+    template.Resources?.ArtifactKeyAlias?.Properties?.AliasName;
+  const expectedKeyArn = outputs?.ArtifactKmsKeyArn;
+  const expectedKeyId = expectedKeyArn?.split("/").at(-1);
+  const aliases = artifactKeyAliases?.Aliases ?? [];
+  if (!bucketPolicy || typeof bucketPolicy !== "object"
+    || !expectedBucketPolicy || typeof expectedBucketPolicy !== "object"
+    || !artifactKeyPolicy || typeof artifactKeyPolicy !== "object"
+    || !expectedArtifactKeyPolicy
+    || typeof expectedArtifactKeyPolicy !== "object"
+    || location?.LocationConstraint !== WINDOWS_SIGNED_ARTIFACT_REGION
+    || stableJson(ownership) !== stableJson({
+      OwnershipControls: {
+        Rules: [{ ObjectOwnership: "BucketOwnerEnforced" }],
+      },
+    })
+    || artifactKmsKeyRef !== expectedAlias
+    || !/^arn:aws:kms:ap-northeast-2:770880870480:key\/[0-9a-f-]+$/u
+      .test(expectedKeyArn ?? "")
+    || artifactKey?.Arn !== expectedKeyArn
+    || artifactKey?.KeyId !== expectedKeyId
+    || artifactKey?.KeySpec !== "SYMMETRIC_DEFAULT"
+    || artifactKey?.KeyUsage !== "ENCRYPT_DECRYPT"
+    || artifactKey?.Enabled !== true
+    || artifactKey?.KeyState !== "Enabled"
+    || artifactKey?.KeyManager !== "CUSTOMER"
+    || artifactKey?.Origin !== "AWS_KMS"
+    || artifactKey?.MultiRegion !== false
+    || artifactKeyRotation?.KeyRotationEnabled !== true
+    || artifactKeyAliases?.Truncated === true
+    || aliases.length !== 1
+    || aliases[0]?.AliasName !== expectedAlias
+    || aliases[0]?.TargetKeyId !== expectedKeyId
+    || stableJson(bucketPolicy) !== stableJson(expectedBucketPolicy)
+    || stableJson(artifactKeyPolicy)
+      !== stableJson(expectedArtifactKeyPolicy)) {
+    fail("production artifact-store live governance drifted");
+  }
+  return Object.freeze({
+    verdict: "PASS",
+    deployment_state: deployment.state,
+    template_sha256: deployment.template_sha256,
+    bucket_location: WINDOWS_SIGNED_ARTIFACT_REGION,
+    bucket_owner_enforced: true,
+    artifact_kms_alias: expectedAlias,
+    artifact_kms_key_arn: expectedKeyArn,
+    artifact_kms_key_rotation_enabled: true,
+    live_governance_drift_count: 0,
+  });
+}
+
+function normalizedWindowsHandoffChanges(changeSet = {}) {
+  return (changeSet.Changes ?? []).map(({ ResourceChange: change = {} }) => ({
+    action: change.Action,
+    logical_resource_id: change.LogicalResourceId,
+    physical_resource_id: change.PhysicalResourceId ?? null,
+    resource_type: change.ResourceType,
+    replacement: change.Replacement ?? "False",
+    scope: [...(change.Scope ?? [])].sort(),
+  })).sort((left, right) =>
+    left.logical_resource_id.localeCompare(
+      right.logical_resource_id,
+      "en",
+    ));
+}
+
+export function validateJsonPostgresProductionArtifactStoreWindowsHandoffChangeSet(
+  changeSet,
+  {
+    templateSha256,
+    parametersSha256,
+    actualParametersSha256,
+    baselineState,
+  } = {},
+) {
+  if (changeSet?.StackName !== "lawos-production-artifact-store"
+    || changeSet?.ChangeSetType !== "UPDATE"
+    || changeSet?.Status !== "CREATE_COMPLETE"
+    || changeSet?.ExecutionStatus !== "AVAILABLE"
+    || changeSet?.IncludeNestedStacks !== false
+    || stableJson(changeSet?.Capabilities)
+      !== stableJson(["CAPABILITY_NAMED_IAM"])
+    || typeof changeSet?.ChangeSetId !== "string"
+    || changeSet.ChangeSetId.length === 0
+    || !/^[0-9a-f]{64}$/u.test(templateSha256 ?? "")
+    || templateSha256
+      !== sha256(buildJsonPostgresProductionArtifactStoreTemplate())
+    || !/^[0-9a-f]{64}$/u.test(parametersSha256 ?? "")
+    || actualParametersSha256 !== parametersSha256
+    || ![
+      "legacy-v1",
+      "windows-handoff-v2",
+      "windows-handoff-v3",
+    ].includes(baselineState)) {
+    fail("production Windows handoff change set binding is invalid");
+  }
+  const changes = normalizedWindowsHandoffChanges(changeSet);
+  const expectedByBaseline = {
+    "legacy-v1": [
+      {
+        logical_resource_id: "ArtifactBucketPolicy",
+        resource_type: "AWS::S3::BucketPolicy",
+        action: "Modify",
+        scope: ["Properties"],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactLocatorSealerRole",
+        resource_type: "AWS::IAM::Role",
+        action: "Add",
+        scope: [],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactReaderRole",
+        resource_type: "AWS::IAM::Role",
+        action: "Add",
+        scope: [],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactUploaderRole",
+        resource_type: "AWS::IAM::Role",
+        action: "Add",
+        scope: [],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactWrappingKey",
+        resource_type: "AWS::KMS::Key",
+        action: "Add",
+        scope: [],
+      },
+    ],
+    "windows-handoff-v2": [
+      {
+        logical_resource_id: "ArtifactBucketPolicy",
+        resource_type: "AWS::S3::BucketPolicy",
+        action: "Modify",
+        scope: ["Properties"],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactLocatorSealerRole",
+        resource_type: "AWS::IAM::Role",
+        action: "Add",
+        scope: [],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactReaderRole",
+        resource_type: "AWS::IAM::Role",
+        action: "Modify",
+        scope: ["Properties"],
+      },
+      {
+        logical_resource_id: "WindowsSignedArtifactUploaderRole",
+        resource_type: "AWS::IAM::Role",
+        action: "Modify",
+        scope: ["Properties"],
+      },
+    ],
+    "windows-handoff-v3": [
+      ...[
+        "WindowsSignedArtifactLocatorSealerRole",
+        "WindowsSignedArtifactReaderRole",
+        "WindowsSignedArtifactUploaderRole",
+      ].map((logicalResourceId) => ({
+        logical_resource_id: logicalResourceId,
+        resource_type: "AWS::IAM::Role",
+        action: "Modify",
+        scope: ["Properties"],
+      })),
+    ],
+  };
+  const expected = expectedByBaseline[baselineState];
+  if (changes.length !== expected.length
+    || changes.some((change, index) => {
+      const target = expected[index];
+      return change.logical_resource_id !== target.logical_resource_id
+      || change.resource_type !== target.resource_type
+      || change.action !== target.action
+      || change.replacement !== "False"
+      || stableJson(change.scope) !== stableJson(target.scope)
+      || (target.action === "Add"
+        ? change.physical_resource_id !== null
+        : typeof change.physical_resource_id !== "string"
+          || change.physical_resource_id.length === 0);
+    })) {
+    fail("production Windows handoff change set contains an unapproved resource change");
+  }
+  const reviewMaterial = {
+    purpose: "windows-signed-artifact-handoff-infrastructure",
+    stack_name: "lawos-production-artifact-store",
+    change_set_type: "UPDATE",
+    change_set_id: changeSet.ChangeSetId,
+    template_sha256: templateSha256,
+    parameters_sha256: parametersSha256,
+    baseline_state: baselineState,
+    changes,
+  };
+  return Object.freeze({
+    verdict: "PASS",
+    ...reviewMaterial,
+    change_count: changes.length,
+    add_count: changes.filter(({ action }) => action === "Add").length,
+    modify_count: changes.filter(({ action }) => action === "Modify").length,
+    remove_count: 0,
+    replacement_true_count: 0,
+    reviewed_change_set_sha256: sha256(reviewMaterial),
+  });
+}
+
 export function buildJsonPostgresProductionArtifactStoreTemplate() {
   return {
     AWSTemplateFormatVersion: "2010-09-09",
@@ -70,6 +952,11 @@ export function buildJsonPostgresProductionArtifactStoreTemplate() {
       schema_version: JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION,
       monthly_cost_ceiling_krw: JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW,
       data_scope: "code-artifact-only",
+      windows_signed_artifact_handoff:
+        windowsSignedArtifactHandoffMetadata({
+          aggregateLocator: true,
+          jobWorkflowRefs: true,
+        }),
     },
     Parameters: {
       ArtifactBucketName: {
@@ -117,6 +1004,8 @@ export function buildJsonPostgresProductionArtifactStoreTemplate() {
           TargetKeyId: { Ref: "ArtifactKey" },
         },
       },
+      WindowsSignedArtifactWrappingKey:
+        windowsSignedArtifactWrappingKey(),
       ArtifactBucket: {
         Type: "AWS::S3::Bucket",
         DeletionPolicy: "Retain",
@@ -199,31 +1088,173 @@ export function buildJsonPostgresProductionArtifactStoreTemplate() {
                 Action: ["s3:DeleteObject", "s3:DeleteObjectVersion"],
                 Resource: { "Fn::Sub": "${ArtifactBucket.Arn}/*" },
               },
+              {
+                Sid: "DenyWindowsHandoffMissingObjectLockMode",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(),
+                Condition: {
+                  Null: { "s3:object-lock-mode": "true" },
+                },
+              },
+              {
+                Sid: "DenyWindowsHandoffNonComplianceObjectLockMode",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(),
+                Condition: {
+                  StringNotEquals: {
+                    "s3:object-lock-mode": "COMPLIANCE",
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsHandoffMissingRetentionDays",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(),
+                Condition: {
+                  Null: {
+                    "s3:object-lock-remaining-retention-days": "true",
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsHandoffRetentionBelowMinimum",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(),
+                Condition: {
+                  NumericLessThan: {
+                    "s3:object-lock-remaining-retention-days": 365,
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsHandoffRetentionAboveMaximum",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(),
+                Condition: {
+                  NumericGreaterThan: {
+                    "s3:object-lock-remaining-retention-days": 3650,
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsGovernanceMissingObjectLockMode",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(
+                  JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+                ),
+                Condition: {
+                  Null: { "s3:object-lock-mode": "true" },
+                },
+              },
+              {
+                Sid: "DenyWindowsGovernanceNonComplianceObjectLockMode",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(
+                  JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+                ),
+                Condition: {
+                  StringNotEquals: {
+                    "s3:object-lock-mode": "COMPLIANCE",
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsGovernanceMissingRetentionDays",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(
+                  JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+                ),
+                Condition: {
+                  Null: {
+                    "s3:object-lock-remaining-retention-days": "true",
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsGovernanceRetentionBelowMinimum",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(
+                  JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+                ),
+                Condition: {
+                  NumericLessThan: {
+                    "s3:object-lock-remaining-retention-days": 365,
+                  },
+                },
+              },
+              {
+                Sid: "DenyWindowsGovernanceRetentionAboveMaximum",
+                Effect: "Deny",
+                Principal: "*",
+                Action: ["s3:PutObject", "s3:PutObjectRetention"],
+                Resource: windowsObjectResource(
+                  JSON_POSTGRES_WINDOWS_GOVERNANCE_PREFIX,
+                ),
+                Condition: {
+                  NumericGreaterThan: {
+                    "s3:object-lock-remaining-retention-days": 3650,
+                  },
+                },
+              },
             ],
           },
         },
       },
+      WindowsSignedArtifactUploaderRole:
+        windowsSignedArtifactUploaderRole(),
+      WindowsSignedArtifactReaderRole:
+        windowsSignedArtifactReaderRole(),
+      WindowsSignedArtifactLocatorSealerRole:
+        windowsUpdateLocatorSealerRole(),
     },
-    Outputs: {
-      ArtifactBucketName: { Value: { Ref: "ArtifactBucket" } },
-      ArtifactBucketArn: { Value: { "Fn::GetAtt": ["ArtifactBucket", "Arn"] } },
-      ArtifactKmsKeyArn: { Value: { "Fn::GetAtt": ["ArtifactKey", "Arn"] } },
-      SourceSha: { Value: { Ref: "SourceSha" } },
-      SourceTree: { Value: { Ref: "SourceTree" } },
-      ExecutionPacketSha256: { Value: { Ref: "ExecutionPacketSha256" } },
-    },
+    Outputs: productionArtifactStoreOutputs({
+      aggregateLocator: true,
+      jobWorkflowRefs: true,
+    }),
   };
 }
 
 export function validateJsonPostgresProductionArtifactStoreTemplate(template) {
   if (template?.Metadata?.schema_version !== JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION
     || template?.Metadata?.monthly_cost_ceiling_krw !== JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW
-    || template?.Metadata?.data_scope !== "code-artifact-only") {
+    || template?.Metadata?.data_scope !== "code-artifact-only"
+    || stableJson(template?.Metadata?.windows_signed_artifact_handoff)
+      !== stableJson(windowsSignedArtifactHandoffMetadata({
+        aggregateLocator: true,
+        jobWorkflowRefs: true,
+      }))) {
     fail("production artifact store metadata drifted");
   }
   const resources = template.Resources ?? {};
   if (JSON.stringify(Object.keys(resources).sort())
-    !== JSON.stringify(["ArtifactBucket", "ArtifactBucketPolicy", "ArtifactKey", "ArtifactKeyAlias"].sort())) {
+    !== JSON.stringify([
+      "ArtifactBucket",
+      "ArtifactBucketPolicy",
+      "ArtifactKey",
+      "ArtifactKeyAlias",
+      "WindowsSignedArtifactLocatorSealerRole",
+      "WindowsSignedArtifactReaderRole",
+      "WindowsSignedArtifactUploaderRole",
+      "WindowsSignedArtifactWrappingKey",
+    ].sort())) {
     fail("production artifact store resource set drifted");
   }
   const bucket = resources.ArtifactBucket?.Properties;
@@ -233,7 +1264,16 @@ export function validateJsonPostgresProductionArtifactStoreTemplate(template) {
     || bucket.ObjectLockConfiguration?.Rule?.DefaultRetention?.Days < 365
     || bucket.VersioningConfiguration?.Status !== "Enabled"
     || bucket.BucketEncryption?.ServerSideEncryptionConfiguration?.[0]?.ServerSideEncryptionByDefault?.SSEAlgorithm !== "aws:kms"
-    || Object.values(bucket.PublicAccessBlockConfiguration ?? {}).some((value) => value !== true)) {
+    || stableJson(bucket.BucketEncryption?.ServerSideEncryptionConfiguration?.[0]?.ServerSideEncryptionByDefault?.KMSMasterKeyID)
+      !== stableJson({ "Fn::GetAtt": ["ArtifactKey", "Arn"] })
+    || stableJson(bucket.OwnershipControls)
+      !== stableJson({ Rules: [{ ObjectOwnership: "BucketOwnerEnforced" }] })
+    || stableJson(bucket.PublicAccessBlockConfiguration) !== stableJson({
+      BlockPublicAcls: true,
+      BlockPublicPolicy: true,
+      IgnorePublicAcls: true,
+      RestrictPublicBuckets: true,
+    })) {
     fail("production artifact bucket governance drifted");
   }
   const key = resources.ArtifactKey?.Properties;
@@ -253,13 +1293,38 @@ export function validateJsonPostgresProductionArtifactStoreTemplate(template) {
     || JSON.stringify(template).match(/public-read|PubliclyAccessible/iu)) {
     fail("production artifact bucket policy drifted");
   }
+  if (stableJson(resources.WindowsSignedArtifactWrappingKey)
+      !== stableJson(windowsSignedArtifactWrappingKey())) {
+    fail("production Windows handoff wrapping key drifted");
+  }
+  if (stableJson(resources.WindowsSignedArtifactUploaderRole)
+      !== stableJson(windowsSignedArtifactUploaderRole())
+    || stableJson(resources.WindowsSignedArtifactReaderRole)
+      !== stableJson(windowsSignedArtifactReaderRole())
+    || stableJson(resources.WindowsSignedArtifactLocatorSealerRole)
+      !== stableJson(windowsUpdateLocatorSealerRole())) {
+    fail("production Windows handoff IAM drifted");
+  }
+  if (stableJson(template.Outputs)
+      !== stableJson(productionArtifactStoreOutputs({
+        aggregateLocator: true,
+        jobWorkflowRefs: true,
+      }))) {
+    fail("production Windows handoff outputs drifted");
+  }
+  if (stableJson(template)
+      !== stableJson(buildJsonPostgresProductionArtifactStoreTemplate())) {
+    fail("production artifact store template drifted");
+  }
   return Object.freeze({
     verdict: "PASS",
     template_sha256: sha256(template),
-    resource_count: 4,
+    resource_count: 8,
     object_lock_bucket_count: 1,
     public_resource_count: 0,
     deletion_deny_count: 1,
+    github_oidc_role_count: 3,
+    asymmetric_wrapping_key_count: 1,
     monthly_cost_ceiling_krw: JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW,
   });
 }
