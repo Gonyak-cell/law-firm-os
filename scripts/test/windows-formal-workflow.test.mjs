@@ -109,7 +109,7 @@ test("Windows formal workflow preserves current-version provenance outside the w
   ];
   const expandedWorkflow = workflow.replaceAll("$desktopVersion", desktopPackage.version);
   const artifactRoot = "${{ runner.temp }}\\matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}";
-  const uploadedArtifactRoot = artifactRoot.replace("\\", "/");
+  const uploadedArtifactRoot = artifactRoot.replaceAll("\\", "/");
   const buildReceiptPath = "${{ runner.temp }}\\matter-desktop-windows-receipt-${{ github.run_id }}-${{ github.run_attempt }}\\windows-build.md";
   const nativeQa = workflowStep(workflow, "Run native install, login, leave, payroll, restart, and uninstall QA");
   const verifyResult = workflowStep(workflow, "Verify native result and preserve signing boundary");
