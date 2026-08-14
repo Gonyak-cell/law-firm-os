@@ -540,7 +540,7 @@ test("prepares and verifies an exact-byte named macOS pilot bundle", async (t) =
   assert.match(install, /TRUST_ROOT_NOT_CONFIGURED/u);
 
   const intakeInput = {
-    schema_version: "law-firm-os.external-release-readiness-input.v0.2",
+    schema_version: "law-firm-os.external-release-readiness-input.v0.3",
     tenant_identity_schema_version: "law-firm-os.external-tenant-identity.v1",
     status: "BLOCKED_PENDING_EXTERNAL_INPUTS",
     release: {
@@ -574,6 +574,7 @@ test("prepares and verifies an exact-byte named macOS pilot bundle", async (t) =
           "utf8",
         )),
       },
+      windows_distribution_update_rollback: { receipt_ref: null },
       operations_support_rollback: { receipt_ref: null },
       backup_restore_rehearsal: { receipt_ref: null },
       legal_owner_approval: { receipt_ref: null },

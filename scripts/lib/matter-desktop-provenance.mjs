@@ -1,12 +1,25 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
+import {
+  closeSync,
+  constants,
+  fstatSync,
+  lstatSync,
+  openSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+} from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const DESKTOP_BUILD_MANIFEST_SCHEMA = "law-firm-os.matter-desktop-build-provenance.v1";
 export const DESKTOP_RENDERER_DIGEST_ALGORITHM = "sha256(sorted sha256 file manifest with ./ relative paths)";
+export const DESKTOP_INSTALLED_TREE_DIGEST_ALGORITHM = "sha256(UTF-8 byte-sorted sha256 bytes file manifest with ./ relative paths)";
+export const DESKTOP_INSTALLED_TREE_SBOM_SCHEMA = "law-firm-os.matter-desktop-installed-tree-sbom.v1";
+export const DESKTOP_INSTALLED_TREE_NATIVE_SNAPSHOT_SCHEMA = "law-firm-os.windows-installed-tree-native-snapshot.v1";
 export const DESKTOP_RELEASE_CHANNELS = Object.freeze(["dev", "internal", "candidate", "formal"]);
 
 const DESKTOP_RELEASE_CHANNEL_CONFIG = Object.freeze({
@@ -147,6 +160,264 @@ export function directoryDigest(directoryPath) {
     file_count: files.length,
     algorithm: DESKTOP_RENDERER_DIGEST_ALGORITHM,
   };
+}
+
+export function directoryFileInventory(directoryPath) {
+  const requestedRoot = lstatSync(directoryPath);
+  assert.equal(requestedRoot.isSymbolicLink(), false, "installed-tree root cannot be a symbolic link");
+  assert.equal(requestedRoot.isDirectory(), true, "installed-tree root must be a directory");
+  const root = realpathSync(directoryPath);
+  const files = [];
+  let totalBytes = 0;
+  const portableRelativePath = (filePath) => path.relative(root, filePath).split(path.sep).join("/");
+  const assertContained = (candidate, label) => {
+    const relative = path.relative(root, realpathSync(candidate));
+    assert.ok(
+      relative === "" || (!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`)),
+      `${label} escapes the installed tree`,
+    );
+  };
+  const sameSnapshot = (left, right) => left.dev === right.dev
+    && left.ino === right.ino
+    && left.mode === right.mode
+    && left.nlink === right.nlink
+    && left.size === right.size
+    && left.mtimeNs === right.mtimeNs
+    && left.ctimeNs === right.ctimeNs
+    && left.birthtimeNs === right.birthtimeNs;
+  const readStableFile = (absolutePath, relativePath) => {
+    const noFollow = constants.O_NOFOLLOW ?? 0;
+    let descriptor;
+    try {
+      descriptor = openSync(absolutePath, constants.O_RDONLY | noFollow);
+      const before = fstatSync(descriptor, { bigint: true });
+      const openedPath = lstatSync(absolutePath, { bigint: true });
+      const openedTarget = realpathSync(absolutePath);
+      assert.equal(before.isFile(), true, `installed-tree entry is not a regular file: ${relativePath}`);
+      assert.equal(before.nlink, 1n, `installed-tree file is hard-linked: ${relativePath}`);
+      assert.equal(openedPath.isSymbolicLink(), false, `installed-tree file became a symbolic link: ${relativePath}`);
+      assert.equal(sameSnapshot(before, openedPath), true, `installed-tree file changed before hashing: ${relativePath}`);
+      assertContained(openedTarget, "installed-tree opened file");
+      assert.equal(sameSnapshot(before, statSync(openedTarget, { bigint: true })), true, `installed-tree file identity changed before hashing: ${relativePath}`);
+      const bytes = readFileSync(descriptor);
+      const after = fstatSync(descriptor, { bigint: true });
+      const closedPath = lstatSync(absolutePath, { bigint: true });
+      const closedTarget = realpathSync(absolutePath);
+      assert.equal(closedPath.isSymbolicLink(), false, `installed-tree file became a symbolic link: ${relativePath}`);
+      assert.equal(openedTarget, closedTarget, `installed-tree file target changed while hashing: ${relativePath}`);
+      assertContained(closedTarget, "installed-tree closed file");
+      assert.equal(sameSnapshot(before, after), true, `installed-tree file changed while hashing: ${relativePath}`);
+      assert.equal(sameSnapshot(after, closedPath), true, `installed-tree file path changed while hashing: ${relativePath}`);
+      assert.equal(sameSnapshot(after, statSync(closedTarget, { bigint: true })), true, `installed-tree file identity changed while hashing: ${relativePath}`);
+      assert.equal(after.size, BigInt(bytes.length), `installed-tree file size changed while hashing: ${relativePath}`);
+      return bytes;
+    } finally {
+      if (descriptor !== undefined) closeSync(descriptor);
+    }
+  };
+  function visit(currentPath) {
+    const beforeDirectory = lstatSync(currentPath, { bigint: true });
+    const beforeTarget = realpathSync(currentPath);
+    assert.equal(beforeDirectory.isSymbolicLink(), false, "installed-tree directory cannot be a symbolic link");
+    assert.equal(beforeDirectory.isDirectory(), true, "installed-tree directory entry is invalid");
+    assertContained(currentPath, "installed-tree directory");
+    for (const entry of readdirSync(currentPath, { withFileTypes: true })) {
+      const absolutePath = path.join(currentPath, entry.name);
+      const stat = lstatSync(absolutePath);
+      assert.equal(stat.isSymbolicLink(), false, `installed tree cannot contain symbolic links: ${absolutePath}`);
+      if (stat.isDirectory()) {
+        visit(absolutePath);
+        continue;
+      }
+      assert.equal(stat.isFile(), true, `installed tree entries must be regular files: ${absolutePath}`);
+      assert.equal(stat.nlink, 1, `installed tree files cannot be hard-linked: ${absolutePath}`);
+      assertContained(absolutePath, "installed-tree file");
+      const relativePath = portableRelativePath(absolutePath);
+      assert.ok(relativePath && !relativePath.startsWith("../"), "installed-tree file path is invalid");
+      assert.equal(relativePath, relativePath.normalize("NFC"), "installed-tree file paths must use NFC");
+      assert.doesNotMatch(relativePath, /[\0\r\n]/u, "installed-tree file paths cannot contain control delimiters");
+      const bytes = readStableFile(absolutePath, relativePath);
+      assert.equal(bytes.length, stat.size, `installed-tree file changed before hashing: ${relativePath}`);
+      totalBytes += bytes.length;
+      assert.ok(Number.isSafeInteger(totalBytes), "installed-tree byte count exceeds the safe integer range");
+      files.push(Object.freeze({
+        path: `./${relativePath}`,
+        bytes: bytes.length,
+        sha256: sha256(bytes),
+      }));
+    }
+    const afterDirectory = lstatSync(currentPath, { bigint: true });
+    const afterTarget = realpathSync(currentPath);
+    assert.equal(beforeTarget, afterTarget, "installed-tree directory target changed while hashing");
+    assert.equal(sameSnapshot(beforeDirectory, afterDirectory), true, "installed-tree directory changed while hashing");
+  }
+  visit(root);
+  files.sort((left, right) => Buffer.compare(Buffer.from(left.path, "utf8"), Buffer.from(right.path, "utf8")));
+  assert.equal(new Set(files.map(({ path: filePath }) => filePath)).size, files.length, "installed-tree file paths must be unique");
+  const fileManifest = files.map((file) => (
+    `${file.sha256} ${file.bytes} ${file.path}\n`
+  )).join("");
+  return Object.freeze({
+    sha256: sha256(fileManifest),
+    file_count: files.length,
+    bytes: totalBytes,
+    algorithm: DESKTOP_INSTALLED_TREE_DIGEST_ALGORITHM,
+    files: Object.freeze(files),
+  });
+}
+
+function sriSha512(integrity, label) {
+  assert.match(integrity ?? "", /^sha512-[A-Za-z0-9+/]+={0,2}$/u, `${label} integrity must be SHA-512 SRI`);
+  const digest = Buffer.from(integrity.slice("sha512-".length), "base64");
+  assert.equal(digest.length, 64, `${label} integrity must decode to 64 bytes`);
+  return digest.toString("hex").toUpperCase();
+}
+
+export function buildMatterDesktopInstalledTreeSbom({
+  packageLock,
+  desktopPackage,
+  inventory,
+  sourceSha,
+  sourceTree,
+  installerSha256,
+  packagedExecutableSha256,
+  installedExecutableSha256,
+  installedExecutableRelativePath,
+  authenticodeValid,
+  signerCertificateSha1 = null,
+  timestampCertificateSha1s = [],
+  generatedAt,
+}) {
+  assert.equal(packageLock?.lockfileVersion, 3, "npm lockfile v3 is required for desktop SBOM");
+  const workspace = packageLock.packages?.["apps/desktop"];
+  assert.equal(workspace?.name, desktopPackage?.name, "desktop SBOM workspace name changed");
+  assert.equal(workspace?.version, desktopPackage?.version, "desktop SBOM workspace version changed");
+  assert.match(sourceSha ?? "", GIT_OBJECT_PATTERN, "desktop SBOM source SHA is invalid");
+  assert.match(sourceTree ?? "", GIT_OBJECT_PATTERN, "desktop SBOM source tree is invalid");
+  assert.match(installedExecutableRelativePath ?? "", /^\.\/(?!\.\.\/)[^\\\0\r\n]+$/u, "installed executable relative path is invalid");
+  const installedExecutablePathBody = installedExecutableRelativePath.slice(2);
+  assert.equal(path.posix.normalize(installedExecutablePathBody), installedExecutablePathBody, "installed executable relative path must be canonical");
+  assert.equal(installedExecutableRelativePath, installedExecutableRelativePath.normalize("NFC"), "installed executable relative path must use NFC");
+  for (const [label, value] of Object.entries({
+    installerSha256,
+    packagedExecutableSha256,
+    installedExecutableSha256,
+    installedTreeSha256: inventory?.sha256,
+  })) assert.match(value ?? "", SHA256_PATTERN, `${label} is invalid`);
+  assert.equal(packagedExecutableSha256, installedExecutableSha256, "installed executable bytes differ from packaged executable");
+  assert.equal(inventory?.algorithm, DESKTOP_INSTALLED_TREE_DIGEST_ALGORITHM);
+  assert.ok(Number.isInteger(inventory?.file_count) && inventory.file_count > 0, "installed-tree SBOM requires files");
+  assert.ok(Number.isSafeInteger(inventory?.bytes) && inventory.bytes > 0, "installed-tree SBOM requires bytes");
+  assert.ok(Array.isArray(inventory?.files) && inventory.files.length === inventory.file_count);
+  assert.equal(inventory?.native?.schema_version, DESKTOP_INSTALLED_TREE_NATIVE_SNAPSHOT_SCHEMA);
+  assert.equal(inventory?.native?.filesystem, "NTFS", "installed-tree SBOM requires an NTFS native snapshot");
+  assert.ok(Number.isInteger(inventory?.native?.directory_count) && inventory.native.directory_count > 0, "installed-tree SBOM requires native directory identities");
+  assert.match(inventory?.native?.identity_sha256 ?? "", SHA256_PATTERN, "installed-tree native identity digest is invalid");
+  assert.deepEqual(inventory?.native?.fixed_point_sequence, ["B0", "I1", "B1", "I2", "B2"]);
+  assert.equal(inventory?.native?.fixed_point_exact, true, "installed-tree native fixed point is not exact");
+  assert.equal(
+    inventory?.native?.equality_proof,
+    "B0_I1_B1_I2_B2_PUBLIC_AND_PRIVATE_MANIFEST_EXACT_EQUALITY",
+    "installed-tree native equality proof is invalid",
+  );
+  assert.ok(Array.isArray(inventory?.native?.phases) && inventory.native.phases.length === 5, "installed-tree native phases are incomplete");
+  for (const [index, phase] of inventory.native.phases.entries()) {
+    assert.equal(phase?.name, inventory.native.fixed_point_sequence[index]);
+    assert.equal(phase?.content_sha256, inventory.sha256);
+    assert.equal(phase?.identity_sha256, inventory.native.identity_sha256);
+    assert.equal(phase?.file_count, inventory.file_count);
+    assert.equal(phase?.directory_count, inventory.native.directory_count);
+    assert.equal(phase?.bytes, inventory.bytes);
+  }
+  assert.equal(inventory?.native?.reparse_point_count, 0);
+  assert.equal(inventory?.native?.alternate_data_stream_count, 0);
+  assert.equal(inventory?.native?.hard_link_count, 0);
+  const installedExecutableEntry = inventory.files.find(({ path: filePath }) => filePath === installedExecutableRelativePath);
+  assert.ok(installedExecutableEntry, "installed executable is missing from the installed-tree inventory");
+  assert.equal(installedExecutableEntry.sha256, installedExecutableSha256, "installed executable inventory hash differs");
+  assert.equal(typeof authenticodeValid, "boolean", "desktop SBOM Authenticode state is required");
+  if (authenticodeValid) {
+    assert.match(signerCertificateSha1 ?? "", /^[0-9A-F]{40}$/u, "desktop SBOM signer certificate SHA-1 is invalid");
+    assert.ok(timestampCertificateSha1s.length > 0, "desktop SBOM timestamp certificate is required");
+    for (const thumbprint of timestampCertificateSha1s) {
+      assert.match(thumbprint, /^[0-9A-F]{40}$/u, "desktop SBOM timestamp certificate SHA-1 is invalid");
+    }
+  } else {
+    assert.equal(signerCertificateSha1, null, "unsigned desktop SBOM cannot claim a signer");
+    assert.deepEqual(timestampCertificateSha1s, [], "unsigned desktop SBOM cannot claim timestamps");
+  }
+  assert.equal(new Date(generatedAt).toISOString(), generatedAt, "desktop SBOM timestamp must be canonical ISO");
+  const dependency = (name, type) => {
+    const descriptor = packageLock.packages?.[`node_modules/${name}`];
+    assert.ok(descriptor, `desktop SBOM dependency is missing from lockfile: ${name}`);
+    assert.equal(descriptor.license, "MIT", `desktop SBOM dependency license changed: ${name}`);
+    return {
+      type,
+      "bom-ref": `pkg:npm/${name}@${descriptor.version}`,
+      name,
+      version: descriptor.version,
+      scope: "required",
+      hashes: [{ alg: "SHA-512", content: sriSha512(descriptor.integrity, name) }],
+      licenses: [{ license: { id: descriptor.license } }],
+      purl: `pkg:npm/${name}@${descriptor.version}`,
+      externalReferences: [{ type: "distribution", url: descriptor.resolved }],
+    };
+  };
+  const dependencyComponents = [dependency("electron", "framework"), dependency("unpdf", "library")];
+  const fileComponents = inventory.files.map((file) => ({
+    type: "file",
+    "bom-ref": `urn:law-firm-os:installed-file:${sha256(file.path)}`,
+    name: file.path,
+    hashes: [{ alg: "SHA-256", content: file.sha256.toUpperCase() }],
+    properties: [{ name: "law-firm-os:file-bytes", value: String(file.bytes) }],
+  }));
+  const rootRef = `pkg:npm/%40law-firm-os/desktop@${desktopPackage.version}`;
+  const properties = [
+    ["schema-version", DESKTOP_INSTALLED_TREE_SBOM_SCHEMA],
+    ["source-sha", sourceSha],
+    ["source-tree", sourceTree],
+    ["installer-sha256", installerSha256],
+    ["packaged-executable-sha256", packagedExecutableSha256],
+    ["installed-executable-sha256", installedExecutableSha256],
+    ["installed-executable-path", installedExecutableRelativePath],
+    ["installed-tree-sha256", inventory.sha256],
+    ["installed-tree-file-count", String(inventory.file_count)],
+    ["installed-tree-bytes", String(inventory.bytes)],
+    ["installed-file-content-complete", "true"],
+    ["installed-directory-identity-complete", "true"],
+    ["native-snapshot-schema-version", inventory.native.schema_version],
+    ["native-filesystem", inventory.native.filesystem],
+    ["native-directory-count", String(inventory.native.directory_count)],
+    ["native-identity-sha256", inventory.native.identity_sha256],
+    ["native-fixed-point-sequence", inventory.native.fixed_point_sequence.join("->")],
+    ["native-fixed-point-exact", String(inventory.native.fixed_point_exact)],
+    ["dependency-inventory-complete", "false"],
+    ["dependency-inventory-scope", "direct-runtime-declarations"],
+    ["reparse-point-count", "0"],
+    ["alternate-data-stream-count", "0"],
+    ["authenticode-valid", String(authenticodeValid)],
+    ["signer-certificate-sha1", signerCertificateSha1 ?? ""],
+    ["timestamp-certificate-sha1s", timestampCertificateSha1s.join(",")],
+  ].map(([name, value]) => ({ name: `law-firm-os:${name}`, value }));
+  const bom = {
+    bomFormat: "CycloneDX",
+    specVersion: "1.5",
+    version: 1,
+    metadata: {
+      timestamp: generatedAt,
+      component: {
+        type: "application",
+        "bom-ref": rootRef,
+        group: "law-firm-os",
+        name: "matter-desktop-windows-installed-tree",
+        version: desktopPackage.version,
+        properties,
+      },
+    },
+    components: [...dependencyComponents, ...fileComponents],
+    dependencies: [{ ref: rootRef, dependsOn: dependencyComponents.map((entry) => entry["bom-ref"]) }],
+  };
+  return bom;
 }
 
 export function readDesktopBuildSourceIdentity(repoRoot) {

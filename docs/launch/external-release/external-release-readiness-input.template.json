@@ -1,5 +1,5 @@
 {
-  "schema_version": "law-firm-os.external-release-readiness-input.v0.2",
+  "schema_version": "law-firm-os.external-release-readiness-input.v0.3",
   "tenant_identity_schema_version": "law-firm-os.external-tenant-identity.v1",
   "status": "BLOCKED_PENDING_EXTERNAL_INPUTS",
   "release": {
@@ -41,6 +41,9 @@
       "receipt_ref": null
     },
     "macos_distribution": {
+      "receipt_ref": null
+    },
+    "windows_distribution_update_rollback": {
       "receipt_ref": null
     },
     "operations_support_rollback": {

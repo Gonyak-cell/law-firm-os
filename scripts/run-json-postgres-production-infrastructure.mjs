@@ -23,11 +23,18 @@ import {
   cloudFormationParameterJsonArgs,
   cloudFormationTemplateArgs,
   cloudFormationTemplateRequiresUrl,
+  cloudFormationTemplateSha256,
   validateCloudFormationChangeSetTemplate,
 } from "./lib/cloudformation-template-transport.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
+  buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
+  buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
+  buildJsonPostgresProductionArtifactStoreWindowsHandoffV3Template,
+  classifyJsonPostgresProductionArtifactStoreWindowsHandoffTemplate,
   validateJsonPostgresProductionArtifactStoreTemplate,
+  validateJsonPostgresProductionArtifactStoreWindowsHandoffLiveGovernance,
+  validateJsonPostgresProductionArtifactStoreWindowsHandoffChangeSet,
   validateJsonPostgresProductionCost,
   validateJsonPostgresProductionTemplate,
 } from "./lib/json-postgres-production-infrastructure.mjs";
@@ -78,6 +85,7 @@ import {
 const OPERATIONS = new Set([
   "preflight",
   "bootstrap-artifact-store",
+  "update-artifact-store-windows-handoff",
   "upload-artifact",
   "create-production-change-set",
   "execute-production-change-set",
@@ -322,7 +330,19 @@ function executeReviewedChangeSet(review) {
   return currentStack(review.stack_name);
 }
 
-function artifactStoreState(stack, { requireExactPacketBinding = false } = {}) {
+function parseAwsPolicy(value, label) {
+  if (value && typeof value === "object") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error(`${label} is not a JSON policy`);
+  }
+}
+
+function artifactStoreState(stack, {
+  requireExactPacketBinding = false,
+  expectedWindowsHandoffTemplate = null,
+} = {}) {
   const outputs = outputMap(stack);
   const binding = assertJsonPostgresArtifactStoreBinding({
     packet,
@@ -345,6 +365,56 @@ function artifactStoreState(stack, { requireExactPacketBinding = false } = {}) {
   if (key.KeyMetadata?.Arn !== outputs.ArtifactKmsKeyArn) {
     throw new Error("production artifact KMS alias does not resolve to the exact stack key");
   }
+  const liveGovernance = expectedWindowsHandoffTemplate === null
+    ? {}
+    : (() => {
+        const [
+          location,
+          ownership,
+          bucketPolicy,
+          artifactKeyPolicy,
+          artifactKeyAliases,
+          artifactKeyRotation,
+        ] = [
+          awsJson(["s3api", "get-bucket-location", "--bucket", bucket, "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT]),
+          awsJson(["s3api", "get-bucket-ownership-controls", "--bucket", bucket, "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT]),
+          awsJson(["s3api", "get-bucket-policy", "--bucket", bucket, "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT]),
+          awsJson(["kms", "get-key-policy", "--key-id", outputs.ArtifactKmsKeyArn, "--policy-name", "default"]),
+          awsJson(["kms", "list-aliases", "--key-id", outputs.ArtifactKmsKeyArn]),
+          awsJson(["kms", "get-key-rotation-status", "--key-id", outputs.ArtifactKmsKeyArn]),
+        ];
+        return {
+          ...validateJsonPostgresProductionArtifactStoreWindowsHandoffLiveGovernance({
+            template: expectedWindowsHandoffTemplate,
+            outputs,
+            artifactKmsKeyRef: packet.target.artifact_kms_key_ref,
+            location,
+            ownership,
+            bucketPolicy: parseAwsPolicy(
+              bucketPolicy.Policy,
+              "production artifact bucket policy",
+            ),
+            expectedBucketPolicy: resolveWindowsHandoffTemplateValue(
+              expectedWindowsHandoffTemplate.Resources.ArtifactBucketPolicy
+                .Properties.PolicyDocument,
+              outputs,
+            ),
+            artifactKeyPolicy: parseAwsPolicy(
+              artifactKeyPolicy.Policy,
+              "production artifact KMS key policy",
+            ),
+            expectedArtifactKeyPolicy: resolveWindowsHandoffTemplateValue(
+              expectedWindowsHandoffTemplate.Resources.ArtifactKey.Properties
+                .KeyPolicy,
+              outputs,
+            ),
+            artifactKey: key.KeyMetadata,
+            artifactKeyAliases,
+            artifactKeyRotation,
+          }),
+          live_governance_readback_count: 11,
+        };
+      })();
   return {
     ...binding,
     ...assertJsonPostgresArtifactBucketState({
@@ -355,8 +425,493 @@ function artifactStoreState(stack, { requireExactPacketBinding = false } = {}) {
       objectLock,
       encryption,
     }),
+    ...liveGovernance,
     artifact_kms_key_arn: outputs.ArtifactKmsKeyArn,
   };
+}
+
+function sameJson(left, right) {
+  return cloudFormationTemplateSha256(left)
+    === cloudFormationTemplateSha256(right);
+}
+
+function deployedArtifactStoreWindowsHandoffTemplate() {
+  const response = awsJson([
+    "cloudformation", "get-template",
+    "--stack-name", JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
+    "--template-stage", "Original",
+  ]);
+  let template = response.TemplateBody;
+  if (typeof template === "string") {
+    try {
+      template = JSON.parse(template);
+    } catch {
+      throw new Error("production artifact-store template is not JSON");
+    }
+  }
+  return Object.freeze({
+    ...classifyJsonPostgresProductionArtifactStoreWindowsHandoffTemplate(
+      template,
+    ),
+    template,
+  });
+}
+
+function assertArtifactStoreWindowsHandoffParameters(stack, template) {
+  const expectedParameterKeys = Object.keys(template.Parameters).sort();
+  const parameters = parameterMap(stack);
+  if (JSON.stringify(Object.keys(parameters).sort())
+      !== JSON.stringify(expectedParameterKeys)
+    || parameters.ArtifactBucketName
+      !== packet.target.artifact_bucket_name
+    || !/^[0-9a-f]{40}$/u.test(parameters.SourceSha ?? "")
+    || !/^[0-9a-f]{40}$/u.test(parameters.SourceTree ?? "")
+    || !/^[0-9a-f]{64}$/u.test(parameters.ExecutionPacketSha256 ?? "")
+    || !/^[A-Za-z0-9._@+-]{1,128}$/u.test(parameters.Owner ?? "")
+    || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/u.test(
+      parameters.ReviewDate ?? "",
+    )) {
+    throw new Error("production artifact-store parameters drifted");
+  }
+  return parameters;
+}
+
+function assertArtifactStoreWindowsHandoffBaseline(
+  stack,
+  deployment = deployedArtifactStoreWindowsHandoffTemplate(),
+) {
+  if (!stack || !["CREATE_COMPLETE", "UPDATE_COMPLETE"].includes(
+    stack.StackStatus,
+  ) || ![
+    "legacy-v1",
+    "windows-handoff-v2",
+    "windows-handoff-v3",
+  ].includes(deployment.state)) {
+    throw new Error("production artifact-store baseline stack is not stable");
+  }
+  const baseline = {
+    "legacy-v1":
+      buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
+    "windows-handoff-v2":
+      buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
+    "windows-handoff-v3":
+      buildJsonPostgresProductionArtifactStoreWindowsHandoffV3Template,
+  }[deployment.state]();
+  const baselineSha256 = cloudFormationTemplateSha256(baseline);
+  if (deployment.template_sha256 !== baselineSha256) {
+    throw new Error("production artifact-store baseline template drifted");
+  }
+  const outputs = outputMap(stack);
+  const parameters =
+    assertArtifactStoreWindowsHandoffParameters(stack, baseline);
+  if (deployment.state !== "legacy-v1") {
+    return Object.freeze({
+      baseline_state: deployment.state,
+      template_sha256: baselineSha256,
+      output_count: Object.keys(outputs).length,
+      parameter_count: Object.keys(parameters).length,
+      artifact_store: assertArtifactStoreWindowsHandoffState(
+        stack,
+        deployment,
+        { expectedState: deployment.state, template: baseline },
+      ),
+      parameters,
+    });
+  }
+  if (JSON.stringify(Object.keys(outputs).sort())
+      !== JSON.stringify(Object.keys(baseline.Outputs).sort())
+    || outputs.ArtifactBucketName !== packet.target.artifact_bucket_name
+    || outputs.ArtifactBucketArn
+      !== `arn:aws:s3:::${packet.target.artifact_bucket_name}`
+    || !new RegExp(
+      `^arn:aws:kms:${JSON_POSTGRES_PRODUCTION_REGION}:`
+        + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:key/[0-9a-f-]+$`,
+      "u",
+    ).test(outputs.ArtifactKmsKeyArn ?? "")
+    || outputs.SourceSha !== stack.Parameters?.find((item) =>
+      item.ParameterKey === "SourceSha")?.ParameterValue
+    || outputs.SourceTree !== stack.Parameters?.find((item) =>
+      item.ParameterKey === "SourceTree")?.ParameterValue
+    || outputs.ExecutionPacketSha256 !== stack.Parameters?.find((item) =>
+      item.ParameterKey === "ExecutionPacketSha256")?.ParameterValue) {
+    throw new Error("production artifact-store baseline outputs drifted");
+  }
+  return Object.freeze({
+    baseline_state: deployment.state,
+    template_sha256: baselineSha256,
+    output_count: Object.keys(outputs).length,
+    parameter_count: Object.keys(parameters).length,
+    artifact_store: artifactStoreState(stack, {
+      expectedWindowsHandoffTemplate: baseline,
+    }),
+    parameters,
+  });
+}
+
+function resolveWindowsHandoffTemplateValue(value, outputs) {
+  if (Array.isArray(value)) {
+    return value.map((item) =>
+      resolveWindowsHandoffTemplateValue(item, outputs));
+  }
+  if (!value || typeof value !== "object") return value;
+  if (Array.isArray(value["Fn::GetAtt"])) {
+    const [logicalId, attribute] = value["Fn::GetAtt"];
+    if (attribute !== "Arn") {
+      throw new Error("Windows handoff role uses an unsupported GetAtt");
+    }
+    const outputName = {
+      ArtifactBucket: "ArtifactBucketArn",
+      ArtifactKey: "ArtifactKmsKeyArn",
+      WindowsSignedArtifactWrappingKey:
+        "WindowsSignedArtifactWrappingKeyArn",
+    }[logicalId];
+    if (!outputName || !outputs[outputName]) {
+      throw new Error("Windows handoff role GetAtt output is missing");
+    }
+    return outputs[outputName];
+  }
+  if (typeof value["Fn::Sub"] === "string") {
+    return value["Fn::Sub"]
+      .replaceAll("${AWS::Partition}", "aws")
+      .replaceAll(
+        "${AWS::AccountId}",
+        JSON_POSTGRES_PRODUCTION_ACCOUNT,
+      )
+      .replaceAll("${AWS::Region}", JSON_POSTGRES_PRODUCTION_REGION)
+      .replaceAll("${ArtifactBucket.Arn}", outputs.ArtifactBucketArn);
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+    key,
+    resolveWindowsHandoffTemplateValue(item, outputs),
+  ]));
+}
+
+function assertWindowsHandoffRole({
+  logicalId,
+  outputName,
+  outputs,
+  template = artifactStoreTemplate,
+}) {
+  const expected = template.Resources[logicalId].Properties;
+  const role = awsJson([
+    "iam", "get-role", "--role-name", expected.RoleName,
+  ], { region: false }).Role;
+  if (role?.RoleName !== expected.RoleName
+    || role?.Arn !== outputs[outputName]
+    || role?.Path !== "/"
+    || role?.MaxSessionDuration !== expected.MaxSessionDuration
+    || role?.PermissionsBoundary != null
+    || !sameJson(
+      role?.AssumeRolePolicyDocument,
+      resolveWindowsHandoffTemplateValue(
+        expected.AssumeRolePolicyDocument,
+        outputs,
+      ),
+    )
+    || !sameJson(
+      Object.fromEntries((role?.Tags ?? []).map(({ Key, Value }) =>
+        [Key, Value])),
+      Object.fromEntries(expected.Tags.map(({ Key, Value }) =>
+        [Key, Value])),
+    )) {
+    throw new Error(`${expected.RoleName} identity or trust drifted`);
+  }
+  const policyName = expected.Policies[0].PolicyName;
+  const inline = awsJson([
+    "iam", "list-role-policies", "--role-name", expected.RoleName,
+  ], { region: false }).PolicyNames;
+  const attached = awsJson([
+    "iam", "list-attached-role-policies", "--role-name", expected.RoleName,
+  ], { region: false }).AttachedPolicies;
+  const policy = awsJson([
+    "iam", "get-role-policy",
+    "--role-name", expected.RoleName,
+    "--policy-name", policyName,
+  ], { region: false }).PolicyDocument;
+  if (JSON.stringify(inline) !== JSON.stringify([policyName])
+    || !Array.isArray(attached) || attached.length !== 0
+    || !sameJson(
+      policy,
+      resolveWindowsHandoffTemplateValue(
+        expected.Policies[0].PolicyDocument,
+        outputs,
+      ),
+    )) {
+    throw new Error(`${expected.RoleName} permission policy drifted`);
+  }
+  return Object.freeze({
+    role_arn: role.Arn,
+    max_session_duration_seconds: role.MaxSessionDuration,
+    inline_policy_count: 1,
+    attached_policy_count: 0,
+  });
+}
+
+function assertArtifactStoreWindowsHandoffState(
+  stack,
+  deployment = deployedArtifactStoreWindowsHandoffTemplate(),
+  {
+    expectedState = "windows-handoff-v4",
+    template = artifactStoreTemplate,
+  } = {},
+) {
+  if (!stack || !["CREATE_COMPLETE", "UPDATE_COMPLETE"].includes(
+    stack.StackStatus,
+  ) || deployment.state !== expectedState
+    || deployment.template_sha256
+      !== cloudFormationTemplateSha256(template)) {
+    throw new Error("production Windows handoff stack update is incomplete");
+  }
+  const outputs = outputMap(stack);
+  const parameters = assertArtifactStoreWindowsHandoffParameters(
+    stack,
+    template,
+  );
+  if (JSON.stringify(Object.keys(outputs).sort())
+      !== JSON.stringify(Object.keys(template.Outputs).sort())) {
+    throw new Error("production Windows handoff output set drifted");
+  }
+  const literalOutputs = {
+    WindowsSignedArtifactPrefix: "windows/signed/v1/",
+    WindowsSignedArtifactKeyPattern:
+      "windows/signed/v1/{source_sha}/{version}/{candidate_role}/{artifact_kind}/sha256/{artifact_sha256}/{filename}",
+    WindowsSignedArtifactAwsAccountId:
+      JSON_POSTGRES_PRODUCTION_ACCOUNT,
+    WindowsSignedArtifactAwsRegion:
+      JSON_POSTGRES_PRODUCTION_REGION,
+    WindowsSignedArtifactDefaultRetentionDays: "365",
+    WindowsSignedArtifactUploaderEnvironment:
+      "windows-signed-artifact-handoff",
+    WindowsSignedArtifactReaderEnvironment:
+      "windows-formal-update-rollback",
+    WindowsSignedArtifactUploaderWorkflowRef:
+      "Gonyak-cell/law-firm-os/.github/workflows/windows-authenticode-package-qa.yml@refs/heads/main",
+    WindowsSignedArtifactReaderWorkflowRef:
+      "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-rollback-qa.yml@refs/heads/main",
+    WindowsSignedArtifactUploaderJobWorkflowRef:
+      "Gonyak-cell/law-firm-os/.github/workflows/windows-signed-artifact-private-handoff-oidc.yml@refs/heads/main",
+    WindowsSignedArtifactReaderJobWorkflowRef:
+      "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-reader-oidc.yml@refs/heads/main",
+    WindowsSignedArtifactGovernancePrefix:
+      "windows/governance/v1/",
+    WindowsSignedArtifactGovernanceKeyPattern:
+      "windows/governance/v1/{artifact_id}/sha256/{artifact_sha256}/{filename}",
+    WindowsSignedArtifactLocatorSealEnvironment:
+      "windows-formal-update-private-locator-seal",
+    WindowsSignedArtifactLocatorSealWorkflowRef:
+      "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-locator-seal.yml@refs/heads/main",
+    WindowsSignedArtifactLocatorSealJobWorkflowRef:
+      "Gonyak-cell/law-firm-os/.github/workflows/windows-formal-update-private-locator-seal-oidc.yml@refs/heads/main",
+    WindowsSignedArtifactLocatorSealJob: "seal-private-locator",
+    WindowsSignedArtifactWrappingEncryptionAlgorithm:
+      "RSAES_OAEP_SHA_256",
+    WindowsSignedArtifactWrappingPublicKeyFormat: "DER_SPKI_BASE64",
+    WindowsSignedArtifactWrappingPublicKeyFingerprintAlgorithm: "SHA-256",
+  };
+  if (Object.entries(literalOutputs).some(([key, value]) =>
+    Object.hasOwn(template.Outputs, key) && outputs[key] !== value)
+    || outputs.ArtifactBucketName !== packet.target.artifact_bucket_name
+    || outputs.ArtifactBucketArn
+      !== `arn:aws:s3:::${packet.target.artifact_bucket_name}`
+    || outputs.SourceSha !== parameters.SourceSha
+    || outputs.SourceTree !== parameters.SourceTree
+    || outputs.ExecutionPacketSha256 !== parameters.ExecutionPacketSha256
+    || outputs.WindowsSignedArtifactUploaderRoleArn
+      !== `arn:aws:iam::${JSON_POSTGRES_PRODUCTION_ACCOUNT}:role/lawos-production-windows-signed-uploader`
+    || outputs.WindowsSignedArtifactReaderRoleArn
+      !== `arn:aws:iam::${JSON_POSTGRES_PRODUCTION_ACCOUNT}:role/lawos-production-windows-signed-operator-reader`
+    || (Object.hasOwn(
+      template.Outputs,
+      "WindowsSignedArtifactLocatorSealRoleArn",
+    ) && outputs.WindowsSignedArtifactLocatorSealRoleArn
+      !== `arn:aws:iam::${JSON_POSTGRES_PRODUCTION_ACCOUNT}:role/lawos-production-windows-update-locator-sealer`)
+    || outputs.WindowsSignedArtifactWrappingKeyArn
+      !== `arn:aws:kms:${JSON_POSTGRES_PRODUCTION_REGION}:`
+        + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:key/`
+        + outputs.WindowsSignedArtifactWrappingKeyId
+    || (Object.hasOwn(
+      template.Outputs,
+      "WindowsSignedArtifactLocatorUnwrapKmsKeyArn",
+    ) && outputs.WindowsSignedArtifactLocatorUnwrapKmsKeyArn
+      !== outputs.WindowsSignedArtifactWrappingKeyArn)) {
+    throw new Error("production Windows handoff output values drifted");
+  }
+  const artifactState = artifactStoreState(stack, {
+    expectedWindowsHandoffTemplate: template,
+  });
+  const liveWrappingKeyPolicy = parseAwsPolicy(awsJson([
+    "kms", "get-key-policy",
+    "--key-id", outputs.WindowsSignedArtifactWrappingKeyArn,
+    "--policy-name", "default",
+  ]).Policy, "production Windows wrapping key policy");
+  if (!sameJson(
+    liveWrappingKeyPolicy,
+    resolveWindowsHandoffTemplateValue(
+      template.Resources.WindowsSignedArtifactWrappingKey
+        .Properties.KeyPolicy,
+      outputs,
+    ),
+  )) {
+    throw new Error("production Windows handoff live policy drifted");
+  }
+  const wrappingKey = awsJson([
+    "kms", "describe-key",
+    "--key-id", outputs.WindowsSignedArtifactWrappingKeyArn,
+  ]).KeyMetadata;
+  if (wrappingKey?.Arn !== outputs.WindowsSignedArtifactWrappingKeyArn
+    || wrappingKey?.KeyId !== outputs.WindowsSignedArtifactWrappingKeyId
+    || wrappingKey?.KeySpec !== "RSA_4096"
+    || wrappingKey?.KeyUsage !== "ENCRYPT_DECRYPT"
+    || wrappingKey?.Enabled !== true
+    || wrappingKey?.KeyState !== "Enabled"
+    || wrappingKey?.KeyManager !== "CUSTOMER"
+    || wrappingKey?.Origin !== "AWS_KMS"
+    || wrappingKey?.MultiRegion !== false
+    || !Array.isArray(wrappingKey?.EncryptionAlgorithms)
+    || !wrappingKey.EncryptionAlgorithms.includes("RSAES_OAEP_SHA_256")) {
+    throw new Error("production Windows handoff wrapping key state drifted");
+  }
+  const roleReadback = {
+    uploader: assertWindowsHandoffRole({
+      logicalId: "WindowsSignedArtifactUploaderRole",
+      outputName: "WindowsSignedArtifactUploaderRoleArn",
+      outputs,
+      template,
+    }),
+    reader: assertWindowsHandoffRole({
+      logicalId: "WindowsSignedArtifactReaderRole",
+      outputName: "WindowsSignedArtifactReaderRoleArn",
+      outputs,
+      template,
+    }),
+    ...(template.Resources.WindowsSignedArtifactLocatorSealerRole ? {
+      aggregate_sealer: assertWindowsHandoffRole({
+        logicalId: "WindowsSignedArtifactLocatorSealerRole",
+        outputName: "WindowsSignedArtifactLocatorSealRoleArn",
+        outputs,
+        template,
+      }),
+    } : {}),
+  };
+  return Object.freeze({
+    ...artifactState,
+    signed_artifact_prefix: outputs.WindowsSignedArtifactPrefix,
+    signed_artifact_key_pattern: outputs.WindowsSignedArtifactKeyPattern,
+    ...(outputs.WindowsSignedArtifactGovernancePrefix ? {
+      governance_prefix: outputs.WindowsSignedArtifactGovernancePrefix,
+      governance_key_pattern:
+        outputs.WindowsSignedArtifactGovernanceKeyPattern,
+      locator_unwrap_kms_key_arn:
+        outputs.WindowsSignedArtifactLocatorUnwrapKmsKeyArn,
+    } : {}),
+    ...roleReadback,
+    ...(outputs.WindowsSignedArtifactUploaderJobWorkflowRef ? {
+      oidc_job_workflow_refs: {
+        uploader: outputs.WindowsSignedArtifactUploaderJobWorkflowRef,
+        reader: outputs.WindowsSignedArtifactReaderJobWorkflowRef,
+        aggregate_sealer:
+          outputs.WindowsSignedArtifactLocatorSealJobWorkflowRef,
+      },
+    } : {}),
+    wrapping_key_arn: wrappingKey.Arn,
+    wrapping_key_id: wrappingKey.KeyId,
+    wrapping_key_spec: wrappingKey.KeySpec,
+    wrapping_key_usage: wrappingKey.KeyUsage,
+    wrapping_encryption_algorithm: "RSAES_OAEP_SHA_256",
+    wrapping_public_key_export_required: true,
+    live_policy_drift_count: 0,
+  });
+}
+
+function createWindowsHandoffArtifactStoreChangeSet(
+  parameters,
+  baselineState,
+) {
+  const templateSha256 = artifactStoreValidation.template_sha256;
+  const parametersSha256 =
+    jsonPostgresProductionParametersSha256(parameters);
+  const name = `lawos-windows-handoff-${packet.source_sha.slice(0, 10)}-${input.attempt_ref}`;
+  const created = awsJson([
+    "cloudformation", "create-change-set",
+    "--stack-name", JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
+    "--change-set-name", name,
+    "--change-set-type", "UPDATE",
+    ...cloudFormationTemplateArgs({
+      templatePath: artifactStoreTemplatePath,
+      templateByteSize: readFileSync(artifactStoreTemplatePath).byteLength,
+    }).args,
+    "--capabilities", "CAPABILITY_NAMED_IAM",
+    "--parameters", ...cloudFormationParameterJsonArgs(parameters),
+    "--description",
+    `Exact-packet ${packet.packet_sha256} Windows signed artifact handoff infrastructure`,
+  ]);
+  awsWait([
+    "cloudformation", "wait", "change-set-create-complete",
+    "--change-set-name", created.Id,
+  ]);
+  const described = awsJson([
+    "cloudformation", "describe-change-set",
+    "--change-set-name", created.Id,
+  ]);
+  assertChangeSetTemplate(created.Id, templateSha256);
+  const actualParametersSha256 = jsonPostgresProductionParametersSha256(
+    Object.fromEntries((described.Parameters ?? []).map((entry) => [
+      entry.ParameterKey,
+      entry.ParameterValue,
+    ])),
+  );
+  return validateJsonPostgresProductionArtifactStoreWindowsHandoffChangeSet(
+    described,
+    {
+      templateSha256,
+      parametersSha256,
+      actualParametersSha256,
+      baselineState,
+    },
+  );
+}
+
+function executeWindowsHandoffArtifactStoreChangeSet(review) {
+  const baseline = assertArtifactStoreWindowsHandoffBaseline(
+    currentStack(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK),
+  );
+  if (baseline.baseline_state !== review.baseline_state) {
+    throw new Error("reviewed Windows handoff baseline state drifted");
+  }
+  const current = awsJson([
+    "cloudformation", "describe-change-set",
+    "--change-set-name", review.change_set_id,
+  ]);
+  assertChangeSetTemplate(review.change_set_id, review.template_sha256);
+  const validated =
+    validateJsonPostgresProductionArtifactStoreWindowsHandoffChangeSet(
+      current,
+      {
+        templateSha256: review.template_sha256,
+        parametersSha256: review.parameters_sha256,
+        actualParametersSha256:
+          jsonPostgresProductionParametersSha256(
+            Object.fromEntries((current.Parameters ?? []).map((entry) => [
+              entry.ParameterKey,
+              entry.ParameterValue,
+            ])),
+          ),
+        baselineState: review.baseline_state,
+      },
+    );
+  if (validated.reviewed_change_set_sha256
+      !== review.reviewed_change_set_sha256) {
+    throw new Error("reviewed Windows handoff change set drifted");
+  }
+  awsJson([
+    "cloudformation", "execute-change-set",
+    "--change-set-name", review.change_set_id,
+  ]);
+  awsWait([
+    "cloudformation", "wait", "stack-update-complete",
+    "--stack-name", JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
+  ]);
+  return currentStack(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK);
 }
 
 function putImmutableProductionObject({
@@ -778,6 +1333,126 @@ if (operation === "preflight"
       requireExactPacketBinding: true,
     }),
     aws_mutation_count: 2,
+    production_write_count: 0,
+  };
+} else if (operation === "update-artifact-store-windows-handoff") {
+  const stack = currentStack(JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK);
+  if (!stack) {
+    throw new Error(
+      "Windows handoff update requires the existing production artifact store",
+    );
+  }
+  const deployment = deployedArtifactStoreWindowsHandoffTemplate();
+  const alreadyApplied = deployment.state === "windows-handoff-v4";
+  const baseline = alreadyApplied
+    ? null
+    : assertArtifactStoreWindowsHandoffBaseline(stack, deployment);
+  const review = alreadyApplied
+    ? null
+    : createWindowsHandoffArtifactStoreChangeSet(
+        baseline.parameters,
+        baseline.baseline_state,
+      );
+  const updated = alreadyApplied
+    ? stack
+    : executeWindowsHandoffArtifactStoreChangeSet(review);
+  const handoff = assertArtifactStoreWindowsHandoffState(
+    updated,
+    alreadyApplied ? deployment : undefined,
+  );
+  result = {
+    schema_version:
+      "law-firm-os.windows-signed-artifact-infrastructure-update.v2",
+    operation,
+    outcome: "PASS",
+    caller,
+    already_applied: alreadyApplied,
+    baseline: baseline === null ? null : {
+      template_sha256: baseline.template_sha256,
+      baseline_state: baseline.baseline_state,
+      output_count: baseline.output_count,
+      parameter_count: baseline.parameter_count,
+      artifact_store: baseline.artifact_store,
+    },
+    review,
+    stack_status: updated.StackStatus,
+    handoff,
+    wrapping_public_key_ceremony: {
+      required: true,
+      aws_profile: JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE,
+      aws_region: JSON_POSTGRES_PRODUCTION_REGION,
+      get_public_key_algorithm: "RSAES_OAEP_SHA_256",
+      public_key_format: "DER_SPKI_BASE64",
+      fingerprint_algorithm: "SHA-256",
+      protected_environment: "windows-signed-artifact-handoff",
+      protected_environments: [
+        "windows-signed-artifact-handoff",
+        "windows-formal-update-private-locator-seal",
+        "windows-formal-update-rollback",
+      ],
+      protected_variable_names: [
+        "LAWOS_WINDOWS_HANDOFF_ENVIRONMENT_GUARD",
+        "LAWOS_WINDOWS_HANDOFF_ACCOUNT_ID",
+        "LAWOS_WINDOWS_HANDOFF_REGION",
+        "LAWOS_WINDOWS_HANDOFF_BUCKET",
+        "LAWOS_WINDOWS_HANDOFF_PREFIX",
+        "LAWOS_WINDOWS_HANDOFF_KEY_PATTERN",
+        "LAWOS_WINDOWS_HANDOFF_RETENTION_DAYS",
+        "LAWOS_WINDOWS_HANDOFF_RETAIN_UNTIL",
+        "LAWOS_WINDOWS_HANDOFF_CANDIDATE_ROLE",
+        "LAWOS_WINDOWS_HANDOFF_UPLOADER_ROLE_ARN",
+        "LAWOS_WINDOWS_HANDOFF_ARTIFACT_KMS_KEY_ARN",
+        "LAWOS_WINDOWS_HANDOFF_WRAPPING_KMS_KEY_ARN",
+        "LAWOS_WINDOWS_HANDOFF_WRAPPING_KEY_ID",
+        "LAWOS_WINDOWS_HANDOFF_WRAPPING_ALGORITHM",
+        "LAWOS_WINDOWS_HANDOFF_WRAPPING_PUBLIC_KEY_SPKI_B64",
+        "LAWOS_WINDOWS_HANDOFF_WRAPPING_PUBLIC_KEY_SHA256",
+      ],
+      aggregate_sealer_protected_variable_names: [
+        "WINDOWS_UPDATE_LOCATOR_SEAL_ENVIRONMENT_GUARD",
+        "WINDOWS_UPDATE_HANDOFF_ACCOUNT_ID",
+        "WINDOWS_UPDATE_HANDOFF_REGION",
+        "WINDOWS_UPDATE_HANDOFF_BUCKET",
+        "WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN",
+        "WINDOWS_UPDATE_HANDOFF_PREFIX",
+        "WINDOWS_UPDATE_GOVERNANCE_PREFIX",
+        "WINDOWS_UPDATE_LOCATOR_SEAL_ROLE_ARN",
+        "WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN",
+        "WINDOWS_UPDATE_LOCATOR_WRAPPING_PUBLIC_KEY_SPKI_B64",
+        "WINDOWS_UPDATE_LOCATOR_WRAPPING_PUBLIC_KEY_SHA256",
+        "WINDOWS_UPDATE_READER_ROLE_ARN",
+        "WINDOWS_UPDATE_LOCATOR_RETAIN_UNTIL",
+      ],
+      aggregate_sealer_repository_secret_names: [
+        "WINDOWS_UPDATE_LOCATOR_ARTIFACT_READ_TOKEN",
+      ],
+      aggregate_sealer_protected_secret_names: [
+        "WINDOWS_UPDATE_BASELINE_RELEASE_MANIFEST_B64",
+        "WINDOWS_UPDATE_BASELINE_METADATA_B64",
+        "WINDOWS_UPDATE_BASELINE_METADATA_SIGNATURE_B64",
+        "WINDOWS_UPDATE_TARGET_RELEASE_MANIFEST_B64",
+        "WINDOWS_UPDATE_TARGET_METADATA_B64",
+        "WINDOWS_UPDATE_TARGET_METADATA_SIGNATURE_B64",
+        "WINDOWS_UPDATE_EXECUTION_INPUT_B64",
+        "WINDOWS_UPDATE_APPROVAL_RECEIPT_B64",
+        "WINDOWS_UPDATE_APPROVAL_SIGNATURE_B64",
+      ],
+      reader_protected_variable_names: [
+        "WINDOWS_UPDATE_ENVIRONMENT_GUARD",
+        "WINDOWS_UPDATE_HANDOFF_ACCOUNT_ID",
+        "WINDOWS_UPDATE_HANDOFF_REGION",
+        "WINDOWS_UPDATE_HANDOFF_BUCKET",
+        "WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN",
+        "WINDOWS_UPDATE_HANDOFF_PREFIX",
+        "WINDOWS_UPDATE_READER_ROLE_ARN",
+        "WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN",
+        "WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SPKI_B64",
+        "WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SHA256",
+        "WINDOWS_UPDATE_BRIDGE_PRIVATE_KEY_PATH",
+      ],
+      performed: false,
+    },
+    aws_mutation_count: alreadyApplied ? 0 : 2,
     production_write_count: 0,
   };
 } else if (operation === "upload-artifact"

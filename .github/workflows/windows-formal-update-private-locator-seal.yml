@@ -1,0 +1,267 @@
+name: Windows Formal Update Private Locator Seal
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact reviewed sealer source commit on main
+        required: true
+        type: string
+      source_tree:
+        description: Exact reviewed sealer source tree
+        required: true
+        type: string
+      baseline_locator_ref_json:
+        description: Sanitized baseline encrypted-locator artifact ref
+        required: true
+        type: string
+      target_locator_ref_json:
+        description: Sanitized target encrypted-locator artifact ref
+        required: true
+        type: string
+
+concurrency:
+  group: windows-formal-update-private-locator-seal
+  cancel-in-progress: false
+
+jobs:
+  public-artifact-preflight:
+    name: Verify two exact candidate locator artifacts before OIDC
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      id-token: none
+    outputs:
+      candidate_refs_json: ${{ steps.refs.outputs.candidate_refs_json }}
+      candidate_bridge_artifact_id: ${{ steps.candidate-bridge.outputs.artifact-id }}
+      candidate_bridge_artifact_digest: ${{ steps.candidate-bridge.outputs.artifact-digest }}
+    steps:
+      - name: Checkout exact reviewed sealer source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Validate public refs and exact clean source
+        id: refs
+        shell: bash
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          BASELINE_REF_JSON: ${{ inputs.baseline_locator_ref_json }}
+          TARGET_REF_JSON: ${{ inputs.target_locator_ref_json }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Gonyak-cell/law-firm-os"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$INPUT_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$INPUT_SOURCE_TREE"
+          git diff --quiet HEAD --
+          test -z "$(git ls-files --others --exclude-standard)"
+          refs=$(node -e '
+            const refs={baseline:JSON.parse(process.env.BASELINE_REF_JSON),target:JSON.parse(process.env.TARGET_REF_JSON)};
+            const fields=["schema_version","producer_repository","producer_workflow_ref","producer_job","producer_run_id","producer_run_attempt","source_sha","source_tree","candidate_role","private_receipt_sha256","artifact_name","artifact_id","artifact_digest","envelope_sha256"];
+            for(const role of ["baseline","target"]){const r=refs[role];if(!r||Object.keys(r).sort().join("\0")!==[...fields].sort().join("\0")||r.schema_version!=="law-firm-os.windows-signed-artifact-private-handoff-locator-artifact-ref.v1"||r.producer_repository!=="Gonyak-cell/law-firm-os"||r.producer_workflow_ref!=="Gonyak-cell/law-firm-os/.github/workflows/windows-authenticode-package-qa.yml@refs/heads/main"||r.producer_job!=="private-immutable-handoff"||r.candidate_role!==role||!/^[1-9][0-9]*$/.test(r.producer_run_id)||!/^[1-9][0-9]*$/.test(r.producer_run_attempt)||!/^[1-9][0-9]*$/.test(r.artifact_id)||!/^sha256:[0-9a-f]{64}$/.test(r.artifact_digest)||r.artifact_name!==`windows-signed-private-locator-${role}-${r.source_sha}-${r.producer_run_id}-${r.producer_run_attempt}`)throw new Error("candidate ref invalid");}process.stdout.write(JSON.stringify(refs));')
+          delimiter="refs-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          {
+            echo "candidate_refs_json<<$delimiter"
+            echo "$refs"
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Read exact producer run, job, and artifact metadata and raw archives
+        id: metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.WINDOWS_UPDATE_LOCATOR_ARTIFACT_READ_TOKEN }}
+          CANDIDATE_REFS_JSON: ${{ steps.refs.outputs.candidate_refs_json }}
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN"
+          mkdir -m 700 "$RUNNER_TEMP/lawos-locator-api"
+          node -e 'const fs=require("fs");const r=JSON.parse(process.env.CANDIDATE_REFS_JSON);for(const role of ["baseline","target"]){fs.writeFileSync(`${process.env.RUNNER_TEMP}/lawos-locator-api/${role}.run`,r[role].producer_run_id);fs.writeFileSync(`${process.env.RUNNER_TEMP}/lawos-locator-api/${role}.attempt`,r[role].producer_run_attempt);fs.writeFileSync(`${process.env.RUNNER_TEMP}/lawos-locator-api/${role}.artifact`,r[role].artifact_id);}'
+          for role in baseline target; do
+            run_id=$(cat "$RUNNER_TEMP/lawos-locator-api/$role.run")
+            run_attempt=$(cat "$RUNNER_TEMP/lawos-locator-api/$role.attempt")
+            artifact_id=$(cat "$RUNNER_TEMP/lawos-locator-api/$role.artifact")
+            curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 --dump-header "$RUNNER_TEMP/lawos-locator-api/$role-run.headers" \
+              -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Gonyak-cell/law-firm-os/actions/runs/$run_id" > "$RUNNER_TEMP/lawos-locator-api/$role-run.json"
+            curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 --dump-header "$RUNNER_TEMP/lawos-locator-api/$role-jobs.headers" \
+              -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Gonyak-cell/law-firm-os/actions/runs/$run_id/attempts/$run_attempt/jobs?per_page=100" > "$RUNNER_TEMP/lawos-locator-api/$role-jobs.json"
+            curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 --dump-header "$RUNNER_TEMP/lawos-locator-api/$role-artifact.headers" \
+              -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Gonyak-cell/law-firm-os/actions/artifacts/$artifact_id" > "$RUNNER_TEMP/lawos-locator-api/$role-artifact.json"
+            for kind in run jobs artifact; do
+              grep -Eiq '^x-accepted-github-permissions:.*actions=read' "$RUNNER_TEMP/lawos-locator-api/$role-$kind.headers"
+            done
+            curl --fail-with-body --silent --show-error --location --proto '=https' --tlsv1.2 \
+              -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Gonyak-cell/law-firm-os/actions/artifacts/$artifact_id/zip" \
+              --output "$RUNNER_TEMP/$role-locator.zip"
+          done
+          unset GH_TOKEN
+
+      - name: Authenticate producer run, job, artifact metadata, and raw ZIP digest without OIDC
+        shell: bash
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+          MATTER_WINDOWS_UPDATE_CANDIDATE_REFS_JSON: ${{ steps.refs.outputs.candidate_refs_json }}
+          MATTER_WINDOWS_UPDATE_CANDIDATE_METADATA_ROOT: ${{ runner.temp }}/lawos-locator-api
+          MATTER_WINDOWS_UPDATE_BASELINE_LOCATOR_ARCHIVE: ${{ runner.temp }}/baseline-locator.zip
+          MATTER_WINDOWS_UPDATE_TARGET_LOCATOR_ARCHIVE: ${{ runner.temp }}/target-locator.zip
+          MATTER_WINDOWS_UPDATE_BASELINE_LOCATOR_DIR: ${{ runner.temp }}/baseline-locator
+          MATTER_WINDOWS_UPDATE_TARGET_LOCATOR_DIR: ${{ runner.temp }}/target-locator
+          MATTER_WINDOWS_UPDATE_LOCATOR_PRIVATE_ROOT: ${{ runner.temp }}/locator-private
+          MATTER_WINDOWS_UPDATE_LOCATOR_OUTPUT_DIR: ${{ runner.temp }}/locator-output
+          MATTER_WINDOWS_UPDATE_LOCATOR_RECEIPT_PATH: ${{ runner.temp }}/locator-receipt.json
+        run: node scripts/run-windows-formal-update-private-locator-sealer.mjs --authenticate-downloads
+
+      - name: Validate closed ZIP directories and materialize only exact locator files
+        shell: bash
+        env:
+          CANDIDATE_REFS_JSON: ${{ steps.refs.outputs.candidate_refs_json }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import stat
+          import unicodedata
+          import zipfile
+
+          expected = {
+              "windows-signed-artifact-private-locator-envelope.json": 256 * 1024,
+              "windows-signed-artifact-private-locator.enc": 1024 * 1024,
+          }
+          refs = json.loads(os.environ["CANDIDATE_REFS_JSON"])
+          root = os.environ["RUNNER_TEMP"]
+          for role in ("baseline", "target"):
+              archive_path = os.path.join(root, f"{role}-locator.zip")
+              archive_stat = os.stat(archive_path, follow_symlinks=False)
+              archive_size = archive_stat.st_size
+              if not stat.S_ISREG(archive_stat.st_mode) or not 0 < archive_size <= 2 * 1024 * 1024:
+                  raise SystemExit(f"{role} locator archive has an unsafe size")
+              digest = hashlib.sha256()
+              with open(archive_path, "rb", buffering=0) as archive:
+                  while chunk := archive.read(1024 * 1024):
+                      digest.update(chunk)
+              if f"sha256:{digest.hexdigest()}" != refs[role]["artifact_digest"]:
+                  raise SystemExit(f"{role} locator archive digest changed after authentication")
+              target_root = os.path.join(root, f"{role}-locator")
+              os.mkdir(target_root, mode=0o700)
+              with zipfile.ZipFile(archive_path, "r") as archive:
+                  infos = archive.infolist()
+                  if len(infos) != len(expected):
+                      raise SystemExit(f"{role} locator archive central directory is not closed")
+                  names = set()
+                  folded = set()
+                  for info in infos:
+                      name = info.filename
+                      try:
+                          name.encode("ascii", "strict")
+                      except UnicodeEncodeError as error:
+                          raise SystemExit(f"{role} locator archive name is not ASCII") from error
+                      if (unicodedata.normalize("NFC", name) != name
+                              or any(ord(character) < 32 or ord(character) == 127 for character in name)
+                              or "/" in name or "\\" in name or name in (".", "..")
+                              or os.path.isabs(name) or name not in expected):
+                          raise SystemExit(f"{role} locator archive name is unsafe")
+                      folded_name = name.casefold()
+                      if name in names or folded_name in folded:
+                          raise SystemExit(f"{role} locator archive contains a duplicate name")
+                      names.add(name)
+                      folded.add(folded_name)
+                      mode = (info.external_attr >> 16) & 0o170000
+                      if (info.is_dir() or mode not in (0, stat.S_IFREG)
+                              or info.flag_bits & 0x1
+                              or info.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)
+                              or not 0 < info.file_size <= expected[name]
+                              or not 0 <= info.compress_size <= 2 * 1024 * 1024):
+                          raise SystemExit(f"{role} locator archive entry is not a bounded regular file")
+                  if names != set(expected):
+                      raise SystemExit(f"{role} locator archive allowlist differs")
+                  by_name = {info.filename: info for info in infos}
+                  for name in sorted(expected):
+                      destination = os.path.join(target_root, name)
+                      flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+                      descriptor = os.open(destination, flags, 0o600)
+                      written = 0
+                      try:
+                          with os.fdopen(descriptor, "wb", closefd=True) as output, archive.open(by_name[name], "r") as source:
+                              descriptor = -1
+                              while chunk := source.read(1024 * 1024):
+                                  written += len(chunk)
+                                  if written > expected[name]:
+                                      raise SystemExit(f"{role} locator archive entry exceeded its bound")
+                                  output.write(chunk)
+                              output.flush()
+                              os.fsync(output.fileno())
+                      finally:
+                          if descriptor >= 0:
+                              os.close(descriptor)
+                      if written != by_name[name].file_size:
+                          raise SystemExit(f"{role} locator archive entry length changed")
+          PY
+
+      - name: Verify authenticated materialized envelope and ciphertext without OIDC
+        shell: bash
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+          MATTER_WINDOWS_UPDATE_CANDIDATE_REFS_JSON: ${{ steps.refs.outputs.candidate_refs_json }}
+          MATTER_WINDOWS_UPDATE_CANDIDATE_METADATA_ROOT: ${{ runner.temp }}/lawos-locator-api
+          MATTER_WINDOWS_UPDATE_BASELINE_LOCATOR_ARCHIVE: ${{ runner.temp }}/baseline-locator.zip
+          MATTER_WINDOWS_UPDATE_TARGET_LOCATOR_ARCHIVE: ${{ runner.temp }}/target-locator.zip
+          MATTER_WINDOWS_UPDATE_BASELINE_LOCATOR_DIR: ${{ runner.temp }}/baseline-locator
+          MATTER_WINDOWS_UPDATE_TARGET_LOCATOR_DIR: ${{ runner.temp }}/target-locator
+          MATTER_WINDOWS_UPDATE_LOCATOR_PRIVATE_ROOT: ${{ runner.temp }}/locator-private
+          MATTER_WINDOWS_UPDATE_LOCATOR_OUTPUT_DIR: ${{ runner.temp }}/locator-output
+          MATTER_WINDOWS_UPDATE_LOCATOR_RECEIPT_PATH: ${{ runner.temp }}/locator-receipt.json
+        run: node scripts/run-windows-formal-update-private-locator-sealer.mjs --preflight
+
+      - name: Upload the two authenticated candidate locator artifacts for the protected current run
+        id: candidate-bridge
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-formal-update-candidate-locators-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/baseline-locator
+            ${{ runner.temp }}/target-locator
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 1
+
+      - name: Always purge public-preflight residue and read token
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/lawos-locator-api" "$RUNNER_TEMP/baseline-locator" "$RUNNER_TEMP/target-locator"
+          rm -f -- "$RUNNER_TEMP/baseline-locator.zip" "$RUNNER_TEMP/target-locator.zip"
+          unset GH_TOKEN WINDOWS_UPDATE_LOCATOR_ARTIFACT_READ_TOKEN
+
+  seal-private-locator:
+    name: Seal exact 19-object private update locator through protected OIDC workflow
+    needs: public-artifact-preflight
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/windows-formal-update-private-locator-seal-oidc.yml
+    with:
+      source_sha: ${{ inputs.source_sha }}
+      source_tree: ${{ inputs.source_tree }}
+      candidate_refs_json: ${{ needs.public-artifact-preflight.outputs.candidate_refs_json }}
+      candidate_bridge_artifact_id: ${{ needs.public-artifact-preflight.outputs.candidate_bridge_artifact_id }}
+      candidate_bridge_artifact_digest: ${{ needs.public-artifact-preflight.outputs.candidate_bridge_artifact_digest }}
+    secrets: inherit

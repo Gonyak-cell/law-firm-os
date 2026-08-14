@@ -16,19 +16,31 @@ import { findRegisteredAccountByUserId } from "../apps/api/src/matter-vault-acco
 import { matterAppRendererUrl } from "../apps/desktop/src/main/app-protocol.js";
 import { createHrxStepUpAuthority } from "../apps/api/src/hrx-step-up-token.js";
 import { desktopRuntimeStorePaths } from "../apps/desktop/src/main/local-api.js";
-import { directoryDigest, sha256File } from "./lib/matter-desktop-provenance.mjs";
 import {
-  matterDesktopAuthenticodePowerShell,
+  DESKTOP_INSTALLED_TREE_SBOM_SCHEMA,
+  buildMatterDesktopInstalledTreeSbom,
+  directoryDigest,
+  sha256File,
+} from "./lib/matter-desktop-provenance.mjs";
+import { captureWindowsInstalledTreeNativeSnapshot } from "./lib/windows-installed-tree-native-snapshot.mjs";
+import {
   resolveMatterDesktopAuthenticodeConfiguration,
   runAfterMatterDesktopAuthenticodeVerification,
   runAfterUnsignedMatterDesktopTechnicalCandidateInspection,
+  validateMatterDesktopAuthenticodeSignature,
+  validateMatterDesktopAuthenticodeSignatures,
 } from "./lib/matter-desktop-authenticode.mjs";
 import { cleanupTemporaryDirectories } from "./lib/windows-formal-cleanup.mjs";
 import { cleanupFailedWindowsNsisInstallation } from "./lib/windows-formal-native-cleanup.mjs";
+import { openWindowsLockedExecutable } from "./lib/windows-locked-executable.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const EXPECTED_SOURCE_SHA = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
-const VERSION = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8")).version;
+const DESKTOP_PACKAGE_PATH = path.join(ROOT, "apps/desktop/package.json");
+const PACKAGE_LOCK_PATH = path.join(ROOT, "package-lock.json");
+const desktopPackage = JSON.parse(readFileSync(DESKTOP_PACKAGE_PATH, "utf8"));
+const packageLock = JSON.parse(readFileSync(PACKAGE_LOCK_PATH, "utf8"));
+const VERSION = desktopPackage.version;
 const INSTALLER_PATH = path.join(ROOT, `apps/desktop/dist/matter-${VERSION}-win-x64.exe`);
 const BLOCKMAP_PATH = `${INSTALLER_PATH}.blockmap`;
 const PACKAGE_MANIFEST_PATH = path.join(ROOT, `apps/desktop/dist/win/matter-${VERSION}-win-build-manifest.json`);
@@ -41,6 +53,7 @@ const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter
 const ARTIFACT_DIR = path.resolve(process.env.MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR
   ?? path.join(ROOT, "artifacts", "manual-qa", "formal-windows-package"));
 const RECEIPT_PATH = path.join(ARTIFACT_DIR, "formal-windows-package-qa.json");
+const INSTALLED_TREE_SBOM_PATH = path.join(ARTIFACT_DIR, "windows-installed-tree-sbom.cdx.json");
 const userDataPath = mkdtempSync(path.join(tmpdir(), "matter-formal-windows-userdata-"));
 const runtimeStoreDir = path.join(userDataPath, "runtime-stores");
 const envPath = path.join(userDataPath, "empty.env");
@@ -92,11 +105,11 @@ function waitUntilSync(predicate, message, timeoutMs = 45_000) {
   throw Object.assign(new Error(message), { code: "EXECUTABLE_RESIDUE" });
 }
 
-function installPackage() {
-  execFileSync(INSTALLER_PATH, ["/S", `/D=${installDir}`], {
-    stdio: "inherit",
-    windowsHide: true,
-  });
+async function installPackage(lockedSession) {
+  assert.ok(lockedSession, "NSIS install must use a held executable lock");
+  const processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], { cwd: ROOT });
+  const result = await lockedSession.waitForProcessExit(processRecord.pid);
+  assert.equal(result.exit_code, 0, "NSIS installer failed while its exact executable was locked");
   const executablePath = path.join(installDir, "matter.exe");
   assert.equal(existsSync(executablePath), true, `installed executable missing: ${executablePath}`);
   const uninstallerName = readdirSync(installDir).find((name) => /^uninstall.*\.exe$/i.test(name));
@@ -108,17 +121,17 @@ function installPackage() {
   };
 }
 
-function authenticode(filePath) {
-  return JSON.parse(execFileSync("pwsh.exe", [
-    "-NoProfile",
-    "-NonInteractive",
-    "-Command",
-    matterDesktopAuthenticodePowerShell(),
-  ], {
-    encoding: "utf8",
-    env: { ...process.env, MATTER_AUTHENTICODE_PATH: filePath },
-    windowsHide: true,
-  }).trim());
+async function inspectLockedExecutable(filePath) {
+  const session = await openWindowsLockedExecutable({ executablePath: filePath });
+  try {
+    return session.inspection;
+  } finally {
+    await session.release();
+  }
+}
+
+function captureStableInstalledTreeInventory(directoryPath) {
+  return captureWindowsInstalledTreeNativeSnapshot(directoryPath);
 }
 
 function runAfterFormalWindowsTrustInspection(options) {
@@ -142,9 +155,15 @@ async function findProductPage(app) {
   throw new Error("Formal Windows product window did not become ready");
 }
 
-async function launchFormalApp({ executablePath, baseUrl }) {
+async function launchFormalApp({ executablePath, baseUrl, lockedSession }) {
+  assert.ok(lockedSession, "Electron launch must use a held executable lock");
+  assert.equal(
+    path.resolve(executablePath).toLowerCase(),
+    path.resolve(lockedSession.path).toLowerCase(),
+    "Electron launch path must be the exact path held by the PowerShell lock",
+  );
   const app = await electron.launch({
-    executablePath,
+    executablePath: lockedSession.path,
     args: ["--disable-gpu"],
     env: {
       ...sanitizedEnvironment(),
@@ -159,6 +178,13 @@ async function launchFormalApp({ executablePath, baseUrl }) {
     },
     timeout: 45_000,
   });
+  const processPid = app.process()?.pid;
+  try {
+    await lockedSession.adoptProcess(processPid);
+  } catch (error) {
+    await app.close().catch(() => {});
+    throw error;
+  }
   const page = await findProductPage(app);
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -168,7 +194,7 @@ async function launchFormalApp({ executablePath, baseUrl }) {
   assert.equal(initialUrl.hostname, expectedUrl.hostname);
   assert.equal(initialUrl.pathname, expectedUrl.pathname);
   assert.equal(initialUrl.searchParams.get("desktop"), "1");
-  return { app, page };
+  return { app, page, processPid };
 }
 
 async function login(page) {
@@ -220,6 +246,95 @@ async function screenshot(page, name, selector) {
   const filePath = path.join(ARTIFACT_DIR, `${name}.png`);
   await page.screenshot({ path: filePath, fullPage: false, animations: "disabled", caret: "hide" });
   return { name, path: path.relative(ROOT, filePath), sha256: sha256File(filePath) };
+}
+
+async function settleLockedSession(session, pid) {
+  if (!session || session.released) return;
+  let waitFailed = false;
+  try {
+    if (pid) await session.waitForProcessExit(pid);
+  } catch (error) {
+    waitFailed = true;
+    process.stderr.write(`${JSON.stringify({
+      warning: "windows_locked_executable_wait_cleanup_failed",
+      code: error?.code ?? "UNKNOWN",
+    })}\n`);
+  }
+  if (waitFailed) {
+    await session.abort().catch((error) => process.stderr.write(`${JSON.stringify({
+      warning: "windows_locked_executable_abort_cleanup_failed",
+      code: error?.code ?? "UNKNOWN",
+    })}\n`));
+    return;
+  }
+  try {
+    await session.release();
+  } catch (error) {
+    process.stderr.write(`${JSON.stringify({
+      warning: "windows_locked_executable_release_cleanup_failed",
+      code: error?.code ?? "UNKNOWN",
+    })}\n`);
+    await session.abort().catch((abortError) => process.stderr.write(`${JSON.stringify({
+      warning: "windows_locked_executable_abort_cleanup_failed",
+      code: abortError?.code ?? "UNKNOWN",
+    })}\n`));
+  }
+}
+
+function exactInstalledInventoryEntry(inventory, directoryPath, filePath) {
+  const relativePath = path.relative(directoryPath, filePath).split(path.sep).join("/");
+  assert.ok(relativePath && !relativePath.startsWith("../") && !path.isAbsolute(relativePath), "uninstaller path escaped the installed tree");
+  const portablePath = `./${relativePath}`;
+  const entry = inventory.files.find(({ path: candidatePath }) => candidatePath === portablePath);
+  assert.ok(entry, `installed-tree inventory is missing the exact uninstaller: ${portablePath}`);
+  return Object.freeze({ relativePath: portablePath, entry });
+}
+
+async function runLockedUninstaller({ installed, inventory }) {
+  const inventoryBinding = exactInstalledInventoryEntry(inventory, installDir, installed.uninstallerPath);
+  const session = await openWindowsLockedExecutable({ executablePath: installed.uninstallerPath });
+  let processRecord;
+  let waitResult;
+  try {
+    assert.equal(
+      session.inspection.sha256,
+      inventoryBinding.entry.sha256,
+      "uninstaller bytes changed after the stable installed-tree inventory",
+    );
+    const launchAndWait = async () => {
+      processRecord = await session.launch(["/S"], { cwd: installDir });
+      waitResult = await session.waitForProcessExit(processRecord.pid);
+      assert.equal(waitResult.exit_code, 0, "NSIS uninstaller failed while its exact executable was locked");
+    };
+    const trust = authenticodeConfiguration === null
+      ? { verification: null, value: await launchAndWait() }
+      : {
+        verification: validateMatterDesktopAuthenticodeSignature(
+          session.inspection.authenticode,
+          { expectedCertificateSha1: authenticodeConfiguration.certificate_sha1 },
+        ),
+        value: await launchAndWait(),
+      };
+    return Object.freeze({
+      path: inventoryBinding.relativePath,
+      installed_tree_path: inventoryBinding.relativePath,
+      installed_tree_sha256: inventoryBinding.entry.sha256,
+      sha256: session.inspection.sha256,
+      uninstaller_bytes: session.inspection.bytes,
+      bytes: session.inspection.bytes,
+      authenticode: session.inspection.authenticode,
+      authenticode_valid: trust.verification?.signature_count === 1,
+      lock_mode: session.inspection.lock_mode,
+      denies_write_delete: session.inspection.denies_write_delete,
+      process: Object.freeze({
+        pid: processRecord.pid,
+        path_identity: processRecord.path_identity,
+      }),
+      exit_code: waitResult.exit_code,
+    });
+  } finally {
+    await settleLockedSession(session, processRecord?.pid);
+  }
 }
 
 assert.equal(process.platform, "win32", "formal Windows package QA must run on Windows");
@@ -277,6 +392,11 @@ assert.equal(health.status, 200);
 let app;
 let page;
 let installed;
+let installerLockedSession;
+let initialLockedSession;
+let restartLockedSession;
+let initialProcessPid;
+let restartProcessPid;
 let uninstallCompleted = false;
 const pageErrors = [];
 const consoleErrors = [];
@@ -290,18 +410,31 @@ let packagedExecutableAuthenticode;
 let installedExecutableAuthenticode;
 let restartExecutableAuthenticode;
 let authenticodeResult;
+let installerSha256;
 let packagedExecutableSha256;
 let installedExecutablePrelaunchParity;
 let installedExecutableRestartPrelaunchParity;
+let installedTreeInventory;
+let installedTreePostRuntimeInventory;
+let installedTreeSbomSha256;
+let uninstallerReceipt;
 let failureCleanup = null;
 try {
-  installerAuthenticode = authenticode(INSTALLER_PATH);
-  packagedExecutableAuthenticode = authenticode(UNPACKED_EXECUTABLE);
-  packagedExecutableSha256 = sha256File(UNPACKED_EXECUTABLE);
-  ({ verification: authenticodeResult, value: installed } = await runAfterFormalWindowsTrustInspection({
-    records: [installerAuthenticode, packagedExecutableAuthenticode],
-    action: async () => installPackage(),
-  }));
+  installerLockedSession = await openWindowsLockedExecutable({ executablePath: INSTALLER_PATH });
+  installerAuthenticode = installerLockedSession.inspection.authenticode;
+  installerSha256 = installerLockedSession.inspection.sha256;
+  const packagedInspection = await inspectLockedExecutable(UNPACKED_EXECUTABLE);
+  packagedExecutableAuthenticode = packagedInspection.authenticode;
+  packagedExecutableSha256 = packagedInspection.sha256;
+  try {
+    ({ verification: authenticodeResult, value: installed } = await runAfterFormalWindowsTrustInspection({
+      records: [installerAuthenticode, packagedExecutableAuthenticode],
+      action: async () => installPackage(installerLockedSession),
+    }));
+  } finally {
+    await installerLockedSession.release();
+    installerLockedSession = null;
+  }
   const installedManifestPath = path.join(installed.resourcesPath, "matter-build-manifest.json");
   const installedMarkerPath = path.join(installed.resourcesPath, "matter-formal-release.json");
   const rendererIndex = path.join(installed.resourcesPath, "app", "src", "renderer", "web", "index.html");
@@ -310,12 +443,46 @@ try {
   assert.deepEqual(readJson(installedManifestPath), installerManifest);
   assert.equal(directoryDigest(path.dirname(rendererIndex)).sha256, installerManifest.renderer.sha256);
 
-  installedExecutableAuthenticode = authenticode(installed.executablePath);
-  ({ executable_parity: installedExecutablePrelaunchParity, value: { app, page } } = await runAfterFormalWindowsTrustInspection({
+  initialLockedSession = await openWindowsLockedExecutable({ executablePath: installed.executablePath });
+  installedExecutableAuthenticode = initialLockedSession.inspection.authenticode;
+  ({ executable_parity: installedExecutablePrelaunchParity, value: { app, page, processPid: initialProcessPid } } = await runAfterFormalWindowsTrustInspection({
     records: [installerAuthenticode, installedExecutableAuthenticode],
     expectedExecutableSha256: packagedExecutableSha256,
-    actualExecutableSha256: sha256File(installed.executablePath),
-    action: async () => launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }),
+    actualExecutableSha256: initialLockedSession.inspection.sha256,
+    action: async () => {
+      installedTreeInventory = captureStableInstalledTreeInventory(installDir);
+      const installedAuthenticodeVerification = authenticodeConfiguration === null
+        ? null
+        : validateMatterDesktopAuthenticodeSignatures(
+            [installerAuthenticode, installedExecutableAuthenticode],
+            { expectedCertificateSha1: authenticodeConfiguration.certificate_sha1 },
+          );
+      const authenticodeValid = installedAuthenticodeVerification?.signature_count === 2;
+      assert.equal(sha256File(INSTALLER_PATH), installerSha256, "Windows installer changed after trust inspection");
+      const installedExecutableRelativePath = `./${path.relative(installDir, installed.executablePath).split(path.sep).join("/")}`;
+      const sbom = buildMatterDesktopInstalledTreeSbom({
+        packageLock,
+        desktopPackage,
+        inventory: installedTreeInventory,
+        sourceSha: head,
+        sourceTree: installerManifest.source_tree,
+        installerSha256,
+        packagedExecutableSha256,
+        installedExecutableSha256: sha256File(installed.executablePath),
+        installedExecutableRelativePath,
+        authenticodeValid,
+        signerCertificateSha1: installedAuthenticodeVerification?.signer_certificate_sha1 ?? null,
+        timestampCertificateSha1s: installedAuthenticodeVerification?.timestamps.map(({ thumbprint }) => thumbprint) ?? [],
+        generatedAt: installerManifest.built_at,
+      });
+      writeFileSync(INSTALLED_TREE_SBOM_PATH, `${JSON.stringify(sbom, null, 2)}\n`, "utf8");
+      installedTreeSbomSha256 = sha256File(INSTALLED_TREE_SBOM_PATH);
+      return launchFormalApp({
+        executablePath: installed.executablePath,
+        baseUrl: externalApiBaseUrl,
+        lockedSession: initialLockedSession,
+      });
+    },
   }));
   page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on("console", (message) => {
@@ -345,13 +512,21 @@ try {
   screenshots.push(await screenshot(page, "03-windows-formal-payroll", "#people-payroll"));
 
   await app.close();
+  await initialLockedSession.waitForProcessExit(initialProcessPid);
+  await initialLockedSession.release();
+  initialLockedSession = null;
   app = null;
-  restartExecutableAuthenticode = authenticode(installed.executablePath);
-  ({ executable_parity: installedExecutableRestartPrelaunchParity, value: { app, page } } = await runAfterFormalWindowsTrustInspection({
+  restartLockedSession = await openWindowsLockedExecutable({ executablePath: installed.executablePath });
+  restartExecutableAuthenticode = restartLockedSession.inspection.authenticode;
+  ({ executable_parity: installedExecutableRestartPrelaunchParity, value: { app, page, processPid: restartProcessPid } } = await runAfterFormalWindowsTrustInspection({
     records: [installerAuthenticode, restartExecutableAuthenticode],
     expectedExecutableSha256: packagedExecutableSha256,
-    actualExecutableSha256: sha256File(installed.executablePath),
-    action: async () => launchFormalApp({ executablePath: installed.executablePath, baseUrl: externalApiBaseUrl }),
+    actualExecutableSha256: restartLockedSession.inspection.sha256,
+    action: async () => launchFormalApp({
+      executablePath: installed.executablePath,
+      baseUrl: externalApiBaseUrl,
+      lockedSession: restartLockedSession,
+    }),
   }));
   page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on("console", (message) => {
@@ -367,9 +542,18 @@ try {
   await page.locator("#people-payroll .payroll-summary-strip").waitFor({ state: "visible", timeout: 20_000 });
   screenshots.push(await screenshot(page, "04-windows-formal-restart-payroll", "#people-payroll"));
   await app.close();
+  await restartLockedSession.waitForProcessExit(restartProcessPid);
+  await restartLockedSession.release();
+  restartLockedSession = null;
   app = null;
 
-  execFileSync(installed.uninstallerPath, ["/S"], { stdio: "inherit", windowsHide: true });
+  installedTreePostRuntimeInventory = captureStableInstalledTreeInventory(installDir);
+  assert.deepEqual(installedTreePostRuntimeInventory, installedTreeInventory, "installed tree changed during native QA");
+
+  uninstallerReceipt = await runLockedUninstaller({
+    installed,
+    inventory: installedTreePostRuntimeInventory,
+  });
   await waitUntil(
     () => !existsSync(installed.executablePath),
     `Windows uninstall did not remove the executable: ${installed.executablePath}`,
@@ -394,12 +578,13 @@ try {
     package: {
       channel: installerManifest.channel,
       app_id: installerManifest.app_id,
-      installer: { path: path.relative(ROOT, INSTALLER_PATH), sha256: sha256File(INSTALLER_PATH) },
+      installer: { path: path.relative(ROOT, INSTALLER_PATH), sha256: installerSha256 },
       blockmap: { path: path.relative(ROOT, BLOCKMAP_PATH), sha256: sha256File(BLOCKMAP_PATH) },
       unpacked_executable: {
         path: path.relative(ROOT, UNPACKED_EXECUTABLE),
         sha256: sha256File(UNPACKED_EXECUTABLE),
       },
+      uninstaller: uninstallerReceipt,
       build_manifest_embedded: true,
       formal_marker_embedded: true,
       bundled_local_api_present: existsSync(path.join(UNPACKED_RESOURCES, "app", "runtime", "apps", "api", "src", "server.js")),
@@ -455,6 +640,45 @@ try {
         ? null
         : "No exact expected Authenticode certificate and RFC3161 timestamp validation is configured",
     },
+    sbom: {
+      schema_version: DESKTOP_INSTALLED_TREE_SBOM_SCHEMA,
+      format: "CycloneDX",
+      spec_version: "1.5",
+      path: path.relative(ARTIFACT_DIR, INSTALLED_TREE_SBOM_PATH),
+      sha256: installedTreeSbomSha256,
+      installed_tree_sha256: installedTreeInventory.sha256,
+      installed_tree_file_count: installedTreeInventory.file_count,
+      installed_tree_bytes: installedTreeInventory.bytes,
+      installed_binary_complete: true,
+      installed_file_content_complete: true,
+      installed_directory_identity_complete: true,
+      native_snapshot_schema_version: installedTreeInventory.native.schema_version,
+      native_filesystem: installedTreeInventory.native.filesystem,
+      native_directory_count: installedTreeInventory.native.directory_count,
+      native_identity_sha256: installedTreeInventory.native.identity_sha256,
+      native_fixed_point_sequence: installedTreeInventory.native.fixed_point_sequence,
+      native_fixed_point_exact: installedTreeInventory.native.fixed_point_exact,
+      native_snapshot: {
+        schema_version: installedTreeInventory.native.schema_version,
+        filesystem: installedTreeInventory.native.filesystem,
+        content_sha256: installedTreeInventory.sha256,
+        identity_sha256: installedTreeInventory.native.identity_sha256,
+        file_count: installedTreeInventory.file_count,
+        directory_count: installedTreeInventory.native.directory_count,
+        bytes: installedTreeInventory.bytes,
+        fixed_point_sequence: installedTreeInventory.native.fixed_point_sequence,
+        fixed_point_exact: installedTreeInventory.native.fixed_point_exact,
+        equality_proof: installedTreeInventory.native.equality_proof,
+        phases: installedTreeInventory.native.phases,
+      },
+      reparse_point_count: installedTreeInventory.native.reparse_point_count,
+      alternate_data_stream_count: installedTreeInventory.native.alternate_data_stream_count,
+      hard_link_count: installedTreeInventory.native.hard_link_count,
+      authenticode_bound: authenticodeValid,
+      post_runtime_tree_sha256: installedTreePostRuntimeInventory.sha256,
+      post_runtime_native_identity_sha256: installedTreePostRuntimeInventory.native.identity_sha256,
+      post_runtime_byte_identical: true,
+    },
     screenshots,
     diagnostics: {
       page_error_count: pageErrors.length,
@@ -477,6 +701,7 @@ try {
     scenarios: receipt.scenarios,
     renderer_sha256: receipt.parity.installer_renderer_sha256,
     authenticode: receipt.authenticode,
+    sbom: receipt.sbom,
     screenshots: screenshots.length,
   }, null, 2)}\n`);
 } catch (error) {
@@ -484,14 +709,25 @@ try {
   throw error;
 } finally {
   if (app) await app.close().catch(() => {});
+  await settleLockedSession(initialLockedSession, initialProcessPid);
+  await settleLockedSession(restartLockedSession, restartProcessPid);
+  await settleLockedSession(installerLockedSession, installerLockedSession?.child?.pid);
   await new Promise((resolve) => api.server.close(resolve));
   if (!uninstallCompleted) {
-    failureCleanup = cleanupFailedWindowsNsisInstallation({
+    failureCleanup = await cleanupFailedWindowsNsisInstallation({
       installDir,
       priorError: qaError,
       exists: existsSync,
       list: readdirSync,
-      execute: (filePath, args) => execFileSync(filePath, args, { stdio: "ignore", windowsHide: true }),
+      executeLocked: async (filePath, args) => {
+        assert.deepEqual(args, ["/S"], "Windows failure cleanup must use silent NSIS uninstall");
+        const cleanupInstalledTree = captureStableInstalledTreeInventory(installDir);
+        const cleanupReceipt = await runLockedUninstaller({
+          installed: { uninstallerPath: filePath },
+          inventory: cleanupInstalledTree,
+        });
+        uninstallerReceipt ??= cleanupReceipt;
+      },
       waitForRemoval: (filePath) => waitUntilSync(
         () => !existsSync(filePath),
         `Windows failure cleanup did not remove the executable: ${filePath}`,
@@ -506,6 +742,7 @@ try {
           schema_version: "law-firm-os.formal-windows-failure-cleanup.v1",
           generated_at: new Date().toISOString(),
           primary_error_preserved: qaError !== null,
+          uninstaller: uninstallerReceipt,
           result: failureCleanup,
         }, null, 2)}\n`,
         "utf8",

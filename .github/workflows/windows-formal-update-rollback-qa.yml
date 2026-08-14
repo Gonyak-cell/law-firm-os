@@ -4,27 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       source_sha:
-        description: Exact clean source commit containing the operator runner
+        description: Exact clean source commit containing the reviewed reader and operator runners
         required: true
         type: string
       source_tree:
-        description: Exact Git tree for the runner source commit
+        description: Exact Git tree for the reviewed source commit
         required: true
         type: string
-      artifact_root:
-        description: Absolute pre-staged root containing both signed candidates and approval
-        required: true
-        type: string
-      execution_input:
-        description: Relative canonical execution-input JSON path under artifact_root
-        required: true
-        type: string
-      approval_receipt:
-        description: Relative canonical production-root-approved receipt path under artifact_root
-        required: true
-        type: string
-      approval_signature:
-        description: Relative detached receipt signature path under artifact_root
+      private_locator_artifact_ref_json:
+        description: Public-safe aggregate locator artifact reference; encrypted locator bytes remain private
         required: true
         type: string
       confirmation_dir:
@@ -33,128 +21,569 @@ on:
         type: string
 
 permissions:
-  actions: read
   contents: read
-  deployments: read
 
 jobs:
   protected-environment-preflight:
-    name: Refuse absent or unprotected operator environment
-    runs-on: windows-latest
+    name: Prove the existing protected reader and operator environment
+    runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     outputs:
-      environment_name: ${{ steps.environment.outputs.name }}
+      environment_name: ${{ steps.protected-environment.outputs.environment_name }}
+      reader_role_arn: ${{ steps.protected-environment.outputs.reader_role_arn }}
+      handoff_bucket: ${{ steps.protected-environment.outputs.handoff_bucket }}
+      handoff_kms_key_arn: ${{ steps.protected-environment.outputs.handoff_kms_key_arn }}
+      locator_wrapping_kms_key_arn: ${{ steps.protected-environment.outputs.locator_wrapping_kms_key_arn }}
+      bridge_public_key_spki_b64: ${{ steps.protected-environment.outputs.bridge_public_key_spki_b64 }}
+      bridge_public_key_sha256: ${{ steps.protected-environment.outputs.bridge_public_key_sha256 }}
+      bridge_private_key_path: ${{ steps.protected-environment.outputs.bridge_private_key_path }}
     steps:
-      - name: Verify the environment already has non-bypassable independent reviewers
-        id: environment
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ENVIRONMENT_NAME: windows-formal-update-rollback
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $headers = @{
-            Accept = 'application/vnd.github+json'
-            Authorization = "Bearer $env:GH_TOKEN"
-            'X-GitHub-Api-Version' = '2022-11-28'
-          }
-          $encodedName = [Uri]::EscapeDataString($env:ENVIRONMENT_NAME)
-          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/environments/$encodedName"
-          $environment = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
-          if ($environment.name -cne $env:ENVIRONMENT_NAME) { throw 'protected operator environment is missing' }
-          if ($environment.PSObject.Properties.Name -notcontains 'can_admins_bypass') {
-            throw 'GitHub environment response cannot prove administrator bypass is disabled'
-          }
-          $reviewRules = @($environment.protection_rules | Where-Object { $_.type -eq 'required_reviewers' })
-          if ($reviewRules.Count -ne 1 -or @($reviewRules[0].reviewers).Count -lt 1) {
-            throw 'protected operator environment requires at least one independent reviewer'
-          }
-          if ($reviewRules[0].prevent_self_review -ne $true) {
-            throw 'protected operator environment must prevent self-review'
-          }
-          if ($environment.can_admins_bypass -isnot [bool] -or $environment.can_admins_bypass) {
-            throw 'protected operator environment must disable administrator bypass'
-          }
-          "name=$env:ENVIRONMENT_NAME" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Validate all manual inputs before the protected job exists
+      - name: Verify public dispatch bindings before any environment-read token
         shell: pwsh
         env:
           INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
           INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
-          INPUT_ARTIFACT_ROOT: ${{ inputs.artifact_root }}
-          INPUT_EXECUTION_INPUT: ${{ inputs.execution_input }}
-          INPUT_APPROVAL_RECEIPT: ${{ inputs.approval_receipt }}
-          INPUT_APPROVAL_SIGNATURE: ${{ inputs.approval_signature }}
+          INPUT_PRIVATE_LOCATOR_ARTIFACT_REF_JSON: ${{ inputs.private_locator_artifact_ref_json }}
           INPUT_CONFIRMATION_DIR: ${{ inputs.confirmation_dir }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:INPUT_SOURCE_SHA -notmatch '^[0-9a-f]{40}$') { throw 'source_sha must be a full lowercase Git object ID' }
-          if ($env:INPUT_SOURCE_TREE -notmatch '^[0-9a-f]{40}$') { throw 'source_tree must be a full lowercase Git object ID' }
-          if (-not [IO.Path]::IsPathFullyQualified($env:INPUT_ARTIFACT_ROOT)) { throw 'artifact_root must be absolute' }
-          if (-not [IO.Path]::IsPathFullyQualified($env:INPUT_CONFIRMATION_DIR)) { throw 'confirmation_dir must be absolute' }
-          foreach ($value in @($env:INPUT_EXECUTION_INPUT, $env:INPUT_APPROVAL_RECEIPT, $env:INPUT_APPROVAL_SIGNATURE)) {
-            if ([IO.Path]::IsPathFullyQualified($value) -or $value -match '(^|[\\/])\.\.([\\/]|$)') {
-              throw 'artifact references must be relative and cannot traverse parents'
-            }
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os') { throw 'workflow must run in the canonical repository' }
+          if ($env:GITHUB_REF -cne 'refs/heads/main') { throw 'workflow must be dispatched from main' }
+          if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'environment preflight requires a GitHub-hosted runner' }
+          if ($env:INPUT_SOURCE_SHA -notmatch '\A[0-9a-f]{40}\z' -or $env:INPUT_SOURCE_SHA -cne $env:GITHUB_SHA) {
+            throw 'source_sha must be the exact lowercase workflow commit'
+          }
+          if ($env:INPUT_SOURCE_TREE -notmatch '\A[0-9a-f]{40}\z') { throw 'source_tree must be a full lowercase Git tree ID' }
+          if ([string]::IsNullOrWhiteSpace($env:INPUT_PRIVATE_LOCATOR_ARTIFACT_REF_JSON) -or $env:INPUT_PRIVATE_LOCATOR_ARTIFACT_REF_JSON.Length -gt 8192) {
+            throw 'private_locator_artifact_ref_json must be a bounded public-safe JSON reference'
+          }
+          if ($env:INPUT_PRIVATE_LOCATOR_ARTIFACT_REF_JSON -match '[\x00-\x08\x0B\x0C\x0E-\x1F]') { throw 'public artifact ref contains a control character' }
+          if ($env:INPUT_CONFIRMATION_DIR -notmatch '\A[A-Za-z]:\\[^\p{Cc}]{1,500}\z' `
+            -or @($env:INPUT_CONFIRMATION_DIR -split '\\' | Where-Object { $_ -in @('.', '..') }).Count -ne 0) {
+            throw 'confirmation_dir must be a safe absolute Windows path'
           }
 
-  operator-update-rollback:
-    name: Supervised NSIS update and rollback
+      - name: Verify exact protected environment variables and secret names through GitHub API
+        id: protected-environment
+        shell: pwsh
+        env:
+          ENVIRONMENT_READ_TOKEN: ${{ secrets.WINDOWS_UPDATE_ENVIRONMENT_READ_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os' -or $env:GITHUB_REF -cne 'refs/heads/main' `
+            -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'environment preflight identity changed' }
+          if ([string]::IsNullOrWhiteSpace($env:ENVIRONMENT_READ_TOKEN)) {
+            throw 'dedicated least-privilege environment-read repository token is missing'
+          }
+          $environmentName = 'windows-formal-update-rollback'
+          $baseUri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/environments/$environmentName"
+          $headers = @{
+            Accept = 'application/vnd.github+json'
+            Authorization = "Bearer $env:ENVIRONMENT_READ_TOKEN"
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          try {
+            $environment = Invoke-RestMethod -Method Get -Uri $baseUri -Headers $headers
+            $variables = Invoke-RestMethod -Method Get -Uri "$baseUri/variables?per_page=100" -Headers $headers
+            $secrets = Invoke-RestMethod -Method Get -Uri "$baseUri/secrets?per_page=100" -Headers $headers
+          } catch {
+            throw 'pre-existing Windows update environment readback failed; implicit creation is forbidden'
+          }
+          if ($environment.name -cne $environmentName) { throw 'Windows update environment identity differs' }
+          $reviewerRules = @($environment.protection_rules | Where-Object { $_.type -ceq 'required_reviewers' })
+          if ($reviewerRules.Count -ne 1 -or @($reviewerRules[0].reviewers).Count -lt 1 `
+            -or $reviewerRules[0].prevent_self_review -ne $true) {
+            throw 'Windows update environment must require independent review and prevent self-review'
+          }
+          if ($environment.can_admins_bypass -ne $false) { throw 'Windows update environment must forbid administrator bypass' }
+          if ($null -eq $environment.deployment_branch_policy `
+            -or $environment.deployment_branch_policy.protected_branches -ne $true `
+            -or $environment.deployment_branch_policy.custom_branch_policies -ne $false) {
+            throw 'Windows update environment must allow protected branches only'
+          }
+          $requiredVariableNames = @(
+            'WINDOWS_UPDATE_ENVIRONMENT_GUARD',
+            'WINDOWS_UPDATE_HANDOFF_ACCOUNT_ID',
+            'WINDOWS_UPDATE_HANDOFF_REGION',
+            'WINDOWS_UPDATE_HANDOFF_BUCKET',
+            'WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN',
+            'WINDOWS_UPDATE_HANDOFF_PREFIX',
+            'WINDOWS_UPDATE_READER_ROLE_ARN',
+            'WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN',
+            'WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SPKI_B64',
+            'WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SHA256',
+            'WINDOWS_UPDATE_BRIDGE_PRIVATE_KEY_PATH'
+          )
+          $variableNames = @($variables.variables | ForEach-Object { [string]$_.name })
+          if ([int]$variables.total_count -ne $requiredVariableNames.Count `
+            -or @($variableNames | Where-Object { $requiredVariableNames -cnotcontains $_ }).Count -ne 0 `
+            -or @($requiredVariableNames | Where-Object { $variableNames -cnotcontains $_ }).Count -ne 0) {
+            throw 'dedicated Windows update environment variable names differ from the closed configuration'
+          }
+          $environmentVariables = @{}
+          foreach ($variable in @($variables.variables)) {
+            if ($environmentVariables.ContainsKey([string]$variable.name)) { throw 'duplicate Windows update environment variable name returned by GitHub' }
+            $environmentVariables[[string]$variable.name] = [string]$variable.value
+          }
+          if ($environmentVariables['WINDOWS_UPDATE_ENVIRONMENT_GUARD'] -cne 'law-firm-os.windows-formal-update-rollback.v1' `
+            -or $environmentVariables['WINDOWS_UPDATE_HANDOFF_ACCOUNT_ID'] -cne '770880870480' `
+            -or $environmentVariables['WINDOWS_UPDATE_HANDOFF_REGION'] -cne 'ap-northeast-2' `
+            -or $environmentVariables['WINDOWS_UPDATE_HANDOFF_PREFIX'] -cne 'windows/signed/v1/' `
+            -or $environmentVariables['WINDOWS_UPDATE_HANDOFF_BUCKET'] -notmatch '\A[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]\z' `
+            -or $environmentVariables['WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN'] -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z' `
+            -or $environmentVariables['WINDOWS_UPDATE_READER_ROLE_ARN'] -notmatch '\Aarn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]{1,512}\z' `
+            -or $environmentVariables['WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN'] -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z') {
+            throw 'Windows update environment bindings are missing or drifted'
+          }
+          $publicKeyBase64 = $environmentVariables['WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SPKI_B64']
+          $publicKeySha256 = $environmentVariables['WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SHA256']
+          if ($publicKeyBase64 -notmatch '\A[A-Za-z0-9+/]{680,800}={0,2}\z' `
+            -or $publicKeySha256 -notmatch '\A[0-9a-f]{64}\z') { throw 'operator bridge public-key identity is invalid' }
+          try { $publicKeyBytes = [Convert]::FromBase64String($publicKeyBase64) }
+          catch { throw 'operator bridge public key is not canonical base64' }
+          if ([Convert]::ToBase64String($publicKeyBytes) -cne $publicKeyBase64) { throw 'operator bridge public key is not canonical base64' }
+          $observedPublicKeySha256 = [Convert]::ToHexString(
+            [Security.Cryptography.SHA256]::HashData($publicKeyBytes)
+          ).ToLowerInvariant()
+          if ($observedPublicKeySha256 -cne $publicKeySha256) { throw 'operator bridge public-key digest differs' }
+          $publicKeyPath = Join-Path $env:RUNNER_TEMP "lawos-update-bridge-public-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT.der"
+          try {
+            [IO.File]::WriteAllBytes($publicKeyPath, $publicKeyBytes)
+            $keyDescription = (& openssl pkey -pubin -inform DER -in $publicKeyPath -text -noout 2>&1) -join "`n"
+            if ($LASTEXITCODE -ne 0 -or $keyDescription -notmatch 'Public-Key: \(4096 bit\)' `
+              -or $keyDescription -notmatch 'Exponent: 65537 \(0x10001\)') {
+              throw 'operator bridge key must be canonical RSA-4096 SPKI with exponent 65537'
+            }
+          } finally {
+            Remove-Item -LiteralPath $publicKeyPath -Force -ErrorAction SilentlyContinue
+          }
+          $privateKeyPath = $environmentVariables['WINDOWS_UPDATE_BRIDGE_PRIVATE_KEY_PATH']
+          if ($privateKeyPath -notmatch '\A[A-Za-z]:\\[^\p{Cc}]{1,500}\.pk8\z' `
+            -or @($privateKeyPath -split '\\' | Where-Object { $_ -in @('.', '..') }).Count -ne 0) {
+            throw 'operator bridge private-key path is invalid'
+          }
+          $secretNames = @($secrets.secrets | ForEach-Object { [string]$_.name })
+          if ($secretNames -contains 'WINDOWS_UPDATE_PRIVATE_LOCATOR_JSON') { throw 'obsolete plaintext private locator secret is forbidden' }
+          "environment_name=$environmentName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "reader_role_arn=$($environmentVariables['WINDOWS_UPDATE_READER_ROLE_ARN'])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_bucket=$($environmentVariables['WINDOWS_UPDATE_HANDOFF_BUCKET'])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "handoff_kms_key_arn=$($environmentVariables['WINDOWS_UPDATE_HANDOFF_KMS_KEY_ARN'])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "locator_wrapping_kms_key_arn=$($environmentVariables['WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN'])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "bridge_public_key_spki_b64=$publicKeyBase64" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "bridge_public_key_sha256=$publicKeySha256" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "bridge_private_key_path=$privateKeyPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  private-locator-source-auth:
+    name: Authenticate aggregate locator source without OIDC
     needs: protected-environment-preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      id-token: none
+    environment:
+      name: ${{ needs.protected-environment-preflight.outputs.environment_name }}
+    outputs:
+      locator_artifact_id: ${{ steps.aggregate-upload.outputs.artifact-id }}
+      locator_artifact_digest: ${{ steps.aggregate-upload.outputs.artifact-digest }}
+      locator_receipt_artifact_id: ${{ steps.reader-receipt-upload.outputs.artifact-id }}
+      locator_receipt_artifact_digest: ${{ steps.reader-receipt-upload.outputs.artifact-digest }}
+      private_locator_sha256: ${{ steps.ref.outputs.private_locator_sha256 }}
+      artifact_ref_sha256: ${{ steps.ref.outputs.artifact_ref_sha256 }}
+    steps:
+      - name: Checkout exact reviewed reader source without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+          path: lawos-update-source-auth-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Setup pinned Node 22 before source authentication
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Verify exact clean reader source before producer access
+        shell: bash
+        working-directory: ${{ github.workspace }}/lawos-update-source-auth-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Gonyak-cell/law-firm-os"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$INPUT_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$INPUT_SOURCE_TREE"
+          git diff --quiet HEAD --
+          test -z "$(git ls-files --others --exclude-standard)"
+
+      - name: Validate public aggregate locator reference before Actions token
+        id: ref
+        shell: bash
+        working-directory: ${{ github.workspace }}/lawos-update-source-auth-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_PRIVATE_LOCATOR_ARTIFACT_REF_JSON: ${{ inputs.private_locator_artifact_ref_json }}
+          MATTER_WINDOWS_UPDATE_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_WINDOWS_UPDATE_SOURCE_TREE: ${{ inputs.source_tree }}
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          summary=$(node scripts/run-windows-formal-update-handoff-consumer.mjs --validate-ref)
+          node -e 'const s=JSON.parse(process.argv[1]);if(s.verdict!=="REF_VALIDATED"||!/^[0-9a-f]{64}$/.test(s.artifact_ref_sha256)||!/^[0-9a-f]{64}$/.test(s.private_locator_sha256)||!/^[0-9a-f]{64}$/.test(s.wrapping_public_key_sha256)||!/^[1-9][0-9]*$/.test(s.producer_run_id)||!/^[1-9][0-9]*$/.test(s.producer_run_attempt)||!/^[1-9][0-9]*$/.test(s.artifact_id)||!/^sha256:[0-9a-f]{64}$/.test(s.artifact_digest)||typeof s.artifact_name!=="string")throw new Error("aggregate locator ref failed validation");for(const k of ["artifact_ref_sha256","private_locator_sha256","wrapping_public_key_sha256","producer_run_id","producer_run_attempt","artifact_id","artifact_digest","artifact_name"])process.stdout.write(`${k}=${s[k]}${String.fromCharCode(10)}`)' "$summary" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate producer run, job, artifact metadata, and raw ZIP before extraction
+        id: source-download
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.WINDOWS_UPDATE_LOCATOR_ARTIFACT_READ_TOKEN }}
+          PRODUCER_RUN_ID: ${{ steps.ref.outputs.producer_run_id }}
+          PRODUCER_RUN_ATTEMPT: ${{ steps.ref.outputs.producer_run_attempt }}
+          PRODUCER_ARTIFACT_ID: ${{ steps.ref.outputs.artifact_id }}
+          PRODUCER_ARTIFACT_NAME: ${{ steps.ref.outputs.artifact_name }}
+          PRODUCER_ARTIFACT_DIGEST: ${{ steps.ref.outputs.artifact_digest }}
+          EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+          EXPECTED_SOURCE_TREE: ${{ inputs.source_tree }}
+          SOURCE_ROOT: ${{ runner.temp }}/lawos-update-locator-source-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN"
+          [[ "$PRODUCER_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PRODUCER_RUN_ATTEMPT" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PRODUCER_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PRODUCER_ARTIFACT_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          rm -rf -- "$SOURCE_ROOT"
+          install -d -m 700 "$SOURCE_ROOT/artifact" "$SOURCE_ROOT/metadata"
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          headers=(-H 'Accept: application/vnd.github+json' -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28')
+          curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 "${headers[@]}" -D "$SOURCE_ROOT/metadata/run.headers" "$api/actions/runs/$PRODUCER_RUN_ID" -o "$SOURCE_ROOT/metadata/run.json"
+          curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 "${headers[@]}" -D "$SOURCE_ROOT/metadata/jobs.headers" "$api/actions/runs/$PRODUCER_RUN_ID/attempts/$PRODUCER_RUN_ATTEMPT/jobs?per_page=100" -o "$SOURCE_ROOT/metadata/jobs.json"
+          curl --fail-with-body --silent --show-error --proto '=https' --tlsv1.2 "${headers[@]}" -D "$SOURCE_ROOT/metadata/artifact.headers" "$api/actions/artifacts/$PRODUCER_ARTIFACT_ID" -o "$SOURCE_ROOT/metadata/artifact.json"
+          curl --fail-with-body --silent --show-error --location --proto '=https' --tlsv1.2 "${headers[@]}" "$api/actions/artifacts/$PRODUCER_ARTIFACT_ID/zip" -o "$SOURCE_ROOT/aggregate.zip"
+          unset GH_TOKEN
+          python3 - "$SOURCE_ROOT" <<'PY'
+          import hashlib, json, os, pathlib, stat, unicodedata, zipfile
+          root = pathlib.Path(os.environ["SOURCE_ROOT"])
+          metadata = root / "metadata"
+          def read_json(name):
+              return json.loads((metadata / name).read_text(encoding="utf-8"))
+          def require(condition, message):
+              if not condition:
+                  raise SystemExit(message)
+          for name in ("run", "jobs", "artifact"):
+              headers = (metadata / f"{name}.headers").read_text(encoding="utf-8", errors="strict").splitlines()
+              require(any(line.lower().startswith("x-accepted-github-permissions:") and "actions=read" in line.lower() for line in headers), f"{name} metadata did not prove actions:read")
+          run = read_json("run.json")
+          require(str(run.get("id")) == os.environ["PRODUCER_RUN_ID"] and str(run.get("run_attempt")) == os.environ["PRODUCER_RUN_ATTEMPT"], "producer run identity mismatch")
+          require(run.get("name") == "Windows Formal Update Private Locator Seal" and run.get("path") == ".github/workflows/windows-formal-update-private-locator-seal.yml", "producer workflow identity mismatch")
+          require(run.get("event") == "workflow_dispatch" and run.get("status") == "completed" and run.get("conclusion") == "success" and run.get("head_branch") == "main" and run.get("head_sha") == os.environ["EXPECTED_SOURCE_SHA"] and (run.get("repository") or {}).get("full_name") == "Gonyak-cell/law-firm-os", "producer run state mismatch")
+          jobs = read_json("jobs.json")
+          matching = [job for job in jobs.get("jobs", []) if job.get("name") == "Seal exact 19-object private update locator" and job.get("status") == "completed" and job.get("conclusion") == "success" and job.get("head_sha") == os.environ["EXPECTED_SOURCE_SHA"] and (job.get("run_attempt") is None or str(job.get("run_attempt")) == os.environ["PRODUCER_RUN_ATTEMPT"])]
+          require(len(matching) == 1, "producer job metadata mismatch")
+          artifact = read_json("artifact.json")
+          workflow_run = artifact.get("workflow_run") or {}
+          require(str(artifact.get("id")) == os.environ["PRODUCER_ARTIFACT_ID"] and artifact.get("name") == os.environ["PRODUCER_ARTIFACT_NAME"] and artifact.get("digest") == os.environ["PRODUCER_ARTIFACT_DIGEST"] and artifact.get("expired") is False and isinstance(artifact.get("size_in_bytes"), int) and artifact["size_in_bytes"] > 0 and str(workflow_run.get("id")) == os.environ["PRODUCER_RUN_ID"] and workflow_run.get("head_sha") == os.environ["EXPECTED_SOURCE_SHA"] and workflow_run.get("head_branch") == "main", "producer artifact metadata mismatch")
+          archive = root / "aggregate.zip"
+          archive_stat = archive.stat()
+          require(stat.S_ISREG(archive_stat.st_mode) and 0 < archive_stat.st_size <= 64 * 1024 * 1024, "aggregate ZIP size is unsafe")
+          digest = hashlib.sha256()
+          with archive.open("rb", buffering=0) as stream:
+              while chunk := stream.read(1024 * 1024):
+                  digest.update(chunk)
+          require("sha256:" + digest.hexdigest() == os.environ["PRODUCER_ARTIFACT_DIGEST"], "raw aggregate ZIP digest mismatch")
+          expected = {"windows-formal-update-private-locator-envelope.json": 1024 * 1024, "windows-formal-update-private-locator.enc": 32 * 1024 * 1024}
+          with zipfile.ZipFile(archive) as zf:
+              infos = zf.infolist()
+              require(len(infos) == len(expected) and zf.testzip() is None, "aggregate ZIP central directory is not closed")
+              names = set()
+              folded = set()
+              for info in infos:
+                  name = info.filename
+                  require(name.isascii() and unicodedata.normalize("NFC", name) == name and "/" not in name and "\\" not in name and name and not any(ord(ch) < 32 or ord(ch) == 127 for ch in name), "aggregate ZIP path is not canonical ASCII/NFC")
+                  require(not name.startswith(("/", "\\")) and not any(part in (".", "..") for part in name.replace("\\", "/").split("/")), "aggregate ZIP path traversal")
+                  folded_name = name.casefold()
+                  require(name not in names and folded_name not in folded, "aggregate ZIP contains a duplicate name")
+                  names.add(name)
+                  folded.add(folded_name)
+                  require(name in expected and not info.is_dir() and not (info.flag_bits & 1), "aggregate ZIP contains an unexpected or encrypted entry")
+                  mode = (info.external_attr >> 16) & 0o170000
+                  require(mode in (0, stat.S_IFREG) and info.compress_type in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED), "aggregate ZIP contains a symlink or special entry")
+                  require(0 < info.file_size <= expected[name] and 0 <= info.compress_size <= 64 * 1024 * 1024, "aggregate ZIP entry size is out of bounds")
+              require(names == set(expected) and folded == {name.casefold() for name in expected}, "aggregate ZIP file set differs")
+              for info in infos:
+                  destination = root / "artifact" / info.filename
+                  require(destination.parent == root / "artifact", "aggregate ZIP target escaped fixed root")
+                  flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+                  descriptor = os.open(destination, flags, 0o600)
+                  written = 0
+                  try:
+                      with os.fdopen(descriptor, "wb", closefd=True) as output, zf.open(info, "r") as source:
+                          descriptor = -1
+                          while chunk := source.read(1024 * 1024):
+                              written += len(chunk)
+                              require(written <= expected[info.filename], "aggregate ZIP entry exceeded its bound")
+                              output.write(chunk)
+                          output.flush()
+                          os.fsync(output.fileno())
+                  finally:
+                      if descriptor >= 0:
+                          os.close(descriptor)
+                  require(written == info.file_size, "aggregate ZIP entry length changed")
+          require(sorted(p.name for p in (root / "artifact").iterdir()) == sorted(expected), "materialized aggregate file set differs")
+          require(all(p.is_file() and not p.is_symlink() for p in (root / "artifact").iterdir()), "materialized aggregate contains a non-regular file")
+          PY
+
+      - name: Verify aggregate metadata, envelope, and ciphertext with the Actions token cleared
+        id: source-verify
+        shell: bash
+        working-directory: ${{ github.workspace }}/lawos-update-source-auth-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_PRIVATE_LOCATOR_ARTIFACT_REF_JSON: ${{ inputs.private_locator_artifact_ref_json }}
+          MATTER_WINDOWS_UPDATE_SOURCE_SHA: ${{ inputs.source_sha }}
+          MATTER_WINDOWS_UPDATE_SOURCE_TREE: ${{ inputs.source_tree }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_SOURCE_ROOT: ${{ runner.temp }}/lawos-update-locator-source-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_SOURCE_RECEIPT_PATH: ${{ runner.temp }}/lawos-update-locator-source-receipt-${{ github.run_id }}-${{ github.run_attempt }}.json
+          MATTER_WINDOWS_UPDATE_LOCATOR_WRAPPING_KMS_KEY_ARN: ${{ needs.protected-environment-preflight.outputs.locator_wrapping_kms_key_arn }}
+        run: |
+          set -euo pipefail
+          summary=$(node scripts/run-windows-formal-update-handoff-consumer.mjs --verify-source)
+          node -e 'const s=JSON.parse(process.argv[1]);if(s.verdict!=="PASS"||s.state!=="PENDING_CLEANUP"||s.artifact_digest_verified!==true||s.exact_file_set_verified!==true||s.oidc_used!==false||s.plaintext_locator_recorded!==false)throw new Error("aggregate source verification failed")' "$summary"
+
+      - name: Copy ciphertext-only artifact and finalize source receipt before OIDC
+        id: source-cleanup
+        shell: bash
+        working-directory: ${{ github.workspace }}/lawos-update-source-auth-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_LOCATOR_SOURCE_ROOT: ${{ runner.temp }}/lawos-update-locator-source-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_ARTIFACT_ROOT: ${{ runner.temp }}/lawos-update-locator-artifact-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_SOURCE_RECEIPT_PATH: ${{ runner.temp }}/lawos-update-locator-source-receipt-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: |
+          set -euo pipefail
+          summary=$(node scripts/run-windows-formal-update-handoff-consumer.mjs --cleanup-source)
+          node -e 'const s=JSON.parse(process.argv[1]);if(s.verdict!=="PASS"||s.state!=="PASS"||s.source_root_removed!==true||s.locator_artifact_root_ready!==true)throw new Error("aggregate source cleanup failed")' "$summary"
+
+      - name: Upload authenticated current-run aggregate ciphertext and envelope
+        id: aggregate-upload
+        if: steps.source-cleanup.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-formal-update-private-locator-current-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-update-locator-artifact-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 1
+
+      - name: Upload authenticated current-run source receipt
+        id: reader-receipt-upload
+        if: steps.source-cleanup.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-formal-update-private-locator-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-update-locator-source-receipt-${{ github.run_id }}-${{ github.run_attempt }}.json
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 1
+
+      - name: Always purge source, ciphertext, receipt, and token residue
+        if: always()
+        shell: bash
+        env:
+          READER_ROOT: ${{ github.workspace }}/lawos-update-source-auth-${{ github.run_id }}-${{ github.run_attempt }}
+          SOURCE_ROOT: ${{ runner.temp }}/lawos-update-locator-source-${{ github.run_id }}-${{ github.run_attempt }}
+          AGGREGATE_ROOT: ${{ runner.temp }}/lawos-update-locator-artifact-${{ github.run_id }}-${{ github.run_attempt }}
+          SOURCE_RECEIPT: ${{ runner.temp }}/lawos-update-locator-source-receipt-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: |
+          set +e
+          if [[ -f "$READER_ROOT/scripts/run-windows-formal-update-handoff-consumer.mjs" ]]; then
+            RUNNER_TEMP="${{ runner.temp }}" \
+            MATTER_WINDOWS_UPDATE_PRIVATE_ARTIFACT_ROOT="${{ runner.temp }}/lawos-update-private-artifacts-${{ github.run_id }}-${{ github.run_attempt }}" \
+            MATTER_WINDOWS_UPDATE_LOCATOR_ARTIFACT_ROOT="$AGGREGATE_ROOT" \
+            MATTER_WINDOWS_UPDATE_LOCATOR_SOURCE_ROOT="$SOURCE_ROOT" \
+            MATTER_WINDOWS_UPDATE_LOCATOR_SOURCE_RECEIPT_PATH="$SOURCE_RECEIPT" \
+            MATTER_WINDOWS_UPDATE_ENCRYPTED_BRIDGE_ROOT="${{ runner.temp }}/lawos-update-encrypted-bridge-${{ github.run_id }}-${{ github.run_attempt }}" \
+            node "$READER_ROOT/scripts/run-windows-formal-update-handoff-consumer.mjs" --purge
+          fi
+          rm -rf -- "$SOURCE_ROOT" "$AGGREGATE_ROOT" "$READER_ROOT"
+          rm -f -- "$SOURCE_RECEIPT"
+          unset GH_TOKEN ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN AWS_REGION AWS_DEFAULT_REGION
+          printf 'GH_TOKEN=\n' >> "$GITHUB_ENV"
+          for name in ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN AWS_REGION AWS_DEFAULT_REGION; do printf '%s=\n' "$name" >> "$GITHUB_ENV"; done
+
+  private-artifact-reader:
+    name: Exact-version private artifact reader and encrypted bridge producer
+    needs:
+      - protected-environment-preflight
+      - private-locator-source-auth
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/windows-formal-update-private-reader-oidc.yml
+    with:
+      source_sha: ${{ inputs.source_sha }}
+      source_tree: ${{ inputs.source_tree }}
+      private_locator_artifact_ref_json: ${{ inputs.private_locator_artifact_ref_json }}
+      locator_artifact_id: ${{ needs.private-locator-source-auth.outputs.locator_artifact_id }}
+      locator_artifact_digest: ${{ needs.private-locator-source-auth.outputs.locator_artifact_digest }}
+      locator_receipt_artifact_id: ${{ needs.private-locator-source-auth.outputs.locator_receipt_artifact_id }}
+      locator_receipt_artifact_digest: ${{ needs.private-locator-source-auth.outputs.locator_receipt_artifact_digest }}
+      private_locator_sha256: ${{ needs.private-locator-source-auth.outputs.private_locator_sha256 }}
+      artifact_ref_sha256: ${{ needs.private-locator-source-auth.outputs.artifact_ref_sha256 }}
+      reader_role_arn: ${{ needs.protected-environment-preflight.outputs.reader_role_arn }}
+      handoff_bucket: ${{ needs.protected-environment-preflight.outputs.handoff_bucket }}
+      handoff_kms_key_arn: ${{ needs.protected-environment-preflight.outputs.handoff_kms_key_arn }}
+      locator_wrapping_kms_key_arn: ${{ needs.protected-environment-preflight.outputs.locator_wrapping_kms_key_arn }}
+      bridge_public_key_spki_b64: ${{ needs.protected-environment-preflight.outputs.bridge_public_key_spki_b64 }}
+      bridge_public_key_sha256: ${{ needs.protected-environment-preflight.outputs.bridge_public_key_sha256 }}
+
+
+  operator-update-rollback:
+    name: Supervised NSIS update and rollback without AWS identity
+    needs:
+      - protected-environment-preflight
+      - private-artifact-reader
     runs-on: [self-hosted, windows, x64, lawos-formal-operator]
-    # The protected environment name is unavailable until the GET-only
-    # preflight proves that it already exists, avoiding implicit creation.
-    environment: ${{ needs.protected-environment-preflight.outputs.environment_name }}
     timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      id-token: none
+    environment:
+      name: ${{ needs.protected-environment-preflight.outputs.environment_name }}
+    outputs:
+      consumer_receipt_artifact_id: ${{ steps.consumer-receipt-upload.outputs.artifact-id }}
+      consumer_receipt_artifact_digest: ${{ steps.consumer-receipt-upload.outputs.artifact-digest }}
+      consumer_receipt_sha256: ${{ steps.finalize-consumer.outputs.receipt_sha256 }}
     steps:
       - name: Configure deterministic Git line endings
         shell: pwsh
         run: git config --global core.autocrlf false
 
-      - name: Checkout exact runner source without persisted credentials
+      - name: Checkout exact operator source without persisted credentials
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 1
           persist-credentials: false
           clean: false
-          path: lawos-update-runner-${{ github.run_id }}-${{ github.run_attempt }}
+          path: lawos-update-operator-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Setup pinned Node 22
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "22"
 
-      - name: Verify exact runner source and immutable tree
+      - name: Verify exact clean operator source and no AWS authority
         shell: pwsh
-        working-directory: ${{ github.workspace }}\lawos-update-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        working-directory: ${{ github.workspace }}\lawos-update-operator-${{ github.run_id }}-${{ github.run_attempt }}
         env:
           INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
           INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_CONFIRMATION_DIR: ${{ inputs.confirmation_dir }}
+          EXPECTED_ARTIFACT_ID: ${{ needs.private-artifact-reader.outputs.encrypted_bridge_artifact_id }}
+          EXPECTED_ARTIFACT_DIGEST: ${{ needs.private-artifact-reader.outputs.encrypted_bridge_artifact_digest }}
+          EXPECTED_READER_RECEIPT_ARTIFACT_ID: ${{ needs.private-artifact-reader.outputs.reader_receipt_artifact_id }}
+          EXPECTED_READER_RECEIPT_ARTIFACT_DIGEST: ${{ needs.private-artifact-reader.outputs.reader_receipt_artifact_digest }}
+          EXPECTED_ENVELOPE_SHA256: ${{ needs.private-artifact-reader.outputs.encrypted_bridge_envelope_sha256 }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ((git rev-parse HEAD).Trim() -cne $env:INPUT_SOURCE_SHA) { throw 'exact source checkout failed' }
-          if ((git rev-parse 'HEAD^{tree}').Trim() -cne $env:INPUT_SOURCE_TREE) { throw 'exact source tree verification failed' }
+          if ((git rev-parse HEAD).Trim() -cne $env:INPUT_SOURCE_SHA) { throw 'exact operator source checkout failed' }
+          if ((git rev-parse 'HEAD^{tree}').Trim() -cne $env:INPUT_SOURCE_TREE) { throw 'exact operator source tree verification failed' }
           git diff --quiet HEAD --
-          if ($LASTEXITCODE -ne 0) { throw 'tracked runner source is dirty' }
-          $unexpected = @(git ls-files --others --exclude-standard | Where-Object { $_ -notmatch '^config/external-release/' })
-          if ($unexpected.Count -ne 0) { throw 'unexpected untracked runner source is present' }
+          if ($LASTEXITCODE -ne 0 -or @(git ls-files --others --exclude-standard).Count -ne 0) { throw 'operator source is not clean' }
+          if (-not [IO.Path]::IsPathFullyQualified($env:INPUT_CONFIRMATION_DIR)) { throw 'confirmation_dir must be absolute' }
+          if ($env:EXPECTED_ARTIFACT_ID -notmatch '\A[1-9][0-9]*\z' `
+            -or $env:EXPECTED_ARTIFACT_DIGEST -notmatch '\Asha256:[0-9a-f]{64}\z' `
+            -or $env:EXPECTED_READER_RECEIPT_ARTIFACT_ID -notmatch '\A[1-9][0-9]*\z' `
+            -or $env:EXPECTED_READER_RECEIPT_ARTIFACT_DIGEST -notmatch '\Asha256:[0-9a-f]{64}\z' `
+            -or $env:EXPECTED_ENVELOPE_SHA256 -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'current-run encrypted bridge outputs are invalid'
+          }
+          foreach ($name in @(
+            'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
+            'ACTIONS_ID_TOKEN_REQUEST_URL',
+            'AWS_ACCESS_KEY_ID',
+            'AWS_SECRET_ACCESS_KEY',
+            'AWS_SESSION_TOKEN',
+            'AWS_SECURITY_TOKEN',
+            'AWS_REGION',
+            'AWS_DEFAULT_REGION'
+          )) {
+            if (-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($name))) {
+              throw "operator job must not receive AWS or OIDC authority: $name"
+            }
+          }
+          $downloadRoot = Join-Path $env:RUNNER_TEMP "lawos-update-encrypted-bridge-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $artifactRoot = Join-Path $env:RUNNER_TEMP "lawos-update-private-artifacts-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          if ((Test-Path -LiteralPath $downloadRoot) -or (Test-Path -LiteralPath $artifactRoot)) {
+            throw 'current-run private bridge roots must start absent'
+          }
+
+      - name: Download exact current-run encrypted bridge by immutable artifact ID
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.private-artifact-reader.outputs.encrypted_bridge_artifact_id }}
+          path: ${{ runner.temp }}/lawos-update-encrypted-bridge-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Download exact sanitized private-reader receipt by immutable artifact ID
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.private-artifact-reader.outputs.reader_receipt_artifact_id }}
+          path: ${{ runner.temp }}/lawos-update-reader-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Reject any bridge file outside the frozen envelope and 19 ciphertext payloads
+        shell: pwsh
+        env:
+          BRIDGE_ROOT: ${{ runner.temp }}\lawos-update-encrypted-bridge-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = @('envelope.json') + (1..19 | ForEach-Object { 'payload-{0:D3}.enc' -f $_ })
+          $actual = @(Get-ChildItem -LiteralPath $env:BRIDGE_ROOT -Force | ForEach-Object { if ($_.PSIsContainer) { throw 'bridge artifact contains a directory' }; $_.Name } | Sort-Object)
+          if ($actual.Count -ne $expected.Count -or (@($actual) -join "`n") -cne (@($expected | Sort-Object) -join "`n")) {
+            throw 'bridge artifact file set is not exactly the frozen envelope plus 19 ciphertext payloads'
+          }
+
+      - name: Decrypt and verify the bridge with the host-pinned private key
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\lawos-update-operator-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_PRIVATE_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-private-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-locator-artifact-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_ENCRYPTED_BRIDGE_ROOT: ${{ runner.temp }}\lawos-update-encrypted-bridge-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_PRIVATE_LOCATOR_SHA256: ${{ needs.private-artifact-reader.outputs.private_locator_sha256 }}
+          MATTER_WINDOWS_UPDATE_BRIDGE_ENVELOPE_SHA256: ${{ needs.private-artifact-reader.outputs.encrypted_bridge_envelope_sha256 }}
+          MATTER_WINDOWS_UPDATE_BRIDGE_PUBLIC_KEY_SHA256: ${{ needs.protected-environment-preflight.outputs.bridge_public_key_sha256 }}
+          MATTER_WINDOWS_UPDATE_BRIDGE_PRIVATE_KEY_PATH: ${{ needs.protected-environment-preflight.outputs.bridge_private_key_path }}
+          MATTER_WINDOWS_UPDATE_RUN_BINDING: Gonyak-cell/law-firm-os:${{ github.run_id }}:${{ github.run_attempt }}:${{ inputs.source_sha }}:${{ inputs.source_tree }}
+        run: |
+          $summary = node scripts/run-windows-formal-update-handoff-consumer.mjs --decrypt | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $summary.verdict -cne 'PASS' -or $summary.object_count -ne 19 `
+            -or $summary.automatic_update -ne $false -or $summary.public_release_claim -ne $false `
+            -or $summary.external_distribution_claim -ne $false -or $summary.production_go_live_claim -ne $false) {
+            throw 'current-run encrypted bridge admission failed'
+          }
 
       - name: Run independently approved operator sequence
         id: operator
         shell: pwsh
-        working-directory: ${{ github.workspace }}\lawos-update-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        working-directory: ${{ github.workspace }}\lawos-update-operator-${{ github.run_id }}-${{ github.run_attempt }}
         env:
           MATTER_WINDOWS_UPDATE_RUNNER_SOURCE_SHA: ${{ inputs.source_sha }}
           MATTER_WINDOWS_UPDATE_RUNNER_SOURCE_TREE: ${{ inputs.source_tree }}
-          MATTER_WINDOWS_UPDATE_ARTIFACT_ROOT: ${{ inputs.artifact_root }}
-          MATTER_WINDOWS_UPDATE_EXECUTION_INPUT: ${{ inputs.execution_input }}
-          MATTER_WINDOWS_UPDATE_APPROVAL_RECEIPT: ${{ inputs.approval_receipt }}
-          MATTER_WINDOWS_UPDATE_APPROVAL_SIGNATURE: ${{ inputs.approval_signature }}
+          MATTER_WINDOWS_UPDATE_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-private-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_EXECUTION_INPUT: governance/execution-input.json
+          MATTER_WINDOWS_UPDATE_APPROVAL_RECEIPT: governance/approval-receipt.json
+          MATTER_WINDOWS_UPDATE_APPROVAL_SIGNATURE: governance/approval-receipt.json.sig
           MATTER_WINDOWS_UPDATE_CONFIRMATION_DIR: ${{ inputs.confirmation_dir }}
           MATTER_WINDOWS_UPDATE_INSTALL_DIR: ${{ runner.temp }}\matter-update-rollback-${{ github.run_id }}-${{ github.run_attempt }}
-          MATTER_WINDOWS_UPDATE_RECEIPT_PATH: ${{ runner.temp }}\lawos-update-rollback-evidence-${{ github.run_id }}-${{ github.run_attempt }}.json
+          MATTER_WINDOWS_UPDATE_RECEIPT_PATH: ${{ runner.temp }}\lawos-update-rollback-operator-${{ github.run_id }}-${{ github.run_attempt }}.json
         run: |
           node scripts/run-formal-windows-update-rollback-qa.mjs
           $status = $LASTEXITCODE
@@ -164,11 +593,56 @@ jobs:
           if ($status -eq 2) { exit 1 }
           exit $status
 
-      - name: Upload sanitized operator receipt
+      - name: Finalize consumer receipt and remove all private bytes
+        id: finalize-consumer
+        if: always() && steps.operator.outputs.receipt_written == 'true'
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\lawos-update-operator-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_PRIVATE_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-private-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-locator-artifact-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_ENCRYPTED_BRIDGE_ROOT: ${{ runner.temp }}\lawos-update-encrypted-bridge-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_HANDOFF_RECEIPT_PATH: ${{ runner.temp }}\lawos-update-reader-receipt-${{ github.run_id }}-${{ github.run_attempt }}\lawos-update-private-handoff-${{ github.run_id }}-${{ github.run_attempt }}.json
+          MATTER_WINDOWS_UPDATE_OPERATOR_RECEIPT_PATH: ${{ runner.temp }}\lawos-update-rollback-operator-${{ github.run_id }}-${{ github.run_attempt }}.json
+          MATTER_WINDOWS_UPDATE_FINAL_RECEIPT_PATH: ${{ runner.temp }}\lawos-update-private-consumer-${{ github.run_id }}-${{ github.run_attempt }}.json
+          MATTER_WINDOWS_UPDATE_PRIVATE_LOCATOR_SHA256: ${{ needs.private-artifact-reader.outputs.private_locator_sha256 }}
+          MATTER_WINDOWS_UPDATE_BRIDGE_ENVELOPE_SHA256: ${{ needs.private-artifact-reader.outputs.encrypted_bridge_envelope_sha256 }}
+          MATTER_WINDOWS_UPDATE_RUN_BINDING: Gonyak-cell/law-firm-os:${{ github.run_id }}:${{ github.run_attempt }}:${{ inputs.source_sha }}:${{ inputs.source_tree }}
+        run: |
+          $summary = node scripts/run-windows-formal-update-handoff-consumer.mjs --finalize | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $summary.verdict -cne 'PASS' -or $summary.state -cne 'PASS' `
+            -or $summary.object_count -ne 19 -or [string]$summary.receipt_sha256 -notmatch '\A[0-9a-f]{64}\z') {
+            throw 'final private consumer receipt did not PASS'
+          }
+          "receipt_sha256=$([string]$summary.receipt_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Always remove decrypted and encrypted private bytes after any failure
+        if: always()
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\lawos-update-operator-${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          MATTER_WINDOWS_UPDATE_PRIVATE_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-private-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_LOCATOR_ARTIFACT_ROOT: ${{ runner.temp }}\lawos-update-locator-artifact-${{ github.run_id }}-${{ github.run_attempt }}
+          MATTER_WINDOWS_UPDATE_ENCRYPTED_BRIDGE_ROOT: ${{ runner.temp }}\lawos-update-encrypted-bridge-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/run-windows-formal-update-handoff-consumer.mjs --purge
+
+      - name: Upload exact final consumer receipt
+        id: consumer-receipt-upload
+        if: always() && steps.finalize-consumer.outputs.receipt_sha256 != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-update-private-consumer-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-update-private-consumer-${{ github.run_id }}-${{ github.run_attempt }}.json
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
+
+      - name: Upload operator receipt only when the operator wrote it
         if: always() && steps.operator.outputs.receipt_written == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: windows-formal-update-rollback-${{ inputs.source_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/lawos-update-rollback-evidence-${{ github.run_id }}-${{ github.run_attempt }}.json
+          name: windows-update-rollback-operator-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lawos-update-rollback-operator-${{ github.run_id }}-${{ github.run_attempt }}.json
           if-no-files-found: error
           include-hidden-files: false
+          retention-days: 14

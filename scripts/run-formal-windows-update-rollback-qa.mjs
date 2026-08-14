@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -11,7 +11,12 @@ import {
 import path from "node:path";
 import {
   matterDesktopAuthenticodePowerShell,
+  validateMatterDesktopAuthenticodeSignature,
 } from "./lib/matter-desktop-authenticode.mjs";
+import {
+  DESKTOP_INSTALLED_TREE_NATIVE_SNAPSHOT_SCHEMA,
+  DESKTOP_INSTALLED_TREE_SBOM_SCHEMA,
+} from "./lib/matter-desktop-provenance.mjs";
 import {
   readTrustedFileSnapshot,
   resolveTrustedRoot,
@@ -26,6 +31,10 @@ import {
   runWindowsFormalUpdateRollback,
 } from "./lib/windows-formal-update-runner.mjs";
 import { cleanupTemporaryDirectories } from "./lib/windows-formal-cleanup.mjs";
+import { openWindowsLockedExecutable } from "./lib/windows-locked-executable.mjs";
+import { captureWindowsInstalledTreeNativeSnapshot } from "./lib/windows-installed-tree-native-snapshot.mjs";
+
+const SHA256 = /^[0-9a-f]{64}$/u;
 
 function fail(code, message = code) {
   throw Object.assign(new Error(message), { code });
@@ -73,6 +82,92 @@ function parseCanonicalJson(bytes, label) {
   return value;
 }
 
+function exactSbomProperties(sbom) {
+  const entries = sbom?.metadata?.component?.properties;
+  if (!Array.isArray(entries)) {
+    fail("WINDOWS_INSTALLED_TREE_SBOM_INVALID", "installed-tree SBOM metadata properties are required");
+  }
+  const properties = Object.create(null);
+  for (const entry of entries) {
+    if (typeof entry?.name !== "string" || typeof entry?.value !== "string"
+      || properties[entry.name] !== undefined) {
+      fail("WINDOWS_INSTALLED_TREE_SBOM_INVALID", "installed-tree SBOM properties are invalid or duplicated");
+    }
+    properties[entry.name] = entry.value;
+  }
+  return properties;
+}
+
+function positiveInteger(value, label) {
+  if (!/^[1-9][0-9]*$/u.test(value ?? "")) {
+    fail("WINDOWS_INSTALLED_TREE_SBOM_INVALID", `${label} is invalid`);
+  }
+  const result = Number(value);
+  if (!Number.isSafeInteger(result)) {
+    fail("WINDOWS_INSTALLED_TREE_SBOM_INVALID", `${label} exceeds the safe integer range`);
+  }
+  return result;
+}
+
+function installedTreeBindingFromSbom(sbom, candidate, role) {
+  const properties = exactSbomProperties(sbom);
+  const property = (name) => properties[`law-firm-os:${name}`];
+  const executablePath = property("installed-executable-path");
+  const executableBody = typeof executablePath === "string" && executablePath.startsWith("./")
+    ? executablePath.slice(2)
+    : "";
+  const executableRows = (Array.isArray(sbom?.components) ? sbom.components : []).filter((component) => (
+    component?.type === "file" && component?.name === executablePath
+  ));
+  const executableHashes = executableRows[0]?.hashes?.filter(({ alg }) => alg === "SHA-256") ?? [];
+  const executableByteProperties = executableRows[0]?.properties?.filter(
+    ({ name }) => name === "law-firm-os:file-bytes",
+  ) ?? [];
+  const executableSha256 = property("installed-executable-sha256");
+  if (sbom?.bomFormat !== "CycloneDX"
+    || sbom.specVersion !== "1.5"
+    || sbom.metadata?.component?.version !== candidate.version
+    || property("schema-version") !== DESKTOP_INSTALLED_TREE_SBOM_SCHEMA
+    || property("source-sha") !== candidate.source_sha
+    || property("source-tree") !== candidate.source_tree
+    || property("installer-sha256") !== candidate.artifact_sha256
+    || property("installed-file-content-complete") !== "true"
+    || property("installed-directory-identity-complete") !== "true"
+    || property("native-snapshot-schema-version") !== DESKTOP_INSTALLED_TREE_NATIVE_SNAPSHOT_SCHEMA
+    || property("native-filesystem") !== "NTFS"
+    || property("native-fixed-point-sequence") !== "B0->I1->B1->I2->B2"
+    || property("native-fixed-point-exact") !== "true"
+    || property("reparse-point-count") !== "0"
+    || property("alternate-data-stream-count") !== "0"
+    || property("authenticode-valid") !== "true"
+    || !SHA256.test(property("installed-tree-sha256") ?? "")
+    || !SHA256.test(property("native-identity-sha256") ?? "")
+    || !SHA256.test(executableSha256 ?? "")
+    || !/^\.\/(?!\.\.\/)[^\\:\0\r\n]+\.exe$/iu.test(executablePath ?? "")
+    || path.posix.normalize(executableBody) !== executableBody
+    || executablePath !== executablePath.normalize("NFC")
+    || executableRows.length !== 1
+    || executableHashes.length !== 1
+    || executableHashes[0].content?.toLowerCase() !== executableSha256
+    || executableByteProperties.length !== 1) {
+    fail("WINDOWS_INSTALLED_TREE_SBOM_INVALID", `${role} installed-tree SBOM differs from the admitted candidate`);
+  }
+  return Object.freeze({
+    schema_version: property("native-snapshot-schema-version"),
+    content_sha256: property("installed-tree-sha256"),
+    identity_sha256: property("native-identity-sha256"),
+    file_count: positiveInteger(property("installed-tree-file-count"), `${role} installed-tree file count`),
+    directory_count: positiveInteger(property("native-directory-count"), `${role} installed-tree directory count`),
+    bytes: positiveInteger(property("installed-tree-bytes"), `${role} installed-tree byte count`),
+    installed_executable_path: executablePath,
+    installed_executable_sha256: executableSha256,
+    installed_executable_bytes: positiveInteger(
+      executableByteProperties[0].value,
+      `${role} installed executable byte count`,
+    ),
+  });
+}
+
 function waitUntilSync(predicate, code, timeoutMs = 45_000) {
   const deadline = Date.now() + timeoutMs;
   const signal = new Int32Array(new SharedArrayBuffer(4));
@@ -116,6 +211,31 @@ function errorCode(error) {
   return /^[A-Z0-9._-]{1,96}$/u.test(value ?? "") ? value : "WINDOWS_UPDATE_ROLLBACK_FAILED";
 }
 
+async function settleLockedSession(session, pid) {
+  if (!session || session.released) return;
+  try {
+    if (pid) await session.waitForProcessExit(pid);
+    const release = await session.release();
+    if (release?.released !== true || session.released !== true) {
+      fail("WINDOWS_EXECUTABLE_LOCK_RELEASE_UNVERIFIED", "locked executable release was not observed");
+    }
+  } catch (error) {
+    if (session.released) throw error;
+    try {
+      const abort = await session.abort();
+      if (abort?.released !== true || session.released !== true) {
+        fail("WINDOWS_EXECUTABLE_LOCK_ABORT_UNVERIFIED", "locked executable abort was not observed");
+      }
+    } catch (abortError) {
+      throw Object.assign(
+        new AggregateError([error, abortError], "locked executable settlement and abort both failed"),
+        { code: "WINDOWS_EXECUTABLE_LOCK_SETTLEMENT_FAILED" },
+      );
+    }
+    throw error;
+  }
+}
+
 function failureReceipt(error) {
   return {
     schema_version: WINDOWS_UPDATE_RUNNER_RECEIPT_SCHEMA,
@@ -125,6 +245,7 @@ function failureReceipt(error) {
     primary_error_preserved: true,
     operations: [],
     launches: [],
+    uninstalls: [],
     residue_checks: [],
     failure_cleanup: { required: false, initiated: false, completed: true },
     boundaries: {
@@ -137,9 +258,10 @@ function failureReceipt(error) {
 }
 
 function writeReceipt(receiptPath, value) {
+  const generatedAt = value.generated_at ?? new Date().toISOString();
   const bytes = Buffer.from(`${JSON.stringify({
     ...value,
-    generated_at: new Date().toISOString(),
+    generated_at: generatedAt,
   }, null, 2)}\n`);
   writeFileSync(receiptPath, bytes, { flag: "wx", mode: 0o600 });
   return sha256(bytes);
@@ -219,6 +341,16 @@ async function main() {
     artifactRoot,
     safeRelative(relativePath, "candidate artifact path"),
   );
+  const installedTreeBindings = Object.freeze(Object.fromEntries(["baseline", "target"].map((role) => {
+    const candidateDirectory = path.posix.dirname(
+      safeRelative(executionInput[role]?.installer_path ?? "", `${role} installer path`),
+    );
+    const sbomSnapshot = artifactSnapshot(
+      path.posix.join(candidateDirectory, "windows-installed-tree-sbom.cdx.json"),
+    );
+    const sbom = parseCanonicalJson(sbomSnapshot.bytes, `${role} installed-tree SBOM`);
+    return [role, installedTreeBindingFromSbom(sbom, verifiedApproval.candidates[role], role)];
+  })));
   const installedSnapshot = (absolutePath) => {
     const relative = path.relative(installDir, absolutePath);
     if (!relative || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
@@ -246,23 +378,135 @@ async function main() {
   };
 
   const sessions = new Set();
-  const sessionActive = (session) => session?.exitCode === null && session?.signalCode === null;
-  const closeSession = async (session) => {
-    if (!sessionActive(session)) return;
-    execFileSync("taskkill.exe", ["/PID", String(session.pid), "/T", "/F"], {
-      stdio: "ignore",
-      env: sanitizedLaunchEnvironment(userDataPath),
-      windowsHide: true,
-    });
-    await waitUntil(() => !sessionActive(session), "WINDOWS_SESSION_RESIDUE");
+  const sessionStatus = async (session) => {
+    if (!Number.isSafeInteger(session?.pid) || session.pid <= 0 || !session.lockedSession) {
+      fail("WINDOWS_SESSION_PID_INVALID", "installed Matter session PID is not natively tracked");
+    }
+    const status = await session.lockedSession.status(session.pid);
+    if (status.pid !== session.pid || status.path_identity !== "pid_executable_path"
+      || status.active === status.process_exited
+      || (status.active && status.exit_code !== null)
+      || (status.process_exited && !Number.isInteger(status.exit_code))) {
+      fail("WINDOWS_SESSION_STATUS_UNVERIFIED", "native Matter session status proof is incomplete");
+    }
+    return status;
   };
+  const abortMatterSession = async (session) => {
+    const abort = await session.lockedSession.abort();
+    if (abort?.released !== true || session.lockedSession.released !== true
+      || (abort.child_present && (abort.process_exited !== true
+        || !Number.isInteger(abort.exit_code)
+        || !Number.isSafeInteger(abort.pid) || abort.pid <= 0))
+      || (!abort.child_present && (abort.pid !== null
+        || abort.process_exited !== null || abort.exit_code !== null))
+      || (session.pid !== null && (!abort.child_present || abort.pid !== session.pid))) {
+      fail("WINDOWS_SESSION_ABORT_UNVERIFIED", "failed Matter session abort was not natively observed");
+    }
+    sessions.delete(session);
+    return abort;
+  };
+  const settleMatterSession = async (session, { requireLive }) => {
+    if (!session || !sessions.has(session) || !session.lockedSession) {
+      fail("WINDOWS_SESSION_INVALID", "installed Matter session is not tracked");
+    }
+    if (session.closeEvidence) {
+      if (session.lockedSession.released !== true) {
+        fail("WINDOWS_SESSION_CLOSE_UNVERIFIED", "closed Matter session state changed unexpectedly");
+      }
+      return session.closeEvidence;
+    }
+    if (session.pid === null) {
+      await abortMatterSession(session);
+      return null;
+    }
+    if (session.lockedSession.released === true) {
+      fail("WINDOWS_SESSION_CLOSE_UNVERIFIED", "Matter executable lock was released without close evidence");
+    }
+    const beforeStop = await sessionStatus(session);
+    if (requireLive && !beforeStop.active) {
+      fail("WINDOWS_SESSION_NOT_ACTIVE", "installed Matter session exited before controlled close");
+    }
+    const stopped = beforeStop.active
+      ? await session.lockedSession.stop(session.pid)
+      : beforeStop;
+    const afterStop = await sessionStatus(session);
+    if (stopped.pid !== session.pid || stopped.process_exited !== true
+      || !Number.isInteger(stopped.exit_code)
+      || afterStop.pid !== session.pid || afterStop.process_exited !== true
+      || afterStop.active !== false || afterStop.exit_code !== stopped.exit_code) {
+      fail("WINDOWS_SESSION_EXIT_UNVERIFIED", "installed Matter session exit was not observed");
+    }
+    const release = await session.lockedSession.release();
+    if (release?.released !== true || session.lockedSession.released !== true) {
+      fail("WINDOWS_SESSION_LOCK_RELEASE_UNVERIFIED", "installed Matter executable lock release was not observed");
+    }
+    session.closeEvidence = Object.freeze({
+      exit_code: stopped.exit_code,
+      lock_released: true,
+      pid: session.pid,
+      process_exited: true,
+    });
+    return session.closeEvidence;
+  };
+  const closeSession = (session) => settleMatterSession(session, { requireLive: true });
   const entries = () => (existsSync(installDir) ? readdirSync(installDir) : []);
   const uninstallerNames = () => entries().filter((name) => /^uninstall.*\.exe$/iu.test(name));
+  const lockedUninstaller = async (uninstallerPath) => {
+    const inventory = captureWindowsInstalledTreeNativeSnapshot(installDir);
+    const relativePath = path.relative(installDir, uninstallerPath).split(path.sep).join("/");
+    if (!relativePath || relativePath.startsWith("../") || path.isAbsolute(relativePath)) {
+      fail("WINDOWS_UNINSTALLER_PATH_INVALID", "installed uninstaller escaped the dedicated install directory");
+    }
+    const installedTreePath = `./${relativePath}`;
+    const inventoryEntry = inventory.files.find(({ path: candidatePath }) => candidatePath === installedTreePath);
+    if (!inventoryEntry) {
+      fail("WINDOWS_UNINSTALLER_INVENTORY_MISMATCH", `installed-tree inventory is missing ${installedTreePath}`);
+    }
+    const session = await openWindowsLockedExecutable({
+      executablePath: uninstallerPath,
+      expectedSha256: inventoryEntry.sha256,
+    });
+    let processRecord;
+    let waitResult;
+    try {
+      const verification = validateMatterDesktopAuthenticodeSignature(
+        session.inspection.authenticode,
+        { expectedCertificateSha1: verifiedApproval.authenticode_signer_certificate_sha1 },
+      );
+      processRecord = await session.launch(["/S"], { cwd: installDir });
+      waitResult = await session.waitForProcessExit(processRecord.pid);
+      if (waitResult.exit_code !== 0) {
+        fail("WINDOWS_UNINSTALLER_EXIT", "locked NSIS uninstaller returned a non-zero exit code");
+      }
+      return Object.freeze({
+        path: installedTreePath,
+        installed_tree_path: installedTreePath,
+        installed_tree_sha256: inventoryEntry.sha256,
+        sha256: session.inspection.sha256,
+        uninstaller_bytes: session.inspection.bytes,
+        bytes: session.inspection.bytes,
+        authenticode: session.inspection.authenticode,
+        authenticode_valid: verification.signature_count === 1,
+        lock_mode: session.inspection.lock_mode,
+        denies_write_delete: session.inspection.denies_write_delete,
+        process: Object.freeze({
+          pid: processRecord.pid,
+          path_identity: processRecord.path_identity,
+        }),
+        exit_code: waitResult.exit_code,
+      });
+    } finally {
+      await settleLockedSession(session, processRecord?.pid);
+    }
+  };
 
   const adapters = {
     installDir,
     readFile: readAny,
     readAuthenticode: authenticode,
+    async captureInstalledTree() {
+      return captureWindowsInstalledTreeNativeSnapshot(installDir);
+    },
     async confirmOperation({ operation, approvalIdSha256 }) {
       const responseName = `${operation}.approval`;
       if (existsSync(path.join(confirmationDir, responseName))) {
@@ -283,12 +527,23 @@ async function main() {
       unlinkSync(response.target);
       return true;
     },
-    async install({ installerPath }) {
-      execFileSync(resolveCandidatePath(installerPath), ["/S", `/D=${installDir}`], {
-        stdio: "inherit",
-        env: sanitizedLaunchEnvironment(userDataPath),
-        windowsHide: true,
+    async install({ installerPath, expectedSha256, expectedCertificateSha1 }) {
+      const lockedSession = await openWindowsLockedExecutable({
+        executablePath: resolveCandidatePath(installerPath),
+        expectedSha256,
       });
+      let processRecord;
+      try {
+        validateMatterDesktopAuthenticodeSignature(
+          lockedSession.inspection.authenticode,
+          { expectedCertificateSha1 },
+        );
+        processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], { cwd: artifactRoot });
+        const result = await lockedSession.waitForProcessExit(processRecord.pid);
+        if (result.exit_code !== 0) fail("WINDOWS_INSTALLER_EXIT", "locked NSIS installer returned a non-zero exit code");
+      } finally {
+        await settleLockedSession(lockedSession, processRecord?.pid);
+      }
     },
     async inspectInstallation() {
       const executablePath = path.join(installDir, "matter.exe");
@@ -308,36 +563,68 @@ async function main() {
         source_tree: manifest.source_tree,
       };
     },
-    async launch({ executablePath }) {
+    async launch({ executablePath, expectedSha256, expectedCertificateSha1 }) {
       mkdirSync(userDataPath, { recursive: true });
-      const session = spawn(executablePath, ["--disable-gpu"], {
-        env: sanitizedLaunchEnvironment(userDataPath),
-        stdio: "ignore",
-        windowsHide: false,
-      });
+      const lockedSession = await openWindowsLockedExecutable({ executablePath, expectedSha256 });
+      const session = { pid: null, lockedSession, closeEvidence: null };
       sessions.add(session);
-      await new Promise((resolve, reject) => {
-        session.once("spawn", resolve);
-        session.once("error", reject);
-      });
-      await waitUntil(() => sessionActive(session), "WINDOWS_SESSION_NOT_ACTIVE", 5_000);
-      await new Promise((resolve) => setTimeout(resolve, 3_000));
-      if (!sessionActive(session)) {
-        fail("WINDOWS_SESSION_NOT_ACTIVE", "installed Matter session exited during launch smoke");
+      let processRecord;
+      try {
+        validateMatterDesktopAuthenticodeSignature(
+          lockedSession.inspection.authenticode,
+          { expectedCertificateSha1 },
+        );
+        processRecord = await lockedSession.launch(["--disable-gpu"], { cwd: installDir });
+        session.pid = processRecord.pid;
+        if (!(await sessionStatus(session)).active) {
+          fail("WINDOWS_SESSION_NOT_ACTIVE", "installed Matter session exited before launch smoke");
+        }
+        const smokeDeadline = Date.now() + 3_000;
+        while (Date.now() < smokeDeadline) {
+          if (!(await sessionStatus(session)).active || lockedSession.released === true) {
+            fail("WINDOWS_SESSION_NOT_ACTIVE", "installed Matter session exited during launch smoke");
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        if (!(await sessionStatus(session)).active || lockedSession.released === true) {
+          fail("WINDOWS_SESSION_NOT_ACTIVE", "installed Matter session exited at the launch smoke boundary");
+        }
+        return session;
+      } catch (error) {
+        try {
+          await abortMatterSession(session);
+        } catch (abortError) {
+          throw Object.assign(
+            new AggregateError([error, abortError], "Matter launch and locked-session abort both failed"),
+            { code: "WINDOWS_SESSION_ABORT_FAILED" },
+          );
+        }
+        throw error;
       }
-      return session;
     },
     closeSession,
-    isSessionActive: async (session) => sessionActive(session),
+    isSessionActive: async (session) => {
+      if (session?.closeEvidence) return false;
+      return (await sessionStatus(session)).active;
+    },
     async closeAllSessions() {
-      for (const session of sessions) await closeSession(session).catch(() => {});
+      const failures = [];
+      for (const session of sessions) {
+        try {
+          await settleMatterSession(session, { requireLive: false });
+        } catch (error) {
+          failures.push(error);
+        }
+      }
+      if (failures.length > 0) {
+        throw Object.assign(
+          new AggregateError(failures, "one or more Matter sessions could not be closed"),
+          { code: "WINDOWS_SESSION_CLEANUP_FAILED" },
+        );
+      }
     },
     async uninstall({ uninstallerPath }) {
-      execFileSync(uninstallerPath, ["/S"], {
-        stdio: "inherit",
-        env: sanitizedLaunchEnvironment(userDataPath),
-        windowsHide: true,
-      });
+      return lockedUninstaller(uninstallerPath);
     },
     async waitForUninstalled() {
       await waitUntil(
@@ -347,20 +634,40 @@ async function main() {
       );
     },
     async residue() {
+      let activeSessionCount = 0;
+      for (const session of sessions) {
+        if (session.closeEvidence) {
+          if (session.closeEvidence.process_exited !== true
+            || session.closeEvidence.lock_released !== true
+            || session.lockedSession.released !== true) {
+            fail("WINDOWS_SESSION_CLOSE_UNVERIFIED", "closed Matter session proof is incomplete");
+          }
+          continue;
+        }
+        if (session.pid === null) {
+          fail("WINDOWS_SESSION_CLOSE_UNVERIFIED", "an unproved Matter launch remains tracked");
+        }
+        if ((await sessionStatus(session)).active) {
+          activeSessionCount += 1;
+        } else {
+          fail("WINDOWS_SESSION_CLOSE_UNVERIFIED", "exited Matter session lacks verified lock release evidence");
+        }
+      }
       return {
         executable_present: existsSync(path.join(installDir, "matter.exe")),
         uninstaller_count: uninstallerNames().length,
         entry_count: entries().length,
-        active_session_count: [...sessions].filter(sessionActive).length,
+        active_session_count: activeSessionCount,
       };
     },
     exists: existsSync,
     list: (directory) => (existsSync(directory) ? readdirSync(directory) : []),
-    executeCleanup: (filePath, args) => execFileSync(filePath, args, {
-      stdio: "ignore",
-      env: sanitizedLaunchEnvironment(userDataPath),
-      windowsHide: true,
-    }),
+    async executeCleanupLocked(filePath, args) {
+      if (!Array.isArray(args) || args.length !== 1 || args[0] !== "/S") {
+        fail("WINDOWS_UNINSTALLER_ARGUMENTS_INVALID", "failure cleanup requires silent NSIS uninstall");
+      }
+      return lockedUninstaller(filePath);
+    },
     waitForRemoval: (filePath) => waitUntilSync(
       () => !existsSync(filePath),
       "WINDOWS_EXECUTABLE_RESIDUE",
@@ -377,12 +684,15 @@ async function main() {
     const result = await runWindowsFormalUpdateRollback({
       executionInput,
       verifiedApproval,
+      installedTreeBindings,
       adapters,
     });
+    const generatedAt = new Date().toISOString();
     const receipt = {
       ...result,
       approval_signature_sha256: sha256(approvalSignatureSnapshot.bytes),
       source_runner: sourceRunner,
+      generated_at: generatedAt,
     };
     const receiptSha256 = writeReceipt(receiptPath, receipt);
     receiptCreated = true;
