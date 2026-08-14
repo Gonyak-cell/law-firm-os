@@ -115,6 +115,45 @@ function validateRelease(response) {
   return Object.freeze({ released: true });
 }
 
+export async function cleanupFailedWindowsElectronLaunch({ app, lockedSession, error }) {
+  const cleanupErrors = [];
+  try { await app.close(); } catch (closeError) { cleanupErrors.push(closeError); }
+  try {
+    if (!lockedSession.released) await lockedSession.abort();
+  } catch (abortError) {
+    cleanupErrors.push(abortError);
+  }
+  if (cleanupErrors.length > 0) {
+    throw Object.assign(
+      new AggregateError([error, ...cleanupErrors], "Electron launch and cleanup both failed"),
+      { code: "WINDOWS_ELECTRON_LAUNCH_CLEANUP_FAILED" },
+    );
+  }
+  throw error;
+}
+
+export async function settleWindowsLockedExecutableSession(session, pid) {
+  if (!session || session.released) return null;
+  const trackedPid = pid ?? session.child?.pid;
+  let settlementError;
+  try {
+    if (trackedPid !== undefined) await session.waitForProcessExit(trackedPid);
+    return await session.release();
+  } catch (error) {
+    settlementError = error;
+  }
+  if (session.released) throw settlementError;
+  try {
+    await session.abort();
+  } catch (abortError) {
+    throw Object.assign(
+      new AggregateError([settlementError, abortError], "locked executable settlement and abort both failed"),
+      { code: "WINDOWS_EXECUTABLE_LOCK_SETTLEMENT_FAILED" },
+    );
+  }
+  throw settlementError;
+}
+
 function encodePowerShell(script) {
   const compressed = gzipSync(script, { level: 9 }).toString("base64");
   const bootstrap = String.raw`
@@ -229,6 +268,9 @@ public static class LawOsLockedExecutableNative {
   private static extern uint GetFinalPathNameByHandleW(SafeFileHandle handle, StringBuilder path, uint length, uint flags);
 
   [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+  private static extern bool QueryFullProcessImageNameW(IntPtr process, uint flags, StringBuilder path, ref uint length);
+
+  [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
   private static extern IntPtr CreateJobObjectW(IntPtr attributes, string name);
 
   [DllImport("kernel32.dll", SetLastError = true)]
@@ -266,6 +308,15 @@ public static class LawOsLockedExecutableNative {
 
   public static HandleIdentity ReadPathIdentity(string path) {
     using (var handle = OpenReadOnly(path)) { return ReadIdentity(handle); }
+  }
+
+  public static string ReadProcessImagePath(IntPtr process) {
+    var path = new StringBuilder(32768);
+    var length = (uint)path.Capacity;
+    if (!QueryFullProcessImageNameW(process, 0, path, ref length)) {
+      ThrowLastError("QueryFullProcessImageNameW failed");
+    }
+    return path.ToString(0, (int)length);
   }
 
   public static IntPtr CreateKillOnCloseJob() {
@@ -394,6 +445,20 @@ function Assert-ProcessIdentity($processId) {
   }
   if (-not [String]::Equals($actual, $state.path, [StringComparison]::OrdinalIgnoreCase)) {
     throw "process image path did not match the locked executable: $actual"
+  }
+  return $actual
+}
+
+function Assert-RetainedProcessIdentity($process) {
+  if ($null -eq $process -or $process.HasExited) {
+    throw 'locked executable process exited before its retained identity could be verified'
+  }
+  $actual = [IO.Path]::GetFullPath([LawOsLockedExecutableNative]::ReadProcessImagePath($process.Handle))
+  if (-not [String]::Equals($actual, $state.path, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "process image path did not match the locked executable: $actual"
+  }
+  if ($process.HasExited) {
+    throw 'locked executable process exited while its retained identity was being verified'
   }
   return $actual
 }
@@ -559,20 +624,40 @@ function Invoke-Launch($request) {
 
 function Invoke-Adopt($request) {
   if ($null -eq $state.stream -or $state.released) { throw 'executable lock is not held' }
+  if ($null -ne $state.child) { throw 'a child process is already tracked' }
   Assert-PathMatchesHeldHandle | Out-Null
   $requestedPid = [int]$request.pid
   if ($requestedPid -le 0) { throw 'a positive process PID is required' }
-  $image = Assert-ProcessIdentity $requestedPid
-  $state.child = [Diagnostics.Process]::GetProcessById($requestedPid)
-  $state.child_started = $true
-  Send-Response([ordered]@{
-    protocol = '${WINDOWS_LOCKED_EXECUTABLE_PROTOCOL}'
-    ok = $true
-    operation = 'adopt'
-    pid = $requestedPid
-    image_path = $image
-    path_identity = 'pid_executable_path'
-  })
+  $adoptedProcess = $null
+  try {
+    $adoptedProcess = [Diagnostics.Process]::GetProcessById($requestedPid)
+    $image = Assert-RetainedProcessIdentity $adoptedProcess
+    $state.child = $adoptedProcess
+    $state.child_started = $true
+    $adoptedProcess = $null
+    if ($state.job -eq [IntPtr]::Zero) { $state.job = [LawOsLockedExecutableNative]::CreateKillOnCloseJob() }
+    [LawOsLockedExecutableNative]::AssignProcess($state.job, $state.child)
+    Assert-PathMatchesHeldHandle | Out-Null
+    $image = Assert-RetainedProcessIdentity $state.child
+    Send-Response([ordered]@{
+      protocol = '${WINDOWS_LOCKED_EXECUTABLE_PROTOCOL}'
+      ok = $true
+      operation = 'adopt'
+      pid = $requestedPid
+      image_path = $image
+      path_identity = 'pid_executable_path'
+    })
+  } catch {
+    $adoptError = $_.Exception.Message
+    if ($state.child_started) {
+      try { Stop-ChildIfRunning | Out-Null } catch {
+        throw "locked executable adoption failed ($adoptError) and exact child cleanup failed: $($_.Exception.Message)"
+      }
+    }
+    throw $adoptError
+  } finally {
+    if ($null -ne $adoptedProcess) { $adoptedProcess.Dispose() }
+  }
 }
 
 function Invoke-Wait($request) {

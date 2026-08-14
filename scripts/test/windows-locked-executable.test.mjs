@@ -6,7 +6,9 @@ import { gunzipSync } from "node:zlib";
 import {
   WINDOWS_LOCKED_EXECUTABLE_PROTOCOL,
   WindowsLockedExecutableError,
+  cleanupFailedWindowsElectronLaunch,
   openWindowsLockedExecutable,
+  settleWindowsLockedExecutableSession,
   windowsLockedExecutablePowerShellScriptForTest,
 } from "../lib/windows-locked-executable.mjs";
 import { matterDesktopAuthenticodePowerShell } from "../lib/matter-desktop-authenticode.mjs";
@@ -136,6 +138,7 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "FileFlagOpenReparsePoint",
     "GetFileInformationByHandle",
     "GetFinalPathNameByHandleW",
+    "QueryFullProcessImageNameW",
     "FileIndexHigh",
     "FileIndexLow",
     "file_id",
@@ -155,6 +158,7 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "ArgumentList.Add",
     "Get-CimInstance Win32_Process",
     "Assert-ProcessIdentity",
+    "Assert-RetainedProcessIdentity",
     "Get-ChildStatus",
     "WaitForExit",
     "Invoke-Status",
@@ -184,6 +188,12 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.doesNotMatch(script, /\$value\.PSObject\.Properties/u);
   assert.match(script, /\$state\.child\.Kill\(\$true\)/u);
   assert.match(script, /\$state\.child\.WaitForExit\(5000\)/u);
+  assert.match(script, /ReadProcessImagePath\(\$process\.Handle\)/u);
+  assert.match(script, /\$image = Assert-RetainedProcessIdentity \$adoptedProcess/u);
+  assert.match(script, /\[LawOsLockedExecutableNative\]::AssignProcess\(\$state\.job, \$state\.child\)/u);
+  assert.match(script, /\$image = Assert-RetainedProcessIdentity \$state\.child/u);
+  assert.match(script, /locked executable adoption failed \(\$adoptError\) and exact child cleanup failed/u);
+  assert.doesNotMatch(script, /Invoke-Adopt[\s\S]*?Assert-ProcessIdentity \$requestedPid/u);
   assert.match(script, /locked executable launch failed \(\$launchError\) and exact child cleanup failed/u);
   assert.match(script, /CloseHandle failed for the process job/u);
   const stopBody = script.slice(script.indexOf("function Stop-ChildIfRunning"), script.indexOf("function Release-Lock"));
@@ -252,6 +262,104 @@ test("dictionary metadata projection cannot satisfy the closed helper protocol",
     "authenticode",
   ]);
   assert.equal(child.killed, true);
+});
+
+test("failed Electron launch cleanup attempts close and abort and aggregates every failure", async () => {
+  const primaryError = new Error("post-adoption page discovery failed");
+  const closeError = new Error("Electron close failed");
+  const abortError = new Error("locked-session abort failed");
+  const calls = [];
+  await assert.rejects(
+    cleanupFailedWindowsElectronLaunch({
+      app: {
+        async close() {
+          calls.push("close");
+          throw closeError;
+        },
+      },
+      lockedSession: {
+        released: false,
+        child: { pid: 707 },
+        async abort() {
+          calls.push("abort");
+          throw abortError;
+        },
+      },
+      error: primaryError,
+    }),
+    (error) => {
+      assert.equal(error instanceof AggregateError, true);
+      assert.equal(error.code, "WINDOWS_ELECTRON_LAUNCH_CLEANUP_FAILED");
+      assert.deepEqual(error.errors, [primaryError, closeError, abortError]);
+      return true;
+    },
+  );
+  assert.deepEqual(calls, ["close", "abort"]);
+});
+
+test("locked-session settlement falls back to the tracked child PID", async () => {
+  const calls = [];
+  const session = {
+    released: false,
+    child: { pid: 808 },
+    async waitForProcessExit(pid) { calls.push(["wait", pid]); },
+    async release() {
+      calls.push(["release"]);
+      this.released = true;
+      return { released: true };
+    },
+    async abort() { calls.push(["abort"]); },
+  };
+  assert.deepEqual(await settleWindowsLockedExecutableSession(session), { released: true });
+  assert.deepEqual(calls, [["wait", 808], ["release"]]);
+});
+
+test("locked-session settlement propagates wait, release, and abort failures", async () => {
+  const waitError = new Error("wait failed");
+  const waitCalls = [];
+  const waitSession = {
+    released: false,
+    child: { pid: 909 },
+    async waitForProcessExit(pid) {
+      waitCalls.push(["wait", pid]);
+      throw waitError;
+    },
+    async release() { waitCalls.push(["release"]); },
+    async abort() {
+      waitCalls.push(["abort"]);
+      this.released = true;
+      return { released: true };
+    },
+  };
+  await assert.rejects(settleWindowsLockedExecutableSession(waitSession), (error) => error === waitError);
+  assert.deepEqual(waitCalls, [["wait", 909], ["abort"]]);
+
+  const releaseError = new Error("release failed");
+  const abortError = new Error("abort failed");
+  const releaseCalls = [];
+  const releaseSession = {
+    released: false,
+    child: { pid: 1001 },
+    async waitForProcessExit(pid) { releaseCalls.push(["wait", pid]); },
+    async release() {
+      releaseCalls.push(["release"]);
+      throw releaseError;
+    },
+    async abort() {
+      releaseCalls.push(["abort"]);
+      throw abortError;
+    },
+  };
+  await assert.rejects(
+    settleWindowsLockedExecutableSession(releaseSession),
+    (error) => {
+      assert.equal(error instanceof AggregateError, true);
+      assert.equal(error.code, "WINDOWS_EXECUTABLE_LOCK_SETTLEMENT_FAILED");
+      assert.deepEqual(error.errors, [releaseError, abortError]);
+      return true;
+    },
+  );
+  assert.deepEqual(releaseCalls, [["wait", 1001], ["release"], ["abort"]]);
 });
 
 test("Windows locked executable session keeps the stream across launch, adopt, wait, and release", async () => {

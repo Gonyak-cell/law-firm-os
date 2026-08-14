@@ -66,7 +66,7 @@ jobs:
         env:
           MATTER_DESKTOP_RELEASE_CHANNEL: formal
           MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
-          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\matter-desktop-windows-receipt\windows-build.md
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\matter-desktop-windows-receipt-${{ github.run_id }}-${{ github.run_attempt }}\windows-build.md
         shell: pwsh
         run: |
           npm --workspace apps/desktop run prepare:web-renderer
@@ -79,29 +79,36 @@ jobs:
       - name: Run native install, login, leave, payroll, restart, and uninstall QA
         env:
           MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ env.QA_SOURCE_SHA }}
-          MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ github.workspace }}\artifacts\QA-006
+          MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ runner.temp }}\matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}
         run: node scripts/run-formal-windows-package-qa.mjs
 
       - name: Verify native result and preserve signing boundary
+        env:
+          MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ runner.temp }}\matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}
         shell: pwsh
         run: |
-          $receipt = Get-Content -Raw "artifacts\QA-006\formal-windows-package-qa.json" | ConvertFrom-Json
+          $receipt = Get-Content -Raw -LiteralPath (Join-Path $env:MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR "formal-windows-package-qa.json") | ConvertFrom-Json
           if ($receipt.native_verdict -ne "PASS") { throw "Windows native QA did not pass" }
           if ($receipt.scenarios.PSObject.Properties.Value -contains $false) { throw "A Windows native scenario failed" }
           if ($receipt.authenticode.valid -eq $false -and $receipt.verdict -ne "BLOCKED_AUTHENTICODE") { throw "Unsigned artifact boundary is inconsistent" }
 
       - name: Copy build provenance
         if: always()
+        env:
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\matter-desktop-windows-receipt-${{ github.run_id }}-${{ github.run_attempt }}\windows-build.md
+          MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${{ runner.temp }}\matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force "artifacts\QA-006\build" | Out-Null
-          New-Item -ItemType Directory -Force "artifacts\QA-006\artifacts" | Out-Null
+          $buildDir = Join-Path $env:MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR "build"
+          $artifactsDir = Join-Path $env:MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR "artifacts"
+          New-Item -ItemType Directory -Force $buildDir | Out-Null
+          New-Item -ItemType Directory -Force $artifactsDir | Out-Null
           $desktopVersion = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
           $buildEvidence = @(
             "apps\desktop\dist\win\matter-$desktopVersion-win-build-manifest.json",
             "apps\desktop\dist\win\matter-$desktopVersion-win-installer-manifest.json",
             "apps\desktop\dist\win\matter-$desktopVersion-win-installer-manifest.json.sig",
-            "${{ runner.temp }}\matter-desktop-windows-receipt\windows-build.md"
+            $env:MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH
           )
           $windowsArtifacts = @(
             "apps\desktop\dist\matter-$desktopVersion-win-x64.exe",
@@ -110,19 +117,33 @@ jobs:
           )
           foreach ($path in $buildEvidence) {
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "missing Windows build evidence: $path" }
-            Copy-Item -LiteralPath $path -Destination "artifacts\QA-006\build\"
+            Copy-Item -LiteralPath $path -Destination $buildDir
           }
           foreach ($path in $windowsArtifacts) {
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "missing Windows artifact: $path" }
-            Copy-Item -LiteralPath $path -Destination "artifacts\QA-006\artifacts\"
+            Copy-Item -LiteralPath $path -Destination $artifactsDir
           }
-          Copy-Item "apps\desktop\dist\win-unpacked\resources\app\src\renderer\web" "artifacts\QA-006\build\renderer" -Recurse
+          Copy-Item "apps\desktop\dist\win-unpacked\resources\app\src\renderer\web" (Join-Path $buildDir "renderer") -Recurse
 
       - name: Upload Windows QA evidence
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-formal-package-qa-${{ env.QA_SOURCE_SHA }}
-          path: artifacts/QA-006/
+          name: windows-formal-package-qa-${{ env.QA_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/
           include-hidden-files: true
           if-no-files-found: error
+
+      - name: Upload failed Windows QA diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-formal-package-qa-failure-${{ env.QA_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/build/
+            ${{ runner.temp }}/matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/artifacts/
+            ${{ runner.temp }}/matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/formal-windows-failure-cleanup.json
+            ${{ runner.temp }}/matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/windows-installed-tree-sbom.cdx.json
+            ${{ runner.temp }}/matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/*.png
+          include-hidden-files: true
+          if-no-files-found: warn

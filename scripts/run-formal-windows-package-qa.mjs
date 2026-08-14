@@ -32,7 +32,11 @@ import {
 } from "./lib/matter-desktop-authenticode.mjs";
 import { cleanupTemporaryDirectories } from "./lib/windows-formal-cleanup.mjs";
 import { cleanupFailedWindowsNsisInstallation } from "./lib/windows-formal-native-cleanup.mjs";
-import { openWindowsLockedExecutable } from "./lib/windows-locked-executable.mjs";
+import {
+  cleanupFailedWindowsElectronLaunch,
+  openWindowsLockedExecutable,
+  settleWindowsLockedExecutableSession as settleLockedSession,
+} from "./lib/windows-locked-executable.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const EXPECTED_SOURCE_SHA = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
@@ -52,6 +56,8 @@ const FORMAL_MARKER_PATH = path.join(UNPACKED_RESOURCES, "matter-formal-release.
 const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json");
 const ARTIFACT_DIR = path.resolve(process.env.MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR
   ?? path.join(ROOT, "artifacts", "manual-qa", "formal-windows-package"));
+mkdirSync(path.dirname(ARTIFACT_DIR), { recursive: true });
+mkdirSync(ARTIFACT_DIR);
 const RECEIPT_PATH = path.join(ARTIFACT_DIR, "formal-windows-package-qa.json");
 const INSTALLED_TREE_SBOM_PATH = path.join(ARTIFACT_DIR, "windows-installed-tree-sbom.cdx.json");
 const userDataPath = mkdtempSync(path.join(tmpdir(), "matter-formal-windows-userdata-"));
@@ -178,23 +184,22 @@ async function launchFormalApp({ executablePath, baseUrl, lockedSession }) {
     },
     timeout: 45_000,
   });
-  const processPid = app.process()?.pid;
   try {
-    await lockedSession.adoptProcess(processPid);
+    const electronPid = await app.evaluate(() => process.pid);
+    const adopted = await lockedSession.adoptProcess(electronPid);
+    const page = await findProductPage(app);
+    await page.setViewportSize({ width: 1280, height: 820 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const initialUrl = new URL(page.url());
+    const expectedUrl = new URL(matterAppRendererUrl());
+    assert.equal(initialUrl.protocol, expectedUrl.protocol);
+    assert.equal(initialUrl.hostname, expectedUrl.hostname);
+    assert.equal(initialUrl.pathname, expectedUrl.pathname);
+    assert.equal(initialUrl.searchParams.get("desktop"), "1");
+    return { app, page, processPid: adopted.pid };
   } catch (error) {
-    await app.close().catch(() => {});
-    throw error;
+    return cleanupFailedWindowsElectronLaunch({ app, lockedSession, error });
   }
-  const page = await findProductPage(app);
-  await page.setViewportSize({ width: 1280, height: 820 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  const initialUrl = new URL(page.url());
-  const expectedUrl = new URL(matterAppRendererUrl());
-  assert.equal(initialUrl.protocol, expectedUrl.protocol);
-  assert.equal(initialUrl.hostname, expectedUrl.hostname);
-  assert.equal(initialUrl.pathname, expectedUrl.pathname);
-  assert.equal(initialUrl.searchParams.get("desktop"), "1");
-  return { app, page, processPid };
 }
 
 async function login(page) {
@@ -246,39 +251,6 @@ async function screenshot(page, name, selector) {
   const filePath = path.join(ARTIFACT_DIR, `${name}.png`);
   await page.screenshot({ path: filePath, fullPage: false, animations: "disabled", caret: "hide" });
   return { name, path: path.relative(ROOT, filePath), sha256: sha256File(filePath) };
-}
-
-async function settleLockedSession(session, pid) {
-  if (!session || session.released) return;
-  let waitFailed = false;
-  try {
-    if (pid) await session.waitForProcessExit(pid);
-  } catch (error) {
-    waitFailed = true;
-    process.stderr.write(`${JSON.stringify({
-      warning: "windows_locked_executable_wait_cleanup_failed",
-      code: error?.code ?? "UNKNOWN",
-    })}\n`);
-  }
-  if (waitFailed) {
-    await session.abort().catch((error) => process.stderr.write(`${JSON.stringify({
-      warning: "windows_locked_executable_abort_cleanup_failed",
-      code: error?.code ?? "UNKNOWN",
-    })}\n`));
-    return;
-  }
-  try {
-    await session.release();
-  } catch (error) {
-    process.stderr.write(`${JSON.stringify({
-      warning: "windows_locked_executable_release_cleanup_failed",
-      code: error?.code ?? "UNKNOWN",
-    })}\n`);
-    await session.abort().catch((abortError) => process.stderr.write(`${JSON.stringify({
-      warning: "windows_locked_executable_abort_cleanup_failed",
-      code: abortError?.code ?? "UNKNOWN",
-    })}\n`));
-  }
 }
 
 function exactInstalledInventoryEntry(inventory, directoryPath, filePath) {
@@ -368,7 +340,6 @@ assert.deepEqual(packageRenderer, unpackedRenderer);
 assert.equal(packageRenderer.sha256, packageManifest.renderer.sha256);
 assert.equal(unpackedRenderer.sha256, installerManifest.renderer.sha256);
 
-mkdirSync(ARTIFACT_DIR, { recursive: true });
 writeFileSync(envPath, "", "utf8");
 process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH = PRIVATE_ROSTER_SOURCE;
 const { startApiServer } = await import("../apps/api/src/server.js");
@@ -419,6 +390,7 @@ let installedTreePostRuntimeInventory;
 let installedTreeSbomSha256;
 let uninstallerReceipt;
 let failureCleanup = null;
+let successReceipt = null;
 try {
   installerLockedSession = await openWindowsLockedExecutable({ executablePath: INSTALLER_PATH });
   installerAuthenticode = installerLockedSession.inspection.authenticode;
@@ -564,7 +536,7 @@ try {
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(unexpectedConsoleErrors, []);
   const authenticodeValid = authenticodeResult?.signature_count === 2;
-  const receipt = {
+  successReceipt = {
     schema_version: "law-firm-os.formal-windows-package-qa.v1",
     generated_at: new Date().toISOString(),
     verdict: authenticodeValid ? "PASS" : "BLOCKED_AUTHENTICODE",
@@ -693,49 +665,45 @@ try {
       authenticode_claim: authenticodeValid,
     },
   };
-  writeFileSync(RECEIPT_PATH, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
-  process.stdout.write(`${JSON.stringify({
-    verdict: receipt.verdict,
-    native_verdict: receipt.native_verdict,
-    receipt: path.relative(ROOT, RECEIPT_PATH),
-    scenarios: receipt.scenarios,
-    renderer_sha256: receipt.parity.installer_renderer_sha256,
-    authenticode: receipt.authenticode,
-    sbom: receipt.sbom,
-    screenshots: screenshots.length,
-  }, null, 2)}\n`);
 } catch (error) {
   qaError = error;
   throw error;
 } finally {
-  if (app) await app.close().catch(() => {});
-  await settleLockedSession(initialLockedSession, initialProcessPid);
-  await settleLockedSession(restartLockedSession, restartProcessPid);
-  await settleLockedSession(installerLockedSession, installerLockedSession?.child?.pid);
-  await new Promise((resolve) => api.server.close(resolve));
+  const cleanupErrors = [];
+  const attemptCleanup = async (cleanup) => {
+    try { await cleanup(); } catch (cleanupError) { cleanupErrors.push(cleanupError); }
+  };
+  if (app) await attemptCleanup(() => app.close());
+  await attemptCleanup(() => settleLockedSession(initialLockedSession, initialProcessPid));
+  await attemptCleanup(() => settleLockedSession(restartLockedSession, restartProcessPid));
+  await attemptCleanup(() => settleLockedSession(installerLockedSession));
+  await attemptCleanup(() => new Promise((resolve, reject) => api.server.close((error) => (
+    error ? reject(error) : resolve()
+  ))));
   if (!uninstallCompleted) {
-    failureCleanup = await cleanupFailedWindowsNsisInstallation({
-      installDir,
-      priorError: qaError,
-      exists: existsSync,
-      list: readdirSync,
-      executeLocked: async (filePath, args) => {
-        assert.deepEqual(args, ["/S"], "Windows failure cleanup must use silent NSIS uninstall");
-        const cleanupInstalledTree = captureStableInstalledTreeInventory(installDir);
-        const cleanupReceipt = await runLockedUninstaller({
-          installed: { uninstallerPath: filePath },
-          inventory: cleanupInstalledTree,
-        });
-        uninstallerReceipt ??= cleanupReceipt;
-      },
-      waitForRemoval: (filePath) => waitUntilSync(
-        () => !existsSync(filePath),
-        `Windows failure cleanup did not remove the executable: ${filePath}`,
-      ),
-      warn: (warning) => process.stderr.write(`${JSON.stringify(warning)}\n`),
+    await attemptCleanup(async () => {
+      failureCleanup = await cleanupFailedWindowsNsisInstallation({
+        installDir,
+        priorError: qaError,
+        exists: existsSync,
+        list: readdirSync,
+        executeLocked: async (filePath, args) => {
+          assert.deepEqual(args, ["/S"], "Windows failure cleanup must use silent NSIS uninstall");
+          const cleanupInstalledTree = captureStableInstalledTreeInventory(installDir);
+          const cleanupReceipt = await runLockedUninstaller({
+            installed: { uninstallerPath: filePath },
+            inventory: cleanupInstalledTree,
+          });
+          uninstallerReceipt ??= cleanupReceipt;
+        },
+        waitForRemoval: (filePath) => waitUntilSync(
+          () => !existsSync(filePath),
+          `Windows failure cleanup did not remove the executable: ${filePath}`,
+        ),
+        warn: (warning) => process.stderr.write(`${JSON.stringify(warning)}\n`),
+      });
     });
-    try {
-      mkdirSync(ARTIFACT_DIR, { recursive: true });
+    await attemptCleanup(async () => {
       writeFileSync(
         path.join(ARTIFACT_DIR, "formal-windows-failure-cleanup.json"),
         `${JSON.stringify({
@@ -747,16 +715,46 @@ try {
         }, null, 2)}\n`,
         "utf8",
       );
-    } catch (cleanupEvidenceError) {
-      if (!qaError) throw cleanupEvidenceError;
-      process.stderr.write(`${JSON.stringify({
-        warning: "windows_nsis_cleanup_evidence_write_failed",
-        error_code: cleanupEvidenceError?.code ?? "UNKNOWN",
-      })}\n`);
-    }
+    });
   }
-  cleanupTemporaryDirectories([
-    userDataPath,
-    ...(uninstallCompleted || failureCleanup?.residue_present === false ? [installDir] : []),
-  ], { priorError: qaError });
+  await attemptCleanup(() => cleanupTemporaryDirectories(
+    [
+      userDataPath,
+      ...(uninstallCompleted || failureCleanup?.residue_present === false ? [installDir] : []),
+    ],
+    {
+      priorError: null,
+      warn: (warning) => {
+        process.stderr.write(`${JSON.stringify(warning)}\n`);
+        if (warning.warning === "temporary_directory_cleanup_deferred") {
+          cleanupErrors.push(Object.assign(
+            new Error("temporary directory cleanup was deferred"),
+            { code: warning.error_code },
+          ));
+        }
+      },
+    },
+  ));
+  if (cleanupErrors.length > 0) {
+    throw Object.assign(
+      new AggregateError(
+        [...(qaError ? [qaError] : []), ...cleanupErrors],
+        "formal Windows package QA cleanup failed",
+      ),
+      { code: "WINDOWS_FORMAL_QA_CLEANUP_FAILED" },
+    );
+  }
 }
+
+assert.ok(successReceipt, "successful Windows package QA receipt was not staged");
+writeFileSync(RECEIPT_PATH, `${JSON.stringify(successReceipt, null, 2)}\n`, "utf8");
+process.stdout.write(`${JSON.stringify({
+  verdict: successReceipt.verdict,
+  native_verdict: successReceipt.native_verdict,
+  receipt: path.relative(ROOT, RECEIPT_PATH),
+  scenarios: successReceipt.scenarios,
+  renderer_sha256: successReceipt.parity.installer_renderer_sha256,
+  authenticode: successReceipt.authenticode,
+  sbom: successReceipt.sbom,
+  screenshots: screenshots.length,
+}, null, 2)}\n`);
