@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { desktopReleaseChannelConfig } from "../lib/matter-desktop-provenance.mjs";
@@ -8,6 +11,7 @@ import { desktopReleaseChannelConfig } from "../lib/matter-desktop-provenance.mj
 const workflowPath = fileURLToPath(
   new URL("../../.github/workflows/windows-formal-package-qa.yml", import.meta.url),
 );
+const rootPath = fileURLToPath(new URL("../../", import.meta.url));
 const desktopPackagePath = fileURLToPath(
   new URL("../../apps/desktop/package.json", import.meta.url),
 );
@@ -104,11 +108,20 @@ test("Windows formal workflow preserves current-version provenance outside the w
     `apps\\desktop\\dist\\win\\${artifactStem}-win32-x64-unsigned.zip`,
   ];
   const expandedWorkflow = workflow.replaceAll("$desktopVersion", desktopPackage.version);
+  const artifactRoot = "${{ runner.temp }}\\matter-formal-package-qa-${{ github.run_id }}-${{ github.run_attempt }}";
+  const uploadedArtifactRoot = artifactRoot.replace("\\", "/");
+  const buildReceiptPath = "${{ runner.temp }}\\matter-desktop-windows-receipt-${{ github.run_id }}-${{ github.run_attempt }}\\windows-build.md";
+  const nativeQa = workflowStep(workflow, "Run native install, login, leave, payroll, restart, and uninstall QA");
+  const verifyResult = workflowStep(workflow, "Verify native result and preserve signing boundary");
+  const copyProvenance = workflowStep(workflow, "Copy build provenance");
+  const successUpload = workflowStep(workflow, "Upload Windows QA evidence");
+  const failureUpload = workflowStep(workflow, "Upload failed Windows QA diagnostics");
 
-  assert.match(
-    workflow,
-    /MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: \$\{\{ runner\.temp \}\}\\matter-desktop-windows-receipt\\windows-build\.md/,
-  );
+  assert.match(workflow, new RegExp(`MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${escapeRegExp(buildReceiptPath)}`));
+  assert.match(nativeQa, new RegExp(`MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${escapeRegExp(artifactRoot)}`));
+  assert.match(verifyResult, new RegExp(`MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${escapeRegExp(artifactRoot)}`));
+  assert.match(copyProvenance, new RegExp(`MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: ${escapeRegExp(artifactRoot)}`));
+  assert.match(verifyResult, /Get-Content -Raw -LiteralPath \(Join-Path \$env:MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR "formal-windows-package-qa\.json"\)/u);
   assert.match(
     workflow,
     /\$desktopVersion = \(Get-Content -Raw "apps\\desktop\\package\.json" \| ConvertFrom-Json\)\.version/,
@@ -117,12 +130,31 @@ test("Windows formal workflow preserves current-version provenance outside the w
     assert.match(expandedWorkflow, new RegExp(escapeRegExp(expectedPath)));
   }
   assert.match(workflow, /Test-Path -LiteralPath \$path -PathType Leaf/);
-  assert.match(
-    workflow,
-    /"\$\{\{ runner\.temp \}\}\\matter-desktop-windows-receipt\\windows-build\.md"\s*\n\s*\)/,
+  assert.match(copyProvenance, /\$env:MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH/u);
+  assert.match(copyProvenance, /Copy-Item -LiteralPath \$path -Destination \$buildDir/u);
+  assert.match(copyProvenance, /Copy-Item -LiteralPath \$path -Destination \$artifactsDir/u);
+  assert.match(successUpload, /if: success\(\)/u);
+  assert.match(successUpload, /name: windows-formal-package-qa-\$\{\{ env\.QA_SOURCE_SHA \}\}-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/u);
+  assert.match(successUpload, new RegExp(`path: ${escapeRegExp(`${uploadedArtifactRoot}/`)}`));
+  assert.match(successUpload, /if-no-files-found: error/u);
+  assert.match(failureUpload, /if: failure\(\)/u);
+  assert.match(failureUpload, /name: windows-formal-package-qa-failure-\$\{\{ env\.QA_SOURCE_SHA \}\}-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/u);
+  const failurePathBlock = failureUpload.slice(
+    failureUpload.indexOf("          path: |"),
+    failureUpload.indexOf("          include-hidden-files:"),
   );
-  assert.match(workflow, /Copy-Item -LiteralPath \$path -Destination "artifacts\\QA-006\\build\\"/);
-  assert.match(workflow, /Copy-Item -LiteralPath \$path -Destination "artifacts\\QA-006\\artifacts\\"/);
+  for (const allowedPath of [
+    `${uploadedArtifactRoot}/build/`,
+    `${uploadedArtifactRoot}/artifacts/`,
+    `${uploadedArtifactRoot}/formal-windows-failure-cleanup.json`,
+    `${uploadedArtifactRoot}/windows-installed-tree-sbom.cdx.json`,
+    `${uploadedArtifactRoot}/*.png`,
+  ]) {
+    assert.match(failurePathBlock, new RegExp(`^            ${escapeRegExp(allowedPath)}$`, "mu"));
+  }
+  assert.equal(failurePathBlock.match(/^            \$\{\{ runner\.temp \}\}\//gmu)?.length, 5);
+  assert.doesNotMatch(failurePathBlock, /\/formal-windows-package-qa\.json$/mu);
+  assert.doesNotMatch(workflow, /github\.workspace.*artifacts\\QA-006|artifacts[\\/]QA-006/u);
   assert.match(workflow, /include-hidden-files: true/);
   assert.match(workflow, /^\s+- scripts\/lib\/matter-desktop-authenticode\.mjs$/mu);
   assert.doesNotMatch(workflow, /matter-0\.1\.17-win-(?:build|installer)-manifest\.json/);
@@ -130,6 +162,33 @@ test("Windows formal workflow preserves current-version provenance outside the w
     workflow,
     /Copy-Item "(?:apps\\desktop\\dist\\win|docs\\lazycodex).*?-ErrorAction SilentlyContinue/,
   );
+});
+
+test("formal Windows QA refuses an existing artifact leaf without touching a stale receipt", async () => {
+  const temporaryRoot = await mkdtemp(path.join(tmpdir(), "matter-formal-qa-existing-artifact-"));
+  const artifactDir = path.join(temporaryRoot, "current-run-attempt");
+  const receiptPath = path.join(artifactDir, "formal-windows-package-qa.json");
+  const sentinel = '{"verdict":"STALE_SENTINEL"}\n';
+  await mkdir(artifactDir);
+  await writeFile(receiptPath, sentinel, "utf8");
+  try {
+    const result = spawnSync(process.execPath, [formalQaPath], {
+      cwd: rootPath,
+      env: {
+        ...process.env,
+        MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR: artifactDir,
+      },
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    assert.equal(result.error, undefined);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /EEXIST[\s\S]*mkdir/u);
+    assert.equal(await readFile(receiptPath, "utf8"), sentinel);
+    assert.deepEqual(await readdir(artifactDir), ["formal-windows-package-qa.json"]);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
 });
 
 test("Windows Authenticode workflow is manual, environment-bound, exact-input-bound, and immutable", async () => {
@@ -766,9 +825,56 @@ test("formal Windows QA structurally gates every NSIS execution and app launch o
   assert.match(source, /lockedSession\.launch\(\["\/S", `\/D=\$\{installDir\}`\]/u);
   assert.match(source, /lockedSession\.waitForProcessExit\(processRecord\.pid\)/u);
   assert.match(source, /executablePath: lockedSession\.path/u);
-  assert.match(source, /await lockedSession\.adoptProcess\(processPid\)/u);
+  const launchHelper = source.slice(
+    source.indexOf("async function launchFormalApp"),
+    source.indexOf("async function login"),
+  );
+  const launchTry = launchHelper.indexOf("try {");
+  const launchCatch = launchHelper.indexOf("} catch (error) {");
+  for (const protectedStep of [
+    "const electronPid = await app.evaluate(() => process.pid)",
+    "const adopted = await lockedSession.adoptProcess(electronPid)",
+    "const page = await findProductPage(app)",
+    "await page.setViewportSize",
+    "await page.emulateMedia",
+    "const initialUrl = new URL(page.url())",
+    "assert.equal(initialUrl.searchParams.get(\"desktop\"), \"1\")",
+    "return { app, page, processPid: adopted.pid }",
+  ]) {
+    const position = launchHelper.indexOf(protectedStep);
+    assert.ok(position > launchTry && position < launchCatch, `${protectedStep} must be inside launch cleanup catch`);
+  }
+  assert.match(launchHelper, /return cleanupFailedWindowsElectronLaunch\(\{ app, lockedSession, error \}\)/u);
+  assert.doesNotMatch(source, /app\.process\(\)\?\.pid/u);
   assert.match(source, /await initialLockedSession\.waitForProcessExit\(initialProcessPid\)/u);
   assert.match(source, /await restartLockedSession\.waitForProcessExit\(restartProcessPid\)/u);
+  const finalCleanup = source.slice(source.lastIndexOf("} finally {"));
+  assert.match(finalCleanup, /const cleanupErrors = \[\]/u);
+  assert.match(finalCleanup, /try \{ await cleanup\(\); \} catch \(cleanupError\) \{ cleanupErrors\.push\(cleanupError\); \}/u);
+  assert.match(finalCleanup, /settleLockedSession\(initialLockedSession, initialProcessPid\)/u);
+  assert.match(finalCleanup, /settleLockedSession\(restartLockedSession, restartProcessPid\)/u);
+  assert.match(finalCleanup, /settleLockedSession\(installerLockedSession\)/u);
+  assert.match(finalCleanup, /await attemptCleanup\(async \(\) => \{\s*failureCleanup = await cleanupFailedWindowsNsisInstallation/u);
+  assert.match(finalCleanup, /cleanupTemporaryDirectories\([\s\S]*priorError: null/u);
+  assert.match(finalCleanup, /warning\.warning === "temporary_directory_cleanup_deferred"[\s\S]*cleanupErrors\.push/u);
+  assert.match(finalCleanup, /new AggregateError\(\s*\[\.\.\.\(qaError \? \[qaError\] : \[\]\), \.\.\.cleanupErrors\]/u);
+  assert.doesNotMatch(finalCleanup, /\.catch\(\(\) => \{\}\)|windows_locked_executable_.*_cleanup_failed/u);
+  const mainTry = source.indexOf("try {", source.indexOf("let successReceipt = null"));
+  const outerFinally = source.lastIndexOf("} finally {");
+  const postCleanup = source.indexOf("\n}\n\nassert.ok(successReceipt", outerFinally);
+  const receiptStage = source.indexOf("successReceipt = {", mainTry);
+  const receiptWrite = source.indexOf("writeFileSync(RECEIPT_PATH");
+  const passEmission = source.indexOf("process.stdout.write", receiptWrite);
+  const artifactParentCreation = source.indexOf("mkdirSync(path.dirname(ARTIFACT_DIR), { recursive: true });");
+  const artifactLeafCreation = source.indexOf("mkdirSync(ARTIFACT_DIR);");
+  const firstTemporaryWork = source.indexOf("const userDataPath = mkdtempSync");
+  assert.ok(mainTry >= 0 && receiptStage > mainTry && receiptStage < outerFinally);
+  assert.ok(postCleanup > outerFinally && receiptWrite > postCleanup && passEmission > receiptWrite);
+  assert.doesNotMatch(source.slice(mainTry, postCleanup), /writeFileSync\(RECEIPT_PATH|process\.stdout\.write/u);
+  assert.ok(artifactParentCreation >= 0 && artifactParentCreation < artifactLeafCreation);
+  assert.ok(artifactLeafCreation < firstTemporaryWork);
+  assert.equal(source.match(/mkdirSync\(ARTIFACT_DIR\)/gu)?.length, 1);
+  assert.doesNotMatch(source, /mkdirSync\(ARTIFACT_DIR, \{ recursive: true \}\)|\brmSync\b/u);
   assert.doesNotMatch(source, /execFileSync\(INSTALLER_PATH/u);
   assert.match(
     source,
