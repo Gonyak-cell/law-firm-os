@@ -6,18 +6,23 @@ import {
 } from "../lib/json-postgres-artifact-reproducibility.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+  JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES,
+  JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES_SHA256,
+  JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
   JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
   JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
 } from "../lib/json-postgres-production-artifact.mjs";
 import * as releaseGates from "../lib/outlook-release-gates.mjs";
 import { sha256 } from "../lib/outlook-release-gates.mjs";
+import { EXPECTED_FUNCTION_IDENTITIES } from "../lib/outlook-production-aws-inventory-contract.mjs";
 import { validateApiArtifactReleaseFromProducerBuilds } from "../lib/outlook-release/api-artifact.mjs";
 import { canonical } from "../lib/outlook-release/primitives.mjs";
 import { clone, contract, hex, oid } from "./helpers/outlook-release-fixtures.mjs";
 
-const archiveEntries = [
+const archiveEntries = [...new Set([
   "apps/api/src/lambda.js",
-  "apps/api/src/json-postgres-program-admin-lambda.js",
+  JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
+  ...JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES,
   "apps/api/src/immutable-program-input.js",
   "apps/api/src/matter-vault-user-registration-seed.json",
   "apps/api/src/hrx-member-roster-source-of-truth.json",
@@ -27,10 +32,9 @@ const archiveEntries = [
   "package.json",
   "packages/dms/src/json-postgres-dms-migration.js",
   "packages/persistence/src/postgres/execution-contract.js",
-  "packages/persistence/src/postgres/migration-runner.js",
   "packages/persistence/src/postgres/program-receipt.js",
   ...JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
-];
+])];
 const rdsCaBundleBytes = Buffer.from(
   `${"-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----\n".repeat(5)}${"x".repeat(10_000)}\n`,
 );
@@ -93,6 +97,14 @@ function outerManifestFor(artifactBytes, embeddedManifest) {
     artifact_runtime_store_entry_count: 0,
     artifact_real_json_store_count: 0,
     artifact_private_staging_entry_count: 0,
+    artifact_symlink_count: 1,
+    artifact_symlink_entries_sha256:
+      sha256(Buffer.from("fixture-extracted-symlink-inventory")),
+    artifact_symlink_escape_count: 0,
+    outlook_runtime_entry_count:
+      JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES.length,
+    outlook_runtime_entries_sha256:
+      JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES_SHA256,
     artifact_s3_key: `lawos-production/${embeddedManifest.source_sha}/${artifactSha}.zip`,
     manifest_canonical_sha256: "",
   };
@@ -120,6 +132,10 @@ function fixture() {
   const lambdaTarget = {
     FunctionName: contract.api.function_name,
     FunctionArn: `arn:aws:lambda:${contract.api.region}:${contract.api.aws_account_id}:function:${contract.api.function_name}`,
+    Handler: EXPECTED_FUNCTION_IDENTITIES[contract.api.function_name].handler,
+    Runtime: EXPECTED_FUNCTION_IDENTITIES[contract.api.function_name].runtime,
+    Architectures: [EXPECTED_FUNCTION_IDENTITIES[contract.api.function_name].architecture],
+    PackageType: EXPECTED_FUNCTION_IDENTITIES[contract.api.function_name].package_type,
   };
   const beforeConfiguration = { ...lambdaTarget, Environment: { Variables: { A: "one", B: "two" } } };
   const environment = {
@@ -154,6 +170,25 @@ test("API artifact provenance fails closed across producer, candidate, manifest,
     ...f.input, producerBuilds: [f.producerBuilds[0]],
   }), /two independently/);
   assert.equal(validateApiArtifactReleaseFromProducerBuilds(f.input).producer_build_count, 2);
+  for (const candidateOuterManifest of [
+    { ...f.input.candidateOuterManifest, outlook_runtime_entry_count: 0 },
+    { ...f.input.candidateOuterManifest, outlook_runtime_entries_sha256: hex("0") },
+    { ...f.input.candidateOuterManifest, artifact_symlink_count: 0 },
+    { ...f.input.candidateOuterManifest, artifact_symlink_entries_sha256: "invalid" },
+    { ...f.input.candidateOuterManifest, artifact_symlink_escape_count: 1 },
+  ]) {
+    assert.throws(() => validateApiArtifactReleaseFromProducerBuilds({
+      ...f.input,
+      candidateOuterManifest,
+    }), /artifact binding failed/u);
+  }
+  for (const required of JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES) {
+    assert.throws(() => validateApiArtifactReleaseFromProducerBuilds({
+      ...f.input,
+      archiveEntries: f.input.archiveEntries.filter((entry) =>
+        entry !== required),
+    }), new RegExp(`missing ${required.replaceAll(".", "\\.")}`, "u"));
+  }
 
   const differentBytes = Buffer.from("different producer build");
   assert.throws(() => validateApiArtifactReleaseFromProducerBuilds({
@@ -227,4 +262,48 @@ test("API artifact provenance preserves dry-run and authorized Lambda readback b
     receipt: post,
     afterConfiguration: { ...after, Environment: { Variables: { A: "changed", B: "two" } } },
   }), /environment preservation/);
+});
+
+test("API artifact provenance rejects execution identity drift before protected actions", () => {
+  for (const drift of [
+    { Handler: "apps/api/src/json-postgres-program-admin-lambda.handler" },
+    { Runtime: "nodejs20.x" },
+    { Architectures: ["x86_64"] },
+    { Architectures: ["arm64", "x86_64"] },
+    { PackageType: "Image" },
+  ]) {
+    const f = fixture();
+    assert.throws(
+      () => validateApiArtifactReleaseFromProducerBuilds({
+        ...f.input,
+        beforeConfiguration: { ...f.beforeConfiguration, ...drift },
+      }),
+      /Lambda execution identity drifted/u,
+    );
+    const postReceipt = {
+      ...clone(f.receipt),
+      mode: "post-deploy-readback",
+      authorization_ref: "approved-api-change-window-20260808",
+      status: "deployed_readback_verified",
+      environment: {
+        before: f.environment,
+        after: f.environment,
+        preservation_status: "verified",
+      },
+      mutation_count: 1,
+      deployed_code_sha256: f.receipt.lambda_code_sha256,
+    };
+    assert.throws(
+      () => validateApiArtifactReleaseFromProducerBuilds({
+        ...f.input,
+        receipt: postReceipt,
+        afterConfiguration: {
+          ...f.beforeConfiguration,
+          CodeSha256: f.receipt.lambda_code_sha256,
+          ...drift,
+        },
+      }),
+      /Lambda execution identity drifted/u,
+    );
+  }
 });

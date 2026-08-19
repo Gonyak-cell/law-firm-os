@@ -1,12 +1,20 @@
 import { GIT_OID } from "./constants.mjs";
 import { validateReleaseContract } from "./contract.mjs";
 import { createJsonPostgresArtifactReproducibilityEvidence } from "../json-postgres-artifact-reproducibility.mjs";
-import { JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA, validateJsonPostgresProductionArtifactEntries, validateJsonPostgresProductionDeploymentManifest } from "../json-postgres-production-artifact.mjs";
+import {
+  JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+  JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT,
+  validateJsonPostgresProductionArtifactEntries,
+  validateJsonPostgresProductionDeploymentManifest,
+} from "../json-postgres-production-artifact.mjs";
+import { EXPECTED_FUNCTION_IDENTITIES } from "../outlook-production-aws-inventory-contract.mjs";
 import { validateRdsCaBundle } from "../private-staging-artifact.mjs";
 import {
   assertEqual, assertExactKeys, assertNoSensitiveMaterial, assertSafeRelativePath, canonical,
   requiredText, sha256, sorted,
 } from "./primitives.mjs";
+
+const SHA256 = /^[a-f0-9]{64}$/u;
 
 const EMBEDDED_MANIFEST_FIELDS = Object.freeze([
   "data_scope", "dependency_lock_sha256", "dual_write", "file_current_authority", "json_fallback",
@@ -22,7 +30,9 @@ const OUTER_MANIFEST_FIELDS = Object.freeze([
   ...EMBEDDED_MANIFEST_FIELDS,
   "artifact_byte_size", "artifact_entries_sha256", "artifact_entry_count", "artifact_filename",
   "artifact_private_staging_entry_count", "artifact_real_json_store_count", "artifact_runtime_store_entry_count",
-  "artifact_s3_key", "artifact_sha256", "manifest_canonical_sha256",
+  "artifact_s3_key", "artifact_sha256", "artifact_symlink_count", "artifact_symlink_entries_sha256",
+  "artifact_symlink_escape_count", "manifest_canonical_sha256",
+  "outlook_runtime_entries_sha256", "outlook_runtime_entry_count",
 ]);
 const OUTER_ONLY_FIELDS = new Set(OUTER_MANIFEST_FIELDS.filter((field) => !EMBEDDED_MANIFEST_FIELDS.includes(field)));
 
@@ -75,6 +85,12 @@ function validateOuterManifest(manifest, artifactBytes, archiveEntries, bindings
     || manifest.artifact_runtime_store_entry_count !== 0
     || manifest.artifact_real_json_store_count !== 0
     || manifest.artifact_private_staging_entry_count !== 0
+    || !Number.isSafeInteger(manifest.artifact_symlink_count)
+    || manifest.artifact_symlink_count < 1
+    || !SHA256.test(manifest.artifact_symlink_entries_sha256 ?? "")
+    || manifest.artifact_symlink_escape_count !== 0
+    || manifest.outlook_runtime_entry_count !== bindings.outlookRuntimeEntryCount
+    || manifest.outlook_runtime_entries_sha256 !== bindings.outlookRuntimeEntriesSha256
     || manifest.artifact_s3_key !== `lawos-production/${bindings.expectedSourceSha}/${artifactSha}.zip`
     || manifest.manifest_canonical_sha256 !== sha256(Buffer.from(stableJson({
       ...manifest,
@@ -119,8 +135,19 @@ function environmentProjection(configuration) {
 
 function validateLambdaTarget(configuration, contract, name) {
   const expectedArn = `arn:aws:lambda:${contract.api.region}:${contract.api.aws_account_id}:function:${contract.api.function_name}`;
-  if (configuration?.FunctionName !== contract.api.function_name || configuration?.FunctionArn !== expectedArn) {
-    throw new Error(`${name} Lambda target drifted`);
+  const expected = EXPECTED_FUNCTION_IDENTITIES[contract.api.function_name];
+  const closureHandler = `${JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT.replace(/\.js$/u, "")}.handler`;
+  if (!expected || expected.function_arn !== expectedArn
+    || expected.handler !== closureHandler
+    || configuration?.FunctionName !== contract.api.function_name
+    || configuration?.FunctionArn !== expected.function_arn
+    || configuration?.Handler !== expected.handler
+    || configuration?.Runtime !== expected.runtime
+    || configuration?.PackageType !== expected.package_type
+    || !Array.isArray(configuration?.Architectures)
+    || configuration.Architectures.length !== 1
+    || configuration.Architectures[0] !== expected.architecture) {
+    throw new Error(`${name} Lambda execution identity drifted`);
   }
 }
 
@@ -159,6 +186,9 @@ export function validateApiArtifactReleaseFromProducerBuilds({
     rdsCaBundleSha: sha256(caBundle),
     rdsCaBundleByteSize: ca.byte_size,
     rdsCaBundleCertificateCount: ca.certificate_count,
+    outlookRuntimeEntryCount: productionArchive.outlook_runtime_entry_count,
+    outlookRuntimeEntriesSha256:
+      productionArchive.outlook_runtime_entries_sha256,
   };
   validateProductionManifest(embeddedManifest, {
     ...bindings,

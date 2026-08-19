@@ -1921,14 +1921,16 @@ async function handleOutlookReadiness({
     let installationBinding = "verified";
     let delegatedConnection;
     if (entitlement.eligible && identityComplete) {
-      const service = await resolveOutlookDesktopInstallationService(
+      const service = resolveOutlookDesktopInstallationService(
         runtime?.outlookDesktopRuntime,
-        principal.tenant_id,
       );
       const readInstallation = installationId === undefined
         ? service?.readCurrent
         : service?.read;
-      if (typeof readInstallation !== "function") {
+      if (
+        typeof service?.projectAssignmentState !== "function"
+        || typeof readInstallation !== "function"
+      ) {
         throw Object.assign(
           new Error("Outlook desktop installation runtime unavailable"),
           {
@@ -1938,19 +1940,54 @@ async function handleOutlookReadiness({
           },
         );
       }
+      const authorityPrincipal = Object.freeze({
+        tenant_id: principal.tenant_id,
+        user_id: principal.user_id,
+        entra_subject_id: principal.entra_subject_id,
+      });
+      const assignmentState = await service.projectAssignmentState({
+        principal: authorityPrincipal,
+      });
+      if (
+        !assignmentState
+        || typeof assignmentState !== "object"
+        || Array.isArray(assignmentState)
+        || assignmentState.tenant_id !== authorityPrincipal.tenant_id
+        || assignmentState.user_id !== authorityPrincipal.user_id
+        || assignmentState.entra_subject_id
+          !== authorityPrincipal.entra_subject_id
+        || typeof assignmentState.desired_assigned !== "boolean"
+      ) {
+        throw Object.assign(
+          new Error("Outlook desktop assignment projection unavailable"),
+          {
+            safe_error_code:
+              "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+            status: 503,
+          },
+        );
+      }
       try {
         installation = await readInstallation.call(service, {
-          principal: {
-            tenant_id: principal.tenant_id,
-            user_id: principal.user_id,
-            entra_subject_id: principal.entra_subject_id,
-          },
+          principal: authorityPrincipal,
           ...(installationId === undefined
             ? {}
             : { installation_id: installationId }),
-        }, {
-          authorize: async () => true,
         });
+        if (
+          installationId !== undefined
+          && installation != null
+          && installation.installation_id !== installationId
+        ) {
+          throw Object.assign(
+            new Error("Outlook desktop installation projection mismatch"),
+            {
+              safe_error_code:
+                "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+              status: 503,
+            },
+          );
+        }
       } catch (error) {
         if (
           error?.safe_error_code

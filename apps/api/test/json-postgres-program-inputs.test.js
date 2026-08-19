@@ -38,6 +38,7 @@ import {
   assertJsonPostgresProgramDirectInvoke,
   claimJsonPostgresProgramInvocation,
   JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
+  JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
   JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
   loadJsonPostgresDrRecoveryInputs,
   loadJsonPostgresMigrationInputs,
@@ -55,6 +56,8 @@ const ACCOUNT = "770880870480";
 const REGION = "ap-northeast-2";
 const INPUT_BUCKET = "lawos-prod-program-input-770880870480";
 const INPUT_KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/00000000-0000-0000-0000-000000000000";
+const DATABASE_SECRET =
+  "arn:aws:secretsmanager:ap-northeast-2:770880870480:secret:rds!db-test-master";
 const W15_TRANSFORM_TARGET_COLUMNS = Object.freeze({
   hrx_audit_events: ["metadata_json"],
   hrx_candidates: ["crm_party_linked"],
@@ -85,6 +88,39 @@ const W15_TRANSFORM_TARGET_COLUMNS = Object.freeze({
   ],
   hrx_offers: ["compensation_restricted"],
 });
+
+function databaseTargetReceipt() {
+  return {
+    schema_version: "law-firm-os.json-postgres-database-target-receipt.v1",
+    account_id: ACCOUNT,
+    region: REGION,
+    db_instance_identifier: "lawos-production-postgres",
+    db_instance_arn:
+      `arn:aws:rds:${REGION}:${ACCOUNT}:db:lawos-production-postgres`,
+    endpoint_host:
+      `lawos-production-postgres.fixture123.${REGION}.rds.amazonaws.com`,
+    endpoint_port: 5432,
+    database_name: "lawos",
+    engine: "postgres",
+    engine_version: "16.13",
+    db_instance_status: "available",
+    master_username: "lawos_admin",
+    master_secret_arn: DATABASE_SECRET,
+    master_secret_status: "active",
+    master_secret_kms_key_arn: INPUT_KMS,
+    readback_source: {
+      caller_arn:
+        `arn:aws:sts::${ACCOUNT}:assumed-role/matter-readonly-auditor/readback`,
+      operations: [
+        "sts:GetCallerIdentity",
+        "rds:DescribeDBInstances",
+        "secretsmanager:DescribeSecret",
+      ],
+    },
+    observed_at: "2026-07-23T00:55:00.000Z",
+    expires_at: "2026-07-23T01:10:00.000Z",
+  };
+}
 
 function packet() {
   const zero = "0".repeat(64);
@@ -117,6 +153,7 @@ function packet() {
         : ["cut012_terminal_receipt_sha256", "go_live_receipt_sha256"].includes(key)
           ? zero
           : "e".repeat(64)]));
+  const databaseTarget = databaseTargetReceipt();
   return {
     schema_version: JSON_POSTGRES_EXECUTION_PACKET_VERSION,
     packet_id: "lawos-production-program-001",
@@ -139,7 +176,11 @@ function packet() {
       artifact_object_lock_enabled: true,
       artifact_versioning_enabled: true,
       artifact_public_access_blocked: true,
-      database_secret_ref: "secret:lawos-prod-db",
+      database_secret_ref: DATABASE_SECRET,
+      database_target_receipt: databaseTarget,
+      database_target_receipt_sha256: createHash("sha256")
+        .update(canonicalizeJson(databaseTarget))
+        .digest("hex"),
       tenant_context_secret_ref: "secret:lawos-prod-tenant-context",
       dms_bucket_ref: "bucket:lawos-prod-dms",
       dms_bucket_name: "lawos-prod-dms-770880870480",
@@ -153,7 +194,7 @@ function packet() {
       program_input_bucket_ref: "bucket:lawos-prod-program-input",
       program_input_bucket_name: INPUT_BUCKET,
       program_input_expected_bucket_owner: ACCOUNT,
-      program_input_kms_key_ref: "alias/lawos-prod-program-input",
+      program_input_kms_key_ref: INPUT_KMS,
       program_input_object_lock_enabled: true,
       program_input_versioning_enabled: true,
       program_input_public_access_blocked: true,
@@ -254,6 +295,45 @@ function env(registrySha256) {
   };
 }
 
+function outlookTrustOptions(fixture) {
+  const productionTrust = Object.freeze({
+    bytes: fixture.bytes.get("registry"),
+    registry: fixture.registry,
+    registryTrust: Object.freeze({ fixed_root: true }),
+    sha256: fixture.registrySha256,
+    registrySerial: 7,
+    anchorSha256: "7".repeat(64),
+    registrySignatureSha256: "8".repeat(64),
+  });
+  return {
+    verifyProductionRegistry: () => productionTrust,
+    verifyOutlookApproval({ packet, receiptBytes }) {
+      const receipt = JSON.parse(receiptBytes);
+      return Object.freeze({
+        valid: true,
+        decision: "approved",
+        approval_id: receipt.approval_id,
+        key_id: receipt.key_id,
+        receipt_sha256: "9".repeat(64),
+        signature_sha256: "a".repeat(64),
+        registry_sha256: productionTrust.sha256,
+        registry_serial: productionTrust.registrySerial,
+        trust_anchor_sha256: productionTrust.anchorSha256,
+        registry_signature_sha256:
+          productionTrust.registrySignatureSha256,
+        signed_at: receipt.signed_at,
+        expires_at: receipt.expires_at,
+        packet_sha256: packet.packet_sha256,
+        phase: packet.phase,
+        action: packet.action,
+        environment: packet.environment,
+        external_authority_binding_sha256: "b".repeat(64),
+        trust_root_verified: true,
+      });
+    },
+  };
+}
+
 function event(packetSha256) {
   return {
     action: JSON_POSTGRES_PROGRAM_ADMIN_ACTION,
@@ -299,6 +379,103 @@ test("program authorization is direct-invoke, exact deployment, exact target and
     }),
     (error) => error?.code === "LAWOS_PROGRAM_DEPLOYMENT_BINDING",
   );
+});
+
+test("Outlook CUT-009 commit authorization derives its operation binding before claim access", async () => {
+  const fixture = authorizationFixture();
+  const request = {
+    ...event(fixture.packetSha256),
+    action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+    mode: "commit",
+    stage: "cut-009",
+    operation: "outlook-authority-bootstrap-001-007",
+  };
+  const loaded = await loadJsonPostgresProgramAuthorization({
+    event: request,
+    env: env(fixture.registrySha256),
+    s3Client: {},
+    readBytes: async ({ locator }) => fixture.bytes.get(locator.key),
+    now: Date.parse("2026-07-24T00:00:00.000Z"),
+    ...outlookTrustOptions(fixture),
+  });
+  assert.match(loaded.operation_binding_sha256, /^[0-9a-f]{64}$/u);
+  assert.equal(
+    loaded.database_target_receipt_sha256,
+    loaded.packet.target.database_target_receipt_sha256,
+  );
+  assert.equal(
+    loaded.databaseTargetReceipt.endpoint_host,
+    `lawos-production-postgres.fixture123.${REGION}.rds.amazonaws.com`,
+  );
+  assert.equal(Object.isFrozen(loaded.databaseTargetReceipt), true);
+
+  let readCount = 0;
+  await assert.rejects(
+    loadJsonPostgresProgramAuthorization({
+      event: { ...request, unsupported: true },
+      env: env(fixture.registrySha256),
+      s3Client: {},
+      readBytes: async () => {
+        readCount += 1;
+        throw new Error("authorization input must not be read");
+      },
+      ...outlookTrustOptions(fixture),
+    }),
+    (error) => error?.code === "LAWOS_OUTLOOK_AUTHORITY_OPERATION_BINDING",
+  );
+  assert.equal(readCount, 0);
+});
+
+test("expired Outlook CUT-009 authorization remains verifiable only for exact claim replay", async () => {
+  const fixture = authorizationFixture();
+  const request = {
+    ...event(fixture.packetSha256),
+    action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+    mode: "commit",
+    stage: "cut-009",
+    operation: "outlook-authority-bootstrap-001-007",
+  };
+  const loaded = await loadJsonPostgresProgramAuthorization({
+    event: request,
+    env: env(fixture.registrySha256),
+    s3Client: {},
+    readBytes: async ({ locator }) => fixture.bytes.get(locator.key),
+    now: Date.parse("2026-07-29T00:00:01.000Z"),
+    ...outlookTrustOptions(fixture),
+  });
+  assert.equal(loaded.approval.expires_at, "2026-07-29T00:00:00.000Z");
+  assert.match(loaded.operation_binding_sha256, /^[0-9a-f]{64}$/u);
+});
+
+test("Outlook authorization treats locator registry bytes as fixed-root evidence only", async () => {
+  const fixture = authorizationFixture();
+  const request = {
+    ...event(fixture.packetSha256),
+    action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+    mode: "commit",
+    stage: "cut-009",
+    operation: "outlook-authority-bootstrap-001-007",
+  };
+  const options = outlookTrustOptions(fixture);
+  const trusted = options.verifyProductionRegistry();
+  let approvalCount = 0;
+  await assert.rejects(
+    loadJsonPostgresProgramAuthorization({
+      event: request,
+      env: env(fixture.registrySha256),
+      s3Client: {},
+      readBytes: async ({ locator }) => fixture.bytes.get(locator.key),
+      verifyProductionRegistry: () => Object.freeze({
+        ...trusted,
+        bytes: Buffer.from("fixed-root-registry"),
+      }),
+      verifyOutlookApproval() {
+        approvalCount += 1;
+      },
+    }),
+    (error) => error?.code === "LAWOS_OUTLOOK_AUTHORITY_TRUST_REGISTRY",
+  );
+  assert.equal(approvalCount, 0);
 });
 
 test("program input loader binds corpus to the packet tenant and keeps preflight read-only", async () => {

@@ -733,6 +733,7 @@ export async function runPrivateStagingCut007({
 
   const engagementId = `engagement-cut007-${suffix}`;
   const signedDocumentId = `signed-document-cut007-${suffix}`;
+  const signedPdfBytes = Buffer.from("%PDF-1.4\nSynthetic CUT-007 signed engagement\n%%EOF\n");
   const engagement = await request("intake-engagement", 201, {
     method: "POST",
     path: "/api/intake/engagements",
@@ -763,8 +764,8 @@ export async function runPrivateStagingCut007({
           signed_document_id: signedDocumentId,
           template_document_id: `template-document-cut007-${suffix}`,
           signature_ref: `signature:${signedDocumentId}`,
-          content_sha256: `sha256:${signedDocumentId}`,
-          byte_size: 512,
+          bytes_base64: signedPdfBytes.toString("base64"),
+          byte_size: signedPdfBytes.byteLength,
           mime_type: "application/pdf",
           upload_state: "uploaded",
           lx_registry_ref: "LX-06",

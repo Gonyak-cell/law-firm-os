@@ -73,7 +73,7 @@ export async function withPostgresTransaction(pool, {
       const authenticated = await client.query("SELECT lawos_security.current_tenant_id() AS tenant_id");
       if (authenticated.rows[0]?.tenant_id !== tenantId) {
         throw Object.assign(new Error("PostgreSQL tenant context authentication failed"), {
-          code: "42501",
+          code: "LAWOS_POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED",
           safe_error_code: "POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED",
           status: 403,
         });

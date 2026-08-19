@@ -34,14 +34,21 @@ export async function disposablePostgresAvailable() {
   return (await executableAvailable("initdb")) && (await executableAvailable("pg_ctl"));
 }
 
-export async function startDisposablePostgres(t) {
+export async function startDisposablePostgres(t, {
+  outlookAuthorityAdmin = false,
+} = {}) {
   if (!(await disposablePostgresAvailable())) {
     t.skip("local PostgreSQL binaries are unavailable");
     return null;
   }
   const root = mkdtempSync(join(tmpdir(), "lawos-postgres-v2-"));
   const dataDir = join(root, "data");
-  const socketDir = join(root, "socket");
+  const rootSocketDir = join(root, "socket");
+  const separateSocketDir = outlookAuthorityAdmin
+    || Buffer.byteLength(rootSocketDir, "utf8") >= 80;
+  const socketDir = separateSocketDir
+    ? mkdtempSync("/tmp/lawos-pg-socket-")
+    : rootSocketDir;
   const username = userInfo().username;
   const port = await reservePort();
   mkdirSync(socketDir, { recursive: true, mode: 0o700 });
@@ -52,6 +59,9 @@ export async function startDisposablePostgres(t) {
       await execFileAsync("pg_ctl", ["-D", dataDir, "-m", "immediate", "-w", "stop"]).catch(() => {});
     }
     rmSync(root, { recursive: true, force: true });
+    if (separateSocketDir) {
+      rmSync(socketDir, { recursive: true, force: true });
+    }
   };
   try {
     await execFileAsync("initdb", [
@@ -82,10 +92,52 @@ export async function startDisposablePostgres(t) {
   });
 }
 
-export async function createMigratedPostgresFixture(t, { appPoolMax = 10 } = {}) {
-  const instance = await startDisposablePostgres(t);
-  if (!instance) return null;
-  const adminPool = createPostgresPool({
+export async function createMigratedPostgresFixture(t, {
+  appPoolMax = 10,
+  outlookAuthorityAdmin = false,
+} = {}) {
+  const baseInstance = await startDisposablePostgres(t, {
+    outlookAuthorityAdmin,
+  });
+  if (!baseInstance) return null;
+  let instance = baseInstance;
+  let bootstrapPool;
+  let adminPool;
+  if (outlookAuthorityAdmin) {
+    bootstrapPool = createPostgresPool({
+      connectionString: baseInstance.connection_string,
+      sslMode: "disable",
+      allowInsecureLocal: true,
+      applicationName: "lawos-postgres-v2-bootstrap-test",
+    });
+    try {
+      await bootstrapPool.query(`CREATE ROLE lawos_admin LOGIN NOSUPERUSER
+        CREATEDB CREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`);
+      await bootstrapPool.query("CREATE DATABASE lawos OWNER lawos_admin");
+      await bootstrapPool.end();
+      const bootstrapUrl = new URL(baseInstance.connection_string);
+      bootstrapUrl.pathname = "/lawos";
+      bootstrapPool = createPostgresPool({
+        connectionString: bootstrapUrl.toString(),
+        sslMode: "disable",
+        allowInsecureLocal: true,
+        applicationName: "lawos-postgres-v2-bootstrap-test",
+      });
+    } catch (error) {
+      await bootstrapPool.end().catch(() => {});
+      await baseInstance.stop();
+      throw error;
+    }
+    const adminUrl = new URL(baseInstance.connection_string);
+    adminUrl.username = "lawos_admin";
+    adminUrl.pathname = "/lawos";
+    instance = Object.freeze({
+      ...baseInstance,
+      username: "lawos_admin",
+      connection_string: adminUrl.toString(),
+    });
+  }
+  adminPool = createPostgresPool({
     connectionString: instance.connection_string,
     sslMode: "disable",
     allowInsecureLocal: true,
@@ -95,8 +147,21 @@ export async function createMigratedPostgresFixture(t, { appPoolMax = 10 } = {})
   const tenantContextSecret = randomBytes(32).toString("base64url");
   try {
     await runPostgresMigrations(adminPool, { appliedBy: "disposable-contract-test" });
-    await adminPool.query("CREATE ROLE lawos_app LOGIN");
-    await adminPool.query("ALTER DATABASE postgres SET lawos.environment = 'synthetic-test'");
+    await adminPool.query(outlookAuthorityAdmin
+      ? `CREATE ROLE lawos_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
+           NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 64`
+      : "CREATE ROLE lawos_app LOGIN");
+    if (outlookAuthorityAdmin) {
+      await adminPool.query("ALTER ROLE lawos_app SET statement_timeout = '30s'");
+      await adminPool.query("ALTER ROLE lawos_app SET lock_timeout = '5s'");
+      await adminPool.query(
+        "ALTER ROLE lawos_app SET idle_in_transaction_session_timeout = '30s'",
+      );
+    }
+    await (outlookAuthorityAdmin ? bootstrapPool : adminPool).query(
+      `ALTER DATABASE ${outlookAuthorityAdmin ? "lawos" : "postgres"}
+         SET lawos.environment = 'synthetic-test'`,
+    );
     await adminPool.query(
       `INSERT INTO lawos_security.tenant_context_authorities
          (database_role, tenant_id, context_secret, synthetic_wildcard)
@@ -163,13 +228,21 @@ export async function createMigratedPostgresFixture(t, { appPoolMax = 10 } = {})
   } catch (error) {
     await appPool?.end().catch(() => {});
     await adminPool.end().catch(() => {});
-    await instance.stop();
+    await bootstrapPool?.end().catch(() => {});
+    await baseInstance.stop();
     throw error;
   }
   t.after(async () => {
     await appPool.end();
     await adminPool.end();
-    await instance.stop();
+    await bootstrapPool?.end();
+    await baseInstance.stop();
   });
-  return Object.freeze({ instance, adminPool, appPool, tenantContextSecret });
+  return Object.freeze({
+    instance,
+    adminPool,
+    appPool,
+    tenantContextSecret,
+    ...(bootstrapPool ? { bootstrapPool } : {}),
+  });
 }

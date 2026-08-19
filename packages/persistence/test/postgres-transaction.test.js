@@ -55,8 +55,65 @@ test("PostgreSQL pool requires verified TLS except for explicit loopback disposa
   assert.equal(local.ssl, false);
 });
 
+function transactionProbePool(authenticatedTenantId) {
+  const statements = [];
+  let released = false;
+  return {
+    statements,
+    get released() { return released; },
+    async connect() {
+      return {
+        async query(statement) {
+          statements.push(statement);
+          if (statement === "SELECT lawos_security.current_tenant_id() AS tenant_id") {
+            return { rows: [{ tenant_id: authenticatedTenantId }] };
+          }
+          return { rows: [] };
+        },
+        release() { released = true; },
+      };
+    },
+  };
+}
+
+test("transaction distinguishes an authenticated-tenant secret mismatch from raw SQL denial", async () => {
+  const wrongSecretPool = transactionProbePool(null);
+  await assert.rejects(
+    withPostgresTransaction(wrongSecretPool, {
+      tenant_id: "tenant-auth-boundary",
+      tenantContextSecret: "wrong-secret-with-at-least-thirty-two-bytes",
+    }, () => assert.fail("callback must not run after tenant authentication mismatch")),
+    (error) => error?.code === "LAWOS_POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED"
+      && error?.safe_error_code === "POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED"
+      && error?.status === 403 && error?.message === "PostgreSQL tenant context authentication failed",
+  );
+  assert.equal(wrongSecretPool.released, true);
+  assert.equal(wrongSecretPool.statements.at(-1), "ROLLBACK");
+
+  const deniedPool = transactionProbePool("tenant-auth-boundary");
+  await assert.rejects(
+    withPostgresTransaction(deniedPool, {
+      tenant_id: "tenant-auth-boundary",
+      tenantContextSecret: "correct-secret-with-at-least-thirty-two-bytes",
+    }, () => {
+      throw Object.assign(new Error("raw database denial must stay hidden"), {
+        code: "42501",
+        detail: "raw detail",
+        hint: "raw hint",
+      });
+    }),
+    (error) => error?.code === "LAWOS_POSTGRES_ACCESS_DENIED"
+      && error?.safe_error_code === "POSTGRES_ACCESS_DENIED"
+      && error?.status === 403 && error?.postgres_code === "42501"
+      && error?.message === "PostgreSQL operation failed"
+      && !("detail" in error) && !("hint" in error),
+  );
+  assert.equal(deniedPool.released, true);
+  assert.equal(deniedPool.statements.at(-1), "ROLLBACK");
+});
+
 test("SQL migration runner is forward-only, checksum-bound and idempotent", async (t) => {
-  const instance = await startDisposablePostgres(t);
+  const instance = await startDisposablePostgres(t, { registerCleanup: false });
   if (!instance) return;
   const pool = createPostgresPool({
     connectionString: instance.connection_string,

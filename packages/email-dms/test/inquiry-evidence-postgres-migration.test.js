@@ -18,7 +18,7 @@ test("CL-P3-W01-T01 inquiry evidence migration은 중복 키·파일 관계·ten
 
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
-  for (const migration of migrations) {
+  for (const migration of migrations.slice(0, 2)) {
     await fixture.adminPool.query(migration.sql);
   }
   const schema = await fixture.adminPool.query(

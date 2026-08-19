@@ -23,9 +23,13 @@ import {
 export { createClientOperationsMigrationPlan } from "./client-operations-migration-plan.js";
 
 export {
+  CLIENT_OPERATIONS_MIGRATION_CATALOG,
+  CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   CLIENT_OPERATIONS_MIGRATION_ID_MAP,
+  CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING,
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   listClientOperationsPostgresMigrations,
+  normalizeClientOperationsMigrationCatalog,
   readClientOperationsPostgresSchemaState,
   runClientOperationsPostgresMigrations,
   verifyClientOperationsPostgresMigrations,

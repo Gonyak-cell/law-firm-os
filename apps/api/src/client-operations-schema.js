@@ -13,6 +13,25 @@ import {
 import {
   listEmailDmsPostgresMigrations,
 } from "../../../packages/email-dms/src/migrations/index.js";
+import {
+  OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG,
+  OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
+  OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS,
+  OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS_SHA256,
+} from "../../../packages/email-dms/src/outlook-desktop-assignment-authority-catalog.js";
+import {
+  CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
+  normalizeClientOperationsMigrationCatalogMaterial,
+} from "./client-operations-migration-catalog.js";
+
+const OUTLOOK_ASSIGNMENT_SOURCE_MIGRATION_ID =
+  "007_outlook_desktop_assignment";
+const OUTLOOK_ASSIGNMENT_CLIENT_MIGRATION_ID =
+  "306_client_outlook_desktop_assignment";
+const OUTLOOK_ASSIGNMENT_STATE_READ_SIGNATURE =
+  "lawos_email_dms.read_outlook_desktop_assignment_state(text,text,text)";
+const OUTLOOK_ASSIGNMENT_STATE_READ_TRANSACTION_MODE =
+  "serializable_write";
 
 export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "001_m365_connection": "300_client_m365_connection",
@@ -21,6 +40,10 @@ export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "004_outlook_conversation_sync": "303_client_outlook_conversation_sync",
   "005_outlook_desktop_installation":
     "304_client_outlook_desktop_installation",
+  "006_outlook_desktop_release_trust":
+    "305_client_outlook_desktop_release_trust",
+  [OUTLOOK_ASSIGNMENT_SOURCE_MIGRATION_ID]:
+    OUTLOOK_ASSIGNMENT_CLIENT_MIGRATION_ID,
 });
 
 function clientSchemaMigrations() {
@@ -50,25 +73,121 @@ const OPERATIONAL_MIGRATIONS = Object.freeze([
   ...clientSchemaMigrations(),
 ]);
 
-const JSON_POSTGRES_REHEARSAL_MIGRATION_CATALOG_VERSION =
-  "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
-
-function packetMigrationCatalogMaterial(migrations) {
-  return {
-    schema_version: JSON_POSTGRES_REHEARSAL_MIGRATION_CATALOG_VERSION,
-    authority: "postgres-v2",
-    migration_count: migrations.length,
-    migrations: migrations.map((migration) => Object.freeze({
-      id: migration.id,
-      file_name: migration.file_name ?? `${migration.id}.sql`,
-      checksum: migration.checksum ?? checksumPostgresMigration(migration.sql),
-    })),
-  };
+function createOutlookAssignmentAuthorityBinding() {
+  const roleAttributes =
+    OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG.role_attributes;
+  const roleCatalog =
+    OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG.role_catalog;
+  const tables = OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG.tables;
+  const functions = OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG.functions;
+  const securityDefinerFunctions =
+    OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS;
+  if (
+    hashDomainValue(OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG)
+      !== OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256
+    || OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG
+      .security_definer_functions
+      !== securityDefinerFunctions
+    || OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG
+      .security_definer_functions_sha256
+      !== OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || hashDomainValue(securityDefinerFunctions)
+      !== OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || !Array.isArray(tables)
+    || tables.length === 0
+    || !Array.isArray(functions)
+    || functions.length === 0
+    || !roleAttributes
+    || typeof roleAttributes !== "object"
+    || !Array.isArray(roleCatalog)
+    || roleCatalog.length === 0
+    || roleCatalog.length !== Object.keys(roleAttributes).length
+    || new Set(roleCatalog.map(({ name }) => name)).size
+      !== roleCatalog.length
+    || roleCatalog.some(({ name }) => !Object.hasOwn(roleAttributes, name))
+    || !Array.isArray(securityDefinerFunctions)
+    || securityDefinerFunctions.length === 0
+    || new Set(
+      securityDefinerFunctions.map(
+        ({ signature }) => signature,
+      ),
+    ).size !== securityDefinerFunctions.length
+  ) {
+    throw new Error(
+      "Outlook desktop assignment authority catalog is not closed",
+    );
+  }
+  const assignmentStateRead =
+    securityDefinerFunctions.find(
+      ({ signature }) =>
+        signature === OUTLOOK_ASSIGNMENT_STATE_READ_SIGNATURE,
+    );
+  if (
+    assignmentStateRead?.transaction_mode
+      !== OUTLOOK_ASSIGNMENT_STATE_READ_TRANSACTION_MODE
+  ) {
+    throw new Error(
+      "Outlook desktop assignment state read must be SERIALIZABLE write-capable",
+    );
+  }
+  return Object.freeze({
+    source_migration_id: OUTLOOK_ASSIGNMENT_SOURCE_MIGRATION_ID,
+    client_migration_id: OUTLOOK_ASSIGNMENT_CLIENT_MIGRATION_ID,
+    authority_catalog_sha256:
+      OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
+    authority_table_count: tables.length,
+    authority_function_count: functions.length,
+    role_catalog_count: roleCatalog.length,
+    exposed_security_definer_function_count:
+      securityDefinerFunctions.length,
+    exposed_security_definer_function_catalog_sha256:
+      OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS_SHA256,
+    assignment_state_read: Object.freeze({
+      signature: OUTLOOK_ASSIGNMENT_STATE_READ_SIGNATURE,
+      transaction_mode:
+        OUTLOOK_ASSIGNMENT_STATE_READ_TRANSACTION_MODE,
+    }),
+  });
 }
 
+export const CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING =
+  createOutlookAssignmentAuthorityBinding();
+
+function packetMigrationCatalogMaterial(migrations) {
+  return Object.freeze({
+    schema_version: CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
+    authority: "postgres-v2",
+    migration_count: migrations.length,
+    migrations: Object.freeze(migrations.map((migration) => Object.freeze({
+      id: migration.id,
+      source_migration_id: migration.source_migration_id ?? null,
+      file_name: migration.file_name ?? `${migration.id}.sql`,
+      checksum:
+        migration.checksum ?? checksumPostgresMigration(migration.sql),
+      ...(migration.id === OUTLOOK_ASSIGNMENT_CLIENT_MIGRATION_ID
+        ? {
+          outlook_assignment_authority:
+            CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING,
+        }
+        : {}),
+    }))),
+  });
+}
+
+export const CLIENT_OPERATIONS_MIGRATION_CATALOG =
+  packetMigrationCatalogMaterial(OPERATIONAL_MIGRATIONS);
+
 export const CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256 = hashDomainValue(
-  packetMigrationCatalogMaterial(OPERATIONAL_MIGRATIONS),
+  CLIENT_OPERATIONS_MIGRATION_CATALOG,
 );
+
+export function normalizeClientOperationsMigrationCatalog(
+  catalog = CLIENT_OPERATIONS_MIGRATION_CATALOG,
+) {
+  return normalizeClientOperationsMigrationCatalogMaterial(catalog, {
+    expectedCatalogSha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+  });
+}
 
 const SCHEMA_ENTRIES = Object.freeze(
   OPERATIONAL_MIGRATIONS.map(({ id, sql }) => Object.freeze({
@@ -91,11 +210,25 @@ export function listClientOperationsPostgresMigrations() {
 
 export function runClientOperationsPostgresMigrations(
   pool,
-  { appliedBy = "client-operations-migration" } = {},
+  {
+    appliedBy = "client-operations-migration",
+    authorityManifestSha256,
+    databaseTargetReceiptSha256,
+    migrationCatalogSha256,
+    onBeforeMigrations,
+    onOutlookAuthorityPaused,
+    onOutlookAuthorityPostMigration,
+  } = {},
 ) {
   return runPostgresMigrations(pool, {
     migrations: OPERATIONAL_MIGRATIONS,
     appliedBy,
+    authorityManifestSha256,
+    databaseTargetReceiptSha256,
+    migrationCatalogSha256,
+    onBeforeMigrations,
+    onOutlookAuthorityPaused,
+    onOutlookAuthorityPostMigration,
     allowedHistoricalGapIds: [
       "012_outlook_document_source_identity",
       "013_dms_precedent_search",

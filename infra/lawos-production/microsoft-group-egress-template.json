@@ -1,0 +1,403 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Dedicated direct-invoke Microsoft 365 group membership controller for Law Firm OS.",
+  "Metadata": {
+    "LawOsBoundary": {
+      "account_id": "770880870480",
+      "region": "ap-northeast-2",
+      "function_name": "lawos-microsoft-group-egress-prod",
+      "invocation": "synchronous-direct-only",
+      "public_api": false,
+      "database_access": false,
+      "provider_mutation_default": false,
+      "async_dlq_owner": "future-assignment-worker"
+    }
+  },
+  "Parameters": {
+    "ArtifactBucketName": {
+      "Type": "String",
+      "MinLength": 3,
+      "MaxLength": 63,
+      "AllowedPattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"
+    },
+    "ArtifactObjectKey": {
+      "Type": "String",
+      "MinLength": 1,
+      "MaxLength": 1024
+    },
+    "ArtifactObjectVersion": {
+      "Type": "String",
+      "MinLength": 1,
+      "MaxLength": 1024
+    },
+    "AlarmTopicArn": {
+      "Type": "String",
+      "AllowedPattern": "^arn:aws:sns:ap-northeast-2:770880870480:[A-Za-z0-9_-]{1,256}$"
+    },
+    "MicrosoftTenantId": {
+      "Type": "String",
+      "AllowedPattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "MicrosoftGroupId": {
+      "Type": "String",
+      "AllowedPattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "AllowedPrincipalIdsJson": {
+      "Type": "String",
+      "NoEcho": true,
+      "MinLength": 40,
+      "MaxLength": 391,
+      "AllowedPattern": "^\\[\"[0-9a-f-]{36}\"(?:,\"[0-9a-f-]{36}\"){0,9}\\]$"
+    },
+    "ProviderMutationEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    }
+  },
+  "Rules": {
+    "ExactProductionTarget": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "770880870480"
+            ]
+          },
+          "AssertDescription": "Deploy only in AWS account 770880870480."
+        },
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "AWS::Region"
+              },
+              "ap-northeast-2"
+            ]
+          },
+          "AssertDescription": "Deploy only in ap-northeast-2."
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "MicrosoftGroupEgressCredentialSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Name": "lawos/production/microsoft-group-egress/app-credential",
+        "Description": "App-only client id and secret for the fixed Microsoft 365 group controller. Value is provisioned separately.",
+        "Tags": [
+          {
+            "Key": "lawos:component",
+            "Value": "microsoft-group-egress"
+          },
+          {
+            "Key": "lawos:environment",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "MicrosoftGroupEgressLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/lawos-microsoft-group-egress-prod",
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "lawos:component",
+            "Value": "microsoft-group-egress"
+          }
+        ]
+      }
+    },
+    "MicrosoftGroupEgressRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "lawos-microsoft-group-egress-prod-role",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "lawos-microsoft-group-egress-prod",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "WriteExactFunctionLogs",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${MicrosoftGroupEgressLogGroup.Arn}:*"
+                  }
+                },
+                {
+                  "Sid": "ReadExactAppCredential",
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "MicrosoftGroupEgressCredentialSecret",
+                      "Arn"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "lawos:component",
+            "Value": "microsoft-group-egress"
+          },
+          {
+            "Key": "lawos:environment",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "MicrosoftGroupEgressFunction": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [
+        "MicrosoftGroupEgressLogGroup"
+      ],
+      "Properties": {
+        "FunctionName": "lawos-microsoft-group-egress-prod",
+        "Description": "Direct-invoke-only fixed Microsoft 365 group membership controller.",
+        "Role": {
+          "Fn::GetAtt": [
+            "MicrosoftGroupEgressRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs22.x",
+        "Handler": "lambda.handler",
+        "Architectures": [
+          "x86_64"
+        ],
+        "MemorySize": 256,
+        "Timeout": 120,
+        "ReservedConcurrentExecutions": 1,
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "RecursiveLoop": "Terminate",
+        "RuntimeManagementConfig": {
+          "UpdateRuntimeOn": "FunctionUpdate"
+        },
+        "LoggingConfig": {
+          "LogFormat": "JSON",
+          "ApplicationLogLevel": "ERROR",
+          "SystemLogLevel": "WARN"
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ArtifactBucketName"
+          },
+          "S3Key": {
+            "Ref": "ArtifactObjectKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactObjectVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "LAWOS_MICROSOFT_GROUP_EGRESS_PROVIDER_ENABLED": {
+              "Ref": "ProviderMutationEnabled"
+            },
+            "LAWOS_MICROSOFT_GROUP_EGRESS_TENANT_ID": {
+              "Ref": "MicrosoftTenantId"
+            },
+            "LAWOS_MICROSOFT_GROUP_EGRESS_GROUP_ID": {
+              "Ref": "MicrosoftGroupId"
+            },
+            "LAWOS_MICROSOFT_GROUP_EGRESS_ALLOWED_PRINCIPAL_IDS_JSON": {
+              "Ref": "AllowedPrincipalIdsJson"
+            },
+            "LAWOS_MICROSOFT_GROUP_EGRESS_CREDENTIAL_SECRET_ARN": {
+              "Fn::GetAtt": [
+                "MicrosoftGroupEgressCredentialSecret",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "Tags": [
+          {
+            "Key": "lawos:component",
+            "Value": "microsoft-group-egress"
+          },
+          {
+            "Key": "lawos:environment",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "MicrosoftGroupEgressErrorsAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": "lawos-microsoft-group-egress-prod-errors",
+        "AlarmDescription": "Dedicated Microsoft group controller returned Lambda errors.",
+        "Namespace": "AWS/Lambda",
+        "MetricName": "Errors",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "MicrosoftGroupEgressFunction"
+            }
+          }
+        ],
+        "Period": 60,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "AlarmActions": [
+          {
+            "Ref": "AlarmTopicArn"
+          }
+        ],
+        "OKActions": [
+          {
+            "Ref": "AlarmTopicArn"
+          }
+        ]
+      }
+    },
+    "MicrosoftGroupEgressThrottlesAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": "lawos-microsoft-group-egress-prod-throttles",
+        "AlarmDescription": "Dedicated Microsoft group controller was throttled.",
+        "Namespace": "AWS/Lambda",
+        "MetricName": "Throttles",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "MicrosoftGroupEgressFunction"
+            }
+          }
+        ],
+        "Period": 60,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "AlarmActions": [
+          {
+            "Ref": "AlarmTopicArn"
+          }
+        ],
+        "OKActions": [
+          {
+            "Ref": "AlarmTopicArn"
+          }
+        ]
+      }
+    },
+    "MicrosoftGroupEgressDurationAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": "lawos-microsoft-group-egress-prod-duration",
+        "AlarmDescription": "Dedicated Microsoft group controller approached its timeout.",
+        "Namespace": "AWS/Lambda",
+        "MetricName": "Duration",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "MicrosoftGroupEgressFunction"
+            }
+          }
+        ],
+        "Period": 60,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Statistic": "Maximum",
+        "Unit": "Milliseconds",
+        "Threshold": 100000,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "AlarmActions": [
+          {
+            "Ref": "AlarmTopicArn"
+          }
+        ],
+        "OKActions": [
+          {
+            "Ref": "AlarmTopicArn"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "FunctionName": {
+      "Value": {
+        "Ref": "MicrosoftGroupEgressFunction"
+      }
+    },
+    "FunctionArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "MicrosoftGroupEgressFunction",
+          "Arn"
+        ]
+      }
+    },
+    "ExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "MicrosoftGroupEgressRole",
+          "Arn"
+        ]
+      }
+    },
+    "CredentialSecretArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "MicrosoftGroupEgressCredentialSecret",
+          "Arn"
+        ]
+      }
+    },
+    "ProviderMutationDefault": {
+      "Value": "false"
+    }
+  }
+}

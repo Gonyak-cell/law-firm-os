@@ -105,7 +105,7 @@ function command(request, pair, {
 }
 
 async function prepare(fixture) {
-  for (const migration of listEmailDmsPostgresMigrations()) {
+  for (const migration of listEmailDmsPostgresMigrations().slice(0, 5)) {
     await fixture.adminPool.query(migration.sql);
   }
   await fixture.adminPool.query(

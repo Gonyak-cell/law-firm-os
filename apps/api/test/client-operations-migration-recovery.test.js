@@ -6,7 +6,6 @@ import {
   readClientOperationsMigrationReadiness,
   readClientOperationsMigrationState,
   runClientOperationsMigration,
-  runClientOperationsPostgresMigrations,
   selectClientOperationsReadPath,
 } from "../src/client-operations-migration.js";
 import {
@@ -26,20 +25,22 @@ import {
   createPostgresDomainLedger,
 } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import {
-  createMigratedPostgresFixture,
-} from "../../../packages/persistence/test/helpers/disposable-postgres.js";
-import {
   CLIENT_MIGRATION_TENANT,
   clientOperationSources,
   importClientDirectory,
   importHrxBaseline,
 } from "./helpers/client-operations-migration-fixture.js";
+import {
+  createOutlookAuthorityPostgresFixture,
+  runOutlookAuthorityPostgresMigrations,
+} from "./support/outlook-authority-postgres-fixture.js";
 
 const DOMAINS = Object.freeze(["crm", "finance", "email-dms"]);
 
 async function storageState(fixture) {
+  const readbackPool = fixture.bootstrapPool;
   const [records, imports, readiness] = await Promise.all([
-    fixture.adminPool.query(
+    readbackPool.query(
       `SELECT domain_id, record_type, record_id,
               state_version, payload_hash
          FROM lawos_domain.records
@@ -48,7 +49,7 @@ async function storageState(fixture) {
         ORDER BY domain_id, record_type, record_id`,
       [CLIENT_MIGRATION_TENANT, DOMAINS],
     ),
-    fixture.adminPool.query(
+    readbackPool.query(
       `SELECT domain_id, source_hash, snapshot_hash,
               source_count, target_count, status
          FROM lawos_domain.import_receipts
@@ -57,7 +58,7 @@ async function storageState(fixture) {
         ORDER BY domain_id, source_hash`,
       [CLIENT_MIGRATION_TENANT, DOMAINS],
     ),
-    fixture.adminPool.query(
+    readbackPool.query(
       `SELECT domain_id, idempotency_key, request_hash,
               response
          FROM lawos_domain.idempotency_keys
@@ -81,10 +82,11 @@ async function storageState(fixture) {
 }
 
 test("invalid inputs do not write and partial migration recovers idempotently", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
+  const readbackPool = fixture.bootstrapPool;
   await runHrxPostgresMigrations(fixture.adminPool);
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const ledger = createPostgresDomainLedger({
     pool: fixture.appPool,
   });
@@ -248,7 +250,7 @@ test("invalid inputs do not write and partial migration recovers idempotently", 
     readiness_receipt_count: 1,
   });
 
-  const persisted = await fixture.adminPool.query(
+  const persisted = await readbackPool.query(
     `SELECT domain_id, record_type, record_id,
             state_version, payload_hash
        FROM lawos_domain.records
@@ -258,7 +260,7 @@ test("invalid inputs do not write and partial migration recovers idempotently", 
     [CLIENT_MIGRATION_TENANT, DOMAINS],
   );
   assert.equal(
-    await fixture.adminPool.query(
+    await readbackPool.query(
       "SELECT to_regclass('lawos_domain.records')::text AS relation",
     ).then(({ rows }) => rows[0].relation),
     "lawos_domain.records",

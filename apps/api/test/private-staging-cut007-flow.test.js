@@ -6,7 +6,6 @@ import { transitionOpportunityStage } from "../../../packages/crm/src/opportunit
 import { createCrmRuntimeRepository } from "../../../packages/crm/src/runtime-repository.js";
 import { runRecordRepositoryDomainCommand } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
-import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import { buildPrivateStagingSyntheticSources } from "../../../scripts/lib/private-staging-artifact.mjs";
 import {
@@ -16,9 +15,12 @@ import {
 } from "../../../scripts/lib/private-staging-cut007.mjs";
 import { startApiServer } from "../src/server.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
-import { runClientOperationsPostgresMigrations } from "../src/client-operations-schema.js";
 import { runPrivateStagingCut007Readback } from "../src/private-staging-cut007-readback.js";
 import { runPrivateStagingSyntheticBaseline } from "../src/private-staging-synthetic-baseline.js";
+import {
+  createOutlookAuthorityPostgresFixture,
+  runOutlookAuthorityPostgresMigrations,
+} from "./support/outlook-authority-postgres-fixture.js";
 
 const TENANTS = ["tenant_lawos_staging_cut007_a", "tenant_lawos_staging_cut007_b"];
 const ACCOUNT_INPUTS = [
@@ -278,9 +280,9 @@ test("CUT-007 browser resume revalidates PostgreSQL and runs only reset plus bro
 });
 
 test("PostgreSQL session auth and the deployed reset worker share the configured tenant", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const pool = {
     query: fixture.appPool.query.bind(fixture.appPool),
     connect: fixture.appPool.connect.bind(fixture.appPool),
@@ -296,6 +298,7 @@ test("PostgreSQL session auth and the deployed reset worker share the configured
     },
     stepUpAuthority: Object.freeze({}),
     persistenceAuthority: "postgres-v2",
+    outlookDesktopEntitlementEnabled: false,
     persistenceAuthorityEnv: {
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/cut007-postgres",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/cut007-tenant-context",
@@ -325,9 +328,9 @@ test("PostgreSQL session auth and the deployed reset worker share the configured
 });
 
 test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, finance, portal, restart, and PostgreSQL readback path", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const sources = syntheticSources();
   await runPrivateStagingSyntheticBaseline({
     pool: fixture.appPool,
@@ -367,6 +370,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   let activeTransport = null;
   let gatewayCapacityFailureInjected = false;
   const governanceWindows = [];
+  const signedUploadProbes = [];
 
   const passwordResetEmailDelivery = async ({ to, token }) => {
     const queue = delivered.get(to) ?? [];
@@ -404,6 +408,7 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
       sessionAuth: activeSessionAuth,
       stepUpAuthority: Object.freeze({}),
       persistenceAuthority: "postgres-v2",
+      outlookDesktopEntitlementEnabled: false,
       persistenceAuthorityEnv: {
         LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/cut007-postgres",
         LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/cut007-tenant-context",
@@ -442,11 +447,55 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   await start();
   t.after(stop);
   const executeFlow = (runId) => runPrivateStagingCut007({
-    transport: (request) => {
+    transport: async (request) => {
       if (request.path === "/api/intake/clearance-tokens") {
         governanceWindows.push({ clearance_expires_at: request.body?.token?.expires_at });
       } else if (request.path?.endsWith("/retention-policies")) {
         governanceWindows.at(-1).retain_until = request.body?.retain_until;
+      } else if (request.path === "/api/intake/engagements") {
+        const engagement = request.body.engagement;
+        const upload = engagement.signed_document_upload;
+        const invalidDocumentId = `${upload.signed_document_id}-id-digest-negative`;
+        const invalidTemplateId = `${upload.template_document_id}-id-digest-negative`;
+        const invalidRequest = structuredClone(request);
+        invalidRequest.body.idempotency_key = `${request.body.idempotency_key}-id-digest-negative`;
+        Object.assign(invalidRequest.body.engagement, {
+          engagement_id: `${engagement.engagement_id}-id-digest-negative`,
+          signed_document_id: invalidDocumentId,
+          signature_ref: `signature:${invalidDocumentId}`,
+        });
+        Object.assign(invalidRequest.body.engagement.template_document, {
+          template_document_id: invalidTemplateId,
+        });
+        Object.assign(invalidRequest.body.engagement.signed_document_upload, {
+          signed_document_upload_id: `${upload.signed_document_upload_id}-id-digest-negative`,
+          document_id: invalidDocumentId,
+          signed_document_id: invalidDocumentId,
+          template_document_id: invalidTemplateId,
+          signature_ref: `signature:${invalidDocumentId}`,
+          content_sha256: `sha256:${invalidDocumentId}`,
+          byte_size: 512,
+        });
+        delete invalidRequest.body.engagement.signed_document_upload.bytes_base64;
+        const rejected = await activeTransport(invalidRequest);
+        const safeCodes = rejected.body?.safe_error_codes ?? [rejected.body?.safe_error_code].filter(Boolean);
+        assert.equal(rejected.status, 400);
+        assert.ok(safeCodes.includes("CRM_INTAKE_API_VALIDATION_ERROR"));
+
+        const bytes = Buffer.from(upload.bytes_base64 ?? "", "base64");
+        signedUploadProbes.push({
+          id_digest_rejected: true,
+          caller_digest_omitted: !Object.hasOwn(upload, "content_sha256"),
+          byte_size_matches: upload.byte_size === bytes.byteLength,
+          pdf_bytes_present: bytes.toString("utf8").startsWith("%PDF-1.4\n"),
+          document_id_absent_from_bytes: !bytes.includes(upload.signed_document_id),
+        });
+        t.diagnostic(`CUT-007 signed upload probe ${JSON.stringify(signedUploadProbes.at(-1))}`);
+        assert.equal(Object.hasOwn(upload, "content_sha256"), false);
+        assert.ok(bytes.byteLength > 0);
+        assert.equal(upload.byte_size, bytes.byteLength);
+        assert.ok(bytes.toString("utf8").startsWith("%PDF-1.4\n"));
+        assert.equal(bytes.includes(upload.signed_document_id), false);
       }
       return activeTransport(request);
     },
@@ -497,6 +546,8 @@ test("CUT-007 runs the full synthetic internal-auth, HRX, client/matter, DMS, fi
   results.push(await executeFlow("cut007-disposable-full-flow-b"));
 
   assert.equal(gatewayCapacityFailureInjected, true);
+  assert.equal(signedUploadProbes.length, 2);
+  assert.ok(signedUploadProbes.every((probe) => Object.values(probe).every(Boolean)));
   assert.equal(governanceWindows.length, 2);
   for (const window of governanceWindows) {
     assert.ok(Date.parse(window.retain_until) - Date.parse(window.clearance_expires_at) >= 22 * 24 * 60 * 60 * 1000);

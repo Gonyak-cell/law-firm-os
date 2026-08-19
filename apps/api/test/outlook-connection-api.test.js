@@ -203,6 +203,14 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
       },
       snapshot_clock: () => new Date("2026-07-30T06:00:00.000Z"),
       installation_service: {
+        async projectAssignmentState() {
+          return {
+            tenant_id: TENANT,
+            user_id: USER,
+            entra_subject_id: SUBJECT,
+            desired_assigned: true,
+          };
+        },
         async read() {
           return {
             installation_id: INSTALLATION_ID,

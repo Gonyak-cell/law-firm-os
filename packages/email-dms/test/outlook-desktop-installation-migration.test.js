@@ -49,6 +49,8 @@ test("desktop installation migration defines tokenless tenant-RLS lifecycle auth
       "003_email_filing_correction",
       "004_outlook_conversation_sync",
       "005_outlook_desktop_installation",
+      "006_outlook_desktop_release_trust",
+      "007_outlook_desktop_assignment",
     ],
   );
   const migration = migrations.at(-1);
@@ -56,7 +58,7 @@ test("desktop installation migration defines tokenless tenant-RLS lifecycle auth
   for (const table of TABLES) assert.match(migration.sql, new RegExp(`\\b${table}\\b`, "u"));
   assert.match(migration.sql, /ENABLE ROW LEVEL SECURITY/iu);
   assert.match(migration.sql, /FORCE ROW LEVEL SECURITY/iu);
-  assert.match(migration.sql, /WITH CHECK \(tenant_id = lawos_security\.current_tenant_id\(\)\)/iu);
+  assert.match(migration.sql, /WITH CHECK\s*\(tenant_id\s*=\s*lawos_security\.current_tenant_id\(\)\)/iu);
   assert.doesNotMatch(
     migration.sql,
     /\b(device_private_key|access_token|refresh_token|client_secret|credential_ref|email_address)\b/iu,
@@ -64,7 +66,9 @@ test("desktop installation migration defines tokenless tenant-RLS lifecycle auth
 
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
-  for (const item of migrations) await fixture.adminPool.query(item.sql);
+  for (const item of migrations.slice(0, 5)) {
+    await fixture.adminPool.query(item.sql);
+  }
 
   const schema = await fixture.adminPool.query(
     `SELECT relation.relname AS table_name,

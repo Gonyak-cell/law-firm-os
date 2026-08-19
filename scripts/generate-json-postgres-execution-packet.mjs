@@ -9,6 +9,9 @@ import {
   validateJsonPostgresProductionDeploymentManifest,
 } from "./lib/json-postgres-production-artifact.mjs";
 import {
+  createJsonPostgresExecutionPacketWithDatabaseTarget,
+} from "./lib/json-postgres-database-target-receipt-producer.mjs";
+import {
   createPrivateProgramOutputDirectory,
   readPrivateProgramBytes,
   readPrivateProgramJson,
@@ -108,13 +111,16 @@ const bindings = {
   lockfile_sha256: sha256ProgramBytes(gitBytes("cat-file", "blob", `${sourceSha}:package-lock.json`)),
   ...input.binding_sha256,
 };
-const created = createJsonPostgresExecutionPacket({
-  packetId: input.packet_id,
-  sourceSha,
-  sourceTree,
-  phase: input.phase,
-  bindings,
-  target: input.target,
+const created = createJsonPostgresExecutionPacketWithDatabaseTarget({
+  createPacket: createJsonPostgresExecutionPacket,
+  packetOptions: {
+    packetId: input.packet_id,
+    sourceSha,
+    sourceTree,
+    phase: input.phase,
+    bindings,
+    target: input.target,
+  },
 });
 const outputDir = createPrivateProgramOutputDirectory(
   required(option("--output-dir"), "--output-dir"),

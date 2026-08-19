@@ -354,7 +354,7 @@ function permissionContext() {
   });
 }
 
-test("GET readiness composes existing connection state and installation read with zero write or provider calls", async () => {
+test("GET readiness projects authoritative assignment state before installation read without provider calls", async () => {
   const repository = createEmailDmsRepository();
   repository.create({
     model_type: "M365Connection",
@@ -376,12 +376,14 @@ test("GET readiness composes existing connection state and installation read wit
   });
   const before = repository.snapshot();
   const calls = {
+    assignment_projection: 0,
     installation_read: 0,
     installation_read_current: 0,
     provider: 0,
     vault: 0,
     admin: 0,
   };
+  const authorityOperations = [];
   let installationStatus = "active";
   const runtime = {
     emailDmsRuntime: { repository },
@@ -407,9 +409,26 @@ test("GET readiness composes existing connection state and installation read wit
       readiness_evidence: externalEvidence(),
       snapshot_clock: () => new Date(SNAPSHOT_AT),
       installation_service: {
-        async read({ principal: value, installation_id }, { authorize }) {
+        async projectAssignmentState({ principal: value }) {
+          calls.assignment_projection += 1;
+          authorityOperations.push("projectAssignmentState");
+          assert.deepEqual(value, {
+            tenant_id: TENANT_ID,
+            user_id: USER_ID,
+            entra_subject_id: SUBJECT_ID,
+          });
+          return Object.freeze({
+            tenant_id: TENANT_ID,
+            user_id: USER_ID,
+            entra_subject_id: SUBJECT_ID,
+            desired_assigned: false,
+          });
+        },
+        async read(...args) {
+          assert.equal(args.length, 1);
+          const [{ principal: value, installation_id }] = args;
           calls.installation_read += 1;
-          assert.equal(await authorize(), true);
+          authorityOperations.push("read");
           assert.deepEqual(value, {
             tenant_id: TENANT_ID,
             user_id: USER_ID,
@@ -418,9 +437,11 @@ test("GET readiness composes existing connection state and installation read wit
           assert.equal(installation_id, INSTALLATION_ID);
           return installation(installationStatus);
         },
-        async readCurrent({ principal: value }, { authorize }) {
+        async readCurrent(...args) {
+          assert.equal(args.length, 1);
+          const [{ principal: value }] = args;
           calls.installation_read_current += 1;
-          assert.equal(await authorize(), true);
+          authorityOperations.push("readCurrent");
           assert.deepEqual(value, {
             tenant_id: TENANT_ID,
             user_id: USER_ID,
@@ -444,6 +465,11 @@ test("GET readiness composes existing connection state and installation read wit
   assert.equal(result.body.outcome, "passed");
   assert.equal(result.body.item.installation.state, "active");
   assert.equal(result.body.item.delegated_connection.state, "connected");
+  assert.equal(
+    result.body.item.enterprise_app_assignment.state,
+    "assigned",
+  );
+  assert.equal(JSON.stringify(result.body).includes("desired_assigned"), false);
   assert.equal(result.body.item.next_action, "none");
 
   const addinResult = await handleOutlookAddinApiRequest({
@@ -470,13 +496,77 @@ test("GET readiness composes existing connection state and installation read wit
   assert.equal(retired.body.item.next_action, "heartbeat");
   assert.equal(retired.body.item.user_connection_revoke_requested, false);
   assert.deepEqual(calls, {
+    assignment_projection: 3,
     installation_read: 2,
     installation_read_current: 1,
     provider: 0,
     vault: 0,
     admin: 0,
   });
+  assert.deepEqual(authorityOperations, [
+    "projectAssignmentState",
+    "read",
+    "projectAssignmentState",
+    "readCurrent",
+    "projectAssignmentState",
+    "read",
+  ]);
   assert.deepEqual(repository.snapshot(), before);
+
+  let unboundReadCalls = 0;
+  const unboundRuntime = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/readiness",
+    method: "GET",
+    query: { installation_id: INSTALLATION_ID },
+    context: permissionContext(),
+    requestId: "request-readiness-unbound-authority",
+    runtime: {
+      emailDmsRuntime: { repository },
+      m365GraphConfig: runtime.m365GraphConfig,
+      outlookDesktopRuntime: {
+        entitlement_roster: roster(),
+        installation_service: {
+          async read() {
+            unboundReadCalls += 1;
+            return installation();
+          },
+        },
+      },
+    },
+  });
+  assert.equal(unboundRuntime.status, 503);
+  assert.deepEqual(unboundRuntime.body.safe_error_codes, [
+    "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+  ]);
+  assert.equal(unboundReadCalls, 0);
+
+  let invalidProjectorReadCalls = 0;
+  const invalidProjector = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/readiness",
+    method: "GET",
+    query: { installation_id: INSTALLATION_ID },
+    context: permissionContext(),
+    requestId: "request-readiness-invalid-projector",
+    runtime: {
+      emailDmsRuntime: { repository },
+      m365GraphConfig: runtime.m365GraphConfig,
+      outlookDesktopRuntime: {
+        entitlement_roster: roster(),
+        installation_service: {
+          async projectAssignmentState() { return null; },
+          async read() {
+            invalidProjectorReadCalls += 1;
+            return installation();
+          },
+        },
+      },
+    },
+  });
+  assert.equal(invalidProjector.status, 503);
+  assert.deepEqual(invalidProjector.body.safe_error_codes, [
+    "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+  ]);
+  assert.equal(invalidProjectorReadCalls, 0);
 
   const unavailableRoster = await handleOutlookAddinApiRequest({
     pathname: "/api/outlook/readiness",
@@ -527,4 +617,52 @@ test("GET readiness composes existing connection state and installation read wit
     "OUTLOOK_READINESS_REQUEST_INVALID",
   ]);
   assert.deepEqual(repository.snapshot(), before);
+});
+
+test("GET readiness rejects an installation projection for a different ODI", async () => {
+  const mismatchedInstallationId = "odi_readiness_000000000099";
+  let readCalls = 0;
+  const result = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/readiness",
+    method: "GET",
+    query: { installation_id: INSTALLATION_ID },
+    context: permissionContext(),
+    requestId: "request-readiness-mismatched-installation",
+    runtime: {
+      emailDmsRuntime: { repository: createEmailDmsRepository() },
+      m365GraphConfig: {
+        feature_enabled: true,
+        provider_runtime_enabled: false,
+        clock: () => new Date(SNAPSHOT_AT),
+      },
+      outlookDesktopRuntime: {
+        entitlement_roster: roster(),
+        readiness_evidence: externalEvidence(),
+        snapshot_clock: () => new Date(SNAPSHOT_AT),
+        installation_service: {
+          async projectAssignmentState() {
+            return Object.freeze({
+              tenant_id: TENANT_ID,
+              user_id: USER_ID,
+              entra_subject_id: SUBJECT_ID,
+              desired_assigned: false,
+            });
+          },
+          async read() {
+            readCalls += 1;
+            return installation("active", {
+              installation_id: mismatchedInstallationId,
+            });
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.status, 503);
+  assert.deepEqual(result.body.safe_error_codes, [
+    "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+  ]);
+  assert.equal(result.body.item, null);
+  assert.equal(readCalls, 1);
 });

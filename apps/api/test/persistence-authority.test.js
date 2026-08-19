@@ -18,12 +18,14 @@ import {
 } from "../src/server.js";
 import { STORE_PATH_MANIFEST } from "../src/store-path-manifest.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
-import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { lawosDurableStoreEnv } from "../src/local-durable-store-paths.js";
 import {
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
-  runClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
+import {
+  createOutlookAuthorityPostgresFixture,
+  runOutlookAuthorityPostgresMigrations,
+} from "./support/outlook-authority-postgres-fixture.js";
 import {
   runHrxPostgresMigrations,
 } from "../../../packages/hrx/src/postgres-migrations.js";
@@ -35,7 +37,7 @@ test("operational PostgreSQL authority uses one pooled connection per Lambda exe
 });
 
 test("operational migration verification requires the exact additive Client catalog", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
   await assert.rejects(
     verifyOperationalPostgresMigrationState(fixture.adminPool),
@@ -59,9 +61,7 @@ test("operational migration verification requires the exact additive Client cata
       error?.code
         === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
   );
-  await runClientOperationsPostgresMigrations(
-    fixture.adminPool,
-  );
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const verified = await verifyOperationalPostgresMigrationState(
     fixture.adminPool,
   );
@@ -400,6 +400,7 @@ test("API startup rejects PostgreSQL failure before creating any file authority"
       port: 0,
       runtimeProfile: "operational",
       persistenceAuthority: "postgres-v2",
+      outlookDesktopEntitlementEnabled: false,
       persistenceAuthorityEnv: {
         LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/unavailable",
         LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/unavailable-tenant-context",
@@ -421,10 +422,10 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   const parent = mkdtempSync(join(tmpdir(), "lawos-authority-domain-gate-"));
   const storeRoot = join(parent, "must-remain-absent");
   t.after(() => rmSync(parent, { recursive: true, force: true }));
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
   await runHrxPostgresMigrations(fixture.adminPool);
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   let closed = false;
   const pool = {
     query: fixture.appPool.query.bind(fixture.appPool),
@@ -439,6 +440,7 @@ test("API startup activates the transaction-capable PostgreSQL authority without
     stepUpAuthority: Object.freeze({}),
     staffAuthAuthority: "internal-password",
     persistenceAuthority: "postgres-v2",
+    outlookDesktopEntitlementEnabled: false,
     persistenceAuthorityEnv: {
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/disposable",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/disposable-tenant-context",

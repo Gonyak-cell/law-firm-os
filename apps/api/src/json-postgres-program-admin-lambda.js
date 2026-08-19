@@ -5,6 +5,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import {
+  GetSecretValueCommand,
   PutSecretValueCommand,
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
@@ -21,7 +22,6 @@ import {
 } from "../../../packages/hrx/src/postgres-projection-role.js";
 import {
   runHrxPostgresMigrations,
-  verifyHrxPostgresMigrationState,
 } from "../../../packages/hrx/src/postgres-migrations.js";
 import { projectHrxRelationalReadModel } from "../../../packages/hrx/src/relational-read-projection.js";
 import {
@@ -38,26 +38,41 @@ import {
   refreshHrxProjectionConsumerRoutes,
 } from "../../../packages/hrx/src/relational-projection-reader.js";
 import {
-  configureLawosProductionApplicationRole,
   configureLawosRehearsalApplicationRole,
-  LAWOS_PRODUCTION_APPLICATION_ROLE,
   LAWOS_REHEARSAL_APPLICATION_ROLE,
 } from "../../../packages/persistence/src/postgres/application-role.js";
+import {
+  LAWOS_OUTLOOK_ASSIGNMENT_WORKER_ROLE,
+  LAWOS_OUTLOOK_CONTROL_OPERATOR_ROLE,
+  LAWOS_OUTLOOK_LIFECYCLE_VERIFIER_ROLE,
+  LAWOS_OUTLOOK_MIGRATION_ADMIN_ROLE,
+  assertLawosOutlookRoleBootstrapReceipt,
+} from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
+import {
+  OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
+} from "../../../packages/email-dms/src/outlook-desktop-assignment-authority-catalog.js";
 import { createJsonPostgresAuthorityBundle } from "../../../packages/persistence/src/postgres/authority-bundle.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { runJsonPostgresExecutionMode } from "../../../packages/persistence/src/postgres/migration-executor.js";
 import {
+  assertOutlookAuthorityMigrationFailureReceipt,
+  assertOutlookAuthorityMigrationRunReceipt,
   runPostgresMigrations,
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import {
+  CLIENT_OPERATIONS_MIGRATION_CATALOG,
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
+  normalizeClientOperationsMigrationCatalog,
   runClientOperationsPostgresMigrations,
   verifyClientOperationsPostgresMigrations,
 } from "./client-operations-schema.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
+import {
+  validateJsonPostgresDatabaseTargetReceiptBinding,
+} from "../../../packages/persistence/src/postgres/database-target-receipt.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 import {
   runJsonPostgresRehearsalFailureInjection,
@@ -69,6 +84,7 @@ import {
 } from "../../../packages/persistence/src/postgres/w15-inventory-bootstrap-contract.js";
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
 import {
+  assertJsonPostgresOutlookAuthorityBootstrapEvent,
   claimJsonPostgresProgramInvocation,
   JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
   JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION,
@@ -86,6 +102,26 @@ import {
   loadJsonPostgresProgramAuthorization,
   resolveJsonPostgresScheduledProgramEvent,
 } from "./json-postgres-program-inputs.js";
+import {
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_TERMINAL_SCHEMA_VERSION,
+  createJsonPostgresOutlookAuthorityTerminal,
+  createJsonPostgresOutlookAuthorityPublicResult,
+  createJsonPostgresOutlookAuthorityReplayReceipt,
+  jsonPostgresOutlookAuthorityTerminalSha256,
+  readJsonPostgresOutlookAuthorityTerminal,
+  writeJsonPostgresOutlookAuthorityTerminal,
+} from "./json-postgres-outlook-authority-terminal.js";
+import {
+  normalizeJsonPostgresOutlookSecretReference,
+  publishJsonPostgresOutlookDatabaseSecret,
+} from "./json-postgres-outlook-secret-publication.js";
+import {
+  createJsonPostgresOutlookAuthorityMigrationAdapter,
+} from "./json-postgres-outlook-authority-migration-adapter.js";
+import {
+  CATALOG_READBACK_ACTION,
+  executeProductionMigrationCatalogReadback,
+} from "./production-migration-catalog-readback.js";
 import { postgresUrlFromSecret } from "./persistence-authority.js";
 import { validatePostgresOnlyRuntimeConfiguration } from "./postgres-only-runtime-configuration.js";
 import { programEvidenceRetainUntil } from "./program-evidence-retention.js";
@@ -103,7 +139,6 @@ const SAFE_NEGATIVE_BOOLEAN_KEYS = new Set([
   "secret_material_returned",
   "dms_bytes_in_evidence",
 ]);
-
 function fail(code, message) {
   const error = new Error(message);
   error.code = code;
@@ -115,6 +150,15 @@ export function safeJsonPostgresProgramErrorCode(error) {
     .toUpperCase()
     .replace(/[^A-Z0-9_]/gu, "_")
     .slice(0, 96);
+}
+
+function safeOutlookAuthorityFailureCode(error) {
+  const code = safeJsonPostgresProgramErrorCode(error);
+  if (code.startsWith("LAWOS_OUTLOOK_")) return code;
+  const suffix = code.startsWith("LAWOS_")
+    ? code.slice("LAWOS_".length)
+    : code;
+  return `LAWOS_OUTLOOK_AUTHORITY_${suffix}`.slice(0, 96);
 }
 
 function safeMetricCount(value, label) {
@@ -181,6 +225,13 @@ function requiredText(value, label) {
   const text = String(value ?? "").trim();
   if (!text) throw new TypeError(`${label} is required`);
   return text;
+}
+
+function exactRequiredText(value, label) {
+  if (typeof value !== "string" || !value || value.trim() !== value) {
+    throw new TypeError(`${label} is required`);
+  }
+  return value;
 }
 
 function exactDigest(value, label) {
@@ -319,6 +370,580 @@ function structuredApplicationSecret({ current, env, expectedUsername = null }) 
   };
   if (!Number.isSafeInteger(value.port) || value.port < 1 || value.port > 65535) throw new TypeError("LAWOS_DATABASE_PORT is invalid");
   return value;
+}
+
+function outlookDatabaseSecretIds(env) {
+  const normalize = (value) => value == null || value === ""
+    ? null
+    : normalizeJsonPostgresOutlookSecretReference(exactRequiredText(
+      value,
+      "Outlook database credential secret id",
+    ));
+  let control;
+  let assignment;
+  let lifecycleVerifier;
+  try {
+    control = normalize(env.LAWOS_OUTLOOK_CONTROL_DATABASE_SECRET_ID);
+    assignment = normalize(env.LAWOS_OUTLOOK_ASSIGNMENT_DATABASE_SECRET_ID);
+    lifecycleVerifier = normalize(
+      env.LAWOS_OUTLOOK_LIFECYCLE_VERIFIER_DATABASE_SECRET_ID,
+    );
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_SECRET_IDS",
+      "Outlook database credential secret ids must be canonical strings",
+    );
+  }
+  const secretRefs = [control, assignment, lifecycleVerifier];
+  if (secretRefs.every((secretRef) => secretRef === null)) return null;
+  let reserved;
+  try {
+    reserved = [
+      env.LAWOS_APPLICATION_DATABASE_SECRET_ID,
+      env.LAWOS_MASTER_DATABASE_SECRET_ID,
+      env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID,
+    ].filter((value) => value != null && value !== "")
+      .map((value) => normalizeJsonPostgresOutlookSecretReference(
+        exactRequiredText(value, "reserved database credential secret id"),
+        { allowRdsManagedArn: true },
+      ).secret_name);
+  } catch {
+    reserved = null;
+  }
+  const names = secretRefs.map((secretRef) => secretRef?.secret_name);
+  if (secretRefs.some((secretRef) => secretRef === null)
+    || new Set(names).size !== names.length
+    || reserved === null
+    || names.some((name) => reserved.includes(name))) {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_SECRET_IDS",
+      "Outlook database credential secret ids must be complete and isolated",
+    );
+  }
+  return Object.freeze({ control: control.secret_id,
+    assignment: assignment.secret_id,
+    lifecycleVerifier: lifecycleVerifier.secret_id });
+}
+
+function structuredOutlookDatabaseSecret({
+  current,
+  env,
+  expectedUsername,
+}) {
+  let username;
+  let password;
+  try {
+    username = exactRequiredText(
+      current?.username,
+      "Outlook database username",
+    );
+    password = exactRequiredText(
+      current?.password,
+      "Outlook database password",
+    );
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_SECRET",
+      "Outlook database credential is invalid",
+    );
+  }
+  if (username !== expectedUsername) {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_SECRET",
+      "Outlook database credential username drifted",
+    );
+  }
+  const value = {
+    schema_version: "law-firm-os.outlook-database-secret.v1",
+    configuration_state: "ready",
+    engine: "postgres",
+    host: requiredText(env.LAWOS_DATABASE_HOST, "LAWOS_DATABASE_HOST"),
+    port: Number(requiredText(env.LAWOS_DATABASE_PORT, "LAWOS_DATABASE_PORT")),
+    dbname: requiredText(env.LAWOS_DATABASE_NAME, "LAWOS_DATABASE_NAME"),
+    username,
+    password,
+  };
+  if (!Number.isSafeInteger(value.port) || value.port < 1 || value.port > 65535) {
+    throw new TypeError("LAWOS_DATABASE_PORT is invalid");
+  }
+  return value;
+}
+
+const OUTLOOK_CLAIM_RECEIPT_KEYS = Object.freeze([
+  "claim_sha256",
+  "claim_ref_sha256",
+  "request_sha256",
+  "operation_binding_sha256",
+  "program_input_kms_key_ref",
+  "approval_signature_sha256",
+  "approval_receipt_sha256",
+  "registry_sha256",
+  "registry_serial",
+  "trust_anchor_sha256",
+  "registry_signature_sha256",
+  "external_authority_binding_sha256",
+  "database_target_receipt",
+  "database_target_receipt_sha256",
+  "claimed_at",
+  "expires_at",
+]);
+
+function exactCanonicalInstant(value) {
+  if (typeof value !== "string") return false;
+  const milliseconds = Date.parse(value);
+  return Number.isFinite(milliseconds)
+    && new Date(milliseconds).toISOString() === value;
+}
+
+function assertOutlookClaimEnvelope(value, { authorization, now }) {
+  const receipt = value?.receipt;
+  const claimed = value?.outcome === "claimed";
+  const replayed = value?.outcome === "replayed";
+  if (!hasExactKeys(value, [
+    "outcome",
+    "claim_write_attempted",
+    "claim_write_committed",
+    "receipt",
+  ])
+    || !hasExactKeys(receipt, OUTLOOK_CLAIM_RECEIPT_KEYS)
+    || (!claimed && !replayed)
+    || typeof value.claim_write_attempted !== "boolean"
+    || typeof value.claim_write_committed !== "boolean"
+    || value.claim_write_committed !== claimed
+    || (claimed && !value.claim_write_attempted)
+    || !Number.isSafeInteger(now)
+    || now < 0
+    || [
+      receipt.claim_sha256,
+      receipt.claim_ref_sha256,
+      receipt.request_sha256,
+      receipt.approval_signature_sha256,
+      receipt.trust_anchor_sha256,
+      receipt.registry_signature_sha256,
+      receipt.external_authority_binding_sha256,
+      receipt.database_target_receipt_sha256,
+    ].some((digest) => typeof digest !== "string" || !SHA256.test(digest))
+    || receipt.operation_binding_sha256
+      !== authorization?.operation_binding_sha256
+    || receipt.program_input_kms_key_ref
+      !== authorization?.packet?.target?.program_input_kms_key_ref
+    || receipt.approval_receipt_sha256
+      !== authorization?.approval?.receipt_sha256
+    || receipt.registry_sha256 !== authorization?.approval?.registry_sha256
+    || receipt.approval_signature_sha256
+      !== authorization?.approval?.signature_sha256
+    || receipt.registry_serial !== authorization?.approval?.registry_serial
+    || receipt.trust_anchor_sha256
+      !== authorization?.approval?.trust_anchor_sha256
+    || receipt.registry_signature_sha256
+      !== authorization?.approval?.registry_signature_sha256
+    || receipt.external_authority_binding_sha256
+      !== authorization?.approval?.external_authority_binding_sha256
+    || receipt.database_target_receipt_sha256
+      !== authorization?.database_target_receipt_sha256
+    || receipt.database_target_receipt_sha256
+      !== authorization?.packet?.target?.database_target_receipt_sha256
+    || canonicalizeJson(receipt.database_target_receipt)
+      !== canonicalizeJson(authorization?.databaseTargetReceipt)
+    || receipt.expires_at !== authorization?.approval?.expires_at
+    || !exactCanonicalInstant(receipt.claimed_at)
+    || !exactCanonicalInstant(receipt.expires_at)
+    || Date.parse(receipt.claimed_at) > now) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_CLAIM_BINDING",
+      "Outlook authority claim envelope is invalid or unbound",
+    );
+  }
+  return Object.freeze({
+    outcome: value.outcome,
+    claim_write_attempted: value.claim_write_attempted,
+    claim_write_committed: value.claim_write_committed,
+    receipt: Object.freeze({ ...receipt }),
+  });
+}
+
+function assertOutlookDatabaseTarget(authorization, env) {
+  let binding;
+  try {
+    binding = validateJsonPostgresDatabaseTargetReceiptBinding(
+      authorization?.packet?.target,
+    );
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_TARGET",
+      "Outlook authority database target receipt is invalid",
+    );
+  }
+  const receipt = binding?.database_target_receipt;
+  const port = String(receipt?.endpoint_port ?? "");
+  if (!receipt
+    || authorization?.database_target_receipt_sha256
+      !== binding.database_target_receipt_sha256
+    || canonicalizeJson(authorization?.databaseTargetReceipt)
+      !== canonicalizeJson(receipt)
+    || env.LAWOS_DATABASE_HOST !== receipt.endpoint_host
+    || env.LAWOS_DATABASE_PORT !== port
+    || env.LAWOS_DATABASE_NAME !== receipt.database_name) {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_TARGET",
+      "Outlook authority runtime database target drifted",
+    );
+  }
+  return receipt;
+}
+
+function assertOutlookMasterDatabaseTarget(master, receipt) {
+  const hasDbname = Object.hasOwn(master ?? {}, "dbname");
+  const hasDatabase = Object.hasOwn(master ?? {}, "database");
+  const database = hasDbname ? master.dbname : master?.database;
+  if (typeof master?.host !== "string"
+    || master.host !== receipt.endpoint_host
+    || !Number.isSafeInteger(master.port)
+    || master.port !== receipt.endpoint_port
+    || hasDbname === hasDatabase
+    || database !== receipt.database_name
+    || master.username !== receipt.master_username) {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_TARGET",
+      "Outlook authority master credential target drifted",
+    );
+  }
+}
+
+function outlookTerminalBindings({
+  authorization,
+  claimReceipt,
+  authorityCatalogSha256,
+  migrationCatalogSha256,
+  roleBootstrapSha256,
+}) {
+  const bindings = {
+    operation_binding_sha256: claimReceipt.operation_binding_sha256,
+    claim_sha256: claimReceipt.claim_sha256,
+    packet_sha256: authorization.packet.packet_sha256,
+    approval_receipt_sha256: claimReceipt.approval_receipt_sha256,
+    registry_sha256: claimReceipt.registry_sha256,
+    database_target_receipt_sha256:
+      claimReceipt.database_target_receipt_sha256,
+    authority_catalog_sha256: authorityCatalogSha256,
+    migration_catalog_sha256: migrationCatalogSha256,
+  };
+  if (roleBootstrapSha256 !== undefined) {
+    bindings.role_bootstrap_sha256 = roleBootstrapSha256;
+  }
+  return Object.freeze(bindings);
+}
+
+function outlookInvocationCounts({
+  claimEnvelope,
+  postgresAttempted = 0,
+  postgresCommitted = 0,
+  secretAttempted = 0,
+  secretCommitted = 0,
+}) {
+  const claimAttempted = claimEnvelope.claim_write_attempted ? 1 : 0;
+  const claimCommitted = claimEnvelope.claim_write_committed ? 1 : 0;
+  const attempted = [postgresAttempted, secretAttempted];
+  const committed = [postgresCommitted, secretCommitted];
+  const unknownCommittedCount = committed.filter((count) => count === null)
+    .length;
+  if (!attempted.every((count) => Number.isSafeInteger(count) && count >= 0)
+    || !committed.every((count) => count === null
+      || (Number.isSafeInteger(count) && count >= 0))
+    || unknownCommittedCount > 1
+    || (postgresCommitted !== null && postgresCommitted > postgresAttempted)
+    || (secretCommitted !== null && secretCommitted > secretAttempted)) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_WRITE_COUNTS",
+      "Outlook authority mutation counts are invalid",
+    );
+  }
+  return Object.freeze({
+    authorization_claim_write_attempt_count: claimAttempted,
+    authorization_claim_write_committed_count: claimCommitted,
+    postgres_mutation_attempt_count: postgresAttempted,
+    postgres_mutation_committed_count: postgresCommitted,
+    secretsmanager_put_secret_value_attempt_count: secretAttempted,
+    secretsmanager_put_secret_value_committed_count: secretCommitted,
+    production_write_count: unknownCommittedCount === 0
+      ? claimCommitted + postgresCommitted + secretCommitted
+      : null,
+  });
+}
+
+function assertOutlookTerminalRead(value, { expectedBindings, now }) {
+  if (hasExactKeys(value, ["outcome"]) && value.outcome === "absent") {
+    return Object.freeze({ outcome: "absent" });
+  }
+  if (!hasExactKeys(value, ["outcome", "terminal", "terminal_sha256"])
+    || !["pass", "partial"].includes(value.outcome)) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Outlook authority terminal read is invalid",
+    );
+  }
+  let terminal;
+  try {
+    terminal = createJsonPostgresOutlookAuthorityTerminal(value.terminal);
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Outlook authority terminal schema is invalid",
+    );
+  }
+  if ((value.outcome === "pass") !== (terminal.status === "PASS")
+    || value.terminal_sha256
+      !== jsonPostgresOutlookAuthorityTerminalSha256(terminal)
+    || Date.parse(terminal.recorded_at) > now
+    || Object.entries(expectedBindings).some(
+      ([key, expected]) => terminal.bindings[key] !== expected,
+    )) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Outlook authority terminal drifted from the consumed claim",
+    );
+  }
+  return Object.freeze({
+    outcome: value.outcome,
+    terminal,
+    terminal_sha256: value.terminal_sha256,
+  });
+}
+
+function assertOutlookTerminalWrite(value, terminal) {
+  if (!hasExactKeys(value, ["outcome", "terminal", "terminal_sha256"])
+    || !["written", "existing"].includes(value.outcome)) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Outlook authority terminal write receipt is invalid",
+    );
+  }
+  let written;
+  try {
+    written = createJsonPostgresOutlookAuthorityTerminal(value.terminal);
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Outlook authority terminal write receipt is invalid",
+    );
+  }
+  if (canonicalizeJson(written) !== canonicalizeJson(terminal)
+    || value.terminal_sha256
+      !== jsonPostgresOutlookAuthorityTerminalSha256(written)) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Outlook authority terminal write receipt drifted",
+    );
+  }
+  return Object.freeze({
+    outcome: value.outcome,
+    terminal: written,
+    terminal_sha256: value.terminal_sha256,
+  });
+}
+
+function outlookPassReplayResult({
+  claimEnvelope,
+  terminal,
+}) {
+  const result = terminal.result;
+  const replayReceipt = createJsonPostgresOutlookAuthorityReplayReceipt({
+    operationBindingSha256:
+      claimEnvelope.receipt.operation_binding_sha256,
+    claimSha256: claimEnvelope.receipt.claim_sha256,
+    claimWriteAttempted: claimEnvelope.claim_write_attempted,
+    claimWriteCommitted: claimEnvelope.claim_write_committed,
+    terminal,
+  });
+  return createJsonPostgresOutlookAuthorityPublicResult({
+    outcome: "PASS",
+    operation_binding_sha256: claimEnvelope.receipt.operation_binding_sha256,
+    terminal_state: "PASS",
+    terminal_sha256: replayReceipt.terminal_sha256,
+    postgres_receipt: Object.freeze({
+      kind: "run",
+      receipt_sha256: result.migration_run_receipt_sha256,
+    }),
+    replay_receipt_sha256: replayReceipt.replay_receipt_sha256,
+    ...outlookInvocationCounts({ claimEnvelope }),
+  }, { terminal });
+}
+
+function hasExactKeys(value, keys) {
+  return value
+    && typeof value === "object"
+    && !Array.isArray(value)
+    && JSON.stringify(Object.keys(value).sort())
+      === JSON.stringify([...keys].sort());
+}
+
+function assertOutlookRoleReadiness(
+  value,
+  approvedTenantIds,
+  { expectedRoleBootstrap = null } = {},
+) {
+  const tenantCount = new Set(approvedTenantIds).size;
+  let readiness;
+  try {
+    readiness = assertLawosOutlookRoleBootstrapReceipt(value, {
+      expectedRoleBootstrap,
+    });
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_ROLE_DRIFT",
+      "Outlook database role readiness is incomplete",
+    );
+  }
+  if (readiness.tenant_authority_count !== tenantCount * 3
+    || ![4, 5].includes(readiness.membership_edge_count)) {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_ROLE_DRIFT",
+      "Outlook database role readiness is incomplete",
+    );
+  }
+  return readiness;
+}
+
+function assertOutlookMigrationAdapter(value, expected) {
+  const runner = value?.runnerOptions;
+  if (!hasExactKeys(value, [
+    "runnerOptions", "normalizeRunReceipt", "normalizeFailureReceipt",
+    "getRoleReadiness", "dispose",
+  ])
+    || !Object.isFrozen(value)
+    || !hasExactKeys(runner, [
+      "authorityManifestSha256", "databaseTargetReceiptSha256",
+      "migrationCatalogSha256", "onBeforeMigrations",
+      "onOutlookAuthorityPaused", "onOutlookAuthorityPostMigration",
+    ])
+    || !Object.isFrozen(runner)
+    || runner.authorityManifestSha256 !== expected.authorityManifestSha256
+    || runner.databaseTargetReceiptSha256
+      !== expected.databaseTargetReceiptSha256
+    || runner.migrationCatalogSha256 !== expected.migrationCatalogSha256
+    || [runner.onBeforeMigrations, runner.onOutlookAuthorityPaused,
+      runner.onOutlookAuthorityPostMigration, value.normalizeRunReceipt,
+      value.normalizeFailureReceipt, value.getRoleReadiness, value.dispose]
+      .some((callback) => typeof callback !== "function")) {
+    fail(
+      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+      "Outlook authority migration adapter is invalid or unbound",
+    );
+  }
+  return value;
+}
+
+const OUTLOOK_FAILURE_PHASES = Object.freeze({
+  preflight: "postgres-precondition",
+  before_migrations: "postgres-precondition",
+  migration: "postgres-bootstrap-before-observation",
+  outlook_authority_paused: "postgres-bootstrap",
+  outlook_authority_migration: "postgres-postflight",
+  outlook_authority_replay: "postgres-postflight",
+  complete: "postgres-postflight",
+});
+
+function outlookTerminalFailurePhase(receipt) {
+  const phase = OUTLOOK_FAILURE_PHASES[receipt?.failure_phase];
+  if (!phase) {
+    fail(
+      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+      "Outlook authority migration failure phase is invalid",
+    );
+  }
+  return phase;
+}
+
+function assertOutlookMigrationRunSummary(value, {
+  roleBootstrap,
+  approvedTenantIds,
+  authorityManifestSha256,
+  databaseTargetReceiptSha256,
+  migrationCatalogSha256,
+} = {}) {
+  const readiness = assertOutlookRoleReadiness(
+    roleBootstrap,
+    approvedTenantIds,
+    { expectedRoleBootstrap: roleBootstrap },
+  );
+  let receipt;
+  try {
+    receipt = assertOutlookAuthorityMigrationRunReceipt(value, {
+      authority_manifest_sha256: authorityManifestSha256,
+      database_target_receipt_sha256: databaseTargetReceiptSha256,
+      migration_catalog_sha256: migrationCatalogSha256,
+      role_bootstrap_sha256: readiness.role_bootstrap_sha256,
+    });
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+      "Outlook authority migration run receipt is invalid or unbound",
+    );
+  }
+  const migrationAppliedCount = receipt.migration_applied_count;
+  const postgresAttempted = receipt.postgres_mutation_attempt_count;
+  const postgresCommitted = receipt.postgres_mutation_committed_count;
+  if (![migrationAppliedCount, postgresAttempted, postgresCommitted]
+    .every((count) => Number.isSafeInteger(count) && count >= 0)
+    || receipt.role_configuration_transaction_committed_count !== 1
+    || postgresCommitted !== migrationAppliedCount + 1
+    || postgresAttempted !== postgresCommitted
+    || receipt.role_bootstrap_sha256 !== readiness.role_bootstrap_sha256) {
+    fail(
+      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+      "Outlook authority migration run summary is invalid",
+    );
+  }
+  return receipt;
+}
+
+function assertOutlookMigrationFailureSummary(value, {
+  roleBootstrap,
+  authorityManifestSha256,
+  databaseTargetReceiptSha256,
+  migrationCatalogSha256,
+} = {}) {
+  let receipt;
+  try {
+    receipt = assertOutlookAuthorityMigrationFailureReceipt(value, {
+      authority_manifest_sha256: authorityManifestSha256,
+      database_target_receipt_sha256: databaseTargetReceiptSha256,
+      migration_catalog_sha256: migrationCatalogSha256,
+    });
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+      "Outlook authority migration failure receipt is invalid or unbound",
+    );
+  }
+  if (roleBootstrap !== null
+    && receipt.role_bootstrap_sha256 !== roleBootstrap.role_bootstrap_sha256) {
+    fail(
+      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+      "Outlook authority migration failure role receipt drifted",
+    );
+  }
+  return receipt;
+}
+
+function outlookPassResult({
+  claimEnvelope,
+  migrationRun,
+  counts,
+  terminalWrite,
+}) {
+  return createJsonPostgresOutlookAuthorityPublicResult({
+    outcome: "PASS",
+    operation_binding_sha256: claimEnvelope.receipt.operation_binding_sha256,
+    terminal_state: "PASS",
+    terminal_sha256: terminalWrite.terminal_sha256,
+    postgres_receipt: Object.freeze({
+      kind: "run",
+      receipt_sha256: migrationRun.migration_run_receipt_sha256,
+    }),
+    replay_receipt_sha256: null,
+    ...counts,
+  }, { terminal: terminalWrite.terminal });
 }
 
 export async function ensureJsonPostgresRehearsalDatabase(client, {
@@ -690,10 +1315,10 @@ export async function readJsonPostgresProductionSchemaLedger({
   verifyMigrations = verifyClientOperationsPostgresMigrations,
 } = {}) {
   if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION
-    || event.mode !== "readback") {
+    || !["preflight", "readback"].includes(event.mode)) {
     fail(
       "LAWOS_PROGRAM_ACTION",
-      "production schema ledger readback requires the direct readback mode",
+      "production schema ledger diagnostics require preflight or readback mode",
     );
   }
   const authorization = await withAwsAccessDeniedCode(
@@ -721,8 +1346,26 @@ export async function readJsonPostgresProductionSchemaLedger({
       region,
     }),
   );
+  let masterUsername;
+  let masterPassword;
+  try {
+    masterUsername = exactRequiredText(
+      master?.username,
+      "master database username",
+    );
+    masterPassword = exactRequiredText(
+      master?.password,
+      "master database password",
+    );
+  } catch {
+    fail(
+      "LAWOS_PROGRAM_DATABASE_ROLE",
+      "production schema ledger master credential is invalid",
+    );
+  }
   const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
-    ...master,
+    username: masterUsername,
+    password: masterPassword,
     host: env.LAWOS_DATABASE_HOST,
     port: env.LAWOS_DATABASE_PORT,
     dbname: env.LAWOS_DATABASE_NAME,
@@ -762,6 +1405,12 @@ export async function readJsonPostgresProductionSchemaLedger({
     offline_mutation_count: 0,
     memory_fallback_count: 0,
     production_data_write_count: 0,
+    authorization_claim_write_attempt_count: 0,
+    authorization_claim_write_committed_count: 0,
+    postgres_mutation_attempt_count: 0,
+    postgres_mutation_committed_count: 0,
+    secretsmanager_put_secret_value_attempt_count: 0,
+    secretsmanager_put_secret_value_committed_count: 0,
     production_write_count: 0,
     external_email_send_count: 0,
     real_data_count: 0,
@@ -782,16 +1431,33 @@ export async function bootstrapJsonPostgresProductionDatabase({
   claim = claimJsonPostgresProgramInvocation,
   resolveSecret = resolveAwsJsonSecret,
   putSecret,
+  getSecret,
   createPool = createPostgresPool,
-  runMigrations = runClientOperationsPostgresMigrations,
   verifyMigrations = verifyClientOperationsPostgresMigrations,
-  configureRole = configureLawosProductionApplicationRole,
+  outlookAuthorityManifestSha256 =
+    OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
+  outlookMigrationCatalog = CLIENT_OPERATIONS_MIGRATION_CATALOG,
+  normalizeOutlookMigrationCatalog =
+    normalizeClientOperationsMigrationCatalog,
+  createOutlookMigrationAdapter =
+    createJsonPostgresOutlookAuthorityMigrationAdapter,
+  runOutlookAuthorityMigrations =
+    runClientOperationsPostgresMigrations,
+  readOutlookTerminal = readJsonPostgresOutlookAuthorityTerminal,
+  writeOutlookTerminal = writeJsonPostgresOutlookAuthorityTerminal,
+  s3Client = new S3Client({
+    region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION,
+  }),
+  now = Date.now(),
 } = {}) {
   if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION
-    || !["preflight", "readback"].includes(event.mode)) {
-    fail("LAWOS_PROGRAM_ACTION", "production bootstrap requires its direct preflight or readback action");
+    || !["preflight", "readback", "commit"].includes(event.mode)) {
+    fail("LAWOS_PROGRAM_ACTION", "production bootstrap mode is invalid");
   }
-  if (event.mode === "readback") {
+  if (event.mode === "commit") {
+    assertJsonPostgresOutlookAuthorityBootstrapEvent(event);
+  }
+  if (["preflight", "readback"].includes(event.mode)) {
     return readJsonPostgresProductionSchemaLedger({
       event,
       env,
@@ -803,119 +1469,522 @@ export async function bootstrapJsonPostgresProductionDatabase({
   }
   const authorization = await withAwsAccessDeniedCode(
     "LAWOS_PROGRAM_AUTHORIZATION_READ_ACCESS_DENIED",
-    () => authorize({ event, env }),
+    () => authorize({ event, env, s3Client, now }),
   );
   if (authorization.packet.phase !== "w13-production-cutover") fail("LAWOS_PROGRAM_PHASE", "production bootstrap requires a W13 packet");
-  assertClientOperationsPacketCatalogBinding(authorization.packet);
-  const claimEvidence = await withAwsAccessDeniedCode(
-    "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_ACCESS_DENIED",
-    () => claim({ event, authorization, env }),
-  );
-  const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
-  const [master, application, tenantContext] = await Promise.all([
-    withAwsAccessDeniedCode(
-      "LAWOS_PROGRAM_MASTER_SECRET_READ_ACCESS_DENIED",
-      () => resolveSecret({ secretId: requiredText(env.LAWOS_MASTER_DATABASE_SECRET_ID, "LAWOS_MASTER_DATABASE_SECRET_ID"), region }),
-    ),
-    withAwsAccessDeniedCode(
-      "LAWOS_PROGRAM_APPLICATION_SECRET_READ_ACCESS_DENIED",
-      () => resolveSecret({ secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"), region }),
-    ),
-    withAwsAccessDeniedCode(
-      "LAWOS_PROGRAM_TENANT_CONTEXT_SECRET_READ_ACCESS_DENIED",
-      () => resolveSecret({ secretId: requiredText(env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID, "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID"), region }),
-    ),
-  ]);
-  const applicationSecret = structuredApplicationSecret({
-    current: application,
-    env,
-    expectedUsername: LAWOS_PRODUCTION_APPLICATION_ROLE,
-  });
-  const masterConnectionString = postgresUrlFromSecret(JSON.stringify({
-    ...master,
-    host: env.LAWOS_DATABASE_HOST,
-    port: env.LAWOS_DATABASE_PORT,
-    dbname: env.LAWOS_DATABASE_NAME,
-  }));
-  const tenantContextSecret = tenantContextValue(tenantContext);
-  const pool = createPool({
-    connectionString: masterConnectionString,
-    sslMode: "verify-full",
-    applicationName: "lawos-production-admin-bootstrap",
-    connectionTimeoutMillis: 10_000,
-    statementTimeoutMillis: 120_000,
-    max: 1,
-  });
-  let migrations;
-  let verifiedMigrations;
-  let catalog;
-  let role;
+  if (authorization.packet.packet_sha256 !== event.packet_sha256
+    || typeof authorization.operation_binding_sha256 !== "string"
+    || !SHA256.test(authorization.operation_binding_sha256)) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_OPERATION_BINDING",
+      "Outlook authority authorization is not bound to the exact operation",
+    );
+  }
+  const outlookSecretIds = outlookDatabaseSecretIds(env);
+  let normalizedOutlookMigrationCatalog = null;
+  if (!outlookSecretIds) {
+    fail(
+      "LAWOS_OUTLOOK_DATABASE_SECRET_IDS",
+      "Outlook authority commit requires all exact role credential secret ids",
+    );
+  }
+  if (!SHA256.test(outlookAuthorityManifestSha256 ?? "")
+    || !outlookMigrationCatalog
+    || typeof normalizeOutlookMigrationCatalog !== "function"
+    || typeof createOutlookMigrationAdapter !== "function"
+    || typeof runOutlookAuthorityMigrations !== "function") {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_CATALOG",
+      "Outlook authority catalog, adapter, and migration runner must be bound",
+    );
+  }
   try {
-    migrations = await runMigrations(pool, { appliedBy: `lawos-production:${authorization.exact.sourceSha}` });
-    verifiedMigrations = await verifyMigrations(pool);
-    catalog = authoritativeClientOperationsCatalog(verifiedMigrations, {
-      packet: authorization.packet,
-    });
-    const client = await pool.connect();
-    try {
-      role = await configureRole(client, {
-        password: applicationSecret.password,
-        tenantContextSecret,
-        approvedTenantIds: authorization.packet.target.approved_tenant_ids,
-      });
-    } finally {
-      client.release();
-    }
-    const writer = putSecret ?? (async ({ secretId, secretString }) => {
-      const client = new SecretsManagerClient({ region });
-      try {
-        await client.send(new PutSecretValueCommand({ SecretId: secretId, SecretString: secretString }));
-      } finally {
-        client.destroy();
-      }
-    });
+    normalizedOutlookMigrationCatalog =
+      normalizeOutlookMigrationCatalog(outlookMigrationCatalog);
+  } catch {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_CATALOG",
+      "Outlook migration catalog is invalid",
+    );
+  }
+  const migrationCatalogSha256 =
+    normalizedOutlookMigrationCatalog?.migration_catalog_sha256;
+  if (!SHA256.test(migrationCatalogSha256 ?? "")) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_CATALOG",
+      "Outlook migration catalog normalization is incomplete",
+    );
+  }
+  if (outlookAuthorityManifestSha256
+    !== authorization.packet.bindings.authority_manifest_sha256) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_CATALOG",
+      "Outlook authority catalog drifted from the owner-signed manifest",
+    );
+  }
+  if (migrationCatalogSha256
+    !== authorization.packet.bindings.migration_catalog_sha256) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_CATALOG",
+      "Outlook migration catalog drifted from the owner-signed manifest",
+    );
+  }
+  if (env.LAWOS_MASTER_DATABASE_SECRET_ID
+    !== authorization.packet.target.database_secret_ref) {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_OPERATION_BINDING",
+      "Outlook authority master database secret ref drifted from the signed target",
+    );
+  }
+  const databaseTarget = assertOutlookDatabaseTarget(authorization, env);
+  const claimEnvelope = assertOutlookClaimEnvelope(
     await withAwsAccessDeniedCode(
-      "LAWOS_PROGRAM_APPLICATION_SECRET_WRITE_ACCESS_DENIED",
-      () => writer({
-        secretId: requiredText(env.LAWOS_APPLICATION_DATABASE_SECRET_ID, "LAWOS_APPLICATION_DATABASE_SECRET_ID"),
-        secretString: JSON.stringify(applicationSecret),
+    "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_ACCESS_DENIED",
+      () => claim({ event, authorization, env, client: s3Client, now }),
+    ),
+    { authorization, now },
+  );
+  const claimEvidence = claimEnvelope.receipt;
+  const terminalBindings = outlookTerminalBindings({
+    authorization,
+    claimReceipt: claimEvidence,
+    authorityCatalogSha256:
+      outlookAuthorityManifestSha256,
+    migrationCatalogSha256:
+      migrationCatalogSha256,
+  });
+  const terminalStorage = {
+    bucket: env.LAWOS_APPROVAL_AUDIT_BUCKET,
+    expectedBucketOwner:
+      authorization.packet.target.program_input_expected_bucket_owner,
+    kmsKeyId: claimEvidence.program_input_kms_key_ref,
+    approvalExpiresAt: claimEvidence.expires_at,
+    client: s3Client,
+    now,
+  };
+  let terminalRead;
+  try {
+    terminalRead = assertOutlookTerminalRead(
+      await withAwsAccessDeniedCode(
+        "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_READ_ACCESS_DENIED",
+        () => readOutlookTerminal({
+          bindings: terminalBindings,
+          ...terminalStorage,
+        }),
+      ),
+      { expectedBindings: terminalBindings, now },
+    );
+  } catch (error) {
+    if (claimEnvelope.outcome === "claimed") {
+      try {
+        const partialBindings = outlookTerminalBindings({
+          authorization,
+          claimReceipt: claimEvidence,
+          authorityCatalogSha256:
+            outlookAuthorityManifestSha256,
+          migrationCatalogSha256:
+            migrationCatalogSha256,
+          roleBootstrapSha256: null,
+        });
+        const terminal = createJsonPostgresOutlookAuthorityTerminal({
+          schema_version:
+            JSON_POSTGRES_OUTLOOK_AUTHORITY_TERMINAL_SCHEMA_VERSION,
+          status: "PARTIAL",
+          bindings: partialBindings,
+          recorded_at: new Date(now).toISOString(),
+          ...outlookInvocationCounts({ claimEnvelope }),
+          result: null,
+          failure: {
+            error_code: safeOutlookAuthorityFailureCode(error),
+            failure_phase: "terminal-read",
+            post_state_sha256: null,
+          },
+          postgres_receipt: null,
+        });
+        await writeOutlookTerminal({
+          terminal,
+          bindings: partialBindings,
+          ...terminalStorage,
+        });
+      } catch {
+        // Preserve the primary terminal-read failure.
+      }
+    }
+    throw error;
+  }
+  if (claimEnvelope.outcome === "replayed") {
+    if (terminalRead.outcome !== "pass") {
+      fail(
+        "LAWOS_OUTLOOK_AUTHORITY_RECOVERY_REQUIRED",
+        "Outlook authority claim replay requires a terminal PASS",
+      );
+    }
+    return outlookPassReplayResult({
+      event,
+      authorization,
+      claimEnvelope,
+      terminal: terminalRead.terminal,
+    });
+  }
+  if (terminalRead.outcome !== "absent") {
+    fail(
+      "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_CONFLICT",
+      "Fresh Outlook authority claim conflicts with terminal evidence",
+    );
+  }
+  const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
+  const approvedTenantIds = authorization.packet.target.approved_tenant_ids;
+  const mutation = {
+    postgresAttempted: 0,
+    postgresCommitted: 0,
+    secretAttempted: 0,
+    secretCommitted: 0,
+  };
+  let pool = null;
+  let runnerStarted = false;
+  let runnerCompleted = false;
+  let roleBootstrap = null;
+  let migrationRun = null;
+  let migrationFailure = null;
+  let migrationAdapter = null;
+  let tenantContextBuffer = null;
+  let failurePhase = "credential-input";
+  let failurePostStateSha256 = null;
+  let migrationFailureCanBeRecorded = true;
+  let secretsManagerClient = null;
+  try {
+    const master = await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_MASTER_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_MASTER_DATABASE_SECRET_ID,
+          "LAWOS_MASTER_DATABASE_SECRET_ID",
+        ),
+        region,
       }),
     );
-  } finally {
+    let masterUsername;
+    let masterPassword;
+    try {
+      masterUsername = exactRequiredText(
+        master?.username,
+        "master database username",
+      );
+      masterPassword = exactRequiredText(
+        master?.password,
+        "master database password",
+      );
+    } catch {
+      fail(
+        "LAWOS_OUTLOOK_DATABASE_MASTER_ROLE",
+        "Outlook database bootstrap master credential is invalid",
+      );
+    }
+    assertOutlookMasterDatabaseTarget(master, databaseTarget);
+    const tenantContext = await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_TENANT_CONTEXT_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({
+        secretId: requiredText(
+          env.LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID,
+          "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
+        ),
+        region,
+      }),
+    );
+    const outlookControl = await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_OUTLOOK_CONTROL_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({ secretId: outlookSecretIds.control, region }),
+    );
+    const outlookAssignment = await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_OUTLOOK_ASSIGNMENT_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({ secretId: outlookSecretIds.assignment, region }),
+    );
+    const outlookLifecycleVerifier = await withAwsAccessDeniedCode(
+      "LAWOS_PROGRAM_OUTLOOK_LIFECYCLE_VERIFIER_SECRET_READ_ACCESS_DENIED",
+      () => resolveSecret({
+        secretId: outlookSecretIds.lifecycleVerifier,
+        region,
+      }),
+    );
+    const outlookControlSecret = structuredOutlookDatabaseSecret({
+      current: outlookControl,
+      env,
+      expectedUsername: LAWOS_OUTLOOK_CONTROL_OPERATOR_ROLE,
+    });
+    const outlookAssignmentSecret = structuredOutlookDatabaseSecret({
+      current: outlookAssignment,
+      env,
+      expectedUsername: LAWOS_OUTLOOK_ASSIGNMENT_WORKER_ROLE,
+    });
+    const outlookLifecycleVerifierSecret = structuredOutlookDatabaseSecret({
+      current: outlookLifecycleVerifier,
+      env,
+      expectedUsername: LAWOS_OUTLOOK_LIFECYCLE_VERIFIER_ROLE,
+    });
+    if (new Set([
+      outlookControlSecret.password,
+      outlookAssignmentSecret.password,
+      outlookLifecycleVerifierSecret.password,
+    ]).size !== 3) {
+      fail(
+        "LAWOS_OUTLOOK_DATABASE_SECRET",
+        "Outlook database credentials must use independent passwords",
+      );
+    }
+    let tenantContextSecret;
+    try {
+      tenantContextSecret = exactRequiredText(
+        tenantContext?.tenant_context_secret
+          ?? tenantContext?.TENANT_CONTEXT_SECRET,
+        "tenant context secret",
+      );
+      if (Buffer.byteLength(tenantContextSecret, "utf8") < 32) {
+        throw new TypeError("tenant context secret is too short");
+      }
+    } catch {
+      fail(
+        "LAWOS_OUTLOOK_DATABASE_SECRET",
+        "Outlook tenant context credential is invalid",
+      );
+    }
+    tenantContextBuffer = Buffer.from(tenantContextSecret, "utf8");
+    migrationAdapter = assertOutlookMigrationAdapter(
+      createOutlookMigrationAdapter({
+        approvedTenantIds,
+        controlPassword: outlookControlSecret.password,
+        assignmentPassword: outlookAssignmentSecret.password,
+        lifecycleVerifierPassword:
+          outlookLifecycleVerifierSecret.password,
+        tenantContextSecret: tenantContextBuffer,
+        authorityManifestSha256: outlookAuthorityManifestSha256,
+        databaseTargetReceiptSha256:
+          authorization.database_target_receipt_sha256,
+        migrationCatalogSha256,
+      }),
+      {
+        authorityManifestSha256: outlookAuthorityManifestSha256,
+        databaseTargetReceiptSha256:
+          authorization.database_target_receipt_sha256,
+        migrationCatalogSha256,
+      },
+    );
+    pool = createPool({
+      connectionString: postgresUrlFromSecret(JSON.stringify({
+        username: masterUsername,
+        password: masterPassword,
+        host: databaseTarget.endpoint_host,
+        port: databaseTarget.endpoint_port,
+        dbname: databaseTarget.database_name,
+      })),
+      sslMode: "verify-full",
+      applicationName: "lawos-outlook-authority-bootstrap-001-007",
+      connectionTimeoutMillis: 10_000,
+      statementTimeoutMillis: 120_000,
+      max: 1,
+    });
+    failurePhase = "postgres-precondition";
+    runnerStarted = true;
+    const rawMigrationRun = await runOutlookAuthorityMigrations(pool, {
+      appliedBy: `lawos-production:${authorization.exact.sourceSha}`,
+      ...migrationAdapter.runnerOptions,
+    });
+    roleBootstrap = assertOutlookRoleReadiness(
+      migrationAdapter.getRoleReadiness(),
+      approvedTenantIds,
+    );
+    migrationRun = assertOutlookMigrationRunSummary(
+      migrationAdapter.normalizeRunReceipt(rawMigrationRun),
+      {
+        roleBootstrap,
+        approvedTenantIds,
+        authorityManifestSha256: outlookAuthorityManifestSha256,
+        databaseTargetReceiptSha256:
+          authorization.database_target_receipt_sha256,
+        migrationCatalogSha256,
+      },
+    );
+    runnerCompleted = true;
+    mutation.postgresAttempted =
+      migrationRun.postgres_mutation_attempt_count;
+    mutation.postgresCommitted =
+      migrationRun.postgres_mutation_committed_count;
+    failurePostStateSha256 = migrationRun.authority_postflight_sha256;
+    const secretsClient = () => {
+      secretsManagerClient ??= new SecretsManagerClient({ region });
+      return secretsManagerClient;
+    };
+    const writer = putSecret ?? (async ({
+      secretId,
+      secretString,
+      clientRequestToken,
+    }) => secretsClient().send(new PutSecretValueCommand({
+          SecretId: secretId,
+          SecretString: secretString,
+          ClientRequestToken: clientRequestToken,
+        })));
+    const reader = getSecret ?? (async ({
+      secretId,
+      versionId,
+      versionStage,
+    }) => secretsClient().send(new GetSecretValueCommand({
+      SecretId: secretId,
+      ...(versionId === undefined ? {} : { VersionId: versionId }),
+      ...(versionStage === undefined ? {} : { VersionStage: versionStage }),
+    })));
+    failurePhase = "secret-publication";
+    for (const [secretId, secret] of [
+      [outlookSecretIds.control, outlookControlSecret],
+      [outlookSecretIds.assignment, outlookAssignmentSecret],
+      [outlookSecretIds.lifecycleVerifier, outlookLifecycleVerifierSecret],
+    ]) {
+      mutation.secretAttempted += 1;
+      try {
+        await publishJsonPostgresOutlookDatabaseSecret({
+          secretId,
+          secretString: canonicalizeJson(secret),
+          operationBindingSha256: claimEvidence.operation_binding_sha256,
+          claimSha256: claimEvidence.claim_sha256,
+          putSecretValue: writer,
+          getSecretValue: reader,
+        });
+        mutation.secretCommitted += 1;
+      } catch (error) {
+        if (error?.outlook_secret_publication
+          ?.secret_write_commit_ambiguous === true) {
+          mutation.secretCommitted = null;
+        }
+        throw error;
+      }
+    }
+    const counts = outlookInvocationCounts({
+      claimEnvelope,
+      ...mutation,
+    });
+    const observedTerminalBindings = outlookTerminalBindings({
+      authorization,
+      claimReceipt: claimEvidence,
+      authorityCatalogSha256: outlookAuthorityManifestSha256,
+      migrationCatalogSha256,
+      roleBootstrapSha256: roleBootstrap.role_bootstrap_sha256,
+    });
+    const terminal = createJsonPostgresOutlookAuthorityTerminal({
+      schema_version: JSON_POSTGRES_OUTLOOK_AUTHORITY_TERMINAL_SCHEMA_VERSION,
+      status: "PASS",
+      bindings: observedTerminalBindings,
+      recorded_at: new Date(now).toISOString(),
+      ...counts,
+      result: {
+        outcome: "PASS",
+        migration_applied_count: migrationRun.migration_applied_count,
+        role_configuration_transaction_committed_count: 1,
+        outlook_database_role_count: roleBootstrap.role_count,
+        outlook_login_role_count: roleBootstrap.login_role_count,
+        outlook_tenant_authority_count:
+          roleBootstrap.tenant_authority_count,
+        outlook_membership_edge_count: roleBootstrap.membership_edge_count,
+        synthetic_wildcard_count: roleBootstrap.synthetic_wildcard_count,
+        migration_run_receipt_sha256:
+          migrationRun.migration_run_receipt_sha256,
+        authority_postflight_sha256:
+          migrationRun.authority_postflight_sha256,
+        password_returned: false,
+        secret_material_returned: false,
+      },
+      failure: null,
+      postgres_receipt: { kind: "run", receipt: migrationRun },
+    });
+    failurePhase = "terminal-evidence";
+    const terminalWrite = assertOutlookTerminalWrite(
+      await withAwsAccessDeniedCode(
+        "LAWOS_OUTLOOK_AUTHORITY_TERMINAL_WRITE_ACCESS_DENIED",
+        () => writeOutlookTerminal({
+          terminal,
+          bindings: observedTerminalBindings,
+          ...terminalStorage,
+        }),
+      ),
+      terminal,
+    );
     await pool.end();
+    pool = null;
+    return outlookPassResult({
+      claimEnvelope,
+      migrationRun,
+      counts,
+      terminalWrite,
+    });
+  } catch (error) {
+    if (runnerStarted && !runnerCompleted) {
+      try {
+        migrationFailure = assertOutlookMigrationFailureSummary(
+          migrationAdapter.normalizeFailureReceipt(error),
+          {
+            roleBootstrap,
+            authorityManifestSha256: outlookAuthorityManifestSha256,
+            databaseTargetReceiptSha256:
+              authorization.database_target_receipt_sha256,
+            migrationCatalogSha256,
+          },
+        );
+        failurePhase = outlookTerminalFailurePhase(migrationFailure);
+        mutation.postgresAttempted =
+          migrationFailure.postgres_mutation_attempt_count;
+        mutation.postgresCommitted =
+          migrationFailure.postgres_mutation_committed_count;
+        failurePostStateSha256 = migrationFailure.failure_receipt_sha256;
+      } catch {
+        migrationFailureCanBeRecorded = false;
+      }
+    }
+    if (migrationFailureCanBeRecorded) {
+      try {
+        const counts = outlookInvocationCounts({
+          claimEnvelope,
+          ...mutation,
+        });
+        const roleBootstrapSha256 = migrationFailure?.role_bootstrap_sha256
+          ?? roleBootstrap?.role_bootstrap_sha256 ?? null;
+        const partialBindings = outlookTerminalBindings({
+          authorization,
+          claimReceipt: claimEvidence,
+          authorityCatalogSha256: outlookAuthorityManifestSha256,
+          migrationCatalogSha256,
+          roleBootstrapSha256,
+        });
+        const terminal = createJsonPostgresOutlookAuthorityTerminal({
+          schema_version:
+            JSON_POSTGRES_OUTLOOK_AUTHORITY_TERMINAL_SCHEMA_VERSION,
+          status: "PARTIAL",
+          bindings: partialBindings,
+          recorded_at: new Date(now).toISOString(),
+          ...counts,
+          result: null,
+          failure: {
+            error_code: safeOutlookAuthorityFailureCode(error),
+            failure_phase: failurePhase,
+            post_state_sha256: failurePostStateSha256,
+          },
+          postgres_receipt: migrationRun === null
+            ? migrationFailure === null ? null
+              : { kind: "failure", receipt: migrationFailure }
+            : { kind: "run", receipt: migrationRun },
+        });
+        await writeOutlookTerminal({
+          terminal,
+          bindings: partialBindings,
+          ...terminalStorage,
+        });
+      } catch {
+        // Preserve the primary failure when immutable PARTIAL recording fails.
+      }
+    }
+    throw error;
+  } finally {
+    try { migrationAdapter?.dispose(); } catch {}
+    tenantContextBuffer?.fill(0);
+    if (pool) await pool.end();
+    secretsManagerClient?.destroy();
   }
-  return Object.freeze({
-    outcome: "PASS",
-    action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
-    phase: authorization.packet.phase,
-    source_sha: authorization.exact.sourceSha,
-    source_tree: authorization.exact.sourceTree,
-    packet_sha256: authorization.packet.packet_sha256,
-    migration_count: catalog.migration_catalog_count,
-    migration_applied_count: migrations.filter((item) => item.applied).length,
-    ...catalog,
-    application_role_grant_count: role.grant_statement_count,
-    approved_tenant_count: role.tenant_authority_count,
-    synthetic_wildcard_count: role.synthetic_wildcard_count,
-    json_fallback_count: 0,
-    json_writer_count: 0,
-    dual_write_count: 0,
-    file_current_authority_count: 0,
-    offline_mutation_count: 0,
-    memory_fallback_count: 0,
-    production_data_write_count: 0,
-    production_write_count: 0,
-    external_email_send_count: 0,
-    real_data_count: 0,
-    legacy_authority_counter_total: 0,
-    raw_value_returned: false,
-    raw_pii_returned: false,
-    raw_secret_returned: false,
-    pii_returned: false,
-    secret_material_returned: false,
-    approval_receipt_sha256: claimEvidence.approval_receipt_sha256,
-    authorization_claim_sha256: claimEvidence.claim_sha256,
-  });
 }
 
 export async function executeJsonPostgresProgram({
@@ -1645,7 +2714,7 @@ export async function executeJsonPostgresRelationalProjection({
   loadInputs = loadJsonPostgresProjectionInputs,
   resolveSecret = resolveAwsJsonSecret,
   createPool = createPostgresPool,
-  verifyMigrations = verifyHrxPostgresMigrationState,
+  verifyMigrations = verifyClientOperationsPostgresMigrations,
   project = projectHrxRelationalReadModel,
   collectInventory = collectHrxRelationalProductionInventory,
   validateProjection = validateHrxRelationalReadModel,
@@ -2359,6 +3428,9 @@ export async function handler(event = {}) {
     if (event.action === JSON_POSTGRES_JSON_RETIREMENT_ACTION) {
       return await executeJsonPostgresRetirementSmoke({ event });
     }
+    if (event.action === CATALOG_READBACK_ACTION) {
+      return await executeProductionMigrationCatalogReadback({ event });
+    }
     throw Object.assign(new Error("unsupported program administration action"), { code: "LAWOS_PROGRAM_ACTION" });
   } catch (error) {
     const safeErrorCode = safeJsonPostgresProgramErrorCode(error);
@@ -2379,6 +3451,7 @@ export async function handler(event = {}) {
         JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION,
         JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
         JSON_POSTGRES_JSON_RETIREMENT_ACTION,
+        CATALOG_READBACK_ACTION,
       ].includes(event.action)
         ? event.action
         : "unsupported-program-action",

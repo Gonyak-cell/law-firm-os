@@ -11,7 +11,7 @@ import { createMatterRepository } from "../../../../packages/matter/src/reposito
 import { createPostgresDomainLedger } from "../../../../packages/persistence/src/postgres/domain-ledger.js";
 import { createRecordRepositoryDomainSnapshot } from "../../../../packages/persistence/src/record-domain-adapter.js";
 import { withPostgresTransaction } from "../../../../packages/persistence/src/postgres/transaction.js";
-import { runClientOperationsPostgresMigrations } from "../../src/client-operations-schema.js";
+import { runOutlookAuthorityPostgresMigrations } from "./outlook-authority-postgres-fixture.js";
 
 export const TENANT = "tenant-outm27-operational";
 export const ENTRA_TENANT = "entra-tenant-outm27-operational";
@@ -27,7 +27,7 @@ export const MAILBOX = "outm27-operational@example.test";
 export const MAILBOX_HASH = createHash("sha256").update(MAILBOX).digest("hex");
 
 export async function seedOperationalConversationFixture(fixture) {
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
   const hrxStore = createFileHrxStore();
   try {
