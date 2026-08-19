@@ -9,11 +9,10 @@ export const OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT = Object.freeze({
   contract_schema_version:
     "lawos.outlook-desktop-installation-runtime.v1",
   endpoints: Object.freeze([
-    "POST /api/desktop/installations",
     "GET /api/desktop/installations/:installation_id",
-    "POST /api/desktop/installations/:installation_id/heartbeat",
-    "POST /api/desktop/installations/:installation_id/retire",
   ]),
+  public_transition_authority: "reference-bound-verifier-finalize-only",
+  direct_authorization_body_accepted: false,
   runtime_persistence: "postgres-tenant-rls",
   user_connection_revoke_on_retire: false,
   token_material_returned: false,
@@ -27,31 +26,9 @@ const ROUTE_PATTERN =
 const READ_ROUTE_PATTERN =
   /^\/api\/desktop\/installations\/(odi_[A-Za-z0-9_-]{20,128})$/u;
 const REGISTRATION_PATH = "/api/desktop/installations";
-const PROOF_FIELDS = Object.freeze([
-  "expires_at",
-  "idempotency_key",
-  "issued_at",
-  "nonce",
-  "signature",
-]);
-const SEMANTIC_FIELDS = Object.freeze({
-  register: Object.freeze([
-    "app_version",
-    "device_public_key",
-    "platform",
-    "source_sha",
-  ]),
-  heartbeat: Object.freeze(["expected_state_version"]),
-  retire: Object.freeze(["expected_state_version", "retire_reason"]),
-});
-const SUCCESS_OUTCOMES = new Set([
-  "registered",
-  "heartbeat",
-  "resumed",
-  "retired",
-  "already_retired",
-]);
 const INSTALLATION_STATES = new Set(["active", "expired", "retired"]);
+const POSTGRES_UTC_TIMESTAMP =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:Z|\+00:00)$/u;
 const PUBLIC_ERROR_CODE_PATTERN = /^(?:AUTH_SESSION_REQUIRED|OUTLOOK_DESKTOP_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+)$/u;
 const PUBLIC_ERROR_STATUSES = new Set([400, 401, 403, 404, 409, 413, 503]);
 
@@ -132,37 +109,6 @@ function requestBodyBytes(body) {
   }
 }
 
-function proofValue(body, field, maxLength) {
-  const value = body[field];
-  return typeof value === "string"
-    && value.length > 0
-    && value.length <= maxLength;
-}
-
-function validEnvelope(operation, body) {
-  const semanticFields = SEMANTIC_FIELDS[operation];
-  const expected = [...semanticFields, ...PROOF_FIELDS];
-  if (!exactFields(body, expected)) return false;
-  if (
-    !proofValue(body, "idempotency_key", 200)
-    || !proofValue(body, "nonce", 128)
-    || !proofValue(body, "issued_at", 32)
-    || !proofValue(body, "expires_at", 32)
-    || !proofValue(body, "signature", 256)
-  ) return false;
-  if (operation === "register") {
-    return proofValue(body, "platform", 32)
-      && proofValue(body, "app_version", 64)
-      && proofValue(body, "source_sha", 64)
-      && proofValue(body, "device_public_key", 512);
-  }
-  if (
-    !Number.isSafeInteger(body.expected_state_version)
-    || body.expected_state_version < 1
-  ) return false;
-  return operation !== "retire" || proofValue(body, "retire_reason", 100);
-}
-
 function samePrincipal(left, right) {
   return Boolean(
     left
@@ -173,7 +119,12 @@ function samePrincipal(left, right) {
   );
 }
 
-function lifecycleAuthority({ principal, context, roster, targetId }) {
+export function evaluateOutlookDesktopLifecycleAuthority({
+  principal,
+  context,
+  roster,
+  targetId,
+}) {
   const entitlement = evaluateOutlookDesktopEntitlement({
     principal,
     roster,
@@ -210,54 +161,39 @@ function lifecycleAuthority({ principal, context, roster, targetId }) {
       });
 }
 
-function commandFor({ pathname, operation, installationId, body, principal, requestId }) {
-  const semanticBody = Object.fromEntries(
-    SEMANTIC_FIELDS[operation].map((field) => [field, body[field]]),
-  );
-  return Object.freeze({
-    principal: Object.freeze({
-      tenant_id: principal.tenant_id,
-      user_id: principal.user_id,
-      entra_subject_id: principal.entra_subject_id,
-    }),
-    request_id: requestId,
-    request: Object.freeze({
-      method: "POST",
-      path: pathname,
-      body: Object.freeze(semanticBody),
-      installation_id: installationId,
-      idempotency_key: body.idempotency_key,
-      nonce: body.nonce,
-      issued_at: body.issued_at,
-      expires_at: body.expires_at,
-    }),
-    signature: body.signature,
-  });
+export function resolveOutlookDesktopInstallationService(runtime) {
+  return runtime?.installation_service ?? null;
 }
 
-export async function resolveOutlookDesktopInstallationService(
-  runtime,
-  tenantId,
-) {
-  if (runtime?.installation_service) return runtime.installation_service;
-  if (typeof runtime?.installation_service_factory === "function") {
-    return runtime.installation_service_factory({ tenant_id: tenantId });
-  }
-  return null;
-}
-
-function boundedInstallation(value) {
+function boundedInstallation(value, expectedInstallationId) {
+  const canonicalTimestamp = (candidate) => {
+    const match = typeof candidate === "string"
+      ? candidate.match(POSTGRES_UTC_TIMESTAMP)
+      : null;
+    const milliseconds = match ? Date.parse(candidate) : NaN;
+    if (!match || !Number.isSafeInteger(milliseconds)) {
+      throw new Error("outlook desktop service projection is invalid");
+    }
+    const normalized = new Date(milliseconds).toISOString();
+    const inputSeconds = `${match[1]}-${match[2]}-${match[3]}`
+      + `T${match[4]}:${match[5]}:${match[6]}`;
+    if (normalized.slice(0, 19) !== inputSeconds) {
+      throw new Error("outlook desktop service projection is invalid");
+    }
+    return normalized;
+  };
+  const leaseExpiresAt = canonicalTimestamp(value?.lease_expires_at);
+  const retiredAt = value?.retired_at === null
+    ? null
+    : canonicalTimestamp(value?.retired_at);
   if (
     !isPlainObject(value)
     || !INSTALLATION_ID_PATTERN.test(value.installation_id ?? "")
+    || value.installation_id !== expectedInstallationId
     || !INSTALLATION_STATES.has(value.status)
     || !Number.isSafeInteger(value.state_version)
     || value.state_version < 1
-    || typeof value.lease_expires_at !== "string"
-    || !(
-      value.retired_at === null
-      || typeof value.retired_at === "string"
-    )
+    || (value.status === "retired") !== (retiredAt !== null)
   ) {
     throw new Error("outlook desktop service projection is invalid");
   }
@@ -265,23 +201,30 @@ function boundedInstallation(value) {
     installation_id: value.installation_id,
     status: value.status,
     state_version: value.state_version,
-    lease_expires_at: value.lease_expires_at,
-    retired_at: value.retired_at,
+    lease_expires_at: leaseExpiresAt,
+    retired_at: retiredAt,
   });
 }
 
-function boundedSuccess(envelope, requestId) {
+export function projectOutlookDesktopRegistrationAuthorityResult(
+  envelope,
+  expectedInstallationId,
+) {
   if (
     !isPlainObject(envelope)
-    || !new Set([200, 201]).has(envelope.response_status)
+    || envelope.response_status !== 201
     || !isPlainObject(envelope.body)
-    || !SUCCESS_OUTCOMES.has(envelope.body.outcome)
+    || envelope.body.outcome !== "registered"
   ) {
     throw new Error("outlook desktop service response is invalid");
   }
-  return response(envelope.response_status, requestId, {
+  return Object.freeze({
+    response_status: 201,
     outcome: envelope.body.outcome,
-    installation: boundedInstallation(envelope.body.installation),
+    installation: boundedInstallation(
+      envelope.body.installation,
+      expectedInstallationId,
+    ),
   });
 }
 
@@ -293,7 +236,7 @@ function mappedFailure(error, requestId) {
   const candidateStatus = Number(error?.status);
   const status = PUBLIC_ERROR_STATUSES.has(candidateStatus)
     ? candidateStatus
-    : 500;
+    : 503;
   return failure(status, requestId, safeErrorCode);
 }
 
@@ -354,14 +297,14 @@ export async function handleOutlookDesktopInstallationApiRequest({
       "OUTLOOK_DESKTOP_INSTALLATION_REQUEST_TOO_LARGE",
     );
   }
-  if (matched.operation !== "read" && !validEnvelope(matched.operation, body)) {
+  if (matched.operation !== "read") {
     return failure(
       400,
       requestId,
       "OUTLOOK_DESKTOP_INSTALLATION_REQUEST_INVALID",
     );
   }
-  const authority = lifecycleAuthority({
+  const authority = evaluateOutlookDesktopLifecycleAuthority({
     principal,
     context,
     roster: runtime?.entitlement_roster,
@@ -370,10 +313,7 @@ export async function handleOutlookDesktopInstallationApiRequest({
   if (!authority.allowed) {
     return failure(authority.status, requestId, authority.safe_error_code);
   }
-  const service = await resolveOutlookDesktopInstallationService(
-    runtime,
-    principal.tenant_id,
-  );
+  const service = resolveOutlookDesktopInstallationService(runtime);
   if (!service || typeof service[matched.operation] !== "function") {
     return failure(
       503,
@@ -390,13 +330,6 @@ export async function handleOutlookDesktopInstallationApiRequest({
           entra_subject_id: principal.entra_subject_id,
         }),
         installation_id: matched.installation_id,
-      }, {
-        authorize: async () => lifecycleAuthority({
-          principal,
-          context,
-          roster: runtime?.entitlement_roster,
-          targetId: matched.installation_id,
-        }).allowed,
       });
       if (!installation) {
         return failure(
@@ -407,31 +340,13 @@ export async function handleOutlookDesktopInstallationApiRequest({
       }
       return response(200, requestId, {
         outcome: "read",
-        installation: boundedInstallation(installation),
+        installation: boundedInstallation(
+          installation,
+          matched.installation_id,
+        ),
       });
     } catch (error) {
       return mappedFailure(error, requestId);
     }
-  }
-  const command = commandFor({
-    pathname,
-    operation: matched.operation,
-    installationId: matched.installation_id,
-    body,
-    principal,
-    requestId,
-  });
-  try {
-    const result = await service[matched.operation](command, {
-      authorize: async () => lifecycleAuthority({
-        principal,
-        context,
-        roster: runtime?.entitlement_roster,
-        targetId: matched.installation_id,
-      }).allowed,
-    });
-    return boundedSuccess(result, requestId);
-  } catch (error) {
-    return mappedFailure(error, requestId);
   }
 }

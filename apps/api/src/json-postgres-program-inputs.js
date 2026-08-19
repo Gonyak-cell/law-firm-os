@@ -18,6 +18,9 @@ import {
 } from "../../../packages/persistence/src/postgres/source-adjudication.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import {
+  verifyProductionTrustedRegistry,
+} from "../../../packages/runtime-auth/src/external-release-trust.js";
+import {
   IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION,
   normalizeImmutableProgramInputLocator,
   readImmutableProgramInput,
@@ -46,6 +49,34 @@ import {
 import {
   validateHrxRelationalProjectionValidation,
 } from "../../../packages/hrx/src/relational-projection-validation.js";
+import {
+  CATALOG_READBACK_ACTION,
+} from "../../../packages/persistence/src/postgres/catalog-readback-authorization.js";
+import {
+  assertJsonPostgresOutlookAuthorityBootstrapEvent,
+  createJsonPostgresOutlookAuthorityOperationBinding,
+  isJsonPostgresOutlookAuthorityOperationCandidate,
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_BOOTSTRAP_OPERATION,
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_BOOTSTRAP_STAGE,
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_OPERATION_BINDING_VERSION,
+} from "./json-postgres-outlook-authority-operation.js";
+import {
+  claimJsonPostgresOutlookAuthorityOperation,
+} from "./json-postgres-outlook-authority-claim.js";
+import {
+  parseOutlookAuthorityCanonicalInstant,
+} from "./json-postgres-outlook-authority-claim-readback.js";
+import {
+  verifyJsonPostgresOutlookAuthorityApproval,
+} from "./json-postgres-outlook-authority-approval.js";
+
+export {
+  assertJsonPostgresOutlookAuthorityBootstrapEvent,
+  createJsonPostgresOutlookAuthorityOperationBinding,
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_BOOTSTRAP_OPERATION,
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_BOOTSTRAP_STAGE,
+  JSON_POSTGRES_OUTLOOK_AUTHORITY_OPERATION_BINDING_VERSION,
+};
 
 export const JSON_POSTGRES_PROGRAM_ADMIN_ACTION = "lawos-json-postgres-program-execution";
 export const JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION = "lawos-json-postgres-production-bootstrap";
@@ -268,8 +299,18 @@ export async function loadJsonPostgresProgramAuthorization({
   s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
   readBytes = readImmutableProgramInput,
   now = Date.now(),
+  verifyProductionRegistry = verifyProductionTrustedRegistry,
+  verifyOutlookApproval = verifyJsonPostgresOutlookAuthorityApproval,
 } = {}) {
   assertJsonPostgresProgramDirectInvoke(event);
+  const outlookAuthorityOperation =
+    isJsonPostgresOutlookAuthorityOperationCandidate(event);
+  if (outlookAuthorityOperation) {
+    assertJsonPostgresOutlookAuthorityBootstrapEvent(event);
+  }
+  const productionTrust = outlookAuthorityOperation
+    ? verifyProductionRegistry()
+    : null;
   closedObject(event.authorization, AUTHORIZATION_KEYS, "program authorization locators");
   const exact = exactDeployment(event, env);
   const read = (key) => readBytes(inputReadOptions(
@@ -299,28 +340,87 @@ export async function loadJsonPostgresProgramAuthorization({
     || !packet.allowed_modes.includes(event.mode)) {
     fail("LAWOS_PROGRAM_PACKET_BINDING", "execution packet drifted from the deployed target or requested mode");
   }
-  const trustRegistrySha256 = requiredText(
-    env.LAWOS_OWNER_TRUST_REGISTRY_SHA256,
-    "LAWOS_OWNER_TRUST_REGISTRY_SHA256",
-    SHA256,
-  );
-  const approval = verifyJsonPostgresExecutionApprovalPayload({
-    packet,
-    sourceSha: exact.sourceSha,
-    sourceTree: exact.sourceTree,
-    trustRegistryBytes: registryBytes,
-    trustRegistrySha256,
-    approvalReceiptBytes: receiptBytes,
-    approvalSignatureBytes: signatureBytes,
-    now,
+  const authorizedPacket = Object.freeze({
+    ...packet,
+    packet_sha256: validated.packet_sha256,
   });
-  return Object.freeze({
+  const externalOutlookApproval = outlookAuthorityOperation
+    && packet.target?.database_target_receipt != null;
+  let approvalVerificationNow = now;
+  if (outlookAuthorityOperation) {
+    const receipt = parseJson(receiptBytes, "owner approval receipt");
+    const signedAt = parseOutlookAuthorityCanonicalInstant(
+      externalOutlookApproval ? receipt.issued_at : receipt.signed_at,
+    );
+    const expiresAt = parseOutlookAuthorityCanonicalInstant(receipt.expires_at);
+    if (Number.isFinite(signedAt)
+      && Number.isFinite(expiresAt)
+      && now > expiresAt) {
+      approvalVerificationNow = signedAt;
+    }
+  }
+  let approval;
+  let trustRegistry;
+  if (externalOutlookApproval) {
+    if (!Buffer.isBuffer(productionTrust?.bytes)
+      || !Buffer.isBuffer(registryBytes)
+      || !registryBytes.equals(productionTrust.bytes)) {
+      fail(
+        "LAWOS_OUTLOOK_AUTHORITY_TRUST_REGISTRY",
+        "authorization registry evidence drifted from the fixed production root",
+      );
+    }
+    approval = verifyOutlookApproval({
+      event,
+      packet: authorizedPacket,
+      productionTrust,
+      receiptBytes,
+      signatureBytes,
+      now: approvalVerificationNow,
+    });
+    trustRegistry = productionTrust.registry;
+  } else {
+    const trustRegistrySha256 = requiredText(
+      env.LAWOS_OWNER_TRUST_REGISTRY_SHA256,
+      "LAWOS_OWNER_TRUST_REGISTRY_SHA256",
+      SHA256,
+    );
+    approval = verifyJsonPostgresExecutionApprovalPayload({
+      packet,
+      sourceSha: exact.sourceSha,
+      sourceTree: exact.sourceTree,
+      trustRegistryBytes: registryBytes,
+      trustRegistrySha256,
+      approvalReceiptBytes: receiptBytes,
+      approvalSignatureBytes: signatureBytes,
+      now: approvalVerificationNow,
+    });
+    trustRegistry = parseJson(registryBytes, "owner trust registry");
+  }
+  const authorization = {
     exact,
-    packet: Object.freeze({ ...packet, packet_sha256: validated.packet_sha256 }),
+    packet: authorizedPacket,
     approval,
-    trustRegistry: parseJson(registryBytes, "owner trust registry"),
+    trustRegistry,
     authorization_input_sha256: createHash("sha256").update(canonicalizeJson(event.authorization)).digest("hex"),
-  });
+  };
+  if (outlookAuthorityOperation) {
+    const operationBinding =
+      createJsonPostgresOutlookAuthorityOperationBinding({
+        event,
+        authorization,
+        env,
+      });
+    authorization.operation_binding_sha256 =
+      operationBinding.operation_binding_sha256;
+    if (operationBinding.database_target_receipt) {
+      authorization.databaseTargetReceipt =
+        operationBinding.database_target_receipt;
+      authorization.database_target_receipt_sha256 =
+        operationBinding.database_target_receipt_sha256;
+    }
+  }
+  return Object.freeze(authorization);
 }
 
 export async function loadJsonPostgresW15BootstrapAuthorization({
@@ -964,6 +1064,23 @@ export async function claimJsonPostgresProgramInvocation({
   client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
   now = Date.now(),
 } = {}) {
+  if (isJsonPostgresOutlookAuthorityOperationCandidate(event)
+    || authorization?.operation_binding_sha256 != null) {
+    const operationBinding =
+      createJsonPostgresOutlookAuthorityOperationBinding({
+        event,
+        authorization,
+        env,
+      });
+    return claimJsonPostgresOutlookAuthorityOperation({
+      event,
+      authorization,
+      operationBinding,
+      env,
+      client,
+      now,
+    });
+  }
   const attemptRef = requiredText(event.attempt_ref, "attempt_ref", TOKEN);
   const region = requiredText(env.AWS_REGION ?? env.AWS_DEFAULT_REGION, "AWS region");
   const bucket = requiredText(env.LAWOS_APPROVAL_AUDIT_BUCKET, "LAWOS_APPROVAL_AUDIT_BUCKET");

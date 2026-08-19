@@ -17,16 +17,12 @@ import {
   createPostgresDomainLedger,
 } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import {
-  createMigratedPostgresFixture,
-} from "../../../packages/persistence/test/helpers/disposable-postgres.js";
-import {
   createAnalyticsRuntimeContext,
 } from "../src/analytics-runtime-context.js";
 import {
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   readClientOperationsMigrationReadiness,
   runClientOperationsMigration,
-  runClientOperationsPostgresMigrations,
 } from "../src/client-operations-migration.js";
 import {
   CLIENT_OPERATIONS_READINESS_KEY,
@@ -43,6 +39,10 @@ import {
   importHrxBaseline,
 } from "./helpers/client-operations-migration-fixture.js";
 import { apiSessionHeaders } from "./helpers/session.js";
+import {
+  createOutlookAuthorityPostgresFixture,
+  runOutlookAuthorityPostgresMigrations,
+} from "./support/outlook-authority-postgres-fixture.js";
 
 const SESSION_SECRET =
   "client-migration-t03-session-secret-material";
@@ -142,7 +142,7 @@ test("HTTP Client dashboard selects intentionally distinct providers", async (t)
 });
 
 test("operational Client providers preserve parity, drift safety, and rollback data", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
   const ledger = createPostgresDomainLedger({
     pool: fixture.appPool,
@@ -181,6 +181,7 @@ test("operational Client providers preserve parity, drift safety, and rollback d
       sessionAuth: sessionAuthValue,
       stepUpAuthority: Object.freeze({}),
       persistenceAuthority: "postgres-v2",
+      outlookDesktopEntitlementEnabled: false,
       persistenceAuthorityEnv: {
         LAWOS_POSTGRES_URL_SECRET_ID:
           "lawos/test/client-migration-t03",
@@ -226,9 +227,9 @@ test("operational Client providers preserve parity, drift safety, and rollback d
       (resolve) => started.server.close(resolve),
     );
   }
-  async function storageDigest() {
+  async function storageState(readbackPool) {
     const [records, imports, readiness] = await Promise.all([
-      fixture.adminPool.query(
+      readbackPool.query(
         `SELECT domain_id, record_type, record_id,
                 state_version, payload_hash
            FROM lawos_domain.records
@@ -240,7 +241,7 @@ test("operational Client providers preserve parity, drift safety, and rollback d
           ["crm", "finance", "email-dms"],
         ],
       ),
-      fixture.adminPool.query(
+      readbackPool.query(
         `SELECT domain_id, source_hash, snapshot_hash,
                 source_count, target_count, status
            FROM lawos_domain.import_receipts
@@ -248,7 +249,7 @@ test("operational Client providers preserve parity, drift safety, and rollback d
           ORDER BY domain_id, source_hash`,
         [CLIENT_MIGRATION_TENANT],
       ),
-      fixture.adminPool.query(
+      readbackPool.query(
         `SELECT domain_id, idempotency_key, request_hash,
                 response
            FROM lawos_domain.idempotency_keys
@@ -257,11 +258,16 @@ test("operational Client providers preserve parity, drift safety, and rollback d
         [CLIENT_MIGRATION_TENANT, CLIENT_OPERATIONS_READINESS_KEY],
       ),
     ]);
-    return hashDomainValue({
+    return {
       records: records.rows,
       imports: imports.rows,
       readiness: readiness.rows,
-    });
+    };
+  }
+  async function storageDigest() {
+    return hashDomainValue(
+      await storageState(fixture.bootstrapPool),
+    );
   }
 
   let forgedVerifierCalls = 0;
@@ -277,9 +283,7 @@ test("operational Client providers preserve parity, drift safety, and rollback d
   );
   assert.equal(forgedVerifierCalls, 0);
   await runHrxPostgresMigrations(fixture.adminPool);
-  await runClientOperationsPostgresMigrations(
-    fixture.adminPool,
-  );
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const migrated = await runClientOperationsMigration({
     ledger,
     pool: fixture.appPool,
@@ -287,6 +291,16 @@ test("operational Client providers preserve parity, drift safety, and rollback d
     tenant_id: CLIENT_MIGRATION_TENANT,
   });
   assert.equal(migrated.readback.verified, true);
+  assert.deepEqual(
+    await storageState(fixture.adminPool),
+    { records: [], imports: [], readiness: [] },
+  );
+  const authoritativeStorage = await storageState(
+    fixture.bootstrapPool,
+  );
+  assert.ok(authoritativeStorage.records.length > 0);
+  assert.ok(authoritativeStorage.imports.length > 0);
+  assert.ok(authoritativeStorage.readiness.length > 0);
   const migratedStorageDigest = await storageDigest();
   await assert.rejects(
     start({ identityTenantId: "tenant-client-migration-mismatch" }),

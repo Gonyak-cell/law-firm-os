@@ -403,7 +403,9 @@ function checkpointFor(prepared, completedSteps) {
 }
 
 function isNegativeTenantAccessDenied(error) {
-  return error?.code === "LAWOS_POSTGRES_ACCESS_DENIED"
+  return (error?.code === "LAWOS_POSTGRES_ACCESS_DENIED"
+      || error?.code ===
+        "LAWOS_POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED")
     && error?.status === 403;
 }
 

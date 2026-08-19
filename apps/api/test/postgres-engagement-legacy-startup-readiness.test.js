@@ -7,10 +7,12 @@ import { approveEngagement } from "../../../packages/intake/src/engagement-servi
 import { createIntakeRuntimeRepository } from "../../../packages/intake/src/runtime-repository.js";
 import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
-import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
-import { runClientOperationsPostgresMigrations } from "../src/client-operations-schema.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
 import { startApiServer } from "../src/server.js";
+import {
+  createOutlookAuthorityPostgresFixture,
+  runOutlookAuthorityPostgresMigrations,
+} from "./support/outlook-authority-postgres-fixture.js";
 
 const TENANT = "tenant-postgres-engagement-legacy-startup";
 const ACTOR = "actor-postgres-engagement-legacy-startup";
@@ -31,7 +33,7 @@ const ENGAGEMENT = Object.freeze({
 });
 
 test("operational startup blocks unresolved engagement authority before DMS composition or listen", { timeout: 30_000 }, async (t) => {
-  const postgres = await createMigratedPostgresFixture(t);
+  const postgres = await createOutlookAuthorityPostgresFixture(t);
   if (!postgres) return;
   const ledger = createPostgresDomainLedger({ pool: postgres.appPool });
   const repository = createIntakeRuntimeRepository({
@@ -60,7 +62,7 @@ test("operational startup blocks unresolved engagement authority before DMS comp
     tenant_id: TENANT,
   }).snapshot);
   repository.close();
-  await runClientOperationsPostgresMigrations(postgres.adminPool);
+  await runOutlookAuthorityPostgresMigrations(postgres);
 
   let storageCompositionCalls = 0;
   const blockedStorage = Object.freeze({
@@ -82,6 +84,7 @@ test("operational startup blocks unresolved engagement authority before DMS comp
       profile: "local-dev", secret: sessionSecret, trustedTenantId: TENANT,
     }),
     stepUpAuthority: Object.freeze({}), persistenceAuthority: "postgres-v2",
+    outlookDesktopEntitlementEnabled: false,
     persistenceAuthorityEnv: {
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/intake-legacy-readiness",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/intake-legacy-readiness-tenant",

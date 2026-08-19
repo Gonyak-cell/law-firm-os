@@ -7,12 +7,15 @@ on:
       - ".github/workflows/outlook-addin-validation.yml"
       - "apps/addin/**"
       - "contracts/outlook-addin-*.json"
+      - "contracts/outlook-m365-canary-manifest-set.json"
       - "docs/runbooks/outlook-addin-release-gates.md"
       - "scripts/**"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
       - "apps/web/src/**"
       - "apps/web/test/**"
       - "apps/microsoft-egress-broker/**"
+      - "apps/microsoft-group-egress-controller/**"
+      - "infra/lawos-production/microsoft-group-egress-template.json"
       - "apps/api/src/client-outlook-*.js"
       - "apps/api/src/microsoft-egress-broker-transport.js"
       - "apps/api/src/microsoft-delegated-oauth-client.js"
@@ -55,12 +58,15 @@ on:
       - ".github/workflows/outlook-addin-validation.yml"
       - "apps/addin/**"
       - "contracts/outlook-addin-*.json"
+      - "contracts/outlook-m365-canary-manifest-set.json"
       - "docs/runbooks/outlook-addin-release-gates.md"
       - "scripts/**"
       - "apps/web/public/.well-known/microsoft-officeaddins-allowed.json"
       - "apps/web/src/**"
       - "apps/web/test/**"
       - "apps/microsoft-egress-broker/**"
+      - "apps/microsoft-group-egress-controller/**"
+      - "infra/lawos-production/microsoft-group-egress-template.json"
       - "apps/api/src/client-outlook-*.js"
       - "apps/api/src/microsoft-egress-broker-transport.js"
       - "apps/api/src/microsoft-delegated-oauth-client.js"
@@ -139,6 +145,9 @@ jobs:
       - name: Release gate unit tests
         run: node --test scripts/test/outlook-release-*.test.mjs
 
+      - name: One-user M365 canary manifest tests
+        run: node --test scripts/test/outlook-m365-canary-manifests.test.mjs
+
       - name: Exact-SHA deterministic Add-in release candidate
         run: node scripts/validate-outlook-release-candidate.mjs --source-sha "$GITHUB_SHA"
 
@@ -161,6 +170,15 @@ jobs:
 
       - name: Microsoft egress broker tests
         run: node --test apps/microsoft-egress-broker/index.test.mjs
+
+      - name: Microsoft group egress controller and infrastructure tests
+        run: >-
+          node --test
+          --test-concurrency=1
+          apps/microsoft-group-egress-controller/*.test.mjs
+          scripts/test/microsoft-group-egress-artifact.test.mjs
+          scripts/test/microsoft-group-egress-builder.test.mjs
+          scripts/test/microsoft-group-egress-infrastructure.test.mjs
 
       - name: Outlook task, time, precedent, document, and DocuSign tests
         run: >-
@@ -224,10 +242,16 @@ jobs:
       - name: Validate Outlook add-in route and authorization contracts
         run: node scripts/validate-upl-c09-c12-outlook-addin.mjs
 
+      - name: Validate staged one-user canary manifests
+        run: node scripts/validate-outlook-m365-canary-manifests.mjs
+
       - name: Validate all local and production manifests
         run: |
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.xml
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.taskpane.production.xml
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.smart-alerts.production.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.production.xml
+          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.rollback.production.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.production.xml
 

@@ -7,7 +7,10 @@ import {
   listPostgresFoundationMigrations,
 } from "../../../packages/persistence/src/postgres/migration-catalog.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
-import { runPostgresMigrations } from "../../../packages/persistence/src/postgres/migration-runner.js";
+import {
+  runPostgresMigrations,
+  verifyPostgresMigrationState,
+} from "../../../packages/persistence/src/postgres/migration-runner.js";
 import {
   createMigratedPostgresFixture,
   startDisposablePostgres,
@@ -15,12 +18,39 @@ import {
 import {
   listClientOperationsPostgresMigrations,
   runClientOperationsPostgresMigrations,
-  verifyClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
 
 const CORRECTION = "302_client_email_filing_correction";
 const OUTLOOK = "303_client_outlook_conversation_sync";
 const DESKTOP = "304_client_outlook_desktop_installation";
+const RELEASE_TRUST = "305_client_outlook_desktop_release_trust";
+const ASSIGNMENT = "306_client_outlook_desktop_assignment";
+const HISTORICAL_GAP_IDS = Object.freeze([
+  "012_outlook_document_source_identity",
+  "013_dms_precedent_search",
+  "014_docusign_outbox",
+  "015_external_tenant_provisioning",
+]);
+
+function clientOperationsPrefixThrough305() {
+  const catalog = listClientOperationsPostgresMigrations();
+  assert.equal(catalog.at(-1).id, ASSIGNMENT);
+  return catalog.slice(0, -1);
+}
+
+function runClientOperationsPrefixThrough305(pool, { appliedBy } = {}) {
+  return runPostgresMigrations(pool, {
+    migrations: clientOperationsPrefixThrough305(),
+    appliedBy,
+    allowedHistoricalGapIds: HISTORICAL_GAP_IDS,
+  });
+}
+
+function verifyClientOperationsPrefixThrough305(pool) {
+  return verifyPostgresMigrationState(pool, {
+    migrations: clientOperationsPrefixThrough305(),
+  });
+}
 
 function poolWithMigrationHistory(rows) {
   const client = {
@@ -41,29 +71,31 @@ async function tableExists(pool, name) {
   return result.rows[0].relation !== null;
 }
 
-test("combined client catalog applies filing correction 302, Outlook sync 303, then desktop lifecycle 304", async (t) => {
+test("frozen combined prefix applies filing correction 302 through release trust 305", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
 
-  const result = await runClientOperationsPostgresMigrations(fixture.adminPool, {
+  const result = await runClientOperationsPrefixThrough305(fixture.adminPool, {
     appliedBy: "outlook-combined-fresh-test",
   });
 
-  assert.deepEqual(result.slice(-3).map(({ id, applied }) => ({ id, applied })), [
+  assert.deepEqual(result.slice(-4).map(({ id, applied }) => ({ id, applied })), [
     { id: CORRECTION, applied: true },
     { id: OUTLOOK, applied: true },
     { id: DESKTOP, applied: true },
+    { id: RELEASE_TRUST, applied: true },
   ]);
   assert.equal(await tableExists(fixture.adminPool, "email_filing_placements"), true);
   assert.equal(await tableExists(fixture.adminPool, "conversation_policies"), true);
   assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_installations"), true);
-  assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, DESKTOP);
+  assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_release_artifacts"), true);
+  assert.equal((await verifyClientOperationsPrefixThrough305(fixture.adminPool)).at(-1).id, RELEASE_TRUST);
 });
 
-test("combined client catalog upgrades a database already at filing correction 302 without replaying it", async (t) => {
+test("frozen combined prefix upgrades a database already at filing correction 302 without replaying it", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
-  const catalog = listClientOperationsPostgresMigrations();
+  const catalog = clientOperationsPrefixThrough305();
   const correctionIndex = catalog.findIndex(({ id }) => id === CORRECTION);
   assert.ok(correctionIndex > 0);
   await runPostgresMigrations(fixture.adminPool, {
@@ -73,7 +105,7 @@ test("combined client catalog upgrades a database already at filing correction 3
   assert.equal(await tableExists(fixture.adminPool, "email_filing_placements"), true);
   assert.equal(await tableExists(fixture.adminPool, "conversation_policies"), false);
 
-  const result = await runClientOperationsPostgresMigrations(fixture.adminPool, {
+  const result = await runClientOperationsPrefixThrough305(fixture.adminPool, {
     appliedBy: "outlook-combined-upgrade-test",
   });
 
@@ -82,11 +114,38 @@ test("combined client catalog upgrades a database already at filing correction 3
   assert.equal(result.find(({ id }) => id === DESKTOP).applied, true);
   assert.equal(await tableExists(fixture.adminPool, "conversation_policies"), true);
   assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_installations"), true);
-  assert.equal((await verifyClientOperationsPostgresMigrations(fixture.adminPool)).at(-1).id, DESKTOP);
+  assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_release_artifacts"), true);
+  assert.equal((await verifyClientOperationsPrefixThrough305(fixture.adminPool)).at(-1).id, RELEASE_TRUST);
 });
 
-test("combined client catalog reconciles verified foundation 001-011 plus HRX history and replays idempotently", async (t) => {
-  const instance = await startDisposablePostgres(t);
+test("frozen combined prefix upgrades exact pre-305 history once and replays zero", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const catalog = clientOperationsPrefixThrough305();
+  assert.equal(catalog.at(-1).id, RELEASE_TRUST);
+  await runPostgresMigrations(fixture.adminPool, {
+    migrations: catalog.slice(0, -1),
+    appliedBy: "synthetic-exact-pre-305-test",
+  });
+
+  const upgraded = await runClientOperationsPrefixThrough305(fixture.adminPool, {
+    appliedBy: "release-trust-305-upgrade-test",
+  });
+  assert.deepEqual(
+    upgraded.filter(({ applied }) => applied).map(({ id }) => id),
+    [RELEASE_TRUST],
+  );
+  assert.equal(await tableExists(fixture.adminPool, "outlook_desktop_release_artifacts"), true);
+  const replay = await runClientOperationsPrefixThrough305(fixture.adminPool, {
+    appliedBy: "release-trust-305-replay-test",
+  });
+  assert.equal(replay.every(({ applied }) => !applied), true);
+});
+
+test("frozen combined prefix reconciles verified foundation 001-011 plus HRX history and replays idempotently", async (t) => {
+  const instance = await startDisposablePostgres(t, {
+    registerCleanup: false,
+  });
   if (!instance) return;
   const pool = createPostgresPool({
     connectionString: instance.connection_string,
@@ -103,7 +162,7 @@ test("combined client catalog reconciles verified foundation 001-011 plus HRX hi
     ...foundation.slice(0, 11),
     ...listHrxPostgresMigrations(),
   ];
-  const catalog = listClientOperationsPostgresMigrations();
+  const catalog = clientOperationsPrefixThrough305();
   const oldProductionIds = new Set(oldProductionCatalog.map(({ id }) => id));
   const missingIds = catalog
     .filter(({ id }) => !oldProductionIds.has(id))
@@ -125,7 +184,7 @@ test("combined client catalog reconciles verified foundation 001-011 plus HRX hi
       && error?.expected_migration_id === "012_outlook_document_source_identity",
   );
 
-  const reconciled = await runClientOperationsPostgresMigrations(pool, {
+  const reconciled = await runClientOperationsPrefixThrough305(pool, {
     appliedBy: "verified-subset-reconciliation-test",
   });
   assert.deepEqual(
@@ -133,18 +192,20 @@ test("combined client catalog reconciles verified foundation 001-011 plus HRX hi
     missingIds,
   );
   assert.deepEqual(
-    (await verifyClientOperationsPostgresMigrations(pool)).map(({ id }) => id),
+    (await verifyClientOperationsPrefixThrough305(pool)).map(({ id }) => id),
     catalog.map(({ id }) => id),
   );
 
-  const replay = await runClientOperationsPostgresMigrations(pool, {
+  const replay = await runClientOperationsPrefixThrough305(pool, {
     appliedBy: "verified-subset-replay-test",
   });
   assert.equal(replay.every(({ applied }) => !applied), true);
 });
 
-test("combined client catalog upgrades existing 001-014 plus 100/200/300 history with additive 015 and replays", async (t) => {
-  const instance = await startDisposablePostgres(t);
+test("frozen combined prefix upgrades existing 001-014 plus 100/200/300 history with additive 015 and replays", async (t) => {
+  const instance = await startDisposablePostgres(t, {
+    registerCleanup: false,
+  });
   if (!instance) return;
   const pool = createPostgresPool({
     connectionString: instance.connection_string,
@@ -157,7 +218,7 @@ test("combined client catalog upgrades existing 001-014 plus 100/200/300 history
     await instance.stop();
   });
   await pool.query("CREATE ROLE lawos_app LOGIN");
-  const catalog = listClientOperationsPostgresMigrations();
+  const catalog = clientOperationsPrefixThrough305();
   const oldProductionCatalog = catalog.filter(({ id }) => id !== "015_external_tenant_provisioning");
   await runPostgresMigrations(pool, {
     migrations: oldProductionCatalog,
@@ -165,7 +226,7 @@ test("combined client catalog upgrades existing 001-014 plus 100/200/300 history
   });
   assert.equal((await pool.query("SELECT to_regclass('lawos_identity.tenants') AS relation")).rows[0].relation, null);
 
-  const upgraded = await runClientOperationsPostgresMigrations(pool, {
+  const upgraded = await runClientOperationsPrefixThrough305(pool, {
     appliedBy: "verified-015-reconciliation-test",
   });
   assert.deepEqual(
@@ -174,10 +235,10 @@ test("combined client catalog upgrades existing 001-014 plus 100/200/300 history
   );
   assert.notEqual((await pool.query("SELECT to_regclass('lawos_identity.tenants') AS relation")).rows[0].relation, null);
   assert.deepEqual(
-    (await verifyClientOperationsPostgresMigrations(pool)).map(({ id }) => id),
+    (await verifyClientOperationsPrefixThrough305(pool)).map(({ id }) => id),
     catalog.map(({ id }) => id),
   );
-  const replay = await runClientOperationsPostgresMigrations(pool, {
+  const replay = await runClientOperationsPrefixThrough305(pool, {
     appliedBy: "verified-015-replay-test",
   });
   assert.equal(replay.every(({ applied }) => !applied), true);

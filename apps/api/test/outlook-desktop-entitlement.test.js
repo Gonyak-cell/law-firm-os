@@ -93,6 +93,115 @@ test("roster parser fails closed unless there are exactly ten unique complete tu
   }
 });
 
+test("roster parser rejects inherited root, array, and entry authority", () => {
+  const inheritedRoot = Object.create(syntheticRoster());
+  assert.throws(
+    () => parseOutlookDesktopAutoconnectRoster(inheritedRoot),
+    (error) => error?.safe_error_code === "OUTLOOK_DESKTOP_ROSTER_INVALID",
+  );
+
+  class InheritedEntries extends Array {}
+  const inheritedEntries = InheritedEntries.from(syntheticEntries());
+  assert.throws(
+    () => parseOutlookDesktopAutoconnectRoster(
+      syntheticRoster(inheritedEntries),
+    ),
+    (error) => error?.safe_error_code === "OUTLOOK_DESKTOP_ROSTER_INVALID",
+  );
+
+  const inheritedEntry = Object.create(syntheticEntries()[0]);
+  assert.throws(
+    () => parseOutlookDesktopAutoconnectRoster(syntheticRoster([
+      inheritedEntry,
+      ...syntheticEntries().slice(1),
+    ])),
+    (error) => error?.safe_error_code === "OUTLOOK_DESKTOP_ROSTER_INVALID",
+  );
+});
+
+test("roster parser rejects accessors before observing them", () => {
+  let getterReads = 0;
+  const accessorRoot = {};
+  for (const [key, value] of Object.entries(syntheticRoster())) {
+    Object.defineProperty(accessorRoot, key, {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return value;
+      },
+    });
+  }
+  let rootError;
+  try {
+    parseOutlookDesktopAutoconnectRoster(accessorRoot);
+  } catch (error) {
+    rootError = error;
+  }
+  assert.equal(getterReads, 0);
+  assert.equal(rootError?.safe_error_code, "OUTLOOK_DESKTOP_ROSTER_INVALID");
+
+  getterReads = 0;
+  const accessorEntry = {};
+  for (const [key, value] of Object.entries(syntheticEntries()[0])) {
+    Object.defineProperty(accessorEntry, key, {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return value;
+      },
+    });
+  }
+  let entryError;
+  try {
+    parseOutlookDesktopAutoconnectRoster(syntheticRoster([
+      accessorEntry,
+      ...syntheticEntries().slice(1),
+    ]));
+  } catch (error) {
+    entryError = error;
+  }
+  assert.equal(getterReads, 0);
+  assert.equal(entryError?.safe_error_code, "OUTLOOK_DESKTOP_ROSTER_INVALID");
+});
+
+test("roster parser rejects Proxy roots and entry arrays before invoking traps", () => {
+  let trapCalls = 0;
+  const proxyRoot = new Proxy(syntheticRoster(), {
+    get(target, key, receiver) {
+      trapCalls += 1;
+      return Reflect.get(target, key, receiver);
+    },
+    ownKeys(target) {
+      trapCalls += 1;
+      return Reflect.ownKeys(target);
+    },
+  });
+  let rootError;
+  try {
+    parseOutlookDesktopAutoconnectRoster(proxyRoot);
+  } catch (error) {
+    rootError = error;
+  }
+  assert.equal(trapCalls, 0);
+  assert.equal(rootError?.safe_error_code, "OUTLOOK_DESKTOP_ROSTER_INVALID");
+
+  trapCalls = 0;
+  const proxyEntries = new Proxy(syntheticEntries(), {
+    get(target, key, receiver) {
+      trapCalls += 1;
+      return Reflect.get(target, key, receiver);
+    },
+  });
+  let entriesError;
+  try {
+    parseOutlookDesktopAutoconnectRoster(syntheticRoster(proxyEntries));
+  } catch (error) {
+    entriesError = error;
+  }
+  assert.equal(trapCalls, 0);
+  assert.equal(entriesError?.safe_error_code, "OUTLOOK_DESKTOP_ROSTER_INVALID");
+});
+
 test("an absent or eleventh principal is denied without returning roster identity", () => {
   const roster = parseOutlookDesktopAutoconnectRoster(syntheticRoster());
   const decision = evaluateOutlookDesktopEntitlement({

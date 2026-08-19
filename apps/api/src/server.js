@@ -10,6 +10,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { types } from "node:util";
 
 const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
@@ -22,9 +23,6 @@ import { createMatterTimelineCursorAuthority } from "../../../packages/matter/sr
 import { createOutlookAttachmentReceiptAuthority } from "./outlook-attachment-receipt-authority.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
-import {
-  createPostgresOutlookDesktopInstallationService,
-} from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-service.js";
 import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
 import { createS3StorageAdapter } from "../../../packages/dms/src/storage/s3-storage-adapter.js";
@@ -195,6 +193,17 @@ import {
   mapOutlookDesktopInstallationRequestBodyError,
 } from "./outlook-desktop-installation-runtime-context.js";
 import {
+  OUTLOOK_DESKTOP_ACTIVATION_BOUNDED_CONTEXT,
+  OUTLOOK_DESKTOP_ACTIVATION_MAX_BODY_BYTES,
+  handleOutlookDesktopActivationApiRequest,
+  isOutlookDesktopActivationApiPath,
+  mapOutlookDesktopActivationRequestBodyError,
+} from "./outlook-desktop-activation-runtime-context.js";
+import {
+  assertPostgresOutlookDesktopOperationalControlPorts,
+  createPostgresOutlookDesktopOperationalRuntime,
+} from "./outlook-desktop-operational-runtime.js";
+import {
   parseOutlookDesktopAutoconnectRoster,
 } from "./outlook-desktop-entitlement.js";
 import {
@@ -229,6 +238,7 @@ import {
   LAWOS_PERSISTENCE_AUTHORITIES,
   LAWOS_OFFLINE_REJECTED_POLICY,
   preparePersistenceAuthority,
+  resolvePersistenceAuthority,
 } from "./persistence-authority.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
@@ -270,6 +280,187 @@ function resolveOutlookDesktopAutoconnectRoster(value) {
   } catch {
     return null;
   }
+}
+
+const OUTLOOK_DESKTOP_FORBIDDEN_STARTUP_OPTIONS = Object.freeze([
+  "outlookDesktopRuntime",
+  "outlookDesktopActivationService",
+  "outlookDesktopActivationServiceFactory",
+  "outlookDesktopActivationContract",
+  "outlookDesktopActivationClock",
+  "outlookDesktopActivationEnv",
+  "outlookDesktopLifecycleService",
+  "outlookDesktopLifecycleServiceFactory",
+  "outlookDesktopLifecycleContract",
+  "outlookDesktopLifecycleClock",
+  "outlookDesktopLifecycleEnv",
+]);
+const API_HIDDEN_DATA_STARTUP_OPTIONS = new Set([
+  "outlookDesktopAutoconnectRoster",
+]);
+
+function frozenNullPrototypeCopy(...sources) {
+  const properties = new Map();
+  for (const source of sources) {
+    const descriptors = Object.getOwnPropertyDescriptors(source);
+    for (const key of Reflect.ownKeys(descriptors)) {
+      const descriptor = descriptors[key];
+      if (!("value" in descriptor)) {
+        throw runtimePreflightError(
+          "API startup snapshot must contain only data properties",
+        );
+      }
+      properties.set(key, {
+        value: descriptor.value,
+        enumerable: descriptor.enumerable,
+        writable: false,
+        configurable: false,
+      });
+    }
+  }
+  const snapshot = Object.create(null);
+  for (const [key, descriptor] of properties) {
+    Object.defineProperty(snapshot, key, descriptor);
+  }
+  return Object.freeze(snapshot);
+}
+
+function snapshotStartupOptions(
+  value,
+  label,
+  {
+    allowHiddenDataProperties = new Set(),
+    allowProcessEnv = false,
+  } = {},
+) {
+  if (!value || typeof value !== "object" || Array.isArray(value)
+      || types.isProxy(value)) {
+    throw runtimePreflightError(
+      `${label} must use a non-Proxy object`,
+    );
+  }
+  let prototype;
+  let descriptors;
+  try {
+    prototype = Object.getPrototypeOf(value);
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch {
+    throw runtimePreflightError(
+      `${label} must expose data properties`,
+    );
+  }
+  if (
+    !(allowProcessEnv && value === process.env)
+    && prototype !== Object.prototype
+    && prototype !== null
+  ) {
+    throw runtimePreflightError(
+      `${label} must not inherit startup authority`,
+    );
+  }
+  if (Reflect.ownKeys(descriptors).some((key) => {
+    const descriptor = descriptors[key];
+    return !("value" in descriptor)
+      || (descriptor.enumerable !== true
+        && !allowHiddenDataProperties.has(key));
+  })) {
+    throw runtimePreflightError(
+      `${label} must expose enumerable data properties`,
+    );
+  }
+  return frozenNullPrototypeCopy(value);
+}
+
+function prepareApiStartupOptions(options) {
+  const startupOptions = snapshotStartupOptions(
+    options,
+    "API startup options",
+    { allowHiddenDataProperties: API_HIDDEN_DATA_STARTUP_OPTIONS },
+  );
+  const descriptors = Object.getOwnPropertyDescriptors(startupOptions);
+  if (OUTLOOK_DESKTOP_FORBIDDEN_STARTUP_OPTIONS.some((key) =>
+    Object.hasOwn(descriptors, key))) {
+    throw runtimePreflightError(
+      "Outlook desktop service, factory, contract, clock, env, and runtime overrides are forbidden",
+    );
+  }
+  const dataValue = (key) => {
+    const descriptor = descriptors[key];
+    if (!descriptor) return undefined;
+    if (!("value" in descriptor)) {
+      throw runtimePreflightError(
+        "Outlook desktop startup authority options must use data properties",
+      );
+    }
+    return descriptor.value;
+  };
+  const persistenceAuthorityEnv = snapshotStartupOptions(
+    dataValue("persistenceAuthorityEnv") ?? process.env,
+    "API persistence authority environment",
+    { allowProcessEnv: true },
+  );
+  const runtimeProfile = normalizeRuntimeProfileOption(
+    dataValue("runtimeProfile"),
+    persistenceAuthorityEnv,
+  );
+  const env = {
+    ...persistenceAuthorityEnv,
+    LAWOS_RUNTIME_PROFILE: runtimeProfile,
+  };
+  const persistenceAuthority = resolvePersistenceAuthority({
+    value: dataValue("persistenceAuthority"),
+    env,
+  });
+  const activationPresent = Object.hasOwn(
+    descriptors,
+    "outlookDesktopActivationControlPort",
+  );
+  const lifecyclePresent = Object.hasOwn(
+    descriptors,
+    "outlookDesktopLifecycleControlPort",
+  );
+  const entitlementPresent = Object.hasOwn(
+    descriptors,
+    "outlookDesktopEntitlementEnabled",
+  );
+  const entitlementEnabled = dataValue("outlookDesktopEntitlementEnabled");
+  if ((persistenceAuthority === LAWOS_PERSISTENCE_AUTHORITIES.postgresV2
+      || activationPresent || lifecyclePresent || entitlementPresent)
+      && typeof entitlementEnabled !== "boolean") {
+    throw runtimePreflightError(
+      "postgres-v2 startup requires an explicit primitive outlookDesktopEntitlementEnabled boolean",
+    );
+  }
+  if (entitlementEnabled === false && (activationPresent || lifecyclePresent)) {
+    throw runtimePreflightError(
+      "disabled Outlook desktop entitlement forbids dormant control ports",
+    );
+  }
+  if (entitlementEnabled === true) {
+    if (persistenceAuthority !== LAWOS_PERSISTENCE_AUTHORITIES.postgresV2
+        || !activationPresent || !lifecyclePresent) {
+      throw runtimePreflightError(
+        "enabled Outlook desktop entitlement requires postgres-v2 and both control ports",
+      );
+    }
+    try {
+      assertPostgresOutlookDesktopOperationalControlPorts({
+        outlookDesktopActivationControlPort:
+          dataValue("outlookDesktopActivationControlPort"),
+        outlookDesktopLifecycleControlPort:
+          dataValue("outlookDesktopLifecycleControlPort"),
+      });
+    } catch {
+      throw runtimePreflightError(
+        "enabled Outlook desktop entitlement requires the exact isolated control-port composition",
+      );
+    }
+  }
+  return frozenNullPrototypeCopy(startupOptions, {
+    runtimeProfile,
+    persistenceAuthority,
+    persistenceAuthorityEnv,
+  });
 }
 
 function normalizeRuntimeProfileOption(profile, env = process.env) {
@@ -1455,7 +1646,13 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   const isAiPath = pathname.startsWith("/api/ai");
   const isPortalPath = pathname.startsWith("/api/portal") || pathname.startsWith("/api/data-room");
   const isOutlookPath = pathname.startsWith("/api/outlook");
-  const isOutlookDesktopPath = isOutlookDesktopInstallationApiPath(pathname);
+  const isOutlookDesktopActivationPath =
+    outlookDesktopRuntime?.activation_enabled === true
+    && isOutlookDesktopActivationApiPath(pathname);
+  const isOutlookDesktopInstallationPath =
+    isOutlookDesktopInstallationApiPath(pathname);
+  const isOutlookDesktopPath =
+    isOutlookDesktopActivationPath || isOutlookDesktopInstallationPath;
   const isUiReadinessPath = pathname.startsWith("/api/ui");
   const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
   const isEnterpriseReadinessPath = pathname.startsWith("/api/enterprise");
@@ -1511,6 +1708,12 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       auth_authority: sessionAuth.capabilities ?? null,
       outlook_desktop_installation:
         OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT,
+      ...(outlookDesktopRuntime?.activation_enabled === true
+        ? {
+            outlook_desktop_activation:
+              OUTLOOK_DESKTOP_ACTIVATION_BOUNDED_CONTEXT,
+          }
+        : {}),
       ...(outlookGraphSyncReadiness
         ? { outlook_graph_sync: outlookGraphSyncReadiness }
         : {}),
@@ -1735,7 +1938,38 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     };
   };
 
-  if (isOutlookDesktopPath) {
+  if (isOutlookDesktopActivationPath) {
+    let body = {};
+    if (req.method === "POST") {
+      try {
+        body = await readRequestBody(req, {
+          maxBytes: OUTLOOK_DESKTOP_ACTIVATION_MAX_BODY_BYTES,
+          injectAuthenticatedActor: false,
+        });
+      } catch (error) {
+        const result = mapOutlookDesktopActivationRequestBodyError(
+          error,
+          requestId,
+        );
+        sendJson(req, res, result.status, result.body);
+        return;
+      }
+    }
+    const result = await handleOutlookDesktopActivationApiRequest({
+      pathname,
+      method: req.method,
+      body,
+      headers: req.headers,
+      principal: sessionContext.principal,
+      context: requestPermissionContext(),
+      requestId,
+      runtime: outlookDesktopRuntime,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  if (isOutlookDesktopInstallationPath) {
     let body = {};
     if (req.method === "POST") {
       try {
@@ -2486,7 +2720,7 @@ export function createApiServer({
   });
 }
 
-export async function startApiServer({
+async function startApiServerImplementation({
   port = DEFAULT_PORT,
   runtimeProfile,
   persistenceAuthority,
@@ -2572,7 +2806,9 @@ export async function startApiServer({
   m365GraphConfig,
   outlookGraphWebhook,
   outlookConversationRuntimeFactory = createPostgresOutlookConversationRuntime,
-  outlookDesktopRuntime,
+  outlookDesktopEntitlementEnabled,
+  outlookDesktopActivationControlPort,
+  outlookDesktopLifecycleControlPort,
   outlookDesktopAutoconnectRoster,
   enterpriseReadinessStorePath,
   securityAuditStorePath,
@@ -2601,6 +2837,10 @@ export async function startApiServer({
     ...persistenceAuthorityEnv,
     LAWOS_RUNTIME_PROFILE: resolvedRuntimeProfile,
   };
+  const resolvedPersistenceAuthority = resolvePersistenceAuthority({
+    value: persistenceAuthority,
+    env: resolvedPersistenceAuthorityEnv,
+  });
   const resolvedPeopleFeatureFlags =
     peopleFeatureFlags ?? resolvePeopleFeatureFlagsFromEnv(resolvedPersistenceAuthorityEnv);
   const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
@@ -2834,19 +3074,23 @@ export async function startApiServer({
                 ] === "true",
             })
           : null;
-      const operationalOutlookDesktopRuntime = outlookDesktopRuntime
-        ?? Object.freeze({
+      const operationalOutlookDesktopRuntime =
+        createPostgresOutlookDesktopOperationalRuntime({
+          pool: postgresPool,
+          tenant_id: startupAuthorityTenantId,
+          entra_tenant_id: m365GraphConfig?.entra_tenant_id ?? null,
           entitlement_roster: resolveOutlookDesktopAutoconnectRoster(
             outlookDesktopAutoconnectRoster
               ?? resolvedPersistenceAuthorityEnv[
                 LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV
               ],
           ),
-          installation_service_factory: ({ tenant_id }) =>
-            createPostgresOutlookDesktopInstallationService({
-              pool: postgresPool,
-              tenant_id,
-            }),
+          ...(outlookDesktopEntitlementEnabled
+            ? {
+                outlookDesktopActivationControlPort,
+                outlookDesktopLifecycleControlPort,
+              }
+            : {}),
         });
       const operationalM365GraphConfig = outlookConversationRuntime
         ? Object.freeze({
@@ -3148,7 +3392,7 @@ export async function startApiServer({
     m365GraphConfig,
     outlookGraphWebhook,
     outlookGraphSyncReadiness: null,
-    outlookDesktopRuntime,
+    outlookDesktopRuntime: null,
     stepUpAuthority: resolvedStepUpAuthority,
     sessionAuth: resolvedSessionAuth,
     timelineCursorAuthority: resolvedTimelineCursorAuthority,
@@ -3174,22 +3418,31 @@ export async function startApiServer({
   });
 }
 
+export async function startApiServer(options = {}) {
+  return startApiServerImplementation(prepareApiStartupOptions(options));
+}
+
 let cliApiServer = null;
 let cliKeepAlive = null;
 
-export function startCliApiServer({
-  startupOptions = {},
-  payrollStatementProviderVerifier,
-  leaveProviderVerifier,
-  startApiServerFn = startApiServer,
-} = {}) {
-  return startApiServerFn({
-    ...startupOptions,
-    ...(payrollStatementProviderVerifier === undefined
+export function startCliApiServer(options = {}) {
+  const cliOptions = snapshotStartupOptions(options, "CLI API startup options");
+  const startupOptions = snapshotStartupOptions(
+    cliOptions.startupOptions ?? {},
+    "CLI API server startup options",
+  );
+  const {
+    payrollStatementProviderVerifier,
+    leaveProviderVerifier,
+    startApiServerFn = startApiServer,
+  } = cliOptions;
+  return startApiServerFn(frozenNullPrototypeCopy(
+    startupOptions,
+    payrollStatementProviderVerifier === undefined
       ? {}
-      : { payrollStatementProviderVerifier }),
-    ...(leaveProviderVerifier === undefined ? {} : { leaveProviderVerifier }),
-  });
+      : { payrollStatementProviderVerifier },
+    leaveProviderVerifier === undefined ? {} : { leaveProviderVerifier },
+  ));
 }
 
 function stopCliServer(signal) {

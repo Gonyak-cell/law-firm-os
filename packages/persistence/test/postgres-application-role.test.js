@@ -13,7 +13,7 @@ import { runPostgresMigrations } from "../src/postgres/migration-runner.js";
 import { startDisposablePostgres } from "./helpers/disposable-postgres.js";
 
 test("private staging application role is least privilege and tenant-explicit", async (t) => {
-  const instance = await startDisposablePostgres(t);
+  const instance = await startDisposablePostgres(t, { registerCleanup: false });
   if (!instance) return;
   const pool = createPostgresPool({
     connectionString: instance.connection_string,

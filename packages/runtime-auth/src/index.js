@@ -2,6 +2,7 @@ export * from "./assurance.js";
 export * from "./audit.js";
 export * from "./authz-context.js";
 export * from "./break-glass.js";
+export * from "./external-release-trust.js";
 export * from "./local-provider.js";
 export * from "./membership.js";
 export * from "./policy-hooks.js";

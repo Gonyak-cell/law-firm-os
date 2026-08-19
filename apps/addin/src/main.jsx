@@ -440,7 +440,7 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
   const run = (async () => {
     if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
     if (!force) {
-      const existing = await validateLawosSession();
+      const existing = await validateLawosSession({ owner: recoveryOwner });
       if (existing.authenticated) return existing;
     }
     const bridge = await initializeMsalBridge();

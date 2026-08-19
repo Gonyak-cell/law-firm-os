@@ -7,6 +7,9 @@ import {
 import {
   JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
 } from "./source-authority-manifest.js";
+import {
+  validateJsonPostgresDatabaseTargetReceiptBinding,
+} from "./database-target-receipt.js";
 
 export const JSON_POSTGRES_EXECUTION_PACKET_VERSION = "law-firm-os.json-postgres-execution-packet.v2";
 export const JSON_POSTGRES_EXECUTION_PHASES = Object.freeze([
@@ -197,6 +200,8 @@ function validateTarget(value, contract) {
     "artifact_versioning_enabled",
     "artifact_public_access_blocked",
     "database_secret_ref",
+    "database_target_receipt",
+    "database_target_receipt_sha256",
     "tenant_context_secret_ref",
     "dms_bucket_ref",
     "dms_bucket_name",
@@ -228,7 +233,6 @@ function validateTarget(value, contract) {
     "aws_region",
     "artifact_bucket_ref",
     "artifact_kms_key_ref",
-    "database_secret_ref",
     "tenant_context_secret_ref",
     "dms_bucket_ref",
     "dms_prefix",
@@ -238,6 +242,10 @@ function validateTarget(value, contract) {
     "backup_target_ref",
   ]) {
     if (!TOKEN.test(value[key] ?? "")) fail("JSON_POSTGRES_EXECUTION_TARGET", `${key} is invalid`);
+  }
+  if (value.database_target_receipt == null
+    && !TOKEN.test(value.database_secret_ref ?? "")) {
+    fail("JSON_POSTGRES_EXECUTION_TARGET", "database_secret_ref is invalid");
   }
   if (!AWS_ACCOUNT.test(value.aws_account ?? "")) fail("JSON_POSTGRES_EXECUTION_TARGET", "AWS account is invalid");
   if (!/^(?!xn--)[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/u.test(value.artifact_bucket_name ?? "")
@@ -283,6 +291,7 @@ function validateTarget(value, contract) {
   if (!Number.isSafeInteger(value.monthly_cost_ceiling_krw) || value.monthly_cost_ceiling_krw !== 300_000) {
     fail("JSON_POSTGRES_EXECUTION_TARGET", "monthly cost ceiling must remain KRW 300,000");
   }
+  validateJsonPostgresDatabaseTargetReceiptBinding(value);
 }
 
 export function validateJsonPostgresExecutionTarget(value, {

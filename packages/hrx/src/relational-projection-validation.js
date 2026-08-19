@@ -767,7 +767,8 @@ async function negativeTenantVisibility(pool, approvedTenantId, negativeTenantId
       },
     );
   } catch (error) {
-    if (error?.code !== "LAWOS_POSTGRES_ACCESS_DENIED") throw error;
+    if (error?.code !== "LAWOS_POSTGRES_ACCESS_DENIED"
+      && error?.code !== "LAWOS_POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED") throw error;
     return 0;
   }
 }

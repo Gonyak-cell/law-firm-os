@@ -4540,6 +4540,7 @@ export function createLambdaApiRuntimeCache({
         : undefined;
     const startupOptions = {
       port: 0,
+      outlookDesktopEntitlementEnabled: false,
       sessionSecret: await resolveSessionSecretFn(),
       ...hrxStepUpSecrets,
       ...(hrxRelationalProjection

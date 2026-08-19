@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import https from "node:https";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -225,6 +226,7 @@ test("Lambda bootstrap wires the shared-secret roster once and preserves direct 
   const runtime = await cache.get();
   assert.equal(runtime.port, 32124);
   assert.equal(resolverCalls, 1);
+  assert.equal(startupOptions.outlookDesktopEntitlementEnabled, false);
   assert.equal(startupOptions.outlookDesktopAutoconnectRoster, undefined);
   assert.equal(
     JSON.stringify(startupOptions).includes("user-secret-roster"),
@@ -256,6 +258,87 @@ test("Lambda bootstrap wires the shared-secret roster once and preserves direct 
     JSON.stringify(startupOptions),
     /user-secret-roster|subject-secret-roster/u,
   );
+});
+
+test("Lambda default startup preserves the hidden roster through the real API preflight", async () => {
+  const secretRoster = testAutoconnectRoster(
+    "secret-roster-real-startup-v1",
+    "tenant-secret-roster-real-startup",
+  );
+  const m365GraphConfig = {
+    feature_enabled: true,
+    inquiry_feature_enabled: true,
+    provider_runtime_enabled: false,
+  };
+  Object.defineProperty(m365GraphConfig, "outlook_desktop_autoconnect_roster", {
+    value: secretRoster,
+    enumerable: false,
+  });
+  Object.freeze(m365GraphConfig);
+  const persistenceEnvironmentKeys = [
+    "LAWOS_RUNTIME_PROFILE",
+    "LAWOS_PERSISTENCE_AUTHORITY",
+    "LAWOS_POSTGRES_URL",
+    "LAWOS_POSTGRES_URL_SECRET_ID",
+    "LAWOS_DATABASE_URL_SECRET_ID",
+    "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET",
+    "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID",
+    "LAWOS_POSTGRES_SSL_MODE",
+  ];
+  const originalPersistenceEnvironment = Object.fromEntries(
+    persistenceEnvironmentKeys.map((key) => [key, process.env[key]]),
+  );
+  const originalFetch = globalThis.fetch;
+  const originalHttpsRequest = https.request;
+  let networkCalls = 0;
+  const cache = createLambdaApiRuntimeCache({
+    env: {},
+    createMatterRepositoryFn: async () => null,
+    resolveHrxStepUpSecretsFn: async () => ({}),
+    loadHrxRelationalProjectionFn: async () => null,
+    resolveSessionSecretFn: async () =>
+      "lambda-real-startup-session-secret-32-bytes",
+    createPasswordResetEmailDeliveryFn: () => undefined,
+    resolvePeopleOutlookRuntimeFactoryFn: async () => null,
+    resolveClientOutlookM365GraphConfigFn: async () => m365GraphConfig,
+    createMicrosoftEgressBrokerTransportFn: () => Object.freeze({}),
+  });
+
+  try {
+    process.env.LAWOS_RUNTIME_PROFILE = "operational";
+    process.env.LAWOS_PERSISTENCE_AUTHORITY = "postgres-v2";
+    for (const key of persistenceEnvironmentKeys.slice(2)) {
+      delete process.env[key];
+    }
+    globalThis.fetch = async () => {
+      networkCalls += 1;
+      throw new Error("network access is forbidden in Lambda preflight test");
+    };
+    https.request = () => {
+      networkCalls += 1;
+      throw new Error("network access is forbidden in Lambda preflight test");
+    };
+    assert.equal(
+      persistenceEnvironmentKeys.slice(2).some((key) => process.env[key]),
+      false,
+    );
+    await assert.rejects(
+      cache.get(),
+      (error) => error?.code === "LAWOS_RUNTIME_PREFLIGHT_FAILED"
+        && /selected PostgreSQL authority failed initialization/u.test(
+          error.message,
+        ),
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    https.request = originalHttpsRequest;
+    for (const key of persistenceEnvironmentKeys) {
+      const value = originalPersistenceEnvironment[key];
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+  assert.equal(networkCalls, 0);
 });
 
 test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {

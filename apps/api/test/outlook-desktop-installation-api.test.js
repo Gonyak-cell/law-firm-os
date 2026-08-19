@@ -7,6 +7,7 @@ import {
 } from "../src/outlook-desktop-entitlement.js";
 import {
   handleOutlookDesktopInstallationApiRequest,
+  projectOutlookDesktopRegistrationAuthorityResult,
 } from "../src/outlook-desktop-installation-runtime-context.js";
 
 const TENANT_ID = "tenant-desktop-api-a";
@@ -49,13 +50,22 @@ function permissionContext({ allowed = true, value = principal() } = {}) {
   };
 }
 
-function proofEnvelope(overrides = {}) {
+function authorityEnvelope(overrides = {}) {
   return {
+    installation_id: INSTALLATION_ID,
+    user_id: USER_ID,
+    entra_subject_id: SUBJECT_ID,
+    device_key_fingerprint: "a".repeat(64),
+    lifecycle_authorization_id: "lifecycle_authorization_api_001",
+    proof_transcript_sha256: "b".repeat(64),
+    request_id: "request_desktop_api_001",
+    event_id: "event_desktop_api_001",
     idempotency_key: "idem_desktop_api_0001",
-    nonce: Buffer.alloc(24, 1).toString("base64url"),
+    request_fingerprint: "c".repeat(64),
+    nonce_hash: "d".repeat(64),
+    device_signature_sha256: "e".repeat(64),
     issued_at: "2026-08-11T00:00:00.000Z",
     expires_at: "2026-08-11T00:02:00.000Z",
-    signature: "signature_material_must_never_return",
     ...overrides,
   };
 }
@@ -66,7 +76,8 @@ function registrationBody(overrides = {}) {
     app_version: "0.1.26",
     source_sha: "2".repeat(40),
     device_public_key: "public_key_material_must_never_return",
-    ...proofEnvelope(),
+    activation_authorization_id: "activation_authorization_api_001",
+    ...authorityEnvelope(),
     ...overrides,
   };
 }
@@ -74,9 +85,13 @@ function registrationBody(overrides = {}) {
 function heartbeatBody(overrides = {}) {
   return {
     expected_state_version: 1,
-    ...proofEnvelope({
+    ...authorityEnvelope({
+      event_id: "event_desktop_api_heartbeat_002",
+      request_id: "request_desktop_api_heartbeat_002",
       idempotency_key: "idem_desktop_api_heartbeat_0002",
-      nonce: Buffer.alloc(24, 2).toString("base64url"),
+      request_fingerprint: "f".repeat(64),
+      nonce_hash: "1".repeat(64),
+      device_signature_sha256: "2".repeat(64),
     }),
     ...overrides,
   };
@@ -86,9 +101,13 @@ function retireBody(overrides = {}) {
   return {
     expected_state_version: 2,
     retire_reason: "device_disconnect",
-    ...proofEnvelope({
+    ...authorityEnvelope({
+      event_id: "event_desktop_api_retire_003",
+      request_id: "request_desktop_api_retire_003",
       idempotency_key: "idem_desktop_api_retire_0003",
-      nonce: Buffer.alloc(24, 3).toString("base64url"),
+      request_fingerprint: "3".repeat(64),
+      nonce_hash: "4".repeat(64),
+      device_signature_sha256: "5".repeat(64),
     }),
     ...overrides,
   };
@@ -104,9 +123,7 @@ function serviceEnvelope(operation, command) {
         ? "registered"
         : operation === "retire" ? "retired" : operation,
       installation: Object.freeze({
-        installation_id: command.request.installation_id === "NEW"
-          ? INSTALLATION_ID
-          : command.request.installation_id,
+        installation_id: command.authorization.installation_id,
         status: operation === "retire" ? "retired" : "active",
         state_version: stateVersion,
         lease_expires_at: "2026-08-18T00:00:00.000Z",
@@ -121,8 +138,9 @@ function serviceEnvelope(operation, command) {
 
 function fakeService() {
   const calls = [];
-  const invoke = (operation) => async (command, { authorize } = {}) => {
-    assert.equal(await authorize(), true);
+  const invoke = (operation) => async (...args) => {
+    assert.equal(args.length, 1);
+    const [command] = args;
     calls.push({ operation, command });
     return serviceEnvelope(operation, command);
   };
@@ -132,12 +150,13 @@ function fakeService() {
       register: invoke("register"),
       heartbeat: invoke("heartbeat"),
       retire: invoke("retire"),
-      async read(input, { authorize } = {}) {
-        assert.equal(await authorize(), true);
+      async read(...args) {
+        assert.equal(args.length, 1);
+        const [input] = args;
         calls.push({ operation: "read", input });
         return {
           ...serviceEnvelope("heartbeat", {
-            request: { installation_id: input.installation_id },
+            authorization: { installation_id: input.installation_id },
           }).body.installation,
           state_version: 4,
           forbidden_service_extra: "must_not_escape",
@@ -167,95 +186,24 @@ async function directRequest({
   });
 }
 
-test("lifecycle HTTP adapter derives canonical requests from server route and signed principal", async () => {
-  const fake = fakeService();
-  const runtime = {
-    entitlement_roster: roster(),
-    installation_service: fake.service,
-  };
-  const registration = await directRequest({ runtime });
-  const heartbeat = await directRequest({
-    pathname: `/api/desktop/installations/${INSTALLATION_ID}/heartbeat`,
-    body: heartbeatBody(),
-    runtime,
-  });
-  const read = await directRequest({
-    pathname: `/api/desktop/installations/${INSTALLATION_ID}`,
-    method: "GET",
-    body: {},
-    runtime,
-  });
-  const retire = await directRequest({
-    pathname: `/api/desktop/installations/${INSTALLATION_ID}/retire`,
-    body: retireBody(),
-    runtime,
-  });
+test("private registration result projects only the bounded installation", () => {
+  const result = projectOutlookDesktopRegistrationAuthorityResult(
+    serviceEnvelope("register", { authorization: registrationBody() }),
+    INSTALLATION_ID,
+  );
 
-  assert.deepEqual(
-    [registration.status, heartbeat.status, read.status, retire.status],
-    [201, 200, 200, 200],
-  );
-  assert.deepEqual(
-    fake.calls.map(({ operation }) => operation),
-    ["register", "heartbeat", "read", "retire"],
-  );
-  const [registerCall, heartbeatCall, readCall, retireCall] = fake.calls;
-  assert.deepEqual(registerCall.command.principal, {
-    tenant_id: TENANT_ID,
-    user_id: USER_ID,
-    entra_subject_id: SUBJECT_ID,
-  });
-  assert.deepEqual(registerCall.command.request, {
-    method: "POST",
-    path: "/api/desktop/installations",
-    body: {
-      platform: "darwin",
-      app_version: "0.1.26",
-      source_sha: "2".repeat(40),
-      device_public_key: "public_key_material_must_never_return",
+  assert.deepEqual(result, {
+    response_status: 201,
+    outcome: "registered",
+    installation: {
+      installation_id: INSTALLATION_ID,
+      status: "active",
+      state_version: 1,
+      lease_expires_at: "2026-08-18T00:00:00.000Z",
+      retired_at: null,
     },
-    installation_id: "NEW",
-    idempotency_key: "idem_desktop_api_0001",
-    nonce: Buffer.alloc(24, 1).toString("base64url"),
-    issued_at: "2026-08-11T00:00:00.000Z",
-    expires_at: "2026-08-11T00:02:00.000Z",
   });
-  assert.equal(
-    registerCall.command.signature,
-    "signature_material_must_never_return",
-  );
-  assert.equal(heartbeatCall.command.request.installation_id, INSTALLATION_ID);
-  assert.deepEqual(heartbeatCall.command.request.body, {
-    expected_state_version: 1,
-  });
-  assert.deepEqual(readCall.input, {
-    principal: {
-      tenant_id: TENANT_ID,
-      user_id: USER_ID,
-      entra_subject_id: SUBJECT_ID,
-    },
-    installation_id: INSTALLATION_ID,
-  });
-  assert.deepEqual(Object.keys(read.body.installation).sort(), [
-    "installation_id",
-    "lease_expires_at",
-    "retired_at",
-    "state_version",
-    "status",
-  ]);
-  assert.equal(read.body.outcome, "read");
-  assert.equal(read.body.installation.state_version, 4);
-  assert.equal(retireCall.command.request.body.retire_reason, "device_disconnect");
-  for (const response of [registration, heartbeat, read, retire]) {
-    const text = JSON.stringify(response.body);
-    assert.equal(text.includes("public_key_material"), false);
-    assert.equal(text.includes("signature_material"), false);
-    assert.equal(text.includes("forbidden_service_extra"), false);
-    assert.equal(text.includes(TENANT_ID), false);
-    assert.equal(text.includes(USER_ID), false);
-    assert.equal(text.includes(SUBJECT_ID), false);
-    assert.equal(response.body.token_material_returned, false);
-  }
+  assert.doesNotMatch(JSON.stringify(result), /forbidden_service_extra/u);
 });
 
 test("authoritative read is GET-only, bodyless, binding-safe, and fail-closed", async () => {
@@ -321,6 +269,19 @@ test("authoritative read is GET-only, bodyless, binding-safe, and fail-closed", 
       },
     },
   });
+  let lazyFactoryCalls = 0;
+  const lazyFactory = await directRequest({
+    pathname: path,
+    method: "GET",
+    body: {},
+    runtime: {
+      entitlement_roster: roster(),
+      installation_service_factory() {
+        lazyFactoryCalls += 1;
+        return fake.service;
+      },
+    },
+  });
 
   assert.equal(success.status, 200);
   assert.equal(wrongMethod.status, 405);
@@ -328,6 +289,11 @@ test("authoritative read is GET-only, bodyless, binding-safe, and fail-closed", 
   assert.equal(mismatch.status, 403);
   assert.equal(missing.status, 404);
   assert.equal(serviceBindingMismatch.status, 403);
+  assert.equal(lazyFactory.status, 503);
+  assert.deepEqual(lazyFactory.body.safe_error_codes, [
+    "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+  ]);
+  assert.equal(lazyFactoryCalls, 0);
   assert.deepEqual(mismatch.body.safe_error_codes, [
     "OUTLOOK_DESKTOP_PERMISSION_REQUIRED",
   ]);
@@ -385,6 +351,9 @@ test("missing identity, roster, cohort, scope, or permission fails closed before
   for (const scenario of scenarios) {
     const fake = fakeService();
     const response = await directRequest({
+      pathname: `/api/desktop/installations/${INSTALLATION_ID}`,
+      method: "GET",
+      body: {},
       value: scenario.value,
       context: scenario.context === undefined
         ? permissionContext({ value: scenario.value })
@@ -400,67 +369,45 @@ test("missing identity, roster, cohort, scope, or permission fails closed before
   }
 });
 
-test("strict envelope and size limits reject client identity and unsupported fields", async () => {
+test("public mutation routes reject complete or malformed 007 authority bodies before service access", async () => {
   const fake = fakeService();
   const runtime = {
     entitlement_roster: roster(),
     installation_service: fake.service,
   };
-  for (const body of [
-    registrationBody({ tenant_id: TENANT_ID }),
-    registrationBody({ user_id: USER_ID }),
-    registrationBody({ email: "pii@example.invalid" }),
-    registrationBody({ signature: undefined }),
-    heartbeatBody({ device_public_key: "unexpected" }),
-    retireBody({ revoke_user_connection: true }),
+  for (const [pathname, body] of [
+    ["/api/desktop/installations", registrationBody()],
+    [
+      `/api/desktop/installations/${INSTALLATION_ID}/heartbeat`,
+      heartbeatBody(),
+    ],
+    [
+      `/api/desktop/installations/${INSTALLATION_ID}/retire`,
+      retireBody(),
+    ],
+    ["/api/desktop/installations", {}],
+    ["/api/desktop/installations", { authorization: registrationBody() }],
+    ["/api/desktop/installations", { proof: registrationBody() }],
+    ["/api/desktop/installations", registrationBody({ tenant_id: TENANT_ID })],
+    ["/api/desktop/installations", registrationBody({ user_id: undefined })],
+    ["/api/desktop/installations", registrationBody({ email: "pii@example.invalid" })],
+    ["/api/desktop/installations", registrationBody({ signature: undefined })],
+    [
+      `/api/desktop/installations/${INSTALLATION_ID}/heartbeat`,
+      heartbeatBody({ device_public_key: "unexpected" }),
+    ],
+    [
+      `/api/desktop/installations/${INSTALLATION_ID}/retire`,
+      retireBody({ revoke_user_connection: true }),
+    ],
   ]) {
-    const response = await directRequest({ body, runtime });
+    const response = await directRequest({ pathname, body, runtime });
     assert.equal(response.status, 400);
     assert.deepEqual(response.body.safe_error_codes, [
       "OUTLOOK_DESKTOP_INSTALLATION_REQUEST_INVALID",
     ]);
   }
-  const oversized = await directRequest({
-    body: registrationBody({ app_version: "x".repeat(9 * 1024) }),
-    runtime,
-  });
-  assert.equal(oversized.status, 413);
-  assert.deepEqual(oversized.body.safe_error_codes, [
-    "OUTLOOK_DESKTOP_INSTALLATION_REQUEST_TOO_LARGE",
-  ]);
   assert.equal(fake.calls.length, 0);
-});
-
-test("domain failures map to bounded status and codes without leaking error details", async () => {
-  const failures = [
-    ["OUTLOOK_DESKTOP_PROOF_SIGNATURE_INVALID", 401],
-    ["OUTLOOK_DESKTOP_PROOF_NONCE_REPLAY", 409],
-    ["OUTLOOK_DESKTOP_PROOF_IDEMPOTENCY_CONFLICT", 409],
-    ["OUTLOOK_DESKTOP_STATE_VERSION_CONFLICT", 409],
-    ["OUTLOOK_DESKTOP_INSTALLATION_BINDING_MISMATCH", 403],
-    ["POSTGRES_TRANSACTION_RETRY_EXHAUSTED", 503],
-  ];
-  for (const [safeErrorCode, status] of failures) {
-    const service = {
-      async register() {
-        throw Object.assign(new Error(
-          "pii@example.invalid access-token private-key tenant-secret",
-        ), {
-          safe_error_code: safeErrorCode,
-          status,
-        });
-      },
-    };
-    const response = await directRequest({
-      runtime: { entitlement_roster: roster(), installation_service: service },
-    });
-    assert.equal(response.status, status);
-    assert.deepEqual(response.body.safe_error_codes, [safeErrorCode]);
-    assert.doesNotMatch(
-      JSON.stringify(response.body),
-      /pii@example|access-token|private-key|tenant-secret/iu,
-    );
-  }
 });
 
 async function withServer(options, callback) {
@@ -508,7 +455,7 @@ async function getJson(baseUrl, path, authorization) {
   return { status: response.status, body: await response.json() };
 }
 
-test("node HTTP dispatcher authenticates before the desktop lifecycle adapter", async () => {
+test("node HTTP dispatcher authenticates then blocks public 007 authorization bodies", async () => {
   const fake = fakeService();
   let genericRuntimeCalls = 0;
   const signedPrincipal = principal();
@@ -584,8 +531,7 @@ test("node HTTP dispatcher authenticates before the desktop lifecycle adapter", 
       registrationBody(),
       "Bearer signed-desktop-session",
     );
-    assert.equal(authenticated.status, 201);
-    assert.equal(authenticated.body.installation.installation_id, INSTALLATION_ID);
+    assert.equal(authenticated.status, 400);
     const replay = await postJson(
       baseUrl,
       "/api/desktop/installations",
@@ -611,11 +557,11 @@ test("node HTTP dispatcher authenticates before the desktop lifecycle adapter", 
     );
     assert.deepEqual(
       [replay.status, heartbeat.status, read.status, retire.status],
-      [201, 200, 200, 200],
+      [400, 400, 200, 400],
     );
     assert.deepEqual(
       fake.calls.map(({ operation }) => operation),
-      ["register", "register", "heartbeat", "read", "retire"],
+      ["read"],
     );
     assert.deepEqual(Object.keys(read.body.installation).sort(), [
       "installation_id",
@@ -624,11 +570,90 @@ test("node HTTP dispatcher authenticates before the desktop lifecycle adapter", 
       "state_version",
       "status",
     ]);
-    assert.deepEqual(fake.calls[0].command.principal, {
+    assert.deepEqual(fake.calls[0].input.principal, {
       tenant_id: TENANT_ID,
       user_id: USER_ID,
       entra_subject_id: SUBJECT_ID,
     });
     assert.equal(genericRuntimeCalls, 0);
   });
+});
+
+test("authority response ODI must match the requested or continued installation ODI", async () => {
+  const mismatchedInstallationId = "odi_desktop_api_000000000099";
+  let serviceCalls = 0;
+  const installation = Object.freeze({
+    installation_id: mismatchedInstallationId,
+    status: "active",
+    state_version: 1,
+    lease_expires_at: "2026-08-18T00:00:00.000Z",
+    retired_at: null,
+  });
+  const runtime = {
+    entitlement_roster: roster(),
+    installation_service: {
+      async read() {
+        serviceCalls += 1;
+        return installation;
+      },
+    },
+  };
+
+  const read = await directRequest({
+    pathname: `/api/desktop/installations/${INSTALLATION_ID}`,
+    method: "GET",
+    body: {},
+    runtime,
+  });
+  assert.throws(
+    () => projectOutlookDesktopRegistrationAuthorityResult({
+      response_status: 201,
+      body: { outcome: "registered", installation },
+    }, INSTALLATION_ID),
+    /projection is invalid/u,
+  );
+
+  assert.equal(read.status, 503);
+  assert.equal(read.body.installation, undefined);
+  assert.equal(serviceCalls, 1);
+});
+
+test("installation projection rejects invalid time or state and emits canonical UTC milliseconds", async () => {
+  const readProjection = async (installation) => directRequest({
+    pathname: `/api/desktop/installations/${INSTALLATION_ID}`,
+    method: "GET",
+    body: {},
+    runtime: {
+      entitlement_roster: roster(),
+      installation_service: {
+        async read() {
+          return installation;
+        },
+      },
+    },
+  });
+  const base = {
+    installation_id: INSTALLATION_ID,
+    status: "active",
+    state_version: 1,
+    lease_expires_at: "2026-08-18T00:00:00+00:00",
+    retired_at: null,
+  };
+  const [invalidTime, contradictoryState, canonical] = await Promise.all([
+    readProjection({ ...base, lease_expires_at: "not-a-timestamp" }),
+    readProjection({
+      ...base,
+      retired_at: "2026-08-17T00:00:00+00:00",
+    }),
+    readProjection(base),
+  ]);
+
+  assert.deepEqual(
+    [invalidTime.status, contradictoryState.status, canonical.status],
+    [503, 503, 200],
+  );
+  assert.equal(
+    canonical.body.installation.lease_expires_at,
+    "2026-08-18T00:00:00.000Z",
+  );
 });

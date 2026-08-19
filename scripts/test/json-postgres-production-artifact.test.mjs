@@ -1,19 +1,41 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+  JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT,
+  JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES,
+  JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES_SHA256,
+  JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY,
+  JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
   JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
   JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
   JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS,
   emptyJsonPostgresProductionSources,
+  deriveJsonPostgresProductionOutlookRuntimeEntries,
   parseJsonPostgresProductionGitTree,
   redactJsonPostgresProductionRuntimeSource,
   validateJsonPostgresProductionArtifactEntries,
   validateJsonPostgresProductionDeploymentManifest,
+  validateJsonPostgresProductionExtractedSymlinks,
+  validateJsonPostgresProductionOutlookRuntimeEntries,
   validateJsonPostgresProductionSourceBoundary,
   validateJsonPostgresProductionSourceOverrides,
 } from "../lib/json-postgres-production-artifact.mjs";
+
 import { publicProfessionalProfileCatalog } from "../lib/hrx-public-professional-profile.mjs";
+
+const REPO_ROOT = process.env.LAWOS_JSON_POSTGRES_ARTIFACT_TEST_ROOT
+  ? resolve(process.env.LAWOS_JSON_POSTGRES_ARTIFACT_TEST_ROOT)
+  : fileURLToPath(new URL("../../", import.meta.url));
+
+function recursiveOutlookRuntimeEntries() {
+  return deriveJsonPostgresProductionOutlookRuntimeEntries({
+    readText: (entry) => readFileSync(join(REPO_ROOT, entry), "utf8"),
+  });
+}
 
 function oid(character) {
   return character.repeat(40);
@@ -27,15 +49,79 @@ test("production Git tree excludes private-staging source", () => {
     `100644 blob ${oid("d")}\tpackages/persistence/src/postgres/execution-contract.js`,
     `100644 blob ${oid("e")}\t${JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[0]}`,
     `100644 blob ${oid("f")}\tapps/api/src/hrx-member-photos/not-approved.png`,
+    `100644 blob ${oid("1")}\t${JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY}`,
     "",
   ].join("\0"));
+  const parsed = parseJsonPostgresProductionGitTree(tree);
   assert.deepEqual(
-    parseJsonPostgresProductionGitTree(tree).map((entry) => entry.path),
+    parsed.map((entry) => entry.path),
     [
       JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[0],
+      JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY,
       "apps/api/src/lambda.js",
       "packages/persistence/src/postgres/execution-contract.js",
     ],
+  );
+  assert.deepEqual(
+    parsed.find(({ path }) =>
+      path === JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY),
+    {
+      mode: "100644",
+      type: "blob",
+      oid: oid("1"),
+      path: JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY,
+    },
+  );
+});
+
+test("production artifact closure is rooted at the deployed Lambda handler", async () => {
+  assert.equal(
+    JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT,
+    "apps/api/src/lambda.js",
+  );
+  assert.throws(
+    () => validateJsonPostgresProductionOutlookRuntimeEntries([
+      "apps/api/src/json-postgres-program-admin-lambda.js",
+    ]),
+    /runtime import closure drifted/u,
+  );
+  assert.deepEqual(
+    recursiveOutlookRuntimeEntries(),
+    JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES,
+  );
+});
+
+test("production extracted symlinks remain inside the clean archive", () => {
+  const valid = [
+    {
+      path: "node_modules/.bin/example",
+      target: "../example/bin.js",
+      target_kind: "file",
+    },
+    {
+      path: "node_modules/@law-firm-os/runtime-auth",
+      target: "../../packages/runtime-auth",
+      target_kind: "directory",
+    },
+  ];
+  const inventory = validateJsonPostgresProductionExtractedSymlinks(valid);
+  assert.equal(inventory.artifact_symlink_count, 2);
+  assert.match(inventory.artifact_symlink_entries_sha256, /^[a-f0-9]{64}$/u);
+  assert.equal(inventory.artifact_symlink_escape_count, 0);
+  for (const [row, pattern] of [
+    [{ ...valid[0], target: "/tmp/escape" }, /target is unsafe/u],
+    [{ ...valid[0], target: "../../../escape" }, /escaped the archive/u],
+    [{ ...valid[0], target_kind: "missing" }, /missing or unsupported/u],
+    [{ ...valid[0], target_kind: "symlink" }, /missing or unsupported/u],
+  ]) {
+    assert.throws(
+      () => validateJsonPostgresProductionExtractedSymlinks([row]),
+      pattern,
+    );
+  }
+  assert.throws(
+    () => validateJsonPostgresProductionExtractedSymlinks([valid[0], valid[0]]),
+    /duplicate paths/u,
   );
 });
 
@@ -148,9 +234,12 @@ test("production overrides are empty and PostgreSQL membership backed", () => {
 });
 
 test("production artifact entry and deployment manifest contracts fail closed", () => {
-  const entries = [
+  const entries = [...new Set([
     "apps/api/src/lambda.js",
-    "apps/api/src/json-postgres-program-admin-lambda.js",
+    JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
+    JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY,
+    ...JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES.filter((entry) =>
+      entry !== JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY),
     "apps/api/src/immutable-program-input.js",
     "apps/api/src/matter-vault-user-registration-seed.json",
     "apps/api/src/hrx-member-roster-source-of-truth.json",
@@ -160,15 +249,57 @@ test("production artifact entry and deployment manifest contracts fail closed", 
     "package.json",
     "packages/dms/src/json-postgres-dms-migration.js",
     "packages/persistence/src/postgres/execution-contract.js",
-    "packages/persistence/src/postgres/migration-runner.js",
     "packages/persistence/src/postgres/program-receipt.js",
     ...JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
-  ];
-  assert.equal(validateJsonPostgresProductionArtifactEntries(entries).entry_count, 18);
+  ])];
+  assert.deepEqual(
+    validateJsonPostgresProductionArtifactEntries(entries),
+    {
+      entry_count: entries.length,
+      forbidden_entry_count: 0,
+      runtime_store_entry_count: 0,
+      real_json_store_count: 0,
+      private_staging_entry_count: 0,
+      outlook_runtime_entry_count:
+        JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES.length,
+      outlook_runtime_entries_sha256:
+        JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES_SHA256,
+    },
+  );
   assert.equal(validateJsonPostgresProductionArtifactEntries([
     ...entries,
     "node_modules/pg-types/test/index.js",
-  ]).entry_count, 19);
+  ]).entry_count, entries.length + 1);
+  assert.throws(
+    () => validateJsonPostgresProductionArtifactEntries(
+      entries.filter((entry) =>
+        entry !== JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY),
+    ),
+    /missing apps\/api\/src\/json-postgres-outlook-secret-publication\.js/u,
+  );
+  for (const required of JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES) {
+    assert.throws(
+      () => validateJsonPostgresProductionArtifactEntries(
+        entries.filter((entry) => entry !== required),
+      ),
+      new RegExp(`missing ${required.replaceAll(".", "\\.")}`, "u"),
+    );
+    assert.throws(
+      () => validateJsonPostgresProductionArtifactEntries([
+        ...entries.filter((entry) => entry !== required),
+        `${required.slice(0, -3)}-replacement.js`,
+      ]),
+      new RegExp(`missing ${required.replaceAll(".", "\\.")}`, "u"),
+    );
+  }
+  assert.throws(
+    () => validateJsonPostgresProductionArtifactEntries([
+      ...entries.filter((entry) =>
+        entry !== JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY),
+      "apps/api/src/json-postgres-outlook-secret-publication-copy.js",
+    ]),
+    /missing apps\/api\/src\/json-postgres-outlook-secret-publication\.js/u,
+  );
   assert.throws(
     () => validateJsonPostgresProductionArtifactEntries(
       entries.filter((entry) => entry !== JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY),

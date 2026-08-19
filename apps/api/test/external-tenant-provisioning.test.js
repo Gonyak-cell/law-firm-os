@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import { createPostgresTenantProvisioningLedger } from "../../../packages/runtime-auth/src/postgres-tenant-provisioning.js";
-import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { withPostgresTransaction } from "../../../packages/persistence/src/postgres/transaction.js";
 import {
   EXTERNAL_TENANT_PROVISIONING_SCHEMA_VERSION,
@@ -13,8 +12,11 @@ import {
 } from "../src/external-tenant-provisioning.js";
 import { ENTRA_OIDC_PROVIDER_ID } from "../src/entra-oidc-provider.js";
 import { LAWOS_INTERNAL_PASSWORD_PROVIDER_ID } from "../src/auth-credential-store.js";
-import { runClientOperationsPostgresMigrations } from "../src/client-operations-schema.js";
 import { startApiServer } from "../src/server.js";
+import {
+  createOutlookAuthorityPostgresFixture,
+  runOutlookAuthorityPostgresMigrations,
+} from "./support/outlook-authority-postgres-fixture.js";
 
 const TENANT_ID = "tenant_external_hanriver";
 const ENTRA_TENANT_ID = "11111111-1111-4111-8111-111111111111";
@@ -121,7 +123,7 @@ function internalProvisioningOptions(input, fixture, overrides = {}) {
 }
 
 async function removeSyntheticWildcard(fixture) {
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     "DELETE FROM lawos_security.tenant_context_authorities WHERE database_role = 'lawos_app' AND tenant_id = '*'",
   );
 }
@@ -147,14 +149,16 @@ async function assertNoApplicationVisibility(appPool, tenantId) {
       "SELECT count(*)::integer AS count FROM lawos_identity.accounts WHERE tenant_id = $1",
       [tenantId],
     )),
-    (error) => error?.safe_error_code === "POSTGRES_ACCESS_DENIED" && error?.status === 403,
+    (error) => error?.safe_error_code
+      === "POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED"
+      && error?.status === 403,
   );
 }
 
 test("external tenant provisioning is tenant-pinned, replay-safe, audited and emits only protected references", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const input = manifest();
   const manifestHash = externalTenantProvisioningManifestSha256(input);
   const options = {
@@ -305,7 +309,7 @@ test("external tenant provisioning is tenant-pinned, replay-safe, audited and em
   );
 
   const rawMaterial = "must-not-leave-postgres";
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     `UPDATE lawos_identity.tenant_provisioning_requests
         SET receipt = $2::jsonb
       WHERE tenant_id = $1`,
@@ -317,9 +321,9 @@ test("external tenant provisioning is tenant-pinned, replay-safe, audited and em
 });
 
 test("internal-password external tenant members enter the existing reset flow without generated credentials", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const input = internalLocalMemberManifest();
   const receipt = await provisionExternalTenant({
     manifest: input,
@@ -387,6 +391,7 @@ test("internal-password external tenant members enter the existing reset flow wi
       stepUpAuthority: Object.freeze({}),
       staffAuthAuthority: "internal-password",
       persistenceAuthority: "postgres-v2",
+      outlookDesktopEntitlementEnabled: false,
       persistenceAuthorityEnv: {
         LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/external-tenant-postgres",
         LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/external-tenant-context",
@@ -405,12 +410,12 @@ test("internal-password external tenant members enter the existing reset flow wi
 });
 
 test("identity collision leaves no exact authority, tenant, request, audit or application visibility", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   await removeSyntheticWildcard(fixture);
   const input = internalLocalMemberManifest();
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     "INSERT INTO lawos_identity.accounts (tenant_id, user_id, email) VALUES ($1, $2, $3)",
     [input.tenant.tenant_id, "preexisting_identity", "collision@example.test"],
   );
@@ -419,7 +424,7 @@ test("identity collision leaves no exact authority, tenant, request, audit or ap
     provisionExternalTenant(internalProvisioningOptions(input, fixture)),
     (error) => error?.safe_error_code === "EXTERNAL_TENANT_PROVISIONING_CONFLICT" && error?.status === 409,
   );
-  assert.deepEqual(await provisioningResidue(fixture.adminPool, input.tenant.tenant_id), {
+  assert.deepEqual(await provisioningResidue(fixture.bootstrapPool, input.tenant.tenant_id), {
     authorities: 0,
     tenants: 0,
     requests: 0,
@@ -429,7 +434,7 @@ test("identity collision leaves no exact authority, tenant, request, audit or ap
     outbox_events: 0,
     audit_events: 0,
   });
-  assert.equal((await fixture.adminPool.query(
+  assert.equal((await fixture.bootstrapPool.query(
     "SELECT count(*)::integer AS count FROM lawos_identity.accounts WHERE tenant_id = $1",
     [input.tenant.tenant_id],
   )).rows[0].count, 1);
@@ -437,12 +442,12 @@ test("identity collision leaves no exact authority, tenant, request, audit or ap
 });
 
 test("tenant id collision preserves only the pre-existing tenant and grants no application visibility", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   await removeSyntheticWildcard(fixture);
   const input = internalLocalMemberManifest();
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     `INSERT INTO lawos_identity.tenants
        (tenant_id, display_name, deployment_mode, staff_auth_authority, status)
      VALUES ($1, 'Pre-existing unrelated firm', 'tenant-pinned', 'internal-password', 'active')`,
@@ -453,7 +458,7 @@ test("tenant id collision preserves only the pre-existing tenant and grants no a
     provisionExternalTenant(internalProvisioningOptions(input, fixture)),
     (error) => error?.safe_error_code === "EXTERNAL_TENANT_PROVISIONING_CONFLICT" && error?.status === 409,
   );
-  assert.deepEqual(await provisioningResidue(fixture.adminPool, input.tenant.tenant_id), {
+  assert.deepEqual(await provisioningResidue(fixture.bootstrapPool, input.tenant.tenant_id), {
     authorities: 0,
     tenants: 1,
     requests: 0,
@@ -463,7 +468,7 @@ test("tenant id collision preserves only the pre-existing tenant and grants no a
     outbox_events: 0,
     audit_events: 0,
   });
-  assert.equal((await fixture.adminPool.query(
+  assert.equal((await fixture.bootstrapPool.query(
     "SELECT display_name FROM lawos_identity.tenants WHERE tenant_id = $1",
     [input.tenant.tenant_id],
   )).rows[0].display_name, "Pre-existing unrelated firm");
@@ -471,12 +476,12 @@ test("tenant id collision preserves only the pre-existing tenant and grants no a
 });
 
 test("matching pre-existing tenant without exact request ownership is not adopted", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   await removeSyntheticWildcard(fixture);
   const input = internalLocalMemberManifest();
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     `INSERT INTO lawos_identity.tenants
        (tenant_id, display_name, deployment_mode, staff_auth_authority, status)
      VALUES ($1, $2, 'tenant-pinned', 'internal-password', 'provisioning')`,
@@ -487,7 +492,7 @@ test("matching pre-existing tenant without exact request ownership is not adopte
     provisionExternalTenant(internalProvisioningOptions(input, fixture)),
     (error) => error?.safe_error_code === "EXTERNAL_TENANT_PROVISIONING_CONFLICT" && error?.status === 409,
   );
-  assert.deepEqual(await provisioningResidue(fixture.adminPool, input.tenant.tenant_id), {
+  assert.deepEqual(await provisioningResidue(fixture.bootstrapPool, input.tenant.tenant_id), {
     authorities: 0,
     tenants: 1,
     requests: 0,
@@ -497,7 +502,7 @@ test("matching pre-existing tenant without exact request ownership is not adopte
     outbox_events: 0,
     audit_events: 0,
   });
-  const preserved = (await fixture.adminPool.query(
+  const preserved = (await fixture.bootstrapPool.query(
     `SELECT display_name, status, member_count, state_version
        FROM lawos_identity.tenants WHERE tenant_id = $1`,
     [input.tenant.tenant_id],
@@ -512,9 +517,9 @@ test("matching pre-existing tenant without exact request ownership is not adopte
 });
 
 test("duplicate Entra subject rolls back the complete provisioning request", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   await removeSyntheticWildcard(fixture);
   const input = manifest();
   input.members[1].federated_subject_id = input.members[0].federated_subject_id;
@@ -530,7 +535,7 @@ test("duplicate Entra subject rolls back the complete provisioning request", asy
     }),
     (error) => error?.safe_error_code === "EXTERNAL_TENANT_PROVISIONING_CONFLICT" && error?.status === 409,
   );
-  assert.deepEqual(await provisioningResidue(fixture.adminPool, input.tenant.tenant_id), {
+  assert.deepEqual(await provisioningResidue(fixture.bootstrapPool, input.tenant.tenant_id), {
     authorities: 0,
     tenants: 0,
     requests: 0,
@@ -540,7 +545,7 @@ test("duplicate Entra subject rolls back the complete provisioning request", asy
     outbox_events: 0,
     audit_events: 0,
   });
-  assert.equal((await fixture.adminPool.query(
+  assert.equal((await fixture.bootstrapPool.query(
     `SELECT count(*)::integer AS count
        FROM lawos_identity.accounts
       WHERE tenant_id = $1 AND federated_subject_id = $2`,
@@ -550,13 +555,13 @@ test("duplicate Entra subject rolls back the complete provisioning request", asy
 });
 
 test("admin and application database mismatch fails before creating tenant authority or ledger state", async (t) => {
-  const adminFixture = await createMigratedPostgresFixture(t);
+  const adminFixture = await createOutlookAuthorityPostgresFixture(t);
   if (!adminFixture) return;
-  const appFixture = await createMigratedPostgresFixture(t);
+  const appFixture = await createOutlookAuthorityPostgresFixture(t);
   if (!appFixture) return;
   await Promise.all([
-    runClientOperationsPostgresMigrations(adminFixture.adminPool),
-    runClientOperationsPostgresMigrations(appFixture.adminPool),
+    runOutlookAuthorityPostgresMigrations(adminFixture),
+    runOutlookAuthorityPostgresMigrations(appFixture),
   ]);
   await Promise.all([removeSyntheticWildcard(adminFixture), removeSyntheticWildcard(appFixture)]);
   const input = internalLocalMemberManifest();
@@ -569,7 +574,7 @@ test("admin and application database mismatch fails before creating tenant autho
     (error) => error?.safe_error_code === "EXTERNAL_TENANT_DATABASE_BINDING_INVALID" && error?.status === 500,
   );
   for (const fixture of [adminFixture, appFixture]) {
-    assert.deepEqual(await provisioningResidue(fixture.adminPool, input.tenant.tenant_id), {
+    assert.deepEqual(await provisioningResidue(fixture.bootstrapPool, input.tenant.tenant_id), {
       authorities: 0,
       tenants: 0,
       requests: 0,
@@ -584,9 +589,9 @@ test("admin and application database mismatch fails before creating tenant autho
 });
 
 test("application context secret mismatch fails before creating tenant authority or ledger state", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   await removeSyntheticWildcard(fixture);
   const input = internalLocalMemberManifest();
 
@@ -596,7 +601,7 @@ test("application context secret mismatch fails before creating tenant authority
     })),
     (error) => error?.safe_error_code === "EXTERNAL_TENANT_CONTEXT_SECRET_BINDING_INVALID" && error?.status === 500,
   );
-  assert.deepEqual(await provisioningResidue(fixture.adminPool, input.tenant.tenant_id), {
+  assert.deepEqual(await provisioningResidue(fixture.bootstrapPool, input.tenant.tenant_id), {
     authorities: 0,
     tenants: 0,
     requests: 0,
@@ -610,18 +615,19 @@ test("application context secret mismatch fails before creating tenant authority
 });
 
 test("application role reads only its tenant registry and cannot mutate own or cross-tenant provisioning state", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const tenantA = "tenant_lawos_staging_a";
   const tenantB = "tenant_lawos_staging_b";
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     `INSERT INTO lawos_identity.tenants
        (tenant_id, display_name, deployment_mode, staff_auth_authority, status)
      VALUES ($1, 'RLS tenant A', 'tenant-pinned', 'internal-password', 'active'),
             ($2, 'RLS tenant B', 'tenant-pinned', 'internal-password', 'active')`,
     [tenantA, tenantB],
   );
-  await fixture.adminPool.query(
+  await fixture.bootstrapPool.query(
     `INSERT INTO lawos_identity.tenant_provisioning_requests
        (tenant_id, idempotency_key_hash, request_hash, operator_ref_hash, requested_member_count)
      VALUES ($1, $3, $4, $5, 1),
@@ -671,7 +677,7 @@ test("application role reads only its tenant registry and cannot mutate own or c
     );
   }
 
-  const unchanged = await fixture.adminPool.query(
+  const unchanged = await fixture.bootstrapPool.query(
     `SELECT
        (SELECT count(*)::integer FROM lawos_identity.tenants WHERE status = 'disabled') AS disabled_tenants,
        (SELECT count(*)::integer FROM lawos_identity.tenant_provisioning_requests WHERE status = 'completed' OR receipt IS NOT NULL) AS completed_requests`,
@@ -680,9 +686,9 @@ test("application role reads only its tenant registry and cannot mutate own or c
 });
 
 test("external tenant provisioning requires admin writes and a read-only application registry role", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runClientOperationsPostgresMigrations(fixture.adminPool);
+  await runOutlookAuthorityPostgresMigrations(fixture);
   const input = internalLocalMemberManifest();
   const options = {
     manifest: input,
@@ -758,7 +764,7 @@ test("external tenant provisioning requires admin writes and a read-only applica
       `${missing} must be required independently`,
     );
   }
-  assert.equal((await fixture.adminPool.query(
+  assert.equal((await fixture.bootstrapPool.query(
     "SELECT count(*)::integer AS count FROM lawos_identity.tenants WHERE tenant_id = $1",
     [INTERNAL_TENANT_ID],
   )).rows[0].count, 0);

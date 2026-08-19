@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 import { createLocalStorageAdapter } from "../../../../packages/dms/src/storage/local-storage-adapter.js";
-import { createMigratedPostgresFixture } from "../../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { startApiServer } from "../../src/server.js";
+import { createOutlookAuthorityPostgresFixture } from "./outlook-authority-postgres-fixture.js";
 import {
   CLIENT_STATE,
   ENTRA_TENANT,
@@ -69,7 +69,7 @@ function graphMessage(input) {
 }
 
 export async function createOperationalConversationFixture(t) {
-  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 8 });
+  const fixture = await createOutlookAuthorityPostgresFixture(t, { appPoolMax: 8 });
   if (!fixture) return null;
   await seedOperationalConversationFixture(fixture);
   let poolClosed = false;
@@ -145,6 +145,7 @@ export async function createOperationalConversationFixture(t) {
     sessionSecret: "outm27-operational-session-secret-material",
     stepUpAuthority: Object.freeze({}), staffAuthAuthority: "internal-password",
     persistenceAuthority: "postgres-v2",
+    outlookDesktopEntitlementEnabled: false,
     persistenceAuthorityEnv: {
       LAWOS_POSTGRES_URL_SECRET_ID: "lawos/test/outm27-operational",
       LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "lawos/test/outm27-operational-tenant-context",

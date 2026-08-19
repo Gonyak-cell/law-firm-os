@@ -1,3 +1,5 @@
+import { types } from "node:util";
+
 export const OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION =
   "lawos.outlook-desktop-autoconnect-roster.v1";
 export const OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE =
@@ -12,6 +14,7 @@ const ENTRY_FIELDS = new Set([
   "enabled",
 ]);
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u;
+const PARSED_ROSTERS = new WeakSet();
 
 function invalidRoster(reason) {
   return Object.assign(new Error("outlook_desktop_roster_invalid"), {
@@ -21,17 +24,77 @@ function invalidRoster(reason) {
   });
 }
 
-function assertObject(value, reason) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+function objectDataSnapshot(value, fields, reason) {
+  if (
+    !value
+    || typeof value !== "object"
+    || Array.isArray(value)
+    || types.isProxy(value)
+  ) {
     throw invalidRoster(reason);
   }
-  return value;
+  let prototype;
+  let descriptors;
+  try {
+    prototype = Object.getPrototypeOf(value);
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch {
+    throw invalidRoster(reason);
+  }
+  const keys = Reflect.ownKeys(descriptors);
+  if (
+    (prototype !== Object.prototype && prototype !== null)
+    || keys.length !== fields.size
+    || keys.some((key) => {
+      const descriptor = descriptors[key];
+      return typeof key !== "string"
+        || !fields.has(key)
+        || !("value" in descriptor)
+        || descriptor.enumerable !== true;
+    })
+  ) {
+    throw invalidRoster(reason);
+  }
+  return Object.freeze(Object.fromEntries(
+    [...fields].map((field) => [field, descriptors[field].value]),
+  ));
 }
 
-function assertOnlyFields(value, allowed, reason) {
-  if (Object.keys(value).some((field) => !allowed.has(field))) {
-    throw invalidRoster(reason);
+function entryArraySnapshot(value) {
+  if (!Array.isArray(value) || types.isProxy(value)) {
+    throw invalidRoster("entry_count_invalid");
   }
+  let prototype;
+  let descriptors;
+  try {
+    prototype = Object.getPrototypeOf(value);
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch {
+    throw invalidRoster("entry_count_invalid");
+  }
+  const lengthDescriptor = descriptors.length;
+  if (
+    prototype !== Array.prototype
+    || !("value" in (lengthDescriptor ?? {}))
+    || lengthDescriptor.value !== REQUIRED_ROSTER_SIZE
+    || lengthDescriptor.enumerable !== false
+    || Reflect.ownKeys(descriptors).length !== REQUIRED_ROSTER_SIZE + 1
+  ) {
+    throw invalidRoster("entry_count_invalid");
+  }
+  const entries = [];
+  for (let index = 0; index < REQUIRED_ROSTER_SIZE; index += 1) {
+    const descriptor = descriptors[String(index)];
+    if (
+      !descriptor
+      || !("value" in descriptor)
+      || descriptor.enumerable !== true
+    ) {
+      throw invalidRoster("entry_count_invalid");
+    }
+    entries.push(descriptor.value);
+  }
+  return Object.freeze(entries);
 }
 
 function rosterString(value, field) {
@@ -55,8 +118,7 @@ export function parseOutlookDesktopAutoconnectRoster(input) {
       throw invalidRoster("json_invalid");
     }
   }
-  assertObject(value, "object_required");
-  assertOnlyFields(value, ROOT_FIELDS, "root_fields_invalid");
+  value = objectDataSnapshot(value, ROOT_FIELDS, "root_fields_invalid");
   if (
     value.schema_version
     !== OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION
@@ -64,17 +126,15 @@ export function parseOutlookDesktopAutoconnectRoster(input) {
     throw invalidRoster("schema_version_invalid");
   }
   const rosterVersion = rosterString(value.roster_version, "roster_version");
-  if (
-    !Array.isArray(value.entries)
-    || value.entries.length !== REQUIRED_ROSTER_SIZE
-  ) {
-    throw invalidRoster("entry_count_invalid");
-  }
+  const rawEntries = entryArraySnapshot(value.entries);
 
   const seen = new Set();
-  const entries = value.entries.map((rawEntry) => {
-    const entry = assertObject(rawEntry, "entry_object_required");
-    assertOnlyFields(entry, ENTRY_FIELDS, "entry_fields_invalid");
+  const entries = rawEntries.map((rawEntry) => {
+    const entry = objectDataSnapshot(
+      rawEntry,
+      ENTRY_FIELDS,
+      "entry_fields_invalid",
+    );
     if (entry.enabled !== true) {
       throw invalidRoster("entry_enabled_invalid");
     }
@@ -103,24 +163,17 @@ export function parseOutlookDesktopAutoconnectRoster(input) {
     throw invalidRoster("entra_subject_id_unique_count_invalid");
   }
 
-  return Object.freeze({
+  const roster = Object.freeze({
     schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
     roster_version: rosterVersion,
     entries: Object.freeze(entries),
   });
+  PARSED_ROSTERS.add(roster);
+  return roster;
 }
 
 function parsedRoster(value) {
-  return Boolean(
-    value
-      && Object.isFrozen(value)
-      && value.schema_version
-        === OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION
-      && typeof value.roster_version === "string"
-      && Array.isArray(value.entries)
-      && Object.isFrozen(value.entries)
-      && value.entries.length === REQUIRED_ROSTER_SIZE,
-  );
+  return Boolean(value && PARSED_ROSTERS.has(value));
 }
 
 function decision(status, safeErrorCode, rosterVersion) {

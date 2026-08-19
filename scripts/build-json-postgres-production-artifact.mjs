@@ -7,6 +7,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readlinkSync,
   readdirSync,
   realpathSync,
   rmSync,
@@ -17,6 +18,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import {
   assertPrivateStagingGitBlobMaterialization,
@@ -24,14 +26,19 @@ import {
 } from "./lib/private-staging-artifact.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ARTIFACT_SCHEMA,
+  JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT,
+  JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
   JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
   JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS,
   JSON_POSTGRES_PRODUCTION_SOURCE_OVERRIDES,
   emptyJsonPostgresProductionSources,
+  deriveJsonPostgresProductionOutlookRuntimeEntries,
   parseJsonPostgresProductionGitTree,
   redactJsonPostgresProductionRuntimeSource,
   validateJsonPostgresProductionArtifactEntries,
   validateJsonPostgresProductionDeploymentManifest,
+  validateJsonPostgresProductionExtractedSymlinks,
+  validateJsonPostgresProductionOutlookRuntimeEntries,
   validateJsonPostgresProductionSourceBoundary,
   validateJsonPostgresProductionSourceOverrides,
 } from "./lib/json-postgres-production-artifact.mjs";
@@ -79,6 +86,57 @@ function stableJson(value) {
     return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
   }
   return JSON.stringify(value);
+}
+
+function loadProductionHandler(root, entrypoint) {
+  const url = pathToFileURL(join(root, entrypoint)).href;
+  execFileSync(process.execPath, [
+    "--input-type=module",
+    "--eval",
+    "const loaded = await import(process.argv[1]); if (typeof loaded.handler !== 'function') throw new Error('production Lambda handler export is missing');",
+    url,
+  ], {
+    cwd: root,
+    env: { ...process.env, NODE_OPTIONS: "", NODE_PATH: "" },
+    stdio: ["ignore", "ignore", "inherit"],
+  });
+}
+
+function inspectExtractedArchiveSymlinks(root) {
+  const archiveRoot = realpathSync(root);
+  const links = [];
+  function visit(relativePath = "") {
+    const directory = join(archiveRoot, relativePath);
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = relativePath ? join(relativePath, entry.name) : entry.name;
+      const absolute = join(archiveRoot, path);
+      if (entry.isDirectory()) {
+        visit(path);
+        continue;
+      }
+      if (!entry.isSymbolicLink()) continue;
+      const target = readlinkSync(absolute);
+      const targetPath = resolve(dirname(absolute), target);
+      const targetRelative = relative(archiveRoot, targetPath);
+      let targetKind = "unsupported";
+      if (target && !target.startsWith("/") && !target.includes("\\")
+        && targetRelative && targetRelative.split(/[\\/]/u)[0] !== ".."
+        && existsSync(targetPath)) {
+        const targetStat = lstatSync(targetPath);
+        if (!targetStat.isSymbolicLink() && realpathSync(targetPath) === targetPath) {
+          if (targetStat.isFile()) targetKind = "file";
+          else if (targetStat.isDirectory()) targetKind = "directory";
+        }
+      }
+      links.push({
+        path: path.replaceAll("\\", "/"),
+        target,
+        target_kind: targetKind,
+      });
+    }
+  }
+  visit();
+  return validateJsonPostgresProductionExtractedSymlinks(links);
 }
 
 function deterministicArchiveEntries(root, timestamp) {
@@ -234,6 +292,11 @@ try {
       },
     ],
   );
+  const outlookRuntimeEntries =
+    deriveJsonPostgresProductionOutlookRuntimeEntries({
+      readText: (entry) => readFileSync(join(stagingRoot, entry), "utf8"),
+    });
+  validateJsonPostgresProductionOutlookRuntimeEntries(outlookRuntimeEntries);
 
   const caBytes = providedCaPath
     ? readFileSync(providedCaPath)
@@ -261,6 +324,10 @@ try {
       stdio: ["ignore", "ignore", "inherit"],
     },
   );
+  for (const entrypoint of [
+    JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT,
+    JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
+  ]) loadProductionHandler(stagingRoot, entrypoint);
   const sourceTimestamp = new Date(
     Number(git("show", "-s", "--format=%ct", sourceSha)) * 1000,
   );
@@ -320,7 +387,7 @@ try {
     throw new Error("production artifact output already exists");
   }
   const deterministicEntries = deterministicArchiveEntries(stagingRoot, sourceTimestamp);
-  execFileSync("zip", ["-X", "-q", archivePath, "-@"], {
+  execFileSync("zip", ["-y", "-X", "-q", archivePath, "-@"], {
     cwd: stagingRoot,
     input: `${deterministicEntries.join("\n")}\n`,
   });
@@ -329,7 +396,28 @@ try {
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
   }).trim().split("\n").filter((entry) => entry && !entry.endsWith("/"));
-  const validatedEntries = validateJsonPostgresProductionArtifactEntries(entries);
+  const validatedEntries = validateJsonPostgresProductionArtifactEntries(
+    entries,
+    { outlookRuntimeEntries },
+  );
+  const extractedArchiveRoot = mkdtempSync(
+    join(tmpdir(), "lawos-production-archive-load-"),
+  );
+  let extractedSymlinkInventory;
+  try {
+    execFileSync("unzip", ["-q", archivePath, "-d", extractedArchiveRoot], {
+      stdio: ["ignore", "ignore", "inherit"],
+    });
+    extractedSymlinkInventory = inspectExtractedArchiveSymlinks(
+      extractedArchiveRoot,
+    );
+    for (const entrypoint of [
+      JSON_POSTGRES_PRODUCTION_LAMBDA_ENTRYPOINT,
+      JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
+    ]) loadProductionHandler(extractedArchiveRoot, entrypoint);
+  } finally {
+    rmSync(extractedArchiveRoot, { recursive: true, force: true });
+  }
   const archiveBytes = readFileSync(archivePath);
   if (archiveBytes.byteLength > 50 * 1024 * 1024) {
     throw new Error("production artifact exceeds the direct Lambda archive limit");
@@ -347,6 +435,14 @@ try {
     artifact_runtime_store_entry_count: 0,
     artifact_real_json_store_count: 0,
     artifact_private_staging_entry_count: 0,
+    artifact_symlink_count: extractedSymlinkInventory.artifact_symlink_count,
+    artifact_symlink_entries_sha256:
+      extractedSymlinkInventory.artifact_symlink_entries_sha256,
+    artifact_symlink_escape_count:
+      extractedSymlinkInventory.artifact_symlink_escape_count,
+    outlook_runtime_entry_count: validatedEntries.outlook_runtime_entry_count,
+    outlook_runtime_entries_sha256:
+      validatedEntries.outlook_runtime_entries_sha256,
     artifact_s3_key: `lawos-production/${sourceSha}/${archiveSha}.zip`,
     manifest_canonical_sha256: "",
   };
@@ -369,6 +465,11 @@ try {
     artifact_sha256: archiveSha,
     artifact_byte_size: archiveBytes.byteLength,
     artifact_entry_count: validatedEntries.entry_count,
+    artifact_symlink_count: extractedSymlinkInventory.artifact_symlink_count,
+    artifact_symlink_entries_sha256:
+      extractedSymlinkInventory.artifact_symlink_entries_sha256,
+    artifact_symlink_escape_count:
+      extractedSymlinkInventory.artifact_symlink_escape_count,
     artifact_path: archivePath,
     manifest_path: manifestPath,
     artifact_s3_key: outerManifest.artifact_s3_key,
