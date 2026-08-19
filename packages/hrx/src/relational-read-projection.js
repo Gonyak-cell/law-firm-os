@@ -1139,7 +1139,8 @@ async function negativeTenantProbe(pool, tenantId, negativeTenantId) {
     }
     return Object.freeze({ visible, denied: 0 });
   } catch (error) {
-    if (error?.code !== "LAWOS_POSTGRES_ACCESS_DENIED") throw error;
+    if (error?.code !== "LAWOS_POSTGRES_ACCESS_DENIED"
+      && error?.code !== "LAWOS_POSTGRES_TENANT_CONTEXT_AUTHENTICATION_FAILED") throw error;
     return Object.freeze({ visible: 0, denied: 1 });
   }
 }
