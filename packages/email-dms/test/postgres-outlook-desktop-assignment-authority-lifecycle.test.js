@@ -65,10 +65,8 @@ test("multiple exact installations retain access until the last authorized retir
   });
   if (!authority) return;
   await seedCanaryPolicy(authority);
-  const [left, right] = await Promise.all([
-    authorizeAndRegister(authority, "left"),
-    authorizeAndRegister(authority, "right"),
-  ]);
+  const left = await authorizeAndRegister(authority, "left");
+  const right = await authorizeAndRegister(authority, "right");
   let state = await readState(authority);
   assert.equal(state.desired_assigned, true);
   assert.equal(Number(state.active_trusted_install_count), 2);
