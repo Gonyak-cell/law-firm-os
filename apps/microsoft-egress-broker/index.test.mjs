@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -908,6 +907,50 @@ test("mail export preserves divergent Graph sender and from provenance without s
   );
 });
 
+test("mail export normalizes nullable Graph message timestamps from the available instant", async () => {
+  const run = async ({ receivedDateTime, sentDateTime }) => {
+    let calls = 0;
+    const handler = createHandler({
+      fetch_impl: async () => {
+        calls += 1;
+        if (calls === 1) {
+          return json({
+            id: "immutable-nullable-time",
+            parentFolderId: "inbox-nullable-time",
+            isDraft: false,
+            receivedDateTime,
+            sentDateTime,
+            toRecipients: [],
+            ccRecipients: [],
+            bccRecipients: [],
+          });
+        }
+        if (calls === 2) return json({ id: "inbox-nullable-time" });
+        if (calls === 3) return json({ id: "sent-items-nullable-time" });
+        return new Response("From: sender@example.test\r\n\r\nbody", { status: 200 });
+      },
+    });
+    return handler(envelope("graph.mailMessage.export", {
+      access_token: "token",
+      rest_message_id: "rest-nullable-time",
+    }));
+  };
+
+  for (const [timestamps, expected] of [
+    [{ receivedDateTime: "2026-08-08T01:00:00Z", sentDateTime: null }, "2026-08-08T01:00:00.000Z"],
+    [{ receivedDateTime: null, sentDateTime: "2026-08-08T00:59:00Z" }, "2026-08-08T00:59:00.000Z"],
+  ]) {
+    const result = await run(timestamps);
+    assert.equal(result.ok, true);
+    assert.equal(result.result.message_metadata.received_at, expected);
+    assert.equal(result.result.message_metadata.sent_at, expected);
+  }
+
+  const invalid = await run({ receivedDateTime: null, sentDateTime: null });
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.error.code, "UPSTREAM_RESPONSE_INVALID");
+});
+
 test("mail export rejects a metadata response without an immutable message ID", async () => {
   let calls = 0;
   let requestUrl = null;
@@ -1043,13 +1086,159 @@ test("mail export rejects MIME larger than synchronous invoke limit", async () =
   assert.equal(result.error.code, "RESPONSE_TOO_LARGE");
 });
 
-test("implementation contains no application payload logging", async () => {
-  const source = await readFile(
-    new URL("./index.mjs", import.meta.url),
-    "utf8",
+test("mail export failure log contains only fixed non-payload fields", async () => {
+  const tokenSentinel = "token-NEVER-LOG-4d8f4d";
+  const restIdSentinel = "rest-id-NEVER-LOG-7a6b";
+  const payloadSentinels = [
+    tokenSentinel,
+    restIdSentinel,
+    "immutable-id-NEVER-LOG",
+    "subject-NEVER-LOG",
+    "recipient-NEVER-LOG@example.test",
+    "folder-id-NEVER-LOG",
+    "mime-body-NEVER-LOG",
+    "provider-request-id-NEVER-LOG",
+    "upstream-body-NEVER-LOG",
+    "graph.microsoft.com",
+  ];
+  const metadata = (overrides = {}) => ({
+    id: "immutable-id-NEVER-LOG",
+    subject: "subject-NEVER-LOG",
+    parentFolderId: "folder-id-NEVER-LOG",
+    isDraft: false,
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: "2026-08-08T00:59:00Z",
+    toRecipients: [{
+      emailAddress: {
+        name: "recipient-NEVER-LOG",
+        address: "recipient-NEVER-LOG@example.test",
+      },
+    }],
+    ccRecipients: [],
+    bccRecipients: [],
+    ...overrides,
+  });
+  const upstreamError = () => json(
+    { error: "upstream-body-NEVER-LOG" },
+    500,
+    { "request-id": "provider-request-id-NEVER-LOG" },
   );
-  assert.equal(
-    /console\.|process\.stdout|process\.stderr/u.test(source),
-    false,
-  );
+  const scenarios = [
+    {
+      stage: "metadata",
+      code: "UPSTREAM_REJECTED",
+      responses: [upstreamError],
+    },
+    {
+      stage: "inbox_folder",
+      code: "UPSTREAM_REJECTED",
+      responses: [() => json(metadata()), upstreamError],
+    },
+    {
+      stage: "sent_items_folder",
+      code: "UPSTREAM_REJECTED",
+      responses: [
+        () => json(metadata()),
+        () => json({ id: "inbox-id-NEVER-LOG" }),
+        upstreamError,
+      ],
+    },
+    {
+      stage: "metadata_normalization",
+      code: "UPSTREAM_RESPONSE_INVALID",
+      responses: [
+        () => json(metadata({
+          receivedDateTime: null,
+          sentDateTime: null,
+        })),
+        () => json({ id: "inbox-id-NEVER-LOG" }),
+        () => json({ id: "sent-items-id-NEVER-LOG" }),
+      ],
+    },
+    {
+      stage: "mime",
+      code: "UPSTREAM_RESPONSE_INVALID",
+      responses: [
+        () => json(metadata()),
+        () => json({ id: "inbox-id-NEVER-LOG" }),
+        () => json({ id: "sent-items-id-NEVER-LOG" }),
+        () => new Response("mime-body-NEVER-LOG", { status: 200 }),
+      ],
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    const lines = [];
+    const originalConsoleError = console.error;
+    console.error = (...values) => lines.push(values);
+    let result;
+    try {
+      let calls = 0;
+      const handler = createHandler({
+        fetch_impl: async () => scenario.responses[calls++](),
+      });
+      result = await handler(envelope("graph.mailMessage.export", {
+        access_token: tokenSentinel,
+        rest_message_id: restIdSentinel,
+      }));
+    } finally {
+      console.error = originalConsoleError;
+    }
+
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, scenario.code);
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0].length, 1);
+    const serialized = String(lines[0][0]);
+    assert.deepEqual(JSON.parse(serialized), {
+      event: "lawos.microsoft_egress.mail_export_failed",
+      operation: "graph.mailMessage.export",
+      stage: scenario.stage,
+      error_code: scenario.code,
+      status: 502,
+    });
+    for (const sentinel of payloadSentinels) {
+      assert.equal(serialized.includes(sentinel), false);
+    }
+  }
+});
+
+test("successful mail export emits no failure log", async () => {
+  let calls = 0;
+  const handler = createHandler({
+    fetch_impl: async () => {
+      calls += 1;
+      if (calls === 1) {
+        return json({
+          id: "immutable-success",
+          parentFolderId: "inbox-success",
+          isDraft: false,
+          receivedDateTime: "2026-08-08T01:00:00Z",
+          sentDateTime: null,
+          toRecipients: [],
+          ccRecipients: [],
+          bccRecipients: [],
+        });
+      }
+      if (calls === 2) return json({ id: "inbox-success" });
+      if (calls === 3) return json({ id: "sent-items-success" });
+      return new Response("From: sender@example.test\r\n\r\nbody", {
+        status: 200,
+      });
+    },
+  });
+  const lines = [];
+  const originalConsoleError = console.error;
+  console.error = (...values) => lines.push(values);
+  let result;
+  try {
+    result = await handler(envelope("graph.mailMessage.export", {
+      access_token: "token",
+      rest_message_id: "rest-success",
+    }));
+  } finally {
+    console.error = originalConsoleError;
+  }
+  assert.equal(result.ok, true);
+  assert.deepEqual(lines, []);
 });

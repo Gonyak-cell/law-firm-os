@@ -839,10 +839,12 @@ function messageMetadata(value, immutableId, inboxId, sentItemsId) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
   const parentFolderId = optionalString(value.parentFolderId);
-  const receivedAt = optionalString(value.receivedDateTime, 64);
-  const sentAt = optionalString(value.sentDateTime, 64);
+  const graphReceivedAt = optionalString(value.receivedDateTime, 64);
+  const graphSentAt = optionalString(value.sentDateTime, 64);
+  const receivedAt = graphReceivedAt ?? graphSentAt;
+  const sentAt = graphSentAt ?? graphReceivedAt;
   if (!parentFolderId || typeof value.isDraft !== "boolean"
-    || !Number.isFinite(Date.parse(receivedAt))
+    || !receivedAt || !sentAt || !Number.isFinite(Date.parse(receivedAt))
     || !Number.isFinite(Date.parse(sentAt))) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
@@ -916,85 +918,110 @@ async function mailMessageExport(fetchImpl, request) {
   const immutableHeaders = graphHeaders(token, {
     Prefer: 'IdType="ImmutableId"',
   });
-  const metadataResponse = await fixedFetch(
-    fetchImpl,
-    metadataUrl,
-    { method: "GET", headers: immutableHeaders },
-    { origin: GRAPH_ORIGIN, pathname: messagePath },
-  );
-  if (metadataResponse.status !== 200) upstreamFailure(metadataResponse);
-  const metadataValue = await readJson(metadataResponse);
-  const immutableId = optionalString(metadataValue?.id);
-  if (!immutableId || /[\u0000-\u001f\u007f]/u.test(immutableId)) {
-    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
-  }
-  const inboxPath = "/v1.0/me/mailFolders/inbox";
-  const inboxUrl = new URL(inboxPath, GRAPH_ORIGIN);
-  inboxUrl.searchParams.set("$select", "id");
-  const inboxResponse = await fixedFetch(
-    fetchImpl,
-    inboxUrl,
-    { method: "GET", headers: immutableHeaders },
-    { origin: GRAPH_ORIGIN, pathname: inboxPath },
-  );
-  if (inboxResponse.status !== 200) upstreamFailure(inboxResponse);
-  const inboxId = mailFolderId(await readJson(inboxResponse));
-  const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
-  const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
-  sentItemsUrl.searchParams.set("$select", "id");
-  const sentItemsResponse = await fixedFetch(
-    fetchImpl,
-    sentItemsUrl,
-    { method: "GET", headers: immutableHeaders },
-    { origin: GRAPH_ORIGIN, pathname: sentItemsPath },
-  );
-  if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
-  const sentItemsId = mailFolderId(await readJson(sentItemsResponse));
-  const metadata = messageMetadata(
-    metadataValue,
-    immutableId,
-    inboxId,
-    sentItemsId,
-  );
-  const mimePath = `/v1.0/me/messages/${encodeURIComponent(immutableId)}/$value`;
-  const mimeResponse = await fixedFetch(
-    fetchImpl,
-    `${GRAPH_ORIGIN}${mimePath}`,
-    {
-      method: "GET",
-      headers: {
-        ...immutableHeaders,
-        accept: "message/rfc822, application/octet-stream",
+  let stage = "metadata";
+  try {
+    const metadataResponse = await fixedFetch(
+      fetchImpl,
+      metadataUrl,
+      { method: "GET", headers: immutableHeaders },
+      { origin: GRAPH_ORIGIN, pathname: messagePath },
+    );
+    if (metadataResponse.status !== 200) upstreamFailure(metadataResponse);
+    const metadataValue = await readJson(metadataResponse);
+    const immutableId = optionalString(metadataValue?.id);
+    if (!immutableId || /[\u0000-\u001f\u007f]/u.test(immutableId)) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+
+    stage = "inbox_folder";
+    const inboxPath = "/v1.0/me/mailFolders/inbox";
+    const inboxUrl = new URL(inboxPath, GRAPH_ORIGIN);
+    inboxUrl.searchParams.set("$select", "id");
+    const inboxResponse = await fixedFetch(
+      fetchImpl,
+      inboxUrl,
+      { method: "GET", headers: immutableHeaders },
+      { origin: GRAPH_ORIGIN, pathname: inboxPath },
+    );
+    if (inboxResponse.status !== 200) upstreamFailure(inboxResponse);
+    const inboxId = mailFolderId(await readJson(inboxResponse));
+
+    stage = "sent_items_folder";
+    const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
+    const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
+    sentItemsUrl.searchParams.set("$select", "id");
+    const sentItemsResponse = await fixedFetch(
+      fetchImpl,
+      sentItemsUrl,
+      { method: "GET", headers: immutableHeaders },
+      { origin: GRAPH_ORIGIN, pathname: sentItemsPath },
+    );
+    if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
+    const sentItemsId = mailFolderId(await readJson(sentItemsResponse));
+
+    stage = "metadata_normalization";
+    const metadata = messageMetadata(
+      metadataValue,
+      immutableId,
+      inboxId,
+      sentItemsId,
+    );
+
+    stage = "mime";
+    const mimePath = `/v1.0/me/messages/${encodeURIComponent(immutableId)}/$value`;
+    const mimeResponse = await fixedFetch(
+      fetchImpl,
+      `${GRAPH_ORIGIN}${mimePath}`,
+      {
+        method: "GET",
+        headers: {
+          ...immutableHeaders,
+          accept: "message/rfc822, application/octet-stream",
+        },
       },
-    },
-    { origin: GRAPH_ORIGIN, pathname: mimePath },
-  );
-  if (mimeResponse.status !== 200) upstreamFailure(mimeResponse);
-  const mime = await readBoundedBytes(mimeResponse, MAX_MIME_BYTES);
-  const header = mime.toString(
-    "utf8",
-    0,
-    Math.min(mime.length, 64 * 1024),
-  );
-  if (
-    !/(?:^|\r?\n)(?:from|to|date|subject|message-id|mime-version):/iu
-      .test(header)
-  ) {
-    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+      { origin: GRAPH_ORIGIN, pathname: mimePath },
+    );
+    if (mimeResponse.status !== 200) upstreamFailure(mimeResponse);
+    const mime = await readBoundedBytes(mimeResponse, MAX_MIME_BYTES);
+    const header = mime.toString(
+      "utf8",
+      0,
+      Math.min(mime.length, 64 * 1024),
+    );
+    if (
+      !/(?:^|\r?\n)(?:from|to|date|subject|message-id|mime-version):/iu
+        .test(header)
+    ) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+
+    stage = "result_size";
+    return ensureResultSize({
+      immutable_message_id: immutableId,
+      internet_message_id: metadata.internet_message_id,
+      message_metadata: metadata,
+      mime_base64: mime.toString("base64"),
+      mime_bytes: mime.byteLength,
+      provider_request_ids: {
+        metadata: providerRequestId(metadataResponse),
+        inbox: providerRequestId(inboxResponse),
+        sent_items: providerRequestId(sentItemsResponse),
+        mime: providerRequestId(mimeResponse),
+      },
+    });
+  } catch (error) {
+    const safe = error instanceof BrokerError
+      ? error
+      : new BrokerError("BROKER_INTERNAL_ERROR", 500);
+    console.error(JSON.stringify({
+      event: "lawos.microsoft_egress.mail_export_failed",
+      operation: "graph.mailMessage.export",
+      stage,
+      error_code: safe.code,
+      status: safe.status,
+    }));
+    throw safe;
   }
-  return ensureResultSize({
-    immutable_message_id: immutableId,
-    internet_message_id: metadata.internet_message_id,
-    message_metadata: metadata,
-    mime_base64: mime.toString("base64"),
-    mime_bytes: mime.byteLength,
-    provider_request_ids: {
-      metadata: providerRequestId(metadataResponse),
-      inbox: providerRequestId(inboxResponse),
-      sent_items: providerRequestId(sentItemsResponse),
-      mime: providerRequestId(mimeResponse),
-    },
-  });
 }
 
 const OPERATIONS = Object.freeze({
