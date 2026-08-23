@@ -764,28 +764,30 @@ test("mail export proves exact Sent Items provenance from fixed Graph paths with
   const immutable = "immutable-1";
   const inboxId = "inbox-folder-1";
   const sentItemsId = "sent-items-folder-1";
+  const metadata = {
+    id: immutable,
+    internetMessageId: "<message@example.test>",
+    conversationId: "conversation-1",
+    subject: "Sent subject",
+    toRecipients: [{ emailAddress: { name: "To", address: "to@example.test" } }],
+    ccRecipients: [{ emailAddress: { name: "Cc", address: "cc@example.test" } }],
+    bccRecipients: [{ emailAddress: { name: "Bcc", address: "bcc@example.test" } }],
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: "2026-08-08T00:59:00Z",
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-1",
+    parentFolderId: sentItemsId,
+    isDraft: false,
+  };
   const handler = createHandler({
     fetch_impl: async (url, options) => {
       calls.push({ url, options });
-      if (calls.length === 1) {
-        return json({
-          id: immutable,
-          internetMessageId: "<message@example.test>",
-          conversationId: "conversation-1",
-          subject: "Sent subject",
-          toRecipients: [{ emailAddress: { name: "To", address: "to@example.test" } }],
-          ccRecipients: [{ emailAddress: { name: "Cc", address: "cc@example.test" } }],
-          bccRecipients: [{ emailAddress: { name: "Bcc", address: "bcc@example.test" } }],
-          receivedDateTime: "2026-08-08T01:00:00Z",
-          sentDateTime: "2026-08-08T00:59:00Z",
-          parentFolderId: sentItemsId,
-          isDraft: false,
-        });
-      }
-      if (calls.length === 2) {
+      if (calls.length === 1) return json({ ...metadata, id: "rest-1" });
+      if (calls.length === 2) return json({ value: [metadata] });
+      if (calls.length === 3) {
         return json({ id: inboxId });
       }
-      if (calls.length === 3) {
+      if (calls.length === 4) {
         return json({ id: sentItemsId });
       }
       return new Response(
@@ -818,13 +820,14 @@ test("mail export proves exact Sent Items provenance from fixed Graph paths with
   assert.equal(result.result.message_metadata.is_draft, false);
   assert.equal(JSON.stringify(result.result).includes(sentItemsId), false);
   assert.equal(JSON.stringify(result.result).includes(inboxId), false);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
   assert.ok(calls.every(({ url }) => (
     url.startsWith("https://graph.microsoft.com/v1.0/me/")
   )));
   assert.ok(calls.every(({ url }) => !url.includes("translateExchangeIds")));
   assert.ok(calls.every(({ options }) => options.redirect === "error"));
-  assert.ok(calls.every(({ options }) => (
+  assert.equal(Object.hasOwn(calls[0].options.headers, "Prefer"), false);
+  assert.ok(calls.slice(1).every(({ options }) => (
     options.headers.Prefer === 'IdType="ImmutableId"'
   )));
   assert.equal(
@@ -837,51 +840,306 @@ test("mail export proves exact Sent Items provenance from fixed Graph paths with
   );
   assert.equal(
     new URL(calls[1].url).pathname,
-    "/v1.0/me/mailFolders/inbox",
+    "/v1.0/me/messages",
   );
-  assert.equal(new URL(calls[1].url).searchParams.get("$select"), "id");
+  assert.equal(new URL(calls[1].url).searchParams.get("$top"), "2");
   assert.equal(
     new URL(calls[2].url).pathname,
-    "/v1.0/me/mailFolders/sentitems",
+    "/v1.0/me/mailFolders/inbox",
   );
   assert.equal(new URL(calls[2].url).searchParams.get("$select"), "id");
   assert.equal(
     new URL(calls[3].url).pathname,
+    "/v1.0/me/mailFolders/sentitems",
+  );
+  assert.equal(new URL(calls[3].url).searchParams.get("$select"), "id");
+  assert.equal(
+    new URL(calls[4].url).pathname,
     "/v1.0/me/messages/immutable-1/$value",
   );
 });
 
+test("mail export resolves an Office REST v2 ID through a bounded immutable identity lookup", async () => {
+  const calls = [];
+  const internetMessageId = "<lawyer's-fallback@example.test>";
+  const regularMetadata = {
+    id: "rest-office-404",
+    internetMessageId,
+    conversationId: "conversation-fallback",
+    subject: "Fallback subject",
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: [],
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: null,
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-fallback",
+    parentFolderId: "inbox-fallback",
+    isDraft: false,
+  };
+  const immutableMetadata = {
+    id: "immutable/fallback+1=",
+    internetMessageId,
+    conversationId: regularMetadata.conversationId,
+    parentFolderId: regularMetadata.parentFolderId,
+    isDraft: regularMetadata.isDraft,
+    changeKey: regularMetadata.changeKey,
+    createdDateTime: regularMetadata.createdDateTime,
+    receivedDateTime: regularMetadata.receivedDateTime,
+    sentDateTime: regularMetadata.sentDateTime,
+  };
+  const handler = createHandler({
+    fetch_impl: async (url, options) => {
+      calls.push({ url, options });
+      if (calls.length === 1) return json(regularMetadata);
+      if (calls.length === 2) {
+        return json({ value: [immutableMetadata] }, 200, {
+          "request-id": "immutable-identity-request",
+        });
+      }
+      if (calls.length === 3) return json({ id: "inbox-fallback" });
+      if (calls.length === 4) return json({ id: "sent-items-fallback" });
+      return new Response("From: sender@example.test\r\n\r\nbody", {
+        status: 200,
+      });
+    },
+  });
+
+  const result = await handler(envelope("graph.mailMessage.export", {
+    access_token: "token",
+    rest_message_id: "rest-office-404",
+  }));
+
+  assert.equal(result.ok, true);
+  assert.equal(result.result.immutable_message_id, "immutable/fallback+1=");
+  assert.equal(result.result.message_metadata.received_at, "2026-08-08T01:00:00.000Z");
+  assert.equal(result.result.message_metadata.sent_at, "2026-08-08T01:00:00.000Z");
+  assert.equal(result.result.message_metadata.subject, "Fallback subject");
+  assert.equal(
+    result.result.provider_request_ids.metadata,
+    "immutable-identity-request",
+  );
+  assert.equal(calls.length, 5);
+  assert.equal(
+    new URL(calls[0].url).pathname,
+    "/v1.0/me/messages/rest-office-404",
+  );
+  assert.equal(Object.hasOwn(calls[0].options.headers, "Prefer"), false);
+  assert.equal(calls[0].options.headers.authorization, "Bearer token");
+  const sourceSelect = new URL(calls[0].url).searchParams.get("$select");
+  assert.equal(sourceSelect.includes("subject"), true);
+  assert.equal(sourceSelect.includes("changeKey"), true);
+  assert.equal(sourceSelect.includes("createdDateTime"), true);
+  const identityUrl = new URL(calls[1].url);
+  assert.equal(identityUrl.pathname, "/v1.0/me/messages");
+  assert.equal(
+    identityUrl.searchParams.get("$filter"),
+    "internetMessageId eq '<lawyer''s-fallback@example.test>'",
+  );
+  assert.equal(identityUrl.searchParams.get("$top"), "2");
+  assert.equal(
+    identityUrl.searchParams.get("$select"),
+    "id,internetMessageId,conversationId,parentFolderId,isDraft,changeKey,createdDateTime,receivedDateTime,sentDateTime",
+  );
+  assert.equal(identityUrl.searchParams.get("$select").includes("subject"), false);
+  assert.equal(identityUrl.searchParams.get("$select").includes("toRecipients"), false);
+  assert.equal(calls[1].options.headers.Prefer, 'IdType="ImmutableId"');
+  assert.equal(
+    new URL(calls[4].url).pathname,
+    "/v1.0/me/messages/immutable%2Ffallback%2B1%3D/$value",
+  );
+});
+
+test("mail export fails closed when immutable identity lookup is absent, ambiguous, paged, or mismatched", async () => {
+  const restId = "rest-id-NEVER-LOG-immutable-lookup";
+  const regularMetadata = {
+    id: restId,
+    internetMessageId: "<internet-message-id-NEVER-LOG@example.test>",
+    conversationId: "conversation-id-NEVER-LOG",
+    parentFolderId: "folder-id-NEVER-LOG",
+    isDraft: false,
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: "2026-08-08T00:59:00Z",
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-NEVER-LOG",
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: [],
+  };
+  const candidate = {
+    ...regularMetadata,
+    id: "immutable-id-NEVER-LOG",
+  };
+  const scenarios = [
+    { label: "absent", body: { value: [] } },
+    { label: "ambiguous", body: { value: [candidate, candidate] } },
+    {
+      label: "paged",
+      body: {
+        value: [candidate],
+        "@odata.nextLink": "https://graph.microsoft.com/v1.0/me/messages?$skiptoken=NEVER-LOG",
+      },
+    },
+    {
+      label: "internet message mismatch",
+      body: { value: [{ ...candidate, internetMessageId: "<other@example.test>" }] },
+    },
+    {
+      label: "conversation mismatch",
+      body: { value: [{ ...candidate, conversationId: "other-conversation" }] },
+    },
+    {
+      label: "folder mismatch",
+      body: { value: [{ ...candidate, parentFolderId: "other-folder" }] },
+    },
+    {
+      label: "draft mismatch",
+      body: { value: [{ ...candidate, isDraft: true }] },
+    },
+    {
+      label: "change key mismatch",
+      body: { value: [{ ...candidate, changeKey: "other-change-key" }] },
+    },
+    {
+      label: "created timestamp mismatch",
+      body: { value: [{ ...candidate, createdDateTime: "2026-08-08T00:58:01Z" }] },
+    },
+    {
+      label: "received timestamp mismatch",
+      body: { value: [{ ...candidate, receivedDateTime: "2026-08-08T01:00:01Z" }] },
+    },
+    {
+      label: "sent timestamp mismatch",
+      body: { value: [{ ...candidate, sentDateTime: null }] },
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    let calls = 0;
+    const lines = [];
+    const originalConsoleError = console.error;
+    console.error = (...values) => lines.push(values);
+    let result;
+    try {
+      const handler = createHandler({
+        fetch_impl: async () => {
+          calls += 1;
+          if (calls === 1) return json(regularMetadata);
+          return json(scenario.body);
+        },
+      });
+      result = await handler(envelope("graph.mailMessage.export", {
+        access_token: "token-NEVER-LOG-immutable-lookup",
+        rest_message_id: restId,
+      }));
+    } finally {
+      console.error = originalConsoleError;
+    }
+
+    assert.equal(result.ok, false, scenario.label);
+    assert.equal(result.error.code, "UPSTREAM_RESPONSE_INVALID", scenario.label);
+    assert.equal(calls, 2, scenario.label);
+    assert.equal(lines.length, 1, scenario.label);
+    const serialized = String(lines[0][0]);
+    assert.deepEqual(JSON.parse(serialized), {
+      event: "lawos.microsoft_egress.mail_export_failed",
+      operation: "graph.mailMessage.export",
+      stage: "immutable_identity",
+      error_code: "UPSTREAM_RESPONSE_INVALID",
+      status: 502,
+    }, scenario.label);
+    for (const sentinel of [
+      restId,
+      regularMetadata.internetMessageId,
+      regularMetadata.conversationId,
+      regularMetadata.parentFolderId,
+      candidate.id,
+      "token-NEVER-LOG-immutable-lookup",
+    ]) {
+      assert.equal(serialized.includes(sentinel), false, scenario.label);
+    }
+  }
+});
+
+test("mail export rejects regular metadata that is not exactly bound to the Office REST ID", async () => {
+  let calls = 0;
+  const lines = [];
+  const originalConsoleError = console.error;
+  console.error = (...values) => lines.push(values);
+  let result;
+  try {
+    const handler = createHandler({
+      fetch_impl: async () => {
+        calls += 1;
+        return json({
+          id: "another-rest-id-NEVER-LOG",
+          internetMessageId: "<id-binding-NEVER-LOG@example.test>",
+          conversationId: "conversation-id-binding-NEVER-LOG",
+          parentFolderId: "folder-id-binding-NEVER-LOG",
+          isDraft: false,
+          changeKey: "change-key-id-binding-NEVER-LOG",
+          createdDateTime: "2026-08-08T00:58:00Z",
+          receivedDateTime: "2026-08-08T01:00:00Z",
+          sentDateTime: "2026-08-08T00:59:00Z",
+        });
+      },
+    });
+    result = await handler(envelope("graph.mailMessage.export", {
+      access_token: "token-id-binding-NEVER-LOG",
+      rest_message_id: "office-rest-id-NEVER-LOG",
+    }));
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "UPSTREAM_RESPONSE_INVALID");
+  assert.equal(calls, 1);
+  assert.deepEqual(JSON.parse(String(lines[0][0])), {
+    event: "lawos.microsoft_egress.mail_export_failed",
+    operation: "graph.mailMessage.export",
+    stage: "metadata",
+    error_code: "UPSTREAM_RESPONSE_INVALID",
+    status: 502,
+  });
+  assert.equal(String(lines[0][0]).includes("NEVER-LOG"), false);
+});
+
 test("mail export preserves divergent Graph sender and from provenance without synthesis", async () => {
   let calls = 0;
+  const metadata = {
+    id: "immutable-divergent",
+    internetMessageId: "<divergent@example.test>",
+    conversationId: "conversation-divergent",
+    sender: {
+      emailAddress: {
+        name: "Delegate Sender",
+        address: "delegate.sender@example.test",
+      },
+    },
+    from: {
+      emailAddress: {
+        name: "Mailbox Principal",
+        address: "mailbox.principal@example.test",
+      },
+    },
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: [],
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: "2026-08-08T00:59:00Z",
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-divergent",
+    parentFolderId: "inbox-divergent",
+    isDraft: false,
+  };
   const handler = createHandler({
     fetch_impl: async () => {
       calls += 1;
-      if (calls === 1) {
-        return json({
-          id: "immutable-divergent",
-          sender: {
-            emailAddress: {
-              name: "Delegate Sender",
-              address: "delegate.sender@example.test",
-            },
-          },
-          from: {
-            emailAddress: {
-              name: "Mailbox Principal",
-              address: "mailbox.principal@example.test",
-            },
-          },
-          toRecipients: [],
-          ccRecipients: [],
-          bccRecipients: [],
-          receivedDateTime: "2026-08-08T01:00:00Z",
-          sentDateTime: "2026-08-08T00:59:00Z",
-          parentFolderId: "inbox-divergent",
-          isDraft: false,
-        });
-      }
-      if (calls === 2) return json({ id: "inbox-divergent" });
-      if (calls === 3) return json({ id: "sent-items-divergent" });
+      if (calls === 1) return json({ ...metadata, id: "rest-divergent" });
+      if (calls === 2) return json({ value: [metadata] });
+      if (calls === 3) return json({ id: "inbox-divergent" });
+      if (calls === 4) return json({ id: "sent-items-divergent" });
       return new Response(
         "From: mailbox.principal@example.test\r\n\r\nbody",
         { status: 200 },
@@ -910,23 +1168,27 @@ test("mail export preserves divergent Graph sender and from provenance without s
 test("mail export normalizes nullable Graph message timestamps from the available instant", async () => {
   const run = async ({ receivedDateTime, sentDateTime }) => {
     let calls = 0;
+    const metadata = {
+      id: "immutable-nullable-time",
+      internetMessageId: "<nullable-time@example.test>",
+      conversationId: "conversation-nullable-time",
+      parentFolderId: "inbox-nullable-time",
+      isDraft: false,
+      receivedDateTime,
+      sentDateTime,
+      createdDateTime: "2026-08-08T00:58:00Z",
+      changeKey: "change-key-nullable-time",
+      toRecipients: [],
+      ccRecipients: [],
+      bccRecipients: [],
+    };
     const handler = createHandler({
       fetch_impl: async () => {
         calls += 1;
-        if (calls === 1) {
-          return json({
-            id: "immutable-nullable-time",
-            parentFolderId: "inbox-nullable-time",
-            isDraft: false,
-            receivedDateTime,
-            sentDateTime,
-            toRecipients: [],
-            ccRecipients: [],
-            bccRecipients: [],
-          });
-        }
-        if (calls === 2) return json({ id: "inbox-nullable-time" });
-        if (calls === 3) return json({ id: "sent-items-nullable-time" });
+        if (calls === 1) return json({ ...metadata, id: "rest-nullable-time" });
+        if (calls === 2) return json({ value: [metadata] });
+        if (calls === 3) return json({ id: "inbox-nullable-time" });
+        if (calls === 4) return json({ id: "sent-items-nullable-time" });
         return new Response("From: sender@example.test\r\n\r\nbody", { status: 200 });
       },
     });
@@ -954,17 +1216,26 @@ test("mail export normalizes nullable Graph message timestamps from the availabl
 test("mail export rejects a metadata response without an immutable message ID", async () => {
   let calls = 0;
   let requestUrl = null;
+  const regularMetadata = {
+    id: "rest/+?=1",
+    internetMessageId: "<missing-immutable@example.test>",
+    conversationId: "conversation-missing-immutable",
+    parentFolderId: "inbox-1",
+    isDraft: false,
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: "2026-08-08T00:59:00Z",
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-missing-immutable",
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: [],
+  };
   const handler = createHandler({
     fetch_impl: async (url) => {
       calls += 1;
-      requestUrl = url;
-      return json({
-        parentFolderId: "inbox-1",
-        isDraft: false,
-        toRecipients: [],
-        ccRecipients: [],
-        bccRecipients: [],
-      });
+      requestUrl ??= url;
+      if (calls === 1) return json(regularMetadata);
+      return json({ value: [{ ...regularMetadata, id: null }] });
     },
   });
   const result = await handler(envelope("graph.mailMessage.export", {
@@ -973,7 +1244,7 @@ test("mail export rejects a metadata response without an immutable message ID", 
   }));
   assert.equal(result.ok, false);
   assert.equal(result.error.code, "UPSTREAM_RESPONSE_INVALID");
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.equal(
     new URL(requestUrl).pathname,
     "/v1.0/me/messages/rest%2F%2B%3F%3D1",
@@ -986,23 +1257,27 @@ test("mail export classifies Inbox, Sent Items, and other folders without infere
   const sentItemsId = "sent-items-folder-1";
   const run = async ({ parentFolderId, isDraft, inbox = { id: inboxId }, sent = { id: sentItemsId } }) => {
     let calls = 0;
+    const metadata = {
+      id: immutable,
+      internetMessageId: "<folder-classification@example.test>",
+      conversationId: "conversation-folder-classification",
+      parentFolderId,
+      isDraft,
+      receivedDateTime: "2026-08-08T01:00:00Z",
+      sentDateTime: "2026-08-08T00:59:00Z",
+      createdDateTime: "2026-08-08T00:58:00Z",
+      changeKey: "change-key-folder-classification",
+      toRecipients: [],
+      ccRecipients: [],
+      bccRecipients: [],
+    };
     const handler = createHandler({
       fetch_impl: async () => {
         calls += 1;
-        if (calls === 1) {
-          return json({
-            id: immutable,
-            parentFolderId,
-            isDraft,
-            receivedDateTime: "2026-08-08T01:00:00Z",
-            sentDateTime: "2026-08-08T00:59:00Z",
-            toRecipients: [],
-            ccRecipients: [],
-            bccRecipients: [],
-          });
-        }
-        if (calls === 2) return json(inbox);
-        if (calls === 3) return json(sent);
+        if (calls === 1) return json({ ...metadata, id: "rest-1" });
+        if (calls === 2) return json({ value: [metadata] });
+        if (calls === 3) return json(inbox);
+        if (calls === 4) return json(sent);
         return new Response(
           "From: sender@example.test\r\nTo: receiver@example.test\r\n\r\nbody",
           { status: 200 },
@@ -1052,25 +1327,29 @@ test("mail export classifies Inbox, Sent Items, and other folders without infere
 test("mail export rejects MIME larger than synchronous invoke limit", async () => {
   let calls = 0;
   const immutable = "immutable-1";
+  const metadata = {
+    id: immutable,
+    internetMessageId: "<oversized-mime@example.test>",
+    conversationId: "conversation-oversized-mime",
+    parentFolderId: "sent-items-folder-1",
+    isDraft: false,
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: "2026-08-08T00:59:00Z",
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-oversized-mime",
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: [],
+  };
   const handler = createHandler({
     fetch_impl: async () => {
       calls += 1;
-      if (calls === 1) {
-        return json({
-          id: immutable,
-          parentFolderId: "sent-items-folder-1",
-          isDraft: false,
-          receivedDateTime: "2026-08-08T01:00:00Z",
-          sentDateTime: "2026-08-08T00:59:00Z",
-          toRecipients: [],
-          ccRecipients: [],
-          bccRecipients: [],
-        });
-      }
-      if (calls === 2) {
+      if (calls === 1) return json({ ...metadata, id: "rest-1" });
+      if (calls === 2) return json({ value: [metadata] });
+      if (calls === 3) {
         return json({ id: "inbox-folder-1" });
       }
-      if (calls === 3) {
+      if (calls === 4) {
         return json({ id: "sent-items-folder-1" });
       }
       return new Response(Buffer.alloc(MAX_MIME_BYTES + 1, 65), {
@@ -1100,14 +1379,19 @@ test("mail export failure log contains only fixed non-payload fields", async () 
     "provider-request-id-NEVER-LOG",
     "upstream-body-NEVER-LOG",
     "graph.microsoft.com",
+    "internet-message-id-NEVER-LOG",
   ];
   const metadata = (overrides = {}) => ({
     id: "immutable-id-NEVER-LOG",
+    internetMessageId: "<internet-message-id-NEVER-LOG@example.test>",
+    conversationId: "conversation-id-NEVER-LOG",
     subject: "subject-NEVER-LOG",
     parentFolderId: "folder-id-NEVER-LOG",
     isDraft: false,
     receivedDateTime: "2026-08-08T01:00:00Z",
     sentDateTime: "2026-08-08T00:59:00Z",
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-NEVER-LOG",
     toRecipients: [{
       emailAddress: {
         name: "recipient-NEVER-LOG",
@@ -1123,6 +1407,13 @@ test("mail export failure log contains only fixed non-payload fields", async () 
     500,
     { "request-id": "provider-request-id-NEVER-LOG" },
   );
+  const regularMetadata = (overrides = {}) => () => json(metadata({
+    id: restIdSentinel,
+    ...overrides,
+  }));
+  const immutableIdentity = (overrides = {}) => () => json({
+    value: [metadata(overrides)],
+  });
   const scenarios = [
     {
       stage: "metadata",
@@ -1130,15 +1421,24 @@ test("mail export failure log contains only fixed non-payload fields", async () 
       responses: [upstreamError],
     },
     {
+      stage: "immutable_identity",
+      code: "UPSTREAM_REJECTED",
+      responses: [
+        regularMetadata(),
+        upstreamError,
+      ],
+    },
+    {
       stage: "inbox_folder",
       code: "UPSTREAM_REJECTED",
-      responses: [() => json(metadata()), upstreamError],
+      responses: [regularMetadata(), immutableIdentity(), upstreamError],
     },
     {
       stage: "sent_items_folder",
       code: "UPSTREAM_REJECTED",
       responses: [
-        () => json(metadata()),
+        regularMetadata(),
+        immutableIdentity(),
         () => json({ id: "inbox-id-NEVER-LOG" }),
         upstreamError,
       ],
@@ -1147,10 +1447,14 @@ test("mail export failure log contains only fixed non-payload fields", async () 
       stage: "metadata_normalization",
       code: "UPSTREAM_RESPONSE_INVALID",
       responses: [
-        () => json(metadata({
+        regularMetadata({
           receivedDateTime: null,
           sentDateTime: null,
-        })),
+        }),
+        immutableIdentity({
+          receivedDateTime: null,
+          sentDateTime: null,
+        }),
         () => json({ id: "inbox-id-NEVER-LOG" }),
         () => json({ id: "sent-items-id-NEVER-LOG" }),
       ],
@@ -1159,7 +1463,8 @@ test("mail export failure log contains only fixed non-payload fields", async () 
       stage: "mime",
       code: "UPSTREAM_RESPONSE_INVALID",
       responses: [
-        () => json(metadata()),
+        regularMetadata(),
+        immutableIdentity(),
         () => json({ id: "inbox-id-NEVER-LOG" }),
         () => json({ id: "sent-items-id-NEVER-LOG" }),
         () => new Response("mime-body-NEVER-LOG", { status: 200 }),
@@ -1205,23 +1510,27 @@ test("mail export failure log contains only fixed non-payload fields", async () 
 
 test("successful mail export emits no failure log", async () => {
   let calls = 0;
+  const metadata = {
+    id: "immutable-success",
+    internetMessageId: "<success@example.test>",
+    conversationId: "conversation-success",
+    parentFolderId: "inbox-success",
+    isDraft: false,
+    receivedDateTime: "2026-08-08T01:00:00Z",
+    sentDateTime: null,
+    createdDateTime: "2026-08-08T00:58:00Z",
+    changeKey: "change-key-success",
+    toRecipients: [],
+    ccRecipients: [],
+    bccRecipients: [],
+  };
   const handler = createHandler({
     fetch_impl: async () => {
       calls += 1;
-      if (calls === 1) {
-        return json({
-          id: "immutable-success",
-          parentFolderId: "inbox-success",
-          isDraft: false,
-          receivedDateTime: "2026-08-08T01:00:00Z",
-          sentDateTime: null,
-          toRecipients: [],
-          ccRecipients: [],
-          bccRecipients: [],
-        });
-      }
-      if (calls === 2) return json({ id: "inbox-success" });
-      if (calls === 3) return json({ id: "sent-items-success" });
+      if (calls === 1) return json({ ...metadata, id: "rest-success" });
+      if (calls === 2) return json({ value: [metadata] });
+      if (calls === 3) return json({ id: "inbox-success" });
+      if (calls === 4) return json({ id: "sent-items-success" });
       return new Response("From: sender@example.test\r\n\r\nbody", {
         status: 200,
       });
