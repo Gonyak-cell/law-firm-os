@@ -823,28 +823,60 @@ function actionResultNotice(name, result) {
   const partial = result?.status === "partial" || result?.outcome === "partial";
   const readbackPending = result?.outlook_readback_pending === true;
   if (name === "file") {
+    const retryCount = result?.retry_attachment_ids?.length ?? 0;
     return {
-      status: partial ? OUTLOOK_OPERATION_STATES.partial : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
-      visibleMessage: partial ? "메일은 저장됐고 일부 첨부는 다시 시도해야 합니다." : replay ? "이미 저장된 메일입니다." : "메일 및 첨부 파일을 저장했습니다.",
-      fullMessage: partial
-        ? `메일 저장은 완료됐습니다. 다시 시도할 첨부 ${result?.retry_attachment_ids?.length ?? 0}개가 남았습니다.`
-        : replay ? "같은 Matter의 기존 메일 저장 기록을 확인했습니다." : "선택한 Matter에 메일 원본과 확인된 첨부를 저장했습니다.",
+      status: partial || readbackPending
+        ? OUTLOOK_OPERATION_STATES.partial
+        : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: partial && readbackPending
+        ? "메일은 저장됐습니다. 일부 첨부와 Matter 목록을 다시 확인해 주세요."
+        : partial
+          ? "메일은 저장됐고 일부 첨부는 다시 시도해야 합니다."
+          : readbackPending
+            ? "메일은 저장됐지만 Matter 목록은 새로 불러오지 못했습니다."
+            : replay ? "이미 저장된 메일입니다." : "메일 및 첨부 파일을 저장했습니다.",
+      fullMessage: partial && readbackPending
+        ? `메일 저장은 완료됐습니다. 다시 시도할 첨부 ${retryCount}개가 남았고 Matter 활동과 문서를 새로 불러오지 못했습니다.`
+        : partial
+          ? `메일 저장은 완료됐습니다. 다시 시도할 첨부 ${retryCount}개가 남았습니다.`
+          : readbackPending
+            ? "메일 저장은 완료됐습니다. Matter 활동과 문서만 다시 불러와 주세요."
+            : replay ? "같은 Matter의 기존 메일 저장 기록을 확인했습니다." : "선택한 Matter에 메일 원본과 확인된 첨부를 저장했습니다.",
     };
   }
   if (name === "sent_file") {
     return {
-      status: replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
-      visibleMessage: replay ? "이미 저장된 보낸 메일입니다." : "보낸 메일을 저장했습니다.",
-      fullMessage: replay ? "같은 Matter의 기존 보낸 메일 저장 기록을 확인했습니다." : "선택한 Matter에 보낸 메일 원본을 저장했습니다.",
+      status: readbackPending
+        ? OUTLOOK_OPERATION_STATES.partial
+        : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: readbackPending
+        ? "보낸 메일은 저장됐지만 Matter 목록은 새로 불러오지 못했습니다."
+        : replay ? "이미 저장된 보낸 메일입니다." : "보낸 메일을 저장했습니다.",
+      fullMessage: readbackPending
+        ? "보낸 메일 저장은 완료됐습니다. Matter 활동과 문서만 다시 불러와 주세요."
+        : replay ? "같은 Matter의 기존 보낸 메일 저장 기록을 확인했습니다." : "선택한 Matter에 보낸 메일 원본을 저장했습니다.",
     };
   }
   if (name === "attachments") {
+    const retryCount = result?.retry_attachment_ids?.length ?? 0;
     return {
-      status: partial ? OUTLOOK_OPERATION_STATES.partial : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
-      visibleMessage: partial ? "일부 첨부는 다시 시도해야 합니다." : "첨부 파일을 저장했습니다.",
-      fullMessage: partial
-        ? `다시 시도할 첨부 ${result?.retry_attachment_ids?.length ?? 0}개가 남았습니다.`
-        : "확인된 첨부 파일 저장을 마쳤습니다.",
+      status: partial || readbackPending
+        ? OUTLOOK_OPERATION_STATES.partial
+        : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: partial && readbackPending
+        ? "일부 첨부와 Matter 목록을 다시 확인해 주세요."
+        : partial
+          ? "일부 첨부는 다시 시도해야 합니다."
+          : readbackPending
+            ? "첨부 파일은 저장됐지만 Matter 목록은 새로 불러오지 못했습니다."
+            : "첨부 파일을 저장했습니다.",
+      fullMessage: partial && readbackPending
+        ? `다시 시도할 첨부 ${retryCount}개가 남았고 Matter 활동과 문서를 새로 불러오지 못했습니다.`
+        : partial
+          ? `다시 시도할 첨부 ${retryCount}개가 남았습니다.`
+          : readbackPending
+            ? "첨부 파일 저장은 완료됐습니다. Matter 활동과 문서만 다시 불러와 주세요."
+            : "확인된 첨부 파일 저장을 마쳤습니다.",
     };
   }
   if (name === "task") {
@@ -2802,11 +2834,10 @@ function App() {
       local_matter_id: matterId,
     });
     setAttachmentResult(receipt);
-    if (receipt.status === "partial") {
-      setError(`다시 저장할 첨부가 ${receipt.retry_attachment_ids.length}개 있습니다.`);
-    }
-    await refreshMatter(matterId, { operationSnapshot });
-    return receipt;
+    return withOptionalOutlookMatterReadback(receipt, () => refreshMatter(
+      matterId,
+      { operationSnapshot },
+    ));
   }
 
   async function fileEmail() {
@@ -2848,8 +2879,10 @@ function App() {
       local_matter_id: matterId,
     });
     setAttachmentResult(null);
-    await refreshMatter(matterId, { operationSnapshot });
-    return receipt;
+    return withOptionalOutlookMatterReadback(receipt, () => refreshMatter(
+      matterId,
+      { operationSnapshot },
+    ));
   }
 
   async function saveAttachments() {

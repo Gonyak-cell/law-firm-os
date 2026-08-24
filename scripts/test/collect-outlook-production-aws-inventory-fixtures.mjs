@@ -113,7 +113,7 @@ export function responseFor(request, overrides = {}) {
     };
   }
   if (operation === "lambda:get-function") return {
-    Configuration: { FunctionName: target, FunctionArn: identity.function_arn, Runtime: identity.runtime, Role: identity.role_arn, Handler: identity.handler, CodeSha256: CODE_SHA, CodeSize: 1000, RevisionId: `rev-${target}`, LastModified: NOW, State: "Active", LastUpdateStatus: "Successful", Architectures: ["arm64"], PackageType: identity.package_type },
+    Configuration: { FunctionName: target, FunctionArn: identity.function_arn, Runtime: identity.runtime, Role: identity.role_arn, Handler: identity.handler, CodeSha256: CODE_SHA, CodeSize: 1000, RevisionId: `rev-${target}`, LastModified: NOW, State: "Active", LastUpdateStatus: "Successful", Architectures: [identity.architecture], PackageType: identity.package_type },
     Code: { Location: "https://example.test/presigned?X-Amz-Signature=do-not-hash" },
   };
   if (operation === "lambda:get-function-configuration") return {
@@ -130,7 +130,7 @@ export function responseFor(request, overrides = {}) {
     LastUpdateStatus: "Successful",
     Timeout: 30,
     MemorySize: 1024,
-    Architectures: ["arm64"],
+    Architectures: [identity.architecture],
     PackageType: identity.package_type,
     Environment: { Variables: Object.fromEntries((target === "lawos-production-projection-auditor" ? AUDITOR_ENV_KEYS : ["LAWOS_RUNTIME_PROFILE", "LAWOS_DATABASE_PASSWORD", "LAWOS_PERSISTENCE_AUTHORITY"]).map((key) => [key, key === "LAWOS_DATABASE_PASSWORD" ? "synthetic-password" : "fixture-value"])) },
   };

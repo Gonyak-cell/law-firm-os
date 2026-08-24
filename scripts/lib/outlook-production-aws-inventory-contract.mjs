@@ -44,7 +44,7 @@ export const EXPECTED_FUNCTION_IDENTITIES = Object.freeze({
     role_arn: "arn:aws:iam::770880870480:role/matter-lawos-api-prod-lambda-role",
     runtime: "nodejs22.x",
     handler: "apps/api/src/lambda.handler",
-    architecture: "arm64",
+    architecture: "x86_64",
     package_type: "Zip",
   }),
 });

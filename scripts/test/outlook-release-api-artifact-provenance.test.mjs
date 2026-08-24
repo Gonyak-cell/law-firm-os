@@ -268,7 +268,7 @@ test("API artifact provenance rejects execution identity drift before protected 
   for (const drift of [
     { Handler: "apps/api/src/json-postgres-program-admin-lambda.handler" },
     { Runtime: "nodejs20.x" },
-    { Architectures: ["x86_64"] },
+    { Architectures: ["arm64"] },
     { Architectures: ["arm64", "x86_64"] },
     { PackageType: "Image" },
   ]) {
