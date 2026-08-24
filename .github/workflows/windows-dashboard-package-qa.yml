@@ -50,7 +50,9 @@ jobs:
       - name: Run Windows packaging source gates
         shell: pwsh
         run: |
-          npm --workspace apps/desktop run test:smoke
+          node --test apps/desktop/test/runtime-package.test.mjs scripts/test/pv004-desktop-channel.test.mjs scripts/test/windows-formal-workflow.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --test --test-name-pattern='^build-matter-desktop-win(?:-installer)?\.mjs requires an exact source SHA for internal distribution$' apps/desktop/test/shell-smoke.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/validate-pv001-desktop-version.mjs --source
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
