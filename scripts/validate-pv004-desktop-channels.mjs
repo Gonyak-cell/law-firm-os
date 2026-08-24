@@ -28,6 +28,7 @@ const channelMatrix = DESKTOP_RELEASE_CHANNELS.map((channel) => desktopReleaseCh
 assert.deepEqual(DESKTOP_RELEASE_CHANNELS, ["dev", "internal", "candidate", "formal"]);
 assert.equal(new Set(channelMatrix.map(({ appId }) => appId)).size, channelMatrix.length, "desktop app IDs must be unique");
 assert.equal(new Set(channelMatrix.map(({ artifactPrefix }) => artifactPrefix)).size, channelMatrix.length, "desktop artifact prefixes must be unique");
+assert.equal(new Set(channelMatrix.map(({ windowsArtifactPrefix }) => windowsArtifactPrefix)).size, channelMatrix.length, "Windows artifact prefixes must be unique");
 assert.equal(channelMatrix.filter(({ formal }) => formal).length, 1, "only the formal channel may be formal");
 
 const sourceSha = "a".repeat(40);
@@ -57,8 +58,8 @@ for (const config of channelMatrix) {
 
 const builderPaths = [
   ["scripts/build-matter-desktop-mac.mjs", "channelConfig.macArtifactPrefix"],
-  ["scripts/build-matter-desktop-win.mjs", "channelConfig.artifactPrefix"],
-  ["scripts/build-matter-desktop-win-installer.mjs", "channelConfig.artifactPrefix"],
+  ["scripts/build-matter-desktop-win.mjs", "channelConfig.windowsArtifactPrefix"],
+  ["scripts/build-matter-desktop-win-installer.mjs", "channelConfig.windowsArtifactPrefix"],
 ];
 const bypasses = [];
 for (const [relativePath, expectedArtifactPrefix] of builderPaths) {
@@ -77,6 +78,7 @@ console.log(JSON.stringify({
   channel_count: channelMatrix.length,
   unique_app_id_count: new Set(channelMatrix.map(({ appId }) => appId)).size,
   unique_artifact_prefix_count: new Set(channelMatrix.map(({ artifactPrefix }) => artifactPrefix)).size,
+  unique_windows_artifact_prefix_count: new Set(channelMatrix.map(({ windowsArtifactPrefix }) => windowsArtifactPrefix)).size,
   platform_manifest_contract_count: channelMatrix.length * 2,
   protected_builders: builderPaths.map(([relativePath]) => relativePath),
   channel_registry_bypass_count: bypasses.length,

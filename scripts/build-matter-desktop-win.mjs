@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash, createHmac } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -17,7 +18,10 @@ import {
   readDesktopBuildSourceIdentity,
   writeDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
-import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
+import {
+  copyDesktopLocalApiRuntime,
+  inspectWindowsProtectedPackageBoundary,
+} from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +32,16 @@ const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const distRoot = join(desktopRoot, "dist/win");
 const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
 const releaseChannel = channelConfig.channel;
+const protectedDistributionBuild = releaseChannel !== "dev";
+const expectedSourceSha = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA?.trim();
+if (protectedDistributionBuild && !expectedSourceSha) {
+  throw new Error("distribution-ready Windows builds require MATTER_DESKTOP_EXPECTED_SOURCE_SHA");
+}
+if (expectedSourceSha) {
+  assert.match(expectedSourceSha, /^[0-9a-f]{40}$/u, "MATTER_DESKTOP_EXPECTED_SOURCE_SHA must be a full 40-character Git SHA");
+  assert.equal(sourceIdentity.sourceSha, expectedSourceSha, "Windows build HEAD does not match the expected source SHA");
+  assert.equal(sourceIdentity.sourceDirty, false, "Windows build source must be clean when an expected source SHA is supplied");
+}
 const formalRelease = channelConfig.formal;
 assertDesktopFormalBuildProvenance({
   releaseChannel,
@@ -35,7 +49,7 @@ assertDesktopFormalBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
 const appId = channelConfig.appId;
-const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
+const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
 const packageDir = join(distRoot, `${artifactName}-win32-x64`);
 const packageZipPath = join(distRoot, `${artifactName}-win32-x64-unsigned.zip`);
 const executablePath = join(packageDir, "matter.exe");
@@ -45,11 +59,11 @@ const externalBuildManifestPath = join(distRoot, `${artifactName}-win-build-mani
 const receiptPath = process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH
   ? resolve(process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH)
   : join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
-if (formalRelease) {
+if (protectedDistributionBuild) {
   if (!process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH) {
-    throw new Error("formal builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH to preserve historical receipts");
+    throw new Error("distribution-ready Windows builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH");
   }
-  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal Windows build receipt" });
+  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "distribution-ready Windows build receipt" });
 }
 const iconPath = join(desktopRoot, "build/icon.ico");
 const formalReleaseMarkerName = "matter-formal-release.json";
@@ -99,12 +113,19 @@ async function zipPackageDirectory(sourceDir, targetZipPath) {
 await execFileAsync(process.execPath, [join(scriptDir, "prepare-matter-desktop-web-renderer.mjs")], {
   cwd: repoRoot
 });
+if (protectedDistributionBuild) {
+  const preparedSourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
+  if (preparedSourceIdentity.sourceSha !== expectedSourceSha || preparedSourceIdentity.sourceDirty) {
+    throw new Error("distribution-ready renderer preparation changed the clean expected Git source");
+  }
+}
 await rm(distRoot, { recursive: true, force: true });
 await mkdir(distRoot, { recursive: true });
 await mkdir(dirname(receiptPath), { recursive: true });
 const packageOutRoot = await mkdtemp(join(tmpdir(), "matter-desktop-win-packager-"));
 let buildManifest;
 let buildManifestHash;
+let packagePrivacy;
 
 try {
   const [generatedAppRoot] = await packager({
@@ -113,8 +134,8 @@ try {
     overwrite: true,
     platform: "win32",
     arch: "x64",
-    name: "matter",
-    executableName: "matter",
+    name: channelConfig.windowsProductName,
+    executableName: channelConfig.windowsExecutableName,
     appVersion: packageJson.version,
     buildVersion: packageJson.version,
     icon: iconPath,
@@ -126,7 +147,7 @@ try {
   await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(packageDir, "resources", "app"),
     repoRoot,
-    distributionReady: formalRelease
+    distributionReady: protectedDistributionBuild
   });
   const markerPath = join(packageDir, "resources", formalReleaseMarkerName);
   if (formalRelease) {
@@ -134,6 +155,11 @@ try {
   } else {
     await rm(markerPath, { force: true });
   }
+  packagePrivacy = inspectWindowsProtectedPackageBoundary({
+    packageRoot: packageDir,
+    distributionReady: protectedDistributionBuild,
+    label: "Windows portable package",
+  });
   buildManifest = createDesktopBuildManifest({
     version: packageJson.version,
     ...sourceIdentity,
@@ -159,7 +185,8 @@ const packageZipHash = sha256(await readFile(packageZipPath));
 const packageDirStat = await stat(packageDir);
 const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const artifact = {
-  productName: "matter",
+  productName: channelConfig.windowsProductName,
+  artifactPrefix: channelConfig.windowsArtifactPrefix,
   appId,
   version: packageJson.version,
   platform: "win32",
@@ -183,7 +210,14 @@ const artifact = {
   files: ["src/**/*", "build/**/*", "package.json"],
   publicRelease: false,
   ownerApproval: false,
-  windowsAuthenticodeSigning: false
+  windowsAuthenticodeSigning: false,
+  protectedDistributionBuild: packagePrivacy.protected_distribution_build,
+  localApiRuntimeIncluded: packagePrivacy.local_api_runtime_included,
+  localApiRuntimeExcluded: packagePrivacy.local_api_runtime_excluded,
+  privateHrxContactSourceExcluded: packagePrivacy.private_hrx_contact_source_excluded,
+  privateHrxRosterSourceExcluded: packagePrivacy.private_hrx_roster_source_excluded,
+  privateHrxPhotoSourceExcluded: packagePrivacy.private_hrx_photo_source_excluded,
+  privateHrxRegistrationSeedExcluded: packagePrivacy.private_hrx_registration_seed_excluded
 };
 const artifactBody = `${JSON.stringify(artifact, null, 2)}\n`;
 const manifestHash = sha256(Buffer.from(artifactBody));
@@ -204,7 +238,8 @@ Windows unsigned package zip: \`apps/desktop/dist/win/${artifactName}-win32-x64-
 App icon: \`apps/desktop/build/icon.ico\`
 App icon sha256: \`${iconHash}\`
 App ID: \`${appId}\`
-Product name: \`matter\`
+Product name: \`${channelConfig.windowsProductName}\`
+Artifact prefix: \`${channelConfig.windowsArtifactPrefix}\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
 Build manifest: \`apps/desktop/dist/win/${artifactName}-win-build-manifest.json\`
@@ -237,6 +272,13 @@ Built at: \`${buildManifest.built_at}\`
 - unsigned package zip exists: ${existsSync(packageZipPath)}
 - install smoke result: package_candidate_created
 - Windows native install smoke: ${nativeInstallSmoke}
+- protected distribution build: ${packagePrivacy.protected_distribution_build}
+- local API runtime included: ${packagePrivacy.local_api_runtime_included}
+- local API runtime excluded: ${packagePrivacy.local_api_runtime_excluded}
+- private HRX contact source excluded: ${packagePrivacy.private_hrx_contact_source_excluded}
+- private HRX roster source excluded: ${packagePrivacy.private_hrx_roster_source_excluded}
+- private HRX photo source excluded: ${packagePrivacy.private_hrx_photo_source_excluded}
+- private HRX registration seed excluded: ${packagePrivacy.private_hrx_registration_seed_excluded}
 - formal release local API default disabled: ${formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName))}
 
 ## Non-Claims
@@ -261,6 +303,8 @@ console.log(
       receipt: receiptPath,
       release_channel: releaseChannel,
       app_id: appId,
+      product_name: channelConfig.windowsProductName,
+      artifact_prefix: channelConfig.windowsArtifactPrefix,
       build_manifest: `apps/desktop/dist/win/${artifactName}-win-build-manifest.json`,
       packaged_build_manifest: `apps/desktop/dist/win/${artifactName}-win32-x64/resources/matter-build-manifest.json`,
       build_manifest_sha256: buildManifestHash,
@@ -279,6 +323,13 @@ console.log(
       install_smoke_result: "package_candidate_created",
       windows_native_install_smoke: nativeInstallSmoke,
       windows_authenticode_signing: false,
+      protected_distribution_build: packagePrivacy.protected_distribution_build,
+      local_api_runtime_included: packagePrivacy.local_api_runtime_included,
+      local_api_runtime_excluded: packagePrivacy.local_api_runtime_excluded,
+      private_hrx_contact_source_excluded: packagePrivacy.private_hrx_contact_source_excluded,
+      private_hrx_roster_source_excluded: packagePrivacy.private_hrx_roster_source_excluded,
+      private_hrx_photo_source_excluded: packagePrivacy.private_hrx_photo_source_excluded,
+      private_hrx_registration_seed_excluded: packagePrivacy.private_hrx_registration_seed_excluded,
       formal_release_local_api_default_disabled: formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName)),
       public_release: false,
       owner_approval: false

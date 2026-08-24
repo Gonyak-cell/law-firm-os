@@ -27,8 +27,8 @@ if (path.resolve(ROOT) !== path.resolve(process.cwd())) throw new Error(`run fro
 
 const desktopPackage = readJson(path.join(ROOT, "apps/desktop/package.json"));
 const version = desktopPackage.version;
-const artifactName = `matter-internal-${version}`;
 const internalChannel = desktopReleaseChannelConfig("internal");
+const artifactName = `${internalChannel.windowsArtifactPrefix}-${version}`;
 const macArtifactName = `${internalChannel.macArtifactPrefix}-${version}`;
 const macBuildPath = path.join(ROOT, "scripts/build-matter-desktop-mac.mjs");
 const windowsBuildPath = path.join(ROOT, "scripts/build-matter-desktop-win.mjs");

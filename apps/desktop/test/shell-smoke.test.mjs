@@ -629,6 +629,28 @@ test("signed internal macOS builds require an exact clean source SHA before pack
   assert.doesNotMatch(output, /notarytool|electron-packager/i);
 });
 
+for (const scriptName of ["build-matter-desktop-win.mjs", "build-matter-desktop-win-installer.mjs"]) {
+  test(`${scriptName} requires an exact source SHA for internal distribution`, () => {
+    const buildScript = fileURLToPath(new URL(`../../../scripts/${scriptName}`, import.meta.url));
+    const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+    const result = spawnSync(process.execPath, [buildScript], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        MATTER_DESKTOP_RELEASE_CHANNEL: "internal",
+        MATTER_DESKTOP_EXPECTED_SOURCE_SHA: "",
+      },
+      encoding: "utf8",
+      timeout: 10_000,
+    });
+    const output = `${result.stdout}\n${result.stderr}`;
+
+    assert.notEqual(result.status, 0, output);
+    assert.match(output, /distribution-ready Windows(?: installer)? builds require MATTER_DESKTOP_EXPECTED_SOURCE_SHA/);
+    assert.doesNotMatch(output, /electron-packager|electron-builder/i);
+  });
+}
+
 test("desktop shell blocks unapproved renderer target and remote navigation", async () => {
   await assert.rejects(
     () =>

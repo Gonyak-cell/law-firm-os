@@ -54,7 +54,7 @@ if (channel === "formal") {
   }
 }
 const macArtifactName = channelConfig.macArtifactPrefix + "-" + version;
-const windowsArtifactName = channelConfig.artifactPrefix + "-" + version;
+const windowsArtifactName = channelConfig.windowsArtifactPrefix + "-" + version;
 const releaseRelativeRoot = desktopReleaseArtifactRelativeRoot({
   version,
   sourceSha: sourceIdentity.sourceSha,

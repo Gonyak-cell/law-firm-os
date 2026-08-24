@@ -21,6 +21,7 @@ import { findRegisteredAccountByUserId } from "../apps/api/src/matter-vault-acco
 import { createSqlLeaveBalanceLedger } from "../packages/hrx/src/leave/balance.js";
 import { HRX_CORE_MIGRATIONS, runHrxMigrations } from "../packages/hrx/src/migrations/index.js";
 import { createFileHrxStore } from "../packages/hrx/src/store/file-store.js";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const TENANT = "tenant_amic_matter_vault";
@@ -36,9 +37,10 @@ const EXECUTABLE = path.join(APP_BUNDLE, "Contents/MacOS/matter");
 const PACKAGED_APP_ROOT = path.join(APP_BUNDLE, "Contents/Resources/app");
 const RENDERER_INDEX = path.join(PACKAGED_APP_ROOT, "src/renderer/web/index.html");
 const desktopPackage = JSON.parse(readFileSync(path.join(ROOT, "apps/desktop/package.json"), "utf8"));
-const WINDOWS_PACKAGE_ROOT = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${desktopPackage.version}-win32-x64`);
+const windowsArtifactPrefix = desktopReleaseChannelConfig("internal").windowsArtifactPrefix;
+const WINDOWS_PACKAGE_ROOT = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactPrefix}-${desktopPackage.version}-win32-x64`);
 const WINDOWS_EXECUTABLE = path.join(WINDOWS_PACKAGE_ROOT, "matter.exe");
-const WINDOWS_ZIP = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${desktopPackage.version}-win32-x64-unsigned.zip`);
+const WINDOWS_ZIP = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactPrefix}-${desktopPackage.version}-win32-x64-unsigned.zip`);
 const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json");
 const ARTIFACT_DIR = path.resolve(process.env.MATTER_LEAVE_PACKAGE_QA_ARTIFACT_DIR || path.join(ROOT, "output/playwright/leave-management-package"));
 const DOC_RECEIPT = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/leave-management-package-qa.json");

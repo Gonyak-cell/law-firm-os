@@ -108,7 +108,10 @@ function validateSource() {
   }
   for (const buildSource of [macBuild, windowsBuild]) assert.match(buildSource, /desktopReleaseChannelConfig/);
   assert.match(macBuild, /const artifactName = `\$\{channelConfig\.macArtifactPrefix\}-\$\{packageJson\.version\}`/);
-  assert.match(windowsBuild, /const artifactName = `\$\{channelConfig\.artifactPrefix\}-\$\{packageJson\.version\}`/);
+  assert.match(windowsBuild, /const artifactName = `\$\{channelConfig\.windowsArtifactPrefix\}-\$\{packageJson\.version\}`/);
+  assert.match(windowsBuild, /name: channelConfig\.windowsProductName/);
+  assert.match(windowsBuild, /executableName: channelConfig\.windowsExecutableName/);
+  assert.match(windowsBuild, /distributionReady: protectedDistributionBuild/);
   assert.match(updateController, /activeVersion = metadata\.version/);
   assert.doesNotMatch(updateController, /\b0\.1\.\d+\b/, "update controller must consume metadata.version instead of hard-coding a release version");
 
@@ -134,17 +137,18 @@ if (command === "--source") {
 
 const version = source.expected_version;
 const internalChannel = desktopReleaseChannelConfig("internal");
+const windowsArtifactName = `${internalChannel.windowsArtifactPrefix}-${version}`;
 const macBundleRoot = path.join(ROOT, "apps/desktop/dist/mac", internalChannel.macAppBundleName);
 const macAppRoot = path.join(macBundleRoot, "Contents/Resources/app");
 const macPlistPath = path.join(macBundleRoot, "Contents/Info.plist");
 const macRendererPath = path.join(macAppRoot, "src/renderer/web");
 const macReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
-const windowsRoot = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win32-x64`);
+const windowsRoot = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactName}-win32-x64`);
 const windowsAppRoot = path.join(windowsRoot, "resources/app");
 const windowsRendererPath = path.join(windowsAppRoot, "src/renderer/web");
 const windowsExecutablePath = path.join(windowsRoot, "matter.exe");
-const windowsZipPath = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip`);
-const windowsManifestPath = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json`);
+const windowsZipPath = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactName}-win32-x64-unsigned.zip`);
+const windowsManifestPath = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactName}-win-installer-manifest.json`);
 const windowsSignaturePath = `${windowsManifestPath}.sig`;
 const windowsReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
 
@@ -210,6 +214,7 @@ const expectedSignature = createHmac("sha256", "matter-internal-nonproduction-si
 assert.equal(readFileSync(windowsSignaturePath, "utf8").trim(), expectedSignature, "internal update metadata signature mismatch");
 assert.equal(receiptValue(macReceipt, "Channel"), "internal");
 assert.equal(receiptValue(windowsReceipt, "Channel"), "internal");
+assert.equal(receiptValue(windowsReceipt, "Product name"), internalChannel.windowsProductName);
 
 console.log(JSON.stringify({
   verdict: "PASS",

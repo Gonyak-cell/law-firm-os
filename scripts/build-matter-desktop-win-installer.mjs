@@ -23,7 +23,8 @@ import {
   validateMatterDesktopAuthenticodeSignatures,
 } from "./lib/matter-desktop-authenticode.mjs";
 import {
-  stageDesktopMainRuntimeDependencies,
+  copyDesktopLocalApiRuntime,
+  inspectWindowsProtectedPackageBoundary,
   verifyDesktopMainRuntimeDependencies,
 } from "./lib/matter-desktop-runtime.mjs";
 
@@ -37,6 +38,16 @@ const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const builderConfigPath = join(desktopRoot, "electron-builder.yml");
 const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
 const releaseChannel = channelConfig.channel;
+const protectedDistributionBuild = releaseChannel !== "dev";
+const expectedSourceSha = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA?.trim();
+if (protectedDistributionBuild && !expectedSourceSha) {
+  throw new Error("distribution-ready Windows installer builds require MATTER_DESKTOP_EXPECTED_SOURCE_SHA");
+}
+if (expectedSourceSha) {
+  assert.match(expectedSourceSha, /^[0-9a-f]{40}$/u, "MATTER_DESKTOP_EXPECTED_SOURCE_SHA must be a full 40-character Git SHA");
+  assert.equal(sourceIdentity.sourceSha, expectedSourceSha, "Windows installer HEAD does not match the expected source SHA");
+  assert.equal(sourceIdentity.sourceDirty, false, "Windows installer source must be clean when an expected source SHA is supplied");
+}
 const formalRelease = channelConfig.formal;
 const authenticodeConfiguration = resolveMatterDesktopAuthenticodeConfiguration({
   formalRelease,
@@ -88,18 +99,18 @@ assertDesktopFormalBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
 const appId = channelConfig.appId;
-const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
+const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
 const blockmapPath = `${installerPath}.blockmap`;
 const unpackedPath = join(desktopRoot, "dist", "win-unpacked");
 const receiptPath = process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH
   ? resolve(process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH)
   : join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
-if (formalRelease) {
+if (protectedDistributionBuild) {
   if (!process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH) {
-    throw new Error("formal builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH to preserve historical receipts");
+    throw new Error("distribution-ready Windows installer builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH");
   }
-  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal Windows build receipt" });
+  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "distribution-ready Windows installer build receipt" });
 }
 const buildManifestName = "matter-build-manifest.json";
 const formalReleaseMarkerName = "matter-formal-release.json";
@@ -120,7 +131,6 @@ const runtimeAssetPaths = [
   "build/forest-login.jpg",
   "build/icon.png",
 ];
-
 function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
 }
@@ -160,11 +170,16 @@ const stagingProjectRoot = join(stagingRoot, "desktop");
 const stagingInstallerPath = join(stagingProjectRoot, "dist", `${artifactName}-win-x64.exe`);
 const stagingBlockmapPath = `${stagingInstallerPath}.blockmap`;
 const stagingUnpackedPath = join(stagingProjectRoot, "dist", "win-unpacked");
+let packagePrivacy;
 
 try {
   await mkdir(stagingProjectRoot, { recursive: true });
   await cp(join(desktopRoot, "src"), join(stagingProjectRoot, "src"), { recursive: true });
-  await stageDesktopMainRuntimeDependencies({ targetAppSourceDir: stagingProjectRoot, repoRoot });
+  await copyDesktopLocalApiRuntime({
+    targetAppSourceDir: stagingProjectRoot,
+    repoRoot,
+    distributionReady: protectedDistributionBuild,
+  });
   await cp(join(desktopRoot, "build"), join(stagingProjectRoot, "build"), { recursive: true });
   const provenanceRoot = join(stagingProjectRoot, ".release-provenance");
   await mkdir(provenanceRoot, { recursive: true });
@@ -222,6 +237,8 @@ try {
     "--publish",
     "never",
     `-c.appId=${appId}`,
+    `-c.productName=${channelConfig.windowsProductName}`,
+    `-c.executableName=${channelConfig.windowsExecutableName}`,
     `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
     "-c.electronVersion=42.7.0",
     ...(explicitElectronDist ? [`-c.electronDist=${explicitElectronDist}`] : []),
@@ -262,6 +279,11 @@ try {
     targetAppSourceDir: join(packagedResources, "app"),
     repoRoot,
   });
+  packagePrivacy = inspectWindowsProtectedPackageBoundary({
+    packageRoot: stagingUnpackedPath,
+    distributionReady: protectedDistributionBuild,
+    label: "Windows NSIS package",
+  });
 
   await mkdir(dirname(installerPath), { recursive: true });
   await cp(stagingInstallerPath, installerPath);
@@ -295,7 +317,7 @@ const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const relativeInstallerPath = "apps/desktop/dist/" + `${artifactName}-win-x64.exe`;
 const relativeBlockmapPath = `${relativeInstallerPath}.blockmap`;
 const priorReceipt = existsSync(receiptPath) ? await readFile(receiptPath, "utf8") : "";
-const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer certificate SHA-1: \`${authenticodeResult?.signer_certificate_sha1 ?? "not_applicable"}\`\n- Windows Authenticode signer subject: \`${authenticodeResult?.signer.subject ?? "not_applicable"}\`\n- Windows Authenticode signer code-signing EKU verified: ${authenticodeResult?.signer_code_signing_eku_verified === true}\n- Windows Authenticode timestamp EKU verified: ${authenticodeResult?.timestamp_eku_verified === true}\n`;
+const receiptSection = `\n## Installer Package\n\n- Windows product name: \`${channelConfig.windowsProductName}\`\n- Windows artifact prefix: \`${channelConfig.windowsArtifactPrefix}\`\n- Windows executable name: \`${channelConfig.windowsExecutableName}.exe\`\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- protected distribution build: ${packagePrivacy.protected_distribution_build}\n- local API runtime included: ${packagePrivacy.local_api_runtime_included}\n- local API runtime excluded: ${packagePrivacy.local_api_runtime_excluded}\n- private HRX contact source excluded: ${packagePrivacy.private_hrx_contact_source_excluded}\n- private HRX roster source excluded: ${packagePrivacy.private_hrx_roster_source_excluded}\n- private HRX photo source excluded: ${packagePrivacy.private_hrx_photo_source_excluded}\n- private HRX registration seed excluded: ${packagePrivacy.private_hrx_registration_seed_excluded}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer certificate SHA-1: \`${authenticodeResult?.signer_certificate_sha1 ?? "not_applicable"}\`\n- Windows Authenticode signer subject: \`${authenticodeResult?.signer.subject ?? "not_applicable"}\`\n- Windows Authenticode signer code-signing EKU verified: ${authenticodeResult?.signer_code_signing_eku_verified === true}\n- Windows Authenticode timestamp EKU verified: ${authenticodeResult?.timestamp_eku_verified === true}\n`;
 
 await mkdir(dirname(receiptPath), { recursive: true });
 await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}`);
@@ -312,6 +334,9 @@ console.log(
       blockmap_bytes: blockmap.bytes,
       release_channel: releaseChannel,
       app_id: appId,
+      product_name: channelConfig.windowsProductName,
+      artifact_prefix: channelConfig.windowsArtifactPrefix,
+      executable_name: `${channelConfig.windowsExecutableName}.exe`,
       runtime_asset_sha256: runtimeAssetSha256,
       installer_build_manifest: relative(repoRoot, packagedBuildManifestPath),
       installer_source_sha: installerBuildManifest.source_sha,
@@ -320,6 +345,13 @@ console.log(
       installer_renderer_sha256: installerBuildManifest.renderer.sha256,
       installer_formal_marker: formalRelease && existsSync(packagedFormalMarkerPath),
       windows_native_install_smoke: nativeInstallSmoke,
+      protected_distribution_build: packagePrivacy.protected_distribution_build,
+      local_api_runtime_included: packagePrivacy.local_api_runtime_included,
+      local_api_runtime_excluded: packagePrivacy.local_api_runtime_excluded,
+      private_hrx_contact_source_excluded: packagePrivacy.private_hrx_contact_source_excluded,
+      private_hrx_roster_source_excluded: packagePrivacy.private_hrx_roster_source_excluded,
+      private_hrx_photo_source_excluded: packagePrivacy.private_hrx_photo_source_excluded,
+      private_hrx_registration_seed_excluded: packagePrivacy.private_hrx_registration_seed_excluded,
       windows_authenticode_signing: Boolean(authenticodeResult),
       windows_authenticode_timestamp_verified: authenticodeResult?.timestamp_verified === true,
       windows_authenticode_signature_verified:

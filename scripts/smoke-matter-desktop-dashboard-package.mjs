@@ -11,7 +11,10 @@ import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const platform = process.platform;
 const artifactDir = path.resolve(process.env.MATTER_DASHBOARD_PACKAGE_QA_ARTIFACT_DIR ?? path.join(repoRoot, "artifacts/manual-qa/dashboard-package", platform));
-const userDataPath = mkdtempSync(path.join(tmpdir(), `matter-dashboard-package-${platform}-`));
+const configuredUserDataPath = process.env.MATTER_DASHBOARD_PACKAGE_QA_USER_DATA_PATH?.trim();
+const userDataPath = configuredUserDataPath
+  ? path.resolve(configuredUserDataPath)
+  : mkdtempSync(path.join(tmpdir(), `matter-dashboard-package-${platform}-`));
 const executableCandidates = platform === "win32"
   ? ["matter.exe", "electron.exe"].map((name) => path.join(repoRoot, "apps/desktop/dist/win-unpacked", name))
   : [path.join(repoRoot, "apps/desktop/dist/mac", desktopReleaseChannelConfig("internal").macAppBundleName, "Contents/MacOS/matter")];
@@ -19,6 +22,7 @@ const executablePath = path.resolve(process.env.MATTER_DESKTOP_PACKAGED_EXECUTAB
 
 assert.equal(existsSync(executablePath), true, `packaged executable is required: ${executablePath}`);
 mkdirSync(artifactDir, { recursive: true });
+mkdirSync(userDataPath, { recursive: true });
 
 const today = new Date();
 const localDateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;

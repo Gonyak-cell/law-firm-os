@@ -98,7 +98,7 @@ test("Windows formal workflow preserves current-version provenance outside the w
     readFile(workflowPath, "utf8"),
     readFile(desktopPackagePath, "utf8").then(JSON.parse),
   ]);
-  const artifactStem = `${desktopReleaseChannelConfig("formal").artifactPrefix}-${desktopPackage.version}`;
+  const artifactStem = `${desktopReleaseChannelConfig("formal").windowsArtifactPrefix}-${desktopPackage.version}`;
   const expectedEvidence = [
     `apps\\desktop\\dist\\win\\${artifactStem}-win-build-manifest.json`,
     `apps\\desktop\\dist\\win\\${artifactStem}-win-installer-manifest.json`,

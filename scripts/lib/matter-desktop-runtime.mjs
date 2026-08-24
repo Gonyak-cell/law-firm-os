@@ -12,6 +12,39 @@ const defaultRegistrationSeedSource = "docs/reorganization/client-matter-os/matt
 const outlookProofSourcePath = "packages/email-dms/src/outlook-desktop-installation-proof.js";
 const outlookProofSourceImport = "../../../../packages/email-dms/src/outlook-desktop-installation-proof.js";
 const outlookProofPackagedImport = "./outlook-desktop-installation-proof.js";
+const windowsProtectedPackagePaths = Object.freeze([
+  "resources/app/runtime",
+  "resources/app/src/runtime",
+  "resources/app/runtime/apps/api/src/hrx-member-contact-source-of-truth.json",
+  "resources/app/runtime/apps/api/src/hrx-member-roster-source-of-truth.json",
+  "resources/app/runtime/apps/api/src/hrx-member-photos",
+  "resources/app/runtime/apps/api/src/matter-vault-user-registration-seed.json",
+  "resources/app/src/runtime/apps/api/src/hrx-member-contact-source-of-truth.json",
+  "resources/app/src/runtime/apps/api/src/hrx-member-roster-source-of-truth.json",
+  "resources/app/src/runtime/apps/api/src/hrx-member-photos",
+  "resources/app/src/runtime/apps/api/src/matter-vault-user-registration-seed.json",
+]);
+
+export function inspectWindowsProtectedPackageBoundary({
+  packageRoot,
+  distributionReady = false,
+  label = "Windows package",
+}) {
+  if (!packageRoot) throw new Error("packageRoot is required");
+  const presentPaths = windowsProtectedPackagePaths.filter((relativePath) => existsSync(join(packageRoot, relativePath)));
+  if (distributionReady && presentPaths.length > 0) {
+    throw new Error(`${label} contains protected runtime/private paths: ${presentPaths.join(", ")}`);
+  }
+  return Object.freeze({
+    protected_distribution_build: distributionReady,
+    local_api_runtime_included: presentPaths.includes("resources/app/runtime") || presentPaths.includes("resources/app/src/runtime"),
+    local_api_runtime_excluded: !presentPaths.includes("resources/app/runtime") && !presentPaths.includes("resources/app/src/runtime"),
+    private_hrx_contact_source_excluded: !presentPaths.some((entry) => entry.endsWith("hrx-member-contact-source-of-truth.json")),
+    private_hrx_roster_source_excluded: !presentPaths.some((entry) => entry.endsWith("hrx-member-roster-source-of-truth.json")),
+    private_hrx_photo_source_excluded: !presentPaths.some((entry) => entry.endsWith("hrx-member-photos")),
+    private_hrx_registration_seed_excluded: !presentPaths.some((entry) => entry.endsWith("matter-vault-user-registration-seed.json")),
+  });
+}
 
 export async function verifyDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot }) {
   if (!targetAppSourceDir || !repoRoot) throw new Error("targetAppSourceDir and repoRoot are required");

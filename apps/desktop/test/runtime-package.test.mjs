@@ -6,6 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   copyDesktopLocalApiRuntime,
+  inspectWindowsProtectedPackageBoundary,
   stageDesktopMainRuntimeDependencies,
 } from "../../../scripts/lib/matter-desktop-runtime.mjs";
 
@@ -47,6 +48,36 @@ test("desktop packaged main stages its canonical Outlook proof dependency", asyn
     );
     assert.equal(stagedInstallation.includes(sourceProofImport), false);
     assert.equal(stagedInstallation.includes(packagedProofImport), true);
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test("protected Windows packages reject the complete embedded runtime boundary", async () => {
+  const fixtureRoot = await mkdtemp(join(tmpdir(), "matter-windows-runtime-boundary-test-"));
+  try {
+    const packageRoot = join(fixtureRoot, "package");
+    await writeFixture(join(packageRoot, "resources/app/runtime/apps/api/src/server.js"), "export const runtime = true;\n");
+    assert.throws(
+      () => inspectWindowsProtectedPackageBoundary({
+        packageRoot,
+        distributionReady: true,
+        label: "fixture",
+      }),
+      /fixture contains protected runtime\/private paths/u,
+    );
+    const development = inspectWindowsProtectedPackageBoundary({ packageRoot });
+    assert.equal(development.protected_distribution_build, false);
+    assert.equal(development.local_api_runtime_included, true);
+    assert.equal(development.local_api_runtime_excluded, false);
+    await rm(join(packageRoot, "resources/app/runtime"), { recursive: true, force: true });
+    const protectedPackage = inspectWindowsProtectedPackageBoundary({
+      packageRoot,
+      distributionReady: true,
+    });
+    assert.equal(protectedPackage.protected_distribution_build, true);
+    assert.equal(protectedPackage.local_api_runtime_included, false);
+    assert.equal(protectedPackage.local_api_runtime_excluded, true);
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
   }

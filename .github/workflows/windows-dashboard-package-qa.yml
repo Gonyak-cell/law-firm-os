@@ -2,18 +2,11 @@ name: Windows Dashboard Package QA
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "codex/**"
-    paths:
-      - ".github/workflows/windows-dashboard-package-qa.yml"
-      - "apps/desktop/**"
-      - "apps/web/**"
-      - "package.json"
-      - "package-lock.json"
-      - "scripts/prepare-matter-desktop-web-renderer.mjs"
-      - "scripts/build-matter-desktop-win-installer.mjs"
-      - "scripts/smoke-matter-desktop-dashboard-package.mjs"
+    inputs:
+      artifact_public_key_b64:
+        description: Ephemeral RSA public key used only to encrypt the internal package handoff
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -22,7 +15,12 @@ jobs:
   windows-dashboard-package-qa:
     name: Windows packaged dashboard screen QA
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
+    env:
+      MATTER_DESKTOP_RELEASE_CHANNEL: internal
+      MATTER_DESKTOP_EXPECTED_SOURCE_SHA: ${{ github.sha }}
+      MATTER_WINDOWS_QA_ARTIFACT_ROOT: ${{ runner.temp }}\amic-os-windows-internal-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\amic-os-windows-internal-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}\build\windows-build.md
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,22 +31,476 @@ jobs:
           node-version: "22"
           cache: npm
 
+      - name: Pin npm toolchain
+        shell: pwsh
+        run: |
+          npm install --global npm@11.12.1
+          if ((npm --version).Trim() -cne "11.12.1") {
+            throw "npm toolchain version drifted"
+          }
+
       - name: Install
         run: npm ci
 
-      - name: Prepare packaged renderer
-        run: npm --workspace apps/desktop run prepare:web-renderer
+      - name: Run Windows packaging source gates
+        shell: pwsh
+        run: |
+          npm --workspace apps/desktop run test:smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/validate-pv001-desktop-version.mjs --source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/validate-pv002-build-manifest.mjs --source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/validate-pv004-desktop-channels.mjs --source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/validate-pv006-legacy-assets.mjs --source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify exact source SHA
+        shell: pwsh
+        run: |
+          $head = (git rev-parse HEAD).Trim()
+          if ($head -cne $env:GITHUB_SHA) {
+            throw "Checked out HEAD does not match GITHUB_SHA"
+          }
+          $tree = (git rev-parse 'HEAD^{tree}').Trim()
+          $root = $env:MATTER_WINDOWS_QA_ARTIFACT_ROOT
+          New-Item -ItemType Directory -Force -Path (Join-Path $root "build"), (Join-Path $root "qa") | Out-Null
+          [ordered]@{
+            schema_version = "law-firm-os.windows-internal-dashboard-package-qa.v1"
+            source_sha = $head
+            source_tree = $tree
+            release_channel = "internal"
+            node_version = (node --version).Trim()
+            npm_version = (npm --version).Trim()
+            electron_version = "42.7.0"
+            electron_builder_version = "26.15.3"
+            public_release = $false
+            publicRelease = $false
+          } | ConvertTo-Json | Set-Content -NoNewline -Encoding utf8 (Join-Path $root "qa/source-binding.json")
+
+      - name: Build Windows portable package
+        run: npm --workspace apps/desktop run build:win
 
       - name: Build Windows NSIS installer
         run: npm --workspace apps/desktop run build:win:installer
 
-      - name: Run native packaged dashboard screen QA
-        run: npm run matter-desktop:dashboard-package-qa
+      - name: Verify protected Windows packages and stage exact-SHA evidence
+        shell: pwsh
+        run: |
+          $root = $env:MATTER_WINDOWS_QA_ARTIFACT_ROOT
+          $version = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
+          $artifactStem = "AMIC-OS-internal-$version"
+          $portableRoot = Join-Path $PWD "apps\desktop\dist\win\$artifactStem-win32-x64"
+          $portableZip = Join-Path $PWD "apps\desktop\dist\win\$artifactStem-win32-x64-unsigned.zip"
+          $nsisRoot = Join-Path $PWD "apps\desktop\dist\win-unpacked"
+          $nsisInstaller = Join-Path $PWD "apps\desktop\dist\$artifactStem-win-x64.exe"
+          $nsisBlockmap = "$nsisInstaller.blockmap"
+          $buildManifest = Join-Path $PWD "apps\desktop\dist\win\$artifactStem-win-build-manifest.json"
+          $installerManifest = Join-Path $PWD "apps\desktop\dist\win\$artifactStem-win-installer-manifest.json"
+          $installerSignature = "$installerManifest.sig"
+          $portablePackagedManifest = Join-Path $portableRoot "resources\matter-build-manifest.json"
+          $nsisBuildManifest = Join-Path $nsisRoot "resources\matter-build-manifest.json"
+          $portableExecutable = Join-Path $portableRoot "matter.exe"
+          $nsisExecutable = Join-Path $nsisRoot "matter.exe"
+          $receipt = Join-Path $root "build\windows-build.md"
+          $forbidden = @(
+            "resources\app\runtime",
+            "resources\app\src\runtime",
+            "resources\app\runtime\apps\api\src\hrx-member-contact-source-of-truth.json",
+            "resources\app\runtime\apps\api\src\hrx-member-roster-source-of-truth.json",
+            "resources\app\runtime\apps\api\src\hrx-member-photos",
+            "resources\app\runtime\apps\api\src\matter-vault-user-registration-seed.json",
+            "resources\app\src\runtime\apps\api\src\hrx-member-contact-source-of-truth.json",
+            "resources\app\src\runtime\apps\api\src\hrx-member-roster-source-of-truth.json",
+            "resources\app\src\runtime\apps\api\src\hrx-member-photos",
+            "resources\app\src\runtime\apps\api\src\matter-vault-user-registration-seed.json"
+          )
+          function Assert-ProtectedTree($treeRoot, $label) {
+            if (!(Test-Path -LiteralPath $treeRoot -PathType Container)) {
+              throw "$label is missing"
+            }
+            foreach ($relativePath in $forbidden) {
+              if (Test-Path -LiteralPath (Join-Path $treeRoot $relativePath)) {
+                throw "$label contains protected runtime/private path: $relativePath"
+              }
+            }
+          }
+          Assert-ProtectedTree $portableRoot "portable package"
+          Assert-ProtectedTree $nsisRoot "NSIS unpacked package"
+          foreach ($packageRoot in @($portableRoot, $nsisRoot)) {
+            if (Test-Path -LiteralPath (Join-Path $packageRoot "resources\matter-formal-release.json")) {
+              throw "Internal Windows package contains a formal-release marker"
+            }
+          }
+          $portableExtract = Join-Path $env:RUNNER_TEMP "amic-os-windows-portable-extract-${env:GITHUB_SHA}"
+          Remove-Item -LiteralPath $portableExtract -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive -LiteralPath $portableZip -DestinationPath $portableExtract -Force
+          $portableExtractRoot = Join-Path $portableExtract "$artifactStem-win32-x64"
+          Assert-ProtectedTree $portableExtractRoot "portable ZIP"
+          if (Test-Path -LiteralPath (Join-Path $portableExtractRoot "resources\matter-formal-release.json")) {
+            throw "Portable ZIP contains a formal-release marker"
+          }
+          foreach ($path in @($portableZip, $nsisInstaller, $nsisBlockmap, $buildManifest, $installerManifest, $installerSignature, $portablePackagedManifest, $nsisBuildManifest, $portableExecutable, $nsisExecutable, $receipt)) {
+            if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Missing Windows package evidence: $path"
+            }
+          }
+          $sourceTree = (git rev-parse 'HEAD^{tree}').Trim()
+          $manifest = Get-Content -Raw -LiteralPath $installerManifest | ConvertFrom-Json
+          $portableBuild = Get-Content -Raw -LiteralPath $buildManifest | ConvertFrom-Json
+          $portablePackagedBuild = Get-Content -Raw -LiteralPath $portablePackagedManifest | ConvertFrom-Json
+          $nsisBuild = Get-Content -Raw -LiteralPath $nsisBuildManifest | ConvertFrom-Json
+          if ($manifest.productName -cne "AMIC OS" -or $manifest.artifactPrefix -cne "AMIC-OS-internal" -or $manifest.appId -cne "com.amic.matter.desktop.internal") {
+            throw "Windows portable manifest identity is not the internal AMIC OS identity"
+          }
+          if ($manifest.version -cne $version -or $manifest.sourceSha -cne $env:GITHUB_SHA -or $manifest.sourceTree -cne $sourceTree -or $manifest.sourceDirty -ne $false -or $manifest.publicRelease -ne $false -or $manifest.windowsAuthenticodeSigning -ne $false) {
+            throw "Windows portable manifest is not bound to the exact internal source"
+          }
+          foreach ($candidate in @($portableBuild, $portablePackagedBuild, $nsisBuild)) {
+            if ($candidate.source_sha -cne $env:GITHUB_SHA -or $candidate.source_tree -cne $sourceTree -or $candidate.source_dirty -ne $false -or $candidate.channel -cne "internal" -or $candidate.platform -cne "win32" -or $candidate.arch -cne "x64" -or $candidate.app_id -cne "com.amic.matter.desktop.internal") {
+              throw "Windows build manifest is not bound to the exact internal source"
+            }
+          }
+          if ((Get-FileHash -Algorithm SHA256 -LiteralPath $buildManifest).Hash -cne (Get-FileHash -Algorithm SHA256 -LiteralPath $portablePackagedManifest).Hash) {
+            throw "Portable external and packaged build manifests differ"
+          }
+          if ($portableBuild.renderer.sha256 -cne $nsisBuild.renderer.sha256 -or $portableBuild.renderer.file_count -ne $nsisBuild.renderer.file_count) {
+            throw "Portable and NSIS renderer provenance differ"
+          }
+          $buildDir = Join-Path $root "build"
+          Copy-Item -LiteralPath $portableZip -Destination $buildDir
+          Copy-Item -LiteralPath $nsisInstaller -Destination $buildDir
+          Copy-Item -LiteralPath $nsisBlockmap -Destination $buildDir
+          Copy-Item -LiteralPath $buildManifest -Destination $buildDir
+          Copy-Item -LiteralPath $installerManifest -Destination $buildDir
+          Copy-Item -LiteralPath $installerSignature -Destination $buildDir
+          Copy-Item -LiteralPath $nsisBuildManifest -Destination (Join-Path $buildDir "$artifactStem-nsis-build-manifest.json")
+          [ordered]@{
+            schema_version = "law-firm-os.windows-internal-package-qa.v1"
+            status = "passed"
+            source_sha = $env:GITHUB_SHA
+            version = $version
+            product_name = "AMIC OS"
+            artifact_prefix = "AMIC-OS-internal"
+            executable_name = "matter.exe"
+            app_id = "com.amic.matter.desktop.internal"
+            package_types = @("portable_zip", "nsis_installer")
+            protected_distribution_build = $true
+            local_api_runtime_included = $false
+            local_api_runtime_excluded = $true
+            private_hrx_contact_source_excluded = $true
+            private_hrx_roster_source_excluded = $true
+            private_hrx_photo_source_excluded = $true
+            private_hrx_registration_seed_excluded = $true
+            public_release = $false
+            publicRelease = $false
+          } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $root "qa/windows-internal-package-qa.json")
 
-      - name: Upload Windows QA evidence
+      - name: Run native NSIS install and uninstall QA
+        shell: pwsh
+        run: |
+          $root = $env:MATTER_WINDOWS_QA_ARTIFACT_ROOT
+          $version = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
+          $versionParts = @($version.Split("."))
+          while ($versionParts.Count -lt 4) { $versionParts += "0" }
+          $expectedProductVersion = ($versionParts[0..3] -join ".")
+          $installer = Join-Path $PWD "apps\desktop\dist\AMIC-OS-internal-$version-win-x64.exe"
+          $portableExecutable = Join-Path $PWD "apps\desktop\dist\win\AMIC-OS-internal-$version-win32-x64\matter.exe"
+          $unpackedExecutable = Join-Path $PWD "apps\desktop\dist\win-unpacked\matter.exe"
+          $installDir = Join-Path $env:RUNNER_TEMP "amic-os-installed-${env:GITHUB_RUN_ID}-${env:GITHUB_RUN_ATTEMPT}"
+          $qaUserData = Join-Path $env:RUNNER_TEMP "amic-os-user-data-${env:GITHUB_RUN_ID}-${env:GITHUB_RUN_ATTEMPT}"
+          $uninstaller = $null
+          $uninstallExitCode = $null
+          $forcedCleanupUsed = $false
+          if (Test-Path -LiteralPath $installDir) {
+            throw "Native QA install directory already exists"
+          }
+          try {
+            $install = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installDir") -PassThru -Wait
+            if ($install.ExitCode -ne 0) {
+              throw "NSIS installer exited with code $($install.ExitCode)"
+            }
+            $installedExecutable = Join-Path $installDir "matter.exe"
+            if (!(Test-Path -LiteralPath $installedExecutable -PathType Leaf)) {
+              throw "Installed matter.exe is missing"
+            }
+            if ((Get-Item -LiteralPath $installedExecutable).VersionInfo.ProductName -cne "AMIC OS") {
+              throw "Installed executable product name is not AMIC OS"
+            }
+            if ((Get-Item -LiteralPath $installedExecutable).VersionInfo.ProductVersion -cne $expectedProductVersion) {
+              throw "Installed executable product version is not $expectedProductVersion"
+            }
+            foreach ($relativePath in @(
+              "resources\app\runtime",
+              "resources\app\src\runtime",
+              "resources\matter-formal-release.json",
+              "resources\app\runtime\apps\api\src\hrx-member-contact-source-of-truth.json",
+              "resources\app\runtime\apps\api\src\hrx-member-roster-source-of-truth.json",
+              "resources\app\runtime\apps\api\src\hrx-member-photos",
+              "resources\app\runtime\apps\api\src\matter-vault-user-registration-seed.json"
+            )) {
+              if (Test-Path -LiteralPath (Join-Path $installDir $relativePath)) {
+                throw "Installed package contains protected runtime path: $relativePath"
+              }
+            }
+            $uninstallers = @(Get-ChildItem -LiteralPath $installDir -File | Where-Object { $_.Name -match '^Uninstall.*\.exe$' })
+            if ($uninstallers.Count -ne 1) {
+              throw "Installed package must expose exactly one NSIS uninstaller"
+            }
+            $uninstaller = $uninstallers[0].FullName
+            $authenticodeRecords = @()
+            foreach ($unsignedPath in @($installer, $portableExecutable, $unpackedExecutable, $installedExecutable)) {
+              $authenticode = Get-AuthenticodeSignature -LiteralPath $unsignedPath
+              if ($authenticode.Status -ne [System.Management.Automation.SignatureStatus]::NotSigned -or $authenticode.SignatureType.ToString() -cne "None" -or $null -ne $authenticode.SignerCertificate -or $null -ne $authenticode.TimeStamperCertificate) {
+                throw "Unsigned internal package reported an unexpected Authenticode state: $unsignedPath / $($authenticode.Status)"
+              }
+              $authenticodeRecords += [ordered]@{
+                surface = if ($unsignedPath -ceq $installer) { "installer" } elseif ($unsignedPath -ceq $portableExecutable) { "portable" } elseif ($unsignedPath -ceq $unpackedExecutable) { "nsis_unpacked" } else { "installed" }
+                sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $unsignedPath).Hash.ToLowerInvariant()
+                status = $authenticode.Status.ToString()
+                signature_type = $authenticode.SignatureType.ToString()
+                signer_certificate_present = $false
+                timestamp_certificate_present = $false
+              }
+            }
+            $env:MATTER_DESKTOP_PACKAGED_EXECUTABLE = $installedExecutable
+            $env:MATTER_DASHBOARD_PACKAGE_QA_USER_DATA_PATH = $qaUserData
+            New-Item -ItemType Directory -Force -Path $qaUserData | Out-Null
+            $userDataCreatedAt = (Get-Item -LiteralPath $qaUserData).CreationTimeUtc.ToString("o")
+            $userDataPathBytes = [Text.Encoding]::UTF8.GetBytes($qaUserData)
+            $userDataPathHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($userDataPathBytes)).ToLowerInvariant()
+            $env:MATTER_DASHBOARD_PACKAGE_QA_ARTIFACT_DIR = Join-Path $root "qa\installed-launch-1"
+            npm run matter-desktop:dashboard-package-qa
+            if ($LASTEXITCODE -ne 0) { throw "Installed AMIC OS first launch QA failed" }
+            $firstCloseProcesses = @(Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and $_.ExecutablePath -ceq $installedExecutable })
+            if ($firstCloseProcesses.Count -ne 0) { throw "Installed AMIC OS process remains after first launch QA" }
+            $env:MATTER_DASHBOARD_PACKAGE_QA_ARTIFACT_DIR = Join-Path $root "qa\installed-launch-2"
+            npm run matter-desktop:dashboard-package-qa
+            if ($LASTEXITCODE -ne 0) { throw "Installed AMIC OS restart QA failed" }
+            $secondCloseProcesses = @(Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and $_.ExecutablePath -ceq $installedExecutable })
+            if ($secondCloseProcesses.Count -ne 0) { throw "Installed AMIC OS process remains after restart QA" }
+            $userDataCreatedAtAfter = (Get-Item -LiteralPath $qaUserData).CreationTimeUtc.ToString("o")
+            if ($userDataCreatedAtAfter -cne $userDataCreatedAt) { throw "Installed AMIC OS restart did not reuse the same user-data directory" }
+            $installedHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $installedExecutable).Hash.ToLowerInvariant()
+            foreach ($launch in @("installed-launch-1", "installed-launch-2")) {
+              $screenReceipt = Get-Content -Raw -LiteralPath (Join-Path $root "qa\$launch\dashboard-package-screen-qa-win32.json") | ConvertFrom-Json
+              if ($screenReceipt.status -cne "passed" -or $screenReceipt.executable_sha256 -cne $installedHash) {
+                throw "Installed AMIC OS launch receipt is not bound to the installed executable: $launch"
+              }
+            }
+            [ordered]@{
+              schema_version = "law-firm-os.windows-internal-native-install-qa.v1"
+              verdict = "PASS_PENDING_UNINSTALL"
+              source_sha = $env:GITHUB_SHA
+              version = $version
+              windows_product_version = $expectedProductVersion
+              product_name = "AMIC OS"
+              executable_name = "matter.exe"
+              installer_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant()
+              installed_executable_sha256 = $installedHash
+              install_exit_code = $install.ExitCode
+              first_launch = "PASS"
+              first_close = "PASS"
+              first_close_process_absent = $true
+              second_launch = "PASS"
+              second_close = "PASS"
+              second_close_process_absent = $true
+              same_executable = $true
+              same_user_data = $true
+              user_data_path_sha256 = $userDataPathHash
+              user_data_creation_time_utc = $userDataCreatedAt
+              duplicate_root_processes = $false
+              forced_cleanup_used = $false
+              local_api_runtime_excluded = $true
+              authenticode_signing = $false
+              authenticode_surfaces = $authenticodeRecords
+              public_release = $false
+            } | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 (Join-Path $root "qa/windows-internal-native-install-qa.json")
+          } finally {
+            $cleanupProcesses = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.ExecutablePath -and $_.ExecutablePath -ceq (Join-Path $installDir "matter.exe") })
+            if ($cleanupProcesses.Count -ne 0) { $forcedCleanupUsed = $true }
+            $cleanupProcesses | ForEach-Object {
+              Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+            if ($uninstaller -and (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
+              $uninstall = Start-Process -FilePath $uninstaller -ArgumentList "/S" -PassThru -Wait
+              $uninstallExitCode = $uninstall.ExitCode
+            } elseif (Test-Path -LiteralPath $installDir) {
+              Remove-Item -LiteralPath $installDir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            Remove-Item -LiteralPath $qaUserData -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          if ($uninstallExitCode -ne 0) {
+            throw "NSIS uninstaller did not exit successfully"
+          }
+          Start-Sleep -Seconds 2
+          if (Test-Path -LiteralPath $installDir) {
+            $remaining = @(Get-ChildItem -LiteralPath $installDir -Force -Recurse -ErrorAction SilentlyContinue)
+            if ($remaining.Count -ne 0) {
+              throw "NSIS uninstall left files in the isolated install directory"
+            }
+            Remove-Item -LiteralPath $installDir -Force
+          }
+          if (@(Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and $_.ExecutablePath -ceq (Join-Path $installDir "matter.exe") }).Count -ne 0) {
+            throw "NSIS uninstall left an AMIC OS process running"
+          }
+          $shortcutRoots = @(
+            (Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"),
+            (Join-Path $env:USERPROFILE "Desktop"),
+            (Join-Path $env:PROGRAMDATA "Microsoft\Windows\Start Menu\Programs"),
+            (Join-Path $env:PUBLIC "Desktop")
+          )
+          foreach ($shortcutRoot in $shortcutRoots) {
+            $shortcutResidue = @(Get-ChildItem -LiteralPath $shortcutRoot -Filter "AMIC OS*.lnk" -File -Recurse -ErrorAction SilentlyContinue)
+            if ($shortcutResidue.Count -ne 0) {
+              throw "NSIS uninstall left an AMIC OS shortcut"
+            }
+          }
+          $registryResidue = @()
+          foreach ($registryRoot in @(
+            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+            "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+            "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+          )) {
+            $registryResidue += @(
+              Get-ChildItem $registryRoot -ErrorAction SilentlyContinue |
+                Where-Object { (Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue).DisplayName -ceq "AMIC OS" }
+            )
+          }
+          if ($registryResidue.Count -ne 0) {
+            throw "NSIS uninstall left an AMIC OS uninstall registry entry"
+          }
+          $receiptPath = Join-Path $root "qa/windows-internal-native-install-qa.json"
+          $receipt = Get-Content -Raw -LiteralPath $receiptPath | ConvertFrom-Json
+          if ($forcedCleanupUsed) { throw "Native QA required forced AMIC OS process cleanup" }
+          $receipt.verdict = "PASS"
+          $receipt | Add-Member -NotePropertyName uninstall_exit_code -NotePropertyValue $uninstallExitCode
+          $receipt | Add-Member -NotePropertyName install_directory_residue -NotePropertyValue $false
+          $receipt | Add-Member -NotePropertyName process_residue -NotePropertyValue $false
+          $receipt | Add-Member -NotePropertyName shortcut_residue -NotePropertyValue $false
+          $receipt | Add-Member -NotePropertyName uninstall_registry_residue -NotePropertyValue $false
+          $receipt | Add-Member -NotePropertyName uninstall_process_absent -NotePropertyValue $true
+          $receipt | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 -LiteralPath $receiptPath
+
+      - name: Index exact Windows package evidence
+        shell: pwsh
+        run: |
+          $root = $env:MATTER_WINDOWS_QA_ARTIFACT_ROOT
+          $version = (Get-Content -Raw "apps\desktop\package.json" | ConvertFrom-Json).version
+          $sourceTree = (git rev-parse 'HEAD^{tree}').Trim()
+          $records = @(
+            Get-ChildItem -LiteralPath $root -File -Recurse |
+              Sort-Object FullName |
+              ForEach-Object {
+                [ordered]@{
+                  path = $_.FullName.Substring($root.Length + 1).Replace("\", "/")
+                  bytes = $_.Length
+                  sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()
+                }
+              }
+          )
+          [ordered]@{
+            schema_version = "law-firm-os.windows-internal-artifact-index.v1"
+            source_sha = $env:GITHUB_SHA
+            source_tree = $sourceTree
+            version = $version
+            channel = "internal"
+            platform = "win32"
+            architecture = "x64"
+            product_name = "AMIC OS"
+            executable_name = "matter.exe"
+            windows_authenticode_signing = $false
+            public_release = $false
+            index_scope = "package_and_qa_evidence_before_workflow_seal"
+            artifacts = $records
+          } | ConvertTo-Json -Depth 5 | Set-Content -NoNewline -Encoding utf8 (Join-Path $root "artifact-index.json")
+          $checksumLines = @($records | ForEach-Object { "$($_.sha256)  $($_.path)" })
+          $indexHash = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $root "artifact-index.json")).Hash.ToLowerInvariant()
+          $checksumLines += "$indexHash  artifact-index.json"
+          $checksumLines | Set-Content -Encoding utf8 (Join-Path $root "SHA256SUMS")
+
+      - name: Seal Windows package evidence
+        if: always()
+        shell: pwsh
+        env:
+          AMIC_WINDOWS_ARTIFACT_PUBLIC_KEY_B64: ${{ inputs.artifact_public_key_b64 }}
+          MATTER_WINDOWS_QA_PRIOR_STATUS: ${{ job.status }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:AMIC_WINDOWS_ARTIFACT_PUBLIC_KEY_B64)) {
+            throw "Encrypted artifact public key is unavailable"
+          }
+          Get-Command openssl -ErrorAction Stop | Out-Null
+          $root = $env:MATTER_WINDOWS_QA_ARTIFACT_ROOT
+          $sealedRoot = "$root-sealed"
+          $plainArchive = "$root.zip"
+          $ciphertext = Join-Path $sealedRoot "amic-os-windows-internal-$env:GITHUB_SHA.zip.enc"
+          $encryptedKey = Join-Path $sealedRoot "amic-os-windows-internal-$env:GITHUB_SHA.key.enc"
+          $publicKeyPath = Join-Path $env:RUNNER_TEMP "amic-os-artifact-public-key-$env:GITHUB_RUN_ID.pem"
+          $passphrasePath = Join-Path $env:RUNNER_TEMP "amic-os-artifact-passphrase-$env:GITHUB_RUN_ID.txt"
+          New-Item -ItemType Directory -Force -Path (Join-Path $root "qa") | Out-Null
+          [ordered]@{
+            schema_version = "law-firm-os.windows-internal-workflow-status.v1"
+            source_sha = $env:GITHUB_SHA
+            prior_job_status = $env:MATTER_WINDOWS_QA_PRIOR_STATUS
+            public_release = $false
+          } | ConvertTo-Json | Set-Content -NoNewline -Encoding utf8 (Join-Path $root "qa/workflow-status.json")
+          Remove-Item -LiteralPath $sealedRoot -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $plainArchive -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $sealedRoot | Out-Null
+          try {
+            [IO.File]::WriteAllBytes($publicKeyPath, [Convert]::FromBase64String($env:AMIC_WINDOWS_ARTIFACT_PUBLIC_KEY_B64))
+            & openssl pkey -pubin -in $publicKeyPath -noout
+            if ($LASTEXITCODE -ne 0) {
+              throw "Artifact encryption public key is invalid"
+            }
+            $passphrase = (& openssl rand -hex 32).Trim()
+            if ($LASTEXITCODE -ne 0 -or $passphrase -notmatch '^[0-9a-f]{64}$') {
+              throw "OpenSSL failed to generate the artifact passphrase"
+            }
+            [IO.File]::WriteAllText($passphrasePath, "$passphrase`n", [Text.UTF8Encoding]::new($false))
+            Compress-Archive -Path (Join-Path $root "*") -DestinationPath $plainArchive -CompressionLevel Optimal
+            & openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -md sha256 -in $plainArchive -out $ciphertext -pass "file:$passphrasePath"
+            if ($LASTEXITCODE -ne 0) {
+              throw "OpenSSL failed to seal Windows package evidence"
+            }
+            & openssl pkeyutl -encrypt -pubin -inkey $publicKeyPath -in $passphrasePath -out $encryptedKey -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
+            if ($LASTEXITCODE -ne 0) {
+              throw "OpenSSL failed to encrypt the artifact passphrase"
+            }
+          } finally {
+            Remove-Item -LiteralPath $plainArchive -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $passphrasePath -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $publicKeyPath -Force -ErrorAction SilentlyContinue
+          }
+          foreach ($path in @($ciphertext, $encryptedKey)) {
+            if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Encrypted Windows package evidence is missing: $path"
+            }
+          }
+          [ordered]@{
+            schema_version = "law-firm-os.windows-internal-encrypted-artifact.v1"
+            source_sha = $env:GITHUB_SHA
+            encrypted = $true
+            cipher = "aes-256-cbc"
+            digest = "sha256"
+            key_derivation = "pbkdf2"
+            iterations = 200000
+            ciphertext_file = (Split-Path -Leaf $ciphertext)
+            ciphertext_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $ciphertext).Hash.ToLowerInvariant()
+            ciphertext_bytes = (Get-Item -LiteralPath $ciphertext).Length
+            encrypted_key_file = (Split-Path -Leaf $encryptedKey)
+            encrypted_key_algorithm = "rsa-oaep-sha256"
+            encrypted_key_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $encryptedKey).Hash.ToLowerInvariant()
+            encrypted_key_bytes = (Get-Item -LiteralPath $encryptedKey).Length
+            public_release = $false
+          } | ConvertTo-Json | Set-Content -NoNewline -Encoding utf8 (Join-Path $sealedRoot "encrypted-artifact-envelope.json")
+
+      - name: Upload encrypted Windows QA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-dashboard-package-qa
-          path: artifacts/manual-qa/dashboard-package/win32/
+          name: windows-dashboard-package-qa-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}\amic-os-windows-internal-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-sealed\
           if-no-files-found: error
+          retention-days: 1
