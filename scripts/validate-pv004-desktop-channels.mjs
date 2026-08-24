@@ -56,16 +56,16 @@ for (const config of channelMatrix) {
 }
 
 const builderPaths = [
-  "scripts/build-matter-desktop-mac.mjs",
-  "scripts/build-matter-desktop-win.mjs",
-  "scripts/build-matter-desktop-win-installer.mjs",
+  ["scripts/build-matter-desktop-mac.mjs", "channelConfig.macArtifactPrefix"],
+  ["scripts/build-matter-desktop-win.mjs", "channelConfig.artifactPrefix"],
+  ["scripts/build-matter-desktop-win-installer.mjs", "channelConfig.artifactPrefix"],
 ];
 const bypasses = [];
-for (const relativePath of builderPaths) {
+for (const [relativePath, expectedArtifactPrefix] of builderPaths) {
   const source = readFileSync(path.join(ROOT, relativePath), "utf8");
   if (!source.includes("desktopReleaseChannelConfig")) bypasses.push(`${relativePath}:config`);
   if (!source.includes("channelConfig.appId")) bypasses.push(`${relativePath}:app-id`);
-  if (!source.includes("channelConfig.artifactPrefix")) bypasses.push(`${relativePath}:artifact-prefix`);
+  if (!source.includes(expectedArtifactPrefix)) bypasses.push(`${relativePath}:artifact-prefix`);
   if (/\["internal",\s*"formal"\]/.test(source)) bypasses.push(`${relativePath}:legacy-two-channel-list`);
 }
 assert.deepEqual(bypasses, [], `PV-004 channel registry bypasses found: ${bypasses.join(", ")}`);
@@ -78,6 +78,6 @@ console.log(JSON.stringify({
   unique_app_id_count: new Set(channelMatrix.map(({ appId }) => appId)).size,
   unique_artifact_prefix_count: new Set(channelMatrix.map(({ artifactPrefix }) => artifactPrefix)).size,
   platform_manifest_contract_count: channelMatrix.length * 2,
-  protected_builders: builderPaths,
+  protected_builders: builderPaths.map(([relativePath]) => relativePath),
   channel_registry_bypass_count: bypasses.length,
 }, null, 2));

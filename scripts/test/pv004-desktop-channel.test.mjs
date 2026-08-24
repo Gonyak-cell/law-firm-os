@@ -33,6 +33,20 @@ test("PV-004 defines exactly four collision-free desktop release channels", () =
     "matter-candidate",
     "matter",
   ]);
+  assert.deepEqual(desktopReleaseChannelConfig("internal"), {
+    channel: "internal",
+    appId: "com.amic.matter.desktop.internal",
+    artifactPrefix: "matter-internal",
+    macAppBundleName: "AMIC OS.app",
+    macArtifactPrefix: "AMIC-OS-internal",
+    macDisplayName: "AMIC OS",
+    macVolumeName: "AMIC OS",
+    receiptLabel: "Internal",
+    receiptStatusPrefix: "internal",
+    receiptSigningKey: "matter-internal-nonproduction-signing-key",
+    formal: false,
+  });
+  assert.equal(new Set(configs.map(({ macArtifactPrefix }) => macArtifactPrefix)).size, configs.length);
 });
 
 test("PV-004 rejects unknown channels instead of falling back to another app identity", () => {

@@ -236,6 +236,7 @@ test("desktop web renderer build enables the People Outlook pilot surfaces", asy
   );
 
   assert.match(source, /VITE_LAWOS_PEOPLE_MEMBER_BRIEF:\s*"true"/);
+  assert.match(source, /filter\(\(\[name\]\) => !name\.startsWith\("VITE_"\)\)/);
   assert.match(source, /VITE_LAWOS_OUTLOOK_CALENDAR:\s*"true"/);
   assert.match(source, /env:\s*desktopWebBuildEnvironment/g);
   assert.match(source, /MATTER_DESKTOP_BUILD_RECEIPT !== "0"/);

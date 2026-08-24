@@ -103,6 +103,8 @@ assert.match(expectedSourceSha, /^[0-9a-f]{40}$/, "expected source SHA must be a
 assert.equal(sourceIdentity.sourceSha, expectedSourceSha, "package validation source SHA mismatch");
 const desktopPackage = JSON.parse(source("apps/desktop/package.json"));
 const channel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
+const stagePlatforms = process.env.MATTER_DESKTOP_STAGE_PLATFORMS ?? "all";
+assert.ok(["all", "macos"].includes(stagePlatforms), "MATTER_DESKTOP_STAGE_PLATFORMS must be all or macos");
 const releaseStage = readDesktopReleaseArtifactStage({
   repoRoot: ROOT,
   version: desktopPackage.version,
@@ -111,20 +113,23 @@ const releaseStage = readDesktopReleaseArtifactStage({
 });
 assert.equal(releaseStage.index.source_tree, sourceIdentity.sourceTree, "package source tree mismatch");
 assert.equal(releaseStage.index.generic_build_paths_are_release_truth, false);
-for (const id of [
+const requiredArtifactIds = [
   "macos_zip_archive",
   "macos_dmg_image",
   "macos_build_manifest",
+  "macos_build_receipt",
+];
+if (stagePlatforms === "all") requiredArtifactIds.push(
   "windows_package_zip",
   "windows_installer_manifest",
   "windows_manifest_signature",
   "windows_build_manifest",
-  "macos_build_receipt",
   "windows_build_receipt",
-]) {
+);
+for (const id of requiredArtifactIds) {
   requireDesktopReleaseArtifact(releaseStage.index, id);
 }
-if (channel === "formal") {
+if (channel === "formal" && stagePlatforms === "all") {
   requireDesktopReleaseArtifact(releaseStage.index, "windows_installer");
   requireDesktopReleaseArtifact(releaseStage.index, "windows_installer_blockmap");
 }
@@ -136,6 +141,7 @@ console.log(JSON.stringify({
   source_sha: sourceIdentity.sourceSha,
   source_tree: sourceIdentity.sourceTree,
   channel,
+  stage_platforms: stagePlatforms,
   artifact_root: releaseStage.relativeRoot,
   artifact_count: releaseStage.index.artifacts.length,
   renderer_sha256: releaseStage.index.renderer.sha256,

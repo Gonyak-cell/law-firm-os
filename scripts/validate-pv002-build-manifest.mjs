@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
+  desktopReleaseChannelConfig,
   directoryDigest,
   validateDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
@@ -27,6 +28,8 @@ if (path.resolve(ROOT) !== path.resolve(process.cwd())) throw new Error(`run fro
 const desktopPackage = readJson(path.join(ROOT, "apps/desktop/package.json"));
 const version = desktopPackage.version;
 const artifactName = `matter-internal-${version}`;
+const internalChannel = desktopReleaseChannelConfig("internal");
+const macArtifactName = `${internalChannel.macArtifactPrefix}-${version}`;
 const macBuildPath = path.join(ROOT, "scripts/build-matter-desktop-mac.mjs");
 const windowsBuildPath = path.join(ROOT, "scripts/build-matter-desktop-win.mjs");
 
@@ -73,9 +76,9 @@ if (command === "--source") {
 }
 
 const mac = {
-  external: path.join(ROOT, `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`),
-  internal: path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json"),
-  renderer: path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Resources/app/src/renderer/web"),
+  external: path.join(ROOT, `apps/desktop/dist/mac/${macArtifactName}-macos-build-manifest.json`),
+  internal: path.join(ROOT, "apps/desktop/dist/mac", internalChannel.macAppBundleName, "Contents/Resources/matter-build-manifest.json"),
+  renderer: path.join(ROOT, "apps/desktop/dist/mac", internalChannel.macAppBundleName, "Contents/Resources/app/src/renderer/web"),
   receipt: path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md"),
 };
 const windows = {

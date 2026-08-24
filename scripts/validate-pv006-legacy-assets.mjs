@@ -120,7 +120,7 @@ const channel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
 const channelConfig = desktopReleaseChannelConfig(channel);
 const artifactName = `${channelConfig.artifactPrefix}-${desktopPackage.version}`;
 const macResourcesRoot = process.env.MATTER_DESKTOP_MAC_RESOURCES_ROOT
-  ?? path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Resources");
+  ?? path.join(ROOT, "apps/desktop/dist/mac", channelConfig.macAppBundleName, "Contents/Resources");
 const winResourcesRoot = process.env.MATTER_DESKTOP_WIN_RESOURCES_ROOT
   ?? path.join(ROOT, `apps/desktop/dist/win/${artifactName}-win32-x64/resources`);
 const manifests = [macResourcesRoot, winResourcesRoot].map((resourcesRoot) => (

@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { _electron as electron } from "playwright";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const platform = process.platform;
@@ -13,7 +14,7 @@ const artifactDir = path.resolve(process.env.MATTER_DASHBOARD_PACKAGE_QA_ARTIFAC
 const userDataPath = mkdtempSync(path.join(tmpdir(), `matter-dashboard-package-${platform}-`));
 const executableCandidates = platform === "win32"
   ? ["matter.exe", "electron.exe"].map((name) => path.join(repoRoot, "apps/desktop/dist/win-unpacked", name))
-  : [path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter")];
+  : [path.join(repoRoot, "apps/desktop/dist/mac", desktopReleaseChannelConfig("internal").macAppBundleName, "Contents/MacOS/matter")];
 const executablePath = path.resolve(process.env.MATTER_DESKTOP_PACKAGED_EXECUTABLE ?? executableCandidates.find(existsSync) ?? executableCandidates[0]);
 
 assert.equal(existsSync(executablePath), true, `packaged executable is required: ${executablePath}`);

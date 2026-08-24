@@ -11,6 +11,7 @@ import {
   loadMatterVaultRuntimeConfig
 } from "../apps/desktop/src/main/aws-runtime.js";
 import { assertResetAllowed, resetProtectionSummary, selectQaResetAccount } from "./lib/protected-reset-accounts.mjs";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -20,8 +21,9 @@ const electronExecutablePath = path.join(
   "node_modules/electron/dist/Electron.app/Contents/MacOS/Electron"
 );
 const desktopMainPath = path.join(repoRoot, "apps/desktop/src/main/main.js");
-const packagedMacExecutablePath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter");
-const packagedMacAppPath = path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/Info.plist");
+const internalMacBundle = path.join(repoRoot, "apps/desktop/dist/mac", desktopReleaseChannelConfig("internal").macAppBundleName);
+const packagedMacExecutablePath = path.join(internalMacBundle, "Contents/MacOS/matter");
+const packagedMacAppPath = path.join(internalMacBundle, "Contents/Info.plist");
 const artifactDir = path.join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts");
 const initialLoginScreenshotPath = path.join(artifactDir, "desktop-initial-login-ui.png");
 const qaAccountProductScreenshotPath = path.join(artifactDir, "desktop-qa-account-product-ui.png");

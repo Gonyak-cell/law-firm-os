@@ -552,6 +552,70 @@ test("formal macOS builds reject disabling the external receipt before packaging
   assert.doesNotMatch(output, /notarytool|Developer ID Application|electron-packager/i);
 });
 
+test("formal macOS builds require Developer ID signing and notarization before packaging", () => {
+  const buildScript = fileURLToPath(new URL("../../../scripts/build-matter-desktop-mac.mjs", import.meta.url));
+  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const result = spawnSync(process.execPath, [buildScript], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      MATTER_DESKTOP_RELEASE_CHANNEL: "formal",
+      MATTER_DESKTOP_SIGN: "internal",
+      MATTER_DESKTOP_NOTARIZE: "0",
+    },
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assert.notEqual(result.status, 0, output);
+  assert.match(output, /formal macOS builds require Developer ID signing and notarization/);
+  assert.doesNotMatch(output, /notarytool|electron-packager/i);
+});
+
+test("macOS notarization rejects missing Developer ID signing before packaging", () => {
+  const buildScript = fileURLToPath(new URL("../../../scripts/build-matter-desktop-mac.mjs", import.meta.url));
+  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const result = spawnSync(process.execPath, [buildScript], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      MATTER_DESKTOP_RELEASE_CHANNEL: "internal",
+      MATTER_DESKTOP_SIGN: "internal",
+      MATTER_DESKTOP_NOTARIZE: "1",
+    },
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assert.notEqual(result.status, 0, output);
+  assert.match(output, /macOS notarization requires Developer ID signing/);
+  assert.doesNotMatch(output, /notarytool|electron-packager/i);
+});
+
+test("signed internal macOS builds require an exact clean source SHA before packaging", () => {
+  const buildScript = fileURLToPath(new URL("../../../scripts/build-matter-desktop-mac.mjs", import.meta.url));
+  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const result = spawnSync(process.execPath, [buildScript], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      MATTER_DESKTOP_RELEASE_CHANNEL: "internal",
+      MATTER_DESKTOP_SIGN: "developer-id",
+      MATTER_DESKTOP_NOTARIZE: "1",
+      MATTER_DESKTOP_EXPECTED_SOURCE_SHA: "",
+    },
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assert.notEqual(result.status, 0, output);
+  assert.match(output, /distribution-ready macOS builds require MATTER_DESKTOP_EXPECTED_SOURCE_SHA/);
+  assert.doesNotMatch(output, /notarytool|electron-packager/i);
+});
+
 test("desktop shell blocks unapproved renderer target and remote navigation", async () => {
   await assert.rejects(
     () =>

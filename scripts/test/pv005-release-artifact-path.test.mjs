@@ -40,7 +40,7 @@ function validIndex() {
     artifacts: [
       {
         id: "macos_zip_archive",
-        path: artifactRoot + "/mac/matter-internal-0.1.17-macos.zip",
+        path: artifactRoot + "/mac/AMIC-OS-internal-0.1.17-macos.zip",
         bytes: 1,
         sha256: "d".repeat(64),
       },

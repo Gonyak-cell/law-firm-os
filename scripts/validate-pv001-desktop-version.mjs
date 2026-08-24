@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { createHash, createHmac } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const usage = "usage: node scripts/validate-pv001-desktop-version.mjs [--source|--package|--help]";
 const command = process.argv[2] ?? "--source";
@@ -105,10 +106,9 @@ function validateSource() {
     assert.match(buildSource, /appVersion:\s*packageJson\.version/);
     assert.match(buildSource, /buildVersion:\s*packageJson\.version/);
   }
-  for (const buildSource of [macBuild, windowsBuild]) {
-    assert.match(buildSource, /desktopReleaseChannelConfig/);
-    assert.match(buildSource, /const artifactName = `\$\{channelConfig\.artifactPrefix\}-\$\{packageJson\.version\}`/);
-  }
+  for (const buildSource of [macBuild, windowsBuild]) assert.match(buildSource, /desktopReleaseChannelConfig/);
+  assert.match(macBuild, /const artifactName = `\$\{channelConfig\.macArtifactPrefix\}-\$\{packageJson\.version\}`/);
+  assert.match(windowsBuild, /const artifactName = `\$\{channelConfig\.artifactPrefix\}-\$\{packageJson\.version\}`/);
   assert.match(updateController, /activeVersion = metadata\.version/);
   assert.doesNotMatch(updateController, /\b0\.1\.\d+\b/, "update controller must consume metadata.version instead of hard-coding a release version");
 
@@ -133,8 +133,10 @@ if (command === "--source") {
 }
 
 const version = source.expected_version;
-const macAppRoot = path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Resources/app");
-const macPlistPath = path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Info.plist");
+const internalChannel = desktopReleaseChannelConfig("internal");
+const macBundleRoot = path.join(ROOT, "apps/desktop/dist/mac", internalChannel.macAppBundleName);
+const macAppRoot = path.join(macBundleRoot, "Contents/Resources/app");
+const macPlistPath = path.join(macBundleRoot, "Contents/Info.plist");
 const macRendererPath = path.join(macAppRoot, "src/renderer/web");
 const macReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
 const windowsRoot = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win32-x64`);
@@ -181,7 +183,8 @@ const packageVersions = {
 const versionMismatches = Object.entries(packageVersions).filter(([, value]) => value !== version);
 assert.deepEqual(versionMismatches, [], `generated package version mismatch: ${JSON.stringify(versionMismatches)}`);
 assert.equal(plistString(plist, "CFBundleName"), "matter");
-assert.equal(plistString(plist, "CFBundleIdentifier"), "com.amic.matter.desktop.internal");
+assert.equal(plistString(plist, "CFBundleDisplayName"), internalChannel.macDisplayName);
+assert.equal(plistString(plist, "CFBundleIdentifier"), internalChannel.appId);
 
 const packageJsonHashes = {
   source: sha256File(desktopPackagePath),

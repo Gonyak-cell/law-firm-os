@@ -28,14 +28,39 @@ const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_REL
 const releaseChannel = channelConfig.channel;
 const formalRelease = channelConfig.formal;
 const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
+const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
+const developerIdSigningRequested = ["developer-id", "1", "true"].includes(signingMode);
+const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
+const protectedDistributionBuild = formalRelease || developerIdSigningRequested || notarizationRequested;
 if (formalRelease && !writeBuildReceipt) {
   throw new Error("formal builds cannot disable the external build receipt");
+}
+if (protectedDistributionBuild && !writeBuildReceipt) {
+  throw new Error("signed or notarized macOS builds cannot disable the external build receipt");
+}
+if (formalRelease && (!developerIdSigningRequested || !notarizationRequested)) {
+  throw new Error("formal macOS builds require Developer ID signing and notarization");
+}
+if (notarizationRequested && !developerIdSigningRequested) {
+  throw new Error("macOS notarization requires Developer ID signing");
 }
 const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
 const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
+const expectedSourceSha = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
+if (protectedDistributionBuild && !expectedSourceSha) {
+  throw new Error("distribution-ready macOS builds require MATTER_DESKTOP_EXPECTED_SOURCE_SHA");
+}
+if (expectedSourceSha) {
+  if (!/^[0-9a-f]{40}$/.test(expectedSourceSha)) {
+    throw new Error("MATTER_DESKTOP_EXPECTED_SOURCE_SHA must be a full 40-character Git SHA");
+  }
+  if (sourceIdentity.sourceSha !== expectedSourceSha || sourceIdentity.sourceDirty) {
+    throw new Error("macOS build source must be the clean expected Git SHA");
+  }
+}
 const distRoot = join(desktopRoot, "dist/mac");
-const appBundle = join(distRoot, "matter.app");
+const appBundle = join(distRoot, channelConfig.macAppBundleName);
 const contentsDir = join(appBundle, "Contents");
 const macosDir = join(contentsDir, "MacOS");
 const resourcesDir = join(contentsDir, "Resources");
@@ -69,22 +94,20 @@ assertDesktopFormalBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
 const appBundleId = channelConfig.appId;
-const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
+const artifactName = `${channelConfig.macArtifactPrefix}-${packageJson.version}`;
 const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
 const receiptPath = process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH
   ? resolve(process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH)
   : join(repoRoot, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
-if (formalRelease && writeBuildReceipt) {
+if (protectedDistributionBuild && writeBuildReceipt) {
   if (!process.env.MATTER_DESKTOP_BUILD_RECEIPT_PATH) {
-    throw new Error("formal builds require MATTER_DESKTOP_BUILD_RECEIPT_PATH to preserve historical receipts");
+    throw new Error("distribution-ready macOS builds require MATTER_DESKTOP_BUILD_RECEIPT_PATH");
   }
-  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal build receipt" });
+  assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "macOS build receipt" });
 }
 const arch = process.env.MATTER_DESKTOP_MAC_ARCH ?? (process.arch === "arm64" ? "arm64" : "x64");
-const signingMode = process.env.MATTER_DESKTOP_SIGN ?? "internal";
-const notarizationRequested = process.env.MATTER_DESKTOP_NOTARIZE === "1";
 process.env.PATH = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", process.env.PATH].filter(Boolean).join(":");
 const ignoredPackagePathPatterns = [
   /(^|\/)dist($|\/)/,
@@ -107,7 +130,7 @@ async function findDeveloperIdIdentity() {
 }
 
 async function signingOptions() {
-  if (!["developer-id", "1", "true"].includes(signingMode)) return null;
+  if (!developerIdSigningRequested) return null;
   const identity = process.env.MATTER_DESKTOP_SIGN_IDENTITY || await findDeveloperIdIdentity();
   if (!identity) {
     throw new Error("Developer ID Application signing identity not found. Set MATTER_DESKTOP_SIGN_IDENTITY or install a Developer ID Application certificate.");
@@ -191,6 +214,11 @@ async function applyMatterBundleIcon(targetAppBundle) {
     `Set :CFBundleIconFile ${packagedIconFile}`,
     targetInfoPlist
   ]);
+  await execFileAsync("/usr/libexec/PlistBuddy", [
+    "-c",
+    `Set :CFBundleDisplayName ${channelConfig.macDisplayName}`,
+    targetInfoPlist
+  ]);
   await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Delete :CFBundleURLTypes", targetInfoPlist]).catch(() => {});
   await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes array", targetInfoPlist]);
   await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Add :CFBundleURLTypes:0 dict", targetInfoPlist]);
@@ -216,9 +244,15 @@ try {
     cwd: repoRoot
   });
 } catch (error) {
-  if (formalRelease || !existsSync(desktopRendererWebIndex)) throw error;
+  if (protectedDistributionBuild || !existsSync(desktopRendererWebIndex)) throw error;
   webRendererPrepareState = "reused_existing_desktop_renderer_internal_only";
   console.warn(`Desktop web renderer prepare failed; reusing existing desktop renderer for internal build only: ${firstLine(error.stderr ?? error.message)}`);
+}
+if (protectedDistributionBuild) {
+  const preparedSourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
+  if (preparedSourceIdentity.sourceSha !== expectedSourceSha || preparedSourceIdentity.sourceDirty) {
+    throw new Error("distribution-ready renderer preparation changed the clean expected Git source");
+  }
 }
 
 const osxSign = await signingOptions();
@@ -327,9 +361,20 @@ const developerIdSignature = await developerIdSignatureState(appBundle);
 if (osxSign && developerIdSignature !== "pass") {
   throw new Error(`Developer ID signature verification failed: ${developerIdSignature}`);
 }
+let appStaplerValidate = "not_submitted_internal_only";
+if (osxNotarize) {
+  await execFileAsync("/usr/bin/xcrun", ["stapler", "validate", appBundle]);
+  appStaplerValidate = "pass";
+}
+if (osxSign && [codesignVerify, strictCodesignVerify, gatekeeperAssess].some((state) => state !== "pass")) {
+  throw new Error(`Signed app verification failed: ${JSON.stringify({ codesignVerify, strictCodesignVerify, gatekeeperAssess })}`);
+}
+if (osxNotarize && appStaplerValidate !== "pass") {
+  throw new Error(`Notarized app ticket verification failed: ${appStaplerValidate}`);
+}
 const executableSmoke = await packagedExecutableSmoke();
 await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
-await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
+await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", channelConfig.macVolumeName, "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
 let dmgCodesignVerify = "not_applied_internal_package";
 let dmgNotarizationState = "not_submitted_internal_only";
@@ -355,8 +400,25 @@ try {
 } catch (error) {
   dmgGatekeeperAssess = `not_distribution_ready: ${firstLine(error.stderr ?? error.message) || "DMG spctl assess failed"}`;
 }
-if (formalRelease && [dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify].some((state) => !["pass", "submitted_and_accepted_by_notarytool"].includes(state))) {
-  throw new Error(`Formal DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgNotarizationState, dmgStaplerValidate, dmgGatekeeperAssess, dmgImageVerify })}`);
+if (osxSign && [dmgCodesignVerify, dmgGatekeeperAssess, dmgImageVerify].some((state) => state !== "pass")) {
+  throw new Error(`Signed DMG verification failed: ${JSON.stringify({ dmgCodesignVerify, dmgGatekeeperAssess, dmgImageVerify })}`);
+}
+if (osxNotarize && [dmgNotarizationState, dmgStaplerValidate].some((state) => !["pass", "submitted_and_accepted_by_notarytool"].includes(state))) {
+  throw new Error(`Notarized DMG ticket verification failed: ${JSON.stringify({ dmgNotarizationState, dmgStaplerValidate })}`);
+}
+if (formalRelease && [
+  developerIdSignature,
+  codesignVerify,
+  strictCodesignVerify,
+  gatekeeperAssess,
+  appStaplerValidate,
+  dmgCodesignVerify,
+  dmgNotarizationState,
+  dmgStaplerValidate,
+  dmgGatekeeperAssess,
+  dmgImageVerify,
+].some((state) => !["pass", "submitted_and_accepted_by_notarytool"].includes(state))) {
+  throw new Error("Formal macOS distribution verification failed");
 }
 const zipSha256 = sha256File(zipPath);
 const dmgSha256 = sha256File(dmgPath);
@@ -365,13 +427,14 @@ const receipt = `# macOS ${channelConfig.receiptLabel} Build Receipt
 
 Status: ${channelConfig.receiptStatusPrefix}_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
-App bundle: \`apps/desktop/dist/mac/matter.app\`
+App bundle: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}\`
 App ID: \`${appBundleId}\`
 Product name: \`matter\`
+Display name: \`${channelConfig.macDisplayName}\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
 Build manifest: \`apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json\`
-Packaged build manifest: \`apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json\`
+Packaged build manifest: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/matter-build-manifest.json\`
 Build manifest SHA-256: \`${buildManifestHash}\`
 ZIP SHA-256: \`${zipSha256}\`
 DMG SHA-256: \`${dmgSha256}\`
@@ -386,9 +449,9 @@ Built at: \`${buildManifest.built_at}\`
 
 - Electron runtime: \`node_modules/electron/dist/Electron.app\`
 - app icon: \`apps/desktop/build/icon.icns\`
-- packaged app icon: \`apps/desktop/dist/mac/matter.app/Contents/Resources/${packagedIconFile}\`
-- packaged app source: \`apps/desktop/dist/mac/matter.app/Contents/Resources/app\`
-- executable: \`apps/desktop/dist/mac/matter.app/Contents/MacOS/matter\`
+- packaged app icon: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/${packagedIconFile}\`
+- packaged app source: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/app\`
+- executable: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/MacOS/matter\`
 - archive: \`apps/desktop/dist/mac/${artifactName}-macos.zip\`
 - disk image: \`apps/desktop/dist/mac/${artifactName}-macos.dmg\`
 
@@ -405,6 +468,7 @@ Built at: \`${buildManifest.built_at}\`
 - notarization requested: ${notarizationRequested}
 - notarization credential source: ${osxNotarize ? "present" : "missing"}
 - notarization state: ${notarizationState}
+- app stapler validate: ${appStaplerValidate}
 - DMG codesign verify: ${dmgCodesignVerify}
 - DMG notarization state: ${dmgNotarizationState}
 - DMG stapler validate: ${dmgStaplerValidate}
@@ -447,14 +511,14 @@ console.log(
   JSON.stringify(
     {
       verdict: "PASS",
-      app_bundle: "apps/desktop/dist/mac/matter.app",
+      app_bundle: `apps/desktop/dist/mac/${channelConfig.macAppBundleName}`,
       zip: `apps/desktop/dist/mac/${artifactName}-macos.zip`,
       dmg: `apps/desktop/dist/mac/${artifactName}-macos.dmg`,
       receipt: writeBuildReceipt ? receiptPath : null,
       release_channel: releaseChannel,
       app_id: appBundleId,
       build_manifest: `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`,
-      packaged_build_manifest: "apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json",
+      packaged_build_manifest: `apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/matter-build-manifest.json`,
       build_manifest_sha256: buildManifestHash,
       source_sha: buildManifest.source_sha,
       source_tree: buildManifest.source_tree,
@@ -471,6 +535,7 @@ console.log(
       notarization_requested: notarizationRequested,
       notarization_credential_source: osxNotarize ? "present" : "missing",
       notarization_state: notarizationState,
+      app_stapler_validate: appStaplerValidate,
       dmg_codesign_verify: dmgCodesignVerify,
       dmg_notarization_state: dmgNotarizationState,
       dmg_stapler_validate: dmgStaplerValidate,

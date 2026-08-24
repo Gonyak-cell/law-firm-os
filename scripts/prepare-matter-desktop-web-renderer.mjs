@@ -15,7 +15,7 @@ const desktopRendererWeb = join(repoRoot, "apps/desktop/src/renderer/web");
 const receiptPath = join(repoRoot, "docs/lazycodex/evidence/matter-web/desktop-web-renderer-asset.md");
 const writeBuildReceipt = process.env.MATTER_DESKTOP_BUILD_RECEIPT !== "0";
 const desktopWebBuildEnvironment = {
-  ...process.env,
+  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("VITE_"))),
   VITE_LAWOS_PEOPLE_MEMBER_BRIEF: "true",
   VITE_LAWOS_OUTLOOK_CALENDAR: "true"
 };
