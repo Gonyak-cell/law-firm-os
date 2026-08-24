@@ -306,6 +306,16 @@ test("OUTM28/OUTM34 built main shell fences context and keeps compact command UI
     evidence.rails = await page.locator("[data-testid='outlook-icon-rail'] button").evaluateAll((buttons) => buttons.map((button) => button.dataset.featureId));
     assert.deepEqual(evidence.rails, ["mail.save-with-attachments", "matter.search", "task.create", "time-entry.draft", "all-functions"]);
     await selectMatter(page, MATTER_A);
+    await page.waitForSelector("[data-testid='outlook-receipt-recovery']");
+    assert.equal(await page.locator("[data-testid='outlook-readiness-status']").count(), 0);
+    assert.match(
+      await page.locator("[data-testid='outlook-receipt-recovery']").textContent(),
+      /저장된 메일 기록을 확인했습니다\./u,
+    );
+    if (ARTIFACT_DIR) {
+      const target = path.join(ARTIFACT_DIR, "main-recovered-receipt-no-readiness.png");
+      await page.screenshot({ path: target, fullPage: false }); evidence.screenshots.push(target);
+    }
     await openAllFunctions(page);
     assert.equal(await page.locator("[data-action-row='conversation.auto-save']").count(), 1);
     assert.equal(await page.locator("[data-action-row='document.create-and-sign-status']").count(), 1);

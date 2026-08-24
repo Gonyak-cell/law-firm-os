@@ -110,7 +110,7 @@ test("unobserved propagation becomes the exact Outlook relaunch action", () => {
   assert.equal(result.actionLabel, "Outlook 다시 열기");
 });
 
-test("unknown, admin, sign-in, and heartbeat results fail closed to read-only retry", () => {
+test("unknown, admin, sign-in, and heartbeat results render no intervention", () => {
   for (const input of [
     null,
     {},
@@ -119,10 +119,7 @@ test("unknown, admin, sign-in, and heartbeat results fail closed to read-only re
     response({ next_action: "heartbeat" }),
     response({ next_action: "invented" }),
   ]) {
-    const result = presentOutlookReadiness(input);
-    assert.equal(result.visibleMessage, "연결 상태를 확인할 수 없음");
-    assert.equal(result.action, OUTLOOK_READINESS_ACTIONS.refresh);
-    assert.equal(result.actionLabel, "다시 확인");
+    assert.equal(presentOutlookReadiness(input), null);
   }
 });
 
@@ -139,10 +136,7 @@ test("confirmation cannot be spoofed without the browser flag and interaction co
       safe_error_codes: [],
     }),
   ]) {
-    assert.equal(
-      presentOutlookReadiness(input).action,
-      OUTLOOK_READINESS_ACTIONS.refresh,
-    );
+    assert.equal(presentOutlookReadiness(input), null);
   }
 });
 
@@ -154,17 +148,13 @@ test("ready copy requires every authoritative axis and never projects identifier
     response({ installation: { state: "expired" } }),
     response({ user_connection_revoke_requested: true }),
   ]) {
-    assert.equal(
-      presentOutlookReadiness(input).visibleMessage,
-      "연결 상태를 확인할 수 없음",
-    );
+    assert.equal(presentOutlookReadiness(input), null);
   }
 
   const projected = presentOutlookReadiness(response({
     installation: {
-      state: "active",
+      ...response().item.installation,
       installation_id: "odi_secret",
-      lease_expires_at: "2026-08-18T00:00:00.000Z",
     },
     tenant_id: "tenant-secret",
     evidence_ref: "evidence-secret",
@@ -265,8 +255,8 @@ test("ready copy fails closed when versioned authority is incomplete", () => {
   ];
   for (const [label, overrides] of missingAuthority) {
     assert.equal(
-      presentOutlookReadiness(response(overrides)).visibleMessage,
-      "연결 상태를 확인할 수 없음",
+      presentOutlookReadiness(response(overrides)),
+      null,
       label,
     );
   }

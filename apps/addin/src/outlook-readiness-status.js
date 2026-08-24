@@ -13,14 +13,6 @@ export const OUTLOOK_READINESS_ACTIONS = Object.freeze({
   refresh: "refresh",
 });
 
-const UNKNOWN = Object.freeze({
-  status: OUTLOOK_OPERATION_STATES.reconnectRequired,
-  visibleMessage: "연결 상태를 확인할 수 없음",
-  fullMessage: "현재 연결 상태를 다시 확인해 주세요.",
-  action: OUTLOOK_READINESS_ACTIONS.refresh,
-  actionLabel: "다시 확인",
-});
-
 const isObject = (value) => value !== null
   && typeof value === "object"
   && !Array.isArray(value);
@@ -110,7 +102,7 @@ function authoritativeReady(item) {
 
 export function presentOutlookReadiness(body) {
   const item = validEnvelope(body);
-  if (!item) return UNKNOWN;
+  if (!item) return null;
 
   if (authoritativeReady(item)) {
     return Object.freeze({
@@ -158,5 +150,5 @@ export function presentOutlookReadiness(body) {
     });
   }
 
-  return UNKNOWN;
+  return null;
 }
