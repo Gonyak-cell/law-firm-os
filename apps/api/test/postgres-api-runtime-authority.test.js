@@ -535,6 +535,22 @@ test("OUTM-21 retries only the exact idempotent correction mutation path", () =>
   ]) assert.equal(isOutlookIdempotentMutation(method, pathname), false);
 });
 
+test("Outlook identity and receipt readback routes retry only on exact POST paths", () => {
+  for (const pathname of [
+    "/api/outlook/messages/identity",
+    "/api/outlook/operation-receipts/readback",
+  ]) {
+    assert.equal(isOutlookIdempotentMutation("POST", pathname), true);
+    assert.equal(isOutlookIdempotentMutation("POST", `${pathname}/`), true);
+    for (const [method, candidatePath] of [
+      ["GET", pathname],
+      ["POST", `${pathname}/child`],
+    ]) {
+      assert.equal(isOutlookIdempotentMutation(method, candidatePath), false);
+    }
+  }
+});
+
 test("PostgreSQL request success runs post-commit cleanup but never failure compensation", async () => {
   const calls = [];
   const result = await runWithRequestFailureCompensation(async (compensator) => {

@@ -58,6 +58,7 @@ async function openFixture(browser, web) {
     durableTimeCreates: 0,
     hold: "",
     pending: new Map(),
+    failIdentity: false,
     failReadback: false,
     probeOmit: false,
   };
@@ -102,6 +103,12 @@ async function openFixture(browser, web) {
       return fulfill({ items: id ? rows.filter((row) => row.matter_id === id) : rows });
     }
     if (url.pathname === "/api/outlook/messages/identity") {
+      if (state.failIdentity) {
+        return fulfill({
+          request_id: "identity-conflict",
+          safe_error_codes: ["REPOSITORY_VERSION_CONFLICT"],
+        }, 409);
+      }
       const key = String(body.rest_message_id ?? "").replace("rest-", "");
       return fulfill({ item: { ...sourceIdentity(key), rest_message_id: body.rest_message_id, internet_message_id: body.internet_message_id, conversation_id: body.conversation_id } });
     }
@@ -186,8 +193,18 @@ test("8f3 editable task/time actions preserve idempotent intent across hostile O
   try {
     ({ page, state } = await openFixture(browser, web));
     await chooseMatter(page, MATTER); await page.locator("[data-feature-id='mail.save-with-attachments']").click();
+    state.failIdentity = true;
     await page.locator("[data-testid='file-email-button']").click();
-    await page.getByTestId("operation-result").waitFor({ state: "visible" });
+    await page.getByTestId("error-state").waitFor({ state: "visible" });
+    assert.equal(await page.getByText("메일은 저장됐지만 Matter 목록은 새로 불러오지 못했습니다.", { exact: true }).count(), 0);
+    assert.equal(state.requests.filter(({ path, method }) => path === "/api/outlook/email/file" && method === "POST").length, 0);
+    state.failIdentity = false;
+    state.failReadback = true;
+    await page.locator("[data-testid='file-email-button']").click();
+    await page.getByText("메일은 저장됐지만 Matter 목록은 새로 불러오지 못했습니다.", { exact: true }).waitFor({ state: "visible" });
+    assert.equal(state.requests.filter(({ path, method }) => path === "/api/outlook/email/file" && method === "POST").length, 1);
+    assert.equal(await page.getByTestId("error-state").count(), 0);
+    state.failReadback = false;
     await page.locator("[data-testid='outlook-overlay-close']").click(); await page.waitForSelector("[data-testid='outlook-overlay']", { state: "detached" });
 
     state.hold = "task-create";

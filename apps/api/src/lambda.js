@@ -4594,6 +4594,36 @@ async function resetCachedApiServer() {
   }
 }
 
+const OUTLOOK_FAILURE_ROUTES = new Map([
+  ["/api/outlook/attachments/save", ["attachment_save", "/api/outlook/attachments/save"]],
+  ["/api/outlook/email/file", ["email_file", "/api/outlook/email/file"]],
+  ["/api/outlook/messages/identity", ["message_identity", "/api/outlook/messages/identity"]],
+  ["/api/outlook/operation-receipts/readback", ["operation_receipt_readback", "/api/outlook/operation-receipts/readback"]],
+  ["/api/outlook/sent/file", ["sent_file", "/api/outlook/sent/file"]],
+]);
+
+function safeOutlookFailureRoute(path) {
+  const normalizedPath = String(path ?? "").replace(/\/+$/u, "") || "/";
+  const exact = OUTLOOK_FAILURE_ROUTES.get(normalizedPath);
+  if (exact) return { operation: exact[0], path: exact[1] };
+  const matterRead = normalizedPath.match(
+    /^\/api\/outlook\/matters\/[^/]+\/(documents|timeline)$/u,
+  );
+  if (matterRead) {
+    return {
+      operation: `matter_${matterRead[1]}`,
+      path: `/api/outlook/matters/:id/${matterRead[1]}`,
+    };
+  }
+  if (normalizedPath.startsWith("/api/outlook/")) {
+    return { operation: "outlook_route", path: "/api/outlook/:other" };
+  }
+  if (normalizedPath.startsWith("/api/auth/office-sso/")) {
+    return { operation: "office_sso_route", path: "/api/auth/office-sso/:other" };
+  }
+  return null;
+}
+
 export function createLambdaHttpHandler({
   env = process.env,
   runtimeCache,
@@ -4644,7 +4674,8 @@ export function createLambdaHttpHandler({
     const body = await response.text();
     const headers = Object.fromEntries(response.headers.entries());
     const path = event.rawPath || event.path || "/";
-    if (response.status >= 400 && path === "/api/outlook/email/file") {
+    const failureRoute = safeOutlookFailureRoute(path);
+    if (response.status >= 400 && failureRoute) {
       let payload = {};
       try {
         payload = JSON.parse(body);
@@ -4654,10 +4685,11 @@ export function createLambdaHttpHandler({
       logFn(JSON.stringify({
         event: "lawos.outlook.request_failed",
         method,
-        operation: "email_file",
-        request_id: typeof payload.request_id === "string"
-          && /^[A-Za-z0-9._:-]{1,128}$/u.test(payload.request_id)
-          ? payload.request_id
+        operation: failureRoute.operation,
+        path: failureRoute.path,
+        request_id: typeof event.requestContext?.requestId === "string"
+          && /^[A-Za-z0-9._:=-]{1,128}$/u.test(event.requestContext.requestId)
+          ? event.requestContext.requestId
           : "",
         safe_error_codes: (Array.isArray(payload.safe_error_codes) ? payload.safe_error_codes : [])
           .filter((code) => typeof code === "string" && /^[A-Z0-9_]+$/u.test(code))

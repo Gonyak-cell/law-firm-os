@@ -350,7 +350,7 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
       },
     }),
     fetchFn: async () => new Response(JSON.stringify({
-      request_id: "req-outlook-file-1",
+      request_id: "CLIENT_SECRET_ABC123",
       safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
       message: "must-not-be-logged",
       authorization_code: "must-not-be-logged",
@@ -363,7 +363,10 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
 
   const result = await lambdaHandler({
     rawPath: "/api/outlook/email/file",
-    requestContext: { http: { method: "POST" } },
+    requestContext: {
+      requestId: "aws-request-outlook-1",
+      http: { method: "POST" },
+    },
     headers: { authorization: "Bearer must-not-be-logged" },
     body: JSON.stringify({ access_token: "must-not-be-logged" }),
   });
@@ -374,18 +377,72 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
     event: "lawos.outlook.request_failed",
     method: "POST",
     operation: "email_file",
-    request_id: "req-outlook-file-1",
+    path: "/api/outlook/email/file",
+    request_id: "aws-request-outlook-1",
     safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
     status: 409,
   });
   assert.equal(logs[0].includes("must-not-be-logged"), false);
+  assert.equal(logs[0].includes("CLIENT_SECRET_ABC123"), false);
 
   await lambdaHandler({
-    rawPath: "/api/outlook/matters/private-matter-id/documents",
+    rawPath: "/api/outlook/matters/current/documents",
     rawQueryString: "code=must-not-be-logged&state=must-not-be-logged",
-    requestContext: { http: { method: "GET" } },
+    requestContext: {
+      requestId: "aws-request-outlook-2",
+      http: { method: "GET" },
+    },
   });
-  assert.equal(logs.length, 1);
+  assert.equal(logs.length, 2);
+  assert.deepEqual(JSON.parse(logs[1]), {
+    event: "lawos.outlook.request_failed",
+    method: "GET",
+    operation: "matter_documents",
+    path: "/api/outlook/matters/:id/documents",
+    request_id: "aws-request-outlook-2",
+    safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
+    status: 409,
+  });
+  assert.equal(logs[1].includes("must-not-be-logged"), false);
+  assert.equal(logs[1].includes("/current/"), false);
+
+  await lambdaHandler({
+    rawPath: "/api/auth/office-sso/exchange",
+    requestContext: {
+      requestId: "aws-request-outlook-3",
+      http: { method: "POST" },
+    },
+    body: JSON.stringify({ code: "must-not-be-logged" }),
+  });
+  assert.equal(logs.length, 3);
+  assert.deepEqual(JSON.parse(logs[2]), {
+    event: "lawos.outlook.request_failed",
+    method: "POST",
+    operation: "office_sso_route",
+    path: "/api/auth/office-sso/:other",
+    request_id: "aws-request-outlook-3",
+    safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
+    status: 409,
+  });
+  assert.equal(logs[2].includes("must-not-be-logged"), false);
+
+  await lambdaHandler({
+    rawPath: "/api/outlook/messages/CLIENT_SECRET_ABC123",
+    requestContext: {
+      requestId: "aws-request-outlook-4",
+      http: { method: "GET" },
+    },
+  });
+  assert.deepEqual(JSON.parse(logs[3]), {
+    event: "lawos.outlook.request_failed",
+    method: "GET",
+    operation: "outlook_route",
+    path: "/api/outlook/:other",
+    request_id: "aws-request-outlook-4",
+    safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
+    status: 409,
+  });
+  assert.equal(logs[3].includes("CLIENT_SECRET_ABC123"), false);
 });
 
 async function createDurableStorePaths(root) {

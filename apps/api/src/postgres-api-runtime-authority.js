@@ -172,6 +172,8 @@ const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
   "/api/outlook/attachments/save",
   "/api/outlook/followups",
   "/api/outlook/time-entry-drafts",
+  "/api/outlook/messages/identity",
+  "/api/outlook/operation-receipts/readback",
 ]);
 
 export function isOutlookIdempotentMutation(method, pathname) {
