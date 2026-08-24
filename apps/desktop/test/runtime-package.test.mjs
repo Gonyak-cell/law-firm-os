@@ -52,7 +52,7 @@ test("desktop packaged main stages its canonical Outlook proof dependency", asyn
   }
 });
 
-test("desktop runtime staging is identical by channel and excludes local data from formal packages", async () => {
+test("desktop runtime staging preserves QA runtime and excludes it from distribution-ready packages", async () => {
   const fixtureRoot = await mkdtemp(join(tmpdir(), "matter-runtime-package-test-"));
   try {
     const rosterPath = join(fixtureRoot, "fixtures/roster.json");
@@ -94,17 +94,30 @@ test("desktop runtime staging is identical by channel and excludes local data fr
     ));
     assert.equal(publicCatalog.profiles[0].employee_id, "employee-1");
 
-    const formalApp = join(fixtureRoot, "formal-app");
-    await writeDesktopMainFixture(formalApp);
-    await writeFixture(join(formalApp, "runtime/stale-private-data.json"), "{}\n");
-    const formal = await copyDesktopLocalApiRuntime({
-      targetAppSourceDir: formalApp,
+    const protectedApp = join(fixtureRoot, "protected-app");
+    await writeDesktopMainFixture(protectedApp);
+    await writeFixture(join(protectedApp, "runtime/stale-private-data.json"), "{}\n");
+    const protectedPackage = await copyDesktopLocalApiRuntime({
+      targetAppSourceDir: protectedApp,
+      repoRoot: fixtureRoot,
+      distributionReady: true
+    });
+    assert.equal(protectedPackage.included, false);
+    assert.equal(protectedPackage.excluded, true);
+    assert.equal(existsSync(join(protectedApp, "runtime")), false);
+    assert.equal(existsSync(join(protectedApp, "src/main/outlook-desktop-installation-proof.js")), true);
+
+    const formalAliasApp = join(fixtureRoot, "formal-alias-app");
+    await writeDesktopMainFixture(formalAliasApp);
+    await writeFixture(join(formalAliasApp, "runtime/stale-private-data.json"), "{}\n");
+    const formalAlias = await copyDesktopLocalApiRuntime({
+      targetAppSourceDir: formalAliasApp,
       repoRoot: fixtureRoot,
       formalRelease: true
     });
-    assert.equal(formal.included, false);
-    assert.equal(existsSync(join(formalApp, "runtime")), false);
-    assert.equal(existsSync(join(formalApp, "src/main/outlook-desktop-installation-proof.js")), true);
+    assert.equal(formalAlias.included, false);
+    assert.equal(formalAlias.excluded, true);
+    assert.equal(existsSync(join(formalAliasApp, "runtime")), false);
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
   }

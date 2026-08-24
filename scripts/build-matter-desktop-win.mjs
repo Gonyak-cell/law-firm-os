@@ -126,7 +126,7 @@ try {
   await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(packageDir, "resources", "app"),
     repoRoot,
-    formalRelease
+    distributionReady: formalRelease
   });
   const markerPath = join(packageDir, "resources", formalReleaseMarkerName);
   if (formalRelease) {

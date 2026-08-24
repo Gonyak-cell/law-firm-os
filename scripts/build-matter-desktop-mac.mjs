@@ -290,11 +290,14 @@ try {
   });
   const generatedAppBundle = join(generatedAppRoot, "matter.app");
   await applyMatterBundleIcon(generatedAppBundle);
-  await copyDesktopLocalApiRuntime({
+  const runtimePackaging = await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(generatedAppBundle, "Contents", "Resources", "app"),
     repoRoot,
-    formalRelease
+    distributionReady: protectedDistributionBuild
   });
+  if (protectedDistributionBuild && existsSync(runtimePackaging.runtimeDir)) {
+    throw new Error("protected distribution macOS build contains local API runtime before signing");
+  }
   const generatedMarkerPath = join(generatedAppBundle, "Contents", "Resources", formalReleaseMarkerName);
   if (formalRelease) {
     await writeFile(generatedMarkerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);
@@ -481,9 +484,13 @@ Built at: \`${buildManifest.built_at}\`
 - executable exists: ${existsSync(executablePath)}
 - packaged app icon exists: ${existsSync(packagedIconPath)}
 - packaged app source exists: ${existsSync(appSourceDir)}
+- protected distribution build: ${protectedDistributionBuild}
+- local API runtime included: ${existsSync(join(appSourceDir, "runtime"))}
+- local API runtime excluded: ${!existsSync(join(appSourceDir, "runtime"))}
 - private HRX contact source excluded: ${!existsSync(packagedPrivateContactSourcePath)}
 - private HRX roster source excluded: ${!existsSync(packagedPrivateRosterSourcePath)}
 - private HRX photo source excluded: ${!existsSync(packagedPrivatePhotoSourcePath)}
+- public HRX professional profile catalog expected: ${!protectedDistributionBuild}
 - public HRX professional profile catalog included: ${existsSync(packagedPublicProfessionalProfileCatalogPath)}
 - formal release marker: ${formalRelease ? existsSync(formalReleaseMarkerPath) : !existsSync(formalReleaseMarkerPath)}
 - web renderer prepare state: ${webRendererPrepareState}
@@ -542,10 +549,14 @@ console.log(
       dmg_gatekeeper_assess: dmgGatekeeperAssess,
       dmg_image_verify: dmgImageVerify,
       install_smoke_result: "pass",
+      protected_distribution_build: protectedDistributionBuild,
+      local_api_runtime_included: existsSync(join(appSourceDir, "runtime")),
+      local_api_runtime_excluded: !existsSync(join(appSourceDir, "runtime")),
       packaged_app_icon: existsSync(packagedIconPath),
       private_hrx_contact_source_excluded: !existsSync(packagedPrivateContactSourcePath),
       private_hrx_roster_source_excluded: !existsSync(packagedPrivateRosterSourcePath),
       private_hrx_photo_source_excluded: !existsSync(packagedPrivatePhotoSourcePath),
+      public_hrx_professional_profile_catalog_expected: !protectedDistributionBuild,
       public_hrx_professional_profile_catalog_included: existsSync(packagedPublicProfessionalProfileCatalogPath),
       formal_release_local_api_default_disabled: formalRelease && existsSync(formalReleaseMarkerPath),
       electron_runtime_packaged: true,

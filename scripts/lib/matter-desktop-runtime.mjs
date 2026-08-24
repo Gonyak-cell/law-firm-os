@@ -53,6 +53,9 @@ function sourcePaths({ repoRoot, env, rosterSourcePath, contactSourcePath, photo
 export async function copyDesktopLocalApiRuntime({
   targetAppSourceDir,
   repoRoot,
+  distributionReady = false,
+  // Keep accepting the historical option while callers migrate to the
+  // broader distribution-ready boundary.
   formalRelease = false,
   env = process.env,
   rosterSourcePath,
@@ -64,7 +67,8 @@ export async function copyDesktopLocalApiRuntime({
   await stageDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot });
   const runtimeDir = join(targetAppSourceDir, "runtime");
   await rm(runtimeDir, { recursive: true, force: true });
-  if (formalRelease) return { included: false, runtimeDir };
+  const excludeRuntime = distributionReady || formalRelease;
+  if (excludeRuntime) return { included: false, excluded: true, runtimeDir };
 
   const sources = sourcePaths({
     repoRoot,
@@ -105,5 +109,5 @@ export async function copyDesktopLocalApiRuntime({
   }
   await copyFile(sources.registrationSeed, join(apiRuntimeSrcDir, "matter-vault-user-registration-seed.json"));
   await cp(join(repoRoot, "packages"), join(runtimeDir, "packages"), { recursive: true });
-  return { included: true, runtimeDir, apiRuntimeSrcDir };
+  return { included: true, excluded: false, runtimeDir, apiRuntimeSrcDir };
 }

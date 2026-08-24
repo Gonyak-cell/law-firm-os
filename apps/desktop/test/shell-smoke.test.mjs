@@ -305,7 +305,20 @@ test("packaged desktop defaults to production auth and local API requires explic
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }), false);
   assert.equal(shouldStartDesktopLocalApi({}, { packaged: true }), false);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "0" }, { packaged: true }), false);
-  assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1" }, { packaged: true }), true);
+  assert.equal(
+    shouldStartDesktopLocalApi(
+      { MATTER_DESKTOP_LOCAL_API_ENABLED: "1" },
+      { packaged: true, packagedRuntimePresent: true }
+    ),
+    true
+  );
+  assert.equal(
+    shouldStartDesktopLocalApi(
+      { MATTER_DESKTOP_LOCAL_API_ENABLED: "1" },
+      { packaged: true, packagedRuntimePresent: false }
+    ),
+    false
+  );
   assert.equal(
     shouldStartDesktopLocalApi(
       { MATTER_DESKTOP_LOCAL_API_ENABLED: "1", MATTER_DESKTOP_LOCAL_API_DISABLED: "1" },
