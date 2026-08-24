@@ -839,10 +839,12 @@ function messageMetadata(value, immutableId, inboxId, sentItemsId) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
   const parentFolderId = optionalString(value.parentFolderId);
-  const receivedAt = optionalString(value.receivedDateTime, 64);
-  const sentAt = optionalString(value.sentDateTime, 64);
+  const graphReceivedAt = optionalString(value.receivedDateTime, 64);
+  const graphSentAt = optionalString(value.sentDateTime, 64);
+  const receivedAt = graphReceivedAt ?? graphSentAt;
+  const sentAt = graphSentAt ?? graphReceivedAt;
   if (!parentFolderId || typeof value.isDraft !== "boolean"
-    || !Number.isFinite(Date.parse(receivedAt))
+    || !receivedAt || !sentAt || !Number.isFinite(Date.parse(receivedAt))
     || !Number.isFinite(Date.parse(sentAt))) {
     throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
   }
@@ -894,107 +896,228 @@ async function mailMessageExport(fetchImpl, request) {
   const restId = text(request.rest_message_id, { max: 4096 });
   const messagePath = `/v1.0/me/messages/${encodeURIComponent(restId)}`;
   const metadataUrl = new URL(messagePath, GRAPH_ORIGIN);
-  metadataUrl.searchParams.set(
-    "$select",
-    [
-      "id",
-      "internetMessageId",
-      "conversationId",
-      "subject",
-      "sender",
-      "from",
-      "toRecipients",
-      "ccRecipients",
-      "bccRecipients",
-      "receivedDateTime",
-      "sentDateTime",
-      "hasAttachments",
-      "parentFolderId",
-      "isDraft",
-    ].join(","),
-  );
+  const metadataSelect = [
+    "id",
+    "internetMessageId",
+    "conversationId",
+    "subject",
+    "sender",
+    "from",
+    "toRecipients",
+    "ccRecipients",
+    "bccRecipients",
+    "receivedDateTime",
+    "sentDateTime",
+    "createdDateTime",
+    "changeKey",
+    "hasAttachments",
+    "parentFolderId",
+    "isDraft",
+  ].join(",");
+  const identitySelect = [
+    "id",
+    "internetMessageId",
+    "conversationId",
+    "parentFolderId",
+    "isDraft",
+    "changeKey",
+    "createdDateTime",
+    "receivedDateTime",
+    "sentDateTime",
+  ].join(",");
+  metadataUrl.searchParams.set("$select", metadataSelect);
   const immutableHeaders = graphHeaders(token, {
     Prefer: 'IdType="ImmutableId"',
   });
-  const metadataResponse = await fixedFetch(
-    fetchImpl,
-    metadataUrl,
-    { method: "GET", headers: immutableHeaders },
-    { origin: GRAPH_ORIGIN, pathname: messagePath },
-  );
-  if (metadataResponse.status !== 200) upstreamFailure(metadataResponse);
-  const metadataValue = await readJson(metadataResponse);
-  const immutableId = optionalString(metadataValue?.id);
-  if (!immutableId || /[\u0000-\u001f\u007f]/u.test(immutableId)) {
-    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
-  }
-  const inboxPath = "/v1.0/me/mailFolders/inbox";
-  const inboxUrl = new URL(inboxPath, GRAPH_ORIGIN);
-  inboxUrl.searchParams.set("$select", "id");
-  const inboxResponse = await fixedFetch(
-    fetchImpl,
-    inboxUrl,
-    { method: "GET", headers: immutableHeaders },
-    { origin: GRAPH_ORIGIN, pathname: inboxPath },
-  );
-  if (inboxResponse.status !== 200) upstreamFailure(inboxResponse);
-  const inboxId = mailFolderId(await readJson(inboxResponse));
-  const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
-  const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
-  sentItemsUrl.searchParams.set("$select", "id");
-  const sentItemsResponse = await fixedFetch(
-    fetchImpl,
-    sentItemsUrl,
-    { method: "GET", headers: immutableHeaders },
-    { origin: GRAPH_ORIGIN, pathname: sentItemsPath },
-  );
-  if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
-  const sentItemsId = mailFolderId(await readJson(sentItemsResponse));
-  const metadata = messageMetadata(
-    metadataValue,
-    immutableId,
-    inboxId,
-    sentItemsId,
-  );
-  const mimePath = `/v1.0/me/messages/${encodeURIComponent(immutableId)}/$value`;
-  const mimeResponse = await fixedFetch(
-    fetchImpl,
-    `${GRAPH_ORIGIN}${mimePath}`,
-    {
-      method: "GET",
-      headers: {
-        ...immutableHeaders,
-        accept: "message/rfc822, application/octet-stream",
+  let stage = "metadata";
+  try {
+    let metadataResponse = await fixedFetch(
+      fetchImpl,
+      metadataUrl,
+      { method: "GET", headers: graphHeaders(token) },
+      { origin: GRAPH_ORIGIN, pathname: messagePath },
+    );
+    if (metadataResponse.status !== 200) upstreamFailure(metadataResponse);
+    const regularMetadata = await readJson(metadataResponse);
+    const regularId = optionalString(regularMetadata.id);
+    const internetMessageId = optionalString(
+      regularMetadata.internetMessageId,
+      998,
+    );
+    const conversationId = optionalString(regularMetadata.conversationId);
+    const parentFolderId = optionalString(regularMetadata.parentFolderId);
+    const changeKey = optionalString(regularMetadata.changeKey);
+    const createdDateTime = optionalString(
+      regularMetadata.createdDateTime,
+      64,
+    );
+    const receivedDateTime = regularMetadata.receivedDateTime === null
+      ? null
+      : optionalString(regularMetadata.receivedDateTime, 64);
+    const sentDateTime = regularMetadata.sentDateTime === null
+      ? null
+      : optionalString(regularMetadata.sentDateTime, 64);
+    if (
+      regularId !== restId
+      || !internetMessageId
+      || !conversationId
+      || !parentFolderId
+      || !changeKey
+      || !createdDateTime
+      || /[\u0000-\u001f\u007f]/u.test(internetMessageId)
+      || /[\u0000-\u001f\u007f]/u.test(conversationId)
+      || /[\u0000-\u001f\u007f]/u.test(parentFolderId)
+      || /[\u0000-\u001f\u007f]/u.test(changeKey)
+      || !/(?:Z|[+-]\d{2}:\d{2})$/u.test(createdDateTime)
+      || !Number.isFinite(Date.parse(createdDateTime))
+      || (regularMetadata.receivedDateTime !== null
+        && receivedDateTime === null)
+      || (receivedDateTime !== null
+        && (!/(?:Z|[+-]\d{2}:\d{2})$/u.test(receivedDateTime)
+          || !Number.isFinite(Date.parse(receivedDateTime))))
+      || (regularMetadata.sentDateTime !== null && sentDateTime === null)
+      || (sentDateTime !== null
+        && (!/(?:Z|[+-]\d{2}:\d{2})$/u.test(sentDateTime)
+          || !Number.isFinite(Date.parse(sentDateTime))))
+      || typeof regularMetadata.isDraft !== "boolean"
+    ) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+
+    stage = "immutable_identity";
+    const identityPath = "/v1.0/me/messages";
+    const identityUrl = new URL(identityPath, GRAPH_ORIGIN);
+    identityUrl.searchParams.set(
+      "$filter",
+      `internetMessageId eq '${internetMessageId.replaceAll("'", "''")}'`,
+    );
+    identityUrl.searchParams.set("$top", "2");
+    identityUrl.searchParams.set("$select", identitySelect);
+    const identityResponse = await fixedFetch(
+      fetchImpl,
+      identityUrl,
+      { method: "GET", headers: immutableHeaders },
+      { origin: GRAPH_ORIGIN, pathname: identityPath },
+    );
+    if (identityResponse.status !== 200) upstreamFailure(identityResponse);
+    const identity = await readJson(identityResponse);
+    const candidates = identity.value;
+    if (
+      !Array.isArray(candidates)
+      || candidates.length !== 1
+      || Object.hasOwn(identity, "@odata.nextLink")
+    ) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+    const candidate = candidates[0];
+    const immutableId = optionalString(candidate?.id);
+    if (
+      !plainObject(candidate)
+      || !immutableId
+      || /[\u0000-\u001f\u007f]/u.test(immutableId)
+      || candidate.internetMessageId !== internetMessageId
+      || candidate.conversationId !== conversationId
+      || candidate.parentFolderId !== parentFolderId
+      || candidate.isDraft !== regularMetadata.isDraft
+      || candidate.changeKey !== changeKey
+      || candidate.createdDateTime !== createdDateTime
+      || candidate.receivedDateTime !== regularMetadata.receivedDateTime
+      || candidate.sentDateTime !== regularMetadata.sentDateTime
+    ) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+    metadataResponse = identityResponse;
+    const metadataValue = { ...regularMetadata, id: immutableId };
+
+    stage = "inbox_folder";
+    const inboxPath = "/v1.0/me/mailFolders/inbox";
+    const inboxUrl = new URL(inboxPath, GRAPH_ORIGIN);
+    inboxUrl.searchParams.set("$select", "id");
+    const inboxResponse = await fixedFetch(
+      fetchImpl,
+      inboxUrl,
+      { method: "GET", headers: immutableHeaders },
+      { origin: GRAPH_ORIGIN, pathname: inboxPath },
+    );
+    if (inboxResponse.status !== 200) upstreamFailure(inboxResponse);
+    const inboxId = mailFolderId(await readJson(inboxResponse));
+
+    stage = "sent_items_folder";
+    const sentItemsPath = "/v1.0/me/mailFolders/sentitems";
+    const sentItemsUrl = new URL(sentItemsPath, GRAPH_ORIGIN);
+    sentItemsUrl.searchParams.set("$select", "id");
+    const sentItemsResponse = await fixedFetch(
+      fetchImpl,
+      sentItemsUrl,
+      { method: "GET", headers: immutableHeaders },
+      { origin: GRAPH_ORIGIN, pathname: sentItemsPath },
+    );
+    if (sentItemsResponse.status !== 200) upstreamFailure(sentItemsResponse);
+    const sentItemsId = mailFolderId(await readJson(sentItemsResponse));
+
+    stage = "metadata_normalization";
+    const metadata = messageMetadata(
+      metadataValue,
+      immutableId,
+      inboxId,
+      sentItemsId,
+    );
+
+    stage = "mime";
+    const mimePath = `/v1.0/me/messages/${encodeURIComponent(immutableId)}/$value`;
+    const mimeResponse = await fixedFetch(
+      fetchImpl,
+      `${GRAPH_ORIGIN}${mimePath}`,
+      {
+        method: "GET",
+        headers: {
+          ...immutableHeaders,
+          accept: "message/rfc822, application/octet-stream",
+        },
       },
-    },
-    { origin: GRAPH_ORIGIN, pathname: mimePath },
-  );
-  if (mimeResponse.status !== 200) upstreamFailure(mimeResponse);
-  const mime = await readBoundedBytes(mimeResponse, MAX_MIME_BYTES);
-  const header = mime.toString(
-    "utf8",
-    0,
-    Math.min(mime.length, 64 * 1024),
-  );
-  if (
-    !/(?:^|\r?\n)(?:from|to|date|subject|message-id|mime-version):/iu
-      .test(header)
-  ) {
-    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+      { origin: GRAPH_ORIGIN, pathname: mimePath },
+    );
+    if (mimeResponse.status !== 200) upstreamFailure(mimeResponse);
+    const mime = await readBoundedBytes(mimeResponse, MAX_MIME_BYTES);
+    const header = mime.toString(
+      "utf8",
+      0,
+      Math.min(mime.length, 64 * 1024),
+    );
+    if (
+      !/(?:^|\r?\n)(?:from|to|date|subject|message-id|mime-version):/iu
+        .test(header)
+    ) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+
+    stage = "result_size";
+    return ensureResultSize({
+      immutable_message_id: immutableId,
+      internet_message_id: metadata.internet_message_id,
+      message_metadata: metadata,
+      mime_base64: mime.toString("base64"),
+      mime_bytes: mime.byteLength,
+      provider_request_ids: {
+        metadata: providerRequestId(metadataResponse),
+        inbox: providerRequestId(inboxResponse),
+        sent_items: providerRequestId(sentItemsResponse),
+        mime: providerRequestId(mimeResponse),
+      },
+    });
+  } catch (error) {
+    const safe = error instanceof BrokerError
+      ? error
+      : new BrokerError("BROKER_INTERNAL_ERROR", 500);
+    console.error(JSON.stringify({
+      event: "lawos.microsoft_egress.mail_export_failed",
+      operation: "graph.mailMessage.export",
+      stage,
+      error_code: safe.code,
+      status: safe.status,
+    }));
+    throw safe;
   }
-  return ensureResultSize({
-    immutable_message_id: immutableId,
-    internet_message_id: metadata.internet_message_id,
-    message_metadata: metadata,
-    mime_base64: mime.toString("base64"),
-    mime_bytes: mime.byteLength,
-    provider_request_ids: {
-      metadata: providerRequestId(metadataResponse),
-      inbox: providerRequestId(inboxResponse),
-      sent_items: providerRequestId(sentItemsResponse),
-      mime: providerRequestId(mimeResponse),
-    },
-  });
 }
 
 const OPERATIONS = Object.freeze({
