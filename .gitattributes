@@ -1,1 +1,2 @@
 docs/weighted-implementation-ledger.json filter=lfs diff=lfs merge=lfs -text
+apps/desktop/build/amic-law-logo-accent.svg text eol=lf
