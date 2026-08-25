@@ -1,6 +1,7 @@
 import {
   evaluateOutlookDesktopEntitlement,
 } from "./outlook-desktop-entitlement.js";
+import { outlookDesktopPrincipalRef } from "./session-auth.js";
 
 export const MATTER_OUTLOOK_PRODUCT_ID =
   "8f3cc90d-56dd-4c1c-b9c2-0a1100500101";
@@ -33,6 +34,7 @@ const CONNECTION_STATES = new Set([
   "reauthorization_required",
   "revoked",
 ]);
+const INSTALLATION_ID_PATTERN = /^odi_[A-Za-z0-9_-]{20,128}$/u;
 const SOURCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u;
 const VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$/u;
 
@@ -144,12 +146,23 @@ function identityBinding(principal, installationBinding) {
       ? installationBinding === "mismatch" ? "mismatch" : "verified"
       : "missing",
     source: "lawos_signed_session",
+    principal_ref: complete ? outlookDesktopPrincipalRef(principal) : null,
   });
 }
 
-function installationProjection(value, snapshotAt) {
+function installationProjection(
+  value,
+  snapshotAt,
+  {
+    includeInstallationId = true,
+    releaseTrusted = false,
+  } = {},
+) {
+  const releaseTrustedProjection = releaseTrusted === true;
   if (value === undefined) {
     return { projection: freeze({
+      installation_id: null,
+      release_trusted: releaseTrustedProjection,
       state: null,
       state_version: null,
       lease_expires_at: null,
@@ -159,6 +172,8 @@ function installationProjection(value, snapshotAt) {
   }
   if (value === null) {
     return { projection: freeze({
+      installation_id: null,
+      release_trusted: releaseTrustedProjection,
       state: "missing",
       state_version: null,
       lease_expires_at: null,
@@ -166,6 +181,10 @@ function installationProjection(value, snapshotAt) {
       source: "lawos_outlook_desktop_installations",
     }), conflict: false };
   }
+  const installationId = typeof value.installation_id === "string"
+    && INSTALLATION_ID_PATTERN.test(value.installation_id)
+    ? value.installation_id
+    : null;
   const leaseExpiresAt = instant(value.lease_expires_at);
   const retiredAt = value.retired_at === null ? null : instant(value.retired_at);
   const stateVersion = Number.isSafeInteger(value.state_version)
@@ -176,6 +195,7 @@ function installationProjection(value, snapshotAt) {
   const snapshotMs = Date.parse(snapshotAt);
   const leaseMs = leaseExpiresAt ? Date.parse(leaseExpiresAt) : Number.NaN;
   const contradictory = !status
+    || !installationId
     || !stateVersion
     || !leaseExpiresAt
     || (status === "active" && leaseMs <= snapshotMs)
@@ -184,6 +204,8 @@ function installationProjection(value, snapshotAt) {
     || (status !== "retired" && retiredAt !== null);
   return contradictory
     ? { projection: freeze({
+        installation_id: null,
+        release_trusted: releaseTrustedProjection,
         state: null,
         state_version: null,
         lease_expires_at: null,
@@ -191,6 +213,8 @@ function installationProjection(value, snapshotAt) {
         source: null,
       }), conflict: true }
     : { projection: freeze({
+        installation_id: includeInstallationId ? installationId : null,
+        release_trusted: releaseTrustedProjection,
         state: status,
         state_version: stateVersion,
         lease_expires_at: leaseExpiresAt,
@@ -339,6 +363,8 @@ export function deriveOutlookReadiness({
   delegated_connection: delegatedConnection,
   external_evidence: externalEvidence = {},
   snapshot_at: snapshotAtInput,
+  include_installation_id: includeInstallationId = true,
+  installation_release_trusted: installationReleaseTrusted = false,
 } = {}) {
   const snapshotAt = instant(snapshotAtInput);
   if (!snapshotAt) throw new TypeError("snapshot_at must be a valid instant");
@@ -366,7 +392,14 @@ export function deriveOutlookReadiness({
     externalEvidence?.client_propagation,
     PROPAGATION_STATES,
   );
-  const installationResult = installationProjection(installation, snapshotAt);
+  const installationResult = installationProjection(
+    installation,
+    snapshotAt,
+    {
+      includeInstallationId,
+      releaseTrusted: installationReleaseTrusted,
+    },
+  );
   const connection = connectionProjection(delegatedConnection, snapshotAt);
   const conflict = installationResult.conflict || evidenceConflict({
     assignment,

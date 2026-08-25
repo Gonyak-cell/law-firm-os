@@ -34,7 +34,7 @@ const REQUIRED_METHODS = Object.freeze([
   "heartbeat",
   "retire",
   "read",
-  "readCurrent",
+  "readTrustedCurrent",
   "projectAssignmentState",
 ]);
 const CONTROL_PORT_OPTION_KEYS = Object.freeze([

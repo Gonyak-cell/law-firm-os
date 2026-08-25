@@ -89,9 +89,13 @@ test("terminal Client migrations use one direct Outlook authority cleanup", asyn
       appliedBy: "outlook-authority-fixture-apply",
     });
     assert.equal(applied.outcome, "committed");
-    assert.equal(applied.migrations.at(-1).id,
-      "306_client_outlook_desktop_assignment");
-    assert.equal(applied.migrations.at(-1).applied, true);
+    assert.equal(applied.migrations.find(
+      ({ id }) => id === "306_client_outlook_desktop_assignment",
+    )?.applied, true);
+    assert.equal(applied.migrations.find(
+      ({ id }) => id ===
+        "307_client_outlook_desktop_trusted_current_read",
+    )?.applied, true);
     assert.equal(applied.role_configuration_transaction_committed_count, 1);
     assert.equal(applied.outlook_assignment_transaction_committed, true);
 

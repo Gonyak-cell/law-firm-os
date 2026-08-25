@@ -51,9 +51,13 @@ test("desktop installation migration defines tokenless tenant-RLS lifecycle auth
       "005_outlook_desktop_installation",
       "006_outlook_desktop_release_trust",
       "007_outlook_desktop_assignment",
+      "008_outlook_desktop_trusted_current_read",
     ],
   );
-  const migration = migrations.at(-1);
+  const migration = migrations.find(
+    ({ id }) => id === "005_outlook_desktop_installation",
+  );
+  assert.ok(migration);
   assert.match(migration.checksum, /^[a-f0-9]{64}$/u);
   for (const table of TABLES) assert.match(migration.sql, new RegExp(`\\b${table}\\b`, "u"));
   assert.match(migration.sql, /ENABLE ROW LEVEL SECURITY/iu);

@@ -21,6 +21,7 @@ export const EMAIL_DMS_POSTGRES_MIGRATIONS = Object.freeze([
   migration("005_outlook_desktop_installation", "./005_outlook_desktop_installation.sql"),
   migration("006_outlook_desktop_release_trust", "./006_outlook_desktop_release_trust.sql"),
   migration("007_outlook_desktop_assignment", "./007_outlook_desktop_assignment.sql"),
+  migration("008_outlook_desktop_trusted_current_read", "./008_outlook_desktop_trusted_current_read.sql"),
 ]);
 
 export function listEmailDmsPostgresMigrations() {

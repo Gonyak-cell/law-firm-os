@@ -16,12 +16,15 @@ import {
   deriveOutlookReadiness,
 } from "../src/outlook-readiness.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
+import { outlookDesktopPrincipalRef } from "../src/session-auth.js";
 
 const TENANT_ID = "tenant-readiness-a";
 const USER_ID = "user-readiness-01";
 const SUBJECT_ID = "subject-readiness-01";
 const INSTALLATION_ID = "odi_readiness_000000000001";
+const FORGED_INSTALLATION_ID = "odi_forged_readiness_000001";
 const SNAPSHOT_AT = "2026-08-11T03:00:00.000Z";
+const AUTHORITY_SNAPSHOT_AT = "2026-08-11T03:00:01.000Z";
 
 function principal(overrides = {}) {
   return Object.freeze({
@@ -81,6 +84,15 @@ function installation(status = "active", overrides = {}) {
     retired_at: status === "retired"
       ? "2026-08-11T02:00:00.000Z"
       : null,
+    ...overrides,
+  });
+}
+
+function trustedCurrent(overrides = {}) {
+  return Object.freeze({
+    ...installation(),
+    release_trusted: true,
+    authority_snapshot_at: AUTHORITY_SNAPSHOT_AT,
     ...overrides,
   });
 }
@@ -378,7 +390,7 @@ test("GET readiness projects authoritative assignment state before installation 
   const calls = {
     assignment_projection: 0,
     installation_read: 0,
-    installation_read_current: 0,
+    installation_read_trusted_current: 0,
     provider: 0,
     vault: 0,
     admin: 0,
@@ -434,20 +446,20 @@ test("GET readiness projects authoritative assignment state before installation 
             user_id: USER_ID,
             entra_subject_id: SUBJECT_ID,
           });
-          assert.equal(installation_id, INSTALLATION_ID);
-          return installation(installationStatus);
+          assert.equal(installation_id, FORGED_INSTALLATION_ID);
+          return installation(installationStatus, { installation_id });
         },
-        async readCurrent(...args) {
+        async readTrustedCurrent(...args) {
           assert.equal(args.length, 1);
           const [{ principal: value }] = args;
-          calls.installation_read_current += 1;
-          authorityOperations.push("readCurrent");
+          calls.installation_read_trusted_current += 1;
+          authorityOperations.push("readTrustedCurrent");
           assert.deepEqual(value, {
             tenant_id: TENANT_ID,
             user_id: USER_ID,
             entra_subject_id: SUBJECT_ID,
           });
-          return installation(installationStatus);
+          return trustedCurrent();
         },
       },
     },
@@ -455,7 +467,7 @@ test("GET readiness projects authoritative assignment state before installation 
   const request = (requestId) => handleOutlookAddinApiRequest({
     pathname: "/api/outlook/readiness",
     method: "GET",
-    query: { installation_id: INSTALLATION_ID },
+    query: { installation_id: FORGED_INSTALLATION_ID },
     context: permissionContext(),
     requestId,
     runtime,
@@ -463,7 +475,13 @@ test("GET readiness projects authoritative assignment state before installation 
   const result = await request("request-readiness-api");
   assert.equal(result.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.outcome, "passed");
+  assert.equal(result.body.item.installation.installation_id, null);
+  assert.equal(result.body.item.installation.release_trusted, false);
   assert.equal(result.body.item.installation.state, "active");
+  assert.equal(
+    result.body.item.identity_binding.principal_ref,
+    outlookDesktopPrincipalRef(principal()),
+  );
   assert.equal(result.body.item.delegated_connection.state, "connected");
   assert.equal(
     result.body.item.enterprise_app_assignment.state,
@@ -471,6 +489,7 @@ test("GET readiness projects authoritative assignment state before installation 
   );
   assert.equal(JSON.stringify(result.body).includes("desired_assigned"), false);
   assert.equal(result.body.item.next_action, "none");
+  assert.equal(calls.installation_read_trusted_current, 0);
 
   const addinResult = await handleOutlookAddinApiRequest({
     pathname: "/api/outlook/readiness",
@@ -482,23 +501,70 @@ test("GET readiness projects authoritative assignment state before installation 
   });
   assert.equal(addinResult.status, 200, JSON.stringify(addinResult.body));
   assert.equal(addinResult.body.item.installation.state, "active");
+  assert.equal(
+    addinResult.body.item.identity_binding.principal_ref,
+    outlookDesktopPrincipalRef(principal()),
+  );
+  assert.equal(addinResult.body.item.installation.installation_id, INSTALLATION_ID);
+  assert.equal(addinResult.body.item.installation.release_trusted, true);
+  assert.equal(
+    addinResult.body.item.snapshot.observed_at,
+    AUTHORITY_SNAPSHOT_AT,
+  );
   assert.equal(addinResult.body.item.next_action, "none");
   assert.equal(
     JSON.stringify(addinResult.body).includes(INSTALLATION_ID),
-    false,
+    true,
   );
+  assert.equal(calls.installation_read_trusted_current, 1);
+
+  const releaseUntrustedRuntime = {
+    ...runtime,
+    outlookDesktopRuntime: {
+      ...runtime.outlookDesktopRuntime,
+      installation_service: {
+        ...runtime.outlookDesktopRuntime.installation_service,
+        async readTrustedCurrent() {
+          calls.installation_read_trusted_current += 1;
+          authorityOperations.push("readTrustedCurrent");
+          throw Object.assign(
+            new Error("outlook_desktop_installation_release_untrusted"),
+            {
+              safe_error_code: "OUTLOOK_DESKTOP_INSTALLATION_RELEASE_UNTRUSTED",
+              status: 503,
+            },
+          );
+        },
+      },
+    },
+  };
+  const untrustedRelease = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/readiness",
+    method: "GET",
+    query: {},
+    context: permissionContext(),
+    requestId: "request-readiness-untrusted-release",
+    runtime: releaseUntrustedRuntime,
+  });
+  assert.equal(untrustedRelease.status, 503);
+  assert.deepEqual(untrustedRelease.body.safe_error_codes, [
+    "OUTLOOK_DESKTOP_INSTALLATION_RELEASE_UNTRUSTED",
+  ]);
+  assert.equal(untrustedRelease.body.item, null);
+  assert.equal(calls.installation_read_trusted_current, 2);
 
   installationStatus = "retired";
   const retired = await request("request-readiness-retired");
   assert.equal(retired.status, 200);
+  assert.equal(retired.body.item.installation.installation_id, null);
   assert.equal(retired.body.item.installation.state, "retired");
   assert.equal(retired.body.item.delegated_connection.state, "connected");
   assert.equal(retired.body.item.next_action, "heartbeat");
   assert.equal(retired.body.item.user_connection_revoke_requested, false);
   assert.deepEqual(calls, {
-    assignment_projection: 3,
+    assignment_projection: 4,
     installation_read: 2,
-    installation_read_current: 1,
+    installation_read_trusted_current: 2,
     provider: 0,
     vault: 0,
     admin: 0,
@@ -507,7 +573,9 @@ test("GET readiness projects authoritative assignment state before installation 
     "projectAssignmentState",
     "read",
     "projectAssignmentState",
-    "readCurrent",
+    "readTrustedCurrent",
+    "projectAssignmentState",
+    "readTrustedCurrent",
     "projectAssignmentState",
     "read",
   ]);
@@ -539,6 +607,89 @@ test("GET readiness projects authoritative assignment state before installation 
     "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
   ]);
   assert.equal(unboundReadCalls, 0);
+
+  let querylessIncompleteAuthorityCalls = 0;
+  const querylessIncompleteAuthority = await handleOutlookAddinApiRequest({
+    pathname: "/api/outlook/readiness",
+    method: "GET",
+    query: {},
+    context: permissionContext(),
+    requestId: "request-readiness-queryless-incomplete-authority",
+    runtime: {
+      emailDmsRuntime: { repository },
+      m365GraphConfig: runtime.m365GraphConfig,
+      outlookDesktopRuntime: {
+        entitlement_roster: roster(),
+        installation_service: {
+          async projectAssignmentState() {
+            querylessIncompleteAuthorityCalls += 1;
+          },
+          async readCurrent() {
+            querylessIncompleteAuthorityCalls += 1;
+          },
+          async assertReleaseTrusted() {
+            querylessIncompleteAuthorityCalls += 1;
+          },
+        },
+      },
+    },
+  });
+  assert.equal(querylessIncompleteAuthority.status, 503);
+  assert.deepEqual(querylessIncompleteAuthority.body.safe_error_codes, [
+    "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+  ]);
+  assert.equal(querylessIncompleteAuthorityCalls, 0);
+
+  let accessorReads = 0;
+  const accessorResult = { ...trustedCurrent() };
+  Object.defineProperty(accessorResult, "release_trusted", {
+    enumerable: true,
+    get() {
+      accessorReads += 1;
+      return true;
+    },
+  });
+  const invalidTrustedCurrentResults = [
+    ["extra field", { ...trustedCurrent(), access_token: "never-consume" }],
+    ["untrusted", trustedCurrent({ release_trusted: false })],
+    ["inactive", trustedCurrent({ status: "expired" })],
+    ["retired", trustedCurrent({ retired_at: SNAPSHOT_AT })],
+    ["invalid version", trustedCurrent({ state_version: 0 })],
+    ["expired lease", trustedCurrent({ lease_expires_at: AUTHORITY_SNAPSHOT_AT })],
+    ["invalid authority snapshot", trustedCurrent({ authority_snapshot_at: "invalid" })],
+    ["accessor", accessorResult],
+    ["proxy", new Proxy({ ...trustedCurrent() }, {})],
+  ];
+  for (const [label, authorityResult] of invalidTrustedCurrentResults) {
+    let trustedCurrentCalls = 0;
+    const invalidResult = await handleOutlookAddinApiRequest({
+      pathname: "/api/outlook/readiness",
+      method: "GET",
+      query: {},
+      context: permissionContext(),
+      requestId: `request-readiness-invalid-trusted-current-${label}`,
+      runtime: {
+        ...runtime,
+        outlookDesktopRuntime: {
+          ...runtime.outlookDesktopRuntime,
+          installation_service: {
+            ...runtime.outlookDesktopRuntime.installation_service,
+            async readTrustedCurrent() {
+              trustedCurrentCalls += 1;
+              return authorityResult;
+            },
+          },
+        },
+      },
+    });
+    assert.equal(invalidResult.status, 503, label);
+    assert.deepEqual(invalidResult.body.safe_error_codes, [
+      "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+    ], label);
+    assert.equal(JSON.stringify(invalidResult.body).includes("never-consume"), false);
+    assert.equal(trustedCurrentCalls, 1, label);
+  }
+  assert.equal(accessorReads, 0);
 
   let invalidProjectorReadCalls = 0;
   const invalidProjector = await handleOutlookAddinApiRequest({

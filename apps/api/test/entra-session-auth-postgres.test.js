@@ -6,6 +6,15 @@ import {
   findRegisteredAccountByEmail,
 } from "../src/matter-vault-account-registry.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
+import {
+  MATTER_OUTLOOK_PRODUCT_ID,
+  deriveOutlookReadiness,
+} from "../src/outlook-readiness.js";
+import {
+  OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE,
+  OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+  parseOutlookDesktopAutoconnectRoster,
+} from "../src/outlook-desktop-entitlement.js";
 import { resolveLawosUserRoleAssignment } from "../src/lawos-role-registry.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/index.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -176,6 +185,72 @@ test("operational Entra session authority persists only verified federated ident
   const verified = await auth.verifyToken(completed.body.session_token, { requestId: "req-entra-verify" });
   assert.equal(verified.ok, true);
   assert.equal(verified.principal.entra_subject_id, "entra-subject-test");
+
+  const readinessPrincipal = {
+    ...verified.principal,
+    scopes: [...verified.principal.scopes, OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE],
+  };
+  const readinessRoster = parseOutlookDesktopAutoconnectRoster({
+    schema_version: OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
+    roster_version: "session-readiness-equality-v1",
+    entries: Array.from({ length: 10 }, (_, index) => ({
+      tenant_id: readinessPrincipal.tenant_id,
+      user_id: index === 0
+        ? readinessPrincipal.user_id
+        : `session-readiness-user-${String(index).padStart(2, "0")}`,
+      entra_subject_id: index === 0
+        ? readinessPrincipal.entra_subject_id
+        : `session-readiness-subject-${String(index).padStart(2, "0")}`,
+      enabled: true,
+    })),
+  });
+  const readiness = deriveOutlookReadiness({
+    principal: readinessPrincipal,
+    roster: readinessRoster,
+    installation: {
+      installation_id: "odi_session_readiness_000001",
+      status: "active",
+      state_version: 4,
+      lease_expires_at: "2026-07-25T04:00:00.000Z",
+      retired_at: null,
+    },
+    installation_binding: "verified",
+    delegated_connection: {
+      status: "connected",
+      state_version: 7,
+      expires_at: "2026-08-18T04:00:00.000Z",
+      credential_cleanup_pending: false,
+      token_refresh_pending: false,
+    },
+    external_evidence: {
+      enterprise_app_assignment: {
+        state: "assigned",
+        source: "session-readiness-test",
+        observed_at: "2026-07-18T03:55:00.000Z",
+      },
+      central_deployment: {
+        state: "targeted",
+        product_id: MATTER_OUTLOOK_PRODUCT_ID,
+        manifest_version: "1.0.1.0",
+        source: "session-readiness-test",
+        observed_at: "2026-07-18T03:56:00.000Z",
+      },
+      client_propagation: {
+        state: "observed",
+        source: "session-readiness-test",
+        observed_at: "2026-07-18T03:57:00.000Z",
+      },
+    },
+    snapshot_at: "2026-07-18T04:00:00.000Z",
+  });
+  assert.equal(
+    readiness.identity_binding.principal_ref,
+    session.body.session.outlook_desktop_principal_ref,
+  );
+  assert.doesNotMatch(
+    JSON.stringify(readiness),
+    /entra-subject-test/iu,
+  );
 
   assert.deepEqual(await auth.verifyOutlookCallbackPrincipal({
     tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,

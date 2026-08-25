@@ -46,6 +46,8 @@ const CLIENT_IDS = Object.freeze({
   "005_outlook_desktop_installation": "304_client_outlook_desktop_installation",
   "006_outlook_desktop_release_trust": "305_client_outlook_desktop_release_trust",
   "007_outlook_desktop_assignment": "306_client_outlook_desktop_assignment",
+  "008_outlook_desktop_trusted_current_read":
+    "307_client_outlook_desktop_trusted_current_read",
 });
 
 function combinedCatalog() {
@@ -290,16 +292,21 @@ test("Seam A rejects a divergent persisted target receipt without mutation", asy
   )).rows[0].count, combinedCatalog().length);
 });
 
-test("Seam A commits exact 001-006, role bootstrap, and 007 on one client", async (t) => {
+test("Seam A commits exact 001-006, role bootstrap, 007, and 008 on one client", async (t) => {
   const fixture = await createEmailDmsMigrationFixture(t);
   if (!fixture) return;
   const receipt = assertOutlookAuthorityMigrationRunReceipt(
     await runSeamA(fixture),
     { session_user: "lawos_admin", migration_catalog: combinedCatalog() },
   );
-  assert.equal(receipt.migrations.at(-1).id,
-    "306_client_outlook_desktop_assignment");
-  assert.equal(receipt.migrations.at(-1).applied, true);
+  const assignment = receipt.migrations.find(
+    ({ id }) => id === "306_client_outlook_desktop_assignment",
+  );
+  const trustedCurrent = receipt.migrations.find(
+    ({ id }) => id === "307_client_outlook_desktop_trusted_current_read",
+  );
+  assert.equal(assignment?.applied, true);
+  assert.equal(trustedCurrent?.applied, true);
   assert.equal(receipt.outlook_assignment_transaction_committed, true);
   assert.equal(receipt.role_bootstrap_sha256,
     receipt.postflight_role_bootstrap_sha256);
@@ -321,8 +328,13 @@ test("Seam A reports committed role setup but rolls back failed 007 atomically",
     assert.equal(failure.outcome, "partial");
     assert.equal(failure.role_configuration_transaction_committed_count, 1);
     assert.equal(failure.outlook_assignment_transaction_committed, false);
-    assert.equal(failure.migrations.at(-1).id,
-      "305_client_outlook_desktop_release_trust");
+    assert.equal(failure.migrations.some(
+      ({ id }) => id === "305_client_outlook_desktop_release_trust",
+    ), true);
+    assert.equal(failure.migrations.some(
+      ({ id }) => id === "306_client_outlook_desktop_assignment"
+        || id === "307_client_outlook_desktop_trusted_current_read",
+    ), false);
     return true;
   });
   const state = (await fixture.adminPool.query(

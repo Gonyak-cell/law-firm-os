@@ -1,3 +1,5 @@
+import { types } from "node:util";
+
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import {
   assignmentExactKeys,
@@ -11,9 +13,21 @@ export const OUTLOOK_DESKTOP_INSTALLATION_AUTHORITY_FUNCTIONS = Object.freeze({
   projectAssignmentState: "read_outlook_desktop_assignment_state",
   read: "read_outlook_desktop_installation",
   readCurrent: "read_current_outlook_desktop_installation",
+  readTrustedCurrent: "read_trusted_current_outlook_desktop_installation",
   register: "register_outlook_desktop_installation",
   retire: "retire_outlook_desktop_installation",
 });
+
+const TRUSTED_CURRENT_KEYS = Object.freeze([
+  "installation_id",
+  "status",
+  "state_version",
+  "lease_expires_at",
+  "retired_at",
+  "release_trusted",
+  "authority_snapshot_at",
+]);
+const INSTALLATION_ID = /^odi_[A-Za-z0-9_-]{20,128}$/u;
 
 function mismatch() {
   throw Object.assign(new Error("outlook_desktop_installation_binding_mismatch"), {
@@ -29,6 +43,64 @@ function mapHeartbeatError(error) {
     safe_error_code: "OUTLOOK_DESKTOP_RELEASE_UNTRUSTED",
     status: 409,
   });
+}
+
+function trustedCurrentResult(value) {
+  if (value === null) return null;
+  let descriptors;
+  try {
+    if (types.isProxy(value) || value === null || typeof value !== "object"
+        || Array.isArray(value)) throw new TypeError();
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) throw new TypeError();
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch {
+    throw new TypeError("trusted current installation result is invalid");
+  }
+  const keys = Reflect.ownKeys(descriptors);
+  if (keys.length !== TRUSTED_CURRENT_KEYS.length
+      || keys.some((key) => typeof key !== "string"
+        || !TRUSTED_CURRENT_KEYS.includes(key)
+        || !Object.hasOwn(descriptors[key], "value")
+        || descriptors[key].enumerable !== true)) {
+    throw new TypeError("trusted current installation result is invalid");
+  }
+  const snapshot = Object.fromEntries(TRUSTED_CURRENT_KEYS.map(
+    (key) => [key, descriptors[key].value],
+  ));
+  const leaseAt = typeof snapshot.lease_expires_at === "string"
+    ? new Date(snapshot.lease_expires_at)
+    : new Date(Number.NaN);
+  const authorityAt = typeof snapshot.authority_snapshot_at === "string"
+    ? new Date(snapshot.authority_snapshot_at)
+    : new Date(Number.NaN);
+  if (!INSTALLATION_ID.test(snapshot.installation_id)
+      || snapshot.status !== "active"
+      || !Number.isSafeInteger(snapshot.state_version)
+      || snapshot.state_version < 1
+      || snapshot.retired_at !== null
+      || snapshot.release_trusted !== true
+      || !Number.isFinite(leaseAt.getTime())
+      || !Number.isFinite(authorityAt.getTime())
+      || leaseAt <= authorityAt) {
+    throw new TypeError("trusted current installation result is invalid");
+  }
+  return Object.freeze({
+    ...snapshot,
+    lease_expires_at: leaseAt.toISOString(),
+    authority_snapshot_at: authorityAt.toISOString(),
+  });
+}
+
+function mapTrustedCurrentError() {
+  return Object.assign(
+    new Error("outlook_desktop_installation_runtime_unavailable"),
+    {
+      code: "LAWOS_OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+      safe_error_code: "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+      status: 503,
+    },
+  );
 }
 
 function boundPrincipal(value, tenantId) {
@@ -105,6 +177,9 @@ export function createPostgresOutlookDesktopInstallationAuthorityService(
     retire: (value) => transition("retire", value),
     read,
     readCurrent: (value) => principalRead("readCurrent", value),
+    readTrustedCurrent: (value) => principalRead("readTrustedCurrent", value)
+      .then(trustedCurrentResult)
+      .catch(() => { throw mapTrustedCurrentError(); }),
     projectAssignmentState: (value) => (
       principalRead("projectAssignmentState", value, false)
     ),

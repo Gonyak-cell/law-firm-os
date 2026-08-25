@@ -26,18 +26,18 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   });
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count,
-    76,
+    77,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.client_schema_migration_count,
-    7,
+    8,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "8d8da4ab27a6de8db5e612b2d55945ffeb70fd61a7b43fb2b10c39d72cbaad6a",
+    "d5b085b8fdd66c095e02eb92502ef0820463d9fa969d615ef6846cc53cf62921",
   );
   assert.deepEqual(
-    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-7).map(
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-8).map(
       ({ id }) => id,
     ),
     [
@@ -48,6 +48,7 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
       "304_client_outlook_desktop_installation",
       "305_client_outlook_desktop_release_trust",
       "306_client_outlook_desktop_assignment",
+      "307_client_outlook_desktop_trusted_current_read",
     ],
   );
   assert.deepEqual(CLIENT_OPERATIONS_MIGRATION_ID_MAP, {
@@ -64,6 +65,8 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
       "305_client_outlook_desktop_release_trust",
     "007_outlook_desktop_assignment":
       "306_client_outlook_desktop_assignment",
+    "008_outlook_desktop_trusted_current_read":
+      "307_client_outlook_desktop_trusted_current_read",
   });
   assert.equal(
     CLIENT_OPERATIONS_MODEL_REGISTRY.entries.find(

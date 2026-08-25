@@ -3,8 +3,12 @@ import test from "node:test";
 
 import {
   OUTLOOK_READINESS_ACTIONS,
+  parseOutlookStartupBinding,
   presentOutlookReadiness,
 } from "../src/outlook-readiness-status.js";
+
+const PRINCIPAL_REF = `odpr_${"A".repeat(43)}`;
+const INSTALLATION_ID = "odi_readiness_000000000001";
 
 function response(overrides = {}) {
   return {
@@ -19,6 +23,7 @@ function response(overrides = {}) {
       identity_binding: {
         state: "verified",
         source: "lawos_signed_session",
+        principal_ref: PRINCIPAL_REF,
       },
       enterprise_app_assignment: {
         state: "assigned",
@@ -41,8 +46,10 @@ function response(overrides = {}) {
         observed_at: "2026-08-11T02:57:00.000Z",
       },
       installation: {
+        installation_id: INSTALLATION_ID,
         state: "active",
         state_version: 4,
+        release_trusted: true,
         lease_expires_at: "2026-08-18T03:00:00.000Z",
         retired_at: null,
         source: "lawos_outlook_desktop_installations",
@@ -82,6 +89,223 @@ test("authoritative ready response becomes the exact compact success copy", () =
     action: OUTLOOK_READINESS_ACTIONS.none,
     actionLabel: null,
   });
+});
+
+test("legacy same-v1 presentation remains complete without additive startup fields", () => {
+  const legacy = response();
+  delete legacy.item.identity_binding.principal_ref;
+  delete legacy.item.installation.installation_id;
+  delete legacy.item.installation.release_trusted;
+  assert.deepEqual(presentOutlookReadiness(legacy), {
+    status: "complete",
+    visibleMessage: "Outlook 연결 준비됨",
+    fullMessage: "Outlook 연결과 추가 기능 전파가 확인되었습니다.",
+    action: OUTLOOK_READINESS_ACTIONS.none,
+    actionLabel: null,
+  });
+});
+
+test("startup binding parser returns only the signed principal and server-selected versions", () => {
+  assert.deepEqual(parseOutlookStartupBinding(response()), {
+    principal_ref: PRINCIPAL_REF,
+    installation_id: INSTALLATION_ID,
+    installation_state_version: 4,
+    delegated_connection_state_version: 7,
+  });
+  assert.deepEqual(
+    Object.keys(parseOutlookStartupBinding(response())).sort(),
+    [
+      "delegated_connection_state_version",
+      "installation_id",
+      "installation_state_version",
+      "principal_ref",
+    ],
+  );
+});
+
+test("startup binding parser rejects mutable accessor snapshots", () => {
+  const base = response().item;
+  const installation = { ...base.installation };
+  let reads = 0;
+  Object.defineProperty(installation, "state_version", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      reads += 1;
+      return reads < 3 ? 4 : 5;
+    },
+  });
+  const parsed = parseOutlookStartupBinding({
+    ...response(),
+    item: { ...base, installation },
+  });
+  assert.equal(parsed, null);
+  assert.equal(reads, 0);
+});
+
+test("startup binding parser snapshots plain-target proxy primitives", () => {
+  const base = response().item;
+  const descriptorReads = { installation_id: 0, state_version: 0 };
+  let propertyReads = 0;
+  const installation = new Proxy({ ...base.installation }, {
+    get(target, property, receiver) {
+      if (property === "installation_id" || property === "state_version") {
+        propertyReads += 1;
+      }
+      return Reflect.get(target, property, receiver);
+    },
+    getOwnPropertyDescriptor(target, property) {
+      const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
+      if (property === "installation_id" || property === "state_version") {
+        descriptorReads[property] += 1;
+        return {
+          ...descriptor,
+          value: descriptorReads[property] === 1
+            ? descriptor.value
+            : property === "installation_id"
+              ? "odi_forged_proxy_000099"
+              : 99,
+        };
+      }
+      return descriptor;
+    },
+  });
+  assert.deepEqual(parseOutlookStartupBinding({
+    ...response(),
+    item: { ...base, installation },
+  }), {
+    principal_ref: PRINCIPAL_REF,
+    installation_id: INSTALLATION_ID,
+    installation_state_version: 4,
+    delegated_connection_state_version: 7,
+  });
+  assert.deepEqual(descriptorReads, {
+    installation_id: 1,
+    state_version: 1,
+  });
+  assert.equal(propertyReads, 0);
+});
+
+test("startup binding parser rejects throwing accessors", () => {
+  const base = response().item;
+  const installation = { ...base.installation };
+  Object.defineProperty(installation, "installation_id", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      throw new Error("installation id accessor must not execute");
+    },
+  });
+  assert.equal(parseOutlookStartupBinding({
+    ...response(),
+    item: { ...base, installation },
+  }), null);
+});
+
+test("startup binding parser rejects accessor roots, custom prototypes, and coercion", () => {
+  const accessorRoot = response();
+  let itemReads = 0;
+  Object.defineProperty(accessorRoot, "item", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      itemReads += 1;
+      return response().item;
+    },
+  });
+  assert.equal(parseOutlookStartupBinding(accessorRoot), null);
+  assert.equal(itemReads, 0);
+
+  const customPrototype = Object.create({ installation_id: INSTALLATION_ID });
+  Object.assign(customPrototype, response().item.installation);
+  assert.equal(parseOutlookStartupBinding(response({
+    installation: customPrototype,
+  })), null);
+
+  for (const overrides of [
+    {
+      identity_binding: {
+        ...response().item.identity_binding,
+        principal_ref: new String(PRINCIPAL_REF),
+      },
+    },
+    {
+      installation: {
+        ...response().item.installation,
+        installation_id: new String(INSTALLATION_ID),
+      },
+    },
+    {
+      installation: {
+        ...response().item.installation,
+        state_version: { valueOf: () => 4 },
+      },
+    },
+  ]) {
+    assert.equal(parseOutlookStartupBinding(response(overrides)), null);
+  }
+});
+
+test("valid startup binding projection remains exact with raw/token-shaped extras", () => {
+  const input = response({
+    identity_binding: {
+      ...response().item.identity_binding,
+      subject_id: "raw-entra-subject-never-project",
+    },
+    provider_token: "provider-token-never-project",
+    desktop_token: "desktop-token-never-project",
+  });
+  const binding = parseOutlookStartupBinding(input);
+  assert.deepEqual(binding, {
+    principal_ref: PRINCIPAL_REF,
+    installation_id: INSTALLATION_ID,
+    installation_state_version: 4,
+    delegated_connection_state_version: 7,
+  });
+  const serialized = JSON.stringify({
+    binding,
+    presentation: presentOutlookReadiness(input),
+  });
+  for (const forbidden of [
+    "raw-entra-subject-never-project",
+    "provider-token-never-project",
+    "desktop-token-never-project",
+  ]) {
+    assert.equal(serialized.includes(forbidden), false);
+  }
+});
+
+test("startup binding parser fails closed for forged or non-cacheable readiness projections", () => {
+  const cases = [
+    ["missing principal", { identity_binding: { state: "verified", source: "lawos_signed_session" } }],
+    ["raw subject", { identity_binding: { ...response().item.identity_binding, principal_ref: "subject-raw" } }],
+    ["no current installation", { installation: { ...response().item.installation, installation_id: null, state: "missing", state_version: null, lease_expires_at: null } }],
+    ["missing installation id", { installation: { ...response().item.installation, installation_id: null } }],
+    ["unproven release", { installation: { ...response().item.installation, release_trusted: undefined } }],
+    ["untrusted release", { installation: { ...response().item.installation, release_trusted: false } }],
+    ["nested untrusted release", { installation: { ...response().item.installation, trusted: false } }],
+    ["expired installation", { installation: { ...response().item.installation, state: "expired" } }],
+    ["retired installation", { installation: { ...response().item.installation, state: "retired", retired_at: "2026-08-11T02:00:00.000Z" } }],
+    ["ambiguous installation", { installation: { ...response().item.installation, state: "ambiguous" } }],
+    ["missing installation version", { installation: { ...response().item.installation, state_version: null } }],
+    ["missing connection version", { delegated_connection: { ...response().item.delegated_connection, state_version: null } }],
+    ["identity mismatch", { identity_binding: { ...response().item.identity_binding, state: "mismatch" } }],
+  ];
+  for (const [label, overrides] of cases) {
+    assert.equal(parseOutlookStartupBinding(response(overrides)), null, label);
+  }
+  assert.equal(
+    parseOutlookStartupBinding(response(), { principal_ref: `odpr_${"B".repeat(43)}` }),
+    null,
+  );
+});
+
+test("startup binding parser fails closed for explicit revoked release extras", () => {
+  const revoked = response({
+    trusted: false,
+    release_trust_state: "revoked",
+  });
+  assert.equal(parseOutlookStartupBinding(revoked), null);
 });
 
 test("interaction-required response becomes the exact Microsoft confirmation action", () => {
@@ -146,6 +370,7 @@ test("ready copy requires every authoritative axis and never projects identifier
     response({ central_deployment: { state: "targeted", authoritative: false } }),
     response({ client_propagation: { state: "observed", authoritative: false } }),
     response({ installation: { state: "expired" } }),
+    response({ installation: { ...response().item.installation, release_trusted: false } }),
     response({ user_connection_revoke_requested: true }),
   ]) {
     assert.equal(presentOutlookReadiness(input), null);
@@ -154,14 +379,14 @@ test("ready copy requires every authoritative axis and never projects identifier
   const projected = presentOutlookReadiness(response({
     installation: {
       ...response().item.installation,
-      installation_id: "odi_secret",
+      installation_id: INSTALLATION_ID,
     },
     tenant_id: "tenant-secret",
     evidence_ref: "evidence-secret",
     access_token: "token-secret",
   }));
   const serialized = JSON.stringify(projected);
-  for (const forbidden of ["odi_secret", "tenant-secret", "evidence-secret", "token-secret"] ) {
+  for (const forbidden of [INSTALLATION_ID, "tenant-secret", "evidence-secret", "token-secret"] ) {
     assert.equal(serialized.includes(forbidden), false);
   }
 });

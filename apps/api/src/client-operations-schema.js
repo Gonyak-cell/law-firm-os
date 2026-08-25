@@ -20,6 +20,12 @@ import {
   OUTLOOK_DESKTOP_ASSIGNMENT_SECURITY_DEFINER_FUNCTIONS_SHA256,
 } from "../../../packages/email-dms/src/outlook-desktop-assignment-authority-catalog.js";
 import {
+  OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_AUTHORITY_CATALOG,
+  OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_AUTHORITY_CATALOG_SHA256,
+  OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS,
+  OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS_SHA256,
+} from "../../../packages/email-dms/src/outlook-desktop-trusted-current-read-authority-catalog.js";
+import {
   CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
   normalizeClientOperationsMigrationCatalogMaterial,
 } from "./client-operations-migration-catalog.js";
@@ -32,6 +38,14 @@ const OUTLOOK_ASSIGNMENT_STATE_READ_SIGNATURE =
   "lawos_email_dms.read_outlook_desktop_assignment_state(text,text,text)";
 const OUTLOOK_ASSIGNMENT_STATE_READ_TRANSACTION_MODE =
   "serializable_write";
+const OUTLOOK_TRUSTED_CURRENT_READ_SOURCE_MIGRATION_ID =
+  "008_outlook_desktop_trusted_current_read";
+const OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID =
+  "307_client_outlook_desktop_trusted_current_read";
+const OUTLOOK_TRUSTED_CURRENT_READ_SIGNATURE =
+  "lawos_email_dms.read_trusted_current_outlook_desktop_installation(text,text,text)";
+const OUTLOOK_TRUSTED_CURRENT_READ_TRANSACTION_MODE =
+  "serializable_read_only";
 
 export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "001_m365_connection": "300_client_m365_connection",
@@ -44,6 +58,8 @@ export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
     "305_client_outlook_desktop_release_trust",
   [OUTLOOK_ASSIGNMENT_SOURCE_MIGRATION_ID]:
     OUTLOOK_ASSIGNMENT_CLIENT_MIGRATION_ID,
+  [OUTLOOK_TRUSTED_CURRENT_READ_SOURCE_MIGRATION_ID]:
+    OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID,
 });
 
 function clientSchemaMigrations() {
@@ -153,6 +169,62 @@ function createOutlookAssignmentAuthorityBinding() {
 export const CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING =
   createOutlookAssignmentAuthorityBinding();
 
+function createOutlookTrustedCurrentReadAuthorityBinding() {
+  const catalog =
+    OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_AUTHORITY_CATALOG;
+  const securityDefinerFunctions =
+    OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS;
+  const trustedCurrentRead = securityDefinerFunctions.find(
+    ({ signature }) =>
+      signature === OUTLOOK_TRUSTED_CURRENT_READ_SIGNATURE,
+  );
+  if (
+    hashDomainValue(catalog)
+      !== OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_AUTHORITY_CATALOG_SHA256
+    || catalog.source_migration_id
+      !== OUTLOOK_TRUSTED_CURRENT_READ_SOURCE_MIGRATION_ID
+    || catalog.source_migration_file_name
+      !== "./008_outlook_desktop_trusted_current_read.sql"
+    || catalog.security_definer_functions
+      !== securityDefinerFunctions
+    || catalog.security_definer_functions_sha256
+      !== OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || hashDomainValue(securityDefinerFunctions)
+      !== OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || catalog.exposed_security_definer_function_count !== 1
+    || securityDefinerFunctions.length !== 1
+    || catalog.raw_release_binding_table_grants.length !== 0
+    || catalog.temporary_role_membership_persisted !== false
+    || catalog.temporary_schema_create_persisted !== false
+    || trustedCurrentRead?.transaction_mode
+      !== OUTLOOK_TRUSTED_CURRENT_READ_TRANSACTION_MODE
+  ) {
+    throw new Error(
+      "Outlook desktop trusted-current-read authority catalog is not closed",
+    );
+  }
+  return Object.freeze({
+    source_migration_id:
+      OUTLOOK_TRUSTED_CURRENT_READ_SOURCE_MIGRATION_ID,
+    client_migration_id:
+      OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID,
+    authority_catalog_sha256:
+      OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_AUTHORITY_CATALOG_SHA256,
+    exposed_security_definer_function_count:
+      securityDefinerFunctions.length,
+    exposed_security_definer_function_catalog_sha256:
+      OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS_SHA256,
+    trusted_current_read: Object.freeze({
+      signature: OUTLOOK_TRUSTED_CURRENT_READ_SIGNATURE,
+      transaction_mode:
+        OUTLOOK_TRUSTED_CURRENT_READ_TRANSACTION_MODE,
+    }),
+  });
+}
+
+export const CLIENT_OPERATIONS_OUTLOOK_TRUSTED_CURRENT_READ_AUTHORITY_BINDING =
+  createOutlookTrustedCurrentReadAuthorityBinding();
+
 function packetMigrationCatalogMaterial(migrations) {
   return Object.freeze({
     schema_version: CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
@@ -168,6 +240,13 @@ function packetMigrationCatalogMaterial(migrations) {
         ? {
           outlook_assignment_authority:
             CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING,
+        }
+        : {}),
+      ...(migration.id
+        === OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID
+        ? {
+          outlook_trusted_current_read_authority:
+            CLIENT_OPERATIONS_OUTLOOK_TRUSTED_CURRENT_READ_AUTHORITY_BINDING,
         }
         : {}),
     }))),

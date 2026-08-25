@@ -37,6 +37,7 @@ import {
 const ATTACKER = "lawos_outlook_acl_attacker";
 const DELEGATE = "lawos_outlook_acl_delegate";
 const LEGITIMATE_META_READER = "lawos_hrx_projection_writer";
+const ASSIGNMENT_MIGRATION_ID = "007_outlook_desktop_assignment";
 const PROTECTED_ROLES = Object.freeze(Object.entries(AUTHORITY.role_attributes)
   .map(([name, attributes]) => Object.freeze({ name, ...attributes })));
 const SUBJECTS = Object.freeze([
@@ -98,7 +99,12 @@ async function applyWithAdversarialDefaults(t, fixture) {
        FROM ${EMAIL_DMS_MIGRATION_ADMIN}`,
   );
   const migrations = listEmailDmsPostgresMigrations();
-  for (const migration of migrations.slice(0, -1)) {
+  const assignmentIndex = migrations.findIndex(
+    ({ id }) => id === ASSIGNMENT_MIGRATION_ID,
+  );
+  const assignmentMigration = migrations[assignmentIndex];
+  assert.ok(assignmentMigration);
+  for (const migration of migrations.slice(0, assignmentIndex)) {
     await runEmailDmsMigrationAsAdmin(migrationAdminPool, migration.sql);
   }
   await fixture.adminPool.query(
@@ -175,9 +181,10 @@ async function applyWithAdversarialDefaults(t, fixture) {
         roleBootstrap.lawos_app_membership_present,
     },
   );
-  await runEmailDmsMigrationAsAdmin(migrationAdminPool, migrations.at(-1).sql, {
-    ...expectedReceipt(expectedAuthority.role_bootstrap_sha256),
-  });
+  await runEmailDmsMigrationAsAdmin(migrationAdminPool,
+    assignmentMigration.sql, {
+      ...expectedReceipt(expectedAuthority.role_bootstrap_sha256),
+    });
   await migrationAdminPool.end();
   return Object.freeze({ identity, expectedAuthority });
 }
@@ -186,7 +193,12 @@ async function prepareThrough006(t, fixture) {
   const roleBootstrap = await provisionEmailDmsMigrationRoles(fixture.adminPool);
   const migrationAdminPool = createEmailDmsMigrationAdminPool(t, fixture);
   const migrations = listEmailDmsPostgresMigrations();
-  for (const migration of migrations.slice(0, -1)) {
+  const assignmentIndex = migrations.findIndex(
+    ({ id }) => id === ASSIGNMENT_MIGRATION_ID,
+  );
+  const assignmentMigration = migrations[assignmentIndex];
+  assert.ok(assignmentMigration);
+  for (const migration of migrations.slice(0, assignmentIndex)) {
     await runEmailDmsMigrationAsAdmin(migrationAdminPool, migration.sql);
   }
   const expectedAuthority = await readOutlookAssignmentBootstrapAuthority(
@@ -205,7 +217,7 @@ async function prepareThrough006(t, fixture) {
     expectedAuthority,
     membershipMatrix,
     migrationAdminPool,
-    migration: migrations.at(-1),
+    migration: assignmentMigration,
   };
 }
 
@@ -255,10 +267,19 @@ async function assertRolledBack007(fixture, expectedMembershipMatrix) {
 
 test("assignment migration 007 declares a frozen exact authority catalog", () => {
   const migrations = listEmailDmsPostgresMigrations();
-  assert.deepEqual(migrations.slice(-2).map(({ id }) => id), [
-    "006_outlook_desktop_release_trust",
-    "007_outlook_desktop_assignment",
-  ]);
+  const assignmentIndex = migrations.findIndex(
+    ({ id }) => id === ASSIGNMENT_MIGRATION_ID,
+  );
+  const assignmentMigration = migrations[assignmentIndex];
+  assert.ok(assignmentMigration);
+  assert.deepEqual(
+    migrations.slice(assignmentIndex - 1, assignmentIndex + 1)
+      .map(({ id }) => id),
+    [
+      "006_outlook_desktop_release_trust",
+      "007_outlook_desktop_assignment",
+    ],
+  );
   assert.equal(Object.isFrozen(AUTHORITY), true);
   assert.equal(Object.isFrozen(AUTHORITY.tables), true);
   assert.equal(Object.isFrozen(AUTHORITY.functions), true);
@@ -280,7 +301,7 @@ test("assignment migration 007 declares a frozen exact authority catalog", () =>
   assert.equal(AUTHORITY.bootstrap_receipt.postgres_major, "16");
   assert.equal(AUTHORITY.bootstrap_receipt.canonical_segment_order.length, 20);
   assert.equal(AUTHORITY.bootstrap_receipt.canonical_segment_order[0], "digest_domain");
-  assert.doesNotMatch(migrations.at(-1).sql, /CREATE\s+ROLE/iu);
+  assert.doesNotMatch(assignmentMigration.sql, /CREATE\s+ROLE/iu);
 });
 
 test("assignment pause expectation has one exact closed digest shape", () => {
@@ -396,8 +417,12 @@ test("bootstrap authority rejects inherited admin and unapproved admin role edge
 test("assignment migration fails closed when authority roles are absent", async (t) => {
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
+  const assignmentMigration = listEmailDmsPostgresMigrations().find(
+    ({ id }) => id === ASSIGNMENT_MIGRATION_ID,
+  );
+  assert.ok(assignmentMigration);
   await assert.rejects(
-    fixture.adminPool.query(listEmailDmsPostgresMigrations().at(-1).sql),
+    fixture.adminPool.query(assignmentMigration.sql),
     /direct lawos_admin session/iu,
   );
 });
