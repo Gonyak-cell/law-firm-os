@@ -1,4 +1,7 @@
-export function readyOutlookReadinessResponse() {
+export function readyOutlookReadinessResponse({
+  principalRef = `odpr_${"A".repeat(43)}`,
+  delegatedConnectionStateVersion = 7,
+} = {}) {
   return {
     outcome: "passed",
     item: {
@@ -11,7 +14,7 @@ export function readyOutlookReadinessResponse() {
       identity_binding: {
         state: "verified",
         source: "lawos_signed_session",
-        principal_ref: `odpr_${"A".repeat(43)}`,
+        principal_ref: principalRef,
       },
       enterprise_app_assignment: {
         state: "assigned",
@@ -44,7 +47,7 @@ export function readyOutlookReadinessResponse() {
       },
       delegated_connection: {
         state: "connected",
-        state_version: 7,
+        state_version: delegatedConnectionStateVersion,
         expires_at: "2026-09-11T03:00:00.000Z",
         source: "lawos_m365_connection_state",
         observed_at: "2026-08-11T03:00:00.000Z",
@@ -55,7 +58,7 @@ export function readyOutlookReadinessResponse() {
         version_vector: {
           roster_version: "browser-fixture-v1",
           installation_state_version: 4,
-          delegated_connection_state_version: 7,
+          delegated_connection_state_version: delegatedConnectionStateVersion,
         },
       },
       next_action: "none",

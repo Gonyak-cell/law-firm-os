@@ -90,8 +90,8 @@ async function openFixture(browser, web) {
     if (url.pathname === "/api/auth/office-sso/config") {
       return fulfill({ item: { configured: true, client_id: "browser-client", tenant_id: "organizations", api_scope: "api://browser-client/access_as_user", scopes: ["api://browser-client/access_as_user"], callback_uri: `${url.origin}/addin/oauth-callback.html`, authority: "https://login.microsoftonline.com/organizations" } });
     }
-    if (url.pathname === "/api/auth/session") return fulfill({ authenticated: true, principal: { user_id: "browser-user", tenant_id: "browser-tenant" } });
-    if (url.pathname === "/api/outlook/connection") return fulfill({ item: { status: "connected", active: true, connection_id: "m365_connection_editable_qa", state_version: 1, mailbox_address: "qa@example.invalid" } });
+    if (url.pathname === "/api/auth/session") return fulfill({ authenticated: true, session: { user_id: "browser-user", tenant_id: "browser-tenant", outlook_desktop_principal_ref: `odpr_${"A".repeat(43)}` } });
+    if (url.pathname === "/api/outlook/connection") return fulfill({ item: { status: "connected", active: true, connection_id: "m365_connection_editable_qa", state_version: 7, mailbox_address: "qa@example.invalid" } });
     if (url.pathname === "/api/outlook/readiness") return fulfill(readyOutlookReadinessResponse());
     if (["/api/outlook/bootstrap", "/api/outlook/operation-receipts/readback"].includes(url.pathname)) return fulfill(url.pathname.endsWith("readback") ? { items: [] } : { item: { ready: true } });
     if (url.pathname === "/api/outlook/matters") {

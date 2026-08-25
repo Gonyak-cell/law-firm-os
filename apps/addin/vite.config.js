@@ -7,6 +7,11 @@ const matterProfile = Object.freeze({
   productionSourceLocation: "/addin/index.html",
   productionBase: "/addin/",
 });
+const configuredBuildRevision = process.env.LAWOS_OUTLOOK_ADDIN_BUILD_REVISION;
+const buildRevision = configuredBuildRevision === undefined ? "local" : configuredBuildRevision;
+if (buildRevision !== buildRevision.trim() || !/^[A-Za-z0-9._-]{1,128}$/u.test(buildRevision)) {
+  throw new TypeError("LAWOS_OUTLOOK_ADDIN_BUILD_REVISION is invalid");
+}
 
 export default defineConfig(({ mode }) => ({
   // Vite's production mode is hosted below CloudFront's /addin/ prefix;
@@ -15,6 +20,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     __LAWOS_OUTLOOK_BUILD_PROFILE__: JSON.stringify(matterProfile),
     __LAWOS_OUTLOOK_NAA_REDIRECT_PATH__: JSON.stringify("/addin/index.html"),
+    __LAWOS_OUTLOOK_BUILD_REVISION__: JSON.stringify(buildRevision),
   },
   plugins: [react()],
   server: {

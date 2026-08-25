@@ -128,6 +128,15 @@ import {
   presentOutlookReadiness,
 } from "./outlook-readiness-status.js";
 import {
+  notifyOutlookStartupRecovered,
+  notifyOutlookStartupUnauthorized,
+  registerOutlookStartupAuthHandlers,
+  resolveOutlookStartupStorage,
+  startOutlookStartup,
+  subscribeOutlookStartup,
+  waitForOutlookStartupMailbox,
+} from "./outlook-startup-runtime.js";
+import {
   closeOutlookOverlay,
   createOutlookOverlayState,
   invalidateOutlookOverlayForItemChange,
@@ -142,11 +151,12 @@ let sessionStore = null;
 let authRecoveryPromise = null;
 let authRecoveryOwner = null;
 let officeReadyPromise = null;
-let unauthorizedHandler = null;
-let sessionRecoveredHandler = null;
 const authOwnerFence = createOutlookAuthOwnerFence();
 const OFFICE_READY_EVENT = "lawos:office-ready";
 const CLIENT_OUTLOOK_CALLBACK_MODE = "server_complete_v1";
+const OUTLOOK_ADDIN_BUILD = `addin@${typeof __LAWOS_OUTLOOK_BUILD_REVISION__ === "string"
+  ? __LAWOS_OUTLOOK_BUILD_REVISION__
+  : "local"}`;
 
 export function createOutlookFilingReceiptCallback({
   operationSnapshot,
@@ -323,7 +333,7 @@ async function rawRequestJson(path, {
   let sessionClearPromise = null;
   let authRecoveryOwner = null;
   if (sessionUnauthorized) {
-    authRecoveryOwner = unauthorizedHandler?.(requestOwner) ?? null;
+    authRecoveryOwner = notifyOutlookStartupUnauthorized(requestOwner);
     if (!authRecoveryOwner && authOwnerFence.isCurrent(requestOwner)) {
       authRecoveryOwner = authOwnerFence.begin();
     }
@@ -381,7 +391,7 @@ async function requestJson(path, options = {}) {
           authOwner: recoveryOwner,
         });
         if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
-        if (sessionRecoveredHandler && sessionRecoveredHandler(recoveryOwner) !== true) {
+        if (notifyOutlookStartupRecovered(recoveryOwner) === false) {
           throw createOutlookAuthOwnerChangedError();
         }
         return retried;
@@ -1066,9 +1076,7 @@ function App() {
       ? false
       : authenticatedNext !== true;
     operationSessionGenerationsRef.current.clear();
-    activeBusyTokenRef.current = null;
-    busyFenceRef.current.invalidate();
-    setBusy("");
+    releaseBusy();
     if (lifecycleRestart) return authOwnerFence.restart();
     const nextToken = authenticatedNext === true
       ? authOwnerFence.currentToken()
@@ -1081,6 +1089,12 @@ function App() {
     activeBusyTokenRef.current = token;
     setBusy(name);
     return token;
+  }
+
+  function releaseBusy() {
+    activeBusyTokenRef.current = null;
+    busyFenceRef.current.invalidate();
+    setBusy("");
   }
 
   function endBusy(token) {
@@ -2292,6 +2306,7 @@ function App() {
           invalidatePrecedentView();
           receiptController.invalidateContext();
           matterSearchDebouncerRef.current?.cancel();
+          releaseBusy();
           setItem(nextItem);
           if (disposition.close_overlay) {
             mutateOverlay((state) => invalidateOutlookOverlayForItemChange(
@@ -2324,85 +2339,91 @@ function App() {
   }, [officeReadyEpoch]);
 
   useEffect(() => {
-    let cancelled = false;
-    unauthorizedHandler = (requestOwner) => {
-      if (
-        cancelled
-        || !authOwnerFence.isCurrent(requestOwner)
-        || unauthorizedBoundaryHandledRef.current
-      ) return null;
-      const recoveryOwner = beginSessionBoundary(false, requestOwner);
-      if (!recoveryOwner) return null;
-      setAuthState(AUTH_STATE.loginRequired);
-      setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
-      setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
-      clearBusinessView();
-      return recoveryOwner;
-    };
-    sessionRecoveredHandler = (recoveryOwner) => {
-      if (cancelled || !authOwnerFence.isCurrent(recoveryOwner)) return false;
-      const authenticatedOwner = beginSessionBoundary(true, recoveryOwner);
-      if (!authenticatedOwner) return false;
-      clearBusinessView();
-      clearCompletedReceiptArchive();
-      setAuthState(AUTH_STATE.authenticated);
-      setAuthError("");
-      const recoveryReadFence = captureBusinessRead();
-      refreshGraphConnection().catch((nextError) => {
-        if (isBusinessReadCurrent(recoveryReadFence)) setError(actionErrorMessage(nextError));
-      });
-      return true;
-    };
-    (async () => {
-      try {
-        await runtimeConfig();
-        if (cancelled) return;
-        setAuthState(AUTH_STATE.acquiring);
-        const initialOwner = authOwnerFence.capture();
-        const session = await acquireLawosSession({ interactive: false, owner: initialOwner });
-        if (cancelled || !authOwnerFence.isCurrent(initialOwner)) return;
-        if (!session?.authenticated) {
-          beginSessionBoundary(false);
-          setAuthState(AUTH_STATE.loginRequired);
-          setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
-          clearBusinessView();
-          return;
-        }
-        if (!beginSessionBoundary(true, initialOwner)) return;
+    let active = true;
+    const initialOwner = authOwnerFence.capture();
+    const unregisterAuthHandlers = registerOutlookStartupAuthHandlers({
+      unauthorized: (requestOwner) => {
+        if (
+          !active
+          || !authOwnerFence.isCurrent(requestOwner)
+          || unauthorizedBoundaryHandledRef.current
+        ) return null;
+        const recoveryOwner = beginSessionBoundary(false, requestOwner);
+        if (!recoveryOwner) return null;
+        setAuthState(AUTH_STATE.loginRequired);
+        setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+        clearBusinessView();
+        return recoveryOwner;
+      },
+      recovered: (recoveryOwner) => {
+        if (!active || !authOwnerFence.isCurrent(recoveryOwner)) return false;
+        const authenticatedOwner = beginSessionBoundary(true, recoveryOwner);
+        if (!authenticatedOwner) return false;
+        clearBusinessView();
+        clearCompletedReceiptArchive();
         setAuthState(AUTH_STATE.authenticated);
         setAuthError("");
-        try {
-          await refreshGraphConnection();
-        } catch (nextError) {
-          if (nextError?.graph_connection_state !== GRAPH_STATE.connected) {
-            setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
-          }
-          setError(actionErrorMessage(nextError));
-        }
-      } catch (nextError) {
-        if (cancelled) return;
-        const code = nextError?.safe_error_code;
-        if (nextError?.safe_error_code === "AUTH_SESSION_OWNER_CHANGED") return;
+        const recoveryReadFence = captureBusinessRead();
+        refreshGraphConnection().catch((nextError) => {
+          if (isBusinessReadCurrent(recoveryReadFence)) setError(actionErrorMessage(nextError));
+        });
+        return true;
+      },
+    });
+    const applyStartup = (result) => {
+      if (!active || !authOwnerFence.isCurrent(initialOwner)) return;
+      if (result.authenticated !== true) {
         beginSessionBoundary(false);
+        setAuthState(AUTH_STATE.loginRequired);
+        setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
         clearBusinessView();
-        if (code === "LAWOS_INTERACTION_REQUIRED" || code === "AUTH_SESSION_REQUIRED") {
-          setAuthState(AUTH_STATE.loginRequired);
-        } else if (code === AUTH_ERROR_CODES.nestedAppAuthUnavailable || code === AUTH_ERROR_CODES.nestedAppAuthUnsupported) {
-          setAuthState(AUTH_STATE.unavailable);
-          setAuthError(actionErrorMessage(nextError));
-        } else {
-          setAuthState(AUTH_STATE.loginRequired);
-          setAuthError(actionErrorMessage(nextError));
-        }
+        return;
       }
-    })();
-    return () => {
-      cancelled = true;
-      beginSessionBoundary(false, null, { lifecycleRestart: true });
-      if (unauthorizedHandler) unauthorizedHandler = null;
-      if (sessionRecoveredHandler) sessionRecoveredHandler = null;
+      if (!beginSessionBoundary(true, initialOwner)) return;
+      clearBusinessView();
+      setAuthState(AUTH_STATE.authenticated);
+      setAuthError("");
+      setOutlookReadiness(result.presentation ?? null);
+      if (result.state === "ready") {
+        setGraphConnection(result.connection);
+        if (result.bootstrap) setBootstrap(result.bootstrap);
+      } else {
+        setGraphConnection({
+          ...(result.connection ?? {}),
+          state: GRAPH_STATE.notConnected,
+          status: "not_connected",
+          stateVersion: result.connection?.stateVersion ?? 0,
+          missingScopes: result.connection?.missingScopes ?? [],
+        });
+      }
     };
-  }, [officeReadyEpoch]);
+    setAuthState(AUTH_STATE.acquiring);
+    const unsubscribe = subscribeOutlookStartup(applyStartup);
+    startOutlookStartup({
+      acquireSession: () => acquireLawosSession({ interactive: false, owner: initialOwner }),
+      requestJson,
+      storage: resolveOutlookStartupStorage(window),
+      officeMailboxAddress: waitForOutlookStartupMailbox({
+        host: window,
+        waitForReady: ensureOfficeReady,
+        readyEvent: OFFICE_READY_EVENT,
+      }),
+      build: OUTLOOK_ADDIN_BUILD,
+      cryptoImpl: globalThis.crypto,
+    }).catch((nextError) => {
+      if (!active || !authOwnerFence.isCurrent(initialOwner)) return;
+      beginSessionBoundary(false);
+      clearBusinessView();
+      setAuthState(AUTH_STATE.loginRequired);
+      setAuthError(actionErrorMessage(nextError));
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+      unregisterAuthHandlers();
+    };
+  }, []);
 
   async function signIn() {
     const signInOwner = beginSessionBoundary(false);

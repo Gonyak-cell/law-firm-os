@@ -4,6 +4,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { startOutlookAddinStaticServer } from "../../../scripts/lib/outlook-addin-static-server.mjs";
+import { readyOutlookReadinessResponse } from "./helpers/outlook-readiness-fixture.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const DIST = path.join(ROOT, "apps/addin/dist");
@@ -15,7 +16,7 @@ const json = (body, status = 200) => ({
   body: JSON.stringify(body),
 });
 
-test("held initial session validation survives office-ready restart and reaches authenticated", async () => {
+test("held initial session validation survives late Office ready in one module flight", async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 420, height: 800 } });
   let releaseInitialValidation;
@@ -36,11 +37,13 @@ test("held initial session validation survives office-ready restart and reaches 
       getAllInternetHeadersAsync(callback) { callback({ status: "succeeded", value: "Date: Mon, 10 Aug 2026 00:00:00 +0000" }); },
     };
     const handlers = [];
+    const subscriptions = { add: 0, remove: 0 };
     const mailbox = {
       item,
       userProfile: { emailAddress: "qa@example.invalid" },
-      addHandlerAsync(_type, handler) { handlers.push(handler); },
+      addHandlerAsync(_type, handler) { subscriptions.add += 1; handlers.push(handler); },
       removeHandlerAsync(_type, { handler } = {}) {
+        subscriptions.remove += 1;
         const index = handlers.indexOf(handler);
         if (index >= 0) handlers.splice(index, 1);
       },
@@ -63,6 +66,7 @@ test("held initial session validation survives office-ready restart and reaches 
         async removeItem() {},
       },
     };
+    window.__LIFECYCLE_SUBSCRIPTIONS = () => ({ ...subscriptions, active: handlers.length });
     window.sessionStorage.setItem("lawos_addin_session_token", session);
   }, SESSION);
 
@@ -89,11 +93,12 @@ test("held initial session validation survives office-ready restart and reaches 
       if (sessionValidationCount === 1) {
         await initialValidation;
       }
-      return route.fulfill(json({ authenticated: true, principal: { user_id: "lifecycle-user", tenant_id: "lifecycle-tenant" } }));
+      return route.fulfill(json({ authenticated: true, session: { user_id: "lifecycle-user", tenant_id: "lifecycle-tenant", outlook_desktop_principal_ref: `odpr_${"A".repeat(43)}` } }));
     }
     if (url.pathname === "/api/outlook/connection") {
-      return route.fulfill(json({ item: { status: "connected", active: true, connection_id: "m365_connection_lifecycle_qa", state_version: 1, mailbox_address: "qa@example.invalid" } }));
+      return route.fulfill(json({ item: { status: "connected", active: true, connection_id: "m365_connection_lifecycle_qa", state_version: 7, mailbox_address: "qa@example.invalid" } }));
     }
+    if (url.pathname === "/api/outlook/readiness") return route.fulfill(json(readyOutlookReadinessResponse()));
     if (url.pathname === "/api/outlook/bootstrap") {
       return route.fulfill(json({ item: { ready: true, marker: "lifecycle" } }));
     }
@@ -105,23 +110,26 @@ test("held initial session validation survives office-ready restart and reaches 
     const firstValidationRequest = page.waitForRequest((request) => request.url().endsWith("/api/auth/session"));
     await page.goto(`${web.origin}/addin/`, { waitUntil: "domcontentloaded" });
     await firstValidationRequest;
-    const restartedValidationRequest = page.waitForRequest((request) => request.url().endsWith("/api/auth/session"));
     await page.evaluate(() => window.dispatchEvent(new Event("lawos:office-ready")));
-    await restartedValidationRequest;
-    await page.waitForFunction(() => document.querySelectorAll("[data-feature-id='matter.search']").length > 0);
+    await page.waitForFunction(() => window.__LIFECYCLE_SUBSCRIPTIONS().add === 2);
+    assert.equal(sessionValidationCount, 1);
+    releaseInitialValidation();
     await page.waitForFunction(() => document.querySelector("[data-feature-id='matter.search']")?.disabled === false);
 
-    assert.equal(sessionValidationCount >= 2, true);
+    assert.equal(sessionValidationCount, 1);
+    assert.deepEqual(await page.evaluate(() => window.__LIFECYCLE_SUBSCRIPTIONS()), { add: 2, remove: 1, active: 1 });
     assert.equal(await page.evaluate(() => window.sessionStorage.getItem("lawos_addin_session_token")), SESSION);
     assert.equal(await page.locator("[data-testid='lawos-login-button']").count(), 0);
     const bodyText = await page.locator("body").innerText();
     assert.match(bodyText, /Matter|메일/u);
     assert.doesNotMatch(bodyText, /로그인 중입니다|로그인 세션 확인/u);
-    assert.equal(requests.filter(({ path }) => path === "/api/auth/session").length >= 2, true);
+    assert.deepEqual([
+      "/api/auth/session",
+      "/api/outlook/connection",
+      "/api/outlook/readiness",
+      "/api/outlook/bootstrap",
+    ].map((path) => requests.filter((request) => request.path === path).length), [1, 1, 1, 1]);
     assert.equal(requests.filter(({ path }) => path === "/api/auth/session").every(({ authorization }) => authorization === `Bearer ${SESSION}`), true);
-
-    releaseInitialValidation();
-    await page.waitForTimeout(50);
     assert.equal(await page.locator("[data-feature-id='matter.search']").isEnabled(), true);
   } finally {
     releaseInitialValidation();
@@ -194,10 +202,11 @@ async function runLifecycleUnauthorizedCase({ body, contentType }) {
     }
     if (url.pathname === "/api/auth/session") {
       sessionValidationCount += 1;
-      if (sessionValidationCount === 1) return route.fulfill(json({ authenticated: true, principal: { user_id: "lifecycle-user", tenant_id: "lifecycle-tenant" } }));
+      if (sessionValidationCount === 1) return route.fulfill(json({ authenticated: true, session: { user_id: "lifecycle-user", tenant_id: "lifecycle-tenant", outlook_desktop_principal_ref: `odpr_${"A".repeat(43)}` } }));
       return route.fulfill({ status: 401, contentType, body });
     }
-    if (url.pathname === "/api/outlook/connection") return route.fulfill(json({ item: { status: "connected", active: true, connection_id: "m365_connection_lifecycle_qa", state_version: 1, mailbox_address: "qa@example.invalid" } }));
+    if (url.pathname === "/api/outlook/connection") return route.fulfill(json({ item: { status: "connected", active: true, connection_id: "m365_connection_lifecycle_qa", state_version: 7, mailbox_address: "qa@example.invalid" } }));
+    if (url.pathname === "/api/outlook/readiness") return route.fulfill(json(readyOutlookReadinessResponse()));
     if (url.pathname === "/api/outlook/bootstrap") return route.fulfill(json({ item: { ready: true, marker: "lifecycle" } }));
     return route.fulfill(json({ items: [] }));
   });
@@ -205,7 +214,7 @@ async function runLifecycleUnauthorizedCase({ body, contentType }) {
   try {
     await page.goto(`${web.origin}/addin/`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-feature-id='matter.search']")?.disabled === false);
-    await page.evaluate(() => window.dispatchEvent(new Event("lawos:office-ready")));
+    await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-testid='lawos-login-button']"));
     assert.equal(sessionValidationCount, 2);
     assert.doesNotMatch(await page.locator("body").innerText(), /로그인 중입니다|로그인 세션 확인/u);
@@ -221,7 +230,7 @@ for (const unauthorizedCase of [
   { name: "bodyless", body: "", contentType: "text/plain; charset=utf-8" },
   { name: "HTML", body: "<html>expired</html>", contentType: "text/html; charset=utf-8" },
 ]) {
-  test(`lifecycle restart ${unauthorizedCase.name} 401 converges to loginRequired`, async () => {
+  test(`full page reload ${unauthorizedCase.name} 401 converges to loginRequired`, async () => {
     await runLifecycleUnauthorizedCase(unauthorizedCase);
   });
 }
