@@ -8,7 +8,7 @@ This runbook keeps source/CI, API, static hosting, Microsoft 365 central deploym
 - Inquiry-only ProductId: `952431be-51b8-42a2-9bf6-769a15934e85`.
 - Both ProductIds remain source-, build-, static-namespace-, and rollback-artifact identities. Only Matter/full is assigned to production users; inquiry-only remains registered with zero assignments.
 - The production cohort has ten eligible users from the approved roster and no excluded users. Tenant-wide assignment, nested groups, `AssignToEveryone`, and overlapping ProductId assignments are forbidden.
-- Candidate version: `1.1.0.0`; independent rollback version: `1.0.1.1`.
+- Matter/full candidate version: `1.3.0.1`; retained inquiry-only version: `1.1.0.0`; independent emergency rollback version: `1.0.1.1`; forward canary rollback version: `1.3.0.2`.
 - Manifest permission, events, and delegated Graph scope have a diff of `none`. Assignment state follows the reviewed single-visible distribution contract rather than the historical two-assignment baseline.
 - Raw tenant assignments, mail/MIME, documents, environment values, OAuth/DocuSign values, and webhook signatures stay outside Git and command output.
 - All commands below are read-only or dry-run unless a separately authorized operator performs the documented external operation.
@@ -72,7 +72,7 @@ After a separately authorized code-only deployment, use `mode: "post-deploy-read
 
 ## 3. AWS static dry-run
 
-Generate one additive, exact-inventory plan for both production namespaces from the passing candidate receipt:
+Generate one create-only, exact-inventory plan for both production namespaces from the passing candidate receipt:
 
 ```bash
 node scripts/plan-outlook-static-deploy.mjs \
@@ -81,12 +81,23 @@ node scripts/plan-outlook-static-deploy.mjs \
   --bucket-ref OUTLOOK_ADDIN_STATIC_BUCKET > <protected-static-plan.json>
 ```
 
-`--bucket-ref` is a symbolic configuration reference, not a bucket name or credential. The planner invokes no AWS command. It emits zero mutations, never uses delete, and permits objects only below the two exact targets:
+`--bucket-ref` is a symbolic configuration reference, not a bucket name or credential. The planner invokes no AWS command. It emits zero mutations, never uses delete, and stages candidate bytes only below content-addressed object paths:
 
-- Matter/full: `addin/`, invalidation `/addin/*`;
-- inquiry-only: `outlook-addin/`, invalidation `/outlook-addin/*`.
+- Matter/full: `addin/_objects/sha256/<object-sha256>/<relative-path>`;
+- inquiry-only: `outlook-addin/_objects/sha256/<object-sha256>/<relative-path>`.
 
-The candidate build inventory is partitioned exactly once: `outlook-addin/**` belongs only to inquiry, and the remaining build output belongs only to Matter. Each profile records its complete inventory hash, task-pane HTML hash, bundle hash, production manifest hash/reference, SourceLocations, and a true prefix-coverage result. A missing/false coverage result, cross-profile fallback, path traversal, root object, delete, XML operation, or write below protected `addin/manifests/**` fails closed. Production manifests remain Microsoft 365 central-deployment inputs (`m365_central_deployment_only`); this AWS dry-run neither overwrites nor publishes them.
+The candidate build inventory is partitioned exactly once: `outlook-addin/**` belongs only to inquiry, and the remaining build output belongs only to Matter. Each operation also records its eventual unversioned alias, but `alias_mutation_count=0`, `overwrite_existing=false`, `If-None-Match=*`, and the staging invalidation list is empty. Alias copying and `/addin/*` or `/outlook-addin/*` invalidation belong to a later, separately authorized cutover. Each profile records its complete inventory hash, task-pane HTML hash, bundle hash, production manifest raw and semantic hashes, SourceLocations, and a true prefix-coverage result. A missing/false coverage result, cross-profile fallback, path traversal, root object, delete, XML operation, or write below protected `addin/manifests/**` fails closed. Production manifests remain Microsoft 365 central-deployment inputs (`m365_central_deployment_only`); this dry-run neither overwrites nor publishes them.
+
+Before any static authorization, seal the candidate plan together with the read-only recovery SAVE:
+
+```bash
+node scripts/validate-outlook-release-static-files.mjs \
+  --source-sha <exact-40-character-HEAD> \
+  --prior-snapshot-root <OUTLOOK-INFRA-CONNECTIONS-SAVE-20260824-01-root> \
+  --bucket-ref OUTLOOK_ADDIN_STATIC_BUCKET > <protected-static-files-release-receipt.json>
+```
+
+This validator builds the exact source twice with the source SHA embedded in both Matter/full and inquiry-only bundles, validates the five production/canary manifests against the one exact CloudFront origin, records each raw and semantic manifest hash, and reads every active prior task-pane, JS/CSS, OAuth, event-runtime, and icon byte from the protected SAVE. The SAVE inventory and each relevant body must match their sealed hashes and must be non-symlink regular files. Candidate immutable targets and currently served prior aliases must coexist with zero target collision. The `1.3.0.2` manifest remains bound to `/addin/index.html`; rollback order is therefore exact prior-alias restoration and hash readback first, followed by the Microsoft 365 update to `1.3.0.2` and a zero-launch-event readback. The receipt performs no S3 upload, alias copy, invalidation, Microsoft 365 update, or data mutation.
 
 ## 4. Microsoft 365 receipt, readback, propagation, and real Outlook QA
 
@@ -153,3 +164,5 @@ Matter/full evidence covers read, compose, `OnMessageSend`, auth/reconnect, item
 ## Rollback
 
 The two `1.0.1.1` rollback records in `contracts/outlook-addin-rollback.json` are independent and identity/hash-bound. Each record binds the historical source SHA, ProductId, version, SourceLocations, protected manifest, task-pane HTML, entry bundle, complete protected static-inventory proof, and (Matter only) event runtime. The validator reads every referenced regular-file byte from the trusted root, verifies each SHA-256 and byte count, requires all profile static paths, and rejects missing, shared, swapped, stale, or hash-mismatched artifacts. A v2 rollback rehearsal restores and reads back those exact bytes, permissions/events, and SourceLocations, while its assignment target and protected assignment-safety evidence hash require `reconcile_to_validated_single_visible_distribution`. It never restores historical assignment counts or fingerprints, never preserves an unsafe current assignment, and cannot reassign inquiry-only or authorize rollback of the other ProductId.
+
+For the `1.3.0.0` → `1.3.0.1` canary ladder, `contracts/outlook-addin-forward-static-rollback.json` adds a monotonic `1.3.0.2` forward rollback. It hash-binds the `OUTLOOK-INFRA-CONNECTIONS-SAVE-20260824-01` inventory and the complete active closure for both static namespaces. It is not permission to mutate anything: restore the exact prior alias bytes and read them back before the central manifest update, stop on the first failed readback, and never delete the content-addressed candidate or protected SAVE during rollback.

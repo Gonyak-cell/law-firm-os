@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     __LAWOS_OUTLOOK_BUILD_PROFILE__: JSON.stringify(matterProfile),
     __LAWOS_OUTLOOK_NAA_REDIRECT_PATH__: JSON.stringify("/addin/index.html"),
-    __LAWOS_OUTLOOK_BUILD_REVISION__: JSON.stringify(buildRevision),
+    __LAWOS_OUTLOOK_ADDIN_BUILD__: JSON.stringify(`addin@${buildRevision}`),
   },
   plugins: [react()],
   server: {

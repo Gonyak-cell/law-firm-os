@@ -12,6 +12,22 @@ function injectedBuildProfile() {
   return __LAWOS_OUTLOOK_BUILD_PROFILE__;
 }
 
+function injectedBuildIdentity() {
+  if (typeof __LAWOS_OUTLOOK_ADDIN_BUILD__ === "undefined") return "addin@local";
+  return __LAWOS_OUTLOOK_ADDIN_BUILD__;
+}
+
+function buildIdentityDescriptor(build) {
+  if (
+    typeof build !== "string"
+    || build !== build.trim()
+    || !/^addin@[A-Za-z0-9._-]{1,128}$/u.test(build)
+  ) {
+    throw new RangeError("Invalid Outlook build identity");
+  }
+  return build;
+}
+
 function entrypointDescriptor(entrypoint, buildProfile) {
   if (
     !buildProfile
@@ -40,6 +56,7 @@ export function bootstrapOutlookSurface(
   entrypoint,
   {
     buildProfile = injectedBuildProfile(),
+    build = injectedBuildIdentity(),
     location = globalThis.location,
     globalObject = globalThis,
   } = {},
@@ -57,6 +74,7 @@ export function bootstrapOutlookSurface(
     profile,
     productionSourceLocation: descriptor.productionSourceLocation,
     productionBase: descriptor.productionBase,
+    build: buildIdentityDescriptor(build),
   });
 
   // This assignment deliberately precedes all query parsing below.

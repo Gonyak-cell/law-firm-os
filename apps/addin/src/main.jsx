@@ -158,9 +158,7 @@ let officeReadyPromise = null;
 const authOwnerFence = createOutlookAuthOwnerFence();
 const OFFICE_READY_EVENT = "lawos:office-ready";
 const CLIENT_OUTLOOK_CALLBACK_MODE = "server_complete_v1";
-const OUTLOOK_ADDIN_BUILD = `addin@${typeof __LAWOS_OUTLOOK_BUILD_REVISION__ === "string"
-  ? __LAWOS_OUTLOOK_BUILD_REVISION__
-  : "local"}`;
+const OUTLOOK_ADDIN_BUILD = globalThis.__LAWOS_OUTLOOK_SURFACE_PROFILE?.build ?? "";
 
 export function createOutlookFilingReceiptCallback({
   operationSnapshot,

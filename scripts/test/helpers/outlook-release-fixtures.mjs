@@ -117,6 +117,8 @@ export function releaseCandidate(
       profile: profile.profile, product_id: profile.product_id, version: profile.release_version,
       permission: profile.permission, mailbox_min_version: profile.mailbox_min_version,
       manifest_sha256: candidateManifestHashes[profile.profile],
+      semantic_sha256: surface.profiles.find(({ product_id: productId }) => productId === profile.product_id)
+        .environment_fingerprints.production.semantic_manifest_sha256,
     })),
     coverage: { required_path_count: contract.required_release_paths.length + contract.required_test_paths.length },
     licenses: validateDependencyLicenses(fixturePackageLock, contract),

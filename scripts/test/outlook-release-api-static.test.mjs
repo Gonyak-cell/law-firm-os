@@ -56,3 +56,26 @@ test("static planner partitions exact /addin and /outlook-addin inventories", ()
     contract, bucketRef: "OUTLOOK_STATIC_BUCKET",
   }), /escaped \/outlook-addin\//);
 });
+
+test("static planner stages only create-only content-addressed objects before cutover", () => {
+  const plan = staticPlanFor();
+
+  assert.equal(plan.schema_version, "amic-os.outlook-static-deploy-plan.v2");
+  assert.equal(plan.alias_mutation_count, 0);
+  assert.equal(plan.overwrite_existing, false);
+  assert.equal(plan.content_address_algorithm, "sha256");
+  assert.deepEqual(plan.staging_invalidation_paths, []);
+
+  for (const profile of plan.profiles) {
+    for (const operation of profile.operations) {
+      assert.equal(operation.if_none_match, "*");
+      assert.equal(operation.overwrite_allowed, false);
+      assert.equal(operation.alias_target_key.startsWith(profile.target_prefix), true);
+      assert.match(
+        operation.target_key,
+        new RegExp(`^${profile.immutable_target_prefix}${operation.sha256}/`, "u"),
+      );
+      assert.notEqual(operation.target_key, operation.alias_target_key);
+    }
+  }
+});

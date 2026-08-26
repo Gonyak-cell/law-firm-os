@@ -24,6 +24,12 @@ test("release contract binds two source ProductIds but exactly one production-vi
   const destructive = clone(contract);
   destructive.static_deploy.delete = true;
   assert.throws(() => validateReleaseContract(destructive), /additive \/addin and \/outlook-addin dry-run/);
+  const unversioned = clone(contract);
+  unversioned.static_deploy.immutable_segment = "";
+  assert.throws(() => validateReleaseContract(unversioned), /additive \/addin and \/outlook-addin dry-run/);
+  const directCutover = clone(contract);
+  directCutover.static_deploy.cutover_mode = "overwrite_in_place";
+  assert.throws(() => validateReleaseContract(directCutover), /additive \/addin and \/outlook-addin dry-run/);
   const untrusted = clone(contract);
   untrusted.m365.protected_evidence.reject_symlinks = false;
   assert.throws(() => validateReleaseContract(untrusted), /trust boundary/);

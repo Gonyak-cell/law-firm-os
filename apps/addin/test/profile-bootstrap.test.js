@@ -43,14 +43,35 @@ test("manifest source locations bind each exact production URL to its fixed entr
     const globalObject = {};
     const result = bootstrapOutlookSurface(buildProfile.key, {
       buildProfile,
+      build: "addin@source-sha-test",
       location: { search: "?clientInquiryOnly=1&tenantId=attacker" },
       globalObject,
     });
     assert.equal(result.binding.key, buildProfile.key);
     assert.equal(result.binding.productId, buildProfile.productId);
     assert.equal(result.binding.productionSourceLocation, buildProfile.productionSourceLocation);
+    assert.equal(result.binding.build, "addin@source-sha-test");
     assert.equal(globalObject.__LAWOS_OUTLOOK_SURFACE_PROFILE.productId, buildProfile.productId);
   }
+});
+
+test("build revision is sealed into the fixed surface binding and rejects unsafe input", () => {
+  const globalObject = {};
+  const result = bootstrapOutlookSurface("matter-full", {
+    buildProfile: MATTER_BUILD_PROFILE,
+    build: "addin@09ad50c275292899a03b46962493cf39ce714b09",
+    globalObject,
+    location: { search: "" },
+  });
+  assert.equal(result.binding.build, "addin@09ad50c275292899a03b46962493cf39ce714b09");
+  assert.equal(globalObject.__LAWOS_OUTLOOK_SURFACE_PROFILE.build, result.binding.build);
+
+  assert.throws(() => bootstrapOutlookSurface("matter-full", {
+    buildProfile: MATTER_BUILD_PROFILE,
+    build: " addin@source-sha-test ",
+    globalObject: {},
+    location: { search: "" },
+  }), /Invalid Outlook build identity/u);
 });
 
 test("query tampering cannot promote the 952 entrypoint or demote the 8f3 entrypoint", () => {

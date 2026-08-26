@@ -138,6 +138,7 @@ export async function validateOutlookAddinSurfaces({
         manifestOverrides[profile.manifests.production]
           ?? (await readFile(path.join(repoRoot, profile.manifests.production), "utf8")),
       ),
+      semantic_sha256: projections.production.semantic_manifest_sha256,
     });
   }
   return { mode, profiles: results, permission_event_diff: "none" };

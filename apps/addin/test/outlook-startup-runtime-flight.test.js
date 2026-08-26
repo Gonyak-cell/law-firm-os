@@ -201,10 +201,12 @@ test("invalid build revision bytes fail at the Vite boundary", async () => {
       "revision ",
     ].entries()) {
       process.env.LAWOS_OUTLOOK_ADDIN_BUILD_REVISION = revision;
-      await assert.rejects(
-        import(`../vite.config.js?invalid-revision=${Date.now()}-${index}`),
-        /LAWOS_OUTLOOK_ADDIN_BUILD_REVISION/u,
-      );
+      for (const config of ["vite.config.js", "vite.inquiry.config.js"]) {
+        await assert.rejects(
+          import(`../${config}?invalid-revision=${Date.now()}-${index}`),
+          /LAWOS_OUTLOOK_ADDIN_BUILD_REVISION/u,
+        );
+      }
     }
   } finally {
     if (previous === undefined) delete process.env.LAWOS_OUTLOOK_ADDIN_BUILD_REVISION;

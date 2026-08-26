@@ -90,6 +90,8 @@
     "apps/addin/src/outlook-task-datetime.js",
     "apps/addin/src/styles.css",
     "apps/addin/public/amic-law-logo.svg",
+    "apps/addin/vite.config.js",
+    "apps/addin/vite.inquiry.config.js",
     "apps/api/src/json-postgres-program-admin-lambda.js",
     "apps/api/src/outlook-addin-runtime-context.js",
     "apps/api/src/matter-runtime-context.js",
@@ -121,9 +123,16 @@
     "packages/matter/src/document-publication-reconciliation.js",
     "packages/matter/src/document-publication-service.js",
     "packages/matter/src/outlook-task-adapter.js",
+    "contracts/outlook-addin-forward-static-rollback.json",
     "scripts/lib/upl-proof-runner.mjs",
+    "scripts/lib/outlook-release/forward-static-rollback.mjs",
     "scripts/lib/outlook-release/m365-distribution.mjs",
+    "scripts/lib/outlook-release/static-files.mjs",
+    "scripts/lib/outlook-release/static-plan.mjs",
+    "scripts/plan-outlook-static-deploy.mjs",
     "scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs",
+    "scripts/validate-outlook-release-candidate.mjs",
+    "scripts/validate-outlook-release-static-files.mjs",
     "scripts/validate-upl-c09-c12-outlook-addin.mjs"
   ],
   "required_test_paths": [
@@ -167,6 +176,7 @@
     "apps/addin/test/outlook-profile-build-artifact.mjs",
     "apps/addin/test/outlook-shell-contract.test.js",
     "apps/addin/test/outlook-shell-responsive.test.js",
+    "apps/addin/test/outlook-startup-runtime-flight.test.js",
     "apps/addin/test/outlook-task-datetime.test.js",
     "apps/addin/test/outlook-ui-contract.test.js",
     "apps/addin/test/profile-bootstrap.test.js",
@@ -206,9 +216,12 @@
     "packages/matter/test/document-builder-publication.test.js",
     "packages/matter/test/outlook-task-adapter.test.js",
     "scripts/test/outlook-release-candidate.test.mjs",
+    "scripts/test/outlook-release-api-static.test.mjs",
     "scripts/test/outlook-release-cli-workflow.test.mjs",
     "scripts/test/outlook-release-gates.test.mjs",
-    "scripts/test/outlook-release-profile-artifacts.test.mjs"
+    "scripts/test/outlook-release-profile-artifacts.test.mjs",
+    "scripts/test/outlook-release-rollback.test.mjs",
+    "scripts/test/outlook-release-static-files.test.mjs"
   ],
   "required_dependencies": {
     "docx": "MIT",
@@ -273,6 +286,8 @@
         "invalidation_path": "/outlook-addin/*"
       }
     ],
+    "immutable_segment": "_objects/sha256/",
+    "cutover_mode": "separate_authorized_exact_copy",
     "protected_prefixes": ["addin/manifests/"],
     "delete": false,
     "default_mode": "dry-run"

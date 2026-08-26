@@ -109,11 +109,14 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
   for (const expected of contract.profiles) {
     const profile = candidateProfiles.get(expected.product_id);
     assertExactKeys(profile, [
-      "mailbox_min_version", "manifest_sha256", "permission", "product_id", "profile", "version",
+      "mailbox_min_version", "manifest_sha256", "permission", "product_id", "profile",
+      "semantic_sha256", "version",
     ], `${expected.profile} release candidate manifest profile`);
+    const expectedSurface = context.surface.profiles.find(({ product_id: productId }) => productId === expected.product_id);
     if (profile.profile !== expected.profile || profile.version !== expected.release_version
       || profile.permission !== expected.permission || profile.mailbox_min_version !== expected.mailbox_min_version
-      || profile.manifest_sha256 !== manifestByPath.get(expected.production_manifest)?.sha256) {
+      || profile.manifest_sha256 !== manifestByPath.get(expected.production_manifest)?.sha256
+      || profile.semantic_sha256 !== expectedSurface?.environment_fingerprints?.production?.semantic_manifest_sha256) {
       throw new Error(`${expected.profile} manifest profile binding drifted`);
     }
   }

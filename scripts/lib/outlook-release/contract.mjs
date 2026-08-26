@@ -3,7 +3,8 @@ import {
   FORBIDDEN_BUILD_TEXT, LICENSE_METADATA_OVERRIDES, MANIFEST_PATHS, PRODUCT_IDS, PROFILE_CONTRACTS, PROFILE_NAMES,
   REQUIRED_COMMON_HOST_SCENARIOS, REQUIRED_HOSTS, REQUIRED_PREREQUISITES,
   REQUIRED_MUTATION_ACTIONS, REQUIRED_PROOF_CLASSES, REQUIRED_RELEASE_PATHS, REQUIRED_STATIC_PATHS, REQUIRED_TEST_PATHS,
-  STATIC_NAMESPACES, M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
+  STATIC_CUTOVER_MODE, STATIC_IMMUTABLE_SEGMENT, STATIC_NAMESPACES,
+  M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
 } from "./constants.mjs";
 import { validateProductionDistributionContract } from "./m365-distribution.mjs";
 import { assertEqual, canonical, sorted } from "./primitives.mjs";
@@ -51,6 +52,8 @@ export function validateReleaseContract(contract) {
   }
   if (JSON.stringify(canonical(contract.static_deploy?.namespaces)) !== JSON.stringify(canonical(STATIC_NAMESPACES))
     || JSON.stringify(contract.static_deploy?.protected_prefixes) !== JSON.stringify(["addin/manifests/"])
+    || contract.static_deploy?.immutable_segment !== STATIC_IMMUTABLE_SEGMENT
+    || contract.static_deploy?.cutover_mode !== STATIC_CUTOVER_MODE
     || contract.static_deploy?.delete !== false || contract.static_deploy?.default_mode !== "dry-run") {
     throw new Error("static deployment must default to additive /addin and /outlook-addin dry-run namespaces");
   }
