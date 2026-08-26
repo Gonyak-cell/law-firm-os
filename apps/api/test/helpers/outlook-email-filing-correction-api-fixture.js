@@ -1,6 +1,6 @@
 import {
+  createApiServer,
   createDefaultDmsRuntime,
-  startApiServer,
 } from "../../src/server.js";
 import { createDmsRepository } from "../../../../packages/dms/src/repository.js";
 import { createEmailDmsRepository } from "../../../../packages/email-dms/src/repository.js";
@@ -16,8 +16,20 @@ import {
   THREAD_ID,
   seedOriginalFiling,
 } from "../../../../packages/email-dms/test/helpers/email-filing-correction-fixture.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./outlook-trusted-installation-runtime.js";
 
 const TOKEN = "Bearer outm21-signed-session";
+const SIGNED_PRINCIPAL = Object.freeze({
+  source: "api-signed-session",
+  header_only_trust_allowed: false,
+  tenant_id: TENANT_ID,
+  user_id: CORRECTION_ACTOR_ID,
+  actor_id: CORRECTION_ACTOR_ID,
+  role_ids: Object.freeze(["outlook_addin_user"]),
+  scopes: Object.freeze(["matter.read", "matter.write"]),
+});
+const OUTLOOK_INSTALLATION_AUTHORITY =
+  createTrustedOutlookInstallationTestAuthority([SIGNED_PRINCIPAL]);
 
 export function matterSeed() {
   const createdAt = "2026-08-08T00:00:00.000Z";
@@ -51,17 +63,8 @@ export function matterSeed() {
 }
 
 function signedSessionAuth({ denyCorrection = false, objectAcl = [] } = {}) {
-  const principal = Object.freeze({
-    source: "api-signed-session",
-    header_only_trust_allowed: false,
-    tenant_id: TENANT_ID,
-    user_id: CORRECTION_ACTOR_ID,
-    actor_id: CORRECTION_ACTOR_ID,
-    role_ids: Object.freeze(["outlook_addin_user"]),
-    scopes: Object.freeze(["matter.read", "matter.write"]),
-  });
   const context = Object.freeze({
-    principal,
+    principal: SIGNED_PRINCIPAL,
     rules: Object.freeze([{ id: "outm21-allow", effect: "allow", action: "*" }]),
     object_acl: Object.freeze([
       ...(denyCorrection ? [{
@@ -73,17 +76,17 @@ function signedSessionAuth({ denyCorrection = false, objectAcl = [] } = {}) {
       ...objectAcl,
     ]),
   });
-  return Object.freeze({
+  return OUTLOOK_INSTALLATION_AUTHORITY.wrapSessionAuth(Object.freeze({
     async resolvePermissionContextFromHeaders(headers) {
       if (headers.authorization !== TOKEN) return Object.freeze({ ok: false, status: 401 });
       return Object.freeze({
         ok: true,
-        principal,
+        principal: SIGNED_PRINCIPAL,
         context,
         token_payload: Object.freeze({ surface: "outlook_addin" }),
       });
     },
-  });
+  }));
 }
 
 export async function startCorrectionApiFixture({
@@ -99,12 +102,21 @@ export async function startCorrectionApiFixture({
   const dmsRepository = createDmsRepository();
   seedOriginalFiling(dmsRepository);
   const emailDmsRepository = createEmailDmsRepository();
-  const started = await startApiServer({
-    port: 0,
+  const server = createApiServer({
     matterRuntime: Object.freeze({ repository: matterRepository }),
     dmsRuntime: createDefaultDmsRuntime({ repository: dmsRepository }),
     emailDmsRuntime: Object.freeze({ repository: emailDmsRepository }),
+    outlookDesktopRuntime: OUTLOOK_INSTALLATION_AUTHORITY.runtime,
     sessionAuth: signedSessionAuth({ denyCorrection, objectAcl }),
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const started = Object.freeze({
+    server,
+    host: "127.0.0.1",
+    port: server.address().port,
   });
   return Object.freeze({
     baseUrl: `http://${started.host}:${started.port}`,

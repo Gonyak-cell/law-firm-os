@@ -13,6 +13,7 @@ import { createPostgresConversationPolicyService } from "../../../packages/email
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { createApiServer } from "../src/server.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 const TENANT = "tenant-outm25-http";
 const OWNER = "user-outm25-http";
@@ -22,25 +23,37 @@ const MATTER = "matter-outm25-http";
 const THREAD = "thread-outm25-http";
 const MIME_SHA256 = "b".repeat(64);
 const RECEIPT = `outlook-email-file:${THREAD}:${MIME_SHA256}:dms`;
+const OWNER_PRINCIPAL = Object.freeze({
+  tenant_id: TENANT,
+  user_id: OWNER,
+  entra_subject_id: SUBJECT,
+  role_ids: ["attorney"],
+});
+const INTRUDER_PRINCIPAL = Object.freeze({
+  tenant_id: TENANT,
+  user_id: "same-tenant-intruder",
+  entra_subject_id: "subject-intruder",
+  role_ids: ["attorney"],
+});
+const OUTLOOK_INSTALLATION_AUTHORITY =
+  createTrustedOutlookInstallationTestAuthority([
+    OWNER_PRINCIPAL,
+    INTRUDER_PRINCIPAL,
+  ]);
 
 function sessionAuth() {
-  return {
+  return OUTLOOK_INSTALLATION_AUTHORITY.wrapSessionAuth({
     capabilities: {},
     async resolvePermissionContextFromHeaders(headers) {
       const intruder = headers.authorization === "Bearer intruder";
-      const principal = {
-        tenant_id: TENANT,
-        user_id: intruder ? "same-tenant-intruder" : OWNER,
-        entra_subject_id: intruder ? "subject-intruder" : SUBJECT,
-        role_ids: ["attorney"],
-      };
+      const principal = intruder ? INTRUDER_PRINCIPAL : OWNER_PRINCIPAL;
       return { ok: true, principal, context: {
         principal,
         rules: [{ id: "outm25-http-allow", effect: "allow", action: "*" }],
         object_acl: [],
       } };
     },
-  };
+  });
 }
 
 test("OUTM-25 HTTP policy route derives the owner from the signed session and rejects same-tenant revoke", async (t) => {
@@ -132,6 +145,7 @@ test("OUTM-25 HTTP policy route derives the owner from the signed session and re
     dmsRuntime: { repository: dmsRepository, upload_runtime: uploadRuntime },
     emailDmsRuntime: { repository: emailDmsRepository },
     outlookConversationRuntime: conversationRuntime,
+    outlookDesktopRuntime: OUTLOOK_INSTALLATION_AUTHORITY.runtime,
     sessionAuth: sessionAuth(),
     stepUpAuthority: {},
   });
