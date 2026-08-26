@@ -1,5 +1,4 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { types } from "node:util";
 import {
   createDmsRepositoryMimeAuthority,
   fileEmailThreadToMatter,
@@ -75,6 +74,9 @@ import {
   resolveOutlookDesktopInstallationService,
 } from "./outlook-desktop-installation-runtime-context.js";
 import { deriveOutlookReadiness } from "./outlook-readiness.js";
+import {
+  parseOutlookTrustedCurrentInstallation,
+} from "./outlook-trusted-current-installation.js";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -1850,84 +1852,6 @@ function handleM365ConnectionStatus({
   }
 }
 
-const TRUSTED_CURRENT_INSTALLATION_KEYS = Object.freeze([
-  "installation_id",
-  "status",
-  "state_version",
-  "lease_expires_at",
-  "retired_at",
-  "release_trusted",
-  "authority_snapshot_at",
-]);
-
-function invalidTrustedCurrentInstallation() {
-  throw Object.assign(
-    new Error("Outlook desktop trusted installation projection unavailable"),
-    {
-      safe_error_code: "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
-      status: 503,
-    },
-  );
-}
-
-function trustedCurrentInstallation(value) {
-  if (value === null) return null;
-  let prototype;
-  let descriptors;
-  try {
-    if (!value || typeof value !== "object" || Array.isArray(value)
-        || types.isProxy(value)) invalidTrustedCurrentInstallation();
-    prototype = Object.getPrototypeOf(value);
-    descriptors = Object.getOwnPropertyDescriptors(value);
-  } catch (error) {
-    if (error?.safe_error_code) throw error;
-    invalidTrustedCurrentInstallation();
-  }
-  const keys = Reflect.ownKeys(descriptors);
-  if ((prototype !== Object.prototype && prototype !== null)
-      || keys.length !== TRUSTED_CURRENT_INSTALLATION_KEYS.length
-      || keys.some((key) => typeof key !== "string"
-        || !TRUSTED_CURRENT_INSTALLATION_KEYS.includes(key)
-        || !("value" in descriptors[key])
-        || descriptors[key].enumerable !== true)) {
-    invalidTrustedCurrentInstallation();
-  }
-  const snapshot = Object.fromEntries(
-    TRUSTED_CURRENT_INSTALLATION_KEYS.map((key) => (
-      [key, descriptors[key].value]
-    )),
-  );
-  const timestamp = (candidate) => {
-    const milliseconds = typeof candidate === "string"
-      ? Date.parse(candidate)
-      : Number.NaN;
-    return Number.isFinite(milliseconds)
-      && new Date(milliseconds).toISOString() === candidate;
-  };
-  if (!isOutlookDesktopInstallationId(snapshot.installation_id)
-      || snapshot.status !== "active"
-      || !Number.isSafeInteger(snapshot.state_version)
-      || snapshot.state_version < 1
-      || !timestamp(snapshot.lease_expires_at)
-      || snapshot.retired_at !== null
-      || snapshot.release_trusted !== true
-      || !timestamp(snapshot.authority_snapshot_at)
-      || Date.parse(snapshot.lease_expires_at)
-        <= Date.parse(snapshot.authority_snapshot_at)) {
-    invalidTrustedCurrentInstallation();
-  }
-  return Object.freeze({
-    installation: Object.freeze({
-      installation_id: snapshot.installation_id,
-      status: snapshot.status,
-      state_version: snapshot.state_version,
-      lease_expires_at: snapshot.lease_expires_at,
-      retired_at: snapshot.retired_at,
-    }),
-    authority_snapshot_at: snapshot.authority_snapshot_at,
-  });
-}
-
 async function handleOutlookReadiness({
   query,
   context,
@@ -2056,7 +1980,7 @@ async function handleOutlookReadiness({
             : { installation_id: installationId }),
         });
         if (installationId === undefined) {
-          const trustedCurrent = trustedCurrentInstallation(installationResult);
+          const trustedCurrent = parseOutlookTrustedCurrentInstallation(installationResult);
           installation = trustedCurrent?.installation ?? null;
           if (trustedCurrent) {
             installationReleaseTrusted = true;

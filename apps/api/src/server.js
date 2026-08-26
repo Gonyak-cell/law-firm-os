@@ -186,6 +186,10 @@ import {
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
 import {
+  authorizeOutlookInstallationProtectedRoute,
+  outlookInstallationProtectedRouteResponse,
+} from "./outlook-installation-protected-route-gate.js";
+import {
   OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT,
   OUTLOOK_DESKTOP_INSTALLATION_MAX_BODY_BYTES,
   handleOutlookDesktopInstallationApiRequest,
@@ -2314,6 +2318,26 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
+    const installationDecision = await authorizeOutlookInstallationProtectedRoute({
+      method: req.method,
+      pathname,
+      principal: sessionContext.principal,
+      context: requestPermissionContext(),
+      runtime: outlookDesktopRuntime,
+    });
+    const installationDenial = outlookInstallationProtectedRouteResponse(
+      installationDecision,
+      requestId,
+    );
+    if (installationDenial) {
+      sendJson(
+        req,
+        res,
+        installationDenial.status,
+        installationDenial.body,
+      );
+      return;
+    }
     if (isOutlookDocumentApiPath(pathname)) {
       const declaredLength = Number(Array.isArray(req.headers["content-length"])
         ? req.headers["content-length"][0]
