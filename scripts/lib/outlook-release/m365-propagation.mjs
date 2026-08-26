@@ -21,9 +21,10 @@ function validateProof(entry, receipt, options, temporal) {
   ].includes(key)));
   assertEqual(canonical(proofProjection), canonical(receiptProjection), "M365 propagation protected evidence");
   const profile = profileMap(receipt.profiles, "M365 receipt profiles").get(entry.product_id);
+  const expected = options.contract.profiles.find(({ product_id }) => product_id === entry.product_id);
   validateProfileDistribution(entry, expectedDistributionProfile(options.contract, entry.product_id), `${entry.product_id} propagation`);
-  if (!profile || !options.contract.m365.propagation_observation_hours.includes(entry.hour)
-    || entry.result !== "exact_readback" || entry.version !== options.contract.release_version
+  if (!profile || !expected || !options.contract.m365.propagation_observation_hours.includes(entry.hour)
+    || entry.result !== "exact_readback" || entry.version !== expected.release_version
     || entry.manifest_sha256 !== profile.candidate_manifest_sha256
     || entry.assignment_count !== profile.assignment_count
     || entry.assignment_fingerprint_sha256 !== profile.assignment_fingerprint_sha256

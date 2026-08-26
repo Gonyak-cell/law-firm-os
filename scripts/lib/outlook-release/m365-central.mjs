@@ -68,7 +68,7 @@ function validateProfileOperations(receipt, options, staticResult) {
       || JSON.stringify(staticReadback.source_locations) !== JSON.stringify(profile.source_locations)) {
       throw new Error(`${expected.profile} static asset readback is incomplete`);
     }
-    if (readback.version !== contract.release_version || readback.manifest_sha256 !== profile.candidate_manifest_sha256
+    if (readback.version !== expected.release_version || readback.manifest_sha256 !== profile.candidate_manifest_sha256
       || readback.deployment_mode !== "fixed" || JSON.stringify(readback.source_locations) !== JSON.stringify(profile.source_locations)
       || readback.assignment_count !== profile.assignment_count
       || readback.assignment_fingerprint_sha256 !== profile.assignment_fingerprint_sha256

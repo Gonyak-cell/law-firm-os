@@ -67,6 +67,13 @@ function sorted(values) {
   return [...values].sort();
 }
 
+function closestAncestor(node, localName) {
+  for (let current = node?.parentNode; current; current = current.parentNode) {
+    if (current.nodeType === 1 && current.localName === localName) return current;
+  }
+  return null;
+}
+
 function resourceEntries(elements, localName) {
   return sorted(
     elements
@@ -163,6 +170,12 @@ export function parseOutlookManifest(xml) {
     requested_heights: sorted(elements.filter((node) => node.localName === "RequestedHeight").map(text)),
     disable_entity_highlighting: requiredText(root, "DisableEntityHighlighting"),
     action_types: sorted(elements.filter((node) => node.localName === "Action").map((node) => xsiType(node))),
+    supports_pinning: sorted(elements.filter((node) => node.localName === "SupportsPinning").map((node) => {
+      const action = closestAncestor(node, "Action");
+      const extensionPoint = closestAncestor(node, "ExtensionPoint");
+      const versionOverrides = closestAncestor(node, "VersionOverrides");
+      return [xsiType(versionOverrides), xsiType(extensionPoint), xsiType(action), text(node)].join(":");
+    })),
     office_tab_ids: sorted(elements.filter((node) => node.localName === "OfficeTab").map((node) => requiredAttribute(node, "id"))),
     group_ids: sorted(elements.filter((node) => node.localName === "Group").map((node) => requiredAttribute(node, "id"))),
     control_fingerprints: sorted(elements.filter((node) => node.localName === "Control").map((node) => (

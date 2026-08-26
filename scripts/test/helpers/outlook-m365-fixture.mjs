@@ -82,15 +82,18 @@ function populateReadbacks(receipt, candidate, plan) {
       source_locations: profile.source_locations,
     };
   });
-  receipt.readbacks = riskOrderedProfiles.map((profile) => ({
-    product_id: profile.product_id, version: contract.release_version,
-    manifest_sha256: profile.candidate_manifest_sha256, deployment_mode: "fixed",
-    source_locations: profile.source_locations, assignment_count: profile.assignment_count,
-    assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,
-    distribution_role: profile.distribution_role, assignment_state: profile.assignment_state,
-    production_user_visible: profile.production_user_visible, assign_to_everyone: profile.assign_to_everyone,
-    enabled: true,
-  }));
+  receipt.readbacks = riskOrderedProfiles.map((profile) => {
+    const expected = contract.profiles.find(({ product_id }) => product_id === profile.product_id);
+    return {
+      product_id: profile.product_id, version: expected.release_version,
+      manifest_sha256: profile.candidate_manifest_sha256, deployment_mode: "fixed",
+      source_locations: profile.source_locations, assignment_count: profile.assignment_count,
+      assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,
+      distribution_role: profile.distribution_role, assignment_state: profile.assignment_state,
+      production_user_visible: profile.production_user_visible, assign_to_everyone: profile.assign_to_everyone,
+      enabled: true,
+    };
+  });
 }
 
 async function writeControls(root, receipt, restored, {
@@ -157,10 +160,11 @@ async function writePrerequisites(root, receipt, candidate, plan, planBinding, c
 
 async function writePropagation(root, receipt) {
   for (const profile of receipt.profiles) {
+    const expected = contract.profiles.find(({ product_id }) => product_id === profile.product_id);
     for (const hour of contract.m365.propagation_observation_hours) {
       const observed = new Date(Date.UTC(2026, 7, 8, 2 + hour)).toISOString();
       const entry = {
-        product_id: profile.product_id, hour, result: "exact_readback", version: contract.release_version,
+        product_id: profile.product_id, hour, result: "exact_readback", version: expected.release_version,
         manifest_sha256: profile.candidate_manifest_sha256,
         assignment_count: profile.assignment_count, assignment_state: profile.assignment_state,
         assignment_fingerprint_sha256: profile.assignment_fingerprint_sha256,

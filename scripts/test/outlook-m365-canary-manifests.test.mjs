@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
+import { parseOutlookManifest } from "../lib/outlook-manifest-projection.mjs";
 import { validateOutlookM365CanaryManifestSet } from "../validate-outlook-m365-canary-manifests.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -101,29 +102,29 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
     schema_version: "amic-os.outlook-m365-canary-manifest-set-validation.v1",
     verdict: "PASS",
     product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-    artifact_version: "1.1.0.0",
-    prior_known_manifest_version: "1.1.0.0",
-    manifest_set_sha256: "394c45c4dac1cdc1e59162e03f174b9e15122748f70a0aa7b8aa11dec92aa389",
+    artifact_version: "1.3.0.1",
+    prior_known_manifest_version: "1.2.0.2",
+    manifest_set_sha256: "3c5c01a24e4c9736fb77de9bc438229989473b6cd6dc778fd28bca5fe1dd2218",
     stages: [
       {
         id: "taskpane_only",
         manifest_path: "apps/addin/manifest.canary.taskpane.production.xml",
-        manifest_sha256: "ff0727cdf8bed43e6fbbe1534e290e1d15eb8ed54492bbeddd53f1f1168825f4",
-        manifest_version: "1.2.0.0",
+        manifest_sha256: "652e06ec95e12b248bfa42fccc0cf5881a52f310ed4c51189500593c2d74fe9c",
+        manifest_version: "1.3.0.0",
         launch_events: [],
       },
       {
         id: "smart_alerts",
         manifest_path: "apps/addin/manifest.canary.smart-alerts.production.xml",
-        manifest_sha256: "645dffd9936c5cd8258a8f422f684139d2702a49c1700dbea5bd83cfb82c24e1",
-        manifest_version: "1.2.0.1",
+        manifest_sha256: "8ecd85da962b632d8fa69182fffb5a4b5dd526dd51896e7d37428cd87dd38d51",
+        manifest_version: "1.3.0.1",
         launch_events: ["OnMessageSend:onMessageSendHandler:PromptUser"],
       },
     ],
     rollback_manifest: {
       manifest_path: "apps/addin/manifest.canary.rollback.production.xml",
-      manifest_sha256: "c899bf595fd9ddc79329e391b19d7db2c9addc0ab413cebf8cc3780d534bb5b3",
-      manifest_version: "1.2.0.2",
+      manifest_sha256: "57359b429af519d2dbec28230e73445e3898d47ced4c1e7add1eb68733c68ad9",
+      manifest_version: "1.3.0.2",
       launch_events: [],
     },
     canary_user_count: 1,
@@ -136,7 +137,7 @@ test("taskpane-only stage rejects hidden Smart Alerts or event runtime capabilit
   const smartAlerts = (await readFile(
     path.join(repoRoot, "apps/addin/manifest.canary.smart-alerts.production.xml"),
     "utf8",
-  )).replace("<Version>1.2.0.1</Version>", "<Version>1.2.0.0</Version>");
+  )).replace("<Version>1.3.0.1</Version>", "<Version>1.3.0.0</Version>");
   const mutated = changedContract((value) => {
     bindFile(value, "apps/addin/manifest.canary.taskpane.production.xml", smartAlerts);
   });
@@ -150,23 +151,82 @@ test("taskpane-only stage rejects hidden Smart Alerts or event runtime capabilit
   );
 });
 
-test("taskpane-only stage rejects schema-valid SupportsPinning after contract reseal", async () => {
-  const manifestPath = "apps/addin/manifest.canary.taskpane.production.xml";
-  const taskpane = await readFile(path.join(repoRoot, manifestPath), "utf8");
-  const withPinning = taskpane.replace(
-    "                      <SourceLocation resid=\"Taskpane.Url\" />",
-    "                      <SourceLocation resid=\"Taskpane.Url\" />\n                      <SupportsPinning>true</SupportsPinning>",
-  );
-  assert.notEqual(withPinning, taskpane);
-  const mutated = changedContract((value) => bindFile(value, manifestPath, withPinning));
-  await assert.rejects(
-    validateOutlookM365CanaryManifestSet({
-      repoRoot,
-      contractOverride: mutated,
-      fileOverrides: { [manifestPath]: withPinning },
-    }),
-    /semantic capabilities drifted/u,
-  );
+test("only candidate full-product V1.1 read and compose taskpanes support pinning", async () => {
+  const expected = [
+    "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
+    "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true",
+  ];
+  for (const manifestPath of [
+    "apps/addin/manifest.xml",
+    "apps/addin/manifest.production.xml",
+    "apps/addin/manifest.canary.taskpane.production.xml",
+    "apps/addin/manifest.canary.smart-alerts.production.xml",
+  ]) {
+    const manifest = parseOutlookManifest(await readFile(path.join(repoRoot, manifestPath), "utf8"));
+    assert.deepEqual(manifest.supports_pinning, expected, manifestPath);
+  }
+  for (const manifestPath of [
+    "apps/addin/manifest.canary.rollback.production.xml",
+    "apps/addin/manifest.inquiry.xml",
+    "apps/addin/manifest.inquiry.production.xml",
+  ]) {
+    const manifest = parseOutlookManifest(await readFile(path.join(repoRoot, manifestPath), "utf8"));
+    assert.deepEqual(manifest.supports_pinning, [], manifestPath);
+  }
+});
+
+test("pinning and monotonic-version mutations fail closed after contract reseal", async (t) => {
+  const cases = [
+    {
+      name: "pin inquiry V1.0",
+      manifestPath: "apps/addin/manifest.inquiry.production.xml",
+      mutate: (source) => source.replace(
+        "                    <SourceLocation resid=\"Taskpane.Url\" />",
+        "                    <SourceLocation resid=\"Taskpane.Url\" />\n                    <SupportsPinning>true</SupportsPinning>",
+      ),
+      expected: /inquiry-only production pinned taskpanes/u,
+    },
+    {
+      name: "duplicate candidate pin",
+      manifestPath: "apps/addin/manifest.canary.taskpane.production.xml",
+      mutate: (source) => source.replace(
+        "                      <SupportsPinning>true</SupportsPinning>",
+        "                      <SupportsPinning>true</SupportsPinning>\n                      <SupportsPinning>true</SupportsPinning>",
+      ),
+      expected: /pinned taskpanes|semantic capabilities/u,
+    },
+    {
+      name: "reuse 1.2 version",
+      manifestPath: "apps/addin/manifest.canary.taskpane.production.xml",
+      mutate: (source) => source.replace("<Version>1.3.0.0</Version>", "<Version>1.2.0.0</Version>"),
+      expected: /manifest (?:identity|product_id)/u,
+    },
+    {
+      name: "alter ProductId",
+      manifestPath: "apps/addin/manifest.canary.taskpane.production.xml",
+      mutate: (source) => source.replace(
+        "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+        "00000000-0000-0000-0000-000000000000",
+      ),
+      expected: /manifest (?:identity|product_id)/u,
+    },
+  ];
+  for (const { name, manifestPath, mutate, expected } of cases) {
+    await t.test(name, async () => {
+      const source = await readFile(path.join(repoRoot, manifestPath), "utf8");
+      const changed = mutate(source);
+      assert.notEqual(changed, source);
+      const mutated = changedContract((value) => bindFile(value, manifestPath, changed));
+      await assert.rejects(
+        validateOutlookM365CanaryManifestSet({
+          repoRoot,
+          contractOverride: mutated,
+          fileOverrides: { [manifestPath]: changed },
+        }),
+        expected,
+      );
+    });
+  }
 });
 
 test("Smart Alerts cannot precede taskpane, OAuth, assignment-readback, and runtime proofs", async () => {

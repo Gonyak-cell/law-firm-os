@@ -12,13 +12,18 @@ const defaultRepoRoot = path.resolve(path.dirname(scriptPath), "..");
 const defaultContractPath = "contracts/outlook-m365-canary-manifest-set.json";
 const releaseContractPath = "contracts/outlook-addin-release-gates.json";
 const PRODUCT_ID = "8f3cc90d-56dd-4c1c-b9c2-0a1100500101";
-const ARTIFACT_VERSION = "1.1.0.0";
-const PRIOR_KNOWN_MANIFEST_VERSION = "1.1.0.0";
-const TASKPANE_MANIFEST_VERSION = "1.2.0.0";
-const SMART_ALERTS_MANIFEST_VERSION = "1.2.0.1";
-const ROLLBACK_MANIFEST_VERSION = "1.2.0.2";
-const TASKPANE_SEMANTIC_SHA256 = "323542ab35c10cca6053cc166802e0a4a118f1771cb730ac0fa99804453a148d";
-const SMART_ALERTS_SEMANTIC_SHA256 = "5e5ef0fad03c89db802cfb2c4af47916526528dea3896850d79ea7f886b674b0";
+const INQUIRY_PRODUCT_ID = "952431be-51b8-42a2-9bf6-769a15934e85";
+const ARTIFACT_VERSION = "1.3.0.1";
+const PRIOR_KNOWN_MANIFEST_VERSION = "1.2.0.2";
+const TASKPANE_MANIFEST_VERSION = "1.3.0.0";
+const SMART_ALERTS_MANIFEST_VERSION = "1.3.0.1";
+const ROLLBACK_MANIFEST_VERSION = "1.3.0.2";
+const TASKPANE_SEMANTIC_SHA256 = "850786886c41350c5ca8a96f71991b41418baf50a601ec1955cd9543692a5a42";
+const SMART_ALERTS_SEMANTIC_SHA256 = "af51e952ee500380f87577bac5ecda6c6da59542a7f4fb1416b9712ac71aea35";
+const PINNED_V11_TASKPANES = [
+  "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
+  "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true",
+];
 const ORIGIN = "https://d2mthcc8vp3cr2.cloudfront.net";
 const TASKPANE = `${ORIGIN}/addin/index.html`;
 const COMMANDS = `${TASKPANE}?commands=1`;
@@ -26,6 +31,8 @@ const TASKPANE_MANIFEST = "apps/addin/manifest.canary.taskpane.production.xml";
 const SMART_ALERTS_MANIFEST = "apps/addin/manifest.canary.smart-alerts.production.xml";
 const ROLLBACK_MANIFEST = "apps/addin/manifest.canary.rollback.production.xml";
 const CANONICAL_SMART_ALERTS_MANIFEST = "apps/addin/manifest.production.xml";
+const INQUIRY_MANIFEST = "apps/addin/manifest.inquiry.xml";
+const INQUIRY_PRODUCTION_MANIFEST = "apps/addin/manifest.inquiry.production.xml";
 const TRUSTED_EXECUTABLE_SOURCE_ARTIFACT_SHA256 = new Map([
   ["apps/addin/public/oauth-start.html", "8c8726ce00dfb24a7773025defc524b948237344da632ba9d49594191e0bc09e"],
   ["apps/addin/public/oauth-start.js", "59ca7c2645d54903615c125991e4e3b3aadd47b306b5c8b5bc528750e5c5f940"],
@@ -39,6 +46,8 @@ const SOURCE_ARTIFACT_PATHS = [
   SMART_ALERTS_MANIFEST,
   ROLLBACK_MANIFEST,
   CANONICAL_SMART_ALERTS_MANIFEST,
+  INQUIRY_MANIFEST,
+  INQUIRY_PRODUCTION_MANIFEST,
   ...TRUSTED_EXECUTABLE_SOURCE_ARTIFACT_SHA256.keys(),
 ];
 
@@ -169,7 +178,7 @@ function validateStages(contract, hashes) {
         "exact_one_signed_canary_assignment",
         "exact_one_trusted_active_non_revoked_installation",
         "provider_pre_assignment_zero_readback",
-        "provider_manifest_absent_or_version_below_1_2_0_0",
+        "provider_manifest_absent_or_version_below_1_3_0_0",
       ],
     },
     {
@@ -219,13 +228,22 @@ function validateTaskpaneOnlyManifest(manifest, label) {
   ], `${label} extension points`);
   exact(manifest.launch_events, [], `${label} launch events`);
   exact(manifest.semantic_manifest_sha256, TASKPANE_SEMANTIC_SHA256, `${label} semantic capabilities`);
+  exact(manifest.supports_pinning, PINNED_V11_TASKPANES, `${label} pinned taskpanes`);
   exact(manifest.url_resources, [
     `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
     `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
   ], `${label} URLs`);
 }
 
-function validateManifestSemantics(taskpane, smartAlerts, rollback, canonicalSmartAlerts, contract) {
+function validateManifestSemantics(
+  taskpane,
+  smartAlerts,
+  rollback,
+  canonicalSmartAlerts,
+  inquiry,
+  inquiryProduction,
+  contract,
+) {
   const common = [
     "product_id", "provider_name", "display_name", "description", "permission",
     "mailbox_versions", "top_level_hosts", "override_host_types", "version_override_types",
@@ -254,13 +272,24 @@ function validateManifestSemantics(taskpane, smartAlerts, rollback, canonicalSma
   exact(taskpane.app_domains, [ORIGIN], "manifest AppDomains");
   exact(taskpane.form_source_locations, [TASKPANE], "manifest taskpane SourceLocation");
   validateTaskpaneOnlyManifest(taskpane, "taskpane-only");
-  validateTaskpaneOnlyManifest(rollback, "rollback taskpane-only");
+  exact(rollback.extension_points, [
+    "MessageComposeCommandSurface", "MessageComposeCommandSurface",
+    "MessageReadCommandSurface", "MessageReadCommandSurface",
+  ], "rollback taskpane-only extension points");
+  exact(rollback.launch_events, [], "rollback taskpane-only launch events");
+  exact(rollback.semantic_manifest_sha256, "323542ab35c10cca6053cc166802e0a4a118f1771cb730ac0fa99804453a148d", "rollback taskpane-only semantic capabilities");
+  exact(rollback.supports_pinning, [], "rollback pinned taskpanes");
+  exact(rollback.url_resources, [
+    `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
+    `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
+  ], "rollback taskpane-only URLs");
   exact(smartAlerts.extension_points, [
     "LaunchEvent", "MessageComposeCommandSurface", "MessageComposeCommandSurface",
     "MessageReadCommandSurface", "MessageReadCommandSurface",
   ], "Smart Alerts extension points");
   exact(smartAlerts.launch_events, ["OnMessageSend:onMessageSendHandler:PromptUser"], "Smart Alerts launch events");
   exact(smartAlerts.semantic_manifest_sha256, SMART_ALERTS_SEMANTIC_SHA256, "Smart Alerts semantic capabilities");
+  exact(smartAlerts.supports_pinning, PINNED_V11_TASKPANES, "Smart Alerts pinned taskpanes");
   exact(smartAlerts.url_resources, [
     `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
     `JSRuntime.Url=${ORIGIN}/addin/event-runtime.js`,
@@ -271,6 +300,14 @@ function validateManifestSemantics(taskpane, smartAlerts, rollback, canonicalSma
     if (field !== "version") {
       exact(smartAlerts[field], canonicalSmartAlerts[field], `canonical Smart Alerts ${field}`);
     }
+  }
+  for (const [label, manifest] of [["local", inquiry], ["production", inquiryProduction]]) {
+    if (manifest.product_id !== INQUIRY_PRODUCT_ID || manifest.version !== "1.1.0.0") {
+      fail(`inquiry-only ${label} manifest identity drifted`);
+    }
+    exact(manifest.version_override_types, ["VersionOverridesV1_0"], `inquiry-only ${label} VersionOverrides`);
+    exact(manifest.launch_events, [], `inquiry-only ${label} launch events`);
+    exact(manifest.supports_pinning, [], `inquiry-only ${label} pinned taskpanes`);
   }
   exact(contract.stages[0].launch_events, taskpane.launch_events, "taskpane stage event binding");
   exact(contract.stages[1].launch_events, smartAlerts.launch_events, "Smart Alerts stage event binding");
@@ -319,15 +356,27 @@ export async function validateOutlookM365CanaryManifestSet({
   let smartAlerts;
   let rollback;
   let canonicalSmartAlerts;
+  let inquiry;
+  let inquiryProduction;
   try {
     taskpane = parseOutlookManifest((await bytes(repoRoot, TASKPANE_MANIFEST, fileOverrides)).toString("utf8"));
     smartAlerts = parseOutlookManifest((await bytes(repoRoot, SMART_ALERTS_MANIFEST, fileOverrides)).toString("utf8"));
     rollback = parseOutlookManifest((await bytes(repoRoot, ROLLBACK_MANIFEST, fileOverrides)).toString("utf8"));
     canonicalSmartAlerts = parseOutlookManifest((await bytes(repoRoot, CANONICAL_SMART_ALERTS_MANIFEST, fileOverrides)).toString("utf8"));
+    inquiry = parseOutlookManifest((await bytes(repoRoot, INQUIRY_MANIFEST, fileOverrides)).toString("utf8"));
+    inquiryProduction = parseOutlookManifest((await bytes(repoRoot, INQUIRY_PRODUCTION_MANIFEST, fileOverrides)).toString("utf8"));
   } catch (error) {
     fail(`manifest XML is invalid: ${error.message}`);
   }
-  validateManifestSemantics(taskpane, smartAlerts, rollback, canonicalSmartAlerts, contract);
+  validateManifestSemantics(
+    taskpane,
+    smartAlerts,
+    rollback,
+    canonicalSmartAlerts,
+    inquiry,
+    inquiryProduction,
+    contract,
+  );
   await validateReleaseBinding(repoRoot);
   validateCallbackBoundary(contract);
   return {

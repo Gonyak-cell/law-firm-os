@@ -12,7 +12,8 @@ export function validateSurfaceSeparation(surface, baseline, contract) {
     const profile = profiles.get(expected.product_id);
     const baselineProfile = baselineById.get(expected.product_id);
     if (!profile || !baselineProfile) throw new Error(`missing release profile ${expected.product_id}`);
-    if (profile.profile !== expected.profile || profile.permission !== expected.permission) {
+    if (profile.profile !== expected.profile || profile.permission !== expected.permission
+      || profile.candidate_version !== expected.release_version) {
       throw new Error(`${expected.profile} identity or permission drifted`);
     }
   }

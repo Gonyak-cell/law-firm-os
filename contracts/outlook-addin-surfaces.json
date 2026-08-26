@@ -1,11 +1,12 @@
 {
   "schema_version": 3,
   "deployed_baseline_version": "1.0.1.1",
-  "release_candidate_version": "1.1.0.0",
+  "release_candidate_version": "1.3.0.1",
   "profiles": [
     {
       "profile": "matter-full",
       "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "candidate_version": "1.3.0.1",
       "manifests": {
         "local": "apps/addin/manifest.xml",
         "production": "apps/addin/manifest.production.xml"
@@ -34,6 +35,7 @@
         "requested_heights",
         "disable_entity_highlighting",
         "action_types",
+        "supports_pinning",
         "office_tab_ids",
         "group_ids",
         "control_fingerprints",
@@ -60,6 +62,10 @@
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane", "ShowTaskpane", "ShowTaskpane", "ShowTaskpane"],
+        "supports_pinning": [
+          "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
+          "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true"
+        ],
         "office_tab_ids": ["TabDefault", "TabDefault", "TabDefault", "TabDefault"],
         "group_ids": ["msgComposeGroup", "msgComposeGroup", "msgReadGroup", "msgReadGroup"],
         "control_fingerprints": [
@@ -118,7 +124,7 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "03a9ba5f92fda3a03b08705ba3d8e01e431d03324591680efb809fa1972da522",
+          "semantic_manifest_sha256": "27e6cad23f639c92bc1a312ee215a9bfbb763ad74937ecc073e7aecf09306087",
           "url_resources": [
             "Commands.Url=https://localhost:5186/index.html?commands=1",
             "Commands.Url=https://localhost:5186/index.html?commands=1",
@@ -142,7 +148,7 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "5e5ef0fad03c89db802cfb2c4af47916526528dea3896850d79ea7f886b674b0",
+          "semantic_manifest_sha256": "af51e952ee500380f87577bac5ecda6c6da59542a7f4fb1416b9712ac71aea35",
           "url_resources": [
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
@@ -170,6 +176,7 @@
     {
       "profile": "inquiry-only",
       "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "candidate_version": "1.1.0.0",
       "manifests": {
         "local": "apps/addin/manifest.inquiry.xml",
         "production": "apps/addin/manifest.inquiry.production.xml"
@@ -198,6 +205,7 @@
         "requested_heights",
         "disable_entity_highlighting",
         "action_types",
+        "supports_pinning",
         "office_tab_ids",
         "group_ids",
         "control_fingerprints",
@@ -218,6 +226,7 @@
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane"],
+        "supports_pinning": [],
         "office_tab_ids": ["TabDefault"],
         "group_ids": ["clientInquiryGroup"],
         "control_fingerprints": ["Button:clientInquiryOpenPaneButton"],

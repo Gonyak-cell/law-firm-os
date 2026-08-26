@@ -111,7 +111,7 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     assertExactKeys(profile, [
       "mailbox_min_version", "manifest_sha256", "permission", "product_id", "profile", "version",
     ], `${expected.profile} release candidate manifest profile`);
-    if (profile.profile !== expected.profile || profile.version !== contract.release_version
+    if (profile.profile !== expected.profile || profile.version !== expected.release_version
       || profile.permission !== expected.permission || profile.mailbox_min_version !== expected.mailbox_min_version
       || profile.manifest_sha256 !== manifestByPath.get(expected.production_manifest)?.sha256) {
       throw new Error(`${expected.profile} manifest profile binding drifted`);

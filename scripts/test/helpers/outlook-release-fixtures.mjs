@@ -114,7 +114,7 @@ export function releaseCandidate(
       }),
     },
     profiles: contract.profiles.map((profile) => ({
-      profile: profile.profile, product_id: profile.product_id, version: contract.release_version,
+      profile: profile.profile, product_id: profile.product_id, version: profile.release_version,
       permission: profile.permission, mailbox_min_version: profile.mailbox_min_version,
       manifest_sha256: candidateManifestHashes[profile.profile],
     })),

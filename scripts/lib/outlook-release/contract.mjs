@@ -10,7 +10,7 @@ import { assertEqual, canonical, sorted } from "./primitives.mjs";
 
 export function validateReleaseContract(contract) {
   if (contract?.schema_version !== 2) throw new Error("Outlook release gate schema_version must be 2");
-  if (contract.release_version !== "1.1.0.0" || contract.rollback_version !== "1.0.1.1") {
+  if (contract.release_version !== "1.3.0.1" || contract.rollback_version !== "1.0.1.1") {
     throw new Error("Outlook release and rollback versions drifted");
   }
   const profiles = contract.profiles ?? [];
@@ -21,6 +21,7 @@ export function validateReleaseContract(contract) {
     const expected = PROFILE_CONTRACTS[profile.product_id];
     if (!expected || profile.profile !== expected.profile
       || profile.mailbox_min_version !== expected.mailbox_min_version
+      || profile.release_version !== expected.release_version
       || profile.production_manifest !== expected.production_manifest
       || profile.taskpane_html !== expected.taskpane_html) {
       throw new Error(`release profile identity/path mapping drifted: ${profile.product_id}`);

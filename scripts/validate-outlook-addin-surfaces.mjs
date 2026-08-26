@@ -57,7 +57,7 @@ function validateProjection({ profile, environment, projection, contract, mode }
   assertEqual(projection.product_id, profile.product_id, `${prefix} product_id`);
   assertEqual(
     projection.version,
-    mode === "candidate" ? contract.release_candidate_version : contract.deployed_baseline_version,
+    mode === "candidate" ? profile.candidate_version : contract.deployed_baseline_version,
     `${prefix} version`,
   );
   assertEqual(projection.provider_name, profile.provider_name, `${prefix} provider_name`);
