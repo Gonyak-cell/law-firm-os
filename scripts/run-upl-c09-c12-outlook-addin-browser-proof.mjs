@@ -18,10 +18,10 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { chromium } from "playwright";
 import {
+  createApiServer,
   createDefaultDmsRuntime,
   createDefaultMatterRuntime,
   createDefaultCrmIntakeRuntime,
-  startApiServer,
 } from "../apps/api/src/server.js";
 import { createFinanceRuntimeContext } from "../apps/api/src/finance-runtime-context.js";
 import { outlookAddinProofSnapshot } from "../apps/api/src/outlook-addin-runtime-context.js";
@@ -47,6 +47,7 @@ import { IDENTITY_LEDGER_CONTRACT_VERSION, IDENTITY_LEDGER_METHODS } from "../pa
 import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
 import { parseOutlookManifest } from "./lib/outlook-manifest-projection.mjs";
 import { readyOutlookReadinessResponse } from "../apps/addin/test/helpers/outlook-readiness-fixture.js";
+import { createTrustedOutlookInstallationTestAuthority } from "../apps/api/test/helpers/outlook-trusted-installation-runtime.js";
 
 const ROOT = process.cwd();
 const ARTIFACT_DIR = "docs/lazycodex/evidence/matter-web/artifacts";
@@ -515,6 +516,18 @@ function createProofRuntime() {
     dmsRuntime,
   });
   const auth = createSessionAuthFixture();
+  const installationAuthority = createTrustedOutlookInstallationTestAuthority([
+    {
+      tenant_id: TENANT,
+      user_id: ACTOR,
+      entra_subject_id: ENTRA_SUBJECT,
+    },
+    {
+      tenant_id: TENANT,
+      user_id: SESSION_B_ACCOUNT.user_id,
+      entra_subject_id: "entra_upl_c09_c12_browser_proof_b",
+    },
+  ]);
   const runtime = {
     matterRuntime,
     dmsRuntime,
@@ -528,7 +541,8 @@ function createProofRuntime() {
     m365GraphConfig,
     attachmentReceiptAuthority,
     financeRuntime,
-    sessionAuth: auth.sessionAuth,
+    outlookDesktopRuntime: installationAuthority.runtime,
+    sessionAuth: installationAuthority.wrapSessionAuth(auth.sessionAuth),
     foreignSessionAuth: auth.foreignSessionAuth,
   };
   return {
@@ -931,7 +945,12 @@ async function installApiFixture(page, apiBase, state) {
     if (pathname === "/api/outlook/readiness") {
       requestEntry.status = 200;
       requestEntry.server_authorization_token_sha256 = requestEntry.authorization_token_sha256;
-      await route.fulfill(jsonResponse(readyOutlookReadinessResponse()));
+      await route.fulfill(jsonResponse(readyOutlookReadinessResponse({
+        principalRef: state.readinessPrincipalRefs?.[
+          requestEntry.authorization_token_sha256
+        ],
+        delegatedConnectionStateVersion: 1,
+      })));
       notifyNodeConditionWaiters();
       return;
     }
@@ -1239,22 +1258,21 @@ async function runSessionFenceProbe(page, apiBase, pageSessionToken, state) {
   await page.locator("#task-draft-title").fill("late session fence task");
   await page.locator("[data-testid='create-task-button']").click();
   await waitForNodeCondition(page, () => state.heldTaskRoutes >= 1, "held task write");
+  const staleTokenHash = sha256Text(pageSessionToken);
   const logout = await signedJsonFetch(apiBase, "/api/auth/logout", {
     sessionToken: pageSessionToken,
     body: {},
   });
-  const staleTokenHash = sha256Text(pageSessionToken);
-  await page.evaluate(() => {
-    window.dispatchEvent(new Event("lawos:office-ready"));
-  });
+  const staleSessionValidationCountBefore401 = state.apiRequests.filter((request) => (
+    request.pathname === "/api/auth/session"
+    && request.authorization_token_sha256 === staleTokenHash
+  )).length;
+  state.holdTask = false;
+  await releaseHeldRoutes(state.taskReleases);
   await waitForNodeCondition(
     page,
-    () => state.apiRequests.some((request) => (
-      request.pathname === "/api/auth/session"
-      && request.status === 401
-      && request.authorization_token_sha256 === staleTokenHash
-    )),
-    "revoked A signed-session validation",
+    () => state.sessionFenceResponse?.status === 401,
+    "revoked stale task rejection",
   );
   await page.waitForSelector("[data-testid='lawos-login-button']", { state: "visible", timeout: 8_000 });
   const exchangeRequest = page.waitForRequest(
@@ -1274,9 +1292,6 @@ async function runSessionFenceProbe(page, apiBase, pageSessionToken, state) {
     "interactive B signed-session validation",
     15_000,
   );
-  state.holdTask = false;
-  await releaseHeldRoutes(state.taskReleases);
-  await waitForNodeCondition(page, () => state.sessionFenceResponse?.status === 401, "revoked stale task rejection");
   const currentSessionStatus = await page.evaluate(async () => {
     const token = await window.OfficeRuntime?.storage?.getItem?.("lawos_addin_session_token");
     const response = await fetch("/api/auth/session", {
@@ -1290,11 +1305,21 @@ async function runSessionFenceProbe(page, apiBase, pageSessionToken, state) {
     { timeout: 8_000 },
   );
   const bodyText = await page.locator("body").innerText();
+  const staleSessionValidations = state.apiRequests.filter((request) => (
+    request.pathname === "/api/auth/session"
+    && request.authorization_token_sha256 === staleTokenHash
+  ));
+  const revokedSessionValidations = staleSessionValidations.slice(
+    staleSessionValidationCountBefore401,
+  );
   return {
     held_requests: state.heldTaskRoutes,
     logout_status: logout.status,
     stale_session_token_hash: staleTokenHash,
-    revoked_session_status: state.apiRequests.findLast((request) => request.pathname === "/api/auth/session" && request.authorization_token_sha256 === staleTokenHash)?.status ?? null,
+    revoked_session_status: revokedSessionValidations.at(-1)?.status ?? null,
+    revoked_session_validation_count: revokedSessionValidations.length,
+    stale_session_validation_count_before_401: staleSessionValidationCountBefore401,
+    login_visible_after_protected_401: true,
     interactive_exchange_observed: state.apiRequests.some((request) => request.pathname === "/api/auth/office-sso/exchange" && request.method === "POST" && request.status === 200),
     current_session_token_hash: state.apiRequests.findLast((request) => request.pathname === "/api/auth/session" && request.status === 200)?.authorization_token_sha256 ?? null,
     revoked_task_status: state.sessionFenceResponse?.status ?? null,
@@ -1514,6 +1539,18 @@ function sameStringSet(left, right) {
   return left.size === right.size && [...left].every((value) => right.has(value));
 }
 
+function startProofApiServer(options) {
+  const server = createApiServer(options);
+  return new Promise((resolvePromise, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => resolvePromise({
+      server,
+      host: "127.0.0.1",
+      port: server.address().port,
+    }));
+  });
+}
+
 function removeProofStorageRoot(proof) {
   const storageTempRootPath = proof?.storageTempRootPath;
   if (
@@ -1537,8 +1574,7 @@ execFileSync("npm", ["--workspace", "apps/addin", "run", "build"], { cwd: ROOT, 
 
 const proofStorageRootsBefore = listProofStorageRoots();
 const proof = createProofRuntime();
-const api = await startApiServer({
-  port: 0,
+const api = await startProofApiServer({
   matterRuntime: proof.matterRuntime,
   dmsRuntime: proof.dmsRuntime,
   emailDmsRuntime: proof.runtime.emailDmsRuntime,
@@ -1546,6 +1582,7 @@ const api = await startApiServer({
   financeRuntime: proof.runtime.financeRuntime,
   m365GraphConfig: proof.runtime.m365GraphConfig,
   sessionAuth: proof.runtime.sessionAuth,
+  outlookDesktopRuntime: proof.runtime.outlookDesktopRuntime,
   outlookAttachmentReceiptAuthority: proof.attachmentReceiptAuthority,
 });
 const web = await startOutlookAddinStaticServer({ distRoot: resolve(ROOT, "apps/addin/dist") });
@@ -1573,6 +1610,7 @@ const state = {
   sessionValidationRequests: 0,
   matterFenceToken: null,
   matterFenceUsed: false,
+  readinessPrincipalRefs: {},
 };
 let checks = [];
 try {
@@ -1580,6 +1618,13 @@ try {
   const signedSession = await officeSsoLogin(apiBase, "upl-c09-c12-office-access-a");
   const sessionB = await officeSsoLogin(apiBase, "upl-c09-c12-office-access-b");
   const foreignSession = await officeSsoLoginWithAuth(proof.runtime.foreignSessionAuth, "upl-c09-c12-office-access-foreign");
+  state.readinessPrincipalRefs = Object.fromEntries([
+    signedSession,
+    sessionB,
+  ].map((session) => [
+    sha256Text(session.session_token),
+    session.session.outlook_desktop_principal_ref,
+  ]));
   page = await browser.newPage({ viewport: { width: 390, height: 860 } });
   await installOfficeFixture(page, signedSession.session_token);
   await installApiFixture(page, apiBase, state);
@@ -1719,7 +1764,7 @@ try {
     passed("c12-on-message-send-handler-warning-only", fullProbe.handlerProbe?.probe?.last_send_handler_result?.send_blocked === false && fullProbe.handlerProbe?.probe?.last_send_handler_result?.provider_runtime_executed === false),
     passed("c12-item-fence-suppresses-late-response", itemFenceProbe.held_requests >= 2 && itemFenceProbe.overlay_closed_after_item_change && itemFenceProbe.stale_body_visible === false),
     passed("c12-matter-fence-rejects-stale-selection", matterFenceProbe.stale_matter_revalidation_blocked && matterFenceProbe.task_post_count_delta === 0 && matterFenceProbe.error_visible),
-    passed("c12-session-fence-suppresses-late-write", sessionFenceProbe.held_requests >= 1 && sessionFenceProbe.logout_status === 200 && sessionFenceProbe.revoked_session_status === 401 && sessionFenceProbe.interactive_exchange_observed === true && sessionFenceProbe.stale_session_token_hash !== sessionFenceProbe.current_session_token_hash && sessionFenceProbe.revoked_task_status === 401 && sessionFenceProbe.current_session_status === 200 && sessionFenceProbe.late_result_visible === false && sessionFenceProbe.late_task_persisted === false),
+    passed("c12-session-fence-suppresses-late-write", sessionFenceProbe.held_requests >= 1 && sessionFenceProbe.logout_status === 200 && sessionFenceProbe.revoked_task_status === 401 && sessionFenceProbe.login_visible_after_protected_401 === true && sessionFenceProbe.revoked_session_status === null && sessionFenceProbe.revoked_session_validation_count === 0 && sessionFenceProbe.interactive_exchange_observed === true && sessionFenceProbe.stale_session_token_hash !== sessionFenceProbe.current_session_token_hash && sessionFenceProbe.current_session_status === 200 && sessionFenceProbe.late_result_visible === false && sessionFenceProbe.late_task_persisted === false),
     passed("c12-no-stale-catalog-actions", fullProbe.catalogProbe.staleCatalogActions.length === 0),
   ];
 
@@ -1783,6 +1828,9 @@ try {
     api_base: apiBase,
     taskpane_url: `${web.origin}/addin/`,
     inquiry_url: `${web.origin}/outlook-addin/`,
+    actual_outlook_proved: false,
+    actual_windows_new_outlook_proved: false,
+    actual_outlook_for_mac_proved: false,
     e04_local_receipt: E04_JSON_PATH,
     screenshot_path: SCREENSHOT_PATH,
     inquiry_screenshot_path: INQUIRY_SCREENSHOT_PATH,

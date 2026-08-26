@@ -327,6 +327,7 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   });
   const before = service.getConnectionStatus(principal());
   assert.equal(before.connection.status, "not_connected");
+  assert.equal(before.connection.mailbox_address_hash, null);
   assert.equal(before.connection.credential_cleanup_pending, false);
   assert.equal(before.release_readiness.status, "blocked");
   assert.equal(before.automatic_mailbox_scan_enabled, false);
@@ -366,6 +367,11 @@ test("CL-P3-W00-T01 delegated 연결과 Mail·Calendar port는 본인 /me만 사
   assert.equal(completed.outcome, "connected");
   assert.equal(completed.connection.status, "connected");
   assert.equal(completed.connection.state_version, 1);
+  assert.equal(
+    completed.connection.mailbox_address_hash,
+    hashMailboxAddress("synthetic.m365.user@example.invalid"),
+  );
+  assert.equal(Object.hasOwn(completed.connection, "mailbox_address"), false);
 
   const completedAttempt = service.getAuthorizationAttemptStatus({
     ...principal(),

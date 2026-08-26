@@ -127,6 +127,60 @@ test("connection response parser requires active true for connected status", () 
   assert.equal(isOutlookConnectionDisconnected(parsed), false);
 });
 
+test("connection response parser exposes only a canonical mailbox digest", () => {
+  const mailboxAddressHash = "a".repeat(64);
+  const parsed = parseOutlookConnectionRecord({
+    item: {
+      connection: {
+        status: "connected",
+        active: true,
+        connection_id: CONNECTION_ID,
+        state_version: 2,
+        mailbox_address_hash: mailboxAddressHash,
+      },
+    },
+  });
+  assert.equal(parsed.mailboxAddressHash, mailboxAddressHash);
+  assert.equal(parsed.mailboxAddress, null);
+  for (const invalid of ["", "A".repeat(64), "a".repeat(63), 42]) {
+    assert.throws(
+      () => parseOutlookConnectionRecord({
+        item: {
+          connection: {
+            status: "connected",
+            active: true,
+            connection_id: CONNECTION_ID,
+            state_version: 2,
+            mailbox_address_hash: invalid,
+          },
+        },
+      }),
+      (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+    );
+  }
+});
+
+test("connection response parser rejects a mailbox digest accessor without executing it", () => {
+  let reads = 0;
+  const record = {
+    status: "connected",
+    active: true,
+    connection_id: CONNECTION_ID,
+    state_version: 2,
+  };
+  Object.defineProperty(record, "mailbox_address_hash", {
+    get() {
+      reads += 1;
+      return "a".repeat(64);
+    },
+  });
+  assert.throws(
+    () => parseOutlookConnectionRecord({ item: { connection: record } }),
+    (error) => error.safe_error_code === "API_RESPONSE_INVALID",
+  );
+  assert.equal(reads, 0);
+});
+
 test("connection response parser retains only the canonical wrapped connection_id", () => {
   const parsed = parseOutlookConnectionRecord({
     request_id: "connection-readback",

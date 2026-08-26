@@ -69,6 +69,12 @@ function currentOfficeMailboxAddress(host) {
   }
 }
 
+function normalizeOfficeMailboxAddress(value) {
+  return typeof value === "string"
+    ? value.trim().normalize("NFKC").toLowerCase()
+    : "";
+}
+
 export function waitForOutlookStartupMailbox({ host = globalThis, waitForReady, readyEvent } = {}) {
   if (officeMailboxPromise) return officeMailboxPromise;
   officeMailboxPromise = new Promise((resolve) => {
@@ -224,6 +230,20 @@ async function execute({
       return invalidate(classification);
     }
 
+    let officeMailboxAddressHash;
+    try {
+      const normalizedMailboxAddress = normalizeOfficeMailboxAddress(
+        resolvedOfficeMailboxAddress,
+      );
+      officeMailboxAddressHash = normalizedMailboxAddress
+        ? await sha256(normalizedMailboxAddress, cryptoImpl)
+        : null;
+    } catch (error) {
+      const classification = classificationForError(error, true);
+      interactionEligible = shouldAcquireInteractively(classification);
+      return invalidate(classification);
+    }
+
     let connectionBody;
     let readinessBody;
     try {
@@ -243,6 +263,7 @@ async function execute({
       connectionBody,
       readinessBody,
       officeMailboxAddress: resolvedOfficeMailboxAddress,
+      officeMailboxAddressHash,
     });
     if (authority.state !== "ready") return invalidate(authority);
     const prepared = await coordinator.prepare(authority.binding);

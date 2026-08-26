@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 import { readyOutlookReadinessResponse } from "./helpers/outlook-readiness-fixture.js";
@@ -11,6 +12,37 @@ import {
   storage,
   subject,
 } from "./helpers/outlook-startup-runtime-fixture.js";
+
+const MAILBOX_HASH = createHash("sha256")
+  .update("qa@example.invalid")
+  .digest("hex");
+
+test("hash-only delegated mailbox binding reaches READY without exposing the address", async () => {
+  const fixture = startupFixture({
+    connection: connectionResponse({
+      mailbox_address: undefined,
+      mailbox_address_hash: MAILBOX_HASH,
+    }),
+  });
+  const runtime = await subject();
+  const result = await runtime.startOutlookStartup(fixture.input);
+  assert.deepEqual([result.state, result.reason], ["ready", null]);
+  assert.equal(result.connection.mailboxAddress, null);
+  assert.equal(result.connection.mailboxAddressHash, MAILBOX_HASH);
+});
+
+test("hash-only delegated mailbox mismatch fails closed before bootstrap", async () => {
+  const fixture = startupFixture({
+    connection: connectionResponse({
+      mailbox_address: undefined,
+      mailbox_address_hash: "b".repeat(64),
+    }),
+  });
+  const runtime = await subject();
+  const result = await runtime.startOutlookStartup(fixture.input);
+  assert.deepEqual([result.state, result.reason], ["revoked", "account_mismatch"]);
+  assert.equal(fixture.events.includes("/api/outlook/bootstrap"), false);
+});
 
 for (const mismatch of [
   {

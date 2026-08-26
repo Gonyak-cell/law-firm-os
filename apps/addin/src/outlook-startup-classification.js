@@ -3,6 +3,7 @@ import { parseOutlookConnectionRecord } from "./outlook-connection-actions.js";
 import { parseOutlookStartupBinding, presentOutlookReadiness } from "./outlook-readiness-status.js";
 
 const PRINCIPAL_REF = /^odpr_[A-Za-z0-9_-]{43}$/u;
+const MAILBOX_ADDRESS_HASH = /^[a-f0-9]{64}$/u;
 const SEALED_BUILD = /^addin@[A-Za-z0-9._-]{1,128}$/u;
 const INVALID_SNAPSHOT = Symbol("invalid-outlook-startup-snapshot");
 const SNAPSHOT_MAX_DEPTH = 8;
@@ -10,7 +11,7 @@ const SNAPSHOT_MAX_KEYS = 256;
 
 const text = (value) => typeof value === "string" ? value.trim() : "";
 const exactIdentity = (value) => typeof value === "string" && value !== "" && value === value.trim();
-const mailbox = (value) => text(value).toLowerCase();
+const mailbox = (value) => text(value).normalize("NFKC").toLowerCase();
 const outcome = (state, reason, extra = {}) => Object.freeze({ state, reason, ...extra });
 
 function snapshotData(value, depth = 0, budget = { keys: 0 }) {
@@ -117,6 +118,7 @@ export function classifyOutlookStartupAuthority({
   connectionBody,
   readinessBody,
   officeMailboxAddress,
+  officeMailboxAddressHash,
 } = {}) {
   const connectionSnapshot = snapshotOutlookStartupObject(connectionBody);
   const readinessSnapshot = snapshotOutlookStartupObject(readinessBody);
@@ -139,10 +141,16 @@ export function classifyOutlookStartupAuthority({
       presentation,
     });
   }
-  if (
-    !mailbox(officeMailboxAddress)
-    || mailbox(connection.mailboxAddress) !== mailbox(officeMailboxAddress)
-  ) {
+  const normalizedOfficeMailboxAddress = mailbox(officeMailboxAddress);
+  const hasMailboxAddressHash = MAILBOX_ADDRESS_HASH.test(
+    connection.mailboxAddressHash ?? "",
+  );
+  const mailboxMatches = normalizedOfficeMailboxAddress && (
+    hasMailboxAddressHash
+      ? connection.mailboxAddressHash === officeMailboxAddressHash
+      : mailbox(connection.mailboxAddress) === normalizedOfficeMailboxAddress
+  );
+  if (!mailboxMatches) {
     return outcome("revoked", "account_mismatch", {
       authenticated: true,
       connection: frozenConnection,
@@ -172,7 +180,7 @@ export function classifyOutlookStartupAuthority({
     presentation,
     binding: Object.freeze({
       ...identity,
-      mailbox_address: mailbox(officeMailboxAddress),
+      mailbox_address: normalizedOfficeMailboxAddress,
       ...projected,
     }),
   });
