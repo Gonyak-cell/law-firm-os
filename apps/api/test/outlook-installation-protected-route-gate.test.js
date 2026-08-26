@@ -223,7 +223,7 @@ function context({ allowed = true } = {}) {
   });
 }
 
-test("the common guard re-reads trusted current installation for every protected request", async () => {
+test("the common guard re-reads state-version, lease, and revoke authority for every protected request", async () => {
   let current = trustedInstallation();
   let reads = 0;
   const outlookDesktopRuntime = runtime(async ({ principal }) => {
@@ -246,6 +246,15 @@ test("the common guard re-reads trusted current installation for every protected
   const allowed = await authorizeOutlookInstallationProtectedRoute(input);
   assert.equal(allowed.allowed, true);
   assert.equal(allowed.installation.installation_id, INSTALLATION);
+  assert.equal(allowed.installation.state_version, 7);
+
+  current = trustedInstallation({ state_version: 8 });
+  const renewed = await authorizeOutlookInstallationProtectedRoute(input);
+  assert.equal(renewed.allowed, true);
+  assert.equal(renewed.installation.state_version, 8);
+
+  // The trusted-current authority returns null after lease expiry, retirement,
+  // or release revocation. The very next protected request must fail closed.
   current = null;
   const revoked = await authorizeOutlookInstallationProtectedRoute(input);
   assert.equal(revoked.allowed, false);
@@ -254,7 +263,7 @@ test("the common guard re-reads trusted current installation for every protected
     revoked.safe_error_code,
     OUTLOOK_INSTALLATION_GUARD_ERROR_CODES.trustedInstallationRequired,
   );
-  assert.equal(reads, 2);
+  assert.equal(reads, 3);
 });
 
 test("the common guard fails closed without runtime, entitlement, or a strict trusted projection", async () => {
@@ -471,11 +480,12 @@ test("HTTP dispatch blocks domain work before install authority and still rechec
   assert.equal(installationReads, 4);
 });
 
-test("every generic and separate protected dispatch is denied before body parsing after revocation", async () => {
+test("active authority then revoke denies every protected read and write before body or domain dispatch", async () => {
   let installationReads = 0;
+  let current = trustedInstallation();
   const revokedRuntime = runtime(async () => {
     installationReads += 1;
-    return null;
+    return current;
   });
   const sessionAuth = {
     capabilities: {},
@@ -488,16 +498,20 @@ test("every generic and separate protected dispatch is denied before body parsin
       };
     },
   };
-  const protectedRequests = [
-    ["GET", "/api/outlook/conversation-policies"],
-    ["POST", "/api/outlook/conversation-policies"],
-    ["GET", "/api/outlook/precedents"],
-    ["GET", "/api/outlook/inquiries/evidence/evidence-guard/content"],
-    ["POST", "/api/outlook/operation-receipts/readback"],
-    ["POST", "/api/outlook/documents/draft-guard/publish"],
-    ["POST", "/api/outlook/esign-requests/request-guard/send"],
-    ["POST", "/api/outlook/email/file"],
-  ];
+  const protectedRequests = EXPECTED
+    .filter(([, , classification]) => [R, O].includes(classification))
+    .map(([method, template]) => [method, samplePath(template, "guard")]);
+  assert.equal(protectedRequests.length, 31);
+
+  const ready = await authorizeOutlookInstallationProtectedRoute({
+    method: "POST",
+    pathname: "/api/outlook/email/file",
+    principal: PRINCIPAL,
+    context: context(),
+    runtime: revokedRuntime,
+  });
+  assert.equal(ready.allowed, true);
+  current = null;
 
   await withServer({
     outlookDesktopRuntime: revokedRuntime,
@@ -537,5 +551,5 @@ test("every generic and separate protected dispatch is denied before body parsin
       [OUTLOOK_INSTALLATION_GUARD_ERROR_CODES.trustedInstallationRequired],
     );
   });
-  assert.equal(installationReads, protectedRequests.length);
+  assert.equal(installationReads, protectedRequests.length + 1);
 });

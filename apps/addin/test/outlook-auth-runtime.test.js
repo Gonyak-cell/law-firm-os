@@ -167,11 +167,13 @@ test("a non-interaction NAA failure stays transient and never calls acquireToken
   assert.equal(popupCount, 0);
 });
 
-test("one business-action 401 performs at most one silent recovery and never replays the action body", async () => {
+test("one business-action 401 retries one HTTP request with the exact idempotency key and never reruns the action", async () => {
   let storedToken = "lawos_session_v1.initial-action";
   let recoveryCount = 0;
   let requestCount = 0;
   let actionCount = 0;
+  const requests = [];
+  const idempotencyKey = "outlook-inquiry:todo18-one-recovery";
   const office = mailbox(item("office-one-recovery", "one recovery"));
   const runtime = createOutlookTaskPaneRuntime({
     Office: office,
@@ -196,10 +198,19 @@ test("one business-action 401 performs at most one silent recovery and never rep
     },
     actionHandler: async ({ requestJson }) => {
       actionCount += 1;
-      return requestJson("/api/outlook/inquiries", { method: "POST" });
+      return requestJson("/api/outlook/inquiries", {
+        method: "POST",
+        body: { idempotency_key: idempotencyKey },
+      });
     },
-    requestJson: async () => {
+    requestJson: async (path, options) => {
       requestCount += 1;
+      requests.push({
+        path,
+        method: options.method,
+        body: { ...options.body },
+        retryAfterUnauthorized: options.retryAfterUnauthorized,
+      });
       throw Object.assign(new Error("AUTH_SESSION_INVALID"), {
         status: 401,
         safe_error_code: "AUTH_SESSION_INVALID",
@@ -214,6 +225,20 @@ test("one business-action 401 performs at most one silent recovery and never rep
     requestCount: 2,
     actionCount: 1,
   });
+  assert.deepEqual(requests, [
+    {
+      path: "/api/outlook/inquiries",
+      method: "POST",
+      body: { idempotency_key: idempotencyKey },
+      retryAfterUnauthorized: undefined,
+    },
+    {
+      path: "/api/outlook/inquiries",
+      method: "POST",
+      body: { idempotency_key: idempotencyKey },
+      retryAfterUnauthorized: false,
+    },
+  ]);
   assert.equal(runtime.getState().authState, AUTH_STATE.loginRequired);
   runtime.dispose();
 });
