@@ -1018,6 +1018,7 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [graphConnection, setGraphConnection] = useState({ state: GRAPH_STATE.loading, status: "loading", stateVersion: 0, missingScopes: [] });
   const [outlookReadiness, setOutlookReadiness] = useState(null);
+  const [outlookStartupOutcome, setOutlookStartupOutcome] = useState(null);
   const [matters, setMatters] = useState([]);
   const [matterSearchQuery, setMatterSearchQuery] = useState("");
   const matterSearchDebouncerRef = useRef(null);
@@ -2321,6 +2322,10 @@ function App() {
     void refreshOutlookReadiness();
   }
 
+  function retryOutlookStartup() {
+    window.location.reload();
+  }
+
   useEffect(() => {
     const handleLateOfficeReady = () => setOfficeReadyEpoch((current) => current + 1);
     window.addEventListener(OFFICE_READY_EVENT, handleLateOfficeReady);
@@ -2402,6 +2407,7 @@ function App() {
         const recoveryOwner = beginSessionBoundary(false, requestOwner);
         if (!recoveryOwner) return null;
         startupOwner = recoveryOwner;
+        setOutlookStartupOutcome({ state: "login_required", reason: "no_credential" });
         setAuthState(AUTH_STATE.loginRequired);
         setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
         setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
@@ -2414,6 +2420,7 @@ function App() {
         if (!authenticatedOwner) return false;
         clearBusinessView();
         clearCompletedReceiptArchive();
+        setOutlookStartupOutcome(null);
         setAuthState(AUTH_STATE.authenticated);
         setAuthError("");
         const recoveryReadFence = captureBusinessRead();
@@ -2425,6 +2432,7 @@ function App() {
     });
     const applyStartup = (result) => {
       if (!active || !authOwnerFence.isCurrent(startupOwner)) return;
+      setOutlookStartupOutcome({ state: result.state, reason: result.reason });
       if (result.authenticated !== true) {
         beginSessionBoundary(false);
         setAuthState(AUTH_STATE.loginRequired);
@@ -2485,6 +2493,7 @@ function App() {
       if (!active || !authOwnerFence.isCurrent(startupOwner)) return;
       beginSessionBoundary(false);
       clearBusinessView();
+      setOutlookStartupOutcome({ state: "deferred", reason: "transient_failure" });
       setAuthState(AUTH_STATE.loginRequired);
       setAuthError(actionErrorMessage(nextError));
     });
@@ -2509,6 +2518,7 @@ function App() {
       if (!beginSessionBoundary(true, signInOwner)) return;
       clearCompletedReceiptArchive();
       clearEditorContexts();
+      setOutlookStartupOutcome(null);
       setAuthState(AUTH_STATE.authenticated);
       const signInReadFence = captureBusinessRead();
       try {
@@ -2582,6 +2592,7 @@ function App() {
         },
       });
       await refreshGraphConnection();
+      setOutlookStartupOutcome(null);
     } catch (nextError) {
       if (!isBusinessReadCurrent(connectionReadFence)) return;
       if (previousGraphState !== GRAPH_STATE.connected && nextError?.graph_connection_state !== GRAPH_STATE.connected) {
@@ -3267,6 +3278,55 @@ function App() {
       testId: "business-gate",
     };
   } else if (
+    outlookStartupOutcome?.state === "revoked"
+    && outlookStartupOutcome.reason === "installation_revoked"
+  ) {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "이 PC의 AMIC OS 설치를 확인할 수 없습니다.",
+      fullMessage: "AMIC OS 설치가 활성 상태인지 확인한 뒤 다시 시도해 주세요.",
+      testId: "business-gate",
+      action: retryOutlookStartup,
+      actionLabel: "설치 상태 다시 확인",
+      actionTestId: "outlook-installation-retry-button",
+    };
+  } else if (outlookStartupOutcome?.state === "revoked") {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "Outlook 계정이 AMIC OS 계정과 일치하지 않습니다.",
+      fullMessage: "현재 Outlook 계정과 같은 계정으로 AMIC OS에 다시 로그인해 주세요.",
+      testId: "business-gate",
+      action: signIn,
+      actionLabel: "다시 로그인",
+      actionTestId: "outlook-account-relogin-button",
+    };
+  } else if (outlookStartupOutcome?.state === "deferred") {
+    intervention = {
+      status: online
+        ? OUTLOOK_OPERATION_STATES.reconnectRequired
+        : OUTLOOK_OPERATION_STATES.offline,
+      visibleMessage: online
+        ? "Outlook 준비 상태를 확인하지 못했습니다."
+        : "네트워크에 연결되어 있지 않습니다.",
+      fullMessage: online
+        ? "잠시 후 준비 상태를 다시 확인해 주세요."
+        : "네트워크 연결을 복구한 뒤 준비 상태를 다시 확인해 주세요.",
+      testId: "business-gate",
+      action: retryOutlookStartup,
+      actionLabel: "다시 확인",
+      actionTestId: "outlook-startup-retry-button",
+    };
+  } else if (outlookStartupOutcome?.state === "connection_required") {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "Outlook 연결이 필요합니다.",
+      fullMessage: "Microsoft 계정을 Outlook에 연결한 뒤 다시 시도해 주세요.",
+      testId: "business-gate",
+      action: connectOutlook,
+      actionLabel: "Outlook 연결",
+      actionTestId: "outlook-connect-button",
+    };
+  } else if (
     outlookReadiness
     && outlookReadiness.action !== OUTLOOK_READINESS_ACTIONS.none
   ) {
@@ -3314,11 +3374,6 @@ function App() {
     intervention = {
       ...(lastResult ?? recoveredReceiptNotice),
       testId: receiptRecovery && !lastResult ? "outlook-receipt-recovery" : "operation-result",
-    };
-  } else if (outlookReadiness) {
-    intervention = {
-      ...outlookReadiness,
-      testId: "outlook-readiness-status",
     };
   }
 
