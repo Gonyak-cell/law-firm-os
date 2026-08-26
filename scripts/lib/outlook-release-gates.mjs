@@ -9,6 +9,11 @@ export { validateRollbackContract } from "./outlook-release/rollback-contract.mj
 export {
   validateForwardStaticRollbackContract, verifyForwardStaticRollbackSnapshot,
 } from "./outlook-release/forward-static-rollback.mjs";
+export {
+  buildCrossSurfaceForwardRollbackReceipt,
+  validateCrossSurfaceForwardRollbackContract,
+  verifyCrossSurfaceForwardRollbackEvidence,
+} from "./outlook-release/forward-rollback-packet.mjs";
 export { validateProtectedRollbackEvidence } from "./outlook-release/rollback-evidence.mjs";
 export { validateDependencyLicenses } from "./outlook-release/license.mjs";
 export { validateM365ReleaseReceipt } from "./outlook-release/m365.mjs";

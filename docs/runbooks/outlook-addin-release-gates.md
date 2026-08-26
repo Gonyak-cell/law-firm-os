@@ -166,3 +166,19 @@ Matter/full evidence covers read, compose, `OnMessageSend`, auth/reconnect, item
 The two `1.0.1.1` rollback records in `contracts/outlook-addin-rollback.json` are independent and identity/hash-bound. Each record binds the historical source SHA, ProductId, version, SourceLocations, protected manifest, task-pane HTML, entry bundle, complete protected static-inventory proof, and (Matter only) event runtime. The validator reads every referenced regular-file byte from the trusted root, verifies each SHA-256 and byte count, requires all profile static paths, and rejects missing, shared, swapped, stale, or hash-mismatched artifacts. A v2 rollback rehearsal restores and reads back those exact bytes, permissions/events, and SourceLocations, while its assignment target and protected assignment-safety evidence hash require `reconcile_to_validated_single_visible_distribution`. It never restores historical assignment counts or fingerprints, never preserves an unsafe current assignment, and cannot reassign inquiry-only or authorize rollback of the other ProductId.
 
 For the `1.3.0.0` → `1.3.0.1` canary ladder, `contracts/outlook-addin-forward-static-rollback.json` adds a monotonic `1.3.0.2` forward rollback. It hash-binds the `OUTLOOK-INFRA-CONNECTIONS-SAVE-20260824-01` inventory and the complete active closure for both static namespaces. It is not permission to mutate anything: restore the exact prior alias bytes and read them back before the central manifest update, stop on the first failed readback, and never delete the content-addressed candidate or protected SAVE during rollback.
+
+Before any candidate mutation, seal the complete local cross-surface dry-run:
+
+```bash
+node scripts/validate-outlook-release-forward-rollback-packet.mjs \
+  --source-sha <exact-clean-HEAD> \
+  --prior-snapshot-root <OUTLOOK-INFRA-CONNECTIONS-SAVE-20260824-01-root> \
+  --desktop-package-root <sealed-0.1.29-package-root> \
+  > <protected-forward-rollback-receipt.json>
+```
+
+The packet fixes the dependency-safe order to prior static alias restoration and byte readback, the same ProductId's monotonic Microsoft 365 update to `1.3.0.2`, the exact CloudFront distribution/config restoration, and the exact Lambda published version `11` code/configuration projection before final readback. Lambda version `11` is identity-bound by its qualified ARN, `CodeSha256`, selected-version snapshot hash, and redacted environment fingerprints. The later checkpoint `$LATEST` package remains a separate SAVE artifact and is never mislabeled as version `11`.
+
+This dry-run re-reads the protected static bodies, Lambda versions/configuration, and CloudFront config, then verifies the sealed macOS `0.1.29` DMG/ZIP hashes and zero `apps/desktop` source diff. The Windows `0.1.29` hashes remain contract-bound under the separately reviewed unsigned internal-canary boundary; installed-host byte/readiness evidence still belongs to Todo 20A. Desktop action count is always zero.
+
+Historical Lambda `RevisionId` and CloudFront `ETag` values are reference-only. An execution window must first take a fresh snapshot, use fresh write guards, preserve migration `008` as forward-only if already applied, and limit rollback to surfaces already mutated by that one attempt. It must stop on the first failure without a speculative second deployment. The packet never deletes candidate immutable objects, database/Vault/mail/audit rows, desktop software, secrets, or tokens, and its successful local verdict is not deployment or real-Outlook evidence.

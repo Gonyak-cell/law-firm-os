@@ -185,8 +185,10 @@ export const REQUIRED_RELEASE_PATHS = [
   "packages/matter/src/document-publication-reconciliation.js",
   "packages/matter/src/document-publication-service.js",
   "packages/matter/src/outlook-task-adapter.js",
+  "contracts/outlook-addin-forward-rollback-packet.json",
   "contracts/outlook-addin-forward-static-rollback.json",
   "scripts/lib/upl-proof-runner.mjs",
+  "scripts/lib/outlook-release/forward-rollback-packet.mjs",
   "scripts/lib/outlook-release/forward-static-rollback.mjs",
   "scripts/lib/outlook-release/m365-distribution.mjs",
   "scripts/lib/outlook-release/static-files.mjs",
@@ -194,6 +196,7 @@ export const REQUIRED_RELEASE_PATHS = [
   "scripts/plan-outlook-static-deploy.mjs",
   "scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs",
   "scripts/validate-outlook-release-candidate.mjs",
+  "scripts/validate-outlook-release-forward-rollback-packet.mjs",
   "scripts/validate-outlook-release-static-files.mjs",
   "scripts/validate-upl-c09-c12-outlook-addin.mjs",
 ];
@@ -283,6 +286,7 @@ export const REQUIRED_TEST_PATHS = [
   "scripts/test/outlook-release-gates.test.mjs",
   "scripts/test/outlook-release-profile-artifacts.test.mjs",
   "scripts/test/outlook-release-rollback.test.mjs",
+  "scripts/test/outlook-release-forward-rollback-packet.test.mjs",
   "scripts/test/outlook-release-static-files.test.mjs",
 ];
 export const REQUIRED_STATIC_PATHS = [
