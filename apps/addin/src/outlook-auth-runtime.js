@@ -1,4 +1,7 @@
-import { createNestablePublicClientApplication } from "@azure/msal-browser";
+import {
+  InteractionRequiredAuthError,
+  createNestablePublicClientApplication,
+} from "@azure/msal-browser";
 import {
   AUTH_ERROR_CODES,
   AUTH_STATE,
@@ -332,12 +335,14 @@ export function createOutlookAuthRuntime({
             });
       } catch (error) {
         if (!interactive) {
-          throw createAddinAuthError(INTERACTION_REQUIRED, "로그인을 눌러 AMIC OS에 로그인해 주세요.", { cause: error });
+          if (error instanceof InteractionRequiredAuthError) {
+            throw createAddinAuthError(INTERACTION_REQUIRED, "AMIC OS 로그인이 필요합니다.", { cause: error });
+          }
+          throw error;
         }
         throw error;
       }
       if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
-      if (result?.account) bridge.instance.setActiveAccount?.(result.account);
       const accessToken = typeof result?.accessToken === "string" ? result.accessToken : "";
       if (!accessToken) {
         throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "Microsoft 로그인 토큰을 받지 못했습니다.");

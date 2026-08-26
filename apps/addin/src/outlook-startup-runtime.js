@@ -11,6 +11,7 @@ import {
 
 let startupPromise = null;
 let officeMailboxPromise = null;
+let interactiveSessionPromise = null;
 let currentResult = null;
 let authHandlers = null;
 const subscribers = new Set();
@@ -102,14 +103,48 @@ async function sha256(value, cryptoImpl) {
     .join("");
 }
 
+function ownData(error, key) {
+  try {
+    const descriptor = Object.getOwnPropertyDescriptor(error, key);
+    return descriptor && Object.hasOwn(descriptor, "value") ? descriptor.value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function classificationForError(error, authenticated = false) {
-  if (error?.status === 401) {
+  const status = ownData(error, "status");
+  const code = ownData(error, "safe_error_code");
+  if (status === 403) {
+    const installation = typeof code === "string" && /(INSTALLATION|RELEASE)/u.test(code);
+    return frozenResult({
+      state: "revoked",
+      reason: installation ? "installation_revoked" : "account_mismatch",
+      authenticated,
+    });
+  }
+  if (status === 401) {
     return frozenResult({ state: "login_required", reason: "no_credential", authenticated: false });
   }
-  if (error?.safe_error_code === "LAWOS_INTERACTION_REQUIRED") {
+  if (code === "LAWOS_INTERACTION_REQUIRED") {
     return frozenResult({ state: "login_required", reason: "interaction_required", authenticated: false });
   }
   return frozenResult({ state: "deferred", reason: "transient_failure", authenticated });
+}
+
+function shouldAcquireInteractively(result) {
+  return result?.state === "login_required"
+    && (result.reason === "interaction_required" || result.reason === "no_credential");
+}
+
+function acquireInteractiveSession(acquireSession) {
+  if (!interactiveSessionPromise) {
+    interactiveSessionPromise = Promise.resolve().then(() => acquireSession({
+      interactive: true,
+      force: true,
+    }));
+  }
+  return interactiveSessionPromise;
 }
 
 async function execute({
@@ -144,15 +179,8 @@ async function execute({
         bootstrap = item;
         return { state: OUTLOOK_STARTUP_PREPARATION_STATES.ready };
       } catch (error) {
-        return error?.status === 401
-          ? {
-              state: OUTLOOK_STARTUP_PREPARATION_STATES.loginRequired,
-              reason: OUTLOOK_STARTUP_PREPARATION_CALLBACK_REASONS.noCredential,
-            }
-          : {
-              state: OUTLOOK_STARTUP_PREPARATION_STATES.deferred,
-              reason: OUTLOOK_STARTUP_PREPARATION_CALLBACK_REASONS.transientFailure,
-            };
+        const classification = classificationForError(error, true);
+        return { state: classification.state, reason: classification.reason };
       }
     },
   });
@@ -168,49 +196,73 @@ async function execute({
       cache_hit: invalidated.cache_hit,
     });
   };
+  let interactionEligible = false;
 
-  let session;
-  try { session = await acquireSession(); } catch (error) {
-    return invalidate(classificationForError(error));
-  }
-  const signed = classifyOutlookStartupSession(session, build);
-  if (signed.state !== "authenticated") return invalidate(signed);
+  const attempt = async (sessionPromise = null) => {
+    interactionEligible = false;
+    let session;
+    try {
+      session = sessionPromise
+        ? await sessionPromise
+        : await acquireSession({ interactive: false, force: false });
+    } catch (error) {
+      const classification = classificationForError(error);
+      interactionEligible = shouldAcquireInteractively(classification);
+      return invalidate(classification);
+    }
+    const signed = classifyOutlookStartupSession(session, build);
+    if (signed.state !== "authenticated") {
+      const snapshot = snapshotOutlookStartupObject(session);
+      interactionEligible = Boolean(snapshot) && snapshot.authenticated !== true;
+      return invalidate(signed);
+    }
 
-  let resolvedOfficeMailboxAddress;
-  try { resolvedOfficeMailboxAddress = await officeMailboxAddress; } catch (error) {
-    return invalidate(classificationForError(error, true));
-  }
+    let resolvedOfficeMailboxAddress;
+    try { resolvedOfficeMailboxAddress = await officeMailboxAddress; } catch (error) {
+      const classification = classificationForError(error, true);
+      interactionEligible = shouldAcquireInteractively(classification);
+      return invalidate(classification);
+    }
 
-  let connectionBody;
-  let readinessBody;
-  try {
-    connectionBody = await requestJson("/api/outlook/connection", {
-      retryAfterUnauthorized: false,
+    let connectionBody;
+    let readinessBody;
+    try {
+      connectionBody = await requestJson("/api/outlook/connection", {
+        retryAfterUnauthorized: false,
+      });
+      readinessBody = await requestJson("/api/outlook/readiness", {
+        retryAfterUnauthorized: false,
+      });
+    } catch (error) {
+      const classification = classificationForError(error, true);
+      interactionEligible = shouldAcquireInteractively(classification);
+      return invalidate(classification);
+    }
+    const authority = classifyOutlookStartupAuthority({
+      identity: signed.identity,
+      connectionBody,
+      readinessBody,
+      officeMailboxAddress: resolvedOfficeMailboxAddress,
     });
-    readinessBody = await requestJson("/api/outlook/readiness", {
-      retryAfterUnauthorized: false,
+    if (authority.state !== "ready") return invalidate(authority);
+    const prepared = await coordinator.prepare(authority.binding);
+    const result = frozenResult(authority, {
+      state: prepared.state,
+      reason: prepared.reason,
+      authenticated: prepared.state === OUTLOOK_STARTUP_PREPARATION_STATES.loginRequired
+        ? false
+        : authority.authenticated,
+      supported: prepared.supported,
+      cache_hit: prepared.cache_hit,
+      bootstrap,
     });
-  } catch (error) {
-    return invalidate(classificationForError(error, true));
-  }
-  const authority = classifyOutlookStartupAuthority({
-    identity: signed.identity,
-    connectionBody,
-    readinessBody,
-    officeMailboxAddress: resolvedOfficeMailboxAddress,
-  });
-  if (authority.state !== "ready") return invalidate(authority);
-  const prepared = await coordinator.prepare(authority.binding);
-  return frozenResult(authority, {
-    state: prepared.state,
-    reason: prepared.reason,
-    authenticated: prepared.state === OUTLOOK_STARTUP_PREPARATION_STATES.loginRequired
-      ? false
-      : authority.authenticated,
-    supported: prepared.supported,
-    cache_hit: prepared.cache_hit,
-    bootstrap,
-  });
+    interactionEligible = shouldAcquireInteractively(result);
+    return result;
+  };
+
+  const silent = await attempt();
+  if (!interactionEligible || !shouldAcquireInteractively(silent)) return silent;
+  return attempt(acquireInteractiveSession(acquireSession));
 }
 
 export function startOutlookStartup(input) {

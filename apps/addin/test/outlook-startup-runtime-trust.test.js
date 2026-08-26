@@ -52,13 +52,13 @@ test("installation revocation invalidates READY and never runs bootstrap", async
   assert.equal(store.raw(), null);
 });
 
-test("missing session exposes a login seam without requests, exchange, or dialog", async () => {
+test("missing session consumes one interactive startup attempt without authority requests", async () => {
   const store = await readyStore();
   const fixture = startupFixture({ store, session: { authenticated: false, safe_error_code: "LAWOS_INTERACTION_REQUIRED" } });
   const runtime = await subject();
   const result = await runtime.startOutlookStartup(fixture.input);
   assert.deepEqual([result.state, result.reason], ["login_required", "interaction_required"]);
-  assert.deepEqual(fixture.events, ["session"]);
+  assert.deepEqual(fixture.events, ["session", "session"]);
   assert.equal(store.raw(), null);
 });
 
@@ -83,7 +83,7 @@ for (const failedPath of [
   "/api/outlook/readiness",
   "/api/outlook/bootstrap",
 ]) {
-  test(`${failedPath} startup 401 is unauthenticated and never retried`, async () => {
+  test(`${failedPath} startup 401 uses one interactive recovery and then fails closed`, async () => {
     const store = failedPath === "/api/outlook/bootstrap" ? storage() : await readyStore();
     const fixture = startupFixture({ store, failPath: failedPath, failStatus: 401 });
     const runtime = await subject();
@@ -92,7 +92,8 @@ for (const failedPath of [
       [result.state, result.reason, result.authenticated],
       ["login_required", "no_credential", false],
     );
-    assert.equal(fixture.requests.filter(({ path }) => path === failedPath).length, 1);
+    assert.equal(fixture.requests.filter(({ path }) => path === failedPath).length, 2);
+    assert.equal(fixture.events.filter((event) => event === "session").length, 2);
     assert.equal(fixture.events.includes("/api/auth/office-sso/exchange"), false);
     assert.equal(store.raw(), null);
   });

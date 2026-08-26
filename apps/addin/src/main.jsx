@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { createNestablePublicClientApplication } from "@azure/msal-browser";
+import {
+  InteractionRequiredAuthError,
+  createNestablePublicClientApplication,
+} from "@azure/msal-browser";
 import {
   applyOutlookCanonicalMessageIdentity,
   createOutlookCanonicalMessageIdentityRequest,
@@ -150,6 +153,7 @@ let runtimeConfigPromise = null;
 let sessionStore = null;
 let authRecoveryPromise = null;
 let authRecoveryOwner = null;
+let interactiveAuthPromise = null;
 let officeReadyPromise = null;
 const authOwnerFence = createOutlookAuthOwnerFence();
 const OFFICE_READY_EVENT = "lawos:office-ready";
@@ -406,10 +410,20 @@ async function requestJson(path, options = {}) {
 async function validateLawosSession({ tokenSnapshot = undefined, owner = null } = {}) {
   const validationOwner = owner ?? authOwnerFence.capture();
   if (!authOwnerFence.canUsePersistedToken(validationOwner)) {
-    return { authenticated: false, safe_error_code: "AUTH_SESSION_REQUIRED" };
+    return {
+      authenticated: false,
+      safe_error_code: "AUTH_SESSION_REQUIRED",
+      authOwner: validationOwner,
+    };
   }
   const token = tokenSnapshot === undefined ? await addinSessionToken() : tokenSnapshot;
-  if (!token) return { authenticated: false, safe_error_code: "AUTH_SESSION_REQUIRED" };
+  if (!token) {
+    return {
+      authenticated: false,
+      safe_error_code: "AUTH_SESSION_REQUIRED",
+      authOwner: validationOwner,
+    };
+  }
   if (!authOwnerFence.isCurrent(validationOwner)) throw createOutlookAuthOwnerChangedError();
   const boundValidationOwner = validationOwner.tokenBound
     ? validationOwner
@@ -424,36 +438,54 @@ async function validateLawosSession({ tokenSnapshot = undefined, owner = null } 
       sessionToken: token,
       sessionOwner: boundValidationOwner,
     });
-    return parseSessionValidation(payload, 200);
+    return { ...parseSessionValidation(payload, 200), authOwner: boundValidationOwner };
   } catch (error) {
     if (error?.status === 401) {
       await authStorage().clearIfCurrent(error.authRequestOwner?.token ?? token);
-      authOwnerFence.clearToken(error.authRecoveryOwner ?? boundValidationOwner);
-      return { authenticated: false, safe_error_code: error.safe_error_code ?? "AUTH_SESSION_INVALID" };
+      const recoveryOwner = error.authRecoveryOwner;
+      if (!recoveryOwner || !authOwnerFence.isCurrent(recoveryOwner)) {
+        throw createOutlookAuthOwnerChangedError();
+      }
+      return {
+        authenticated: false,
+        safe_error_code: error.safe_error_code ?? "AUTH_SESSION_INVALID",
+        authOwner: recoveryOwner,
+      };
     }
     throw error;
   }
 }
 
 async function acquireLawosSession({ interactive = false, force = false, owner = null } = {}) {
-  const recoveryOwner = owner ?? authOwnerFence.capture();
-  if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
+  let activeOwner = owner ?? authOwnerFence.capture();
+  if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
+  if (interactiveAuthPromise && interactive) {
+    const existing = await interactiveAuthPromise;
+    if (!authOwnerFence.isCurrent(existing?.authOwner ?? activeOwner)) {
+      throw createOutlookAuthOwnerChangedError();
+    }
+    return existing;
+  }
   if (
     authRecoveryPromise
     && !interactive
-    && authRecoveryOwner?.ownerEpoch === recoveryOwner.ownerEpoch
+    && authRecoveryOwner?.ownerEpoch === activeOwner.ownerEpoch
   ) {
     const existing = await authRecoveryPromise;
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.isCurrent(existing?.authOwner ?? activeOwner)) {
+      throw createOutlookAuthOwnerChangedError();
+    }
     return existing;
   }
   const run = (async () => {
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
     if (!force) {
-      const existing = await validateLawosSession({ owner: recoveryOwner });
+      const existing = await validateLawosSession({ owner: activeOwner });
+      activeOwner = existing.authOwner ?? activeOwner;
       if (existing.authenticated) return existing;
     }
     const bridge = await initializeMsalBridge();
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
     const activeAccount = bridge.instance.getActiveAccount?.() ?? null;
     const silentRequest = {
       scopes: bridge.config.scopes,
@@ -470,7 +502,10 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
         result = await bridge.instance.acquireTokenSilent(silentRequest);
       } catch (error) {
         if (!interactive) {
-          throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "로그인을 눌러 AMIC OS에 로그인해 주세요.", { cause: error });
+          if (error instanceof InteractionRequiredAuthError) {
+            throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "AMIC OS 로그인이 필요합니다.", { cause: error });
+          }
+          throw error;
         }
         result = await bridge.instance.acquireTokenPopup({
           scopes: bridge.config.scopes,
@@ -478,10 +513,7 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
         });
       }
     }
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
-    if (result?.account) {
-      bridge.instance.setActiveAccount?.(result.account);
-    }
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
     const entraAccessToken = typeof result?.accessToken === "string" ? result.accessToken : "";
     if (!entraAccessToken) {
       throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "Microsoft 로그인을 완료하지 못했습니다.");
@@ -490,16 +522,16 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
       method: "POST",
       includeSession: false,
       retryAfterUnauthorized: false,
-      authOwner: recoveryOwner,
+      authOwner: activeOwner,
       body: { access_token: entraAccessToken },
     });
     // Drop the Entra token before storing or returning the LawOS session.
     const lawosToken = parseExchangeResponse(exchange, 200);
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
-    if (!authOwnerFence.setToken(recoveryOwner, lawosToken)) {
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.setToken(activeOwner, lawosToken)) {
       throw createOutlookAuthOwnerChangedError();
     }
-    const boundRecoveryOwner = authOwnerFence.bindToken(recoveryOwner, lawosToken);
+    const boundRecoveryOwner = authOwnerFence.bindToken(activeOwner, lawosToken);
     if (!boundRecoveryOwner) throw createOutlookAuthOwnerChangedError();
     try {
       await authStorage().set(lawosToken);
@@ -519,20 +551,39 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
       tokenSnapshot: lawosToken,
       owner: boundRecoveryOwner,
     });
-    if (!authOwnerFence.isCurrent(boundRecoveryOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.isCurrent(session.authOwner ?? boundRecoveryOwner)) {
+      throw createOutlookAuthOwnerChangedError();
+    }
     return session;
-  })();
-  if (!interactive) {
-    const tracked = run.finally(() => {
+  })().catch((error) => {
+    if (error?.safe_error_code === "AUTH_SESSION_OWNER_CHANGED") throw error;
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
+    throw annotateAuthOwner(error, activeOwner, activeOwner);
+  });
+  if (interactive) {
+    interactiveAuthPromise = run;
+    return interactiveAuthPromise;
+  }
+  let tracked;
+  tracked = run.then(
+    (value) => {
       if (authRecoveryPromise === tracked) {
         authRecoveryPromise = null;
         authRecoveryOwner = null;
       }
-    });
-    authRecoveryPromise = tracked;
-    authRecoveryOwner = recoveryOwner;
-  }
-  return run;
+      return value;
+    },
+    (error) => {
+      if (authRecoveryPromise === tracked) {
+        authRecoveryPromise = null;
+        authRecoveryOwner = null;
+      }
+      throw error;
+    },
+  );
+  authRecoveryPromise = tracked;
+  authRecoveryOwner = activeOwner;
+  return tracked;
 }
 
 function recordOutlookEventProbe(key, value) {
@@ -2340,7 +2391,7 @@ function App() {
 
   useEffect(() => {
     let active = true;
-    const initialOwner = authOwnerFence.capture();
+    let startupOwner = authOwnerFence.capture();
     const unregisterAuthHandlers = registerOutlookStartupAuthHandlers({
       unauthorized: (requestOwner) => {
         if (
@@ -2350,6 +2401,7 @@ function App() {
         ) return null;
         const recoveryOwner = beginSessionBoundary(false, requestOwner);
         if (!recoveryOwner) return null;
+        startupOwner = recoveryOwner;
         setAuthState(AUTH_STATE.loginRequired);
         setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
         setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
@@ -2372,7 +2424,7 @@ function App() {
       },
     });
     const applyStartup = (result) => {
-      if (!active || !authOwnerFence.isCurrent(initialOwner)) return;
+      if (!active || !authOwnerFence.isCurrent(startupOwner)) return;
       if (result.authenticated !== true) {
         beginSessionBoundary(false);
         setAuthState(AUTH_STATE.loginRequired);
@@ -2380,7 +2432,7 @@ function App() {
         clearBusinessView();
         return;
       }
-      if (!beginSessionBoundary(true, initialOwner)) return;
+      if (!beginSessionBoundary(true, startupOwner)) return;
       clearBusinessView();
       setAuthState(AUTH_STATE.authenticated);
       setAuthError("");
@@ -2401,7 +2453,25 @@ function App() {
     setAuthState(AUTH_STATE.acquiring);
     const unsubscribe = subscribeOutlookStartup(applyStartup);
     startOutlookStartup({
-      acquireSession: () => acquireLawosSession({ interactive: false, owner: initialOwner }),
+      acquireSession: async ({ interactive = false, force = false } = {}) => {
+        if (interactive) {
+          setAuthState(AUTH_STATE.acquiring);
+          setAuthError("");
+        }
+        const session = await acquireLawosSession({
+          interactive,
+          force,
+          owner: startupOwner,
+        });
+        if (session?.authOwner && authOwnerFence.isCurrent(session.authOwner)) {
+          startupOwner = session.authOwner;
+        }
+        if (!session || typeof session !== "object" || !Object.hasOwn(session, "authOwner")) {
+          return session;
+        }
+        const { authOwner: _authOwner, ...publicSession } = session;
+        return publicSession;
+      },
       requestJson,
       storage: resolveOutlookStartupStorage(window),
       officeMailboxAddress: waitForOutlookStartupMailbox({
@@ -2412,7 +2482,7 @@ function App() {
       build: OUTLOOK_ADDIN_BUILD,
       cryptoImpl: globalThis.crypto,
     }).catch((nextError) => {
-      if (!active || !authOwnerFence.isCurrent(initialOwner)) return;
+      if (!active || !authOwnerFence.isCurrent(startupOwner)) return;
       beginSessionBoundary(false);
       clearBusinessView();
       setAuthState(AUTH_STATE.loginRequired);
