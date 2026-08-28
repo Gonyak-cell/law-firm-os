@@ -156,7 +156,7 @@ input:disabled {
 
 .outlook-filing-shell {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 48px 42px minmax(0, 1fr) 64px;
+  grid-template-rows: 44px 36px minmax(0, 1fr) 64px;
   background: var(--am-surface);
 }
 
@@ -171,11 +171,12 @@ input:disabled {
 
 .outlook-filing-header img {
   display: block;
-  width: 175px;
+  width: 92px;
   max-width: 100%;
   height: auto;
   flex: 0 1 auto;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .outlook-filing-tab {
