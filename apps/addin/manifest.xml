@@ -122,11 +122,6 @@
       </Requirements>
       <Hosts>
         <Host xsi:type="MailHost">
-          <Runtimes>
-            <Runtime resid="WebViewRuntime.Url" lifetime="short">
-              <Override type="javascript" resid="JSRuntime.Url" />
-            </Runtime>
-          </Runtimes>
           <DesktopFormFactor>
             <FunctionFile resid="Commands.Url" />
             <ExtensionPoint xsi:type="MessageReadCommandSurface">
@@ -175,12 +170,6 @@
                 </Group>
               </OfficeTab>
             </ExtensionPoint>
-            <ExtensionPoint xsi:type="LaunchEvent">
-              <LaunchEvents>
-                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="PromptUser" />
-              </LaunchEvents>
-              <SourceLocation resid="WebViewRuntime.Url" />
-            </ExtensionPoint>
           </DesktopFormFactor>
         </Host>
       </Hosts>
@@ -193,8 +182,6 @@
         <bt:Urls>
           <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:5186/index.html" />
           <bt:Url id="Commands.Url" DefaultValue="https://localhost:5186/index.html?commands=1" />
-          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:5186/event-runtime.html" />
-          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:5186/event-runtime.js" />
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="Group.Label" DefaultValue="AMIC OS" />

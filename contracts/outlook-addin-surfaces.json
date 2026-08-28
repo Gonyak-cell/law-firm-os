@@ -52,13 +52,12 @@
         "rule_fingerprints": ["Message:Edit", "Message:Read"],
         "rule_collection_modes": ["Or"],
         "extension_points": [
-          "LaunchEvent",
           "MessageComposeCommandSurface",
           "MessageComposeCommandSurface",
           "MessageReadCommandSurface",
           "MessageReadCommandSurface"
         ],
-        "launch_events": ["OnMessageSend:onMessageSendHandler:PromptUser"],
+        "launch_events": [],
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane", "ShowTaskpane", "ShowTaskpane", "ShowTaskpane"],
@@ -93,7 +92,6 @@
           "Icon.80x80",
           "Icon.80x80",
           "Icon.80x80",
-          "JSRuntime.Url",
           "Taskpane.Url",
           "Taskpane.Url",
           "Taskpane.Url",
@@ -109,9 +107,7 @@
           "TaskpaneButton.Tooltip",
           "TaskpaneButton.Tooltip",
           "TaskpaneButton.Tooltip",
-          "TaskpaneButton.Tooltip",
-          "WebViewRuntime.Url",
-          "WebViewRuntime.Url"
+          "TaskpaneButton.Tooltip"
         ],
         "string_resources": [
           "Group.Label=AMIC OS",
@@ -124,14 +120,12 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "27e6cad23f639c92bc1a312ee215a9bfbb763ad74937ecc073e7aecf09306087",
+          "semantic_manifest_sha256": "b8d6bec530cdb560b5b46fdb8eb9e7bda77d0085b06c71c2657fcab37b9d81c4",
           "url_resources": [
             "Commands.Url=https://localhost:5186/index.html?commands=1",
             "Commands.Url=https://localhost:5186/index.html?commands=1",
-            "JSRuntime.Url=https://localhost:5186/event-runtime.js",
             "Taskpane.Url=https://localhost:5186/index.html",
-            "Taskpane.Url=https://localhost:5186/index.html",
-            "WebViewRuntime.Url=https://localhost:5186/event-runtime.html"
+            "Taskpane.Url=https://localhost:5186/index.html"
           ],
           "image_resources": [
             "Icon.16x16=https://localhost:5186/amic-law-icon.png",
@@ -148,14 +142,12 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "af51e952ee500380f87577bac5ecda6c6da59542a7f4fb1416b9712ac71aea35",
+          "semantic_manifest_sha256": "850786886c41350c5ca8a96f71991b41418baf50a601ec1955cd9543692a5a42",
           "url_resources": [
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
-            "JSRuntime.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.js",
             "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
-            "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
-            "WebViewRuntime.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.html"
+            "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
           ],
           "image_resources": [
             "Icon.16x16=https://d2mthcc8vp3cr2.cloudfront.net/addin/amic-law-icon.png",

@@ -19,13 +19,12 @@ export const OUTLOOK_SURFACE_PROFILES = deepFreeze({
       hosts: ["Mailbox"],
       itemForms: ["Message:Edit", "Message:Read"],
       extensionPoints: [
-        "LaunchEvent",
         "MessageComposeCommandSurface",
         "MessageComposeCommandSurface",
         "MessageReadCommandSurface",
         "MessageReadCommandSurface",
       ],
-      launchEvents: ["OnMessageSend:onMessageSendHandler:PromptUser"],
+      launchEvents: [],
     },
     itemModes: ["read", "compose"],
     actions: [

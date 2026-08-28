@@ -17,27 +17,14 @@ function assertLeastPrivilege(manifest, name) {
   assert.equal(manifest.includes("ReadWriteMailbox"), false, `${name} must not request ReadWriteMailbox`);
 }
 
-function assertNestedLaunchRuntime(manifest, name) {
+function assertNoAutomaticSendRuntime(manifest, name) {
   assert.match(
     manifest,
     /<Set\s+Name="Mailbox"\s+MinVersion="1\.14"\s*\/>/u,
-    `${name} must require Mailbox 1.14 for javascriptRuntimeUrl`,
+    `${name} must keep the Mailbox 1.14 startup baseline`,
   );
-  assert.match(
-    manifest,
-    /<VersionOverrides[^>]+xsi:type="VersionOverridesV1_1">[\s\S]*?<Runtimes>[\s\S]*?<Runtime\s+resid="WebViewRuntime\.Url"\s+lifetime="short">[\s\S]*?<Override\s+type="javascript"\s+resid="JSRuntime\.Url"\s*\/>[\s\S]*?<\/Runtime>/u,
-    `${name} must declare WebView and classic-Outlook JavaScript event runtimes`,
-  );
-  assert.match(
-    manifest,
-    /<LaunchEvent\s+Type="OnMessageSend"\s+FunctionName="onMessageSendHandler"\s+SendMode="PromptUser"\s*\/>/u,
-    `${name} must keep optional Smart Alerts fail-open`,
-  );
-  assert.match(
-    manifest,
-    /<ExtensionPoint\s+xsi:type="LaunchEvent">[\s\S]*?<SourceLocation\s+resid="WebViewRuntime\.Url"\s*\/>/u,
-    `${name} must use the WebView runtime as LaunchEvent source`,
-  );
+  assert.doesNotMatch(manifest, /OnMessageSend|LaunchEvent|<Runtimes>|WebViewRuntime\.Url|JSRuntime\.Url/u,
+    `${name} must never intercept an ordinary Send action`);
 }
 
 function assertOfficialBrand(manifest, name) {
@@ -52,7 +39,7 @@ function assertOfficialBrand(manifest, name) {
   assert.doesNotMatch(manifest, /Law Firm OS|LawOS/u, `${name} must not expose a legacy product name`);
 }
 
-test("Client Add-in manifests keep ReadItem-only permissions and the nested event runtime", async () => {
+test("Client Add-in manifests keep ReadItem-only permissions without automatic Send interception", async () => {
   const [production, local] = await Promise.all([
     read("apps/addin/manifest.production.xml"),
     read("apps/addin/manifest.xml"),
@@ -60,8 +47,8 @@ test("Client Add-in manifests keep ReadItem-only permissions and the nested even
 
   assertLeastPrivilege(production, "production manifest");
   assertLeastPrivilege(local, "local manifest");
-  assertNestedLaunchRuntime(production, "production manifest");
-  assertNestedLaunchRuntime(local, "local manifest");
+  assertNoAutomaticSendRuntime(production, "production manifest");
+  assertNoAutomaticSendRuntime(local, "local manifest");
   assertOfficialBrand(production, "production manifest");
   assertOfficialBrand(local, "local manifest");
 });
@@ -126,13 +113,11 @@ test("inquiry registration helpers stay in the inquiry-only entry point", async 
   );
 });
 
-test("production manifest points Taskpane, Commands, and WebView runtime at the /addin bundle", async () => {
+test("production manifest points Taskpane and Commands at the /addin bundle", async () => {
   const production = await read("apps/addin/manifest.production.xml");
   const expectedUrls = [
     'id="Taskpane.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"',
     'id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1"',
-    'id="WebViewRuntime.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.html"',
-    'id="JSRuntime.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.js"',
   ];
   for (const expected of expectedUrls) {
     assert.ok(production.includes(expected), `missing production URL: ${expected}`);
