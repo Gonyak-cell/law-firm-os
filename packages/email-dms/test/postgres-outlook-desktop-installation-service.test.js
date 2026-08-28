@@ -477,3 +477,70 @@ test("PostgreSQL lifecycle permits more than ten installations for one principal
     outlook_desktop_installation_audit_events: 11,
   });
 });
+
+test("approved internal current read requires the exact signed Windows canary lifecycle", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 4 });
+  if (!fixture) return;
+  await prepare(fixture);
+  const sourceSha = "4".repeat(40);
+  const options = {
+    pool: fixture.appPool,
+    tenant_id: TENANT_ID,
+    internal_canary_package_identity: {
+      app_version: "0.1.29",
+      platform: "win32",
+      source_sha: sourceSha,
+    },
+  };
+  const service = createPostgresOutlookDesktopInstallationService({
+    ...options,
+    installation_id_factory: () => "odi_service_internal_000000001",
+    event_id_factory: () => "event-service-internal-0001",
+  });
+  const authorize = async () => true;
+  const pair = keyPair();
+  const request = registrationRequest(pair, {
+    idempotencyKey: "idem_service_internal_0001",
+    nonceByte: 91,
+    body: {
+      platform: "win32",
+      app_version: "0.1.29",
+      source_sha: sourceSha,
+    },
+  });
+  const registered = await service.register(command(request, pair), {
+    authorize,
+  });
+  const approved = await service.readApprovedInternalCurrent({
+    principal: PRINCIPAL,
+  }, { authorize });
+  assert.deepEqual(approved, {
+    ...registered.body.installation,
+    release_trusted: true,
+    authority_snapshot_at: approved.authority_snapshot_at,
+  });
+  assert.equal(
+    new Date(approved.authority_snapshot_at).toISOString(),
+    approved.authority_snapshot_at,
+  );
+  assert.ok(
+    Date.parse(approved.lease_expires_at)
+      > Date.parse(approved.authority_snapshot_at),
+  );
+
+  const wrongSource = createPostgresOutlookDesktopInstallationService({
+    ...options,
+    internal_canary_package_identity: {
+      ...options.internal_canary_package_identity,
+      source_sha: "5".repeat(40),
+    },
+  });
+  assert.equal(await wrongSource.readApprovedInternalCurrent({
+    principal: PRINCIPAL,
+  }, { authorize }), null);
+  await assert.rejects(
+    service.readApprovedInternalCurrent({ principal: PRINCIPAL }),
+    (error) => error.safe_error_code
+      === "OUTLOOK_DESKTOP_INSTALLATION_NOT_AUTHORIZED",
+  );
+});

@@ -10,6 +10,10 @@ import {
   createPostgresOutlookDesktopInstallationService,
 } from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-service.js";
 import {
+  evaluateOutlookDesktopEntitlement,
+  OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE,
+} from "./outlook-desktop-entitlement.js";
+import {
   assertPostgresOutlookDesktopLifecycleAuthority,
   createPostgresOutlookDesktopLifecycleAuthority,
 } from "../../../packages/email-dms/src/postgres-outlook-desktop-lifecycle-authority.js";
@@ -56,6 +60,12 @@ const RUNTIME_OPTION_KEYS = Object.freeze([
   "tenant_id",
 ]);
 const COMPOSED_CONTROL_PORTS = new WeakMap();
+export const OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY =
+  Object.freeze({
+    app_version: "0.1.29",
+    platform: "win32",
+    source_sha: "4df77e1848b52ea455f20b41b9b1c64961bfa1cf",
+  });
 
 function exactDataObject(value, keys, label, { allowMissing = false } = {}) {
   if (!value || typeof value !== "object" || Array.isArray(value)
@@ -96,6 +106,78 @@ function exactAuthorityService(service) {
     throw new TypeError("007 PostgreSQL authority service is required");
   }
   return service;
+}
+
+function samePrincipal(left, right) {
+  return Boolean(
+    left
+    && right
+    && left.tenant_id === right.tenant_id
+    && left.user_id === right.user_id
+    && left.entra_subject_id === right.entra_subject_id,
+  );
+}
+
+function rosterAllowsInternalCanary(principal, roster) {
+  return evaluateOutlookDesktopEntitlement({
+    principal: Object.freeze({
+      ...principal,
+      scopes: Object.freeze([
+        OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE,
+      ]),
+    }),
+    roster,
+  }).eligible === true;
+}
+
+export function createOutlookDesktopTrustedCurrentCompatibilityService({
+  authority_service: authorityServiceInput,
+  legacy_installation_service: legacyInstallationService,
+  entitlement_roster: entitlementRoster,
+} = {}) {
+  const authorityService = exactAuthorityService(authorityServiceInput);
+  if (
+    typeof legacyInstallationService?.readApprovedInternalCurrent
+    !== "function"
+  ) {
+    throw new TypeError("approved internal installation service is required");
+  }
+  return Object.freeze({
+    ...authorityService,
+    async readTrustedCurrent(input = {}) {
+      let strictError = null;
+      try {
+        const strict = await authorityService.readTrustedCurrent(input);
+        if (strict !== null) return strict;
+      } catch (error) {
+        strictError = error;
+      }
+      let fallback;
+      try {
+        fallback = await legacyInstallationService.readApprovedInternalCurrent(
+          input,
+          {
+            authorize: async ({
+              operation,
+              principal,
+              installation_id: installationId,
+            }) => (
+              operation === "read"
+              && installationId === "CURRENT"
+              && samePrincipal(principal, input?.principal)
+              && rosterAllowsInternalCanary(principal, entitlementRoster)
+            ),
+          },
+        );
+      } catch (fallbackError) {
+        if (strictError) throw strictError;
+        throw fallbackError;
+      }
+      if (fallback !== null) return fallback;
+      if (strictError) throw strictError;
+      return null;
+    },
+  });
 }
 
 export function createPostgresOutlookDesktopOperationalControlPorts(
@@ -229,7 +311,7 @@ export function createPostgresOutlookDesktopOperationalRuntime(options = {}) {
       lifecycle_port: value.outlookDesktopLifecycleControlPort,
     });
   }
-  const installationService = exactAuthorityService(
+  const authorityInstallationService = exactAuthorityService(
     createPostgresOutlookDesktopInstallationAuthorityService({
       pool: appPool,
       tenant_id: tenantId,
@@ -238,7 +320,15 @@ export function createPostgresOutlookDesktopOperationalRuntime(options = {}) {
   const legacyInstallationService = createPostgresOutlookDesktopInstallationService({
     pool: appPool,
     tenant_id: tenantId,
+    internal_canary_package_identity:
+      OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY,
   });
+  const installationService =
+    createOutlookDesktopTrustedCurrentCompatibilityService({
+      authority_service: authorityInstallationService,
+      legacy_installation_service: legacyInstallationService,
+      entitlement_roster: value.entitlement_roster,
+    });
   return Object.freeze({
     activation_enabled: activationService !== null,
     entitlement_roster: value.entitlement_roster,
