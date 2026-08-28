@@ -48,6 +48,8 @@ const CLIENT_IDS = Object.freeze({
   "007_outlook_desktop_assignment": "306_client_outlook_desktop_assignment",
   "008_outlook_desktop_trusted_current_read":
     "307_client_outlook_desktop_trusted_current_read",
+  "009_outlook_desktop_legacy_windows_compatibility":
+    "308_client_outlook_desktop_legacy_windows_compatibility",
 });
 
 function combinedCatalog() {
@@ -292,7 +294,7 @@ test("Seam A rejects a divergent persisted target receipt without mutation", asy
   )).rows[0].count, combinedCatalog().length);
 });
 
-test("Seam A commits exact 001-006, role bootstrap, 007, and 008 on one client", async (t) => {
+test("Seam A commits exact 001-006, role bootstrap, and 007-009 on one client", async (t) => {
   const fixture = await createEmailDmsMigrationFixture(t);
   if (!fixture) return;
   const receipt = assertOutlookAuthorityMigrationRunReceipt(
@@ -305,8 +307,13 @@ test("Seam A commits exact 001-006, role bootstrap, 007, and 008 on one client",
   const trustedCurrent = receipt.migrations.find(
     ({ id }) => id === "307_client_outlook_desktop_trusted_current_read",
   );
+  const legacyWindowsCompatibility = receipt.migrations.find(
+    ({ id }) => id ===
+      "308_client_outlook_desktop_legacy_windows_compatibility",
+  );
   assert.equal(assignment?.applied, true);
   assert.equal(trustedCurrent?.applied, true);
+  assert.equal(legacyWindowsCompatibility?.applied, true);
   assert.equal(receipt.outlook_assignment_transaction_committed, true);
   assert.equal(receipt.role_bootstrap_sha256,
     receipt.postflight_role_bootstrap_sha256);
@@ -333,7 +340,9 @@ test("Seam A reports committed role setup but rolls back failed 007 atomically",
     ), true);
     assert.equal(failure.migrations.some(
       ({ id }) => id === "306_client_outlook_desktop_assignment"
-        || id === "307_client_outlook_desktop_trusted_current_read",
+        || id === "307_client_outlook_desktop_trusted_current_read"
+        || id ===
+          "308_client_outlook_desktop_legacy_windows_compatibility",
     ), false);
     return true;
   });

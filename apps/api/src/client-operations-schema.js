@@ -46,6 +46,10 @@ const OUTLOOK_TRUSTED_CURRENT_READ_SIGNATURE =
   "lawos_email_dms.read_trusted_current_outlook_desktop_installation(text,text,text)";
 const OUTLOOK_TRUSTED_CURRENT_READ_TRANSACTION_MODE =
   "serializable_read_only";
+const OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_SOURCE_MIGRATION_ID =
+  "009_outlook_desktop_legacy_windows_compatibility";
+const OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_CLIENT_MIGRATION_ID =
+  "308_client_outlook_desktop_legacy_windows_compatibility";
 
 export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "001_m365_connection": "300_client_m365_connection",
@@ -60,6 +64,8 @@ export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
     OUTLOOK_ASSIGNMENT_CLIENT_MIGRATION_ID,
   [OUTLOOK_TRUSTED_CURRENT_READ_SOURCE_MIGRATION_ID]:
     OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID,
+  [OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_SOURCE_MIGRATION_ID]:
+    OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_CLIENT_MIGRATION_ID,
 });
 
 function clientSchemaMigrations() {

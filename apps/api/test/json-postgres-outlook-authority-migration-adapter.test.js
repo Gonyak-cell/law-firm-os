@@ -104,7 +104,7 @@ async function applyPrefixThrough305(state, label) {
   const assignmentIndex = catalog.findIndex(
     ({ id }) => id === "306_client_outlook_desktop_assignment",
   );
-  assert.equal(catalog.length, 77);
+  assert.equal(catalog.length, 78);
   assert.equal(assignmentIndex, 75);
   await runPostgresMigrations(state.admin, {
     migrations: catalog.slice(0, assignmentIndex), appliedBy: label,
@@ -127,7 +127,7 @@ test("migration adapter fails closed and clears its caller-owned secret", () => 
   assert.ok(catalogInput.secret.every((byte) => byte === 0));
 });
 
-test("migration adapter runs 001-006, role bootstrap, 007-008, then exact replay", async (t) => {
+test("migration adapter runs 001-006, role bootstrap, 007-009, then exact replay", async (t) => {
   const state = await fixture(t, "outlook-authority-adapter-fresh");
   if (!state) return;
   const firstInput = options();
@@ -142,9 +142,9 @@ test("migration adapter runs 001-006, role bootstrap, 007-008, then exact replay
   const receipt = first.normalizeRunReceipt(raw);
   const readiness = first.getRoleReadiness();
   assert.equal(receipt.outcome, "committed");
-  assert.equal(receipt.migrations.length, 77);
+  assert.equal(receipt.migrations.length, 78);
   assert.equal(receipt.migration_applied_count,
-    77 - listPostgresFoundationMigrations().length);
+    78 - listPostgresFoundationMigrations().length);
   assert.equal(receipt.role_configuration_transaction_committed_count, 1);
   assert.equal(receipt.postgres_mutation_committed_count,
     receipt.migration_applied_count + 1);
@@ -178,8 +178,8 @@ test("migration adapter runs 001-006, role bootstrap, 007-008, then exact replay
   assert.ok(replayInput.secret.every((byte) => byte === 0));
 });
 
-test("migration adapter applies the exact 75-to-77 transition", async (t) => {
-  const state = await fixture(t, "outlook-authority-adapter-75-77");
+test("migration adapter applies the exact 75-to-78 transition", async (t) => {
+  const state = await fixture(t, "outlook-authority-adapter-75-78");
   if (!state) return;
   await applyPrefixThrough305(state, "outlook-adapter-prefix");
   const input = options();
@@ -187,15 +187,15 @@ test("migration adapter applies the exact 75-to-77 transition", async (t) => {
   let raw;
   try {
     raw = await runClientOperationsPostgresMigrations(state.admin, {
-      appliedBy: "outlook-adapter-75-77", ...adapter.runnerOptions,
+      appliedBy: "outlook-adapter-75-78", ...adapter.runnerOptions,
     });
   } finally { adapter.dispose(); }
   const receipt = adapter.normalizeRunReceipt(raw);
-  assert.equal(receipt.migration_applied_count, 2);
+  assert.equal(receipt.migration_applied_count, 3);
   assert.equal(receipt.migrations.at(-1).id,
-    "307_client_outlook_desktop_trusted_current_read");
+    "308_client_outlook_desktop_legacy_windows_compatibility");
   assert.equal(receipt.migrations.at(-1).applied, true);
-  assert.equal(receipt.postgres_mutation_committed_count, 3);
+  assert.equal(receipt.postgres_mutation_committed_count, 4);
   assert.ok(input.secret.every((byte) => byte === 0));
 });
 

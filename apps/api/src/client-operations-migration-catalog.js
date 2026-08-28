@@ -3,15 +3,19 @@ import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger
 export const CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION =
   "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
 
-const MIGRATION_COUNT = 77;
+const MIGRATION_COUNT = 78;
 const ASSIGNMENT_MIGRATION_ID =
   "306_client_outlook_desktop_assignment";
 const ASSIGNMENT_SOURCE_MIGRATION_ID =
   "007_outlook_desktop_assignment";
-const FINAL_MIGRATION_ID =
+const TRUSTED_CURRENT_MIGRATION_ID =
   "307_client_outlook_desktop_trusted_current_read";
-const FINAL_SOURCE_MIGRATION_ID =
+const TRUSTED_CURRENT_SOURCE_MIGRATION_ID =
   "008_outlook_desktop_trusted_current_read";
+const FINAL_MIGRATION_ID =
+  "308_client_outlook_desktop_legacy_windows_compatibility";
+const FINAL_SOURCE_MIGRATION_ID =
+  "009_outlook_desktop_legacy_windows_compatibility";
 const ASSIGNMENT_STATE_READ_SIGNATURE =
   "lawos_email_dms.read_outlook_desktop_assignment_state(text,text,text)";
 const TRUSTED_CURRENT_READ_SIGNATURE =
@@ -74,7 +78,7 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
   const ledgerEntries = migrations.map((entry) => {
     const expectedKeys = entry?.id === ASSIGNMENT_MIGRATION_ID
       ? [...MIGRATION_ROW_KEYS, "outlook_assignment_authority"]
-      : entry?.id === FINAL_MIGRATION_ID
+      : entry?.id === TRUSTED_CURRENT_MIGRATION_ID
         ? [
           ...MIGRATION_ROW_KEYS,
           "outlook_trusted_current_read_authority",
@@ -94,7 +98,7 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
     !== ledgerEntries.length) {
     throw new TypeError("Client operations migration catalog IDs are invalid");
   }
-  const assignmentSource = migrations.at(-2);
+  const assignmentSource = migrations.at(-3);
   const assignmentBinding =
     assignmentSource.outlook_assignment_authority;
   if (assignmentSource.id !== ASSIGNMENT_MIGRATION_ID
@@ -144,20 +148,23 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
     );
   }
 
+  const trustedCurrentSource = migrations.at(-2);
   const finalSource = migrations.at(-1);
   const final = ledgerEntries.at(-1);
   const binding =
-    finalSource.outlook_trusted_current_read_authority;
-  if (final.id !== FINAL_MIGRATION_ID
-    || finalSource.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
-    || finalSource.file_name
+    trustedCurrentSource.outlook_trusted_current_read_authority;
+  if (trustedCurrentSource.id !== TRUSTED_CURRENT_MIGRATION_ID
+    || trustedCurrentSource.source_migration_id
+      !== TRUSTED_CURRENT_SOURCE_MIGRATION_ID
+    || trustedCurrentSource.file_name
       !== "./008_outlook_desktop_trusted_current_read.sql"
     || !exactKeys(
       binding,
       TRUSTED_CURRENT_READ_AUTHORITY_BINDING_KEYS,
     )
-    || binding.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
-    || binding.client_migration_id !== FINAL_MIGRATION_ID
+    || binding.source_migration_id
+      !== TRUSTED_CURRENT_SOURCE_MIGRATION_ID
+    || binding.client_migration_id !== TRUSTED_CURRENT_MIGRATION_ID
     || !SHA256.test(binding.authority_catalog_sha256)
     || !Number.isSafeInteger(
       binding.exposed_security_definer_function_count,
@@ -176,6 +183,14 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
       !== "serializable_read_only") {
     throw new TypeError(
       "Client operations Outlook trusted-current-read catalog binding is invalid",
+    );
+  }
+  if (final.id !== FINAL_MIGRATION_ID
+    || finalSource.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
+    || finalSource.file_name
+      !== "./009_outlook_desktop_legacy_windows_compatibility.sql") {
+    throw new TypeError(
+      "Client operations Outlook legacy Windows compatibility migration is invalid",
     );
   }
   const catalogSha256 = hashDomainValue(catalog);

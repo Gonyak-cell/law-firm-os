@@ -63,9 +63,9 @@ const SOURCE_TREE = "b".repeat(40);
 const PACKET_SHA = "c".repeat(64);
 const ARTIFACT_SHA = "d".repeat(64);
 const KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/75868150-c892-47fc-8bea-17caa1808127";
-const OFFICIAL_MIGRATION_CATALOG_COUNT = 77;
+const OFFICIAL_MIGRATION_CATALOG_COUNT = 78;
 const OFFICIAL_MIGRATION_CATALOG_SHA256 =
-  "d0ff45b1d9d53529b317901db60801a7865e8e1c042941204baadbfeb46b4250";
+  "7b03e0175cf1b3266951d8fb59fc2ae0f390bd620a4a0cf4aeb2be58fb502302";
 
 assert.equal(
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
@@ -2424,11 +2424,11 @@ test("production schema ledger readback is SELECT-only and authoritative", async
   );
   assert.equal(
     result.final_migration_id,
-    "307_client_outlook_desktop_trusted_current_read",
+    "308_client_outlook_desktop_legacy_windows_compatibility",
   );
   assert.equal(
     result.final_migration_checksum,
-    "a09876ea8fb43505cf996713a023c85c5385d6df5969fc335dad4ffae37500c4",
+    "64cbb3e6575e0af33b7b8e315797000ab5597498a0e9e5eed77c1ad19b23a715",
   );
   for (const key of [
     "production_data_write_count",

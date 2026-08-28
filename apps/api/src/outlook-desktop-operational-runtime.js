@@ -7,7 +7,7 @@ import {
   createPostgresOutlookDesktopInstallationAuthorityService,
 } from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-authority-service.js";
 import {
-  createPostgresOutlookDesktopInstallationService,
+  createPostgresOutlookDesktopLegacyWindowsCompatibilityService,
 } from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-service.js";
 import {
   evaluateOutlookDesktopEntitlement,
@@ -346,10 +346,11 @@ export function createPostgresOutlookDesktopOperationalRuntime(options = {}) {
       tenant_id: tenantId,
     }),
   );
-  const legacyInstallationService = createPostgresOutlookDesktopInstallationService({
-    pool: appPool,
-    tenant_id: tenantId,
-  });
+  const legacyInstallationService =
+    createPostgresOutlookDesktopLegacyWindowsCompatibilityService({
+      pool: appPool,
+      tenant_id: tenantId,
+    });
   const installationService =
     createOutlookDesktopTrustedCurrentCompatibilityService({
       authority_service: authorityInstallationService,

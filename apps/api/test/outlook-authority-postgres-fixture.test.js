@@ -96,6 +96,10 @@ test("terminal Client migrations use one direct Outlook authority cleanup", asyn
       ({ id }) => id ===
         "307_client_outlook_desktop_trusted_current_read",
     )?.applied, true);
+    assert.equal(applied.migrations.find(
+      ({ id }) => id ===
+        "308_client_outlook_desktop_legacy_windows_compatibility",
+    )?.applied, true);
     assert.equal(applied.role_configuration_transaction_committed_count, 1);
     assert.equal(applied.outlook_assignment_transaction_committed, true);
 

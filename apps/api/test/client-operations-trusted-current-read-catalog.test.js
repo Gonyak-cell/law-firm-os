@@ -11,6 +11,8 @@ const SOURCE_MIGRATION_ID =
   "008_outlook_desktop_trusted_current_read";
 const CLIENT_MIGRATION_ID =
   "307_client_outlook_desktop_trusted_current_read";
+const FINAL_MIGRATION_ID =
+  "308_client_outlook_desktop_legacy_windows_compatibility";
 const FUNCTION_SIGNATURE =
   "lawos_email_dms.read_trusted_current_outlook_desktop_installation(text,text,text)";
 
@@ -29,12 +31,12 @@ test("combined migration 307 binds a separate read-only trusted-current authorit
   );
   assert.equal(
     clientSchema.CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count,
-    77,
+    78,
   );
   assert.equal(
     clientSchema.CLIENT_OPERATIONS_SCHEMA_MANIFEST
       .client_schema_migration_count,
-    8,
+    9,
   );
 
   const assignment =
@@ -51,7 +53,7 @@ test("combined migration 307 binds a separate read-only trusted-current authorit
   );
 
   const trustedCurrent =
-    clientSchema.CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-1);
+    clientSchema.CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-2);
   assert.equal(trustedCurrent.id, CLIENT_MIGRATION_ID);
   assert.equal(trustedCurrent.source_migration_id, SOURCE_MIGRATION_ID);
   assert.equal(
@@ -90,10 +92,12 @@ test("combined migration 307 binds a separate read-only trusted-current authorit
 
   const normalized =
     clientSchema.normalizeClientOperationsMigrationCatalog();
-  assert.equal(normalized.final_migration_id, CLIENT_MIGRATION_ID);
+  const final =
+    clientSchema.CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-1);
+  assert.equal(normalized.final_migration_id, FINAL_MIGRATION_ID);
   assert.equal(
     normalized.final_migration_checksum,
-    trustedCurrent.checksum,
+    final.checksum,
   );
 });
 
@@ -101,14 +105,14 @@ test("combined migration catalog rejects moving either additive authority bindin
   for (const mutate of [
     (catalog) => {
       catalog.migrations.at(-1).outlook_assignment_authority =
-        catalog.migrations.at(-2).outlook_assignment_authority;
-      delete catalog.migrations.at(-2).outlook_assignment_authority;
+        catalog.migrations.at(-3).outlook_assignment_authority;
+      delete catalog.migrations.at(-3).outlook_assignment_authority;
     },
     (catalog) => {
-      catalog.migrations.at(-2).outlook_trusted_current_read_authority =
-        catalog.migrations.at(-1)
+      catalog.migrations.at(-1).outlook_trusted_current_read_authority =
+        catalog.migrations.at(-2)
           .outlook_trusted_current_read_authority;
-      delete catalog.migrations.at(-1)
+      delete catalog.migrations.at(-2)
         .outlook_trusted_current_read_authority;
     },
   ]) {
