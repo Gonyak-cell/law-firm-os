@@ -46,6 +46,11 @@ const INSTALLATION_KEYS = ["installation_id", "state", "state_version", "release
 const CONNECTION_KEYS = ["state", "state_version", "expires_at", "source", "observed_at"];
 const SNAPSHOT_KEYS = ["observed_at", "consistency", "version_vector"];
 const VECTOR_KEYS = ["roster_version", "installation_state_version", "delegated_connection_state_version"];
+const TASKPANE_SELF_OBSERVED_ERROR_CODES = new Set([
+  "OUTLOOK_READINESS_ASSIGNMENT_UNKNOWN",
+  "OUTLOOK_READINESS_DEPLOYMENT_UNKNOWN",
+  "OUTLOOK_READINESS_PROPAGATION_UNKNOWN",
+]);
 
 function snapshotReadiness(body) {
   const root = snapshotDataObject(body, ["outcome", "item"]);
@@ -176,6 +181,38 @@ function authoritativeReady(item, options = {}) {
     && authoritativeSnapshot(item);
 }
 
+function taskpaneSelfObservedReady(item) {
+  const safeErrorCodes = item?.safe_error_codes;
+  const externalAxes = [
+    item?.enterprise_app_assignment,
+    item?.central_deployment,
+    item?.client_propagation,
+  ];
+  return item?.next_action === "contact_admin"
+    && item?.browser_required === false
+    && Array.isArray(safeErrorCodes)
+    && safeErrorCodes.length === TASKPANE_SELF_OBSERVED_ERROR_CODES.size
+    && safeErrorCodes.every((code) => TASKPANE_SELF_OBSERVED_ERROR_CODES.has(code))
+    && [...TASKPANE_SELF_OBSERVED_ERROR_CODES]
+      .every((code) => safeErrorCodes.includes(code))
+    && externalAxes.every((axis) => axis?.state === "unknown"
+      && axis.authoritative === false
+      && axis.source === null
+      && axis.observed_at === null)
+    && item.central_deployment?.product_id === MATTER_PRODUCT_ID
+    && item.central_deployment?.manifest_version === null
+    && item.entitlement?.state === "approved"
+    && item.entitlement?.source === ENTITLEMENT_SOURCE
+    && typeof item.entitlement?.roster_version === "string"
+    && item.entitlement.roster_version.length > 0
+    && item.identity_binding?.state === "verified"
+    && item.identity_binding?.source === IDENTITY_SOURCE
+    && !explicitReleaseTrustConflict(item)
+    && authoritativeInstallation(item)
+    && authoritativeConnection(item)
+    && authoritativeSnapshot(item);
+}
+
 export function parseOutlookStartupBinding(
   body,
   options = {},
@@ -183,11 +220,15 @@ export function parseOutlookStartupBinding(
   try {
     const optionSnapshot = options === null
       ? {}
-      : snapshotDataObject(options, ["principal_ref"]);
+      : snapshotDataObject(options, ["principal_ref", "taskpane_self_observed"]);
     if (!optionSnapshot) return null;
     const expectedPrincipalRef = optionSnapshot.principal_ref ?? null;
+    const taskpaneSelfObserved = optionSnapshot.taskpane_self_observed === true;
+    if (optionSnapshot.taskpane_self_observed !== undefined
+        && typeof optionSnapshot.taskpane_self_observed !== "boolean") return null;
     const item = validEnvelope(body);
-    if (!item || !authoritativeReady(item)) return null;
+    if (!item || (!authoritativeReady(item)
+        && !(taskpaneSelfObserved && taskpaneSelfObservedReady(item)))) return null;
     const principalRef = item.identity_binding?.principal_ref;
     const installation = item.installation;
     if (

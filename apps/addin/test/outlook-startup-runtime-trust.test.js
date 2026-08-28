@@ -58,7 +58,8 @@ for (const mismatch of [
   {
     name: "delegated state version",
     patch: { readiness: readyOutlookReadinessResponse({ delegatedConnectionStateVersion: 8 }) },
-    reason: "account_mismatch",
+    reason: "transient_failure",
+    state: "deferred",
   },
 ]) {
   test(`${mismatch.name} mismatch invalidates old READY without prepare`, async () => {
@@ -66,11 +67,40 @@ for (const mismatch of [
     const fixture = startupFixture({ store, ...mismatch.patch });
     const runtime = await subject();
     const result = await runtime.startOutlookStartup(fixture.input);
-    assert.deepEqual([result.state, result.reason], ["revoked", mismatch.reason]);
+    assert.deepEqual([result.state, result.reason], [mismatch.state ?? "revoked", mismatch.reason]);
     assert.equal(fixture.events.includes("/api/outlook/bootstrap"), false);
     assert.equal(store.raw(), null);
   });
 }
+
+test("a loaded task pane completes startup when only external delivery receipts are unknown", async () => {
+  const readiness = readyOutlookReadinessResponse();
+  readiness.item.enterprise_app_assignment = {
+    state: "unknown", authoritative: false, source: null, observed_at: null,
+  };
+  readiness.item.central_deployment = {
+    state: "unknown",
+    authoritative: false,
+    product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+    manifest_version: null,
+    source: null,
+    observed_at: null,
+  };
+  readiness.item.client_propagation = {
+    state: "unknown", authoritative: false, source: null, observed_at: null,
+  };
+  readiness.item.next_action = "contact_admin";
+  readiness.item.safe_error_codes = [
+    "OUTLOOK_READINESS_ASSIGNMENT_UNKNOWN",
+    "OUTLOOK_READINESS_DEPLOYMENT_UNKNOWN",
+    "OUTLOOK_READINESS_PROPAGATION_UNKNOWN",
+  ];
+  const fixture = startupFixture({ readiness });
+  const runtime = await subject();
+  const result = await runtime.startOutlookStartup(fixture.input);
+  assert.deepEqual([result.state, result.reason], ["ready", null]);
+  assert.equal(fixture.events.filter((event) => event === "/api/outlook/bootstrap").length, 1);
+});
 
 test("installation revocation invalidates READY and never runs bootstrap", async () => {
   const store = await readyStore();

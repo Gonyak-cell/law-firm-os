@@ -308,6 +308,72 @@ test("startup binding parser fails closed for explicit revoked release extras", 
   assert.equal(parseOutlookStartupBinding(revoked), null);
 });
 
+test("a running task pane can supply only the three missing external delivery observations", () => {
+  const taskpaneObserved = response({
+    enterprise_app_assignment: {
+      state: "unknown",
+      authoritative: false,
+      source: null,
+      observed_at: null,
+    },
+    central_deployment: {
+      state: "unknown",
+      authoritative: false,
+      product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      manifest_version: null,
+      source: null,
+      observed_at: null,
+    },
+    client_propagation: {
+      state: "unknown",
+      authoritative: false,
+      source: null,
+      observed_at: null,
+    },
+    next_action: "contact_admin",
+    safe_error_codes: [
+      "OUTLOOK_READINESS_ASSIGNMENT_UNKNOWN",
+      "OUTLOOK_READINESS_DEPLOYMENT_UNKNOWN",
+      "OUTLOOK_READINESS_PROPAGATION_UNKNOWN",
+    ],
+  });
+  assert.equal(parseOutlookStartupBinding(taskpaneObserved), null);
+  assert.deepEqual(parseOutlookStartupBinding(taskpaneObserved, {
+    principal_ref: PRINCIPAL_REF,
+    taskpane_self_observed: true,
+  }), {
+    principal_ref: PRINCIPAL_REF,
+    installation_id: INSTALLATION_ID,
+    installation_state_version: 4,
+    delegated_connection_state_version: 7,
+  });
+  assert.equal(parseOutlookStartupBinding(response({
+    ...taskpaneObserved.item,
+    safe_error_codes: [
+      ...taskpaneObserved.item.safe_error_codes,
+      "OUTLOOK_READINESS_CONNECTION_EXPIRED",
+    ],
+  }), { taskpane_self_observed: true }), null);
+  assert.equal(parseOutlookStartupBinding(response({
+    ...taskpaneObserved.item,
+    safe_error_codes: [
+      "OUTLOOK_READINESS_ASSIGNMENT_UNKNOWN",
+      "OUTLOOK_READINESS_ASSIGNMENT_UNKNOWN",
+      "OUTLOOK_READINESS_PROPAGATION_UNKNOWN",
+    ],
+  }), { taskpane_self_observed: true }), null);
+  assert.equal(parseOutlookStartupBinding(response({
+    ...taskpaneObserved.item,
+    central_deployment: {
+      ...taskpaneObserved.item.central_deployment,
+      product_id: "952431be-51b8-42a2-9bf6-769a15934e85",
+    },
+  }), { taskpane_self_observed: true }), null);
+  assert.equal(parseOutlookStartupBinding(taskpaneObserved, {
+    taskpane_self_observed: "true",
+  }), null);
+});
+
 test("interaction-required response becomes the exact Microsoft confirmation action", () => {
   const result = presentOutlookReadiness(response({
     delegated_connection: { state: "reauthorization_required" },

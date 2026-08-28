@@ -164,11 +164,26 @@ export function classifyOutlookStartupAuthority({
       presentation,
     });
   }
+  const readinessPrincipalRef = readinessSnapshot?.item
+    ?.identity_binding?.principal_ref;
+  if (readinessSnapshot?.item?.identity_binding?.state === "mismatch"
+      || (PRINCIPAL_REF.test(readinessPrincipalRef ?? "")
+        && readinessPrincipalRef !== identity?.principal_ref)) {
+    return outcome("revoked", "account_mismatch", {
+      authenticated: true,
+      connection: frozenConnection,
+      presentation,
+    });
+  }
   const projected = parseOutlookStartupBinding(readinessSnapshot, {
     principal_ref: identity?.principal_ref,
+    // Reaching this line means the Outlook task pane itself is running. That
+    // is the per-client observation when the server has no external M365
+    // assignment/deployment/propagation receipt yet.
+    taskpane_self_observed: true,
   });
   if (!projected || projected.delegated_connection_state_version !== connection.stateVersion) {
-    return outcome("revoked", "account_mismatch", {
+    return outcome("deferred", "transient_failure", {
       authenticated: true,
       connection: frozenConnection,
       presentation,
