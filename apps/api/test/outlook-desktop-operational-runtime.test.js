@@ -58,6 +58,12 @@ test("default factory eagerly binds the exact 007 authority and write-capable as
     runtime.installation_service.authority,
     "postgres-outlook-desktop-installation-authority",
   );
+  assert.deepEqual(
+    ["register", "heartbeat", "retire"].map(
+      (method) => typeof runtime.legacy_installation_service[method],
+    ),
+    ["function", "function", "function"],
+  );
   assert.equal("installation_service_factory" in runtime, false);
   assert.deepEqual(
     await runtime.installation_service.projectAssignmentState({

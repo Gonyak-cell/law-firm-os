@@ -7,6 +7,9 @@ import {
   createPostgresOutlookDesktopInstallationAuthorityService,
 } from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-authority-service.js";
 import {
+  createPostgresOutlookDesktopInstallationService,
+} from "../../../packages/email-dms/src/postgres-outlook-desktop-installation-service.js";
+import {
   assertPostgresOutlookDesktopLifecycleAuthority,
   createPostgresOutlookDesktopLifecycleAuthority,
 } from "../../../packages/email-dms/src/postgres-outlook-desktop-lifecycle-authority.js";
@@ -232,12 +235,17 @@ export function createPostgresOutlookDesktopOperationalRuntime(options = {}) {
       tenant_id: tenantId,
     }),
   );
+  const legacyInstallationService = createPostgresOutlookDesktopInstallationService({
+    pool: appPool,
+    tenant_id: tenantId,
+  });
   return Object.freeze({
     activation_enabled: activationService !== null,
     entitlement_roster: value.entitlement_roster,
     entra_tenant_id: value.entra_tenant_id ?? null,
     activation_service: activationService,
     installation_service: installationService,
+    legacy_installation_service: legacyInstallationService,
     lifecycle_port: activationSupplied
       ? value.outlookDesktopLifecycleControlPort
       : null,
