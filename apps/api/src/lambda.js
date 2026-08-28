@@ -4606,6 +4606,24 @@ function safeOutlookFailureRoute(path) {
   const normalizedPath = String(path ?? "").replace(/\/+$/u, "") || "/";
   const exact = OUTLOOK_FAILURE_ROUTES.get(normalizedPath);
   if (exact) return { operation: exact[0], path: exact[1] };
+  if (normalizedPath === "/api/desktop/installations") {
+    return {
+      operation: "desktop_installation_register",
+      path: "/api/desktop/installations",
+    };
+  }
+  const desktopLifecycle = normalizedPath.match(
+    /^\/api\/desktop\/installations\/[^/]+(?:\/(heartbeat|retire))?$/u,
+  );
+  if (desktopLifecycle) {
+    const action = desktopLifecycle[1] ?? "read";
+    return {
+      operation: `desktop_installation_${action}`,
+      path: action === "read"
+        ? "/api/desktop/installations/:id"
+        : `/api/desktop/installations/:id/${action}`,
+    };
+  }
   const matterRead = normalizedPath.match(
     /^\/api\/outlook\/matters\/[^/]+\/(documents|timeline)$/u,
   );

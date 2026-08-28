@@ -443,6 +443,24 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
     status: 409,
   });
   assert.equal(logs[3].includes("CLIENT_SECRET_ABC123"), false);
+
+  await lambdaHandler({
+    rawPath: "/api/desktop/installations/odi_PRIVATE_DEVICE_ID/heartbeat",
+    requestContext: {
+      requestId: "aws-request-outlook-5",
+      http: { method: "POST" },
+    },
+  });
+  assert.deepEqual(JSON.parse(logs[4]), {
+    event: "lawos.outlook.request_failed",
+    method: "POST",
+    operation: "desktop_installation_heartbeat",
+    path: "/api/desktop/installations/:id/heartbeat",
+    request_id: "aws-request-outlook-5",
+    safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
+    status: 409,
+  });
+  assert.equal(logs[4].includes("PRIVATE_DEVICE_ID"), false);
 });
 
 async function createDurableStorePaths(root) {
