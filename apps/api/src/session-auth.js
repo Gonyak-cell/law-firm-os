@@ -1050,6 +1050,9 @@ export function createApiSessionAuth({
       credential_rev: record.credential_rev,
       credential_status: credentialStatus,
       must_change_password: credentialStatus === "must_change",
+      federated_subject_id: centralIdentityRepository
+        ? record.federated_subject_id ?? null
+        : null,
     });
   }
 
@@ -1087,10 +1090,7 @@ export function createApiSessionAuth({
         : verifiedFederatedCredential
           ? "phishing-resistant-mfa"
           : "password",
-      federated_subject_id:
-        verifiedOfficeSsoCredential || verifiedFederatedCredential
-          ? record.federated_subject_id
-          : null,
+      federated_subject_id: record.federated_subject_id ?? null,
     });
   }
 
