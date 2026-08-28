@@ -101,6 +101,25 @@ test("a 403 account block never opens a popup and becomes a revoked account outc
   assert.equal(JSON.stringify(result).includes("provider detail"), false);
 });
 
+test("an unrelated 403 never asks the user to log in again", async () => {
+  const fixture = startupFixture();
+  const calls = withSessionPolicy(fixture, {
+    silent: signedSession(),
+  });
+  fixture.input.requestJson = async () => {
+    throw Object.assign(new Error("private database detail"), {
+      status: 403,
+      safe_error_code: "POSTGRES_ACCESS_DENIED",
+    });
+  };
+  const runtime = await subject();
+  const result = await runtime.startOutlookStartup(fixture.input);
+
+  assert.deepEqual([result.state, result.reason], ["deferred", "transient_failure"]);
+  assert.deepEqual(calls, [{ interactive: false, force: false }]);
+  assert.equal(JSON.stringify(result).includes("private database detail"), false);
+});
+
 for (const status of [0, 408, 429, 503]) {
   test(`transient auth status ${status} defers with zero popup`, async () => {
     const fixture = startupFixture();

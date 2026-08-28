@@ -50,7 +50,7 @@ const TERMINAL_INVALIDATORS = Object.freeze([
   Object.freeze({
     id: "startup-403",
     fixture: () => ({ failPath: "/api/outlook/readiness", failStatus: 403 }),
-    expected: ["revoked", "account_mismatch", true],
+    expected: ["deferred", "transient_failure", true],
   }),
   Object.freeze({
     id: "release-revoked",

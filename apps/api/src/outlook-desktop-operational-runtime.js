@@ -41,6 +41,7 @@ const REQUIRED_METHODS = Object.freeze([
   "heartbeat",
   "retire",
   "read",
+  "readCurrent",
   "readTrustedCurrent",
   "projectAssignmentState",
 ]);
@@ -66,6 +67,20 @@ export const OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY =
     platform: "win32",
     source_sha: "4df77e1848b52ea455f20b41b9b1c64961bfa1cf",
   });
+const CURRENT_INSTALLATION_KEYS = Object.freeze([
+  "installation_id",
+  "status",
+  "platform",
+  "app_version",
+  "source_sha",
+  "registered_at",
+  "last_seen_at",
+  "lease_expires_at",
+  "retired_at",
+  "retire_reason",
+  "state_version",
+]);
+const INSTALLATION_ID = /^odi_[A-Za-z0-9_-]{20,128}$/u;
 
 function exactDataObject(value, keys, label, { allowMissing = false } = {}) {
   if (!value || typeof value !== "object" || Array.isArray(value)
@@ -108,16 +123,6 @@ function exactAuthorityService(service) {
   return service;
 }
 
-function samePrincipal(left, right) {
-  return Boolean(
-    left
-    && right
-    && left.tenant_id === right.tenant_id
-    && left.user_id === right.user_id
-    && left.entra_subject_id === right.entra_subject_id,
-  );
-}
-
 function rosterAllowsInternalCanary(principal, roster) {
   return evaluateOutlookDesktopEntitlement({
     principal: Object.freeze({
@@ -130,18 +135,50 @@ function rosterAllowsInternalCanary(principal, roster) {
   }).eligible === true;
 }
 
+function approvedInternalCurrent(value) {
+  let current;
+  try {
+    current = exactDataObject(
+      value,
+      CURRENT_INSTALLATION_KEYS,
+      "current Outlook desktop installation",
+    );
+  } catch {
+    return null;
+  }
+  const authoritySnapshotAt = new Date();
+  const leaseExpiresAt = new Date(current.lease_expires_at);
+  if (
+    !INSTALLATION_ID.test(current.installation_id)
+    || current.status !== "active"
+    || current.platform
+      !== OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY.platform
+    || current.app_version
+      !== OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY.app_version
+    || current.source_sha
+      !== OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY.source_sha
+    || !Number.isSafeInteger(current.state_version)
+    || current.state_version < 1
+    || current.retired_at !== null
+    || !Number.isFinite(leaseExpiresAt.getTime())
+    || leaseExpiresAt <= authoritySnapshotAt
+  ) return null;
+  return Object.freeze({
+    installation_id: current.installation_id,
+    status: current.status,
+    state_version: current.state_version,
+    lease_expires_at: leaseExpiresAt.toISOString(),
+    retired_at: null,
+    release_trusted: true,
+    authority_snapshot_at: authoritySnapshotAt.toISOString(),
+  });
+}
+
 export function createOutlookDesktopTrustedCurrentCompatibilityService({
   authority_service: authorityServiceInput,
-  legacy_installation_service: legacyInstallationService,
   entitlement_roster: entitlementRoster,
 } = {}) {
   const authorityService = exactAuthorityService(authorityServiceInput);
-  if (
-    typeof legacyInstallationService?.readApprovedInternalCurrent
-    !== "function"
-  ) {
-    throw new TypeError("approved internal installation service is required");
-  }
   return Object.freeze({
     ...authorityService,
     async readTrustedCurrent(input = {}) {
@@ -152,22 +189,14 @@ export function createOutlookDesktopTrustedCurrentCompatibilityService({
       } catch (error) {
         strictError = error;
       }
+      if (!rosterAllowsInternalCanary(input?.principal, entitlementRoster)) {
+        if (strictError) throw strictError;
+        return null;
+      }
       let fallback;
       try {
-        fallback = await legacyInstallationService.readApprovedInternalCurrent(
-          input,
-          {
-            authorize: async ({
-              operation,
-              principal,
-              installation_id: installationId,
-            }) => (
-              operation === "read"
-              && installationId === "CURRENT"
-              && samePrincipal(principal, input?.principal)
-              && rosterAllowsInternalCanary(principal, entitlementRoster)
-            ),
-          },
+        fallback = approvedInternalCurrent(
+          await authorityService.readCurrent(input),
         );
       } catch (fallbackError) {
         if (strictError) throw strictError;
@@ -320,13 +349,10 @@ export function createPostgresOutlookDesktopOperationalRuntime(options = {}) {
   const legacyInstallationService = createPostgresOutlookDesktopInstallationService({
     pool: appPool,
     tenant_id: tenantId,
-    internal_canary_package_identity:
-      OUTLOOK_DESKTOP_WINDOWS_INTERNAL_CANARY_PACKAGE_IDENTITY,
   });
   const installationService =
     createOutlookDesktopTrustedCurrentCompatibilityService({
       authority_service: authorityInstallationService,
-      legacy_installation_service: legacyInstallationService,
       entitlement_roster: value.entitlement_roster,
     });
   return Object.freeze({

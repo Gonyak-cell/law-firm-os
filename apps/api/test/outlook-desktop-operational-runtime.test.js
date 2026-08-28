@@ -40,7 +40,7 @@ function exactRoster() {
   });
 }
 
-function authorityService(readTrustedCurrent) {
+function authorityService(readTrustedCurrent, readCurrent = async () => null) {
   const noop = async () => null;
   return Object.freeze({
     authority: "postgres-outlook-desktop-installation-authority",
@@ -48,49 +48,58 @@ function authorityService(readTrustedCurrent) {
     heartbeat: noop,
     retire: noop,
     read: noop,
+    readCurrent,
     readTrustedCurrent,
     projectAssignmentState: noop,
   });
 }
 
-test("trusted-current compatibility prefers 007 and narrowly falls back to the exact-ten internal canary", async () => {
-  const internalCanary = Object.freeze({
+test("trusted-current compatibility reuses the existing principal-bound read for the exact-ten internal canary", async () => {
+  const internalCanaryCurrent = Object.freeze({
     installation_id: "odi_operational_canary_000001",
     status: "active",
+    platform: "win32",
+    app_version: "0.1.29",
+    source_sha: "4df77e1848b52ea455f20b41b9b1c64961bfa1cf",
+    registered_at: "2026-08-27T00:00:00.000Z",
+    last_seen_at: "2026-08-28T00:00:00.000Z",
     state_version: 2,
     lease_expires_at: "2099-01-08T00:00:00.000Z",
     retired_at: null,
-    release_trusted: true,
-    authority_snapshot_at: "2099-01-01T00:00:00.000Z",
+    retire_reason: null,
   });
   let fallbackCalls = 0;
-  const legacy = Object.freeze({
-    async readApprovedInternalCurrent(input, { authorize }) {
+  const readCurrent = async (input) => {
       fallbackCalls += 1;
-      assert.equal(await authorize({
-        operation: "read",
-        principal: input.principal,
-        installation_id: "CURRENT",
-      }), true);
-      return internalCanary;
-    },
-  });
+      assert.equal(input.principal, PRINCIPAL);
+      return internalCanaryCurrent;
+  };
   const compatibility =
     createOutlookDesktopTrustedCurrentCompatibilityService({
-      authority_service: authorityService(async () => null),
-      legacy_installation_service: legacy,
+      authority_service: authorityService(async () => null, readCurrent),
       entitlement_roster: exactRoster(),
     });
+  const compatible = await compatibility.readTrustedCurrent({
+    principal: PRINCIPAL,
+  });
+  assert.deepEqual(compatible, {
+    installation_id: internalCanaryCurrent.installation_id,
+    status: "active",
+    state_version: 2,
+    lease_expires_at: internalCanaryCurrent.lease_expires_at,
+    retired_at: null,
+    release_trusted: true,
+    authority_snapshot_at: compatible.authority_snapshot_at,
+  });
   assert.equal(
-    await compatibility.readTrustedCurrent({ principal: PRINCIPAL }),
-    internalCanary,
+    new Date(compatible.authority_snapshot_at).toISOString(),
+    compatible.authority_snapshot_at,
   );
   assert.equal(fallbackCalls, 1);
 
-  const strict = Object.freeze({ ...internalCanary, state_version: 9 });
+  const strict = Object.freeze({ ...compatible, state_version: 9 });
   const strictFirst = createOutlookDesktopTrustedCurrentCompatibilityService({
-    authority_service: authorityService(async () => strict),
-    legacy_installation_service: legacy,
+    authority_service: authorityService(async () => strict, readCurrent),
     entitlement_roster: exactRoster(),
   });
   assert.equal(
@@ -103,15 +112,27 @@ test("trusted-current compatibility prefers 007 and narrowly falls back to the e
     safe_error_code: "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
   });
   const failClosed = createOutlookDesktopTrustedCurrentCompatibilityService({
-    authority_service: authorityService(async () => { throw strictFailure; }),
-    legacy_installation_service: Object.freeze({
-      async readApprovedInternalCurrent() { return null; },
-    }),
+    authority_service: authorityService(
+      async () => { throw strictFailure; },
+      async () => null,
+    ),
     entitlement_roster: exactRoster(),
   });
   await assert.rejects(
     failClosed.readTrustedCurrent({ principal: PRINCIPAL }),
     (error) => error === strictFailure,
+  );
+
+  const wrongPackage = createOutlookDesktopTrustedCurrentCompatibilityService({
+    authority_service: authorityService(
+      async () => null,
+      async () => ({ ...internalCanaryCurrent, source_sha: "5".repeat(40) }),
+    ),
+    entitlement_roster: exactRoster(),
+  });
+  assert.equal(
+    await wrongPackage.readTrustedCurrent({ principal: PRINCIPAL }),
+    null,
   );
 });
 

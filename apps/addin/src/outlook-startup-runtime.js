@@ -123,6 +123,18 @@ function classificationForError(error, authenticated = false) {
   const code = ownData(error, "safe_error_code");
   if (status === 403) {
     const installation = typeof code === "string" && /(INSTALLATION|RELEASE)/u.test(code);
+    const account = typeof code === "string" && (
+      /^AUTH_(?:ACCOUNT_DISABLED|ENTRA_SUBJECT_MISMATCH)$/u.test(code)
+      || /^AUTH_OFFICE_SSO_(?:ACCOUNT_DISABLED|ACCOUNT_UNBOUND|ACCOUNT_UNMAPPED|BINDING_AMBIGUOUS|SUBJECT_MISMATCH)$/u.test(code)
+      || code === "OUTLOOK_ACCOUNT_MISMATCH"
+    );
+    if (!installation && !account) {
+      return frozenResult({
+        state: "deferred",
+        reason: "transient_failure",
+        authenticated,
+      });
+    }
     return frozenResult({
       state: "revoked",
       reason: installation ? "installation_revoked" : "account_mismatch",

@@ -25,11 +25,6 @@ const BODY_FIELDS = Object.freeze({
   heartbeat: Object.freeze(["expected_state_version"]),
   retire: Object.freeze(["expected_state_version", "retire_reason"]),
 });
-const INTERNAL_CANARY_PACKAGE_FIELDS = Object.freeze([
-  "app_version",
-  "platform",
-  "source_sha",
-]);
 
 function serviceError(code, reason, status = 400) {
   return Object.assign(new Error(reason), {
@@ -49,27 +44,6 @@ function isPlainObject(value) {
   }
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
-}
-
-function internalCanaryPackageIdentity(value) {
-  if (value === undefined) return null;
-  if (
-    !isPlainObject(value)
-    || JSON.stringify(Object.keys(value).sort())
-      !== JSON.stringify([...INTERNAL_CANARY_PACKAGE_FIELDS].sort())
-    || value.platform !== "win32"
-    || typeof value.app_version !== "string"
-    || !/^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/u.test(value.app_version)
-    || typeof value.source_sha !== "string"
-    || !/^[a-f0-9]{40}$/u.test(value.source_sha)
-  ) {
-    throw new TypeError("internal_canary_package_identity is invalid");
-  }
-  return Object.freeze({
-    app_version: value.app_version,
-    platform: value.platform,
-    source_sha: value.source_sha,
-  });
 }
 
 function identifier(value, field) {
@@ -503,7 +477,6 @@ export function createPostgresOutlookDesktopInstallationService({
   ),
   event_id_factory: eventIdFactory = randomUUID,
   fault_injector: faultInjector,
-  internal_canary_package_identity: internalCanaryPackageIdentityInput,
 } = {}) {
   if (!pool?.connect) throw new TypeError("PostgreSQL pool is required");
   const tenantId = identifier(tenantIdInput, "tenant_id");
@@ -516,9 +489,6 @@ export function createPostgresOutlookDesktopInstallationService({
   if (faultInjector !== undefined && typeof faultInjector !== "function") {
     throw new TypeError("fault_injector must be a function");
   }
-  const approvedInternalCanary = internalCanaryPackageIdentity(
-    internalCanaryPackageIdentityInput,
-  );
   const tx = (callback, options = {}) => withPostgresTransaction(pool, {
     tenant_id: tenantId,
     isolationLevel: "serializable",
@@ -877,89 +847,6 @@ export function createPostgresOutlookDesktopInstallationService({
     }, { readOnly: true });
   }
 
-  async function readApprovedInternalCurrent(
-    { principal } = {},
-    { authorize } = {},
-  ) {
-    const context = commandContext({
-      principal,
-      request_id: "outlook-desktop-read-approved-internal-current",
-      request: null,
-      signature: null,
-    }, tenantId);
-    await authorizeOperation(authorize, "read", context, "CURRENT");
-    if (!approvedInternalCanary) return null;
-    return tx(async (client) => {
-      const now = await databaseNow(client);
-      const row = (await client.query(
-        `SELECT installation.*,
-                EXISTS (
-                  SELECT 1
-                    FROM lawos_email_dms.outlook_desktop_installation_audit_events AS audit
-                    JOIN lawos_email_dms.outlook_desktop_installation_idempotency AS receipt
-                      ON receipt.tenant_id=audit.tenant_id
-                     AND receipt.user_id=audit.user_id
-                     AND receipt.installation_id=audit.installation_id
-                     AND receipt.idempotency_key=audit.idempotency_key
-                    JOIN lawos_email_dms.outlook_desktop_installation_nonces AS nonce
-                      ON nonce.tenant_id=receipt.tenant_id
-                     AND nonce.installation_id=receipt.installation_id
-                     AND nonce.idempotency_key=receipt.idempotency_key
-                     AND nonce.request_fingerprint=receipt.request_fingerprint
-                   WHERE audit.tenant_id=installation.tenant_id
-                     AND audit.installation_id=installation.installation_id
-                     AND audit.user_id=installation.user_id
-                     AND audit.entra_subject_id=installation.entra_subject_id
-                     AND audit.state_version=installation.state_version
-                     AND audit.event_type IN ('registered','heartbeat','resumed')
-                     AND receipt.operation IN ('register','heartbeat')
-                     AND receipt.response_status BETWEEN 200 AND 299
-                ) AS signed_lifecycle_present
-           FROM lawos_email_dms.outlook_desktop_installations AS installation
-          WHERE installation.tenant_id=$1
-            AND installation.user_id=$2
-            AND installation.entra_subject_id=$3
-          ORDER BY
-            CASE
-              WHEN installation.retired_at IS NULL
-                AND installation.lease_expires_at>$4 THEN 0
-              WHEN installation.retired_at IS NULL THEN 1
-              ELSE 2
-            END,
-            installation.last_seen_at DESC,
-            installation.registered_at DESC,
-            installation.installation_id DESC
-          LIMIT 1`,
-        [
-          tenantId,
-          context.principal.user_id,
-          context.principal.entra_subject_id,
-          now,
-        ],
-      )).rows[0];
-      const installation = installationFromRow(row);
-      if (!installation || row.signed_lifecycle_present !== true) return null;
-      assertOutlookDesktopInstallationBinding(installation, {
-        ...context.principal,
-        device_key_fingerprint: installation.device_key_fingerprint,
-      });
-      if (
-        installation.platform !== approvedInternalCanary.platform
-        || installation.app_version !== approvedInternalCanary.app_version
-        || installation.source_sha !== approvedInternalCanary.source_sha
-      ) {
-        return null;
-      }
-      const projection = projectOutlookDesktopInstallation(installation, { now });
-      if (projection.status !== "active") return null;
-      return Object.freeze({
-        ...projection,
-        release_trusted: true,
-        authority_snapshot_at: now.toISOString(),
-      });
-    }, { readOnly: true });
-  }
-
   return Object.freeze({
     authority: "postgres-outlook-desktop-installation",
     durable: true,
@@ -968,6 +855,5 @@ export function createPostgresOutlookDesktopInstallationService({
     retire,
     read,
     readCurrent,
-    readApprovedInternalCurrent,
   });
 }
