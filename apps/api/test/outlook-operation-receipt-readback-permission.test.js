@@ -103,6 +103,75 @@ test("document permission denial blocks the documents route and receipt identifi
   assert.equal(bodyJson.includes("timeline:readback-a"), false);
 });
 
+test("hosted Vault provider is authoritative for Outlook exact-version document reads", async () => {
+  const fixture = runtimeFixture();
+  const providerCalls = [];
+  const providerDocumentId = "document:hosted-vault";
+  const response = await handleOutlookAddinApiRequest({
+    pathname: `/api/outlook/matters/${MATTER}/documents`,
+    method: "GET",
+    query: { tenant_id: TENANT },
+    requestId: "request:documents-hosted-vault",
+    context: fixture.context,
+    runtime: {
+      ...fixture.runtime,
+      vaultUploadProvider: {
+        async listDocuments(input) {
+          providerCalls.push(input);
+          return {
+            items: [{
+              document_id: providerDocumentId,
+              matter_id: MATTER,
+              title: "Hosted Vault document",
+              current_version_id: "version:hosted-vault",
+              version_id: "version:hosted-vault",
+              current_file_object_id: "file:hosted-vault",
+              file_object_id: "file:hosted-vault",
+              latest_sha256: "d".repeat(64),
+              content_sha256: "d".repeat(64),
+              current_byte_size: 1_272,
+              byte_size: 1_272,
+              current_mime_type: "application/pdf",
+              mime_type: "application/pdf",
+              filename: "hosted-vault.pdf",
+              indexed_at: null,
+              match_fields: ["title"],
+            }],
+          };
+        },
+      },
+    },
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(providerCalls, [{
+    principal: { tenant_id: TENANT, user_id: fixture.context.principal.user_id },
+    lawos_matter_id: MATTER,
+    page: 1,
+    page_size: 50,
+  }]);
+  assert.deepEqual(response.body.items, [{
+    document_id: providerDocumentId,
+    matter_id: MATTER,
+    title: "Hosted Vault document",
+    folder_id: null,
+    current_version_id: "version:hosted-vault",
+    latest_sha256: "d".repeat(64),
+    document_bytes_included: false,
+    storage_pointer_ref_included: false,
+    production_ready_claim: false,
+    exact_version_available: true,
+    exact_version: {
+      document_id: providerDocumentId,
+      version_id: "version:hosted-vault",
+      file_object_id: "file:hosted-vault",
+      sha256: "d".repeat(64),
+      byte_size: 1_272,
+      mime_type: "application/pdf",
+    },
+  }]);
+});
+
 test("document authorization precedes provider integrity and remounts only allowed attachments", async () => {
   const fixture = runtimeFixture();
   seedOperationSpecificReceipts(fixture);
