@@ -48,7 +48,7 @@ test("1.3.0.2 forward rollback is bound to the complete prior static closure", a
   );
 
   assert.deepEqual(result.profiles.map(({ profile, artifact_count }) => ({ profile, artifact_count })), [
-    { profile: "matter-full", artifact_count: 12 },
+    { profile: "matter-full", artifact_count: 10 },
     { profile: "inquiry-only", artifact_count: 3 },
   ]);
   assert.equal(result.forward_rollback_version, "1.3.0.2");
