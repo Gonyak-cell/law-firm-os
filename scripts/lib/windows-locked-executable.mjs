@@ -16,6 +16,7 @@ export const WINDOWS_LOCKED_EXECUTABLE_PROTOCOL = "lawos.windows-locked-executab
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const DEFAULT_TIMEOUT_MS = 45_000;
+const RELEASE_RESPONSE_GRACE_MS = 5_000;
 
 export class WindowsLockedExecutableError extends Error {
   constructor(code, message, details = {}) {
@@ -876,18 +877,21 @@ class JsonPowerShellTransport {
     try { this.child.kill(); } catch {}
   }
 
-  request(operation, payload = {}) {
+  request(operation, payload = {}, { timeoutMs = this.timeoutMs } = {}) {
     if (this.closed || this.child.stdin.destroyed) {
       return Promise.reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_CLOSED", "PowerShell locked executable helper is closed"));
     }
     if (this.pending) return Promise.reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_PROTOCOL", "locked executable requests must be sequential"));
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) {
+      return Promise.reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_TIMEOUT", "locked executable request timeout must be a positive integer"));
+    }
     const request = { protocol: WINDOWS_LOCKED_EXECUTABLE_PROTOCOL, id: this.nextId++, operation, ...payload };
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending = null;
         this.terminateHelper();
         reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_TIMEOUT", `locked executable operation timed out: ${operation}`));
-      }, this.timeoutMs);
+      }, timeoutMs);
       this.pending = { resolve, reject, timer, id: request.id };
       this.child.stdin.write(`${JSON.stringify(request)}\n`);
     });
@@ -976,7 +980,9 @@ export class WindowsLockedExecutableSession {
 
   async abort() {
     if (this.released) return this.abortEvidence;
-    const evidence = validateAbort(await this.transport.request("abort"));
+    const evidence = validateAbort(await this.transport.request("abort", {}, {
+      timeoutMs: this.transport.timeoutMs + RELEASE_RESPONSE_GRACE_MS,
+    }));
     this.released = true;
     this.abortEvidence = evidence;
     this.transport.child.stdin.end();
@@ -985,7 +991,9 @@ export class WindowsLockedExecutableSession {
 
   async release() {
     if (this.released) return this.releaseEvidence ?? this.abortEvidence;
-    const response = validateRelease(await this.transport.request("release"));
+    const response = validateRelease(await this.transport.request("release", {}, {
+      timeoutMs: this.transport.timeoutMs + RELEASE_RESPONSE_GRACE_MS,
+    }));
     this.released = true;
     this.releaseEvidence = response;
     this.transport.child.stdin.end();

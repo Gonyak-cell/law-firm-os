@@ -16,7 +16,7 @@ import { matterDesktopAuthenticodePowerShell } from "../lib/matter-desktop-authe
 const HASH = "a".repeat(64);
 
 class FakePowerShell extends EventEmitter {
-  constructor({ failLaunch = false, failAbort = false, projectDictionaryMetadata = false } = {}) {
+  constructor({ failLaunch = false, failAbort = false, projectDictionaryMetadata = false, responseDelayMs = {} } = {}) {
     super();
     this.stdout = new PassThrough();
     this.stderr = new PassThrough();
@@ -29,6 +29,7 @@ class FakePowerShell extends EventEmitter {
     this.failLaunch = failLaunch;
     this.failAbort = failAbort;
     this.projectDictionaryMetadata = projectDictionaryMetadata;
+    this.responseDelayMs = responseDelayMs;
     this.responses = [];
     this.stdin.on("data", (chunk) => {
       for (const line of String(chunk).split(/\r?\n/u).filter(Boolean)) {
@@ -112,13 +113,13 @@ class FakePowerShell extends EventEmitter {
           };
         }
         this.responses.push(response);
-        setImmediate(() => {
+        setTimeout(() => {
           this.stdout.write(`${JSON.stringify(response)}\n`);
           if (["release", "abort"].includes(request.operation) && response.ok === true) {
             this.stdout.end();
             this.emit("close", 0, null);
           }
-        });
+        }, this.responseDelayMs[request.operation] ?? 0);
       }
     });
   }
@@ -247,6 +248,19 @@ test("compressed PowerShell bootstrap reconstructs the exact helper below the Wi
   );
   assert.deepEqual(spawnCall.options.stdio, ["pipe", "pipe", "pipe"]);
   await session.release();
+});
+
+test("release response timeout includes bounded process-tree drain headroom", async () => {
+  const child = new FakePowerShell({ responseDelayMs: { release: 1_100 } });
+  const session = await openWindowsLockedExecutable({
+    executablePath: "C:\\runner\\matter.exe",
+    expectedSha256: HASH,
+    platform: "win32",
+    spawnPowerShell: () => child,
+    timeoutMs: 1_000,
+  });
+  assert.deepEqual(await session.release(), { released: true });
+  assert.equal(session.released, true);
 });
 
 test("dictionary metadata projection cannot satisfy the closed helper protocol", async () => {
