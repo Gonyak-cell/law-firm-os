@@ -73,6 +73,10 @@ import {
   createMicrosoftEgressBrokerTransport,
 } from "./microsoft-egress-broker-transport.js";
 import {
+  LAWOS_AMIC_VAULT_EGRESS_BROKER_ENABLED_ENV,
+  createAmicVaultEgressBrokerFetch,
+} from "./amic-vault-egress-broker-transport.js";
+import {
   handleOutlookConversationMaintenanceEvent,
   LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
 } from "./outlook-conversation-maintenance-invocation.js";
@@ -934,6 +938,7 @@ export async function resolveLambdaAmicVaultProviders({
   env = process.env,
   client,
   fetchFn = globalThis.fetch,
+  createEgressBrokerFetchFn = createAmicVaultEgressBrokerFetch,
 } = {}) {
   const secretId = String(
     env[LAWOS_AMIC_VAULT_PROVIDER_TOKEN_SECRET_ID_ENV] ?? "",
@@ -950,15 +955,22 @@ export async function resolveLambdaAmicVaultProviders({
     [LAWOS_AMIC_VAULT_EXPORT_PROVIDER_TOKEN_ENV]: token,
   });
   const runtimeProfile = resolveRuntimeProfile(providerEnv);
+  const providerFetchFn = providerEnv[LAWOS_AMIC_VAULT_EGRESS_BROKER_ENABLED_ENV] === "true"
+    ? createEgressBrokerFetchFn({
+        region: providerEnv.AWS_REGION
+          ?? providerEnv.AWS_DEFAULT_REGION
+          ?? providerEnv.LAWOS_AWS_REGION,
+      })
+    : fetchFn;
   const vaultUploadProvider = resolveAmicVaultHttpUploadProvider({
     env: providerEnv,
     runtimeProfile,
-    fetchFn,
+    fetchFn: providerFetchFn,
   });
   const vaultExportProvider = resolveAmicVaultHttpExportProvider({
     env: providerEnv,
     runtimeProfile,
-    fetchFn,
+    fetchFn: providerFetchFn,
   });
   return Object.freeze({
     ...(vaultUploadProvider ? { vaultUploadProvider } : {}),

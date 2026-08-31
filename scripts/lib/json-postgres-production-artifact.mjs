@@ -123,6 +123,7 @@ export const JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES = Object.freeze([
   "apps/api/src/admin-permission-runtime-context.js",
   "apps/api/src/ai-runtime-context.js",
   "apps/api/src/amic-bank-classification-directory.js",
+  "apps/api/src/amic-vault-egress-broker-transport.js",
   "apps/api/src/amic-vault-exact-export-runtime.js",
   "apps/api/src/amic-vault-export-provider.js",
   "apps/api/src/amic-vault-http-export-provider.js",

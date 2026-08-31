@@ -176,6 +176,7 @@ jobs:
           --test-concurrency=1
           apps/api/test/client-outlook-https-callback.test.js
           apps/api/test/client-outlook-operational-runtime.test.js
+          apps/api/test/amic-vault-egress-broker-transport.test.js
           apps/api/test/microsoft-delegated-oauth-client.test.js
           apps/api/test/microsoft-egress-broker-transport.test.js
           apps/api/test/microsoft-office-sso-provider.test.js
